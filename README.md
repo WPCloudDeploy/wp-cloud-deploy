@@ -1,17 +1,76 @@
-# Description #
+# About WPCloudDeploy #
 
-**A WordPress plugin that allows you to deploy cloud servers and apps on those servers. **
+**WPCloudDeploy is a WordPress plugin that allows you to easily deploy servers at major cloud-server providers and then install apps on those servers. **
 
-This plugin makes it easy to deploy cloud servers and apps on those servers. Its extensible model sets it up to quickly add new apps that can be deployed in the future.
+The plugin makes it easy to deploy servers at major cloud server providers such as DigitalOcean, AWS and more.  However, the core plugin only includes support for DigitalOcean.  
+You can add additional support for EC2, LIGHTSAIL, LINODE, VULTR, UPCLOUD, HETZNER, EXOSCALE, GOOGLE, AZURE and ALIBABA by [purchasing a premium subscription](https://wpclouddeploy.com/pricing/). 
 
-###Features of the plugin include:###
+**It is primarily used to install and manage WordPress servers and applications.** But it also includes sample apps for just basic servers (i.e., servers with no additional apps) and OpenVPN servers.
 
-* APP: WordPress - deploy WordPress servers and sites from inside the WordPress dashboard.  
+Its extensible model sets it up for developers to add new apps that can be deployed in the future.
+
+All management features are available inside of wp-admin on your WordPress site.  Apart from the server providers, you do not need a 3rd party SaaS service to manage your servers and apps.
+
+[View a full list of WordPress-focused features](https://wpclouddeploy.com/features/)
+
+## Getting Started ##
+
+Download the zip file from this site and install it like you would any other WordPress plugin.
+
+Then, to install WordPress servers and sites, follow the [getting started documentation on the WPCloudDeploy site](https://wpclouddeploy.com/documentation/wpcloud-deploy/introduction-to-wpcloud-deploy/)
+
+## Documentation ##
+
+Full documentation is located on the WPCloudDeploy website.
+
+[Commonly used documentation](https://wpclouddeploy.com/doc-landing/)
+
+[All documentation](https://wpclouddeploy.com/documentation/wpcloud-deploy/introduction-to-wpcloud-deploy/)
+
+## Plugin Features ##
+
+Features of the plugin include:
+
+* APP: WordPress - **EXTENSIVE** support for deploying and managing WordPress servers and sites from inside the WordPress admin dashboard. This is the primary app type that this plugin supports.  
 * APP: OpenVPN - includes front-end purchase and management.
 * Integrated DigitalOcean Cloud Provider.
-* Extensible plugin model supports EC2, LIGHTSAIL, LINODE, VULTR, UPCLOUD, HETZNER, EXOSCALE and other cloud providers via additional plugins.
+* Extensible server provider model supports EC2, LIGHTSAIL, LINODE, VULTR, UPCLOUD, HETZNER, EXOSCALE and other cloud providers via additional plugins.
 
-### Change Log  ###
+## Roadmap ##
+
+[View the official roadmap on Trello](https://trello.com/b/pYl53rvM/wpcloud-deploy-public-roadmap)
+
+## Requirements ##
+* WordPress 5.6 or later
+* PHP 7.4 (8.0 is not supported)
+
+Once the plugin is installed please view additional changes required to PHP and web server execution timeout values under the WPCLOUDDEPLOY->SETTINGS->GENERAL SETTINGS tab.
+You can also view all requirements at the bottom of our [getting started documentation](https://wpclouddeploy.com/documentation/wpcloud-deploy/introduction-to-wpcloud-deploy/) or in the [requirements documentation](https://wpclouddeploy.com/documentation/wpcloud-deploy/requirements/)
+
+## Premium Versions ##
+
+A premium version of this plugin is available on the WPCloudDeploy website.  You can view the additional features offered on the [pricing page.](https://wpclouddeploy.com/pricing/)
+
+Premium features include:
+
+* WP Multisite support
+* REDIS support for WP
+* Bring your own server
+* Sell server subscriptions with WOOCOMMERCE
+* Sell WP Site subscriptions with WOOCOMMERCE
+* Virtual Providers (support multiple accounts on each cloud server provider)
+* Server Sync
+* Support for additional cloud server providers: EC2, LIGHTSAIL, LINODE, VULTR, UPCLOUD, HETZNER, EXOSCALE, GOOGLE, AZURE and ALIBABA
+
+## Creating Extensions ##
+
+[Articles on creating WPCD extensions](https://wpclouddeploy.com/category/tutorials/)
+
+## Release Notes ##
+
+[Friendly Release Notes](https://wpclouddeploy.com/category/release-notes/)
+
+## Change Log ##
 4.10.8
 ------
 Fix: WPAPP - A few strings were not being sent through the translation functions.

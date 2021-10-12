@@ -1,0 +1,105 @@
+.rwmb-field {
+	display: flex;
+}
+.rwmb-hidden-wrapper {
+	display: none;
+}
+.rwmb-heading-wrapper,
+.rwmb-divider-wrapper {
+	display: block;
+}
+.rwmb-image-select.rwmb-image-select {
+	padding: 0;
+}
+.rwmb-label,
+.rwmb-input {
+	line-height: 1.3;
+}
+.rwmb-input:first-of-type {
+	float: none;
+}
+.rwmb-label {
+	width: 210px;
+	padding: 14px 10px 14px 0;
+	font-weight: bold;
+	font-size: 14px;
+}
+.rwmb-input {
+	padding: 9px 10px;
+	vertical-align: middle;
+}
+.rwmb-label ~ .rwmb-input {
+	flex: 1;
+}
+@media (max-width: 782px) {
+	.rwmb-field {
+		flex-direction: column;
+	}
+	.rwmb-input, .rwmb-label {
+		display: block;
+		width: auto;
+		vertical-align: middle;
+	}
+	.rwmb-label {
+		padding-top: 10px;
+		padding-bottom: 0;
+		border-bottom: 0;
+	}
+	.rwmb-input {
+		margin-bottom: 0;
+		padding-bottom: 6px;
+		padding-top: 4px;
+		padding-left: 0;
+	}
+}
+
+/* Fix style when use group and clone */
+.rwmb-clone {
+	background-color: transparent;
+}
+.rwmb-group-wrapper .rwmb-label,
+.rwmb-group-wrapper .rwmb-input {
+	display: block;
+}
+.rwmb-group-wrapper > .rwmb-input:first-of-type {
+	padding-left: 220px;
+}
+.rwmb-field:not(.rwmb-group-wrapper) .rwmb-label,
+.rwmb-field:not(.rwmb-group-wrapper) .rwmb-input {
+	float: left;
+}
+.rwmb-group-collapsible > .rwmb-input > .rwmb-group-clone.rwmb-group-clone {
+	border-color: #ddd;
+}
+
+/* Add new term screen */
+#addtag .rwmb-field {
+	flex-direction: column;
+}
+#addtag .rwmb-label,
+#addtag .rwmb-input {
+	padding: 0;
+	width: 100%;
+}
+#addtag .rwmb-label {
+	margin-bottom: 3px;
+}
+#addtag .rwmb-media-view .rwmb-media-list {
+	margin-top: 0;
+}
+#addtag .rwmb-label.required label {
+	float: left;
+}
+#addtag .rwmb-label.required:after {
+	content: " ";
+	display: block;
+	clear: both;
+	height: 0;
+	visibility: hidden;
+}
+#addtag .submit {
+	margin-top: 10px;
+}
+#mb-term-meta-message {
+	margin-top: 20px;
+}

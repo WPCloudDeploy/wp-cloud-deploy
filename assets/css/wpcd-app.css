@@ -1,0 +1,272 @@
+/* the spinner - start */
+
+.locker, .locker-loader {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+}
+
+.locker {
+	z-index: 1000;
+	opacity: 0.8;
+	background-color: white;
+	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=80)";
+	filter: alpha(opacity=80);
+}
+
+.locker-loader {
+	z-index: 1001;
+	background: url(/wp-content/plugins/wp-cloud-deploy/assets/images/spinner.gif) no-repeat center center;
+}
+
+/* the spinner - end */
+
+/******************************************************************************************/
+
+/* Style popup                                                                            */
+
+/******************************************************************************************/
+
+.wpcd-popup {
+	/* This is the main content area */
+	width: 75%;
+	height: 100%;
+	margin-left: 20%;
+	margin-right: 10%;
+	padding-right: 20%;
+}
+
+.wpcd-popup .wpcd-log-wrap {
+	/* Wrapper around the main data area for logs */
+	background-color: #CFD8DC;
+	padding-top: 0.25em;
+	border: 1px solid #CFD8DC;
+	border-top-left-radius: 5px;
+	border-top-right-radius: 5px;
+}
+
+.wpcd-popup .wpcd-log-title {
+	/* The log area and command output title */
+	font-size: 2em;
+	margin-top: 1em;
+	margin-bottom: 1em;
+	margin-left: 5px;
+	color: #212121;
+}
+
+.wpcd-popup .wpcd-log-console {
+	/* Style the actual command output area to look like a linux terminal */
+	background-color: black;
+	padding: 2em;
+	color: white;
+	overflow: scroll;
+	max-height: 300px;
+}
+
+/* Make scrollbars in terminal almost invisible */
+
+.wpcd-popup .wpcd-log-console::-webkit-scrollbar {
+	width: 5px;
+}
+
+/* style the close button */
+
+.wpcd-popup .wpcd-log-close-button {
+	margin: 1em;
+	background-color: transparent;
+}
+
+.wpcd-popup .wpcd-log-close-button a {
+	text-decoration: none;
+}
+
+/******************************************************************************************/
+
+/* Style Metabox.io Tabs in the wp-app screen                                             */
+
+/******************************************************************************************/
+
+/* Set a min height to the tab container */
+
+div[id^='wpcd_wordpress-app'] {
+	min-height: 300px !important;
+	padding-left: 1em !important;
+	padding-right: 1em !important;
+}
+
+/* If we're painting tabs vertically we have an extra metabox at the top of the screen - we don't want this to be too big */
+
+#wpcd_wordpress-app_tab_top_of_site_details {
+	min-height: 10px !important;
+	margin-top: 0px !important;
+	padding-top: 0px !important;
+}
+
+/* And we want some styling on that extra metabox ! */
+
+#wpcd_wordpress-app_tab_top_of_site_details {
+	background-color: var(--wpcd-medium-background-color);
+	border: solid 1px #CFD8DC;
+	word-wrap: break-word;
+}
+
+/* Make the domain name bigger when we're using left menus and we're in that extra metabox at the top of the screen */
+
+#wpcd_wordpress-app_tab_top_of_site_details .wpcd_site_details_top_row_domain_left .rwmb-input {
+	/* text-transform: uppercase; */
+	color: var(--wpcd-secondary-brand-color);
+	font-size: 1.25em;
+	margin-top: -10px;
+}
+
+@media only screen and (max-width: 1600px) {
+	/* As the screen gets smaller decrease the size of the domain name font */
+	#wpcd_wordpress-app_tab_top_of_site_details .wpcd_site_details_top_row_domain_left .rwmb-input {
+		font-size: 1.2em;
+	}
+}
+
+@media only screen and (max-width: 1300px) {
+	/* As the screen gets smaller, we want the column divs in that top row to wrap - we can do that by making the width 100% */
+	#wpcd_wordpress-app_tab_top_of_site_details .rwmb-column {
+		width: 100%;
+	}
+}
+
+/* Tab metabox on the app detail screen - make title uppercase */
+
+#wpcd_wordpress-app_tab2 h2.hndle.ui-sortable-handle {
+	text-transform: uppercase;
+}
+
+@media only screen and (max-width: 1300px) {
+	/* As the screen gets smaller, we need to hide the metabox title since the data in there isn't structured for columns unfortunately. */
+	#wpcd_wordpress-app_tab2 h2.hndle.ui-sortable-handle {
+		display: none;
+	}
+}
+
+/* Certain text elements in the tab metabox on the app detail screen - change their colors to make more visible */
+
+#wpcd_wordpress-app_tab2 h2.hndle.ui-sortable-handle .wpcd_metabox_title_value {
+	color: var(--wpcd-secondary-brand-color);
+	/* pinkish but not wpcd colors */
+}
+
+#wpcd_wordpress-app_tab2 h2.hndle.ui-sortable-handle a.wpcd_metabox_title_value {
+	font-size: 14px;
+	text-decoration: none;
+	font-weight: 700;
+}
+
+/* Add some padding around each tab and make the font a little bigger.*/
+
+.wpcd-wpapp-actions .rwmb-tab-nav li[class^='rwmb-tab-'] a {
+	padding-left: 1.25em !important;
+	padding-right: 1.25em !important;
+	padding-top: 1.0em !important;
+	padding-bottom: 1.0em !important;
+	font-size: 1.1em;
+}
+
+/* If the tabs are being painted vertically put some more padding on the right */
+
+.wpcd-wpapp-actions .rwmb-tabs-left .rwmb-tab-nav li[class^='rwmb-tab-'] a {
+	padding-right: 5em !important;
+	padding-top: 0.75em !important;
+	padding-bottom: 0.75em !important;
+}
+
+/* Remove some excess space below the tab navigation row for horizontal tabs*/
+
+.wpcd-wpapp-actions .rwmb-tab-nav {
+	margin-bottom: 0.01px !important;
+}
+
+/* Background color and text for tabs - vertical */
+
+.wpcd-wpapp-actions .rwmb-tabs-left .rwmb-tab-nav {
+	background-color: var(--wpcd-accent-background-color);
+}
+
+.wpcd-wpapp-actions .rwmb-tabs-left .rwmb-tab-nav .rwmb-tab-active {
+	background-image: linear-gradient( to right, var(--wpcd-accent-background-color), var(--wpcd-accent-background-color) 50%, var(--wpcd-alternate-accent-background-color) 50%);
+	background-size: 200% 100%;
+	background-position: 100%;
+	transition: all 0.5s cubic-bezier(0.000, 0.000, 0.230, 1);
+}
+
+.wpcd-wpapp-actions .rwmb-tabs-left .rwmb-tab-nav a {
+	color: white;
+}
+
+.wpcd-wpapp-actions .rwmb-tabs-left .rwmb-tab-nav .rwmb-tab-active a {
+	color: var(--wpcd-primary-brand-color);
+	font-weight: bold;
+}
+
+/* Hover color for vertical tabs */
+
+.wpcd-wpapp-actions .rwmb-tabs-left .rwmb-tab-nav a:hover {
+	color: var(--wpcd-primary-brand-color);
+	transition: all 1s cubic-bezier(0.000, 0.000, 0.230, 1);
+}
+
+/* Font awesome pro icons need a little it more margin... */
+
+.wpcd-wpapp-actions .rwmb-tab-nav i {
+	margin-right: .6em;
+}
+
+/* The first row at the top of the site detail screen needs some extra love - bigger fonts for values. */
+
+.wpcd_site_details_top_row {
+	font-size: 1.4em !important;
+	font-weight: bold !important;
+	margin-top: 1em !important;
+}
+
+.wpcd_site_details_top_row .rwmb-label {
+	/* smaller fonts for the labels */
+	font-size: 0.75em !important;
+	color: var(--wpcd-primary-brand-color);
+}
+
+.wpcd_site_details_top_row #wpcd_app_action_site-detail-header-view-admin, .wpcd_site_details_top_row #wpcd_app_action_site-detail-header-view-site, .wpcd_site_details_top_row #wpcd_app_action_site-detail-header-view-apps {
+	/* Buttons at the top of the first row of the site needs some tweaking on font size, decoration and so on. */
+	font-size: small;
+	font-weight: normal;
+}
+
+.wpcd_site_details_top_row #wpcd_app_action_site-detail-header-view-admin a, .wpcd_site_details_top_row #wpcd_app_action_site-detail-header-view-site a, .wpcd_site_details_top_row #wpcd_app_action_site-detail-header-view-apps a {
+	text-decoration: none;
+}
+
+/* Add some padding to the content area of the tab */
+
+.wpcd-wpapp-actions .rwmb-tab-panel {
+	padding-left: 2em !important;
+	padding-right: 2em !important;
+	padding-bottom: 3em !important;
+}
+
+/* Font for section headings need to be a little larger */
+
+.wpcd-wpapp-actions h4 {
+	font-size: 1.2em !important;
+	margin-top: 1.2em !important;
+	color: var(--wpcd-primary-brand-color);
+}
+
+/* End style Metabox.io Tabs in the wp-app screen */
+
+/* the password toggle icon */
+
+.wpcd_app_pass_toggle_icon {
+	vertical-align: middle;
+	width: 30px;
+	height: 30px;
+	cursor: pointer;
+}

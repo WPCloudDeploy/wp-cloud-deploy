@@ -1,0 +1,1044 @@
+#!/bin/bash
+
+if [[ "$EUID" -ne 0 ]]; then
+	echo "Sorry, you need to run this as root"
+	exit
+fi
+
+clear
+
+
+
+while [[ -z $action ]]; do
+    echo
+    echo "What do you want to do?"
+    echo "   1) Make a backup"
+    echo "   2) Restore a backup"
+    echo "   3) Schedule a backup job"
+    echo "   4) Remove a scheduled backup job"
+	echo "   5) List local backups"
+	echo "   6) List remote backups"
+	echo "   7) Download remote backups"
+	echo "   8) Prune local backups for a site"
+	echo "   9) Prune local backups for all sites"
+	echo "   10) Delete all backups for a site"
+	echo "   11) Delete all backups for all sites"
+	echo "   12) Show list of domains where backups exist but the domain is not in NGINX"
+	echo "   13) Delete backups from domains that do not exist any more in NGINX"
+	echo "   14) List scheduled backups"
+	echo "   15) Upgrade Rclone"
+	echo "   16) Configure Rclone"
+	echo "   17) Prune remote backups for a site"
+    echo
+    read -p "Action: " action
+    until [[ -z "$action" || "$action" =~ ^[1-9]|2[0-9]$ ]]; do
+    	echo "$action: invalid selection."
+    	read -p "Action: " action
+    done
+done
+
+
+
+# Install Rclone
+if ! hash rclone 2>/dev/null; then
+	curl https://rclone.org/install.sh | bash
+fi
+
+# Configure crontab
+crontab -l 2>/dev/null | grep -q 'wp-backup2' || (crontab -l 2>/dev/null; echo "8 * * * * /usr/local/bin/wp-backup2 > /dev/null 2>&1") | crontab -
+
+
+
+ask_site_backup () {
+	while [[ -z $domain ]]; do
+        echo
+        echo "Please, select which site you want to backup"
+        ls /var/www | grep -v html | nl
+        echo
+        read -p "Select site: " site_number
+        number_of_sites=$(ls /var/www | grep -v html | wc -l)
+        until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
+	    	echo "$site_number: invalid selection."
+	    	read -p "Select site: " site_number
+	    done
+        domain=$(ls /var/www | grep -v html | sed -n "$site_number"p)
+    done
+}
+
+ask_backup_type () {
+
+	while [[ -z $backup_type ]]; do
+		echo
+        echo "Choose the backup type"
+        echo "   1) Full site backup"
+        echo "   2) Files only"
+        echo "   3) Database only"
+        echo "   4) NGINX configuration only"
+        echo
+        read -p "Schedule: " backup_type
+        while [[ -z "$backup_type" ]]; do
+            echo "$backup_type: invalid selection."
+            read -p "Schedule: " backup_type
+        done
+    done
+
+	if [[ $backup_type == "1" ]]; then
+		backup_type="full"
+	elif [[ $backup_type == "2" ]]; then
+		backup_type="files"
+	elif [[ $backup_type == "3" ]]; then
+		backup_type="database"
+	elif [[ $backup_type == "4" ]]; then
+		backup_type="nginx"
+	fi
+
+}
+
+ask_remotes () {
+	# $remote == "local" can be set to avoid this interactive question if user doesn't want to upload the backup
+	if [[ -z $remotes || $remotes != "local" ]]; then
+        echo
+        echo "Specify a Rclone remote where you want to save the backup"
+        echo "The following remotes are already configured in Rclone:"
+		rclone listremotes --long
+		echo
+		echo '- Input "local" if you do not want to upload the backup'
+		echo "- Multiple remotes can be separated by commas"
+        echo "  Example: remote:bucket or remote:bucket,remote:path/to/directory"
+        read -p "Remote: " remotes
+        while [[ -z "$remotes" ]]; do
+            echo "$remotes: invalid selection."
+            read -p "Remote: " remotes
+        done
+    fi
+}
+
+ask_exclusions () {
+
+	# $exclude_size == "blank" can be set to avoid this interactive question if user doesn't want to exclude by size
+	if [[ -z $exclude_size ]]; then
+    	echo
+    	echo "Specify a maximum file size to backup"
+		echo "Or press enter to leave it blank"
+		echo "Example: 50M"
+    	read -p "Exclude files bigger than: " exclude_size
+		if [[ -n $exclude_size && $exclude_size != "blank" ]]; then
+			excluded_by_size=$(find /var/www/$domain/html -size +$exclude_size)
+		fi
+	fi
+
+	# $exclude_files == "blank" can be set to avoid this interactive question if user doesn't want to exclude files
+	if [[ -z $exclude_files ]]; then
+    	echo
+    	echo "Specify a file or directory to exclude from the backup"
+		echo "Or press enter to leave it blank"
+		echo "Multiple files and directories can be separated by commas"
+		echo "Example: wp-content/updraft or wp-content/updraft,wp-content/cache/"
+    	read -p "Exclude file paths: " exclude_files
+		if [[ -n $exclude_files && $exclude_files != "blank" ]]; then
+			# Generate tar-ready list of excluded files and directories
+			excluded_by_path=$(
+				IFS=","
+				for file in $exclude_files
+				do
+					file=$(echo $file | sed "s/^\///" | sed "s/\/$//")
+					find /var/www/$domain/html/$file -maxdepth 0
+				done
+			)
+		fi
+	fi
+
+	# $excluded_by_path_env is a comma-separated list of paths optionally passed via an environment variable
+	excluded_by_path_env=$(
+		IFS=","
+		for file in $excluded_by_path_env
+		do
+			file=$(echo $file | sed "s/^\///" | sed "s/\/$//")
+			find /var/www/$domain/html/$file -maxdepth 0
+		done
+	)
+
+	# Form full exclusions list
+	# The sed is required because tar does not accept an absolute path
+	exclusions=$(printf '%s\n' "$excluded_by_size" "$excluded_by_path" "$excluded_by_path_env" | sed "s/\/var\/www\///")
+
+}
+
+ask_remote_path () {
+	if [[ -z $remote_path ]]; then
+        echo
+        echo "Specify a Rclone remote location where backup files are stored"
+		echo "The full path to the folder where .gz files are stored needs to be provided"
+        echo "  Example: remote:bucket/myblog.com or remote:bucket,remote:path/to/directory/myblog.com"
+        read -p "Remote path: " remote_path
+        while [[ -z "$remote_path" ]]; do
+            echo "$remote_path: invalid selection."
+            read -p "Remote path: " remote_path
+        done
+    fi
+}
+
+
+
+if [[ $action == "wp2_backup" || $action == "1" ]]; then
+
+	ask_site_backup
+	ask_backup_type
+
+	date=$(date +"%Y-%m-%d"-"%Hh%Mm%Ss")
+
+	# $backup_label == "blank" can be set to avoid this interactive question if user doesn't want to specify a label
+	if [[ -z $backup_label ]]; then
+    	echo
+    	echo "Specify a description or label for the backup"
+		echo "Or press enter to leave it blank"
+    	read -p "Label: " backup_label
+		if [[ -n "$backup_label" && "$backup_label" != "blank" ]]; then
+			echo "$backup_label" > ~/.wp-backup2/$domain/"$domain"_"$date"_label.txt
+		fi
+	fi
+
+	# $remotes == "local" can be set to avoid this interactive question if user doesn't want to upload the backup
+	ask_remotes
+
+	mkdir -p ~/.wp-backup2/$domain/
+
+	backup_files () {
+		ask_exclusions
+		echo "Backing up files..."
+    	cd /var/www
+    	tar --exclude-from <(printf '%s\n' "$exclusions") -czf ~/.wp-backup2/$domain/"$domain"_"$date"_fs.tar.gz $domain/*
+	}
+
+	backup_nginx () {
+		echo "Backing up NGINX configuration..."
+    	cd /etc/nginx
+    	tar -czf ~/.wp-backup2/$domain/"$domain"_"$date"_nginx.tar.gz $(ls sites-enabled/$domain sites-enabled/"$domain"_* htpasswd/$domain htpasswd/"$domain"_* 2>/dev/null)
+	}
+
+	backup_database () {
+		echo "Backing up database..."
+    	mysql_db=$(grep DB_NAME /var/www/$domain/html/wp-config.php | cut -d "'" -f 4)
+    	mysqldump $mysql_db | gzip -9 > ~/.wp-backup2/$domain/"$domain"_"$date"_db.gz
+		echo "Verifying database backup..."
+    	if ! gunzip -c ~/.wp-backup2/$domain/"$domain"_"$date"_db.gz | tail -n 1 | grep -qs "Dump completed on"; then
+    		echo
+    		echo "WARNING! Database backup seems to be incomplete!"
+    	fi
+	}
+
+	echo
+
+	if [[ $backup_type == "full" ]]; then
+		backup_files
+		backup_nginx
+		backup_database
+	elif [[ $backup_type == "files" ]]; then
+		backup_files
+	elif [[ $backup_type == "database" ]]; then
+		backup_database
+	elif [[ $backup_type == "nginx" ]]; then
+		backup_nginx
+	fi
+
+	if [[ -n $remotes && $remotes != "local" ]]; then
+		echo "Uploading backup..."
+		IFS=","
+		for remote in $remotes
+		do
+			if [[ $backup_type == "full" ]]; then
+				rclone copy ~/.wp-backup2/$domain/"$domain"_"$date"_fs.tar.gz $remote/$domain
+				rclone copy ~/.wp-backup2/$domain/"$domain"_"$date"_nginx.tar.gz $remote/$domain
+				rclone copy ~/.wp-backup2/$domain/"$domain"_"$date"_db.gz $remote/$domain
+			elif [[ $backup_type == "files" ]]; then
+				rclone copy ~/.wp-backup2/$domain/"$domain"_"$date"_fs.tar.gz $remote/$domain
+			elif [[ $backup_type == "database" ]]; then
+				rclone copy ~/.wp-backup2/$domain/"$domain"_"$date"_db.gz $remote/$domain
+			elif [[ $backup_type == "nginx" ]]; then
+				rclone copy ~/.wp-backup2/$domain/"$domain"_"$date"_nginx.tar.gz $remote/$domain
+			fi
+			# Upload label if it exists
+			if [[ -e ~/.wp-backup2/$domain/"$domain"_"$date"_label.txt ]]; then
+				rclone copy ~/.wp-backup2/$domain/"$domain"_"$date"_label.txt $remote/$domain
+			fi
+		done
+	fi
+
+	# Prune backups older than $prune_older_than days if the variable is set
+	if [[ -n $prune_older_than ]]; then
+		echo "Pruning backups older than $prune_older_than days..."
+		find ~/.wp-backup2/$site/ -type f -mtime +$prune_older_than -exec rm -f {} \;
+	fi
+
+	echo "$domain $backup_type backup has been completed."
+
+    exit
+
+fi
+
+
+
+if [[ $action == "wp2_restore" || $action == "2" ]]; then
+
+    cd ~/.wp-backup2/
+
+	# List sites with available backups
+    while [[ -z $site ]]; do
+        echo
+        echo "Select a site to be restored from backup"
+        ls | nl
+        echo
+        read -p "Select site: " item_number
+        number_of_items=$(ls | wc -l)
+        until [[ "$item_number" =~ ^[0-9]+$ && "$item_number" -le "$number_of_items" ]]; do
+		    echo "$item_number: invalid selection."
+		    read -p "Select site: " item_number
+	    done
+        site=$(ls | sed -n "$item_number"p)
+    done
+	domain="$site"
+
+    # List backups available for $site
+    if [[ -z $backup ]]; then
+        echo
+        echo "Select a backup to restore"
+		# Print a list of backups and what is included for each
+		find -type f -name "$site""_*_*" | cut -d _ -f 1,2 | sort -nr | uniq |
+		while read -r line
+		do
+			echo $(echo $line | cut -d "/" -f 3) "#" $(ls "$line"_fs* 1> /dev/null 2>&1 && echo files) $(ls "$line"_db.gz 1> /dev/null 2>&1 && echo database) $(ls "$line"_nginx.tar.gz 1> /dev/null 2>&1 && echo nginx) "#" $(cat "$line"_label.txt 2>/dev/null)
+		done | nl
+        echo
+        read -p "Select backup: " site_number
+        number_of_sites=$(find -type f -name "$site""_*_*" | cut -d _ -f 1,2 | sort -nr | uniq | wc -l)
+        until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
+		    echo "$site_number: invalid selection."
+		    read -p "Select backup: " site_number
+	    done
+        backup=$(find -type f -name "$site""_*_*" | cut -d "/" -f 2-3 | cut -d _ -f 1,2 | sort -nr | uniq | sed -n "$site_number"p)
+    fi
+
+	if [[ -z $restore ]]; then
+        echo
+        echo "Specify which backups should be restored"
+		echo "Use a comma-separated list"
+        echo "Example: files,database,nginx"
+        read -p "Restore: " restore
+        while [[ -z "$restore" ]]; do
+            echo "$restore: invalid selection."
+            read -p "Remote: " restore
+        done
+    fi
+
+	# If /var/www/$domain exists, let the user know before overwriting
+    if [[ -d /var/www/$domain || -e /etc/nginx/sites-enabled/$domain || -e /etc/nginx/sites-available/$domain || -e /etc/php/5.6/fpm/pool.d/$domain.conf || -e /etc/php/7.1/fpm/pool.d/$domain.conf || -e /etc/php/7.2/fpm/pool.d/$domain.conf || -e /etc/php/7.3/fpm/pool.d/$domain.conf || -e /etc/php/7.4/fpm/pool.d/$domain.conf || -e /etc/php/8.0/fpm/pool.d/$domain.conf ]]; then
+            # we do the following to allow bypassing this check if the user sets $overwrite to "yes"
+            if [[ "$overwrite" != "yes" ]]; then
+            echo
+            echo "$domain is already configured!"
+			echo
+			echo "If you prefer to make a backup of its current state before restoring, press"
+			echo "CTRL + C now and run this script again selecting the option 1 instead."
+			echo
+			echo "If you continue now, $domain will be reset from backup $backup"
+            echo
+            read -p "Press enter to continue"
+            fi
+	fi
+
+
+	# Restoration starts here
+	user_name=$(echo $domain | cut -c1-32)
+
+		# Restore filesystem backup
+		if grep -qs "files" <<< "$restore"; then
+
+			# Cleanup stage
+			echo "Cleaning files..."
+			rm -rf /var/www/$domain
+			echo "Setting up system user..."
+			useradd -d "/var/www/$domain/html" -g "www-data" -M -s "/bin/bash" $user_name 2>/dev/null
+
+			# Restoration stage
+			echo "Restoring files..."	
+			cd $domain
+
+			# Backup extraction
+			if [[ -e ../"$backup"_fs.tar.gz ]]; then
+				# Selected backup is a complete backup
+				tar xzf ../"$backup"_fs.tar.gz
+			else
+				# Else, we are dealing with an incremental backup
+				incremental_id=$(ls ../"$backup"_fs_*.tar.gz | cut -d "_" -f 4 | cut -d "." -f 1)
+				restore_point=$(cut -d "/" -f 2 <<< $backup)
+				# Locate incremental backups identified with $incremental_id up to $restore_point and extract them
+				cat $(ls *_fs_"$incremental_id".tar.gz | sed "/$restore_point/q") | tar xzf - -g /dev/null --ignore-zeros
+			fi
+
+			# Move files and set permissions
+			mv $domain /var/www/$domain
+			echo "Setting file permissions..."	
+    		chown -R www-data:www-data /var/www/$domain/html/
+    		chmod -R g+w /var/www/$domain/html
+    		chmod -R g+s /var/www/$domain/html
+
+			# If an object cache was enabled, we disable it to avoid conflicts
+			echo "Disabling object cache if applicable..."		
+    		cd /var/www/$domain/html/
+    		rm -f wp-content/object-cache.php
+    		su - $user_name -c "wp plugin uninstall --deactivate redis-cache 2>/dev/null"
+			su - $user_name -c "wp cache flush"
+
+		fi
+
+
+		# Restore NGINX configuration and configure the PHP pool
+		if grep -qs "nginx" <<< "$restore"; then
+
+			# Cleanup stage
+			echo "Cleaning NGINX configuration..."
+    		rm -f /etc/nginx/sites-*/*$domain
+    		rm -f /etc/nginx/htpasswd/*$domain
+			systemctl restart nginx
+			echo "Cleaning PHP configuration and restarting PHP process..."
+			php_version=$(ls /etc/php/*/fpm/pool.d/$domain.conf 2>/dev/null | cut -d '/' -f 4)
+    		rm -f /etc/php/$php_version/fpm/pool.d/$domain.conf
+    		systemctl restart php$php_version-fpm
+			echo "Setting up system user..."
+			useradd -d "/var/www/$domain/html" -g "www-data" -M -s "/bin/bash" $user_name 2>/dev/null
+
+			# Restoration stage
+			echo "Restoring NGINX configuration..."	
+			cd ~/.wp-backup2/
+			mkdir -p $domain/temp
+			cd $domain/temp
+			tar xzf ../../"$backup"_nginx.tar.gz
+			mv sites-enabled/*$domain /etc/nginx/sites-enabled/
+			mv htpasswd/*$domain /etc/nginx/htpasswd/ 2>/dev/null
+			cd ..
+			rm -rf temp
+
+			# Create PHP-FPM pool
+    		echo "[$domain]
+user = $user_name
+group = www-data
+listen = /run/php/php-fpm-$domain.sock
+listen.owner = $user_name
+listen.group = www-data
+pm = dynamic
+pm.max_children = 5
+pm.start_servers = 2
+pm.min_spare_servers = 1
+pm.max_spare_servers = 3
+php_admin_value[open_basedir] = \"/var/www/$domain/html/:/tmp/\"
+php_admin_value[allow_url_fopen] = 0
+php_admin_value[allow_url_include] = 0
+php_admin_value[disable_functions] =  dl, exec, fpassthru, getmypid, getmyuid, highlight_file, link, opcache_get_configuration, passthru, pcntl_exec, pcntl_get_last_error, pcntl_setpriority, pcntl_strerror, pcntl_wifcontinued, phpinfo, popen, posix_ctermid, posix_getcwd, posix_getegid, posix_geteuid, posix_getgid, posix_getgrgid, posix_getgrnam, posix_getgroups, posix_getlogin, posix_getpgid, posix_getpgrp, posix_getpid, posix_getppid, posix_getpwnam, posix_getpwuid, posix_getrlimit, posix_getsid, posix_getuid, posix_isatty, posix_kill, posix_mkfifo, posix_setegid, posix_seteuid, posix_setgid, posix_setpgid, posix_setsid, posix_setuid, posix_times, posix_ttyname, posix_uname, proc_close, proc_get_status, proc_nice, proc_open, proc_terminate, shell_exec, show_source, source, system, virtual
+php_admin_value[session.use_strict_mode] = 1
+php_admin_value[session.cookie_httponly] = 1
+php_admin_value[session.use_cookies] = 1
+php_admin_value[session.use_only_cookies] = 1
+php_admin_value[session.use_trans_sid] = 0" > /etc/php/7.4/fpm/pool.d/$domain.conf
+
+			echo "Restarting PHP service..."
+			systemctl restart php7.4-fpm
+			echo "Restarting NGINX..."
+			systemctl restart nginx
+
+    		# Configure SSL for restored sites which had it enabled, except if we are dealing with a wildcard multisite
+    		if ! grep -q 'server_name \.' /etc/nginx/sites-enabled/$domain && grep -qs "listen 443" /etc/nginx/sites-enabled/$domain* -l; then
+
+        		grep "server_name" $(grep "listen 443" /etc/nginx/sites-enabled/$domain* -l) -m 1 | cut -d "_" -f 2 | cut -d " " -f 2 | while read line ; do
+
+            		# if the system doesn't have a cert or the system has a cert which includes www subdomain
+            		# set up cert with www subdomain
+            		if [[ ! -e /etc/letsencrypt/live/$line/cert.pem ]] || openssl x509 -in /etc/letsencrypt/live/$line/cert.pem -noout -text | grep -qs www.$line; then
+
+                		# the following five lines are needed because certbot will try to test the current nginx config before modifying it
+                		# since there is a chance that a certificate referenced in the config isn't present in the system, nginx -t can fail
+                		# if it fails, certbot will not continue.
+                		# so we remove all the SSL stuff from the configuration to make certbot happy
+                		conf_location=$(grep "server_name $line" /etc/nginx/sites-enabled/$domain* -l)
+						if grep -qs "managed by Certbot" $conf_location; then
+							sed -i -n '/if ($host/q;p' $conf_location
+							sed -i '$ d' $conf_location
+							sed -i '/server {/a listen 80;\nlisten [::]:80;' $conf_location
+							sed -i '/managed by Certbot/d' $conf_location
+						fi
+
+                		certbot --non-interactive -q --reinstall --expand --nginx --agree-tos --register-unsafely-without-email --allow-subset-of-names --redirect -d $line -d www.$line
+            		else
+
+                		# if the system has a cert which doesn't contain the www subdomain
+                		# set up cert without www subdomain
+                		certbot --non-interactive -q --reinstall --expand --nginx --agree-tos --register-unsafely-without-email --allow-subset-of-names --redirect -d $line
+            		fi
+        		done
+    		fi
+
+			# If we are dealing with a multisite wildcard which had HTTPS enabled...
+			if grep -q 'server_name \.' /etc/nginx/sites-enabled/$domain && grep -q 'listen 443' /etc/nginx/sites-enabled/$domain; then
+    			for sitedomain in $(su - $user_name -c "wp site list --field=domain")
+    			do
+    			    su - $user_name -c "wp --skip-plugins option update home http://$sitedomain --url=https://$sitedomain/"
+    			    su - $user_name -c "wp --skip-plugins option update siteurl http://$sitedomain --url=https://$sitedomain/"
+    			done
+				if grep -qs "managed by Certbot" /etc/nginx/sites-enabled/$domain; then
+					sed -i -n '/listen 80/q;p' /etc/nginx/sites-enabled/$domain
+					sed -i '$ d' /etc/nginx/sites-enabled/$domain
+					sed -i '/server {/a listen 80;\nlisten [::]:80;' /etc/nginx/sites-enabled/$domain
+					sed -i '/managed by Certbot/d' /etc/nginx/sites-enabled/$domain
+				fi
+    			certbot delete --cert-name $domain --noninteractive > /dev/null 2>&1
+				systemctl restart nginx
+    			echo "This multisite had wildcard SSL enabled."
+    			echo "HTTPS has been disabled, it can be configured using 13-multisite.sh"
+			fi
+
+		fi
+
+
+		# Restore database backup
+		if grep -qs "database" <<< "$restore"; then
+
+			# Check in case a user tries to restore only the database part (without having the files)
+			if [[ ! -e /var/www/$domain/html/wp-config.php ]]; then
+				echo "The database backup can not be restored if $domain files are not ready"
+				echo "Aborting restore..."
+				exit
+			fi
+
+			# Cleanup stage
+    		mysql_db=$(grep -s DB_NAME /var/www/$domain/html/wp-config.php | cut -d "'" -f 4)
+    		mysql_user=$(grep -s DB_USER /var/www/$domain/html/wp-config.php | cut -d "'" -f 4)
+			echo "Dropping database (if exists) $mysql_db ..."
+        	mariadb <<QUERY
+DROP DATABASE IF EXISTS $mysql_db;
+DROP USER IF EXISTS '$mysql_user'@'localhost';
+FLUSH PRIVILEGES;
+QUERY
+
+			# Restoration stage
+			echo "Creating database: $mysql_db..."
+			mysql_pass=$(grep DB_PASSWORD /var/www/$domain/html/wp-config.php | cut -d "'" -f 4)
+    		mariadb <<QUERY
+CREATE DATABASE $mysql_db;
+CREATE USER '$mysql_user'@'localhost' IDENTIFIED BY '$mysql_pass';
+GRANT ALL PRIVILEGES ON $mysql_db.* TO '$mysql_user'@'localhost';
+FLUSH PRIVILEGES;
+QUERY
+
+			echo "Restoring database..."
+			cd ~/.wp-backup2/
+			gunzip -c "$backup"_db.gz > db.sql
+    		mariadb -D $mysql_db < db.sql
+    		rm -f db.sql
+
+		fi
+
+		echo "$backup has been restored."
+
+    exit
+
+fi
+
+
+
+if [[ $action == "wp2_schedule" || $action == "3" ]]; then
+
+	# Install the helper script
+	basedir=$(dirname $0)
+	if [[ ! -e /usr/local/bin/wp-backup2 ]]; then
+		if [[ ! -e $basedir/wp-backup2-helper ]]; then
+			echo "The companion wp-backup2-helper file needs to be located in the same directory where"
+			echo "this script is located."
+			echo
+			echo "Please, place the wp-backup2-helper file in $basedir and run this script again"
+			exit
+		fi
+		cp $basedir/wp-backup2-helper /usr/local/bin/wp-backup2
+		chmod +x /usr/local/bin/wp-backup2
+		if [[ -n "$callback_start_backup" ]]; then
+			sed -i "12 i wget -q -O \/dev\/null $callback_start_backup" /usr/local/bin/wp-backup2
+		fi
+		if [[ -n "$callback_finished_backup" ]]; then
+			echo "wget -q -O /dev/null $callback_start_backup" >> /usr/local/bin/wp-backup2
+		fi
+	fi
+
+	# This block is only used interactively, to see if we need to ask_site_backup or just set $domain == "*"
+	if [[ -z $domain ]]; then
+		echo
+        echo "What do you want to backup?"
+        echo "   1) Specific site"
+        echo "   2) All sites"
+        echo
+        read -p "Site: " domain
+        while [[ -z "$domain" ]]; do
+            echo "$domain: invalid selection."
+            read -p "Schedule: " domain
+        done
+		if [[ $domain == "1" ]]; then
+			domain=""
+			ask_site_backup
+		elif [[ $domain == "2" ]]; then
+			domain="*"
+		fi
+    fi
+
+	ask_backup_type
+
+	if [[ -z $backup_plan ]]; then
+		echo
+        echo "What backup plan do you want?"
+        echo "   1) Complete backup"
+        echo "   2) Incremental backup"
+        echo
+        read -p "Plan: " backup_plan
+        while [[ -z "$backup_plan" ]]; do
+            echo "$backup_plan: invalid selection."
+            read -p "Schedule: " backup_plan
+        done
+		if [[ $backup_plan == "1" ]]; then
+			backup_plan="complete"
+		elif [[ $backup_plan == "2" ]]; then
+			backup_plan="incremental"
+		fi
+    fi
+
+	if [[ -z $backup_frequency ]]; then
+		echo
+        echo "What backup frequency do you want?"
+        echo "   1) Hourly"
+        echo "   2) Daily"
+        echo "   3) Weekly"
+        echo "   4) Monthly"
+        echo
+        read -p "Frequency: " backup_frequency
+        while [[ -z "$backup_frequency" ]]; do
+            echo "$backup_frequency: invalid selection."
+            read -p "Schedule: " backup_frequency
+        done
+		if [[ $backup_frequency == "1" ]]; then
+			backup_frequency="hourly"
+		elif [[ $backup_frequency == "2" ]]; then
+			backup_frequency="daily"
+		elif [[ $backup_frequency == "3" ]]; then
+			backup_frequency="weekly"
+		elif [[ $backup_frequency == "4" ]]; then
+			backup_frequency="monthly"
+		fi
+    fi
+
+	if [[ $backup_plan == "incremental" && $backup_frequency == "monthly" ]]; then
+		echo
+		echo "Monthly backups can only be full, not incremental!"
+		echo "Aborting..."
+		exit
+	fi
+
+	ask_remotes
+	if [[ $remotes == "local" ]]; then
+		remotes=""
+	fi
+
+	# $exclude_size == "blank" can be set to avoid this interactive question if user doesn't want to exclude by size
+	if [[ -z $exclude_size ]]; then
+    	echo
+    	echo "Specify a maximum file size to backup"
+		echo "Or press enter to leave it blank"
+		echo "Example: 50M"
+    	read -p "Exclude files bigger than: " exclude_size
+	elif [[ $exclude_size == "blank" ]]; then
+		exclude_size=""
+	fi
+
+	# $exclude_files == "blank" can be set to avoid this interactive question if user doesn't want to exclude files
+	if [[ -z $exclude_files ]]; then
+    	echo
+    	echo "Specify a file or directory to exclude from the backup"
+		echo "Or press enter to leave it blank"
+		echo "Multiple files and directories can be separated by commas"
+		echo "Example: wp-content/updraft or wp-content/updraft,wp-content/cache/"
+    	read -p "Exclude file paths: " exclude_files
+	elif [[ $exclude_files == "blank" ]]; then
+		exclude_files=""
+	fi
+
+	# $prune_older_than == "blank" can be set to avoid this interactive question if old backups should not be pruned
+	if [[ -z $prune_older_than ]]; then
+    	echo
+    	echo "Specify the number of days which backups should be kept"
+    	echo "Older backups will be pruned by the scheduled job"
+    	echo "Or press enter if the scheduler should not prune backups"
+		echo "All backups of the site will be considered for pruning,"
+		echo "including those not created by this scheduled task"
+    	echo "Example: 30"
+    	read -p "Prune older than: " prune_older_than
+	elif [[ $prune_older_than == "blank" ]]; then
+		prune_older_than=""
+	fi
+
+	job_id=$(head /dev/urandom | tr -dc a-z | head -c 6)
+	mkdir -p /etc/wp-backup2/$job_id
+	echo "$domain" > /etc/wp-backup2/$job_id/site
+	echo "$backup_type" > /etc/wp-backup2/$job_id/type
+	echo "$backup_plan" > /etc/wp-backup2/$job_id/plan
+	echo "$backup_frequency" > /etc/wp-backup2/$job_id/frequency
+	echo "$remotes" > /etc/wp-backup2/$job_id/remotes
+	echo "$exclude_size" > /etc/wp-backup2/$job_id/exclude_size
+	echo "$exclude_files" > /etc/wp-backup2/$job_id/exclude_files
+	echo "$prune_older_than" > /etc/wp-backup2/$job_id/prune
+
+	echo "Backup job with id $job_id has beeen scheduled"
+
+    exit
+
+fi
+
+
+
+if [[ $action == "wp2_unschedule" || $action == "4" ]]; then
+
+	if [[ -z $job_id ]]; then
+        echo
+        echo "Which backup job should be removed?"
+		echo
+		echo "  JOB ID  # FREQUENCY # BACKUP TYPE # BACKUP PLAN # SITE"
+		echo
+		ls /etc/wp-backup2/ 2>/dev/null | while read -r job_id; do
+		site=$(cat /etc/wp-backup2/$job_id/site)
+		backup_type=$(cat /etc/wp-backup2/$job_id/type)
+		backup_plan=$(cat /etc/wp-backup2/$job_id/plan)
+		backup_frequency=$(cat /etc/wp-backup2/$job_id/frequency)
+		remotes=$(cat /etc/wp-backup2/$job_id/remotes)
+		exclude_size=$(cat /etc/wp-backup2/$job_id/exclude_size)
+		exclude_files=$(cat /etc/wp-backup2/$job_id/exclude_files)
+		echo "  $job_id  #  $backup_frequency  #  $backup_type  #  $backup_plan  #  $site"
+		done | sort
+		echo
+        read -p "Input job ID: " job_id
+        until [[ -n $job_id ]]; do
+	    	echo "$job_id: invalid selection."
+	    	read -p "Input job ID: " job_id
+	    done
+    fi
+
+	rm -rf /etc/wp-backup2/$job_id
+	echo
+	echo "Job with ID $job_id has been removed."
+
+    exit
+
+fi
+
+
+
+if [[ $action == "wp2_list_local_backups" || $action == "5" ]]; then
+
+	cd ~/.wp-backup2/
+
+    if [[ -z $site ]]; then
+        echo
+        echo "Select a site to list its backups"
+        ls | nl
+        echo
+        read -p "Site: " item_number
+        number_of_items=$(ls | wc -l)
+        until [[ "$item_number" =~ ^[0-9]+$ && "$item_number" -le "$number_of_items" ]]; do
+		    echo "$item_number: invalid selection."
+		    read -p "Site: " item_number
+	    done
+        site=$(ls | sed -n "$item_number"p)
+    fi
+
+    # List backups of $site available in $backupdir
+	echo "==backup list start=="
+	# Print a list of backups and what is included for each
+	find -type f -name "$site""_*_*" | cut -d _ -f 1,2 | sort -nr | uniq |
+	while read -r line
+	do
+		echo $(echo $line | cut -d "/" -f 3) "#" $(ls "$line"_fs* 1> /dev/null 2>&1 && echo files) $(ls "$line"_db.gz 1> /dev/null 2>&1 && echo database) $(ls "$line"_nginx.tar.gz 1> /dev/null 2>&1 && echo nginx) "#" $(cat "$line"_label.txt 2>/dev/null)
+	done
+	echo "==backup list end=="
+
+    exit
+
+fi
+
+
+
+if [[ $action == "wp2_list_remote_backups" || $action == "6" ]]; then
+
+	ask_remote_path
+
+	if [[ -z $domain ]]; then
+        echo
+        echo "Specify a domain to list its backups"
+        echo "  Example: myblog.com"
+        read -p "Domain: " domain
+        while [[ -z "$domain" ]]; do
+            echo "$domain: invalid selection."
+            read -p "Domain: " domain
+        done
+    fi
+
+	rclone lsf "$remote_path" | grep -s $domain | sort -nr
+	
+    exit
+
+fi
+
+
+
+if [[ $action == "wp2_download_backup" || $action == "7" ]]; then
+
+	ask_remote_path
+
+	if [[ -z $remote_files ]]; then
+        echo
+        echo "Specify a comma-separated list of files to download from the remote"
+        echo "  Example: myblog.com_2020-10-16-15h28m35s_nginx.tar.gz,myblog.com_2020-10-16-15h28m35s_fs.tar.gz"
+        read -p "Remote files: " remote_files
+        while [[ -z "$remote_files" ]]; do
+            echo "$remote_files: invalid selection."
+            read -p "Remote files: " remote_files
+        done
+    fi
+
+	domain=$(cut -d "_" -f 1 <<< "$remote_files")	
+	mkdir -p ~/.wp-backup2/$domain
+
+	IFS=","
+	for file in $remote_files; do
+		echo "Downloading $file..."
+		rclone copy $remote_path/$file ~/.wp-backup2/$domain
+	done
+
+    exit
+
+fi
+
+
+
+if [[ $action == "wp2_prune_site_backups" || $action == "8" ]]; then
+
+    cd ~/.wp-backup2/
+
+    while [[ -z $site ]]; do
+        echo
+        echo "Please, select which site do you wish to prune backups from"
+        ls | nl
+        echo
+        read -p "Select site: " item_number
+        number_of_items=$(ls | wc -l)
+        until [[ "$item_number" =~ ^[0-9]+$ && "$item_number" -le "$number_of_items" ]]; do
+		    echo "$item_number: invalid selection."
+		    read -p "Select site: " item_number
+	    done
+        site=$(ls | sed -n "$item_number"p)
+    done
+
+    if [[ -z $days ]]; then
+    echo
+    echo "Specify the number of backup days which you want to keep for this site
+Older backups will be deleted.
+Example: 30"
+    read -p "Retention days: " days
+    fi
+
+    find ~/.wp-backup2/$site/ -type f -mtime +$days -exec rm -f {} \;
+
+    echo
+    echo "$site backups older than $days days have been deleted"
+
+    exit
+
+fi
+
+
+
+if [[ $action == "wp2_prune_all_backups" || $action == "9" ]]; then
+
+    if [[ -z $days ]]; then
+    echo
+    echo "Specify the number of backup days which you want to keep
+Older backups for ALL sites will be deleted.
+Example: 30"
+    read -p "Retention days: " days
+    fi
+
+    find ~/.wp-backup2/ -type f -mtime +$days -exec rm -f {} \;
+
+    echo
+    echo "All backups older than $days days have been deleted"
+
+    exit
+
+fi
+
+
+
+if [[ $action == "wp2_delete_site_backups" || $action == "10" ]]; then
+
+    cd ~/.wp-backup2/
+
+    while [[ -z $site ]]; do
+        echo
+        echo "Select a site to delete ALL backups from"
+        ls | nl
+        echo
+        read -p "Select site: " item_number
+        number_of_items=$(ls | wc -l)
+        until [[ "$item_number" =~ ^[0-9]+$ && "$item_number" -le "$number_of_items" ]]; do
+		    echo "$item_number: invalid selection."
+		    read -p "Select site: " item_number
+	    done
+        site=$(ls | sed -n "$item_number"p)
+    done
+
+    # we do the following to allow bypassing this check if the user sets $confirmation to "yes"
+    if [[ "$confirmation" != "yes" ]]; then
+        echo
+        echo "DANGER!
+ALL backups for $site will be permanently removed!"
+        echo
+        read -p "Press enter to continue"
+    fi
+
+
+    rm -f ~/.wp-backup2/$site/*
+
+    echo
+    echo "$site backups have been deleted"
+
+    exit
+
+fi
+
+
+
+if [[ $action == "wp2_delete_all_backups" || $action == "11" ]]; then
+
+    # We do the following to allow bypassing this check if the user sets $confirmation to "yes"
+    if [[ "$confirmation" != "yes" ]]; then
+        echo
+        echo "DANGER!
+ALL backups for ALL sites will be permanently removed!"
+        echo
+        read -p "Press enter to continue"
+    fi
+
+    rm -rf ~/.wp-backup2/*
+
+    echo
+    echo "All backups have been deleted"
+
+    exit
+
+fi
+
+
+
+if [[ $action == "wp2_show_orphaned_backups" || $action == "12" ]]; then
+
+    echo
+    echo "The following sites have orphaned backups:"
+	cd ~/.wp-backup2/
+    sort <<< "$(ls ~/.wp-backup2/; ls /etc/nginx/sites-enabled/; ls /etc/nginx/sites-available/)" | uniq -u | grep -v '^default$\|^monit$\|^monitorix$' |
+	while read -r line; do
+		find $line -maxdepth 0 2>/dev/null
+	done
+
+    exit
+
+fi
+
+
+
+if [[ $action == "wp2_remove_orphaned_backups" || $action == "13" ]]; then
+
+	echo
+    cd ~/.wp-backup2/
+    sort <<< "$(ls ~/.wp-backup2/; ls /etc/nginx/sites-enabled/; ls /etc/nginx/sites-available/)" | uniq -u | grep -v '^default$\|^monit$\|^monitorix$' |
+	while read -r line; do
+		find $line -maxdepth 0 2>/dev/null
+	done | xargs rm -rf
+	echo "Orphaned backups have been removed"
+
+    exit
+
+fi
+
+
+
+if [[ $action == "wp2_list_scheduled_backups" || $action == "14" ]]; then
+
+	echo
+	echo "  JOB ID  # FREQUENCY # BACKUP TYPE # BACKUP PLAN # SITE     # REMOTES"
+	echo
+	ls /etc/wp-backup2/ 2>/dev/null | while read -r job_id; do
+		site=$(cat /etc/wp-backup2/$job_id/site)
+		backup_type=$(cat /etc/wp-backup2/$job_id/type)
+		backup_plan=$(cat /etc/wp-backup2/$job_id/plan)
+		backup_frequency=$(cat /etc/wp-backup2/$job_id/frequency)
+		remotes=$(cat /etc/wp-backup2/$job_id/remotes)
+		exclude_size=$(cat /etc/wp-backup2/$job_id/exclude_size)
+		exclude_files=$(cat /etc/wp-backup2/$job_id/exclude_files)
+		echo "  $job_id  #  $backup_frequency  #  $backup_type  #  $backup_plan  #  $site  #  $remotes"
+	done | sort
+
+    exit
+
+fi
+
+
+
+if [[ $action == "wp2_upgrade_rclone" || $action == "15" ]]; then
+
+	curl https://rclone.org/install.sh | bash
+
+	exit
+fi
+
+
+
+if [[ $action == "wp2_configure_rclone" || $action == "16" ]]; then
+	rclone config edit
+
+	exit
+fi
+
+
+
+if [[ $action == "wp2_prune_remote_backups" || $action == "17" ]]; then
+
+	ask_remote_path
+
+	if [[ -z $domain ]]; then
+        echo
+        echo "Specify a domain to prune its backups"
+        echo "  Example: myblog.com"
+        read -p "Domain: " domain
+        while [[ -z "$domain" ]]; do
+            echo "$domain: invalid selection."
+            read -p "Domain: " domain
+        done
+    fi
+
+    if [[ -z $days ]]; then
+    echo
+    echo "Specify the number of backup days which you want to keep for this site
+Older backups will be deleted.
+Example: 30"
+    read -p "Retention days: " days
+    fi
+
+	rclone --min-age "$days"d delete --include "/$domain""_*" $remote_path
+
+    echo
+    echo "$domain backups older than $days days have been deleted"
+
+    exit
+
+fi

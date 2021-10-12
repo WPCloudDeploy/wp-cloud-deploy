@@ -1,0 +1,7 @@
+cd ~ &&
+sudo -E \rm -f ##SCRIPT_NAME## &&
+sudo -E \rm -f /usr/local/bin/wp-sync &&
+sudo -E wget --no-check-certificate -O ##SCRIPT_NAME## ##SCRIPT_URL## &&
+export action=##ACTION## domain=##DOMAIN## interactive=##INTERACTIVE## destination_ip=##DESTINATION_IP## sshuser=##SSHUSER## &&
+sudo -E dos2unix ##SCRIPT_NAME## &&
+sudo -E bash ##SCRIPT_NAME##

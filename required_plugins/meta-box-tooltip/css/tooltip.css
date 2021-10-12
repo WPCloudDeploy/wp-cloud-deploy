@@ -1,0 +1,20 @@
+.mb-tooltip {
+	margin: 0 0 0 .5em;
+	opacity: .15;
+	background: none;
+	border: none;
+	padding: 0;
+	transition: opacity 200ms;
+}
+.mb-tooltip .dashicons {
+	font-size: 14px;
+	width: 14px;
+	height: 14px;
+	vertical-align: middle;
+}
+.mb-tooltip .dashicons-editor-help {
+	font-size: 17px;
+}
+.mb-tooltip:hover {
+	opacity: .5;
+}

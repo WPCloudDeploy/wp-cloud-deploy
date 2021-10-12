@@ -1,0 +1,272 @@
+#!/bin/bash
+
+if [[ "$EUID" -ne 0 ]]
+then
+	echo "Sorry, to run this as root"
+	exit
+fi
+
+#################################################################
+# Remove crons.
+#################################################################
+function remove_status_cron() 
+{
+	(crontab -l 2>/dev/null | sed '/wp-status/d' ) | crontab -
+	(crontab -l 2>/dev/null | sed '/wp-site-status/d' ) | crontab -
+	rm -f /usr/local/bin/wp-status
+	rm -f /etc/apt/apt.conf.d/100update-wpstatus
+	rm -f /usr/local/bin/wp-site-status
+}
+
+clear
+while [[ -z $action ]]; do
+	echo
+	echo "What do you want to do?"
+	echo "   1) Install Server status Cron"
+	echo "   2) Remove Server status Cron"
+	echo "   3) Run Server status Cron"
+	echo "   4) Schedule Server status Cron To Execute Immediately"
+	echo
+	read -p "Action: " action
+	until [[ -z "$action" || "$action" =~ ^[1-4]$ ]]; do
+		echo "$action: invalid selection."
+		read -p "Action: " action
+	done
+done
+
+################### Install server Status Cron #########
+if [[ $action == "install_status_cron" || $action == "1" ]];
+then
+	if [[ -z "$callback_server_status" ]]
+	then
+		read -p "enter callback url to get server status:  " callback_server_status
+	fi
+	
+	if [[ -z "$callback_sites_status" ]]
+	then
+		read -p "enter callback url to get sites status:  " callback_sites_status
+	fi	
+
+	# make sure bc is installed
+	apt-get install bc -y
+	
+	# remove crons if they exist...
+	remove_status_cron
+
+	# set up the helper script
+	echo $'#!/bin/bash
+callback_server_status='$callback_server_status'
+date=$(date +"%Y-%m-%d"-"%Hh%Mm%Ss")
+if [ -f /var/run/reboot-required ]
+then
+restart=yes
+else
+restart=no
+fi
+
+unattended-upgrade --dry-run -v  > /dev/null 2>&1
+if [ $? -ne 0 ]
+then
+	unattended_package_num=$(unattended-upgrade --dry-run -d 2> /dev/null | grep "Checking:"|wc -l)
+	unattended_package_list=$(unattended-upgrade --dry-run -d 2> /dev/null | grep "Checking:"|cut -d" " -f2|tr "\n" ",")
+else
+	unattended_package_num=0
+	unattended_package_list=""
+fi
+total_updates=$(/usr/lib/update-notifier/apt-check 2>&1 | cut -d ";" -f 1)
+security_updates=$(/usr/lib/update-notifier/apt-check 2>&1 | cut -d ";" -f 2)
+list_of_packages=$(apt list --upgradable  2>/dev/null|grep -v ^Listing|cut -d"/" -f1|tr "\n" ",")
+
+######  Total CPU Usage from boot up by adding all variables #######
+###### Grep first line which has overall cpu usage from /proc/stat , add all parameter value to get total cpu ###
+cpu_total=`grep '\''cpu '\'' /proc/stat |awk '\''{print ($2+$3+$4+$5+$6+$7+$8+$9)}'\''`
+
+###### Idle Cpu from boot up to get idle cpu value from /proc/stat #####
+###### Grep first line which has overall cpu usage from /proc/stat , get idle cpu usage from 5th parameter ###
+cpu_idle=`grep '\''cpu '\'' /proc/stat |awk '\''{print ($5)}'\''`
+
+###### Get cpu usage since reboot with floating value to 3 point in percentage ######
+###### Subtract idle cpu from total cpu and get overall usage in % ####
+cpu_since_reboot=`echo "scale=3; ($cpu_total-$cpu_idle)/$cpu_total*100"|bc -l`
+
+###### Get result of Cpu usage from Top command and subtract idle cpu usage from 100 to get live cpu usage value ###
+###### print top and get latest 2 values (top command updates every 2 sec -n2) , grep cpu usage line from top command 
+###### get last line which from cpu usage which has live cpu usage , Cut the cpu line result by id, and get the idle cpu usage from there, split result by all commas(,) and subtract idle cpu usage from 100 to get overall cpu usage  ###
+cpu_now=$(top -b -n2 -p 1 | fgrep "Cpu(s)" | tail -1 | awk -F'\''id,'\'' -v prefix="$prefix" '\''{ split($1, vs, ","); v=vs[length(vs)]; sub("%", "", v); printf "%s%.1f\n", prefix, 100 - v }'\'') ;
+
+uptime=`uptime | awk '\''{print $3,$4}'\'' | sed '\''s/,//'\'' |sed '\''s/ //'\''`
+free_disk=`df -h|grep -w '\''/'\''|awk '\''{print $4}'\''`
+used_disk_percentage=`df -h|grep -w '\''/'\''|awk '\''{print $5}'\''|cut -d'\''%'\'' -f1`
+free_disk_percentage=`expr 100 - $used_disk_percentage`
+website_disk=`du -sh /var/www/*/html|sed '\''s/[ \t]*//g'\''|awk -F'\''/'\'' '\''{ print $4 "=" $1}'\''|tr '\''\n'\'' '\'','\''`
+Total_mem=`echo "scale=2; $(free -m|grep Mem|awk '\''{print $2}'\'')/1024" | bc`
+Used_mem=`echo "scale=2; $(free -m|grep Mem|awk '\''{print $3}'\'')/1024" | bc`
+Used_mem_percentage=`echo "scale=2; $Used_mem/$Total_mem*100"|bc`
+Database_size=`mysql -e "SELECT ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS '\''Size (MB)'\'' FROM information_schema.TABLES;"|tail -n 1`
+Largest_DB_Name=$(mysql -e '\''select * from (SELECT table_schema AS `DB Name`,ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS `Size MB` FROM   information_schema.tables GROUP  BY `DB Name`) AS tmp_table ORDER  BY `Size MB` ASC;'\''|tail -n 1|awk '\''{print $1}'\'')
+Largest_DB_Size=$(mysql -e '\''select * from (SELECT table_schema AS `DB Name`,ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS `Size MB` FROM   information_schema.tables GROUP  BY `DB Name`) AS tmp_table ORDER  BY `Size MB` ASC;'\''|tail -n 1|awk '\''{print $2}'\'')
+
+echo ""				>> /var/log/wp-server-status.log
+echo "$(date)"			>> /var/log/wp-server-status.log
+echo "Does server require Restart               	:       $restart"       >> /var/log/wp-server-status.log
+echo "Total Number of Packages require update   	:       $total_updates"  >> /var/log/wp-server-status.log
+echo "Security Packages require update          	:       $security_updates" >> /var/log/wp-server-status.log
+echo "Number of Unattended packages require update      :       $unattended_package_num"  >> /var/log/wp-server-status.log
+echo "List of Packages require update           	:       $list_of_packages"  >> /var/log/wp-server-status.log
+echo "List of Unattended Packages require update	:       $unattended_package_list"  >> /var/log/wp-server-status.log
+echo "Server Uptime					:       $uptime"  >> /var/log/wp-server-status.log
+echo "Cpu Since Reboot					:	$cpu_since_reboot"  >> /var/log/wp-server-status.log
+echo "Cpu Now						:	$cpu_now"  >> /var/log/wp-server-status.log
+echo "Free Disk Space					:	$free_disk G"  >> /var/log/wp-server-status.log
+echo "Free Disk Space Percentage			:	$free_disk_percentage %"  >> /var/log/wp-server-status.log
+echo "Disk Space used by each websites			:	$website_disk"  >> /var/log/wp-server-status.log
+echo "Total Memory					:	$Total_mem G"  >> /var/log/wp-server-status.log
+echo "Used Memory					:	$Used_mem G"  >> /var/log/wp-server-status.log
+echo "Used Memory Percentage				:	$Used_mem_percentage %"  >> /var/log/wp-server-status.log
+echo "Total size of All databases			:	$Database_size M"  >> /var/log/wp-server-status.log
+echo "Largest Mysql Database Name			:	$Largest_DB_Name"  >> /var/log/wp-server-status.log
+echo "Largest Mysql Database Size			:	$Largest_DB_Size M"  >> /var/log/wp-server-status.log
+' > /usr/local/bin/wp-status
+
+	if [[ -n "$callback_server_status" ]]
+	then
+		echo 'get_count=`echo "restart=$restart&total_updates=$total_updates&security_updates=$security_updates&unattended_package_num=$unattended_package_num&list_of_packages=$list_of_packages&unattended_package_list=$unattended_package_list&uptime=$uptime&cpu_overall=$cpu_since_reboot&cpu_since_reboot=$cpu_now&free_disk=$free_disk&free_disk_percentage=$free_disk_percentage&website_disk=$website_disk&Total_mem=$Total_mem&Used_mem=$Used_mem&Used_mem_percentage=$Used_mem_percentage&Database_size=$Database_size&Largest_DB_Name=$Largest_DB_Name&Largest_DB_Size=$Largest_DB_Size" |wc -c`
+		### When callback url contains greater than 200 Chracter as string then ignore unattended and all packages list from url ##
+		if [[ $get_count -lt 2000 ]]
+		then
+		curl -sS "$callback_server_status?restart=$restart&total_updates=$total_updates&security_updates=$security_updates&unattended_package_num=$unattended_package_num&list_of_packages=$list_of_packages&unattended_package_list=$unattended_package_list&uptime=$uptime&cpu_since_reboot=$cpu_since_reboot&cpu_now=$cpu_now&free_disk=$free_disk&free_disk_percentage=$free_disk_percentage&website_disk=$website_disk&Total_mem=$Total_mem&Used_mem=$Used_mem&Used_mem_percentage=$Used_mem_percentage&Database_size=$Database_size&Largest_DB_Name=$Largest_DB_Name&Largest_DB_Size=$Largest_DB_Size"
+	else
+		curl -sS "$callback_server_status?restart=$restart&total_updates=$total_updates&security_updates=$security_updates&unattended_package_num=$unattended_package_num&uptime=$uptime&cpu_since_reboot=$cpu_since_reboot&cpu_now=$cpu_now&free_disk=$free_disk&free_disk_percentage=$free_disk_percentage&website_disk=$website_disk&Total_mem=$Total_mem&Used_mem=$Used_mem&Used_mem_percentage=$Used_mem_percentage&Database_size=$Database_size&Largest_DB_Name=$Largest_DB_Name&Largest_DB_Size=$Largest_DB_Size"
+		fi'	>> /usr/local/bin/wp-status
+	fi
+
+	chmod +x /usr/local/bin/wp-status
+	# end set up the helper script
+
+	# if the crontab entry doesn't exist, create it
+	crontab -l | grep -q 'wp-status' || (crontab -l 2>/dev/null; echo "0 4 * * * /usr/local/bin/wp-status > /dev/null 2>&1") | crontab - > /dev/null
+	crontab -l | grep 'reboot' | grep -q 'wp-status' || (crontab -l 2>/dev/null; echo "@reboot sleep 300 && /usr/local/bin/wp-status > /dev/null 2>&1") | crontab - > /dev/null
+
+	##### Run scripts after apt upgrade
+	echo $'DPkg::Post-Invoke {"bash /usr/local/bin/wp-status 2>/dev/null || true ";};' > /etc/apt/apt.conf.d/100update-wpstatus
+
+	###############################################
+	# set up the helper script for sites/domains
+	###############################################
+	echo $'#!/bin/bash
+callback_server_status='$callback_sites_status'
+date=$(date +"%Y-%m-%d"-"%Hh%Mm%Ss")
+for domain in `ls /var/www | grep -v html`
+do
+user_name=$(echo $domain | cut -c1-32)
+publicip=`curl ifconfig.me`
+pluginupdate=`su - $user_name -c "wp plugin list --status=active --update=available"|grep -v name|wc -l`
+themeupdate=`su - $user_name -c "wp theme list --status=active --update=available"|grep -v name|wc -l`
+su - $user_name -c "wp core check-update"|grep latest
+if [ $? -ne 0 ]
+then
+wpupdate=yes
+else
+wpupdate=no
+fi
+
+mysqldb=$(grep DB_NAME /var/www/$domain/html/wp-config.php | cut -d "'\''" -f 4)
+domain_file_size=`du -sm /var/www/$domain|awk '\''{print $1}'\''`
+domain_db_size=`du -sm /var/lib/mysql/$mysqldb|awk '\''{print $1}'\''`
+
+if [ -d ~/.wp-backup/$domain ]
+then
+	domain_backup_size=`du -sm ~/.wp-backup/$domain|awk '\''{print $1}'\''`
+else
+	domain_backup_size=0
+fi
+
+echo "$domain"			>> /var/log/wp-site-status.log
+echo "$(date)"			>> /var/log/wp-site-status.log
+echo "Domain Name               	:       $domain"       >> /var/log/wp-site-status.log
+echo "Server Public Ip               	:       $publicip"       >> /var/log/wp-site-status.log
+echo "Number of Plugins require updates	:       $pluginupdate"       >> /var/log/wp-site-status.log
+echo "Number of Themes require updates 	:       $themeupdate"       >> /var/log/wp-site-status.log
+echo "Wp updates if required 		:       $wpupdate"       >> /var/log/wp-site-status.log
+echo "Domain file size 			:       $domain_file_size"       >> /var/log/wp-site-status.log
+echo "Domain DB size 			:       $domain_db_size"       >> /var/log/wp-site-status.log
+echo "Domain Backup size 		:       $domain_backup_size"       >> /var/log/wp-site-status.log
+curl -sS "$callback_server_status?domain=$domain&publicip=$publicip&pluginupdate=$pluginupdate&themeupdate=$themeupdate&wpupdate=$wpupdate&domain_file_usage=$domain_file_size&domain_db_size=$domain_db_size&domain_backup_size=$domain_backup_size"
+sleep 3
+done' > /usr/local/bin/wp-site-status
+
+	chmod +x /usr/local/bin/wp-site-status
+
+	# if the crontab entry doesn't exist, create it
+	crontab -l | grep -q 'wp-site-status' || (crontab -l 2>/dev/null; echo "0 22 * * * /usr/local/bin/wp-site-status > /dev/null 2>&1") | crontab - > /dev/null
+	echo
+	echo "Server status job configured!"
+	exit
+fi
+
+################### Remove server Status Cron #########
+if [[ $action == "remove_status_cron" || $action == "2" ]]
+then
+	remove_status_cron
+	echo
+	echo "Server status job removed!"
+	exit	
+fi
+
+################### Run server Status Cron #########
+if [[ $action == "run_status_cron" || $action == "3" ]]
+then
+	if [ ! -f /usr/local/bin/wp-status ]
+	then
+		echo
+		echo "Server Status script not installed yet!"
+	else
+		bash /usr/local/bin/wp-status
+		if [ $? -eq 0 ]
+		then
+			echo "Server status job executed successfully."
+		fi
+	fi
+
+	if [ ! -f /usr/local/bin/wp-site-status ]
+	then
+		echo
+		echo "Site Status script not installed yet!"
+	else
+		bash /usr/local/bin/wp-site-status
+		if [ $? -eq 0 ]
+		then
+			echo "Site status job executed successfully."
+		fi
+	fi
+	exit
+fi
+
+################### Run server Status Cron #########
+if [[ $action == "run_status_cron_background" || $action == "4" ]]
+then
+	if [ ! -f /usr/local/bin/wp-status ]
+	then
+		echo
+		echo "Server Status script not installed yet!"
+	else
+		echo "sudo bash /usr/local/bin/wp-status" |at now + 1 minutes
+		if [ $? -eq 0 ]
+		then
+			echo "Server status job scheduled successfully."
+		fi
+	fi
+
+	if [ ! -f /usr/local/bin/wp-site-status ]
+	then
+		echo
+		echo "Site Status script not installed yet!"
+	else
+		echo "sudo bash /usr/local/bin/wp-site-status" |at now + 30 minutes
+		if [ $? -eq 0 ]
+		then
+			echo "Site status job scheduled successfully."
+		fi
+	fi
+fi
+

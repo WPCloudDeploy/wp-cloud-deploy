@@ -1,0 +1,133 @@
+#!/bin/bash
+
+if [[ "$EUID" -ne 0 ]]
+then
+	echo "Sorry, to run this as root"
+	exit
+fi
+
+clear
+
+
+while [[ -z $action ]]; do
+	echo
+	echo "What do you want to do?"
+	echo "   1) Count Number of Pending Updates"
+	echo "   2) List of Updates"
+	echo "   3) Run Updates"
+	echo "   4) Run Updates in Background via Cron"
+	echo "   5) Run Security Updates in Background via Cron"
+	echo
+	read -p "Action: " action
+	until [[ -z "$action" || "$action" =~ ^[1-5]$ ]]; do
+		echo "$action: invalid selection."
+		read -p "Action: " action
+	done
+done
+
+################### Count Updates #########
+if [[ $action == "count_updates" || $action == "1" ]];
+then
+	total_updates=$(/usr/lib/update-notifier/apt-check 2>&1 | cut -d ";" -f 1)
+	echo "Total number of Pending Updates are - $total_updates"
+fi
+
+################### List of Updates #########
+if [[ $action == "list_updates" || $action == "2" ]];
+then
+	list_of_packages=$(apt list --upgradable  2>/dev/null|grep -v ^Listing|cut -d"/" -f1|tr "\n" ",")
+	echo "List of Pending Updates are : - $list_of_packages"
+fi
+
+################### Run Updates #########
+if [[ $action == "run_updates" || $action == "3" ]];
+then
+	if [[ -z "$callback_server_status" ]]
+	then
+		read -p "enter callback url to get server status:  " callback_server_status
+	fi
+
+	if [ -f /var/run/reboot-required ]
+	then
+		restart=yes
+	else
+		restart=no
+	fi
+	total_updates=$(/usr/lib/update-notifier/apt-check 2>&1 | cut -d ";" -f 1)
+	list_of_packages=$(apt list --upgradable  2>/dev/null|grep -v ^Listing|cut -d"/" -f1|tr "\n" ",")
+	
+	apt-get --with-new-pkgs upgrade -y
+	if [[ -n "$callback_server_status" ]]
+	then
+		curl -sS "$callback_server_status?restart=$restart&total_updates=$total_updates&list_of_packages=$list_of_packages"
+	fi
+fi
+
+################### Run Updates in Background #########
+if [[ $action == "run_updates_cron" || $action == "4" ]];
+then
+	apt-get install at -y > /dev/null
+	if [[ -z "$callback_server_status" ]]
+	then
+		read -p "enter callback url to get server status:  " callback_server_status
+	fi
+	echo $'#!/bin/bash
+callback_server_status='$callback_server_status'
+
+sudo apt-get --with-new-pkgs upgrade -y
+
+total_updates=$(/usr/lib/update-notifier/apt-check 2>&1 | cut -d ";" -f 1)
+list_of_packages=$(apt list --upgradable  2>/dev/null|grep -v ^Listing|cut -d"/" -f1|tr "\n" ",")
+
+if [ -f /var/run/reboot-required ]
+then
+	restart=yes
+else
+	restart=no
+fi
+
+if [[ -n "$callback_server_status" ]]
+then
+	curl -sS "$callback_server_status?restart=$restart&total_updates=$total_updates&list_of_packages=$list_of_packages"
+fi'  > /usr/local/bin/server-status
+
+chmod +x /usr/local/bin/server-status
+echo "bash /usr/local/bin/server-status" |at now + 1 minutes
+
+echo "Updates have been scheduled to run via cron!"
+fi
+
+
+################### Run Security Updates in Background #########
+if [[ $action == "run_security_updates_cron" || $action == "5" ]];
+then
+	apt-get install at -y > /dev/null
+	if [[ -z "$callback_server_status" ]]
+	then
+		read -p "enter callback url to get server status:  " callback_server_status
+	fi
+	echo $'#!/bin/bash
+callback_server_status='$callback_server_status'
+
+sudo unattended-upgrade
+
+total_updates=$(/usr/lib/update-notifier/apt-check 2>&1 | cut -d ";" -f 2)
+list_of_packages=$(apt list --upgradable  2>/dev/null|grep "\-security"|grep -v ^Listing|cut -d"/" -f1|tr "\n" ",")
+
+if [ -f /var/run/reboot-required ]
+then
+	restart=yes
+else
+	restart=no
+fi
+
+if [[ -n "$callback_server_status" ]]
+then
+	curl -sS "$callback_server_status?restart=$restart&total_updates=$total_updates&list_of_packages=$list_of_packages"
+fi'  > /usr/local/bin/server-status
+
+chmod +x /usr/local/bin/server-status
+echo "bash /usr/local/bin/server-status" |at now + 1 minutes
+
+echo "Security Updates have been scheduled to run via cron!"
+fi

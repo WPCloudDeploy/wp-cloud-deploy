@@ -1,0 +1,610 @@
+#!/bin/bash
+if [[ "$EUID" -ne 0 ]]
+then
+	echo "Sorry, you need to run this as root"
+	exit
+fi
+
+while [[ -z $action ]]; do
+	echo
+	echo "What do you want to do?"
+	echo
+	echo "   1) Install Fail2ban"
+	echo "   2) Remove Fail2ban"
+	echo "   3) Update Fail2ban parameters"
+	echo "   4) Add Fail2ban Protocols/Services"
+	echo "   5) Remove Fail2ban Protocols/Services"
+	echo "   6) Modify Fail2ban Protocols/Services"
+	echo "   7) Update Fail2ban with latest version"
+	echo "   8) Unban/Whitelist Ip from Fail2ban"
+	echo "   9) Ban Ip from Fail2ban"
+	echo "   10) Purge Fail2ban"	
+	echo "   11) List Ban Ip from Fail2ban"	
+	echo "   12) List Whitelisted Ip from Fail2ban"	
+	echo "   13) Install Wp Fail2ban Plugin"	
+	echo "   14) Remove Wp Fail2ban Plugin"	
+	read -p "Action: " action
+	until [[ -z "$action" || "$action" =~ ^[0-9]+$ ]]; do
+		echo "$action: invalid selection."
+		read -p "Action: " action
+	done
+done
+
+###################################### Fail2ban Install Function ##########
+function fail2ban_install
+{
+	if hash fail2ban-server 2>/dev/null
+	then
+		echo
+		echo "fail2ban is already installed!"
+		exit
+	fi
+
+	echo "installing Fail2ban on server........."
+	apt-get update > /dev/null 2>&1
+	apt-get install fail2ban -y > /dev/null 2>&1
+
+	echo "Fail2ban has been installed"
+	echo "Enabling services..."
+	### Add default vaule    
+	grep -v ' \[DEFAULT]' /etc/fail2ban/jail.conf |grep -v '# \[sshd]'|grep -v 'maxretry '|grep -v 'time '|sed '/^$/d' > /etc/fail2ban/jail.local
+	sed -i "s/\[DEFAULT]/\[DEFAULT]\nbantime=600\nfindtime=600\nmaxretry=3\nignoreip=127.0.0.1/g" /etc/fail2ban/jail.local
+	sed -i "s/\[sshd]/\[sshd]\nenabled=true\nbantime=600\nfindtime=600\nmaxretry=3/g" /etc/fail2ban/jail.local
+	sed -i "s/\[phpmyadmin-syslog]/\[phpmyadmin-syslog]\nenabled=true\nbantime=600\nfindtime=600\nmaxretry=3/g" /etc/fail2ban/jail.local
+	echo "sshd , phpmyadmin-syslog service enabled"
+	if [[ -f /var/log/monit.log ]]
+	then
+		sed -i "s/\[monit]/\[monit]\nenabled=true\nbantime=600\nfindtime=600\nmaxretry=3/g" /etc/fail2ban/jail.local
+		echo "Monit service has been enabled"
+	fi
+	if [[ -f /var/log/nginx/error.log ]]
+	then
+		sed -i "s/\[nginx-http-auth]/\[nginx-http-auth]\nenabled=true\nbantime=600\nfindtime=600\nmaxretry=3/g" /etc/fail2ban/jail.local
+		sed -i "s/\[nginx-limit-req]/\[nginx-limit-req]\nenabled=true\nbantime=600\nfindtime=600\nmaxretry=3/g" /etc/fail2ban/jail.local
+		sed -i "s/\[nginx-botsearch]/\[nginx-botsearch]\nenabled=true\nbantime=600\nfindtime=600\nmaxretry=3/g" /etc/fail2ban/jail.local
+		echo "nginx-http-auth, nginx-limit-req,nginx-botsearch services enabled"
+	fi
+
+	curl -s https://plugins.svn.wordpress.org/wp-fail2ban/trunk/filters.d/wordpress-hard.conf > /etc/fail2ban/filter.d/wordpress-hard.conf
+	curl -s https://plugins.svn.wordpress.org/wp-fail2ban/trunk/filters.d/wordpress-soft.conf > /etc/fail2ban/filter.d/wordpress-soft.conf
+
+	echo "[wordpress-hard]
+enabled = true
+filter = wordpress-hard
+logpath = /var/log/auth.log
+maxretry=1
+bantime=30
+port = http,https
+
+[wordpress-soft]
+enabled = true
+filter = wordpress-soft
+logpath = /var/log/auth.log
+maxretry = 3
+bantime=600
+port = http,https" >> /etc/fail2ban/jail.local
+
+	## Enable service at boot and restart 
+	systemctl enable fail2ban > /dev/null 2>&1
+	systemctl restart fail2ban > /dev/null 2>&1
+
+	grep -R fail2ban /etc/logrotate.d/  > /dev/null 2>&1
+	if [ $? -ne 0 ]
+	then
+		cat > /etc/logrotate.d/fail2ban << EOL
+/var/log/fail2ban.log {
+weekly
+rotate 4
+compress
+delaycompress
+missingok
+postrotate
+fail2ban-client flushlogs 1>/dev/null
+endscript
+create 640 root adm
+}
+EOL
+fi
+
+echo "Fail2ban installation complete."
+}
+
+###################################### Fail2ban Remove Function ##########
+function fail2ban_remove
+{
+	apt-get remove fail2ban* -y > /dev/null
+	rm -rf /usr/bin/fail2ban-* /usr/local/bin/fail2ban-* /usr/share/fail2ban /etc/init.d/fail2ban
+	echo 
+	echo "fail2ban has been removed"
+}
+
+###################################### Fail2ban Remove and Purge ##########
+function fail2ban_purge
+{
+	apt-get purge fail2ban* -y > /dev/null
+	rm -rf /usr/bin/fail2ban-* /usr/local/bin/fail2ban-* /usr/share/fail2ban /etc/init.d/fail2ban
+	rm -rf /etc/fail2ban
+	echo 
+	echo "fail2ban has been purged"
+}
+
+###################################### Fail2ban Update Parameter Function ##########
+function fail2ban_parameter
+{
+	# Get the default times and retries from the jail.local file.
+	parameter_line=`grep -n "\[DEFAULT\]" /etc/fail2ban/jail.local|cut -d':' -f1`
+	bantime=`sed -n "/\[DEFAULT\]/,/\[/{=;p;}"  /etc/fail2ban/jail.local|sed '{N;s/\n/ /}'|grep "bantime="|grep -v '#'|cut -d'=' -f2`
+	findtime=`sed -n "/\[DEFAULT\]/,/\[/{=;p;}"  /etc/fail2ban/jail.local|sed '{N;s/\n/ /}'|grep "findtime="|grep -v '#'|cut -d'=' -f2`
+	maxretry=`sed -n "/\[DEFAULT\]/,/\[/{=;p;}"  /etc/fail2ban/jail.local|sed '{N;s/\n/ /}'|grep "maxretry="|grep -v '#'|cut -d'=' -f2`
+	ignoreip=`sed -n "/\[DEFAULT\]/,/\[/{=;p;}"  /etc/fail2ban/jail.local|sed '{N;s/\n/ /}'|grep "ignoreip="|grep -v '#'|cut -d'=' -f2`
+	if [ -z $bantime_new ] 
+	then
+		read -p "Default Bantime[$bantime]: " bantime_new
+	fi
+	if [ ! -z $bantime_new ] 
+	then
+		if [[ "$bantime_new" =~ ^[0-9]+$ ]]
+		then
+			lineno=`sed -n "/\[DEFAULT\]/,/\[/{=;p;}"  /etc/fail2ban/jail.local|sed '{N;s/\n/ /}'|grep "bantime="|grep -v '#'|cut -d' ' -f1`
+			if [ -z $lineno ]
+			then
+				sed -i "$parameter_line a bantime=$bantime_new" /etc/fail2ban/jail.local
+			else
+				sed -i "$lineno s/.*/bantime=$bantime_new/" /etc/fail2ban/jail.local
+			fi
+		fi
+	fi
+
+	if [ -z $findtime_new ]
+	then
+		read -p "Default findtime[$findtime]: " findtime_new
+	fi
+	if [ ! -z $findtime_new ]
+	then
+		if [[ "$findtime_new" =~ ^[0-9]+$ ]]
+		then
+			lineno=`sed -n "/\[DEFAULT\]/,/\[/{=;p;}"  /etc/fail2ban/jail.local|sed '{N;s/\n/ /}'|grep "findtime="|grep -v '#'|cut -d' ' -f1`
+			if [ -z $lineno ]
+			then
+				sed -i "$parameter_line a findtime=$findtime_new" /etc/fail2ban/jail.local
+			else
+				sed -i "$lineno s/.*/findtime=$findtime_new/" /etc/fail2ban/jail.local
+			fi
+		fi
+	fi 
+
+	if [ -z $maxretry_new ]
+	then
+		read -p "Default max retry[$maxretry]: " maxretry_new
+	fi
+	if [ ! -z $maxretry_new ]
+	then
+		if [[ "$maxretry_new" =~ ^[0-9]+$ ]]
+		then
+			lineno=`sed -n "/\[DEFAULT\]/,/\[/{=;p;}"  /etc/fail2ban/jail.local|sed '{N;s/\n/ /}'|grep "maxretry="|grep -v '#'|cut -d' ' -f1`
+			if [ -z $lineno ]
+			then
+				sed -i "$parameter_line a maxretry=$maxretry_new" /etc/fail2ban/jail.local
+			else
+				sed -i "$lineno s/.*/maxretry=$maxretry_new/" /etc/fail2ban/jail.local
+			fi
+		fi
+	fi 
+
+	if [ -z $ignoreip_new ]
+	then 
+	        read -p "Add ip in Ignoreip list[$ignoreip]: " ignoreip_new
+	fi
+	if [ ! -z $ignoreip_new ] && [ "$ignoreip_new" != "n/a" ]
+	then
+		if ip route get $ignoreip_new > /dev/null 2>&1 || ip -6 route get $ignoreip_new > /dev/null 2>&1
+		then
+			ignoreip_new="${ignoreip} ${ignoreip_new}"
+			lineno=`sed -n "/\[DEFAULT\]/,/\[/{=;p;}"  /etc/fail2ban/jail.local|sed '{N;s/\n/ /}'|grep ignoreip|grep -v '#'|cut -d' ' -f1`
+			if [ -z $lineno ]
+			then
+				sed -i "$parameter_line a ignoreip=$ignoreip_new" /etc/fail2ban/jail.local
+			else
+				sed -i "$lineno s/.*/ignoreip=$ignoreip_new/" /etc/fail2ban/jail.local
+			fi
+		else
+			echo "$ignoreip_new is not valid"
+		fi
+	fi
+
+	fail2ban-client reload > /dev/null 2>&1
+	if [ $? -eq 0 ]
+	then
+		echo "Fail2ban parameters have been successfully updated";
+	else
+		echo "Fail2ban parameters are incorrect - fail2ban has not restarted and needs manual attention.";
+	fi
+}
+
+###################################### Fail2ban Add Protocol Function ##########
+function fail2ban_add_protocol
+{
+	protocol=`fail2ban-client status|grep list|cut -d':' -f2|awk '{ gsub(/^[ \t]+|[ \t]+$/, ""); print }'`
+	if [ -z $protocol_new ] 
+	then
+	        read -p "Add new Protocol/services to fail2ban. Enabled[$protocol]: " protocol_new
+	fi
+	
+	# Get the default times and retries from the jail.local file.
+	bantime=`grep -A4 "\[DEFAULT\]" /etc/fail2ban/jail.local|grep bantime|cut -d'=' -f2`
+	findtime=`grep -A4 "\[DEFAULT\]" /etc/fail2ban/jail.local|grep findtime|cut -d'=' -f2`
+	maxretry=`grep -A4 "\[DEFAULT\]" /etc/fail2ban/jail.local|grep maxretry|cut -d'=' -f2`	
+	
+	if [ ! -z $protocol_new ]
+	then
+		grep -w "\[$protocol_new\]" /etc/fail2ban/jail.conf > /dev/null
+		if [ $? -eq 0 ]
+		then
+			grep -A1 "\[$protocol_new\]" /etc/fail2ban/jail.local|grep enabled > /dev/null
+			if [ $? -eq 0 ]
+			then
+				sed -i "/\[$protocol_new]/{n;s/.*/enabled = true/}" /etc/fail2ban/jail.local
+			else
+				sed -i "s/\[$protocol_new]/\[$protocol_new]\nenabled=true\nbantime=$bantime\nfindtime=$findtime\nmaxretry=$maxretry/g" /etc/fail2ban/jail.local
+			fi
+			fail2ban-client reload > /dev/null 2>&1
+			if [ $? -eq 0 ]
+			then
+				echo "Protocol has been added: $protocol_new ";
+			else
+				sed -i "/\[$protocol_new]/{n;s/.*/enabled = false/}" /etc/fail2ban/jail.local
+				echo "Unable to add protocol. The protocol may not be installed or the protocol log file was not found."
+				fail2ban-client reload > /dev/null
+			fi
+		else
+			protocol_list=`grep '\[[a-z,-]*\]' /etc/fail2ban/jail.conf |grep -v '#'|sed 's/.*\[//;s/\].*//;'|tr '\n' ','`
+			echo 
+			echo "Please check to make sure that you have entered a valid protocol:"
+		        echo "	[$protocol_list]"
+	        	read -p "Add new Protocol/services to fail2ban. Enabled[$protocol]: " protocol_new
+			fail2ban_add_protocol
+		fi
+	fi
+}
+
+###################################### Fail2ban Remove Protocol Function ##########
+function fail2ban_remove_protocol
+{
+	protocol=`fail2ban-client status|grep list|cut -d':' -f2|awk '{ gsub(/^[ \t]+|[ \t]+$/, ""); print }'`
+	if [ -z $protocol_delete ]
+	then
+	        read -p "Remove Protocol/Services. Enabled[$protocol]: " protocol_delete
+	fi
+	if [ ! -z $protocol_delete ]
+	then
+		echo $protocol|sed "s/ //g"|tr ',' '\n'|grep -x "$protocol_delete" > /dev/null
+		if [ $? -eq 0 ]
+		then
+			sed -i "/\[$protocol_delete]/{n;s/.*/enabled = false/}" /etc/fail2ban/jail.local
+			echo "$protocol_delete removed" 
+			fail2ban-client reload
+			echo "The specified protocol has been removed: $protocol_delete ";
+		else
+			echo "The protocol was not enabled and therefore could not be removed."
+		fi
+	fi
+}
+
+###################################### Fail2ban Update Protocol Variables Function ##########
+function fail2ban_update_protocol
+{
+	protocol=`fail2ban-client status|grep list|cut -d':' -f2|awk '{ gsub(/^[ \t]+|[ \t]+$/, ""); print }'`
+	if [ -z $protocol_update ]
+	then
+	       	read -p "Modify Existing Protocol/Services from Fail2ban. Enabled[$protocol]: " protocol_update
+	fi
+	echo $protocol|sed "s/ //g"|tr ',' '\n'|grep -x "$protocol_update" > /dev/null
+	if [ $? -eq 0 ]
+	then
+		parameter_line=`grep -n -A1 "\[$protocol_update\]" /etc/fail2ban/jail.local|tail -n1|cut -d'-' -f1`
+		bantime=`sed -n "/\[$protocol_update\]/,/\[/{=;p;}"  /etc/fail2ban/jail.local|sed '{N;s/\n/ /}'|grep bantime|grep -v '#'|cut -d'=' -f2`
+		findtime=`sed -n "/\[$protocol_update\]/,/\[/{=;p;}"  /etc/fail2ban/jail.local|sed '{N;s/\n/ /}'|grep findtime|grep -v '#'|cut -d'=' -f2`
+		maxretry=`sed -n "/\[$protocol_update\]/,/\[/{=;p;}"  /etc/fail2ban/jail.local|sed '{N;s/\n/ /}'|grep maxretry|grep -v '#'|cut -d'=' -f2`
+
+		proto_bantime=`fail2ban-client get $protocol_update bantime`
+		if [ -z $bantime_new ]
+		then
+			read -p "Default Bantime[$proto_bantime]: " bantime_new
+		fi
+		if [ ! -z $bantime_new ]
+		then
+			if [[ "$bantime_new" =~ ^[0-9]+$ ]]
+			then
+				lineno=`sed -n "/\[$protocol_update\]/,/\[/{=;p;}"  /etc/fail2ban/jail.local|sed '{N;s/\n/ /}'|grep bantime|grep -v '#'|cut -d' ' -f1`
+				if [ -z $lineno ]
+				then
+					sed -i "$parameter_line a bantime=$bantime_new" /etc/fail2ban/jail.local
+				else
+					sed -i "$lineno s/.*/bantime=$bantime_new/" /etc/fail2ban/jail.local
+				fi
+			fi
+		fi
+
+		proto_findtime=`fail2ban-client get $protocol_update findtime`
+		if [ -z $findtime_new ]
+		then
+			read -p "Default findtime[$proto_findtime]: " findtime_new
+		fi
+		if [ ! -z $findtime_new ]
+		then
+			if [[ "$findtime_new" =~ ^[0-9]+$ ]]
+			then
+				lineno=`sed -n "/\[$protocol_update\]/,/\[/{=;p;}"  /etc/fail2ban/jail.local|sed '{N;s/\n/ /}'|grep findtime|grep -v '#'|cut -d' ' -f1`
+				if [ -z $lineno ]
+				then
+					sed -i "$parameter_line a findtime=$findtime_new" /etc/fail2ban/jail.local
+				else
+					sed -i "$lineno s/.*/findtime=$findtime_new/" /etc/fail2ban/jail.local
+				fi
+			fi
+		fi
+
+		proto_maxretry=`fail2ban-client get $protocol_update maxretry`
+		if [ -z $maxretry_new ]
+		then
+		        read -p "Default max retry[$proto_maxretry]: " maxretry_new
+		fi
+		if [ ! -z $maxretry_new ]
+		then
+			if [[ "$maxretry_new" =~ ^[0-9]+$ ]]
+			then
+				lineno=`sed -n "/\[$protocol_update\]/,/\[/{=;p;}"  /etc/fail2ban/jail.local|sed '{N;s/\n/ /}'|grep maxretry|grep -v '#'|cut -d' ' -f1`
+				if [ -z $lineno ]
+				then
+					sed -i "$parameter_line a maxretry=$maxretry_new" /etc/fail2ban/jail.local
+				else
+					sed -i "$lineno s/.*/maxretry=$maxretry_new/" /etc/fail2ban/jail.local
+				fi
+			fi
+		fi
+
+		fail2ban-client reload > /dev/null 2>&1
+		if [ $? -eq 0 ]
+		then
+	        	echo "Fail2ban parameters have been successfully updated: $protocol_update ";
+	        else
+	        	echo "The specified Fail2ban parameters are incorrect. Fail2ban has not been restarted and needs manual attention.";
+	        fi
+	else
+		echo "The Fail2ban service is not enabled."
+	fi
+}
+
+###################################### Fail2ban Force Update Function ##########
+function fail2ban_force_update
+{
+	cp /etc/fail2ban/jail.local /opt/
+	#fail2ban_remove
+	apt-get install fail2ban -y > /dev/null
+	#rm -rf /tmp/fail2ban
+	#apt-get install python -y
+	#git clone https://github.com/fail2ban/fail2ban.git /tmp/fail2ban
+	#cd /tmp/fail2ban
+	#version=`curl -s https://github.com/fail2ban/fail2ban/releases/latest|awk -F'tag/' '{print $2}'|cut -d'"' -f1`
+	#git checkout $version
+	#python setup.py install
+	cp /opt/jail.local /etc/fail2ban/jail.local
+	#cp build/fail2ban.service /lib/systemd/system/
+	systemctl restart fail2ban > /dev/null 2>&1
+	echo "Fail2ban software has been successfully updated"
+}
+
+###################################### Fail2ban Unban Ips list Function ##########
+function fail2ban_unban
+{
+	bannedip=`fail2ban-client status | grep "Jail list:" | sed "s/ //g" | awk '{split($2,a,",");for(i in a) system("fail2ban-client status " a[i])}'|grep 'IP list'|cut -d':' -f2|sed '/^[[:space:]]*$/d'|tr ' ' '\n'`
+
+	ignoreip=`grep -A4 "\[DEFAULT\]" /etc/fail2ban/jail.local|grep ignoreip|cut -d"'" -f2`
+	if [[ -z $unbanip ]]
+	then
+		echo
+		echo "Whitelisted Ips: $ignoreip: "
+		read -p "Enter IP to unban. Separate multiple IPs with commas.:" unbanip
+	fi
+	for i in $(echo $unbanip | sed "s/,/ /g")
+	do
+		if ip route get $i > /dev/null 2>&1 || ip -6 route get $i > /dev/null 2>&1
+		then
+			ignoreip_new="${ignoreip} ${i}"
+			sed -i "s/$ignoreip/$ignoreip_new/" /etc/fail2ban/jail.local
+			fail2ban-client unban $i > /dev/null 2>&1
+			echo  "$i has been unbanned"
+		else
+			echo "$i is not valid."
+		fi
+	done
+	fail2ban-client reload > /dev/null 2>&1
+}
+
+###################################### Fail2ban ban Ips list Function ##########
+function fail2ban_ban
+{
+	bannedip=`fail2ban-client status | grep "Jail list:" | sed "s/ //g" | awk '{split($2,a,",");for(i in a) system("fail2ban-client status " a[i])}'|grep 'IP list'|cut -d':' -f2|sed '/^[[:space:]]*$/d'|tr ' ' '\n'`
+
+	if [[ -z $banip ]]
+	then
+		echo
+		echo "Banned Ips: $bannedip: "
+		read -p "Enter IP to ban/block. Separate multiple ips with commas.:" banip
+	fi
+	for i in $(echo $banip | sed "s/,/ /g")
+	do
+		if ip route get $i > /dev/null 2>&1 || ip -6 route get $i > /dev/null 2>&1
+		then
+			sed -i "s/ $i / /" /etc/fail2ban/jail.local
+			fail2ban-client set sshd banip $i > /dev/null 2>&1
+			echo  "$i has been banned"
+		else
+			echo "$i is not valid."
+		fi
+	done
+	fail2ban-client reload > /dev/null 2>&1
+}
+
+
+###################################### Fail2ban list ban Ips Function ##########
+function fail2ban_list_banip
+{
+	bannedip=`fail2ban-client status | grep "Jail list:" | sed "s/ //g" | awk '{split($2,a,",");for(i in a) system("fail2ban-client status " a[i])}'|grep 'IP list'|cut -d':' -f2|sed '/^[[:space:]]*$/d'|tr ' ' '\n'`
+
+	echo "Banned Ips: - $bannedip "
+}
+
+###################################### Fail2ban list whitelist Ips Function ##########
+function fail2ban_list_whiteip
+{
+	whitelistip=`grep -A4 "\[DEFAULT\]" /etc/fail2ban/jail.local|grep ignoreip|cut -d"=" -f2`
+
+	echo "Whitelisted Ips: - $whitelistip "
+}
+
+###################################### Fail2ban WP Plugin install ##########
+function fail2ban_wp_install
+{
+	if ! hash fail2ban-server 2>/dev/null
+	then
+		echo
+		echo "fail2ban Not installed yet!"
+		exit
+	fi
+	while [[ -z $domain ]]
+	do
+		clear
+		echo "Please, select Domain where fail2ban plugin need to install"
+		ls /var/www | grep -v html | nl
+		read -p "Select site: " site_number
+		number_of_sites=$(ls /var/www | grep -v html | wc -l)
+		until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
+			echo "$site_number: invalid selection."
+			read -p "Select site: " site_number
+	        done
+		domain=$(ls /var/www | grep -v html | sed -n "$site_number"p)
+	done
+	user_name=$(echo $domain | cut -c1-32)
+	su - $user_name -c "wp plugin install wp-fail2ban --activate"
+	su - $user_name -c "mkdir -p /var/www/$domain/html/wp-content/mu-plugins"
+	su - $user_name -c "cd /var/www/$domain/html/wp-content/mu-plugins ; ln -s ../plugins/wp-fail2ban/wp-fail2ban.php"
+	echo "Fail2ban plugin has been installed for $domain";
+}
+
+###################################### Fail2ban WP Plugin Remove ##########
+function fail2ban_wp_remove
+{
+	if ! hash fail2ban-server 2>/dev/null
+	then
+		echo
+		echo "fail2ban Not installed!"
+		exit
+	fi
+	while [[ -z $domain ]]
+	do
+		clear
+		echo "Please, select Domain where fail2ban plugin need to Remove"
+		ls /var/www | grep -v html | nl
+		read -p "Select site: " site_number
+		number_of_sites=$(ls /var/www | grep -v html | wc -l)
+		until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
+			echo "$site_number: invalid selection."
+			read -p "Select site: " site_number
+	        done
+		domain=$(ls /var/www | grep -v html | sed -n "$site_number"p)
+	done
+	user_name=$(echo $domain | cut -c1-32)
+	cd /var/www/$domain/html/wp-content/mu-plugins
+	rm -f wp-fail2ban.php
+	su - $user_name -c "wp plugin uninstall wp-fail2ban --deactivate"
+	echo "Fail2ban Plugin has been removed from $domain";
+}
+
+###########################################################################################################################
+###########################################################################################################################
+
+############## Install Fail2ban with ssh default protocol enable with logrotate
+if [[ $action == "fail2ban_install" || $action == "1" ]]
+then
+	fail2ban_install
+fi
+
+############ Uninstall Fail2ban
+if [[ $action == "fail2ban_remove" || $action == "2" ]]
+then
+	fail2ban_remove
+fi
+
+####### Update default parameters
+if [[ $action == "fail2ban_parameter" || $action == "3" ]]
+then
+	fail2ban_parameter
+fi
+
+############## Add services/protocol
+if [[ $action == "fail2ban_add_protocol" || $action == "4" ]]
+then
+	fail2ban_add_protocol
+fi
+
+############## Remove services/protocol
+if [[ $action == "fail2ban_remove_protocol" || $action == "5" ]]
+then
+	fail2ban_remove_protocol
+fi
+
+############## Update services/protocol
+if [[ $action == "fail2ban_update_protocol" || $action == "6" ]]
+then
+	fail2ban_update_protocol
+fi
+
+########## Force Upgrade to git master branch
+if [[ $action == "fail2ban_force_update" || $action == "7" ]]
+then
+	fail2ban_force_update
+fi
+
+########## Unban ip 
+if [[ $action == "fail2ban_unban" || $action == "8" ]]
+then
+	fail2ban_unban
+fi
+
+####### Ban ip
+if [[ $action == "fail2ban_ban" || $action == "9" ]]
+then
+	fail2ban_ban
+fi
+
+############ Purge Fail2ban
+if [[ $action == "fail2ban_purge" || $action == "10" ]]
+then
+	fail2ban_purge
+fi
+
+############ List Bann Ip Fail2ban
+if [[ $action == "fail2ban_list_banip" || $action == "11" ]]
+then
+	fail2ban_list_banip
+fi
+
+############ List Whitelisted Ip Fail2ban
+if [[ $action == "fail2ban_list_whiteip" || $action == "12" ]]
+then
+	fail2ban_list_whiteip
+fi
+
+############ Wordpress Plugin Fail2ban Install
+if [[ $action == "fail2ban_wp_install" || $action == "13" ]]
+then
+	fail2ban_wp_install
+fi
+
+############ Remove Wp Plugin Fail2ban
+if [[ $action == "fail2ban_wp_remove" || $action == "14" ]]
+then
+	fail2ban_wp_remove
+fi
+

@@ -1,0 +1,852 @@
+#!/bin/bash
+
+if [[ "$EUID" -ne 0 ]]; then
+	echo "Sorry, you need to run this as root"
+	exit
+fi
+
+clear
+
+# configure aws credentials if it's our first time
+if [[ ! -e ~/.aws/credentials ]]; then
+
+    echo "We need to configure your credentials for uploading to AWS S3"
+    if [[ -z $aws_access_key_id ]]; then
+        echo
+        echo "Specify your AWS Access Key ID"
+        read -p "AWS Access Key ID: " aws_access_key_id
+    fi
+
+    if [[ -z $aws_secret_access_key ]]; then
+        echo
+        echo "Specify your AWS Secret Access Key"
+        read -p "AWS Secret Access Key: " aws_secret_access_key
+    fi
+
+fi
+
+# if aws credentials were provided interactively or in environment variables, write them to the credentials file
+if [[ $aws_access_key_id ]] && [[ $aws_secret_access_key ]]; then
+    mkdir -p ~/.aws
+    echo "[default]
+aws_access_key_id = $aws_access_key_id
+aws_secret_access_key = $aws_secret_access_key" > ~/.aws/credentials
+    echo
+    echo "AWS credentials have been saved"	
+fi
+
+
+while [[ -z $action ]]; do
+    echo
+    echo "What do you want to do?"
+    echo "   1) Make a backup"
+    echo "   2) Restore a backup"
+    echo "   3) Schedule a daily backup for a site"
+    echo "   4) Remove a scheduled backup job for a site"
+    echo "   5) Schedule a daily backup for all sites"
+    echo "   6) Remove the scheduled all sites backup job"
+    echo "   7) Change AWS credentials"
+	echo "   8) List backups"
+	echo "   9) Prune backups for a site"
+	echo "   10) Prune backups for all sites"
+	echo "   11) Delete all backups for a site"
+	echo "   12) Delete all backups for all sites"
+	echo "   13) Show list of domains where backups exist but the domain is not in NGINX"
+	echo "   14) Delete backups from domains that do not exist any more in NGINX"
+	echo "   15) Restore NGINX configuration from backup"
+	echo "   16) Restore wp-config.php from backup"
+    echo
+    read -p "Action: " action
+    until [[ -z "$action" || "$action" =~ ^[1-9]|2[0-9]$ ]]; do
+    	echo "$action: invalid selection."
+    	read -p "Action: " action
+    done
+done
+
+
+if [[ $action == "backup" || $action == "1" ]]; then
+
+    while [[ -z $domain ]]; do
+        echo
+        echo "Please, select which site you want to backup"
+        ls /var/www | grep -v html | nl
+        echo
+        read -p "Select site: " site_number
+        number_of_sites=$(ls /var/www | grep -v html | wc -l)
+        until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
+	    	echo "$site_number: invalid selection."
+	    	read -p "Select site: " site_number
+	    done
+        domain=$(ls /var/www | grep -v html | sed -n "$site_number"p)
+    done
+
+    if [[ -z $aws_bucket_name ]]; then
+        echo
+        echo "Specify a bucket name in your AWS S3 account where you want to save the backup
+The bucket needs to be created in your AWS S3 account before running this backup
+Example: my-wordpress-backups-bucket"
+        read -p "Bucket name: " aws_bucket_name
+    fi
+
+    mkdir -p ~/.wp-backup/$domain/
+    # backup /var/www
+	echo "=>backing up files..."
+    date=$(date +"%Y-%m-%d"-"%Hh%Mm%Ss")
+    cd /var/www
+    tar -czf ~/.wp-backup/$domain/"$domain"_"$date"_fs.tar.gz $domain/*
+    # backup nginx config and htpasswd
+	echo "=>backing up nginx configuration..."
+    cd /etc/nginx
+    tar -czf ~/.wp-backup/$domain/"$domain"_"$date"_nginx.tar.gz $(ls sites-enabled/*$domain htpasswd/*$domain 2>/dev/null)
+    # backup database
+	echo "=>exporting database for backup..."
+    mysql_db=$(grep DB_NAME /var/www/$domain/html/wp-config.php | cut -d "'" -f 4)
+    mysqldump $mysql_db | gzip -9 > ~/.wp-backup/$domain/"$domain"_"$date"_db.gz
+    # upload to s3
+	echo "=>Uploading files to Amazon S3..."
+    aws s3 cp ~/.wp-backup/$domain/"$domain"_"$date"_fs.tar.gz s3://$aws_bucket_name/$domain/"$domain"_"$date"_fs.tar.gz --sse --only-show-errors
+	echo "=>Uploading Nginx configuration to Amazon S3..."
+    aws s3 cp ~/.wp-backup/$domain/"$domain"_"$date"_nginx.tar.gz s3://$aws_bucket_name/$domain/"$domain"_"$date"_nginx.tar.gz --sse --only-show-errors
+	echo "=>Uploading database to to Amazon S3..."
+    aws s3 cp ~/.wp-backup/$domain/"$domain"_"$date"_db.gz s3://$aws_bucket_name/$domain/"$domain"_"$date"_db.gz --sse --only-show-errors
+
+    # check if the database was backed up correctly
+	echo "Verifying database backup..."
+    if ! gunzip -c ~/.wp-backup/$domain/"$domain"_"$date"_db.gz | tail -n 1 | grep -qs "Dump completed on"; then
+    echo
+    echo "Backup was attempted, but the MySQL database seems to be corrupted!"
+    fi
+
+    echo
+    echo "Backup has been completed!"
+    exit
+fi
+
+
+
+if [[ $action == "restore" || $action == "2" ]]; then
+
+    cd ~/.wp-backup/
+
+    # ask the user which site to restore
+    while [[ -z $site ]]; do
+        echo
+        echo "Please, select which site do you wish to restore"
+        ls | nl
+        echo
+        read -p "Select site: " item_number
+        number_of_items=$(ls | wc -l)
+        until [[ "$item_number" =~ ^[0-9]+$ && "$item_number" -le "$number_of_items" ]]; do
+		    echo "$item_number: invalid selection."
+		    read -p "Select site: " item_number
+	    done
+        site=$(ls | sed -n "$item_number"p)
+    done
+
+    # list backups of $site available in $backupdir and let the user choose
+    while [[ -z $backup ]]; do
+        echo
+        echo "Please, select which backup do you wish to restore"
+        find -type f -name "$site*fs.tar.gz" | cut -d "/" -f 2-3 | cut -d "_" -f 1-2 | sort -nr | nl
+        echo
+        read -p "Select backup: " site_number
+        number_of_sites=$(find -type f -name "$site*fs.tar.gz" | cut -d "/" -f 2-3 | cut -d "_" -f 1-2 | sort -nr | wc -l)
+        until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
+		    echo "$site_number: invalid selection."
+		    read -p "Select backup: " site_number
+	    done
+        backup=$(find -type f -name "$site*fs.tar.gz" | cut -d "/" -f 2-3 | cut -d "_" -f 1-2 | sort -nr | sed -n "$site_number"p)
+    done
+    domain=$(echo $backup | cut -d "/" -f 1)
+    user_name=$(echo $domain | cut -c1-32)
+
+    # if /var/www/$domain exists, let the user know before overwriting
+    if [[ -d /var/www/$domain || -e /etc/nginx/sites-enabled/$domain || -e /etc/nginx/sites-available/$domain || -e /etc/php/5.6/fpm/pool.d/$domain.conf || -e /etc/php/7.1/fpm/pool.d/$domain.conf || -e /etc/php/7.2/fpm/pool.d/$domain.conf || -e /etc/php/7.3/fpm/pool.d/$domain.conf || -e /etc/php/7.4/fpm/pool.d/$domain.conf || -e /etc/php/8.0/fpm/pool.d/$domain.conf ]]; then
+            # we do the following to allow bypassing this check if the user sets $overwrite to "yes"
+            if [[ "$overwrite" != "yes" ]]; then
+            echo
+            echo "$domain is already configured!
+
+If you prefer to make a backup of its current state before restoring, press
+CTRL + C now and run this script again selecting the option 1 instead.
+
+If you continue now, $domain will be reset from backup $backup"
+            echo
+            read -p "Press enter to continue"
+            fi
+    # remove everything
+    mysql_db=$(grep DB_NAME /var/www/$domain/html/wp-config.php | cut -d "'" -f 4)
+    mysql_user=$(grep DB_USER /var/www/$domain/html/wp-config.php | cut -d "'" -f 4)
+	echo "dropping database: $mysql_db ..."
+        mariadb <<QUERY
+DROP DATABASE $mysql_db;
+DROP USER '$mysql_user'@'localhost';
+FLUSH PRIVILEGES;
+QUERY
+	echo "removing existing files..."
+    rm -f /etc/nginx/sites-*/*$domain
+    rm -f /etc/nginx/htpasswd/*$domain
+    rm -rf /var/www/$domain
+	echo "restarting web server..."	
+    systemctl restart nginx
+    php_version=$(ls /etc/php/*/fpm/pool.d/$domain.conf | cut -d '/' -f 4)
+	echo "removing php configuration and restarting php process..."	
+    rm /etc/php/$php_version/fpm/pool.d/$domain.conf
+    systemctl restart php$php_version-fpm
+    userdel $user_name
+
+    fi
+
+    # start restore
+
+    # restore files
+    cd $domain
+	echo "restoring files..."	
+    tar xzf ../"$backup"_fs.tar.gz
+    mv $domain /var/www/$domain
+    # restore nginx config
+    mkdir -p temp
+    cd temp
+	echo "restoring nginx configuration..."	
+    tar xzf ../../"$backup"_nginx.tar.gz
+    mv sites-enabled/*$domain /etc/nginx/sites-enabled/
+    mv htpasswd/*$domain /etc/nginx/htpasswd/ 2>/dev/null
+    cd ..
+    rm -rf temp
+
+    # create db stuff
+    mysql_db=$(grep DB_NAME /var/www/$domain/html/wp-config.php | cut -d "'" -f 4)
+    mysql_user=$(grep DB_USER /var/www/$domain/html/wp-config.php | cut -d "'" -f 4)
+    mysql_pass=$(grep DB_PASSWORD /var/www/$domain/html/wp-config.php | cut -d "'" -f 4)
+	echo "creating new database: $mysql_db"
+    mariadb <<QUERY
+CREATE DATABASE $mysql_db;
+GRANT ALL ON $mysql_db.* TO '$mysql_user'@'localhost' IDENTIFIED BY '$mysql_pass' WITH GRANT OPTION;
+FLUSH PRIVILEGES;
+QUERY
+    # restore db dump
+    cd ..
+	echo "restoring database..."	
+    gunzip -c "$backup"_db.gz > db.sql
+    mariadb -D $mysql_db < db.sql
+    rm -f db.sql
+
+    # manage other needed stuff
+	echo "adding new system user..."	
+    useradd -d "/var/www/$domain/html" -g "www-data" -M -s "/bin/bash" $user_name
+    echo "[$domain]
+user = $user_name
+group = www-data
+listen = /run/php/php-fpm-$domain.sock
+listen.owner = $user_name
+listen.group = www-data
+pm = dynamic
+pm.max_children = 5
+pm.start_servers = 2
+pm.min_spare_servers = 1
+pm.max_spare_servers = 3
+php_admin_value[open_basedir] = \"/var/www/$domain/html/:/tmp/\"
+php_admin_value[allow_url_fopen] = 0
+php_admin_value[allow_url_include] = 0
+php_admin_value[disable_functions] =  dl, exec, fpassthru, getmypid, getmyuid, highlight_file, link, opcache_get_configuration, passthru, pcntl_exec, pcntl_get_last_error, pcntl_setpriority, pcntl_strerror, pcntl_wifcontinued, phpinfo, popen, posix_ctermid, posix_getcwd, posix_getegid, posix_geteuid, posix_getgid, posix_getgrgid, posix_getgrnam, posix_getgroups, posix_getlogin, posix_getpgid, posix_getpgrp, posix_getpid, posix_getppid, posix_getpwnam, posix_getpwuid, posix_getrlimit, posix_getsid, posix_getuid, posix_isatty, posix_kill, posix_mkfifo, posix_setegid, posix_seteuid, posix_setgid, posix_setpgid, posix_setsid, posix_setuid, posix_times, posix_ttyname, posix_uname, proc_close, proc_get_status, proc_nice, proc_open, proc_terminate, shell_exec, show_source, source, system, virtual
+php_admin_value[session.use_strict_mode] = 1
+php_admin_value[session.cookie_httponly] = 1
+php_admin_value[session.use_cookies] = 1
+php_admin_value[session.use_only_cookies] = 1
+php_admin_value[session.use_trans_sid] = 0" > /etc/php/7.4/fpm/pool.d/$domain.conf
+
+	echo "restarting php service..."	
+    systemctl restart php7.4-fpm
+
+	echo "restoring ownership information to files..."	
+    chown -R www-data:www-data /var/www/$domain/html/
+    chmod -R g+w /var/www/$domain/html
+    chmod -R g+s /var/www/$domain/html
+
+    # if object cache was enabled, we disable it to avoid conflicts
+	echo "disabling object cache if applicable..."		
+    cd /var/www/$domain/html/
+    rm -f wp-content/object-cache.php
+    su - $user_name -c "wp plugin uninstall --deactivate redis-cache 2>/dev/null"
+
+    # reset object cache
+    su - $user_name -c "wp cache flush"
+    # if at least one site had ssl enabled, restore it, except if we are dealing with a wildcard multisite
+    if ! grep -q 'server_name \.' /etc/nginx/sites-enabled/$domain && grep -qs "listen 443" /etc/nginx/sites-enabled/$domain* -l; then
+        grep "server_name" $(grep "listen 443" /etc/nginx/sites-enabled/$domain* -l) -m 1 | cut -d "_" -f 2 | cut -d " " -f 2 | while read line ; do
+
+            # if the system doesn't have a cert or the system has a cert which includes www subdomain
+            # set up cert with www subdomain
+            if [[ ! -e /etc/letsencrypt/live/$line/cert.pem ]] || openssl x509 -in /etc/letsencrypt/live/$line/cert.pem -noout -text | grep -qs www.$line; then
+
+                # the following five lines are needed because certbot will try to test the current nginx config before modifying it
+                # since there is a chance that a certificate referenced in the config isn't present in the system, nginx -t can fail
+                # if it fails, certbot will not continue.
+                # so we remove all the SSL stuff from the configuration to make certbot happy
+                conf_location=$(grep "server_name $line" /etc/nginx/sites-enabled/$domain* -l)
+                if grep -qs "managed by Certbot" $conf_location; then
+                    sed -i -n '/if ($host/q;p' $conf_location
+                    sed -i '$ d' $conf_location
+                    sed -i '/server {/a listen 80;\nlisten [::]:80;' $conf_location
+                    sed -i '/managed by Certbot/d' $conf_location
+                fi
+                certbot --non-interactive -q --reinstall --expand --nginx --agree-tos --register-unsafely-without-email --allow-subset-of-names --redirect -d $line -d www.$line
+            else
+
+                # if the system has a cert which doesn't contain the www subdomain
+                # set up cert without www subdomain
+                certbot --non-interactive -q --reinstall --expand --nginx --agree-tos --register-unsafely-without-email --allow-subset-of-names --redirect -d $line
+            fi
+        done
+    fi
+
+    # If we are dealing with a multisite wildcard which had HTTPS enabled...
+	if grep -q 'server_name \.' /etc/nginx/sites-enabled/$domain && grep -q 'listen 443' /etc/nginx/sites-enabled/$domain; then
+    	for sitedomain in $(su - $user_name -c "wp site list --field=domain")
+    	do
+    	    su - $user_name -c "wp --skip-plugins option update home http://$sitedomain --url=https://$sitedomain/"
+    	    su - $user_name -c "wp --skip-plugins option update siteurl http://$sitedomain --url=https://$sitedomain/"
+    	done
+        if grep -qs "managed by Certbot" /etc/nginx/sites-enabled/$domain; then
+            sed -i -n '/listen 80/q;p' /etc/nginx/sites-enabled/$domain
+            sed -i '$ d' /etc/nginx/sites-enabled/$domain
+            sed -i '/server {/a listen 80;\nlisten [::]:80;' /etc/nginx/sites-enabled/$domain
+            sed -i '/managed by Certbot/d' /etc/nginx/sites-enabled/$domain
+        fi
+    	certbot delete --cert-name $domain --noninteractive > /dev/null 2>&1
+		systemctl restart nginx
+    	echo "This multisite had wildcard SSL enabled."
+    	echo "HTTPS has been disabled, it can be configured using 13-multisite.sh"
+	fi
+
+	echo "cleaning up and restarting web server..."	
+    systemctl restart nginx
+    echo
+    echo "$backup has been restored"
+    exit
+fi
+
+
+
+if [[ $action == "schedule" || $action == "3" ]]; then
+
+    # set up the helper script
+	# note that we always create this script when this section is run in case it changes between versions.	
+    echo $'#!/bin/bash
+while IFS=" " read -r domain bucket days s3_sync_delete_parm callback_domain; do
+    # Callback to notify that backup has started.
+    if [[ -n "$callback_domain" ]]; then
+       wget -q -O /dev/null $callback_domain/wp-json/wordpress-app/v1/command/1/start_domain_backup/completed/1/?domain=$domain
+    fi
+    mkdir -p ~/.wp-backup/$domain/
+    # backup /var/www
+    date=$(date +"%Y-%m-%d"-"%Hh%Mm%Ss")
+    cd /var/www
+    tar -czf ~/.wp-backup/$domain/"$domain"_"$date"_fs.tar.gz $domain/*
+    # backup nginx config and htpasswd
+    cd /etc/nginx
+    tar -czf ~/.wp-backup/$domain/"$domain"_"$date"_nginx.tar.gz $(ls sites-enabled/*$domain htpasswd/*$domain 2>/dev/null)
+    # backup database
+    mysql_db=$(grep DB_NAME /var/www/$domain/html/wp-config.php | cut -d "\'" -f 4)
+    mysqldump $mysql_db | gzip -9 > ~/.wp-backup/$domain/"$domain"_"$date"_db.gz
+    # check if the database was backed up correctly
+    if ! gunzip -c ~/.wp-backup/$domain/"$domain"_"$date"_db.gz | tail -n 1 | grep -qs "Dump completed on"; then
+    	echo "$(date) $domain database dump failed" >> /var/log/wp-backup.log
+    fi
+    # delete old backups
+    # if days = 0, do not delete anything
+    if [[ $days != "0" && $days != "-1" ]]; then
+        find ~/.wp-backup/$domain/ -type f -mtime +$days -exec rm -f {} \;
+    fi
+    # sync to s3
+    /usr/local/bin/aws s3 sync ~/.wp-backup/$domain/ s3://$bucket/$domain --$s3_sync_delete_parm && echo "$(date) $domain backup successful" >> /var/log/wp-backup.log || echo "$(date) $domain backup failed" 
+	# Callback to notify that backup is completed.
+    if [[ -n "$callback_domain" ]]; then
+        wget -q -O /dev/null $callback_domain/wp-json/wordpress-app/v1/command/1/end_domain_backup/completed/1/?domain=$domain
+    fi
+    # delete all local backups if days is set to -1
+    if [[ $days = "-1" ]]; then
+        rm -f ~/.wp-backup/$domain/* \;
+    fi >> /var/log/wp-backup.log
+done < /etc/wp-backup.conf' > /usr/local/bin/wp-backup
+#        if [[ -n "$callback_start_backup" ]]; then
+#            sed -i "3 i wget -q -O \/dev\/null $callback_start_backup?domain=\$domain" /usr/local/bin/wp-backup
+#        fi
+#        if [[ -n "$callback_finished_backup" ]]; then
+#			sed -i "$ i wget -q -O \/dev\/null $callback_start_backup?domain=\$domain" /usr/local/bin/wp-backup
+#        fi
+        chmod +x /usr/local/bin/wp-backup
+    # end set up the helper script
+
+    # if the crontab entry doesn't exist, create it
+    crontab -l | grep -q 'wp-backup' || (crontab -l 2>/dev/null; echo "0 6 * * * /usr/local/bin/wp-backup > /dev/null 2>&1") | crontab -
+
+    # create backup task
+    if [[ -z $domain ]]; then
+        echo
+        echo "Please, select which site you want to backup"
+        ls /var/www | grep -v html | nl
+        echo
+        read -p "Select site: " site_number
+        number_of_sites=$(ls /var/www | grep -v html | wc -l)
+        until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
+		    echo "$site_number: invalid selection."
+		    read -p "Select site: " site_number
+	    done
+        domain=$(ls /var/www | grep -v html | sed -n "$site_number"p)
+    fi
+    if [[ -z $bucket ]]; then
+        echo
+        echo "Specify a bucket name in your AWS S3 account where you want to save the backup
+The bucket needs to be created in your AWS S3 account before running this backup
+Example: my-wordpress-backups-bucket"
+    read -p "Bucket name: " bucket
+    fi
+    if [[ -z $days ]]; then
+        echo
+        echo "Specify how many days do you want to retain backups for this domain
+Or input 0 (zero) if you don't wish to limit retention days. Enter -1 to never keey local backups.
+Example: 30"
+        read -p "Retention days: " days
+    fi
+
+    echo $domain $bucket $days $s3_sync_delete_parm $callback_domain>> /etc/wp-backup.conf
+
+    echo
+    echo "Backup job configured!"
+
+    exit
+fi
+
+
+
+if [[ $action == "unschedule" || $action == "4" ]]; then
+
+    if [[ -z $job ]]; then
+        echo
+        echo "Please, select which backup job you want to remove"
+        echo "        DOMAIN S3_BUCKET RETENTION_DAYS"
+        cat /etc/wp-backup.conf | nl
+        read -p "Select backup job: " site_number
+        number_of_sites=$(cat /etc/wp-backup.conf | wc -l)
+        until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
+	    	echo "$site_number: invalid selection."
+	    	read -p "Select backup job: " site_number
+	    done
+        job=$(cat /etc/wp-backup.conf | sed -n "$site_number"p)
+    fi
+
+    sed -i "/$job/d" /etc/wp-backup.conf
+
+    echo
+    echo "Backup job removed!"
+    exit
+fi
+
+
+
+if [[ $action == "schedule_full" || $action == "5" ]]; then
+
+    # set up the helper script
+	# note that we always create this script when this section is run in case it changes between versions.
+    echo $'#!/bin/bash
+ls /var/www | grep -v html | while read line; do
+    # Callback to notify that backup has started.
+	# $4 should be the callback domain var...
+    if [[ -n "$4" ]]; then
+       wget -q -O /dev/null $4/wp-json/wordpress-app/v1/command/1/start_domain_backup/completed/1/?domain=$line
+    fi
+    mkdir -p ~/.wp-backup/$line/
+    # backup /var/www
+    date=$(date +"%Y-%m-%d"-"%Hh%Mm%Ss")
+    cd /var/www
+    tar -czf ~/.wp-backup/$line/"$line"_"$date"_fs.tar.gz $line/*
+    # backup nginx config and htpasswd
+    cd /etc/nginx
+    tar -czf ~/.wp-backup/$line/"$line"_"$date"_nginx.tar.gz $(ls sites-enabled/*$line htpasswd/*$line 2>/dev/null)
+    # backup database
+    mysql_db=$(grep DB_NAME /var/www/$line/html/wp-config.php | cut -d "\'" -f 4)
+    mysqldump $mysql_db | gzip -9 > ~/.wp-backup/$line/"$line"_"$date"_db.gz
+    # check if the database was backed up correctly
+    if ! gunzip -c ~/.wp-backup/$line/"$line"_"$date"_db.gz | tail -n 1 | grep -qs "Dump completed on"; then
+    	echo "$(date) $line database dump failed" >> /var/log/wp-full-backup.log
+    fi
+    # delete old backups
+    # if days = 0, do not delete anything
+    if [[ $1 != "0" && $1 != "-1" ]]; then
+        find ~/.wp-backup/$line/ -type f -mtime +$1 -exec rm -f {} \;
+    fi
+    # sync to s3
+    /usr/local/bin/aws s3 sync ~/.wp-backup/$line/ s3://$2/$line --$3 && echo "$(date) $domain backup successful" >> /var/log/wp-full-backup.log || echo "$(date) $domain backup failed" >> /var/log/wp-full-backup.log
+	# Callback to notify that backup is completed.
+	# $4 should be the callback domain var...
+    if [[ -n "$4" ]]; then
+        wget -q -O /dev/null $4/wp-json/wordpress-app/v1/command/1/end_domain_backup/completed/1/?domain=$line
+    fi
+	# remove all local backups if days is set to -1
+    if [[ $1 = "-1" ]]; then
+        rm -f ~/.wp-backup/$line/* \;
+    fi
+done' > /usr/local/bin/wp-full-backup
+
+#	if [[ -n "$callback_start_backup" ]]; then
+#		sed -i "2 i wget -q -O \/dev\/null $callback_start_backup?domain=\$domain" /usr/local/bin/wp-backup
+#	fi
+#	if [[ -n "$callback_finished_backup" ]]; then
+#		echo "wget -q -O /dev/null $callback_finished_backup?domain=\$domain" >> /usr/local/bin/wp-backup
+#	fi
+
+    chmod +x /usr/local/bin/wp-full-backup
+    # end set up the helper script
+
+    # create backup task
+    if [[ -z $bucket ]]; then
+        echo
+        echo "Specify a bucket name in your AWS S3 account where you want to save the backup
+The bucket needs to be created in your AWS S3 account before running this backup
+Example: my-wordpress-backups-bucket"
+    read -p "Bucket name: " bucket
+    fi
+    if [[ -z $days ]]; then
+    echo
+    echo "Specify how many days do you want to retain backups
+Or input 0 (zero) if you don't wish to limit retention days
+Example: 30"
+    read -p "Retention days: " days
+    fi
+
+    # if the crontab entry doesn't exist, create it
+    (crontab -l 2>/dev/null; echo "30 5 * * * /usr/local/bin/wp-full-backup $days $bucket $s3_sync_delete_parm $callback_domain > /dev/null 2>&1") | crontab -
+
+    echo
+    echo "Full backup job configured!"
+
+    exit
+fi
+
+
+
+if [[ $action == "unschedule_full" || $action == "6" ]]; then
+
+    (crontab -l 2>/dev/null | sed '/wp-full-backup/d' ) | crontab -
+    rm -f /usr/local/bin/wp-full-backup
+
+    echo
+    echo "Full backup job removed!"
+    exit
+fi
+
+
+
+if [[ $action == "change_aws_credentials" || $action == "7" ]]; then
+    if [[ -z $aws_access_key_id ]]; then
+        echo
+        echo "Specify your AWS Access Key ID"
+        read -p "AWS Access Key ID: " aws_access_key_id
+    fi
+
+    if [[ -z $aws_secret_access_key ]]; then
+        echo
+        echo "Specify your AWS Secret Access Key"
+        read -p "AWS Secret Access Key: " aws_secret_access_key
+    fi
+
+    mkdir -p ~/.aws
+    echo "[default]
+aws_access_key_id = $aws_access_key_id
+aws_secret_access_key = $aws_secret_access_key" > ~/.aws/credentials
+    echo
+    echo "AWS credentials have been saved"
+    exit
+fi
+
+
+
+if [[ $action == "list_backups" || $action == "8" ]]; then
+
+    if [ ! -d ~/.wp-backup ]; then
+	echo "Backup Directory Not exist"
+	exit 1
+    fi
+    cd ~/.wp-backup/
+
+    # ask the user which site to list backups from
+    while [[ -z $site ]]; do
+        echo
+        echo "Please, select which site do you wish to list backups from"
+        ls | nl
+        echo
+        read -p "Select site: " item_number
+        number_of_items=$(ls | wc -l)
+        until [[ "$item_number" =~ ^[0-9]+$ && "$item_number" -le "$number_of_items" ]]; do
+		    echo "$item_number: invalid selection."
+		    read -p "Select site: " item_number
+	    done
+        site=$(ls | sed -n "$item_number"p)
+    done
+
+    # list backups of $site available in $backupdir
+	echo "==backup list start=="
+    find -type f -name "$site*fs.tar.gz" | cut -d "/" -f 2-3 | cut -d "_" -f 1-2 | sort -nr | nl
+	echo "==backup list end=="
+    exit
+fi
+
+
+
+if [[ $action == "prune_site_backups" || $action == "9" ]]; then
+
+    cd ~/.wp-backup/
+
+    while [[ -z $site ]]; do
+        echo
+        echo "Please, select which site do you wish to prune backups from"
+        ls | nl
+        echo
+        read -p "Select site: " item_number
+        number_of_items=$(ls | wc -l)
+        until [[ "$item_number" =~ ^[0-9]+$ && "$item_number" -le "$number_of_items" ]]; do
+		    echo "$item_number: invalid selection."
+		    read -p "Select site: " item_number
+	    done
+        site=$(ls | sed -n "$item_number"p)
+    done
+
+    if [[ -z $days ]]; then
+    echo
+    echo "Specify the number of backup days which you want to keep for this site
+Older backups will be deleted.
+Example: 30"
+    read -p "Retention days: " days
+    fi
+
+    find ~/.wp-backup/$site/ -type f -mtime +$days -exec rm -f {} \;
+
+    echo
+    echo "$site backups older than $days days have been deleted"
+    exit
+fi
+
+
+
+if [[ $action == "prune_all_backups" || $action == "10" ]]; then
+
+    if [[ -z $days ]]; then
+    echo
+    echo "Specify the number of backup days which you want to keep
+Older backups for ALL sites will be deleted.
+Example: 30"
+    read -p "Retention days: " days
+    fi
+
+    find ~/.wp-backup/ -type f -mtime +$days -exec rm -f {} \;
+
+    echo
+    echo "All backups older than $days days have been deleted"
+    exit
+fi
+
+
+
+if [[ $action == "delete_site_backups" || $action == "11" ]]; then
+
+    cd ~/.wp-backup/
+
+    while [[ -z $site ]]; do
+        echo
+        echo "Please, select which site do you wish to delete ALL backups from"
+        ls | nl
+        echo
+        read -p "Select site: " item_number
+        number_of_items=$(ls | wc -l)
+        until [[ "$item_number" =~ ^[0-9]+$ && "$item_number" -le "$number_of_items" ]]; do
+		    echo "$item_number: invalid selection."
+		    read -p "Select site: " item_number
+	    done
+        site=$(ls | sed -n "$item_number"p)
+    done
+
+    # we do the following to allow bypassing this check if the user sets $confirmation to "yes"
+    if [[ "$confirmation" != "yes" ]]; then
+        echo
+        echo "DANGER!
+ALL backups for $site will be permanently removed!"
+        echo
+        read -p "Press enter to continue"
+    fi
+
+
+    rm -f ~/.wp-backup/$site/*
+
+    echo
+    echo "$site backups have been deleted"
+    exit
+fi
+
+
+
+if [[ $action == "delete_all_backups" || $action == "12" ]]; then
+
+    # we do the following to allow bypassing this check if the user sets $confirmation to "yes"
+    if [[ "$confirmation" != "yes" ]]; then
+        echo
+        echo "DANGER!
+ALL backups for ALL sites will be permanently removed!"
+        echo
+        read -p "Press enter to continue"
+    fi
+
+    rm -rf ~/.wp-backup/*
+
+    echo
+    echo "All backups have been deleted"
+    exit
+fi
+
+
+
+if [[ $action == "show_orphaned_backups" || $action == "13" ]]; then
+
+    echo
+    echo "The following sites have orphaned backups:"
+	cd ~/.wp-backup/
+    sort <<< "$(ls ~/.wp-backup/; ls /etc/nginx/sites-enabled/; ls /etc/nginx/sites-available/)" | uniq -u | grep -v '^default$\|^monit$\|^monitorix$' |
+	while read -r line; do
+		find $line -maxdepth 0 2>/dev/null
+	done
+
+    exit
+
+fi
+
+
+
+if [[ $action == "remove_orphaned_backups" || $action == "14" ]]; then
+
+	echo
+    cd ~/.wp-backup/
+    sort <<< "$(ls ~/.wp-backup/; ls /etc/nginx/sites-enabled/; ls /etc/nginx/sites-available/)" | uniq -u | grep -v '^default$\|^monit$\|^monitorix$' |
+	while read -r line; do
+		find $line -maxdepth 0 2>/dev/null
+	done | xargs rm -rf
+	echo "Orphaned backups have been removed"
+
+    exit
+
+fi
+
+
+
+if [[ $action == "restore_nginx" || $action == "15" ]]; then
+
+    cd ~/.wp-backup/
+
+    # ask the user which site to restore
+    while [[ -z $site ]]; do
+        echo
+        echo "Please, select which site do you wish to restore"
+        ls | nl
+        echo
+        read -p "Select site: " item_number
+        number_of_items=$(ls | wc -l)
+        until [[ "$item_number" =~ ^[0-9]+$ && "$item_number" -le "$number_of_items" ]]; do
+		    echo "$item_number: invalid selection."
+		    read -p "Select site: " item_number
+	    done
+        site=$(ls | sed -n "$item_number"p)
+    done
+
+    # list backups of $site available in $backupdir and let the user choose
+    while [[ -z $backup ]]; do
+        echo
+        echo "Please, select which backup do you wish to restore"
+        find -type f -name "$site*nginx.tar.gz" | cut -d "/" -f 2-3 | cut -d "_" -f 1-2 | sort -nr | nl
+        echo
+        read -p "Select backup: " site_number
+        number_of_sites=$(find -type f -name "$site*nginx.tar.gz" | cut -d "/" -f 2-3 | cut -d "_" -f 1-2 | sort -nr | wc -l)
+        until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
+		    echo "$site_number: invalid selection."
+		    read -p "Select backup: " site_number
+	    done
+        backup=$(find -type f -name "$site*nginx.tar.gz" | cut -d "/" -f 2-3 | cut -d "_" -f 1-2 | sort -nr | sed -n "$site_number"p)
+    done
+    domain=$(echo $backup | cut -d "/" -f 1)
+
+	echo "removing existing files..."
+    rm -f /etc/nginx/sites-*/*$domain
+    rm -f /etc/nginx/htpasswd/*$domain
+
+    cd $domain
+
+    # restore nginx config
+    mkdir -p temp
+    cd temp
+	echo "restoring nginx configuration..."	
+    tar xzf ../../"$backup"_nginx.tar.gz
+    mv sites-enabled/*$domain /etc/nginx/sites-enabled/
+    mv htpasswd/*$domain /etc/nginx/htpasswd/ 2>/dev/null
+    cd ..
+    rm -rf temp
+
+	echo "cleaning up and restarting web server..."	
+    systemctl restart nginx
+    echo
+    echo "$backup has been restored"
+
+    exit
+
+fi
+
+
+
+if [[ $action == "restore_wpconfig" || $action == "16" ]]; then
+
+    cd ~/.wp-backup/
+
+    # ask the user which site to restore
+    while [[ -z $site ]]; do
+        echo
+        echo "Please, select which site do you wish to restore"
+        ls | nl
+        echo
+        read -p "Select site: " item_number
+        number_of_items=$(ls | wc -l)
+        until [[ "$item_number" =~ ^[0-9]+$ && "$item_number" -le "$number_of_items" ]]; do
+		    echo "$item_number: invalid selection."
+		    read -p "Select site: " item_number
+	    done
+        site=$(ls | sed -n "$item_number"p)
+    done
+
+    # list backups of $site available in $backupdir and let the user choose
+    while [[ -z $backup ]]; do
+        echo
+        echo "Please, select which backup do you wish to restore"
+        find -type f -name "$site*fs.tar.gz" | cut -d "/" -f 2-3 | cut -d "_" -f 1-2 | sort -nr | nl
+        echo
+        read -p "Select backup: " site_number
+        number_of_sites=$(find -type f -name "$site*fs.tar.gz" | cut -d "/" -f 2-3 | cut -d "_" -f 1-2 | sort -nr | wc -l)
+        until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
+		    echo "$site_number: invalid selection."
+		    read -p "Select backup: " site_number
+	    done
+        backup=$(find -type f -name "$site*fs.tar.gz" | cut -d "/" -f 2-3 | cut -d "_" -f 1-2 | sort -nr | sed -n "$site_number"p)
+    done
+    domain=$(echo $backup | cut -d "/" -f 1)
+
+	echo "removing existing files..."
+    rm -rf /var/www/$domain/html/wp-config.php
+
+    # restore files
+    cd $domain
+	echo "restoring wp-config..."	
+    tar xzf ../"$backup"_fs.tar.gz $domain/html/wp-config.php
+    mv $domain/html/wp-config.php /var/www/$domain/html/wp-config.php
+    rm -rf $domain
+
+    echo
+    echo "$backup has been restored"
+
+    exit
+
+fi

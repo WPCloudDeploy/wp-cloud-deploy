@@ -1,0 +1,138 @@
+#!/bin/bash
+#if [[ "$EUID" -ne 0 ]]; then
+#	echo "Sorry, you need to run this as root"
+#	exit
+#fi
+
+# This script is meant to be run in the destination server
+
+if [[ -z $origin_ip ]]; then
+    echo
+    echo "Please, specify the ORIGIN server IP address"
+    read -p "Origin server IP: " origin_ip
+fi
+
+# if SSH key is not available, do not continue
+if ! wget -qO- $origin_ip/97317319160494330146381820240308.pub | grep "ssh-rsa" &>/dev/null; then
+    echo "SSH key not available in the origin server!"
+    echo
+    echo "Please, run 81-origin.sh in the origin server and try again."
+    exit
+fi
+
+
+
+# set up
+#***************************************************************************
+# Taken out on 6/7/2020 - we'll alert user that these need to be installed.
+# Or, check to see if they're installed and if not, exit.
+#***************************************************************************
+# apt-get update
+#apt-get install rsync redis-server memcached -y
+
+# secure redis
+# sed -i "s/supervised no/supervised systemd/g" /etc/redis/redis.conf > /dev/null 2>&1
+# systemctl restart redis
+
+# apt-get install php-redis php-memcache -y
+# End taken out on 6/7/2020
+
+
+###############################################################################
+# Verify root user can login.
+#
+# This block of code has some very specific logic that isn't obvious at first.
+# so we'll try to describe it here.
+# There are 4 different options root login can have in sshd_config.
+# PermitRootLogin yes
+# PermitRootLogin no
+# PermitRootLogin without-password
+# PermitRootLogin prohibit-password
+# 
+# By default this line is commented with new server setup with most of hosting 
+# providers. So there can be more than one line in sshd config,
+# (one is commented and another is not commented)
+# 
+# Linode have that line commented (PermitRootLogin yes) 
+# and aws have (PermitRootLogin prohitbit-password).
+# So with configuration file checking we can't say if root login is enabled/disabled.
+#
+# So here is the logic:
+#  - First check if sshd conf have "PermitRootLogin yes" (it can be commented or not)
+#  - Then check if PermitRootLogin option is commented then add that line (PermitRootLogin yes)
+#  - if there are any other line (PermitRootLogin prohibit-password or PermitRootLogin no) then replace that line
+###############################################################################
+localuser=`sh -c 'echo ${SUDO_USER:-$USER}'`
+if [ "$localuser" == "root" ]
+then
+	echo "We are logged in as root on destination site.  Checking to see if root user has the proper settings in /etc/sshd_config..."
+	echo "searching for the 'PermitRootLogin yes' string, whether or not commented out."
+	grep PermitRootLogin /etc/ssh/sshd_config |grep -q 'yes'  #searching for the "PermitRootLogin yes" string, whether or not commented out.
+	if [ $? -eq 0 ]
+	then
+		echo "************************************************************"
+		echo "We found it.                                                "
+		grep PermitRootLogin /etc/ssh/sshd_config |grep 'yes' #this is just to display what we found in the prior step in order to get into this part of the IF condition.
+		echo "************************************************************"
+		
+		echo "Searching for the line that starts with 'PermitRootLogin' - it should be 'PermitRootLogin Yes' since we checked for 'yes' before getting in here."
+		grep -q "^PermitRootLogin" /etc/ssh/sshd_config #search for the line that starts with "PermitRootLogin" - it should be "PermitRootLogin Yes" since we checked for "yes" before getting in here.
+		if [ $? -eq 0 ]
+		then
+			echo "************************************************************"
+			echo "We found it.                                                "
+			grep "^PermitRootLogin" /etc/ssh/sshd_config #this is just to display what we found in the prior step in order to get into this part of the IF condition.
+			echo "************************************************************"		
+			
+			echo "Forcibly enabling root login on destination site #1 - updating entry in sshd_config..."
+			# @TODO: Why are we even doing this?  The line already exists so why write to it again?
+			sed -i 's/^PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config
+		else
+			echo "We did not find it."
+			echo "Forcibly enabling root login on destination site #2- adding entry to sshd_config: PermitRootLogin Yes"
+			sed -i '1s/^/PermitRootLogin yes\n/' /etc/ssh/sshd_config
+		fi
+	else
+		echo "We did not find it."
+		echo "Now Searching for any line that starts with 'PermitRootLogin' - these lines will NOT have 'PermitRootLogin yes' but will have other 'PermitRootLogin' configuration options on them."
+		grep -q "^PermitRootLogin" /etc/ssh/sshd_config  # searching to see if there is any line that starts with "PermitRootLogin" - these lines will NOT have "PermitRootLogin yes" on them.
+		if [ $? -eq 0 ]
+		then
+			echo "************************************************************"
+			echo "Found it.                                                   "
+			grep "^PermitRootLogin" /etc/ssh/sshd_config #this is just to display what we found in the prior step in order to get into this part of the IF condition.
+			echo "************************************************************"
+			
+			echo "Forcibly changing existing root login configuration on destination site #3 - updating entry in sshd_config to set it to PermitRootLogin without-password"
+			sed -i 's/^PermitRootLogin.*/PermitRootLogin without-password/' /etc/ssh/sshd_config
+		else
+			echo "We did not find it."
+			echo "Forcibly enabling root login on destination site #4 - adding entry to sshd_config: PermitRootLogin without-password"
+			sed -i '1s/^/PermitRootLogin without-password\n/' /etc/ssh/sshd_config
+		fi
+	fi
+	service sshd restart
+fi
+# Verify root user can login.
+
+################# 
+# setup ssh key
+#################
+user_home=`eval echo "~$localuser"`
+mkdir -p $user_home/.ssh
+# force a new line in the authorized keys file - workaround for some cloud providers leaving weird line endings in the file.
+printf "\n" >> $user_home/.ssh/authorized_keys 
+# now put our keys in there
+wget -qO- $origin_ip/97317319160494330146381820240308.pub | grep "ssh-rsa" >> $user_home/.ssh/authorized_keys
+# and change the permissions so it can be read by the login process
+chmod go-w $user_home
+chmod 700 $user_home/.ssh
+chmod 600 $user_home/.ssh/authorized_keys
+# End setup ssh key
+
+
+echo "
+Setup has been completed!
+
+$origin_ip is now authorized to sync sites to this server.
+Run 81-origin.sh in the origin server to sync a site."

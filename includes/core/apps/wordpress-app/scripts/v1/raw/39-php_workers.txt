@@ -1,0 +1,248 @@
+#!/bin/bash
+if [[ "$EUID" -ne 0 ]]; then
+	echo "Sorry, you need to run this as root"
+	exit
+fi
+
+## Get our common functions
+source 9999-common-functions.sh
+
+# DEBUG=1 # debug mode, run this script using: sudo DEBUG=1 ./34-options.sh
+NGINX_CONF="/etc/nginx/nginx.conf"
+unset NGINX_RELOAD
+unset PHP_FPM_RELOAD
+[[ "${domain}" ]] && domain_conf="/etc/nginx/sites-enabled/${domain}"
+
+# Function that will cleanly exit the script after restarting servers.
+exit_script() {
+    nginx -t # checking nginx configuration
+    if [[ $? -eq 0 ]]; then
+        if [[ "${NGINX_RELOAD}" -eq 1 && "${DEBUG}" -eq 0 ]]; then
+            systemctl reload nginx || service nginx reload
+        fi
+    fi
+    if [[ ! -z "${php_version}" ]]; then
+        php-fpm${php_version} -t # checking php fpm configuration
+        if [[ $? -eq 0 ]]; then
+            if [[ "${PHP_FPM_RELOAD}" -eq 1 && "${DEBUG}" -eq 0 ]]; then
+                systemctl restart php$php_version-fpm || service php$php_version-fpm reload
+            fi
+        fi
+    fi
+    exit
+}
+
+# for options where changes are applied to the filesystem
+select_domain () {
+while [[ -z $domain ]]; do
+    clear
+    echo "Please, select which site you want to work with"
+    ls /var/www | grep -v html | nl
+    echo
+    read -p "Select site: " site_number
+    number_of_sites=$(ls /var/www | grep -v html | wc -l)
+    until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
+    	echo "$site_number: invalid selection."
+    	read -p "Select site: " site_number
+    done
+    domain=$(ls /var/www | grep -v html | sed -n "$site_number"p)
+done
+}
+
+
+# for options where changes are applied to the NGINX configuration
+select_domain_mu () {
+while [[ -z $domain ]]; do
+    echo
+    echo "Please, select which site you want to work with"
+    echo
+    ls /etc/nginx/sites-enabled/ | grep -v '^default$\|^monit$\|^monitorix$' | nl
+    read -p "Select site: " site_number
+    number_of_sites=$(ls /etc/nginx/sites-enabled/ | grep -v '^default$\|^monit$\|^monitorix$' | wc -l)
+    until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
+    	echo "$site_number: invalid selection."
+    	read -p "Select site: " site_number
+    done
+    domain=$(ls /etc/nginx/sites-enabled/ | grep -v '^default$\|^monit$\|^monitorix$' | sed -n "$site_number"p)
+done
+}
+
+get_php_version() {
+    if [[ -z "${domain}" ]]; then
+        echo -e "${RED}Error. Could not get php version \$domain is empty.${NC}" >&2 # ERROR
+        exit 1
+    else
+        if [[ -z "${php_version}" ]]; then
+            ls /etc/php/*/fpm/pool.d/${domain}.conf > /dev/null 2>&1
+            if [[ $? -ne 0 ]]; then
+                echo -e "${RED}Error. Could not get the php version. The pool file was not found.${NC}" >&2 # ERROR
+                exit 1
+            fi
+            php_version=$(ls /etc/php/*/fpm/pool.d/${domain}.conf | cut -d '/' -f 4) # current php version, like 7.4
+            php_domain_conf="/etc/php/${php_version}/fpm/pool.d/${domain}.conf" # current pool conf for the selected domain
+        fi
+    fi
+}
+
+
+i=1 # menu index
+while [[ -z $action ]]; do
+    echo "What do you want to do?"
+    echo "   $((i++))) Change the PHP workers for a site"
+    echo
+    echo "$((i--))" > /dev/null
+    read -p "Action: " action
+    until [[ -z "${action}" || "${action}" -le "1" && "${action}" -ge "${i}" ]]; do
+    	echo "$action: invalid selection."
+    	read -p "Action: " action
+    done
+done
+i=1 # reset menu insdex
+
+get_pm() {
+    cat "${php_domain_conf}" | sed -nre "/^${sm}pm(${sp}|=)/{s/^${sm}pm${sm}=${sm}//p}" | sed -re "s/${sm}\$//"
+}
+
+get_pm_max_children() {
+    cat "${php_domain_conf}" | sed -nre "/^${sm}pm\.max_children(${sp}|=)/{s/^${sm}pm\.max_children${sm}=${sm}//p}" | sed -re "s/${sm}\$//"
+}
+
+get_pm_start_servers() {
+    cat "${php_domain_conf}" | sed -nre "/^${sm}pm\.start_servers(${sp}|=)/{s/^${sm}pm\.start_servers${sm}=${sm}//p}" | sed -re "s/${sm}\$//"
+}
+
+get_pm_min_spare_servers() {
+    cat "${php_domain_conf}" | sed -nre "/^${sm}pm\.min_spare_servers(${sp}|=)/{s/^${sm}pm\.min_spare_servers${sm}=${sm}//p}" | sed -re "s/${sm}\$//"
+}
+
+get_pm_max_spare_servers() {
+    cat "${php_domain_conf}" | sed -nre "/^${sm}pm\.max_spare_servers(${sp}|=)/{s/^${sm}pm\.max_spare_servers${sm}=${sm}//p}" | sed -re "s/${sm}\$//"
+}
+
+ask_pm() {
+    if [[ -z "${pm}" ]]; then
+        old_value=$(get_pm)
+        echo
+        read -e -p "Enter 'pm' [${old_value}]: " pm
+        [[ -z "${pm}" ]] && pm="${old_value}"
+    fi
+}
+
+ask_pm_max_children() {
+    if [[ -z "${pm_max_children}" ]]; then
+        old_value=$(get_pm_max_children)
+        echo
+        read -e -p "Enter 'pm_max_children' [${old_value}]: " pm_max_children
+        [[ -z "${pm_max_children}" ]] && pm_max_children="${old_value}"
+    fi
+}
+
+ask_pm_start_servers() {
+    if [[ -z "${pm_start_servers}" ]]; then
+        old_value=$(get_pm_start_servers)
+        echo
+        read -e -p "Enter 'pm_start_servers' [${old_value}]: " pm_start_servers
+        [[ -z "${pm_start_servers}" ]] && pm_start_servers="${old_value}"
+    fi
+}
+
+ask_pm_min_spare_servers() {
+    if [[ -z "${pm_min_spare_servers}" ]]; then
+        old_value=$(get_pm_min_spare_servers)
+        echo
+        read -e -p "Enter 'pm_min_spare_servers' [${old_value}]: " pm_min_spare_servers
+        [[ -z "${pm_min_spare_servers}" ]] && pm_min_spare_servers="${old_value}"
+    fi
+}
+
+ask_pm_max_spare_servers() {
+    if [[ -z "${pm_max_spare_servers}" ]]; then
+        old_value=$(get_pm_max_spare_servers)
+        echo
+        read -e -p "Enter 'pm_max_spare_servers' [${old_value}]: " pm_max_spare_servers
+        [[ -z "${pm_max_spare_servers}" ]] && pm_max_spare_servers="${old_value}"
+    fi
+}
+
+if [[ "${action}" == 'change_php_workers' || "${action}" == "$((i++))" ]]; then
+    select_domain_mu
+    get_php_version
+    # asking
+    ask_pm
+    if [[ ! "${pm}" =~ ^(static|dynamic|ondemand)$ ]]; then
+        echo -e "${RED}Error: '${pm}' invalid value for 'pm' directive, use 'static', 'dynamic' or 'ondemand'${NC}"
+        exit 1
+    fi
+    ask_pm_max_children
+    ask_pm_start_servers
+    ask_pm_min_spare_servers
+    ask_pm_max_spare_servers
+    # validation
+    if [[ "${pm_min_spare_servers}" -gt "${pm_max_children}" ]]; then
+        echo -e "${RED}Error pm.min_spare_servers cannot be greater than pm.max_children${NC}"
+        exit 1
+    fi
+    if [[ "${pm_max_spare_servers}" -gt "${pm_max_children}" ]]; then
+        echo -e "${RED}Error pm.max_spare_servers cannot be greater than pm.max_children${NC}"
+        exit 1
+    fi
+    if [[ "${pm_start_servers}" -lt "${pm_min_spare_servers}" ]]; then
+        echo -e "${RED}Error pm.start_servers must not be less than pm.min_spare_servers${NC}"
+        exit 1
+    fi
+    if [[ "${pm_start_servers}" -gt "${pm_max_spare_servers}" ]]; then
+        echo -e "${RED}Error pm.start_servers must not be greater than pm.max_spare_servers${NC}"
+        exit 1
+    fi
+    # actions
+    # pm
+    sed -i "${php_domain_conf}" -re "s/^(${sm}pm${sm}=${sm}).*\$/\1${pm}/"
+    if [[ "${pm}" == "$(get_pm)" ]]; then
+        echo -e "${GREEN}pm updated for '${domain}'${NC}"
+        PHP_FPM_RELOAD=1
+    else
+        echo -e "${RED}Error: pm updating failed for '${domain}'${NC}"
+		exit 1
+    fi
+    # pm.max_children
+    sed -i "${php_domain_conf}" -re "s/^(${sm}pm\.max_children${sm}=${sm}).*\$/\1${pm_max_children}/"
+    if [[ "${pm_max_children}" == "$(get_pm_max_children)" ]]; then
+        echo -e "${GREEN}pm_max_children updated for '${domain}'${NC}"
+        PHP_FPM_RELOAD=1
+    else
+        echo -e "${RED}Error: pm_max_children updating failed for '${domain}'${NC}"
+		exit 1
+    fi
+    # pm.start_servers
+    sed -i "${php_domain_conf}" -re "s/^(${sm}pm\.start_servers${sm}=${sm}).*\$/\1${pm_start_servers}/"
+    if [[ "${pm_start_servers}" == "$(get_pm_start_servers)" ]]; then
+        echo -e "${GREEN}pm_start_servers updated for '${domain}'${NC}"
+        PHP_FPM_RELOAD=1
+    else
+        echo -e "${RED}Error: pm_start_servers updating failed for '${domain}'${NC}"
+		exit 1
+    fi
+    # pm.min_spare_servers
+    sed -i "${php_domain_conf}" -re "s/^(${sm}pm\.min_spare_servers${sm}=${sm}).*\$/\1${pm_min_spare_servers}/"
+    if [[ "${pm_min_spare_servers}" == "$(get_pm_min_spare_servers)" ]]; then
+        echo -e "${GREEN}pm_min_spare_servers updated for '${domain}'${NC}"
+        PHP_FPM_RELOAD=1
+    else
+        echo -e "${RED}Error: pm_min_spare_servers updating failed for '${domain}'${NC}"
+		exit 1
+    fi
+    # pm.max_spare_servers
+    sed -i "${php_domain_conf}" -re "s/^(${sm}pm\.max_spare_servers${sm}=${sm}).*\$/\1${pm_max_spare_servers}/"
+    if [[ "${pm_max_spare_servers}" == "$(get_pm_max_spare_servers)" ]]; then
+        echo -e "${GREEN}pm_max_spare_servers updated for '${domain}'${NC}"
+        PHP_FPM_RELOAD=1
+    else
+        echo -e "${RED}Error: pm_max_spare_servers updating failed for '${domain}'${NC}"
+		exit 1
+    fi
+    #
+	echo "PHP Workers Updated."
+    exit_script
+fi
+
+echo -e "${RED}ERROR: Invalid action '${action}'"

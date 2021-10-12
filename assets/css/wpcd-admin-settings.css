@@ -1,0 +1,491 @@
+/******************************************************************************************/
+
+/* Style Metabox.io Tabs in the settings screen                                           */
+
+/******************************************************************************************/
+
+/* Add some padding around each tab and make the font a little bigger.*/
+
+.rwmb-tab-nav li[class^='rwmb-tab-'] a, .rwmb-tab-nav .rwmb-tab-ssl a {
+    padding-left: 1.25em !important;
+    padding-right: 1.25em !important;
+    padding-top: 1.0em !important;
+    padding-bottom: 1.0em !important;
+    font-size: 1.1em !important;
+}
+
+/* Body of tabs - add padding */
+
+.rwmb-settings-no-boxes .rwmb-tab-panel {
+    padding-left: 2em;
+    padding-right: 2em;
+}
+
+/* Made label width wider inside tabs and give more vertical spacing betweent them. */
+
+.rwmb-settings-no-boxes .rwmb-tab-panel .rwmb-label {
+    width: 30%;
+    margin-bottom: 2em;
+    padding-right: 2em !important;
+}
+
+.rwmb-settings-no-boxes .rwmb-tab-panel .rwmb-input {
+    width: 60%;
+    margin-bottom: 2em;
+}
+
+/* Background color and text for tabs - vertical */
+
+.rwmb-settings-no-boxes .rwmb-tabs-left .rwmb-tab-nav {
+    background-color: var(--wpcd-accent-background-color);
+}
+
+.rwmb-settings-no-boxes .rwmb-tabs-left .rwmb-tab-nav .rwmb-tab-active {
+    background-image: linear-gradient( to right, var(--wpcd-accent-background-color), var(--wpcd-accent-background-color) 50%, var(--wpcd-alternate-accent-background-color) 50%);
+    background-size: 200% 100%;
+    background-position: 100%;
+    transition: all 0.5s cubic-bezier(0.000, 0.000, 0.230, 1);
+}
+
+.rwmb-settings-no-boxes .rwmb-tabs-left .rwmb-tab-nav a {
+    color: white;
+}
+
+.rwmb-settings-no-boxes .rwmb-tabs-left .rwmb-tab-nav .rwmb-tab-active a {
+    color: var(--wpcd-primary-brand-color);
+    font-weight: bold;
+}
+
+/* Hover color for vertical tabs */
+
+.rwmb-settings-no-boxes .rwmb-tabs-left .rwmb-tab-nav a:hover {
+    color: var(--wpcd-primary-brand-color);
+    transition: all 1s cubic-bezier(0.000, 0.000, 0.230, 1);
+}
+
+/* 
+On all the admin settings tabs, close up some excessive spaces.
+Additional headers added to that tab will neeed to
+be added here.
+*/
+
+.rwmb-settings-no-boxes #general .rwmb-heading-wrapper, 
+.rwmb-settings-no-boxes #wpcd_deploy_your_first_wordpress_site .rwmb-heading-wrapper,
+/* @TODO: This one should probably be extracted to it's own wpcd-wpapp-admin-settings.css file since it's specific to the WordPress app */
+
+.rwmb-settings-no-boxes #ssh-and-webserver-timeouts .rwmb-heading-wrapper, 
+.rwmb-settings-no-boxes #backup .rwmb-heading-wrapper, 
+.rwmb-settings-no-boxes #provider-cache-settings .rwmb-heading-wrapper, 
+.rwmb-settings-no-boxes #logging .rwmb-heading-wrapper, 
+.rwmb-settings-no-boxes #fields .rwmb-heading-wrapper, 
+.rwmb-settings-no-boxes #data-sync .rwmb-heading-wrapper, 
+.rwmb-settings-no-boxes .postbox {
+    padding-bottom: 0px;
+    margin-bottom: 0px !important;
+    padding-top: 0px !important;
+    margin-top: 0px !important;
+}
+
+.rwmb-settings-no-boxes #general .rwmb-heading-wrapper p,
+.rwmb-settings-no-boxes #wpcd_deploy_your_first_wordpress_site .rwmb-heading-wrapper p,
+/* @TODO: This one should probably be extracted to it's own wpcd-wpapp-admin-settings.css file since it's specific to the WordPress app */
+.rwmb-settings-no-boxes #ssh-and-webserver-timeouts .rwmb-heading-wrapper p, .rwmb-settings-no-boxes #backup .rwmb-heading-wrapper p {
+    font-size: 1.05em;
+}
+
+.rwmb-settings-no-boxes #general .rwmb-heading-wrapper h4,
+.rwmb-settings-no-boxes #wpcd_deploy_your_first_wordpress_site .rwmb-heading-wrapper h4,
+/* @TODO: This one should probably be extracted to it's own wpcd-wpapp-admin-settings.css file since it's specific to the WordPress app */
+
+.rwmb-settings-no-boxes #ssh-and-webserver-timeouts .rwmb-heading-wrapper h4,
+.rwmb-settings-no-boxes #backup .rwmb-heading-wrapper h4,
+.rwmb-settings-no-boxes #provider-cache-settings .rwmb-heading-wrapper h4,
+.rwmb-settings-no-boxes #show-advanced-metaboxes .rwmb-heading-wrapper h4, 
+.rwmb-settings-no-boxes #hide-wpcd-warnings .rwmb-heading-wrapper h4,
+.rwmb-settings-no-boxes #hide-do-provider-mb .rwmb-heading-wrapper h4,
+.rwmb-settings-no-boxes #long-command-timeout-mb .rwmb-heading-wrapper h4,
+.rwmb-settings-no-boxes #logging .rwmb-heading-wrapper h4,
+.rwmb-settings-no-boxes #fields .rwmb-heading-wrapper h4,
+.rwmb-settings-no-boxes #hide-general-option .rwmb-heading-wrapper h4,
+.rwmb-settings-no-boxes #wpcd-hide-groups-fields .rwmb-heading-wrapper h4,
+.rwmb-settings-no-boxes #license .rwmb-heading-wrapper h4,
+.rwmb-settings-no-boxes #tools .rwmb-heading-wrapper h4,
+.rwmb-settings-no-boxes #data-sync .rwmb-heading-wrapper h4,
+.rwmb-settings-no-boxes #cloud-providers .rwmb-heading-wrapper h4,
+.rwmb-settings-no-boxes #wordpress-app .rwmb-heading-wrapper h4 {
+    color: var(--wpcd-primary-brand-color);
+}
+
+.rwmb-settings-no-boxes .wpcd_settings_larger_header_label h4 {
+    /* Some things just need to be a little bigger to emphasize that they are a separate section */
+    font-size: larger;
+}
+
+/**
+Start styling for for the DEPLOY YOUR FIRST WORDPRESS SITE section. Make the background white and add some padding with a little animation to draw attention to it.
+@TODO: This section should probably be extracted to it's own wpcd-wpapp-admin-settings.css file since it's specific to the WordPress app
+**/
+
+@keyframes wpcd_deploy_your_first_wordpress_site_background {
+    from {
+        background-color: gray;
+    }
+    to {
+        background-color: white;
+    }
+}
+
+.rwmb-settings-no-boxes #wpcd_deploy_your_first_wordpress_site .rwmb-heading-wrapper {
+    background-color: white;
+    padding: 2em;
+    border: solid 1px white;
+    border-radius: 20px;
+    animation-name: wpcd_deploy_your_first_wordpress_site_background;
+    animation-duration: 1.5s;
+}
+
+.rwmb-settings-no-boxes #wpcd_deploy_your_first_wordpress_site .rwmb-heading-wrapper #wpcd_deploy_your_first_wordpress_site_heading {
+    /* change size of metabox title for the DEPLOY YOUR FIRST WORDPRESS SITE section */
+    font-size: 1.7em;
+}
+
+/*
+In the DEPLOY YOUR FIRST WORDPRESS SITE section, make the fonts bigger and space out the lines a bit more.
+*/
+
+.rwmb-settings-no-boxes #wpcd_deploy_your_first_wordpress_site .rwmb-heading-wrapper #wpcd_deploy_your_first_wordpress_site_heading-description {
+    font-size: 1.2em;
+    font-style: inherit;
+    line-height: 2em;
+}
+
+/*
+In the DEPLOY YOUR FIRST WORDPRESS SITE section, adjust list elements.
+*/
+
+.rwmb-settings-no-boxes #wpcd_deploy_your_first_wordpress_site .rwmb-heading-wrapper li {
+    font-size: 1.0em;
+    line-height: 1.6em;
+}
+
+/** End styling for the DEPLOY YOUR FIRST WORDPRESS SITE section **/
+
+/* 
+ re-style headers that rwmb has effectively unstyled.
+*/
+
+.rwmb-input h1 {
+    font-size: 24px !important;
+    margin-left: 0px !important;
+    padding-left: 0px !important;
+    margin-top: 10px !important;
+}
+
+.rwmb-input h2 {
+    font-size: 18px !important;
+    margin-left: 0px !important;
+    padding-left: 0px !important;
+    margin-top: 10px !important;
+}
+
+/**
+ * Text shown when an API key is not setup.
+ */
+
+.rwmb-settings-no-boxes .wpcd_settings_key_not_available_instructions {
+    color: var(--wpcd-primary-brand-color);
+    font-size: 1.2 em;
+    font-weight: bold;
+}
+
+/**
+ * WP 5.5 has added additional 'handlebars' to move metaboxes around.  We need to remove these.
+ */
+
+.rwmb-settings-no-boxes .postbox-header {
+    display: none;
+}
+
+/* End style Metabox.io Tabs in the main settings screen */
+
+/* If any error messages are present on the settings screen, make sure they are in RED */
+
+.wpcd_settings_err_msg {
+    color: red;
+}
+
+/* the password toggle icon */
+
+.wpcd_settings_pass_toggle_icon {
+    vertical-align: middle;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+}
+
+/**
+ * Text shown when Provider is in use.
+ */
+
+.rwmb-settings-no-boxes .rwmb-tab-panel .wpcd_settings_provider_in_use_warning .rwmb-input {
+    width: 100%;
+}
+
+.rwmb-settings-no-boxes .wpcd_settings_provider_in_use_warning {
+    color: #ff0000;
+    font-weight: bold;
+}
+
+/* Received Files listing on the Sync Tab. */
+
+.wpcd-received-files-list-item {
+    margin-bottom: 15px;
+}
+
+.wpcd-received-files-list a {
+    color: var(--wpcd-primary-brand-color);
+    text-decoration: none;
+    box-shadow: none;
+}
+
+.wpcd-received-files-list-item-links {
+    display: inline-block;
+    margin-right: 15px;
+}
+
+.wpcd-received-files-list-item-links-separator {
+    display: inline-block;
+    margin-right: 5px;
+    margin-left: 5px;
+}
+
+/**
+ * Restore file - enter decryption key popup
+ */
+
+/* The Modal (background) */
+
+.modal {
+    display: none;
+    /* Hidden by default */
+    position: fixed;
+    /* Stay in place */
+    z-index: 99999;
+    /* Sit on top */
+    top: 35%;
+    left: 35%;
+    max-width: 480px;
+    /* Full width */
+    height: auto;
+    /* Full height */
+    overflow: auto;
+    /* Enable scroll if needed */
+}
+
+/* Modal Content */
+
+.modal-content {
+    background-color: #fefefe;
+    margin: auto;
+    padding: 20px;
+    border: 1px solid #888;
+}
+
+/* The Close Button */
+
+.close {
+    color: #aaaaaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover, .close:focus {
+    color: #000;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+/* Over background */
+
+.cover-popup-bg-sec {
+    position: fixed;
+    top: 0;
+    left: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 9999;
+    width: 100%;
+    height: 100%;
+    display: none;
+}
+
+input#decryption_key_to_restore {
+    width: 80%;
+    margin-right: 5px;
+}
+
+.decrypt_key_form_sec {
+    padding-left: 15px;
+    padding-right: 40px;
+    padding-bottom: 15px;
+}
+
+/* display waiting message css */
+
+span.display_waiting_message {
+    vertical-align: middle;
+    margin-left: 10px;
+}
+
+/** 
+ * Faq and help page
+ */
+
+.wpcd_settings_help_text_wrapper {
+    line-height: 2.5em;
+}
+
+.wpcd_settings_help_text_wrapper h2 {
+    margin-bottom: 0.25em;
+}
+
+.wpcd_settings_help_text_wrapper a {
+    text-decoration: none;
+}
+
+.wpcd_settings_help_text_wrapper a:hover {
+    text-decoration: underline;
+    font-weight: bold;
+}
+
+.wpcd_settings_help_text_left_column {
+    float: left;
+    width: 30%;
+}
+
+.wpcd_settings_help_text_middle_column {
+    float: left;
+    width: 30%;
+}
+
+.wpcd_settings_help_text_right_column {
+    float: left;
+    width: 30%;
+}
+
+.wpcd_settings_help_text_wrapper:after {
+    clear: both;
+}
+
+.wpcd_faq_help_sec {
+    width: 90%;
+    margin-left: 15px;
+    margin-top: 25px;
+}
+
+.wpcd_faq_help_sec h1.wp-heading-inline {
+    margin-top: 25px;
+    margin-bottom: 25px;
+}
+
+.wpcd_help_button {
+    border: solid 1px;
+    border-color: #EF6F90;
+    background-color: #EF6F90;
+    border-radius: 4px;
+    padding: 1em 2em 1em 2em;
+    text-decoration: none;
+    color: white;
+    line-height: 4em;
+}
+
+.wpcd_help_button:hover {
+    background-color: #03114A;
+    border-color: #03114A;
+    color: white;
+}
+
+.wpcd_help_button.wpcd_help_button_all_docs {
+    background-color: #03114A;
+    border-color: #03114A;
+    margin-top: 1em;
+}
+
+.wpcd_help_button.wpcd_help_button_all_docs:hover {
+    border-color: #EF6F90;
+    background-color: #EF6F90;
+    color: white;
+}
+
+/* Provider toggle switch */
+
+.wpcd_provider_active_switch {
+    position: relative;
+    display: inline-block;
+    width: 55px;
+    height: 25px;
+}
+
+.wpcd_provider_active_switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.wpcd_provider_active_slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+
+.wpcd_provider_active_slider:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 5px;
+    bottom: 3px;
+    background-color: white;
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+
+input:checked+.wpcd_provider_active_slider {
+    background-color: #2196F3;
+}
+
+input:focus+.wpcd_provider_active_slider {
+    box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked+.wpcd_provider_active_slider:before {
+    -webkit-transform: translateX(26px);
+    -ms-transform: translateX(26px);
+    transform: translateX(26px);
+}
+
+/* Rounded sliders */
+
+.wpcd_provider_active_slider.round {
+    border-radius: 34px;
+}
+
+.wpcd_provider_active_slider.round:before {
+    border-radius: 50%;
+}
+
+/**/
+
+/* Provider status - css */
+
+.all_provider_list_table {
+    pointer-events: none;
+    background-color: white;
+    opacity: 0.5;
+}

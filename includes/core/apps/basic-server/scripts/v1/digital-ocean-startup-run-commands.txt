@@ -1,0 +1,4 @@
+ - cd /root
+ - apt-get update -y
+ - apt-get install -y dos2unix
+ - apt-get install -y vnstat

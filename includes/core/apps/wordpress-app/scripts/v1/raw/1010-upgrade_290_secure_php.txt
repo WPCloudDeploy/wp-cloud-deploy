@@ -1,0 +1,32 @@
+#!/bin/bash
+# This script will upgrade the security configuration of PHP on legacy installations of fireupwp
+
+if [[ "$EUID" -ne 0 ]]; then
+	echo "Sorry, you need to run this as root"
+	exit
+fi
+
+ls /etc/php/*/fpm/pool.d/*.conf | grep -v www.conf |
+while read -r line
+do
+    domain=$(echo $line | cut -d "/" -f 7 | sed -e "s/.conf$//")
+	echo "upgrading domain: $domain"
+    echo "php_admin_value[open_basedir] = \"/var/www/$domain/html/:/tmp/\"" >> $line
+	echo 'php_admin_value[allow_url_fopen] = 0' >> $line
+	echo 'php_admin_value[allow_url_include] = 0' >> $line
+	echo 'php_admin_value[disable_functions] = dl, exec, fpassthru, getmypid, getmyuid, highlight_file, link,opcache_get_configuration, passthru, pcntl_exec, pcntl_get_last_error, pcntl_setpriority, pcntl_strerror, pcntl_wifcontinued, php_uname, phpinfo, popen, posix_ctermid, posix_getcwd, posix_getegid, posix_geteuid, posix_getgid, posix_getgrgid, posix_getgrnam, posix_getgroups, posix_getlogin, posix_getpgid, posix_getpgrp, posix_getpid, posix_getppid, posix_getpwnam, posix_getpwuid, posix_getrlimit, posix_getsid, posix_getuid, posix_isatty, posix_kill, posix_mkfifo, posix_setegid, posix_seteuid, posix_setgid, posix_setpgid, posix_setsid, posix_setuid, posix_times, posix_ttyname, posix_uname, proc_close, proc_get_status, proc_nice, proc_open, proc_terminate, shell_exec, show_source, source, system, virtual' >> $line
+	echo 'php_admin_value[session.use_strict_mode] = 1' >> $line
+	echo 'php_admin_value[session.cookie_httponly] = 1' >> $line
+	echo 'php_admin_value[session.use_cookies] = 1' >> $line
+	echo 'php_admin_value[session.use_only_cookies] = 1' >> $line
+	echo 'php_admin_value[session.use_trans_sid] = 0' >> $line
+done
+
+systemctl restart php5.6-fpm
+systemctl restart php7.1-fpm
+systemctl restart php7.2-fpm
+systemctl restart php7.3-fpm
+systemctl restart php7.4-fpm
+systemctl restart php8.0-fpm
+
+echo 'upgrade completed'

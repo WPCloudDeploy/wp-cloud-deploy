@@ -1,0 +1,320 @@
+#!/bin/bash
+
+if [[ "$EUID" -ne 0 ]]
+then
+	echo "Sorry, you need to run this as root"
+	exit
+fi
+
+## Get our common functions
+source 9999-common-functions.sh
+
+while [[ -z $domain ]]; do
+	clear
+	echo "Please select domain in which want to run updates"
+	ls /var/www | grep -v html | nl
+	echo
+	read -p "Select site: " site_number
+	number_of_sites=$(ls /var/www | grep -v html | wc -l)
+	until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
+		echo "$site_number: invalid selection."
+		read -p "Select site: " site_number
+	done
+	domain=$(ls /var/www | grep -v html | sed -n "$site_number"p)
+done
+
+user_name=$(echo $domain | cut -c1-32)
+
+while [[ -z $action ]]; do
+	echo
+	echo "What to update?"
+	echo "   1) All themes"
+	echo "   2) All Plugins"
+	echo "   3) Wordpress"
+	echo "   4) Everything"
+	echo "   5) Some Themes"
+	echo "   6) Some Plugins"
+	echo "   7) All Plugins and All Themes Only"
+	echo "   8) Exclude Some Plugins"
+	echo "   9) Exclude Some Themes"
+        read -p "Action: " action
+        until [[ -z "$action" || "$action" =~ ^[1-9]$ ]]; do
+                echo "$action: invalid selection."
+                read -p "Action: " action
+        done
+done
+
+while [[ -z $update_type ]]; do
+        echo
+        echo "Type of Updates?"
+        echo "   1) Update in Place with Rollback Option"
+        echo "   2) Update in Place without Rollback Option"
+		read -p "Action: "  update_type
+        until [[ -z "$update_type" || "$update_type" =~ ^[1-2]$ ]]; do
+                echo "$update_type: invalid selection."
+                read -p "Action: " update_type
+        done
+done
+
+if [[ -z $api_userid ]]
+then
+	read -p "Authentication User ID: " api_userid
+	until [[ ! -z "$api_userid" || $update_type == 2 ]]
+	do
+		echo "Please enter User ID"
+		read -p "User ID: " api_userid
+	done
+fi
+
+if [[ -z $api_key ]]
+then
+	read -p "Authentication Api Key: " api_key
+	until [[ ! -z "$api_key" || $update_type == 2 ]]
+	do
+		echo "Please entery Api key"
+		read -p "Api Key: " api_key
+	done
+fi
+
+if [[ -z $threshold ]]
+then
+	read -p "Threshold: " threshold
+	until [[ ! -z "$threshold" || $update_type == 2 ]]
+	do
+		echo "Please entery Threshold"
+		read -p "Threshold: " threshold
+	done
+fi
+
+if [[ ! -z $api_key ]]
+then
+	echo "Taking a snapshot of the site homepage..."
+	cssurl1=`curl -X POST https://hcti.io/v1/image -u "$api_userid:$api_key" --data-urlencode url="http://$domain" -d full_screen="true" --silent --show-error |cut -d'"' -f4` 	
+	if [ $cssurl1 == "Unauthorized" ]
+	then
+		echo "API key or API userid is not valid"
+		exit
+	fi
+	
+	# force the image to be downloaded which causes the script to pause until the service has created the image.
+	wget -q --no-check-certificate -O reliableupdates.png $cssurl1
+else
+	echo "Skipping taking a snaphot of home page because the image snapshot service credentials have not been provided."
+fi
+
+if [[ -z "$status_callback_url" ]]
+then
+	read -p "enter callback url to get updates:  " status_callback_url
+fi
+if [[ -z "$status_callback_url" ]]
+then
+	curl -sS "$status_callback_url?update=starting"
+fi
+
+function update_allthemes
+{
+	if [[ ! -z $excluded_themes ]]
+	then
+		update_exclude_themes
+	else 
+		echo "Updating all themes..."
+		su - $user_name -c "wp theme update --all"	
+	fi
+}
+
+function update_allplugins
+{
+	if [[ ! -z $excluded_plugins ]]
+	then
+		update_exclude_plugins
+	else 
+		echo "Updating all plugins..."
+		su - $user_name -c "wp plugin update --all"
+	fi
+}
+
+function update_wordpress
+{
+	echo "Updating WordPress..."
+	su - $user_name -c "wp core update"
+}
+
+function update_somethemes
+{
+	echo "Updating specified themes..."
+	themes=`echo $list_of_themes|tr ',' ' '`
+	su - $user_name -c "wp theme update $themes"
+}
+
+function update_someplugins
+{
+	echo "Updating specified plugins..."
+	plugins=`echo $list_of_plugins|tr ',' ' '`
+	su - $user_name -c "wp plugin update $plugins"
+}
+
+function update_exclude_plugins
+{
+	echo ""
+	echo "Updating All Plugins except specified exclusions..."
+	local pluginlist=`su - $user_name -c "wp plugin list --format=csv|cut -d',' -f1|grep -v name" |tr '\n' ','`
+	for plugin in $(echo $pluginlist | sed "s/,/ /g")
+	do
+		echo "Checking $plugin"
+		echo $excluded_plugins|grep -w $plugin > /dev/null 2>&1
+		if [ $? -ne 0 ]
+		then
+			su - $user_name -c "wp plugin update $plugin"
+		else
+			echo "  ==>$plugin is part of the list of plugins that should be excluded from updates. Skipping it."
+		fi
+	done
+}
+
+function update_exclude_themes
+{
+	echo ""
+	echo "Updating All themes except specified exclusions..."
+	local themelist=`su - $user_name -c "wp theme list --format=csv|cut -d',' -f1|grep -v name" |tr '\n' ','`v
+	for theme in $(echo $themelist | sed "s/,/ /g")
+	do
+		echo "Checking $theme"
+		echo $excluded_themes|grep -w $theme > /dev/null 2>&1
+		if [ $? -ne 0 ]
+		then
+			su - $user_name -c "wp theme update $theme"
+		else
+			echo "  ==>$theme is part of the list of plugins that should be excluded from updates. Skipping it."			
+		fi
+	done
+}
+
+
+#####################################################################
+# Compare before and after images and rollback if not within
+# specified tolerances.
+#####################################################################
+function update_check
+{
+
+	#no mattter what, lets reset caches...
+	g_flush_cache $user_name $domain
+	
+	#flushing the cache might have changed folders so go back to home.
+	cd ~/
+	
+	# now do image compare
+	if [[ ! -z $api_key ]]
+	then
+		echo "Comparing original image with new image after update..."
+		cssurl2=`curl -X POST https://hcti.io/v1/image -u "$api_userid:$api_key" --data-urlencode url="http://$domain" -d full_screen="true" --silent --show-error |cut -d'"' -f4`
+		
+		# force the image to be downloaded which causes the script to pause until the service has created the image.
+		wget -q --no-check-certificate -O reliableupdates2.png $cssurl2
+		
+		# compare orignal image and new image
+		pixel_difference=`curl "https://image-compare.hcti.io/api?image_url=$cssurl1&other_image_url=$cssurl2" --silent --show-error |awk -F':' '{print $NF}'|cut -d'}' -f1`
+		echo "The raw difference beween original and current home page is $pixel_difference pixels."
+		
+		# restore if comparison exceeded threshold
+		if [[ $pixel_difference -ge $threshold ]]
+		then
+			echo "Comparison failed - restoring from backup..."
+			backup=$(find ~/.wp-backup -type f -name "$domain*fs.tar.gz" | cut -d "/" -f 4-5 | cut -d "_" -f 1-2 | sort -nr | sed -n 1p)
+			if [ -z $backup ]
+			then
+				echo "Restore Skipped because no backup found"
+			else
+				g_check_space_no_exit $domain
+				if [ $g_free_size -lt $g_required_size ]
+				then
+					echo "Skipping Restore as server doesn't have enough space to Restore from backup"
+				else
+					(action=2 site=$domain backup=$backup overwrite=yes . ./08-backup.sh)
+				fi
+			fi
+			if [[ -z "$status_callback_url" ]]
+			then
+				curl -sS "$status_callback_url?update=failed&pixel=$pixel_difference"
+			fi
+		else
+			echo "Comparison successful - it appears that the update was successful."
+			echo "Updates are complete."
+			if [[ -z "$status_callback_url" ]]
+			then		
+				curl -sS "$status_callback_url?update=success"
+			fi
+		fi
+	else 
+		echo "Skipping a comparison of before and after images because the image snapshot service credentials have not been provided."
+		echo "Updates are complete."
+	fi
+
+}
+
+############## Backup Existing site code and database #######
+g_backup_and_verify $user_name $domain
+cd ~/
+
+# run a backup with updraft plus if it's installed.
+g_backup_with_updraft $user_name $domain
+cd ~/
+
+# now do the actions.
+if [[ $action == "update_allthemes" || $action == "1" ]]
+then
+	update_allthemes
+fi
+
+if [[ $action == "update_allplugins" || $action == "2" ]]
+then
+	update_allplugins
+fi
+
+if [[ $action == "update_wordpress" || $action == "3" ]]
+then
+	update_wordpress
+fi
+
+if [[ $action == "update_everything" || $action == "4" ]]
+then
+	update_allthemes
+	update_allplugins
+	update_wordpress
+fi
+
+if [[ $action == "some_themes" || $action == "5" ]] && [[ -z $list_of_themes ]]
+then
+	themelist=`su - $user_name -c "wp theme list --format=csv|cut -d',' -f1|grep -v name" |tr '\n' ','`
+	read -p "Enter list of themes to update (comma separated) $themelist  : " list_of_themes
+	update_somethemes
+fi
+
+if [[ $action == "some_plugins" || $action == "6" ]] && [[ -z $list_of_plugins ]]
+then
+	pluginlist=`su - $user_name -c "wp plugin list --format=csv|cut -d',' -f1|grep -v name" |tr '\n' ','`
+	read -p "Enter list of plugins to update (comma separated) $pluginlist   : " list_of_plugins
+	update_someplugins
+fi
+
+if [[ $action == "update_themes_and_plugins" || $action == "7" ]]
+then
+	update_allthemes
+	update_allplugins
+fi
+
+if [[ $action == "update_exclude_plugins" || $action == "8" ]] && [[ -z $excluded_plugins ]]
+then
+	pluginlist=`su - $user_name -c "wp plugin list --format=csv|cut -d',' -f1|grep -v name" |tr '\n' ','`
+	read -p "Enter list of plugins excluding for update (comma separated) $pluginlist   : " excluded_plugins
+	update_exclude_plugins
+fi
+
+if [[ $action == "update_exclude_themes" || $action == "9" ]] && [[ -z $excluded_themes ]]
+then
+	themelist=`su - $user_name -c "wp theme list --format=csv|cut -d',' -f1|grep -v name" |tr '\n' ','`
+	read -p "Enter list of themes excluding for update (comma separated) $themelist  : " excluded_themes
+	update_exclude_themes
+fi
+#################### Check if updates run successfull and pixel value below threshold ########
+update_check

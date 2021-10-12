@@ -1,0 +1,1 @@
+sudo -i -E cd /root && sudo -E apt-get update -y && sudo -E apt-get install -y dos2unix && sudo -E apt-get install -y vnstat

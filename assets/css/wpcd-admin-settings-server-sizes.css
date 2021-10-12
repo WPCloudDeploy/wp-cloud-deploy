@@ -1,0 +1,13 @@
+/******************************************************************************************/
+
+/* Style Metabox.io fields for server sizes.											  */
+
+/* This is only loaded conditionally so check the php code.								  */
+
+/* Generally only loaded if there is a config entry in the wp-config.php file.			  */
+
+/******************************************************************************************/
+
+.rwmb-field.rwmb-select-wrapper.wpcd_server_size_setting {
+    display: none;
+}

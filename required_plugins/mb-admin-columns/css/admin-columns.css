@@ -1,0 +1,30 @@
+.mb-admin-columns ul {
+	margin-top: 0;
+}
+.mb-admin-columns iframe {
+	max-width: 100%;
+	height: auto;
+}
+.mb-admin-columns-image li,
+.mb-admin-columns-image_advanced li,
+.mb-admin-columns-plupload_image li,
+.mb-admin-columns-thickbox_image li,
+.mb-admin-columns-color li {
+	display: inline-block;
+	margin: 0 5px 5px 0;
+}
+.mb-admin-columns-image img,
+.mb-admin-columns-image_advanced img,
+.mb-admin-columns-plupload_image img,
+.mb-admin-columns-thickbox_image img {
+	width: 48px;
+	height: 48px;
+	max-width: 100%;
+	border-radius: 2px;
+}
+.mb-admin-columns-color {
+	text-align: center;
+}
+.mb-admin-columns-color span {
+	box-shadow: 0 1px 3px #999;
+}

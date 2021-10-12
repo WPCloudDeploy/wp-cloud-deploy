@@ -1,0 +1,112 @@
+#!/bin/bash
+
+if [[ "$EUID" -ne 0 ]]
+then
+	echo "Sorry, to run this as root"
+	exit
+fi
+
+clear
+
+while [[ -z $action ]]; do
+	echo
+	echo "What do you want to do?"
+	echo "   1) Add Cron to Backup config files (every 4 hrs)"
+	echo "   2) Remove Cron"
+	echo "   3) Remove All Backup Configuration files"
+	echo
+	read -p "Action: " action
+	until [[ -z "$action" || "$action" =~ ^[1-3]$ ]]; do
+		echo "$action: invalid selection."
+		read -p "Action: " action
+	done
+done
+
+################### Configure Cron to backup all Configuration files Every 4 hrs #########
+if [[ $action == "conf_backup_enable" || $action == "1" ]];
+then
+
+	# Commenting this section out - don't need to ask for a callback url in interactive mode.
+	# if [[ -z "$callback_backup" ]]
+	# then
+	# 	read -p "enter callback url to get backup status:  " callback_backup
+	# fi
+	
+	########### Syncing nginx , php, letsencrypt ssl , mysql and wp-config.php files to backup directory
+	########### Backup Directory format is /opt/conf-backup/$date/conf.tar.gz where date is in Hour-DayMonthYear Format
+	echo $'#!/bin/bash
+	callback_backup='$callback_backup'
+	backupconf="/opt/wp-conf-backup"
+	dir=`date +%H-%d%b%Y`
+	backupdir="$backupconf/$dir"
+	backuptmp="$backupconf/tmp"
+	
+	# notify callback of start of backup
+	if [[ -n "$callback_backup" ]]
+	then
+		curl -sS "$callback_backup/?backup=started"
+	fi	
+	
+	mkdir -p $backuptmp $backupdir
+	rsync -az /etc/nginx/ $backuptmp/nginx/ 2>/dev/null
+	rsync -az /etc/php/ $backuptmp/php/ 2>/dev/null
+	rsync -az /etc/letsencrypt/live/ $backuptmp/letsencrypt/ 2>/dev/null
+	rsync -az /etc/mysql/ $backuptmp/mysql/ 2>/dev/null
+	rsync -az /etc/ssh/ $backuptmp/ssh/ 2>/dev/null
+	rsync -az /etc/passwd $backuptmp/passwd 2>/dev/null
+	rsync -az /etc/shadow $backuptmp/shadow 2>/dev/null
+	rsync -az /etc/fail2ban/ $backuptmp/fail2ban/ 2>/dev/null
+	rsync -az /etc/monitorix/ $backuptmp/monitorix/ 2>/dev/null
+	rsync -az /etc/crowdsec/ $backuptmp/crowdsec/ 2>/dev/null
+	rsync -az /var/spool/cron/crontabs/ $backuptmp/crontabs/ 2>/dev/null
+
+	for wpconf in /var/www/*/html/wp-config.php
+	do
+		domain=`echo $wpconf|cut -d"/" -f4`
+		rsync -az $wpconf $backuptmp/$domain/ 2>/dev/null
+	done
+
+	for filegatorconf in /var/www/*/html/*/configuration.php
+	do
+		mkdir -p $backuptmp/filegator
+		domain=`echo $filegatorconf|cut -d"/" -f4`
+		rsync -az $filegatorconf $backuptmp/filegator/$domain/ 2>/dev/null
+	done
+
+	tar czf $backupdir/conf.tar.gz $backuptmp/* 2>/dev/null
+	rm -rf $backuptmp
+	find $backupconf/ -mtime +90 -exec rm -rf {} \;
+	size=`du -s $backupdir/conf.tar.gz|awk '\''{print $1}'\''`
+	if [[ -n "$callback_backup" ]]
+	then
+		if [ $size -gt 10 ]
+		then
+			curl -sS "$callback_backup/?backup=successful"
+		else
+			curl -sS "$callback_backup/?backup=failed"
+		fi
+	fi
+	' > /usr/local/bin/wp-confbackup	
+
+	chmod +x /usr/local/bin/wp-confbackup
+	crontab -l | grep -q 'wp-confbackup' || (crontab -l 2>/dev/null; echo "0 */4 * * * /usr/local/bin/wp-confbackup > /dev/null 2>&1") | crontab -
+
+	echo
+	echo "Backup cron job has been configured to take a backup every 4 hrs under /opt/wp-conf-backup"
+	exit
+fi
+
+################### Remove Backup cron #########
+if [[ $action == "conf_backup_disable" || $action == "2" ]];
+then
+	(crontab -l 2>/dev/null | sed '/wp-confbackup/d' ) | crontab -
+	rm -f /usr/local/bin/wp-confbackup
+	echo "Cron for conf backup has been removed"
+fi
+
+################### Remove Backup files #########
+if [[ $action == "conf_backup_remove" || $action == "3" ]];
+then
+	rm -rf /opt/wp-conf-backup/*
+	echo "Backup files have been removed"
+fi

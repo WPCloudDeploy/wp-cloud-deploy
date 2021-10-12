@@ -1,0 +1,57 @@
+/* Format the group taxonomy labels shown on the server and app cpt list screens */
+span.wpcd-app-server-app-group {
+    display: inline-block;
+    padding: 2px 8px;
+    font-weight: 700;
+    color: #fff;
+    vertical-align: baseline;
+    background-color: #999;
+    border-radius: 3px;
+    margin: 2px;
+}
+
+/* Format custom link labels shown on the server and app cpt list screens */
+.wpcd_custom_link a {
+    display: inline-block;
+    padding: 2px 8px;
+    color: #fff;
+    vertical-align: baseline;
+    background-color: #039BE5;
+    border-radius: 3px;
+    margin-top: 3px;
+}
+
+
+/* Format the note count on the app list screen */
+.wpcd-note-count {
+    display: inline-block;
+    padding: 2px 8px;
+    font-weight: 700;
+    vertical-align: baseline;
+    border-radius: 3px;
+    border-color: gray !important;
+    /* Not sure why important is needed for this one but oh well. */
+    border: solid;
+    border-width: 2px;
+    margin: 2px;
+}
+
+/******************************************************************************************/
+
+/* Style the UPGRADE NEEDED alert on the server & app listing screen                      */
+
+/******************************************************************************************/
+.wpcd_upgrade_needed_warning {
+    display: inline-block;
+    padding: 2px 8px;
+    vertical-align: baseline;
+    border-radius: 3px;
+    border-color: darkred !important;
+    /* Not sure why important is needed for this one but oh well. */
+    background-color: darkred;
+    color: white;
+    border: solid;
+    border-width: 2px;
+    margin: 2px;
+    margin-left: 0px;
+}

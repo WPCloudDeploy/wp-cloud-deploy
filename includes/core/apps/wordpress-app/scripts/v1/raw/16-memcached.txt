@@ -1,0 +1,135 @@
+#!/bin/bash
+if [[ "$EUID" -ne 0 ]]; then
+	echo "Sorry, you need to run this as root"
+	exit
+fi
+
+
+
+while [[ -z $action ]]; do
+    clear
+    echo "What do you want to do?"
+    echo "   1) Install Memcached"
+    echo "   2) Enable Memcached for a site"
+    echo "   3) Disable Memcached for a site"
+    echo "   4) Clear Memcached cache"
+    echo "   5) Restart Memcached"
+    echo "   6) Remove Memcached"
+    echo
+    read -p "Action: " action
+    until [[ -z "$action" || "$action" =~ ^[1-6]$ ]]; do
+    	echo "$action: invalid selection."
+    	read -p "Action: " action
+    done
+done
+
+if [[ $action == "install_memcached" || $action == "1" ]]; then
+
+    if hash memcached 2>/dev/null; then
+        echo
+        echo "Memcached is already installed!"
+        exit
+    fi
+
+    apt-get install memcached php5.6-memcache php7.1-memcache php7.2-memcache php7.3-memcache php7.4-memcache php8.0-memcache -y
+
+    systemctl restart php5.6-fpm
+    systemctl restart php7.1-fpm
+    systemctl restart php7.2-fpm
+    systemctl restart php7.3-fpm
+    systemctl restart php7.4-fpm
+    systemctl restart php8.0-fpm
+
+    echo
+    echo "Memcached has been installed. You can run this script again to enable it for a site."
+    exit
+fi
+
+
+if [[ $action == "enable" || $action == "2" ]]; then
+
+    while [[ -z $domain ]]; do
+        echo
+        echo "Please, select which site you want to work with"
+        echo
+        ls /var/www/ | grep -v html | nl
+        read -p "Select site: " site_number
+        number_of_sites=$(ls /var/www/ | grep -v html | wc -l)
+        until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
+	    	echo "$site_number: invalid selection."
+	    	read -p "Select site: " site_number
+	    done
+        domain=$(ls /var/www/ | grep -v html | sed -n "$site_number"p)
+    done
+
+    if [[ -e /var/www/$domain/html/wp-content/object-cache.php ]]; then
+        echo "An object cache is already enabled for $domain"
+        echo
+        echo "If you want to enable Memcached, the currently enabled cache system needs to be disabled first."
+        exit
+    fi
+
+    user_name=$(echo $domain | cut -c1-32)
+
+	# Delete all transients to get the options table as small as possible. Memcached only allows 1 MB object size and wp --skip-plugins adds the entire options table as a single object grrrrr...
+	cd /var/www/$domain/html/
+	su - $user_name -c "wp --skip-plugins transient delete --all"
+	
+	# Install the WP object cache plugin for memcached
+    su - $user_name -c "wget https://github.com/Automattic/wp-memcached/raw/master/object-cache.php -O /var/www/$domain/html/wp-content/object-cache.php"
+    chmod -R g+w /var/www/$domain/html/wp-content/object-cache.php
+
+    echo
+    echo "Memcached has been enabled for $domain"
+    exit
+fi
+
+
+if [[ $action == "disable" || $action == "3" ]]; then
+
+    while [[ -z $domain ]]; do
+        echo
+        echo "Please, select which site you want to work with"
+        echo
+        ls /var/www/ | grep -v html | nl
+        read -p "Select site: " site_number
+        number_of_sites=$(ls /var/www/ | grep -v html | wc -l)
+        until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
+	    	echo "$site_number: invalid selection."
+	    	read -p "Select site: " site_number
+	    done
+        domain=$(ls /var/www/ | grep -v html | sed -n "$site_number"p)
+    done
+
+    rm -f /var/www/$domain/html/wp-content/object-cache.php
+
+    echo
+    echo "Memcached has been disabled for $domain"
+    exit
+fi
+
+
+if [[ $action == "memcached_clear" || $action == "4" ]]; then
+    (sleep 2; echo flush_all; sleep 2; echo quit; ) | telnet 127.0.0.1 11211
+    echo
+    echo "Memcached cache has been cleared"
+    exit
+fi
+
+
+if [[ $action == "memcached_restart" || $action == "5" ]]; then
+    systemctl restart memcached.service
+    echo
+    echo "Memcached server has been restarted"
+    exit
+fi
+
+
+if [[ $action == "remove_memcached" || $action == "6" ]]; then
+
+    apt-get remove memcached php5.6-memcache php7.1-memcache php7.2-memcache php7.3-memcache php7.4-memcache php8.0-memcache -y
+
+    echo
+    echo "Memcached has been removed from the system."
+    exit
+fi

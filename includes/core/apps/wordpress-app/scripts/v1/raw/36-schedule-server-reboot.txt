@@ -1,0 +1,40 @@
+#!/bin/bash
+if [[ "$EUID" -ne 0 ]]; then
+        echo "Sorry, you need to run this as root"
+        exit
+fi
+
+while [[ -z $reboot_date ]]; do
+    clear
+    echo
+    read -p "Enter the date when you want to reboot your server [yyyy-mm-dd]: " reboot_date
+    date -d $reboot_date
+    valid_date=$?
+    until [[ "$valid_date" -eq 0 ]]; do
+        read -p "Invalid Date, Enter the date when you want to reboot your server [yyyy-mm-dd]: " reboot_date
+        date -d $reboot_date
+        valid_date=$?
+    done
+done
+
+while [[ -z $reboot_time ]]; do
+    echo
+    read -p "Enter the time when you want to reboot your server [HH:MM]: " reboot_time
+    date -d "$reboot_date $reboot_time"
+    valid_time=$?
+    until [[ "$valid_time" -eq 0 ]]; do
+        read -p "Invalid Time Fromat, Enter the time when you want to reboot your server [yyyy-mm-dd]: " reboot_time
+        date -d "$reboot_date $reboot_time"
+	valid_time=$?
+    done
+done
+
+schedule_date="$reboot_time $reboot_date"
+echo "reboot"|at $schedule_date
+
+if [ $? -eq 0 ]
+then
+	echo "The server reboot has been scheduled."
+else
+	echo "The entered date is older than today - server reboot as NOT been scheduled."
+fi

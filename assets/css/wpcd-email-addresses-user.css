@@ -1,0 +1,117 @@
+/******************************************************************************************/
+
+/* Style email metaboxes in the server and site detail screens                            */
+
+/******************************************************************************************/
+
+.display_waiting_message {
+  font-weight: 500;
+  padding-left: 5px;
+  padding-top: 5px;
+  vertical-align: middle;
+}
+
+table.wpcd_email_list_table, table.wpcd_sent_email_list_table {
+  width: 100%;
+  text-align: left;
+  font-size: 13px;
+}
+
+table.wpcd_disable_email_table {
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/*** Modal CSS ***/
+
+.wpcd_sent_email_details_popup_sec {
+  border: 1px solid #ddd;
+}
+
+.wpcd_sent_email_details_modal {
+  background-color: #fefefe;
+  position: fixed;
+  z-index: 999999;
+  top: 8%;
+  left: 15%;
+  bottom: 8%;
+  right: 15%;
+  overflow: auto;
+  -webkit-box-shadow: 0 0 5px 2px #c1a7a7;
+  -moz-box-shadow: 0 0 5px 2px #c1a7a7;
+  box-shadow: 0 0 5px 2px #c1a7a7;
+}
+
+.wpcd_sent_email_list_disable {
+  pointer-events: none;
+  background-color: white;
+  opacity: 0.5;
+}
+
+/* Modal Content */
+
+.wpcd_sent_email_details_html {
+  margin-top: 2em;
+}
+
+.wpcd_sent_email_modal_content {
+  background-color: #fefefe;
+  margin: auto;
+  padding: 30px 40px 30px 40px;
+}
+
+/* The Close Button */
+
+.wpcd_popup_header_sec {
+  position: relative;
+  margin: 3px 8px 10px 10px;
+}
+
+.wpcd_sent_email_details_close {
+  color: #aaaaaa;
+  float: right;
+  font-size: 30px;
+  font-weight: bold;
+}
+
+.wpcd_sent_email_details_close:hover, .wpcd_sent_email_details_close:focus {
+  color: #000;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+/* Pagination CSS */
+
+.wpcd-universal-pagination ul {
+  margin: 0;
+  padding: 0;
+}
+
+.wpcd-universal-pagination ul li {
+  display: inline;
+  margin: 3px;
+  padding: 4px 8px;
+  background: #FFF;
+  color: black;
+}
+
+.wpcd-universal-pagination ul li.active:hover {
+  cursor: pointer;
+  background: #1E8CBE;
+  color: white;
+}
+
+.wpcd-universal-pagination ul li.inactive {
+  background: #dcd2d2;
+  cursor: not-allowed;
+}
+
+.wpcd-universal-pagination ul li.selected {
+  background: #1E8CBE;
+  color: white;
+}
+
+.wpcd-universal-pagination ul {
+  margin-top: 20px;
+  margin-bottom: 10px;
+}

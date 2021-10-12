@@ -1,0 +1,223 @@
+###################################################################################################
+# Coding standards
+#
+# - All function names declared in here should be prefixed with "gf_"  - "Global Function" 
+# - All vars declared outside of functions should be prefixed with "gv_" = "Global Variable"
+# - Vars declared inside a function should be declared as "local" to avoid polluting 
+#   the global namespace.
+#       eg: local mylocalvarname
+#
+# - Function names declared in other scripts should be prefixed with "f_", especially if they are 
+#   far away from where they are called in the script. It helps others to easily recognize that 
+#   a name is a function being called instead of a variable.
+#
+##################################################################################################
+
+## colors
+## @TODO: Need to prefix these with "GV_".
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+ORANGE='\033[0;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+## end colors
+
+## regex patterns
+## @TODO: Need to prefix these with "gv_".
+sp="[	 ]+" # 1 or multiple spaces or tabs
+sm="[	 ]*" # 0 or multiple spaces or tabs
+ip="[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+" # any ipv4
+ip6="\[::1?\]" # any or localhost ipv6
+## end regex patterns
+
+## common phrases
+SUCCESSFUL='Success!'
+
+#####################################################################
+# Function to calculate required free space for a backup.
+# If not enough space is available, the script will exit.
+# 
+# Parameters:
+# $1 - Target domain
+#
+#####################################################################
+function g_check_space_or_exit()
+{
+	local target_domain=$1
+	echo "Checking available disk space for $target_domain"
+	
+	local file_size=`du -sm /var/www/$target_domain|awk '{print $1}'`
+	local free_size=`df -m|grep -w '/'|awk '{print $4}'`
+	local required_size=`echo "$file_size * 2"|bc`
+	
+	if [ $free_size -lt $required_size ]
+	then
+		echo "Server does not have enough disk space to backup the target site. Exiting."
+		exit
+	fi
+	
+}
+
+#####################################################################
+# Function to calculate required free space for a backup.
+# Unlike the above function, it will only set global
+# vars and let the calling program handle things.
+#
+# This sets three global variables:
+# - g_file_size
+# - g_free_size
+# - g_required_size
+# 
+# Parameters:
+# $1 - Target domain
+#
+#####################################################################
+function g_check_space_no_exit()
+{
+	local target_domain=$1
+	echo "Checking available disk space for $target_domain"
+	
+	g_file_size=`du -sm /var/www/$target_domain|awk '{print $1}'`
+	g_free_size=`df -m|grep -w '/'|awk '{print $4}'`
+	g_required_size=`echo "$g_file_size * 2"|bc`
+	
+}
+
+#####################################################################
+# Function to flush the caches for a site.
+# 
+# Parameters:
+# $1 - user name
+# $2 - Target domain
+#
+#####################################################################
+function g_flush_cache()
+{
+
+	local user_name=$1
+	local target_domain=$2
+	
+	su - $user_name -c "wp cache flush"
+	
+	cd /var/www/$target_domain/html/
+
+	su - $user_name -c "wp plugin is-active cache-enabler"
+	if [ $? -eq 0 ]
+	then
+		su - $user_name -c "wp cache-enabler clear"
+	fi
+
+	# wp-super-cache has a separate cli plugin but if we try to 
+	# check for it, it always returns a non-zero status for 
+	# some reason, regardless of if it's active or not.
+	# So we have to just grep the output of a wp command
+	# to see if it's on.
+	# Link to wp-super-cache plugin on github:
+	# https://github.com/wp-cli/wp-super-cache-cli
+	su - $user_name -c "wp super-cache status 2>/dev/null |grep On"
+	if [ $? -eq 0 ]
+	then
+		su - $user_name -c "wp super-cache flush"
+	fi
+
+	su - $user_name -c "wp plugin is-active w3-total-cache"
+	if [ $? -eq 0 ]
+	then
+		su - $user_name -c "wp w3-total-cache flush all"
+	fi
+
+	su - $user_name -c "wp plugin is-active wp-fastest-cache"
+	if [ $? -eq 0 ]
+	then
+		su - $user_name -c "wp fastest-cache clear all"
+	fi
+
+	# wp-rocket has a separate cli plugin but if we try to 
+	# check for it, it always returns a non-zero status for 
+	# some reason, regardless of if it's active or not.
+	# So we perform some gymnastics with the WP HELP
+	# command to see if it's on.
+	# Link to wp-rocket-cli plugin on github:
+	# See https://github.com/wp-media/wp-rocket-cli
+	su - $user_name -c "wp plugin is-active wp-rocket"
+	if [ $? -eq 0 ]
+	then
+		su - $user_name -c "wp help|grep rocket"
+		if [ $? -eq 0 ]
+		then
+			su - $user_name -c "wp rocket clean --confirm"
+		fi
+	fi
+
+}
+
+#####################################################################
+# Run a backup with with our standard 08 script.
+# Check to make sure files are present, if not exit.
+# 
+# Parameters:
+# $1 - user name
+# $2 - Target domain
+#
+#####################################################################
+function g_backup_and_verify() 
+{
+	local user_name=$1
+	local target_domain=$2
+
+	cd ~/
+	echo "Preparing to backup $target_domain..."
+	
+	## Check if server has enough space to create backup
+	g_check_space_no_exit $target_domain
+	if [ $g_free_size -lt $g_required_size ]
+	then
+		echo "Server does not have enough space to Backup WP"
+		exit
+	fi
+
+	# Run the backup.
+	(action=1 . ./08-backup.sh)
+	if [ $? -ne 0 ]
+	then
+		echo "Backup failed, exiting script."
+		exit
+	fi
+
+	# verify the backup
+	backup_files=`find ~/.wp-backup/$domain/ -iname *.gz -mmin -180|wc -l`
+	if [ $backup_files -lt 3 ]
+	then
+		echo "Verify after backup failed, exiting script."
+		exit
+	fi	
+
+}
+
+#####################################################################
+# Run a backup with updraftplus if it's installed.
+# 
+# Parameters:
+# $1 - user name
+# $2 - Target domain
+#
+#####################################################################
+function g_backup_with_updraft() 
+{
+	local user_name=$1
+	local target_domain=$2
+	
+	echo "Checking for updraftplus..."
+	
+	cd /var/www/$target_domain/html/
+	su - $user_name -c "wp plugin is-active updraftplus"
+	if [ $? -eq 0 ]
+	then
+		su - $user_name -c "wp help|grep updraftplus"
+		if [ $? -eq 0 ]
+		then
+			echo "Starting backup with updraftplus..."
+			su - $user_name -c "wp updraftplus backup"
+		fi
+	fi
+}

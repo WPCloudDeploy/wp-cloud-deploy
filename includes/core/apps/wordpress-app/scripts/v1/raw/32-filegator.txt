@@ -1,0 +1,2786 @@
+#!/bin/bash
+# Script #36 FileGator.sh
+
+if [[ "$EUID" -ne 0 ]]; then
+    echo "Sorry, you need to run this as root"
+    exit
+fi
+
+processing_dependencies() {
+    # for ROOT installation, fix 'permission denied' for user 'www-data' on /var/www/.composer
+    www_data_home=$(eval echo ~www-data)
+    mkdir ${www_data_home}/.composer > /dev/null 2>&1
+    chown www-data:www-data ${www_data_home}/.composer > /dev/null 2>&1
+    chmod -R g+w ${www_data_home}/.composer > /dev/null 2>&1
+
+    # https://github.com/getsentry/symfony-amg-sentry-plugin/issues/17
+    which zip > /dev/null 2>&1
+    if [[ $? -ne 0 ]]; then
+        apt install -y zip > /dev/null 2>&1
+    fi
+    which unzip > /dev/null 2>&1
+    if [[ $? -ne 0 ]]; then
+        apt install -y unzip > /dev/null 2>&1
+    fi
+    which git > /dev/null 2>&1
+    if [[ $? -ne 0 ]]; then
+        apt install -y git > /dev/null 2>&1
+    fi
+    apt list --installed 2>&1 | grep -q php5.6-zip
+    if [[ $? -ne 0 ]]; then
+        apt install -y php5.6-zip > /dev/null 2>&1
+    fi
+    apt list --installed 2>&1 | grep -q php7.1-zip
+    if [[ $? -ne 0 ]]; then
+        apt install -y php7.1-zip > /dev/null 2>&1
+    fi
+    apt list --installed 2>&1 | grep -q php7.2-zip 
+    if [[ $? -ne 0 ]]; then
+        apt install -y php7.2-zip > /dev/null 2>&1
+    fi
+    apt list --installed 2>&1 | grep -q php7.3-zip
+    if [[ $? -ne 0 ]]; then
+        apt install -y php7.4-zip > /dev/null 2>&1
+    fi
+    apt list --installed 2>&1 | grep -q php7.4-zip
+    if [[ $? -ne 0 ]]; then
+        apt install -y php7.4-zip > /dev/null 2>&1
+    fi
+    apt list --installed 2>&1 | grep -q php8.0-zip
+    if [[ $? -ne 0 ]]; then
+        apt install -y php8.0-zip > /dev/null 2>&1
+    fi
+}
+
+
+
+
+## Get our common functions
+source 9999-common-functions.sh
+
+# check free RAM
+check_free_ram() {
+    FREE_RAM=$(free -m | sed 1d | awk '{s+=$2} END {print s}')
+    if [[ "${FREE_RAM}" -lt "1500" ]]; then
+        echo -e "${RED}Insufficent RAM ${FREE_RAM}, at lead 1500MB needed${NC}"
+        exit 1
+    fi
+    echo "free RAM=${FREE_RAM}"
+}
+
+
+# inits
+# $user_name - name of user of php-fpm pool process
+set_user_name() {
+    if [[ -z "${user_name}" ]]; then
+        if [[ -z "${domain}" ]]; then
+            echo -e "${RED}Error: set_user_name() failed \$domain is empty.${NC}" >&2 # ERROR
+            exit 1
+        fi
+        if [[ -f "${domain_conf}" ]]; then
+            if grep -q 'root_filegator_domain_label' ${domain_conf} ; then
+                user_name="www-data"
+            else
+                user_name=$(echo $domain | cut -c1-32)
+            fi
+        else
+            user_name=$(echo $domain | cut -c1-32)
+        fi
+    fi
+}
+
+# inits
+# $domain_conf - path to the domain conf file
+# $domain_html - path to the domain html folder
+# $user_name - name of user of php-fpm pool process
+init_domain_variables() {
+    if [[ -z "${domain}" ]]; then
+        echo -e "${RED}Error: init_domain_variables() failed \$domain is empty.${NC}" >&2 # ERROR
+        exit 1
+    fi
+    domain_conf="/etc/nginx/sites-enabled/${domain}"
+    set_user_name
+    domain_html="/var/www/${domain}/html"
+}
+
+# inits
+# $fg_folder_path - path to the particular FileGator folder in the domain
+# $fg_conf - path to the particular FileGator conf file in the domain
+# $fg_auth_conf - path to the particular FileGator auth conf file in the domain
+init_fg_variables() {
+    if [[ -z "${fg_folder}" ]]; then
+        echo -e "${RED}Error: init_fg_variables() failed \$fg_folder is empty in '${domain}'.${NC}" >&2 # ERROR
+        exit 1
+    fi
+    if [[ -z "${domain_html}" ]]; then
+        echo -e "${RED}Error: init_fg_variables() failed \$domain_html is empty in '${domain}'.${NC}" >&2 # ERROR
+        exit 1
+    fi
+    fg_folder_path="${domain_html}/${fg_folder}"
+    fg_conf="${fg_folder_path}/configuration.php"
+    fg_auth_conf="${fg_folder_path}/private/users.json"
+}
+
+# DEBUG=1 # debug mode, run this script using: sudo DEBUG=1 ./34-options.sh
+unset NGINX_RELOAD
+MIN_PHP_VERSION="7.2"
+[[ "${domain}" ]] && init_domain_variables
+[[ "${domain_html}" && "${fg_folder}" ]] && init_fg_variables
+    
+# exits this script with needed post config actions and checks
+exit_script() {
+    nginx -t > /dev/null 2>&1 # checking nginx configuration
+    if [[ $? -eq 0 ]]; then
+        if [[ "${NGINX_RELOAD}" -eq 1 && "${DEBUG}" -eq 0 ]]; then
+            systemctl reload nginx || service nginx reload
+        fi
+    else
+        nginx -t # show nginx conf errors
+    fi
+    exit
+}
+
+# for options where changes are applied to the filesystem
+select_domain () {
+while [[ -z $domain ]]; do
+    clear
+    echo "Please, select which site you want to work with"
+    ls /var/www | grep -v html | nl
+    echo
+    read -p "Select site: " site_number
+    number_of_sites=$(ls /var/www | grep -v html | wc -l)
+    until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
+    	echo "$site_number: invalid selection."
+    	read -p "Select site: " site_number
+    done
+    domain=$(ls /var/www | grep -v html | sed -n "$site_number"p)
+    init_domain_variables
+done
+}
+
+
+# for options where changes are applied to the NGINX configuration
+select_domain_mu () {
+    while [[ -z $domain ]]; do
+        echo
+        echo "Please, select which site you want to work with"
+        echo
+        ls /etc/nginx/sites-enabled/ | grep -v '^default$\|^monit$\|^monitorix$' | nl
+        read -p "Select site: " site_number
+        number_of_sites=$(ls /etc/nginx/sites-enabled/ | grep -v '^default$\|^monit$\|^monitorix$' | wc -l)
+        until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
+            echo "$site_number: invalid selection."
+            read -p "Select site: " site_number
+        done
+        domain=$(ls /etc/nginx/sites-enabled/ | grep -v '^default$\|^monit$\|^monitorix$' | sed -n "$site_number"p)
+        init_domain_variables
+    done
+    if [[ ! -d "${domain_html}" ]]; then
+        echo -e "${RED}Error: Domain '${domain}' does not exist${NC}" >&2 # ERROR
+        exit 1
+    fi
+}
+
+# inits
+# $php_version - current php version, like 7.4
+# $php_domain_conf - current pool conf for the selected domain
+# $php_app - command for current php version
+# $php_app_su - command for current php under user (please, use stdin for php code)
+get_php_version() {
+    if [[ -z "${domain}" ]]; then
+        echo -e "${RED}Error. Could not get php version \$domain is empty.${NC}" >&2 # ERROR
+        exit 1
+    else
+        if [[ -z "${php_version}" ]]; then
+            ls /etc/php/*/fpm/pool.d/${domain}.conf > /dev/null 2>&1
+            if [[ $? -ne 0 ]]; then
+                echo -e "${RED}Error. Could not get the php version. The pool file was not found for '${domain}'${NC}" >&2 # ERROR
+                exit 1
+            fi
+            php_version=$(ls /etc/php/*/fpm/pool.d/${domain}.conf | cut -d '/' -f 4) # current php version, like 7.4
+            php_domain_conf="/etc/php/${php_version}/fpm/pool.d/${domain}.conf" # current pool conf for the selected domain
+            php_app="php${php_version}" # command for current php version
+            php_app_su="sudo -u ${user_name} ${php_app}" # command for current php under user (please, use stdin for php code)
+        fi
+    fi
+}
+
+# compare version strings splited by dot
+vercomp () {
+    if [[ $1 == $2 ]]
+    then
+        return 0
+    fi
+    local IFS=.
+    local i ver1=($1) ver2=($2)
+    # fill empty fields in ver1 with zeros
+    for ((i=${#ver1[@]}; i<${#ver2[@]}; i++))
+    do
+        ver1[i]=0
+    done
+    for ((i=0; i<${#ver1[@]}; i++))
+    do
+        if [[ -z ${ver2[i]} ]]
+        then
+            # fill empty fields in ver2 with zeros
+            ver2[i]=0
+        fi
+        if ((10#${ver1[i]} > 10#${ver2[i]}))
+        then
+            return 1
+        fi
+        if ((10#${ver1[i]} < 10#${ver2[i]}))
+        then
+            return 2
+        fi
+    done
+    return 0
+}
+
+# inits
+# $fg_folders - array of string, contains names of folders of FileGator in the domain
+# $amount_fg_folders - amount of folders of FileGator in the domain
+get_fg_folders_domain() {
+    if [[ -z "${domain_html}" ]]; then
+        echo -e "${RED}Error: get_fg_folders_domain() failed \$domain_html is empty in '${domain}'.${NC}" >&2 # ERROR
+        exit 1
+    fi
+    folders_in_domain=($(ls -d ${domain_html}/*/ 2>/dev/null | grep -v "${domain_html}/wp-"))
+    fg_folders=()
+    for folder in "${folders_in_domain[@]}"; do
+        if [[ -f "${folder}/CONTRIBUTING.md" ]]; then
+            cat "${folder}/CONTRIBUTING.md" | grep -qi 'filegator'
+            if [[ $? -eq 0 ]]; then
+                fg_folders+=($(basename "${folder}"))
+            fi
+        fi
+    done
+    amount_fg_folders="${#fg_folders[@]}"
+    fg_folders_inited=1 # we set a sign that this function has been launched at least once
+}
+
+# print_fg_version(fg_folder: string): string
+print_fg_version() {
+    fg_dist_index="${domain_html}/$1/dist/index.php"
+    if [[ -f "${fg_dist_index}" ]]; then
+        cat "${fg_dist_index}" | grep -qP "^${sm}define\('APP_VERSION',"
+        if [[ $? -eq 0 ]]; then
+            cat "${fg_dist_index}" | grep -P "^${sm}define\('APP_VERSION'," | sed -re "s/^${sm}define\('APP_VERSION',${sm}'([^']+)'\);${sm}.*$/\1/"
+        else
+            echo -e "${ORANGE}Warning: The FileGator version was not found in '${fg_dist_index}' for '${domain}'${NC}" >&2 # WARNING
+        fi
+    else
+        echo -e "${ORANGE}Warning: FileGator index file '${fg_dist_index}' does not exist for '${domain}'${NC}" >&2 # WARNING
+    fi
+}
+
+# print_fg_adapter(fg_folder: string): string
+print_fg_adapter() {
+    if [[ -f "${domain_html}/$1/configuration.php" ]]; then
+        echo "<?php
+            define('APP_PUBLIC_PATH', 'APP_PUBLIC_PATH');
+            define('APP_PUBLIC_DIR', 'APP_PUBLIC_DIR');
+            define('APP_VERSION', 'APP_VERSION');
+            define('APP_ENV', 'APP_ENV');
+            \$config=require(\"${domain_html}/$1/configuration.php\");
+            \$func=new ReflectionFunction(\$config['services']['Filegator\Services\Storage\Filesystem']['config']['adapter']);
+            \$filename = \$func->getFileName();
+            \$start_line = \$func->getStartLine();
+            \$end_line = \$func->getEndLine();
+            \$length = \$end_line - \$start_line;
+            \$source = file(\$filename);
+            \$body = implode(\"\", array_slice(\$source, \$start_line, \$length));
+            \$body_line = str_replace(\"\\n\", ' ', \$body);
+            \$body_line = preg_replace('/${sp}/', ' ', \$body_line);
+            \$body_line = preg_replace(\"/^${sm}'adapter'${sm}=>${sm}function${sm}\(\)${sm}\{${sm}/\", '', \$body_line);
+            \$body_line = preg_replace('/${sm};?${sm}\}?${sm},?${sm}\$/', '', \$body_line);
+            \$body_line = preg_replace('/^.*return(${sm}new${sm})?[\\\\\]?([^\\\\\]+[\\\\\])*/', '', \$body_line);
+            \$body_line = preg_replace('/^([^\(]+)\(${sm}/', '\$1    ', \$body_line);
+            \$body_line = preg_replace('/${sm}\)${sm}\$/', '', \$body_line);
+            echo \$body_line;
+        ?>" | ${php_app_su} 
+    else
+        echo -e "${ORANGE}Warning: FileGator configuration.php file does not exist for '${domain}'${NC}" >&2 # WARNING
+    fi
+}
+
+# is_folder_fg(): boolean
+# return true, if fg_folder in fg_folders
+is_folder_fg() {
+    if [[ -z "${domain}" ]]; then
+        echo -e "${RED}Error: 'is_folder_fg()' the 'domain' is empty${NC}" >&2 # ERROR
+        exit 2
+    fi
+    if [[ -z "${fg_folders}" ]]; then
+        echo -e "${RED}Error: 'is_folder_fg()' the 'fg_folders' is empty for '${domain}'${NC}" >&2 # ERROR
+        exit 2
+    fi
+    if [[ -z "${fg_folder}" ]]; then
+        echo -e "${RED}Error: 'is_folder_fg()' the 'fg_folder' is empty for '${domain}'${NC}" >&2 # ERROR
+        exit 2
+    else
+        [[ " ${fg_folders[@]} " =~ " ${fg_folder} " ]] # return true, if fg_folder in fg_folders
+    fi
+}
+
+
+# asks
+# $fg_folder
+# then inits other fg variables
+ask_fg_folder() {
+    if [[ -z "${domain}" ]]; then
+        echo -e "${RED}Error: 'ask_fg_folder()' the 'domain' is empty${NC}" >&2 # ERROR
+        exit 2
+    fi
+    if [[ -z "${fg_folders_inited}" ]]; then
+        echo -e "${RED}Error: 'ask_fg_folder()' the 'fg_folders_inited' is empty for '${domain}'${NC}" >&2 # ERROR
+        exit 2
+    fi
+    if [[ -z "${fg_folders}" ]]; then
+        echo -e "${BLUE}There are not folders with installed FileGator in the '${domain}'${NC}" # SKIP
+        exit
+    fi
+    if [[ -z "${fg_folder}" ]]; then
+        if [[ "${amount_fg_folders}" == '1' ]]; then
+            fg_folder="${fg_folders[0]}" # If only one install exists then no need to ask for this
+        else
+            echo
+            echo "Choose the FileGator installation"
+            # print list of fg folders
+            folder_index=1
+            for folder in "${fg_folders[@]}"; do
+                echo "  $((folder_index++))) '${folder}'    $(print_fg_version ${folder})"
+            done
+            # ask
+            read -p "installation: " fg_index
+            until [[ fg_index -ge 1 && fg_index -le "${amount_fg_folders}" ]]; do
+                echo "Invalid selection"
+                read -p "installation: " fg_index
+            done
+            echo $((fg_index--)) > /dev/null # adjust to an array index
+            fg_folder="${fg_folders[fg_index]}"
+        fi
+        init_fg_variables
+    fi
+    if ! is_folder_fg; then
+        echo -e "${RED}Error: '${fg_folder}', is not a FileGator folder in '${domain}'${NC}" >&2 # ERROR
+        exit  1
+    fi
+}
+
+
+# inits
+# $fg_versions - array of strings, contains available versions of FileGator on Github
+get_fg_versions() {
+    fg_builds_url="https://github.com/filegator/static/tree/master/builds"
+    fg_versions_unsorted=$(curl "${fg_builds_url}" 2>/dev/null | sed -nre '/<a.*title="filegator_v([^"]*)\.zip"/{s/^.*title="filegator_v([^"]*)\.zip".*$/\1/;p}')
+    if [[ -z "${fg_versions_unsorted}" ]]; then
+        echo -e "${RED}Error: could not get versions of FileGator. curl '${fg_builds_url}' was failed!${NC}" >&2 # ERROR
+        exit 1
+    fi
+    fg_versions=($(sort -r <<<"${fg_versions_unsorted[*]}"))
+}
+
+# asks 
+# $fg_version
+ask_fg_version() {
+    while [[ -z $fg_version ]]; do
+        echo
+        echo "Specify your desired FileGator version to install
+Examples: latest, $(echo ${fg_versions[*]} | sed -re 's/ /, /g')"
+        read -p "FileGator version: " fg_version
+        until [[ "${fg_version}" == 'latest' || " ${fg_versions[@]} " =~ " ${fg_version} " ]]; do
+            echo
+            echo "Invalid selection"
+            read -p "FileGator version: " fg_version
+        done
+    done
+}
+
+# inits
+# php inits
+# $php_common_lines - common lines of PHP code for all PHP actions
+init_php_common_lines() {
+    if [[ -z "${domain}" ]]; then
+        echo -e "${RED}Error: 'init_php_common_lines()' the 'domain' is empty${NC}" >&2 # ERROR
+        exit 2
+    fi
+    if [[ -z "${fg_folder}" ]]; then
+        echo -e "${RED}Error: 'init_php_common_lines()' the 'fg_folder' is empty for '${domain}'${NC}" >&2 # ERROR
+        exit 2
+    fi
+    if [[ -z "${php_version}" ]]; then
+        echo -e "${RED}Error: 'init_php_common_lines()' the 'php_version' is empty for '${domain}'${NC}" >&2 # ERROR
+        exit 2
+    fi
+    php_common_lines="
+        \$auth_conf_str=file_get_contents(\"${fg_auth_conf}\");
+        \$auth_conf=json_decode(\$auth_conf_str);
+        define('APP_PUBLIC_PATH', 'APP_PUBLIC_PATH');
+        define('APP_PUBLIC_DIR', 'APP_PUBLIC_DIR');
+        define('APP_VERSION', 'APP_VERSION');
+        define('APP_ENV', 'APP_ENV');
+        \$config=require(\"${fg_conf}\");
+        \$config_str=file_get_contents(\"${fg_conf}\");
+        \$config_lines=file(\"${fg_conf}\");
+    "
+}
+
+
+# $fg_hash
+ask_fg_password() {
+    which htpasswd > /dev/null 2>&1
+    if [[ $? -eq 0 ]]; then
+        while [[ -z "${fg_password}" ]]; do
+            read -p "Enter password: " fg_password
+            if [[ -z "${fg_password}" ]]; then
+                echo "Invalid value: password cannot be empty"
+            fi
+        done
+        fg_hash=$(htpasswd -nbBC 10 USER "${fg_password}" | sed -re 's/^USER://')
+    else
+        echo -e "${RED}Error: htpasswd is not installed'${NC}" >&2 # ERROR
+        exit 1
+    fi
+}
+
+while [[ -z $action ]]; do
+    i=1 # menu index
+    echo "What do you want to do?"
+    echo " --- Manage Instances ---"
+    echo "   $((i++))) List installations under a domain"
+    echo "   $((i++))) Remove installation from a domain"
+    echo "   $((i++))) Install to a domain"
+    echo " --- Non-authentication access ---"
+    echo "   $((i++))) Disable guest auth (disable non-authorized access)"
+    echo "   $((i++))) Enable guest for reading (enable non-authorized access for reading)"
+    echo "   $((i++))) Enable guest for all (enable non-authorized access for all)"
+    echo " --- Manage users ---"
+    echo "   $((i++))) List users"
+    echo "   $((i++))) Add user"
+    echo "   $((i++))) Remove user"
+    echo "   $((i++))) Rename user"
+    echo "   $((i++))) Change user password"
+    echo "   $((i++))) Promote user to admin"
+    echo "   $((i++))) Demote user (revoke admin privileges)"
+    echo " --- IP restriction ---"
+    echo "   $((i++))) Enable IP restriction"
+    echo "   $((i++))) Disable IP restriction"
+    echo " --- Storage adapters ---"
+    echo "   $((i++))) Set Locat disk adapter"
+    echo "   $((i++))) Set FTP adapter"
+    echo "   $((i++))) Set SFTP adapter"
+    echo "   $((i++))) Set Dropbox adapter"
+    echo "   $((i++))) Set Amazon S3 (v3) adapter"
+    echo "   $((i++))) Set DigitalOcean Spaces adapter"
+    echo "   $((i++))) Set Microsoft Azure Blob adapter"
+    echo "   $((i++))) Set Replicate (Dropbox) adapter"
+    echo " --- Frontend config ---"
+    echo "   $((i++))) Set app_name (string)"
+    echo "   $((i++))) Set language (like english, russian, ...)"
+    echo "   $((i++))) Set logo url (like https://raw.githubusercontent.com/filegator/filegator/master/dist/img/logo.png)"
+    echo "   $((i++))) Set upload_max_size (in bytes)"
+    echo "   $((i++))) Set upload_chunk_size (in bytes)"
+    echo "   $((i++))) Set upload_simultaneous (integer)"
+    echo "   $((i++))) Set default_archive_name (like archive.zip)"
+    echo "   $((i++))) Set editable (list of file extenstion patterns splitted by comma: .txt,.js,.json ...)"
+    echo "   $((i++))) Set date_format (string like YY/MM/DD hh:mm:ss)"
+    echo "   $((i++))) Set guest_redirection url (string url or empty string to disable redirection)"
+    echo "   $((i++))) Set filter_entries (list file name patterns splitted by comma: Recycle.bin/,.DS_Store,.node_modules/)"
+    echo " --- Upgrade --- "
+    echo "   $((i++))) Upgrade dependencies (composer)"
+    echo "   $((i++))) Upgrade Filegator"
+    echo " --- Root --- "
+    echo "   $((i++))) List ROOT domains"
+    echo "   $((i++))) Add ROOT domain"
+    echo "   $((i++))) Remove ROOT domain"
+    echo 
+    echo "$((i--))" > /dev/null
+    read -p "Action: " action
+    until [[ -z "${action}" || "${action}" -ge "1" && "${action}" -le "${i}" ]]; do
+    	echo "${action}: invalid selection."
+    	read -p "Action: " action
+    done
+done
+i=1 # reset menu index
+
+## List folders with installed FileGator in the domain
+if [[ "${action}" == 'list_installed' || "${action}" == "$((i++))" ]]; then
+    select_domain_mu
+    get_fg_folders_domain
+    # print list of fg folders (full info)
+    folder_index=1
+    if [[ "${amount_fg_folders}" -ge 1 ]]; then
+        echo "There are ${amount_fg_folders} fg_folder(s) in the '${domain}'"
+        for folder in "${fg_folders[@]}"; do
+            echo "  $((folder_index++))) '${folder}'    $(print_fg_version ${folder})    $(print_fg_adapter ${folder})"
+        done
+    else
+        echo "There are no fg_folders in the '${domain}'"
+    fi
+    exit_script
+fi
+## End List folders with installed FileGator in the domain
+
+## Remove installed FileGator from the domain
+if [[ "${action}" == 'remove_installed' || "${action}" == "$((i++))" ]]; then
+    select_domain_mu
+    get_fg_folders_domain
+    ask_fg_folder
+    rm -rf ${fg_folder_path}
+    if [[ -d "${fg_folder_path}" ]]; then
+        echo -e "${RED}Error: could not remove '${fg_folder}', 'rm -rf' failed in '${domain}'${NC}" >&2 # ERROR
+        exit 1
+    else
+        echo -e "${GREEN} ${SUCCESSFUL} FileGator installation '${fg_folder}' removed from '${domain}'${NC}"
+    fi
+    exit_script
+fi
+## End remove installed FileGator from the domain
+
+ask_install_fg_folder() {
+    if [[ -z "${fg_folder}" ]]; then
+        echo
+        echo "Specify the name for FileGator installation (use letters and numbers only)"
+        read -p "installation name: " fg_folder
+        fg_folder_path="${domain_html}/${fg_folder}"
+        until [[ "${fg_folder}" =~ ^[0-9a-zA-Z]+$ && ! -e "${fg_folder_path}" ]]; do
+            if [[ -e "${fg_folder_path}" ]]; then
+                echo "Invalid value, choosen name are already in use"
+            else
+                echo "Invalid value, use letters and numbers only"
+            fi
+            read -p "installation name: " fg_folder
+            fg_folder_path="${domain_html}/${fg_folder}"
+        done
+        # init_fg_variables # redundant init
+    fi
+}
+
+# installs composer if not installed
+# inits
+# $php_composer - path to php composer script (/usr/bin/composer)
+install_composer() {
+    which composer > /dev/null 2>&1
+    if [[ $? -ne 0 ]]; then
+        sudo apt install -y composer > /dev/null 2>&1
+        which composer > /dev/null 2>&1
+        if [[ $? -ne 0 ]]; then
+            echo -e "${RED}Error: Could not install 'composer'${NC}"
+            exit 1
+        fi
+    fi
+    php_composer=$(which composer)
+}
+
+
+
+# prints list installed composer packages
+list_composer() {
+    if [[ -z "${domain}" ]]; then
+        echo -e "${RED}Error: 'list_composer()' the 'domain' is empty${NC}" >&2 # ERROR
+        exit 2
+    fi
+    if [[ -z "${fg_folder}" ]]; then
+        echo -e "${RED}Error: 'list_composer()' the 'fg_folder' is empty for '${domain}'${NC}" >&2 # ERROR
+        exit 2
+    fi
+    if [[ -z "${php_version}" ]]; then
+        echo -e "${RED}Error: 'list_composer()' the 'php_version' is empty for '${domain}'${NC}" >&2 # ERROR
+        exit 2
+    fi
+    if [[ -z "${php_composer}" ]]; then
+        echo -e "${RED}Error: 'list_composer()' the 'php_composer' is empty for '${domain}'${NC}" >&2 # ERROR
+        exit 2
+    fi
+    cd ${fg_folder_path} # need to place temp Composer files to right place
+    ${php_app_su} ${php_composer} -d ${fg_folder_path} show
+}
+
+update_composer() {
+    if [[ -z "${domain}" ]]; then
+        echo -e "${RED}Error: 'update_composer()' the 'domain' is empty${NC}" >&2 # ERROR
+        exit 2
+    fi
+    if [[ -z "${fg_folder}" ]]; then
+        echo -e "${RED}Error: 'update_composer()' the 'fg_folder' is empty for '${domain}'${NC}" >&2 # ERROR
+        exit 2
+    fi
+    if [[ -z "${php_version}" ]]; then
+        echo -e "${RED}Error: 'update_composer()' the 'php_version' is empty for '${domain}'${NC}" >&2 # ERROR
+        exit 2
+    fi
+    if [[ -z "${php_composer}" ]]; then
+        echo -e "${RED}Error: 'update_composer()' the 'php_composer' is empty for '${domain}'${NC}" >&2 # ERROR
+        exit 2
+    fi
+    check_free_ram
+    processing_dependencies
+    cd ${fg_folder_path} # need to place temp Composer files to right place
+    ${php_app_su} ${php_composer} -d ${fg_folder_path} update # > /dev/null 2>&1
+}
+
+install_sftp_adapter() {
+    if [[ -z "${domain}" ]]; then
+        echo -e "${RED}Error: 'install_sftp_adapter()' the 'domain' is empty${NC}" >&2 # ERROR
+        exit 2
+    fi
+    if [[ -z "${fg_folder}" ]]; then
+        echo -e "${RED}Error: 'install_sftp_adapter()' the 'fg_folder' is empty for '${domain}'${NC}" >&2 # ERROR
+        exit 2
+    fi
+    if [[ -z "${php_version}" ]]; then
+        echo -e "${RED}Error: 'install_sftp_adapter()' the 'php_version' is empty for '${domain}'${NC}" >&2 # ERROR
+        exit 2
+    fi
+    if [[ -z "${php_composer}" ]]; then
+        echo -e "${RED}Error: 'install_sftp_adapter()' the 'php_composer' is empty for '${domain}'${NC}" >&2 # ERROR
+        exit 2
+    fi
+    cd ${fg_folder_path} # need to place temp files of Composer to right folder
+    if ! list_composer | grep -q flysystem-sftp ; then
+        ${php_app_su} ${php_composer} -d ${fg_folder_path} config minimum-stability dev
+        ${php_app_su} ${php_composer} -d ${fg_folder_path} require league/flysystem-sftp # > /dev/null 2>&1 # --update-with-dependencies"
+        if ! list_composer | grep -q flysystem-sftp ; then
+            echo -e "${RED}Error: Could not install 'sftp' adapter in '${fg_folder}' in '${domain}'${NC}"
+            exit 1
+        fi
+    fi
+}
+
+install_dropbox_adapter() {
+    if [[ -z "${domain}" ]]; then
+        echo -e "${RED}Error: 'install_dropbox_adapter()' the 'domain' is empty${NC}" >&2 # ERROR
+        exit 2
+    fi
+    if [[ -z "${fg_folder}" ]]; then
+        echo -e "${RED}Error: 'install_dropbox_adapter()' the 'fg_folder' is empty for '${domain}'${NC}" >&2 # ERROR
+        exit 2
+    fi
+    if [[ -z "${php_version}" ]]; then
+        echo -e "${RED}Error: 'install_dropbox_adapter()' the 'php_version' is empty for '${domain}'${NC}" >&2 # ERROR
+        exit 2
+    fi
+    if [[ -z "${php_composer}" ]]; then
+        echo -e "${RED}Error: 'install_dropbox_adapter()' the 'php_composer' is empty for '${domain}'${NC}" >&2 # ERROR
+        exit 2
+    fi
+    cd ${fg_folder_path} # need to place temp files of Composer to right folder
+    if ! list_composer | grep -q flysystem-dropbox ; then
+        ${php_app_su} ${php_composer} -d ${fg_folder_path} config minimum-stability dev
+        ${php_app_su} ${php_composer} -d ${fg_folder_path} require spatie/flysystem-dropbox # > /dev/null 2>&1 # --update-with-dependencies"
+        if ! list_composer | grep -q flysystem-dropbox ; then
+            echo -e "${RED}Error: Could not install 'dropbox' adapter in '${fg_folder}' in '${domain}'${NC}"
+            exit 1
+        fi
+    fi
+}
+
+install_s3_adapter() {
+    if [[ -z "${domain}" ]]; then
+        echo -e "${RED}Error: 'install_s3_adapter()' the 'domain' is empty${NC}" >&2 # ERROR
+        exit 2
+    fi
+    if [[ -z "${fg_folder}" ]]; then
+        echo -e "${RED}Error: 'install_s3_adapter()' the 'fg_folder' is empty for '${domain}'${NC}" >&2 # ERROR
+        exit 2
+    fi
+    if [[ -z "${php_version}" ]]; then
+        echo -e "${RED}Error: 'install_s3_adapter()' the 'php_version' is empty for '${domain}'${NC}" >&2 # ERROR
+        exit 2
+    fi
+    if [[ -z "${php_composer}" ]]; then
+        echo -e "${RED}Error: 'install_s3_adapter()' the 'php_composer' is empty for '${domain}'${NC}" >&2 # ERROR
+        exit 2
+    fi
+    cd ${fg_folder_path} # need to place temp files of Composer to right folder
+    if ! list_composer | grep -q flysystem-aws-s3-v3 ; then
+        ${php_app_su} ${php_composer} -d ${fg_folder_path} config minimum-stability dev
+        ${php_app_su} ${php_composer} -d ${fg_folder_path} require league/flysystem-aws-s3-v3 # > /dev/null 2>&1 # --update-with-dependencies
+        if ! list_composer | grep -q flysystem-aws-s3-v3 ; then
+            echo -e "${RED}Error: Could not install 's3' adapter in '${fg_folder}' in '${domain}'${NC}"
+            exit 1
+        fi
+    fi
+}
+
+install_azure_adapter() {
+    if [[ -z "${domain}" ]]; then
+        echo -e "${RED}Error: 'install_azure_adapter()' the 'domain' is empty${NC}" >&2 # ERROR
+        exit 2
+    fi
+    if [[ -z "${fg_folder}" ]]; then
+        echo -e "${RED}Error: 'install_azure_adapter()' the 'fg_folder' is empty for '${domain}'${NC}" >&2 # ERROR
+        exit 2
+    fi
+    if [[ -z "${php_version}" ]]; then
+        echo -e "${RED}Error: 'install_azure_adapter()' the 'php_version' is empty for '${domain}'${NC}" >&2 # ERROR
+        exit 2
+    fi
+    if [[ -z "${php_composer}" ]]; then
+        echo -e "${RED}Error: 'install_azure_adapter()' the 'php_composer' is empty for '${domain}'${NC}" >&2 # ERROR
+        exit 2
+    fi
+    cd ${fg_folder_path} # need to place temp files of Composer to right folder
+    if ! list_composer | grep -q flysystem-azure-blob-storage ; then
+        ${php_app_su} ${php_composer} -d ${fg_folder_path} config minimum-stability dev
+        ${php_app_su} ${php_composer} -d ${fg_folder_path} require league/flysystem-azure-blob-storage # > /dev/null 2>&1 # --update-with-dependencies"
+        if ! list_composer | grep -q flysystem-azure-blob-storage ; then
+            echo -e "${RED}Error: Could not install 'azure' adapter in '${fg_folder}' in '${domain}'${NC}"
+            exit 1
+        fi
+    fi
+}
+
+install_replicate_adapter() {
+    if [[ -z "${domain}" ]]; then
+        echo -e "${RED}Error: 'install_replicate_adapter()' the 'domain' is empty${NC}" >&2 # ERROR
+        exit 2
+    fi
+    if [[ -z "${fg_folder}" ]]; then
+        echo -e "${RED}Error: 'install_replicate_adapter()' the 'fg_folder' is empty for '${domain}'${NC}" >&2 # ERROR
+        exit 2
+    fi
+    if [[ -z "${php_version}" ]]; then
+        echo -e "${RED}Error: 'install_replicate_adapter()' the 'php_version' is empty for '${domain}'${NC}" >&2 # ERROR
+        exit 2
+    fi
+    if [[ -z "${php_composer}" ]]; then
+        echo -e "${RED}Error: 'install_replicate_adapter()' the 'php_composer' is empty for '${domain}'${NC}" >&2 # ERROR
+        exit 2
+    fi
+    cd ${fg_folder_path} # need to place temp files of Composer to right folder
+    if ! list_composer | grep -q flysystem-replicate-adapter ; then
+        ${php_app_su} ${php_composer} -d ${fg_folder_path} config minimum-stability dev
+        ${php_app_su} ${php_composer} -d ${fg_folder_path} require league/flysystem-replicate-adapter # > /dev/null 2>&1 # --update-with-dependencies"
+        if ! list_composer | grep -q flysystem-replicate-adapter ; then
+            echo -e "${RED}Error: Could not install 'replicate' adapter in '${fg_folder}' in '${domain}'${NC}"
+            exit 1
+        fi
+    fi
+}
+
+install_google_adapter() {
+    if [[ -z "${domain}" ]]; then
+        echo -e "${RED}Error: 'install_google_adapter()' the 'domain' is empty${NC}" >&2 # ERROR
+        exit 2
+    fi
+    if [[ -z "${fg_folder}" ]]; then
+        echo -e "${RED}Error: 'install_google_adapter()' the 'fg_folder' is empty for '${domain}'${NC}" >&2 # ERROR
+        exit 2
+    fi
+    if [[ -z "${php_version}" ]]; then
+        echo -e "${RED}Error: 'install_google_adapter()' the 'php_version' is empty for '${domain}'${NC}" >&2 # ERROR
+        exit 2
+    fi
+    if [[ -z "${php_composer}" ]]; then
+        echo -e "${RED}Error: 'install_google_adapter()' the 'php_composer' is empty for '${domain}'${NC}" >&2 # ERROR
+        exit 2
+    fi
+    cd ${fg_folder_path} # need to place temp files of Composer to right folder
+    if ! list_composer | grep -q flysystem-google-storage ; then
+        ${php_app_su} ${php_composer} -d ${fg_folder_path} config minimum-stability dev
+        ${php_app_su} ${php_composer} -d ${fg_folder_path} require superbalist/flysystem-google-storage # > /dev/null 2>&1 # --update-with-dependencies"
+        if ! list_composer | grep -q flysystem-google-storage ; then
+            echo -e "${RED}Error: Could not install 'google' adapter in '${fg_folder}' in '${domain}'${NC}"
+            exit 1
+        fi
+    fi
+}
+
+## Install FileGator to the domain
+if [[ "${action}" == 'install' || "${action}" == "$((i++))" ]]; then
+    install_composer # install composer if not installed
+    select_domain_mu
+    get_php_version
+    check_free_ram
+    processing_dependencies
+
+    # check php version
+    vercomp "${php_version}" "${MIN_PHP_VERSION}"
+    if [[ $? -eq 2 ]]; then
+        echo -e "${RED}Error: The FileGator requires PHP version '${MIN_PHP_VERSION}+'.The current PHP version '${php_version}' of '${domain}'.${NC}" >&2 # ERROR
+        exit 1
+    fi
+    # ask fo fg_folder
+    ask_install_fg_folder
+    if [[ -e "${fg_folder_path}" ]]; then
+        echo -e "${RED}Error: Choosen fg_folder '${fg_folder}' are already in use in '${domain}'.${NC}" >&2 # ERROR
+        exit 1
+    fi
+    # download list of available versions of FileGator
+    get_fg_versions
+    ask_fg_version
+    if [[ "${fg_version}" == 'latest' ]]; then
+        fg_version="${fg_versions[0]}"
+    fi
+    if [[ ! " ${fg_versions[@]} " =~ " ${fg_version} " ]]; then
+        echo -e "${RED}Error: fg_version '${fg_folder}' is invalid in '${domain}'.${NC}" >&2 # ERROR
+        exit 1
+    fi
+
+    fg_user=admin
+    ask_fg_password
+    init_fg_variables
+    init_php_common_lines
+
+    # create target folder
+    mkdir "${fg_folder_path}"
+    if [[ ! -d "${fg_folder_path}" ]]; then
+        echo -e "${RED}Error: could not create '${fg_folder}' in '${domain}'.${NC}" >&2 # ERROR
+        exit 1
+    fi
+
+
+
+    # download *.zip archive
+    fg_filename="filegator_v${fg_version}.zip"
+    fg_filepath="${fg_folder_path}/${fg_filename}"
+    wget -P "${fg_folder_path}" "https://github.com/filegator/static/raw/master/builds/${fg_filename}"
+    if [[ ! -f "${fg_filepath}" ]]; then
+        echo -e "${RED}Error: download '${fg_filename}' failed in '${domain}'.${NC}" >&2 # ERROR
+        rm -rf ${fg_folder_path} > /dev/null 2>&1 # clear failed folder
+        exit 1
+    fi
+    # unzip
+    unzip "${fg_filepath}" -d "${fg_folder_path}" > /dev/null
+    if [[ ! -d "${fg_folder_path}/filegator" ]]; then
+        echo -e "${RED}Error: unzip '${fg_filename}' failed in '${domain}'.${NC}" >&2 # ERROR
+        rm -rf ${fg_folder_path} > /dev/null 2>&1 # clear failed folder
+        exit 1
+    fi
+    mv ${fg_folder_path}/filegator/* ${fg_folder_path}
+    if [[ $? -ne 0 ]]; then
+        echo -e "${RED}Error: mv unziped files to  '${fg_folder}' failed in '${domain}'.${NC}" >&2 # ERROR
+        rm -rf ${fg_folder_path} > /dev/null 2>&1 # clear failed folder
+        exit 1
+    fi
+    # create/edit configuration.php file
+    fg_conf="${fg_folder_path}/configuration.php"
+    cp ${fg_folder_path}/configuration_sample.php ${fg_conf}
+    if [[ ! -f "${fg_folder_path}/configuration.php" ]]; then
+        echo -e "${RED}Error: could not create configuration.php file in '${fg_folder}' in '${domain}'.${NC}" >&2 # ERROR
+        rm -rf ${fg_folder_path} > /dev/null 2>&1 # clear failed folder
+        exit 1
+    fi
+    sed -i "${fg_conf}" -re "/^${sm}\\\$save_path${sm}=${sm}null;/d"
+    cat "${fg_conf}" | grep -qP "^${sm}\\\$save_path${sm}=${sm}null;"
+    if [[ $? -eq 0 ]]; then
+        echo -e "${RED}Error: edit '${fg_conf}' (remove null save path) failed in '${domain}'.${NC}" >&2 # ERROR
+        rm -rf ${fg_folder_path} > /dev/null 2>&1 # clear failed folder
+        exit 1
+    fi
+    sed -i "${fg_conf}" -re "s/^(${sm})\/\/(${sm}\\\$save_path)/\1\2/"
+    cat "${fg_conf}" | grep -qP "^${sm}\\\$save_path${sm}=${sm}"
+    if [[ $? -ne 0 ]]; then
+        echo -e "${RED}Error: edit '${fg_conf}' (enable internal session save_path) failed in '${domain}'.${NC}" >&2 # ERROR
+        rm -rf ${fg_folder_path} > /dev/null 2>&1 # clear failed folder
+        exit 1
+    fi
+    if grep -q 'root_filegator_domain_label' ${domain_conf} ; then
+        sed -i "${fg_conf}" -re "s/^(${sm})__DIR__${sm}\.${sm}'\/repository'/\1'\/var\/www'/"
+        cat "${fg_conf}" | grep -qP "^${sm}'\/var\/www'"
+        if [[ $? -ne 0 ]]; then
+            echo -e "${RED}Error: edit '${fg_conf}' (change local adapter to default) failed in ROOT '${domain}'.${NC}" >&2 # ERROR
+            rm -rf ${fg_folder_path} > /dev/null 2>&1 # clear failed folder
+            exit 1
+        fi
+    else
+        sed -i "${fg_conf}" -re "s/^(${sm})__DIR__${sm}\.${sm}'\/repository'/\1'\/var\/www\/${domain}\/html'/"
+        cat "${fg_conf}" | grep -qP "^${sm}'\/var\/www\/${domain}\/html'"
+        if [[ $? -ne 0 ]]; then
+            echo -e "${RED}Error: edit '${fg_conf}' (change local adapter to default) failed in '${domain}'.${NC}" >&2 # ERROR
+            rm -rf ${fg_folder_path} > /dev/null 2>&1 # clear failed folder
+            exit 1
+        fi
+    fi
+    # auth config
+    fg_auth_conf="${fg_folder_path}/private/users.json"
+    if [[ ! -f "${fg_auth_conf}" ]]; then
+        cp ${fg_folder_path}/private/users.json.blank ${fg_folder_path}/private/users.json
+        if [[ ! -f "${fg_auth_conf}" ]]; then
+            echo -e "${RED}Error: cp '${fg_auth_conf}' failed in '${domain}'.${NC}" >&2 # ERROR
+            rm -rf ${fg_folder_path} > /dev/null 2>&1 # clear failed folder
+            exit 1
+        fi
+    fi
+    # clear
+    rmdir ${fg_folder_path}/filegator # remove /var/www/$domain/$fg_folder/filegator unzip tmp folder
+    if [[ -d "${fg_folder_path}/filegator" ]]; then
+        echo -e "${ORANGE}WARNING: rmdir unzip temp dir '${fg_folder}/filegator' failed in '${domain}'.${NC}" >&2 # ERROR
+    fi
+    rm -f ${fg_filepath} # remove zip file
+    if [[ -f "${fg_filepath}" ]]; then
+        echo -e "${ORANGE}WARNING: rm *.zip temp file '${fg_filename}' failed in '${domain}'.${NC}" >&2 # ERROR
+    fi
+    # chown to domain user
+    chown -R ${user_name}:www-data ${fg_folder_path}
+    if [[ $? -ne 0 ]]; then
+        echo -e "${RED}Error: chown '${fg_folder}' to '${user_name}' failed in '${domain}'.${NC}" >&2 # ERROR
+        rm -rf ${fg_folder_path} > /dev/null 2>&1 # clear failed folder
+        exit 1
+    fi
+    # enable write to group
+    chmod -R g+ws ${fg_folder_path}
+    if [[ $? -ne 0 ]]; then
+        echo -e "${RED}Error: chmod g+ws '${fg_folder}' failed in '${domain}'.${NC}" >&2 # ERROR
+        rm -rf ${fg_folder_path} > /dev/null 2>&1 # clear failed folder
+        exit 1
+    fi
+
+    # set password for admin
+    echo "<?php
+        ${php_common_lines}
+        foreach(\$auth_conf as &\$auth_record) {
+            if(\$auth_record->username==='${fg_user}') {
+                \$auth_record->password='${fg_hash}';
+            }
+        }
+        \$auth_conf_str=json_encode(\$auth_conf);
+        if(file_put_contents(\"${fg_auth_conf}\", \$auth_conf_str)) {
+            echo \"${GREEN} ${SUCCESSFUL} password for '${fg_user}' changed in '${fg_folder}' '${domain}'${NC}\\n\";
+        } else {
+            fwrite(STDERR, \"${RED}Error: password for '${fg_user}' changing error (could not update '${fg_auth_conf}') in '${fg_folder}' in '${domain}'${NC}\\n\");
+        }
+    ?>" | ${php_app_su}
+
+
+    # install adapters
+    install_sftp_adapter
+    install_dropbox_adapter
+    install_s3_adapter
+    install_azure_adapter
+    install_replicate_adapter
+    install_google_adapter
+    # echo -e "${ORANGE}Warning: FileGator installed with default username=admin and password=admin123. Change it!!${NC}"
+    echo -e "${GREEN}FileGator ${SUCCESSFUL} installed on '${fg_folder}' in '${domain}'${NC}"
+    exit_script
+fi
+# End Install FileGator to the domain
+
+
+
+## Disable guest auth
+if [[ "${action}" == 'disable_guest' || "${action}" == "$((i++))" ]]; then
+    select_domain_mu
+    get_php_version
+    get_fg_folders_domain
+    ask_fg_folder
+    init_php_common_lines
+    echo "<?php
+        ${php_common_lines}
+        foreach(\$auth_conf as &\$auth_record) {
+            if(\$auth_record->username==='guest') {
+                if(\$auth_record->permissions==='') {
+                    echo \"${BLUE}Guest (non-authorized) access is already disabled for '${domain}'${NC}\\n\";
+                } else {
+                    \$auth_record->permissions='';
+                    \$auth_conf_str=json_encode(\$auth_conf);
+                    if(file_put_contents(\"${fg_auth_conf}\", \$auth_conf_str)) {
+                        echo \"${GREEN} ${SUCCESSFUL} Guest (non-authorized) access disabled for '${domain}'${NC}\\n\";
+                    } else {
+                        fwrite(STDERR, \"${RED}Error: Guest (non-authorized) access disabling error for (could not update '${fg_auth_conf}') '${domain}'${NC}\\n\");
+                    }
+                }
+            }
+        }
+    ?>" | ${php_app_su}
+    exit_script
+fi
+## End Disable guest auth
+
+
+## Enable guest for reading (enable non-authorized access for reading)"
+if [[ "${action}" == 'enable_guest_read' || "${action}" == "$((i++))" ]]; then
+    select_domain_mu
+    get_php_version
+    get_fg_folders_domain
+    ask_fg_folder
+    init_php_common_lines
+    echo "<?php
+        ${php_common_lines}
+        foreach(\$auth_conf as &\$auth_record) {
+            if(\$auth_record->username==='guest') {
+                \$permissions=explode('|', \$auth_record->permissions);
+                \$read_permissions=['read','download','batchdownload'];
+                if(!count(array_diff(\$permissions,\$read_permissions)) and !count(array_diff(\$read_permissions, \$permissions))) {
+                    echo \"${BLUE}Guest (non-authorized) read access is already enabled for '${domain}'${NC}\\n\";
+                } else {
+                    \$auth_record->permissions=implode('|', \$read_permissions);
+                    \$auth_conf_str=json_encode(\$auth_conf);
+                    if(file_put_contents(\"${fg_auth_conf}\", \$auth_conf_str)) {
+                        echo \"${GREEN} ${SUCCESSFUL} Guest (non-authorized) read access enabled for '${domain}'${NC}\\n\";
+                    } else {
+                        fwrite(STDERR, \"${RED}Error: Guest (non-authorized) read access enabling error for (could not update '${fg_auth_conf}') '${domain}'${NC}\\n\");
+                    }
+                }
+            }
+        }
+    ?>" | ${php_app_su}
+    exit_script
+fi
+## End Enable guest for reading (enable non-authorized access for reading)"
+
+## Enable guest for all (enable non-authorized access for all)"
+if [[ "${action}" == 'enable_guest_all' || "${action}" == "$((i++))" ]]; then
+    select_domain_mu
+    get_php_version
+    get_fg_folders_domain
+    ask_fg_folder
+    init_php_common_lines
+    echo "<?php
+        ${php_common_lines}
+        foreach(\$auth_conf as &\$auth_record) {
+            if(\$auth_record->username==='guest') {
+                \$permissions=explode('|', \$auth_record->permissions);
+                \$all_permissions=['read', 'write', 'upload', 'download','batchdownload', 'zip'];
+                if(!count(array_diff(\$all_permissions,\$permissions))) {
+                    echo \"${BLUE}Guest (non-authorized) all access is already enabled for '${domain}'${NC}\\n\";
+                } else {
+                    \$auth_record->permissions=implode('|', \$all_permissions);
+                    \$auth_conf_str=json_encode(\$auth_conf);
+                    if(file_put_contents(\"${fg_auth_conf}\", \$auth_conf_str)) {
+                        echo \"${GREEN} ${SUCCESSFUL} Guest (non-authorized) all access enabled for '${domain}'${NC}\\n\";
+                    } else {
+                        fwrite(STDERR, \"${RED}Error: Guest (non-authorized) all access enabling error for (could not update '${fg_auth_conf}') '${domain}'${NC}\\n\");
+                    }
+                }
+            }
+        }
+    ?>" | ${php_app_su}
+    exit_script
+fi
+## End Enable guest for all (enable non-authorized access for all)"
+
+# inits
+# $fg_users_count - the amount of current FileGator users without the 'guest' user
+get_users_count() {
+    if [[ -z "${domain}" ]]; then
+        echo -e "${RED}Error: 'get_count_users()' the 'domain' is empty${NC}" >&2 # ERROR
+        exit 2
+    fi
+    if [[ -z "${fg_folder}" ]]; then
+        echo -e "${RED}Error: 'get_count_users()' the 'fg_folder' is empty for '${domain}'${NC}" >&2 # ERROR
+        exit 2
+    fi
+    if [[ -z "${php_version}" ]]; then
+        echo -e "${RED}Error: 'get_count_users()' the 'php_version' is empty for '${domain}'${NC}" >&2 # ERROR
+        exit 2
+    fi
+    if [[ -z "${php_common_lines}" ]]; then
+        echo -e "${RED}Error: 'get_count_users()' the 'php_common_lines' is empty for '${domain}'${NC}" >&2 # ERROR
+        exit 2
+    fi
+    fg_users_count=$(echo "<?php
+        ${php_common_lines}
+        \$amount=0;
+        foreach(\$auth_conf as &\$auth_record) {
+            if(\$auth_record->username!=='guest') {
+                \$amount++;
+            }
+        }
+        echo \$amount;
+    ?>" | ${php_app_su})
+}
+
+# prints list of users of FileGator installation of domain
+list_users() {
+    if [[ -z "${domain}" ]]; then
+        echo -e "${RED}Error: 'list_users()' the 'domain' is empty${NC}" >&2 # ERROR
+        exit 2
+    fi
+    if [[ -z "${fg_folder}" ]]; then
+        echo -e "${RED}Error: 'list_users()' the 'fg_folder' is empty for '${domain}'${NC}" >&2 # ERROR
+        exit 2
+    fi
+    if [[ -z "${php_version}" ]]; then
+        echo -e "${RED}Error: 'list_users()' the 'php_version' is empty for '${domain}'${NC}" >&2 # ERROR
+        exit 2
+    fi
+    if [[ -z "${php_common_lines}" ]]; then
+        echo -e "${RED}Error: 'list_users()' the 'php_common_lines' is empty for '${domain}'${NC}" >&2 # ERROR
+        exit 2
+    fi
+    echo "<?php
+        ${php_common_lines}
+        \$amount=1;
+        foreach(\$auth_conf as &\$auth_record) {
+            if(\$auth_record->username!=='guest') {
+                echo \"\$amount) \";
+                echo \$auth_record->username;
+                echo '    ';
+                echo \$auth_record->name;
+                echo '    ';
+                echo \$auth_record->role;
+                echo '    ';
+                echo \$auth_record->homedir;
+                echo '    ';
+                echo \$auth_record->permissions;
+                echo \"\\n\";
+                \$amount++;
+            }
+        }
+    ?>" | ${php_app_su}
+}
+
+
+## List users
+if [[ "${action}" == 'list_users' || "${action}" == "$((i++))" ]]; then
+    select_domain_mu
+    get_php_version
+    get_fg_folders_domain
+    ask_fg_folder
+    init_php_common_lines
+    get_users_count
+    echo "users count=$fg_users_count"
+    if [[ "${fg_users_count}" -ge 1 ]]; then
+        echo "username    name    role    homedir    permissions"
+    fi
+    list_users
+    exit_script
+fi
+## End List users
+
+
+# is_user_fg(username: string): boolean
+is_user_fg() {
+    if [[ -z "${domain}" ]]; then
+        echo -e "${RED}Error: 'is_user_fg(username: string)' the 'domain' is empty${NC}" >&2 # ERROR
+        exit 2
+    fi
+    if [[ -z "${fg_folder}" ]]; then
+        echo -e "${RED}Error: 'is_user_fg(username: string)' the 'fg_folder' is empty for '${domain}'${NC}" >&2 # ERROR
+        exit 2
+    fi
+    if [[ -z "${php_version}" ]]; then
+        echo -e "${RED}Error: 'is_user_fg(username: string)' the 'php_version' is empty for '${domain}'${NC}" >&2 # ERROR
+        exit 2
+    fi
+    if [[ -z "${php_common_lines}" ]]; then
+        echo -e "${RED}Error: 'is_user_fg(username: string)' the 'php_common_lines' is empty for '${domain}'${NC}" >&2 # ERROR
+        exit 2
+    fi
+    if [[ -z "$1" ]]; then
+        echo -e "${RED}Error: 'is_user_fg(username: string)' an argument is empty for '${domain}'${NC}" >&2 # ERROR
+        exit 2
+    fi
+    echo "<?php
+        ${php_common_lines}
+        if('$1'==='guest') {
+            exit(1);
+        }
+        foreach(\$auth_conf as &\$auth_record) {
+            if(\$auth_record->username==='$1') {
+                exit(0);
+            }
+        }
+        exit(1);
+    ?>" | ${php_app_su}
+}
+
+
+ask_add_fg_user() {
+    if [[ -z "${domain}" ]]; then
+        echo -e "${RED}Error: 'ask_add_fg_user()' the 'domain' is empty${NC}" >&2 # ERROR
+        exit 2
+    fi
+    if [[ -z "${fg_folder}" ]]; then
+        echo -e "${RED}Error: 'ask_add_fg_user()' the 'fg_folder' is empty for '${domain}'${NC}" >&2 # ERROR
+        exit 2
+    fi
+    if [[ -z "${php_version}" ]]; then
+        echo -e "${RED}Error: 'ask_add_fg_user()' the 'php_version' is empty for '${domain}'${NC}" >&2 # ERROR
+        exit 2
+    fi
+    if [[ -z "${php_common_lines}" ]]; then
+        echo -e "${RED}Error: 'ask_add_fg_user()' the 'php_common_lines' is empty for '${domain}'${NC}" >&2 # ERROR
+        exit 2
+    fi
+    if [[ -z "${fg_user}" ]]; then
+        echo
+        echo "Specify the username for FileGator installation (use letters and numbers only, start with letter)"
+        read -p "username: " fg_user
+        until [[ "${fg_user}" =~ ^[a-zA-Z][0-9a-zA-Z]*$ && "${fg_user}" != "guest" && "$(is_user_fg ${fg_user} && echo 0 || echo 1)" -ne "0" ]]; do
+            if is_user_fg ${fg_user}; then
+                echo "Invalid value, choosen name are already in use"
+            else
+                if [[ "${fg_user}" == "guest" ]]; then
+                    echo "Invalid value, 'guest' is not an allowed name"
+                else
+                    echo "Invalid value, use letters and numbers only, start with letter"
+                fi
+            fi
+            read -p "username: " fg_user
+        done
+    fi
+    if is_user_fg ${fg_user}; then
+        echo -e "${RED}Error: couldnot add '${fg_user}', this username is already in use in '${fg_folder}' in '${domain}'${NC}" >&2 # ERROR
+        exit 1
+    fi
+}
+
+
+
+## Add user
+if [[ "${action}" == 'add_user' || "${action}" == "$((i++))" ]]; then
+    select_domain_mu
+    get_php_version
+    get_fg_folders_domain
+    ask_fg_folder
+    init_php_common_lines
+    get_users_count
+    ask_add_fg_user
+    ask_fg_password
+    fg_id=$(echo "<?php
+        ${php_common_lines}
+        \$keys=array();
+        foreach(\$auth_conf as \$key=>\$auth_record) {
+            \$keys[]=\$key;
+        }
+        echo max(\$keys)+1;
+    ?>" | ${php_app_su})
+    echo "<?php
+        ${php_common_lines}
+        \$auth_conf->{${fg_id}}=new stdClass();
+        \$auth_conf->{${fg_id}}->username='${fg_user}';
+        \$auth_conf->{${fg_id}}->name='${fg_user}';
+        \$auth_conf->{${fg_id}}->role='user';
+        \$auth_conf->{${fg_id}}->homedir='/';
+        \$auth_conf->{${fg_id}}->permissions='read|download|batchdownload';
+        \$auth_conf->{${fg_id}}->password='${fg_hash}';
+        \$auth_conf_str=json_encode(\$auth_conf);
+        if(file_put_contents(\"${fg_auth_conf}\", \$auth_conf_str)) {
+            echo \"${GREEN} ${SUCCESSFUL} User '${fg_user}' added in '${fg_folder}' in '${domain}'${NC}\\n\";
+        } else {
+            fwrite(STDERR, \"${RED}Error: adding user '${fg_user}' error for (could not update '${fg_auth_conf}') '${domain}'${NC}\\n\");
+        }
+    ?>" | ${php_app_su}
+    exit_script
+fi
+## Add user
+
+
+ask_fg_user() {
+    if [[ -z "${domain}" ]]; then
+        echo -e "${RED}Error: 'ask_fg_user()' the 'domain' is empty${NC}" >&2 # ERROR
+        exit 2
+    fi
+    if [[ -z "${fg_folder}" ]]; then
+        echo -e "${RED}Error: 'ask_fg_user()' the 'fg_folder' is empty for '${domain}'${NC}" >&2 # ERROR
+        exit 2
+    fi
+    if [[ -z "${fg_users_count}" ]]; then
+        echo -e "${RED}Error: 'ask_fg_user()' the 'fg_users_count' is empty for '${domain}'${NC}" >&2 # ERROR
+        exit 2
+    fi
+    if [[ -z "${fg_user}" ]]; then
+        if [[ "${fg_users_count}" == '1' ]]; then
+            fg_user="$(list_users | awk '{print $2}')" # If only one install exists then no need to ask for this
+        else
+            echo
+            echo "Choose the FileGator user"
+            # print list of fg users
+            list_users
+            # ask
+            read -p "user: " fg_index
+            until [[ fg_index -ge 1 && fg_index -le "${fg_users_count}" ]]; do
+                echo "Invalid selection"
+                read -p "user: " fg_index
+            done
+            fg_user="$(list_users | awk '{print $2}' | sed -n ${fg_index}p)"
+        fi
+    fi
+    if ! is_user_fg ${fg_user}; then
+        echo -e "${RED}Error: '${fg_user}', is not a FileGator user in '${fg_folder}' in '${domain}'${NC}" >&2 # ERROR
+        exit  1
+    fi
+}
+
+## Remove user
+if [[ "${action}" == 'remove_user' || "${action}" == "$((i++))" ]]; then
+    select_domain_mu
+    get_php_version
+    get_fg_folders_domain
+    ask_fg_folder
+    init_php_common_lines
+    get_users_count
+    ask_fg_user
+    echo "<?php
+        ${php_common_lines}
+        foreach(\$auth_conf as \$key=>\$auth_record) {
+            if(\$auth_record->username==='${fg_user}') {
+                unset(\$auth_conf->{\$key});
+            }
+        }
+        \$auth_conf_str=json_encode(\$auth_conf);
+        if(file_put_contents(\"${fg_auth_conf}\", \$auth_conf_str)) {
+            echo \"${GREEN} ${SUCCESSFUL} User '${fg_user}' removed from '${fg_folder}' in '${domain}'${NC}\\n\";
+        } else {
+            fwrite(STDERR, \"${RED}Error: removing user '${fg_user}' error for (could not update '${fg_auth_conf}') '${domain}'${NC}\\n\");
+        }
+    ?>" | ${php_app_su}
+    exit_script
+fi
+## End Remove user
+
+
+ask_new_fg_user() {
+    if [[ -z "${domain}" ]]; then
+        echo -e "${RED}Error: 'ask_new_fg_user()' the 'domain' is empty${NC}" >&2 # ERROR
+        exit 2
+    fi
+    if [[ -z "${fg_folder}" ]]; then
+        echo -e "${RED}Error: 'ask_new_fg_user()' the 'fg_folder' is empty for '${domain}'${NC}" >&2 # ERROR
+        exit 2
+    fi
+    if [[ -z "${php_version}" ]]; then
+        echo -e "${RED}Error: 'ask_new_fg_user()' the 'php_version' is empty for '${domain}'${NC}" >&2 # ERROR
+        exit 2
+    fi
+    if [[ -z "${php_common_lines}" ]]; then
+        echo -e "${RED}Error: 'ask_new_fg_user()' the 'php_common_lines' is empty for '${domain}'${NC}" >&2 # ERROR
+        exit 2
+    fi
+    if [[ -z "${fg_user_new}" ]]; then
+        echo
+        echo "Specify the new username for FileGator installation (use letters and numbers only, start with letter)"
+        read -p "new username: " fg_user_new
+        until [[ "${fg_user}" =~ ^[a-zA-Z][0-9a-zA-Z]*$ && "${fg_user_new}" != "guest" && "$(is_user_fg ${fg_user_new} && echo 0 || echo 1)" -ne "0" ]]; do
+            if is_user_fg ${fg_user_new}; then
+                echo "Invalid value, choosen name are already in use"
+            else
+                if [[ "${fg_user}" == "guest" ]]; then
+                    echo "Invalid value, 'guest' is not an allowed name"
+                else
+                    echo "Invalid value, use letters and numbers only, start with letter"
+                fi
+            fi
+            read -p "new username: " fg_user_new
+        done
+    fi
+    if is_user_fg ${fg_user_new}; then
+        echo -e "${RED}Error: couldnot rename user to '${fg_user_new}', this username is already in use in '${fg_folder}' in '${domain}'${NC}" >&2 # ERROR
+        exit 1
+    fi
+}
+
+## Rename user
+if [[ "${action}" == 'rename_user' || "${action}" == "$((i++))" ]]; then
+    select_domain_mu
+    get_php_version
+    get_fg_folders_domain
+    ask_fg_folder
+    init_php_common_lines
+    get_users_count
+    ask_fg_user
+    ask_new_fg_user
+    echo "<?php
+        ${php_common_lines}
+        foreach(\$auth_conf as &\$auth_record) {
+            if(\$auth_record->username==='${fg_user}') {
+                \$auth_record->username='${fg_user_new}';
+                \$auth_record->name='${fg_user_new}';
+            }
+        }
+        \$auth_conf_str=json_encode(\$auth_conf);
+        if(file_put_contents(\"${fg_auth_conf}\", \$auth_conf_str)) {
+            echo \"${GREEN} ${SUCCESSFUL} User '${fg_user}' renamed to '${fg_user_new}' in '${fg_folder}' '${domain}'${NC}\\n\";
+        } else {
+            fwrite(STDERR, \"${RED}Error: renaming user '${fg_user}' to '${fg_user_new}' error for (could not update '${fg_auth_conf}') in '${fg_folder}' in '${domain}'${NC}\\n\");
+        }
+    ?>" | ${php_app_su}
+    exit_script
+fi
+## End Rename user
+
+
+## Change user password
+if [[ "${action}" == 'password_user' || "${action}" == "$((i++))" ]]; then
+    select_domain_mu
+    get_php_version
+    get_fg_folders_domain
+    ask_fg_folder
+    init_php_common_lines
+    get_users_count
+    ask_fg_user
+    ask_fg_password
+    echo "<?php
+        ${php_common_lines}
+        foreach(\$auth_conf as &\$auth_record) {
+            if(\$auth_record->username==='${fg_user}') {
+                \$auth_record->password='${fg_hash}';
+            }
+        }
+        \$auth_conf_str=json_encode(\$auth_conf);
+        if(file_put_contents(\"${fg_auth_conf}\", \$auth_conf_str)) {
+            echo \"${GREEN} ${SUCCESSFUL} Password for '${fg_user}' changed in '${fg_folder}' '${domain}'${NC}\\n\";
+        } else {
+            fwrite(STDERR, \"${RED}Error: changing password for '${fg_user}' error (could not update '${fg_auth_conf}') in '${fg_folder}' in '${domain}'${NC}\\n\");
+        }
+    ?>" | ${php_app_su}
+    exit_script
+fi
+## End Change user password
+
+## Promote user
+if [[ "${action}" == 'promote_user' || "${action}" == "$((i++))" ]]; then
+    select_domain_mu
+    get_php_version
+    get_fg_folders_domain
+    ask_fg_folder
+    init_php_common_lines
+    get_users_count
+    ask_fg_user
+    echo "<?php
+        ${php_common_lines}
+        foreach(\$auth_conf as &\$auth_record) {
+            if(\$auth_record->username==='${fg_user}') {
+                \$auth_record->role='admin';
+                \$auth_record->permissions='read|write|upload|download|batchdownload|zip';
+            }
+        }
+        \$auth_conf_str=json_encode(\$auth_conf);
+        if(file_put_contents(\"${fg_auth_conf}\", \$auth_conf_str)) {
+            echo \"${GREEN} ${SUCCESSFUL} User '${fg_user}' promoted to admin in '${fg_folder}' '${domain}'${NC}\\n\";
+        } else {
+            fwrite(STDERR, \"${RED}Error: promoting to admin user '${fg_user}' error for (could not update '${fg_auth_conf}') in '${fg_folder}' in '${domain}'${NC}\\n\");
+        }
+    ?>" | ${php_app_su}
+    exit_script
+fi
+## End Promote user
+
+## Demote user
+if [[ "${action}" == 'demote_user' || "${action}" == "$((i++))" ]]; then
+    select_domain_mu
+    get_php_version
+    get_fg_folders_domain
+    ask_fg_folder
+    init_php_common_lines
+    get_users_count
+    ask_fg_user
+    echo "<?php
+        ${php_common_lines}
+        foreach(\$auth_conf as &\$auth_record) {
+            if(\$auth_record->username==='${fg_user}') {
+                \$auth_record->role='user';
+                \$auth_record->permissions='read|download|batchdownload';
+            }
+        }
+        \$auth_conf_str=json_encode(\$auth_conf);
+        if(file_put_contents(\"${fg_auth_conf}\", \$auth_conf_str)) {
+            echo \"${GREEN} ${SUCCESSFUL} User '${fg_user}' demoted from admin in '${fg_folder}' '${domain}'${NC}\\n\";
+        } else {
+            fwrite(STDERR, \"${RED}Error: demoting from admin user '${fg_user}' error for (could not update '${fg_auth_conf}') in '${fg_folder}' in '${domain}'${NC}\\n\");
+        }
+    ?>" | ${php_app_su}
+    exit_script
+fi
+## End Demote user
+
+ask_fg_ips() {
+    if [[ -z "${fg_ips}" ]]; then
+        echo
+        echo "Specify the IP addresses string splitted by comma (e.g. 10.0.0.1,192.168.1.2)"
+        read -p "ip(s): " fg_ips
+        while [[ -z "${fg_ips}" ]]; do
+            echo "Invalid value, an empty value not allowed"
+            read -p "ip(s): " fg_ips
+        done
+    fi
+    fg_ips_array=($(echo "${fg_ips}" | sed 's/[ ,;]/\n/g'))
+    fg_ips_array_valid=()
+    for ip_i in "${fg_ips_array[@]}"; do
+        if [[ ! -z "${ip_i}" ]]; then
+            if [[ "${ip_i}" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+                fg_ips_array_valid+=("'${ip_i}'")
+            else
+                echo -e "${RED}Error: '${fg_ips}' contains string '${ip_i}' which is not a valid IP. '${fg_folder}' in '${domain}'${NC}"
+                exit 1
+            fi
+        fi
+    done
+    fg_ips_valid=$(IFS=, ; echo "${fg_ips_array_valid[*]}")
+}
+
+## Enable IP restriction
+if [[ "${action}" == 'enable_ip' || "${action}" == "$((i++))" ]]; then
+    select_domain_mu
+    get_php_version
+    get_fg_folders_domain
+    ask_fg_folder
+    ask_fg_ips
+    init_php_common_lines
+    echo "<?php
+        ${php_common_lines}
+        \$config=require(\"${fg_conf}\");
+        \$start_pos=strpos(\$config_str, 'ip_allowlist');
+        \$end_pos=strpos(\$config_str, ',', \$start_pos);
+        \$new_data=\"'ip_allowlist' => [${fg_ips_valid}]\";
+        \$new_config_str=substr(\$config_str, 0, \$start_pos-1).\$new_data.substr(\$config_str, \$end_pos);
+        if(file_put_contents(\"${fg_conf}\", \$new_config_str)) {
+            echo \"${GREEN} ${SUCCESSFUL} IP restriction enabled '${fg_ips}' to '${fg_folder}' '${domain}'${NC}\\n\";
+        } else {
+            fwrite(STDERR, \"${RED}Error: IP restriction enabling error for '${fg_ips}' (could not update '${fg_conf}') in '${fg_folder}' in '${domain}'${NC}\\n\");
+        }
+    ?>" | ${php_app_su}
+    exit_script
+fi
+## End Enable restriction
+
+
+## Disable IP restriction
+if [[ "${action}" == 'disable_ip' || "${action}" == "$((i++))" ]]; then
+    select_domain_mu
+    get_php_version
+    get_fg_folders_domain
+    ask_fg_folder
+    init_php_common_lines
+    echo "<?php
+        ${php_common_lines}
+        \$config=require(\"${fg_conf}\");
+        \$start_pos=strpos(\$config_str, 'ip_allowlist');
+        \$end_pos=strpos(\$config_str, '],', \$start_pos);
+        \$new_data=\"'ip_allowlist' => []\";
+        \$new_config_str=substr(\$config_str, 0, \$start_pos-1).\$new_data.substr(\$config_str, \$end_pos+1);
+        if(file_put_contents(\"${fg_conf}\", \$new_config_str)) {
+            echo \"${GREEN} ${SUCCESSFUL} IP restriction removed from '${fg_folder}' '${domain}'${NC}\\n\";
+        } else {
+            fwrite(STDERR, \"${RED}Error: IP restriction removing error (could not update '${fg_conf}') in '${fg_folder}' in '${domain}'${NC}\\n\");
+        }
+    ?>" | ${php_app_su}
+    exit_script
+fi
+## End Disable IP restriction
+
+get_adapter_start_stop() {
+    if [[ -z "${domain}" ]]; then
+        echo -e "${RED}Error: 'get_adapter_start_stop()' the 'domain' is empty${NC}" >&2 # ERROR
+        exit 2
+    fi
+    if [[ -z "${fg_folder}" ]]; then
+        echo -e "${RED}Error: 'get_adapter_start_stop()' the 'fg_folder' is empty for '${domain}'${NC}" >&2 # ERROR
+        exit 2
+    fi
+    if [[ -z "${php_version}" ]]; then
+        echo -e "${RED}Error: 'get_adapter_start_stop()' the 'php_version' is empty for '${domain}'${NC}" >&2 # ERROR
+        exit 2
+    fi
+    if [[ -z "${php_common_lines}" ]]; then
+        echo -e "${RED}Error: 'get_adapter_start_stop()' the 'php_common_lines' is empty for '${domain}'${NC}" >&2 # ERROR
+        exit 2
+    fi
+    fg_adapter_start_stop=$(echo "<?php
+        ${php_common_lines}
+        \$func=new ReflectionFunction(\$config['services']['Filegator\Services\Storage\Filesystem']['config']['adapter']);
+        \$filename = \$func->getFileName();
+        \$start_line = \$func->getStartLine();
+        \$end_line = \$func->getEndLine();
+        echo \"\$start_line \$end_line\";
+    ?>" | ${php_app_su})
+    fg_adapter_start=$(echo "${fg_adapter_start_stop}" | awk '{print $1}')
+    fg_adapter_stop=$(echo "${fg_adapter_start_stop}" | awk '{print $2}')
+}
+
+
+ask_fg_storage_path() {
+    if [[ -z "${fg_storage_path}" ]]; then
+        echo "Enter the local storage path"
+        read -p "Path: " fg_storage_path
+    fi
+}
+
+
+## Set FileGator storage adapter to Local
+if [[ "${action}" == 'set_storage_local' || "${action}" == "$((i++))" ]]; then
+    install_composer
+    select_domain_mu
+    get_php_version
+    get_fg_folders_domain
+    ask_fg_folder
+    ask_fg_storage_path
+    init_php_common_lines
+    get_adapter_start_stop
+    echo "<?php
+        ${php_common_lines}
+        \$body_start=implode(\"\", array_slice(\$config_lines, 0, ${fg_adapter_start}-2));
+        \$data=\"                'config' => [],\\n\";
+        \$data.=\"                'adapter' => function () {\\n\";
+        \$data.=\"                    return new \\League\\Flysystem\\Adapter\\Local(\\n\";
+        \$data.=\"                        '${fg_storage_path}'\\n\";
+        \$data.=\"                    );\\n\";
+        \$data.=\"                },\\n\";
+        \$body_end=implode(\"\", array_slice(\$config_lines, ${fg_adapter_stop}));
+        \$new_config_str=\$body_start.\$data.\$body_end;
+        if(file_put_contents(\"${fg_conf}\", \$new_config_str)) {
+            echo \"${GREEN} ${SUCCESSFUL} Local storage set '${fg_folder}' '${domain}'${NC}\\n\";
+        } else {
+            fwrite(STDERR, \"${RED}Error: Local storate setting error (could not update '${fg_conf}') in '${fg_folder}' in '${domain}'${NC}\\n\");
+        }
+    ?>" | ${php_app_su}
+    exit_script
+fi
+## End Set FileGator storage adapter to Local
+
+
+ask_fg_storage_host() {
+    if [[ -z "${fg_storage_path}" ]]; then
+        echo "Enter the storage host"
+        read -p "Host: " fg_storage_host
+    fi
+}
+
+ask_fg_storage_username() {
+    if [[ -z "${fg_storage_username}" ]]; then
+        echo "Enter the storage username"
+        read -p "Username: " fg_storage_username
+    fi
+}
+
+ask_fg_storage_password() {
+    if [[ -z "${fg_storage_password}" ]]; then
+        echo "Enter the storage password"
+        read -p "Password: " fg_storage_password
+    fi
+}
+
+ask_fg_storage_port() {
+    if [[ -z "${fg_storage_port}" ]]; then
+        echo "Enter the storage port"
+        read -p "Port: " fg_storage_port
+    fi
+}
+
+ask_fg_storage_timeout() {
+    if [[ -z "${fg_storage_timeout}" ]]; then
+        echo "Enter the storage timeout"
+        read -p "Timeout: " fg_storage_timeout
+    fi
+}
+
+## Set FileGator storage adapter to FTP
+if [[ "${action}" == 'set_storage_ftp' || "${action}" == "$((i++))" ]]; then
+    install_composer
+    select_domain_mu
+    get_php_version
+    get_fg_folders_domain
+    ask_fg_folder
+    ask_fg_storage_host
+    ask_fg_storage_username
+    ask_fg_storage_password
+    ask_fg_storage_port
+    ask_fg_storage_timeout
+    init_php_common_lines
+    get_adapter_start_stop
+    echo "<?php
+        ${php_common_lines}
+        \$body_start=implode(\"\", array_slice(\$config_lines, 0, ${fg_adapter_start}-2));
+        \$data=\"                'config' => [],\\n\";
+        \$data.=\"                'adapter' => function () {\\n\";
+        \$data.=\"                    return new \\League\\Flysystem\\Adapter\\Ftp([\\n\";
+        \$data.=\"                        'host' => '${fg_storage_host}',\\n\";
+        \$data.=\"                        'username' => '${fg_storage_username}',\\n\";
+        \$data.=\"                        'password' => '${fg_storage_password}',\\n\";
+        \$data.=\"                        'port' => ${fg_storage_port},\\n\";
+        \$data.=\"                        'timeout' => ${fg_storage_timeout},\\n\";
+        \$data.=\"                    ]);\\n\";
+        \$data.=\"                },\\n\";
+        \$body_end=implode(\"\", array_slice(\$config_lines, ${fg_adapter_stop}));
+        \$new_config_str=\$body_start.\$data.\$body_end;
+        if(file_put_contents(\"${fg_conf}\", \$new_config_str)) {
+            echo \"${GREEN} ${SUCCESSFUL} FTP storage set '${fg_folder}' '${domain}'${NC}\\n\";
+        } else {
+            fwrite(STDERR, \"${RED}Error: FTP storate setting error (could not update '${fg_conf}') in '${fg_folder}' in '${domain}'${NC}\\n\");
+        }
+    ?>" | ${php_app_su}
+    exit_script
+fi
+## End Set FileGator storage adapter to FTP
+
+ask_sftp_root() {
+    if [[ -z "${sftp_root}" ]]; then
+        echo "Please, enter SFTP root path"
+        echo
+        read -p 'Root path: ' sftp_root
+        while [[ -z "${sftp_root}" ]]; do
+            echo "Invalid value"
+            read -p 'Root path: ' sftp_root
+        done
+    fi
+}
+
+## Set FileGator storage adapter to SFTP
+if [[ "${action}" == 'set_storage_sftp' || "${action}" == "$((i++))" ]]; then
+    install_composer
+    select_domain_mu
+    get_php_version
+    get_fg_folders_domain
+    ask_fg_folder
+    ask_fg_storage_host
+    ask_fg_storage_username
+    ask_fg_storage_password
+    ask_fg_storage_port
+    ask_fg_storage_timeout
+    ask_fg_storage_path
+    init_php_common_lines
+    get_adapter_start_stop
+    echo "<?php
+        ${php_common_lines}
+        \$body_start=implode(\"\", array_slice(\$config_lines, 0, ${fg_adapter_start}-2));
+        \$data=\"                'config' => [],\\n\";
+        \$data.=\"                'adapter' => function () {\\n\";
+        \$data.=\"                    return new \\League\\Flysystem\\Sftp\\SftpAdapter([\\n\";
+        \$data.=\"                        'host' => '${fg_storage_host}',\\n\";
+        \$data.=\"                        'username' => '${fg_storage_username}',\\n\";
+        \$data.=\"                        'password' => '${fg_storage_password}',\\n\";
+        \$data.=\"                        'port' => ${fg_storage_port},\\n\";
+        \$data.=\"                        'timeout' => ${fg_storage_timeout},\\n\";
+        \$data.=\"                        'root' => '${fg_storage_path}',\\n\";
+        \$data.=\"                    ]);\\n\";
+        \$data.=\"                },\\n\";
+        \$body_end=implode(\"\", array_slice(\$config_lines, ${fg_adapter_stop}));
+        \$new_config_str=\$body_start.\$data.\$body_end;
+        if(file_put_contents(\"${fg_conf}\", \$new_config_str)) {
+            echo \"${GREEN} ${SUCCESSFUL} SFTP storage set '${fg_folder}' '${domain}'${NC}\\n\";
+        } else {
+            fwrite(STDERR, \"${RED}Error: SFTP storate setting error (could not update '${fg_conf}') in '${fg_folder}' in '${domain}'${NC}\\n\");
+        }
+    ?>" | ${php_app_su}
+    exit_script
+fi
+## End Set FileGator storage adapter to SFTP
+
+
+ask_fg_storage_token() {
+    if [[ -z "${fg_storage_token}" ]]; then
+        echo "Enter the storage token"
+        read -p "Token: " fg_storage_token
+    fi
+}
+
+## Set FileGator storage adapter to Dropbox
+if [[ "${action}" == 'set_storage_dropbox' || "${action}" == "$((i++))" ]]; then
+    install_composer
+    select_domain_mu
+    get_php_version
+    get_fg_folders_domain
+    ask_fg_folder
+    ask_fg_storage_token
+    init_php_common_lines
+    get_adapter_start_stop
+    echo "<?php
+        ${php_common_lines}
+        \$body_start=implode(\"\", array_slice(\$config_lines, 0, ${fg_adapter_start}-2));
+        \$data=\"                'config' => ['case_sensitive' => false,],\\n\";
+        \$data.=\"                'adapter' => function () {\\n\";
+        \$data.=\"                    return new \\Spatie\\FlysystemDropbox\\DropboxAdapter(\\n\";
+        \$data.=\"                        new \\Spatie\\Dropbox\\Client('${fg_storage_token}')\\n\";
+        \$data.=\"                    );\\n\";
+        \$data.=\"                },\\n\";
+        \$body_end=implode(\"\", array_slice(\$config_lines, ${fg_adapter_stop}));
+        \$new_config_str=\$body_start.\$data.\$body_end;
+        if(file_put_contents(\"${fg_conf}\", \$new_config_str)) {
+            echo \"${GREEN} ${SUCCESSFUL} Dropbox storage set '${fg_folder}' '${domain}'${NC}\\n\";
+        } else {
+            fwrite(STDERR, \"${RED}Error: Dropbox storate setting error (could not update '${fg_conf}') in '${fg_folder}' in '${domain}'${NC}\\n\");
+        }
+    ?>" | ${php_app_su}
+    exit_script
+fi
+## End Set FileGator storage adapter to Dropbox
+
+
+ask_fg_storage_key() {
+    if [[ -z "${fg_storage_key}" ]]; then
+        echo "Enter the storage key"
+        read -p "Key: " fg_storage_key
+    fi
+}
+
+ask_fg_storage_secret() {
+    if [[ -z "${fg_storage_secret}" ]]; then
+        echo "Enter the storage secret"
+        read -p "Secret: " fg_storage_secret
+    fi
+}
+
+ask_fg_storage_region() {
+    if [[ -z "${fg_storage_region}" ]]; then
+        echo "Enter the storage region"
+        read -p "Region: " fg_storage_region
+    fi
+}
+
+ask_fg_storage_version() {
+    if [[ -z "${fg_storage_version}" ]]; then
+        echo "Enter the storage version"
+        read -p "Version: " fg_storage_version
+    fi
+}
+
+ask_fg_storage_bucket() {
+    if [[ -z "${fg_bucket}" ]]; then
+        echo "Enter the bucket name"
+        read -p "Bucket name: " fg_storage_bucket
+    fi
+}
+
+## Set FileGator storage adapter to Amazon S3
+if [[ "${action}" == 'set_storage_amazon' || "${action}" == "$((i++))" ]]; then
+    install_composer
+    select_domain_mu
+    get_php_version
+    get_fg_folders_domain
+    ask_fg_folder
+    ask_fg_storage_key
+    ask_fg_storage_secret
+    ask_fg_storage_region
+    ask_fg_storage_version
+    ask_fg_storage_bucket
+    init_php_common_lines
+    get_adapter_start_stop
+    echo "<?php
+        ${php_common_lines}
+        \$body_start=implode(\"\", array_slice(\$config_lines, 0, ${fg_adapter_start}-2));
+        \$data=\"                'config' => [],\\n\";
+        \$data.=\"                'adapter' => function () {\\n\";
+        \$data.=\"                    return new \\League\\Flysystem\\AwsS3v3\\AwsS3Adapter(\\n\";
+        \$data.=\"                        new \\Aws\\S3\\S3Client([\\n\";
+        \$data.=\"                            'credentials' => [\\n\";
+        \$data.=\"                                'key' => '${fg_storage_key}',\\n\";
+        \$data.=\"                                'secret' => '${fg_storage_secret}',\\n\";
+        \$data.=\"                            ],\\n\";
+        \$data.=\"                            'region' => '${fg_storage_region}',\\n\";
+        \$data.=\"                            'version' => '${fg_storage_version}',\\n\";
+        \$data.=\"                        ]), '${fg_storage_bucket}'\\n\";
+        \$data.=\"                    );\\n\";
+        \$data.=\"                },\\n\";
+        \$body_end=implode(\"\", array_slice(\$config_lines, ${fg_adapter_stop}));
+        \$new_config_str=\$body_start.\$data.\$body_end;
+        if(file_put_contents(\"${fg_conf}\", \$new_config_str)) {
+            echo \"${GREEN} ${SUCCESSFUL} Amazon storage set '${fg_folder}' '${domain}'${NC}\\n\";
+        } else {
+            fwrite(STDERR, \"${RED}Error: Amazon storate setting error (could not update '${fg_conf}') in '${fg_folder}' in '${domain}'${NC}\\n\");
+        }
+    ?>" | ${php_app_su}
+    exit_script
+fi
+## End Set FileGator storage adapter to Amazon S3
+
+ask_fg_storage_endpoint() {
+    if [[ -z "${fg_storage_endpoint}" ]]; then
+        echo "Enter the endpoint full name"
+        read -p "Endpoint full name (with https:// ): " fg_storage_endpoint
+    fi
+}
+
+## Set FileGator storage adapter to DigitalOcean
+if [[ "${action}" == 'set_storage_digitalocean' || "${action}" == "$((i++))" ]]; then
+    install_composer
+    select_domain_mu
+    get_php_version
+    get_fg_folders_domain
+    ask_fg_folder
+    ask_fg_storage_key
+    ask_fg_storage_secret
+    ask_fg_storage_region
+    ask_fg_storage_version
+    ask_fg_storage_bucket
+    ask_fg_storage_endpoint
+    init_php_common_lines
+    get_adapter_start_stop
+    echo "<?php
+        ${php_common_lines}
+        \$body_start=implode(\"\", array_slice(\$config_lines, 0, ${fg_adapter_start}-2));
+        \$data=\"                'config' => [],\\n\";
+        \$data.=\"                'adapter' => function () {\\n\";
+        \$data.=\"                    return new \\League\\Flysystem\\AwsS3v3\\AwsS3Adapter(\\n\";
+        \$data.=\"                        new \\Aws\\S3\\S3Client([\\n\";
+        \$data.=\"                            'credentials' => [\\n\";
+        \$data.=\"                                'key' => '${fg_storage_key}',\\n\";
+        \$data.=\"                                'secret' => '${fg_storage_secret}',\\n\";
+        \$data.=\"                            ],\\n\";
+        \$data.=\"                            'region' => '${fg_storage_region}',\\n\";
+        \$data.=\"                            'version' => '${fg_storage_version}',\\n\";
+        \$data.=\"                            'endpoint' => '${fg_storage_endpoint}',\\n\";
+        \$data.=\"                        ]), '${fg_storage_bucket}'\\n\";
+        \$data.=\"                    );\\n\";
+        \$data.=\"                },\\n\";
+        \$body_end=implode(\"\", array_slice(\$config_lines, ${fg_adapter_stop}));
+        \$new_config_str=\$body_start.\$data.\$body_end;
+        if(file_put_contents(\"${fg_conf}\", \$new_config_str)) {
+            echo \"${GREEN} ${SUCCESSFUL} DigitalOcean storage set '${fg_folder}' '${domain}'${NC}\\n\";
+        } else {
+            fwrite(STDERR, \"${RED}Error: DigitalOcean storate setting error (could not update '${fg_conf}') in '${fg_folder}' in '${domain}'${NC}\\n\");
+        }
+    ?>" | ${php_app_su}
+    exit_script
+fi
+## End Set FileGator storage adapter to DigitalOcean
+
+
+ask_fg_storage_account_name() {
+    if [[ -z "${fg_storage_account_name}" ]]; then
+        echo "Enter the storage accountName"
+        read -p "accountName: " fg_storage_account_name
+    fi
+}
+
+ask_fg_storage_account_key() {
+    if [[ -z "${fg_storage_account_key}" ]]; then
+        echo "Enter the storage accountKey"
+        read -p "accountKey: " fg_storage_account_key
+    fi
+}
+
+ask_fg_storage_container_name() {
+    if [[ -z "${fg_storage_container_name}" ]]; then
+        echo "Enter the storage containerName"
+        read -p "containerName: " fg_storage_container_name
+    fi
+}
+
+## Set FileGator storage adapter to Azure
+if [[ "${action}" == 'set_storage_azure' || "${action}" == "$((i++))" ]]; then
+    install_composer
+    select_domain_mu
+    get_php_version
+    get_fg_folders_domain
+    ask_fg_folder
+    ask_fg_storage_account_name
+    ask_fg_storage_account_key
+    ask_fg_storage_container_name
+    init_php_common_lines
+    get_adapter_start_stop
+    echo "<?php
+        ${php_common_lines}
+        \$body_start=implode(\"\", array_slice(\$config_lines, 0, ${fg_adapter_start}-2));
+        \$data=\"                'config' => [],\\n\";
+        \$data.=\"                'adapter' => function () {\\n\";
+        \$data.=\"                    return new \\League\\Flysystem\\AzureBlobStorage\\AzureBlobStorageAdapter(\\n\";
+        \$data.=\"                        \\MicrosoftAzure\\Storage\\Blob\\BlobRestProxy::createBlobService(\\n\";
+        \$data.=\"                            'DefaultEndpointsProtocol=https;AccountName=${fg_storage_account_name};AccountKey=${fg_storage_account_key};'\\n\";
+        \$data.=\"                        ), '${fg_storage_container_name}'\\n\";
+        \$data.=\"                    );\\n\";
+        \$data.=\"                },\\n\";
+        \$body_end=implode(\"\", array_slice(\$config_lines, ${fg_adapter_stop}));
+        \$new_config_str=\$body_start.\$data.\$body_end;
+        if(file_put_contents(\"${fg_conf}\", \$new_config_str)) {
+            echo \"${GREEN} ${SUCCESSFUL} Azure storage set '${fg_folder}' '${domain}'${NC}\\n\";
+        } else {
+            fwrite(STDERR, \"${RED}Error: Azure storate setting error (could not update '${fg_conf}') in '${fg_folder}' in '${domain}'${NC}\\n\");
+        }
+    ?>" | ${php_app_su}
+    exit_script
+fi
+## End Set FileGator storage adapter to Azure
+
+## Set FileGator storage adapter to Replicate (Dropbox)
+if [[ "${action}" == 'set_storage_replicate_dropbox' || "${action}" == "$((i++))" ]]; then
+    install_composer
+    select_domain_mu
+    get_php_version
+    get_fg_folders_domain
+    ask_fg_folder
+    ask_fg_storage_token
+    ask_fg_storage_path
+    init_php_common_lines
+    get_adapter_start_stop
+    echo "<?php
+        ${php_common_lines}
+        \$body_start=implode(\"\", array_slice(\$config_lines, 0, ${fg_adapter_start}-2));
+        \$data=\"                'config' => ['case_sensitive' => false,],\\n\";
+        \$data.=\"                'adapter' => function () {\\n\";
+        \$data.=\"                    return new \\League\\Flysystem\\Replicate\\ReplicateAdapter(\\n\";
+        \$data.=\"                        new \\Spatie\\FlysystemDropbox\\DropboxAdapter(\\n\";
+        \$data.=\"                            new \\Spatie\\Dropbox\\Client('${fg_storage_token}')\\n\";
+        \$data.=\"                        ),\\n\";
+        \$data.=\"                        new \\League\\Flysystem\\Adapter\\Local('${fg_storage_path}')\\n\";
+        \$data.=\"                    );\\n\";
+        \$data.=\"                },\\n\";
+        \$body_end=implode(\"\", array_slice(\$config_lines, ${fg_adapter_stop}));
+        \$new_config_str=\$body_start.\$data.\$body_end;
+        if(file_put_contents(\"${fg_conf}\", \$new_config_str)) {
+            echo \"${GREEN} ${SUCCESSFUL} Replicate storage set '${fg_folder}' '${domain}'${NC}\\n\";
+        } else {
+            fwrite(STDERR, \"${RED}Error: Replicate storate setting error (could not update '${fg_conf}') in '${fg_folder}' in '${domain}'${NC}\\n\");
+        }
+    ?>" | ${php_app_su}
+    exit_script
+fi
+## End Set FileGator storage adapter to Replicate (Dropbox)
+
+
+ask_fg_frontend_app_name() {
+    if [[ -z "${fg_frontend_app_name}" ]]; then
+        echo "Enter the frontend config app_name"
+        read -p "app_name: " fg_frontend_app_name
+    fi
+}
+
+## Set frontend app_name
+if [[ "${action}" == 'set_frontend_app_name' || "${action}" == "$((i++))" ]]; then
+    select_domain_mu
+    get_fg_folders_domain
+    ask_fg_folder
+    ask_fg_frontend_app_name
+    if grep -qP "^${sm}'app_name'${sm}=>${sm}'${fg_frontend_app_name}'" ${fg_conf}; then
+        echo -e "${BLUE}'app_name' is already '${fg_frontend_app_name}' in '${domain}'${NC}" # SKIP
+    else
+        sed -i "${fg_conf}" -re "s/^(${sm}'app_name'${sm}=>${sm})'[^']*'/\1'${fg_frontend_app_name}'/"
+        if grep -qP "^${sm}'app_name'${sm}=>${sm}'${fg_frontend_app_name}'" ${fg_conf}; then
+            echo -e "${GREEN} ${SUCCESSFUL} 'app_name' set to '${fg_frontend_app_name}' in '${domain}'${NC}" # ACTION
+        else
+            echo -e "${RED}Error while set 'app_name' to '${fg_frontend_app_name}' in '${domain}'${NC}" >&2 # ERROR
+        fi
+    fi
+    exit_script
+fi
+## End Set frontend app_name
+
+
+ask_fg_frontend_language() {
+    if [[ -z "${fg_frontend_language}" ]]; then
+        echo "Enter the frontend config language"
+        read -p "language: " fg_frontend_language
+    fi
+}
+
+
+## Set frontend language
+if [[ "${action}" == 'set_frontend_language' || "${action}" == "$((i++))" ]]; then
+    select_domain_mu
+    get_fg_folders_domain
+    ask_fg_folder
+    ask_fg_frontend_language
+    if grep -qP "^${sm}'language'${sm}=>${sm}'${fg_frontend_language}'" ${fg_conf}; then
+        echo -e "${BLUE}'language' is already '${fg_frontend_language}' in '${domain}'${NC}" # SKIP
+    else
+        sed -i "${fg_conf}" -re "s/^(${sm}'language'${sm}=>${sm})'[^']*'/\1'${fg_frontend_language}'/"
+        if grep -qP "^${sm}'language'${sm}=>${sm}'${fg_frontend_language}'" ${fg_conf}; then
+            echo -e "${GREEN} ${SUCCESSFUL} 'language' set to '${fg_frontend_language}' in '${domain}'${NC}" # ACTION
+        else
+            echo -e "${RED}Error while set 'language' to '${fg_frontend_language}' in '${domain}'${NC}" >&2 # ERROR
+        fi
+    fi
+    exit_script
+fi
+## End Set frontend language
+
+
+ask_fg_frontend_logo() {
+    if [[ -z "${fg_frontend_logo}" ]]; then
+        echo "Enter the frontend config logo"
+        read -p "logo: " fg_frontend_logo
+    fi
+    fg_frontend_logo=$(echo "${fg_frontend_logo}" | sed -re 's/([.\/?$])/\\\1/g')
+}
+
+## Set frontend logo
+if [[ "${action}" == 'set_frontend_logo' || "${action}" == "$((i++))" ]]; then
+    select_domain_mu
+    get_fg_folders_domain
+    ask_fg_folder
+    ask_fg_frontend_logo
+    if grep -qP "^${sm}'logo'${sm}=>${sm}'${fg_frontend_logo}'" ${fg_conf}; then
+        echo -e "${BLUE}'logo' is already '${fg_frontend_logo}' in '${domain}'${NC}" # SKIP
+    else
+        sed -i "${fg_conf}" -re "s/^(${sm}'logo'${sm}=>${sm})'[^']*'/\1'${fg_frontend_logo}'/"
+        if grep -qP "^${sm}'logo'${sm}=>${sm}'${fg_frontend_logo}'" ${fg_conf}; then
+            echo -e "${GREEN} ${SUCCESSFUL} 'logo' set to '${fg_frontend_logo}' in '${domain}'${NC}" # ACTION
+        else
+            echo -e "${RED}Error while set 'logo' to '${fg_frontend_logo}' in '${domain}'${NC}" >&2 # ERROR
+        fi
+    fi
+    exit_script
+fi
+## End Set frontend logo
+
+
+ask_fg_frontend_upload_max_size() {
+    if [[ -z "${fg_frontend_upload_max_size}" ]]; then
+        echo "Enter the frontend config upload_max_size"
+        read -p "upload_max_size: " fg_frontend_upload_max_size
+    fi
+    if [[ ! "${fg_frontend_upload_max_size}" =~ ^[\-\+\*\/0-9\ ]+$ ]]; then
+        echo -e "${RED}Error: Invalid characters for 'upload_max_size' in string '${fg_frontend_upload_max_size}' while only '0-9-+*/ ' allowed in '${domain}'${NC}" >&2 # ERROR
+        exit 1
+    fi
+    echo "<?php return true; \$x=${fg_frontend_upload_max_size}; ?>" | php
+    if [[ $? -ne 0 ]]; then
+        echo -e "${RED}Error: The string '${fg_frontend_upload_max_size}' is not a valid math expression '${domain}'${NC}" >&2 # ERROR
+        exit 1
+    fi
+    echo "<?php \$x=${fg_frontend_upload_max_size}; if(\$x<=0){exit(1);} ?>" | php
+    if [[ $? -ne 0 ]]; then
+        echo -e "${RED}Error: The string '${fg_frontend_upload_max_size}' must be a positive integer '${domain}'${NC}" >&2 # ERROR
+        exit 1
+    fi
+    fg_frontend_upload_max_size=$(echo "${fg_frontend_upload_max_size}" | sed -re 's/([-*+\/])/\\\1/g')
+}
+
+## Set frontend upload_max_size
+if [[ "${action}" == 'set_frontend_upload_max_size' || "${action}" == "$((i++))" ]]; then
+    select_domain_mu
+    get_fg_folders_domain
+    ask_fg_folder
+    ask_fg_frontend_upload_max_size
+    if grep -qP "^${sm}'upload_max_size'${sm}=>${sm}${fg_frontend_upload_max_size}${sm}," ${fg_conf}; then
+        echo -e "${BLUE}'upload_max_size' is already '${fg_frontend_upload_max_size}' in '${domain}'${NC}" # SKIP
+    else
+        sed -i "${fg_conf}" -re "s/^(${sm}'upload_max_size'${sm}=>${sm})[^,]*/\1${fg_frontend_upload_max_size}/"
+        if grep -qP "^${sm}'upload_max_size'${sm}=>${sm}${fg_frontend_upload_max_size}${sm}," ${fg_conf}; then
+            echo -e "${GREEN} ${SUCCESSFUL} 'upload_max_size' set to '${fg_frontend_upload_max_size}' in '${domain}'${NC}" # ACTION
+        else
+            echo -e "${RED}Error while set 'upload_max_size' to '${fg_frontend_upload_max_size}' in '${domain}'${NC}" >&2 # ERROR
+        fi
+    fi
+    exit_script
+fi
+## End Set frontend upload_max_size
+
+
+ask_fg_frontend_upload_chunk_size() {
+    if [[ -z "${fg_frontend_upload_chunk_size}" ]]; then
+        echo "Enter the frontend config upload_chunk_size"
+        read -p "upload_chunk_size: " fg_frontend_upload_chunk_size
+    fi
+    if [[ ! "${fg_frontend_upload_chunk_size}" =~ ^[\-\+\*\/0-9\ ]+$ ]]; then
+        echo -e "${RED}Error: Invalid characters for 'upload_chunk_size' in string '${fg_frontend_upload_chunk_size}' while only '0-9-+*/ ' allowed in '${domain}'${NC}" >&2 # ERROR
+        exit 1
+    fi
+    echo "<?php return true; \$x=${fg_frontend_upload_chunk_size}; ?>" | php
+    if [[ $? -ne 0 ]]; then
+        echo -e "${RED}Error: The string '${fg_frontend_upload_chunk_size}' is not a valid math expression '${domain}'${NC}" >&2 # ERROR
+        exit 1
+    fi
+    echo "<?php \$x=${fg_frontend_upload_chunk_size}; if(\$x<=0){exit(1);} ?>" | php
+    if [[ $? -ne 0 ]]; then
+        echo -e "${RED}Error: The string '${fg_frontend_upload_chunk_size}' must be a positive integer '${domain}'${NC}" >&2 # ERROR
+        exit 1
+    fi
+    fg_frontend_upload_chunk_size=$(echo "${fg_frontend_upload_chunk_size}" | sed -re 's/([-*+\/])/\\\1/g')
+}
+
+
+## Set frontend upload_chunk_size
+if [[ "${action}" == 'set_frontend_upload_chunk_size' || "${action}" == "$((i++))" ]]; then
+    select_domain_mu
+    get_fg_folders_domain
+    ask_fg_folder
+    ask_fg_frontend_upload_chunk_size
+    if grep -qP "^${sm}'upload_chunk_size'${sm}=>${sm}${fg_frontend_upload_chunk_size}${sm}," ${fg_conf}; then
+        echo -e "${BLUE}'upload_chunk_size' is already '${fg_frontend_upload_chunk_size}' in '${domain}'${NC}" # SKIP
+    else
+        sed -i "${fg_conf}" -re "s/^(${sm}'upload_chunk_size'${sm}=>${sm})[^,]*/\1${fg_frontend_upload_chunk_size}/"
+        if grep -qP "^${sm}'upload_chunk_size'${sm}=>${sm}${fg_frontend_upload_chunk_size}${sm}," ${fg_conf}; then
+            echo -e "${GREEN} ${SUCCESSFUL} 'upload_chunk_size' set to '${fg_frontend_upload_chunk_size}' in '${domain}'${NC}" # ACTION
+        else
+            echo -e "${RED}Error while set 'upload_chunk_size' to '${fg_frontend_upload_chunk_size}' in '${domain}'${NC}" >&2 # ERROR
+        fi
+    fi
+    exit_script
+fi
+## End Set frontend upload_chunk_size
+
+
+ask_fg_frontend_upload_simultaneous() {
+    if [[ -z "${fg_frontend_upload_simultaneous}" ]]; then
+        echo "Enter the frontend config upload_simultaneous"
+        read -p "upload_simultaneous: " fg_frontend_upload_simultaneous
+    fi
+    if [[ ! "${fg_frontend_upload_simultaneous}" =~ ^[0-9]+$ ]]; then
+        echo -e "${RED}Error: Invalid characters for 'upload_simultaneous' in string '${fg_frontend_upload_simultaneous}' while only '0-9-+*/ ' allowed in '${domain}'${NC}" >&2 # ERROR
+        exit 1
+    fi
+}
+
+## Set frontend upload_simultaneous
+if [[ "${action}" == 'set_frontend_upload_simultaneous' || "${action}" == "$((i++))" ]]; then
+    select_domain_mu
+    get_fg_folders_domain
+    ask_fg_folder
+    ask_fg_frontend_upload_simultaneous
+    if grep -qP "^${sm}'upload_simultaneous'${sm}=>${sm}${fg_frontend_upload_simultaneous}${sm}," ${fg_conf}; then
+        echo -e "${BLUE}'upload_simultaneous' is already '${fg_frontend_upload_simultaneous}' in '${domain}'${NC}" # SKIP
+    else
+        sed -i "${fg_conf}" -re "s/^(${sm}'upload_simultaneous'${sm}=>${sm})[^,]*/\1${fg_frontend_upload_simultaneous}/"
+        if grep -qP "^${sm}'upload_simultaneous'${sm}=>${sm}${fg_frontend_upload_simultaneous}${sm}," ${fg_conf}; then
+            echo -e "${GREEN} ${SUCCESSFUL} 'upload_simultaneous' set to '${fg_frontend_upload_simultaneous}' in '${domain}'${NC}" # ACTION
+        else
+            echo -e "${RED}Error while set 'upload_simultaneous' to '${fg_frontend_upload_simultaneous}' in '${domain}'${NC}" >&2 # ERROR
+        fi
+    fi
+    exit_script
+fi
+## End Set frontend upload_simultaneous
+
+
+ask_fg_frontend_default_archive_name() {
+    if [[ -z "${fg_frontend_default_archive_name}" ]]; then
+        echo "Enter the frontend config default_archive_name"
+        read -p "default_archive_name: " fg_frontend_default_archive_name
+    fi
+}
+
+## Set frontend default_archive_name
+if [[ "${action}" == 'set_frontend_default_archive_name' || "${action}" == "$((i++))" ]]; then
+    select_domain_mu
+    get_fg_folders_domain
+    ask_fg_folder
+    ask_fg_frontend_default_archive_name
+    if grep -qP "^${sm}'default_archive_name'${sm}=>${sm}'${fg_frontend_default_archive_name}'" ${fg_conf}; then
+        echo -e "${BLUE}'default_archive_name' is already '${fg_frontend_default_archive_name}' in '${domain}'${NC}" # SKIP
+    else
+        sed -i "${fg_conf}" -re "s/^(${sm}'default_archive_name'${sm}=>${sm})'[^']*'/\1'${fg_frontend_default_archive_name}'/"
+        if grep -qP "^${sm}'default_archive_name'${sm}=>${sm}'${fg_frontend_default_archive_name}'" ${fg_conf}; then
+            echo -e "${GREEN} ${SUCCESSFUL} 'default_archive_name' set to '${fg_frontend_default_archive_name}' in '${domain}'${NC}" # ACTION
+        else
+            echo -e "${RED}Error while set 'default_archive_name' to '${fg_frontend_default_archive_name}' in '${domain}'${NC}" >&2 # ERROR
+        fi
+    fi
+    exit_script
+fi
+## End Set frontend default_archive_name
+
+
+ask_fg_frontend_editable() {
+    if [[ -z "${fg_frontend_editable}" ]]; then
+        echo "Enter the frontend config editable"
+        read -p "editable: " fg_frontend_editable
+    fi
+    fg_frontend_editable_array=($(echo "${fg_frontend_editable}" | sed -re 's/[,; ]/\n/g'))
+    fg_frontend_editable_array_valid=()
+    for editable_item in "${fg_frontend_editable_array[@]}"; do
+        if [[ ! -z "${editable_item}" ]]; then
+            fg_frontend_editable_array_valid+=("'${editable_item}'")
+        fi
+    done
+    fg_frontend_editable=$(IFS=, ; echo "${fg_frontend_editable_array_valid[*]}")
+}
+
+## Set frontend editable
+if [[ "${action}" == 'set_frontend_editable' || "${action}" == "$((i++))" ]]; then
+    select_domain_mu
+    get_fg_folders_domain
+    ask_fg_folder
+    ask_fg_frontend_editable
+    if grep -qP "^${sm}'editable'${sm}=>${sm}\[${fg_frontend_editable}\]" ${fg_conf}; then
+        echo -e "${BLUE}'editable' is already '${fg_frontend_editable}' in '${domain}'${NC}" # SKIP
+    else
+        sed -i "${fg_conf}" -re "s/^(${sm}'editable'${sm}=>${sm})\[[^]]*\]/\1[${fg_frontend_editable}]/"
+        if grep -qP "^${sm}'editable'${sm}=>${sm}\[${fg_frontend_editable}\]" ${fg_conf}; then
+            echo -e "${GREEN} ${SUCCESSFUL} 'editable' set to '${fg_frontend_editable}' in '${domain}'${NC}" # ACTION
+        else
+            echo -e "${RED}Error while set 'editable' to '${fg_frontend_editable}' in '${domain}'${NC}" >&2 # ERROR
+        fi
+    fi
+    exit_script
+fi
+## End Set frontend editable
+
+
+ask_fg_frontend_date_format() {
+    if [[ -z "${fg_frontend_date_format}" ]]; then
+        echo "Enter the frontend config date_format"
+        read -p "date_format: " fg_frontend_date_format
+    fi
+}
+
+## Set frontend date_format
+if [[ "${action}" == 'set_frontend_date_format' || "${action}" == "$((i++))" ]]; then
+    select_domain_mu
+    get_fg_folders_domain
+    ask_fg_folder
+    ask_fg_frontend_date_format
+    if grep -qP "^${sm}'date_format'${sm}=>${sm}'${fg_frontend_date_format}'" ${fg_conf}; then
+        echo -e "${BLUE}'date_format' is already '${fg_frontend_date_format}' in '${domain}'${NC}" # SKIP
+    else
+        sed -i "${fg_conf}" -re "s/^(${sm}'date_format'${sm}=>${sm})'[^']*'/\1'${fg_frontend_date_format}'/"
+        if grep -qP "^${sm}'date_format'${sm}=>${sm}'${fg_frontend_date_format}'" ${fg_conf}; then
+            echo -e "${GREEN} ${SUCCESSFUL} 'date_format' set to '${fg_frontend_date_format}' in '${domain}'${NC}" # ACTION
+        else
+            echo -e "${RED}Error while set 'date_format' to '${fg_frontend_date_format}' in '${domain}'${NC}" >&2 # ERROR
+        fi
+    fi
+    exit_script
+fi
+## End Set frontend date_format
+
+
+ask_fg_frontend_guest_redirection() {
+    if [[ -z "${fg_frontend_guest_redirection}" ]]; then
+        echo "Enter the frontend config guest_redirection"
+        read -p "guest_redirection: " fg_frontend_guest_redirection
+    fi
+    fg_frontend_guest_redirection=$(echo "${fg_frontend_guest_redirection}" | sed -re 's/([.\/?$])/\\\1/g')
+}
+
+## Set frontend guest_redirection
+if [[ "${action}" == 'set_frontend_guest_redirection' || "${action}" == "$((i++))" ]]; then
+    select_domain_mu
+    get_fg_folders_domain
+    ask_fg_folder
+    ask_fg_frontend_guest_redirection
+    if grep -qP "^${sm}'guest_redirection'${sm}=>${sm}'${fg_frontend_guest_redirection}'" ${fg_conf}; then
+        echo -e "${BLUE}'guest_redirection' is already '${fg_frontend_guest_redirection}' in '${domain}'${NC}" # SKIP
+    else
+        sed -i "${fg_conf}" -re "s/^(${sm}'guest_redirection'${sm}=>${sm})'[^']*'/\1'${fg_frontend_guest_redirection}'/"
+        if grep -qP "^${sm}'guest_redirection'${sm}=>${sm}'${fg_frontend_guest_redirection}'" ${fg_conf}; then
+            echo -e "${GREEN} ${SUCCESSFUL} 'guest_redirection' set to '${fg_frontend_guest_redirection}' in '${domain}'${NC}" # ACTION
+        else
+            echo -e "${RED}Error while set 'guest_redirection' to '${fg_frontend_guest_redirection}' in '${domain}'${NC}" >&2 # ERROR
+        fi
+    fi
+    exit_script
+fi
+## End Set frontend guest_redirection
+
+
+ask_fg_frontend_filter_entries() {
+    if [[ -z "${fg_frontend_filter_entries}" ]]; then
+        echo "Enter the frontend config filter_entries"
+        read -p "filter_entries: " fg_frontend_filter_entries
+    fi
+    fg_frontend_filter_entries_array=($(echo "${fg_frontend_filter_entries}" | sed -re 's/[,; ]/\n/g'))
+    fg_frontend_filter_entries_array_valid=()
+    for filter_entries_item in "${fg_frontend_filter_entries_array[@]}"; do
+        if [[ ! -z "${filter_entries_item}" ]]; then
+            fg_frontend_filter_entries_array_valid+=($(echo "'${filter_entries_item}'" | sed -re 's/([.\/?$])/\\\1/g'))
+        fi
+    done
+    fg_frontend_filter_entries=$(IFS=, ; echo "${fg_frontend_filter_entries_array_valid[*]}")
+}
+
+## Set frontend filter_entries
+if [[ "${action}" == 'set_frontend_filter_entries' || "${action}" == "$((i++))" ]]; then
+    select_domain_mu
+    get_fg_folders_domain
+    ask_fg_folder
+    ask_fg_frontend_filter_entries
+    if grep -qP "^${sm}'filter_entries'${sm}=>${sm}\[${fg_frontend_filter_entries}\]" ${fg_conf}; then
+        echo -e "${BLUE}'filter_entries' is already '${fg_frontend_filter_entries}' in '${domain}'${NC}" # SKIP
+    else
+        sed -i "${fg_conf}" -re "s/^(${sm}'filter_entries'${sm}=>${sm})\[[^]]*\]/\1[${fg_frontend_filter_entries}]/"
+        if grep -qP "^${sm}'filter_entries'${sm}=>${sm}\[${fg_frontend_filter_entries}\]" ${fg_conf}; then
+            echo -e "${GREEN} ${SUCCESSFUL} 'filter_entries' set to '${fg_frontend_filter_entries}' in '${domain}'${NC}" # ACTION
+        else
+            echo -e "${RED}Error while set 'filter_entries' to '${fg_frontend_filter_entries}' in '${domain}'${NC}" >&2 # ERROR
+        fi
+    fi
+    exit_script
+fi
+## End Set frontend filter_entries
+
+
+## Upgrade dependencies (composer)
+if [[ "${action}" == 'upgrade_dependencies' || "${action}" == "$((i++))" ]]; then
+    install_composer
+    select_domain_mu
+    get_php_version
+    get_fg_folders_domain
+    ask_fg_folder
+    init_php_common_lines
+    update_composer
+    exit_script
+fi
+## End Upgrade dependencies (composer)
+
+
+
+do_backup_conf() {
+    if [[ -z "${domain}" ]]; then
+        echo -e "${RED}Error: 'do_backup_conf()' the 'domain' is empty${NC}" >&2 # ERROR
+        exit 2
+    fi
+    if [[ -z "${fg_folder}" ]]; then
+        echo -e "${RED}Error: 'do_backup_conf()' the 'fg_folder' is empty for '${domain}'${NC}" >&2 # ERROR
+        exit 2
+    fi
+    if [[ -z "${fg_conf}" ]]; then
+        echo -e "${RED}Error: 'do_backup_conf()' the 'fg_conf' is empty for '${domain}'${NC}" >&2 # ERROR
+        exit 2
+    fi
+    if [[ -z "${fg_auth_conf}" ]]; then
+        echo -e "${RED}Error: 'do_backup_conf()' the 'fg_auth_conf' is empty for '${domain}'${NC}" >&2 # ERROR
+        exit 2
+    fi
+    fg_backups_folder="/var/www/${domain}/fg_backups"
+    if [[ ! -d "${fg_backups_folder}" ]]; then
+        mkdir ${fg_backups_folder}
+        if [[ ! -d "${fg_backups_folder}" ]]; then
+            echo -e "${RED}Error: 'do_backup_conf()' the backup folder '${fg_backups_folder}' does not exist and could not be created in '${domain}'${NC}" >&2 # ERROR
+            exit 1
+        fi
+    fi
+    fg_backup_folder="${fg_backups_folder}/${fg_folder}"
+    if [[ ! -d "${fg_backup_folder}" ]]; then
+        mkdir ${fg_backup_folder}
+        if [[ ! -d "${fg_backup_folder}" ]]; then
+            echo -e "${RED}Error: 'do_backup_conf()' the backup folder '${fg_backup_folder}' does not exist and could not be created in '${domain}'${NC}" >&2 # ERROR
+            exit 1
+        fi
+    fi
+    fg_backup_conf="${fg_backup_folder}/configuration.php"
+    if [[ -f "${fg_backup_conf}" ]]; then
+        rm -f ${fg_backup_conf}
+        if [[ -f "${fg_backup_conf}" ]]; then
+            echo -e "${RED}Error: 'do_backup_conf()' the backup conf file '${fg_backup_conf}' is already exist and could not be removed in '${domain}'${NC}" >&2 # ERROR
+            exit 1
+        fi
+    fi
+    fg_backup_auth_conf="${fg_backup_folder}/users.json"
+    if [[ -f "${fg_backup_auth_conf}" ]]; then
+        rm -f ${fg_backup_auth_conf}
+        if [[ -f "${fg_backup_auth_conf}" ]]; then
+            echo -e "${RED}Error: 'do_backup_conf()' the backup auth conf file '${fg_backup_auth_conf}' is already exist and could not be removed in '${domain}'${NC}" >&2 # ERROR
+            exit 1
+        fi
+    fi
+    cp $fg_conf $fg_backup_conf
+    if [[ ! -f "${fg_backup_conf}" ]]; then
+        echo -e "${RED}Error: 'do_backup_conf()' the backup conf file '${fg_backup_conf}' could not be created in '${domain}'${NC}" >&2 # ERROR
+        exit 1
+    fi
+    cp $fg_auth_conf $fg_backup_auth_conf
+    if [[ ! -f "${fg_backup_auth_conf}" ]]; then
+        echo -e "${RED}Error: 'do_backup_conf()' the backup auth conf file '${fg_backup_auth_conf}' could not be created in '${domain}'${NC}" >&2 # ERROR
+        exit 1
+    fi
+}
+
+## Upgrade Filegator
+if [[ "${action}" == 'upgrade' || "${action}" == "$((i++))" ]]; then
+    install_composer
+    select_domain_mu
+    get_php_version
+    check_free_ram
+    processing_dependencies
+    # check php version
+    vercomp "${php_version}" "${MIN_PHP_VERSION}"
+    if [[ $? -eq 2 ]]; then
+        echo -e "${RED}Error: The FileGator requires PHP version '${MIN_PHP_VERSION}+'.The current PHP version '${php_version}' of '${domain}'.${NC}" >&2 # ERROR
+        exit 1
+    fi
+    get_fg_folders_domain
+    ask_fg_folder
+    get_fg_versions
+    ask_fg_version
+    if [[ "${fg_version}" == 'latest' ]]; then
+        fg_version="${fg_versions[0]}"
+    fi
+    if [[ ! " ${fg_versions[@]} " =~ " ${fg_version} " ]]; then
+        echo -e "${RED}Error: fg_version '${fg_folder}' is invalid in '${domain}'.${NC}" >&2 # ERROR
+        exit 1
+    fi
+    do_backup_conf
+    # remove target folder
+    rm -rf $fg_folder_path
+    if [[ -d "${fg_folder_path}" ]]; then
+        echo -e "${RED}Error: Could not remove '${fg_folder_path}' in '${domain}'.${NC}" >&2 # ERROR
+        exit 1
+    fi
+    # create target folder
+    mkdir "${fg_folder_path}"
+    if [[ ! -d "${fg_folder_path}" ]]; then
+        echo -e "${RED}Error: could not create '${fg_folder}' in '${domain}'.${NC}" >&2 # ERROR
+        exit 1
+    fi
+    # download *.zip archive
+    fg_filename="filegator_v${fg_version}.zip"
+    fg_filepath="${fg_folder_path}/${fg_filename}"
+    wget -P "${fg_folder_path}" "https://github.com/filegator/static/raw/master/builds/${fg_filename}"
+    if [[ ! -f "${fg_filepath}" ]]; then
+        echo -e "${RED}Error: download '${fg_filename}' failed in '${domain}'.${NC}" >&2 # ERROR
+        rm -rf ${fg_folder_path} > /dev/null 2>&1 # clear failed folder
+        exit 1
+    fi
+    # unzip
+    unzip "${fg_filepath}" -d "${fg_folder_path}" > /dev/null
+    if [[ ! -d "${fg_folder_path}/filegator" ]]; then
+        echo -e "${RED}Error: unzip '${fg_filename}' failed in '${domain}'.${NC}" >&2 # ERROR
+        rm -rf ${fg_folder_path} > /dev/null 2>&1 # clear failed folder
+        exit 1
+    fi
+    mv ${fg_folder_path}/filegator/* ${fg_folder_path}
+    if [[ $? -ne 0 ]]; then
+        echo -e "${RED}Error: mv unziped files to  '${fg_folder}' failed in '${domain}'.${NC}" >&2 # ERROR
+        rm -rf ${fg_folder_path} > /dev/null 2>&1 # clear failed folder
+        exit 1
+    fi
+    # restore configuration.php file
+    cp ${fg_backup_conf} ${fg_conf}
+    if [[ ! -f "${fg_conf}" ]]; then
+        echo -e "${RED}Error: could not restore configuration.php file in '${fg_folder}' in '${domain}'.${NC}" >&2 # ERROR
+        rm -rf ${fg_folder_path} > /dev/null 2>&1 # clear failed folder
+        exit 1
+    fi
+    # restore users.json
+    cp ${fg_backup_auth_conf} ${fg_auth_conf}
+    if [[ ! -f "${fg_auth_conf}" ]]; then
+        echo -e "${RED}Error: could not restore users.json file in '${fg_folder}' in '${domain}'.${NC}" >&2 # ERROR
+        rm -rf ${fg_folder_path} > /dev/null 2>&1 # clear failed folder
+        exit 1
+    fi
+    # clear
+    rmdir ${fg_folder_path}/filegator # remove /var/www/$domain/$fg_folder/filegator unzip tmp folder
+    if [[ -d "${fg_folder_path}/filegator" ]]; then
+        echo -e "${ORANGE}WARNING: rmdir unzip temp dir '${fg_folder}/filegator' failed in '${domain}'.${NC}" >&2 # ERROR
+    fi
+    rm -f ${fg_filepath} # remove zip file
+    if [[ -f "${fg_filepath}" ]]; then
+        echo -e "${ORANGE}WARNING: rm *.zip temp file '${fg_filename}' failed in '${domain}'.${NC}" >&2 # ERROR
+    fi
+    # chown to domain user
+    chown -R ${user_name}:www-data ${fg_folder_path}
+    if [[ $? -ne 0 ]]; then
+        echo -e "${RED}Error: chown '${fg_folder}' to '${user_name}' failed in '${domain}'.${NC}" >&2 # ERROR
+        rm -rf ${fg_folder_path} > /dev/null 2>&1 # clear failed folder
+        exit 1
+    fi
+    # enable write to group
+    chmod -R g+ws ${fg_folder_path}
+    if [[ $? -ne 0 ]]; then
+        echo -e "${RED}Error: chmod g+ws '${fg_folder}' failed in '${domain}'.${NC}" >&2 # ERROR
+        rm -rf ${fg_folder_path} > /dev/null 2>&1 # clear failed folder
+        exit 1
+    fi
+    # install adapters
+    install_sftp_adapter
+    install_dropbox_adapter
+    install_s3_adapter
+    install_azure_adapter
+    install_replicate_adapter
+    # clear backups
+    rm -rf ${fg_backup_conf}
+    if [[ -d "${fg_backup_conf}" ]]; then
+        echo -e "${ORANGE}Warning: Could not remove backup folder '${fg_backup_conf}' in '${domain}'${NC}"
+    fi
+    echo -e "${GREEN}FileGator ${SUCCESSFUL} updated on '${fg_folder}' to '${fg_version}' in '${domain}'${NC}"
+    exit_script
+fi
+## End Upgrade Filegator
+
+
+## List Root Filegator domains
+if [[ "${action}" == 'list_root_domains' || "${action}" == "$((i++))" ]]; then
+    echo
+    echo "List of ROOT Filegator domains"
+    echo
+    root_domain_index=1
+    for i_domain in $(ls /etc/nginx/sites-enabled/ | grep -v '^default$\|^monit$\|^monitorix$') ; do
+        if grep -q 'root_filegator_domain_label' /etc/nginx/sites-enabled/${i_domain}; then
+            echo "$((root_domain_index++)) ${i_domain}"
+        fi
+    done
+    if [[ "${root_domain_index}" -le 1 ]]; then
+        echo "There are no ROOT Filegator domains"
+    fi
+    exit_script
+fi
+## End List Root Filegator domains
+
+
+ask_install_root_domain() {
+    if [[ -z "${domain}" ]]; then
+        echo "Please, enter the name for the new Root Filegator domain"
+        read -p "New Root domain: " domain
+        while [[ -z domain ]]; do
+            echo "Empty input, try again"
+            read -p "New Root domain: " domain
+        done
+    fi
+    if [[ -e "/etc/nginx/sites-enabled/${domain}" ]]; then
+        echo -e "${RED}Error: domain is already exist: '${domain}'${NC}" >&2 # ERROR
+        exit 1
+    fi
+    init_domain_variables
+}
+
+## Add Root Filegator domain
+if [[ "${action}" == 'add_root_domain' || "${action}" == "$((i++))" ]]; then
+    user_name="www-data"
+    ask_install_root_domain
+    # create php pool
+    echo "[$domain]
+    user = www-data
+    group = www-data
+    listen = /run/php/php-fpm-$domain.sock
+    listen.owner = www-data
+    listen.group = www-data
+    pm = dynamic
+    pm.max_children = 5
+    pm.start_servers = 2
+    pm.min_spare_servers = 1
+    pm.max_spare_servers = 3
+    php_admin_value[open_basedir] = \"/var/www/:/tmp/\"
+    php_admin_value[allow_url_fopen] = 0
+    php_admin_value[allow_url_include] = 0
+    php_admin_value[disable_functions] =  dl, exec, fpassthru, getmypid, getmyuid, highlight_file, ignore_user_abort, link, opcache_get_configuration, passthru, pcntl_exec, pcntl_get_last_error, pcntl_setpriority, pcntl_strerror, pcntl_wifcontinued, phpinfo, popen, posix_ctermid, posix_getcwd, posix_getegid, posix_geteuid, posix_getgid, posix_getgrgid, posix_getgrnam, posix_getgroups, posix_getlogin, posix_getpgid, posix_getpgrp, posix_getpid, posix_getppid, posix_getpwnam, posix_getpwuid, posix_getrlimit, posix_getsid, posix_getuid, posix_isatty, posix_kill, posix_mkfifo, posix_setegid, posix_seteuid, posix_setgid, posix_setpgid, posix_setsid, posix_setuid, posix_times, posix_ttyname, posix_uname, proc_close, proc_get_status, proc_nice, proc_open, proc_terminate, shell_exec, show_source, source, system, virtual
+    php_admin_value[session.use_strict_mode] = 1
+    php_admin_value[session.cookie_httponly] = 1
+    php_admin_value[session.use_cookies] = 1
+    php_admin_value[session.use_only_cookies] = 1
+    php_admin_value[session.use_trans_sid] = 0" > /etc/php/7.4/fpm/pool.d/$domain.conf
+    systemctl reload php7.4-fpm || service php7.4-fpm reload
+    get_php_version # init php variables
+    # create ROOT Filegator domain NGINX conf
+    # it's very important to escape the variables and quotes within the echo
+echo "
+# root_filegator_domain_label
+include /etc/nginx/common/6g.conf;
+include /etc/nginx/userconfigs/http/*.conf;		# user custom configuration
+
+server {
+
+    include /etc/nginx/common/deny[.]conf;
+    include /etc/nginx/userconfigs/server/*.conf;	# user custom configuration
+    
+    listen 80;
+    listen [::]:80;
+
+    root /var/www/$domain/html;
+    index index.php index.html index.htm;
+
+    server_name $domain www.$domain;
+
+    client_max_body_size 512M;
+
+    # Needed for page-level caching when cache-enabler plugin is installed
+    include /etc/nginx/common/cache_enabler.conf;
+	
+    # Compress certain files with gzip.
+    include /etc/nginx/common/gzip[.]conf;
+	
+    # Cache certain filetypes in the browser
+    include /etc/nginx/common/browsercache[.]conf;
+
+    autoindex on;
+    autoindex_exact_size off;
+    autoindex_format html;
+    autoindex_localtime on;
+
+    # Handler for PHP files
+    location ~ \.php$ {
+        fastcgi_param PHP_VALUE \"
+        \";
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/run/php/php-fpm-$domain.sock;
+        fastcgi_buffers 16 32k;
+        fastcgi_buffer_size 64k;
+        fastcgi_busy_buffers_size 64k;		
+    }
+
+    # Security Headers	
+    add_header X-Frame-Options \"SAMEORIGIN\" always;
+    add_header X-XSS-Protection \"1; mode=block\" always;
+    add_header X-Content-Type-Options \"nosniff\" always;
+    add_header Referrer-Policy \"no-referrer, strict-origin-when-cross-origin\" always;
+    add_header X-Download-Options \"noopen\";
+    add_header Strict-Transport-Security \"max-age=30000000; includeSubDomains; preload\" always;
+	
+    # OSCP Settings
+    ssl_stapling on;
+    ssl_stapling_verify on;
+	
+    # include user custom configurations
+    include /etc/nginx/userconfigs/site/$domain-*.conf;
+}" > /etc/nginx/sites-enabled/$domain
+
+    mkdir -p /var/www/$domain/html/
+    echo "<html>
+    <head>
+        <title>FileGator ROOT</title>
+    </head>
+    <body>
+        <h1>FileGator ROOT instances</h1>
+        <ul>
+<?php
+\$html_path='/var/www/rfg1/html';
+if (\$handle = opendir(\$html_path)) {
+    while (false !== (\$entry = readdir(\$handle))) {
+        if (\$entry != '.' && \$entry != '..' && is_dir(\$html_path.'/'.\$entry) && is_file(\$html_path.'/'.\$entry.'/CONTRIBUTING.md')) {
+            \$content=file_get_contents(\$html_path.'/'.\$entry.'/CONTRIBUTING.md');
+            if(stripos(\$content,'filegator')) {
+                echo \"<li><a href='/\$entry/'>\$entry</a></li>\\n\";
+            }
+        }
+    }
+    closedir(\$handle);
+}
+?>
+        </ul>
+    </body>
+</html>" > "${domain_html}/index.php"
+
+    chown -R www-data:www-data ${domain_html}
+    chmod -R g+w ${domain_html}
+    chmod -R g+s ${domain_html}
+    NGINX_RELOAD=1
+
+    exit_script
+fi
+## End Add Root Filegator domain
+
+## Add Root Filegator domain
+if [[ "${action}" == 'remove_root_domain' || "${action}" == "$((i++))" ]]; then
+    user_name="www-data"
+    while [[ -z "${domain}" ]]; do
+        echo "Select a ROOT Filegator domain to remove"
+        root_domain_array=()
+        for i_domain in $(ls /etc/nginx/sites-enabled/ | grep -v '^default$\|^monit$\|^monitorix$') ; do
+            if grep -q 'root_filegator_domain_label' /etc/nginx/sites-enabled/${i_domain}; then
+                root_domain_array+=("${i_domain}")
+            fi
+        done
+        if [[ "${#root_domain_array[@]}" -lt 1 ]]; then
+            echo "There are no ROOT Filegator domains"
+            exit
+        fi
+        if [[ "${#root_domain_array[@]}" -eq 1 ]]; then
+            domain="${root_domain_array[site_number]}"
+        else
+            root_domain_index=1
+            for i_domain in "${root_domain_array[@]}"; do
+                echo "$((root_domain_index++)) ${i_domain}"
+            done
+            read -p "Select site: " site_number
+            until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -lt "${root_domain_index}" ]]; do
+                echo "$site_number: invalid selection."
+                read -p "Select site: " site_number
+            done
+            echo "$((site_number--))" > /dev/null
+            domain="${root_domain_array[site_number]}"
+        fi
+        init_domain_variables
+    done
+    if [[ ! -d "${domain_html}" ]]; then
+        echo -e "${RED}Error: ROOT Domain '${domain}' does not exist${NC}" >&2 # ERROR
+        exit 1
+    fi
+    # remove nginx conf
+    rm -f ${domain_conf}
+    if [[ -f "${domain_conf}" ]]; then
+        echo -e "${RED}Error: could not remove '${domain_conf}' in '${domain}'${NC}" >&2 # ERROR
+        exit 1
+    fi
+    NGINX_RELOAD=1
+    # remove site
+    rm -rf /var/www/${domain}
+    if [[ -d "/var/www/${domain}" ]]; then
+        echo -e "${RED}Error: could not remove '${domain_conf}' in '${domain}'${NC}" >&2 # ERROR
+        exit 1
+    fi
+    # remove php pool
+    get_php_version
+    rm -f ${php_domain_conf}
+    if [[ -f "${php_domain_conf}" ]]; then
+        echo -e "${RED}Error: could not remove '${domain_conf}' in '${domain}'${NC}" >&2 # ERROR
+        exit 1
+    fi
+    systemctl restart php${php_version}-fpm || service php${php_version}-fpm restart
+    #
+    exit_script
+fi
+
+echo -e "${RED}ERROR: Invalid action '${action}'${NC}"

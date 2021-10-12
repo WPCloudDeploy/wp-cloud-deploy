@@ -1,0 +1,729 @@
+/* the spinner - start */
+
+.locker, .locker-loader {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+}
+
+.locker {
+	z-index: 1000;
+	opacity: 0.8;
+	background-color: white;
+	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=80)";
+	filter: alpha(opacity=80);
+}
+
+.locker-loader {
+	z-index: 1001;
+	background: url(/wp-content/plugins/wp-cloud-deploy/assets/images/spinner.gif) no-repeat center center;
+}
+
+/* the spinner - end */
+
+/******************************************************************************************/
+
+/* Style popup                                                                            */
+
+/******************************************************************************************/
+
+.mfp-container {
+	/* Set the background of the popup */
+	background-color: #ECEFF1;
+}
+
+/* Title of popup screen */
+
+.wpcd-header {
+	margin-left: 20%;
+}
+
+.wpcd-header-title {
+	font-size: 48px;
+	margin-bottom: 0.25em;
+}
+
+/* Action label on the popup screen */
+
+.wpcd-action-title-wrap {
+	margin-bottom: 2em;
+}
+
+.wpcd-action-title {
+	font-size: 2em;
+	line-height: 2.2em;
+}
+
+/* The container that contains the fields for installing a new wordpress site. */
+
+.wpcd-install-app-container {
+	margin-bottom: 2em;
+}
+
+/* The container that contains the fields for creating a new server . */
+
+.wpcd-pre-install {
+	margin-bottom: 2em;
+}
+
+.wpcd-action-instructions {
+	margin-top: 1em;
+	font-style: italic;
+}
+
+.wpcd-popup {
+	/* This is the main content area */
+	width: 75%;
+	height: 100%;
+	margin-left: 20%;
+	margin-right: 10%;
+	padding-right: 20%;
+}
+
+.wpcd-popup. .wpcd-create-popup-console-wrap {
+	float: right;
+}
+
+.wpcd-popup .wpcd-log-wrap {
+	/* Wrapper around the main data area for logs */
+	background-color: #CFD8DC;
+	padding-top: 0.25em;
+	border: 1px solid #CFD8DC;
+	border-top-left-radius: 5px;
+	border-top-right-radius: 5px;
+	padding-left: 2em;
+	padding-right: 2em;
+	padding-bottom: 2em;
+}
+
+.wpcd-popup .wpcd-log-title {
+	/* The log area and command output title */
+	font-size: 2em;
+	margin-top: 1em;
+	margin-bottom: 1em;
+	margin-left: 5px;
+	color: #212121;
+}
+
+/* Put the input fields into the left column */
+
+.wpcd-popup .wpcd-create-popup-fields-wrap {
+	float: left;
+	width: 33%;
+}
+
+/* Make the input fields label bold and sized appropriately */
+
+.wpcd-popup .wpcd-create-popup-label {
+	font-weight: bold;
+	font-size: inherit;
+}
+
+.wpcd-popup .wpcd-create-popup-label-wrap {
+	margin-bottom: 0.5em;
+}
+
+/* Make the input elements have a bottom margin in case they wrap */
+
+#wpcd-install input, #wpcd-install select {
+	margin-bottom: 1em;
+	width: 100%;
+}
+
+#wpcd-install .wpcd-create-popup-input-wp-version-select2-wrap {
+	/* this one handles the wordpress versin dropdown on the popup screen that creates wordpress sites. */
+	margin-bottom: 1em;
+}
+
+#wpcd-install .wpcd-create-popup-input-wp-version-select2-wrap .select2-selection__rendered {
+	/* this attemps to make the select2 drop-down 100% wide on the create wordpress site popup screen. 
+	   unfortuately it doesn't work.
+	*/
+	min-width: 50%;
+}
+
+/* Terminal should be on the right */
+
+.wpcd-popup .wpcd-create-popup-console-wrap {
+	width: 65%;
+	float: right;
+}
+
+/* Style the actual command output area to look like a linux terminal */
+
+.wpcd-popup .wpcd-log-console {
+	background-color: black;
+	padding: 2em;
+	color: white;
+	overflow: scroll;
+	min-height: 300px;
+	max-height: 45vh;
+	margin-left: 1%;
+	margin-right: 1%;
+	border: solid 1px black;
+	border-radius: 5px;
+}
+
+/* format the pre-install text on the console */
+
+.wpcd-popup .wpcd-log-console .wpcd_pre_install_text {
+	/* nothing here - placeholder for future use if necessary  */
+}
+
+/* Make scrollbars in terminal almost invisible */
+
+.wpcd-popup .wpcd-log-console::-webkit-scrollbar {
+	width: 5px;
+}
+
+/* style the close button */
+
+.wpcd-popup .wpcd-log-close-wrap {
+	margin-top: 1em;
+}
+
+.wpcd-popup .wpcd-log-close-button {
+	margin: 1em;
+	background-color: transparent;
+}
+
+.wpcd-popup .wpcd-log-close-button a {
+	text-decoration: none;
+}
+
+/* Error message when there are no providers */
+
+.wpcd-popup .wpcd-no-providers {
+	font-size: 1.5em;
+	line-height: 1.75em;
+	color: red;
+	padding-top: 1em;
+	padding-bottom: 1em;
+	padding-left: 0.25em;
+	padding-right: 0.25em;
+	border: solid 1px red;
+}
+
+/* Hide the server type select dropdown since we're not currently using it */
+
+.wpcd-popup select[name="server_type"] {
+	display: none;
+}
+
+.wpcd-popup .wpcd-create-popup-label-wrap-for-server-type {
+	display: none;
+}
+
+/* Style the install button */
+
+/* NOTE: this is duplicated in wpcd-app.css */
+
+.wpcd-popup button.wpcd-install-button {
+	font-size: 1.25em;
+	background-color: green;
+	color: white;
+	border: solid 1px green;
+	box-shadow: none;
+	border-radius: 0px;
+	padding-left: 1.5em;
+	padding-right: 1.5em;
+	padding-top: 0.5em;
+	padding-bottom: 0.5em;
+}
+
+.wpcd-popup button.wpcd-install-button:hover {
+	background-color: var(--wpcd-primary-brand-color);
+	border-color: var(--wpcd-primary-brand-color);
+}
+
+.wpcd-install-app-container.wpcd-popup button.wpcd-install-button[disabled] {
+	/* Install button is disabled */
+	color: #a0a5aa!important;
+	border-color: #ddd!important;
+	background: #f7f7f7!important;
+	box-shadow: none!important;
+	cursor: not-allowed;
+	transform: none!important;
+}
+
+/* Hide domain error text */
+
+#wpcd-install .wpcd-create-popup-input-wrap span.error {
+	display: none;
+	color: #ff0000;
+}
+
+/* Error message when user does not have permission to install wordpress */
+
+.wpcd-popup .wpcd-no-install-wp-permission {
+	font-size: 1.5em;
+	line-height: 1.75em;
+	color: #ff0000;
+}
+
+/* The error message under the input field */
+
+.wp_field_error {
+	display: none;
+	color: red;
+	margin-bottom: 20px;
+}
+
+/* The descriptions under certain fields on the form popups */
+
+.wpcd-create-popup-field-desc {
+	font-size: 12px;
+	margin-top: -10px;
+	margin-bottom: 1em;
+	font-style: italic;
+}
+
+/******************************************************************************************/
+
+/* Style Metabox.io Tabs in the wp-app-server screen                                      */
+
+/******************************************************************************************/
+
+/* Set a min height to the tab container */
+
+div[id^='wpcd_server_wordpress-app'] {
+	min-height: 300px !important;
+	padding-left: 1em !important;
+	padding-right: 1em !important;
+}
+
+/* If we're painting tabs vertically we have an extra metabox at the top of the screen - we don't want this to be too big */
+
+#wpcd_server_wordpress-app_tab_top_of_server_details {
+	min-height: 10px !important;
+	margin-top: 0px !important;
+	padding-top: 0px !important;
+	margin-left: 1%;
+	margin-right: 1%;
+}
+
+/* And we want some styling on that extra metabox ! */
+
+#wpcd_server_wordpress-app_tab_top_of_server_details {
+	color: white;
+	word-wrap: break-word;
+	margin-bottom: 0px;
+	background-image: linear-gradient(var(--wpcd-accent-background-color), #4c5b71 80%);
+}
+
+#wpcd_server_wordpress-app_tab_top_of_server_details a {
+	/* links in this top metabox need a different color to make it stand out. */
+	color: var(--wpcd-alternate-accent-background-color);
+}
+
+/* Add some padding around each tab and make the font a little bigger.*/
+
+.wpcd-wpapp-actions .rwmb-tab-nav li[class^='rwmb-tab-'] a {
+	padding-left: 1.25em !important;
+	padding-right: 1.25em !important;
+	padding-top: 1.2em !important;
+	padding-bottom: 1.2em !important;
+	font-size: 1.1em;
+}
+
+/* If the tabs are being painted vertically put some more padding on the right */
+
+.wpcd-wpapp-actions .rwmb-tabs-left .rwmb-tab-nav li[class^='rwmb-tab-'] a {
+	padding-right: 5em !important;
+	padding-top: 1.0em !important;
+	padding-bottom: 1.0em !important;
+}
+
+/* Background color and text for tabs - vertical */
+
+.wpcd-wpapp-actions .rwmb-tabs-left .rwmb-tab-nav {
+	background-color: var(--wpcd-accent-background-color);
+}
+
+.wpcd-wpapp-actions .rwmb-tabs-left .rwmb-tab-nav .rwmb-tab-active {
+	background-image: linear-gradient( to right, var(--wpcd-accent-background-color), var(--wpcd-accent-background-color) 50%, var(--wpcd-alternate-accent-background-color) 50%);
+	background-size: 200% 100%;
+	background-position: 100%;
+	transition: all 0.5s cubic-bezier(0.000, 0.000, 0.230, 1);
+}
+
+.wpcd-wpapp-actions .rwmb-tabs-left .rwmb-tab-nav a {
+	color: white;
+}
+
+.wpcd-wpapp-actions .rwmb-tabs-left .rwmb-tab-nav .rwmb-tab-active a {
+	color: var(--wpcd-primary-brand-color);
+	font-weight: bold;
+}
+
+/* Hover color for vertical tabs */
+
+.wpcd-wpapp-actions .rwmb-tabs-left .rwmb-tab-nav a:hover {
+	color: var(--wpcd-primary-brand-color);
+	transition: all 1s cubic-bezier(0.000, 0.000, 0.230, 1);
+}
+
+/* Remove some excess space below the tab navigation row */
+
+.wpcd-wpapp-actions .rwmb-tab-nav {
+	margin-bottom: 0.01px !important;
+}
+
+/* Font awesome pro icons need a little it more margin... */
+
+.wpcd-wpapp-actions .rwmb-tab-nav i {
+	margin-right: .5em;
+}
+
+/* The first row at the top of the server screen needs some extra love - bigger fonts for values. */
+
+.wpcd_server_details_top_row {
+	font-size: 1.2em !important;
+	/* font-weight: bold !important; */
+	margin-top: 1em !important;
+	word-wrap: break-word;
+}
+
+.wpcd_server_details_top_row .rwmb-label {
+	/* smaller fonts for the labels */
+	font-size: 0.75em !important;
+	color: var(--wpcd-primary-brand-color);
+}
+
+@media only screen and (max-width: 1300px) {
+	/* As the screen gets smaller decrease the size of the font for values though. */
+	.wpcd_server_details_top_row {
+		font-size: 1.1em !important;
+	}
+}
+
+/* Add some padding to the content area of the tab */
+
+.wpcd-wpapp-actions .rwmb-tab-panel {
+	padding-left: 2em !important;
+	padding-right: 2em !important;
+}
+
+@media only screen and (max-width: 1600px) {
+	/* As the screen gets smaller wrap the 4th & 5th columns */
+	.wpcd-wpapp-actions .rwmb-tab-panel .rwmb-column.rwmb-column-5, .wpcd-wpapp-actions .rwmb-tab-panel .rwmb-column.rwmb-column-4 {
+		width: 100%;
+	}
+}
+
+@media only screen and (max-width: 1450px) {
+	/* As the screen gets smaller wrap all other columns */
+	.wpcd-wpapp-actions .rwmb-tab-panel .rwmb-column.rwmb-column-1, .wpcd-wpapp-actions .rwmb-tab-panel .rwmb-column.rwmb-column-2, .wpcd-wpapp-actions .rwmb-tab-panel .rwmb-column.rwmb-column-3 {
+		width: 100%;
+		padding-top: 0.25em;
+		padding-bottom: 0.25e;
+	}
+}
+
+/* Font for section headings need to be a little larger */
+
+.wpcd-wpapp-actions h4 {
+	font-size: 1.2em !important;
+	margin-top: 1.2em !important;
+	color: var(--wpcd-primary-brand-color);
+}
+
+.wpcd-wpapp-actions #wpcd_app_action_services-header, .wpcd-wpapp-actions #wpcd_app_action_ufw-ports-header, .wpcd-wpapp-actions #wpcd_app_action_aws-s3-credentials-header, .wpcd-wpapp-actions #wpcd_app_action_monitorix-header, .wpcd-wpapp-actions #wpcd_app_action_ssh-console-header, .wpcd-wpapp-actions #wpcd_app_action_show-server-diskspace-used-header, .wpcd-wpapp-actions #wpcd_app_action_server-upgrade-header, .wpcd-wpapp-actions #wpcd_app_action_server-sync-header {
+	/* This targets the first heading section on each of the server tab pages and makes sure its top margin is set to zero so that there isn't excess white space on the screen */
+	margin-top: 0em !important;
+}
+
+/* Make field descriptions be regular font instead of italic */
+
+.wpcd-wpapp-actions .rwmb-field .description {
+	font-style: inherit !important;
+}
+
+/* On the SSH console tab, make the console field look more like a terminal - black background with white text */
+
+.wpcd-wpapp-actions #wpcd_app_action_ssh-console-cmd {
+	background-color: black;
+	color: white;
+	padding-left: 1em;
+}
+
+/* On the SSH console tab, make the security warning red */
+
+.wpcd-wpapp-actions #wpcd_app_action_ssh-console-security-warning-description {
+	color: red;
+	font-weight: bold;
+}
+
+@media only screen and (max-width: 1600px) {
+	/* As the screen gets smaller, we want the column divs in the tabs to wrap - we can do that by making the width 100% */
+	#wpcd_server_wordpress-app_tab2 .rwmb-column {
+		width: 100%;
+	}
+}
+
+/* End style Metabox.io Tabs in the wp-app-server screen */
+
+/******************************************************************************************/
+
+/* Style Select2 in the wp-app-server listing screen                                      */
+
+/******************************************************************************************/
+
+#wpcd-install .select2-container {
+	margin-top: -2px;
+}
+
+#wpcd-install .select2-selection__rendered {
+	line-height: 31px !important;
+}
+
+#wpcd-install .select2-container .select2-selection--single {
+	height: 31px !important;
+}
+
+#wpcd-install .select2-selection__arrow {
+	height: 31px !important;
+}
+
+#wpcd-install .select2-container .select2-selection--single, #wpcd-install .select2-container--open .select2-dropdown {
+	border-color: #7e8993;
+}
+
+/* End Style Select2 in the wp-app-server listing screen */
+
+/******************************************************************************************/
+
+/* Style the INSTALL WORDPRESS button on the server listing screen                        */
+
+/* @TODO: This needs to be placed in a server specific wpapp css file later.              */
+
+/******************************************************************************************/
+
+button.wpcd_action_install_app.button {
+	background-color: #1B5E20;
+	color: white !important;
+}
+
+button.wpcd_action_install_app.button:hover {
+	background-color: var(--wpcd-tertiary-brand-color);
+	border-color: var(--wpcd-tertiary-brand-color) !important;
+	color: white !important;
+}
+
+/******************************************************************************************/
+
+/* Style our custom classes used inside certain metabox.io metaboxes.                     */
+
+/******************************************************************************************/
+
+.wpcd_no_data {
+	/* used when we have no data to show in a custom html field */
+	margin-top: 2em;
+	margin-bottom: 2em;
+	font-size: 1.5em;
+	color: var(--wpcd-primary-brand-color);
+	text-align: center;
+	border: 1px solid #CFD8DC;
+	padding: 1em;
+}
+
+.wpcd_push_data {
+	/* Put a box around the data section */
+	border: 1px solid #CFD8DC;
+	padding: 1em;
+}
+
+.wpcd_push_data_reporting_time {
+	font-weight: bold;
+}
+
+.wpcd_server_status_push_data_inner_wrap, .wpcd_maldet_scan_push_data_inner_wrap {
+	/* Used on the SERVER CALLBACKS & SERVICES (malware) tab - server status callback section */
+	display: grid;
+	grid-template-areas: "i i ";
+	/*1 row, 2 columns */
+	grid-template-columns: 1fr 1fr 1fr 1fr;
+	/* Each row has four columns  */
+	margin-bottom: 1em;
+	font-size: 1em;
+}
+
+.wpcd_push_data_label_item {
+	/* Used on the SERVER CALLBACKS tab - server status callback section */
+	margin-bottom: 1em;
+	margin-right: 1em;
+	color: var(--wpcd-primary-brand-color);
+}
+
+.wpcd_push_data_value_item {
+	/* Used on the SERVER CALLBACKS tab - server status callback section */
+	margin-bottom: 1em;
+	margin-right: 1em;
+	font-weight: bold;
+}
+
+/* Used on the SERVER STATISTICS tab */
+
+.wpcd-stat-switch-wrapper {
+	text-align: right;
+}
+
+a.wpcd-stat-switch.active {
+	font-weight: bold;
+	text-decoration: none;
+}
+
+a.wpcd-stat-switch {
+	display: inline-block;
+	margin: 5px;
+	box-shadow: none;
+}
+
+/******************************************************************************************/
+
+/* Style data in individual columns on the server list screen.                            */
+
+/******************************************************************************************/
+
+/* general styling for free disk space & free ram data */
+
+.wpcd_waiting_for_data_column,
+.wpcd_disk_free_space_pct_wrap,
+.wpcd_ram_free_space_pct_wrap,
+.wpcd_restart_needed_wrap,
+.wpcd_sec_updates_wrap,
+.wpcd_linux_updates_wrap,
+.wpcd_malware_found_wrap {
+	display: inline-block;
+	padding: 2px 8px;
+	font-weight: 700;
+	vertical-align: baseline;
+	border-radius: 3px;
+	border-color: green !important;
+	/* Not sure why important is needed for this one but oh well. */
+	border: solid;
+	border-width: 2px;
+	margin: 2px;
+	margin-left: 0px;
+	width: 90%;
+}
+
+.wpcd_waiting_for_data_column {
+	border-color: orange !important;
+}
+
+.wpcd_restart_needed_wrap {
+	border-color: red !important;
+	color: white;
+	background-color: red;
+	text-align: center;
+}
+
+.wpcd_sec_updates_wrap {
+	border-color: darkred !important;
+	color: white;
+	background-color: darkred;
+	text-align: center;
+}
+
+.wpcd_linux_updates_wrap {
+	border-color: gray !important;
+	text-align: center;
+}
+
+.wpcd_malware_found_wrap {
+	font-weight: normal;
+	border-color: #ff1744 !important;
+	color: white;
+	background-color: #ff1744;
+}
+
+.wpcd_ram_free_space_pct_wrap {
+	text-align: center;
+}
+
+.wpcd_disk_free_space_pct_wrap_critical, .wpcd_ram_free_space_pct_wrap_critical {
+	border-color: red !important;
+}
+
+.wpcd_disk_free_space_pct_wrap_warning, .wpcd_ram_free_space_pct_wrap_warning {
+	border-color: orange !important;
+}
+
+.wpcd_ram_free_space_pct_wrap {
+	color: white;
+	background-color: green;
+}
+
+.wpcd_ram_free_space_pct_wrap_critical {
+	background-color: red;
+}
+
+.wpcd_ram_free_space_pct_wrap_warning {
+	background-color: orange;
+}
+
+/* For when a server has an operation in progres... */
+
+.wpcd_server_actions_op_in_progress {
+	padding: 2px 8px;
+	vertical-align: baseline;
+	border-radius: 3px;
+	border-color: red !important;
+	/* Not sure why important is needed for this one but oh well. */
+	background-color: red;
+	color: white;
+	border: solid;
+	border-width: 2px;
+	margin: 2px;
+	margin-left: 0px;
+	width: 90%;
+}
+
+/* Custom Tooltip CSS */
+
+.wpcd_custom_tooltip {
+	position: relative;
+	display: inline-block;
+}
+
+.wpcd_custom_tooltip .wpcd_custom_tooltiptext {
+	visibility: hidden;
+	width: 400px;
+	background-color: #444;
+	color: #fff;
+	text-align: left;
+	border-radius: 6px;
+	padding: 10px 10px;
+	position: absolute;
+	z-index: 99999;
+	bottom: 125%;
+	left: 50%;
+	margin-left: -60px;
+	opacity: 0;
+	transition: opacity 0.3s;
+}
+
+.wpcd_custom_tooltip .wpcd_custom_tooltiptext::after {
+	content: "";
+	position: absolute;
+	top: 100%;
+	left: 15%;
+	margin-left: -5px;
+	border-width: 5px;
+	border-style: solid;
+	border-color: #555 transparent transparent transparent;
+}
+
+.wpcd_custom_tooltip:hover .wpcd_custom_tooltiptext {
+	visibility: visible;
+	opacity: 1;
+}
+
+.wpcd_custom_tooltip .dashicons-info:before {
+	font-size: 18px;
+}
+
+/**/

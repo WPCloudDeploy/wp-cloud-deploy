@@ -1,0 +1,247 @@
+#!/bin/bash
+# This script will upgrade the performance profile of the tech stack for wpcd/fireupwp on versions prior to 4.6.0
+
+if [[ "$EUID" -ne 0 ]]; then
+	echo "Sorry, you need to run this as root"
+	exit
+fi
+
+# Backup files that we will be modifying.
+wpcd406backupdate=$( date +%s )
+wpcd406backupdir=".wpcd-upgrade-backup-$wpcd406backupdate"
+mkdir $wpcd406backupdir
+mkdir $wpcd406backupdir/sites-enabled
+mkdir $wpcd406backupdir/php
+cp /etc/nginx/nginx.conf $wpcd406backupdir
+cp /etc/nginx/sites-enabled/* $wpcd406backupdir/sites-enabled
+cp /etc/php/5.6/fpm/php.ini $wpcd406backupdir/php/php-56.ini
+cp /etc/php/7.1/fpm/php.ini $wpcd406backupdir/php/php-71.ini
+cp /etc/php/7.2/fpm/php.ini $wpcd406backupdir/php/php-72.ini
+cp /etc/php/7.3/fpm/php.ini $wpcd406backupdir/php/php-73.ini
+cp /etc/php/7.4/fpm/php.ini $wpcd406backupdir/php/php-74.ini
+cp /etc/php/8.0/fpm/php.ini $wpcd406backupdir/php/php-80.ini
+
+echo "Adding entries to php.ini to enable opcache..."
+sed -i "s/;opcache.enable=1/opcache.enable=1/g" /etc/php/5.6/fpm/php.ini
+sed -i "s/;opcache.enable=1/opcache.enable=1/g" /etc/php/7.1/fpm/php.ini
+sed -i "s/;opcache.enable=1/opcache.enable=1/g" /etc/php/7.2/fpm/php.ini
+sed -i "s/;opcache.enable=1/opcache.enable=1/g" /etc/php/7.3/fpm/php.ini
+sed -i "s/;opcache.enable=1/opcache.enable=1/g" /etc/php/7.4/fpm/php.ini
+sed -i "s/;opcache.enable=1/opcache.enable=1/g" /etc/php/8.0/fpm/php.ini
+
+sed -i "s/;opcache.enable_cli=0/opcache.enable_cli=1/g" /etc/php/5.6/fpm/php.ini
+sed -i "s/;opcache.enable_cli=0/opcache.enable_cli=1/g" /etc/php/7.1/fpm/php.ini
+sed -i "s/;opcache.enable_cli=0/opcache.enable_cli=1/g" /etc/php/7.2/fpm/php.ini
+sed -i "s/;opcache.enable_cli=0/opcache.enable_cli=1/g" /etc/php/7.3/fpm/php.ini
+sed -i "s/;opcache.enable_cli=0/opcache.enable_cli=1/g" /etc/php/7.4/fpm/php.ini
+sed -i "s/;opcache.enable_cli=0/opcache.enable_cli=1/g" /etc/php/8.0/fpm/php.ini
+
+sed -i "s/;opcache.interned_strings_buffer=8/opcache.interned_strings_buffer=8/g" /etc/php/5.6/fpm/php.ini
+sed -i "s/;opcache.interned_strings_buffer=8/opcache.interned_strings_buffer=8/g" /etc/php/7.1/fpm/php.ini
+sed -i "s/;opcache.interned_strings_buffer=8/opcache.interned_strings_buffer=8/g" /etc/php/7.2/fpm/php.ini
+sed -i "s/;opcache.interned_strings_buffer=8/opcache.interned_strings_buffer=8/g" /etc/php/7.3/fpm/php.ini
+sed -i "s/;opcache.interned_strings_buffer=8/opcache.interned_strings_buffer=8/g" /etc/php/7.4/fpm/php.ini
+sed -i "s/;opcache.interned_strings_buffer=8/opcache.interned_strings_buffer=8/g" /etc/php/8.0/fpm/php.ini
+
+sed -i "s/;opcache.max_accelerated_files=10000/opcache.max_accelerated_files=100000/g" /etc/php/5.6/fpm/php.ini
+sed -i "s/;opcache.max_accelerated_files=10000/opcache.max_accelerated_files=100000/g" /etc/php/7.1/fpm/php.ini
+sed -i "s/;opcache.max_accelerated_files=10000/opcache.max_accelerated_files=100000/g" /etc/php/7.2/fpm/php.ini
+sed -i "s/;opcache.max_accelerated_files=10000/opcache.max_accelerated_files=100000/g" /etc/php/7.3/fpm/php.ini
+sed -i "s/;opcache.max_accelerated_files=10000/opcache.max_accelerated_files=100000/g" /etc/php/7.4/fpm/php.ini
+sed -i "s/;opcache.max_accelerated_files=10000/opcache.max_accelerated_files=100000/g" /etc/php/8.0/fpm/php.ini
+
+sed -i "s/;opcache.memory_consumption=128/opcache.memory_consumption=128/g" /etc/php/5.6/fpm/php.ini
+sed -i "s/;opcache.memory_consumption=128/opcache.memory_consumption=128/g" /etc/php/7.1/fpm/php.ini
+sed -i "s/;opcache.memory_consumption=128/opcache.memory_consumption=128/g" /etc/php/7.2/fpm/php.ini
+sed -i "s/;opcache.memory_consumption=128/opcache.memory_consumption=128/g" /etc/php/7.3/fpm/php.ini
+sed -i "s/;opcache.memory_consumption=128/opcache.memory_consumption=128/g" /etc/php/7.4/fpm/php.ini
+sed -i "s/;opcache.memory_consumption=128/opcache.memory_consumption=128/g" /etc/php/8.0/fpm/php.ini
+
+sed -i "s/;opcache.save_comments=1/opcache.save_comments=1/g" /etc/php/5.6/fpm/php.ini
+sed -i "s/;opcache.save_comments=1/opcache.save_comments=1/g" /etc/php/7.1/fpm/php.ini
+sed -i "s/;opcache.save_comments=1/opcache.save_comments=1/g" /etc/php/7.2/fpm/php.ini
+sed -i "s/;opcache.save_comments=1/opcache.save_comments=1/g" /etc/php/7.3/fpm/php.ini
+sed -i "s/;opcache.save_comments=1/opcache.save_comments=1/g" /etc/php/7.4/fpm/php.ini
+sed -i "s/;opcache.save_comments=1/opcache.save_comments=1/g" /etc/php/8.0/fpm/php.ini
+
+sed -i "s/;opcache.revalidate_freq=2/opcache.revalidate_freq=1/g" /etc/php/5.6/fpm/php.ini
+sed -i "s/;opcache.revalidate_freq=2/opcache.revalidate_freq=1/g" /etc/php/7.1/fpm/php.ini
+sed -i "s/;opcache.revalidate_freq=2/opcache.revalidate_freq=1/g" /etc/php/7.2/fpm/php.ini
+sed -i "s/;opcache.revalidate_freq=2/opcache.revalidate_freq=1/g" /etc/php/7.3/fpm/php.ini
+sed -i "s/;opcache.revalidate_freq=2/opcache.revalidate_freq=1/g" /etc/php/7.4/fpm/php.ini
+sed -i "s/;opcache.revalidate_freq=2/opcache.revalidate_freq=1/g" /etc/php/8.0/fpm/php.ini
+
+sed -i "s/;opcache.use_cwd=1/opcache.use_cwd=1/g" /etc/php/5.6/fpm/php.ini
+sed -i "s/;opcache.use_cwd=1/opcache.use_cwd=1/g" /etc/php/7.1/fpm/php.ini
+sed -i "s/;opcache.use_cwd=1/opcache.use_cwd=1/g" /etc/php/7.2/fpm/php.ini
+sed -i "s/;opcache.use_cwd=1/opcache.use_cwd=1/g" /etc/php/7.3/fpm/php.ini
+sed -i "s/;opcache.use_cwd=1/opcache.use_cwd=1/g" /etc/php/7.4/fpm/php.ini
+sed -i "s/;opcache.use_cwd=1/opcache.use_cwd=1/g" /etc/php/8.0/fpm/php.ini
+
+sed -i "s/;opcache.validate_root=0/opcache.validate_root=1/g" /etc/php/5.6/fpm/php.ini
+sed -i "s/;opcache.validate_root=0/opcache.validate_root=1/g" /etc/php/7.1/fpm/php.ini
+sed -i "s/;opcache.validate_root=0/opcache.validate_root=1/g" /etc/php/7.2/fpm/php.ini
+sed -i "s/;opcache.validate_root=0/opcache.validate_root=1/g" /etc/php/7.3/fpm/php.ini
+sed -i "s/;opcache.validate_root=0/opcache.validate_root=1/g" /etc/php/7.4/fpm/php.ini
+sed -i "s/;opcache.validate_root=0/opcache.validate_root=1/g" /etc/php/8.0/fpm/php.ini
+
+sed -i "s/;opcache.validate_permission=0/opcache.validate_permission=1/g" /etc/php/5.6/fpm/php.ini
+sed -i "s/;opcache.validate_permission=0/opcache.validate_permission=1/g" /etc/php/7.1/fpm/php.ini
+sed -i "s/;opcache.validate_permission=0/opcache.validate_permission=1/g" /etc/php/7.2/fpm/php.ini
+sed -i "s/;opcache.validate_permission=0/opcache.validate_permission=1/g" /etc/php/7.3/fpm/php.ini
+sed -i "s/;opcache.validate_permission=0/opcache.validate_permission=1/g" /etc/php/7.4/fpm/php.ini
+sed -i "s/;opcache.validate_permission=0/opcache.validate_permission=1/g" /etc/php/8.0/fpm/php.ini
+
+sed -i "s/;opcache.file_update_protection=2/opcache.file_update_protection=60/g" /etc/php/5.6/fpm/php.ini
+sed -i "s/;opcache.file_update_protection=2/opcache.file_update_protection=60/g" /etc/php/7.1/fpm/php.ini
+sed -i "s/;opcache.file_update_protection=2/opcache.file_update_protection=60/g" /etc/php/7.2/fpm/php.ini
+sed -i "s/;opcache.file_update_protection=2/opcache.file_update_protection=60/g" /etc/php/7.3/fpm/php.ini
+sed -i "s/;opcache.file_update_protection=2/opcache.file_update_protection=60/g" /etc/php/7.4/fpm/php.ini
+sed -i "s/;opcache.file_update_protection=2/opcache.file_update_protection=60/g" /etc/php/8.0/fpm/php.ini
+
+# Configure NGINX to accept extra-long domain names (the seven back-slashes are to insert spaces before the actual line is inserted)
+echo "Configuring nginx to accept longer domain names..."
+sed -i '/^http {/a \ \n \ \ \ \ \ \ \ # Accept extra-long domain names \n \ \ \ \ \ \ \ server_names_hash_bucket_size 128;' /etc/nginx/nginx.conf
+
+# Configure nginx worker_cpu_affinity, worker_rlimit_nofile, pcre_jit, multi_accept, worker_connections, accept_mutex, epoll
+echo "Configuring nginx to add new directives for cpu_affinity, worker_rlimit and more..."
+sed -i '/^worker_processes auto;/a worker_cpu_affinity auto;' /etc/nginx/nginx.conf
+sed -i '/^worker_processes auto;/a worker_rlimit_nofile 100000;' /etc/nginx/nginx.conf
+sed -i '/^pid \/run\/nginx.pid;/a pcre_jit on;' /etc/nginx/nginx.conf
+
+sed -i "s/# multi_accept on;/multi_accept on;/g" /etc/nginx/nginx.conf  ## Search for commented out multi_accept_on and uncomment it.
+sed -i "s/worker_connections 768;/worker_connections 2048;/g" /etc/nginx/nginx.conf  ## search for existing worker_connections directive and increase it.
+
+sed -i '/^events {/a \ \ \ \ \ \ \ \ use epoll;' /etc/nginx/nginx.conf  ## add epoll directive to events block
+sed -i '/^events {/a \ \ \ \ \ \ \ \ accept_mutex on;' /etc/nginx/nginx.conf ## add accept_mutex directive to events block
+
+sed -i '/^http {/a \ \n \ \ \ \ \ \ \ # AIO: See https://www.nginx.com/blog/thread-pools-boost-performance-9x/ and http://nginx.org/en/docs/http/ngx_http_core_module.html#aio \n \ \ \ \ \ \ \ aio threads;' /etc/nginx/nginx.conf  ## AIO threads
+sed -i '/^http {/a \ \ \ \ \ \ \ \ variables_hash_bucket_size 512;' /etc/nginx/nginx.conf ## increase size of hash table
+sed -i '/^http {/a \ \ \ \ \ \ \ \ variables_hash_max_size 4096;' /etc/nginx/nginx.conf  ## increase size of hash table
+sed -i '/^http {/a \ \ \ \ \ \ \ \ keepalive_timeout 8;' /etc/nginx/nginx.conf ## add keepalive_timeout directive to http block to reduce keep_alive directive from the default 75s to 8s.
+sed -i '/^http {/a \ \ \ \ \ \ \ \ reset_timedout_connection on;' /etc/nginx/nginx.conf ## add reset_timedout_connection directive to remove data from memory as soon as a connection times out. See http://nginx.org/en/docs/http/ngx_http_core_module.html#reset_timedout_connection
+
+# create /etc/nginx/common/gzip.conf which contains needed configuration to enable gzip for certain file types
+echo "Adding new files into the NGINX common configuration folder..."
+cat > /etc/nginx/common/gzip.conf << 'EOF'
+##
+	# Gzip Settings
+	##
+
+	gzip on;
+	
+	gzip_disable "msie6";
+
+	gzip_vary on;
+	gzip_static on;
+	gzip_proxied expired no-cache no-store private auth;
+	gzip_comp_level 6;
+	gzip_buffers 32 16k;
+	gzip_http_version 1.1;
+	gzip_min_length 10240;
+	
+	gzip_types
+	application/atom+xml
+	application/geo+json
+	application/javascript
+	application/json
+	application/ld+json
+	application/manifest+json
+	application/rdf+xml
+	application/rss+xml
+	application/vnd.ms-fontobject
+	application/wasm
+	application/x-font-opentype
+	application/x-font-truetype
+	application/x-font-ttf
+	application/x-javascript
+	application/x-web-app-manifest+json
+	application/xhtml+xml
+	application/xml
+	application/xml+rss
+	font/eot
+	font/opentype
+	font/otf
+	image/bmp
+	image/svg+xml
+	image/vnd.microsoft.icon
+	image/x-icon
+	image/x-win-bitmap
+	text/cache-manifest
+	text/calendar
+	text/css
+	text/javascript
+	text/markdown
+	text/plain
+	text/vcard
+	text/vnd.rim.location.xloc
+	text/vtt
+	text/x-component
+	text/x-cross-domain-policy
+	text/xml;
+EOF
+
+# create /etc/nginx/common/browsercache.conf which contains items that should be cached by the browser
+cat > /etc/nginx/common/browsercache.conf << 'EOF'
+
+# Graphics files should be cached by the browser for long periods of time
+location ~* \.(?:ogg|ogv|svg|svgz|eot|otf|woff|woff2|ttf|jpg|jpeg|gif|png|ico|bmp|swf)$ {
+
+	add_header Cache-Control "public, max-age=30000000, stale-while-revalidate=7, stale-if-error=7";
+	access_log off;
+	log_not_found off;
+	expires 300d;
+	
+}
+
+# CSS and JS files should be cached by the browser for short periods of time
+location ~* \.(?:css|js|less|scss)$ {
+
+	add_header Cache-Control "public, max-age=600000, stale-while-revalidate=7, stale-if-error=7";
+	access_log off;
+	log_not_found off;
+	expires 7d;
+	
+}
+
+EOF
+
+# Make sure we include the /etc/nginx/userconfigs/http/*.conf files in the nginx.conf file.
+sed -i '/include \/etc\/nginx\/conf.d\/\*.conf;/a \ \ \ \ \ \ \ \ include \/etc\/nginx\/userconfigs\/http\/*[.]conf;' /etc/nginx/nginx.conf  
+
+# Process each of the sites on the server and insert new lines into their config files.
+ls /etc/nginx/sites-enabled/* |
+while read -r line
+do
+	echo "upgrading file and domain: $line"
+	
+	# OSCP Settings
+	sed -i '/include \/etc\/nginx\/common\/cache_enabler.conf;/a \ \ \ \ ssl_stapling_verify on;' $line
+	sed -i '/include \/etc\/nginx\/common\/cache_enabler.conf;/a \ \n \ \ \ #OSCP Settings. \n \ \ \ ssl_stapling on;' $line		
+	
+	# Security Headers
+	sed -i '/include \/etc\/nginx\/common\/cache_enabler.conf;/a \ \ \ \ add_header Strict-Transport-Security \"max-age=30000000; includeSubDomains; preload\" always;' $line
+	sed -i '/include \/etc\/nginx\/common\/cache_enabler.conf;/a \ \ \ \ add_header X-Download-Options \"noopen\";' $line
+	sed -i '/include \/etc\/nginx\/common\/cache_enabler.conf;/a \ \ \ \ add_header Referrer-Policy \"no-referrer, strict-origin-when-cross-origin\" always;' $line
+	sed -i '/include \/etc\/nginx\/common\/cache_enabler.conf;/a \ \ \ \ add_header X-Content-Type-Options \"nosniff\" always;' $line
+	sed -i '/include \/etc\/nginx\/common\/cache_enabler.conf;/a \ \ \ \ add_header X-XSS-Protection \"1; mode=block\" always;' $line
+	sed -i '/include \/etc\/nginx\/common\/cache_enabler.conf;/a \ \n \ \ \ #Security Headers. \n \ \ \ add_header X-Frame-Options \"SAMEORIGIN\" always;' $line
+	
+	# Include the browser cache configuration
+	sed -i '/include \/etc\/nginx\/common\/cache_enabler.conf;/a \ \n \ \ \ #Cache certain filtypes in the browser. \n \ \ \ include /etc/nginx/common/browsercache[.]conf;' $line		
+	
+	# Include the gzip configuration
+	sed -i '/include \/etc\/nginx\/common\/cache_enabler.conf;/a \ \n \ \ \ #Compress certain files with gzip. \n \ \ \ include /etc/nginx/common/gzip[.]conf;' $line	
+		
+done
+
+service nginx restart
+
+systemctl restart php5.6-fpm
+systemctl restart php7.1-fpm
+systemctl restart php7.2-fpm
+systemctl restart php7.3-fpm
+systemctl restart php7.4-fpm
+systemctl restart php8.0-fpm
+
+echo 'upgrade completed'

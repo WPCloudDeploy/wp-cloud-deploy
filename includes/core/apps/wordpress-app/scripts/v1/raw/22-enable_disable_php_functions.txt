@@ -1,0 +1,89 @@
+#!/bin/bash
+
+# Enable or disable PHP functions for a site
+
+# Required variables for unattended usage:
+# $domain = domain name of the site
+# $action = "enable" or "disable"
+# $functions_list comma-separated list of functions. Example: "getmypid,ignore_user_abort,shell_exec" or "getmypid"
+
+
+if [[ "$EUID" -ne 0 ]]; then
+	echo "Sorry, you need to run this as root"
+	exit
+fi
+
+
+
+if [[ -z $domain ]]; then
+    clear
+    echo "Which domain name do you want to manage?
+Example: myblog.com"
+    read -p "Domain: " domain
+fi
+
+if [[ ! $(ls /etc/php/*/fpm/pool.d/$domain.conf) ]]; then
+    echo
+    echo "Domain not found!"
+    exit
+fi
+
+
+php_version=$(ls /etc/php/*/fpm/pool.d/$domain.conf | cut -d '/' -f 4)
+
+
+while [[ -z $action ]]; do
+    echo
+    echo "What do you want to do?"
+    echo
+    echo "   1) Enable PHP function (remove from disabled functions list)"
+    echo "   2) Disable PHP function (add to disabled functions list)"
+    read -p "Action: " action
+    until [[ -z "$action" || "$action" =~ ^[1-2]$ ]]; do
+    	echo "$action: invalid selection."
+    	read -p "Action: " action
+    done
+done
+
+
+if [[ -z $functions_list ]]; then
+    clear
+    echo "Which function/s do you want to manage?
+Example: getmypid
+Example 2: getmypid,ignore_user_abort,shell_exec"
+    read -p "Functions list: " functions_list
+fi
+
+
+echo
+
+
+IFS=","
+for function_name in $functions_list
+do
+    if [[ $action == "enable_php_function" || $action == "1" ]]; then
+		# search for a comma followed by a space and the name of the function
+    	sed -e "s/, $function_name//g" -i /etc/php/*/fpm/pool.d/$domain.conf
+		# search for a comma followed by the name of the function with no spaces
+		sed -e "s/,$function_name//g" -i /etc/php/*/fpm/pool.d/$domain.conf
+		# search for a comma followed by two spaces and then the name of the function with no spaces
+		sed -e "s/,  $function_name//g" -i /etc/php/*/fpm/pool.d/$domain.conf
+		
+		# handle the situation where there is only one function name and there are one or two spaces between the "=" sign and the function name or spaces after the function name.
+		sed -e "s/php_admin_value\[disable_functions\] = $function_name, /php_admin_value\[disable_functions\] = /g" -i /etc/php/*/fpm/pool.d/$domain.conf		
+    	sed -e "s/php_admin_value\[disable_functions\] =  $function_name, /php_admin_value\[disable_functions\] = /g" -i /etc/php/*/fpm/pool.d/$domain.conf
+		sed -e "s/php_admin_value\[disable_functions\] =  $function_name /php_admin_value\[disable_functions\] = /g" -i /etc/php/*/fpm/pool.d/$domain.conf
+		sed -e "s/php_admin_value\[disable_functions\] = $function_name /php_admin_value\[disable_functions\] = /g" -i /etc/php/*/fpm/pool.d/$domain.conf
+		sed -e "s/php_admin_value\[disable_functions\] =  $function_name/php_admin_value\[disable_functions\] = /g" -i /etc/php/*/fpm/pool.d/$domain.conf
+		sed -e "s/php_admin_value\[disable_functions\] = $function_name/php_admin_value\[disable_functions\] = /g" -i /etc/php/*/fpm/pool.d/$domain.conf
+
+    	echo "$function_name has been enabled for $domain"
+    fi
+    if [[ $action == "disable_php_function" || $action == "2" ]]; then
+    	sed -e "s/php_admin_value\[disable_functions\] = /php_admin_value\[disable_functions\] = $function_name, /g" -i /etc/php/*/fpm/pool.d/$domain.conf
+		echo "$function_name has been disabled for $domain"
+    fi
+done
+
+
+systemctl restart php$php_version-fpm

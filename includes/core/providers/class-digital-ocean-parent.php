@@ -1,0 +1,380 @@
+<?php
+/**
+ * Digital Ocean Parent.
+ *
+ * @package wpcd
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+/**
+ * Class CLOUD_PROVIDER_API_DigitalOcean_Parent
+ */
+class CLOUD_PROVIDER_API_DigitalOcean_Parent extends CLOUD_PROVIDER_API {
+
+	/**
+	 * A text string with the url to the base REST API call
+	 */
+	const _URL = 'https://api.digitalocean.com/v2/';
+
+	/**
+	 * The provider's id for the default image used to fire up a server.
+	 * If no other logic is provided to choose an image, this will
+	 * generally be the one choosen.
+	 */
+	const _IMAGE = 'ubuntu-18-04-x64';
+
+	/**
+	 * A text string with the cloud provider's api key.
+	 *
+	 * @var $api_key api key.
+	 */
+	private $api_key;
+
+	/**
+	 * CLOUD_PROVIDER_API_DigitalOcean constructor.
+	 */
+	public function __construct() {
+
+		parent::__construct();
+
+		/* Set provider name and slug */
+		$this->set_provider( 'Digital Ocean' );
+		$this->set_provider_slug( 'digital-ocean' );
+
+		/* Set baseline provider name and slug - this will not change even on custom servers */
+		$this->set_base_provider_name( 'Digital Ocean' );
+		$this->set_base_provider_slug( 'digital-ocean' );
+
+		/* Set link to cloud provider's user dashboard */
+		$this->set_provider_dashboard_link( 'https://cloud.digitalocean.com/account/api/tokens' );
+
+		/* Set flag that indicates we will support snapshots */
+		$this->set_feature_flag( 'snapshots', true );
+
+		/* Set the API key - pulling from settings */
+		$this->set_api_key( WPCD()->decrypt( wpcd_get_early_option( 'vpn_' . $this->get_provider_slug() . '_apikey' ) ) );
+
+		/* Set filter to add link to the digital ocean api dashboard */
+		$provider = $this->get_provider_slug();
+		add_filter( "wpcd_cloud_provider_settings_api_key_label_desc_{$provider}", array( $this, 'set_link_to_provider_dashboard' ) );
+
+	}
+
+	/**
+	 * Set function for api key.
+	 *
+	 * @param string $the_key the key.
+	 */
+	public function set_api_key( $the_key ) {
+		$this->api_key = $the_key;
+	}
+
+	/**
+	 * Getter function for api key
+	 */
+	public function get_api_key() {
+		return $this->api_key;
+	}
+
+	/**
+	 * Get the os image to be used.
+	 *
+	 * This function is generally called by
+	 * the CALL() function.
+	 *
+	 * @param array $attributes - attributes of the server being provisioned or used.
+	 */
+	public function get_image_name( $attributes ) {
+		if ( isset( $attributes['initial_os'] ) ) {
+			switch ( $attributes['initial_os'] ) {
+				case 'ubuntu1804lts':
+					return 'ubuntu-18-04-x64';  // no break statement needed after this since we're returning out of the function.
+				case 'ubuntu2004lts':
+					return 'ubuntu-20-04-x64';  // no break statement needed after this since we're returning out of the function.
+				default:
+					return self::_IMAGE;
+			}
+		} else {
+			return self::_IMAGE;
+		}
+	}
+
+	/**
+	 * Call the API.
+	 *
+	 * @param string $method The method to invoke.
+	 * @param array  $attributes The attributes for the action.
+	 *
+	 *  The Attributes array can contain the following information:
+	 *
+	 *  [app_post_id]            / number / eg: 1048 / available on reinstall and relocate
+	 *  [initial_app_name]       / string / eg: vpn  / the initial application that was added to the server as it was initially provisioned.
+	 *  [region]                 / string / eg: nyc1
+	 *  [size]                   / string / eg: small
+	 *  [name]                   / string / eg: shana-mcmahon-2020-02-03-163452-1046-1
+	 *  [wc_order_id]            / number / eg: 1045
+	 *  [wc_subscription]        / serialized array or array / eg: a:1:{i:0;i:1046;}
+	 *  [wc_user_id]             / number / eg: 13
+	 *  [provider]               / string / eg: digital-ocean
+	 *  [provider_instance_id]   / number / eg: 178565950
+	 *  [created]                / date / eg:2020-02-03T16:34:53Z
+	 *  [actions]                / serialized array / eg: a:2:{s:7:"created";i:1580747693;s:8:"add-user";i:1580748191;}
+	 *  [max_clients]            / number / eg: 5
+	 *  [dns]                    / number / eg: 1
+	 *  [protocol]               / number / eg: 1
+	 *  [port]                   / number / eg: 1194
+	 *  [client]                 / string / eg:client1
+	 *  [parent_post_id]         / number / eg: 1047
+	 *  [id]                     / number / eg: 178565950 / added after being passed into this function - see code below
+	 *
+	 *  Note that not all elements in the array is available for all methods/actions or for all apps.
+	 *  For example, dns, protocol, port, client and clients are all available only when passed in via the VPN app.
+	 *
+	 * @return mixed
+	 */
+	public function call( $method, $attributes = array() ) {
+		// phpcs:ignore
+		do_action( 'wpcd_log_error', "executing do request $method with " . print_r( $attributes, true ), 'debug', __FILE__, __LINE__ ); //PHPcs warning normally issued because of print_r
+
+		/* Can the requested data be retrieved from the cache? */
+		$cache_key = $this->get_provider_slug() . $this->get_cache_key_prefix() . hash( 'sha256', $this->api_key ) . $method;
+
+		$cache = get_transient( $cache_key );
+		if ( false !== $cache ) {
+			return $cache;
+		}
+		/* end pull from cache */
+
+		if ( empty( $this->api_key ) ) {
+			return false;
+		}
+
+		/* Make sure that our attributes array contains an id element. */
+		if ( isset( $attributes['provider_instance_id'] ) && ! isset( $attributes['id'] ) ) {
+			$attributes['id'] = $attributes['provider_instance_id'];
+		}
+		$return   = null;
+		$action   = 'GET';
+		$body     = '';
+		$endpoint = $method;
+		$run_cmd  = '';
+		switch ( $method ) {
+			case 'sizes':
+				break;
+			case 'keys':
+				$endpoint = 'account/keys';
+				break;
+			case 'regions':
+				break;
+			case 'create':
+				$endpoint             = 'droplets';
+				$action               = 'POST';
+				$attributes['option'] = '0';
+				$image                = $this->get_image_name( $attributes );
+				$size                 = '';
+				if ( isset( $attributes['size'] ) ) {
+					$size = wpcd_get_option( 'vpn_' . $this->get_provider_slug() . '_' . $attributes['size'] );
+				}
+				// size_raw is the raw size as expected by the provider.
+				if ( empty( $size ) && isset( $attributes['size_raw'] ) ) {
+					$size = $attributes['size_raw'];
+				}
+				$region = $attributes['region'];
+				$name   = $attributes['name'];
+
+				/* Get run commands - these are automatically executed upon server creation */
+				$run_cmd = apply_filters( 'wpcd_cloud_provider_run_cmd', $run_cmd, $attributes );  // Someone else needs to tell us what to run upon server start up otherwise only a basic server install will be done.
+				$run_cmd = apply_filters( 'wpcd_cloud_provider_run_cmd_' . $this->get_provider_slug(), $run_cmd, $attributes ); // just in case running a command on startup is dependent on the provider.
+
+				/* The body of the data being submitted to the cloud provider to create a server */
+				$body = '{
+"name": "' . $name . '",
+"region": "' . $region . '",
+"size": "' . $size . '",
+"image": "' . $image . '",
+"ssh_keys": [' . wpcd_get_option( 'vpn_' . $this->get_provider_slug() . '_sshkey_id' ) . '],
+"backups": true,
+"monitoring": true,
+"user_data": "
+#cloud-config
+runcmd:
+' . $run_cmd . '
+  "
+		}';
+				break;
+			case 'snapshot':
+				$endpoint = 'droplets/' . $attributes['id'] . '/actions';
+				$action   = 'POST';
+				$name     = sprintf( 'WPCD_%d_%s', $attributes['id'], get_gmt_from_date( '' ) );
+				$body     = '{
+"type": "snapshot",
+"name": "' . $name . '"
+}';
+				break;
+			case 'reboot':
+				$endpoint = 'droplets/' . $attributes['id'] . '/actions';
+				$action   = 'POST';
+				$body     = '{
+					"type": "reboot"
+				}';
+				break;
+			case 'off':
+				$endpoint = 'droplets/' . $attributes['id'] . '/actions';
+				$action   = 'POST';
+				$body     = '{
+					"type": "power_off"
+				}';
+				break;
+			case 'on':
+				$endpoint = 'droplets/' . $attributes['id'] . '/actions';
+				$action   = 'POST';
+				$body     = '{
+					"type": "power_on"
+				}';
+				break;
+			case 'status':
+				$endpoint = 'droplets/' . $attributes['id'] . '/actions/' . $attributes['action_id'];
+				break;
+			case 'delete':
+				$endpoint = 'droplets/' . $attributes['id'];
+				$action   = 'DELETE';
+				break;
+			case 'details':
+				$endpoint = 'droplets/' . $attributes['id'];
+				break;
+			default:
+				return new WP_Error( 'not supported' );
+		}
+
+		/* Execute the method */
+		$response = wp_remote_request(
+			self::_URL . $endpoint,
+			array(
+				'method'  => $action,
+				'headers' => array(
+					'Content-Type'  => 'application/json',
+					'Authorization' => 'Bearer ' . $this->api_key,
+				),
+				'body'    => $body,
+			)
+		);
+
+		// phpcs:ignore
+		do_action( 'wpcd_log_error', "$method with " . print_r( $attributes, true ) . " with $body", 'debug', __FILE__, __LINE__ ); //PHPcs warning normally issued because of print_r
+
+		/* Check for errors after execution */
+		if ( is_wp_error( $response ) || ( ! in_array( intval( $response['response']['code'] ), array( 200, 201, 202, 204, 302, 301 ) ) ) ) {
+			// phpcs:ignore
+			do_action( 'wpcd_log_error', "$method with " . print_r( $attributes, true ) . ' gives error response = ' . print_r( $response, true ), 'error', __FILE__, __LINE__ ); //PHPcs warning normally issued because of print_r
+
+			$body = wp_remote_retrieve_body( $response );
+			$body = json_decode( $body );
+			if ( is_object( $body ) ) {
+				return new \WP_Error( $body->id, $body->message );
+			} else {
+				return new \WP_Error( 'error', $body );
+			}
+		}
+
+		/* If no execution errors, get body of response */
+		$body   = wp_remote_retrieve_body( $response );
+		$body   = json_decode( $body );
+		$return = array();
+
+		/* Return different data depending on the method / action executed */
+		switch ( $method ) {
+			case 'sizes':
+				foreach ( $body->sizes as $size ) {
+					if ( 1 === (int) $size->available ) {
+						/* translators: %1$s is the digital ocean slug/plan description. Hopefully the remaining replacements are self-explanatory - they all refer to various aspects of the digital ocean plan. */
+						$return[ $size->slug ] = sprintf( __( '%1$s (%2$d CPUs, %3$d MB RAM, %4$d GB SSD, $%5$d per month USD, %6$d TB data transfer/month)', 'wpcd' ), $size->slug, $size->vcpus, $size->memory, $size->disk, $size->price_monthly, $size->transfer );
+					}
+				}
+				break;
+			case 'keys':
+				foreach ( $body->ssh_keys as $key ) {
+					$return[ $key->id ] = $key->name;
+				}
+				break;
+			case 'regions':
+				foreach ( $body->regions as $region ) {
+					if ( $region->available ) {
+						if ( ! empty( $this->get_region_prefix() ) ) {
+							$return[ $region->slug ] = $this->get_region_prefix() . ': ' . $region->name;
+						} else {
+							$return[ $region->slug ] = $region->name;
+						}
+					}
+				}
+				break;
+			case 'create':
+				$return['provider_instance_id'] = $body->droplet->id;
+				$return['name']                 = $body->droplet->name;
+				$return['created']              = $body->droplet->created_at;
+				$return['actions']              = array( 'created' => time() );
+				$return['run_cmd']              = $run_cmd;
+				break;
+			case 'snapshot':
+				if ( ! empty( $body->action->id ) ) {
+					$return['id']              = $attributes['id'];
+					$return['snapshot-id']     = $body->action->id;
+					$return['provider_status'] = $body->action->status;
+					$return['status']          = 'success';
+				} else {
+					$return['status'] = 'fail';
+				}
+				break;
+			case 'reboot':
+			case 'off':
+			case 'on':
+				// "in-progress", "completed", or "errored".
+				$return['status']    = $body->action->status;
+				$return['action_id'] = $body->action->id;
+				break;
+			case 'status':
+				$return['status'] = $body->action->status;
+				$return['ip']     = $body->action->status;
+				break;
+			case 'delete':
+				$return['status'] = 'done';
+				break;
+			case 'details':
+				$return['os']     = sprintf( '%s %s', $body->droplet->image->distribution, $body->droplet->image->name );
+				$return['ip']     = $this->get_ipv4_from_body( $body );
+				$return['name']   = $body->droplet->name;
+				$return['status'] = $body->droplet->status;
+				break;
+		}
+
+		/* Cache some things if necessary */
+		$this->store_cache( $cache_key, $return, $method );
+
+		/* Return data if all good - if errors, we've already exited this function way above here. */
+		return $return;
+
+	}
+
+	/**
+	 * Extract the IPv4 address from the array that DO returns.
+	 *
+	 * @param object $body Digital Ocean response object to a request for server details.
+	 *
+	 * @return: string IPv4
+	 */
+	public function get_ipv4_from_body( $body ) {
+
+		if ( 'public' == $return['ip'] = $body->droplet->networks->v4[0]->type ) {
+			return $body->droplet->networks->v4[0]->ip_address;
+		}
+
+		if ( 'public' == $return['ip'] = $body->droplet->networks->v4[1]->type ) {
+			return $body->droplet->networks->v4[1]->ip_address;
+		}
+
+		return 'error-no-ip-found';
+
+	}
+}

@@ -1,0 +1,179 @@
+/******************************************************************************************/
+
+/* Style user notifications shortcode screen                                           */
+
+/******************************************************************************************/
+
+.form-group.row.wpcd_notify_row {
+  margin-bottom: 20px;
+}
+
+.form-group.row.wpcd_notify_row label {
+  font-weight: 600;
+}
+
+.form-group.row.wpcd_notify_row .wpcd_user_notify_submit {
+  font-size: 1.6rem;
+  text-decoration: none;
+}
+
+.form-group.row.wpcd_notify_row .wpcd_zapier_webhook_test {
+  font-size: 1.6rem;
+  text-decoration: none;
+}
+
+.form-group.row.wpcd_notify_row select {
+  font-size: 1.6rem;
+  width: 100%;
+}
+
+.form-group.row.wpcd_notify_row .wpcd-select-all-none {
+  display: block;
+  font-size: 1.4rem;
+  margin-top: 5px;
+}
+
+.form-group.row.wpcd_notify_row input[type="checkbox"]:focus {
+  outline: 0;
+}
+
+.form-group.row.wpcd_notify_row .wpcd_notify_help_text {
+  font-size: 1.4rem;
+}
+
+.form-group.row.wpcd_notify_row .user_notify_wait_msg {
+  display: none;
+  font-size: 1.4rem;
+}
+
+.form-group.row.wpcd_notify_row .zapier_test_wait_msg {
+  display: none;
+  font-weight: 600;
+  font-size: 1.4rem;
+}
+
+.form-group.row.wpcd_notify_row .wpcd_test_zapier_btn {
+  margin-top: 10px;
+}
+
+.form-group.row.wpcd_notify_row .wpcd_user_notify_error {
+  display: none;
+  font-size: 1.4rem;
+  color: red;
+  font-weight: 600;
+}
+
+.form-group.row.wpcd_notify_row input[type="checkbox"]:checked::before {
+  content: '';
+}
+
+/* user notification alert list */
+
+.wpcd_user_notify_table {
+  margin-top: 1em;
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 1.4rem;
+}
+
+.wpcd_user_notify_table td, .wpcd_user_notify_table th {
+  border: 1px solid #ddd;
+  padding: 15px;
+}
+
+.wpcd_notify_table_sec {
+  overflow: auto;
+}
+
+.wpcd_user_notify_table td a {
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.wpcd_user_notify_table tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+.wpcd_user_notify_table th {
+  padding-top: 12px;
+  padding-bottom: 12px;
+  text-align: left;
+  background-color: #3f4c5f;
+  color: white;
+}
+
+.wpcd_add_notify_alert_btn {
+  font-size: 1.4rem;
+}
+
+.wpcd_notify_add_sec span {
+  font-size: 1.8rem;
+  font-weight: 600;
+}
+
+.wpcd_user_notify_list_sec button {
+  text-decoration: none;
+}
+
+.wpcd_all_user_notify_disable {
+  pointer-events: none;
+  background-color: white;
+  opacity: 0.5;
+}
+
+/* Modal CSS */
+
+.wpcd_user_notify_popup_sec {
+  border: 1px solid #ddd;
+}
+
+.wpcd_user_notify_modal {
+  background-color: #fefefe;
+  position: fixed;
+  z-index: 999999;
+  top: 0.5%;
+  left: 0.5%;
+  bottom: 0.5%;
+  right: 0.5%;
+  overflow: auto;
+  -webkit-box-shadow: 0 0 5px 2px #c1a7a7;
+  -moz-box-shadow: 0 0 5px 2px #c1a7a7;
+  box-shadow: 0 0 5px 2px #c1a7a7;
+}
+
+/* Modal Content */
+
+.wpcd_notifications_form {
+  margin-top: 2em;
+}
+
+.wpcd_user_notify_modal_content {
+  background-color: #fefefe;
+  margin: auto;
+  padding: 30px 40px 30px 40px;
+}
+
+/* The Close Button */
+
+.wpcd_popup_header_sec {
+  position: relative;
+  margin: -8px 5px 10px 10px;
+}
+
+.wpcd_user_notify_close {
+  color: #aaaaaa;
+  float: right;
+  font-size: 30px;
+  font-weight: bold;
+}
+
+.wpcd_user_notify_close:hover, .wpcd_user_notify_close:focus {
+  color: #000;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.wpcd_zapier_webhook_section {
+  display: none;
+  margin-top: 20px;
+}

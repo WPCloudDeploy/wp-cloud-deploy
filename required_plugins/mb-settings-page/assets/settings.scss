@@ -1,0 +1,165 @@
+.nav-tab:focus,
+.nav-tab:active {
+	box-shadow: none;
+}
+
+// Tab icon
+.nav-tab {
+	i,
+	img {
+		margin-right: 5px;
+		margin-top: 4px;
+	}
+	i {
+		width: 16px;
+		height: 16px;
+		font-size: 16px;
+	}
+	img {
+		width: 12px;
+		height: 12px;
+		display: inline-block;
+	}
+}
+
+
+// No boxes
+.rwmb-settings-no-boxes {
+	.postbox {
+		border: 0;
+		box-shadow: none;
+		background: transparent;
+
+		.handlediv,
+		.hndle,
+		.postbox-header {
+			display: none;
+		}
+
+		.inside {
+			font-size: 14px;
+		}
+	}
+	.rwmb-field {
+		padding: 20px 0;
+		margin-bottom: 0;
+	}
+	.rwmb-clone {
+		background-color: transparent;
+	}
+
+	// Meta Box Tabs
+	.rwmb-tabs-left .rwmb-tab-panel {
+		background-color: #fff;
+	}
+
+
+	// Groups
+
+	// Align the group label and inputs
+	.rwmb-group-wrapper > .rwmb-label + .rwmb-input .rwmb-field:first-of-type {
+		padding-top: 0;
+	}
+
+	// Align the clone sorting icon
+	.rwmb-group-clone > .rwmb-field:first-of-type {
+		padding-top: 0;
+	}
+
+	// Highlight the collapsible title and border
+	.rwmb-group-collapsible.rwmb-group-non-cloneable,
+	.rwmb-group-collapsible > .rwmb-input > .rwmb-group-clone {
+		border-color: #ddd;
+		padding: 12px;
+	}
+
+	.rwmb-group-collapsed.rwmb-group-non-cloneable,
+	.rwmb-group-collapsible > .rwmb-input > .rwmb-group-collapsed {
+		padding: 0;
+	}
+
+	// Keep consistent space for first child field in the collapsible group
+	.rwmb-group-wrapper.rwmb-group-collapsible .rwmb-group-clone > .rwmb-field:first-of-type {
+		padding-top: 20px;
+	}
+	.rwmb-row > .rwmb-field {
+		padding-top: 0;
+	}
+}
+
+// Left tabs
+.rwmb-settings-tabs-left {
+	.rwmb-settings-wrap {
+		display: flex;
+		margin-top: 15px;
+	}
+	h2.nav-tab-wrapper {
+		padding: 0;
+		background: #fff;
+		border: 1px solid #ccd0d4;
+		min-width: 220px;
+	}
+	.nav-tab {
+		display: block;
+		padding: 8px 12px;
+		float: none;
+		margin: 0;
+		color: #0073aa;
+		font-size: 13px;
+		font-weight: normal;
+		background: #fff;
+		border: none;
+		border-bottom: 1px solid #ccd0d4;
+		transition: none;
+
+		&:hover {
+			background: #f6f6f6;
+		}
+	}
+	.nav-tab-active {
+		background: #f6f6f6;
+		color: inherit;
+		border-left: 4px solid #0073aa;
+		padding-left: 8px;
+	}
+	.rwmb-settings-form-wrap {
+		flex: 1;
+		padding: 0 20px;
+	}
+	#poststuff {
+		padding-top: 0;
+	}
+	.submit {
+		margin-bottom: 0;
+		padding-bottom: 0;
+	}
+	&.rwmb-settings-no-boxes {
+		.rwmb-settings-wrap {
+			border: 1px solid #ddd;
+			background: #fff;
+		}
+		h2.nav-tab-wrapper {
+			border-color: #ddd;
+			border-width: 0 1px 0 0;
+		}
+		.nav-tab {
+			border-bottom-color: #ddd;
+			background-color: #f6f6f6;
+		}
+		.nav-tab-active {
+			background-color: #fff;
+			margin-right: -1px;
+		}
+		.rwmb-settings-form-wrap {
+			padding-top: 20px;
+			padding-bottom: 20px;
+		}
+		#poststuff .inside {
+			margin: 0;
+			padding: 0;
+		}
+		.rwmb-meta-box > .rwmb-field:first-of-type {
+			padding-top: 0;
+		}
+	}
+}

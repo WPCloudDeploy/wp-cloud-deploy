@@ -1,0 +1,321 @@
+#!/bin/bash
+
+if [[ "$EUID" -ne 0 ]]
+then
+	echo "Sorry, you need to run this as root"
+	exit
+fi
+
+## Get our common functions
+source 9999-common-functions.sh
+
+tempdate=$(date +"%Y-%m-%d"-"%Hh%Mm%Ss")
+# Get source site we want to copy
+while [[ -z $source_domain ]]; do
+	clear
+	echo "Please, select source site - we will copy data from this site to the target site"
+	ls /var/www | grep -v html | nl
+	echo
+	read -p "Select site: " site_number1
+	number_of_sites=$(ls /var/www | grep -v html | wc -l)
+	until [[ "$site_number1" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
+		echo "$site_number1: invalid selection."
+		read -p "Select site: " site_number1
+	done
+	source_domain=$(ls /var/www | grep -v html | sed -n "$site_number1"p)
+done
+
+# Get target site we want to overwrite
+while [[ -z $target_domain ]]; do
+	echo "Please, select target site - we will be overwriting data on this site"
+	ls /var/www | grep -v html | nl
+	echo
+	read -p "Select site: " site_number2
+	number_of_sites=$(ls /var/www | grep -v html | wc -l)
+	until [[ "$site_number2" =~ ^[0-9]+$ && "$site_number2" -le "$number_of_sites" ]]; do
+		echo "$site_number2: invalid selection."
+		read -p "Select site: " site_number2
+	done
+	target_domain=$(ls /var/www | grep -v html | sed -n "$site_number2"p)
+done
+
+if ! ls /var/www|grep -qw $source_domain
+then
+	echo "Source Domain $source_domain does not exist on server"
+	exit
+fi
+
+if ! ls /var/www|grep -qw $target_domain
+then
+        echo "Target Domain $target_domain does not exist on server"
+        exit
+fi
+
+if [[ "$source_domain" == "$target_domain" ]]
+then
+	echo
+	echo "Source & Destination sites are the same, exiting."
+	exit
+fi
+
+while [[ -z $action ]]; do
+        echo
+        echo "What do you want to do?"
+        echo
+        echo "   1) Copy full"
+        echo "   2) Copy partial"
+        echo "   3) Copy files Only"
+        echo "   4) Copy Db Only"
+		echo "   5) Copy Partial Db Only"
+        read -p "Action: " action
+        until [[ -z "$action" || "$action" =~ ^[1-5]$ ]]; do
+                echo "$action: invalid selection."
+                read -p "Action: " action
+        done
+done
+
+# Get additional source and target data from wp-config.php files.
+mysql_source_db=$(grep DB_NAME /var/www/$source_domain/html/wp-config.php | cut -d "'" -f 4)
+mysql_target_db=$(grep DB_NAME /var/www/$target_domain/html/wp-config.php | cut -d "'" -f 4)
+mysql_target_user=$(grep DB_USER /var/www/$target_domain/html/wp-config.php | cut -d "'" -f 4)
+mysql_target_password=$(grep DB_PASSWORD /var/www/$target_domain/html/wp-config.php | cut -d "'" -f 4)
+mysql_source_prefix=$(grep table_prefix /var/www/$source_domain/html/wp-config.php | cut -d "'" -f 2)
+mysql_target_prefix=$(grep table_prefix /var/www/$target_domain/html/wp-config.php | cut -d "'" -f 2)
+
+# Get user name...
+user_name=$(echo $target_domain | cut -c1-32)
+
+#####################################################################
+# Function to copy entire database
+#
+# @TODO: PRIVILEGES are not being assigned to db user right now.
+#####################################################################
+function copy_db
+{
+	       mysql <<QUERY
+DROP DATABASE $mysql_target_db;
+CREATE DATABASE $mysql_target_db;
+FLUSH PRIVILEGES;
+QUERY
+
+	echo "Copying database..."
+
+	# Copy database over to target
+	mysqldump $mysql_source_db | mysql $mysql_target_db
+	
+	# Change table prefix in wp-config.php
+	if [[ $wpconfig != 'y' ]] && [[ $wpconfig != 'Y' ]]
+	then
+		sed -i "s/$mysql_target_prefix/$mysql_source_prefix/g" /var/www/$target_domain/html/wp-config.php
+	fi
+}
+
+#####################################################################
+# Function to copy all files and database tables from source to target 
+# except wp-config.php file.
+#####################################################################
+function copy_full
+{
+	echo ""
+	echo "wp-config.php" > /tmp/wpexclude-$tempdate
+	wpconfig=n
+	echo "Copying everything..."
+	if [[ "1" != $full_sync ]]
+	then
+		rsync -ahz --stats --exclude-from=/tmp/wpexclude-$tempdate /var/www/$source_domain/html/ /var/www/$target_domain/html/
+	else
+		echo "...copying all files with full sync which includes deleting all files on the target that do not exist on the source..."
+		rsync -ahz --delete --stats --exclude-from=/tmp/wpexclude-$tempdate /var/www/$source_domain/html/ /var/www/$target_domain/html/
+	fi
+	echo "" #put a blank line after the resync stats are printed.
+	chown -R www-data:www-data /var/www/$target_domain/html/
+	chmod -R g+ws /var/www/$target_domain/html
+
+	copy_db
+}
+
+#####################################################################
+# Function to copy wp-config.php to target.
+#####################################################################
+function copy_wpconfig
+{
+	rsync -avz /var/www/$source_domain/html/wp-config.php /var/www/$target_domain/html/
+	cd /var/www/$target_domain/html/
+	su - $target_domain -c "wp --skip-plugins config set DB_NAME $mysql_target_db"
+	su - $target_domain -c "wp --skip-plugins config set DB_USER $mysql_target_user"
+	su - $target_domain -c "wp --skip-plugins config set DB_PASSWORD $mysql_target_password"
+	su - $target_domain -c "wp --skip-plugins search-replace $source_domain $target_domain --recurse-objects --network --skip-columns=guid --skip-tables=wp_users"
+	# wp-cli doesn't shuffle WP_CACHE_KEY_SALT, which is important for us
+	# so we use the generator once to get the additional salt we need and shuffle again so there are no duplicates
+	su - $target_domain -c "wp --skip-plugins config shuffle-salts"
+	su - $target_domain -c 'wp --skip-plugins config set WP_CACHE_KEY_SALT "$(wp --skip-plugins config get AUTH_KEY)"'
+	su - $target_domain -c "wp --skip-plugins config shuffle-salts"
+	# if cache is enabled, we disable it to avoid conflicts
+	su - $target_domain -c "wp cache flush"
+	su - $target_domain -c "wp cache-enabler clear 2>/dev/null"
+	rm -f wp-content/object-cache.php
+	su - $target_domain -c "wp plugin uninstall --deactivate redis-cache 2>/dev/null"
+	su - $target_domain -c "wp --skip-plugins search-replace '$source_domain' '$target_domain'"
+	chmod -R g+w /var/www/$target_domain/html
+}
+
+#####################################################################
+# Function to copy only certain files.
+#####################################################################
+function copy_partial_files
+{
+	if [[ -z $wpconfig ]]
+	then
+		read -p "Enter y/Y if you would like to copy the wp-config.php file. Leave blank if do not want to copy: " wpconfig
+	fi
+
+	if [[ -z $wpexcludefolder ]]
+	then
+		read -p "Enter names of folders (comma separated) to be excluded in the copy operation: " wpexcludefolder
+	fi
+
+	if [[ -z $wpexcludefile ]]
+	then
+		read -p "Enter names of files (comma separated) to be excluded in the copy operation: " wpexcludefile
+	fi
+
+	echo ""
+	echo "Copying some files..."
+	
+	echo $wpexcludefolder|tr ',' '\n' > /tmp/wpexclude-$tempdate
+	echo $wpexcludefile|tr ',' '\n' >> /tmp/wpexclude-$tempdate
+	echo "wp-config.php" >> /tmp/wpexclude-$tempdate
+
+	rsync -ahz --stats --exclude-from=/tmp/wpexclude-$tempdate /var/www/$source_domain/html/ /var/www/$target_domain/html/
+	echo "" #put a blank line after the resync stats are printed.
+
+	chown -R www-data:www-data /var/www/$target_domain/html/
+	chmod -R g+ws /var/www/$target_domain/html
+	
+	####Should we copy wpconfig file as well? ####
+	if [[ $wpconfig == 'y' ]] || [[ $wpconfig == 'Y' ]]
+	then
+		copy_wpconfig
+		sed -i "s/$mysql_source_prefix/$mysql_target_prefix/g" /var/www/$target_domain/html/wp-config.php
+	fi
+}
+
+#####################################################################
+# Function to copy only certain tables.
+#####################################################################
+function copy_partial_db
+{
+	if [[ -z $wpexcludedbtable ]]
+	then
+		read -p "Enter a list of database tables (comma separated) to exclude from the copy operation: " wpexcludedbtable
+	fi
+
+	if [[ -z $wpexcludedbtable ]] && [[ -z $wpincludedbtable ]] 
+	then
+		read -p "Enter a list of tables (comma separated) to copy: " wpincludedbtable
+	fi
+	
+	mysql $mysql_source_db -e 'show tables'|tail -n +2 > /tmp/wpalltables-$tempdate
+
+	if [[ ! -z $wpexcludedbtable ]]
+	then
+		while read table
+		do
+			echo $wpexcludedbtable| grep -qi $table
+			if [ $? -ne 0 ]
+			then
+				table_target=`echo $table|sed -e "s/$mysql_source_prefix/$mysql_target_prefix/g"`
+				mysqldump $mysql_source_db $table | sed -e "s/$table/$table_target/g" |mysql $mysql_target_db
+			fi
+		done < /tmp/wpalltables-$tempdate
+	fi
+
+	if [[ ! -z $wpincludedbtable ]]
+	then
+		while read table
+		do
+			echo $wpincludedbtable|grep -iq $table
+			if [ $? -eq 0 ]
+			then
+				table_target=`echo $table|sed -e "s/$mysql_source_prefix/$mysql_target_prefix/g"`
+				mysqldump $mysql_source_db $table | sed -e "s/$table/$table_target/g" |mysql $mysql_target_db
+			fi
+		done < /tmp/wpalltables-$tempdate
+	fi
+
+	if [[ -z $wpincludedbtable ]] && [[ -z $wpexcludedbtable ]]
+	then
+		copy_db
+	fi
+}
+
+#####################################################################
+# Function to backup existing Target site files and db 
+#####################################################################
+function backup_target
+{
+	# verify disk space before attempting backup.
+	# this function will exit script if not enough space is available.
+	g_check_space_or_exit $target_domain
+		
+	#*** @TODO: Verify that the file .08-backup.sh exists and exit if it doesn't.
+	
+	# Now do the backup.
+	echo "Backing up target site..."
+	(action=1 domain=$target_domain . ./08-backup.sh)
+
+}
+
+#####################################################################
+# Function to change domain on new site.
+#####################################################################
+function change_domain
+{
+	echo "Searching and replacing domain name in database...."
+	su - $user_name -c "wp --skip-plugins search-replace $source_domain $target_domain --recurse-objects --network --skip-columns=guid --skip-tables=wp_users --all-tables-with-prefix"
+}
+
+############################################################################
+# Handle user menu choice here.
+############################################################################
+if [[ $action == "copy_to_existing_site_copy_full" || $action == "1" ]]
+then
+	backup_target
+	copy_full
+	change_domain
+fi
+
+if [[ $action == "copy_to_existing_site_copy_partial" || $action == "2" ]]
+then
+	backup_target
+	echo "Copying some things..."
+	copy_partial_files
+	copy_partial_db
+	change_domain
+fi
+
+if [[ $action == "copy_to_existing_site_copy_files_only" || $action == "3" ]]
+then
+	backup_target
+	copy_partial_files
+fi
+
+if [[ $action == "copy_to_existing_site_copy_db" || $action == "4" ]]
+then
+	backup_target
+	copy_db
+	change_domain
+fi
+
+if [[ $action == "copy_to_existing_site_copy_partial_db" || $action == "5" ]]
+then
+	backup_target
+	copy_partial_db
+	change_domain
+fi
+
+# Restart and cleanup.
+systemctl restart nginx
+
+echo
+echo "Copy to existing site is complete. $source_domain has been copied to $target_domain"

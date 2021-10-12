@@ -1,0 +1,559 @@
+#!/bin/bash
+if [[ "$EUID" -ne 0 ]]
+then
+	echo "Sorry, you need to run this as root"
+	exit
+fi
+
+while [[ -z $action ]]; do
+	echo
+	echo "What do you want to do?"
+	echo
+	echo "   1) Install Crowdsec"
+	echo "   2) Remove Crowdsec"
+	echo "   3) Upgrade Crowdsec"
+	echo "   4) Disable Crowdsec Service"
+	echo "   5) Enable Crowdsec Services"
+	echo "   6) Add Collection to Crowdsec"
+	echo "   7) Remove Collection from Crowdsec"
+	echo "   8) Add SSL to Dashboard"
+	echo "   9) Remove SSL from Dashboard"
+	echo "   10) Add Http Authentication"
+	echo "   11) Remove Http Authentication"
+	echo "   12) Add Client Machine to Master Dashbaord"
+	echo "   13) Set Master Dashboard detail to Client Machine"
+	echo "   14) Install Crowdsec Dashboard"
+	echo "   15) WhiteList Ip Address"
+	read -p "Action: " action
+	until [[ -z "$action" || "$action" -ge 1 && "$action" -le 15 ]]; do
+		echo "$action: invalid selection."
+		read -p "Action: " action
+	done
+done
+
+###################################### Crowdsec Install Function ##########
+function crowdsec_install
+{
+	if hash cscli 2>/dev/null
+	then
+		echo
+		echo "crowdsec is already installed!"
+		exit
+	fi
+
+	echo "installing Crowdsec on server........."
+	apt-get update > /dev/null 2>&1
+	rm -rf crowdsec-v*
+	curl -s https://api.github.com/repos/crowdsecurity/crowdsec/releases/latest | grep browser_download_url| cut -d '"' -f 4  | wget -q -O crowdsec-release.tgz -i -  > /dev/null
+	tar xzf crowdsec-release.tgz
+	cd crowdsec-v*
+	bash wizard.sh --unattended > /dev/null 2>&1
+
+	echo "Crowdsec has been installed"
+	echo "Enabling services..."
+	
+	cscli collections install crowdsecurity/whitelist-good-actors
+	cscli collections install crowdsecurity/wordpress
+	cscli collections install crowdsecurity/iptables
+
+	systemctl enable crowdsec > /dev/null 2>&1
+	systemctl restart crowdsec > /dev/null 2>&1
+
+	######## Install nginx bouncers ####
+	rm -rf cs-nginx-bouncer*
+	wget https://github.com/crowdsecurity/cs-nginx-bouncer/releases/download/v0.0.4/cs-nginx-bouncer.tgz
+	tar xzf cs-nginx-bouncer.tgz
+	cd cs-nginx-bouncer-*
+	yes|bash install.sh
+	echo "Crowdsec cscli has been installed"
+}
+
+###################################### Crowdsec Remove Function ##########
+function crowdsec_remove
+{
+	if hash cscli 2>/dev/null
+	then
+		echo
+		#### Remove nginx bouncers
+		rm -rf cs-nginx-bouncer*
+		wget https://github.com/crowdsecurity/cs-nginx-bouncer/releases/download/v0.0.4/cs-nginx-bouncer.tgz
+		tar xvzf cs-nginx-bouncer.tgz
+		cd cs-nginx-bouncer-*
+		yes|bash uninstall.sh
+
+		rm -rf crowdsec-v*
+		curl -s https://api.github.com/repos/crowdsecurity/crowdsec/releases/latest | grep browser_download_url| cut -d '"' -f 4  | wget -q -O crowdsec-release.tgz -i -
+		tar xzf crowdsec-release.tgz
+		cd crowdsec-v*
+		bash wizard.sh --uninstall
+		rm -f /etc/nginx/sites-enabled/crowdsec.conf
+		systemctl restart nginx
+		echo "crowdsec has been removed"
+	else
+		echo "crowdsec is Not installed!"
+	fi
+}
+
+###################################### Crowdsec Upgrade Function ##########
+function crowdsec_upgrade
+{
+	if hash cscli 2>/dev/null
+	then
+		echo
+		curl -s https://api.github.com/repos/crowdsecurity/crowdsec/releases/latest | grep browser_download_url| cut -d '"' -f 4  | wget -q -O crowdsec-release.tgz -i -
+		rm -rf crowdsec-v*
+		tar xzf crowdsec-release.tgz
+		cd crowdsec-v*
+		bash wizard.sh --upgrade|grep 'same as current version'
+		if [ $? -eq 0 ]
+		then
+			echo "Crowdsec are already on latest version"
+		else
+			bash wizard.sh --upgrade --force
+			echo "Crowdsec are Upgraded to latest Version"
+		fi
+	else
+		echo "Crowdsec not Installed yet"
+	fi
+}
+
+###################################### Crowdsec Service Disable Function ##########
+function crowdsec_disable
+{
+	if ! hash cscli 2>/dev/null
+	then
+		echo
+		echo "crowdsec are Not installed!"
+		exit
+	fi
+	systemctl stop crowdsec
+	cscli dashboard stop
+	echo "crowdsec service has been disabled"
+}
+
+###################################### Crowdsec Service Enable Function ##########
+function crowdsec_enable
+{
+	if ! hash cscli 2>/dev/null
+	then
+		echo
+		echo "crowdsec are not installed!"
+		exit
+	fi
+	systemctl start crowdsec
+	cscli dashboard start
+	echo "crowdsec service has been Enabled"
+}
+
+###################################### Crowdsec Add Collection Function ##########
+function crowdsec_add_collection
+{
+	if ! hash cscli 2>/dev/null
+	then
+		echo
+		echo "crowdsec are not installed!"
+		exit
+	fi
+
+	if [ -z $add_collection ]
+	then
+		read -p "Enter collection name which need to add:" add_collection
+	fi
+	cscli collections install $add_collection --force
+	if [ $? -eq 0 ]
+	then
+		systemctl reload crowdsec
+		echo "$add_collection has been Added"
+	else
+		echo "Entered collection name not valid"
+	fi
+}
+
+###################################### Crowdsec Remove Collections Function ##########
+function crowdsec_remove_collection
+{
+	if ! hash cscli 2>/dev/null
+	then
+		echo
+		echo "crowdsec are not installed!"
+		exit
+	fi
+
+	collections=`cscli collections list|tail -n +4|head -n -1|cut -d' ' -f2` 
+	if [ -z $remove_collection ]
+	then
+		echo "Collections - $collections"
+		read -p "Enter collection name which need to remove:" remove_collection
+	fi
+	cscli collections remove $remove_collection --force
+	if [ $? -eq 0 ]
+	then
+		systemctl reload crowdsec
+		echo "$remove_collection has been removed"
+	else
+		echo "Entered collection name not valid"
+	fi
+}
+
+###################################### Crowdsec Enable SSL Function ##########
+function crowdsec_ssl_enable
+{
+	if ! hash cscli 2>/dev/null
+	then
+		echo
+		echo "crowdsec are not installed!"
+		exit
+	fi
+	if grep -qs "listen 443" /etc/nginx/sites-enabled/crowdsec.conf;
+	then
+		echo "SSL Already Enabled";
+	else
+		domain=`grep -m 1 server_name /etc/nginx/sites-enabled/crowdsec.conf |awk '{print $2}'`
+		if [[ -z $email ]]
+		then
+			echo
+			echo "Specify an email for administrative notifications about your certificate"
+			read -p "Email address: " email
+		fi
+		certbot --non-interactive --reinstall --expand --nginx --agree-tos -m $email --allow-subset-of-names --redirect -d $domain -d www.$domain
+	
+		if ! grep -qs "listen 443" /etc/nginx/sites-enabled/crowdsec.conf
+		then
+			echo "SSL could not be enabled for $domain"
+			exit
+		fi
+		systemctl restart nginx
+		echo "SSL has been enabled for $domain"
+	fi
+}
+
+###################################### Crowdsec Disable SSL  Function ##########
+function crowdsec_ssl_disable
+{
+	if ! hash cscli 2>/dev/null
+	then
+		echo "Crowdsec is Not installed yet!"
+		exit
+	fi
+
+	if grep -qs "managed by Certbot" /etc/nginx/sites-enabled/crowdsec.conf;
+	then
+		domain=`grep -m 1 server_name /etc/nginx/sites-enabled/crowdsec.conf |awk '{print $2}'`
+		certbot delete --cert-name $domain
+		sed -i -n '/if ($host/q;p' /etc/nginx/sites-enabled/crowdsec.conf
+		sed -i '$ d' /etc/nginx/sites-enabled/crowdsec.conf
+		sed -i '/server {/a listen 80;\nlisten [::]:80;' /etc/nginx/sites-enabled/crowdsec.conf
+		sed -i '/managed by Certbot/d' /etc/nginx/sites-enabled/crowdsec.conf
+
+		systemctl restart nginx
+		echo "SSL has been disabled for Crodsec";
+	else
+		echo "SSL Not enabled for Crowdsec";
+	fi
+}
+
+###################################### Crowdsec Add Basic Auth##########
+function crowdsec_auth_add
+{
+	if ! hash cscli 2>/dev/null
+	then
+		echo "Crowdsec is Not installed yet!"
+		exit
+	fi
+
+	grep -w auth /etc/nginx/sites-enabled/crowdsec.conf
+	if [ $? -eq 0 ]
+	then
+		echo "Basic Auth already enabled"
+	else
+		sed -i 's/#auth/auth/g' /etc/nginx/sites-enabled/crowdsec.conf
+		systemctl restart nginx > /dev/null
+		echo "Basic auth has been enabled"
+	fi
+}
+
+###################################### Crowdsec Remove Basic Auth##########
+function crowdsec_auth_remove
+{
+	if ! hash cscli 2>/dev/null
+	then
+		echo "Crowdsec is Not installed yet!"
+		exit
+	fi
+
+	grep -w '#auth' /etc/nginx/sites-enabled/crowdsec.conf
+	if [ $? -eq 0 ]
+	then
+		echo "Basic Auth already disabled"
+	else
+		sed -i 's/auth/#auth/g' /etc/nginx/sites-enabled/crowdsec.conf
+		systemctl restart nginx > /dev/null
+		echo "Basic Auth has been disabled"
+	fi
+}
+
+###################################### Crowdsec Add Client Machine to Master server ##########
+function crowdsec_add_client
+{
+	if ! hash cscli 2>/dev/null
+	then
+		echo "Crowdsec is Not installed yet!"
+		exit
+	fi
+	
+	if [[ -z $client_ip ]]
+	then
+		echo "Enter Client Server IP which want to attach to Dashboard"
+		read -p "Client IP: " client_ip
+	fi
+
+	if [[ -z $client_pass ]]
+	then
+		echo "Enter Client Server Password which want to attach to Dashboard"
+		read -p "Password: " client_pass
+	fi
+
+	cscli machines add  $client_ip -a -f $client_ip -p $client_pass
+	user=`cat ./$client_ip|grep login|cut -d' ' -f2`
+	pass=`cat ./$client_ip|grep password|cut -d' ' -f2`
+
+	echo "Detail which need to enter to Client Machine"
+	echo "User  - $user"
+	echo "Password - $pass"
+
+	echo "Crowdsec Client Machine Added to Dashboard Now please configure it on Client Machine API"
+}
+
+###################################### Crowdsec set Master Dashboard Detail##########
+function crowdsec_master_dashboard
+{
+	if ! hash cscli 2>/dev/null
+	then
+		echo "Crowdsec is Not installed yet!"
+		exit
+	fi
+	
+	echo "Enter Server Dashboard Detail"
+	if [[ -z $dashboard_ip ]]
+	then
+		read -p "Dashboard IP: " dashboard_ip
+	fi
+	if [[ -z $dashboard_user ]]
+	then
+		read -p "Dashboard User: " dashboard_user
+	fi
+	if [[ -z $dashboard_pass ]]
+	then
+		read -p "Dashboard Pass: " dashboard_pass
+	fi
+	nc -zv $dashboard_ip 8080
+	if [ $? -ne 0 ]
+	then
+		echo "Dashboard Server Port 8080 should open to Client Machine"
+		exit
+	fi
+	echo "url: http://$dashboard_ip:8080" > /etc/crowdsec/local_api_credentials.yaml
+	echo "login: $dashboard_user" >> /etc/crowdsec/local_api_credentials.yaml
+	echo "password: $dashboard_pass" >> /etc/crowdsec/local_api_credentials.yaml
+	service crowdsec restart
+	echo "crowdsec Api configured for Dashboard"
+}
+
+###################################### Crowdsec Install Dashboard Function ##########
+function crowdsec_install_dashboard
+{
+	memory=$(free -m | awk '/^Mem:/{print $2}') ;
+	if [ $memory -lt 1100 ]
+	then
+		echo "Require 1 G+ RAM "
+		exit
+	fi
+
+	if ! hash cscli 2>/dev/null
+	then
+		echo
+		echo "crowdsec is Not installed Yet!"
+		exit
+	fi
+
+	if [[ -z $domain ]]
+	then
+		clear
+		echo "Which domain name do you want for Crowdsec Dashboard?
+		Specify just the domain name without www or http://
+		Example: crowdsec.myblog.com"
+		read -p "Domain: " domain
+	fi
+
+	if [[ -z $password ]]
+	then	
+		read -p "Enter Dashboard Login password for User - crowdsec@crowdsec.net : " password
+	fi
+
+	until [[ ${#password} -gt 15 ]]
+	do
+		echo "Invalid password. Minimum 16 chracter string"
+		read -p "Dashboard login Password:" password
+	done
+	
+	if [[ -z $user ]]
+	then
+		echo "Specify a user name to protect access to Crowdsec Dashboard"
+		read -p "User name: " user
+	fi
+
+	if [[ -z $pass ]]
+	then
+		echo "Specify a password"
+		read -p "Password: " pass
+	fi
+
+	echo "installing Crowdsec Dashboard on server........."
+	apt-get update > /dev/null 2>&1
+	apt-get install docker.io -y > /dev/null 2>&1
+	systemctl restart docker > /dev/null 2>&1
+
+	cscli dashboard setup --listen 0.0.0.0 --password "$password" --yes
+
+	sed -i 's/listen_uri:.*/listen_uri: 0.0.0.0:8080/g' /etc/crowdsec/config.yaml
+	mkdir -p /etc/nginx/htpasswd /var/www/$domain/html
+	htpasswd -b -c /etc/nginx/htpasswd/$domain $user $pass
+
+	echo "server {
+
+	listen 80;
+	listen [::]:80;
+
+	server_name $domain www.$domain;
+	auth_basic_user_file /etc/nginx/htpasswd/$domain;
+	auth_basic \"Protected\";
+
+	location / {
+         proxy_pass http://127.0.0.1:3000;
+         client_max_body_size 100M;
+	}
+}" > /etc/nginx/sites-enabled/crowdsec.conf
+
+	systemctl restart nginx
+	systemctl restart crowdsec
+
+	echo "Dashboard has been configured on $domain"
+}
+
+###################################### Crowdsec Whitelist Ip Address##########
+function crowdsec_whitelist
+{
+	if ! hash cscli 2>/dev/null
+	then
+		echo "Crowdsec is Not installed yet!"
+		exit
+	fi
+
+	if [[ -z $whitelist_ip ]]
+	then
+                read -p "Enter Ip to Whitelist: " whitelist_ip
+        fi
+
+	grep $whitelist_ip /etc/crowdsec/parsers/s02-enrich/whitelists.yaml
+	if [ $? -eq 0 ]
+	then
+		echo "ip already whitelisted"
+	else
+		sed -i "/ip:/a \ \ \ \ - \"$whitelist_ip\"" /etc/crowdsec/parsers/s02-enrich/whitelists.yaml
+		systemctl restart crowdsec
+		echo "Ip has been whitelisted"
+	fi
+}
+###################################### Crowdsec Remove Function ##########
+###########################################################################################################################
+###########################################################################################################################
+
+########### Crowdsec Install
+if [[ $action == "crowdsec_install" || $action == "1" ]]
+then
+	crowdsec_install
+fi
+
+############ Uninstall Crowdsec
+if [[ $action == "crowdsec_remove" || $action == "2" ]]
+then
+	crowdsec_remove
+fi
+
+####### Upgrade Crowdsec
+if [[ $action == "crowdsec_upgrade" || $action == "3" ]]
+then
+	crowdsec_upgrade
+fi
+
+############## Disable Service
+if [[ $action == "crowdsec_disable" || $action == "4" ]]
+then
+	crowdsec_disable
+fi
+
+########## Enable Service
+if [[ $action == "crowdsec_enable" || $action == "5" ]]
+then
+	crowdsec_enable
+fi
+
+############## Add Collections
+if [[ $action == "crowdsec_add_collection" || $action == "6" ]]
+then
+	crowdsec_add_collection
+fi
+
+############## Remove Collections
+if [[ $action == "crowdsec_remove_collection" || $action == "7" ]]
+then
+	crowdsec_remove_collection
+fi
+
+########## SSL add
+if [[ $action == "crowdsec_ssl_enable" || $action == "8" ]]
+then
+	crowdsec_ssl_enable
+fi
+
+####### SSL Disable
+if [[ $action == "crowdsec_ssl_disable" || $action == "9" ]]
+then
+	crowdsec_ssl_disable
+fi
+
+####### Http Auth Enable
+if [[ $action == "crowdsec_auth_add" || $action == "10" ]]
+then
+	crowdsec_auth_add
+fi
+
+####### Http Auth Disable
+if [[ $action == "crowdsec_auth_remove" || $action == "11" ]]
+then
+	crowdsec_auth_remove
+fi
+
+####### Crowdsec add Client Machine
+if [[ $action == "crowdsec_add_client" || $action == "12" ]]
+then
+	crowdsec_add_client
+fi
+
+####### Crowdsec Add Master Dashboard Detail
+if [[ $action == "crowdsec_master_dashboard" || $action == "13" ]]
+then
+	crowdsec_master_dashboard
+fi
+
+####### Crowdsec Install Dashboard
+if [[ $action == "crowdsec_install_dashboard" || $action == "14" ]]
+then
+	crowdsec_install_dashboard
+fi
+
+####### Crowdsec Whitelist Ip Address
+if [[ $action == "crowdsec_whitelist" || $action == "15" ]]
+then
+	crowdsec_whitelist
+fi

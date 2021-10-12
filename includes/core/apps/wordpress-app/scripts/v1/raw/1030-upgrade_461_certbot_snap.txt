@@ -1,0 +1,46 @@
+#!/bin/bash
+if [[ "$EUID" -ne 0 ]]; then
+	echo "Sorry, you need to run this as root"
+	exit
+fi
+
+if [[ "$interactive" != "no" ]]; then
+    clear
+    echo "This script will switch the Certbot installation source from the apt repos to snap packages"
+    echo
+    read -p "Press enter to start"
+fi
+
+echo "Removing apt packages..."
+apt-get remove certbot python3-certbot python-certbot-nginx python3-certbot-nginx python3-certbot-dns-cloudflare python3-certbot-dns-route53 python3-certbot-dns-google -y
+
+echo "Installing snaps..."
+if ! hash snap 2>/dev/null; then
+	apt-get install snapd -y
+	if [ $? -ne 0 ]; then
+		echo "Failed!  Quitting process"
+		exit
+	fi
+fi
+snap install core
+snap refresh core
+snap install --classic certbot
+if [ $? -ne 0 ]  
+then
+	echo "Failed! Reverting changes..."
+		snap remove certbot
+		apt-get install certbot python3-certbot python-certbot-nginx python3-certbot-nginx python3-certbot-dns-cloudflare python3-certbot-dns-route53 python3-certbot-dns-google -y
+	exit
+fi
+snap set certbot trust-plugin-with-root=ok
+snap install certbot-dns-cloudflare 
+snap set certbot trust-plugin-with-root=ok
+snap install certbot-dns-dnsmadeeasy
+snap set certbot trust-plugin-with-root=ok
+snap install certbot-dns-google
+snap set certbot trust-plugin-with-root=ok
+snap install certbot-dns-ovh
+snap set certbot trust-plugin-with-root=ok
+snap install certbot-dns-route53
+
+echo "Upgrade Completed!"

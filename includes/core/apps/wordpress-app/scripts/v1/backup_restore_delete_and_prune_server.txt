@@ -1,0 +1,6 @@
+cd ~ &&
+sudo -E \rm -f ##SCRIPT_NAME## &&
+sudo -E wget --no-check-certificate -O ##SCRIPT_NAME## ##SCRIPT_URL## &&
+export action=##ACTION## domain=##DOMAIN## site=##DOMAIN## aws_access_key_id=##AWS_ACCESS_KEY_ID## aws_secret_access_key=##AWS_SECRET_ACCESS_KEY## aws_bucket_name=##AWS_BUCKET_NAME## days=##DAYS## confirmation=##CONFIRMATION## &&
+sudo -E dos2unix ##SCRIPT_NAME## &&
+sudo -E bash ##SCRIPT_NAME##

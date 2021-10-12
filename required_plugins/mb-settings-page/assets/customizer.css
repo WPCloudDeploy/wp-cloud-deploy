@@ -1,0 +1,42 @@
+/* Make fields vertical layout */
+.rwmb-label,
+.customize-control .rwmb-input {
+	width: 100%;
+}
+.rwmb-label {
+	margin-bottom: 4px;
+}
+
+/* Resize remove clone button */
+.rwmb-clone {
+	background: none;
+}
+.rwmb-button.remove-clone {
+	right: -18px;
+}
+.rwmb-button.remove-clone .dashicons {
+	font-size: 14px;
+	width: 14px;
+	height: 14px;
+}
+
+/* Show color picker inline because of overflow: hidden on a parent element */
+.rwmb-color-wrapper .wp-picker-holder {
+	position: static;
+}
+/* Always set uploaded images 1/2 width, regardless their size */
+.rwmb-image-item.rwmb-image-item {
+	width: 50%;
+}
+/* Fix CSS overflow layout with file/image upload field */
+.rwmb-upload-inside .moxie-shim {
+	display: none;
+}
+/* Set background dropdowns 100% width to show full placeholder */
+.rwmb-background-wrapper .rwmb-select {
+	width: 100%;
+	max-width: none;
+}
+.rwmb-file_input.rwmb-file_input.rwmb-file_input {
+	margin-bottom: 4px;
+}

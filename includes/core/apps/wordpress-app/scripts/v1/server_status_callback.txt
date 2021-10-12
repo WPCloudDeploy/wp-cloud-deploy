@@ -1,0 +1,6 @@
+cd ~ &&
+sudo -E \rm -f ##SCRIPT_NAME## &&
+sudo -E wget --no-check-certificate -O ##SCRIPT_NAME## ##SCRIPT_URL## &&
+export action=##ACTION## callback_server_status=##CALLBACK_SERVER_STATUS## callback_sites_status=##CALLBACK_SITES_STATUS## &&
+sudo -E dos2unix ##SCRIPT_NAME## &&
+sudo -E bash ##SCRIPT_NAME##

@@ -1,0 +1,39 @@
+echo "done" && {
+    cd ~ ; 
+	} && {
+	sudo -E echo $(date): "The server provisioning timeout has been set to ##LONG_COMMAND_TIMEOUT## minutes." >> ##SCRIPT_LOGS##.log.intermed 2>&1 ;
+	} && {
+	sudo -E echo $(date): "If the remainder of this process takes longer than the timeout shown above, you can assume that the process has failed. In that event you should delete the server and retry or contact support." >> ##SCRIPT_LOGS##.log.intermed 2>&1 ;
+	} && {
+	sudo -E echo $(date): "Waiting a minimum of 60 seconds for cloud image startup background processes to complete..." >> ##SCRIPT_LOGS##.log.intermed 2>&1 ;
+	} && {	
+	sleep 60 ; 
+	} && {
+	sudo -E echo $(date): "The webserver type is ##WEBSERVER_TYPE##" >> ##SCRIPT_LOGS##.log.intermed 2>&1 ;
+	} && {	
+	sudo -E echo $(date): "Updating repositories to get latest files. This will take a while..." >> ##SCRIPT_LOGS##.log.intermed 2>&1 ;
+	} && {
+	sudo -E apt-get update -yqm > /dev/null 2>&1 || { echo "Error updating repositories. Please delete this server and restart the process." >> ##SCRIPT_LOGS##.log.done 2>&1 && exit ; } ;
+	} && {
+	sudo -E echo $(date): "Installing dos2unix. This will take a while..." >> ##SCRIPT_LOGS##.log.intermed 2>&1 ;
+	} && {
+	sudo -E apt-get install -yqm dos2unix > /dev/null 2>&1 || { echo "Error installing dos2unix. Please delete this server and restart the process." >> ##SCRIPT_LOGS##.log.done 2>&1; } ;
+	} && { 
+	sudo -E echo $(date): "Installing vnstat..." >> ##SCRIPT_LOGS##.log.intermed 2>&1 ;
+	} && { 
+	sudo -E apt-get install -y vnstat > /dev/null 2>&1 || { echo "Error installing vnstat. Please delete this server and restart the process." >> ##SCRIPT_LOGS##.log.done 2>&1; } ; 
+	} && {
+    sudo -E wget --no-check-certificate -O ##SCRIPT_NAME## ##SCRIPT_URL## &&
+    export interactive=no &&
+    sudo -E dos2unix ##SCRIPT_NAME## >> ##SCRIPT_LOGS##.log.intermed 2>&1 &&
+	export webserver_type=##WEBSERVER_TYPE## &&
+	sudo -E echo "###################################################################################################" >> ##SCRIPT_LOGS##.log.intermed 2>&1 &&
+	sudo -E echo "# This is the start of the installation of the meat of your WordPress server.                      " >> ##SCRIPT_LOGS##.log.intermed 2>&1 &&
+	sudo -E echo "# We will be installing your LEMP stack, multiple PHP versions, firewall and more.                 " >> ##SCRIPT_LOGS##.log.intermed 2>&1 &&
+	sudo -E echo "# Expect this next phase to take 10 or more minutes so please be patient.                          " >> ##SCRIPT_LOGS##.log.intermed 2>&1 &&
+	sudo -E echo "# We will update you periodically...                                                               " >> ##SCRIPT_LOGS##.log.intermed 2>&1 &&
+	sudo -E echo "###################################################################################################" >> ##SCRIPT_LOGS##.log.intermed 2>&1 &&
+    sudo -E bash ##SCRIPT_NAME## >> ##SCRIPT_LOGS##.log.intermed 2>&1 &&
+    sudo -E mv ##SCRIPT_LOGS##.log.intermed ##SCRIPT_LOGS##.log.done &&
+    sudo -E wget -q ##CALLBACK_URL##;
+} > /dev/null 2>&1 &

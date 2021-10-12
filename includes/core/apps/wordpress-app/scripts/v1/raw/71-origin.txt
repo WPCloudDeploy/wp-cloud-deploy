@@ -1,0 +1,148 @@
+#!/bin/bash
+if [[ "$EUID" -ne 0 ]]; then
+	echo "Sorry, you need to run this as root"
+	exit
+fi
+
+# This script is meant to be used in the origin server
+
+clear
+
+basedir=$(dirname $0)
+
+
+
+if [[ ! -e $basedir/wp-sync ]]; then
+    echo "The companion wp-sync file needs to be located in the same directory where
+this script is located.
+
+Please, place the wp-sync file in $basedir and run this script again"
+    exit
+fi
+
+
+
+if [[ $action = "status" ]]; then
+    if [[ -x /usr/local/bin/wp-sync ]]; then
+        echo "wp-sync is enabled"
+        exit
+    else
+        echo "wp-sync is disabled"
+        exit
+    fi
+fi
+
+
+
+# if wp-sync is already configured...
+if [[ -e /usr/local/bin/wp-sync ]]; then
+
+    echo "It looks like wp-sync has already been enabled for this server"
+    while [[ -z $action ]]; do
+        echo
+        echo "What do you want to do?"
+        echo
+        echo "   1) Sync now"
+        echo "   2) Disable sync"
+        echo "   3) Re-enable sync"
+        echo "   4) Permanently remove the sync service"
+        read -p "Action: " action
+        until [[ -z "$action" || "$action" =~ ^[1-4]$ ]]; do
+        	echo "$action: invalid selection."
+            read -p "Action: " action
+        done
+    done
+
+    if [[ $action == "wp-sync-now" || $action == "1" ]]; then
+        if [[ -e /tmp/wp-sync.lock ]]; then
+            echo
+            echo "A syncronization job is currently running, please try later."
+            exit
+        fi
+        bash /usr/local/bin/wp-sync
+        echo
+        echo "The syncronization job has been started"
+        exit
+    fi
+
+    if [[ $action == "wp-sync-disable" || $action == "2" ]]; then
+        chmod -x /usr/local/bin/wp-sync
+        echo
+        echo "The scheduled sync job has been disabled"
+        exit
+    fi
+
+    if [[ $action == "wp-sync-enable" || $action == "3" ]]; then
+        chmod +x /usr/local/bin/wp-sync
+        echo
+        echo "The scheduled sync job has been re-enabled"
+        exit
+    fi
+
+    if [[ $action == "wp-sync-remove" || $action == "4" ]]; then
+        rm -f /usr/local/bin/wp-sync
+        rm -f /var/www/html/51796720716872671235391607993835.pub
+        (crontab -l 2>/dev/null | sed "/wp-sync/d") | crontab -
+        echo
+        echo "The sync service has been permanently removed"
+        exit
+    fi
+
+
+fi
+
+
+
+if [[ "$interactive" != "no" ]]; then
+    echo "This script will set up synchronization of the entire WordPress setup from this
+server (origin) to one server acting as a hot standby (destination)"
+    echo
+    echo "This script is designed to run in the ORIGIN server.
+
+You will additionally need to run 02-destination.sh in the destination
+server to complete setup"
+    echo
+    read -p "Press enter to start the origin setup for this server"
+fi
+
+if [[ -z $destination_ip ]]; then
+    echo
+    echo "Please, specify the DESTINATION server IP address"
+    read -p "Destination server IP: " destination_ip
+fi
+
+if [[ -z $sync_interval ]]; then
+    echo
+    echo "Please, specify the time interval (in minutes) to wait between syncronizations
+Example: 60"
+    read -p "Minutes: " sync_interval
+fi
+
+# create ssh key pair if it doesn't exist. do nothing if it already exists
+cat /dev/zero | ssh-keygen -q -N "" >/dev/null 2>&1
+# make it available with nginx
+cp /root/.ssh/id_rsa.pub /var/www/html/51796720716872671235391607993835.pub
+
+# install rsync
+apt-get update
+apt-get install -y rsync
+
+# set up helper script
+cp $basedir/wp-sync /usr/local/bin/wp-sync
+sed -i "3 i dest=$destination_ip" /usr/local/bin/wp-sync
+
+if [[ -n "$callback_start_sync" ]]; then
+    sed -i "3 i wget -q -O \/dev\/null $callback_start_sync" /usr/local/bin/wp-sync
+fi
+if [[ -n "$callback_completed_sync" ]]; then
+    sed -i "\$i wget -q -O \/dev\/null $callback_completed_sync" /usr/local/bin/wp-sync
+fi
+
+chmod +x /usr/local/bin/wp-sync
+# add crontab
+(crontab -l 2>/dev/null; echo "*/$sync_interval * * * * /usr/local/bin/wp-sync > /dev/null 2>&1") | crontab -
+
+echo "
+Setup has been finished for this server. But you are not done yet.
+
+Run 72-destination.sh in the DESTINATION server to set up the other side"

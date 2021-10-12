@@ -1,0 +1,341 @@
+#!/bin/bash
+if [[ "$EUID" -ne 0 ]]; then
+	echo "Sorry, you need to run this as root"
+	exit
+fi
+
+
+
+while [[ -z $action ]]; do
+    clear
+    echo "What do you want to do?"
+    echo "   1) Install Monitorix"
+    echo "   2) Remove Monitorix"
+    echo "   3) Upgrade Monitorix (Ubuntu 18.04 only)"
+    echo "   4) Enable Memcached monitoring"
+    echo "   5) Disable Memcached monitoring"
+    echo "   6) Enable NGINX monitoring"
+    echo "   7) Disable NGINX monitoring"
+    echo "   8) Enable MariaDB monitoring"
+    echo "   9) Disable MariaDB monitoring"
+    echo "   10) Enable HTTPS for Monitorix"
+    echo "   11) Disable HTTPS for Monitorix"
+    echo "   12) Change authentication to access Monitorix"
+    echo
+    read -p "Action: " action
+    until [[ ! -z "$action" ]]; do
+    	echo "$action: invalid selection."
+    	read -p "Action: " action
+    done
+done
+
+MONITORIX_REMOTE_PKG_NAME='monitorix_3.12.0-izzy1_all.deb'
+
+if [[ $action == "install_monitorix" || $action == "1" ]]; then
+
+	if [[ -z $domain ]]; then
+    	clear
+    	echo "Which domain name do you want for Monitorix?
+Specify just the domain name without www or http://
+Example: monitorix.myblog.com"
+    	read -p "Domain: " domain
+	fi
+	
+    if [[ -z $user ]]; then
+        echo
+        echo "Specify a user name to protect access to Monitorix
+Example: admin"
+        read -p "User name: " user
+    fi
+
+    if [[ -z $pass ]]; then
+        echo
+        echo "Specify a password"
+        read -p "Password: " pass
+    fi	
+
+	echo "server {
+    
+    listen 80;
+    listen [::]:80;
+
+    server_name $domain www.$domain;
+	
+	auth_basic_user_file /etc/nginx/htpasswd/$domain;
+	auth_basic \"Protected\";
+
+    location / {
+        proxy_pass http://127.0.0.1:8080;
+		sub_filter_once off;
+		sub_filter \"127.0.0.1:8080\" \"$domain\";
+    }
+
+}" > /etc/nginx/sites-enabled/monitorix
+
+	# create authentication file
+	mkdir -p /etc/nginx/htpasswd
+	htpasswd -b -c /etc/nginx/htpasswd/$domain $user $pass
+
+	if grep -q '18.04' /etc/os-release; then
+		# Installation for 18.04 LTS
+		
+		apt-get install -y rrdtool perl libwww-perl libmailtools-perl libmime-lite-perl librrds-perl libdbi-perl libxml-simple-perl libhttp-server-simple-perl libconfig-general-perl libio-socket-ssl-perl
+		rm -f $MONITORIX_REMOTE_PKG_NAME* ## remove any older versions that we might have downloaded.
+		wget https://apt.izzysoft.de/ubuntu/dists/generic/index.php?file=$MONITORIX_REMOTE_PKG_NAME -O $MONITORIX_REMOTE_PKG_NAME
+		
+		if [ $? -ne 0 ]
+		then
+			echo "Installation Failed. Unable to get package."
+			exit
+		fi
+		
+		dpkg -i $MONITORIX_REMOTE_PKG_NAME
+		
+		if [ $? -ne 0 ]
+		then
+			echo "Installation Failed. Unable to install package (dpkg)."
+			exit
+		fi		
+		
+		rm -f $MONITORIX_REMOTE_PKG_NAME*
+	else
+		# Installation for 20.04 LTS
+		apt-get install monitorix -y
+		
+		if [ $? -ne 0 ]
+		then
+			echo "Installation Failed. Unable to get package using apt-get."
+			exit
+		fi		
+	fi
+
+	sed -i -e "s/title = Place a title here/title = Monitorix/g" /etc/monitorix/monitorix.conf
+	
+		if [ $? -ne 0 ]
+		then
+			echo "Installation Failed. Unable to edit a file - it probably does not exist because prior steps in the installation process failed."
+			exit
+		fi	
+
+	if ! grep -qs "nginx_status" /etc/nginx/sites-available/default; then
+		sed '/server_name _/r'<(
+		echo
+    	echo "location /nginx_status {"
+    	echo "stub_status on;"
+    	echo "allow 127.0.0.1;"
+    	echo "allow ::1;"
+    	echo "deny all;"
+    	echo "}"
+) -i -- /etc/nginx/sites-available/default
+	fi
+
+	mysql_user=$(head /dev/urandom | tr -dc a-z | head -c 6)
+	mysql_pass=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 16)
+
+	mariadb <<QUERY
+CREATE USER '$mysql_user'@'localhost' IDENTIFIED BY '$mysql_pass';
+FLUSH PRIVILEGES;
+QUERY
+
+	sed -i -e "s/\/var\/run\/mysqld\/mysqld.sock = 3306, user, secret/\/var\/run\/mysqld\/mysqld.sock = 3306, $mysql_user, $mysql_pass/g" /etc/monitorix/conf.d/00-debian.conf
+
+	sed -i 's/	nginx		= n/	nginx		= y/g' /etc/monitorix/monitorix.conf
+	sed -i 's/	mysql		= n/	mysql		= y/g' /etc/monitorix/monitorix.conf
+
+    systemctl restart monitorix.service
+	systemctl restart nginx
+
+    echo
+    echo "Monitorix has been installed. It is available at: http://$domain/monitorix/"
+    exit
+fi
+
+
+
+if [[ $action == "remove_monitorix" || $action == "2" ]]; then
+
+	mysql_user=$(grep 3306 /etc/monitorix/conf.d/00-debian.conf | cut -d ',' -f 2 | cut -d ' ' -f 2)
+	mariadb <<QUERY
+DROP USER '$mysql_user'@'localhost';
+FLUSH PRIVILEGES;
+QUERY
+
+	rm -rf /etc/monitorix/
+	rm -f /etc/nginx/sites-enabled/monitorix
+	systemctl restart nginx
+	apt-get remove --purge -y monitorix
+
+	echo "Monitorix has been removed"
+	exit
+fi
+
+
+
+if [[ $action == "upgrade_monitorix" || $action == "3" ]]; then
+
+	if ! grep -q '18.04' /etc/os-release; then
+		echo "Manual upgrades are only required for Ubuntu 18.04"
+		exit
+	fi
+
+	# Ubuntu 20.04 carries Monitorix in the official repositories, so soon this will not be required
+	# Link to the latest version needs to be updated manually
+	rm -f $MONITORIX_REMOTE_PKG_NAME ## delete just in case it is present from a prior failed run.
+	wget https://apt.izzysoft.de/ubuntu/dists/generic/index.php?file=$MONITORIX_REMOTE_PKG_NAME -O $MONITORIX_REMOTE_PKG_NAME
+	dpkg -i $MONITORIX_REMOTE_PKG_NAME
+	rm -f $MONITORIX_REMOTE_PKG_NAME
+
+	echo "Monitorix has been updated"
+	exit
+fi
+
+
+
+if [[ $action == "enable_memcached_monitorix" || $action == "4" ]]; then
+	sed -i 's/	memcached	= n/	memcached	= y/g' /etc/monitorix/monitorix.conf
+    systemctl restart monitorix.service
+
+	echo "Memcached monitoring has been enabled for Monitorix"
+	exit
+fi
+
+
+
+if [[ $action == "disable_memcached_monitorix" || $action == "5" ]]; then
+	sed -i 's/	memcached	= y/	memcached	= n/g' /etc/monitorix/monitorix.conf
+    systemctl restart monitorix.service
+
+	echo "Memcached monitoring has been disabled for Monitorix"
+	exit
+fi
+
+
+
+if [[ $action == "enable_nginx_monitorix" || $action == "6" ]]; then
+	sed -i 's/	nginx		= n/	nginx		= y/g' /etc/monitorix/monitorix.conf
+    systemctl restart monitorix.service
+
+	echo "NGINX monitoring has been enabled for Monitorix"
+	exit
+fi
+
+
+
+if [[ $action == "disable_nginx_monitorix" || $action == "7" ]]; then
+	sed -i 's/	nginx		= y/	nginx		= n/g' /etc/monitorix/monitorix.conf
+    systemctl restart monitorix.service
+
+	echo "NGINX monitoring has been disabled for Monitorix"
+	exit
+fi
+
+
+
+if [[ $action == "enable_mysql_monitorix" || $action == "8" ]]; then
+	sed -i 's/	mysql		= n/	mysql		= y/g' /etc/monitorix/monitorix.conf
+    systemctl restart monitorix.service
+
+	echo "MariaDB monitoring has been enabled for Monitorix"
+	exit
+fi
+
+
+
+if [[ $action == "disable_mysql_monitorix" || $action == "9" ]]; then
+	sed -i 's/	mysql		= y/	mysql		= n/g' /etc/monitorix/monitorix.conf
+    systemctl restart monitorix.service
+
+	echo "MariaDB monitoring has been disabled for Monitorix"
+	exit
+fi
+
+
+
+if [[ $action == "enable_monitorix_ssl" || $action == "10" ]]; then
+
+	domain=$(grep server_name /etc/nginx/sites-enabled/monitorix | cut -d "_" -f 2 | cut -d " " -f 2)
+
+    if [[ -z $email ]]; then
+        echo
+        echo "Specify an email for administrative notifications about your certificate
+Example: admin@example.com"
+        read -p "Email address: " email
+    fi
+
+    certbot --non-interactive --reinstall --expand --nginx --agree-tos -m $email --allow-subset-of-names --redirect -d $domain -d www.$domain
+
+    if ! grep -qs "listen 443" /etc/nginx/sites-enabled/monitorix; then
+        echo
+        echo "SSL could not be enabled for $domain"
+        exit
+    fi
+
+	sed -i '/sub_filter_once off/a sub_filter "http://"  "https://";' /etc/nginx/sites-enabled/monitorix
+	systemctl restart nginx
+
+    echo
+    echo "SSL has been enabled for $domain"
+	exit
+fi
+
+
+
+if [[ $action == "disable_monitorix_ssl" || $action == "11" ]]; then
+
+	domain=$(grep server_name /etc/nginx/sites-enabled/monitorix -m 1 | cut -d "_" -f 2 | cut -d " " -f 2)
+
+    if ! grep -qs 'managed by Certbot' /etc/nginx/sites-enabled/monitorix; then
+        echo
+        echo "SSL is already disabled for $domain"
+        exit
+    fi
+    certbot delete --cert-name $domain --noninteractive
+
+	echo "server {
+    
+    listen 80;
+    listen [::]:80;
+
+    server_name $domain www.$domain;
+
+    location / {
+        proxy_pass http://127.0.0.1:8080;
+		sub_filter_once off;
+		sub_filter \"127.0.0.1:8080\" \"$domain\";
+    }
+
+}" > /etc/nginx/sites-enabled/monitorix
+
+    systemctl restart nginx
+
+    echo
+    echo "SSL has been disabled for $domain"
+	exit
+fi
+
+
+if [[ $action == "change_auth" || $action == "12" ]]; then
+
+	if [[ -z $user ]]; then
+        echo
+        echo "Specify a user name to protect access to Monitorix
+Example: admin"
+        read -p "User name: " user
+    fi
+
+    if [[ -z $pass ]]; then
+        echo
+        echo "Specify a password"
+        read -p "Password: " pass
+    fi	
+
+	domain=$(grep server_name /etc/nginx/sites-enabled/monitorix | cut -d "_" -f 2 | cut -d " " -f 2)
+
+	rm -f /etc/nginx/htpasswd/$domain
+	htpasswd -b -c /etc/nginx/htpasswd/$domain $user $pass
+
+    echo
+    echo "Authentication data has been changed for Monitorix"
+	exit
+
+fi

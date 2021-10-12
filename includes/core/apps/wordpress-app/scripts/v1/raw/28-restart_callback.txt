@@ -1,0 +1,104 @@
+#!/bin/bash
+
+if [[ "$EUID" -ne 0 ]]
+then
+	echo "Sorry, to run this as root"
+	exit
+fi
+
+clear
+
+while [[ -z $action ]]; do
+	echo
+	echo "What do you want to do?"
+	echo "   1) Install Callback Notification Process"
+	echo "   2) Remove Callback Notification Process"
+	echo "   3) Run Callback Notification Process"
+	echo
+	read -p "Action: " action
+	until [[ -z "$action" || "$action" =~ ^[1-3]$ ]]; do
+		echo "$action: invalid selection."
+		read -p "Action: " action
+	done
+done
+
+################### Install Callback Notify #########
+if [[ $action == "install_callback_notify" || $action == "1" ]];
+then
+	if [[ -z "$callback_notify" ]]
+	then
+		read -p "enter callback url to get server status:  " callback_notify
+	fi
+
+	###  Startup Event script
+	echo $'#!/bin/bash
+	curl -sS "'$callback_notify'?event=started_up"' > /usr/local/bin/callback-start
+
+	### Shutdown Event Script
+	echo $'#!/bin/bash
+	curl -sS "'$callback_notify'?event=shutting_down"' > /usr/local/bin/callback-shutdown
+
+	chmod +x /usr/local/bin/callback-shutdown
+	chmod +x /usr/local/bin/callback-start
+
+	### Create Service to run before shutdown and enable that service so it can start on server Startup
+	echo $'#!/bin/bash
+# Short-Description: Start daemon at boot time
+# Description:       Enable service provided by daemon.
+
+[Unit]
+Description=Callback Restart notification
+Before=shutdown.target reboot.target halt.target
+After=network.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=true
+ExecStart=/usr/local/bin/callback-start
+ExecStop=/usr/local/bin/callback-shutdown
+
+[Install]
+WantedBy=multi-user.target' > /etc/systemd/system/callback-restart.service
+	
+	systemctl daemon-reload
+	systemctl enable callback-restart.service
+	systemctl start callback-restart.service
+
+	echo
+	echo "Server restart callback job configured!"
+	exit
+fi
+
+
+################### Remove server Notify Process #########
+if [[ $action == "remove_callback_notify" || $action == "2" ]]
+then
+	### Remove shutdown and startup scripts with service
+	rm -f /usr/local/bin/callback-start
+	rm -f /usr/local/bin/callback-shutdown
+	rm -f /etc/systemd/system/callback-restart.service
+	systemctl daemon-reload
+	
+	echo
+	echo "Server restart callback job removed!"
+	exit
+fi
+
+################### Run server Status Cron #########
+if [[ $action == "run_callback_notify" || $action == "3" ]]
+then
+	if [ ! -f /usr/local/bin/callback-start ]
+	then
+		echo
+		echo "Server Status script not installed yet!"
+		exit
+	fi
+	#### Run callback to notify shutdown and start server notification
+	systemctl stop callback-restart.service
+	systemctl start callback-restart.service
+
+	if [ $? -eq 0 ]
+	then
+		echo "Server restart callback job executed successfully."
+	fi
+fi

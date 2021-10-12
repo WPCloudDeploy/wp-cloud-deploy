@@ -1,0 +1,418 @@
+/* Give the box that contains a basic-server- Instance a background color on desktops and tablets. */
+
+@media only screen and (min-width: 1250px) {
+	.wpcd-basic-server-instance {
+		border: 1px solid;
+		border-color: #F8FCFF;
+		border-radius: 5px;
+		background-color: #ECEFF1;
+		color: black;
+	}
+}
+
+/* the box that contains each instance - applies to all devices */
+
+.wpcd-basic-server-instance {
+	padding: 2%;
+	margin: 2% 0px;
+}
+
+/* the name of the instance */
+
+.wpcd-basic-server-instance-name {
+	color: black;
+	font-weight: bold;
+	padding-top: 0.3em;
+	padding-bottom: 0.3em;
+}
+
+.wpcd-basic-server-instance-name:before {
+	content: "Server Name: ";
+}
+
+/* Make instance attributes a css grid (things like the provider, size etc)*/
+
+.wpcd-basic-server-instance-atts {
+	display: grid;
+	grid-template-areas: "i i i i i i";
+	/*1 row, 6 columns for the attributes */
+	grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
+}
+
+@media only screen and (max-width: 1400px) {
+	.wpcd-basic-server-instance-atts {
+		grid-template-areas: "i i i" "i i i";
+		/*2 rows, 3 columns for the attributes */
+		grid-template-columns: 1fr 1fr 1fr;
+	}
+}
+
+/* 
+ Format each of the individual items for the instance attributes 
+ i.e: provider, region, protocol, users, subscription id
+ basically we're making them nice looking boxes with an icon 
+ above each label.
+ */
+
+.wpcd-basic-server-instance-atts>div {
+	margin-top: 15px;
+	margin-right: 4%;
+	margin-bottom: 4%;
+	padding: 4%;
+	border-radius: 5px;
+	border-color: white;
+	xborder: solid;
+	border-width: 1px;
+	background-color: white;
+	box-shadow: 0 0 10px 5px #CFD8DC;
+	color: black;
+	font-size: 12px;
+}
+
+.wpcd-basic-server-instance-atts>div>div {
+	/*color the labels*/
+	font-size: 10px;
+	color: #90A4AE;
+}
+
+.icon-spvpnprovider, .icon-spvpnregion, .icon-spvpnsize, .icon-spvpnsubscription_id {
+	/* This formats the iconmoon icons in the iconmoon font file */
+	font-size: 32px !important;
+}
+
+/* End format each of the individual items for the instance attributes */
+
+/* Make instance actions area a css grid (things like the restart, ad user etc)*/
+
+.wpcd-basic-server-instance-actions {
+	display: grid;
+	grid-template-areas: "i i " "i i " "i i ";
+	/*1 row, 2 columns for the attributes */
+	grid-template-columns: 1fr 1fr;
+	grid-column-gap: 1em;
+}
+
+@media only screen and (max-width: 1400px) {
+	.wpcd-basic-server-instance-actions {
+		grid-template-areas: "i" "i";
+		/*1 rows, 1 column for the attributes */
+		grid-template-columns: 1fr;
+	}
+}
+
+/* Style the wrapper around each group of buttons inside the instance container */
+
+.wpcd-basic-server-instance-multi-button-block-wrap {
+	background-color: white;
+	margin-top: 4%;
+	margin-bottom: 4%;
+	padding: 4%;
+	border-width: 1px;
+	border-radius: 5px;
+	box-shadow: 0 0 10px 5px #CFD8DC;
+}
+
+/* General button styles */
+
+.wpcd-basic-server-action-type {
+	font-size: small;
+	margin-top: 1em;
+	margin-bottom: 0.5em;
+}
+
+/* text color and other button asthetics */
+
+.wpcd-basic-server-action-type {
+	color: white;
+	border-radius: 3px;
+	border-width: 0px;
+}
+
+.wpcd-basic-server-action-type:hover {
+	color: white;
+	/* these colors should really be pulling from the SPMM config options...*/
+	background-color: #031470;
+	/* these colors should really be a config options...*/
+	border-width: 0px;
+}
+
+/* Style the individual buttons */
+
+.wpcd-basic-server-action-download-file, .wpcd-basic-server-action-reboot, .wpcd-basic-server-action-relocate, .wpcd-basic-server-action-connected {
+	background-color: #031470;
+	box-shadow: 0 0 5px 5px #CFD8DC;
+}
+
+.wpcd-basic-server-action-download-file:hover, .wpcd-basic-server-action-reboot:hover, .wpcd-basic-server-action-relocate:hover, .wpcd-basic-server-action-connected:hover {
+	background-color: #0C942D;
+}
+
+.wpcd-basic-server-action-instructions {
+	border-color: #CFD8DC;
+	border-width: 1px;
+	border: solid;
+	color: #90A4AE !important;
+	font-weight: bold;
+	background-color: white;
+	box-shadow: 0 0 5px 5px #CFD8DC;
+}
+
+.wpcd-basic-server-action-off, .wpcd-basic-server-action-remove-user {
+	/* red */
+	background-color: #D60D0F;
+	border-color: #D60D0F;
+}
+
+.wpcd-basic-server-action-add-user, .wpcd-basic-server-action-on {
+	/* green */
+	background-color: #0C942D;
+	border-color: #0C942D
+}
+
+.wpcd-basic-server-action-reinstall {
+	/* orange */
+	background-color: #FF5722;
+	border-color: #FF5722
+}
+
+/* End individual button styles */
+
+/* box headers on the wpcd-basic-server account screen */
+
+.wpcd-basic-server-action-head {
+	color: black;
+	font-weight: bold;
+	padding-bottom: 1em;
+	margin-bottom: 0.5em;
+	border-bottom: solid;
+	border-bottom-width: 1px;
+	border-bottom-color: #CFD8DC;
+}
+
+/* the dropdown in actions of the instance */
+
+.wpcd-basic-server-select {
+	margin-top: 1em;
+}
+
+/* help tip underneath each button */
+
+.wpcd-basic-server-action-help-tip {
+	font-size: x-small;
+}
+
+/* put some margin under the text inputs */
+
+input.wpcd-basic-server-additional.wpcd-basic-server-input-text {
+	margin-bottom: 10px !important;
+}
+
+/* the instructions popup */
+
+.wpcd-basic-server-alert, .wpcd-basic-server-instructions {
+	position: relative;
+	background: #EEEEEE;
+	padding: 20px;
+	width: auto;
+	margin: 20px auto;
+	box-shadow: 0 0 5px 5px #CFD8DC;
+}
+
+/* instructions popup content */
+
+.wpcd-basic-server-instructions-popup-content-wrap {
+	width: 80%;
+	height: 100%;
+}
+
+/* Make the data inside the instructions screen a css grid */
+
+.wpcd-basic-server-instructions-popup-content-grid {
+	display: grid;
+	grid-template-areas: "i i i";
+	/*1 row, 3 columns for the attributes */
+	grid-template-columns: 1fr 1fr 1fr;
+	grid-column-gap: 3em;
+}
+
+@media only screen and (max-width: 1600px) {
+	.wpcd-basic-server-instructions-popup-content-grid {
+		grid-template-areas: "i i";
+		/*1 rows, 2 column for the attributes */
+		grid-template-columns: 1fr 1fr;
+	}
+}
+
+@media only screen and (max-width: 1400px) {
+	.wpcd-basic-server-instructions-popup-content-grid {
+		grid-template-areas: "i";
+		/*1 rows, 1 column for the attributes */
+		grid-template-columns: 1fr;
+	}
+}
+
+/* Styling for each box inside the instructions grid..*/
+
+.wpcd-basic-server-instructions-grid-item {
+	background-color: white;
+	margin-top: 4%;
+	margin-bottom: 4%;
+	padding: 2%;
+	padding-top: 1%;
+	border-width: 1px;
+	border-radius: 5px;
+	box-shadow: 0 0 10px 5px #CFD8DC;
+}
+
+/* Styling for the ABOUT YOUR SERVER and HELP box */
+
+.wpcd-basic-server-instructions-grid-item-about-server, .wpcd-basic-server-instructions-grid-item-help {
+	font-size: smaller;
+	;
+}
+
+/* Error messages in magnific popup */
+
+@media only screen and (min-width: 1250px) {
+	.wpcd-basic-server-alert {
+		width: 40%;
+	}
+}
+
+.wpcd-basic-server-error-message-title {
+	font-size: 36px;
+	text-align: center;
+	color: Black;
+	padding: 2 em;
+}
+
+.wpcd-basic-server-error-message {
+	margin-top: 1em;
+	border: solid;
+	border-width: 1px;
+	border-color: #f44336;
+	border-radius: 5px;
+	padding: 2em;
+}
+
+.wpcd-basic-server-error-dismiss-message {
+	font-size: small;
+	text-align: center;
+	margin-top: 2em;
+}
+
+.wpcd-basic-server-error-message-help-title {
+	font-size: 30px;
+	color: Black;
+	padding: 2 em;
+}
+
+.wpcd-basic-server-error-message-help-text {
+	margin-top: 1em;
+	border: solid;
+	border-width: 1px;
+	border-color: #4CAF50;
+	border-radius: 5px;
+	padding: 2em;
+}
+
+/* End format error messages in magnific popup */
+
+/* Promo links on the wpcd-basic-server user account screen */
+
+.wpcd-basic-server-instance-promo a {
+	font-size: small;
+}
+
+/* Promo buttons on the wpcd-basic-server- user account screen */
+
+.wpcd-basic-server-instance-promo-button {
+	margin-top: 0.5em;
+	margin-bottom: 1em;
+}
+
+.wpcd-basic-server-instance-promo-button a {
+	font-size: small;
+	color: white;
+	background-color: #004D40;
+	/* these colors should really be a config options...*/
+	border-radius: 3px;
+	border-width: 0px;
+	padding: 1em;
+}
+
+/* the spinner - start */
+
+.locker, .locker-loader {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+}
+
+.locker {
+	z-index: 1000;
+	opacity: 0.8;
+	background-color: white;
+	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=80)";
+	filter: alpha(opacity=80);
+}
+
+.locker-loader {
+	z-index: 1001;
+	background: url(/wp-includes/images/wpspin-2x.gif) no-repeat center center;
+}
+
+/* the spinner - end */
+
+/***********************************************************************/
+
+/* All this code just to style SELECTs on the basic-server- ACCOUNT SCREEN       */
+
+/**********************************************************************/
+
+.wpcd-basic-server-select {
+	margin-bottom: 10px;
+	border-radius: 5px;
+	display: block;
+	font-size: 16px;
+	color: #031470;
+	line-height: 1.3;
+	padding: .6em 1.4em .5em .8em;
+	width: 100%;
+	max-width: 100%;
+	box-sizing: border-box;
+	border: 1px solid #aaa;
+	box-shadow: 0 1px 0 1px rgba(0, 0, 0, .04);
+	-moz-appearance: none;
+	-webkit-appearance: none;
+	appearance: none;
+	background-color: #E5E8F0;
+	background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23007CB2%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E'), linear-gradient(to bottom, #ffffff 0%, #e5e5e5 100%);
+	background-repeat: no-repeat, repeat;
+	background-position: right .7em top 50%, 0 0;
+	background-size: .65em auto, 100%;
+}
+
+.wpcd-basic-server-select::-ms-expand {
+	display: none;
+}
+
+.wpcd-basic-server-select:hover {
+	border-color: #888;
+}
+
+.wpcd-basic-server-select:focus {
+	border-color: #aaa;
+	box-shadow: 0 0 1px 3px rgba(59, 153, 252, .7);
+	box-shadow: 0 0 0 3px -moz-mac-focusring;
+	color: #222;
+	outline: none;
+}
+
+.wpcd-basic-server-select option {
+	font-weight: normal;
+}
+
+/* End style SELECTs on the basic-server- ACCOUNT SCREEN */

@@ -1,0 +1,5 @@
+cd ~ && 
+sudo -E wget --no-check-certificate -O ##SCRIPT_NAME## ##SCRIPT_URL## &&
+export action=##ACTION## bantime_new=##BANTIME_NEW## findtime_new=##FINDTIME_NEW## maxretry_new=##MAXRETRY_NEW## ignoreip_new=##IGNOREIP_NEW## protocol_new=##PROTOCOL_NEW## protocol_delete=##PROTOCOL_DELETE## protocol_update=##PROTOCOL_UPDATE## unbanip=##UNBANIP## banip=##BANIP## &&
+sudo -E dos2unix ##SCRIPT_NAME## &&
+sudo -E bash ##SCRIPT_NAME##

@@ -1,0 +1,704 @@
+#!/bin/bash
+if [[ "$EUID" -ne 0 ]]; then
+	echo "Sorry, you need to run this as root"
+	exit
+fi
+
+#
+# Add callback function to be used later in the script
+#
+function add_callback {
+	if [[ -z "$callback_url" ]]
+	then
+		read -p "enter callback url to get notification result:  " callback_url
+        fi
+	## Copy monit log file so we can compare it during crons callback
+	cp /var/log/monit.log /var/log/monit_old.log
+	## Compare monit.log with last state of monit log file (monit_old.log) what ever triggeres happen in last 1 minutes and get the difference
+	## Read line by line from difference file and get required string which need to send as notification
+	echo $'#!/bin/bash
+	callback_url='$callback_url'
+	diff /var/log/monit.log /var/log/monit_old.log |grep "<" > monit-notify
+	while read line
+	do
+		monitlog=`echo "$line"|tr -d '\''['\''|tr -d '\'']'\''|tr -d "'\''"|awk -F'\'': '\'' '\''{print $2}'\''`
+		curl -sS "$callback_url?monit_status='\''$monitlog'\''"
+	done < ./monit-notify
+	cp /var/log/monit.log /var/log/monit_old.log' > /usr/local/bin/monit-reporting
+	chmod +x /usr/local/bin/monit-reporting
+	crontab -l | grep -q 'monit-reporting' || (crontab -l 2>/dev/null; echo "* * * * * /usr/local/bin/monit-reporting > /dev/null 2>&1") | crontab -
+}
+
+
+while [[ -z $action ]]; do
+	clear
+	echo "What do you want to do?"
+	echo "   1) Install Monit"
+	echo "   2) Enable NGINX monitoring"
+	echo "   3) Disable NGINX monitoring"
+	echo "   4) Enable MySQL monitoring"
+	echo "   5) Disable MySQL monitoring"
+	echo "   6) Enable Redis monitoring"
+	echo "   7) Disable Redis monitoring"
+	echo "   8) Enable Memcached monitoring"
+	echo "   9) Disable Memcached monitoring"
+	echo "   10) Enable PHP monitoring"
+	echo "   11) Disable PHP monitoring"
+	echo "   12) Enable filesystem monitoring"
+	echo "   13) Disable filesystem monitoring"
+	echo "   14) Update email alert settings"
+	echo "   15) Enable all monitors"
+	echo "   16) Disable all monitors"
+	echo "   17) Enable HTTPS"
+	echo "   18) Disable HTTPS"
+	echo "   19) Add callback url for notification"
+	echo "   20) Remove callback url for notification"
+	echo "   21) Uninstall/Remove Monit"
+	echo "   22) Deactivate Monit"	
+	echo "   23) Activate Monit"	
+	echo
+	read -p "Action: " action
+	until [[ ! -z "$action" ]]; do
+		echo "$action: invalid selection."
+		read -p "Action: " action
+	done
+done
+
+
+
+if [[ $action == "install_monit" || $action == "1" ]]; then
+	clear
+
+	if [[ -z $domain ]]; then
+    	clear
+    	echo "Which domain name do you want for Monit?
+Specify just the domain name without www or http://
+Example: monit.myblog.com"
+    	read -p "Domain: " domain
+	fi
+
+	echo "server {
+    
+    listen 80;
+    listen [::]:80;
+
+    server_name $domain www.$domain;
+
+    location / {
+        proxy_pass http://127.0.0.1:48756;
+		sub_filter_once off;
+		sub_filter \"127.0.0.1:48756\" \"$domain\";
+    }
+
+}" > /etc/nginx/sites-enabled/monit
+
+	systemctl restart nginx
+
+	apt-get install -y monit
+
+	# Save the original monitrc configuration file if this is the first time we're installing it.
+	# It's a great reference to have around.
+	if [ ! -f /opt/monitrc.original ]
+	then
+		cp /etc/monit/monitrc /opt/monitrc.original
+	fi
+
+	if [[ -z $monit_user ]]; then
+		echo
+		echo "Specify a name for the Monit user
+Example: admin"
+		read -p "Monit user name: " monit_user
+	fi
+
+
+	if [[ -z "$monit_password" ]]; then
+		echo
+		echo "Specify a password for the Monit user"
+		read -p "Monit password: " monit_password
+	fi
+
+
+	if [[ -z "$email_notifications" ]]; then
+		echo
+		read -p "Should e-mail notifications be enabled for monit? [y/n]: " email_notifications
+		until [[ "$email_notifications" =~ ^[yYnN]$ ]]; do
+			echo "$email_notifications: invalid selection."
+			read -p "Should e-mail notifications be enabled for monit? [y/n]: " email_notifications
+		done
+	fi
+	if [[ "$email_notifications" =~ ^[yY]$ ]]; then
+
+		if [[ -z $monit_smtp_server ]]; then
+			echo "Specify a SMTP server which Monit should use for email notifications
+
+Specify the SMTP server name only. The SMTP server needs to support TLS.
+Example: smtp.sendgrid.net"
+			read -p "SMTP server: " monit_smtp_server
+		fi
+
+		if [[ -z $monit_smtp_port ]]; then
+			echo
+			echo "Specify the SMTP port"
+			read -p "SMTP port: " monit_smtp_port
+		fi
+
+		if [[ -z $monit_smtp_user ]]; then
+			echo
+			echo "Specify the SMTP user name for authentication"
+			read -p "SMTP user: " monit_smtp_user
+		fi
+
+		if [[ -z "$monit_smtp_pass" ]]; then
+			echo
+			echo "Specify the SMTP password"
+			read -p "SMTP password: " monit_smtp_pass
+		fi
+
+		if [[ -z $monit_alert_email ]]; then
+			echo
+			echo "Specify an e-mail address for Monit alerts"
+			read -p "Email: " monit_alert_email
+		fi
+
+		echo "set daemon 120
+set log /var/log/monit.log			
+set idfile /var/lib/monit/id
+set statefile /var/lib/monit/state
+
+set mailserver $monit_smtp_server port $monit_smtp_port
+    username \"$monit_smtp_user\" password \"$monit_smtp_pass\"
+    using tls
+
+set alert $monit_alert_email
+
+set eventqueue
+    basedir /var/lib/monit/events
+    slots 100
+
+set httpd port 48756 and
+    allow $monit_user:$monit_password
+
+include /etc/monit/conf.d/*
+include /etc/monit/conf-enabled/*" > /etc/monit/monitrc
+
+	else
+
+		echo "set daemon 120
+set log /var/log/monit.log
+set idfile /var/lib/monit/id
+set statefile /var/lib/monit/state
+
+set eventqueue
+    basedir /var/lib/monit/events
+    slots 100
+
+set httpd port 48756 and
+    allow $monit_user:$monit_password
+
+include /etc/monit/conf.d/*
+include /etc/monit/conf-enabled/*" > /etc/monit/monitrc
+
+	fi
+
+	# set m-monit registration server if available
+	# $monit_mmonit_server is only available as an optional environment var - we do not prompt the user for it if unavailable.
+	if [[ $monit_mmonit_server ]]; then	
+		echo "set mmonit $monit_mmonit_server" >> /etc/monit/monitrc
+	fi
+	
+	# Add callback if it exists.
+	if [[ "$callback_url" ]]
+	then
+		add_callback
+	fi	
+
+	#calculate dynamic limits based on server resources
+	Memory=`free -m|grep Mem|awk '{print $2}'`
+	cpalert=$(echo "`nproc`*70" | bc)
+	cprestart=$(echo "`nproc`*80" | bc)
+	memalert=$(echo "$Memory*.80" | bc)
+	memrestart=$(echo "$Memory*.85" | bc)
+	Alert_cpu=`echo $cpalert| awk '{printf("%d", $1)}'`
+	Restart_cpu=`echo $cprestart| awk '{printf("%d", $1)}'`
+	Alert_memory=`echo $memalert| awk '{printf("%d", $1)}'`
+	Restart_memory=`echo $memrestart| awk '{printf("%d", $1)}'`
+
+echo ' check process nginx with pidfile /var/run/nginx.pid
+   group www
+   group nginx
+   start program = "/bin/systemctl restart nginx"
+   stop program = "/bin/systemctl restart nginx"
+   if failed host 127.0.0.1 port 80 then restart
+   if 5 restarts with 5 cycles then timeout
+   if cpu is greater than '$Alert_cpu'% for 2 cycles then alert
+   if cpu > '$Restart_cpu'% for 5 cycles then restart
+   depend nginx_bin
+   depend nginx_rc
+
+ check file nginx_bin with path /usr/sbin/nginx
+   group nginx
+   include /etc/monit/templates/rootbin
+
+ check file nginx_rc with path /etc/init.d/nginx
+   group nginx
+   include /etc/monit/templates/rootbin
+' > /etc/monit/conf-available/nginx
+
+echo ' check process mysqld with pidfile /var/run/mysqld/mysqld.pid
+   group database
+   group mysql
+   start program = "/bin/systemctl start mariadb"
+   stop  program = "/bin/systemctl stop mariadb"
+   if cpu > '$Alert_cpu'% for 2 cycles then alert
+   if cpu > '$Restart_cpu'% for 5 cycles then restart
+   if mem > '$Restart_memory' MB for 3 cycles then restart
+   if failed host localhost port 3306 protocol mysql with timeout 15 seconds for 3 times within 4 cycles then restart
+   if failed unixsocket /var/run/mysqld/mysqld.sock protocol mysql for 3 times within 4 cycles then restart
+   if 5 restarts with 5 cycles then timeout
+   depend mysql_bin
+   depend mysql_rc
+
+ check file mysql_bin with path /usr/sbin/mysqld
+   group mysql
+   include /etc/monit/templates/rootbin
+
+ check file mysql_rc with path /etc/init.d/mysql
+   group mysql
+   include /etc/monit/templates/rootbin
+   ' > /etc/monit/conf-available/mysql
+
+echo 'check process redis-server with pidfile "/var/run/redis/redis-server.pid"
+    start program = "/bin/systemctl start redis"
+    stop program = "/bin/systemctl stop redis"
+    if totalmem > '$Alert_memory' MB then alert
+    if children > 255 for 5 cycles then restart
+	if cpu > '$Alert_cpu'% for 2 cycles then alert
+    if cpu usage > '$Restart_cpu'% for 3 cycles then restart
+    if failed host 127.0.0.1 port 6379 then restart
+'> /etc/monit/conf-available/redis
+
+echo 'check process memcached with pidfile "/var/run/memcached/memcached.pid"
+    start program = "/bin/systemctl start memcached"
+    stop program = "/bin/systemctl stop memcached"
+    if totalmem > '$Alert_memory' MB then alert
+	if cpu > '$Alert_cpu'% for 2 cycles then alert
+    if cpu usage > '$Restart_cpu'% for 3 cycles then restart
+    if failed host 127.0.0.1 port 11211 then restart
+'> /etc/monit/conf-available/memcached
+
+echo 'check process php80-fpm with pidfile /var/run/php/php8.0-fpm.pid
+    start program = "/bin/systemctl start php8.0-fpm"
+    stop program  = "/bin/systemctl stop php8.0-fpm"
+    if cpu is greater than '$Alert_cpu'% for 3 cycles then alert
+    if cpu is greater than '$Restart_cpu'% for 5 cycles then restart
+    if totalmem > '$Restart_memory' MB then alert
+' > /etc/monit/conf-available/php80
+
+echo 'check process php74-fpm with pidfile /var/run/php/php7.4-fpm.pid
+    start program = "/bin/systemctl start php7.4-fpm"
+    stop program  = "/bin/systemctl stop php7.4-fpm"
+    if cpu is greater than '$Alert_cpu'% for 3 cycles then alert
+    if cpu is greater than '$Restart_cpu'% for 5 cycles then restart
+    if totalmem > '$Restart_memory' MB then alert
+' > /etc/monit/conf-available/php74
+
+echo 'check process php73-fpm with pidfile /var/run/php/php7.3-fpm.pid
+    start program = "/bin/systemctl start php7.3-fpm"
+    stop program  = "/bin/systemctl stop php7.3-fpm"
+    if cpu is greater than '$Alert_cpu'% for 3 cycles then alert
+    if cpu is greater than '$Restart_cpu'% for 5 cycles then restart
+    if totalmem > '$Restart_memory' MB then alert
+' > /etc/monit/conf-available/php73
+
+echo 'check process php72-fpm with pidfile /var/run/php/php7.2-fpm.pid
+    start program = "/bin/systemctl start php7.2-fpm"
+    stop program  = "/bin/systemctl stop php7.2-fpm"
+    if cpu is greater than '$Alert_cpu'% for 3 cycles then alert
+    if cpu is greater than '$Restart_cpu'% for 5 cycles then restart
+    if totalmem > '$Restart_memory' MB then alert
+' > /etc/monit/conf-available/php72
+
+echo 'check process php71-fpm with pidfile /var/run/php/php7.1-fpm.pid
+    start program = "/bin/systemctl start php7.1-fpm"
+    stop program  = "/bin/systemctl stop php7.1-fpm"
+    if cpu is greater than '$Alert_cpu'% for 3 cycles then alert
+    if cpu is greater than '$Restart_cpu'% for 5 cycles then restart
+    if totalmem > '$Restart_memory' MB then alert
+' > /etc/monit/conf-available/php71
+
+echo 'check process php56-fpm with pidfile /var/run/php/php5.6-fpm.pid
+    start program = "/bin/systemctl start php5.6-fpm"
+    stop program  = "/bin/systemctl stop php5.6-fpm"
+    if cpu is greater than '$Alert_cpu'% for 3 cycles then alert
+    if cpu is greater than '$Restart_cpu'% for 5 cycles then restart
+    if totalmem > '$Restart_memory' MB then alert
+' > /etc/monit/conf-available/php56
+
+echo 'CHECK FILESYSTEM system PATH /
+     if space usage > 80% then alert
+' > /etc/monit/conf-available/filesystem
+
+echo 'check system '$domain'
+   if cpu usage > '$Alert_cpu'% for 2 cycles then alert
+   if memory usage > '$Restart_memory' MB for 3 cycles then alert
+   ' > /etc/monit/conf-available/coresystem
+
+	chmod 0700 /etc/monit/monitrc
+	ln -s /etc/monit/conf-available/nginx /etc/monit/conf-enabled/nginx
+	ln -s /etc/monit/conf-available/mysql /etc/monit/conf-enabled/mysql
+	ln -s /etc/monit/conf-available/php80 /etc/monit/conf-enabled/php80
+	ln -s /etc/monit/conf-available/php74 /etc/monit/conf-enabled/php74
+	ln -s /etc/monit/conf-available/php73 /etc/monit/conf-enabled/php73
+	ln -s /etc/monit/conf-available/php72 /etc/monit/conf-enabled/php72
+	ln -s /etc/monit/conf-available/php71 /etc/monit/conf-enabled/php71
+	ln -s /etc/monit/conf-available/php56 /etc/monit/conf-enabled/php56
+	ln -s /etc/monit/conf-available/filesystem /etc/monit/conf-enabled/filesystem
+	ln -s /etc/monit/conf-available/coresystem /etc/monit/conf-enabled/coresystem
+	systemctl restart monit
+	echo
+	echo "Monit has been installed."
+	echo "It available at: http://$domain"
+	exit
+fi
+
+
+if [[ $action == "enable_nginx_monit" || $action == "2" ]]; then
+
+	ln -s /etc/monit/conf-available/nginx /etc/monit/conf-enabled/nginx
+	systemctl restart monit
+	
+	echo
+	echo "NGINX monitoring has been enabled "
+	exit
+fi
+
+
+if [[ $action == "disable_nginx_monit" || $action == "3" ]]; then
+
+	rm -f /etc/monit/conf-enabled/nginx
+	systemctl restart monit
+
+	echo
+	echo "NGINX monitoring has been disabled"
+	exit
+fi
+
+
+
+if [[ $action == "enable_mysql_monit" || $action == "4" ]]; then
+
+	ln -s /etc/monit/conf-available/mysql /etc/monit/conf-enabled/mysql
+	systemctl restart monit
+	
+	echo
+	echo "MySQL monitoring has been enabled "
+	exit
+fi
+
+
+if [[ $action == "disable_mysql_monit" || $action == "5" ]]; then
+
+	rm -f /etc/monit/conf-enabled/mysql
+	systemctl restart monit
+
+	echo
+	echo "MySQL monitoring has been disabled"
+	exit
+fi
+
+
+
+if [[ $action == "enable_redis_monit" || $action == "6" ]]; then
+
+	ln -s /etc/monit/conf-available/redis /etc/monit/conf-enabled/redis
+	systemctl restart monit
+	
+	echo
+	echo "Redis monitoring has been enabled "
+	exit
+fi
+
+
+if [[ $action == "disable_redis_monit" || $action == "7" ]]; then
+
+	rm -f /etc/monit/conf-enabled/redis
+	systemctl restart monit
+
+	echo
+	echo "Redis monitoring has been disabled"
+	exit
+fi
+
+
+
+if [[ $action == "enable_memcached_monit" || $action == "8" ]]; then
+
+	ln -s /etc/monit/conf-available/memcached /etc/monit/conf-enabled/memcached
+	systemctl restart monit
+	
+	echo
+	echo "Memcached monitoring has been enabled "
+	exit
+fi
+
+
+if [[ $action == "disable_memcached_monit" || $action == "9" ]]; then
+
+	rm -f /etc/monit/conf-enabled/memcached
+	systemctl restart monit
+
+	echo
+	echo "Memcached monitoring has been disabled"
+	exit
+fi
+
+
+
+if [[ $action == "enable_php_monit" || $action == "10" ]]; then
+
+	ln -s /etc/monit/conf-available/php80 /etc/monit/conf-enabled/php80
+	ln -s /etc/monit/conf-available/php74 /etc/monit/conf-enabled/php74
+	ln -s /etc/monit/conf-available/php73 /etc/monit/conf-enabled/php73
+	ln -s /etc/monit/conf-available/php72 /etc/monit/conf-enabled/php72
+	ln -s /etc/monit/conf-available/php71 /etc/monit/conf-enabled/php71
+	ln -s /etc/monit/conf-available/php56 /etc/monit/conf-enabled/php56
+	systemctl restart monit
+	
+	echo
+	echo "PHP monitoring has been enabled "
+	exit
+fi
+
+
+if [[ $action == "disable_php_monit" || $action == "11" ]]; then
+
+	rm -f /etc/monit/conf-enabled/php80
+	rm -f /etc/monit/conf-enabled/php74
+	rm -f /etc/monit/conf-enabled/php73
+	rm -f /etc/monit/conf-enabled/php72
+	rm -f /etc/monit/conf-enabled/php71
+	rm -f /etc/monit/conf-enabled/php56
+	systemctl restart monit
+
+	echo
+	echo "PHP monitoring has been disabled"
+	exit
+fi
+
+
+
+if [[ $action == "enable_filesystem_monit" || $action == "12" ]]; then
+
+	ln -s /etc/monit/conf-available/filesystem /etc/monit/conf-enabled/filesystem
+	systemctl restart monit
+	
+	echo
+	echo "Filesystem monitoring has been enabled "
+	exit
+fi
+
+
+if [[ $action == "disable_filesystem_monit" || $action == "13" ]]; then
+
+	rm -f /etc/monit/conf-enabled/filesystem
+	systemctl restart monit
+
+	echo
+	echo "Filesystem monitoring has been disabled"
+	exit
+fi
+
+
+
+if [[ $action == "update_email_monit" || $action == "14" ]]; then
+
+	if [[ -z $monit_smtp_server ]]; then
+		echo "Specify a SMTP server which Monit should use for email notifications
+
+Specify the SMTP server name only. The SMTP server needs to support TLS.
+Example: smtp.sendgrid.net"
+		read -p "SMTP server: " monit_smtp_server
+	fi
+
+	if [[ -z $monit_smtp_port ]]; then
+		echo
+		echo "Specify the SMTP port"
+		read -p "SMTP port: " monit_smtp_port
+	fi
+	if [[ -z $monit_smtp_user ]]; then
+		echo
+		echo "Specify the SMTP user name for authentication"
+		read -p "SMTP user: " monit_smtp_user
+	fi
+	if [[ -z "$monit_smtp_pass" ]]; then
+		echo
+		echo "Specify the SMTP password"
+		read -p "SMTP password: " monit_smtp_pass
+	fi
+	if [[ -z $monit_alert_email ]]; then
+		echo
+		echo "Specify an e-mail address for Monit alerts"
+		read -p "Email: " monit_alert_email
+	fi
+
+	sed -i "/set mailserver/c\set mailserver $monit_smtp_server port $monit_smtp_port" /etc/monit/monitrc
+	sed -i "/    username/c\    username \"$monit_smtp_user\" password \"$monit_smtp_pass\"" /etc/monit/monitrc
+	sed -i "/set alert/c\set alert $monit_alert_email" /etc/monit/monitrc
+	systemctl restart monit
+	echo
+	echo "Monit email settings updated"
+	exit
+
+fi
+
+
+
+if [[ $action == "enable_all_monit" || $action == "15" ]]; then
+	ln -s /etc/monit/conf-available/nginx /etc/monit/conf-enabled/nginx
+	ln -s /etc/monit/conf-available/mysql /etc/monit/conf-enabled/mysql
+	ln -s /etc/monit/conf-available/php80 /etc/monit/conf-enabled/php80
+	ln -s /etc/monit/conf-available/php74 /etc/monit/conf-enabled/php74
+	ln -s /etc/monit/conf-available/php73 /etc/monit/conf-enabled/php73
+	ln -s /etc/monit/conf-available/php72 /etc/monit/conf-enabled/php72
+	ln -s /etc/monit/conf-available/php71 /etc/monit/conf-enabled/php71
+	ln -s /etc/monit/conf-available/php56 /etc/monit/conf-enabled/php56
+	ln -s /etc/monit/conf-available/filesystem /etc/monit/conf-enabled/filesystem
+	ln -s /etc/monit/conf-available/coresystem /etc/monit/conf-enabled/coresystem
+	systemctl restart monit
+	echo
+	echo "All monitors enabled"
+	exit
+fi
+
+
+
+if [[ $action == "disable_all_monit" || $action == "16" ]]; then
+	rm -f /etc/monit/conf-enabled/nginx
+	rm -f /etc/monit/conf-enabled/mysql
+	rm -f /etc/monit/conf-enabled/php80
+	rm -f /etc/monit/conf-enabled/php74
+	rm -f /etc/monit/conf-enabled/php73
+	rm -f /etc/monit/conf-enabled/php72
+	rm -f /etc/monit/conf-enabled/php71
+	rm -f /etc/monit/conf-enabled/php56
+	rm -f /etc/monit/conf-enabled/filesystem
+	rm -f /etc/monit/conf-enabled/coresystem
+	rm -f /etc/monit/conf-enabled/memcached
+	rm -f /etc/monit/conf-enabled/redis
+	systemctl restart monit
+	echo
+	echo "All monitors disabled"
+	exit
+fi
+
+
+
+if [[ $action == "enable_monit_ssl" || $action == "17" ]]; then
+
+	domain=$(grep server_name /etc/nginx/sites-enabled/monit | cut -d "_" -f 2 | cut -d " " -f 2)
+
+    if [[ -z $email ]]; then
+        echo
+        echo "Specify an email for administrative notifications about your certificate
+Example: admin@example.com"
+        read -p "Email address: " email
+    fi
+
+    certbot --non-interactive --reinstall --expand --nginx --agree-tos -m $email --allow-subset-of-names --redirect -d $domain -d www.$domain
+
+    if ! grep -qs "listen 443" /etc/nginx/sites-enabled/monit; then
+        echo
+        echo "SSL could not be enabled for $domain"
+        exit
+    fi
+
+	sed -i '/sub_filter_once off/a sub_filter "http://"  "https://";' /etc/nginx/sites-enabled/monit
+	systemctl restart nginx
+
+    echo
+    echo "SSL has been enabled for $domain"
+	exit
+fi
+
+
+
+if [[ $action == "disable_monit_ssl" || $action == "18" ]]; then
+
+	domain=$(grep server_name /etc/nginx/sites-enabled/monit -m 1 | cut -d "_" -f 2 | cut -d " " -f 2)
+
+    if ! grep -qs 'managed by Certbot' /etc/nginx/sites-enabled/monit; then
+        echo
+        echo "SSL is already disabled for $domain"
+        exit
+    fi
+    certbot delete --cert-name $domain --noninteractive
+
+	echo "server {
+    
+    listen 80;
+    listen [::]:80;
+
+    server_name $domain www.$domain;
+
+    location / {
+        proxy_pass http://127.0.0.1:48756;
+		sub_filter_once off;
+		sub_filter \"127.0.0.1:48756\" \"$domain\";
+    }
+
+}" > /etc/nginx/sites-enabled/monit
+
+    systemctl restart nginx
+
+    echo
+    echo "SSL has been disabled for $domain"
+	exit
+fi
+
+if [[ $action == "add_callback" || $action == "19" ]]; then
+
+	add_callback
+	
+    echo
+    echo "Callbacks have been enabled."
+	exit
+fi
+
+if [[ $action == "remove_callback" || $action == "20" ]]; then
+	(crontab -l 2>/dev/null | sed '/monit-reporting/d' ) | crontab -
+	rm /usr/local/bin/monit-reporting
+	
+    echo
+    echo "Callbacks have been removed."
+	exit	
+fi
+
+if [[ $action == "remove_monit" || $action == "21" ]]; then
+	(crontab -l 2>/dev/null | sed '/monit-reporting/d' ) | crontab -
+	apt-get remove monit -y
+	apt-get purge monit -y
+	rm -rf /etc/nginx/sites-enabled/monit /usr/local/bin/monit-reporting /etc/monit /var/log/monit.log
+	service nginx restart
+	
+    echo
+    echo "Monit has been removed."
+	exit
+fi
+
+if [[ $action == "deactivate_monit" || $action == "22" ]]; then
+	service monit stop;
+	
+	#@TODO: Need to check status before echoing this message.
+    echo
+    echo "Monit has been temporarily deactivated."
+	exit
+fi
+
+if [[ $action == "activate_monit" || $action == "23" ]]; then
+	service monit start;
+	
+	#@TODO: Need to check status before echoing this message.
+    echo
+    echo "Monit has been activated."
+	exit
+fi

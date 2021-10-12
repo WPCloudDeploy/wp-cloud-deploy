@@ -1,0 +1,299 @@
+#!/bin/bash
+if [[ "$EUID" -ne 0 ]]
+then
+	echo "Sorry, you need to run this as root"
+	exit
+fi
+
+while [[ -z $action ]]; do
+	echo
+	echo "What do you want to do?"
+	echo
+	echo "   1) Install Clamav & LMD"
+	echo "   2) Remove CLamav & LMD"
+	echo "   3) Update Clamav & LMD"
+	echo "   4) Run Scan Now"
+	echo "   5) Disable Cron Entry"
+	echo "   6) Enable Cron Entry"
+	echo "   7) Purge Data"
+	echo "   8) Restart Services Daemon"
+	echo "   9) Scan in Background"
+	echo "   10) Update Notification Email"
+	read -p "Action: " action
+	until [[ -z "$action" || "$action" =~ ^[1-9]|2[0-9]$ ]]; do
+		echo "$action: invalid selection."
+		read -p "Action: " action
+	done
+done
+
+###################################### Antivirus Install Function ##########
+function antivirus_install
+{
+	memory=$(free -m | awk '/^Mem:/{print $2}') ;
+	if [ $memory -lt 1100 ]
+	then
+		echo "Require 1 G+ RAM "
+		exit
+	fi
+	if [ -z $emailid ]
+	then
+		read -p "Enter Notification email id for scanning result: " emailid
+	fi
+
+	if [[ -z "$callback_server_scan" ]]
+	then
+		read -p "enter callback url to get scanning result:  " callback_server_scan
+	fi
+	if hash clamscan 2>/dev/null
+	then
+		echo
+		echo "clamav is already installed!"
+	else
+		echo "installing Clamav on server........."
+		apt-get update > /dev/null 2>&1
+		apt-get install clamav clamav-daemon -y > /dev/null 2>&1
+	
+		systemctl stop clamav-freshclam
+		systemctl stop clamav-daemon
+		freshclam > /dev/null 
+		service clamav-freshclam start
+		service clamav-daemon start
+		echo "Clamav has been installed"
+	fi
+
+	if hash maldet 2>/dev/null
+	then
+		echo
+		echo "LMD is already installed!"
+	else
+		apt-get install inotify-tools -y > /dev/null
+		wget http://www.rfxn.com/downloads/maldetect-current.tar.gz -O /tmp/maldet.tar.gz > /dev/null 2>&1
+		tar xzf /tmp/maldet.tar.gz -C /tmp/
+		cd /tmp/maldetect*
+		bash install.sh > /dev/null 2>&1
+		rm -rf /tmp/maldet*
+		sed -i 's/email_alert=.*/email_alert="1"/' /usr/local/maldetect/conf.maldet
+		sed -i 's/quarantine_hits=.*/quarantine_hits="1"/' /usr/local/maldetect/conf.maldet
+		sed -i 's/quarantine_clean=.*/quarantine_clean="1"/' /usr/local/maldetect/conf.maldet
+		sed -i 's/scan_ignore_root=.*/scan_ignore_root="0"/' /usr/local/maldetect/conf.maldet
+		sed -i 's/scan_clamscan=.*/scan_clamscan="1"/' /usr/local/maldetect/conf.maldet
+		sed -i "s/email_addr=.*/email_addr=\"$emailid\"/" /usr/local/maldetect/conf.maldet
+		echo "EDITOR=more" >> /etc/default/maldet
+		rm -f /etc/cron.daily/maldet
+		crontab -l | grep -q 'maldet' || (crontab -l 2>/dev/null; echo "0 2 * * * /usr/local/bin/maldet > /dev/null 2>&1") | crontab -
+		maldet -d > /dev/null 2>&1
+		maldet -u > /dev/null 2>&1
+		systemctl restart maldet
+		echo "Maldet has been installed"
+	fi
+	echo "freshclam
+	maldet -d
+	maldet -u" > /usr/local/bin/antivirus-update
+	chmod +x /usr/local/bin/antivirus-update
+	crontab -l | grep -q 'antivirus-update' || (crontab -l 2>/dev/null; echo "0 1 * * * /usr/local/bin/antivirus-update > /dev/null 2>&1") | crontab -
+	echo $'#!/bin/bash
+	PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+	maldet -a /home,/var
+	callback_server_scan='$callback_server_scan'
+	reportid=`maldet -e list|grep SCANID|head -n 1|awk -F'\''SCANID:'\'' '\''{print $2}'\''|awk '\''{print $1}'\''`
+	path=`maldet -e $reportid|grep PATH|awk -F'\'':'\'' '\''{print $2}'\''|sed '\''s/ //g'\''`
+	totalfiles=`maldet -e $reportid|grep '\''TOTAL FILES'\''|awk -F'\'':'\'' '\''{print $2}'\''|sed '\''s/ //g'\''`
+	totalhits=`maldet -e $reportid|grep '\''TOTAL HITS'\''|awk -F'\'':'\'' '\''{print $2}'\''|sed '\''s/ //g'\''`
+	totalcleaned=`maldet -e $reportid|grep '\''TOTAL CLEANED'\''|awk -F'\'':'\'' '\''{print $2}'\''|sed '\''s/ //g'\''`
+	curl -sS "$callback_server_scan?path=$path&totalfiles=$totalfiles&totalhits=$totalhits&totalcleaned=$totalcleaned&reportid=$reportid"' > /usr/local/bin/maldet
+	chmod +x /usr/local/bin/maldet
+
+	############ Ignore maldet and clamav file from scanning ####
+	echo "/var/lib/clamav" >> /usr/local/maldetect/ignore_paths
+}
+
+###################################### Antivirus Remove Function ##########
+function antivirus_remove
+{
+	echo "y"|bash /usr/local/maldetect/uninstall.sh  > /dev/null 2>&1
+	apt-get remove clamav* -y > /dev/null 2>&1
+	(crontab -l 2>/dev/null | sed '/maldet/d' ) | crontab -
+	(crontab -l 2>/dev/null | sed '/antivirus-update/d' ) | crontab -
+	rm -f /usr/local/bin/maldet
+	echo "clamscan and LMD uninstalled"
+}
+
+###################################### Antivirus Update ##########
+function antivirus_update
+{
+	if hash clamscan 2>/dev/null
+	then
+		systemctl stop clamav-freshclam
+		systemctl stop clamav-daemon
+		freshclam > /dev/null 2>&1
+		service clamav-freshclam start
+		service clamav-daemon start
+		echo "Clamscan database has been updated"
+	else
+		echo "Clamscan are not installed on system"
+	fi
+
+	if hash maldet 2>/dev/null
+	then
+	        maldet -d > /dev/null 2>&1
+		maldet -u > /dev/null 2>&1
+		echo "Malware Detection has been updated"
+	else
+		echo "LMD are not installed on system"
+	fi
+}
+
+###################################### Antivirus Run Scan Now ##########
+function antivirus_scan
+{
+	if hash maldet 2>/dev/null
+	then
+		bash /usr/local/bin/maldet
+		echo "Scanning has been completed"
+	else
+		echo "Antivirus not installed yet on system"
+	fi
+}
+
+###################################### Antivirus Disable Cron ##########
+function antivirus_disable_cron
+{
+	if hash maldet 2>/dev/null
+	then
+		(crontab -l 2>/dev/null | sed '/maldet/d' ) | crontab -
+		(crontab -l 2>/dev/null | sed '/antivirus-update/d' ) | crontab -
+		echo "Cron has been disabled"
+	else
+		echo "Malware Detection antivirus not installed"
+	fi
+}
+
+###################################### Antivirus Enable Cron ##########
+function antivirus_enable_cron
+{
+	if hash maldet 2>/dev/null
+	then
+		crontab -l | grep -q 'maldet' || (crontab -l 2>/dev/null; echo "0 2 * * * /usr/local/bin/maldet > /dev/null 2>&1") | crontab -
+		crontab -l | grep -q 'antivirus-update' || (crontab -l 2>/dev/null; echo "0 1 * * * /usr/local/bin/antivirus-update > /dev/null 2>&1") | crontab -
+		echo "Cron has been enabled"
+	else
+		echo "Malware Detection antivirus not installed"
+	fi
+}
+
+###################################### Antivirus Purge Data ##########
+function antivirus_purge
+{
+	if hash maldet 2>/dev/null
+	then
+		maldet -p > /dev/null
+		echo "Malware data has been purged"
+	else
+		echo "Malware Detection antivirus not installed"
+	fi
+}
+
+###################################### Antivirus Restart Services ##########
+function antivirus_restart
+{
+	if hash maldet 2>/dev/null
+	then
+		systemctl restart clamav-freshclam
+		systemctl restart clamav-daemon
+		systemctl restart maldet
+		echo "Malware services have been restarted"
+	else
+		echo "Malware Detection antivirus not installed"
+	fi
+}
+
+###################################### Antivirus Run Scan Now in Background ##########
+function antivirus_scan_background
+{
+	if hash maldet 2>/dev/null
+	then
+		screen -d -m -S scanning bash /usr/local/bin/maldet
+		echo "Scanning Started in Background, will send result on callback url"
+	else
+		echo "Antivirus not installed yet on system"
+	fi
+}
+
+###################################### Antivirus Update Notification Email Address ##########
+function antivirus_update_email
+{
+	if hash maldet 2>/dev/null
+	then
+		if [ -z $emailid ]
+		then
+			read -p "Enter New email id for Notification scanning result: " emailid
+		fi
+		sed -i "s/email_addr=.*/email_addr=\"$emailid\"/" /usr/local/maldetect/conf.maldet
+		systemctl restart maldet
+		echo "Notification Email id has been changed"
+	else
+		echo "Antivirus not installed yet on system"
+	fi
+}
+###########################################################################################################################
+###########################################################################################################################
+
+############## Install Antivirus
+if [[ $action == "antivirus_install" || $action == "1" ]]
+then
+	antivirus_install
+fi
+
+############ Uninstall Antivirus
+if [[ $action == "antivirus_remove" || $action == "2" ]]
+then
+	antivirus_remove
+fi
+
+####### Update Antivirus
+if [[ $action == "antivirus_update" || $action == "3" ]]
+then
+	antivirus_update
+fi
+
+############## Run Scan Now
+if [[ $action == "antivirus_scan" || $action == "4" ]]
+then
+	antivirus_scan
+fi
+
+############## Disable Cron
+if [[ $action == "antivirus_disable_cron" || $action == "5" ]]
+then
+	antivirus_disable_cron
+fi
+
+############## Enable Cron
+if [[ $action == "antivirus_enable_cron" || $action == "6" ]]
+then
+	antivirus_enable_cron
+fi
+
+############## Purge Data
+if [[ $action == "antivirus_purge" || $action == "7" ]]
+then
+	antivirus_purge
+fi
+
+############## Restart Services
+if [[ $action == "antivirus_restart" || $action == "8" ]]
+then
+	antivirus_restart
+fi
+
+############## Scan In Background
+if [[ $action == "antivirus_scan_background" || $action == "9" ]]
+then
+	antivirus_scan_background
+fi
+
+############## Update Notification Email
+if [[ $action == "antivirus_update_email" || $action == "10" ]]
+then
+	antivirus_update_email
+fi

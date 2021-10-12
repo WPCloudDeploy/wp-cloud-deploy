@@ -1,0 +1,163 @@
+.nav-tab:focus,
+.nav-tab:active {
+	box-shadow: none;
+}
+
+.nav-tab i,
+.nav-tab img {
+	margin-right: 5px;
+	margin-top: 4px;
+}
+
+.nav-tab i {
+	width: 16px;
+	height: 16px;
+	font-size: 16px;
+}
+
+.nav-tab img {
+	width: 12px;
+	height: 12px;
+	display: inline-block;
+}
+
+.rwmb-settings-no-boxes .postbox {
+	border: 0;
+	box-shadow: none;
+	background: transparent;
+}
+
+.rwmb-settings-no-boxes .postbox .handlediv,
+.rwmb-settings-no-boxes .postbox .hndle,
+.rwmb-settings-no-boxes .postbox .postbox-header {
+	display: none;
+}
+
+.rwmb-settings-no-boxes .postbox .inside {
+	font-size: 14px;
+}
+
+.rwmb-settings-no-boxes .rwmb-field {
+	padding: 20px 0;
+	margin-bottom: 0;
+}
+
+.rwmb-settings-no-boxes .rwmb-clone {
+	background-color: transparent;
+}
+
+.rwmb-settings-no-boxes .rwmb-tabs-left .rwmb-tab-panel {
+	background-color: #fff;
+}
+
+.rwmb-settings-no-boxes .rwmb-group-wrapper > .rwmb-label + .rwmb-input .rwmb-field:first-of-type {
+	padding-top: 0;
+}
+
+.rwmb-settings-no-boxes .rwmb-group-clone > .rwmb-field:first-of-type {
+	padding-top: 0;
+}
+
+.rwmb-settings-no-boxes .rwmb-group-collapsible.rwmb-group-non-cloneable,
+.rwmb-settings-no-boxes .rwmb-group-collapsible > .rwmb-input > .rwmb-group-clone {
+	border-color: #ddd;
+	padding: 12px;
+}
+
+.rwmb-settings-no-boxes .rwmb-group-collapsed.rwmb-group-non-cloneable,
+.rwmb-settings-no-boxes .rwmb-group-collapsible > .rwmb-input > .rwmb-group-collapsed {
+	padding: 0;
+}
+
+.rwmb-settings-no-boxes .rwmb-group-wrapper.rwmb-group-collapsible .rwmb-group-clone > .rwmb-field:first-of-type {
+	padding-top: 20px;
+}
+
+.rwmb-settings-no-boxes .rwmb-row > .rwmb-field {
+	padding-top: 0;
+}
+
+.rwmb-settings-tabs-left .rwmb-settings-wrap {
+	display: flex;
+	margin-top: 15px;
+}
+
+.rwmb-settings-tabs-left h2.nav-tab-wrapper {
+	padding: 0;
+	background: #fff;
+	border: 1px solid #ccd0d4;
+	min-width: 220px;
+}
+
+.rwmb-settings-tabs-left .nav-tab {
+	display: block;
+	padding: 8px 12px;
+	float: none;
+	margin: 0;
+	color: #0073aa;
+	font-size: 13px;
+	font-weight: normal;
+	background: #fff;
+	border: none;
+	border-bottom: 1px solid #ccd0d4;
+	transition: none;
+}
+
+.rwmb-settings-tabs-left .nav-tab:hover {
+	background: #f6f6f6;
+}
+
+.rwmb-settings-tabs-left .nav-tab-active {
+	background: #f6f6f6;
+	color: inherit;
+	border-left: 4px solid #0073aa;
+	padding-left: 8px;
+}
+
+.rwmb-settings-tabs-left .rwmb-settings-form-wrap {
+	flex: 1;
+	padding: 0 20px;
+}
+
+.rwmb-settings-tabs-left #poststuff {
+	padding-top: 0;
+}
+
+.rwmb-settings-tabs-left .submit {
+	margin-bottom: 0;
+	padding-bottom: 0;
+}
+
+.rwmb-settings-tabs-left.rwmb-settings-no-boxes .rwmb-settings-wrap {
+	border: 1px solid #ddd;
+	background: #fff;
+}
+
+.rwmb-settings-tabs-left.rwmb-settings-no-boxes h2.nav-tab-wrapper {
+	border-color: #ddd;
+	border-width: 0 1px 0 0;
+}
+
+.rwmb-settings-tabs-left.rwmb-settings-no-boxes .nav-tab {
+	border-bottom-color: #ddd;
+	background-color: #f6f6f6;
+}
+
+.rwmb-settings-tabs-left.rwmb-settings-no-boxes .nav-tab-active {
+	background-color: #fff;
+	margin-right: -1px;
+}
+
+.rwmb-settings-tabs-left.rwmb-settings-no-boxes .rwmb-settings-form-wrap {
+	padding-top: 20px;
+	padding-bottom: 20px;
+}
+
+.rwmb-settings-tabs-left.rwmb-settings-no-boxes #poststuff .inside {
+	margin: 0;
+	padding: 0;
+}
+
+.rwmb-settings-tabs-left.rwmb-settings-no-boxes .rwmb-meta-box > .rwmb-field:first-of-type {
+	padding-top: 0;
+}

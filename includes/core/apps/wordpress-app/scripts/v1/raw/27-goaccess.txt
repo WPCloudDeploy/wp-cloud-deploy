@@ -1,0 +1,511 @@
+#!/bin/bash
+if [[ "$EUID" -ne 0 ]]
+then
+	echo "Sorry, you need to run this as root"
+	exit
+fi
+
+while [[ -z $action ]]; do
+	echo
+	echo "What do you want to do?"
+	echo
+	echo "   1) Install Goaccess"
+	echo "   2) Remove Goaccess"
+	echo "   3) Disable Goaccess"
+	echo "   4) Enable Goaccess"
+	echo "   5) Update Goaccess"
+	echo "   6) Enable Https"
+	echo "   7) Disable Https"
+	echo "   8) Add Authentication Basic http/https"
+	echo "   9) Remove Basic Authentication"
+	echo "   10) Change Authentication Credentials"
+	echo "   11) Whitelist Ips"
+	echo "   12) Remove Whitelist Ips"
+	echo "   13) Remove All Whitelist Ips"
+	echo "   14) Restart Daemon Service"
+	read -p "Action: " action
+	until [[ -z "$action" || "$action" =~ ^[1-9]|2[0-9]$ ]]; do
+		echo "$action: invalid selection."
+		read -p "Action: " action
+	done
+done
+
+###################################### Goaccess Install Function ##########
+function goaccess_install
+{
+	if hash goaccess 2>/dev/null
+	then
+		echo
+		echo "goaccess is already installed!"
+		exit
+	fi
+
+	if [[ -z $domain ]]
+	then
+		clear
+		echo "Which domain name do you want for Goaccess?
+		Specify just the domain name without www or http://
+		Example: goaccess.mydomain.com"
+		read -p "Domain: " domain
+	fi
+
+	if [[ -z $user ]]
+	then
+		echo
+		echo "Specify a user name to protect access to Goaccess
+		Example: admin"
+		read -p "User name: " user
+	fi
+
+	if [[ -z $pass ]]
+	then
+		echo
+		echo "Specify a password"
+		read -p "Password: " pass
+	fi
+
+	echo "[Unit]
+Description=GoAccess real-time web log analysis
+After=network.target
+
+[Service]
+Type=simple
+
+ExecStart=/usr/bin/goaccess -f /var/log/nginx/access.log --log-format=COMBINED    --real-time-html --ws-url=wss://$domain/ws    -o /var/www/$domain/html/index.html --port=7890   --config-file=/etc/goaccess/goaccess.conf    --origin=https://$domain
+
+ExecStop=/bin/kill -9 ${MAINPID}
+WorkingDirectory=/tmp
+[Install]
+WantedBy=multi-user.target" > /etc/systemd/system/goaccess.service
+
+	echo "server {
+		listen 80;
+		listen [::]:80;
+		server_name $domain www.$domain;
+
+		auth_basic_user_file /etc/nginx/htpasswd/$domain;
+		auth_basic \"Protected\";
+
+		root /var/www/$domain/html;
+
+		location / {
+			try_files $uri/index.html =404;
+		}
+
+		location /ws {
+			proxy_http_version 1.1;
+			proxy_set_header Upgrade \$http_upgrade;
+			proxy_set_header Connection \"Upgrade\";
+			proxy_buffering off;
+			proxy_read_timeout 7d;
+			proxy_pass http://127.0.0.1:7890;
+		}
+		include /etc/nginx/goaccess-ips.conf;
+	}" > /etc/nginx/sites-enabled/goaccess.conf
+
+	echo "allow all;" > /etc/nginx/goaccess-ips.conf
+	# create authentication file
+	mkdir -p /etc/nginx/htpasswd /var/www/$domain/html
+	htpasswd -b -c /etc/nginx/htpasswd/$domain $user $pass
+
+	echo "installing Goaccess on server........."
+	rm /etc/apt/sources.list.d/goaccess.list  #remove the goaccess sources file if it already exists
+	echo "deb http://deb.goaccess.io/ $(lsb_release -cs) main" | sudo tee -a /etc/apt/sources.list.d/goaccess.list > /dev/null 2>&1
+	wget -O - https://deb.goaccess.io/gnugpg.key | sudo apt-key --keyring /etc/apt/trusted.gpg.d/goaccess.gpg add - > /dev/null 2>&1
+	apt-get install gnupg2 -y > /dev/null 2>&1
+	apt-get update > /dev/null 2>&1
+	apt-get install goaccess -y > /dev/null 2>&1
+	
+	systemctl daemon-reload
+	systemctl restart goaccess
+	systemctl enable goaccess
+	systemctl restart nginx
+	echo "Goaccess has been installed,Can access from http://$domain/"
+}
+
+###################################### Goaccess Remove Function ##########
+function goaccess_remove
+{
+	if ! hash goaccess 2>/dev/null
+	then
+		echo
+		echo "goaccess is Not installed yet!"
+		exit
+	fi
+	domain=`grep -m 1 server_name /etc/nginx/sites-enabled/goaccess.conf 2>&1 > /dev/null|awk '{print $2}'`
+	goaccess_ssl_disable
+	apt-get remove goaccess -y  > /dev/null 2>&1
+	if [ $? -ne 0 ]
+	then
+		echo "Failed to uninstall. Please check if apt-get command lock by some other service"
+		exit
+	fi
+	rm -f /etc/systemd/system/goaccess.service > /dev/null 2>&1
+	rm -f /etc/nginx/sites-enabled/goaccess.conf > /dev/null 2>&1
+	rm -rf /var/www/$domain/html > /dev/null 2>&1
+	systemctl restart nginx  > /dev/null
+	echo 
+	echo "goaccess has been removed"
+}
+
+###################################### Goaccess Disable Function ##########
+function goaccess_disable
+{
+	if ! hash goaccess 2>/dev/null
+	then
+		echo
+		echo "goaccess is Not installed yet!"
+		exit
+	fi
+	systemctl stop goaccess
+	domain=`grep -m 1 server_name /etc/nginx/sites-enabled/goaccess.conf |awk '{print $2}'`
+	rm -rf /var/www/$domain/html/index.html > /dev/null
+	echo "Goaccess has been disabled"
+}
+
+###################################### Goaccess Enable Function ##########
+function goaccess_enable
+{
+	if ! hash goaccess 2>/dev/null
+	then
+		echo
+		echo "goaccess is Not installed yet!"
+		exit
+	fi
+	systemctl start goaccess
+	echo "goaccess has been enabled"
+}
+
+###################################### Goaccess Update Function ##########
+function goaccess_update
+{
+	if ! hash goaccess 2>/dev/null
+	then
+		echo
+		echo "goaccess is Not installed yet!"
+		exit
+	fi
+	apt-get install goaccess -y > /dev/null
+	echo "Goaccess is on latest Version now"
+}
+
+###################################### Goaccess Enable SSL  Function ##########
+function goaccess_ssl_enable
+{
+	if ! hash goaccess 2>/dev/null
+	then
+		echo
+		echo "goaccess is Not installed yet!"
+		exit
+	fi
+	if grep -qs "listen 443" /etc/nginx/sites-enabled/goaccess.conf;
+	then
+		echo "SSL Already Enabled";
+	else
+		domain=`grep -m 1 server_name /etc/nginx/sites-enabled/goaccess.conf |awk '{print $2}'`
+		if [[ -z $email ]]
+		then
+			echo
+			echo "Specify an email for administrative notifications about your certificate"
+			read -p "Email address: " email
+		fi
+	
+		certbot --non-interactive --reinstall --expand --nginx --agree-tos -m $email --allow-subset-of-names --redirect -d $domain -d www.$domain
+
+		if ! grep -qs "listen 443" /etc/nginx/sites-enabled/goaccess.conf
+		then
+			echo
+			echo "SSL could not be enabled for $domain"
+			exit
+		fi	
+		systemctl restart nginx
+		echo "SSL has been enabled for $domain"
+	fi
+}
+
+###################################### Goaccess Disable SSL  Function ##########
+function goaccess_ssl_disable
+{
+	if ! hash goaccess 2>/dev/null
+	then
+		echo
+		echo "goaccess is Not installed yet!"
+		exit
+	fi
+
+	if grep -qs "managed by Certbot" /etc/nginx/sites-enabled/goaccess.conf;
+	then
+		domain=`grep -m 1 server_name /etc/nginx/sites-enabled/goaccess.conf |awk '{print $2}'`
+		certbot delete --cert-name $domain --noninteractive
+		if grep -qs "managed by Certbot" /etc/nginx/sites-enabled/goaccess.conf; then
+			sed -i -n '/if ($host/q;p' /etc/nginx/sites-enabled/goaccess.conf
+			sed -i '$ d' /etc/nginx/sites-enabled/goaccess.conf
+			sed -i '/server {/a listen 80;\nlisten [::]:80;' /etc/nginx/sites-enabled/goaccess.conf
+			sed -i '/managed by Certbot/d' /etc/nginx/sites-enabled/goaccess.conf
+		fi
+
+		systemctl restart nginx
+		echo "SSL has been disabled for goaccess";
+	else
+		echo "SSL Not enabled for goaccess";
+	fi
+}
+
+###################################### Goaccess Add Basic Auth##########
+function goaccess_auth_add
+{
+	if ! hash goaccess 2>/dev/null
+	then
+		echo
+		echo "goaccess is Not installed yet!"
+		exit
+	fi
+
+	grep -w auth /etc/nginx/sites-enabled/goaccess.conf
+	if [ $? -eq 0 ]
+	then
+		echo "Basic Auth already enabled"
+	else
+		sed -i 's/#auth/auth/g' /etc/nginx/sites-enabled/goaccess.conf
+		systemctl restart nginx > /dev/null
+		echo "Basic auth has been enabled"
+	fi
+}
+
+###################################### Goaccess Remove Basic Auth##########
+function goaccess_auth_remove
+{
+	if ! hash goaccess 2>/dev/null
+	then
+		echo
+		echo "goaccess is Not installed yet!"
+		exit
+	fi
+
+	grep -w '#auth' /etc/nginx/sites-enabled/goaccess.conf
+	if [ $? -eq 0 ]
+	then
+		echo "Basic Auth already disabled"
+	else
+		sed -i 's/auth/#auth/g' /etc/nginx/sites-enabled/goaccess.conf
+		systemctl restart nginx > /dev/null
+		echo "Basic Auth has been disabled"
+	fi
+}
+
+###################################### Goaccess Change Basic Auth##########
+function goaccess_auth_change
+{
+	if ! hash goaccess 2>/dev/null
+	then
+		echo
+		echo "goaccess is Not installed yet!"
+		exit
+	fi
+
+	if [[ -z $user ]]
+	then
+		echo
+		echo "Specify a user name to protect access to Goaccess"
+		read -p "User name: " user
+	fi
+
+	if [[ -z $pass ]]
+	then
+		echo
+		echo "Specify a password"
+		read -p "Password: " pass
+	fi
+	domain=`grep -m 1 server_name /etc/nginx/sites-enabled/goaccess.conf |awk '{print $2}'`
+	rm -f /etc/nginx/htpasswd/$domain > /dev/null
+	htpasswd -b -c /etc/nginx/htpasswd/$domain $user $pass
+	systemctl restart nginx  > /dev/null
+	echo "Auth has been updated"
+}
+
+###################################### Goaccess Whitelist Ip##########
+function goaccess_whitelist
+{
+	if ! hash goaccess 2>/dev/null
+	then
+		echo
+		echo "goaccess is Not installed yet!"
+		exit
+	fi
+
+	whitelisted=`grep allow /etc/nginx/goaccess-ips.conf |awk '{print $2}'|tr '\n' ' '`
+	if [[ -z $whiteip ]]
+	then
+		echo
+		read -p "Enter Whitelist IP to access Goaccess Report[$whitelisted]  :" whiteip
+	fi
+
+	for ip in $(echo $whiteip | sed "s/,/ /g")
+	do
+		grep deny /etc/nginx/goaccess-ips.conf > /dev/null
+		if [ $? -eq 0 ]
+		then
+			grep -w $ip /etc/nginx/goaccess-ips.conf > /dev/null
+			if [ $? -ne 0 ]
+			then
+				sed -i "/deny all;/ i allow $ip;" /etc/nginx/goaccess-ips.conf
+			fi
+		else
+			sed -i "s/allow all;/allow $ip;\ndeny all;/g" /etc/nginx/goaccess-ips.conf
+		fi
+		nginx -t > /dev/null 2>&1
+		if [ $? -ne 0 ]
+		then
+			sed -i "/allow $ip;/d" /etc/nginx/goaccess-ips.conf
+			echo "$ip is not valid"
+		else
+			echo "$ip whitelisted"
+		fi
+	done
+	systemctl restart nginx  > /dev/null
+}
+
+###################################### Goaccess Blacklist Ip##########
+function goaccess_whitelist_remove
+{
+	if ! hash goaccess 2>/dev/null
+	then
+		echo
+		echo "goaccess is Not installed yet!"
+		exit
+	fi
+
+	whitelisted=`grep allow /etc/nginx/goaccess-ips.conf |awk '{print $2}'|tr '\n' ' '`
+	if [[ -z $blackip ]]
+	then
+		echo
+		read -p "Enter IP to remove from Goaccess Whitelist[$whitelisted]  :" blackip
+	fi
+	for ip in $(echo $blackip | sed "s/,/ /g")
+	do
+		grep "allow $ip" /etc/nginx/goaccess-ips.conf > /dev/null
+		if [ $? -eq 0 ]
+		then
+			sed -i "/allow $ip;/d" /etc/nginx/goaccess-ips.conf
+			echo "$ip removed from whitelist";
+		else
+			echo "$ip is not whitelisted";
+		fi
+	done
+	systemctl restart nginx  > /dev/null
+}
+
+###################################### Goaccess Remove All Whitelisted Ips##########
+function goaccess_whitelist_removeall
+{
+	if ! hash goaccess 2>/dev/null
+	then
+		echo
+		echo "goaccess is Not installed yet!"
+		exit
+	fi
+
+	echo "deny all;" > /etc/nginx/goaccess-ips.conf
+	systemctl restart nginx  > /dev/null
+	echo "All whiteslited ips has been removed";
+}
+
+###################################### Goaccess Restart Daemon Function ##########
+function goaccess_restart
+{
+	if ! hash goaccess 2>/dev/null
+	then
+		echo
+		echo "goaccess is Not installed yet!"
+		exit
+	fi
+	systemctl stop goaccess
+	systemctl start goaccess
+	echo "goaccess daemon has been restarted"
+}
+
+########################################################################################################3
+########################################################################################################3
+############## Install Goaccess 
+if [[ $action == "goaccess_install" || $action == "1" ]]
+then
+	goaccess_install
+fi
+
+############ Uninstall Goaccess
+if [[ $action == "goaccess_remove" || $action == "2" ]]
+then
+	goaccess_remove
+fi
+
+####### Disable Goaccess Service
+if [[ $action == "goaccess_disable" || $action == "3" ]]
+then
+	goaccess_disable
+fi
+
+####### Enable Goaccess Service
+if [[ $action == "goaccess_enable" || $action == "4" ]]
+then
+	goaccess_enable
+fi
+
+##############  Update Goaccess
+if [[ $action == "goaccess_update" || $action == "5" ]]
+then
+	goaccess_update
+fi
+
+############## Enable SSL
+if [[ $action == "goaccess_ssl_enable" || $action == "6" ]]
+then
+	goaccess_ssl_enable
+fi
+
+############## Update services/protocol
+if [[ $action == "goaccess_ssl_disable" || $action == "7" ]]
+then
+	goaccess_ssl_disable
+fi
+
+########## Add Basic Authentication
+if [[ $action == "goaccess_auth_add" || $action == "8" ]]
+then
+	goaccess_auth_add
+fi
+
+########## Remove Basic Authentication
+if [[ $action == "goaccess_auth_remove" || $action == "9" ]]
+then
+	goaccess_auth_remove
+fi
+
+########## Modify Basic Auth password
+if [[ $action == "goaccess_auth_change" || $action == "10" ]]
+then
+	goaccess_auth_change
+fi
+
+####### WhiteList Ip
+if [[ $action == "goaccess_whitelist" || $action == "11" ]]
+then
+	goaccess_whitelist
+fi
+
+####### BlackList Ip
+if [[ $action == "goaccess_whitelist_remove" || $action == "12" ]]
+then
+	goaccess_whitelist_remove
+fi
+
+####### Remove all Whitelisted Ip
+if [[ $action == "goaccess_whitelist_removeall" || $action == "13" ]]
+then
+	goaccess_whitelist_removeall
+fi
+
+####### Restart Daemon
+if [[ $action == "goaccess_restart" || $action == "14" ]]
+then
+	goaccess_restart
+fi

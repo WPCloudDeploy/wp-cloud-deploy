@@ -1,0 +1,89 @@
+.rwmb-row:after {
+  content: " ";
+  display: table;
+  clear: both;
+}
+.rwmb-row .rwmb-column {
+  margin-right: 5%;
+  float: left;
+  box-sizing: border-box;
+}
+.rwmb-row .rwmb-column:last-of-type {
+  margin-right: 0;
+}
+.rwmb-field .rwmb-row {
+  display: block;
+}
+.rwmb-column-12 {
+  width: 100%;
+}
+.rwmb-column-11 {
+  width: 91.25%;
+}
+.rwmb-column-10 {
+  width: 82.5%;
+}
+.rwmb-column-9 {
+  width: 73.75%;
+}
+.rwmb-column-8 {
+  width: 65%;
+}
+.rwmb-column-7 {
+  width: 56.25%;
+}
+.rwmb-column-6 {
+  width: 47.5%;
+}
+.rwmb-column-5 {
+  width: 38.75%;
+}
+.rwmb-column-4 {
+  width: 30%;
+}
+.rwmb-column-3 {
+  width: 21.25%;
+}
+.rwmb-column-2 {
+  width: 12.5%;
+}
+.rwmb-column-1 {
+  width: 3.75%;
+}
+.rwmb-row:not(:last-of-type) {
+  margin-bottom: 12px;
+}
+.rwmb-column .rwmb-label,
+.rwmb-column .rwmb-label ~ .rwmb-input {
+  display: block;
+  width: 100%;
+  padding: 0;
+}
+.rwmb-column .rwmb-label {
+  margin-bottom: 6px;
+}
+.rwmb-column .rwmb-field {
+  display: block;
+}
+body.profile-php #edittag .rwmb-column .rwmb-label ~ .rwmb-input,
+body.term-php #edittag .rwmb-column .rwmb-label ~ .rwmb-input {
+  padding: 0;
+  max-width: 100%;
+}
+.rwmb-settings-no-boxes .rwmb-column .rwmb-field {
+  padding: 10px 0;
+}
+.rwmb-column.rwmb-column input {
+  max-width: 99%;
+}
+@media screen and (max-width: 767px) {
+  .rwmb-column {
+    width: 100%;
+  }
+  .rwmb-column .rwmb-input input:not([type="checkbox"]):not([type="radio"]) {
+    width: 99%;
+  }
+  .rwmb-field .select2-container {
+    width: 99%;
+  }
+}

@@ -1,0 +1,281 @@
+#!/bin/bash
+
+if [[ "$EUID" -ne 0 ]]; then
+	echo "Sorry, you need to run this as root"
+	exit
+fi
+
+
+while [[ -z $old_domain ]]; do
+    clear
+    echo "Please, select which domain you wish to move"
+    echo
+    ls /var/www | grep -v html | nl
+    read -p "Select domain: " site_number
+    number_of_sites=$(ls /var/www | grep -v html | wc -l)
+    until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
+		echo "$site_number: invalid selection."
+		read -p "Select site: " site_number
+	done
+    old_domain=$(ls /var/www | grep -v html | sed -n "$site_number"p)
+done
+
+
+
+if [[ -z $new_domain ]]; then
+    echo
+    echo "Enter the destination domain name
+Specify just the domain name without www or http://
+Example: my-new-domain.com"
+    read -p "Domain: " new_domain
+fi
+
+
+
+if ls /etc/nginx/sites-enabled/*_$new_domain 1> /dev/null 2>&1 || [[ -e /etc/nginx/sites-enabled/$new_domain ]]; then
+    echo "Destination domain already exists. Aborting!"
+    exit
+fi
+
+
+
+if [[ ! -d /var/www/$old_domain ]]; then
+    echo "$old_domain files are not present. Aborting!"
+    exit
+fi
+
+
+
+if [[ ! -e /etc/nginx/sites-enabled/$old_domain ]]; then
+    echo "$old_domain NGINX configuration is not present. Aborting!"
+    exit
+fi
+
+
+
+while [[ -z $action ]]; do
+    echo
+    echo "How do you want to perform the domain change?"
+    echo
+    echo "   1) Change domain only"
+    echo "   2) Change domain and replace occurrences in the database (dry run)"
+    echo "   3) Change domain and replace occurrences in the database (live run)"
+    read -p "Action: " action
+    until [[ -z "$action" || "$action" =~ ^[1-3]$ ]]; do
+    	echo "$action: invalid selection."
+    	read -p "Action: " action
+    done
+done
+
+
+mysql_db=$(grep DB_NAME /var/www/$old_domain/html/wp-config.php | cut -d "'" -f 4)
+mysql_dbprefix=$(grep table_prefix /var/www/$old_domain/html/wp-config.php | cut -d "'" -f 2)
+
+
+
+old_user_name=$(echo $old_domain | cut -c1-32)
+new_user_name=$(echo $new_domain | cut -c1-32)
+
+
+if id -u $new_user_name &>/dev/null; then
+	echo "User name collision. Aborting..."
+	exit
+fi
+
+
+if [[ $action == "domain_only" || $action == "1" ]]; then
+	echo "Backing up database..."
+    date=$(date +"%Y-%m-%d"-"%Hh%Mm%Ss")
+    mkdir -p ~/.wp-backup/$old_domain/
+    mysqldump $mysql_db | gzip -9 > ~/.wp-backup/$old_domain/"$old_domain"_"$date"_db.gz
+    if [ $? -ne 0 ]  
+    then
+	    echo "Database backup failed! Domain change aborted!"
+	    exit
+    fi
+    echo "Database backed up to ~/.wp-backup/$old_domain/"$old_domain"_"$date"_db.gz"
+    mariadb <<QUERY
+USE $mysql_db;
+UPDATE ${mysql_dbprefix}options SET option_value = replace(option_value, '$old_domain', '$new_domain') WHERE option_name = 'home' OR option_name = 'siteurl';
+UPDATE ${mysql_dbprefix}posts SET guid = REPLACE (guid, '$old_domain', '$new_domain');
+QUERY
+    # reset cache
+    cd /var/www/$old_domain/html/
+    su - $old_user_name -c "wp cache flush"
+    su - $old_user_name -c "wp cache-enabler clear 2>/dev/null"
+fi
+
+if [[ $action == "dry_run" || $action == "2" ]]; then
+    cd /var/www/$old_domain/html/
+    su - $old_user_name -c "wp --skip-plugins search-replace $old_domain $new_domain --all-tables-with-prefix --dry-run"
+    echo "Dry run completed. Nothing was changed."
+    exit
+fi
+
+if [[ $action == "replace_domain" || $action == "3" ]]; then
+	echo "Backing up database..."
+    date=$(date +"%Y-%m-%d"-"%Hh%Mm%Ss")
+    mkdir -p ~/.wp-backup/$old_domain/
+    mysqldump $mysql_db | gzip -9 > ~/.wp-backup/$old_domain/"$old_domain"_"$date"_db.gz
+    if [ $? -ne 0 ]  
+    then
+	    echo "Database backup failed! Domain change aborted!"
+	    exit
+    fi
+    echo "Database backed up to ~/.wp-backup/$old_domain/"$old_domain"_"$date"_db.gz"
+	echo "Starting search and replace..."
+    cd /var/www/$old_domain/html/
+    su - $old_user_name -c "wp --skip-plugins search-replace $old_domain $new_domain --recurse-objects --network --skip-columns=guid --skip-tables=wp_users --all-tables-with-prefix"
+    # reset cache
+    su - $old_user_name -c "wp cache flush"
+    su - $old_user_name -c "wp cache-enabler clear 2>/dev/null"
+fi
+
+
+# Install rename util if not already installed
+if ! hash rename 2>/dev/null; then
+    apt-get install -y rename
+fi
+
+
+su - $old_user_name -c "wp --skip-plugins config set DOMAIN_CURRENT_SITE $new_domain --no-add 2>/dev/null"
+
+
+echo "Setting up new domain files and users..."
+sed -i "s/$old_domain/$new_domain/g" /etc/wp-backup.conf 2> /dev/null
+
+php_version=$(ls /etc/php/*/fpm/pool.d/$old_domain.conf | cut -d '/' -f 4)
+systemctl stop php$php_version-fpm
+userdel $old_user_name
+useradd -d "/var/www/$new_domain/html" -g "www-data" -M -s "/bin/bash" $new_user_name
+mv /etc/php/$php_version/fpm/pool.d/$old_domain.conf /etc/php/$php_version/fpm/pool.d/$new_domain.conf
+# this sed is required only if $new_user_name and $new_domain are not the same
+if [[ "$new_user_name" != "$new_domain" ]]; then
+    sed -i "s/$old_user_name/$new_user_name/g" /etc/php/$php_version/fpm/pool.d/$new_domain.conf
+fi
+sed -i "s/$old_domain/$new_domain/g" /etc/php/$php_version/fpm/pool.d/$new_domain.conf
+systemctl start php$php_version-fpm
+
+mv /var/www/$old_domain /var/www/$new_domain
+rename "s/$old_domain/$new_domain/" /etc/nginx/sites-enabled/"$old_domain"
+rename "s/$old_domain/$new_domain/g" /etc/nginx/sites-enabled/"$old_domain"_* 2>/dev/null
+sed -i "s/$old_domain/$new_domain/g" /etc/nginx/sites-enabled/$new_domain*
+chown -R $new_user_name:www-data /var/www/$new_domain/html/
+
+echo "Copying to new database..."
+# start of MySQL database name and credentials change, to avoid conflicts (re: issue #132)
+mysql_new_db=$(head /dev/urandom | tr -dc a-z | head -c 6)
+mysql_user=$(head /dev/urandom | tr -dc a-z | head -c 6)
+mysql_password=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 16)
+
+mysql_old_db=$(grep DB_NAME /var/www/$new_domain/html/wp-config.php | cut -d "'" -f 4)
+mysql_old_user=$(grep DB_USER /var/www/$new_domain/html/wp-config.php | cut -d "'" -f 4)
+
+mariadb <<QUERY
+CREATE DATABASE $mysql_new_db;
+GRANT ALL ON $mysql_new_db.* TO '$mysql_user'@'localhost' IDENTIFIED BY '$mysql_password' WITH GRANT OPTION;
+FLUSH PRIVILEGES;
+QUERY
+
+mysqldump $mysql_old_db | mariadb $mysql_new_db
+if [ $? -ne 0 ]  
+then
+    echo "Database copy failed! Process aborted!"
+    exit
+fi
+
+# drop old database and credentials
+mariadb <<QUERY
+DROP DATABASE $mysql_old_db;
+DROP USER '$mysql_old_user'@'localhost';
+FLUSH PRIVILEGES;
+QUERY
+
+cd /var/www/$new_domain/html/
+su - $new_user_name -c "wp --skip-plugins config set DB_NAME $mysql_new_db"
+su - $new_user_name -c "wp --skip-plugins config set DB_USER $mysql_user"
+su - $new_user_name -c "wp --skip-plugins config set DB_PASSWORD $mysql_password"
+# end of MySQL database name and credentials change, to avoid conflicts (re: issue #132)
+
+
+# wp-cli doesn't shuffle WP_CACHE_KEY_SALT, which is important for us
+# so we use the generator once to get the additional salt we need and shuffle again so there are no duplicates
+su - $new_user_name -c "wp --skip-plugins config shuffle-salts"
+su - $new_user_name -c 'wp --skip-plugins config set WP_CACHE_KEY_SALT "$(wp --skip-plugins config get AUTH_KEY)"'
+su - $new_user_name -c "wp --skip-plugins config shuffle-salts"
+
+# reissue certificate if previous domain had https enabled and was not a multisite wildcard
+if ! grep -q 'server_name \.' /etc/nginx/sites-enabled/$new_domain && [[ -e /etc/letsencrypt/live/$old_domain/fullchain.pem ]]; then
+	echo "Attempting to obtain new ssl certificates..."
+    if grep -qs "managed by Certbot" /etc/nginx/sites-enabled/$new_domain; then
+        sed -i -n '/if ($host/q;p' /etc/nginx/sites-enabled/$new_domain
+        sed -i '$ d' /etc/nginx/sites-enabled/$new_domain
+        sed -i '/server {/a listen 80;\nlisten [::]:80;' /etc/nginx/sites-enabled/$new_domain
+        sed -i '/managed by Certbot/d' /etc/nginx/sites-enabled/$new_domain
+    fi
+    certbot delete --cert-name $old_domain --noninteractive
+    certbot --non-interactive --reinstall --expand --nginx --agree-tos --register-unsafely-without-email --allow-subset-of-names --redirect -d $new_domain -d www.$new_domain
+    # Change configuration to HTTP if HTTPS certificate couldn't be obtained
+    if [ $? -ne 0 ]; then
+        su - $new_user_name -c "wp --skip-plugins option update home http://$new_domain"
+        su - $new_user_name -c "wp --skip-plugins option update siteurl http://$new_domain"
+    fi
+fi
+
+# If we are dealing with a multisite wildcard which had HTTPS enabled...
+if grep -q 'server_name \.' /etc/nginx/sites-enabled/$new_domain && grep -q 'listen 443' /etc/nginx/sites-enabled/$new_domain; then
+    for sitedomain in $(su - $new_user_name -c "wp site list --field=domain")
+    do
+        su - $new_user_name -c "wp --skip-plugins option update home http://$sitedomain --url=https://$sitedomain/"
+        su - $new_user_name -c "wp --skip-plugins option update siteurl http://$sitedomain --url=https://$sitedomain/"
+    done
+    if grep -qs "managed by Certbot" /etc/nginx/sites-enabled/$new_domain; then
+        sed -i -n '/listen 80/q;p' /etc/nginx/sites-enabled/$new_domain
+        sed -i '$ d' /etc/nginx/sites-enabled/$new_domain
+        sed -i '/server {/a listen 80;\nlisten [::]:80;' /etc/nginx/sites-enabled/$new_domain
+        sed -i '/managed by Certbot/d' /etc/nginx/sites-enabled/$new_domain
+    fi
+    certbot delete --cert-name $old_domain --noninteractive
+    echo "This multisite had wildcard SSL enabled."
+    echo "HTTPS has been disabled, it can be configured using 13-multisite.sh"
+fi
+
+# this part is used for non-wildcard, domain-based multisite setups
+# if a specific site previously had HTTPS enabled, we will get certificates for the new domain
+ls /etc/nginx/sites-enabled/"$new_domain"_* 2>/dev/null | cut -d _ -f 2 |
+while read -r line
+do
+    new_domain_2=$line
+    old_domain_2=$(echo $line | sed s/$new_domain/$old_domain/g)
+    # reissue certificate if previous domain had https enabled
+    if [[ -e /etc/letsencrypt/live/$old_domain_2/fullchain.pem ]]; then
+		echo "Attempting to get new certificate for $new_domain\_$line..."
+        if grep -qs "managed by Certbot" /etc/nginx/sites-enabled/"$new_domain"_"$line"; then
+            sed -i -n '/if ($host/q;p' /etc/nginx/sites-enabled/"$new_domain"_"$line"
+            sed -i '$ d' /etc/nginx/sites-enabled/"$new_domain"_"$line"
+            sed -i '/server {/a listen 80;\nlisten [::]:80;' /etc/nginx/sites-enabled/"$new_domain"_"$line"
+            sed -i '/managed by Certbot/d' /etc/nginx/sites-enabled/"$new_domain"_"$line"
+        fi
+        #certbot delete --cert-name $old_domain_2 --noninteractive
+        certbot --non-interactive --reinstall --expand --nginx --agree-tos --register-unsafely-without-email --allow-subset-of-names --redirect -d $line -d www.$line
+        # Change configuration to HTTP if HTTPS certificate couldn't be obtained
+        if [ $? -ne 0 ]; then
+            su - $new_user_name -c "wp --skip-plugins option update home http://$line --url=https://$line/"
+            su - $new_user_name -c "wp --skip-plugins option update siteurl http://$line --url=https://$line/"
+        fi
+    fi
+done
+
+echo "Restarting NGINX..."
+systemctl restart nginx
+
+echo "Setting up SSH user for new domain..."
+sed -i "/Match User $old_user_name/,+2 d" /etc/ssh/sshd_config
+mv /var/www/$new_domain/.ssh_$old_domain/ /var/www/$new_domain/.ssh_$new_domain/
+echo "Match User $new_user_name
+PasswordAuthentication yes
+AuthorizedKeysFile /var/www/$new_domain/.ssh_$new_user_name/authorized_keys" >> /etc/ssh/sshd_config
+systemctl restart sshd
+
+echo
+echo "Domain $old_domain changed to $new_domain"

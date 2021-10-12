@@ -1,0 +1,13 @@
+echo "done" && {
+    cd ~ && 
+	sudo -E wget --no-check-certificate -O ##SCRIPT_COMMON_NAME## ##SCRIPT_COMMON_URL## &&
+	sudo -E dos2unix ##SCRIPT_COMMON_NAME## &&	
+	sudo -E wget --no-check-certificate -O ##SCRIPT_NAME_BACKUP## ##SCRIPT_URL_BACKUP## &&
+	sudo -E dos2unix ##SCRIPT_NAME_BACKUP## &&
+    sudo -E wget --no-check-certificate -O ##SCRIPT_NAME## ##SCRIPT_URL## &&
+	export action=##ACTION## domain=##DOMAIN## update_type=##UPDATE_TYPE## api_userid=##API_USERID## api_key=##API_KEY## threshold=##THRESHOLD## status_callback_url=##STATUS_CALLBACK_URL## list_of_themes=##LIST_OF_THEMES## list_of_plugins=##LIST_OF_PLUGINS## aws_bucket_name=##AWS_BUCKET_NAME## excluded_plugins=##EXCLUDED_PLUGINS## excluded_themes=##EXCLUDED_THEMES## &&
+    sudo -E dos2unix ##SCRIPT_NAME## &&
+    sudo -E bash ##SCRIPT_NAME## >> ##SCRIPT_LOGS##.log.intermed 2>&1 &&
+    sudo -E mv ##SCRIPT_LOGS##.log.intermed ##SCRIPT_LOGS##.log.done &&
+    sudo -E wget -q ##CALLBACK_URL##;
+} > /dev/null 2>&1 &

@@ -1,0 +1,24 @@
+/* This file is loaded globally on the dashboard */
+
+/* Define brand colors */
+
+:root {
+  --wpcd-primary-brand-color: #E91E63;
+  --wpcd-secondary-brand-color: #FF5722;
+  --wpcd-tertiary-brand-color: #03114A;
+  --wpcd-accent-background-color: #3F4C5F;
+  --wpcd-medium-background-color: #FAFAFA;
+  --wpcd-light-background-color: #FDFDFD;
+  --wpcd-alternate-accent-background-color: #CFD8DC;
+}
+
+/* Force all tooltips in metabox.io to be darker. */
+
+.mb-tooltip {
+  opacity: 0.65 !important;
+}
+
+.mb-tooltip:hover {
+  opacity: 1 !important;
+  color: var(--wpcd-primary-brand-color);
+}

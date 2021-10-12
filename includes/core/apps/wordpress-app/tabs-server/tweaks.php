@@ -1,0 +1,235 @@
+<?php
+/**
+ * Tweaks Tab
+ *
+ * @package wpcd
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+/**
+ * Class WPCD_WORDPRESS_TABS_SERVER_TWEAKS
+ */
+class WPCD_WORDPRESS_TABS_SERVER_TWEAKS extends WPCD_WORDPRESS_TABS {
+
+	/**
+	 * WPCD_WORDPRESS_TABS_PHP constructor.
+	 */
+	public function __construct() {
+		parent::__construct();
+		add_filter( "wpcd_server_{$this->get_app_name()}_get_tabnames", array( $this, 'get_tab' ), 10, 1 );
+		add_filter( "wpcd_server_{$this->get_app_name()}_get_tabs", array( $this, 'get_tab_fields' ), 10, 2 );
+		add_filter( "wpcd_server_{$this->get_app_name()}_tab_action", array( $this, 'tab_action_server' ), 10, 3 );  // This filter has not been defined and called yet in classs-wordpress-app and might never be because we're using the one below.
+		add_filter( "wpcd_app_{$this->get_app_name()}_tab_action", array( $this, 'tab_action' ), 10, 3 );  // This filter says 'wpcd_app' because we're using the same functions for server details ajax tabs and app details ajax tabs.
+
+	}
+
+	/**
+	 * Populates the tab name.
+	 *
+	 * @param array $tabs The default value.
+	 *
+	 * @return array    $tabs The default value.
+	 */
+	public function get_tab( $tabs ) {
+		$tabs['svr_tweaks'] = array(
+			'label' => __( 'Tweaks', 'wpcd' ),
+			'icon'  => 'fad fa-car-tilt',
+		);
+		return $tabs;
+	}
+
+	/**
+	 * Gets the fields to be shown in the TWEAKS tab.
+	 *
+	 * Filter hook: wpcd_app_{$this->get_app_name()}_get_tabs
+	 *
+	 * @param array $fields fields.
+	 * @param int   $id id.
+	 *
+	 * @return array Array of actions, complying with the structure necessary by metabox.io fields.
+	 */
+	public function get_tab_fields( array $fields, $id ) {
+		return $this->get_fields_for_tab( $fields, $id, 'svr_tweaks' );
+
+	}
+
+	/**
+	 * Called when an action needs to be performed on the tab.
+	 *
+	 * @param mixed  $result The default value of the result.
+	 * @param string $action The action to be performed.
+	 * @param int    $id The post ID of the server.
+	 *
+	 * @return mixed    $result The default value of the result.
+	 */
+	public function tab_action( $result, $action, $id ) {
+
+		/* Verify that the user is even allowed to view the server before proceeding to do anything else */
+		if ( ! $this->wpcd_user_can_view_wp_server( $id ) ) {
+			return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
+		}
+
+		switch ( $action ) {
+			case 'server-tweaks-gzip':
+				$result = $this->server_tweaks_gzip( $id, $action );
+				break;
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Gets the actions to be shown in the TWEAKS tab.
+	 *
+	 * @param int $id id.
+	 *
+	 * @return array Array of actions with key as the action slug and value complying with the structure necessary by metabox.io fields.
+	 */
+	public function get_actions( $id ) {
+
+		return $this->get_tweaks_fields( $id );
+
+	}
+
+	/**
+	 * Gets the fields to shown in the TWEAKS tab in the server details screen.
+	 *
+	 * @param int $id the post id of the app cpt record.
+	 *
+	 * @return array Array of actions with key as the action slug and value complying with the structure necessary by metabox.io fields.
+	 */
+	private function get_tweaks_fields( $id ) {
+
+		$actions = array();
+
+		$actions['server-tweaks-performance-header'] = array(
+			'label'          => __( 'Performance Tweaks', 'wpcd' ),
+			'type'           => 'heading',
+			'raw_attributes' => array(
+				'desc' => __( 'Tweaks that could help improve your servers and sites performance.', 'wpcd' ),
+			),
+		);
+
+		/**
+		 * GZIP
+		 */
+
+		$gzip_status = $this->get_meta_value( $id, 'wpcd_wpapp_gzip_status', 'on' );
+
+		/* Set the text of the confirmation prompt */
+		$gzip_confirmation_prompt = 'on' === $gzip_status ? __( 'Are you sure you would like to disable GZIP for this server?', 'wpcd' ) : __( 'Are you sure you would like to enable GZIP for this server?', 'wpcd' );
+
+		$actions['server-tweaks-gzip'] = array(
+			'label'          => __( 'Gzip', 'wpcd' ),
+			'raw_attributes' => array(
+				'on_label'            => __( 'Enabled', 'wpcd' ),
+				'off_label'           => __( 'Disabled', 'wpcd' ),
+				'std'                 => $gzip_status === 'on',
+				'confirmation_prompt' => $gzip_confirmation_prompt,
+				'desc'                => __( 'Enable or Disable Gzip for this server. If your sites have their own GZIP directives then those will override anything that is set or unset here.', 'wpcd' ),
+			),
+			'type'           => 'switch',
+		);
+
+		// Add a divider.
+		$actions[] = array(
+			'type' => 'divider',
+		);
+
+		/**
+		 * Add some footer comments to direct the user to other places
+		 */
+		$actions['server-tweaks-footer-1'] = array(
+			'label'          => '',
+			'raw_attributes' => array(
+				'std' => __( 'Check out the TWEAKS tab on each of your sites for additional performance and security tweaks and customization options.', 'wpcd' ),
+			),
+			'type'           => 'custom_html',
+		);
+
+		return $actions;
+
+	}
+
+	/**
+	 * Get the current value of an on/off meta value from the server field.
+	 *
+	 * This is just a get_post_meta but sets a default value if nothing exists.
+	 *
+	 * @param int    $id             postid of server record.
+	 * @param string $meta_name      name of meta value to get.
+	 * @param string $default_value  default value if meta isn't set.
+	 *
+	 * @return mixed|string
+	 */
+	private function get_meta_value( $id, $meta_name, $default_value = 'off' ) {
+
+		$status = get_post_meta( $id, $meta_name, true );
+		if ( empty( $status ) ) {
+			$status = $default_value;
+		}
+
+		return $status;
+
+	}
+
+	/**
+	 * Toggle the gzip status for the server.
+	 *
+	 * @param int    $id         The postID of the server cpt.
+	 * @param string $action     The action to be performed (this matches the string required in the bash scripts if bash scripts are used ).
+	 *
+	 * @return boolean success/failure/other
+	 */
+	private function server_tweaks_gzip( $id, $action ) {
+
+		// What is the current gzip status?
+		$gzip_status = $this->get_meta_value( $id, 'wpcd_wpapp_gzip_status', 'on' );
+
+		// Figure out the proper action to send to the server script.
+		if ( 'on' === $gzip_status ) {
+			// currently on so turn it off.
+			$action = 'disable_gzip';
+		} else {
+			$action = 'enable_gzip';
+		}
+
+		$instance = $this->get_server_instance_details( $id );
+
+		if ( is_wp_error( $instance ) ) {
+			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
+		}
+
+		// Get the full command to be executed by ssh.
+		$run_cmd = $this->turn_script_into_command( $instance, 'nginx_options.txt', array( 'action' => $action ) );
+
+		do_action( 'wpcd_log_error', sprintf( 'attempting to run command for %s = %s ', print_r( $instance, true ), $run_cmd ), 'trace', __FILE__, __LINE__, $instance, false );
+
+		// Run the command.
+		$result  = $this->execute_ssh( 'generic', $instance, array( 'commands' => $run_cmd ) );
+		$success = $this->is_ssh_successful( $result, 'nginx_options.txt' );
+
+		// Check for success.
+		if ( ! $success ) {
+			return new \WP_Error( sprintf( __( 'Unable to %1$s for site: %2$s', 'wpcd' ), $action, $result ) );
+		}
+
+		/* Update server meta to set the new meta state for gzip */
+		if ( 'on' === $gzip_status ) {
+			// currently on so turn it off.
+			update_post_meta( $id, 'wpcd_wpapp_gzip_status', 'off' );
+		} else {
+			update_post_meta( $id, 'wpcd_wpapp_gzip_status', 'on' );
+		}
+
+		// Return the data as an error so it can be shown in a dialog box.
+		return new \WP_Error( __( 'The Gzip status on the server has been toggled.  Note that if your sites have a setting for it then it will override whatever is set here!', 'wpcd' ) );
+
+	}
+
+}
+
+new WPCD_WORDPRESS_TABS_SERVER_TWEAKS();

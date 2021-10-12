@@ -1,0 +1,603 @@
+#!/bin/bash
+
+if [[ "$EUID" -ne 0 ]]; then
+	echo "Sorry, you need to run this as root"
+	exit
+fi
+
+
+
+while [[ -z $domain ]]; do
+    clear
+    echo
+    echo "Please, select which site do you wish to manage"
+    ls /var/www | grep -v html | nl
+    echo
+    read -p "Select site: " site_number
+    number_of_sites=$(ls /var/www | grep -v html | wc -l)
+    until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
+    	echo "$site_number: invalid selection."
+    	read -p "Select site: " site_number
+    done
+    domain=$(ls /var/www | grep -v html | sed -n "$site_number"p)
+done
+
+
+
+while [[ -z $action ]]; do
+    echo "What do you want to do?"
+    echo "   1) Enable domain-based WordPress Multisite"
+    echo "   2) Register a new site in the domain-based multisite installation"
+    echo "   3) Deregister a site in the domain-based multisite installation"
+    # the 04-manage_https.sh script should be used to manage HTTPS in the master installation and for subdirectory-based installations
+    echo "   4) Enable HTTPS for a site in the domain-based multisite installation"
+    echo "   5) Disable HTTPS for a site in the domain-based multisite installation"
+    echo "   6) Enable subdirectory-based WordPress Multisite"
+    echo "   7) Enable domain-based WordPress Multisite in wildcard configuration"
+    echo "   8) Enable wildcard HTTPS in a domain-based multisite installation"
+    echo "   9) Disable wildcard HTTPS in a domain-based multisite installation"
+    echo
+    read -p "Action: " action
+    until [[ -z "$action" || "$action" =~ ^[1-9]$ ]]; do
+    	echo "$action: invalid selection."
+    	read -p "Action: " action
+    done
+done
+
+
+
+user_name=$(echo $domain | cut -c1-32)
+
+
+
+if [[ $action == "multisite" || $action == "1" ]]; then
+
+    cd /var/www/$domain/html/
+    su - $user_name -c "wp --skip-plugins core multisite-convert --subdomains"
+    echo
+    echo "WordPress Multisite has been enabled for $domain"
+    exit
+
+fi
+
+
+
+if [[ $action == "ms_register_site" || $action == "2" ]]; then
+
+    while [[ -z $subdomain ]]; do
+    echo
+    echo "Specify the domain name for the new site
+Example: mysubsite.$domain"
+    read -p "Domain: " subdomain
+    done
+
+
+    # it's very important to escape the variables and quotes within the echo
+    echo "include /etc/nginx/common/6g.conf;
+include /etc/nginx/common/7g.conf;
+include /etc/nginx/userconfigs/http/*.conf;		#user custom configuration
+
+server {
+
+    include /etc/nginx/common/deny*.conf;
+    include /etc/nginx/userconfigs/server/*.conf;	#user custom configuration
+    
+    listen 80;
+    listen [::]:80;
+
+    root /var/www/$domain/html;
+    index index.php index.html index.htm;
+
+    server_name $subdomain www.$subdomain;
+
+    client_max_body_size 25M;
+
+    # Needed for page-level caching when cache-enabler plugin is installed
+    include /etc/nginx/common/cache_enabler.conf;
+	
+    # Compress certain files with gzip.
+    include /etc/nginx/common/gzip[.]conf;	
+
+    # Cache certain filetypes in the browser
+    include /etc/nginx/common/browsercache[.]conf;	
+
+    # Prepare for phpmyadmin when it's installed
+    location ~ /phpMyAdmin/.*\.php$ {
+        allow all;
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/run/php/php-fpm-$domain.sock;
+    }
+	
+    # Handler for PHP files
+    location ~ \.php$ {
+		# Restrict wp-login to 4 requests per period
+        location ~ \wp-login.php$ {
+            limit_req zone=WPLOGIN;
+            include snippets/fastcgi-php.conf;
+            fastcgi_pass unix:/run/php/php-fpm-$domain.sock;
+        }
+		
+        fastcgi_param PHP_VALUE \"
+        \";
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/run/php/php-fpm-$domain.sock;
+        fastcgi_buffers 16 32k;
+        fastcgi_buffer_size 64k;
+        fastcgi_busy_buffers_size 64k;		
+    }
+
+    location / {
+        try_files \$cache_enabler_uri \$cache_enabler_uri2 @cachemiss; 
+    }
+
+    location @cachemiss {
+        try_files \$uri \$uri/ \$custom_subdir/index.php?\$args; 
+    }
+	
+    # include user custom configurations
+    include /etc/nginx/userconfigs/site/$domain-*.conf;	
+
+}" > /etc/nginx/sites-enabled/"$domain"_"$subdomain"
+
+
+    systemctl restart nginx
+    
+    echo
+    echo "$subdomain configuration has been set up.
+You can now add $subdomain normally from the Multisite dashboard.
+You can also run this script again to enable HTTPS support for $subdomain"
+    exit
+    
+fi
+
+
+
+if [[ $action == "ms_deregister_site" || $action == "3" ]]; then
+
+    cd /etc/nginx/sites-enabled/
+
+    while [[ -z $subdomain ]]; do
+        echo
+        echo "Please, select which subdomain do you wish to deregister"
+        ls *"$domain"_* | cut -d "_" -f 2 | nl
+        echo
+        read -p "Select site: " site_number
+        number_of_sites=$(ls *"$domain"_* | cut -d "_" -f 2 | wc -l)
+        until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
+        	echo "$site_number: invalid selection."
+        	read -p "Select site: " site_number
+        done
+        subdomain=$(ls *"$domain"_* | cut -d "_" -f 2 | sed -n "$site_number"p)
+    done
+
+    if grep -qs "listen 443" "$domain"_"$subdomain"; then
+        certbot delete --cert-name $subdomain --noninteractive
+    fi
+
+    rm -f "$domain"_"$subdomain"
+    systemctl restart nginx
+
+    echo
+    echo "$subdomain has been deregistered"
+    exit
+
+fi
+
+
+
+if [[ $action == "ms_enable_https" || $action == "4" ]]; then
+
+    cd /etc/nginx/sites-enabled/
+
+    while [[ -z $subdomain ]]; do
+        echo
+        echo "Please, select which subdomain do you wish to enable HTTPS for"
+        ls *"$domain"_* | cut -d "_" -f 2 | nl
+        echo
+        read -p "Select site: " site_number
+        number_of_sites=$(ls *"$domain"_* | cut -d "_" -f 2 | wc -l)
+        until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
+        	echo "$site_number: invalid selection."
+        	read -p "Select site: " site_number
+        done
+        subdomain=$(ls *"$domain"_* | cut -d "_" -f 2 | sed -n "$site_number"p)
+    done
+
+    if [[ -z $email ]]; then
+        echo
+        echo "Specify an email for administrative notifications about your certificate
+Example: admin@example.com"
+        read -p "Email address: " email
+    fi
+    certbot --non-interactive --reinstall --expand --nginx --agree-tos -m $email --allow-subset-of-names --redirect -d $subdomain -d www.$subdomain
+    result=$?
+    if [ $result -ne 0 ]; then
+        echo "Certificates could not be obtained and the process has been aborted."
+        exit
+    fi
+
+    ###### update home and siteurl
+    cd /var/www/$domain/html/
+    su - $user_name -c "wp --skip-plugins option update home https://$subdomain --url=http://$subdomain/"
+    su - $user_name -c "wp --skip-plugins option update siteurl https://$subdomain --url=http://$subdomain/"
+    # reset cache
+    su - $user_name -c "wp cache flush"
+    su - $user_name -c "wp cache-enabler clear 2>/dev/null"
+
+    echo
+    echo "SSL enabled for $subdomain"
+    exit
+fi
+
+
+
+if [[ $action == "ms_disable_https" || $action == "5" ]]; then
+
+    cd /etc/nginx/sites-enabled/
+
+    while [[ -z $subdomain ]]; do
+        echo
+        echo "Please, select which subdomain do you wish to disable HTTPS for"
+        ls *"$domain"_* | cut -d "_" -f 2 | nl
+        echo
+        read -p "Select site: " site_number
+        number_of_sites=$(ls *"$domain"_* | cut -d "_" -f 2 | wc -l)
+        until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
+        	echo "$site_number: invalid selection."
+        	read -p "Select site: " site_number
+        done
+        subdomain=$(ls *"$domain"_* | cut -d "_" -f 2 | sed -n "$site_number"p)
+    done
+
+    if ! grep -qs 'managed by Certbot' /etc/nginx/sites-enabled/"$domain"_"$subdomain"; then
+        echo
+        echo "SSL is already disabled for $domain"_"$subdomain"
+        exit
+    fi
+
+    certbot delete --cert-name $subdomain --noninteractive
+    if grep -qs "managed by Certbot" /etc/nginx/sites-enabled/"$domain"_"$subdomain"; then
+        sed -i -n '/if ($host/q;p' /etc/nginx/sites-enabled/"$domain"_"$subdomain"
+        sed -i '$ d' /etc/nginx/sites-enabled/"$domain"_"$subdomain"
+        sed -i '/server {/a listen 80;\nlisten [::]:80;' /etc/nginx/sites-enabled/"$domain"_"$subdomain"
+        sed -i '/managed by Certbot/d' /etc/nginx/sites-enabled/"$domain"_"$subdomain"
+    fi
+    systemctl restart nginx
+
+    ###### update home and siteurl
+    cd /var/www/$domain/html/
+    su - $user_name -c "wp --skip-plugins option update home http://$subdomain --url=https://$subdomain/"
+    su - $user_name -c "wp --skip-plugins option update siteurl http://$subdomain --url=https://$subdomain/"
+    # reset cache
+    su - $user_name -c "wp cache flush"
+    su - $user_name -c "wp cache-enabler clear 2>/dev/null"
+
+    echo
+    echo "HTTPS disabled for $subdomain"
+    exit
+fi
+
+
+
+if [[ $action == "ms_enable_subdir" || $action == "6" ]]; then
+
+    cd /var/www/$domain/html/
+    su - $domain -c "wp --skip-plugins core multisite-convert"
+
+    # Add rewrite rules needed for subdir-based multisite
+    sed -i '/server_name/a \ \n    if \(\!-e \$request_filename\) \{\n        rewrite /wp-admin\$ \$scheme://\$host\$uri/ permanent\;  \n        rewrite \^\(/\[\^/\]+\)\?\(/wp-.\*\) \$2 last\;                     \n        rewrite \^\(/\[\^/\]+\)\?\(/.\*\\.php\) \$2 last\;                   \n    \}' /etc/nginx/sites-enabled/$domain
+
+    systemctl restart nginx
+
+    echo
+    echo "WordPress Multisite has been enabled for $domain"
+    exit
+
+fi
+
+
+
+if [[ $action == "multisite_wildcard" || $action == "7" ]]; then
+
+    sed -i "/server_name $domain/c\ \ \ \ server_name .$domain;" /etc/nginx/sites-enabled/$domain
+    systemctl restart nginx
+    cd /var/www/$domain/html/
+    su - $domain -c "wp --skip-plugins core multisite-convert --subdomains"
+    echo
+    echo "WordPress Multisite has been enabled for $domain"
+    exit
+
+fi
+
+
+
+if [[ $action == "ms_enable_https_wildcard" || $action == "8" ]]; then
+
+    if grep -qs "listen 443" /etc/nginx/sites-enabled/$domain; then
+        echo "This site already has SSL configured."
+        echo "To enable wildcard HTTPS, the previous SSL configuration needs to be disabled first."
+        exit
+    fi
+
+    while [[ -z $dns_provider ]]; do
+        echo "Which DNS provider does this site use?"
+        echo "   1) Cloudflare"
+        echo "   2) Amazon Route 53"
+        echo "   3) Google Cloud DNS"
+        echo "   4) DNS Made Easy"
+        echo "   5) OVH"
+        echo
+        read -p "DNS provider: " dns_provider
+        until [[ -z "$dns_provider" || "$dns_provider" =~ ^[1-5]$ ]]; do
+            echo "$dns_provider: invalid selection."
+            read -p "DNS provider: " dns_provider
+        done
+    done
+
+    if [[ -z $email ]]; then
+        echo
+        echo "Specify an email for administrative notifications about your certificate
+Example: admin@example.com"
+        read -p "Email address: " email
+    fi
+
+    mkdir -p  ~/.certbot_secrets
+
+    if [[ $dns_provider == "cloudflare" || $dns_provider == "1" ]]; then
+
+        echo "We need to configure your credentials for the Cloudflare API"
+
+            if [[ -z $dns_cloudflare_api_token ]]; then
+                echo
+                echo "Specify the Cloudflare API token"
+                read -p "Cloudflare API token: " dns_cloudflare_api_token
+            fi
+
+            echo "dns_cloudflare_api_token = $dns_cloudflare_api_token" > ~/.certbot_secrets/$domain.ini
+
+        chmod 600 ~/.certbot_secrets/$domain.ini
+
+        certbot certonly --non-interactive --dns-cloudflare --dns-cloudflare-credentials ~/.certbot_secrets/$domain.ini --agree-tos -m $email -d $domain -d *.$domain
+
+        result=$?
+        if [ $result -ne 0 ]; then
+            echo "Certificates could not be obtained and the process has been aborted."
+            exit
+        fi
+
+        # Required to reload nginx in cases where NGINX is not used with the "--nginx" flag. For example, multisite wildcard.
+        echo 'renew_hook = systemctl reload nginx' >> /etc/letsencrypt/renewal/$domain.conf
+
+
+    fi
+
+    if [[ $dns_provider == "amazon" || $dns_provider == "2" ]]; then
+
+        echo "We need to configure your credentials for the Amazon Route 53 API"
+
+        if [[ -z $aws_access_key_id ]]; then
+            echo
+            echo "Specify the AWS Access Key ID"
+            read -p "AWS Access Key ID: " aws_access_key_id
+        fi
+
+        if [[ -z $aws_secret_access_key ]]; then
+            echo
+            echo "Specify your AWS Secret Access Key"
+            read -p "AWS Secret Access Key: " aws_secret_access_key
+        fi
+
+        echo "[default]" > ~/.certbot_secrets/$domain.ini
+        echo "aws_access_key_id=$aws_access_key_id" >> ~/.certbot_secrets/$domain.ini
+        echo "aws_secret_access_key=$aws_secret_access_key" >> ~/.certbot_secrets/$domain.ini
+
+        chmod 600 ~/.certbot_secrets/$domain.ini
+
+		export AWS_CONFIG_FILE="/root/.certbot_secrets/$domain.ini"
+        certbot certonly --non-interactive --dns-route53 --agree-tos -m $email -d $domain -d *.$domain
+        unset AWS_CONFIG_FILE
+
+        result=$?
+        if [ $result -ne 0 ]; then
+            echo "Certificates could not be obtained and the process has been aborted."
+            exit
+        fi
+
+        # Required to reload nginx in cases where NGINX is not used with the "--nginx" flag. For example, multisite wildcard.
+        echo 'renew_hook = systemctl reload nginx' >> /etc/letsencrypt/renewal/$domain.conf
+
+    fi
+
+    if [[ $dns_provider == "google" || $dns_provider == "3" ]]; then
+
+        echo "We need to configure your credentials for the Google Cloud DNS API"
+        # Here is a guide on how the credentials file must be obtained:
+        # https://certbot-dns-google.readthedocs.io/en/stable/
+        if [[ -z $gcp_credentials_json ]]; then
+            echo
+            echo "Specify the location of the Google Cloud Platform API credentials JSON file"
+            echo "Example: /root/my_credentials.json"
+            read -p "Cloud Platform API credentials JSON file: " gcp_credentials_json
+        fi
+
+        rm -f ~/.certbot_secrets/$domain.json
+        cp $gcp_credentials_json ~/.certbot_secrets/$domain.json
+
+        chmod 600 ~/.certbot_secrets/$domain.json
+
+        certbot certonly --non-interactive --dns-google --dns-google-credentials ~/.certbot_secrets/$domain.json --agree-tos -m $email -d $domain -d *.$domain
+
+        result=$?
+        if [ $result -ne 0 ]; then
+            echo "Certificates could not be obtained and the process has been aborted."
+            exit
+        fi
+
+        # Required to reload nginx in cases where NGINX is not used with the "--nginx" flag. For example, multisite wildcard.
+        echo 'renew_hook = systemctl reload nginx' >> /etc/letsencrypt/renewal/$domain.conf
+
+    fi
+
+    if [[ $dns_provider == "dnsmadeeasy" || $dns_provider == "4" ]]; then
+
+        echo "We need to configure your credentials for the DNS Made Easy API"
+
+        if [[ -z $dnsmadeeasy_key ]]; then
+            echo
+            echo "Specify the DNS Made Easy API Key"
+            read -p "DNS Made Easy API Key: " dnsmadeeasy_key
+        fi
+
+        if [[ -z $dnsmadeeasy_secret ]]; then
+            echo
+            echo "Specify your DNS Made Easy API Secret Key"
+            read -p "DNS Made Easy API Secret Key: " dnsmadeeasy_secret
+        fi
+
+        echo "dns_dnsmadeeasy_api_key = $dnsmadeeasy_key" > ~/.certbot_secrets/$domain.ini
+        echo "dns_dnsmadeeasy_secret_key = $dnsmadeeasy_secret" >> ~/.certbot_secrets/$domain.ini
+
+        chmod 600 ~/.certbot_secrets/$domain.ini
+
+        certbot certonly --non-interactive --dns-dnsmadeeasy --dns-dnsmadeeasy-credentials ~/.certbot_secrets/$domain.ini --agree-tos -m $email -d $domain -d *.$domain
+
+        result=$?
+        if [ $result -ne 0 ]; then
+            echo "Certificates could not be obtained and the process has been aborted."
+            exit
+        fi
+
+        # Required to reload nginx in cases where NGINX is not used with the "--nginx" flag. For example, multisite wildcard.
+        echo 'renew_hook = systemctl reload nginx' >> /etc/letsencrypt/renewal/$domain.conf
+
+    fi
+
+    if [[ $dns_provider == "ovh" || $dns_provider == "5" ]]; then
+
+        echo "We need to configure your credentials for the OVH DNS API"
+
+        if [[ -z $dns_ovh_endpoint ]]; then
+            echo
+            echo "Specify the OVH DNS endpoint"
+            read -p "OVH DNS endpoint: " dns_ovh_endpoint
+        fi
+
+        if [[ -z $dns_ovh_application_key ]]; then
+            echo
+            echo "Specify your OVH DNS Application Key"
+            read -p "OVH DNS Application Key: " dns_ovh_application_key
+        fi
+
+        if [[ -z $dns_ovh_application_secret ]]; then
+            echo
+            echo "Specify your OVH DNS Application Secret"
+            read -p "OVH DNS Application Secret: " dns_ovh_application_secret
+        fi
+
+        if [[ -z $dns_ovh_consumer_key ]]; then
+            echo
+            echo "Specify your OVH DNS Consumer Key"
+            read -p "OVH DNS Consumer Key: " dns_ovh_consumer_key
+        fi
+
+        echo "dns_ovh_endpoint = $dns_ovh_endpoint" > ~/.certbot_secrets/$domain.ini
+        echo "dns_ovh_application_key = $dns_ovh_application_key" >> ~/.certbot_secrets/$domain.ini
+        echo "dns_ovh_application_secret = $dns_ovh_application_secret" >> ~/.certbot_secrets/$domain.ini
+        echo "dns_ovh_consumer_key = $dns_ovh_consumer_key" >> ~/.certbot_secrets/$domain.ini
+
+        chmod 600 ~/.certbot_secrets/$domain.ini
+
+        certbot certonly --non-interactive --dns-ovh --dns-ovh-credentials ~/.certbot_secrets/$domain.ini --agree-tos -m $email -d $domain -d *.$domain
+
+        result=$?
+        if [ $result -ne 0 ]; then
+            echo "Certificates could not be obtained and the process has been aborted."
+            exit
+        fi
+
+        # Required to reload nginx in cases where NGINX is not used with the "--nginx" flag. For example, multisite wildcard.
+        echo 'renew_hook = systemctl reload nginx' >> /etc/letsencrypt/renewal/$domain.conf
+
+    fi
+
+    # Certbot is unable to set up HTTPS for NGINX in wildcard configurations, so we do it by hand
+	sed -i "/listen 80/ a \ \ \ \ listen [::]:443 ssl; # managed by Certbot \n \
+\ \ \ listen 443 ssl; # managed by Certbot \n \
+\ \ \ ssl_certificate /etc/letsencrypt/live/$domain/fullchain.pem; # managed by Certbot \n \
+\ \ \ ssl_certificate_key /etc/letsencrypt/live/$domain/privkey.pem; # managed by Certbot \n \
+\ \ \ #include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot \n \
+\ \ \ #ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot" /etc/nginx/sites-enabled/$domain
+
+	sed -i '/listen 80;/d' /etc/nginx/sites-enabled/$domain
+	sed -i '/listen \[\:\:\]\:80;/d' /etc/nginx/sites-enabled/$domain
+
+	# it's very important to escape the variables and quotes within the echo
+	echo "
+server {
+    listen 80;
+    listen [::]:80;
+
+    server_name .$domain;
+
+    return 301 https://\$host\$request_uri;
+}" >> /etc/nginx/sites-enabled/$domain
+    systemctl restart nginx
+    # This is the end of the manual NGINX configuration
+
+    # update home and siteurl
+    cd /var/www/$domain/html/
+    for sitedomain in $(su - $domain -c "wp site list --field=domain")
+    do
+        su - $domain -c "wp --skip-plugins option update home https://$sitedomain --url=http://$sitedomain/"
+        su - $domain -c "wp --skip-plugins option update siteurl https://$sitedomain --url=http://$sitedomain/"
+    done
+    # clean cache
+    su - $domain -c "wp cache flush"
+    su - $domain -c "wp cache-enabler clear 2>/dev/null"
+
+    echo "Wildcard HTTPS has been configured for $domain"
+
+    exit
+
+fi
+
+
+
+if [[ $action == "ms_disable_https_wildcard" || $action == "9" ]]; then
+
+    cd /etc/nginx/sites-enabled/
+
+    if ! grep -qs 'managed by Certbot' /etc/nginx/sites-enabled/$domain; then
+        echo
+        echo "SSL is already disabled for $domain"
+        exit
+    fi
+
+    certbot delete --cert-name $domain --noninteractive
+    if grep -qs "managed by Certbot" /etc/nginx/sites-enabled/$domain; then
+        sed -i -n '/listen 80/q;p' /etc/nginx/sites-enabled/$domain
+        sed -i '$ d' /etc/nginx/sites-enabled/$domain
+        sed -i '/server {/a listen 80;\nlisten [::]:80;' /etc/nginx/sites-enabled/$domain
+        sed -i '/managed by Certbot/d' /etc/nginx/sites-enabled/$domain
+    fi
+    systemctl restart nginx
+
+    # update home and siteurl
+    cd /var/www/$domain/html/
+    for sitedomain in $(su - $domain -c "wp site list --field=domain")
+    do
+        su - $domain -c "wp --skip-plugins option update home http://$sitedomain --url=https://$sitedomain/"
+        su - $domain -c "wp --skip-plugins option update siteurl http://$sitedomain --url=https://$sitedomain/"
+    done
+    # clean cache
+    su - $domain -c "wp cache flush"
+    su - $domain -c "wp cache-enabler clear 2>/dev/null"
+
+	rm -f ~/.certbot_secrets/$domain.ini
+	rm -f ~/.certbot_secrets/$domain.json
+
+    echo
+    echo "HTTPS disabled for $domain"
+    exit
+
+fi

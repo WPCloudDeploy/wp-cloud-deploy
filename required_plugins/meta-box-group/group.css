@@ -1,0 +1,202 @@
+.rwmb-group-wrapper .rwmb-clone:after {
+	content: "";
+	display: block;
+	padding-bottom: 20px;
+	margin-bottom: 20px;
+	border-bottom: 1px solid #e0e0e0;
+}
+
+.rwmb-group-wrapper .rwmb-clone-placeholder:after {
+	display: none;
+}
+
+.rwmb-group-wrapper .add-clone {
+	margin-bottom: 30px;
+}
+
+/* Nested clone */
+.rwmb-clone .rwmb-clone {
+	margin-right: 25px;
+}
+
+/* Collapsible groups */
+.rwmb-group-collapsible.rwmb-group-non-cloneable {
+	border: 1px solid #eee;
+	padding: 12px;
+	border-top: 32px solid #eee;
+	position: relative;
+}
+
+.rwmb-group-collapsible > .rwmb-input > .rwmb-clone-placeholder {
+	margin-right: 0;
+}
+
+.rwmb-group-collapsible > .rwmb-input > .rwmb-group-clone {
+	margin-right: 0;
+	border: 1px solid #eee;
+	padding: 12px;
+	border-top: 32px solid #eee;
+}
+
+.rwmb-group-collapsible > .rwmb-input > .rwmb-group-clone:after {
+	display: none;
+}
+
+.rwmb-group-collapsible > .rwmb-input > .rwmb-group-clone > .rwmb-clone-icon {
+	top: -27px;
+	left: 9px;
+}
+
+.rwmb-group-collapsible > .rwmb-input > .rwmb-group-clone > .rwmb-button.remove-clone {
+	clip: rect(1px, 1px, 1px, 1px);
+	position: absolute;
+	height: 1px;
+	width: 1px;
+	overflow: hidden;
+}
+
+/* Collapse icon */
+.rwmb-group-toggle-handle {
+	position: absolute;
+	top: -32px;
+	right: 0;
+	width: 32px;
+	height: 32px;
+}
+
+.rwmb-group-toggle-indicator:before {
+	content: "\f142";
+	display: inline-block;
+	font: 400 20px/1 dashicons;
+	speak: none;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	color: #999;
+	width: 20px;
+	height: 20px;
+	border-radius: 50%;
+	margin-top: 1px;
+	text-indent: -1px;
+}
+
+.rwmb-group-toggle-indicator:hover {
+	color: #444;
+}
+
+.rwmb-group-toggle-handle[aria-expanded="false"] .rwmb-group-toggle-indicator:before {
+	content: "\f140";
+}
+
+.rwmb-group-toggle-handle:focus .rwmb-group-toggle-indicator:before {
+	box-shadow: 0 0 0 1px #5b9dd9, 0 0 2px 1px rgba(30, 140, 190, 0.8);
+}
+
+.wp-core-ui .rwmb-group-toggle-handle:focus {
+	box-shadow: none;
+	outline: 0;
+}
+
+/* Group title */
+.rwmb-group-title-wrapper {
+	position: absolute;
+	top: -32px;
+	left: 0;
+	right: 32px;
+	padding-left: 12px;
+	height: 32px;
+	box-sizing: border-box;
+	line-height: 32px;
+	z-index: 1;
+	cursor: pointer;
+	overflow: hidden;
+}
+
+.rwmb-clone-icon + .rwmb-group-title-wrapper {
+	padding-left: 27px;
+	cursor: move;
+}
+
+.rwmb-group-title {
+	display: inline-block;
+}
+
+.rwmb-group-wrapper .rwmb-group-toggle-handle,
+.rwmb-group-wrapper .rwmb-button {
+	z-index: 2;
+}
+
+.rwmb-group-remove {
+	color: #a00;
+	text-decoration: none;
+	margin-left: 10px;
+	display: none;
+	font-size: 12px;
+}
+
+.rwmb-group-remove:hover {
+	color: #dc3232;
+}
+
+.rwmb-group-title-wrapper:hover .rwmb-group-remove {
+	display: inline;
+}
+
+.rwmb-group-collapsible > .rwmb-input > .rwmb-group-clone:only-of-type > .rwmb-group-title-wrapper > .rwmb-group-remove {
+	display: none;
+}
+
+/* Collapsed state */
+.rwmb-group-collapsed {
+	min-height: 0;
+}
+
+.rwmb-group-collapsed.rwmb-group-non-cloneable {
+	padding: 0;
+}
+
+.rwmb-group-collapsed.rwmb-group-non-cloneable > .rwmb-group-toggle-handle {
+	display: block;
+}
+
+.rwmb-group-collapsed.rwmb-group-non-cloneable > .rwmb-label,
+.rwmb-group-collapsed.rwmb-group-non-cloneable > .rwmb-input > .rwmb-field,
+.rwmb-group-collapsed.rwmb-group-non-cloneable > .rwmb-input > .rwmb-row {
+	display: none !important;
+}
+
+.rwmb-group-collapsible > .rwmb-input > .rwmb-group-collapsed {
+	padding: 0;
+}
+
+.rwmb-group-collapsed > .rwmb-field,
+.rwmb-group-collapsed > .rwmb-row.rwmb-row {
+	display: none !important;
+}
+
+.profile-php .rwmb-group-collapsible.rwmb-group-non-cloneable,
+.profile-php .rwmb-group-collapsible > .rwmb-input > .rwmb-group-clone,
+.user-edit-php .rwmb-group-collapsible.rwmb-group-non-cloneable,
+.user-edit-php .rwmb-group-collapsible > .rwmb-input > .rwmb-group-clone,
+.term-php .rwmb-group-collapsible.rwmb-group-non-cloneable,
+.term-php .rwmb-group-collapsible > .rwmb-input > .rwmb-group-clone,
+.edit-tags-php .rwmb-group-collapsible.rwmb-group-non-cloneable,
+.edit-tags-php .rwmb-group-collapsible > .rwmb-input > .rwmb-group-clone,
+.rwmb-settings-no-boxes .rwmb-group-collapsible.rwmb-group-non-cloneable,
+.rwmb-settings-no-boxes .rwmb-group-collapsible > .rwmb-input > .rwmb-group-clone {
+	border-color: #ddd;
+}
+
+.profile-php .rwmb-group-wrapper .rwmb-field .rwmb-label,
+.profile-php .rwmb-group-wrapper .rwmb-field .rwmb-input,
+.user-edit-php .rwmb-group-wrapper .rwmb-field .rwmb-label,
+.user-edit-php .rwmb-group-wrapper .rwmb-field .rwmb-input,
+.term-php .rwmb-group-wrapper .rwmb-field .rwmb-label,
+.term-php .rwmb-group-wrapper .rwmb-field .rwmb-input,
+.edit-tags-php .rwmb-group-wrapper .rwmb-field .rwmb-label,
+.edit-tags-php .rwmb-group-wrapper .rwmb-field .rwmb-input {
+	padding: 0;
+}
+
+.rwmb-settings-no-boxes .rwmb-group-wrapper .rwmb-field {
+	padding: 6px 0;
+}

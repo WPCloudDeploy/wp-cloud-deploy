@@ -1,0 +1,1072 @@
+<?php
+/**
+ * Class WP Cloud Delpoy
+ *
+ * @package wpcd
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+/**
+ * Class WP_CLOUD_DEPLOY
+ */
+class WP_CLOUD_DEPLOY {
+
+	/**
+	 * Holds a reference to this class.
+	 *
+	 * @var $instance
+	 */
+	private static $instance;
+
+	/**
+	 * Array of providers.
+	 * Add more providers here and ensure a class called class-<provider>.php exists in providers folder.
+	 * Or, if adding providers via another plugin, use the filter 'wpcd_get_cloud_providers'
+	 * that's defined in the getter function later in this class.
+	 *
+	 * @var $providers
+	 */
+	private static $providers = array( 'digital-ocean' => 'Digital Ocean' );
+
+	/**
+	 * Array of applications in the format array( 'appid' => 'App Desc1', 'appid2' => 'App Desc2' );
+	 * This will initially be blank until an app-specific routine sets it upon initialization of its class.
+	 *
+	 * @var $app_list
+	 */
+	private $app_list = array();
+
+	/**
+	 * Holds a list of classes..
+	 *
+	 * @var $classes
+	 */
+	public $classes = array();
+
+
+	/**
+	 * Default encryption key if one is not set in wp-config.php
+	 */
+	const ENCRYPTION_KEY = '*274C07F32B66FBE3A8CD06718CD6297ADDC156A7';
+
+	/**
+	 * Create and return an instance of this class.
+	 */
+	public static function instance() {
+		self::$instance = new self();
+		return self::$instance;
+	}
+
+	/**
+	 * WP_CLOUD_DEPLOY constructor.
+	 */
+	public function __construct() {
+		// Global for backwards compatibility.
+		$GLOBALS['WP_CLOUD_DEPLOY'] = $this;
+
+		// Setup custom post types.
+		$this->setup_post_types();
+
+		// Load roles and capabilities.
+		$this->load_roles_capabilities();
+
+		// Setup WordPress hooks.
+		$this->hooks();
+	}
+
+	/**
+	 * Return an instance of self.
+	 *
+	 * @return WP_CLOUD_DEPLOY
+	 */
+	public function get_this() {
+		return $this;
+	}
+
+	/**
+	 * Hook into WordPress and other plugins as needed.
+	 */
+	private function hooks() {
+
+		/* Add main menu page */
+		add_action( 'admin_menu', array( &$this, 'add_main_menu_page' ) );
+
+		/* Add a global error log handler */
+		add_action( 'wpcd_log_error', array( &$this, 'log_error' ), 10, 6 );
+
+		/* Add a global notifications handler */
+		add_action( 'wpcd_log_notification', array( &$this, 'log_notification' ), 10, 5 );
+
+		/* Load admin scripts */
+		add_action( 'admin_enqueue_scripts', array( &$this, 'wpcd_admin_scripts' ), 10, 1 );
+
+		/* Add backup digital ocean provider if enabled on wp-config */
+		add_filter( 'wpcd_get_cloud_providers', array( &$this, 'add_backup_digital_ocean_provider' ), 10, 1 );
+
+		/* Remove digital ocean provider if so configured in settings */
+		add_filter( 'wpcd_get_cloud_providers', array( &$this, 'remove_digital_ocean_provider' ), 10, 1 );
+
+		/* Replace the provider descriptions with white label descriptions */
+		add_filter( 'wpcd_get_cloud_providers', array( &$this, 'wpcd_get_cloud_providers_white_label_desc' ), 10, 1 );
+
+		/* Add some license nag notices */
+		add_action( 'admin_notices', array( $this, 'license_notices_server_limit' ) );
+		add_action( 'admin_notices', array( $this, 'license_notices_wpsite_limit' ) );
+
+	}
+
+	/**
+	 * Show license notice if number of servers exceed the amount allowed by the current license.
+	 */
+	public function license_notices_server_limit() {
+		if ( WPCD_License::show_license_tab() ) {
+			if ( ! WPCD_License::check_server_limit() ) {
+				$class   = 'notice notice-error';
+				$message = __( 'WPCloudDeploy: You have reached or exceeded the number of servers allowed with your license.', 'wpcd' );
+				printf( '<div class="%1$s"><p>%2$s</p></div>', esc_attr( $class ), esc_html( $message ) );
+			}
+		}
+	}
+
+	/**
+	 * Show license notice if number of wpsites exceed the amount allowed by the current license.
+	 */
+	public function license_notices_wpsite_limit() {
+		if ( WPCD_License::show_license_tab() ) {
+			if ( ! WPCD_License::check_wpsite_limit() ) {
+				$class   = 'notice notice-error';
+				$message = __( 'WPCloudDeploy: You have reached or exceeded the number of WordPress sites allowed with your license.', 'wpcd' );
+				printf( '<div class="%1$s"><p>%2$s</p></div>', esc_attr( $class ), esc_html( $message ) );
+			}
+		}
+	}
+
+	/**
+	 * Main Menu Item: Make the wpcd_app_server post type the main menu item
+	 * by adding another option below it
+	 */
+	public function add_main_menu_page() {
+
+		add_submenu_page(
+			'edit.php?post_type=wpcd_app_server',
+			__( 'Server Groups', 'wpcd' ),
+			__( 'Server Groups', 'wpcd' ),
+			'wpcd_manage_groups',
+			'edit-tags.php?taxonomy=wpcd_app_server_group&post_type=wpcd_app_server',
+			'',
+			10
+		);
+
+		add_submenu_page(
+			'edit.php?post_type=wpcd_app_server',
+			( defined( 'WPCD_WPAPP_MENU_NAME' ) ? WPCD_WPAPP_MENU_NAME : __( 'WordPress Sites', 'wpcd' ) ),
+			( defined( 'WPCD_WPAPP_MENU_NAME' ) ? WPCD_WPAPP_MENU_NAME : __( 'WordPress Sites', 'wpcd' ) ),
+			'wpcd_manage_apps',
+			'edit.php?s&post_status=all&post_type=wpcd_app&app_type=wordpress-app&filter_action=Filter',
+			'',
+			10
+		);
+
+		add_submenu_page(
+			'edit.php?post_type=wpcd_app_server',
+			( defined( 'WPCD_APP_MENU_NAME' ) ? WPCD_APP_MENU_NAME : __( 'All Apps', 'wpcd' ) ),
+			( defined( 'WPCD_APP_MENU_NAME' ) ? WPCD_APP_MENU_NAME : __( 'All Apps', 'wpcd' ) ),
+			'wpcd_manage_apps',
+			'edit.php?post_type=wpcd_app',
+			'',
+			10
+		);
+
+		add_submenu_page(
+			'edit.php?post_type=wpcd_app_server',
+			__( 'App Groups', 'wpcd' ),
+			__( 'App Groups', 'wpcd' ),
+			'wpcd_manage_groups',
+			'edit-tags.php?taxonomy=wpcd_app_group&post_type=wpcd_app',
+			'',
+			10
+		);
+
+		add_submenu_page(
+			'edit.php?post_type=wpcd_app_server',
+			__( 'Teams', 'wpcd' ),
+			__( 'Teams', 'wpcd' ),
+			'wpcd_manage_teams',
+			'edit.php?post_type=wpcd_team',
+			'',
+			10
+		);
+
+		if ( defined( 'WPCD_SHOW_PERMISSION_LIST' ) && ( true === WPCD_SHOW_PERMISSION_LIST ) ) {
+			add_submenu_page(
+				'edit.php?post_type=wpcd_app_server',
+				__( 'Permission List', 'wpcd' ),
+				__( 'Permission List', 'wpcd' ),
+				'manage_options',
+				'edit.php?post_type=wpcd_permission_type',
+				'',
+				10
+			);
+		}
+
+		add_menu_page( __( 'Server Alerts', 'wpcd' ), __( 'Server Alerts', 'wpcd' ), 'wpcd_manage_logs', 'edit.php?post_type=wpcd_notify_log', '', 'dashicons-bell', 14 );
+
+		add_submenu_page(
+			'edit.php?post_type=wpcd_notify_log',
+			__( 'Notifications', 'wpcd' ),
+			__( 'Notifications', 'wpcd' ),
+			'wpcd_manage_logs',
+			'edit.php?post_type=wpcd_notify_log',
+			'',
+			10
+		);
+
+		add_submenu_page(
+			'edit.php?post_type=wpcd_notify_log',
+			__( 'Profiles', 'wpcd' ),
+			__( 'Profiles', 'wpcd' ),
+			'wpcd_manage_logs',
+			'edit.php?post_type=wpcd_notify_user',
+			'',
+			10
+		);
+
+		add_submenu_page(
+			'edit.php?post_type=wpcd_notify_log',
+			__( 'History', 'wpcd' ),
+			__( 'History', 'wpcd' ),
+			'wpcd_manage_logs',
+			'edit.php?post_type=wpcd_notify_sent',
+			'',
+			10
+		);
+
+		add_submenu_page(
+			'edit.php?post_type=wpcd_app_server',
+			__( 'Command Log', 'wpcd' ),
+			__( 'Command Log', 'wpcd' ),
+			'wpcd_manage_logs',
+			'edit.php?post_type=wpcd_command_log',
+			'',
+			10
+		);
+
+		add_submenu_page(
+			'edit.php?post_type=wpcd_app_server',
+			__( 'Pending Log', 'wpcd' ),
+			__( 'Pending Log', 'wpcd' ),
+			'wpcd_manage_logs',
+			'edit.php?post_type=wpcd_pending_log',
+			'',
+			10
+		);
+
+		add_submenu_page(
+			'edit.php?post_type=wpcd_app_server',
+			__( 'SSH Log', 'wpcd' ),
+			__( 'SSH Log', 'wpcd' ),
+			'wpcd_manage_logs',
+			'edit.php?post_type=wpcd_ssh_log',
+			'',
+			10
+		);
+
+		add_submenu_page(
+			'edit.php?post_type=wpcd_app_server',
+			__( 'Error Log', 'wpcd' ),
+			__( 'Error Log', 'wpcd' ),
+			'wpcd_manage_logs',
+			'edit.php?post_type=wpcd_error_log',
+			'',
+			10
+		);
+
+		if ( apply_filters( 'wpcd_show_virtual_cloud_providers', false ) ) {
+			add_submenu_page(
+				'edit.php?post_type=wpcd_app_server',
+				__( 'Virtual Providers', 'wpcd' ),
+				__( 'Virtual Providers', 'wpcd' ),
+				'wpcd_manage_settings',
+				'edit.php?post_type=wpcd_cloud_provider',
+				'',
+				10
+			);
+		}
+
+		if ( ! defined( 'WPCD_HIDE_HELP_TAB' ) || ( defined( 'WPCD_HIDE_HELP_TAB' ) && ! WPCD_HIDE_HELP_TAB ) ) {
+			add_submenu_page(
+				'edit.php?post_type=wpcd_app_server',
+				__( 'FAQ & Help', 'wpcd' ),
+				__( 'FAQ & Help', 'wpcd' ),
+				'manage_options',
+				'wpcd_faq_and_help',
+				array( $this, 'wpcd_get_faq_and_help_text_page_callback' ),
+				10
+			);
+		}
+
+	}
+
+
+	/**
+	 * Construct the faq and help text to show on the FAQ & Help menu page.
+	 */
+	public function wpcd_get_faq_and_help_text_page_callback() {
+		$help = '<div class="wpcd_faq_help_sec"><h1 class="wp-heading-inline">FAQ & Help</h1>';
+
+		$help .= __( 'Links to commonly requested documentation.', 'wpcd' );
+		$help .= '<br />';
+
+		$help     .= '<div class="wpcd_settings_help_text_wrapper">';
+			$help .= '<div class="wpcd_settings_help_text_left_column">';
+
+				$help .= '<h2>' . __( 'Getting Started', 'wpcd' ) . '</h2>';
+				$help .= '<a href="https://wpclouddeploy.com/doc-landing/">' . __( 'Popular articles', 'wpcd' ) . '</a>';
+				$help .= '<br />';
+				$help .= '<a href="https://wpclouddeploy.com/documentation/wpcloud-deploy/introduction-to-wpcloud-deploy/">' . __( 'Quick start', 'wpcd' ) . '</a>';
+				$help .= '<br />';
+				$help .= '<a href="https://wpclouddeploy.com/documentation/wpcloud-deploy/reasons-servers-fail-to-deploy/">' . __( 'Common server deployment issues', 'wpcd' ) . '</a>';
+				$help .= '<br />';
+				$help .= '<a href="https://wpclouddeploy.com/documentation/wpcloud-deploy/server-faqs/">' . __( 'Server FAQs', 'wpcd' ) . '</a>';
+				$help .= '<br />';
+				$help .= '<a href="https://wpclouddeploy.com/category/release-notes/">' . __( 'Release notes', 'wpcd' ) . '</a>';
+
+				$help .= '<h2>' . __( 'Tasks', 'wpcd' ) . '</h2>';
+				$help .= '<a href="https://wpclouddeploy.com/documentation/wpcloud-deploy-user-guide/enable-or-disable-ssl/">' . __( 'SSL Certificates', 'wpcd' ) . '</a>';
+				$help .= '<br />';
+				$help .= '<a href="https://wpclouddeploy.com/documentation/wpcloud-deploy-admin/backups-with-aws-s3/">' . __( 'Backups with AWS S3', 'wpcd' ) . '</a>';
+				$help .= '<br />';
+				$help .= '<a href="https://wpclouddeploy.com/documentation/wpcloud-deploy-admin/cloning-sites/">' . __( 'Cloning sites', 'wpcd' ) . '</a>';
+				$help .= '<br />';
+				$help .= '<a href="https://wpclouddeploy.com/documentation/wpcloud-deploy-admin/sftp/">' . __( 'sFTP', 'wpcd' ) . '</a>';
+				$help .= '<br />';
+
+				$help .= '<h2>' . __( 'Reading', 'wpcd' ) . '</h2>';
+				$help .= '<a href="https://wpclouddeploy.com/5-best-practices-for-new-servers-built-on-wpclouddeploy/">' . __( '5 Best-Practices For New Servers Built On WPCloudDeploy', 'wpcd' ) . '</a>';
+				$help .= '<br />';
+				$help .= '<a href="https://wpclouddeploy.com/8-best-practices-for-sites-built-on-wpcloud-deploy-servers/">' . __( '8 Best-Practices For Sites Built On WPCloudDeploy Servers', 'wpcd' ) . '</a>';
+				$help .= '<br />';
+				$help .= '<a href="https://wpclouddeploy.com/the-five-levels-of-caching-in-wordpress/">' . __( 'Understanding WordPress Caching', 'wpcd' ) . '</a>';
+				$help .= '<br />';
+				$help .= '<a href="https://wpclouddeploy.com/documentation/wpcloud-deploy-admin/page-cache/">' . __( 'Our NGINX Page Cache', 'wpcd' ) . '</a>';
+
+			$help .= '</div>';
+
+			$help     .= '<div class="wpcd_settings_help_text_middle_column">';
+				$help .= '<h2>' . __( 'Teams', 'wpcd' ) . '</h2>';
+				$help .= '<a href="https://wpclouddeploy.com/documentation/wpcloud-deploy-teams/introduction-to-teams/">' . __( 'Introduction', 'wpcd' ) . '</a>';
+				$help .= '<br />';
+				$help .= '<a href="https://wpclouddeploy.com/documentation/wpcloud-deploy-teams/preparing-users-for-a-team/">' . __( 'Preparing users for a team', 'wpcd' ) . '</a>';
+				$help .= '<br />';
+				$help .= '<a href="https://wpclouddeploy.com/documentation/wpcloud-deploy-teams/creating-teams/">' . __( 'Creating teams', 'wpcd' ) . '</a>';
+				$help .= '<br />';
+				$help .= '<a href="https://wpclouddeploy.com/documentation/wpcloud-deploy-teams/assigning-teams/">' . __( 'Assigning teams', 'wpcd' ) . '</a>';
+
+				$help .= '<h2>' . __( 'Components', 'wpcd' ) . '</h2>';
+				$help .= '<a href="https://wpclouddeploy.com/documentation/wpcloud-deploy-addons-and-upgrades/multisite-introduction/">' . __( 'Multisite', 'wpcd' ) . '</a>';
+				$help .= '<br />';
+				$help .= '<a href="https://wpclouddeploy.com/documentation/wpcloud-deploy-admin/server-sync-introduction/">' . __( 'Server Sync', 'wpcd' ) . '</a>';
+				$help .= '<br />';
+				$help .= '<a href="https://wpclouddeploy.com/documentation/wpcloud-deploy-admin/custom-servers-bring-your-own-server/">' . __( 'Custom Servers (Bring Your Own Server)', 'wpcd' ) . '</a>';
+				$help .= '<br />';
+				$help .= '<a href="https://wpclouddeploy.com/documentation/wpcloud-deploy-admin/virtual-cloud-providers/">' . __( 'Virtual Providers', 'wpcd' ) . '</a>';
+
+				$help .= '<h2>' . __( 'Developers', 'wpcd' ) . '</h2>';
+				$help .= '<a href="https://wpclouddeploy.com/how-to-add-custom-functionality-to-wpcd-part-1/">' . __( 'Adding custom functionality part 1', 'wpcd' ) . '</a>';
+				$help .= '<br />';
+				$help .= '<a href="https://wpclouddeploy.com/tutorial-add-custom-functionality-to-wpcd-part-2/">' . __( 'Adding custom functionality part 2', 'wpcd' ) . '</a>';
+				$help .= '<br />';
+				$help .= '<a href="https://wpclouddeploy.com/tutorial-add-custom-functionality-to-wpcd-part-3/">' . __( 'Adding custom functionality part 3', 'wpcd' ) . '</a>';
+				$help .= '<br />';
+				$help .= '<a href="https://wpclouddeploy.com/tutorial-add-custom-functionality-to-wpcd-part-4/">' . __( 'Adding custom functionality part 4', 'wpcd' ) . '</a>';
+				$help .= '<br />';
+			$help     .= '</div>';
+
+			$help     .= '<div class="wpcd_settings_help_text_right_column">';
+				$help .= '<h2>' . __( 'Videos', 'wpcd' ) . '</h2>';
+				$help .= '<a href="https://www.youtube.com/channel/UC-OM3lYLHMWYqkGLLy4eYFA" class="wpcd_help_button wpcd_help_button_videos">' . __( 'Videos', 'wpcd' ) . '</a>';
+				$help .= '<br />';
+
+				$help .= '<br />';
+				$help .= '<h2>' . __( 'More documentation', 'wpcd' ) . '</h2>';
+
+				$help .= '<a href="https://wpclouddeploy.com/documentation/wpcloud-deploy/introduction-to-wpcloud-deploy/" class="wpcd_help_button wpcd_help_button_all_docs">' . __( 'View All Documentation', 'wpcd' ) . '</a>';
+				$help .= '<br />';
+				$help .= '<br />';
+
+				$help .= '<h2>' . __( 'Additional Resources', 'wpcd' ) . '</h2>';
+				$help .= '<a href="https://www.facebook.com/groups/wp.linux.support">' . __( 'Join the private facebook group', 'wpcd' ) . '</a>';
+				$help .= '<br />';
+				$help .= '<a href="https://twitter.com/wpclouddeploy">' . __( 'Subscribe to our Twitter feed', 'wpcd' ) . '</a>';
+
+				$help .= '<br />';
+				$help .= '<h2>' . __( 'Support', 'wpcd' ) . '</h2>';
+
+				$help .= '<a href="https://wpclouddeploy.com/support/" class="wpcd_help_button wpcd_help_button_all_support">' . __( 'All Support Options', 'wpcd' ) . '</a>';
+				$help .= '<br />';
+
+			$help .= '</div>';
+
+		$help .= '</div>';
+		$help .= '</div>';
+
+		echo apply_filters( 'wpcd_settings_help_tab_text', $help );
+	}
+
+
+	/**
+	 * Set up post types...
+	 */
+	public function setup_post_types() {
+		if ( empty( WPCD()->classes['wpcd_posts_app_server'] ) ) {
+			WPCD()->classes['wpcd_posts_app_server'] = new WPCD_POSTS_APP_SERVER();
+		}
+
+		if ( empty( WPCD()->classes['wpcd_posts_app'] ) ) {
+			WPCD()->classes['wpcd_posts_app'] = new WPCD_POSTS_APP();
+		}
+
+		if ( empty( WPCD()->classes['wpcd_posts_cloud_provider'] ) ) {
+			WPCD()->classes['wpcd_posts_cloud_provider'] = new WPCD_POSTS_CLOUD_PROVIDER();
+		}
+
+		if ( empty( WPCD()->classes['wpcd_posts_ssh_log'] ) ) {
+			WPCD()->classes['wpcd_posts_ssh_log'] = new WPCD_SSH_LOG();
+		}
+
+		if ( empty( WPCD()->classes['wpcd_posts_command_log'] ) ) {
+			WPCD()->classes['wpcd_posts_command_log'] = new WPCD_COMMAND_LOG();
+		}
+
+		if ( empty( WPCD()->classes['wpcd_posts_pending_tasks_log'] ) ) {
+			WPCD()->classes['wpcd_posts_pending_tasks_log'] = new WPCD_PENDING_TASKS_LOG();
+		}
+
+		if ( empty( WPCD()->classes['wpcd_posts_notify_log'] ) ) {
+			WPCD()->classes['wpcd_posts_notify_log'] = new WPCD_NOTIFY_LOG();
+		}
+
+		if ( empty( WPCD()->classes['wpcd_posts_notify_user'] ) ) {
+			WPCD()->classes['wpcd_posts_notify_user'] = new WPCD_NOTIFY_USER();
+		}
+
+		if ( empty( WPCD()->classes['wpcd_posts_notify_sent'] ) ) {
+			WPCD()->classes['wpcd_posts_notify_sent'] = new WPCD_NOTIFY_SENT();
+		}
+
+		if ( empty( WPCD()->classes['wpcd_posts_error_log'] ) ) {
+			WPCD()->classes['wpcd_posts_error_log'] = new WPCD_ERROR_LOG();
+		}
+
+		if ( empty( WPCD()->classes['wpcd_posts_team'] ) ) {
+			WPCD()->classes['wpcd_posts_team'] = new WPCD_POSTS_TEAM();
+		}
+
+		if ( empty( WPCD()->classes['wpcd_posts_permission_type'] ) ) {
+			WPCD()->classes['wpcd_posts_permission_type'] = new WPCD_POSTS_PERMISSION_TYPE();
+		}
+	}
+
+	/**
+	 * Load css and js scripts
+	 *
+	 * Action hook: admin_enqueue_scripts
+	 *
+	 * @param string $hook hook.
+	 */
+	public function wpcd_admin_scripts( $hook ) {
+
+		// What screen are we on?
+		$screen = get_current_screen();
+
+		/* Global style sheet. */
+		wp_enqueue_style( 'wpcd-global-css', wpcd_url . 'assets/css/wpcd-global.css', array(), wpcd_scripts_version );
+
+		/* Cloud Providers Screen - Uses the settings screen style sheet for now. */
+		if ( is_object( $screen ) && in_array( $screen->post_type, array( 'wpcd_cloud_provider' ) ) ) {
+			wp_enqueue_style( 'wpcd-admin-settings', wpcd_url . 'assets/css/wpcd-admin-settings.css', array(), wpcd_scripts_version );
+		}
+
+		/* CSS common to server and app screens. */
+		if ( is_object( $screen ) && in_array( $screen->post_type, array( 'wpcd_app_server', 'wpcd_app' ) ) ) {
+			wp_enqueue_style( 'wpcd-common-admin', wpcd_url . 'assets/css/wpcd-common-admin.css', array(), wpcd_scripts_version );
+		}
+
+		/* Style sheet for the settings screen. */
+		if ( 'wpcd_app_server_page_wpcd_settings' === $hook ||
+			'wpcd_app_server_page_wpcd_faq_and_help' === $hook ) {
+			wp_enqueue_style( 'wpcd-admin-settings', wpcd_url . 'assets/css/wpcd-admin-settings.css', array(), wpcd_scripts_version );
+			if ( defined( 'WPCD_SKIP_SERVER_SIZES_SETTING' ) && WPCD_SKIP_SERVER_SIZES_SETTING ) {
+				wp_enqueue_style( 'wpcd-admin-settings-server-sizes', wpcd_url . 'assets/css/wpcd-admin-settings-server-sizes.css', array(), wpcd_scripts_version );
+			}
+		}
+
+	}
+
+
+	/**
+	 * Get the list of operating systems that we can install on a server.
+	 *
+	 * @since 4.2.5
+	 *
+	 * @return array
+	 */
+	public static function get_os_list() {
+		$oslist = array(
+			'ubuntu1804lts' => __( 'Ubuntu 18.04 LTS', 'wpcd' ),
+			'ubuntu2004lts' => __( 'Ubuntu 20.04 LTS', 'wpcd' ),
+		);
+		return apply_filters( 'wpcd_os_list', $oslist );
+	}
+
+	/**
+	 * Get the list of web servers that we can install on a server.
+	 *
+	 * @since 4.8.2
+	 *
+	 * @return array
+	 */
+	public static function get_webserver_list() {
+		$webserver_list = array(
+			'nginx'          => __( 'NGINX', 'wpcd' ),
+			'ols'            => __( 'Open Litespeed', 'wpcd' ),
+			'ols-enterprise' => __( 'Litespeed Enterprise', 'wpcd' ),
+		);
+		return apply_filters( 'wpcd_webserver_list', $webserver_list );
+	}
+
+	/**
+	 * Get the operating system name (full name) initially installed on a server
+	 *
+	 * @since 4.2.5
+	 *
+	 * @param string $os The os id / key.
+	 *
+	 * @return string
+	 */
+	public static function get_os_description( $os ) {
+
+		$return = $os;
+
+		switch ( $os ) {
+			case 'ubuntu1804lts':
+				$return = __( 'Ubuntu 18.04 LTS', 'wpcd' );
+				break;
+
+			case 'ubuntu2004lts':
+				$return = __( 'Ubuntu 20.04 LTS', 'wpcd' );
+				break;
+		}
+
+		return $return;
+
+	}
+
+
+	/**
+	 * Encrypt a string.
+	 *
+	 * @since 4.1.0
+	 *
+	 * @param string $plainText The string to encrypt.
+	 * @param string $inkey A key to use to encrypt the incoming text.  If none is supplied use the pre-stored key in wpconfig or the database.
+	 *
+	 * @return string
+	 */
+	public static function encrypt( $plainText, $inkey = '' ) {
+		/* Get the encryption key */
+		$key = $inkey;
+		if ( empty( $key ) ) {
+			// no key passed into the function so see if one was defined globally - usually via wp-config.php
+			if ( defined( 'WPCD_ENCRYPTION_KEY' ) ) {
+				$key = WPCD_ENCRYPTION_KEY;
+			}
+		}
+		if ( empty( $key ) ) {
+			// still no key so check for option value...
+			$key = get_option( 'wpcd_encryption_key_v2' );
+		}
+		if ( empty( $key ) ) {
+			// ok, we don't have a key at all anywhere.
+			// so generate one and add it to wp options.
+			$len = openssl_cipher_iv_length( $cipher = 'AES-128-CBC' );
+			$key = $key = wpcd_random_str( $len );  // Do NOT use openssl_random_pseudo_bytes($len) since WordPress is not retrieving this value from options properly! We store it but WP retrieves blank so do not use it.
+			update_option( 'wpcd_encryption_key_v2', $key );
+		}
+
+		/* Get an initialization vector */
+		$ivlen = openssl_cipher_iv_length( $cipher = 'AES-128-CBC' );
+		$iv    = openssl_random_pseudo_bytes( $ivlen );
+
+		/* Generate the raw cipher text */
+		$secret_key     = md5( $key );
+		$ciphertext_raw = openssl_encrypt( $plainText, 'AES-128-CBC', $secret_key, OPENSSL_RAW_DATA, $iv );
+
+		/* Add hmac */
+		$hmac = hash_hmac( 'sha256', $ciphertext_raw, $secret_key, $as_binary = true );
+
+		/* final return value - this value concatenates the encrypted text with the iv and the hmac */
+		$ciphertext = 'wpcd-encrypt-v2:' . base64_encode( $iv . $hmac . $ciphertext_raw );
+
+		return $ciphertext;
+	}
+
+	/**
+	 * Encrypt a string - version 1
+	 *
+	 * This was the original version before we changed it
+	 * to use a random initialization vector.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param string $plainText The string to encrypt.
+	 *
+	 * @return string
+	 */
+	public static function encrypt_v1( $plainText ) {
+		$key = self::ENCRYPTION_KEY;
+		if ( defined( 'WPCD_ENCRYPTION_KEY' ) ) {
+			$key = WPCD_ENCRYPTION_KEY;
+		}
+		$secret_key = md5( $key );
+		$iv         = substr( hash( 'sha256', 'aaaabbbbcccccddddeweee' ), 0, 16 );
+		return base64_encode( openssl_encrypt( $plainText, 'AES-128-CBC', $secret_key, OPENSSL_RAW_DATA, $iv ) );
+	}
+
+	/**
+	 * Decrypt a string.
+	 *
+	 * @since 4.1.0
+	 *
+	 * @param string $encryptedText The string to decrypt.
+	 * @param string $inkey A key to use to encrypt the incoming text.  If none is supplied use the pre-stored key in wpconfig or the database.
+	 *
+	 * @return string
+	 */
+	public static function decrypt( $encryptedText, $inkey = '' ) {
+
+		// Make sure we have something to encrypt.
+		if ( empty( $encryptedText ) ) {
+			return $encryptedText;
+		}
+
+		// Check to see if encryption used is v1 or v2.
+		if ( strpos( $encryptedText, 'wpcd-encrypt-v2:' ) !== false ) {
+			$version = 'v2';
+		} else {
+			$version = 'v1';
+		}
+
+		switch ( $version ) {
+			case 'v1':
+				return self::decrypt_v1( $encryptedText );
+				break;
+			case 'v2':
+				return self::decrypt_v2( $encryptedText, $inkey );
+				break;
+			default:
+				return '';
+		}
+
+		return '';
+
+	}
+
+	/**
+	 * Decrypt a string - v1
+	 *
+	 * Decrypt a string using the Version 1 algorithm with a fixed initialization vector.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param string $encryptedText The string to decrypt.
+	 *
+	 * @return string
+	 */
+	public static function decrypt_v1( $encryptedText ) {
+		$key = self::ENCRYPTION_KEY;
+		if ( defined( 'WPCD_ENCRYPTION_KEY' ) ) {
+			$key = WPCD_ENCRYPTION_KEY;
+		}
+
+		$secret_key = md5( $key );
+		$iv         = substr( hash( 'sha256', 'aaaabbbbcccccddddeweee' ), 0, 16 );
+		return openssl_decrypt( base64_decode( $encryptedText ), 'AES-128-CBC', $secret_key, OPENSSL_RAW_DATA, $iv );
+	}
+
+	/**
+	 * Decrypt a string - v2
+	 *
+	 * Decrypt a string using the Version 2 algorithm with a variable initialization vector.
+	 *
+	 * @since 4.1.0
+	 *
+	 * @param string $encryptedText The string to decrypt.
+	 * @param string $inkey A key to use to encrypt the incoming text.  If none is supplied use the pre-stored key in wpconfig or the database.
+	 *
+	 * @return string
+	 */
+	public static function decrypt_v2( $encryptedText, $inkey = '' ) {
+
+		/* Get the encryption key */
+		$key = $inkey;
+		if ( empty( $key ) ) {
+			// no key passed into the function so see if one was defined globally - usually via wp-config.php
+			if ( defined( 'WPCD_ENCRYPTION_KEY' ) ) {
+				$key = WPCD_ENCRYPTION_KEY;
+			}
+		}
+		if ( empty( $key ) ) {
+			// still no key so check for option value...
+			$key = get_option( 'wpcd_encryption_key_v2' );
+		}
+
+		/* Remove the v2 prefix from the encrypted string */
+		$encryptedText = str_replace( 'wpcd-encrypt-v2:', '', $encryptedText );
+
+		/* get the raw cipher after removing iv and such  */
+		$c              = base64_decode( $encryptedText );
+		$ivlen          = openssl_cipher_iv_length( $cipher = 'AES-128-CBC' );
+		$iv             = substr( $c, 0, $ivlen );
+		$hmac           = substr( $c, $ivlen, $sha2len = 32 );
+		$ciphertext_raw = substr( $c, $ivlen + $sha2len );
+
+		/* Decrypt the text */
+		$secret_key         = md5( $key );
+		$original_plaintext = openssl_decrypt( $ciphertext_raw, $cipher, $secret_key, $options = OPENSSL_RAW_DATA, $iv );
+
+		/* Check hmac */
+		$calcmac = hash_hmac( 'sha256', $ciphertext_raw, $secret_key, $as_binary = true );
+		if ( hash_equals( $hmac, $calcmac ) ) {
+			return $original_plaintext;
+		} else {
+			return '';
+		}
+
+	}
+
+	/**
+	 * Return an array of sensitive values
+	 * and what to replace them with.
+	 *
+	 * @return array
+	 */
+	public function wpcd_get_pw_terms_to_clean() {
+
+		$terms = apply_filters(
+			'wpcd_get_pw_terms_to_clean',
+			array(
+				'wp_password='             => '(***private***)',
+				'aws_access_key_id='       => '(***private***)',
+				'aws_secret_access_key='   => '(***private***)',
+				'--admin_password='        => '(***private***)',
+				'pass='                    => '(***private***)',
+				'dns_cloudflare_api_token' => '(***private***)',
+				'dns_cloudflare_api_key'   => '(***private***)',
+				"Updated the constant 'DB_PASSWORD' in the 'wp-config.php' file with the value " => '(***private***)' . PHP_EOL,
+
+			)
+		);
+
+		return $terms;
+
+	}
+
+	/**
+	 * Write errors out to the error log
+	 *
+	 * @param string $msg message to write.
+	 * @param string $type type of message.
+	 * @param string $file filename generating message.
+	 * @param string $line linenumber related to the message being written.
+	 * @param string $data optional data that will be logged to a separate field when writing to the database.
+	 * @param bool   $force If this is true, it will log ALWAYS. Useful for temporary debugging.
+	 */
+	public function log_error( $msg, $type, $file, $line, $data = '', $force = false ) {
+
+		// Remove known password strings.
+		$pwarray = $this->wpcd_get_pw_terms_to_clean();
+		$msg     = wpcd_replace_key_value_paired_strings( $pwarray, $msg );
+
+		// Log to debug.log file.
+		$debug_flag            = defined( 'WPCD_DEBUG' ) ? WPCD_DEBUG : false;
+		$log_options_debug_log = wpcd_get_early_option( 'logging_and_tracing_types_debug_log' );
+		if ( $force || ( in_array( $type, array( 'debug', 'trace' ), true ) && $debug_flag ) || in_array( $type, array( 'error', 'warn' ), true ) || ( $log_options_debug_log && in_array( $type, $log_options_debug_log ) ) ) {
+			error_log( sprintf( '%s:%d:(%s) - %s', basename( $file ), $line, $type, $msg ) );
+		}
+
+		// Log to database?  Note that you can log to the database and NOT log to the error log file.  They are independent!
+		$log_options = wpcd_get_early_option( 'logging_and_tracing_types' );
+		if ( $log_options && in_array( $type, $log_options ) ) {
+			WPCD_POSTS_ERROR_LOG()->add_error_log_entry( $msg, $type, $file, $line, $data );
+		}
+
+	}
+
+	/**
+	 * Add a new Notification Log record
+	 *
+	 * @param int    $parent_post_id The post id that represents the item this log is being done against.
+	 * @param string $notification_type The type of notification.
+	 * @param string $message The notification message itself.
+	 * @param string $notification_reference any additional or third party reference.
+	 * @param int    $post_id The ID of an existing log, if it exists.
+	 */
+	public function log_notification( $parent_post_id, $notification_type, $message, $notification_reference, $post_id = null ) {
+		WPCD_POSTS_NOTIFY_LOG()->add_notify_log_entry( $parent_post_id, $notification_type, $message, $notification_reference, $post_id );
+	}
+
+
+	/**
+	 * Return a requested provider object
+	 *
+	 * @param string $provider name of provider.
+	 *
+	 * @return VPN_API_Provider_{provider}()
+	 *
+	 * This will allow additional providers to be added via plugins.
+	 */
+	public function get_provider_api( $provider ) {
+		if ( empty( $provider ) ) {
+			return null;
+		}
+
+		/* Folders of array of locations to search for an api class */
+		$provider_paths = apply_filters( 'wpcd_cloud_provider_class_path', array( wpcd_path . 'includes/core/providers/' ) );
+
+		if ( empty( WPCD()->classes[ 'wpcd_vpn_api_provider_' . $provider ] ) ) {
+
+			/* Search through folders looking for a provider class file */
+			foreach ( $provider_paths as $provider_path ) {
+				$provider_file = $provider_path . 'class-' . $provider . '.php';
+				if ( file_exists( $provider_file ) ) {
+					require_once $provider_file;
+				}
+			}
+			$class = 'CLOUD_PROVIDER_API_' . str_replace( ' ', '', ucwords( str_replace( array( '-', '_' ), ' ', $provider ) ) );
+			if ( class_exists( $class ) ) {
+				WPCD()->classes[ 'wpcd_vpn_api_provider_' . $provider ] = new $class();
+			} else {
+				// This might be a virtual cloud provider stored in the wpcd_cloud_provider custom post type...
+				if ( ! $this->setup_virtual_cloud_provider( $provider, $provider_paths ) ) {
+					return null;
+				}
+			}
+		}
+
+		return WPCD()->classes[ 'wpcd_vpn_api_provider_' . $provider ];
+
+	}
+
+	/**
+	 * Given a provider and a list of paths to search, see if the provider
+	 * exists in the wpcd_cloud_provider post type.  If it does, grab
+	 * its real api data (aka "cloud provider type") and instantiate a
+	 * new instance of the class with data that matches the data in the
+	 * wpcd_cloud_provider post type.
+	 *
+	 * @param string $provider name of provider (slug).
+	 * @param string $provider_paths provider_paths.
+	 *
+	 * @return boolean true if class could be instantiated for the provider, false otherwise.
+	 */
+	public function setup_virtual_cloud_provider( $provider, $provider_paths ) {
+
+		$args = array(
+			'post_type'      => 'wpcd_cloud_provider',
+			'posts_per_page' => -1,
+			'meta_key'       => 'wpcd_cloud_provider_slug',
+			'meta_value'     => $provider,
+		);
+
+		$post = get_posts( $args );
+
+		// if we have a match to the provider...
+		if ( $post ) {
+
+			// grab some data off the post record...
+			$provider_type = get_post_meta( $post[0]->ID, 'wpcd_cloud_provider_type', true );
+			$inactive      = boolval( get_post_meta( $post[0]->ID, 'wpcd_cloud_provider_inactive', true ) );
+
+			// $args is used to tell pass the newly instantiated class some data into its constructor.
+			$args = array(
+				'provider_name'           => $post[0]->post_title,
+				'provider_slug'           => get_post_meta( $post[0]->ID, 'wpcd_cloud_provider_slug', true ),
+				'provider_region_prefix'  => get_post_meta( $post[0]->ID, 'wpcd_cloud_provider_region_prefix', true ),
+				'provider_dashboard_link' => get_post_meta( $post[0]->ID, 'wpcd_cloud_provider_dashboard_link', true ),
+			);
+
+			// see if we can find a class with the provider type - logic is very very similar to that of the get_provider_api function.
+			/* Search through folders looking for a provider class file */
+			foreach ( $provider_paths as $provider_path ) {
+				$provider_file = $provider_path . 'class-' . $provider_type . '.php';
+				if ( file_exists( $provider_file ) ) {
+					require_once $provider_file;
+				}
+			}
+
+			$class = 'CLOUD_PROVIDER_API_' . str_replace( ' ', '', ucwords( str_replace( array( '-', '_' ), ' ', $provider_type ) ) );
+			if ( class_exists( $class ) ) {
+				WPCD()->classes[ 'wpcd_vpn_api_provider_' . $provider ] = new $class( $args );
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Return the array of providers
+	 */
+	public function get_cloud_providers() {
+		return apply_filters( 'wpcd_get_cloud_providers', self::$providers );
+	}
+
+	/**
+	 * Remove digital ocean from array of providers.
+	 *
+	 * Filter hook: wpcd_get_cloud_providers
+	 *
+	 * @param array $providers_list providers_list.
+	 */
+	public function remove_digital_ocean_provider( $providers_list ) {
+
+		if ( wpcd_get_early_option( 'hide-do-provider' ) ) {
+			unset( $providers_list['digital-ocean'] );
+		}
+
+		return $providers_list;
+
+	}
+
+
+	/**
+	 * Add backup digital ocean provider
+	 *
+	 * Filter hook: wpcd_get_cloud_providers
+	 *
+	 * @param array $providers_list providers_list.
+	 */
+	public function add_backup_digital_ocean_provider( $providers_list ) {
+
+		if ( defined( 'WPCD_LOAD_BACKUP_DO_PROVIDER' ) && ( true === WPCD_LOAD_BACKUP_DO_PROVIDER ) ) {
+			$providers_list['digital-ocean-alternate'] = __( 'Digital Ocean Backup', 'wpcd' );
+		}
+
+		return $providers_list;
+
+	}
+
+	/**
+	 * Replace the provider descriptions with white label descriptions
+	 *
+	 * Filter hook: wpcd_get_cloud_providers
+	 *
+	 * @param array $providers_list Key-value array of providers.
+	 *
+	 * @return array
+	 */
+	public function wpcd_get_cloud_providers_white_label_desc( $providers_list ) {
+
+		foreach ( $providers_list as $provider => $desc ) {
+			$label = wpcd_get_early_option( "vpn_{$provider}_alt_desc" );
+			if ( ! empty( $label ) ) {
+				$providers_list[ $provider ] = $label;
+			}
+		}
+
+		return $providers_list;
+
+	}
+
+	/**
+	 * Return the description for a provider.
+	 * It takes into account any white-label settings.
+	 *
+	 * @param string $provider   Provider id.
+	 *
+	 * @return string
+	 */
+	public function wpcd_get_cloud_provider_desc( $provider ) {
+
+		$providers = WPCD()->get_cloud_providers();
+
+		if ( isset( $providers[ $provider ] ) ) {
+			$provider_desc = $providers[ $provider ];
+			if ( empty( $provider_desc ) ) {
+				$provider_desc = $provider;
+			}
+		} else {
+			$provider_desc = $provider;
+		}
+
+		return $provider_desc;
+
+	}
+
+	/**
+	 * Return the array of ACTIVE providers
+	 *
+	 * An active provider is one whose credentials have been entered.
+	 * Later we might be more strict with the definition
+	 */
+	public function get_active_cloud_providers() {
+
+		$providers = $this->get_cloud_providers();
+
+		foreach ( $providers as $provider => $provider_name ) {
+			// Can you get a valid api?  If not unset.
+			if ( empty( $this->get_provider_api( $provider ) ) ) {
+				unset( $providers[ $provider ] );
+				continue;
+			}
+
+			// If we got here, we have a valid api so check to see if credentials provided.
+			if ( ! $this->get_provider_api( $provider )->credentials_available() ) {
+				unset( $providers[ $provider ] );
+			}
+		}
+
+		return $providers;
+
+	}
+
+	/**
+	 * Return default encryption key
+	 */
+	public function get_default_encryption_key() {
+		return self::ENCRYPTION_KEY;
+	}
+
+	/**
+	 * Adds an app id and description to the application list var.
+	 *
+	 * Array format: array( 'appid' => 'App Desc1', 'appid2' => 'App Desc2' )
+	 *
+	 * @param array $app_id keyed array of app id and a description.
+	 */
+	public function set_app_id( $app_id ) {
+		$this->app_list[] = $app_id;
+	}
+
+	/**
+	 * Return a list of applications
+	 * This list is actually filled out by other app-specific routines
+	 */
+	public function get_app_list() {
+		return apply_filters( 'wpcd_app_list', $this->app_list );
+	}
+
+	/**
+	 * Loads roles and capabilites
+	 *
+	 * @return void
+	 */
+	public function load_roles_capabilities() {
+		if ( empty( WPCD()->classes['wpcd_roles_capabilities'] ) ) {
+			WPCD()->classes['wpcd_roles_capabilities'] = new WPCD_ROLES_CAPABILITIES();
+		}
+	}
+}

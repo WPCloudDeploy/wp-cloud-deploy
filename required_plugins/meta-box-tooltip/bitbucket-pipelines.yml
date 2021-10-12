@@ -1,0 +1,13 @@
+image: php:latest
+
+pipelines:
+  tags:
+    '*':
+      - step:
+          name: Create zip file and upload to the server
+          deployment: production
+          script:
+            - apt update && apt install -y git
+            - name=$(basename -s .git $(git config --get remote.origin.url))
+            - git archive -o $name.zip --prefix=$name/ HEAD
+            - scp $name.zip $SSH_USERNAME@$SERVER_IP:$DOWNLOADS_DIR

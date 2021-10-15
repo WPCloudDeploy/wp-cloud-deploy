@@ -89,18 +89,18 @@ Note: Even though the entire git development history isn't available on github, 
 ## Change Log ##
 4.10.9
 ------
-Fix: WPAPP - There was an issue opening and closing ports when using servers with SUDO admins.
-Fix: WPAPP - A few strings were not being sent through the translation functions.
+* Fix: WPAPP - There was an issue opening and closing ports when using servers with SUDO admins.
+* Fix: WPAPP - A few strings were not being sent through the translation functions.
 
 4.10.8
 ------
-Fix: WPAPP - A few strings were not being sent through the translation functions.
+* Fix: WPAPP - A few strings were not being sent through the translation functions.
 
 4.10.7
 ------
-Fix: WPAPP - An issue where mismatched data types prevented deleting a server or app post if the user was not an admin.
-Fix: WPAPP - A few strings were not being sent through the translation functions.
-Fix: WPAPP - Site Sync - Some domains were not being synced on a schedule even when configured to do so.
+* Fix: WPAPP - An issue where mismatched data types prevented deleting a server or app post if the user was not an admin.
+* Fix: WPAPP - A few strings were not being sent through the translation functions.
+* Fix: WPAPP - Site Sync - Some domains were not being synced on a schedule even when configured to do so.
 
 4.10.6
 ------

@@ -1,8 +1,11 @@
 # About WPCloudDeploy #
 
-**WPCloudDeploy is a WordPress plugin that allows you to easily deploy servers at major cloud-server providers and then install apps on those servers. **
+**WPCloudDeploy is a WordPress plugin that allows you to easily deploy servers at major cloud-server providers and then install apps (such as WordPress) on those servers.  And it does it from inside the familiar wp-admin.**
 
-The plugin makes it easy to deploy servers at major cloud server providers such as DigitalOcean, AWS and more.  However, the core plugin only includes support for DigitalOcean.  
+![WPCloudDeploy Dashboard](https://wpclouddeploy.com/wp-content/uploads/2021/10/server-list-without-slate-theme-01.png)
+
+The plugin makes it easy to deploy servers at well-known providers such as DigitalOcean, AWS and more.  However, the core plugin only includes support for DigitalOcean.
+
 You can add additional support for EC2, LIGHTSAIL, LINODE, VULTR, UPCLOUD, HETZNER, EXOSCALE, GOOGLE, AZURE and ALIBABA by [purchasing a premium subscription](https://wpclouddeploy.com/pricing/). 
 
 **It is primarily used to install and manage WordPress servers and applications.** But it also includes sample apps for just basic servers (i.e., servers with no additional apps) and OpenVPN servers.
@@ -47,6 +50,10 @@ Features of the plugin include:
 Once the plugin is installed please view additional changes required to PHP and web server execution timeout values under the WPCLOUDDEPLOY->SETTINGS->GENERAL SETTINGS tab.
 You can also view all requirements at the bottom of our [getting started documentation](https://wpclouddeploy.com/documentation/wpcloud-deploy/introduction-to-wpcloud-deploy/) or in the [requirements documentation](https://wpclouddeploy.com/documentation/wpcloud-deploy/requirements/)
 
+## How To Contribute ##
+
+Have a change you would like to see incorporated?  Then create a PR (pull request) against the **dev** branch.
+
 ## Premium Versions ##
 
 A premium version of this plugin is available on the WPCloudDeploy website.  You can view the additional features offered on the [pricing page.](https://wpclouddeploy.com/pricing/)
@@ -66,11 +73,25 @@ Premium features include:
 
 [Articles on creating WPCD extensions](https://wpclouddeploy.com/category/tutorials/)
 
+## Plugin History ##
+
+Development was started in 2019 and the first release to the public became available in March 2020.  Since then there have been numerous updates, with an average pace of one update per month.
+The plugin was always open-source but until October 2021, the source was only available to purchasers.
+
+In October 2021, Version 4.10.8 was pushed to a public Github repository.  Now, anyone can just install the core plugin and immediately get WordPress server management functions that rival SaaS systems.
+
+Note: Even though the entire git development history isn't available on github, the changelog below still reflects the full release history.
+
 ## Release Notes ##
 
 [Friendly Release Notes](https://wpclouddeploy.com/category/release-notes/)
 
 ## Change Log ##
+4.10.9
+------
+Fix: WPAPP - There was an issue opening and closing ports when using servers with SUDO admins.
+Fix: WPAPP - A few strings were not being sent through the translation functions.
+
 4.10.8
 ------
 Fix: WPAPP - A few strings were not being sent through the translation functions.

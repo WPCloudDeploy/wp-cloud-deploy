@@ -182,7 +182,7 @@ class WPCD_WORDPRESS_TABS_SERVER_UFW_FIREWALL extends WPCD_WORDPRESS_TABS {
 		$ufw_managed_ports                = wpcd_maybe_unserialize( get_post_meta( $id, 'wpcd_wpapp_ufw_managed_ports', true ) );
 
 		if ( ! empty( $ufw_managed_ports ) ) {
-			$ufw_current_ports_managed_string = 'We are currently aware of the following ports being opened or closed via this dashboard:';
+			$ufw_current_ports_managed_string = __( 'We are currently aware of the following ports being opened or closed via this dashboard:', 'wpcd' );
 
 			foreach ( $ufw_managed_ports as $key => $ufw_port_status ) {
 				$ufw_current_ports_managed_string .= '<br />' . '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . (string) $key . ' / ' . $ufw_port_status;
@@ -245,10 +245,10 @@ class WPCD_WORDPRESS_TABS_SERVER_UFW_FIREWALL extends WPCD_WORDPRESS_TABS {
 		// basic checks passed, construct a command.
 		switch ( $action ) {
 			case 'ufw-open-port':
-				$command = 'ufw allow ' . (string) $port;
+				$command = 'sudo ufw allow ' . (string) $port;
 				break;
 			case 'ufw-close-port':
-				$command = 'ufw deny ' . (string) $port;
+				$command = 'sudo ufw deny ' . (string) $port;
 				break;
 		}
 

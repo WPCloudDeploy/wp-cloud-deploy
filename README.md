@@ -87,6 +87,11 @@ Note: Even though the entire git development history isn't available on github, 
 [Friendly Release Notes](https://wpclouddeploy.com/category/release-notes/)
 
 ## Change Log ##
+4.10.9
+------
+Fix: WPAPP - There was an issue opening and closing ports when using servers with SUDO admins.
+Fix: WPAPP - A few strings were not being sent through the translation functions.
+
 4.10.8
 ------
 Fix: WPAPP - A few strings were not being sent through the translation functions.

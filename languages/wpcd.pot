@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 "Project-Id-Version: WP Cloud Deploy\n"
-"POT-Creation-Date: 2021-09-30 08:55-0500\n"
+"POT-Creation-Date: 2021-10-15 11:03-0500\n"
 "PO-Revision-Date: 2020-08-14 19:38-0500\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -4763,6 +4763,10 @@ msgstr ""
 msgid "Request completed - this page will now refresh"
 msgstr ""
 
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1275
+msgid "The requested PHP service has been restarted."
+msgstr ""
+
 #. translators: %s is replaced with an error message.
 #: includes/core/apps/wordpress-app/tabs-server/services.php:1283
 #: includes/core/apps/wordpress-app/tabs-server/services.php:1389
@@ -5572,6 +5576,12 @@ msgid ""
 "We are not currently aware of any ports being opened or closed via this "
 "dashboard. If ports were opened or closed directly on the server using the "
 "command line they will not show up here."
+msgstr ""
+
+#: includes/core/apps/wordpress-app/tabs-server/ufw_firewall.php:185
+msgid ""
+"We are currently aware of the following ports being opened or closed via "
+"this dashboard:"
 msgstr ""
 
 #: includes/core/apps/wordpress-app/tabs-server/ufw_firewall.php:193

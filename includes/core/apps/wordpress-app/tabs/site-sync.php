@@ -700,7 +700,7 @@ class WPCD_WORDPRESS_TABS_SITE_SYNC extends WPCD_WORDPRESS_TABS {
 		// Now we need to construct an array of server posts that the user is allowed to see.
 		$post__in = wpcd_get_posts_by_permission( 'view_server', 'wpcd_app_server' );
 
-		// Remove the current ID if it's the server posts array. Note the user of ArrayMap and passing in the $source_server_id to the annonymous function.
+		// Remove the current ID if it's the server posts array. Note the use of ArrayMap and passing in the $source_server_id to the annonymous function.
 		$post__in = array_filter(
 			$post__in,
 			function( $array_entry ) use ( $source_server_id ) {

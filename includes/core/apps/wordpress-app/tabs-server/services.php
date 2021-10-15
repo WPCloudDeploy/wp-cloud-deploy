@@ -1272,7 +1272,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		);
 
 		if ( isset( $php_services[ $action ] ) ) {
-			$result = $this->submit_generic_server_command( $id, $action, $php_services[ $action ] . ' && echo "The requested PHP service has been restarted." ', true );  // notice the last parm is true to force the function to return the raw results to us for evaluation instead of a wp-error object.
+			$result = $this->submit_generic_server_command( $id, $action, $php_services[ $action ] . ' && echo "' . __( 'The requested PHP service has been restarted.', 'wpcd' ). '" ', true );  // notice the last parm is true to force the function to return the raw results to us for evaluation instead of a wp-error object.
 			if ( ( ! is_wp_error( $result ) ) && $result ) {
 				$this->set_php_service_state( $id, $action, 'running' );
 			}

@@ -569,6 +569,8 @@ class WPCD_WORDPRESS_TABS_SERVER_MONITORIX extends WPCD_WORDPRESS_TABS {
 				$monitorix_ssl = get_post_meta( $id, 'wpcd_wpapp_monitorix_ssl', true );
 				if ( empty( $monitorix_ssl ) || 'off' === $monitorix_ssl ) {
 					$action = 'enable_monitorix_ssl';
+					$args['domain'] = get_post_meta( $id, 'wpcd_wpapp_monitorix_domain', true );
+					$args['email']  = sanitize_email( get_bloginfo( 'admin_email' ) );
 				} else {
 					$action = 'disable_monitorix_ssl';
 				}

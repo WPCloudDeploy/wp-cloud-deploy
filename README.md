@@ -1,6 +1,6 @@
 # About WPCloudDeploy #
 
-**WPCloudDeploy is a WordPress plugin that allows you to easily deploy servers at major cloud-server providers and then install apps (such as WordPress) on those servers.  And it does it from inside the familiar wp-admin.**
+**WPCloudDeploy is a WordPress plugin that allows you to easily deploy servers at major cloud-server providers and then install apps (such as WordPress) on those servers.  And it does it from inside the familiar WordPress wp-admin dashboard.**
 
 ![WPCloudDeploy Dashboard](https://wpclouddeploy.com/wp-content/uploads/2021/10/server-list-without-slate-theme-01.png)
 
@@ -87,6 +87,11 @@ Note: Even though the entire git development history isn't available on github, 
 [Friendly Release Notes](https://wpclouddeploy.com/category/release-notes/)
 
 ## Change Log ##
+4.10.10
+------
+* Fix: WPAPP - The server provider listed at the top of an app was not respecting the alternate provider name if it was set.
+* Fix: WPAPP - Unable to get SSL certificate for Monitorix.
+
 4.10.9
 ------
 * Fix: WPAPP - There was an issue opening and closing ports when using servers with SUDO admins.

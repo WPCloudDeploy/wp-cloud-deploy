@@ -49,7 +49,7 @@ trait wpcd_wpapp_metaboxes_app {
 				/* If we are painting the tabs vertically, we need to add a new metabox at the top of the screen to show the core details of the site. */
 				$meta_boxes[] = array(
 					'id'         => "wpcd_{$this->get_app_name()}_tab_top_of_site_details",
-					'title'      => sprintf( __( 'Server: %1$s, Region: %2$s, Provider: %3$s', 'wpcd' ), $this->get_server_name( $id ), $this->get_server_region( $id ), $this->get_server_provider( $id ) ),
+					'title'      => sprintf( __( 'Server: %1$s, Region: %2$s, Provider: %3$s', 'wpcd' ), $this->get_server_name( $id ), $this->get_server_region( $id ), WPCD()->wpcd_get_cloud_provider_desc( $this->get_server_provider( $id ) ) ),
 					'class'      => 'wpcd-wpapp-actions',
 					'post_types' => 'wpcd_app',
 					'fields'     => $this->get_general_fields( $fields, $id ),
@@ -88,7 +88,7 @@ trait wpcd_wpapp_metaboxes_app {
 		}
 
 		$server_region   = '<span class="wpcd_metabox_title_value wpcd_metabox_title_value_server_region">' . $this->get_server_region( $id ) . '</span>';
-		$server_provider = '<span class="wpcd_metabox_title_value wpcd_metabox_title_value_server_provider">' . $this->get_server_provider( $id ) . '</span>';
+		$server_provider = '<span class="wpcd_metabox_title_value wpcd_metabox_title_value_server_provider">' . WPCD()->wpcd_get_cloud_provider_desc( $this->get_server_provider( $id ) ) . '</span>';
 
 		$meta_boxes[] = array(
 			'id'          => "wpcd_{$this->get_app_name()}_tab2",

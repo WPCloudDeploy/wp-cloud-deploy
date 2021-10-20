@@ -170,15 +170,15 @@ class WP_CLOUD_DEPLOY {
 			10
 		);
 
-		add_submenu_page(
-			'edit.php?post_type=wpcd_app_server',
-			( defined( 'WPCD_APP_MENU_NAME' ) ? WPCD_APP_MENU_NAME : __( 'All Apps', 'wpcd' ) ),
-			( defined( 'WPCD_APP_MENU_NAME' ) ? WPCD_APP_MENU_NAME : __( 'All Apps', 'wpcd' ) ),
-			'wpcd_manage_apps',
-			'edit.php?post_type=wpcd_app',
-			'',
-			10
-		);
+//		add_submenu_page(
+//			'edit.php?post_type=wpcd_app_server',
+//			( defined( 'WPCD_APP_MENU_NAME' ) ? WPCD_APP_MENU_NAME : __( 'All Apps', 'wpcd' ) ),
+//			( defined( 'WPCD_APP_MENU_NAME' ) ? WPCD_APP_MENU_NAME : __( 'All Apps', 'wpcd' ) ),
+//			'wpcd_manage_apps',
+//			'edit.php?post_type=wpcd_app',
+//			'',
+//			10
+//		);
 
 		add_submenu_page(
 			'edit.php?post_type=wpcd_app_server',

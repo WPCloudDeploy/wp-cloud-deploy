@@ -1520,7 +1520,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the server instance details for action %s', 'wpcd' ), $action ) );
 		}
 
-		$args = wp_parse_args( sanitize_text_field( wp_unslash( $_POST['params'] ) ) );
+		$args = wp_parse_args( wp_unslash( $_POST['params'] ) );
 
 		// Check to make sure each field has a value.
 		if ( empty( $args['smtp_server'] ) ) {
@@ -1540,7 +1540,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		$original_args = $args;
 		$args          = array_map(
 			function( $item ) {
-				return escapeshellarg( $item );
+				return escapeshellarg( sanitize_text_field( $item ) );
 			},
 			$args
 		);

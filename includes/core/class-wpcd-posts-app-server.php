@@ -956,7 +956,7 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 						if(r){
 							window.location = href;
 						}
-					});					
+					});
 				});
 			</script>
 			<?php
@@ -1539,14 +1539,14 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 			'update_item'       => __( 'Update Cloud Server Group', 'wpcd' ),
 			'add_new_item'      => __( 'Add New Cloud Server Group', 'wpcd' ),
 			'new_item_name'     => __( 'New Cloud Server Group Name', 'wpcd' ),
-			'menu_name'         => __( 'Cloud Server Group', 'wpcd' ),
+			'menu_name'         => __( 'Server Groups', 'wpcd' ),
 		);
 
 		$args = array(
 			'hierarchical'      => true,
 			'labels'            => $labels,
 			'show_ui'           => true,
-			'show_in_menu'      => false,
+			'show_in_menu'      => true,
 			'show_admin_column' => false,
 			'query_var'         => true,
 			'capabilities'      => array(

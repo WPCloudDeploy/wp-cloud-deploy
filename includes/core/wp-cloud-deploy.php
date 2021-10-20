@@ -93,6 +93,9 @@ class WP_CLOUD_DEPLOY {
 
 		/* Add main menu page */
 		add_action( 'admin_menu', array( &$this, 'add_main_menu_page' ) );
+		// Handle proper admin menu subpages highlighting (current menu).
+		add_filter( 'parent_file', array( &$this, 'handle_admin_current_main_menu' ) );
+		add_filter( 'submenu_file', array( &$this, 'handle_admin_current_submenu_item' ), 10, 2 );
 
 		/* Add a global error log handler */
 		add_action( 'wpcd_log_error', array( &$this, 'log_error' ), 10, 6 );
@@ -150,15 +153,15 @@ class WP_CLOUD_DEPLOY {
 	 */
 	public function add_main_menu_page() {
 
-		add_submenu_page(
-			'edit.php?post_type=wpcd_app_server',
-			__( 'Server Groups', 'wpcd' ),
-			__( 'Server Groups', 'wpcd' ),
-			'wpcd_manage_groups',
-			'edit-tags.php?taxonomy=wpcd_app_server_group&post_type=wpcd_app_server',
-			'',
-			10
-		);
+//		add_submenu_page(
+//			'edit.php?post_type=wpcd_app_server',
+//			__( 'Server Groups', 'wpcd' ),
+//			__( 'Server Groups', 'wpcd' ),
+//			'wpcd_manage_groups',
+//			'edit-tags.php?taxonomy=wpcd_app_server_group&post_type=wpcd_app_server',
+//			'',
+//			10
+//		);
 
 		add_submenu_page(
 			'edit.php?post_type=wpcd_app_server',
@@ -180,15 +183,15 @@ class WP_CLOUD_DEPLOY {
 //			10
 //		);
 
-//		add_submenu_page(
-//			'edit.php?post_type=wpcd_app_server',
-//			__( 'App Groups', 'wpcd' ),
-//			__( 'App Groups', 'wpcd' ),
-//			'wpcd_manage_groups',
-//			'edit-tags.php?taxonomy=wpcd_app_group&post_type=wpcd_app',
-//			'',
-//			10
-//		);
+		add_submenu_page(
+			'edit.php?post_type=wpcd_app_server',
+			__( 'App Groups', 'wpcd' ),
+			__( 'App Groups', 'wpcd' ),
+			'wpcd_manage_groups',
+			'edit-tags.php?taxonomy=wpcd_app_group&post_type=wpcd_app',
+			'',
+			10
+		);
 
 		add_submenu_page(
 			'edit.php?post_type=wpcd_app_server',
@@ -308,6 +311,41 @@ class WP_CLOUD_DEPLOY {
 			);
 		}
 
+	}
+
+	public function handle_admin_current_main_menu( $parent_file ) {
+		global $submenu_file, $current_screen, $pagenow;
+
+		// If we are looking at something related to the wpcd_app CPT,
+		// the parent should be the wpcd_app_server menu item since we've added submenu item under it.
+		if ( 'wpcd_app' === $current_screen->post_type ) {
+			$parent_file = 'edit.php?post_type=wpcd_app_server';
+		}
+
+		return $parent_file;
+	}
+
+	public function handle_admin_current_submenu_item( $submenu_file, $parent_file ) {
+		global $submenu_file, $current_screen, $pagenow;
+
+		// If we are looking at something in under the wpcd_app_server CPT top-level menu item,
+		// we have work to do.
+		if ( 'edit.php?post_type=wpcd_app_server' === $parent_file ) {
+			if ( $current_screen->taxonomy == 'wpcd_app_group' ) {
+				// If we are dealing with the wpcd_app_group taxonomy,
+				// set as the current submenu item the 'App Groups' page.
+				$submenu_file = 'edit-tags.php?taxonomy=wpcd_app_group&post_type=wpcd_app';
+			} elseif( 'wpcd_app' === $current_screen->post_type
+	            && 'edit' === $current_screen->base
+				&& ! empty( $_GET['app_type'] ) && ! empty( $_GET['filter_action'] )
+				&& 'wordpress-app' === $_GET['app_type'] ) {
+
+				// Set as the current submenu item the WordPress Sites filter menu item.
+				$submenu_file = 'edit.php?s&post_status=all&post_type=wpcd_app&app_type=wordpress-app&filter_action=Filter';
+			}
+		}
+
+		return $submenu_file;
 	}
 
 

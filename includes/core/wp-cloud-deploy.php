@@ -180,15 +180,15 @@ class WP_CLOUD_DEPLOY {
 //			10
 //		);
 
-		add_submenu_page(
-			'edit.php?post_type=wpcd_app_server',
-			__( 'App Groups', 'wpcd' ),
-			__( 'App Groups', 'wpcd' ),
-			'wpcd_manage_groups',
-			'edit-tags.php?taxonomy=wpcd_app_group&post_type=wpcd_app',
-			'',
-			10
-		);
+//		add_submenu_page(
+//			'edit.php?post_type=wpcd_app_server',
+//			__( 'App Groups', 'wpcd' ),
+//			__( 'App Groups', 'wpcd' ),
+//			'wpcd_manage_groups',
+//			'edit-tags.php?taxonomy=wpcd_app_group&post_type=wpcd_app',
+//			'',
+//			10
+//		);
 
 		add_submenu_page(
 			'edit.php?post_type=wpcd_app_server',

@@ -1250,7 +1250,7 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 			'hierarchical'      => true,
 			'labels'            => $labels,
 			'show_ui'           => true,
-			'show_in_menu'      => false,
+			'show_in_menu'      => true,
 			'show_admin_column' => false,
 			'query_var'         => true,
 			'capabilities'      => array(

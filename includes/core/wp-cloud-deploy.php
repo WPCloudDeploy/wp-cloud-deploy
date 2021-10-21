@@ -96,6 +96,8 @@ class WP_CLOUD_DEPLOY {
 		// Handle proper admin menu subpages highlighting (current menu).
 		add_filter( 'parent_file', array( &$this, 'handle_admin_current_main_menu' ) );
 		add_filter( 'submenu_file', array( &$this, 'handle_admin_current_submenu_item' ), 10, 2 );
+		// Handle main menu submenus ordering.
+		add_action( 'admin_init', array( &$this, 'ensure_submenu_items_order' ), 100 );
 
 		/* Add a global error log handler */
 		add_action( 'wpcd_log_error', array( &$this, 'log_error' ), 10, 6 );
@@ -148,20 +150,64 @@ class WP_CLOUD_DEPLOY {
 	}
 
 	/**
+	 * Since WordPress doesn't properly handle position ordering of post type admin menu entries located in submenus,
+	 * we need to manually order them.
+	 *
+	 * We will hook in after all the core logic has been applied to the submenu items.
+	 *
+	 * @return void
+	 */
+	public function ensure_submenu_items_order() {
+		global $submenu;
+
+		// We are only interested in this top-level menu item.
+		if ( empty( $submenu['edit.php?post_type=wpcd_app_server'] ) || ! is_array( $submenu['edit.php?post_type=wpcd_app_server'] ) ) {
+			return;
+		}
+
+		// This is the order we are after for these submenu items.
+		// Any other items that are present will be left at the end, in their existing relative order.
+		$submenus_order = apply_filters( 'wpcd_main_menu_submenus_order', array(
+			'edit.php?post_type=wpcd_app_server' => 10,
+			'edit-tags.php?taxonomy=wpcd_app_server_group&amp;post_type=wpcd_app_server' => 20 ,
+			'edit.php?post_type=wpcd_app' => 30,
+			'edit-tags.php?taxonomy=wpcd_app_group&post_type=wpcd_app' => 40,
+			'edit.php?s&post_status=all&post_type=wpcd_app&app_type=wordpress-app&filter_action=Filter' => 50,
+			'edit.php?post_type=wpcd_cloud_provider' => 60,
+			'edit.php?post_type=wpcd_team' => 70,
+			'edit.php?post_type=wpcd_ssh_log' => 80,
+			'edit.php?post_type=wpcd_command_log' => 90,
+			'edit.php?post_type=wpcd_pending_log' => 100,
+			'edit.php?post_type=wpcd_error_log' => 110,
+		) );
+		// Sort the submenus by their order value, ascending.
+		asort( $submenus_order, SORT_NUMERIC );
+
+		$temp_submenu = $submenu['edit.php?post_type=wpcd_app_server'];
+		$temp_submenu_pages = array_column( $temp_submenu, 2 );
+		$new_submenu = array();
+		foreach ( $submenus_order as $item_page => $item_order ) {
+			$found_key = array_search( $item_page, $temp_submenu_pages );
+			if ( false !== $found_key ) {
+				$new_submenu[] = $temp_submenu[ $found_key ];
+				unset( $temp_submenu[ $found_key ] );
+			}
+		}
+
+		// Append any leftovers.
+		if ( ! empty( $temp_submenu ) ) {
+			$new_submenu = array_merge( $new_submenu, $temp_submenu );
+		}
+
+		// Overwrite the global variable.
+		$submenu['edit.php?post_type=wpcd_app_server'] = $new_submenu;
+	}
+
+	/**
 	 * Main Menu Item: Make the wpcd_app_server post type the main menu item
 	 * by adding another option below it
 	 */
 	public function add_main_menu_page() {
-
-//		add_submenu_page(
-//			'edit.php?post_type=wpcd_app_server',
-//			__( 'Server Groups', 'wpcd' ),
-//			__( 'Server Groups', 'wpcd' ),
-//			'wpcd_manage_groups',
-//			'edit-tags.php?taxonomy=wpcd_app_server_group&post_type=wpcd_app_server',
-//			'',
-//			10
-//		);
 
 		add_submenu_page(
 			'edit.php?post_type=wpcd_app_server',
@@ -170,18 +216,8 @@ class WP_CLOUD_DEPLOY {
 			'wpcd_manage_apps',
 			'edit.php?s&post_status=all&post_type=wpcd_app&app_type=wordpress-app&filter_action=Filter',
 			'',
-			10
+			3
 		);
-
-//		add_submenu_page(
-//			'edit.php?post_type=wpcd_app_server',
-//			( defined( 'WPCD_APP_MENU_NAME' ) ? WPCD_APP_MENU_NAME : __( 'All Apps', 'wpcd' ) ),
-//			( defined( 'WPCD_APP_MENU_NAME' ) ? WPCD_APP_MENU_NAME : __( 'All Apps', 'wpcd' ) ),
-//			'wpcd_manage_apps',
-//			'edit.php?post_type=wpcd_app',
-//			'',
-//			10
-//		);
 
 		add_submenu_page(
 			'edit.php?post_type=wpcd_app_server',
@@ -190,114 +226,8 @@ class WP_CLOUD_DEPLOY {
 			'wpcd_manage_groups',
 			'edit-tags.php?taxonomy=wpcd_app_group&post_type=wpcd_app',
 			'',
-			10
+			4
 		);
-
-		add_submenu_page(
-			'edit.php?post_type=wpcd_app_server',
-			__( 'Teams', 'wpcd' ),
-			__( 'Teams', 'wpcd' ),
-			'wpcd_manage_teams',
-			'edit.php?post_type=wpcd_team',
-			'',
-			10
-		);
-
-		if ( defined( 'WPCD_SHOW_PERMISSION_LIST' ) && ( true === WPCD_SHOW_PERMISSION_LIST ) ) {
-			add_submenu_page(
-				'edit.php?post_type=wpcd_app_server',
-				__( 'Permission List', 'wpcd' ),
-				__( 'Permission List', 'wpcd' ),
-				'manage_options',
-				'edit.php?post_type=wpcd_permission_type',
-				'',
-				10
-			);
-		}
-
-		add_menu_page( __( 'Server Alerts', 'wpcd' ), __( 'Server Alerts', 'wpcd' ), 'wpcd_manage_logs', 'edit.php?post_type=wpcd_notify_log', '', 'dashicons-bell', 14 );
-
-		add_submenu_page(
-			'edit.php?post_type=wpcd_notify_log',
-			__( 'Notifications', 'wpcd' ),
-			__( 'Notifications', 'wpcd' ),
-			'wpcd_manage_logs',
-			'edit.php?post_type=wpcd_notify_log',
-			'',
-			10
-		);
-
-		add_submenu_page(
-			'edit.php?post_type=wpcd_notify_log',
-			__( 'Profiles', 'wpcd' ),
-			__( 'Profiles', 'wpcd' ),
-			'wpcd_manage_logs',
-			'edit.php?post_type=wpcd_notify_user',
-			'',
-			10
-		);
-
-		add_submenu_page(
-			'edit.php?post_type=wpcd_notify_log',
-			__( 'History', 'wpcd' ),
-			__( 'History', 'wpcd' ),
-			'wpcd_manage_logs',
-			'edit.php?post_type=wpcd_notify_sent',
-			'',
-			10
-		);
-
-		add_submenu_page(
-			'edit.php?post_type=wpcd_app_server',
-			__( 'Command Log', 'wpcd' ),
-			__( 'Command Log', 'wpcd' ),
-			'wpcd_manage_logs',
-			'edit.php?post_type=wpcd_command_log',
-			'',
-			10
-		);
-
-		add_submenu_page(
-			'edit.php?post_type=wpcd_app_server',
-			__( 'Pending Log', 'wpcd' ),
-			__( 'Pending Log', 'wpcd' ),
-			'wpcd_manage_logs',
-			'edit.php?post_type=wpcd_pending_log',
-			'',
-			10
-		);
-
-		add_submenu_page(
-			'edit.php?post_type=wpcd_app_server',
-			__( 'SSH Log', 'wpcd' ),
-			__( 'SSH Log', 'wpcd' ),
-			'wpcd_manage_logs',
-			'edit.php?post_type=wpcd_ssh_log',
-			'',
-			10
-		);
-
-		add_submenu_page(
-			'edit.php?post_type=wpcd_app_server',
-			__( 'Error Log', 'wpcd' ),
-			__( 'Error Log', 'wpcd' ),
-			'wpcd_manage_logs',
-			'edit.php?post_type=wpcd_error_log',
-			'',
-			10
-		);
-
-		if ( apply_filters( 'wpcd_show_virtual_cloud_providers', false ) ) {
-			add_submenu_page(
-				'edit.php?post_type=wpcd_app_server',
-				__( 'Virtual Providers', 'wpcd' ),
-				__( 'Virtual Providers', 'wpcd' ),
-				'wpcd_manage_settings',
-				'edit.php?post_type=wpcd_cloud_provider',
-				'',
-				10
-			);
-		}
 
 		if ( ! defined( 'WPCD_HIDE_HELP_TAB' ) || ( defined( 'WPCD_HIDE_HELP_TAB' ) && ! WPCD_HIDE_HELP_TAB ) ) {
 			add_submenu_page(
@@ -307,14 +237,24 @@ class WP_CLOUD_DEPLOY {
 				'manage_options',
 				'wpcd_faq_and_help',
 				array( $this, 'wpcd_get_faq_and_help_text_page_callback' ),
-				10
+				20
 			);
 		}
 
+		// Submenu entries will be populated by each log CPT via their 'show_in_menu' config entry.
+		add_menu_page(
+			__( 'Server Alerts', 'wpcd' ),
+			__( 'Server Alerts', 'wpcd' ),
+			'wpcd_manage_logs',
+			'edit.php?post_type=wpcd_notify_log',
+			'',
+			'dashicons-bell',
+			51
+		);
 	}
 
 	public function handle_admin_current_main_menu( $parent_file ) {
-		global $submenu_file, $current_screen, $pagenow;
+		global $current_screen;
 
 		// If we are looking at something related to the wpcd_app CPT,
 		// the parent should be the wpcd_app_server menu item since we've added submenu item under it.
@@ -326,7 +266,7 @@ class WP_CLOUD_DEPLOY {
 	}
 
 	public function handle_admin_current_submenu_item( $submenu_file, $parent_file ) {
-		global $submenu_file, $current_screen, $pagenow;
+		global $submenu_file, $current_screen;
 
 		// If we are looking at something in under the wpcd_app_server CPT top-level menu item,
 		// we have work to do.
@@ -347,7 +287,6 @@ class WP_CLOUD_DEPLOY {
 
 		return $submenu_file;
 	}
-
 
 	/**
 	 * Construct the faq and help text to show on the FAQ & Help menu page.

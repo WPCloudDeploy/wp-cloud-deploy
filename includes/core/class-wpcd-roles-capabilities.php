@@ -42,9 +42,6 @@ class WPCD_ROLES_CAPABILITIES {
 		// Action hook to create roles and capabilities when a new site is created.
 		add_action( 'wp_initialize_site', array( $this, 'wpcd_roles_capabilities_new_site' ), 10, 2 );
 
-		// Action hook to remove wpcd_app listing menu from admin menu.
-		add_action( 'admin_menu', array( $this, 'wpcd_roles_capabilities_remove_menus' ) );
-
 	}
 
 	/**
@@ -210,12 +207,5 @@ class WPCD_ROLES_CAPABILITIES {
 		foreach ( $admin_caps as $cap ) {
 			$administrator->remove_cap( $cap );
 		}
-	}
-
-	/**
-	 * Removes the wpcd_app post type menu created when registering post type
-	 */
-	public function wpcd_roles_capabilities_remove_menus() {
-		remove_menu_page( 'edit.php?post_type=wpcd_app' );
 	}
 }

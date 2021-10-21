@@ -141,7 +141,7 @@ class WPCD_WORDPRESS_TABS_SITE_LOGS extends WPCD_WORDPRESS_TABS {
 			'id'         => 'wpcd_app_action_site_log_download_button',
 			'tab'        => 'site-logs',
 			'type'       => 'button',
-			'std'        => __( 'Download', 'wcpcd' ),
+			'std'        => __( 'Download', 'wpcd' ),
 			'attributes' => array(
 				// the _action that will be called in ajax.
 				'data-wpcd-action' => 'site-log-download',

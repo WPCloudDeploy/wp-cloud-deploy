@@ -282,7 +282,7 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 			'name'       => '',
 			'tab'        => 'copy-to-existing-site',
 			'type'       => 'button',
-			'std'        => __( 'Push Everything', 'wcpcd' ),
+			'std'        => __( 'Push Everything', 'wpcd' ),
 			'desc'       => '',
 			'attributes' => array(
 				// the _action that will be called in ajax.
@@ -316,7 +316,7 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 			'name'       => '',
 			'tab'        => 'copy-to-existing-site',
 			'type'       => 'button',
-			'std'        => __( 'Push Database', 'wcpcd' ),
+			'std'        => __( 'Push Database', 'wpcd' ),
 			'desc'       => '',
 			'attributes' => array(
 				// the _action that will be called in ajax.
@@ -380,7 +380,7 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 			'name'       => '',
 			'tab'        => 'copy-to-existing-site',
 			'type'       => 'button',
-			'std'        => __( 'Push Files', 'wcpcd' ),
+			'std'        => __( 'Push Files', 'wpcd' ),
 			'desc'       => '',
 			'attributes' => array(
 				// the _action that will be called in ajax.
@@ -444,7 +444,7 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 			'name'       => '',
 			'tab'        => 'copy-to-existing-site',
 			'type'       => 'button',
-			'std'        => __( 'Push Tables', 'wcpcd' ),
+			'std'        => __( 'Push Tables', 'wpcd' ),
 			'desc'       => '',
 			'attributes' => array(
 				// the _action that will be called in ajax.
@@ -478,7 +478,7 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 			'name'       => '',
 			'tab'        => 'copy-to-existing-site',
 			'type'       => 'button',
-			'std'        => __( 'Save For This Site', 'wcpcd' ),
+			'std'        => __( 'Save For This Site', 'wpcd' ),
 			'desc'       => '',
 			'columns'    => 3,
 			'attributes' => array(

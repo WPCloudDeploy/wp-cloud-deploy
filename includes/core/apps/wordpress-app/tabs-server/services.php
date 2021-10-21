@@ -25,6 +25,10 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		add_filter( "wpcd_app_{$this->get_app_name()}_tab_action", array( $this, 'tab_action' ), 10, 3 );  // This filter says 'wpcd_app' because we're using the same functions for server details ajax tabs and app details ajax tabs.
 
 		add_action( "wpcd_command_{$this->get_app_name()}_completed", array( $this, 'command_completed' ), 10, 2 );
+
+		/* Pending Logs Background Task: Trigger refresh services. Hook: wpcd_wordpress-app_server_refesh_services. */
+		add_action( "wpcd_{$this->get_app_name()}_server_refresh_services", array( $this, 'pending_log_refresh_services_status' ), 10, 3 );
+
 	}
 
 	/**
@@ -125,13 +129,13 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 				$result = $this->refresh_services_status( $id, $action );
 				break;
 			case 'web-server-restart':
-				$result = $this->submit_generic_server_command( $id, $action, 'sudo service nginx restart && echo "The Nginx Service Has Restarted"' );
+				$result = $this->submit_generic_server_command( $id, $action, 'sudo service nginx restart && echo "' . __( 'The Nginx Service has restarted', 'wpcd' ) . '"' );
 				break;
 			case 'db-server-restart':
-				$result = $this->submit_generic_server_command( $id, $action, 'sudo service mariadb restart && echo "The MariaDB database Service Has Restarted"' );
+				$result = $this->submit_generic_server_command( $id, $action, 'sudo service mariadb restart && echo "' . __( 'The MariaDB database Service has restarted', 'wpcd' ) . '"' );
 				break;
 			case 'ufw-restart':
-				$result = $this->submit_generic_server_command( $id, $action, 'sudo service ufw restart && echo "The ufw firewall Service Has Restarted"' );
+				$result = $this->submit_generic_server_command( $id, $action, 'sudo service ufw restart && echo "' . __( 'The UFW firewall Service has festarted', 'wpcd' ) . '"' );
 				break;
 			case 'ufw-state-toggle':
 				$result = $this->do_ufw_toggle( $id, $action );
@@ -1272,7 +1276,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		);
 
 		if ( isset( $php_services[ $action ] ) ) {
-			$result = $this->submit_generic_server_command( $id, $action, $php_services[ $action ] . ' && echo "' . __( 'The requested PHP service has been restarted.', 'wpcd' ). '" ', true );  // notice the last parm is true to force the function to return the raw results to us for evaluation instead of a wp-error object.
+			$result = $this->submit_generic_server_command( $id, $action, $php_services[ $action ] . ' && echo "' . __( 'The requested PHP service has been restarted.', 'wpcd' ) . '" ', true );  // notice the last parm is true to force the function to return the raw results to us for evaluation instead of a wp-error object.
 			if ( ( ! is_wp_error( $result ) ) && $result ) {
 				$this->set_php_service_state( $id, $action, 'running' );
 			}
@@ -1372,12 +1376,14 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		$ufw_toggle_state = $this->get_ufw_state( $id );
 
 		if ( 'on' === $ufw_toggle_state ) {
-			$result = $this->submit_generic_server_command( $id, $action, 'sudo service ufw stop && echo "The UFW service should be stopped now." ', true );  // notice the last parm is true to force the function to return the raw results to us for evaluation instead of a wp-error object.
+			$success_msg = __( 'The UFW service should be stopped now.', 'wpcd' );
+			$result      = $this->submit_generic_server_command( $id, $action, 'sudo service ufw stop && echo "' . $success_msg . '"', true );  // notice the last parm is true to force the function to return the raw results to us for evaluation instead of a wp-error object.
 			if ( ( ! is_wp_error( $result ) ) && $result ) {
 				$this->set_service_state( $id, 'ufw', 'running' );
 			}
 		} elseif ( 'off' === $ufw_toggle_state ) {
-			$result = $this->submit_generic_server_command( $id, $action, 'sudo service ufw start && echo "The UFW service should be started now." ', true );   // notice the last parm is true to force the function to return the raw results to us for evaluation instead of a wp-error object.
+			$success_msg = __( 'The UFW service should be started now.', 'wpcd' );
+			$result      = $this->submit_generic_server_command( $id, $action, 'sudo service ufw start && echo "' . $success_msg . '"', true );   // notice the last parm is true to force the function to return the raw results to us for evaluation instead of a wp-error object.
 			if ( ( ! is_wp_error( $result ) ) && $result ) {
 				$this->set_service_state( $id, 'ufw', 'off' );
 			}
@@ -2027,6 +2033,32 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		$return     .= '</div>';
 
 		return $return;
+	}
+
+	/**
+	 * Refresh Services - triggered via pending logs background process.
+	 *
+	 * Called from an action hook from the pending logs background process - WPCD_POSTS_PENDING_TASKS_LOG()->do_tasks()
+	 *
+	 * Action Hook: "wpcd_{$this->get_app_name()}_server_refresh_services | wpcd_wordpress-app_server_refesh_services.
+	 *
+	 * @param int   $task_id    Id of pending task that is firing this thing...
+	 * @param int   $server_id  Id of server on which to install the new website.
+	 * @param array $args       All the data needed to install the WP site on the server.
+	 */
+	public function pending_log_refresh_services_status( $task_id, $server_id, $args ) {
+
+		// Grab our data array from pending tasks record...
+		$data = WPCD_POSTS_PENDING_TASKS_LOG()->get_data_by_id( $task_id );
+
+		/* Refresh Services */
+		$action = 'services_status_update';
+		$result = $this->refresh_services_status( $server_id, $action );
+		$result = $this->refresh_services_status_php( $server_id, $action );
+
+		/* Mark pending log record as complete - there's no real return status so can do it here right away. */
+		WPCD_POSTS_PENDING_TASKS_LOG()->update_task_by_id( $task_id, $data, 'complete' );
+
 	}
 
 

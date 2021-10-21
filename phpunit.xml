@@ -1,0 +1,48 @@
+<phpunit
+        backupGlobals="false"
+        backupStaticAttributes="false"
+        colors="true"
+        convertErrorsToExceptions="true"
+        convertNoticesToExceptions="true"
+        convertWarningsToExceptions="true"
+        processIsolation="false"
+        stopOnFailure="false"
+        bootstrap="./tests/phpunit.php"
+        beStrictAboutTestsThatDoNotTestAnything="true"
+>
+    <testsuites>
+        <testsuite name="default">
+            <directory suffix=".php">tests/phpunit</directory>
+        </testsuite>
+    </testsuites>
+    <filter>
+        <whitelist processUncoveredFilesFromWhitelist="true">
+            <directory suffix=".php">./includes/core/apps/wordpress-app/rest-api</directory>
+        </whitelist>
+    </filter>
+    <groups>
+        <exclude>
+            <group>integration</group>
+        </exclude>
+    </groups>
+    <php>
+        <includePath>.</includePath>
+        <const name="WP_TESTS_MULTISITE" value="0" />
+        <const name="WP_TESTS_ACTIVATE_THEME" value="twentytwenty" />
+        <const name="WP_TESTS_ACTIVATE_PLUGINS" value="1" />
+        <const name="WP_TESTS_INSTALL_PLUGINS" value="" />
+        <const name="WP_TESTS_ADDITIONAL_PLUGINS" value="" />
+        <const name="WP_TESTS_CONFIG_FILE_PATH" value="wp-tests-config.php" />
+    </php>
+    <listeners>
+        <listener class="SpeedTrapListener" file="vendor/wp-phpunit/wp-phpunit/includes/listener-loader.php">
+            <arguments>
+                <array>
+                    <element key="slowThreshold">
+                        <integer>500</integer>
+                    </element>
+                </array>
+            </arguments>
+        </listener>
+    </listeners>
+</phpunit>

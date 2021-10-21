@@ -193,7 +193,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SSH_CONSOLE extends WPCD_WORDPRESS_TABS {
 		$prior_commands        = wpcd_maybe_unserialize( get_post_meta( $id, 'wpcd_wpapp_ssh_console_cmds', true ) );
 
 		if ( ! empty( $prior_commands ) ) {
-			$prior_commands_notice = 'Here is a list of prior commands that were executed on this screen.';
+			$prior_commands_notice = __( 'Here is a list of prior commands that were executed on this screen.', 'wpcd' );
 		}
 
 		$actions['ssh-console-prior-commands'] = array(

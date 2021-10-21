@@ -10,7 +10,7 @@ You can add additional support for EC2, LIGHTSAIL, LINODE, VULTR, UPCLOUD, HETZN
 
 **It is primarily used to install and manage WordPress servers and applications.** But it also includes sample apps for just basic servers (i.e., servers with no additional apps) and OpenVPN servers.
 
-Its extensible model sets it up for developers to add new apps that can be deployed in the future.
+Its extensible model allow developers to add new apps in the future.
 
 All management features are available inside of wp-admin on your WordPress site.  Apart from the server providers, you do not need a 3rd party SaaS service to manage your servers and apps.
 
@@ -21,6 +21,8 @@ All management features are available inside of wp-admin on your WordPress site.
 Download the zip file from this site and install it like you would any other WordPress plugin.
 
 Then, to install WordPress servers and sites, follow the [getting started documentation on the WPCloudDeploy site](https://wpclouddeploy.com/documentation/wpcloud-deploy/introduction-to-wpcloud-deploy/)
+
+Also, please make sure you [sign up for our notifications](https://wpclouddeploy.com/mailpoet-group/basic-subscription-form/) so that you can be notified of project updates.
 
 ## Documentation ##
 
@@ -87,6 +89,14 @@ Note: Even though the entire git development history isn't available on github, 
 [Friendly Release Notes](https://wpclouddeploy.com/category/release-notes/)
 
 ## Change Log ##
+4.11.0
+------
+* New: WPAPP - Foundation for REST API.
+* New: WPAPP - Add options to automatically run callbacks and other actions after a server has been deployed.
+* Fix: WPAPP - Deploying a server sometimes failed because SNAP REFRESH CORE returned a spurious error message from the server.
+* Fix: WPAPP - Found a few more strings that were not being sent through the translation functions.
+* Dev: WPAPP - Added filter wpcd_crons_needing_active_check.
+
 4.10.10
 ------
 * Fix: WPAPP - The server provider listed at the top of an app was not respecting the alternate provider name if it was set.
@@ -703,3 +713,11 @@ Skipped.
 * Chart.js (assets/js)
 * Select2 (assets/js)
 * magnific-popup (assets/js, assets/css)
+
+### Running the test suite
+
+1. Set up a localhost MySQL database with the credentials defined in `wp-tests-config.php`.
+2. Run `composer install` to install all required dependencies
+3. Run `./vendor/bin/phpunit` to run PHPUnit test suite.
+4. Run `./vendor/bin/phpunit-watcher watch` to run test suite and 
+   automatically re-run test suite whenever PHP files change.

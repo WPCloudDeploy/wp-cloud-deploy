@@ -640,7 +640,7 @@ trait wpcd_wpapp_push_commands {
 	 * @return void.
 	 */
 	public function push_command_schedule_site_sync( $id, $command_id, $name, $status ) {
-error_log("Here! Yeehaw $command_id  $id  $status  $name");
+
 		// Set variable to status, in this case it is always "completed" - will be used in action hooks later.
 		$status = 'completed';
 

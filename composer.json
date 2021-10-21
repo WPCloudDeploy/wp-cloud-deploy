@@ -1,5 +1,28 @@
 {
+    "name": "structuredmarketsinc/wp-cloud-deploy",
+    "description": "Deploy cloud servers and apps from inside the WordPress Admin dashboard.",
+    "authors": [
+        {
+            "name": "WPCloudDeploy",
+            "email": "support@wpclouddeploy.com"
+        }
+    ],
+    "type": "wordpress-plugin",
     "require": {
+        "php": "^7.4",
         "phpseclib/phpseclib": "^3.0"
+    },
+    "require-dev": {
+        "johnpbloch/wordpress": "^5.8",
+        "cyruscollier/wp-test": "dev-master",
+        "spatie/phpunit-watcher": "^1.23",
+        "wp-coding-standards/wpcs": "^2.3",
+        "dealerdirect/phpcodesniffer-composer-installer": "^0.7.1"
+    },
+    "extra": {
+        "wordpress-install-dir": "vendor/wordpress/wordpress"
+    },
+    "config": {
+        "process-timeout": 0
     }
 }

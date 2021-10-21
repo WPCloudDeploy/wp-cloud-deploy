@@ -178,7 +178,7 @@ class WPCD_WORDPRESS_TABS_THEME_AND_PLUGIN_UPDATES extends WPCD_WORDPRESS_TABS {
 
 		// Data is passed from front-end via a 'params' element in $_POST.  So extract it and sanitize it here.
 		if ( ! empty( $_POST['params'] ) ) {
-			$args = wp_parse_args( sanitize_text_field( wp_unslash( $_POST['params'] ) ) );
+			$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
 		} else {
 			$args = array();
 		}

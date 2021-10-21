@@ -469,11 +469,11 @@ class WPCD_WORDPRESS_TABS_SFTP extends WPCD_WORDPRESS_TABS {
 		$instance = $this->get_app_instance_details( $id );
 
 		if ( is_wp_error( $instance ) ) {
-			return $result;
+			return $instance;
 		}
 
 		/* Grab the arguments sent from the front-end JS */
-		$args = wp_parse_args( sanitize_text_field( $_POST['params'] ) );
+		$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
 
 		/* For certain actions, need to verify that the user is part of the current site because anyone can modify the JS scripts on the front end to send in a random user name   */
 		$ftp_users = $this->get_sftp_users( $id );

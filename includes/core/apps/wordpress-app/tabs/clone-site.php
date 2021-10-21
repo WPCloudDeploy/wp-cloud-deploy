@@ -174,7 +174,7 @@ class WPCD_WORDPRESS_TABS_CLONE_SITE extends WPCD_WORDPRESS_TABS {
 	 */
 	private function clone_site( $action, $id ) {
 
-		$args = wp_parse_args( sanitize_text_field( $_POST['params'] ) );
+		$args = wp_parse_args( wp_unslash( $_POST['params'] ) );
 
 		// Bail if certain things are empty...
 		if ( empty( $args['new_domain'] ) ) {

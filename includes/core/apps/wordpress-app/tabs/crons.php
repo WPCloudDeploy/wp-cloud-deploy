@@ -200,12 +200,12 @@ class WPCD_WORDPRESS_TABS_CRONS extends WPCD_WORDPRESS_TABS {
 			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
 		}
 
-		$args = wp_parse_args( sanitize_text_field( $_POST['params'] ) );
+		$args = wp_parse_args( wp_unslash( $_POST['params'] ) );
 
 		// Special sanitization for the interval...
 		$new_cron_interval = '';
 		if ( isset( $args['wp_linux_cron_interval'] ) ) {
-			$new_cron_interval              = $args['wp_linux_cron_interval'];  // Get the interval before we escape it for the linux command line - we'll need this if the action is successful.
+			$new_cron_interval              = sanitize_text_field( $args['wp_linux_cron_interval'] );  // Get the interval before we escape it for the linux command line - we'll need this if the action is successful.
 			$args['wp_linux_cron_interval'] = escapeshellarg( $args['wp_linux_cron_interval'] );
 		}
 

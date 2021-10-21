@@ -302,7 +302,7 @@ class WPCD_WORDPRESS_TABS_SERVER_TOOLS extends WPCD_WORDPRESS_TABS {
 	 */
 	private function reset_php_default_version( $id, $action ) {
 
-		$args = wp_parse_args( sanitize_text_field( $_POST['params'] ) );
+		$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
 
 		// Bail if certain things are empty...
 		if ( empty( $args['new_php_version'] ) ) {

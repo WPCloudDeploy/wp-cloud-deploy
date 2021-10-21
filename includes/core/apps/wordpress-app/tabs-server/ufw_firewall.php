@@ -229,7 +229,7 @@ class WPCD_WORDPRESS_TABS_SERVER_UFW_FIREWALL extends WPCD_WORDPRESS_TABS {
 	private function ufw_open_close_ports( $id, $action ) {
 
 		// Get port from _POST sent via AJAX.
-		$args = wp_parse_args( sanitize_text_field( $_POST['params'] ) );
+		$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
 
 		// error out if trying to close or open our standard ports.
 		$port = (int) $args['ufw_port_to_open_or_close'];

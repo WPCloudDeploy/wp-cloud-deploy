@@ -265,7 +265,7 @@ class WPCD_WORDPRESS_TABS_SITE_SYNC extends WPCD_WORDPRESS_TABS {
 
 		// Extract args out to array.
 		if ( empty( $in_args ) ) {
-			$args = wp_parse_args( sanitize_text_field( $_POST['params'] ) );
+			$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
 		} else {
 			$args = $in_args;
 		}
@@ -506,7 +506,7 @@ class WPCD_WORDPRESS_TABS_SITE_SYNC extends WPCD_WORDPRESS_TABS {
 
 		// Extract args out to array.
 		if ( empty( $in_args ) ) {
-			$args = wp_parse_args( sanitize_text_field( $_POST['params'] ) );
+			$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
 		} else {
 			$args = $in_args;
 		}

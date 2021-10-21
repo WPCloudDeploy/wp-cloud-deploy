@@ -146,7 +146,7 @@ class WPCD_WORDPRESS_TABS_SERVER_LOGS extends WPCD_WORDPRESS_TABS {
 			'label'          => '',
 			'type'           => 'button',
 			'raw_attributes' => array(
-				'std'              => __( 'Download', 'wcpcd' ),
+				'std'              => __( 'Download', 'wpcd' ),
 				// the _action that will be called in ajax.
 				// 'data-wpcd-action' => 'server-log-download'.
 				// the id.

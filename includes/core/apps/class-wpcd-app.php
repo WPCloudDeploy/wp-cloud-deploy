@@ -336,7 +336,7 @@ class WPCD_APP extends WPCD_Base {
 	 *
 	 * @param int $app_id  The app_id to get the apps for.
 	 *
-	 * @return array|boolean Array of app posts or false or error message
+	 * @return WP_Post|null Array of app posts or false or error message
 	 */
 	public function get_app_by_app_id( $app_id ) {
 

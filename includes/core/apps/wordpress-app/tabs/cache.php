@@ -472,7 +472,7 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 				'on_label'   => __( 'Enabled', 'wpcd' ),
 				'off_label'  => __( 'Disabled', 'wpcd' ),
 				'std'        => 'on' === $mc_status,
-				'desc'       => __( 'Enable or disable Memcached for this site. <br /> Note that all transients will be deleted when this cache is enabled - your plugins and themes should automatically re-add them as needed.', 'wcpcd' ),
+				'desc'       => __( 'Enable or disable Memcached for this site. <br /> Note that all transients will be deleted when this cache is enabled - your plugins and themes should automatically re-add them as needed.', 'wpcd' ),
 				'attributes' => array(
 					// the _action that will be called in ajax.
 					'data-wpcd-action'              => 'site-toggle-memcached',
@@ -490,8 +490,8 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 				'name'       => '',
 				'tab'        => 'cache',
 				'type'       => 'button',
-				'std'        => __( 'Cleanup: Toggle Local Value for Memcached', 'wcpcd' ),
-				'desc'       => __( 'If the Memcached status toggle above is not correct, click this button to correct it. This can happen if there is an error on the server or you or another admin manually toggle the memcached service on the server outside of this plugin.', 'wcpcd' ),
+				'std'        => __( 'Cleanup: Toggle Local Value for Memcached', 'wpcd' ),
+				'desc'       => __( 'If the Memcached status toggle above is not correct, click this button to correct it. This can happen if there is an error on the server or you or another admin manually toggle the memcached service on the server outside of this plugin.', 'wpcd' ),
 				'attributes' => array(
 					// the _action that will be called in ajax.
 					'data-wpcd-action'              => 'site-toggle-memcached-local-value',

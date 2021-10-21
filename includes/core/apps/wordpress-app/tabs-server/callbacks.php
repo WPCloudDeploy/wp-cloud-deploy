@@ -776,7 +776,7 @@ class WPCD_WORDPRESS_TABS_SERVER_CALLBACKS extends WPCD_WORDPRESS_TABS {
 
 					// Since we have successfully installed the callbacks, we can run them once!
 					$instance['action_hook'] = 'run_server_callbacks';
-					WPCD_POSTS_PENDING_TASKS_LOG()->add_pending_task_log_entry( $server_id, 'run-server-callbacks', $server_id, $instance, 'ready', $server_id, __( 'Run Callbacks For The First Time During Bulk Operation', 'wpcd' ) );
+					WPCD_POSTS_PENDING_TASKS_LOG()->add_pending_task_log_entry( $server_id, 'run-server-callbacks', $server_id, $instance, 'ready', $server_id, __( 'Run Callbacks For The First Time', 'wpcd' ) );
 
 				}
 			}
@@ -801,7 +801,7 @@ class WPCD_WORDPRESS_TABS_SERVER_CALLBACKS extends WPCD_WORDPRESS_TABS {
 		$data = WPCD_POSTS_PENDING_TASKS_LOG()->get_data_by_id( $task_id );
 
 		/* Run callbacks on the designated server */
-		do_action( 'wpcd_wordpress-manage_server_status_callback', $server_id, 'run_status_cron' );
+		do_action( 'wpcd_wordpress-manage_server_status_callback', $server_id, 'run_status_cron_background' );
 
 		/* Mark the task complete */
 		WPCD_POSTS_PENDING_TASKS_LOG()->update_task_by_id( $task_id, $data, 'complete' );

@@ -223,7 +223,7 @@ class WPCD_WORDPRESS_TABS_KEYS extends WPCD_WORDPRESS_TABS {
 			'label'          => '',
 			'type'           => 'button',
 			'raw_attributes' => array(
-				'std'              => __( 'Save', 'wcpcd' ),
+				'std'              => __( 'Save', 'wpcd' ),
 				// fields that contribute data for this action.
 				'data-wpcd-fields' => json_encode( array( '#wpcd_app_action_server-ssh-keys-root-user-name', '#wpcd_app_action_server-ssh-keys-private-key', '#wpcd_app_action_server-ssh-keys-private-key-password', '#wpcd_app_action_server-ssh-keys-public-key', '#wpcd_app_action_server-ssh-keys-notes' ) ),
 				'columns'          => 2,
@@ -234,7 +234,7 @@ class WPCD_WORDPRESS_TABS_KEYS extends WPCD_WORDPRESS_TABS {
 			'label'          => '',
 			'type'           => 'button',
 			'raw_attributes' => array(
-				'std'     => __( 'Copy From Settings', 'wcpcd' ),
+				'std'     => __( 'Copy From Settings', 'wpcd' ),
 				'columns' => 2,
 			),
 		);
@@ -243,8 +243,8 @@ class WPCD_WORDPRESS_TABS_KEYS extends WPCD_WORDPRESS_TABS {
 			'label'          => '',
 			'type'           => 'button',
 			'raw_attributes' => array(
-				'std'     => __( 'Remove', 'wcpcd' ),
-				'tooltip' => __( 'Remove this key information from this server - we will revert to using the data from the settings screen to login.', 'wcpcd' ),
+				'std'     => __( 'Remove', 'wpcd' ),
+				'tooltip' => __( 'Remove this key information from this server - we will revert to using the data from the settings screen to login.', 'wpcd' ),
 				'columns' => 2,
 			),
 		);

@@ -1,9 +1,9 @@
 <?php
 /**
-Plugin Name: WP Cloud Deploy
+Plugin Name: WPCloudDeploy
 Plugin URI: https://wpclouddeploy.com
-Description: Deploy cloud servers and apps from inside the WordPress Admin dashboard.
-Version: 4.10.10
+Description: Deploy and manage cloud servers and apps from inside the WordPress Admin dashboard.
+Version: 4.11.0
 Requires at least: 5.0
 Requires PHP: 7.4
 Item Id: 1493
@@ -179,6 +179,8 @@ class WPCD_Init {
 		require_once wpcd_path . 'includes/core/class-wpcd-posts-log.php';
 		require_once wpcd_path . 'includes/core/class-wpcd-posts-pending-tasks-log.php';
 		WPCD_PENDING_TASKS_LOG::activate( $network_wide );
+
+		flush_rewrite_rules();
 	}
 
 	/**
@@ -248,7 +250,7 @@ class WPCD_Init {
 
 		/* Load up some licensing files. */
 		if ( true === is_admin() ) {
-			require_once WPCD_PATH . '/vendor/edd_sl/WPCD_EDD_SL_Plugin_Updater.php';
+			require_once WPCD_PATH . '/includes/vendor/WPCD_EDD_SL_Plugin_Updater.php';
 			require_once WPCD_PATH . '/includes/core/class-wpcd-license.php';
 		}
 
@@ -370,6 +372,7 @@ class WPCD_Init {
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/metaboxes-app.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/metaboxes-server.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/commands-and-logs.php';
+		require_once wpcd_path . 'includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/after-prepare-server.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/push-commands.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/admin-columns.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/backup.php';
@@ -426,6 +429,7 @@ class WPCD_Init {
 
 		if ( ! get_transient( 'wpcd_cron_check' ) ) {
 			$wpcd_crons = array( 'do_deferred_actions_for_server', 'do_deferred_actions_for_app', 'wordpress_file_watcher_delete_temp_files', 'scan_new_notifications_to_send', 'clean_up_pending_logs' );
+			$wpcd_crons = apply_filters( 'wpcd_crons_needing_active_check', $wpcd_crons );
 
 			if ( defined( 'WPCD_LOAD_VPN_APP' ) && ( true === WPCD_LOAD_VPN_APP ) ) {
 				$wpcd_crons[] = 'file_watcher_delete_temp_files';

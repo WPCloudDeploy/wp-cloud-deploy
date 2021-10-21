@@ -148,7 +148,7 @@ class WPCD_POSTS_TEAM {
 					'add_new_item'          => __( 'Add New Team', 'wpcd' ),
 					'edit_item'             => __( 'Edit Team', 'wpcd' ),
 					'view_item'             => __( 'View Team', 'wpcd' ),
-					'all_items'             => __( 'All Teams', 'wpcd' ),
+					'all_items'             => __( 'Teams', 'wpcd' ), // Label to signify all items in a submenu link.
 					'search_items'          => __( 'Search Teams', 'wpcd' ),
 					'not_found'             => __( 'No Teams were found.', 'wpcd' ),
 					'not_found_in_trash'    => __( 'No Teams were found in Trash.', 'wpcd' ),
@@ -157,14 +157,14 @@ class WPCD_POSTS_TEAM {
 					'items_list'            => _x( 'Teams list', 'Screen reader text for the items list heading on the post type listing screen. Default "Posts list"/"Pages list". Added in 4.4', 'wpcd' ),
 				),
 				'show_ui'             => true,
-				'show_in_menu'        => false,
+				'show_in_menu'        => 'edit.php?post_type=wpcd_app_server',
+				'menu_position'       => null,
 				'show_in_nav_menus'   => true,
 				'show_in_admin_bar'   => false,
 				'public'              => true,
 				'exclude_from_search' => true,
 				'publicly_queryable'  => false,
 				'hierarchical'        => false,
-				'menu_position'       => null,
 				'supports'            => array( 'title' ),
 				'rewrite'             => null,
 				'capabilities'        => array(
@@ -665,7 +665,7 @@ class WPCD_POSTS_TEAM {
 			?>
 			<script type="text/javascript">
 				jQuery(document).ready(function($){
-					$('<a href="<?php echo esc_attr( $backtolist_url ); ?>" class="page-title-action"><?php echo esc_html( $backtolist_txt ); ?></a>').insertBefore('hr.wp-header-end');					
+					$('<a href="<?php echo esc_attr( $backtolist_url ); ?>" class="page-title-action"><?php echo esc_html( $backtolist_txt ); ?></a>').insertBefore('hr.wp-header-end');
 				});
 			</script>
 			<?php

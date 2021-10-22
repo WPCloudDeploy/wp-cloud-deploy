@@ -493,7 +493,7 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 
 		$action = 'change_aws_credentials';  // The action being passed to the bash script.
 
-		$args = wp_parse_args( sanitize_text_field( $_POST['params'] ) ); // Get data from the post.
+		$args = wp_parse_args( $_POST['params'] ); // Get data from the post.
 
 		// Get the instance details.
 		$instance = $this->get_server_instance_details( $id );

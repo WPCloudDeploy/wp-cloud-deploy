@@ -37,7 +37,7 @@
             var fields = $(this).attr('data-wpcd-fields');
             if (typeof fields !== 'undefined' && fields !== '') {
                 $.each(JSON.parse(fields), function (index, field) {
-                    additional_params.push($(field).attr('data-wpcd-name') + '=' + $(field).val());
+                    additional_params.push($(field).attr('data-wpcd-name') + '=' + encodeURIComponent($(field).val()));
                 });
             }
 
@@ -65,7 +65,7 @@
                             // hide the close button...
                             hide_console_close_button();
 
-                            // clicking the close button on the console 
+                            // clicking the close button on the console
                             $('.wpcd-log-close-button, .wpcd-log-close-button a, a.wpcd-log-close-button').on('click', function (e) {
                                 e.preventDefault();
                                 $a.magnificPopup('close');
@@ -132,7 +132,7 @@
                             alert(data.data.result.msg);
                         }
                         // Or, if it's a file that needs to be downloaded then do so.
-                        // Note that we're assuming a TEXT file here, not a .zip file 
+                        // Note that we're assuming a TEXT file here, not a .zip file
                         // or similar.
                         if (data.data.result.file_url) {
                             var fileName = data.data.result.file_name;
@@ -162,7 +162,7 @@
                         interval = setInterval(function () {
                             $currentConsole = $('.wpcd-log-console');  // get reference to the console window
                             $currentConsoleHTML = $currentConsole.html(); // get the current html text inside the console.
-                            $('.wpcd-log-console').html($currentConsoleHTML + '<p>' + params.l10n.checking_for_logs + '</p>');	// add message to window showing user that we're checking for logs				
+                            $('.wpcd-log-console').html($currentConsoleHTML + '<p>' + params.l10n.checking_for_logs + '</p>');	// add message to window showing user that we're checking for logs
                             fetchLogs($object, true);
                         }, params.refresh_seconds * 1000);  // params.refresh_seconds is likely set to 30 seconds - server cron is 60 seconds so no point in polling too much sooner than 60 seconds
                     } else if (data.data && data.data.result && data.data.result.email_fields) {
@@ -190,7 +190,7 @@
                 }
             });
         });
-        // End clicking an action 
+        // End clicking an action
 
     }
 

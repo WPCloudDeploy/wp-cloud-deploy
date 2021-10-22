@@ -317,7 +317,7 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 			'id'         => 'wpcd_app_action_manual_backup',
 			'tab'        => 'backup',
 			'type'       => 'button',
-			'std'        => __( 'Run Manual Backup', 'wcpcd' ),
+			'std'        => __( 'Run Manual Backup', 'wpcd' ),
 			'attributes' => array(
 				// the _action that will be called in ajax.
 				'data-wpcd-action'              => 'backup-run-manual',
@@ -358,7 +358,7 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 			'desc'       => __( 'If this is left blank then the global bucket name from the SETTINGS screen will be used.', 'wpcd' ),
 			'tab'        => 'backup',
 			'type'       => 'text',
-			'name'       => __( 'AWS Bucket Name', 'wcpcd' ),
+			'name'       => __( 'AWS Bucket Name', 'wpcd' ),
 			'std'        => $auto_backup_bucket,
 			'attributes' => array(
 				// the key of the field (the key goes in the request).
@@ -373,7 +373,7 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 			'tab'        => 'backup',
 			'type'       => 'number',
 			'min'        => -1,
-			'name'       => __( 'Retention Days', 'wcpcd' ),
+			'name'       => __( 'Retention Days', 'wpcd' ),
 			'std'        => $auto_backup_retention_days,
 			'attributes' => array(
 				// the key of the field (the key goes in the request).
@@ -607,7 +607,7 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 			'tab'        => 'backup',
 			'type'       => 'number',
 			'std'        => 7,
-			'name'       => __( 'Retention Days', 'wcpcd' ),
+			'name'       => __( 'Retention Days', 'wpcd' ),
 			'attributes' => array(
 				// the key of the field (the key goes in the request).
 				'data-wpcd-name' => 'manual_prune_backup_retention_days',

@@ -197,7 +197,7 @@ class WPCD_License {
 
 		/* Make sure the EDD updater class exists otherwise load the file */
 		if ( ! class_exists( 'WPCD_EDD_SL_Plugin_Updater' ) ) {
-			require_once wpcd_path . 'vendor/edd_sl/WPCD_EDD_SL_Plugin_Updater.php';
+			require_once wpcd_path . 'includes/vendor/WPCD_EDD_SL_Plugin_Updater.php';
 		}
 
 		/* Initial array of plugins that contain just the core plugin. */

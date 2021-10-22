@@ -312,8 +312,8 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 				'name'       => __( 'Install PHPMyAdmin', 'wpcd' ),
 				'tab'        => 'database',
 				'type'       => 'button',
-				'std'        => __( 'Install PHPMyAdmin', 'wcpcd' ),
-				'desc'       => __( 'The tool for managing your database is not enabled. Click this button to enable it now.', 'wcpcd' ),
+				'std'        => __( 'Install PHPMyAdmin', 'wpcd' ),
+				'desc'       => __( 'The tool for managing your database is not enabled. Click this button to enable it now.', 'wpcd' ),
 				'attributes' => array(
 					// the _action that will be called in ajax.
 					'data-wpcd-action'              => 'install-phpmyadmin',
@@ -373,8 +373,8 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 				'name'       => __( 'Update PHPMyAdmin', 'wpcd' ),
 				'tab'        => 'database',
 				'type'       => 'button',
-				'std'        => __( 'Update PHPMyAdmin', 'wcpcd' ),
-				'desc'       => __( 'Update the PHPMyAdmin tool to the latest version.', 'wcpcd' ),
+				'std'        => __( 'Update PHPMyAdmin', 'wpcd' ),
+				'desc'       => __( 'Update the PHPMyAdmin tool to the latest version.', 'wpcd' ),
 				'attributes' => array(
 					// the _action that will be called in ajax.
 					'data-wpcd-action'              => 'update-phpmyadmin',
@@ -396,8 +396,8 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 				'name'       => __( 'Remove PHPMyAdmin', 'wpcd' ),
 				'tab'        => 'database',
 				'type'       => 'button',
-				'std'        => __( 'Remove PHPMyAdmin', 'wcpcd' ),
-				'desc'       => __( 'Remove the PHPMyAdmin tool from this site.', 'wcpcd' ),
+				'std'        => __( 'Remove PHPMyAdmin', 'wpcd' ),
+				'desc'       => __( 'Remove the PHPMyAdmin tool from this site.', 'wpcd' ),
 				'attributes' => array(
 					// the _action that will be called in ajax.
 					'data-wpcd-action'              => 'remove-phpmyadmin',

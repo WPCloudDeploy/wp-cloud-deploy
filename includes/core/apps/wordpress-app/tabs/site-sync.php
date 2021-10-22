@@ -756,7 +756,7 @@ class WPCD_WORDPRESS_TABS_SITE_SYNC extends WPCD_WORDPRESS_TABS {
 			'name'       => '',
 			'tab'        => 'site-sync',
 			'type'       => 'button',
-			'std'        => __( 'Start Copy', 'wcpcd' ),
+			'std'        => __( 'Start Copy', 'wpcd' ),
 			'desc'       => '',
 			'attributes' => array(
 				// the _action that will be called in ajax.
@@ -793,7 +793,7 @@ class WPCD_WORDPRESS_TABS_SITE_SYNC extends WPCD_WORDPRESS_TABS {
 				'tab'  => 'site-sync',
 				'type' => 'custom-html',
 				/* Translators: %s is the server name taken from the post title of the server custom post type. */
-				'std'  => sprintf( __( 'This site has already been set up for daily syncing with another server: %s', 'wcpcd' ), get_the_title( get_post_meta( $id, 'wpcd_wpapp_site_sync_schedule_destination_id', true ) ) ),
+				'std'  => sprintf( __( 'This site has already been set up for daily syncing with another server: %s', 'wpcd' ), get_the_title( get_post_meta( $id, 'wpcd_wpapp_site_sync_schedule_destination_id', true ) ) ),
 			);
 
 			/**
@@ -868,7 +868,7 @@ class WPCD_WORDPRESS_TABS_SITE_SYNC extends WPCD_WORDPRESS_TABS {
 				'name'       => '',
 				'tab'        => 'site-sync',
 				'type'       => 'button',
-				'std'        => __( 'Schedule', 'wcpcd' ),
+				'std'        => __( 'Schedule', 'wpcd' ),
 				'desc'       => '',
 				'attributes' => array(
 					// the _action that will be called in ajax.

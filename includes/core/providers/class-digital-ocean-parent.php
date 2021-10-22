@@ -53,6 +53,8 @@ class CLOUD_PROVIDER_API_DigitalOcean_Parent extends CLOUD_PROVIDER_API {
 
 		/* Set flag that indicates we will support snapshots */
 		$this->set_feature_flag( 'snapshots', true );
+		$this->set_feature_flag( 'snapshot-delete', true );
+		$this->set_feature_flag( 'snapshot-list', true );
 
 		/* Set the API key - pulling from settings */
 		$this->set_api_key( WPCD()->decrypt( wpcd_get_early_option( 'vpn_' . $this->get_provider_slug() . '_apikey' ) ) );
@@ -214,6 +216,13 @@ runcmd:
 "name": "' . $name . '"
 }';
 				break;
+			case 'delete_snapshot':
+				$endpoint = 'snapshots/' . $attributes['snapshot_id'];
+				$action   = 'DELETE';
+				break;
+			case 'list_all_snapshots':
+				$endpoint = 'snapshots' . '?page=1&per_page=9999';
+				break;
 			case 'reboot':
 				$endpoint = 'droplets/' . $attributes['id'] . '/actions';
 				$action   = 'POST';
@@ -319,10 +328,36 @@ runcmd:
 				break;
 			case 'snapshot':
 				if ( ! empty( $body->action->id ) ) {
-					$return['id']              = $attributes['id'];
+					$return['id']              = $attributes['id'];  // Unfortunately, this is NOT the id of the droplet.  Might be the ID of a background process for it and we'll have to use it to query later?
 					$return['snapshot-id']     = $body->action->id;
 					$return['provider_status'] = $body->action->status;
 					$return['status']          = 'success';
+				} else {
+					$return['status'] = 'fail';
+				}
+				break;
+			case 'delete_snapshot':
+				if ( ! empty( $body->id ) ) {
+					$return['status'] = 'success';
+				} else {
+					$return['status'] = 'fail';
+				}
+				break;
+			case 'list_all_snapshots':
+				if ( ! empty( $body->snapshots ) ) {
+					$snapshot_count = 0;
+					foreach ( $body->snapshots as $snapshot ) {
+						$return_snapshot['id']            = $snapshot->id;
+						$return_snapshot['name']          = $snapshot->name;
+						$return_snapshot['resource_id']   = $snapshot->resource_id; // The droplet id to which this belongs.
+						$return_snapshot['resource_size'] = $snapshot->size_gigabytes;
+						$return_snapshot['resource_type'] = $snapshot->resource_type; // This might be unique to digital-ocean.
+						$return_snapshot['tags']          = $snapshot->tags;
+						$return['snapshots'][]            = $return_snapshot;
+
+						$snapshot_count++;
+					}
+					$return['snapshot_count'] = $snapshot_count;
 				} else {
 					$return['status'] = 'fail';
 				}

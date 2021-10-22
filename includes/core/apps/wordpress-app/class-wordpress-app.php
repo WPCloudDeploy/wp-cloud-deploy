@@ -15,6 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 	/* Include traits */
+	use wpcd_wpapp_after_prepare_server;
 	use wpcd_wpapp_tabs_security;
 	use wpcd_wpapp_metaboxes_app;
 	use wpcd_wpapp_metaboxes_server;
@@ -31,6 +32,13 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	 * @var $instance instance.
 	 */
 	private static $instance;
+
+	/**
+	 * Holds singletons of the REST API controllers
+	 *
+	 * @var array
+	 */
+	protected array $rest_controllers = array();
 
 
 	/**
@@ -98,12 +106,18 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		$this->include_tabs();
 		$this->include_tabs_server();
 
+		// Enable the REST API if the settings allow for it.
+		if ( true === (bool) wpcd_get_early_option( 'wordpress_app_rest_api_enable' ) ) {
+			$this->include_rest_api();
+		}
+
 		// Make sure WordPress loads up our css and js scripts.
 		add_action( 'admin_enqueue_scripts', array( $this, 'wpapp_enqueue_scripts' ), 10, 1 );
 
 		// Show any admin notices related to upgrades.
 		add_action( 'admin_notices', array( $this, 'wpapp_upgrades_admin_notice' ) );
 
+		// Actions send from the front-end when installing servers and sites.
 		add_action( "wpcd_server_{$this->get_app_name()}_action", array( &$this, 'do_instance_action' ), 10, 3 );
 		add_action( "wpcd_app_{$this->get_app_name()}_action", array( &$this, 'do_app_action' ), 10, 3 );
 
@@ -131,6 +145,9 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 		// Push commands and callbacks from sites.
 		add_action( "wpcd_{$this->get_app_name()}_command_schedule_site_sync_completed", array( &$this, 'push_command_schedule_site_sync' ), 10, 4 );  // When a scheduled site sync has started or ended.
+
+		// After server prepare action hooks.
+		$this->wpcd_after_server_prepare_action_hooks();
 
 		// When we're querying to find out the status of a server.
 		add_filter( 'wpcd_is_server_available_for_commands', array( &$this, 'wpcd_is_server_available_for_commands' ), 10, 2 );
@@ -229,6 +246,32 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		add_action( 'wp_ajax_set_cron_check', array( $this, 'set_cron_check' ) );
 	}
 
+	/**
+	 * Setup some action hooks to do things after a server has been created.
+	 * The hook functions themselves are in a trait file  after-prepare-server.php
+	 */
+	public function wpcd_after_server_prepare_action_hooks() {
+		/* Add tasks to pending logs after a server is created. */
+		add_action( 'wpcd_command_wordpress-app_prepare_server_completed', array( $this, 'wpcd_wpapp_core_prepare_server_completed' ), 10, 2 );
+
+		/* Pending Logs Background Task: Trigger installation of backup scripts on the server */
+		add_action( 'wpcd_core_after_server_prepare_install_server_backups', array( $this, 'wpcd_core_install_server_backups' ), 10, 3 );
+
+		/*  Install Backups: Handle backup script installation success or failure */
+		add_action( 'wpcd_server_wordpress-app_server_auto_backup_action_all_sites_successful', array( $this, 'wpcd_core_install_server_handle_backup_script_install_success' ), 10, 3 );
+		add_action( 'wpcd_server_wordpress-app_server_auto_backup_action_all_sites_failed', array( $this, 'wpcd_core_install_server_handle_backup_script_install_failed' ), 10, 3 );
+
+		/* Pending Logs Background Task: Trigger installation of server configuration backups on the server */
+		add_action( 'wpcd_core_after_server_prepare_install_server_configuration_backups', array( $this, 'wpcd_core_install_server_configuration_backups' ), 10, 3 );
+
+		/*  Install Server Configuration Backups: Handle backup script installation success or failure */
+		add_action( 'wpcd_server_wordpress-app_toggle_server_configuration_backups_success', array( $this, 'wpcd_core_install_server_handle_config_backup_install_success' ), 10, 3 );
+		add_action( 'wpcd_server_wordpress-app_toggle_server_configuration_backups_failed', array( $this, 'wpcd_core_install_server_handle_config_backup_install_failed' ), 10, 3 );
+
+		/* Pending Logs Background Task: Run callback for the first time on a server after they're installed. */
+		add_action( 'wpcd_core_after_server_prepare_run_server_callbacks', array( $this, 'wpcd_core_run_server_callbacks' ), 10, 3 );
+
+	}
 
 	/**
 	 * Include the files corresponding to the tabs.
@@ -318,6 +361,47 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		 * stuff will happen and you will not know why!
 		 */
 		do_action( 'wpcd_wpapp_include_server_tabs' );
+
+	}
+
+	/**
+	 * Include the files for the REST API and instantiate the controllers
+	 */
+	private function include_rest_api() {
+		require_once wpcd_path . 'includes/core/apps/wordpress-app/rest-api/class-wpcd-rest-api-controller-base.php';
+		require_once wpcd_path . 'includes/core/apps/wordpress-app/rest-api/class-wpcd-rest-api-controller-servers.php';
+		require_once wpcd_path . 'includes/core/apps/wordpress-app/rest-api/class-wpcd-rest-api-controller-sites.php';
+		require_once wpcd_path . 'includes/core/apps/wordpress-app/rest-api/class-wpcd-rest-api-controller-tasks.php';
+
+		/**
+		 * Need to add new REST API controllers from an add-on?
+		 * Then this action hook MUST be used! Otherwise, weird
+		 * stuff will happen and you will not know why!
+		 *
+		 * Third parties that need to add a plugin to extend
+		 * the rest api by adding new controllers should
+		 * ensure that the filter a few lines above is used
+		 * to add the new controller to the array so that
+		 * they can be instantiated.
+		 */
+		do_action( 'wpcd_wpapp_include_rest_api' );
+
+		// List of controllers to instantiate.
+		// This list should be added to by other plugins adding their own rest api controllers.
+		$controllers = apply_filters(
+			"wpcd_app_{$this->get_app_name()}_rest_api_controller_list",
+			array(
+				WPCD_REST_API_Controller_Servers::class,
+				WPCD_REST_API_Controller_Sites::class,
+				WPCD_REST_API_Controller_Tasks::class,
+			)
+		);
+
+		// Loop through list and instantiate.
+		foreach ( $controllers as $controller_class ) {
+			$controller                                        = new $controller_class();
+			$this->rest_controllers[ $controller->get_name() ] = $controller;
+		}
 
 	}
 
@@ -480,10 +564,10 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	}
 
 	/**
-	 * Returns an app ID using the postid of a server and the domain anme..
+	 * Returns an app ID using the postid of a server and the domain name..
 	 *
 	 * @param int    $server_id  The server for which to locate the app post.
-	 * @param string $domain  Th domain for which to locat ethe app post on the server.
+	 * @param string $domain The domain for which to locate the app post on the server.
 	 *
 	 * @return int|boolean app post id or false or error message
 	 */
@@ -2670,7 +2754,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			foreach ( $custom_fields as $field ) {
 				if ( isset( $args[ $field['name'] ] ) ) {
 					update_post_meta( $app_post_id, $field['name'], $args[ $field['name'] ] );
-				} elseif ( isset( $additional[ $field - array( 'name' ) ] ) ) {
+				} elseif ( isset( $additional[ $field['name'] ] ) ) {
 					update_post_meta( $app_post_id, $field['name'], $additional[ $field['name'] ] );
 				}
 			}
@@ -2822,7 +2906,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		$instance = WPCD_SERVER()->create_server( 'create', $attributes );  // fire up a new server.
 
 		/* Check for error */
-		if ( is_wp_error( $instance ) ) {
+		if ( ( is_wp_error( $instance ) ) || ( ! $instance ) ) {
 			return $instance;
 		}
 
@@ -3811,6 +3895,45 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		}
 
 		return $is_available;
+	}
+
+	/**
+	 * Return the REST API controller instance for a given name (base path)
+	 *
+	 * @param string $controller_name Name of controller.
+	 *
+	 * @return WPCD_REST_API_Controller_Base
+	 */
+	public function get_rest_controller( string $controller_name ) {
+		return $this->rest_controllers[ $controller_name ];
+	}
+
+
+	public function xwpcd_wpapp_prepare_server_completed( $server_id, $command_name ) {
+		error_log( 'here' );
+				$server_post = get_post( $server_id );
+
+				// Bail if not a post object.
+		if ( ! $server_post || is_wp_error( $server_post ) ) {
+			return;
+		}
+
+				// Bail if not a WordPress app.
+		if ( 'wordpress-app' <> WPCD_WORDPRESS_APP()->get_server_type( $server_id ) ) {
+			return;
+		}
+
+				// Get server instance array.
+				$instance = WPCD_WORDPRESS_APP()->get_instance_details( $server_id );
+
+		if ( 'wpcd_app_server' === get_post_type( $server_id ) ) {
+
+			// Mark server as delete protected.
+			if ( wpcd_get_option( 'wordpress_app_servers_add_delete_protection' ) ) {
+				WPCD_POSTS_APP_SERVER()->wpcd_app_server_set_deletion_protection_flag( $server_id );
+			}
+		}
+
 	}
 
 }

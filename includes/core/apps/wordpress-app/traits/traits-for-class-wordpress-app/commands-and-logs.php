@@ -713,5 +713,50 @@ trait wpcd_wpapp_commands_and_logs {
 
 	}
 
+	/**
+	 * Add tasks to pending log for:
+	 *  - Installing Callbacks
+	 *  - Setup standard backups
+	 *  - Setup critical files backups (Local server configuration backups)
+	 *  - Run services status
+	 *  - Delete protect servers
+	 * 
+	 *
+	 * Action hook: wpcd_command_{$this->get_app_name()}_{$base_command}_{$status} || wpcd_wordpress-app_prepare_server_completed
+	 *
+	 * @param int    $server_id      The post id of the server record.
+	 * @param string $command_name   The full name of the command that triggered this action.
+	 */
+	public function wpcd_wpapp_prepare_server_completed( $server_id, $command_name ) {
+
+		$server_post = get_post( $server_id );
+
+		// Bail if not a post object.
+		if ( ! $server_post || is_wp_error( $server_post ) ) {
+			return;
+		}
+
+		// Bail if not a WordPress app.
+		if ( 'wordpress-app' <> WPCD_WORDPRESS_APP()->get_server_type( $server_id ) ) {
+			return;
+		}
+
+		// Get server instance array.
+		$instance = WPCD_WORDPRESS_APP()->get_instance_details( $server_id );
+
+		if ( 'wpcd_app_server' === get_post_type( $server_id ) ) {
+
+			// If the app install was done via a background pending tasks process then get that pending task post data here.
+			// We do that by checking the pending tasks table for a record where the key=domain and type='rest_api_install_wp' and state='in-process'.
+			$pending_task_posts = WPCD_POSTS_PENDING_TASKS_LOG()->get_tasks_by_key_state_type( $server_id, 'in-process', 'rest_api_install_server' );
+			if ( $pending_task_posts ) {
+				/* Now update the log entry to market is as complete. */
+				$data_to_save = WPCD_POSTS_PENDING_TASKS_LOG()->get_data_by_id( $pending_task_posts[0]->ID );
+				WPCD_POSTS_PENDING_TASKS_LOG()->update_task_by_id( $pending_task_posts[0]->ID, $data_to_save, 'complete' );
+			}
+		}
+
+	}	
+
 
 }

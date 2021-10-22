@@ -307,8 +307,8 @@ class WPCD_WORDPRESS_TABS_CLONE_SITE extends WPCD_WORDPRESS_TABS {
 			'name'       => __( 'Clone Site', 'wpcd' ),
 			'tab'        => 'clone-site',
 			'type'       => 'button',
-			'std'        => __( 'Clone Site', 'wcpcd' ),
-			'desc'       => __( 'Make a copy of this site to a new domain', 'wcpcd' ),
+			'std'        => __( 'Clone Site', 'wpcd' ),
+			'desc'       => __( 'Make a copy of this site to a new domain', 'wpcd' ),
 			'attributes' => array(
 				// the _action that will be called in ajax.
 				'data-wpcd-action'              => 'clone-site',

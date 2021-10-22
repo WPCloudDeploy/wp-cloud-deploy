@@ -28,8 +28,12 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 		add_filter( "wpcd_server_{$this->get_app_name()}_tab_action", array( $this, 'tab_action_server' ), 10, 3 );  // This filter has not been defined and called yet in classs-wordpress-app and might never be because we're using the one below.
 		add_filter( "wpcd_app_{$this->get_app_name()}_tab_action", array( $this, 'tab_action' ), 10, 3 );  // This filter says 'wpcd_app' because we're using the same functions for server details ajax tabs and app details ajax tabs.
 
-		// Allow the auto_backup_action_all_sites action to be triggered via an action hook.  Will primarily be used by the woocommerce add-ons.
+		// Allow the auto_backup_action_all_sites action to be triggered via an action hook.
 		add_action( 'wpcd_wordpress-manage_server_backup_action_all_sites', array( $this, 'auto_backup_action_all_sites' ), 10, 1 ); // Unlike others, this one only needs the server id.
+		add_action( 'wpcd_{$this->get_app_name()}_manage_server_backup_action_all_sites', array( $this, 'auto_backup_action_all_sites' ), 10, 1 ); // Duplicate of the one above because the one above has the incorrect action hook name - the one above is for backwards compatibiilty.
+
+		// Allow the server configuration backups to be triggered via an action hook. Hook: wpcd_wordpress-app-toggle_server_configuration_backups.
+		add_action( "wpcd_{$this->get_app_name()}_toggle_server_configuration_backups", array( $this, 'toggle_server_configuration_backups' ), 10, 1 ); // Unlike others, this one only needs the server id.
 
 	}
 
@@ -165,7 +169,7 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 			'name'       => '',
 			'tab'        => 'server_backup',
 			'type'       => 'button',
-			'std'        => __( 'Save Credentials', 'wcpcd' ),
+			'std'        => __( 'Save Credentials', 'wpcd' ),
 			'attributes' => array(
 				// the _action that will be called in ajax.
 				'data-wpcd-action'              => 'backup-change-cred',
@@ -217,7 +221,7 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 			'desc'       => __( 'If this is left blank then the server bucket name shown above or the global bucket name from the SETTINGS screen will be used', 'wpcd' ),
 			'tab'        => 'server_backup',
 			'type'       => 'text',
-			'name'       => __( 'AWS Bucket Name', 'wcpcd' ),
+			'name'       => __( 'AWS Bucket Name', 'wpcd' ),
 			'std'        => $auto_backup_bucket_all_sites,
 			'attributes' => array(
 				// the key of the field (the key goes in the request).
@@ -232,7 +236,7 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 			'tab'        => 'server_backup',
 			'type'       => 'number',
 			'min'        => -1,
-			'name'       => __( 'Retention Days', 'wcpcd' ),
+			'name'       => __( 'Retention Days', 'wpcd' ),
 			'std'        => $auto_backup_retention_days_all_sites,
 			'attributes' => array(
 				// the key of the field (the key goes in the request).
@@ -325,7 +329,7 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 			'tab'        => 'server_backup',
 			'type'       => 'number',
 			'std'        => (int) $auto_backup_manual_retention_days_all_sites,
-			'name'       => __( 'Retention Days', 'wcpcd' ),
+			'name'       => __( 'Retention Days', 'wpcd' ),
 			'attributes' => array(
 				// the key of the field (the key goes in the request).
 				'data-wpcd-name' => 'manual_prune_server_backup_retention_days',
@@ -951,6 +955,7 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 		$result  = $this->execute_ssh( 'generic', $instance, array( 'commands' => $run_cmd ) );
 		$success = $this->is_ssh_successful( $result, 'backup_config_files.txt' );
 		if ( ! $success || is_wp_error( $success ) ) {
+			do_action( "wpcd_server_{$this->get_app_name()}_toggle_server_configuration_backups_failed", $id, $action, $success );
 			/* translators: %1$s is replaced with the internal action name; %2$s is replaced with the result of the call, usually an error message. */
 			return new \WP_Error( sprintf( __( 'Unable to %1$s site: %2$s', 'wpcd' ), $action, $result ) );
 		} else {
@@ -970,6 +975,8 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 				'msg'     => $msg,
 				'refresh' => 'yes',
 			);
+
+			do_action( "wpcd_server_{$this->get_app_name()}_toggle_server_configuration_backups_success", $id, $action, $success );
 		}
 
 		return $result;
@@ -1056,7 +1063,7 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 			/**
 			 * Fire action hook to let other things know this action succeeded - usually used by things triggered from PENDING TASKS.
 			 */
-			do_action( "wpcd_server_{$this->get_app_name()}_take_a_snapshot_action_successful", $id, $action, $success );
+			do_action( "wpcd_server_{$this->get_app_name()}_take_a_snapshot_action_successful", $id, $action, $success, $result );
 
 			// Return the data as an error so it can be shown in a dialog box.
 			return new \WP_Error( __( 'We have requested a snapshot via the server provider API. Please check your providers dashboard to verify completion.', 'wpcd' ) );

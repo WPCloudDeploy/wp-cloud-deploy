@@ -318,7 +318,7 @@ class WPCD_WORDPRESS_TABS_THEME_AND_PLUGIN_UPDATES extends WPCD_WORDPRESS_TABS {
 			'name'       => '',
 			'tab'        => 'theme-and-plugin-updates',
 			'type'       => 'button',
-			'std'        => __( 'Update Everything', 'wcpcd' ),
+			'std'        => __( 'Update Everything', 'wpcd' ),
 			'attributes' => array(
 				// the _action that will be called in ajax.
 				'data-wpcd-action'              => 'update-everything',
@@ -351,7 +351,7 @@ class WPCD_WORDPRESS_TABS_THEME_AND_PLUGIN_UPDATES extends WPCD_WORDPRESS_TABS {
 			'name'       => '',
 			'tab'        => 'theme-and-plugin-updates',
 			'type'       => 'button',
-			'std'        => __( 'Update', 'wcpcd' ),
+			'std'        => __( 'Update', 'wpcd' ),
 			'attributes' => array(
 				// the _action that will be called in ajax.
 				'data-wpcd-action'              => 'update-themes-and-plugins',
@@ -384,7 +384,7 @@ class WPCD_WORDPRESS_TABS_THEME_AND_PLUGIN_UPDATES extends WPCD_WORDPRESS_TABS {
 			'name'       => '',
 			'tab'        => 'theme-and-plugin-updates',
 			'type'       => 'button',
-			'std'        => __( 'Update Themes', 'wcpcd' ),
+			'std'        => __( 'Update Themes', 'wpcd' ),
 			'attributes' => array(
 				// the _action that will be called in ajax.
 				'data-wpcd-action'              => 'update-themes',
@@ -417,7 +417,7 @@ class WPCD_WORDPRESS_TABS_THEME_AND_PLUGIN_UPDATES extends WPCD_WORDPRESS_TABS {
 			'name'       => '',
 			'tab'        => 'theme-and-plugin-updates',
 			'type'       => 'button',
-			'std'        => __( 'Update Plugins', 'wcpcd' ),
+			'std'        => __( 'Update Plugins', 'wpcd' ),
 			'attributes' => array(
 				// the _action that will be called in ajax.
 				'data-wpcd-action'              => 'update-plugins',
@@ -450,7 +450,7 @@ class WPCD_WORDPRESS_TABS_THEME_AND_PLUGIN_UPDATES extends WPCD_WORDPRESS_TABS {
 			'name'       => '',
 			'tab'        => 'theme-and-plugin-updates',
 			'type'       => 'button',
-			'std'        => __( 'Update WordPress', 'wcpcd' ),
+			'std'        => __( 'Update WordPress', 'wpcd' ),
 			'attributes' => array(
 				// the _action that will be called in ajax.
 				'data-wpcd-action'              => 'update-wordpress',

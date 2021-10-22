@@ -164,11 +164,8 @@ else
 	fi
 	echo $(date): ".....Refreshing Snap Core..."
 	snap refresh core > /dev/null 2>&1
-	if [ $? -ne 0 ]  
-	then
-		echo "Failed!  Quitting process"
-		exit 1
-	fi
+	#No checks after the "snap refresh core" command because sometimes the snap servers return a false error.  And refresh isn't critical here.
+
 	echo $(date): ".....Installing Classic Certbot..."
 	snap install --classic certbot > /dev/null 2>&1
 	if [ $? -ne 0 ]  

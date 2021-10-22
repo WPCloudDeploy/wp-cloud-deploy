@@ -191,7 +191,7 @@ class WPCD_WORDPRESS_TABS_SITE_SYSTEM_USERS extends WPCD_WORDPRESS_TABS {
 			'id'         => 'wpcd_app_action_site_user_changepass_button',
 			'tab'        => 'site-system-users',
 			'type'       => 'button',
-			'std'        => __( 'Change Password', 'wcpcd' ),
+			'std'        => __( 'Change Password', 'wpcd' ),
 			'attributes' => array(
 				// the _action that will be called in ajax.
 				'data-wpcd-action' => 'site-user-change-password',
@@ -210,7 +210,7 @@ class WPCD_WORDPRESS_TABS_SITE_SYSTEM_USERS extends WPCD_WORDPRESS_TABS {
 				'id'         => 'wpcd_app_action_site_user_removepass_button',
 				'tab'        => 'site-system-users',
 				'type'       => 'button',
-				'std'        => __( 'Remove Password', 'wcpcd' ),
+				'std'        => __( 'Remove Password', 'wpcd' ),
 				'attributes' => array(
 					// the _action that will be called in ajax.
 					'data-wpcd-action' => 'site-user-remove-password',
@@ -241,7 +241,7 @@ class WPCD_WORDPRESS_TABS_SITE_SYSTEM_USERS extends WPCD_WORDPRESS_TABS {
 			'id'         => 'wpcd_app_action_site_user_setkey_button',
 			'tab'        => 'site-system-users',
 			'type'       => 'button',
-			'std'        => __( 'Set Public Key', 'wcpcd' ),
+			'std'        => __( 'Set Public Key', 'wpcd' ),
 			'attributes' => array(
 				// the _action that will be called in ajax.
 				'data-wpcd-action' => 'site-user-set-key',
@@ -260,7 +260,7 @@ class WPCD_WORDPRESS_TABS_SITE_SYSTEM_USERS extends WPCD_WORDPRESS_TABS {
 				'id'         => 'wpcd_app_action_site_user_removekey_button',
 				'tab'        => 'site-system-users',
 				'type'       => 'button',
-				'std'        => __( 'Remove Public Key', 'wcpcd' ),
+				'std'        => __( 'Remove Public Key', 'wpcd' ),
 				'attributes' => array(
 					// the _action that will be called in ajax.
 					'data-wpcd-action' => 'site-user-remove-key',
@@ -286,7 +286,7 @@ class WPCD_WORDPRESS_TABS_SITE_SYSTEM_USERS extends WPCD_WORDPRESS_TABS {
 		$instance = $this->get_app_instance_details( $id );
 
 		if ( is_wp_error( $instance ) ) {
-			return $instance;
+			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
 		}
 
 		/* Grab the arguments sent from the front-end JS */

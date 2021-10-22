@@ -159,30 +159,30 @@ class WPCD_VPN_APP extends WPCD_APP {
 		$result = $this->do_instance_action( sanitize_text_field( $_POST['vpn_id'] ), sanitize_text_field( $_POST['vpn_app_id'] ), sanitize_text_field( $_POST['vpn_action'] ), $additional );
 		if ( is_wp_error( $result ) ) {
 			wp_send_json_error( array( 'msg' => $result->get_error_code() ) );
+		} else if ( empty( $result ) ) {
+			wp_send_json_error();
 		}
 
-		/* Perform stuff based on the action requestd and its results after being run */
-		if ( $result ) {
-			switch ( $_POST['vpn_action'] ) {
-				case 'add-user':
-					// download the file as soon as the user is added.
-					$this->do_instance_action( sanitize_text_field( $_POST['vpn_id'] ), sanitize_text_field( $_POST['vpn_app_id'] ), 'download-file', $additional );
-					break;
-				case 'connected':
-				case 'disconnect':
-					if ( ! empty( $result ) ) {
-						$result = explode( ',', $result );
-						$temp   = array_filter( array_map( 'trim', $result ) );
-						$result = array();
-						foreach ( $temp as $name ) {
-							$result[] = array( 'name' => $name );
-						}
+		/* Perform stuff based on the action requested and its results after being run */
+		switch ( $_POST['vpn_action'] ) {
+			case 'add-user':
+				// download the file as soon as the user is added.
+				$this->do_instance_action( sanitize_text_field( $_POST['vpn_id'] ), sanitize_text_field( $_POST['vpn_app_id'] ), 'download-file', $additional );
+				break;
+			case 'connected':
+			case 'disconnect':
+				if ( ! empty( $result ) ) {
+					$result = explode( ',', $result );
+					$temp   = array_filter( array_map( 'trim', $result ) );
+					$result = array();
+					foreach ( $temp as $name ) {
+						$result[] = array( 'name' => $name );
 					}
-					break;
-			}
-
-			wp_send_json_success( array( 'result' => $result ) );
+				}
+				break;
 		}
+
+		wp_send_json_success( array( 'result' => $result ) );
 	}
 
 	/**

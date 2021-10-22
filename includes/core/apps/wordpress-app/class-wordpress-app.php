@@ -931,16 +931,15 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		}
 
 		if ( is_wp_error( $result ) ) {
-			echo wp_send_json_error( array( 'msg' => $result->get_error_code() ) );
+			wp_send_json_error( array( 'msg' => $result->get_error_code() ) );
 		}
 
-		echo wp_send_json_success(
+		wp_send_json_success(
 			array(
 				'msg'    => $msg,
 				'result' => $result,
 			)
 		);
-
 	}
 
 

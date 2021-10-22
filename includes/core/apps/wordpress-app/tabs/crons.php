@@ -200,7 +200,8 @@ class WPCD_WORDPRESS_TABS_CRONS extends WPCD_WORDPRESS_TABS {
 			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
 		}
 
-		$args = wp_parse_args( wp_unslash( $_POST['params'] ) );
+		// Get data from the POST request.
+		$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
 
 		// Special sanitization for the interval...
 		$new_cron_interval = '';

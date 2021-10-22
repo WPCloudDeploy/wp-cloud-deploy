@@ -120,7 +120,8 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 	 */
 	private function copy_to_existing_site( $action, $id ) {
 
-		$args = wp_parse_args( wp_unslash( $_POST['params'] ) );
+		// Get data from the POST request.
+		$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
 
 		// Bail if certain things are empty...
 		if ( empty( $args['target_domain'] ) ) {

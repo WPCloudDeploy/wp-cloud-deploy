@@ -152,13 +152,13 @@ class WPCD_VPN_APP extends WPCD_APP {
 		/* Extract out any additional parameters that might have been passed from the browser */
 		$additional = array();
 		if ( isset( $_POST['vpn_additional'] ) ) {
-			$additional = wp_parse_args( sanitize_text_field( $_POST['vpn_additional'] ) );
+			$additional = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['vpn_additional'] ) ) );
 		}
 
 		/* Run the action */
 		$result = $this->do_instance_action( sanitize_text_field( $_POST['vpn_id'] ), sanitize_text_field( $_POST['vpn_app_id'] ), sanitize_text_field( $_POST['vpn_action'] ), $additional );
 		if ( is_wp_error( $result ) ) {
-			echo wp_send_json_error( array( 'msg' => $result->get_error_code() ) );
+			wp_send_json_error( array( 'msg' => $result->get_error_code() ) );
 		}
 
 		/* Perform stuff based on the action requestd and its results after being run */
@@ -180,7 +180,8 @@ class WPCD_VPN_APP extends WPCD_APP {
 					}
 					break;
 			}
-			echo wp_send_json_success( array( 'result' => $result ) );
+
+			wp_send_json_success( array( 'result' => $result ) );
 		}
 	}
 
@@ -1128,14 +1129,14 @@ class WPCD_VPN_APP extends WPCD_APP {
 				<div class="wpcd-vpn-instance">
 					<div class="wpcd-vpn-instance-name">' . get_post_meta( $server_post->ID, 'wpcd_server_name', true ) . '</div>
 
-					<div class="wpcd-vpn-instance-atts">' . 
+					<div class="wpcd-vpn-instance-atts">' .
 						'<div class="wpcd-vpn-instance-atts-provider-wrap">' . $provider_icon . '<div class="wpcd-vpn-instance-atts-provider-label">' . __( 'Provider', 'wpcd' )        . ': ' . '</div>' . $this->get_providers()[$provider] . '</div>
 						<div class="wpcd-vpn-instance-atts-region-wrap">'    . $region_icon   . '<div class="wpcd-vpn-instance-atts-region-label">'   . __( 'Region', 'wpcd' )          . ': ' . '</div>' . $display_region . '</div>
 						<div class="wpcd-vpn-instance-atts-size-wrap">'      . $size_icon     . '<div class="wpcd-vpn-instance-atts-size-label">'     . __( 'Size', 'wpcd' )            . ': ' . '</div>' . WPCD()->classes['wpcd_app_vpn_wc']::$sizes[ strval( $size ) ] . '</div>
 						<div class="wpcd-vpn-instance-atts-proto-wrap">'     . $protocol_icon . '<div class="wpcd-vpn-instance-atts-proto-label">'    . __( 'Protocol', 'wpcd' )        . ': ' . '</div>' . $protocol . '</div>
 						<div class="wpcd-vpn-instance-atts-users-wrap">'     . $users_icon    . '<div class="wpcd-vpn-instance-atts-users-label">'    . __( 'Users / Allowed', 'wpcd' ) . ': ' . '</div>' . sprintf( '%d / %d', count( $total ), $max ) . '</div>
 						<div class="wpcd-vpn-instance-atts-subid-wrap">'     . $subid_icon    . '<div class="wpcd-vpn-instance-atts-sub-label">'      . __( 'Subscription ID', 'wpcd' ) . ': ' . '</div>' . implode( ', ', $subscription ) . '</div>' ;
-			
+
 			$output .= '</div>';
 			$output  = $this->add_promo_link( 1, $output );
 			$output .= '<div class="wpcd-vpn-instance-actions">' . $buttons . '</div>

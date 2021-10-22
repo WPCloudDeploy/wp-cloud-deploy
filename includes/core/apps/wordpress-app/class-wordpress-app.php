@@ -2251,12 +2251,12 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				/* Check permissions */
 				if ( ! current_user_can( 'wpcd_provision_servers' ) ) {
 					$invalid_msg = __( 'You don\'t have access to provision a server.', 'wpcd' );
-					echo wp_send_json_error( array( 'msg' => $invalid_msg ) );
+					wp_send_json_error( array( 'msg' => $invalid_msg ) );
 					break;
 				}
 
 				// Get arguments from form.
-				$args = wp_parse_args( wp_unslash( $_REQUEST['params'] ) );
+				$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_REQUEST['params'] ) ) );
 
 				// Extract and sanitize some data from the args array.
 				$webserver = '';
@@ -2285,7 +2285,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				}
 
 				if ( ! empty( $name ) && ! preg_match( $name_pattern, $name ) ) {
-					echo wp_send_json_error( array( 'msg' => $invalid_msg ) );
+					wp_send_json_error( array( 'msg' => $invalid_msg ) );
 					break;
 				}
 				// End validate the server name.
@@ -2293,7 +2293,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				/* Validate the os */
 				$oslist = WPCD()->get_os_list();
 				if ( ! $oslist[ $os ] ) {
-					echo wp_send_json_error( array( 'msg' => __( 'Invalid OS - security issue?', 'wpcd' ) ) );
+					wp_send_json_error( array( 'msg' => __( 'Invalid OS - security issue?', 'wpcd' ) ) );
 					break;
 				}
 
@@ -2301,7 +2301,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				if ( ! empty( $webserver ) ) {
 					$webserver_list = WPCD()->get_webserver_list();
 					if ( ! $webserver_list[ $webserver ] ) {
-						echo wp_send_json_error( array( 'msg' => __( 'Invalid Webserver type - security issue?', 'wpcd' ) ) );
+						wp_send_json_error( array( 'msg' => __( 'Invalid Webserver type - security issue?', 'wpcd' ) ) );
 						break;
 					}
 				}
@@ -2396,20 +2396,20 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			case 'update-status':
 				/* Check for missing parameters */
 				if ( ! isset( $_POST['params']['id'] ) ) {
-					echo wp_send_json_error( array( 'msg' => __( 'Missing required parameter.', 'wpcd' ) ) );
+					wp_send_json_error( array( 'msg' => __( 'Missing required parameter.', 'wpcd' ) ) );
 					break;
 				}
 
 				/* Make sure we have a valid post type */
 				$id = sanitize_text_field( $_POST['params']['id'] ); // server_id.
 				if ( get_post_type( $id ) != 'wpcd_app_server' ) {
-					echo wp_send_json_error( array( 'msg' => __( 'Invalid post type.', 'wpcd' ) ) );
+					wp_send_json_error( array( 'msg' => __( 'Invalid post type.', 'wpcd' ) ) );
 					break;
 				}
 
 				// Verify that the user is allowed to access the server .
 				if ( ! $this->wpcd_user_can_view_wp_server( $id ) ) {
-					echo wp_send_json_error( array( 'msg' => __( 'You are not allowed to perform this operation on this server.', 'wpcd' ) ) );
+					wp_send_json_error( array( 'msg' => __( 'You are not allowed to perform this operation on this server.', 'wpcd' ) ) );
 					break;
 				}
 
@@ -2435,20 +2435,20 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			default:
 				$additional = array();
 				if ( isset( $_POST['additional'] ) ) {
-					$additional = wp_parse_args( sanitize_text_field( $_POST['additional'] ) );
+					$additional = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['additional'] ) ) );
 				}
 				$result = $this->do_instance_action( sanitize_text_field( $_POST['_id'] ), sanitize_text_field( $_POST['_action'] ), $additional );
 		}
 
 		if ( is_wp_error( $result ) ) {
 			if ( ! empty( $msg ) ) {
-				echo wp_send_json_error( array( 'msg' => $msg . '<br />' . $result->get_error_code() ) );
+				wp_send_json_error( array( 'msg' => $msg . '<br />' . $result->get_error_code() ) );
 			} else {
-				echo wp_send_json_error( array( 'msg' => $result->get_error_code() ) );
+				wp_send_json_error( array( 'msg' => $result->get_error_code() ) );
 			}
 		}
 
-		echo wp_send_json_success(
+		wp_send_json_success(
 			array(
 				'msg'    => $msg,
 				'result' => $result,
@@ -2516,7 +2516,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		// Get WP data to process.
 		if ( empty( $args ) ) {
 			// data is comming in via $_REQUEST which means that the site is being provisioned via wp-admin or a UI.
-			$args = wp_parse_args( wp_unslash( $_REQUEST['params'] ) );
+			$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_REQUEST['params'] ) ) );
 			$id   = sanitize_text_field( $_REQUEST['id'] );  // Post ID of the server where the wp app is being installed.
 		} else {
 			// data is being passed in directly which means that the site is likely being provisioned via woocommerce.
@@ -2838,7 +2838,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	 * servers add-on.
 	 */
 	public function create_instance() {
-		$args = wp_parse_args( wp_unslash( $_REQUEST['params'] ) );
+		$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_REQUEST['params'] ) ) );
 
 		$webserver = '';
 		if ( ! empty( $args['webserver-type'] ) ) {

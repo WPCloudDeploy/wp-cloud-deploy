@@ -95,7 +95,7 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 					'name_admin_bar'        => _x( 'Pending Task', 'Add New on Toolbar', 'wpcd' ),
 					'edit_item'             => __( 'Edit Pending Task', 'wpcd' ),
 					'view_item'             => __( 'View Pending Task', 'wpcd' ),
-					'all_items'             => __( 'All Pending Task Entries', 'wpcd' ),
+					'all_items'             => __( 'Pending Tasks', 'wpcd' ), // Label to signify all items in a submenu link.
 					'search_items'          => __( 'Search Pending Task Log', 'wpcd' ),
 					'not_found'             => __( 'No Pending Task Logs were found.', 'wpcd' ),
 					'not_found_in_trash'    => __( 'No Pending Task Logs were found in Trash.', 'wpcd' ),
@@ -104,25 +104,23 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 					'items_list'            => _x( 'Pending Task list', 'Screen reader text for the items list heading on the post type listing screen. Default "Posts list"/"Pages list". Added in 4.4', 'wpcd' ),
 				),
 				'show_ui'             => true,
-				'show_in_menu'        => false,
+				'show_in_menu'        => 'edit.php?post_type=wpcd_app_server',
+				'menu_position'       => 10,
 				'show_in_nav_menus'   => true,
 				'show_in_admin_bar'   => false,
 				'public'              => true,
 				'exclude_from_search' => true,
 				'publicly_queryable'  => false,
 				'hierarchical'        => false,
-				'menu_position'       => null,
 				'supports'            => array( '' ),
 				'rewrite'             => null,
-				'capabilities'        => array(
-					'create_posts' => false,
-					'edit_posts'   => true,
-				),
-				'map_meta_cap'        => true,
 				'capability_type'     => 'post',
 				'capabilities'        => array(
-					'create_posts' => 'do_not_allow',
+					'create_posts' => false,
+					'read_posts'   => 'wpcd_manage_logs',
+					'edit_posts'   => 'wpcd_manage_logs',
 				),
+				'map_meta_cap'        => true,
 			)
 		);
 

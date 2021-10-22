@@ -602,7 +602,7 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 						if(r){
 							window.location = href;
 						}
-					});					
+					});
 				});
 			</script>
 			<?php
@@ -1202,14 +1202,14 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 					'items_list'            => _x( 'APPs list', 'Screen reader text for the items list heading on the post type listing screen. Default "Posts list"/"Pages list". Added in 4.4', 'wpcd' ),
 				),
 				'show_ui'             => true,
-				'show_in_menu'        => true,
+				'show_in_menu'        => 'edit.php?post_type=wpcd_app_server',
+				'menu_position'       => 10,
 				'show_in_nav_menus'   => true,
 				'show_in_admin_bar'   => false,
 				'public'              => true,
 				'exclude_from_search' => true,
 				'publicly_queryable'  => false,
 				'hierarchical'        => false,
-				'menu_position'       => null,
 				'supports'            => array( '' ),
 				'rewrite'             => null,
 				'capabilities'        => array(
@@ -1392,7 +1392,7 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 				?>
 				<script type="text/javascript">
 					jQuery(document).ready(function($){
-						$('#cb-select-<?php echo esc_html( $post->ID ); ?>').attr('disabled', true);					
+						$('#cb-select-<?php echo esc_html( $post->ID ); ?>').attr('disabled', true);
 					});
 				</script>
 				<?php

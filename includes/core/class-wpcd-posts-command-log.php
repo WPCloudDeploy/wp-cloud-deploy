@@ -65,13 +65,13 @@ class WPCD_COMMAND_LOG extends WPCD_POSTS_LOG {
 			'wpcd_command_log',
 			array(
 				'labels'              => array(
-					'name'                  => _x( 'Command Log', 'Post type general name', 'wpcd' ),
+					'name'                  => _x( 'Command Logs', 'Post type general name', 'wpcd' ),
 					'singular_name'         => _x( 'Command Log', 'Post type singular name', 'wpcd' ),
 					'menu_name'             => _x( 'Command Log', 'Admin Menu text', 'wpcd' ),
 					'name_admin_bar'        => _x( 'Command Log', 'Add New on Toolbar', 'wpcd' ),
 					'edit_item'             => __( 'Edit Command Log', 'wpcd' ),
 					'view_item'             => __( 'View Command Log', 'wpcd' ),
-					'all_items'             => __( 'All Command Log Entries', 'wpcd' ),
+					'all_items'             => __( 'Command Logs', 'wpcd' ),
 					'search_items'          => __( 'Search Command Log', 'wpcd' ),
 					'not_found'             => __( 'No Command Logs were found.', 'wpcd' ),
 					'not_found_in_trash'    => __( 'No Command Logs were found in Trash.', 'wpcd' ),
@@ -80,7 +80,7 @@ class WPCD_COMMAND_LOG extends WPCD_POSTS_LOG {
 					'items_list'            => _x( 'Command Log list', 'Screen reader text for the items list heading on the post type listing screen. Default "Posts list"/"Pages list". Added in 4.4', 'wpcd' ),
 				),
 				'show_ui'             => true,
-				'show_in_menu'        => false,
+				'show_in_menu'        => 'edit.php?post_type=wpcd_app_server',
 				'show_in_nav_menus'   => true,
 				'show_in_admin_bar'   => false,
 				'public'              => true,
@@ -90,15 +90,13 @@ class WPCD_COMMAND_LOG extends WPCD_POSTS_LOG {
 				'menu_position'       => null,
 				'supports'            => array( '' ),
 				'rewrite'             => null,
-				'capabilities'        => array(
-					'create_posts' => false,
-					'edit_posts'   => true,
-				),
-				'map_meta_cap'        => true,
 				'capability_type'     => 'post',
 				'capabilities'        => array(
-					'create_posts' => 'do_not_allow',
+					'create_posts' => false,
+					'read_posts'   => 'wpcd_manage_logs',
+					'edit_posts'   => 'wpcd_manage_logs',
 				),
+				'map_meta_cap'        => true,
 			)
 		);
 

@@ -97,7 +97,7 @@ class WPCD_NOTIFY_USER extends WPCD_Posts_Base {
 			'wpcd_notify_user',
 			array(
 				'labels'              => array(
-					'name'                  => _x( 'User Notification', 'Post type general name', 'wpcd' ),
+					'name'                  => _x( 'User Notifications', 'Post type general name', 'wpcd' ),
 					'singular_name'         => _x( 'User Notification', 'Post type singular name', 'wpcd' ),
 					'menu_name'             => _x( 'User Notification', 'Admin Menu text', 'wpcd' ),
 					'name_admin_bar'        => _x( 'User Notification', 'Add New on Toolbar', 'wpcd' ),
@@ -105,7 +105,7 @@ class WPCD_NOTIFY_USER extends WPCD_Posts_Base {
 					'add_new_item'          => __( 'New User Notification', 'wpcd' ),
 					'edit_item'             => __( 'Edit User Notification', 'wpcd' ),
 					'view_item'             => __( 'View User Notification', 'wpcd' ),
-					'all_items'             => __( 'All User Notification Entries', 'wpcd' ),
+					'all_items'             => __( 'Profiles', 'wpcd' ), // Label to signify all items in a submenu link.
 					'search_items'          => __( 'Search User Notification', 'wpcd' ),
 					'not_found'             => __( 'No User Notifications were found.', 'wpcd' ),
 					'not_found_in_trash'    => __( 'No User Notifications were found in Trash.', 'wpcd' ),
@@ -114,7 +114,7 @@ class WPCD_NOTIFY_USER extends WPCD_Posts_Base {
 					'items_list'            => _x( 'User Notification list', 'Screen reader text for the items list heading on the post type listing screen. Default "Posts list"/"Pages list". Added in 4.4', 'wpcd' ),
 				),
 				'show_ui'             => true,
-				'show_in_menu'        => false,
+				'show_in_menu'        => 'edit.php?post_type=wpcd_notify_log',
 				'show_in_nav_menus'   => true,
 				'show_in_admin_bar'   => false,
 				'public'              => true,

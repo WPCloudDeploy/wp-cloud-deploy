@@ -555,7 +555,7 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
 		}
 
-		$args = wp_parse_args( sanitize_text_field( $_POST['params'] ) );
+		$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
 
 		// Check to make sure that both a user id and password is offered if the action is to turn on authentication.
 		if ( 'enable_auth' === $action ) {

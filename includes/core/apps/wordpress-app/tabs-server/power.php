@@ -425,7 +425,7 @@ class WPCD_WORDPRESS_TABS_SERVER_POWER extends WPCD_WORDPRESS_TABS {
 		}
 
 		// Sanitize arguments array.
-		$args = wp_parse_args( sanitize_text_field( $_POST['params'] ) );
+		$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
 
 		// Bail if either date or time is empty...
 		if ( empty( $args['reboot_date'] ) || empty( $args['reboot_time'] ) ) {

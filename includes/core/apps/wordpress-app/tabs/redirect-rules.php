@@ -258,7 +258,7 @@ class WPCD_WORDPRESS_TABS_REDIRECT_RULES extends WPCD_WORDPRESS_TABS {
 		}
 
 		// Get the field values from the front-end.
-		$args = wp_parse_args( sanitize_text_field( $_POST['params'] ) );
+		$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
 
 		// Get the domain...
 		$domain = get_post_meta( $id, 'wpapp_domain', true );

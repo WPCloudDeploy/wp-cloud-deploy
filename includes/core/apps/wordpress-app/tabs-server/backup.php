@@ -493,7 +493,8 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 
 		$action = 'change_aws_credentials';  // The action being passed to the bash script.
 
-		$args = wp_parse_args( $_POST['params'] ); // Get data from the post.
+		// Get data from the post.
+		$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
 
 		// Get the instance details.
 		$instance = $this->get_server_instance_details( $id );
@@ -506,13 +507,13 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 
 		// sanitize the fields to allow them to be used safely on the bash command line.
 		if ( ! empty( $args['aws_key'] ) ) {
-			$creds['aws_access_key_id'] = escapeshellarg( sanitize_text_field( $args['aws_key'] ) );
+			$creds['aws_access_key_id'] = escapeshellarg( $args['aws_key'] );
 		} else {
 			// Get the one from the global settings screen...
 			$creds['aws_access_key_id'] = escapeshellarg( wpcd_get_option( 'wordpress_app_aws_access_key' ) );
 		}
 		if ( ! empty( $args['aws_secret'] ) ) {
-			$creds['aws_secret_access_key'] = escapeshellarg( sanitize_text_field( $args['aws_secret'] ) );
+			$creds['aws_secret_access_key'] = escapeshellarg( $args['aws_secret'] );
 		} else {
 			// Get the one from the global settings screen...
 			$creds['aws_secret_access_key'] = escapeshellarg( self::decrypt( wpcd_get_option( 'wordpress_app_aws_secret_key' ) ) );
@@ -621,7 +622,7 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 
 		// Get args passed in..
 		if ( ! empty( $_POST['params'] ) ) {
-			$args = wp_parse_args( sanitize_text_field( $_POST['params'] ) );
+			$args = wp_parse_args( wp_unslash( $_POST['params'] ) );
 		} else {
 			// You might get here if this function ends up being called by an action hook instead of a browser click.
 			$args = array();
@@ -748,7 +749,7 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 		$creds = $this->get_s3_credentials_for_backup( $id );
 
 		// Get args passed in..
-		$args = wp_parse_args( sanitize_text_field( $_POST['params'] ) );
+		$args = wp_parse_args( wp_unslash( $_POST['params'] ) );
 
 		// If a bucket was passed in for this action, add it to the creds array.
 		if ( ! empty( $args['auto_backup_bucket_name_all_sites'] ) ) {
@@ -823,7 +824,7 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 		$creds = $this->get_s3_credentials_for_backup( $id );
 
 		// Get args passed in..
-		$args = wp_parse_args( sanitize_text_field( $_POST['params'] ) );
+		$args = wp_parse_args( wp_unslash( $_POST['params'] ) );
 
 		// Make sure we have a number for the retention days...
 

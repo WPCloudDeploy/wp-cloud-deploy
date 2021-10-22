@@ -598,7 +598,7 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
 		}
 
-		$args = wp_parse_args( sanitize_text_field( $_POST['params'] ) );
+		$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
 
 		// Special sanitization for the new version...
 		$new_php_version = '';
@@ -655,7 +655,7 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 		}
 
 		// Get the field values from the front-end.
-		$args = wp_parse_args( sanitize_text_field( $_POST['params'] ) );
+		$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
 
 		// Are we changing a 'common' option or an 'advanced' option?
 		if ( ! empty( $args['php_common_option_value'] ) ) {
@@ -782,7 +782,7 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 		}
 
 		// Get the field values from the front-end.
-		$args = wp_parse_args( sanitize_text_field( $_POST['params'] ) );
+		$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
 
 		// Create a new array with the unescaped fields for storage in the database.
 		$pm                         = array();

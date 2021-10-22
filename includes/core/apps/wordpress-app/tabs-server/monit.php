@@ -821,7 +821,7 @@ class WPCD_WORDPRESS_TABS_SERVER_MONIT extends WPCD_WORDPRESS_TABS {
 		}
 
 		// Sanitize arguments array.
-		$args = wp_parse_args( sanitize_text_field( $_POST['params'] ) );
+		$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
 
 		// Make sure certain things are present by pulling them from the database.
 		if ( ( ! isset( $args['domain'] ) ) || empty( $args['domain'] ) ) {

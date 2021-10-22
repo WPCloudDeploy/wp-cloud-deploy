@@ -286,11 +286,11 @@ class WPCD_WORDPRESS_TABS_SITE_SYSTEM_USERS extends WPCD_WORDPRESS_TABS {
 		$instance = $this->get_app_instance_details( $id );
 
 		if ( is_wp_error( $instance ) ) {
-			return $result;
+			return $instance;
 		}
 
 		/* Grab the arguments sent from the front-end JS */
-		$args = wp_parse_args( sanitize_text_field( $_POST['params'] ) );
+		$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
 
 		// The user is the application domain.
 		$user         = get_post_meta( $id, 'wpapp_domain', true );

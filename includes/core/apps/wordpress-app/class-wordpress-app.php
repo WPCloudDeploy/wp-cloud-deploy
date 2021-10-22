@@ -2172,7 +2172,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				}
 
 				// Get arguments from form.
-				$args = wp_parse_args( $_REQUEST['params'] );
+				$args = wp_parse_args( wp_unslash( $_REQUEST['params'] ) );
 
 				// Extract and sanitize some data from the args array.
 				$webserver = '';
@@ -2282,14 +2282,14 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 					break;
 				}
 
-				// Grab some data so we can validate it...
-				$args = wp_parse_args( sanitize_text_field( $_REQUEST['params'] ) );
+				// Grab some data, so we can validate it...
+				$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_REQUEST['params'] ) ) );
 
 				// Make sure that we get an unsanitized version of the array.
 				// We need this to get the password field.
 				// Text sanitation will remove certain special chars which are valid for password fields.
 				// So we cannot use the sanitized password field.
-				$args_unsanitized = wp_parse_args( $_REQUEST['params'] );
+				$args_unsanitized = wp_parse_args( wp_unslash( $_REQUEST['params'] ) );
 
 				// Make sure we have data for all fields. Do not do a check for wp_locale though because, if it's blank, we'll default it 'en_US' later when the installation starts.
 				if ( empty( $args['wp_domain'] ) || empty( $args['wp_user'] ) || empty( $args_unsanitized['wp_password'] ) || empty( $args['wp_email'] ) || empty( $args['wp_version'] ) || empty( $args['wpcd_app_type'] ) ) {
@@ -2432,7 +2432,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		// Get WP data to process.
 		if ( empty( $args ) ) {
 			// data is comming in via $_REQUEST which means that the site is being provisioned via wp-admin or a UI.
-			$args = wp_parse_args( $_REQUEST['params'] );
+			$args = wp_parse_args( wp_unslash( $_REQUEST['params'] ) );
 			$id   = sanitize_text_field( $_REQUEST['id'] );  // Post ID of the server where the wp app is being installed.
 		} else {
 			// data is being passed in directly which means that the site is likely being provisioned via woocommerce.
@@ -2754,7 +2754,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	 * servers add-on.
 	 */
 	public function create_instance() {
-		$args = wp_parse_args( $_REQUEST['params'] );
+		$args = wp_parse_args( wp_unslash( $_REQUEST['params'] ) );
 
 		$webserver = '';
 		if ( ! empty( $args['webserver-type'] ) ) {

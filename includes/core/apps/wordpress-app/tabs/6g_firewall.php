@@ -189,7 +189,7 @@ class WPCD_WORDPRESS_TABS_6G_FIREWALL extends WPCD_WORDPRESS_TABS {
 				'on_label'   => __( 'Enabled', 'wpcd' ),
 				'off_label'  => __( 'Disabled', 'wpcd' ),
 				'std'        => $status === 'on',
-				'desc'       => __( 'Enable or Disable ALL 6G Rules', 'wcpcd' ),
+				'desc'       => __( 'Enable or Disable ALL 6G Rules', 'wpcd' ),
 				'attributes' => array(
 					// the _action that will be called in ajax.
 					'data-wpcd-action'              => '6g_all',
@@ -222,7 +222,7 @@ class WPCD_WORDPRESS_TABS_6G_FIREWALL extends WPCD_WORDPRESS_TABS {
 				'on_label'   => __( 'Enabled', 'wpcd' ),
 				'off_label'  => __( 'Disabled', 'wpcd' ),
 				'std'        => $status === 'on',
-				'desc'       => __( 'Enable or Disable User Agent Rules', 'wcpcd' ),
+				'desc'       => __( 'Enable or Disable User Agent Rules', 'wpcd' ),
 				'attributes' => array(
 					// the _action that will be called in ajax.
 					'data-wpcd-action'              => '6g_user_agent',
@@ -255,7 +255,7 @@ class WPCD_WORDPRESS_TABS_6G_FIREWALL extends WPCD_WORDPRESS_TABS {
 				'on_label'   => __( 'Enabled', 'wpcd' ),
 				'off_label'  => __( 'Disabled', 'wpcd' ),
 				'std'        => $status === 'on',
-				'desc'       => __( 'Enable or Disable Referrer Rules', 'wcpcd' ),
+				'desc'       => __( 'Enable or Disable Referrer Rules', 'wpcd' ),
 				'attributes' => array(
 					// the _action that will be called in ajax.
 					'data-wpcd-action'              => '6g_referrer',
@@ -288,7 +288,7 @@ class WPCD_WORDPRESS_TABS_6G_FIREWALL extends WPCD_WORDPRESS_TABS {
 				'on_label'   => __( 'Enabled', 'wpcd' ),
 				'off_label'  => __( 'Disabled', 'wpcd' ),
 				'std'        => $status === 'on',
-				'desc'       => __( 'Enable or Disable Query String Rules', 'wcpcd' ),
+				'desc'       => __( 'Enable or Disable Query String Rules', 'wpcd' ),
 				'attributes' => array(
 					// the _action that will be called in ajax.
 					'data-wpcd-action'              => '6g_query_string',
@@ -322,7 +322,7 @@ class WPCD_WORDPRESS_TABS_6G_FIREWALL extends WPCD_WORDPRESS_TABS {
 				'on_label'   => __( 'Enabled', 'wpcd' ),
 				'off_label'  => __( 'Disabled', 'wpcd' ),
 				'std'        => $status === 'on',
-				'desc'       => __( 'Enable or Disable Request String Rules', 'wcpcd' ),
+				'desc'       => __( 'Enable or Disable Request String Rules', 'wpcd' ),
 				'attributes' => array(
 					// the _action that will be called in ajax.
 					'data-wpcd-action'              => '6g_request_string',
@@ -355,7 +355,7 @@ class WPCD_WORDPRESS_TABS_6G_FIREWALL extends WPCD_WORDPRESS_TABS {
 				'on_label'   => __( 'Enabled', 'wpcd' ),
 				'off_label'  => __( 'Disabled', 'wpcd' ),
 				'std'        => $status === 'on',
-				'desc'       => __( 'Enable or Disable Request Method Rules', 'wcpcd' ),
+				'desc'       => __( 'Enable or Disable Request Method Rules', 'wpcd' ),
 				'attributes' => array(
 					// the _action that will be called in ajax.
 					'data-wpcd-action'              => '6g_request_method',

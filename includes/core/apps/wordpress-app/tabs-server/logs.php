@@ -146,7 +146,7 @@ class WPCD_WORDPRESS_TABS_SERVER_LOGS extends WPCD_WORDPRESS_TABS {
 			'label'          => '',
 			'type'           => 'button',
 			'raw_attributes' => array(
-				'std'              => __( 'Download', 'wcpcd' ),
+				'std'              => __( 'Download', 'wpcd' ),
 				// the _action that will be called in ajax.
 				// 'data-wpcd-action' => 'server-log-download'.
 				// the id.
@@ -175,7 +175,7 @@ class WPCD_WORDPRESS_TABS_SERVER_LOGS extends WPCD_WORDPRESS_TABS {
 	 * @param int    $id         The postID of the server cpt.
 	 * @param string $action     The action to be performed (this matches the string required in the bash scripts if bash scripts are used ).
 	 *
-	 * @return boolean  success/failure/other
+	 * @return bool|\WP_Error  success/failure/other
 	 */
 	private function do_server_log_actions( $id, $action ) {
 

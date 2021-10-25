@@ -575,8 +575,8 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 			'name'       => __( 'Quick Change', 'wpcd' ),
 			'tab'        => 'change-domain',
 			'type'       => 'button',
-			'std'        => __( 'Quick Change', 'wcpcd' ),
-			'tooltip'    => __( 'Change just the domain name in the WordPress settings screen.  All other references to the old domain will remain in your content and other items in the database.', 'wcpcd' ),
+			'std'        => __( 'Quick Change', 'wpcd' ),
+			'tooltip'    => __( 'Change just the domain name in the WordPress settings screen.  All other references to the old domain will remain in your content and other items in the database.', 'wpcd' ),
 			'attributes' => array(
 				// the _action that will be called in ajax.
 				'data-wpcd-action'              => 'change-domain-quick-change',
@@ -597,8 +597,8 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 			'name'       => __( 'Full - Dry Run', 'wpcd' ),
 			'tab'        => 'change-domain',
 			'type'       => 'button',
-			'std'        => __( 'Full - Dry Run', 'wcpcd' ),
-			'tooltip'    => __( 'Change all references from the old domain to the new domain across the entire database. This does a dry run so you can get an idea of what will be changed.', 'wcpcd' ),
+			'std'        => __( 'Full - Dry Run', 'wpcd' ),
+			'tooltip'    => __( 'Change all references from the old domain to the new domain across the entire database. This does a dry run so you can get an idea of what will be changed.', 'wpcd' ),
 			'attributes' => array(
 				// the _action that will be called in ajax.
 				'data-wpcd-action'              => 'change-domain-full-dry-run',
@@ -623,8 +623,8 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 			'name'       => __( 'Full Live', 'wpcd' ),
 			'tab'        => 'change-domain',
 			'type'       => 'button',
-			'std'        => __( 'Full - Live', 'wcpcd' ),
-			'tooltip'    => __( 'Change all references from the old domain to the new domain across the entire database. This is the real deal - do a backup because you cannot undo this action once it has started!', 'wcpcd' ),
+			'std'        => __( 'Full - Live', 'wpcd' ),
+			'tooltip'    => __( 'Change all references from the old domain to the new domain across the entire database. This is the real deal - do a backup because you cannot undo this action once it has started!', 'wpcd' ),
 			'attributes' => array(
 				// the _action that will be called in ajax.
 				'data-wpcd-action'              => 'change-domain-full-live-run',
@@ -649,8 +649,8 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 			'name'       => __( 'Change Meta', 'wpcd' ),
 			'tab'        => 'change-domain',
 			'type'       => 'button',
-			'std'        => __( 'Change Record Only', 'wcpcd' ),
-			'tooltip'    => __( 'Update the record in this plugin only. You might need to do this if a prior operation only partially succeeded or you changed the domain using another plugin such as UpdraftPlus.', 'wcpcd' ),
+			'std'        => __( 'Change Record Only', 'wpcd' ),
+			'tooltip'    => __( 'Update the record in this plugin only. You might need to do this if a prior operation only partially succeeded or you changed the domain using another plugin such as UpdraftPlus.', 'wpcd' ),
 			'attributes' => array(
 				// the _action that will be called in ajax.
 				'data-wpcd-action'              => 'change-domain-record-only',
@@ -745,7 +745,7 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 			'name'       => __( 'Search & Replace', 'wpcd' ),
 			'tab'        => 'change-domain',
 			'type'       => 'button',
-			'std'        => __( 'Run Search & Replace', 'wcpcd' ),
+			'std'        => __( 'Run Search & Replace', 'wpcd' ),
 			'attributes' => array(
 				// the _action that will be called in ajax.
 				'data-wpcd-action'              => 'search-and-replace-db',

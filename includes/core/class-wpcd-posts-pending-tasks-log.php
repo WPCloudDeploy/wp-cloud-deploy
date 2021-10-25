@@ -470,7 +470,7 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 	public function add_pending_task_log_entry( $parent_post_id, $task_type, $task_key, $task_details, $task_state, $task_reference = '', $task_comment = '' ) {
 
 		// Author is current user or system.
-		$author_id = get_current_user();
+		$author_id = get_current_user_id();
 
 		// Get parent post.
 		$post = get_post( $parent_post_id );

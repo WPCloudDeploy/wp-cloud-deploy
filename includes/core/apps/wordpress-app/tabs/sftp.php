@@ -139,7 +139,7 @@ class WPCD_WORDPRESS_TABS_SFTP extends WPCD_WORDPRESS_TABS {
 			'id'         => 'wpcd_app_action_add_button',
 			'tab'        => 'sftp',
 			'type'       => 'button',
-			'std'        => __( 'Add User', 'wcpcd' ),
+			'std'        => __( 'Add User', 'wpcd' ),
 			'attributes' => array(
 				// the _action that will be called in ajax.
 				'data-wpcd-action' => 'sftp-add-user',
@@ -188,7 +188,7 @@ class WPCD_WORDPRESS_TABS_SFTP extends WPCD_WORDPRESS_TABS {
 			'id'         => 'wpcd_app_action_remove_button',
 			'tab'        => 'sftp',
 			'type'       => 'button',
-			'std'        => __( 'Remove User', 'wcpcd' ),
+			'std'        => __( 'Remove User', 'wpcd' ),
 			'attributes' => array(
 				// the _action that will be called in ajax.
 				'data-wpcd-action'              => 'sftp-remove-user',
@@ -245,7 +245,7 @@ class WPCD_WORDPRESS_TABS_SFTP extends WPCD_WORDPRESS_TABS {
 			'id'         => 'wpcd_app_action_changepass_button',
 			'tab'        => 'sftp',
 			'type'       => 'button',
-			'std'        => __( 'Change Password', 'wcpcd' ),
+			'std'        => __( 'Change Password', 'wpcd' ),
 			'attributes' => array(
 				// the _action that will be called in ajax.
 				'data-wpcd-action' => 'sftp-change-password',
@@ -300,7 +300,7 @@ class WPCD_WORDPRESS_TABS_SFTP extends WPCD_WORDPRESS_TABS {
 			'id'         => 'wpcd_app_action_setkey_button',
 			'tab'        => 'sftp',
 			'type'       => 'button',
-			'std'        => __( 'Set Public Key', 'wcpcd' ),
+			'std'        => __( 'Set Public Key', 'wpcd' ),
 			'attributes' => array(
 				// the _action that will be called in ajax.
 				'data-wpcd-action' => 'sftp-set-key',
@@ -341,7 +341,7 @@ class WPCD_WORDPRESS_TABS_SFTP extends WPCD_WORDPRESS_TABS {
 			'id'         => 'wpcd_app_action_removepass_button',
 			'tab'        => 'sftp',
 			'type'       => 'button',
-			'std'        => __( 'Remove Password', 'wcpcd' ),
+			'std'        => __( 'Remove Password', 'wpcd' ),
 			'attributes' => array(
 				// the _action that will be called in ajax.
 				'data-wpcd-action'              => 'sftp-remove-password',
@@ -384,7 +384,7 @@ class WPCD_WORDPRESS_TABS_SFTP extends WPCD_WORDPRESS_TABS {
 			'id'         => 'wpcd_app_action_removekey_button',
 			'tab'        => 'sftp',
 			'type'       => 'button',
-			'std'        => __( 'Remove Public Key', 'wcpcd' ),
+			'std'        => __( 'Remove Public Key', 'wpcd' ),
 			'attributes' => array(
 				// the _action that will be called in ajax.
 				'data-wpcd-action'              => 'sftp-remove-key',
@@ -469,7 +469,7 @@ class WPCD_WORDPRESS_TABS_SFTP extends WPCD_WORDPRESS_TABS {
 		$instance = $this->get_app_instance_details( $id );
 
 		if ( is_wp_error( $instance ) ) {
-			return $result;
+			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
 		}
 
 		/* Grab the arguments sent from the front-end JS */

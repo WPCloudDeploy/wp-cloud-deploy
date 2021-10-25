@@ -125,9 +125,9 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			'title'          => __( 'General WordPress App Settings', 'wpcd' ),
 			'settings_pages' => 'wpcd_settings',
 			'tab'            => 'app-wordpress-app',  // this is the top level tab on the setttings screen, not to be confused with the tabs inside a metabox as we're defining below!
-			// List of tabs in the metabox, in one of the following formats:
-			// 1) key => label.
-			// 2) key => array( 'label' => Tab label, 'icon' => Tab icon ).
+		// List of tabs in the metabox, in one of the following formats:
+		// 1) key => label.
+		// 2) key => array( 'label' => Tab label, 'icon' => Tab icon ).
 			'tabs'           => $this->metabox_tabs(),
 			'tab_style'      => 'left',
 			'tab_wrapper'    => true,
@@ -146,6 +146,10 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			'wordpress-app-general-wpadmin'      => array(
 				'label' => 'General',
 				'icon'  => 'dashicons-text',
+			),
+			'wordpress-app-servers'              => array(
+				'label' => 'Servers',
+				'icon'  => 'dashicons-align-full-width',
 			),
 			'wordpress-app-backup'               => array(
 				'label' => 'Backup and Restore',
@@ -183,13 +187,17 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'label' => 'Email Gateway',
 				'icon'  => 'dashicons-email-alt2',
 			),
-
-			/*
-			'wordpress-app-scripts' => array(
-				'label' => 'Scripts',
-				'icon'  => 'dashicons-format-aside',
+			'wordpress-app-rest-api'             => array(
+				'label' => 'Rest API',
+				'icon'  => 'dashicons-rest-api',
 			),
-			*/
+
+		/*
+		'wordpress-app-scripts' => array(
+			'label' => 'Scripts',
+			'icon'  => 'dashicons-format-aside',
+		),
+		*/
 		);
 
 		return apply_filters( 'wpcd_wordpress-app_settings_tabs', $tabs );
@@ -202,6 +210,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 		$general_fields = $this->general_fields();
 		// Removing script fields for now since they're not being used.
 		/* $script_fields	= $this->scripts_fields(); */
+		$server_fields                = $this->server_fields();
 		$backup_fields                = $this->backup_fields();
 		$fields_and_links             = $this->fields_and_links();
 		$theme_and_plugin_updates     = $this->theme_and_plugin_updates();
@@ -211,7 +220,8 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 		$button_color_settings_fields = $this->button_color_settings_fields();
 		$email_gateway_load_defaults  = $this->email_gateway_load_defaults();
 		$cf_dns_fields                = $this->cf_dns_fields();
-		$all_fields                   = array_merge( $general_fields, $backup_fields, $fields_and_links, $theme_and_plugin_updates, $email_notification_fields, $slack_notification_fields, $zapier_notification_fields, $button_color_settings_fields, $email_gateway_load_defaults, $cf_dns_fields );
+		$rest_api_fields              = $this->rest_api_fields();
+		$all_fields                   = array_merge( $general_fields, $server_fields, $backup_fields, $fields_and_links, $theme_and_plugin_updates, $email_notification_fields, $slack_notification_fields, $zapier_notification_fields, $button_color_settings_fields, $email_gateway_load_defaults, $cf_dns_fields, $rest_api_fields );
 		return $all_fields;
 	}
 
@@ -360,6 +370,66 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 	}
 
 	/**
+	 * Array of fields used in the servers.
+	 */
+	public function server_fields() {
+
+		$fields = array(
+			array(
+				'type' => 'heading',
+				'name' => __( 'Server Setup Options', 'wpcd' ),
+				'desc' => __( 'Services and actions to perform immediately after a server has been deployed.', 'wpcd' ),
+				'tab'  => 'wordpress-app-servers',
+			),
+			array(
+				'id'      => 'wordpress_app_servers_add_delete_protection',
+				'type'    => 'checkbox',
+				'name'    => __( 'Delete Protect New Servers?', 'wpcd' ),
+				'tooltip' => __( 'Should deletion protection automatically be enabled on new servers?', 'wpcd' ),
+				'tab'     => 'wordpress-app-servers',
+			),
+			array(
+				'id'      => 'wordpress_app_servers_activate_callbacks',
+				'type'    => 'checkbox',
+				'name'    => __( 'Install Callbacks?', 'wpcd' ),
+				'tooltip' => __( 'Turn this on to automatically install callbacks on all new servers - this is recommended.', 'wpcd' ),
+				'tab'     => 'wordpress-app-servers',
+			),
+			array(
+				'id'      => 'wordpress_app_servers_activate_backups',
+				'type'    => 'checkbox',
+				'name'    => __( 'Setup Backups?', 'wpcd' ),
+				'tooltip' => __( 'Turn this on to automatically setup backups for all sites on new servers - this is recommended if you have configured AWS S3 defaults.', 'wpcd' ),
+				'tab'     => 'wordpress-app-servers',
+			),
+			array(
+				'id'      => 'wordpress_app_servers_activate_config_backups',
+				'type'    => 'checkbox',
+				'name'    => __( 'Setup Local Configuration Backups?', 'wpcd' ),
+				'tooltip' => __( 'Turn this on to automatically setup 90 days of local backups for all critical configuration files on new servers - this is recommended.', 'wpcd' ),
+				'tab'     => 'wordpress-app-servers',
+			),
+			array(
+				'id'      => 'wordpress_app_servers_refresh_servers',
+				'type'    => 'checkbox',
+				'name'    => __( 'Refresh Services Status?', 'wpcd' ),
+				'tooltip' => __( 'Refresh the status of services shown on the SERVICES tab of your new server.', 'wpcd' ),
+				'tab'     => 'wordpress-app-servers',
+			),
+			array(
+				'id'      => 'wordpress_app_servers_run_all_linux_updates',
+				'type'    => 'checkbox',
+				'name'    => __( 'Run All Linux Updates?', 'wpcd' ),
+				'tooltip' => __( 'Most new servers have a lot of updates that need to be run overnight. You can turn this on to force the updates to run asap.  Note that this will chew up CPU cycles and cause your server to be slow for a bit. If you need to use your servers immediately do not enable this.', 'wpcd' ),
+				'tab'     => 'wordpress-app-servers',
+			),
+
+		);
+
+		return $fields;
+	}
+
+	/**
 	 * Array of fields used in the fields and links tab.
 	 */
 	public function fields_and_links() {
@@ -430,6 +500,12 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tab'     => 'wordpress-app-backup',
 				'std'     => wpcd_get_option( 'wordpress_app_aws_bucket' ),
 				'size'    => 60,
+			),
+			array(
+				'id'   => 'wordpress_app_backup_warning',
+				'type' => 'custom_html',
+				'std'  => __( 'Warning! If you are using our SELL SERVERS WITH WOOCOMMERCE premium option, do NOT set these defaults. Otherwise all servers, including your customer servers, will be able to get these. Since your customers might be able to log into their own servers, they will be able to view these credentials. Instead, set them on each server as needed.  See our WOOCOMMERCE documentation for more information or contact our support team with your questions.', 'wpcd' ),
+				'tab'  => 'wordpress-app-backup',
 			),
 		);
 
@@ -663,14 +739,13 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 
 	}
 
-
 	/**
 	 * Array of fields used to store the email gateway load defaults settings.
 	 */
 	public function email_gateway_load_defaults() {
 
 		/* Email Gateway */
-		$eg_desc  = __( 'Set default values you can use when setting up server level email gateways.', 'wpcd' );
+		$eg_desc = __( 'Set default values you can use when setting up server level email gateways.', 'wpcd' );
 
 		$fields = array(
 			array(
@@ -794,6 +869,28 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'name'    => __( 'Automatically Issue SSL', 'wpcd' ),
 				'tooltip' => __( 'If DNS was automatically updated after a new site is provisioned, attempt to get an SSL certificate from LETSENCRYPT?', 'wpcd' ),
 				'tab'     => 'wordpress-app-dns-cloudflare',
+			),
+		);
+		return $fields;
+	}
+
+	/**
+	 * Return array portion of field settings for use in rest API tab.
+	 */
+	public function rest_api_fields() {
+
+		$fields = array(
+			array(
+				'type' => 'heading',
+				'name' => __( 'REST API [Beta]', 'wpcd' ),
+				'desc' => __( 'Activate the REST API', 'wpcd' ),
+				'tab'  => 'wordpress-app-rest-api',
+			),
+			array(
+				'id'   => 'wordpress_app_rest_api_enable',
+				'type' => 'checkbox',
+				'name' => __( 'Enable the REST API', 'wpcd' ),
+				'tab'  => 'wordpress-app-rest-api',
 			),
 		);
 		return $fields;

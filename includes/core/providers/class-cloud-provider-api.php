@@ -147,6 +147,8 @@ class CLOUD_PROVIDER_API {
 
 		/* Set initial values for feature flags */
 		$feature_flags['snapshots']                            = false;  // Does the provider support snapshots?
+		$feature_flags['snapshot-delete']                      = false;  // Does the provider support deleting snapshots?
+		$feature_flags['snapshot-list']                        = false;  // Does the provider support listing snapshots?
 		$feature_flags['enable_backups_on_server_create']      = false;  // Does the provider support automatically enabling backups when a server is initially created?
 		$feature_flags['backups']                              = false;  // Does the provider support creating backups?
 		$feature_flags['enable_dynamic_tags_on_server_create'] = false;  // Does the provider support enabling random tag(s) when a server is initially created?

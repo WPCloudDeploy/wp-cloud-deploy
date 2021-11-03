@@ -258,7 +258,7 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 			'name' => __( 'Copy Everything', 'wpcd' ),
 			'tab'  => 'copy-to-existing-site',
 			'type' => 'heading',
-			'desc' => __( 'Copy all files and all database tables. We will not copy wp-config.php though. Existing files on the destination that do not exist on the target domain will NOT be deleted.  However, all tables on the destination will be dropped and recreated.', 'wpcd' ),
+			'desc' => __( 'Copy all files and all database tables. We will not copy wp-config.php though. Existing files on the destination that do not exist on the this domain will NOT be deleted.  However, ALL tables on the destination will be dropped and recreated.', 'wpcd' ),
 		);
 		$fields[] = array(
 			'id'         => 'wpcd_app_copy_to_site_full_sync',

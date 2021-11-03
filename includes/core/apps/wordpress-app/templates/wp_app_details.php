@@ -31,7 +31,9 @@ wp_nonce_field( 'wpcd_wp_app_nonce_meta_action', 'wpapp_meta' );
 </div>
 <div class="wpapp_meta_field">
 	<label for="wpcd_wpapp_domain"><?php echo esc_html( __( 'Domain', 'wpcd' ) ); ?></label>
-	<?php echo esc_html( $wpcd_wpapp_domain ); ?>
+	<input type="text" name="wpcd_wpapp_domain" id="wpcd_wpapp_domain" value="<?php echo esc_attr( $wpcd_wpapp_domain ); ?>" />
+	<br />
+	<small><?php echo esc_html( __( 'Be very very careful about changing this - please consider using our built-in change-domain function instead!  If you do change this here, you migh also need to update the post title field in the APPLICATIONS DETAIL metabox to avoid confusion.', 'wpcd' ) ); ?></small>	
 </div>
 <div class="wpapp_meta_field">
 	<label for="wpcd_wpapp_userid"><?php echo esc_html( __( 'Initial Admin User ID', 'wpcd' ) ); ?></label>

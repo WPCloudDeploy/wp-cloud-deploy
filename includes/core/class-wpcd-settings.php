@@ -1191,7 +1191,6 @@ class WPCD_Settings {
 						'name'    => __( 'Public SSH Key', 'wpcd' ),
 						'tooltip' => __( 'For most providers this public key is stored at the provider and will be installed into each server instance when the instance is first created.  If you change this value only FUTURE instances will get the new key. Instances that are already up and running will retain the prior key and any future operations on those instances will FAIL!  Note that some providers such as UPCLOUD and CUSTOM PROVIDERS might not use this key.  Check the documentation for the provider if you are unsure if this is required.', 'wpcd' ),
 						'options' => $keys,
-						'size'    => '60',
 						/* translators: %s: provider name. */
 						'desc'    => apply_filters( "wpcd_cloud_provider_settings_ssh_keys_select_desc_{$provider}", sprintf( __( 'Public key saved in %s. If you have just uploaded your public key and do not see it here, try clicking the CLEAR CACHE button at the bottom of this page.', 'wpcd' ), $name ) ),
 						'tab'     => $tab_id,
@@ -1324,7 +1323,6 @@ class WPCD_Settings {
 						'id'   => "vpn_{$provider}_alt_desc",
 						'type' => 'text',
 						'name' => __( 'Alternative Name', 'wpcd' ),
-						'size' => '90',
 						'desc' => __( 'Use this as the providers display name', 'wpcd' ),
 						'tab'  => $tab_id,
 					),

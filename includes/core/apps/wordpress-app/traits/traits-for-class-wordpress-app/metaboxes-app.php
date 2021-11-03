@@ -216,6 +216,7 @@ trait wpcd_wpapp_metaboxes_app {
 		}
 
 		/* Get new values */
+		$wpcd_wpapp_domain             = filter_input( INPUT_POST, 'wpcd_wpapp_domain', FILTER_SANITIZE_STRING );
 		$wpcd_wpapp_userid             = filter_input( INPUT_POST, 'wpcd_wpapp_userid', FILTER_SANITIZE_STRING );
 		$wpcd_wpapp_email              = filter_input( INPUT_POST, 'wpcd_wpapp_email', FILTER_SANITIZE_EMAIL );
 		$wpcd_wpapp_password           = filter_input( INPUT_POST, 'wpcd_wpapp_password' );  // cannot sanitize passwords unfortunately.
@@ -224,6 +225,7 @@ trait wpcd_wpapp_metaboxes_app {
 		$wpcd_wpapp_wc_subscription_id = filter_input( INPUT_POST, 'wpcd_wpapp_wc_subscription_id', FILTER_SANITIZE_STRING );
 
 		/* Add new values to database */
+		update_post_meta( $post_id, 'wpapp_domain', $wpcd_wpapp_domain );
 		update_post_meta( $post_id, 'wpapp_userid', $wpcd_wpapp_userid );
 		update_post_meta( $post_id, 'wpapp_email', $wpcd_wpapp_email );
 		update_post_meta( $post_id, 'wpapp_password', $this::encrypt( $wpcd_wpapp_password ) );

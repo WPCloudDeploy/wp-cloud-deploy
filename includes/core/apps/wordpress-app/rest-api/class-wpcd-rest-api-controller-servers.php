@@ -188,7 +188,7 @@ class WPCD_REST_API_Controller_Servers extends WPCD_REST_API_Controller_Base {
 
 		// Action hooks return nothing so just return an array of stuff.
 		return array(
-			'site_id' => $id,
+			'server_id' => $id,
 			'deleted' => true,
 		);
 	}

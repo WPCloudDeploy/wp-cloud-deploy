@@ -89,6 +89,15 @@ Note: Even though the entire git development history isn't available on github, 
 [Friendly Release Notes](https://wpclouddeploy.com/category/release-notes/)
 
 ## Change Log ##
+4.11.2
+------
+* Fix: WPAPP - Two fields on the settings screen would overflow their border on smaller screen sizes.
+* Fix: WPAPP - An incorrect action-hook callback name.
+
+4.11.1
+------
+* New: WPAPP - Added ability to edit the domain name in the advanced metaboxes for a site - sometimes needed by tech support.
+
 4.11.0
 ------
 * New: WPAPP - Foundation for REST API.

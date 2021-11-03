@@ -43,7 +43,7 @@ class WPCD_WORDPRESS_TABS_SERVER_CALLBACKS extends WPCD_WORDPRESS_TABS {
 
 		/* Handle callback failures and tag the pending log record as failed */
 		add_action( 'wpcd_server_wordpress-app_server_status_callback_second_action_failed', array( $this, 'handle_server_status_callback_install_failed' ), 10, 3 );
-		add_action( 'wpcd_server_wordpress-app_server_status_callback_first_action_failed', array( $this, 'handle_server-status_callback_install_failed' ), 10, 3 );
+		add_action( 'wpcd_server_wordpress-app_server_status_callback_first_action_failed', array( $this, 'handle_server_status_callback_install_failed' ), 10, 3 );
 
 		/* Pending Logs Background Task: Run callback for the first time on a server after they're installed */
 		add_action( 'run_server_callbacks', array( $this, 'run_server_callbacks' ), 10, 3 );

@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 "Project-Id-Version: WP Cloud Deploy\n"
-"POT-Creation-Date: 2021-10-20 21:48-0500\n"
+"POT-Creation-Date: 2021-10-21 21:36-0500\n"
 "PO-Revision-Date: 2020-08-14 19:38-0500\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -7163,8 +7163,8 @@ msgstr ""
 #: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:261
 msgid ""
 "Copy all files and all database tables. We will not copy wp-config.php "
-"though. Existing files on the destination that do not exist on the target "
-"domain will NOT be deleted.  However, all tables on the destination will be "
+"though. Existing files on the destination that do not exist on the this "
+"domain will NOT be deleted.  However, ALL tables on the destination will be "
 "dropped and recreated."
 msgstr ""
 
@@ -9430,51 +9430,59 @@ msgid ""
 "your site."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/templates/wp_app_details.php:37
+#: includes/core/apps/wordpress-app/templates/wp_app_details.php:36
+msgid ""
+"Be very very careful about changing this - please consider using our built-"
+"in change-domain function instead!  If you do change this here, you migh "
+"also need to update the post title field in the APPLICATIONS DETAIL metabox "
+"to avoid confusion."
+msgstr ""
+
+#: includes/core/apps/wordpress-app/templates/wp_app_details.php:39
 msgid "Initial Admin User ID"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/templates/wp_app_details.php:40
-#: includes/core/apps/wordpress-app/templates/wp_app_details.php:46
-#: includes/core/apps/wordpress-app/templates/wp_app_details.php:52
+#: includes/core/apps/wordpress-app/templates/wp_app_details.php:42
+#: includes/core/apps/wordpress-app/templates/wp_app_details.php:48
+#: includes/core/apps/wordpress-app/templates/wp_app_details.php:54
 msgid ""
 "You can change this to match the value you set after the initial install."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/templates/wp_app_details.php:43
+#: includes/core/apps/wordpress-app/templates/wp_app_details.php:45
 msgid "Initial Email Address"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/templates/wp_app_details.php:49
+#: includes/core/apps/wordpress-app/templates/wp_app_details.php:51
 msgid "Initial Password"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/templates/wp_app_details.php:55
+#: includes/core/apps/wordpress-app/templates/wp_app_details.php:57
 msgid "Initial Installed Version"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/templates/wp_app_details.php:58
+#: includes/core/apps/wordpress-app/templates/wp_app_details.php:60
 msgid ""
 "This is the initial version of WordPress that was installed - it might have "
 "been upgraded after that. You can set the current version here to match your "
 "installed version."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/templates/wp_app_details.php:61
+#: includes/core/apps/wordpress-app/templates/wp_app_details.php:63
 msgid "WooCommerce Order ID"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/templates/wp_app_details.php:64
+#: includes/core/apps/wordpress-app/templates/wp_app_details.php:66
 msgid ""
 "If this site was purchased and created by the WooCommerce store then this "
 "field will show the WooCommerce order id."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/templates/wp_app_details.php:67
+#: includes/core/apps/wordpress-app/templates/wp_app_details.php:69
 msgid "WooCommerce Subscription ID"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/templates/wp_app_details.php:70
+#: includes/core/apps/wordpress-app/templates/wp_app_details.php:72
 msgid ""
 "If this site was purchased and created by the WooCommerce store then this "
 "field will show the WooCommerce subscription id."

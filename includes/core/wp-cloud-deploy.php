@@ -93,9 +93,11 @@ class WP_CLOUD_DEPLOY {
 
 		/* Add main menu page */
 		add_action( 'admin_menu', array( &$this, 'add_main_menu_page' ) );
+
 		// Handle proper admin menu subpages highlighting (current menu).
 		add_filter( 'parent_file', array( &$this, 'handle_admin_current_main_menu' ) );
 		add_filter( 'submenu_file', array( &$this, 'handle_admin_current_submenu_item' ), 10, 2 );
+
 		// Handle main menu submenus ordering.
 		add_action( 'admin_init', array( &$this, 'ensure_submenu_items_order' ), 100 );
 
@@ -155,6 +157,8 @@ class WP_CLOUD_DEPLOY {
 	 *
 	 * We will hook in after all the core logic has been applied to the submenu items.
 	 *
+	 * Note: This function use the $submenu global variable directly and therefore might break in a future version of WP.
+	 *
 	 * @return void
 	 */
 	public function ensure_submenu_items_order() {
@@ -167,30 +171,36 @@ class WP_CLOUD_DEPLOY {
 
 		// This is the order we are after for these submenu items.
 		// Any other items that are present will be left at the end, in their existing relative order.
-		$submenus_order = apply_filters( 'wpcd_main_menu_submenus_order', array(
-			'edit.php?post_type=wpcd_app_server' => 10,
-			'edit-tags.php?taxonomy=wpcd_app_server_group&amp;post_type=wpcd_app_server' => 20 ,
-			'edit.php?post_type=wpcd_app' => 30,
-			'edit-tags.php?taxonomy=wpcd_app_group&post_type=wpcd_app' => 40,
-			'edit.php?s&post_status=all&post_type=wpcd_app&app_type=wordpress-app&filter_action=Filter' => 50,
-			'edit.php?post_type=wpcd_cloud_provider' => 60,
-			'edit.php?post_type=wpcd_team' => 70,
-			'edit.php?post_type=wpcd_ssh_log' => 80,
-			'edit.php?post_type=wpcd_command_log' => 90,
-			'edit.php?post_type=wpcd_pending_log' => 100,
-			'edit.php?post_type=wpcd_error_log' => 110,
-		) );
+		$submenus_order = apply_filters(
+			'wpcd_main_menu_submenus_order',
+			array(
+				'edit.php?post_type=wpcd_app_server'     => 10,
+				'edit-tags.php?taxonomy=wpcd_app_server_group&amp;post_type=wpcd_app_server' => 20,
+				'edit.php?post_type=wpcd_app'            => 30,
+				'edit-tags.php?taxonomy=wpcd_app_group&post_type=wpcd_app' => 40,
+				'edit.php?s&post_status=all&post_type=wpcd_app&app_type=wordpress-app&filter_action=Filter' => 50,
+				'edit.php?post_type=wpcd_cloud_provider' => 60,
+				'edit.php?post_type=wpcd_team'           => 70,
+				'edit.php?post_type=wpcd_ssh_log'        => 80,
+				'edit.php?post_type=wpcd_command_log'    => 90,
+				'edit.php?post_type=wpcd_pending_log'    => 100,
+				'edit.php?post_type=wpcd_error_log'      => 110,
+			)
+		);
+
 		// Sort the submenus by their order value, ascending.
 		asort( $submenus_order, SORT_NUMERIC );
 
-		$temp_submenu = $submenu['edit.php?post_type=wpcd_app_server'];
+		$temp_submenu       = $submenu['edit.php?post_type=wpcd_app_server'];
 		$temp_submenu_pages = array_column( $temp_submenu, 2 );
-		$new_submenu = array();
+		$new_submenu        = array();
 		foreach ( $submenus_order as $item_page => $item_order ) {
 			$found_key = array_search( $item_page, $temp_submenu_pages );
-			if ( false !== $found_key ) {
-				$new_submenu[] = $temp_submenu[ $found_key ];
-				unset( $temp_submenu[ $found_key ] );
+			if ( false !== $found_key && (int) $found_key >= 0 ) {
+				if ( ! empty( $temp_submenu[ $found_key ] ) ) {
+					$new_submenu[] = $temp_submenu[ $found_key ];
+					unset( $temp_submenu[ $found_key ] );
+				}
 			}
 		}
 
@@ -253,6 +263,17 @@ class WP_CLOUD_DEPLOY {
 		);
 	}
 
+	/**
+	 * Handle proper highlighting of current menu item.
+	 *
+	 * Filter Hook: parent_file
+	 *
+	 * @param string $parent_file The parent file.
+	 *
+	 * @return string The new parent file.
+	 *
+	 * @see https://developer.wordpress.org/reference/hooks/parent_file/.
+	 */
 	public function handle_admin_current_main_menu( $parent_file ) {
 		global $current_screen;
 
@@ -265,18 +286,30 @@ class WP_CLOUD_DEPLOY {
 		return $parent_file;
 	}
 
+	/**
+	 * Handle proper highlighting of current menu item.
+	 *
+	 * Filter Hook: submenu_file
+	 *
+	 * @param string $submenu_file The submenu file.
+	 * @param string $parent_file  The submenu item's parent file.
+	 *
+	 * @return string The new submenu file.
+	 *
+	 * @see https://developer.wordpress.org/reference/hooks/submenu_file/.
+	 */
 	public function handle_admin_current_submenu_item( $submenu_file, $parent_file ) {
 		global $submenu_file, $current_screen;
 
 		// If we are looking at something in under the wpcd_app_server CPT top-level menu item,
 		// we have work to do.
 		if ( 'edit.php?post_type=wpcd_app_server' === $parent_file ) {
-			if ( $current_screen->taxonomy == 'wpcd_app_group' ) {
+			if ( 'wpcd_app_group' == $current_screen->taxonomy ) {
 				// If we are dealing with the wpcd_app_group taxonomy,
 				// set as the current submenu item the 'App Groups' page.
 				$submenu_file = 'edit-tags.php?taxonomy=wpcd_app_group&post_type=wpcd_app';
-			} elseif( 'wpcd_app' === $current_screen->post_type
-	            && 'edit' === $current_screen->base
+			} elseif ( 'wpcd_app' === $current_screen->post_type
+				&& 'edit' === $current_screen->base
 				&& ! empty( $_GET['app_type'] ) && ! empty( $_GET['filter_action'] )
 				&& 'wordpress-app' === $_GET['app_type'] ) {
 
@@ -557,7 +590,7 @@ class WP_CLOUD_DEPLOY {
 		/* Get the encryption key */
 		$key = $inkey;
 		if ( empty( $key ) ) {
-			// no key passed into the function so see if one was defined globally - usually via wp-config.php
+			// No key passed into the function so see if one was defined globally - usually via wp-config.php.
 			if ( defined( 'WPCD_ENCRYPTION_KEY' ) ) {
 				$key = WPCD_ENCRYPTION_KEY;
 			}
@@ -691,13 +724,13 @@ class WP_CLOUD_DEPLOY {
 		/* Get the encryption key */
 		$key = $inkey;
 		if ( empty( $key ) ) {
-			// no key passed into the function so see if one was defined globally - usually via wp-config.php
+			// No key passed into the function so see if one was defined globally - usually via wp-config.php.
 			if ( defined( 'WPCD_ENCRYPTION_KEY' ) ) {
 				$key = WPCD_ENCRYPTION_KEY;
 			}
 		}
 		if ( empty( $key ) ) {
-			// still no key so check for option value...
+			// Still no key so check for option value.
 			$key = get_option( 'wpcd_encryption_key_v2' );
 		}
 

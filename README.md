@@ -91,8 +91,13 @@ Note: Even though the entire git development history isn't available on github, 
 ## Change Log ##
 4.11.2
 ------
+* Tweak: Some email notifications can now use tokens in the subject line. (Thanks vladolaru)
 * Fix: WPAPP - Two fields on the settings screen would overflow their border on smaller screen sizes.
 * Fix: WPAPP - An incorrect action-hook callback name.
+* Dev: WPAPP - Encodes fields using encodeURIComponent on the front-end and decodes on the backend - adds stronger support for certain special characters. (Thanks vladolaru)
+* Dev: WPAPP - New logic for menu - the current menu item / screen is now highlighted.(Thanks vladolaru)
+* Dev: WPAPP - Fix some incorrect return types and removes redundant use of 'echo' when using the wp_send_json_error(). (Thanks vladolaru)  
+* Dev: WPAPP - Added new tests for REST API.
 
 4.11.1
 ------

@@ -369,7 +369,16 @@ class WPCD_WORDPRESS_TABS_SERVER_CALLBACKS extends WPCD_WORDPRESS_TABS {
 		do_action( 'wpcd_log_error', sprintf( 'attempting to run command for %s = %s ', print_r( $instance, true ), $run_cmd ), 'trace', __FILE__, __LINE__, $instance, false ); //PHPcs warning normally issued because of print_r
 
 		// Execute command and check result.
-		$result  = $this->execute_ssh( 'generic', $instance, array( 'commands' => $run_cmd ) );
+		$result = $this->execute_ssh( 'generic', $instance, array( 'commands' => $run_cmd ) );
+
+		// Make sure that $result is not a wp_error object.
+		if ( is_wp_error( $result ) ) {
+			do_action( "wpcd_server_{$this->get_app_name()}_server_status_callback_first_action_failed", $id, $action, false );
+			/* translators: %1$s is replaced with the internal action name; %2$s is replaced with the result of the call, usually an error message. */
+			return new \WP_Error( sprintf( __( 'Unable to %1$s : %2$s', 'wpcd' ), $action, $result->get_error_message() ) );
+		}
+
+		// Verify the success or failure of the actual bash command.
 		$success = $this->is_ssh_successful( $result, 'server_status_callback.txt' );
 
 		if ( ! $success ) {

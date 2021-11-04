@@ -94,6 +94,7 @@ Note: Even though the entire git development history isn't available on github, 
 * Tweak: Some email notifications can now use tokens in the subject line. (Thanks vladolaru)
 * Fix: WPAPP - Two fields on the settings screen would overflow their border on smaller screen sizes.
 * Fix: WPAPP - An incorrect action-hook callback name.
+* Fix: WPAPP - Check the value of a variable in the callbacks tab to make sure it's not a wp_error object before using it.
 * Dev: WPAPP - Encodes fields using encodeURIComponent on the front-end and decodes on the backend - adds stronger support for certain special characters. (Thanks vladolaru)
 * Dev: WPAPP - New logic for menu - the current menu item / screen is now highlighted.(Thanks vladolaru)
 * Dev: WPAPP - Fix some incorrect return types and removes redundant use of 'echo' when using the wp_send_json_error(). (Thanks vladolaru)  

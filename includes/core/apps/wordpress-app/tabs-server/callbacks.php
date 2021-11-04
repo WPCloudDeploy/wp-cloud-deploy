@@ -309,7 +309,7 @@ class WPCD_WORDPRESS_TABS_SERVER_CALLBACKS extends WPCD_WORDPRESS_TABS {
 
 		// Grab parameters but there should be nothing here for this callback.
 		if ( ! empty( $_POST['params'] ) ) {
-			$args = wp_parse_args( sanitize_text_field( $_POST['params'] ) );
+			$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
 		} else {
 			$args = array();
 		}
@@ -461,7 +461,7 @@ class WPCD_WORDPRESS_TABS_SERVER_CALLBACKS extends WPCD_WORDPRESS_TABS {
 
 		// Grab parameters but there should be nothing here for this callback.
 		if ( ! empty( $_POST['params'] ) ) {
-			$args = wp_parse_args( sanitize_text_field( $_POST['params'] ) );
+			$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
 		} else {
 			$args = array();
 		}

@@ -272,7 +272,7 @@ class WPCD_WORDPRESS_TABS_KEYS extends WPCD_WORDPRESS_TABS {
 		}
 
 		/* Grab the arguments sent from the front-end JS */
-		$args = wp_parse_args( sanitize_text_field( $_POST['params'] ) );
+		$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
 
 		switch ( $action ) {
 			case 'server-ssh-keys-save':

@@ -361,11 +361,11 @@ class WPCD_POSTS_LOG extends WPCD_Posts_Base {
 			}
 
 			$msg = __( 'All log entries have been removed.', 'wpcd' );
-			echo wp_send_json_success( array( 'msg' => $msg ) );
+			wp_send_json_success( array( 'msg' => $msg ) );
 
-		} else {
-			echo wp_send_json_error( array( 'msg' => __( 'No Entries for deletion.', 'wpcd' ) ) );
 		}
+
+		wp_send_json_error( array( 'msg' => __( 'No Entries for deletion.', 'wpcd' ) ) );
 	}
 
 
@@ -417,11 +417,11 @@ class WPCD_POSTS_LOG extends WPCD_Posts_Base {
 			}
 
 			$msg = __( 'All sent log entries have been removed.', 'wpcd' );
-			echo wp_send_json_success( array( 'msg' => $msg ) );
 
-		} else {
-			echo wp_send_json_error( array( 'msg' => __( 'No Entries for deletion.', 'wpcd' ) ) );
+			wp_send_json_success( array( 'msg' => $msg ) );
 		}
+
+		wp_send_json_error( array( 'msg' => __( 'No Entries for deletion.', 'wpcd' ) ) );
 	}
 
 	/**
@@ -693,7 +693,7 @@ class WPCD_POSTS_LOG extends WPCD_Posts_Base {
 			?>
 			<script type="text/javascript">
 				jQuery(document).ready(function($){
-					$('.wp-heading-inline').append('<a href="<?php echo esc_attr( $backtolist_url ); ?>" class="page-title-action"><?php echo esc_html( $backtolist_txt ); ?></a>');					
+					$('.wp-heading-inline').append('<a href="<?php echo esc_attr( $backtolist_url ); ?>" class="page-title-action"><?php echo esc_html( $backtolist_txt ); ?></a>');
 				});
 			</script>
 			<?php

@@ -120,7 +120,7 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
 		}
 
-		$args = wp_parse_args( sanitize_text_field( $_POST['params'] ) );
+		$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
 
 		$run_cmd = '';
 
@@ -713,7 +713,7 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 		$creds = $this->get_s3_credentials_for_backup( $id ); // Function get_s3_credentials_for_backup is located in a trait file.
 
 		// Get args passed in..
-		$args = wp_parse_args( sanitize_text_field( $_POST['params'] ) );
+		$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
 
 		// If a bucket was passed in for this action, add it to the creds array.
 		if ( ! empty( $args['auto_backup_bucket_name'] ) ) {

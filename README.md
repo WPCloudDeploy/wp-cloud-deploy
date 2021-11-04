@@ -99,6 +99,7 @@ Note: Even though the entire git development history isn't available on github, 
 * Dev: WPAPP - New logic for menu - the current menu item / screen is now highlighted.(Thanks vladolaru)
 * Dev: WPAPP - Fix some incorrect return types and removes redundant use of 'echo' when using the wp_send_json_error(). (Thanks vladolaru)  
 * Dev: WPAPP - Added new tests for REST API.
+* Other: Include a GNU V2 license file.
 
 4.11.1
 ------

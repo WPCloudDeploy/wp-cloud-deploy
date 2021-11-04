@@ -62,13 +62,13 @@ class WPCD_NOTIFY_SENT extends WPCD_POSTS_LOG {
 			'wpcd_notify_sent',
 			array(
 				'labels'              => array(
-					'name'                  => _x( 'Notifications Sent Log', 'Post type general name', 'wpcd' ),
+					'name'                  => _x( 'Notifications Sent Logs', 'Post type general name', 'wpcd' ),
 					'singular_name'         => _x( 'Notifications Sent Log', 'Post type singular name', 'wpcd' ),
 					'menu_name'             => _x( 'Notifications Sent Log', 'Admin Menu text', 'wpcd' ),
 					'name_admin_bar'        => _x( 'Notifications Sent Log', 'Add New on Toolbar', 'wpcd' ),
 					'edit_item'             => __( 'Edit Notification Sent', 'wpcd' ),
 					'view_item'             => __( 'View Notification Sent', 'wpcd' ),
-					'all_items'             => __( 'All Notifications Sent', 'wpcd' ),
+					'all_items'             => __( 'History', 'wpcd' ), // Label to signify all items in a submenu link.
 					'search_items'          => __( 'Search Logs', 'wpcd' ),
 					'not_found'             => __( 'No Logs were found.', 'wpcd' ),
 					'not_found_in_trash'    => __( 'No Logs were found in Trash.', 'wpcd' ),
@@ -77,7 +77,7 @@ class WPCD_NOTIFY_SENT extends WPCD_POSTS_LOG {
 					'items_list'            => _x( 'Notification Sent Logs list', 'Screen reader text for the items list heading on the post type listing screen. Default "Posts list"/"Pages list". Added in 4.4', 'wpcd' ),
 				),
 				'show_ui'             => true,
-				'show_in_menu'        => false,
+				'show_in_menu'        => 'edit.php?post_type=wpcd_notify_log',
 				'show_in_nav_menus'   => true,
 				'show_in_admin_bar'   => false,
 				'public'              => true,
@@ -87,15 +87,13 @@ class WPCD_NOTIFY_SENT extends WPCD_POSTS_LOG {
 				'menu_position'       => null,
 				'supports'            => array( '' ),
 				'rewrite'             => null,
-				'capabilities'        => array(
-					'create_posts' => false,
-					'edit_posts'   => true,
-				),
-				'map_meta_cap'        => true,
 				'capability_type'     => 'post',
 				'capabilities'        => array(
-					'create_posts' => 'do_not_allow',
+					'create_posts' => false,
+					'read_posts'   => 'wpcd_manage_logs',
+					'edit_posts'   => 'wpcd_manage_logs',
 				),
+				'map_meta_cap'        => true,
 			)
 		);
 

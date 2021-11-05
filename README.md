@@ -56,6 +56,8 @@ You can also view all requirements at the bottom of our [getting started documen
 
 Have a change you would like to see incorporated?  Then create a PR (pull request) against the **dev** branch.
 
+If you'd like to contribute to translations, you can do so in our POEDITOR project located here: https://poeditor.com/join/project?hash=A5I1lpqRes
+
 ## Premium Versions ##
 
 A premium version of this plugin is available on the WPCloudDeploy website.  You can view the additional features offered on the [pricing page.](https://wpclouddeploy.com/pricing/)

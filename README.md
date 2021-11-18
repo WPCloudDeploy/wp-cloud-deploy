@@ -94,6 +94,8 @@ Note: Even though the entire git development history isn't available on github, 
 4.11.2
 ------
 * Tweak: Some email notifications can now use tokens in the subject line. (Thanks vladolaru)
+* Tweak: WPAPP - Make sure we run an apt update before gathering other info in script 24-server_status.
+* Fix: WPAPP -  Upgrading the WP-CLI after initial installation would not work on servers where the root user was a sudo user instead of actual 'root'.
 * Fix: WPAPP - Two fields on the settings screen would overflow their border on smaller screen sizes.
 * Fix: WPAPP - An incorrect action-hook callback name.
 * Fix: WPAPP - Check the value of a variable in the callbacks tab to make sure it's not a wp_error object before using it.

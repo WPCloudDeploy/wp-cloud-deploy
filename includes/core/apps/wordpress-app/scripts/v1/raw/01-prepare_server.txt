@@ -729,10 +729,11 @@ fi #checkpoint150.txt
 
 # Getting WPCLI Packages
 echo "Getting and installing WPCLI packages..."
-wget https://github.com/wp-cli/builds/raw/gh-pages/deb/php-wpcli_2.4.0_all.deb  > /dev/null 2>&1
-dpkg -i php-wpcli_2.4.0_all.deb  > /dev/null 2>&1
-rm -f php-wpcli_2.4.0_all.deb  > /dev/null 2>&1
-wp cli update --yes  > /dev/null 2>&1
+wget https://github.com/wp-cli/builds/raw/gh-pages/deb/php-wpcli_2.5.0_all.deb  > /dev/null 2>&1
+dpkg -i php-wpcli_2.5.0_all.deb  > /dev/null 2>&1
+rm -f php-wpcli_2.5.0_all.deb  > /dev/null 2>&1
+wp cli update --yes --allow-root  > /dev/null 2>&1
+
 
 
 

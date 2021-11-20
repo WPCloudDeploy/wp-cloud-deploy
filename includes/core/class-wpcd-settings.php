@@ -176,7 +176,7 @@ class WPCD_Settings {
 				$logging_desc  = __( 'You can log various error types to the database. Be careful because if you turn on all items below, you will end up with thousands of entries in your database.', 'wpcd' );
 				$logging_desc .= '<br />' . __( 'To prevent this, we set the log limit to 100 records but you can adjust this number as well.', 'wpcd' );
 				$logging_desc .= '<br /><b>' . __( 'DO NOT TURN THIS ON UNLESS OUR SUPPORT TEAM TELLS YOU TO DO SO!  We know you want to do it but please do not do so without our support guidance!', 'wpcd' ) . '</b>';
-				$logging_desc .= '<br />' . __( 'If you do decide to turn it on without our support team\'s guidance, please do not then open a support ticket for anything you find in the logs. Why? Because lots of stuff will look scary that is perfectly normal.', 'wpcd' );
+				$logging_desc .= '<br />' . __( 'If you do decide to turn it on without our support team\'s guidance, please do not then open a support ticket for anything you find in the logs. Why? Because lots of stuff that is normal will look scary.', 'wpcd' );
 				$meta_boxes[]  = array(
 					'id'             => 'logging',
 					'title'          => __( 'Logging and Tracing', 'wpcd' ),

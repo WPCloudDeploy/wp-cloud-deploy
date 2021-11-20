@@ -935,6 +935,7 @@ class WPCD_NOTIFY_USER extends WPCD_Posts_Base {
 			'misc'         => 'Misc',
 			'power'        => 'Power',
 			'updates'      => 'Updates',
+			'snapshots'    => 'Snapshots',
 			'site-updates' => 'Site Updates',
 			'other'        => 'Other',
 		);

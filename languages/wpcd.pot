@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 "Project-Id-Version: WP Cloud Deploy\n"
-"POT-Creation-Date: 2021-11-03 21:24-0500\n"
+"POT-Creation-Date: 2021-11-20 17:22-0600\n"
 "PO-Revision-Date: 2020-08-14 19:38-0500\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2471,7 +2471,7 @@ msgstr ""
 
 #. translators: %s is replaced with the internal action name.
 #: includes/core/apps/wordpress-app/tabs-server/callbacks.php:307
-#: includes/core/apps/wordpress-app/tabs-server/callbacks.php:459
+#: includes/core/apps/wordpress-app/tabs-server/callbacks.php:468
 #: includes/core/apps/wordpress-app/tabs-server/fail2ban.php:650
 #: includes/core/apps/wordpress-app/tabs-server/goaccess.php:455
 #: includes/core/apps/wordpress-app/tabs-server/monit.php:820
@@ -2496,8 +2496,9 @@ msgstr ""
 
 #. translators: %1$s is replaced with the internal action name; %2$s is replaced with the result of the call, usually an error message.
 #: includes/core/apps/wordpress-app/tabs-server/callbacks.php:378
-#: includes/core/apps/wordpress-app/tabs-server/callbacks.php:397
-#: includes/core/apps/wordpress-app/tabs-server/callbacks.php:519
+#: includes/core/apps/wordpress-app/tabs-server/callbacks.php:387
+#: includes/core/apps/wordpress-app/tabs-server/callbacks.php:406
+#: includes/core/apps/wordpress-app/tabs-server/callbacks.php:528
 #: includes/core/apps/wordpress-app/tabs-server/fail2ban.php:776
 #: includes/core/apps/wordpress-app/tabs-server/goaccess.php:561
 #: includes/core/apps/wordpress-app/tabs-server/monit.php:1028
@@ -2512,29 +2513,29 @@ msgstr ""
 msgid "Unable to %1$s : %2$s"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/callbacks.php:406
+#: includes/core/apps/wordpress-app/tabs-server/callbacks.php:415
 msgid ""
 "The server status and server restart callbacks have been installed. This "
 "screen will refresh and you can navigate back to this tab to see new options."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/callbacks.php:415
+#: includes/core/apps/wordpress-app/tabs-server/callbacks.php:424
 msgid "The callbacks have been removed."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/callbacks.php:423
+#: includes/core/apps/wordpress-app/tabs-server/callbacks.php:432
 msgid ""
 "The callbacks have been scheduled execution and should begin shortly. Check "
 "back here or view your server list HEALTH column in a few minutes to see the "
 "updated information."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/callbacks.php:544
+#: includes/core/apps/wordpress-app/tabs-server/callbacks.php:553
 #: includes/core/apps/wordpress-app/tabs-server/services.php:1970
 msgid "No data has been received yet."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/callbacks.php:558
+#: includes/core/apps/wordpress-app/tabs-server/callbacks.php:567
 #: includes/core/apps/wordpress-app/tabs-server/services.php:1984
 #: includes/core/providers/class-custom-server-parent.php:541
 msgid "unknown"
@@ -2542,50 +2543,50 @@ msgstr ""
 
 #. translators: %s is replaced with date of the report.
 #. translators: %s is a date string.
-#: includes/core/apps/wordpress-app/tabs-server/callbacks.php:582
+#: includes/core/apps/wordpress-app/tabs-server/callbacks.php:591
 #: includes/core/apps/wordpress-app/tabs-server/services.php:2002
 #, php-format
 msgid "Data current as of: %s "
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/callbacks.php:587
+#: includes/core/apps/wordpress-app/tabs-server/callbacks.php:596
 msgid "Does Server Require Restart:"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/callbacks.php:596
+#: includes/core/apps/wordpress-app/tabs-server/callbacks.php:605
 msgid "Total number of packages needing updates:"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/callbacks.php:605
+#: includes/core/apps/wordpress-app/tabs-server/callbacks.php:614
 msgid "Number of packages needing security updates:"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/callbacks.php:614
+#: includes/core/apps/wordpress-app/tabs-server/callbacks.php:623
 msgid "Number of unattended update packages pending:"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/callbacks.php:635
+#: includes/core/apps/wordpress-app/tabs-server/callbacks.php:644
 msgid "Install Callbacks"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/callbacks.php:655
+#: includes/core/apps/wordpress-app/tabs-server/callbacks.php:664
 #: includes/core/apps/wordpress-app/tabs-server/power.php:616
 #: includes/core/apps/wordpress-app/tabs-server/upgrade.php:1086
 #: includes/core/apps/wordpress-app/tabs/theme-and-plugin-updates.php:508
 msgid "You attempted to run a function that requires admin privileges."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/callbacks.php:667
+#: includes/core/apps/wordpress-app/tabs-server/callbacks.php:676
 msgid "Install Callbacks From Bulk Operation"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/callbacks.php:671
+#: includes/core/apps/wordpress-app/tabs-server/callbacks.php:680
 msgid ""
 "Server callbacks have been scheduled for installation. You can view the "
 "progress in the PENDING LOG screen."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/callbacks.php:779
+#: includes/core/apps/wordpress-app/tabs-server/callbacks.php:788
 msgid "Run Callbacks For The First Time"
 msgstr ""
 
@@ -11689,7 +11690,7 @@ msgid "You don't have access to this page."
 msgstr ""
 
 #: includes/core/class-wpcd-posts-log.php:692
-#: includes/core/class-wpcd-posts-notify-user.php:1161
+#: includes/core/class-wpcd-posts-notify-user.php:1162
 #: includes/core/class-wpcd-posts-team.php:664
 #: includes/core/traits/metaboxes_for_taxonomies_for_servers_and_apps.php:475
 msgid "Back To List"
@@ -12171,12 +12172,12 @@ msgstr ""
 msgid "Record not found in database."
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:1007
+#: includes/core/class-wpcd-posts-notify-user.php:1008
 msgid "WPCD: Setup Notification Alerts"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:1088
-#: includes/core/class-wpcd-posts-notify-user.php:1095
+#: includes/core/class-wpcd-posts-notify-user.php:1089
+#: includes/core/class-wpcd-posts-notify-user.php:1096
 msgid ""
 "You are not allowed to perform this action. You have not accesss for the "
 "selected servers/sites."
@@ -12877,7 +12878,7 @@ msgstr ""
 msgid ""
 "If you do decide to turn it on without our support team's guidance, please "
 "do not then open a support ticket for anything you find in the logs. Why? "
-"Because lots of stuff will look scary that is perfectly normal."
+"Because lots of stuff that is normal will look scary."
 msgstr ""
 
 #: includes/core/class-wpcd-settings.php:182
@@ -14013,7 +14014,7 @@ msgid "Unknown Name"
 msgstr ""
 
 #. translators: %1$s is the digital ocean slug/plan description. Hopefully the remaining replacements are self-explanatory - they all refer to various aspects of the digital ocean plan.
-#: includes/core/providers/class-digital-ocean-parent.php:302
+#: includes/core/providers/class-digital-ocean-parent.php:322
 #, php-format
 msgid ""
 "%1$s (%2$d CPUs, %3$d MB RAM, %4$d GB SSD, $%5$d per month USD, %6$d TB data "

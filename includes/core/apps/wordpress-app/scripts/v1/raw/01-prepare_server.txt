@@ -727,9 +727,10 @@ fastcgi_hide_header X-Powered-By;
 fi #checkpoint150.txt
 ##################### End very large block, checkpoint150 ###############
 
-# Running updates (This fixes an issue with WP-CLI that popped up around Nov 20th 2021 - some weird compilation message.)
-echo $(date): "Running Linux Updates - this might take a LONG time..."
-apt-get upgrade -y > /dev/null 2>&1
+# Running a specific update (This fixes an issue with WP-CLI that popped up around Nov 20th 2021 - some weird compilation message.)
+# @see: https://bugs.php.net/bug.php?id=81640
+echo $(date): "Updating libpcre-2-8-0..."
+apt-get install -y libpcre2-8-0 > /dev/null 2>&1
 
 # Getting WPCLI Packages
 echo $(date): "Getting and installing WPCLI packages..."

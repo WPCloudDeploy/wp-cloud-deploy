@@ -275,7 +275,7 @@ class WPCD_NOTIFY_LOG extends WPCD_POSTS_LOG {
 
 			case 'wpcd_notification_message':
 				// Display a portion of the command result.
-				$string_length        = 100;
+				$string_length        = 150;
 				$notification_message = wp_kses_post( get_post_meta( $post_id, 'notification_message', true ) );
 				if ( strlen( $notification_message ) > $string_length ) {
 					$notification_message = substr( $notification_message, $string_length * -1 ) . ' ...more...';

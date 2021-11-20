@@ -948,7 +948,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	 *
 	 * @param int $server_id server id.
 	 */
-	protected function get_server_instance_details( $server_id ) {
+	public function get_server_instance_details( $server_id ) {
 		if ( ! $server_id ) {
 			return new \WP_Error( __( 'Invalid server ID', 'wpcd' ) );
 		}

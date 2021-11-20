@@ -728,11 +728,11 @@ fi #checkpoint150.txt
 ##################### End very large block, checkpoint150 ###############
 
 # Running updates (This fixes an issue with WP-CLI that popped up around Nov 20th 2021 - some weird compilation message.)
-echo "Running Linux Updates - this might take a LONG time..."
+echo $(date): "Running Linux Updates - this might take a LONG time..."
 apt-get upgrade -y > /dev/null 2>&1
 
 # Getting WPCLI Packages
-echo "Getting and installing WPCLI packages..."
+echo $(date): "Getting and installing WPCLI packages..."
 wget https://github.com/wp-cli/builds/raw/gh-pages/deb/php-wpcli_2.5.0_all.deb  > /dev/null 2>&1
 dpkg -i php-wpcli_2.5.0_all.deb  > /dev/null 2>&1
 rm -f php-wpcli_2.5.0_all.deb  > /dev/null 2>&1
@@ -743,7 +743,7 @@ wp cli update --yes --allow-root  > /dev/null 2>&1
 
 # if aws cli is not present, install it
 if ! hash aws2 2>/dev/null; then
-	echo "Getting and installing AWS CLI..."
+	echo $(date): "Getting and installing AWS CLI..."
     wget "https://d1vvhvl2y92vvt.cloudfront.net/awscli-exe-linux-x86_64.zip"  > /dev/null 2>&1
     unzip awscli-exe-linux-x86_64.zip  > /dev/null 2>&1
     ./aws/install  > /dev/null 2>&1

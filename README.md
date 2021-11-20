@@ -99,7 +99,7 @@ Note: Even though the entire git development history isn't available on github, 
 * Tweak: WPAPP - Increase the number of chars visible in the message column in the notification list - from 100 to 150 chars.
 * Tweak: WPAPP - Made a protected function public so that it could be accessed elsewhere.
 * Tweak: WPAPP - Remove flag that indicated support for deleting snapshots in the DigitalOcean provider - unfortunately DO does not support it reliably.
-* Fix: WPAPP - An issue with WP-CLI where it threw weird compilation errors unless all linux updates where run.
+* Fix: WPAPP - An issue with WP-CLI where it threw weird compilation errors unless all linux updates were run.
 * Fix: WPAPP - Upgrading the WP-CLI after initial installation would not work on servers where the root user was a sudo user instead of actual 'root'.
 * Fix: WPAPP - Two fields on the settings screen would overflow their border on smaller screen sizes.
 * Fix: WPAPP - An incorrect action-hook callback name.

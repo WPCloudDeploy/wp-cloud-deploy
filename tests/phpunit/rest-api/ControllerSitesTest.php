@@ -9,6 +9,7 @@ class ControllerSitesTest extends TestCase
     protected string $resource_route;
     protected string $resource_id_route;
     protected string $resource_name_route;
+    protected int $server_post_id;
 
     /**
      * Sets sites controller and other convenience variables
@@ -20,6 +21,7 @@ class ControllerSitesTest extends TestCase
         $this->rest = rest_get_server();
         $this->resource_route = '/' . $this->controller->get_namespace();
         $this->resource_id_route = $this->resource_route . $this->controller::RESOURCE_ID_PATH;
+        $this->server_post_id = WPCD_SERVER()->create_server_post(['name' => 'Test Server']);
         wp_set_current_user(1);
     }
 
@@ -49,8 +51,14 @@ class ControllerSitesTest extends TestCase
         $app_post_id_2 = WPCD_POSTS_APP()->add_app( WPCD_WORDPRESS_APP()->get_app_name(), 2, 1, 'site2.com' );
         $data = $this->rest->dispatch($request)->get_data();
         $this->assertEquals([
-            ['id' => $app_post_id_1, 'name' => 'site1.com', 'user_id' => 1, 'server_id' => 1],
-            ['id' => $app_post_id_2, 'name' => 'site2.com', 'user_id' => 1, 'server_id' => 2]
+            [
+                'id' => $app_post_id_1, 'name' => 'site1.com', 'server_id' => 1,
+                'author' => 1, 'domain' => '', 'ssl_status' => '', 'http2_status' => ''
+            ],
+            [
+                'id' => $app_post_id_2, 'name' => 'site2.com', 'server_id' => 2,
+                'author' => 1, 'domain' => '', 'ssl_status' => '', 'http2_status' => ''
+            ]
         ], $data);
     }
 
@@ -66,7 +74,10 @@ class ControllerSitesTest extends TestCase
         $app_post_id_2 = WPCD_POSTS_APP()->add_app( WPCD_WORDPRESS_APP()->get_app_name(), 1, $user_id, 'site2.com' );
         $data = $this->rest->dispatch($request)->get_data();
         $this->assertEquals([
-            ['id' => $app_post_id_2, 'name' => 'site2.com', 'user_id' => $user_id, 'server_id' => 1]
+            [
+                'id' => $app_post_id_2, 'name' => 'site2.com', 'server_id' => 1,
+                'author' => $user_id,'domain' => '','ssl_status' => '', 'http2_status' => ''
+            ]
         ], $data);
     }
 
@@ -81,7 +92,10 @@ class ControllerSitesTest extends TestCase
         $app_post_id_2 = WPCD_POSTS_APP()->add_app( WPCD_WORDPRESS_APP()->get_app_name(), 2, 1, 'site2.com' );
         $data = $this->rest->dispatch($request)->get_data();
         $this->assertEquals([
-            ['id' => $app_post_id_2, 'name' => 'site2.com', 'user_id' => 1, 'server_id' => 2]
+            [
+                'id' => $app_post_id_2, 'name' => 'site2.com', 'server_id' => 2, 'author' => 1,
+                'domain' => '', 'ssl_status' => '', 'http2_status' => ''
+            ]
         ], $data);
     }
 
@@ -97,17 +111,19 @@ class ControllerSitesTest extends TestCase
         $this->assertEmpty($tasks);
         $request = new WP_REST_Request('POST', $this->resource_route);
         $this->assertWPError($this->rest->dispatch($request)->as_error());
-        $request->set_param('server_id', 1);
+        $request->set_param('server_id', $this->server_post_id);
         $this->assertWPError($this->rest->dispatch($request)->as_error());
         $request->set_param('wp_domain', 'site1.com');
         $this->assertWPError($this->rest->dispatch($request)->as_error());
+        $request->set_param('wp_user', 'admin');
+        $this->assertWPError($this->rest->dispatch($request)->as_error());
+        $request->set_param('wp_email', 'test@example.org');
+        $this->assertWPError($this->rest->dispatch($request)->as_error());
         $request->set_param('wp_password', 'password');
         $data = $this->rest->dispatch($request)->get_data();
-        $sites = $this->rest->dispatch($list_request)->get_data();
         $tasks = get_posts(['post_type' => 'wpcd_pending_log', 'post_status' => 'private', 'post_author' => 1]);
-        $this->assertCount(1, $sites);
         $this->assertCount(1, $tasks);
-        $this->assertEquals(['site_id' => $sites[0]['id'], 'task_id' => $tasks[0]->ID], $data);
+        $this->assertEquals(['task_id' => $tasks[0]->ID], $data);
     }
 
     /**
@@ -117,14 +133,12 @@ class ControllerSitesTest extends TestCase
     {
         $request = new WP_REST_Request('GET', $this->resource_route . '/9999999');
         $this->assertWPError($this->rest->dispatch($request)->as_error());
-        $result = $this->create_site();
-        $request = new WP_REST_Request('GET', $this->resource_route . '/' . $result['site_id']);
+        $site = $this->create_site();
+        $request = new WP_REST_Request('GET', $this->resource_route . '/' . $site->ID);
         $site = $this->rest->dispatch($request)->get_data();
         $this->assertEquals([
-            'id' => $result['site_id'],
-            'name' => 'site1.com',
-            'user_id' => 1,
-            'server_id' => 1
+            'id' => $site['id'], 'author' => 1, 'server_id' => $this->server_post_id,
+            'ssl_status' => '', 'http2_status' => '', 'name' => 'site1.com', 'domain' => 'site1.com'
         ], $site);
     }
 
@@ -134,35 +148,30 @@ class ControllerSitesTest extends TestCase
     function test_it_updates_a_site()
     {
         $request = new WP_REST_Request('PUT', $this->resource_route . '/9999999');
-        $this->assertWPError($this->rest->dispatch($request)->as_error());
-        $result = $this->create_site();
-        $request = new WP_REST_Request('PUT', $this->resource_route . '/' . $result['site_id']);
-        $request->set_body_params(['wp_domain' => 'site2.com']);
-        $site = $this->rest->dispatch($request)->get_data();
-        $this->assertEquals([
-            'id' => $result['site_id'],
-            'name' => 'site2.com',
-            'user_id' => 1,
-            'server_id' => 1
-        ], $site);
+        $error = $this->rest->dispatch($request)->as_error();
+        $this->assertWPError($error);
+        $this->assertEquals(405, $error->get_error_data()['status']);
+
     }
 
     /**
-     * Verifies DELETE /sites/{id} correctly trashes the specified site
+     * Verifies DELETE /sites/{id} correctly deletes the specified site
      */
     function test_it_deletes_a_site()
     {
+        $this->mock_ssh('Site has been deleted');
+        $this->create_test_provider();
         $request = new WP_REST_Request('DELETE', $this->resource_route . '/9999999');
         $this->assertWPError($this->rest->dispatch($request)->as_error());
-        $result = $this->create_site();
-        $this->assertEquals('private', get_post_status($result['site_id']));
-        $request = new WP_REST_Request('DELETE', $this->resource_route . '/' . $result['site_id']);
+        $site = $this->create_site();
+        $this->assertEquals('private', get_post_status($site));
+        $request = new WP_REST_Request('DELETE', $this->resource_route . '/' . $site->ID);
         $site = $this->rest->dispatch($request)->get_data();
         $this->assertEquals([
-            'site_id' => $result['site_id'],
+            'site_id' => $site['site_id'],
             'deleted' => true,
         ], $site);
-        $this->assertEquals('trash', get_post_status($result['site_id']));
+        $this->assertFalse(get_post_status($site['site_id']));
     }
 
     /**
@@ -171,17 +180,17 @@ class ControllerSitesTest extends TestCase
     function test_it_executes_a_site_action()
     {
         $this->mock_ssh('SSL has been enabled');
-        $server_id = $this->create_test_provider();
+        $this->create_test_provider();
         $request = new WP_REST_Request('POST', $this->resource_route . '/9999999/execute-action');
         $this->assertWPError($this->rest->dispatch($request)->as_error());
-        $result = $this->create_site($server_id);
-        $route = $this->resource_route . '/' . $result['site_id'] . '/execute-action';
+        $site = $this->create_site();
+        $route = $this->resource_route . '/' . $site->ID . '/execute-action';
         $request = new WP_REST_Request('POST', $route);
         $this->assertWPError($this->rest->dispatch($request)->as_error());
         $request->set_param('action', 'ssl-status');
         $action = $this->rest->dispatch($request)->get_data();
         $this->assertEquals([
-            'site_id' => $result['site_id'],
+            'site_id' => $site->ID,
             'action' => 'ssl-status',
             'result' => ['refresh' => 'yes']
         ], $action);
@@ -190,27 +199,28 @@ class ControllerSitesTest extends TestCase
     /**
      * Convenience method to create a new site via the REST API and return its response
      *
-     * @param int $server_id
-     * @return array
+     * @return WP_Post
      */
-    protected function create_site($server_id = 1)
+    protected function create_site()
     {
-        $request = new WP_REST_Request('POST', $this->resource_route);
-        $request->set_body_params(['server_id' => $server_id, 'wp_domain' => 'site1.com', 'wp_password' => 'password']);
-        return $this->rest->dispatch($request)->get_data();
+        $site_id = WPCD_WORDPRESS_APP()->add_wp_app_post(
+            $this->server_post_id,
+            ['server_id' => $this->server_post_id, 'wp_domain' => 'site1.com', 'wp_password' => 'password'],
+            []
+        );
+        return get_post($site_id);
     }
 
     /**
-     * Loads in test provider to use isntead of a real provider
+     * Loads in test provider to use instead of a real provider
      */
     protected function create_test_provider($key = 'test')
     {
         require_once dirname(dirname(__DIR__)) . '/data/class-wpcd-cloud-provider-test.php';
         WPCD()->classes['wpcd_vpn_api_provider_' . $key] = new WPCD_Cloud_Provider_Test();
-        $server_id = WPCD_SERVER()->create_server_post(['name' => 'Test Server']);
-        update_post_meta($server_id, 'wpcd_server_provider', $key);
-        update_post_meta($server_id, 'wpcd_server_provider_instance_id', '12345');
-        return $server_id;
+        update_post_meta($this->server_post_id, 'wpcd_server_provider', $key);
+        update_post_meta($this->server_post_id, 'wpcd_server_provider_instance_id', '12345');
+        return $this->server_post_id;
     }
 
     /**

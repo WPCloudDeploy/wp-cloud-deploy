@@ -120,7 +120,8 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 	 */
 	private function copy_to_existing_site( $action, $id ) {
 
-		$args = wp_parse_args( sanitize_text_field( $_POST['params'] ) );
+		// Get data from the POST request.
+		$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
 
 		// Bail if certain things are empty...
 		if ( empty( $args['target_domain'] ) ) {
@@ -258,7 +259,7 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 			'name' => __( 'Copy Everything', 'wpcd' ),
 			'tab'  => 'copy-to-existing-site',
 			'type' => 'heading',
-			'desc' => __( 'Copy all files and all database tables. We will not copy wp-config.php though. Existing files on the destination that do not exist on the target domain will NOT be deleted.  However, all tables on the destination will be dropped and recreated.', 'wpcd' ),
+			'desc' => __( 'Copy all files and all database tables. We will not copy wp-config.php though. Existing files on the destination that do not exist on the this domain will NOT be deleted.  However, ALL tables on the destination will be dropped and recreated.', 'wpcd' ),
 		);
 		$fields[] = array(
 			'id'         => 'wpcd_app_copy_to_site_full_sync',
@@ -518,7 +519,7 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 	 */
 	private function save_site_settings( $action, $id ) {
 
-		$args = wp_parse_args( sanitize_text_field( wp_unslash( $_POST['params'] ) ) );
+		$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
 		update_post_meta( $id, 'wpcd_wpapp_copy_to_site_settings', $args );
 
 		return new \WP_Error( __( 'Settings have been saved for this site.', 'wpcd' ) );

@@ -18,6 +18,6 @@ class WPCD_Cloud_Provider_Test extends CLOUD_PROVIDER_API {
 
     public function call()
     {
-        return [];
+        return ['status' => 'done'];
     }
 }

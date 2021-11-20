@@ -43,7 +43,7 @@ class WPCD_WORDPRESS_TABS_SERVER_CALLBACKS extends WPCD_WORDPRESS_TABS {
 
 		/* Handle callback failures and tag the pending log record as failed */
 		add_action( 'wpcd_server_wordpress-app_server_status_callback_second_action_failed', array( $this, 'handle_server_status_callback_install_failed' ), 10, 3 );
-		add_action( 'wpcd_server_wordpress-app_server_status_callback_first_action_failed', array( $this, 'handle_server-status_callback_install_failed' ), 10, 3 );
+		add_action( 'wpcd_server_wordpress-app_server_status_callback_first_action_failed', array( $this, 'handle_server_status_callback_install_failed' ), 10, 3 );
 
 		/* Pending Logs Background Task: Run callback for the first time on a server after they're installed */
 		add_action( 'run_server_callbacks', array( $this, 'run_server_callbacks' ), 10, 3 );
@@ -309,7 +309,7 @@ class WPCD_WORDPRESS_TABS_SERVER_CALLBACKS extends WPCD_WORDPRESS_TABS {
 
 		// Grab parameters but there should be nothing here for this callback.
 		if ( ! empty( $_POST['params'] ) ) {
-			$args = wp_parse_args( sanitize_text_field( $_POST['params'] ) );
+			$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
 		} else {
 			$args = array();
 		}
@@ -369,7 +369,16 @@ class WPCD_WORDPRESS_TABS_SERVER_CALLBACKS extends WPCD_WORDPRESS_TABS {
 		do_action( 'wpcd_log_error', sprintf( 'attempting to run command for %s = %s ', print_r( $instance, true ), $run_cmd ), 'trace', __FILE__, __LINE__, $instance, false ); //PHPcs warning normally issued because of print_r
 
 		// Execute command and check result.
-		$result  = $this->execute_ssh( 'generic', $instance, array( 'commands' => $run_cmd ) );
+		$result = $this->execute_ssh( 'generic', $instance, array( 'commands' => $run_cmd ) );
+
+		// Make sure that $result is not a wp_error object.
+		if ( is_wp_error( $result ) ) {
+			do_action( "wpcd_server_{$this->get_app_name()}_server_status_callback_first_action_failed", $id, $action, false );
+			/* translators: %1$s is replaced with the internal action name; %2$s is replaced with the result of the call, usually an error message. */
+			return new \WP_Error( sprintf( __( 'Unable to %1$s : %2$s', 'wpcd' ), $action, $result->get_error_message() ) );
+		}
+
+		// Verify the success or failure of the actual bash command.
 		$success = $this->is_ssh_successful( $result, 'server_status_callback.txt' );
 
 		if ( ! $success ) {
@@ -461,7 +470,7 @@ class WPCD_WORDPRESS_TABS_SERVER_CALLBACKS extends WPCD_WORDPRESS_TABS {
 
 		// Grab parameters but there should be nothing here for this callback.
 		if ( ! empty( $_POST['params'] ) ) {
-			$args = wp_parse_args( sanitize_text_field( $_POST['params'] ) );
+			$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
 		} else {
 			$args = array();
 		}

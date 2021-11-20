@@ -177,11 +177,11 @@ class WPCD_WORDPRESS_TABS_SITE_LOGS extends WPCD_WORDPRESS_TABS {
 		$instance = $this->get_app_instance_details( $id );
 
 		if ( is_wp_error( $instance ) ) {
-			return $result;
+			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
 		}
 
 		/* Grab the arguments sent from the front-end JS */
-		$args = wp_parse_args( sanitize_text_field( $_POST['params'] ) );
+		$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
 
 		// Get the domain...
 		$domain = get_post_meta( $id, 'wpapp_domain', true );

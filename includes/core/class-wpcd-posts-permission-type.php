@@ -86,7 +86,7 @@ class WPCD_POSTS_PERMISSION_TYPE {
 					'add_new'               => __( 'Add Server/App Permission', 'wpcd' ),
 					'edit_item'             => __( 'Edit Server/App Permission', 'wpcd' ),
 					'view_item'             => __( 'View Server/App Permission', 'wpcd' ),
-					'all_items'             => __( 'All Server/App Permissions', 'wpcd' ),
+					'all_items'             => __( 'Server/App Permissions', 'wpcd' ), // Label to signify all items in a submenu link.
 					'search_items'          => __( 'Search Server/App Permissions', 'wpcd' ),
 					'not_found'             => __( 'No Server/App Permissions were found.', 'wpcd' ),
 					'not_found_in_trash'    => __( 'No Server/App Permissions were found in Trash.', 'wpcd' ),
@@ -95,14 +95,14 @@ class WPCD_POSTS_PERMISSION_TYPE {
 					'items_list'            => _x( 'Server/App Permissions list', 'Screen reader text for the items list heading on the post type listing screen. Default "Posts list"/"Pages list". Added in 4.4', 'wpcd' ),
 				),
 				'show_ui'             => true,
-				'show_in_menu'        => false,
+				'show_in_menu'        => ( defined( 'WPCD_SHOW_PERMISSION_LIST' ) && ( true === WPCD_SHOW_PERMISSION_LIST ) ) ? 'edit.php?post_type=wpcd_app_server' : false,
+				'menu_position'       => null,
 				'show_in_nav_menus'   => true,
 				'show_in_admin_bar'   => false,
 				'public'              => true,
 				'exclude_from_search' => true,
 				'publicly_queryable'  => false,
 				'hierarchical'        => false,
-				'menu_position'       => null,
 				'supports'            => array( 'title' ),
 				'rewrite'             => null,
 				'map_meta_cap'        => true,
@@ -553,7 +553,7 @@ class WPCD_POSTS_PERMISSION_TYPE {
 			?>
 			<script type="text/javascript">
 				jQuery(document).ready(function($){
-					$('<a href="<?php echo esc_attr( $backtolist_url ); ?>" class="page-title-action"><?php echo esc_html( $backtolist_txt ); ?></a>').insertBefore('hr.wp-header-end');					
+					$('<a href="<?php echo esc_attr( $backtolist_url ); ?>" class="page-title-action"><?php echo esc_html( $backtolist_txt ); ?></a>').insertBefore('hr.wp-header-end');
 				});
 			</script>
 			<?php

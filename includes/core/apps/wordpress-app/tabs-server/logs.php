@@ -175,7 +175,7 @@ class WPCD_WORDPRESS_TABS_SERVER_LOGS extends WPCD_WORDPRESS_TABS {
 	 * @param int    $id         The postID of the server cpt.
 	 * @param string $action     The action to be performed (this matches the string required in the bash scripts if bash scripts are used ).
 	 *
-	 * @return boolean  success/failure/other
+	 * @return bool|\WP_Error  success/failure/other
 	 */
 	private function do_server_log_actions( $id, $action ) {
 
@@ -188,7 +188,7 @@ class WPCD_WORDPRESS_TABS_SERVER_LOGS extends WPCD_WORDPRESS_TABS {
 		}
 
 		/* Grab the arguments sent from the front-end JS */
-		$args = wp_parse_args( sanitize_text_field( $_POST['params'] ) );
+		$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
 
 		/* Make sure the log name has not been tampered with. We will not be escaping the log file name since we can validate it against our own known good list. */
 		if ( ! isset( $this->get_log_list()[ $args['server_log_name'] ] ) ) {

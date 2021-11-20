@@ -176,7 +176,7 @@ class WPCD_Settings {
 				$logging_desc  = __( 'You can log various error types to the database. Be careful because if you turn on all items below, you will end up with thousands of entries in your database.', 'wpcd' );
 				$logging_desc .= '<br />' . __( 'To prevent this, we set the log limit to 100 records but you can adjust this number as well.', 'wpcd' );
 				$logging_desc .= '<br /><b>' . __( 'DO NOT TURN THIS ON UNLESS OUR SUPPORT TEAM TELLS YOU TO DO SO!  We know you want to do it but please do not do so without our support guidance!', 'wpcd' ) . '</b>';
-				$logging_desc .= '<br />' . __( 'If you do decide to turn it on without our support team\'s guidance, please do not then open a support ticket for anything you find in the logs. Why? Because lots of stuff will look scary that is perfectly normal.', 'wpcd' );
+				$logging_desc .= '<br />' . __( 'If you do decide to turn it on without our support team\'s guidance, please do not then open a support ticket for anything you find in the logs. Why? Because lots of stuff that is normal will look scary.', 'wpcd' );
 				$meta_boxes[]  = array(
 					'id'             => 'logging',
 					'title'          => __( 'Logging and Tracing', 'wpcd' ),
@@ -1191,7 +1191,6 @@ class WPCD_Settings {
 						'name'    => __( 'Public SSH Key', 'wpcd' ),
 						'tooltip' => __( 'For most providers this public key is stored at the provider and will be installed into each server instance when the instance is first created.  If you change this value only FUTURE instances will get the new key. Instances that are already up and running will retain the prior key and any future operations on those instances will FAIL!  Note that some providers such as UPCLOUD and CUSTOM PROVIDERS might not use this key.  Check the documentation for the provider if you are unsure if this is required.', 'wpcd' ),
 						'options' => $keys,
-						'size'    => '60',
 						/* translators: %s: provider name. */
 						'desc'    => apply_filters( "wpcd_cloud_provider_settings_ssh_keys_select_desc_{$provider}", sprintf( __( 'Public key saved in %s. If you have just uploaded your public key and do not see it here, try clicking the CLEAR CACHE button at the bottom of this page.', 'wpcd' ), $name ) ),
 						'tab'     => $tab_id,
@@ -1324,7 +1323,6 @@ class WPCD_Settings {
 						'id'   => "vpn_{$provider}_alt_desc",
 						'type' => 'text',
 						'name' => __( 'Alternative Name', 'wpcd' ),
-						'size' => '90',
 						'desc' => __( 'Use this as the providers display name', 'wpcd' ),
 						'tab'  => $tab_id,
 					),

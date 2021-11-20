@@ -53,7 +53,7 @@ class CLOUD_PROVIDER_API_DigitalOcean_Parent extends CLOUD_PROVIDER_API {
 
 		/* Set flag that indicates we will support snapshots */
 		$this->set_feature_flag( 'snapshots', true );
-		$this->set_feature_flag( 'snapshot-delete', true );
+		$this->set_feature_flag( 'snapshot-delete', false );  // We can't support this in DigitalOcean because the create snapshot api or subsequent endpoints do not actually return the snapshot ID.
 		$this->set_feature_flag( 'snapshot-list', true );
 
 		/* Set the API key - pulling from settings */
@@ -217,9 +217,25 @@ runcmd:
 }';
 				break;
 			case 'delete_snapshot':
+				/**
+				 * Not used because DO doesn't give us the snapshot ID 
+				 * after a snapshot operation.
+				 * Without the ID, we can't delete anything.
+				 */
 				$endpoint = 'snapshots/' . $attributes['snapshot_id'];
 				$action   = 'DELETE';
 				break;
+			case 'pending_snapshot_status':
+				/**
+				 * When a snapshot is requested, DO does not return the id right away.
+				 * So need to query the ACTIONS endpoint to get the final id.
+				 * Or so we thought.
+				 * It turns out DO doesn't provide the final snapshot ID via the API at all!
+				 * That makes this call useless but we're keeping it in here anyway for
+				 * potential future use since we already wrote the code.
+				 */
+				$endpoint = 'actions/' . $attributes['pending_snapshot_id'];
+				break;			
 			case 'list_all_snapshots':
 				$endpoint = 'snapshots' . '?page=1&per_page=9999';
 				break;
@@ -253,6 +269,10 @@ runcmd:
 				break;
 			case 'details':
 				$endpoint = 'droplets/' . $attributes['id'];
+				break;
+			case 'action':
+				/* The action endpoint is used to get the result of an operation that usually takes a long time.  We are not using this right now. */
+				$endpoint = 'actions/' . $attributes['action_id'];
 				break;
 			default:
 				return new WP_Error( 'not supported' );
@@ -328,8 +348,9 @@ runcmd:
 				break;
 			case 'snapshot':
 				if ( ! empty( $body->action->id ) ) {
-					$return['id']              = $attributes['id'];  // Unfortunately, this is NOT the id of the droplet.  Might be the ID of a background process for it and we'll have to use it to query later?
-					$return['snapshot-id']     = $body->action->id;
+					$return['id']              = $attributes['id'];
+					$return['snapshot-id']     = $body->action->id;   // Unfortunately, this is NOT the id of the droplet.  Might be the ID of a background process for it and we'll have to use it to query later?
+					$return['snapshot-id-type']= 'intermediate';  // Two possible values - 'final' if this is the final id for the snapshot or 'intermediate' if we have to wait for the snapshot to finish and then use this id to get the final snapshot id.
 					$return['provider_status'] = $body->action->status;
 					$return['status']          = 'success';
 				} else {
@@ -337,11 +358,26 @@ runcmd:
 				}
 				break;
 			case 'delete_snapshot':
+				/* Not used. */
 				if ( ! empty( $body->id ) ) {
 					$return['status'] = 'success';
 				} else {
 					$return['status'] = 'fail';
 				}
+				break;
+			case 'pending_snapshot_status':
+				/* Not used. */
+				if ( ! empty( $body->action ) ) {
+					if ( 'completed' === $body->action->status ) {
+						$return['status'] = 'complete';
+					} else {
+						$return['status'] = $body->action->status;
+					}
+					$return['snapshot_id'] = $body->action->id;  // This should be the snapshot id but its NOT because DO doesn't actually give it to you anywhere making this action completely useless.
+				} else {
+					$return['status'] = 'fail';
+				}
+			
 				break;
 			case 'list_all_snapshots':
 				if ( ! empty( $body->snapshots ) ) {
@@ -382,6 +418,9 @@ runcmd:
 				$return['name']   = $body->droplet->name;
 				$return['status'] = $body->droplet->status;
 				break;
+			case 'action':
+				/* We are not using this endpoint right now. */
+				break;				
 		}
 
 		/* Cache some things if necessary */

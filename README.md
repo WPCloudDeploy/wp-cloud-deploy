@@ -56,6 +56,8 @@ You can also view all requirements at the bottom of our [getting started documen
 
 Have a change you would like to see incorporated?  Then create a PR (pull request) against the **dev** branch.
 
+If you'd like to contribute to translations, you can do so in our public [POEDITOR project](https://poeditor.com/join/project?hash=A5I1lpqRes).
+
 ## Premium Versions ##
 
 A premium version of this plugin is available on the WPCloudDeploy website.  You can view the additional features offered on the [pricing page.](https://wpclouddeploy.com/pricing/)
@@ -89,6 +91,29 @@ Note: Even though the entire git development history isn't available on github, 
 [Friendly Release Notes](https://wpclouddeploy.com/category/release-notes/)
 
 ## Change Log ##
+4.12.0
+------
+* New: WPAPP - Add support for snapshots in notifications.
+* Tweak: WPAPP - Some email notifications can now use tokens in the subject line. (Thanks vladolaru)
+* Tweak: WPAPP - Make sure we run an apt update before gathering other info in script 24-server_status.
+* Tweak: WPAPP - Increase the number of chars visible in the message column in the notification list - from 100 to 150 chars.
+* Tweak: WPAPP - Made a protected function public so that it could be accessed elsewhere.
+* Tweak: WPAPP - Remove flag that indicated support for deleting snapshots in the DigitalOcean provider - unfortunately DO does not support it reliably.
+* Fix: WPAPP - An issue with WP-CLI where it threw weird compilation errors unless all linux updates were run.
+* Fix: WPAPP - Upgrading the WP-CLI after initial installation would not work on servers where the root user was a sudo user instead of actual 'root'.
+* Fix: WPAPP - Two fields on the settings screen would overflow their border on smaller screen sizes.
+* Fix: WPAPP - An incorrect action-hook callback name.
+* Fix: WPAPP - Check the value of a variable in the callbacks tab to make sure it's not a wp_error object before using it.
+* Dev: WPAPP - Encodes fields using encodeURIComponent on the front-end and decodes on the backend - adds stronger support for certain special characters. (Thanks vladolaru)
+* Dev: WPAPP - New logic for menu - the current menu item / screen is now highlighted.(Thanks vladolaru)
+* Dev: WPAPP - Fix some incorrect return types and removes redundant use of 'echo' when using the wp_send_json_error(). (Thanks vladolaru)  
+* Dev: WPAPP - Added new tests for REST API.
+* Other: Include a GNU V2 license file.
+
+4.11.1
+------
+* New: WPAPP - Added ability to edit the domain name in the advanced metaboxes for a site - sometimes needed by tech support.
+
 4.11.0
 ------
 * New: WPAPP - Foundation for REST API.

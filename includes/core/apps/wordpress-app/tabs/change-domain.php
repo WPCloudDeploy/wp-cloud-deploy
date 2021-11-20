@@ -173,7 +173,8 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 	 */
 	public function change_domain_only( $action, $id ) {
 
-		$args = wp_parse_args( sanitize_text_field( $_POST['params'] ) ); // Get data from the post.
+		// Get data from the POST request.
+		$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
 
 		// Bail if certain things are empty...
 		if ( empty( $args['new_domain'] ) ) {
@@ -257,7 +258,8 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 	private function change_domain_full( $action, $id, $in_args = array() ) {
 
 		if ( empty( $in_args ) ) {
-			$args = wp_parse_args( sanitize_text_field( $_POST['params'] ) );
+			// Get data from the POST request.
+			$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
 		} else {
 			$args = $in_args;
 		}
@@ -386,7 +388,8 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 	 */
 	private function change_domain_record_only( $action, $id ) {
 
-		$args = wp_parse_args( sanitize_text_field( $_POST['params'] ) );
+		// Get data from the POST request.
+		$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
 
 		// Bail if certain things are empty...
 		if ( empty( $args['new_domain'] ) ) {
@@ -428,7 +431,8 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 	 */
 	private function search_and_replace_db( $action, $id ) {
 
-		$args = wp_parse_args( sanitize_text_field( $_POST['params'] ) );
+		// Get data from the POST request.
+		$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
 
 		// Bail if certain things are empty...
 		if ( empty( $args['search_term'] ) ) {

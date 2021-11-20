@@ -62,13 +62,13 @@ class WPCD_NOTIFY_SENT extends WPCD_POSTS_LOG {
 			'wpcd_notify_sent',
 			array(
 				'labels'              => array(
-					'name'                  => _x( 'Notifications Sent Log', 'Post type general name', 'wpcd' ),
+					'name'                  => _x( 'Notifications Sent Logs', 'Post type general name', 'wpcd' ),
 					'singular_name'         => _x( 'Notifications Sent Log', 'Post type singular name', 'wpcd' ),
 					'menu_name'             => _x( 'Notifications Sent Log', 'Admin Menu text', 'wpcd' ),
 					'name_admin_bar'        => _x( 'Notifications Sent Log', 'Add New on Toolbar', 'wpcd' ),
 					'edit_item'             => __( 'Edit Notification Sent', 'wpcd' ),
 					'view_item'             => __( 'View Notification Sent', 'wpcd' ),
-					'all_items'             => __( 'All Notifications Sent', 'wpcd' ),
+					'all_items'             => __( 'History', 'wpcd' ), // Label to signify all items in a submenu link.
 					'search_items'          => __( 'Search Logs', 'wpcd' ),
 					'not_found'             => __( 'No Logs were found.', 'wpcd' ),
 					'not_found_in_trash'    => __( 'No Logs were found in Trash.', 'wpcd' ),
@@ -77,7 +77,7 @@ class WPCD_NOTIFY_SENT extends WPCD_POSTS_LOG {
 					'items_list'            => _x( 'Notification Sent Logs list', 'Screen reader text for the items list heading on the post type listing screen. Default "Posts list"/"Pages list". Added in 4.4', 'wpcd' ),
 				),
 				'show_ui'             => true,
-				'show_in_menu'        => false,
+				'show_in_menu'        => 'edit.php?post_type=wpcd_notify_log',
 				'show_in_nav_menus'   => true,
 				'show_in_admin_bar'   => false,
 				'public'              => true,
@@ -87,15 +87,13 @@ class WPCD_NOTIFY_SENT extends WPCD_POSTS_LOG {
 				'menu_position'       => null,
 				'supports'            => array( '' ),
 				'rewrite'             => null,
-				'capabilities'        => array(
-					'create_posts' => false,
-					'edit_posts'   => true,
-				),
-				'map_meta_cap'        => true,
 				'capability_type'     => 'post',
 				'capabilities'        => array(
-					'create_posts' => 'do_not_allow',
+					'create_posts' => false,
+					'read_posts'   => 'wpcd_manage_logs',
+					'edit_posts'   => 'wpcd_manage_logs',
 				),
+				'map_meta_cap'        => true,
 			)
 		);
 
@@ -135,7 +133,6 @@ class WPCD_NOTIFY_SENT extends WPCD_POSTS_LOG {
 					if ( $parent_post ) {
 						$title = wp_kses_post( $parent_post->post_title );
 						$value = sprintf( '<a href="%s">' . (string) $parent_post_id . '</a>', get_edit_post_link( $parent_post_id ) );
-						$value = $value;
 					} else {
 						$value = __( 'Parent post not found', 'wpcd' );
 					}
@@ -475,30 +472,30 @@ class WPCD_NOTIFY_SENT extends WPCD_POSTS_LOG {
 	/**
 	 * Function for sending email notifications to the user
 	 *
-	 * @param int    $alert_id alert_id.
-	 * @param int    $notify_log_id notify_log_id.
-	 * @param string $user_email user_email.
-	 * @param string $user_login user_login.
-	 * @param string $notify_type notify_type.
-	 * @param string $notify_ref notify_ref.
+	 * @param int    $alert_id       alert_id.
+	 * @param int    $notify_log_id  notify_log_id.
+	 * @param string $user_email     user_email.
+	 * @param string $user_login     user_login.
+	 * @param string $notify_type    notify_type.
+	 * @param string $notify_ref     notify_ref.
 	 * @param string $notify_message notify_message.
-	 * @param string $server_name server_name.
-	 * @param string $domain_name domain_name.
-	 * @param string $date date.
-	 * @param string $time time.
-	 * @param string $server_id server_id.
-	 * @param string $site_id site_id.
-	 * @param string $first_name first_name.
-	 * @param string $last_name last_name.
-	 * @param string $ipv4 ipv4.
-	 * @param string $provider provider.
+	 * @param string $server_name    server_name.
+	 * @param string $domain_name    domain_name.
+	 * @param string $date           date.
+	 * @param string $time           time.
+	 * @param string $server_id      server_id.
+	 * @param string $site_id        site_id.
+	 * @param string $first_name     first_name.
+	 * @param string $last_name      last_name.
+	 * @param string $ipv4           ipv4.
+	 * @param string $provider       provider.
 	 */
 	public function wpcd_send_email_notifications_to_user( $alert_id, $notify_log_id, $user_email, $user_login, $notify_type, $notify_ref, $notify_message, $server_name, $domain_name, $date, $time, $server_id, $site_id, $first_name, $last_name, $ipv4, $provider ) {
-		// get email notification settings.
-		$email_subject = apply_filters( 'wpcd_wpapp_email_notify_subject', wpcd_get_option( 'wordpress_app_email_notify_subject' ) );
-		$email_body    = apply_filters( 'wpcd_wpapp_email_notify_body', wpcd_get_option( 'wordpress_app_email_notify_body' ) );
+		// Get email notification settings.
+		$email_subject = apply_filters( 'wpcd_wpapp_email_notify_subject_raw', wpcd_get_option( 'wordpress_app_email_notify_subject' ) );
+		$email_body    = apply_filters( 'wpcd_wpapp_email_notify_body_raw', wpcd_get_option( 'wordpress_app_email_notify_body' ) );
 
-		// Now set a standard array of replaceable parameters.
+		// Now construct a standard array of replaceable parameters.
 		$tokens               = array();
 		$tokens['USERNAME']   = $user_login;
 		$tokens['TYPE']       = $notify_type;
@@ -515,10 +512,14 @@ class WPCD_NOTIFY_SENT extends WPCD_POSTS_LOG {
 		$tokens['IPV4']       = $ipv4;
 		$tokens['PROVIDER']   = $provider;
 
-		// Replace tokens in email..
-		$email_body = WPCD_WORDPRESS_APP()->replace_script_tokens( $email_body, $tokens );
+		// Replace tokens in the email subject.
+		$email_subject = WPCD_WORDPRESS_APP()->replace_script_tokens( $email_subject, $tokens );
+		// Let developers have their way again with the email subject, this time with tokens replaced.
+		$email_subject = apply_filters( 'wpcd_wpapp_email_notify_subject', $email_subject );
 
-		// Let developers have their way again with the email contents.
+		// Replace tokens in the email body.
+		$email_body = WPCD_WORDPRESS_APP()->replace_script_tokens( $email_body, $tokens );
+		// Let developers have their way again with the email contents, this time with tokens replaced.
 		$email_body = apply_filters( 'wpcd_wpapp_email_notify_body', $email_body );
 
 		// Send the email...
@@ -531,39 +532,39 @@ class WPCD_NOTIFY_SENT extends WPCD_POSTS_LOG {
 			);
 
 			if ( ! $sent ) {
-				$this->add_user_notify_sent_log_entry( $alert_id, $notify_type, __( 'Could not send email notification for notification_id : ' . $notify_log_id, 'wpcd' ), $notify_ref, '0', null );
+				$this->add_user_notify_sent_log_entry( $alert_id, $notify_type, sprintf( __( 'Could not send email notification for notification_id : %d', 'wpcd' ), $notify_log_id ), $notify_ref, '0', null );
 			} else {
-				$this->add_user_notify_sent_log_entry( $alert_id, $notify_type, __( 'Email notification sent successfully for notification_id : ' . $notify_log_id, 'wpcd' ), $notify_ref, '1', null );
+				$this->add_user_notify_sent_log_entry( $alert_id, $notify_type, sprintf( __( 'Email notification sent successfully for notification_id : %d', 'wpcd' ), $notify_log_id ), $notify_ref, '1', null );
 			}
 		} else {
-			$this->add_user_notify_sent_log_entry( $alert_id, $notify_type, __( 'Could not send email notfication due to empty email subject or body field for notification_id : ' . $notify_log_id, 'wpcd' ), $notify_ref, '0', null );
+			$this->add_user_notify_sent_log_entry( $alert_id, $notify_type, sprintf( __( 'Could not send email notification due to empty email subject or body field for notification_id : %d', 'wpcd' ), $notify_log_id ), $notify_ref, '0', null );
 		}
 	}
 
 	/**
-	 * Function for sending slack webhook notifications to the user
+	 * Function for sending Slack webhook notifications to the user
 	 *
-	 * @param int    $alert_id alert_id.
-	 * @param int    $notify_log_id notify_log_id.
-	 * @param string $user_slack user_slack.
-	 * @param string $user_login user_login.
-	 * @param string $notify_type notify_type.
-	 * @param string $notify_ref notify_ref.
+	 * @param int    $alert_id       alert_id.
+	 * @param int    $notify_log_id  notify_log_id.
+	 * @param string $user_slack     user_slack.
+	 * @param string $user_login     user_login.
+	 * @param string $notify_type    notify_type.
+	 * @param string $notify_ref     notify_ref.
 	 * @param string $notify_message notify_message.
-	 * @param string $server_name server_name.
-	 * @param string $domain_name domain_name.
-	 * @param string $date date.
-	 * @param string $time time.
-	 * @param string $server_id server_id.
-	 * @param string $site_id site_id.
-	 * @param string $first_name first_name.
-	 * @param string $last_name last_name.
-	 * @param string $ipv4 ipv4.
-	 * @param string $provider provider.
+	 * @param string $server_name    server_name.
+	 * @param string $domain_name    domain_name.
+	 * @param string $date           date.
+	 * @param string $time           time.
+	 * @param string $server_id      server_id.
+	 * @param string $site_id        site_id.
+	 * @param string $first_name     first_name.
+	 * @param string $last_name      last_name.
+	 * @param string $ipv4           ipv4.
+	 * @param string $provider       provider.
 	 */
 	public function wpcd_send_slack_webhook_notifications_to_user( $alert_id, $notify_log_id, $user_slack, $user_login, $notify_type, $notify_ref, $notify_message, $server_name, $domain_name, $date, $time, $server_id, $site_id, $first_name, $last_name, $ipv4, $provider ) {
-		// get slack webhook notification settings.
-		$slack_message = apply_filters( 'wpcd_wpapp_slack_notify_message', wpcd_get_option( 'wordpress_app_slack_notify_message' ) );
+		// Get Slack webhook notification settings.
+		$slack_message = apply_filters( 'wpcd_wpapp_slack_notify_message_raw', wpcd_get_option( 'wordpress_app_slack_notify_message' ) );
 
 		// Now set a standard array of replaceable parameters.
 		$slacktokens               = array();
@@ -585,7 +586,7 @@ class WPCD_NOTIFY_SENT extends WPCD_POSTS_LOG {
 		// Replace tokens in slack message..
 		$slack_message = WPCD_WORDPRESS_APP()->replace_script_tokens( $slack_message, $slacktokens );
 
-		// Let developers have their way again with the slack message.
+		// Let developers have their way again with the Slack message, this time with tokens replaced.
 		$slack_message = apply_filters( 'wpcd_wpapp_slack_notify_message', $slack_message );
 
 		// Send the message...
@@ -606,14 +607,14 @@ class WPCD_NOTIFY_SENT extends WPCD_POSTS_LOG {
 					curl_close( $c );
 
 					if ( $sent_message !== 'ok' ) {
-						$this->add_user_notify_sent_log_entry( $alert_id, $notify_type, __( 'Could not send slack notfication for notification_id : ' . $notify_log_id, 'wpcd' ), $notify_ref, '0', null );
+						$this->add_user_notify_sent_log_entry( $alert_id, $notify_type, sprintf( __( 'Could not send slack notification for notification_id : %d', 'wpcd' ), $notify_log_id ), $notify_ref, '0', null );
 					} else {
-						$this->add_user_notify_sent_log_entry( $alert_id, $notify_type, __( 'Slack notfication sent successfully for notification_id : ' . $notify_log_id, 'wpcd' ), $notify_ref, '1', null );
+						$this->add_user_notify_sent_log_entry( $alert_id, $notify_type, sprintf( __( 'Slack notification sent successfully for notification_id : %d', 'wpcd' ), $notify_log_id ), $notify_ref, '1', null );
 					}
 				}
 			}
 		} else {
-			$this->add_user_notify_sent_log_entry( $alert_id, $notify_type, __( 'Could not send slack notfication due to empty slack message field for notification_id : ' . $notify_log_id, 'wpcd' ), $notify_ref, '0', null );
+			$this->add_user_notify_sent_log_entry( $alert_id, $notify_type, sprintf( __( 'Could not send slack notification due to empty slack message field for notification_id : %d', 'wpcd' ), $notify_log_id ), $notify_ref, '0', null );
 		}
 	}
 
@@ -621,29 +622,29 @@ class WPCD_NOTIFY_SENT extends WPCD_POSTS_LOG {
 	/**
 	 * Function for sending zapier webhook notifications to the user
 	 *
-	 * @param int    $alert_id alert_id.
-	 * @param int    $notify_log_id notify_log_id.
-	 * @param array  $user_zapier_hooks user_zapier_hooks.
-	 * @param string $user_login user_login.
-	 * @param string $alert_user_id alert_user_id.
-	 * @param string $alert_user_email alert_user_email.
-	 * @param string $notify_type notify_type.
-	 * @param string $notify_ref notify_ref.
-	 * @param string $notify_message notify_message.
-	 * @param string $server_name server_name.
-	 * @param string $domain_name domain_name.
-	 * @param string $date date.
-	 * @param string $time time.
-	 * @param string $server_id server_id.
-	 * @param string $site_id site_id.
-	 * @param string $first_name first_name.
-	 * @param string $last_name last_name.
-	 * @param string $ipv4 ipv4.
-	 * @param string $provider provider.
+	 * @param int          $alert_id          alert_id.
+	 * @param int          $notify_log_id     notify_log_id.
+	 * @param array|string $user_zapier_hooks user_zapier_hooks.
+	 * @param string       $user_login        user_login.
+	 * @param string       $alert_user_id     alert_user_id.
+	 * @param string       $alert_user_email  alert_user_email.
+	 * @param string       $notify_type       notify_type.
+	 * @param string       $notify_ref        notify_ref.
+	 * @param string       $notify_message    notify_message.
+	 * @param string       $server_name       server_name.
+	 * @param string       $domain_name       domain_name.
+	 * @param string       $date              date.
+	 * @param string       $time              time.
+	 * @param string       $server_id         server_id.
+	 * @param string       $site_id           site_id.
+	 * @param string       $first_name        first_name.
+	 * @param string       $last_name         last_name.
+	 * @param string       $ipv4              ipv4.
+	 * @param string       $provider          provider.
 	 */
 	public function wpcd_send_zapier_webhook_notifications_to_user( $alert_id, $notify_log_id, $user_zapier_hooks, $user_login, $alert_user_id, $alert_user_email, $notify_type, $notify_ref, $notify_message, $server_name, $domain_name, $date, $time, $server_id, $site_id, $first_name, $last_name, $ipv4, $provider ) {
-		// get zapier webhook notification settings.
-		$zapier_message = apply_filters( 'wpcd_wpapp_zapier_notify_message', wpcd_get_option( 'wordpress_app_zapier_notify_message' ) );
+		// Get Zapier webhook notification settings.
+		$zapier_message = apply_filters( 'wpcd_wpapp_zapier_notify_message_raw', wpcd_get_option( 'wordpress_app_zapier_notify_message' ) );
 
 		// Now set a standard array of replaceable parameters.
 		$zapiertokens               = array();
@@ -664,10 +665,10 @@ class WPCD_NOTIFY_SENT extends WPCD_POSTS_LOG {
 		$zapiertokens['IPV4']       = $ipv4;
 		$zapiertokens['PROVIDER']   = $provider;
 
-		// Replace tokens in zapier message..
+		// Replace tokens in Zapier message..
 		$zapier_message = WPCD_WORDPRESS_APP()->replace_script_tokens( $zapier_message, $zapiertokens );
 
-		// Let developers have their way again with the zapier message.
+		// Let developers have their way again with the zapier message, this time with tokens replaced.
 		$zapier_message = apply_filters( 'wpcd_wpapp_zapier_notify_message', $zapier_message );
 
 		// Send the message...
@@ -710,14 +711,14 @@ class WPCD_NOTIFY_SENT extends WPCD_POSTS_LOG {
 					curl_close( $c );
 
 					if ( $status_code != '200' ) {
-						$this->add_user_notify_sent_log_entry( $alert_id, $notify_type, __( 'Could not send zapier notfication for notification_id : ' . $notify_log_id, 'wpcd' ), $notify_ref, '0', null );
+						$this->add_user_notify_sent_log_entry( $alert_id, $notify_type, sprintf( __( 'Could not send zapier notification for notification_id : %d', 'wpcd' ), $notify_log_id ), $notify_ref, '0', null );
 					} else {
-						$this->add_user_notify_sent_log_entry( $alert_id, $notify_type, __( 'Zapier notfication sent successfully for notification_id : ' . $notify_log_id, 'wpcd' ), $notify_ref, '1', null );
+						$this->add_user_notify_sent_log_entry( $alert_id, $notify_type, sprintf( __( 'Zapier notification sent successfully for notification_id : %d', 'wpcd' ), $notify_log_id ), $notify_ref, '1', null );
 					}
 				}
 			}
 		} else {
-			$this->add_user_notify_sent_log_entry( $alert_id, $notify_type, __( 'Could not send zapier notfication due to empty zapier message field for notification_id : ' . $notify_log_id, 'wpcd' ), $notify_ref, '0', null );
+			$this->add_user_notify_sent_log_entry( $alert_id, $notify_type, sprintf( __( 'Could not send zapier notification due to empty zapier message field for notification_id : %d', 'wpcd' ), $notify_log_id ), $notify_ref, '0', null );
 		}
 	}
 }

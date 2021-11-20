@@ -166,35 +166,13 @@ class WPCD_REST_API_Controller_Sites extends WPCD_REST_API_Controller_Base {
 	 */
 	public function update_site( WP_REST_Request $request ): array {
 		// This is not used so just throw exception right away.
-		if ( 1 === 1 ) {
-			throw new Exception( 'Call to update_site rest api endpoint is not allowed.', 500 );
-		}
-
-		// verify correct post.
-		$id = (int) $request->get_param( 'id' );
-		$this->get_site_post( $id );
-
-		$parameters = $request->get_body_params();
-		// build updated data array.
-		$args    = array_filter(
-			array(
-				'ID'          => $id,
-				'post_type'   => 'wpcd_app',
-				'post_author' => $parameters['wc_user_id'] ?? null,
-				'post_title'  => $parameters['wp_domain'] ?? null,
-			)
-		);
-		$post_id = wp_update_post( $args );
-		if ( ! is_wp_error( $post_id ) ) {
-			return $this->get_site_data( get_post( $post_id ) );
-		}
-		throw new Exception( $post_id->get_error_message(), 500 );
+		throw new Exception( 'Call to update_site rest api endpoint is not allowed.', 405 );
 	}
 
 	/**
 	 * Enables or Disables SSL for a site with the given ID
 	 *
-	 * PUT /sites/{id}/enable-ssl
+	 * PUT /sites/{id}/toggle-ssl
 	 *
 	 * @param WP_REST_Request $request - incoming request object.
 	 *

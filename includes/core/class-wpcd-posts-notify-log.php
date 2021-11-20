@@ -71,13 +71,13 @@ class WPCD_NOTIFY_LOG extends WPCD_POSTS_LOG {
 			'wpcd_notify_log',
 			array(
 				'labels'              => array(
-					'name'                  => _x( 'Notification Log', 'Post type general name', 'wpcd' ),
+					'name'                  => _x( 'Notification Logs', 'Post type general name', 'wpcd' ),
 					'singular_name'         => _x( 'Notification Log', 'Post type singular name', 'wpcd' ),
 					'menu_name'             => _x( 'Notification Log', 'Admin Menu text', 'wpcd' ),
 					'name_admin_bar'        => _x( 'Notification Log', 'Add New on Toolbar', 'wpcd' ),
 					'edit_item'             => __( 'Edit Notification Log', 'wpcd' ),
 					'view_item'             => __( 'View Notification Log', 'wpcd' ),
-					'all_items'             => __( 'All Notification Log Entries', 'wpcd' ),
+					'all_items'             => __( 'Notifications', 'wpcd' ), // Label to signify all items in a submenu link.
 					'search_items'          => __( 'Search Notification Log', 'wpcd' ),
 					'not_found'             => __( 'No Notification Logs were found.', 'wpcd' ),
 					'not_found_in_trash'    => __( 'No Notification Logs were found in Trash.', 'wpcd' ),
@@ -86,7 +86,7 @@ class WPCD_NOTIFY_LOG extends WPCD_POSTS_LOG {
 					'items_list'            => _x( 'Notification Log list', 'Screen reader text for the items list heading on the post type listing screen. Default "Posts list"/"Pages list". Added in 4.4', 'wpcd' ),
 				),
 				'show_ui'             => true,
-				'show_in_menu'        => false,
+				'show_in_menu'        => 'edit.php?post_type=wpcd_notify_log',
 				'show_in_nav_menus'   => true,
 				'show_in_admin_bar'   => false,
 				'public'              => true,
@@ -96,15 +96,13 @@ class WPCD_NOTIFY_LOG extends WPCD_POSTS_LOG {
 				'menu_position'       => null,
 				'supports'            => array( '' ),
 				'rewrite'             => null,
-				'capabilities'        => array(
-					'create_posts' => false,
-					'edit_posts'   => true,
-				),
-				'map_meta_cap'        => true,
 				'capability_type'     => 'post',
 				'capabilities'        => array(
-					'create_posts' => 'do_not_allow',
+					'create_posts' => false,
+					'read_posts'   => 'wpcd_manage_logs',
+					'edit_posts'   => 'wpcd_manage_logs',
 				),
+				'map_meta_cap'        => true,
 			)
 		);
 
@@ -277,7 +275,7 @@ class WPCD_NOTIFY_LOG extends WPCD_POSTS_LOG {
 
 			case 'wpcd_notification_message':
 				// Display a portion of the command result.
-				$string_length        = 100;
+				$string_length        = 150;
 				$notification_message = wp_kses_post( get_post_meta( $post_id, 'notification_message', true ) );
 				if ( strlen( $notification_message ) > $string_length ) {
 					$notification_message = substr( $notification_message, $string_length * -1 ) . ' ...more...';

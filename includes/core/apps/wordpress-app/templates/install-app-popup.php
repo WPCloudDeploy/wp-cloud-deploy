@@ -122,7 +122,7 @@ if ( ! wpcd_user_can( $user_id, 'add_app_wpapp', $server_id ) && $post_author !=
 				<div class="wpcd-create-popup-label-wrap"><label class="wpcd-create-popup-label" for="wp_version"> <?php echo esc_html( __( 'WordPress Version', 'wpcd' ) ); ?>  </label></div>
 				<div class="wpcd-create-popup-input-wrap wpcd-create-popup-input-wp-version-select2-wrap">
 				<?php
-					$version_options = array( 'latest', '5.8.1', '5.7.3', '5.6.5', '5.5.6', '5.4.7', '5.3.8', '5.2.12', '5.1.10', '5.0.13', '4.9.18', '4.8.17', '4.7.21' );
+					$version_options = array( 'latest', '5.8.2', '5.7.4', '5.6.6', '5.5.7', '5.4.8', '5.3.10', '5.2.13', '5.1.11', '5.0.14', '4.9.18', '4.8.17', '4.7.21' );
 				?>
 					<select name="wp_version" id="wpcd-wp-version" style="width: 150px;">
 					<?php

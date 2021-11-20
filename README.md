@@ -91,11 +91,16 @@ Note: Even though the entire git development history isn't available on github, 
 [Friendly Release Notes](https://wpclouddeploy.com/category/release-notes/)
 
 ## Change Log ##
-4.11.2
+4.12.0
 ------
-* Tweak: Some email notifications can now use tokens in the subject line. (Thanks vladolaru)
+* New: WPAPP - Add support for snapshots in notifications.
+* Tweak: WPAPP - Some email notifications can now use tokens in the subject line. (Thanks vladolaru)
 * Tweak: WPAPP - Make sure we run an apt update before gathering other info in script 24-server_status.
-* Fix: WPAPP -  Upgrading the WP-CLI after initial installation would not work on servers where the root user was a sudo user instead of actual 'root'.
+* Tweak: WPAPP - Increase the number of chars visible in the message column in the notification list - from 100 to 150 chars.
+* Tweak: WPAPP - Made a protected function public so that it could be accessed elsewhere.
+* Tweak: WPAPP - Remove flag that indicated support for deleting snapshots in the DigitalOcean provider - unfortunately DO does not support it reliably.
+* Fix: WPAPP - An issue with WP-CLI where it threw weird compilation errors unless all linux updates where run.
+* Fix: WPAPP - Upgrading the WP-CLI after initial installation would not work on servers where the root user was a sudo user instead of actual 'root'.
 * Fix: WPAPP - Two fields on the settings screen would overflow their border on smaller screen sizes.
 * Fix: WPAPP - An incorrect action-hook callback name.
 * Fix: WPAPP - Check the value of a variable in the callbacks tab to make sure it's not a wp_error object before using it.

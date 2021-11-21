@@ -411,6 +411,8 @@ class WP_CLOUD_DEPLOY {
 				$help .= '<a href="https://www.facebook.com/groups/wp.linux.support">' . __( 'Join the private facebook group', 'wpcd' ) . '</a>';
 				$help .= '<br />';
 				$help .= '<a href="https://twitter.com/wpclouddeploy">' . __( 'Subscribe to our Twitter feed', 'wpcd' ) . '</a>';
+				$help .= '<br />';
+				$help .= '<a href="https://wpclouddeploy.com/mailpoet-group/basic-subscription-form/">' . __( 'Get Email Updates', 'wpcd' ) . '</a>';
 
 				$help .= '<br />';
 				$help .= '<h2>' . __( 'Support', 'wpcd' ) . '</h2>';

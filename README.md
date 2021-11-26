@@ -93,6 +93,10 @@ Note: Even though the entire git development history isn't available on github, 
 ## Change Log ##
 4.12.0
 ------
+* New: WPAPP - New servers will install PHP 8.1 as part of the PHP suite of components.
+
+4.12.0
+------
 * New: WPAPP - Add support for snapshots in notifications.
 * Tweak: WPAPP - Some email notifications can now use tokens in the subject line. (Thanks vladolaru)
 * Tweak: WPAPP - Make sure we run an apt update before gathering other info in script 24-server_status.

@@ -238,6 +238,13 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 			$php80 = array();
 		}
 
+		// Create single element array if php 8.1 is installed.
+		if ( $this->is_php_81_installed( $id ) ) {
+			$php81 = array( '8.1' => '8.1' );
+		} else {
+			$php81 = array();
+		}
+
 		// Array of php version options.
 		$php_select_options = array_merge(
 			array(
@@ -247,7 +254,8 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 				'7.1' => '7.1',
 				'5.6' => '5.6',
 			),
-			$php80
+			$php80,
+			$php81
 		);
 
 		$actions['change-php-version-new-version'] = array(

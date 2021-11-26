@@ -216,6 +216,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			case 'php-server-restart-php73':
 			case 'php-server-restart-php74':
 			case 'php-server-restart-php80':
+			case 'php-server-restart-php81':
 				$result = $this->do_php_restart( $id, $action );
 				break;
 		}
@@ -774,6 +775,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		$php73_status   = $default_status;
 		$php74_status   = $default_status;
 		$php80_status   = $default_status;
+		$php81_status   = $default_status;
 
 		// retrieve service status from server meta.
 		$services_status     = wpcd_maybe_unserialize( get_post_meta( $id, 'wpcd_wpapp_services_php_status', true ) );
@@ -790,7 +792,16 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			'php73' => $default_status,
 			'php74' => $default_status,
 			'php80' => $default_status,
+			'php81' => $default_status,
 		);
+
+		// Unset php80 and 81 elements as necessary.
+		if ( ! $this->is_php_80_installed( $id ) ) {
+			unset( $php_services_status['php80'] );
+		}
+		if ( ! $this->is_php_81_installed( $id ) ) {
+			unset( $php_services_status['php81'] );
+		}
 
 		// Loop through the $services_status array and update the $php_services_status array for any entries present in $services_status_array.
 		if ( ! empty( $services_status ) ) {
@@ -1222,6 +1233,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			'php73' => 'sudo service php7.3-fpm status',
 			'php74' => 'sudo service php7.4-fpm status',
 			'php80' => 'sudo service php8.0-fpm status',
+			'php81' => 'sudo service php8.1-fpm status',
 		);
 
 		// Loop through the array and get the status of each php service.
@@ -1273,6 +1285,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			'php-server-restart-php73' => 'sudo service php7.3-fpm restart',
 			'php-server-restart-php74' => 'sudo service php7.4-fpm restart',
 			'php-server-restart-php80' => 'sudo service php8.0-fpm restart',
+			'php-server-restart-php81' => 'sudo service php8.1-fpm restart',
 		);
 
 		if ( isset( $php_services[ $action ] ) ) {
@@ -1479,6 +1492,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			'php-server-restart-php73' => 'php73',
 			'php-server-restart-php74' => 'php74',
 			'php-server-restart-php80' => 'php80',
+			'php-server-restart-php81' => 'php81',
 		);
 
 		if ( isset( $php_services[ $service ] ) ) {

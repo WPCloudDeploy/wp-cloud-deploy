@@ -31,7 +31,7 @@ if [[ $action == "install_memcached" || $action == "1" ]]; then
         exit
     fi
 
-    apt-get install memcached php5.6-memcache php7.1-memcache php7.2-memcache php7.3-memcache php7.4-memcache php8.0-memcache -y
+    apt-get install memcached php5.6-memcache php7.1-memcache php7.2-memcache php7.3-memcache php7.4-memcache php8.0-memcache php8.1-memcache -y
 
     systemctl restart php5.6-fpm
     systemctl restart php7.1-fpm
@@ -39,6 +39,7 @@ if [[ $action == "install_memcached" || $action == "1" ]]; then
     systemctl restart php7.3-fpm
     systemctl restart php7.4-fpm
     systemctl restart php8.0-fpm
+	systemctl restart php8.1-fpm
 
     echo
     echo "Memcached has been installed. You can run this script again to enable it for a site."
@@ -127,7 +128,7 @@ fi
 
 if [[ $action == "remove_memcached" || $action == "6" ]]; then
 
-    apt-get remove memcached php5.6-memcache php7.1-memcache php7.2-memcache php7.3-memcache php7.4-memcache php8.0-memcache -y
+    apt-get remove memcached php5.6-memcache php7.1-memcache php7.2-memcache php7.3-memcache php7.4-memcache php8.0-memcache php8.1-memcache -y
 
     echo
     echo "Memcached has been removed from the system."

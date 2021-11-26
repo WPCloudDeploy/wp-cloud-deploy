@@ -668,6 +668,25 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	}
 
 	/**
+	 * Returns a boolean true/false if PHP 81 is supposed to be installed.
+	 *
+	 * @param int $server_id ID of server being interrogated...
+	 *
+	 * @return boolean
+	 */
+	public function is_php_81_installed( $server_id ) {
+
+		$initial_plugin_version = $this->get_server_meta_by_app_id( $server_id, 'wpcd_server_plugin_initial_version', true );  // This function is smart enough to know if the ID being passed is a server or app id and adjust accordingly.
+
+		if ( version_compare( $initial_plugin_version, '4.12.1' ) > -1 ) {
+			return true;
+		} else {
+			return false;
+		}
+
+	}
+
+	/**
 	 * Returns a boolean true/false if the server is a 4.6.0 or later server or was upgraded to that version.
 	 *
 	 * @param int $server_id ID of server being interrogated...

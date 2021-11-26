@@ -101,37 +101,50 @@ fi
 # Adding and installing PHP stack
 # @TODO: We should probably make a loop and loop through all these packages one by one as well. 
 echo $(date): "Installing PHP versions - this will take a while too!"
+echo $(date): ".....PHP 5.6"
 apt-get install php5.6 php5.6-fpm php5.6-mbstring php5.6-curl php5.6-mysql php5.6-xml php5.6-zip php5.6-gd php5.6-imap php5.6-soap php5.6-bcmath php5.6-imagick -y > /dev/null 2>&1
 if [ $? -ne 0 ]  
 then
 	echo "Failed!  Quitting process"
 	exit 1
 fi
+echo $(date): ".....PHP 7.1"
 apt-get install php7.1 php7.1-fpm php7.1-mbstring php7.1-curl php7.1-mysql php7.1-xml php7.1-zip php7.1-gd php7.1-imap php7.1-soap php7.1-bcmath php7.1-imagick -y > /dev/null 2>&1
 if [ $? -ne 0 ]  
 then
 	echo "Failed!  Quitting process"
 	exit 1
 fi
+echo $(date): ".....PHP 7.2"
 apt-get install php7.2 php7.2-fpm php7.2-mbstring php7.2-curl php7.2-mysql php7.2-xml php7.2-zip php7.2-gd php7.2-imap php7.2-soap php7.2-bcmath php7.2-imagick -y > /dev/null 2>&1
 if [ $? -ne 0 ]  
 then
 	echo "Failed!  Quitting process"
 	exit 1
 fi
+echo $(date): ".....PHP 7.3"
 apt-get install php7.3 php7.3-fpm php7.3-mbstring php7.3-curl php7.3-mysql php7.3-xml php7.3-zip php7.3-gd php7.3-imap php7.3-soap php7.3-bcmath php7.3-imagick -y > /dev/null 2>&1
 if [ $? -ne 0 ]  
 then
 	echo "Failed!  Quitting process"
 	exit 1
 fi
+echo $(date): ".....PHP 7.4"
 apt-get install php7.4 php7.4-fpm php7.4-mbstring php7.4-curl php7.4-mysql php7.4-xml php7.4-zip php7.4-gd php7.4-imap php7.4-soap php7.4-bcmath php7.4-imagick -y > /dev/null 2>&1
 if [ $? -ne 0 ]  
 then
 	echo "Failed!  Quitting process"
 	exit 1
 fi
+echo $(date): ".....PHP 8.0"
 apt-get install php8.0 php8.0-fpm php8.0-mbstring php8.0-curl php8.0-mysql php8.0-xml php8.0-zip php8.0-gd php8.0-imap php8.0-soap php8.0-bcmath php8.0-imagick -y > /dev/null 2>&1
+if [ $? -ne 0 ]  
+then
+	echo "Failed!  Quitting process"
+	exit 1
+fi
+echo $(date): ".....PHP 8.1"
+apt-get install php8.1 php8.1-fpm php8.1-mbstring php8.1-curl php8.1-mysql php8.1-xml php8.1-zip php8.1-gd php8.1-imap php8.1-soap php8.1-bcmath php8.1-imagick -y > /dev/null 2>&1
 if [ $? -ne 0 ]  
 then
 	echo "Failed!  Quitting process"
@@ -249,7 +262,8 @@ else
 	sed -i "s/post_max_size = 8M/post_max_size = 25M/g" /etc/php/7.4/fpm/php.ini
 	sed -i "s/upload_max_filesize = 2M/upload_max_filesize = 25M/g" /etc/php/8.0/fpm/php.ini
 	sed -i "s/post_max_size = 8M/post_max_size = 25M/g" /etc/php/8.0/fpm/php.ini
-
+	sed -i "s/upload_max_filesize = 2M/upload_max_filesize = 25M/g" /etc/php/8.1/fpm/php.ini
+	sed -i "s/post_max_size = 8M/post_max_size = 25M/g" /etc/php/8.1/fpm/php.ini
 	# Update php.ini to enable and configure opcache
 	sed -i "s/;opcache.enable=1/opcache.enable=1/g" /etc/php/5.6/fpm/php.ini
 	sed -i "s/;opcache.enable=1/opcache.enable=1/g" /etc/php/7.1/fpm/php.ini
@@ -257,6 +271,7 @@ else
 	sed -i "s/;opcache.enable=1/opcache.enable=1/g" /etc/php/7.3/fpm/php.ini
 	sed -i "s/;opcache.enable=1/opcache.enable=1/g" /etc/php/7.4/fpm/php.ini
 	sed -i "s/;opcache.enable=1/opcache.enable=1/g" /etc/php/8.0/fpm/php.ini
+	sed -i "s/;opcache.enable=1/opcache.enable=1/g" /etc/php/8.1/fpm/php.ini
 
 	sed -i "s/;opcache.enable_cli=0/opcache.enable_cli=1/g" /etc/php/5.6/fpm/php.ini
 	sed -i "s/;opcache.enable_cli=0/opcache.enable_cli=1/g" /etc/php/7.1/fpm/php.ini
@@ -264,6 +279,7 @@ else
 	sed -i "s/;opcache.enable_cli=0/opcache.enable_cli=1/g" /etc/php/7.3/fpm/php.ini
 	sed -i "s/;opcache.enable_cli=0/opcache.enable_cli=1/g" /etc/php/7.4/fpm/php.ini
 	sed -i "s/;opcache.enable_cli=0/opcache.enable_cli=1/g" /etc/php/8.0/fpm/php.ini
+	sed -i "s/;opcache.enable_cli=0/opcache.enable_cli=1/g" /etc/php/8.1/fpm/php.ini
 
 	sed -i "s/;opcache.interned_strings_buffer=8/opcache.interned_strings_buffer=8/g" /etc/php/5.6/fpm/php.ini
 	sed -i "s/;opcache.interned_strings_buffer=8/opcache.interned_strings_buffer=8/g" /etc/php/7.1/fpm/php.ini
@@ -271,6 +287,7 @@ else
 	sed -i "s/;opcache.interned_strings_buffer=8/opcache.interned_strings_buffer=8/g" /etc/php/7.3/fpm/php.ini
 	sed -i "s/;opcache.interned_strings_buffer=8/opcache.interned_strings_buffer=8/g" /etc/php/7.4/fpm/php.ini
 	sed -i "s/;opcache.interned_strings_buffer=8/opcache.interned_strings_buffer=8/g" /etc/php/8.0/fpm/php.ini
+	sed -i "s/;opcache.interned_strings_buffer=8/opcache.interned_strings_buffer=8/g" /etc/php/8.1/fpm/php.ini
 
 	sed -i "s/;opcache.max_accelerated_files=10000/opcache.max_accelerated_files=100000/g" /etc/php/5.6/fpm/php.ini
 	sed -i "s/;opcache.max_accelerated_files=10000/opcache.max_accelerated_files=100000/g" /etc/php/7.1/fpm/php.ini
@@ -278,6 +295,7 @@ else
 	sed -i "s/;opcache.max_accelerated_files=10000/opcache.max_accelerated_files=100000/g" /etc/php/7.3/fpm/php.ini
 	sed -i "s/;opcache.max_accelerated_files=10000/opcache.max_accelerated_files=100000/g" /etc/php/7.4/fpm/php.ini
 	sed -i "s/;opcache.max_accelerated_files=10000/opcache.max_accelerated_files=100000/g" /etc/php/8.0/fpm/php.ini
+	sed -i "s/;opcache.max_accelerated_files=10000/opcache.max_accelerated_files=100000/g" /etc/php/8.1/fpm/php.ini
 
 	sed -i "s/;opcache.memory_consumption=128/opcache.memory_consumption=128/g" /etc/php/5.6/fpm/php.ini
 	sed -i "s/;opcache.memory_consumption=128/opcache.memory_consumption=128/g" /etc/php/7.1/fpm/php.ini
@@ -285,6 +303,7 @@ else
 	sed -i "s/;opcache.memory_consumption=128/opcache.memory_consumption=128/g" /etc/php/7.3/fpm/php.ini
 	sed -i "s/;opcache.memory_consumption=128/opcache.memory_consumption=128/g" /etc/php/7.4/fpm/php.ini
 	sed -i "s/;opcache.memory_consumption=128/opcache.memory_consumption=128/g" /etc/php/8.0/fpm/php.ini
+	sed -i "s/;opcache.memory_consumption=128/opcache.memory_consumption=128/g" /etc/php/8.1/fpm/php.ini
 
 	sed -i "s/;opcache.save_comments=1/opcache.save_comments=1/g" /etc/php/5.6/fpm/php.ini
 	sed -i "s/;opcache.save_comments=1/opcache.save_comments=1/g" /etc/php/7.1/fpm/php.ini
@@ -292,6 +311,7 @@ else
 	sed -i "s/;opcache.save_comments=1/opcache.save_comments=1/g" /etc/php/7.3/fpm/php.ini
 	sed -i "s/;opcache.save_comments=1/opcache.save_comments=1/g" /etc/php/7.4/fpm/php.ini
 	sed -i "s/;opcache.save_comments=1/opcache.save_comments=1/g" /etc/php/8.0/fpm/php.ini
+	sed -i "s/;opcache.save_comments=1/opcache.save_comments=1/g" /etc/php/8.1/fpm/php.ini
 
 	sed -i "s/;opcache.revalidate_freq=2/opcache.revalidate_freq=1/g" /etc/php/5.6/fpm/php.ini
 	sed -i "s/;opcache.revalidate_freq=2/opcache.revalidate_freq=1/g" /etc/php/7.1/fpm/php.ini
@@ -299,6 +319,7 @@ else
 	sed -i "s/;opcache.revalidate_freq=2/opcache.revalidate_freq=1/g" /etc/php/7.3/fpm/php.ini
 	sed -i "s/;opcache.revalidate_freq=2/opcache.revalidate_freq=1/g" /etc/php/7.4/fpm/php.ini
 	sed -i "s/;opcache.revalidate_freq=2/opcache.revalidate_freq=1/g" /etc/php/8.0/fpm/php.ini
+	sed -i "s/;opcache.revalidate_freq=2/opcache.revalidate_freq=1/g" /etc/php/8.1/fpm/php.ini
 
 	sed -i "s/;opcache.use_cwd=1/opcache.use_cwd=1/g" /etc/php/5.6/fpm/php.ini
 	sed -i "s/;opcache.use_cwd=1/opcache.use_cwd=1/g" /etc/php/7.1/fpm/php.ini
@@ -306,6 +327,7 @@ else
 	sed -i "s/;opcache.use_cwd=1/opcache.use_cwd=1/g" /etc/php/7.3/fpm/php.ini
 	sed -i "s/;opcache.use_cwd=1/opcache.use_cwd=1/g" /etc/php/7.4/fpm/php.ini
 	sed -i "s/;opcache.use_cwd=1/opcache.use_cwd=1/g" /etc/php/8.0/fpm/php.ini
+	sed -i "s/;opcache.use_cwd=1/opcache.use_cwd=1/g" /etc/php/8.1/fpm/php.ini
 
 	sed -i "s/;opcache.validate_root=0/opcache.validate_root=1/g" /etc/php/5.6/fpm/php.ini
 	sed -i "s/;opcache.validate_root=0/opcache.validate_root=1/g" /etc/php/7.1/fpm/php.ini
@@ -313,6 +335,7 @@ else
 	sed -i "s/;opcache.validate_root=0/opcache.validate_root=1/g" /etc/php/7.3/fpm/php.ini
 	sed -i "s/;opcache.validate_root=0/opcache.validate_root=1/g" /etc/php/7.4/fpm/php.ini
 	sed -i "s/;opcache.validate_root=0/opcache.validate_root=1/g" /etc/php/8.0/fpm/php.ini
+	sed -i "s/;opcache.validate_root=0/opcache.validate_root=1/g" /etc/php/8.1/fpm/php.ini
 
 	sed -i "s/;opcache.validate_permission=0/opcache.validate_permission=1/g" /etc/php/5.6/fpm/php.ini
 	sed -i "s/;opcache.validate_permission=0/opcache.validate_permission=1/g" /etc/php/7.1/fpm/php.ini
@@ -320,6 +343,7 @@ else
 	sed -i "s/;opcache.validate_permission=0/opcache.validate_permission=1/g" /etc/php/7.3/fpm/php.ini
 	sed -i "s/;opcache.validate_permission=0/opcache.validate_permission=1/g" /etc/php/7.4/fpm/php.ini
 	sed -i "s/;opcache.validate_permission=0/opcache.validate_permission=1/g" /etc/php/8.0/fpm/php.ini
+	sed -i "s/;opcache.validate_permission=0/opcache.validate_permission=1/g" /etc/php/8.1/fpm/php.ini
 
 	sed -i "s/;opcache.file_update_protection=2/opcache.file_update_protection=60/g" /etc/php/5.6/fpm/php.ini
 	sed -i "s/;opcache.file_update_protection=2/opcache.file_update_protection=60/g" /etc/php/7.1/fpm/php.ini
@@ -327,6 +351,7 @@ else
 	sed -i "s/;opcache.file_update_protection=2/opcache.file_update_protection=60/g" /etc/php/7.3/fpm/php.ini
 	sed -i "s/;opcache.file_update_protection=2/opcache.file_update_protection=60/g" /etc/php/7.4/fpm/php.ini
 	sed -i "s/;opcache.file_update_protection=2/opcache.file_update_protection=60/g" /etc/php/8.0/fpm/php.ini
+	sed -i "s/;opcache.file_update_protection=2/opcache.file_update_protection=60/g" /etc/php/8.1/fpm/php.ini
 
 	# Restarting php
 	echo $(date): "Restarting PHP processes..."
@@ -336,6 +361,7 @@ else
 	systemctl restart php7.3-fpm > /dev/null 2>&1
 	systemctl restart php7.4-fpm > /dev/null 2>&1
 	systemctl restart php8.0-fpm > /dev/null 2>&1
+	systemctl restart php8.1-fpm > /dev/null 2>&1
 
 	# Configure NGINX to accept extra-long domain names (the seven back-slashes are to insert spaces before the actual line is inserted )
 	sed -i '/^http {/a \ \n \ \ \ \ \ \ \ # Accept extra-long domain names \n \ \ \ \ \ \ \ server_names_hash_bucket_size 128;' /etc/nginx/nginx.conf

@@ -286,6 +286,14 @@ echo 'check process memcached with pidfile "/var/run/memcached/memcached.pid"
     if failed host 127.0.0.1 port 11211 then restart
 '> /etc/monit/conf-available/memcached
 
+echo 'check process php81-fpm with pidfile /var/run/php/php8.1-fpm.pid
+    start program = "/bin/systemctl start php8.1-fpm"
+    stop program  = "/bin/systemctl stop php8.1-fpm"
+    if cpu is greater than '$Alert_cpu'% for 3 cycles then alert
+    if cpu is greater than '$Restart_cpu'% for 5 cycles then restart
+    if totalmem > '$Restart_memory' MB then alert
+' > /etc/monit/conf-available/php81
+
 echo 'check process php80-fpm with pidfile /var/run/php/php8.0-fpm.pid
     start program = "/bin/systemctl start php8.0-fpm"
     stop program  = "/bin/systemctl stop php8.0-fpm"
@@ -346,6 +354,7 @@ echo 'check system '$domain'
 	chmod 0700 /etc/monit/monitrc
 	ln -s /etc/monit/conf-available/nginx /etc/monit/conf-enabled/nginx
 	ln -s /etc/monit/conf-available/mysql /etc/monit/conf-enabled/mysql
+	ln -s /etc/monit/conf-available/php81 /etc/monit/conf-enabled/php81
 	ln -s /etc/monit/conf-available/php80 /etc/monit/conf-enabled/php80
 	ln -s /etc/monit/conf-available/php74 /etc/monit/conf-enabled/php74
 	ln -s /etc/monit/conf-available/php73 /etc/monit/conf-enabled/php73
@@ -456,6 +465,7 @@ fi
 
 if [[ $action == "enable_php_monit" || $action == "10" ]]; then
 
+	ln -s /etc/monit/conf-available/php81 /etc/monit/conf-enabled/php81
 	ln -s /etc/monit/conf-available/php80 /etc/monit/conf-enabled/php80
 	ln -s /etc/monit/conf-available/php74 /etc/monit/conf-enabled/php74
 	ln -s /etc/monit/conf-available/php73 /etc/monit/conf-enabled/php73
@@ -472,6 +482,7 @@ fi
 
 if [[ $action == "disable_php_monit" || $action == "11" ]]; then
 
+	rm -f /etc/monit/conf-enabled/php81
 	rm -f /etc/monit/conf-enabled/php80
 	rm -f /etc/monit/conf-enabled/php74
 	rm -f /etc/monit/conf-enabled/php73
@@ -556,6 +567,7 @@ fi
 if [[ $action == "enable_all_monit" || $action == "15" ]]; then
 	ln -s /etc/monit/conf-available/nginx /etc/monit/conf-enabled/nginx
 	ln -s /etc/monit/conf-available/mysql /etc/monit/conf-enabled/mysql
+	ln -s /etc/monit/conf-available/php81 /etc/monit/conf-enabled/php81
 	ln -s /etc/monit/conf-available/php80 /etc/monit/conf-enabled/php80
 	ln -s /etc/monit/conf-available/php74 /etc/monit/conf-enabled/php74
 	ln -s /etc/monit/conf-available/php73 /etc/monit/conf-enabled/php73
@@ -575,6 +587,7 @@ fi
 if [[ $action == "disable_all_monit" || $action == "16" ]]; then
 	rm -f /etc/monit/conf-enabled/nginx
 	rm -f /etc/monit/conf-enabled/mysql
+	rm -f /etc/monit/conf-enabled/php81
 	rm -f /etc/monit/conf-enabled/php80
 	rm -f /etc/monit/conf-enabled/php74
 	rm -f /etc/monit/conf-enabled/php73

@@ -62,6 +62,9 @@ class CLOUD_PROVIDER_API_DigitalOcean_Parent extends CLOUD_PROVIDER_API {
 		/* Set filter to add link to the digital ocean api dashboard */
 		$provider = $this->get_provider_slug();
 		add_filter( "wpcd_cloud_provider_settings_api_key_label_desc_{$provider}", array( $this, 'set_link_to_provider_dashboard' ) );
+		
+		// Run cron to auto start server after resize
+		add_action( 'wpcd_do_auto_start_after_resize_cron', array( $this, 'doAutoStartServer' ), 10 );
 
 	}
 
@@ -274,6 +277,13 @@ runcmd:
 				/* The action endpoint is used to get the result of an operation that usually takes a long time.  We are not using this right now. */
 				$endpoint = 'actions/' . $attributes['action_id'];
 				break;
+			case 'resize':
+				$endpoint = 'droplets/' . $attributes['id'] . '/actions';
+				$action   = 'POST';
+				$body     = '{
+					"type": "resize", "size":"'.$attributes['new_size'].'"
+				}';	
+				break;
 			default:
 				return new WP_Error( 'not supported' );
 		}
@@ -405,6 +415,15 @@ runcmd:
 				$return['status']    = $body->action->status;
 				$return['action_id'] = $body->action->id;
 				break;
+			case 'resize':
+				$return['status']    = $body->action->status;
+				$return['action_id'] = $body->action->id;
+				
+				$this->cacheAutoStartServer( $attributes['id'], $body->action->id );
+				wp_clear_scheduled_hook( 'wpcd_do_auto_start_after_resize_cron' );
+				wp_schedule_event( time(), 'every_minute', 'wpcd_do_auto_start_after_resize_cron' );
+				
+				break;
 			case 'status':
 				$return['status'] = $body->action->status;
 				$return['ip']     = $body->action->status;
@@ -449,6 +468,83 @@ runcmd:
 		}
 
 		return 'error-no-ip-found';
+
+	}
+	
+/**
+	 * Return servers for auto start
+	 *
+	 * @return array
+	 */
+	public function getAutoStartServers() {
+		 return get_option( 'wpcd_do_auto_start_servers_cron', array() );
+	}
+
+	/**
+	 * Add server to auto start cache list
+	 *
+	 * @param string $server_id  server id
+	 * @param string  $action_id
+	 *
+	 * @return void
+	 */
+	public function cacheAutoStartServer( $server_id, $action_id ) {
+		$all_servers           = $this->getAutoStartServers();
+		$all_servers[ $server_id ] = $action_id;
+		update_option( 'wpcd_do_auto_start_servers_cron', $all_servers );
+	}
+	
+	
+	/**
+	 * Cron action to auto start server after resize
+	 *
+	 * @return void
+	 */
+	public function doAutoStartServer() {
+		$all_servers           = $this->getAutoStartServers();
+
+		if ( empty( $all_servers ) ) {
+			wp_clear_scheduled_hook( 'wpcd_do_auto_start_after_resize_cron' );
+			return;
+		}
+
+		foreach ( $all_servers as $server_id => $action_id ) {
+			
+			$endpoint = 'droplets/' . $server_id . '/actions?page=1&per_page=20';
+				
+			$response = wp_remote_request(
+				self::_URL . $endpoint,
+				array(
+					'method'  => 'GET',
+					'headers' => array(
+						'Content-Type'  => 'application/json',
+						'Authorization' => 'Bearer ' . $this->api_key,
+					)
+				)
+			);
+			
+			$body   = wp_remote_retrieve_body( $response );
+			$body   = json_decode( $body );
+			
+			
+			foreach ( $body->actions as $action ) {
+				
+				if( $action->id == $action_id ) {
+					
+					if( $action->status == 'completed' || $action->status == 'errored' ) {
+						$this->call('on', array('id' => $server_id));
+						unset( $all_servers[ $server_id ] );
+					}
+					break;
+				}
+			}
+		}
+
+		update_option( 'wpcd_do_auto_start_servers_cron', $all_servers );
+
+		if ( empty( $all_servers ) ) {
+			wp_clear_scheduled_hook( 'wpcd_do_auto_start_after_resize_cron' );
+		}
 
 	}
 }

@@ -18,7 +18,7 @@ class Loader {
 			$table = isset( $meta_box->meta_box['table'] ) ? $meta_box->meta_box['table'] : '';
 
 			foreach ( $meta_box->post_types as $post_type ) {
-                new Post( $post_type, $fields, $table );
+				new Post( $post_type, $fields, $table );
 			}
 		}
 	}
@@ -56,6 +56,27 @@ class Loader {
 			}
 
 			new User( 'user', $fields );
+		}
+	}
+
+	/**
+	 * Add admin columns for models.
+	 */
+	public function models() {
+		$meta_boxes = rwmb_get_registry( 'meta_box' )->get_by( array(
+			'object_type' => 'model',
+		) );
+		foreach ( $meta_boxes as $meta_box ) {
+			$fields = array_filter( $meta_box->fields, array( $this, 'has_admin_columns' ) );
+			if ( empty( $fields ) ) {
+				continue;
+			}
+
+			$table = isset( $meta_box->meta_box['table'] ) ? $meta_box->meta_box['table'] : '';
+
+			foreach ( $meta_box->models as $model ) {
+				new Model( $model, $fields, $table );
+			}
 		}
 	}
 

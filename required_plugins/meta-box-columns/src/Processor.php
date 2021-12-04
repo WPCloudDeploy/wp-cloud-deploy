@@ -1,15 +1,14 @@
 <?php
 /**
  * The markup processor that adds column markup to a meta box.
- *
- * @package    Meta Box
- * @subpackage Meta Box Columns
  */
+
+namespace MetaBox\Columns;
 
 /**
  * Markup processor class.
  */
-class MB_Columns_Processor {
+class Processor {
 	/**
 	 * Meta box settings.
 	 *
@@ -49,9 +48,10 @@ class MB_Columns_Processor {
 		if ( ! $this->has_columns ) {
 			return;
 		}
-		$row = new MB_Columns_Row( $this->columns, $this->meta_box['fields'] );
+		$row = new Row( $this->columns, $this->meta_box['fields'] );
 		$row->process();
-		$this->meta_box['fields'] = $row->get_fields();
+		$this->meta_box['fields']  = $row->get_fields();
+		$this->meta_box['columns'] = $this->columns;
 	}
 
 	/**

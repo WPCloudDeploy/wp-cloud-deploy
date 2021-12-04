@@ -37,6 +37,11 @@
 	font-size: 14px;
 }
 
+.rwmb-settings-no-boxes #poststuff .inside {
+	margin: 0;
+	padding: 0;
+}
+
 .rwmb-settings-no-boxes .rwmb-field {
 	padding: 20px 0;
 	margin-bottom: 0;

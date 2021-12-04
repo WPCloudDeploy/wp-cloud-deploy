@@ -91,9 +91,10 @@ Note: Even though the entire git development history isn't available on github, 
 [Friendly Release Notes](https://wpclouddeploy.com/category/release-notes/)
 
 ## Change Log ##
-4.12.0
+4.13.0
 ------
 * New: WPAPP - New servers will install PHP 8.1 as part of the PHP suite of components.
+* Tweak: Update metabox.io components to latest versions.
 
 4.12.0
 ------

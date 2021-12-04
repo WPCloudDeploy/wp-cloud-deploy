@@ -1,15 +1,11 @@
 <?php
 /**
  * Add row, column markup to a set of fields in one row.
- *
- * @package    Meta Box
- * @subpackage Meta Box Columns
  */
 
-/**
- * Row class.
- */
-class MB_Columns_Row {
+namespace MetaBox\Columns;
+
+class Row {
 	/**
 	 * List of fields.
 	 *

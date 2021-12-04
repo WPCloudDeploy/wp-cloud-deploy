@@ -1,4 +1,7 @@
 /* Make fields vertical layout */
+.rwmb-field {
+	flex-direction: column;
+}
 .rwmb-label,
 .customize-control .rwmb-input {
 	width: 100%;

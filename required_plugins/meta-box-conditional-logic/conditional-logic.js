@@ -18,11 +18,11 @@
 		this.$scope = $scope;
 	}
 	SelectorCache.prototype.get = function ( selector ) {
-		if ( undefined === this.collection[selector] ) {
-			this.collection[selector] = this.$scope ? this.$scope.find( selector ) : $( selector );
+		if ( undefined === this.collection[ selector ] ) {
+			this.collection[ selector ] = this.$scope ? this.$scope.find( selector ) : $( selector );
 		}
 
-		return this.collection[selector];
+		return this.collection[ selector ];
 	};
 
 	var globalSelectorCache = new SelectorCache();
@@ -62,12 +62,12 @@
 	}
 
 	function getWpSelector( element ) {
-		return ! isGutenbergActive() && isWpElement( element ) ? wpElements[element] : null;
+		return !isGutenbergActive() && isWpElement( element ) ? wpElements[ element ] : null;
 	}
 
 	function getWpElementValue( element ) {
 		if ( isGutenbergActive() ) {
-			return wp.data.select( 'core/editor' ).getEditedPostAttribute( wpGutenbergMap[element] );
+			return wp.data.select( 'core/editor' ).getEditedPostAttribute( wpGutenbergMap[ element ] );
 		}
 		var $element = globalSelectorCache.get( getWpSelector( element ) );
 		return 'post_format' === element ? $element.filter( ':checked' ).val() : $element.val();
@@ -84,7 +84,7 @@
 	function contains( list, value ) {
 		var i = list.length;
 		while ( i-- ) {
-			if ( list[i] == value ) {
+			if ( list[ i ] == value ) {
 				return true;
 			}
 		}
@@ -97,69 +97,69 @@
 		}
 
 		switch ( operator ) {
-		case '=':
-			if ( ! Array.isArray( needle ) || ! Array.isArray( haystack ) ) {
-				return needle == haystack;
-			}
-			// Simple comparison for 2 arrays.
-			var ok1 = needle.every( function ( value ) {
-				return contains( haystack, value );
-			} );
-			var ok2 = haystack.every( function ( value ) {
-				return contains( needle, value );
-			} );
-			return ok1 && ok2;
-
-		case '>=':
-			return needle >= haystack;
-
-		case '>':
-			return needle > haystack;
-
-		case '<=':
-			return needle <= haystack;
-
-		case '<':
-			return needle < haystack;
-
-		case 'contains':
-			if ( Array.isArray( needle ) ) {
-				return contains( needle, haystack );
-			} else if ( typeof needle === 'string' ) {
-				return needle.indexOf( haystack ) !== -1;
-			}
-			return needle == haystack;
-
-		case 'in':
-			if ( ! Array.isArray( needle ) ) {
-				return needle == haystack || contains( haystack, needle );
-			}
-			// If needle is an array, 'in' means if any of needle's value in haystack.
-			var found = false;
-			needle.forEach( function ( value ) {
-				if ( value == haystack || contains( haystack, value ) ) {
-					found = true;
+			case '=':
+				if ( !Array.isArray( needle ) || !Array.isArray( haystack ) ) {
+					return needle == haystack;
 				}
-			} );
-			return found;
+				// Simple comparison for 2 arrays.
+				var ok1 = needle.every( function ( value ) {
+					return contains( haystack, value );
+				} );
+				var ok2 = haystack.every( function ( value ) {
+					return contains( needle, value );
+				} );
+				return ok1 && ok2;
 
-		case 'start_with':
-		case 'starts with':
-			return needle.indexOf( haystack ) === 0;
+			case '>=':
+				return needle >= haystack;
 
-		case 'end_with':
-		case 'ends with':
-			haystack = new RegExp( haystack + '$' );
-			return haystack.test( needle );
+			case '>':
+				return needle > haystack;
 
-		case 'match':
-			haystack = new RegExp( haystack );
-			return haystack.test( needle );
+			case '<=':
+				return needle <= haystack;
 
-		case 'between':
-			if ( Array.isArray( haystack ) && typeof haystack[0] !== 'undefined' && typeof haystack[1] !== 'undefined' ) {
-				return needle >= haystack[0] && needle <= haystack[1];
-			}
+			case '<':
+				return needle < haystack;
+
+			case 'contains':
+				if ( Array.isArray( needle ) ) {
+					return contains( needle, haystack );
+				} else if ( typeof needle === 'string' ) {
+					return needle.indexOf( haystack ) !== -1;
+				}
+				return needle == haystack;
+
+			case 'in':
+				if ( !Array.isArray( needle ) ) {
+					return needle == haystack || contains( haystack, needle );
+				}
+				// If needle is an array, 'in' means if any of needle's value in haystack.
+				var found = false;
+				needle.forEach( function ( value ) {
+					if ( value == haystack || contains( haystack, value ) ) {
+						found = true;
+					}
+				} );
+				return found;
+
+			case 'start_with':
+			case 'starts with':
+				return needle.indexOf( haystack ) === 0;
+
+			case 'end_with':
+			case 'ends with':
+				haystack = new RegExp( haystack + '$' );
+				return haystack.test( needle );
+
+			case 'match':
+				haystack = new RegExp( haystack );
+				return haystack.test( needle );
+
+			case 'between':
+				if ( Array.isArray( haystack ) && typeof haystack[ 0 ] !== 'undefined' && typeof haystack[ 1 ] !== 'undefined' ) {
+					return needle >= haystack[ 0 ] && needle <= haystack[ 1 ];
+				}
 		}
 	}
 
@@ -177,12 +177,12 @@
 		$conditions.each( function () {
 			var $this = $( this ),
 				conditions = $this.data( 'conditions' ),
-				action = typeof conditions['hidden'] !== 'undefined' ? 'hidden' : 'visible',
-				logic = conditions[action],
+				action = typeof conditions[ 'hidden' ] !== 'undefined' ? 'hidden' : 'visible',
+				logic = conditions[ action ],
 				logicApply = isLogicCorrect( logic, $this ),
 				$element = $this.parent();
 
-			if ( ! $element.hasClass( 'rwmb-field' ) ) {
+			if ( !$element.hasClass( 'rwmb-field' ) ) {
 				$element = $element.closest( '.postbox' );
 			}
 
@@ -223,7 +223,7 @@
 
 		logics.when.forEach( function ( logic ) {
 			// Skip check if we already know the result.
-			if ( relation === 'and' && ! success ) {
+			if ( relation === 'and' && !success ) {
 				return;
 			}
 			if ( relation === 'or' && success ) {
@@ -234,18 +234,18 @@
 			// A scope is a group or whole meta box which contains event source and current field.
 			var $scope = getScope( $field ),
 				selectorCache = getSelectorCache( $scope ),
-				dependentFieldSelector = getSelector( logic[0], selectorCache );
+				dependentFieldSelector = getSelector( logic[ 0 ], selectorCache );
 
 			// Try broader scope if field is in a cloneable group.
-			if ( ! isGutenbergElement( logic[0] ) && ! dependentFieldSelector && $scope && $scope.hasClass( 'rwmb-group-clone' ) ) {
+			if ( !isGutenbergElement( logic[ 0 ] ) && !dependentFieldSelector && $scope && $scope.hasClass( 'rwmb-group-clone' ) ) {
 				$scope = getScope( $field, true );
 				selectorCache = getSelectorCache( $scope ),
-				dependentFieldSelector = getSelector( logic[0], selectorCache );
+					dependentFieldSelector = getSelector( logic[ 0 ], selectorCache );
 			}
 
 			// console.log( 'Selector', logic[0], dependentFieldSelector );
 
-			if ( ! isGutenbergElement( logic[0] ) && ! dependentFieldSelector ) {
+			if ( !isGutenbergElement( logic[ 0 ] ) && !dependentFieldSelector ) {
 				return;
 			}
 
@@ -257,14 +257,14 @@
 				return;
 			}
 
-			var dependentValue = getValue( logic[0], selectorCache ),
-				operator = logic[1],
-				value = logic[2],
+			var dependentValue = getValue( logic[ 0 ], selectorCache ),
+				operator = logic[ 1 ],
+				value = logic[ 2 ],
 				negative = false;
 
 			// Cast to string if array has 1 element and its a string
 			if ( Array.isArray( dependentValue ) && dependentValue.length === 1 ) {
-				dependentValue = dependentValue[0];
+				dependentValue = dependentValue[ 0 ];
 			}
 
 			// Allows user using NOT statement.
@@ -283,7 +283,7 @@
 			var result = compare( dependentValue, value, operator );
 
 			if ( negative ) {
-				result = ! result;
+				result = !result;
 			}
 
 			// console.log( 'Logic Compare',  logic[0], dependentValue, value, operator, result );
@@ -303,7 +303,7 @@
 		}
 		if ( isGutenbergActive() && compare( fieldName, 'tax_input', 'contains' ) ) {
 			var match = fieldName.match( /tax_input\[(.*?)\]/ );
-			return wp.data.select( 'core/editor' ).getEditedPostAttribute( match[1] );
+			return wp.data.select( 'core/editor' ).getEditedPostAttribute( match[ 1 ] );
 		}
 
 		// Allows user define conditional logic by callback
@@ -311,12 +311,21 @@
 			return eval( fieldName );
 		}
 
+		// Search by ID.
 		var $field = compare( fieldName, '#', 'start_with' ) ? selectorCache.get( fieldName ) : selectorCache.get( '#' + fieldName ),
 			value = $field.val();
+
+		// Non-checkbox field with ID.
 		if ( $field.length && $field.attr( 'type' ) !== 'checkbox' && typeof value !== 'undefined' && value != null ) {
 			return value;
 		}
 
+		// Single checkbox field.
+		if ( $field.length && $field.attr( 'type' ) === 'checkbox' ) {
+			return $field.is( ':checked' );
+		}
+
+		// Checkbox list, radio, select tree, e.g. no ID.
 		var selector = null,
 			isMultiple = false;
 
@@ -340,7 +349,7 @@
 
 		var isSelectTree = 'SELECT' === selectorType && isMultiple;
 
-		if ( ['checkbox', 'radio', 'hidden'].indexOf( selectorType ) === -1 && ! isSelectTree ) {
+		if ( [ 'checkbox', 'radio', 'hidden' ].indexOf( selectorType ) === -1 && !isSelectTree ) {
 			return $selector.val();
 		}
 
@@ -348,7 +357,7 @@
 		var values = [],
 			$elements = [];
 
-		if ( selectorType === 'hidden' && fieldName !== 'post_category' && ! compare( selector, 'tax_input', 'contains' ) ) {
+		if ( selectorType === 'hidden' && fieldName !== 'post_category' && !compare( selector, 'tax_input', 'contains' ) ) {
 			$elements = $selector;
 		} else if ( isSelectTree ) {
 			$elements = $selector;
@@ -365,12 +374,12 @@
 
 	function getScope( $field, ignoreGroupClone ) {
 		// $field is empty when checking logic of outside conditions.
-		if ( ! $field ) {
+		if ( !$field ) {
 			return '';
 		}
 
 		// If the current field is in a group clone, then all the logics must be within this group.
-		if ( ! ignoreGroupClone ) {
+		if ( !ignoreGroupClone ) {
 			var $groupClone = $field.closest( '.rwmb-group-clone' );
 			if ( $groupClone.length ) {
 				return $groupClone;
@@ -396,7 +405,7 @@
 		if ( compare( name, '(', 'contains' ) ) {
 			return null;
 		}
-		if ( ! selectorCache ) {
+		if ( !selectorCache ) {
 			selectorCache = globalSelectorCache;
 		}
 
@@ -411,7 +420,7 @@
 			'[name^="' + name + '"]',
 			'[name*="' + name + '"]'
 		];
-		var selector = _.find( selectors, function( pattern ) {
+		var selector = _.find( selectors, function ( pattern ) {
 			return selectorCache.get( pattern ).length > 0;
 		} );
 
@@ -453,7 +462,7 @@
 				fade: 'fadeIn'
 			};
 		if ( func.hasOwnProperty( toggleType ) ) {
-			$element[func[toggleType]]();
+			$element[ func[ toggleType ] ]();
 		} else {
 			$element.css( 'visibility', 'visible' );
 		}
@@ -461,11 +470,11 @@
 		$element.attr( 'data-visible', 'visible' );
 
 		// Reset the required attribute for inputs.
-		$element.find( inputSelectors ).each( function() {
+		$element.find( inputSelectors ).each( function () {
 			var $this = $( this ),
 				$field = $this.closest( '.rwmb-field.required' );
 			if ( $field.length ) {
-				$this.prop('required', true );
+				$this.prop( 'required', true );
 			}
 		} );
 	}
@@ -484,7 +493,7 @@
 				fade: 'fadeOut'
 			};
 		if ( func.hasOwnProperty( toggleType ) ) {
-			$element[func[toggleType]]();
+			$element[ func[ toggleType ] ]();
 		} else {
 			$element.css( 'visibility', 'hidden' );
 		}
@@ -492,7 +501,7 @@
 		$element.attr( 'data-visible', 'hidden' );
 
 		// Remove required attribute for inputs and trigger a custom event.
-		$element.find( inputSelectors ).each( function() {
+		$element.find( inputSelectors ).each( function () {
 			var $this = $( this ),
 				required = $this.attr( 'required' );
 			if ( required ) {
@@ -516,8 +525,8 @@
 
 		$( '.mbc-conditions' ).each( function () {
 			var fieldConditions = $( this ).data( 'conditions' ),
-				action = typeof fieldConditions['hidden'] !== 'undefined' ? 'hidden' : 'visible',
-				logic = fieldConditions[action];
+				action = typeof fieldConditions[ 'hidden' ] !== 'undefined' ? 'hidden' : 'visible',
+				logic = fieldConditions[ action ];
 
 			logic.when.forEach( addWatchedElement, this );
 		} );
@@ -537,7 +546,7 @@
 	}
 
 	function addWatchedElement( logic ) {
-		if ( compare( logic[0], '(', 'contains' ) ) {
+		if ( compare( logic[ 0 ], '(', 'contains' ) ) {
 			return;
 		}
 
@@ -547,11 +556,11 @@
 			$scope = getScope( $( this ) );
 		}
 		var selectorCache = getSelectorCache( $scope ),
-			selector = getSelector( logic[0], selectorCache );
+			selector = getSelector( logic[ 0 ], selectorCache );
 
-			if ( ! selector ) {
-				selector = '#' + logic[0];
-			}
+		if ( !selector ) {
+			selector = '#' + logic[ 0 ];
+		}
 
 		watchedElements.push( selector );
 	}
@@ -571,7 +580,7 @@
 		if ( watchedElements.length > 1 ) {
 			$( document )
 				.off( 'change keyup', watchedElements )
-				.on( 'change keyup', watchedElements, function() {
+				.on( 'change keyup', watchedElements, function () {
 					var $scope = getScope( $( this ) );
 					runConditionalLogic( $scope );
 				} );
@@ -584,7 +593,7 @@
 		}
 
 		// For groups.
-		$( document ).on( 'clone_completed',function( event, $group ) {
+		$( document ).on( 'clone_completed', function ( event, $group ) {
 			runConditionalLogic( $group );
 		} );
 	}
@@ -596,7 +605,7 @@
 		watch();
 
 		// When a block switches to edit mode, get watched elements and watch again.
-		$( document ).on( 'mb-blocks-edit-ready', function( e ) {
+		$( document ).on( 'mb-blocks-edit-ready', function ( e ) {
 			watch();
 			runConditionalLogic( $( e.target ) );
 		} );

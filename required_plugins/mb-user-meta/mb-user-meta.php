@@ -3,7 +3,7 @@
  * Plugin Name: MB User Meta
  * Plugin URI:  https://metabox.io/plugins/mb-user-meta/
  * Description: Add custom fields (meta data) for users.
- * Version:     1.2.8
+ * Version:     1.2.9
  * Author:      MetaBox.io
  * Author URI:  https://metabox.io
  * License:     GPL2+

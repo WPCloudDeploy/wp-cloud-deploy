@@ -87,10 +87,11 @@ class RWMB_Group_Field extends RWMB_Field {
 		array_unshift( self::$meta_queue, $meta );
 
 		foreach ( $field['fields'] as $child_field ) {
-
 			$child_field['field_name']       = self::child_field_name( $field['field_name'], $child_field['field_name'] );
 			$child_field['attributes']['id'] = self::child_field_id( $field, $child_field );
 			$child_field['std']              = self::child_field_std( $field, $child_field, $meta );
+
+			self::child_field_clone_default( $field, $child_field );
 
 			if ( in_array( $child_field['type'], array( 'file', 'image' ) ) ) {
 				$child_field['input_name'] = '_file_' . uniqid();
@@ -426,5 +427,24 @@ class RWMB_Group_Field extends RWMB_Field {
 			$ids     = array_merge( $ids, $sub_ids );
 		}
 		return $ids;
+	}
+
+	/**
+	 * Setup clone_default for sub-fields.
+	 * Test cases: https://docs.google.com/spreadsheets/d/10jQ70ygXH42qdaDpwIk52wYqYhKK3TiqaJvOxEYo5bQ/edit?usp=sharing
+	 */
+	protected static function child_field_clone_default( $parent, &$child ) {
+		$clone_default = $child['clone_default'];
+		if ( $parent['clone'] && $parent['clone_default'] && ! $child['clone'] ) {
+			$clone_default = true;
+		}
+		$child['clone_default'] = $clone_default;
+		if ( ! $clone_default ) {
+			return;
+		}
+		$child['attributes'] = wp_parse_args( $child['attributes'], [
+			'data-default'       => $child['std'],
+			'data-clone-default' => 'true',
+		] );
 	}
 }

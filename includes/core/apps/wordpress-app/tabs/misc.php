@@ -24,7 +24,7 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 		add_filter( "wpcd_app_{$this->get_app_name()}_tab_action", array( $this, 'tab_action' ), 10, 3 );
 
 		// This action hook is only used by the WooCommerce sell wp sites functionality to trigger deletion of a site.
-		add_action( 'wpcd_app_delete_wp_site', array( $this, 'remove_site_wc' ), 10, 2 );
+		add_action( 'wpcd_app_delete_wp_site', array( $this, 'remove_site_via_action_hook' ), 10, 2 );
 	}
 
 	/**
@@ -479,7 +479,7 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 	 * @param int    $id     The postID of the app cpt.
 	 * @param string $action The action to be performed 'remove' or 'remove_full' (this matches the string required in the bash scripts).
 	 */
-	public function remove_site_wc( $id, $action ) {
+	public function remove_site_via_action_hook( $id, $action ) {
 		$this->remove_site( $id, $action );
 	}
 

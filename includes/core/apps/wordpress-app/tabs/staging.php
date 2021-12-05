@@ -189,6 +189,16 @@ class WPCD_WORDPRESS_TABS_STAGING extends WPCD_WORDPRESS_TABS {
 		// Get data from the POST request.
 		$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
 
+		// Trigger an action hook to delete any existing staging site (if any).
+		$staging_site_id = $this->get_companion_staging_site_id( $id );
+		if ( ! empty( $staging_site_id ) ) {
+			do_action( 'wpcd_app_delete_wp_site', $staging_site_id, 'remove_full' );
+
+			// Update the metas on this site to remove the staging site info.
+			update_post_meta( $id, 'wpapp_staging_domain', '' );
+			update_post_meta( $id, 'wpapp_staging_domain_id', '' );
+		}
+
 		// Bail if certain things are empty...
 		$new_domain = $this->get_staging_domain( $id, $args );
 		if ( empty( $new_domain ) ) {
@@ -272,7 +282,7 @@ class WPCD_WORDPRESS_TABS_STAGING extends WPCD_WORDPRESS_TABS {
 	 * @return boolean|object Can return wp_error, true/false
 	 */
 	public function copy_to_existing_site_stub( $action, $id ) {
-		$post_args['action'] = $action;
+		$post_args['action']        = $action;
 		$post_args['target_domain'] = $this->get_live_domain_for_staging_site( $id );
 		return $this->copy_to_existing_site( $action, $id, $post_args );
 	}
@@ -390,7 +400,10 @@ class WPCD_WORDPRESS_TABS_STAGING extends WPCD_WORDPRESS_TABS {
 
 		/**
 		 * If we still need a domain name check to see if the the site already has a staging domain name.
-		 * It will already have an associated domain name if the user has pushed to staging at least once.
+		 * It will already have an associated domain name if the user has pushed to staging at least once
+		 * and the staging site was not deleted.
+		 * NOTE: Sometimes the staging site will be deleted before this function is called in which case
+		 * this block of code is likely to also result in an empty domain name.
 		 */
 		if ( empty( $domain ) ) {
 			$domain = get_post_meta( $id, 'wpapp_staging_domain', true );
@@ -499,6 +512,8 @@ class WPCD_WORDPRESS_TABS_STAGING extends WPCD_WORDPRESS_TABS {
 				$desc .= '<br />';
 				/* Translators: %s: The domain of the companion staging site. */
 				$desc .= sprintf( __( 'A companion staging site already exists at: %s.', 'wpcd' ), '<b>' . $existing_staging_site . '</b>' );
+				$desc .= '<br />';
+				$desc .= __( 'If you create a new staging site, the old one will be deleted.', 'wpcd' );
 			}
 
 			$fields[] = array(
@@ -513,7 +528,7 @@ class WPCD_WORDPRESS_TABS_STAGING extends WPCD_WORDPRESS_TABS {
 				'name'       => '',
 				'tab'        => 'staging',
 				'type'       => 'button',
-				'std'        => (bool) $existing_staging_site ? __( 'Copy to Staging Site', 'wpcd' ) : __( 'Create Staging Site', 'wpcd' ),
+				'std'        => (bool) $existing_staging_site ? __( 'Create a New Staging Site', 'wpcd' ) : __( 'Create Staging Site', 'wpcd' ),
 				'desc'       => '',
 				'attributes' => array(
 					// the _action that will be called in ajax.

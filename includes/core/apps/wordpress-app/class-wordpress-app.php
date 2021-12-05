@@ -819,6 +819,21 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	}
 
 	/**
+	 * Returns the post id of the domain of the associated staging site.
+	 *
+	 * @param int $app_id ID of app being interrogated.
+	 *
+	 * @return int The post id of the staging domain name if it exists.
+	 */
+	public function get_companion_staging_site_id( $app_id ) {
+
+		$staging_site_id = (int) get_post_meta( $app_id, 'wpapp_staging_domain_id', true );
+
+		return $staging_site_id;
+
+	}
+
+	/**
 	 * Returns the domain of the associated live site for a staging site.
 	 *
 	 * @param int $app_id ID of app being interrogated.

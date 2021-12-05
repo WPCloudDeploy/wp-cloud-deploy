@@ -160,6 +160,8 @@ trait wpcd_wpapp_metaboxes_app {
 		$wpcd_wpapp_email              = get_post_meta( $post->ID, 'wpapp_email', true );
 		$wpcd_wpapp_password           = $this::decrypt( get_post_meta( $post->ID, 'wpapp_password', true ) );
 		$wpcd_wpapp_initial_version    = get_post_meta( $post->ID, 'wpapp_version', true );
+		$wpcd_wpapp_staging_domain     = get_post_meta( $post->ID, 'wpapp_staging_domain', true );
+		$wpcd_wpapp_staging_domain_id  = get_post_meta( $post->ID, 'wpapp_staging_domain_id', true );
 		$wpcd_wpapp_wc_order_id        = get_post_meta( $post->ID, 'wpapp_wc_order_id', true );
 		$wpcd_wpapp_wc_subscription_id = get_post_meta( $post->ID, 'wpapp_wc_subscription_id', true );
 
@@ -221,15 +223,19 @@ trait wpcd_wpapp_metaboxes_app {
 		$wpcd_wpapp_email              = filter_input( INPUT_POST, 'wpcd_wpapp_email', FILTER_SANITIZE_EMAIL );
 		$wpcd_wpapp_password           = filter_input( INPUT_POST, 'wpcd_wpapp_password' );  // cannot sanitize passwords unfortunately.
 		$wpcd_wpapp_initial_version    = filter_input( INPUT_POST, 'wpcd_wpapp_initial_version', FILTER_SANITIZE_STRING );
-		$wpcd_wpapp_wc_order_id        = filter_input( INPUT_POST, 'wpcd_wpapp_wc_order_id', FILTER_SANITIZE_STRING );
-		$wpcd_wpapp_wc_subscription_id = filter_input( INPUT_POST, 'wpcd_wpapp_wc_subscription_id', FILTER_SANITIZE_STRING );
+		$wpcd_wpapp_staging_domain     = filter_input( INPUT_POST, 'wpcd_wpapp_staging_domain', FILTER_SANITIZE_STRING );
+		$wpcd_wpapp_staging_domain_id  = filter_input( INPUT_POST, 'wpcd_wpapp_staging_domain_id', FILTER_SANITIZE_NUMBER_INT );
+		$wpcd_wpapp_wc_order_id        = filter_input( INPUT_POST, 'wpcd_wpapp_wc_order_id', FILTER_SANITIZE_NUMBER_INT );
+		$wpcd_wpapp_wc_subscription_id = filter_input( INPUT_POST, 'wpcd_wpapp_wc_subscription_id', FILTER_SANITIZE_NUMBER_INT );
 
-		/* Add new values to database */
+		/* Add/Update new values to database */
 		update_post_meta( $post_id, 'wpapp_domain', $wpcd_wpapp_domain );
 		update_post_meta( $post_id, 'wpapp_userid', $wpcd_wpapp_userid );
 		update_post_meta( $post_id, 'wpapp_email', $wpcd_wpapp_email );
 		update_post_meta( $post_id, 'wpapp_password', $this::encrypt( $wpcd_wpapp_password ) );
 		update_post_meta( $post_id, 'wpapp_version', $wpcd_wpapp_initial_version );
+		update_post_meta( $post_id, 'wpapp_staging_domain', $wpcd_wpapp_staging_domain );
+		update_post_meta( $post_id, 'wpapp_staging_domain_id', $wpcd_wpapp_staging_domain_id );
 		update_post_meta( $post_id, 'wpapp_wc_order_id', $wpcd_wpapp_wc_order_id );
 		update_post_meta( $post_id, 'wpapp_wc_subscription_id', $wpcd_wpapp_wc_subscription_id );
 

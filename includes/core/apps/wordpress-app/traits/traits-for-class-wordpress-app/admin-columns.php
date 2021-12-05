@@ -146,7 +146,7 @@ trait wpcd_wpapp_admin_column_data {
 		$new_column_data = '';
 		$new_column_data = $new_column_data . __( 'Domain:', 'wpcd' ) . ' ' . get_post_meta( $post_id, 'wpapp_domain', true ) . '<br />';
 		$new_column_data = $new_column_data . __( 'User:', 'wpcd' ) . ' ' . get_post_meta( $post_id, 'wpapp_user', true ) . '<br />';
-		
+
 		/* Add wp version */
 		$wp_version = get_post_meta( $post_id, 'wpapp_version', true );
 		if ( 'latest' === $wp_version ) {
@@ -572,9 +572,15 @@ trait wpcd_wpapp_admin_column_data {
 
 		/* Show whether the site is enabled or disabled */
 		if ( 'wpcd_app' === get_post_type( $post ) && 'wordpress-app' == $this->get_app_type( $post->ID ) ) {
-
 			if ( 'off' === $this->site_status( $post->ID ) ) {
 				$states['wpcd-wpapp-status'] = __( 'Disabled', 'wpcd' );
+			}
+		}
+
+		/* Show whether the site is a staging site */
+		if ( 'wpcd_app' === get_post_type( $post ) && 'wordpress-app' == $this->get_app_type( $post->ID ) ) {
+			if ( true === $this->is_staging_site( $post->ID ) ) {
+				$states['wpcd-wpapp-status'] = __( 'Staging', 'wpcd' );
 			}
 		}
 

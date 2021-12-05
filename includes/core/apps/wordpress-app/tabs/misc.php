@@ -530,6 +530,13 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 			// Attempt to delete DNS for the domain...
 			WPCD_DNS()->delete_dns_for_domain( get_post_meta( $id, 'wpapp_original_domain', true ) );
 			WPCD_DNS()->delete_dns_for_domain( get_post_meta( $id, 'wpapp_domain', true ) );
+
+			// If it's a staging site then lets remove the companion metas from the original site.
+			if ( ! empty( $this->get_live_id_for_staging_site( $id ) ) ) {
+				$live_id = $this->get_live_id_for_staging_site( $id );
+				update_post_meta( $live_id, 'wpapp_staging_domain', '' );
+				update_post_meta( $live_id, 'wpapp_staging_domain_id', '' );
+			}
 		}
 
 		// now force delete the post.

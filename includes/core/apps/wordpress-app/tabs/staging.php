@@ -108,6 +108,7 @@ class WPCD_WORDPRESS_TABS_STAGING extends WPCD_WORDPRESS_TABS {
 
 							// Finally, lets add a meta to indicate that this was a clone.
 							update_post_meta( $new_app_post_id, 'wpapp_cloned_from', $this->get_domain_name( $id ) );
+							update_post_meta( $new_app_post_id, 'wpapp_cloned_from_id', $id );
 
 							// Wrapup - let things hook in here - primarily the multisite add-on.
 							do_action( "wpcd_{$this->get_app_name()}_site_staging_new_post_completed", $new_app_post_id, $id, $name );
@@ -164,6 +165,10 @@ class WPCD_WORDPRESS_TABS_STAGING extends WPCD_WORDPRESS_TABS {
 			case 'create-staging-site':
 				$action = 'create-staging-site'; // action is not used by the bash script right now.
 				$result = $this->clone_site( $action, $id );
+				break;
+			case 'copy-to-live':
+				$action = 'copy_to_existing_site_copy_full';
+				$result = $this->copy_to_existing_site_stub( $action, $id );
 				break;
 		}
 
@@ -259,7 +264,113 @@ class WPCD_WORDPRESS_TABS_STAGING extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
-	 * Gets the domain name for the staging site.
+	 * Copy a site over an existing site on the same server.
+	 *
+	 * @param string $action The action key to send to the bash script.
+	 * @param int    $id the id of the app post being handled.
+	 *
+	 * @return boolean|object Can return wp_error, true/false
+	 */
+	public function copy_to_existing_site_stub( $action, $id ) {
+		$post_args['action'] = $action;
+		$post_args['target_domain'] = $this->get_live_domain_for_staging_site( $id );
+		return $this->copy_to_existing_site( $action, $id, $post_args );
+	}
+
+	/**
+	 * Copy a site over an existing site on the same server.
+	 *
+	 * @param string $action The action key to send to the bash script.
+	 * @param int    $id the id of the app post being handled.
+	 * @param array  $post_args An array of arguments for the bash script.
+	 *
+	 * @return boolean|object Can return wp_error, true/false
+	 */
+	public function copy_to_existing_site( $action, $id, $post_args = array() ) {
+
+		// Get data from the POST request.
+		if ( empty( $post_args ) ) {
+			$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
+		} else {
+			$args = $post_args;
+		}
+
+		// Bail if certain things are empty...
+		if ( empty( $args['target_domain'] ) ) {
+			return new \WP_Error( __( 'The target domain must be provided', 'wpcd' ) );
+		} else {
+			$target_domain         = strtolower( sanitize_text_field( $args['target_domain'] ) );
+			$target_domain         = wpcd_clean_domain( $target_domain );
+			$args['target_domain'] = $target_domain;
+		}
+
+		// Get the instance details.
+		$instance = $this->get_app_instance_details( $id );
+
+		// Bail if error.
+		if ( is_wp_error( $instance ) ) {
+			/* Translators: %s is an internal action name. */
+			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
+		}
+
+		// Get the domain we're working on.
+		$domain = $this->get_domain_name( $id );
+
+		// Add some items to the args array.
+		$args['source_domain'] = $domain;
+		$args['wpconfig']      = 'N';
+
+		// sanitize the fields to allow them to be used safely on the bash command line.
+		$original_args = $args;
+		$args          = array_map(
+			function( $item ) {
+				return escapeshellarg( $item );
+			},
+			$args
+		);
+
+		// we want to make sure this command runs only once in a "swatch beat" for a domain.
+		// e.g. 2 manual backups cannot run for the same domain at the same time (time = swatch beat).
+		// although technically only one command can run per domain (e.g. backup and restore cannot run at the same time).
+		// we are appending the Swatch beat to the command name because this command can be run multiple times.
+		// over the app's lifetime.
+		// but within a swatch beat, it can only be run once.
+		$command             = sprintf( '%s---%s---%d', $action, $domain, date( 'B' ) );
+		$instance['command'] = $command;
+		$instance['app_id']  = $id;
+
+		// construct the run command.
+		$run_cmd = $this->turn_script_into_command(
+			$instance,
+			'copy_site_to_existing_site.txt',
+			array_merge(
+				$args,
+				array(
+					'command' => $command,
+					'action'  => $action,
+					'domain'  => $domain,
+				)
+			)
+		);
+
+		// double-check just in case of errors.
+		if ( empty( $run_cmd ) || is_wp_error( $run_cmd ) ) {
+			/* Translators: %s is an internal action name. */
+			return new \WP_Error( sprintf( __( 'Something went wrong - we are unable to construct a proper command for this action - %s', 'wpcd' ), $action ) );
+		}
+
+		/**
+		 * Run the constructed command
+		 * Check out the write up about the different aysnc methods we use
+		 * here: https://wpclouddeploy.com/documentation/wpcloud-deploy-dev-notes/ssh-execution-models/
+		 */
+		$return = $this->run_async_command_type_2( $id, $command, $run_cmd, $instance, $action );
+
+		return $return;
+	}
+
+	/**
+	 * Gets the domain name for a new staging site.
 	 *
 	 * @param int   $id The post id of the current site we're looking to push to staging.
 	 * @param array $args A array of already sanitized _POST args.
@@ -337,17 +448,57 @@ class WPCD_WORDPRESS_TABS_STAGING extends WPCD_WORDPRESS_TABS {
 			// This is a staging site so only show options that allow it to be pushed back to live.
 			$desc = __( 'Push this site to live.', 'wpcd' );
 
+			// Variable that contains the domain for the live site.
+			$live_domain = $this->get_live_domain_for_staging_site( $id );
+
+			if ( ! empty( $live_domain ) ) {
+				$desc .= '<br />';
+				/* Translators: %s: The domain of the live site. */
+				$desc .= sprintf( __( 'The live domain associated with this staging site is: %s.', 'wpcd' ), '<b>' . $live_domain . '</b>' );
+			}
+
+			$fields[] = array(
+				'name' => __( 'Staging', 'wpcd' ),
+				'tab'  => 'staging',
+				'type' => 'heading',
+				'desc' => $desc,
+			);
+
+			$fields[] = array(
+				'id'         => 'wpcd_app_staging_site',
+				'name'       => '',
+				'tab'        => 'staging',
+				'type'       => 'button',
+				'std'        => __( 'Push To Live', 'wpcd' ),
+				'desc'       => '',
+				'attributes' => array(
+					// the _action that will be called in ajax.
+					'data-wpcd-action'              => 'copy-to-live',
+					// the id.
+					'data-wpcd-id'                  => $id,
+					// fields that contribute data for this action.
+					// 'data-wpcd-fields'              => json_encode( array( '#wpcd_app_clone_site_domain_new_domain' ) ),
+					// make sure we give the user a confirmation prompt.
+					'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like to overwrite your live site?', 'wpcd' ),
+					// show log console?
+					'data-show-log-console'         => true,
+					// Initial console message.
+					'data-initial-console-message'  => __( 'Preparing to push this site to staging...<br /> Please DO NOT EXIT this screen until you see a popup message indicating that the operation has completed or has errored.<br />This terminal should refresh every 60-90 seconds with updated progress information from the server. <br /> After the operation is complete the entire log can be viewed in the COMMAND LOG screen.', 'wpcd' ),
+				),
+				'class'      => 'wpcd_app_action',
+				'save_field' => false,
+			);
 		} else {
 			// We got here so ok to show fields related to cloning the site to staging.
 			$desc = __( 'Make a copy of this site for development, testing and trouble-shooting.', 'wpcd' );
 
-			// Variable that indicates if an existing staging site has alrady been created.
+			// Variable that indicates if an existing staging site has already been created.
 			$existing_staging_site = $this->get_companion_staging_site_domain( $id );
 
 			if ( ! empty( $existing_staging_site ) ) {
 				$desc .= '<br />';
 				/* Translators: %s: The domain of the companion staging site. */
-				$desc .= sprintf( __( 'A companion staging site already exists at: %s.', 'wpcd' ), $existing_staging_site );
+				$desc .= sprintf( __( 'A companion staging site already exists at: %s.', 'wpcd' ), '<b>' . $existing_staging_site . '</b>' );
 			}
 
 			$fields[] = array(

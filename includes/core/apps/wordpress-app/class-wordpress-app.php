@@ -816,6 +816,36 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 		return $staging_domain;
 
+	}
+
+	/**
+	 * Returns the domain of the associated live site for a staging site.
+	 *
+	 * @param int $app_id ID of app being interrogated.
+	 *
+	 * @return string The live domain name if it exists.
+	 */
+	public function get_live_domain_for_staging_site( $app_id ) {
+
+		$live_domain = (string) get_post_meta( $app_id, 'wpapp_cloned_from', true );
+
+		return $live_domain;
+
+	}
+
+	/**
+	 * Returns the post id of the live domain of associated with a staging site.
+	 *
+	 * @param int $app_id ID of app being interrogated.
+	 *
+	 * @return int The post id for the live site related to the staging site.
+	 */
+	public function get_live_id_for_staging_site( $app_id ) {
+
+		$live_id = (int) get_post_meta( $app_id, 'wpapp_cloned_from_id', true );
+
+		return $live_id;
+
 	}	
 
 

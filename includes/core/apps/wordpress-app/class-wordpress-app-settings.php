@@ -438,8 +438,8 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			array(
 				'id'   => 'wordpress_fields_and_links_heading_01',
 				'type' => 'heading',
-				'name' => __( 'Fields & Links', 'wpcd' ),
-				'desc' => __( 'Show or hide certain fields specific to the WordPress app.', 'wpcd' ),
+				'name' => __( 'Servers', 'wpcd' ),
+				'desc' => __( 'Show or hide certain fields in the server list and server screens.', 'wpcd' ),
 				'tab'  => 'wordpress-app-fields-and-links',
 			),
 			array(
@@ -456,6 +456,22 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tooltip' => __( 'Show a dropdown of WordPress installation log attempts under the Title column in the Server List', 'wpcd' ),
 				'tab'     => 'wordpress-app-fields-and-links',
 			),
+
+			array(
+				'id'   => 'wordpress_fields_and_links_heading_02',
+				'type' => 'heading',
+				'name' => __( 'Sites', 'wpcd' ),
+				'desc' => __( 'Show or hide certain fields in the site list and site screens.', 'wpcd' ),
+				'tab'  => 'wordpress-app-fields-and-links',
+			),			
+			array(
+				'id'      => 'wordpress_app_show_staging_column_in_site_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Show Staging Column', 'wpcd' ),
+				'tooltip' => __( 'Show the staging column in the site list', 'wpcd' ),
+				'tab'     => 'wordpress-app-fields-and-links',
+			),			
+
 
 		);
 

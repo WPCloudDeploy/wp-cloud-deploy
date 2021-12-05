@@ -284,6 +284,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/ssl.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/cache.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/sftp.php';
+		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/staging.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/clone-site.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/site-sync.php';
@@ -729,7 +730,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	}
 
 	/**
-	 * Returns on/off status of http for the site being interrogated.
+	 * Returns on/off status of http2 for the site being interrogated.
 	 *
 	 * @param int $app_id ID of app being interrogated.
 	 *
@@ -782,6 +783,85 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		return $current_status;
 
 	}
+
+	/**
+	 * Returns whether a site is a staging site.
+	 *
+	 * @param int $app_id ID of app being interrogated.
+	 *
+	 * @return boolean
+	 */
+	public function is_staging_site( $app_id ) {
+
+		$is_staging = (int) get_post_meta( $app_id, 'wpapp_is_staging', true );
+
+		if ( 1 === $is_staging ) {
+			return true;
+		} else {
+			return false;
+		}
+
+	}
+
+	/**
+	 * Returns the domain of the associated staging site.
+	 *
+	 * @param int $app_id ID of app being interrogated.
+	 *
+	 * @return string The staging domain name if it exists.
+	 */
+	public function get_companion_staging_site_domain( $app_id ) {
+
+		$staging_domain = (string) get_post_meta( $app_id, 'wpapp_staging_domain', true );
+
+		return $staging_domain;
+
+	}
+
+	/**
+	 * Returns the post id of the domain of the associated staging site.
+	 *
+	 * @param int $app_id ID of app being interrogated.
+	 *
+	 * @return int The post id of the staging domain name if it exists.
+	 */
+	public function get_companion_staging_site_id( $app_id ) {
+
+		$staging_site_id = (int) get_post_meta( $app_id, 'wpapp_staging_domain_id', true );
+
+		return $staging_site_id;
+
+	}
+
+	/**
+	 * Returns the domain of the associated live site for a staging site.
+	 *
+	 * @param int $app_id ID of app being interrogated.
+	 *
+	 * @return string The live domain name if it exists.
+	 */
+	public function get_live_domain_for_staging_site( $app_id ) {
+
+		$live_domain = (string) get_post_meta( $app_id, 'wpapp_cloned_from', true );
+
+		return $live_domain;
+
+	}
+
+	/**
+	 * Returns the post id of the live domain of associated with a staging site.
+	 *
+	 * @param int $app_id ID of app being interrogated.
+	 *
+	 * @return int The post id for the live site related to the staging site.
+	 */
+	public function get_live_id_for_staging_site( $app_id ) {
+
+		$live_id = (int) get_post_meta( $app_id, 'wpapp_cloned_from_id', true );
+
+		return $live_id;
+
+	}	
 
 
 	/**

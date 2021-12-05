@@ -451,6 +451,10 @@ trait wpcd_wpapp_admin_column_data {
 	 */
 	public function app_posts_app_table_head( $defaults ) {
 
+		if ( wpcd_get_option( 'wordpress_app_show_staging_column_in_site_list' ) ) {
+			$defaults['wpcd_wpapp_staging'] = __( 'Staging', 'wpcd' );
+		}
+
 		$defaults['wpcd_wpapp_cache'] = __( 'Cache', 'wpcd' );
 		$defaults['wpcd_wpapp_php']   = __( 'PHP', 'wpcd' );
 		$defaults['wpcd_wpapp_ssl']   = __( 'SSL', 'wpcd' );
@@ -544,6 +548,43 @@ trait wpcd_wpapp_admin_column_data {
 					}
 
 					echo '<div class="wpcd_object_cache_status">' . __( 'Object Cache: ', 'wpcd' ) . $object_cache . '</div>';
+
+				}
+
+				break;
+
+			case 'wpcd_wpapp_staging':
+				if ( wpcd_get_option( 'wordpress_app_show_staging_column_in_site_list' ) ) {
+
+					$str = '';
+
+					if ( $this->is_staging_site( $post_id ) ) {
+						$live_id = $this->get_live_id_for_staging_site( $post_id );
+						if ( ! empty( $live_id ) ) {
+							$link = '<a href="' . get_edit_post_link( $live_id ) . '" target="_blank">' . $this->get_live_domain_for_staging_site( $post_id ) . '</a>';
+							/* Translators: %s: Link to the related live site of a staging site. */
+							$str  = sprintf( __( 'Live Site: %s', 'wpcd' ), $link );
+							$str .= '<br />';
+							$str .= '<b><i>' . $this->get_formatted_wpadmin_link( $live_id ) . '</b></i>';
+							$str .= '<br />';
+							$str .= '<b><i>' . $this->get_formatted_site_link( $live_id ) . '</b></i>';
+						}
+					}
+
+					if ( $this->get_companion_staging_site_id( $post_id ) ) {
+						$staging_id = $this->get_companion_staging_site_id( $post_id );
+						if ( ! empty( $staging_id ) ) {
+							$link = '<a href="' . get_edit_post_link( $staging_id ) . '" target="_blank">' . $this->get_companion_staging_site_domain( $post_id ) . '</a>';
+							/* Translators: %s: Link to the related live site of a staging site. */
+							$str  = sprintf( __( 'Staging Site: %s', 'wpcd' ), $link );
+							$str .= '<br />';
+							$str .= '<b><i>' . $this->get_formatted_wpadmin_link( $staging_id ) . '</b></i>';
+							$str .= '<br />';
+							$str .= '<b><i>' . $this->get_formatted_site_link( $staging_id ) . '</b></i>';
+						}
+					}
+
+					echo $str;
 
 				}
 

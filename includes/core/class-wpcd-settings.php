@@ -857,7 +857,7 @@ class WPCD_Settings {
 									'id'   => "wpcd_item_license_$core_item_id",
 									'type' => 'text',
 									'size' => 40,
-									'desc' => empty( wpcd_get_early_option( "wpcd_item_license_$core_item_id" ) ) ? __( 'Please enter your license key for the core plugin.', 'wpcd' ) : get_transient( "wpcd_license_notes_for_$core_item_id" ) . '<br />' . get_transient( "wpcd_license_updates_for_$core_item_id" ),
+									'desc' => empty( wpcd_get_early_option( "wpcd_item_license_$core_item_id" ) ) ? __( 'Please enter your license key for the core plugin. Note: If you have an ALL ACCESS or BUSINESS bundle license please do not use those bundle keys; instead use the CORE plugin license key.', 'wpcd' ) : get_transient( "wpcd_license_notes_for_$core_item_id" ) . '<br />' . get_transient( "wpcd_license_updates_for_$core_item_id" ),
 								),
 
 								array(

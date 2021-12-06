@@ -15,6 +15,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 class WPCD_WORDPRESS_TABS_CLONE_SITE extends WPCD_WORDPRESS_TABS {
 
 	/**
+	 * Holds the ID for this tab.
+	 * It will be used when setting up the tab metabox structure in the get_tab function() later.
+	 *
+	 * @var $tab_id
+	 */
+	private $tab_id = 'clone-site';
+
+	/**
 	 * WPCD_WORDPRESS_TABS_BACKUP constructor.
 	 */
 	public function __construct() {
@@ -130,7 +138,7 @@ class WPCD_WORDPRESS_TABS_CLONE_SITE extends WPCD_WORDPRESS_TABS {
 	 * @return array    $tabs The default value.
 	 */
 	public function get_tab( $tabs ) {
-		$tabs['clone-site'] = array(
+		$tabs[ $this->tab_id ] = array(
 			'label' => __( 'Clone Site', 'wpcd' ),
 			'icon'  => 'fad fa-clone',
 		);
@@ -150,9 +158,32 @@ class WPCD_WORDPRESS_TABS_CLONE_SITE extends WPCD_WORDPRESS_TABS {
 
 		/* Verify that the user is even allowed to view the app before proceeding to do anything else */
 		if ( ! $this->wpcd_user_can_view_wp_app( $id ) ) {
+			/* translators: %1s is replaced with an internal action name; %2$s is replaced with the file name; %3$s is replaced with the post id being acted on. %4$s is the user id running this action. */
 			return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
 		}
 
+		// Allow a third party to determine if we should proceed.
+		// Full filter name: wpcd_app_wordpress-app_tab_actions_general_security_check.
+		$addl_security_check = apply_filters(
+			"wpcd_app_{$this->get_app_name()}_tab_actions_general_security_check",
+			array(
+				'check' => true,
+				'msg'   => '',
+			),
+			$this->tab_id,
+			$action,
+			$id
+		);
+		if ( ! $addl_security_check['check'] ) {
+			if ( empty( $addl_security_check['msg'] ) ) {
+				/* translators: %1s is replaced with an internal action name; %2$s is replaced with the file name; %3$s is replaced with the post id being acted on. %4$s is the user id running this action. */
+				return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
+			} else {
+				return new \WP_Error( $addl_security_check['msg'] );
+			}
+		}
+
+		// Security checks passed, do all the things.
 		switch ( $action ) {
 			case 'clone-site':
 				$action = 'clone-site'; // action is not used by the bash script right now.
@@ -191,6 +222,7 @@ class WPCD_WORDPRESS_TABS_CLONE_SITE extends WPCD_WORDPRESS_TABS {
 
 		// Bail if error.
 		if ( is_wp_error( $instance ) ) {
+			/* translators: %s is replaced with the internal action name. */
 			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
 		}
 
@@ -226,6 +258,7 @@ class WPCD_WORDPRESS_TABS_CLONE_SITE extends WPCD_WORDPRESS_TABS {
 
 		// double-check just in case of errors.
 		if ( empty( $run_cmd ) || is_wp_error( $run_cmd ) ) {
+			/* translators: %s is replaced with the internal action name. */
 			return new \WP_Error( sprintf( __( 'Something went wrong - we are unable to construct a proper command for this action - %s', 'wpcd' ), $action ) );
 		}
 
@@ -259,6 +292,15 @@ class WPCD_WORDPRESS_TABS_CLONE_SITE extends WPCD_WORDPRESS_TABS {
 		// Bail if site is not enabled.
 		if ( ! $this->is_site_enabled( $id ) ) {
 			return array_merge( $fields, $this->get_disabled_header_field( 'clone-site' ) );
+		}
+
+		// Allow a third party to show a different set of fields instead.
+		// This can be useful if a custom plugin determines that clone operations are not allowed.
+		// For example, the WC SITES SUBSCRIPTION add-on uses this to disable cloning when the number of sites a user is allowed is exceeded.
+		// Full filter name: wpcd_app_wordpress-app_clone-site_get_fields.
+		$over_ride_fields = apply_filters( "wpcd_app_{$this->get_app_name()}_clone-site_get_fields", array(), $fields, $id );
+		if ( ! empty( $over_ride_fields ) ) {
+			return array_merge( $fields, $over_ride_fields );
 		}
 
 		// Get HTTP2 status since we cannot clone a site with HTTP2 turned on.
@@ -316,7 +358,7 @@ class WPCD_WORDPRESS_TABS_CLONE_SITE extends WPCD_WORDPRESS_TABS {
 				// the id.
 				'data-wpcd-id'                  => $id,
 				// fields that contribute data for this action.
-				'data-wpcd-fields'              => json_encode( array( '#wpcd_app_clone_site_domain_new_domain' ) ),
+				'data-wpcd-fields'              => wp_json_encode( array( '#wpcd_app_clone_site_domain_new_domain' ) ),
 				// make sure we give the user a confirmation prompt.
 				'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like to copy this site to a new domain?', 'wpcd' ),
 				// show log console?

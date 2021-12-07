@@ -823,7 +823,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	 *
 	 * @param int $app_id ID of app being interrogated.
 	 *
-	 * @return int The post id of the staging domain name if it exists.
+	 * @return int The post id of the staging domain if it exists.
 	 */
 	public function get_companion_staging_site_id( $app_id ) {
 
@@ -861,7 +861,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 		return $live_id;
 
-	}	
+	}
 
 
 	/**
@@ -1614,7 +1614,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	 * Filter Hook: wpcd_script_placeholders_{$this->get_app_name()}
 	 *
 	 * @param array  $array              The array of placeholders, usually empty but since this is the first param, its the one returned as the modified value.
-	 * @param string $script_name     script_name.
+	 * @param string $script_name        Script_name.
 	 * @param string $script_version     The version of script to be used.
 	 * @param array  $instance           Various pieces of data about the server or app being used. It can use the following keys. post_id: the ID of the post.
 	 * @param string $command            The command being constructed.

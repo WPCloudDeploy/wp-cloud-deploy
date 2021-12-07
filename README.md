@@ -95,6 +95,7 @@ Note: Even though the entire git development history isn't available on github, 
 ------
 * New: WPAPP - New servers will install PHP 8.1 as part of the PHP suite of components.
 * Tweak: Update metabox.io components to latest versions.
+* Fix: WPAPP - Found a few more strings that were not being sent through the translation functions.
 
 4.12.0
 ------

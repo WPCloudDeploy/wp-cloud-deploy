@@ -1362,7 +1362,7 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 				// add a checkbox field.
 				array(
 					'name' => '',
-					'desc' => 'Check this box to remove all delete links from the screen - it will prevent this server from being accidentally deleted.',
+					'desc' => __( 'Check this box to remove all delete links from the screen - it will prevent this server from being accidentally deleted.', 'wpcd' ),
 					'id'   => $prefix . 'server_delete_protection',
 					'type' => 'checkbox',
 					'std'  => $checked,

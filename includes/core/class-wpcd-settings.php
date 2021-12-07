@@ -964,15 +964,15 @@ class WPCD_Settings {
 		// Final set of tabs.
 		$tabs['fields'] = __( 'Fields', 'wpcd' );
 
-		$tabs['misc']    = 'Misc';
-		$tabs['logging'] = 'Logging and Tracing';
-		$tabs['tools']   = 'Tools';
+		$tabs['misc']    =  __( 'Misc', 'wpcd' );
+		$tabs['logging'] =  __( 'Logging and Tracing', 'wpcd' );
+		$tabs['tools']   =  __( 'Tools', 'wpcd' );
 		if ( ! defined( 'WPCD_HIDE_LICENSE_TAB' ) || ( defined( 'WPCD_HIDE_LICENSE_TAB' ) && ! WPCD_HIDE_LICENSE_TAB ) ) {
-			$tabs['license'] = 'License & Updates';
+			$tabs['license'] =  __( 'License & Updates', 'wpcd' );
 		}
 
 		if ( wpcd_data_sync_allowed() ) {
-			$tabs['data-sync'] = 'Data Sync';
+			$tabs['data-sync'] =  __( 'Data Sync', 'wpcd' );
 		}
 
 		// Settings page array with the tabs.

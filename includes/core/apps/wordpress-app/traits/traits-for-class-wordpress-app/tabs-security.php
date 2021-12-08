@@ -209,7 +209,7 @@ trait wpcd_wpapp_tabs_security {
 	public function wpcd_can_author_view_server_tab( $id, $tab_name, $user_id = 0 ) {
 
 		/* Admin then, 'return' true. */
-		if ( wpcd_is_admin() ) {
+		if ( wpcd_is_admin( $user_id ) ) {
 			return true;
 		}
 
@@ -253,6 +253,9 @@ trait wpcd_wpapp_tabs_security {
 			// author should not be allowed to see this tab.
 			return false;
 		}
+		
+		// We're still here, so check the items in the APP:WordPress - Security tab in SETTINGS.
+		
 
 		// Got here?  default to true.
 		return true;

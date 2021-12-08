@@ -365,7 +365,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				// First column is just the label with the tab name.
 				$fields[] = array(
 					'name'    => "{$tab_desc}",
-					'id'      => "{$wpcd_id_prefix}_{$context_tab_short_id}_{$owner_key}_{$tab_key}_label",
+					'id'      => "{$wpcd_id_prefix}_{$context_tab_short_id}_column1_{$tab_key}_label",
 					'type'    => 'custom_html',
 					'tab'     => $context_tab,
 					'tooltip' => "{$tab_key}",
@@ -511,7 +511,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				// First column is just the label with the tab name.
 				$fields[] = array(
 					'name'    => "{$tab_desc}",
-					'id'      => "{$wpcd_id_prefix}_{$context_tab_short_id}_{$owner_key}_{$tab_key}_label",
+					'id'      => "{$wpcd_id_prefix}_{$context_tab_short_id}_column1_{$tab_key}_label",
 					'type'    => 'custom_html',
 					'tab'     => $context_tab,
 					'tooltip' => "{$tab_key}",
@@ -561,7 +561,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 					'select_all_none' => true,
 					'multiple'        => true,
 					'placeholder'     => __( 'Select list of roles that should not see this tab.', 'wpcd' ),
-					'desc'            => "{$context_tab_short_id}_{$tab_key}",
+					'desc'            => "{$context_tab_short_id}_{$tab_key}_roles",
 					'tab'             => $context_tab,
 					'columns'         => 6,
 				);

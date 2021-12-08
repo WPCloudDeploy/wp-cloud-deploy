@@ -452,14 +452,28 @@ function wpcd_get_post_author( $post_id ) {
 }
 
 /**
- * Get a list of all roles in WordPress and return them as an array.
+ * Get a list of all roles in WordPress and return them as an array of ids.
+ *
+ * @return array of roles.
+ */
+function wpcd_get_roles_ids() {
+    global $wp_roles;
+    foreach($wp_roles->roles as $key => $role) {
+        $roles[] = $key;
+    }
+    return $roles;
+}
+
+/**
+ * Get a list of all roles in WordPress and return them as an array internal wp role names..
  *
  * @return array of roles.
  */
 function wpcd_get_roles() {
     global $wp_roles;
+	$roles = array();
     foreach($wp_roles->roles as $key => $role) {
-        $roles[] = $key;
+        $roles[$key] = $role['name'];
     }
     return $roles;
 }

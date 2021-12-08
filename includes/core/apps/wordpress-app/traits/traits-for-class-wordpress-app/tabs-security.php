@@ -214,9 +214,9 @@ trait wpcd_wpapp_tabs_security {
 		}
 
 		// If nothing is defined in wp-config, then just return TRUE.
-		if ( ( ! defined( 'WPCD_SERVER_HIDE_TABS_WHEN_AUTHOR' ) ) || ( defined( 'WPCD_SERVER_HIDE_TABS_WHEN_AUTHOR' ) && empty( WPCD_SERVER_HIDE_TABS_WHEN_AUTHOR ) ) ) {
-			return true;
-		}
+//		if ( ( ! defined( 'WPCD_SERVER_HIDE_TABS_WHEN_AUTHOR' ) ) || ( defined( 'WPCD_SERVER_HIDE_TABS_WHEN_AUTHOR' ) && empty( WPCD_SERVER_HIDE_TABS_WHEN_AUTHOR ) ) ) {
+//			return true;
+//		}
 
 		// If not a post, return true.
 		$post = get_post( $id );
@@ -243,19 +243,62 @@ trait wpcd_wpapp_tabs_security {
 			return true;
 		}
 
-		// Explode the command delimited string from the wp-config.php entry.
-		$excluded_tabs = explode( ',', WPCD_SERVER_HIDE_TABS_WHEN_AUTHOR );
+		// Time to check entries in wp-config.php. This could probably be deprecated since we have all those new entries in SETTINGS as of V 4.13.0
+		if ( defined( 'WPCD_SERVER_HIDE_TABS_WHEN_AUTHOR' ) && ( ! empty( WPCD_SERVER_HIDE_TABS_WHEN_AUTHOR ) ) ){
+			// Explode the command delimited string from the wp-config.php entry.
+			$excluded_tabs = explode( ',', WPCD_SERVER_HIDE_TABS_WHEN_AUTHOR );
 
-		// At this point we know the user id is the author of the post.
-		// So we need to check if the specified tab is off-limits to
-		// Authors of servers.
-		if ( in_array( $tab_name, $excluded_tabs ) ) {
-			// author should not be allowed to see this tab.
-			return false;
+			// At this point we know the user id is the author of the post.
+			// So we need to check if the specified tab is off-limits to
+			// Authors of servers.
+			if ( in_array( $tab_name, $excluded_tabs ) ) {
+				// author should not be allowed to see this tab.
+				return false;
+			}
 		}
 		
-		// We're still here, so check the items in the APP:WordPress - Security tab in SETTINGS.
+		// We're still here, so check the true/false items in the APP:WordPress - Security tab in SETTINGS.
+		// These items let us know which tabs should be turned off even if the user is the owner/author of the server.
+		if ( true === (boolean) get_post_meta( $id, 'wpcd_wpapp_is_staging', true ) ) {
+			// This is a staging server but we're not really setting or using this so nothing to do.
+			// The concept of a staging server is for future use.
+		} else {
+			// We have a very long settings key so we construct it in pieces.
+			$wpcd_id_prefix = 'wpcd_wpapp_server_security_exception';
+			$context_tab_short_id = 'live-servers';
+			$owner_key = 'server-owner';
+			$tab_key = $tab_name;			
+			$setting_key = "{$wpcd_id_prefix}_{$context_tab_short_id}_{$owner_key}_{$tab_key}" ;  // See the class-wordpress-app-settings.php file for how this is key is constructed and used. Function: all_server_security_fields.
+			
+			// Get option value
+			$exception_flag = (boolean) wpcd_get_early_option( $setting_key );
+			if ( true === $exception_flag ) {
+				return false ;
+			}
+		}
 		
+		// And...still here so check the roles in the APP:WordPress - Security tab in SETTINGS.
+		// These items let us know which tabs should be turned off based on roles, even if the user is the owner/author of the server.
+		if ( true === (boolean) get_post_meta( $id, 'wpcd_wpapp_is_staging', true ) ) {
+			// This is a staging server but we're not really setting or using this concept.  So there is nothing to do here.
+			// The concept of a staging server is for future use.
+		} else {
+			// We have a very long settings key so we construct it in pieces.
+			$prefix = 'wpcd_wpapp_server_security_exception';
+			$context_tab_short_id = 'live-servers';
+			$tab_key = $tab_name;
+			$setting_key = "{$wpcd_id_prefix}_{$context_tab_short_id}_{$tab_key}_roles"; // See the class-wordpress-app-settings.php file for how this is key is constructed and used. Function: all_server_security_fields.
+
+			$banned_roles = wpcd_get_early_option( $setting_key );
+
+			if ( is_array( $banned_roles ) ) {			
+				$user_data = get_userdata( $user_id );
+				if ( array_intersect( $banned_roles, $user_data->roles ) ) {
+					return false ;
+				}
+			}
+		}		
+
 
 		// Got here?  default to true.
 		return true;

@@ -442,8 +442,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 		// An array of tabs where we'll be creating dynamic settings.  Should be the IDS of existing tabs defined in the 'wordpress_app_metabox_security_tabs' function earlier in this class.
 		// We're going to use the second part of the associative array as a short-id because the tab id itself is too long.
 		$context_tabs = array(
-			'wordpress-app-security-live-servers'    => 'live-servers',
-			'wordpress-app-security-staging-servers' => 'staging-servers',
+			'wordpress-app-security-live-servers' => 'live-servers',
 		);
 
 		// The owner types we'll be handling.
@@ -456,7 +455,6 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			'server_backup'   => __( 'Backup', 'wpcd' ),
 			'callbacks'       => __( 'Callbacks', 'wpcd' ),
 			'fail2ban'        => __( 'Fail2ban', 'wpcd' ),
-			'general'         => __( 'General', 'wpcd' ),
 			'goaccess'        => __( 'Goaccess', 'wpcd' ),
 			'server-logs'     => __( 'Server Logs', 'wpcd' ),
 			'monit'           => __( 'Healing', 'wpcd' ),

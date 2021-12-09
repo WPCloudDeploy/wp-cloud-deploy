@@ -19,7 +19,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 	 */
 	public function __construct() {
 		parent::__construct();
-		add_filter( "wpcd_server_{$this->get_app_name()}_get_tabnames", array( $this, 'get_tab' ), 10, 1 );
+		add_filter( "wpcd_server_{$this->get_app_name()}_get_tabnames", array( $this, 'get_tab' ), 10, 2 );
 		add_filter( "wpcd_server_{$this->get_app_name()}_get_tabs", array( $this, 'get_tab_fields' ), 10, 2 );
 		add_filter( "wpcd_server_{$this->get_app_name()}_tab_action", array( $this, 'tab_action_server' ), 10, 3 );  // This filter has not been defined and called yet in classs-wordpress-app and might never be because we're using the one below.
 		add_filter( "wpcd_app_{$this->get_app_name()}_tab_action", array( $this, 'tab_action' ), 10, 3 );  // This filter says 'wpcd_app' because we're using the same functions for server details ajax tabs and app details ajax tabs.
@@ -75,19 +75,35 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 
 	}
 
+	/**
+	 * Returns a string that can be used as the unique name for this tab.
+	 */
+	public function get_tab_slug() {
+		return 'services';
+	}
+
+	/**
+	 * Returns a string that is the name of a view TEAM permission required to view this tab.
+	 */
+	public function get_view_tab_team_permission_slug() {
+		return 'view_wpapp_server_services_tab';
+	}
 
 	/**
 	 * Populates the tab name.
 	 *
 	 * @param array $tabs The default value.
+	 * @param int   $id   The post ID of the server.
 	 *
 	 * @return array    $tabs The default value.
 	 */
-	public function get_tab( $tabs ) {
-		$tabs['services'] = array(
-			'label' => __( 'Services', 'wpcd' ),
-			'icon'  => 'far fa-concierge-bell',
-		);
+	public function get_tab( $tabs, $id ) {
+		if ( true === $this->wpcd_wpapp_server_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_server_tab( $id, $this->get_tab_slug() ) ) {
+			$tabs[ $this->get_tab_slug() ] = array(
+				'label' => __( 'Services', 'wpcd' ),
+				'icon'  => 'far fa-concierge-bell',
+			);
+		}
 		return $tabs;
 	}
 
@@ -123,102 +139,107 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
 		}
 
-		switch ( $action ) {
-			case 'services-status-update':
-				$action = 'services_status_update';
-				$result = $this->refresh_services_status( $id, $action );
-				break;
-			case 'web-server-restart':
-				$result = $this->submit_generic_server_command( $id, $action, 'sudo service nginx restart && echo "' . __( 'The Nginx Service has restarted', 'wpcd' ) . '"' );
-				break;
-			case 'db-server-restart':
-				$result = $this->submit_generic_server_command( $id, $action, 'sudo service mariadb restart && echo "' . __( 'The MariaDB database Service has restarted', 'wpcd' ) . '"' );
-				break;
-			case 'ufw-restart':
-				$result = $this->submit_generic_server_command( $id, $action, 'sudo service ufw restart && echo "' . __( 'The UFW firewall Service has festarted', 'wpcd' ) . '"' );
-				break;
-			case 'ufw-state-toggle':
-				$result = $this->do_ufw_toggle( $id, $action );
-				break;
-			case 'memcached-do-install':
-				$action = 'install_memcached'; // script expects this action keyword.
-				$result = $this->do_memcached_install( $id, $action );
-				break;
-			case 'memcached-restart':
-				$action = 'memcached_restart'; // script expects this action keyword.
-				$result = $this->manage_memcached( $id, $action );
-				break;
-			case 'memcached-clear_cache':
-				$action = 'memcached_clear'; // script expects this action keyword.
-				$result = $this->manage_memcached( $id, $action );
-				break;
-			case 'memcached-remove':
-				$action = 'remove_memcached'; // script expects this action keyword.
-				$result = $this->manage_memcached( $id, $action );
-				break;
-			case 'email-gateway-smtp-install':
-				$action = 'setup_email';  // script expects this action keyword.
-				$result = $this->email_gateway_setup( $id, $action );
-				break;
-			case 'email-gateway-load-defaults':
-				$action = 'setup_email_load_defaults';  // script expects this action keyword.
-				$result = $this->email_gateway_load_defaults( $id, $action );
-				break;
-			case 'email-gateway-smtp-test':
-				$action = 'test_email';  // script expects this action keyword.
-				$result = $this->email_gateway_test( $id, $action );
-				break;
-			case 'email-gateway-remove':
-				$action = 'remove_email_gateway';  // script expects this action keyword.
-				$result = $this->email_gateway_remove( $id, $action );
-				break;
-			case 'maldet-install':
-				$action = 'antivirus_install';
-				$result = $this->manage_maldet( $id, $action );
-				break;
-			case 'maldet-restart':
-				$action = 'antivirus_restart';
-				$result = $this->manage_maldet( $id, $action );
-				break;
-			case 'maldet-remove':
-				$action = 'antivirus_remove';
-				$result = $this->manage_maldet( $id, $action );
-				break;
-			case 'maldet-update':
-				$action = 'antivirus_update';
-				$result = $this->manage_maldet( $id, $action );
-				break;
-			case 'maldet-enable-cron':
-				$action = 'antivirus_enable_cron';
-				$result = $this->manage_maldet( $id, $action );
-				break;
-			case 'maldet-disable-cron':
-				$action = 'antivirus_disable_cron';
-				$result = $this->manage_maldet( $id, $action );
-				break;
-			case 'maldet-purge':
-				$action = 'antivirus_purge';
-				$result = $this->manage_maldet( $id, $action );
-				break;
-			case 'maldet-clear-history':
-				$result = $this->manage_maldet( $id, $action );
-				break;
-			case 'maldet-clear-all-metas':
-				$result = $this->manage_maldet( $id, $action );
-				break;
-			case 'services-status-update-php':
-				$result = $this->refresh_services_status_php( $id, $action );
-				break;
-			case 'php-server-restart-php56':
-			case 'php-server-restart-php70':
-			case 'php-server-restart-php71':
-			case 'php-server-restart-php72':
-			case 'php-server-restart-php73':
-			case 'php-server-restart-php74':
-			case 'php-server-restart-php80':
-			case 'php-server-restart-php81':
-				$result = $this->do_php_restart( $id, $action );
-				break;
+		// Skipping security action check that would allow us to show the user a nice message if it failed.
+		// If user is not permitted to do something and actually somehow ends up here, it will fall through the SWITCH statement below and silently fail.
+
+		if ( true === $this->wpcd_wpapp_server_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_server_tab( $id, $this->get_tab_slug() ) ) {
+			switch ( $action ) {
+				case 'services-status-update':
+					$action = 'services_status_update';
+					$result = $this->refresh_services_status( $id, $action );
+					break;
+				case 'web-server-restart':
+					$result = $this->submit_generic_server_command( $id, $action, 'sudo service nginx restart && echo "' . __( 'The Nginx Service has restarted', 'wpcd' ) . '"' );
+					break;
+				case 'db-server-restart':
+					$result = $this->submit_generic_server_command( $id, $action, 'sudo service mariadb restart && echo "' . __( 'The MariaDB database Service has restarted', 'wpcd' ) . '"' );
+					break;
+				case 'ufw-restart':
+					$result = $this->submit_generic_server_command( $id, $action, 'sudo service ufw restart && echo "' . __( 'The UFW firewall Service has festarted', 'wpcd' ) . '"' );
+					break;
+				case 'ufw-state-toggle':
+					$result = $this->do_ufw_toggle( $id, $action );
+					break;
+				case 'memcached-do-install':
+					$action = 'install_memcached'; // script expects this action keyword.
+					$result = $this->do_memcached_install( $id, $action );
+					break;
+				case 'memcached-restart':
+					$action = 'memcached_restart'; // script expects this action keyword.
+					$result = $this->manage_memcached( $id, $action );
+					break;
+				case 'memcached-clear_cache':
+					$action = 'memcached_clear'; // script expects this action keyword.
+					$result = $this->manage_memcached( $id, $action );
+					break;
+				case 'memcached-remove':
+					$action = 'remove_memcached'; // script expects this action keyword.
+					$result = $this->manage_memcached( $id, $action );
+					break;
+				case 'email-gateway-smtp-install':
+					$action = 'setup_email';  // script expects this action keyword.
+					$result = $this->email_gateway_setup( $id, $action );
+					break;
+				case 'email-gateway-load-defaults':
+					$action = 'setup_email_load_defaults';  // script expects this action keyword.
+					$result = $this->email_gateway_load_defaults( $id, $action );
+					break;
+				case 'email-gateway-smtp-test':
+					$action = 'test_email';  // script expects this action keyword.
+					$result = $this->email_gateway_test( $id, $action );
+					break;
+				case 'email-gateway-remove':
+					$action = 'remove_email_gateway';  // script expects this action keyword.
+					$result = $this->email_gateway_remove( $id, $action );
+					break;
+				case 'maldet-install':
+					$action = 'antivirus_install';
+					$result = $this->manage_maldet( $id, $action );
+					break;
+				case 'maldet-restart':
+					$action = 'antivirus_restart';
+					$result = $this->manage_maldet( $id, $action );
+					break;
+				case 'maldet-remove':
+					$action = 'antivirus_remove';
+					$result = $this->manage_maldet( $id, $action );
+					break;
+				case 'maldet-update':
+					$action = 'antivirus_update';
+					$result = $this->manage_maldet( $id, $action );
+					break;
+				case 'maldet-enable-cron':
+					$action = 'antivirus_enable_cron';
+					$result = $this->manage_maldet( $id, $action );
+					break;
+				case 'maldet-disable-cron':
+					$action = 'antivirus_disable_cron';
+					$result = $this->manage_maldet( $id, $action );
+					break;
+				case 'maldet-purge':
+					$action = 'antivirus_purge';
+					$result = $this->manage_maldet( $id, $action );
+					break;
+				case 'maldet-clear-history':
+					$result = $this->manage_maldet( $id, $action );
+					break;
+				case 'maldet-clear-all-metas':
+					$result = $this->manage_maldet( $id, $action );
+					break;
+				case 'services-status-update-php':
+					$result = $this->refresh_services_status_php( $id, $action );
+					break;
+				case 'php-server-restart-php56':
+				case 'php-server-restart-php70':
+				case 'php-server-restart-php71':
+				case 'php-server-restart-php72':
+				case 'php-server-restart-php73':
+				case 'php-server-restart-php74':
+				case 'php-server-restart-php80':
+				case 'php-server-restart-php81':
+					$result = $this->do_php_restart( $id, $action );
+					break;
+			}
 		}
 
 		return $result;

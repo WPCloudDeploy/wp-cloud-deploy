@@ -48,19 +48,35 @@ class WPCD_WORDPRESS_TABS_SERVER_MONIT extends WPCD_WORDPRESS_TABS {
 
 	}
 
+	/**
+	 * Returns a string that can be used as the unique name for this tab.
+	 */
+	public function get_tab_slug() {
+		return 'monit-healing';
+	}
+
+	/**
+	 * Returns a string that is the name of a view TEAM permission required to view this tab.
+	 */
+	public function get_view_tab_team_permission_slug() {
+		return 'view_wpapp_server_monit_tab';
+	}
 
 	/**
 	 * Populates the tab name.
 	 *
 	 * @param array $tabs The default value.
+	 * @param int   $id   The post ID of the server.
 	 *
 	 * @return array    $tabs The default value.
 	 */
-	public function get_tab( $tabs ) {
-		$tabs['monit-healing'] = array(
-			'label' => __( 'Healing', 'wpcd' ),
-			'icon'  => 'fas fa-heart-rate',
-		);
+	public function get_tab( $tabs, $id ) {
+		if ( true === $this->wpcd_wpapp_server_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_server_tab( $id, $this->get_tab_slug() ) ) {
+			$tabs[ $this->get_tab_slug() ] = array(
+				'label' => __( 'Healing', 'wpcd' ),
+				'icon'  => 'fas fa-heart-rate',
+			);
+		}
 		return $tabs;
 	}
 
@@ -75,7 +91,7 @@ class WPCD_WORDPRESS_TABS_SERVER_MONIT extends WPCD_WORDPRESS_TABS {
 	 * @return array Array of actions, complying with the structure necessary by metabox.io fields.
 	 */
 	public function get_tab_fields( array $fields, $id ) {
-		return $this->get_fields_for_tab( $fields, $id, 'monit-healing' );
+		return $this->get_fields_for_tab( $fields, $id, $this->get_tab_slug() );
 
 	}
 
@@ -95,45 +111,55 @@ class WPCD_WORDPRESS_TABS_SERVER_MONIT extends WPCD_WORDPRESS_TABS {
 			return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
 		}
 
-		switch ( $action ) {
-			case 'monit-install':
-				$action = 'install_monit';
-				$result = $this->manage_monit( $id, $action );
-				break;
-			case 'monit-toggle-ssl':
-				$action = 'enable_monit_ssl';
-				$result = $this->manage_monit( $id, $action );
-				break;
-			case 'monit-remove':
-				$action = 'remove_monit';
-				$result = $this->manage_monit( $id, $action );
-				break;
-			case 'monit-upgrade':
-				$action = 'upgrade_monit';
-				$result = $this->manage_monit( $id, $action );
-				break;
-			case 'monit-metas-add':
-				$result = $this->manage_monit( $id, $action );
-				break;
-			case 'monit-metas-remove':
-				$result = $this->manage_monit( $id, $action );
-				break;
-			case 'monit-toggle-nginx':
-			case 'monit-toggle-mysql':
-			case 'monit-toggle-memcached':
-			case 'monit-toggle-redis':
-			case 'monit-toggle-php':
-			case 'monit-toggle-filesys':
-			case 'monit-toggle-all-on':
-			case 'monit-toggle-all-off':
-				$result = $this->manage_monit( $id, $action );
-				break;
-			case 'monit-update-email':
-				$result = $this->manage_monit( $id, $action );
-				break;
-			case 'monit-toggle-status':
-				$result = $this->manage_monit( $id, $action );
-				break;
+		/* Now verify that the user can perform actions on this screen, assuming that they can view the server */
+		$valid_actions = array( 'install_monit', 'monit-toggle-ssl', 'monit-remove', 'monit-upgrade', 'monit-metas-add', 'monit-metas-remove', 'monit-toggle-nginx', 'monit-toggle-mysql', 'monit-toggle-memcached', 'monit-toggle-redis', 'monit-toggle-php', 'monit-toggle-filesys', 'monit-toggle-all-on', 'monit-toggle-all-off', 'monit-update-email', 'monit-toggle-status' );
+		if ( in_array( $action, $valid_actions, true ) ) {
+			if ( false === $this->wpcd_wpapp_server_user_can( $this->get_view_tab_team_permission_slug(), $id ) && false === $this->wpcd_can_author_view_server_tab( $id, $this->get_tab_slug() ) ) {
+				return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
+			}
+		}
+
+		if ( true === $this->wpcd_wpapp_server_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_server_tab( $id, $this->get_tab_slug() ) ) {
+			switch ( $action ) {
+				case 'monit-install':
+					$action = 'install_monit';
+					$result = $this->manage_monit( $id, $action );
+					break;
+				case 'monit-toggle-ssl':
+					$action = 'enable_monit_ssl';
+					$result = $this->manage_monit( $id, $action );
+					break;
+				case 'monit-remove':
+					$action = 'remove_monit';
+					$result = $this->manage_monit( $id, $action );
+					break;
+				case 'monit-upgrade':
+					$action = 'upgrade_monit';
+					$result = $this->manage_monit( $id, $action );
+					break;
+				case 'monit-metas-add':
+					$result = $this->manage_monit( $id, $action );
+					break;
+				case 'monit-metas-remove':
+					$result = $this->manage_monit( $id, $action );
+					break;
+				case 'monit-toggle-nginx':
+				case 'monit-toggle-mysql':
+				case 'monit-toggle-memcached':
+				case 'monit-toggle-redis':
+				case 'monit-toggle-php':
+				case 'monit-toggle-filesys':
+				case 'monit-toggle-all-on':
+				case 'monit-toggle-all-off':
+					$result = $this->manage_monit( $id, $action );
+					break;
+				case 'monit-update-email':
+					$result = $this->manage_monit( $id, $action );
+					break;
+				case 'monit-toggle-status':
+					$result = $this->manage_monit( $id, $action );
+					break;
+			}
 		}
 
 		return $result;

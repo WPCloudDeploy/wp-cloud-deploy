@@ -17,28 +17,28 @@ class WPCD_WORDPRESS_TABS_SERVER_TWEAKS extends WPCD_WORDPRESS_TABS {
 	/**
 	 * WPCD_WORDPRESS_TABS_PHP constructor.
 	 */
-public function __construct() {
-	parent::__construct();
-	add_filter( "wpcd_server_{$this->get_app_name()}_get_tabnames", array( $this, 'get_tab' ), 10, 2 );
-	add_filter( "wpcd_server_{$this->get_app_name()}_get_tabs", array( $this, 'get_tab_fields' ), 10, 2 );
-	add_filter( "wpcd_server_{$this->get_app_name()}_tab_action", array( $this, 'tab_action_server' ), 10, 3 );  // This filter has not been defined and called yet in classs-wordpress-app and might never be because we're using the one below.
-	add_filter( "wpcd_app_{$this->get_app_name()}_tab_action", array( $this, 'tab_action' ), 10, 3 );  // This filter says 'wpcd_app' because we're using the same functions for server details ajax tabs and app details ajax tabs.
+	public function __construct() {
+		parent::__construct();
+		add_filter( "wpcd_server_{$this->get_app_name()}_get_tabnames", array( $this, 'get_tab' ), 10, 2 );
+		add_filter( "wpcd_server_{$this->get_app_name()}_get_tabs", array( $this, 'get_tab_fields' ), 10, 2 );
+		add_filter( "wpcd_server_{$this->get_app_name()}_tab_action", array( $this, 'tab_action_server' ), 10, 3 );  // This filter has not been defined and called yet in classs-wordpress-app and might never be because we're using the one below.
+		add_filter( "wpcd_app_{$this->get_app_name()}_tab_action", array( $this, 'tab_action' ), 10, 3 );  // This filter says 'wpcd_app' because we're using the same functions for server details ajax tabs and app details ajax tabs.
 
-}
+	}
 
 	/**
 	 * Returns a string that can be used as the unique name for this tab.
 	 */
-public function get_tab_slug() {
-	return 'svr_tweaks';
-}
+	public function get_tab_slug() {
+		return 'svr_tweaks';
+	}
 
 	/**
 	 * Returns a string that is the name of a view TEAM permission required to view this tab.
 	 */
-public function get_view_tab_team_permission_slug() {
-	return 'view_wpapp_server_tweaks_tab';
-}
+	public function get_view_tab_team_permission_slug() {
+		return 'view_wpapp_server_tweaks_tab';
+	}
 
 	/**
 	 * Populates the tab name.
@@ -48,13 +48,13 @@ public function get_view_tab_team_permission_slug() {
 	 *
 	 * @return array    $tabs The default value.
 	 */
-public function get_tab( $tabs, $id ) {
-	if ( true === $this->wpcd_wpapp_server_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_server_tab( $id, $this->get_tab_slug() ) ) {
-		$tabs[ $this->get_tab_slug() ] = array(
-			'label' => __( 'Tweaks', 'wpcd' ),
-			'icon'  => 'fad fa-car-tilt',
-		);
-	}
+	public function get_tab( $tabs, $id ) {
+		if ( true === $this->wpcd_wpapp_server_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_server_tab( $id, $this->get_tab_slug() ) ) {
+			$tabs[ $this->get_tab_slug() ] = array(
+				'label' => __( 'Tweaks', 'wpcd' ),
+				'icon'  => 'fad fa-car-tilt',
+			);
+		}
 		return $tabs;
 	}
 

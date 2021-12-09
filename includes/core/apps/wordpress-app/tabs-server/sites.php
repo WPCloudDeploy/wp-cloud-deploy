@@ -36,23 +36,23 @@ class WPCD_WORDPRESS_TABS_SITES extends WPCD_WORDPRESS_TABS {
 	 */
 	public function get_view_tab_team_permission_slug() {
 		return 'view_wpapp_server_sites_tab';
-	}		
+	}
 
 	/**
 	 * Populates the tab name.
 	 *
 	 * @param array $tabs The default value.
 	 * @param int   $id   The post ID of the server.
-	 * 
+	 *
 	 * @return array    $tabs The default value.
 	 */
 	public function get_tab( $tabs, $id ) {
 		if ( true === $this->wpcd_wpapp_server_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_server_tab( $id, $this->get_tab_slug() ) ) {
 			$tabs[ $this->get_tab_slug() ] = array(
-			'label' => __( 'Sites', 'wpcd' ),
-			'icon'  => 'fad fa-browser',
-		);
-	}
+				'label' => __( 'Sites', 'wpcd' ),
+				'icon'  => 'fad fa-browser',
+			);
+		}
 		return $tabs;
 	}
 

@@ -863,7 +863,14 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'name'    => __( 'Hide Explanatory Text on the WordPress Site Change Domain Tab', 'wpcd' ),
 				'tooltip' => __( 'Hide the very long explanations on the WordPress Site Change Domain tab.', 'wpcd' ),
 				'tab'     => 'wordpress-app-fields-and-links',
-			),										
+			),
+			array(
+				'id'      => 'wordpress_app_hide_addl_stats_explanatory_text',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide Additional Statistics box on the WordPress Site Statistics Tab', 'wpcd' ),
+				'tooltip' => __( 'Hide the additional statisics box on the WordPress Site statistics tab from non-admin users.', 'wpcd' ),
+				'tab'     => 'wordpress-app-fields-and-links',
+			),
 
 		);
 

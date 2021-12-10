@@ -219,13 +219,17 @@ class WPCD_WORDPRESS_TABS_STATISTICS extends WPCD_WORDPRESS_TABS {
 		/* End VNSTAT */
 
 		/* Point back to server for additional data */
-		$actions['stats-addl-data-location'] = array(
-			'label'          => __( 'Additional Statistics', 'wpcd' ),
-			'raw_attributes' => array(
-				'std' => __( 'You can view additional statistics in the STATISTICS tab on the server that is holding this site.' ),
-			),
-			'type'           => 'custom_html',
-		);
+		if ( true === (bool) wpcd_get_early_option( 'wordpress_app_hide_addl_stats_explanatory_text' ) && ( ! wpcd_is_admin() ) ) {
+			// Do nothing.
+		} else {
+			$actions['stats-addl-data-location'] = array(
+				'label'          => __( 'Additional Statistics', 'wpcd' ),
+				'raw_attributes' => array(
+					'std' => __( 'You can view additional statistics in the STATISTICS tab on the server that is holding this site.' ),
+				),
+				'type'           => 'custom_html',
+			);
+		}
 
 		return $actions;
 

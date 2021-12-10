@@ -227,7 +227,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 	public function wordpress_app_metabox_security_tabs() {
 		$tabs = array(
 			'wordpress-app-security-live-sites'    => array(
-				'label' => 'Live Sites',
+				'label' => 'Production Sites',
 				'icon'  => 'dashicons-lock',
 			),
 			'wordpress-app-security-staging-sites' => array(
@@ -235,7 +235,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'icon'  => 'dashicons-lock',
 			),
 			'wordpress-app-security-live-servers'  => array(
-				'label' => 'Live Servers',
+				'label' => 'Servers',
 				'icon'  => 'dashicons-lock',
 			),
 		);
@@ -322,12 +322,15 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 		$wpcd_id_prefix = 'wpcd_wpapp_site_security_exception';
 		foreach ( $context_tabs as $context_tab => $context_tab_short_id ) {
 			// Heading.
+			$desc     = __( 'Which tabs should be hidden from site owners?', 'wpcd' );
+			$desc    .= '<br />' . __( 'There are two options: 1. Hide a tab from a site owner.  2. Hide a tab from a site owner who is also the owner of a server.', 'wpcd' );
+			$desc    .= '<br />' . __( 'If you only choose an option in the first column but leave the second column disabled then an owner of a site that is also the owner of a server will NOT have the selected tab / option hidden.', 'wpcd' );
 			$fields[] = array(
 				'name' => __( 'Hide Site Tabs from Site Owners', 'wpcd' ),
 				'id'   => "{$wpcd_id_prefix}_{$context_tab_short_id}_site_owner_header",
 				'type' => 'heading',
 				'std'  => '',
-				'desc' => __( 'Which tabs should be hidden from site owners?  Two options - hide a tab from a site owner.  Or hide a tab from a site owner who is also the owner of a server.  If you only choose an option in the first column but leave the second column disabled then an owner of a site that is also the owner of a server will NOT have the select tab / option hidden.', 'wpcd' ),
+				'desc' => $desc,
 				'tab'  => $context_tab,
 			);
 			// Three columns at the top of each settings tab.

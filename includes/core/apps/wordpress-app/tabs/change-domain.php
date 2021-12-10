@@ -594,12 +594,14 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 			'placeholder' => __( 'Enter your new domain without the "http" or "www" prefix', 'wpcd' ),
 		);
 
-		$fields[] = array(
-			'name' => '',
-			'tab'  => 'change-domain',
-			'type' => 'custom-html',
-			'std'  => $desc_ssl,
-		);
+		if ( ! (bool) wpcd_get_early_option( 'wordpress_app_hide_change_domain_explanatory_text' ) ) {
+			$fields[] = array(
+				'name' => '',
+				'tab'  => 'change-domain',
+				'type' => 'custom-html',
+				'std'  => $desc_ssl,
+			);
+		}
 
 		$fields[] = array(
 			'id'         => 'wpcd_app_change_domain_quick_change',
@@ -704,23 +706,28 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 		$note .= '<br />';
 		$note .= __( 'Full - Live Run: Change all references from the old domain to the new domain across the entire database. This is the real deal - do a backup because you cannot undo this action once it has started!', 'wpcd' );
 
-		$fields[] = array(
-			'name' => __( 'Notes', 'wpcd' ),
-			'tab'  => 'change-domain',
-			'type' => 'heading',
-			'desc' => $note,
-		);
+		if ( ! (bool) wpcd_get_early_option( 'wordpress_app_hide_change_domain_explanatory_text' ) ) {
+			$fields[] = array(
+				'name' => __( 'Notes', 'wpcd' ),
+				'tab'  => 'change-domain',
+				'type' => 'heading',
+				'desc' => $note,
+			);
+		}
 
 		// Add some reminders.
 		$reminder  = __( 'After you have finished changing the domain name, you must remove any sFTP users and re-add them on the sFTP tab. Existing users are no longer valid for the new domain.', 'wpcd' );
 		$reminder .= '<br />';
 		$reminder .= __( 'You should also update your permalinks under the WordPress SETTINGS->PERMALINKS screen - just go there and click the update button; WordPress will reset the permalinks for your site.', 'wpcd' );
-		$fields[]  = array(
-			'name' => __( 'Reminders', 'wpcd' ),
-			'tab'  => 'change-domain',
-			'type' => 'heading',
-			'desc' => $reminder,
-		);
+
+		if ( ! (bool) wpcd_get_early_option( 'wordpress_app_hide_change_domain_explanatory_text' ) ) {
+			$fields[] = array(
+				'name' => __( 'Reminders', 'wpcd' ),
+				'tab'  => 'change-domain',
+				'type' => 'heading',
+				'desc' => $reminder,
+			);
+		}
 
 		/* Start generic search and replace fields */
 		$fields[] = array(
@@ -729,13 +736,17 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 			'type' => 'divider',
 		);
 
-		$desc  = __( 'Generic search and replace.  This is a destructive operation so you should take a backup before proceeding.', 'wpcd' );
-		$desc .= '<br />';
-		$desc .= __( 'Search for a word in your database and replace it with another word.', 'wpcd' );
-		$desc .= '<br />';
-		$desc .= __( 'You can search for old domains or links and such and then replace them.', 'wpcd' );
-		$desc .= '<br />';
-		$desc .= __( 'However, NO SPECIAL CHARACTERS or SPACES are allowed in your search or replace terms!', 'wpcd' );
+		if ( ! (bool) wpcd_get_early_option( 'wordpress_app_hide_change_domain_explanatory_text' ) ) {
+			$desc  = __( 'Generic search and replace.  This is a destructive operation so you should take a backup before proceeding.', 'wpcd' );
+			$desc .= '<br />';
+			$desc .= __( 'Search for a word in your database and replace it with another word.', 'wpcd' );
+			$desc .= '<br />';
+			$desc .= __( 'You can search for old domains or links and such and then replace them.', 'wpcd' );
+			$desc .= '<br />';
+			$desc .= __( 'However, NO SPECIAL CHARACTERS or SPACES are allowed in your search or replace terms!', 'wpcd' );
+		} else {
+			$desc = '';
+		}
 
 		$fields[] = array(
 			'name' => __( 'Search & Replace', 'wpcd' ),

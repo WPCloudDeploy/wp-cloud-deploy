@@ -559,7 +559,7 @@ class WPCD_Settings {
 							'tooltip' => __( 'The server IP is shown under the SERVER column to save space.  If you would like to sort the list by this field then you need to enable this option so that it is shown in its own column.', 'wpcd' ),
 						),
 
-						// Applist compound fields.
+						// Applist compound fields: Server.
 						array(
 							'type' => 'heading',
 							'name' => __( 'App List Compound Fields', 'wpcd' ),
@@ -583,6 +583,7 @@ class WPCD_Settings {
 							'name'    => __( 'Hide the link to apps in the server column?', 'wpcd' ),
 							'tooltip' => __( 'A link to other apps on the server is usually shown in the SERVER column on the sites screen. Check this box to remove it for non-admin users.', 'wpcd' ),
 						),
+
 						// State labels.
 						array(
 							'type' => 'heading',

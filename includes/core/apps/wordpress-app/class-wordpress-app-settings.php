@@ -814,6 +814,35 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tab'     => 'wordpress-app-fields-and-links',
 			),
 
+			array(
+				'id'   => 'wordpress_fields_and_links_heading_03',
+				'type' => 'heading',
+				'name' => __( 'Sites: Compound Fields', 'wpcd' ),
+				'desc' => __( 'Show or hide certain fields in the site list and site screens.', 'wpcd' ),
+				'tab'  => 'wordpress-app-fields-and-links',
+			),
+			array(
+				'id'      => 'wordpress_app_hide_domain_site_summary_column_in_site_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide Domain in Site Summary Column', 'wpcd' ),
+				'tooltip' => __( 'Hide the domain in the site summary column from non-admins in the site list. This is useful because it is sometimes redundant with the title column.', 'wpcd' ),
+				'tab'     => 'wordpress-app-fields-and-links',
+			),
+			array(
+				'id'      => 'wordpress_app_hide_login_user_site_summary_column_in_site_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide Login user in Site Summary Column', 'wpcd' ),
+				'tooltip' => __( 'Hide the login user in the site summary column from non-admins in the site list', 'wpcd' ),
+				'tab'     => 'wordpress-app-fields-and-links',
+			),
+			array(
+				'id'      => 'wordpress_app_hide_initial_wp_version_site_summary_column_in_site_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide the initial WP version in Site Summary Column', 'wpcd' ),
+				'tooltip' => __( 'Hide the initial WP version in the site summary column from non-admins in the site list', 'wpcd' ),
+				'tab'     => 'wordpress-app-fields-and-links',
+			),
+
 		);
 
 		return $fields;

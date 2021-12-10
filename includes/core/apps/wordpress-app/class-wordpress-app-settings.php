@@ -226,21 +226,17 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 	 */
 	public function wordpress_app_metabox_security_tabs() {
 		$tabs = array(
-			'wordpress-app-security-live-sites'      => array(
+			'wordpress-app-security-live-sites'    => array(
 				'label' => 'Live Sites',
-				'icon'  => 'dashicons-text',
+				'icon'  => 'dashicons-lock',
 			),
-			'wordpress-app-security-staging-sites'   => array(
+			'wordpress-app-security-staging-sites' => array(
 				'label' => 'Staging Sites',
-				'icon'  => 'dashicons-text',
+				'icon'  => 'dashicons-lock',
 			),
-			'wordpress-app-security-live-servers'    => array(
+			'wordpress-app-security-live-servers'  => array(
 				'label' => 'Live Servers',
-				'icon'  => 'dashicons-text',
-			),
-			'wordpress-app-security-staging-servers' => array(
-				'label' => 'Staging Servers',
-				'icon'  => 'dashicons-text',
+				'icon'  => 'dashicons-lock',
 			),
 		);
 		return $tabs;

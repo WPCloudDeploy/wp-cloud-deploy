@@ -226,17 +226,29 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 				// $value = $value . '<br />' . __( 'id: ', 'wpcd' ) . (string) $server_post_id; .
 
 				// server provider.
-				$value = $value . '<br />' . __( 'Provider: ', 'wpcd' ) . WPCD()->wpcd_get_cloud_provider_desc( $this->get_server_meta_value( $post_id, 'wpcd_server_provider' ) );
+				if ( true === (bool) wpcd_get_option( 'wpcd_hide_app_list_provider_in_server_column') && ( ! wpcd_is_admin() ) ) {
+					// do nothing, only admins are allowed to see this data.
+				} else {
+					$value = $value . '<br />' . __( 'Provider: ', 'wpcd' ) . WPCD()->wpcd_get_cloud_provider_desc( $this->get_server_meta_value( $post_id, 'wpcd_server_provider' ) );
+				}
 
 				// server region.
-				$value = $value . '<br />' . __( 'Region: ', 'wpcd' ) . $this->get_server_meta_value( $post_id, 'wpcd_server_region' );
+				if ( true === (bool) wpcd_get_option( 'wpcd_hide_app_list_region_in_server_column') && ( ! wpcd_is_admin() ) ) {
+					// do nothing, only admins are allowed to see this data.
+				} else {				
+					$value = $value . '<br />' . __( 'Region: ', 'wpcd' ) . $this->get_server_meta_value( $post_id, 'wpcd_server_region' );
+				}
 
 				// ipv4.
 				$value = $value . '<br />' . __( 'ipv4: ', 'wpcd' ) . $this->get_server_meta_value( $post_id, 'wpcd_server_ipv4' );
 
 				// Show a link that takes you to a list of apps on the server.
-				$url   = admin_url( 'edit.php?post_type=wpcd_app&server_id=' . (string) $server_post_id );
-				$value = $value . '<br />' . sprintf( '<a href="%s">%s</a>', $url, __( 'Apps on this server', 'wpcd' ) );
+				if ( true === (bool) wpcd_get_option( 'wpcd_hide_app_list_appslink_in_server_column') && ( ! wpcd_is_admin() ) ) {
+					// do nothing, only admins are allowed to see this data.
+				} else {				
+					$url   = admin_url( 'edit.php?post_type=wpcd_app&server_id=' . (string) $server_post_id );
+					$value = $value . '<br />' . sprintf( '<a href="%s">%s</a>', $url, __( 'Apps on this server', 'wpcd' ) );
+				}
 
 				break;
 

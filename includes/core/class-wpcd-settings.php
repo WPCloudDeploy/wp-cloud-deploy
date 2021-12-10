@@ -505,6 +505,7 @@ class WPCD_Settings {
 							'tooltip' => __( 'The server team column takes up space but if you are not using teams then this isn\'t useful information so by default it is turned off. Check this box to turn it on.', 'wpcd' ),
 						),
 
+						// Applist fields.
 						array(
 							'type' => 'heading',
 							'name' => __( 'App List Fields', 'wpcd' ),
@@ -558,6 +559,31 @@ class WPCD_Settings {
 							'tooltip' => __( 'The server IP is shown under the SERVER column to save space.  If you would like to sort the list by this field then you need to enable this option so that it is shown in its own column.', 'wpcd' ),
 						),
 
+						// Applist compound fields.
+						array(
+							'type' => 'heading',
+							'name' => __( 'App List Compound Fields', 'wpcd' ),
+							'desc' => __( 'You can make some of the columns that hold multiple pieces of information shorter for non-admin users.', 'wpcd' ),
+						),
+						array(
+							'id'      => 'wpcd_hide_app_list_provider_in_server_column',
+							'type'    => 'checkbox',
+							'name'    => __( 'Hide the provider data in the server column?', 'wpcd' ),
+							'tooltip' => __( 'The provider information is usually shown in the SERVER column on the sites screen. Check this box to remove it for non-admin users.', 'wpcd' ),
+						),
+						array(
+							'id'      => 'wpcd_hide_app_list_region_in_server_column',
+							'type'    => 'checkbox',
+							'name'    => __( 'Hide the region data in the server column?', 'wpcd' ),
+							'tooltip' => __( 'The region information is usually shown in the SERVER column on the sites screen. Check this box to remove it for non-admin users.', 'wpcd' ),
+						),
+						array(
+							'id'      => 'wpcd_hide_app_list_appslink_in_server_column',
+							'type'    => 'checkbox',
+							'name'    => __( 'Hide the link to apps in the server column?', 'wpcd' ),
+							'tooltip' => __( 'A link to other apps on the server is usually shown in the SERVER column on the sites screen. Check this box to remove it for non-admin users.', 'wpcd' ),
+						),
+						// State labels.
 						array(
 							'type' => 'heading',
 							'name' => __( 'Labels', 'wpcd' ),
@@ -964,15 +990,15 @@ class WPCD_Settings {
 		// Final set of tabs.
 		$tabs['fields'] = __( 'Fields', 'wpcd' );
 
-		$tabs['misc']    =  __( 'Misc', 'wpcd' );
-		$tabs['logging'] =  __( 'Logging and Tracing', 'wpcd' );
-		$tabs['tools']   =  __( 'Tools', 'wpcd' );
+		$tabs['misc']    = __( 'Misc', 'wpcd' );
+		$tabs['logging'] = __( 'Logging and Tracing', 'wpcd' );
+		$tabs['tools']   = __( 'Tools', 'wpcd' );
 		if ( ! defined( 'WPCD_HIDE_LICENSE_TAB' ) || ( defined( 'WPCD_HIDE_LICENSE_TAB' ) && ! WPCD_HIDE_LICENSE_TAB ) ) {
-			$tabs['license'] =  __( 'License & Updates', 'wpcd' );
+			$tabs['license'] = __( 'License & Updates', 'wpcd' );
 		}
 
 		if ( wpcd_data_sync_allowed() ) {
-			$tabs['data-sync'] =  __( 'Data Sync', 'wpcd' );
+			$tabs['data-sync'] = __( 'Data Sync', 'wpcd' );
 		}
 
 		// Settings page array with the tabs.

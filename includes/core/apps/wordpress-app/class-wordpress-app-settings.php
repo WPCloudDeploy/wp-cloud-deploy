@@ -319,6 +319,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			'theme-and-plugin-updates' => __( 'Site Updates', 'wpcd' ),
 			'tools'                    => __( 'Tools', 'wpcd' ),
 			'tweaks'                   => __( 'Tweaks', 'wpcd' ),
+			'multisite'                => __( 'Multisite', 'wpcd' ),
 		);
 
 		// Loop through the settings tabs...
@@ -368,7 +369,6 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 					'id'      => "{$wpcd_id_prefix}_{$context_tab_short_id}_column1_{$tab_key}_label",
 					'type'    => 'custom_html',
 					'tab'     => $context_tab,
-					'tooltip' => "{$tab_key}",
 					'columns' => 4,
 				);
 				// The next two columns are for the owner types.
@@ -379,7 +379,6 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 						'type'      => 'switch',
 						'on_label'  => __( 'Hide Tab', 'wpcd' ),
 						'off_label' => __( 'Show Tab', 'wpcd' ),
-						'desc'      => "<small>{$context_tab_short_id}_{$owner_key}_{$tab_key}</small>",
 						'tab'       => $context_tab,
 						'columns'   => 4,
 					);
@@ -403,7 +402,6 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 					'id'      => "{$wpcd_id_prefix}_{$context_tab_short_id}_{$owner_key}_{$tab_key}_role_label",
 					'type'    => 'custom_html',
 					'tab'     => $context_tab,
-					'tooltip' => "{$tab_key}",
 					'columns' => 6,
 				);
 				// Collect the roles.
@@ -415,7 +413,6 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 					'select_all_none' => true,
 					'multiple'        => true,
 					'placeholder'     => __( 'Select list of roles that should not see this tab.', 'wpcd' ),
-					'desc'            => "{$context_tab_short_id}_{$tab_key}",
 					'tab'             => $context_tab,
 					'columns'         => 6,
 				);

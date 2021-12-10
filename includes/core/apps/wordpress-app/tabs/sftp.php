@@ -19,23 +19,40 @@ class WPCD_WORDPRESS_TABS_SFTP extends WPCD_WORDPRESS_TABS {
 	 */
 	public function __construct() {
 		parent::__construct();
-		add_filter( "wpcd_app_{$this->get_app_name()}_get_tabnames", array( $this, 'get_tab' ), 10, 1 );
+		add_filter( "wpcd_app_{$this->get_app_name()}_get_tabnames", array( $this, 'get_tab' ), 10, 2 );
 		add_filter( "wpcd_app_{$this->get_app_name()}_get_tabs", array( $this, 'get_fields' ), 10, 2 );
 		add_filter( "wpcd_app_{$this->get_app_name()}_tab_action", array( $this, 'tab_action' ), 10, 3 );
+	}
+
+	/**
+	 * Returns a string that can be used as the unique name for this tab.
+	 */
+	public function get_tab_slug() {
+		return 'sftp';
+	}
+
+	/**
+	 * Returns a string that is the name of a view TEAM permission required to view this tab.
+	 */
+	public function get_view_tab_team_permission_slug() {
+		return 'view_wpapp_site_sftp_tab';
 	}
 
 	/**
 	 * Populates the tab name.
 	 *
 	 * @param array $tabs The default value.
+	 * @param int   $id   The post ID of the server.
 	 *
 	 * @return array    $tabs The default value.
 	 */
-	public function get_tab( $tabs ) {
-		$tabs['sftp'] = array(
-			'label' => __( 'sFTP', 'wpcd' ),
-			'icon'  => 'fad fa-exchange',
-		);
+	public function get_tab( $tabs, $id ) {
+		if ( true === $this->wpcd_wpapp_site_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_site_tab( $id, $this->get_tab_slug() ) ) {
+			$tabs[ $this->get_tab_slug() ] = array(
+				'label' => __( 'sFTP', 'wpcd' ),
+				'icon'  => 'fad fa-exchange',
+			);
+		}
 		return $tabs;
 	}
 
@@ -55,22 +72,32 @@ class WPCD_WORDPRESS_TABS_SFTP extends WPCD_WORDPRESS_TABS {
 			return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
 		}
 
-		switch ( $action ) {
-			case 'sftp-get-passwd':
-				$result = $this->get_sftp_user_password( $id, sanitize_text_field( $_POST['user'] ) );
-				break;
-			case 'sftp-add-user':
-			case 'sftp-remove-user':
-			case 'sftp-change-password':
-			case 'sftp-remove-password':
-			case 'sftp-remove-key':
-			case 'sftp-set-key':
-				$result = $this->do_sftp_actions( $action, $id );
-				// most actions need to refresh the page so that new data can be loaded or so that the data entered into data entry fields cleared out.
-				if ( ! in_array( $action, array(), true ) && ! is_wp_error( $result ) ) {
-					$result = array( 'refresh' => 'yes' );
-				}
-				break;
+		/* Now verify that the user can perform actions on this screen, assuming that they can view the server */
+		$valid_actions = array( 'sftp-get-passwd', 'sftp-add-user', 'sftp-remove-user', 'sftp-change-password', 'sftp-remove-password', 'sftp-remove-key', 'sftp-set-key' );
+		if ( in_array( $action, $valid_actions, true ) ) {
+			if ( false === $this->wpcd_wpapp_site_user_can( $this->get_view_tab_team_permission_slug(), $id ) && false === $this->wpcd_can_author_view_site_tab( $id, $this->get_tab_slug() ) ) {
+				return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
+			}
+		}
+
+		if ( true === $this->wpcd_wpapp_server_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_site_tab( $id, $this->get_tab_slug() ) ) {
+			switch ( $action ) {
+				case 'sftp-get-passwd':
+					$result = $this->get_sftp_user_password( $id, sanitize_text_field( $_POST['user'] ) );
+					break;
+				case 'sftp-add-user':
+				case 'sftp-remove-user':
+				case 'sftp-change-password':
+				case 'sftp-remove-password':
+				case 'sftp-remove-key':
+				case 'sftp-set-key':
+					$result = $this->do_sftp_actions( $action, $id );
+					// most actions need to refresh the page so that new data can be loaded or so that the data entered into data entry fields cleared out.
+					if ( ! in_array( $action, array(), true ) && ! is_wp_error( $result ) ) {
+						$result = array( 'refresh' => 'yes' );
+					}
+					break;
+			}
 		}
 		return $result;
 	}

@@ -19,7 +19,7 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 	 */
 	public function __construct() {
 		parent::__construct();
-		add_filter( "wpcd_app_{$this->get_app_name()}_get_tabnames", array( $this, 'get_tab' ), 10, 1 );
+		add_filter( "wpcd_app_{$this->get_app_name()}_get_tabnames", array( $this, 'get_tab' ), 10, 2 );
 		add_filter( "wpcd_app_{$this->get_app_name()}_get_tabs", array( $this, 'get_fields' ), 10, 2 );
 		add_filter( "wpcd_app_{$this->get_app_name()}_tab_action", array( $this, 'tab_action' ), 10, 3 );
 		/* add_filter( 'wpcd_is_ssh_successful', array( $this, 'was_ssh_successful' ), 10, 5 ); */
@@ -49,17 +49,34 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
+	 * Returns a string that can be used as the unique name for this tab.
+	 */
+	public function get_tab_slug() {
+		return 'backup';
+	}
+
+	/**
+	 * Returns a string that is the name of a view TEAM permission required to view this tab.
+	 */
+	public function get_view_tab_team_permission_slug() {
+		return 'view_wpapp_site_backup_tab';
+	}
+
+	/**
 	 * Populates the tab name.
 	 *
 	 * @param array $tabs The default value.
+	 * @param int   $id   The post ID of the server.
 	 *
 	 * @return array    $tabs The default value.
 	 */
-	public function get_tab( $tabs ) {
-		$tabs['backup'] = array(
-			'label' => __( 'Backup & Restore', 'wpcd' ),
-			'icon'  => 'fad fa-server',
-		);
+	public function get_tab( $tabs, $id ) {
+		if ( true === $this->wpcd_wpapp_site_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_site_tab( $id, $this->get_tab_slug() ) ) {
+			$tabs[ $this->get_tab_slug() ] = array(
+				'label' => __( 'Backup & Restore', 'wpcd' ),
+				'icon'  => 'fad fa-server',
+			);
+		}
 		return $tabs;
 	}
 
@@ -79,30 +96,42 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %1$s in file %2$s', 'wpcd' ), $action, __FILE__ ) );
 		}
 
-		switch ( $action ) {
-			case 'backup-run-manual':
-				$result = $this->backup_actions( $action, $id );
-				break;
-			case 'backup-run-schedule':
-				$result = $this->auto_backup_action( $id );  // no action being passed in - don't need it - it'll get figured out in the function.
-				break;
-			case 'refresh-backup-list':
-				$result = $this->refresh_backup_list( $id );  // no action being passed in - don't need it - it'll get figured out in the function.
-				break;
-			case 'restore-from-backup':
-			case 'restore-from-backup-nginx-only':
-			case 'restore-from-backup-wpconfig-only':
-				$result = $this->backup_actions( $action, $id );
-				break;
-			case 'delete-all-local-site-backups':
-				$result = $this->backup_actions( $action, $id );
-			case 'prune-local-site-backups':
-				$result = $this->backup_actions( $action, $id );
+		/* Now verify that the user can perform actions on this screen, assuming that they can view the server */
+		$valid_actions = array( 'backup-run-manual', 'backup-run-schedule', 'restore-from-backup', 'restore-from-backup-nginx-only', 'restore-from-backup-wpconfig-only', 'delete-all-local-site-backups', 'prune-local-site-backups' );
+		if ( in_array( $action, $valid_actions, true ) ) {
+			if ( false === $this->wpcd_wpapp_site_user_can( $this->get_view_tab_team_permission_slug(), $id ) && false === $this->wpcd_can_author_view_site_tab( $id, $this->get_tab_slug() ) ) {
+				return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
+			}
 		}
-		// Most actions need to refresh the page so that new data can be loaded or so that the data entered into data entry fields cleared out.
-		// But we don't want to force a refresh after the manual backup or restore.  Otherwise that will clear the screen.
-		if ( ! in_array( $action, array( 'backup-run-manual', 'restore-from-backup' ), true ) && ! is_wp_error( $result ) ) {
-			$result = array( 'refresh' => 'yes' );
+
+		if ( true === $this->wpcd_wpapp_server_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_site_tab( $id, $this->get_tab_slug() ) ) {
+			switch ( $action ) {
+				case 'backup-run-manual':
+					$result = $this->backup_actions( $action, $id );
+					break;
+				case 'backup-run-schedule':
+					$result = $this->auto_backup_action( $id );  // no action being passed in - don't need it - it'll get figured out in the function.
+					break;
+				case 'refresh-backup-list':
+					$result = $this->refresh_backup_list( $id );  // no action being passed in - don't need it - it'll get figured out in the function.
+					break;
+				case 'restore-from-backup':
+				case 'restore-from-backup-nginx-only':
+				case 'restore-from-backup-wpconfig-only':
+					$result = $this->backup_actions( $action, $id );
+					break;
+				case 'delete-all-local-site-backups':
+					$result = $this->backup_actions( $action, $id );
+					break;
+				case 'prune-local-site-backups':
+					$result = $this->backup_actions( $action, $id );
+					break;
+			}
+			// Most actions need to refresh the page so that new data can be loaded or so that the data entered into data entry fields cleared out.
+			// But we don't want to force a refresh after the manual backup or restore.  Otherwise that will clear the screen.
+			if ( ! in_array( $action, array( 'backup-run-manual', 'restore-from-backup' ), true ) && ! is_wp_error( $result ) ) {
+				$result = array( 'refresh' => 'yes' );
+			}
 		}
 		return $result;
 	}
@@ -814,8 +843,8 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 			$instance,
 			'backup_restore_refresh_backup_list.txt',
 			array(
-				'action'  => $action,
-				'domain'  => get_post_meta(
+				'action' => $action,
+				'domain' => get_post_meta(
 					$id,
 					'wpapp_domain',
 					true

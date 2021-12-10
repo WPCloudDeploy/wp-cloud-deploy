@@ -343,163 +343,307 @@ class WPCD_POSTS_PERMISSION_TYPE {
 	public static function wpcd_create_permissions() {
 		// Default server/app permissions to insert if not available.
 		$permission_posts = array(
-			'view_server'                       => array(
+			'view_server'                           => array(
 				'post_title'               => __( 'View Server', 'wpcd' ),
 				'wpcd_object_type'         => 1,
 				'wpcd_permission_category' => 'core',
 				'wpcd_permission_group'    => 1,
 			),
-			'delete_server'                     => array(
+			'delete_server'                         => array(
 				'post_title'               => __( 'Delete Server', 'wpcd' ),
 				'wpcd_object_type'         => 1,
 				'wpcd_permission_category' => 'core',
 				'wpcd_permission_group'    => 1,
 			),
-			'add_app_wpapp'                     => array(
+			'add_app_wpapp'                         => array(
 				'post_title'               => __( 'Add WP App', 'wpcd' ),
 				'wpcd_object_type'         => 1,
 				'wpcd_permission_category' => 'core',
 				'wpcd_permission_group'    => 1,
 			),
-			'add_app_wpapp'                     => array(
+			'add_app_wpapp'                         => array(
 				'post_title'               => __( 'Add WP App', 'wpcd' ),
 				'wpcd_object_type'         => 1,
 				'wpcd_permission_category' => 'core',
 				'wpcd_permission_group'    => 1,
 			),
-			'view_wpapp_server_ssh_console_tab' => array(
+			'view_wpapp_server_ssh_console_tab'     => array(
 				'post_title'               => __( 'View SSH Console Tab On WP Server Screen', 'wpcd' ),
 				'wpcd_object_type'         => 1,
 				'wpcd_permission_category' => 'wpapp',
 				'wpcd_permission_group'    => 2,
 			),
-			'view_wpapp_server_users_tab'       => array(
+			'view_wpapp_server_users_tab'           => array(
 				'post_title'               => __( 'View Users Tab On WP Server Screen', 'wpcd' ),
 				'wpcd_object_type'         => 1,
 				'wpcd_permission_category' => 'wpapp',
 				'wpcd_permission_group'    => 2,
 			),
-			'view_wpapp_server_ssh_keys_tab'    => array(
+			'view_wpapp_server_ssh_keys_tab'        => array(
 				'post_title'               => __( 'View SSH Keys Tab On WP Server Screen', 'wpcd' ),
 				'wpcd_object_type'         => 1,
 				'wpcd_permission_category' => 'wpapp',
 				'wpcd_permission_group'    => 2,
 			),
-			'view_wpapp_server_upgrade_tab'     => array(
+			'view_wpapp_server_upgrade_tab'         => array(
 				'post_title'               => __( 'View Upgrade Tab On WP Server Screen', 'wpcd' ),
 				'wpcd_object_type'         => 1,
 				'wpcd_permission_category' => 'wpapp',
 				'wpcd_permission_group'    => 2,
 			),
-			'view_wpapp_server_fail2ban_tab'    => array(
+			'view_wpapp_server_fail2ban_tab'        => array(
 				'post_title'               => __( 'View Fail2Ban Tab On WP Server Screen', 'wpcd' ),
 				'wpcd_object_type'         => 1,
 				'wpcd_permission_category' => 'wpapp',
 				'wpcd_permission_group'    => 2,
 			),
-			'view_wpapp_server_backup_tab'    => array(
+			'view_wpapp_server_backup_tab'          => array(
 				'post_title'               => __( 'View Backup Tab On WP Server Screen', 'wpcd' ),
 				'wpcd_object_type'         => 1,
 				'wpcd_permission_category' => 'wpapp',
 				'wpcd_permission_group'    => 2,
 			),
-			'view_wpapp_server_callback_tab'    => array(
+			'view_wpapp_server_callback_tab'        => array(
 				'post_title'               => __( 'View Callback Tab On WP Server Screen', 'wpcd' ),
 				'wpcd_object_type'         => 1,
 				'wpcd_permission_category' => 'wpapp',
 				'wpcd_permission_group'    => 2,
 			),
-			'view_wpapp_server_goaccess_tab'    => array(
+			'view_wpapp_server_goaccess_tab'        => array(
 				'post_title'               => __( 'View GoAccess Tab On WP Server Screen', 'wpcd' ),
 				'wpcd_object_type'         => 1,
 				'wpcd_permission_category' => 'wpapp',
 				'wpcd_permission_group'    => 2,
 			),
-			'view_wpapp_server_logs_tab'    => array(
+			'view_wpapp_server_logs_tab'            => array(
 				'post_title'               => __( 'View Logs Tab On WP Server Screen', 'wpcd' ),
 				'wpcd_object_type'         => 1,
 				'wpcd_permission_category' => 'wpapp',
 				'wpcd_permission_group'    => 2,
 			),
-			'view_wpapp_server_monit_tab'    => array(
+			'view_wpapp_server_monit_tab'           => array(
 				'post_title'               => __( 'View Healing Tab On WP Server Screen', 'wpcd' ),
 				'wpcd_object_type'         => 1,
 				'wpcd_permission_category' => 'wpapp',
 				'wpcd_permission_group'    => 2,
 			),
-			'view_wpapp_server_monitorix_tab'    => array(
+			'view_wpapp_server_monitorix_tab'       => array(
 				'post_title'               => __( 'View Monitorix Tab On WP Server Screen', 'wpcd' ),
 				'wpcd_object_type'         => 1,
 				'wpcd_permission_category' => 'wpapp',
 				'wpcd_permission_group'    => 2,
-			),	
-			'view_wpapp_server_power_tab'    => array(
+			),
+			'view_wpapp_server_power_tab'           => array(
 				'post_title'               => __( 'View Power Tab On WP Server Screen', 'wpcd' ),
 				'wpcd_object_type'         => 1,
 				'wpcd_permission_category' => 'wpapp',
 				'wpcd_permission_group'    => 2,
 			),
-			'view_wpapp_server_services_tab'    => array(
+			'view_wpapp_server_services_tab'        => array(
 				'post_title'               => __( 'View Services Tab On WP Server Screen', 'wpcd' ),
 				'wpcd_object_type'         => 1,
 				'wpcd_permission_category' => 'wpapp',
 				'wpcd_permission_group'    => 2,
 			),
-			'view_wpapp_server_sites_tab'    => array(
+			'view_wpapp_server_sites_tab'           => array(
 				'post_title'               => __( 'View Sites Tab On WP Server Screen', 'wpcd' ),
 				'wpcd_object_type'         => 1,
 				'wpcd_permission_category' => 'wpapp',
 				'wpcd_permission_group'    => 2,
 			),
-			'view_wpapp_server_statistics_tab'    => array(
+			'view_wpapp_server_statistics_tab'      => array(
 				'post_title'               => __( 'View Statistics Tab On WP Server Screen', 'wpcd' ),
 				'wpcd_object_type'         => 1,
 				'wpcd_permission_category' => 'wpapp',
 				'wpcd_permission_group'    => 2,
 			),
-			'view_wpapp_server_tools_tab'    => array(
+			'view_wpapp_server_tools_tab'           => array(
 				'post_title'               => __( 'View Tools Tab On WP Server Screen', 'wpcd' ),
 				'wpcd_object_type'         => 1,
 				'wpcd_permission_category' => 'wpapp',
 				'wpcd_permission_group'    => 2,
 			),
-			'view_wpapp_server_tweaks_tab'    => array(
+			'view_wpapp_server_tweaks_tab'          => array(
 				'post_title'               => __( 'View Tweaks Tab On WP Server Screen', 'wpcd' ),
 				'wpcd_object_type'         => 1,
 				'wpcd_permission_category' => 'wpapp',
 				'wpcd_permission_group'    => 2,
 			),
-			'view_wpapp_server_firewall_tab'    => array(
+			'view_wpapp_server_firewall_tab'        => array(
 				'post_title'               => __( 'View Firewall Tab On WP Server Screen', 'wpcd' ),
 				'wpcd_object_type'         => 1,
 				'wpcd_permission_category' => 'wpapp',
 				'wpcd_permission_group'    => 2,
-			),			
-			
-			'view_app'                          => array(
+			),
+			'view_app'                              => array(
 				'post_title'               => __( 'View App', 'wpcd' ),
 				'wpcd_object_type'         => 2,
 				'wpcd_permission_category' => 'core',
 				'wpcd_permission_group'    => 3,
 			),
-			'delete_app_record'                 => array(
+			'delete_app_record'                     => array(
 				'post_title'               => __( 'Delete App', 'wpcd' ),
 				'wpcd_object_type'         => 2,
 				'wpcd_permission_category' => 'core',
 				'wpcd_permission_group'    => 3,
 			),
-			'wpapp_remove_site'                 => array(
+			'wpapp_remove_site'                     => array(
 				'post_title'               => __( 'WP Remove Site', 'wpcd' ),
 				'wpcd_object_type'         => 2,
 				'wpcd_permission_category' => 'wpapp',
 				'wpcd_permission_group'    => 3,
 			),
-			'wpapp_update_site_php_options'     => array(
+			'wpapp_update_site_php_options'         => array(
 				'post_title'               => __( 'WP Update Site PHP Options', 'wpcd' ),
 				'wpcd_object_type'         => 2,
 				'wpcd_permission_category' => 'wpapp',
 				'wpcd_permission_group'    => 3,
 			),
+
+			'view_wpapp_site_6gfirewall_tab'        => array(
+				'post_title'               => __( 'View 6g Firewall Tab On WP Site Screen', 'wpcd' ),
+				'wpcd_object_type'         => 2,
+				'wpcd_permission_category' => 'wpapp',
+				'wpcd_permission_group'    => 3,
+			),
+			'view_wpapp_site_7gfirewall_tab'        => array(
+				'post_title'               => __( 'View 7g Firewall Tab On WP Site Screen', 'wpcd' ),
+				'wpcd_object_type'         => 2,
+				'wpcd_permission_category' => 'wpapp',
+				'wpcd_permission_group'    => 3,
+			),
+			'view_wpapp_site_backup_tab'            => array(
+				'post_title'               => __( 'View Backup Tab On WP Site Screen', 'wpcd' ),
+				'wpcd_object_type'         => 2,
+				'wpcd_permission_category' => 'wpapp',
+				'wpcd_permission_group'    => 3,
+			),
+			'view_wpapp_site_cache_tab'             => array(
+				'post_title'               => __( 'View Cache Tab On WP Site Screen', 'wpcd' ),
+				'wpcd_object_type'         => 2,
+				'wpcd_permission_category' => 'wpapp',
+				'wpcd_permission_group'    => 3,
+			),
+			'view_wpapp_site_change_domain_tab'     => array(
+				'post_title'               => __( 'View Change Domain Tab On WP Site Screen', 'wpcd' ),
+				'wpcd_object_type'         => 2,
+				'wpcd_permission_category' => 'wpapp',
+				'wpcd_permission_group'    => 3,
+			),
+			'view_wpapp_site_clone_site_tab'        => array(
+				'post_title'               => __( 'View Clone Site Tab On WP Site Screen', 'wpcd' ),
+				'wpcd_object_type'         => 2,
+				'wpcd_permission_category' => 'wpapp',
+				'wpcd_permission_group'    => 3,
+			),
+			'view_wpapp_site_copy_to_existing_tab'  => array(
+				'post_title'               => __( 'View Copy To Existing Tab On WP Site Screen', 'wpcd' ),
+				'wpcd_object_type'         => 2,
+				'wpcd_permission_category' => 'wpapp',
+				'wpcd_permission_group'    => 3,
+			),
+			'view_wpapp_site_crons_tab'             => array(
+				'post_title'               => __( 'View Cron Tab On WP Site Screen', 'wpcd' ),
+				'wpcd_object_type'         => 2,
+				'wpcd_permission_category' => 'wpapp',
+				'wpcd_permission_group'    => 3,
+			),
+			'view_wpapp_site_general_tab'           => array(
+				'post_title'               => __( 'View General Tab On WP Site Screen', 'wpcd' ),
+				'wpcd_object_type'         => 2,
+				'wpcd_permission_category' => 'wpapp',
+				'wpcd_permission_group'    => 3,
+			),
+			'view_wpapp_site_logs_tab'              => array(
+				'post_title'               => __( 'View Logs Tab On WP Site Screen', 'wpcd' ),
+				'wpcd_object_type'         => 2,
+				'wpcd_permission_category' => 'wpapp',
+				'wpcd_permission_group'    => 3,
+			),
+			'view_wpapp_site_misc_tab'              => array(
+				'post_title'               => __( 'View Misc Tab On WP Site Screen', 'wpcd' ),
+				'wpcd_object_type'         => 2,
+				'wpcd_permission_category' => 'wpapp',
+				'wpcd_permission_group'    => 3,
+			),
+			'view_wpapp_site_phpmyadmin_tab'        => array(
+				'post_title'               => __( 'View Database Tab On WP Site Screen', 'wpcd' ),
+				'wpcd_object_type'         => 2,
+				'wpcd_permission_category' => 'wpapp',
+				'wpcd_permission_group'    => 3,
+			),
+			'view_wpapp_site_php_options_tab'       => array(
+				'post_title'               => __( 'View PHP Options Tab On WP Site Screen', 'wpcd' ),
+				'wpcd_object_type'         => 2,
+				'wpcd_permission_category' => 'wpapp',
+				'wpcd_permission_group'    => 3,
+			),
+			'view_wpapp_site_redirect_rules_tab'    => array(
+				'post_title'               => __( 'View Redirect Rules Tab On WP Site Screen', 'wpcd' ),
+				'wpcd_object_type'         => 2,
+				'wpcd_permission_category' => 'wpapp',
+				'wpcd_permission_group'    => 3,
+			),
+			'view_wpapp_site_sftp_tab'              => array(
+				'post_title'               => __( 'View sFTP Tab On WP Site Screen', 'wpcd' ),
+				'wpcd_object_type'         => 2,
+				'wpcd_permission_category' => 'wpapp',
+				'wpcd_permission_group'    => 3,
+			),
+			'view_wpapp_site_site_sync_tab'         => array(
+				'post_title'               => __( 'View Site Sync Tab On WP Site Screen', 'wpcd' ),
+				'wpcd_object_type'         => 2,
+				'wpcd_permission_category' => 'wpapp',
+				'wpcd_permission_group'    => 3,
+			),
+			'view_wpapp_site_site_system_users_tab' => array(
+				'post_title'               => __( 'View Site System Users Tab On WP Site Screen', 'wpcd' ),
+				'wpcd_object_type'         => 2,
+				'wpcd_permission_category' => 'wpapp',
+				'wpcd_permission_group'    => 3,
+			),
+			'view_wpapp_site_ssl_tab'               => array(
+				'post_title'               => __( 'View SSL Tab On WP Site Screen', 'wpcd' ),
+				'wpcd_object_type'         => 2,
+				'wpcd_permission_category' => 'wpapp',
+				'wpcd_permission_group'    => 3,
+			),
+			'view_wpapp_site_staging_tab'               => array(
+				'post_title'               => __( 'View Staging Tab On WP Site Screen', 'wpcd' ),
+				'wpcd_object_type'         => 2,
+				'wpcd_permission_category' => 'wpapp',
+				'wpcd_permission_group'    => 3,
+			),
+			'view_wpapp_site_statistics_tab'               => array(
+				'post_title'               => __( 'View Statistics Tab On WP Site Screen', 'wpcd' ),
+				'wpcd_object_type'         => 2,
+				'wpcd_permission_category' => 'wpapp',
+				'wpcd_permission_group'    => 3,
+			),
+			'view_wpapp_site_updates_tab'               => array(
+				'post_title'               => __( 'View Theme & Plugin Updates Tab On WP Site Screen', 'wpcd' ),
+				'wpcd_object_type'         => 2,
+				'wpcd_permission_category' => 'wpapp',
+				'wpcd_permission_group'    => 3,
+			),		
+			'view_wpapp_site_tools_tab'               => array(
+				'post_title'               => __( 'View Tools Tab On WP Site Screen', 'wpcd' ),
+				'wpcd_object_type'         => 2,
+				'wpcd_permission_category' => 'wpapp',
+				'wpcd_permission_group'    => 3,
+			),	
+			'view_wpapp_site_tweaks_tab'               => array(
+				'post_title'               => __( 'View Tweaks Tab On WP Site Screen', 'wpcd' ),
+				'wpcd_object_type'         => 2,
+				'wpcd_permission_category' => 'wpapp',
+				'wpcd_permission_group'    => 3,
+			),			
+			'view_wpapp_site_multisite_tab'               => array(
+				'post_title'               => __( 'View Multisite Tab On WP Site Screen', 'wpcd' ),
+				'wpcd_object_type'         => 2,
+				'wpcd_permission_category' => 'wpapp',
+				'wpcd_permission_group'    => 3,
+			),						
 		);
 
 		foreach ( $permission_posts as $permission_name => $permission_post ) {

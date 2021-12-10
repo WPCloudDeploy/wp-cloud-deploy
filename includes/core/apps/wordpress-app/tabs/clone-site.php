@@ -15,19 +15,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 class WPCD_WORDPRESS_TABS_CLONE_SITE extends WPCD_WORDPRESS_TABS {
 
 	/**
-	 * Holds the ID for this tab.
-	 * It will be used when setting up the tab metabox structure in the get_tab function() later.
-	 *
-	 * @var $tab_id
-	 */
-	private $tab_id = 'clone-site';
-
-	/**
 	 * WPCD_WORDPRESS_TABS_BACKUP constructor.
 	 */
 	public function __construct() {
 		parent::__construct();
-		add_filter( "wpcd_app_{$this->get_app_name()}_get_tabnames", array( $this, 'get_tab' ), 10, 1 );
+		add_filter( "wpcd_app_{$this->get_app_name()}_get_tabnames", array( $this, 'get_tab' ), 10, 2 );
 		add_filter( "wpcd_app_{$this->get_app_name()}_get_tabs", array( $this, 'get_fields' ), 10, 2 );
 		add_filter( "wpcd_app_{$this->get_app_name()}_tab_action", array( $this, 'tab_action' ), 10, 3 );
 		/* add_filter( 'wpcd_is_ssh_successful', array( $this, 'was_ssh_successful' ), 10, 5 ); */
@@ -131,17 +123,35 @@ class WPCD_WORDPRESS_TABS_CLONE_SITE extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
+	 * Returns a string that can be used as the unique name for this tab.
+	 */
+	public function get_tab_slug() {
+		return 'clone-site';
+	}
+
+	/**
+	 * Returns a string that is the name of a view TEAM permission required to view this tab.
+	 */
+	public function get_view_tab_team_permission_slug() {
+		return 'view_wpapp_site_6gfirewall_tab';
+	}
+
+
+	/**
 	 * Populates the tab name.
 	 *
 	 * @param array $tabs The default value.
+	 * @param int   $id   The post ID of the server.
 	 *
 	 * @return array    $tabs The default value.
 	 */
-	public function get_tab( $tabs ) {
-		$tabs[ $this->tab_id ] = array(
-			'label' => __( 'Clone Site', 'wpcd' ),
-			'icon'  => 'fad fa-clone',
-		);
+	public function get_tab( $tabs, $id ) {
+		if ( true === $this->wpcd_wpapp_site_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_site_tab( $id, $this->get_tab_slug() ) ) {
+			$tabs[ $this->get_tab_slug() ] = array(
+				'label' => __( 'Clone Site', 'wpcd' ),
+				'icon'  => 'fad fa-clone',
+			);
+		}
 		return $tabs;
 	}
 
@@ -162,35 +172,46 @@ class WPCD_WORDPRESS_TABS_CLONE_SITE extends WPCD_WORDPRESS_TABS {
 			return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
 		}
 
-		// Allow a third party to determine if we should proceed.
-		// Full filter name: wpcd_app_wordpress-app_tab_actions_general_security_check.
-		$addl_security_check = apply_filters(
-			"wpcd_app_{$this->get_app_name()}_tab_actions_general_security_check",
-			array(
-				'check' => true,
-				'msg'   => '',
-			),
-			$this->tab_id,
-			$action,
-			$id
-		);
-		if ( ! $addl_security_check['check'] ) {
-			if ( empty( $addl_security_check['msg'] ) ) {
-				/* translators: %1s is replaced with an internal action name; %2$s is replaced with the file name; %3$s is replaced with the post id being acted on. %4$s is the user id running this action. */
+		/* Now verify that the user can perform actions on this screen, assuming that they can view the server */
+		$valid_actions = array( 'clone-site' );
+		if ( in_array( $action, $valid_actions, true ) ) {
+			if ( false === $this->wpcd_wpapp_site_user_can( $this->get_view_tab_team_permission_slug(), $id ) && false === $this->wpcd_can_author_view_site_tab( $id, $this->get_tab_slug() ) ) {
 				return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
-			} else {
-				return new \WP_Error( $addl_security_check['msg'] );
+			}
+		}
+
+		if ( in_array( $action, $valid_actions, true ) ) {
+			// Allow a third party to determine if we should proceed.
+			// Full filter name: wpcd_app_wordpress-app_tab_actions_general_security_check.
+			$addl_security_check = apply_filters(
+				"wpcd_app_{$this->get_app_name()}_tab_actions_general_security_check",
+				array(
+					'check' => true,
+					'msg'   => '',
+				),
+				$this->get_tab_slug(),
+				$action,
+				$id
+			);
+			if ( ! $addl_security_check['check'] ) {
+				if ( empty( $addl_security_check['msg'] ) ) {
+					/* translators: %1s is replaced with an internal action name; %2$s is replaced with the file name; %3$s is replaced with the post id being acted on. %4$s is the user id running this action. */
+					return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
+				} else {
+					return new \WP_Error( $addl_security_check['msg'] );
+				}
 			}
 		}
 
 		// Security checks passed, do all the things.
-		switch ( $action ) {
-			case 'clone-site':
-				$action = 'clone-site'; // action is not used by the bash script right now.
-				$result = $this->clone_site( $action, $id );
-				break;
+		if ( true === $this->wpcd_wpapp_server_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_site_tab( $id, $this->get_tab_slug() ) ) {
+			switch ( $action ) {
+				case 'clone-site':
+					$action = 'clone-site'; // action is not used by the bash script right now.
+					$result = $this->clone_site( $action, $id );
+					break;
+			}
 		}
-
 		return $result;
 
 	}

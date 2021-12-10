@@ -19,7 +19,7 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 	 */
 	public function __construct() {
 		parent::__construct();
-		add_filter( "wpcd_app_{$this->get_app_name()}_get_tabnames", array( $this, 'get_tab' ), 10, 1 );
+		add_filter( "wpcd_app_{$this->get_app_name()}_get_tabnames", array( $this, 'get_tab' ), 10, 2 );
 		add_filter( "wpcd_app_{$this->get_app_name()}_get_tabs", array( $this, 'get_fields' ), 10, 2 );
 		add_filter( "wpcd_app_{$this->get_app_name()}_tab_action", array( $this, 'tab_action' ), 10, 3 );
 		/* add_filter( 'wpcd_is_ssh_successful', array( $this, 'was_ssh_successful' ), 10, 5 ); */
@@ -99,17 +99,34 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
+	 * Returns a string that can be used as the unique name for this tab.
+	 */
+	public function get_tab_slug() {
+		return 'change-domain';
+	}
+
+	/**
+	 * Returns a string that is the name of a view TEAM permission required to view this tab.
+	 */
+	public function get_view_tab_team_permission_slug() {
+		return 'view_wpapp_site_change_domain_tab';
+	}
+
+	/**
 	 * Populates the tab name.
 	 *
 	 * @param array $tabs The default value.
+	 * @param int   $id   The post ID of the server.
 	 *
 	 * @return array    $tabs The default value.
 	 */
-	public function get_tab( $tabs ) {
-		$tabs['change-domain'] = array(
-			'label' => __( 'Change Domain', 'wpcd' ),
-			'icon'  => 'fad fa-browser',
-		);
+	public function get_tab( $tabs, $id ) {
+		if ( true === $this->wpcd_wpapp_site_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_site_tab( $id, $this->get_tab_slug() ) ) {
+			$tabs[ $this->get_tab_slug() ] = array(
+				'label' => __( 'Change Domain', 'wpcd' ),
+				'icon'  => 'fad fa-browser',
+			);
+		}
 		return $tabs;
 	}
 
@@ -129,33 +146,43 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 			return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
 		}
 
-		switch ( $action ) {
-			case 'change-domain-quick-change':
-				$action = 'domain_only';
-				$result = $this->change_domain_only( $action, $id );
-				if ( ! is_wp_error( $result ) ) {
-					$result = array( 'refresh' => 'yes' );
-				}
-				break;
-			case 'change-domain-full-dry-run':
-				$action = 'dry_run';
-				$result = $this->change_domain_dry_run( $action, $id );
-				break;
-			case 'change-domain-full-live-run':
-				$action = 'replace_domain';
-				$result = $this->change_domain_live_run( $action, $id );
-				break;
-			case 'change-domain-record-only':
-				$action = 'record_only';
-				$result = $this->change_domain_record_only( $action, $id );
-				if ( ! is_wp_error( $result ) ) {
-					$result = array( 'refresh' => 'yes' );
-				}
-				break;
-			case 'search-and-replace-db':
-				$action = 'search_and_replace_db';
-				$result = $this->search_and_replace_db( $action, $id );
+		/* Now verify that the user can perform actions on this screen, assuming that they can view the server */
+		$valid_actions = array( 'change-domain-quick-change', 'change-domain-full-dry-run', 'change-domain-full-live-run', 'change-domain-record-only', 'search-and-replace-db' );
+		if ( in_array( $action, $valid_actions, true ) ) {
+			if ( false === $this->wpcd_wpapp_site_user_can( $this->get_view_tab_team_permission_slug(), $id ) && false === $this->wpcd_can_author_view_site_tab( $id, $this->get_tab_slug() ) ) {
+				return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
+			}
+		}
 
+		if ( true === $this->wpcd_wpapp_server_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_site_tab( $id, $this->get_tab_slug() ) ) {
+			switch ( $action ) {
+				case 'change-domain-quick-change':
+					$action = 'domain_only';
+					$result = $this->change_domain_only( $action, $id );
+					if ( ! is_wp_error( $result ) ) {
+						$result = array( 'refresh' => 'yes' );
+					}
+					break;
+				case 'change-domain-full-dry-run':
+					$action = 'dry_run';
+					$result = $this->change_domain_dry_run( $action, $id );
+					break;
+				case 'change-domain-full-live-run':
+					$action = 'replace_domain';
+					$result = $this->change_domain_live_run( $action, $id );
+					break;
+				case 'change-domain-record-only':
+					$action = 'record_only';
+					$result = $this->change_domain_record_only( $action, $id );
+					if ( ! is_wp_error( $result ) ) {
+						$result = array( 'refresh' => 'yes' );
+					}
+					break;
+				case 'search-and-replace-db':
+					$action = 'search_and_replace_db';
+					$result = $this->search_and_replace_db( $action, $id );
+
+			}
 		}
 
 		return $result;

@@ -19,7 +19,7 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 	 */
 	public function __construct() {
 		parent::__construct();
-		add_filter( "wpcd_app_{$this->get_app_name()}_get_tabnames", array( $this, 'get_tab' ), 10, 1 );
+		add_filter( "wpcd_app_{$this->get_app_name()}_get_tabnames", array( $this, 'get_tab' ), 10, 2 );
 		add_filter( "wpcd_app_{$this->get_app_name()}_get_tabs", array( $this, 'get_fields' ), 10, 2 );
 		add_filter( "wpcd_app_{$this->get_app_name()}_tab_action", array( $this, 'tab_action' ), 10, 3 );
 		/* add_filter( 'wpcd_is_ssh_successful', array( $this, 'was_ssh_successful' ), 10, 5 ); */
@@ -46,17 +46,34 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
+	 * Returns a string that can be used as the unique name for this tab.
+	 */
+	public function get_tab_slug() {
+		return 'cache';
+	}
+
+	/**
+	 * Returns a string that is the name of a view TEAM permission required to view this tab.
+	 */
+	public function get_view_tab_team_permission_slug() {
+		return 'view_wpapp_site_cache_tab';
+	}
+
+	/**
 	 * Populates the tab name.
 	 *
 	 * @param array $tabs The default value.
+	 * @param int   $id   The post ID of the server.
 	 *
 	 * @return array    $tabs The default value.
 	 */
-	public function get_tab( $tabs ) {
-		$tabs['cache'] = array(
-			'label' => __( 'Cache', 'wpcd' ),
-			'icon'  => 'fad fa-bookmark',
-		);
+	public function get_tab( $tabs, $id ) {
+		if ( true === $this->wpcd_wpapp_site_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_site_tab( $id, $this->get_tab_slug() ) ) {
+			$tabs[ $this->get_tab_slug() ] = array(
+				'label' => __( 'Cache', 'wpcd' ),
+				'icon'  => 'fad fa-bookmark',
+			);
+		}
 		return $tabs;
 	}
 
@@ -77,26 +94,35 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 			return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
 		}
 
-		switch ( $action ) {
-			case 'site-toggle-memcached':
-				// What is the status of memcached?
-				$mc_status = get_post_meta( $id, 'wpapp_memcached_status', true );
-				if ( empty( $mc_status ) ) {
-					$mc_status = 'off';
-				}
-				// toggle it.
-				$result = $this->enable_disable_memcached( 'on' === $mc_status ? 'disable' : 'enable', $id );
-				break;
-			case 'site-toggle-memcached-local-value':
-				$result = $this->toggle_local_status_memcached( $id );
-				break;
-			case 'site-toggle-pagecache':
-				$result = $this->enable_disable_pagecache( $action, $id );
-				break;
-			case 'site-clear-pagecache':
-				$result = $this->clear_pagecache( $action, $id );
-				break;
+		/* Now verify that the user can perform actions on this screen, assuming that they can view the server */
+		$valid_actions = array( 'site-toggle-memcached', 'site-toggle-memcached-local-value', 'site-toggle-pagecache', 'site-clear-pagecache' );
+		if ( in_array( $action, $valid_actions, true ) ) {
+			if ( false === $this->wpcd_wpapp_site_user_can( $this->get_view_tab_team_permission_slug(), $id ) && false === $this->wpcd_can_author_view_site_tab( $id, $this->get_tab_slug() ) ) {
+				return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
+			}
+		}
+		if ( true === $this->wpcd_wpapp_server_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_site_tab( $id, $this->get_tab_slug() ) ) {
+			switch ( $action ) {
+				case 'site-toggle-memcached':
+					// What is the status of memcached?
+					$mc_status = get_post_meta( $id, 'wpapp_memcached_status', true );
+					if ( empty( $mc_status ) ) {
+						$mc_status = 'off';
+					}
+					// toggle it.
+					$result = $this->enable_disable_memcached( 'on' === $mc_status ? 'disable' : 'enable', $id );
+					break;
+				case 'site-toggle-memcached-local-value':
+					$result = $this->toggle_local_status_memcached( $id );
+					break;
+				case 'site-toggle-pagecache':
+					$result = $this->enable_disable_pagecache( $action, $id );
+					break;
+				case 'site-clear-pagecache':
+					$result = $this->clear_pagecache( $action, $id );
+					break;
 
+			}
 		}
 
 		return $result;

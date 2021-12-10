@@ -457,11 +457,11 @@ function wpcd_get_post_author( $post_id ) {
  * @return array of roles.
  */
 function wpcd_get_roles_ids() {
-    global $wp_roles;
-    foreach($wp_roles->roles as $key => $role) {
-        $roles[] = $key;
-    }
-    return $roles;
+	global $wp_roles;
+	foreach ( $wp_roles->roles as $key => $role ) {
+		$roles[] = $key;
+	}
+	return $roles;
 }
 
 /**
@@ -470,12 +470,12 @@ function wpcd_get_roles_ids() {
  * @return array of roles.
  */
 function wpcd_get_roles() {
-    global $wp_roles;
+	global $wp_roles;
 	$roles = array();
-    foreach($wp_roles->roles as $key => $role) {
-        $roles[$key] = $role['name'];
-    }
-    return $roles;
+	foreach ( $wp_roles->roles as $key => $role ) {
+		$roles[ $key ] = $role['name'];
+	}
+	return $roles;
 }
 
 /**
@@ -1096,6 +1096,27 @@ function wpcd_get_random_fa_class() {
  */
 function wpcd_escape_for_bash( $thestring ) {
 	return preg_replace( '/([^A-Za-z0-9\s])/', '\\\\$1', $thestring );
+}
+
+/**
+ * Get a documentation link from our options array.
+ *
+ * We will take in an option key and a default value.
+ * If the option key returns a value we'll use that.
+ * Otherwise we'll return the default value.
+ *
+ * @param string $link_option_key The option key that will contain a documentation link.
+ * @param string $default_link    The default documentation link if the option key does not contain a link value.
+ *
+ * @return string
+ */
+function wpcd_get_documentation_link( $link_option_key, $default_link ) {
+	$link = wpcd_get_early_option( $link_option_key );
+	if ( ! empty( $link ) ) {
+		return $link;
+	} else {
+		return $default_link;
+	}
 }
 
 /*

@@ -316,10 +316,11 @@ class WPCD_WORDPRESS_TABS_THEME_AND_PLUGIN_UPDATES extends WPCD_WORDPRESS_TABS {
 		}
 
 		// We got here so ok to show fields related to updating the site.
-		$desc  = __( 'Update Themes & Plugins is an experimental feature. Please make sure you read our documentation before using it.', 'wpcd' );
-		$desc .= '<br />';
-		$desc .= '<br />';
-		$desc .= sprintf( '<a href="%s">%s</a>', apply_filters( 'wpcd_documentation_links', 'https://wpclouddeploy.com/documentation/wpcloud-deploy-admin/theme-plugin-updates/' ), __( 'View Documentation', 'wpcd' ) );
+		$doc_link = 'https://wpclouddeploy.com/documentation/wpcloud-deploy-admin/theme-plugin-updates/';
+		$desc     = __( 'Update Themes & Plugins is an experimental feature. Please make sure you read our documentation before using it.', 'wpcd' );
+		$desc    .= '<br />';
+		$desc    .= '<br />';
+		$desc    .= sprintf( '<a href="%s">%s</a>', wpcd_get_documentation_link( 'wordpress-app-doc-link-theme-plugin-updates', apply_filters( 'wpcd_documentation_links', $doc_link ) ), __( 'View Documentation', 'wpcd' ) );
 
 		$fields[] = array(
 			'name' => __( 'About Updating Themes & Plugins', 'wpcd' ),

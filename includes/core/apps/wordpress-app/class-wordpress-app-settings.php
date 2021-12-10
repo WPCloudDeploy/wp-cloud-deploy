@@ -182,7 +182,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'icon'  => 'dashicons-admin-plugins',
 			),
 			'wordpress-app-dns-cloudflare'       => array(
-				'label' => 'DNS Integration: Cloudflare',
+				'label' => 'DNS: Cloudflare',
 				'icon'  => 'dashicons-cloud',
 			),
 			'wordpress-app-email-notify'         => array(
@@ -209,7 +209,10 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'label' => 'Rest API',
 				'icon'  => 'dashicons-rest-api',
 			),
-
+			'wordpress-app-white-label'          => array(
+				'label' => 'White Label Basics',
+				'icon'  => 'dashicons-randomize',
+			),
 		/*
 		'wordpress-app-scripts' => array(
 			'label' => 'Scripts',
@@ -260,7 +263,8 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 		$email_gateway_load_defaults  = $this->email_gateway_load_defaults();
 		$cf_dns_fields                = $this->cf_dns_fields();
 		$rest_api_fields              = $this->rest_api_fields();
-		$all_fields                   = array_merge( $general_fields, $server_fields, $backup_fields, $fields_and_links, $theme_and_plugin_updates, $email_notification_fields, $slack_notification_fields, $zapier_notification_fields, $button_color_settings_fields, $email_gateway_load_defaults, $cf_dns_fields, $rest_api_fields );
+		$white_label_fields           = $this->white_label_fields();
+		$all_fields                   = array_merge( $general_fields, $server_fields, $backup_fields, $fields_and_links, $theme_and_plugin_updates, $email_notification_fields, $slack_notification_fields, $zapier_notification_fields, $button_color_settings_fields, $email_gateway_load_defaults, $cf_dns_fields, $rest_api_fields, $white_label_fields );
 		return $all_fields;
 	}
 
@@ -1309,6 +1313,70 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			),
 		);
 		return $fields;
+	}
+
+	/**
+	 * Return an array that combines all fields that will go in white label fields tab.
+	 */
+	public function white_label_fields() {
+
+		$fields = array();
+
+		// Header.
+		$fields[] = array(
+			'name' => __( 'White Label Basics', 'wpcd' ),
+			'id'   => 'wordpress-app-white-label-basics-heading',
+			'type' => 'heading',
+			'std'  => '',
+			'desc' => __( 'We have provided the most popular white label options here.  But, when you want to go further you still have the vast open sea of WP style hooks and filters as well as 3rd party plugins to help you completely customize your WPCD dashboard.', 'wpcd' ),
+			'tab'  => 'wordpress-app-white-label',
+		);
+
+		// Logo Header.
+		$fields[] = array(
+			'name' => __( 'Logo', 'wpcd' ),
+			'id'   => 'wordpress-app-logo-overides-heading',
+			'type' => 'heading',
+			'std'  => '',
+			'desc' => __( '[Coming soon] Use your own logo on the server and site creation screen.  You can also completely remove the logo with an entry in wp-config - check out the docs on our website for more information about that option.', 'wpcd' ),
+			'tab'  => 'wordpress-app-white-label',
+		);
+
+		/**
+		 * Documentation Link Overrides Fields
+		 */
+		// An array of ids and labels for text fields that overide documentation links.
+		$doc_links = array(
+			'wordpress-app-doc-link-theme-plugin-updates' => array(
+				'label' => __( 'Site Updates', 'wpcd' ),
+				'desc'  => __( 'The documentation link in the SITE UPDATES tab.', 'wpcd' ),
+			),
+		);
+
+		// Header.
+		$fields[] = array(
+			'name' => __( 'Documentation Link Overrides', 'wpcd' ),
+			'id'   => 'wordpress-app-doc-link-overides-heading',
+			'type' => 'heading',
+			'std'  => '',
+			'desc' => __( 'Point users to your own documentation instead of the standard WPCloudDeploy documentation.', 'wpcd' ),
+			'tab'  => 'wordpress-app-white-label',
+		);
+
+		// Loop through the doc links array and generate settings fields.
+		foreach ( $doc_links as $doc_key => $doc_link ) {
+			// First column is just the label with the tab name.
+			$fields[] = array(
+				'name' => "{$doc_link['label']}",
+				'id'   => "{$doc_key}",
+				'type' => 'url',
+				'desc' => "{$doc_link['desc']}",
+				'tab'  => 'wordpress-app-white-label',
+			);
+		}
+
+		return $fields;
+
 	}
 
 }

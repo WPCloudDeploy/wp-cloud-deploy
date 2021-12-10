@@ -1351,6 +1351,14 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'label' => __( 'Site Updates', 'wpcd' ),
 				'desc'  => __( 'The documentation link in the SITE UPDATES tab.', 'wpcd' ),
 			),
+			'wordpress-app-doc-link-page-cache'           => array(
+				'label' => __( 'Cache Information', 'wpcd' ),
+				'desc'  => __( 'The documentation link for more information about Caching on the Cache tab.', 'wpcd' ),
+			),
+			'wordpress-app-doc-link-memcached-info'       => array(
+				'label' => __( 'Memcached Information', 'wpcd' ),
+				'desc'  => __( 'The documentation link for more information about Memcached on the Cache tab.', 'wpcd' ),
+			),
 		);
 
 		// Header.

@@ -807,6 +807,21 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 		);
 		/* End Start generic search and replace fields */
 
+		/* Documentation Link to WPCloudDeploy Site */
+		$doc_link = 'https://wpclouddeploy.com/documentation/wpcloud-deploy-user-guide/changing-a-domain/';
+		$desc     = __( 'Read more about changing domains in our documentation.', 'wpcd' );
+		$desc    .= '<br />';
+		$desc    .= '<br />';
+		$desc    .= sprintf( '<a href="%s">%s</a>', wpcd_get_documentation_link( 'wordpress-app-doc-change-domain', apply_filters( 'wpcd_documentation_links', $doc_link ) ), __( 'View our Documentation on Changing Domains', 'wpcd' ) );
+
+		$fields[] = array(
+			'name' => __( 'Change Domain Documentation', 'wpcd' ),
+			'tab'  => 'change-domain',
+			'type' => 'heading',
+			'desc' => $desc,
+		);
+		/* End documentation Link to WPCloudDeploy Site */
+
 		return $fields;
 
 	}

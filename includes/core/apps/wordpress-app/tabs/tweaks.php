@@ -95,7 +95,7 @@ class WPCD_WORDPRESS_TABS_TWEAKS extends WPCD_WORDPRESS_TABS {
 			}
 		}
 
-		if ( true === $this->wpcd_wpapp_server_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_site_tab( $id, $this->get_tab_slug() ) ) {
+		if ( true === $this->wpcd_wpapp_site_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_site_tab( $id, $this->get_tab_slug() ) ) {
 			switch ( $action ) {
 				/* We prefer not to use a 'default' statement in switches just in case someone pushes in bad data from the front-end and bypasses the security check above. In that case no code will execute without a default block.*/
 				case 'tweaks-toggle-xmlrpc':

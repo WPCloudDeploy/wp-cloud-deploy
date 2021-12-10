@@ -106,7 +106,7 @@ class WPCD_WORDPRESS_TABS_SITE_SYSTEM_USERS extends WPCD_WORDPRESS_TABS {
 			}
 		}
 
-		if ( true === $this->wpcd_wpapp_server_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_site_tab( $id, $this->get_tab_slug() ) ) {
+		if ( true === $this->wpcd_wpapp_site_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_site_tab( $id, $this->get_tab_slug() ) ) {
 			switch ( $action ) {
 				case 'site-user-change-password':
 				case 'site-user-remove-password':

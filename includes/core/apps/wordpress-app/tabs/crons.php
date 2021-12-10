@@ -96,7 +96,7 @@ class WPCD_WORDPRESS_TABS_CRONS extends WPCD_WORDPRESS_TABS {
 			}
 		}
 
-		if ( true === $this->wpcd_wpapp_server_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_site_tab( $id, $this->get_tab_slug() ) ) {
+		if ( true === $this->wpcd_wpapp_site_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_site_tab( $id, $this->get_tab_slug() ) ) {
 			switch ( $action ) {
 				case 'wp-linux-cron-status':
 					// enable/disable the wp linux cron process.

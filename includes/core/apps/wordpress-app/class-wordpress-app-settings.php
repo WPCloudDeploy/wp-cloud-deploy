@@ -831,17 +831,32 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			array(
 				'id'      => 'wordpress_app_hide_login_user_site_summary_column_in_site_list',
 				'type'    => 'checkbox',
-				'name'    => __( 'Hide Login user in Site Summary Column', 'wpcd' ),
+				'name'    => __( 'Hide Login User in Site Summary Column', 'wpcd' ),
 				'tooltip' => __( 'Hide the login user in the site summary column from non-admins in the site list', 'wpcd' ),
 				'tab'     => 'wordpress-app-fields-and-links',
 			),
 			array(
 				'id'      => 'wordpress_app_hide_initial_wp_version_site_summary_column_in_site_list',
 				'type'    => 'checkbox',
-				'name'    => __( 'Hide the initial WP version in Site Summary Column', 'wpcd' ),
-				'tooltip' => __( 'Hide the initial WP version in the site summary column from non-admins in the site list', 'wpcd' ),
+				'name'    => __( 'Hide Initial WP Version in Site Summary Column', 'wpcd' ),
+				'tooltip' => __( 'Hide the initial WP version data in the site summary column from non-admins in the site list', 'wpcd' ),
 				'tab'     => 'wordpress-app-fields-and-links',
 			),
+
+			array(
+				'id'   => 'wordpress_fields_and_links_heading_04',
+				'type' => 'heading',
+				'name' => __( 'Sites: Other', 'wpcd' ),
+				'desc' => __( 'Show or hide certain information in the site list and site screens.', 'wpcd' ),
+				'tab'  => 'wordpress-app-fields-and-links',
+			),
+			array(
+				'id'      => 'wordpress_app_hide_about_caches_text',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide the About Caches text on the WordPress Site Cache Tab', 'wpcd' ),
+				'tooltip' => __( 'Hide the very long explanation about caches on the WordPress Site cache tab', 'wpcd' ),
+				'tab'     => 'wordpress-app-fields-and-links',
+			),						
 
 		);
 

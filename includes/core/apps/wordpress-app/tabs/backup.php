@@ -327,12 +327,14 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 			'tab'  => 'backup',
 			'type' => 'heading',
 		);
-		$fields[] = array(
-			'name'       => __( 'AWS Bucket Name', 'wpcd' ),
+
+		$hide_field = (bool) wpcd_get_early_option( 'wordpress_app_site_backup_hide_aws_bucket_name' ) && ( ! wpcd_is_admin() );
+		$fields[]   = array(
+			'name'       => $hide_field ? '' : __( 'AWS Bucket Name', 'wpcd' ),
 			'id'         => 'wpcd_app_aws_bucket_manual_backup',
-			'desc'       => __( 'Put the backup in this bucket. Leave this blank if you would like the backup to be placed in the default bucket.', 'wpcd' ),
+			'desc'       => $hide_field ? '' : __( 'Put the backup in this bucket. Leave this blank if you would like the backup to be placed in the default bucket.', 'wpcd' ),
 			'tab'        => 'backup',
-			'type'       => 'text',
+			'type'       => $hide_field ? 'hidden' : 'text',
 			'save_field' => false,
 			'attributes' => array(
 				// the key of the field (the key goes in the request).
@@ -382,12 +384,14 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 			'tab'  => 'backup',
 			'type' => 'heading',
 		);
-		$fields[] = array(
+
+		$hide_field = (bool) wpcd_get_early_option( 'wordpress_app_site_backup_hide_aws_bucket_name' ) && ( ! wpcd_is_admin() );
+		$fields[]   = array(
 			'id'         => 'wpcd_app_action_auto_backup_bucket_name',
-			'desc'       => __( 'If this is left blank then the global bucket name from the SETTINGS screen will be used.', 'wpcd' ),
+			'desc'       => $hide_field ? '' : __( 'If this is left blank then the global bucket name from the SETTINGS screen will be used.', 'wpcd' ),
 			'tab'        => 'backup',
-			'type'       => 'text',
-			'name'       => __( 'AWS Bucket Name', 'wpcd' ),
+			'type'       => $hide_field ? 'hidden' : 'text',
+			'name'       => $hide_field ? '' : __( 'AWS Bucket Name', 'wpcd' ),
 			'std'        => $auto_backup_bucket,
 			'attributes' => array(
 				// the key of the field (the key goes in the request).
@@ -396,13 +400,15 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 			'size'       => 90,
 			'save_field' => false,
 		);
-		$fields[] = array(
+
+		$hide_field = (bool) wpcd_get_early_option( 'wordpress_app_site_backup_hide_retention_days' ) && ( ! wpcd_is_admin() );
+		$fields[]   = array(
 			'id'         => 'wpcd_app_action_auto_backup_retention_days',
-			'desc'       => __( 'If left blank or zero, the backups will never be deleted. If set to -1, we will NEVER keep backups on disk (NOT RECOMMENDED).', 'wpcd' ),
+			'desc'       => $hide_field ? '' : __( 'If left blank or zero, the backups will never be deleted. If set to -1, we will NEVER keep backups on disk (NOT RECOMMENDED).', 'wpcd' ),
 			'tab'        => 'backup',
-			'type'       => 'number',
+			'type'       => $hide_field ? 'hidden' : 'number',
 			'min'        => -1,
-			'name'       => __( 'Retention Days', 'wpcd' ),
+			'name'       => $hide_field ? '' : __( 'Retention Days', 'wpcd' ),
 			'std'        => $auto_backup_retention_days,
 			'attributes' => array(
 				// the key of the field (the key goes in the request).
@@ -412,17 +418,18 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 			'save_field' => false,
 		);
 
-		$fields[] = array(
+		$hide_field = (bool) wpcd_get_early_option( 'wordpress_app_site_backup_hide_del_remote_backups' ) && ( ! wpcd_is_admin() );
+		$fields[]   = array(
 			'id'         => 'wpcd_app_action_auto_backup_delete_remotes',
-			'name'       => __( 'Delete Remote Backups', 'wpcd' ),
+			'name'       => $hide_field ? '' : __( 'Delete Remote Backups', 'wpcd' ),
 			'tab'        => 'backup',
-			'type'       => 'select',
+			'type'       => $hide_field ? 'hidden' : 'select',
 			'options'    => array(
 				'off' => __( 'Disabled', 'wpcd' ),
 				'on'  => __( 'Enabled', 'wpcd' ),
 			),
 			'std'        => $auto_backup_delete_remotes,
-			'desc'       => __( 'Delete remote backups when deleting local backups that exceed the retention days. We recommend that you keep this disabled and set a low number for the retention days above.', 'wpcd' ),
+			'desc'       => $hide_field ? '' : __( 'Delete remote backups when deleting local backups that exceed the retention days. We recommend that you keep this disabled and set a low number for the retention days above.', 'wpcd' ),
 			'attributes' => array(
 				// the key of the field (the key goes in the request).
 				'data-wpcd-name' => 'auto_backup_delete_remotes',
@@ -623,52 +630,55 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 		/* End Delete All Backups */
 
 		/* Manually Prune Backups */
-		$fields[] = array(
-			'name' => __( 'Prune Backups', 'wpcd' ),
-			'desc' => __( 'Delete old local backups. Before you can use this option you must have configured backups and run the backup process at least once.', 'wpcd' ),
-			'tab'  => 'backup',
-			'type' => 'heading',
-		);
+		$hide_prune_section = (bool) wpcd_get_early_option( 'wordpress_app_site_backup_hide_prune_backups_section' ) && ( ! wpcd_is_admin() );  // Note: If we ever decide to create action options on teams or for owners, this conditional should be removed in favor of those.
+		if ( ! $hide_prune_section ) {
+			$fields[] = array(
+				'name' => __( 'Prune Backups', 'wpcd' ),
+				'desc' => __( 'Delete old local backups. Before you can use this option you must have configured backups and run the backup process at least once.', 'wpcd' ),
+				'tab'  => 'backup',
+				'type' => 'heading',
+			);
 
-		$fields[] = array(
-			'id'         => 'wpcd_app_action_manual_prune_backup_retention_days',
-			'desc'       => __( 'If left blank or zero, the backups will never be deleted.', 'wpcd' ),
-			'tab'        => 'backup',
-			'type'       => 'number',
-			'std'        => 7,
-			'name'       => __( 'Retention Days', 'wpcd' ),
-			'attributes' => array(
-				// the key of the field (the key goes in the request).
-				'data-wpcd-name' => 'manual_prune_backup_retention_days',
-			),
-			'size'       => 90,
-			'save_field' => false,
-		);
+			$fields[] = array(
+				'id'         => 'wpcd_app_action_manual_prune_backup_retention_days',
+				'desc'       => __( 'If left blank or zero, the backups will never be deleted.', 'wpcd' ),
+				'tab'        => 'backup',
+				'type'       => 'number',
+				'std'        => 7,
+				'name'       => __( 'Retention Days', 'wpcd' ),
+				'attributes' => array(
+					// the key of the field (the key goes in the request).
+					'data-wpcd-name' => 'manual_prune_backup_retention_days',
+				),
+				'size'       => 90,
+				'save_field' => false,
+			);
 
-		$fields[] = array(
-			'id'         => 'wpcd_app_action_delete_local_site_backups',
-			'name'       => '',
-			'tab'        => 'backup',
-			'type'       => 'button',
-			'std'        => __( 'Prune Backups For This Site', 'wpcd' ),
-			'desc'       => __( 'Prune backups for this site.  You must have set a retention interval above before this is used!', 'wpcd' ),
-			// fields that contribute data for this action.
-			'attributes' => array(
-				// the _action that will be called in ajax.
-				'data-wpcd-action'              => 'prune-local-site-backups',
-				// the id.
-				'data-wpcd-id'                  => $id,
+			$fields[] = array(
+				'id'         => 'wpcd_app_action_delete_local_site_backups',
+				'name'       => '',
+				'tab'        => 'backup',
+				'type'       => 'button',
+				'std'        => __( 'Prune Backups For This Site', 'wpcd' ),
+				'desc'       => __( 'Prune backups for this site.  You must have set a retention interval above before this is used!', 'wpcd' ),
 				// fields that contribute data for this action.
-				'data-wpcd-fields'              => json_encode( array( '#wpcd_app_action_manual_prune_backup_retention_days' ) ),               // make sure we give the user a confirmation prompt.
-				'data-wpcd-confirmation-prompt' => __( 'Are you really really SURE you want to prune backups for this site? This action cannot be reversed!', 'wpcd' ),
-				// show log console?
-				'data-show-log-console'         => true,
-				// Initial console message.
-				'data-initial-console-message'  => __( 'Preparing to prune backups for this site on your server.<br /> Please DO NOT EXIT this screen until you see a popup message indicating that the restore has been completed or has errored.<br />This terminal should refresh every 60-90 seconds with updated progress information from the server. <br /> After the restore is complete the entire log can be viewed in the COMMAND LOG screen.', 'wpcd' ),
-			),
-			'class'      => 'wpcd_app_action',
-			'save_field' => false,
-		);
+				'attributes' => array(
+					// the _action that will be called in ajax.
+					'data-wpcd-action'              => 'prune-local-site-backups',
+					// the id.
+					'data-wpcd-id'                  => $id,
+					// fields that contribute data for this action.
+					'data-wpcd-fields'              => json_encode( array( '#wpcd_app_action_manual_prune_backup_retention_days' ) ),               // make sure we give the user a confirmation prompt.
+					'data-wpcd-confirmation-prompt' => __( 'Are you really really SURE you want to prune backups for this site? This action cannot be reversed!', 'wpcd' ),
+					// show log console?
+					'data-show-log-console'         => true,
+					// Initial console message.
+					'data-initial-console-message'  => __( 'Preparing to prune backups for this site on your server.<br /> Please DO NOT EXIT this screen until you see a popup message indicating that the restore has been completed or has errored.<br />This terminal should refresh every 60-90 seconds with updated progress information from the server. <br /> After the restore is complete the entire log can be viewed in the COMMAND LOG screen.', 'wpcd' ),
+				),
+				'class'      => 'wpcd_app_action',
+				'save_field' => false,
+			);
+		}
 		/* End Manually Prune Backups */
 
 		return $fields;

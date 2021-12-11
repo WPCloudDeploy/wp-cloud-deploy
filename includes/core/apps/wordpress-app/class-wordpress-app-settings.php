@@ -882,7 +882,8 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 	}
 
 	/**
-	 * Array of fields used to store the default s3 backup settings.
+	 * Array of fields used to store the default s3 backup settings
+	 * as well as other backup related options.
 	 */
 	public function backup_fields() {
 
@@ -926,6 +927,45 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'std'  => __( 'Warning! If you are using our SELL SERVERS WITH WOOCOMMERCE premium option, do NOT set these defaults. Otherwise all servers, including your customer servers, will be able to get these. Since your customers might be able to log into their own servers, they will be able to view these credentials. Instead, set them on each server as needed.  See our WOOCOMMERCE documentation for more information or contact our support team with your questions.', 'wpcd' ),
 				'tab'  => 'wordpress-app-backup',
 			),
+
+			// Fields that will change how the backup & restore options appear on the sites tab.
+			array(
+				'id'   => 'wordpress_app_backup_heading_02',
+				'type' => 'heading',
+				'name' => __( 'Simplify Backup Options on Sites', 'wpcd' ),
+				'desc' => __( 'For sites, you can remove certain fields to simplify the screen for your users. If you do this, then the value of those fields will default to either the server value or the global values. Please note that admins will always be able to see these fields.', 'wpcd' ),
+				'tab'  => 'wordpress-app-backup',
+			),
+			array(
+				'id'      => 'wordpress_app_site_backup_hide_aws_bucket_name',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide the AWS S3 bucket name', 'wpcd' ),
+				'tooltip' => __( 'Hide the AWS S3 bucket name field on the backup tab on the sites screen.', 'wpcd' ),
+				'tab'     => 'wordpress-app-backup',
+			),
+			array(
+				'id'      => 'wordpress_app_site_backup_hide_retention_days',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide Retention Days', 'wpcd' ),
+				'tooltip' => __( 'Hide the RETENTION DAYS field on the backup tab on the sites screen.', 'wpcd' ),
+				'tab'     => 'wordpress-app-backup',
+			),
+			array(
+				'id'      => 'wordpress_app_site_backup_hide_del_remote_backups',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide Delete Remote Backups', 'wpcd' ),
+				'tooltip' => __( 'Hide the DELETE REMOTE BACKUPS option field on the backup tab on the sites screen.', 'wpcd' ),
+				'tab'     => 'wordpress-app-backup',
+			),
+			array(
+				// Note: If we ever decide to create action options on teams or for owners, this conditional should be removed in favor of those.
+				'id'      => 'wordpress_app_site_backup_hide_prune_backups_section',  
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide Prune Backups Section', 'wpcd' ),
+				'tooltip' => __( 'Hide the entire PRUNE BACKUPS section on the backup tab on the sites screen.', 'wpcd' ),
+				'tab'     => 'wordpress-app-backup',
+			),
+
 		);
 
 		return $fields;

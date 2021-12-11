@@ -19,23 +19,40 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 	 */
 	public function __construct() {
 		parent::__construct();
-		add_filter( "wpcd_app_{$this->get_app_name()}_get_tabnames", array( $this, 'get_tab' ), 10, 1 );
+		add_filter( "wpcd_app_{$this->get_app_name()}_get_tabnames", array( $this, 'get_tab' ), 10, 2 );
 		add_filter( "wpcd_app_{$this->get_app_name()}_get_tabs", array( $this, 'get_tab_fields' ), 10, 2 );
 		add_filter( "wpcd_app_{$this->get_app_name()}_tab_action", array( $this, 'tab_action' ), 10, 3 );
+	}
+
+	/**
+	 * Returns a string that can be used as the unique name for this tab.
+	 */
+	public function get_tab_slug() {
+		return 'php-options';
+	}
+
+	/**
+	 * Returns a string that is the name of a view TEAM permission required to view this tab.
+	 */
+	public function get_view_tab_team_permission_slug() {
+		return 'view_wpapp_site_php_options_tab';
 	}
 
 	/**
 	 * Populates the tab name.
 	 *
 	 * @param array $tabs The default value.
+	 * @param int   $id   The post ID of the server.
 	 *
 	 * @return array    $tabs The default value.
 	 */
-	public function get_tab( $tabs ) {
-		$tabs['php-options'] = array(
-			'label' => __( 'PHP', 'wpcd' ),
-			'icon'  => 'fad fa-cog',
-		);
+	public function get_tab( $tabs, $id ) {
+		if ( true === $this->wpcd_wpapp_site_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_site_tab( $id, $this->get_tab_slug() ) ) {
+			$tabs[ $this->get_tab_slug() ] = array(
+				'label' => __( 'PHP', 'wpcd' ),
+				'icon'  => 'fad fa-cog',
+			);
+		}
 		return $tabs;
 	}
 
@@ -51,7 +68,7 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 	 */
 	public function get_tab_fields( array $fields, $id ) {
 
-		return $this->get_fields_for_tab( $fields, $id, 'php-options' );
+		return $this->get_fields_for_tab( $fields, $id, $this->get_tab_slug() );
 
 	}
 
@@ -71,72 +88,82 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 			return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
 		}
 
-		switch ( $action ) {
-			case 'restart-php-service':
-				$result = $this->restart_php_service( $id, 'restart_php' );
-				if ( ! is_wp_error( $result ) ) {
-					$result = array( 'refresh' => 'yes' );
-				}
-				break;
-			case 'change-php-version':
-				// change the php version.
-				$php_version = get_post_meta( $id, 'wpapp_php_version', true );
-				if ( empty( $php_version ) ) {
-					$php_version = '7.4';
-				}
-				$result = $this->change_php_version( $id, 'change_php_version' );
-				if ( ! is_wp_error( $result ) ) {
-					$result = array( 'refresh' => 'yes' );
-				}
-				break;
-			case 'change-php-common-options':
-				// Verify that the user is allowed to update php site options.
-				if ( ! $this->wpcd_wpapp_user_can_change_php_options( $id ) ) {
-					$msg    = __( 'You don\'t have permission to update PHP options for this site.', 'wpcd' );
-					$result = array(
-						'refresh' => 'yes',
-						'msg'     => $msg,
-					);
+		/* Now verify that the user can perform actions on this screen, assuming that they can view the server */
+		$valid_actions = array( 'restart-php-service', 'change-php-version', 'change-php-common-options', 'change-php-advanced-options', 'change-php-workers-pm' );
+		if ( in_array( $action, $valid_actions, true ) ) {
+			if ( false === $this->wpcd_wpapp_site_user_can( $this->get_view_tab_team_permission_slug(), $id ) && false === $this->wpcd_can_author_view_site_tab( $id, $this->get_tab_slug() ) ) {
+				return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
+			}
+		}
+
+		if ( true === $this->wpcd_wpapp_site_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_site_tab( $id, $this->get_tab_slug() ) ) {
+			switch ( $action ) {
+				case 'restart-php-service':
+					$result = $this->restart_php_service( $id, 'restart_php' );
+					if ( ! is_wp_error( $result ) ) {
+						$result = array( 'refresh' => 'yes' );
+					}
 					break;
-				}
-				// User is allowed to update php options so proceed.
-				$result = $this->change_php_options( $id, 'add_php_param' );
-				if ( ! is_wp_error( $result ) ) {
-					$result = array( 'refresh' => 'yes' );
-				}
-				break;
-			case 'change-php-advanced-options':
-				// Verify that the user is allowed to update php site options.
-				if ( ! $this->wpcd_wpapp_user_can_change_php_advanced_options( $id ) ) {
-					$msg    = __( 'You don\'t have permission to update PHP options for this site.', 'wpcd' );
-					$result = array(
-						'refresh' => 'yes',
-						'msg'     => $msg,
-					);
+				case 'change-php-version':
+					// change the php version.
+					$php_version = get_post_meta( $id, 'wpapp_php_version', true );
+					if ( empty( $php_version ) ) {
+						$php_version = '7.4';
+					}
+					$result = $this->change_php_version( $id, 'change_php_version' );
+					if ( ! is_wp_error( $result ) ) {
+						$result = array( 'refresh' => 'yes' );
+					}
 					break;
-				}
-				// User is allowed to update php options so proceed.
-				$result = $this->change_php_options( $id, 'add_php_param' );
-				if ( ! is_wp_error( $result ) ) {
-					$result = array( 'refresh' => 'yes' );
-				}
-				break;
-			case 'change-php-workers-pm':
-				// Verify that the user is allowed to update php site options/php workers.
-				if ( ! $this->wpcd_wpapp_user_can_change_php_advanced_options( $id ) ) {
-					$msg    = __( 'You don\'t have permission to update PHP workers for this site.', 'wpcd' );
-					$result = array(
-						'refresh' => 'yes',
-						'msg'     => $msg,
-					);
+				case 'change-php-common-options':
+					// Verify that the user is allowed to update php site options.
+					if ( ! $this->wpcd_wpapp_user_can_change_php_options( $id ) ) {
+						$msg    = __( 'You don\'t have permission to update PHP options for this site.', 'wpcd' );
+						$result = array(
+							'refresh' => 'yes',
+							'msg'     => $msg,
+						);
+						break;
+					}
+					// User is allowed to update php options so proceed.
+					$result = $this->change_php_options( $id, 'add_php_param' );
+					if ( ! is_wp_error( $result ) ) {
+						$result = array( 'refresh' => 'yes' );
+					}
 					break;
-				}
-				// User is allowed to update php workers so proceed.
-				$result = $this->change_php_workers( $id, 'change_php_workers' );
-				if ( ! is_wp_error( $result ) ) {
-					$result = array( 'refresh' => 'yes' );
-				}
-				break;
+				case 'change-php-advanced-options':
+					// Verify that the user is allowed to update php site options.
+					if ( ! $this->wpcd_wpapp_user_can_change_php_advanced_options( $id ) ) {
+						$msg    = __( 'You don\'t have permission to update PHP options for this site.', 'wpcd' );
+						$result = array(
+							'refresh' => 'yes',
+							'msg'     => $msg,
+						);
+						break;
+					}
+					// User is allowed to update php options so proceed.
+					$result = $this->change_php_options( $id, 'add_php_param' );
+					if ( ! is_wp_error( $result ) ) {
+						$result = array( 'refresh' => 'yes' );
+					}
+					break;
+				case 'change-php-workers-pm':
+					// Verify that the user is allowed to update php site options/php workers.
+					if ( ! $this->wpcd_wpapp_user_can_change_php_advanced_options( $id ) ) {
+						$msg    = __( 'You don\'t have permission to update PHP workers for this site.', 'wpcd' );
+						$result = array(
+							'refresh' => 'yes',
+							'msg'     => $msg,
+						);
+						break;
+					}
+					// User is allowed to update php workers so proceed.
+					$result = $this->change_php_workers( $id, 'change_php_workers' );
+					if ( ! is_wp_error( $result ) ) {
+						$result = array( 'refresh' => 'yes' );
+					}
+					break;
+			}
 		}
 		return $result;
 	}

@@ -99,7 +99,10 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 	 * @return array $tabs New array of tabs on the settings page
 	 */
 	public function settings_tabs( $tabs ) {
-		$new_tab = array( 'app-wordpress-app' => __( 'APP: WordPress - Settings', 'wpcd' ) );
+		$new_tab = array(
+			'app-wordpress-app'          => __( 'APP: WordPress - Settings', 'wpcd' ),
+			'app-wordpress-app-security' => __( 'APP: WordPress - Security', 'wpcd' ),
+		);
 		$tabs    = $tabs + $new_tab;
 		return $tabs;
 	}
@@ -128,10 +131,25 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 		// List of tabs in the metabox, in one of the following formats:
 		// 1) key => label.
 		// 2) key => array( 'label' => Tab label, 'icon' => Tab icon ).
-			'tabs'           => $this->metabox_tabs(),
+			'tabs'           => $this->wordpress_app_metabox_tabs(),
 			'tab_style'      => 'left',
 			'tab_wrapper'    => true,
 			'fields'         => apply_filters( 'wpcd_wordpress-app_settings_fields', $this->all_fields() ),
+
+		);
+
+		$metaboxes[] = array(
+			'id'             => 'wordpress-app-security',
+			'title'          => __( 'General WordPress App Security', 'wpcd' ),
+			'settings_pages' => 'wpcd_settings',
+			'tab'            => 'app-wordpress-app-security',  // this is the top level tab on the setttings screen, not to be confused with the tabs inside a metabox as we're defining below!
+		// List of tabs in the metabox, in one of the following formats:
+		// 1) key => label.
+		// 2) key => array( 'label' => Tab label, 'icon' => Tab icon ).
+			'tabs'           => $this->wordpress_app_metabox_security_tabs(),
+			'tab_style'      => 'left',
+			'tab_wrapper'    => true,
+			'fields'         => apply_filters( 'wpcd_wordpress-app_security_settings_fields', $this->all_security_fields() ),
 
 		);
 
@@ -139,9 +157,9 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 	}
 
 	/**
-	 * Return a list of tabs that will go inside the metabox.
+	 * Return a list of tabs that will go inside the WordPress App metabox.
 	 */
-	public function metabox_tabs() {
+	public function wordpress_app_metabox_tabs() {
 		$tabs = array(
 			'wordpress-app-general-wpadmin'      => array(
 				'label' => 'General',
@@ -164,7 +182,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'icon'  => 'dashicons-admin-plugins',
 			),
 			'wordpress-app-dns-cloudflare'       => array(
-				'label' => 'DNS Integration: Cloudflare',
+				'label' => 'DNS: Cloudflare',
 				'icon'  => 'dashicons-cloud',
 			),
 			'wordpress-app-email-notify'         => array(
@@ -191,7 +209,10 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'label' => 'Rest API',
 				'icon'  => 'dashicons-rest-api',
 			),
-
+			'wordpress-app-white-label'          => array(
+				'label' => 'White Label Basics',
+				'icon'  => 'dashicons-randomize',
+			),
 		/*
 		'wordpress-app-scripts' => array(
 			'label' => 'Scripts',
@@ -201,6 +222,27 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 		);
 
 		return apply_filters( 'wpcd_wordpress-app_settings_tabs', $tabs );
+	}
+
+	/**
+	 * Return a list of tabs that will go inside the WordPress App Security metabox.
+	 */
+	public function wordpress_app_metabox_security_tabs() {
+		$tabs = array(
+			'wordpress-app-security-live-sites'    => array(
+				'label' => 'Production Sites',
+				'icon'  => 'dashicons-lock',
+			),
+			'wordpress-app-security-staging-sites' => array(
+				'label' => 'Staging Sites',
+				'icon'  => 'dashicons-lock',
+			),
+			'wordpress-app-security-live-servers'  => array(
+				'label' => 'Servers',
+				'icon'  => 'dashicons-lock',
+			),
+		);
+		return $tabs;
 	}
 
 	/**
@@ -221,8 +263,312 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 		$email_gateway_load_defaults  = $this->email_gateway_load_defaults();
 		$cf_dns_fields                = $this->cf_dns_fields();
 		$rest_api_fields              = $this->rest_api_fields();
-		$all_fields                   = array_merge( $general_fields, $server_fields, $backup_fields, $fields_and_links, $theme_and_plugin_updates, $email_notification_fields, $slack_notification_fields, $zapier_notification_fields, $button_color_settings_fields, $email_gateway_load_defaults, $cf_dns_fields, $rest_api_fields );
+		$white_label_fields           = $this->white_label_fields();
+		$all_fields                   = array_merge( $general_fields, $server_fields, $backup_fields, $fields_and_links, $theme_and_plugin_updates, $email_notification_fields, $slack_notification_fields, $zapier_notification_fields, $button_color_settings_fields, $email_gateway_load_defaults, $cf_dns_fields, $rest_api_fields, $white_label_fields );
 		return $all_fields;
+	}
+
+	/**
+	 * Return an array that combines all fields that will go in the WordPress App security tabs.
+	 */
+	public function all_security_fields() {
+		return array_merge( $this->all_site_security_fields(), $this->all_server_security_fields() );
+	}
+
+	/**
+	 * Return an array that combines all fields that will go in the WordPress App security tabs for SITES.
+	 */
+	public function all_site_security_fields() {
+
+		$fields = array();
+
+		// An array of tabs where we'll be creating dynamic settings.  Should be the IDS of existing tabs defined in the 'wordpress_app_metabox_security_tabs' function earlier in this class.
+		// We're going to use the second part of the associative array as a short-id because the tab id itself is too long.
+		$context_tabs = array(
+			'wordpress-app-security-live-sites'    => 'live-sites',
+			'wordpress-app-security-staging-sites' => 'staging-sites',
+		);
+
+		// The owner types we'll be handling.
+		$context_owners = array(
+			'site-owner'            => __( 'Site Owners', 'wpcd' ),
+			'site-and-server-owner' => __( 'Site & Server Owners', 'wpcd' ),
+		);
+
+		// The site tabs we'll be collecting security exceptions for.
+		$tabs = array(
+			'6g_waf'                   => __( '6G Firewall', 'wpcd' ),
+			'7g_waf'                   => __( '7G Firewall', 'wpcd' ),
+			'backup'                   => __( 'Backup', 'wpcd' ),
+			'cache'                    => __( 'Cache', 'wpcd' ),
+			'change-domain'            => __( 'Change Domain', 'wpcd' ),
+			'clone-site'               => __( 'Clone Site', 'wpcd' ),
+			'copy-to-existing-site'    => __( 'Copy To Existing Site', 'wpcd' ),
+			'crons'                    => __( 'Crons', 'wpcd' ),
+			'general'                  => __( 'General', 'wpcd' ),
+			'site-logs'                => __( 'Logs', 'wpcd' ),
+			'misc'                     => __( 'Misc', 'wpcd' ),
+			'database'                 => __( 'Database', 'wpcd' ),
+			'php-options'              => __( 'PHP', 'wpcd' ),
+			'redirect-rules'           => __( 'Redirect Rules', 'wpcd' ),
+			'sftp'                     => __( 'sFTP', 'wpcd' ),
+			'site-sync'                => __( 'Site Sync', 'wpcd' ),
+			'ssl'                      => __( 'SSL', 'wpcd' ),
+			'staging'                  => __( 'Staging', 'wpcd' ),
+			'statistics'               => __( 'Statistics', 'wpcd' ),
+			'theme-and-plugin-updates' => __( 'Site Updates', 'wpcd' ),
+			'tools'                    => __( 'Tools', 'wpcd' ),
+			'tweaks'                   => __( 'Tweaks', 'wpcd' ),
+			'multisite'                => __( 'Multisite', 'wpcd' ),
+		);
+
+		// Loop through the settings tabs...
+		$wpcd_id_prefix = 'wpcd_wpapp_site_security_exception';
+		foreach ( $context_tabs as $context_tab => $context_tab_short_id ) {
+			// Heading.
+			$desc     = __( 'Which tabs should be hidden from site owners?', 'wpcd' );
+			$desc    .= '<br />' . __( 'There are two options: 1. Hide a tab from a site owner.  2. Hide a tab from a site owner who is also the owner of a server.', 'wpcd' );
+			$desc    .= '<br />' . __( 'If you only choose an option in the first column but leave the second column disabled then an owner of a site that is also the owner of a server will NOT have the selected tab / option hidden.', 'wpcd' );
+			$fields[] = array(
+				'name' => __( 'Hide Site Tabs from Site Owners', 'wpcd' ),
+				'id'   => "{$wpcd_id_prefix}_{$context_tab_short_id}_site_owner_header",
+				'type' => 'heading',
+				'std'  => '',
+				'desc' => $desc,
+				'tab'  => $context_tab,
+			);
+			// Three columns at the top of each settings tab.
+			$fields[] = array(
+				'name'    => __( 'Tab/options', 'wpcd' ),
+				'id'      => "{$wpcd_id_prefix}_{$context_tab_short_id}_tab_header_column",
+				'type'    => 'custom_html',
+				'std'     => '',
+				'columns' => 4,
+				'tab'     => $context_tab,
+			);
+			$fields[] = array(
+				'name'    => __( 'Site Owners', 'wpcd' ),
+				'id'      => "{$wpcd_id_prefix}_{$context_tab_short_id}_site_owner_header_column",
+				'type'    => 'custom_html',
+				'std'     => '',
+				'columns' => 4,
+				'tab'     => $context_tab,
+				'tooltip' => __( 'Disable site owner access to these items.', 'wpcd' ),
+			);
+			$fields[] = array(
+				'name'    => __( 'Site & Server Owners', 'wpcd' ),
+				'id'      => "{$wpcd_id_prefix}_{$context_tab_short_id}_site_server_owner_header_column",
+				'type'    => 'custom_html',
+				'std'     => '',
+				'columns' => 4,
+				'tab'     => $context_tab,
+				'tooltip' => __( 'Disable site owner access to these items even if they are also the server owner.', 'wpcd' ),
+			);
+			// Loop through the array of site tabs.
+			foreach ( $tabs as $tab_key => $tab_desc ) {
+				// First column is just the label with the tab name.
+				$fields[] = array(
+					'name'    => "{$tab_desc}",
+					'id'      => "{$wpcd_id_prefix}_{$context_tab_short_id}_column1_{$tab_key}_label",
+					'type'    => 'custom_html',
+					'tab'     => $context_tab,
+					'columns' => 4,
+				);
+				// The next two columns are for the owner types.
+				foreach ( $context_owners as $owner_key => $owner_label ) {
+					$fields[] = array(
+						'name'      => '',
+						'id'        => "{$wpcd_id_prefix}_{$context_tab_short_id}_{$owner_key}_{$tab_key}",
+						'type'      => 'switch',
+						'on_label'  => __( 'Hide Tab', 'wpcd' ),
+						'off_label' => __( 'Show Tab', 'wpcd' ),
+						'tab'       => $context_tab,
+						'columns'   => 4,
+					);
+				}
+			}
+
+			// Heading - for roles.
+			$fields[] = array(
+				'name' => __( 'Hide Site Tabs from Roles', 'wpcd' ),
+				'id'   => "{$wpcd_id_prefix}_{$context_tab_short_id}_site_owner_header_roles",
+				'type' => 'heading',
+				'std'  => '',
+				'desc' => __( 'Which tabs should be hidden from site owners from these roles?', 'wpcd' ),
+				'tab'  => $context_tab,
+			);
+			// Loop through the array of site tabs, again.
+			foreach ( $tabs as $tab_key => $tab_desc ) {
+				// First column is just the label with the tab name.
+				$fields[] = array(
+					'name'    => "{$tab_desc}",
+					'id'      => "{$wpcd_id_prefix}_{$context_tab_short_id}_{$owner_key}_{$tab_key}_role_label",
+					'type'    => 'custom_html',
+					'tab'     => $context_tab,
+					'columns' => 6,
+				);
+				// Collect the roles.
+				$fields[] = array(
+					'name'            => '',
+					'id'              => "{$wpcd_id_prefix}_{$context_tab_short_id}_{$tab_key}_roles",
+					'type'            => 'select_advanced',
+					'options'         => wpcd_get_roles(),
+					'select_all_none' => true,
+					'multiple'        => true,
+					'placeholder'     => __( 'Select list of roles that should not see this tab.', 'wpcd' ),
+					'tab'             => $context_tab,
+					'columns'         => 6,
+				);
+
+			}
+		}
+
+		$context_tabs = array(
+			'wordpress-app-security-live-servers'    => 'live-servers',
+			'wordpress-app-security-staging-servers' => 'staging-servers',
+		);
+
+		return $fields;
+
+	}
+
+	/**
+	 * Return an array that combines all fields that will go in the WordPress App security tabs for SERVERS.
+	 */
+	public function all_server_security_fields() {
+
+		$fields = array();
+
+		// An array of tabs where we'll be creating dynamic settings.  Should be the IDS of existing tabs defined in the 'wordpress_app_metabox_security_tabs' function earlier in this class.
+		// We're going to use the second part of the associative array as a short-id because the tab id itself is too long.
+		$context_tabs = array(
+			'wordpress-app-security-live-servers' => 'live-servers',
+		);
+
+		// The owner types we'll be handling.
+		$context_owners = array(
+			'server-owner' => __( 'Server Owners', 'wpcd' ),
+		);
+
+		// The server tabs we'll be collecting security exceptions for.
+		$tabs = array(
+			'server_backup'   => __( 'Backup', 'wpcd' ),
+			'callbacks'       => __( 'Callbacks', 'wpcd' ),
+			'fail2ban'        => __( 'Fail2ban', 'wpcd' ),
+			'goaccess'        => __( 'Goaccess', 'wpcd' ),
+			'server-logs'     => __( 'Server Logs', 'wpcd' ),
+			'monit'           => __( 'Healing', 'wpcd' ),
+			'monitorix'       => __( 'Monitorix', 'wpcd' ),
+			'power'           => __( 'Power', 'wpcd' ),
+			'services'        => __( 'Services', 'wpcd' ),
+			'sites'           => __( 'Sites', 'wpcd' ),
+			'ssh_console'     => __( 'SSH Console', 'wpcd' ),
+			'server-ssh-keys' => __( 'SSH Keys', 'wpcd' ),
+			'svr_statistics'  => __( 'Statistics', 'wpcd' ),
+			'svr_tools'       => __( 'Tools', 'wpcd' ),
+			'svr_tweaks'      => __( 'Tweaks', 'wpcd' ),
+			'firewall'        => __( 'Firewall', 'wpcd' ),
+			'server_upgrade'  => __( 'Upgrades', 'wpcd' ),
+			'server-users'    => __( 'Users', 'wpcd' ),
+
+		);
+
+		// Loop through the settings tabs...
+		$wpcd_id_prefix = 'wpcd_wpapp_server_security_exception';
+		foreach ( $context_tabs as $context_tab => $context_tab_short_id ) {
+			// Heading.
+			$fields[] = array(
+				'name' => __( 'Hide Server Tabs from Server Owners', 'wpcd' ),
+				'id'   => "{$wpcd_id_prefix}_{$context_tab_short_id}_server_owner_header",
+				'type' => 'heading',
+				'std'  => '',
+				'desc' => __( 'Which tabs should be hidden from server owners?', 'wpcd' ),
+				'tab'  => $context_tab,
+			);
+			// Two columns at the top of each settings tab.
+			$fields[] = array(
+				'name'    => __( 'Tab/options', 'wpcd' ),
+				'id'      => "{$wpcd_id_prefix}_{$context_tab_short_id}_tab_header_column",
+				'type'    => 'custom_html',
+				'std'     => '',
+				'columns' => 6,
+				'tab'     => $context_tab,
+			);
+			$fields[] = array(
+				'name'    => __( 'Server Owners', 'wpcd' ),
+				'id'      => "{$wpcd_id_prefix}_{$context_tab_short_id}_server_owner_header_column",
+				'type'    => 'custom_html',
+				'std'     => '',
+				'columns' => 6,
+				'tab'     => $context_tab,
+				'tooltip' => __( 'Disable server owner access to these items.', 'wpcd' ),
+			);
+
+			// Loop through the array of server tabs.
+			foreach ( $tabs as $tab_key => $tab_desc ) {
+				// First column is just the label with the tab name.
+				$fields[] = array(
+					'name'    => "{$tab_desc}",
+					'id'      => "{$wpcd_id_prefix}_{$context_tab_short_id}_column1_{$tab_key}_label",
+					'type'    => 'custom_html',
+					'tab'     => $context_tab,
+					'tooltip' => "{$tab_key}",
+					'columns' => 6,
+				);
+				// The next ONE columns are for the owner types.  Only one element in the array but keeping it as a loop to match the pattern for the sites function.
+				foreach ( $context_owners as $owner_key => $owner_label ) {
+					$fields[] = array(
+						'name'      => '',
+						'id'        => "{$wpcd_id_prefix}_{$context_tab_short_id}_{$owner_key}_{$tab_key}",
+						'type'      => 'switch',
+						'on_label'  => __( 'Hide Tab', 'wpcd' ),
+						'off_label' => __( 'Show Tab', 'wpcd' ),
+						'desc'      => "<small>{$context_tab_short_id}_{$owner_key}_{$tab_key}</small>",
+						'tab'       => $context_tab,
+						'columns'   => 6,
+					);
+				}
+			}
+
+			// Heading - for roles.
+			$fields[] = array(
+				'name' => __( 'Hide Server Tabs from Roles', 'wpcd' ),
+				'id'   => "{$wpcd_id_prefix}_{$context_tab_short_id}_server_owner_header_roles",
+				'type' => 'heading',
+				'std'  => '',
+				'desc' => __( 'Which tabs should be hidden from server owners from these roles?', 'wpcd' ),
+				'tab'  => $context_tab,
+			);
+			// Loop through the array of server tabs, again.
+			foreach ( $tabs as $tab_key => $tab_desc ) {
+				// First column is just the label with the tab name.
+				$fields[] = array(
+					'name'    => "{$tab_desc}",
+					'id'      => "{$wpcd_id_prefix}_{$context_tab_short_id}_{$owner_key}_{$tab_key}_role_label",
+					'type'    => 'custom_html',
+					'tab'     => $context_tab,
+					'tooltip' => "{$tab_key}",
+					'columns' => 6,
+				);
+				// Collect the roles.
+				$fields[] = array(
+					'name'            => '',
+					'id'              => "{$wpcd_id_prefix}_{$context_tab_short_id}_{$tab_key}_roles",
+					'type'            => 'select_advanced',
+					'options'         => wpcd_get_roles(),
+					'select_all_none' => true,
+					'multiple'        => true,
+					'placeholder'     => __( 'Select list of roles that should not see this tab.', 'wpcd' ),
+					'desc'            => "{$context_tab_short_id}_{$tab_key}_roles",
+					'tab'             => $context_tab,
+					'columns'         => 6,
+				);
+
+			}
+		}
+
+		return $fields;
+
 	}
 
 	/**
@@ -463,15 +809,72 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'name' => __( 'Sites', 'wpcd' ),
 				'desc' => __( 'Show or hide certain fields in the site list and site screens.', 'wpcd' ),
 				'tab'  => 'wordpress-app-fields-and-links',
-			),			
+			),
 			array(
 				'id'      => 'wordpress_app_show_staging_column_in_site_list',
 				'type'    => 'checkbox',
 				'name'    => __( 'Show Staging Column', 'wpcd' ),
 				'tooltip' => __( 'Show the staging column in the site list', 'wpcd' ),
 				'tab'     => 'wordpress-app-fields-and-links',
-			),			
+			),
 
+			array(
+				'id'   => 'wordpress_fields_and_links_heading_03',
+				'type' => 'heading',
+				'name' => __( 'Sites: Compound Fields', 'wpcd' ),
+				'desc' => __( 'Show or hide certain fields in the site list and site screens.', 'wpcd' ),
+				'tab'  => 'wordpress-app-fields-and-links',
+			),
+			array(
+				'id'      => 'wordpress_app_hide_domain_site_summary_column_in_site_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide Domain in Site Summary Column', 'wpcd' ),
+				'tooltip' => __( 'Hide the domain in the site summary column from non-admins in the site list. This is useful because it is sometimes redundant with the title column.', 'wpcd' ),
+				'tab'     => 'wordpress-app-fields-and-links',
+			),
+			array(
+				'id'      => 'wordpress_app_hide_login_user_site_summary_column_in_site_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide Login User in Site Summary Column', 'wpcd' ),
+				'tooltip' => __( 'Hide the login user in the site summary column from non-admins in the site list', 'wpcd' ),
+				'tab'     => 'wordpress-app-fields-and-links',
+			),
+			array(
+				'id'      => 'wordpress_app_hide_initial_wp_version_site_summary_column_in_site_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide Initial WP Version in Site Summary Column', 'wpcd' ),
+				'tooltip' => __( 'Hide the initial WP version data in the site summary column from non-admins in the site list', 'wpcd' ),
+				'tab'     => 'wordpress-app-fields-and-links',
+			),
+
+			array(
+				'id'   => 'wordpress_fields_and_links_heading_04',
+				'type' => 'heading',
+				'name' => __( 'Sites: Other', 'wpcd' ),
+				'desc' => __( 'Show or hide certain information in the site list and site screens.', 'wpcd' ),
+				'tab'  => 'wordpress-app-fields-and-links',
+			),
+			array(
+				'id'      => 'wordpress_app_hide_about_caches_text',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide the About Caches text on the WordPress Site Cache Tab', 'wpcd' ),
+				'tooltip' => __( 'Hide the very long explanation about caches on the WordPress Site cache tab', 'wpcd' ),
+				'tab'     => 'wordpress-app-fields-and-links',
+			),
+			array(
+				'id'      => 'wordpress_app_hide_change_domain_explanatory_text',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide Explanatory Text on the WordPress Site Change Domain Tab', 'wpcd' ),
+				'tooltip' => __( 'Hide the very long explanations on the WordPress Site Change Domain tab.', 'wpcd' ),
+				'tab'     => 'wordpress-app-fields-and-links',
+			),
+			array(
+				'id'      => 'wordpress_app_hide_addl_stats_explanatory_text',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide Additional Statistics box on the WordPress Site Statistics Tab', 'wpcd' ),
+				'tooltip' => __( 'Hide the additional statisics box on the WordPress Site statistics tab from non-admin users.', 'wpcd' ),
+				'tab'     => 'wordpress-app-fields-and-links',
+			),
 
 		);
 
@@ -479,7 +882,8 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 	}
 
 	/**
-	 * Array of fields used to store the default s3 backup settings.
+	 * Array of fields used to store the default s3 backup settings
+	 * as well as other backup related options.
 	 */
 	public function backup_fields() {
 
@@ -523,6 +927,45 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'std'  => __( 'Warning! If you are using our SELL SERVERS WITH WOOCOMMERCE premium option, do NOT set these defaults. Otherwise all servers, including your customer servers, will be able to get these. Since your customers might be able to log into their own servers, they will be able to view these credentials. Instead, set them on each server as needed.  See our WOOCOMMERCE documentation for more information or contact our support team with your questions.', 'wpcd' ),
 				'tab'  => 'wordpress-app-backup',
 			),
+
+			// Fields that will change how the backup & restore options appear on the sites tab.
+			array(
+				'id'   => 'wordpress_app_backup_heading_02',
+				'type' => 'heading',
+				'name' => __( 'Simplify Backup Options on Sites', 'wpcd' ),
+				'desc' => __( 'For sites, you can remove certain fields to simplify the screen for your users. If you do this, then the value of those fields will default to either the server value or the global values. Please note that admins will always be able to see these fields.', 'wpcd' ),
+				'tab'  => 'wordpress-app-backup',
+			),
+			array(
+				'id'      => 'wordpress_app_site_backup_hide_aws_bucket_name',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide the AWS S3 bucket name', 'wpcd' ),
+				'tooltip' => __( 'Hide the AWS S3 bucket name field on the backup tab on the sites screen.', 'wpcd' ),
+				'tab'     => 'wordpress-app-backup',
+			),
+			array(
+				'id'      => 'wordpress_app_site_backup_hide_retention_days',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide Retention Days', 'wpcd' ),
+				'tooltip' => __( 'Hide the RETENTION DAYS field on the backup tab on the sites screen.', 'wpcd' ),
+				'tab'     => 'wordpress-app-backup',
+			),
+			array(
+				'id'      => 'wordpress_app_site_backup_hide_del_remote_backups',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide Delete Remote Backups', 'wpcd' ),
+				'tooltip' => __( 'Hide the DELETE REMOTE BACKUPS option field on the backup tab on the sites screen.', 'wpcd' ),
+				'tab'     => 'wordpress-app-backup',
+			),
+			array(
+				// Note: If we ever decide to create action options on teams or for owners, this conditional should be removed in favor of those.
+				'id'      => 'wordpress_app_site_backup_hide_prune_backups_section',  
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide Prune Backups Section', 'wpcd' ),
+				'tooltip' => __( 'Hide the entire PRUNE BACKUPS section on the backup tab on the sites screen.', 'wpcd' ),
+				'tab'     => 'wordpress-app-backup',
+			),
+
 		);
 
 		return $fields;
@@ -910,6 +1353,82 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			),
 		);
 		return $fields;
+	}
+
+	/**
+	 * Return an array that combines all fields that will go in white label fields tab.
+	 */
+	public function white_label_fields() {
+
+		$fields = array();
+
+		// Header.
+		$fields[] = array(
+			'name' => __( 'White Label Basics', 'wpcd' ),
+			'id'   => 'wordpress-app-white-label-basics-heading',
+			'type' => 'heading',
+			'std'  => '',
+			'desc' => __( 'We have provided the most popular white label options here.  But, when you want to go further you still have the vast open sea of WP style hooks and filters as well as 3rd party plugins to help you completely customize your WPCD dashboard.', 'wpcd' ),
+			'tab'  => 'wordpress-app-white-label',
+		);
+
+		// Logo Header.
+		$fields[] = array(
+			'name' => __( 'Logo', 'wpcd' ),
+			'id'   => 'wordpress-app-logo-overides-heading',
+			'type' => 'heading',
+			'std'  => '',
+			'desc' => __( '[Coming soon] Use your own logo on the server and site creation screen.  You can also completely remove the logo with an entry in wp-config - check out the docs on our website for more information about that option.', 'wpcd' ),
+			'tab'  => 'wordpress-app-white-label',
+		);
+
+		/**
+		 * Documentation Link Overrides Fields
+		 */
+		// An array of ids and labels for text fields that overide documentation links.
+		$doc_links = array(
+			'wordpress-app-doc-link-theme-plugin-updates' => array(
+				'label' => __( 'Site Updates', 'wpcd' ),
+				'desc'  => __( 'The documentation link in the SITE UPDATES tab.', 'wpcd' ),
+			),
+			'wordpress-app-doc-change-domain'             => array(
+				'label' => __( 'Change Domains', 'wpcd' ),
+				'desc'  => __( 'The documentation link in the CHANGE DOMAIN tab.', 'wpcd' ),
+			),
+			'wordpress-app-doc-link-page-cache'           => array(
+				'label' => __( 'Cache Information', 'wpcd' ),
+				'desc'  => __( 'The documentation link for more information about caching on the CACHE tab.', 'wpcd' ),
+			),
+			'wordpress-app-doc-link-memcached-info'       => array(
+				'label' => __( 'Memcached Information', 'wpcd' ),
+				'desc'  => __( 'The documentation link for more information about Memcached on the CACHE tab.', 'wpcd' ),
+			),
+		);
+
+		// Header.
+		$fields[] = array(
+			'name' => __( 'Documentation Link Overrides', 'wpcd' ),
+			'id'   => 'wordpress-app-doc-link-overides-heading',
+			'type' => 'heading',
+			'std'  => '',
+			'desc' => __( 'Point users to your own documentation instead of the standard WPCloudDeploy documentation.', 'wpcd' ),
+			'tab'  => 'wordpress-app-white-label',
+		);
+
+		// Loop through the doc links array and generate settings fields.
+		foreach ( $doc_links as $doc_key => $doc_link ) {
+			// First column is just the label with the tab name.
+			$fields[] = array(
+				'name' => "{$doc_link['label']}",
+				'id'   => "{$doc_key}",
+				'type' => 'url',
+				'desc' => "{$doc_link['desc']}",
+				'tab'  => 'wordpress-app-white-label',
+			);
+		}
+
+		return $fields;
+
 	}
 
 }

@@ -58,6 +58,13 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
+	 * Returns a string that is the name of a view TEAM permission required to view this tab.
+	 */
+	public function get_view_tab_team_permission_slug() {
+		return 'view_wpapp_server_upgrade_tab';
+	}
+
+	/**
 	 * Populates the tab name.
 	 *
 	 * @param array $tabs   The default value.
@@ -66,7 +73,7 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 	 * @return array    $tabs   New array of tabs
 	 */
 	public function get_tab( $tabs, $id ) {
-		if ( true === $this->wpcd_wpapp_server_user_can( 'view_wpapp_server_upgrade_tab', $id ) && true === $this->wpcd_can_author_view_server_tab( $id, $this->get_tab_slug() ) ) {
+		if ( true === $this->wpcd_wpapp_server_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_server_tab( $id, $this->get_tab_slug() ) ) {
 			$tabs[ $this->get_tab_slug() ] = array(
 				'label' => __( 'Upgrades', 'wpcd' ),
 				'icon'  => 'fad fa-chart-network',
@@ -106,6 +113,9 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 			/* translators: %1s is replaced with an internal action name; %2$s is replaced with the file name; %3$s is replaced with the post id being acted on. %4$s is the user id running this action. */
 			return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
 		}
+
+		// Skipping security action check that would allow us to show the user a nice message if it failed.
+		// If user is not permitted to do something and actually somehow ends up here, it will fall through the SWITCH statement below and silently fail.
 
 		// Perform actions if allowed to do so.
 		if ( $this->wpcd_wpapp_server_user_can( 'view_wpapp_server_upgrade_tab', $id ) && $this->wpcd_can_author_view_server_tab( $id, $this->get_tab_slug() ) ) {

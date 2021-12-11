@@ -19,23 +19,40 @@ class WPCD_WORDPRESS_TABS_CRONS extends WPCD_WORDPRESS_TABS {
 	 */
 	public function __construct() {
 		parent::__construct();
-		add_filter( "wpcd_app_{$this->get_app_name()}_get_tabnames", array( $this, 'get_tab' ), 10, 1 );
+		add_filter( "wpcd_app_{$this->get_app_name()}_get_tabnames", array( $this, 'get_tab' ), 10, 2 );
 		add_filter( "wpcd_app_{$this->get_app_name()}_get_tabs", array( $this, 'get_tab_fields' ), 10, 2 );
 		add_filter( "wpcd_app_{$this->get_app_name()}_tab_action", array( $this, 'tab_action' ), 10, 3 );
+	}
+
+	/**
+	 * Returns a string that can be used as the unique name for this tab.
+	 */
+	public function get_tab_slug() {
+		return 'crons';
+	}
+
+	/**
+	 * Returns a string that is the name of a view TEAM permission required to view this tab.
+	 */
+	public function get_view_tab_team_permission_slug() {
+		return 'view_wpapp_site_crons_tab';
 	}
 
 	/**
 	 * Populates the tab name.
 	 *
 	 * @param array $tabs The default value.
+	 * @param int   $id   The post ID of the server.
 	 *
 	 * @return array    $tabs The default value.
 	 */
-	public function get_tab( $tabs ) {
-		$tabs['crons'] = array(
-			'label' => __( 'Crons', 'wpcd' ),
-			'icon'  => 'fad fa-clock',
-		);
+	public function get_tab( $tabs, $id ) {
+		if ( true === $this->wpcd_wpapp_site_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_site_tab( $id, $this->get_tab_slug() ) ) {
+			$tabs[ $this->get_tab_slug() ] = array(
+				'label' => __( 'Crons', 'wpcd' ),
+				'icon'  => 'fad fa-clock',
+			);
+		}
 		return $tabs;
 	}
 
@@ -51,7 +68,7 @@ class WPCD_WORDPRESS_TABS_CRONS extends WPCD_WORDPRESS_TABS {
 	 */
 	public function get_tab_fields( array $fields, $id ) {
 
-		return $this->get_fields_for_tab( $fields, $id, 'crons' );
+		return $this->get_fields_for_tab( $fields, $id, $this->get_tab_slug() );
 
 	}
 
@@ -71,19 +88,29 @@ class WPCD_WORDPRESS_TABS_CRONS extends WPCD_WORDPRESS_TABS {
 			return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
 		}
 
-		switch ( $action ) {
-			case 'wp-linux-cron-status':
-				// enable/disable the wp linux cron process.
-				$current_status = get_post_meta( $id, 'wpapp_wp_linux_cron_status', true );
-				if ( empty( $current_status ) ) {
-					$current_status = 'off';
-				}
-				$result = $this->toggle_wp_linux_cron_status( $id, $current_status === 'on' ? 'disable_system_cron' : 'enable_system_cron' );
-				if ( ! is_wp_error( $result ) ) {
-					update_post_meta( $id, 'wpapp_wp_linux_cron_status', $current_status === 'on' ? 'off' : 'on' );
-					$result = array( 'refresh' => 'yes' );
-				}
-				break;
+		/* Now verify that the user can perform actions on this screen, assuming that they can view the server */
+		$valid_actions = array( 'wp-linux-cron-status' );
+		if ( in_array( $action, $valid_actions, true ) ) {
+			if ( false === $this->wpcd_wpapp_site_user_can( $this->get_view_tab_team_permission_slug(), $id ) && false === $this->wpcd_can_author_view_site_tab( $id, $this->get_tab_slug() ) ) {
+				return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
+			}
+		}
+
+		if ( true === $this->wpcd_wpapp_site_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_site_tab( $id, $this->get_tab_slug() ) ) {
+			switch ( $action ) {
+				case 'wp-linux-cron-status':
+					// enable/disable the wp linux cron process.
+					$current_status = get_post_meta( $id, 'wpapp_wp_linux_cron_status', true );
+					if ( empty( $current_status ) ) {
+						$current_status = 'off';
+					}
+					$result = $this->toggle_wp_linux_cron_status( $id, $current_status === 'on' ? 'disable_system_cron' : 'enable_system_cron' );
+					if ( ! is_wp_error( $result ) ) {
+						update_post_meta( $id, 'wpapp_wp_linux_cron_status', $current_status === 'on' ? 'off' : 'on' );
+						$result = array( 'refresh' => 'yes' );
+					}
+					break;
+			}
 		}
 		return $result;
 	}

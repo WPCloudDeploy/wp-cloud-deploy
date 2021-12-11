@@ -19,24 +19,41 @@ class WPCD_WORDPRESS_TABS_7G_FIREWALL extends WPCD_WORDPRESS_TABS {
 	 */
 	public function __construct() {
 		parent::__construct();
-		add_filter( "wpcd_app_{$this->get_app_name()}_get_tabnames", array( $this, 'get_tab' ), 10, 1 );
+		add_filter( "wpcd_app_{$this->get_app_name()}_get_tabnames", array( $this, 'get_tab' ), 10, 2 );
 		add_filter( "wpcd_app_{$this->get_app_name()}_get_tabs", array( $this, 'get_fields' ), 10, 2 );
 		add_filter( "wpcd_app_{$this->get_app_name()}_tab_action", array( $this, 'tab_action' ), 10, 3 );
 
 	}
 
 	/**
+	 * Returns a string that can be used as the unique name for this tab.
+	 */
+	public function get_tab_slug() {
+		return '7g_waf';
+	}
+
+	/**
+	 * Returns a string that is the name of a view TEAM permission required to view this tab.
+	 */
+	public function get_view_tab_team_permission_slug() {
+		return 'view_wpapp_site_7gfirewall_tab';
+	}
+
+	/**
 	 * Populates the tab name.
 	 *
 	 * @param array $tabs The default value.
+	 * @param int   $id   The post ID of the server.
 	 *
 	 * @return array    $tabs The default value.
 	 */
-	public function get_tab( $tabs ) {
-		$tabs['7g_waf'] = array(
-			'label' => __( '7G WAF', 'wpcd' ),
-			'icon'  => 'fad fa-user-shield',
-		);
+	public function get_tab( $tabs, $id ) {
+		if ( true === $this->wpcd_wpapp_site_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_site_tab( $id, $this->get_tab_slug() ) ) {
+			$tabs[ $this->get_tab_slug() ] = array(
+				'label' => __( '7G WAF', 'wpcd' ),
+				'icon'  => 'fad fa-user-shield',
+			);
+		}
 		return $tabs;
 	}
 
@@ -54,22 +71,31 @@ class WPCD_WORDPRESS_TABS_7G_FIREWALL extends WPCD_WORDPRESS_TABS {
 		/**
 		 * Verify that the user is even allowed to view the app before proceeding to do anything else
 		 */
-		// $valid_actions = array( '7g_all', '7g_user_agent', '7g_referrer', '7g_query_string', '7g_request_string', '7g_request_method' );
 		if ( ! $this->wpcd_user_can_view_wp_app( $id ) ) {
 			return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
 		}
 
-		switch ( $action ) {
+		/* Now verify that the user can perform actions on this screen, assuming that they can view the server */
+		$valid_actions = array( '7g_all', '7g_user_agent', '7g_referrer', '7g_query_string', '7g_request_string', '7g_request_method' );
+		if ( in_array( $action, $valid_actions, true ) ) {
+			if ( false === $this->wpcd_wpapp_site_user_can( $this->get_view_tab_team_permission_slug(), $id ) && false === $this->wpcd_can_author_view_site_tab( $id, $this->get_tab_slug() ) ) {
+				return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
+			}
+		}
 
-			case '7g_all':
-			case '7g_user_agent':
-			case '7g_referrer':
-			case '7g_query_string':
-			case '7g_request_string':
-			case '7g_request_method':
-				$result = $this->manage_7g_waf( $id, $action );
-				break;
+		if ( true === $this->wpcd_wpapp_site_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_site_tab( $id, $this->get_tab_slug() ) ) {
+			switch ( $action ) {
 
+				case '7g_all':
+				case '7g_user_agent':
+				case '7g_referrer':
+				case '7g_query_string':
+				case '7g_request_string':
+				case '7g_request_method':
+					$result = $this->manage_7g_waf( $id, $action );
+					break;
+
+			}
 		}
 
 		return $result;

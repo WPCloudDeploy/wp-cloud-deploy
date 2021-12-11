@@ -19,23 +19,40 @@ class WPCD_WORDPRESS_TABS_STATISTICS extends WPCD_WORDPRESS_TABS {
 	 */
 	public function __construct() {
 		parent::__construct();
-		add_filter( "wpcd_app_{$this->get_app_name()}_get_tabnames", array( $this, 'get_tab' ), 10, 1 );
+		add_filter( "wpcd_app_{$this->get_app_name()}_get_tabnames", array( $this, 'get_tab' ), 10, 2 );
 		add_filter( "wpcd_app_{$this->get_app_name()}_get_tabs", array( $this, 'get_tab_fields' ), 10, 2 );
 		add_filter( "wpcd_app_{$this->get_app_name()}_tab_action", array( $this, 'tab_action' ), 10, 3 );
+	}
+
+	/**
+	 * Returns a string that can be used as the unique name for this tab.
+	 */
+	public function get_tab_slug() {
+		return 'statistics';
+	}
+
+	/**
+	 * Returns a string that is the name of a view TEAM permission required to view this tab.
+	 */
+	public function get_view_tab_team_permission_slug() {
+		return 'view_wpapp_site_statistics_tab';
 	}
 
 	/**
 	 * Populates the tab name.
 	 *
 	 * @param array $tabs The default value.
+	 * @param int   $id   The post ID of the server.
 	 *
 	 * @return array    $tabs The default value.
 	 */
-	public function get_tab( $tabs ) {
-		$tabs['statistics'] = array(
-			'label' => __( 'Statistics', 'wpcd' ),
-			'icon'  => 'fad fa-chart-pie',
-		);
+	public function get_tab( $tabs, $id ) {
+		if ( true === $this->wpcd_wpapp_site_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_site_tab( $id, $this->get_tab_slug() ) ) {
+			$tabs[ $this->get_tab_slug() ] = array(
+				'label' => __( 'Statistics', 'wpcd' ),
+				'icon'  => 'fad fa-chart-pie',
+			);
+		}
 		return $tabs;
 	}
 
@@ -51,7 +68,7 @@ class WPCD_WORDPRESS_TABS_STATISTICS extends WPCD_WORDPRESS_TABS {
 	 */
 	public function get_tab_fields( array $fields, $id ) {
 
-		return $this->get_fields_for_tab( $fields, $id, 'statistics' );
+		return $this->get_fields_for_tab( $fields, $id, $this->get_tab_slug() );
 
 	}
 
@@ -71,23 +88,33 @@ class WPCD_WORDPRESS_TABS_STATISTICS extends WPCD_WORDPRESS_TABS {
 			return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
 		}
 
-		switch ( $action ) {
-			case 'show-diskspace-used':
-				// Show the diskspace used by this app.
-				$result = $this->show_diskspace_used( $id, 'show_disk_usage' );
-				if ( ! is_wp_error( $result ) ) {
-					$result = array( 'refresh' => 'yes' );
-				}
-				break;
+		/* Now verify that the user can perform actions on this screen, assuming that they can view the server */
+		$valid_actions = array( 'show-diskspace-used', 'show-vnstat' );
+		if ( in_array( $action, $valid_actions, true ) ) {
+			if ( false === $this->wpcd_wpapp_site_user_can( $this->get_view_tab_team_permission_slug(), $id ) && false === $this->wpcd_can_author_view_site_tab( $id, $this->get_tab_slug() ) ) {
+				return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
+			}
+		}
 
-			case 'show-vnstat':
-				// Show vnstat data.
-				$result = $this->show_vnstat_data( $id, 'show_vnstat_data' );
-				if ( ! is_wp_error( $result ) ) {
-					$result = array( 'refresh' => 'yes' );
-				}
-				break;
+		if ( true === $this->wpcd_wpapp_site_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_site_tab( $id, $this->get_tab_slug() ) ) {
+			switch ( $action ) {
+				case 'show-diskspace-used':
+					// Show the diskspace used by this app.
+					$result = $this->show_diskspace_used( $id, 'show_disk_usage' );
+					if ( ! is_wp_error( $result ) ) {
+						$result = array( 'refresh' => 'yes' );
+					}
+					break;
 
+				case 'show-vnstat':
+					// Show vnstat data.
+					$result = $this->show_vnstat_data( $id, 'show_vnstat_data' );
+					if ( ! is_wp_error( $result ) ) {
+						$result = array( 'refresh' => 'yes' );
+					}
+					break;
+
+			}
 		}
 		return $result;
 	}
@@ -192,13 +219,17 @@ class WPCD_WORDPRESS_TABS_STATISTICS extends WPCD_WORDPRESS_TABS {
 		/* End VNSTAT */
 
 		/* Point back to server for additional data */
-		$actions['stats-addl-data-location'] = array(
-			'label'          => __( 'Additional Statistics', 'wpcd' ),
-			'raw_attributes' => array(
-				'std' => __( 'You can view additional statistics in the STATISTICS tab on the server that is holding this site.' ),
-			),
-			'type'           => 'custom_html',
-		);
+		if ( true === (bool) wpcd_get_early_option( 'wordpress_app_hide_addl_stats_explanatory_text' ) && ( ! wpcd_is_admin() ) ) {
+			// Do nothing.
+		} else {
+			$actions['stats-addl-data-location'] = array(
+				'label'          => __( 'Additional Statistics', 'wpcd' ),
+				'raw_attributes' => array(
+					'std' => __( 'You can view additional statistics in the STATISTICS tab on the server that is holding this site.' ),
+				),
+				'type'           => 'custom_html',
+			);
+		}
 
 		return $actions;
 

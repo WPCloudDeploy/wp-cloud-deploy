@@ -19,7 +19,7 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 	 */
 	public function __construct() {
 		parent::__construct();
-		add_filter( "wpcd_app_{$this->get_app_name()}_get_tabnames", array( $this, 'get_tab' ), 10, 1 );
+		add_filter( "wpcd_app_{$this->get_app_name()}_get_tabnames", array( $this, 'get_tab' ), 10, 2 );
 		add_filter( "wpcd_app_{$this->get_app_name()}_get_tabs", array( $this, 'get_fields' ), 10, 2 );
 		add_filter( "wpcd_app_{$this->get_app_name()}_tab_action", array( $this, 'tab_action' ), 10, 3 );
 		/* add_filter( 'wpcd_is_ssh_successful', array( $this, 'was_ssh_successful' ), 10, 5 ); */
@@ -46,17 +46,34 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
+	 * Returns a string that can be used as the unique name for this tab.
+	 */
+	public function get_tab_slug() {
+		return 'cache';
+	}
+
+	/**
+	 * Returns a string that is the name of a view TEAM permission required to view this tab.
+	 */
+	public function get_view_tab_team_permission_slug() {
+		return 'view_wpapp_site_cache_tab';
+	}
+
+	/**
 	 * Populates the tab name.
 	 *
 	 * @param array $tabs The default value.
+	 * @param int   $id   The post ID of the server.
 	 *
 	 * @return array    $tabs The default value.
 	 */
-	public function get_tab( $tabs ) {
-		$tabs['cache'] = array(
-			'label' => __( 'Cache', 'wpcd' ),
-			'icon'  => 'fad fa-bookmark',
-		);
+	public function get_tab( $tabs, $id ) {
+		if ( true === $this->wpcd_wpapp_site_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_site_tab( $id, $this->get_tab_slug() ) ) {
+			$tabs[ $this->get_tab_slug() ] = array(
+				'label' => __( 'Cache', 'wpcd' ),
+				'icon'  => 'fad fa-bookmark',
+			);
+		}
 		return $tabs;
 	}
 
@@ -77,26 +94,35 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 			return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
 		}
 
-		switch ( $action ) {
-			case 'site-toggle-memcached':
-				// What is the status of memcached?
-				$mc_status = get_post_meta( $id, 'wpapp_memcached_status', true );
-				if ( empty( $mc_status ) ) {
-					$mc_status = 'off';
-				}
-				// toggle it.
-				$result = $this->enable_disable_memcached( 'on' === $mc_status ? 'disable' : 'enable', $id );
-				break;
-			case 'site-toggle-memcached-local-value':
-				$result = $this->toggle_local_status_memcached( $id );
-				break;
-			case 'site-toggle-pagecache':
-				$result = $this->enable_disable_pagecache( $action, $id );
-				break;
-			case 'site-clear-pagecache':
-				$result = $this->clear_pagecache( $action, $id );
-				break;
+		/* Now verify that the user can perform actions on this screen, assuming that they can view the server */
+		$valid_actions = array( 'site-toggle-memcached', 'site-toggle-memcached-local-value', 'site-toggle-pagecache', 'site-clear-pagecache' );
+		if ( in_array( $action, $valid_actions, true ) ) {
+			if ( false === $this->wpcd_wpapp_site_user_can( $this->get_view_tab_team_permission_slug(), $id ) && false === $this->wpcd_can_author_view_site_tab( $id, $this->get_tab_slug() ) ) {
+				return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
+			}
+		}
+		if ( true === $this->wpcd_wpapp_site_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_site_tab( $id, $this->get_tab_slug() ) ) {
+			switch ( $action ) {
+				case 'site-toggle-memcached':
+					// What is the status of memcached?
+					$mc_status = get_post_meta( $id, 'wpapp_memcached_status', true );
+					if ( empty( $mc_status ) ) {
+						$mc_status = 'off';
+					}
+					// toggle it.
+					$result = $this->enable_disable_memcached( 'on' === $mc_status ? 'disable' : 'enable', $id );
+					break;
+				case 'site-toggle-memcached-local-value':
+					$result = $this->toggle_local_status_memcached( $id );
+					break;
+				case 'site-toggle-pagecache':
+					$result = $this->enable_disable_pagecache( $action, $id );
+					break;
+				case 'site-clear-pagecache':
+					$result = $this->clear_pagecache( $action, $id );
+					break;
 
+			}
 		}
 
 		return $result;
@@ -508,7 +534,9 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 
 			// Construct a nice message showing more resources and a link to the server page.
 			$server_edit_link    = '<a href=' . '"' . $server_edit_post_link . '"' . '>' . __( 'server', 'wpcd' ) . '</a>';
-			$memcached_read_link = '<a href="https://medium.com/@Alibaba_Cloud/redis-vs-memcached-in-memory-data-storage-systems-3395279b0941">' . __( 'Memcached and Redis Object Caches', 'wpcd' ) . '</a>';
+			$memcached_read_url  = 'https://medium.com/@Alibaba_Cloud/redis-vs-memcached-in-memory-data-storage-systems-3395279b0941';
+			$memcached_read_url  = wpcd_get_documentation_link( 'wordpress-app-doc-link-memcached-info', apply_filters( 'wpcd_documentation_links', $memcached_read_url ) );
+			$memcached_read_link = '<a href="' . $memcached_read_url . '">' . __( 'Memcached and Redis Object Caches', 'wpcd' ) . '</a>';
 			/* Translators: %1$s is a readmore link for memcached. %2$s is a link to the server where memcached is installed. */
 			$mc_not_enabled = sprintf( __( 'Memcached is not enabled on this server. Learn more about %1$s. Go to %2$s.', 'wpcd' ), $memcached_read_link, $server_edit_link );
 			$fields[]       = array(
@@ -522,41 +550,58 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 		// Allow plugins and addons to hook into the field definitions just before adding notes.
 		$fields = apply_filters( "wpcd_app_{$this->get_app_name()}_tabs_cache_before_notes", $fields, $id );
 
-		/* About caches and caching */
-		$desc  = __( 'On a WordPress system there are FIVE possible levels of caching.', 'wpcd' );
-		$desc .= '<br />';
-		$desc .= __( '&nbsp;&nbsp;&nbsp;&nbsp;1. CDN Caching such as that done by Cloudflare', 'wpcd' );
-		$desc .= '<br />';
-		$desc .= __( '&nbsp;&nbsp;&nbsp;&nbsp;2. OpCode Caching which stores compiled PHP code so it does not have to be compiled every time a page executes', 'wpcd' );
-		$desc .= '<br />';
-		$desc .= __( '&nbsp;&nbsp;&nbsp;&nbsp;3. Object caching which caches database queries', 'wpcd' );
-		$desc .= '<br />';
-		$desc .= __( '&nbsp;&nbsp;&nbsp;&nbsp;4. Page caching which caches full web pages after they have been generated by WordPress and', 'wpcd' );
-		$desc .= '<br />';
-		$desc .= __( '&nbsp;&nbsp;&nbsp;&nbsp;5. Browser caching', 'wpcd' );
-		$desc .= '<br />';
-		$desc .= '<br />';
-		$desc .= __( 'This page will help you manage caching at levels 3 and 4 - object caching and page caching.', 'wpcd' );
-		$desc .= '<br />';
-		$desc .= __( 'For object caching you can use Memcached or Redis along with a WordPress plugin to manage the cache.', 'wpcd' );
-		$desc .= '<br />';
-		$desc .= __( 'For page caching you can use an NGINX cache in combination with a WordPress plugin to manage the cache.', 'wpcd' );
+		if ( ! (bool) wpcd_get_early_option( 'wordpress_app_hide_about_caches_text' ) ) {
+
+			/* About caches and caching */
+			$desc  = __( 'On a WordPress system there are FIVE possible levels of caching.', 'wpcd' );
+			$desc .= '<br />';
+			$desc .= __( '&nbsp;&nbsp;&nbsp;&nbsp;1. CDN Caching such as that done by Cloudflare', 'wpcd' );
+			$desc .= '<br />';
+			$desc .= __( '&nbsp;&nbsp;&nbsp;&nbsp;2. OpCode Caching which stores compiled PHP code so it does not have to be compiled every time a page executes', 'wpcd' );
+			$desc .= '<br />';
+			$desc .= __( '&nbsp;&nbsp;&nbsp;&nbsp;3. Object caching which caches database queries', 'wpcd' );
+			$desc .= '<br />';
+			$desc .= __( '&nbsp;&nbsp;&nbsp;&nbsp;4. Page caching which caches full web pages after they have been generated by WordPress and', 'wpcd' );
+			$desc .= '<br />';
+			$desc .= __( '&nbsp;&nbsp;&nbsp;&nbsp;5. Browser caching', 'wpcd' );
+			$desc .= '<br />';
+			$desc .= '<br />';
+			$desc .= __( 'This page will help you manage caching at levels 3 and 4 - object caching and page caching.', 'wpcd' );
+			$desc .= '<br />';
+			$desc .= __( 'For object caching you can use Memcached or Redis along with a WordPress plugin to manage the cache.', 'wpcd' );
+			$desc .= '<br />';
+			$desc .= __( 'For page caching you can use an NGINX cache in combination with a WordPress plugin to manage the cache.', 'wpcd' );
+
+			$fields[] = array(
+				'name' => __( 'About Caches and Caching', 'wpcd' ),
+				'tab'  => 'cache',
+				'type' => 'heading',
+				'desc' => $desc,
+			);
+
+			/* About clearing caches */
+			$desc     = __( 'When you are clearing caches, you must make sure that all five caching levels are cleared/purged.', 'wpcd' );
+			$desc    .= '<br />';
+			$desc    .= __( 'When troubleshooting an issue, it is very easy to forget about one of the levels which might make a problem seem unsolved  - when the real issue is that an old page or data is stuck in a cache somewhere along the route.', 'wpcd' );
+			$desc    .= '<br />';
+			$desc    .= __( 'When technical support of any kind - plugin author, theme authors etc. ask you to purge your cache, they are really asking about purging all five cache leves - if you have them all enabled.', 'wpcd' );
+			$fields[] = array(
+				'name' => __( 'About Clearing Caches', 'wpcd' ),
+				'tab'  => 'cache',
+				'type' => 'heading',
+				'desc' => $desc,
+			);
+		}
+
+		// Cache Documentation Link to WPCloudDeploy Site.
+		$doc_link = 'https://wpclouddeploy.com/documentation/wpcloud-deploy-user-guide/page-cache/';
+		$desc     = __( 'Read more about caching in our documentation.', 'wpcd' );
+		$desc    .= '<br />';
+		$desc    .= '<br />';
+		$desc    .= sprintf( '<a href="%s">%s</a>', wpcd_get_documentation_link( 'wordpress-app-doc-link-page-cache', apply_filters( 'wpcd_documentation_links', $doc_link ) ), __( 'View Cache Documentation', 'wpcd' ) );
 
 		$fields[] = array(
-			'name' => __( 'About Caches and Caching', 'wpcd' ),
-			'tab'  => 'cache',
-			'type' => 'heading',
-			'desc' => $desc,
-		);
-
-		/* About clearing caches */
-		$desc     = __( 'When you are clearing caches, you must make sure that all five caching levels are cleared/purged.', 'wpcd' );
-		$desc    .= '<br />';
-		$desc    .= __( 'When troubleshooting an issue, it is very easy to forget about one of the levels which might make a problem seem unsolved  - when the real issue is that an old page or data is stuck in a cache somewhere along the route.', 'wpcd' );
-		$desc    .= '<br />';
-		$desc    .= __( 'When technical support of any kind - plugin author, theme authors etc. ask you to purge your cache, they are really asking about purging all five cache leves - if you have them all enabled.', 'wpcd' );
-		$fields[] = array(
-			'name' => __( 'About Clearing Caches', 'wpcd' ),
+			'name' => __( 'Cache Documentation', 'wpcd' ),
 			'tab'  => 'cache',
 			'type' => 'heading',
 			'desc' => $desc,

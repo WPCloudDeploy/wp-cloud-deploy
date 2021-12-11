@@ -94,6 +94,14 @@ Note: Even though the entire git development history isn't available on github, 
 4.13.0
 ------
 * New: WPAPP - New servers will install PHP 8.1 as part of the PHP suite of components.
+* New: WPAPP - Explicit security options to disable any tab when the user is not an admin and not an owner of the site or server.
+* New: WPAPP - Option to remove fields from the SITE SUMMARY compound column in the apps/sites list when the user is not an admin.
+* New: WPAPP - Option to remove long winded CACHE explanation text on the cache tab.
+* New: WPAPP - Option to remove long winded explanation text on the change domain tab.
+* New: WPAPP - Option to remove additional statistics text on the site statistics tab.
+* New: WPAPP - White label tab.
+* New: WPAPP - Option to change some documentation links to your own link - see the white label tab.
+* New: Option to remove fields from the SERVER compound column in the apps/sites list when the user is not an admin.
 * Tweak: Update metabox.io components to latest versions.
 * Fix: WPAPP - Found a few more strings that were not being sent through the translation functions.
 

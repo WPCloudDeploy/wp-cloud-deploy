@@ -682,9 +682,15 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		if ( version_compare( $initial_plugin_version, '4.12.1' ) > -1 ) {
 			return true;
 		} else {
-			return false;
+			$is_php81_installed = (bool) $this->get_server_meta_by_app_id( $server_id, 'wpcd_server_php81_installed', true );   // This function is smart enough to know if the ID being passed is a server or app id and adjust accordingly.
+			if ( true === $is_php81_installed ) {
+				return true;
+			} else {
+				return false;
+			}
 		}
 
+		return false;
 	}
 
 	/**
@@ -1156,7 +1162,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				( strpos( $result, 'Basic authentication disabled for' ) !== false )
 				||
 				( strpos( $result, 'Basic authentication enabled for' ) !== false );
-				break;				
+				break;
 			case 'toggle_https_misc.txt':
 				$return =
 				( strpos( $result, 'HTTPS redirect disabled for' ) !== false )
@@ -1415,6 +1421,9 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				( strpos( $result, 'Upgrade Completed' ) !== false )
 				||
 				( strpos( $result, '7G Firewall is already installed' ) !== false );
+				break;
+			case 'run_upgrade_install_php_81.txt':
+				$return = ( strpos( $result, 'PHP 8.1 has been installed' ) !== false );
 				break;
 			case 'server_status_callback.txt':
 				$return =
@@ -2142,6 +2151,16 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 					array(
 						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/1040-upgrade_462_install_7g_firewall.txt',
 						'SCRIPT_NAME' => '1040-upgrade_462_install_7g_firewall.sh',
+					),
+					$common_array,
+					$additional
+				);
+				break;
+			case 'run_upgrade_install_php_81.txt':
+				$new_array = array_merge(
+					array(
+						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/1050-upgrade_install_php_81.txt',
+						'SCRIPT_NAME' => '1050-upgrade_install_php_81.sh',
 					),
 					$common_array,
 					$additional

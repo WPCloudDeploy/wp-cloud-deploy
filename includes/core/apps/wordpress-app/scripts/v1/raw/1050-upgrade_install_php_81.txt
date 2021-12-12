@@ -1,0 +1,22 @@
+#!/bin/bash
+# This script will install PHP 8.1
+
+echo $(date): "Refreshing repositories..."
+apt-get update > /dev/null 2>&1
+if [ $? -ne 0 ]  
+then
+	echo "Failed!  Quitting process"
+	exit 1
+fi
+
+echo $(date): "Installing PHP 8.1...."
+apt-get install php8.1 php8.1-fpm php8.1-mbstring php8.1-curl php8.1-mysql php8.1-xml php8.1-zip php8.1-gd php8.1-imap php8.1-soap php8.1-bcmath php8.1-imagick -y 
+if [ $? -ne 0 ]  
+then
+	echo "Failed!  Quitting process"
+	exit 1
+fi
+
+service nginx restart
+
+echo "PHP 8.1 has been installed..."

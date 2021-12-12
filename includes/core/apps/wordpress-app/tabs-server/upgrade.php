@@ -160,6 +160,10 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 					$result = $this->install_php81( $id, $action );
 					break;
 
+				case 'server-upgrade-7g':
+					$result = $this->upgrade_7g( $id, $action );
+					break;
+
 				case 'server-upgrade-delete-meta':
 					$result = $this->remove_upgrade_meta( $id, $action );
 					break;
@@ -209,6 +213,12 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 				break;
 			default:
 				$actions = $this->get_upgrade_fields_default( $id );
+		}
+
+		// 7G Firewall Upgrade Options.
+		if ( ! $this->is_7g15_installed( $id ) ) {
+			$upgrade_7g_fields = $this->get_upgrade_fields_7g( $id );
+			$actions           = array_merge( $actions, $upgrade_7g_fields );
 		}
 
 		// PHP 8.1 install options.
@@ -596,7 +606,7 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 		// Set up metabox items.
 		$actions = array();
 
-		$upg_desc = __( 'Use this button to install PHP 8.1 if it was released after your server was created. WPCD V 4.13 and later automatically installs PHP 8.1 on new servers. But older servers will not have it.', 'wpcd' );
+		$upg_desc  = __( 'Use this button to install PHP 8.1 if it was released after your server was created. WPCD V 4.13 and later automatically installs PHP 8.1 on new servers. But older servers will not have it.', 'wpcd' );
 		$upg_desc .= '<br />';
 		$upg_desc .= __( 'Before running this, you should check to see if your server needs to be restarted because of prior upgrades.  If so, please restart your server before using this option to install PHP 8.1', 'wpcd' );
 
@@ -624,6 +634,58 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 			'raw_attributes' => array(
 				'std'                 => __( 'Remove PHP 8.1 Install Option', 'wpcd' ),
 				'desc'                => __( 'Tag server as having PHP 8.1 installed.', 'wpcd' ),
+				// make sure we give the user a confirmation prompt.
+				'confirmation_prompt' => __( 'Are you sure you would like to tag this server as being upgraded without running the upgrade script?', 'wpcd' ),
+			),
+			'type'           => 'button',
+		);
+		*/
+
+		return $actions;
+
+	}
+
+	/**
+	 * Gets the fields to shown in the UPGRADE tab in the server details screen
+	 * if the 7G firewall needs to be upgraded.
+	 *
+	 * @param int $id the post id of the app cpt record.
+	 *
+	 * @return array Array of actions with key as the action slug and value complying with the structure necessary by metabox.io fields.
+	 */
+	private function get_upgrade_fields_7g( $id ) {
+
+		// Set up metabox items.
+		$actions = array();
+
+		$upg_desc  = __( 'Use this button to install the latest version of the 7G Firewall rules (V1.5).', 'wpcd' );
+		$upg_desc .= '<br />';
+		$upg_desc .= __( 'This will OVERWRITE any customizations you have made to the default 7G rules file.', 'wpcd' );
+
+		$actions['server-upgrade-header-7g'] = array(
+			'label'          => __( 'Upgrade 7G Firewall Rules', 'wpcd' ),
+			'type'           => 'heading',
+			'raw_attributes' => array(
+				'desc' => $upg_desc,
+			),
+		);
+
+		$actions['server-upgrade-7g'] = array(
+			'label'          => '',
+			'raw_attributes' => array(
+				'std'                 => __( 'Upgrade 7G Rules', 'wpcd' ),
+				// make sure we give the user a confirmation prompt.
+				'confirmation_prompt' => __( 'Are you sure you would like to upgrade the 7G Firewall rules  on this server? It will overwrite any changes you might have made to the default rules file.', 'wpcd' ),
+			),
+			'type'           => 'button',
+		);
+
+		/*
+		$actions['server-upgrade-7g-meta'] = array(
+			'label'          => '',
+			'raw_attributes' => array(
+				'std'                 => __( 'Remove 7G Upgrade Option', 'wpcd' ),
+				'desc'                => __( 'Tag server as having 7G upgraded.', 'wpcd' ),
 				// make sure we give the user a confirmation prompt.
 				'confirmation_prompt' => __( 'Are you sure you would like to tag this server as being upgraded without running the upgrade script?', 'wpcd' ),
 			),
@@ -962,7 +1024,7 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 
 		// Make sure we don't have a wp_error object being returned...
 		if ( is_wp_error( $result ) ) {
-			return new \WP_Error( __( 'There was a problem installing PHP 8.1- please check the server logs for more information.: %s', 'wpcd' ) );
+			return new \WP_Error( __( 'There was a problem installing PHP 8.1- please check the server logs for more information.', 'wpcd' ) );
 		}
 
 		// evaluate results.
@@ -985,6 +1047,74 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 			// Let user know command is complete and force a page rfresh.
 			$result = array(
 				'msg'     => __( 'PHP 8.1 install has been completed - this page will now refresh', 'wpcd' ),
+				'refresh' => 'yes',
+			);
+		}
+
+		return $result;
+
+	}
+
+	/**
+	 * Run upgrade script for 7G firewall rules
+	 *
+	 * @param int    $id         The postID of the server cpt.
+	 * @param string $action     The action to be performed (this matches the string required in the bash scripts if bash scripts are used ).
+	 *
+	 * @return boolean success/failure/other
+	 */
+	public function upgrade_7g( $id, $action ) {
+
+		// Get data about the server.
+		$instance = $this->get_server_instance_details( $id );
+
+		if ( is_wp_error( $instance ) ) {
+			/* translators: %s is replaced with the internal action name. */
+			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
+		}
+
+		// Get the full command to be executed by ssh.
+		$run_cmd = $this->turn_script_into_command(
+			$instance,
+			'run_upgrade_7g.txt',
+			array(
+				'action'      => $action,
+				'interactive' => 'no',
+			)
+		);
+
+		// log.
+		// phpcs:ignore
+		do_action( 'wpcd_log_error', sprintf( 'attempting to run command for %s = %s ', print_r( $instance, true ), $run_cmd ), 'trace', __FILE__, __LINE__, $instance, false ); //PHPcs warning normally issued because of print_r
+
+		// execute.
+		$result = $this->execute_ssh( 'generic', $instance, array( 'commands' => $run_cmd ) );
+
+		// Make sure we don't have a wp_error object being returned...
+		if ( is_wp_error( $result ) ) {
+			return new \WP_Error( __( 'There was a problem upgrading the 7G firewall rules - please check the server logs for more information.', 'wpcd' ) );
+		}
+
+		// evaluate results.
+		if ( strpos( $result, 'journalctl -xe' ) !== false ) {
+			// Looks like there was a problem with restarting the NGINX - So update completion meta and return message.
+			update_post_meta( $id, 'wpcd_server_7g_upgrade', 1.5 );
+			/* translators: %s is replaced with the text of the result of the operation. */
+			return new \WP_Error( sprintf( __( 'There was a problem restarting the nginx server after the upgrade - here is the full output of the upgrade process: %s', 'wpcd' ), $result ) );
+		}
+
+		// If we're here, we know that the nginx server restarted ok so let's do standard success checks.
+		$success = $this->is_ssh_successful( $result, 'run_upgrade_7g.txt' );
+		if ( ! $success ) {
+			/* translators: %1$s is replaced with the internal action name; %2$s is replaced with the result of the call, usually an error message. */
+			return new \WP_Error( sprintf( __( 'Unable to perform action %1$s for server: %2$s', 'wpcd' ), $action, $result ) );
+		} else {
+			// update server field to tag server as being upgraded.
+			update_post_meta( $id, 'wpcd_server_7g_upgrade', 1.5 );
+
+			// Let user know command is complete and force a page rfresh.
+			$result = array(
+				'msg'     => __( 'The upgrade to 7G has been completed - this page will now refresh', 'wpcd' ),
 				'refresh' => 'yes',
 			);
 		}

@@ -680,10 +680,39 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		$initial_plugin_version = $this->get_server_meta_by_app_id( $server_id, 'wpcd_server_plugin_initial_version', true );  // This function is smart enough to know if the ID being passed is a server or app id and adjust accordingly.
 
 		if ( version_compare( $initial_plugin_version, '4.12.1' ) > -1 ) {
+			// Versions of the plugin after 4.12.1 automatically install PHP 8.1.
 			return true;
 		} else {
+			// See if it was manually installed via an upgrade process - which would leave a meta field value behind on the server CPT record.
 			$is_php81_installed = (bool) $this->get_server_meta_by_app_id( $server_id, 'wpcd_server_php81_installed', true );   // This function is smart enough to know if the ID being passed is a server or app id and adjust accordingly.
 			if ( true === $is_php81_installed ) {
+				return true;
+			} else {
+				return false;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Returns a boolean true/false if the 7G V 1.5 Firewall Rules is installed.
+	 *
+	 * @param int $server_id ID of server being interrogated...
+	 *
+	 * @return boolean
+	 */
+	public function is_7g15_installed( $server_id ) {
+
+		$initial_plugin_version = $this->get_server_meta_by_app_id( $server_id, 'wpcd_server_plugin_initial_version', true );  // This function is smart enough to know if the ID being passed is a server or app id and adjust accordingly.
+
+		if ( version_compare( $initial_plugin_version, '4.12.1' ) > -1 ) {
+			// Versions of the plugin after 4.12.1 automatically install 7g V 1.5.
+			return true;
+		} else {
+			// See if it was manually upgraded - which would leave a meta field value behind on the server CPT record.
+			$it_is_installed = (float) $this->get_server_meta_by_app_id( $server_id, 'wpcd_server_7g_upgrade', true );   // This function is smart enough to know if the ID being passed is a server or app id and adjust accordingly.
+			if ( $it_is_installed >= 1.5 ) {
 				return true;
 			} else {
 				return false;
@@ -1425,6 +1454,9 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			case 'run_upgrade_install_php_81.txt':
 				$return = ( strpos( $result, 'PHP 8.1 has been installed' ) !== false );
 				break;
+			case 'run_upgrade_7g.txt':
+				$return = ( strpos( $result, 'The 7G Firewall has been upgraded' ) !== false );
+				break;
 			case 'server_status_callback.txt':
 				$return =
 				( strpos( $result, 'Server status job configured' ) !== false )
@@ -2161,6 +2193,16 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 					array(
 						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/1050-upgrade_install_php_81.txt',
 						'SCRIPT_NAME' => '1050-upgrade_install_php_81.sh',
+					),
+					$common_array,
+					$additional
+				);
+				break;
+			case 'run_upgrade_7g.txt':
+				$new_array = array_merge(
+					array(
+						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/1060-upgrade_7g_firewall.txt',
+						'SCRIPT_NAME' => '1060-upgrade_7g_firewall.sh',
 					),
 					$common_array,
 					$additional

@@ -45,6 +45,12 @@ trait wpcd_wpapp_tabs_security {
 
 		$user_id     = get_current_user_id();
 		$post        = get_post( $id );
+		
+		// If not a post object, something is wrong to get out.
+		if ( ( ! $post ) || is_wp_error( $post ) ) {
+			return false;
+		}
+
 		$post_author = $post->post_author;
 		$server_type = get_post_meta( $id, 'wpcd_server_server-type', true );
 
@@ -68,6 +74,12 @@ trait wpcd_wpapp_tabs_security {
 
 		$user_id     = get_current_user_id();
 		$post        = get_post( $id );
+		
+		// If not a post object, something is wrong to get out.
+		if ( ( ! $post ) || is_wp_error( $post ) ) {
+			return false;
+		}
+
 		$post_author = $post->post_author;
 
 		if ( 'wpcd_app' === $post->post_type && ( wpcd_user_can( $user_id, $permission, $id ) || $post_author == $user_id ) ) {

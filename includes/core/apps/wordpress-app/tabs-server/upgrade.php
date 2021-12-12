@@ -960,6 +960,11 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 		// execute.
 		$result = $this->execute_ssh( 'generic', $instance, array( 'commands' => $run_cmd ) );
 
+		// Make sure we don't have a wp_error object being returned...
+		if ( is_wp_error( $result ) ) {
+			return new \WP_Error( __( 'There was a problem installing PHP 8.1- please check the server logs for more information.: %s', 'wpcd' ) );
+		}
+
 		// evaluate results.
 		if ( strpos( $result, 'journalctl -xe' ) !== false ) {
 			// Looks like there was a problem with restarting the NGINX - So update completion meta and return message.

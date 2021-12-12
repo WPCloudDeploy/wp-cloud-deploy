@@ -1151,6 +1151,12 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				||
 				( strpos( $result, 'Basic authentication enabled for' ) !== false );
 				break;
+			case 'basic_auth_wplogin_misc.txt':
+				$return =
+				( strpos( $result, 'Basic authentication disabled for' ) !== false )
+				||
+				( strpos( $result, 'Basic authentication enabled for' ) !== false );
+				break;				
 			case 'toggle_https_misc.txt':
 				$return =
 				( strpos( $result, 'HTTPS redirect disabled for' ) !== false )
@@ -1738,6 +1744,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				);
 				break;
 			case 'basic_auth_misc.txt':
+			case 'basic_auth_wplogin_misc.txt':
 			case 'toggle_https_misc.txt':
 			case 'toggle_wp_linux_cron_misc.txt':
 			case 'change_php_version_misc.txt':

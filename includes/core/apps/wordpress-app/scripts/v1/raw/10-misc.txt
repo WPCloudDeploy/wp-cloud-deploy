@@ -76,6 +76,8 @@ while [[ -z $action ]]; do
     echo "   30) Disable SSH Password Authentication for a user"
     echo "   31) Status of ssh Password Authentication for a user"	
     echo "   32) List of Tables in Database"	
+    echo "   33) Add HTTP Auth for WP Login"	
+    echo "   34) Remove HTTP Auth for WP Login"	
     echo
     read -p "Action: " action
     until [[ -z "$action" || "$action" =~ ^[1-9]|2[0-9]|3[0-9]$ ]]; do
@@ -863,4 +865,58 @@ fi
 if [[ $action == "db_table_list" || $action == "32" ]]; then
     mysql_db=$(grep DB_NAME /var/www/$domain/html/wp-config.php | cut -d "'" -f 4)
     mysql $mysql_db -e 'show tables'
+fi
+
+if [[ $action == "wpadmin_enable_auth" || $action == "33" ]]; then
+
+    select_domain_mu
+
+    if grep -qs "Protected Admin" /etc/nginx/sites-enabled/$domain; then
+        echo
+        echo "Wp Admin auth is already enabled for $domain!"
+        exit
+    fi
+
+    if [[ -z $user ]]; then
+        echo
+        echo "Specify a user name for basic authentication
+Example: admin"
+        read -p "User name: " user
+    fi
+
+    if [[ -z $pass ]]; then
+        echo
+        echo "Specify a password"
+        read -p "Password: " pass
+    fi
+
+    # password auth
+    cd /etc/nginx
+    sed -i "/wp-login.php/a auth_basic_user_file /etc/nginx/htpasswd/$domain-wpadmin;" sites-enabled/$domain
+    sed -i '/wp-login.php/a auth_basic "Protected Admin";' sites-enabled/$domain
+    mkdir -p htpasswd
+    htpasswd -b -c htpasswd/$domain-wpadmin $user $pass
+    systemctl restart nginx
+
+    echo
+    echo "Basic authentication enabled for $domain Admin section"
+    exit
+
+fi
+
+
+
+if [[ $action == "wpadmin_disable_auth" || $action == "34" ]]; then
+
+    select_domain_mu
+
+    sed -i '/Protected Admin/I,+1 d' /etc/nginx/sites-enabled/$domain
+    systemctl restart nginx
+    rm /etc/nginx/htpasswd/$domain-wpadmin
+
+    echo
+    echo "Basic authentication disabled for $domain"
+
+    exit
+
 fi

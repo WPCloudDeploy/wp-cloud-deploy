@@ -723,6 +723,33 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	}
 
 	/**
+	 * Returns a boolean true/false if wpcli 2.5 is installed.
+	 *
+	 * @param int $server_id ID of server being interrogated...
+	 *
+	 * @return boolean
+	 */
+	public function is_wpcli25_installed( $server_id ) {
+
+		$initial_plugin_version = $this->get_server_meta_by_app_id( $server_id, 'wpcd_server_plugin_initial_version', true );  // This function is smart enough to know if the ID being passed is a server or app id and adjust accordingly.
+
+		if ( version_compare( $initial_plugin_version, '4.12.1' ) > -1 ) {
+			// Versions of the plugin after 4.12.1 automatically install wpcli 2.5.
+			return true;
+		} else {
+			// See if it was manually upgraded - which would leave a meta field value behind on the server CPT record.
+			$it_is_installed = (float) $this->get_server_meta_by_app_id( $server_id, 'wpcd_server_wpcli_upgrade', true );   // This function is smart enough to know if the ID being passed is a server or app id and adjust accordingly.
+			if ( $it_is_installed >= 2.5 ) {
+				return true;
+			} else {
+				return false;
+			}
+		}
+
+		return false;
+	}
+
+	/**
 	 * Returns a boolean true/false if the server is a 4.6.0 or later server or was upgraded to that version.
 	 *
 	 * @param int $server_id ID of server being interrogated...
@@ -1456,6 +1483,9 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				break;
 			case 'run_upgrade_7g.txt':
 				$return = ( strpos( $result, 'The 7G Firewall has been upgraded' ) !== false );
+				break;
+			case 'run_upgrade_wpcli.txt':
+				$return = ( strpos( $result, 'WPCLI has been upgraded' ) !== false );
 				break;
 			case 'server_status_callback.txt':
 				$return =
@@ -2203,6 +2233,16 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 					array(
 						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/1060-upgrade_7g_firewall.txt',
 						'SCRIPT_NAME' => '1060-upgrade_7g_firewall.sh',
+					),
+					$common_array,
+					$additional
+				);
+				break;
+			case 'run_upgrade_wpcli.txt':
+				$new_array = array_merge(
+					array(
+						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/1070-upgrade_wp_cli.txt',
+						'SCRIPT_NAME' => '1070-upgrade_wp_cli.sh',
 					),
 					$common_array,
 					$additional

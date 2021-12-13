@@ -164,6 +164,10 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 					$result = $this->upgrade_7g( $id, $action );
 					break;
 
+				case 'server-upgrade-wpcli':
+					$result = $this->upgrade_wpcli( $id, $action );
+					break;
+
 				case 'server-upgrade-delete-meta':
 					$result = $this->remove_upgrade_meta( $id, $action );
 					break;
@@ -225,6 +229,12 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 		if ( ! $this->is_php_81_installed( $id ) ) {
 			$upgrade_php_81_fields = $this->get_upgrade_fields_php81( $id );
 			$actions               = array_merge( $actions, $upgrade_php_81_fields );
+		}
+
+		// WP-CLI Upgrade Options.
+		if ( ! $this->is_wpcli25_installed( $id ) ) {
+			$upgrade_wpcli_fields = $this->get_upgrade_fields_wpcli( $id );
+			$actions              = array_merge( $actions, $upgrade_wpcli_fields );
 		}
 
 		// Linux Updates.
@@ -646,7 +656,7 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
-	 * Gets the fields to shown in the UPGRADE tab in the server details screen
+	 * Gets the fields to show in the UPGRADE tab in the server details screen
 	 * if the 7G firewall needs to be upgraded.
 	 *
 	 * @param int $id the post id of the app cpt record.
@@ -675,7 +685,7 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 			'raw_attributes' => array(
 				'std'                 => __( 'Upgrade 7G Rules', 'wpcd' ),
 				// make sure we give the user a confirmation prompt.
-				'confirmation_prompt' => __( 'Are you sure you would like to upgrade the 7G Firewall rules  on this server? It will overwrite any changes you might have made to the default rules file.', 'wpcd' ),
+				'confirmation_prompt' => __( 'Are you sure you would like to upgrade the 7G Firewall rules on this server? It will overwrite any changes you might have made to the default rules file.', 'wpcd' ),
 			),
 			'type'           => 'button',
 		);
@@ -686,6 +696,58 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 			'raw_attributes' => array(
 				'std'                 => __( 'Remove 7G Upgrade Option', 'wpcd' ),
 				'desc'                => __( 'Tag server as having 7G upgraded.', 'wpcd' ),
+				// make sure we give the user a confirmation prompt.
+				'confirmation_prompt' => __( 'Are you sure you would like to tag this server as being upgraded without running the upgrade script?', 'wpcd' ),
+			),
+			'type'           => 'button',
+		);
+		*/
+
+		return $actions;
+
+	}
+
+	/**
+	 * Gets the fields to show in the UPGRADE tab in the server details screen
+	 * when wpcli needs to be upgraded.
+	 *
+	 * @param int $id the post id of the app cpt record.
+	 *
+	 * @return array Array of actions with key as the action slug and value complying with the structure necessary by metabox.io fields.
+	 */
+	private function get_upgrade_fields_wpcli( $id ) {
+
+		// Set up metabox items.
+		$actions = array();
+
+		$upg_desc  = __( 'Use this button to upgrade WP-CLI (V2.5).', 'wpcd' );
+		$upg_desc .= '<br />';
+		$upg_desc .= __( 'If your server already has the latest version this will have no effect.', 'wpcd' );
+
+		$actions['server-upgrade-header-wpcli'] = array(
+			'label'          => __( 'Upgrade WPCLI', 'wpcd' ),
+			'type'           => 'heading',
+			'raw_attributes' => array(
+				'desc' => $upg_desc,
+			),
+		);
+
+		$actions['server-upgrade-wpcli'] = array(
+			'label'          => '',
+			'raw_attributes' => array(
+				'std'                 => __( 'Upgrade WPCLI', 'wpcd' ),
+				// make sure we give the user a confirmation prompt.
+				'confirmation_prompt' => __( 'Are you sure you would like to upgrade WPCLI on this server?', 'wpcd' ),
+			),
+			'type'           => 'button',
+		);
+
+		/*
+		$actions['server-upgrade-wpcli-meta'] = array(
+			'label'          => '',
+			'raw_attributes' => array(
+				'std'                 => __( 'Remove WPCLI Upgrade Option', 'wpcd' ),
+				'desc'                => __( 'Tag server as having WPCLI upgraded.', 'wpcd' ),
 				// make sure we give the user a confirmation prompt.
 				'confirmation_prompt' => __( 'Are you sure you would like to tag this server as being upgraded without running the upgrade script?', 'wpcd' ),
 			),
@@ -1115,6 +1177,66 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 			// Let user know command is complete and force a page rfresh.
 			$result = array(
 				'msg'     => __( 'The upgrade to 7G has been completed - this page will now refresh', 'wpcd' ),
+				'refresh' => 'yes',
+			);
+		}
+
+		return $result;
+
+	}
+
+	/**
+	 * Run upgrade script for WPCLI.
+	 *
+	 * @param int    $id         The postID of the server cpt.
+	 * @param string $action     The action to be performed (this matches the string required in the bash scripts if bash scripts are used ).
+	 *
+	 * @return boolean success/failure/other
+	 */
+	public function upgrade_wpcli( $id, $action ) {
+
+		// Get data about the server.
+		$instance = $this->get_server_instance_details( $id );
+
+		if ( is_wp_error( $instance ) ) {
+			/* translators: %s is replaced with the internal action name. */
+			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
+		}
+
+		// Get the full command to be executed by ssh.
+		$run_cmd = $this->turn_script_into_command(
+			$instance,
+			'run_upgrade_wpcli.txt',
+			array(
+				'action'      => $action,
+				'interactive' => 'no',
+			)
+		);
+
+		// log.
+		// phpcs:ignore
+		do_action( 'wpcd_log_error', sprintf( 'attempting to run command for %s = %s ', print_r( $instance, true ), $run_cmd ), 'trace', __FILE__, __LINE__, $instance, false ); //PHPcs warning normally issued because of print_r
+
+		// execute.
+		$result = $this->execute_ssh( 'generic', $instance, array( 'commands' => $run_cmd ) );
+
+		// Make sure we don't have a wp_error object being returned...
+		if ( is_wp_error( $result ) ) {
+			return new \WP_Error( __( 'There was a problem upgrading WPCLI - please check the server logs for more information.', 'wpcd' ) );
+		}
+
+		// Standard success checks.
+		$success = $this->is_ssh_successful( $result, 'run_upgrade_wpcli.txt' );
+		if ( ! $success ) {
+			/* translators: %1$s is replaced with the internal action name; %2$s is replaced with the result of the call, usually an error message. */
+			return new \WP_Error( sprintf( __( 'Unable to perform action %1$s for server: %2$s', 'wpcd' ), $action, $result ) );
+		} else {
+			// update server field to tag server as being upgraded.
+			update_post_meta( $id, 'wpcd_server_wpcli_upgrade', 2.5 );
+
+			// Let user know command is complete and force a page rfresh.
+			$result = array(
+				'msg'     => __( 'The WPCLI upgrade has been completed - this page will now refresh', 'wpcd' ),
 				'refresh' => 'yes',
 			);
 		}

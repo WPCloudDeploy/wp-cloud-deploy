@@ -114,7 +114,7 @@
         });
     }
 
-    // Check for updates - triggered from the SETTINGS->LICENSE AND UPDATES->CHECK FOR UPDATES button
+    // Checking for WPCD updates - triggered from the SETTINGS->LICENSE AND UPDATES->CHECK FOR UPDATES button
     // Validate licenses - triggered from the SETTINGS->LICENSE AND UPDATES->VALIDATE LICENSES button
     function initCheckUpdatesValidateLicenses() {
         $('body').on('click', '#wpcd-check-for-updates, #wpcd-validate-licenses', function(e) {

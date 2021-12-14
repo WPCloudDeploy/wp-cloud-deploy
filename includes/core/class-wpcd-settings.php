@@ -49,13 +49,13 @@ class WPCD_Settings {
 		// Action hook to clear provider cache.
 		add_action( 'wp_ajax_wpcd_provider_clear_cache', array( $this, 'wpcd_provider_clear_cache' ) );
 
-		// Action hook to check for update.
-		add_action( 'wp_ajax_wpcd_check_for_updates', array( $this, 'wpcd_check_for_updates_function' ) );
+		// Action hook to check for plugin updates. This is initiated via a button on the license tab on the settings screen.
+		add_action( 'wp_ajax_wpcd_check_for_updates', array( $this, 'wpcd_check_for_updates' ) );
 
-		// Action hook to validate licenses.
-		add_action( 'wp_ajax_wpcd_validate_licenses', array( $this, 'wpcd_validate_licenses_function' ) );
+		// Action hook to validate licenses. This is initiated via a button on the license tab on the settings screen.
+		add_action( 'wp_ajax_wpcd_validate_licenses', array( $this, 'wpcd_validate_licenses' ) );
 
-		// Action hook to check licenses after fields are saved.
+		// Action hook to check licenses after fields are saved.  This is initiated via a checkbox on the license tab on the settings screen.
 		add_action( 'rwmb_after_save_field', array( $this, 'check_license' ), 10, 5 );
 
 		// Action hook to check for updates when the WP admin screen is initialized.
@@ -939,40 +939,44 @@ class WPCD_Settings {
 									'desc'        => __( 'Set a timeout in seconds for each call we make to the licensing server.', 'wpcd' ),
 								),
 								array(
-									'name' => __( 'Force Update Check', 'wpcd' ),
-									'id'   => 'wpcd_license_force_update_check',
-									'type' => 'checkbox',
-									'std'  => 0,
-									'desc' => __( 'Check this box and save settings to force an update check immediately.', 'wpcd' ),
-								),
-								array(
-									'name' => __( 'Force License Check', 'wpcd' ),
-									'id'   => 'wpcd_license_force_license_check',
-									'type' => 'checkbox',
-									'std'  => 0,
-									'desc' => __( 'Check this box and save settings to force an immediate license check on all licenses.', 'wpcd' ),
-								),
-								array(
 									'type'       => 'button',
-									'name'      => __( 'Check for updates', 'wpcd' ),
+									'name'       => __( 'Check for updates', 'wpcd' ),
 									'std'        => __( 'Check for updates', 'wpcd' ),
 									'attributes' => array(
-										'id'          => 'wpcd-check-for-updates',
-										'data-action' => 'wpcd_check_for_updates',
-										'data-nonce'  => wp_create_nonce( 'wpcd-update-check' ),
+										'id'               => 'wpcd-check-for-updates',
+										'data-action'      => 'wpcd_check_for_updates',
+										'data-nonce'       => wp_create_nonce( 'wpcd-update-check' ),
 										'data-loading_msg' => __( 'Please wait...', 'wpcd' ),
 									),
+									'tooltip'    => __( 'After the screen refreshes, navigate to the WordPress Updates screen to see notices of any new WPCD updates that might be available.', 'wpcd' ),
 								),
 								array(
 									'type'       => 'button',
-									'name'      => __( 'Validate licenses', 'wpcd' ),
+									'name'       => __( 'Validate licenses', 'wpcd' ),
 									'std'        => __( 'Validate licenses', 'wpcd' ),
 									'attributes' => array(
-										'id'          => 'wpcd-validate-licenses',
-										'data-action' => 'wpcd_validate_licenses',
-										'data-nonce'  => wp_create_nonce( 'wpcd-license-validate' ),
+										'id'               => 'wpcd-validate-licenses',
+										'data-action'      => 'wpcd_validate_licenses',
+										'data-nonce'       => wp_create_nonce( 'wpcd-license-validate' ),
 										'data-loading_msg' => __( 'Please wait...', 'wpcd' ),
 									),
+									'tooltip'    => __( 'After the screen refreshes, scroll up to see license detail messages under each license key field.', 'wpcd' ),
+								),
+								array(
+									'name'    => __( 'Force Update Check', 'wpcd' ),
+									'id'      => 'wpcd_license_force_update_check',
+									'type'    => 'checkbox',
+									'std'     => 0,
+									'desc'    => __( 'Check this box and save settings to force an update check immediately. Use this option if the buttons above do not seem to be working.', 'wpcd' ),
+									'tooltip' => __( 'You should uncheck this box and save again to turn this off - otherwise you will be taking an unncessary performance penalty every time you save this screen.', 'wpcd' ),
+								),
+								array(
+									'name'    => __( 'Force License Check', 'wpcd' ),
+									'id'      => 'wpcd_license_force_license_check',
+									'type'    => 'checkbox',
+									'std'     => 0,
+									'desc'    => __( 'Check this box and save settings to force an immediate license check on all licenses. Use this option if the buttons above do not seem to be working.', 'wpcd' ),
+									'tooltip' => __( 'You should uncheck this box and save again to turn this off - otherwise you will be taking an unncessary performance penalty every time you save this screen.', 'wpcd' ),
 								),
 							),
 						),
@@ -1957,9 +1961,11 @@ class WPCD_Settings {
 	}
 
 	/**
-	 * Check for updates.
+	 * Check for updates via an AJAX call.
+	 *
+	 * Action Hook: wp_ajax_wpcd_check_for_updates
 	 */
-	public function wpcd_check_for_updates_function() {
+	public function wpcd_check_for_updates() {
 
 		// nonce check.
 		check_ajax_referer( 'wpcd-update-check', 'nonce' );
@@ -1983,9 +1989,11 @@ class WPCD_Settings {
 	}
 
 	/**
-	 * Validate licenses.
+	 * Validate licenses via an AJAX call.
+	 *
+	 * Action Hook: wp_ajax_wpcd_check_for_licenses
 	 */
-	public function wpcd_validate_licenses_function() {
+	public function wpcd_validate_licenses() {
 
 		// nonce check.
 		check_ajax_referer( 'wpcd-license-validate', 'nonce' );

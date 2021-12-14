@@ -3797,6 +3797,14 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			$php_object_cache = $this->generate_meta_dropdown( 'wpapp_object_cache_status', __( 'Object Cache', 'wpcd' ), $cache_options );
 			echo $php_object_cache;
 
+			// SITE NEEDS UPDATES.
+			$updates_options  = array(
+				'yes'   => __( 'Yes', 'wpcd' ),
+				'no'    => __( 'No', 'wpcd' ),
+			);
+			$site_needs_updates = $this->generate_meta_dropdown( 'wpapp_sites_needs_updates', __( 'Site Needs Updates', 'wpcd' ), $updates_options );
+			echo $site_needs_updates;
+
 		}
 	}
 
@@ -3943,6 +3951,30 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 							'value'   => $wpapp_object_cache_status,
 							'compare' => '=',
 						),
+					);
+				}
+			}
+
+			// SITE NEEDS UPDATES.
+			if ( isset( $_GET['wpapp_sites_needs_updates'] ) && ! empty( $_GET['wpapp_sites_needs_updates'] ) ) {
+				$wpapp_sites_needs_updates = filter_input( INPUT_GET, 'wpapp_sites_needs_updates', FILTER_SANITIZE_STRING );
+
+				if ( $wpapp_sites_needs_updates === 'yes' ) {
+
+					$qv['meta_query'][] = array(
+						'relation' => 'OR',
+						array(
+							'key'     => 'wpcd_site_needs_updates',
+							'value'   => $wpapp_sites_needs_updates,
+							'compare' => '=',
+						),
+					);
+
+				} else {
+					$qv['meta_query'][] = array(
+						'key'     => 'wpcd_site_needs_updates',
+						'value'   => $wpapp_sites_needs_updates,
+						'compare' => '=',
 					);
 				}
 			}

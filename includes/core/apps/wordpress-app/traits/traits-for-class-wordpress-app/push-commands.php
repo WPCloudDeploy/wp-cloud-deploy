@@ -197,18 +197,27 @@ trait wpcd_wpapp_push_commands {
 
 			update_post_meta( $app_id, 'wpcd_site_status_push_history', $history );
 
+			// Set the flag to yes if site needs any of the updates.
+			$update_needed = 'no';
+
 			// Add a user friendly notification record for certain things...
 			if ( $sites_status_items['plugin_updates_count'] > 0 ) {
+				$update_needed = 'yes';
 				/* translators: %s is replaced with the number of plugin updates pending for the site. */
 				do_action( 'wpcd_log_notification', $app_id, 'alert', sprintf( __( 'This site has %s plugin updates pending.', 'wpcd' ), $sites_status_items['plugin_updates_count'] ), 'site-updates', null );
 			}
 			if ( $sites_status_items['theme_updates_count'] > 0 ) {
+				$update_needed = 'yes';
 				/* translators: %s is replaced with the number of theme updates pending for the site. */
 				do_action( 'wpcd_log_notification', $app_id, 'alert', sprintf( __( 'This site has %s theme updates pending.', 'wpcd' ), $sites_status_items['theme_updates_count'] ), 'site-updates', null );
 			}
 			if ( 'yes' === $sites_status_items['wp_update_needed'] ) {
+				$update_needed = 'yes';
 				do_action( 'wpcd_log_notification', $app_id, 'alert', __( 'This site has a core WordPress update pending.', 'wpcd' ), 'site-updates', null );
 			}
+
+			// update the meta that holds the sites needs update check.
+			update_post_meta( $app_id, 'wpcd_site_needs_updates', $update_needed );
 
 			// Let other plugins react to the new good data with an action hook.
 			do_action( "wpcd_{$this->get_app_name()}_command_{$name}_{$status}_processed_good", $sites_status_items, $app_id, $id );

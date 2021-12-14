@@ -49,6 +49,12 @@ class WPCD_Settings {
 		// Action hook to clear provider cache.
 		add_action( 'wp_ajax_wpcd_provider_clear_cache', array( $this, 'wpcd_provider_clear_cache' ) );
 
+		// Action hook to check for update.
+		add_action( 'wp_ajax_wpcd_check_for_updates', array( $this, 'wpcd_check_for_updates_function' ) );
+
+		// Action hook to validate licenses.
+		add_action( 'wp_ajax_wpcd_validate_licenses', array( $this, 'wpcd_validate_licenses_function' ) );
+
 		// Action hook to check licenses after fields are saved.
 		add_action( 'rwmb_after_save_field', array( $this, 'check_license' ), 10, 5 );
 
@@ -945,6 +951,28 @@ class WPCD_Settings {
 									'type' => 'checkbox',
 									'std'  => 0,
 									'desc' => __( 'Check this box and save settings to force an immediate license check on all licenses.', 'wpcd' ),
+								),
+								array(
+									'type'       => 'button',
+									'name'      => __( 'Check for updates', 'wpcd' ),
+									'std'        => __( 'Check for updates', 'wpcd' ),
+									'attributes' => array(
+										'id'          => 'wpcd-check-for-updates',
+										'data-action' => 'wpcd_check_for_updates',
+										'data-nonce'  => wp_create_nonce( 'wpcd-update-check' ),
+										'data-loading_msg' => __( 'Please wait...', 'wpcd' ),
+									),
+								),
+								array(
+									'type'       => 'button',
+									'name'      => __( 'Validate licenses', 'wpcd' ),
+									'std'        => __( 'Validate licenses', 'wpcd' ),
+									'attributes' => array(
+										'id'          => 'wpcd-validate-licenses',
+										'data-action' => 'wpcd_validate_licenses',
+										'data-nonce'  => wp_create_nonce( 'wpcd-license-validate' ),
+										'data-loading_msg' => __( 'Please wait...', 'wpcd' ),
+									),
 								),
 							),
 						),
@@ -1926,5 +1954,55 @@ class WPCD_Settings {
 				<div class="rwmb-field rwmb-button-wrapper"><div class="rwmb-input"><button type="button" id="wpcd-encryption-key-save" class="rwmb-button button hide-if-no-js" data-action="wpcd_encryption_key_save" data-nonce="' . wp_create_nonce( 'wpcd-encryption-key-save' ) . '">Save</button></div></div>';
 
 		return $html;
+	}
+
+	/**
+	 * Check for updates.
+	 */
+	public function wpcd_check_for_updates_function() {
+
+		// nonce check.
+		check_ajax_referer( 'wpcd-update-check', 'nonce' );
+
+		// Permissions check.
+		if ( ! wpcd_is_admin() ) {
+
+			$error_msg = array( 'msg' => __( 'You are not allowed to perform this action - only admins are permitted here.', 'wpcd' ) );
+			wp_send_json_error( $error_msg );
+			wp_die();
+
+		}
+
+		do_action( 'wpcd_log_error', 'Admin requested immediate software update check.', 'trace', __FILE__, __LINE__, array(), false );
+
+		WPCD_License::check_for_updates();  // Use wp_remote_post to check the status of each individual plugin/add-on and sets a transient that is displayed on the license tab.
+
+		WPCD_License::update_plugins(); // This one calls the actual EDD updater class.
+
+		wp_die();
+	}
+
+	/**
+	 * Validate licenses.
+	 */
+	public function wpcd_validate_licenses_function() {
+
+		// nonce check.
+		check_ajax_referer( 'wpcd-license-validate', 'nonce' );
+
+		// Permissions check.
+		if ( ! wpcd_is_admin() ) {
+
+			$error_msg = array( 'msg' => __( 'You are not allowed to perform this action - only admins are permitted here.', 'wpcd' ) );
+			wp_send_json_error( $error_msg );
+			wp_die();
+
+		}
+
+		do_action( 'wpcd_log_error', 'Admin requested immediate license validation check on all licenses.', 'trace', __FILE__, __LINE__, array(), false );
+
+		WPCD_License::validate_all_licenses();
+
+		wp_die();
 	}
 }

@@ -226,16 +226,16 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 				// $value = $value . '<br />' . __( 'id: ', 'wpcd' ) . (string) $server_post_id; .
 
 				// server provider.
-				if ( true === (bool) wpcd_get_option( 'wpcd_hide_app_list_provider_in_server_column') && ( ! wpcd_is_admin() ) ) {
+				if ( true === (bool) wpcd_get_option( 'wpcd_hide_app_list_provider_in_server_column' ) && ( ! wpcd_is_admin() ) ) {
 					// do nothing, only admins are allowed to see this data.
 				} else {
 					$value = $value . '<br />' . __( 'Provider: ', 'wpcd' ) . WPCD()->wpcd_get_cloud_provider_desc( $this->get_server_meta_value( $post_id, 'wpcd_server_provider' ) );
 				}
 
 				// server region.
-				if ( true === (bool) wpcd_get_option( 'wpcd_hide_app_list_region_in_server_column') && ( ! wpcd_is_admin() ) ) {
+				if ( true === (bool) wpcd_get_option( 'wpcd_hide_app_list_region_in_server_column' ) && ( ! wpcd_is_admin() ) ) {
 					// do nothing, only admins are allowed to see this data.
-				} else {				
+				} else {
 					$value = $value . '<br />' . __( 'Region: ', 'wpcd' ) . $this->get_server_meta_value( $post_id, 'wpcd_server_region' );
 				}
 
@@ -243,9 +243,9 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 				$value = $value . '<br />' . __( 'ipv4: ', 'wpcd' ) . $this->get_server_meta_value( $post_id, 'wpcd_server_ipv4' );
 
 				// Show a link that takes you to a list of apps on the server.
-				if ( true === (bool) wpcd_get_option( 'wpcd_hide_app_list_appslink_in_server_column') && ( ! wpcd_is_admin() ) ) {
+				if ( true === (bool) wpcd_get_option( 'wpcd_hide_app_list_appslink_in_server_column' ) && ( ! wpcd_is_admin() ) ) {
 					// do nothing, only admins are allowed to see this data.
-				} else {				
+				} else {
 					$url   = admin_url( 'edit.php?post_type=wpcd_app&server_id=' . (string) $server_post_id );
 					$value = $value . '<br />' . sprintf( '<a href="%s">%s</a>', $url, __( 'Apps on this server', 'wpcd' ) );
 				}
@@ -1179,14 +1179,22 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 			$blog_ids = get_sites( array( 'fields' => 'ids' ) );
 			foreach ( $blog_ids as $blog_id ) {
 				switch_to_blog( $blog_id );
-				self::wpcd_app_register_post_and_taxonomy();
-				self::wpcd_app_create_default_taxonomy_terms();
+				self::wpcd_app_do_activate_things();
 				restore_current_blog();
 			}
 		} else {
-			self::wpcd_app_register_post_and_taxonomy();
-			self::wpcd_app_create_default_taxonomy_terms();
+			self::wpcd_app_do_activate_things();
 		}
+	}
+
+	/**
+	 * Registers the custom post type and taxonomy
+	 * Creating custom taxonomy terms after execution of this function
+	 */
+	public static function wpcd_app_do_activate_things() {
+		self::wpcd_app_register_post_and_taxonomy();
+		self::wpcd_app_create_default_taxonomy_terms();
+		self::wpcd_plugin_first_time_activate_check();
 	}
 
 	/**
@@ -1330,6 +1338,28 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 			if ( ! is_wp_error( $term ) ) {
 				add_term_meta( $term['term_id'], 'wpcd_group_color', $app_term['color'] );
 			}
+		}
+	}
+
+	/**
+	 * Enable the options on first-time activation of the plugin.
+	 */
+	public static function wpcd_plugin_first_time_activate_check() {
+		$plugin_activated = get_option( 'wpcd_plugin_first_time_activated' );
+
+		$wpcd_settings = get_option( 'wpcd_settings' );
+
+		// Check if plugin is being activating first time.
+		if ( empty( $plugin_activated ) ) {
+			$wpcd_settings['wordpress_app_servers_activate_callbacks'] = 1;
+			$wpcd_settings['wordpress_app_servers_activate_config_backups'] = 1;
+			$wpcd_settings['wordpress_app_servers_refresh_servers'] = 1;
+
+			// Update the settings options.
+			update_option( 'wpcd_settings', $wpcd_settings );
+
+			// Update the option for first time activation done.
+			update_option( 'wpcd_plugin_first_time_activated', 1 );
 		}
 	}
 

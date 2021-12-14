@@ -1181,11 +1181,13 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 				switch_to_blog( $blog_id );
 				self::wpcd_app_register_post_and_taxonomy();
 				self::wpcd_app_create_default_taxonomy_terms();
+				self::wpcd_plugin_first_time_activate_check();
 				restore_current_blog();
 			}
 		} else {
 			self::wpcd_app_register_post_and_taxonomy();
 			self::wpcd_app_create_default_taxonomy_terms();
+			self::wpcd_plugin_first_time_activate_check();
 		}
 	}
 
@@ -1330,6 +1332,28 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 			if ( ! is_wp_error( $term ) ) {
 				add_term_meta( $term['term_id'], 'wpcd_group_color', $app_term['color'] );
 			}
+		}
+	}
+
+	/**
+	 * Enable the options on first-time activation of the plugin.
+	 */
+	public static function wpcd_plugin_first_time_activate_check() {
+		$plugin_activated = get_option('wpcd_plugin_first_time_activated');
+		
+		$wpcd_settings = get_option('wpcd_settings');
+
+		// Check if plugin is being activating first time.
+		if( empty( $plugin_activated ) ){
+			$wpcd_settings['wordpress_app_servers_activate_callbacks'] = 1;
+			$wpcd_settings['wordpress_app_servers_activate_config_backups'] = 1;
+			$wpcd_settings['wordpress_app_servers_refresh_servers'] = 1;
+			
+			// Update the settings options.
+			update_option( 'wpcd_settings', $wpcd_settings );
+
+			// Update the option for first time activation done.
+			update_option( 'wpcd_plugin_first_time_activated', 1 );
 		}
 	}
 

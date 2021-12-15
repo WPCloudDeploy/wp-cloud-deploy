@@ -104,6 +104,7 @@ Note: Even though the entire git development history isn't available on github, 
 * New: WPAPP - Option to change some documentation links to your own link - see the white label tab.
 * New: Option to remove fields from the SERVER compound column in the apps/sites list when the user is not an admin.
 * Tweak: Update metabox.io components to latest versions.
+* Tweak: Add two buttons to check for updates and validate licenses on the license page - better than the checkbox & save method.
 * Fix: WPAPP - Found a few more strings that were not being sent through the translation functions.
 
 4.12.0

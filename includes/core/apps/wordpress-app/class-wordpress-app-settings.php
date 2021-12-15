@@ -756,7 +756,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tab'     => 'wordpress-app-servers',
 			),
 			array(
-				'id'      => 'wordpress_app_servers_refresh_servers',
+				'id'      => 'wordpress_app_servers_refresh_services',
 				'type'    => 'checkbox',
 				'name'    => __( 'Refresh Services Status?', 'wpcd' ),
 				'tooltip' => __( 'Refresh the status of services shown on the SERVICES tab of your new server.', 'wpcd' ),

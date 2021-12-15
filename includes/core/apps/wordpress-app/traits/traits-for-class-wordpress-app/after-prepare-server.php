@@ -65,7 +65,7 @@ trait wpcd_wpapp_after_prepare_server {
 			// Setup task to refresh services.
 			// Unlike the other tasks we set up above that trigger hooks in this file, we're hooking directly into the action at the top of the services.php server tab file.
 			// That hook function will also automatically update the pending task record because it doesn't care about the return status.
-			if ( wpcd_get_option( 'wordpress_app_servers_refresh_servers' ) ) {
+			if ( wpcd_get_option( 'wordpress_app_servers_refresh_services' ) ) {
 				$instance['action_hook'] = 'wpcd_wordpress-app_server_refresh_services';
 				WPCD_POSTS_PENDING_TASKS_LOG()->add_pending_task_log_entry( $server_id, 'core-install-refresh-services-status', $server_id, $instance, 'ready', $server_id, __( 'Waiting To Refresh Services Status For New Server', 'wpcd' ) );
 			}

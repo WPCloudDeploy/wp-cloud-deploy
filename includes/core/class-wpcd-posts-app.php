@@ -1353,7 +1353,7 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 		if ( empty( $plugin_activated ) ) {
 			$wpcd_settings['wordpress_app_servers_activate_callbacks'] = 1;
 			$wpcd_settings['wordpress_app_servers_activate_config_backups'] = 1;
-			$wpcd_settings['wordpress_app_servers_refresh_servers'] = 1;
+			$wpcd_settings['wordpress_app_servers_refresh_services'] = 1;
 
 			// Update the settings options.
 			update_option( 'wpcd_settings', $wpcd_settings );

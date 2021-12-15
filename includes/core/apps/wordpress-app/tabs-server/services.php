@@ -1664,6 +1664,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 
 		$success = array(
 			'msg'          => __( 'Defaults have been loaded successfully.', 'wpcd' ),
+			'tab_prefix'   => 'wpcd_app_action_email-gateway',
 			'email_fields' => $args,
 			'refresh'      => 'no',
 		);

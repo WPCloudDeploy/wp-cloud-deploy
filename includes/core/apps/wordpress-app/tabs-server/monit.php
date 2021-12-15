@@ -121,6 +121,10 @@ class WPCD_WORDPRESS_TABS_SERVER_MONIT extends WPCD_WORDPRESS_TABS {
 
 		if ( true === $this->wpcd_wpapp_server_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_server_tab( $id, $this->get_tab_slug() ) ) {
 			switch ( $action ) {
+				case 'monit-email-alerts-load-defaults':
+					$action = 'monit_email_alerts_load_defaults';
+					$result = $this->wpcd_monit_email_alerts_load_defaults( $id, $action );
+					break;
 				case 'monit-install':
 					$action = 'install_monit';
 					$result = $this->manage_monit( $id, $action );
@@ -768,6 +772,18 @@ class WPCD_WORDPRESS_TABS_SERVER_MONIT extends WPCD_WORDPRESS_TABS {
 			),
 		);
 
+		if ( wpcd_is_admin() ) {
+			$actions['monit-email-alerts-load-defaults'] = array(
+				'label'          => '',
+				'raw_attributes' => array(
+					'std'                 => __( 'Load Defaults', 'wpcd' ),
+					'columns'             => 3,
+					'confirmation_prompt' => __( 'Are you sure you would like to populate these fields with your global defaults from settings?', 'wpcd' ),
+				),
+				'type'           => 'button',
+			);
+		}
+
 		$actions['monit-smtp-server']   = array(
 			'label'          => __( 'SMTP Server', 'wpcd' ),
 			'type'           => 'text',
@@ -1276,6 +1292,51 @@ class WPCD_WORDPRESS_TABS_SERVER_MONIT extends WPCD_WORDPRESS_TABS {
 		delete_post_meta( $id, 'wpcd_wpapp_monit_pass' );
 		delete_post_meta( $id, 'wpcd_wpapp_monit_email_gateway' );
 		delete_post_meta( $id, 'wpcd_wpapp_monit_mmonit_server' );
+	}
+
+	/**
+	 * Load defaults the monit email alerts.
+	 *
+	 * @param int    $id The postID of the server cpt.
+	 * @param string $action The action to be performed (this matches the string required in the bash scripts if bash scripts are used ).
+	 *
+	 * @return boolean|object|string    success/failure/other
+	 */
+	public function wpcd_monit_email_alerts_load_defaults( $id, $action ) {
+
+		// Check for admin user.
+		if ( ! wpcd_is_admin() ) {
+			/* translators: %s is replaced with the internal action name. */
+			return new \WP_Error( __( 'You are not allowed to perform this action - only admins are permitted here.', 'wpcd' ) );
+		}
+
+		$smtp_port     = '';
+		$smtp_server   = wpcd_get_early_option( 'wpcd_email_gateway_smtp_server' );
+		$smtp_user     = wpcd_get_early_option( 'wpcd_email_gateway_smtp_user' );
+		$smtp_password = wpcd_get_early_option( 'wpcd_email_gateway_smtp_password' );
+
+		// Split the string to get server and port values separately.
+		$smtp_server_port = explode( ':', $smtp_server );
+		if ( count( $smtp_server_port ) > 1 ) {
+			$smtp_server = $smtp_server_port[0];
+			$smtp_port   = $smtp_server_port[1];
+		}
+
+		$args                = array();
+		$args['smtp_server'] = (string) $smtp_server;
+		$args['smtp_port']   = (string) $smtp_port;
+		$args['smtp_user']   = (string) $smtp_user;
+		$args['smtp_pass']   = (string) $smtp_password;
+
+		$success = array(
+			'msg'          => __( 'Defaults have been loaded successfully.', 'wpcd' ),
+			'tab_prefix'   => 'wpcd_app_action_monit',
+			'email_fields' => $args,
+			'refresh'      => 'no',
+		);
+
+		return $success;
+
 	}
 
 }

@@ -312,7 +312,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			'php-options'              => __( 'PHP', 'wpcd' ),
 			'redirect-rules'           => __( 'Redirect Rules', 'wpcd' ),
 			'sftp'                     => __( 'sFTP', 'wpcd' ),
-			'site-sync'                => __( 'Site Sync', 'wpcd' ),
+			'site-sync'                => __( 'Copy To Server', 'wpcd' ),
 			'ssl'                      => __( 'SSL', 'wpcd' ),
 			'staging'                  => __( 'Staging', 'wpcd' ),
 			'statistics'               => __( 'Statistics', 'wpcd' ),

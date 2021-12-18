@@ -870,7 +870,8 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 					do_action( 'wpcd_wordpress-app_server_cleanup_metas', $parent_post_id, 'server_cleanup_metas_via_pending_log_action' );
 				}
 
-				$message = __( 'Stuck pending log cleaned up successfully. ', 'wpcd' );
+				/* Translators: %s is the ID of the pending log recording being cleaned up. */
+				$message = sprintf( __( 'A pending task with id %s was marked as failed because it took too long to complete.', 'wpcd' ), (string) $log_id );
 				if ( ! empty( $pending_task_comment ) ) {
 					$message .= ' - ' . $pending_task_comment;
 				}

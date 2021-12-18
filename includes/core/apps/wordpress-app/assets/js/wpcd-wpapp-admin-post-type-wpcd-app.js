@@ -37,6 +37,7 @@
                 formData.append('id', id);
                 formData.append('params', '');
 
+				// Used for the 'spinner'
                 var $lock = $(this).parents('#wpbody-content');
                 $lock.lock();
 
@@ -61,6 +62,7 @@
                         }
                     },
                     complete: function() {
+						// An action that threw up the spinner lock screen is complete so unlock it.
                         $lock.unlock();
                     },
                     error: function(event, xhr, settings, thrownError) {

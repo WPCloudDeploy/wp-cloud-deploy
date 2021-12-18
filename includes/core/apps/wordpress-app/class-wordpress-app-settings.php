@@ -68,7 +68,11 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 	}
 
 	/**
-	 * Change the add button string text in metabox.
+	 * Change a button text to say "Upload Logo" on the white label settings tab.
+	 *
+	 * Filter Hook: rwmb_media_add_string
+	 *
+	 * @See: https://docs.metabox.io/fields/file-advanced/ (scroll down to the FILTERS section.)
 	 */
 	public function wpcd_upload_logo_change_add_string() {
 		return __( 'Upload Logo', 'wpcd' );
@@ -77,14 +81,19 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 	/**
 	 * Set the popup header logo image.
 	 *
+	 * Filter Hook: wpcd_popup_header_logo
+	 *
 	 * @param string $image_url header logo image url.
 	 *
 	 * @return string $image_url return the header logo image url.
 	 */
 	public function wpcd_change_popup_header_logo( $image_url ) {
 
-		$wpcd_options = get_option( 'wpcd_settings' );
-		$uploaded_logo = $wpcd_options['wordpress_app_upload_logo'];
+		$wpcd_options  = get_option( 'wpcd_settings' );
+		$uploaded_logo = '';
+		if ( ! empty( $wpcd_options['wordpress_app_upload_logo'] ) ) {
+			$uploaded_logo = $wpcd_options['wordpress_app_upload_logo'];
+		}
 
 		if ( ! empty( $uploaded_logo ) ) {
 			$image_url = wp_get_attachment_image_url( $uploaded_logo[0], 'full' );
@@ -1416,14 +1425,14 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 
 		// Upload Logo.
 		$fields[] = array(
-			'name'          => 'Upload Logo',
-			'id'            => 'wordpress_app_upload_logo',
-			'type'          => 'image_advanced',
+			'name'             => 'Upload Logo',
+			'id'               => 'wordpress_app_upload_logo',
+			'type'             => 'image_advanced',
 			'max_file_uploads' => 1,
 			'max_status'       => false,
 			'image_size'       => 'thumbnail',
-			'max_file_size' => '2mb',
-			'tab'           => 'wordpress-app-white-label',
+			'max_file_size'    => '2mb',
+			'tab'              => 'wordpress-app-white-label',
 		);
 
 		// Brand Colors.
@@ -1432,7 +1441,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			'id'   => 'wordpress-app-brand-colors-heading',
 			'type' => 'heading',
 			'std'  => '',
-			'desc' => __( 'These settings are used to manage the brand colors.', 'wpcd' ),
+			'desc' => __( 'These settings are used to manage your brand colors.', 'wpcd' ),
 			'tab'  => 'wordpress-app-white-label',
 		);
 
@@ -1441,33 +1450,40 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 		 */
 		// An array of ids and labels for color fields that overide brand colors.
 		$brand_colors = array(
-			'wordpress_app_primary_brand_color' => array(
+			'wordpress_app_primary_brand_color'     => array(
 				'label' => __( 'Primary Brand Color', 'wpcd' ),
 				'desc'  => '',
+				'std'   => '#E91E63',
 			),
-			'wordpress_app_secondary_brand_color'             => array(
+			'wordpress_app_secondary_brand_color'   => array(
 				'label' => __( 'Secondary Brand Color', 'wpcd' ),
 				'desc'  => '',
+				'std'   => '#FF5722',
 			),
-			'wordpress_app_tertiary_brand_color'           => array(
+			'wordpress_app_tertiary_brand_color'    => array(
 				'label' => __( 'Tertiary Brand Color', 'wpcd' ),
 				'desc'  => '',
+				'std'   => '#03114A',
 			),
-			'wordpress_app_accent_background_color'       => array(
+			'wordpress_app_accent_background_color' => array(
 				'label' => __( 'Accent Background Color', 'wpcd' ),
 				'desc'  => '',
+				'std'   => '#3F4C5F',
 			),
-			'wordpress_app_medium_background_color'       => array(
+			'wordpress_app_medium_background_color' => array(
 				'label' => __( 'Medium Background Color', 'wpcd' ),
 				'desc'  => '',
+				'std'   => '#FAFAFA',
 			),
-			'wordpress_app_light_background_color'       => array(
+			'wordpress_app_light_background_color'  => array(
 				'label' => __( 'Light Background Color', 'wpcd' ),
 				'desc'  => '',
+				'std'   => '#FDFDFD',
 			),
-			'wordpress_app_alternate_accent_background_color'       => array(
+			'wordpress_app_alternate_accent_background_color' => array(
 				'label' => __( 'Alternate Accent Background Color', 'wpcd' ),
 				'desc'  => '',
+				'std'   => '#CFD8DC',
 			),
 		);
 
@@ -1475,12 +1491,13 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 		foreach ( $brand_colors as $brand_key => $brand_value ) {
 			// First column is just the label with the tab name.
 			$fields[] = array(
-				'name' => "{$brand_value['label']}",
-				'id'   => "{$brand_key}",
-				'type' => 'color',
+				'name'          => "{$brand_value['label']}",
+				'id'            => "{$brand_key}",
+				'type'          => 'color',
 				'alpha_channel' => true,
-				'desc' => "{$brand_value['desc']}",
-				'tab'  => 'wordpress-app-white-label',
+				'desc'          => "{$brand_value['desc']}",
+				'tab'           => 'wordpress-app-white-label',
+				'std'           => "{$brand_value['std']}",
 			);
 		}
 

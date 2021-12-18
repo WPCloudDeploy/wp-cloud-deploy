@@ -1664,7 +1664,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 
 		$success = array(
 			'msg'          => __( 'Defaults have been loaded successfully.', 'wpcd' ),
-			'tab_prefix'   => 'wpcd_app_action_email-gateway',
+			'tab_prefix'   => 'wpcd_app_action_email-gateway',  // Used by the JS code so it knows which tab we're on.  It needs to know because we are using the same code to load defaults for the MONIT as well.
 			'email_fields' => $args,
 			'refresh'      => 'no',
 		);

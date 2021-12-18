@@ -490,7 +490,8 @@ class WPCD_NOTIFY_LOG extends WPCD_POSTS_LOG {
 	public function wpcd_bulk_action_handler_notify_log( $redirect_url, $action, $post_ids ) {
 		// Let's remove query args first.
 		$redirect_url = remove_query_arg( array( 'wpcd_notify_reset_sent_flag' ), $redirect_url );
-		// Do something for "Reset Sent Flag" bulk action.
+
+		// Handle "Reset Sent Flag" bulk action.
 		if ( 'wpcd_notify_reset_sent_flag' === $action ) {
 			if ( ! empty( $post_ids ) ) {
 				// Reset sent flag.

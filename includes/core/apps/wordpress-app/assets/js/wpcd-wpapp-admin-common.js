@@ -166,6 +166,8 @@
                             fetchLogs($object, true);
                         }, params.refresh_seconds * 1000); // params.refresh_seconds is likely set to 30 seconds - server cron is 60 seconds so no point in polling too much sooner than 60 seconds
                     } else if (data.data && data.data.result && data.data.result.email_fields) {
+						// Autofill the email fields on the email gateway and monit tabs with the defaults setup in the settings screen.
+						// The tab_prefix var tells us which tab we're on so we can distinguish between the two tabs where this might apply.
                         var app_action_prefix = data.data.result.tab_prefix;
 
                         $('#' + app_action_prefix + '-smtp-server').val(data.data.result.email_fields.smtp_server);

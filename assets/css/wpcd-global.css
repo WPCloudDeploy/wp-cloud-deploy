@@ -1,5 +1,7 @@
 /* This file is loaded globally on the dashboard */
 
+/* Note: As of WPCD 4.13 Brand colors have been removed from this file and added as dynamic php vars to wp-cloud-deploy.php. */
+
 
 /* Force all tooltips in metabox.io to be darker. */
 

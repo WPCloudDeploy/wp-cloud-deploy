@@ -382,7 +382,11 @@ class WPCD_Init {
 	}
 
 	/**
-	 * Warn user if encryption key in wp-config is not defined.
+	 * Warn user of a number of issues that could affect the clean running of wpcd:
+	 *  1. If encryption key in wp-config is not defined.
+	 *  2. Permalink structure is incorrect.
+	 *  3. Certain files cannot be read.
+	 *  4. Certain crons are not running on a regular basis.
 	 */
 	public function wpcd_global_admin_notice() {
 		if ( in_array( isset( $_SERVER['SERVER_ADDR'] ) ? $_SERVER['SERVER_ADDR'] : '', array( '127.0.0.1', '::1' ), true ) ) {

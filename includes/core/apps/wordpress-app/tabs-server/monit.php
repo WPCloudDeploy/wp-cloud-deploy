@@ -112,7 +112,7 @@ class WPCD_WORDPRESS_TABS_SERVER_MONIT extends WPCD_WORDPRESS_TABS {
 		}
 
 		/* Now verify that the user can perform actions on this screen, assuming that they can view the server */
-		$valid_actions = array( 'install_monit', 'monit-toggle-ssl', 'monit-remove', 'monit-upgrade', 'monit-metas-add', 'monit-metas-remove', 'monit-toggle-nginx', 'monit-toggle-mysql', 'monit-toggle-memcached', 'monit-toggle-redis', 'monit-toggle-php', 'monit-toggle-filesys', 'monit-toggle-all-on', 'monit-toggle-all-off', 'monit-update-email', 'monit-toggle-status' );
+		$valid_actions = array( 'monit-email-alerts-load-defaults', 'install_monit', 'monit-toggle-ssl', 'monit-remove', 'monit-upgrade', 'monit-metas-add', 'monit-metas-remove', 'monit-toggle-nginx', 'monit-toggle-mysql', 'monit-toggle-memcached', 'monit-toggle-redis', 'monit-toggle-php', 'monit-toggle-filesys', 'monit-toggle-all-on', 'monit-toggle-all-off', 'monit-update-email', 'monit-toggle-status' );
 		if ( in_array( $action, $valid_actions, true ) ) {
 			if ( false === $this->wpcd_wpapp_server_user_can( $this->get_view_tab_team_permission_slug(), $id ) && false === $this->wpcd_can_author_view_server_tab( $id, $this->get_tab_slug() ) ) {
 				return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
@@ -772,18 +772,6 @@ class WPCD_WORDPRESS_TABS_SERVER_MONIT extends WPCD_WORDPRESS_TABS {
 			),
 		);
 
-		if ( wpcd_is_admin() ) {
-			$actions['monit-email-alerts-load-defaults'] = array(
-				'label'          => '',
-				'raw_attributes' => array(
-					'std'                 => __( 'Load Defaults', 'wpcd' ),
-					'columns'             => 3,
-					'confirmation_prompt' => __( 'Are you sure you would like to populate these fields with your global defaults from settings?', 'wpcd' ),
-				),
-				'type'           => 'button',
-			);
-		}
-
 		$actions['monit-smtp-server']   = array(
 			'label'          => __( 'SMTP Server', 'wpcd' ),
 			'type'           => 'text',
@@ -839,6 +827,18 @@ class WPCD_WORDPRESS_TABS_SERVER_MONIT extends WPCD_WORDPRESS_TABS {
 				'data-wpcd-name' => 'monit_alert_email',
 			),
 		);
+
+		if ( wpcd_is_admin() ) {
+			$actions['monit-email-alerts-load-defaults'] = array(
+				'label'          => '',
+				'raw_attributes' => array(
+					'std'                 => __( 'Load Defaults', 'wpcd' ),
+					'columns'             => 4,
+					'confirmation_prompt' => __( 'Are you sure you would like to populate these fields with your global defaults from settings?', 'wpcd' ),
+				),
+				'type'           => 'button',
+			);
+		}
 
 		return $actions;
 
@@ -1329,8 +1329,8 @@ class WPCD_WORDPRESS_TABS_SERVER_MONIT extends WPCD_WORDPRESS_TABS {
 		$args['smtp_pass']   = (string) $smtp_password;
 
 		$success = array(
-			'msg'          => __( 'Defaults have been loaded successfully.', 'wpcd' ),
-			'tab_prefix'   => 'wpcd_app_action_monit',
+			'msg'          => __( 'Defaults have been successfully loaded.', 'wpcd' ),
+			'tab_prefix'   => 'wpcd_app_action_monit',  // Used by the JS code so it knows which tab we're on.  It needs to know because we are using the same code to load defaults for the EMAIL GATEWAY as well.
 			'email_fields' => $args,
 			'refresh'      => 'no',
 		);

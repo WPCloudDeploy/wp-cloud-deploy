@@ -90,11 +90,19 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 	public function wpcd_change_popup_header_logo( $image_url ) {
 
 		$wpcd_options  = get_option( 'wpcd_settings' );
+
+		// Check to see if we're not allowed to load up a logo.
+		if ( ! empty( $wpcd_options['wordpress_app_noshow_logo'] ) ) {
+			return '';
+		}
+
+		// We're allowed to use a logo so check to see if one is defined.
 		$uploaded_logo = '';
 		if ( ! empty( $wpcd_options['wordpress_app_upload_logo'] ) ) {
 			$uploaded_logo = $wpcd_options['wordpress_app_upload_logo'];
 		}
 
+		// If a logo has been defined, set the variable to it so it can be returned.
 		if ( ! empty( $uploaded_logo ) ) {
 			$image_url = wp_get_attachment_image_url( $uploaded_logo[0], 'full' );
 		}
@@ -1423,6 +1431,15 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			'tab'  => 'wordpress-app-white-label',
 		);
 
+		// Checkbox to not show logo.
+		$fields[] = array(
+			'name'    => 'Do Not Show Logo',
+			'id'      => 'wordpress_app_noshow_logo',
+			'type'    => 'checkbox',
+			'tooltip' => __( 'Remove the WPCD logo from popups and other locations.', 'wpcd' ),
+			'tab'     => 'wordpress-app-white-label',
+		);
+
 		// Upload Logo.
 		$fields[] = array(
 			'name'             => 'Upload Logo',
@@ -1433,6 +1450,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			'image_size'       => 'thumbnail',
 			'max_file_size'    => '2mb',
 			'tab'              => 'wordpress-app-white-label',
+			'hidden'           => array( 'wordpress_app_noshow_logo', '=', '1' ),
 		);
 
 		// Brand Colors.

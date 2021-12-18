@@ -105,6 +105,7 @@ class WPCD_NOTIFY_SENT extends WPCD_POSTS_LOG {
 			'notify_sent_message',
 			'notify_sent_references',
 			'notify_sent_success',
+			'notify_sent_to_platform',
 		);
 
 		$this->set_post_search_fields( $search_fields );
@@ -167,6 +168,14 @@ class WPCD_NOTIFY_SENT extends WPCD_POSTS_LOG {
 				}
 				break;
 
+			case 'wpcd_notify_sent_to_platform':
+				// Display the platform where notification was sent to.
+				$value = get_post_meta( $post_id, 'notify_sent_to_platform', true );
+				if ( strlen( $value ) >= 200 ) {
+					$value = substr( $value, 0, 200 ) . '...';
+				}
+				break;
+
 			default:
 				break;
 		}
@@ -196,12 +205,13 @@ class WPCD_NOTIFY_SENT extends WPCD_POSTS_LOG {
 
 		unset( $defaults['date'] );
 
-		$defaults['wpcd_notify_sent_parent_id']  = __( 'Owner/Parent', 'wpcd' );
-		$defaults['wpcd_notify_sent_types']      = __( 'Type', 'wpcd' );
-		$defaults['wpcd_notify_sent_message']    = __( 'Message', 'wpcd' );
-		$defaults['wpcd_notify_sent_references'] = __( 'Reference', 'wpcd' );
-		$defaults['wpcd_notify_sent_success']    = __( 'Sent', 'wpcd' );
-		$defaults['date']                        = __( 'Date', 'wpcd' );
+		$defaults['wpcd_notify_sent_parent_id']     = __( 'Owner/Parent', 'wpcd' );
+		$defaults['wpcd_notify_sent_types']         = __( 'Type', 'wpcd' );
+		$defaults['wpcd_notify_sent_message']       = __( 'Message', 'wpcd' );
+		$defaults['wpcd_notify_sent_references']    = __( 'Reference', 'wpcd' );
+		$defaults['wpcd_notify_sent_success']       = __( 'Sent', 'wpcd' );
+		$defaults['wpcd_notify_sent_to_platform']   = __( 'Sent To', 'wpcd' );
+		$defaults['date']                           = __( 'Date', 'wpcd' );
 
 		return $defaults;
 
@@ -232,11 +242,12 @@ class WPCD_NOTIFY_SENT extends WPCD_POSTS_LOG {
 
 		$html = '';
 
-		$parent_post_id         = get_post_meta( $post->ID, 'parent_post_id', true );
-		$notify_sent_types      = get_post_meta( $post->ID, 'notify_sent_types', true );
-		$notify_sent_message    = get_post_meta( $post->ID, 'notify_sent_message', true );
-		$notify_sent_references = get_post_meta( $post->ID, 'notify_sent_references', true );
-		$notify_sent_success    = get_post_meta( $post->ID, 'notify_sent_success', true );
+		$parent_post_id             = get_post_meta( $post->ID, 'parent_post_id', true );
+		$notify_sent_types          = get_post_meta( $post->ID, 'notify_sent_types', true );
+		$notify_sent_message        = get_post_meta( $post->ID, 'notify_sent_message', true );
+		$notify_sent_references     = get_post_meta( $post->ID, 'notify_sent_references', true );
+		$notify_sent_success        = get_post_meta( $post->ID, 'notify_sent_success', true );
+		$notify_sent_to_platform    = get_post_meta( $post->ID, 'notify_sent_to_platform', true );
 
 		ob_start();
 		require wpcd_path . 'includes/templates/notify_sent_log.php';
@@ -256,9 +267,10 @@ class WPCD_NOTIFY_SENT extends WPCD_POSTS_LOG {
 	 * @param string  $message The notification message itself.
 	 * @param string  $notification_reference any additional or third party reference.
 	 * @param boolean $success notification sent or not.
+	 * @param string  $sent_to notification sent to email/slack/zapier.
 	 * @param int     $post_id The ID of an existing log, if it exists.
 	 */
-	public function add_user_notify_sent_log_entry( $parent_post_id, $notification_type = 'notice', $message, $notification_reference = '', $success, $post_id = null ) {
+	public function add_user_notify_sent_log_entry( $parent_post_id, $notification_type = 'notice', $message, $notification_reference = '', $success, $sent_to = null, $post_id = null ) {
 
 		// Author is current user or system.
 		$author_id = get_current_user();
@@ -293,6 +305,13 @@ class WPCD_NOTIFY_SENT extends WPCD_POSTS_LOG {
 			update_post_meta( $post_id, 'notify_sent_message', $message );
 			update_post_meta( $post_id, 'notify_sent_references', $notification_reference );
 			update_post_meta( $post_id, 'notify_sent_success', $success );
+
+			// If notification is sent successfully then store the platform value where it was sent to.
+			if ( $success ) {
+				update_post_meta( $post_id, 'notify_sent_to_platform', $sent_to );
+			} else {
+				update_post_meta( $post_id, 'notify_sent_to_platform', '-' );
+			}
 		}
 
 		// @TODO: This should not be called here every single time the logs are updated. This should have a cron job or something else.
@@ -531,13 +550,15 @@ class WPCD_NOTIFY_SENT extends WPCD_POSTS_LOG {
 				array( 'Content-Type: text/html; charset=UTF-8' )
 			);
 
+			$sent_to = $user_email;
+
 			if ( ! $sent ) {
-				$this->add_user_notify_sent_log_entry( $alert_id, $notify_type, sprintf( __( 'Could not send email notification for notification_id : %d', 'wpcd' ), $notify_log_id ), $notify_ref, '0', null );
+				$this->add_user_notify_sent_log_entry( $alert_id, $notify_type, sprintf( __( 'Could not send email notification for notification_id : %d', 'wpcd' ), $notify_log_id ), $notify_ref, '0', $sent_to, null );
 			} else {
-				$this->add_user_notify_sent_log_entry( $alert_id, $notify_type, sprintf( __( 'Email notification sent successfully for notification_id : %d', 'wpcd' ), $notify_log_id ), $notify_ref, '1', null );
+				$this->add_user_notify_sent_log_entry( $alert_id, $notify_type, sprintf( __( 'Email notification sent successfully for notification_id : %d', 'wpcd' ), $notify_log_id ), $notify_ref, '1', $sent_to, null );
 			}
 		} else {
-			$this->add_user_notify_sent_log_entry( $alert_id, $notify_type, sprintf( __( 'Could not send email notification due to empty email subject or body field for notification_id : %d', 'wpcd' ), $notify_log_id ), $notify_ref, '0', null );
+			$this->add_user_notify_sent_log_entry( $alert_id, $notify_type, sprintf( __( 'Could not send email notification due to empty email subject or body field for notification_id : %d', 'wpcd' ), $notify_log_id ), $notify_ref, '0', $sent_to, null );
 		}
 	}
 
@@ -606,15 +627,17 @@ class WPCD_NOTIFY_SENT extends WPCD_POSTS_LOG {
 					$sent_message = curl_exec( $c );
 					curl_close( $c );
 
+					$sent_to = $value;
+
 					if ( $sent_message !== 'ok' ) {
-						$this->add_user_notify_sent_log_entry( $alert_id, $notify_type, sprintf( __( 'Could not send slack notification for notification_id : %d', 'wpcd' ), $notify_log_id ), $notify_ref, '0', null );
+						$this->add_user_notify_sent_log_entry( $alert_id, $notify_type, sprintf( __( 'Could not send slack notification for notification_id : %d', 'wpcd' ), $notify_log_id ), $notify_ref, '0', $sent_to, null );
 					} else {
-						$this->add_user_notify_sent_log_entry( $alert_id, $notify_type, sprintf( __( 'Slack notification sent successfully for notification_id : %d', 'wpcd' ), $notify_log_id ), $notify_ref, '1', null );
+						$this->add_user_notify_sent_log_entry( $alert_id, $notify_type, sprintf( __( 'Slack notification sent successfully for notification_id : %d', 'wpcd' ), $notify_log_id ), $notify_ref, '1', $sent_to, null );
 					}
 				}
 			}
 		} else {
-			$this->add_user_notify_sent_log_entry( $alert_id, $notify_type, sprintf( __( 'Could not send slack notification due to empty slack message field for notification_id : %d', 'wpcd' ), $notify_log_id ), $notify_ref, '0', null );
+			$this->add_user_notify_sent_log_entry( $alert_id, $notify_type, sprintf( __( 'Could not send slack notification due to empty slack message field for notification_id : %d', 'wpcd' ), $notify_log_id ), $notify_ref, '0', $sent_to, null );
 		}
 	}
 
@@ -710,15 +733,17 @@ class WPCD_NOTIFY_SENT extends WPCD_POSTS_LOG {
 					$status_code  = curl_getinfo( $c, CURLINFO_HTTP_CODE );
 					curl_close( $c );
 
+					$sent_to = $value;
+
 					if ( $status_code != '200' ) {
-						$this->add_user_notify_sent_log_entry( $alert_id, $notify_type, sprintf( __( 'Could not send zapier notification for notification_id : %d', 'wpcd' ), $notify_log_id ), $notify_ref, '0', null );
+						$this->add_user_notify_sent_log_entry( $alert_id, $notify_type, sprintf( __( 'Could not send zapier notification for notification_id : %d', 'wpcd' ), $notify_log_id ), $notify_ref, '0', $sent_to, null );
 					} else {
-						$this->add_user_notify_sent_log_entry( $alert_id, $notify_type, sprintf( __( 'Zapier notification sent successfully for notification_id : %d', 'wpcd' ), $notify_log_id ), $notify_ref, '1', null );
+						$this->add_user_notify_sent_log_entry( $alert_id, $notify_type, sprintf( __( 'Zapier notification sent successfully for notification_id : %d', 'wpcd' ), $notify_log_id ), $notify_ref, '1', $sent_to, null );
 					}
 				}
 			}
 		} else {
-			$this->add_user_notify_sent_log_entry( $alert_id, $notify_type, sprintf( __( 'Could not send zapier notification due to empty zapier message field for notification_id : %d', 'wpcd' ), $notify_log_id ), $notify_ref, '0', null );
+			$this->add_user_notify_sent_log_entry( $alert_id, $notify_type, sprintf( __( 'Could not send zapier notification due to empty zapier message field for notification_id : %d', 'wpcd' ), $notify_log_id ), $notify_ref, '0', $sent_to, null );
 		}
 	}
 }

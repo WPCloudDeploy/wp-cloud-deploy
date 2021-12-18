@@ -436,6 +436,8 @@ trait wpcd_wpapp_admin_column_data {
 					$server_status_callback_status = get_post_meta( $post_id, 'wpcd_wpapp_server_status_callback_installed', true );
 					if ( empty( $server_status_callback_status ) ) {
 						$health = "<div class='wpcd_waiting_for_data_column'>" . __( 'Callbacks are not installed. Please install from the CALLBACKS tab on this server.', 'wpcd' ) . '</div>';
+						$callback_tab_link = get_edit_post_link( $post_id ) . '#~~callbacks';
+						$health .= "<a href='" . $callback_tab_link . "'>" . __( 'Go To Callbacks Tab', 'wpcd' ) . '</a>';
 					} else {
 						$health = "<div class='wpcd_waiting_for_data_column'>" . __( 'Waiting For Data From Callback...', 'wpcd' ) . '</div>';
 					}

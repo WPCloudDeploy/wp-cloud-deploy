@@ -30,6 +30,11 @@ wp_nonce_field( 'wpcd_app_nonce_meta_action', 'app_meta' );
 </div>
 <hr />
 <div class="notify_sent_log_meta_field">
+	<label for="notify_sent_to_platform"><?php echo esc_html( __( 'Notification Sent To', 'wpcd' ) ); ?></label>
+	<p><?php echo esc_html( $notify_sent_to_platform ); ?></p>
+</div>
+<hr />
+<div class="notify_sent_log_meta_field">
 	<label for="notify_sent_types"><?php echo esc_html( __( 'Notification Sent Type', 'wpcd' ) ); ?></label>
 	<p><?php echo esc_html( $notify_sent_types ); ?></p>
 </div>

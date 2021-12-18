@@ -61,6 +61,12 @@ class WPCD_NOTIFY_LOG extends WPCD_POSTS_LOG {
 
 		// Filter hook to remove edit bulk action.
 		add_filter( 'bulk_actions-edit-wpcd_notify_log', array( $this, 'wpcd_log_bulk_actions' ), 10, 1 );
+
+		// Action hook to add new bulk option in notification logs listing.
+		add_filter( 'bulk_actions-edit-wpcd_notify_log', array( $this, 'wpcd_add_new_bulk_actions_notify_log' ) );
+
+		// Action hook to handle bulk action for notifications.
+		add_filter( 'handle_bulk_actions-edit-wpcd_notify_log', array( $this, 'wpcd_bulk_action_handler_notify_log' ), 10, 3 );
 	}
 
 	/**
@@ -461,6 +467,39 @@ class WPCD_NOTIFY_LOG extends WPCD_POSTS_LOG {
 
 		return $post_id;
 
+	}
+
+
+	/**
+	 * Add new bulk options in notification logs list screen.
+	 *
+	 * @param array $bulk_array bulk array.
+	 */
+	public function wpcd_add_new_bulk_actions_notify_log( $bulk_array ) {
+		$bulk_array['wpcd_notify_reset_sent_flag'] = __( 'Reset Sent Flag', 'wpcd' );
+		return $bulk_array;
+	}
+
+	/**
+	 * Handle bulk action for notification logs.
+	 *
+	 * @param string $redirect_url redirect url.
+	 * @param string $action action name.
+	 * @param array  $post_ids all post ids.
+	 */
+	public function wpcd_bulk_action_handler_notify_log( $redirect_url, $action, $post_ids ) {
+		// Let's remove query args first.
+		$redirect_url = remove_query_arg( array( 'wpcd_notify_reset_sent_flag' ), $redirect_url );
+		// Do something for "Reset Sent Flag" bulk action.
+		if ( 'wpcd_notify_reset_sent_flag' === $action ) {
+			if ( ! empty( $post_ids ) ) {
+				// Reset sent flag.
+				foreach ( $post_ids as $key => $value ) {
+					update_post_meta( $value, 'notification_sent', 0 );
+				}
+			}
+		}
+		return $redirect_url;
 	}
 
 }

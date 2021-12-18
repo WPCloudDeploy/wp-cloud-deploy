@@ -862,12 +862,22 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 				// Now, we need to make sure that any metas on the app or server record that marks it as unavailable/in-process are removed.
 				$parent_post_type = get_post_meta( $log_id, 'pending_task_parent_post_type', true );
 				$parent_post_id   = get_post_meta( $log_id, 'parent_post_id', true );
+				$pending_task_comment = get_post_meta( $log_id, 'pending_task_comment', true );
 				if ( 'wpcd_app' === $parent_post_type ) {
 					do_action( 'wpcd_wordpress-app_clear_background_processes', $parent_post_id, 'clear_background_processes_via_pending_log_action' );
 				}
 				if ( 'wpcd_app_server' === $parent_post_type ) {
 					do_action( 'wpcd_wordpress-app_server_cleanup_metas', $parent_post_id, 'server_cleanup_metas_via_pending_log_action' );
 				}
+
+				$message = __( 'Stuck pending log cleaned up successfully. ', 'wpcd' );
+				if ( ! empty( $pending_task_comment ) ) {
+					$message .= ' - ' . $pending_task_comment;
+				}
+
+				// Add a user friendly notification record.
+				/* Translators: %s is pending log comment message. */
+				do_action( 'wpcd_log_notification', $parent_post_id, 'alert', sprintf( __( 'Stuck pending log cleaned up successfully.(%s)', 'wpcd' ), $pending_task_comment ), 'stuck', null );
 			}
 		}
 

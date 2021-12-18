@@ -59,6 +59,38 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 		// Enable filter on the private key field to decrypt it when its being retrieved.
 		add_filter( 'rwmb_wordpress_app_aws_secret_key_field_meta', array( &$this, 'decrypt_aws_secret_key' ), 10, 3 );
 
+		// Filter for change the button text.
+		add_filter( 'rwmb_media_add_string', array( &$this, 'wpcd_upload_logo_change_add_string' ) );
+
+		// Filter for change the header logo image.
+		add_filter( 'wpcd_popup_header_logo', array( &$this, 'wpcd_change_popup_header_logo' ) );
+
+	}
+
+	/**
+	 * Change the add button string text in metabox.
+	 */
+	public function wpcd_upload_logo_change_add_string() {
+		return __( 'Upload Logo', 'wpcd' );
+	}
+
+	/**
+	 * Set the popup header logo image.
+	 *
+	 * @param string $image_url header logo image url.
+	 *
+	 * @return string $image_url return the header logo image url.
+	 */
+	public function wpcd_change_popup_header_logo( $image_url ) {
+
+		$wpcd_options = get_option( 'wpcd_settings' );
+		$uploaded_logo = $wpcd_options['wordpress_app_upload_logo'];
+
+		if ( ! empty( $uploaded_logo ) ) {
+			$image_url = wp_get_attachment_image_url( $uploaded_logo[0], 'full' );
+		}
+
+		return $image_url;
 	}
 
 	/**
@@ -959,7 +991,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			),
 			array(
 				// Note: If we ever decide to create action options on teams or for owners, this conditional should be removed in favor of those.
-				'id'      => 'wordpress_app_site_backup_hide_prune_backups_section',  
+				'id'      => 'wordpress_app_site_backup_hide_prune_backups_section',
 				'type'    => 'checkbox',
 				'name'    => __( 'Hide Prune Backups Section', 'wpcd' ),
 				'tooltip' => __( 'Hide the entire PRUNE BACKUPS section on the backup tab on the sites screen.', 'wpcd' ),
@@ -1378,9 +1410,79 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			'id'   => 'wordpress-app-logo-overides-heading',
 			'type' => 'heading',
 			'std'  => '',
-			'desc' => __( '[Coming soon] Use your own logo on the server and site creation screen.  You can also completely remove the logo with an entry in wp-config - check out the docs on our website for more information about that option.', 'wpcd' ),
+			'desc' => __( 'Use your own logo on the server and site creation screen.  You can also completely remove the logo with an entry in wp-config - check out the docs on our website for more information about that option.', 'wpcd' ),
 			'tab'  => 'wordpress-app-white-label',
 		);
+
+		// Upload Logo.
+		$fields[] = array(
+			'name'          => 'Upload Logo',
+			'id'            => 'wordpress_app_upload_logo',
+			'type'          => 'image_advanced',
+			'max_file_uploads' => 1,
+			'max_status'       => false,
+			'image_size'       => 'thumbnail',
+			'max_file_size' => '2mb',
+			'tab'           => 'wordpress-app-white-label',
+		);
+
+		// Brand Colors.
+		$fields[] = array(
+			'name' => __( 'Brand Colors', 'wpcd' ),
+			'id'   => 'wordpress-app-brand-colors-heading',
+			'type' => 'heading',
+			'std'  => '',
+			'desc' => __( 'These settings are used to manage the brand colors.', 'wpcd' ),
+			'tab'  => 'wordpress-app-white-label',
+		);
+
+		/**
+		 * Overrides Brand Colors.
+		 */
+		// An array of ids and labels for color fields that overide brand colors.
+		$brand_colors = array(
+			'wordpress_app_primary_brand_color' => array(
+				'label' => __( 'Primary Brand Color', 'wpcd' ),
+				'desc'  => '',
+			),
+			'wordpress_app_secondary_brand_color'             => array(
+				'label' => __( 'Secondary Brand Color', 'wpcd' ),
+				'desc'  => '',
+			),
+			'wordpress_app_tertiary_brand_color'           => array(
+				'label' => __( 'Tertiary Brand Color', 'wpcd' ),
+				'desc'  => '',
+			),
+			'wordpress_app_accent_background_color'       => array(
+				'label' => __( 'Accent Background Color', 'wpcd' ),
+				'desc'  => '',
+			),
+			'wordpress_app_medium_background_color'       => array(
+				'label' => __( 'Medium Background Color', 'wpcd' ),
+				'desc'  => '',
+			),
+			'wordpress_app_light_background_color'       => array(
+				'label' => __( 'Light Background Color', 'wpcd' ),
+				'desc'  => '',
+			),
+			'wordpress_app_alternate_accent_background_color'       => array(
+				'label' => __( 'Alternate Accent Background Color', 'wpcd' ),
+				'desc'  => '',
+			),
+		);
+
+		// Loop through the brand colors array and generate settings fields.
+		foreach ( $brand_colors as $brand_key => $brand_value ) {
+			// First column is just the label with the tab name.
+			$fields[] = array(
+				'name' => "{$brand_value['label']}",
+				'id'   => "{$brand_key}",
+				'type' => 'color',
+				'alpha_channel' => true,
+				'desc' => "{$brand_value['desc']}",
+				'tab'  => 'wordpress-app-white-label',
+			);
+		}
 
 		/**
 		 * Documentation Link Overrides Fields

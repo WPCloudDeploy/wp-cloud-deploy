@@ -310,7 +310,7 @@ div[id^='wpcd_server_wordpress-app'] {
 	color: white;
 	word-wrap: break-word;
 	margin-bottom: 0px;
-	background-image: linear-gradient(var(--wpcd-accent-background-color), #4c5b71 80%);
+	background-color: var(--wpcd-accent-background-color);
 }
 
 #wpcd_server_wordpress-app_tab_top_of_server_details a {

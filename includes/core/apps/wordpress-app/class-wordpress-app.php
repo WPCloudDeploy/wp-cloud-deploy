@@ -1399,6 +1399,10 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				$return =
 				( strpos( $result, 'Copy to existing site is complete' ) !== false );
 				break;
+			case 'change_file_upload_size.txt':
+				$return =
+				( strpos( $result, 'File upload limits have been changed for' ) !== false );
+				break;
 
 			/**************************************************************
 			* The items below this are SERVER items, not APP items        *
@@ -2078,6 +2082,16 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 						'CALLBACK_URL'       => $this->get_command_url( $instance['app_id'], $command_name, 'completed' ),
 						'SCRIPT_URL_BACKUP'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/08-backup.txt',
 						'SCRIPT_NAME_BACKUP' => '08-backup.sh',
+					),
+					$common_array,
+					$additional
+				);
+				break;
+			case 'change_file_upload_size.txt':
+				$new_array = array_merge(
+					array(
+						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/10-misc.txt',
+						'SCRIPT_NAME' => '10-misc.sh',
 					),
 					$common_array,
 					$additional
@@ -3798,9 +3812,9 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			echo $php_object_cache;
 
 			// SITE NEEDS UPDATES.
-			$updates_options  = array(
-				'yes'   => __( 'Yes', 'wpcd' ),
-				'no'    => __( 'No', 'wpcd' ),
+			$updates_options    = array(
+				'yes' => __( 'Yes', 'wpcd' ),
+				'no'  => __( 'No', 'wpcd' ),
 			);
 			$site_needs_updates = $this->generate_meta_dropdown( 'wpapp_sites_needs_updates', __( 'Site Needs Updates', 'wpcd' ), $updates_options );
 			echo $site_needs_updates;

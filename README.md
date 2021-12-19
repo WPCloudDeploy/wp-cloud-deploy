@@ -94,6 +94,7 @@ Note: Even though the entire git development history isn't available on github, 
 4.13.0
 ------
 * New: WPAPP - Add option for HTTP AUTHENTICATION for just the wp-login page.
+* New: WPAPP - Add option to the TWEAKS tab to allow changing file upload size.
 * New: WPAPP - New servers will install PHP 8.1 as part of the PHP suite of components.
 * New: WPAPP - Explicit security options to disable any tab when the user is not an admin and not an owner of the site or server.
 * New: WPAPP - Option to remove fields from the SITE SUMMARY compound column in the apps/sites list when the user is not an admin.

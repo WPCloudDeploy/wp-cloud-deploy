@@ -1305,8 +1305,7 @@ class WPCD_WORDPRESS_TABS_SERVER_MONIT extends WPCD_WORDPRESS_TABS {
 	public function wpcd_monit_email_alerts_load_defaults( $id, $action ) {
 
 		// Check for admin user.
-		if ( ! wpcd_is_admin() ) {
-			/* translators: %s is replaced with the internal action name. */
+		if ( ! wpcd_is_admin() ) {			
 			return new \WP_Error( __( 'You are not allowed to perform this action - only admins are permitted here.', 'wpcd' ) );
 		}
 

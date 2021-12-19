@@ -196,7 +196,8 @@ class WPCD_WORDPRESS_TABS_REDIRECT_RULES extends WPCD_WORDPRESS_TABS {
 			'label'          => '',
 			'raw_attributes' => array(
 				'std'                 => __( 'Add This Rule', 'wpcd' ),
-				'confirmation_prompt' => __( 'Are you sure you would like to add this rule?', 'wpcd' ),                 // fields that contribute data for this action.
+				'confirmation_prompt' => __( 'Are you sure you would like to add this rule?', 'wpcd' ),
+				// fields that contribute data for this action.
 				'data-wpcd-fields'    => json_encode( array( '#wpcd_app_action_redirect-rules-from-url', '#wpcd_app_action_redirect-rules-to-url', '#wpcd_app_action_redirect-rules-type' ) ),
 			),
 			'type'           => 'button',
@@ -239,7 +240,8 @@ class WPCD_WORDPRESS_TABS_REDIRECT_RULES extends WPCD_WORDPRESS_TABS {
 				'label'          => '',
 				'raw_attributes' => array(
 					'std'                 => __( 'Remove This Rule', 'wpcd' ),
-					'confirmation_prompt' => __( 'Are you sure you would like to REMOVE this rule?', 'wpcd' ),                  // fields that contribute data for this action.
+					'confirmation_prompt' => __( 'Are you sure you would like to REMOVE this rule?', 'wpcd' ),
+					// fields that contribute data for this action.
 					'data-wpcd-fields'    => json_encode( array( '#wpcd_app_action_redirect-rules-to-remove' ) ),
 				),
 				'type'           => 'button',

@@ -34,12 +34,12 @@
     margin: 2px;
 }
 
-.wpcd_php_version_7_3,
 .wpcd_php_version_7_4,
 .wpcd_php_version_8_1 {
     border-color: green !important;
 }
 
+.wpcd_php_version_7_3,
 .wpcd_php_version_7_2,
 .wpcd_php_version_7_1 {
     border-color: orange !important;

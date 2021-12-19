@@ -99,6 +99,12 @@ class WPCD_WORDPRESS_TABS_STAGING extends WPCD_WORDPRESS_TABS {
 							// @TODO: Only the first team is copied.  If the site has more than one team, only the first one is copied over.
 							update_post_meta( $new_app_post_id, 'wpcd_assigned_teams', get_post_meta( $id, 'wpcd_assigned_teams', true ) );
 
+							// Was SSL enabled for the cloned site?  If so, flip the SSL metavalues...
+							$success = $this->is_ssh_successful( $logs, 'manage_https.txt' );  // ***Very important Note: We didn't actually run the manage_https script.  We are just using the check logic for it to see if the same keyword output is in the clone site output since we are using the same keywords for both scripts.
+							if ( true == $success ) {
+								update_post_meta( $new_app_post_id, 'wpapp_ssl_status', 'on' );
+							}
+
 							// Make sure we tag the new site as a staging site.
 							update_post_meta( $new_app_post_id, 'wpapp_is_staging', 1 );
 

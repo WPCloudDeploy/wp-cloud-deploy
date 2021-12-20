@@ -371,6 +371,9 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			'multisite'                => __( 'Multisite', 'wpcd' ),
 		);
 
+		// Let developers hook into the array here.
+		$tabs = apply_filters( 'wpcd_wordpress-app_site_tab_permissions_list', $tabs );
+
 		// Loop through the settings tabs...
 		$wpcd_id_prefix = 'wpcd_wpapp_site_security_exception';
 		foreach ( $context_tabs as $context_tab => $context_tab_short_id ) {
@@ -520,8 +523,10 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			'server_upgrade'  => __( 'Upgrades', 'wpcd' ),
 			'server-users'    => __( 'Users', 'wpcd' ),
 			'serversync'      => __( 'Server Sync', 'wpcd' ),
-
 		);
+		
+		// Let developers hook into the array here.
+		$tabs = apply_filters( 'wpcd_wordpress-app_server_tab_permissions_list', $tabs );
 
 		// Loop through the settings tabs...
 		$wpcd_id_prefix = 'wpcd_wpapp_server_security_exception';

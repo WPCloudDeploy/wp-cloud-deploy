@@ -496,25 +496,25 @@ class WP_CLOUD_DEPLOY {
 
 		// Get brand color settings.
 		$primary_brand_color = wpcd_get_option( 'wordpress_app_primary_brand_color' );
-		$primary_brand_color = empty( $primary_brand_color ) ? '#E91E63' : $primary_brand_color;
+		$primary_brand_color = empty( $primary_brand_color ) ? WPCD_PRIMARY_BRAND_COLOR : $primary_brand_color;
 
 		$secondary_brand_color = wpcd_get_option( 'wordpress_app_secondary_brand_color' );
-		$secondary_brand_color = empty( $secondary_brand_color ) ? '#FF5722' : $secondary_brand_color;
+		$secondary_brand_color = empty( $secondary_brand_color ) ? WPCD_SECONDARY_BRAND_COLOR : $secondary_brand_color;
 
 		$tertiary_brand_color = wpcd_get_option( 'wordpress_app_tertiary_brand_color' );
-		$tertiary_brand_color = empty( $tertiary_brand_color ) ? '#03114A' : $tertiary_brand_color;
+		$tertiary_brand_color = empty( $tertiary_brand_color ) ? WPCD_TERTIARY_BRAND_COLOR : $tertiary_brand_color;
 
 		$accent_bg_color = wpcd_get_option( 'wordpress_app_accent_background_color' );
-		$accent_bg_color = empty( $accent_bg_color ) ? '#3F4C5F' : $accent_bg_color;
+		$accent_bg_color = empty( $accent_bg_color ) ? WPCD_ACCENT_BG_COLOR : $accent_bg_color;
 
 		$medium_bg_color = wpcd_get_option( 'wordpress_app_medium_background_color' );
-		$medium_bg_color = empty( $medium_bg_color ) ? '#FAFAFA' : $medium_bg_color;
+		$medium_bg_color = empty( $medium_bg_color ) ? WPCD_MEDIUM_BG_COLOR : $medium_bg_color;
 
 		$light_bg_color = wpcd_get_option( 'wordpress_app_light_background_color' );
-		$light_bg_color = empty( $light_bg_color ) ? '#FDFDFD' : $light_bg_color;
+		$light_bg_color = empty( $light_bg_color ) ? WPCD_LIGHT_BG_COLOR : $light_bg_color;
 
 		$alternate_accent_bg_color = wpcd_get_option( 'wordpress_app_alternate_accent_background_color' );
-		$alternate_accent_bg_color = empty( $alternate_accent_bg_color ) ? '#CFD8DC' : $alternate_accent_bg_color;
+		$alternate_accent_bg_color = empty( $alternate_accent_bg_color ) ? WPCD_ALTERNATE_ACCENT_BG_COLOR : $alternate_accent_bg_color;
 
 		/* Global style sheet. */
 		wp_enqueue_style( 'wpcd-global-css', wpcd_url . 'assets/css/wpcd-global.css', array(), wpcd_scripts_version );

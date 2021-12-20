@@ -144,6 +144,38 @@
         });
     }
 
+    // Reset defaults brand colors.
+    function initResetDefaultsBrandColors() {
+        $('body').on('click', '#wordpress_app_reset_brand_colors', function(e) {
+            e.preventDefault();
+
+            var current_btn = $(this);
+            var action = $(this).data('action');
+            var nonce = $(this).data('nonce');
+            var loading_msg = $(this).data('loading_msg');
+            var confirm_msg = $(this).data('confirm');
+
+            if (confirm(confirm_msg)) {
+                $.ajax({
+                    url: ajaxurl,
+                    method: 'POST',
+                    data: {
+                        action: action,
+                        nonce: nonce,
+                    },
+                    beforeSend: function() {
+                        current_btn.prop('disabled', true);
+                        $("<div class='wpcd_btn_loading_msg'>" + loading_msg + "</p>").insertAfter(current_btn);
+                    },
+                    success: function(data) {
+                        alert(data.data.msg);
+                        location.reload();
+                    }
+                });
+            }
+        });
+    }
+
 
     function init() {
         initPasswordToggle();
@@ -151,6 +183,7 @@
         initCleanUpServers();
         initClearProviderCache();
         initCheckUpdatesValidateLicenses();
+        initResetDefaultsBrandColors();
     }
 
 })(jQuery);

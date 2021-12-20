@@ -55,6 +55,9 @@ class WPCD_Settings {
 		// Action hook to validate licenses. This is initiated via a button on the license tab on the settings screen.
 		add_action( 'wp_ajax_wpcd_validate_licenses', array( $this, 'wpcd_validate_licenses' ) );
 
+		// Action hook to reset defaults brand colors.
+		add_action( 'wp_ajax_wpcd_reset_defaults_brand_colors', array( $this, 'wpcd_reset_defaults_brand_colors' ) );
+
 		// Action hook to check licenses after fields are saved.  This is initiated via a checkbox on the license tab on the settings screen.
 		add_action( 'rwmb_after_save_field', array( $this, 'check_license' ), 10, 5 );
 
@@ -2010,6 +2013,39 @@ class WPCD_Settings {
 		do_action( 'wpcd_log_error', 'Admin requested immediate license validation check on all licenses.', 'trace', __FILE__, __LINE__, array(), false );
 
 		WPCD_License::validate_all_licenses();
+
+		wp_die();
+	}
+
+	/**
+	 * Reset defaults brand colors via an AJAX call.
+	 *
+	 * Action Hook: wp_ajax_wpcd_reset_defaults_brand_colors
+	 */
+	public function wpcd_reset_defaults_brand_colors() {
+
+		// nonce check.
+		check_ajax_referer( 'wpcd-reset-brand-colors', 'nonce' );
+
+		$wpcd_settings = get_option( 'wpcd_settings' );
+
+		// Set defaults brand colors.
+		$wpcd_settings['wordpress_app_primary_brand_color']                 = WPCD_PRIMARY_BRAND_COLOR;
+		$wpcd_settings['wordpress_app_secondary_brand_color']               = WPCD_SECONDARY_BRAND_COLOR;
+		$wpcd_settings['wordpress_app_tertiary_brand_color']                = WPCD_TERTIARY_BRAND_COLOR;
+		$wpcd_settings['wordpress_app_accent_background_color']             = WPCD_ACCENT_BG_COLOR;
+		$wpcd_settings['wordpress_app_medium_background_color']             = WPCD_MEDIUM_BG_COLOR;
+		$wpcd_settings['wordpress_app_light_background_color']              = WPCD_LIGHT_BG_COLOR;
+		$wpcd_settings['wordpress_app_alternate_accent_background_color']   = WPCD_ALTERNATE_ACCENT_BG_COLOR;
+
+		// Update the settings options.
+		update_option( 'wpcd_settings', $wpcd_settings );
+
+		$msg = __( 'Brand colors fields have been reset defaults. This page will now refresh.', 'wpcd' );
+
+		$return = array( 'msg' => $msg );
+
+		wp_send_json_success( $return );
 
 		wp_die();
 	}

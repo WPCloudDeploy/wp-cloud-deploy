@@ -519,6 +519,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			'firewall'        => __( 'Firewall', 'wpcd' ),
 			'server_upgrade'  => __( 'Upgrades', 'wpcd' ),
 			'server-users'    => __( 'Users', 'wpcd' ),
+			'serversync'      => __( 'Server Sync', 'wpcd' ),
 
 		);
 

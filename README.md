@@ -107,6 +107,7 @@ Note: Even though the entire git development history isn't available on github, 
 * Tweak: Update metabox.io components to latest versions.
 * Tweak: Add two buttons to check for updates and validate licenses on the license page - better than the checkbox & save method.
 * Fix: WPAPP - Found a few more strings that were not being sent through the translation functions.
+* Fix: WPAPP - When doing a QUICK DOMAIN change, also change the post title of the CPT record.
 
 4.12.0
 ------

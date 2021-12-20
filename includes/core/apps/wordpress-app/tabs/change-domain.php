@@ -255,6 +255,16 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 		// Now that we know we're successful, lets change the domain name in our meta.
 		$set_cpt = $this->set_domain_name( $id, $new_domain );
 
+		// update the title of the post.
+		$post_data = array(
+			'ID'         => $id,
+			'post_title' => $new_domain,
+		);
+		wp_update_post( $post_data );
+
+		// Wrapup - let things hook in here - primarily the multisite and WC add-ons.
+		do_action( "wpcd_{$this->get_app_name()}_site_quick_change_domain_completed", $id, $domain, $new_domain );
+
 		// Disable the ssl flag on the cpt - user can turn it on manually later.
 		// Note that it will be disabled even if there is an SSL certificate already issued.
 		update_post_meta( $id, 'wpapp_ssl_status', 'off' );

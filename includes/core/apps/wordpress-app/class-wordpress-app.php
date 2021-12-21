@@ -4145,7 +4145,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 		delete_post_meta( $server_id, 'wpcd_server_wordpress-app_action' );
 		delete_post_meta( $server_id, 'wpcd_server_wordpress-app_action_status' );
-
+		delete_post_meta( $server_id, 'wpcd_server_wordpress-app_action_args' );
 	}
 
 	/**

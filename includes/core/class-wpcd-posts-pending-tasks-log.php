@@ -655,6 +655,10 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 			if ( ( ! empty( get_post_meta( $server_id, 'wpcd_server_wordpress-app_action', true ) ) ) || ( ! empty( get_post_meta( $server_id, 'wpcd_server_wordpress-app_action_status', true ) ) ) ) {
 				return false;
 			}
+			if ( ( ! empty( get_post_meta( $server_id, 'wpcd_app_wordpress-app_action', true ) ) ) || ( ! empty( get_post_meta( $server_id, 'wpcd_app_wordpress-app_action_status', true ) ) ) ) {
+				// We really shouldn't get here but there was a bug where we were using the incorrect metas.  This is prophylactic code just in case we missed some cleanup spots.
+				return false;
+			}			
 		}
 
 		// Ok, so far the server is still available for commands.

@@ -42,10 +42,12 @@ class WPCD_WORDPRESS_TABS_SERVER_GOACCESS extends WPCD_WORDPRESS_TABS {
 		}
 
 		// remove the 'temporary' meta so that another attempt will run if necessary.
-		delete_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action_status" );
-		delete_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action" );
-		delete_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action_args" );
-
+		delete_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action_status" );  // Should really only exist on an app.
+		delete_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action" );  // Should really only exist on an app.
+		delete_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action_args" );  // Should really only exist on an app.
+		delete_post_meta( $id, "wpcd_server_{$this->get_app_name()}_action_status" );  // Should really only exist on a server.
+		delete_post_meta( $id, "wpcd_server_{$this->get_app_name()}_action" );  // Should really only exist on a server.
+		delete_post_meta( $id, "wpcd_server_{$this->get_app_name()}_action_args" );  // Should really only exist on a server.
 	}
 
 	/**
@@ -60,7 +62,7 @@ class WPCD_WORDPRESS_TABS_SERVER_GOACCESS extends WPCD_WORDPRESS_TABS {
 	 */
 	public function get_view_tab_team_permission_slug() {
 		return 'view_wpapp_server_goaccess_tab';
-	}	
+	}
 
 
 	/**

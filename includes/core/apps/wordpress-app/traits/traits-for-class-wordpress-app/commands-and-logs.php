@@ -46,19 +46,35 @@ trait wpcd_wpapp_commands_and_logs {
 						// instead of being polled by the client.
 						// this takes care of the scenario where a long running command fails when the user is on another screen.
 						// the intermediate logs are available because the cron job fetched the logs, not the polling client.
-						update_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action_status", 'in-progress' );
-						update_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action", 'fetch-logs-from-server' );
-						update_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action_args", array( 'command' => $command ) );
+						$post_type = 'wpcd_app';  // Assume an app cpt.
+						if ( ! empty( $id ) ) {
+							$post_type = get_post_type( $id );
+						}
+						switch ( $post_type ) {
+							case 'wpcd_app':
+								update_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action_status", 'in-progress' );
+								update_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action", 'fetch-logs-from-server' );
+								update_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action_args", array( 'command' => $command ) );
+								break;
+							case 'wpcd_app_server':
+								update_post_meta( $id, "wpcd_server_{$this->get_app_name()}_action_status", 'in-progress' );
+								update_post_meta( $id, "wpcd_server_{$this->get_app_name()}_action", 'fetch-logs-from-server' );
+								update_post_meta( $id, "wpcd_server_{$this->get_app_name()}_action_args", array( 'command' => $command ) );
+								break;							
+						}
 					}
 				}
 			);
 			if ( is_wp_error( $result ) ) {
 				do_action( 'wpcd_log_error', sprintf( 'Unable to run command %s on %s ', $run_cmd, print_r( $instance, true ) ), 'error', __FILE__, __LINE__, $instance, false );
 
-				// if something went wrong, remove the 'temporary' meta so that another attempt will run.
-				delete_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action_status" );
-				delete_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action" );
-				delete_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action_args" );
+				// if something went wrong, remove all the 'temporary' metas so that another attempt will run.
+				delete_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action_status" );  // Should only be on an app record.
+				delete_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action" );   // Should only be on an app record.
+				delete_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action_args" );   // Should only be on an app record.
+				delete_post_meta( $id, "wpcd_server_{$this->get_app_name()}_action_status" );   // Should only be on an server record.
+				delete_post_meta( $id, "wpcd_server_{$this->get_app_name()}_action" );   // Should only be on an server record.
+				delete_post_meta( $id, "wpcd_server_{$this->get_app_name()}_action_args" );   // Should only be on an server record.
 
 				// Let the user know that something bad happened.
 				$result = array(
@@ -85,7 +101,7 @@ trait wpcd_wpapp_commands_and_logs {
 	 *
 	 * Action Hook: wpcd_command_{$this->get_app_name()}_completed
 	 *
-	 * @param int    $id     The postID of the server cpt.
+	 * @param int    $id     The postID of the SERVER cpt.
 	 * @param string $name   The name of the command.
 	 */
 	public function command_completed( $id, $name ) {
@@ -670,6 +686,17 @@ trait wpcd_wpapp_commands_and_logs {
 					}
 				}
 				break;
+				
+			case 'fetch-logs-from-server':
+				$args = get_post_meta( $server_post_id, "wpcd_server_{$this->get_app_name()}_action_args", true );
+				$name = $args['command'];
+				if ( $this->is_command_done( $server_post_id, $name ) ) {
+					// this should never happen!
+					do_action( 'wpcd_log_error', "Expecting to fetch logs for $name for $server_post_id after it has finished?  This seemed to have failed", 'error', __FILE__, __LINE__ );
+					return;
+				}
+				$logs = $this->get_command_logs( $server_post_id, $name );
+				break;				
 
 			case 'email':
 				// *** NOT USED ***.

@@ -1543,11 +1543,47 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				||
 				( strpos( $result, 'has been disabled for' ) !== false )
 				||
-				( strpos( $result, 'SLL has been enabled for' ) !== false )
+				( strpos( $result, 'SSL has been enabled for' ) !== false )
 				||
 				( strpos( $result, 'SSL is already disabled for' ) !== false )
 				||
 				( strpos( $result, 'SSL has been disabled for' ) !== false );
+				break;
+			case 'netdata_install.txt':
+				$return =
+				( strpos( $result, 'Netdata has been installed' ) !== false )
+				||
+				( strpos( $result, 'Netdata is already installed' ) !== false );
+				break;
+			case 'netdata.txt':
+				$return =
+				( strpos( $result, 'Netdata has been installed' ) !== false )
+				||
+				( strpos( $result, 'Netdata has been removed' ) !== false )
+				||
+				( strpos( $result, 'Netdata has been updated' ) !== false )
+				||
+				( strpos( $result, 'Basic Auth has been enabled for' ) !== false )
+				||
+				( strpos( $result, 'Basic Auth already enabled' ) !== false )
+				||
+				( strpos( $result, 'Basic Auth has been disabled' ) !== false )
+				||
+				( strpos( $result, 'Basic Auth has been updated' ) !== false )
+				||
+				( strpos( $result, 'SSL has been enabled for' ) !== false )
+				||
+				( strpos( $result, 'SSL was not enabled for netdata so nothing to disable' ) !== false )
+				||
+				( strpos( $result, 'SSL has been disabled for' ) !== false )
+				||
+				( strpos( $result, 'Registry already enabled ' ) !== false )
+				||
+				( strpos( $result, 'Registry enabled to' ) !== false )
+				||
+				( strpos( $result, 'Registry already pointed to ' ) !== false )
+				||
+				( strpos( $result, 'Registry pointed to' ) !== false );
 				break;
 			case 'monit.txt':
 				$return =
@@ -1682,6 +1718,15 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				( strpos( $result, 'The sync service has been permanently removed' ) !== false );
 				break;
 
+		}
+
+		/* Sometimes we get a false positive so check for some things that might indicate a generic failure. */
+		if ( $return ) {
+			$return = $return
+				&&
+				( strpos( $result, 'dpkg was interrupted, you must manually run' ) === false )
+				&&
+				( strpos( $result, 'Installation of required packages failed' ) === false );
 		}
 
 		return apply_filters( 'wpcd_is_ssh_successful', $return, $result, $command, $action, $this->get_app_name() );
@@ -2177,6 +2222,29 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 					array(
 						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/21-monitorix.txt',
 						'SCRIPT_NAME' => '21-monitorix.sh',
+					),
+					$common_array,
+					$additional
+				);
+				break;
+			case 'netdata_install.txt':
+				$command_name = $additional['command'];
+				$new_array    = array_merge(
+					array(
+						'SCRIPT_URL'   => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/43-netdata.txt',
+						'SCRIPT_NAME'  => '43-netdata.sh',
+						'SCRIPT_LOGS'  => "{$this->get_app_name()}_{$command_name}",
+						'CALLBACK_URL' => $this->get_command_url( $instance['server_id'], $command_name, 'completed' ),
+					),
+					$common_array,
+					$additional
+				);
+				break;
+			case 'netdata.txt':
+				$new_array = array_merge(
+					array(
+						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/43-netdata.txt',
+						'SCRIPT_NAME' => '43-netdata.sh',
 					),
 					$common_array,
 					$additional

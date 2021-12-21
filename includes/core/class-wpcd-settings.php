@@ -2027,6 +2027,15 @@ class WPCD_Settings {
 		// nonce check.
 		check_ajax_referer( 'wpcd-reset-brand-colors', 'nonce' );
 
+		// Permissions check.
+		if ( ! wpcd_is_admin() ) {
+
+			$error_msg = array( 'msg' => __( 'You are not allowed to perform this action - only admins are permitted here.', 'wpcd' ) );
+			wp_send_json_error( $error_msg );
+			wp_die();
+
+		}
+
 		$wpcd_settings = get_option( 'wpcd_settings' );
 
 		// Set defaults brand colors.

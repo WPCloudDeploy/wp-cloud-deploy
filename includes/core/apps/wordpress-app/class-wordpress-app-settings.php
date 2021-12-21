@@ -1525,6 +1525,21 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			);
 		}
 
+		// RESET DEFAULTS BRAND COLORS.
+		$fields[] = array(
+			'name'       => '',
+			'type'       => 'button',
+			'std'        => __( 'Reset Defaults', 'wpcd' ),
+			'attributes' => array(
+				'id'                => 'wordpress_app_reset_brand_colors',
+				'data-action'       => 'wpcd_reset_defaults_brand_colors',
+				'data-nonce'        => wp_create_nonce( 'wpcd-reset-brand-colors' ),
+				'data-loading_msg'  => __( 'Please wait...', 'wpcd' ),
+				'data-confirm'      => __( 'Are you sure you would like to reset the brand colors with defaults?', 'wpcd' ),
+			),
+			'tab'        => 'wordpress-app-white-label',
+		);
+
 		/**
 		 * Documentation Link Overrides Fields
 		 */

@@ -1355,6 +1355,15 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 			$wpcd_settings['wordpress_app_servers_activate_config_backups'] = 1;
 			$wpcd_settings['wordpress_app_servers_refresh_services'] = 1;
 
+			// Set defaults brand colors.
+			$wpcd_settings['wordpress_app_primary_brand_color']                 = WPCD_PRIMARY_BRAND_COLOR;
+			$wpcd_settings['wordpress_app_secondary_brand_color']               = WPCD_SECONDARY_BRAND_COLOR;
+			$wpcd_settings['wordpress_app_tertiary_brand_color']                = WPCD_TERTIARY_BRAND_COLOR;
+			$wpcd_settings['wordpress_app_accent_background_color']             = WPCD_ACCENT_BG_COLOR;
+			$wpcd_settings['wordpress_app_medium_background_color']             = WPCD_MEDIUM_BG_COLOR;
+			$wpcd_settings['wordpress_app_light_background_color']              = WPCD_LIGHT_BG_COLOR;
+			$wpcd_settings['wordpress_app_alternate_accent_background_color']   = WPCD_ALTERNATE_ACCENT_BG_COLOR;
+
 			// Update the settings options.
 			update_option( 'wpcd_settings', $wpcd_settings );
 

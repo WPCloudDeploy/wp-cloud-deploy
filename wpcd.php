@@ -55,6 +55,15 @@ class WPCD_Init {
 			define( 'WPCD_REST_VERSION', '1' );
 			define( 'WPCD_DB_VERSION', '1' );
 
+			// Define the default brand colors.
+			define( 'WPCD_PRIMARY_BRAND_COLOR', '#E91E63' );
+			define( 'WPCD_SECONDARY_BRAND_COLOR', '#FF5722' );
+			define( 'WPCD_TERTIARY_BRAND_COLOR', '#03114A' );
+			define( 'WPCD_ACCENT_BG_COLOR', '#3F4C5F' );
+			define( 'WPCD_MEDIUM_BG_COLOR', '#FAFAFA' );
+			define( 'WPCD_LIGHT_BG_COLOR', '#FDFDFD' );
+			define( 'WPCD_ALTERNATE_ACCENT_BG_COLOR', '#CFD8DC' );
+
 			// Define a variable that can be used for versioning scripts - required to force multisite to use different version numbers for each site.
 			if ( is_multisite() ) {
 				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {

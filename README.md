@@ -108,6 +108,7 @@ Note: Even though the entire git development history isn't available on github, 
 * Tweak: Add two buttons to check for updates and validate licenses on the license page - better than the checkbox & save method.
 * Fix: WPAPP - Found a few more strings that were not being sent through the translation functions.
 * Fix: WPAPP - When doing a QUICK DOMAIN change, also change the post title of the CPT record.
+* Fix: WPAPP - Sometimes when running long transactions on a server record, the UI "terminal" didn't update properly from the log files.
 
 4.12.0
 ------

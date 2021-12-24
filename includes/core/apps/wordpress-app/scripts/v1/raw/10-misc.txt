@@ -415,23 +415,57 @@ if [[ $action == "enable_system_cron" || $action == "13" ]]; then
             read -p "Schedule: " schedule
         done
     done
+	
+	# Figure out if we're on a network
+    is_network=false
+    cd /var/www/$domain/html
+    su - $user_name -c "wp site list" > /dev/null 2>&1
+    if [ $? -ne 0 ]
+    then
+		echo "Not a network site, adding cron for single site."
+    else
+		is_network=true
+		echo "This is a network site, adding cron to loop through all sub-sites."
+    fi	
 
-    if [[ $schedule == "1" || $schedule == "1m" ]]; then
-        (su - $domain -c "crontab -l 2>/dev/null"; echo "* * * * * cd /var/www/$domain/html/; wp cron event run --due-now; wp site list --field=url && wp site list --field=url | xargs -i -n1 wp cron event run --due-now --url=\"{}\" > /dev/null 2>&1") | su - $domain -c "crontab -"
-    fi
+	#non-network
+	if [[ $is_network == "false" ]]; then
+		if [[ $schedule == "1" || $schedule == "1m" ]]; then
+			(su - $domain -c "crontab -l 2>/dev/null"; echo "* * * * * cd /var/www/$domain/html/; wp cron event run --due-now > /dev/null 2>&1") | su - $domain -c "crontab -"
+		fi
 
-    if [[ $schedule == "2" || $schedule == "5m" ]]; then
-        (su - $domain -c "crontab -l 2>/dev/null"; echo "*/5 * * * * cd /var/www/$domain/html/; wp cron event run --due-now; wp site list --field=url && wp site list --field=url | xargs -i -n1 wp cron event run --due-now --url=\"{}\" > /dev/null 2>&1") | su - $domain -c "crontab -"
-    fi
+		if [[ $schedule == "2" || $schedule == "5m" ]]; then
+			(su - $domain -c "crontab -l 2>/dev/null"; echo "*/5 * * * * cd /var/www/$domain/html/; wp cron event run --due-now > /dev/null 2>&1") | su - $domain -c "crontab -"
+		fi
 
-    if [[ $schedule == "3" || $schedule == "15m" ]]; then
-        (su - $domain -c "crontab -l 2>/dev/null"; echo "*/15 * * * * cd /var/www/$domain/html/; wp cron event run --due-now; wp site list --field=url && wp site list --field=url | xargs -i -n1 wp cron event run --due-now --url=\"{}\" > /dev/null 2>&1") | su - $domain -c "crontab -"
-    fi
+		if [[ $schedule == "3" || $schedule == "15m" ]]; then
+			(su - $domain -c "crontab -l 2>/dev/null"; echo "*/15 * * * * cd /var/www/$domain/html/; wp cron event run --due-now > /dev/null 2>&1") | su - $domain -c "crontab -"
+		fi
 
-    if [[ $schedule == "4" || $schedule == "1h" ]]; then
-        (su - $domain -c "crontab -l 2>/dev/null"; echo "0 * * * * cd /var/www/$domain/html/; wp cron event run --due-now; wp site list --field=url && wp site list --field=url | xargs -i -n1 wp cron event run --due-now --url=\"{}\" > /dev/null 2>&1") | su - $domain -c "crontab -"
-    fi
+		if [[ $schedule == "4" || $schedule == "1h" ]]; then
+			(su - $domain -c "crontab -l 2>/dev/null"; echo "0 * * * * cd /var/www/$domain/html/; wp cron event run --due-now > /dev/null 2>&1") | su - $domain -c "crontab -"
+		fi
+	fi
+	
+	#network/multisite
+	if [[ $is_network == "true" ]]; then
+		if [[ $schedule == "1" || $schedule == "1m" ]]; then
+			(su - $domain -c "crontab -l 2>/dev/null"; echo "* * * * * cd /var/www/$domain/html/; wp site list --field=url | xargs -i -n1 wp cron event run --due-now --url=\"{}\" > /dev/null 2>&1") | su - $domain -c "crontab -"
+		fi
 
+		if [[ $schedule == "2" || $schedule == "5m" ]]; then
+			(su - $domain -c "crontab -l 2>/dev/null"; echo "*/5 * * * * cd /var/www/$domain/html/; wp site list --field=url | xargs -i -n1 wp cron event run --due-now --url=\"{}\" > /dev/null 2>&1") | su - $domain -c "crontab -"
+		fi
+
+		if [[ $schedule == "3" || $schedule == "15m" ]]; then
+			(su - $domain -c "crontab -l 2>/dev/null"; echo "*/15 * * * * cd /var/www/$domain/html/; wp site list --field=url | xargs -i -n1 wp cron event run --due-now --url=\"{}\" > /dev/null 2>&1") | su - $domain -c "crontab -"
+		fi
+
+		if [[ $schedule == "4" || $schedule == "1h" ]]; then
+			(su - $domain -c "crontab -l 2>/dev/null"; echo "0 * * * * cd /var/www/$domain/html/; wp site list --field=url | xargs -i -n1 wp cron event run --due-now --url=\"{}\" > /dev/null 2>&1") | su - $domain -c "crontab -"
+		fi
+	fi	
+	
     cd /var/www/$domain/html/
     su - $user_name -c "wp --skip-plugins config set DISABLE_WP_CRON true"
 

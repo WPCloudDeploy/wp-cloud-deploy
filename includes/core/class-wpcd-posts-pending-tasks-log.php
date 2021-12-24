@@ -655,6 +655,10 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 			if ( ( ! empty( get_post_meta( $server_id, 'wpcd_server_wordpress-app_action', true ) ) ) || ( ! empty( get_post_meta( $server_id, 'wpcd_server_wordpress-app_action_status', true ) ) ) ) {
 				return false;
 			}
+			if ( ( ! empty( get_post_meta( $server_id, 'wpcd_app_wordpress-app_action', true ) ) ) || ( ! empty( get_post_meta( $server_id, 'wpcd_app_wordpress-app_action_status', true ) ) ) ) {
+				// We really shouldn't get here but there was a bug where we were using the incorrect metas.  This is prophylactic code just in case we missed some cleanup spots.
+				return false;
+			}			
 		}
 
 		// Ok, so far the server is still available for commands.
@@ -862,12 +866,23 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 				// Now, we need to make sure that any metas on the app or server record that marks it as unavailable/in-process are removed.
 				$parent_post_type = get_post_meta( $log_id, 'pending_task_parent_post_type', true );
 				$parent_post_id   = get_post_meta( $log_id, 'parent_post_id', true );
+				$pending_task_comment = get_post_meta( $log_id, 'pending_task_comment', true );
 				if ( 'wpcd_app' === $parent_post_type ) {
 					do_action( 'wpcd_wordpress-app_clear_background_processes', $parent_post_id, 'clear_background_processes_via_pending_log_action' );
 				}
 				if ( 'wpcd_app_server' === $parent_post_type ) {
 					do_action( 'wpcd_wordpress-app_server_cleanup_metas', $parent_post_id, 'server_cleanup_metas_via_pending_log_action' );
 				}
+
+				/* Translators: %s is the ID of the pending log recording being cleaned up. */
+				$message = sprintf( __( 'A pending task with id %s was marked as failed because it took too long to complete.', 'wpcd' ), (string) $log_id );
+				if ( ! empty( $pending_task_comment ) ) {
+					$message .= ' - ' . $pending_task_comment;
+				}
+
+				// Add a user friendly notification record.
+				/* Translators: %s is pending log comment message. */
+				do_action( 'wpcd_log_notification', $parent_post_id, 'alert', sprintf( __( 'Stuck pending log cleaned up successfully.(%s)', 'wpcd' ), $pending_task_comment ), 'stuck', null );
 			}
 		}
 

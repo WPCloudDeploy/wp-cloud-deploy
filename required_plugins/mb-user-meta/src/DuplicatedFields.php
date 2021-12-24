@@ -17,6 +17,7 @@ class DuplicatedFields {
 		'last_name',
 		'nickname',
 		'description',
+		'locale',
 	];
 
 	public function __construct() {
@@ -28,7 +29,7 @@ class DuplicatedFields {
 			return $html;
 		}
 		$screen = get_current_screen();
-		if ( ! in_array( $screen->id, ['profile', 'user-edit', 'profile-network', 'user-edit-network'], true ) ) {
+		if ( ! is_object( $screen ) || ! in_array( $screen->id, ['profile', 'user-edit', 'profile-network', 'user-edit-network'], true ) ) {
 			return $html;
 		}
 		return in_array( $field['id'], $this->fields, true ) ? '' : $html;

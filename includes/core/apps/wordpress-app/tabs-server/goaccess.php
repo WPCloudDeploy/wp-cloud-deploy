@@ -19,7 +19,7 @@ class WPCD_WORDPRESS_TABS_SERVER_GOACCESS extends WPCD_WORDPRESS_TABS {
 	 */
 	public function __construct() {
 		parent::__construct();
-		add_filter( "wpcd_server_{$this->get_app_name()}_get_tabnames", array( $this, 'get_tab' ), 10, 1 );
+		add_filter( "wpcd_server_{$this->get_app_name()}_get_tabnames", array( $this, 'get_tab' ), 10, 2 );
 		add_filter( "wpcd_server_{$this->get_app_name()}_get_tabs", array( $this, 'get_tab_fields' ), 10, 2 );
 		add_filter( "wpcd_server_{$this->get_app_name()}_tab_action", array( $this, 'tab_action_server' ), 10, 3 );  // This filter has not been defined and called yet in classs-wordpress-app and might never be because we're using the one below.
 		add_filter( "wpcd_app_{$this->get_app_name()}_tab_action", array( $this, 'tab_action' ), 10, 3 );  // This filter says 'wpcd_app' because we're using the same functions for server details ajax tabs and app details ajax tabs.
@@ -42,10 +42,26 @@ class WPCD_WORDPRESS_TABS_SERVER_GOACCESS extends WPCD_WORDPRESS_TABS {
 		}
 
 		// remove the 'temporary' meta so that another attempt will run if necessary.
-		delete_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action_status" );
-		delete_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action" );
-		delete_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action_args" );
+		delete_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action_status" );  // Should really only exist on an app.
+		delete_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action" );  // Should really only exist on an app.
+		delete_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action_args" );  // Should really only exist on an app.
+		delete_post_meta( $id, "wpcd_server_{$this->get_app_name()}_action_status" );  // Should really only exist on a server.
+		delete_post_meta( $id, "wpcd_server_{$this->get_app_name()}_action" );  // Should really only exist on a server.
+		delete_post_meta( $id, "wpcd_server_{$this->get_app_name()}_action_args" );  // Should really only exist on a server.
+	}
 
+	/**
+	 * Returns a string that can be used as the unique name for this tab.
+	 */
+	public function get_tab_slug() {
+		return 'goaccess';
+	}
+
+	/**
+	 * Returns a string that is the name of a view TEAM permission required to view this tab.
+	 */
+	public function get_view_tab_team_permission_slug() {
+		return 'view_wpapp_server_goaccess_tab';
 	}
 
 
@@ -53,14 +69,17 @@ class WPCD_WORDPRESS_TABS_SERVER_GOACCESS extends WPCD_WORDPRESS_TABS {
 	 * Populates the tab name.
 	 *
 	 * @param array $tabs The default value.
+	 * @param int   $id   The post ID of the server.
 	 *
 	 * @return array    $tabs The default value.
 	 */
-	public function get_tab( $tabs ) {
-		$tabs['goaccess'] = array(
-			'label' => __( 'Goaccess', 'wpcd' ),
-			'icon'  => 'fad fa-user-chart',
-		);
+	public function get_tab( $tabs, $id ) {
+		if ( true === $this->wpcd_wpapp_server_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_server_tab( $id, $this->get_tab_slug() ) ) {
+			$tabs['goaccess'] = array(
+				'label' => __( 'Goaccess', 'wpcd' ),
+				'icon'  => 'fad fa-user-chart',
+			);
+		}
 		return $tabs;
 	}
 
@@ -95,47 +114,56 @@ class WPCD_WORDPRESS_TABS_SERVER_GOACCESS extends WPCD_WORDPRESS_TABS {
 			return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
 		}
 
-		switch ( $action ) {
-			case 'goaccess-install':
-				$action = 'goaccess_install';
-				$result = $this->manage_goaccess( $id, $action );
-				break;
-			case 'goaccess-remove':
-				$action = 'goaccess_remove';
-				$result = $this->manage_goaccess( $id, $action );
-				break;
-			case 'goaccess-disable':
-				$action = 'goaccess_disable';
-				$result = $this->manage_goaccess( $id, $action );
-				break;
-			case 'goaccess-upgrade':
-				$action = 'goaccess_update';
-				$result = $this->manage_goaccess( $id, $action );
-				break;
-			case 'goaccess-add-auth':
-				$action = 'goaccess_auth_add';
-				$result = $this->manage_goaccess( $id, $action );
-				break;
-			case 'goaccess-remove-auth':
-				$action = 'goaccess_auth_remove';
-				$result = $this->manage_goaccess( $id, $action );
-				break;
-			case 'goaccess-change-auth':
-				$action = 'goaccess_auth_change';
-				$result = $this->manage_goaccess( $id, $action );
-				break;
-			case 'goaccess-toggle-ssl':
-				$result = $this->manage_goaccess( $id, $action );
-				break;
-			case 'goaccess-metas-add':
-				$result = $this->manage_goaccess( $id, $action );
-				break;
-			case 'goaccess-metas-remove':
-				$result = $this->manage_goaccess( $id, $action );
-				break;
-
+		/* Now verify that the user can perform actions on this screen, assuming that they can view the server */
+		$valid_actions = array( 'goaccess-install', 'goaccess-remove', 'goaccess-disable', 'goaccess-update', 'goaccess-add-auth', 'goaccess-remove-auth', 'goaccess-change-auth', 'goaccess-toggle-ssl', 'goaccess-metas-add', 'goaccess-metas-remove' );
+		if ( in_array( $action, $valid_actions, true ) ) {
+			if ( false === $this->wpcd_wpapp_server_user_can( $this->get_view_tab_team_permission_slug(), $id ) && false === $this->wpcd_can_author_view_server_tab( $id, $this->get_tab_slug() ) ) {
+				return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
+			}
 		}
 
+		if ( true === $this->wpcd_wpapp_server_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_server_tab( $id, $this->get_tab_slug() ) ) {
+			switch ( $action ) {
+				case 'goaccess-install':
+					$action = 'goaccess_install';
+					$result = $this->manage_goaccess( $id, $action );
+					break;
+				case 'goaccess-remove':
+					$action = 'goaccess_remove';
+					$result = $this->manage_goaccess( $id, $action );
+					break;
+				case 'goaccess-disable':
+					$action = 'goaccess_disable';
+					$result = $this->manage_goaccess( $id, $action );
+					break;
+				case 'goaccess-upgrade':
+					$action = 'goaccess_update';
+					$result = $this->manage_goaccess( $id, $action );
+					break;
+				case 'goaccess-add-auth':
+					$action = 'goaccess_auth_add';
+					$result = $this->manage_goaccess( $id, $action );
+					break;
+				case 'goaccess-remove-auth':
+					$action = 'goaccess_auth_remove';
+					$result = $this->manage_goaccess( $id, $action );
+					break;
+				case 'goaccess-change-auth':
+					$action = 'goaccess_auth_change';
+					$result = $this->manage_goaccess( $id, $action );
+					break;
+				case 'goaccess-toggle-ssl':
+					$result = $this->manage_goaccess( $id, $action );
+					break;
+				case 'goaccess-metas-add':
+					$result = $this->manage_goaccess( $id, $action );
+					break;
+				case 'goaccess-metas-remove':
+					$result = $this->manage_goaccess( $id, $action );
+					break;
+
+			}
+		}
 		return $result;
 	}
 

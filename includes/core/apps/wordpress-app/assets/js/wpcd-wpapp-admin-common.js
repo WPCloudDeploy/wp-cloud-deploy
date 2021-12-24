@@ -1,22 +1,22 @@
 /*
  * This JS file is loaded for both the WordPress APP wp-admin SERVERS and APPS screen.
-*/
+ */
 
 /* global ajaxurl */
 /* global params */
 
-(function ($, params) {
+(function($, params) {
 
     var interval;
 
-    $(document).ready(function () {
+    $(document).ready(function() {
         init();
     });
 
     function init() {
 
         // clicking an action
-        $('body').on('click', '.wpcd_app_action input[type="checkbox"], .wpcd_app_action button', function (e) {
+        $('body').on('click', '.wpcd_app_action input[type="checkbox"], .wpcd_app_action button', function(e) {
 
             var $action = $(this);
             var id = $(this).attr('data-wpcd-id');
@@ -36,7 +36,7 @@
             var additional_params = [];
             var fields = $(this).attr('data-wpcd-fields');
             if (typeof fields !== 'undefined' && fields !== '') {
-                $.each(JSON.parse(fields), function (index, field) {
+                $.each(JSON.parse(fields), function(index, field) {
                     additional_params.push($(field).attr('data-wpcd-name') + '=' + encodeURIComponent($(field).val()));
                 });
             }
@@ -60,13 +60,13 @@
                     type: 'ajax',
                     modal: true,
                     callbacks: {
-                        ajaxContentAdded: function () {
+                        ajaxContentAdded: function() {
                             $('.wpcd-log-console').html($initial_console_message);
                             // hide the close button...
                             hide_console_close_button();
 
                             // clicking the close button on the console
-                            $('.wpcd-log-close-button, .wpcd-log-close-button a, a.wpcd-log-close-button').on('click', function (e) {
+                            $('.wpcd-log-close-button, .wpcd-log-close-button a, a.wpcd-log-close-button').on('click', function(e) {
                                 e.preventDefault();
                                 $a.magnificPopup('close');
                                 location.reload();
@@ -74,7 +74,7 @@
                         }
                     }
                 });
-                $($a).on('click', function (e) {
+                $($a).on('click', function(e) {
                     e.preventDefault();
                 });
                 $a.trigger('click');
@@ -113,7 +113,7 @@
                 data: formData,
                 processData: false,
                 contentType: false,
-                success: function (data) {
+                success: function(data) {
                     if (!data.success) {
                         // throw an alert when an unforeseen error occurs.
                         alert(data.data.msg);
@@ -159,31 +159,41 @@
                     } else if (data.data && data.data.result && data.data.result.async && data.data.result.async === 'yes') {
                         // long running commands.
                         var $object = { post_id: id, command: { name: data.data.result.command } };
-                        interval = setInterval(function () {
-                            $currentConsole = $('.wpcd-log-console');  // get reference to the console window
+                        interval = setInterval(function() {
+                            $currentConsole = $('.wpcd-log-console'); // get reference to the console window
                             $currentConsoleHTML = $currentConsole.html(); // get the current html text inside the console.
-                            $('.wpcd-log-console').html($currentConsoleHTML + '<p>' + params.l10n.checking_for_logs + '</p>');	// add message to window showing user that we're checking for logs
+                            $('.wpcd-log-console').html($currentConsoleHTML + '<p>' + params.l10n.checking_for_logs + '</p>'); // add message to window showing user that we're checking for logs
                             fetchLogs($object, true);
-                        }, params.refresh_seconds * 1000);  // params.refresh_seconds is likely set to 30 seconds - server cron is 60 seconds so no point in polling too much sooner than 60 seconds
+                        }, params.refresh_seconds * 1000); // params.refresh_seconds is likely set to 30 seconds - server cron is 60 seconds so no point in polling too much sooner than 60 seconds
                     } else if (data.data && data.data.result && data.data.result.email_fields) {
-                        var app_action_prefix = 'wpcd_app_action_email-gateway';
+						// Autofill the email fields on the email gateway and monit tabs with the defaults setup in the settings screen.
+						// The tab_prefix var tells us which tab we're on so we can distinguish between the two tabs where this might apply.
+                        var app_action_prefix = data.data.result.tab_prefix;
+
                         $('#' + app_action_prefix + '-smtp-server').val(data.data.result.email_fields.smtp_server);
                         $('#' + app_action_prefix + '-smtp-user').val(data.data.result.email_fields.smtp_user);
                         $('#' + app_action_prefix + '-smtp-password').val(data.data.result.email_fields.smtp_pass);
-                        $('#' + app_action_prefix + '-smtp-domain').val(data.data.result.email_fields.domain);
-                        $('#' + app_action_prefix + '-smtp-note').val(data.data.result.email_fields.note);
-                        $('#' + app_action_prefix + '-smtp-hostname').val(data.data.result.email_fields.hostname1);
+
+                        if (app_action_prefix === 'wpcd_app_action_email-gateway') {
+                            $('#' + app_action_prefix + '-smtp-domain').val(data.data.result.email_fields.domain);
+                            $('#' + app_action_prefix + '-smtp-note').val(data.data.result.email_fields.note);
+                            $('#' + app_action_prefix + '-smtp-hostname').val(data.data.result.email_fields.hostname1);
+                        }
+
+                        if (app_action_prefix === 'wpcd_app_action_monit') {
+                            $('#' + app_action_prefix + '-smtp-port').val(data.data.result.email_fields.smtp_port);
+                        }
 
                         if (data.data.result.msg) {
                             alert(data.data.result.msg);
                         }
                     }
                 },
-                complete: function (event, xhr, settings) {
+                complete: function(event, xhr, settings) {
                     //@TODO: This can get called before success because of things like gateway timeout errors.  Need to handle!
                     $lock.unlock();
                 },
-                error: function (event, xhr, settings, thrownError) {
+                error: function(event, xhr, settings, thrownError) {
                     alert('AJAX Error - something went wrong but we cannot tell you what it was.  Its a bummer and illogical I know.  Most likely its a 504 gateway timeout error.  Increase the time your server allows for a script to run to maybe 300 seconds. In the meantime you can check the SSH LOG or COMMAND LOG screens to see if more data was logged there.');
                     // show the close button...
                     show_console_close_button();
@@ -211,7 +221,7 @@
                     old: is_old
                 }
             },
-            success: function (data) {
+            success: function(data) {
                 // if the interval does not exist, which means it has been cleared
                 // then ignore any further callbacks
                 // this happens when a request takes too long and many requests end up in pending state
@@ -240,7 +250,7 @@
                     $('.wpcd-log-console').scrollTop($('.wpcd-log-console')[0].scrollHeight);
                 }
             },
-            error: function (event, xhr, settings, thrownError) {
+            error: function(event, xhr, settings, thrownError) {
                 console.log('error fetching logs...');
                 console.log(event);
                 console.log(thrownError);
@@ -265,9 +275,9 @@
 
 
 // show/hide the spinner
-(function ($) {
-    $.fn.lock = function () {
-        $(this).each(function () {
+(function($) {
+    $.fn.lock = function() {
+        $(this).each(function() {
             var $this = $(this);
             var position = $this.css('position');
 
@@ -296,7 +306,7 @@
 
             locker.append(loader);
             $this.append(locker);
-            $(window).resize(function () {
+            $(window).resize(function() {
                 $this.find('.locker,.locker-loader').width($this.width()).height($this.height());
             });
         });
@@ -304,8 +314,8 @@
         return $(this);
     };
 
-    $.fn.unlock = function () {
-        $(this).each(function () {
+    $.fn.unlock = function() {
+        $(this).each(function() {
             $(this).find('.locker').remove();
             $(this).css('position', $(this).data('position'));
         });

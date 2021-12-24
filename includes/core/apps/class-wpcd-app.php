@@ -1261,7 +1261,7 @@ class WPCD_APP extends WPCD_Base {
 		 *
 		 * We first check to see if the filename exists with the providers prefix.  If not then we try to grab one without the prefix.
 		 */
-		$command = $this->get_script_file_contents( apply_filters( 'wpcd_script_file_name', $script_name ) ); // let developers override...
+		$command = $this->get_script_file_contents( apply_filters( 'wpcd_script_file_name', $script_name, $attributes ) ); // let developers override...
 		if ( empty( $command ) ) {
 			$command = $this->get_script_file_contents( $this->get_scripts_folder() . $script_version . '/' . $attributes['provider'] . '-' . $script_name );
 		}

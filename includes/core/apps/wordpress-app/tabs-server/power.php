@@ -19,7 +19,7 @@ class WPCD_WORDPRESS_TABS_SERVER_POWER extends WPCD_WORDPRESS_TABS {
 	 */
 	public function __construct() {
 		parent::__construct();
-		add_filter( "wpcd_server_{$this->get_app_name()}_get_tabnames", array( $this, 'get_tab' ), 10, 1 );
+		add_filter( "wpcd_server_{$this->get_app_name()}_get_tabnames", array( $this, 'get_tab' ), 10, 2 );
 		add_filter( "wpcd_server_{$this->get_app_name()}_get_tabs", array( $this, 'get_tab_fields' ), 10, 2 );
 		add_filter( "wpcd_server_{$this->get_app_name()}_tab_action", array( $this, 'tab_action_server' ), 10, 3 );  // This filter has not been defined and called yet in classs-wordpress-app and might never be because we're using the one below.
 		add_filter( "wpcd_app_{$this->get_app_name()}_tab_action", array( $this, 'tab_action' ), 10, 3 );  // This filter says 'wpcd_app' because we're using the same functions for server details ajax tabs and app details ajax tabs.
@@ -42,17 +42,34 @@ class WPCD_WORDPRESS_TABS_SERVER_POWER extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
+	 * Returns a string that can be used as the unique name for this tab.
+	 */
+	public function get_tab_slug() {
+		return 'svr_power';
+	}
+
+	/**
+	 * Returns a string that is the name of a view TEAM permission required to view this tab.
+	 */
+	public function get_view_tab_team_permission_slug() {
+		return 'view_wpapp_server_power_tab';
+	}
+
+	/**
 	 * Populates the tab name.
 	 *
 	 * @param array $tabs The default value.
+	 * @param int   $id   The post ID of the server.
 	 *
 	 * @return array    $tabs The default value.
 	 */
-	public function get_tab( $tabs ) {
-		$tabs['svr_power'] = array(
-			'label' => __( 'Power', 'wpcd' ),
-			'icon'  => 'fad fa-plug',
-		);
+	public function get_tab( $tabs, $id ) {
+		if ( true === $this->wpcd_wpapp_server_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_server_tab( $id, $this->get_tab_slug() ) ) {
+			$tabs[ $this->get_tab_slug() ] = array(
+				'label' => __( 'Power', 'wpcd' ),
+				'icon'  => 'fad fa-plug',
+			);
+		}
 		return $tabs;
 	}
 
@@ -67,7 +84,7 @@ class WPCD_WORDPRESS_TABS_SERVER_POWER extends WPCD_WORDPRESS_TABS {
 	 * @return array Array of actions, complying with the structure necessary by metabox.io fields.
 	 */
 	public function get_tab_fields( array $fields, $id ) {
-		return $this->get_fields_for_tab( $fields, $id, 'svr_power' );
+		return $this->get_fields_for_tab( $fields, $id, $this->get_tab_slug() );
 
 	}
 
@@ -88,26 +105,35 @@ class WPCD_WORDPRESS_TABS_SERVER_POWER extends WPCD_WORDPRESS_TABS {
 			return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
 		}
 
-		switch ( $action ) {
-			case 'server-reboot-soft':
-				$result = $this->reboot_soft( $id, $action );
-				break;
-			case 'server-schedule-reboot-soft':
-				$result = $this->reboot_soft_schedule( $id, $action );
-				break;
-			case 'server-reboot-hard-provider':
-				$result = $this->reboot_hard_provider( $id, $action );
-				break;
-			case 'server-graceful-shutdown':
-				$result = $this->graceful_shutdown( $id, $action );
-				break;
-			case 'server-hard-shutdown':
-				$result = $this->hard_shutdown( $id, $action );
-				break;
-			case 'server-turn-on':
-				$result = $this->turn_on( $id, $action );
-				break;
+		/* Now verify that the user can perform actions on this screen, assuming that they can view the server */
+		$valid_actions = array( 'server-reboot-soft', 'server-schedule-reboot-soft', 'server-reboot-hard-provider', 'server-graceful-shutdown', 'server-hard-shutdown', 'server-turn-on' );
+		if ( in_array( $action, $valid_actions, true ) ) {
+			if ( false === $this->wpcd_wpapp_server_user_can( $this->get_view_tab_team_permission_slug(), $id ) && false === $this->wpcd_can_author_view_server_tab( $id, $this->get_tab_slug() ) ) {
+				return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
+			}
+		}
 
+		if ( true === $this->wpcd_wpapp_server_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_server_tab( $id, $this->get_tab_slug() ) ) {
+			switch ( $action ) {
+				case 'server-reboot-soft':
+					$result = $this->reboot_soft( $id, $action );
+					break;
+				case 'server-schedule-reboot-soft':
+					$result = $this->reboot_soft_schedule( $id, $action );
+					break;
+				case 'server-reboot-hard-provider':
+					$result = $this->reboot_hard_provider( $id, $action );
+					break;
+				case 'server-graceful-shutdown':
+					$result = $this->graceful_shutdown( $id, $action );
+					break;
+				case 'server-hard-shutdown':
+					$result = $this->hard_shutdown( $id, $action );
+					break;
+				case 'server-turn-on':
+					$result = $this->turn_on( $id, $action );
+					break;
+			}
 		}
 
 		return $result;

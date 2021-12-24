@@ -284,6 +284,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/ssl.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/cache.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/sftp.php';
+		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/staging.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/clone-site.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/site-sync.php';
@@ -668,6 +669,87 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	}
 
 	/**
+	 * Returns a boolean true/false if PHP 81 is supposed to be installed.
+	 *
+	 * @param int $server_id ID of server being interrogated...
+	 *
+	 * @return boolean
+	 */
+	public function is_php_81_installed( $server_id ) {
+
+		$initial_plugin_version = $this->get_server_meta_by_app_id( $server_id, 'wpcd_server_plugin_initial_version', true );  // This function is smart enough to know if the ID being passed is a server or app id and adjust accordingly.
+
+		if ( version_compare( $initial_plugin_version, '4.12.1' ) > -1 ) {
+			// Versions of the plugin after 4.12.1 automatically install PHP 8.1.
+			return true;
+		} else {
+			// See if it was manually installed via an upgrade process - which would leave a meta field value behind on the server CPT record.
+			$is_php81_installed = (bool) $this->get_server_meta_by_app_id( $server_id, 'wpcd_server_php81_installed', true );   // This function is smart enough to know if the ID being passed is a server or app id and adjust accordingly.
+			if ( true === $is_php81_installed ) {
+				return true;
+			} else {
+				return false;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Returns a boolean true/false if the 7G V 1.5 Firewall Rules is installed.
+	 *
+	 * @param int $server_id ID of server being interrogated...
+	 *
+	 * @return boolean
+	 */
+	public function is_7g15_installed( $server_id ) {
+
+		$initial_plugin_version = $this->get_server_meta_by_app_id( $server_id, 'wpcd_server_plugin_initial_version', true );  // This function is smart enough to know if the ID being passed is a server or app id and adjust accordingly.
+
+		if ( version_compare( $initial_plugin_version, '4.12.1' ) > -1 ) {
+			// Versions of the plugin after 4.12.1 automatically install 7g V 1.5.
+			return true;
+		} else {
+			// See if it was manually upgraded - which would leave a meta field value behind on the server CPT record.
+			$it_is_installed = (float) $this->get_server_meta_by_app_id( $server_id, 'wpcd_server_7g_upgrade', true );   // This function is smart enough to know if the ID being passed is a server or app id and adjust accordingly.
+			if ( $it_is_installed >= 1.5 ) {
+				return true;
+			} else {
+				return false;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Returns a boolean true/false if wpcli 2.5 is installed.
+	 *
+	 * @param int $server_id ID of server being interrogated...
+	 *
+	 * @return boolean
+	 */
+	public function is_wpcli25_installed( $server_id ) {
+
+		$initial_plugin_version = $this->get_server_meta_by_app_id( $server_id, 'wpcd_server_plugin_initial_version', true );  // This function is smart enough to know if the ID being passed is a server or app id and adjust accordingly.
+
+		if ( version_compare( $initial_plugin_version, '4.12.1' ) > -1 ) {
+			// Versions of the plugin after 4.12.1 automatically install wpcli 2.5.
+			return true;
+		} else {
+			// See if it was manually upgraded - which would leave a meta field value behind on the server CPT record.
+			$it_is_installed = (float) $this->get_server_meta_by_app_id( $server_id, 'wpcd_server_wpcli_upgrade', true );   // This function is smart enough to know if the ID being passed is a server or app id and adjust accordingly.
+			if ( $it_is_installed >= 2.5 ) {
+				return true;
+			} else {
+				return false;
+			}
+		}
+
+		return false;
+	}
+
+	/**
 	 * Returns a boolean true/false if the server is a 4.6.0 or later server or was upgraded to that version.
 	 *
 	 * @param int $server_id ID of server being interrogated...
@@ -710,7 +792,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	}
 
 	/**
-	 * Returns on/off status of http for the site being interrogated.
+	 * Returns on/off status of http2 for the site being interrogated.
 	 *
 	 * @param int $app_id ID of app being interrogated.
 	 *
@@ -761,6 +843,85 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		}
 
 		return $current_status;
+
+	}
+
+	/**
+	 * Returns whether a site is a staging site.
+	 *
+	 * @param int $app_id ID of app being interrogated.
+	 *
+	 * @return boolean
+	 */
+	public function is_staging_site( $app_id ) {
+
+		$is_staging = (int) get_post_meta( $app_id, 'wpapp_is_staging', true );
+
+		if ( 1 === $is_staging ) {
+			return true;
+		} else {
+			return false;
+		}
+
+	}
+
+	/**
+	 * Returns the domain of the associated staging site.
+	 *
+	 * @param int $app_id ID of app being interrogated.
+	 *
+	 * @return string The staging domain name if it exists.
+	 */
+	public function get_companion_staging_site_domain( $app_id ) {
+
+		$staging_domain = (string) get_post_meta( $app_id, 'wpapp_staging_domain', true );
+
+		return $staging_domain;
+
+	}
+
+	/**
+	 * Returns the post id of the domain of the associated staging site.
+	 *
+	 * @param int $app_id ID of app being interrogated.
+	 *
+	 * @return int The post id of the staging domain if it exists.
+	 */
+	public function get_companion_staging_site_id( $app_id ) {
+
+		$staging_site_id = (int) get_post_meta( $app_id, 'wpapp_staging_domain_id', true );
+
+		return $staging_site_id;
+
+	}
+
+	/**
+	 * Returns the domain of the associated live site for a staging site.
+	 *
+	 * @param int $app_id ID of app being interrogated.
+	 *
+	 * @return string The live domain name if it exists.
+	 */
+	public function get_live_domain_for_staging_site( $app_id ) {
+
+		$live_domain = (string) get_post_meta( $app_id, 'wpapp_cloned_from', true );
+
+		return $live_domain;
+
+	}
+
+	/**
+	 * Returns the post id of the live domain of associated with a staging site.
+	 *
+	 * @param int $app_id ID of app being interrogated.
+	 *
+	 * @return int The post id for the live site related to the staging site.
+	 */
+	public function get_live_id_for_staging_site( $app_id ) {
+
+		$live_id = (int) get_post_meta( $app_id, 'wpapp_cloned_from_id', true );
+
+		return $live_id;
 
 	}
 
@@ -1052,6 +1213,12 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				||
 				( strpos( $result, 'Basic authentication enabled for' ) !== false );
 				break;
+			case 'basic_auth_wplogin_misc.txt':
+				$return =
+				( strpos( $result, 'Basic authentication disabled for' ) !== false )
+				||
+				( strpos( $result, 'Basic authentication enabled for' ) !== false );
+				break;
 			case 'toggle_https_misc.txt':
 				$return =
 				( strpos( $result, 'HTTPS redirect disabled for' ) !== false )
@@ -1232,6 +1399,10 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				$return =
 				( strpos( $result, 'Copy to existing site is complete' ) !== false );
 				break;
+			case 'change_file_upload_size.txt':
+				$return =
+				( strpos( $result, 'File upload limits have been changed for' ) !== false );
+				break;
 
 			/**************************************************************
 			* The items below this are SERVER items, not APP items        *
@@ -1311,6 +1482,15 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				||
 				( strpos( $result, '7G Firewall is already installed' ) !== false );
 				break;
+			case 'run_upgrade_install_php_81.txt':
+				$return = ( strpos( $result, 'PHP 8.1 has been installed' ) !== false );
+				break;
+			case 'run_upgrade_7g.txt':
+				$return = ( strpos( $result, 'The 7G Firewall has been upgraded' ) !== false );
+				break;
+			case 'run_upgrade_wpcli.txt':
+				$return = ( strpos( $result, 'WPCLI has been upgraded' ) !== false );
+				break;
 			case 'server_status_callback.txt':
 				$return =
 				( strpos( $result, 'Server status job configured' ) !== false )
@@ -1363,11 +1543,47 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				||
 				( strpos( $result, 'has been disabled for' ) !== false )
 				||
-				( strpos( $result, 'SLL has been enabled for' ) !== false )
+				( strpos( $result, 'SSL has been enabled for' ) !== false )
 				||
 				( strpos( $result, 'SSL is already disabled for' ) !== false )
 				||
 				( strpos( $result, 'SSL has been disabled for' ) !== false );
+				break;
+			case 'netdata_install.txt':
+				$return =
+				( strpos( $result, 'Netdata has been installed' ) !== false )
+				||
+				( strpos( $result, 'Netdata is already installed' ) !== false );
+				break;
+			case 'netdata.txt':
+				$return =
+				( strpos( $result, 'Netdata has been installed' ) !== false )
+				||
+				( strpos( $result, 'Netdata has been removed' ) !== false )
+				||
+				( strpos( $result, 'Netdata has been updated' ) !== false )
+				||
+				( strpos( $result, 'Basic Auth has been enabled for' ) !== false )
+				||
+				( strpos( $result, 'Basic Auth already enabled' ) !== false )
+				||
+				( strpos( $result, 'Basic Auth has been disabled' ) !== false )
+				||
+				( strpos( $result, 'Basic Auth has been updated' ) !== false )
+				||
+				( strpos( $result, 'SSL has been enabled for' ) !== false )
+				||
+				( strpos( $result, 'SSL was not enabled for netdata so nothing to disable' ) !== false )
+				||
+				( strpos( $result, 'SSL has been disabled for' ) !== false )
+				||
+				( strpos( $result, 'Registry already enabled ' ) !== false )
+				||
+				( strpos( $result, 'Registry enabled to' ) !== false )
+				||
+				( strpos( $result, 'Registry already pointed to ' ) !== false )
+				||
+				( strpos( $result, 'Registry pointed to' ) !== false );
 				break;
 			case 'monit.txt':
 				$return =
@@ -1504,6 +1720,15 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 		}
 
+		/* Sometimes we get a false positive so check for some things that might indicate a generic failure. */
+		if ( $return ) {
+			$return = $return
+				&&
+				( strpos( $result, 'dpkg was interrupted, you must manually run' ) === false )
+				&&
+				( strpos( $result, 'Installation of required packages failed' ) === false );
+		}
+
 		return apply_filters( 'wpcd_is_ssh_successful', $return, $result, $command, $action, $this->get_app_name() );
 
 	}
@@ -1515,7 +1740,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	 * Filter Hook: wpcd_script_placeholders_{$this->get_app_name()}
 	 *
 	 * @param array  $array              The array of placeholders, usually empty but since this is the first param, its the one returned as the modified value.
-	 * @param string $script_name     script_name.
+	 * @param string $script_name        Script_name.
 	 * @param string $script_version     The version of script to be used.
 	 * @param array  $instance           Various pieces of data about the server or app being used. It can use the following keys. post_id: the ID of the post.
 	 * @param string $command            The command being constructed.
@@ -1639,6 +1864,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				);
 				break;
 			case 'basic_auth_misc.txt':
+			case 'basic_auth_wplogin_misc.txt':
 			case 'toggle_https_misc.txt':
 			case 'toggle_wp_linux_cron_misc.txt':
 			case 'change_php_version_misc.txt':
@@ -1906,6 +2132,16 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 					$additional
 				);
 				break;
+			case 'change_file_upload_size.txt':
+				$new_array = array_merge(
+					array(
+						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/10-misc.txt',
+						'SCRIPT_NAME' => '10-misc.sh',
+					),
+					$common_array,
+					$additional
+				);
+				break;
 
 			/*********************************************************
 			* The items below this are SERVER items, not APP items   *
@@ -1991,6 +2227,29 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 					$additional
 				);
 				break;
+			case 'netdata_install.txt':
+				$command_name = $additional['command'];
+				$new_array    = array_merge(
+					array(
+						'SCRIPT_URL'   => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/43-netdata.txt',
+						'SCRIPT_NAME'  => '43-netdata.sh',
+						'SCRIPT_LOGS'  => "{$this->get_app_name()}_{$command_name}",
+						'CALLBACK_URL' => $this->get_command_url( $instance['server_id'], $command_name, 'completed' ),
+					),
+					$common_array,
+					$additional
+				);
+				break;
+			case 'netdata.txt':
+				$new_array = array_merge(
+					array(
+						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/43-netdata.txt',
+						'SCRIPT_NAME' => '43-netdata.sh',
+					),
+					$common_array,
+					$additional
+				);
+				break;
 			case 'monit.txt':
 				$new_array = array_merge(
 					array(
@@ -2036,6 +2295,36 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 					array(
 						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/1040-upgrade_462_install_7g_firewall.txt',
 						'SCRIPT_NAME' => '1040-upgrade_462_install_7g_firewall.sh',
+					),
+					$common_array,
+					$additional
+				);
+				break;
+			case 'run_upgrade_install_php_81.txt':
+				$new_array = array_merge(
+					array(
+						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/1050-upgrade_install_php_81.txt',
+						'SCRIPT_NAME' => '1050-upgrade_install_php_81.sh',
+					),
+					$common_array,
+					$additional
+				);
+				break;
+			case 'run_upgrade_7g.txt':
+				$new_array = array_merge(
+					array(
+						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/1060-upgrade_7g_firewall.txt',
+						'SCRIPT_NAME' => '1060-upgrade_7g_firewall.sh',
+					),
+					$common_array,
+					$additional
+				);
+				break;
+			case 'run_upgrade_wpcli.txt':
+				$new_array = array_merge(
+					array(
+						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/1070-upgrade_wp_cli.txt',
+						'SCRIPT_NAME' => '1070-upgrade_wp_cli.sh',
 					),
 					$common_array,
 					$additional
@@ -3590,6 +3879,14 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			$php_object_cache = $this->generate_meta_dropdown( 'wpapp_object_cache_status', __( 'Object Cache', 'wpcd' ), $cache_options );
 			echo $php_object_cache;
 
+			// SITE NEEDS UPDATES.
+			$updates_options    = array(
+				'yes' => __( 'Yes', 'wpcd' ),
+				'no'  => __( 'No', 'wpcd' ),
+			);
+			$site_needs_updates = $this->generate_meta_dropdown( 'wpapp_sites_needs_updates', __( 'Site Needs Updates', 'wpcd' ), $updates_options );
+			echo $site_needs_updates;
+
 		}
 	}
 
@@ -3739,6 +4036,30 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 					);
 				}
 			}
+
+			// SITE NEEDS UPDATES.
+			if ( isset( $_GET['wpapp_sites_needs_updates'] ) && ! empty( $_GET['wpapp_sites_needs_updates'] ) ) {
+				$wpapp_sites_needs_updates = filter_input( INPUT_GET, 'wpapp_sites_needs_updates', FILTER_SANITIZE_STRING );
+
+				if ( $wpapp_sites_needs_updates === 'yes' ) {
+
+					$qv['meta_query'][] = array(
+						'relation' => 'OR',
+						array(
+							'key'     => 'wpcd_site_needs_updates',
+							'value'   => $wpapp_sites_needs_updates,
+							'compare' => '=',
+						),
+					);
+
+				} else {
+					$qv['meta_query'][] = array(
+						'key'     => 'wpcd_site_needs_updates',
+						'value'   => $wpapp_sites_needs_updates,
+						'compare' => '=',
+					);
+				}
+			}
 		}
 
 		if ( is_admin() && $query->is_main_query() && $query->query['post_type'] == 'wpcd_app' && $pagenow == 'edit.php' && ! empty( $_GET['wpapp_php_version'] ) && empty( $filter_action ) ) {
@@ -3824,7 +4145,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 		delete_post_meta( $server_id, 'wpcd_server_wordpress-app_action' );
 		delete_post_meta( $server_id, 'wpcd_server_wordpress-app_action_status' );
-
+		delete_post_meta( $server_id, 'wpcd_server_wordpress-app_action_args' );
 	}
 
 	/**

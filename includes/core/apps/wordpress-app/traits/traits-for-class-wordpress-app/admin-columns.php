@@ -144,16 +144,27 @@ trait wpcd_wpapp_admin_column_data {
 
 		/* Calculate our data element */
 		$new_column_data = '';
-		$new_column_data = $new_column_data . __( 'Domain:', 'wpcd' ) . ' ' . get_post_meta( $post_id, 'wpapp_domain', true ) . '<br />';
-		$new_column_data = $new_column_data . __( 'User:', 'wpcd' ) . ' ' . get_post_meta( $post_id, 'wpapp_user', true ) . '<br />';
-		
-		/* Add wp version */
-		$wp_version = get_post_meta( $post_id, 'wpapp_version', true );
-		if ( 'latest' === $wp_version ) {
-			$wp_version = __( 'Latest', 'wpcd' );
+		if ( true === (bool) wpcd_get_option( 'wordpress_app_hide_domain_site_summary_column_in_site_list' ) && ( ! wpcd_is_admin() ) ) {
+			// Do nothing.
+		} else {
+			$new_column_data = $new_column_data . __( 'Domain:', 'wpcd' ) . ' ' . get_post_meta( $post_id, 'wpapp_domain', true ) . '<br />';
 		}
-		$new_column_data = $new_column_data . __( 'Initial WP Version:', 'wpcd' ) . ' ' . $wp_version . '<br />';
+		if ( true === (bool) wpcd_get_option( 'wordpress_app_hide_login_user_site_summary_column_in_site_list' ) && ( ! wpcd_is_admin() ) ) {
+			// Do nothing.
+		} else {
+			$new_column_data = $new_column_data . __( 'User:', 'wpcd' ) . ' ' . get_post_meta( $post_id, 'wpapp_user', true ) . '<br />';
+		}
 
+		/* Add wp version */
+		if ( true === (bool) wpcd_get_option( 'wordpress_app_hide_initial_wp_version_site_summary_column_in_site_list' ) && ( ! wpcd_is_admin() ) ) {
+			// Do nothing.
+		} else {
+			$wp_version = get_post_meta( $post_id, 'wpapp_version', true );
+			if ( 'latest' === $wp_version ) {
+				$wp_version = __( 'Latest', 'wpcd' );
+			}
+			$new_column_data = $new_column_data . __( 'Initial WP Version:', 'wpcd' ) . ' ' . $wp_version . '<br />';
+		}
 		if ( ! empty( $labels_count_arr ) ) {
 			$new_column_data = $new_column_data . $labels_count_arr . '<br />';
 		}
@@ -425,6 +436,8 @@ trait wpcd_wpapp_admin_column_data {
 					$server_status_callback_status = get_post_meta( $post_id, 'wpcd_wpapp_server_status_callback_installed', true );
 					if ( empty( $server_status_callback_status ) ) {
 						$health = "<div class='wpcd_waiting_for_data_column'>" . __( 'Callbacks are not installed. Please install from the CALLBACKS tab on this server.', 'wpcd' ) . '</div>';
+						$callback_tab_link = get_edit_post_link( $post_id ) . '#~~callbacks';
+						$health .= "<a href='" . $callback_tab_link . "'>" . __( 'Go To Callbacks Tab', 'wpcd' ) . '</a>';
 					} else {
 						$health = "<div class='wpcd_waiting_for_data_column'>" . __( 'Waiting For Data From Callback...', 'wpcd' ) . '</div>';
 					}
@@ -450,6 +463,10 @@ trait wpcd_wpapp_admin_column_data {
 	 * @return new array of columns
 	 */
 	public function app_posts_app_table_head( $defaults ) {
+
+		if ( wpcd_get_option( 'wordpress_app_show_staging_column_in_site_list' ) ) {
+			$defaults['wpcd_wpapp_staging'] = __( 'Staging', 'wpcd' );
+		}
 
 		$defaults['wpcd_wpapp_cache'] = __( 'Cache', 'wpcd' );
 		$defaults['wpcd_wpapp_php']   = __( 'PHP', 'wpcd' );
@@ -549,6 +566,43 @@ trait wpcd_wpapp_admin_column_data {
 
 				break;
 
+			case 'wpcd_wpapp_staging':
+				if ( wpcd_get_option( 'wordpress_app_show_staging_column_in_site_list' ) ) {
+
+					$str = '';
+
+					if ( $this->is_staging_site( $post_id ) ) {
+						$live_id = $this->get_live_id_for_staging_site( $post_id );
+						if ( ! empty( $live_id ) ) {
+							$link = '<a href="' . get_edit_post_link( $live_id ) . '" target="_blank">' . $this->get_live_domain_for_staging_site( $post_id ) . '</a>';
+							/* Translators: %s: Link to the related live site of a staging site. */
+							$str  = sprintf( __( 'Live Site: %s', 'wpcd' ), $link );
+							$str .= '<br />';
+							$str .= '<b><i>' . $this->get_formatted_wpadmin_link( $live_id ) . '</b></i>';
+							$str .= '<br />';
+							$str .= '<b><i>' . $this->get_formatted_site_link( $live_id ) . '</b></i>';
+						}
+					}
+
+					if ( $this->get_companion_staging_site_id( $post_id ) ) {
+						$staging_id = $this->get_companion_staging_site_id( $post_id );
+						if ( ! empty( $staging_id ) ) {
+							$link = '<a href="' . get_edit_post_link( $staging_id ) . '" target="_blank">' . $this->get_companion_staging_site_domain( $post_id ) . '</a>';
+							/* Translators: %s: Link to the related live site of a staging site. */
+							$str  = sprintf( __( 'Staging Site: %s', 'wpcd' ), $link );
+							$str .= '<br />';
+							$str .= '<b><i>' . $this->get_formatted_wpadmin_link( $staging_id ) . '</b></i>';
+							$str .= '<br />';
+							$str .= '<b><i>' . $this->get_formatted_site_link( $staging_id ) . '</b></i>';
+						}
+					}
+
+					echo $str;
+
+				}
+
+				break;
+
 		}
 
 	}
@@ -572,9 +626,15 @@ trait wpcd_wpapp_admin_column_data {
 
 		/* Show whether the site is enabled or disabled */
 		if ( 'wpcd_app' === get_post_type( $post ) && 'wordpress-app' == $this->get_app_type( $post->ID ) ) {
-
 			if ( 'off' === $this->site_status( $post->ID ) ) {
 				$states['wpcd-wpapp-status'] = __( 'Disabled', 'wpcd' );
+			}
+		}
+
+		/* Show whether the site is a staging site */
+		if ( 'wpcd_app' === get_post_type( $post ) && 'wordpress-app' == $this->get_app_type( $post->ID ) ) {
+			if ( true === $this->is_staging_site( $post->ID ) ) {
+				$states['wpcd-wpapp-status'] = __( 'Staging', 'wpcd' );
 			}
 		}
 

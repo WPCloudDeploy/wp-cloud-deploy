@@ -19,7 +19,7 @@ class WPCD_WORDPRESS_TABS_SERVER_TOOLS extends WPCD_WORDPRESS_TABS {
 	 */
 	public function __construct() {
 		parent::__construct();
-		add_filter( "wpcd_server_{$this->get_app_name()}_get_tabnames", array( $this, 'get_tab' ), 10, 1 );
+		add_filter( "wpcd_server_{$this->get_app_name()}_get_tabnames", array( $this, 'get_tab' ), 10, 2 );
 		add_filter( "wpcd_server_{$this->get_app_name()}_get_tabs", array( $this, 'get_tab_fields' ), 10, 2 );
 		add_filter( "wpcd_server_{$this->get_app_name()}_tab_action", array( $this, 'tab_action_server' ), 10, 3 );  // This filter has not been defined and called yet in classs-wordpress-app and might never be because we're using the one below.
 		add_filter( "wpcd_app_{$this->get_app_name()}_tab_action", array( $this, 'tab_action' ), 10, 3 );  // This filter says 'wpcd_app' because we're using the same functions for server details ajax tabs and app details ajax tabs.
@@ -30,17 +30,34 @@ class WPCD_WORDPRESS_TABS_SERVER_TOOLS extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
+	 * Returns a string that can be used as the unique name for this tab.
+	 */
+	public function get_tab_slug() {
+		return 'svr_tools';
+	}
+
+	/**
+	 * Returns a string that is the name of a view TEAM permission required to view this tab.
+	 */
+	public function get_view_tab_team_permission_slug() {
+		return 'view_wpapp_server_tools_tab';
+	}
+
+	/**
 	 * Populates the tab name.
 	 *
 	 * @param array $tabs The default value.
+	 * @param int   $id   The post ID of the server.
 	 *
 	 * @return array    $tabs The default value.
 	 */
-	public function get_tab( $tabs ) {
-		$tabs['svr_tools'] = array(
-			'label' => __( 'Tools', 'wpcd' ),
-			'icon'  => 'fad fa-tools',
-		);
+	public function get_tab( $tabs, $id ) {
+		if ( true === $this->wpcd_wpapp_server_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_server_tab( $id, $this->get_tab_slug() ) ) {
+			$tabs[ $this->get_tab_slug() ] = array(
+				'label' => __( 'Tools', 'wpcd' ),
+				'icon'  => 'fad fa-tools',
+			);
+		}
 		return $tabs;
 	}
 
@@ -55,7 +72,7 @@ class WPCD_WORDPRESS_TABS_SERVER_TOOLS extends WPCD_WORDPRESS_TABS {
 	 * @return array Array of actions, complying with the structure necessary by metabox.io fields.
 	 */
 	public function get_tab_fields( array $fields, $id ) {
-		return $this->get_fields_for_tab( $fields, $id, 'svr_tools' );
+		return $this->get_fields_for_tab( $fields, $id, $this->get_tab_slug() );
 
 	}
 
@@ -75,20 +92,30 @@ class WPCD_WORDPRESS_TABS_SERVER_TOOLS extends WPCD_WORDPRESS_TABS {
 			return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
 		}
 
-		switch ( $action ) {
-			case 'server-cleanup-metas':
-				$result = $this->server_cleanup_metas( $id, $action );
-				break;
-			case 'server-cleanup-rest-api-test':
-				$result = $this->test_rest_api( $id, $action );
-				break;
-			case 'reset-server-default-php-version':
-				$result = $this->reset_php_default_version( $id, $action );
-				break;
-			case 'remove-php80rc1-reset-imagick':
-				$result = $this->remove_80rc1_reset_imagick( $id, $action );
-				break;
+		/* Now verify that the user can perform actions on this screen, assuming that they can view the server */
+		$valid_actions = array( 'server-cleanup-metas', 'server-cleanup-rest-api-test', 'reset-server-default-php-version', 'remove-php80rc1-reset-imagick' );
+		if ( in_array( $action, $valid_actions, true ) ) {
+			if ( false === $this->wpcd_wpapp_server_user_can( $this->get_view_tab_team_permission_slug(), $id ) && false === $this->wpcd_can_author_view_server_tab( $id, $this->get_tab_slug() ) ) {
+				return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
+			}
+		}
 
+		if ( true === $this->wpcd_wpapp_server_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_server_tab( $id, $this->get_tab_slug() ) ) {
+			switch ( $action ) {
+				case 'server-cleanup-metas':
+					$result = $this->server_cleanup_metas( $id, $action );
+					break;
+				case 'server-cleanup-rest-api-test':
+					$result = $this->test_rest_api( $id, $action );
+					break;
+				case 'reset-server-default-php-version':
+					$result = $this->reset_php_default_version( $id, $action );
+					break;
+				case 'remove-php80rc1-reset-imagick':
+					$result = $this->remove_80rc1_reset_imagick( $id, $action );
+					break;
+
+			}
 		}
 
 		return $result;
@@ -191,6 +218,7 @@ class WPCD_WORDPRESS_TABS_SERVER_TOOLS extends WPCD_WORDPRESS_TABS {
 					'7.1' => '7.1',
 					'5.6' => '5.6',
 					'8.0' => '8.0',
+					'8.1' => '8.1',
 				),
 				'std'            => $default_php_version,
 				// the key of the field (the key goes in the request).
@@ -259,6 +287,13 @@ class WPCD_WORDPRESS_TABS_SERVER_TOOLS extends WPCD_WORDPRESS_TABS {
 		delete_post_meta( $id, 'wpcd_server_wordpress-app_action_status' );
 		delete_post_meta( $id, 'wpcd_temp_log_id' );
 		delete_post_meta( $id, 'wpcd_server_action_status' );
+
+		delete_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action_status" );  // Should really only exist on an app.
+		delete_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action" );  // Should really only exist on an app.
+		delete_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action_args" );  // Should really only exist on an app.
+		delete_post_meta( $id, "wpcd_server_{$this->get_app_name()}_action_status" );  // Should really only exist on a server and it's a duplicate of the delete a few lines above.
+		delete_post_meta( $id, "wpcd_server_{$this->get_app_name()}_action" );  // Should really only exist on a server and it's a duplicate of the delete a few lines above.
+		delete_post_meta( $id, "wpcd_server_{$this->get_app_name()}_action_args" );  // Should really only exist on a server.
 
 		// Return the data as an error so it can be shown in a dialog box.
 		return new \WP_Error( __( 'In-progress server metas have been deleted.', 'wpcd' ) );

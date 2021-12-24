@@ -5,7 +5,8 @@
  * @package wpcd
  */
 
-if ( ( ( ! defined( 'WPCD_WPAPP_SKIP_POPUP_HEADER' ) ) || ( defined( 'WPCD_WPAPP_SKIP_POPUP_HEADER' ) && ! WPCD_WPAPP_SKIP_POPUP_HEADER ) ) ) {
+$no_logo = (bool) wpcd_get_option( 'wordpress_app_noshow_logo' );
+if ( ( ( ! defined( 'WPCD_WPAPP_SKIP_POPUP_HEADER' ) ) || ( defined( 'WPCD_WPAPP_SKIP_POPUP_HEADER' ) && ! WPCD_WPAPP_SKIP_POPUP_HEADER ) ) && ! $no_logo ) {
 	?>	
 	<div class="wpcd-header">
 		<div class="wpcd-header-wrap">

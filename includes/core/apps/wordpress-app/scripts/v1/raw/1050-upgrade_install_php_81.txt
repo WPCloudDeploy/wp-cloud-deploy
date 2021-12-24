@@ -1,0 +1,46 @@
+#!/bin/bash
+# This script will install PHP 8.1
+
+echo $(date): "Refreshing repositories..."
+apt-get update > /dev/null 2>&1
+if [ $? -ne 0 ]  
+then
+	echo "Failed!  Quitting process"
+	exit 1
+fi
+
+echo $(date): "Installing PHP 8.1...."
+export DEBIAN_FRONTEND=noninteractive
+apt-get install -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"  php8.1 php8.1-fpm php8.1-mbstring php8.1-curl php8.1-mysql php8.1-xml php8.1-zip php8.1-gd php8.1-imap php8.1-soap php8.1-bcmath php8.1-imagick -y
+if [ $? -ne 0 ]  
+then
+	echo "Failed!  Quitting process"
+	exit 1
+fi
+
+# Update php.ini file to increase filesize uploads allowed in WordPress
+echo $(date): "Adding required entries in php.ini to allow for larger file uploads in WordPress..."
+sed -i "s/upload_max_filesize = 2M/upload_max_filesize = 25M/g" /etc/php/8.1/fpm/php.ini
+sed -i "s/post_max_size = 8M/post_max_size = 25M/g" /etc/php/8.1/fpm/php.ini
+
+# Update php.ini to enable and configure opcache
+echo $(date): "Updating OPCACHE parameters in php.ini..."
+sed -i "s/;opcache.enable=1/opcache.enable=1/g" /etc/php/8.1/fpm/php.ini
+sed -i "s/;opcache.enable_cli=0/opcache.enable_cli=1/g" /etc/php/8.1/fpm/php.ini
+sed -i "s/;opcache.interned_strings_buffer=8/opcache.interned_strings_buffer=8/g" /etc/php/8.1/fpm/php.ini
+sed -i "s/;opcache.max_accelerated_files=10000/opcache.max_accelerated_files=100000/g" /etc/php/8.1/fpm/php.ini
+sed -i "s/;opcache.memory_consumption=128/opcache.memory_consumption=128/g" /etc/php/8.1/fpm/php.ini
+sed -i "s/;opcache.save_comments=1/opcache.save_comments=1/g" /etc/php/8.1/fpm/php.ini
+sed -i "s/;opcache.revalidate_freq=2/opcache.revalidate_freq=1/g" /etc/php/8.1/fpm/php.ini
+sed -i "s/;opcache.use_cwd=1/opcache.use_cwd=1/g" /etc/php/8.1/fpm/php.ini
+sed -i "s/;opcache.validate_root=0/opcache.validate_root=1/g" /etc/php/8.1/fpm/php.ini
+sed -i "s/;opcache.validate_permission=0/opcache.validate_permission=1/g" /etc/php/8.1/fpm/php.ini
+sed -i "s/;opcache.file_update_protection=2/opcache.file_update_protection=60/g" /etc/php/8.1/fpm/php.ini
+
+# Restarting php
+echo $(date): "Restarting PHP processes..."
+systemctl restart php8.1-fpm > /dev/null 2>&1
+
+service nginx restart
+
+echo "PHP 8.1 has been installed."

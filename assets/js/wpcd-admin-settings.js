@@ -1,12 +1,12 @@
 /*
  * This JS file is loaded for the WPCD settings screen.
-*/
+ */
 
-(function ($) {
+(function($) {
 
     var interval;
 
-    $(document).ready(function () {
+    $(document).ready(function() {
         init();
     });
 
@@ -22,7 +22,7 @@
         $('.wpcd_settings_pass_toggle_icon').removeClass('dashicons-hidden').addClass('dashicons-visibility').addClass('wpcd-not-showing');
 
         // toggle the showing of plain text password.
-        $('.wpcd_settings_pass_toggle_icon').on('click', function (e) {
+        $('.wpcd_settings_pass_toggle_icon').on('click', function(e) {
             e.preventDefault();
             if ($(this).hasClass('wpcd-not-showing')) {
                 // show data in text and text area fields
@@ -42,7 +42,7 @@
 
     // for cleaning up apps - triggered from the SETTINGS->TOOLS->CLEAN UP APPS button.
     function initCleanUpApps() {
-        $('body').on('click', '#wpcd-cleanup-apps', function (e) {
+        $('body').on('click', '#wpcd-cleanup-apps', function(e) {
             e.preventDefault();
 
             var action = $(this).data('action');
@@ -55,7 +55,7 @@
                     action: action,
                     nonce: nonce
                 },
-                success: function (data) {
+                success: function(data) {
                     alert(data.data.msg);
                     location.reload();
                 }
@@ -66,7 +66,7 @@
 
     // for cleaning up servers - triggered from the SETTINGS->TOOLS->CLEAN UP SERVERS button
     function initCleanUpServers() {
-        $('body').on('click', '#wpcd-cleanup-servers', function (e) {
+        $('body').on('click', '#wpcd-cleanup-servers', function(e) {
             e.preventDefault();
 
             var action = $(this).data('action');
@@ -79,7 +79,7 @@
                     action: action,
                     nonce: nonce
                 },
-                success: function (data) {
+                success: function(data) {
                     alert(data.data.msg);
                     location.reload();
                 }
@@ -90,7 +90,7 @@
 
     // for clearing provider cache
     function initClearProviderCache() {
-        $('body').on('click', '.wpcd-provider-clear-cache', function (e) {
+        $('body').on('click', '.wpcd-provider-clear-cache', function(e) {
             e.preventDefault();
 
             var action = $(this).data('action');
@@ -105,7 +105,7 @@
                     nonce: nonce,
                     provider: provider
                 },
-                success: function (data) {
+                success: function(data) {
                     alert(data.data.msg);
                     location.reload();
                 }
@@ -114,11 +114,76 @@
         });
     }
 
+    // Checking for WPCD updates - triggered from the SETTINGS->LICENSE AND UPDATES->CHECK FOR UPDATES button
+    // Validate licenses - triggered from the SETTINGS->LICENSE AND UPDATES->VALIDATE LICENSES button
+    function initCheckUpdatesValidateLicenses() {
+        $('body').on('click', '#wpcd-check-for-updates, #wpcd-validate-licenses', function(e) {
+            e.preventDefault();
+
+            var current_btn = $(this);
+            var action = $(this).data('action');
+            var nonce = $(this).data('nonce');
+            var loading_msg = $(this).data('loading_msg');
+
+            $.ajax({
+                url: ajaxurl,
+                method: 'POST',
+                data: {
+                    action: action,
+                    nonce: nonce
+                },
+                beforeSend: function() {
+                    current_btn.prop('disabled', true);
+                    $("<div class='wpcd_btn_loading_msg'>" + loading_msg + "</p>").insertAfter(current_btn);
+                },
+                success: function(data) {
+                    location.reload();
+                }
+            });
+
+        });
+    }
+
+    // Reset defaults brand colors.
+    function initResetDefaultsBrandColors() {
+        $('body').on('click', '#wordpress_app_reset_brand_colors', function(e) {
+            e.preventDefault();
+
+            var current_btn = $(this);
+            var action = $(this).data('action');
+            var nonce = $(this).data('nonce');
+            var loading_msg = $(this).data('loading_msg');
+            var confirm_msg = $(this).data('confirm');
+
+            if (confirm(confirm_msg)) {
+                $.ajax({
+                    url: ajaxurl,
+                    method: 'POST',
+                    data: {
+                        action: action,
+                        nonce: nonce,
+                    },
+                    beforeSend: function() {
+                        current_btn.prop('disabled', true);
+                        $("<div class='wpcd_btn_loading_msg'>" + loading_msg + "</p>").insertAfter(current_btn);
+                    },
+                    success: function(data) {
+                        alert(data.data.msg);
+                        location.reload();
+                    }
+                });
+            }
+        });
+    }
+
+
     function init() {
         initPasswordToggle();
         initCleanUpApps();
         initCleanUpServers();
         initClearProviderCache();
+        initCheckUpdatesValidateLicenses();
+        initResetDefaultsBrandColors();
     }
 
 })(jQuery);

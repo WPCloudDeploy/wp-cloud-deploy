@@ -73,7 +73,7 @@ class MB_Conditional_Logic {
 
 	public function enqueue() {
 		list( , $url ) = RWMB_Loader::get_path( __DIR__ );
-		wp_enqueue_script( 'mb-conditional-logic', $url . 'conditional-logic.js', array( 'jquery', 'underscore' ), '1.5', true );
+		wp_enqueue_script( 'mb-conditional-logic', $url . 'conditional-logic.js', ['jquery', 'underscore'], '1.6.14', true );
 		wp_localize_script( 'mb-conditional-logic', 'conditions', $this->get_outside_conditions() );
 	}
 

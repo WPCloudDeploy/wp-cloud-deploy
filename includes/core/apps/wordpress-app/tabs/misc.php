@@ -19,26 +19,43 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 	 */
 	public function __construct() {
 		parent::__construct();
-		add_filter( "wpcd_app_{$this->get_app_name()}_get_tabnames", array( $this, 'get_tab' ), 10, 1 );
+		add_filter( "wpcd_app_{$this->get_app_name()}_get_tabnames", array( $this, 'get_tab' ), 10, 2 );
 		add_filter( "wpcd_app_{$this->get_app_name()}_get_tabs", array( $this, 'get_tab_fields' ), 10, 2 );
 		add_filter( "wpcd_app_{$this->get_app_name()}_tab_action", array( $this, 'tab_action' ), 10, 3 );
 
 		// This action hook is only used by the WooCommerce sell wp sites functionality to trigger deletion of a site.
-		add_action( 'wpcd_app_delete_wp_site', array( $this, 'remove_site_wc' ), 10, 2 );
+		add_action( 'wpcd_app_delete_wp_site', array( $this, 'remove_site_via_action_hook' ), 10, 2 );
+	}
+
+	/**
+	 * Returns a string that can be used as the unique name for this tab.
+	 */
+	public function get_tab_slug() {
+		return 'misc';
+	}
+
+	/**
+	 * Returns a string that is the name of a view TEAM permission required to view this tab.
+	 */
+	public function get_view_tab_team_permission_slug() {
+		return 'view_wpapp_site_misc_tab';
 	}
 
 	/**
 	 * Populates the tab name.
 	 *
 	 * @param array $tabs The default value.
+	 * @param int   $id   The post ID of the server.
 	 *
 	 * @return array    $tabs The default value.
 	 */
-	public function get_tab( $tabs ) {
-		$tabs['misc'] = array(
-			'label' => __( 'Misc', 'wpcd' ),
-			'icon'  => 'fad fa-random',
-		);
+	public function get_tab( $tabs, $id ) {
+		if ( true === $this->wpcd_wpapp_site_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_site_tab( $id, $this->get_tab_slug() ) ) {
+			$tabs[ $this->get_tab_slug() ] = array(
+				'label' => __( 'Misc', 'wpcd' ),
+				'icon'  => 'fad fa-random',
+			);
+		}
 		return $tabs;
 	}
 
@@ -53,7 +70,7 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 	 * @return array Array of actions, complying with the structure necessary by metabox.io fields.
 	 */
 	public function get_tab_fields( array $fields, $id ) {
-		return $this->get_fields_for_tab( $fields, $id, 'misc' );
+		return $this->get_fields_for_tab( $fields, $id, $this->get_tab_slug() );
 	}
 
 	/**
@@ -72,61 +89,83 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 			return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
 		}
 
-		switch ( $action ) {
-			case 'remove':
-			case 'remove_full':
-				// remove site - check if user has permission - note that there are TWO checks here - a general one for an app and one for the site itself.
-				if ( ! wpcd_can_current_user_delete_app( $id ) ) {
-					$result = new \WP_Error( __( 'You don\'t have permission To Remove an App.', 'wpcd' ) );
-					break;
-				}
-				if ( ! $this->wpcd_user_can_remove_wp_site( $id ) ) {
-					$result = new \WP_Error( __( 'You don\'t have permission To Remove a WordPress Site. If you are seeing this message, it probably means you have the ability to remove an app but not delete a site. Plese check with your admin to enable the permissions needed to delete a WordPress site.', 'wpcd' ) );
-					break;
-				}
-				// remove site.
-				$result = $this->remove_site( $id, $action );
-				if ( ! is_wp_error( $result ) ) {
-					$result = array( 'redirect' => 'yes' );
-				}
-				break;
-			case 'site-status':
-				// enable/disable site.
-				$current_status = $this->site_status( $id );
-				if ( empty( $current_status ) ) {
-					$current_status = 'on';
-				}
-				$result = $this->toggle_site_status( $id, $current_status === 'on' ? 'disable' : 'enable' );
-				if ( ! is_wp_error( $result ) ) {
-					update_post_meta( $id, 'wpapp_site_status', $current_status === 'on' ? 'off' : 'on' );
-					$result = array( 'refresh' => 'yes' );
-				}
-				break;
-			case 'basic-auth-status':
-				// enable/disable basic authentication.
-				$current_status = get_post_meta( $id, 'wpapp_basic_auth_status', true );
-				if ( empty( $current_status ) ) {
-					$current_status = 'off';
-				}
-				$result = $this->toggle_basic_auth( $id, $current_status === 'on' ? 'disable_auth' : 'enable_auth' );
-				if ( ! is_wp_error( $result ) ) {
-					update_post_meta( $id, 'wpapp_basic_auth_status', $current_status === 'on' ? 'off' : 'on' );
-					$result = array( 'refresh' => 'yes' );
-				}
-				break;
-			case 'https-redirect-misc':
-				// enable/disable https redirection.
-				$current_status = get_post_meta( $id, 'wpapp_misc_https_redirect', true );
-				if ( empty( $current_status ) ) {
-					$current_status = 'off';
-				}
-				$result = $this->toggle_https( $id, $current_status === 'on' ? 'disable_https_redir' : 'enable_https_redir' );
-				if ( ! is_wp_error( $result ) ) {
-					update_post_meta( $id, 'wpapp_misc_https_redirect', $current_status === 'on' ? 'off' : 'on' );
-					$result = array( 'refresh' => 'yes' );
-				}
-				break;
+		/* Now verify that the user can perform actions on this screen, assuming that they can view the server */
+		$valid_actions = array( 'remove', 'remove_full', 'site-status', 'basic-auth-status', 'wplogin-basic-auth-status', 'https-redirect-misc' );
+		if ( in_array( $action, $valid_actions, true ) ) {
+			if ( false === $this->wpcd_wpapp_site_user_can( $this->get_view_tab_team_permission_slug(), $id ) && false === $this->wpcd_can_author_view_site_tab( $id, $this->get_tab_slug() ) ) {
+				return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
+			}
+		}
 
+		if ( true === $this->wpcd_wpapp_site_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_site_tab( $id, $this->get_tab_slug() ) ) {
+			switch ( $action ) {
+				case 'remove':
+				case 'remove_full':
+					// remove site - check if user has permission - note that there are TWO checks here - a general one for an app and one for the site itself.
+					if ( ! wpcd_can_current_user_delete_app( $id ) ) {
+						$result = new \WP_Error( __( 'You don\'t have permission To Remove an App.', 'wpcd' ) );
+						break;
+					}
+					if ( ! $this->wpcd_user_can_remove_wp_site( $id ) ) {
+						$result = new \WP_Error( __( 'You don\'t have permission To Remove a WordPress Site. If you are seeing this message, it probably means you have the ability to remove an app but not delete a site. Plese check with your admin to enable the permissions needed to delete a WordPress site.', 'wpcd' ) );
+						break;
+					}
+					// remove site.
+					$result = $this->remove_site( $id, $action );
+					if ( ! is_wp_error( $result ) ) {
+						$result = array( 'redirect' => 'yes' );
+					}
+					break;
+				case 'site-status':
+					// enable/disable site.
+					$current_status = $this->site_status( $id );
+					if ( empty( $current_status ) ) {
+						$current_status = 'on';
+					}
+					$result = $this->toggle_site_status( $id, 'on' === $current_status ? 'disable' : 'enable' );
+					if ( ! is_wp_error( $result ) ) {
+						update_post_meta( $id, 'wpapp_site_status', 'on' === $current_status ? 'off' : 'on' );
+						$result = array( 'refresh' => 'yes' );
+					}
+					break;
+				case 'basic-auth-status':
+					// enable/disable basic authentication.
+					$current_status = get_post_meta( $id, 'wpapp_basic_auth_status', true );
+					if ( empty( $current_status ) ) {
+						$current_status = 'off';
+					}
+					$result = $this->toggle_basic_auth( $id, 'on' === $current_status ? 'disable_auth' : 'enable_auth' );
+					if ( ! is_wp_error( $result ) ) {
+						update_post_meta( $id, 'wpapp_basic_auth_status', 'on' === $current_status ? 'off' : 'on' );
+						$result = array( 'refresh' => 'yes' );
+					}
+					break;
+				case 'wplogin-basic-auth-status':
+					// enable/disable basic authentication on wp-login page.
+					$current_status = get_post_meta( $id, 'wpapp_wplogin_basic_auth_status', true );
+					if ( empty( $current_status ) ) {
+						$current_status = 'off';
+					}
+					$result = $this->toggle_wplogin_basic_auth( $id, 'on' === $current_status ? 'wpadmin_disable_auth' : 'wpadmin_enable_auth' );
+					if ( ! is_wp_error( $result ) ) {
+						update_post_meta( $id, 'wpapp_wplogin_basic_auth_status', 'on' === $current_status ? 'off' : 'on' );
+						$result = array( 'refresh' => 'yes' );
+					}
+					break;
+				case 'https-redirect-misc':
+					// enable/disable https redirection.
+					$current_status = get_post_meta( $id, 'wpapp_misc_https_redirect', true );
+					if ( empty( $current_status ) ) {
+						$current_status = 'off';
+					}
+					$result = $this->toggle_https( $id, 'on' === $current_status ? 'disable_https_redir' : 'enable_https_redir' );
+					if ( ! is_wp_error( $result ) ) {
+						update_post_meta( $id, 'wpapp_misc_https_redirect', 'on' === $current_status ? 'off' : 'on' );
+						$result = array( 'refresh' => 'yes' );
+					}
+					break;
+
+			}
 		}
 		return $result;
 	}
@@ -143,6 +182,7 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 		return array_merge(
 			$this->get_initial_credentials( $id ),
 			$this->get_basic_auth_action_fields( $id ),
+			$this->get_wp_login_basic_auth_action_fields( $id ),
 			$this->get_site_status_action_fields( $id ),
 			$this->get_https_action_fields( $id )
 		);
@@ -183,13 +223,13 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 			case 'on':
 			case 'off':
 				$actions['site-status'] = array(
-					'label'          => __( 'Site Status', 'wpcd' ),
+					'label'          => '',
 					'std'            => $status === 'on',
 					'raw_attributes' => array(
 						'on_label'            => __( 'Enabled', 'wpcd' ),
 						'off_label'           => __( 'Disabled', 'wpcd' ),
 						'std'                 => $status === 'on',
-						'desc'                => __( 'Deactivate the site without removing data', 'wpcd' ),
+						'desc'                => 'on' === $status ? __( 'Click to deactivate the site without removing data', 'wpcd' ) : __( 'Click to reactivate the site', 'wpcd' ),
 						'confirmation_prompt' => $confirmation_prompt,
 					),
 					'type'           => 'switch',
@@ -227,7 +267,7 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 		} else {
 
 			$actions['remove'] = array(
-				'label'          => __( 'Remove Site', 'wpcd' ),
+				'label'          => '',
 				'type'           => 'button',
 				'raw_attributes' => array(
 					'std'                 => __( 'Remove', 'wpcd' ),
@@ -237,7 +277,7 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 			);
 
 			$actions['remove_full'] = array(
-				'label'          => __( 'Remove Site & Backups', 'wpcd' ),
+				'label'          => '',
 				'type'           => 'button',
 				'raw_attributes' => array(
 					'std'                 => __( 'Remove Site & Backups', 'wpcd' ),
@@ -269,6 +309,24 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 			$basic_auth_status = 'off';
 		}
 
+		/* What is the current basic authentication status of the wplogin page? */
+		$wplogin_basic_auth_status = get_post_meta( $id, 'wpapp_wplogin_basic_auth_status', true );
+		if ( empty( $wplogin_basic_auth_status ) ) {
+			$wplogin_basic_auth_status = 'off';
+		}
+
+		/* If basic authentication is enabled for the login page, we can't enable it for the whole site. */
+		if ( 'on' === $wplogin_basic_auth_status ) {
+			$actions['pw-auth-header'] = array(
+				'label'          => __( 'Password Protect All Pages With HTTP Basic Authentication', 'wpcd' ),
+				'type'           => 'heading',
+				'raw_attributes' => array(
+					'desc' => __( 'Basic authentication is already turned on for the wp-login page.  You will need to turn that off before you are able to use this option to protect the entire site.', 'wpcd' ),
+				),
+			);
+			return $actions;
+		}
+
 		/* Set the text of the confirmation prompt based on the current basic authentication status of the site */
 		$confirmation_prompt = '';
 		if ( 'on' === $basic_auth_status ) {
@@ -278,7 +336,7 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 		}
 
 		$actions['pw-auth-header'] = array(
-			'label'          => __( 'Password Protection With HTTP Basic Authentication', 'wpcd' ),
+			'label'          => __( 'Password Protect All Pages With HTTP Basic Authentication', 'wpcd' ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
 				'desc' => __( 'Basic authentication places an http password popup in front of your site.  This is useful for staging sites and sites you are not ready to make public yet.<br /> If this is already turned on and you have forgotten your password, turn it off, fill in the user and password fields with data you know and turn it back on.', 'wpcd' ),
@@ -290,11 +348,11 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 			'desc'           => __( 'User name to use when basic authentication is turned on', 'wpcd' ),
 			'type'           => 'text',
 			'raw_attributes' => array(
+				'disabled'       => 'off' === $basic_auth_status ? false : true,
 				'size'           => 60,
 				// the key of the field (the key goes in the request).
 				'data-wpcd-name' => 'basic_auth_user',
 			),
-
 		);
 
 		$actions['basic-auth-pw'] = array(
@@ -302,6 +360,7 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 			'desc'           => __( 'Password to use when basic authentication is turned on', 'wpcd' ),
 			'type'           => 'text',
 			'raw_attributes' => array(
+				'disabled'       => 'off' === $basic_auth_status ? false : true,
 				'size'           => 60,
 				// the key of the field (the key goes in the request).
 				'data-wpcd-name' => 'basic_auth_pass',
@@ -312,7 +371,7 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 			case 'on':
 			case 'off':
 				$actions['basic-auth-status'] = array(
-					'label'          => __( 'Basic Authentication', 'wpcd' ),
+					'label'          => '',
 					'raw_attributes' => array(
 						'on_label'            => __( 'Enabled', 'wpcd' ),
 						'off_label'           => __( 'Disabled', 'wpcd' ),
@@ -320,6 +379,108 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 						'desc'                => __( 'Add or remove password protection on your site', 'wpcd' ),
 						'confirmation_prompt' => $confirmation_prompt,                      // fields that contribute data for this action.
 						'data-wpcd-fields'    => json_encode( array( '#wpcd_app_action_basic-auth-user', '#wpcd_app_action_basic-auth-pw' ) ),
+					),
+					'type'           => 'switch',
+				);
+				break;
+		}
+
+		return $actions;
+
+	}
+
+	/**
+	 * Gets the fields for the WPLOGIN page basic authentication section to be shown in the MISC tab.
+	 *
+	 * @param int $id the post id of the app cpt record.
+	 *
+	 * @return array Array of actions with key as the action slug and value complying with the structure necessary by metabox.io fields.
+	 */
+	private function get_wp_login_basic_auth_action_fields( $id ) {
+
+		$actions = array();
+
+		/* What is the current basic authentication status of the wplogin page? */
+		$wplogin_basic_auth_status = get_post_meta( $id, 'wpapp_wplogin_basic_auth_status', true );
+		if ( empty( $wplogin_basic_auth_status ) ) {
+			$wplogin_basic_auth_status = 'off';
+		}
+
+		/* What is the current basic authentication status of the site? */
+		$basic_auth_status = get_post_meta( $id, 'wpapp_basic_auth_status', true );
+		if ( empty( $basic_auth_status ) ) {
+			$basic_auth_status = 'off';
+		}
+
+		/* If basic authentication is turned on for the whole site, disable this option and return right away. */
+		if ( 'on' === $basic_auth_status ) {
+			$actions['wplogin-pw-auth-header'] = array(
+				'label'          => __( 'Password Protect WPLOGIN With HTTP Basic Authentication', 'wpcd' ),
+				'type'           => 'heading',
+				'raw_attributes' => array(
+					'desc' => __( 'All pages on this site are already fully password protected with a site-wide HTTP Authentication directive.', 'wpcd' ),
+				),
+			);
+			return $actions;
+		}
+
+		/* Set the text of the confirmation prompt based on the current basic authentication status of the site */
+		$confirmation_prompt = '';
+		if ( 'on' === $wplogin_basic_auth_status ) {
+			$confirmation_prompt = __( 'Are you sure you would like to disable password protection for the wp-login page for this site?', 'wpcd' );
+		} else {
+			$confirmation_prompt = __( 'Are you sure you would like to enable password protection for the wp-login page for this site?', 'wpcd' );
+		}
+
+		$desc  = __( 'This action places an http password popup in front of your WPLOGIN page.  This is useful because it stops bad login attempts at the webserver, before it hits WordPress.', 'wpcd' );
+		$desc .= '<br />' . __( 'If this is already turned on and you have forgotten your password, turn it off, fill in the user and password fields with data you know and turn it back on.', 'wpcd' );
+		$desc .= '<br />' . __( 'Important Note: Turn this off before COPYING, CLONING, STAGING or MOVING the site!', 'wpcd' );
+
+		$actions['wplogin-pw-auth-header'] = array(
+			'label'          => __( 'Password Protect WPLOGIN With HTTP Basic Authentication', 'wpcd' ),
+			'type'           => 'heading',
+			'raw_attributes' => array(
+				'desc' => $desc,
+			),
+		);
+
+		$actions['wplogin-basic-auth-user'] = array(
+			'label'          => __( 'User', 'wpcd' ),
+			'desc'           => __( 'User name to use when basic authentication is turned on', 'wpcd' ),
+			'type'           => 'text',
+			'raw_attributes' => array(
+				'disabled'       => 'off' === $wplogin_basic_auth_status ? false : true,
+				'size'           => 60,
+				// the key of the field (the key goes in the request).
+				'data-wpcd-name' => 'wplogin_basic_auth_user',
+			),
+
+		);
+
+		$actions['wplogin-basic-auth-pw'] = array(
+			'label'          => __( 'Password', 'wpcd' ),
+			'desc'           => __( 'Password to use when basic authentication is turned on', 'wpcd' ),
+			'type'           => 'text',
+			'raw_attributes' => array(
+				'disabled'       => 'off' === $wplogin_basic_auth_status ? false : true,
+				'size'           => 60,
+				// the key of the field (the key goes in the request).
+				'data-wpcd-name' => 'wplogin_basic_auth_pass',
+			),
+		);
+
+		switch ( $wplogin_basic_auth_status ) {
+			case 'on':
+			case 'off':
+				$actions['wplogin-basic-auth-status'] = array(
+					'label'          => '',
+					'raw_attributes' => array(
+						'on_label'            => __( 'Enabled', 'wpcd' ),
+						'off_label'           => __( 'Disabled', 'wpcd' ),
+						'std'                 => $wplogin_basic_auth_status === 'on',
+						'desc'                => __( 'Add or remove password protection for the wp-login page', 'wpcd' ),
+						'confirmation_prompt' => $confirmation_prompt,                      // fields that contribute data for this action.
+						'data-wpcd-fields'    => json_encode( array( '#wpcd_app_action_wplogin-basic-auth-user', '#wpcd_app_action_wplogin-basic-auth-pw' ) ),
 					),
 					'type'           => 'switch',
 				);
@@ -479,7 +640,7 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 	 * @param int    $id     The postID of the app cpt.
 	 * @param string $action The action to be performed 'remove' or 'remove_full' (this matches the string required in the bash scripts).
 	 */
-	public function remove_site_wc( $id, $action ) {
+	public function remove_site_via_action_hook( $id, $action ) {
 		$this->remove_site( $id, $action );
 	}
 
@@ -530,6 +691,13 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 			// Attempt to delete DNS for the domain...
 			WPCD_DNS()->delete_dns_for_domain( get_post_meta( $id, 'wpapp_original_domain', true ) );
 			WPCD_DNS()->delete_dns_for_domain( get_post_meta( $id, 'wpapp_domain', true ) );
+
+			// If it's a staging site then lets remove the companion metas from the original site.
+			if ( ! empty( $this->get_live_id_for_staging_site( $id ) ) ) {
+				$live_id = $this->get_live_id_for_staging_site( $id );
+				update_post_meta( $live_id, 'wpapp_staging_domain', '' );
+				update_post_meta( $live_id, 'wpapp_staging_domain_id', '' );
+			}
 		}
 
 		// now force delete the post.
@@ -597,6 +765,72 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 
 		$result  = $this->execute_ssh( 'generic', $instance, array( 'commands' => $run_cmd ) );
 		$success = $this->is_ssh_successful( $result, 'basic_auth_misc.txt' );
+		if ( ! $success ) {
+			return new \WP_Error( sprintf( __( 'Unable to %1$s site: %2$s', 'wpcd' ), $action, $result ) );
+		}
+
+		return $success;
+
+	}
+
+	/**
+	 * Enable/disable basic authentication for the wplogin url.
+	 *
+	 * @param int    $id     The postID of the app cpt.
+	 * @param string $action The action to be performed 'wpadmin_enable_auth' or 'wpadmin_disable_auth' (this matches the string required in the bash scripts).
+	 *
+	 * @return boolean|WP_Error    success/failure
+	 */
+	private function toggle_wplogin_basic_auth( $id, $action ) {
+
+		$instance = $this->get_app_instance_details( $id );
+
+		if ( is_wp_error( $instance ) ) {
+			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
+		}
+
+		$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
+
+		// Check to make sure that both a user id and password is offered if the action is to turn on authentication.
+		if ( 'wpadmin_enable_auth' === $action ) {
+			if ( ! $args['wplogin_basic_auth_user'] ) {
+				return new \WP_Error( __( 'The user cannot be blank if you would like to turn on basic authentication for this site.', 'wpcd' ) );
+			}
+			if ( ! $args['wplogin_basic_auth_pass'] ) {
+				return new \WP_Error( __( 'The password cannot be blank if you would like to turn on basic authentication for this site.', 'wpcd' ) );
+			}
+		}
+
+		// Special sanitization for user id and passwords which are going to be passed to the shell scripts.
+		if ( isset( $args['wplogin_basic_auth_user'] ) ) {
+			$args['wplogin_basic_auth_user'] = escapeshellarg( $args['wplogin_basic_auth_user'] );
+		}
+		if ( isset( $args['wplogin_basic_auth_pass'] ) ) {
+			$args['wplogin_basic_auth_pass'] = escapeshellarg( $args['wplogin_basic_auth_pass'] );
+		}
+
+		// Get the full command to be executed by ssh.
+		$run_cmd = $this->turn_script_into_command(
+			$instance,
+			'basic_auth_wplogin_misc.txt',
+			array_merge(
+				$args,
+				array(
+					'command' => "{$action}_site",
+					'action'  => $action,
+					'domain'  => get_post_meta(
+						$id,
+						'wpapp_domain',
+						true
+					),
+				)
+			)
+		);
+
+		do_action( 'wpcd_log_error', sprintf( 'attempting to run command for %s = %s ', print_r( $instance, true ), $run_cmd ), 'trace', __FILE__, __LINE__, $instance, false );
+
+		$result  = $this->execute_ssh( 'generic', $instance, array( 'commands' => $run_cmd ) );
+		$success = $this->is_ssh_successful( $result, 'basic_auth_wplogin_misc.txt' );
 		if ( ! $success ) {
 			return new \WP_Error( sprintf( __( 'Unable to %1$s site: %2$s', 'wpcd' ), $action, $result ) );
 		}

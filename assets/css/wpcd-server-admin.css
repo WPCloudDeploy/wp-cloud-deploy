@@ -310,7 +310,7 @@ div[id^='wpcd_server_wordpress-app'] {
 	color: white;
 	word-wrap: break-word;
 	margin-bottom: 0px;
-	background-image: linear-gradient(var(--wpcd-accent-background-color), #4c5b71 80%);
+	background-color: var(--wpcd-accent-background-color);
 }
 
 #wpcd_server_wordpress-app_tab_top_of_server_details a {
@@ -334,6 +334,11 @@ div[id^='wpcd_server_wordpress-app'] {
 	padding-right: 5em !important;
 	padding-top: 1.0em !important;
 	padding-bottom: 1.0em !important;
+}
+
+/* Remove the lower border on the anchor in the vertical tabs that was introduced sometime in 2021 by the metabox.io publisers */
+.wpcd-wpapp-actions .rwmb-tabs-left .rwmb-tab-nav li {
+	border-bottom: 0px !important;
 }
 
 /* Background color and text for tabs - vertical */

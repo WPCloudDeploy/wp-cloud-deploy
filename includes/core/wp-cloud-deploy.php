@@ -411,6 +411,8 @@ class WP_CLOUD_DEPLOY {
 				$help .= '<a href="https://www.facebook.com/groups/wp.linux.support">' . __( 'Join the private facebook group', 'wpcd' ) . '</a>';
 				$help .= '<br />';
 				$help .= '<a href="https://twitter.com/wpclouddeploy">' . __( 'Subscribe to our Twitter feed', 'wpcd' ) . '</a>';
+				$help .= '<br />';
+				$help .= '<a href="https://wpclouddeploy.com/mailpoet-group/basic-subscription-form/">' . __( 'Get Email Updates', 'wpcd' ) . '</a>';
 
 				$help .= '<br />';
 				$help .= '<h2>' . __( 'Support', 'wpcd' ) . '</h2>';
@@ -492,8 +494,44 @@ class WP_CLOUD_DEPLOY {
 		// What screen are we on?
 		$screen = get_current_screen();
 
+		// Get brand color settings.
+		$primary_brand_color = wpcd_get_option( 'wordpress_app_primary_brand_color' );
+		$primary_brand_color = empty( $primary_brand_color ) ? WPCD_PRIMARY_BRAND_COLOR : $primary_brand_color;
+
+		$secondary_brand_color = wpcd_get_option( 'wordpress_app_secondary_brand_color' );
+		$secondary_brand_color = empty( $secondary_brand_color ) ? WPCD_SECONDARY_BRAND_COLOR : $secondary_brand_color;
+
+		$tertiary_brand_color = wpcd_get_option( 'wordpress_app_tertiary_brand_color' );
+		$tertiary_brand_color = empty( $tertiary_brand_color ) ? WPCD_TERTIARY_BRAND_COLOR : $tertiary_brand_color;
+
+		$accent_bg_color = wpcd_get_option( 'wordpress_app_accent_background_color' );
+		$accent_bg_color = empty( $accent_bg_color ) ? WPCD_ACCENT_BG_COLOR : $accent_bg_color;
+
+		$medium_bg_color = wpcd_get_option( 'wordpress_app_medium_background_color' );
+		$medium_bg_color = empty( $medium_bg_color ) ? WPCD_MEDIUM_BG_COLOR : $medium_bg_color;
+
+		$light_bg_color = wpcd_get_option( 'wordpress_app_light_background_color' );
+		$light_bg_color = empty( $light_bg_color ) ? WPCD_LIGHT_BG_COLOR : $light_bg_color;
+
+		$alternate_accent_bg_color = wpcd_get_option( 'wordpress_app_alternate_accent_background_color' );
+		$alternate_accent_bg_color = empty( $alternate_accent_bg_color ) ? WPCD_ALTERNATE_ACCENT_BG_COLOR : $alternate_accent_bg_color;
+
 		/* Global style sheet. */
 		wp_enqueue_style( 'wpcd-global-css', wpcd_url . 'assets/css/wpcd-global.css', array(), wpcd_scripts_version );
+
+		/* Define brand colors */
+		$global_css = ":root {
+			--wpcd-primary-brand-color: {$primary_brand_color};
+			--wpcd-secondary-brand-color: {$secondary_brand_color};
+			--wpcd-tertiary-brand-color: {$tertiary_brand_color};
+			--wpcd-accent-background-color: {$accent_bg_color};
+			--wpcd-medium-background-color: {$medium_bg_color};
+			--wpcd-light-background-color: {$light_bg_color};
+			--wpcd-alternate-accent-background-color: {$alternate_accent_bg_color};
+		}";
+
+		/* Add some global css. */
+		wp_add_inline_style( 'wpcd-global-css', $global_css );
 
 		/* Cloud Providers Screen - Uses the settings screen style sheet for now. */
 		if ( is_object( $screen ) && in_array( $screen->post_type, array( 'wpcd_cloud_provider' ) ) ) {

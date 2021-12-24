@@ -19,7 +19,7 @@ class WPCD_WORDPRESS_TABS_SERVER_MONIT extends WPCD_WORDPRESS_TABS {
 	 */
 	public function __construct() {
 		parent::__construct();
-		add_filter( "wpcd_server_{$this->get_app_name()}_get_tabnames", array( $this, 'get_tab' ), 10, 1 );
+		add_filter( "wpcd_server_{$this->get_app_name()}_get_tabnames", array( $this, 'get_tab' ), 10, 2 );
 		add_filter( "wpcd_server_{$this->get_app_name()}_get_tabs", array( $this, 'get_tab_fields' ), 10, 2 );
 		add_filter( "wpcd_server_{$this->get_app_name()}_tab_action", array( $this, 'tab_action_server' ), 10, 3 );  // This filter has not been defined and called yet in classs-wordpress-app and might never be because we're using the one below.
 		add_filter( "wpcd_app_{$this->get_app_name()}_tab_action", array( $this, 'tab_action' ), 10, 3 );  // This filter says 'wpcd_app' because we're using the same functions for server details ajax tabs and app details ajax tabs.
@@ -42,25 +42,44 @@ class WPCD_WORDPRESS_TABS_SERVER_MONIT extends WPCD_WORDPRESS_TABS {
 		}
 
 		// remove the 'temporary' meta so that another attempt will run if necessary.
-		delete_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action_status" );
-		delete_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action" );
-		delete_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action_args" );
+		delete_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action_status" );  // Should really only exist on an app.
+		delete_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action" );  // Should really only exist on an app.
+		delete_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action_args" );  // Should really only exist on an app.
+		delete_post_meta( $id, "wpcd_server_{$this->get_app_name()}_action_status" );  // Should really only exist on a server.
+		delete_post_meta( $id, "wpcd_server_{$this->get_app_name()}_action" );  // Should really only exist on a server.
+		delete_post_meta( $id, "wpcd_server_{$this->get_app_name()}_action_args" );  // Should really only exist on a server.
 
 	}
 
+	/**
+	 * Returns a string that can be used as the unique name for this tab.
+	 */
+	public function get_tab_slug() {
+		return 'monit-healing';
+	}
+
+	/**
+	 * Returns a string that is the name of a view TEAM permission required to view this tab.
+	 */
+	public function get_view_tab_team_permission_slug() {
+		return 'view_wpapp_server_monit_tab';
+	}
 
 	/**
 	 * Populates the tab name.
 	 *
 	 * @param array $tabs The default value.
+	 * @param int   $id   The post ID of the server.
 	 *
 	 * @return array    $tabs The default value.
 	 */
-	public function get_tab( $tabs ) {
-		$tabs['monit-healing'] = array(
-			'label' => __( 'Healing', 'wpcd' ),
-			'icon'  => 'fas fa-heart-rate',
-		);
+	public function get_tab( $tabs, $id ) {
+		if ( true === $this->wpcd_wpapp_server_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_server_tab( $id, $this->get_tab_slug() ) ) {
+			$tabs[ $this->get_tab_slug() ] = array(
+				'label' => __( 'Healing', 'wpcd' ),
+				'icon'  => 'fas fa-heart-rate',
+			);
+		}
 		return $tabs;
 	}
 
@@ -75,7 +94,7 @@ class WPCD_WORDPRESS_TABS_SERVER_MONIT extends WPCD_WORDPRESS_TABS {
 	 * @return array Array of actions, complying with the structure necessary by metabox.io fields.
 	 */
 	public function get_tab_fields( array $fields, $id ) {
-		return $this->get_fields_for_tab( $fields, $id, 'monit-healing' );
+		return $this->get_fields_for_tab( $fields, $id, $this->get_tab_slug() );
 
 	}
 
@@ -95,45 +114,59 @@ class WPCD_WORDPRESS_TABS_SERVER_MONIT extends WPCD_WORDPRESS_TABS {
 			return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
 		}
 
-		switch ( $action ) {
-			case 'monit-install':
-				$action = 'install_monit';
-				$result = $this->manage_monit( $id, $action );
-				break;
-			case 'monit-toggle-ssl':
-				$action = 'enable_monit_ssl';
-				$result = $this->manage_monit( $id, $action );
-				break;
-			case 'monit-remove':
-				$action = 'remove_monit';
-				$result = $this->manage_monit( $id, $action );
-				break;
-			case 'monit-upgrade':
-				$action = 'upgrade_monit';
-				$result = $this->manage_monit( $id, $action );
-				break;
-			case 'monit-metas-add':
-				$result = $this->manage_monit( $id, $action );
-				break;
-			case 'monit-metas-remove':
-				$result = $this->manage_monit( $id, $action );
-				break;
-			case 'monit-toggle-nginx':
-			case 'monit-toggle-mysql':
-			case 'monit-toggle-memcached':
-			case 'monit-toggle-redis':
-			case 'monit-toggle-php':
-			case 'monit-toggle-filesys':
-			case 'monit-toggle-all-on':
-			case 'monit-toggle-all-off':
-				$result = $this->manage_monit( $id, $action );
-				break;
-			case 'monit-update-email':
-				$result = $this->manage_monit( $id, $action );
-				break;
-			case 'monit-toggle-status':
-				$result = $this->manage_monit( $id, $action );
-				break;
+		/* Now verify that the user can perform actions on this screen, assuming that they can view the server */
+		$valid_actions = array( 'monit-email-alerts-load-defaults', 'install_monit', 'monit-toggle-ssl', 'monit-remove', 'monit-upgrade', 'monit-metas-add', 'monit-metas-remove', 'monit-toggle-nginx', 'monit-toggle-mysql', 'monit-toggle-memcached', 'monit-toggle-redis', 'monit-toggle-php', 'monit-toggle-filesys', 'monit-toggle-all-on', 'monit-toggle-all-off', 'monit-update-email', 'monit-toggle-status' );
+		if ( in_array( $action, $valid_actions, true ) ) {
+			if ( false === $this->wpcd_wpapp_server_user_can( $this->get_view_tab_team_permission_slug(), $id ) && false === $this->wpcd_can_author_view_server_tab( $id, $this->get_tab_slug() ) ) {
+				return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
+			}
+		}
+
+		if ( true === $this->wpcd_wpapp_server_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_server_tab( $id, $this->get_tab_slug() ) ) {
+			switch ( $action ) {
+				case 'monit-email-alerts-load-defaults':
+					$action = 'monit_email_alerts_load_defaults';
+					$result = $this->wpcd_monit_email_alerts_load_defaults( $id, $action );
+					break;
+				case 'monit-install':
+					$action = 'install_monit';
+					$result = $this->manage_monit( $id, $action );
+					break;
+				case 'monit-toggle-ssl':
+					$action = 'enable_monit_ssl';
+					$result = $this->manage_monit( $id, $action );
+					break;
+				case 'monit-remove':
+					$action = 'remove_monit';
+					$result = $this->manage_monit( $id, $action );
+					break;
+				case 'monit-upgrade':
+					$action = 'upgrade_monit';
+					$result = $this->manage_monit( $id, $action );
+					break;
+				case 'monit-metas-add':
+					$result = $this->manage_monit( $id, $action );
+					break;
+				case 'monit-metas-remove':
+					$result = $this->manage_monit( $id, $action );
+					break;
+				case 'monit-toggle-nginx':
+				case 'monit-toggle-mysql':
+				case 'monit-toggle-memcached':
+				case 'monit-toggle-redis':
+				case 'monit-toggle-php':
+				case 'monit-toggle-filesys':
+				case 'monit-toggle-all-on':
+				case 'monit-toggle-all-off':
+					$result = $this->manage_monit( $id, $action );
+					break;
+				case 'monit-update-email':
+					$result = $this->manage_monit( $id, $action );
+					break;
+				case 'monit-toggle-status':
+					$result = $this->manage_monit( $id, $action );
+					break;
+			}
 		}
 
 		return $result;
@@ -798,6 +831,18 @@ class WPCD_WORDPRESS_TABS_SERVER_MONIT extends WPCD_WORDPRESS_TABS {
 			),
 		);
 
+		if ( wpcd_is_admin() ) {
+			$actions['monit-email-alerts-load-defaults'] = array(
+				'label'          => '',
+				'raw_attributes' => array(
+					'std'                 => __( 'Load Defaults', 'wpcd' ),
+					'columns'             => 4,
+					'confirmation_prompt' => __( 'Are you sure you would like to populate these fields with your global defaults from settings?', 'wpcd' ),
+				),
+				'type'           => 'button',
+			);
+		}
+
 		return $actions;
 
 	}
@@ -1250,6 +1295,50 @@ class WPCD_WORDPRESS_TABS_SERVER_MONIT extends WPCD_WORDPRESS_TABS {
 		delete_post_meta( $id, 'wpcd_wpapp_monit_pass' );
 		delete_post_meta( $id, 'wpcd_wpapp_monit_email_gateway' );
 		delete_post_meta( $id, 'wpcd_wpapp_monit_mmonit_server' );
+	}
+
+	/**
+	 * Load defaults the monit email alerts.
+	 *
+	 * @param int    $id The postID of the server cpt.
+	 * @param string $action The action to be performed (this matches the string required in the bash scripts if bash scripts are used ).
+	 *
+	 * @return boolean|object|string    success/failure/other
+	 */
+	public function wpcd_monit_email_alerts_load_defaults( $id, $action ) {
+
+		// Check for admin user.
+		if ( ! wpcd_is_admin() ) {			
+			return new \WP_Error( __( 'You are not allowed to perform this action - only admins are permitted here.', 'wpcd' ) );
+		}
+
+		$smtp_port     = '';
+		$smtp_server   = wpcd_get_early_option( 'wpcd_email_gateway_smtp_server' );
+		$smtp_user     = wpcd_get_early_option( 'wpcd_email_gateway_smtp_user' );
+		$smtp_password = wpcd_get_early_option( 'wpcd_email_gateway_smtp_password' );
+
+		// Split the string to get server and port values separately.
+		$smtp_server_port = explode( ':', $smtp_server );
+		if ( count( $smtp_server_port ) > 1 ) {
+			$smtp_server = $smtp_server_port[0];
+			$smtp_port   = $smtp_server_port[1];
+		}
+
+		$args                = array();
+		$args['smtp_server'] = (string) $smtp_server;
+		$args['smtp_port']   = (string) $smtp_port;
+		$args['smtp_user']   = (string) $smtp_user;
+		$args['smtp_pass']   = (string) $smtp_password;
+
+		$success = array(
+			'msg'          => __( 'Defaults have been successfully loaded.', 'wpcd' ),
+			'tab_prefix'   => 'wpcd_app_action_monit',  // Used by the JS code so it knows which tab we're on.  It needs to know because we are using the same code to load defaults for the EMAIL GATEWAY as well.
+			'email_fields' => $args,
+			'refresh'      => 'no',
+		);
+
+		return $success;
+
 	}
 
 }

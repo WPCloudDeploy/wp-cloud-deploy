@@ -49,7 +49,16 @@ class WPCD_Settings {
 		// Action hook to clear provider cache.
 		add_action( 'wp_ajax_wpcd_provider_clear_cache', array( $this, 'wpcd_provider_clear_cache' ) );
 
-		// Action hook to check licenses after fields are saved.
+		// Action hook to check for plugin updates. This is initiated via a button on the license tab on the settings screen.
+		add_action( 'wp_ajax_wpcd_check_for_updates', array( $this, 'wpcd_check_for_updates' ) );
+
+		// Action hook to validate licenses. This is initiated via a button on the license tab on the settings screen.
+		add_action( 'wp_ajax_wpcd_validate_licenses', array( $this, 'wpcd_validate_licenses' ) );
+
+		// Action hook to reset defaults brand colors.
+		add_action( 'wp_ajax_wpcd_reset_defaults_brand_colors', array( $this, 'wpcd_reset_defaults_brand_colors' ) );
+
+		// Action hook to check licenses after fields are saved.  This is initiated via a checkbox on the license tab on the settings screen.
 		add_action( 'rwmb_after_save_field', array( $this, 'check_license' ), 10, 5 );
 
 		// Action hook to check for updates when the WP admin screen is initialized.
@@ -505,6 +514,7 @@ class WPCD_Settings {
 							'tooltip' => __( 'The server team column takes up space but if you are not using teams then this isn\'t useful information so by default it is turned off. Check this box to turn it on.', 'wpcd' ),
 						),
 
+						// Applist fields.
 						array(
 							'type' => 'heading',
 							'name' => __( 'App List Fields', 'wpcd' ),
@@ -558,6 +568,32 @@ class WPCD_Settings {
 							'tooltip' => __( 'The server IP is shown under the SERVER column to save space.  If you would like to sort the list by this field then you need to enable this option so that it is shown in its own column.', 'wpcd' ),
 						),
 
+						// Applist compound fields: Server.
+						array(
+							'type' => 'heading',
+							'name' => __( 'App List Compound Fields', 'wpcd' ),
+							'desc' => __( 'You can make some of the columns that hold multiple pieces of information shorter for non-admin users.', 'wpcd' ),
+						),
+						array(
+							'id'      => 'wpcd_hide_app_list_provider_in_server_column',
+							'type'    => 'checkbox',
+							'name'    => __( 'Hide the provider data in the server column?', 'wpcd' ),
+							'tooltip' => __( 'The provider information is usually shown in the SERVER column on the sites screen. Check this box to remove it for non-admin users.', 'wpcd' ),
+						),
+						array(
+							'id'      => 'wpcd_hide_app_list_region_in_server_column',
+							'type'    => 'checkbox',
+							'name'    => __( 'Hide the region data in the server column?', 'wpcd' ),
+							'tooltip' => __( 'The region information is usually shown in the SERVER column on the sites screen. Check this box to remove it for non-admin users.', 'wpcd' ),
+						),
+						array(
+							'id'      => 'wpcd_hide_app_list_appslink_in_server_column',
+							'type'    => 'checkbox',
+							'name'    => __( 'Hide the link to apps in the server column?', 'wpcd' ),
+							'tooltip' => __( 'A link to other apps on the server is usually shown in the SERVER column on the sites screen. Check this box to remove it for non-admin users.', 'wpcd' ),
+						),
+
+						// State labels.
 						array(
 							'type' => 'heading',
 							'name' => __( 'Labels', 'wpcd' ),
@@ -857,7 +893,7 @@ class WPCD_Settings {
 									'id'   => "wpcd_item_license_$core_item_id",
 									'type' => 'text',
 									'size' => 40,
-									'desc' => empty( wpcd_get_early_option( "wpcd_item_license_$core_item_id" ) ) ? __( 'Please enter your license key for the core plugin.', 'wpcd' ) : get_transient( "wpcd_license_notes_for_$core_item_id" ) . '<br />' . get_transient( "wpcd_license_updates_for_$core_item_id" ),
+									'desc' => empty( wpcd_get_early_option( "wpcd_item_license_$core_item_id" ) ) ? __( 'Please enter your license key for the core plugin. Note: If you have an ALL ACCESS or BUSINESS bundle license please do not use those bundle keys; instead use the CORE plugin license key.', 'wpcd' ) : get_transient( "wpcd_license_notes_for_$core_item_id" ) . '<br />' . get_transient( "wpcd_license_updates_for_$core_item_id" ),
 								),
 
 								array(
@@ -906,18 +942,44 @@ class WPCD_Settings {
 									'desc'        => __( 'Set a timeout in seconds for each call we make to the licensing server.', 'wpcd' ),
 								),
 								array(
-									'name' => __( 'Force Update Check', 'wpcd' ),
-									'id'   => 'wpcd_license_force_update_check',
-									'type' => 'checkbox',
-									'std'  => 0,
-									'desc' => __( 'Check this box and save settings to force an update check immediately.', 'wpcd' ),
+									'type'       => 'button',
+									'name'       => __( 'Check for updates', 'wpcd' ),
+									'std'        => __( 'Check for updates', 'wpcd' ),
+									'attributes' => array(
+										'id'               => 'wpcd-check-for-updates',
+										'data-action'      => 'wpcd_check_for_updates',
+										'data-nonce'       => wp_create_nonce( 'wpcd-update-check' ),
+										'data-loading_msg' => __( 'Please wait...', 'wpcd' ),
+									),
+									'tooltip'    => __( 'After the screen refreshes, navigate to the WordPress Updates screen to see notices of any new WPCD updates that might be available.', 'wpcd' ),
 								),
 								array(
-									'name' => __( 'Force License Check', 'wpcd' ),
-									'id'   => 'wpcd_license_force_license_check',
-									'type' => 'checkbox',
-									'std'  => 0,
-									'desc' => __( 'Check this box and save settings to force an immediate license check on all licenses.', 'wpcd' ),
+									'type'       => 'button',
+									'name'       => __( 'Validate licenses', 'wpcd' ),
+									'std'        => __( 'Validate licenses', 'wpcd' ),
+									'attributes' => array(
+										'id'               => 'wpcd-validate-licenses',
+										'data-action'      => 'wpcd_validate_licenses',
+										'data-nonce'       => wp_create_nonce( 'wpcd-license-validate' ),
+										'data-loading_msg' => __( 'Please wait...', 'wpcd' ),
+									),
+									'tooltip'    => __( 'After the screen refreshes, scroll up to see license detail messages under each license key field.', 'wpcd' ),
+								),
+								array(
+									'name'    => __( 'Force Update Check', 'wpcd' ),
+									'id'      => 'wpcd_license_force_update_check',
+									'type'    => 'checkbox',
+									'std'     => 0,
+									'desc'    => __( 'Check this box and save settings to force an update check immediately. Use this option if the buttons above do not seem to be working.', 'wpcd' ),
+									'tooltip' => __( 'You should uncheck this box and save again to turn this off - otherwise you will be taking an unncessary performance penalty every time you save this screen.', 'wpcd' ),
+								),
+								array(
+									'name'    => __( 'Force License Check', 'wpcd' ),
+									'id'      => 'wpcd_license_force_license_check',
+									'type'    => 'checkbox',
+									'std'     => 0,
+									'desc'    => __( 'Check this box and save settings to force an immediate license check on all licenses. Use this option if the buttons above do not seem to be working.', 'wpcd' ),
+									'tooltip' => __( 'You should uncheck this box and save again to turn this off - otherwise you will be taking an unncessary performance penalty every time you save this screen.', 'wpcd' ),
 								),
 							),
 						),
@@ -964,15 +1026,15 @@ class WPCD_Settings {
 		// Final set of tabs.
 		$tabs['fields'] = __( 'Fields', 'wpcd' );
 
-		$tabs['misc']    = 'Misc';
-		$tabs['logging'] = 'Logging and Tracing';
-		$tabs['tools']   = 'Tools';
+		$tabs['misc']    = __( 'Misc', 'wpcd' );
+		$tabs['logging'] = __( 'Logging and Tracing', 'wpcd' );
+		$tabs['tools']   = __( 'Tools', 'wpcd' );
 		if ( ! defined( 'WPCD_HIDE_LICENSE_TAB' ) || ( defined( 'WPCD_HIDE_LICENSE_TAB' ) && ! WPCD_HIDE_LICENSE_TAB ) ) {
-			$tabs['license'] = 'License & Updates';
+			$tabs['license'] = __( 'License & Updates', 'wpcd' );
 		}
 
 		if ( wpcd_data_sync_allowed() ) {
-			$tabs['data-sync'] = 'Data Sync';
+			$tabs['data-sync'] = __( 'Data Sync', 'wpcd' );
 		}
 
 		// Settings page array with the tabs.
@@ -1899,5 +1961,101 @@ class WPCD_Settings {
 				<div class="rwmb-field rwmb-button-wrapper"><div class="rwmb-input"><button type="button" id="wpcd-encryption-key-save" class="rwmb-button button hide-if-no-js" data-action="wpcd_encryption_key_save" data-nonce="' . wp_create_nonce( 'wpcd-encryption-key-save' ) . '">Save</button></div></div>';
 
 		return $html;
+	}
+
+	/**
+	 * Check for updates via an AJAX call.
+	 *
+	 * Action Hook: wp_ajax_wpcd_check_for_updates
+	 */
+	public function wpcd_check_for_updates() {
+
+		// nonce check.
+		check_ajax_referer( 'wpcd-update-check', 'nonce' );
+
+		// Permissions check.
+		if ( ! wpcd_is_admin() ) {
+
+			$error_msg = array( 'msg' => __( 'You are not allowed to perform this action - only admins are permitted here.', 'wpcd' ) );
+			wp_send_json_error( $error_msg );
+			wp_die();
+
+		}
+
+		do_action( 'wpcd_log_error', 'Admin requested immediate software update check.', 'trace', __FILE__, __LINE__, array(), false );
+
+		WPCD_License::check_for_updates();  // Use wp_remote_post to check the status of each individual plugin/add-on and sets a transient that is displayed on the license tab.
+
+		WPCD_License::update_plugins(); // This one calls the actual EDD updater class.
+
+		wp_die();
+	}
+
+	/**
+	 * Validate licenses via an AJAX call.
+	 *
+	 * Action Hook: wp_ajax_wpcd_check_for_licenses
+	 */
+	public function wpcd_validate_licenses() {
+
+		// nonce check.
+		check_ajax_referer( 'wpcd-license-validate', 'nonce' );
+
+		// Permissions check.
+		if ( ! wpcd_is_admin() ) {
+
+			$error_msg = array( 'msg' => __( 'You are not allowed to perform this action - only admins are permitted here.', 'wpcd' ) );
+			wp_send_json_error( $error_msg );
+			wp_die();
+
+		}
+
+		do_action( 'wpcd_log_error', 'Admin requested immediate license validation check on all licenses.', 'trace', __FILE__, __LINE__, array(), false );
+
+		WPCD_License::validate_all_licenses();
+
+		wp_die();
+	}
+
+	/**
+	 * Reset defaults brand colors via an AJAX call.
+	 *
+	 * Action Hook: wp_ajax_wpcd_reset_defaults_brand_colors
+	 */
+	public function wpcd_reset_defaults_brand_colors() {
+
+		// nonce check.
+		check_ajax_referer( 'wpcd-reset-brand-colors', 'nonce' );
+
+		// Permissions check.
+		if ( ! wpcd_is_admin() ) {
+
+			$error_msg = array( 'msg' => __( 'You are not allowed to perform this action - only admins are permitted here.', 'wpcd' ) );
+			wp_send_json_error( $error_msg );
+			wp_die();
+
+		}
+
+		$wpcd_settings = get_option( 'wpcd_settings' );
+
+		// Set defaults brand colors.
+		$wpcd_settings['wordpress_app_primary_brand_color']                 = WPCD_PRIMARY_BRAND_COLOR;
+		$wpcd_settings['wordpress_app_secondary_brand_color']               = WPCD_SECONDARY_BRAND_COLOR;
+		$wpcd_settings['wordpress_app_tertiary_brand_color']                = WPCD_TERTIARY_BRAND_COLOR;
+		$wpcd_settings['wordpress_app_accent_background_color']             = WPCD_ACCENT_BG_COLOR;
+		$wpcd_settings['wordpress_app_medium_background_color']             = WPCD_MEDIUM_BG_COLOR;
+		$wpcd_settings['wordpress_app_light_background_color']              = WPCD_LIGHT_BG_COLOR;
+		$wpcd_settings['wordpress_app_alternate_accent_background_color']   = WPCD_ALTERNATE_ACCENT_BG_COLOR;
+
+		// Update the settings options.
+		update_option( 'wpcd_settings', $wpcd_settings );
+
+		$msg = __( 'Brand colors fields have been reset defaults. This page will now refresh.', 'wpcd' );
+
+		$return = array( 'msg' => $msg );
+
+		wp_send_json_success( $return );
+
+		wp_die();
 	}
 }

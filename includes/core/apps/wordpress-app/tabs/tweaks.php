@@ -19,23 +19,40 @@ class WPCD_WORDPRESS_TABS_TWEAKS extends WPCD_WORDPRESS_TABS {
 	 */
 	public function __construct() {
 		parent::__construct();
-		add_filter( "wpcd_app_{$this->get_app_name()}_get_tabnames", array( $this, 'get_tab' ), 10, 1 );
+		add_filter( "wpcd_app_{$this->get_app_name()}_get_tabnames", array( $this, 'get_tab' ), 10, 2 );
 		add_filter( "wpcd_app_{$this->get_app_name()}_get_tabs", array( $this, 'get_tab_fields' ), 10, 2 );
 		add_filter( "wpcd_app_{$this->get_app_name()}_tab_action", array( $this, 'tab_action' ), 10, 3 );
+	}
+
+	/**
+	 * Returns a string that can be used as the unique name for this tab.
+	 */
+	public function get_tab_slug() {
+		return 'tweaks';
+	}
+
+	/**
+	 * Returns a string that is the name of a view TEAM permission required to view this tab.
+	 */
+	public function get_view_tab_team_permission_slug() {
+		return 'view_wpapp_site_tweaks_tab';
 	}
 
 	/**
 	 * Populates the tab name.
 	 *
 	 * @param array $tabs The default value.
+	 * @param int   $id   The post ID of the server.
 	 *
 	 * @return array    $tabs The default value.
 	 */
-	public function get_tab( $tabs ) {
-		$tabs['tweaks'] = array(
-			'label' => __( 'Tweaks', 'wpcd' ),
-			'icon'  => 'fad fa-car-tilt',
-		);
+	public function get_tab( $tabs, $id ) {
+		if ( true === $this->wpcd_wpapp_site_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_site_tab( $id, $this->get_tab_slug() ) ) {
+			$tabs[ $this->get_tab_slug() ] = array(
+				'label' => __( 'Tweaks', 'wpcd' ),
+				'icon'  => 'fad fa-car-tilt',
+			);
+		}
 		return $tabs;
 	}
 
@@ -51,7 +68,7 @@ class WPCD_WORDPRESS_TABS_TWEAKS extends WPCD_WORDPRESS_TABS {
 	 */
 	public function get_tab_fields( array $fields, $id ) {
 
-		return $this->get_fields_for_tab( $fields, $id, 'tweaks' );
+		return $this->get_fields_for_tab( $fields, $id, $this->get_tab_slug() );
 
 	}
 
@@ -70,30 +87,44 @@ class WPCD_WORDPRESS_TABS_TWEAKS extends WPCD_WORDPRESS_TABS {
 		if ( ! $this->wpcd_user_can_view_wp_app( $id ) ) {
 			return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
 		}
+		/* Now verify that the user can perform actions on this screen, assuming that they can view the server */
+		$valid_actions = array( 'tweaks-toggle-xmlrpc', 'tweaks-toggle-xfo-sameorigin', 'tweaks-toggle-xfo-deny', 'tweaks-toggle-csp-default', 'tweaks-toggle-hsts', 'tweaks-toggle-xss', 'tweaks-toggle-default-referrer-policy', 'tweaks-toggle-default-permission-policy', 'tweaks-toggle-restapi', 'tweaks-toggle-gzip-domain', 'tweaks-toggle-browser-cache', 'tweaks-toggle-fail2ban-domain', 'tweaks-change-file-upload-size-action' );
+		if ( in_array( $action, $valid_actions, true ) ) {
+			if ( false === $this->wpcd_wpapp_site_user_can( $this->get_view_tab_team_permission_slug(), $id ) && false === $this->wpcd_can_author_view_site_tab( $id, $this->get_tab_slug() ) ) {
+				return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
+			}
+		}
 
-		switch ( $action ) {
-			/* We prefer not to use a 'default' statement in switches just in case someone pushes in bad data from the front-end and bypasses the security check above. In that case no code will execute without a default block.*/
-			case 'tweaks-toggle-xmlrpc':
-			case 'tweaks-toggle-xfo-sameorigin':
-			case 'tweaks-toggle-xfo-deny':
-			case 'tweaks-toggle-csp-default':
-			case 'tweaks-toggle-hsts':
-			case 'tweaks-toggle-xss':
-			case 'tweaks-toggle-default-referrer-policy':
-			case 'tweaks-toggle-default-permission-policy':
-			case 'tweaks-toggle-restapi':
-			case 'tweaks-toggle-gzip-domain':
-			case 'tweaks-toggle-browser-cache':
-				$result = $this->tweaks_toggle_a_thing( $id, $action );
-				if ( ! is_wp_error( $result ) ) {
-					$result = array( 'refresh' => 'yes' );
-				}
-				break;
-			case 'tweaks-toggle-fail2ban-domain':
-				$result = $this->tweaks_toggle_fail2ban( $id, $action );
-				if ( ! is_wp_error( $result ) ) {
-					$result = array( 'refresh' => 'yes' );
-				}
+		if ( true === $this->wpcd_wpapp_site_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_site_tab( $id, $this->get_tab_slug() ) ) {
+			switch ( $action ) {
+				/* We prefer not to use a 'default' statement in switches just in case someone pushes in bad data from the front-end and bypasses the security check above. In that case no code will execute without a default block.*/
+				case 'tweaks-toggle-xmlrpc':
+				case 'tweaks-toggle-xfo-sameorigin':
+				case 'tweaks-toggle-xfo-deny':
+				case 'tweaks-toggle-csp-default':
+				case 'tweaks-toggle-hsts':
+				case 'tweaks-toggle-xss':
+				case 'tweaks-toggle-default-referrer-policy':
+				case 'tweaks-toggle-default-permission-policy':
+				case 'tweaks-toggle-restapi':
+				case 'tweaks-toggle-gzip-domain':
+				case 'tweaks-toggle-browser-cache':
+					$result = $this->tweaks_toggle_a_thing( $id, $action );
+					if ( ! is_wp_error( $result ) ) {
+						$result = array( 'refresh' => 'yes' );
+					}
+					break;
+				case 'tweaks-toggle-fail2ban-domain':
+					$result = $this->tweaks_toggle_fail2ban( $id, $action );
+					if ( ! is_wp_error( $result ) ) {
+						$result = array( 'refresh' => 'yes' );
+					}
+				case 'tweaks-change-file-upload-size-action':
+					$result = $this->tweaks_change_upload_file_size( $id, $action );
+					if ( ! is_wp_error( $result ) ) {
+						$result = array( 'refresh' => 'yes' );
+					}
+			}
 		}
 		return $result;
 	}
@@ -123,6 +154,7 @@ class WPCD_WORDPRESS_TABS_TWEAKS extends WPCD_WORDPRESS_TABS {
 			$this->get_fail2ban_fields( $id ),
 			$this->get_tweak_header_performance_fields( $id ),
 			$this->get_performance_fields( $id ),
+			$this->get_increase_fileupload_size_fields( $id ),
 		);
 
 	}
@@ -464,7 +496,7 @@ class WPCD_WORDPRESS_TABS_TWEAKS extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
-	 * Gets the fields for the Fail2Ban TWEAKS tab.
+	 * Gets the fields for the Fail2Ban TWEAKS section.
 	 *
 	 * @param int $id the post id of the app cpt record.
 	 *
@@ -520,6 +552,68 @@ class WPCD_WORDPRESS_TABS_TWEAKS extends WPCD_WORDPRESS_TABS {
 				'columns'             => 6,
 			),
 			'type'           => 'switch',
+		);
+
+		return $actions;
+	}
+
+	/**
+	 * Gets the fields for the File Upload TWEAKS section.
+	 *
+	 * @param int $id the post id of the app cpt record.
+	 *
+	 * @return array Array of actions with key as the action slug and value complying with the structure necessary by metabox.io fields.
+	 */
+	private function get_increase_fileupload_size_fields( $id ) {
+
+		$actions = array();
+
+		// What's the server id?
+		$server_id = $this->get_server_id_by_app_id( $id );
+		if ( ! $server_id ) {
+			return $actions;
+		}
+
+		// Did we set a size before?
+		$existing_size = get_post_meta( $id, 'wpcd_wpapp_file_upload_size', true );
+		if ( empty( $existing_size ) ) {
+			$existing_size = 25;
+		}
+
+		// Header.
+		$actions['tweaks-change-fileupload-size-header'] = array(
+			'label'          => __( 'File Upload Size', 'wpcd' ),
+			'type'           => 'heading',
+			'raw_attributes' => array(
+				'desc' => __( 'Change the maximum allowed size for file uploads in PHP and NGINX configuration files.', 'wpcd' ),
+			),
+		);
+
+		$actions['tweaks-change-fileupload-size'] = array(
+			'label'          => __( 'Size (MB)', 'wpcd' ),
+			'raw_attributes' => array(
+				'placeholder'    => __( 'New Upload Size', 'wpcd' ),
+				'std'            => $existing_size,
+				'size'           => 20,
+				// the key of the field (the key goes in the request).
+				'data-wpcd-name' => 'file_upload_size',
+			),
+			'type'           => 'number',
+		);
+
+		/* Set the text of the confirmation prompt */
+		$uploadsize_confirmation_prompt = __( 'Are you sure you would like to change the maximum upload size for this site?', 'wpcd' );
+
+		$actions['tweaks-change-file-upload-size-action'] = array(
+			'label'          => '',
+			'raw_attributes' => array(
+				'std'                 => __( 'Change', 'wpcd' ),
+				'confirmation_prompt' => $uploadsize_confirmation_prompt,
+				// fields that contribute data for this action.
+				'data-wpcd-fields'    => json_encode( array( '#wpcd_app_action_tweaks-change-fileupload-size' ) ),
+
+			),
+			'type'           => 'button',
 		);
 
 		return $actions;
@@ -840,7 +934,7 @@ class WPCD_WORDPRESS_TABS_TWEAKS extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
-	 * Add or remove the wp fail2ban plugin from the ste.
+	 * Add or remove the wp fail2ban plugin from the site.
 	 *
 	 * @param int    $id         The postID of the server cpt.
 	 * @param string $action     The action to be performed (this matches the string required in the bash scripts if bash scripts are used ).
@@ -903,6 +997,73 @@ class WPCD_WORDPRESS_TABS_TWEAKS extends WPCD_WORDPRESS_TABS {
 
 		// Return the data as an error so it can be shown in a dialog box.
 		return new \WP_Error( __( 'The status for the selected item has been toggled.', 'wpcd' ) );
+	}
+
+	/**
+	 * Change the maximum file size for uploads
+	 *
+	 * @param int    $id         The postID of the site cpt.
+	 * @param string $action     The action to be performed (this matches the string required in the bash scripts if bash scripts are used ).
+	 *
+	 * @return boolean success/failure/other
+	 */
+	private function tweaks_change_upload_file_size( $id, $action ) {
+
+		// Action name that we'll be sending to the server.
+		$server_action = 'change_upload_limits';
+
+		// Get details of server instance.
+		$instance = $this->get_app_instance_details( $id );
+
+		if ( is_wp_error( $instance ) ) {
+			/* translators: %s is replaced with the internal action name. */
+			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
+		}
+
+		// Get the field values from the front-end.
+		$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
+
+		if ( empty( $args['file_upload_size'] ) ) {
+			/* translators: %s is replaced with the internal action name. */
+			return new \WP_Error( sprintf( __( 'The upload file size must not be blank for action %s', 'wpcd' ), $action ) );
+		} else {
+			$upload_limit = $args['file_upload_size'];
+		}
+
+		// Get the full command to be executed by ssh.
+		$run_cmd = $this->turn_script_into_command(
+			$instance,
+			'change_file_upload_size.txt',
+			array(
+				'action'       => $server_action,
+				'domain'       => get_post_meta(
+					$id,
+					'wpapp_domain',
+					true
+				),
+				'upload_limit' => $upload_limit,
+			)
+		);
+
+		// log.
+		// @codingStandardsIgnoreLine - added to ignore the print_r in the line below when linting with PHPcs.
+		do_action( 'wpcd_log_error', sprintf( 'attempting to run command for %s = %s ', print_r( $instance, true ), $run_cmd ), 'trace', __FILE__, __LINE__, $instance, false );
+
+		// Run the command.
+		$result  = $this->execute_ssh( 'generic', $instance, array( 'commands' => $run_cmd ) );
+		$success = $this->is_ssh_successful( $result, 'change_file_upload_size.txt' );
+
+		// Check for success.
+		if ( ! $success ) {
+			/* Translators: %1$s is an internal action name. %2$s is an error message. */
+			return new \WP_Error( sprintf( __( 'Unable to %1$s for site: %2$s', 'wpcd' ), $action, $result ) );
+		}
+
+		// Update metas...
+			update_post_meta( $id, 'wpcd_wpapp_file_upload_size', $upload_limit );
+
+		// Return the data as an error so it can be shown in a dialog box.
+		return new \WP_Error( __( 'The maximum allowed file upload size has been updated.', 'wpcd' ) );
 	}
 
 }

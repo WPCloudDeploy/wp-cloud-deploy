@@ -314,6 +314,13 @@ if ! grep -q 'server_name \.' /etc/nginx/sites-enabled/$new_domain && grep -q 'l
         su - $new_user_name -c "wp --skip-plugins option update siteurl http://$new_domain"
     fi
 
+	if ! grep -qs "listen 443" /etc/nginx/sites-enabled/$new_domain; then
+		echo
+		echo "SSL could not be enabled for $new_domain"
+	else
+		echo
+		echo "SSL has been enabled for $new_domain"		
+	fi
 fi
 
 # If we are dealing with a multisite wildcard which had HTTPS enabled...

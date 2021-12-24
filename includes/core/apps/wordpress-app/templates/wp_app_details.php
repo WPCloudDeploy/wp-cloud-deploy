@@ -60,6 +60,18 @@ wp_nonce_field( 'wpcd_wp_app_nonce_meta_action', 'wpapp_meta' );
 	<small><?php echo esc_html( __( 'This is the initial version of WordPress that was installed - it might have been upgraded after that. You can set the current version here to match your installed version.', 'wpcd' ) ); ?></small>
 </div>
 <div class="wpapp_meta_field">
+	<label for="wpcd_wpapp_staging_domain"><?php echo esc_html( __( 'Companion Staging Domain', 'wpcd' ) ); ?></label>
+	<input type="text" name="wpcd_wpapp_staging_domain" id="wpcd_wpapp_staging_domain" value="<?php echo esc_attr( $wpcd_wpapp_staging_domain ); ?>" />
+	<br />
+	<small><?php echo esc_html( __( 'If a staging domain was created for this site, this is the domain name for it.', 'wpcd' ) ); ?></small>
+</div>
+<div class="wpapp_meta_field">
+	<label for="wpcd_wpapp_staging_domain_id"><?php echo esc_html( __( 'Companion Staging Domain Post ID', 'wpcd' ) ); ?></label>
+	<input type="text" name="wpcd_wpapp_staging_domain_id" id="wpcd_wpapp_staging_domain_id" value="<?php echo esc_attr( $wpcd_wpapp_staging_domain_id ); ?>" />
+	<br />
+	<small><?php echo esc_html( __( 'If a staging domain was created for this site, this is the post ID where its located.', 'wpcd' ) ); ?></small>
+</div>
+<div class="wpapp_meta_field">
 	<label for="wpcd_wpapp_wc_order_id"><?php echo esc_html( __( 'WooCommerce Order ID', 'wpcd' ) ); ?></label>
 	<input type="text" name="wpcd_wpapp_wc_order_id" id="wpcd_wpapp_wc_order_id" value="<?php echo esc_attr( $wpcd_wpapp_wc_order_id ); ?>" />
 	<br />

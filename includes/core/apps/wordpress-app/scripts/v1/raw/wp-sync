@@ -87,6 +87,7 @@ ssh -o StrictHostKeyChecking=no root@$dest "systemctl restart php7.2-fpm" && ech
 ssh -o StrictHostKeyChecking=no root@$dest "systemctl restart php7.3-fpm" && echo "$(date) PHP 7.3 restart completed" >> /var/log/wp-sync.log || echo "$(date) PHP 7.3 restart failed" >> /var/log/wp-sync.log
 ssh -o StrictHostKeyChecking=no root@$dest "systemctl restart php7.4-fpm" && echo "$(date) PHP 7.4 restart completed" >> /var/log/wp-sync.log || echo "$(date) PHP 7.4 restart failed" >> /var/log/wp-sync.log
 ssh -o StrictHostKeyChecking=no root@$dest "systemctl restart php8.0-fpm" && echo "$(date) PHP 8.0 restart completed" >> /var/log/wp-sync.log || echo "$(date) PHP 8.0 restart failed" >> /var/log/wp-sync.log
+ssh -o StrictHostKeyChecking=no root@$dest "systemctl restart php8.1-fpm" && echo "$(date) PHP 8.1 restart completed" >> /var/log/wp-sync.log || echo "$(date) PHP 8.1 restart failed" >> /var/log/wp-sync.log
 ssh -o StrictHostKeyChecking=no root@$dest "systemctl restart nginx" && echo "$(date) nginx restart completed" >> /var/log/wp-sync.log || echo "$(date) nginx restart failed" >> /var/log/wp-sync.log
 ssh -o StrictHostKeyChecking=no root@$dest "systemctl restart cron" && echo "$(date) cron restart completed" >> /var/log/wp-sync.log || echo "$(date) cron restart failed" >> /var/log/wp-sync.log
 

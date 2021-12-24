@@ -1,0 +1,504 @@
+#!/bin/bash
+if [[ "$EUID" -ne 0 ]]
+then
+	echo "Sorry, you need to run this as root"
+	exit
+fi
+
+while [[ -z $action ]]; do
+	echo
+	echo "What do you want to do?"
+	echo
+	echo "   1) Install Netdata"
+	echo "   2) Remove Netdata"
+	echo "   3) Upgrade Netdata"
+	echo "   4) Enable Https"
+	echo "   5) Disable Https"
+	echo "   6) Add Http Authentication Netdata"
+	echo "   7) Remove Http Authentication Netdata"
+	echo "   8) Update Http Authentication Detail Netdata"
+	echo "   9) Enable as registry"
+	echo "   10) Set Registry target"
+	read -p "Action: " action
+	until [[ -z "$action" || "$action" -ge 1 && "$action" -le 10 ]]; do
+		echo "$action: invalid selection."
+		read -p "Action: " action
+	done
+done
+
+###################################### Netdata Install Function ##########
+function netdata_install
+{
+	if hash netdata 2>/dev/null
+	then
+		echo
+		echo "Netdata is already installed!"
+		exit
+	fi
+
+	if [[ -z $domain ]]
+	then
+		clear
+		echo "Which domain name do you want for Netdata?
+		Specify just the domain name without www or http://
+		Example: netdata.mydomain.com"
+		read -p "Domain: " domain
+	fi
+
+	if [[ -z $user ]]
+	then
+		echo
+		echo "Specify a user name to protect access to Netdata
+		Example: admin"
+		read -p "User name: " user
+	fi
+
+	if [[ -z $pass ]]
+	then
+		echo
+		echo "Specify a password"
+		read -p "Password: " pass
+	fi
+	
+	if [[ -z $claim_token ]]
+	then
+		echo
+		echo "Specify your netdata cloud claim token."
+		read -p "Netdata Cloud Claim Token: " claim_token
+	fi	
+
+	if [[ -z $claim_rooms_token ]]
+	then
+		echo
+		echo "Specify your netdata cloud claim rooms token."
+		read -p "Netdata Cloud Claim Rooms Token: " claim_rooms_token
+	fi		
+
+	echo "server {
+		listen 80;
+		listen [::]:80;
+		server_name $domain www.$domain;
+
+		auth_basic_user_file /etc/nginx/htpasswd/$domain;
+		auth_basic \"Protected\";
+
+		root /var/www/$domain/html;
+
+		location / {
+			proxy_http_version 1.1;
+			proxy_set_header Upgrade \$http_upgrade;
+			proxy_set_header Connection \"Upgrade\";
+			proxy_buffering off;
+			proxy_read_timeout 7d;
+			proxy_pass http://127.0.0.1:19999;
+		}
+	}" > /etc/nginx/sites-enabled/netdata.conf
+
+	# create authentication file
+	mkdir -p /etc/nginx/htpasswd /var/www/$domain/html
+	htpasswd -b -c /etc/nginx/htpasswd/$domain $user $pass
+
+	echo "installing Netdata on server........."
+	apt-get update > /dev/null 2>&1
+	bash <(curl -Ss https://my-netdata.io/kickstart.sh) --dont-wait	--non-interactive --stable-channel --disable-telemetry --claim-token $claim_token --claim-url https://app.netdata.cloud --claim-rooms $claim_rooms_token
+
+	nginx -V 2>&1 | grep -o with-http_stub_status_module
+	if [ $? -eq 0 ]
+	then
+		sed -i '$ d' /etc/nginx/sites-enabled/netdata.conf
+		echo "		location /nginx_status {
+			stub_status;
+    			}
+		}" >> /etc/nginx/sites-enabled/netdata.conf
+	else
+		echo "Nginx netdata monitoring can't be configured. Need to rebuild nginx with stub_status module"
+	fi	
+
+	mariadb <<QUERY
+	create user 'netdata'@'localhost';
+	grant usage on *.* to 'netdata'@'localhost';
+	flush privileges;
+QUERY
+
+sed -i "s%.*pm.status_path.*%pm.status_path=/status56%g" /etc/php/5.6/fpm/pool.d/www.conf
+sed -i "s%.*pm.status_path.*%pm.status_path=/status71%g" /etc/php/7.1/fpm/pool.d/www.conf
+sed -i "s%.*pm.status_path.*%pm.status_path=/status72%g" /etc/php/7.2/fpm/pool.d/www.conf
+sed -i "s%.*pm.status_path.*%pm.status_path=/status73%g" /etc/php/7.3/fpm/pool.d/www.conf
+sed -i "s%.*pm.status_path.*%pm.status_path=/status74%g" /etc/php/7.4/fpm/pool.d/www.conf
+sed -i "s%.*pm.status_path.*%pm.status_path=/status80%g" /etc/php/8.0/fpm/pool.d/www.conf
+sed -i "s%.*pm.status_path.*%pm.status_path=/status80%g" /etc/php/8.1/fpm/pool.d/www.conf
+
+echo "Restarting PHP processes..."
+systemctl restart php5.6-fpm > /dev/null 2>&1
+systemctl restart php7.1-fpm > /dev/null 2>&1
+systemctl restart php7.2-fpm > /dev/null 2>&1
+systemctl restart php7.3-fpm > /dev/null 2>&1
+systemctl restart php7.4-fpm > /dev/null 2>&1
+systemctl restart php8.0-fpm > /dev/null 2>&1
+systemctl restart php8.1-fpm > /dev/null 2>&1
+
+grep status56 /etc/nginx/sites-enabled/default
+if [ $? -ne 0 ]
+then
+	sed -i '/server_name _;/a location = /status56 { \n fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name; \n fastcgi_index index.php; \n include fastcgi_params; \n fastcgi_pass   unix:/run/php/php5.6-fpm.sock; \n }' /etc/nginx/sites-enabled/default
+fi
+
+grep status71 /etc/nginx/sites-enabled/default
+if [ $? -ne 0 ]
+then
+	sed -i '/server_name _;/a location = /status71 { \n fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name; \n fastcgi_index index.php; \n include fastcgi_params; \n fastcgi_pass   unix:/run/php/php7.1-fpm.sock; \n }' /etc/nginx/sites-enabled/default
+fi
+
+grep status72 /etc/nginx/sites-enabled/default
+if [ $? -ne 0 ]
+then
+	sed -i '/server_name _;/a location = /status72 { \n fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name; \n fastcgi_index index.php; \n include fastcgi_params; \n fastcgi_pass   unix:/run/php/php7.2-fpm.sock; \n }' /etc/nginx/sites-enabled/default
+fi
+
+grep status73 /etc/nginx/sites-enabled/default
+if [ $? -ne 0 ]
+then
+	sed -i '/server_name _;/a location = /status73 { \n fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name; \n fastcgi_index index.php; \n include fastcgi_params; \n fastcgi_pass   unix:/run/php/php7.3-fpm.sock; \n }' /etc/nginx/sites-enabled/default
+fi
+
+grep status74 /etc/nginx/sites-enabled/default
+if [ $? -ne 0 ]
+then
+	sed -i '/server_name _;/a location = /status74 { \n fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name; \n fastcgi_index index.php; \n include fastcgi_params; \n fastcgi_pass   unix:/run/php/php7.4-fpm.sock; \n }' /etc/nginx/sites-enabled/default
+fi
+
+grep status80 /etc/nginx/sites-enabled/default
+if [ $? -ne 0 ]
+then
+	sed -i '/server_name _;/a location = /status80 { \n fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name; \n fastcgi_index index.php; \n include fastcgi_params; \n fastcgi_pass   unix:/run/php/php8.0-fpm.sock; \n }' /etc/nginx/sites-enabled/default
+fi
+
+grep status81 /etc/nginx/sites-enabled/default
+if [ $? -ne 0 ]
+then
+	sed -i '/server_name _;/a location = /status81 { \n fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name; \n fastcgi_index index.php; \n include fastcgi_params; \n fastcgi_pass   unix:/run/php/php8.1-fpm.sock; \n }' /etc/nginx/sites-enabled/default
+fi
+
+echo "
+jobs:
+  - name: php56
+    url: http://localhost/status56?full&json
+  - name: php71
+    url: http://localhost/status71?full&json
+  - name: php72
+    url: http://localhost/status72?full&json
+  - name: php73
+    url: http://localhost/status73?full&json
+  - name: php74
+    url: http://localhost/status74?full&json
+  - name: php80
+    url: http://localhost/status80?full&json
+  - name: php81
+    url: http://localhost/status81?full&json	
+" > /etc/netdata/go.d/phpfpm.conf
+
+	systemctl restart nginx
+	killall -u netdata
+	systemctl restart netdata
+	systemctl enable netdata
+	echo "Netdata has been installed,Can access from http://$domain/"
+}
+
+###################################### Netdata Remove Function ##########
+function netdata_remove
+{
+	if ! hash netdata 2>/dev/null
+	then
+		echo
+		echo "netdata is Not installed yet!"
+		exit
+	fi
+	domain=`grep -m 1 server_name /etc/nginx/sites-enabled/netdata.conf 2>&1 > /dev/null|awk '{print $2}'`
+	netdata_ssl_disable
+	bash /usr/libexec/netdata/netdata-uninstaller.sh --yes -f
+	if [ $? -ne 0 ]
+	then
+		echo "Failed to uninstall. Please check if the apt-get command has been locked by another process - you might have to restart the server and try the operation again."
+		exit
+	fi
+	rm -f /etc/nginx/sites-enabled/netdata.conf > /dev/null 2>&1
+	rm -rf /var/www/$domain/html > /dev/null 2>&1
+        mariadb <<QUERY
+        delete from mysql.user where user='netdata';
+        flush privileges;
+QUERY
+
+	systemctl restart nginx  > /dev/null
+	echo 
+	echo "netdata has been removed"
+}
+
+###################################### Netdata Update Function ##########
+function netdata_update
+{
+	if ! hash netdata 2>/dev/null
+	then
+		echo
+		echo "netdata is Not installed yet!"
+		exit
+	fi
+	bash <(curl -Ss https://my-netdata.io/kickstart.sh) --dont-wait
+	echo "Netdata has been updated"
+}
+
+###################################### Netdata Enable SSL  Function ##########
+function netdata_ssl_enable
+{
+	if ! hash netdata 2>/dev/null
+	then
+		echo
+		echo "netdata is Not installed yet!"
+		exit
+	fi
+	if grep -qs "listen 443" /etc/nginx/sites-enabled/netdata.conf;
+	then
+		echo "SSL Already Enabled";
+	else
+		domain=`grep -m 1 server_name /etc/nginx/sites-enabled/netdata.conf |awk '{print $2}'`
+		if [[ -z $email ]]
+		then
+			echo
+			echo "Specify an email for administrative notifications about your certificate"
+			read -p "Email address: " email
+		fi
+	
+		certbot --non-interactive --reinstall --expand --nginx --agree-tos -m $email --allow-subset-of-names --redirect -d $domain -d www.$domain
+
+		if ! grep -qs "listen 443" /etc/nginx/sites-enabled/netdata.conf
+		then
+			echo
+			echo "SSL could not be enabled for $domain"
+			exit
+		fi	
+		systemctl restart nginx
+		echo "SSL has been enabled for $domain"
+	fi
+}
+
+###################################### Netdata Disable SSL  Function ##########
+function netdata_ssl_disable
+{
+	if ! hash netdata 2>/dev/null
+	then
+		echo
+		echo "netdata is Not installed yet!"
+		exit
+	fi
+
+	if grep -qs "managed by Certbot" /etc/nginx/sites-enabled/netdata.conf;
+	then
+		domain=`grep -m 1 server_name /etc/nginx/sites-enabled/netdata.conf |awk '{print $2}'`
+		certbot delete --cert-name $domain --noninteractive
+		sed -i -n '/if ($host/q;p' /etc/nginx/sites-enabled/netdata.conf
+		sed -i '$ d' /etc/nginx/sites-enabled/netdata.conf
+		sed -i '/server {/a listen 80;\nlisten [::]:80;' /etc/nginx/sites-enabled/netdata.conf
+		sed -i '/managed by Certbot/d' /etc/nginx/sites-enabled/netdata.conf
+
+		systemctl restart nginx
+		echo "SSL has been disabled for netdata";
+	else
+		echo "SSL was not enabled for netdata so nothing to disable";
+	fi
+}
+
+###################################### Netdata Add Basic Auth##########
+function netdata_auth_add
+{
+	if ! hash netdata 2>/dev/null
+	then
+		echo
+		echo "netdata is Not installed yet!"
+		exit
+	fi
+
+	grep -wq '#auth_basic' /etc/nginx/sites-enabled/netdata.conf
+	if [ $? -ne 0 ]
+	then
+		echo "Basic Auth already enabled"
+	else
+		sed -i 's/#auth/auth/g' /etc/nginx/sites-enabled/netdata.conf
+		systemctl restart nginx > /dev/null
+		echo "Basic Auth has been enabled"
+	fi
+}
+
+###################################### Netdata Remove Basic Auth##########
+function netdata_auth_remove
+{
+	if ! hash netdata 2>/dev/null
+	then
+		echo
+		echo "netdata is Not installed yet!"
+		exit
+	fi
+
+	grep -wq '#auth_basic' /etc/nginx/sites-enabled/netdata.conf
+	if [ $? -eq 0 ]
+	then
+		echo "Basic Auth already disabled"
+	else
+		sed -i 's/auth/#auth/g' /etc/nginx/sites-enabled/netdata.conf
+		systemctl restart nginx > /dev/null
+		echo "Basic Auth has been disabled"
+	fi
+}
+
+###################################### Netdata Change Basic Auth##########
+function netdata_auth_change
+{
+	if ! hash netdata 2>/dev/null
+	then
+		echo
+		echo "netdata is Not installed yet!"
+		exit
+	fi
+
+	if [[ -z $user ]]
+	then
+		echo
+		echo "Specify a user name to protect access to Netdata"
+		read -p "User name: " user
+	fi
+
+	if [[ -z $pass ]]
+	then
+		echo
+		echo "Specify a password"
+		read -p "Password: " pass
+	fi
+	domain=`grep -m 1 server_name /etc/nginx/sites-enabled/netdata.conf |awk '{print $2}'`
+	rm -f /etc/nginx/htpasswd/$domain > /dev/null
+	htpasswd -b -c /etc/nginx/htpasswd/$domain $user $pass
+	systemctl restart nginx  > /dev/null
+	echo "Basic Auth has been updated"
+}
+
+###################################### Netdata Enable Registry##########
+function netdata_enable_registry
+{
+	if ! hash netdata 2>/dev/null
+	then
+		echo
+		echo "netdata is Not installed yet!"
+		exit
+	fi
+
+	sed -n "/\[registry\]/,/\[/{=;p;}"  /etc/netdata/netdata.conf |sed '{N;s/\n/ /}'|grep -v '#'|grep announce > /dev/null
+	if [ $? -ne 0 ]
+	then
+		if [[ -z $domain ]]
+		then
+			echo "Which domain name do you want to set as Registry?
+			Example: netdata.mydomain.com"
+			read -p "Domain: " domain
+		fi
+
+		sed -i "/\[registry\]/a enabled=yes \nregistry to announce = http://$domain" /etc/netdata/netdata.conf
+		service netdata restart
+		echo "Registry enabled to $domain"
+	else
+		registry_domain=`grep "^registry to announce" /etc/netdata/netdata.conf|cut -d'=' -f2`
+		echo "Registry already enabled to $registry_domain"
+	fi
+}
+
+###################################### Netdata Set Registry Target##########
+function netdata_set_registry
+{
+	if ! hash netdata 2>/dev/null
+	then
+		echo
+		echo "netdata is Not installed yet!"
+		exit
+	fi
+	sed -n "/\[registry\]/,/\[/{=;p;}"  /etc/netdata/netdata.conf |sed '{N;s/\n/ /}'|grep -v '#'|grep announce > /dev/null
+	if [ $? -ne 0 ]
+	then
+		grep -w '#auth_basic' /etc/nginx/sites-enabled/netdata.conf
+		if [ $? -ne 0 ]
+		then
+			echo "Please disable http authentication"
+			exit
+		fi
+		if [[ -z $domain ]]
+		then
+			echo "Which domain name do you want to set as Registry?
+			Example: netdata.mydomain.com"
+			read -p "Domain: " domain
+		fi
+
+		sed -i "/\[registry\]/a registry to announce = http://$domain" /etc/netdata/netdata.conf
+		service netdata restart
+		echo "Registry pointed to $domain"
+	else
+		registry_domain=`grep "^registry to announce" /etc/netdata/netdata.conf|cut -d'=' -f2`
+		echo "registry already pointed to $registry_domain"
+	fi
+}
+
+########################################################################################################3
+########################################################################################################3
+############## Install Netdata 
+if [[ $action == "netdata_install" || $action == "1" ]]
+then
+	netdata_install
+fi
+
+############ Uninstall Netdata
+if [[ $action == "netdata_remove" || $action == "2" ]]
+then
+	netdata_remove
+fi
+
+##############  Update Netdata
+if [[ $action == "netdata_update" || $action == "3" ]]
+then
+	netdata_update
+fi
+
+############## Enable SSL
+if [[ $action == "netdata_ssl_enable" || $action == "4" ]]
+then
+	netdata_ssl_enable
+fi
+
+############## Update services/protocol
+if [[ $action == "netdata_ssl_disable" || $action == "5" ]]
+then
+	netdata_ssl_disable
+fi
+
+########## Add Basic Authentication
+if [[ $action == "netdata_auth_add" || $action == "6" ]]
+then
+	netdata_auth_add
+fi
+
+########## Remove Basic Authentication
+if [[ $action == "netdata_auth_remove" || $action == "7" ]]
+then
+	netdata_auth_remove
+fi
+
+########## Modify Basic Auth password
+if [[ $action == "netdata_auth_change" || $action == "8" ]]
+then
+	netdata_auth_change
+fi
+
+########## Netdata Enable Registry
+if [[ $action == "netdata_enable_registry" || $action == "9" ]]
+then
+	netdata_enable_registry
+fi
+
+########## Netdata set registry
+if [[ $action == "netdata_set_registry" || $action == "10" ]]
+then
+	netdata_set_registry
+fi

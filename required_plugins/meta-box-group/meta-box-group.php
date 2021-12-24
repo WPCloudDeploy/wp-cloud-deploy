@@ -3,7 +3,7 @@
  * Plugin Name: Meta Box Group
  * Plugin URI:  https://metabox.io/plugins/meta-box-group/
  * Description: Add-on for meta box plugin, allows you to add field type 'group' which put child fields into 1 group which are displayed/accessed easier and can be cloneable.
- * Version:     1.3.11
+ * Version:     1.3.12
  * Author:      MetaBox.io
  * Author URI:  https://metabox.io
  * License:     GPL2+

@@ -63,6 +63,11 @@
     transition: all 1s cubic-bezier(0.000, 0.000, 0.230, 1);
 }
 
+/* Remove the lower border on the anchor in the vertical tabs that was introduced sometime in 2021 by the metabox.io publisers */
+.rwmb-settings-no-boxes .rwmb-tabs-left .rwmb-tab-nav li {
+	border-bottom: 0px !important;
+}
+
 /* 
 On all the admin settings tabs, close up some excessive spaces.
 Additional headers added to that tab will neeed to
@@ -112,7 +117,9 @@ be added here.
 .rwmb-settings-no-boxes #tools .rwmb-heading-wrapper h4,
 .rwmb-settings-no-boxes #data-sync .rwmb-heading-wrapper h4,
 .rwmb-settings-no-boxes #cloud-providers .rwmb-heading-wrapper h4,
-.rwmb-settings-no-boxes #wordpress-app .rwmb-heading-wrapper h4 {
+.rwmb-settings-no-boxes #wordpress-app .rwmb-heading-wrapper h4,
+.rwmb-settings-no-boxes #wordpress-app-security .rwmb-heading-wrapper h4
+ {
     color: var(--wpcd-primary-brand-color);
 }
 

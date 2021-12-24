@@ -1,0 +1,10 @@
+#!/bin/bash
+# This script will upgrade wpcli to the latest stable version.
+
+echo $(date): "Upgrading WPCLI to the latest stable version..."
+
+wp cli update --yes --allow-root
+
+#WPCLI's output should include "Success: Updated WP-CLI".
+
+echo "WPCLI has been upgraded."

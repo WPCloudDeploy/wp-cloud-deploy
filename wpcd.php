@@ -3,7 +3,7 @@
 Plugin Name: WPCloudDeploy
 Plugin URI: https://wpclouddeploy.com
 Description: Deploy and manage cloud servers and apps from inside the WordPress Admin dashboard.
-Version: 4.12.0
+Version: 4.13.0
 Requires at least: 5.0
 Requires PHP: 7.4
 Item Id: 1493
@@ -54,6 +54,15 @@ class WPCD_Init {
 			define( 'WPCD_REQUIRES', '2.0.3' );
 			define( 'WPCD_REST_VERSION', '1' );
 			define( 'WPCD_DB_VERSION', '1' );
+
+			// Define the default brand colors.
+			define( 'WPCD_PRIMARY_BRAND_COLOR', '#E91E63' );
+			define( 'WPCD_SECONDARY_BRAND_COLOR', '#FF5722' );
+			define( 'WPCD_TERTIARY_BRAND_COLOR', '#03114A' );
+			define( 'WPCD_ACCENT_BG_COLOR', '#3F4C5F' );
+			define( 'WPCD_MEDIUM_BG_COLOR', '#FAFAFA' );
+			define( 'WPCD_LIGHT_BG_COLOR', '#FDFDFD' );
+			define( 'WPCD_ALTERNATE_ACCENT_BG_COLOR', '#CFD8DC' );
 
 			// Define a variable that can be used for versioning scripts - required to force multisite to use different version numbers for each site.
 			if ( is_multisite() ) {
@@ -246,6 +255,7 @@ class WPCD_Init {
 			require_once wpcd_path . '/required_plugins/mb-term-meta/mb-term-meta.php';
 			require_once wpcd_path . '/required_plugins/meta-box-columns/meta-box-columns.php';
 			require_once wpcd_path . '/required_plugins/meta-box-group/meta-box-group.php';
+			require_once wpcd_path . '/required_plugins/mb-user-meta/mb-user-meta.php';
 		}
 
 		/* Load up some licensing files. */
@@ -381,7 +391,11 @@ class WPCD_Init {
 	}
 
 	/**
-	 * Warn user if encryption key in wp-config is not defined.
+	 * Warn user of a number of issues that could affect the clean running of wpcd:
+	 *  1. If encryption key in wp-config is not defined.
+	 *  2. Permalink structure is incorrect.
+	 *  3. Certain files cannot be read.
+	 *  4. Certain crons are not running on a regular basis.
 	 */
 	public function wpcd_global_admin_notice() {
 		if ( in_array( isset( $_SERVER['SERVER_ADDR'] ) ? $_SERVER['SERVER_ADDR'] : '', array( '127.0.0.1', '::1' ), true ) ) {

@@ -31,7 +31,7 @@ if [[ $action == "install_redis" || $action == "1" ]]; then
         exit
     fi
 
-    apt-get install redis-server php8.0-redis php7.4-redis php7.3-redis php7.2-redis php7.1-redis php5.6-redis -y
+    apt-get install redis-server php8.1-redis php8.0-redis php7.4-redis php7.3-redis php7.2-redis php7.1-redis php5.6-redis -y
     sed -i "s/supervised no/supervised systemd/g" /etc/redis/redis.conf
     systemctl restart redis
 
@@ -120,7 +120,7 @@ fi
 
 if [[ $action == "remove_redis" || $action == "6" ]]; then
 
-    apt-get remove redis-server php8.0-redis php7.4-redis php7.3-redis php7.2-redis php7.1-redis php5.6-redis redis-tools -y
+    apt-get remove redis-server php8.1-redis php8.0-redis php7.4-redis php7.3-redis php7.2-redis php7.1-redis php5.6-redis redis-tools -y
 
     echo
     echo "Redis has been removed from the system."

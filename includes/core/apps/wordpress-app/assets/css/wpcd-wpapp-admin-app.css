@@ -1,4 +1,5 @@
 /* Format the ssl status column on the apps list screen */
+
 .wpcd_ssl_status {
     display: inline-block;
     padding: 2px 8px;
@@ -17,7 +18,9 @@
     background-color: green;
 }
 
+
 /* Format the PHP version on the apps list screen */
+
 .wpcd_php_version {
     display: inline-block;
     padding: 2px 8px;
@@ -31,11 +34,14 @@
     margin: 2px;
 }
 
-.wpcd_php_version_7_3, .wpcd_php_version_7_4, .wpcd_php_version_8_1 {
+.wpcd_php_version_7_4,
+.wpcd_php_version_8_1 {
     border-color: green !important;
 }
 
-.wpcd_php_version_7_2, .wpcd_php_version_7_1 {
+.wpcd_php_version_7_3,
+.wpcd_php_version_7_2,
+.wpcd_php_version_7_1 {
     border-color: orange !important;
 }
 
@@ -44,7 +50,9 @@
     color: purple;
 }
 
+
 /* Format the PLUGIN AND THEME updates on the apps list screen */
+
 .wpcd_site_update_needed {
     display: inline-block;
     padding: 2px 8px;
@@ -58,7 +66,9 @@
     margin: 2px;
 }
 
+
 /* Format the Syncing Destination Server on the apps list screen */
+
 .wpcd_destination_site_sync_server {
     display: inline-block;
     padding: 2px 8px;
@@ -72,13 +82,16 @@
     margin: 2px;
 }
 
+
 /** 
  * Set the width of some of the app list columns 
  */
 
+
 /*
  * Removed from the title column for now - WP is a little smarter at sizing than we thought.
  */
+
 
 /*
 .post-type-wpcd_app th#title {
@@ -86,13 +99,17 @@
 	width: 25%;
 }
 */
-.post-type-wpcd_app th#wpcd_wpapp_php, .post-type-wpcd_app th#wpcd_wpapp_ssl {
+
+.post-type-wpcd_app th#wpcd_wpapp_php,
+.post-type-wpcd_app th#wpcd_wpapp_ssl {
     width: 8%;
 }
+
 
 /** 
  * Make filter bar multiple rows
  */
+
 .tablenav .actions:not(.bulkactions) {
     margin-top: 10px;
 }
@@ -101,3 +118,31 @@
     width: 13%;
     margin-bottom: 10px;
 }
+
+
+/* the spinner - start */
+
+.locker,
+.locker-loader {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.locker {
+    z-index: 1000;
+    opacity: 0.8;
+    background-color: white;
+    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=80)";
+    filter: alpha(opacity=80);
+}
+
+.locker-loader {
+    z-index: 1001;
+    background: url(/wp-content/plugins/wp-cloud-deploy/assets/images/spinner.gif) no-repeat center center;
+}
+
+
+/* the spinner - end */

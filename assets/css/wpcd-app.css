@@ -185,6 +185,11 @@ div[id^='wpcd_wordpress-app'] {
 	margin-bottom: 0.01px !important;
 }
 
+/* Remove the lower border on the anchor in the vertical tabs that was introduced sometime in 2021 by the metabox.io publisers */
+.wpcd-wpapp-actions .rwmb-tabs-left .rwmb-tab-nav li {
+	border-bottom: 0px !important;
+}
+
 /* Background color and text for tabs - vertical */
 
 .wpcd-wpapp-actions .rwmb-tabs-left .rwmb-tab-nav {

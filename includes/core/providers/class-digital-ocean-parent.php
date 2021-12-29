@@ -64,7 +64,7 @@ class CLOUD_PROVIDER_API_DigitalOcean_Parent extends CLOUD_PROVIDER_API {
 		add_filter( "wpcd_cloud_provider_settings_api_key_label_desc_{$provider}", array( $this, 'set_link_to_provider_dashboard' ) );
 		
 		// Run cron to auto start server after resize
-		add_action( 'wpcd_do_auto_start_after_resize_cron', array( $this, 'doAutoStartServer' ), 10 );
+		add_action( 'wpcd_'.$this->get_provider_slug().'_auto_start_after_resize_cron', array( $this, 'doAutoStartServer' ), 10 );
 
 	}
 
@@ -420,8 +420,8 @@ runcmd:
 				$return['action_id'] = $body->action->id;
 				
 				$this->cacheAutoStartServer( $attributes['id'], $body->action->id );
-				wp_clear_scheduled_hook( 'wpcd_do_auto_start_after_resize_cron' );
-				wp_schedule_event( time(), 'every_minute', 'wpcd_do_auto_start_after_resize_cron' );
+				wp_clear_scheduled_hook( 'wpcd_'.$this->get_provider_slug().'_auto_start_after_resize_cron' );
+				wp_schedule_event( time(), 'every_minute', 'wpcd_'.$this->get_provider_slug().'_auto_start_after_resize_cron' );
 				
 				break;
 			case 'status':
@@ -477,7 +477,7 @@ runcmd:
 	 * @return array
 	 */
 	public function getAutoStartServers() {
-		 return get_option( 'wpcd_do_auto_start_servers_cron', array() );
+		 return get_option( 'wpcd_'.$this->get_provider_slug().'_auto_start_servers_cron', array() );
 	}
 
 	/**
@@ -491,7 +491,7 @@ runcmd:
 	public function cacheAutoStartServer( $server_id, $action_id ) {
 		$all_servers           = $this->getAutoStartServers();
 		$all_servers[ $server_id ] = $action_id;
-		update_option( 'wpcd_do_auto_start_servers_cron', $all_servers );
+		update_option( 'wpcd_'.$this->get_provider_slug().'_auto_start_servers_cron', $all_servers );
 	}
 	
 	
@@ -504,7 +504,7 @@ runcmd:
 		$all_servers           = $this->getAutoStartServers();
 
 		if ( empty( $all_servers ) ) {
-			wp_clear_scheduled_hook( 'wpcd_do_auto_start_after_resize_cron' );
+			wp_clear_scheduled_hook( 'wpcd_'.$this->get_provider_slug().'_auto_start_after_resize_cron' );
 			return;
 		}
 
@@ -540,10 +540,10 @@ runcmd:
 			}
 		}
 
-		update_option( 'wpcd_do_auto_start_servers_cron', $all_servers );
+		update_option( 'wpcd_'.$this->get_provider_slug().'_auto_start_servers_cron', $all_servers );
 
 		if ( empty( $all_servers ) ) {
-			wp_clear_scheduled_hook( 'wpcd_do_auto_start_after_resize_cron' );
+			wp_clear_scheduled_hook( 'wpcd_'.$this->get_provider_slug().'_auto_start_after_resize_cron' );
 		}
 
 	}

@@ -241,10 +241,40 @@ class WPCD_Settings {
 							'clone'   => true,
 						),
 						array(
-							'name' => __( 'Auto Trim Log', 'wpcd' ),
-							'id'   => 'auto_trim_log_limit',
+							'name' => __( 'Auto Trim Notification Log', 'wpcd' ),
+							'id'   => 'auto_trim_notification_log_limit',
 							'type' => 'number',
-							'desc' => __( 'Delete older log entries when the number of records exceed this. If set to zero or nothing is entered, we are going to leave 100 entries at all times and delete everything else.', 'wpcd' ),
+							'desc' => __( 'Delete older notifications log entries when the number of records exceed this. If set to zero or nothing is entered, we are going to leave 100 entries at all times and delete everything else.', 'wpcd' ),
+						),
+						array(
+							'name' => __( 'Auto Trim Notification Sent Log', 'wpcd' ),
+							'id'   => 'auto_trim_notification_sent_log_limit',
+							'type' => 'number',
+							'desc' => __( 'Delete older notifications sent log entries when the number of records exceed this. If set to zero or nothing is entered, we are going to leave 100 entries at all times and delete everything else.', 'wpcd' ),
+						),
+						array(
+							'name' => __( 'Auto Trim SSH Log', 'wpcd' ),
+							'id'   => 'auto_trim_ssh_log_limit',
+							'type' => 'number',
+							'desc' => __( 'Delete older ssh log entries when the number of records exceed this. If set to zero or nothing is entered, we are going to leave 100 entries at all times and delete everything else.', 'wpcd' ),
+						),
+						array(
+							'name' => __( 'Auto Trim Command Log', 'wpcd' ),
+							'id'   => 'auto_trim_command_log_limit',
+							'type' => 'number',
+							'desc' => __( 'Delete older command log entries when the number of records exceed this. If set to zero or nothing is entered, we are going to leave 100 entries at all times and delete everything else.', 'wpcd' ),
+						),
+						array(
+							'name' => __( 'Auto Trim Pending Log', 'wpcd' ),
+							'id'   => 'auto_trim_pending_log_limit',
+							'type' => 'number',
+							'desc' => __( 'Delete older pending log entries when the number of records exceed this. If set to zero or nothing is entered, we are going to leave 100 entries at all times and delete everything else.', 'wpcd' ),
+						),
+						array(
+							'name' => __( 'Auto Trim Error Log', 'wpcd' ),
+							'id'   => 'auto_trim_error_log_limit',
+							'type' => 'number',
+							'desc' => __( 'Delete older pending log entries when the number of records exceed this. If set to zero or nothing is entered, we are going to leave 100 entries at all times and delete everything else.', 'wpcd' ),
 						),
 						array(
 							'name' => __( 'Delete At Most', 'wpcd' ),

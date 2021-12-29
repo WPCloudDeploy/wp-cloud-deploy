@@ -229,7 +229,22 @@ class WPCD_POSTS_LOG extends WPCD_Posts_Base {
 			$error_log_entries = $count_posts->private + $count_posts->publish;
 		}
 
-		$auto_trim_log_limit = (int) wpcd_get_early_option( 'auto_trim_log_limit' );
+		if ( 'wpcd_notify_log' === $post_type ) {
+			$auto_trim_log_limit = (int) wpcd_get_early_option( 'auto_trim_notification_log_limit' );
+		}
+		if ( 'wpcd_notify_sent' === $post_type ) {
+			$auto_trim_log_limit = (int) wpcd_get_early_option( 'auto_trim_notification_sent_log_limit' );
+		}
+		if ( 'wpcd_ssh_log' === $post_type ) {
+			$auto_trim_log_limit = (int) wpcd_get_early_option( 'auto_trim_ssh_log_limit' );
+		}
+		if ( 'wpcd_command_log' === $post_type ) {
+			$auto_trim_log_limit = (int) wpcd_get_early_option( 'auto_trim_command_log_limit' );
+		}
+		if ( 'wpcd_error_log' === $post_type ) {
+			$auto_trim_log_limit = (int) wpcd_get_early_option( 'auto_trim_error_log_limit' );
+		}
+
 		if ( defined( 'WPCD_AUTO_TRIM_LOG_LIMIT' ) ) {
 			$auto_trim_log_limit = WPCD_AUTO_TRIM_LOG_LIMIT;
 		}

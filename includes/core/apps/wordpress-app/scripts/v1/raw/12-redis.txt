@@ -32,6 +32,14 @@ if [[ $action == "install_redis" || $action == "1" ]]; then
     fi
 
     apt-get install redis-server php8.1-redis php8.0-redis php7.4-redis php7.3-redis php7.2-redis php7.1-redis php5.6-redis -y
+	
+	# Was redis installed?  If the redis.conf file does not exist there's a good chance it wasn't installed properly or not at all.
+    if [ ! -f /etc/redis/redis.conf ]
+    then
+	    echo "redis has not been properly installed";
+	    exit
+    fi
+	
     sed -i "s/supervised no/supervised systemd/g" /etc/redis/redis.conf
     systemctl restart redis
 

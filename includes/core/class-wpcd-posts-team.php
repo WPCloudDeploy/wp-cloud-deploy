@@ -228,7 +228,7 @@ class WPCD_POSTS_TEAM {
 							'id'      => $prefix . 'team_manager',
 							'type'    => 'checkbox',
 							'class'   => $prefix . 'team-manager-checkbox',
-							'columns' => 3,
+							'columns' => 1,
 						),
 						array(
 							'name'        => __( 'Server Permisssions', 'wpcd' ),
@@ -238,7 +238,7 @@ class WPCD_POSTS_TEAM {
 							'options'     => $this->wpcd_get_permission_groups( 1 ),
 							'multiple'    => true,
 							'placeholder' => __( 'Select a permission', 'wpcd' ),
-							'columns'     => 3,
+							'columns'     => 2,
 						),
 
 						array(
@@ -262,18 +262,17 @@ class WPCD_POSTS_TEAM {
 							'columns'     => 3,
 						),
 
-						/** Placeholder for when we need app tab permissions.
 						array(
-							'name' => __( 'App Tab Permisssions', 'wpcd' ),
-							'id' => $prefix . 'app_tab_permissions',
-							'type'=> 'checkbox_list',
-							'class' => $prefix . 'app-permissions',
-							'options' => $this->wpcd_get_permission_groups(4),
-							'multiple' => true,
-							'placeholder' =>  __( 'Select a permission', 'wpcd' ),
-							'columns' => 3,
+							'name'        => __( 'App Tab Permisssions', 'wpcd' ),
+							'id'          => $prefix . 'app_tab_permissions',
+							'type'        => 'checkbox_list',
+							'class'       => $prefix . 'app-permissions',
+							'options'     => $this->wpcd_get_permission_groups( 4 ),
+							'multiple'    => true,
+							'placeholder' => __( 'Select a permission', 'wpcd' ),
+							'columns'     => 3,
 						),
-						*/
+
 					),
 				),
 			),
@@ -328,7 +327,6 @@ class WPCD_POSTS_TEAM {
 				$server_permissions = array_merge( $server_permissions, $server_tab_permissions );
 
 				// Combine app_permissions group and app_tab_permissions group into one array.
-				// Note that as of V 4.6.1 there are no entries for the app_tab_permissions group.
 				$app_permissions = array_merge( $app_permissions, $app_tab_permissions );
 
 				$all_passed_permissions = array();
@@ -571,8 +569,8 @@ class WPCD_POSTS_TEAM {
 				wp_die( esc_html( __( 'You don\'t have access to this page.', 'wpcd' ) ) );
 			}
 
-			$post_id = filter_input( INPUT_GET, 'post', FILTER_SANITIZE_NUMBER_INT );
-			$user_id = get_current_user_id();
+			$post_id     = filter_input( INPUT_GET, 'post', FILTER_SANITIZE_NUMBER_INT );
+			$user_id     = get_current_user_id();
 			$post_author = get_post( $post_id )->post_author;
 
 			$is_team_manager = wpcd_check_user_is_team_manager( $user_id, $post_id );

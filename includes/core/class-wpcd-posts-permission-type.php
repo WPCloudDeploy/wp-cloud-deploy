@@ -79,20 +79,20 @@ class WPCD_POSTS_PERMISSION_TYPE {
 			'wpcd_permission_type',
 			array(
 				'labels'              => array(
-					'name'                  => _x( 'WPCD Server/App Permission List', 'Post type general name', 'wpcd' ),
-					'singular_name'         => _x( 'Server/App Permission', 'Post type singular name', 'wpcd' ),
+					'name'                  => _x( 'WPCD Permission List', 'Post type general name', 'wpcd' ),
+					'singular_name'         => _x( 'Permission', 'Post type singular name', 'wpcd' ),
 					'menu_name'             => _x( 'Permission List', 'Admin Menu text', 'wpcd' ),
-					'name_admin_bar'        => _x( 'Server/App Permission', 'Add New on Toolbar', 'wpcd' ),
-					'add_new'               => __( 'Add Server/App Permission', 'wpcd' ),
-					'edit_item'             => __( 'Edit Server/App Permission', 'wpcd' ),
-					'view_item'             => __( 'View Server/App Permission', 'wpcd' ),
-					'all_items'             => __( 'Server/App Permissions', 'wpcd' ), // Label to signify all items in a submenu link.
-					'search_items'          => __( 'Search Server/App Permissions', 'wpcd' ),
-					'not_found'             => __( 'No Server/App Permissions were found.', 'wpcd' ),
-					'not_found_in_trash'    => __( 'No Server/App Permissions were found in Trash.', 'wpcd' ),
-					'filter_items_list'     => _x( 'Filter Server/App Permissions list', 'Screen reader text for the filter links heading on the post type listing screen. Default "Filter posts list"/"Filter pages list". Added in 4.4', 'wpcd' ),
-					'items_list_navigation' => _x( 'Server/App Permissions list navigation', 'Screen reader text for the pagination heading on the post type listing screen. Default "Posts list navigation"/"Pages list navigation". Added in 4.4', 'wpcd' ),
-					'items_list'            => _x( 'Server/App Permissions list', 'Screen reader text for the items list heading on the post type listing screen. Default "Posts list"/"Pages list". Added in 4.4', 'wpcd' ),
+					'name_admin_bar'        => _x( 'Permission', 'Add New on Toolbar', 'wpcd' ),
+					'add_new'               => __( 'Add Permission', 'wpcd' ),
+					'edit_item'             => __( 'EditPermission', 'wpcd' ),
+					'view_item'             => __( 'View Permission', 'wpcd' ),
+					'all_items'             => __( 'Permissions', 'wpcd' ), // Label to signify all items in a submenu link.
+					'search_items'          => __( 'Search Permissions', 'wpcd' ),
+					'not_found'             => __( 'No Permissions were found.', 'wpcd' ),
+					'not_found_in_trash'    => __( 'No Permissions were found in Trash.', 'wpcd' ),
+					'filter_items_list'     => _x( 'Filter Permissions list', 'Screen reader text for the filter links heading on the post type listing screen. Default "Filter posts list"/"Filter pages list". Added in 4.4', 'wpcd' ),
+					'items_list_navigation' => _x( 'Permissions list navigation', 'Screen reader text for the pagination heading on the post type listing screen. Default "Posts list navigation"/"Pages list navigation". Added in 4.4', 'wpcd' ),
+					'items_list'            => _x( 'Permissions list', 'Screen reader text for the items list heading on the post type listing screen. Default "Posts list"/"Pages list". Added in 4.4', 'wpcd' ),
 				),
 				'show_ui'             => true,
 				'show_in_menu'        => ( defined( 'WPCD_SHOW_PERMISSION_LIST' ) && ( true === WPCD_SHOW_PERMISSION_LIST ) ) ? 'edit.php?post_type=wpcd_app_server' : false,
@@ -186,6 +186,15 @@ class WPCD_POSTS_PERMISSION_TYPE {
 					'options'     => $permission_categories,
 					'placeholder' => __( 'Select a permission category', 'wpcd' ),
 				),
+				array(
+					'name'              => 'Permission Group',
+					'label_description' => __( 'Enter a permission group - 1, 2, 3 or 4', 'wpcd' ),
+					'id'                => $prefix . 'permission_group',
+					'type'              => 'text',
+					'class'             => $prefix . 'permission-group',
+					'placeholder'       => __( 'Permission group', 'wpcd' ),
+					'tooltip'           => __( 'Group is the column under which the permission will appear when editing a team. 1=Server Permissions; 2=Server Tab Permissions; 3=App Permissions; 4=App Server Permissions', 'wpcd' ),
+				),
 			),
 			'validation' => array(
 				'rules'    => array(
@@ -208,6 +217,9 @@ class WPCD_POSTS_PERMISSION_TYPE {
 					$prefix . 'permission_category' => array(
 						'required' => true,
 					),
+					$prefix . 'permission_group'    => array(
+						'required' => true,
+					),
 				),
 				'messages' => array(
 					$prefix . 'object_type'         => array(
@@ -216,7 +228,7 @@ class WPCD_POSTS_PERMISSION_TYPE {
 					$prefix . 'permission_name'     => array(
 						'required'         => __( 'Permission Name is required.', 'wpcd' ),
 						'valid_permission' => __( 'Please enter a valid permission name.', 'wpcd' ),
-						'remote'           => __( 'Same permission name already exists. Try another!', 'wpcd' ),
+						'remote'           => __( 'Permission name already exists. Try another!', 'wpcd' ),
 					),
 					$prefix . 'permission_category' => array(
 						'required' => __( 'Permission Category is required.', 'wpcd' ),
@@ -475,13 +487,13 @@ class WPCD_POSTS_PERMISSION_TYPE {
 				'wpcd_permission_category' => 'wpapp',
 				'wpcd_permission_group'    => 2,
 			),
-			'view_wpapp_server_serversync_tab'        => array(
+			'view_wpapp_server_serversync_tab'      => array(
 				'post_title'               => __( 'View Server Sync Tab On WP Server Screen', 'wpcd' ),
 				'wpcd_object_type'         => 1,
 				'wpcd_permission_category' => 'wpapp',
 				'wpcd_permission_group'    => 2,
 			),
-			
+
 			'view_app'                              => array(
 				'post_title'               => __( 'View App', 'wpcd' ),
 				'wpcd_object_type'         => 2,
@@ -511,146 +523,146 @@ class WPCD_POSTS_PERMISSION_TYPE {
 				'post_title'               => __( 'View 6g Firewall Tab On WP Site Screen', 'wpcd' ),
 				'wpcd_object_type'         => 2,
 				'wpcd_permission_category' => 'wpapp',
-				'wpcd_permission_group'    => 3,
+				'wpcd_permission_group'    => 4,
 			),
 			'view_wpapp_site_7gfirewall_tab'        => array(
 				'post_title'               => __( 'View 7g Firewall Tab On WP Site Screen', 'wpcd' ),
 				'wpcd_object_type'         => 2,
 				'wpcd_permission_category' => 'wpapp',
-				'wpcd_permission_group'    => 3,
+				'wpcd_permission_group'    => 4,
 			),
 			'view_wpapp_site_backup_tab'            => array(
 				'post_title'               => __( 'View Backup Tab On WP Site Screen', 'wpcd' ),
 				'wpcd_object_type'         => 2,
 				'wpcd_permission_category' => 'wpapp',
-				'wpcd_permission_group'    => 3,
+				'wpcd_permission_group'    => 4,
 			),
 			'view_wpapp_site_cache_tab'             => array(
 				'post_title'               => __( 'View Cache Tab On WP Site Screen', 'wpcd' ),
 				'wpcd_object_type'         => 2,
 				'wpcd_permission_category' => 'wpapp',
-				'wpcd_permission_group'    => 3,
+				'wpcd_permission_group'    => 4,
 			),
 			'view_wpapp_site_change_domain_tab'     => array(
 				'post_title'               => __( 'View Change Domain Tab On WP Site Screen', 'wpcd' ),
 				'wpcd_object_type'         => 2,
 				'wpcd_permission_category' => 'wpapp',
-				'wpcd_permission_group'    => 3,
+				'wpcd_permission_group'    => 4,
 			),
 			'view_wpapp_site_clone_site_tab'        => array(
 				'post_title'               => __( 'View Clone Site Tab On WP Site Screen', 'wpcd' ),
 				'wpcd_object_type'         => 2,
 				'wpcd_permission_category' => 'wpapp',
-				'wpcd_permission_group'    => 3,
+				'wpcd_permission_group'    => 4,
 			),
 			'view_wpapp_site_copy_to_existing_tab'  => array(
 				'post_title'               => __( 'View Copy To Existing Tab On WP Site Screen', 'wpcd' ),
 				'wpcd_object_type'         => 2,
 				'wpcd_permission_category' => 'wpapp',
-				'wpcd_permission_group'    => 3,
+				'wpcd_permission_group'    => 4,
 			),
 			'view_wpapp_site_crons_tab'             => array(
 				'post_title'               => __( 'View Cron Tab On WP Site Screen', 'wpcd' ),
 				'wpcd_object_type'         => 2,
 				'wpcd_permission_category' => 'wpapp',
-				'wpcd_permission_group'    => 3,
+				'wpcd_permission_group'    => 4,
 			),
 			'view_wpapp_site_general_tab'           => array(
 				'post_title'               => __( 'View General Tab On WP Site Screen', 'wpcd' ),
 				'wpcd_object_type'         => 2,
 				'wpcd_permission_category' => 'wpapp',
-				'wpcd_permission_group'    => 3,
+				'wpcd_permission_group'    => 4,
 			),
 			'view_wpapp_site_logs_tab'              => array(
 				'post_title'               => __( 'View Logs Tab On WP Site Screen', 'wpcd' ),
 				'wpcd_object_type'         => 2,
 				'wpcd_permission_category' => 'wpapp',
-				'wpcd_permission_group'    => 3,
+				'wpcd_permission_group'    => 4,
 			),
 			'view_wpapp_site_misc_tab'              => array(
 				'post_title'               => __( 'View Misc Tab On WP Site Screen', 'wpcd' ),
 				'wpcd_object_type'         => 2,
 				'wpcd_permission_category' => 'wpapp',
-				'wpcd_permission_group'    => 3,
+				'wpcd_permission_group'    => 4,
 			),
 			'view_wpapp_site_phpmyadmin_tab'        => array(
 				'post_title'               => __( 'View Database Tab On WP Site Screen', 'wpcd' ),
 				'wpcd_object_type'         => 2,
 				'wpcd_permission_category' => 'wpapp',
-				'wpcd_permission_group'    => 3,
+				'wpcd_permission_group'    => 4,
 			),
 			'view_wpapp_site_php_options_tab'       => array(
 				'post_title'               => __( 'View PHP Options Tab On WP Site Screen', 'wpcd' ),
 				'wpcd_object_type'         => 2,
 				'wpcd_permission_category' => 'wpapp',
-				'wpcd_permission_group'    => 3,
+				'wpcd_permission_group'    => 4,
 			),
 			'view_wpapp_site_redirect_rules_tab'    => array(
 				'post_title'               => __( 'View Redirect Rules Tab On WP Site Screen', 'wpcd' ),
 				'wpcd_object_type'         => 2,
 				'wpcd_permission_category' => 'wpapp',
-				'wpcd_permission_group'    => 3,
+				'wpcd_permission_group'    => 4,
 			),
 			'view_wpapp_site_sftp_tab'              => array(
 				'post_title'               => __( 'View sFTP Tab On WP Site Screen', 'wpcd' ),
 				'wpcd_object_type'         => 2,
 				'wpcd_permission_category' => 'wpapp',
-				'wpcd_permission_group'    => 3,
+				'wpcd_permission_group'    => 4,
 			),
 			'view_wpapp_site_site_sync_tab'         => array(
 				'post_title'               => __( 'View Site Sync Tab On WP Site Screen', 'wpcd' ),
 				'wpcd_object_type'         => 2,
 				'wpcd_permission_category' => 'wpapp',
-				'wpcd_permission_group'    => 3,
+				'wpcd_permission_group'    => 4,
 			),
 			'view_wpapp_site_site_system_users_tab' => array(
 				'post_title'               => __( 'View Site System Users Tab On WP Site Screen', 'wpcd' ),
 				'wpcd_object_type'         => 2,
 				'wpcd_permission_category' => 'wpapp',
-				'wpcd_permission_group'    => 3,
+				'wpcd_permission_group'    => 4,
 			),
 			'view_wpapp_site_ssl_tab'               => array(
 				'post_title'               => __( 'View SSL Tab On WP Site Screen', 'wpcd' ),
 				'wpcd_object_type'         => 2,
 				'wpcd_permission_category' => 'wpapp',
-				'wpcd_permission_group'    => 3,
+				'wpcd_permission_group'    => 4,
 			),
-			'view_wpapp_site_staging_tab'               => array(
+			'view_wpapp_site_staging_tab'           => array(
 				'post_title'               => __( 'View Staging Tab On WP Site Screen', 'wpcd' ),
 				'wpcd_object_type'         => 2,
 				'wpcd_permission_category' => 'wpapp',
-				'wpcd_permission_group'    => 3,
+				'wpcd_permission_group'    => 4,
 			),
-			'view_wpapp_site_statistics_tab'               => array(
+			'view_wpapp_site_statistics_tab'        => array(
 				'post_title'               => __( 'View Statistics Tab On WP Site Screen', 'wpcd' ),
 				'wpcd_object_type'         => 2,
 				'wpcd_permission_category' => 'wpapp',
-				'wpcd_permission_group'    => 3,
+				'wpcd_permission_group'    => 4,
 			),
-			'view_wpapp_site_updates_tab'               => array(
+			'view_wpapp_site_updates_tab'           => array(
 				'post_title'               => __( 'View Theme & Plugin Updates Tab On WP Site Screen', 'wpcd' ),
 				'wpcd_object_type'         => 2,
 				'wpcd_permission_category' => 'wpapp',
-				'wpcd_permission_group'    => 3,
-			),		
-			'view_wpapp_site_tools_tab'               => array(
+				'wpcd_permission_group'    => 4,
+			),
+			'view_wpapp_site_tools_tab'             => array(
 				'post_title'               => __( 'View Tools Tab On WP Site Screen', 'wpcd' ),
 				'wpcd_object_type'         => 2,
 				'wpcd_permission_category' => 'wpapp',
-				'wpcd_permission_group'    => 3,
-			),	
-			'view_wpapp_site_tweaks_tab'               => array(
+				'wpcd_permission_group'    => 4,
+			),
+			'view_wpapp_site_tweaks_tab'            => array(
 				'post_title'               => __( 'View Tweaks Tab On WP Site Screen', 'wpcd' ),
 				'wpcd_object_type'         => 2,
 				'wpcd_permission_category' => 'wpapp',
-				'wpcd_permission_group'    => 3,
-			),			
-			'view_wpapp_site_multisite_tab'               => array(
+				'wpcd_permission_group'    => 4,
+			),
+			'view_wpapp_site_multisite_tab'         => array(
 				'post_title'               => __( 'View Multisite Tab On WP Site Screen', 'wpcd' ),
 				'wpcd_object_type'         => 2,
 				'wpcd_permission_category' => 'wpapp',
-				'wpcd_permission_group'    => 3,
-			),						
+				'wpcd_permission_group'    => 4,
+			),
 		);
 
 		foreach ( $permission_posts as $permission_name => $permission_post ) {

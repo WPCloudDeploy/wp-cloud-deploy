@@ -508,6 +508,12 @@ class WPCD_Settings {
 							'tooltip' => __( 'The server type column takes up space but if you are the only owner or server manager then this isn\'t useful information.  If you need it because you indeed have multiple owners for your servers, just turn this flag on.', 'wpcd' ),
 						),
 						array(
+							'id'      => 'wpcd_hide_server_list_owner_non_admins',
+							'type'    => 'checkbox',
+							'name'    => __( 'Hide owner column from non-admins?', 'wpcd' ),
+							'tooltip' => __( 'Do not show the owner column to non-admins, even if the above option is turned on.', 'wpcd' ),
+						),						
+						array(
 							'id'      => 'wpcd_show_server_list_team',
 							'type'    => 'checkbox',
 							'name'    => __( 'Show the server team column?', 'wpcd' ),
@@ -543,6 +549,12 @@ class WPCD_Settings {
 							'name'    => __( 'Show the app owner column?', 'wpcd' ),
 							'tooltip' => __( 'The app owner column takes up space but if you are the only owner then this isn\'t useful information.  If you need it because you indeed have multiple owners for your apps, just turn this flag on.', 'wpcd' ),
 						),
+						array(
+							'id'      => 'wpcd_hide_app_list_owner_non_admins',
+							'type'    => 'checkbox',
+							'name'    => __( 'Hide owner column from non-admins?', 'wpcd' ),
+							'tooltip' => __( 'Do not show the owner column to non-admins, even if the above option is turned on.', 'wpcd' ),
+						),						
 						array(
 							'id'      => 'wpcd_show_app_list_team',
 							'type'    => 'checkbox',

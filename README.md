@@ -91,6 +91,11 @@ Note: Even though the entire git development history isn't available on github, 
 [Friendly Release Notes](https://wpclouddeploy.com/category/release-notes/)
 
 ## Change Log ##
+4.13.1
+------
+* Tweak: WPAPP - Do not show the interval field when CRON is enabled.  This change makes it less confusing as to the process for changing cron intervals.
+* Tweak: WPAPP - Updated redis script has better ability to detect when redis fails to install properly.
+
 4.13.0
 ------
 * New: WPAPP - Add option for HTTP AUTHENTICATION for just the wp-login page.

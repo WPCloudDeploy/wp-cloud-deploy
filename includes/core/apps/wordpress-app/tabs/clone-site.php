@@ -139,7 +139,7 @@ class WPCD_WORDPRESS_TABS_CLONE_SITE extends WPCD_WORDPRESS_TABS {
 	 * Returns a string that is the name of a view TEAM permission required to view this tab.
 	 */
 	public function get_view_tab_team_permission_slug() {
-		return 'view_wpapp_site_6gfirewall_tab';
+		return 'view_wpapp_site_clone_site_tab';
 	}
 
 

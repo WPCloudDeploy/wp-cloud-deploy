@@ -95,6 +95,7 @@ Note: Even though the entire git development history isn't available on github, 
 ------
 * Tweak: WPAPP - Do not show the interval field when CRON is enabled.  This change makes it less confusing as to the process for changing cron intervals.
 * Tweak: WPAPP - Updated redis script has better ability to detect when redis fails to install properly.
+* Fix: WPAPP - Clone site tab was using the incorrect permissions name under teams.
 
 4.13.0
 ------

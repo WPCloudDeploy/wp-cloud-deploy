@@ -209,16 +209,21 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 				break;
 
 			case 'wpcd_server':
-				// Display the name of the server - get the server id and title first.
-				$server_post_id = get_post_meta( $post_id, 'parent_post_id', true );
-				$server_title   = wp_kses_post( get_post( $server_post_id )->post_title );
-
-				// Show the server title - with a link if the user is able to edit it otherwise without the link.
-				$user_id = get_current_user_id();
-				if ( wpcd_user_can( $user_id, 'view_server', $server_post_id ) || get_post( $server_post_id )->post_author === $user_id ) {
-					$value = sprintf( '<a href="%s">' . $server_title . '</a>', get_edit_post_link( $server_post_id ) );
+				// Display the name of the server.
+				if ( true === (bool) wpcd_get_option( 'wpcd_hide_app_list_server_name_in_server_column' ) && ( ! wpcd_is_admin() ) ) {
+					// do nothing, only admins are allowed to see this data.
 				} else {
-					$value = $server_title;
+					// Get the server id and title first.
+					$server_post_id = get_post_meta( $post_id, 'parent_post_id', true );
+					$server_title   = wp_kses_post( get_post( $server_post_id )->post_title );
+
+					// Show the server title - with a link if the user is able to edit it otherwise without the link.
+					$user_id = get_current_user_id();
+					if ( wpcd_user_can( $user_id, 'view_server', $server_post_id ) || get_post( $server_post_id )->post_author === $user_id ) {
+						$value = sprintf( '<a href="%s">' . $server_title . '</a>', get_edit_post_link( $server_post_id ) );
+					} else {
+						$value = $server_title;
+					}
 				}
 
 				// Server post id.
@@ -229,25 +234,29 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 				if ( true === (bool) wpcd_get_option( 'wpcd_hide_app_list_provider_in_server_column' ) && ( ! wpcd_is_admin() ) ) {
 					// do nothing, only admins are allowed to see this data.
 				} else {
-					$value = $value . '<br />' . __( 'Provider: ', 'wpcd' ) . WPCD()->wpcd_get_cloud_provider_desc( $this->get_server_meta_value( $post_id, 'wpcd_server_provider' ) );
+					$value = empty( $value ) ? $value : $value . '<br />';
+					$value .= __( 'Provider: ', 'wpcd' ) . WPCD()->wpcd_get_cloud_provider_desc( $this->get_server_meta_value( $post_id, 'wpcd_server_provider' ) );
 				}
 
 				// server region.
 				if ( true === (bool) wpcd_get_option( 'wpcd_hide_app_list_region_in_server_column' ) && ( ! wpcd_is_admin() ) ) {
 					// do nothing, only admins are allowed to see this data.
 				} else {
-					$value = $value . '<br />' . __( 'Region: ', 'wpcd' ) . $this->get_server_meta_value( $post_id, 'wpcd_server_region' );
+					$value = empty( $value ) ? $value : $value . '<br />';
+					$value .= __( 'Region: ', 'wpcd' ) . $this->get_server_meta_value( $post_id, 'wpcd_server_region' );
 				}
 
 				// ipv4.
-				$value = $value . '<br />' . __( 'ipv4: ', 'wpcd' ) . $this->get_server_meta_value( $post_id, 'wpcd_server_ipv4' );
+				$value = empty( $value ) ? $value : $value . '<br />';
+				$value .= __( 'ipv4: ', 'wpcd' ) . $this->get_server_meta_value( $post_id, 'wpcd_server_ipv4' );
 
 				// Show a link that takes you to a list of apps on the server.
 				if ( true === (bool) wpcd_get_option( 'wpcd_hide_app_list_appslink_in_server_column' ) && ( ! wpcd_is_admin() ) ) {
 					// do nothing, only admins are allowed to see this data.
 				} else {
+					$value = empty( $value ) ? $value : $value . '<br />';
 					$url   = admin_url( 'edit.php?post_type=wpcd_app&server_id=' . (string) $server_post_id );
-					$value = $value . '<br />' . sprintf( '<a href="%s">%s</a>', $url, __( 'Apps on this server', 'wpcd' ) );
+					$value .= sprintf( '<a href="%s">%s</a>', $url, __( 'Apps on this server', 'wpcd' ) );
 				}
 
 				break;

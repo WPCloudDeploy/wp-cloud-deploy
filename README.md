@@ -95,6 +95,7 @@ Note: Even though the entire git development history isn't available on github, 
 ------
 * New: Add option to hide the owner column in the server list from non-admins.
 * New: Add option to hide the owner column in the site list from non-admins.
+* New: Add option to hide the server name data from the server compount column in the app list.
 * Tweak: WPAPP - Do not show the interval field when CRON is enabled.  This change makes it less confusing as to the process for changing cron intervals.
 * Tweak: WPAPP - Updated redis script has better ability to detect when redis fails to install properly.
 * Tweak: WPAPP - Move app tab permissions for teams into their own column on the edit teams screen.

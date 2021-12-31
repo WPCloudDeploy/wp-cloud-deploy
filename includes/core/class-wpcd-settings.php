@@ -512,7 +512,7 @@ class WPCD_Settings {
 							'type'    => 'checkbox',
 							'name'    => __( 'Hide owner column from non-admins?', 'wpcd' ),
 							'tooltip' => __( 'Do not show the owner column to non-admins, even if the above option is turned on.', 'wpcd' ),
-						),						
+						),
 						array(
 							'id'      => 'wpcd_show_server_list_team',
 							'type'    => 'checkbox',
@@ -554,7 +554,7 @@ class WPCD_Settings {
 							'type'    => 'checkbox',
 							'name'    => __( 'Hide owner column from non-admins?', 'wpcd' ),
 							'tooltip' => __( 'Do not show the owner column to non-admins, even if the above option is turned on.', 'wpcd' ),
-						),						
+						),
 						array(
 							'id'      => 'wpcd_show_app_list_team',
 							'type'    => 'checkbox',
@@ -580,12 +580,18 @@ class WPCD_Settings {
 							'tooltip' => __( 'The server IP is shown under the SERVER column to save space.  If you would like to sort the list by this field then you need to enable this option so that it is shown in its own column.', 'wpcd' ),
 						),
 
-						// Applist compound fields: Server.
+						// Applist compound fields: Server Column.
 						array(
 							'type' => 'heading',
 							'name' => __( 'App List Compound Fields', 'wpcd' ),
 							'desc' => __( 'You can make some of the columns that hold multiple pieces of information shorter for non-admin users.', 'wpcd' ),
 						),
+						array(
+							'id'      => 'wpcd_hide_app_list_server_name_in_server_column',
+							'type'    => 'checkbox',
+							'name'    => __( 'Hide the server name in the server column?', 'wpcd' ),
+							'tooltip' => __( 'The server name is usually shown in the SERVER column on the sites screen. Check this box to remove it for non-admin users.', 'wpcd' ),
+						),						
 						array(
 							'id'      => 'wpcd_hide_app_list_provider_in_server_column',
 							'type'    => 'checkbox',
@@ -2051,13 +2057,13 @@ class WPCD_Settings {
 		$wpcd_settings = get_option( 'wpcd_settings' );
 
 		// Set defaults brand colors.
-		$wpcd_settings['wordpress_app_primary_brand_color']                 = WPCD_PRIMARY_BRAND_COLOR;
-		$wpcd_settings['wordpress_app_secondary_brand_color']               = WPCD_SECONDARY_BRAND_COLOR;
-		$wpcd_settings['wordpress_app_tertiary_brand_color']                = WPCD_TERTIARY_BRAND_COLOR;
-		$wpcd_settings['wordpress_app_accent_background_color']             = WPCD_ACCENT_BG_COLOR;
-		$wpcd_settings['wordpress_app_medium_background_color']             = WPCD_MEDIUM_BG_COLOR;
-		$wpcd_settings['wordpress_app_light_background_color']              = WPCD_LIGHT_BG_COLOR;
-		$wpcd_settings['wordpress_app_alternate_accent_background_color']   = WPCD_ALTERNATE_ACCENT_BG_COLOR;
+		$wpcd_settings['wordpress_app_primary_brand_color']               = WPCD_PRIMARY_BRAND_COLOR;
+		$wpcd_settings['wordpress_app_secondary_brand_color']             = WPCD_SECONDARY_BRAND_COLOR;
+		$wpcd_settings['wordpress_app_tertiary_brand_color']              = WPCD_TERTIARY_BRAND_COLOR;
+		$wpcd_settings['wordpress_app_accent_background_color']           = WPCD_ACCENT_BG_COLOR;
+		$wpcd_settings['wordpress_app_medium_background_color']           = WPCD_MEDIUM_BG_COLOR;
+		$wpcd_settings['wordpress_app_light_background_color']            = WPCD_LIGHT_BG_COLOR;
+		$wpcd_settings['wordpress_app_alternate_accent_background_color'] = WPCD_ALTERNATE_ACCENT_BG_COLOR;
 
 		// Update the settings options.
 		update_option( 'wpcd_settings', $wpcd_settings );

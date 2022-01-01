@@ -1375,6 +1375,14 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 			$wpcd_settings['wordpress_app_light_background_color']            = WPCD_LIGHT_BG_COLOR;
 			$wpcd_settings['wordpress_app_alternate_accent_background_color'] = WPCD_ALTERNATE_ACCENT_BG_COLOR;
 
+			// Set auto trim log values.
+			$wpcd_settings['auto_trim_notification_log_limit'] = 10;
+			$wpcd_settings['auto_trim_notification_sent_log_limit'] = 10;
+			$wpcd_settings['auto_trim_ssh_log_limit'] = 10;
+			$wpcd_settings['auto_trim_command_log_limit'] = 10;
+			$wpcd_settings['auto_trim_pending_log_limit'] = 10;
+			$wpcd_settings['auto_trim_error_log_limit'] = 10;
+
 			// Update the settings options.
 			update_option( 'wpcd_settings', $wpcd_settings );
 

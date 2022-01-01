@@ -428,43 +428,48 @@ if [[ $action == "enable_system_cron" || $action == "13" ]]; then
 		echo "This is a network site, adding cron to loop through all sub-sites."
     fi	
 
-	#non-network
-	if [[ $is_network == "false" ]]; then
-		if [[ $schedule == "1" || $schedule == "1m" ]]; then
-			(su - $domain -c "crontab -l 2>/dev/null"; echo "* * * * * cd /var/www/$domain/html/; wp cron event run --due-now > /dev/null 2>&1") | su - $domain -c "crontab -"
-		fi
+    if [[ $schedule == "1" || $schedule == "1m" ]]; then
+	echo "$domain 1 $is_network" >> /usr/local/bin/wpcron.txt
+    fi
 
-		if [[ $schedule == "2" || $schedule == "5m" ]]; then
-			(su - $domain -c "crontab -l 2>/dev/null"; echo "*/5 * * * * cd /var/www/$domain/html/; wp cron event run --due-now > /dev/null 2>&1") | su - $domain -c "crontab -"
-		fi
+    if [[ $schedule == "2" || $schedule == "5m" ]]; then
+	echo "$domain 5 $is_network" >> /usr/local/bin/wpcron.txt
+    fi
 
-		if [[ $schedule == "3" || $schedule == "15m" ]]; then
-			(su - $domain -c "crontab -l 2>/dev/null"; echo "*/15 * * * * cd /var/www/$domain/html/; wp cron event run --due-now > /dev/null 2>&1") | su - $domain -c "crontab -"
-		fi
+    if [[ $schedule == "3" || $schedule == "15m" ]]; then
+	echo "$domain 15 $is_network" >> /usr/local/bin/wpcron.txt
+    fi
 
-		if [[ $schedule == "4" || $schedule == "1h" ]]; then
-			(su - $domain -c "crontab -l 2>/dev/null"; echo "0 * * * * cd /var/www/$domain/html/; wp cron event run --due-now > /dev/null 2>&1") | su - $domain -c "crontab -"
-		fi
-	fi
+    if [[ $schedule == "4" || $schedule == "1h" ]]; then
+	echo "$domain 60 $is_network" >> /usr/local/bin/wpcron.txt
+    fi
 	
-	#network/multisite
-	if [[ $is_network == "true" ]]; then
-		if [[ $schedule == "1" || $schedule == "1m" ]]; then
-			(su - $domain -c "crontab -l 2>/dev/null"; echo "* * * * * cd /var/www/$domain/html/; wp site list --field=url | xargs -i -n1 wp cron event run --due-now --url=\"{}\" > /dev/null 2>&1") | su - $domain -c "crontab -"
-		fi
+    echo $'#!/bin/bash
+    minutes=`date +%M`
+    while read line
+    do
+	    domain=`echo $line|cut -d" " -f1`
+	    period=`echo $line|cut -d" " -f2`
+	    network=`echo $line|cut -d" " -f3`
 
-		if [[ $schedule == "2" || $schedule == "5m" ]]; then
-			(su - $domain -c "crontab -l 2>/dev/null"; echo "*/5 * * * * cd /var/www/$domain/html/; wp site list --field=url | xargs -i -n1 wp cron event run --due-now --url=\"{}\" > /dev/null 2>&1") | su - $domain -c "crontab -"
-		fi
+	    crontime=`echo $((minutes % period))`
+	    if [ $crontime == 0 ] && [ $network == "true" ]
+        then
+            logger "WPCD: running cron for network: $domain"
+            user_name=$(echo $domain | cut -c1-32)
+            su - $user_name -c \"wp site list --field=url | xargs -i -n1 wp cron event run --due-now --url=\\"{}\\" \" > /dev/null 2>&1
+        fi
 
-		if [[ $schedule == "3" || $schedule == "15m" ]]; then
-			(su - $domain -c "crontab -l 2>/dev/null"; echo "*/15 * * * * cd /var/www/$domain/html/; wp site list --field=url | xargs -i -n1 wp cron event run --due-now --url=\"{}\" > /dev/null 2>&1") | su - $domain -c "crontab -"
-		fi
+        if [ $crontime == 0 ] && [ $network == "false" ]
+	    then
+            logger "WPCD: running cron for standard domain: $domain"
+            user_name=$(echo $domain | cut -c1-32)
+            su - $user_name -c "wp cron event run --due-now > /dev/null 2>&1"
+	    fi
+    done < /usr/local/bin/wpcron.txt' > /usr/local/bin/wp-systemcron
+    chmod +x /usr/local/bin/wp-systemcron
 
-		if [[ $schedule == "4" || $schedule == "1h" ]]; then
-			(su - $domain -c "crontab -l 2>/dev/null"; echo "0 * * * * cd /var/www/$domain/html/; wp site list --field=url | xargs -i -n1 wp cron event run --due-now --url=\"{}\" > /dev/null 2>&1") | su - $domain -c "crontab -"
-		fi
-	fi	
+    crontab -l | grep -q 'wp-systemcron' || (crontab -l 2>/dev/null; echo "* * * * * bash /usr/local/bin/wp-systemcron > /dev/null 2>&1") |crontab -
 	
     cd /var/www/$domain/html/
     su - $user_name -c "wp --skip-plugins config set DISABLE_WP_CRON true"
@@ -480,13 +485,28 @@ if [[ $action == "disable_system_cron" || $action == "14" ]]; then
 
     select_domain
     user_name=$(echo $domain | cut -c1-32)
-
+	
+	# remove any line that has the domain on it.
+    sed -i "/$domain/d" /usr/local/bin/wpcron.txt
+    
+	# how many characters remain?
+	wplist=`cat /usr/local/bin/wpcron.txt|wc -l`
+	
+	# if the file is empty, remove the entire cron entry from the cron tables.
+    if [ $wplist == 0 ]
+    then
+	    (crontab -l 2>/dev/null | sed '/wp-systemcron/d' ) | crontab -
+    fi
+	
+	# Remove left over entries from the cron tables related to older version of this script
 	# searching for two different versions of the entry in crontab since the format changed over time (with and without the --skip-plugins)
     (su - $user_name -c "crontab -l 2>/dev/null" | sed '/wp --skip-plugins cron/d' ) | su - $user_name -c "crontab -"
 	(su - $domain -c "crontab -l 2>/dev/null" | sed '/wp cron/d' ) | su - $domain -c "crontab -"
+	# End Remove left over entries from the cron tables related to older version of this script
 	
     cd /var/www/$domain/html/
     su - $user_name -c "wp --skip-plugins config delete DISABLE_WP_CRON"
+
     echo
     echo "System cron disabled for $domain"
     exit

@@ -345,7 +345,8 @@ trait wpcd_wpapp_admin_column_data {
 					// @TODO: This section of code should probably be centralized into some sort of function split between class-wpcd-posts-app-server.php and class-wordpress-app.
 					// linked with FILTERS since we're checking multiple metas scattered across server and app records.
 					// Code duplicated around line #63 deep inside the function add_post_actions().
-					$state = get_post_meta( $post_id, 'wpcd_server_current_state', true );
+					$state            = get_post_meta( $post_id, 'wpcd_server_current_state', true );
+					$pending_size_raw = get_post_meta( $post_id, 'wpcd_server_pending_size_raw', true ); // If server is being resized, this is the target new size.
 					if ( 'active' == $state || empty( $state ) ) {
 						// Now check to make sure that other stuff isn't in progress on the server...
 						if ( ( ! empty( get_post_meta( $post_id, 'wpcd_server_wordpress-app_action', true ) ) ) || ( ! empty( get_post_meta( $post_id, 'wpcd_server_wordpress-app_action_status', true ) ) ) ) {
@@ -374,6 +375,8 @@ trait wpcd_wpapp_admin_column_data {
 								}
 							}
 						}
+					} elseif ( ! empty( $pending_size_raw ) ) {
+						$value = '<div class="wpcd_server_actions_op_in_progress">' . __( 'An attempt is being made to resize this server. Please check your providers dashboard for the status of this operation. You might need to reboot the server from there if the operation is complete and you continue to see this message.', 'wpcd' ) . '</div>';
 					} elseif ( 'off' === $state ) {
 						$value = '<div class="wpcd_server_actions_op_in_progress">' . __( 'A shutdown command was sent to this server so it might be turned off.', 'wpcd' ) . '</div>';
 					} else {
@@ -435,9 +438,9 @@ trait wpcd_wpapp_admin_column_data {
 				if ( empty( $health ) ) {
 					$server_status_callback_status = get_post_meta( $post_id, 'wpcd_wpapp_server_status_callback_installed', true );
 					if ( empty( $server_status_callback_status ) ) {
-						$health = "<div class='wpcd_waiting_for_data_column'>" . __( 'Callbacks are not installed. Please install from the CALLBACKS tab on this server.', 'wpcd' ) . '</div>';
+						$health            = "<div class='wpcd_waiting_for_data_column'>" . __( 'Callbacks are not installed. Please install from the CALLBACKS tab on this server.', 'wpcd' ) . '</div>';
 						$callback_tab_link = get_edit_post_link( $post_id ) . '#~~callbacks';
-						$health .= "<a href='" . $callback_tab_link . "'>" . __( 'Go To Callbacks Tab', 'wpcd' ) . '</a>';
+						$health           .= "<a href='" . $callback_tab_link . "'>" . __( 'Go To Callbacks Tab', 'wpcd' ) . '</a>';
 					} else {
 						$health = "<div class='wpcd_waiting_for_data_column'>" . __( 'Waiting For Data From Callback...', 'wpcd' ) . '</div>';
 					}

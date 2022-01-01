@@ -410,6 +410,61 @@ class WPCD_Server extends WPCD_Base {
 	}
 
 	/**
+	 * Get the server size on the server record
+	 *
+	 * @TODO: There is a field called 'wpcd_server_size' on the server record
+	 * that needs to be converted to a 'raw' size and returned if it exists
+	 * and 'wpcd_server_size_raw' does not exist.
+	 *
+	 * @param int $post_id post id of server record.
+	 *
+	 * @return string the server name
+	 */
+	public function get_server_size( $post_id ) {
+		return get_post_meta( $post_id, 'wpcd_server_size_raw', true );
+	}
+	
+	/**
+	 * Set the server size on the server record
+	 *
+	 * @TODO: There is a field called 'wpcd_server_size' on the server record
+	 * that needs to be set if it already exists with a value.
+	 *
+	 * @param int $post_id post id of server record.
+	 *
+	 * @return string the server name
+	 */
+	public function set_server_size( $post_id, $new_size ) {
+		return update_post_meta( $post_id, 'wpcd_server_size_raw', $new_size );
+	}
+
+	/**
+	 * Set a pending server size on the server record.
+	 * Usually used when resizing a server.
+	 *
+	 * @param int $post_id post id of server record.
+	 *
+	 * @return string the server name
+	 */
+	public function set_pending_server_size( $post_id, $new_size ) {
+		return update_post_meta( $post_id, 'wpcd_server_pending_size_raw', $new_size );
+	}
+	
+	/**
+	 * Convert the pending server size to the final server size.
+	 * Usually used when resizing a server.
+	 *
+	 * @param int $post_id post id of server record.
+	 *
+	 * @return string the server name
+	 */
+	public function finalize_server_size( $post_id ) {
+		$return = $this->set_server_size( $post_id, get_post_meta( $post_id, 'wpcd_server_pending_size_raw', true ) );
+		delete_post_meta( $post_id, 'wpcd_server_pending_size_raw' );
+		return $return;
+	}	
+
+	/**
 	 * Get the server instance id on the server record
 	 *
 	 * @param int $post_id post id of server record.
@@ -419,6 +474,42 @@ class WPCD_Server extends WPCD_Base {
 	public function get_server_provider_instance_id( $post_id ) {
 		return get_post_meta( $post_id, 'wpcd_server_provider_instance_id', true );
 	}
+	
+	/**
+	 * Returns an server ID using the instance of a server.
+	 *
+	 * @param int    $instance_id  The server instance id used to locate the server post id.
+	 *
+	 * @return int|boolean app post id or false or error message
+	 */
+	public function get_server_id_by_instance_id( $instance_id ) {
+
+		$posts = get_posts(
+			array(
+				'post_type'   => 'wpcd_app_server',
+				'post_status' => 'private',
+				'numberposts' => -1,
+				'meta_query'  => array(
+					array(
+						'key'   => 'wpcd_server_provider_instance_id',
+						'value' => $instance_id,
+					),
+				),
+			),
+		);
+		
+		// Too many posts?  Bail out.
+		if ( count( $posts ) <> 1 ) {
+			return false;
+		}
+
+		if ( $posts ) {
+			return $posts[0]->ID;
+		} else {
+			return false;
+		}
+
+	}	
 
 	/**
 	 * Get the number of apps on the server

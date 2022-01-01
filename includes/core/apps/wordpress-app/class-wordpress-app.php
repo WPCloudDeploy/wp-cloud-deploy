@@ -355,6 +355,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs-server/sshkeys.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs-server/monitorix.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs-server/goaccess.php';
+		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs-server/resize.php';
 
 		/**
 		 * Need to add new tabs or add data to existing tabs from an add-on?
@@ -565,7 +566,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	}
 
 	/**
-	 * Returns an app ID using the postid of a server and the domain name..
+	 * Returns an app ID using the postid of a server and the domain name.
 	 *
 	 * @param int    $server_id  The server for which to locate the app post.
 	 * @param string $domain The domain for which to locate the app post on the server.

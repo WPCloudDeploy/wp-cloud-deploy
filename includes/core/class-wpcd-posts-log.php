@@ -249,7 +249,7 @@ class WPCD_POSTS_LOG extends WPCD_Posts_Base {
 			$auto_trim_log_limit = WPCD_AUTO_TRIM_LOG_LIMIT;
 		}
 		if ( empty( $auto_trim_log_limit ) || $auto_trim_log_limit <= 0 ) {
-			$auto_trim_log_limit = 100;
+			$auto_trim_log_limit = 999;
 		}
 
 		if ( $error_log_entries >= $auto_trim_log_limit && $error_log_entries > 0 && $auto_trim_log_limit > 0 ) {

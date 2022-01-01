@@ -856,10 +856,14 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 			),
 		);
 
-		$logs_found         = get_posts( $pending_logs_args );
-		$logs_found_count   = count( $logs_found );
+		$logs_found       = get_posts( $pending_logs_args );
+		$logs_found_count = count( $logs_found );
 
 		$auto_trim_pending_log_limit = (int) wpcd_get_early_option( 'auto_trim_pending_log_limit' );
+
+		if ( empty( $auto_trim_pending_log_limit ) ) {
+			$auto_trim_pending_log_limit = 100;
+		}
 
 		if ( ! empty( $logs_found ) ) {
 			$count = 1;
@@ -871,8 +875,8 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 					update_post_meta( $log_id, 'pending_task_state', 'failed-timeout' );
 
 					// Now, we need to make sure that any metas on the app or server record that marks it as unavailable/in-process are removed.
-					$parent_post_type = get_post_meta( $log_id, 'pending_task_parent_post_type', true );
-					$parent_post_id   = get_post_meta( $log_id, 'parent_post_id', true );
+					$parent_post_type     = get_post_meta( $log_id, 'pending_task_parent_post_type', true );
+					$parent_post_id       = get_post_meta( $log_id, 'parent_post_id', true );
 					$pending_task_comment = get_post_meta( $log_id, 'pending_task_comment', true );
 					if ( 'wpcd_app' === $parent_post_type ) {
 						do_action( 'wpcd_wordpress-app_clear_background_processes', $parent_post_id, 'clear_background_processes_via_pending_log_action' );

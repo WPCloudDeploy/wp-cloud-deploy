@@ -240,47 +240,53 @@ class WPCD_Settings {
 							),
 							'clone'   => true,
 						),
+
+						array(
+							'type' => 'heading',
+							'name' => 'Log Limits',
+							'desc' => __( 'Limit the number of entries in logs. If set to zero or nothing is entered, we are going to leave 999 entries at all times and delete everything else. Note that some of these logs are used to calculate statistics for certain screens in the Power Tools add-on. If you use those screens, you will want to keep the limits here on the higher side.', 'wpcd' ),
+						),
 						array(
 							'name' => __( 'Auto Trim Notification Log', 'wpcd' ),
 							'id'   => 'auto_trim_notification_log_limit',
 							'type' => 'number',
-							'desc' => __( 'Delete older notifications log entries when the number of records exceed this. If set to zero or nothing is entered, we are going to leave 100 entries at all times and delete everything else.', 'wpcd' ),
+							'size' => 10,
 						),
 						array(
 							'name' => __( 'Auto Trim Notification Sent Log', 'wpcd' ),
 							'id'   => 'auto_trim_notification_sent_log_limit',
 							'type' => 'number',
-							'desc' => __( 'Delete older notifications sent log entries when the number of records exceed this. If set to zero or nothing is entered, we are going to leave 100 entries at all times and delete everything else.', 'wpcd' ),
+							'size' => 10,
 						),
 						array(
 							'name' => __( 'Auto Trim SSH Log', 'wpcd' ),
 							'id'   => 'auto_trim_ssh_log_limit',
 							'type' => 'number',
-							'desc' => __( 'Delete older ssh log entries when the number of records exceed this. If set to zero or nothing is entered, we are going to leave 100 entries at all times and delete everything else.', 'wpcd' ),
+							'size' => 10,
 						),
 						array(
 							'name' => __( 'Auto Trim Command Log', 'wpcd' ),
 							'id'   => 'auto_trim_command_log_limit',
 							'type' => 'number',
-							'desc' => __( 'Delete older command log entries when the number of records exceed this. If set to zero or nothing is entered, we are going to leave 100 entries at all times and delete everything else.', 'wpcd' ),
+							'size' => 10,
 						),
 						array(
 							'name' => __( 'Auto Trim Pending Log', 'wpcd' ),
 							'id'   => 'auto_trim_pending_log_limit',
 							'type' => 'number',
-							'desc' => __( 'Delete older pending log entries when the number of records exceed this. If set to zero or nothing is entered, we are going to leave 100 entries at all times and delete everything else.', 'wpcd' ),
+							'size' => 10,
 						),
 						array(
 							'name' => __( 'Auto Trim Error Log', 'wpcd' ),
 							'id'   => 'auto_trim_error_log_limit',
 							'type' => 'number',
-							'desc' => __( 'Delete older pending log entries when the number of records exceed this. If set to zero or nothing is entered, we are going to leave 100 entries at all times and delete everything else.', 'wpcd' ),
+							'size' => 10,
 						),
 						array(
 							'name' => __( 'Delete At Most', 'wpcd' ),
 							'id'   => 'most_items_to_delete',
 							'type' => 'number',
-							'desc' => __( 'In order to prevent timeouts we limit the number of records we will delete in any one shot.  If set to zero, we will delete at most 100 at any one time.', 'wpcd' ),
+							'desc' => __( 'To prevent timeouts we limit the number of records we will delete in any one shot.  If set to zero, we will delete 100 records at a time.', 'wpcd' ),
 						),
 
 						array(
@@ -621,7 +627,7 @@ class WPCD_Settings {
 							'type'    => 'checkbox',
 							'name'    => __( 'Hide the server name in the server column?', 'wpcd' ),
 							'tooltip' => __( 'The server name is usually shown in the SERVER column on the sites screen. Check this box to remove it for non-admin users.', 'wpcd' ),
-						),						
+						),
 						array(
 							'id'      => 'wpcd_hide_app_list_provider_in_server_column',
 							'type'    => 'checkbox',
@@ -1040,7 +1046,7 @@ class WPCD_Settings {
 
 				return apply_filters( 'wpcd_settings_metaboxes', $meta_boxes );
 
-			}
+			},
 		);
 
 	}

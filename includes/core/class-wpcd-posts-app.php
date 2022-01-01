@@ -234,7 +234,7 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 				if ( true === (bool) wpcd_get_option( 'wpcd_hide_app_list_provider_in_server_column' ) && ( ! wpcd_is_admin() ) ) {
 					// do nothing, only admins are allowed to see this data.
 				} else {
-					$value = empty( $value ) ? $value : $value . '<br />';
+					$value  = empty( $value ) ? $value : $value . '<br />';
 					$value .= __( 'Provider: ', 'wpcd' ) . WPCD()->wpcd_get_cloud_provider_desc( $this->get_server_meta_value( $post_id, 'wpcd_server_provider' ) );
 				}
 
@@ -242,20 +242,20 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 				if ( true === (bool) wpcd_get_option( 'wpcd_hide_app_list_region_in_server_column' ) && ( ! wpcd_is_admin() ) ) {
 					// do nothing, only admins are allowed to see this data.
 				} else {
-					$value = empty( $value ) ? $value : $value . '<br />';
+					$value  = empty( $value ) ? $value : $value . '<br />';
 					$value .= __( 'Region: ', 'wpcd' ) . $this->get_server_meta_value( $post_id, 'wpcd_server_region' );
 				}
 
 				// ipv4.
-				$value = empty( $value ) ? $value : $value . '<br />';
+				$value  = empty( $value ) ? $value : $value . '<br />';
 				$value .= __( 'ipv4: ', 'wpcd' ) . $this->get_server_meta_value( $post_id, 'wpcd_server_ipv4' );
 
 				// Show a link that takes you to a list of apps on the server.
 				if ( true === (bool) wpcd_get_option( 'wpcd_hide_app_list_appslink_in_server_column' ) && ( ! wpcd_is_admin() ) ) {
 					// do nothing, only admins are allowed to see this data.
 				} else {
-					$value = empty( $value ) ? $value : $value . '<br />';
-					$url   = admin_url( 'edit.php?post_type=wpcd_app&server_id=' . (string) $server_post_id );
+					$value  = empty( $value ) ? $value : $value . '<br />';
+					$url    = admin_url( 'edit.php?post_type=wpcd_app&server_id=' . (string) $server_post_id );
 					$value .= sprintf( '<a href="%s">%s</a>', $url, __( 'Apps on this server', 'wpcd' ) );
 				}
 
@@ -393,7 +393,7 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 			$defaults['wpcd_server_region'] = __( 'Region', 'wpcd' );
 		}
 		if ( boolval( wpcd_get_option( 'wpcd_show_app_list_owner' ) ) ) {
-			if ( wpcd_is_admin() || ( ! wpcd_is_admin() && ! boolval( wpcd_get_option( 'wpcd_hide_app_list_owner_non_admins' ) ) ) ){
+			if ( wpcd_is_admin() || ( ! wpcd_is_admin() && ! boolval( wpcd_get_option( 'wpcd_hide_app_list_owner_non_admins' ) ) ) ) {
 				$defaults['wpcd_owner'] = __( 'Owners', 'wpcd' );
 			}
 		}
@@ -1376,17 +1376,17 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 			$wpcd_settings['wordpress_app_alternate_accent_background_color'] = WPCD_ALTERNATE_ACCENT_BG_COLOR;
 
 			// Set auto trim log values.
-			$wpcd_settings['auto_trim_notification_log_limit'] = 10;
-			$wpcd_settings['auto_trim_notification_sent_log_limit'] = 10;
-			$wpcd_settings['auto_trim_ssh_log_limit'] = 10;
-			$wpcd_settings['auto_trim_command_log_limit'] = 10;
-			$wpcd_settings['auto_trim_pending_log_limit'] = 10;
-			$wpcd_settings['auto_trim_error_log_limit'] = 10;
+			$wpcd_settings['auto_trim_notification_log_limit']      = 999;
+			$wpcd_settings['auto_trim_notification_sent_log_limit'] = 999;
+			$wpcd_settings['auto_trim_ssh_log_limit']               = 999;
+			$wpcd_settings['auto_trim_command_log_limit']           = 999;
+			$wpcd_settings['auto_trim_pending_log_limit']           = 999;
+			$wpcd_settings['auto_trim_error_log_limit']             = 999;
 
 			// Update the settings options.
 			update_option( 'wpcd_settings', $wpcd_settings );
 
-			// Update the option for first time activation done.
+			// Update the option for first time activation.
 			update_option( 'wpcd_plugin_first_time_activated', 1 );
 		}
 	}

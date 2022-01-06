@@ -79,9 +79,11 @@ class WPCD_REST_API_Controller_Sites extends WPCD_REST_API_Controller_Base {
 				),
 			),
 		);
+
 		// build query from parameters.
-		$user_id   = $request->get_param( 'user_id' );
-		$server_id = $request->get_param( 'server_id' );
+		$user_id    = (int) $request->get_param( 'user_id' );
+		$server_id  = (int) $request->get_param( 'server_id' );
+		$user_email = filter_var( $request->get_param( 'user_email' ), FILTER_SANITIZE_EMAIL );
 		if ( $user_id ) {
 			$args['author'] = $user_id;
 		}
@@ -91,6 +93,15 @@ class WPCD_REST_API_Controller_Sites extends WPCD_REST_API_Controller_Base {
 				'value' => $server_id,
 			);
 		}
+
+		if ( $user_email ) {
+			// get user id from user email address.
+			$user = get_user_by( 'email', $user_email );
+			if ( $user && ! is_wp_error( $user ) ) {
+				$args['author'] = $user->ID;
+			}
+		}
+
 		$sites = get_posts( $args );
 		return array_map( array( $this, 'get_site_data' ), $sites );
 	}

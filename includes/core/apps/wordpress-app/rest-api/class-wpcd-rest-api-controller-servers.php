@@ -52,6 +52,7 @@ class WPCD_REST_API_Controller_Servers extends WPCD_REST_API_Controller_Base {
 	 *
 	 * GET /servers
 	 * GET /servers?user_id=xxx
+	 * GET /servers?user_email=xxx
 	 *
 	 * @param WP_REST_Request $request - incoming request object.
 	 *
@@ -71,9 +72,18 @@ class WPCD_REST_API_Controller_Servers extends WPCD_REST_API_Controller_Base {
 			),
 		);
 		// build query from parameters.
-		$user_id = $request->get_param( 'user_id' );
+		$user_id = (int) $request->get_param( 'user_id' );
 		if ( $user_id ) {
 			$args['author'] = $user_id;
+		}
+
+		$user_email = filter_var( $request->get_param( 'user_email' ), FILTER_SANITIZE_EMAIL );
+		if ( $user_email ) {
+			// get user id from user email address.
+			$user = get_user_by( 'email', $user_email );
+			if ( $user && ! is_wp_error( $user ) ) {
+				$args['author'] = $user->ID;
+			}
 		}
 
 		$servers = get_posts( $args );
@@ -189,7 +199,7 @@ class WPCD_REST_API_Controller_Servers extends WPCD_REST_API_Controller_Base {
 		// Action hooks return nothing so just return an array of stuff.
 		return array(
 			'server_id' => $id,
-			'deleted' => true,
+			'deleted'   => true,
 		);
 	}
 

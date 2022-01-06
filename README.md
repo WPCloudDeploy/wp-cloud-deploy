@@ -101,6 +101,7 @@ Note: Even though the entire git development history isn't available on github, 
 * Tweak: WPAPP - Significant changes to how crons work especially when multiple sites are installed on a server.
 * Tweak: WPAPP - Updated redis script has better ability to detect when redis fails to install properly.
 * Tweak: WPAPP - Move app tab permissions for teams into their own column on the edit teams screen.
+* Tweak: WPAPP - Added some prophylactic checks around post types before deleting log posts.
 * Fix: WPAPP - Clone site tab was using the incorrect permissions name under teams.
 
 4.13.0

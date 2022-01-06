@@ -279,7 +279,14 @@ class WPCD_POSTS_LOG extends WPCD_Posts_Base {
 				if ( $max_posts_to_delete > 0 ) {
 					foreach ( $posts_to_delete as $post_to_delete ) {
 						$counter++;  // We're going to use a counter just in case $posts_to_delete contains more posts than our intended max (which shouldn't happen under normal circumstances).
-						wp_delete_post( $post_to_delete->ID, true );
+						// Double check the post type just in case...
+						if ( $post_type === get_post_type( $post_to_delete->ID ) ) {
+							wp_delete_post( $post_to_delete->ID, true );
+						} else {
+							// Log an error because we somehow attempted to delete the wrong post type record!
+							do_action( 'wpcd_log_error', 'We attempted to delete an incorrect post type when pruning logs.  We were supposed to delete a record of posttype ' . $post_type . ' but ID ' . (string) $post_to_delete->ID . ' is not of that post type!', 'error', __FILE__, __LINE__ );
+						}
+						// Counter increment deliberately left outside the IF statement above.  $max_posts_to_delete is really about the maximum number of loops we want to do before exiting this function.
 						if ( $counter >= $max_posts_to_delete ) {
 							break;
 						}
@@ -372,7 +379,13 @@ class WPCD_POSTS_LOG extends WPCD_Posts_Base {
 			);
 
 			foreach ( $posts_to_delete as $post_to_delete ) {
-				wp_delete_post( $post_to_delete->ID, true );
+				// Double check the post type just in case...
+				if ( $post_type === get_post_type( $post_to_delete->ID ) ) {
+					wp_delete_post( $post_to_delete->ID, true );
+				} else {
+					// Log an error because we somehow attempted to delete the wrong post type record!
+					do_action( 'wpcd_log_error', 'We attempted to delete an incorrect post type when pruning logs.  We were supposed to delete a record of posttype ' . $post_type . ' but ID ' . (string) $post_to_delete->ID . ' is not of that post type!', 'error', __FILE__, __LINE__ );
+				}
 			}
 
 			$msg = __( 'All log entries have been removed.', 'wpcd' );
@@ -385,7 +398,7 @@ class WPCD_POSTS_LOG extends WPCD_Posts_Base {
 
 
 	/**
-	 * Removes all log except unsent log entries.
+	 * Removes all logs except unsent log entries.
 	 */
 	public function remove_all_log_except_unsent_logs() {
 
@@ -428,7 +441,13 @@ class WPCD_POSTS_LOG extends WPCD_Posts_Base {
 			);
 
 			foreach ( $posts_to_delete as $post_to_delete ) {
-				wp_delete_post( $post_to_delete->ID, true );
+				// Double check the post type just in case...
+				if ( $post_type === get_post_type( $post_to_delete->ID ) ) {
+					wp_delete_post( $post_to_delete->ID, true );
+				} else {
+					// Log an error because we somehow attempted to delete the wrong post type record!
+					do_action( 'wpcd_log_error', 'We attempted to delete an incorrect post type when pruning logs.  We were supposed to delete a record of posttype ' . $post_type . ' but ID ' . (string) $post_to_delete->ID . ' is not of that post type!', 'error', __FILE__, __LINE__ );
+				}
 			}
 
 			$msg = __( 'All sent log entries have been removed.', 'wpcd' );

@@ -119,7 +119,7 @@ class WPCD_REST_API_Controller_Sites extends WPCD_REST_API_Controller_Base {
 	public function create_site( WP_REST_Request $request ): array {
 		// validate and organize parameters.
 		$parameters = $request->get_body_params();
-		$this->validate_parameters( $parameters, array( 'server_id', 'wp_domain', 'wp_user', 'wp_password', 'wp_email' ) );
+		$this->validate_required_parameters( $parameters, array( 'server_id', 'wp_domain', 'wp_user', 'wp_password', 'wp_email' ) );
 
 		// Create an args array from the parameters to insert into the pending tasks table.
 		$server_id = (int) $parameters['server_id'];
@@ -252,7 +252,7 @@ class WPCD_REST_API_Controller_Sites extends WPCD_REST_API_Controller_Base {
 		$this->get_site_post( $site_id );
 
 		$parameters = $request->get_body_params();
-		$this->validate_parameters( $parameters, array( 'action' ) );
+		$this->validate_required_parameters( $parameters, array( 'action' ) );
 
 		$app_name = WPCD_WORDPRESS_APP()->get_app_name();
 		$action   = $parameters['action'];

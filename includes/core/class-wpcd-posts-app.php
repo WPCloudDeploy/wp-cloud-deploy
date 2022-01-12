@@ -280,7 +280,11 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 				// Display the name of the owner who set up the server...
 				$server_post_id = get_post_meta( $post_id, 'parent_post_id', true );
 				$server_owner   = esc_html( get_user_by( 'ID', get_post( $server_post_id )->post_author )->user_login );
-				$app_owner      = esc_html( get_user_by( 'ID', get_post( $post_id )->post_author )->user_login );
+				if ( ! empty( get_post( $post_id )->post_author ) ) {
+					$app_owner = esc_html( get_user_by( 'ID', get_post( $post_id )->post_author )->user_login );
+				} else {
+					$app_owner = __( 'Unable to get author/owner', 'wpcd' );
+				}
 				if ( $server_owner === $app_owner ) {
 					// both owners are the same so show one item.
 					$value = $server_owner; // @Todo: Make a hyperlink to user profile screens in admin.

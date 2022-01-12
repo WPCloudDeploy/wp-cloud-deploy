@@ -2808,7 +2808,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_REQUEST['params'] ) ) );
 			$id   = sanitize_text_field( $_REQUEST['id'] );  // Post ID of the server where the wp app is being installed.
 		} else {
-			// data is being passed in directly which means that the site is likely being provisioned via woocommerce.
+			// data is being passed in directly which means that the site is likely being provisioned via woocommerce or the REST API.
 			$id = $args['id'];
 		}
 
@@ -3001,9 +3001,44 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		* from the wp-admin area.
 		*/
 		if ( ( isset( $args['wc_user_id'] ) && empty( $args['wc_user_id'] ) ) || ( ! isset( $args['wc_user_id'] ) ) ) {
-			$post_author = get_current_user_id();
+			// Do nothing there for now.
 		} else {
 			$post_author = $args['wc_user_id'];
+		}
+
+		/**
+		 * If we still don't have a post author, then check to see if a 'user_id' element is set and use that.
+		 */
+		if ( empty( $post_author ) ) {
+			if ( isset( $args['user_id'] ) ) {
+				$post_author = $args['user_id'];
+			}
+		}
+
+		/**
+		 * If we still don't have a post author, then check to see if a 'author_email' element is set and use that.
+		 * This element might be set by a call from the REST API but, obviously, can also be set from anywhere.
+		 */
+		if ( empty( $post_author ) ) {
+			if ( isset( $args['author_email'] ) ) {
+				$author_email = $args['author_email'];
+				if ( ! empty( $author_email ) ) {
+					$user = get_user_by( 'email', $author_email );
+					if ( ! empty( $user ) ) {
+						$post_author = $user->ID;
+					}
+				}
+			}
+		}
+
+		/**
+		 * If we still don't have an author, set it to the current user.
+		 */
+		if ( empty( $post_author ) ) {
+			$post_author = get_current_user_id();
+		}
+		if ( empty( $post_author ) ) {
+			$post_author = 1;
 		}
 
 		/**

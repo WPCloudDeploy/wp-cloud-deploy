@@ -121,19 +121,24 @@ class WPCD_REST_API_Controller_Sites extends WPCD_REST_API_Controller_Base {
 		$parameters = $request->get_body_params();
 		$this->validate_required_parameters( $parameters, array( 'server_id', 'wp_domain', 'wp_user', 'wp_password', 'wp_email' ) );
 
+		// handle optional owner email.
+		$author_email = filter_var( $request->get_param( 'author_email' ), FILTER_SANITIZE_EMAIL );
+		$this->validate_author_email( $author_email, true );
+
 		// Create an args array from the parameters to insert into the pending tasks table.
 		$server_id = (int) $parameters['server_id'];
 		// @codingStandardsIgnoreLine - added to ignore the misspelling in 'wordpress' below when linting with PHPcs. Otherwise linting will automatically uppercase the first letter.
 		$args['wpcd_app_type']         = 'wordpress';
-		$args['wp_domain']       = $parameters['wp_domain'];
-		$args['wp_user']         = $parameters['wp_user'];
-		$args['wp_password']     = $parameters['wp_password'];
-		$args['wp_email']        = $parameters['wp_email'];
+		$args['wp_domain']       = wp_strip_all_tags( $parameters['wp_domain'] );
+		$args['wp_user']         = wp_strip_all_tags( $parameters['wp_user'] );
+		$args['wp_password']     = wp_strip_all_tags( $parameters['wp_password'] );
+		$args['wp_email']        = filter_var( $parameters['wp_email'], FILTER_SANITIZE_EMAIL );
 		$args['wp_version']      = 'latest';
 		$args['wp_locale']       = 'en_US';
 		$args['id']              = $server_id;
 		$args['wp_restapi_flag'] = 'yes';
 		$args['action_hook']     = 'wpcd_wordpress-app_rest_api_install_wp';
+		$args['author_email']    = $author_email;
 
 		// Create new install task.
 		$task_id = WPCD_POSTS_PENDING_TASKS_LOG()->add_pending_task_log_entry( $server_id, 'rest_api_install_wp', $args['wp_domain'], $args, 'ready', $server_id, __( 'RESTAPI: Waiting To Install New WP Site', 'wpcd' ) );

@@ -375,6 +375,9 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/rest-api/class-wpcd-rest-api-controller-sites.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/rest-api/class-wpcd-rest-api-controller-tasks.php';
 
+		// Function specific endpoints for sites - so that the main sites controller file does not get large and unwieldly.
+		require_once wpcd_path . 'includes/core/apps/wordpress-app/rest-api/class-wpcd-rest-api-controller-sites-change-domain.php';		
+
 		/**
 		 * Need to add new REST API controllers from an add-on?
 		 * Then this action hook MUST be used! Otherwise, weird
@@ -382,7 +385,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		 *
 		 * Third parties that need to add a plugin to extend
 		 * the rest api by adding new controllers should
-		 * ensure that the filter a few lines above is used
+		 * ensure that the filter a few lines below is used
 		 * to add the new controller to the array so that
 		 * they can be instantiated.
 		 */
@@ -395,6 +398,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			array(
 				WPCD_REST_API_Controller_Servers::class,
 				WPCD_REST_API_Controller_Sites::class,
+				WPCD_REST_API_Controller_Sites_Change_Domain::class,
 				WPCD_REST_API_Controller_Tasks::class,
 			)
 		);

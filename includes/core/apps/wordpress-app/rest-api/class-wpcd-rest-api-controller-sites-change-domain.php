@@ -107,7 +107,7 @@ class WPCD_REST_API_Controller_Sites_Change_Domain extends WPCD_REST_API_Control
 	 *
 	 * Primarily, we'll be updating the pending log record as failed.
 	 *
-	 * Action Hook: "wpcd_{$this->get_app_name()}_site_change_domain_failed" | "wpcd_wordpress-app_site_change_domain_failed"
+	 * Action Hook: wpcd_{$this->get_app_name()}_site_change_domain_failed | wpcd_wordpress-app_site_change_domain_failed
 	 *
 	 * @param int    $id     Post ID of the site.
 	 * @param int    $action String indicating the action name.

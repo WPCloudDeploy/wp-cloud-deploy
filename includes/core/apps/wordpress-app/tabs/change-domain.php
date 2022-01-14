@@ -27,7 +27,7 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 		add_action( "wpcd_command_{$this->get_app_name()}_completed", array( $this, 'command_completed' ), 10, 2 );
 
 		// Allow the change domain (full live) action to be triggered via an action hook.  Will primarily be used by the woocommerce add-on and REST API.
-		add_action( 'wpcd_wordpress-app_do_change_domain_full_live', array( $this, 'do_change_domain_live_action' ), 10, 2 );
+		add_action( "wpcd_{$this->get_app_name()}_do_change_domain_full_live", array( $this, 'do_change_domain_live_action' ), 10, 2 ); // Hook: wpcd_wordpress-app_do_change_domain_full_live.
 
 	}
 

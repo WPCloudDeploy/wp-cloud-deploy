@@ -298,7 +298,7 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 	 *
 	 * @param string $action The action key to send to the bash script.
 	 * @param int    $id the id of the app post being handled.
-	 * @param array  $in_args args.
+	 * @param array  $in_args Alternative source of arguments passed via action hook or direct function call instead of pulling from $_POST.
 	 *
 	 * @return boolean|object Can return wp_error, true/false
 	 */

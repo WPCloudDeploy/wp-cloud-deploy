@@ -26,7 +26,7 @@ class WPCD_REST_API_Controller_Sites_Clone_Site extends WPCD_REST_API_Controller
 
 		/* Hooks related to changing domain. */
 		add_action( 'wpcd_wordpress-app_rest_api_pending_log_clone_site', array( $this, 'pending_log_clone_site_start' ), 10, 3 );  // Trigger the action hook that starts the clone site operation.
-		add_action( 'wpcd_wordpress-app_site_clone_site_failed', array( $this, 'handle_clone_site_failed' ), 10, 4 );  // If the clone failed, mark the pending log record as failed.
+		add_action( 'wpcd_wordpress-app_clone_site_failed', array( $this, 'handle_clone_site_failed' ), 10, 4 );  // If the clone failed, mark the pending log record as failed.
 		add_action( 'wpcd_wordpress-app_site_clone_new_post_completed', array( $this, 'handle_clone_site_successful' ), 10, 3 );  // If the clone site is successful, mark the pending log record as complete.
 
 	}

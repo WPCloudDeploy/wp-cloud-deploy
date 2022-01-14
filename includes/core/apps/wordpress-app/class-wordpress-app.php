@@ -376,7 +376,8 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/rest-api/class-wpcd-rest-api-controller-tasks.php';
 
 		// Function specific endpoints for sites - so that the main sites controller file does not get large and unwieldly.
-		require_once wpcd_path . 'includes/core/apps/wordpress-app/rest-api/class-wpcd-rest-api-controller-sites-change-domain.php';		
+		require_once wpcd_path . 'includes/core/apps/wordpress-app/rest-api/class-wpcd-rest-api-controller-sites-change-domain.php';
+		require_once wpcd_path . 'includes/core/apps/wordpress-app/rest-api/class-wpcd-rest-api-controller-sites-clone-site.php';
 
 		/**
 		 * Need to add new REST API controllers from an add-on?
@@ -399,6 +400,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				WPCD_REST_API_Controller_Servers::class,
 				WPCD_REST_API_Controller_Sites::class,
 				WPCD_REST_API_Controller_Sites_Change_Domain::class,
+				WPCD_REST_API_Controller_Sites_Clone_Site::class,
 				WPCD_REST_API_Controller_Tasks::class,
 			)
 		);

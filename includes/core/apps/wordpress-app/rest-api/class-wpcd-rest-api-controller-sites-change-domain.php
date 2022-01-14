@@ -44,7 +44,7 @@ class WPCD_REST_API_Controller_Sites_Change_Domain extends WPCD_REST_API_Control
 	 * It does this by adding a record to our pending tasks table with an action hook 'wpcd_wordpress-app_rest_api_change_domain_full_live'.
 	 * When that action hook is triggered it will then collect the parameters from the pending log table and call the real action hook.
 	 *
-	 * POST /sites/{id}/change_domain { new_domain: xxx }
+	 * POST /sites/{id}/change-domain { new_domain: xxx }
 	 *
 	 * @param WP_REST_Request $request - incoming request object.
 	 *
@@ -86,7 +86,7 @@ class WPCD_REST_API_Controller_Sites_Change_Domain extends WPCD_REST_API_Control
 	 *
 	 * Called from an action hook from the pending logs background process - WPCD_POSTS_PENDING_TASKS_LOG()->do_tasks()
 	 *
-	 * Action Hook: pending_log_update_themes_and_plugins
+	 * Action Hook: wpcd_wordpress-app_rest_api_pending_log_change_domain_full_live
 	 *
 	 * @param int   $task_id    Id of pending task that is firing this thing...
 	 * @param int   $app_id     Id of site on which this action will apply.
@@ -202,6 +202,7 @@ class WPCD_REST_API_Controller_Sites_Change_Domain extends WPCD_REST_API_Control
 					// Mark post as failed.
 					WPCD_POSTS_PENDING_TASKS_LOG()->update_task_by_id( $task_id, $data, 'failed' );
 				}
+				
 			}
 		}
 

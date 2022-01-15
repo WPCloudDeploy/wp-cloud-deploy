@@ -52,6 +52,7 @@ class WPCD_REST_API_Controller_Servers extends WPCD_REST_API_Controller_Base {
 	 *
 	 * GET /servers
 	 * GET /servers?user_id=xxx
+	 * GET /servers?user_email=xxx
 	 *
 	 * @param WP_REST_Request $request - incoming request object.
 	 *
@@ -71,9 +72,18 @@ class WPCD_REST_API_Controller_Servers extends WPCD_REST_API_Controller_Base {
 			),
 		);
 		// build query from parameters.
-		$user_id = $request->get_param( 'user_id' );
+		$user_id = (int) $request->get_param( 'user_id' );
 		if ( $user_id ) {
 			$args['author'] = $user_id;
+		}
+
+		$user_email = filter_var( $request->get_param( 'user_email' ), FILTER_SANITIZE_EMAIL );
+		if ( $user_email ) {
+			// get user id from user email address.
+			$user = get_user_by( 'email', $user_email );
+			if ( $user && ! is_wp_error( $user ) ) {
+				$args['author'] = $user->ID;
+			}
 		}
 
 		$servers = get_posts( $args );
@@ -83,7 +93,7 @@ class WPCD_REST_API_Controller_Servers extends WPCD_REST_API_Controller_Base {
 	/**
 	 * Creates a new server
 	 *
-	 * POST /servers { name: xxx, provider: xxx, region: xxx, size: }
+	 * POST /servers { name: xxx, provider: xxx, region: xxx, size: xxx, (optional) author_email: xxx@yyy }
 	 *
 	 * @param WP_REST_Request $request - incoming request object.
 	 *
@@ -93,7 +103,11 @@ class WPCD_REST_API_Controller_Servers extends WPCD_REST_API_Controller_Base {
 	public function create_server( WP_REST_Request $request ): array {
 		// validate and organize parameters.
 		$parameters = $request->get_body_params();
-		$this->validate_parameters( $parameters, array( 'name', 'provider', 'region', 'size' ) );
+		$this->validate_required_parameters( $parameters, array( 'name', 'provider', 'region', 'size' ) );
+
+		// handle optional owner email.
+		$author_email = filter_var( $request->get_param( 'author_email' ), FILTER_SANITIZE_EMAIL );
+		$this->validate_author_email( $author_email, true );
 
 		// setup server attributes array needed to create the server.
 		$attributes = array(
@@ -101,10 +115,11 @@ class WPCD_REST_API_Controller_Servers extends WPCD_REST_API_Controller_Base {
 			'initial_app_name' => WPCD_WORDPRESS_APP()->get_app_name(),
 			'server-type'      => 'wordpress-app',
 			'scripts_version'  => wpcd_get_option( 'wordpress_app_script_version' ),
-			'region'           => $parameters['region'],
-			'size_raw'         => $parameters['size'],
-			'name'             => $parameters['name'],
-			'provider'         => $parameters['provider'],
+			'region'           => sanitize_text_field( $parameters['region'] ),
+			'size_raw'         => sanitize_text_field( $parameters['size'] ),
+			'name'             => sanitize_text_field( $parameters['name'] ),
+			'provider'         => sanitize_text_field( $parameters['provider'] ),
+			'author_email'     => ! empty( $author_email ) ? $author_email : '',
 			'init'             => true,
 			'wp_restapi_flag'  => 'yes',
 		);
@@ -189,7 +204,7 @@ class WPCD_REST_API_Controller_Servers extends WPCD_REST_API_Controller_Base {
 		// Action hooks return nothing so just return an array of stuff.
 		return array(
 			'server_id' => $id,
-			'deleted' => true,
+			'deleted'   => true,
 		);
 	}
 
@@ -245,7 +260,7 @@ class WPCD_REST_API_Controller_Servers extends WPCD_REST_API_Controller_Base {
 	 * @param int    $server_id      The post id of the server record.
 	 * @param string $command_name   The full name of the command that triggered this action.
 	 */
-	public function wpcd_wpapp_prepare_server_completed( $server_id, $command_name ) {
+	public function wpcd_wpapp_prepare_server_completed( int $server_id, $command_name ) {
 
 		$server_post = get_post( $server_id );
 

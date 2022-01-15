@@ -146,6 +146,22 @@ class WPCD_Server extends WPCD_Base {
 				$post_author = $instance['user_id'];
 			}
 		}
+		
+		/**
+		 * If we still don't have a post author, then check to see if a 'author_email' element is set and use that.
+		 * This element might be set by a call from the REST API but, obviously, can also be set from anywhere.
+		 */
+		if ( empty( $post_author ) ) {
+			if ( isset( $instance['author_email'] ) ) {
+				$author_email = $instance['author_email'];
+				if ( ! empty( $author_email ) ) {
+					$user = get_user_by( 'email', $author_email );
+					if ( ! empty( $user ) ) {
+						$post_author = $user->ID;
+					}
+				}
+			}
+		}		
 
 		/**
 		 * Still don't have a post author?  Set to current user

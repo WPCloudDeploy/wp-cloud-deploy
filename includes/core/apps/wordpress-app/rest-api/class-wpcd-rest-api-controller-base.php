@@ -180,10 +180,48 @@ abstract class WPCD_REST_API_Controller_Base {
 	 *
 	 * @throws Exception - if a required parameter is missing.
 	 */
-	protected function validate_parameters( array $parameters, array $required_parameters ) {
+	protected function validate_required_parameters( array $parameters, array $required_parameters ) {
 		foreach ( $required_parameters as $parameter ) {
 			if ( empty( $parameters[ $parameter ] ) ) {
 				throw new Exception( "The '$parameter' parameter is required", 400 );
+			}
+		}
+	}
+
+	/**
+	 * Used within an action method to verify that the author user exists and,
+	 * optionally add if it does not.
+	 *
+	 * @param string  $author_email - email address of author / owner / user.
+	 * @param boolean $ok_to_add - true = if user does not exist, add it.
+	 *
+	 * @throws Exception - if user cannot be added.
+	 */
+	protected function validate_author_email( string $author_email, bool $ok_to_add = false ) {
+		$user = get_user_by( 'email', $author_email );
+		if ( empty( $user ) ) {
+			if ( $ok_to_add ) {
+				// Get user name from email address.
+				$parts = explode( '@', $author_email );
+				if ( 2 === count( $parts ) ) {
+					$username = $parts[0];
+				} else {
+					throw new Exception( 'Unable to add user because we were unable to generate a user name.', 400 );
+				}
+
+				// Prepare user data array.
+				$user_data = array(
+					'user_login' => $username,
+					'user_email' => $author_email,
+				);
+
+				// add user.
+				$user = wp_insert_user( $user_data );
+
+				// Throw error if add user unsuccessful.
+				if ( is_wp_error( $user ) ) {
+					throw new Exception( 'Unable to add user' . $user_data->get_error_message(), 400 );
+				}
 			}
 		}
 	}

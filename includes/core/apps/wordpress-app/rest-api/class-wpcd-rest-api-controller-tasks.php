@@ -89,6 +89,7 @@ class WPCD_REST_API_Controller_Tasks extends WPCD_REST_API_Controller_Base {
 	 * @return array
 	 */
 	protected function get_task_data( WP_Post $task ): array {
+		$display_complete_date = get_post_meta( $task->ID, 'pending_task_complete_date', true );
 		return array(
 			'id'                    => $task->ID,
 			'name'                  => $task->post_title,
@@ -102,7 +103,7 @@ class WPCD_REST_API_Controller_Tasks extends WPCD_REST_API_Controller_Base {
 			'parent_id'             => (int) get_post_meta( $task->ID, 'parent_post_id', true ),
 			'parent_type'           => get_post_meta( $task->ID, 'pending_task_parent_post_type', true ),
 			'display_start_date'    => date( 'Y-m-d @ H:i', get_post_meta( $task->ID, 'pending_task_start_date', true ) ),
-			'display_complete_date' => date( 'Y-m-d @ H:i', get_post_meta( $task->ID, 'pending_task_complete_date', true ) ),
+			'display_complete_date' => empty( $display_complete_date ) ? null : date( 'Y-m-d @ H:i', get_post_meta( $task->ID, 'pending_task_complete_date', true ) ),
 			'unix_start_date'       => get_post_meta( $task->ID, 'pending_task_start_date', true ),
 			'unix_complete_date'    => get_post_meta( $task->ID, 'pending_task_complete_date', true ),
 		);

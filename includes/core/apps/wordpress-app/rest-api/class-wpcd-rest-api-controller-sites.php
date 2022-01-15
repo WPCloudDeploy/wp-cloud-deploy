@@ -52,7 +52,7 @@ class WPCD_REST_API_Controller_Sites extends WPCD_REST_API_Controller_Base {
 		$this->register_put_route( $this->name . static::RESOURCE_ID_PATH, 'update_site' );  // not used.
 		$this->register_put_route( $this->name . static::RESOURCE_ID_PATH . '/toggle-ssl', 'toggle_ssl' );
 		$this->register_delete_route( $this->name . static::RESOURCE_ID_PATH, 'delete_site' );
-		$this->register_post_route( $this->name . static::RESOURCE_ID_PATH . '/execute-action', 'execute_site_action' );
+		$this->register_post_route( $this->name . static::RESOURCE_ID_PATH . '/execute-action', 'execute_site_action' ); // not used.
 	}
 
 	/**
@@ -79,9 +79,11 @@ class WPCD_REST_API_Controller_Sites extends WPCD_REST_API_Controller_Base {
 				),
 			),
 		);
+
 		// build query from parameters.
-		$user_id   = $request->get_param( 'user_id' );
-		$server_id = $request->get_param( 'server_id' );
+		$user_id    = (int) $request->get_param( 'user_id' );
+		$server_id  = (int) $request->get_param( 'server_id' );
+		$user_email = filter_var( $request->get_param( 'user_email' ), FILTER_SANITIZE_EMAIL );
 		if ( $user_id ) {
 			$args['author'] = $user_id;
 		}
@@ -91,6 +93,15 @@ class WPCD_REST_API_Controller_Sites extends WPCD_REST_API_Controller_Base {
 				'value' => $server_id,
 			);
 		}
+
+		if ( $user_email ) {
+			// get user id from user email address.
+			$user = get_user_by( 'email', $user_email );
+			if ( $user && ! is_wp_error( $user ) ) {
+				$args['author'] = $user->ID;
+			}
+		}
+
 		$sites = get_posts( $args );
 		return array_map( array( $this, 'get_site_data' ), $sites );
 	}
@@ -103,26 +114,31 @@ class WPCD_REST_API_Controller_Sites extends WPCD_REST_API_Controller_Base {
 	 * @param WP_REST_Request $request - incoming request object.
 	 *
 	 * @return array
-	 * @throws Exception - Insert post failed.
+	 * @throws Exception - Unable to insert a new task.
 	 */
 	public function create_site( WP_REST_Request $request ): array {
-		// validate and organize parameters.
+		// validate and organize body parameters.
 		$parameters = $request->get_body_params();
-		$this->validate_parameters( $parameters, array( 'server_id', 'wp_domain', 'wp_user', 'wp_password', 'wp_email' ) );
+		$this->validate_required_parameters( $parameters, array( 'server_id', 'wp_domain', 'wp_user', 'wp_password', 'wp_email' ) );
+
+		// handle optional owner email.
+		$author_email = filter_var( $request->get_param( 'author_email' ), FILTER_SANITIZE_EMAIL );
+		$this->validate_author_email( $author_email, true );
 
 		// Create an args array from the parameters to insert into the pending tasks table.
 		$server_id = (int) $parameters['server_id'];
 		// @codingStandardsIgnoreLine - added to ignore the misspelling in 'wordpress' below when linting with PHPcs. Otherwise linting will automatically uppercase the first letter.
 		$args['wpcd_app_type']         = 'wordpress';
-		$args['wp_domain']       = $parameters['wp_domain'];
-		$args['wp_user']         = $parameters['wp_user'];
-		$args['wp_password']     = $parameters['wp_password'];
-		$args['wp_email']        = $parameters['wp_email'];
+		$args['wp_domain']       = sanitize_text_field( $parameters['wp_domain'] );
+		$args['wp_user']         = sanitize_text_field( $parameters['wp_user'] );
+		$args['wp_password']     = sanitize_text_field( $parameters['wp_password'] );
+		$args['wp_email']        = filter_var( $parameters['wp_email'], FILTER_SANITIZE_EMAIL );
 		$args['wp_version']      = 'latest';
 		$args['wp_locale']       = 'en_US';
 		$args['id']              = $server_id;
 		$args['wp_restapi_flag'] = 'yes';
 		$args['action_hook']     = 'wpcd_wordpress-app_rest_api_install_wp';
+		$args['author_email']    = $author_email;
 
 		// Create new install task.
 		$task_id = WPCD_POSTS_PENDING_TASKS_LOG()->add_pending_task_log_entry( $server_id, 'rest_api_install_wp', $args['wp_domain'], $args, 'ready', $server_id, __( 'RESTAPI: Waiting To Install New WP Site', 'wpcd' ) );
@@ -161,7 +177,6 @@ class WPCD_REST_API_Controller_Sites extends WPCD_REST_API_Controller_Base {
 	 *
 	 * @param WP_REST_Request $request - incoming request object.
 	 *
-	 * @return array
 	 * @throws Exception - Failed to update site.
 	 */
 	public function update_site( WP_REST_Request $request ): array {
@@ -241,7 +256,7 @@ class WPCD_REST_API_Controller_Sites extends WPCD_REST_API_Controller_Base {
 		$this->get_site_post( $site_id );
 
 		$parameters = $request->get_body_params();
-		$this->validate_parameters( $parameters, array( 'action' ) );
+		$this->validate_required_parameters( $parameters, array( 'action' ) );
 
 		$app_name = WPCD_WORDPRESS_APP()->get_app_name();
 		$action   = $parameters['action'];

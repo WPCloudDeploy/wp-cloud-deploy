@@ -26,8 +26,8 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 
 		add_action( "wpcd_command_{$this->get_app_name()}_completed", array( $this, 'command_completed' ), 10, 2 );
 
-		// Allow the change domain (full live) action to be triggered via an action hook.  Will primarily be used by the woocommerce add-ons.
-		add_action( 'wpcd_wordpress-app_do_change_domain_full_live', array( $this, 'do_change_domain_live_action' ), 10, 2 );
+		// Allow the change domain (full live) action to be triggered via an action hook.  Will primarily be used by the woocommerce add-on and REST API.
+		add_action( "wpcd_{$this->get_app_name()}_do_change_domain_full_live", array( $this, 'do_change_domain_live_action' ), 10, 2 ); // Hook: wpcd_wordpress-app_do_change_domain_full_live.
 
 	}
 
@@ -88,6 +88,10 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 
 					// And delete the temporary meta.
 					delete_post_meta( $id, 'wpapp_domain_change_new_target_domain' );
+			} else {
+				// Add action hook to indicate failure...
+				$message = __( 'Change domain command failed - check the command logs for more information.', 'wpcd' );
+				do_action( "wpcd_{$this->get_app_name()}_site_change_domain_failed", $id, $command_array[0], $message, array() );  // Keeping 4 parameters for the action hook to maintain consistency even though we have nothing for the last parameter.
 			}
 		}
 
@@ -205,7 +209,9 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 
 		// Bail if certain things are empty...
 		if ( empty( $args['new_domain'] ) ) {
-			return new \WP_Error( __( 'The new domain must be provided', 'wpcd' ) );
+			$message = __( 'The new domain must be provided', 'wpcd' );
+			do_action( "wpcd_{$this->get_app_name()}_site_change_domain_failed", $id, $action, $message, $args );
+			return new \WP_Error( $message );
 		} else {
 			$new_domain = strtolower( sanitize_text_field( $args['new_domain'] ) );
 		}
@@ -219,7 +225,9 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 
 		// Bail if error.
 		if ( is_wp_error( $instance ) ) {
-			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
+			$message = sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action );
+			do_action( "wpcd_{$this->get_app_name()}_site_change_domain_failed", $id, $action, $message, $args );
+			return new \WP_Error( $message );
 		}
 
 		// sanitize the fields to allow them to be used safely on the bash command line.
@@ -249,7 +257,9 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 		$result  = $this->execute_ssh( 'generic', $instance, array( 'commands' => $run_cmd ) );
 		$success = $this->is_ssh_successful( $result, 'change_domain_quick.txt' );
 		if ( ! $success ) {
-			return new \WP_Error( sprintf( __( 'Unable to perform action %1$s for site: %2$s', 'wpcd' ), $action, $result ) );
+			$message = sprintf( __( 'Unable to perform action %1$s for site: %2$s', 'wpcd' ), $action, $result );
+			do_action( "wpcd_{$this->get_app_name()}_site_change_domain_failed", $id, $action, $message, $args );
+			return new \WP_Error( $message );
 		}
 
 		// Now that we know we're successful, lets change the domain name in our meta.
@@ -288,7 +298,7 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 	 *
 	 * @param string $action The action key to send to the bash script.
 	 * @param int    $id the id of the app post being handled.
-	 * @param array  $in_args args.
+	 * @param array  $in_args Alternative source of arguments passed via action hook or direct function call instead of pulling from $_POST.
 	 *
 	 * @return boolean|object Can return wp_error, true/false
 	 */
@@ -303,7 +313,9 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 
 		// Bail if certain things are empty...
 		if ( empty( $args['new_domain'] ) ) {
-			return new \WP_Error( __( 'The new domain must be provided', 'wpcd' ) );
+			$message = __( 'The new domain must be provided', 'wpcd' );
+			do_action( "wpcd_{$this->get_app_name()}_site_change_domain_failed", $id, $action, $message, $args );
+			return new \WP_Error( $message );
 		} else {
 			$new_domain = strtolower( sanitize_text_field( $args['new_domain'] ) );
 		}
@@ -317,7 +329,9 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 
 		// Bail if error.
 		if ( is_wp_error( $instance ) ) {
-			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
+			$message = sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action );
+			do_action( "wpcd_{$this->get_app_name()}_site_change_domain_failed", $id, $action, $message, $args );
+			return new \WP_Error( $message );
 		}
 
 		// sanitize the fields to allow them to be used safely on the bash command line.
@@ -352,7 +366,9 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 
 		// double-check just in case of errors.
 		if ( empty( $run_cmd ) || is_wp_error( $run_cmd ) ) {
-			return new \WP_Error( sprintf( __( 'Something went wrong - we are unable to construct a proper command for this action - %s', 'wpcd' ), $action ) );
+			$message = sprintf( __( 'Something went wrong - we are unable to construct a proper command for this action - %s', 'wpcd' ), $action );
+			do_action( "wpcd_{$this->get_app_name()}_site_change_domain_failed", $id, $action, $message, $args );
+			return new \WP_Error( $message );
 		}
 
 		// Stamp some data we'll need later (in the command_completed function) onto the app records.

@@ -91,7 +91,7 @@ Note: Even though the entire git development history isn't available on github, 
 [Friendly Release Notes](https://wpclouddeploy.com/category/release-notes/)
 
 ## Change Log ##
-4.13.1
+4.14.0
 ------
 * New: Add option to hide the owner column in the server list from non-admins.
 * New: Add option to hide the owner column in the site list from non-admins.
@@ -102,7 +102,12 @@ Note: Even though the entire git development history isn't available on github, 
 * Tweak: WPAPP - Updated redis script has better ability to detect when redis fails to install properly.
 * Tweak: WPAPP - Move app tab permissions for teams into their own column on the edit teams screen.
 * Tweak: WPAPP - Added some prophylactic checks around post types before deleting log posts.
+* Tweak: WPAPP - Set individual limits for each log.
 * Fix: WPAPP - Clone site tab was using the incorrect permissions name under teams.
+* Fix: WPAPP - Search on ssh and other log screens would sometimes return results from other post types.
+* Dev: WPAPP - Various fixes to the existing REST API endpoints.
+* Dev: WPAPP - New REST API endpoints for changing domain and cloning sites.
+* Other: Minimium version of WP is now 5.4.
 
 4.13.0
 ------

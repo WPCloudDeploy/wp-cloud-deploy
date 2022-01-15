@@ -3,8 +3,8 @@
 Plugin Name: WPCloudDeploy
 Plugin URI: https://wpclouddeploy.com
 Description: Deploy and manage cloud servers and apps from inside the WordPress Admin dashboard.
-Version: 4.13.1
-Requires at least: 5.0
+Version: 4.14.0
+Requires at least: 5.4
 Requires PHP: 7.4
 Item Id: 1493
 Author: WPCloudDeploy

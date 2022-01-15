@@ -151,7 +151,7 @@ class WPCD_REST_API_Controller_Sites_Clone_Site extends WPCD_REST_API_Controller
 				$data    = WPCD_POSTS_PENDING_TASKS_LOG()->get_data_by_id( $task_id );
 
 				// Mark post as failed.
-				WPCD_POSTS_PENDING_TASKS_LOG()->update_task_by_id( $task_id, $data, 'failed' );
+				WPCD_POSTS_PENDING_TASKS_LOG()->update_task_by_id( $task_id, $data, 'failed', '', '', false, $message );
 
 			}
 		}

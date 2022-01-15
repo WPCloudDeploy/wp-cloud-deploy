@@ -151,7 +151,7 @@ class WPCD_REST_API_Controller_Sites_Change_Domain extends WPCD_REST_API_Control
 				$data    = WPCD_POSTS_PENDING_TASKS_LOG()->get_data_by_id( $task_id );
 
 				// Mark post as failed.
-				WPCD_POSTS_PENDING_TASKS_LOG()->update_task_by_id( $task_id, $data, 'failed' );
+				WPCD_POSTS_PENDING_TASKS_LOG()->update_task_by_id( $task_id, $data, 'failed', '', '', false, $message );
 
 			}
 		}
@@ -202,7 +202,6 @@ class WPCD_REST_API_Controller_Sites_Change_Domain extends WPCD_REST_API_Control
 					// Mark post as failed.
 					WPCD_POSTS_PENDING_TASKS_LOG()->update_task_by_id( $task_id, $data, 'failed' );
 				}
-				
 			}
 		}
 

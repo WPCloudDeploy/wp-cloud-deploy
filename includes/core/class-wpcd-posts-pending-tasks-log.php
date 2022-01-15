@@ -428,6 +428,7 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 		$pending_task_attempts             = get_post_meta( $post->ID, 'pending_task_attempts', true );
 		$pending_task_reference            = get_post_meta( $post->ID, 'pending_task_reference', true );
 		$pending_task_history              = get_post_meta( $post->ID, 'pending_task_history', true );
+		$pending_task_messages             = get_post_meta( $post->ID, 'pending_task_messages', true );
 		$pending_task_comment              = get_post_meta( $post->ID, 'pending_task_comment', true );
 		$pending_task_start_date           = get_post_meta( $post->ID, 'pending_task_start_date', true );
 		$pending_task_complete_date        = get_post_meta( $post->ID, 'pending_task_complete_date', true );
@@ -569,7 +570,7 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 	 * @param string   $task_comment task comment.
 	 * @param bool|int $reset_start_date Date to put in the start date meta or, if set to TRUE, empty the start date meta completely.
 	 */
-	public function update_task_by_id( $id, $task_details = array(), $task_state = '', $task_reference = '', $task_comment = '', $reset_start_date = false ) {
+	public function update_task_by_id( $id, $task_details = array(), $task_state = '', $task_reference = '', $task_comment = '', $reset_start_date = false, $task_message = '' ) {
 
 		if ( ! empty( $task_details ) ) {
 			update_post_meta( $id, 'pending_task_details', $task_details );
@@ -605,6 +606,17 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 			} else {
 				// Assume we got a time and update the field with it.
 				update_post_meta( $id, 'pending_task_start_date', $reset_start_date );
+			}
+		}
+
+		// Add messages to message field.
+		if ( ! empty( $task_message ) ) {
+			if ( empty( get_post_meta( $id, 'pending_task_messages', true ) ) ) {
+				update_post_meta( $id, 'pending_task_messages', $task_message );
+			} else {
+				$old_message  = get_post_meta( $id, 'pending_task_messages', true );
+				$new_message .= '<br />' . $task_message;
+				update_post_meta( $id, 'pending_task_messages', $new_message );
 			}
 		}
 

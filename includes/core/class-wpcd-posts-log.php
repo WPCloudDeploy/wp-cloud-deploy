@@ -542,14 +542,17 @@ class WPCD_POSTS_LOG extends WPCD_Posts_Base {
 
 					// Modified WHERE.
 					$sql['where'] = sprintf(
-						' AND ( (%s) OR (%s) ) ',
+						' AND %s AND ( (%s) OR (%s) ) ',
+						$wpdb->prepare( "{$wpdb->posts}.post_type = '%s'", $post_type ),
 						$wpdb->prepare( "{$wpdb->posts}.post_title LIKE '%%%s%%'", $title ),
 						mb_substr( $sql['where'], 5, mb_strlen( $sql['where'] ) )
 					);
 
 					// Only run if post type is wpcd_command_log or wpcd_ssh_log.
 					if ( in_array( $post_type, array( 'wpcd_command_log', 'wpcd_ssh_log' ), true ) ) {
-						$server_meta_search = " OR ({$wpdb->postmeta}.meta_key = 'parent_post_id' AND {$wpdb->postmeta}.meta_value IN ( SELECT P.ID FROM {$wpdb->posts} AS P LEFT JOIN {$wpdb->postmeta} AS PM on PM.post_id = P.ID WHERE P.post_type = 'wpcd_app_server' and P.post_status = 'private' and ( ( PM.meta_key = 'wpcd_server_name' AND PM.meta_value LIKE '" . esc_sql( '%' . $wpdb->esc_like( $title ) . '%' ) . "' ) ) ) ) ";
+						$server_meta_search = ' OR ';
+
+						$server_meta_search .= $wpdb->prepare( "({$wpdb->postmeta}.meta_key = 'parent_post_id' AND {$wpdb->postmeta}.meta_value IN ( SELECT P.ID FROM {$wpdb->posts} AS P LEFT JOIN {$wpdb->postmeta} AS PM on PM.post_id = P.ID WHERE P.post_type = 'wpcd_app_server' and P.post_status = 'private' and ( ( PM.meta_key = 'wpcd_server_name' AND PM.meta_value LIKE '%s' ) ) ) ) ", esc_sql( '%' . $wpdb->esc_like( $title ) . '%' ) );
 
 						$sql['where'] .= $server_meta_search;
 					}

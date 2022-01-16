@@ -296,14 +296,16 @@ class WPCD_REST_API_Controller_Sites extends WPCD_REST_API_Controller_Base {
 			'name'         => $site->post_title,
 			'author'       => (int) $site->post_author,
 			'server_id'    => (int) get_post_meta( $site->ID, 'parent_post_id', true ),
-			'domain'       => get_post_meta( $site->ID, 'wpapp_domain', true ),
+			'domain'       => WPCD_WORDPRESS_APP()->get_domain_name( $site->ID ),
 			'ssl_status'   => get_post_meta( $site->ID, 'wpapp_ssl_status', true ),
 			'http2_status' => get_post_meta( $site->ID, 'wpapp_ssl_http2_status', true ),
+			'request_date' => gmdate( 'r' ),
 		);
 
 		$push_data = wpcd_maybe_unserialize( get_post_meta( $site->ID, 'wpcd_site_status_push', true ) );
 
 		if ( is_array( $push_data ) ) {
+			unset( $push_data['domain'] );
 			$data = array_merge( $data, $push_data );
 		}
 

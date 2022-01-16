@@ -245,6 +245,7 @@ class WPCD_REST_API_Controller_Servers extends WPCD_REST_API_Controller_Base {
 			'app_count'              => WPCD_SERVER()->get_app_count( $server_id ),
 			'region'                 => WPCD_SERVER()->get_server_region( $server_id ),
 			'available_for_commands' => WPCD_SERVER()->is_server_available_for_commands( $server_id ),
+			'request_date'           => gmdate( 'r' ),
 		);
 
 		return $data;

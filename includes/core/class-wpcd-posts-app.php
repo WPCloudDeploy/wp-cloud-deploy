@@ -209,16 +209,21 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 				break;
 
 			case 'wpcd_server':
-				// Display the name of the server - get the server id and title first.
-				$server_post_id = get_post_meta( $post_id, 'parent_post_id', true );
-				$server_title   = wp_kses_post( get_post( $server_post_id )->post_title );
-
-				// Show the server title - with a link if the user is able to edit it otherwise without the link.
-				$user_id = get_current_user_id();
-				if ( wpcd_user_can( $user_id, 'view_server', $server_post_id ) || get_post( $server_post_id )->post_author === $user_id ) {
-					$value = sprintf( '<a href="%s">' . $server_title . '</a>', get_edit_post_link( $server_post_id ) );
+				// Display the name of the server.
+				if ( true === (bool) wpcd_get_option( 'wpcd_hide_app_list_server_name_in_server_column' ) && ( ! wpcd_is_admin() ) ) {
+					// do nothing, only admins are allowed to see this data.
 				} else {
-					$value = $server_title;
+					// Get the server id and title first.
+					$server_post_id = get_post_meta( $post_id, 'parent_post_id', true );
+					$server_title   = wp_kses_post( get_post( $server_post_id )->post_title );
+
+					// Show the server title - with a link if the user is able to edit it otherwise without the link.
+					$user_id = get_current_user_id();
+					if ( wpcd_user_can( $user_id, 'view_server', $server_post_id ) || get_post( $server_post_id )->post_author === $user_id ) {
+						$value = sprintf( '<a href="%s">' . $server_title . '</a>', get_edit_post_link( $server_post_id ) );
+					} else {
+						$value = $server_title;
+					}
 				}
 
 				// Server post id.
@@ -229,25 +234,29 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 				if ( true === (bool) wpcd_get_option( 'wpcd_hide_app_list_provider_in_server_column' ) && ( ! wpcd_is_admin() ) ) {
 					// do nothing, only admins are allowed to see this data.
 				} else {
-					$value = $value . '<br />' . __( 'Provider: ', 'wpcd' ) . WPCD()->wpcd_get_cloud_provider_desc( $this->get_server_meta_value( $post_id, 'wpcd_server_provider' ) );
+					$value  = empty( $value ) ? $value : $value . '<br />';
+					$value .= __( 'Provider: ', 'wpcd' ) . WPCD()->wpcd_get_cloud_provider_desc( $this->get_server_meta_value( $post_id, 'wpcd_server_provider' ) );
 				}
 
 				// server region.
 				if ( true === (bool) wpcd_get_option( 'wpcd_hide_app_list_region_in_server_column' ) && ( ! wpcd_is_admin() ) ) {
 					// do nothing, only admins are allowed to see this data.
 				} else {
-					$value = $value . '<br />' . __( 'Region: ', 'wpcd' ) . $this->get_server_meta_value( $post_id, 'wpcd_server_region' );
+					$value  = empty( $value ) ? $value : $value . '<br />';
+					$value .= __( 'Region: ', 'wpcd' ) . $this->get_server_meta_value( $post_id, 'wpcd_server_region' );
 				}
 
 				// ipv4.
-				$value = $value . '<br />' . __( 'ipv4: ', 'wpcd' ) . $this->get_server_meta_value( $post_id, 'wpcd_server_ipv4' );
+				$value  = empty( $value ) ? $value : $value . '<br />';
+				$value .= __( 'ipv4: ', 'wpcd' ) . $this->get_server_meta_value( $post_id, 'wpcd_server_ipv4' );
 
 				// Show a link that takes you to a list of apps on the server.
 				if ( true === (bool) wpcd_get_option( 'wpcd_hide_app_list_appslink_in_server_column' ) && ( ! wpcd_is_admin() ) ) {
 					// do nothing, only admins are allowed to see this data.
 				} else {
-					$url   = admin_url( 'edit.php?post_type=wpcd_app&server_id=' . (string) $server_post_id );
-					$value = $value . '<br />' . sprintf( '<a href="%s">%s</a>', $url, __( 'Apps on this server', 'wpcd' ) );
+					$value  = empty( $value ) ? $value : $value . '<br />';
+					$url    = admin_url( 'edit.php?post_type=wpcd_app&server_id=' . (string) $server_post_id );
+					$value .= sprintf( '<a href="%s">%s</a>', $url, __( 'Apps on this server', 'wpcd' ) );
 				}
 
 				break;
@@ -271,7 +280,11 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 				// Display the name of the owner who set up the server...
 				$server_post_id = get_post_meta( $post_id, 'parent_post_id', true );
 				$server_owner   = esc_html( get_user_by( 'ID', get_post( $server_post_id )->post_author )->user_login );
-				$app_owner      = esc_html( get_user_by( 'ID', get_post( $post_id )->post_author )->user_login );
+				if ( ! empty( get_post( $post_id )->post_author ) ) {
+					$app_owner = esc_html( get_user_by( 'ID', get_post( $post_id )->post_author )->user_login );
+				} else {
+					$app_owner = __( 'Unable to get author/owner', 'wpcd' );
+				}
 				if ( $server_owner === $app_owner ) {
 					// both owners are the same so show one item.
 					$value = $server_owner; // @Todo: Make a hyperlink to user profile screens in admin.
@@ -384,7 +397,9 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 			$defaults['wpcd_server_region'] = __( 'Region', 'wpcd' );
 		}
 		if ( boolval( wpcd_get_option( 'wpcd_show_app_list_owner' ) ) ) {
-			$defaults['wpcd_owner'] = __( 'Owners', 'wpcd' );
+			if ( wpcd_is_admin() || ( ! wpcd_is_admin() && ! boolval( wpcd_get_option( 'wpcd_hide_app_list_owner_non_admins' ) ) ) ) {
+				$defaults['wpcd_owner'] = __( 'Owners', 'wpcd' );
+			}
 		}
 		if ( boolval( wpcd_get_option( 'wpcd_show_app_list_date' ) ) ) {
 			$defaults['date'] = __( 'Date', 'wpcd' );
@@ -1351,23 +1366,31 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 
 		// Check if plugin is being activating first time.
 		if ( empty( $plugin_activated ) ) {
-			$wpcd_settings['wordpress_app_servers_activate_callbacks'] = 1;
+			$wpcd_settings['wordpress_app_servers_activate_callbacks']      = 1;
 			$wpcd_settings['wordpress_app_servers_activate_config_backups'] = 1;
-			$wpcd_settings['wordpress_app_servers_refresh_services'] = 1;
+			$wpcd_settings['wordpress_app_servers_refresh_services']        = 1;
 
 			// Set defaults brand colors.
-			$wpcd_settings['wordpress_app_primary_brand_color']                 = WPCD_PRIMARY_BRAND_COLOR;
-			$wpcd_settings['wordpress_app_secondary_brand_color']               = WPCD_SECONDARY_BRAND_COLOR;
-			$wpcd_settings['wordpress_app_tertiary_brand_color']                = WPCD_TERTIARY_BRAND_COLOR;
-			$wpcd_settings['wordpress_app_accent_background_color']             = WPCD_ACCENT_BG_COLOR;
-			$wpcd_settings['wordpress_app_medium_background_color']             = WPCD_MEDIUM_BG_COLOR;
-			$wpcd_settings['wordpress_app_light_background_color']              = WPCD_LIGHT_BG_COLOR;
-			$wpcd_settings['wordpress_app_alternate_accent_background_color']   = WPCD_ALTERNATE_ACCENT_BG_COLOR;
+			$wpcd_settings['wordpress_app_primary_brand_color']               = WPCD_PRIMARY_BRAND_COLOR;
+			$wpcd_settings['wordpress_app_secondary_brand_color']             = WPCD_SECONDARY_BRAND_COLOR;
+			$wpcd_settings['wordpress_app_tertiary_brand_color']              = WPCD_TERTIARY_BRAND_COLOR;
+			$wpcd_settings['wordpress_app_accent_background_color']           = WPCD_ACCENT_BG_COLOR;
+			$wpcd_settings['wordpress_app_medium_background_color']           = WPCD_MEDIUM_BG_COLOR;
+			$wpcd_settings['wordpress_app_light_background_color']            = WPCD_LIGHT_BG_COLOR;
+			$wpcd_settings['wordpress_app_alternate_accent_background_color'] = WPCD_ALTERNATE_ACCENT_BG_COLOR;
+
+			// Set auto trim log values.
+			$wpcd_settings['auto_trim_notification_log_limit']      = 999;
+			$wpcd_settings['auto_trim_notification_sent_log_limit'] = 999;
+			$wpcd_settings['auto_trim_ssh_log_limit']               = 999;
+			$wpcd_settings['auto_trim_command_log_limit']           = 999;
+			$wpcd_settings['auto_trim_pending_log_limit']           = 999;
+			$wpcd_settings['auto_trim_error_log_limit']             = 999;
 
 			// Update the settings options.
 			update_option( 'wpcd_settings', $wpcd_settings );
 
-			// Update the option for first time activation done.
+			// Update the option for first time activation.
 			update_option( 'wpcd_plugin_first_time_activated', 1 );
 		}
 	}

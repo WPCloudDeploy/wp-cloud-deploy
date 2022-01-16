@@ -347,7 +347,7 @@ trait wpcd_metaboxes_for_taxonomies_for_servers_and_apps {
 			}
 			$owners[]         = $p->post_author;
 			$post_author_id   = $p->post_author;
-			$post_author_name = esc_html( get_user_by( 'ID', $post_author_id )->user_login );
+			$post_author_name = empty( $post_author_id ) ? __( 'No Author or Owner provided.', 'wpcd') : esc_html( get_user_by( 'ID', $post_author_id )->user_login );
 			$selected         = selected( $get_field_key, $post_author_id, false );
 			$html            .= sprintf( '<option value="%d" %s>%s</option>', $post_author_id, $selected, $post_author_name );
 		}

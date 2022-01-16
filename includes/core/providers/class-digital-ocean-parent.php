@@ -56,12 +56,18 @@ class CLOUD_PROVIDER_API_DigitalOcean_Parent extends CLOUD_PROVIDER_API {
 		$this->set_feature_flag( 'snapshot-delete', false );  // We can't support this in DigitalOcean because the create snapshot api or subsequent endpoints do not actually return the snapshot ID.
 		$this->set_feature_flag( 'snapshot-list', true );
 
+		/* Set the flag that indicates we support resize operations */
+		$this->set_feature_flag( 'resize', true );
+
 		/* Set the API key - pulling from settings */
 		$this->set_api_key( WPCD()->decrypt( wpcd_get_early_option( 'vpn_' . $this->get_provider_slug() . '_apikey' ) ) );
 
 		/* Set filter to add link to the digital ocean api dashboard */
 		$provider = $this->get_provider_slug();
 		add_filter( "wpcd_cloud_provider_settings_api_key_label_desc_{$provider}", array( $this, 'set_link_to_provider_dashboard' ) );
+
+		// Run cron to auto start server after resize
+		add_action( 'wpcd_' . $this->get_provider_slug() . '_auto_start_after_resize_cron', array( $this, 'doAutoStartServer' ), 10 );
 
 	}
 
@@ -218,7 +224,7 @@ runcmd:
 				break;
 			case 'delete_snapshot':
 				/**
-				 * Not used because DO doesn't give us the snapshot ID 
+				 * Not used because DO doesn't give us the snapshot ID
 				 * after a snapshot operation.
 				 * Without the ID, we can't delete anything.
 				 */
@@ -235,7 +241,7 @@ runcmd:
 				 * potential future use since we already wrote the code.
 				 */
 				$endpoint = 'actions/' . $attributes['pending_snapshot_id'];
-				break;			
+				break;
 			case 'list_all_snapshots':
 				$endpoint = 'snapshots' . '?page=1&per_page=9999';
 				break;
@@ -273,6 +279,13 @@ runcmd:
 			case 'action':
 				/* The action endpoint is used to get the result of an operation that usually takes a long time.  We are not using this right now. */
 				$endpoint = 'actions/' . $attributes['action_id'];
+				break;
+			case 'resize':
+				$endpoint = 'droplets/' . $attributes['id'] . '/actions';
+				$action   = 'POST';
+				$body     = '{
+					"type": "resize", "size":"' . $attributes['new_size'] . '"
+				}';
 				break;
 			default:
 				return new WP_Error( 'not supported' );
@@ -348,11 +361,11 @@ runcmd:
 				break;
 			case 'snapshot':
 				if ( ! empty( $body->action->id ) ) {
-					$return['id']              = $attributes['id'];
-					$return['snapshot-id']     = $body->action->id;   // Unfortunately, this is NOT the id of the droplet.  Might be the ID of a background process for it and we'll have to use it to query later?
-					$return['snapshot-id-type']= 'intermediate';  // Two possible values - 'final' if this is the final id for the snapshot or 'intermediate' if we have to wait for the snapshot to finish and then use this id to get the final snapshot id.
-					$return['provider_status'] = $body->action->status;
-					$return['status']          = 'success';
+					$return['id']               = $attributes['id'];
+					$return['snapshot-id']      = $body->action->id;   // Unfortunately, this is NOT the id of the droplet.  Might be the ID of a background process for it and we'll have to use it to query later?
+					$return['snapshot-id-type'] = 'intermediate';  // Two possible values - 'final' if this is the final id for the snapshot or 'intermediate' if we have to wait for the snapshot to finish and then use this id to get the final snapshot id.
+					$return['provider_status']  = $body->action->status;
+					$return['status']           = 'success';
 				} else {
 					$return['status'] = 'fail';
 				}
@@ -377,7 +390,7 @@ runcmd:
 				} else {
 					$return['status'] = 'fail';
 				}
-			
+
 				break;
 			case 'list_all_snapshots':
 				if ( ! empty( $body->snapshots ) ) {
@@ -405,6 +418,15 @@ runcmd:
 				$return['status']    = $body->action->status;
 				$return['action_id'] = $body->action->id;
 				break;
+			case 'resize':
+				$return['status']    = $body->action->status;
+				$return['action_id'] = $body->action->id;
+
+				$this->cacheAutoStartServer( $attributes['id'], $body->action->id );
+				wp_clear_scheduled_hook( 'wpcd_' . $this->get_provider_slug() . '_auto_start_after_resize_cron' );
+				wp_schedule_event( time(), 'every_minute', 'wpcd_' . $this->get_provider_slug() . '_auto_start_after_resize_cron' );
+
+				break;
 			case 'status':
 				$return['status'] = $body->action->status;
 				$return['ip']     = $body->action->status;
@@ -420,7 +442,7 @@ runcmd:
 				break;
 			case 'action':
 				/* We are not using this endpoint right now. */
-				break;				
+				break;
 		}
 
 		/* Cache some things if necessary */
@@ -449,6 +471,100 @@ runcmd:
 		}
 
 		return 'error-no-ip-found';
+
+	}
+
+	/**
+	 * Return servers for auto start
+	 *
+	 * @return array
+	 */
+	public function getAutoStartServers() {
+		return get_option( 'wpcd_' . $this->get_provider_slug() . '_auto_start_servers_cron', array() );
+	}
+
+	/**
+	 * Add server to auto start cache list
+	 *
+	 * @param string $server_id  server id
+	 * @param string $action_id
+	 *
+	 * @return void
+	 */
+	public function cacheAutoStartServer( $server_id, $action_id ) {
+		$all_servers               = $this->getAutoStartServers();
+		$all_servers[ $server_id ] = $action_id;
+		update_option( 'wpcd_' . $this->get_provider_slug() . '_auto_start_servers_cron', $all_servers );
+	}
+
+
+	/**
+	 * Cron action to restart servers after resize
+	 *
+	 * @return void
+	 */
+	public function doAutoStartServer() {
+
+		// Returns the option that holds an array of servers that need to be restarted for this provider.
+		$all_servers = $this->getAutoStartServers();
+
+		// Bail if no servers are in the array.
+		if ( empty( $all_servers ) ) {
+			wp_clear_scheduled_hook( 'wpcd_' . $this->get_provider_slug() . '_auto_start_after_resize_cron' );
+			return;
+		}
+
+		// Loop through the array of servers, get their operation status and restart if the operation is complete.
+		// Note that the $server_id variable here is the providers' INSTANCE ID, not the post id for the server!
+		foreach ( $all_servers as $server_id => $action_id ) {
+
+			$endpoint = 'droplets/' . $server_id . '/actions?page=1&per_page=20';
+
+			$response = wp_remote_request(
+				self::_URL . $endpoint,
+				array(
+					'method'  => 'GET',
+					'headers' => array(
+						'Content-Type'  => 'application/json',
+						'Authorization' => 'Bearer ' . $this->api_key,
+					),
+				)
+			);
+
+			$body = wp_remote_retrieve_body( $response );
+			$body = json_decode( $body );
+
+			foreach ( $body->actions as $action ) {
+
+				if ( $action->id == $action_id ) {
+					if ( 'completed' === $action->status || 'errored' === $action->status ) {
+
+						// Update server record with new size.
+						if ( 'completed' === $action->status ) {
+							$server_post_id = WPCD_SERVER()->get_server_id_by_instance_id( $server_id );
+							WPCD_SERVER()->finalize_server_size( $server_post_id );
+						}
+
+						// restart the server.
+						$this->call( 'on', array( 'id' => $server_id ) );
+
+						// remove server from restart array.
+						unset( $all_servers[ $server_id ] );
+					}
+
+					break;
+
+				}
+			}
+		}
+
+		// Update option with new list of servers.
+		update_option( 'wpcd_' . $this->get_provider_slug() . '_auto_start_servers_cron', $all_servers );
+
+		// Clear out the cron if all servers have been processed.
+		if ( empty( $all_servers ) ) {
+			wp_clear_scheduled_hook( 'wpcd_' . $this->get_provider_slug() . '_auto_start_after_resize_cron' );
+		}
 
 	}
 }

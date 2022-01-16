@@ -628,7 +628,9 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 		}
 
 		if ( boolval( wpcd_get_option( 'wpcd_show_server_list_owner' ) ) ) {
-			$defaults['wpcd_server_owner'] = __( 'Owner', 'wpcd' );
+			if ( wpcd_is_admin() || ( ! wpcd_is_admin() && ! boolval( wpcd_get_option( 'wpcd_hide_server_list_owner_non_admins' ) ) ) ) {
+				$defaults['wpcd_server_owner'] = __( 'Owner', 'wpcd' );
+			}
 		}
 
 		if ( boolval( wpcd_get_option( 'wpcd_show_server_list_team' ) ) ) {

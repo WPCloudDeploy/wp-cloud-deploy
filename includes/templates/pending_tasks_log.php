@@ -58,6 +58,10 @@ wp_nonce_field( 'wpcd_app_nonce_meta_action', 'app_meta' );
 	<label for="pending_task_history"><?php echo esc_html( __( 'History / Last error Message', 'wpcd' ) ); ?></label>
 	<p><?php echo esc_html( $pending_task_history ); ?></p>
 </div>
+<div class="pending_tasks_log_meta_field">
+	<label for="pending_task_messages"><?php echo esc_html( __( 'Messages', 'wpcd' ) ); ?></label>
+	<p><?php echo esc_html( $pending_task_messages ); ?></p>
+</div>
 <hr />
 <div class="pending_tasks_log_meta_field">
 	<label for="pending_task_start_date"><?php echo esc_html( __( 'Date Started', 'wpcd' ) ); ?></label>

@@ -229,12 +229,27 @@ class WPCD_POSTS_LOG extends WPCD_Posts_Base {
 			$error_log_entries = $count_posts->private + $count_posts->publish;
 		}
 
-		$auto_trim_log_limit = (int) wpcd_get_early_option( 'auto_trim_log_limit' );
+		if ( 'wpcd_notify_log' === $post_type ) {
+			$auto_trim_log_limit = (int) wpcd_get_early_option( 'auto_trim_notification_log_limit' );
+		}
+		if ( 'wpcd_notify_sent' === $post_type ) {
+			$auto_trim_log_limit = (int) wpcd_get_early_option( 'auto_trim_notification_sent_log_limit' );
+		}
+		if ( 'wpcd_ssh_log' === $post_type ) {
+			$auto_trim_log_limit = (int) wpcd_get_early_option( 'auto_trim_ssh_log_limit' );
+		}
+		if ( 'wpcd_command_log' === $post_type ) {
+			$auto_trim_log_limit = (int) wpcd_get_early_option( 'auto_trim_command_log_limit' );
+		}
+		if ( 'wpcd_error_log' === $post_type ) {
+			$auto_trim_log_limit = (int) wpcd_get_early_option( 'auto_trim_error_log_limit' );
+		}
+
 		if ( defined( 'WPCD_AUTO_TRIM_LOG_LIMIT' ) ) {
 			$auto_trim_log_limit = WPCD_AUTO_TRIM_LOG_LIMIT;
 		}
 		if ( empty( $auto_trim_log_limit ) || $auto_trim_log_limit <= 0 ) {
-			$auto_trim_log_limit = 100;
+			$auto_trim_log_limit = 999;
 		}
 
 		if ( $error_log_entries >= $auto_trim_log_limit && $error_log_entries > 0 && $auto_trim_log_limit > 0 ) {
@@ -264,7 +279,14 @@ class WPCD_POSTS_LOG extends WPCD_Posts_Base {
 				if ( $max_posts_to_delete > 0 ) {
 					foreach ( $posts_to_delete as $post_to_delete ) {
 						$counter++;  // We're going to use a counter just in case $posts_to_delete contains more posts than our intended max (which shouldn't happen under normal circumstances).
-						wp_delete_post( $post_to_delete->ID, true );
+						// Double check the post type just in case...
+						if ( $post_type === get_post_type( $post_to_delete->ID ) ) {
+							wp_delete_post( $post_to_delete->ID, true );
+						} else {
+							// Log an error because we somehow attempted to delete the wrong post type record!
+							do_action( 'wpcd_log_error', 'We attempted to delete an incorrect post type when pruning logs.  We were supposed to delete a record of posttype ' . $post_type . ' but ID ' . (string) $post_to_delete->ID . ' is not of that post type!', 'error', __FILE__, __LINE__ );
+						}
+						// Counter increment deliberately left outside the IF statement above.  $max_posts_to_delete is really about the maximum number of loops we want to do before exiting this function.
 						if ( $counter >= $max_posts_to_delete ) {
 							break;
 						}
@@ -357,7 +379,13 @@ class WPCD_POSTS_LOG extends WPCD_Posts_Base {
 			);
 
 			foreach ( $posts_to_delete as $post_to_delete ) {
-				wp_delete_post( $post_to_delete->ID, true );
+				// Double check the post type just in case...
+				if ( $post_type === get_post_type( $post_to_delete->ID ) ) {
+					wp_delete_post( $post_to_delete->ID, true );
+				} else {
+					// Log an error because we somehow attempted to delete the wrong post type record!
+					do_action( 'wpcd_log_error', 'We attempted to delete an incorrect post type when pruning logs.  We were supposed to delete a record of posttype ' . $post_type . ' but ID ' . (string) $post_to_delete->ID . ' is not of that post type!', 'error', __FILE__, __LINE__ );
+				}
 			}
 
 			$msg = __( 'All log entries have been removed.', 'wpcd' );
@@ -370,7 +398,7 @@ class WPCD_POSTS_LOG extends WPCD_Posts_Base {
 
 
 	/**
-	 * Removes all log except unsent log entries.
+	 * Removes all logs except unsent log entries.
 	 */
 	public function remove_all_log_except_unsent_logs() {
 
@@ -413,7 +441,13 @@ class WPCD_POSTS_LOG extends WPCD_Posts_Base {
 			);
 
 			foreach ( $posts_to_delete as $post_to_delete ) {
-				wp_delete_post( $post_to_delete->ID, true );
+				// Double check the post type just in case...
+				if ( $post_type === get_post_type( $post_to_delete->ID ) ) {
+					wp_delete_post( $post_to_delete->ID, true );
+				} else {
+					// Log an error because we somehow attempted to delete the wrong post type record!
+					do_action( 'wpcd_log_error', 'We attempted to delete an incorrect post type when pruning logs.  We were supposed to delete a record of posttype ' . $post_type . ' but ID ' . (string) $post_to_delete->ID . ' is not of that post type!', 'error', __FILE__, __LINE__ );
+				}
 			}
 
 			$msg = __( 'All sent log entries have been removed.', 'wpcd' );
@@ -508,14 +542,17 @@ class WPCD_POSTS_LOG extends WPCD_Posts_Base {
 
 					// Modified WHERE.
 					$sql['where'] = sprintf(
-						' AND ( (%s) OR (%s) ) ',
+						' AND %s AND ( (%s) OR (%s) ) ',
+						$wpdb->prepare( "{$wpdb->posts}.post_type = '%s'", $post_type ),
 						$wpdb->prepare( "{$wpdb->posts}.post_title LIKE '%%%s%%'", $title ),
 						mb_substr( $sql['where'], 5, mb_strlen( $sql['where'] ) )
 					);
 
 					// Only run if post type is wpcd_command_log or wpcd_ssh_log.
 					if ( in_array( $post_type, array( 'wpcd_command_log', 'wpcd_ssh_log' ), true ) ) {
-						$server_meta_search = " OR ({$wpdb->postmeta}.meta_key = 'parent_post_id' AND {$wpdb->postmeta}.meta_value IN ( SELECT P.ID FROM {$wpdb->posts} AS P LEFT JOIN {$wpdb->postmeta} AS PM on PM.post_id = P.ID WHERE P.post_type = 'wpcd_app_server' and P.post_status = 'private' and ( ( PM.meta_key = 'wpcd_server_name' AND PM.meta_value LIKE '" . esc_sql( '%' . $wpdb->esc_like( $title ) . '%' ) . "' ) ) ) ) ";
+						$server_meta_search = ' OR ';
+
+						$server_meta_search .= $wpdb->prepare( "({$wpdb->postmeta}.meta_key = 'parent_post_id' AND {$wpdb->postmeta}.meta_value IN ( SELECT P.ID FROM {$wpdb->posts} AS P LEFT JOIN {$wpdb->postmeta} AS PM on PM.post_id = P.ID WHERE P.post_type = 'wpcd_app_server' and P.post_status = 'private' and ( ( PM.meta_key = 'wpcd_server_name' AND PM.meta_value LIKE '%s' ) ) ) ) ", esc_sql( '%' . $wpdb->esc_like( $title ) . '%' ) );
 
 						$sql['where'] .= $server_meta_search;
 					}

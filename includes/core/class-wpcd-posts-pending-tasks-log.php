@@ -428,6 +428,7 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 		$pending_task_attempts             = get_post_meta( $post->ID, 'pending_task_attempts', true );
 		$pending_task_reference            = get_post_meta( $post->ID, 'pending_task_reference', true );
 		$pending_task_history              = get_post_meta( $post->ID, 'pending_task_history', true );
+		$pending_task_messages             = get_post_meta( $post->ID, 'pending_task_messages', true );
 		$pending_task_comment              = get_post_meta( $post->ID, 'pending_task_comment', true );
 		$pending_task_start_date           = get_post_meta( $post->ID, 'pending_task_start_date', true );
 		$pending_task_complete_date        = get_post_meta( $post->ID, 'pending_task_complete_date', true );
@@ -569,7 +570,7 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 	 * @param string   $task_comment task comment.
 	 * @param bool|int $reset_start_date Date to put in the start date meta or, if set to TRUE, empty the start date meta completely.
 	 */
-	public function update_task_by_id( $id, $task_details = array(), $task_state = '', $task_reference = '', $task_comment = '', $reset_start_date = false ) {
+	public function update_task_by_id( $id, $task_details = array(), $task_state = '', $task_reference = '', $task_comment = '', $reset_start_date = false, $task_message = '' ) {
 
 		if ( ! empty( $task_details ) ) {
 			update_post_meta( $id, 'pending_task_details', $task_details );
@@ -605,6 +606,17 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 			} else {
 				// Assume we got a time and update the field with it.
 				update_post_meta( $id, 'pending_task_start_date', $reset_start_date );
+			}
+		}
+
+		// Add messages to message field.
+		if ( ! empty( $task_message ) ) {
+			if ( empty( get_post_meta( $id, 'pending_task_messages', true ) ) ) {
+				update_post_meta( $id, 'pending_task_messages', $task_message );
+			} else {
+				$old_message  = get_post_meta( $id, 'pending_task_messages', true );
+				$new_message .= '<br />' . $task_message;
+				update_post_meta( $id, 'pending_task_messages', $new_message );
 			}
 		}
 
@@ -658,7 +670,7 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 			if ( ( ! empty( get_post_meta( $server_id, 'wpcd_app_wordpress-app_action', true ) ) ) || ( ! empty( get_post_meta( $server_id, 'wpcd_app_wordpress-app_action_status', true ) ) ) ) {
 				// We really shouldn't get here but there was a bug where we were using the incorrect metas.  This is prophylactic code just in case we missed some cleanup spots.
 				return false;
-			}			
+			}
 		}
 
 		// Ok, so far the server is still available for commands.
@@ -856,33 +868,47 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 			),
 		);
 
-		$logs_found = get_posts( $pending_logs_args );
+		$logs_found       = get_posts( $pending_logs_args );
+		$logs_found_count = count( $logs_found );
+
+		$auto_trim_pending_log_limit = (int) wpcd_get_early_option( 'auto_trim_pending_log_limit' );
+
+		if ( empty( $auto_trim_pending_log_limit ) ) {
+			$auto_trim_pending_log_limit = 100;
+		}
 
 		if ( ! empty( $logs_found ) ) {
+			$count = 1;
 			foreach ( $logs_found as $key => $value ) {
-				$log_id = $value->ID;
-				update_post_meta( $log_id, 'pending_task_state', 'failed-timeout' );
 
-				// Now, we need to make sure that any metas on the app or server record that marks it as unavailable/in-process are removed.
-				$parent_post_type = get_post_meta( $log_id, 'pending_task_parent_post_type', true );
-				$parent_post_id   = get_post_meta( $log_id, 'parent_post_id', true );
-				$pending_task_comment = get_post_meta( $log_id, 'pending_task_comment', true );
-				if ( 'wpcd_app' === $parent_post_type ) {
-					do_action( 'wpcd_wordpress-app_clear_background_processes', $parent_post_id, 'clear_background_processes_via_pending_log_action' );
-				}
-				if ( 'wpcd_app_server' === $parent_post_type ) {
-					do_action( 'wpcd_wordpress-app_server_cleanup_metas', $parent_post_id, 'server_cleanup_metas_via_pending_log_action' );
-				}
+				if ( $count <= $auto_trim_pending_log_limit && $count > 0 && $auto_trim_pending_log_limit > 0 ) {
 
-				/* Translators: %s is the ID of the pending log recording being cleaned up. */
-				$message = sprintf( __( 'A pending task with id %s was marked as failed because it took too long to complete.', 'wpcd' ), (string) $log_id );
-				if ( ! empty( $pending_task_comment ) ) {
-					$message .= ' - ' . $pending_task_comment;
-				}
+					$log_id = $value->ID;
+					update_post_meta( $log_id, 'pending_task_state', 'failed-timeout' );
 
-				// Add a user friendly notification record.
-				/* Translators: %s is pending log comment message. */
-				do_action( 'wpcd_log_notification', $parent_post_id, 'alert', sprintf( __( 'Stuck pending log cleaned up successfully.(%s)', 'wpcd' ), $pending_task_comment ), 'stuck', null );
+					// Now, we need to make sure that any metas on the app or server record that marks it as unavailable/in-process are removed.
+					$parent_post_type     = get_post_meta( $log_id, 'pending_task_parent_post_type', true );
+					$parent_post_id       = get_post_meta( $log_id, 'parent_post_id', true );
+					$pending_task_comment = get_post_meta( $log_id, 'pending_task_comment', true );
+					if ( 'wpcd_app' === $parent_post_type ) {
+						do_action( 'wpcd_wordpress-app_clear_background_processes', $parent_post_id, 'clear_background_processes_via_pending_log_action' );
+					}
+					if ( 'wpcd_app_server' === $parent_post_type ) {
+						do_action( 'wpcd_wordpress-app_server_cleanup_metas', $parent_post_id, 'server_cleanup_metas_via_pending_log_action' );
+					}
+
+					/* Translators: %s is the ID of the pending log recording being cleaned up. */
+					$message = sprintf( __( 'A pending task with id %s was marked as failed because it took too long to complete.', 'wpcd' ), (string) $log_id );
+					if ( ! empty( $pending_task_comment ) ) {
+						$message .= ' - ' . $pending_task_comment;
+					}
+
+					// Add a user friendly notification record.
+					/* Translators: %s is pending log comment message. */
+					do_action( 'wpcd_log_notification', $parent_post_id, 'alert', sprintf( __( 'Stuck pending log cleaned up successfully.(%s)', 'wpcd' ), $pending_task_comment ), 'stuck', null );
+
+					$count++;
+				}
 			}
 		}
 
@@ -894,7 +920,6 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 		wp_send_json( $response, 200 );
 		exit();
 	}
-
 
 	/**
 	 * Fires on activation of plugin.

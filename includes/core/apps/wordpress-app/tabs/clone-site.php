@@ -26,6 +26,9 @@ class WPCD_WORDPRESS_TABS_CLONE_SITE extends WPCD_WORDPRESS_TABS {
 
 		add_action( "wpcd_command_{$this->get_app_name()}_completed", array( $this, 'command_completed' ), 10, 2 );
 
+		// Allow the clone action to be triggered via an action hook.  Will primarily be used by the REST API.
+		add_action( "wpcd_{$this->get_app_name()}_do_clone_site", array( $this, 'do_clone_site_action' ), 10, 2 ); // Hook: wpcd_wordpress-app_do_clone_site
+
 	}
 
 	/**
@@ -108,7 +111,7 @@ class WPCD_WORDPRESS_TABS_CLONE_SITE extends WPCD_WORDPRESS_TABS {
 							// Lets add a meta to indicate that this was a clone.
 							update_post_meta( $new_app_post_id, 'wpapp_cloned_from', $this->get_domain_name( $id ) );
 
-							// Wrapup - let things hook in here - primarily the multisite add-on.
+							// Wrapup - let things hook in here - primarily the multisite add-on and the REST API.
 							do_action( "wpcd_{$this->get_app_name()}_site_clone_new_post_completed", $new_app_post_id, $id, $name );
 
 						}
@@ -118,6 +121,10 @@ class WPCD_WORDPRESS_TABS_CLONE_SITE extends WPCD_WORDPRESS_TABS {
 				// And delete the temporary meta.
 				delete_post_meta( $id, 'wpapp_domain_clone_site_target_domain' );
 
+			} else {
+				// Add action hook to indicate failure...
+				$message = __( 'Clone Site command failed - check the command logs for more information.', 'wpcd' );
+				do_action( "wpcd_{$this->get_app_name()}_clone_site_failed", $id, $command_array[0], $message, array() );  // Keeping 4 parameters for the action hook to maintain consistency even though we have nothing for the last parameter.
 			}
 		}
 
@@ -139,7 +146,7 @@ class WPCD_WORDPRESS_TABS_CLONE_SITE extends WPCD_WORDPRESS_TABS {
 	 * Returns a string that is the name of a view TEAM permission required to view this tab.
 	 */
 	public function get_view_tab_team_permission_slug() {
-		return 'view_wpapp_site_6gfirewall_tab';
+		return 'view_wpapp_site_clone_site_tab';
 	}
 
 
@@ -227,17 +234,24 @@ class WPCD_WORDPRESS_TABS_CLONE_SITE extends WPCD_WORDPRESS_TABS {
 	 *
 	 * @param string $action The action key to send to the bash script.
 	 * @param int    $id the id of the app post being handled.
+	 * @param array  $in_args Alternative source of arguments passed via action hook or direct function call instead of pulling from $_POST.
 	 *
 	 * @return boolean|object Can return wp_error, true/false
 	 */
-	private function clone_site( $action, $id ) {
+	private function clone_site( $action, $id, $in_args = array() ) {
 
-		// Get data from the POST request.
-		$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
+		if ( empty( $in_args ) ) {
+			// Get data from the POST request.
+			$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
+		} else {
+			$args = $in_args;
+		}
 
 		// Bail if certain things are empty...
 		if ( empty( $args['new_domain'] ) ) {
-			return new \WP_Error( __( 'The new domain must be provided', 'wpcd' ) );
+			$message = __( 'The new domain must be provided', 'wpcd' );
+			do_action( "wpcd_{$this->get_app_name()}_clone_site_failed", $id, $action, $message, $args );
+			return new \WP_Error( $message );
 		} else {
 			$new_domain         = strtolower( sanitize_text_field( $args['new_domain'] ) );
 			$new_domain         = wpcd_clean_domain( $new_domain );
@@ -250,7 +264,9 @@ class WPCD_WORDPRESS_TABS_CLONE_SITE extends WPCD_WORDPRESS_TABS {
 		// Bail if error.
 		if ( is_wp_error( $instance ) ) {
 			/* translators: %s is replaced with the internal action name. */
-			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
+			$message = sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action );
+			do_action( "wpcd_{$this->get_app_name()}_clone_site_failed", $id, $action, $message, $args );
+			return new \WP_Error( $message );
 		}
 
 		// sanitize the fields to allow them to be used safely on the bash command line.
@@ -286,7 +302,9 @@ class WPCD_WORDPRESS_TABS_CLONE_SITE extends WPCD_WORDPRESS_TABS {
 		// double-check just in case of errors.
 		if ( empty( $run_cmd ) || is_wp_error( $run_cmd ) ) {
 			/* translators: %s is replaced with the internal action name. */
-			return new \WP_Error( sprintf( __( 'Something went wrong - we are unable to construct a proper command for this action - %s', 'wpcd' ), $action ) );
+			$message = sprintf( __( 'Something went wrong - we are unable to construct a proper command for this action - %s', 'wpcd' ), $action );
+			do_action( "wpcd_{$this->get_app_name()}_clone_site_failed", $id, $action, $message, $args );
+			return new \WP_Error( $message );
 		}
 
 		// Stamp some data we'll need later (in the command_completed function) onto the app records.
@@ -300,6 +318,18 @@ class WPCD_WORDPRESS_TABS_CLONE_SITE extends WPCD_WORDPRESS_TABS {
 		$return = $this->run_async_command_type_2( $id, $command, $run_cmd, $instance, $action );
 
 		return $return;
+	}
+
+	/**
+	 * Trigger the site clone from an action hook.
+	 *
+	 * Action Hook: wpcd_{$this->get_app_name()}_do_clone_site | wpcd_wordpress-app_do_clone_site
+	 *
+	 * @param string $id ID of app where domain change has to take place.
+	 * @param array  $args array arguments that the change domain function needs.
+	 */
+	public function do_clone_site_action( $id, $args ) {
+		$this->clone_site( 'clone-site', $id, $args ); // Note that the 'clone-site' action string is not actually used by the bash script. It will, however, be used by success/failure action hooks.
 	}
 
 	/**

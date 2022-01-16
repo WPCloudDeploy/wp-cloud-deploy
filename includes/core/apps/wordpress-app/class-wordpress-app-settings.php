@@ -89,7 +89,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 	 */
 	public function wpcd_change_popup_header_logo( $image_url ) {
 
-		$wpcd_options  = get_option( 'wpcd_settings' );
+		$wpcd_options = get_option( 'wpcd_settings' );
 
 		// Check to see if we're not allowed to load up a logo.
 		if ( ! empty( $wpcd_options['wordpress_app_noshow_logo'] ) ) {
@@ -523,8 +523,9 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			'server_upgrade'  => __( 'Upgrades', 'wpcd' ),
 			'server-users'    => __( 'Users', 'wpcd' ),
 			'serversync'      => __( 'Server Sync', 'wpcd' ),
+			'resize'          => __( 'Resize Server', 'wpcd' ),
 		);
-		
+
 		// Let developers hook into the array here.
 		$tabs = apply_filters( 'wpcd_wordpress-app_server_tab_permissions_list', $tabs );
 
@@ -1527,11 +1528,11 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			'type'       => 'button',
 			'std'        => __( 'Reset Defaults', 'wpcd' ),
 			'attributes' => array(
-				'id'                => 'wordpress_app_reset_brand_colors',
-				'data-action'       => 'wpcd_reset_defaults_brand_colors',
-				'data-nonce'        => wp_create_nonce( 'wpcd-reset-brand-colors' ),
-				'data-loading_msg'  => __( 'Please wait...', 'wpcd' ),
-				'data-confirm'      => __( 'Are you sure you would like to reset the brand colors with defaults?', 'wpcd' ),
+				'id'               => 'wordpress_app_reset_brand_colors',
+				'data-action'      => 'wpcd_reset_defaults_brand_colors',
+				'data-nonce'       => wp_create_nonce( 'wpcd-reset-brand-colors' ),
+				'data-loading_msg' => __( 'Please wait...', 'wpcd' ),
+				'data-confirm'     => __( 'Are you sure you would like to reset the brand colors with defaults?', 'wpcd' ),
 			),
 			'tab'        => 'wordpress-app-white-label',
 		);

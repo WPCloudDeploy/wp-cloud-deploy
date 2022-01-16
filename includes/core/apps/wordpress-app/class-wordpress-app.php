@@ -355,6 +355,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs-server/sshkeys.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs-server/monitorix.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs-server/goaccess.php';
+		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs-server/resize.php';
 
 		/**
 		 * Need to add new tabs or add data to existing tabs from an add-on?
@@ -374,6 +375,10 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/rest-api/class-wpcd-rest-api-controller-sites.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/rest-api/class-wpcd-rest-api-controller-tasks.php';
 
+		// Function specific endpoints for sites - so that the main sites controller file does not get large and unwieldly.
+		require_once wpcd_path . 'includes/core/apps/wordpress-app/rest-api/class-wpcd-rest-api-controller-sites-change-domain.php';
+		require_once wpcd_path . 'includes/core/apps/wordpress-app/rest-api/class-wpcd-rest-api-controller-sites-clone-site.php';
+
 		/**
 		 * Need to add new REST API controllers from an add-on?
 		 * Then this action hook MUST be used! Otherwise, weird
@@ -381,7 +386,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		 *
 		 * Third parties that need to add a plugin to extend
 		 * the rest api by adding new controllers should
-		 * ensure that the filter a few lines above is used
+		 * ensure that the filter a few lines below is used
 		 * to add the new controller to the array so that
 		 * they can be instantiated.
 		 */
@@ -394,6 +399,8 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			array(
 				WPCD_REST_API_Controller_Servers::class,
 				WPCD_REST_API_Controller_Sites::class,
+				WPCD_REST_API_Controller_Sites_Change_Domain::class,
+				WPCD_REST_API_Controller_Sites_Clone_Site::class,
 				WPCD_REST_API_Controller_Tasks::class,
 			)
 		);
@@ -565,7 +572,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	}
 
 	/**
-	 * Returns an app ID using the postid of a server and the domain name..
+	 * Returns an app ID using the postid of a server and the domain name.
 	 *
 	 * @param int    $server_id  The server for which to locate the app post.
 	 * @param string $domain The domain for which to locate the app post on the server.
@@ -2807,7 +2814,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_REQUEST['params'] ) ) );
 			$id   = sanitize_text_field( $_REQUEST['id'] );  // Post ID of the server where the wp app is being installed.
 		} else {
-			// data is being passed in directly which means that the site is likely being provisioned via woocommerce.
+			// data is being passed in directly which means that the site is likely being provisioned via woocommerce or the REST API.
 			$id = $args['id'];
 		}
 
@@ -3000,9 +3007,44 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		* from the wp-admin area.
 		*/
 		if ( ( isset( $args['wc_user_id'] ) && empty( $args['wc_user_id'] ) ) || ( ! isset( $args['wc_user_id'] ) ) ) {
-			$post_author = get_current_user_id();
+			// Do nothing there for now.
 		} else {
 			$post_author = $args['wc_user_id'];
+		}
+
+		/**
+		 * If we still don't have a post author, then check to see if a 'user_id' element is set and use that.
+		 */
+		if ( empty( $post_author ) ) {
+			if ( isset( $args['user_id'] ) ) {
+				$post_author = $args['user_id'];
+			}
+		}
+
+		/**
+		 * If we still don't have a post author, then check to see if a 'author_email' element is set and use that.
+		 * This element might be set by a call from the REST API but, obviously, can also be set from anywhere.
+		 */
+		if ( empty( $post_author ) ) {
+			if ( isset( $args['author_email'] ) ) {
+				$author_email = $args['author_email'];
+				if ( ! empty( $author_email ) ) {
+					$user = get_user_by( 'email', $author_email );
+					if ( ! empty( $user ) ) {
+						$post_author = $user->ID;
+					}
+				}
+			}
+		}
+
+		/**
+		 * If we still don't have an author, set it to the current user.
+		 */
+		if ( empty( $post_author ) ) {
+			$post_author = get_current_user_id();
+		}
+		if ( empty( $post_author ) ) {
+			$post_author = 1;
 		}
 
 		/**

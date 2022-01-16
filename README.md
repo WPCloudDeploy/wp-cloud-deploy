@@ -91,6 +91,24 @@ Note: Even though the entire git development history isn't available on github, 
 [Friendly Release Notes](https://wpclouddeploy.com/category/release-notes/)
 
 ## Change Log ##
+4.14.0
+------
+* New: Add option to hide the owner column in the server list from non-admins.
+* New: Add option to hide the owner column in the site list from non-admins.
+* New: Add option to hide the server name data from the server compount column in the app list.
+* New: WPAPP - Add function to allow server resize for the DigitalOcean provider.
+* Tweak: WPAPP - Do not show the interval field when CRON is enabled.  This change makes it less confusing as to the process for changing cron intervals.
+* Tweak: WPAPP - Significant changes to how crons work especially when multiple sites are installed on a server.
+* Tweak: WPAPP - Updated redis script has better ability to detect when redis fails to install properly.
+* Tweak: WPAPP - Move app tab permissions for teams into their own column on the edit teams screen.
+* Tweak: WPAPP - Added some prophylactic checks around post types before deleting log posts.
+* Tweak: WPAPP - Set individual limits for each log.
+* Fix: WPAPP - Clone site tab was using the incorrect permissions name under teams.
+* Fix: WPAPP - Search on ssh and other log screens would sometimes return results from other post types.
+* Dev: WPAPP - Various fixes to the existing REST API endpoints.
+* Dev: WPAPP - New REST API endpoints for changing domain and cloning sites.
+* Other: Minimium version of WP is now 5.4.
+
 4.13.0
 ------
 * New: WPAPP - Add option for HTTP AUTHENTICATION for just the wp-login page.

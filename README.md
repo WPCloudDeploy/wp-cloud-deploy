@@ -107,7 +107,7 @@ Note: Even though the entire git development history isn't available on github, 
 * Fix: WPAPP - Search on ssh and other log screens would sometimes return results from other post types.
 * Dev: WPAPP - Various fixes to the existing REST API endpoints.
 * Dev: WPAPP - New REST API endpoints for changing domain and cloning sites.
-* Other: Minimium version of WP is now 5.4.
+* Other: Minimum version of WP is now 5.4.
 
 4.13.0
 ------

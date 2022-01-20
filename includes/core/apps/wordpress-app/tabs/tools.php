@@ -23,6 +23,9 @@ class WPCD_WORDPRESS_TABS_TOOLS extends WPCD_WORDPRESS_TABS {
 		add_filter( "wpcd_app_{$this->get_app_name()}_get_tabs", array( $this, 'get_tab_fields' ), 10, 2 );
 		add_filter( "wpcd_app_{$this->get_app_name()}_tab_action", array( $this, 'tab_action' ), 10, 3 );
 
+		// Allow add new wp-admin action to be triggered via an action hook.
+		add_action( "wpcd_{$this->get_app_name()}_add_new_wp_admin", array( $this, 'do_add_admin_user_action' ), 10, 2 ); // Hook:wpcd_wordpress-app_add_new_wp_admin.
+
 		// Allow the clear_background_processes action to be triggered via an action hook.
 		add_action( 'wpcd_wordpress-app_clear_background_processes', array( $this, 'clear_background_processes' ), 10, 2 );
 
@@ -188,7 +191,7 @@ class WPCD_WORDPRESS_TABS_TOOLS extends WPCD_WORDPRESS_TABS {
 		);
 
 		$actions['tools-enable-debug-log'] = array(
-			'label'          => __( 'Enable the Debug Log', 'wpcd' ),
+			'label'          => '',
 			'raw_attributes' => array(
 				'std'  => __( 'Enable It', 'wpcd' ),
 				'desc' => __( 'Turn on the WordPress debug log. Messages will go directly to the debug.log file located in the wp-content folder.  Nothing will be shown on the screen.', 'wpcd' ),
@@ -197,7 +200,7 @@ class WPCD_WORDPRESS_TABS_TOOLS extends WPCD_WORDPRESS_TABS {
 		);
 
 		$actions['tools-disable-debug-log'] = array(
-			'label'          => __( 'Disable the Debug Log', 'wpcd' ),
+			'label'          => '',
 			'raw_attributes' => array(
 				'std'  => __( 'Disable It', 'wpcd' ),
 				'desc' => __( 'Turn off the WordPress debug log. The existing file will remain behind in the wp-content folder. You should erase it as soon as possible since it may contain sensitive information.', 'wpcd' ),
@@ -263,7 +266,7 @@ class WPCD_WORDPRESS_TABS_TOOLS extends WPCD_WORDPRESS_TABS {
 		);
 
 		$actions['tools-reset-site-file-permissions'] = array(
-			'label'          => __( 'Reset File Permissions', 'wpcd' ),
+			'label'          => '',
 			'raw_attributes' => array(
 				'std'                 => __( 'Reset', 'wpcd' ),
 				'desc'                => __( 'Reset file permissions for this site.', 'wpcd' ),
@@ -282,7 +285,7 @@ class WPCD_WORDPRESS_TABS_TOOLS extends WPCD_WORDPRESS_TABS {
 		);
 
 		$actions['tools-edd-nginx-add'] = array(
-			'label'          => __( 'Add NGINX Rules for EDD', 'wpcd' ),
+			'label'          => '',
 			'raw_attributes' => array(
 				'std'                 => __( 'Add EDD Rules', 'wpcd' ),
 				'desc'                => __( 'Add the EDD Rules for the NGINX web server.', 'wpcd' ),
@@ -306,7 +309,7 @@ class WPCD_WORDPRESS_TABS_TOOLS extends WPCD_WORDPRESS_TABS {
 			$confirmation_prompt = __( 'Are you sure you would like to reset the list of restricted PHP functions for this site?', 'wpcd' );
 
 			$actions['tools-update-restricted-php-functions'] = array(
-				'label'          => __( 'Reset Restricted PHP Functions', 'wpcd' ),
+				'label'          => '',
 				'raw_attributes' => array(
 					'std'                 => __( 'Reset', 'wpcd' ),
 					'desc'                => __( 'Add the most recent list of restricted PHP functions to your site.', 'wpcd' ),
@@ -330,7 +333,7 @@ class WPCD_WORDPRESS_TABS_TOOLS extends WPCD_WORDPRESS_TABS {
 		$confirmation_prompt = __( 'Are you sure you would like to clear and reset all background processes for this site?', 'wpcd' );
 
 		$actions['tools-clear-background-processes'] = array(
-			'label'          => __( 'Clear background processes', 'wpcd' ),
+			'label'          => '',
 			'raw_attributes' => array(
 				'std'                 => __( 'Clear', 'wpcd' ),
 				'desc'                => __( 'Remove all metas that trigger background processes, thereby resetting them.', 'wpcd' ),
@@ -420,18 +423,26 @@ class WPCD_WORDPRESS_TABS_TOOLS extends WPCD_WORDPRESS_TABS {
 	 *
 	 * @param int    $id     The postID of the app cpt.
 	 * @param string $action The action to be performed (this matches the string required in the bash scripts).
+	 * @param array  $in_args Alternative source of arguments passed via action hook or direct function call instead of pulling from $_POST.
 	 *
 	 * @return boolean|WP_Error    success/failure
 	 */
-	private function add_admin_user( $id, $action ) {
+	private function add_admin_user( $id, $action, $in_args = array() ) {
 
+		if ( empty( $in_args ) ) {
+			// Get data from the POST request.
+			$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
+		} else {
+			$args = $in_args;
+		}
+
+		// Get app/server details.
 		$instance = $this->get_app_instance_details( $id );
 
+		// Bail if no app/server details.
 		if ( is_wp_error( $instance ) ) {
 			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
 		}
-
-		$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
 
 		// Check to make sure that all required fields have values.
 		if ( ! $args['add_admin_user_name'] ) {
@@ -665,6 +676,18 @@ class WPCD_WORDPRESS_TABS_TOOLS extends WPCD_WORDPRESS_TABS {
 
 		return $success;
 
+	}
+
+	/**
+	 * Trigger the site clone from an action hook.
+	 *
+	 * Action Hook: wpcd_{$this->get_app_name()}_add_new_wp_admin | wpcd_wordpress-app_add_new_wp_admin
+	 *
+	 * @param string $id ID of app where domain change has to take place.
+	 * @param array  $args array arguments that the add admin function needs.
+	 */
+	public function do_add_admin_user_action( $id, $args ) {
+		$this->add_admin_user( $id, 'add_admin', $args );
 	}
 
 }

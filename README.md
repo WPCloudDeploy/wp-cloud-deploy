@@ -91,6 +91,10 @@ Note: Even though the entire git development history isn't available on github, 
 [Friendly Release Notes](https://wpclouddeploy.com/category/release-notes/)
 
 ## Change Log ##
+4.14.1
+------
+* Dev: WPAPP - Add_admin_user for a site action can now be called directly via an action hook.
+
 4.14.0
 ------
 * New: Add option to hide the owner column in the server list from non-admins.

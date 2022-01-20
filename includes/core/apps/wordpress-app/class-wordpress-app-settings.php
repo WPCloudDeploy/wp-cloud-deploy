@@ -368,6 +368,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			'theme-and-plugin-updates' => __( 'Site Updates', 'wpcd' ),
 			'tools'                    => __( 'Tools', 'wpcd' ),
 			'tweaks'                   => __( 'Tweaks', 'wpcd' ),
+			'wp-site-users'            => __( 'WP Site Users', 'wpcd' ),
 			'multisite'                => __( 'Multisite', 'wpcd' ),
 		);
 

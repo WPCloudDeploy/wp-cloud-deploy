@@ -669,7 +669,7 @@ class WPCD_WORDPRESS_TABS_TOOLS extends WPCD_WORDPRESS_TABS {
 			return new \WP_Error( sprintf( __( 'Unable to %1$s site: %2$s', 'wpcd' ), $action, $result ) );
 		} else {
 			$success = array(
-				'msg'     => __( 'The file permisions for this site has been reset.', 'wpcd' ),
+				'msg'     => __( 'The file permissions for this site has been reset.', 'wpcd' ),
 				'refresh' => 'yes',
 			);
 		}

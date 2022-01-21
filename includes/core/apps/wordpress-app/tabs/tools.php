@@ -639,7 +639,7 @@ class WPCD_WORDPRESS_TABS_TOOLS extends WPCD_WORDPRESS_TABS {
 			do_action( "wpcd_{$this->get_app_name()}_update_wp_site_option_failed", $id, $action, $message, $args );
 			return new \WP_Error( $message );
 		} else {
-			// Sanitize the option name for use on the command line.
+			// Sanitize the option name for use on the linux command line.
 			$args['wps_option'] = escapeshellarg( $args['wps_option'] );
 		}
 		if ( ! $args['wps_new_option_value'] ) {
@@ -647,7 +647,7 @@ class WPCD_WORDPRESS_TABS_TOOLS extends WPCD_WORDPRESS_TABS {
 			do_action( "wpcd_{$this->get_app_name()}_update_wp_site_option_failed", $id, $action, $message, $args );
 			return new \WP_Error( $message );
 		} else {
-			// Sanitize the option name for use on the command line.
+			// Sanitize the option name for use on the linux command line.
 			$args['wps_new_option_value'] = escapeshellarg( $args['wps_new_option_value'] );
 		}
 

@@ -1415,6 +1415,10 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				$return =
 				( strpos( $result, 'Updated Option Value' ) !== false );
 				break;
+			case 'change_wp_email_address.txt':
+				$return =
+				( strpos( $result, 'Updated user email address for user' ) !== false );
+				break;
 
 			/**************************************************************
 			* The items below this are SERVER items, not APP items        *
@@ -2155,6 +2159,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				);
 				break;
 			case 'update_wp_site_option.txt':
+			case 'change_wp_email_address.txt':
 				$new_array = array_merge(
 					array(
 						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/30-wp_site_things.txt',

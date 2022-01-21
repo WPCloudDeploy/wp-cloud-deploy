@@ -94,7 +94,7 @@ Note: Even though the entire git development history isn't available on github, 
 4.14.1
 ------
 * New: WPAPP - Add function to update certain WP site options.
-* New: WPAPP - Add function to change email address for a site user.
+* New: WPAPP - Add function to change email address and password for an existing site user.
 * Tweak: WPAPP - Move the ADD WP ADMIN function to a new WP SITE USERS tab.
 * Tweak: WPAPP - Change the default order of the array used to list UBUNTU versions so that 20.04 is first.
 * Tweak: WPAPP - Updated list of WP versions.

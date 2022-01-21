@@ -48,7 +48,8 @@ while [[ -z $action ]]; do
 	echo "   02) Delete a user from a site"
 	echo "   03) Delete all users with a role"
 	echo "   04) Change email address for user"
-	echo "   05) Update a site option"
+	echo "   05) Change all credentials - email and password"
+	echo "   06) Update a site option"
     echo
     read -p "Action: " action
     until [[ -z "$action" || "$action" =~ ^[1-9]$ ]]; do
@@ -176,7 +177,39 @@ Example: admin@example.com"
     exit
 fi
 
-if [[ $action == "wp_site_update_option" || $action == "5" ]]; then
+if [[ $action == "wp_site_change_credentials" || $action == "5" ]]; then
+
+    select_domain
+    user_name=$(echo $domain | cut -c1-32)
+
+    if [[ -z $wps_user ]]; then
+        echo
+        echo "Which user would you like to work with? You can specify an email address or a user id or a user name"
+        read -p "User id, email or username: " wps_user
+    fi
+	
+    if [[ -z $wps_new_email ]]; then
+        echo
+        echo "Specify a new email address for the WordPress user
+Example: admin@example.com"
+        read -p "Email address: " wps_new_email
+    fi
+	
+    if [[ -z $wps_new_password ]]; then
+        echo
+        echo "Specify a new password for the WordPress user"
+        read -p "New user password: " wps_new_password
+    fi		
+	
+    cd /var/www/$domain/html/
+    su - $user_name -c "wp --skip-plugins user update $wps_user --user_email=$wps_new_email --user_pass=$wps_new_password"
+
+    echo
+    echo "Updated credentials for user $wps_user on $domain"
+    exit
+fi
+
+if [[ $action == "wp_site_update_option" || $action == "6" ]]; then
 
     select_domain
     user_name=$(echo $domain | cut -c1-32)

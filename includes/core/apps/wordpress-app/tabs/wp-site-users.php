@@ -26,8 +26,8 @@ class WPCD_WORDPRESS_TABS_WP_SITE_USERS extends WPCD_WORDPRESS_TABS {
 		// Allow add new wp-admin action to be triggered via an action hook.
 		add_action( "wpcd_{$this->get_app_name()}_add_new_wp_admin", array( $this, 'do_add_admin_user_action' ), 10, 2 ); // Hook:wpcd_wordpress-app_add_new_wp_admin.
 
-		// Allow change email address action to be triggered via an action hook.
-		add_action( "wpcd_{$this->get_app_name()}_change_wp_email_address", array( $this, 'do_change_email_addresss_action' ), 10, 2 ); // Hook:wpcd_wordpress-app_change_wp_email_address.
+		// Allow change credentials action to be triggered via an action hook.
+		add_action( "wpcd_{$this->get_app_name()}_change_wp_credentials", array( $this, 'do_change_wp_credentials_action' ), 10, 2 ); // Hook:wpcd_wordpress-app_change_wp_credentials.
 
 	}
 
@@ -96,7 +96,7 @@ class WPCD_WORDPRESS_TABS_WP_SITE_USERS extends WPCD_WORDPRESS_TABS {
 		}
 
 		/* Now verify that the user can perform actions on this screen, assuming that they can view the server */
-		$valid_actions = array( 'wpsiteusers-add-admin-user', 'wpsiteusers-change-email-address' );
+		$valid_actions = array( 'wpsiteusers-add-admin-user', 'wpsiteusers-change-credentials' );
 		if ( in_array( $action, $valid_actions, true ) ) {
 			if ( false === $this->wpcd_wpapp_site_user_can( $this->get_view_tab_team_permission_slug(), $id ) && false === $this->wpcd_can_author_view_site_tab( $id, $this->get_tab_slug() ) ) {
 				return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
@@ -109,9 +109,9 @@ class WPCD_WORDPRESS_TABS_WP_SITE_USERS extends WPCD_WORDPRESS_TABS {
 					$action = 'add_admin';
 					$result = $this->add_admin_user( $id, $action );
 					break;
-				case 'wpsiteusers-change-email-address':
-					$action = 'wp_site_change_user_email';
-					$result = $this->change_email_Address( $id, $action );
+				case 'wpsiteusers-change-credentials':
+					$action = 'wp_site_change_credentials';
+					$result = $this->change_wp_credentials( $id, $action );
 					break;
 			}
 		}
@@ -196,41 +196,51 @@ class WPCD_WORDPRESS_TABS_WP_SITE_USERS extends WPCD_WORDPRESS_TABS {
 			'type'           => 'button',
 		);
 
-		/* CHANGE EMAIL ADDRESS FOR EXISTING USER */
-		$actions['wpsiteusers-change-email-address-header'] = array(
-			'label'          => __( 'Change Email Address', 'wpcd' ),
+		/* CHANGE CREDENTIALS FOR EXISTING USER */
+		$actions['wpsiteusers-change-credentials-header'] = array(
+			'label'          => __( 'Change User Credentials', 'wpcd' ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
-				'desc' => __( 'Change the email address for an existing user', 'wpcd' ),
+				'desc' => __( 'Change the email address, password and username for an existing user', 'wpcd' ),
 			),
 		);
 
-		$actions['wpsiteusers-change-email-address-user-id'] = array(
-			'label'          => __( 'User Name', 'wpcd' ),
+		$actions['wpsiteusers-change-credentials-user-id'] = array(
+			'label'          => __( 'Existing User', 'wpcd' ),
 			'raw_attributes' => array(
-				'desc'           => __( 'Enter the user name, user id or email address for the user whose email address will be changed.', 'wpcd' ),
+				'desc'           => __( 'Enter the user name, user id or email address for the user whose credentials will be changed.', 'wpcd' ),
 				'data-wpcd-name' => 'wps_user',
 			),
 			'type'           => 'text',
-		);
+		);        
 
-		$actions['wpsiteusers-change-email-address-new-email'] = array(
-			'label'          => __( 'Email', 'wpcd' ),
+		$actions['wpsiteusers-change-credentials-new-email'] = array(
+			'label'          => __( 'New Email', 'wpcd' ),
 			'raw_attributes' => array(
 				'desc'           => __( 'Enter the new email address for this user', 'wpcd' ),
-				'data-wpcd-name' => 'wps_email',
+				'data-wpcd-name' => 'wps_new_email',
 				'size'           => 90,
 			),
 			'type'           => 'text',
 		);
 
-		$actions['wpsiteusers-change-email-address'] = array(
+		$actions['wpsiteusers-change-credentials-new-pw'] = array(
+			'label'          => __( 'New Password', 'wpcd' ),
+			'raw_attributes' => array(
+				'desc'           => __( 'Enter the new password for this user', 'wpcd' ),
+				'data-wpcd-name' => 'wps_new_password',
+				'size'           => 90,
+			),
+			'type'           => 'text',
+		);
+
+		$actions['wpsiteusers-change-credentials'] = array(
 			'label'          => '',
 			'raw_attributes' => array(
-				'std'                 => __( 'Change Email Address', 'wpcd' ),
-				'confirmation_prompt' => __( 'Are you sure you would like to change the email address for this user?', 'wpcd' ),
+				'std'                 => __( 'Update Credentials', 'wpcd' ),
+				'confirmation_prompt' => __( 'Are you sure you would like to update the credentials for this user?', 'wpcd' ),
 				// fields that contribute data for this action.
-				'data-wpcd-fields'    => json_encode( array( '#wpcd_app_action_wpsiteusers-change-email-address-user-id', '#wpcd_app_action_wpsiteusers-change-email-address-new-email' ) ),
+				'data-wpcd-fields'    => json_encode( array( '#wpcd_app_action_wpsiteusers-change-credentials-user-id', '#wpcd_app_action_wpsiteusers-change-credentials-new-email', '#wpcd_app_action_wpsiteusers-change-credentials-new-pw' ) ),
 			),
 			'type'           => 'button',
 		);
@@ -338,7 +348,7 @@ class WPCD_WORDPRESS_TABS_WP_SITE_USERS extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
-	 * Change email address for existing user.
+	 * Change credentials for existing user.
 	 *
 	 * @param int    $id     The postID of the app cpt.
 	 * @param string $action The action to be performed (this matches the string required in the bash scripts).
@@ -346,7 +356,7 @@ class WPCD_WORDPRESS_TABS_WP_SITE_USERS extends WPCD_WORDPRESS_TABS {
 	 *
 	 * @return boolean|WP_Error    success/failure
 	 */
-	private function change_email_address( $id, $action, $in_args = array() ) {
+	private function change_wp_credentials( $id, $action, $in_args = array() ) {
 
 		if ( empty( $in_args ) ) {
 			// Get data from the POST request.
@@ -362,33 +372,42 @@ class WPCD_WORDPRESS_TABS_WP_SITE_USERS extends WPCD_WORDPRESS_TABS {
 		if ( is_wp_error( $instance ) ) {
 			/* Translators: %s is the action name. */
 			$message = sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action );
-			do_action( "wpcd_{$this->get_app_name()}_change_email_address_failed", $id, $action, $message, $args );
+			do_action( "wpcd_{$this->get_app_name()}_change_wp_credentials_failed", $id, $action, $message, $args );
 			return new \WP_Error( $message );
 		}
 
 		// Check to make sure that all required fields have values.
 		if ( ! $args['wps_user'] ) {
 			$message = __( 'The user cannot be blank - it must be the user id, user name or email address for the existing user.', 'wpcd' );
-			do_action( "wpcd_{$this->get_app_name()}_change_email_address_failed", $id, $action, $message, $args );
+			do_action( "wpcd_{$this->get_app_name()}_change_wp_credentials_failed", $id, $action, $message, $args );
 			return new \WP_Error( $message );
 		} else {
 			// Sanitize the option name for use on the linux command line.
 			$args['wps_user'] = escapeshellarg( $args['wps_user'] );
 		}
 
-		if ( ! $args['wps_email'] ) {
+		if ( ! $args['wps_new_email'] ) {
 			$message = __( 'The new email address cannot be blank.', 'wpcd' );
-			do_action( "wpcd_{$this->get_app_name()}_change_email_address_failed", $id, $action, $message, $args );
+			do_action( "wpcd_{$this->get_app_name()}_change_wp_credentials_failed", $id, $action, $message, $args );
 			return new \WP_Error( $message );
 		} else {
 			// Sanitize the option name for use on the linux command line.
-			$args['wps_email'] = escapeshellarg( $args['wps_email'] );
+			$args['wps_new_email'] = escapeshellarg( $args['wps_new_email'] );
 		}
+
+		if ( ! $args['wps_new_password'] ) {
+			$message = __( 'The new password cannot be blank.', 'wpcd' );
+			do_action( "wpcd_{$this->get_app_name()}_change_wp_credentials_failed", $id, $action, $message, $args );
+			return new \WP_Error( $message );
+		} else {
+			// Sanitize the option name for use on the linux command line.
+			$args['wps_new_password'] = escapeshellarg( $args['wps_new_password'] );
+		}        
 
 		// Get the full command to be executed by ssh.
 		$run_cmd = $this->turn_script_into_command(
 			$instance,
-			'change_wp_email_address.txt',
+			'change_wp_credentials.txt',
 			array_merge(
 				$args,
 				array(
@@ -405,21 +424,21 @@ class WPCD_WORDPRESS_TABS_WP_SITE_USERS extends WPCD_WORDPRESS_TABS {
 		do_action( 'wpcd_log_error', sprintf( 'attempting to run command for %s = %s ', print_r( $instance, true ), $run_cmd ), 'trace', __FILE__, __LINE__, $instance, false );
 
 		$result  = $this->execute_ssh( 'generic', $instance, array( 'commands' => $run_cmd ) );
-		$success = $this->is_ssh_successful( $result, 'change_wp_email_address.txt' );
+		$success = $this->is_ssh_successful( $result, 'change_wp_credentials.txt' );
 
 		if ( ! $success ) {
 			/* Translators: %1$s is the action; %2$s is the result of the ssh call. */
 			$message = sprintf( __( 'Unable to %1$s site: %2$s', 'wpcd' ), $action, $result );
-			do_action( "wpcd_{$this->get_app_name()}_change_email_address_failed", $id, $action, $message, $args );
+			do_action( "wpcd_{$this->get_app_name()}_change_wp_credentials_failed", $id, $action, $message, $args );
 			return new \WP_Error( $message );
 		} else {
 			$success = array(
-				'msg'     => __( 'The email address has been changed.', 'wpcd' ),
+				'msg'     => __( 'The credentials for the specified user have been changed.', 'wpcd' ),
 				'refresh' => 'yes',
 			);
 
 			// Let others know we've been successful.
-			do_action( "wpcd_{$this->get_app_name()}_change_email_address_successful", $id, $action, $args );
+			do_action( "wpcd_{$this->get_app_name()}_change_wp_credentials_successful", $id, $action, $args );
 		}
 
 		return $success;
@@ -439,15 +458,15 @@ class WPCD_WORDPRESS_TABS_WP_SITE_USERS extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
-	 * Trigger the change email address action from an action hook.
+	 * Trigger the change credentials action from an action hook.
 	 *
-	 * Action Hook: wpcd_{$this->get_app_name()}_change_wp_email_address | wpcd_wordpress-app_change_wp_email_address.
+	 * Action Hook: wpcd_{$this->get_app_name()}_change_wp_credentails | wpcd_wordpress-app_change_wp_credentials
 	 *
 	 * @param string $id ID of app where domain change has to take place.
 	 * @param array  $args array arguments that the add admin function needs.
 	 */
-	public function do_change_email_addresss_action( $id, $args ) {
-		$this->change_email_address( $id, 'add_admin', $args );
+	public function do_change_wp_credentials_action( $id, $args ) {
+		$this->change_wp_credentials( $id, 'wp_site_change_credentials', $args );
 	}
 
 }

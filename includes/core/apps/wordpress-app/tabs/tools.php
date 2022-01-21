@@ -26,6 +26,9 @@ class WPCD_WORDPRESS_TABS_TOOLS extends WPCD_WORDPRESS_TABS {
 		// Allow the clear_background_processes action to be triggered via an action hook.
 		add_action( 'wpcd_wordpress-app_clear_background_processes', array( $this, 'clear_background_processes' ), 10, 2 );
 
+		// Allow update wp site option action to be triggered via an action hook.
+		add_action( "wpcd_{$this->get_app_name()}_update_wp_site_option", array( $this, 'do_update_wp_site_option_action' ), 10, 2 ); // Hook:wpcd_wordpress-app_update_wp_site_option
+
 	}
 
 	/**
@@ -690,15 +693,15 @@ class WPCD_WORDPRESS_TABS_TOOLS extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
-	 * Trigger the site clone from an action hook.
+	 * Trigger the update wp site option action from an action hook.
 	 *
-	 * Action Hook: wpcd_{$this->get_app_name()}_add_new_wp_admin | wpcd_wordpress-app_add_new_wp_admin
+	 * Action Hook: wpcd_{$this->get_app_name()}_update_wp_site_option | wpcd_wordpress-app_update_wp_site_option
 	 *
 	 * @param string $id ID of app where domain change has to take place.
 	 * @param array  $args array arguments that the add admin function needs.
 	 */
-	public function do_add_admin_user_action( $id, $args ) {
-		$this->add_admin_user( $id, 'add_admin', $args );
+	public function do_update_wp_site_option_action( $id, $args ) {
+		$this->update_wp_site_option( $id, 'wp_site_update_option', $args );
 	}
 
 }

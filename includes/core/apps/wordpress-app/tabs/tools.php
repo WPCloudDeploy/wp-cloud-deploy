@@ -93,7 +93,7 @@ class WPCD_WORDPRESS_TABS_TOOLS extends WPCD_WORDPRESS_TABS {
 		}
 
 		/* Now verify that the user can perform actions on this screen, assuming that they can view the server */
-		$valid_actions = array( 'tools-clear-background-processes', 'tools-enable-debug-log', 'tools-disable-debug-log', 'tools-edd-nginx-add', 'tools-update-restricted-php-functions', 'tools-reset-site-file-permissions' );
+		$valid_actions = array( 'tools-clear-background-processes', 'tools-enable-debug-log', 'tools-disable-debug-log', 'tools-edd-nginx-add', 'tools-update-restricted-php-functions', 'tools-reset-site-file-permissions', 'tools-wp-site-option' );
 		if ( in_array( $action, $valid_actions, true ) ) {
 			if ( false === $this->wpcd_wpapp_site_user_can( $this->get_view_tab_team_permission_slug(), $id ) && false === $this->wpcd_can_author_view_site_tab( $id, $this->get_tab_slug() ) ) {
 				return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
@@ -137,6 +137,10 @@ class WPCD_WORDPRESS_TABS_TOOLS extends WPCD_WORDPRESS_TABS {
 				case 'tools-reset-site-file-permissions':
 					$action = 'reset_permissions';
 					$result = $this->reset_file_permissions( $id, $action );
+					break;
+				case 'tools-wp-site-option':
+					$action = 'wp_site_update_option';
+					$result = $this->update_wp_site_option( $id, $action );
 					break;
 
 			}
@@ -200,7 +204,6 @@ class WPCD_WORDPRESS_TABS_TOOLS extends WPCD_WORDPRESS_TABS {
 			),
 			'type'           => 'button',
 		);
-
 
 		/* RESET SITE PERMISSIONS */
 		$actions['tools-edd-reset-site-permissions-header'] = array(
@@ -288,8 +291,59 @@ class WPCD_WORDPRESS_TABS_TOOLS extends WPCD_WORDPRESS_TABS {
 			'type'           => 'button',
 		);
 
+		/* WP SITE OPTIONS */
+		$actions['tools-wp-site-option-header'] = array(
+			'label'          => __( 'Update WP Site Options', 'wpcd' ),
+			'type'           => 'heading',
+			'raw_attributes' => array(
+				'desc' => __( 'Update certain site options. Note that you should be able to change all these options from directly inside your site so there is rarely a need to use this function..', 'wpcd' ),
+			),
+		);
+
+		$actions['tools-wp-site-option-name'] = array(
+			'label'          => __( 'Option Name', 'wpcd' ),
+			'raw_attributes' => array(
+				'desc'           => __( 'Select the option', 'wpcd' ),
+				'options'        => $this->get_site_options_list(),
+				'data-wpcd-name' => 'wps_option',
+			),
+			'type'           => 'select',
+		);
+
+		$actions['tools-wp-site-option-value'] = array(
+			'label'          => __( 'Option Value', 'wpcd' ),
+			'raw_attributes' => array(
+				'desc'           => __( 'Enter the value for the option', 'wpcd' ),
+				'data-wpcd-name' => 'wps_new_option_value',
+			),
+			'type'           => 'text',
+		);
+
+		$actions['tools-wp-site-option'] = array(
+			'label'          => '',
+			'raw_attributes' => array(
+				'std'                 => __( 'Update Site Option', 'wpcd' ),
+				'confirmation_prompt' => __( 'Are you sure you would like to update this site option?', 'wpcd' ),
+				// fields that contribute data for this action.
+				'data-wpcd-fields'    => json_encode( array( '#wpcd_app_action_tools-wp-site-option-name', '#wpcd_app_action_tools-wp-site-option-value' ) ),
+			),
+			'type'           => 'button',
+		);
+
 		return $actions;
 
+	}
+
+	/**
+	 * Get the list of site options that we're going to allow users to update.
+	 */
+	public function get_site_options_list() {
+		$options_list = array(
+			'admin_email'      => __( 'Site Admin Email Address', 'wpcd' ),
+			'default_role'     => __( 'Default Role', 'wpcd' ),
+			'timezone_string ' => __( 'Timezone String', 'wpcd' ),
+		);
+		return $options_list;
 	}
 
 
@@ -429,7 +483,7 @@ class WPCD_WORDPRESS_TABS_TOOLS extends WPCD_WORDPRESS_TABS {
 		}
 
 		// List of functions to remove - ***should be NO spaces between the commas!***.
-		/*      $remove_functions = "'dl, exec, fpassthru, getmypid, getmyuid, highlight_file, ignore_user_abort, link, opcache_get_configuration, passthru, pcntl_exec, pcntl_get_last_error, pcntl_setpriority, pcntl_strerror, pcntl_wifcontinued, php_uname, phpinfo, popen, posix_ctermid, posix_getcwd, posix_getegid, posix_geteuid, posix_getgid, posix_getgrgid, posix_getgrnam, posix_getgroups, posix_getlogin, posix_getpgid, posix_getpgrp, posix_getpid, posix_getppid, posix_getpwnam, posix_getpwuid, posix_getrlimit, posix_getsid, posix_getuid, posix_isatty, posix_kill, posix_mkfifo, posix_setegid, posix_seteuid, posix_setgid, posix_setpgid, posix_setsid, posix_setuid, posix_times, posix_ttyname, posix_uname, proc_close, proc_get_status, proc_nice, proc_open, proc_terminate, shell_exec, show_source, source, system, virtual, set_time_limit, tmpfile, posix, listen, set_time_limit, php_uname, disk_free_space, diskfreespace, opcache_compile_file, opcache_invalidate, opcache_is_script_cached, pcntl_alarm, pcntl_fork, socket_listen, pcntl_getpriority, pcntl_signal, pcntl_signal_dispatch, pcntl_sigprocmask, pcntl_sigtimedwait, pcntl_sigwaitinfo, pcntl_waitpidpcntl_wait, pcntl_wexitstatus, pcntl_wifexited, pcntl_wifsignaled, pcntl_wifstopped, pcntl_wstopsig, pcntl_wtermsig'"; */
+		/* $remove_functions = "'dl, exec, fpassthru, getmypid, getmyuid, highlight_file, ignore_user_abort, link, opcache_get_configuration, passthru, pcntl_exec, pcntl_get_last_error, pcntl_setpriority, pcntl_strerror, pcntl_wifcontinued, php_uname, phpinfo, popen, posix_ctermid, posix_getcwd, posix_getegid, posix_geteuid, posix_getgid, posix_getgrgid, posix_getgrnam, posix_getgroups, posix_getlogin, posix_getpgid, posix_getpgrp, posix_getpid, posix_getppid, posix_getpwnam, posix_getpwuid, posix_getrlimit, posix_getsid, posix_getuid, posix_isatty, posix_kill, posix_mkfifo, posix_setegid, posix_seteuid, posix_setgid, posix_setpgid, posix_setsid, posix_setuid, posix_times, posix_ttyname, posix_uname, proc_close, proc_get_status, proc_nice, proc_open, proc_terminate, shell_exec, show_source, source, system, virtual, set_time_limit, tmpfile, posix, listen, set_time_limit, php_uname, disk_free_space, diskfreespace, opcache_compile_file, opcache_invalidate, opcache_is_script_cached, pcntl_alarm, pcntl_fork, socket_listen, pcntl_getpriority, pcntl_signal, pcntl_signal_dispatch, pcntl_sigprocmask, pcntl_sigtimedwait, pcntl_sigwaitinfo, pcntl_waitpidpcntl_wait, pcntl_wexitstatus, pcntl_wifexited, pcntl_wifsignaled, pcntl_wifstopped, pcntl_wstopsig, pcntl_wtermsig'"; */
 		$remove_functions = "'dl,exec,fpassthru,getmypid,getmyuid,highlight_file,ignore_user_abort,link,opcache_get_configuration,passthru,pcntl_exec,pcntl_get_last_error,pcntl_setpriority,pcntl_strerror,pcntl_wifcontinued,php_uname,phpinfo,popen,posix_ctermid,posix_getcwd,posix_getegid,posix_geteuid,posix_getgid,posix_getgrgid,posix_getgrnam,posix_getgroups,posix_getlogin,posix_getpgid,posix_getpgrp,posix_getpid,posix_getppid,posix_getpwnam,posix_getpwuid,posix_getrlimit,posix_getsid,posix_getuid,posix_isatty,posix_kill,posix_mkfifo,posix_setegid,posix_seteuid,posix_setgid,posix_setpgid,posix_setsid,posix_setuid,posix_times,posix_ttyname,posix_uname,proc_close,proc_get_status,proc_nice,proc_open,proc_terminate,shell_exec,show_source,source,system,virtual,set_time_limit,tmpfile,posix,listen,set_time_limit,php_uname,disk_free_space,diskfreespace,opcache_compile_file,opcache_invalidate,opcache_is_script_cached,pcntl_alarm,pcntl_fork,socket_listen,pcntl_getpriority,pcntl_signal,pcntl_signal_dispatch,pcntl_sigprocmask,pcntl_sigtimedwait,pcntl_sigwaitinfo,pcntl_waitpidpcntl_wait,pcntl_wexitstatus,pcntl_wifexited,pcntl_wifsignaled,pcntl_wifstopped,pcntl_wstopsig,pcntl_wtermsig,leak'";
 
 		// Get the full command to be executed by ssh.
@@ -538,6 +592,113 @@ class WPCD_WORDPRESS_TABS_TOOLS extends WPCD_WORDPRESS_TABS {
 
 		return $success;
 
+	}
+
+	/**
+	 * Update a site option.
+	 *
+	 * @param int    $id     The postID of the app cpt.
+	 * @param string $action The action to be performed (this matches the string required in the bash scripts).
+	 * @param array  $in_args Alternative source of arguments passed via action hook or direct function call instead of pulling from $_POST.
+	 *
+	 * @return boolean|WP_Error    success/failure
+	 */
+	private function update_wp_site_option( $id, $action, $in_args = array() ) {
+
+		if ( empty( $in_args ) ) {
+			// Get data from the POST request.
+			$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
+		} else {
+			$args = $in_args;
+		}
+
+		// Get app/server details.
+		$instance = $this->get_app_instance_details( $id );
+
+		// Bail if no app/server details.
+		if ( is_wp_error( $instance ) ) {
+			/* Translators: %s is the action name. */
+			$message = sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action );
+			do_action( "wpcd_{$this->get_app_name()}_update_wp_site_option_failed", $id, $action, $message, $args );
+			return new \WP_Error( $message );
+		}
+
+		// Make sure the option is in the approved list.
+		if ( ! in_array( $args['wps_option'], array_keys( $this->get_site_options_list() ), true ) ) {
+			$message = __( 'The option name is invalid - possible security issue.', 'wpcd' );
+			do_action( "wpcd_{$this->get_app_name()}_update_wp_site_option_failed", $id, $action, $message, $args );
+			return new \WP_Error( $message );
+		}
+
+		// Check to make sure that all required fields have values.
+		if ( ! $args['wps_option'] ) {
+			$message = __( 'The option name cannot be blank.', 'wpcd' );
+			do_action( "wpcd_{$this->get_app_name()}_update_wp_site_option_failed", $id, $action, $message, $args );
+			return new \WP_Error( $message );
+		} else {
+			// Sanitize the option name for use on the command line.
+			$args['wps_option'] = escapeshellarg( $args['wps_option'] );
+		}
+		if ( ! $args['wps_new_option_value'] ) {
+			$message = __( 'The new option value cannot be blank.', 'wpcd' );
+			do_action( "wpcd_{$this->get_app_name()}_update_wp_site_option_failed", $id, $action, $message, $args );
+			return new \WP_Error( $message );
+		} else {
+			// Sanitize the option name for use on the command line.
+			$args['wps_new_option_value'] = escapeshellarg( $args['wps_new_option_value'] );
+		}
+
+		// Get the full command to be executed by ssh.
+		$run_cmd = $this->turn_script_into_command(
+			$instance,
+			'update_wp_site_option.txt',
+			array_merge(
+				$args,
+				array(
+					'action' => $action,
+					'domain' => get_post_meta(
+						$id,
+						'wpapp_domain',
+						true
+					),
+				)
+			)
+		);
+
+		do_action( 'wpcd_log_error', sprintf( 'attempting to run command for %s = %s ', print_r( $instance, true ), $run_cmd ), 'trace', __FILE__, __LINE__, $instance, false );
+
+		$result  = $this->execute_ssh( 'generic', $instance, array( 'commands' => $run_cmd ) );
+		$success = $this->is_ssh_successful( $result, 'update_wp_site_option.txt' );
+
+		if ( ! $success ) {
+			/* Translators: %1$s is the action; %2$s is the result of the ssh call. */
+			$message = sprintf( __( 'Unable to %1$s site: %2$s', 'wpcd' ), $action, $result );
+			do_action( "wpcd_{$this->get_app_name()}_update_wp_site_option_failed", $id, $action, $message, $args );
+			return new \WP_Error( $message );
+		} else {
+			$success = array(
+				'msg'     => __( 'The site option was updated.', 'wpcd' ),
+				'refresh' => 'yes',
+			);
+
+			// Let others know we've been successful.
+			do_action( "wpcd_{$this->get_app_name()}_update_wp_site_option_successful", $id, $action, $args );
+		}
+
+		return $success;
+
+	}
+
+	/**
+	 * Trigger the site clone from an action hook.
+	 *
+	 * Action Hook: wpcd_{$this->get_app_name()}_add_new_wp_admin | wpcd_wordpress-app_add_new_wp_admin
+	 *
+	 * @param string $id ID of app where domain change has to take place.
+	 * @param array  $args array arguments that the add admin function needs.
+	 */
+	public function do_add_admin_user_action( $id, $args ) {
+		$this->add_admin_user( $id, 'add_admin', $args );
 	}
 
 }

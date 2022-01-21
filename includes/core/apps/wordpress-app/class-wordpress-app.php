@@ -1411,6 +1411,10 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				$return =
 				( strpos( $result, 'File upload limits have been changed for' ) !== false );
 				break;
+			case 'update_wp_site_option.txt':
+				$return =
+				( strpos( $result, 'Updated Option Value' ) !== false );
+				break;
 
 			/**************************************************************
 			* The items below this are SERVER items, not APP items        *
@@ -2145,6 +2149,16 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 					array(
 						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/10-misc.txt',
 						'SCRIPT_NAME' => '10-misc.sh',
+					),
+					$common_array,
+					$additional
+				);
+				break;
+			case 'update_wp_site_option.txt':
+				$new_array = array_merge(
+					array(
+						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/30-wp_site_things.txt',
+						'SCRIPT_NAME' => '30-wp_site_things.sh',
 					),
 					$common_array,
 					$additional

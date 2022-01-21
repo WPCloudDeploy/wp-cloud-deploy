@@ -23,11 +23,14 @@ class WPCD_WORDPRESS_TABS_WP_SITE_USERS extends WPCD_WORDPRESS_TABS {
 		add_filter( "wpcd_app_{$this->get_app_name()}_get_tabs", array( $this, 'get_tab_fields' ), 10, 2 );
 		add_filter( "wpcd_app_{$this->get_app_name()}_tab_action", array( $this, 'tab_action' ), 10, 3 );
 
-		// Allow add new wp-admin action to be triggered via an action hook.
+		// Allow add new admin action to be triggered via an action hook.
 		add_action( "wpcd_{$this->get_app_name()}_add_new_wp_admin", array( $this, 'do_add_admin_user_action' ), 10, 2 ); // Hook:wpcd_wordpress-app_add_new_wp_admin.
 
 		// Allow change credentials action to be triggered via an action hook.
 		add_action( "wpcd_{$this->get_app_name()}_change_wp_credentials", array( $this, 'do_change_wp_credentials_action' ), 10, 2 ); // Hook:wpcd_wordpress-app_change_wp_credentials.
+
+		// Allow add new user action to be triggered via an action hook.
+		add_action( "wpcd_{$this->get_app_name()}_add_new_wp_user", array( $this, 'do_add_user_action' ), 10, 2 ); // Hook:wpcd_wordpress-app_add_new_wp_user.
 
 	}
 
@@ -56,7 +59,7 @@ class WPCD_WORDPRESS_TABS_WP_SITE_USERS extends WPCD_WORDPRESS_TABS {
 	public function get_tab( $tabs, $id ) {
 		if ( true === $this->wpcd_wpapp_site_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_site_tab( $id, $this->get_tab_slug() ) ) {
 			$tabs[ $this->get_tab_slug() ] = array(
-				'label' => __( 'WP Site Users', 'wpcd' ),
+				'label' => __( 'Users', 'wpcd' ),
 				'icon'  => 'fad fa-users-crown',
 			);
 		}
@@ -96,7 +99,7 @@ class WPCD_WORDPRESS_TABS_WP_SITE_USERS extends WPCD_WORDPRESS_TABS {
 		}
 
 		/* Now verify that the user can perform actions on this screen, assuming that they can view the server */
-		$valid_actions = array( 'wpsiteusers-add-admin-user', 'wpsiteusers-change-credentials' );
+		$valid_actions = array( 'wpsiteusers-add-admin-user', 'wpsiteusers-change-credentials', 'wpsiteusers-add-user' );
 		if ( in_array( $action, $valid_actions, true ) ) {
 			if ( false === $this->wpcd_wpapp_site_user_can( $this->get_view_tab_team_permission_slug(), $id ) && false === $this->wpcd_can_author_view_site_tab( $id, $this->get_tab_slug() ) ) {
 				return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
@@ -112,6 +115,10 @@ class WPCD_WORDPRESS_TABS_WP_SITE_USERS extends WPCD_WORDPRESS_TABS {
 				case 'wpsiteusers-change-credentials':
 					$action = 'wp_site_change_credentials';
 					$result = $this->change_wp_credentials( $id, $action );
+					break;
+				case 'wpsiteusers-add-user':
+					$action = 'wp_site_add_user';
+					$result = $this->add_user( $id, $action );
 					break;
 			}
 		}
@@ -201,7 +208,7 @@ class WPCD_WORDPRESS_TABS_WP_SITE_USERS extends WPCD_WORDPRESS_TABS {
 			'label'          => __( 'Change User Credentials', 'wpcd' ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
-				'desc' => __( 'Change the email address, password and username for an existing user', 'wpcd' ),
+				'desc' => __( 'Change the email address, password and username for an existing user on this site.', 'wpcd' ),
 			),
 		);
 
@@ -212,7 +219,7 @@ class WPCD_WORDPRESS_TABS_WP_SITE_USERS extends WPCD_WORDPRESS_TABS {
 				'data-wpcd-name' => 'wps_user',
 			),
 			'type'           => 'text',
-		);        
+		);
 
 		$actions['wpsiteusers-change-credentials-new-email'] = array(
 			'label'          => __( 'New Email', 'wpcd' ),
@@ -241,6 +248,64 @@ class WPCD_WORDPRESS_TABS_WP_SITE_USERS extends WPCD_WORDPRESS_TABS {
 				'confirmation_prompt' => __( 'Are you sure you would like to update the credentials for this user?', 'wpcd' ),
 				// fields that contribute data for this action.
 				'data-wpcd-fields'    => json_encode( array( '#wpcd_app_action_wpsiteusers-change-credentials-user-id', '#wpcd_app_action_wpsiteusers-change-credentials-new-email', '#wpcd_app_action_wpsiteusers-change-credentials-new-pw' ) ),
+			),
+			'type'           => 'button',
+		);
+
+		/* ADD REGULAR USER */
+		$actions['wpsiteusers-add-user-header'] = array(
+			'label'          => __( 'Add A User', 'wpcd' ),
+			'type'           => 'heading',
+			'raw_attributes' => array(
+				'desc' => __( 'Add a user to this site.', 'wpcd' ),
+			),
+		);
+
+		$actions['wpsiteusers-add-user-name'] = array(
+			'label'          => __( 'User Name', 'wpcd' ),
+			'raw_attributes' => array(
+				'desc'           => __( 'Enter the user name for the new user', 'wpcd' ),
+				'data-wpcd-name' => 'wps_user',
+			),
+			'type'           => 'text',
+		);
+
+		$actions['wpsiteusers-add-user-pw'] = array(
+			'label'          => __( 'Password', 'wpcd' ),
+			'raw_attributes' => array(
+				'desc'           => __( 'Enter the password for the new', 'wpcd' ),
+				'data-wpcd-name' => 'wps_password',
+			),
+			'type'           => 'text',
+		);
+
+		$actions['wpsiteusers-add-user-email'] = array(
+			'label'          => __( 'Email', 'wpcd' ),
+			'raw_attributes' => array(
+				'desc'           => __( 'Enter the email address for the new user', 'wpcd' ),
+				'data-wpcd-name' => 'wps_email',
+				'size'           => 90,
+			),
+			'type'           => 'text',
+		);
+
+		$actions['wpsiteusers-add-user-role'] = array(
+			'label'          => __( 'Role', 'wpcd' ),
+			'raw_attributes' => array(
+				'desc'           => __( 'Enter the new user\'s role', 'wpcd' ),
+				'data-wpcd-name' => 'wps_role',
+				'size'           => 90,
+			),
+			'type'           => 'text',
+		);
+
+		$actions['wpsiteusers-add-user'] = array(
+			'label'          => '',
+			'raw_attributes' => array(
+				'std'                 => __( 'Add New User', 'wpcd' ),
+				'confirmation_prompt' => __( 'Are you sure you would like to add this user to this site?', 'wpcd' ),
+				// fields that contribute data for this action.
+				'data-wpcd-fields'    => json_encode( array( '#wpcd_app_action_wpsiteusers-add-user-name', '#wpcd_app_action_wpsiteusers-add-user-pw', '#wpcd_app_action_wpsiteusers-add-user-email', '#wpcd_app_action_wpsiteusers-add-user-role' ) ),
 			),
 			'type'           => 'button',
 		);
@@ -348,6 +413,112 @@ class WPCD_WORDPRESS_TABS_WP_SITE_USERS extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
+	 * Add a new regular user to the site.
+	 *
+	 * @param int    $id     The postID of the app cpt.
+	 * @param string $action The action to be performed (this matches the string required in the bash scripts).
+	 * @param array  $in_args Alternative source of arguments passed via action hook or direct function call instead of pulling from $_POST.
+	 *
+	 * @return boolean|WP_Error    success/failure
+	 */
+	private function add_user( $id, $action, $in_args = array() ) {
+
+		if ( empty( $in_args ) ) {
+			// Get data from the POST request.
+			$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
+		} else {
+			$args = $in_args;
+		}
+
+		// Get app/server details.
+		$instance = $this->get_app_instance_details( $id );
+
+		// Bail if no app/server details.
+		if ( is_wp_error( $instance ) ) {
+			/* Translators: %s is the action name. */
+			$message = sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action );
+			do_action( "wpcd_{$this->get_app_name()}_add_wp_user_failed", $id, $action, $message, $args );
+			return new \WP_Error( $message );
+		}
+
+		// Check to make sure that all required fields have values.
+		if ( ! $args['wps_user'] ) {
+			$message = __( 'The username for the new user cannot be blank.', 'wpcd' );
+			do_action( "wpcd_{$this->get_app_name()}_add_wp_user_failed", $id, $action, $message, $args );
+			return new \WP_Error( $message );
+		}
+		if ( ! $args['wps_password'] ) {
+			$message = __( 'The password for the new user cannot be blank.', 'wpcd' );
+			do_action( "wpcd_{$this->get_app_name()}_add_wp_user_failed", $id, $action, $message, $args );
+			return new \WP_Error( $message );
+		}
+		if ( ! $args['wps_email'] ) {
+			$message = __( 'The email address for the new user cannot be blank.', 'wpcd' );
+			do_action( "wpcd_{$this->get_app_name()}_add_wp_user_failed", $id, $action, $message, $args );
+			return new \WP_Error( $message );
+		}
+		if ( ! $args['wps_role'] ) {
+			$message = __( 'The role for the new user cannot be blank.', 'wpcd' );
+			do_action( "wpcd_{$this->get_app_name()}_add_wp_user_failed", $id, $action, $message, $args );
+			return new \WP_Error( $message );
+		}
+
+		// Special sanitization for data elements that are going to be passed to the shell scripts.
+		if ( isset( $args['wps_user'] ) ) {
+			$args['wps_user'] = escapeshellarg( $args['wps_user'] );
+		}
+		if ( isset( $args['wps_password'] ) ) {
+			$args['wps_password'] = escapeshellarg( $args['wps_password'] );
+		}
+		if ( isset( $args['wps_email'] ) ) {
+			$args['wps_email'] = escapeshellarg( $args['wps_email'] );
+		}
+		if ( isset( $args['wps_role'] ) ) {
+			$args['wps_role'] = escapeshellarg( $args['wps_role'] );
+		}
+
+		// Get the full command to be executed by ssh.
+		$run_cmd = $this->turn_script_into_command(
+			$instance,
+			'add_wp_user.txt',
+			array_merge(
+				$args,
+				array(
+					'action' => $action,
+					'domain' => get_post_meta(
+						$id,
+						'wpapp_domain',
+						true
+					),
+				)
+			)
+		);
+
+		do_action( 'wpcd_log_error', sprintf( 'attempting to run command for %s = %s ', print_r( $instance, true ), $run_cmd ), 'trace', __FILE__, __LINE__, $instance, false );
+
+		$result  = $this->execute_ssh( 'generic', $instance, array( 'commands' => $run_cmd ) );
+		$success = $this->is_ssh_successful( $result, 'add_wp_user.txt' );
+
+		if ( ! $success ) {
+			/* Translators: %1$s is the action; %2$s is the result of the ssh call. */
+			$message = sprintf( __( 'Unable to %1$s site: %2$s', 'wpcd' ), $action, $result );
+			do_action( "wpcd_{$this->get_app_name()}_add_wp_user_failed", $id, $action, $message, $args );
+			return new \WP_Error( $message );
+		} else {
+			$success = array(
+				'msg'     => __( 'The new user has been added to this site.', 'wpcd' ),
+				'refresh' => 'yes',
+			);
+
+			// Let others know we've been successful.
+			do_action( "wpcd_{$this->get_app_name()}_add_wp_user_successful", $id, $action, $args );
+		}
+
+		return $success;
+
+	}
+
+	/**
 	 * Change credentials for existing user.
 	 *
 	 * @param int    $id     The postID of the app cpt.
@@ -402,7 +573,7 @@ class WPCD_WORDPRESS_TABS_WP_SITE_USERS extends WPCD_WORDPRESS_TABS {
 		} else {
 			// Sanitize the option name for use on the linux command line.
 			$args['wps_new_password'] = escapeshellarg( $args['wps_new_password'] );
-		}        
+		}
 
 		// Get the full command to be executed by ssh.
 		$run_cmd = $this->turn_script_into_command(
@@ -468,6 +639,19 @@ class WPCD_WORDPRESS_TABS_WP_SITE_USERS extends WPCD_WORDPRESS_TABS {
 	public function do_change_wp_credentials_action( $id, $args ) {
 		$this->change_wp_credentials( $id, 'wp_site_change_credentials', $args );
 	}
+
+	/**
+	 * Trigger the add user action from an action hook.
+	 *
+	 * Action Hook: wpcd_{$this->get_app_name()}_add_new_wp_user | wpcd_wordpress-app_add_new_wp_user
+	 *
+	 * @param string $id ID of app where domain change has to take place.
+	 * @param array  $args array arguments that the add admin function needs.
+	 */
+	public function do_add_user_action( $id, $args ) {
+		$this->add_user( $id, 'wp_site_add_user', $args );
+	}
+
 
 }
 

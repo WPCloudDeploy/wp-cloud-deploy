@@ -93,6 +93,8 @@ Note: Even though the entire git development history isn't available on github, 
 ## Change Log ##
 4.14.1
 ------
+* New: Add support for enabling/disabling DigitalOcean image backups when the server is created.
+* New: Add support for setting tags at DigitalOcean when server is created.
 * New: WPAPP - Add function to update certain WP site options.
 * New: WPAPP - Add function to change email address and password for an existing site user.
 * New: WPAPP - Add function to add a user to a site.

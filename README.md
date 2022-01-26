@@ -101,6 +101,7 @@ Note: Even though the entire git development history isn't available on github, 
 * New: WPAPP - Add option for 2 minute and 3 minute linux crons.
 * Tweak: WPAPP - Move the ADD WP ADMIN function to a new WP SITE USERS tab.
 * Tweak: WPAPP - Change the default order of the array used to list UBUNTU versions so that 20.04 is first.
+* Tweak: WPAPP - When removing a site make sure we remove entries in the wp-backup.conf and wpcron.txt files.
 * Tweak: WPAPP - Updated list of WP versions.
 * Dev: WPAPP - Add_admin_user for a site action can now be called directly via an action hook.
 * Dev: Update the metabox.io tabs add-on to the latest version - fixes a horizontal tab overflow issue.

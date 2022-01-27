@@ -91,7 +91,7 @@ Note: Even though the entire git development history isn't available on github, 
 [Friendly Release Notes](https://wpclouddeploy.com/category/release-notes/)
 
 ## Change Log ##
-4.14.1
+4.14.2
 ------
 * New: Add support for enabling/disabling DigitalOcean image backups when the server is created.
 * New: Add support for setting tags at DigitalOcean when server is created.

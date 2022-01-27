@@ -56,6 +56,12 @@ class CLOUD_PROVIDER_API_DigitalOcean_Parent extends CLOUD_PROVIDER_API {
 		$this->set_feature_flag( 'snapshot-delete', false );  // We can't support this in DigitalOcean because the create snapshot api or subsequent endpoints do not actually return the snapshot ID.
 		$this->set_feature_flag( 'snapshot-list', true );
 
+		/* Set flag that indicates we will support provider level backups on server creation */
+		$this->set_feature_flag( 'enable_backups_on_server_create', true );
+
+		/* Set flag that indicates we will support provider level dynamic tags on server creation */
+		$this->set_feature_flag( 'enable_dynamic_tags_on_server_create', true );
+
 		/* Set the flag that indicates we support resize operations */
 		$this->set_feature_flag( 'resize', true );
 
@@ -193,6 +199,14 @@ class CLOUD_PROVIDER_API_DigitalOcean_Parent extends CLOUD_PROVIDER_API {
 				$region = $attributes['region'];
 				$name   = $attributes['name'];
 
+				$backups = (bool) wpcd_get_option( 'vpn_' . $this->get_provider_slug() . '_enable_provider_backups_on_server_create' );
+				$backups = empty( $backups ) ? 'false' : 'true';
+
+				$tags = wpcd_get_option( 'vpn_' . $this->get_provider_slug() . '_tags_on_server_create' );
+				if ( empty( $tags ) ) {
+					$tags = 'wpcd';
+				}
+
 				/* Get run commands - these are automatically executed upon server creation */
 				$run_cmd = apply_filters( 'wpcd_cloud_provider_run_cmd', $run_cmd, $attributes );  // Someone else needs to tell us what to run upon server start up otherwise only a basic server install will be done.
 				$run_cmd = apply_filters( 'wpcd_cloud_provider_run_cmd_' . $this->get_provider_slug(), $run_cmd, $attributes ); // just in case running a command on startup is dependent on the provider.
@@ -204,7 +218,8 @@ class CLOUD_PROVIDER_API_DigitalOcean_Parent extends CLOUD_PROVIDER_API {
 "size": "' . $size . '",
 "image": "' . $image . '",
 "ssh_keys": [' . wpcd_get_option( 'vpn_' . $this->get_provider_slug() . '_sshkey_id' ) . '],
-"backups": true,
+"backups":"' . $backups . '",
+"tags": "' . $tags . '",
 "monitoring": true,
 "user_data": "
 #cloud-config

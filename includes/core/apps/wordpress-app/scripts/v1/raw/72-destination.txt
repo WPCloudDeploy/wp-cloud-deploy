@@ -86,9 +86,9 @@ sed -i '/Unattended-Upgrade::Allowed-Origins /a "LP-PPA-ondrej-php:${distro_code
 
 
 
-wget https://github.com/wp-cli/builds/raw/gh-pages/deb/php-wpcli_2.5.0_all.deb
-dpkg -i php-wpcli_2.5.0_all.deb
-rm -f php-wpcli_2.5.0_all.deb
+wget https://github.com/wp-cli/builds/raw/gh-pages/deb/php-wpcli_2.6.0_all.deb
+dpkg -i php-wpcli_2.6.0_all.deb
+rm -f php-wpcli_2.6.0_all.deb
 wp cli update --yes  --allow-root > /dev/null 2>&1
 
 # if aws cli is not present, install it

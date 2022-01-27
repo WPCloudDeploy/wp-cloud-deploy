@@ -47,7 +47,7 @@ Features of the plugin include:
 
 ## Requirements ##
 * WordPress 5.6 or later
-* PHP 7.4 (8.0 is not supported)
+* PHP 7.4 (8.x is not yet supported primarily because many server provider PHP API wrappers and some of our PHP dependencies do not support it (yet).)
 
 Once the plugin is installed please view additional changes required to PHP and web server execution timeout values under the WPCLOUDDEPLOY->SETTINGS->GENERAL SETTINGS tab.
 You can also view all requirements at the bottom of our [getting started documentation](https://wpclouddeploy.com/documentation/wpcloud-deploy/introduction-to-wpcloud-deploy/) or in the [requirements documentation](https://wpclouddeploy.com/documentation/wpcloud-deploy/requirements/)
@@ -91,6 +91,24 @@ Note: Even though the entire git development history isn't available on github, 
 [Friendly Release Notes](https://wpclouddeploy.com/category/release-notes/)
 
 ## Change Log ##
+4.15.0
+------
+* New: Add support for enabling/disabling DigitalOcean image backups when the server is created.
+* New: Add support for setting tags at DigitalOcean when server is created.
+* New: WPAPP - Add function to update certain WP site options.
+* New: WPAPP - Add function to change email address and password for an existing site user.
+* New: WPAPP - Add function to add a user to a site.
+* New: WPAPP - Add option for 2 minute and 3 minute linux crons.
+* Tweak: WPAPP - Move the ADD WP ADMIN function to a new WP SITE USERS tab.
+* Tweak: WPAPP - Change the default order of the array used to list UBUNTU versions so that 20.04 is first.
+* Tweak: WPAPP - When removing a site make sure we remove entries in the wp-backup.conf and wpcron.txt files.
+* Tweak: WPAPP - Updated list of WP versions.
+* Tweak: WPAPP - New servers now install wp-cli 2.6; optional upgrade function to allow upgrades to wp-cli 2.6.
+* Tweak: WPAPP - Disable PHPMyAdmin if certain components of the 6G and 7G firewall are enabled.
+* Tweak: WPAPP - Remove some extraneous text in the 6G and 7G firewall tabs.
+* Dev: WPAPP - Add_admin_user for a site action can now be called directly via an action hook.
+* Dev: Update the metabox.io tabs add-on to the latest version - fixes a horizontal tab overflow issue.
+
 4.14.0
 ------
 * New: Add option to hide the owner column in the server list from non-admins.
@@ -107,7 +125,7 @@ Note: Even though the entire git development history isn't available on github, 
 * Fix: WPAPP - Search on ssh and other log screens would sometimes return results from other post types.
 * Dev: WPAPP - Various fixes to the existing REST API endpoints.
 * Dev: WPAPP - New REST API endpoints for changing domain and cloning sites.
-* Other: Minimium version of WP is now 5.4.
+* Other: Minimum version of WP is now 5.4.
 
 4.13.0
 ------

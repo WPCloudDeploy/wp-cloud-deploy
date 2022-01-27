@@ -405,9 +405,11 @@ if [[ $action == "enable_system_cron" || $action == "13" ]]; then
     while [[ -z $schedule ]]; do
         echo "How often do you want it to run?"
         echo "   1) Every minute"
-        echo "   2) Every 5 minutes"
-        echo "   3) Every 15 minutes"
-        echo "   4) Every hour"
+		echo "   2) Every two minutes"
+		echo "   3) Every three minutes"
+        echo "   4) Every 5 minutes"
+        echo "   5) Every 15 minutes"
+        echo "   6) Every hour"
         echo
         read -p "Schedule: " schedule
         while [[ -z "$schedule" ]]; do
@@ -431,16 +433,24 @@ if [[ $action == "enable_system_cron" || $action == "13" ]]; then
     if [[ $schedule == "1" || $schedule == "1m" ]]; then
 	echo "$domain 1 $is_network" >> /usr/local/bin/wpcron.txt
     fi
+	
+    if [[ $schedule == "2" || $schedule == "2m" ]]; then
+	echo "$domain 2 $is_network" >> /usr/local/bin/wpcron.txt
+    fi
+	
+    if [[ $schedule == "3" || $schedule == "3m" ]]; then
+	echo "$domain 3 $is_network" >> /usr/local/bin/wpcron.txt
+    fi	
 
-    if [[ $schedule == "2" || $schedule == "5m" ]]; then
+    if [[ $schedule == "4" || $schedule == "5m" ]]; then
 	echo "$domain 5 $is_network" >> /usr/local/bin/wpcron.txt
     fi
 
-    if [[ $schedule == "3" || $schedule == "15m" ]]; then
+    if [[ $schedule == "5" || $schedule == "15m" ]]; then
 	echo "$domain 15 $is_network" >> /usr/local/bin/wpcron.txt
     fi
 
-    if [[ $schedule == "4" || $schedule == "1h" ]]; then
+    if [[ $schedule == "6" || $schedule == "1h" ]]; then
 	echo "$domain 60 $is_network" >> /usr/local/bin/wpcron.txt
     fi
 	

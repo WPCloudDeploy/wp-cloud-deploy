@@ -181,6 +181,8 @@ class WPCD_WORDPRESS_TABS_CRONS extends WPCD_WORDPRESS_TABS {
 				'raw_attributes' => array(
 					'options'        => array(
 						'1m'  => '1 Minute',
+						'2m'  => '2 Minutes',
+						'3m'  => '3 Minutes',
 						'5m'  => '5 Minutes',
 						'15m' => '15 Minutes',
 						'1h'  => '1 Hour / 60 Minutes',

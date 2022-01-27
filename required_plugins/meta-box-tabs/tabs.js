@@ -37,8 +37,11 @@
 	function showValidateErrorFields() {
 		var inputSelectors = 'input[class*="rwmb-error"], textarea[class*="rwmb-error"], select[class*="rwmb-error"], button[class*="rwmb-error"]';
 		$( document ).on( 'after_validate', 'form', e => {
-			var $input = $( e.target ).find( inputSelectors );
-			showTab( $input, $input.closest( '.rwmb-tab-panel' ).data( 'panel' ) );
+			var $input = $( e.target ).find( inputSelectors ),
+				$panel = $input.closest( '.rwmb-tab-panel' );
+			if ( $panel.length ) {
+				showTab( $input, $panel.data( 'panel' ) );
+			}
 		} );
 	}
 

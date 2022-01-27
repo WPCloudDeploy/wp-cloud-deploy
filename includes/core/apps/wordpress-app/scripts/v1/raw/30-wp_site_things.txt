@@ -1,0 +1,235 @@
+#!/bin/bash
+if [[ "$EUID" -ne 0 ]]; then
+	echo "Sorry, you need to run this as root"
+	exit
+fi
+
+
+
+# for options where changes are applied to the filesystem
+select_domain () {
+while [[ -z $domain ]]; do
+    clear
+    echo "Please, select which site you want to work with"
+    ls /var/www | grep -v html | nl
+    echo
+    read -p "Select site: " site_number
+    number_of_sites=$(ls /var/www | grep -v html | wc -l)
+    until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
+    	echo "$site_number: invalid selection."
+    	read -p "Select site: " site_number
+    done
+    domain=$(ls /var/www | grep -v html | sed -n "$site_number"p)
+done
+}
+
+
+# for options where changes are applied to the NGINX configuration
+select_domain_mu () {
+while [[ -z $domain ]]; do
+    echo
+    echo "Please, select which site you want to work with"
+    echo
+    ls /etc/nginx/sites-enabled/ | grep -v '^default$\|^monit$\|^monitorix$' | nl
+    read -p "Select site: " site_number
+    number_of_sites=$(ls /etc/nginx/sites-enabled/ | grep -v '^default$\|^monit$\|^monitorix$' | wc -l)
+    until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
+    	echo "$site_number: invalid selection."
+    	read -p "Select site: " site_number
+    done
+    domain=$(ls /etc/nginx/sites-enabled/ | grep -v '^default$\|^monit$\|^monitorix$' | sed -n "$site_number"p)
+done
+}
+
+
+while [[ -z $action ]]; do
+    echo "What do you want to do?"
+    echo "   01) Add a a new user to a site"
+	echo "   02) Delete a user from a site"
+	echo "   03) Delete all users with a role"
+	echo "   04) Change email address for user"
+	echo "   05) Change all credentials - email and password"
+	echo "   06) Update a site option"
+    echo
+    read -p "Action: " action
+    until [[ -z "$action" || "$action" =~ ^[1-9]$ ]]; do
+    	echo "$action: invalid selection."
+    	read -p "Action: " action
+    done
+done
+
+
+
+if [[ $action == "wp_site_add_user" || $action == "1" ]]; then
+
+    select_domain
+    user_name=$(echo $domain | cut -c1-32)
+
+    if [[ -z $wps_user ]]; then
+        echo
+        echo "Specify a user name for the new WordPress user
+Example: james"
+        read -p "Admin user name: " wps_user
+    fi
+
+    if [[ -z $wps_password ]]; then
+        echo
+        echo "Specify a password for the new WordPress user"
+        read -p "Admin user password: " wps_password
+    fi
+
+    if [[ -z $wps_email ]]; then
+        echo
+        echo "Specify an email address for the new WordPress user
+Example: admin@example.com"
+        read -p "Email address: " wps_email
+    fi
+	
+    if [[ -z $wps_role ]]; then
+        echo
+        echo "Specify Role"
+        read -p "Role: " wps_role
+    fi	
+
+    cd /var/www/$domain/html/
+    su - $user_name -c "wp --skip-plugins user create $wps_user $wps_email --role=$wps_role --user_pass=$wps_password"
+
+    echo
+    echo "Added user $wps_user to domain $domain with role $wps_role"
+    exit
+fi
+
+if [[ $action == "wp_site_delete_user" || $action == "2" ]]; then
+
+    select_domain
+    user_name=$(echo $domain | cut -c1-32)
+
+    if [[ -z $wps_user ]]; then
+        echo
+        echo "Which user would you like to delete? You can specify an email address or a user id or a user name"
+        read -p "User id, email or username: " wps_user
+    fi
+	
+    if [[ -z $wps_reassign_posts ]]; then
+        echo
+        echo "Which user id should we reassign any existing content to?"
+        read -p "User id for existing content: " wps_reassign_posts
+    fi	
+
+    cd /var/www/$domain/html/
+	su - $user_name -c "wp --skip-plugins --network --yes user delete $wps_user --reassign=$wps_reassign_posts"
+    su - $user_name -c "wp --skip-plugins --yes user delete $wps_user --reassign=$wps_reassign_posts"
+
+    echo
+    echo "Deleted user from domain $domain"
+    exit
+fi
+
+if [[ $action == "wp_site_delete_users_with_role" || $action == "3" ]]; then
+####: This doesn't work because getting the list of users with roles fails...
+    select_domain
+    user_name=$(echo $domain | cut -c1-32)
+
+    if [[ -z $wps_role ]]; then
+        echo
+        echo "Which user roles would you like to delete?  All users with this role will be deleted!"
+        read -p "Role: " wps_role
+    fi
+	
+    if [[ -z $wps_reassign_posts ]]; then
+        echo
+        echo "Which user id should we reassign any existing content to?"
+        read -p "User id for existing content: " wps_reassign_posts
+    fi	
+
+    cd /var/www/$domain/html/
+	su - $user_name -c "wp --skip-plugins --network --yes user delete $(wp user list --role=$wps_role --field=ID) --reassign=$wps_reassign_posts"
+    su - $user_name -c "wp --skip-plugins --yes user delete $(wp user list --role=$wps_role --field=ID) --reassign=$wps_reassign_posts"
+
+    echo
+    echo "Deleted users with role $wps_role from domain $domain"
+    exit
+fi
+
+if [[ $action == "wp_site_change_user_email" || $action == "4" ]]; then
+
+    select_domain
+    user_name=$(echo $domain | cut -c1-32)
+
+    if [[ -z $wps_user ]]; then
+        echo
+        echo "Which user would you like to work with? You can specify an email address or a user id or a user name"
+        read -p "User id, email or username: " wps_user
+    fi
+
+    if [[ -z $wps_email ]]; then
+        echo
+        echo "Specify a new email address for the WordPress user
+Example: admin@example.com"
+        read -p "Email address: " wps_email
+    fi
+	
+    cd /var/www/$domain/html/
+    su - $user_name -c "wp --skip-plugins user update $wps_user --user_email=$wps_email"
+
+    echo
+    echo "Updated user email address for user $wps_user on $domain"
+    exit
+fi
+
+if [[ $action == "wp_site_change_credentials" || $action == "5" ]]; then
+
+    select_domain
+    user_name=$(echo $domain | cut -c1-32)
+
+    if [[ -z $wps_user ]]; then
+        echo
+        echo "Which user would you like to work with? You can specify an email address or a user id or a user name"
+        read -p "User id, email or username: " wps_user
+    fi
+	
+    if [[ -z $wps_new_email ]]; then
+        echo
+        echo "Specify a new email address for the WordPress user
+Example: admin@example.com"
+        read -p "Email address: " wps_new_email
+    fi
+	
+    if [[ -z $wps_new_password ]]; then
+        echo
+        echo "Specify a new password for the WordPress user"
+        read -p "New user password: " wps_new_password
+    fi		
+	
+    cd /var/www/$domain/html/
+    su - $user_name -c "wp --skip-plugins user update $wps_user --user_email=$wps_new_email --user_pass=$wps_new_password"
+
+    echo
+    echo "Updated credentials for user $wps_user on $domain"
+    exit
+fi
+
+if [[ $action == "wp_site_update_option" || $action == "6" ]]; then
+
+    select_domain
+    user_name=$(echo $domain | cut -c1-32)
+
+    if [[ -z $wps_option ]]; then
+        echo
+        echo "Which option would you like to update?"
+        read -p "WP Option: " wps_option
+    fi
+	
+    if [[ -z $wps_new_option_value ]]; then
+        echo
+        echo "What is the new option value?"
+        read -p "New Option Value: " wps_new_option_value
+    fi	
+
+    cd /var/www/$domain/html/
+    su - $user_name -c "wp --skip-plugins option update $wps_option '$wps_new_option_value'"
+
+    echo
+    echo "Updated Option Value $wps_option in domain $domain"
+    exit
+fi

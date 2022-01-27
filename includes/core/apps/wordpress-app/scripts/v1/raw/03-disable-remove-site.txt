@@ -107,6 +107,9 @@ QUERY
     rm -f /etc/php/$php_version/fpm/pool.d/$domain.conf
     systemctl restart php$php_version-fpm
     userdel $user_name
+
+    sed -i "/$domain/d" /etc/wp-backup.conf > /dev/null 2>&1
+    sed -i "/$domain/d" /usr/local/bin/wpcron.txt > /dev/null 2>&1
     echo
     echo "$domain has been removed"
     exit
@@ -151,6 +154,10 @@ QUERY
     systemctl restart php$php_version-fpm
     userdel $user_name
     rm -rf ~/.wp-backup/$domain
+	
+    sed -i "/$domain/d" /etc/wp-backup.conf > /dev/null 2>&1
+    sed -i "/$domain/d" /usr/local/bin/wpcron.txt > /dev/null 2>&1
+	
     echo
     echo "$domain and its local backups have been removed"
     exit

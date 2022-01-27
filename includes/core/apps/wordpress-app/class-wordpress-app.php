@@ -300,6 +300,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/7g_firewall.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/statistics.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/logs.php';
+		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/wp-site-users.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/redirect-rules.php';
 
 		if ( defined( 'WPCD_SHOW_SITE_USERS_TAB' ) && WPCD_SHOW_SITE_USERS_TAB ) {
@@ -755,6 +756,33 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 		return false;
 	}
+	
+	/**
+	 * Returns a boolean true/false if wpcli 2.5 is installed.
+	 *
+	 * @param int $server_id ID of server being interrogated...
+	 *
+	 * @return boolean
+	 */
+	public function is_wpcli26_installed( $server_id ) {
+
+		$initial_plugin_version = $this->get_server_meta_by_app_id( $server_id, 'wpcd_server_plugin_initial_version', true );  // This function is smart enough to know if the ID being passed is a server or app id and adjust accordingly.
+
+		if ( version_compare( $initial_plugin_version, '4.14.2' ) > -1 ) {
+			// Versions of the plugin after 4.14.2 automatically install wpcli 2.6.
+			return true;
+		} else {
+			// See if it was manually upgraded - which would leave a meta field value behind on the server CPT record.
+			$it_is_installed = (float) $this->get_server_meta_by_app_id( $server_id, 'wpcd_server_wpcli_upgrade', true );   // This function is smart enough to know if the ID being passed is a server or app id and adjust accordingly.
+			if ( $it_is_installed >= 2.6 ) {
+				return true;
+			} else {
+				return false;
+			}
+		}
+
+		return false;
+	}	
 
 	/**
 	 * Returns a boolean true/false if the server is a 4.6.0 or later server or was upgraded to that version.
@@ -1409,6 +1437,18 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			case 'change_file_upload_size.txt':
 				$return =
 				( strpos( $result, 'File upload limits have been changed for' ) !== false );
+				break;
+			case 'update_wp_site_option.txt':
+				$return =
+				( strpos( $result, 'Updated Option Value' ) !== false );
+				break;
+			case 'change_wp_credentials.txt':
+				$return =
+				( strpos( $result, 'Updated credentials for user' ) !== false );
+				break;
+			case 'add_wp_user.txt':
+				$return =
+				( strpos( $result, 'Added user' ) !== false );
 				break;
 
 			/**************************************************************
@@ -2144,6 +2184,18 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 					array(
 						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/10-misc.txt',
 						'SCRIPT_NAME' => '10-misc.sh',
+					),
+					$common_array,
+					$additional
+				);
+				break;
+			case 'update_wp_site_option.txt':
+			case 'change_wp_credentials.txt':
+			case 'add_wp_user.txt':
+				$new_array = array_merge(
+					array(
+						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/30-wp_site_things.txt',
+						'SCRIPT_NAME' => '30-wp_site_things.sh',
 					),
 					$common_array,
 					$additional

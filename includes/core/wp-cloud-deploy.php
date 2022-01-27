@@ -219,8 +219,15 @@ class WP_CLOUD_DEPLOY {
 	 */
 	public function add_main_menu_page() {
 
+		// If a user can manage apps but cannot manage servers, we need to make the parent menu something other than the server CPT.
+		if ( current_user_can( 'wpcd_manage_apps' )  && ( ! current_user_can( 'wpcd_manage_servers' ) ) ) {
+			$parent_page = 'edit.php?post_type=wpcd_app';
+		} else {
+			$parent_page = 'edit.php?post_type=wpcd_app_server';
+		}
+
 		add_submenu_page(
-			'edit.php?post_type=wpcd_app_server',
+			$parent_page,
 			( defined( 'WPCD_WPAPP_MENU_NAME' ) ? WPCD_WPAPP_MENU_NAME : __( 'WordPress Sites', 'wpcd' ) ),
 			( defined( 'WPCD_WPAPP_MENU_NAME' ) ? WPCD_WPAPP_MENU_NAME : __( 'WordPress Sites', 'wpcd' ) ),
 			'wpcd_manage_apps',
@@ -564,8 +571,8 @@ class WP_CLOUD_DEPLOY {
 	 */
 	public static function get_os_list() {
 		$oslist = array(
-			'ubuntu1804lts' => __( 'Ubuntu 18.04 LTS', 'wpcd' ),
 			'ubuntu2004lts' => __( 'Ubuntu 20.04 LTS', 'wpcd' ),
+			'ubuntu1804lts' => __( 'Ubuntu 18.04 LTS', 'wpcd' ),
 		);
 		return apply_filters( 'wpcd_os_list', $oslist );
 	}

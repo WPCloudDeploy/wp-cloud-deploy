@@ -310,6 +310,38 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 			return array_merge( $fields, $this->get_disabled_header_field( 'database' ) );
 		}
 
+		// Bail if certain 6G or 7G firewall items are enabled.
+		$fw_6g = get_post_meta( $id, 'wpapp_6g_status', true );
+		$fw_7g = get_post_meta( $id, 'wpapp_7g_status', true );
+		if ( ! empty( $fw_6g ) && ! empty( $fw_6g['6g_query_string'] ) && 'on' === $fw_6g['6g_query_string'] ) {
+			$fields[] = array(
+				'name' => __( 'Database [Disabled]', 'wpcd' ),
+				'tab'  => 'database',
+				'type' => 'heading',
+				'desc' => __( 'You must disable the 6G firewall QUERY STRING rules before PHPMyAdmin can be used.', 'wpcd' ),
+			);
+			return $fields;
+		}
+		if ( ! empty( $fw_7g ) && ! empty( $fw_7g['7g_query_string'] ) && 'on' === $fw_7g['7g_query_string'] ) {
+			$fields[] = array(
+				'name' => __( 'Database [Disabled]', 'wpcd' ),
+				'tab'  => 'database',
+				'type' => 'heading',
+				'desc' => __( 'You must disable the 7G firewall QUERY STRING and REQUEST STRING rules before PHPMyAdmin can be used.', 'wpcd' ),
+			);
+			return $fields;
+		}
+		if ( ! empty( $fw_7g ) && ! empty( $fw_7g['7g_query_string'] ) && 'on' === $fw_7g['7g_request_string'] ) {
+			$fields[] = array(
+				'name' => __( 'Database [Disabled]', 'wpcd' ),
+				'tab'  => 'database',
+				'type' => 'heading',
+				'desc' => __( 'You must disable the 7G firewall QUERY STRING and REQUEST STRING rules before PHPMyAdmin can be used.', 'wpcd' ),
+			);
+			return $fields;
+		}
+		// End Bail if certain 6G or 7G firewall items are enabled.
+
 		$desc  = __( 'Use PHPMyAdmin to access and manage the data in your WordPress database.', 'wpcd' );
 		$desc .= '<br />';
 		$desc .= __( 'This is a very powerful tool with which you can easily corrupt your database beyond repair.', 'wpcd' );

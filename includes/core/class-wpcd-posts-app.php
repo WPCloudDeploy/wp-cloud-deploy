@@ -1219,10 +1219,8 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 	 */
 	public static function wpcd_app_register_post_and_taxonomy() {
 
-		$user = wp_get_current_user();
-		$roles = (array) $user->roles;
-
-		if ( in_array( 'wpcdappmanager', $roles, true ) && current_user_can( 'wpcd_manage_apps' ) ) {
+		// If a user can manage apps but cannot manage servers, we need to make the parent menu something other than the server CPT.
+		if ( current_user_can( 'wpcd_manage_apps' )  && ( ! current_user_can( 'wpcd_manage_servers' ) ) ) {
 			$show_in_menu = true;
 			$create_posts = 'do_not_allow';
 			$menu_name = _x( 'WPCloud Deploy', 'Admin Menu text', 'wpcd' );

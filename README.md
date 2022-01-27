@@ -47,7 +47,7 @@ Features of the plugin include:
 
 ## Requirements ##
 * WordPress 5.6 or later
-* PHP 7.4 (8.0 is not supported)
+* PHP 7.4 (8.x is not yet supported primarily because many server provider PHP API wrappers and some of our PHP dependencies do not support it (yet).)
 
 Once the plugin is installed please view additional changes required to PHP and web server execution timeout values under the WPCLOUDDEPLOY->SETTINGS->GENERAL SETTINGS tab.
 You can also view all requirements at the bottom of our [getting started documentation](https://wpclouddeploy.com/documentation/wpcloud-deploy/introduction-to-wpcloud-deploy/) or in the [requirements documentation](https://wpclouddeploy.com/documentation/wpcloud-deploy/requirements/)
@@ -91,7 +91,7 @@ Note: Even though the entire git development history isn't available on github, 
 [Friendly Release Notes](https://wpclouddeploy.com/category/release-notes/)
 
 ## Change Log ##
-4.14.2
+4.15.0
 ------
 * New: Add support for enabling/disabling DigitalOcean image backups when the server is created.
 * New: Add support for setting tags at DigitalOcean when server is created.

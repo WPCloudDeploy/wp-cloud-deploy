@@ -105,6 +105,7 @@ Note: Even though the entire git development history isn't available on github, 
 * Tweak: WPAPP - Updated list of WP versions.
 * Tweak: WPAPP - New servers now install wp-cli 2.6; optional upgrade function to allow upgrades to wp-cli 2.6.
 * Tweak: WPAPP - Disable PHPMyAdmin if certain components of the 6G and 7G firewall are enabled.
+* Tweak: WPAPP - Remove some extraneous text in the 6G and 7G firewall tabs.
 * Dev: WPAPP - Add_admin_user for a site action can now be called directly via an action hook.
 * Dev: Update the metabox.io tabs add-on to the latest version - fixes a horizontal tab overflow issue.
 

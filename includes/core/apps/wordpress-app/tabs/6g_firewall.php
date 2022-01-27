@@ -208,13 +208,12 @@ class WPCD_WORDPRESS_TABS_6G_FIREWALL extends WPCD_WORDPRESS_TABS {
 
 			$fields[] = array(
 				'id'         => '6g-all-toggle',
-				'name'       => __( 'Enable or Disable ALL 6G Rules', 'wpcd' ),
+				'name'       => __( 'Toggle ALL 6G Rules', 'wpcd' ),
 				'tab'        => '6g_waf',
 				'type'       => 'switch',
 				'on_label'   => __( 'Enabled', 'wpcd' ),
 				'off_label'  => __( 'Disabled', 'wpcd' ),
 				'std'        => $status === 'on',
-				'desc'       => __( 'Enable or Disable ALL 6G Rules', 'wpcd' ),
 				'attributes' => array(
 					// the _action that will be called in ajax.
 					'data-wpcd-action'              => '6g_all',
@@ -225,6 +224,12 @@ class WPCD_WORDPRESS_TABS_6G_FIREWALL extends WPCD_WORDPRESS_TABS {
 				),
 				'class'      => 'wpcd_app_action',
 				'save_field' => false,
+			);
+
+			$fields[] = array(
+				'name' => __( 'Toggle Individual Components', 'wpcd' ),
+				'type' => 'heading',
+				'tab'  => '6g_waf',
 			);
 
 			/* FIELDS FOR ENABLING/DISABLING 6G USER AGENT RULES */
@@ -241,13 +246,12 @@ class WPCD_WORDPRESS_TABS_6G_FIREWALL extends WPCD_WORDPRESS_TABS {
 			}
 			$fields[] = array(
 				'id'         => '6g-toggle-user-agent',
-				'name'       => __( 'Enable or Disable User Agent Rules', 'wpcd' ),
+				'name'       => __( 'User Agent Rules', 'wpcd' ),
 				'tab'        => '6g_waf',
 				'type'       => 'switch',
 				'on_label'   => __( 'Enabled', 'wpcd' ),
 				'off_label'  => __( 'Disabled', 'wpcd' ),
 				'std'        => $status === 'on',
-				'desc'       => __( 'Enable or Disable User Agent Rules', 'wpcd' ),
 				'attributes' => array(
 					// the _action that will be called in ajax.
 					'data-wpcd-action'              => '6g_user_agent',
@@ -274,13 +278,12 @@ class WPCD_WORDPRESS_TABS_6G_FIREWALL extends WPCD_WORDPRESS_TABS {
 			}
 			$fields[] = array(
 				'id'         => '6g-all-toggle-referrer',
-				'name'       => __( 'Enable or Disable Referrer Rules', 'wpcd' ),
+				'name'       => __( 'Referrer Rules', 'wpcd' ),
 				'tab'        => '6g_waf',
 				'type'       => 'switch',
 				'on_label'   => __( 'Enabled', 'wpcd' ),
 				'off_label'  => __( 'Disabled', 'wpcd' ),
 				'std'        => $status === 'on',
-				'desc'       => __( 'Enable or Disable Referrer Rules', 'wpcd' ),
 				'attributes' => array(
 					// the _action that will be called in ajax.
 					'data-wpcd-action'              => '6g_referrer',
@@ -307,13 +310,12 @@ class WPCD_WORDPRESS_TABS_6G_FIREWALL extends WPCD_WORDPRESS_TABS {
 			}
 			$fields[] = array(
 				'id'         => '6g-all-toggle-query-strings',
-				'name'       => __( 'Enable or Disable Query String Rules', 'wpcd' ),
+				'name'       => __( 'Query String Rules', 'wpcd' ),
 				'tab'        => '6g_waf',
 				'type'       => 'switch',
 				'on_label'   => __( 'Enabled', 'wpcd' ),
 				'off_label'  => __( 'Disabled', 'wpcd' ),
 				'std'        => $status === 'on',
-				'desc'       => __( 'Enable or Disable Query String Rules', 'wpcd' ),
 				'attributes' => array(
 					// the _action that will be called in ajax.
 					'data-wpcd-action'              => '6g_query_string',
@@ -341,13 +343,12 @@ class WPCD_WORDPRESS_TABS_6G_FIREWALL extends WPCD_WORDPRESS_TABS {
 			}
 			$fields[] = array(
 				'id'         => '6g-all-toggle-request-string',
-				'name'       => __( 'Enable or Disable Request String Rules', 'wpcd' ),
+				'name'       => __( 'Request String Rules', 'wpcd' ),
 				'tab'        => '6g_waf',
 				'type'       => 'switch',
 				'on_label'   => __( 'Enabled', 'wpcd' ),
 				'off_label'  => __( 'Disabled', 'wpcd' ),
 				'std'        => $status === 'on',
-				'desc'       => __( 'Enable or Disable Request String Rules', 'wpcd' ),
 				'attributes' => array(
 					// the _action that will be called in ajax.
 					'data-wpcd-action'              => '6g_request_string',
@@ -374,13 +375,12 @@ class WPCD_WORDPRESS_TABS_6G_FIREWALL extends WPCD_WORDPRESS_TABS {
 			}
 			$fields[] = array(
 				'id'         => '6g-all-toggle-request-method',
-				'name'       => __( 'Enable or Disable Request Method Rules', 'wpcd' ),
+				'name'       => __( 'Request Method Rules', 'wpcd' ),
 				'tab'        => '6g_waf',
 				'type'       => 'switch',
 				'on_label'   => __( 'Enabled', 'wpcd' ),
 				'off_label'  => __( 'Disabled', 'wpcd' ),
 				'std'        => $status === 'on',
-				'desc'       => __( 'Enable or Disable Request Method Rules', 'wpcd' ),
 				'attributes' => array(
 					// the _action that will be called in ajax.
 					'data-wpcd-action'              => '6g_request_method',

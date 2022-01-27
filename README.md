@@ -91,7 +91,7 @@ Note: Even though the entire git development history isn't available on github, 
 [Friendly Release Notes](https://wpclouddeploy.com/category/release-notes/)
 
 ## Change Log ##
-4.14.1
+4.14.2
 ------
 * New: Add support for enabling/disabling DigitalOcean image backups when the server is created.
 * New: Add support for setting tags at DigitalOcean when server is created.
@@ -101,8 +101,13 @@ Note: Even though the entire git development history isn't available on github, 
 * New: WPAPP - Add option for 2 minute and 3 minute linux crons.
 * Tweak: WPAPP - Move the ADD WP ADMIN function to a new WP SITE USERS tab.
 * Tweak: WPAPP - Change the default order of the array used to list UBUNTU versions so that 20.04 is first.
+* Tweak: WPAPP - When removing a site make sure we remove entries in the wp-backup.conf and wpcron.txt files.
 * Tweak: WPAPP - Updated list of WP versions.
+* Tweak: WPAPP - New servers now install wp-cli 2.6; optional upgrade function to allow upgrades to wp-cli 2.6.
+* Tweak: WPAPP - Disable PHPMyAdmin if certain components of the 6G and 7G firewall are enabled.
+* Tweak: WPAPP - Remove some extraneous text in the 6G and 7G firewall tabs.
 * Dev: WPAPP - Add_admin_user for a site action can now be called directly via an action hook.
+* Dev: Update the metabox.io tabs add-on to the latest version - fixes a horizontal tab overflow issue.
 
 4.14.0
 ------

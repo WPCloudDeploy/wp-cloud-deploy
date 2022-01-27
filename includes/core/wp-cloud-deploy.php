@@ -218,9 +218,17 @@ class WP_CLOUD_DEPLOY {
 	 * by adding another option below it
 	 */
 	public function add_main_menu_page() {
+		$user = wp_get_current_user();
+		$roles = (array) $user->roles;
+
+		if ( in_array( 'wpcdappmanager', $roles, true ) && current_user_can( 'wpcd_manage_apps' ) ) {
+			$parent_page = 'edit.php?post_type=wpcd_app';
+		} else {
+			$parent_page = 'edit.php?post_type=wpcd_app_server';
+		}
 
 		add_submenu_page(
-			'edit.php?post_type=wpcd_app_server',
+			$parent_page,
 			( defined( 'WPCD_WPAPP_MENU_NAME' ) ? WPCD_WPAPP_MENU_NAME : __( 'WordPress Sites', 'wpcd' ) ),
 			( defined( 'WPCD_WPAPP_MENU_NAME' ) ? WPCD_WPAPP_MENU_NAME : __( 'WordPress Sites', 'wpcd' ) ),
 			'wpcd_manage_apps',
@@ -565,7 +573,7 @@ class WP_CLOUD_DEPLOY {
 	public static function get_os_list() {
 		$oslist = array(
 			'ubuntu2004lts' => __( 'Ubuntu 20.04 LTS', 'wpcd' ),
-			'ubuntu1804lts' => __( 'Ubuntu 18.04 LTS', 'wpcd' ),			
+			'ubuntu1804lts' => __( 'Ubuntu 18.04 LTS', 'wpcd' ),
 		);
 		return apply_filters( 'wpcd_os_list', $oslist );
 	}

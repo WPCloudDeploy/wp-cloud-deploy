@@ -838,6 +838,9 @@ systemctl disable php7.1-fpm > /dev/null 2>&1
 systemctl disable php7.2-fpm > /dev/null 2>&1
 systemctl disable php7.3-fpm > /dev/null 2>&1
 
+mkdir /etc/wpcd
+mkdir /etc/wpcd/php-versions-disabled
+
 echo `date +%d-%m-%Y` > /etc/wpcd/php-versions-disabled/php5.6
 echo `date +%d-%m-%Y` > /etc/wpcd/php-versions-disabled/php7.1
 echo `date +%d-%m-%Y` > /etc/wpcd/php-versions-disabled/php7.2

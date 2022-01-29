@@ -390,6 +390,7 @@ class WPCD_NOTIFY_SENT extends WPCD_POSTS_LOG {
 				if ( get_post_type( $parent_post_id ) === 'wpcd_app_server' ) {
 					$server_name = WPCD_SERVER()->get_server_name( $parent_post_id );
 					$ipv4        = get_post_meta( $parent_post_id, 'wpcd_server_ipv4', true );
+					$ipv6        = get_post_meta( $parent_post_id, 'wpcd_server_ipv6', true );
 					$provider    = get_post_meta( $parent_post_id, 'wpcd_server_provider', true );
 					$server_id   = $parent_post_id;
 					$site_id     = __( 'N/A', 'wpcd' );
@@ -398,6 +399,7 @@ class WPCD_NOTIFY_SENT extends WPCD_POSTS_LOG {
 					$server_id   = get_post_meta( $parent_post_id, 'parent_post_id', true );
 					$server_name = WPCD_SERVER()->get_server_name( $server_id );
 					$ipv4        = get_post_meta( $server_id, 'wpcd_server_ipv4', true );
+					$ipv6        = get_post_meta( $server_id, 'wpcd_server_ipv6', true );
 					$provider    = get_post_meta( $server_id, 'wpcd_server_provider', true );
 					$domain_name = get_post_meta( $parent_post_id, 'wpapp_domain', true );
 					$site_id     = $parent_post_id;

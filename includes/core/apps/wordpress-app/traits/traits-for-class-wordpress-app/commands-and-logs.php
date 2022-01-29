@@ -187,6 +187,9 @@ trait wpcd_wpapp_commands_and_logs {
 		if ( $instance['post_id'] && isset( $instance['ip'] ) && $instance['ip'] ) {
 			WPCD_SERVER()->add_ipv4_address( $instance['post_id'], $instance['ip'] );
 		}
+		if ( $instance['post_id'] && isset( $instance['ipv6'] ) && $instance['ipv6'] ) {
+			WPCD_SERVER()->add_ipv6_address( $instance['post_id'], $instance['ipv6'] );
+		}
 
 		/* With the IP address housekeeping finished, we can get the commands to run */
 		$run_cmd = $this->get_after_server_create_commands( $instance );

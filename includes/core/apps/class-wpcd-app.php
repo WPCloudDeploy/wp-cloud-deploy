@@ -311,7 +311,7 @@ class WPCD_APP extends WPCD_Base {
 	 * that there is a WordPress specific function in the file
 	 * class-wordpress-app.php.
 	 * It is called get_app_id_by_server_id_and_domain.
-	 * 
+	 *
 	 * Now, on to the next function below.
 	 */
 
@@ -440,12 +440,12 @@ class WPCD_APP extends WPCD_Base {
 	 *
 	 * @param int $app_id app_id of app record.
 	 *
-	 * @return string the ipv4 address
+	 * @return string|boolean the ipv4 address or false if we can't get one.
 	 */
 	public function get_ipv4_address( $app_id ) {
 
 		// if for some reason the $app_id is actually a server id return the server data right away.
-		if ( 'wpcd_app_server' == get_post_type( $app_id ) ) {
+		if ( 'wpcd_app_server' === get_post_type( $app_id ) ) {
 			return WPCD_SERVER()->get_ipv4_address( $app_id );
 		}
 
@@ -456,6 +456,34 @@ class WPCD_APP extends WPCD_Base {
 		} else {
 			return false;
 		}
+
+		return false;
+	}
+
+	/**
+	 * Get the IPv6 address on the server record
+	 * given an app post id.
+	 *
+	 * @param int $app_id app_id of app record.
+	 *
+	 * @return string|boolean The ipv6 address or false if we can't get one.
+	 */
+	public function get_ipv6_address( $app_id ) {
+
+		// if for some reason the $app_id is actually a server id return the server data right away.
+		if ( 'wpcd_app_server' === get_post_type( $app_id ) ) {
+			return WPCD_SERVER()->get_ipv6_address( $app_id );
+		}
+
+		// ok, we probably have an app id so work with that.
+		$server_post = $this->get_server_by_app_id( $app_id );
+		if ( $server_post ) {
+			return WPCD_SERVER()->get_ipv6_address( $server_post->ID );
+		} else {
+			return false;
+		}
+
+		return false;
 	}
 
 	/**

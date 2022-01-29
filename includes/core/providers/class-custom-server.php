@@ -58,6 +58,7 @@ class CLOUD_PROVIDER_API_CustomServer extends CLOUD_PROVIDER_API_CustomServer_Pa
 		/* Set the API key - pulling from settings */
 		$this->set_api_key( WPCD()->decrypt( wpcd_get_early_option( 'vpn_' . $this->get_provider_slug() . '_apikey' ) ) );
 		$this->set_ipv4( wpcd_get_early_option( 'vpn_' . $this->get_provider_slug() . '_ipv4' ) );
+		$this->set_ipv6( wpcd_get_early_option( 'vpn_' . $this->get_provider_slug() . '_ipv6' ) );
 
 		/* This provider needs some unique settings */
 		add_filter( "wpcd_cloud_provider_settings_{$provider}", array( &$this, 'settings' ), 10, 2 );

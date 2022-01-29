@@ -704,6 +704,61 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	}
 
 	/**
+	 * Returns a boolean true/false if a particular PHP version is active.
+	 * Version 4.16 and later of WPCD deactivated earlier versions of PHP
+	 * by default.  Only if the user explicitly activated it was it enabled.
+	 *
+	 * @param int    $server_id ID of server being interrogated...
+	 * @param string $php_version PHP version - eg: php56, php71, php72, php73, php74, php81, php82 etc.
+	 *
+	 * @return boolean
+	 */
+	public function is_php_version_active( $server_id, $php_version ) {
+
+		$initial_plugin_version = $this->get_server_meta_by_app_id( $server_id, 'wpcd_server_plugin_initial_version', true );  // This function is smart enough to know if the ID being passed is a server or app id and adjust accordingly.
+
+		$return = true;  // assume true for active.
+		if ( version_compare( $initial_plugin_version, '4.15.0' ) > -1 ) {
+			// Versions of WPCD later than 4.15 deactivated PHP versions 5.6, 7.1, 7.2 and 7.3.
+			switch ( $php_version ) {
+				case 'php56':
+				case 'php70':
+				case 'php71':
+				case 'php72':
+				case 'php73':
+					$return = false;
+					break;
+			}
+		} else {
+			// Versions of WPCD prior to 4.15 activated almost all php versions.  Except PHP 8.0 and 8.1 are special cases because of the timing of when these were added to servers.
+			switch ( $php_version ) {
+				case 'php80':
+					if ( ! $this->is_php_80_installed( $server_id ) ) {
+						$return = false;
+					}
+					break;
+				case 'php81':
+					if ( ! $this->is_php_81_installed( $server_id ) ) {
+						$return = false;
+					}
+					break;
+			}
+		}
+
+		// Check for metas - this overrides defaults from above.
+		$current_php_activation_state = wpcd_maybe_unserialize( get_post_meta( $server_id, 'wpcd_wpapp_php_activation_state', true ) );
+		if ( is_array( $current_php_activation_state ) ) {
+			if ( ! empty( $current_php_activation_state[ $php_version ] ) ) {
+				if ( 'disabled' === $current_php_activation_state[ $php_version ] ) {
+					$return = false;
+				}
+			}
+		}
+
+		return $return;
+	}
+
+	/**
 	 * Returns a boolean true/false if the 7G V 1.5 Firewall Rules is installed.
 	 *
 	 * @param int $server_id ID of server being interrogated...
@@ -756,7 +811,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 		return false;
 	}
-	
+
 	/**
 	 * Returns a boolean true/false if wpcli 2.5 is installed.
 	 *
@@ -782,7 +837,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		}
 
 		return false;
-	}	
+	}
 
 	/**
 	 * Returns a boolean true/false if the server is a 4.6.0 or later server or was upgraded to that version.
@@ -1279,6 +1334,16 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				break;
 			case 'change_php_option_misc.txt':
 				$return = strpos( $result, 'Successfully changed PHP value' ) !== false;
+				break;
+			case 'toggle_php_active_misc.txt':
+				$return =
+				( strpos( $result, 'has been disabled' ) !== false )
+				||
+				( strpos( $result, 'already disabled' ) !== false )
+				||
+				( strpos( $result, 'has been enabled' ) !== false )
+				||
+				( strpos( $result, 'already enabled' ) !== false );
 				break;
 			case 'backup_restore_schedule.txt':
 				$return =
@@ -1920,6 +1985,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			case 'toggle_wp_debug.txt':
 			case 'restart_php_service.txt':
 			case 'toggle_password_auth_misc.txt':
+			case 'toggle_php_active_misc.txt':
 				$new_array = array_merge(
 					array(
 						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/10-misc.txt',
@@ -1929,7 +1995,6 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 					$additional
 				);
 				break;
-
 			case 'change_domain_quick.txt':
 			case 'change_domain_full.txt':
 				$command_name = $additional['command'];

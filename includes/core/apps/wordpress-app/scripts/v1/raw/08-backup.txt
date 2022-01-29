@@ -192,7 +192,9 @@ QUERY
     php_version=$(ls /etc/php/*/fpm/pool.d/$domain.conf | cut -d '/' -f 4)
 	echo "removing php configuration and restarting php process..."	
     rm /etc/php/$php_version/fpm/pool.d/$domain.conf
-    systemctl restart php$php_version-fpm
+    if [[ ! -f /etc/wpcd/php-versions-disabled/php$php_version ]]; then
+        systemctl restart php$php_version-fpm
+    fi
     userdel $user_name
 
     fi
@@ -256,7 +258,9 @@ php_admin_value[session.use_only_cookies] = 1
 php_admin_value[session.use_trans_sid] = 0" > /etc/php/7.4/fpm/pool.d/$domain.conf
 
 	echo "restarting php service..."	
-    systemctl restart php7.4-fpm
+    if [[ ! -f /etc/wpcd/php-versions-disabled/php7.4 ]]; then
+        systemctl restart php7.4-fpm
+    fi
 
 	echo "restoring ownership information to files..."	
     chown -R www-data:www-data /var/www/$domain/html/

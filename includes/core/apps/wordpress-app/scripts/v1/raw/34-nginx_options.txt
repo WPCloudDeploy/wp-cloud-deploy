@@ -424,7 +424,7 @@ if [[ "${action}" == 'add_cache_types' || "${action}" == "$((i++))" ]]; then
                             echo -e "${GREEN} ${SUCCESSFUL} '${cache_type}' added into the file types list in '${domain}'${NC}" # ACTION
                             NGINX_RELOAD=1
                         else
-                            echo -e "${RED}ERROR: '${cache_type}' adding into the file types list error in '${domain}'${NC}" # ERRO
+                            echo -e "${RED}ERROR: '${cache_type}' adding into the file types list error in '${domain}'${NC}" >&2 # ERROR
                         fi
                     fi
                 fi
@@ -1927,7 +1927,9 @@ if [[ "${action}" == 'set_php_timezone' || "${action}" == "$((i++))" ]]; then
             set_php_timezone
             if [[ "${timezone}" == "$(print_current_php_timezone)" ]]; then
                 echo -e "${GREEN} ${SUCCESSFUL} php 'timezone' set to '${timezone}' for '${domain}'${NC}" # ACTION
-                systemctl restart ${php_app}-fpm || service ${php_app}-fpm restart # restart php
+                if [[ ! -f /etc/wpcd/php-versions-disabled/${php_app} ]]; then
+                    systemctl restart ${php_app}-fpm || service ${php_app}-fpm restart # restart php
+		fi
             else
                 echo -e "${RED}ERROR: 'timezone' setting to '${timezone}' failed for '${domain}'${NC}" >&2 # ERROR
                 exit 1
@@ -1937,7 +1939,9 @@ if [[ "${action}" == 'set_php_timezone' || "${action}" == "$((i++))" ]]; then
         enable_php_timezone
         if is_php_timezone; then
             echo -e "${GREEN} ${SUCCESSFUL} php 'timezone' enabled '${timezone}' for '${domain}'${NC}" # ACTION
-            systemctl restart ${php_app}-fpm || service ${php_app}-fpm restart # restart php
+            if [[ ! -f /etc/wpcd/php-versions-disabled/${php_app} ]]; then
+                systemctl restart ${php_app}-fpm || service ${php_app}-fpm restart # restart php
+	    fi
         else
             echo -e "${RED}ERROR: settings timezone '${timezone}' (TZ env variable) failed for '${domain}'${NC}" >&2 # ERROR
             exit  1

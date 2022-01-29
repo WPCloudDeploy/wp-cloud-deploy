@@ -403,7 +403,9 @@ if [[ $action == "wp2_restore" || $action == "2" ]]; then
 			echo "Cleaning PHP configuration and restarting PHP process..."
 			php_version=$(ls /etc/php/*/fpm/pool.d/$domain.conf 2>/dev/null | cut -d '/' -f 4)
     		rm -f /etc/php/$php_version/fpm/pool.d/$domain.conf
-    		systemctl restart php$php_version-fpm
+		if [ ! -f /etc/wpcd/php-versions-disabled/php$php_version ]; then
+      		    systemctl restart php$php_version-fpm
+		fi
 			echo "Setting up system user..."
 			useradd -d "/var/www/$domain/html" -g "www-data" -M -s "/bin/bash" $user_name 2>/dev/null
 
@@ -441,7 +443,9 @@ php_admin_value[session.use_only_cookies] = 1
 php_admin_value[session.use_trans_sid] = 0" > /etc/php/7.4/fpm/pool.d/$domain.conf
 
 			echo "Restarting PHP service..."
-			systemctl restart php7.4-fpm
+			if [ ! -f /etc/wpcd/php-versions-disabled/php$php_version ]; then
+  			    systemctl restart php7.4-fpm
+			fi
 			echo "Restarting NGINX..."
 			systemctl restart nginx
 

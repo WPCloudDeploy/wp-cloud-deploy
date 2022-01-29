@@ -92,7 +92,9 @@ php_admin_value[session.use_cookies] = 1
 php_admin_value[session.use_only_cookies] = 1
 php_admin_value[session.use_trans_sid] = 0" > /etc/php/7.4/fpm/pool.d/$domain.conf
 
-systemctl restart php7.4-fpm
+if [[ ! -f /etc/wpcd/php-versions-disabled/php7.4 ]]; then
+    systemctl restart php7.4-fpm
+fi
 
 # it's very important to escape the variables and quotes within the echo
 echo "include /etc/nginx/common/6g.conf;

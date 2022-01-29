@@ -105,7 +105,9 @@ QUERY
     systemctl restart nginx
     php_version=$(ls /etc/php/*/fpm/pool.d/$domain.conf | cut -d '/' -f 4)
     rm -f /etc/php/$php_version/fpm/pool.d/$domain.conf
-    systemctl restart php$php_version-fpm
+    if [[ ! -f /etc/wpcd/php-versions-disabled/php$php_version ]]; then
+        systemctl restart php$php_version-fpm
+    fi
     userdel $user_name
 
     sed -i "/$domain/d" /etc/wp-backup.conf > /dev/null 2>&1
@@ -151,7 +153,9 @@ QUERY
     systemctl restart nginx
     php_version=$(ls /etc/php/*/fpm/pool.d/$domain.conf | cut -d '/' -f 4)
     rm -f /etc/php/$php_version/fpm/pool.d/$domain.conf
-    systemctl restart php$php_version-fpm
+    if [[ ! -f /etc/wpcd/php-versions-disabled/php$php_version ]]; then
+        systemctl restart php$php_version-fpm
+    fi
     userdel $user_name
     rm -rf ~/.wp-backup/$domain
 	

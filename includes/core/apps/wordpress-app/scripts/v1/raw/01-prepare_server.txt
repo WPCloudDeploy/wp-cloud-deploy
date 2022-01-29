@@ -828,6 +828,21 @@ echo "### do not edit from here ###" >> /etc/ssh/sshd_config
 systemctl enable nginx
 systemctl restart nginx
 
+systemctl stop php5.6-fpm > /dev/null 2>&1
+systemctl stop php7.1-fpm > /dev/null 2>&1
+systemctl stop php7.2-fpm > /dev/null 2>&1
+systemctl stop php7.3-fpm > /dev/null 2>&1
+
+systemctl disable php5.6-fpm > /dev/null 2>&1
+systemctl disable php7.1-fpm > /dev/null 2>&1
+systemctl disable php7.2-fpm > /dev/null 2>&1
+systemctl disable php7.3-fpm > /dev/null 2>&1
+
+echo `date +%d-%m-%Y` > /etc/wpcd/php-versions-disabled/php5.6
+echo `date +%d-%m-%Y` > /etc/wpcd/php-versions-disabled/php7.1
+echo `date +%d-%m-%Y` > /etc/wpcd/php-versions-disabled/php7.2
+echo `date +%d-%m-%Y` > /etc/wpcd/php-versions-disabled/php7.3
+
 echo
 echo $(date): "Installation completed!"
 echo

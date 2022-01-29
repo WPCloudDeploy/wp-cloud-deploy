@@ -254,7 +254,7 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 			'label'          => __( 'Change PHP Version', 'wpcd' ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
-				'desc' => __( 'Use this section to change the PHP version for this site. If you have installed any custom PHP options, you will need to reinstall them after switching versions. <br /> We STRONGLY recommend that you use version 7.2 or greater since security updates have ceased for all prior PHP versions.', 'wpcd' ),
+				'desc' => __( 'Use this section to change the PHP version for this site. If you have installed any custom PHP options, you will need to reinstall them after switching versions. <br /> We STRONGLY recommend that you use version 7.4 or greater since security updates have ceased for all prior PHP versions.', 'wpcd' ),
 			),
 		);
 
@@ -284,6 +284,27 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 			$php80,
 			$php81
 		);
+
+		// Remove invalid PHP versions (those that are deactivated on the server).
+		$server_id = $this->get_server_id_by_app_id( $id );
+		if ( ! empty( $server_id ) ) {
+			$php_versions = array(
+				'php56' => '5.6',
+				'php71' => '7.1',
+				'php72' => '7.2',
+				'php73' => '7.3',
+				'php74' => '7.4',
+				'php80' => '8.0',
+				'php81' => '8.1',
+			);
+			foreach ( $php_versions as $php_version_key => $php_version ) {
+				if ( ! $this->is_php_version_active( $server_id, $php_version_key ) ) {
+					if ( ! empty( $php_select_options[ $php_version ] ) ) {
+						unset( $php_select_options[ $php_version ] );
+					}
+				}
+			}
+		}
 
 		$actions['change-php-version-new-version'] = array(
 			'label'          => __( 'PHP Version', 'wpcd' ),

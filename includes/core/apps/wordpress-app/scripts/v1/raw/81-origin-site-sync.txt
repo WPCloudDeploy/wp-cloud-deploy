@@ -158,13 +158,13 @@ QUERY
 
     # restart services
 	echo "Restarting services on target server..."
-    ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo systemctl restart php5.6-fpm"
-    ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo systemctl restart php7.1-fpm"
-    ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo systemctl restart php7.2-fpm"
-    ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo systemctl restart php7.3-fpm"
-    ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo systemctl restart php7.4-fpm"
-    ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo systemctl restart php8.0-fpm"
-	ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo systemctl restart php8.1-fpm"
+    ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "[[ ! -f /etc/wpcd/php-versions-disabled/php5.6 ]] && sudo systemctl restart php5.6-fpm"
+    ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "[[ ! -f /etc/wpcd/php-versions-disabled/php7.1 ]] && sudo systemctl restart php7.1-fpm"
+    ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "[[ ! -f /etc/wpcd/php-versions-disabled/php7.2 ]] && sudo systemctl restart php7.2-fpm"
+    ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "[[ ! -f /etc/wpcd/php-versions-disabled/php7.3 ]] && sudo systemctl restart php7.3-fpm"
+    ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "[[ ! -f /etc/wpcd/php-versions-disabled/php7.4 ]] && sudo systemctl restart php7.4-fpm"
+    ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "[[ ! -f /etc/wpcd/php-versions-disabled/php8.0 ]] && sudo systemctl restart php8.0-fpm"
+	ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "[[ ! -f /etc/wpcd/php-versions-disabled/php8.1 ]] && sudo systemctl restart php8.1-fpm"
     ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo systemctl restart nginx"
     ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo systemctl restart cron"
 
@@ -277,12 +277,13 @@ QUERY
 
     # restart services
 	echo "Restarting services on target server..."
-    ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo systemctl restart php5.6-fpm" < /dev/null
-    ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo systemctl restart php7.1-fpm" < /dev/null
-    ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo systemctl restart php7.2-fpm" < /dev/null
-    ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo systemctl restart php7.3-fpm" < /dev/null
-    ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo systemctl restart php7.4-fpm" < /dev/null
-    ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo systemctl restart php8.0-fpm" < /dev/null
+    ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "[[ ! -f /etc/wpcd/php-versions-disabled/php5.6 ]] && sudo systemctl restart php5.6-fpm" < /dev/null
+    ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "[[ ! -f /etc/wpcd/php-versions-disabled/php7.1 ]] && sudo systemctl restart php7.1-fpm" < /dev/null
+    ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "[[ ! -f /etc/wpcd/php-versions-disabled/php7.2 ]] && sudo systemctl restart php7.2-fpm" < /dev/null
+    ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "[[ ! -f /etc/wpcd/php-versions-disabled/php7.3 ]] && sudo systemctl restart php7.3-fpm" < /dev/null
+    ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "[[ ! -f /etc/wpcd/php-versions-disabled/php7.4 ]] && sudo systemctl restart php7.4-fpm" < /dev/null
+    ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "[[ ! -f /etc/wpcd/php-versions-disabled/php8.0 ]] && sudo systemctl restart php8.0-fpm" < /dev/null
+    ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "[[ ! -f /etc/wpcd/php-versions-disabled/php8.1 ]] && sudo systemctl restart php8.1-fpm" < /dev/null
     ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo systemctl restart nginx" < /dev/null
     ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo systemctl restart cron" < /dev/null
 

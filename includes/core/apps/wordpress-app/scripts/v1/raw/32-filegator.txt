@@ -2782,7 +2782,9 @@ if [[ "${action}" == 'remove_root_domain' || "${action}" == "$((i++))" ]]; then
         echo -e "${RED}Error: could not remove '${domain_conf}' in '${domain}'${NC}" >&2 # ERROR
         exit 1
     fi
-    systemctl restart php${php_version}-fpm || service php${php_version}-fpm restart
+    if [ ! -f /etc/wpcd/php-versions-disabled/php$php_version ] ; then
+        systemctl restart php${php_version}-fpm || service php${php_version}-fpm restart
+    fi
     #
     exit_script
 fi

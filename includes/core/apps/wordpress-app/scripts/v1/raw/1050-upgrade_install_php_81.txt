@@ -39,7 +39,9 @@ sed -i "s/;opcache.file_update_protection=2/opcache.file_update_protection=60/g"
 
 # Restarting php
 echo $(date): "Restarting PHP processes..."
-systemctl restart php8.1-fpm > /dev/null 2>&1
+if [ ! -f /etc/wpcd/php-versions-disabled/php8.1 ] ; then
+    systemctl restart php8.1-fpm > /dev/null 2>&1
+fi
 
 service nginx restart
 

@@ -1382,6 +1382,13 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tooltip' => __( 'If DNS was automatically updated after a new site is provisioned, attempt to get an SSL certificate from LETSENCRYPT?', 'wpcd' ),
 				'tab'     => 'wordpress-app-dns-cloudflare',
 			),
+			array(
+				'id'      => 'wordpress_app_auto_add_aaaa',
+				'type'    => 'checkbox',
+				'name'    => __( 'Add AAAA Record for IPv6?', 'wpcd' ),
+				'tooltip' => __( 'Add an AAAA DNS entry if the server has an IPv6 address?', 'wpcd' ),
+				'tab'     => 'wordpress-app-dns-cloudflare',
+			),
 		);
 		return $fields;
 	}

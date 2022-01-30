@@ -3259,12 +3259,15 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 		// What's the IP of the server?
 		$ipv4 = WPCD_SERVER()->get_ipv4_address( $id );
+		
+		// What's the IPv6 of the server?
+		$ipv6 = WPCD_SERVER()->get_ipv6_address( $id );		
 
 		// What's the domain of the site?
 		$domain = $this->get_domain_name( $app_id );
 
 		// Add the DNS...
-		$dns_success = WPCD_DNS()->set_dns_for_domain( $domain, $ipv4 );
+		$dns_success = WPCD_DNS()->set_dns_for_domain( $domain, $ipv4, $ipv6 );
 
 		// Attempt to issue SSL..
 		if ( true === (bool) $dns_success ) {

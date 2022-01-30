@@ -261,8 +261,9 @@ class WPCD_WORDPRESS_TABS_STAGING extends WPCD_WORDPRESS_TABS {
 		$server_id = $this->get_server_id_by_app_id( $id );
 		// 2. What's the IP of the server?
 		$ipv4 = WPCD_SERVER()->get_ipv4_address( $server_id );
+		$ipv6 = WPCD_SERVER()->get_ipv6_address( $server_id );
 		// 3. Add the DNS
-		$dns_success = WPCD_DNS()->set_dns_for_domain( $new_domain, $ipv4 );
+		$dns_success = WPCD_DNS()->set_dns_for_domain( $new_domain, $ipv4, $ipv6 );
 
 		// we want to make sure this command runs only once in a "swatch beat" for a domain.
 		// e.g. 2 manual backups cannot run for the same domain at the same time (time = swatch beat).

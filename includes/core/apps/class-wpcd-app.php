@@ -487,6 +487,35 @@ class WPCD_APP extends WPCD_Base {
 	}
 
 	/**
+	 * Get the a combination of the IPv4 and IPv6 address for display.
+	 *
+	 * @param int $app_id post id of app record.
+	 *
+	 * @return string the ipv addresses.
+	 */
+	public function get_all_ip_addresses_for_display( $app_id ) {
+
+		$ip   = '';
+		$ipv4 = $this->get_ipv4_address( $app_id );
+		if ( ! empty( $ipv4 ) ) {
+			$ip = $ipv4;
+		}
+		if ( wpcd_get_early_option( 'wpcd_show_ipv6' ) ) {
+			$ipv6 = $this->get_ipv6_address( $app_id );
+			if ( ! empty( $ipv6 ) ) {
+				if ( ! empty( $ip ) ) {
+					$ip .= '<br />' . $ipv6;
+				} else {
+					$ip = $ipv6;
+				}
+			}
+		}
+
+		return $ip;
+
+	}
+
+	/**
 	 * Get the server name given an app post id.
 	 *
 	 * @param int $app_id post id of app record.

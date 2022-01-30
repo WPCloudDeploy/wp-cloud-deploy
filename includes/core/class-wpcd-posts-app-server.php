@@ -353,9 +353,6 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 	 */
 	public function app_server_table_sorting( $columns ) {
 
-		// $columns['wpcd_server_size']     = 'wpcd_server_size';
-		// $columns['wpcd_server_ipv4']     = 'wpcd_server_ipv4';
-
 		$columns['wpcd_server_provider']    = 'wpcd_server_provider';
 		$columns['wpcd_server_region']      = 'wpcd_server_region';
 		$columns['wpcd_server_instance_id'] = 'wpcd_server_instance_id';
@@ -404,8 +401,8 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 				// Instance id.
 				$instance_id = get_post_meta( $post_id, 'wpcd_server_provider_instance_id', true );
 
-				// ipv4.
-				$ipv4 = get_post_meta( $post_id, 'wpcd_server_ipv4', true );
+				// ipv4 & ipv6 for display.
+				$ips = WPCD_SERVER()->get_all_ip_addresses_for_display( $post_id );
 
 				// Initial os.
 				$initial_os = WPCD()->get_os_description( WPCD_SERVER()->get_server_os( $post_id ) );
@@ -423,7 +420,7 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 						$value .= '<br />' . __( 'instance id: ', 'wpcd' ) . $instance_id;
 					}
 				}
-				$value .= '<br />' . '<b>' . $ipv4 . '</b>';
+				$value .= '<br />' . '<b>' . $ips . '</b>';
 
 				break;
 			case 'wpcd_server_size':
@@ -501,7 +498,12 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 
 			case 'wpcd_server_ipv4':
 				// not used right now.
-				$value = get_post_meta( $post_id, 'wpcd_server_ipv4', true );
+				$value = WPCD_SERVER()->get_ipv4_address( $post_id );
+				break;
+
+			case 'wpcd_server_ipv6':
+				// not used right now.
+				$value = WPCD_SERVER()->get_ipv6_address( $post_id );
 				break;
 
 			case 'wpcd_server_app_count':
@@ -1148,6 +1150,11 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 			$ipv4 = $this->generate_meta_dropdown( $post_type, 'wpcd_server_ipv4', __( 'All IPv4', 'wpcd' ) );
 			echo $ipv4;
 
+			if ( wpcd_get_early_option( 'wpcd_show_ipv6' ) ) {
+				$ipv6 = $this->generate_meta_dropdown( $post_type, 'wpcd_server_ipv6', __( 'All IPv6', 'wpcd' ) );
+				echo $ipv6;
+			}
+
 			$server_owners = $this->generate_owner_dropdown( $post_type, 'wpcd_server_owner', __( 'Server Owners', 'wpcd' ) );
 			echo $server_owners;
 		}
@@ -1239,6 +1246,17 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 				$qv['meta_query'][] = array(
 					'field'   => 'wpcd_server_ipv4',
 					'value'   => $ipv4,
+					'compare' => '=',
+				);
+			}
+
+			// IPv6.
+			if ( isset( $_GET['wpcd_server_ipv6'] ) && ! empty( $_GET['wpcd_server_ipv6'] ) ) {
+				$ipv6 = filter_input( INPUT_GET, 'wpcd_server_ipv6', FILTER_SANITIZE_STRING );
+
+				$qv['meta_query'][] = array(
+					'field'   => 'wpcd_server_ipv6',
+					'value'   => $ipv6,
 					'compare' => '=',
 				);
 			}

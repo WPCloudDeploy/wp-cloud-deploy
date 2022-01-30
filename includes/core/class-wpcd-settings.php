@@ -658,10 +658,26 @@ class WPCD_Settings {
 							'type'    => 'checkbox',
 							'name'    => __( 'Show Private State Label?', 'wpcd' ),
 							'tooltip' => __( 'Since all servers and apps are PRIVATE, we do not show this state label. You can force display of the PRIVATE state label with this option.', 'wpcd' ),
-							'desc'    => __( 'Check this to show the text for the PRIVATE state in the server and app list', 'wpcd' ),
+							'desc'    => '',
 							'tab'     => 'wordpress-app-general-wpadmin',
 						),
 
+						// IPv6.
+						array(
+							'type' => 'heading',
+							'name' => __( 'IPv6', 'wpcd' ),
+							'desc' => __( 'How should we handle IPv6 data?', 'wpcd' ),
+						),
+						array(
+							'id'      => 'wpcd_show_ipv6',
+							'type'    => 'checkbox',
+							'name'    => __( 'Show IPv6 Fields?', 'wpcd' ),
+							'tooltip' => __( 'Most systems are not set up for IPv6. But we do sometimes collect it when provided by the server provider. Check this box if you want to  display it when it\'s available and to be able to sort and filter by it.', 'wpcd' ),
+							'desc'    => '',
+							'tab'     => 'wordpress-app-general-wpadmin',
+						),
+
+						// Server sizes.
 						array(
 							'type' => 'heading',
 							'name' => __( 'Server Sizes', 'wpcd' ),

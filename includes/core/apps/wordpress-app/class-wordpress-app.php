@@ -430,14 +430,14 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			'name'    => __( 'Domain', 'wpcd' ),
 			'type'    => 'custom_html',
 			'std'     => $this->get_domain_name( $app_id ),
-			'columns' => 'left' == $this->get_tab_style() ? 4 : 4,
-			'class'   => 'left' == $this->get_tab_style() ? 'wpcd_site_details_top_row wpcd_site_details_top_row_domain wpcd_site_details_top_row_domain_left' : 'wpcd_site_details_top_row wpcd_site_details_top_row_domain',
+			'columns' => 'left' === $this->get_tab_style() ? 4 : 4,
+			'class'   => 'left' === $this->get_tab_style() ? 'wpcd_site_details_top_row wpcd_site_details_top_row_domain wpcd_site_details_top_row_domain_left' : 'wpcd_site_details_top_row wpcd_site_details_top_row_domain',
 		);
 		$fields[] = array(
-			'name'    => __( 'IPv4', 'wpcd' ),
+			'name'    => __( 'IP', 'wpcd' ),
 			'type'    => 'custom_html',
-			'std'     => $this->get_ipv4_address( $app_id ),
-			'columns' => 'left' == $this->get_tab_style() ? 2 : 2,
+			'std'     => $this->get_all_ip_addresses_for_display( $app_id ),
+			'columns' => 'left' === $this->get_tab_style() ? 2 : 2,
 			'class'   => 'wpcd_site_details_top_row',
 		);
 		$fields[] = array(
@@ -445,7 +445,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			'id'      => 'wpcd_app_action_site-detail-header-view-admin',
 			'type'    => 'button',
 			'std'     => $this->get_formatted_wpadmin_link( $app_id ),
-			'columns' => 'left' == $this->get_tab_style() ? 2 : 2,
+			'columns' => 'left' === $this->get_tab_style() ? 2 : 2,
 			'class'   => 'wpcd_site_details_top_row',
 		);
 		$fields[] = array(
@@ -453,7 +453,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			'id'      => 'wpcd_app_action_site-detail-header-view-site',
 			'type'    => 'button',
 			'std'     => $this->get_formatted_site_link( $app_id ),
-			'columns' => 'left' == $this->get_tab_style() ? 2 : 2,
+			'columns' => 'left' === $this->get_tab_style() ? 2 : 2,
 			'class'   => 'wpcd_site_details_top_row',
 		);
 
@@ -466,7 +466,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			'id'      => 'wpcd_app_action_site-detail-header-view-apps',
 			'type'    => 'button',
 			'std'     => $apps_on_server,
-			'columns' => 'left' == $this->get_tab_style() ? 2 : 2,
+			'columns' => 'left' === $this->get_tab_style() ? 2 : 2,
 			'class'   => 'wpcd_site_details_top_row',
 		);
 
@@ -510,9 +510,9 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		);
 
 		$fields['general-welcome-top-col_2'] = array(
-			'name'    => __( 'IPv4', 'wpcd' ),
+			'name'    => __( 'IP', 'wpcd' ),
 			'type'    => 'custom_html',
-			'std'     => get_post_meta( $id, 'wpcd_server_ipv4', true ),
+			'std'     => WPCD_SERVER()->get_all_ip_addresses_for_display( $id ),
 			'columns' => 3,
 			'class'   => 'wpcd_server_details_top_row',
 		);

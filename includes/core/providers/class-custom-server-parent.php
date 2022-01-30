@@ -74,6 +74,7 @@ class CLOUD_PROVIDER_API_CustomServer_Parent extends CLOUD_PROVIDER_API {
 		/* Set the API key - pulling from settings */
 		$this->set_api_key( WPCD()->decrypt( wpcd_get_early_option( 'vpn_' . $this->get_provider_slug() . '_apikey' ) ) );
 		$this->set_ipv4( wpcd_get_early_option( 'vpn_' . $this->get_provider_slug() . '_ipv4' ) );
+		$this->set_ipv6( wpcd_get_early_option( 'vpn_' . $this->get_provider_slug() . '_ipv6' ) );
 
 		/* This provider needs some unique settings */
 		add_filter( "wpcd_cloud_provider_settings_{$provider}", array( &$this, 'settings' ), 10, 2 );
@@ -120,6 +121,22 @@ class CLOUD_PROVIDER_API_CustomServer_Parent extends CLOUD_PROVIDER_API {
 	 */
 	public function get_ipv4() {
 		return $this->custom_ipv4;
+	}
+
+	/**
+	 * Set function for IPV6 for the custom server.
+	 *
+	 * @param string $ipv6 ipv6.
+	 */
+	public function set_ipv6( $ipv6 ) {
+		$this->custom_ipv6 = $ipv6;
+	}
+
+	/**
+	 * Getter function for IPVv6 for the custom server
+	 */
+	public function get_ipv6() {
+		return $this->custom_ipv6;
 	}
 
 	/**
@@ -317,6 +334,13 @@ class CLOUD_PROVIDER_API_CustomServer_Parent extends CLOUD_PROVIDER_API {
 					'desc' => __( 'Enter a properly formatted IPv4 address for your server.', 'wpcd' ),
 					'tab'  => $tab_id,
 				),
+				array(
+					'id'   => "vpn_{$provider}_ipv6",
+					'type' => 'text',
+					'name' => __( 'IPv6 Address For Your Server (Optional)', 'wpcd' ),
+					'desc' => __( 'Enter a properly formatted IPv6 address for your server.', 'wpcd' ),
+					'tab'  => $tab_id,
+				),
 			);
 
 			$return_fields = array_merge( $fields, $provider_fields );
@@ -499,6 +523,7 @@ class CLOUD_PROVIDER_API_CustomServer_Parent extends CLOUD_PROVIDER_API {
 		$return['created']              = (string) current_time( 'mysql' );
 		$return['actions']              = array( 'created' => time() );
 		$return['ip']                   = $this->get_ipv4();
+		$return['ipv6']                 = $this->get_ipv6();
 
 		return $return;
 

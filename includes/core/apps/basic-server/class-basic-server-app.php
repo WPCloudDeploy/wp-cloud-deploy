@@ -456,6 +456,9 @@ class WPCD_BASIC_SERVER_APP extends WPCD_APP {
 		if ( $instance['post_id'] && isset( $instance['ip'] ) && $instance['ip'] ) {
 			WPCD_SERVER()->add_ipv4_address( $instance['post_id'], $instance['ip'] );
 		}
+		if ( $instance['post_id'] && isset( $instance['ipv6'] ) && $instance['ipv6'] ) {
+			WPCD_SERVER()->add_ipv6_address( $instance['post_id'], $instance['ipv6'] );
+		}
 
 		do_action( 'wpcd_log_error', 'attempting to run after server create commands for ' . print_r( $instance, true ), 'debug', __FILE__, __LINE__, $instance );
 

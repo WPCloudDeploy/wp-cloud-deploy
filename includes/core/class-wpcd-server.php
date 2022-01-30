@@ -146,7 +146,7 @@ class WPCD_Server extends WPCD_Base {
 				$post_author = $instance['user_id'];
 			}
 		}
-		
+
 		/**
 		 * If we still don't have a post author, then check to see if a 'author_email' element is set and use that.
 		 * This element might be set by a call from the REST API but, obviously, can also be set from anywhere.
@@ -161,7 +161,7 @@ class WPCD_Server extends WPCD_Base {
 					}
 				}
 			}
-		}		
+		}
 
 		/**
 		 * Still don't have a post author?  Set to current user
@@ -341,7 +341,7 @@ class WPCD_Server extends WPCD_Base {
 	}
 
 	/**
-	 * Update the IP address on the server record
+	 * Update the IPv4 address on the server record
 	 *
 	 * @param int    $post_id post id of server record.
 	 * @param string $ip ip address.
@@ -353,6 +353,18 @@ class WPCD_Server extends WPCD_Base {
 	}
 
 	/**
+	 * Update the IPv6 address on the server record
+	 *
+	 * @param int    $post_id post id of server record.
+	 * @param string $ipv6 ip address.
+	 *
+	 * @return void
+	 */
+	public function add_ipv6_address( $post_id, $ipv6 ) {
+		update_post_meta( $post_id, 'wpcd_server_ipv6', $ipv6 );
+	}
+
+	/**
 	 * Get the IPv4 address on the server record
 	 *
 	 * @param int $post_id post id of server record.
@@ -361,6 +373,46 @@ class WPCD_Server extends WPCD_Base {
 	 */
 	public function get_ipv4_address( $post_id ) {
 		return get_post_meta( $post_id, 'wpcd_server_ipv4', true );
+	}
+
+	/**
+	 * Get the IPv6 address on the server record
+	 *
+	 * @param int $post_id post id of server record.
+	 *
+	 * @return string the ipv6 address
+	 */
+	public function get_ipv6_address( $post_id ) {
+		return get_post_meta( $post_id, 'wpcd_server_ipv6', true );
+	}
+
+	/**
+	 * Get the a combination of the IPv4 and IPv6 address for display.
+	 *
+	 * @param int $post_id post id of server record.
+	 *
+	 * @return string the ipv addresses.
+	 */
+	public function get_all_ip_addresses_for_display( $post_id ) {
+
+		$ip   = '';
+		$ipv4 = $this->get_ipv4_address( $post_id );
+		if ( ! empty( $ipv4 ) ) {
+			$ip = $ipv4;
+		}
+		if ( wpcd_get_early_option( 'wpcd_show_ipv6' ) ) {
+			$ipv6 = $this->get_ipv6_address( $post_id );
+			if ( ! empty( $ipv6 ) ) {
+				if ( ! empty( $ip ) ) {
+					$ip .= '<br />' . $ipv6;
+				} else {
+					$ip = $ipv6;
+				}
+			}
+		}
+
+		return $ip;
+
 	}
 
 	/**
@@ -439,7 +491,7 @@ class WPCD_Server extends WPCD_Base {
 	public function get_server_size( $post_id ) {
 		return get_post_meta( $post_id, 'wpcd_server_size_raw', true );
 	}
-	
+
 	/**
 	 * Set the server size on the server record
 	 *
@@ -465,7 +517,7 @@ class WPCD_Server extends WPCD_Base {
 	public function set_pending_server_size( $post_id, $new_size ) {
 		return update_post_meta( $post_id, 'wpcd_server_pending_size_raw', $new_size );
 	}
-	
+
 	/**
 	 * Convert the pending server size to the final server size.
 	 * Usually used when resizing a server.
@@ -478,7 +530,7 @@ class WPCD_Server extends WPCD_Base {
 		$return = $this->set_server_size( $post_id, get_post_meta( $post_id, 'wpcd_server_pending_size_raw', true ) );
 		delete_post_meta( $post_id, 'wpcd_server_pending_size_raw' );
 		return $return;
-	}	
+	}
 
 	/**
 	 * Get the server instance id on the server record
@@ -490,11 +542,11 @@ class WPCD_Server extends WPCD_Base {
 	public function get_server_provider_instance_id( $post_id ) {
 		return get_post_meta( $post_id, 'wpcd_server_provider_instance_id', true );
 	}
-	
+
 	/**
 	 * Returns an server ID using the instance of a server.
 	 *
-	 * @param int    $instance_id  The server instance id used to locate the server post id.
+	 * @param int $instance_id  The server instance id used to locate the server post id.
 	 *
 	 * @return int|boolean app post id or false or error message
 	 */
@@ -513,7 +565,7 @@ class WPCD_Server extends WPCD_Base {
 				),
 			),
 		);
-		
+
 		// Too many posts?  Bail out.
 		if ( count( $posts ) <> 1 ) {
 			return false;
@@ -525,7 +577,7 @@ class WPCD_Server extends WPCD_Base {
 			return false;
 		}
 
-	}	
+	}
 
 	/**
 	 * Get the number of apps on the server

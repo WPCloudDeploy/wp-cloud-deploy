@@ -91,6 +91,12 @@ Note: Even though the entire git development history isn't available on github, 
 [Friendly Release Notes](https://wpclouddeploy.com/category/release-notes/)
 
 ## Change Log ##
+4.16.0
+------
+* New: Save any IPv6 address that DigitalOcean assigns to servers.  Request IPv6 addresses on all new DigitalOcean servers.
+* Tweak: WPAPP - Disable old PHP versions on new servers by default.  Add controls to allow admin to re-enable them on a server-by-server basis.
+* Fix: WPAPP - Staging and Cloned sites did not carry-over the metas that indicate the status of the various caches.
+
 4.15.0
 ------
 * New: Add support for enabling/disabling DigitalOcean image backups when the server is created.

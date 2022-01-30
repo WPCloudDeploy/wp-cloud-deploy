@@ -105,6 +105,24 @@ class WPCD_WORDPRESS_TABS_STAGING extends WPCD_WORDPRESS_TABS {
 								update_post_meta( $new_app_post_id, 'wpapp_ssl_status', 'on' );
 							}
 
+							// Was nginx page caching enabled on the original site?  If so, the caching plugin was copied as well so add the meta here for that.
+							$nginx_page_cache_status = get_post_meta( $id, 'wpapp_nginx_pagecache_status', true );
+							if ( ! empty( $nginx_page_cache_status ) ) {
+								update_post_meta( $new_app_post_id, 'wpapp_nginx_pagecache_status', $nginx_page_cache_status );
+							}
+
+							// Was memcached enabled on the original site?  If so, the caching plugin was copied as well so add the meta here for that.
+							$memcached_status = get_post_meta( $id, 'wpapp_memcached_status', true );
+							if ( ! empty( $memcached_status ) ) {
+								update_post_meta( $new_app_post_id, 'wpapp_memcached_status', $memcached_status );
+							}
+
+							// Was redis enabled on the original site?  If so, the caching plugin was copied as well so add the meta here for that.
+							$redis_status = get_post_meta( $id, 'wpapp_redis_status', true );
+							if ( ! empty( $redis_status ) ) {
+								update_post_meta( $new_app_post_id, 'wpapp_redis_status', $redis_status );
+							}
+
 							// Make sure we tag the new site as a staging site.
 							update_post_meta( $new_app_post_id, 'wpapp_is_staging', 1 );
 

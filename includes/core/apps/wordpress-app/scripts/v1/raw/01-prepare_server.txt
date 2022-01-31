@@ -33,6 +33,19 @@ else
 	touch "$CHKPOINT_FOLDER/script-ran-once.txt"
 fi
 
+# Force preference of IPV4 over IPV6
+# This shouldn't be necessary but some services seem to an issue with IPV6 communication.
+# For example, when adding new repos later in this script, it times out with a gpg error 
+# when run on ec2.  This section forces IPv4 communication on everything :(
+if [ -f "$CHKPOINT_FOLDER/checkpoint05-end.txt" ]
+then
+	echo "Skip setting IPV4 vs IPV6 preferences since it has already been completed."
+else
+	echo "precedence ::ffff:0:0/96  100" >> /etc/gai.conf
+	#checkpoint to indicate we have done this block...
+	touch "$CHKPOINT_FOLDER/checkpoint05-end.txt"	
+fi #checkpoint05.txt
+
 
 # Refresh existing repositories
 if [ -f "$CHKPOINT_FOLDER/checkpoint10-end.txt" ]

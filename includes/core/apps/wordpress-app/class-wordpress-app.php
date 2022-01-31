@@ -2733,7 +2733,9 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 					if ( is_wp_error( $result ) ) {
 						$err_msg = $result->get_error_message();
 					}
-					$msg = '<span class="wpcd_pre_install_text_error">' . sprintf( __( 'Unfortunately we could not start deploying this server - most likely because of an error from the provider api. <br />Please contact support or you can check the COMMAND & SSH logs for errors.<br />  You can close this screen and then retry the operation.<br />%s', 'wpcd' ), $err_msg ) . '</span>';
+					$msg = sprintf( __( 'Unfortunately we could not start deploying this server - most likely because of an error from the provider api. <br />Please contact support or you can check the COMMAND & SSH logs for errors.<br />  You can close this screen and then retry the operation.<br />%s', 'wpcd' ), $err_msg );
+					$msg = apply_filters( 'wpcd_wordpress-app-server_deployment_error', $msg );
+					$msg = '<span class="wpcd_pre_install_text_error">' . $msg . '</span>';
 				}
 
 				break;
@@ -4388,34 +4390,6 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	 */
 	public function get_rest_controller( string $controller_name ) {
 		return $this->rest_controllers[ $controller_name ];
-	}
-
-
-	public function xwpcd_wpapp_prepare_server_completed( $server_id, $command_name ) {
-		error_log( 'here' );
-				$server_post = get_post( $server_id );
-
-				// Bail if not a post object.
-		if ( ! $server_post || is_wp_error( $server_post ) ) {
-			return;
-		}
-
-				// Bail if not a WordPress app.
-		if ( 'wordpress-app' <> WPCD_WORDPRESS_APP()->get_server_type( $server_id ) ) {
-			return;
-		}
-
-				// Get server instance array.
-				$instance = WPCD_WORDPRESS_APP()->get_instance_details( $server_id );
-
-		if ( 'wpcd_app_server' === get_post_type( $server_id ) ) {
-
-			// Mark server as delete protected.
-			if ( wpcd_get_option( 'wordpress_app_servers_add_delete_protection' ) ) {
-				WPCD_POSTS_APP_SERVER()->wpcd_app_server_set_deletion_protection_flag( $server_id );
-			}
-		}
-
 	}
 
 }

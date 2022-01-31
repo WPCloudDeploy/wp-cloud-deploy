@@ -95,7 +95,9 @@ Note: Even though the entire git development history isn't available on github, 
 ------
 * New: Save any IPv6 address that DigitalOcean assigns to servers.  Request IPv6 addresses on all new DigitalOcean servers.
 * Tweak: WPAPP - Disable old PHP versions on new servers by default.  Add controls to allow admin to re-enable them on a server-by-server basis.
+* Tweak: WPAPP - Preference ipv4 over ipv6 (update bash create-server script)
 * Fix: WPAPP - Staging and Cloned sites did not carry-over the metas that indicate the status of the various caches.
+* Dev: WPAPP - New filter to allow providers to add text to any error messages when a server immediately fails to deploy.
 
 4.15.0
 ------

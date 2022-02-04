@@ -119,13 +119,13 @@ class WPCD_Init {
 		if ( ! isset( $schedules['every_two_minute'] ) ) {
 			$schedules['every_two_minute'] = array(
 				'interval' => 120,
-				'display'  => __( 'Every 2 minute', 'wpcd' ),
+				'display'  => __( 'Every 2 minutes', 'wpcd' ),
 			);
 		}
 		if ( ! isset( $schedules['every_fifteen_minute'] ) ) {
 			$schedules['every_fifteen_minute'] = array(
 				'interval' => 900,
-				'display'  => __( 'Every 15 minute', 'wpcd' ),
+				'display'  => __( 'Every 15 minutes', 'wpcd' ),
 			);
 		}
 		return $schedules;

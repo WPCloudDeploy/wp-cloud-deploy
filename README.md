@@ -96,6 +96,9 @@ Note: Even though the entire git development history isn't available on github, 
 * New: Save any IPv6 address that DigitalOcean assigns to servers.  Request IPv6 addresses on all new DigitalOcean servers.
 * Tweak: WPAPP - Disable old PHP versions on new servers by default.  Add controls to allow admin to re-enable them on a server-by-server basis.
 * Tweak: WPAPP - Preference ipv4 over ipv6 (update bash create-server script)
+* Tweak: WPAPP - New sites will default to allowing only minor automatic updates to core by setting the WP_AUTO_UPDATE_CORE value in wp-config.php to 'minor'.
+* Tweak: WPAPP - New sites will default to 128M for WP_MEMORY_LIMIT in wp-config.php (WP_MAX_MEMORY_LIMIT remains at the default of 128M but is now explicitly set in wp-config.php).
+* Tweak: WPAPP - New sites will default to setting CONCATENATE_SCRIPTS to false in wp-config.php.
 * Fix: WPAPP - Staging and Cloned sites did not carry-over the metas that indicate the status of the various caches.
 * Fix: WPAPP - Typo on site TOOLS tab - reset permissions description should say 664 for files, not 644.
 * Dev: WPAPP - New filter to allow providers to add text to any error messages when a server immediately fails to deploy.

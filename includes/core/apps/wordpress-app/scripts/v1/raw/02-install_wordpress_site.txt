@@ -206,6 +206,10 @@ QUERY
 
 # needed so wordpress doesn't freak out and denies direct access
 su - $user_name -c "wp --skip-plugins config set FS_METHOD direct"
+su - $user_name -c "wp --skip-plugins config set WP_AUTO_UPDATE_CORE minor"
+su - $user_name -c "wp --skip-plugins config set WP_MEMORY_LIMIT 128M"
+su - $user_name -c "wp --skip-plugins config set WP_MAX_MEMORY_LIMIT 128M"
+su - $user_name -c "wp --skip-plugins config set CONCATENATE_SCRIPTS false --raw"
 su - $user_name -c "wp --skip-plugins option update permalink_structure '/%postname%'"
 
 # permissions for the log file

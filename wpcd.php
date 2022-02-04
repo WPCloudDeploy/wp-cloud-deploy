@@ -104,7 +104,7 @@ class WPCD_Init {
 
 	/**
 	 * Create cron timers for use by other wpcd functions.
-	 * Two timers - 1 min and 2 min.
+	 * Three timers - 1 min, 2 min and 15 min.
 	 *
 	 * @param Array $schedules schedules.
 	 */
@@ -120,6 +120,12 @@ class WPCD_Init {
 			$schedules['every_two_minute'] = array(
 				'interval' => 120,
 				'display'  => __( 'Every 2 minute', 'wpcd' ),
+			);
+		}
+		if ( ! isset( $schedules['every_fifteen_minute'] ) ) {
+			$schedules['every_fifteen_minute'] = array(
+				'interval' => 900,
+				'display'  => __( 'Every 15 minute', 'wpcd' ),
 			);
 		}
 		return $schedules;

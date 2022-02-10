@@ -613,6 +613,40 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 	}
 
+	/**
+	 * Returns all the app posts for a particular a domain name.
+	 *
+	 * Usually, only one post exists for a domain.
+	 * But if a domain is pushed to another server, multiple posts might exist.
+	 *
+	 * @param string $domain The domain for which to locate the app post on the server.
+	 *
+	 * @return array|boolean|string array of posts or false or error message
+	 */
+	public function get_apps_by_domain( $domain ) {
+
+		$posts = get_posts(
+			array(
+				'post_type'   => 'wpcd_app',
+				'post_status' => 'private',
+				'numberposts' => -1,
+				'meta_query'  => array(
+					array(
+						'key'   => 'wpapp_domain',
+						'value' => $domain,
+					),
+				),
+			),
+		);
+
+		if ( $posts ) {
+			return $posts;
+		} else {
+			return false;
+		}
+
+	}
+
 
 	/**
 	 * Get the status of ssl stored in the metadata for a site.
@@ -3261,9 +3295,9 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 		// What's the IP of the server?
 		$ipv4 = WPCD_SERVER()->get_ipv4_address( $id );
-		
+
 		// What's the IPv6 of the server?
-		$ipv6 = WPCD_SERVER()->get_ipv6_address( $id );		
+		$ipv6 = WPCD_SERVER()->get_ipv6_address( $id );
 
 		// What's the domain of the site?
 		$domain = $this->get_domain_name( $app_id );

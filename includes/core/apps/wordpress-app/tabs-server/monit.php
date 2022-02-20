@@ -242,6 +242,7 @@ class WPCD_WORDPRESS_TABS_SERVER_MONIT extends WPCD_WORDPRESS_TABS {
 				'type'           => 'text',
 				'raw_attributes' => array(
 					'desc'           => __( 'Password to use when accessing the Monit dashboard', 'wpcd' ),
+					'tooltip'        => __( 'Please use alphanumeric characters only - otherwise Monit will likely fail to start with a silent syntax error.', 'wpcd' ),
 					'size'           => 60,
 					// the key of the field (the key goes in the request).
 					'data-wpcd-name' => 'monit_auth_pass',
@@ -814,6 +815,7 @@ class WPCD_WORDPRESS_TABS_SERVER_MONIT extends WPCD_WORDPRESS_TABS {
 			'raw_attributes' => array(
 				'std'            => $monit_smtp_pass,
 				'desc'           => __( 'Your password for connecting to the smtp server', 'wpcd' ),
+				'tooltip'        => __( 'Please use alphanumeric characters only - otherwise Monit will likely fail to start with a silent syntax error.', 'wpcd' ),
 				'columns'        => 4,
 				// the key of the field (the key goes in the request).
 				'data-wpcd-name' => 'monit_smtp_pass',
@@ -898,6 +900,17 @@ class WPCD_WORDPRESS_TABS_SERVER_MONIT extends WPCD_WORDPRESS_TABS {
 					return new \WP_Error( __( 'Unable to setup monit - no password was was provided.', 'wpcd' ) );
 				} else {
 					$args['password'] = $args['monit_auth_pass']; // make sure that there is a 'password' key in the args array.
+				}
+
+				// Make sure that the password fields do not contain invalid characters.
+				if ( wpcd_clean_alpha_numeric_dashes( $args['monit_auth_user'] ) !== $args['monit_auth_user'] ) {
+					return new \WP_Error( __( 'Unable to setup monit - the user name must consist of alphanumeric characters only.', 'wpcd' ) );
+				}
+				if ( wpcd_clean_alpha_numeric_dashes( $args['monit_auth_pass'] ) !== $args['monit_auth_pass'] ) {
+					return new \WP_Error( __( 'Unable to setup monit - the password must consist of alphanumeric characters only.', 'wpcd' ) );
+				}
+				if ( wpcd_clean_alpha_numeric_dashes( $args['monit_smtp_pass'] ) !== $args['monit_smtp_pass'] ) {
+					return new \WP_Error( __( 'Unable to setup monit - the email password must consist of alphanumeric characters only.', 'wpcd' ) );
 				}
 
 				$email_meta = array();
@@ -1308,7 +1321,7 @@ class WPCD_WORDPRESS_TABS_SERVER_MONIT extends WPCD_WORDPRESS_TABS {
 	public function wpcd_monit_email_alerts_load_defaults( $id, $action ) {
 
 		// Check for admin user.
-		if ( ! wpcd_is_admin() ) {			
+		if ( ! wpcd_is_admin() ) {
 			return new \WP_Error( __( 'You are not allowed to perform this action - only admins are permitted here.', 'wpcd' ) );
 		}
 

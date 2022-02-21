@@ -1,0 +1,1 @@
+var ajaxurl=wpcd_wpapp_params.ajaxurl;

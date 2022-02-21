@@ -1171,3 +1171,53 @@ function wpcd_test_create_popup_after_form_option() {
 }
 add_action( "wpcd_wordpress-app_create_popup_after_form_open", 'wpcd_test_create_popup_after_form_option', 10 );
 */
+
+
+
+function wpcd_is_public_servers_list_query( $query ) {
+	return isset( $query->query['wpcd_app_server_front'] ) && $query->query['wpcd_app_server_front'];
+}
+
+
+function wpcd_user_can_edit_server( $server_id = null, $user_id = null ) {
+	
+	if( null === $server_id ) {
+		global $post;
+		$server_id = $post->ID;
+	}
+	
+	if( null === $user_id ) {
+		$user_id     = get_current_user_id();
+	}
+	
+	if( !$server_id || !$user_id ) {
+		return false;
+	}
+	
+	if( wpcd_is_admin() ) {
+		return  true;
+	}
+		
+	$post_author = get_post( $server_id )->post_author;
+	
+	return !( ! wpcd_user_can( $user_id, 'view_server', $server_id ) && $post_author != $user_id );
+}
+
+
+function wpcd_get_current_page_server_id() {
+	
+	$id = '';
+	if( is_admin() ) {
+		$id = filter_input( INPUT_GET, 'post', FILTER_VALIDATE_INT );
+	} else {
+		global $post;
+		
+		if( !$post ) {
+			$id =      url_to_postid( "http://".$_SERVER['SERVER_NAME'].$_SERVER['REQUEST_URI'] );
+		} else {
+			$id = $post->ID;
+		}
+	}
+	
+	return $id;
+}

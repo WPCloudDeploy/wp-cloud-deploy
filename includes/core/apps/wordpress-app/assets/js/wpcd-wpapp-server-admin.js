@@ -127,7 +127,12 @@
         $('body').on('click', '.wpcd-log-close-button, .wpcd-log-close-button a, a.wpcd-log-close-button', function (e) {
             e.preventDefault();
             $.magnificPopup.close();
-            location.reload();
+            //location.reload();
+            if( wpcd_wpapp_params.is_public ) {
+                    window.location.href = wpcd_wpapp_params.servers_list_page_url;
+            } else {
+                    location.reload();
+            }
         });
 
         // clicking the install button.
@@ -352,7 +357,12 @@
         $('body').on('click', '.wpcd-log-close-button, .wpcd-log-close-button a, a.wpcd-log-close-button', function (e) {
             e.preventDefault();
             $.magnificPopup.close();
-            location.reload();
+            //location.reload();
+            if( wpcd_wpapp_params.is_public ) {
+                    window.location.href = wpcd_wpapp_params.servers_list_page_url;
+            } else {
+                    location.reload();
+            }
         });
 
         // clicking the install button.

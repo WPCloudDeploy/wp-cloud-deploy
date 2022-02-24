@@ -635,7 +635,7 @@ class WPCD_SYNC {
 		global $wpdb;
 		$table_name      = $wpdb->prefix . 'wpcd_restore_files';
 		$charset_collate = $wpdb->get_charset_collate();
-		$sql             = "CREATE TABLE IF NOT EXISTS $table_name (
+		$sql             = "CREATE TABLE $table_name (
 			restore_id bigint(20) NOT NULL AUTO_INCREMENT,
 			user_id bigint(20) NOT NULL,
 			recieved_from varchar(250) NOT NULL,

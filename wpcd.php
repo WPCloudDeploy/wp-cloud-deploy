@@ -404,6 +404,12 @@ class WPCD_Init {
 	 *  4. Certain crons are not running on a regular basis.
 	 */
 	public function wpcd_global_admin_notice() {
+
+		// Only show messages to admins.
+		if ( ! wpcd_is_admin() ) {
+			return;
+		}
+
 		if ( in_array( isset( $_SERVER['SERVER_ADDR'] ) ? $_SERVER['SERVER_ADDR'] : '', array( '127.0.0.1', '::1' ), true ) ) {
 			if ( ! wpcd_get_early_option( 'hide-local-host-warning' ) ) {
 				$class   = 'notice notice-error';

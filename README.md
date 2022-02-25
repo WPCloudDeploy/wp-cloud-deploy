@@ -94,6 +94,7 @@ Note: Even though the entire git development history isn't available on github, 
 4.16.0
 ------
 * New: Save any IPv6 address that DigitalOcean assigns to servers.  Request IPv6 addresses on all new DigitalOcean servers.
+* Tweak: Make sure that certain messages only display to users who pass the wpcd_is_admin() check.
 * Tweak: WPAPP - Disable old PHP versions on new servers by default.  Add controls to allow admin to re-enable them on a server-by-server basis.
 * Tweak: WPAPP - Preference ipv4 over ipv6 (update bash create-server script)
 * Tweak: WPAPP - Validate certain fields on the server monit/healing tab before allowing an operation - this prevents monit from throwing an error because it cannot parse its configuration files.

@@ -1886,7 +1886,7 @@ class WPCD_Settings {
 	 *
 	 * This one will be used to set a standard WordPress option called 'wisdom_opt_out'
 	 * to let the Wisdom plugin know that the user has opted out of sharing statistics.
-	 * 
+	 *
 	 * @see: https://wisdomplugin.com/support/#options
 	 *
 	 * Filter Hook: rwmb_after_save_field
@@ -1906,10 +1906,11 @@ class WPCD_Settings {
 						// Option does not already exist so log the change.  We check for the option existence first because we don't want to log every time we save - we just want to log the first time.
 						do_action( 'wpcd_log_error', 'Admin has chosen NOT to share statistics.', 'other', __FILE__, __LINE__, array(), false );
 					}
-					update_option( 'wisdom_opt_out', 1 );
+					update_option( 'wisdom_opt_out', array( 'wisdom_registered_setting' => 1, 'wisdom_opt_out' => 1 ) );
 				} else {
 					// Flag is unset so delete option if it exists.
 					if ( get_option( 'wisdom_opt_out' ) ) {
+						// But first we log the change.
 						do_action( 'wpcd_log_error', 'Admin has chosen to share statistics.', 'other', __FILE__, __LINE__, array(), false );
 					}
 					delete_option( 'wisdom_opt_out' );

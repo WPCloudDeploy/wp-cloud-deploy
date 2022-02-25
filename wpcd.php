@@ -568,7 +568,7 @@ if ( ! function_exists( 'wpcd_start_plugin_tracking' ) ) {
 		$wisdom = new Plugin_Usage_Tracker(
 			__FILE__,
 			'https://statistics.wpclouddeploy.com',
-			array( 'wisdom_opt_out' ),
+			array( 'wisdom_opt_out', 'wisdom_wpcd_server_count', 'wisdom_wpcd_app_count' ),
 			false,
 			false,
 			3

@@ -556,3 +556,23 @@ class WPCD_Init {
  * Get WPCD running.
  */
 $wpcd_throwaway = new WPCD_Init();
+
+/**
+ * Statistics Collection
+ */
+if ( ! class_exists( 'Plugin_Usage_Tracker' ) ) {
+	require_once dirname( __FILE__ ) . '/vendor/wisdom_plugin/class-plugin-usage-tracker.php';
+}
+if ( ! function_exists( 'wpcd_start_plugin_tracking' ) ) {
+	function wpcd_start_plugin_tracking() {
+		$wisdom = new Plugin_Usage_Tracker(
+			__FILE__,
+			'https://statistics.wpclouddeploy.com',
+			array( 'wisdom_opt_out' ),
+			false,
+			false,
+			3
+		);
+	}
+	wpcd_start_plugin_tracking();
+}

@@ -97,6 +97,8 @@ Note: Even though the entire git development history isn't available on github, 
 * Tweak: WPAPP - Disable old PHP versions on new servers by default.  Add controls to allow admin to re-enable them on a server-by-server basis.
 * Tweak: WPAPP - Preference ipv4 over ipv6 (update bash create-server script)
 * Tweak: WPAPP - Validate certain fields on the server monit/healing tab before allowing an operation - this prevents monit from throwing an error because it cannot parse its configuration files.
+* Tweak: WPAPP - Updated the list of WP versions to add wp 5.9.1.
+* Tweak: WPAPP - Add new notification type to handle upcoming features in the POWERTOOLS add-on.
 * Fix: WPAPP - Staging and Cloned sites did not carry-over the metas that indicate the status of the various caches.
 * Fix: WPAPP - Typo on site TOOLS tab - reset permissions description should say 664 for files, not 644.
 * Dev: WPAPP - New filter to allow providers to add text to any error messages when a server immediately fails to deploy.

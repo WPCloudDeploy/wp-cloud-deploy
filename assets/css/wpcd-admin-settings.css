@@ -113,12 +113,15 @@ be added here.
 .rwmb-settings-no-boxes #fields .rwmb-heading-wrapper h4,
 .rwmb-settings-no-boxes #hide-general-option .rwmb-heading-wrapper h4,
 .rwmb-settings-no-boxes #wpcd-hide-groups-fields .rwmb-heading-wrapper h4,
+.rwmb-settings-no-boxes #wpcd-wisdom-opt-out-fields .rwmb-heading-wrapper h4,
 .rwmb-settings-no-boxes #license .rwmb-heading-wrapper h4,
 .rwmb-settings-no-boxes #tools .rwmb-heading-wrapper h4,
 .rwmb-settings-no-boxes #data-sync .rwmb-heading-wrapper h4,
 .rwmb-settings-no-boxes #cloud-providers .rwmb-heading-wrapper h4,
 .rwmb-settings-no-boxes #wordpress-app .rwmb-heading-wrapper h4,
-.rwmb-settings-no-boxes #wordpress-app-security .rwmb-heading-wrapper h4
+.rwmb-settings-no-boxes #wordpress-app-security .rwmb-heading-wrapper h4,
+.rwmb-settings-no-boxes #vultr-api-v1-options .rwmb-heading-wrapper h4
+
  {
     color: var(--wpcd-primary-brand-color);
 }

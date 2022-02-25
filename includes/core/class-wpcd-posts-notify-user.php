@@ -930,14 +930,16 @@ class WPCD_NOTIFY_USER extends WPCD_Posts_Base {
 	 */
 	public function get_user_notify_references() {
 		$user_references = array(
-			'backup'       => 'Backup',
-			'malware'      => 'Malware',
-			'misc'         => 'Misc',
-			'power'        => 'Power',
-			'updates'      => 'Updates',
-			'snapshots'    => 'Snapshots',
-			'site-updates' => 'Site Updates',
-			'other'        => 'Other',
+			'backup'               => __( 'Backup', 'wpcd', ),
+			'malware'              => __( 'Malware', 'wpcd', ),
+			'misc'                 => __( 'Misc', 'wpcd', ),
+			'power'                => __( 'Power', 'wpcd', ),
+			'updates'              => __( 'Updates', 'wpcd', ),
+			'snapshots'            => __( 'Snapshots', 'wpcd', ),
+			'site-updates'         => __( 'Site Updates', 'wpcd', ),
+			'backup-config'        => __( 'Backup Configuration Files', 'wpcd', ),
+			'periodic-site-images' => __( 'Periodic Site Images (Powertools)', 'wpcd', ),
+			'other'                => __( 'Other', 'wpcd', ),
 		);
 		return apply_filters( 'wpcd_user_notify_references', $user_references );
 	}

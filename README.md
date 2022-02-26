@@ -56,6 +56,8 @@ You can also view all requirements at the bottom of our [getting started documen
 
 Have a change you would like to see incorporated?  Then create a PR (pull request) against the **dev** branch.
 
+Have some time to help test new versions?  Download a zip of the **dev** branch and test - changes that need testing are usually listed in the CHANGE LOG section of this readme file below (under the most recent version number.)
+
 If you'd like to contribute to translations, you can do so in our public [POEDITOR project](https://poeditor.com/join/project?hash=A5I1lpqRes).
 
 ## Premium Versions ##
@@ -72,10 +74,21 @@ Premium features include:
 * Virtual Providers (support multiple accounts on each cloud server provider)
 * Server Sync
 * Support for additional cloud server providers: EC2, LIGHTSAIL, LINODE, VULTR, UPCLOUD, HETZNER, EXOSCALE, GOOGLE, AZURE and ALIBABA
+* Powertools which include features such as summary dashboards and charts, periodic server snapshots and more.
 
 ## Creating Extensions ##
 
 [Articles on creating WPCD extensions](https://wpclouddeploy.com/category/tutorials/)
+
+## About Branches ##
+
+We generally use two branches - the MAIN branch is the most stable version and is suitable for use in a production environment.
+
+The DEV branch is usually stable but not all existing features have been fully regression tested.
+
+If you are starting a project of your own and you'd like to start with a version containing all the latest features, you can usually use the DEV branch.  
+
+The DEV branch is usually promoted to the MAIN branch every 30 to 60 days.
 
 ## Plugin History ##
 
@@ -84,7 +97,7 @@ The plugin was always open-source but until October 2021, the source was only av
 
 In October 2021, Version 4.10.8 was pushed to a public Github repository.  Now, anyone can just install the core plugin and immediately get WordPress server management functions that rival SaaS systems.
 
-Note: Even though the entire git development history isn't available on github, the changelog below still reflects the full release history.
+Note: Even though the entire git development history isn't available on github, the change log below still reflects the full release history.
 
 ## Release Notes ##
 

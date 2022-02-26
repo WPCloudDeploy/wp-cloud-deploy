@@ -818,7 +818,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			array(
 				'type' => 'heading',
 				'name' => __( 'Linux Updates', 'wpcd' ),
-				'desc' => __( 'Run updates immediately after is deployed - NOT RECOMMENDED if any of the options above are also enabled.', 'wpcd' ),
+				'desc' => __( 'Run updates immediately after server is deployed - NOT RECOMMENDED if any of the options above are also enabled.', 'wpcd' ),
 				'tab'  => 'wordpress-app-servers',
 			),
 			array(

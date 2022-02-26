@@ -123,7 +123,9 @@ Note: Even though the entire git development history isn't available on github, 
 * Fix: WPAPP - Individual toggle switches on monit components were not working - only the 'all' switches did what they were supposed to do.
 * Fix: WPAPP - Typo on site TOOLS tab - reset permissions description should say 664 for files, not 644.
 * Dev: WPAPP - New filter to allow providers to add text to any error messages when a server immediately fails to deploy.
+* Dev: WPAPP - New action hook on the copy-to-existing-site action (wpcd_app_wordpress-app_before_action_copy_to_existing_site).
 * Dev: Integrate the wisdom plugin.
+
 
 4.15.0
 ------

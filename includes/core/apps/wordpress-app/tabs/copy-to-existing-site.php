@@ -188,6 +188,12 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 			$args
 		);
 
+		/**
+		 * Let developers hook to run custom code and change the args if necessary before running the command.
+		 * Hook Name: wpcd_app_wordpress-app_before_action_copy_to_existing_site
+		 */
+		$args = apply_filters( "wpcd_app_{$this->get_app_name()}_before_action_copy_to_existing_site", $args, $action, $id, $instance, $domain, $original_args );
+
 		// we want to make sure this command runs only once in a "swatch beat" for a domain.
 		// e.g. 2 manual backups cannot run for the same domain at the same time (time = swatch beat).
 		// although technically only one command can run per domain (e.g. backup and restore cannot run at the same time).

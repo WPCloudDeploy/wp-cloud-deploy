@@ -97,6 +97,12 @@ class WPCD_Init {
 		/* Show some notices as required */
 		add_action( 'admin_notices', array( $this, 'wpcd_global_admin_notice' ) );
 
+		/* Show documentation and quick-start links in the plugin list. */
+		add_filter( 'plugin_row_meta', array( $this, 'wpcd_append_support_and_faq_links' ), 10, 4 );
+
+		/* Attempt to get and show any upgrade notice for the next version of the plugin - @see https://wisdomplugin.com/add-inline-plugin-update-message/ */
+		add_action( 'in_plugin_update_message-wp-cloud-deploy/wpcd.php', array( $this, 'wpcd_plugin_update_message' ), 10, 2 );
+
 		/* Load languages files */
 		add_action( 'plugins_loaded', array( $this, 'load_plugin_textdomain' ) );
 
@@ -488,6 +494,73 @@ class WPCD_Init {
 			printf( '<div class="%1$s"><p>%2$s</p></div>', $class, $message );
 		}
 	}
+
+	/**
+	 * Filters the array of row meta for each/specific plugin in the Plugins list table.
+	 * Appends additional links below each/specific plugin on the plugins page.
+	 *
+	 * Action Hook: plugin_row_meta
+	 *
+	 * @since 4.15.1
+	 *
+	 * @access  public
+	 * @param   array  $links_array            An array of the plugin's metadata.
+	 * @param   string $plugin_file_name       Path to the plugin file.
+	 * @param   array  $plugin_data            An array of plugin data.
+	 * @param   string $status                 Status of the plugin.
+	 *
+	 * @return  array  $links_array New links to be added to the plugin list.
+	 */
+	public function wpcd_append_support_and_faq_links( $links_array, $plugin_file_name, $plugin_data, $status ) {
+		if ( strpos( $plugin_file_name, basename( __FILE__ ) ) ) {
+
+			// You can still use `array_unshift()` to add links at the beginning.
+			$links_array[] = '<a href="https://wpclouddeploy.com/documentation/wpcloud-deploy/introduction-to-wpcloud-deploy/" target="_blank">Quick Start</a>';
+			$links_array[] = '<a href="https://wpclouddeploy.com/doc-landing/" target="_blank">Documentation</a>';
+			$links_array[] = '<a href="https://wpclouddeploy.com/documentation/wpcloud-deploy-admin/bootstrapping-a-wordpress-server-with-our-scripts/" target="_blank">Bootstrap Your Own Server</a>';
+
+			$settings_link = admin_url( 'edit.php?post_type=wpcd_app_server&page=wpcd_settings' );
+			$links_array[] = '<a href="' . $settings_link . '">Settings</a>';
+
+			$links_array[] = '<a href="https://wpclouddeploy.com/pricing/" target="_blank">Premium Options</a>';
+			$links_array[] = '<a href="https://wpclouddeploy.com/support/" target="_blank">Support</a>';
+		}
+
+		return $links_array;
+	}
+
+	/**
+	 * Attempt to get and show any upgrade notice for the next version of the plugin.
+	 *
+	 * @see https://wisdomplugin.com/add-inline-plugin-update-message/
+	 * @see https://developer.wordpress.org/reference/hooks/in_plugin_update_message-file/
+	 *
+	 * Action Hook: in_plugin_update_message-{$file} | in_plugin_update_message-wpcd/wpcd.php
+	 *
+	 * @since 4.15.1
+	 *
+	 * @param array  $data The array of plugin metadata.
+	 * @param object $response An object of metadata about the available plugin update.
+	 *
+	 * @return void
+	 */
+	public function wpcd_plugin_update_message( $data, $response ) {
+		if ( isset( $data['upgrade_notice'] ) ) {
+			printf(
+				'<div class="update-message">%s</div>',
+				wp_kses_post( wpautop( $data['upgrade_notice'] ) )
+			);
+		} else {
+			$release_notes      = wpcd_get_string_between( $data['sections']->changelog, '<p>', '<p>' );  // Grab data between two paragraph tags - this gives us the raw release notes for the most recent release.
+			$release_notes      = wpcd_get_string_between( $data['sections']->changelog, '<ul>', '</ul>' ); // Just grab the list and remove everthing above and below it.
+			$release_notes_link = '<br /><a href="https://wpclouddeploy.com/category/release-notes/" target="_blank">' . __( 'View friendly release notes to learn about any breaking changes that might affect you.', 'wpcd' ) . '</a>';
+			printf(
+				'<div class="update-message">%s</div>',
+				'<br />' . wp_kses_post( $release_notes ) . wp_kses_post( $release_notes_link )
+			);
+		}
+	}
+
 
 	/**
 	 * Load the plugin text domain for translation.

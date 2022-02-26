@@ -90,6 +90,8 @@ If you are starting a project of your own and you'd like to start with a version
 
 The DEV branch is usually promoted to the MAIN branch every 30 to 60 days.
 
+We commit EVERYTHING to our repository so there is no pesky build process necessary.  You can just download the zip from either branch and upload to your WordPress site using the ADD NEW option in the WordPress plugins screen.
+
 ## Plugin History ##
 
 Development was started in 2019 and the first release to the public became available in March 2020.  Since then there have been numerous updates, with an average pace of one update per month.
@@ -109,6 +111,7 @@ Note: Even though the entire git development history isn't available on github, 
 * New: Save any IPv6 address that DigitalOcean assigns to servers.  Request IPv6 addresses on all new DigitalOcean servers.
 * New: Add install and support links to the plugin entry in the WP plugins list.
 * New: Add code to display the change log directly in the plugin list when a new version is available.
+* New: WPAPP - Add global option to enable delete protection on all new sites.
 * Tweak: Make sure that certain messages only display to users who pass the wpcd_is_admin() check instead of all users.
 * Tweak: WPAPP - Disable old PHP versions on new servers by default.  Add controls to allow admin to re-enable them on a server-by-server basis.
 * Tweak: WPAPP - Preference ipv4 over ipv6 (update bash create-server script)

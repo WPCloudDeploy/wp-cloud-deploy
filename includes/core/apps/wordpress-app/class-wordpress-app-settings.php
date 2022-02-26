@@ -218,6 +218,10 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'label' => 'Servers',
 				'icon'  => 'dashicons-align-full-width',
 			),
+			'wordpress-app-sites'                => array(
+				'label' => 'Sites',
+				'icon'  => 'dashicons-admin-multisite',
+			),
 			'wordpress-app-backup'               => array(
 				'label' => 'Backup and Restore',
 				'icon'  => 'dashicons-images-alt2',
@@ -302,6 +306,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 		// Removing script fields for now since they're not being used.
 		/* $script_fields	= $this->scripts_fields(); */
 		$server_fields                = $this->server_fields();
+		$site_fields                  = $this->site_fields();
 		$backup_fields                = $this->backup_fields();
 		$fields_and_links             = $this->fields_and_links();
 		$theme_and_plugin_updates     = $this->theme_and_plugin_updates();
@@ -313,7 +318,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 		$cf_dns_fields                = $this->cf_dns_fields();
 		$rest_api_fields              = $this->rest_api_fields();
 		$white_label_fields           = $this->white_label_fields();
-		$all_fields                   = array_merge( $general_fields, $server_fields, $backup_fields, $fields_and_links, $theme_and_plugin_updates, $email_notification_fields, $slack_notification_fields, $zapier_notification_fields, $button_color_settings_fields, $email_gateway_load_defaults, $cf_dns_fields, $rest_api_fields, $white_label_fields );
+		$all_fields                   = array_merge( $general_fields, $server_fields, $site_fields, $backup_fields, $fields_and_links, $theme_and_plugin_updates, $email_notification_fields, $slack_notification_fields, $zapier_notification_fields, $button_color_settings_fields, $email_gateway_load_defaults, $cf_dns_fields, $rest_api_fields, $white_label_fields );
 		return $all_fields;
 	}
 
@@ -833,6 +838,31 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 
 		return $fields;
 	}
+
+	/**
+	 * Array of fields used in the sites tab.
+	 */
+	public function site_fields() {
+
+		$fields = array(
+			array(
+				'type' => 'heading',
+				'name' => __( 'Site Setup Options', 'wpcd' ),
+				'desc' => __( 'Services and actions to perform immediately after a WordPress site has been deployed.', 'wpcd' ),
+				'tab'  => 'wordpress-app-sites',
+			),
+			array(
+				'id'      => 'wordpress_app_sites_add_delete_protection',
+				'type'    => 'checkbox',
+				'name'    => __( 'Delete Protect New Sites?', 'wpcd' ),
+				'tooltip' => __( 'Should deletion protection automatically be enabled on new sites?', 'wpcd' ),
+				'tab'     => 'wordpress-app-sites',
+			),
+		);
+
+		return $fields;
+	}
+
 
 	/**
 	 * Array of fields used in the fields and links tab.

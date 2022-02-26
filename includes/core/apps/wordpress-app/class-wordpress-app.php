@@ -3215,6 +3215,11 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 		if ( ! is_wp_error( $app_post_id ) && ! empty( $app_post_id ) ) {
 
+			/* Enable app delete protection flag if global option is enabled in settings. */
+			if ( wpcd_get_option( 'wordpress_app_sites_add_delete_protection' ) ) {
+				$this->set_delete_protection_flag( $app_post_id ); // This function is in the ancestor app class (file: class-wpcd-app.php).
+			}
+
 			/**
 			 * Setup an array of fields and loop through them to add them to the wpcd_app cpt record using the array_map function.
 			 * Note that we are passing in the $args variable to the anonymous function by REFERENCE via a USE parm.

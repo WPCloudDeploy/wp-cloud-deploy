@@ -245,6 +245,19 @@ class WPCD_APP extends WPCD_Base {
 		return $this->scripts_folder_relative;
 	}
 
+	/**
+	 * Set the delete protection flag on an app record.
+	 *
+	 * @param  int $post_id post id.
+	 *
+	 * @return void
+	 */
+	public function set_delete_protection_flag( $post_id ) {
+
+		update_post_meta( $post_id, 'wpcd_app_delete_protection', '1' );
+
+	}
+
 
 	/**
 	 * Returns a list of apps (posts) for a given user.

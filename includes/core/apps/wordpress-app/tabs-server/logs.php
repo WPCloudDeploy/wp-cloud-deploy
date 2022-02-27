@@ -265,7 +265,7 @@ class WPCD_WORDPRESS_TABS_SERVER_LOGS extends WPCD_WORDPRESS_TABS {
 			'/var/log/nginx/access.log'       => __( 'NGINX Access Log', 'wpcd' ),
 			'/var/log/nginx/error.log'        => __( 'NGINX Error Log', 'wpcd' ),
 			'/usr/local/lsws/logs/access.log' => __('OpenLiteSpeed Access Log', 'wpcd'),
-            '/usr/local/lsws/logs/error.log'  => __('OpenLiteSpeed Error Log', 'wpcd'),
+			'/usr/local/lsws/logs/error.log'  => __('OpenLiteSpeed Error Log', 'wpcd'),
 			'/var/log/mysql/error.log'        => __( 'MYSQL Error Log', 'wpcd' ),
 			'/var/log/wp-backup.log'          => __( 'Site WP Backup Logs', 'wpcd' ),
 			'/var/log/wp-full-backup.log'     => __( 'Full Server WP Backup Logs', 'wpcd' ),

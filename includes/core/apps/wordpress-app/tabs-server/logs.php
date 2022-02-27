@@ -264,6 +264,8 @@ class WPCD_WORDPRESS_TABS_SERVER_LOGS extends WPCD_WORDPRESS_TABS {
 		return array(
 			'/var/log/nginx/access.log'       => __( 'NGINX Access Log', 'wpcd' ),
 			'/var/log/nginx/error.log'        => __( 'NGINX Error Log', 'wpcd' ),
+			'/usr/local/lsws/logs/access.log' => __('OpenLiteSpeed Access Log', 'wpcd'),
+            		'/usr/local/lsws/logs/error.log'  => __('OpenLiteSpeed Error Log', 'wpcd'),
 			'/var/log/mysql/error.log'        => __( 'MYSQL Error Log', 'wpcd' ),
 			'/var/log/wp-backup.log'          => __( 'Site WP Backup Logs', 'wpcd' ),
 			'/var/log/wp-full-backup.log'     => __( 'Full Server WP Backup Logs', 'wpcd' ),
@@ -280,6 +282,8 @@ class WPCD_WORDPRESS_TABS_SERVER_LOGS extends WPCD_WORDPRESS_TABS {
 			'/var/log/php8.1-fpm.log'         => __( 'PHP 8.1 FPM Log', 'wpcd' ),
 			'/var/log/auth.log'               => __( 'Authorization Log', 'wpcd' ),
 			'/var/log/ufw.log'                => __( 'UFW Firewall Log', 'wpcd' ),
+			'/var/log/lfd.log'                => __( 'LFD Firewall Log', 'wpcd' ),
+			'/etc/csf/csf.deny'                => __( 'CSF Firewall Log', 'wpcd' ),
 			'/var/log/wp-server-status.log'   => __( 'WPCD Server Status Callback Log', 'wpcd' ),
 		);
 	}

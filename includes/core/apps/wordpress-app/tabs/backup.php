@@ -549,8 +549,10 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 			'name'       => '',
 			'tab'        => 'backup',
 			'type'       => 'button',
-			'std'        => __( 'Restore NGINX Configuration File', 'wpcd' ),
-			'desc'       => __( 'Restore only the site NGINX configuration file from this backup.', 'wpcd' ),
+			// BLAQPANEL BEGIN MOD
+			'std'        => __( 'Restore Webserver Configuration Files', 'wpcd' ),
+			'desc'       => __( 'Restore only the sites Webserver Configuration Files from this backup.', 'wpcd' ),
+			// BLAQPANEL END MOD
 			// fields that contribute data for this action.
 			'attributes' => array(
 				// the _action that will be called in ajax.
@@ -559,7 +561,9 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 				'data-wpcd-id'                  => $id,
 				// fields that contribute data for this action.
 				'data-wpcd-fields'              => json_encode( array( '#wpcd_app_action_backup_list' ) ),              // make sure we give the user a confirmation prompt.
-				'data-wpcd-confirmation-prompt' => __( 'Are you really really SURE you want to restore this backup, overwriting your NGINX web server configuration file on the existing site?', 'wpcd' ),
+				// BLAQPANEL BEGIN MOD
+				'data-wpcd-confirmation-prompt' => __( 'Are you really really SURE you want to restore this backup, overwriting your NGINX/OLS web server configuration files on the existing site?', 'wpcd' ),
+				// BLAQPANEL END MOD
 				// show log console?
 				'data-show-log-console'         => true,
 				// Initial console message.

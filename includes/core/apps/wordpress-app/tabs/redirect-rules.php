@@ -177,8 +177,10 @@ class WPCD_WORDPRESS_TABS_REDIRECT_RULES extends WPCD_WORDPRESS_TABS {
 
 		// Array of redirection types.
 		$redirect_select_options = array(
-			'1' => 'Temporary Redirect',
-			'2' => 'Permanent Redirect',
+			// BLAQPANEL BEGIN MOD
+			'1' => 'Temporary Redirect (302)',
+			'2' => 'Permanent Redirect (301)',
+			// BLAQPANEL END MOD
 		);
 
 		$actions['redirect-rules-type'] = array(
@@ -222,9 +224,20 @@ class WPCD_WORDPRESS_TABS_REDIRECT_RULES extends WPCD_WORDPRESS_TABS {
 
 			// Now build out drop-down list of rules that can be removed...
 			$option_rules = array();
+			// BLAQPANEL BEGIN MOD
+			// Setup Nice name for redirect type for displaying
 			foreach ( $rules as $rule_id => $rule ) {
-				$option_rules[ $rule_id ] = $rule['from'] . ' -> ' . $rule['to'];
+				switch ($rule['type']) {
+                    case '1':
+                        $rule['type'] = 'Temporary Redirect (302)';
+                        break;
+                    case '2':
+                        $rule['type'] = 'Permanent Redirect (301)';
+                        break;
+                    }
+				$option_rules[ $rule_id ] = $rule['type'] . ': ' . $rule['from'] . ' -> ' . $rule['to'];
 			}
+			// BLAQPANEL END MOD
 
 			$actions['redirect-rules-to-remove'] = array(
 				'label'          => '',

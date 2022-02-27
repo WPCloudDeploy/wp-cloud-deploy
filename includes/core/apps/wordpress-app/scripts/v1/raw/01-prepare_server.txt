@@ -765,11 +765,12 @@ echo $(date): "Updating libpcre-2-8-0..."
 apt-get install -y libpcre2-8-0 > /dev/null 2>&1
 
 # Getting WPCLI Packages
-echo $(date): "Getting and installing WPCLI packages..."
-wget https://github.com/wp-cli/builds/raw/gh-pages/deb/php-wpcli_2.6.0_all.deb  > /dev/null 2>&1
-dpkg -i php-wpcli_2.6.0_all.deb  > /dev/null 2>&1
-rm -f php-wpcli_2.6.0_all.deb  > /dev/null 2>&1
-wp cli update --yes --allow-root  > /dev/null 2>&1
+echo "Getting and installing WPCLI packages..."
+wget -O /usr/local/bin/wp https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar > /dev/null 2>&1
+chmod +x /usr/local/bin/wp > /dev/null 2>&1 
+touch /etc/profile.d/add_user_local_bin.sh > /dev/null 2>&1 
+echo 'PATH=$PATH:/usr/local/bin' >> /etc/profile.d/add_user_local_bin.sh > /dev/null 2>&1
+wp cli update --yes  > /dev/null 2>&1
 
 
 

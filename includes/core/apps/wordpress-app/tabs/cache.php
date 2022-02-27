@@ -130,7 +130,7 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
-	 * Enable/Disable the NGINX based page cache
+	 * Enable/Disable the Webserver based page cache
 	 *
 	 * @param string $action The action key to send to the bash script.  This is actually the key of the drop-down select.
 	 * @param int    $id the id of the app post being handled.
@@ -191,9 +191,11 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 		// Success message and force refresh.
 		if ( ! is_wp_error( $result ) ) {
 			if ( 'enable_page_cache' === $action ) {
-				$success_msg = __( 'NGINX pagecache has been enabled for this site.', 'wpcd' );
+				// BLAQPANEL BEGIN MOD
+				$success_msg = __( 'Webserver has been enabled for this site.', 'wpcd' );
 			} else {
-				$success_msg = __( 'NGINX pagecache has been disabled for this site.', 'wpcd' );
+				$success_msg = __( 'Webserver has been disabled for this site.', 'wpcd' );
+				// BLAQPANEL END MOD
 			}
 			$result = array(
 				'msg'     => $success_msg,
@@ -206,7 +208,7 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
-	 * Clear the NGINX based page cache
+	 * Clear the Webserver based page cache
 	 *
 	 * @param string $action The action key to send to the bash script.  This is actually the key of the drop-down select.
 	 * @param int    $id the id of the app post being handled.
@@ -253,7 +255,9 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 
 		// Success message and force refresh.
 		if ( ! is_wp_error( $result ) ) {
-			$success_msg = __( 'NGINX pagecache has been cleared for this site.', 'wpcd' );
+			// BLAQPANEL BEGIN MOD
+			$success_msg = __( 'Webserver pagecache has been cleared for this site.', 'wpcd' );
+			// BLAQPANEL END MOD
 			$result      = array(
 				'msg'     => $success_msg,
 				'refresh' => 'yes',
@@ -400,7 +404,8 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 			'name' => __( 'Page Cache', 'wpcd' ),
 			'tab'  => 'cache',
 			'type' => 'heading',
-			'desc' => __( 'Enable or disable the NGINX page cache.<br />', 'wpcd' ),
+			// BLAQPANEL BEGIN MOD
+			'desc' => __( 'Enable or disable the Webserver page cache.<br />', 'wpcd' ),
 		);
 
 		// What is the status of the page cache?
@@ -412,11 +417,11 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 		/* Set the confirmation prompt based on the the current status of this flag */
 		$confirmation_prompt = '';
 		if ( 'on' === $pc_status ) {
-			$confirmation_prompt = __( 'Are you sure you would like to disable the NGINX page cache for this site?', 'wpcd' );
+			$confirmation_prompt = __( 'Are you sure you would like to disable the Webserver page cache for this site?', 'wpcd' );
 		} else {
-			$confirmation_prompt = __( 'Are you sure you would like to enable NGINX page cache for this site?', 'wpcd' );
+			$confirmation_prompt = __( 'Are you sure you would like to enable Webserver page cache for this site?', 'wpcd' );
 		}
-
+		// BLAQPANEL END MOD
 		$fields[] = array(
 			'id'         => 'toggle-pagecache',
 			'name'       => '',
@@ -438,6 +443,7 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 			'save_field' => false,
 		);
 
+		// BLAQPANEL BEGIN MOD
 		/**
 		 * Clear the page cache
 		 */
@@ -445,7 +451,7 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 			'name' => __( 'Clear Page Cache', 'wpcd' ),
 			'tab'  => 'cache',
 			'type' => 'heading',
-			'desc' => __( 'Clear the NGINX based page cache for this site', 'wpcd' ),
+			'desc' => __( 'Clear the Webserver based page cache for this site', 'wpcd' ),
 		);
 		$fields[] = array(
 			'id'         => 'clear-pagecache',
@@ -460,11 +466,12 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 				// the id.
 				'data-wpcd-id'                  => $id,
 				// make sure we give the user a confirmation prompt.
-				'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like to clear the NGINX page cache for this site?', 'wpcd' ),
+				'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like to clear the Webserver page cache for this site?', 'wpcd' ),
 			),
 			'class'      => 'wpcd_app_action',
 			'save_field' => false,
 		);
+		// BLAQPANEL END MOD
 
 		/* MEMCACHED */
 		$fields[] = array(
@@ -570,7 +577,7 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 			$desc .= '<br />';
 			$desc .= __( 'For object caching you can use Memcached or Redis along with a WordPress plugin to manage the cache.', 'wpcd' );
 			$desc .= '<br />';
-			$desc .= __( 'For page caching you can use an NGINX cache in combination with a WordPress plugin to manage the cache.', 'wpcd' );
+			$desc .= __( 'For page caching you can use an Webserver cache in combination with a WordPress plugin to manage the cache.', 'wpcd' ); // BLAQPANEL BEGIN MOD
 
 			$fields[] = array(
 				'name' => __( 'About Caches and Caching', 'wpcd' ),

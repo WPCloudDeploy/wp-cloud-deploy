@@ -9,6 +9,8 @@ fi
 ## Get our common functions
 source 9999-common-functions.sh
 
+gf_check_cur_webserver
+
 set_user_name() {
     if [[ -z "${user_name}" ]]; then
         user_name=$(echo $domain | cut -c1-32)
@@ -18,15 +20,41 @@ set_user_name() {
 # DEBUG=1 # debug mode, run this script using: sudo DEBUG=1 ./34-options.sh
 NGINX_CONF="/etc/nginx/nginx.conf"
 unset NGINX_RELOAD
-[[ "${domain}" ]] && domain_conf="/etc/nginx/sites-enabled/${domain}"
+unset OLS_RELOAD
 [[ "${domain}" ]] && set_user_name
+if [ "$gv_webserver_type" = "nginx" ]; then
+    [[ "${domain}" ]] && domain_conf="/etc/nginx/sites-enabled/${domain}"
+elif [ "$gv_webserver_type" = "ols" ]  || [ "$gv_webserver_type" = "ols-enterprise" ]; then
+    [[ "${domain}" ]] && domain_conf="/usr/local/lsws/conf/vhosts/${domain}/vhconf.conf"
+fi
+
+
+
+get_domain_config_path(){
+    local site
+    site=$1
+    if [ "$gv_webserver_type" = "nginx" ]; then
+        domain_conf="/etc/nginx/sites-enabled/${site}"
+    elif [ "$gv_webserver_type" = "ols" ]  || [ "$gv_webserver_type" = "ols-enterprise" ]; then
+        domain_conf="/usr/local/lsws/conf/vhosts/${site}/vhconf.conf"
+    fi
+}
+
+# if [ "$gv_webserver_type" = "nginx" ]; then
+#         [[ "${domain}" ]] && domain_conf="/etc/nginx/sites-enabled/${domain}"
+# elif [ "$gv_webserver_type" = "ols" ]  || [ "$gv_webserver_type" = "ols-enterprise" ]; then
+#     [[ "${domain}" ]] && domain_conf="/usr/local/lsws/conf/vhosts/${domain}/vhconf.conf"
+# fi
+
+# gf_restart_webserver
+
 
 # equals to 1 year (31536000) for most WordPress sites, 
 # but I chose 7d like in Nextcloud
 # where users can add content in a completely unpredictable way
 CACHE_MAX_AGE="7d"
 
-exit_script() {
+nginx_exit_script() {
     nginx -t # checking nginx configuration
     if [[ $? -eq 0 ]]; then
         if [[ "${NGINX_RELOAD}" -eq 1 && "${DEBUG}" -eq 0 ]]; then
@@ -35,6 +63,28 @@ exit_script() {
     fi
     exit
 }
+
+ols_exit_script() {
+    /usr/local/lsws/bin/openlitespeed -t # checking ols configuration
+    if [[ $? -eq 0 ]]; then
+        if [[ "${OLS_RELOAD}" -eq 1 && "${DEBUG}" -eq 0 ]]; then
+            killall lsphp
+            systemctl restart lsws || service lsws restart
+        fi
+    fi
+    exit
+}
+
+exit_script() {
+    if [ "$gv_webserver_type" = "nginx" ]; then
+        nginx_exit_script
+    elif [ "$gv_webserver_type" = "ols" ]; then
+        ols_exit_script
+    elif [ "$gv_webserver_type" = "ols-enterprise" ]; then
+        echo
+    fi
+}
+
 
 # for options where changes are applied to the filesystem
 select_domain () {
@@ -50,9 +100,38 @@ while [[ -z $domain ]]; do
     	read -p "Select site: " site_number
     done
     domain=$(ls /var/www | grep -v html | sed -n "$site_number"p)
-    domain_conf="/etc/nginx/sites-enabled/${domain}"
+
+    get_domain_config_path "$domain"
+    
     set_user_name
 done
+}
+
+function list_nginx_enabled_sites(){
+    ls /etc/nginx/sites-enabled/ | grep -v '^default$\|^monit$\|^monitorix$' | nl
+}
+
+function select_nginx_enabled_site(){
+    list_nginx_enabled_sites
+    read -p "Select site: " site_number
+    number_of_nginx_enabled_sites
+    until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
+        echo "$site_number: invalid selection."
+        read -p "Select site: " site_number
+    done
+    domain=$(ls /etc/nginx/sites-enabled/ | grep -v '^default$\|^monit$\|^monitorix$' | sed -n "$site_number"p)
+}
+
+
+function select_ols_site(){
+    ls /usr/local/lsws/conf/vhosts-disabled/ | grep -Ev '^Example' | nl
+    read -p "Select site: " site_number
+    number_of_sites=$(ls /usr/local/lsws/conf/vhosts-disabled/ | grep -Ev '^Example' | wc -l)
+    until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
+        echo "$site_number: invalid selection."
+        read -p "Select site: " site_number
+    done
+    domain=$(ls /usr/local/lsws/conf/vhosts-disabled/ | grep -Ev '^Example' | sed -n "$site_number"p)
 }
 
 
@@ -62,15 +141,12 @@ while [[ -z $domain ]]; do
     echo
     echo "Please, select which site you want to work with"
     echo
-    ls /etc/nginx/sites-enabled/ | grep -v '^default$\|^monit$\|^monitorix$' | nl
-    read -p "Select site: " site_number
-    number_of_sites=$(ls /etc/nginx/sites-enabled/ | grep -v '^default$\|^monit$\|^monitorix$' | wc -l)
-    until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
-    	echo "$site_number: invalid selection."
-    	read -p "Select site: " site_number
-    done
-    domain=$(ls /etc/nginx/sites-enabled/ | grep -v '^default$\|^monit$\|^monitorix$' | sed -n "$site_number"p)
-    domain_conf="/etc/nginx/sites-enabled/${domain}"
+    if [ "$gv_webserver_type" = "nginx" ]; then
+        select_nginx_enabled_site
+    elif [ "$gv_webserver_type" = "ols" ]  || [ "$gv_webserver_type" = "ols-enterprise" ]; then
+        select_ols_site
+    fi
+    get_domain_config_path "$domain"
     set_user_name
 done
 }
@@ -491,24 +567,69 @@ fi
 
 ## regex patterns for xmlrpc
 has_xmlrpc_disabled="^${sm}location${sm}~${sm}xmlrpc\\.php\\$ ?${sm}\\{deny${sp}all;\\}"
-enable_xmlrpc="/${has_xmlrpc_disabled}/d"
-disable_xmlrpc="s/^(${sm}location${sm}~${sm}\\\\.php\\$ ?${sm}\{)/\\1\\n        location ~ xmlrpc.php\$ {deny all;}/"
+enable_xmlrpc_regex="/${has_xmlrpc_disabled}/d"
+disable_xmlrpc_regex="s/^(${sm}location${sm}~${sm}\\\\.php\\$ ?${sm}\{)/\\1\\n        location ~ xmlrpc.php\$ {deny all;}/"
 ## end regex patterns xmlrpc
 
-is_xmlrpc_disabled() {
+is_xmlrpc_disabled_nginx() {
     cat "${domain_conf}" | grep -qP "${has_xmlrpc_disabled}"
+}
+
+is_xmlrpc_disabled_ols() {
+    cat "/var/www/$domain/html/.htaccess" | grep -qP "BP security header - Disable XMLRPC"
+}
+
+is_xmlrpc_disabled(){
+    if [ "$gv_webserver_type" = "nginx" ]; then
+        is_xmlrpc_disabled_nginx
+    elif [ "$gv_webserver_type" = "ols" ]  || [ "$gv_webserver_type" = "ols-enterprise" ]; then
+        is_xmlrpc_disabled_ols
+    fi
+}
+
+enable_xmlrpc_nginx(){
+   sed -i "${domain_conf}" -re "${enable_xmlrpc_regex}"
+}
+
+enable_xmlrpc_ols(){
+    sed -i "/.*BP security header - Disable XMLRPC.*/d"  /var/www/$domain/html/.htaccess
+}
+
+enable_xmlrpc(){
+    if [ "$gv_webserver_type" = "nginx" ]; then
+        enable_xmlrpc_nginx
+    elif [ "$gv_webserver_type" = "ols" ]  || [ "$gv_webserver_type" = "ols-enterprise" ]; then
+        enable_xmlrpc_ols
+    fi
+}
+
+disable_xmlrpc_nginx(){
+   sed -i "${domain_conf}" -re "${disable_xmlrpc_regex}"
+}
+
+disable_xmlrpc_ols(){
+    sed -i "1 i\RewriteEngine On\nRewriteRule ^(.*)?xmlrpc\.php(.*)\$ - [F,L,NC] # BP security header - Disable XMLRPC" /var/www/$domain/html/.htaccess
+}
+
+disable_xmlrpc(){
+    if [ "$gv_webserver_type" = "nginx" ]; then
+        disable_xmlrpc_nginx
+    elif [ "$gv_webserver_type" = "ols" ]  || [ "$gv_webserver_type" = "ols-enterprise" ]; then
+        disable_xmlrpc_ols
+    fi
 }
 
 ## Enable XMLRPC
 if [[ "${action}" == 'enable_xmlrpc' || "${action}" == "$((i++))" ]]; then
     select_domain_mu
     if is_xmlrpc_disabled; then
-        sed -i "${domain_conf}" -re "${enable_xmlrpc}"
+        enable_xmlrpc
         if is_xmlrpc_disabled; then
             echo -e "${RED}ERROR: xmlrpc enabling error for '${domain}'${NC}" >&2 # ERROR
         else
             echo -e "${GREEN} ${SUCCESSFUL} xmlrpc enabled for '${domain}'${NC}" # ACTION
             NGINX_RELOAD=1
+            OLS_RELOAD=1
         fi
     else
         echo -e "${BLUE}xmlrpc is already enabled for '${domain}'${NC}" # SKIP
@@ -523,10 +644,11 @@ if [[ "${action}" == 'disable_xmlrpc' || "${action}" == "$((i++))" ]]; then
     if is_xmlrpc_disabled; then
         echo -e "${BLUE}xmlrpc is already disabled for '${domain}'${NC}" # SKIP
     else
-        sed -i "${domain_conf}" -re "${disable_xmlrpc}"
+        disable_xmlrpc
         if is_xmlrpc_disabled; then
             echo -e "${GREEN} ${SUCCESSFUL} xmlrpc disabled for '${domain}'${NC}" # ACTION
             NGINX_RELOAD=1
+            OLS_RELOAD=1
         else
             echo -e "${RED}ERROR: xmlrpc disabling error for '${domain}'${NC}" >&2 # ERROR
         fi
@@ -596,11 +718,20 @@ do_disable_xfo() {
 }
 
 do_enable_xfo_sameorigin() {
-    sed -i "${domain_conf}" -re '/client_max_body_size/a \ \ \ \ add_header X-Frame-Options "SAMEORIGIN";'
+    if  [ "$gv_webserver_type" = "nginx" ]; then
+        sed -i "${domain_conf}" -re '/client_max_body_size/a \ \ \ \ add_header X-Frame-Options "SAMEORIGIN";'
+    elif [ "$gv_webserver_type" = "ols" ]  || [ "$gv_webserver_type" = "ols-enterprise" ]; then
+        sed -i "${domain_conf}" -re '/Headers go below this line/a X-Frame-Options "SAMEORIGIN";'
+    fi
 }
 
 do_enable_xfo_deny() {
-    sed -i "${domain_conf}" -re '/client_max_body_size/a \ \ \ \ add_header X-Frame-Options "DENY";'
+    if  [ "$gv_webserver_type" = "nginx" ]; then
+        sed -i "${domain_conf}" -re '/client_max_body_size/a \ \ \ \ add_header X-Frame-Options "DENY";'
+    elif [ "$gv_webserver_type" = "ols" ]  || [ "$gv_webserver_type" = "ols-enterprise" ]; then
+        sed -i "${domain_conf}" -re '/Headers go below this line/a X-Frame-Options "DENY";'
+    fi
+    
 }
 
 ## Enable X-Frame-Options "SAMEORIGIN" header
@@ -616,9 +747,11 @@ if [[ "${action}" == 'enable_xfo_sameorigin' || "${action}" == "$((i++))" ]]; th
                 if is_xfo_sameorigin; then
                     echo -e "${GREEN} ${SUCCESSFUL} xfo_sameorigin enabled (xfo_deny disabled) for '${domain}'${NC}" # ACTION
                     NGINX_RELOAD=1
+                    OLS_RELOAD=1
                 else
                     echo -e "${RED}ERROR: xfo_sameorigin enabling error (after xfo_deny disabled) for '${domain}'${NC}" >&2 # ERROR
                     # NGINX_RELOAD=1
+                    # OLS_RELOAD=1
                 fi
             fi
         else
@@ -629,6 +762,7 @@ if [[ "${action}" == 'enable_xfo_sameorigin' || "${action}" == "$((i++))" ]]; th
         if is_xfo_sameorigin; then
             echo -e "${GREEN} ${SUCCESSFUL} xfo_sameorigin enabled for '${domain}'${NC}" # ACTION
             NGINX_RELOAD=1
+            OLS_RELOAD=1
         else
             echo -e "${RED}ERROR: xfo_sameorigin enabling error for '${domain}'${NC}" >&2 # ERROR
         fi
@@ -650,9 +784,11 @@ if [[ "${action}" == 'enable_xfo_deny' || "${action}" == "$((i++))" ]]; then
                 if is_xfo_deny; then
                     echo -e "${GREEN} ${SUCCESSFUL} xfo_deny enabled (xfo_sameorigin disabled) for '${domain}'${NC}" # ACTION
                     NGINX_RELOAD=1
+                    OLS_RELOAD=1
                 else
                     echo -e "${RED}ERROR: xfo_deny enabling error (after xfo_sameorigin disabled) for '${domain}'${NC}" >&2 # ERROR
                     # NGINX_RELOAD=1
+                    # OLS_RELOAD=1
                 fi
             fi
         else
@@ -663,6 +799,7 @@ if [[ "${action}" == 'enable_xfo_deny' || "${action}" == "$((i++))" ]]; then
         if is_xfo_deny; then
             echo -e "${GREEN} ${SUCCESSFUL} xfo_deny enabled for '${domain}'${NC}" # ACTION
             NGINX_RELOAD=1
+            OLS_RELOAD=1
         else
             echo -e "${RED}ERROR: xfo_deny enabling error for '${domain}'${NC}" >&2 # ERROR
         fi
@@ -681,6 +818,7 @@ if [[ "${action}" == 'disable_xfo' || "${action}" == "$((i++))" ]]; then
         else
             echo -e "${GREEN} ${SUCCESSFUL} xfo disabled for '${domain}'${NC}" # ACTION
             NGINX_RELOAD=1
+            OLS_RELOAD=1
         fi
     else
         echo -e "${BLUE}xfo is already disabled for '${domain}'${NC}" # SKIP
@@ -690,7 +828,7 @@ fi
 ## End Disable X-Frame-Options header
 
 ## Regex patterns for CSP (Content-Security-Policy)
-has_csp_settings="add_header${sp}Content-Security-Policy"
+has_csp_settings="Content-Security-Policy"
 ## End Regex patterns for CSP (Content-Security-Policy)
 
 is_has_csp_settings() {
@@ -706,11 +844,21 @@ do_disable_csp() {
 }
 
 do_enable_default_csp() {
-    sed -i "${domain_conf}" -re "/client_max_body_size/a \ \ \ \ add_header Content-Security-Policy \"default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src 'self'; img-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self' data:;\" always;"
+    if  [ "$gv_webserver_type" = "nginx" ]; then
+        sed -i "${domain_conf}" -re "/client_max_body_size/a \ \ \ \ add_header Content-Security-Policy \"default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src 'self'; img-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self' data:;\" always;"
+    elif [ "$gv_webserver_type" = "ols" ]  || [ "$gv_webserver_type" = "ols-enterprise" ]; then
+        sed -i "${domain_conf}" -re "/Headers go below this line/a Content-Security-Policy \"default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src 'self'; img-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self' data:;\" always;"
+    fi
+    
 }
 
 do_enable_custom_csp() {
-    sed -i "${domain_conf}" -re "/client_max_body_size/a \ \ \ \ add_header Content-Security-Policy \"${custom_csp}\" always;"
+    if  [ "$gv_webserver_type" = "nginx" ]; then
+        sed -i "${domain_conf}" -re "/client_max_body_size/a \ \ \ \ add_header Content-Security-Policy \"${custom_csp}\" always;"
+    elif [ "$gv_webserver_type" = "ols" ]  || [ "$gv_webserver_type" = "ols-enterprise" ]; then
+        sed -i "${domain_conf}" -re "/Headers go below this line/a Content-Security-Policy \"${custom_csp}\" always;"
+    fi
+    
 }
 
 ## Enable default CSP (Content-Security-Policy)
@@ -728,6 +876,7 @@ if [[ "${action}" == 'enable_default_csp' || "${action}" == "$((i++))" ]]; then
                 if is_has_csp_default_settings; then
                     echo -e "${GREEN} ${SUCCESSFUL} default_csp enabled (custom_csp disabled) for '${domain}'${NC}" # ACTION
                     NGINX_RELOAD=1
+                    OLS_RELOAD=1
                 else
                     echo -e "${RED}ERROR: default_csp enabling error (after custom_csp disabled) for '${domain}'${NC}" >&2 # ERROR
                     # NGINX_RELOAD=1
@@ -739,6 +888,7 @@ if [[ "${action}" == 'enable_default_csp' || "${action}" == "$((i++))" ]]; then
         if is_has_csp_settings; then
             echo -e "${GREEN} ${SUCCESSFUL} default_csp enabled for '${domain}'${NC}" # ACTION
             NGINX_RELOAD=1
+            OLS_RELOAD=1
         else
             echo -e "${RED}ERROR: default_csp enabling error for '${domain}'${NC}" >&2 # ERROR
         fi
@@ -769,6 +919,7 @@ if [[ "${action}" == 'enable_custom_csp' || "${action}" == "$((i++))" ]]; then
             if is_has_csp_settings; then
                 echo -e "${GREEN} ${SUCCESSFUL} custom_csp enabled (previous csp disabled) for '${domain}'${NC}" # ACTION
                 NGINX_RELOAD=1
+                OLS_RELOAD=1
             else
                 echo -e "${RED}ERROR: custom_csp enabling error (after previous disabled) for '${domain}'${NC}" >&2 # ERROR
                 # NGINX_RELOAD=1
@@ -779,6 +930,7 @@ if [[ "${action}" == 'enable_custom_csp' || "${action}" == "$((i++))" ]]; then
         if is_has_csp_settings; then
             echo -e "${GREEN} ${SUCCESSFUL} custom_csp enabled for '${domain}'${NC}" # ACTION
             NGINX_RELOAD=1
+            OLS_RELOAD=1
         else
             echo -e "${RED}ERROR: custom_csp enabling error for '${domain}'${NC}" >&2 # ERROR
         fi
@@ -797,6 +949,7 @@ if [[ "${action}" == 'disable_csp' || "${action}" == "$((i++))" ]]; then
         else
             echo -e "${GREEN} ${SUCCESSFUL} csp disabled for '${domain}'${NC}" # ACTION
             NGINX_RELOAD=1
+            OLS_RELOAD=1
         fi
     else
         echo -e "${BLUE}csp is already disabled for '${domain}'${NC}" # SKIP
@@ -866,16 +1019,33 @@ is_hsts() {
     cat "${domain_conf}" | grep -qP "Strict-Transport-Security"
 }
 
+enable_hsts_nginx(){
+    sed -i "${domain_conf}" -re '/client_max_body_size/a \ \ \ \ add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;'
+}
+
+enable_hsts_ols(){
+    sed -i "${domain_conf}" -re '/Headers go below this line/a Strict-Transport-Security: max-age=31536000; includeSubDomains; preload'
+}
+
+enable_hsts(){
+    if [ "$gv_webserver_type" = "nginx" ]; then
+        enable_hsts_nginx
+    elif [ "$gv_webserver_type" = "ols" ]  || [ "$gv_webserver_type" = "ols-enterprise" ]; then
+        enable_hsts_ols
+    fi
+}
+
 ## Enabling HSTS
 if [[ "${action}" == 'enable_hsts' || "${action}" == "$((i++))" ]]; then
     select_domain_mu
     if is_hsts; then
         echo -e "${BLUE}hsts is already enabled for '${domain}'${NC}" # SKIP
     else
-        sed -i "${domain_conf}" -re '/client_max_body_size/a \ \ \ \ add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;'
+        enable_hsts
         if is_hsts; then
             echo -e "${GREEN} ${SUCCESSFUL} hsts enabled for '${domain}'${NC}" # ACTION
             NGINX_RELOAD=1
+            OLS_RELOAD=1
         else
             echo -e "${RED}ERROR: hsts enabling error for '${domain}'${NC}" >&2 # ERROR
         fi
@@ -894,6 +1064,7 @@ if [[ "${action}" == 'disable_hsts' || "${action}" == "$((i++))" ]]; then
         else
             echo -e "${GREEN} ${SUCCESSFUL} hsts disabled for '${domain}'${NC}" # ACTION
             NGINX_RELOAD=1
+            OLS_RELOAD=1
         fi
     else
         echo -e "${BLUE}hsts is already disabled for '${domain}'${NC}" # SKIP
@@ -908,16 +1079,33 @@ is_xss() {
     cat "${domain_conf}" | grep -qP "X-XSS-Protection"
 }
 
+enable_xss_nginx(){
+    sed -i "${domain_conf}" -re '/client_max_body_size/a \ \ \ \ add_header X-XSS-Protection "1; mode=block" always;'
+}
+
+enable_xss_ols(){
+    sed -i "${domain_conf}" -re '/Headers go below this line/a X-XSS-Protection "1; mode=block" always;'
+}
+
+enable_xss(){
+    if [ "$gv_webserver_type" = "nginx" ]; then
+        enable_xss_nginx
+    elif [ "$gv_webserver_type" = "ols" ]  || [ "$gv_webserver_type" = "ols-enterprise" ]; then
+        enable_xss_ols
+    fi
+}
+
 ## Enable XSS
 if [[ "${action}" == 'enable_xss' || "${action}" == "$((i++))" ]]; then
     select_domain_mu
     if is_xss; then
         echo -e "${BLUE}xss is already enabled for '${domain}'${NC}" # SKIP
     else
-        sed -i "${domain_conf}" -re '/client_max_body_size/a \ \ \ \ add_header X-XSS-Protection "1; mode=block" always;'
+        enable_xss
         if is_xss; then
             echo -e "${GREEN} ${SUCCESSFUL} xss enabled for '${domain}'${NC}" # ACTION
             NGINX_RELOAD=1
+            OLS_RELOAD=1
         else
             echo -e "${RED}ERROR: xss enabling error for '${domain}'${NC}" >&2 # ERROR
         fi
@@ -936,6 +1124,7 @@ if [[ "${action}" == 'disable_xss' || "${action}" == "$((i++))" ]]; then
         else
             echo -e "${GREEN} ${SUCCESSFUL} xss disabled for '${domain}'${NC}" # ACTION
             NGINX_RELOAD=1
+            OLS_RELOAD=1
         fi
     else
         echo -e "${BLUE}xss is already disabled '${domain}'${NC}" # SKIP
@@ -949,16 +1138,33 @@ is_cto() {
     cat "${domain_conf}" | grep -qP "X-Content-Type-Options"
 }
 
+enable_cto_nginx(){
+    sed -i "${domain_conf}" -re '/client_max_body_size/a \ \ \ \ add_header X-Content-Type-Options nosniff;'
+}
+
+enable_cto_ols(){
+    sed -i "${domain_conf}" -re '/Headers go below this line/a X-Content-Type-Options nosniff;'
+}
+
+enable_cto(){
+    if [ "$gv_webserver_type" = "nginx" ]; then
+        enable_cto_nginx
+    elif [ "$gv_webserver_type" = "ols" ]  || [ "$gv_webserver_type" = "ols-enterprise" ]; then
+        enable_cto_ols
+    fi
+}
+
 ## Enable X-Content-Type-Options header
 if [[ "${action}" == 'enable_cto' || "${action}" == "$((i++))" ]]; then
     select_domain_mu
     if is_cto; then
         echo -e "${BLUE}cto is already enabled for '${domain}'${NC}" # SKIP
     else
-        sed -i "${domain_conf}" -re '/client_max_body_size/a \ \ \ \ add_header X-Content-Type-Options nosniff;'
+        enable_cto
         if is_cto; then
             echo -e "${GREEN} ${SUCCESSFUL} cto enabled for '${domain}'${NC}" # ACTION
             NGINX_RELOAD=1
+            OLS_RELOAD=1
         else
             echo -e "${RED}ERROR: cto enabling error for '${domain}'${NC}" >&2 # ERROR
         fi
@@ -977,6 +1183,7 @@ if [[ "${action}" == 'disable_cto' || "${action}" == "$((i++))" ]]; then
         else
             echo -e "${GREEN} ${SUCCESSFUL} cto disabled for '${domain}'${NC}" # ACTION
             NGINX_RELOAD=1
+            OLS_RELOAD=1
         fi
     else
         echo -e "${BLUE}cto is already disabled '${domain}'${NC}" # SKIP
@@ -990,16 +1197,34 @@ is_rp() {
     cat "${domain_conf}" | grep -qP "Referrer-Policy"
 }
 
+enable_rp_nginx(){
+    sed -i "${domain_conf}" -re '/client_max_body_size/a \ \ \ \ add_header Referrer-Policy "no-referrer, strict-origin-when-cross-origin";'
+}
+
+enable_rp_ols(){
+    sed -i "${domain_conf}" -re '/Headers go below this line/a Referrer-Policy no-referrer, strict-origin-when-cross-origin;'
+}
+
+enable_rp(){
+    if [ "$gv_webserver_type" = "nginx" ]; then
+        enable_rp_nginx
+    elif [ "$gv_webserver_type" = "ols" ]  || [ "$gv_webserver_type" = "ols-enterprise" ]; then
+        enable_rp_ols
+    fi
+}
+
+
 ## Enable Referrer-Policy header
 if [[ "${action}" == 'enable_rp' || "${action}" == "$((i++))" ]]; then
     select_domain_mu
     if is_rp; then
         echo -e "${BLUE}Referrer-Policy is already enabled for '${domain}'${NC}" # SKIP
     else
-        sed -i "${domain_conf}" -re '/client_max_body_size/a \ \ \ \ add_header Referrer-Policy "no-referrer, strict-origin-when-cross-origin";'
+        enable_rp
         if is_rp; then
             echo -e "${GREEN} ${SUCCESSFUL} Referrer-Policy enabled for '${domain}'${NC}" # ACTION
             NGINX_RELOAD=1
+            OLS_RELOAD=1
         else
             echo -e "${RED}ERROR: Referrer-Policy enabling error for '${domain}'${NC}" >&2 # ERROR
         fi
@@ -1018,6 +1243,7 @@ if [[ "${action}" == 'disable_rp' || "${action}" == "$((i++))" ]]; then
         else
             echo -e "${GREEN} ${SUCCESSFUL} Referrer-Policy disabled for '${domain}'${NC}" # ACTION
             NGINX_RELOAD=1
+            OLS_RELOAD=1
         fi
     else
         echo -e "${BLUE}Referrer-Policy is already disabled for '${domain}'${NC}" # SKIP
@@ -1041,11 +1267,20 @@ do_disable_pp() {
 }
 
 do_enable_default_pp() {
-    sed -i "${domain_conf}" -re '/client_max_body_size/a \ \ \ \ add_header Permissions-Policy "accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()";'
+    if [ "$gv_webserver_type" = "nginx" ]; then
+        sed -i "${domain_conf}" -re '/client_max_body_size/a \ \ \ \ add_header Permissions-Policy "accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()";'
+    elif [ "$gv_webserver_type" = "ols" ]  || [ "$gv_webserver_type" = "ols-enterprise" ]; then
+        sed -i "${domain_conf}" -re '/Headers go below this line/a Permissions-Policy "accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()";'
+    fi
 }
 
 do_enable_custom_pp() {
-    sed -i "${domain_conf}" -re "/client_max_body_size/a \ \ \ \ add_header Permissions-Policy \"${custom_pp}\";"
+    if [ "$gv_webserver_type" = "nginx" ]; then
+        sed -i "${domain_conf}" -re "/client_max_body_size/a \ \ \ \ add_header Permissions-Policy \"${custom_pp}\";"
+    elif [ "$gv_webserver_type" = "ols" ]  || [ "$gv_webserver_type" = "ols-enterprise" ]; then
+        sed -i "${domain_conf}" -re "/Headers go below this line/a Permissions-Policy \"${custom_pp}\";"
+    fi
+    
 }
 
 ## Enable default Permissions-Policy header
@@ -1063,6 +1298,7 @@ if [[ "${action}" == 'enable_default_pp' || "${action}" == "$((i++))" ]]; then
                 if is_default_pp; then
                     echo -e "${GREEN} ${SUCCESSFUL} default Permissions-Policy enabled (custom Permissions-Policy disabled) for '${domain}'${NC}" # ACTION
                     NGINX_RELOAD=1
+                    OLS_RELOAD=1
                 else
                     echo -e "${RED}ERROR: default Permissions-Policy enabling error (after custom Permissions-Policy disabled) for '${domain}'${NC}" >&2 # ERROR
                     # NGINX_RELOAD=1
@@ -1074,6 +1310,7 @@ if [[ "${action}" == 'enable_default_pp' || "${action}" == "$((i++))" ]]; then
         if is_pp; then
             echo -e "${GREEN} ${SUCCESSFUL} default Permissions-Policy enabled for '${domain}'${NC}" # ACTION
             NGINX_RELOAD=1
+            OLS_RELOAD=1
         else
             echo -e "${RED}ERROR: default Permissions-Policy enabling error for '${domain}'${NC}" >&2 # ERROR
         fi
@@ -1104,6 +1341,7 @@ if [[ "${action}" == 'enable_custom_pp' || "${action}" == "$((i++))" ]]; then
             if is_pp; then
                 echo -e "${GREEN} ${SUCCESSFUL} custom Permissions-Policy enabled (previous Permissions-Policy disabled) for '${domain}'${NC}" # ACTION
                 NGINX_RELOAD=1
+                OLS_RELOAD=1
             else
                 echo -e "${RED}ERROR: custom Permissions-Policy enabling error (after previous Permissions-Policy disabled) for '${domain}'${NC}" >&2 # ERROR
                 # NGINX_RELOAD=1
@@ -1114,6 +1352,7 @@ if [[ "${action}" == 'enable_custom_pp' || "${action}" == "$((i++))" ]]; then
         if is_pp; then
             echo -e "${GREEN} ${SUCCESSFUL} custom Permissions-Policy enabled for '${domain}'${NC}" # ACTION
             NGINX_RELOAD=1
+            OLS_RELOAD=1
         else
             echo -e "${RED}custom ERROR: Permissions-Policy enabling error for '${domain}'${NC}" >&2 # ERROR
         fi
@@ -1132,6 +1371,7 @@ if [[ "${action}" == 'disable_pp' || "${action}" == "$((i++))" ]]; then
         else
             echo -e "${GREEN} ${SUCCESSFUL} Permissions-Policy disabled for '${domain}'${NC}" # ACTION
             NGINX_RELOAD=1
+            OLS_RELOAD=1
         fi
     else
         echo -e "${BLUE}Permissions-Policy is already disabled for '${domain}'${NC}" # SKIP
@@ -1168,6 +1408,7 @@ if [[ "${action}" == 'enable_gzip_domain' || "${action}" == "$((i++))" ]]; then
         if is_gzip_domain_on; then
             echo -e "${GREEN} ${SUCCESSFUL} gzip enabled for '${domain}'${NC}" # ACTION
             NGINX_RELOAD=1
+            OLS_RELOAD=1
         else
             echo -e "${RED}ERROR: gzip enabling error for '${domain}'${NC}" >&2 # ERROR
         fi
@@ -1186,6 +1427,7 @@ if [[ "${action}" == 'disable_gzip_domain' || "${action}" == "$((i++))" ]]; then
         else
             echo -e "${GREEN} ${SUCCESSFUL} gzip disabled for '${domain}'${NC}" # ACTION
             NGINX_RELOAD=1
+            OLS_RELOAD=1
         fi
     else
         echo -e "${BLUE}gzip is already disabled for '${domain}'${NC}" # SKIP
@@ -1219,6 +1461,7 @@ if [[ "${action}" == 'enable_cache_include' || "${action}" == "$((i++))" ]]; the
         if is_cache_include_on; then
             echo -e "${GREEN} ${SUCCESSFUL} browser cache (include) enabled for '${domain}'${NC}" # ACTION
             NGINX_RELOAD=1
+            OLS_RELOAD=1
         else
             echo -e "${RED}ERROR: browser cache (include) enabling error for '${domain}'${NC}" >&2 # ERROR
         fi
@@ -1237,6 +1480,7 @@ if [[ "${action}" == 'disable_cache_include' || "${action}" == "$((i++))" ]]; th
         else
             echo -e "${GREEN} ${SUCCESSFUL} browser cache (include) disabled for '${domain}'${NC}" # ACTION
             NGINX_RELOAD=1
+            OLS_RELOAD=1
         fi
     else
         echo -e "${BLUE}browser cache (include) is already disabled for '${domain}'${NC}" # SKIP
@@ -1291,6 +1535,7 @@ if [[ "${action}" == 'add_graphics_cache_types' || "${action}" == "$((i++))" ]];
                     if is_has_graphics_cache_type; then
                         echo -e "${GREEN} ${SUCCESSFUL} '${cache_type}' added into the graphics files list${NC}" # ACTION
                         NGINX_RELOAD=1
+                        OLS_RELOAD=1
                     else
                         echo -e "${RED}ERROR: '${cache_type}' adding into the grapics files list${NC}" >&2 # ERROR
                     fi

@@ -5,6 +5,36 @@ if [[ "$EUID" -ne 0 ]]; then
 	exit
 fi
 
+function check_cur_webserver() {
+    if [ -e /usr/local/lsws/bin/lshttpd ] ; then
+	    if /usr/local/lsws/bin/lshttpd -v | grep -q Open ; then
+		    # LiteSpeed/x.x.x Open
+        	# echo 'You have OpenLiteSpeed installed...'
+        	webserver_type='ols'
+    	elif /usr/local/lsws/bin/lshttpd -v | grep -q Enterprise ; then
+		    # LiteSpeed/x.x.x Enterprise
+       		# echo 'You have LiteSpeed Enterprise installed...'
+       		webserver_type='ols-enterprise'
+    	fi
+    else
+        # echo 'You have Nginx installed...'
+        webserver_type='nginx'
+    fi
+}
+check_cur_webserver
+
+function restart_webserver(){
+    # Restart Appropiate Webserver
+    if [ "$webserver_type" = "nginx" ]; then
+        # restart nginx
+        systemctl restart nginx
+    elif [ "$webserver_type" = "ols" ]  || [ "$webserver_type" = "ols-enterprise" ]; then
+        # kill detached lsphp processes and restart ols
+        killall lsphp >/dev/null 2>&1
+        systemctl stop lsws >/dev/null 2>&1
+        systemctl start lsws
+    fi
+}
 
 while [[ -z $domain ]]; do
     clear
@@ -59,15 +89,15 @@ echo "Database backed up to ~/.wp-backup/$domain/"$domain"_"$date"_db.gz"
 #run search and replace using wp-cli
 echo "Starting search and replace..."
 cd /var/www/$domain/html/
-su - $domain -c "wp --skip-plugins search-replace $search_term $replace_term --recurse-objects --network --skip-columns=guid --skip-tables=wp_users --all-tables-with-prefix"
+su - $domain -c "wp --skip-plugins search-replace $search_term $replace_term --recurse-objects --network --skip-columns=guid --skip-tables=wp_users"
 # reset cache
 su - $domain -c "wp cache flush"
 su - $domain -c "wp cache-enabler clear 2>/dev/null"
 
 
 
-echo "Restarting NGINX..."
-systemctl restart nginx
+echo "Restarting $webserver_type ..."
+restart_webserver
 
 echo
 echo "Search and replace complete.  We searched for $search_term and changed it to $replace_term"

@@ -4,20 +4,83 @@ if [[ "$EUID" -ne 0 ]]; then
 	exit
 fi
 
+function check_cur_webserver() {
+    if [ -e /usr/local/lsws/bin/lshttpd ] ; then
+	    if /usr/local/lsws/bin/lshttpd -v | grep -q Open ; then
+		    # LiteSpeed/x.x.x Open
+        	# echo 'You have OpenLiteSpeed installed...'
+        	webserver_type='ols'
+    	elif /usr/local/lsws/bin/lshttpd -v | grep -q Enterprise ; then
+		    # LiteSpeed/x.x.x Enterprise
+       		# echo 'You have LiteSpeed Enterprise installed...'
+       		webserver_type='ols-enterprise'
+    	fi
+    else
+        # echo 'You have Nginx installed...'
+        webserver_type='nginx'
+    fi
+}
+check_cur_webserver
+
+function restart_webserver(){
+    # Restart Appropiate Webserver
+    if [ "$webserver_type" = "nginx" ]; then
+        # restart nginx
+        systemctl restart nginx
+    elif [ "$webserver_type" = "ols" ]  || [ "$webserver_type" = "ols-enterprise" ]; then
+        # kill detached lsphp processes and restart ols
+        killall lsphp >/dev/null 2>&1
+        systemctl stop lsws >/dev/null 2>&1
+        systemctl start lsws
+    fi
+}
+
 
 while [[ -z $domain ]]; do
-    echo
+    clear
     echo "Please, select which site you want to work with"
     echo
-    ls /etc/nginx/sites-enabled/ | grep -v '^default$\|^monit$\|^monitorix$' | nl
+    ls /var/www | grep -v html | nl
     read -p "Select site: " site_number
-    number_of_sites=$(ls /etc/nginx/sites-enabled/ | grep -v '^default$\|^monit$\|^monitorix$' | wc -l)
+    number_of_sites=$(ls /var/www | grep -v html | wc -l)
     until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
-    	echo "$site_number: invalid selection."
-    	read -p "Select site: " site_number
-    done
-    domain=$(ls /etc/nginx/sites-enabled/ | grep -v '^default$\|^monit$\|^monitorix$' | sed -n "$site_number"p)
+		echo "$site_number: invalid selection."
+		read -p "Select site: " site_number
+	done
+    domain=$(ls /var/www | grep -v html | sed -n "$site_number"p)
 done
+
+function disable_all_7g_nginx(){
+    sed -i "/bad_bot_7g/d" /etc/nginx/sites-enabled/$domain
+    sed -i "/bad_referer_7g/d" /etc/nginx/sites-enabled/$domain
+    sed -i "/bad_querystring_7g/d" /etc/nginx/sites-enabled/$domain
+    sed -i "/bad_request_7g/d" /etc/nginx/sites-enabled/$domain
+    sed -i "/not_allowed_method_7g/d" /etc/nginx/sites-enabled/$domain
+}
+
+function enable_all_7g_nginx(){
+    # important to escape the variable
+    sed -i "/client_max_body_size/a if (\$bad_bot_7g) { return 403; }" /etc/nginx/sites-enabled/$domain
+    sed -i "/client_max_body_size/a if (\$bad_referer_7g) { return 403; }" /etc/nginx/sites-enabled/$domain
+    sed -i "/client_max_body_size/a if (\$bad_querystring_7g) { return 403; }" /etc/nginx/sites-enabled/$domain
+    sed -i "/client_max_body_size/a if (\$bad_request_7g) { return 403; }" /etc/nginx/sites-enabled/$domain
+    sed -i "/client_max_body_size/a if (\$not_allowed_method_7g) { return 405; }" /etc/nginx/sites-enabled/$domain
+}
+
+
+function disable_all_7g_ols(){
+    mv /var/www/$domain/html/.htaccess-orig /var/www/$domain/html/.htaccess
+}
+
+function enable_all_7g_ols(){
+    user_name=$(echo $domain | cut -c1-32)
+    mv /var/www/$domain/html/.htaccess /var/www/$domain/html/.htaccess-orig
+    wget -O /var/www/$domain/html/7G-Firewall.txt https://raw.githubusercontent.com/meramsey/blaqpanel/main/htaccess/7G-Firewall.txt
+    cat /var/www/$domain/html/7G-Firewall.txt >> /var/www/$domain/html/.htaccess
+    echo '# Add spacing between 7G and existing htaccess rules' >> /var/www/$domain/html/.htaccess
+    cat /var/www/$domain/html/.htaccess-orig >> /var/www/$domain/html/.htaccess
+    chown "${user_name}" /var/www/$domain/html/.htaccess
+}
 
 
 while [[ -z $action ]]; do
@@ -44,14 +107,13 @@ done
 
 
 if [[ $action == "enable_all_7g" || $action == "1" ]]; then
-
-    # important to escape the variable
-    sed -i "/client_max_body_size/a if (\$bad_bot_7g) { return 403; }" /etc/nginx/sites-enabled/$domain
-    sed -i "/client_max_body_size/a if (\$bad_referer_7g) { return 403; }" /etc/nginx/sites-enabled/$domain
-    sed -i "/client_max_body_size/a if (\$bad_querystring_7g) { return 403; }" /etc/nginx/sites-enabled/$domain
-    sed -i "/client_max_body_size/a if (\$bad_request_7g) { return 403; }" /etc/nginx/sites-enabled/$domain
-    sed -i "/client_max_body_size/a if (\$not_allowed_method_7g) { return 405; }" /etc/nginx/sites-enabled/$domain
-    systemctl restart nginx
+    if [ "$webserver_type" = "nginx" ]; then
+        enable_all_7g_nginx
+    elif [ "$webserver_type" = "ols" ]  || [ "$webserver_type" = "ols-enterprise" ]; then
+        enable_all_7g_ols
+    fi
+    
+    restart_webserver
     echo
     echo "Enabled 7G Firewall (All Rules) for $domain"
     exit
@@ -60,13 +122,13 @@ fi
 
 
 if [[ $action == "disable_all_7g" || $action == "2" ]]; then
+    if [ "$webserver_type" = "nginx" ]; then
+        disable_all_7g_nginx
+    elif [ "$webserver_type" = "ols" ]  || [ "$webserver_type" = "ols-enterprise" ]; then
+        disable_all_7g_ols
+    fi
 
-    sed -i "/bad_bot_7g/d" /etc/nginx/sites-enabled/$domain
-    sed -i "/bad_referer_7g/d" /etc/nginx/sites-enabled/$domain
-    sed -i "/bad_querystring_7g/d" /etc/nginx/sites-enabled/$domain
-    sed -i "/bad_request_7g/d" /etc/nginx/sites-enabled/$domain
-    sed -i "/not_allowed_method_7g/d" /etc/nginx/sites-enabled/$domain
-    systemctl restart nginx
+    restart_webserver
     echo
     echo "Disabled 7G Firewall (All Rules) for $domain"
     exit
@@ -75,10 +137,15 @@ fi
 
 
 if [[ $action == "enable_user_agent_7g" || $action == "3" ]]; then
+    
+    if [ "$webserver_type" = "nginx" ]; then
+        # important to escape the variable
+        sed -i "/client_max_body_size/a if (\$bad_bot_7g) { return 403; }" /etc/nginx/sites-enabled/$domain
+    elif [ "$webserver_type" = "ols" ]  || [ "$webserver_type" = "ols-enterprise" ]; then
+        echo 
+    fi
 
-    # important to escape the variable
-    sed -i "/client_max_body_size/a if (\$bad_bot_7g) { return 403; }" /etc/nginx/sites-enabled/$domain
-    systemctl restart nginx
+    restart_webserver
     echo
     echo "Enabled 7G Firewall User Agent Rules for $domain"
     exit
@@ -87,9 +154,13 @@ fi
 
 
 if [[ $action == "disable_user_agent_7g" || $action == "4" ]]; then
-
-    sed -i "/bad_bot_7g/d" /etc/nginx/sites-enabled/$domain
-    systemctl restart nginx
+    if [ "$webserver_type" = "nginx" ]; then
+        sed -i "/bad_bot_7g/d" /etc/nginx/sites-enabled/$domain
+    elif [ "$webserver_type" = "ols" ]  || [ "$webserver_type" = "ols-enterprise" ]; then
+        echo 
+    fi
+    
+    restart_webserver
     echo
     echo "Disabled 7G Firewall User Agent Rules for $domain"
     exit
@@ -98,10 +169,14 @@ fi
 
 
 if [[ $action == "enable_referrer_7g" || $action == "5" ]]; then
-
-    # important to escape the variable
-    sed -i "/client_max_body_size/a if (\$bad_referer_7g) { return 403; }" /etc/nginx/sites-enabled/$domain
-    systemctl restart nginx
+    if [ "$webserver_type" = "nginx" ]; then
+        # important to escape the variable
+        sed -i "/client_max_body_size/a if (\$bad_referer_7g) { return 403; }" /etc/nginx/sites-enabled/$domain
+    elif [ "$webserver_type" = "ols" ]  || [ "$webserver_type" = "ols-enterprise" ]; then
+        echo 
+    fi
+    
+    restart_webserver
     echo
     echo "Enabled 7G Firewall Referrer Rules for $domain"
     exit
@@ -110,9 +185,13 @@ fi
 
 
 if [[ $action == "disable_referrer_7g" || $action == "6" ]]; then
-
-    sed -i "/bad_referer_7g/d" /etc/nginx/sites-enabled/$domain
-    systemctl restart nginx
+    if [ "$webserver_type" = "nginx" ]; then
+        sed -i "/bad_referer_7g/d" /etc/nginx/sites-enabled/$domain
+    elif [ "$webserver_type" = "ols" ]  || [ "$webserver_type" = "ols-enterprise" ]; then
+        echo 
+    fi
+    
+    restart_webserver
     echo
     echo "Disabled 7G Firewall Referrer Rules for $domain"
     exit
@@ -121,10 +200,14 @@ fi
 
 
 if [[ $action == "enable_query_string_7g" || $action == "7" ]]; then
-
-    # important to escape the variable
-    sed -i "/client_max_body_size/a if (\$bad_querystring_7g) { return 403; }" /etc/nginx/sites-enabled/$domain
-    systemctl restart nginx
+    if [ "$webserver_type" = "nginx" ]; then
+        # important to escape the variable
+        sed -i "/client_max_body_size/a if (\$bad_querystring_7g) { return 403; }" /etc/nginx/sites-enabled/$domain
+    elif [ "$webserver_type" = "ols" ]  || [ "$webserver_type" = "ols-enterprise" ]; then
+        echo 
+    fi
+    
+    restart_webserver
     echo
     echo "Enabled 7G Firewall Query String Rules for $domain"
     exit
@@ -133,9 +216,13 @@ fi
 
 
 if [[ $action == "disable_query_string_7g" || $action == "8" ]]; then
-
-    sed -i "/bad_querystring_7g/d" /etc/nginx/sites-enabled/$domain
-    systemctl restart nginx
+    if [ "$webserver_type" = "nginx" ]; then
+        sed -i "/bad_querystring_7g/d" /etc/nginx/sites-enabled/$domain
+    elif [ "$webserver_type" = "ols" ]  || [ "$webserver_type" = "ols-enterprise" ]; then
+        echo 
+    fi
+    
+    restart_webserver
     echo
     echo "Disabled 7G Firewall Query String Rules for $domain"
     exit
@@ -144,10 +231,14 @@ fi
 
 
 if [[ $action == "enable_request_string_7g" || $action == "9" ]]; then
-
-    # important to escape the variable
-    sed -i "/client_max_body_size/a if (\$bad_request_7g) { return 403; }" /etc/nginx/sites-enabled/$domain
-    systemctl restart nginx
+    if [ "$webserver_type" = "nginx" ]; then
+        # important to escape the variable
+        sed -i "/client_max_body_size/a if (\$bad_request_7g) { return 403; }" /etc/nginx/sites-enabled/$domain
+    elif [ "$webserver_type" = "ols" ]  || [ "$webserver_type" = "ols-enterprise" ]; then
+        echo 
+    fi
+    
+    restart_webserver
     echo
     echo "Enabled 7G Firewall Request String Rules for $domain"
     exit
@@ -156,9 +247,13 @@ fi
 
 
 if [[ $action == "disable_request_string_7g" || $action == "10" ]]; then
-
-    sed -i "/bad_request_7g/d" /etc/nginx/sites-enabled/$domain
-    systemctl restart nginx
+    if [ "$webserver_type" = "nginx" ]; then
+        sed -i "/bad_request_7g/d" /etc/nginx/sites-enabled/$domain
+    elif [ "$webserver_type" = "ols" ]  || [ "$webserver_type" = "ols-enterprise" ]; then
+        echo 
+    fi
+    
+    restart_webserver
     echo
     echo "Disabled 7G Firewall Request String Rules for $domain"
     exit
@@ -167,10 +262,14 @@ fi
 
 
 if [[ $action == "enable_request_method_7g" || $action == "11" ]]; then
-
-    # important to escape the variable
-    sed -i "/client_max_body_size/a if (\$not_allowed_method_7g) { return 405; }" /etc/nginx/sites-enabled/$domain
-    systemctl restart nginx
+    if [ "$webserver_type" = "nginx" ]; then
+        # important to escape the variable
+        sed -i "/client_max_body_size/a if (\$not_allowed_method_7g) { return 405; }" /etc/nginx/sites-enabled/$domain
+    elif [ "$webserver_type" = "ols" ]  || [ "$webserver_type" = "ols-enterprise" ]; then
+        echo 
+    fi
+    
+    restart_webserver
     echo
     echo "Enabled 7G Firewall Request Method Rules for $domain"
     exit
@@ -179,9 +278,13 @@ fi
 
 
 if [[ $action == "disable_request_method_7g" || $action == "12" ]]; then
-
-    sed -i "/not_allowed_method_7g/d" /etc/nginx/sites-enabled/$domain
-    systemctl restart nginx
+    if [ "$webserver_type" = "nginx" ]; then
+        sed -i "/not_allowed_method_7g/d" /etc/nginx/sites-enabled/$domain
+    elif [ "$webserver_type" = "ols" ]  || [ "$webserver_type" = "ols-enterprise" ]; then
+        echo 
+    fi
+    
+    restart_webserver
     echo
     echo "Disabled 7G Firewall Request Method Rules for $domain"
     exit

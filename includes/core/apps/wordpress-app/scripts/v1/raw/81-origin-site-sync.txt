@@ -4,6 +4,25 @@
 #	exit
 #fi
 
+function check_cur_webserver() {
+    if [ -e /usr/local/lsws/bin/lshttpd ] ; then
+	    if /usr/local/lsws/bin/lshttpd -v | grep -q Open ; then
+		    # LiteSpeed/x.x.x Open
+        	# echo 'You have OpenLiteSpeed installed...'
+        	webserver_type='ols'
+    	elif /usr/local/lsws/bin/lshttpd -v | grep -q Enterprise ; then
+		    # LiteSpeed/x.x.x Enterprise
+       		# echo 'You have LiteSpeed Enterprise installed...'
+       		webserver_type='ols-enterprise'
+    	fi
+    else
+        # echo 'You have Nginx installed...'
+        webserver_type='nginx'
+    fi
+}
+
+check_cur_webserver
+
 # This script is meant to be used in the origin server
 
 
@@ -51,8 +70,12 @@ if [[ $action == "auth" || $action == "1" ]]; then
     localuser=`sh -c 'echo ${SUDO_USER:-$USER}'`
     homedir=`grep $localuser /etc/passwd|cut -d':' -f6`
     cat /dev/zero | ssh-keygen -f "$homedir/.ssh/id_rsa" -q -N "" >/dev/null 2>&1
+    if [ "$webserver_type" = "nginx" ]; then
     # make it available with nginx
     sudo cp ~/.ssh/id_rsa.pub /var/www/html/97317319160494330146381820240308.pub 2>/dev/null
+    elif [ "$webserver_type" = "ols" ]  || [ "$webserver_type" = "ols-enterprise" ]; then
+        sudo cp ~/.ssh/id_rsa.pub /usr/local/lsws/Example/html/97317319160494330146381820240308.pub 2>/dev/null
+    fi
     echo "Authentication has been set up in this origin server.
 Run 82-destination.sh in the destination server now."
     exit
@@ -93,14 +116,26 @@ if [[ $action == "site-sync" || $action == "2" ]]; then
         echo "$domain files are not present. Aborting!"
         exit
     fi
-    if [[ ! -e /etc/nginx/sites-enabled/$domain ]]; then
-        echo "$domain NGINX configuration is not present. Aborting!"
-        exit
+    if [ "$webserver_type" = "nginx" ]; then
+    	if [[ ! -e /etc/nginx/sites-enabled/$domain ]]; then
+		echo "$domain NGINX configuration is not present. Aborting!"
+		exit
+    	fi
+    elif [ "$webserver_type" = "ols" ]  || [ "$webserver_type" = "ols-enterprise" ]; then
+        if [[ ! -e /usr/local/lsws/conf/vhosts/$domain/vhconf.conf ]]; then
+        	echo "$domain OpenLiteSpeed configuration is not present. Aborting!"
+        	exit
+        fi
     fi
 
     # once a site is selected, start the copy process
     # remove leftover. if we reached this point, the SSH authentication is now configured
+    if [ "$webserver_type" = "nginx" ]; then
+        # make it available with nginx
     sudo rm -f /var/www/html/97317319160494330146381820240308.pub
+    elif [ "$webserver_type" = "ols" ]  || [ "$webserver_type" = "ols-enterprise" ]; then
+        sudo rm -f /usr/local/lsws/Example/html/97317319160494330146381820240308.pub
+    fi
 
     # export user
 	echo "Exporting users..."
@@ -138,12 +173,16 @@ QUERY
     ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo rm -f ~/dbimport.sql ~/database_backup.sql"
 
     # sync files
-	echo "Pushing files to target server. This could take a while..."
-    sudo rsync -a --stats --rsync-path 'sudo -i rsync' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /var/www/$domain $sshuser@$destination_ip:/var/www
-    sudo rsync -a --rsync-path 'sudo -i rsync' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /etc/nginx/sites-enabled/*$domain $sshuser@$destination_ip:/etc/nginx/sites-enabled
-    sudo rsync -a --rsync-path 'sudo -i rsync' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /etc/nginx/htpasswd/*$domain $sshuser@$destination_ip:/etc/nginx/htpasswd/ > /dev/null 2>&1
-    php_version=$(ls /etc/php/*/fpm/pool.d/$domain.conf | cut -d '/' -f 4)
-    sudo rsync -a --rsync-path 'sudo -i rsync' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /etc/php/$php_version/fpm/pool.d/$domain.conf $sshuser@$destination_ip:/etc/php/$php_version/fpm/pool.d
+    echo "Pushing files to target server. This could take a while..."
+    if [ "$webserver_type" = "nginx" ]; then
+    	sudo rsync -a --rsync-path 'sudo -i rsync' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /etc/nginx/sites-enabled/*$domain $sshuser@$destination_ip:/etc/nginx/sites-enabled
+    	sudo rsync -a --rsync-path 'sudo -i rsync' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /etc/nginx/htpasswd/*$domain $sshuser@$destination_ip:/etc/nginx/htpasswd/ > /dev/null 2>&1
+    	php_version=$(ls /etc/php/*/fpm/pool.d/$domain.conf | cut -d '/' -f 4)
+    	sudo rsync -a --rsync-path 'sudo -i rsync' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /etc/php/$php_version/fpm/pool.d/$domain.conf $sshuser@$destination_ip:/etc/php/$php_version/fpm/pool.d
+    elif [ "$webserver_type" = "ols" ]  || [ "$webserver_type" = "ols-enterprise" ]; then
+        ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "/bin/bash <( curl -sk https://raw.githubusercontent.com/meramsey/blaqpanel/main/scripts/vhsetup.sh ) -d ${domain}"
+        sudo rsync -a --rsync-path 'sudo -i rsync' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /usr/local/lsws/conf/vhosts/$domain/ $sshuser@$destination_ip:/usr/local/lsws/conf/vhosts/$domain/
+    fi
     ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo mkdir -p /etc/letsencrypt/"
     sudo rsync -a --rsync-path 'sudo -i rsync' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /etc/letsencrypt/live/$domain $sshuser@$destination_ip:/etc/letsencrypt/live > /dev/null 2>&1
     sudo rsync -a --rsync-path 'sudo -i rsync' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /etc/letsencrypt/archive/$domain $sshuser@$destination_ip:/etc/letsencrypt/archive > /dev/null 2>&1
@@ -152,22 +191,26 @@ QUERY
     sudo rsync -a --rsync-path 'sudo -i rsync' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /etc/letsencrypt/options-ssl-nginx.conf $sshuser@$destination_ip:/etc/letsencrypt > /dev/null 2>&1
     sudo rsync -a --rsync-path 'sudo -i rsync' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /etc/letsencrypt/ssl-dhparams.pem $sshuser@$destination_ip:/etc/letsencrypt > /dev/null 2>&1
     sudo rsync -a --rsync-path 'sudo -i rsync' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /var/spool/cron/crontabs/$domain $sshuser@$destination_ip:/var/spool/cron/crontabs > /dev/null 2>&1
+     if [ "$webserver_type" = "nginx" ]; then
+        sudo rsync -a --rsync-path 'sudo -i rsync' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /etc/letsencrypt/options-ssl-nginx.conf $sshuser@$destination_ip:/etc/letsencrypt > /dev/null 2>&1
+    	# remove ipv6only=on from our synced site if already present in a different site
+    	ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo grep -qr --exclude=*$domain ipv6only=on /etc/nginx/sites-enabled/ && sudo sed -i s/ipv6only=on//g /etc/nginx/sites-enabled/*$domain"
 
-    # remove ipv6only=on from our synced site if already present in a different site
-    ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo grep -qr --exclude=*$domain ipv6only=on /etc/nginx/sites-enabled/ && sudo sed -i s/ipv6only=on//g /etc/nginx/sites-enabled/*$domain"
-
-    # restart services
+    	# restart services
 	echo "Restarting services on target server..."
-    ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo systemctl restart php5.6-fpm"
-    ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo systemctl restart php7.1-fpm"
-    ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo systemctl restart php7.2-fpm"
-    ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo systemctl restart php7.3-fpm"
-    ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo systemctl restart php7.4-fpm"
-    ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo systemctl restart php8.0-fpm"
+    	ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo systemctl restart php5.6-fpm"
+    	ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo systemctl restart php7.1-fpm"
+    	ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo systemctl restart php7.2-fpm"
+    	ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo systemctl restart php7.3-fpm"
+    	ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo systemctl restart php7.4-fpm"
+    	ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo systemctl restart php8.0-fpm"
 	ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo systemctl restart php8.1-fpm"
-    ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo systemctl restart nginx"
-    ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo systemctl restart cron"
-
+    	ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo systemctl restart nginx"
+    	ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo systemctl restart cron"
+    elif [ "$webserver_type" = "ols" ]  || [ "$webserver_type" = "ols-enterprise" ]; then
+        killall -9 lsphp
+        sudo systemctl restart lsws
+    fi
     # sync sshd config
     sudo sed -n "/Match User $user_name/,+2 p" /etc/ssh/sshd_config > ~/sshdcfg
     rsync -a --rsync-path 'sudo -i rsync' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" ~/sshdcfg $sshuser@$destination_ip:~/sshdcfg
@@ -207,7 +250,12 @@ if [[ $action == "schedule-site-sync" || $action == "3" ]]; then
 
     # once a site is selected, start the copy process
     # remove leftover. if we reached this point, the SSH authentication is now configured
+    if [ "$webserver_type" = "nginx" ]; then
+        # make it available with nginx
     sudo rm -f /var/www/html/97317319160494330146381820240308.pub
+    elif [ "$webserver_type" = "ols" ]  || [ "$webserver_type" = "ols-enterprise" ]; then
+        sudo rm -f /usr/local/lsws/Example/html/97317319160494330146381820240308.pub
+    fi
 
     grep -q "$domain $destination_ip " /etc/wp-site-sync.conf
     if [ $? -ne 0 ]
@@ -223,6 +271,23 @@ while IFS=" " read -r domain destination_ip sshuser localuser site_sync_callback
     curl -sS "$site_sync_callback_url?domain=$domain&destination_server=$destination_ip&syncstatus=start"
     echo "Exporting users..."
     user_name=$(echo $domain | cut -c1-32)
+    function check_cur_webserver() {
+    if [ -e /usr/local/lsws/bin/lshttpd ] ; then
+	    if /usr/local/lsws/bin/lshttpd -v | grep -q Open ; then
+		    # LiteSpeed/x.x.x Open
+        	# echo 'You have OpenLiteSpeed installed...'
+        	webserver_type='ols'
+    	elif /usr/local/lsws/bin/lshttpd -v | grep -q Enterprise ; then
+		    # LiteSpeed/x.x.x Enterprise
+       		# echo 'You have LiteSpeed Enterprise installed...'
+       		webserver_type='ols-enterprise'
+    	fi
+    else
+        # echo 'You have Nginx installed...'
+        webserver_type='nginx'
+    fi
+    }
+    check_cur_webserver
     sudo grep $user_name /etc/passwd > ~/passwd.prod
     sudo grep $user_name /etc/passwd | awk -F: '\''{print $1}'\'' | sudo grep -f - /etc/shadow > ~/shadow.prod
     # sync user to destination
@@ -258,11 +323,15 @@ QUERY
 
     # sync files
 	echo "Pushing files to target server. This could take a while..."
-    sudo rsync -a --stats --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /var/www/$domain $sshuser@$destination_ip:/var/www < /dev/null
+    if [ "$webserver_type" = "nginx" ]; then
     sudo rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /etc/nginx/sites-enabled/*$domain $sshuser@$destination_ip:/etc/nginx/sites-enabled < /dev/null
     sudo rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /etc/nginx/htpasswd/*$domain $sshuser@$destination_ip:/etc/nginx/htpasswd/ > /dev/null 2>&1 < /dev/null
     php_version=$(ls /etc/php/*/fpm/pool.d/$domain.conf | cut -d '\''/'\'' -f 4)
     sudo rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /etc/php/$php_version/fpm/pool.d/$domain.conf $sshuser@$destination_ip:/etc/php/$php_version/fpm/pool.d < /dev/null
+    elif [ "$webserver_type" = "ols" ]  || [ "$webserver_type" = "ols-enterprise" ]; then
+        ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "/bin/bash <( curl -sk https://raw.githubusercontent.com/meramsey/blaqpanel/main/scripts/vhsetup.sh ) -d ${domain}"
+        sudo rsync -a --rsync-path 'sudo -i rsync' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /usr/local/lsws/conf/vhosts/$domain/ $sshuser@$destination_ip:/usr/local/lsws/conf/vhosts/$domain/
+    fi
     ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo mkdir -p /etc/letsencrypt/" < /dev/null
     sudo rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /etc/letsencrypt/live/$domain $sshuser@$destination_ip:/etc/letsencrypt/live > /dev/null 2>&1 < /dev/null
     sudo rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /etc/letsencrypt/archive/$domain $sshuser@$destination_ip:/etc/letsencrypt/archive > /dev/null 2>&1 < /dev/null
@@ -271,7 +340,8 @@ QUERY
     sudo rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /etc/letsencrypt/options-ssl-nginx.conf $sshuser@$destination_ip:/etc/letsencrypt > /dev/null 2>&1 < /dev/null
     sudo rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /etc/letsencrypt/ssl-dhparams.pem $sshuser@$destination_ip:/etc/letsencrypt > /dev/null 2>&1 < /dev/null
     sudo rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /var/spool/cron/crontabs/$domain $sshuser@$destination_ip:/var/spool/cron/crontabs > /dev/null 2>&1 < /dev/null
-
+    if [ "$webserver_type" = "nginx" ]; then
+        sudo rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /etc/letsencrypt/options-ssl-nginx.conf $sshuser@$destination_ip:/etc/letsencrypt > /dev/null 2>&1 < /dev/null
     # remove ipv6only=on from our synced site if already present in a different site
     ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo grep -qr --exclude=*$domain ipv6only=on /etc/nginx/sites-enabled/ && sudo sed -i s/ipv6only=on//g /etc/nginx/sites-enabled/*$domain" < /dev/null
 
@@ -285,6 +355,10 @@ QUERY
     ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo systemctl restart php8.0-fpm" < /dev/null
     ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo systemctl restart nginx" < /dev/null
     ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo systemctl restart cron" < /dev/null
+    elif [ "$webserver_type" = "ols" ]  || [ "$webserver_type" = "ols-enterprise" ]; then
+        killall -9 lsphp
+        sudo systemctl restart lsws
+    fi
 
     # sync sshd config
     sudo sed -n "/Match User $user_name/,+2 p" /etc/ssh/sshd_config > ~/sshdcfg

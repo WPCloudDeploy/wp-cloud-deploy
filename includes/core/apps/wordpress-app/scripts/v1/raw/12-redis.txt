@@ -4,7 +4,23 @@ if [[ "$EUID" -ne 0 ]]; then
 	exit
 fi
 
-
+function check_cur_webserver() {
+    if [ -e /usr/local/lsws/bin/lshttpd ] ; then
+	    if /usr/local/lsws/bin/lshttpd -v | grep -q Open ; then
+		    # LiteSpeed/x.x.x Open
+        	# echo 'You have OpenLiteSpeed installed...'
+        	webserver_type='ols'
+    	elif /usr/local/lsws/bin/lshttpd -v | grep -q Enterprise ; then
+		    # LiteSpeed/x.x.x Enterprise
+       		# echo 'You have LiteSpeed Enterprise installed...'
+       		webserver_type='ols-enterprise'
+    	fi
+    else
+        # echo 'You have Nginx installed...'
+        webserver_type='nginx'
+    fi
+}
+check_cur_webserver
 
 while [[ -z $action ]]; do
     clear
@@ -31,17 +47,27 @@ if [[ $action == "install_redis" || $action == "1" ]]; then
         exit
     fi
 
-    apt-get install redis-server php8.1-redis php8.0-redis php7.4-redis php7.3-redis php7.2-redis php7.1-redis php5.6-redis -y
-	
-	# Was redis installed?  If the redis.conf file does not exist there's a good chance it wasn't installed properly or not at all.
+    apt-get install -y redis redis-tools
+    sed -i "s/supervised no/supervised systemd/g" /etc/redis/redis.conf
+    systemctl restart redis
+    
+    if [ "$webserver_type" = "nginx" ]; then
+        # apt-get install redis-server php8.1-redis php8.0-redis php7.4-redis php7.3-redis php7.2-redis php7.1-redis php5.6-redis -y
+        apt-get install -y php?.?-redis
+        systemctl restart nginx
+    elif [ "$webserver_type" = "ols" ]  || [ "$webserver_type" = "ols-enterprise" ]; then
+        apt-get install -y lsphp??-redis
+        killall lsphp
+        systemctl stop lsws >/dev/null 2>&1
+        systemctl start lsws
+    fi
+    
+    # Was redis installed?  If the redis.conf file does not exist there's a good chance it wasn't installed properly or not at all.
     if [ ! -f /etc/redis/redis.conf ]
     then
 	    echo "redis has not been properly installed";
 	    exit
     fi
-	
-    sed -i "s/supervised no/supervised systemd/g" /etc/redis/redis.conf
-    systemctl restart redis
 
     echo
     echo "Redis has been installed. You can run this script again to enable it for a site."
@@ -128,7 +154,18 @@ fi
 
 if [[ $action == "remove_redis" || $action == "6" ]]; then
 
-    apt-get remove redis-server php8.1-redis php8.0-redis php7.4-redis php7.3-redis php7.2-redis php7.1-redis php5.6-redis redis-tools -y
+    apt-get remove -y redis redis-tools
+    
+    if [ "$webserver_type" = "nginx" ]; then
+        # apt-get remove -y php5.6-redis php7.1-redis php7.2-redis php7.3-redis php7.4-redis php8.0-redis
+        apt-get remove -y php?.?-redis
+        systemctl restart nginx
+    elif [ "$webserver_type" = "ols" ]  || [ "$webserver_type" = "ols-enterprise" ]; then
+        apt-get remove -y lsphp??-redis
+        killall lsphp
+        systemctl stop lsws >/dev/null 2>&1
+        systemctl start lsws
+    fi
 
     echo
     echo "Redis has been removed from the system."

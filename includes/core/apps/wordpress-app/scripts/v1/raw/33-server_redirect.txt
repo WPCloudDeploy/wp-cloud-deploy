@@ -5,6 +5,54 @@ then
 	exit
 fi
 
+## Get our common functions
+source 9999-common-functions.sh
+
+gf_check_cur_webserver
+
+
+function redirect_add_rule_to_nginx_site(){
+	source_redirect=$(echo $source_url|awk -F$"$domain" '{print $2}')
+	echo $'rewrite '$source_redirect\$'  '$destination_url'  '$redirection_type'; '# BP redirect keycode=$key_code' ' >> /etc/nginx/userconfigs/site/$domain-redirectrule.conf
+	nginx -t
+	if [ $? -ne 0 ]
+	then
+		echo "The redirection rule not valid";
+		sed -i "/.*$source_redirect.*/d" /etc/nginx/userconfigs/site/$domain-redirectrule.conf
+	else
+		echo "Redirect rule added"
+	fi
+}
+
+function redirect_add_rule_to_ols_site(){
+	
+	if [ $redirection_number -eq 1 ]
+	then
+		# redirection_type=redirect
+		redirection_code=302
+	else
+		# redirection_type=permanent
+		redirection_code=301
+	fi
+	
+	# Source redirect: https://example.com/fakeindex.php  > fakeindex.php
+	source_redirect=$(echo $source_url|awk -F"/" '{print $4}')
+	# https://openlitespeed.org/kb/migrate-apache-rewrite-rules-to-openlitespeed/
+	# RewriteEngine On RewriteRule OLD_URL NEW_URL [L,R=301]
+	# using redirect number so it works without case statement to convert permanent and redirect type to 301 302 and inserting at top of file cause you want these above permalinks.
+	sed -i "1 i\RewriteEngine On\nRewriteRule ^$source_redirect $destination_url [L,R=$redirection_code] # BP redirect keycode=$key_code" /var/www/$domain/html/.htaccess
+	# /usr/local/lsws/bin/openlitespeed -t
+	if [ $? -ne 0 ]
+	then
+	 	echo "The redirection rule not valid";
+	# 	sed -i "/.*$source_redirect.*/d" /var/www/$domain/html/.htaccess
+	else
+		echo "Redirect rule added"
+	fi
+	
+	
+}
+
 while [[ -z $action ]]; do
 	echo
 	echo "What do you want to do?"
@@ -43,12 +91,12 @@ function redirect_add_rule_to_site
 	while [[ -z $source_url ]]; do	
 		echo "Enter Source URL that needs to be redirected. Enter Complete URL start from http/https"
 		read -p "Source URL:" source_url
-		validation=`echo $source_url|grep '^http'`
+		validation=$(echo $source_url|grep '^http')
 		until [[ ! -z "$validation" ]]
 		do
 			echo "Please enter complete url , it should start from http/https"
 			read -p "Source URL:" source_url
-			validation=`echo $source_url|grep '^http'`
+			validation=$(echo $source_url|grep '^http')
 		done
 	done
 	
@@ -56,12 +104,12 @@ function redirect_add_rule_to_site
 	while [[ -z $destination_url ]]; do		
 		echo "Enter Destination URL for the Redirect Rule"
 		read -p "Destination URL:" destination_url
-		validation=`echo $destination_url|grep '^http'`
+		validation=$(echo $destination_url|grep '^http')
 		until [[ ! -z "$validation" ]]
 		do
 			echo "Please enter complete url , it should start from http/https"
 			read -p "Destination URL:" destination_url
-			validation=`echo $destination_url|grep '^http'`
+			validation=$(echo $destination_url|grep '^http')
 		done
 	done
 	
@@ -77,17 +125,13 @@ function redirect_add_rule_to_site
 		fi
 	done
 	
-	source_redirect=`echo $source_url|awk -F$"$domain" '{print $2}'`
-	echo $'rewrite '$source_redirect\$'  '$destination_url'  '$redirection_type'; '# Added by WPCD - Do Not Remove - keycode=$key_code' ' >> /etc/nginx/userconfigs/site/$domain-redirectrule.conf
-	nginx -t
-	if [ $? -ne 0 ]
-	then
-		echo "The redirection rule not valid";
-		sed -i "/.*$source_redirect.*/d" /etc/nginx/userconfigs/site/$domain-redirectrule.conf
-	else
-		echo "Redirect rule added"
-	fi
-	service nginx restart
+	if [ "$gv_webserver_type" = "nginx" ]; then
+        redirect_add_rule_to_nginx_site
+    elif [ "$gv_webserver_type" = "ols" ]  || [ "$gv_webserver_type" = "ols-enterprise" ]; then
+        redirect_add_rule_to_ols_site
+    fi
+	
+	gf_restart_webserver
 }
 
 ###################################### Remove Site Redirect Rule Function Using The KeyCode We Added To the Line in a comment ##########
@@ -110,8 +154,14 @@ function redirect_remove_rule_from_site_by_key_code
 	do
 		read -p "Enter keycode to remove: " key_code
 	done
-	sed -i "/.*$key_code.*/d" /etc/nginx/userconfigs/site/$domain-redirectrule.conf
-	service nginx restart
+	
+	if [ "$gv_webserver_type" = "nginx" ]; then
+        sed -i "/.*$key_code.*/d" /etc/nginx/userconfigs/site/$domain-redirectrule.conf
+    elif [ "$gv_webserver_type" = "ols" ]  || [ "$gv_webserver_type" = "ols-enterprise" ]; then
+        sed -i "/.*$key_code.*/d"  /var/www/$domain/html/.htaccess
+    fi
+	
+	gf_restart_webserver
 	echo "Redirect rule has been removed"
 }
 
@@ -133,16 +183,29 @@ function redirect_remove_rule_from_site_by_rule_number
 	
 	while [[ -z $rule_number ]]
 	do
-		number_of_rules=$(cat /etc/nginx/userconfigs/site/$domain-redirectrule.conf|wc -l)
-		cat /etc/nginx/userconfigs/site/$domain-redirectrule.conf|nl
+		if [ "$gv_webserver_type" = "nginx" ]; then
+			number_of_rules=$(cat /etc/nginx/userconfigs/site/$domain-redirectrule.conf|wc -l)
+			cat /etc/nginx/userconfigs/site/$domain-redirectrule.conf|nl
+		elif [ "$gv_webserver_type" = "ols" ]  || [ "$gv_webserver_type" = "ols-enterprise" ]; then
+			number_of_rules=$(grep 'keycode=' /var/www/$domain/html/.htaccess|wc -l)
+			grep 'keycode=' /var/www/$domain/html/.htaccess|nl
+		fi
+		
 		read -p "Select Rule Number: " rule_number
 		until [[ "$rule_number" =~ ^[0-9]+$ && "$rule_number" -le "$number_of_rules" ]]; do
 			echo "$rule_number: invalid selection."
 			read -p "Select Rule Number: " rule_number
 		done
 	done
-	sed -i "$rule_number"d /etc/nginx/userconfigs/site/$domain-redirectrule.conf
-	service nginx restart
+	
+	
+	if [ "$gv_webserver_type" = "nginx" ]; then
+		sed -i "$rule_number"d /etc/nginx/userconfigs/site/$domain-redirectrule.conf
+	elif [ "$gv_webserver_type" = "ols" ]  || [ "$gv_webserver_type" = "ols-enterprise" ]; then
+		sed -i "/.*$rule_number.*/d"  /var/www/$domain/html/.htaccess
+	fi
+	
+	gf_restart_webserver
 	echo "Redirect rule has been removed"
 }
 
@@ -162,8 +225,13 @@ function redirect_remove_all_rules_from_site
 		domain=$(ls /var/www | grep -v html | sed -n "$site_number"p)
 	done
 	
-	rm /etc/nginx/userconfigs/site/$domain-redirectrule.conf
-	service nginx restart
+	if [ "$gv_webserver_type" = "nginx" ]; then
+		rm /etc/nginx/userconfigs/site/$domain-redirectrule.conf
+	elif [ "$gv_webserver_type" = "ols" ]  || [ "$gv_webserver_type" = "ols-enterprise" ]; then
+		sed -i '/keycode/d'  /var/www/$domain/html/.htaccess
+	fi
+	
+	gf_restart_webserver
 	echo "All Rewrite rules have been removed"	
 }
 
@@ -183,39 +251,54 @@ function redirect_list_site_rules
 		domain=$(ls /var/www | grep -v html | sed -n "$site_number"p)
 	done
 	
-	number_of_rules=$(cat /etc/nginx/userconfigs/site/$domain-redirectrule.conf|wc -l)
-	cat /etc/nginx/userconfigs/site/$domain-redirectrule.conf|nl
+	if [ "$gv_webserver_type" = "nginx" ]; then
+		number_of_rules=$(cat /etc/nginx/userconfigs/site/$domain-redirectrule.conf|wc -l)
+		cat /etc/nginx/userconfigs/site/$domain-redirectrule.conf|nl
+	elif [ "$gv_webserver_type" = "ols" ]  || [ "$gv_webserver_type" = "ols-enterprise" ]; then
+		number_of_rules=$(grep 'keycode=' /var/www/$domain/html/.htaccess|wc -l)
+		grep 'keycode=' /var/www/$domain/html/.htaccess|nl
+	fi
+	
 }
 
 ###################################### Add Redirect Rule on Server Function ##########
 function redirect_add_server
-{
-	touch /etc/nginx/redirectrule-server
-	cp /etc/nginx/redirectrule-server /opt/redirectrule-server_bkp
-	grep -q redirectrule /etc/nginx/nginx.conf  2>/dev/null
-	if [ $? -ne 0 ]
-	then
-		sed "/http .*{.*/a include /etc/nginx/redirectrule-server;" /etc/nginx/nginx.conf
+{	
+	
+	if [ "$gv_webserver_type" = "nginx" ]; then
+		touch /etc/nginx/redirectrule-server
+		cp /etc/nginx/redirectrule-server /opt/redirectrule-server_bkp
+		grep -q redirectrule /etc/nginx/nginx.conf  2>/dev/null
+		if [ $? -ne 0 ]
+		then
+			sed "/http .*{.*/a include /etc/nginx/redirectrule-server;" /etc/nginx/nginx.conf
+		fi
+	elif [ "$gv_webserver_type" = "ols" ]  || [ "$gv_webserver_type" = "ols-enterprise" ]; then
+		# number_of_rules=$(grep 'keycode=' /var/www/$domain/html/.htaccess|wc -l)
+		# grep 'keycode=' /var/www/$domain/html/.htaccess|nl
+		echo 'OpenLiteSpeed does not support server level redirects....'
 	fi
+	
+	
 
 	echo "Enter Source URL which need to Redirect. Enter Complete URL start from http/https"
 	read -p "Source URL:" source_url
-	validation=`echo $source_url|grep '^http'`
+	validation=$(echo $source_url|grep '^http')
 	until [[ ! -z "$validation" ]]
 	do
 		echo "Please enter complete url , it should start from http/https"
 		read -p "Source URL:" source_url
-		validation=`echo $source_url|grep '^http'`
+		validation=$(echo $source_url|grep '^http')
 	done
 
 	echo "Enter Destinatioon URL where want to Redirect"
 	read -p "Destination URL:" destination_url
-	validation=`echo $destination_url|grep '^http'`
+	validation=$(echo $destination_url|grep '^http')
 	until [[ ! -z "$validation" ]]
 	do
 		echo "Please enter complete url , it should start from http/https"
 		read -p "Destination URL:" destination_url
-		validation=`echo $destination_url|grep '^http'`
+		validation=$(echo $destination_url|grep '^http')
 	done
 
 	echo "Enter type of Redirection"
@@ -224,38 +307,59 @@ function redirect_add_server
 	if [ $redirection_number -eq 1 ]
 	then
 		redirection_type=redirect
+		redirection_code=302
 	else
 		redirection_type=permanent
+		redirection_code=301
 	fi
 
-	source_redirect=`echo $source_url|awk -F"/" '{print $4}'`
-	domain=`echo $source_url|awk -F"/" '{print $3}'`
-
-	grep -qR "server_name .* $domain" /etc/nginx/sites-enabled/ 2>/dev/null
-	if [ $? -eq 0 ]
-	then
-		echo "Domain already configured on server so please use Option 1 to setup Rule with that domain";
-		exit
+	source_redirect=$(echo $source_url|awk -F"/" '{print $4}')
+	domain=$(echo $source_url|awk -F"/" '{print $3}')
+	
+	
+	if [ "$gv_webserver_type" = "nginx" ]; then
+		grep -qR "server_name .* $domain" /etc/nginx/sites-enabled/ 2>/dev/null
+		if [ $? -eq 0 ]
+		then
+			echo "Domain already configured on server so please use Option 1 to setup Rule with that domain";
+			exit
+		fi
+		grep -qR "server_name .*$domain" /etc/nginx/redirectrule-server 2>/dev/null
+		if [ $? -ne 0 ]
+		then
+			echo $'server {
+			server_name '$domain';
+			rewrite ^/'$source_redirect'  '$destination_url' '$redirection_type';
+			}' >> /etc/nginx/redirectrule-server
+		else
+			sed -i "/server_name *$domain;/a rewrite ^/$source_redirect  $destination_url $redirection_type;" /etc/nginx/redirectrule-server
+		fi
+		nginx -t
+		if [ $? -ne 0 ]
+		then
+			echo "redirection rule not valid";
+			mv /opt/redirectrule-server_bkp /etc/nginx/redirectrule-server
+		else
+			echo "Redirect rule added"		
+		fi
+	elif [ "$gv_webserver_type" = "ols" ]  || [ "$gv_webserver_type" = "ols-enterprise" ]; then
+		# this is kinda inapplicable to OpenLiteSpeed afaik so best we can do is look for existing domain and state to add redirect there if applicable
+		if [ -d "/usr/local/lsws/conf/vhosts/$domain" ]; then
+			echo "Domain already configured on server so please use Option 1 to setup Rule with that domain";
+			exit
+		fi
+		# Kinda pointless as we shouldn't have modified anything but leaving this here so we can maybe use it in future if were editing global ols config
+		# /usr/local/lsws/bin/openlitespeed -t
+		if [ $? -ne 0 ]
+		then
+			echo "redirection rule not valid";
+			# mv /usr/local/lsws/conf/httpd_config.conf_bkp /usr/local/lsws/conf/httpd_config.conf
+		else
+			echo "Redirect rule added"		
+		fi
 	fi
-	grep -qR "server_name .*$domain" /etc/nginx/redirectrule-server 2>/dev/null
-	if [ $? -ne 0 ]
-	then
-		echo $'server {
-		server_name '$domain';
-		rewrite ^/'$source_redirect'  '$destination_url' '$redirection_type';
-		}' >> /etc/nginx/redirectrule-server
-	else
-		sed -i "/server_name *$domain;/a rewrite ^/$source_redirect  $destination_url $redirection_type;" /etc/nginx/redirectrule-server
-	fi
-	nginx -t
-	if [ $? -ne 0 ]
-	then
-		echo "redirection rule not valid";
-		mv /opt/redirectrule-server_bkp /etc/nginx/redirectrule-server
-	else
-		echo "Redirect rule added"		
-	fi
-	service nginx restart
+	
+	gf_restart_webserver
 }
 
 ###################################### Remove Redirect Rule on Server Function ##########
@@ -267,10 +371,16 @@ function redirect_remove_server
 ###################################### Remove All Redirect Rules on Server Function ##########
 function redirect_removeall_server
 {
-	sed -i "/.*redirectrule-server;/d" /etc/nginx/nginx.conf
-	rm /etc/nginx/redirectrule-server
+	
+	if [ "$gv_webserver_type" = "nginx" ]; then
+		sed -i "/.*redirectrule-server;/d" /etc/nginx/nginx.conf
+		rm /etc/nginx/redirectrule-server
+	elif [ "$gv_webserver_type" = "ols" ]  || [ "$gv_webserver_type" = "ols-enterprise" ]; then
+		echo 'OpenLiteSpeed does not support server level redirects....'
+	fi
+	
 	echo "All Rewrite rules has been removed"
-	service nginx restart
+	gf_restart_webserver
 }
 
 ###########################################################################################################################

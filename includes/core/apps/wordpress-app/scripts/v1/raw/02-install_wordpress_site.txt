@@ -56,22 +56,110 @@ mysql_dbprefix=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 5)
 mysql_user=$(head /dev/urandom | tr -dc a-z | head -c 6)
 mysql_pass=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 16)
 
-mariadb <<QUERY
-CREATE DATABASE $mysql_db;
-GRANT ALL ON $mysql_db.* TO '$mysql_user'@'localhost' IDENTIFIED BY '$mysql_pass' WITH GRANT OPTION;
-FLUSH PRIVILEGES;
-QUERY
+database_create() {
+    local DB_NAME
+    local DB_USERNAME
+    local DB_PASSWORD
+    DB_NAME="$1"
+    DB_USERNAME="$2"
+    DB_PASSWORD="$3"
+    
+  echo "Creating ${DB_NAME} and granting priveleges"
+  # 
+  mysql -e "CREATE DATABASE IF NOT EXISTS ${DB_NAME};"
+  mysql -e "CREATE USER '${DB_USERNAME}'@'localhost' IDENTIFIED BY '${DB_PASSWORD}';" || true
+  # set password if user existed already
+  mysql -e "SET PASSWORD FOR '${DB_USERNAME}'@'localhost' = PASSWORD('${DB_PASSWORD}');"
+  mysql -e "GRANT ALL PRIVILEGES on ${DB_NAME}.* TO '${DB_USERNAME}'@'localhost';"
+  mysql -e "FLUSH PRIVILEGES;"
+}
 
-user_name=$(echo $domain | cut -c1-32)
+create_file(){
+    if [ ! -f ${1} ]; then
+        touch ${1}
+    fi
+}
+create_folder(){
+    if [ ! -d "${1}" ]; then
+        mkdir -p ${1}
+    fi
+}
 
-if id -u $user_name &>/dev/null; then
+set_wp_htaccess_ols(){
+    local DOCHM
+    DOCHM="$1"
+    HTACC="${DOCHM}/.htaccess"
+    
+    create_file "${HTACC}"
+    cat >> "${HTACC}" <<-EOL
+ 	# BEGIN WordPress
+    <IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+    RewriteRule ^index\.php$ - [L]
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule . /index.php [L]
+    </IfModule>
+    # END WordPress
+	EOL
+}
+
+
+function check_cur_webserver() {
+    if [ -e /usr/local/lsws/bin/lshttpd ] ; then
+	    if /usr/local/lsws/bin/lshttpd -v | grep -q Open ; then
+		    # LiteSpeed/x.x.x Open
+        	# echo 'You have OpenLiteSpeed installed...'
+        	webserver_type='ols'
+    	elif /usr/local/lsws/bin/lshttpd -v | grep -q Enterprise ; then
+		    # LiteSpeed/x.x.x Enterprise
+       		# echo 'You have LiteSpeed Enterprise installed...'
+       		webserver_type='ols-enterprise'
+    	fi
+    else
+        # echo 'You have Nginx installed...'
+        webserver_type='nginx'
+    fi
+}
+
+function create_linux_user() {
+    local user
+    local group
+    local homedir
+    local logs_directory
+    user=$1
+    group=$2
+    homedir=$3
+    logs_directory="${homedir}/logs"
+    mkdir -p "${homedir}"
+    mkdir -p "${logs_directory}"
+    useradd -d "${homedir}" -g "${group}" -M -s "/bin/bash" "${user}"
+    chown -R "${user}":"${group}" "${homedir}"
+    chmod -R g+w "${homedir}"
+    chmod -R g+s "${homedir}"
+}
+
+
+if id -u "$user_name" &>/dev/null; then
 	echo "User name collision. Aborting..."
 	exit
 fi
 
-useradd -d "/var/www/$domain/html" -g "www-data" -M -s "/bin/bash" $user_name
+database_create "${mysql_db}" "${mysql_user}" "${mysql_pass}"
 
-echo "[$domain]
+check_cur_webserver
+
+user_name=$(echo $domain | cut -c1-32)
+
+home_directory="/var/www/$domain/html"
+
+
+create_linux_user "${user_name}" www-data "${home_directory}"
+
+# Add Vhost config based on webserver_type
+if [ "$webserver_type" = "nginx" ]; then
+    echo "[$domain]
 user = $user_name
 group = www-data
 listen = /run/php/php-fpm-$domain.sock
@@ -92,10 +180,10 @@ php_admin_value[session.use_cookies] = 1
 php_admin_value[session.use_only_cookies] = 1
 php_admin_value[session.use_trans_sid] = 0" > /etc/php/7.4/fpm/pool.d/$domain.conf
 
-systemctl restart php7.4-fpm
+    systemctl restart php7.4-fpm
 
-# it's very important to escape the variables and quotes within the echo
-echo "include /etc/nginx/common/6g.conf;
+    # it's very important to escape the variables and quotes within the echo
+    echo "include /etc/nginx/common/6g.conf;
 include /etc/nginx/common/7g[.]conf;
 include /etc/nginx/userconfigs/http/*.conf;		# user custom configuration
 
@@ -171,23 +259,26 @@ server {
     # include user custom configurations
     include /etc/nginx/userconfigs/site/$domain-*.conf;
 }" > /etc/nginx/sites-enabled/$domain
+    
+elif [ "$webserver_type" = "ols" ]  || [ "$webserver_type" = "ols-enterprise" ]; then
+    /bin/bash <( curl -sk https://raw.githubusercontent.com/meramsey/blaqpanel/main/scripts/vhsetup.sh ) -d "$domain"
+    set_wp_htaccess_ols "${home_directory}"
+    systemctl restart lsws
+fi
 
-mkdir -p /var/www/$domain/html/
-chown -R www-data:www-data /var/www/$domain/html/
-chmod -R g+w /var/www/$domain/html
-chmod -R g+s /var/www/$domain/html
 
-cd /var/www/$domain/html/
-su - $user_name -c "wp --skip-plugins core download --version=$wp_version --locale=$wp_locale"
-su - $user_name -c "wp --skip-plugins config create --dbname=$mysql_db --dbuser=$mysql_user --dbpass=$mysql_pass --dbprefix="$mysql_dbprefix"_"
+cd ${home_directory}
+su - "$user_name" -c "cd ${home_directory} && wp --skip-plugins core download --version=${wp_version} --locale=${wp_locale}"
+su - "$user_name" -c "cd ${home_directory} && wp --skip-plugins config create --dbname=${mysql_db} --dbuser=${mysql_user} --dbpass=$mysql_pass --dbprefix=${mysql_dbprefix}_"
 
 if hash sendmail 2>/dev/null; then
-    su - $user_name -c "wp --skip-plugins core install --url=$domain --title=$domain --admin_user=$wp_user --admin_password=$wp_password --admin_email=$wp_email"
+    su - "$user_name" -c "cd ${home_directory} && wp --skip-plugins core install --url=${domain} --title=${domain} --admin_user=${wp_user} --admin_password=${wp_password} --admin_email=${wp_email}"
 else
     # don't try to send the welcome email if sendmail is not available
     echo "Sendmail was not detected. No email will be sent to the admin when this installation is complete"
-    su - $user_name -c "wp --skip-plugins core install --url=$domain --title=$domain --admin_user=$wp_user --admin_password=$wp_password --admin_email=$wp_email --skip-email"
+    su - "$user_name" -c "cd ${home_directory} && wp --skip-plugins core install --url=${domain} --title=${domain} --admin_user=${wp_user} --admin_password=${wp_password} --admin_email=${wp_email} --skip-email"
 fi
+
 
 # needed to work around wp-cli issues with passwords containing some special characters
 # we hash and salt the $wp_password manually and inject it directly into the database
@@ -197,22 +288,36 @@ require_once( '/var/www/$domain/html/wp-load.php' );
 \$hash_password = wp_hash_password(\$password);
 echo \$hash_password;
 ?>" | php)
-mariadb <<QUERY
-USE $mysql_db;
-UPDATE ${mysql_dbprefix}_users SET user_pass='$wp_password_hashed' WHERE user_login='$wp_user';
-QUERY
+
+mysql "${mysql_db}" -e "UPDATE ${mysql_dbprefix}_users SET user_pass='$wp_password_hashed' WHERE user_login='$wp_user';"
 
 # needed so wordpress doesn't freak out and denies direct access
-su - $user_name -c "wp --skip-plugins config set FS_METHOD direct"
-su - $user_name -c "wp --skip-plugins option update permalink_structure '/%postname%'"
+su - "$user_name" -c "cd ${home_directory} && wp --skip-plugins config set FS_METHOD direct"
+su - "$user_name" -c "cd ${home_directory} && wp --skip-plugins option update permalink_structure '/%postname%'"
+# Let's remove this useless plugin from cluttering interface
+su - "$user_name" -c "cd ${home_directory} && wp --skip-plugins --skip-themes plugin delete hello-dolly"
+# Let's ensure all themes and plugins are updated sometimes the stock bundled ones are outdated and show on first login.
+su - "$user_name" -c "cd ${home_directory} && wp --skip-plugins --skip-themes plugin update --all"
+su - "$user_name" -c "cd ${home_directory} && wp --skip-plugins --skip-themes theme update --all"
 
 # permissions for the log file
-su - $user_name -c "touch /var/www/$domain/html/wp-content/debug.log"
-chmod g+w /var/www/$domain/html/wp-content/debug.log
+su - "$user_name" -c "touch ${home_directory}/wp-content/debug.log"
+chmod g+w "${home_directory}/wp-content/debug.log"
 
-chmod -R g+w /var/www/$domain/html
+chmod -R g+w "${home_directory}"
 
-systemctl restart nginx
+# Restart Appropiate Webserver
+if [ "$webserver_type" = "nginx" ]; then
+    # restart nginx
+	systemctl restart nginx
+elif [ "$webserver_type" = "ols" ]  || [ "$webserver_type" = "ols-enterprise" ]; then
+    # chaining this into the existing if condition vs making another one for just this check.
+    su - "$user_name" -c "cd ${home_directory} && wp --skip-plugins plugin install litespeed-cache && wp --skip-plugins plugin activate litespeed-cache && wp litespeed-online init"
+    # kill detached lsphp processes and restart ols
+    killall lsphp >/dev/null 2>&1
+	systemctl stop lsws >/dev/null 2>&1
+	systemctl start lsws
+fi
 
 # prepare for ssh public key authentication
 mkdir -p /var/www/$domain/.ssh_$user_name/

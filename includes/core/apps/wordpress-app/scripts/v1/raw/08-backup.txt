@@ -7,6 +7,194 @@ fi
 
 clear
 
+function check_cur_webserver() {
+    if [ -e /usr/local/lsws/bin/lshttpd ] ; then
+	    if /usr/local/lsws/bin/lshttpd -v | grep -q Open ; then
+		    # LiteSpeed/x.x.x Open
+        	# echo 'You have OpenLiteSpeed installed...'
+        	webserver_type='ols'
+    	elif /usr/local/lsws/bin/lshttpd -v | grep -q Enterprise ; then
+		    # LiteSpeed/x.x.x Enterprise
+       		# echo 'You have LiteSpeed Enterprise installed...'
+       		webserver_type='ols-enterprise'
+    	fi
+    else
+        # echo 'You have Nginx installed...'
+        webserver_type='nginx'
+    fi
+}
+check_cur_webserver
+
+function restart_webserver(){
+    # Restart Appropiate Webserver
+    if [ "$webserver_type" = "nginx" ]; then
+        # restart nginx
+        systemctl restart nginx
+    elif [ "$webserver_type" = "ols" ]  || [ "$webserver_type" = "ols-enterprise" ]; then
+        # kill detached lsphp processes and restart ols
+        killall lsphp >/dev/null 2>&1
+        systemctl stop lsws >/dev/null 2>&1
+        systemctl start lsws
+    fi
+}
+
+database_create() {
+    local DB_NAME
+    local DB_USERNAME
+    local DB_PASSWORD
+    DB_NAME="$1"
+    DB_USERNAME="$2"
+    DB_PASSWORD="$3"
+    
+  echo "Creating ${DB_NAME} and granting priveleges"
+  # 
+  mysql -e "CREATE DATABASE IF NOT EXISTS ${DB_NAME};"
+  mysql -e "CREATE USER '${DB_USERNAME}'@'localhost' IDENTIFIED BY '${DB_PASSWORD}';" || true
+  # set password if user existed already
+  mysql -e "SET PASSWORD FOR '${DB_USERNAME}'@'localhost' = PASSWORD('${DB_PASSWORD}');"
+  mysql -e "GRANT ALL PRIVILEGES on ${DB_NAME}.* TO '${DB_USERNAME}'@'localhost';"
+  mysql -e "FLUSH PRIVILEGES;"
+}
+
+function create_linux_user {
+    local user
+    local group
+    local homedir
+    local logs_directory
+    user=$1
+    group=$2
+    homedir=$3
+    logs_directory=${homedir/hmtl/logs}
+    mkdir -p "${homedir}"
+    mkdir -p "${logs_directory}"
+    useradd -d "${homedir}" -g "${group}" -M -s "/bin/bash" "${user}"
+    chown -R "${user}":"${group}" "${homedir}"
+    chmod -R g+w "${homedir}"
+    chmod -R g+s "${homedir}"
+}
+
+function backup_nginx_site(){
+    # backup nginx config and htpasswd
+	echo "=>backing up nginx configuration..."
+    cd /etc/nginx
+    tar -czf ~/.wp-backup/$domain/"$domain"_"$date"_nginx.tar.gz $(ls sites-enabled/*$domain htpasswd/*$domain 2>/dev/null)
+}
+
+function remove_nginx_site(){
+    rm -f /etc/nginx/sites-*/*$domain
+    rm -f /etc/nginx/htpasswd/*$domain
+    echo "restarting web server..."	
+    systemctl restart nginx
+    php_version=$(ls /etc/php/*/fpm/pool.d/$domain.conf | cut -d '/' -f 4)
+	echo "removing php configuration and restarting php process..."	
+    rm /etc/php/$php_version/fpm/pool.d/$domain.conf
+    systemctl restart php$php_version-fpm
+    
+}
+
+function restore_nginx_configs(){
+    mv sites-enabled/*$domain /etc/nginx/sites-enabled/
+    mv htpasswd/*$domain /etc/nginx/htpasswd/ 2>/dev/null
+    echo "[$domain]
+user = $user_name
+group = www-data
+listen = /run/php/php-fpm-$domain.sock
+listen.owner = $user_name
+listen.group = www-data
+pm = dynamic
+pm.max_children = 5
+pm.start_servers = 2
+pm.min_spare_servers = 1
+pm.max_spare_servers = 3
+php_admin_value[open_basedir] = \"/var/www/$domain/html/:/tmp/\"
+php_admin_value[allow_url_fopen] = 0
+php_admin_value[allow_url_include] = 0
+php_admin_value[disable_functions] =  dl, exec, fpassthru, getmypid, getmyuid, highlight_file, link, opcache_get_configuration, passthru, pcntl_exec, pcntl_get_last_error, pcntl_setpriority, pcntl_strerror, pcntl_wifcontinued, phpinfo, popen, posix_ctermid, posix_getcwd, posix_getegid, posix_geteuid, posix_getgid, posix_getgrgid, posix_getgrnam, posix_getgroups, posix_getlogin, posix_getpgid, posix_getpgrp, posix_getpid, posix_getppid, posix_getpwnam, posix_getpwuid, posix_getrlimit, posix_getsid, posix_getuid, posix_isatty, posix_kill, posix_mkfifo, posix_setegid, posix_seteuid, posix_setgid, posix_setpgid, posix_setsid, posix_setuid, posix_times, posix_ttyname, posix_uname, proc_close, proc_get_status, proc_nice, proc_open, proc_terminate, shell_exec, show_source, source, system, virtual
+php_admin_value[session.use_strict_mode] = 1
+php_admin_value[session.cookie_httponly] = 1
+php_admin_value[session.use_cookies] = 1
+php_admin_value[session.use_only_cookies] = 1
+php_admin_value[session.use_trans_sid] = 0" > /etc/php/7.4/fpm/pool.d/$domain.conf
+
+    echo "restarting php service..."	
+    systemctl restart php7.4-fpm
+}
+
+
+### OLS/LSWS functions
+WWW_PATH='/var/www'
+LSDIR='/usr/local/lsws'
+VHDIR="${LSDIR}/conf/vhosts"
+BOTCRON='/etc/cron.d/certbot'
+WWW='FALSE'
+
+check_www_domain(){
+    CHECK_WWW=$(echo "${1}" | cut -c1-4)
+    if [[ ${CHECK_WWW} == www. ]]; then
+        WWW='TRUE'
+        MY_DOMAIN2=$(echo "${1}" | cut -c 5-)
+    else
+        MY_DOMAIN2="${1}"
+    fi
+}
+
+restart_lsws(){
+    ${LSDIR}/bin/lswsctrl stop >/dev/null 2>&1
+    systemctl stop lsws >/dev/null 2>&1
+    systemctl start lsws >/dev/null 2>&1    
+}
+
+is_ssl_ols() {
+    grep -qP "keyFile                 /etc/letsencrypt/live/${domain}" ${VHDIR}/${domain}/vhconf.conf
+}
+
+is_ssl_ols_enterprise() {
+    # <keyFile>/etc/letsencrypt/live/$VH_NAME/privkey.pem</keyFile>
+    grep -qP "<keyFile>/etc/letsencrypt/live/${domain}" ${VHDIR}/${domain}/vhconf.xml
+}
+
+function remove_ols_site(){
+    rm -rf /usr/local/lsws/conf/vhosts/$domain
+    rm -rf /usr/local/lsws/conf/vhosts-disabled/$domain
+    echo "restarting web server..."
+    systemctl restart lsws
+}
+
+function backup_ls_ols_site(){   
+    # backup ols or lsws config directory
+    # /usr/local/lsws/conf/vhosts/$domain
+	echo "=>backing up ols/ols-enterprise configuration..."
+    cd /usr/local/lsws/conf/
+    tar -czf ~/.wp-backup/$domain/"$domain"_"$date"_"${webserver_type}".tar.gz $(ls vhosts/${domain}/* 2>/dev/null)
+}
+
+function restore_ols_ls_configs(){
+    mv vhosts/$domain /usr/local/lsws/conf/vhosts/$domain
+}
+
+function install_ols_ls_ssl(){
+    check_www_domain ${domain}
+    DOCHM="${WWW_PATH}/${domain}/html"
+    if [ ${WWW} = 'TRUE' ]; then
+        certbot certonly --non-interactive --agree-tos --register-unsafely-without-email --webroot -w ${DOCHM} -d ${domain} -d ${MY_DOMAIN2}
+    else
+        certbot certonly --non-interactive --agree-tos --register-unsafely-without-email --webroot -w ${DOCHM} -d ${domain}
+    fi
+}
+
+enable_certbot_ols_site() {
+    
+    if is_ssl_ols; then
+        install_ols_ls_ssl
+    elif is_ssl_ols_enterprise; then
+        install_ols_ls_ssl
+    else
+        echo
+        echo "SSL could not be enabled for $domain"
+    fi
+}
+
+
 # configure aws credentials if it's our first time
 if [[ ! -e ~/.aws/credentials ]]; then
 
@@ -93,11 +281,14 @@ Example: my-wordpress-backups-bucket"
 	echo "=>backing up files..."
     date=$(date +"%Y-%m-%d"-"%Hh%Mm%Ss")
     cd /var/www
-    tar -czf ~/.wp-backup/$domain/"$domain"_"$date"_fs.tar.gz $domain/*
-    # backup nginx config and htpasswd
-	echo "=>backing up nginx configuration..."
-    cd /etc/nginx
-    tar -czf ~/.wp-backup/$domain/"$domain"_"$date"_nginx.tar.gz $(ls sites-enabled/*$domain htpasswd/*$domain 2>/dev/null)
+    tar -czf ~/.wp-backup/$domain/"$domain"_"$date"_fs.tar.gz $domain/*  
+    
+    if [ "$webserver_type" = "nginx" ]; then
+        backup_nginx_site
+    elif [ "$webserver_type" = "ols" ]  || [ "$webserver_type" = "ols-enterprise" ]; then
+        backup_ls_ols_site
+    fi
+    
     # backup database
 	echo "=>exporting database for backup..."
     mysql_db=$(grep DB_NAME /var/www/$domain/html/wp-config.php | cut -d "'" -f 4)
@@ -106,7 +297,7 @@ Example: my-wordpress-backups-bucket"
 	echo "=>Uploading files to Amazon S3..."
     aws s3 cp ~/.wp-backup/$domain/"$domain"_"$date"_fs.tar.gz s3://$aws_bucket_name/$domain/"$domain"_"$date"_fs.tar.gz --sse --only-show-errors
 	echo "=>Uploading Nginx configuration to Amazon S3..."
-    aws s3 cp ~/.wp-backup/$domain/"$domain"_"$date"_nginx.tar.gz s3://$aws_bucket_name/$domain/"$domain"_"$date"_nginx.tar.gz --sse --only-show-errors
+    aws s3 cp ~/.wp-backup/$domain/"$domain"_"$date"_"${webserver_type}".tar.gz s3://$aws_bucket_name/$domain/"$domain"_"$date"_"${webserver_type}".tar.gz --sse --only-show-errors
 	echo "=>Uploading database to to Amazon S3..."
     aws s3 cp ~/.wp-backup/$domain/"$domain"_"$date"_db.gz s3://$aws_bucket_name/$domain/"$domain"_"$date"_db.gz --sse --only-show-errors
 
@@ -161,7 +352,7 @@ if [[ $action == "restore" || $action == "2" ]]; then
     user_name=$(echo $domain | cut -c1-32)
 
     # if /var/www/$domain exists, let the user know before overwriting
-    if [[ -d /var/www/$domain || -e /etc/nginx/sites-enabled/$domain || -e /etc/nginx/sites-available/$domain || -e /etc/php/5.6/fpm/pool.d/$domain.conf || -e /etc/php/7.1/fpm/pool.d/$domain.conf || -e /etc/php/7.2/fpm/pool.d/$domain.conf || -e /etc/php/7.3/fpm/pool.d/$domain.conf || -e /etc/php/7.4/fpm/pool.d/$domain.conf || -e /etc/php/8.0/fpm/pool.d/$domain.conf || -e /etc/php/8.1/fpm/pool.d/$domain.conf ]]; then
+    if [[ -d /var/www/$domain || -e /etc/nginx/sites-enabled/$domain || -e /etc/nginx/sites-available/$domain || -e /etc/php/5.6/fpm/pool.d/$domain.conf || -e /etc/php/7.1/fpm/pool.d/$domain.conf || -e /etc/php/7.2/fpm/pool.d/$domain.conf || -e /etc/php/7.3/fpm/pool.d/$domain.conf || -e /etc/php/7.4/fpm/pool.d/$domain.conf || -e /etc/php/8.0/fpm/pool.d/$domain.conf || -e /etc/php/8.1/fpm/pool.d/$domain.conf || -e /usr/local/lsws/conf/vhosts/$domain || -e /usr/local/lsws/conf/vhosts-disabled/$domain ]]; then
             # we do the following to allow bypassing this check if the user sets $overwrite to "yes"
             if [[ "$overwrite" != "yes" ]]; then
             echo
@@ -184,15 +375,13 @@ DROP USER '$mysql_user'@'localhost';
 FLUSH PRIVILEGES;
 QUERY
 	echo "removing existing files..."
-    rm -f /etc/nginx/sites-*/*$domain
-    rm -f /etc/nginx/htpasswd/*$domain
     rm -rf /var/www/$domain
-	echo "restarting web server..."	
-    systemctl restart nginx
-    php_version=$(ls /etc/php/*/fpm/pool.d/$domain.conf | cut -d '/' -f 4)
-	echo "removing php configuration and restarting php process..."	
-    rm /etc/php/$php_version/fpm/pool.d/$domain.conf
-    systemctl restart php$php_version-fpm
+    if [ "$webserver_type" = "nginx" ]; then
+            remove_nginx_site
+    elif [ "$webserver_type" = "ols" ]  || [ "$webserver_type" = "ols-enterprise" ]; then
+            remove_ols_site
+    fi
+
     userdel $user_name
 
     fi
@@ -207,10 +396,14 @@ QUERY
     # restore nginx config
     mkdir -p temp
     cd temp
-	echo "restoring nginx configuration..."	
-    tar xzf ../../"$backup"_nginx.tar.gz
-    mv sites-enabled/*$domain /etc/nginx/sites-enabled/
-    mv htpasswd/*$domain /etc/nginx/htpasswd/ 2>/dev/null
+	echo "restoring webserver configuration..."	
+    tar xzf ../../"$backup"_"${webserver_type}".tar.gz
+    if [ "$webserver_type" = "nginx" ]; then
+            restore_nginx_configs
+    elif [ "$webserver_type" = "ols" ]  || [ "$webserver_type" = "ols-enterprise" ]; then
+            restore_ols_ls_configs
+    fi
+
     cd ..
     rm -rf temp
 
@@ -219,47 +412,23 @@ QUERY
     mysql_user=$(grep DB_USER /var/www/$domain/html/wp-config.php | cut -d "'" -f 4)
     mysql_pass=$(grep DB_PASSWORD /var/www/$domain/html/wp-config.php | cut -d "'" -f 4)
 	echo "creating new database: $mysql_db"
-    mariadb <<QUERY
-CREATE DATABASE $mysql_db;
-GRANT ALL ON $mysql_db.* TO '$mysql_user'@'localhost' IDENTIFIED BY '$mysql_pass' WITH GRANT OPTION;
-FLUSH PRIVILEGES;
-QUERY
+    database_create "${mysql_db}" "${mysql_user}" "${mysql_pass}"
+
     # restore db dump
     cd ..
 	echo "restoring database..."	
-    gunzip -c "$backup"_db.gz > db.sql
-    mariadb -D $mysql_db < db.sql
+    gunzip -c < "$backup"_db.gz | mysql "${mysql_db}"
     rm -f db.sql
 
     # manage other needed stuff
 	echo "adding new system user..."	
-    useradd -d "/var/www/$domain/html" -g "www-data" -M -s "/bin/bash" $user_name
-    echo "[$domain]
-user = $user_name
-group = www-data
-listen = /run/php/php-fpm-$domain.sock
-listen.owner = $user_name
-listen.group = www-data
-pm = dynamic
-pm.max_children = 5
-pm.start_servers = 2
-pm.min_spare_servers = 1
-pm.max_spare_servers = 3
-php_admin_value[open_basedir] = \"/var/www/$domain/html/:/tmp/\"
-php_admin_value[allow_url_fopen] = 0
-php_admin_value[allow_url_include] = 0
-php_admin_value[disable_functions] =  dl, exec, fpassthru, getmypid, getmyuid, highlight_file, link, opcache_get_configuration, passthru, pcntl_exec, pcntl_get_last_error, pcntl_setpriority, pcntl_strerror, pcntl_wifcontinued, phpinfo, popen, posix_ctermid, posix_getcwd, posix_getegid, posix_geteuid, posix_getgid, posix_getgrgid, posix_getgrnam, posix_getgroups, posix_getlogin, posix_getpgid, posix_getpgrp, posix_getpid, posix_getppid, posix_getpwnam, posix_getpwuid, posix_getrlimit, posix_getsid, posix_getuid, posix_isatty, posix_kill, posix_mkfifo, posix_setegid, posix_seteuid, posix_setgid, posix_setpgid, posix_setsid, posix_setuid, posix_times, posix_ttyname, posix_uname, proc_close, proc_get_status, proc_nice, proc_open, proc_terminate, shell_exec, show_source, source, system, virtual
-php_admin_value[session.use_strict_mode] = 1
-php_admin_value[session.cookie_httponly] = 1
-php_admin_value[session.use_cookies] = 1
-php_admin_value[session.use_only_cookies] = 1
-php_admin_value[session.use_trans_sid] = 0" > /etc/php/7.4/fpm/pool.d/$domain.conf
-
-	echo "restarting php service..."	
-    systemctl restart php7.4-fpm
-
+    home_directory="/var/www/$domain/html"
+    create_linux_user "${user_name}" www-data "${home_directory}"
+    
+    
+    # This is redundant as the create_linux_user will chown and set all this stuff so could probably be removed entirely
 	echo "restoring ownership information to files..."	
-    chown -R www-data:www-data /var/www/$domain/html/
+    chown -R "${user_name}":www-data /var/www/$domain/html/
     chmod -R g+w /var/www/$domain/html
     chmod -R g+s /var/www/$domain/html
 
@@ -271,56 +440,61 @@ php_admin_value[session.use_trans_sid] = 0" > /etc/php/7.4/fpm/pool.d/$domain.co
 
     # reset object cache
     su - $user_name -c "wp cache flush"
-    # if at least one site had ssl enabled, restore it, except if we are dealing with a wildcard multisite
-    if ! grep -q 'server_name \.' /etc/nginx/sites-enabled/$domain && grep -qs "listen 443" /etc/nginx/sites-enabled/$domain* -l; then
-        grep "server_name" $(grep "listen 443" /etc/nginx/sites-enabled/$domain* -l) -m 1 | cut -d "_" -f 2 | cut -d " " -f 2 | while read line ; do
+    
+    if [ "$webserver_type" = "nginx" ]; then
+        # if at least one site had ssl enabled, restore it, except if we are dealing with a wildcard multisite
+        if ! grep -q 'server_name \.' /etc/nginx/sites-enabled/$domain && grep -qs "listen 443" /etc/nginx/sites-enabled/$domain* -l; then
+            grep "server_name" $(grep "listen 443" /etc/nginx/sites-enabled/$domain* -l) -m 1 | cut -d "_" -f 2 | cut -d " " -f 2 | while read line ; do
 
-            # if the system doesn't have a cert or the system has a cert which includes www subdomain
-            # set up cert with www subdomain
-            if [[ ! -e /etc/letsencrypt/live/$line/cert.pem ]] || openssl x509 -in /etc/letsencrypt/live/$line/cert.pem -noout -text | grep -qs www.$line; then
+                # if the system doesn't have a cert or the system has a cert which includes www subdomain
+                # set up cert with www subdomain
+                if [[ ! -e /etc/letsencrypt/live/$line/cert.pem ]] || openssl x509 -in /etc/letsencrypt/live/$line/cert.pem -noout -text | grep -qs www.$line; then
 
-                # the following five lines are needed because certbot will try to test the current nginx config before modifying it
-                # since there is a chance that a certificate referenced in the config isn't present in the system, nginx -t can fail
-                # if it fails, certbot will not continue.
-                # so we remove all the SSL stuff from the configuration to make certbot happy
-                conf_location=$(grep "server_name $line" /etc/nginx/sites-enabled/$domain* -l)
-                if grep -qs "managed by Certbot" $conf_location; then
-                    sed -i -n '/if ($host/q;p' $conf_location
-                    sed -i '$ d' $conf_location
-                    sed -i '/server {/a listen 80;\nlisten [::]:80;' $conf_location
-                    sed -i '/managed by Certbot/d' $conf_location
+                    # the following five lines are needed because certbot will try to test the current nginx config before modifying it
+                    # since there is a chance that a certificate referenced in the config isn't present in the system, nginx -t can fail
+                    # if it fails, certbot will not continue.
+                    # so we remove all the SSL stuff from the configuration to make certbot happy
+                    conf_location=$(grep "server_name $line" /etc/nginx/sites-enabled/$domain* -l)
+                    if grep -qs "managed by Certbot" $conf_location; then
+                        sed -i -n '/if ($host/q;p' $conf_location
+                        sed -i '$ d' $conf_location
+                        sed -i '/server {/a listen 80;\nlisten [::]:80;' $conf_location
+                        sed -i '/managed by Certbot/d' $conf_location
+                    fi
+                    certbot --non-interactive -q --reinstall --expand --nginx --agree-tos --register-unsafely-without-email --allow-subset-of-names --redirect -d $line -d www.$line
+                else
+
+                    # if the system has a cert which doesn't contain the www subdomain
+                    # set up cert without www subdomain
+                    certbot --non-interactive -q --reinstall --expand --nginx --agree-tos --register-unsafely-without-email --allow-subset-of-names --redirect -d $line
                 fi
-                certbot --non-interactive -q --reinstall --expand --nginx --agree-tos --register-unsafely-without-email --allow-subset-of-names --redirect -d $line -d www.$line
-            else
+            done
+        fi
 
-                # if the system has a cert which doesn't contain the www subdomain
-                # set up cert without www subdomain
-                certbot --non-interactive -q --reinstall --expand --nginx --agree-tos --register-unsafely-without-email --allow-subset-of-names --redirect -d $line
+        # If we are dealing with a multisite wildcard which had HTTPS enabled...
+        if grep -q 'server_name \.' /etc/nginx/sites-enabled/$domain && grep -q 'listen 443' /etc/nginx/sites-enabled/$domain; then
+            for sitedomain in $(su - $user_name -c "wp site list --field=domain")
+            do
+                su - $user_name -c "wp --skip-plugins option update home http://$sitedomain --url=https://$sitedomain/"
+                su - $user_name -c "wp --skip-plugins option update siteurl http://$sitedomain --url=https://$sitedomain/"
+            done
+            if grep -qs "managed by Certbot" /etc/nginx/sites-enabled/$domain; then
+                sed -i -n '/listen 80/q;p' /etc/nginx/sites-enabled/$domain
+                sed -i '$ d' /etc/nginx/sites-enabled/$domain
+                sed -i '/server {/a listen 80;\nlisten [::]:80;' /etc/nginx/sites-enabled/$domain
+                sed -i '/managed by Certbot/d' /etc/nginx/sites-enabled/$domain
             fi
-        done
+            certbot delete --cert-name $domain --noninteractive > /dev/null 2>&1
+            systemctl restart nginx
+            echo "This multisite had wildcard SSL enabled."
+            echo "HTTPS has been disabled, it can be configured using 13-multisite.sh"
+        fi
+    elif [ "$webserver_type" = "ols" ]  || [ "$webserver_type" = "ols-enterprise" ]; then
+            enable_certbot_ols_site
     fi
 
-    # If we are dealing with a multisite wildcard which had HTTPS enabled...
-	if grep -q 'server_name \.' /etc/nginx/sites-enabled/$domain && grep -q 'listen 443' /etc/nginx/sites-enabled/$domain; then
-    	for sitedomain in $(su - $user_name -c "wp site list --field=domain")
-    	do
-    	    su - $user_name -c "wp --skip-plugins option update home http://$sitedomain --url=https://$sitedomain/"
-    	    su - $user_name -c "wp --skip-plugins option update siteurl http://$sitedomain --url=https://$sitedomain/"
-    	done
-        if grep -qs "managed by Certbot" /etc/nginx/sites-enabled/$domain; then
-            sed -i -n '/listen 80/q;p' /etc/nginx/sites-enabled/$domain
-            sed -i '$ d' /etc/nginx/sites-enabled/$domain
-            sed -i '/server {/a listen 80;\nlisten [::]:80;' /etc/nginx/sites-enabled/$domain
-            sed -i '/managed by Certbot/d' /etc/nginx/sites-enabled/$domain
-        fi
-    	certbot delete --cert-name $domain --noninteractive > /dev/null 2>&1
-		systemctl restart nginx
-    	echo "This multisite had wildcard SSL enabled."
-    	echo "HTTPS has been disabled, it can be configured using 13-multisite.sh"
-	fi
-
 	echo "cleaning up and restarting web server..."	
-    systemctl restart nginx
+    restart_webserver
     echo
     echo "$backup has been restored"
     exit
@@ -338,14 +512,34 @@ while IFS=" " read -r domain bucket days s3_sync_delete_parm callback_domain; do
     if [[ -n "$callback_domain" ]]; then
        wget -q -O /dev/null $callback_domain/wp-json/wordpress-app/v1/command/1/start_domain_backup/completed/1/?domain=$domain
     fi
+    function check_cur_webserver() {
+    if [ -e /usr/local/lsws/bin/lshttpd ] ; then
+	    if /usr/local/lsws/bin/lshttpd -v | grep -q Open ; then
+        	webserver_type="ols"
+    	elif /usr/local/lsws/bin/lshttpd -v | grep -q Enterprise ; then
+       		webserver_type="ols-enterprise"
+    	fi
+    else
+        webserver_type="nginx"
+    fi
+    }
+    check_cur_webserver
     mkdir -p ~/.wp-backup/$domain/
     # backup /var/www
     date=$(date +"%Y-%m-%d"-"%Hh%Mm%Ss")
     cd /var/www
     tar -czf ~/.wp-backup/$domain/"$domain"_"$date"_fs.tar.gz $domain/*
-    # backup nginx config and htpasswd
-    cd /etc/nginx
-    tar -czf ~/.wp-backup/$domain/"$domain"_"$date"_nginx.tar.gz $(ls sites-enabled/*$domain htpasswd/*$domain 2>/dev/null)
+    
+    if [ "$webserver_type" = "nginx" ]; then
+        # backing up nginx configuration
+		cd /etc/nginx
+		tar -czf ~/.wp-backup/$domain/"$domain"_"$date"_nginx.tar.gz $(ls sites-enabled/*$domain htpasswd/*$domain 2>/dev/null)
+    elif [ "$webserver_type" = "ols" ]  || [ "$webserver_type" = "ols-enterprise" ]; then
+    	# backing up ols/ols-enterprise configuration
+		cd /usr/local/lsws/conf/
+		tar -czf ~/.wp-backup/$domain/"$domain"_"$date"_"${webserver_type}".tar.gz $(ls vhosts/${domain}/* 2>/dev/null)
+    fi
+    
     # backup database
     mysql_db=$(grep DB_NAME /var/www/$domain/html/wp-config.php | cut -d "\'" -f 4)
     mysqldump $mysql_db | gzip -9 > ~/.wp-backup/$domain/"$domain"_"$date"_db.gz
@@ -456,14 +650,38 @@ ls /var/www | grep -v html | while read line; do
     if [[ -n "$4" ]]; then
        wget -q -O /dev/null $4/wp-json/wordpress-app/v1/command/1/start_domain_backup/completed/1/?domain=$line
     fi
+    function check_cur_webserver() {
+    if [ -e /usr/local/lsws/bin/lshttpd ] ; then
+	    if /usr/local/lsws/bin/lshttpd -v | grep -q Open ; then
+        	webserver_type="ols"
+    	elif /usr/local/lsws/bin/lshttpd -v | grep -q Enterprise ; then
+       		webserver_type="ols-enterprise"
+    	fi
+    else
+        webserver_type="nginx"
+    fi
+    }
+    check_cur_webserver
     mkdir -p ~/.wp-backup/$line/
     # backup /var/www
     date=$(date +"%Y-%m-%d"-"%Hh%Mm%Ss")
     cd /var/www
     tar -czf ~/.wp-backup/$line/"$line"_"$date"_fs.tar.gz $line/*
+    
     # backup nginx config and htpasswd
     cd /etc/nginx
     tar -czf ~/.wp-backup/$line/"$line"_"$date"_nginx.tar.gz $(ls sites-enabled/*$line htpasswd/*$line 2>/dev/null)
+    
+    if [ "$webserver_type" = "nginx" ]; then
+        # backing up nginx configuration
+		cd /etc/nginx
+		tar -czf ~/.wp-backup/$line/"$line"_"$date"_nginx.tar.gz $(ls sites-enabled/*$line htpasswd/*$line 2>/dev/null)
+    elif [ "$webserver_type" = "ols" ]  || [ "$webserver_type" = "ols-enterprise" ]; then
+    	# backing up ols/ols-enterprise configuration
+		cd /usr/local/lsws/conf/
+		tar -czf ~/.wp-backup/$line/"$line"_"$date"_"${webserver_type}".tar.gz $(ls vhosts/$line/* 2>/dev/null)
+    fi
+    
     # backup database
     mysql_db=$(grep DB_NAME /var/www/$line/html/wp-config.php | cut -d "\'" -f 4)
     mysqldump $mysql_db | gzip -9 > ~/.wp-backup/$line/"$line"_"$date"_db.gz
@@ -710,7 +928,7 @@ if [[ $action == "show_orphaned_backups" || $action == "13" ]]; then
     echo
     echo "The following sites have orphaned backups:"
 	cd ~/.wp-backup/
-    sort <<< "$(ls ~/.wp-backup/; ls /etc/nginx/sites-enabled/; ls /etc/nginx/sites-available/)" | uniq -u | grep -v '^default$\|^monit$\|^monitorix$' |
+    sort <<< "$(ls ~/.wp-backup/; ls /etc/nginx/sites-enabled/; ls /etc/nginx/sites-available/ ; ls /usr/local/lsws/conf/vhosts/; ls /usr/local/lsws/conf/vhosts-disabled/)" | uniq -u | grep -v '^default$\|^monit$\|^monitorix$\|^Example' |
 	while read -r line; do
 		find $line -maxdepth 0 2>/dev/null
 	done
@@ -725,7 +943,7 @@ if [[ $action == "remove_orphaned_backups" || $action == "14" ]]; then
 
 	echo
     cd ~/.wp-backup/
-    sort <<< "$(ls ~/.wp-backup/; ls /etc/nginx/sites-enabled/; ls /etc/nginx/sites-available/)" | uniq -u | grep -v '^default$\|^monit$\|^monitorix$' |
+    sort <<< "$(ls ~/.wp-backup/; ls /etc/nginx/sites-enabled/; ls /etc/nginx/sites-available/ ; ls /usr/local/lsws/conf/vhosts/; ls /usr/local/lsws/conf/vhosts-disabled/)" | uniq -u | grep -v '^default$\|^monit$\|^monitorix$\|^Example' |
 	while read -r line; do
 		find $line -maxdepth 0 2>/dev/null
 	done | xargs rm -rf
@@ -760,36 +978,43 @@ if [[ $action == "restore_nginx" || $action == "15" ]]; then
     while [[ -z $backup ]]; do
         echo
         echo "Please, select which backup do you wish to restore"
-        find -type f -name "$site*nginx.tar.gz" | cut -d "/" -f 2-3 | cut -d "_" -f 1-2 | sort -nr | nl
+        find -type f -name "$site*${webserver_type}.tar.gz" | cut -d "/" -f 2-3 | cut -d "_" -f 1-2 | sort -nr | nl
         echo
         read -p "Select backup: " site_number
-        number_of_sites=$(find -type f -name "$site*nginx.tar.gz" | cut -d "/" -f 2-3 | cut -d "_" -f 1-2 | sort -nr | wc -l)
+        number_of_sites=$(find -type f -name "$site*${webserver_type}.tar.gz" | cut -d "/" -f 2-3 | cut -d "_" -f 1-2 | sort -nr | wc -l)
         until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
 		    echo "$site_number: invalid selection."
 		    read -p "Select backup: " site_number
 	    done
-        backup=$(find -type f -name "$site*nginx.tar.gz" | cut -d "/" -f 2-3 | cut -d "_" -f 1-2 | sort -nr | sed -n "$site_number"p)
+        backup=$(find -type f -name "$site*${webserver_type}.tar.gz" | cut -d "/" -f 2-3 | cut -d "_" -f 1-2 | sort -nr | sed -n "$site_number"p)
     done
     domain=$(echo $backup | cut -d "/" -f 1)
 
 	echo "removing existing files..."
-    rm -f /etc/nginx/sites-*/*$domain
-    rm -f /etc/nginx/htpasswd/*$domain
+    if [ "$webserver_type" = "nginx" ]; then
+            remove_nginx_site
+    elif [ "$webserver_type" = "ols" ]  || [ "$webserver_type" = "ols-enterprise" ]; then
+            remove_ols_site
+    fi
 
     cd $domain
 
     # restore nginx config
     mkdir -p temp
     cd temp
-	echo "restoring nginx configuration..."	
-    tar xzf ../../"$backup"_nginx.tar.gz
-    mv sites-enabled/*$domain /etc/nginx/sites-enabled/
-    mv htpasswd/*$domain /etc/nginx/htpasswd/ 2>/dev/null
+	echo "restoring webserver configuration..."	
+    tar xzf ../../"$backup"_"${webserver_type}".tar.gz
+    if [ "$webserver_type" = "nginx" ]; then
+            restore_nginx_configs
+    elif [ "$webserver_type" = "ols" ]  || [ "$webserver_type" = "ols-enterprise" ]; then
+            restore_ols_ls_configs
+    fi
+    
     cd ..
     rm -rf temp
 
 	echo "cleaning up and restarting web server..."	
-    systemctl restart nginx
+    restart_webserver
     echo
     echo "$backup has been restored"
 

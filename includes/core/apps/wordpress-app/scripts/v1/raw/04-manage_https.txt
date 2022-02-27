@@ -7,40 +7,239 @@ fi
 ## Get our common functions
 source 9999-common-functions.sh
 
+gf_check_cur_webserver
+
 ## regex patterns http2
 remove_http2="s/(^${sm}listen${sp}($ip:)?($ip6:)?[0-9]+${sp}ssl)${sp}http2/\1/"
 add_http2="s/(^${sm}listen${sp}($ip:)?($ip6:)?[0-9]+${sp}ssl)(${sm}http2)?/\1 http2/"
 has_ssl="^${sm}listen${sp}(${ip}:)?(${ip6}:)?[0-9]+${sp}ssl"
 has_http2="^${sm}listen${sp}(${ip}:)?(${ip6}:)?[0-9]+${sp}ssl${sp}http2"
+has_http2_ols="(enableSpdy              (4|5|7|15))"
 ## end regex patterns http2
 
-is_ssl() {
+
+check_duplicate() {
+    grep -w "${1}" ${2} >/dev/null 2>&1
+}
+
+is_ssl_nginx() {
     cat "${domain_conf}" | grep -qP "${has_ssl}"
 }
 
-is_http2() {
+is_http2_nginx() {
     cat "${domain_conf}" | grep -qP "${has_http2}"
 }
 
-disable_http2() {
-    if is_http2; then
+disable_http2_nginx() {
+    if is_http2_nginx; then
         sed -i "${domain_conf}" -re "${remove_http2}"
-        if is_http2; then
+        if is_http2_nginx; then
             echo -e "${RED}ERROR: http2 disabling for '${domain}' error${NC}" >&2 # ERROR
         fi
     fi
 }
 
-enable_http2() {
-    if is_ssl; then
-        if ! is_http2; then
+enable_http2_nginx() {
+    if is_ssl_nginx; then
+        if ! is_http2_nginx; then
             sed -i "${domain_conf}" -re "${add_http2}"
-            if ! is_http2; then
+            if ! is_http2_nginx; then
                 echo -e "${RED}ERROR: http2 enabling for '${domain}' error${NC}" >&2 # ERROR
             fi
         fi
     fi
 }
+
+function disable_certbot_nginx_site(){
+    if ! grep -qs 'managed by Certbot' /etc/nginx/sites-enabled/$domain; then
+        echo
+        echo "SSL is already disabled for $domain"
+        exit
+    fi
+
+    disable_http2_nginx # disable http2 if enabled
+
+    certbot delete --cert-name $domain --noninteractive
+
+    if grep -qs "managed by Certbot" /etc/nginx/sites-enabled/$domain; then
+        sed -i -n '/if ($host/q;p' /etc/nginx/sites-enabled/$domain
+        sed -i '$ d' /etc/nginx/sites-enabled/$domain
+        sed -i '/server {/a listen 80;\nlisten [::]:80;' /etc/nginx/sites-enabled/$domain
+        sed -i '/managed by Certbot/d' /etc/nginx/sites-enabled/$domain
+    fi
+    systemctl restart nginx
+}
+
+function enable_certbot_nginx_site(){
+    certbot --non-interactive --reinstall --expand --nginx --agree-tos -m $email --allow-subset-of-names --redirect -d $domain -d www.$domain
+    if ! grep -qs "listen 443" /etc/nginx/sites-enabled/$domain; then
+        echo
+        echo "SSL could not be enabled for $domain"
+        exit
+    fi
+}
+
+### OLS functions
+WWW_PATH='/var/www'
+LSDIR='/usr/local/lsws'
+VHDIR="${LSDIR}/conf/vhosts"
+BOTCRON='/etc/cron.d/certbot'
+WWW='FALSE'
+
+restart_lsws(){
+    ${LSDIR}/bin/lswsctrl stop >/dev/null 2>&1
+    systemctl stop lsws >/dev/null 2>&1
+    systemctl start lsws >/dev/null 2>&1    
+}
+
+is_ssl_ols() {
+    grep -qP "keyFile                 /etc/letsencrypt/live/${domain}" ${VHDIR}/${domain}/vhconf.conf
+}
+
+is_ssl_ols_enterprise() {
+    # <keyFile>/etc/letsencrypt/live/$VH_NAME/privkey.pem</keyFile>
+    grep -qP "<keyFile>/etc/letsencrypt/live/${domain}" ${VHDIR}/${domain}/vhconf.xml
+}
+
+is_http2_ols() {
+    # https://http2.pro/doc/LiteSpeed
+    # https://www.litespeedtech.com/support/wiki/doku.php/litespeed_wiki:config:enable-http2
+    # If is any one of these values http2 is enabled 4,5,7,15
+    grep -qP "${has_http2_ols}" ${VHDIR}/${domain}/vhconf.conf
+}
+
+enable_http2_ols(){
+    # Setting to 15 is default which enables HTTP/3, HTTP/2, and SPDY HTTP
+    sed -i 's|enableSpdy.*|enableSpdy              15|' ${VHDIR}/${domain}/vhconf.conf
+}
+
+disable_http2_ols(){
+    # Setting to 11 is disables HTTP/2 and leaves HTTP/3, and SPDY HTTP enabled
+    sed -i 's|enableSpdy.*|enableSpdy              11|' ${VHDIR}/${domain}/vhconf.conf
+}
+
+enable_ssl_vh_ols_conf(){
+    # sed -i 's|localhost|'${email}'|g' ${VHDIR}/${domain}/vhconf.conf
+    sed -i "s|/usr/local/lsws/conf/example.key|/etc/letsencrypt/live/$domain/privkey.pem|g" ${VHDIR}/${domain}/vhconf.conf
+    sed -i "s|/usr/local/lsws/conf/example.crt|/etc/letsencrypt/live/$domain/fullchain.pem|g" ${VHDIR}/${domain}/vhconf.conf
+    echo "\ncertificate has been successfully installed..."  
+}
+
+disable_ssl_vh_ols_conf(){
+    # sed -i 's|localhost|'${email}'|g' ${VHDIR}/${domain}/vhconf.conf
+    sed -i "s|/etc/letsencrypt/live/$domain/privkey.pem|/usr/local/lsws/conf/example.key|g" ${VHDIR}/${domain}/vhconf.conf
+    sed -i "s|/etc/letsencrypt/live/$domain/fullchain.pem|/usr/local/lsws/conf/example.crt|g" ${VHDIR}/${domain}/vhconf.conf
+    echo "\ncertificate has been successfully uninstalled..."
+}
+
+enable_ssl_vh_ols_enterprise_conf(){
+    # sed -i 's|localhost|'${email}'|g' ${VHDIR}/${domain}/vhconf.conf
+    sed -i "s|/usr/local/lsws/conf/example.key|/etc/letsencrypt/live/$domain/privkey.pem|g" ${VHDIR}/${domain}/vhconf.xml
+    sed -i "s|/usr/local/lsws/conf/example.crt|/etc/letsencrypt/live/$domain/fullchain.pem|g" ${VHDIR}/${domain}/vhconf.xml
+    echo "\ncertificate has been successfully installed..."  
+}
+
+disable_ssl_vh_ols_enterprise_conf(){
+    # sed -i 's|localhost|'${email}'|g' ${VHDIR}/${domain}/vhconf.conf
+    sed -i "s|/etc/letsencrypt/live/$domain/privkey.pem|/usr/local/lsws/conf/example.key|g" ${VHDIR}/${domain}/vhconf.xml
+    sed -i "s|/etc/letsencrypt/live/$domain/fullchain.pem|/usr/local/lsws/conf/example.crt|g" ${VHDIR}/${domain}/vhconf.xml
+    echo "\ncertificate has been successfully uninstalled..."
+}
+
+check_www_domain(){
+    CHECK_WWW=$(echo "${1}" | cut -c1-4)
+    if [[ ${CHECK_WWW} == www. ]]; then
+        WWW='TRUE'
+        MY_DOMAIN2=$(echo "${1}" | cut -c 5-)
+    else
+        MY_DOMAIN2="${1}"
+    fi
+}
+
+hook_certbot_ols() {
+    sed -i 's/0.*/&  --deploy-hook "\/usr\/local\/lsws\/bin\/lswsctrl restart"/g' ${BOTCRON}
+    check_duplicate 'restart' ${BOTCRON}
+    if [ ${?} = 0 ]; then
+        echo 'Certbot hook update success'
+    else
+        echo 'Please check certbot crond!'
+    fi
+}
+
+enable_certbot_ols_site() {
+    check_www_domain ${domain}
+    DOCHM="${WWW_PATH}/${domain}/html"
+    certbot certonly --non-interactive --agree-tos -m ${email} --webroot -w ${DOCHM} -d ${domain} -d www.${domain}||certbot certonly --non-interactive --agree-tos -m ${email} --webroot -w ${DOCHM} -d ${domain}
+    
+    if [ "$gv_webserver_type" = "ols" ]; then
+        enable_ssl_vh_ols_conf
+    elif [ "$gv_webserver_type" = "ols-enterprise" ]; then
+        enable_ssl_vh_ols_enterprise_conf
+    fi
+    
+    if is_ssl_ols || is_ssl_ols_enterprise; then
+        restart_lsws
+    else
+        echo
+        echo "SSL could not be enabled for $domain"
+    fi
+}
+
+disable_certbot_ols_site(){
+    if [ ! -d "/etc/letsencrypt/live/$domain" ]; then
+        echo
+        echo "SSL is already disabled for $domain"
+        if is_ssl_ols; then
+            disable_ssl_vh_ols_conf
+        elif is_ssl_ols; then
+            disable_ssl_vh_ols_enterprise_conf
+        fi
+        restart_lsws
+    fi
+    if [ -d "/etc/letsencrypt/live/$domain" ]; then
+        certbot delete --cert-name $domain --noninteractive
+        if [ "$gv_webserver_type" = "ols" ]; then
+            disable_ssl_vh_ols_conf
+        elif [ "$gv_webserver_type" = "ols-enterprise" ]; then
+            disable_ssl_vh_ols_enterprise_conf
+        fi
+        restart_lsws
+    fi
+}
+
+# force_https() {
+#     if [ ${SILENT} = 'OFF' ]; then
+#         printf "%s" "Do you wish to add a force https redirection rule? [y/N]: "
+#         read TMP_YN
+#         if [[ "${TMP_YN}" =~ ^(y|Y) ]]; then
+#             FORCE_HTTPS='ON'
+#         fi  
+#     fi    
+#     if [ ${FORCE_HTTPS} = 'ON' ]; then
+#         create_file "${DOCHM}/.htaccess"
+#         check_duplicate 'https://' "${DOCHM}/.htaccess"   
+#         if [ ${?} = 1 ]; then
+#             echo "$(echo '
+# ### Forcing HTTPS rule start
+# RewriteEngine On
+# RewriteCond %{SERVER_PORT} 80
+# RewriteRule (.*) https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+# ### Forcing HTTPS rule end
+#             ' | cat - ${DOCHM}/.htaccess)" >${DOCHM}/.htaccess
+#             restart_lsws
+#             echo "Force HTTPS rules added success!" 
+#         else
+#             echo "Force HTTPS rules already existed, skip!"
+#         fi
+#     fi 
+# }
+
+
+
+
+###############################
+
+
 
 
 while [[ -z $domain ]]; do
@@ -60,8 +259,14 @@ done
 # variable that points to nginx conf file for domain.
 domain_conf="/etc/nginx/sites-enabled/${domain}"
 
-# call http2 functions 
-is_http2
+# call http2 functions
+if [ "$gv_webserver_type" = "nginx" ]; then
+    is_http2_nginx
+elif [ "$gv_webserver_type" = "ols" ]  || [ "$gv_webserver_type" = "ols-enterprise" ]; then
+    is_http2_ols
+fi
+
+
 old_http2=$?
 
 
@@ -82,19 +287,21 @@ done
 
 
 if [[ $action == "enable" || $action == "1" ]]; then
-    disable_http2 # disable http2 if enabled
+    if [ "$gv_webserver_type" = "nginx" ]; then
+            disable_http2_nginx # disable http2 if enabled
+    elif [ "$gv_webserver_type" = "ols" ]  || [ "$gv_webserver_type" = "ols-enterprise" ]; then
+            disable_http2_ols
+    fi
     if [[ -z $email ]]; then
         echo
         echo "Specify an email for administrative notifications about your certificate
 Example: admin@example.com"
         read -p "Email address: " email
     fi
-    certbot --non-interactive --reinstall --expand --nginx --agree-tos -m $email --allow-subset-of-names --redirect -d $domain -d www.$domain
-
-    if ! grep -qs "listen 443" /etc/nginx/sites-enabled/$domain; then
-        echo
-        echo "SSL could not be enabled for $domain"
-        exit
+    if [ "$gv_webserver_type" = "nginx" ]; then
+            enable_certbot_nginx_site
+    elif [ "$gv_webserver_type" = "ols" ]  || [ "$gv_webserver_type" = "ols-enterprise" ]; then
+            enable_certbot_ols_site
     fi
 
     cd /var/www/$domain/html/
@@ -104,10 +311,15 @@ Example: admin@example.com"
     # reset cache
     su - $user_name -c "wp cache flush"
     su - $user_name -c "wp cache-enabler clear 2>/dev/null"
-
-    if [[ $old_http2 -eq 0 ]]; then
-        enable_http2
-        systemctl restart nginx
+    
+    if [ "$gv_webserver_type" = "nginx" ]; then
+            if [[ $old_http2 -eq 0 ]]; then
+                enable_http2_nginx
+                systemctl restart nginx
+            fi
+    elif [ "$gv_webserver_type" = "ols" ]  || [ "$gv_webserver_type" = "ols-enterprise" ]; then
+            enable_http2_ols
+            restart_lsws
     fi
 
     echo
@@ -118,23 +330,11 @@ fi
 
 if [[ $action == "disable" || $action == "2" ]]; then
     
-    if ! grep -qs 'managed by Certbot' /etc/nginx/sites-enabled/$domain; then
-        echo
-        echo "SSL is already disabled for $domain"
-        exit
+    if [ "$gv_webserver_type" = "nginx" ]; then
+            disable_certbot_nginx_site
+    elif [ "$gv_webserver_type" = "ols" ]  || [ "$gv_webserver_type" = "ols-enterprise" ]; then
+            disable_certbot_ols_site
     fi
-
-    disable_http2 # disable http2 if enabled
-
-    certbot delete --cert-name $domain --noninteractive
-
-    if grep -qs "managed by Certbot" /etc/nginx/sites-enabled/$domain; then
-        sed -i -n '/if ($host/q;p' /etc/nginx/sites-enabled/$domain
-        sed -i '$ d' /etc/nginx/sites-enabled/$domain
-        sed -i '/server {/a listen 80;\nlisten [::]:80;' /etc/nginx/sites-enabled/$domain
-        sed -i '/managed by Certbot/d' /etc/nginx/sites-enabled/$domain
-    fi
-    systemctl restart nginx
 
     cd /var/www/$domain/html/
     user_name=$(echo $domain | cut -c1-32)
@@ -152,37 +352,73 @@ fi
 
 
 if [[ $action == "enable_http2" || $action == "3" ]]; then
-    if is_ssl; then
-        if is_http2; then
-            echo -e "${BLUE}http2 is already enabled for domain='${domain}', nothing to do${NC}" # SKIP
-        else
-            sed -i "${domain_conf}" -re "${add_http2}"
-            if is_http2; then
-                echo -e "${GREEN}http2 enabled for domain='${domain}' ${NC}" # ACTION
-                systemctl restart nginx
+    
+    if [ "$gv_webserver_type" = "nginx" ]; then
+        if is_ssl_nginx; then
+            if is_http2_nginx; then
+                echo -e "${BLUE}http2 is already enabled for domain='${domain}', nothing to do${NC}" # SKIP
             else
-                echo -e "${RED}ERROR: enabling http2 for '${domain}' error${NC}" >&2 # ERROR
+                sed -i "${domain_conf}" -re "${add_http2}"
+                if is_http2_nginx; then
+                    echo -e "${GREEN}http2 enabled for domain='${domain}' ${NC}" # ACTION
+                    systemctl restart nginx
+                else
+                    echo -e "${RED}ERROR: enabling http2 for '${domain}' error${NC}" >&2 # ERROR
+                fi
             fi
+        else
+            echo -e "${ORANGE}Could not enable http2 on '${domain}' when SSL is disabled${NC}" # WARNING
         fi
-    else
-        echo -e "${ORANGE}Could not enable http2 on '${domain}' when SSL is disabled${NC}" # WARNING
-    fi
     exit
+    elif [ "$gv_webserver_type" = "ols" ]  || [ "$gv_webserver_type" = "ols-enterprise" ]; then
+        if is_ssl_ols; then
+            if is_http2_ols; then
+                echo -e "${BLUE}http2 is already enabled for domain='${domain}', nothing to do${NC}" # SKIP
+            else
+                enable_http2_ols
+                if is_http2_ols; then
+                    echo -e "${GREEN}http2 enabled for domain='${domain}' ${NC}" # ACTION
+                    restart_lsws
+                else
+                    echo -e "${RED}ERROR: enabling http2 for '${domain}' error${NC}" >&2 # ERROR
+                fi
+            fi
+        else
+            echo -e "${ORANGE}Could not enable http2 on '${domain}' when SSL is disabled${NC}" # WARNING
+        fi
+    exit
+    fi
 fi
 
 if [[ $action == "disable_http2" || $action == "4" ]]; then
-    if is_http2; then
-        sed -i "${domain_conf}" -re "${remove_http2}"
+    
+    if [ "$gv_webserver_type" = "nginx" ]; then
         if is_http2; then
-            echo -e "${RED}ERROR: http2 disabling for '${domain}' error${NC}" >&2 # ERROR
+            sed -i "${domain_conf}" -re "${remove_http2}"
+            if is_http2; then
+                echo -e "${RED}ERROR: http2 disabling for '${domain}' error${NC}" >&2 # ERROR
+            else
+                echo -e "${GREEN}http2 disabled for domain='${domain}' ${NC}" # ACTION
+                systemctl restart nginx
+            fi
         else
-            echo -e "${GREEN}http2 disabled for domain='${domain}' ${NC}" # ACTION
-            systemctl restart nginx
+            echo -e "${BLUE}http2 is already disabled for domain='${domain}', nothing to do${NC}" # SKIP
         fi
-    else
-        echo -e "${BLUE}http2 is already disabled for domain='${domain}', nothing to do${NC}" # SKIP
+        exit
+    elif [ "$gv_webserver_type" = "ols" ]  || [ "$gv_webserver_type" = "ols-enterprise" ]; then
+        if is_http2_ols; then
+            disable_http2_ols
+            if is_http2_ols; then
+                echo -e "${RED}ERROR: http2 disabling for '${domain}' error${NC}" >&2 # ERROR
+            else
+                echo -e "${GREEN}http2 disabled for domain='${domain}' ${NC}" # ACTION
+                restart_lsws
+            fi
+        else
+            echo -e "${BLUE}http2 is already disabled for domain='${domain}', nothing to do${NC}" # SKIP
+        fi
+        exit
     fi
-    exit
 fi
 
-echo -e "${RED}ERROR: Invalid action '${action}'
+echo -e "${RED}ERROR: Invalid action '${action}'"

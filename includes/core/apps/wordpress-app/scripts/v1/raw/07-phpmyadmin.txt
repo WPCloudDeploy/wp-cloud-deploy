@@ -4,7 +4,144 @@ if [[ "$EUID" -ne 0 ]]; then
 	exit
 fi
 
+## Get our common functions
+source 9999-common-functions.sh
 
+gf_check_cur_webserver
+
+function update_tiny_file_manager_admin_pass(){
+    local domain
+    local admin_pass
+    local admin_user
+    local default_admin_username
+    local username
+    domain="$1"
+    username=$(echo $domain | cut -c1-32)
+    admin_pass="$2"
+    default_admin_username='admin'
+    admin_user="${3:-$default_admin_username}" # optional param so we can selectively change admin username from default 'admin' but only if provided
+
+    # Download new config file so we can replace the admin password easily
+    wget -O /var/www/$domain/html/filemanager/config.php https://raw.githubusercontent.com/meramsey/blaqpanel/main/filemanager/config.php
+    # See this: https://tinyfilemanager.github.io/docs/pwd.html
+    filemanager_password_hashed=$(echo "<?php
+    \$password = '$admin_pass';
+    \$hash_password = password_hash(\$password, PASSWORD_DEFAULT);
+    echo \$hash_password;
+    ?>" | php)
+    
+    # Update config placeholder admin password with new hashed password.
+    sed -i -e "s|ADMIN_USERNAME|$admin_user|g" -e "s|ADMIN_HASHED_PASSWORD|$filemanager_password_hashed|g" /var/www/$domain/html/filemanager/config.php
+    chown -R "${username}":www-data /var/www/$domain/html/filemanager
+
+}
+
+function ols_user_pass_reset(){
+    local admin_pass
+    local admin_user
+    default_admin_username='admin'
+    admin_user="${1:-$default_admin_username}" # optional param so we can selectively change admin username from default 'admin' but only if provided
+    admin_pass="$2"
+    ENCRYPT_PASS=`"/usr/local/lsws/admin/fcgi-bin/admin_php" -q "/usr/local/lsws/admin/misc/htpasswd.php" $admin_pass`
+    if [ $? = 0 ] ; then
+        echo "${admin_user}:$ENCRYPT_PASS" > "/usr/local/lsws/admin/conf/htpasswd"
+        if [ $? = 0 ] ; then
+            echo "Set OpenLiteSpeed Web Admin access."
+        else
+            echo "OpenLiteSpeed WebAdmin password not changed."
+        fi
+    fi
+    
+
+}
+
+function enable_signed_ssl_ols_csf(){
+    local domain
+    domain="$1"
+    domain_cert="/etc/letsencrypt/live/${domain}/fullchain.pem"
+    domain_key="/etc/letsencrypt/live/${domain}/privkey.pem"
+    
+    if [[ -f ${domain_cert} ]] && [[ -f ${domain_key} ]]; then
+        echo "The domain has both a cert and key file that exists!"
+        echo "Symlinking LE Signed SSL for OLS/CSF WebUI"
+        # Symlink domain ssl path to the same path for OLS/CSF SSL forcefully
+        ln -fs "${domain_cert}" /etc/csf/ui/server.crt;
+        ln -fs "${domain_key}" /etc/csf/ui/server.key;
+        ln -fs "${domain_cert}" /usr/local/lsws/admin/conf/webadmin.crt;
+        ln -fs "${domain_key}" /usr/local/lsws/admin/conf/webadmin.key;
+        echo "Restarting OLS/CSF WebUI services"
+        service lsws restart
+        csf -ra
+        
+    fi
+}
+
+function csf_webui_user_pass_reset(){
+    local admin_pass
+    local admin_user
+    default_admin_username='admin'
+    admin_user="${1:-$default_admin_username}" # optional param so we can selectively change admin username from default 'admin' but only if provided
+    admin_pass="$2"
+    
+    sed -i 's/^UI_USER =.*/UI_USER = "'$admin_user'"/g' /etc/csf/csf.conf
+    sed -i 's/^UI_PASS =.*/UI_PASS = "'$admin_pass'"/g' /etc/csf/csf.conf
+
+}
+
+function enable_csf_webui(){
+   
+    sed -i 's/^UI =.*/UI = "1"/g' /etc/csf/csf.conf
+    sed -i 's/^UI_PORT =.*/UI_PORT = "1025"/g' /etc/csf/csf.conf
+    sed -i 's/^UI_ALLOW =.*/UI_ALLOW = "0"/g' /etc/csf/csf.conf
+    sed -i 's/^RESTRICT_UI =.*/RESTRICT_UI = "0"/g' /etc/csf/csf.conf
+}
+
+function disable_csf_webui(){
+    sed -i 's/^UI =.*/UI = "0"/g' /etc/csf/csf.conf
+    sed -i 's/^UI_ALLOW =.*/UI_ALLOW = "1"/g' /etc/csf/csf.conf
+    sed -i 's/^RESTRICT_UI =.*/RESTRICT_UI = "1"/g' /etc/csf/csf.conf
+}
+
+function update_tiny_file_manager(){
+    local domain
+    local username
+    domain="$1"
+    username=$(echo $domain | cut -c1-32)
+    mkdir -p /var/www/$domain/html/filemanager/
+    # Overwrite main files only
+    wget -O /var/www/$domain/html/filemanager/index.php https://raw.githubusercontent.com/meramsey/blaqpanel/main/filemanager/index.php
+    wget -O /var/www/$domain/html/filemanager/translation.json https://raw.githubusercontent.com/prasathmani/tinyfilemanager/master/translation.json
+    # Change name to something whitelable in hardcoded places
+    sed -i 's|Tiny File Manager|FileManager|g' /var/www/$domain/html/filemanager/index.php
+    chown -R "${username}":www-data /var/www/$domain/html/filemanager
+    gf_restart_webserver
+}
+
+function install_tiny_file_manager(){
+    # Install Tiny File Manager: https://github.com/prasathmani/tinyfilemanager
+    local domain
+    local admin_user
+    local admin_pass
+    local username
+    domain="$1"
+    username=$(echo $domain | cut -c1-32)
+    mkdir -p /var/www/$domain/html/filemanager/
+    wget -O /var/www/$domain/html/filemanager/index.php https://raw.githubusercontent.com/meramsey/blaqpanel/main/filemanager/index.php
+    wget -O /var/www/$domain/html/filemanager/translation.json https://raw.githubusercontent.com/prasathmani/tinyfilemanager/master/translation.json
+    # Change name to something whitelable in hardcoded places
+    sed -i 's|Tiny File Manager|FileManager|g' /var/www/$domain/html/filemanager/index.php
+    # Let's use same wp-config DB user/password for the admin user for tiny filemanager
+    admin_user="$(grep DB_USER /var/www/$domain/html/wp-config.php | cut -d "'" -f 4)"
+    admin_pass="$(grep DB_PASSWORD /var/www/$domain/html/wp-config.php | cut -d "'" -f 4)"
+    update_tiny_file_manager_admin_pass "$domain" "$admin_pass" "$admin_user"
+    chown -R "${username}":www-data /var/www/$domain/html/filemanager
+}
+
+function uninstall_tiny_file_manager(){
+    local domain
+    domain="$1"
+    rm -rf /var/www/$domain/html/filemanager
+}
 
 while [[ -z $site ]]; do
     clear
@@ -59,15 +196,32 @@ if [[ $action == "install_phpmyadmin" || $action == "1" ]]; then
     rm -rf phpMyAdmin-5.0.4-all-languages.tar.gz phpMyAdmin-5.0.4-all-languages
     mkdir /var/www/$site/html/phpMyAdmin/tmp
     chmod 775 /var/www/$site/html/phpMyAdmin/tmp
-    chown -R www-data:www-data /var/www/$site/html/phpMyAdmin
+    chown -R "${user_name}":www-data /var/www/$site/html/phpMyAdmin
+    
+    admin_user="$(grep DB_USER /var/www/$site/html/wp-config.php | cut -d "'" -f 4)"
+    admin_pass="$(grep DB_PASSWORD /var/www/$site/html/wp-config.php | cut -d "'" -f 4)"
+    
+    # Install Tiny File Manager
+    install_tiny_file_manager "$site"
+    # Set CSF webui user/pass and then Enable CSF WebUI
+    csf_webui_user_pass_reset "${admin_user}" "${admin_pass}"
+    ols_user_pass_reset "${admin_user}" "${admin_pass}"
+    enable_csf_webui
+    enable_signed_ssl_ols_csf "$site"
+    csf -ra
+    gf_restart_webserver
 
     echo
     echo "phpMyAdmin installed for $site"
+    echo "Filemanager installed for $site"
+    echo "CSF WebUI has been enabled for the server"
     echo
     echo "Login credentials are:"
     echo "User: $(grep DB_USER /var/www/$site/html/wp-config.php | cut -d "'" -f 4)"
     echo "Password: $(grep DB_PASSWORD /var/www/$site/html/wp-config.php | cut -d "'" -f 4)"
-    echo "You can access phpMyAdmin at: $site/phpMyAdmin"
+    echo "You can access phpMyAdmin at: http://$site/phpMyAdmin or https://$site/phpMyAdmin if ssl is enabled"
+    echo "You can access FileManager at: http://$site/filemanager or https://$site/filemanager if ssl is enabled"
+    echo "You can access CSF Firewall WebUI at: https://$site:1025"
 fi
 
 
@@ -85,15 +239,31 @@ if [[ $action == "update_phpmyadmin" || $action == "2" ]]; then
     rm -rf phpMyAdmin-$phpmyadmin_version-all-languages.tar.gz phpMyAdmin-$phpmyadmin_version-all-languages
     mkdir /var/www/$site/html/phpMyAdmin/tmp
     chmod 775 /var/www/$site/html/phpMyAdmin/tmp
-    chown -R www-data:www-data /var/www/$site/html/phpMyAdmin
-
+    chown -R "${user_name}":www-data /var/www/$site/html/phpMyAdmin
+    
+    # Update Tiny File Manager
+    update_tiny_file_manager "$site"
+    # get filemanager version
+    # Looking for this line at top: define('VERSION', '2.4.6');
+    filemanager_version=$(grep VERSION /var/www/$site/html/filemanager/index.php | grep -oE "[[:digit:]]+.[[:digit:]]+.[[:digit:]]+"| head -n1)
+    # Update csf if available update
+    csf -u
+    csf_version=$(csf -v| grep -oE "[[:digit:]]+.[[:digit:]]+"| head -n1)
+    gf_restart_webserver
+    
     echo
     echo "phpMyAdmin updated for $site to version $phpmyadmin_version"
+    echo "FileManager updated for $site to version $filemanager_version"
+    
+    echo "CSF updated for server to version $csf_version"
     echo
     echo "Login credentials are:"
     echo "User: $(grep DB_USER /var/www/$site/html/wp-config.php | cut -d "'" -f 4)"
     echo "Password: $(grep DB_PASSWORD /var/www/$site/html/wp-config.php | cut -d "'" -f 4)"
-    echo "You can access phpMyAdmin at: $site/phpMyAdmin"
+    echo "You can access phpMyAdmin at: http://$site/phpMyAdmin or https://$site/phpMyAdmin if ssl is enabled"
+    echo "You can access FileManager at: http://$site/filemanager or https://$site/filemanager if ssl is enabled"
+    echo "You can access CSF Firewall WebUI at: https://$site:1025"
+    
 fi
 
 
@@ -128,6 +298,13 @@ QUERY
     su - $user_name -c "wp --skip-plugins config set DB_USER $mysql_user"
     su - $user_name -c "wp --skip-plugins config set DB_PASSWORD $mysql_password"
     su - $user_name -c "wp cache flush"
+    
+    # Let's update Tiny File Manager Admin username and password to same thing
+    update_tiny_file_manager_admin_pass "$site" "$mysql_password" "$mysql_user"
+    csf_webui_user_pass_reset "$mysql_user" "$mysql_password"
+    ols_user_pass_reset "$mysql_user" "$mysql_password"
+    csf -ra
+    gf_restart_webserver
 
     echo
     echo "Access credentials have been updated"
@@ -135,7 +312,9 @@ QUERY
     echo "Login credentials are:"
     echo "User: $(grep DB_USER /var/www/$site/html/wp-config.php | cut -d "'" -f 4)"
     echo "Password: $(grep DB_PASSWORD /var/www/$site/html/wp-config.php | cut -d "'" -f 4)"
-    echo "You can access phpMyAdmin at: $site/phpMyAdmin"
+    echo "You can access phpMyAdmin at: http://$site/phpMyAdmin or https://$site/phpMyAdmin if ssl is enabled"
+    echo "You can access FileManager at: http://$site/filemanager or https://$site/filemanager if ssl is enabled"
+    echo "You can access CSF Firewall WebUI at: https://$site:1025"
 
 
 fi
@@ -145,18 +324,31 @@ fi
 if [[ $action == "remove_phpmyadmin" || $action == "4" ]]; then
 
     rm -rf /var/www/$site/html/phpMyAdmin
+    
+    uninstall_tiny_file_manager "$site"
+    disable_csf_webui
+    csf -ra
+    gf_restart_webserver
 
     echo
     echo "phpMyAdmin has been removed for $site"
+    echo "FileManager has been removed for $site"
+    echo "CSF WebUI has been disabled"
 
 fi
 
 
 
 if [[ $action == "enable_phpmyadmin_whitelist" || $action == "5" ]]; then
-
-    sed -i "/allow all;/c\deny all;" /etc/nginx/sites-enabled/$site
-    systemctl restart nginx
+    
+    if [ "$gv_webserver_type" = "nginx" ]; then
+        sed -i "/allow all;/c\deny all;" /etc/nginx/sites-enabled/$site
+    elif [ "$gv_webserver_type" = "ols" ]  || [ "$gv_webserver_type" = "ols-enterprise" ]; then
+        # Rewrite rule to do redirect to Rickroll youtube link. Maybe we can redirect to a Forbidden or custom page?
+        echo 'RewriteRule ^phpMyAdmin/.*$ https://www.youtube.com/watch?v=dQw4w9WgXcQ' >> /var/www/$site/html/.htaccess
+    fi
+    
+    gf_restart_webserver
 
     echo
     echo "phpMyAdmin access restrictions enabled for $site"
@@ -166,9 +358,15 @@ fi
 
 
 if [[ $action == "disable_phpmyadmin_whitelist" || $action == "6" ]]; then
-
-    sed -i "/deny all;/c\allow all;" /etc/nginx/sites-enabled/$site
-    systemctl restart nginx
+    if [ "$gv_webserver_type" = "nginx" ]; then
+        sed -i "/deny all;/c\allow all;" /etc/nginx/sites-enabled/$site
+    elif [ "$gv_webserver_type" = "ols" ]  || [ "$gv_webserver_type" = "ols-enterprise" ]; then
+        # Remove Rewrite rule to do redirect to Rickroll youtube link.
+        sed -i '/RewriteRule ^phpMyAdmin/d' /var/www/$site/html/.htaccess
+        # sed -i  'RewriteRule ^phpMyAdmin/.*$ https://www.youtube.com/watch?v=dQw4w9WgXcQ' /var/www/$site/html/.htaccess
+    fi
+    
+    gf_restart_webserver
 
     echo
     echo "phpMyAdmin access restrictions disabled for $site"
@@ -186,8 +384,17 @@ if [[ $action == "add_whitelisted_ip" || $action == "7" ]]; then
         echo
         read -p "IP address: " ip
     fi
-    sed -i "/location ~ \/phpMyAdmin/a allow $ip;" /etc/nginx/sites-enabled/$site
-    systemctl restart nginx
+    
+    if [ "$gv_webserver_type" = "nginx" ]; then
+        sed -i "/location ~ \/phpMyAdmin/a allow $ip;" /etc/nginx/sites-enabled/$site
+    elif [ "$gv_webserver_type" = "ols" ]  || [ "$gv_webserver_type" = "ols-enterprise" ]; then
+        # We need to write the line like such for 12.34.56.78 : RewriteCond %{REMOTE_ADDR} !^12\.34\.56\.78 so we need to do some sed replacements for ols to process the IP correctly
+        ip_rewrite_allow=$(echo "RewriteCond %{REMOTE_ADDR} !^${ip}"|sed 's|\.|\\\.|g')
+        # We need to only insert this right before the matching phpmyadmin redirect
+        sed "/RewriteRule \^phpMyAdmin.*/i ${ip_rewrite_allow}" /var/www/$site/html/.htaccess
+    fi
+    
+    gf_restart_webserver
     echo
     echo "$ip added to the phpMyAdmin whitelist for $site"
     exit
@@ -200,26 +407,44 @@ if [[ $action == "remove_whitelisted_ip" || $action == "8" ]]; then
     while [[ -z $ip ]]; do
         echo
         echo "Specify the IP address which you wish to remove"
-        sed -n '/location ~ \/phpMyAdmin/,/ all;/p' /etc/nginx/sites-enabled/$site | sed '1d;$d' | sed 's/allow //g' | sed 's/;//g' | nl
-        read -p "IP address: " site_number
-        number_of_sites=$(sed -n '/location ~ \/phpMyAdmin/,/ all;/p' /etc/nginx/sites-enabled/$site | sed '1d;$d' | sed 's/allow //g' | sed 's/;//g' | wc -l)
-        until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
-        	echo "$site_number: invalid selection."
-        	read -p "IP address: " ip
-        done
-        ip=$(sed -n '/location ~ \/phpMyAdmin/,/ all;/p' /etc/nginx/sites-enabled/$site | sed '1d;$d' | sed 's/allow //g' | sed 's/;//g' | sed -n "$site_number"p)
+        
+        if [ "$gv_webserver_type" = "nginx" ]; then
+            sed -n '/location ~ \/phpMyAdmin/,/ all;/p' /etc/nginx/sites-enabled/$site | sed '1d;$d' | sed 's/allow //g' | sed 's/;//g' | nl
+            read -p "IP address: " site_number
+            number_of_sites=$(sed -n '/location ~ \/phpMyAdmin/,/ all;/p' /etc/nginx/sites-enabled/$site | sed '1d;$d' | sed 's/allow //g' | sed 's/;//g' | wc -l)
+            until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
+                echo "$site_number: invalid selection."
+                read -p "IP address: " ip
+            done
+            ip=$(sed -n '/location ~ \/phpMyAdmin/,/ all;/p' /etc/nginx/sites-enabled/$site | sed '1d;$d' | sed 's/allow //g' | sed 's/;//g' | sed -n "$site_number"p)
+        elif [ "$gv_webserver_type" = "ols" ]  || [ "$gv_webserver_type" = "ols-enterprise" ]; then
+            # We want to remove the line that looks like : RewriteCond %{REMOTE_ADDR} !^12\.34\.56\.78
+            ip_rewrite=$(echo ${ip}|sed 's|\.|\\\.|g')
+            sed -i '/RewriteCond %{REMOTE_ADDR} !^'"${ip_rewrite}"'/d' /var/www/$site/html/.htaccess
+            echo 
+        fi
+        
+        
     done
 
+    # this looks like core file was borked it should not loop through and remove and then add stuff?
+    # if [[ -z $ip ]]; then
+    #     echo
+    #     echo "Specify the IP address which you wish to add"
+    #     echo "Example: 12.34.56.78"
+    #     echo
+    #     read -p "IP address: " ip
+    # fi
+    
+    # if [ "$gv_webserver_type" = "nginx" ]; then
+    #     sed -i "/allow $ip/d" /etc/nginx/sites-enabled/$site
+    # elif [ "$gv_webserver_type" = "ols" ]  || [ "$gv_webserver_type" = "ols-enterprise" ]; then
+    #     #todo here
+    #     echo 
+    # fi
+    
+    gf_restart_webserver
 
-    if [[ -z $ip ]]; then
-        echo
-        echo "Specify the IP address which you wish to add"
-        echo "Example: 12.34.56.78"
-        echo
-        read -p "IP address: " ip
-    fi
-    sed -i "/allow $ip/d" /etc/nginx/sites-enabled/$site
-    systemctl restart nginx
     echo
     echo "$ip removed from the phpMyAdmin whitelist for $site"
     exit
@@ -233,6 +458,8 @@ if [[ $action == "print_auth" || $action == "9" ]]; then
     echo "Login credentials are:"
     echo "User: $(grep DB_USER /var/www/$site/html/wp-config.php | cut -d "'" -f 4)"
     echo "Password: $(grep DB_PASSWORD /var/www/$site/html/wp-config.php | cut -d "'" -f 4)"
-    echo "You can access phpMyAdmin at: $site/phpMyAdmin"
-
+    echo "You can access phpMyAdmin at: http://$site/phpMyAdmin or https://$site/phpMyAdmin if ssl is enabled"
+    echo "You can access FileManager at: http://$site/filemanager or https://$site/filemanager if ssl is enabled"
+    echo "You can access CSF Firewall WebUI at: https://$site:1025"
+    
 fi

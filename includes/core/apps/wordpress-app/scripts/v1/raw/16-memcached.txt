@@ -4,7 +4,36 @@ if [[ "$EUID" -ne 0 ]]; then
 	exit
 fi
 
+function check_cur_webserver() {
+    if [ -e /usr/local/lsws/bin/lshttpd ] ; then
+	    if /usr/local/lsws/bin/lshttpd -v | grep -q Open ; then
+		    # LiteSpeed/x.x.x Open
+        	# echo 'You have OpenLiteSpeed installed...'
+        	webserver_type='ols'
+    	elif /usr/local/lsws/bin/lshttpd -v | grep -q Enterprise ; then
+		    # LiteSpeed/x.x.x Enterprise
+       		# echo 'You have LiteSpeed Enterprise installed...'
+       		webserver_type='ols-enterprise'
+    	fi
+    else
+        # echo 'You have Nginx installed...'
+        webserver_type='nginx'
+    fi
+}
+check_cur_webserver
 
+install_memcached(){
+	apt-get install -y memcached
+	sed -i 's|OPTIONS=""|OPTIONS="-l 127.0.0.1 -U 0"|g' /etc/sysconfig/memcached
+	#turn off UDP and bind to 127.0.0.1 only
+	systemctl enable memcached
+	systemctl start memcached
+}
+
+uninstall_memcached(){
+    systemctl stop memcached
+	apt-get remove -y memcached
+}
 
 while [[ -z $action ]]; do
     clear
@@ -30,16 +59,27 @@ if [[ $action == "install_memcached" || $action == "1" ]]; then
         echo "Memcached is already installed!"
         exit
     fi
-
-    apt-get install memcached php5.6-memcache php7.1-memcache php7.2-memcache php7.3-memcache php7.4-memcache php8.0-memcache php8.1-memcache -y
-
-    systemctl restart php5.6-fpm
-    systemctl restart php7.1-fpm
-    systemctl restart php7.2-fpm
-    systemctl restart php7.3-fpm
-    systemctl restart php7.4-fpm
-    systemctl restart php8.0-fpm
-	systemctl restart php8.1-fpm
+    
+    install_memcached
+    
+    if [ "$webserver_type" = "nginx" ]; then
+        # apt-get install memcached php5.6-memcache php7.1-memcache php7.2-memcache php7.3-memcache php7.4-memcache php8.0-memcache php8.1-memcache -y 
+        apt-get install -y php?.?-memcache
+        systemctl restart nginx
+        systemctl restart php5.6-fpm
+        systemctl restart php7.1-fpm
+        systemctl restart php7.2-fpm
+        systemctl restart php7.3-fpm
+        systemctl restart php7.4-fpm
+        systemctl restart php8.0-fpm
+        systemctl restart php8.1-fpm
+    elif [ "$webserver_type" = "ols" ]  || [ "$webserver_type" = "ols-enterprise" ]; then
+        apt-get install -y lsphp??-memcached
+        killall lsphp
+        systemctl stop lsws >/dev/null 2>&1
+        systemctl start lsws
+    fi
+    
 
     echo
     echo "Memcached has been installed. You can run this script again to enable it for a site."
@@ -74,11 +114,20 @@ if [[ $action == "enable" || $action == "2" ]]; then
 
 	# Delete all transients to get the options table as small as possible. Memcached only allows 1 MB object size and wp --skip-plugins adds the entire options table as a single object grrrrr...
 	cd /var/www/$domain/html/
-	su - $user_name -c "wp --skip-plugins transient delete --all"
+	su - "$user_name" -c "wp --skip-plugins transient delete --all"
 	
-	# Install the WP object cache plugin for memcached
-    su - $user_name -c "wget https://github.com/Automattic/wp-memcached/raw/master/object-cache.php -O /var/www/$domain/html/wp-content/object-cache.php"
-    chmod -R g+w /var/www/$domain/html/wp-content/object-cache.php
+    if [ "$webserver_type" = "nginx" ]; then
+        # Install the WP object cache plugin for memcached for nginx
+        su - "$user_name" -c "wget https://github.com/Automattic/wp-memcached/raw/master/object-cache.php -O /var/www/$domain/html/wp-content/object-cache.php"
+        chmod -R g+w /var/www/$domain/html/wp-content/object-cache.php
+    elif [ "$webserver_type" = "ols" ]  || [ "$webserver_type" = "ols-enterprise" ]; then
+        # Enable memcached in the litespeed-cache for wp plugin settings.
+        # https://docs.litespeedtech.com/lscache/lscwp/cli/
+        su - "$user_name" -c "wp litespeed-option set object true && wp litespeed-option set object-port 11211 && wp litespeed-option set object-host localhost"
+    fi
+    
+    
+	
 
     echo
     echo "Memcached has been enabled for $domain"
@@ -101,8 +150,18 @@ if [[ $action == "disable" || $action == "3" ]]; then
 	    done
         domain=$(ls /var/www/ | grep -v html | sed -n "$site_number"p)
     done
-
-    rm -f /var/www/$domain/html/wp-content/object-cache.php
+    
+    user_name=$(echo $domain | cut -c1-32)
+    
+    if [ "$webserver_type" = "nginx" ]; then
+        # Remove the WP object cache plugin for memcached for nginx
+        rm -f /var/www/$domain/html/wp-content/object-cache.php
+    elif [ "$webserver_type" = "ols" ]  || [ "$webserver_type" = "ols-enterprise" ]; then
+        # Disable Object Memcached in the litespeed-cache for wp plugin settings.
+        # https://docs.litespeedtech.com/lscache/lscwp/cli/
+        # https://docs.litespeedtech.com/lscache/lscwp/cache/#object-tab
+        su - "$user_name" -c "cd /var/www/$domain/html && wp litespeed-option set object false"
+    fi
 
     echo
     echo "Memcached has been disabled for $domain"
@@ -128,7 +187,25 @@ fi
 
 if [[ $action == "remove_memcached" || $action == "6" ]]; then
 
-    apt-get remove memcached php5.6-memcache php7.1-memcache php7.2-memcache php7.3-memcache php7.4-memcache php8.0-memcache php8.1-memcache -y
+    uninstall_memcached
+    
+    if [ "$webserver_type" = "nginx" ]; then
+        # apt-get remove memcached php5.6-memcache php7.1-memcache php7.2-memcache php7.3-memcache php7.4-memcache php8.0-memcache php8.1-memcache -y
+        apt-get remove -y php?.?-memcache
+        systemctl restart nginx
+        systemctl restart php5.6-fpm
+        systemctl restart php7.1-fpm
+        systemctl restart php7.2-fpm
+        systemctl restart php7.3-fpm
+        systemctl restart php7.4-fpm
+        systemctl restart php8.0-fpm
+        systemctl restart php8.1-fpm
+    elif [ "$webserver_type" = "ols" ]  || [ "$webserver_type" = "ols-enterprise" ]; then
+        apt-get remove -y lsphp??-memcached
+        killall lsphp
+        systemctl stop lsws >/dev/null 2>&1
+        systemctl start lsws
+    fi
 
     echo
     echo "Memcached has been removed from the system."

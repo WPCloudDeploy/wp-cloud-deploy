@@ -9,6 +9,8 @@ fi
 ## Get our common functions
 source 9999-common-functions.sh
 
+gf_check_cur_webserver
+
 tempdate=$(date +"%Y-%m-%d"-"%Hh%Mm%Ss")
 # Get source site we want to copy
 while [[ -z $source_domain ]]; do
@@ -128,7 +130,11 @@ function copy_full
 		rsync -ahz --delete --stats --exclude-from=/tmp/wpexclude-$tempdate /var/www/$source_domain/html/ /var/www/$target_domain/html/
 	fi
 	echo "" #put a blank line after the resync stats are printed.
-	chown -R www-data:www-data /var/www/$target_domain/html/
+	
+	old_user_name=$(echo $source_domain | cut -c1-32)
+	new_user_name=$(echo $target_domain | cut -c1-32)
+	
+	chown -R "${new_user_name}":www-data /var/www/$target_domain/html/
 	chmod -R g+ws /var/www/$target_domain/html
 
 	copy_db
@@ -188,8 +194,11 @@ function copy_partial_files
 
 	rsync -ahz --stats --exclude-from=/tmp/wpexclude-$tempdate /var/www/$source_domain/html/ /var/www/$target_domain/html/
 	echo "" #put a blank line after the resync stats are printed.
-
-	chown -R www-data:www-data /var/www/$target_domain/html/
+	
+	old_user_name=$(echo $source_domain | cut -c1-32)
+	new_user_name=$(echo $target_domain | cut -c1-32)
+	
+	chown -R "${new_user_name}":www-data /var/www/$target_domain/html/
 	chmod -R g+ws /var/www/$target_domain/html
 	
 	####Should we copy wpconfig file as well? ####
@@ -315,7 +324,7 @@ then
 fi
 
 # Restart and cleanup.
-systemctl restart nginx
+gf_restart_webserver
 
 echo
 echo "Copy to existing site is complete. $source_domain has been copied to $target_domain"

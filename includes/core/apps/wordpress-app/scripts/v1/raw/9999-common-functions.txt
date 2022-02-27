@@ -221,3 +221,67 @@ function g_backup_with_updraft()
 		fi
 	fi
 }
+#####################################################################
+# Function to determine current webserver in use and set global variable gv_webserver_type.
+# 
+#
+#####################################################################
+function gf_check_cur_webserver() {
+    if [ -e /usr/local/lsws/bin/lshttpd ] ; then
+	    if /usr/local/lsws/bin/lshttpd -v | grep -q Open ; then
+		    # LiteSpeed/x.x.x Open
+        	# echo 'You have OpenLiteSpeed installed...'
+        	gv_webserver_type='ols'
+    	elif /usr/local/lsws/bin/lshttpd -v | grep -q Enterprise ; then
+		    # LiteSpeed/x.x.x Enterprise
+       		# echo 'You have LiteSpeed Enterprise installed...'
+       		gv_webserver_type='ols-enterprise'
+    	fi
+    else
+        # echo 'You have Nginx installed...'
+        gv_webserver_type='nginx'
+    fi
+}
+
+#####################################################################
+# Function to restart correct locally installed webserver in use.
+# 
+#
+#####################################################################
+function gf_restart_webserver(){
+	# Ensure global variable is set.
+	gf_check_cur_webserver
+    # Restart Appropiate Webserver
+    if [ "$gv_webserver_type" = "nginx" ]; then
+        # restart nginx
+        systemctl restart nginx
+    elif [ "$gv_webserver_type" = "ols" ]  || [ "$gv_webserver_type" = "ols-enterprise" ]; then
+        # kill detached lsphp processes and restart ols
+        killall -9 lsphp >/dev/null 2>&1
+        systemctl stop lsws >/dev/null 2>&1
+        systemctl start lsws
+    fi
+}
+
+#####################################################################
+# Function to set default admin OLS/LSWS password
+# 
+#
+#####################################################################
+function set_ols_password(){
+    local admin_pass
+    local admin_user
+    default_admin_username='admin'
+    admin_user="${1:-$default_admin_username}" # optional param so we can selectively change admin username from default 'admin' but only if provided
+    admin_pass="$2"
+    ENCRYPT_PASS=`"/usr/local/lsws/admin/fcgi-bin/admin_php" -q "/usr/local/lsws/admin/misc/htpasswd.php" $ADMINPASSWORD`
+    if [ $? = 0 ] ; then
+        echo "admin:$ENCRYPT_PASS" > "/usr/local/lsws/admin/conf/htpasswd"
+        if [ $? = 0 ] ; then
+            echo "Set OpenLiteSpeed Web Admin access."
+        else
+            echo "OpenLiteSpeed WebAdmin password not changed."
+        fi
+    fi
+}
+

@@ -4,6 +4,167 @@ if [[ "$EUID" -ne 0 ]]; then
 	exit
 fi
 
+function check_cur_webserver() {
+    if [ -e /usr/local/lsws/bin/lshttpd ] ; then
+	    if /usr/local/lsws/bin/lshttpd -v | grep -q Open ; then
+		    # LiteSpeed/x.x.x Open
+        	# echo 'You have OpenLiteSpeed installed...'
+        	webserver_type='ols'
+    	elif /usr/local/lsws/bin/lshttpd -v | grep -q Enterprise ; then
+		    # LiteSpeed/x.x.x Enterprise
+       		# echo 'You have LiteSpeed Enterprise installed...'
+       		webserver_type='ols-enterprise'
+    	fi
+    else
+        # echo 'You have Nginx installed...'
+        webserver_type='nginx'
+    fi
+}
+
+check_cur_webserver
+
+
+#### Nginx functions
+function list_nginx_available_sites(){
+    ls /etc/nginx/sites-available/ | grep -v '^default$\|^monit$\|^monitorix$' | nl
+}
+
+function list_nginx_enabled_sites(){
+    ls /etc/nginx/sites-enabled/ | grep -v '^default$\|^monit$\|^monitorix$' | nl
+}
+
+function number_of_nginx_enabled_sites(){
+    number_of_sites=$(ls /etc/nginx/sites-enabled/ | grep -v '^default$\|^monit$\|^monitorix$' | wc -l)
+}
+
+function number_of_nginx_available_sites(){
+    number_of_sites=$(ls /etc/nginx/sites-available/ | grep -v '^default$\|^monit$\|^monitorix$' | wc -l)
+}
+
+function enable_nginx_site(){
+    mv /etc/nginx/sites-available/$domain /etc/nginx/sites-enabled/$domain
+    systemctl restart nginx
+}
+
+function disable_nginx_site(){
+    mv /etc/nginx/sites-enabled/$domain /etc/nginx/sites-available/$domain
+    systemctl restart nginx
+}
+
+function disable_certbot_nginx_site(){
+    if grep -qs "listen 443" /etc/nginx/sites-enabled/$domain; then
+        certbot delete --cert-name $domain --noninteractive
+    fi
+}
+
+function remove_nginx_site(){
+    disable_certbot_nginx_site
+    rm -f /etc/nginx/sites-*/$domain*
+    systemctl restart nginx
+    php_version=$(ls /etc/php/*/fpm/pool.d/$domain.conf | cut -d '/' -f 4)
+    rm -f /etc/php/$php_version/fpm/pool.d/$domain.conf
+    systemctl restart php$php_version-fpm
+}
+
+function select_nginx_site_to_disable(){
+    list_nginx_enabled_sites
+    read -p "Select site: " site_number
+    number_of_nginx_enabled_sites
+    until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
+        echo "$site_number: invalid selection."
+        read -p "Select site: " site_number
+    done
+    domain=$(ls /etc/nginx/sites-enabled/ | grep -v '^default$\|^monit$\|^monitorix$' | sed -n "$site_number"p)
+}
+
+function select_nginx_site_to_enable(){
+    list_nginx_available_sites
+    read -p "Select site: " site_number
+    number_of_nginx_available_sites
+    until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
+        echo "$site_number: invalid selection."
+        read -p "Select site: " site_number
+    done
+    domain=$(ls /etc/nginx/sites-available/ | grep -v '^default$\|^monit$\|^monitorix$' | sed -n "$site_number"p)
+}
+
+
+
+#### OLS functions
+function list_ols_sites(){
+    ls /usr/local/lsws/conf/vhosts/ | grep -Ev '^Example' | nl
+}
+
+function number_of_ols_enabled_sites(){
+    number_of_sites=$(ls /usr/local/lsws/conf/vhosts/ | grep -Ev '^Example' | wc -l)
+}
+
+function number_of_ols_disabled_sites(){
+    number_of_sites=$(ls /usr/local/lsws/conf/vhosts-disabled/ | grep -Ev '^Example' | wc -l)
+}
+
+function enable_ols_site(){
+    mv /usr/local/lsws/conf/vhosts-disabled/$domain /usr/local/lsws/conf/vhosts/$domain
+    systemctl restart lsws
+}
+
+function disable_ols_site(){
+    mkdir -p /usr/local/lsws/conf/vhosts-disabled
+    mv /usr/local/lsws/conf/vhosts/$domain /usr/local/lsws/conf/vhosts-disabled/$domain
+    systemctl restart lsws
+}
+
+function disable_certbot_ols_site(){
+    if [ -d "/etc/letsencrypt/live/$domain" ]; then
+        certbot delete --cert-name $domain --noninteractive
+    fi
+}
+
+function remove_ols_site(){
+    disable_certbot_ols_site
+    rm -rf /usr/local/lsws/conf/vhosts/$domain
+    rm -rf /usr/local/lsws/conf/vhosts-disabled/$domain
+    # remove the block like below
+    # virtualhost somedomain.tld {
+    # vhRoot                  /var/www/somedomain.tld
+    # configFile              /usr/local/lsws/conf/vhosts/somedomain.tld/vhconf.conf
+    # allowSymbolLink         1
+    # enableScript            1
+    # restrained              1
+    # setUIDMode              2
+    # user                    $VH_USER
+    # group                   $VH_USER
+    # }
+    sed -i -re "/virtualhost ${domain} \{/{:a;N;/\}/!ba};/vhRoot                  \/var\/www\/$domain/d" /usr/local/lsws/conf/httpd_config.conf
+    # remove the map lines inserted on the multiple listeners blocks like below
+    # map                     somedomain.tld somedomain.tld
+    sed -i "/map                     $domain $domain/d" /usr/local/lsws/conf/httpd_config.conf
+    systemctl restart lsws
+}
+
+
+function select_ols_site_to_enable(){
+    ls /usr/local/lsws/conf/vhosts-disabled/ | grep -Ev '^Example' | nl
+    read -p "Select site: " site_number
+    number_of_sites=$(ls /usr/local/lsws/conf/vhosts-disabled/ | grep -Ev '^Example' | wc -l)
+    until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
+        echo "$site_number: invalid selection."
+        read -p "Select site: " site_number
+    done
+    domain=$(ls /usr/local/lsws/conf/vhosts-disabled/ | grep -Ev '^Example' | sed -n "$site_number"p)
+}
+
+function select_ols_site_to_disable(){
+    ls /usr/local/lsws/conf/vhosts/ | grep -Ev '^Example' | nl
+    read -p "Select site: " site_number
+    number_of_sites=$(ls /usr/local/lsws/conf/vhosts/ | grep -Ev '^Example' | wc -l)
+    until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
+        echo "$site_number: invalid selection."
+        read -p "Select site: " site_number
+    done
+    domain=$(ls /usr/local/lsws/conf/vhosts/ | grep -Ev '^Example' | sed -n "$site_number"p)
+}
+
 
 
 while [[ -z $action ]]; do
@@ -29,17 +190,17 @@ if [[ $action == "disable" || $action == "1" ]]; then
         echo
         echo "Please, select which site you want to work with"
         echo
-        ls /etc/nginx/sites-enabled/ | grep -v '^default$\|^monit$\|^monitorix$' | nl
-        read -p "Select site: " site_number
-        number_of_sites=$(ls /etc/nginx/sites-enabled/ | grep -v '^default$\|^monit$\|^monitorix$' | wc -l)
-        until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
-	    	echo "$site_number: invalid selection."
-	    	read -p "Select site: " site_number
-	    done
-        domain=$(ls /etc/nginx/sites-enabled/ | grep -v '^default$\|^monit$\|^monitorix$' | sed -n "$site_number"p)
+        if [ "$webserver_type" = "nginx" ]; then
+            select_nginx_site_to_disable
+        elif [ "$webserver_type" = "ols" ]  || [ "$webserver_type" = "ols-enterprise" ]; then
+            select_ols_site_to_disable
+        fi
     done
-    mv /etc/nginx/sites-enabled/$domain /etc/nginx/sites-available/$domain
-    systemctl restart nginx
+    if [ "$webserver_type" = "nginx" ]; then
+            disable_nginx_site
+    elif [ "$webserver_type" = "ols" ]  || [ "$webserver_type" = "ols-enterprise" ]; then
+            disable_ols_site
+    fi
     echo
     echo "$domain has been disabled"
     exit
@@ -53,17 +214,17 @@ if [[ $action == "enable" || $action == "2" ]]; then
         echo
         echo "Please, select which site you want to work with"
         echo
-        ls /etc/nginx/sites-available/ | grep -v '^default$\|^monit$\|^monitorix$' | nl
-        read -p "Select site: " site_number
-        number_of_sites=$(ls /etc/nginx/sites-available/ | grep -v '^default$\|^monit$\|^monitorix$' | wc -l)
-        until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
-		    echo "$site_number: invalid selection."
-		    read -p "Select site: " site_number
-	    done
-        domain=$(ls /etc/nginx/sites-available/ | grep -v '^default$\|^monit$\|^monitorix$' | sed -n "$site_number"p)
+        if [ "$webserver_type" = "nginx" ]; then
+            select_nginx_site_to_enable
+        elif [ "$webserver_type" = "ols" ]  || [ "$webserver_type" = "ols-enterprise" ]; then
+            select_ols_site_to_enable
+        fi
     done
-    mv /etc/nginx/sites-available/$domain /etc/nginx/sites-enabled/$domain
-    systemctl restart nginx
+    if [ "$webserver_type" = "nginx" ]; then
+            enable_nginx_site
+    elif [ "$webserver_type" = "ols" ]  || [ "$webserver_type" = "ols-enterprise" ]; then
+            enable_ols_site
+    fi
     echo
     echo "$domain has been enabled"
     exit
@@ -94,18 +255,15 @@ DROP DATABASE $mysql_db;
 DROP USER '$mysql_user'@'localhost';
 FLUSH PRIVILEGES;
 QUERY
-    if grep -qs "listen 443" /etc/nginx/sites-enabled/$domain; then
-        certbot delete --cert-name $domain --noninteractive
+    if [ "$webserver_type" = "nginx" ]; then
+            remove_nginx_site
+    elif [ "$webserver_type" = "ols" ]  || [ "$webserver_type" = "ols-enterprise" ]; then
+            remove_ols_site
     fi
     user_name=$(echo $domain | cut -c1-32)
     sed -i "/Match User $user_name/,+2 d" /etc/ssh/sshd_config
     systemctl restart sshd
-    rm -f /etc/nginx/sites-*/$domain*
     rm -rf /var/www/$domain
-    systemctl restart nginx
-    php_version=$(ls /etc/php/*/fpm/pool.d/$domain.conf | cut -d '/' -f 4)
-    rm -f /etc/php/$php_version/fpm/pool.d/$domain.conf
-    systemctl restart php$php_version-fpm
     userdel $user_name
 
     sed -i "/$domain/d" /etc/wp-backup.conf > /dev/null 2>&1
@@ -140,24 +298,19 @@ DROP DATABASE $mysql_db;
 DROP USER '$mysql_user'@'localhost';
 FLUSH PRIVILEGES;
 QUERY
-    if grep -qs "listen 443" /etc/nginx/sites-enabled/$domain; then
-        certbot delete --cert-name $domain --noninteractive
+    if [ "$webserver_type" = "nginx" ]; then
+            remove_nginx_site
+    elif [ "$webserver_type" = "ols" ]  || [ "$webserver_type" = "ols-enterprise" ]; then
+            remove_ols_site
     fi
     user_name=$(echo $domain | cut -c1-32)
     sed -i "/Match User $user_name/,+2 d" /etc/ssh/sshd_config
     systemctl restart sshd
-    rm -f /etc/nginx/sites-*/$domain*
     rm -rf /var/www/$domain
-    systemctl restart nginx
-    php_version=$(ls /etc/php/*/fpm/pool.d/$domain.conf | cut -d '/' -f 4)
-    rm -f /etc/php/$php_version/fpm/pool.d/$domain.conf
-    systemctl restart php$php_version-fpm
     userdel $user_name
     rm -rf ~/.wp-backup/$domain
-	
     sed -i "/$domain/d" /etc/wp-backup.conf > /dev/null 2>&1
     sed -i "/$domain/d" /usr/local/bin/wpcron.txt > /dev/null 2>&1
-	
     echo
     echo "$domain and its local backups have been removed"
     exit

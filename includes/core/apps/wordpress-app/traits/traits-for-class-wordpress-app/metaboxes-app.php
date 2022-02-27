@@ -27,7 +27,7 @@ trait wpcd_wpapp_metaboxes_app {
 	public function add_meta_boxes( $meta_boxes ) {
 
 		/* Get the ID for the post */
-		$id = filter_input( INPUT_GET, 'post', FILTER_VALIDATE_INT );
+		$id = wpcd_get_current_page_server_id();
 
 		/* If empty id, not a post so return */
 		if ( empty( $id ) ) {

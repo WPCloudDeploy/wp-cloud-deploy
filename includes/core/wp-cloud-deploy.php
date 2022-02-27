@@ -109,6 +109,9 @@ class WP_CLOUD_DEPLOY {
 
 		/* Load admin scripts */
 		add_action( 'admin_enqueue_scripts', array( &$this, 'wpcd_admin_scripts' ), 10, 1 );
+		
+		/* Load public scripts */
+		add_action( 'wp_enqueue_scripts', array( &$this, 'wpcd_admin_scripts' ), 10, 1 );
 
 		/* Add backup digital ocean provider if enabled on wp-config */
 		add_filter( 'wpcd_get_cloud_providers', array( &$this, 'add_backup_digital_ocean_provider' ), 10, 1 );

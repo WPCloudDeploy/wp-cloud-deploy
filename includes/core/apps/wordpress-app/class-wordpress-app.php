@@ -2610,6 +2610,43 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	}
 
 
+	public function ajax_server_handle_create_popup( $view = 'admin' ) {
+		
+		/* Check permissions */
+		if ( ! current_user_can( 'wpcd_provision_servers' ) ) {
+			$invalid_msg = __( 'You don\'t have access to provision a server.', 'wpcd' );
+			if( $view == 'public' ) {
+				echo $invalid_msg;
+			} else {
+				echo wp_send_json_error( array( 'msg' => $invalid_msg ) );
+			}
+			return;
+		}
+
+		/* Get list of directories within specified directory */
+		$dir_path        = wpcd_path . 'includes/core/apps/wordpress-app/scripts';
+		$dir_list        = wpcd_get_dir_list( $dir_path );
+		$scripts_version = wpcd_get_option( "{$this->get_app_name()}_script_version" );
+		if ( empty( $scripts_version ) ) {
+			$scripts_version = 'v1';
+		}
+
+		/* Get list of regions */
+		$provider_regions = $this->add_provider_support();
+
+		/* Get the list of providers - we'll need it in the popup area */
+		$providers = $this->get_active_providers();
+
+		/* Get list of OSes */
+		$oslist = WPCD()->get_os_list();
+
+		/* Get list of webservers */
+		$webserver_list = WPCD()->get_webserver_list();
+
+		/* Include the popup file */
+		include apply_filters( "wpcd_{$this->get_app_name()}_create_popup", wpcd_path . 'includes/core/apps/wordpress-app/templates/create-popup.php' );
+	}
+	
 	/**
 	 * Single entry point for all ajax actions for server.
 	 */
@@ -2652,38 +2689,10 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 			/* Show the popup that asks the admin for server details when installing/deploying a new server */
 			case 'create-popup':
-				/* Check permissions */
-				if ( ! current_user_can( 'wpcd_provision_servers' ) ) {
-					$invalid_msg = __( 'You don\'t have access to provision a server.', 'wpcd' );
-					echo wp_send_json_error( array( 'msg' => $invalid_msg ) );
-					break;
-				}
-
-				/* Get list of directories within specified directory */
-				$dir_path        = wpcd_path . 'includes/core/apps/wordpress-app/scripts';
-				$dir_list        = wpcd_get_dir_list( $dir_path );
-				$scripts_version = wpcd_get_option( "{$this->get_app_name()}_script_version" );
-				if ( empty( $scripts_version ) ) {
-					$scripts_version = 'v1';
-				}
-
-				/* Get list of regions */
-				$provider_regions = $this->add_provider_support();
-
-				/* Get the list of providers - we'll need it in the popup area */
-				$providers = $this->get_active_providers();
-
-				/* Get list of OSes */
-				$oslist = WPCD()->get_os_list();
-
-				/* Get list of webservers */
-				$webserver_list = WPCD()->get_webserver_list();
-
-				/* Include the popup file */
-				include apply_filters( "wpcd_{$this->get_app_name()}_create_popup", wpcd_path . 'includes/core/apps/wordpress-app/templates/create-popup.php' );
-
+				$this->ajax_server_handle_create_popup();
+				
 				/* And exit */
-				wp_die();
+ 				wp_die();
 				break;
 
 			/* Just show the log console template */

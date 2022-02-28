@@ -4104,7 +4104,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		global $pagenow;
 
 		$filter_action = filter_input( INPUT_GET, 'filter_action', FILTER_SANITIZE_STRING );
-		if ( is_admin() && $query->is_main_query() && $query->query['post_type'] == 'wpcd_app' && $pagenow == 'edit.php' && $filter_action == 'Filter' ) {
+		if ( is_admin() && $query->is_main_query() && $query->query['post_type'] == 'wpcd_app' && $pagenow == 'edit.php' && $filter_action == __( 'Filter' ) ) {
 			$qv = &$query->query_vars;
 
 			// APP STATUS.

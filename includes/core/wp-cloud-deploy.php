@@ -210,7 +210,7 @@ class WP_CLOUD_DEPLOY {
 				'edit-tags.php?taxonomy=wpcd_app_server_group&amp;post_type=wpcd_app_server' => 20,
 				'edit.php?post_type=wpcd_app'            => 30,
 				'edit-tags.php?taxonomy=wpcd_app_group&post_type=wpcd_app' => 40,
-				'edit.php?s&post_status=all&post_type=wpcd_app&app_type=wordpress-app&filter_action=Filter' => 50,
+				'edit.php?s&post_status=all&post_type=wpcd_app&app_type=wordpress-app&filter_action='.__( 'Filter' ) => 50,
 				'edit.php?post_type=wpcd_cloud_provider' => 60,
 				'edit.php?post_type=wpcd_team'           => 70,
 				'edit.php?post_type=wpcd_ssh_log'        => 80,
@@ -263,7 +263,7 @@ class WP_CLOUD_DEPLOY {
 			( defined( 'WPCD_WPAPP_MENU_NAME' ) ? WPCD_WPAPP_MENU_NAME : __( 'WordPress Sites', 'wpcd' ) ),
 			( defined( 'WPCD_WPAPP_MENU_NAME' ) ? WPCD_WPAPP_MENU_NAME : __( 'WordPress Sites', 'wpcd' ) ),
 			'wpcd_manage_apps',
-			'edit.php?s&post_status=all&post_type=wpcd_app&app_type=wordpress-app&filter_action=Filter',
+			'edit.php?s&post_status=all&post_type=wpcd_app&app_type=wordpress-app&filter_action='.__( 'Filter' ),
 			'',
 			3
 		);
@@ -353,7 +353,7 @@ class WP_CLOUD_DEPLOY {
 				&& 'wordpress-app' === $_GET['app_type'] ) {
 
 				// Set as the current submenu item the WordPress Sites filter menu item.
-				$submenu_file = 'edit.php?s&post_status=all&post_type=wpcd_app&app_type=wordpress-app&filter_action=Filter';
+				$submenu_file = 'edit.php?s&post_status=all&post_type=wpcd_app&app_type=wordpress-app&filter_action='.__( 'Filter' );
 			}
 		}
 

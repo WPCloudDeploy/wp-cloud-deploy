@@ -224,7 +224,7 @@ class WPCD_POSTS_CLOUD_PROVIDER extends WPCD_Posts_Base {
 		global $pagenow;
 
 		$filter_action = filter_input( INPUT_GET, 'filter_action', FILTER_SANITIZE_STRING );
-		if ( is_admin() && $query->is_main_query() && 'wpcd_cloud_provider' === $query->query['post_type'] && 'edit.php' === $pagenow && 'Filter' === $filter_action ) {
+		if ( is_admin() && $query->is_main_query() && 'wpcd_cloud_provider' === $query->query['post_type'] && 'edit.php' === $pagenow && __( 'Filter' ) === $filter_action ) {
 
 			$qv = &$query->query_vars;
 

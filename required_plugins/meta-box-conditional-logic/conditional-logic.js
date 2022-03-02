@@ -1,46 +1,37 @@
-( function ( $, window, document, wp ) {
-	'use strict';
-
-	var conditions = window.conditions,
-		inputSelectors = 'input[class*="rwmb"], textarea[class*="rwmb"], select[class*="rwmb"], button[class*="rwmb"]';
-
-
+( function( $, rwmb ) {
 	////////// SELECTOR CACHE //////////
 
 	/**
 	 * Selector cache.
-	 *
 	 * @link https://ttmm.io/tech/selector-caching-jquery/
-	 * @param $scope Scope (jQuery element). Pass empty string to use global scope.
 	 */
-	function SelectorCache( $scope ) {
-		this.collection = {};
-		this.$scope = $scope;
-	}
-	SelectorCache.prototype.get = function ( selector ) {
-		if ( undefined === this.collection[ selector ] ) {
-			this.collection[ selector ] = this.$scope ? this.$scope.find( selector ) : $( selector );
+	class SelectorCache {
+		constructor( $scope ) {
+			this.collection = {};
+			this.$scope = $scope;
 		}
+		get( selector ) {
+			if ( undefined === this.collection[ selector ] ) {
+				this.collection[ selector ] = this.$scope ? this.$scope.find( selector ) : $( selector );
+			}
 
-		return this.collection[ selector ];
-	};
-
-	var globalSelectorCache = new SelectorCache();
-
-	function getSelectorCache( $scope ) {
-		return $scope ? new SelectorCache( $scope ) : globalSelectorCache;
+			return this.collection[ selector ];
+		}
 	}
+
+	const globalSelectorCache = new SelectorCache();
+	const getSelectorCache = $scope => $scope ? new SelectorCache( $scope ) : globalSelectorCache;
 
 
 	////////// GUTENBERG-RELATED FUNCTIONS //////////
 
-	var wpElements = {
+	const wpElements = {
 		page_template: '#page_template',
 		post_format: 'input[name="post_format"]',
 		parent_id: '#parent_id',
 		post_ID: '#post_ID'
 	};
-	var wpGutenbergMap = {
+	const wpGutenbergMap = {
 		page_template: 'template',
 		post_format: 'format',
 		parent_id: 'parent',
@@ -49,27 +40,15 @@
 		tags: 'tags'
 	};
 
-	function isGutenbergActive() {
-		return document.body.classList.contains( 'block-editor-page' );
-	}
-
-	function isWpElement( element ) {
-		return isGutenbergActive() ? wpGutenbergMap.hasOwnProperty( element ) : wpElements.hasOwnProperty( element );
-	}
-
-	function isGutenbergElement( element ) {
-		return isGutenbergActive() ? wpGutenbergMap.hasOwnProperty( element ) : false;
-	}
-
-	function getWpSelector( element ) {
-		return !isGutenbergActive() && isWpElement( element ) ? wpElements[ element ] : null;
-	}
+	const isWpElement = element => rwmb.isGutenberg ? wpGutenbergMap.hasOwnProperty( element ) : wpElements.hasOwnProperty( element );
+	const isGutenbergElement = element => rwmb.isGutenberg ? wpGutenbergMap.hasOwnProperty( element ) : false;
+	const getWpSelector = element => !rwmb.isGutenberg && isWpElement( element ) ? wpElements[ element ] : null;
 
 	function getWpElementValue( element ) {
-		if ( isGutenbergActive() ) {
+		if ( rwmb.isGutenberg ) {
 			return wp.data.select( 'core/editor' ).getEditedPostAttribute( wpGutenbergMap[ element ] );
 		}
-		var $element = globalSelectorCache.get( getWpSelector( element ) );
+		let $element = globalSelectorCache.get( getWpSelector( element ) );
 		return 'post_format' === element ? $element.filter( ':checked' ).val() : $element.val();
 	}
 
@@ -82,7 +61,7 @@
 	 * Note: Array.indexOf(), Array.includes(), _.contains() use strict comparison.
 	 */
 	function contains( list, value ) {
-		var i = list.length;
+		let i = list.length;
 		while ( i-- ) {
 			if ( list[ i ] == value ) {
 				return true;
@@ -102,10 +81,10 @@
 					return needle == haystack;
 				}
 				// Simple comparison for 2 arrays.
-				var ok1 = needle.every( function ( value ) {
+				let ok1 = needle.every( function( value ) {
 					return contains( haystack, value );
 				} );
-				var ok2 = haystack.every( function ( value ) {
+				let ok2 = haystack.every( function( value ) {
 					return contains( needle, value );
 				} );
 				return ok1 && ok2;
@@ -135,8 +114,8 @@
 					return needle == haystack || contains( haystack, needle );
 				}
 				// If needle is an array, 'in' means if any of needle's value in haystack.
-				var found = false;
-				needle.forEach( function ( value ) {
+				let found = false;
+				needle.forEach( function( value ) {
 					if ( value == haystack || contains( haystack, value ) ) {
 						found = true;
 					}
@@ -171,18 +150,18 @@
 		// console.time( 'Run Conditional Logic' );
 
 		// Run only for the new cloned group (when click add clone button) if possible.
-		var selectorCache = getSelectorCache( $scope ),
+		let selectorCache = getSelectorCache( $scope ),
 			$conditions = selectorCache.get( '.mbc-conditions' );
 
-		$conditions.each( function () {
-			var $this = $( this ),
+		$conditions.each( function() {
+			let $this = $( this ),
 				conditions = $this.data( 'conditions' ),
 				action = typeof conditions[ 'hidden' ] !== 'undefined' ? 'hidden' : 'visible',
 				logic = conditions[ action ],
 				logicApply = isLogicCorrect( logic, $this ),
 				$element = $this.parent();
 
-			if ( !$element.hasClass( 'rwmb-field' ) ) {
+			if ( !$element.hasClass( 'rwmb-field' ) && $element.closest( '.postbox' ).length ) {
 				$element = $element.closest( '.postbox' );
 			}
 
@@ -194,13 +173,13 @@
 		// console.timeEnd( 'Run Conditional Logic' );
 
 		// Outside conditions.
-		_.each( conditions, function ( logics, field ) {
-			_.each( logics, function ( logic, action ) {
+		_.each( conditions, function( logics, field ) {
+			_.each( logics, function( logic, action ) {
 				if ( typeof logic.when === 'undefined' ) {
 					return;
 				}
 
-				var selector = getSelector( field, globalSelectorCache ),
+				let selector = getSelector( field, globalSelectorCache ),
 					$element = globalSelectorCache.get( selector ),
 					logicApply = isLogicCorrect( logic, '' );
 
@@ -218,10 +197,10 @@
 	 * @return boolean
 	 */
 	function isLogicCorrect( logics, $field ) {
-		var relation = typeof logics.relation !== 'undefined' ? logics.relation.toLowerCase() : 'and',
+		let relation = typeof logics.relation !== 'undefined' ? logics.relation.toLowerCase() : 'and',
 			success = relation === 'and';
 
-		logics.when.forEach( function ( logic ) {
+		logics.when.forEach( function( logic ) {
 			// Skip check if we already know the result.
 			if ( relation === 'and' && !success ) {
 				return;
@@ -232,7 +211,7 @@
 
 			// Get scope of current field. Scope is only applied for Group field.
 			// A scope is a group or whole meta box which contains event source and current field.
-			var $scope = getScope( $field ),
+			let $scope = getScope( $field ),
 				selectorCache = getSelectorCache( $scope ),
 				dependentFieldSelector = getSelector( logic[ 0 ], selectorCache );
 
@@ -249,7 +228,7 @@
 				return;
 			}
 
-			var $dependentField = selectorCache.get( dependentFieldSelector ),
+			let $dependentField = selectorCache.get( dependentFieldSelector ),
 				isDependentFieldVisible = $dependentField.closest( '.rwmb-field' ).attr( 'data-visible' );
 
 			if ( 'hidden' === isDependentFieldVisible ) {
@@ -257,7 +236,7 @@
 				return;
 			}
 
-			var dependentValue = getValue( logic[ 0 ], selectorCache ),
+			let dependentValue = getValue( logic[ 0 ], selectorCache ),
 				operator = logic[ 1 ],
 				value = logic[ 2 ],
 				negative = false;
@@ -280,7 +259,7 @@
 				dependentValue = parseInt( dependentValue );
 			}
 
-			var result = compare( dependentValue, value, operator );
+			let result = compare( dependentValue, value, operator );
 
 			if ( negative ) {
 				result = !result;
@@ -301,8 +280,8 @@
 		if ( isWpElement( fieldName ) ) {
 			return getWpElementValue( fieldName );
 		}
-		if ( isGutenbergActive() && compare( fieldName, 'tax_input', 'contains' ) ) {
-			var match = fieldName.match( /tax_input\[(.*?)\]/ );
+		if ( rwmb.isGutenberg && compare( fieldName, 'tax_input', 'contains' ) ) {
+			let match = fieldName.match( /tax_input\[(.*?)\]/ );
 			return wp.data.select( 'core/editor' ).getEditedPostAttribute( match[ 1 ] );
 		}
 
@@ -312,7 +291,7 @@
 		}
 
 		// Search by ID.
-		var $field = compare( fieldName, '#', 'start_with' ) ? selectorCache.get( fieldName ) : selectorCache.get( '#' + fieldName ),
+		let $field = compare( fieldName, '#', 'start_with' ) ? selectorCache.get( fieldName ) : selectorCache.get( '#' + fieldName ),
 			value = $field.val();
 
 		// Non-checkbox field with ID.
@@ -326,7 +305,7 @@
 		}
 
 		// Checkbox list, radio, select tree, e.g. no ID.
-		var selector = null,
+		let selector = null,
 			isMultiple = false;
 
 		// Try to find the element via [name] attribute.
@@ -343,18 +322,18 @@
 			return 0;
 		}
 
-		var $selector = selectorCache.get( selector ),
+		let $selector = selectorCache.get( selector ),
 			selectorType = $selector.attr( 'type' );
 		selectorType = selectorType ? selectorType : $selector.prop( 'tagName' );
 
-		var isSelectTree = 'SELECT' === selectorType && isMultiple;
+		let isSelectTree = 'SELECT' === selectorType && isMultiple;
 
 		if ( [ 'checkbox', 'radio', 'hidden' ].indexOf( selectorType ) === -1 && !isSelectTree ) {
 			return $selector.val();
 		}
 
 		// If user selected a checkbox, radio, or select tree, return array of selected fields, or value of singular field.
-		var values = [],
+		let values = [],
 			$elements = [];
 
 		if ( selectorType === 'hidden' && fieldName !== 'post_category' && !compare( selector, 'tax_input', 'contains' ) ) {
@@ -365,7 +344,7 @@
 			$elements = $selector.filter( ':checked' );
 		}
 
-		$elements.each( function () {
+		$elements.each( function() {
 			values.push( this.value );
 		} );
 
@@ -380,20 +359,20 @@
 
 		// If the current field is in a group clone, then all the logics must be within this group.
 		if ( !ignoreGroupClone ) {
-			var $groupClone = $field.closest( '.rwmb-group-clone' );
+			let $groupClone = $field.closest( '.rwmb-group-clone' );
 			if ( $groupClone.length ) {
 				return $groupClone;
 			}
 		}
 
 		// If Gutenberg is active.
-		if ( isGutenbergActive() ) {
+		if ( rwmb.isGutenberg ) {
 			return $( '#editor' );
 		}
 
 		// Global scope. Should be the closest 'form', since in the frontend, users can insert the same meta box in multiple forms.
 		// In the backend, edit 'form' wraps almost everything. So it should be okay.
-		var $form = $field.closest( 'form' );
+		let $form = $field.closest( 'form' );
 		return $form.length ? $form : '';
 	}
 
@@ -413,14 +392,14 @@
 			return name;
 		}
 
-		var selectors = [
+		let selectors = [
 			name,
 			'#' + name,
 			'[name="' + name + '"]',
 			'[name^="' + name + '"]',
 			'[name*="' + name + '"]'
 		];
-		var selector = _.find( selectors, function ( pattern ) {
+		let selector = _.find( selectors, function( pattern ) {
 			return selectorCache.get( pattern ).length > 0;
 		} );
 
@@ -450,12 +429,12 @@
 
 	function applyVisible( $element ) {
 		// If element is a field, get the field wrapper.
-		var $field = $element.closest( '.rwmb-field' );
+		let $field = $element.closest( '.rwmb-field' );
 		if ( $field.length ) {
 			$element = $field;
 		}
 
-		var toggleType = getToggleType( $element ),
+		let toggleType = getToggleType( $element ),
 			func = {
 				display: 'show',
 				slide: 'slideDown',
@@ -470,8 +449,8 @@
 		$element.attr( 'data-visible', 'visible' );
 
 		// Reset the required attribute for inputs.
-		$element.find( inputSelectors ).each( function () {
-			var $this = $( this ),
+		$element.find( rwmb.inputSelectors ).each( function() {
+			let $this = $( this ),
 				$field = $this.closest( '.rwmb-field.required' );
 			if ( $field.length ) {
 				$this.prop( 'required', true );
@@ -481,12 +460,12 @@
 
 	function applyHidden( $element ) {
 		// If element is a field, get the field wrapper.
-		var $field = $element.closest( '.rwmb-field' );
+		let $field = $element.closest( '.rwmb-field' );
 		if ( $field.length ) {
 			$element = $field;
 		}
 
-		var toggleType = getToggleType( $element ),
+		let toggleType = getToggleType( $element ),
 			func = {
 				display: 'hide',
 				slide: 'slideUp',
@@ -501,8 +480,8 @@
 		$element.attr( 'data-visible', 'hidden' );
 
 		// Remove required attribute for inputs and trigger a custom event.
-		$element.find( inputSelectors ).each( function () {
-			var $this = $( this ),
+		$element.find( rwmb.inputSelectors ).each( function() {
+			let $this = $( this ),
 				required = $this.attr( 'required' );
 			if ( required ) {
 				$this.prop( 'required', false );
@@ -512,19 +491,19 @@
 	}
 
 	function getToggleType( $element ) {
-		var $type = $element.closest( '.rwmb-meta-box' ).children( '.mbc-toggle-type' );
+		let $type = $element.closest( '.rwmb-meta-box' ).children( '.mbc-toggle-type' );
 		return $type.length ? $type.data( 'toggle_type' ) : 'display';
 	}
 
 	////////// EVENTS //////////
 
-	var watchedElements;
+	let watchedElements;
 
 	function getWatchedElements() {
 		watchedElements = [];
 
-		$( '.mbc-conditions' ).each( function () {
-			var fieldConditions = $( this ).data( 'conditions' ),
+		$( '.mbc-conditions' ).each( function() {
+			let fieldConditions = $( this ).data( 'conditions' ),
 				action = typeof fieldConditions[ 'hidden' ] !== 'undefined' ? 'hidden' : 'visible',
 				logic = fieldConditions[ action ];
 
@@ -532,8 +511,8 @@
 		} );
 
 		// Outside conditions.
-		_.each( conditions, function ( logics ) {
-			_.each( logics, function ( logic ) {
+		_.each( conditions, function( logics ) {
+			_.each( logics, function( logic ) {
 				if ( typeof logic.when === 'undefined' ) {
 					return;
 				}
@@ -551,11 +530,11 @@
 		}
 
 		// Find selector within correct scope to speed up.
-		var $scope = null;
+		let $scope = null;
 		if ( null !== this ) {
 			$scope = getScope( $( this ) );
 		}
-		var selectorCache = getSelectorCache( $scope ),
+		let selectorCache = getSelectorCache( $scope ),
 			selector = getSelector( logic[ 0 ], selectorCache );
 
 		if ( !selector ) {
@@ -572,17 +551,16 @@
 		getWatchedElements();
 
 		// In Gutenberg, simply subscribe to all changes.
-		if ( isGutenbergActive() ) {
+		if ( rwmb.isGutenberg ) {
 			wp.data.subscribe( runConditionalLogic );
 		}
 
 		// Listening eventSource apply conditional logic when eventSource is change.
 		if ( watchedElements.length > 1 ) {
-			$( document )
+			rwmb.$document
 				.off( 'change keyup', watchedElements )
-				.on( 'change keyup', watchedElements, function () {
-					var $scope = getScope( $( this ) );
-					runConditionalLogic( $scope );
+				.on( 'change keyup', watchedElements, function() {
+					runConditionalLogic( getScope( $( this ) ) );
 				} );
 		}
 
@@ -591,23 +569,26 @@
 		if ( -1 !== watchedElements.indexOf( '_thumbnail_id' ) ) {
 			$( '#postimagediv' ).on( 'DOMSubtreeModified', runConditionalLogic );
 		}
-
-		// For groups.
-		$( document ).on( 'clone_completed', function ( event, $group ) {
-			runConditionalLogic( $group );
-		} );
 	}
 
-	// Run when page finishes loading to improve performance.
-	// https://github.com/wpmetabox/meta-box/issues/1195.
-	$( window ).on( 'load', function () {
+	function init() {
 		runConditionalLogic();
 		watch();
 
 		// When a block switches to edit mode, get watched elements and watch again.
-		$( document ).on( 'mb-blocks-edit-ready', function ( e ) {
+		rwmb.$document.on( 'mb-blocks-edit-ready', function( e ) {
 			watch();
 			runConditionalLogic( $( e.target ) );
 		} );
-	} );
-} )( jQuery, window, document, wp );
+
+		// For groups.
+		rwmb.$document.on( 'clone_completed', ( event, $group ) => runConditionalLogic( $group ) );
+	}
+
+	// Export the runConditionalLogic to global scope to use in other scripts.
+	rwmb.runConditionalLogic = runConditionalLogic;
+
+	// Run when page finishes loading to improve performance.
+	// https://github.com/wpmetabox/meta-box/issues/1195.
+	setTimeout( init, 100 );
+} )( jQuery, rwmb );

@@ -345,7 +345,7 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 		global $pagenow;
 
 		$filter_action = filter_input( INPUT_GET, 'filter_action', FILTER_SANITIZE_STRING );
-		if ( is_admin() && $query->is_main_query() && 'wpcd_pending_log' === $query->query['post_type'] && 'edit.php' === $pagenow && 'Filter' === $filter_action ) {
+		if ( is_admin() && $query->is_main_query() && 'wpcd_pending_log' === $query->query['post_type'] && 'edit.php' === $pagenow && ! empty( $filter_action ) ) {
 			$qv = &$query->query_vars;
 
 			// Pending Task Type.

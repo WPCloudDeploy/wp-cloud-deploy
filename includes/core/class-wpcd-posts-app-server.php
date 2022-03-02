@@ -1188,7 +1188,7 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 			}
 		}
 
-		if ( is_admin() && $query->is_main_query() && 'wpcd_app_server' === $query->query['post_type'] && 'edit.php' === $pagenow && __( 'Filter' ) === $filter_action ) {
+		if ( is_admin() && $query->is_main_query() && 'wpcd_app_server' === $query->query['post_type'] && 'edit.php' === $pagenow && ! empty( $filter_action ) ) {
 			$qv = &$query->query_vars;
 
 			// SERVER PROVIDER.

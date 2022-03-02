@@ -214,7 +214,7 @@ class WPCD_NOTIFY_LOG extends WPCD_POSTS_LOG {
 		global $pagenow;
 
 		$filter_action = filter_input( INPUT_GET, 'filter_action', FILTER_SANITIZE_STRING );
-		if ( is_admin() && $query->is_main_query() && 'wpcd_notify_log' === $query->query['post_type'] && 'edit.php' === $pagenow && __( 'Filter' ) === $filter_action ) {
+		if ( is_admin() && $query->is_main_query() && 'wpcd_notify_log' === $query->query['post_type'] && 'edit.php' === $pagenow && ! empty( $filter_action ) ) {
 			$qv = &$query->query_vars;
 
 			// NOTIFICATION TYPE.

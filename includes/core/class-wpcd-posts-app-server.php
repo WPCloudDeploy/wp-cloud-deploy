@@ -1498,6 +1498,13 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 	 * Creating custom taxonomy terms after execution of this function
 	 */
 	public static function wpcd_app_server_register_post_and_taxonomy() {
+
+		// Figure out what the capabilities should be for the 'new' button.
+		$new_cap = 'do_not_allow';
+		if ( wpcd_is_admin() ) {
+			$new_cap = 'wpcd_manage_all';  // This ensures that the ADD NEW SERVER RECORD button shows for the admin (since all admins will get the wpcd_manage_all capability).
+		}
+
 		register_post_type(
 			'wpcd_app_server',
 			array(
@@ -1534,7 +1541,7 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 				'capabilities'        => array(
 					// This value is false so that it does not create the "Add New" menu item.
 					// Creating a server will be handled by a custom button.
-					'create_posts'           => false,
+					'create_posts'           => $new_cap,
 					'edit_post'              => 'wpcd_manage_servers',
 					'edit_posts'             => 'wpcd_manage_servers',
 					'edit_others_posts'      => 'wpcd_manage_servers',

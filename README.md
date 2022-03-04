@@ -121,10 +121,11 @@ Note: Even though the entire git development history isn't available on github, 
 * Tweak: WPAPP - Display the final status of PHP versions as they are being installed when the server is provisioned.
 * Fix: WPAPP - Staging and Cloned sites did not carry-over the metas that indicate the status of the various caches.
 * Fix: WPAPP - Individual toggle switches on monit components were not working - only the 'all' switches did what they were supposed to do.
-* Fix: WPAPP - Fixed an issue with filters when a different language than English is used.
+* Fix: WPAPP - Fixed an issue with filters on the server and site lists when a different language other than English is used.
 * Fix: WPAPP - Typo on site TOOLS tab - reset permissions description should say 664 for files, not 644.
 * Fix: WPAPP - The NEW SERVER RECORD button was not showing up in all cases where it should.
 * Fix: WPAPP - The ADD NEW APP RECORD button was not showing up in all cases where it should.
+* Fix: WPAPP - The default color for the PHP 8.1 label in the sites list was not consistent with the colors used for the PHP 8.0 label.
 * Dev: WPAPP - New filter to allow providers to add text to any error messages when a server immediately fails to deploy.
 * Dev: WPAPP - New action hook on the copy-to-existing-site action (wpcd_app_wordpress-app_before_action_copy_to_existing_site).
 * Dev: Integrate the wisdom plugin.

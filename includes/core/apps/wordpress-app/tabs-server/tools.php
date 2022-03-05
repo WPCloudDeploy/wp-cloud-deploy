@@ -347,7 +347,7 @@ class WPCD_WORDPRESS_TABS_SERVER_TOOLS extends WPCD_WORDPRESS_TABS {
 		}
 
 		// Check to make sure that the version is a valid version.
-		if ( ! in_array( $new_php_version, array( '7.4', '7.3', '7.2', '7.1', '5.6', '8.0' ) ) ) {
+		if ( ! in_array( $new_php_version, array( '7.4', '7.3', '7.2', '7.1', '5.6', '8.0', '8.1' ) ) ) {
 			return new \WP_Error( __( 'You must specify a VALID PHP version!', 'wpcd' ) );
 		}
 

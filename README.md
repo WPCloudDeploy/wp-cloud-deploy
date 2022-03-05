@@ -120,6 +120,7 @@ Note: Even though the entire git development history isn't available on github, 
 * Tweak: WPAPP - Add new notification type to handle upcoming features in the POWERTOOLS add-on.
 * Tweak: WPAPP - Display the final status of PHP versions as they are being installed when the server is provisioned.
 * Tweak: WPAPP - Collect the default PHP version for the server.  Show a notice in the health column if it's not set to 7.4.
+* Tweak: WPAPP - Remove extraneous text on the servr backup tab.
 * Fix: WPAPP - Staging and Cloned sites did not carry-over the metas that indicate the status of the various caches.
 * Fix: WPAPP - Individual toggle switches on monit components were not working - only the 'all' switches did what they were supposed to do.
 * Fix: WPAPP - Fixed an issue with filters on the server and site lists when a different language other than English is used.

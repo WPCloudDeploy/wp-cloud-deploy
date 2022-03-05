@@ -598,6 +598,7 @@ a.wpcd-stat-switch {
 .wpcd_disk_free_space_pct_wrap,
 .wpcd_ram_free_space_pct_wrap,
 .wpcd_restart_needed_wrap,
+.wpcd_incorrect_php_default_version,
 .wpcd_sec_updates_wrap,
 .wpcd_linux_updates_wrap,
 .wpcd_malware_found_wrap {
@@ -624,6 +625,13 @@ a.wpcd-stat-switch {
 	color: white;
 	background-color: red;
 	text-align: center;
+}
+
+.wpcd_incorrect_php_default_version {
+	border-color: #B91C1C !important;
+	color: white;
+	background-color: #B91C1C;
+	text-align: center;	
 }
 
 .wpcd_sec_updates_wrap {

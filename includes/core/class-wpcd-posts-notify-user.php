@@ -938,6 +938,7 @@ class WPCD_NOTIFY_USER extends WPCD_Posts_Base {
 			'snapshots'            => __( 'Snapshots', 'wpcd', ),
 			'site-updates'         => __( 'Site Updates', 'wpcd', ),
 			'backup-config'        => __( 'Backup Configuration Files', 'wpcd', ),
+			'server-config'        => __( 'Server Configuration', 'wpcd', ),
 			'periodic-site-images' => __( 'Periodic Site Images (Powertools)', 'wpcd', ),
 			'other'                => __( 'Other', 'wpcd', ),
 		);

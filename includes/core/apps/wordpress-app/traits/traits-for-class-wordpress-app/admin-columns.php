@@ -435,6 +435,11 @@ trait wpcd_wpapp_admin_column_data {
 					$health .= '<br />' . $malware_status;
 				}
 
+				$default_php_version_status = $this->get_server_status_callback_string( $post_id, 'default_php_version' );
+				if ( ! empty( $default_php_version_status ) ) {
+					$health .= '<br />' . $default_php_version_status;
+				}
+
 				if ( empty( $health ) ) {
 					$server_status_callback_status = get_post_meta( $post_id, 'wpcd_wpapp_server_status_callback_installed', true );
 					if ( empty( $server_status_callback_status ) ) {
@@ -718,7 +723,7 @@ trait wpcd_wpapp_admin_column_data {
 
 			switch ( $item ) {
 				case 'restart_needed':
-					if ( isset( $server_status_items['restart'] ) && 'yes' == $server_status_items['restart'] ) {
+					if ( isset( $server_status_items['restart'] ) && 'yes' === $server_status_items['restart'] ) {
 
 						$return .= __( 'Restart Needed!', 'wpcd' );
 
@@ -728,6 +733,20 @@ trait wpcd_wpapp_admin_column_data {
 
 					}
 					break;
+
+				case 'default_php_version':
+					if ( isset( $server_status_items['default_php_version'] ) && ! empty( $server_status_items['default_php_version'] ) && '7.4' !== $server_status_items['default_php_version'] ) {
+
+						/* Translators: %s is the incorrect PHP version. */
+						$return .= sprintf( __( 'The default PHP server version is incorrect! It should be 7.4 but is currently set to %s!', 'wpcd' ), $server_status_items['default_php_version'] );
+
+						$class = 'wpcd_incorrect_php_default_version';
+
+						$return = "<div class='$class'>" . $return . '</div>';
+
+					}
+					break;
+
 				case 'free_disk_space_percent':
 					if ( isset( $server_status_items['free_disk_space_percent'] ) ) {
 						$freepct = $server_status_items['free_disk_space_percent'];

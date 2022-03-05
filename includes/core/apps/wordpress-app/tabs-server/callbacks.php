@@ -458,7 +458,7 @@ class WPCD_WORDPRESS_TABS_SERVER_CALLBACKS extends WPCD_WORDPRESS_TABS {
 				case 'run_status_cron':
 				case 'run_status_cron_background':
 					$success = array(
-						'msg'     => __( 'The callbacks have been scheduled execution and should begin shortly. Check back here or view your server list HEALTH column in a few minutes to see the updated information.', 'wpcd' ),
+						'msg'     => __( 'The callbacks have been scheduled to run and should begin shortly. Check back here or view your server list HEALTH column in a few minutes to see the updated information.', 'wpcd' ),
 						'refresh' => 'yes',
 					);
 					break;

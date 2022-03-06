@@ -927,8 +927,8 @@ function wpcd_clean_alpha_numeric_dashes( $instr ) {
 	if ( empty( $instr ) ) {
 		return '';
 	}
-	
-	$instr = preg_replace("/[^A-Za-z0-9-]/","", $instr);
+
+	$instr = preg_replace( '/[^A-Za-z0-9-]/', '', $instr );
 
 	return $instr;
 }
@@ -1100,7 +1100,7 @@ function wpcd_get_some_fa_classes() {
 }
 
 /**
- * Returns a rand font-awesome pro class from a pre-defined array of classes.
+ * Returns a random font-awesome pro class from a pre-defined array of classes.
  */
 function wpcd_get_random_fa_class() {
 	return wpcd_get_some_fa_classes()[ array_rand( wpcd_get_some_fa_classes() ) ];
@@ -1109,7 +1109,7 @@ function wpcd_get_random_fa_class() {
 /**
  * Take a string (usually a password) and place backslashes in front of all non-alpha-numeric chars.
  *
- * This is usually used to escape passwords for the bash comand line.
+ * This is usually used to escape passwords for the bash command line.
  *
  * @param string $thestring the string.
  */

@@ -2987,13 +2987,27 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		}
 
 		// Get other fields needed to provision the site.
-		$wp_user     = sanitize_text_field( $args['wp_user'] );
-		$wp_password = $args['wp_password'];  // Note that we are NOT sanitizing the password field.  We'll escape every non-alpha-numeric char later before passing to bash.
+		$wp_user     = sanitize_user( sanitize_text_field( $args['wp_user'] ) );
+		$wp_password = $args['wp_password'];  // Note that we are NOT sanitizing the password field.  We'll escape every non-alpha-numeric character later before passing to bash.
 		$wp_email    = sanitize_email( $args['wp_email'] );
 		$wp_version  = sanitize_text_field( $args['wp_version'] );
 		$wp_locale   = sanitize_text_field( $args['wp_locale'] );
 		if ( empty( $wp_locale ) ) {
 			$wp_locale = 'en_US';
+		}
+
+		// Make sure our password does not contain any invalid characters that would cause BASH to throw up.
+		if ( false !== strpbrk( $args['wp_password'], "\;/|<>&()`'" ) || false !== strpbrk( $args['wp_password'], '"' ) || false !== strpbrk( $args['wp_password'], ' ' ) ) {
+			return new \WP_Error( __( 'The password for the site contains invalid characters.', 'wpcd' ) );
+		}
+		// Make sure our email address field does not contain any invalid characters that would cause BASH or WP to throw up.  If it does, stop the process and return.
+		if ( $wp_email !== $args['wp_email'] ) {
+			// This comparison works for this purpose because we're comparing the sanitized email value to the orignal value.  If there are issues, the two will not be the same.
+			return new \WP_Error( __( 'The email address for the site contains invalid characters.', 'wpcd' ) );
+		}
+		// Make sure our user name field does not contain any invalid characters that would cause BASH or WP to throw up.  If it does, stop the process and return.
+		if ( false === validate_username( $args['wp_user'] ) ) {
+			return new \WP_Error( __( 'The user name for the site contains invalid characters.', 'wpcd' ) );
 		}
 
 		// Escape special chars in password with backslashes.

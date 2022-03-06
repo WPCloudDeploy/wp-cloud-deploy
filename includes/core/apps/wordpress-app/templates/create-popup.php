@@ -171,7 +171,7 @@
 					<div class="wpcd-create-popup-label-wrap"><label class="wpcd-create-popup-label" for="name"> <?php echo esc_html( __( 'Name of Server', 'wpcd' ) ); ?>  </label></div>			
 					<div class="wpcd-create-popup-input-wrap">			
 						<input type="text" name="name" placeholder="<?php echo esc_html( __( 'Name of server', 'wpcd' ) ); ?>" class="wpcd_server_name">
-						<div class='wp_field_error wp_server_name_error_msg'><?php _e( 'The following characters are invalid in all fields:  \' " ; \ | < > ` @ $ ( ) / and spaces, carriage returns, linefeeds.', 'wpcd' ); ?></div>
+						<div class='wp_field_error wp_server_name_error_msg'><?php _e( 'The following characters are invalid in all fields:  \' " ; \ | < > ` @ $ & ( ) / and spaces, carriage returns, linefeeds.', 'wpcd' ); ?></div>
 					</div>
 
 					<input type="hidden" id="wp_user_id" name="wp_user_id" value="<?php echo esc_attr( get_current_user_id() ); ?>" >

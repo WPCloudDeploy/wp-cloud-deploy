@@ -109,14 +109,14 @@ if ( ! wpcd_user_can( $user_id, 'add_app_wpapp', $server_id ) && $post_author !=
 				<div class="wpcd-create-popup-label-wrap"><label class="wpcd-create-popup-label" for="wp_password"> <?php echo esc_html( __( 'Admin Password', 'wpcd' ) ); ?>  </label></div>
 				<div class="wpcd-create-popup-input-wrap">
 					<input type="password" name="wp_password" placeholder="<?php esc_html( __( 'Admin Password', 'wpcd' ) ); ?>">
-					<div class='wp_field_error wp_password_error_msg'><?php echo esc_html( __( 'The following characters are invalid in the password field:  \' " ; \ | < > ` (single-quote, double-quote, semi-colon, backslash, pipe, angled-brackets, backtics, spaces, carriage returns, linefeeds.)', 'wpcd' ) ); ?></div>
+					<div class='wp_field_error wp_password_error_msg'><?php echo esc_html( __( 'The following characters are invalid in the password field:  \' " ; \ | < > & ( ) ` (single-quote, double-quote, semi-colon, backslash, pipe, angled-brackets, backtics, spaces, carriage returns, linefeeds.)', 'wpcd' ) ); ?></div>
 				</div>
 
 				<div class="wpcd-create-popup-label-wrap"><label class="wpcd-create-popup-label" for="wp_email"> <?php echo esc_html( __( 'Admin Email Address', 'wpcd' ) ); ?>  </label></div>
 				<div class="wpcd-create-popup-input-wrap">
 					<input type="email" name="wp_email" placeholder="<?php echo esc_attr( __( 'Email', 'wpcd' ) ); ?>" >
 					<div class='wp_field_error wp_check_email_error_msg'><?php echo esc_html( __( 'Please enter a valid email address.', 'wpcd' ) ); ?></div>
-					<div class='wp_field_error wp_email_error_msg'><?php echo esc_html( __( 'The following characters are invalid in email field:  \' " ; \ | < > ` and spaces, carriage returns, linefeeds.', 'wpcd' ) ); ?></div>
+					<div class='wp_field_error wp_email_error_msg'><?php echo esc_html( __( 'The following characters are invalid in email field:  \' " ; \ | < > & ( ) ` and spaces, carriage returns, linefeeds.', 'wpcd' ) ); ?></div>
 				</div>				
 				<!-- <input type="text" name="wp_version" placeholder="<?php echo esc_attr( __( 'Version', 'wpcd' ) ); ?>" value="latest"> -->
 				<div class="wpcd-create-popup-label-wrap"><label class="wpcd-create-popup-label" for="wp_version"> <?php echo esc_html( __( 'WordPress Version', 'wpcd' ) ); ?>  </label></div>

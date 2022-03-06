@@ -122,6 +122,10 @@ Note: Even though the entire git development history isn't available on github, 
 * Tweak: WPAPP - Collect the default PHP version for the server.  Show a notice in the health column if it's not set to 7.4.
 * Tweak: WPAPP - Remove extraneous text on the server backup tab.
 * Tweak: WPAPP - Better validation of certain fields on the backend before a site is created.
+* Tweak: WPAPP - New sites will default to allowing only minor automatic updates to core by setting the WP_AUTO_UPDATE_CORE value in wp-config.php to 'minor'.
+* Tweak: WPAPP - New sites will explicity default to 128M for WP_MEMORY_LIMIT in wp-config.php. 
+* Tweak: WPAPP - New sites will explicitly default WP_MAX_MEMORY_LIMIT to 128M, down from the default of 256M because the default PHP worker memory_limit is set to 128M).
+* Tweak: WPAPP - New sites will explicityly default to setting CONCATENATE_SCRIPTS to false in wp-config.php.
 * Fix: WPAPP - Staging and Cloned sites did not carry-over the metas that indicate the status of the various caches.
 * Fix: WPAPP - Individual toggle switches on monit components were not working - only the 'all' switches did what they were supposed to do.
 * Fix: WPAPP - Fixed an issue with filters on the server and site lists when a different language other than English is used.

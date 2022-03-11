@@ -761,7 +761,7 @@ class WPCD_Settings {
 						array(
 							'type' => 'heading',
 							'name' => __( 'Bulk Email Server Batches', 'wpcd' ),
-							'desc' => __( 'List of all the server batches for send bulk email.', 'wpcd' ),
+							'desc' => __( 'View all email batches sent for servers.', 'wpcd' ),
 						),
 
 						array(
@@ -775,7 +775,7 @@ class WPCD_Settings {
 						array(
 							'type' => 'heading',
 							'name' => __( 'Bulk Email App Batches', 'wpcd' ),
-							'desc' => __( 'List of all the app batches for send bulk email.', 'wpcd' ),
+							'desc' => __( 'Voew all email batches sent for apps.', 'wpcd' ),
 						),
 
 						array(

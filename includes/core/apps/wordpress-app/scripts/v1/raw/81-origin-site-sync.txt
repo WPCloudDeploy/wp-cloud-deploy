@@ -209,9 +209,10 @@ if [[ $action == "schedule-site-sync" || $action == "3" ]]; then
     # remove leftover. if we reached this point, the SSH authentication is now configured
     sudo rm -f /var/www/html/97317319160494330146381820240308.pub
 
-    grep -q "$domain $destination_ip " /etc/wp-site-sync.conf
+    grep -q "$domain $destination_ip " /etc/wp-site-sync.conf >/dev/null 2>&1
     if [ $? -ne 0 ]
     then
+		echo "Site not found in existing sync configuration schedule file - adding it..."
 	    echo "$domain $destination_ip $sshuser $localuser $site_sync_callback_url" >> /etc/wp-site-sync.conf
     fi
 

@@ -711,7 +711,7 @@ class WPCD_WORDPRESS_TABS_SITE_SYNC extends WPCD_WORDPRESS_TABS {
 		$desc .= '<br />';
 		$desc .= __( 'You should make sure that your destination server has any optional components installed. For example,if you enabled REDIS or MEMCACHED on here, your destination should have that installed.', 'wpcd' );
 		$desc .= '<br />';
-		$desc .= __( 'Note: root access is usually required on both servers.  Therefore this function might not work on some server providers such as AWS EC2 and AWS Lightsail!', 'wpcd' );
+		$desc .= __( '***Please see important notes at the bottom of this page if this is the first time you are using this function!***', 'wpcd' );
 
 		$fields[] = array(
 			'name' => __( 'Site Sync', 'wpcd' ),
@@ -915,6 +915,19 @@ class WPCD_WORDPRESS_TABS_SITE_SYNC extends WPCD_WORDPRESS_TABS {
 			);
 
 		}
+
+		// Show some important notes.
+		$important_notes  = __( 'Please keep these two notes in mind before using this function:', 'wpcd' );
+		$important_notes .= '<br />';
+		$important_notes .= __( '1. Root access is usually required on both servers.  Therefore this function might not work on some server providers such as AWS EC2, AWS Lightsail, Azure & Google Cloud!', 'wpcd' );
+		$important_notes .= '<br />';
+		$important_notes .= __( '2. The private ssh key must NOT be protected by a password.', 'wpcd' );
+		$fields[]         = array(
+			'name' => __( 'Important Notes', 'wpcd' ),
+			'tab'  => 'site-sync',
+			'type' => 'heading',
+			'desc' => $important_notes,
+		);
 
 		return $fields;
 

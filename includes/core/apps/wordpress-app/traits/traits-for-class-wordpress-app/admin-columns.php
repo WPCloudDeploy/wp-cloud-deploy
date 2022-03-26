@@ -444,7 +444,7 @@ trait wpcd_wpapp_admin_column_data {
 					$server_status_callback_status = get_post_meta( $post_id, 'wpcd_wpapp_server_status_callback_installed', true );
 					if ( empty( $server_status_callback_status ) ) {
 						$health            = "<div class='wpcd_waiting_for_data_column'>" . __( 'Callbacks are not installed. Please install from the CALLBACKS tab on this server.', 'wpcd' ) . '</div>';
-						$callback_tab_link = get_edit_post_link( $post_id ) . '#~~callbacks';
+						$callback_tab_link = (is_admin() ? get_edit_post_link( $post_id ) : get_permalink( $post_id )) . '#~~callbacks';
 						$health           .= "<a href='" . $callback_tab_link . "'>" . __( 'Go To Callbacks Tab', 'wpcd' ) . '</a>';
 					} else {
 						$health = "<div class='wpcd_waiting_for_data_column'>" . __( 'Waiting For Data From Callback...', 'wpcd' ) . '</div>';
@@ -532,7 +532,11 @@ trait wpcd_wpapp_admin_column_data {
 					$php_version_class = str_replace( '.', '_', $php_version );
 
 					// Show a link that takes you to a list of apps with the clicked php version.
-					$url = admin_url( 'edit.php?post_type=wpcd_app&wpapp_php_version=' . $php_version );
+					if( is_admin() ) {
+						$url = admin_url( 'edit.php?post_type=wpcd_app&wpapp_php_version=' . $php_version );
+					} else {
+						$url = get_permalink( WPCD_WORDPRESS_APP_PUBLIC::get_apps_list_page_id() ) . '?wpapp_php_version=' . $php_version;
+					}
 
 					echo "<a href=\"$url\" class=\"wpcd_php_version wpcd_php_version_$php_version_class\">" . $php_version . '</a>';
 

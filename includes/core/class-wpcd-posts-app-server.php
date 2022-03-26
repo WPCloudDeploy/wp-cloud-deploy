@@ -176,6 +176,102 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 		}
 		return $actions;
 	}
+	
+	public function enqueue_server_post_common_scripts() {
+		
+		wp_register_script( 'wpcd-select2-js', wpcd_url . 'assets/js/select2.min.js', array( 'jquery' ), wpcd_scripts_version, true );
+		wp_enqueue_style( 'wpcd-select2-css', wpcd_url . 'assets/css/select2.min.css', array(), wpcd_scripts_version );
+
+		wp_register_script( 'wpcd-magnific', wpcd_url . 'assets/js/jquery.magnific-popup.min.js', array( 'jquery' ), wpcd_scripts_version, true );
+
+		wp_enqueue_script( 'wpcd-wpapp-admin-common', wpcd_url . 'includes/core/apps/wordpress-app/assets/js/wpcd-wpapp-admin-common.js', array( 'jquery', 'wpcd-magnific' ), wpcd_scripts_version, true );
+		wp_localize_script(
+			'wpcd-wpapp-admin-common',
+			'params',
+			apply_filters(
+				'wpcd_app_script_args',
+				array(
+					'nonce' => wp_create_nonce( 'wpcd-app' ),
+					'i10n'  => array(
+						'loading' => __(
+							'Loading',
+							'wpcd'
+						) . '...',
+					),
+				),
+				'wpcd-wpapp-admin-common'
+			)
+		);
+
+		wp_enqueue_script( 'wpcd-wpapp-server-admin', wpcd_url . 'includes/core/apps/wordpress-app/assets/js/wpcd-wpapp-server-admin.js', array( 'wpcd-magnific', 'wpcd-select2-js' ), wpcd_scripts_version, true );
+		wp_localize_script(
+			'wpcd-wpapp-server-admin',
+			'params',
+			apply_filters(
+				'wpcd_server_script_args',
+				array(
+					'nonce'                => wp_create_nonce( 'wpcd-server' ),
+					'i10n'                 => $this->get_js_terms(),
+					'bulk_actions_confirm' => __( 'Are you sure you want to perform this bulk action?', 'wpcd' ),
+				),
+				'wpcd-wpapp-server-admin'
+			)
+		);
+
+		wp_enqueue_style( 'wpcd-magnific', wpcd_url . 'assets/css/magnific-popup.css', array(), wpcd_scripts_version );
+		wp_enqueue_style( 'wpcd-server-admin', wpcd_url . 'assets/css/wpcd-server-admin.css', array( 'wpcd-magnific' ), wpcd_scripts_version );
+		
+	}
+	
+	
+	public function enqueue_server_post_chart_scripts() {
+		global $post;
+		
+		wp_register_script( 'wpcd-chart-js', wpcd_url . 'assets/js/Chart.min.js', array( 'jquery' ), wpcd_scripts_version, true );
+
+		wp_enqueue_script( 'wpcd-wpapp-server-chart', wpcd_url . 'includes/core/apps/wordpress-app/assets/js/wpcd-wpapp-server-chart.js', array( 'wpcd-chart-js' ), wpcd_scripts_version, true );
+
+		// Disk Statistics data.
+		$disk_stat_data1 = WPCD_SERVER_STATISTICS()->wpcd_app_server_get_formatted_disk_statistics( $post->ID );
+		$disk_stat_data2 = array(
+			'chart_labels' => array(
+				'chart_main_title'       => __( 'Disk Space', 'wpcd' ),
+				'chart_column_1K_blocks' => __( '1K-blocks', 'wpcd' ),
+				'chart_column_Used'      => __( 'Used', 'wpcd' ),
+				'chart_column_Available' => __( 'Available', 'wpcd' ),
+			),
+		);
+
+		$params['disk_stat'] = array_merge( $disk_stat_data1, $disk_stat_data2 );
+
+		// VNSTAT Traffic data.
+		$vnstat_data1 = WPCD_SERVER_STATISTICS()->wpcd_app_server_get_formatted_vnstat_data( $post->ID );
+		$vnstat_data2 = array(
+			'chart_labels' => array(
+				'chart_curr_day_title'   => __( 'VNSTAT Traffic for Today (in KiB)', 'wpcd' ),
+				'chart_curr_month_title' => __( 'VNSTAT Traffic for Month (in KiB)', 'wpcd' ),
+				'chart_all_time_title'   => __( 'VNSTAT Traffic for All Time (in KiB)', 'wpcd' ),
+				'chart_rx_label'         => __( 'Rx', 'wpcd' ),
+				'chart_tx_label'         => __( 'Tx', 'wpcd' ),
+			),
+		);
+
+		$params['vnstat'] = array_merge( $vnstat_data1, $vnstat_data2 );
+
+		// VMSTAT Memory data.
+		$vmstat_data1 = WPCD_SERVER_STATISTICS()->wpcd_app_server_get_formatted_vmstat_data( $post->ID );
+		$vmstat_data2 = array(
+			'chart_labels' => array(
+				'chart_main_title'    => __( 'VMSTAT (Memory)', 'wpcd' ),
+				'chart_dataset_label' => __( 'Memory', 'wpcd' ),
+			),
+		);
+
+		$params['vmstat'] = array_merge( $vmstat_data1, $vmstat_data2 );
+
+		wp_localize_script( 'wpcd-wpapp-server-chart', 'wpcd_server_stat_data', $params );
+		
+	}
 
 	/**
 	 * Register the scripts for the custom post type.
@@ -187,49 +283,7 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 
 			$screen = get_current_screen();
 			if ( is_object( $screen ) && 'wpcd_app_server' === $screen->post_type ) {
-
-				wp_register_script( 'wpcd-select2-js', wpcd_url . 'assets/js/select2.min.js', array( 'jquery' ), wpcd_scripts_version, true );
-				wp_enqueue_style( 'wpcd-select2-css', wpcd_url . 'assets/css/select2.min.css', array(), wpcd_scripts_version );
-
-				wp_register_script( 'wpcd-magnific', wpcd_url . 'assets/js/jquery.magnific-popup.min.js', array( 'jquery' ), wpcd_scripts_version, true );
-
-				wp_enqueue_script( 'wpcd-wpapp-admin-common', wpcd_url . 'includes/core/apps/wordpress-app/assets/js/wpcd-wpapp-admin-common.js', array( 'jquery', 'wpcd-magnific' ), wpcd_scripts_version, true );
-				wp_localize_script(
-					'wpcd-wpapp-admin-common',
-					'params',
-					apply_filters(
-						'wpcd_app_script_args',
-						array(
-							'nonce' => wp_create_nonce( 'wpcd-app' ),
-							'i10n'  => array(
-								'loading' => __(
-									'Loading',
-									'wpcd'
-								) . '...',
-							),
-						),
-						'wpcd-wpapp-admin-common'
-					)
-				);
-
-				wp_enqueue_script( 'wpcd-wpapp-server-admin', wpcd_url . 'includes/core/apps/wordpress-app/assets/js/wpcd-wpapp-server-admin.js', array( 'wpcd-magnific', 'wpcd-select2-js' ), wpcd_scripts_version, true );
-				wp_localize_script(
-					'wpcd-wpapp-server-admin',
-					'params',
-					apply_filters(
-						'wpcd_server_script_args',
-						array(
-							'nonce'                => wp_create_nonce( 'wpcd-server' ),
-							'i10n'                 => $this->get_js_terms(),
-							'bulk_actions_confirm' => __( 'Are you sure you want to perform this bulk action?', 'wpcd' ),
-						),
-						'wpcd-wpapp-server-admin'
-					)
-				);
-
-				wp_enqueue_style( 'wpcd-magnific', wpcd_url . 'assets/css/magnific-popup.css', array(), wpcd_scripts_version );
-				wp_enqueue_style( 'wpcd-server-admin', wpcd_url . 'assets/css/wpcd-server-admin.css', array( 'wpcd-magnific' ), wpcd_scripts_version );
-
+				$this->enqueue_server_post_common_scripts();
 			}
 		}
 
@@ -240,49 +294,7 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 			$disk_statistics = get_post_meta( $post->ID, 'wpcd_wpapp_disk_statistics', true );
 
 			if ( is_object( $screen ) && 'wpcd_app_server' === $screen->post_type && ! empty( $disk_statistics ) ) {
-				wp_register_script( 'wpcd-chart-js', wpcd_url . 'assets/js/Chart.min.js', array( 'jquery' ), wpcd_scripts_version, true );
-
-				wp_enqueue_script( 'wpcd-wpapp-server-chart', wpcd_url . 'includes/core/apps/wordpress-app/assets/js/wpcd-wpapp-server-chart.js', array( 'wpcd-chart-js' ), wpcd_scripts_version, true );
-
-				// Disk Statistics data.
-				$disk_stat_data1 = WPCD_SERVER_STATISTICS()->wpcd_app_server_get_formatted_disk_statistics( $post->ID );
-				$disk_stat_data2 = array(
-					'chart_labels' => array(
-						'chart_main_title'       => __( 'Disk Space', 'wpcd' ),
-						'chart_column_1K_blocks' => __( '1K-blocks', 'wpcd' ),
-						'chart_column_Used'      => __( 'Used', 'wpcd' ),
-						'chart_column_Available' => __( 'Available', 'wpcd' ),
-					),
-				);
-
-				$params['disk_stat'] = array_merge( $disk_stat_data1, $disk_stat_data2 );
-
-				// VNSTAT Traffic data.
-				$vnstat_data1 = WPCD_SERVER_STATISTICS()->wpcd_app_server_get_formatted_vnstat_data( $post->ID );
-				$vnstat_data2 = array(
-					'chart_labels' => array(
-						'chart_curr_day_title'   => __( 'VNSTAT Traffic for Today (in KiB)', 'wpcd' ),
-						'chart_curr_month_title' => __( 'VNSTAT Traffic for Month (in KiB)', 'wpcd' ),
-						'chart_all_time_title'   => __( 'VNSTAT Traffic for All Time (in KiB)', 'wpcd' ),
-						'chart_rx_label'         => __( 'Rx', 'wpcd' ),
-						'chart_tx_label'         => __( 'Tx', 'wpcd' ),
-					),
-				);
-
-				$params['vnstat'] = array_merge( $vnstat_data1, $vnstat_data2 );
-
-				// VMSTAT Memory data.
-				$vmstat_data1 = WPCD_SERVER_STATISTICS()->wpcd_app_server_get_formatted_vmstat_data( $post->ID );
-				$vmstat_data2 = array(
-					'chart_labels' => array(
-						'chart_main_title'    => __( 'VMSTAT (Memory)', 'wpcd' ),
-						'chart_dataset_label' => __( 'Memory', 'wpcd' ),
-					),
-				);
-
-				$params['vmstat'] = array_merge( $vmstat_data1, $vmstat_data2 );
-
-				wp_localize_script( 'wpcd-wpapp-server-chart', 'wpcd_server_stat_data', $params );
+				$this->enqueue_server_post_chart_scripts();
 			}
 		}
 
@@ -508,7 +520,8 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 
 			case 'wpcd_server_app_count':
 				$app_count = WPCD_SERVER()->get_app_count( $post_id );
-				$value     = sprintf( '%s <a href="%s" target="_blank">%d</a>', __( 'App Count: ', 'wpcd' ), esc_url( admin_url( 'edit.php?post_type=wpcd_app&server_id=' . $post_id ) ), $app_count );
+				$url = is_admin() ? admin_url( 'edit.php?post_type=wpcd_app&' ) : get_permalink( WPCD_WORDPRESS_APP_PUBLIC::get_apps_list_page_id() ) . '?' . 'server_id=' . $post_id;
+				$value     = sprintf( '%s <a href="%s" target="_blank">%d</a>', __( 'App Count: ', 'wpcd' ), esc_url( $url ), $app_count );
 
 				// Now get and show up to 4 sites underneath the post count.
 				$args = array(
@@ -531,7 +544,8 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 					foreach ( $server_app_ids as $app_id ) {
 						if ( wpcd_is_admin() || wpcd_user_can( get_current_user_id(), 'view_app', $app_id ) || (int) get_post_field( 'post_author', $app_id ) === get_current_user_id() ) {
 
-							$value .= sprintf( '<br /> <a href="%s" target="_blank">%s</a>', esc_url( admin_url( 'post.php?post=' . $app_id . '&action=edit' ) ), get_the_title( $app_id ) );
+							$url = is_admin() ? admin_url( 'post.php?post=' . $app_id . '&action=edit' ) : get_permalink( $app_id );
+							$value .= sprintf( '<br /> <a href="%s" target="_blank">%s</a>', esc_url( $url ), get_the_title( $app_id ) );
 
 						} else {
 							$value .= sprintf( '<br /> %s ', get_the_title( $app_id ) );
@@ -912,6 +926,13 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 		wp_update_post( $post );
 		add_action( 'save_post', array( $this, 'save_meta_values' ), 10, 2 ); // re-add hook.
 	}
+	
+	public function wpcd_app_trash_prompt_messages() {
+		return array(
+			'delete' => apply_filters( 'wpcd_server_delete_prompt', __( 'ALL data on this server will be LOST! Are you really really sure you want to proceed and delete this server?', 'wpcd' ) ),
+			'restore' => __( 'Please note: Rstoring this item will not restore your server or your server data - it will just be an orphaned record without a connection to any server.', 'wpcd' )
+		);
+	}
 
 	/**
 	 * Confirmation prompt for all trash actions on server list/detail screen.
@@ -922,9 +943,10 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 	 * @return true
 	 */
 	public function wpcd_app_trash_prompt() {
+		$messages = $this->wpcd_app_trash_prompt_messages();
 		$screen = get_current_screen();
 		if ( in_array( $screen->id, array( 'edit-wpcd_app_server', 'wpcd_app_server' ), true ) ) {
-			$prompt_message = apply_filters( 'wpcd_server_delete_prompt', __( 'ALL data on this server will be LOST! Are you really really sure you want to proceed and delete this server?', 'wpcd' ) );
+			$prompt_message = isset( $messages['delete'] ) ? $messages['delete'] : '';
 			?>
 			<script type="text/javascript">
 				jQuery(document).ready(function($){
@@ -953,7 +975,7 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 		}
 
 		if ( 'edit-wpcd_app_server' === $screen->id ) {
-			$prompt_message = __( 'Please note: Rstoring this item will not restore your server or your server data - it will just be an orphaned record without a connection to any server.', 'wpcd' );
+			$prompt_message = isset( $messages['restore'] ) ? $messages['restore'] : '';
 			?>
 			<script type="text/javascript">
 				jQuery(document).ready(function($){
@@ -1132,7 +1154,7 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 
 		$post_type = 'wpcd_app_server';
 
-		if ( is_admin() && 'edit.php' === $pagenow && $typenow === $post_type ) {
+		if ( ( is_admin() && $pagenow === 'edit.php' && $typenow === $post_type ) || WPCD_WORDPRESS_APP_PUBLIC::is_servers_list_page() ) {
 
 			$providers = $this->generate_meta_dropdown( $post_type, 'wpcd_server_provider', __( 'All Providers', 'wpcd' ) );
 			echo $providers;
@@ -1175,7 +1197,7 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 
 		$filter_action = filter_input( INPUT_GET, 'filter_action', FILTER_SANITIZE_STRING );
 
-		if ( is_admin() && $query->is_main_query() && 'wpcd_app_server' === $query->query['post_type'] && 'edit.php' === $pagenow && ! wpcd_is_admin() ) {
+		if ( ( ( is_admin() && $query->is_main_query() && $pagenow == 'edit.php' ) || wpcd_is_public_servers_list_query($query) ) && $query->query['post_type'] == 'wpcd_app_server' && ! wpcd_is_admin() ) {
 			$qv          = &$query->query_vars;
 			$post_status = filter_input( INPUT_GET, 'post_status', FILTER_SANITIZE_STRING );
 			$post_status = ! empty( $post_status ) ? $post_status : 'private';
@@ -1188,7 +1210,7 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 			}
 		}
 
-		if ( is_admin() && $query->is_main_query() && 'wpcd_app_server' === $query->query['post_type'] && 'edit.php' === $pagenow && ! empty( $filter_action ) ) {
+		if ( ( ( is_admin() && $query->is_main_query() && $pagenow === 'edit.php' ) || wpcd_is_public_servers_list_query($query) ) && $query->query['post_type'] === 'wpcd_app_server' && $filter_action == 'Filter' ) {
 			$qv = &$query->query_vars;
 
 			// SERVER PROVIDER.
@@ -1270,7 +1292,7 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 			}
 		}
 
-		if ( is_admin() && $query->is_main_query() && 'wpcd_app_server' === $query->query['post_type'] && 'edit.php' === $pagenow && ! empty( $_GET['team_id'] ) && empty( $filter_action ) ) {
+		if ( ( ( is_admin() && $query->is_main_query() && $pagenow === 'edit.php' ) || wpcd_is_public_servers_list_query($query) ) && $query->query['post_type'] === 'wpcd_app_server' && ! empty( $_GET['team_id'] ) && empty( $filter_action ) ) {
 
 			$qv               = &$query->query_vars;
 			$qv['meta_query'] = array();
@@ -1286,7 +1308,7 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 
 		}
 
-		if ( is_admin() && $query->is_main_query() && 'wpcd_app_server' === $query->query['post_type'] && 'edit.php' === $pagenow && ! empty( $_GET['wpcd_app_server_group'] ) && empty( $filter_action ) ) {
+		if ( ( ( is_admin() && $query->is_main_query() && $pagenow === 'edit.php' ) || wpcd_is_public_servers_list_query($query) ) && $query->query['post_type'] === 'wpcd_app_server'  && ! empty( $_GET['wpcd_app_server_group'] ) && empty( $filter_action ) ) {
 
 			$qv = &$query->query_vars;
 
@@ -1443,17 +1465,25 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 	 * @param int $post_id post id.
 	 *
 	 * @return void
-	 */
-	public function wpcd_app_server_delete_post( $post_id ) {
+	 */	
+	public function wpcd_app_server_delete_post( $post_id, $return = false ) {
 
+		$success = true;
 		if ( get_post_type( $post_id ) === 'wpcd_app_server' && ! wpcd_is_admin() ) {
 			$user_id     = (int) get_current_user_id();
 			$post_author = (int) get_post( $post_id )->post_author;
 			if ( ! wpcd_user_can( $user_id, 'delete_server', $post_id ) && $post_author !== $user_id ) {
-				wp_die( esc_html( __( 'You don\'t have permission to delete this post.', 'wpcd' ) ) );
+				$success = false;
 			}
 		}
-
+		
+		if( $return ) {
+			return $success;
+		}
+		
+		if( !$success ) {
+			wp_die( esc_html( __( 'You don\'t have permission to delete this post.', 'wpcd' ) ) );
+		}
 	}
 
 	/**
@@ -1534,10 +1564,10 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 				'menu_position'       => 50,
 				'public'              => true,
 				'exclude_from_search' => true,
-				'publicly_queryable'  => false,
+				'publicly_queryable'  => true,
 				'hierarchical'        => false,
 				'supports'            => array( '' ),
-				'rewrite'             => null,
+				'rewrite'             => ['slug' => 'cloud_server'],
 				'capabilities'        => array(
 					// This value is false so that it does not create the "Add New" menu item.
 					// Creating a server will be handled by a custom button.

@@ -278,10 +278,12 @@ trait wpcd_metaboxes_for_taxonomies_for_servers_and_apps {
 			return '';
 		}
 
+		
+		$name = is_admin() ? $post_type : "_{$post_type}";
 		$html          = '';
-		$html         .= sprintf( '<select name="%s" id="filter-by-%s">', $post_type, $post_type );
+		$html         .= sprintf( '<select name="%s" id="filter-by-%s">', $name, $post_type );
 		$html         .= sprintf( '<option value="">%s</option>', $first_option );
-		$get_field_key = filter_input( INPUT_GET, $post_type, FILTER_SANITIZE_STRING );
+		$get_field_key = filter_input( INPUT_GET, $name, FILTER_SANITIZE_STRING );
 
 		foreach ( $posts as $p ) {
 			$post_id    = $p->ID;

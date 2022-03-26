@@ -2610,6 +2610,43 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	}
 
 
+	public function ajax_server_handle_create_popup( $view = 'admin' ) {
+		
+		/* Check permissions */
+		if ( ! current_user_can( 'wpcd_provision_servers' ) ) {
+			$invalid_msg = __( 'You don\'t have access to provision a server.', 'wpcd' );
+			if( $view == 'public' ) {
+				echo $invalid_msg;
+			} else {
+				echo wp_send_json_error( array( 'msg' => $invalid_msg ) );
+			}
+			return;
+		}
+
+		/* Get list of directories within specified directory */
+		$dir_path        = wpcd_path . 'includes/core/apps/wordpress-app/scripts';
+		$dir_list        = wpcd_get_dir_list( $dir_path );
+		$scripts_version = wpcd_get_option( "{$this->get_app_name()}_script_version" );
+		if ( empty( $scripts_version ) ) {
+			$scripts_version = 'v1';
+		}
+
+		/* Get list of regions */
+		$provider_regions = $this->add_provider_support();
+
+		/* Get the list of providers - we'll need it in the popup area */
+		$providers = $this->get_active_providers();
+
+		/* Get list of OSes */
+		$oslist = WPCD()->get_os_list();
+
+		/* Get list of webservers */
+		$webserver_list = WPCD()->get_webserver_list();
+
+		/* Include the popup file */
+		include apply_filters( "wpcd_{$this->get_app_name()}_create_popup", wpcd_path . 'includes/core/apps/wordpress-app/templates/create-popup.php' );
+	}
+	
 	/**
 	 * Single entry point for all ajax actions for server.
 	 */
@@ -2652,38 +2689,10 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 			/* Show the popup that asks the admin for server details when installing/deploying a new server */
 			case 'create-popup':
-				/* Check permissions */
-				if ( ! current_user_can( 'wpcd_provision_servers' ) ) {
-					$invalid_msg = __( 'You don\'t have access to provision a server.', 'wpcd' );
-					echo wp_send_json_error( array( 'msg' => $invalid_msg ) );
-					break;
-				}
-
-				/* Get list of directories within specified directory */
-				$dir_path        = wpcd_path . 'includes/core/apps/wordpress-app/scripts';
-				$dir_list        = wpcd_get_dir_list( $dir_path );
-				$scripts_version = wpcd_get_option( "{$this->get_app_name()}_script_version" );
-				if ( empty( $scripts_version ) ) {
-					$scripts_version = 'v1';
-				}
-
-				/* Get list of regions */
-				$provider_regions = $this->add_provider_support();
-
-				/* Get the list of providers - we'll need it in the popup area */
-				$providers = $this->get_active_providers();
-
-				/* Get list of OSes */
-				$oslist = WPCD()->get_os_list();
-
-				/* Get list of webservers */
-				$webserver_list = WPCD()->get_webserver_list();
-
-				/* Include the popup file */
-				include apply_filters( "wpcd_{$this->get_app_name()}_create_popup", wpcd_path . 'includes/core/apps/wordpress-app/templates/create-popup.php' );
-
+				$this->ajax_server_handle_create_popup();
+				
 				/* And exit */
-				wp_die();
+ 				wp_die();
 				break;
 
 			/* Just show the log console template */
@@ -3765,7 +3774,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	public function wpapp_enqueue_scripts( $hook ) {
 		if ( in_array( $hook, array( 'post.php' ) ) ) {
 			$screen = get_current_screen();
-			if ( is_object( $screen ) && 'wpcd_app' == $screen->post_type ) {
+			if ( ( is_object( $screen ) && 'wpcd_app' == $screen->post_type ) || WPCD_WORDPRESS_APP_PUBLIC::is_app_edit_page()  ) {
 				wp_enqueue_script( 'wpcd-wpapp-admin-common', wpcd_url . 'includes/core/apps/wordpress-app/assets/js/wpcd-wpapp-admin-common.js', array( 'jquery', 'wpcd-magnific' ), wpcd_scripts_version, true );
 				wp_localize_script(
 					'wpcd-wpapp-admin-common',
@@ -3786,7 +3795,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				);
 			}
 
-			if ( is_object( $screen ) && ( 'wpcd_app' === $screen->post_type || 'wpcd_app_server' === $screen->post_type ) ) {
+			if ( ( is_object( $screen ) && ( 'wpcd_app' === $screen->post_type || 'wpcd_app_server' === $screen->post_type ) ) || WPCD_WORDPRESS_APP_PUBLIC::is_app_edit_page() || WPCD_WORDPRESS_APP_PUBLIC::is_server_edit_page() ) {
 				wp_enqueue_script( 'wpcd-wpapp-admin', wpcd_url . 'includes/core/apps/wordpress-app/assets/js/wpcd-wpapp-admin-app.js', array( 'jquery', 'wpcd-magnific' ), wpcd_scripts_version, true );
 				wp_localize_script(
 					'wpcd-wpapp-admin',
@@ -3810,7 +3819,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 		if ( in_array( $hook, array( 'edit.php' ) ) ) {
 			$screen = get_current_screen();
-			if ( is_object( $screen ) && in_array( $screen->post_type, array( 'wpcd_app' ) ) ) {
+			if ( ( is_object( $screen ) && in_array( $screen->post_type, array( 'wpcd_app' ) ) ) || WPCD_WORDPRESS_APP_PUBLIC::is_apps_list_page() ) {
 				wp_enqueue_style( 'wpcd-wpapp-admin-app-css', wpcd_url . 'includes/core/apps/wordpress-app/assets/css/wpcd-wpapp-admin-app.css', array(), wpcd_scripts_version );
 
 				wp_enqueue_script( 'wpcd-wpapp-admin-post-type-wpcd-app', wpcd_url . 'includes/core/apps/wordpress-app/assets/js/wpcd-wpapp-admin-post-type-wpcd-app.js', array( 'jquery' ), wpcd_scripts_version, true );
@@ -3838,7 +3847,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		$screen     = get_current_screen();
 		$post_types = array( 'wpcd_app_server', 'wpcd_app', 'wpcd_team', 'wpcd_permission_type', 'wpcd_command_log', 'wpcd_ssh_log', 'wpcd_error_log', 'wpcd_pending_tasks_log' );
 
-		if ( is_object( $screen ) && in_array( $screen->post_type, $post_types ) ) {
+		if ( ( is_object( $screen ) && in_array( $screen->post_type, $post_types ) ) || WPCD_WORDPRESS_APP_PUBLIC::is_public_page() ) {
 			wp_enqueue_script( 'wpcd-admin-common', wpcd_url . 'includes/core/apps/wordpress-app/assets/js/wpcd-admin-common.js', array( 'jquery' ), wpcd_scripts_version, true );
 			wp_localize_script(
 				'wpcd-admin-common',
@@ -4063,7 +4072,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 		$post_type = 'wpcd_app';
 
-		if ( is_admin() && 'edit.php' === $pagenow && $typenow == $post_type ) {
+		if ( ( is_admin() && 'edit.php' === $pagenow && $typenow == $post_type ) || WPCD_WORDPRESS_APP_PUBLIC::is_apps_list_page() ) {
 
 			// APP STATUS.
 			$app_status_options = array(

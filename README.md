@@ -142,6 +142,7 @@ Note: Even though the entire git development history isn't available on github, 
 * Dev: Integrate the wisdom plugin.
 * Dev: Update to latest version of metabox.io components.
 * Dev: Add New filter hook - wpcd_get_active_cloud_providers.
+* Dev: WPAPP - Add New filter hook - wpcd_wordpress-app_show_deploy_server_button.
 
 4.15.0
 ------

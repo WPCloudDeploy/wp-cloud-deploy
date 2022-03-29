@@ -1152,7 +1152,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			'add_new' => __( 'Deploy A New WordPress Server', 'wpcd' ),
 			'done'    => __( 'The command has completed.', 'wpcd' ),
 		);
-		$args['user_can_provision_servers'] = current_user_can( 'wpcd_provision_servers' );
+		$args['user_can_provision_servers'] = apply_filters( "wpcd_{$this->get_app_name()}_show_deploy_server_button", current_user_can( 'wpcd_provision_servers' ) );  // Filter: wpcd_wordpress-app_show_deploy_server_button.
 		return $args;
 	}
 

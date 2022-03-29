@@ -1116,7 +1116,7 @@ class WP_CLOUD_DEPLOY {
 			}
 		}
 
-		return $providers;
+		return apply_filters( 'wpcd_get_active_cloud_providers', $providers );
 
 	}
 

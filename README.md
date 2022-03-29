@@ -141,7 +141,7 @@ Note: Even though the entire git development history isn't available on github, 
 * Dev: WPAPP - New action hook on the copy-to-existing-site action (wpcd_app_wordpress-app_before_action_copy_to_existing_site).
 * Dev: Integrate the wisdom plugin.
 * Dev: Update to latest version of metabox.io components.
-
+* Dev: Add New filter hook - wpcd_get_active_cloud_providers.
 
 4.15.0
 ------

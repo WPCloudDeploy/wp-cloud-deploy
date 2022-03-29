@@ -99,7 +99,7 @@ class WPCD_APP extends WPCD_Base {
 	 *
 	 * Right now this is effectively the same as WPCD()->get_cloud_providers()
 	 * which is ALL Providers.
-	 * But, we're including this function in the event that this VPN app
+	 * But, we're including this function in the event that this app
 	 * needs to modify the list before returning it to the caller.
 	 *
 	 * @return array

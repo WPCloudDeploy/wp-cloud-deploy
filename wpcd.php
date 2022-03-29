@@ -201,6 +201,11 @@ class WPCD_Init {
 		require_once wpcd_path . 'includes/core/class-wpcd-posts-pending-tasks-log.php';
 		WPCD_PENDING_TASKS_LOG::activate( $network_wide );
 
+		// Set cron for set some options that the Wisdom plugin will pick up.
+		if ( ! wp_next_scheduled( 'wpcd_wisdom_custom_options' ) ) {
+			wp_schedule_event( time(), 'twicedaily', 'wpcd_wisdom_custom_options' );
+		}
+
 		flush_rewrite_rules();
 	}
 
@@ -246,6 +251,9 @@ class WPCD_Init {
 		require_once wpcd_path . 'includes/core/class-wpcd-posts-log.php';
 		require_once wpcd_path . 'includes/core/class-wpcd-posts-pending-tasks-log.php';
 		WPCD_PENDING_TASKS_LOG::deactivate( $network_wide );
+
+		// Clear old cron.
+		wp_unschedule_hook( 'wpcd_wisdom_custom_options' );
 	}
 
 	/**

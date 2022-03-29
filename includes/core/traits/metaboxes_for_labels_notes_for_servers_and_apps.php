@@ -38,6 +38,14 @@ trait wpcd_metaboxes_for_labels_notes_for_servers_and_apps {
 
 		$post_id   = filter_input( INPUT_GET, 'post', FILTER_SANITIZE_NUMBER_INT );
 		$post_type = $this->get_post_type( $post_id );
+		
+		// Check to see if this should be displayed.  The id of the permission is 'desc_notes_metabox'.
+		if ( ! wpcd_can_author_view_server_feature( $post_id, 'desc_notes_metabox' ) ) {
+			return $metaboxes;
+		}
+		if ( ! wpcd_can_author_view_site_feature( $post_id, 'desc_notes_metabox' ) ) {
+			return $metaboxes;
+		}		
 
 		$prefix = 'wpcd_';
 

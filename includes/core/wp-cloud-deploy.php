@@ -1159,4 +1159,62 @@ class WP_CLOUD_DEPLOY {
 			WPCD()->classes['wpcd_roles_capabilities'] = new WPCD_ROLES_CAPABILITIES();
 		}
 	}
+	
+	/**
+	 * Returns a server post object using the postid of an app.
+	 *
+	 * @param int $app_id  The app for which to locate the server post.
+	 *
+	 * @return array|boolean Server post or false or error message
+	 */
+	public function get_server_by_app_id( $app_id ) {
+
+		// If for some reason the $app_id is actually a server id return the server data right away.
+		if ( 'wpcd_app_server' == get_post_type( $app_id ) ) {
+			return get_post( $app_id );
+		}
+
+		// Get the app post.
+		$app_post = get_post( $app_id );
+
+		if ( ! empty( $app_post ) && ! is_wp_error( $app_post ) ) {
+
+			$server_post = get_post( get_post_meta( $app_post->ID, 'parent_post_id', true ) );
+
+			return $server_post;
+
+		} else {
+
+			return false;
+
+		}
+
+		return false;
+	}
+
+	/**
+	 * Returns whether a site is a staging site.
+	 *
+	 * Note: We're commingling some things here because 
+	 * only the wordpres-app has the concept of "staging".
+	 * So this should be in that app class but putting 
+	 * it here because we need it in some global functions.
+	 * And there is always the possibility that a future app
+	 * will have both staging and production types.
+	 *
+	 * @param int $app_id ID of app being interrogated.
+	 *
+	 * @return boolean
+	 */
+	public function is_staging_site( $app_id ) {
+
+		$is_staging = (int) get_post_meta( $app_id, 'wpapp_is_staging', true );
+
+		if ( 1 === $is_staging ) {
+			return true;
+		} else {
+			return false;
+		}
+
+	}	
 }

@@ -111,7 +111,7 @@ function wpcd_init_wpcd_dns() {
 /**
  * Function for calling WPCD_DNS methods and variables
  *
- * @return WPCD_DSN;
+ * @return WPCD_DNS;
  */
 function WPCD_DNS() {
 	return WPCD()->classes['WPCD_DNS'];

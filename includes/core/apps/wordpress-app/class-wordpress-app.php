@@ -979,14 +979,8 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	 */
 	public function is_staging_site( $app_id ) {
 
-		$is_staging = (int) get_post_meta( $app_id, 'wpapp_is_staging', true );
-
-		if ( 1 === $is_staging ) {
-			return true;
-		} else {
-			return false;
-		}
-
+		return WPCD()->is_staging_site( $app_id );
+		
 	}
 
 	/**

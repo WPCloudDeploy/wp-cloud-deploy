@@ -553,19 +553,21 @@ class WPCD_Init {
 	 * @return void
 	 */
 	public function wpcd_plugin_update_message( $data, $response ) {
-		if ( isset( $data['upgrade_notice'] ) ) {
-			printf(
-				'<div class="update-message">%s</div>',
-				wp_kses_post( wpautop( $data['upgrade_notice'] ) )
-			);
-		} else {
-			$release_notes      = wpcd_get_string_between( $data['sections']->changelog, '<p>', '<p>' );  // Grab data between two paragraph tags - this gives us the raw release notes for the most recent release.
-			$release_notes      = wpcd_get_string_between( $data['sections']->changelog, '<ul>', '</ul>' ); // Just grab the list and remove everthing above and below it.
-			$release_notes_link = '<br /><a href="https://wpclouddeploy.com/category/release-notes/" target="_blank">' . __( 'View friendly release notes to learn about any breaking changes that might affect you.', 'wpcd' ) . '</a>';
-			printf(
-				'<div class="update-message">%s</div>',
-				'<br />' . wp_kses_post( $release_notes ) . wp_kses_post( $release_notes_link )
-			);
+		if ( ! defined( 'WPCD_HIDE_CHANGELOG_IN_PLUGIN_LIST' ) || ( defined( 'WPCD_HIDE_CHANGELOG_IN_PLUGIN_LIST' ) && ! WPCD_HIDE_CHANGELOG_IN_PLUGIN_LIST ) ) {
+			if ( isset( $data['upgrade_notice'] ) ) {
+				printf(
+					'<div class="update-message">%s</div>',
+					wp_kses_post( wpautop( $data['upgrade_notice'] ) )
+				);
+			} else {
+				$release_notes      = wpcd_get_string_between( $data['sections']->changelog, '<p>', '<p>' );  // Grab data between two paragraph tags - this gives us the raw release notes for the most recent release.
+				$release_notes      = wpcd_get_string_between( $data['sections']->changelog, '<ul>', '</ul>' ); // Just grab the list and remove everthing above and below it.
+				$release_notes_link = '<br /><a href="https://wpclouddeploy.com/category/release-notes/" target="_blank">' . __( 'View friendly release notes to learn about any breaking changes that might affect you.', 'wpcd' ) . '</a>';
+				printf(
+					'<div class="update-message">%s</div>',
+					'<br />' . wp_kses_post( $release_notes ) . wp_kses_post( $release_notes_link )
+				);
+			}
 		}
 	}
 

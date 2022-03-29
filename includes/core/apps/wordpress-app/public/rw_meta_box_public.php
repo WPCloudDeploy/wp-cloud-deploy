@@ -1,15 +1,9 @@
 <?php
 
-/* 
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+/**
+ * Custom metabox class for public view
  */
-
 class RW_Meta_Box_Public extends RW_Meta_Box {
-	
-	
-
 	
 	protected function global_hooks() {
 		// Enqueue common styles and scripts.
@@ -20,7 +14,4 @@ class RW_Meta_Box_Public extends RW_Meta_Box {
 			RWMB_Field::call( $field, 'add_actions' );
 		}
 	}
-	
-	
-	
 }

@@ -1173,16 +1173,39 @@ add_action( "wpcd_wordpress-app_create_popup_after_form_open", 'wpcd_test_create
 */
 
 
-
+/**
+ * Check if wp_query is for front-end servers listing page
+ * 
+ * @param object $query
+ * 
+ * @return boolean
+ */
 function wpcd_is_public_servers_list_query( $query ) {
 	return isset( $query->query['wpcd_app_server_front'] ) && $query->query['wpcd_app_server_front'];
 }
 
-
+/**
+ * Check if wp_query is for front-end apps listing page
+ * 
+ * @param object $query
+ * 
+ * @return boolean
+ */
 function wpcd_is_public_apps_list_query( $query ) {
 	return isset( $query->query['wpcd_app_front'] ) && $query->query['wpcd_app_front'];
 }
 
+/**
+ * Check if a user can edit a server or app.
+ * 
+ * @global object $post
+ * 
+ * @param null|int $server_id
+ * @param null|int $user_id
+ * @param string $type
+ * 
+ * @return boolean
+ */
 function wpcd_user_can_edit_app_server( $server_id = null, $user_id = null, $type = 'server' ) {
 	
 	if( null === $server_id ) {
@@ -1207,7 +1230,13 @@ function wpcd_user_can_edit_app_server( $server_id = null, $user_id = null, $typ
 	return !( ! wpcd_user_can( $user_id, 'view_' . $type, $server_id ) && $post_author != $user_id );
 }
 
-
+/**
+ * Return server id from current page url for front-end or from query var on backend
+ * 
+ * @global object $post
+ * 
+ * @return string|int
+ */
 function wpcd_get_current_page_server_id() {
 	
 	$id = '';
@@ -1224,8 +1253,4 @@ function wpcd_get_current_page_server_id() {
 	}
 	
 	return $id;
-}
-
-function wpcd_get_url_to_post_id( $url ) {
-	return url_to_postid(  $url  );
 }

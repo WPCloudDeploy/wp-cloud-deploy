@@ -599,7 +599,11 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 		return $server_meta_value;
 	}
 	
-	
+	/**
+	 * Return prompt messages while deleting/restoring an app
+	 * 
+	 * @return array
+	 */
 	public function wpcd_app_trash_prompt_messages() {
 		return array(
 			'delete' => __( 'Are you sure? This will only delete the data from our database.  The application itself will remain on your server. To remove a WordPress app from the server, cancel this operation and use the REMOVE SITE option under the MISC tab.', 'wpcd' ),

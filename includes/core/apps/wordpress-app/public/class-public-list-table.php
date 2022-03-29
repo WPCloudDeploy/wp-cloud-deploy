@@ -1,6 +1,7 @@
 <?php
 
 /**
+ * Parent class to display servers or apps table on front-end
  * 
  * @author Tahir Nazir
  */
@@ -11,18 +12,43 @@ if( !class_exists( 'WP_Posts_List_Table' ) ) {
 }
 
 class WPCD_Public_List_Table extends WP_List_Table {
-	protected $order;
-	protected $orderby;
+	
+	/**
+	 * Items per page
+	 * 
+	 * @var int 
+	 */
 	protected $posts_per_page = 10;
+	
+	/**
+	 * Post type
+	 * 
+	 * @var string 
+	 */
 	protected $post_type;
+	
+	/**
+	 * Base url of displaying page on front-end
+	 * 
+	 * @var string
+	 */
 	protected $base_url;
+	
+	/**
+	 * Posts count based on status
+	 * 
+	 * @var array
+	 */
 	protected $status_post_counts = array();
 
 
-
+	/**
+	 * Constructor
+	 * 
+	 * @param array $args
+	 */
 	public function __construct( $args = array() ) {
 		
-		$this->post_type = isset( $args['post_type'] ) ? $args['post_type'] : '';
 		$this->base_url = isset( $args['base_url'] ) ? $args['base_url'] : '';
 		
 		parent:: __construct( array(
@@ -30,17 +56,8 @@ class WPCD_Public_List_Table extends WP_List_Table {
 			'plural'   => 'table examples',
 			'ajax'     => false
 		) );
-		
-		$this->set_order();
-		$this->set_orderby();
 	}
 
-
-	public function get_instance(){
-	  return $this;
-	}
-	
-	
 	/**
 	 * Gets the current page number.
 	 *
@@ -50,7 +67,6 @@ class WPCD_Public_List_Table extends WP_List_Table {
 	 */
 	public function get_pagenum() {
 		
-		
 		$pagenum = 0;
 		if( isset( $_REQUEST['paged'] ) ) {
 			$pagenum = absint( $_REQUEST['paged'] );
@@ -58,28 +74,11 @@ class WPCD_Public_List_Table extends WP_List_Table {
 			$pagenum = get_query_var('paged');
 		}
 		
-		
-
 		if ( isset( $this->_pagination_args['total_pages'] ) && $pagenum > $this->_pagination_args['total_pages'] ) {
 			$pagenum = $this->_pagination_args['total_pages'];
 		}
 
 		return max( 1, $pagenum );
-	}
-
-
-	public function set_order() {
-		$order = 'DESC';
-		if ( isset( $_GET['order'] ) AND $_GET['order'] )
-			$order = $_GET['order'];
-		$this->order = esc_sql( $order );
-	}
-
-	public function set_orderby() {
-		$orderby = 'post_date';
-		if ( isset( $_GET['orderby'] ) AND $_GET['orderby'] )
-			$orderby = $_GET['orderby'];
-		$this->orderby = esc_sql( $orderby );
 	}
 
 	/**
@@ -90,22 +89,24 @@ class WPCD_Public_List_Table extends WP_List_Table {
 		return current_user_can( 'edit_posts' );
 	}
 
-	
 	/**
-	 * @see WP_List_Table::get_sortable_columns()
+	 * Return item title with hyper link if item is viewable
+	 * 
+	 * @param type $item
+	 * 
+	 * @return string
 	 */
-	public function get_sortable_columns()
-	{
-		$sortable = array(
-			'ID'         => array( 'ID', true ),
-			'post_title' => array( 'post_title', true ),
-			'post_date'  => array( 'post_date', true )
-		);
-		return $sortable;
+	protected function getTitleColumn( $item ) {
+		$post_type_object = get_post_type_object( $item->post_type );
+		if ( is_post_type_viewable( $post_type_object ) && 'trash' !== $item->post_status ) {
+			return sprintf( '<a href="%s">%s</a>', get_permalink( $item->ID ), $item->post_title );
+		}
+		return $item->post_title;
 	}
 
 	/**
 	 * Prepare data for display
+	 * 
 	 * @see WP_List_Table::prepare_items()
 	 */
 	public function prepare_items()
@@ -129,24 +130,29 @@ class WPCD_Public_List_Table extends WP_List_Table {
 		}
 		
 		
+		$posts_by_status = array();
 		$items = array();
 		
-		$_status = isset( $_REQUEST['post_status'] ) ? $_REQUEST['post_status'] : '';
-		
-		if( $_status ) {
-			
-			foreach( $posts as $p ) {
-				
-				if( $_status == $p->post_status ) {
-					$items[]= $p;
-				}
-			}
-			
-			$posts = $items;
+		foreach( $posts as $p ) {
+			$posts_by_status[$p->post_status][] = $p;
 		}
 		
+		$_status = isset( $_REQUEST['post_status'] ) ? $_REQUEST['post_status'] : '';
+		if( $_status ) {
+			$items = isset( $posts_by_status[$_status] ) ? $posts_by_status[$_status] : array();
+		} else {
+			
+			$all_statuses = get_post_stati( array( 'show_in_admin_all_list' => true ) );
+			
+			foreach( $posts as $p ) {
+				if( !in_array($p->post_status, $all_statuses ) ) {
+					continue;
+				}
+				$items[] = $p;
+			}
+		}
 		
-		
+		$posts = $items;
 		
 		
 		empty( $posts ) AND $posts = array();
@@ -183,6 +189,15 @@ class WPCD_Public_List_Table extends WP_List_Table {
 		$this->items = $posts_array;
 	}
 	
+	/**
+	 * Return link for status view item
+	 * 
+	 * @param array $args
+	 * @param string $label
+	 * @param string $class
+	 * 
+	 * @return string
+	 */
 	protected function get_status_link( $args, $label, $class = '' ) {
 		
 		$url = add_query_arg( $args, $this->base_url );
@@ -210,9 +225,11 @@ class WPCD_Public_List_Table extends WP_List_Table {
 		);
 	}
 
-
-
-
+	/**
+	 * Return status view links
+	 * 
+	 * @return array
+	 */
 	protected function get_views() {
 		
 		$class = '';
@@ -220,7 +237,16 @@ class WPCD_Public_List_Table extends WP_List_Table {
 			$class = 'current';
 		}		
 		
-		$label = sprintf('%s <span class="count">(%s)</span>', __('All', 'wpcd'), array_sum( $this->status_post_counts ) );
+		$num_posts    = wp_count_posts( $this->post_type, 'readable' );
+		
+		$total_posts  = array_sum( (array) $num_posts );
+		
+		// Subtract post types that are not included in the admin all list.
+		foreach ( get_post_stati( array( 'show_in_admin_all_list' => false ) ) as $state ) {
+			$total_posts -= $num_posts->$state;
+		}
+		
+		$label = sprintf('%s <span class="count">(%s)</span>', __('All', 'wpcd'), $total_posts );
 		$status_links['all'] = $this->get_status_link( [], $label, $class );
 		
 		foreach( $this->status_post_counts as $status => $count ) {
@@ -240,11 +266,6 @@ class WPCD_Public_List_Table extends WP_List_Table {
 		
 		?>
 		<div class="tablenav <?php echo esc_attr( $which ); ?>">
-			<!--
-			<div class="alignleft actions">
-				<?php # $this->bulk_actions( $which ); ?>
-			</div>
-			 -->
 			<?php
 			$this->extra_tablenav( $which );
 			$this->pagination( $which );
@@ -258,8 +279,6 @@ class WPCD_Public_List_Table extends WP_List_Table {
 	 * @param string $which
 	 */
 	protected function extra_tablenav( $which ) {
-		
-		
 		?>
 		<div class="alignleft actions">
 		<?php

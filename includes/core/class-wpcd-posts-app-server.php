@@ -177,6 +177,9 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 		return $actions;
 	}
 	
+	/*
+	 * Register common styles/scripts for the servers/apps.
+	 */
 	public function enqueue_server_post_common_scripts() {
 		
 		wp_register_script( 'wpcd-select2-js', wpcd_url . 'assets/js/select2.min.js', array( 'jquery' ), wpcd_scripts_version, true );
@@ -223,7 +226,11 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 		
 	}
 	
-	
+	/**
+	 * Register server post chart style/scripts.
+	 * 
+	 * @global object $post
+	 */
 	public function enqueue_server_post_chart_scripts() {
 		global $post;
 		
@@ -927,6 +934,11 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 		add_action( 'save_post', array( $this, 'save_meta_values' ), 10, 2 ); // re-add hook.
 	}
 	
+	/**
+	 * Return prompt messages while deleting/restoring a server
+	 * 
+	 * @return array
+	 */
 	public function wpcd_app_trash_prompt_messages() {
 		return array(
 			'delete' => apply_filters( 'wpcd_server_delete_prompt', __( 'ALL data on this server will be LOST! Are you really really sure you want to proceed and delete this server?', 'wpcd' ) ),

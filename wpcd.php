@@ -263,15 +263,13 @@ class WPCD_Init {
 		/* Include the SETTINGS PAGE and other related metabox.io extension files */
 		require_once wpcd_path . 'required_plugins/mb-settings-page/mb-settings-page.php';
 
-		//if ( is_admin() ) {
-			require_once wpcd_path . '/required_plugins/mb-admin-columns/mb-admin-columns.php';
-			require_once wpcd_path . '/required_plugins/meta-box-tabs/meta-box-tabs.php';
-			require_once wpcd_path . '/required_plugins/meta-box-tooltip/meta-box-tooltip.php';
-			require_once wpcd_path . '/required_plugins/mb-term-meta/mb-term-meta.php';
-			require_once wpcd_path . '/required_plugins/meta-box-columns/meta-box-columns.php';
-			require_once wpcd_path . '/required_plugins/meta-box-group/meta-box-group.php';
-			require_once wpcd_path . '/required_plugins/mb-user-meta/mb-user-meta.php';
-		//}
+		require_once wpcd_path . '/required_plugins/mb-admin-columns/mb-admin-columns.php';
+		require_once wpcd_path . '/required_plugins/meta-box-tabs/meta-box-tabs.php';
+		require_once wpcd_path . '/required_plugins/meta-box-tooltip/meta-box-tooltip.php';
+		require_once wpcd_path . '/required_plugins/mb-term-meta/mb-term-meta.php';
+		require_once wpcd_path . '/required_plugins/meta-box-columns/meta-box-columns.php';
+		require_once wpcd_path . '/required_plugins/meta-box-group/meta-box-group.php';
+		require_once wpcd_path . '/required_plugins/mb-user-meta/mb-user-meta.php';		
 
 		/* Load up some licensing files. */
 		if ( true === is_admin() ) {

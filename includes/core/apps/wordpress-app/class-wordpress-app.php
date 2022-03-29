@@ -2610,6 +2610,13 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	}
 
 
+	/**
+	 * Return create server popup view
+	 * 
+	 * @param string $view 
+	 * 
+	 * @return void|string
+	 */
 	public function ajax_server_handle_create_popup( $view = 'admin' ) {
 		
 		/* Check permissions */

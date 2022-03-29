@@ -1,7 +1,8 @@
 <?php
 
 /**
- *
+ * Class to display server apps table on front-end
+ * 
  * @author Tahir Nazir
  */
 
@@ -10,30 +11,32 @@ if( !class_exists( 'WPCD_Public_List_Table' ) ) {
 }
 
 class WPCD_Server_Apps_List_Table extends WPCD_Public_List_Table {
-	protected $order;
-	protected $orderby;
-	protected $posts_per_page = 10;
-
-	public function __construct( $args ) {
+	
+	/**
+	 * Constructor
+	 * 
+	 * @param array $args
+	 */
+	public function __construct( $args = array() ) {
 		
-		$this->post_type = 'wpcd-app';
+		$this->post_type = 'wpcd_app';
 		
 		parent::__construct( $args );
 		$this->prepare_items();
 	}
-
-
-	public function get_instance(){
-	  return $this;
-	}
 	
-	
+	/**
+	 * Return app posts for listing
+	 * 
+	 * @return array
+	 */
 	protected function get_sql_results() {
 	
 		return get_posts(array(
 			'post_type' => 'wpcd_app',
-			'post_status' => ['publish', 'private', 'draft', 'trash', 'pending', 'future'],
-			'wpcd_app_front' => true
+			'post_status' => 'all',
+			'wpcd_app_front' => true,
+			'posts_per_page' => -1
 		));
 		
 	}
@@ -47,7 +50,7 @@ class WPCD_Server_Apps_List_Table extends WPCD_Public_List_Table {
 	}
 
 	/**
-	 * @see WP_List_Table::no_items()
+	 * Print no item message
 	 */
 	public function no_items()
 	{
@@ -55,7 +58,9 @@ class WPCD_Server_Apps_List_Table extends WPCD_Public_List_Table {
 	}
 
 	/**
-	 * @see WP_List_Table::get_columns()
+	 * Return table columns
+	 * 
+	 * @return array
 	 */
 	public function get_columns() {
 
@@ -69,7 +74,15 @@ class WPCD_Server_Apps_List_Table extends WPCD_Public_List_Table {
 		return $columns;
 	}
 
-	
+	/**
+	 * Row action, view|trash|delete etc
+	 * 
+	 * @param object $post
+	 * @param string $column_name
+	 * @param string $primary
+	 * 
+	 * @return string|array
+	 */
 	protected function handle_row_actions($post, $column_name, $primary) {
 		if ( $primary !== $column_name ) {
 			return '';
@@ -112,7 +125,6 @@ class WPCD_Server_Apps_List_Table extends WPCD_Public_List_Table {
 			}
 
 			if ( 'trash' === $post->post_status || ! EMPTY_TRASH_DAYS ) {
-//				
 				$actions['wpcd_public_app_delete'] = sprintf(
 					'<a class="wpcd_public_row_del_item_action" data-wpcd-action="delete" data-wpcd-type="app" data-wpcd-id="%d" data-wpcd-nonce="%s" href="#">%s</a>',
 					$post->ID,
@@ -137,12 +149,11 @@ class WPCD_Server_Apps_List_Table extends WPCD_Public_List_Table {
 		
 		switch ( $column_name ) {
 			case 'title' :
-				return $item->post_title;
+				return $this->getTitleColumn( $item );
 				break;
 			default :
 				
 				ob_start();
-				
 				
 				do_action( 'manage_wpcd_app_posts_custom_column', $column_name, $item->ID ); 
 				return ob_get_clean();

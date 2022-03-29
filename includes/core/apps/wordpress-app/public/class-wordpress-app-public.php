@@ -1,6 +1,6 @@
 <?php
 /**
- * WordPress App WPCD_WORDPRESS_APP.
+ * Handle all features related to front-end
  *
  * @package wpcd
  */
@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Class WPCD_WORDPRESS_APP
+ * Class WPCD_WORDPRESS_APP_PUBLIC
  */
 
 class WPCD_WORDPRESS_APP_PUBLIC {
@@ -22,8 +22,18 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 	 */
 	private static $instance;
 	
+	/**
+	 * is it server edit page
+	 * 
+	 * @var null|boolean 
+	 */
 	public $is_server_edit_page = null;
 	
+	/**
+	 * is it app listing page
+	 * 
+	 * @var null|boolean  
+	 */
 	public $is_apps_listing_page = null;
 
 
@@ -42,6 +52,9 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 		return self::$instance;
 	}
 	
+	/**
+	 * Constructor
+	 */
 	public function __construct() {
 		
 		if( !is_admin() ) {
@@ -51,7 +64,9 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 		}
 	}
 	
-	
+	/**
+	 * Register hooks for front-end
+	 */
 	private function public_hooks() {
 		
 		// Make sure WordPress loads up our css and js scripts on frontend
@@ -74,7 +89,7 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 	
 	
 	/**
-	 * Single entry point for all ajax actions for app.
+	 * Single entry point for all public ajax actions.
 	 */
 	public function ajax_public() {
 		
@@ -207,7 +222,11 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 		die();
 	}
 	
-
+	/**
+	 * Return deploy server view
+	 * 
+	 * @return string
+	 */
 	function wpcd_deploy_server() {
 		
 		ob_start();
@@ -217,7 +236,11 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 		return '<div id="wpcd_public_wrapper">' . $content . '</div>';
 	}
 	
-	
+	/**
+	 * Inline style to handle width issue
+	 * 
+	 * @return string
+	 */
 	public function inline_style() {
 		
 		if( !self::is_public_page() || !class_exists( 'RW_Meta_Box' ) ) {
@@ -234,9 +257,9 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 	}
 	
 	/**
-	 * Register the scripts for custom post types for the wp app.
-	 *
-	 * @param string $hook The page name hook.
+	 * Register the scripts for front-end.
+	 * 
+	 * @return void
 	 */
 	public function enqueue_scripts() {
 		
@@ -255,7 +278,6 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 		WPCD_POSTS_APP_SERVER()->enqueue_server_post_common_scripts();
 		
 		if ( self::is_server_edit_page() ) {
-		//if ( self::is_server_edit_page() || self::is_app_edit_page() ) {
 			WPCD_POSTS_APP_SERVER()->enqueue_server_post_chart_scripts();
 		}
 		
@@ -276,18 +298,31 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 		wp_enqueue_style( 'wpcd-public-common', wpcd_url . 'includes/core/apps/wordpress-app/assets/css/wpcd-public-common.css', wpcd_scripts_version, true );
 	}
 	
+	/**
+	 * Register custom metabox class name
+	 * 
+	 * @param string $name
+	 * @param array $setting
+	 * 
+	 * @return string
+	 */
 	public function rwmb_meta_box_class_name( $name, $setting ) {
 		
 		if( 'RW_Meta_Box' === $name && ( self::is_server_edit_page() || self::is_app_edit_page() ) ) {
 			$name = 'RW_Meta_Box_Public';
 			require_once wpcd_path . 'includes/core/apps/wordpress-app/public/rw_meta_box_public.php';
 		}
-		
 		return $name;
 	}
 	
-	
-	function public_single_server_content($content) {
+	/**
+	 * Return single server content
+	 * 
+	 * @param string $content
+	 * 
+	 * @return string
+	 */
+	function public_single_server_content( $content ) {
 		
 		if( self::is_server_edit_page() ) {
 			if( wpcd_user_can_edit_app_server() && class_exists( 'RW_Meta_Box' ) ) {
@@ -317,7 +352,14 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 		return $content;
 	}
 	
-	function public_single_app_content($content) {
+	/**
+	 * Return single server app content
+	 * 
+	 * @param string $content
+	 * 
+	 * @return string
+	 */
+	function public_single_app_content( $content ) {
 		
 		if( self::is_app_edit_page() ) {
 			if( wpcd_user_can_edit_app_server(null, null, 'app') && class_exists( 'RW_Meta_Box' ) ) {
@@ -348,7 +390,13 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 	}
 	
 	
-	
+	/**
+	 * Customize query for front-end pages
+	 * 
+	 * @param object $query
+	 * 
+	 * @return object
+	 */
 	function pre_get_posts( $query ) {
 		
 		if( is_admin() || !$query->is_main_query() || !is_single() ) {
@@ -370,7 +418,11 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 		return $query;
 	}
 	
-	
+	/**
+	 * Display server apps table
+	 * 
+	 * @return string
+	 */
 	public function server_apps_shortcode() {
 		
 		if( !get_current_user_id() ) {
@@ -407,7 +459,11 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 	}
 	
 	
-	
+	/**
+	 * Display servers table
+	 * 
+	 * @return string
+	 */
 	public function servers_shortcode() {
 		
 		if( !get_current_user_id() ) {
@@ -445,7 +501,13 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 	}
 	
 	
-	
+	/**
+	 * Is it server edit/view page
+	 * 
+	 * @global object $post
+	 * 
+	 * @return boolean
+	 */
 	public static function is_server_edit_page() {
 		global $post;
 		
@@ -460,18 +522,37 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 		return $object->is_server_edit_page;
 	}
 	
+	/**
+	 * Is it app edit/view page
+	 * 
+	 * @global object $post
+	 * 
+	 * @return boolean
+	 */
 	public static function is_app_edit_page() {
 		global $post;
 		return $post && $post->post_type == 'wpcd_app';
 	}
 	
-	
+	/**
+	 * Is it servers listing page
+	 * 
+	 * @global object $post
+	 * 
+	 * @return boolean
+	 */
 	public static function is_servers_list_page() {
 		global $post;
 		return $post && $post->ID == self::get_servers_list_page_id();
 	}
 	
-	
+	/**
+	 * Is it server apps listing page
+	 * 
+	 * @global object $post
+	 * 
+	 * @return boolean
+	 */
 	public static function is_apps_list_page() {
 		global $post;
 		
@@ -487,7 +568,13 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 	}
 	
 	
-	
+	/**
+	 * Is it a wpcd public view page
+	 * 
+	 * @global object $post
+	 * 
+	 * @return boolean
+	 */
 	public static function is_public_page() {
 		global $post;
 		
@@ -497,18 +584,41 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 		return self::is_server_edit_page() || self::is_servers_list_page() || self::is_apps_list_page() || self::is_app_edit_page() || $post->ID == self::get_server_deploy_page_id();
 	}
 	
+	/**
+	 * Return servers listing page id
+	 * 
+	 * @return int
+	 */
 	public static function get_servers_list_page_id() {
 		return get_option( 'wpcd_public_servers_list_page_id' );
 	}
 	
+	/**
+	 * Return apps listing page id
+	 * 
+	 * @return int
+	 */
 	public static function get_apps_list_page_id() {
 		return get_option( 'wpcd_public_apps_list_page_id' );
 	}
 	
+	/**
+	 * Return server deploy page id
+	 * 
+	 * @return int
+	 */
 	public static function get_server_deploy_page_id() {
 		return get_option( 'wpcd_public_deploy_server_page_id' );
 	}
 	
+	/**
+	 * Check if a public page exists
+	 * 
+	 * @param string $name
+	 * @param boolean $check_exists
+	 * 
+	 * @return boolean
+	 */
 	public static function page_exists( $name , $check_exists = false ) {
 		
 		$page_id = false;
@@ -537,21 +647,38 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 		return $page_id;
 	}
 	
-	
+	/**
+	 * Check if deploy server page exists
+	 * 
+	 * @param boolean $check_exists
+	 * 
+	 * @return boolean
+	 */
 	public static function deploy_server_page_exists( $check_exists = false ) {
 		return self::page_exists('deploy_server', $check_exists);
 	}
 	
-
+	/**
+	 * Check if servers listing page exists
+	 * 
+	 * @param boolean $check_exists
+	 * 
+	 * @return boolean
+	 */
 	public static function servers_list_page_exists( $check_exists = false ) {
 		return self::page_exists('servers_list', $check_exists);
 	}
 	
+	/**
+	 * Check if server apps page exists
+	 * 
+	 * @param boolean $check_exists
+	 * 
+	 * @return boolean
+	 */
 	public static function apps_list_page_exists( $check_exists = false ) {
 		return self::page_exists('appss_list', $check_exists);
 	}
-	
-	
 	
 	/**
 	 * Fires on activation of plugin.
@@ -574,7 +701,9 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 		}
 	}
 	
-	
+	/**
+	 * Create pages on plugin activation
+	 */
 	public static function create_pages() {
 		
 		if( !self::servers_list_page_exists( true ) ) {
@@ -589,8 +718,6 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 
 			add_option( 'wpcd_public_servers_list_page_id', $page_id );
 		}
-		
-		
 		
 		if( !self::apps_list_page_exists( true ) ) {
 			

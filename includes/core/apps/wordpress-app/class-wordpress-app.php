@@ -980,7 +980,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	public function is_staging_site( $app_id ) {
 
 		return WPCD()->is_staging_site( $app_id );
-		
+
 	}
 
 	/**
@@ -1867,6 +1867,11 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				( strpos( $result, 'dpkg was interrupted, you must manually run' ) === false )
 				&&
 				( strpos( $result, 'Installation of required packages failed' ) === false );
+		}
+		if ( $return && ( false === boolval( wpcd_get_option( 'wordpress_app_ignore_journalctl_xe' ) ) ) ){
+			$return = $return
+				&&
+				( strpos( $result, 'journalctl -xe' ) === false );
 		}
 
 		return apply_filters( 'wpcd_is_ssh_successful', $return, $result, $command, $action, $this->get_app_name() );

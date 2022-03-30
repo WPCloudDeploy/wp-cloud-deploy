@@ -1040,6 +1040,19 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tooltip' => __( 'If you are running multiple apps you will likely want to know which servers and apps are WordPress related.  If so, turn this on.', 'wpcd' ),
 				'tab'     => 'wordpress-app-general-wpadmin',
 			),
+			array(
+				'type' => 'heading',
+				'name' => __( 'Misc', 'wpcd' ),
+				'desc' => '',
+				'tab'  => 'wordpress-app-general-wpadmin',
+			),
+			array(
+				'id'      => 'wordpress_app_ignore_journalctl_xe',
+				'type'    => 'checkbox',
+				'name'    => __( 'Do not treat Journalctl -xe messages as errors', 'wpcd' ),
+				'tooltip' => __( 'Some bash scripts might trigger journal xe warnings.  Check this box to ignore them.', 'wpcd' ),
+				'tab'     => 'wordpress-app-general-wpadmin',
+			),			
 		);
 		return $fields;
 

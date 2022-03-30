@@ -22,6 +22,12 @@ class WPCD_WORDPRESS_TABS_SFTP extends WPCD_WORDPRESS_TABS {
 		add_filter( "wpcd_app_{$this->get_app_name()}_get_tabnames", array( $this, 'get_tab' ), 10, 2 );
 		add_filter( "wpcd_app_{$this->get_app_name()}_get_tabs", array( $this, 'get_fields' ), 10, 2 );
 		add_filter( "wpcd_app_{$this->get_app_name()}_tab_action", array( $this, 'tab_action' ), 10, 3 );
+
+		// Action to trigger insert of delete request into pending logs for all sFTP users for a site before a site is deleted..
+		add_action( 'wpcd_before_remove_site_action', array( $this, 'prep_direct_delete_all_sftp_users_for_site' ), 10, 1 );
+
+		/* Pending Logs Background Task: Trigger direct delete of an sFTP user. */
+		add_action( 'pending_log_direct_delete_sftp_user', array( $this, 'pending_log_direct_delete_sftp_user' ), 10, 3 );
 	}
 
 	/**
@@ -778,6 +784,74 @@ class WPCD_WORDPRESS_TABS_SFTP extends WPCD_WORDPRESS_TABS {
 
 		// if there is no password, this is definitely an error.
 		return new \WP_Error( sprintf( __( 'Password for user %s not found!', 'wpcd' ), $user ) );
+	}
+
+	/**
+	 * Insert of delete request into pending logs for all sFTP users for a site.
+	 * This type of delete has to be done directly on the server without going
+	 * through our normal script execution process.
+	 * This is why we call it a 'direct' delete.
+	 *
+	 * Action Hook: wpcd_before_remove_site_action
+	 *
+	 * @param int $id post id for site.
+	 */
+	public function prep_direct_delete_all_sftp_users_for_site( $id ) {
+
+		// Do not do this if the option is set to ignore it.
+		if ( true === boolval( wpcd_get_option( 'wordpress_app_do_not_delete_sftp_users_on_site_delete' ) ) ) {
+			return;
+		}
+
+		// Get the server ID on which the site resides - we're not going to be able to get this later after the site is deleted so we have to store it with the pending log data.
+		$server_id = $this->get_server_id_by_app_id( $id );
+
+		// Get the domain for the site - we're not going to be able to get this later after the site is deleted so we have to store it with the pending log data for audit purposes.
+		$domain = $this->get_domain_name( $id );
+
+		// Get all sFTP users for a site.
+		$all_sftp_users = $this->get_sftp_users( $id );
+		if ( ! empty( $all_sftp_users ) ) {
+			if ( ! empty( $all_sftp_users['users'] ) ) {
+				foreach ( $all_sftp_users['users'] as $sftp_user ) {
+					$args                = array();
+					$args['action_hook'] = 'pending_log_direct_delete_sftp_user';
+					$args['sftp_user']   = $sftp_user;
+					$args['server_id']   = $server_id;
+					$args['domain']      = $domain; // Storing this because it will be unavailable after the site has been deleted.
+					WPCD_POSTS_PENDING_TASKS_LOG()->add_pending_task_log_entry( $id, 'direct-delete-sftp-user', $id, $args, 'ready', $id, __( 'Schedule delete of sFTP user because site is being deleted.', 'wpcd' ) );
+				}
+			}
+		}
+	}
+
+	/**
+	 * Direct delete of an sFTP user - triggered via pending logs background process.
+	 *
+	 * Called from an action hook from the pending logs background process - WPCD_POSTS_PENDING_TASKS_LOG()->do_tasks()
+	 *
+	 * Action Hook: pending_log_direct_delete_sftp_user
+	 *
+	 * @param int   $task_id    Id of pending task that is firing this thing...
+	 * @param int   $id         Id of site (though the site has already been deleted so this doesn't mean anything).
+	 * @param array $args       All the data needed to delete the sFTP user on the server.
+	 */
+	public function pending_log_direct_delete_sftp_user( $task_id, $id, $args ) {
+
+		// Grab our data array from pending tasks record...
+		$data      = WPCD_POSTS_PENDING_TASKS_LOG()->get_data_by_id( $task_id );
+		$server_id = $data['pending_task_associated_server_id'];
+		$action    = 'direct-delete-sftp-user';  // The ssh execution function expects an action name so we're going to give it one.
+
+		// Do the thing.
+		$ssh_cmd_to_execute = 'sudo userdel -r ' . $data['sftp_user'];
+		$result             = $this->submit_generic_server_command( $server_id, $action, $ssh_cmd_to_execute, true );  // notice the last param is true to force the function to return the raw results to us for evaluation instead of a wp-error object.
+
+		// Ignoring errors because what's the point?  The site is already been deleted.
+
+		/* Mark the task complete */
+		WPCD_POSTS_PENDING_TASKS_LOG()->update_task_by_id( $task_id, $data, 'complete' );
+
 	}
 
 }

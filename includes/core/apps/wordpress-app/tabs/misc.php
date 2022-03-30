@@ -103,11 +103,11 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 				case 'remove_full':
 					// remove site - check if user has permission - note that there are TWO checks here - a general one for an app and one for the site itself.
 					if ( ! wpcd_can_current_user_delete_app( $id ) ) {
-						$result = new \WP_Error( __( 'You don\'t have permission To Remove an App.', 'wpcd' ) );
+						$result = new \WP_Error( __( 'You don\'t have permission To remove an App.', 'wpcd' ) );
 						break;
 					}
 					if ( ! $this->wpcd_user_can_remove_wp_site( $id ) ) {
-						$result = new \WP_Error( __( 'You don\'t have permission To Remove a WordPress Site. If you are seeing this message, it probably means you have the ability to remove an app but not delete a site. Plese check with your admin to enable the permissions needed to delete a WordPress site.', 'wpcd' ) );
+						$result = new \WP_Error( __( 'You don\'t have permission To remove a WordPress Site. If you are seeing this message, it probably means you have the ability to remove an app but not delete a site. Plese check with your admin to enable the permissions needed to delete a WordPress site.', 'wpcd' ) );
 						break;
 					}
 					// remove site.
@@ -663,7 +663,7 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
 		}
 
-		/* Fire yet another action hook so that other tasks can be completed before site is removed. */
+		/* Fire yet another action hook so that other tasks can be completed before site is removed. Eg: prepare the list of sFTP users to be removed by adding it to pending logs. */
 		do_action( 'wpcd_before_remove_site_action', $id, $action );
 
 		// Get the full command to be executed by ssh.

@@ -1052,7 +1052,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'name'    => __( 'Do not treat Journalctl -xe messages as errors', 'wpcd' ),
 				'tooltip' => __( 'Some bash scripts might trigger journal xe warnings.  Check this box to ignore them.', 'wpcd' ),
 				'tab'     => 'wordpress-app-general-wpadmin',
-			),			
+			),
 		);
 		return $fields;
 
@@ -1141,6 +1141,19 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'type'    => 'checkbox',
 				'name'    => __( 'Delete Protect New Sites?', 'wpcd' ),
 				'tooltip' => __( 'Should deletion protection automatically be enabled on new sites?', 'wpcd' ),
+				'tab'     => 'wordpress-app-sites',
+			),
+			array(
+				'type' => 'heading',
+				'name' => __( 'Misc', 'wpcd' ),
+				'desc' => '',
+				'tab'  => 'wordpress-app-sites',
+			),
+			array(
+				'id'      => 'wordpress_app_do_not_delete_sftp_users_on_site_delete',
+				'type'    => 'checkbox',
+				'name'    => __( 'Do not delete sFTP users when a site is removed.', 'wpcd' ),
+				'tooltip' => __( 'If checked, sFTP users will remain behind as regular Linux users on the Linux server after a site is deleted.  You will not be able to reuse these user names on new sites', 'wpcd' ),
 				'tab'     => 'wordpress-app-sites',
 			),
 		);

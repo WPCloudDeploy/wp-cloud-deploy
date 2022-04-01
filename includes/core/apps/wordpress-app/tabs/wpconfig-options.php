@@ -306,8 +306,29 @@ class WPCD_WORDPRESS_TABS_WPCONFIG extends WPCD_WORDPRESS_TABS {
 			'type'           => 'button',
 		);
 
-		$footer                                 = sprintf( __( 'Need a list of all possible wp-config.php options in core WordPress?  Check out: <a href="%s">WPCONFIG.PHP Options</a>', 'wpcd' ), 'https://wpclouddeploy.com/documentation/all-the-possible-wp-config-php-constants-for-core-wordpress/' );
-		$actions['change-wpconfig-footer-text'] = array(
+		// Display any existing values set by this screen.
+		$existing_settings = $this->get_formatted_metas_for_display( $id );
+		if ( ! empty( $existing_settings ) ) {
+
+			$actions['wpconfig-change-any-existing-settings-header'] = array(
+				'label'          => __( 'Existing Values', 'wpcd' ),
+				'type'           => 'heading',
+				'raw_attributes' => array(
+					'desc' => __( 'The following values have been set by this screen.  Note that values that there might be many other values in the wp-config.php file - only the ones set or updated by this screen is shown here! ', 'wpcd' ),
+				),
+			);
+
+			$actions['change-wpconfig-existing-settings'] = array(
+				'label'          => '',
+				'type'           => 'custom_html',
+				'raw_attributes' => array(
+					'std' => $existing_settings,
+				),
+			);
+		}
+
+		$footer                                     = sprintf( __( 'Need a list of all possible wp-config.php options in core WordPress?  Check out: <a href="%s">WPCONFIG.PHP Options</a>', 'wpcd' ), 'https://wpclouddeploy.com/documentation/all-the-possible-wp-config-php-constants-for-core-wordpress/' );
+		$actions['change-any-wpconfig-footer-text'] = array(
 			'label'          => '',
 			'type'           => 'custom_html',
 			'raw_attributes' => array(
@@ -566,6 +587,9 @@ class WPCD_WORDPRESS_TABS_WPCONFIG extends WPCD_WORDPRESS_TABS {
 				'refresh' => 'yes',
 			);
 
+			// Update metas.
+			$this->update_wpconfig_meta( $id, $option_key, $args[ $option_key ] );
+
 			// Let others know we've been successful.
 			do_action( "wpcd_{$this->get_app_name()}_update_wp_config_option_successful", $id, $action, $args );
 		}
@@ -610,6 +634,10 @@ class WPCD_WORDPRESS_TABS_WPCONFIG extends WPCD_WORDPRESS_TABS {
 			return new \WP_Error( $message );
 		}
 
+		// Save some things before additional sanitization.
+		$args['wps_wpconfig_option_original']           = $args['wps_wpconfig_option'];
+		$args['wps_new_wpconfig_option_value_original'] = $args['wps_new_wpconfig_option_value'];
+
 		// sanitize the fields to allow them to be used safely on the bash command line.
 		if ( 'no' === $args['wps_wpconfig_option_is_raw'] ) {
 			$args['wps_wpconfig_option']           = escapeshellarg( sanitize_text_field( $args['wps_wpconfig_option'] ) );
@@ -653,6 +681,9 @@ class WPCD_WORDPRESS_TABS_WPCONFIG extends WPCD_WORDPRESS_TABS {
 				'refresh' => 'yes',
 			);
 
+			// Update metas.
+			$this->update_wpconfig_meta( $id, $args['wps_wpconfig_option_original'], $args['wps_new_wpconfig_option_value_original'] );
+
 			// Let others know we've been successful.
 			do_action( "wpcd_{$this->get_app_name()}_update_wp_config_option_successful", $id, $action, $args );
 		}
@@ -661,6 +692,60 @@ class WPCD_WORDPRESS_TABS_WPCONFIG extends WPCD_WORDPRESS_TABS {
 
 	}
 
+	/**
+	 * Update the meta that holds the values we've written to the wp-config.php file.
+	 *
+	 * @param int    $id     Server/post id to update.
+	 * @param string $key    wp-config.php entry.
+	 * @param string $value  Value for the wp-config.php entry.
+	 */
+	public function update_wpconfig_meta( $id, $key, $value ) {
+
+		$wpconfig_entries = wpcd_maybe_unserialize( get_post_meta( $id, 'wpapp_wpconfig_entries', true ) );
+
+		// Initialize if blank.
+		if ( ! $wpconfig_entries ) {
+			$wpconfig_entries = array();
+		}
+
+		// Reinitialize if not an array!
+		if ( ! is_array( $wpconfig_entries ) ) {
+			$wpconfig_entries = array();
+		}
+
+		$wpconfig_entries[ $key ] = $value;
+
+		// Write back to record.
+		update_post_meta( $id, 'wpapp_wpconfig_entries', $wpconfig_entries );
+
+	}
+
+	/**
+	 * Get a string with the saved metas that can be printed to the screen.
+	 *
+	 * @param int $id     Server/post id to update.
+	 *
+	 * @return string
+	 */
+	public function get_formatted_metas_for_display( $id ) {
+
+		$wpconfig_entries = wpcd_maybe_unserialize( get_post_meta( $id, 'wpapp_wpconfig_entries', true ) );
+
+		if ( empty( $wpconfig_entries ) || ( ! is_array( $wpconfig_entries ) ) ) {
+			return false;
+		}
+
+		$display = '<em>';
+
+		foreach ( $wpconfig_entries as $key => $value ) {
+			$display .= $key . ' = ' . $value . '<br />';
+		}
+
+		$display .= '</em>';
+
+		return $display;
+
+	}
 
 }
 

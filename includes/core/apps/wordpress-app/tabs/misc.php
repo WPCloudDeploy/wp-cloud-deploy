@@ -93,6 +93,7 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 		$valid_actions = array( 'remove', 'remove_full', 'site-status', 'basic-auth-status', 'wplogin-basic-auth-status', 'https-redirect-misc' );
 		if ( in_array( $action, $valid_actions, true ) ) {
 			if ( false === $this->wpcd_wpapp_site_user_can( $this->get_view_tab_team_permission_slug(), $id ) && false === $this->wpcd_can_author_view_site_tab( $id, $this->get_tab_slug() ) ) {
+				/* Translators: %1: String representing action; %2: Filename where code is being executed; %3: Post id for site or server; %4: WordPress User id */
 				return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
 			}
 		}
@@ -231,11 +232,11 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 			case 'off':
 				$actions['site-status'] = array(
 					'label'          => '',
-					'std'            => $status === 'on',
+					'std'            => 'on' === $status,
 					'raw_attributes' => array(
 						'on_label'            => __( 'Enabled', 'wpcd' ),
 						'off_label'           => __( 'Disabled', 'wpcd' ),
-						'std'                 => $status === 'on',
+						'std'                 => 'on' === $status,
 						'desc'                => 'on' === $status ? __( 'Click to deactivate the site without removing data', 'wpcd' ) : __( 'Click to reactivate the site', 'wpcd' ),
 						'confirmation_prompt' => $confirmation_prompt,
 					),
@@ -386,10 +387,10 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 					'raw_attributes' => array(
 						'on_label'            => __( 'Enabled', 'wpcd' ),
 						'off_label'           => __( 'Disabled', 'wpcd' ),
-						'std'                 => $basic_auth_status === 'on',
+						'std'                 => 'on' === $basic_auth_status,
 						'desc'                => __( 'Add or remove password protection on your site', 'wpcd' ),
 						'confirmation_prompt' => $confirmation_prompt,                      // fields that contribute data for this action.
-						'data-wpcd-fields'    => json_encode( array( '#wpcd_app_action_basic-auth-user', '#wpcd_app_action_basic-auth-pw' ) ),
+						'data-wpcd-fields'    => wp_json_encode( array( '#wpcd_app_action_basic-auth-user', '#wpcd_app_action_basic-auth-pw' ) ),
 					),
 					'type'           => 'switch',
 				);
@@ -488,10 +489,10 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 					'raw_attributes' => array(
 						'on_label'            => __( 'Enabled', 'wpcd' ),
 						'off_label'           => __( 'Disabled', 'wpcd' ),
-						'std'                 => $wplogin_basic_auth_status === 'on',
+						'std'                 => 'on' === $wplogin_basic_auth_status,
 						'desc'                => __( 'Add or remove password protection for the wp-login page', 'wpcd' ),
 						'confirmation_prompt' => $confirmation_prompt,                      // fields that contribute data for this action.
-						'data-wpcd-fields'    => json_encode( array( '#wpcd_app_action_wplogin-basic-auth-user', '#wpcd_app_action_wplogin-basic-auth-pw' ) ),
+						'data-wpcd-fields'    => wp_json_encode( array( '#wpcd_app_action_wplogin-basic-auth-user', '#wpcd_app_action_wplogin-basic-auth-pw' ) ),
 					),
 					'type'           => 'switch',
 				);
@@ -582,11 +583,11 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 			case 'off':
 				$actions['https-redirect-misc'] = array(
 					'label'          => __( 'Redirect Site to HTTPS', 'wpcd' ),
-					'std'            => $status === 'off',
+					'std'            => 'off' === $status,
 					'raw_attributes' => array(
 						'on_label'            => __( 'Enabled', 'wpcd' ),
 						'off_label'           => __( 'Disabled', 'wpcd' ),
-						'std'                 => $status === 'on',
+						'std'                 => 'on' === $status,
 						'desc'                => __( 'Enable or disable https redirect. This option does NOT automatically issue or revoke SSL certificates! <br />It will, however, reinstall an existing LetsEncrypt certificate if one exists. <br />If you want to automatically create SSL certificates use the actions available on the SSL tab instead.', 'wpcd' ),
 						'confirmation_prompt' => $confirmation_prompt,
 					),
@@ -612,6 +613,7 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 		$instance = $this->get_app_instance_details( $id );
 
 		if ( is_wp_error( $instance ) ) {
+			/* Translators: %s is a string representing the action we're trying to perform. */
 			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
 		}
 
@@ -630,11 +632,13 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 			)
 		);
 
+		// @codingStandardsIgnoreLine - added to ignore the print_r in the line below when linting with PHPcs.
 		do_action( 'wpcd_log_error', sprintf( 'attempting to run command for %s = %s ', print_r( $instance, true ), $run_cmd ), 'trace', __FILE__, __LINE__, $instance, false );
 
 		$result  = $this->execute_ssh( 'generic', $instance, array( 'commands' => $run_cmd ) );
 		$success = $this->is_ssh_successful( $result, 'disable_remove_site.txt' );
 		if ( ! $success ) {
+			/* Translators: %1$s is an internal action name. %2$s is an error message. */
 			return new \WP_Error( sprintf( __( 'Unable to %1$s site: %2$s', 'wpcd' ), $action, $result ) );
 		}
 
@@ -671,6 +675,7 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 		$instance = $this->get_app_instance_details( $id );
 
 		if ( is_wp_error( $instance ) ) {
+			/* Translators: %s is a string representing the action we're trying to perform. */
 			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
 		}
 
@@ -692,11 +697,13 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 			)
 		);
 
+		// @codingStandardsIgnoreLine - added to ignore the print_r in the line below when linting with PHPcs.
 		do_action( 'wpcd_log_error', sprintf( 'attempting to run command for %s = %s ', print_r( $instance, true ), $run_cmd ), 'trace', __FILE__, __LINE__, $instance, false );
 
 		$result  = $this->execute_ssh( 'generic', $instance, array( 'commands' => $run_cmd ) );
 		$success = $this->is_ssh_successful( $result, 'disable_remove_site.txt' );
 		if ( ! $success ) {
+			/* Translators: %1$s is an internal action name. %2$s is an error message. */
 			return new \WP_Error( sprintf( __( 'Unable to %1$s site: %2$s', 'wpcd' ), $action, $result ) );
 		} else {
 			// Attempt to delete DNS for the domain...
@@ -731,6 +738,7 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 		$instance = $this->get_app_instance_details( $id );
 
 		if ( is_wp_error( $instance ) ) {
+			/* Translators: %s is a string representing the action we're trying to perform. */
 			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
 		}
 
@@ -772,11 +780,13 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 			)
 		);
 
+		// @codingStandardsIgnoreLine - added to ignore the print_r in the line below when linting with PHPcs.
 		do_action( 'wpcd_log_error', sprintf( 'attempting to run command for %s = %s ', print_r( $instance, true ), $run_cmd ), 'trace', __FILE__, __LINE__, $instance, false );
 
 		$result  = $this->execute_ssh( 'generic', $instance, array( 'commands' => $run_cmd ) );
 		$success = $this->is_ssh_successful( $result, 'basic_auth_misc.txt' );
 		if ( ! $success ) {
+			/* Translators: %1$s is an internal action name. %2$s is an error message. */
 			return new \WP_Error( sprintf( __( 'Unable to %1$s site: %2$s', 'wpcd' ), $action, $result ) );
 		}
 
@@ -797,6 +807,7 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 		$instance = $this->get_app_instance_details( $id );
 
 		if ( is_wp_error( $instance ) ) {
+			/* Translators: %s is a string representing the action we're trying to perform. */
 			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
 		}
 
@@ -838,11 +849,13 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 			)
 		);
 
+		// @codingStandardsIgnoreLine - added to ignore the print_r in the line below when linting with PHPcs.
 		do_action( 'wpcd_log_error', sprintf( 'attempting to run command for %s = %s ', print_r( $instance, true ), $run_cmd ), 'trace', __FILE__, __LINE__, $instance, false );
 
 		$result  = $this->execute_ssh( 'generic', $instance, array( 'commands' => $run_cmd ) );
 		$success = $this->is_ssh_successful( $result, 'basic_auth_wplogin_misc.txt' );
 		if ( ! $success ) {
+			/* Translators: %1$s is an internal action name. %2$s is an error message. */
 			return new \WP_Error( sprintf( __( 'Unable to %1$s site: %2$s', 'wpcd' ), $action, $result ) );
 		}
 
@@ -863,6 +876,7 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 		$instance = $this->get_app_instance_details( $id );
 
 		if ( is_wp_error( $instance ) ) {
+			/* Translators: %s is a string representing the action we're trying to perform. */
 			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
 		}
 
@@ -881,12 +895,14 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 			)
 		);
 
+		// @codingStandardsIgnoreLine - added to ignore the print_r in the line below when linting with PHPcs.
 		do_action( 'wpcd_log_error', sprintf( 'attempting to run command for %s = %s ', print_r( $instance, true ), $run_cmd ), 'trace', __FILE__, __LINE__, $instance, false );
 
 		$result = $this->execute_ssh( 'generic', $instance, array( 'commands' => $run_cmd ) );
 
 		$success = $this->is_ssh_successful( $result, 'toggle_https_misc.txt' );
 		if ( ! $success ) {
+			/* Translators: %1$s is an internal action name. %2$s is an error message. */
 			return new \WP_Error( sprintf( __( 'Unable to %1$s site: %2$s', 'wpcd' ), $action, $result ) );
 		}
 

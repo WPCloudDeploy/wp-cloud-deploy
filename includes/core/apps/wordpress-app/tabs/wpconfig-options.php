@@ -177,7 +177,7 @@ class WPCD_WORDPRESS_TABS_WPCONFIG extends WPCD_WORDPRESS_TABS {
 
 		// Loop through the array and create metabox.io fields dynamically.
 		foreach ( $config_options as $config_option_key => $config_option_array ) {
-			$label          = $config_option_array['label'];  // This is actual the key in the wp-config.php file - eg: WP_MEMORY_LIMIT.
+			$label          = $config_option_array['label'];  // This is actually the key in the wp-config.php file - eg: WP_MEMORY_LIMIT.
 			$desc           = $config_option_array['desc'];
 			$type           = $config_option_array['type'];
 			$select_options = empty( $config_option_array['select_options'] ) ? '' : $config_option_array['select_options'];

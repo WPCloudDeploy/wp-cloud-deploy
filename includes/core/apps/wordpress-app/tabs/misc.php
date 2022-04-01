@@ -179,6 +179,12 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 	 */
 	public function get_actions( $id ) {
 
+		// Bail if site is not enabled.
+		if ( ! $this->is_site_enabled( $id ) ) {
+			return array_merge( $this->get_disabled_header_field( '' ), $this->get_site_status_action_fields( $id ) );
+		}
+
+		// Site is not disabled so show all fields.
 		return array_merge(
 			$this->get_initial_credentials( $id ),
 			$this->get_basic_auth_action_fields( $id ),
@@ -219,6 +225,7 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 			$confirmation_prompt = __( 'Are you sure you would like to enable this site?', 'wpcd' );
 		}
 
+		// Option to activate or deactivate site.
 		switch ( $status ) {
 			case 'on':
 			case 'off':
@@ -237,55 +244,59 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 				break;
 		}
 
-		$actions['remove-site-header'] = array(
-			'label'          => __( 'DANGER ZONE: Remove Site', 'wpcd' ),
-			'type'           => 'heading',
-			'raw_attributes' => array(
-				'desc' => __( 'Permanently remove your site from the server - all data on the server is deleted.  Offsite backups that you might have made to AWS S3 are not deleted.', 'wpcd' ),
-			),
-		);
+		// Option to delete site.
+		if ( $this->is_site_enabled( $id ) ) {
 
-		if ( wpcd_is_app_delete_protected( $id ) ) {
-
-			// Show message indicating that user cannot delete site.
-			$actions['remove'] = array(
-				'type'           => 'custom_html',
+			$actions['remove-site-header'] = array(
+				'label'          => __( 'DANGER ZONE: Remove Site', 'wpcd' ),
+				'type'           => 'heading',
 				'raw_attributes' => array(
-					'std' => '<h4>' . __( '***You cannot remove this site because deletion protection is turned on. If you would really like to delete this site you can turn off deletion protection in the APP DELETE PROTECTION metabox on the right. ***', 'wpcd' ) . '</h4>',
-				),
-			);
-		} elseif ( ! wpcd_can_current_user_delete_app( $id ) ) {
-
-			// Show message indicating that user cannot delete site.
-			$actions['remove'] = array(
-				'type'           => 'custom_html',
-				'raw_attributes' => array(
-					'std' => '<h4>' . __( '***You do not have permissions to delete a site***', 'wpcd' ) . '</h4>',
+					'desc' => __( 'Permanently remove your site from the server - all data on the server is deleted.  Offsite backups that you might have made to AWS S3 are not deleted.', 'wpcd' ),
 				),
 			);
 
-		} else {
+			if ( wpcd_is_app_delete_protected( $id ) ) {
 
-			$actions['remove'] = array(
-				'label'          => '',
-				'type'           => 'button',
-				'raw_attributes' => array(
-					'std'                 => __( 'Remove', 'wpcd' ),
-					'desc'                => __( 'Delete site and data - this action is not reversible!', 'wpcd' ),
-					'confirmation_prompt' => __( 'Are you sure you would like to delete this site and data? This action is NOT reversible!', 'wpcd' ),
-				),
-			);
+				// Show message indicating that user cannot delete site.
+				$actions['remove'] = array(
+					'type'           => 'custom_html',
+					'raw_attributes' => array(
+						'std' => '<h4>' . __( '***You cannot remove this site because deletion protection is turned on. If you would really like to delete this site you can turn off deletion protection in the APP DELETE PROTECTION metabox on the right. ***', 'wpcd' ) . '</h4>',
+					),
+				);
+			} elseif ( ! wpcd_can_current_user_delete_app( $id ) ) {
 
-			$actions['remove_full'] = array(
-				'label'          => '',
-				'type'           => 'button',
-				'raw_attributes' => array(
-					'std'                 => __( 'Remove Site & Backups', 'wpcd' ),
-					'desc'                => __( 'Delete site,  data & local backups - remote backups will not be removed.  This action is not reversible!', 'wpcd' ),
-					'confirmation_prompt' => __( 'Are you sure you would like to delete this site, data and local backups? This action is NOT reversible!', 'wpcd' ),
-				),
-			);
+				// Show message indicating that user cannot delete site.
+				$actions['remove'] = array(
+					'type'           => 'custom_html',
+					'raw_attributes' => array(
+						'std' => '<h4>' . __( '***You do not have permissions to delete a site***', 'wpcd' ) . '</h4>',
+					),
+				);
 
+			} else {
+
+				$actions['remove'] = array(
+					'label'          => '',
+					'type'           => 'button',
+					'raw_attributes' => array(
+						'std'                 => __( 'Remove', 'wpcd' ),
+						'desc'                => __( 'Delete site and data - this action is not reversible!', 'wpcd' ),
+						'confirmation_prompt' => __( 'Are you sure you would like to delete this site and data? This action is NOT reversible!', 'wpcd' ),
+					),
+				);
+
+				$actions['remove_full'] = array(
+					'label'          => '',
+					'type'           => 'button',
+					'raw_attributes' => array(
+						'std'                 => __( 'Remove Site & Backups', 'wpcd' ),
+						'desc'                => __( 'Delete site,  data & local backups - remote backups will not be removed.  This action is not reversible!', 'wpcd' ),
+						'confirmation_prompt' => __( 'Are you sure you would like to delete this site, data and local backups? This action is NOT reversible!', 'wpcd' ),
+					),
+				);
+
+			}
 		}
 
 		return $actions;

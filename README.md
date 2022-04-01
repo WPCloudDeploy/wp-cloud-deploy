@@ -131,6 +131,7 @@ Note: Even though the entire git development history isn't available on github, 
 * Tweak: WPAPP - Add option to remove sFTP users when a site is deleted.
 * Tweak: WPAPP - Add option to treat 'journalctl -xe' output as script failures (experimental).
 * Tweak: WPAPP - When a site is cloned and the root domain of the clone is the one that is set up as the cloudflare temp domain, we will now automatically create the DNS for the clone at Cloudflare.
+* Tweak: WPAPP - Only show the activate/deactivate option on the MISC tab when a site is disabled.  Hide all other options when the site is disabled.
 * Fix: WPAPP - Staging and Cloned sites did not carry-over the metas that indicate the status of the various caches.
 * Fix: WPAPP - Individual toggle switches on monit components were not working - only the 'all' switches did what they were supposed to do.
 * Fix: WPAPP - Fixed an issue with filters on the server and site lists when a different language other than English is used.

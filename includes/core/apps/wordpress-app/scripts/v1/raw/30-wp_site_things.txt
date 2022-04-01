@@ -44,12 +44,13 @@ done
 
 while [[ -z $action ]]; do
     echo "What do you want to do?"
-    echo "   01) Add a a new user to a site"
-	echo "   02) Delete a user from a site"
-	echo "   03) Delete all users with a role"
-	echo "   04) Change email address for user"
-	echo "   05) Change all credentials - email and password"
-	echo "   06) Update a site option"
+    echo "   1) Add a a new user to a site"
+	echo "   2) Delete a user from a site"
+	echo "   3) Delete all users with a role"
+	echo "   4) Change email address for user"
+	echo "   5) Change all credentials - email and password"
+	echo "   6) Update a site option"
+	echo "   7) Update wp-config.php option for a site"
     echo
     read -p "Action: " action
     until [[ -z "$action" || "$action" =~ ^[1-9]$ ]]; do
@@ -231,5 +232,42 @@ if [[ $action == "wp_site_update_option" || $action == "6" ]]; then
 
     echo
     echo "Updated Option Value $wps_option in domain $domain"
+    exit
+fi
+
+if [[ $action == "wp_site_update_wpconfig_option" || $action == "7" ]]; then
+
+    select_domain
+    user_name=$(echo $domain | cut -c1-32)
+
+    if [[ -z $wps_wpconfig_option ]]; then
+        echo
+        echo "Which WPCONFIG.PHP option would you like to update?"
+        read -p "WP Option: " wps_wpconfig_option
+    fi
+	
+    if [[ -z $wps_new_wpconfig_option_value ]]; then
+        echo
+        echo "What is the new configuration value?"
+        read -p "New Option Value: " wps_new_wpconfig_option_value
+    fi
+	
+    if [[ -z $wps_wpconfig_option_is_raw ]]; then
+        echo
+        echo "Is this configuration item to be added as a RAW option - 'yes' or 'no'?"
+        read -p "WP configuration item is Raw - 'yes' or 'no': " wps_wpconfig_option_is_raw
+    fi	
+
+    cd /var/www/$domain/html/
+    if [[ $wps_wpconfig_option_is_raw == "no" || $wps_wpconfig_option_is_raw == "No" || $wps_wpconfig_option_is_raw == "NO" ]]; then
+		su - $user_name -c "wp --skip-plugins config set $wps_wpconfig_option $wps_new_wpconfig_option_value"
+    fi	
+    if [[ $wps_wpconfig_option_is_raw == "yes" || $wps_wpconfig_option_is_raw == "Yes" || $wps_wpconfig_option_is_raw == "YES" ]]; then
+		su - $user_name -c "wp --skip-plugins config set $wps_wpconfig_option $wps_new_wpconfig_option_value --raw"
+    fi
+    
+
+    echo
+    echo "Updated WPConfig Option Value $wps_wpconfig_option in domain $domain"
     exit
 fi

@@ -177,10 +177,13 @@ class WPCD_WORDPRESS_TABS_WPCONFIG extends WPCD_WORDPRESS_TABS {
 
 		// Loop through the array and create metabox.io fields dynamically.
 		foreach ( $config_options as $config_option_key => $config_option_array ) {
-			$label          = $config_option_array['label'];
+			$label          = $config_option_array['label'];  // This is actual the key in the wp-config.php file - eg: WP_MEMORY_LIMIT.
 			$desc           = $config_option_array['desc'];
 			$type           = $config_option_array['type'];
 			$select_options = empty( $config_option_array['select_options'] ) ? '' : $config_option_array['select_options'];
+
+			// Do we have an existing value for this item?
+			$std = $this->get_single_wpconfig_value_from_meta( $id, $config_option_array['label'] );
 
 			$actions[ "change-$config_option_key-label" ] = array(
 				'label'          => '',
@@ -196,7 +199,7 @@ class WPCD_WORDPRESS_TABS_WPCONFIG extends WPCD_WORDPRESS_TABS {
 				'label'          => '',
 				'type'           => $type,
 				'raw_attributes' => array(
-					'std'            => '',
+					'std'            => $std,
 					'columns'        => 4,
 					'options'        => $select_options,
 					// the key of the field (the key goes in the request).
@@ -695,9 +698,9 @@ class WPCD_WORDPRESS_TABS_WPCONFIG extends WPCD_WORDPRESS_TABS {
 	/**
 	 * Update the meta that holds the values we've written to the wp-config.php file.
 	 *
-	 * @param int    $id     Server/post id to update.
+	 * @param int    $id     Site/post id to update.
 	 * @param string $key    wp-config.php entry.
-	 * @param string $value  Value for the wp-config.php entry.
+	 * @param string $value  Value for the wp-config.php meta entry.
 	 */
 	public function update_wpconfig_meta( $id, $key, $value ) {
 
@@ -723,7 +726,7 @@ class WPCD_WORDPRESS_TABS_WPCONFIG extends WPCD_WORDPRESS_TABS {
 	/**
 	 * Get a string with the saved metas that can be printed to the screen.
 	 *
-	 * @param int $id     Server/post id to update.
+	 * @param int $id     Site/post id.
 	 *
 	 * @return string
 	 */
@@ -744,6 +747,30 @@ class WPCD_WORDPRESS_TABS_WPCONFIG extends WPCD_WORDPRESS_TABS {
 		$display .= '</em>';
 
 		return $display;
+
+	}
+
+	/**
+	 * Get a single wp-config value from the wpconfig meta for the site.
+	 *
+	 * @param int    $id     Site/post id.
+	 * @param string $key    wp-config.php entry.
+	 *
+	 * @return string $value  Value from the wp-config.php meta entry.
+	 */
+	public function get_single_wpconfig_value_from_meta( $id, $key ) {
+
+		$wpconfig_entries = wpcd_maybe_unserialize( get_post_meta( $id, 'wpapp_wpconfig_entries', true ) );
+
+		if ( empty( $wpconfig_entries ) || ( ! is_array( $wpconfig_entries ) ) ) {
+			return '';
+		}
+
+		if ( ! empty( $wpconfig_entries[ $key ] ) ) {
+			return $wpconfig_entries[ $key ];
+		} else {
+			return '';
+		}
 
 	}
 

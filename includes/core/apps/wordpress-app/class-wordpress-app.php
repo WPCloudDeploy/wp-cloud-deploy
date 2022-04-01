@@ -301,6 +301,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/statistics.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/logs.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/wp-site-users.php';
+		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/wpconfig-options.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/redirect-rules.php';
 
 		if ( defined( 'WPCD_SHOW_SITE_USERS_TAB' ) && WPCD_SHOW_SITE_USERS_TAB ) {
@@ -1543,6 +1544,10 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				$return =
 				( strpos( $result, 'Added user' ) !== false );
 				break;
+			case 'update_wp_config_option.txt':
+				$return =
+				( strpos( $result, 'Updated WPConfig Option Value' ) !== false );
+				break;
 
 			/**************************************************************
 			* The items below this are SERVER items, not APP items        *
@@ -1868,7 +1873,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				&&
 				( strpos( $result, 'Installation of required packages failed' ) === false );
 		}
-		if ( $return && ( false === boolval( wpcd_get_option( 'wordpress_app_ignore_journalctl_xe' ) ) ) ){
+		if ( $return && ( false === boolval( wpcd_get_option( 'wordpress_app_ignore_journalctl_xe' ) ) ) ) {
 			$return = $return
 				&&
 				( strpos( $result, 'journalctl -xe' ) === false );
@@ -2290,6 +2295,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			case 'update_wp_site_option.txt':
 			case 'change_wp_credentials.txt':
 			case 'add_wp_user.txt':
+			case 'update_wp_config_option.txt':
 				$new_array = array_merge(
 					array(
 						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/30-wp_site_things.txt',

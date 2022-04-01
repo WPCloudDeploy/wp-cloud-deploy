@@ -89,17 +89,27 @@ class WPCD_WORDPRESS_TABS_WPCONFIG extends WPCD_WORDPRESS_TABS {
 		}
 
 		/* Now verify that the user can perform actions on this screen, assuming that they can view the server */
-		$valid_actions = $this->get_valid_actions( $id );
+		$valid_actions  = $this->get_valid_actions( $id );
+		$valid_actions2 = array( 'change-any-wpconfig-option' );
 
-		if ( in_array( $action, $valid_actions, true ) ) {
+		if ( in_array( $action, $valid_actions, true ) || in_array( $action, $valid_actions2, true ) ) {
 			if ( false === $this->wpcd_wpapp_site_user_can( $this->get_view_tab_team_permission_slug(), $id ) && false === $this->wpcd_can_author_view_site_tab( $id, $this->get_tab_slug() ) ) {
 				/* Translators: %1: String representing action; %2: Filename where code is being executed; %3: Post id for site or server; %4: WordPress User id */
 				return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
 			}
 		}
 
+		// Now do the action.
 		if ( true === $this->wpcd_wpapp_site_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_site_tab( $id, $this->get_tab_slug() ) ) {
-			$result = $this->update_wp_config_option( $id, $action );
+			if ( in_array( $action, $valid_actions, true ) ) {
+				$result = $this->update_wp_config_option( $id, $action );
+			} else {
+				switch ( $action ) {
+					case 'change-any-wpconfig-option':
+						$result = $this->update_any_wp_config_option( $id, $action );
+						break;
+				}
+			}
 			return $result;
 		}
 
@@ -120,16 +130,10 @@ class WPCD_WORDPRESS_TABS_WPCONFIG extends WPCD_WORDPRESS_TABS {
 		}
 
 		// Basic checks passed, ok to proceed.
-		return $this->get_wpconfig_general_fields( $id );
-		/*
 		return array_merge(
 			$this->get_wpconfig_general_fields( $id ),
-			$this->get_php_version_fields( $id ),
-			$this->get_common_php_options_fields( $id ),
-			$this->get_advanced_php_options_fields( $id ),
-			$this->get_php_workers_fields( $id ),
+			$this->get_wpconfig_admin_fields( $id ),
 		);
-		*/
 
 	}
 
@@ -143,12 +147,6 @@ class WPCD_WORDPRESS_TABS_WPCONFIG extends WPCD_WORDPRESS_TABS {
 	private function get_wpconfig_general_fields( $id ) {
 
 		$actions = array();
-
-		/* What is the current php version site? */
-		$current_version = get_post_meta( $id, 'wpapp_php_version', true );
-		if ( empty( $current_version ) ) {
-			$current_version = '7.4';
-		}
 
 		/* Set the text of the confirmation prompt */
 		$confirmation_prompt = '';
@@ -222,6 +220,100 @@ class WPCD_WORDPRESS_TABS_WPCONFIG extends WPCD_WORDPRESS_TABS {
 				'type'  => 'divider',
 			);
 		}
+
+		return $actions;
+
+	}
+
+	/**
+	 * Gets the admin-only fields for the WPCONFIG tab.
+	 *
+	 * @param int $id the post id of the app cpt record.
+	 *
+	 * @return array Array of actions with key as the action slug and value complying with the structure necessary by metabox.io fields.
+	 */
+	private function get_wpconfig_admin_fields( $id ) {
+
+		if ( ! wpcd_is_admin() ) {
+			return array();
+		}
+
+		$actions = array();
+
+		/* Set the text of the confirmation prompt */
+		$confirmation_prompt = '';
+		$confirmation_prompt = __( 'Are you sure you would like to change or update this WPCONFIG.PHP value?', 'wpcd' );
+
+		/* Header Descriptiont */
+		$head_desc  = __( 'Use this section to create or update a random WPCONFIG.PHP option. While you can enter option names in lower-case, keep in mind that most plugins and themes use upper-case for option names.', 'wpcd' );
+		$head_desc .= '<br />';
+		$head_desc .= '<br />';
+		$head_desc .= __( 'This is an extremely dangerous section and is only available to admins.  If you enter invalid or spurious values here, you will break your site!', 'wpcd' );
+
+		$actions['wpconfig-admin-section-header'] = array(
+			'label'          => __( 'Create or Update ANY WPCONFIG.PHP Option', 'wpcd' ),
+			'type'           => 'heading',
+			'raw_attributes' => array(
+				'desc' => $head_desc,
+			),
+		);
+
+		$actions['change-wpconfig-key-name'] = array(
+			'label'          => __( 'Option Name', 'wpcd' ),
+			'type'           => 'text',
+			'raw_attributes' => array(
+				'std'            => '',
+				'columns'        => 4,
+				// the key of the field (the key goes in the request).
+				'data-wpcd-name' => 'wps_wpconfig_option',
+			),
+		);
+
+		$actions['change-wpconfig-value'] = array(
+			'label'          => __( 'Option Value', 'wpcd' ),
+			'type'           => 'text',
+			'raw_attributes' => array(
+				'std'            => '',
+				'columns'        => 4,
+				// the key of the field (the key goes in the request).
+				'data-wpcd-name' => 'wps_new_wpconfig_option_value',
+			),
+		);
+
+		$actions['change-wpconfig-israw'] = array(
+			'label'          => __( 'Raw?', 'wpcd' ),
+			'type'           => 'select',
+			'raw_attributes' => array(
+				'std'            => 'no',
+				'columns'        => 4,
+				'options'        => array(
+					'no'  => 'No',
+					'yes' => 'Yes',
+				),
+				'tooltip'        => __( 'See the wp-cli documentation for the meaning of this field.', 'wpcd' ),
+				// the key of the field (the key goes in the request).
+				'data-wpcd-name' => 'wps_wpconfig_option_is_raw',
+			),
+		);
+
+		$actions['change-any-wpconfig-option'] = array(
+			'label'          => '',
+			'raw_attributes' => array(
+				'std'                 => __( 'Change', 'wpcd' ),
+				'confirmation_prompt' => $confirmation_prompt,              // fields that contribute data for this action.
+				'data-wpcd-fields'    => json_encode( array( '#wpcd_app_action_change-wpconfig-value', '#wpcd_app_action_change-wpconfig-key-name', '#wpcd_app_action_change-wpconfig-israw' ) ),
+			),
+			'type'           => 'button',
+		);
+
+		$footer                                 = sprintf( __( 'Need a list of all possible wp-config.php options in core WordPress?  Check out: <a href="%s">WPCONFIG.PHP Options</a>', 'wpcd' ), 'https://wpclouddeploy.com/documentation/all-the-possible-wp-config-php-constants-for-core-wordpress/' );
+		$actions['change-wpconfig-footer-text'] = array(
+			'label'          => '',
+			'type'           => 'custom_html',
+			'raw_attributes' => array(
+				'std' => $footer,
+			),
+		);
 
 		return $actions;
 
@@ -437,6 +529,93 @@ class WPCD_WORDPRESS_TABS_WPCONFIG extends WPCD_WORDPRESS_TABS {
 		// Transfer the option name/value pair to array elements that the BASH script expects...
 		$args['wps_wpconfig_option']           = $option_key;  // eg: WP_MEMORY_LIMIT.
 		$args['wps_new_wpconfig_option_value'] = $args[ $option_key ]; // eg: 120MB.
+
+		// Bash script expects a specific action value to handle these changes.
+		$action_for_bash_script = 'wp_site_update_wpconfig_option';
+
+		// Get the full command to be executed by ssh.
+		$run_cmd = $this->turn_script_into_command(
+			$instance,
+			'update_wp_config_option.txt',
+			array_merge(
+				$args,
+				array(
+					'action' => $action_for_bash_script,
+					'domain' => get_post_meta(
+						$id,
+						'wpapp_domain',
+						true
+					),
+				)
+			)
+		);
+
+		do_action( 'wpcd_log_error', sprintf( 'attempting to run command for %s = %s ', print_r( $instance, true ), $run_cmd ), 'trace', __FILE__, __LINE__, $instance, false );
+
+		$result  = $this->execute_ssh( 'generic', $instance, array( 'commands' => $run_cmd ) );
+		$success = $this->is_ssh_successful( $result, 'update_wp_config_option.txt' );
+
+		if ( ! $success ) {
+			/* Translators: %1$s is the action; %2$s is the result of the ssh call. */
+			$message = sprintf( __( 'Unable to %1$s site: %2$s', 'wpcd' ), $action, $result );
+			do_action( "wpcd_{$this->get_app_name()}_update_wp_config_option_failed", $id, $action, $message, $args );
+			return new \WP_Error( $message );
+		} else {
+			$success = array(
+				'msg'     => __( 'The wp-config.php option value was updated.', 'wpcd' ),
+				'refresh' => 'yes',
+			);
+
+			// Let others know we've been successful.
+			do_action( "wpcd_{$this->get_app_name()}_update_wp_config_option_successful", $id, $action, $args );
+		}
+
+		return $success;
+
+	}
+
+	/**
+	 * Update any wp-config.php option.
+	 *
+	 * @param int    $id     The postID of the app cpt.
+	 * @param string $action The action to be performed (this matches the string required in the bash scripts).
+	 * @param array  $in_args Alternative source of arguments passed via action hook or direct function call instead of pulling from $_POST.
+	 *
+	 * @return boolean|WP_Error    success/failure
+	 */
+	private function update_any_wp_config_option( $id, $action, $in_args = array() ) {
+
+		if ( empty( $in_args ) ) {
+			// Get data from the POST request.
+			$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
+		} else {
+			$args = $in_args;
+		}
+
+		// Get app/server details.
+		$instance = $this->get_app_instance_details( $id );
+
+		// Bail if no app/server details.
+		if ( is_wp_error( $instance ) ) {
+			/* Translators: %s is the action name. */
+			$message = sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action );
+			do_action( "wpcd_{$this->get_app_name()}_update_wp_site_option_failed", $id, $action, $message, $args );
+			return new \WP_Error( $message );
+		}
+
+		// Check to make sure that all required fields have values.
+		if ( empty( $args['wps_wpconfig_option'] ) || empty( $args['wps_new_wpconfig_option_value'] ) || empty( $args['wps_wpconfig_option_is_raw'] ) ) {
+			$message = __( 'This is not a valid option or the option value is empty.', 'wpcd' );
+			do_action( "wpcd_{$this->get_app_name()}_update_wp_config_option_failed", $id, $action, $message, $args );
+			return new \WP_Error( $message );
+		}
+
+		// sanitize the fields to allow them to be used safely on the bash command line.
+		if ( 'no' === $args['wps_wpconfig_option_is_raw'] ) {
+			$args['wps_wpconfig_option']           = escapeshellarg( sanitize_text_field( $args['wps_wpconfig_option'] ) );
+			$args['wps_new_wpconfig_option_value'] = escapeshellarg( sanitize_text_field( $args['wps_new_wpconfig_option_value'] ) );
+		}
+		$args['wps_wpconfig_option_is_raw'] = escapeshellarg( sanitize_text_field( $args['wps_wpconfig_option_is_raw'] ) );
 
 		// Bash script expects a specific action value to handle these changes.
 		$action_for_bash_script = 'wp_site_update_wpconfig_option';

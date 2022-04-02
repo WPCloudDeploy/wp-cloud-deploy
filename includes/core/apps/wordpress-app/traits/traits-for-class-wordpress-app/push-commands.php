@@ -130,6 +130,10 @@ trait wpcd_wpapp_push_commands {
 				/* Translators: %s is the incorrect PHP version. */
 				do_action( 'wpcd_log_notification', $id, 'alert', sprintf( __( 'The default PHP version on this server is incorrect - it should be 7.4 but is currently set to %s.', 'wpcd' ), $server_status_items['default_php_version'] ), 'server-config', null );
 			}
+			if ( empty( $server_status_items['default_php_version'] ) ) {
+				/* Translators: %s is the incorrect PHP version. */
+				do_action( 'wpcd_log_notification', $id, 'notice', __( 'The default PHP version on this server is being reported as an empty string - it is likely that you need to update the callbacks on it.', 'wpcd' ), 'server-config', null );
+			}			
 
 			// Let other plugins react to the new good data with an action hook.
 			do_action( "wpcd_{$this->get_app_name()}_command_{$name}_{$status}_processed_good", $server_status_items, $id );

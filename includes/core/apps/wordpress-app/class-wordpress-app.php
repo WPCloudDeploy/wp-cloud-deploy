@@ -2680,15 +2680,19 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 				/* Get list of regions */
 				$provider_regions = $this->add_provider_support();
+				$provider_regions = apply_filters( "wpcd_{$this->get_app_name()}_provider_regions_create_server_popup", $provider_regions );
 
 				/* Get the list of providers - we'll need it in the popup area */
 				$providers = $this->get_active_providers();
+				$providers = apply_filters( "wpcd_{$this->get_app_name()}_providers_create_server_popup", $providers );
 
 				/* Get list of OSes */
 				$oslist = WPCD()->get_os_list();
+				$oslist = apply_filters( "wpcd_{$this->get_app_name()}_oslist_create_server_popup", $oslist );
 
 				/* Get list of webservers */
 				$webserver_list = WPCD()->get_webserver_list();
+				$webserver_list = apply_filters( "wpcd_{$this->get_app_name()}_webserver_list_create_server_popup", $webserver_list );
 
 				/* Include the popup file */
 				include apply_filters( "wpcd_{$this->get_app_name()}_create_popup", wpcd_path . 'includes/core/apps/wordpress-app/templates/create-popup.php' );

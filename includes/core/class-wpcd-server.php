@@ -613,6 +613,33 @@ class WPCD_Server extends WPCD_Base {
 	}
 
 	/**
+	 * Get the list of apps on a server.
+	 *
+	 * @param int $server_id post id of server record.
+	 *
+	 * @return array The posts corresponding to apps on the server.
+	 */
+	public function get_apps_by_server_id( $server_id ) {
+
+		$args = array(
+			'post_type'      => 'wpcd_app',
+			'post_status'    => 'private',
+			'posts_per_page' => 9999,
+			'meta_query'     => array(
+				array(
+					'key'   => 'parent_post_id',
+					'value' => $server_id,
+				),
+			),
+		);
+
+		$posts = get_posts( $args );
+
+		return $posts;
+
+	}
+
+	/**
 	 * Get the root user login name for the server.
 	 *
 	 * @param int $id The id of the server post.

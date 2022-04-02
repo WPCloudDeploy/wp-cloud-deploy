@@ -25,7 +25,7 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 		/* add_filter( 'wpcd_is_ssh_successful', array( $this, 'was_ssh_successful' ), 10, 5 ); */
 
 		// Allow the manual backup to be triggered via an action hook. Hook Name: wpcd_wordpress-app_manual_backup_for_site.
-		add_action( 'wpcd_{$this->get_app_name()}_manual_backup_for_site', array( $this, 'backup_actions' ), 10, 2 );
+		add_action( "wpcd_{$this->get_app_name()}_manual_backup_for_site", array( $this, 'backup_actions' ), 10, 2 );
 
 		/* Pending Logs Background Task: Trigger manual backup */
 		add_action( 'pending_log_manual_site_backup', array( $this, 'pending_log_manual_site_backup' ), 10, 3 );
@@ -206,7 +206,7 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 	 * @param string $action action.
 	 * @param int    $id id.
 	 */
-	private function backup_actions( $action, $id ) {
+	public function backup_actions( $action, $id ) {
 		$instance = $this->get_app_instance_details( $id );
 
 		if ( is_wp_error( $instance ) ) {

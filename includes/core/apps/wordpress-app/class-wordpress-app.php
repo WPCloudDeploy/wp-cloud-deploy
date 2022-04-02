@@ -1374,6 +1374,12 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				||
 				( strpos( $result, 'already enabled' ) !== false );
 				break;
+			case 'backup_restore.txt':
+				$return =
+				( strpos( $result, 'Backup has been completed!' ) !== false )
+				||
+				( strpos( $result, 'has been restored' ) !== false );
+				break;				
 			case 'backup_restore_schedule.txt':
 				$return =
 				( strpos( $result, 'Backup job configured!' ) !== false )

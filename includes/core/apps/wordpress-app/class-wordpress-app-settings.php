@@ -729,8 +729,8 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 						'name'      => '',
 						'id'        => "{$wpcd_id_prefix}_{$context_tab_short_id}_{$owner_key}_{$feature_key}",
 						'type'      => 'switch',
-						'on_label'  => __( 'Hide Tab', 'wpcd' ),
-						'off_label' => __( 'Show Tab', 'wpcd' ),
+						'on_label'  => __( 'Hide', 'wpcd' ),
+						'off_label' => __( 'Show', 'wpcd' ),
 						'tab'       => $context_tab,
 						'columns'   => 4,
 					);

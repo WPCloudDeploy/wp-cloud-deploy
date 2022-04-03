@@ -69,7 +69,7 @@ class WPCD_Public_List_Table extends WP_List_Table {
 		
 		$pagenum = 0;
 		if( isset( $_REQUEST['paged'] ) ) {
-			$pagenum = absint( $_REQUEST['paged'] );
+			$pagenum = filter_input( INPUT_GET, 'paged', FILTER_SANITIZE_NUMBER_INT );
 		} elseif( get_query_var('paged') ) {
 			$pagenum = get_query_var('paged');
 		}
@@ -137,7 +137,7 @@ class WPCD_Public_List_Table extends WP_List_Table {
 			$posts_by_status[$p->post_status][] = $p;
 		}
 		
-		$_status = isset( $_REQUEST['post_status'] ) ? $_REQUEST['post_status'] : '';
+		$_status = filter_input( INPUT_GET, 'post_status', FILTER_SANITIZE_STRING );
 		if( $_status ) {
 			$items = isset( $posts_by_status[$_status] ) ? $posts_by_status[$_status] : array();
 		} else {
@@ -233,7 +233,9 @@ class WPCD_Public_List_Table extends WP_List_Table {
 	protected function get_views() {
 		
 		$class = '';
-		if ( !isset( $_REQUEST['post_status'] ) ) {
+		$_status = filter_input( INPUT_GET, 'post_status', FILTER_SANITIZE_STRING );
+		
+		if ( empty( $_status ) ) {
 			$class = 'current';
 		}		
 		
@@ -251,7 +253,7 @@ class WPCD_Public_List_Table extends WP_List_Table {
 		
 		foreach( $this->status_post_counts as $status => $count ) {
 			
-			$class = empty( $class ) && isset( $_REQUEST['post_status'] ) && $status === $_REQUEST['post_status'] ? 'current' : '';
+			$class = empty( $class ) && !empty( $_status ) && $status === $_status ? 'current' : '';
 			$label = sprintf('%s <span class="count">(%s)</span>', ucfirst($status), $count );
 			$status_links[$status] = $this->get_status_link( [ 'post_status' => $status ], $label , $class );
 		}

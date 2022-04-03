@@ -440,6 +440,8 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 			'base_url' => get_permalink( self::get_apps_list_page_id() )
 		));
 		
+		$post_status = filter_input( INPUT_GET, 'post_status', FILTER_SANITIZE_STRING );
+		ob_start();
 		?>
 		
 		<div id="wpcd_public_wrapper">
@@ -447,7 +449,7 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 				<?php printf( '<a class="button deploy_button" href="%s">%s</a>', get_permalink( self::get_servers_list_page_id() ) , __( 'Install WordPress', 'wpcd' ) ) ?>
 				<?php $table->views(); ?>
 				<form id="posts-filter" method="get">
-					<input type="hidden" name="post_status" class="post_status_page" value="<?php echo ! empty( $_REQUEST['post_status'] ) ? esc_attr( $_REQUEST['post_status'] ) : 'all'; ?>" />
+					<input type="hidden" name="post_status" class="post_status_page" value="<?php echo !empty( $post_status ) ? esc_attr( $post_status ) : 'all'; ?>" />
 					<?php $table->display(); ?>
 				</form>
 		
@@ -481,6 +483,7 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 			'base_url' => get_permalink( self::get_servers_list_page_id() )
 		));
 		
+		$post_status = filter_input( INPUT_GET, 'post_status', FILTER_SANITIZE_STRING );
 		ob_start();
 		?>
 		<div id="wpcd_public_wrapper">
@@ -489,7 +492,7 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 				<?php printf( '<a class="button deploy_button" href="%s">%s</a>', get_permalink( self::get_server_deploy_page_id() ) , __( 'Deploy A New WordPress Server', 'wpcd' ) ) ?>
 				<?php $table->views(); ?>
 				<form id="posts-filter" method="get">
-					<input type="hidden" name="post_status" class="post_status_page" value="<?php echo ! empty( $_REQUEST['post_status'] ) ? esc_attr( $_REQUEST['post_status'] ) : 'all'; ?>" />
+					<input type="hidden" name="post_status" class="post_status_page" value="<?php echo !empty( $post_status ) ? esc_attr( $post_status ) : 'all'; ?>" />
 					<?php $table->display(); ?>
 				</form>
 		

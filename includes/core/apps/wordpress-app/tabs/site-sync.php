@@ -26,7 +26,10 @@ class WPCD_WORDPRESS_TABS_SITE_SYNC extends WPCD_WORDPRESS_TABS {
 
 		add_action( "wpcd_command_{$this->get_app_name()}_completed", array( $this, 'command_completed' ), 10, 2 );
 
-		// Allow the site sync action to be triggered via an action hook.  Will primarily be used by the woocommerce add-ons.
+		/* Pending Logs Background Task: Trigger a site-sync process. */
+		add_action( 'wpcd_pending_log_site_sync', array( $this, 'pending_log_site_sync' ), 10, 3 );
+
+		// Allow the site sync action to be triggered via an action hook.  Will primarily be used by the woocommerce and powertools add-ons.
 		add_action( 'wpcd_wordpress-app_do_site_sync', array( $this, 'do_site_sync_action' ), 10, 2 );
 
 	}
@@ -60,6 +63,9 @@ class WPCD_WORDPRESS_TABS_SITE_SYNC extends WPCD_WORDPRESS_TABS {
 
 			// Was the command successful?
 			$success = $this->is_ssh_successful( $logs, 'site_sync.txt' );
+
+			// Maybe this was triggered by a pending log task.  If so, grab the meta so we can update the task record later.
+			$task_id = get_post_meta( $id, 'wpapp_pending_log_site_sync', true );
 
 			if ( true === (bool) $success ) {
 				/*
@@ -148,8 +154,32 @@ class WPCD_WORDPRESS_TABS_SITE_SYNC extends WPCD_WORDPRESS_TABS {
 							do_action( "wpcd_{$this->get_app_name()}_site_sync_new_post_completed", $new_app_post_id, $id, $name );
 
 						}
+
+						// If this was triggered by a pending log task update the task as complete.
+						if ( ! empty( $task_id ) ) {
+
+							// Grab our data array from pending tasks record...
+							$data = WPCD_POSTS_PENDING_TASKS_LOG()->get_data_by_id( $task_id );
+
+							// Mark the task as complete.
+							WPCD_POSTS_PENDING_TASKS_LOG()->update_task_by_id( $task_id, $data, 'complete' );
+
+						}
 					}
 				}
+			} else {
+				// If this was triggered by a pending log task update the task as failed.
+				if ( ! empty( $task_id ) ) {
+
+					// Grab our data array from pending tasks record...
+					$data = WPCD_POSTS_PENDING_TASKS_LOG()->get_data_by_id( $task_id );
+
+					// Mark the task as complete.
+					WPCD_POSTS_PENDING_TASKS_LOG()->update_task_by_id( $task_id, $data, 'failed' );
+
+				}
+
+				// Post alert to notification log that this failed.  Maybe add a hook?
 			}
 		}
 
@@ -930,6 +960,33 @@ class WPCD_WORDPRESS_TABS_SITE_SYNC extends WPCD_WORDPRESS_TABS {
 		);
 
 		return $fields;
+
+	}
+
+	/**
+	 * Perform a site sync - triggered via pending logs background process.
+	 *
+	 * Called from an action hook from the pending logs background process - WPCD_POSTS_PENDING_TASKS_LOG()->do_tasks()
+	 *
+	 * Action Hook: wpcd_pending_log_site_sync
+	 *
+	 * @param int   $task_id    Id of pending task that is firing this thing...
+	 * @param int   $site_id    Id of site on which this action apply.
+	 * @param array $args       All the data needed for this action.
+	 */
+	public function pending_log_site_sync( $task_id, $site_id, $args ) {
+
+		// Grab our data array from pending tasks record...
+		$data = WPCD_POSTS_PENDING_TASKS_LOG()->get_data_by_id( $task_id );
+
+		$args['site_sync_destination']          = $args['target_server'];
+		$args['sec_source_dest_check_override'] = 1;
+
+		// Add a postmeta to the site we can use later.
+		update_post_meta( $site_id, 'wpapp_pending_log_site_sync', $task_id );
+
+		/* Trigger the site sync */
+		do_action( 'wpcd_wordpress-app_do_site_sync', $site_id, $args );
 
 	}
 

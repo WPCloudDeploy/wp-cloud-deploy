@@ -28,7 +28,7 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 		add_action( "wpcd_{$this->get_app_name()}_manual_backup_for_site", array( $this, 'backup_actions' ), 10, 2 );
 
 		/* Pending Logs Background Task: Trigger manual backup */
-		add_action( 'pending_log_manual_site_backup', array( $this, 'pending_log_manual_site_backup' ), 10, 3 );
+		add_action( 'wpcd_pending_log_manual_site_backup', array( $this, 'pending_log_manual_site_backup' ), 10, 3 );
 
 		// Command completed hook.
 		add_action( "wpcd_command_{$this->get_app_name()}_completed", array( $this, 'command_completed' ), 10, 2 );
@@ -952,7 +952,7 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 	 *
 	 * Called from an action hook from the pending logs background process - WPCD_POSTS_PENDING_TASKS_LOG()->do_tasks()
 	 *
-	 * Action Hook: pending_log_manual_site_backup
+	 * Action Hook: wpcd_pending_log_manual_site_backup
 	 *
 	 * @param int   $task_id    Id of pending task that is firing this thing...
 	 * @param int   $site_id    Id of site on which this action apply.

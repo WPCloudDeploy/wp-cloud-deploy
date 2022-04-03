@@ -84,7 +84,7 @@ trait wpcd_wpapp_after_prepare_server {
 			// This is because the hook is being handled by the same task that handles the BULK actions for callbacks.
 			// Notice that the task type does not start with 'core-install-'.
 			if ( wpcd_get_option( 'wordpress_app_servers_activate_callbacks' ) ) {
-				$instance['action_hook'] = 'pending_log_install_a_callback';
+				$instance['action_hook'] = 'wpcd_pending_log_install_a_callback';
 				WPCD_POSTS_PENDING_TASKS_LOG()->add_pending_task_log_entry( $server_id, 'install-server-callback', $server_id, $instance, 'ready', $server_id, __( 'Waiting To Install Callbacks For New Server', 'wpcd' ) );
 			}
 		}

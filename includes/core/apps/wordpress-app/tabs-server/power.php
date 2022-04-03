@@ -34,7 +34,7 @@ class WPCD_WORDPRESS_TABS_SERVER_POWER extends WPCD_WORDPRESS_TABS {
 		add_action( 'wpcd_wordpress-reboot_soft', array( $this, 'reboot_soft' ), 10, 2 );
 
 		/* Pending Logs Background Task: Trigger server reboot - soft */
-		add_action( 'pending_log_soft_reboot', array( $this, 'pending_log_soft_reboot' ), 10, 3 );
+		add_action( 'wpcd_pending_log_soft_reboot', array( $this, 'pending_log_soft_reboot' ), 10, 3 );
 
 		/* Handle callback success and tag the pending log record as successful */
 		add_action( 'wpcd_server_wordpress-app_soft_reboot_action_successful', array( $this, 'handle_soft_reboot_success' ), 10, 3 );
@@ -649,7 +649,7 @@ class WPCD_WORDPRESS_TABS_SERVER_POWER extends WPCD_WORDPRESS_TABS {
 
 			if ( ! empty( $post_ids ) ) {
 				foreach ( $post_ids as $server_id ) {
-					$args['action_hook'] = 'pending_log_soft_reboot';
+					$args['action_hook'] = 'wpcd_pending_log_soft_reboot';
 					WPCD_POSTS_PENDING_TASKS_LOG()->add_pending_task_log_entry( $server_id, 'soft-reboot-server', $server_id, $args, 'ready', $server_id, __( 'Schedule a Server Reboot From Bulk Operation', 'wpcd' ) );
 				}
 
@@ -669,7 +669,7 @@ class WPCD_WORDPRESS_TABS_SERVER_POWER extends WPCD_WORDPRESS_TABS {
 	 *
 	 * Called from an action hook from the pending logs background process - WPCD_POSTS_PENDING_TASKS_LOG()->do_tasks()
 	 *
-	 * Action Hook: pending_log_soft_reboot
+	 * Action Hook: wpcd_pending_log_soft_reboot
 	 *
 	 * @param int   $task_id    Id of pending task that is firing this thing...
 	 * @param int   $server_id  Id of server on which this action apply.

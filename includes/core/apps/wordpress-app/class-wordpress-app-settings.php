@@ -692,7 +692,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'id'      => "{$wpcd_id_prefix}_{$context_tab_short_id}_tab_header_column",
 				'type'    => 'custom_html',
 				'std'     => '',
-				'columns' => 4,
+				'columns' => 6,
 				'tab'     => $context_tab,
 			);
 			$fields[] = array(
@@ -700,7 +700,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'id'      => "{$wpcd_id_prefix}_{$context_tab_short_id}_site_owner_header_column",
 				'type'    => 'custom_html',
 				'std'     => '',
-				'columns' => 4,
+				'columns' => 3,
 				'tab'     => $context_tab,
 				'tooltip' => __( 'Disable site owner access to these features.', 'wpcd' ),
 			);
@@ -709,7 +709,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'id'      => "{$wpcd_id_prefix}_{$context_tab_short_id}_site_server_owner_header_column",
 				'type'    => 'custom_html',
 				'std'     => '',
-				'columns' => 4,
+				'columns' => 3,
 				'tab'     => $context_tab,
 				'tooltip' => __( 'Disable site owner access to these features even if they are also the server owner.', 'wpcd' ),
 			);
@@ -721,7 +721,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 					'id'      => "{$wpcd_id_prefix}_{$context_tab_short_id}_column1_{$feature_key}_label",
 					'type'    => 'custom_html',
 					'tab'     => $context_tab,
-					'columns' => 4,
+					'columns' => 6,
 				);
 				// The next two columns are for the owner types.
 				foreach ( $context_owners as $owner_key => $owner_label ) {
@@ -732,7 +732,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 						'on_label'  => __( 'Hide', 'wpcd' ),
 						'off_label' => __( 'Show', 'wpcd' ),
 						'tab'       => $context_tab,
-						'columns'   => 4,
+						'columns'   => 3,
 					);
 				}
 			}

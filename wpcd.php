@@ -494,6 +494,47 @@ class WPCD_Init {
 			}
 		}
 
+		// Send email to site administrator for not loaded crons.
+		if ( ! empty( $not_loaded_crons ) ) {
+
+			$str_crons  = implode( ', ', $not_loaded_crons );
+			$to         = get_site_option( 'admin_email' );
+			$subject    = sprintf(
+							/* translators: %s: Site title. */
+				__( '[%s] - Some cron(s) are not running', 'wpcd' ),
+				wp_specialchars_decode( get_option( 'blogname' ) )
+			);
+			$body       = array();
+			$body[]     = __( 'Hello Admin,', 'wpcd' );
+			$body[]     = __( '<strong>WPCD: Warning</strong> - ' . $str_crons . ' cron(s) are not running.', 'wpcd' );
+			$body[]     = __( 'Thanks', 'wpcd' );
+
+			$email = array(
+				'to'      => $to,
+				'subject' => $subject,
+				'body'    => implode( "\n", $body ),
+				'headers' => array( 'Content-Type: text/html; charset=UTF-8' ),
+			);
+
+			if ( defined( 'WPCD_CRONS_NOT_RUNNING_EMAIL_TEST' ) && WPCD_CRONS_NOT_RUNNING_EMAIL_TEST ) {
+				wp_mail( $email['to'], wp_specialchars_decode( $email['subject'] ), $email['body'], $email['headers'] );
+			} else {
+				// Current date & time.
+				$current_datetime       = gmdate( 'Y-m-d H:i:s' );
+				$str_current_datetime   = strtotime( $current_datetime );
+
+				// Get next email send date time.
+				$next_email_send_date       = get_option( 'wpcd_crons_not_running_email_next_send_date' );
+				$str_next_email_send_date   = strtotime( $next_email_send_date );
+
+				if ( $str_current_datetime >= $str_next_email_send_date ) {
+					$next_send_time = gmdate( 'Y-m-d H:i:s', strtotime( '+4 hours' ) );
+					update_option( 'wpcd_crons_not_running_email_next_send_date', $next_send_time );
+					wp_mail( $email['to'], wp_specialchars_decode( $email['subject'] ), $email['body'], $email['headers'] );
+				}
+			}
+		}
+
 		// Checks to see if "cron check" transient is set or not. If not set then show an admin notice.
 		if ( ! get_transient( 'wpcd_loaded_timeout' ) && ! get_transient( 'wpcd_cron_check' ) && is_object( $screen ) && in_array( $screen->post_type, $post_types, true ) ) {
 			$class            = 'notice notice-error is-dismissible wpcd-cron-check';

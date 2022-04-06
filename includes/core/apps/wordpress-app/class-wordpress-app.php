@@ -3851,7 +3851,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		}
 
 		$screen     = get_current_screen();
-		$post_types = array( 'wpcd_app_server', 'wpcd_app', 'wpcd_team', 'wpcd_permission_type', 'wpcd_command_log', 'wpcd_ssh_log', 'wpcd_error_log', 'wpcd_pending_tasks_log' );
+		$post_types = array( 'wpcd_app_server', 'wpcd_app', 'wpcd_team', 'wpcd_permission_type', 'wpcd_command_log', 'wpcd_ssh_log', 'wpcd_error_log', 'wpcd_pending_log' );
 
 		if ( is_object( $screen ) && in_array( $screen->post_type, $post_types ) ) {
 			wp_enqueue_script( 'wpcd-admin-common', wpcd_url . 'includes/core/apps/wordpress-app/assets/js/wpcd-admin-common.js', array( 'jquery' ), wpcd_scripts_version, true );

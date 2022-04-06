@@ -842,9 +842,19 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 				'relation' => 'AND',
 				array(
 					'key'     => 'pending_task_state',
+					'value'   => 'not-ready',
+					'compare' => 'NOT LIKE',
+				),				
+				array(
+					'key'     => 'pending_task_state',
 					'value'   => 'complete',
 					'compare' => 'NOT LIKE',
 				),
+				array(
+					'key'     => 'pending_task_state',
+					'value'   => 'complete-manual',
+					'compare' => 'NOT LIKE',
+				),				
 				array(
 					'key'     => 'pending_task_state',
 					'value'   => 'ready',
@@ -855,6 +865,11 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 					'value'   => 'failed',
 					'compare' => 'NOT LIKE',
 				),
+				array(
+					'key'     => 'pending_task_state',
+					'value'   => 'failed-manual',
+					'compare' => 'NOT LIKE',
+				),				
 				array(
 					'key'     => 'pending_task_state',
 					'value'   => 'failed-timeout',

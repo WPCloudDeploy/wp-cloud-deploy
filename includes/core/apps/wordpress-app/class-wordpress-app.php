@@ -4383,6 +4383,9 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	/**
 	 * Sets the transient for cron check
 	 * This will be set when user dismisses the notice for cron check
+	 * 
+	 * Action Hook: wp_ajax_set_cron_check 
+	 * 
 	 */
 	public function set_cron_check() {
 

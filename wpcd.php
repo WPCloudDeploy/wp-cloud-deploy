@@ -509,7 +509,7 @@ class WPCD_Init {
 			$body   = array();
 			$body[] = __( 'Hello Admin,', 'wpcd' );
 			$body[] = '';
-			$body[] = __( '<strong>WPCD: Warning</strong> - certain critical CRONS are not running on your site.  Here is the full list:', 'wpcd' );
+			$body[] = __( '<strong>WPCD: Warning</strong> - certain critical CRONS are not running on your site.  Below are the ones that appear to be missing:', 'wpcd' );
 			$body[] = '';
 			$body[] = $str_crons;
 			$body[] = '';
@@ -588,9 +588,18 @@ class WPCD_Init {
 				}
 			}
 
-			// If empty means all crons are loaded properly, then set the transient.
+			// If empty means all crons are loaded properly, then set the transient so that we can recheck once per hour.
+			// This transient will also be set if the user dismisses the notice they get at the top of the screen.
+			// Here we will set it so that we'll recheck in 1 hour.  If it gets set when the user dismisses the notice it will be set for 12 hours.
+			// See the function set_cron_check() in file class-wordpress-app.php.
 			if ( count( $not_loaded_crons ) === 0 ) {
-				set_transient( 'wpcd_cron_check', 1, 12 * HOUR_IN_SECONDS );
+				set_transient( 'wpcd_cron_check', 1, 1 * HOUR_IN_SECONDS );
+			}
+		} else {
+			// Transient is set.  But the time remaining can sometimes be negative. While we're not sure why that happens, if it is, delete it!
+			$time_left = (int) wpcd_get_transient_remaining_time_in_mins( 'wpcd_cron_check' );
+			if ( $time_left < 0 ) {
+				delete_transient( 'wpcd_cron_check' );
 			}
 		}
 

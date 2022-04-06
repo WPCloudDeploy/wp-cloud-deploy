@@ -106,6 +106,9 @@ class WPCD_Init {
 		/* Load languages files */
 		add_action( 'plugins_loaded', array( $this, 'load_plugin_textdomain' ) );
 
+		/* Send email to admin if critical crons aren't running. */
+		add_action( 'init', array( $this, 'send_email_for_absent_crons' ), 20 );
+
 	}
 
 	/**
@@ -465,6 +468,103 @@ class WPCD_Init {
 			printf( '<div class="%1$s"><p>%2$s</p></div>', $class, $message );
 		}
 
+		// Make sure all our CRONS are running or, if not, that the user has seen and dismissed the warning notice.
+		$not_loaded_crons = $this->get_list_of_absent_crons();
+
+		// Checks to see if "cron check" transient is set or not. If not set then show an admin notice.
+		if ( ! get_transient( 'wpcd_loaded_timeout' ) && ! get_transient( 'wpcd_cron_check' ) && is_object( $screen ) && in_array( $screen->post_type, $post_types, true ) ) {
+			$class            = 'notice notice-error is-dismissible wpcd-cron-check';
+			$not_loaded_crons = implode( ', ', $not_loaded_crons );
+			$message          = __( '<strong>WPCD: Warning</strong> - ' . $not_loaded_crons . ' cron(s) are not running.', 'wpcd' );
+			printf( '<div class="%1$s"><p>%2$s</p></div>', $class, $message );
+		}
+	}
+
+	/**
+	 * If critical crons aren't running, send email to admin.
+	 *
+	 * Action Hook: Init.
+	 */
+	public function send_email_for_absent_crons() {
+
+		// Exit if option to suppress sending these emails is turned on.
+		if ( true === (bool) wpcd_get_early_option( 'wpcd_do_not_send_cron_warning_emails' ) ) {
+			return;
+		}
+
+		// Get list of crons that aren't running.
+		$not_loaded_crons = $this->get_list_of_absent_crons();
+
+		// Send email to site administrator if we have some crons that are not running.
+		if ( ! empty( $not_loaded_crons ) ) {
+
+			$str_crons = implode( ', ', $not_loaded_crons );
+			$to        = get_site_option( 'admin_email' );
+			$headers   = array( 'Content-Type: text/html; charset=UTF-8' );
+			$subject   = sprintf(
+				/* translators: %s: Site title. */
+				__( '[%s] - One or more critical crons are not running...', 'wpcd' ),
+				wp_specialchars_decode( get_option( 'blogname' ) )
+			);
+			$body   = array();
+			$body[] = __( 'Hello Admin,', 'wpcd' );
+			$body[] = '';
+			$body[] = __( '<strong>WPCD: Warning</strong> - certain critical CRONS are not running on your site.  Here is the full list:', 'wpcd' );
+			$body[] = '';
+			$body[] = $str_crons;
+			$body[] = '';
+			$body[] = __( 'Before contacting support, please try to disable and renable the plugin to reactivate crons. Additionally, please verify that your WP CRON is firing every 1 minute - either from enough frequent site traffic or, better yet, from a native LINUX cron process.', 'wpcd' );
+			$body[] = '';
+			$body[] = __( '--------', 'wpcd' );
+			$body[] = '';
+			$body[] = __( 'If you do not want to receive these emails you can turn them off in the settings area under the MISC tab.', 'wpcd' );
+			$body[] = '';
+			$body[] = __( 'Thanks,', 'wpcd' );
+			$body[] = '';
+			$body[] = __( '- Your WP Management Dashboard BOT.', 'wpcd' );
+
+			// Apply filters to each var for the outgoing email.
+			$headers = apply_filters( 'wpcd_send_email_for_absent_crons_to', $headers );
+			$to      = apply_filters( 'wpcd_send_email_for_absent_crons_to', $to );
+			$subject = apply_filters( 'wpcd_send_email_for_absent_crons_subject', $subject );
+			$body    = apply_filters( 'wpcd_send_email_for_absent_crons_body', $body );
+
+			$email = array(
+				'to'      => $to,
+				'subject' => $subject,
+				'body'    => implode( "\n" . PHP_EOL . '<br />', $body ),
+				'headers' => $headers,
+			);
+
+			if ( defined( 'WPCD_CRONS_NOT_RUNNING_EMAIL_TEST' ) && WPCD_CRONS_NOT_RUNNING_EMAIL_TEST ) {
+				// When this constant is set, we're always going to send an email - useful for TESTING.
+				wp_mail( $email['to'], wp_specialchars_decode( $email['subject'] ), $email['body'], $email['headers'] );
+			} else {
+				// Send an email every 8 hours. Start by getting the current date and time.
+				$current_datetime     = gmdate( 'Y-m-d H:i:s' );
+				$str_current_datetime = strtotime( $current_datetime );
+
+				// Calculate the next date/time to send an alert email. The option wpcd_crons_not_running_email_next_send_date is where we store the next time we have to send an email if all our crons aren't running.
+				$next_email_send_date     = get_option( 'wpcd_crons_not_running_email_next_send_date' );
+				$str_next_email_send_date = strtotime( $next_email_send_date );
+
+				if ( $str_current_datetime >= $str_next_email_send_date ) {
+					$next_send_time = gmdate( 'Y-m-d H:i:s', strtotime( '+8 hours' ) );
+					update_option( 'wpcd_crons_not_running_email_next_send_date', $next_send_time );
+					wp_mail( $email['to'], wp_specialchars_decode( $email['subject'] ), $email['body'], $email['headers'] );
+				}
+			}
+		}
+
+	}
+
+	/**
+	 * Returns a list of critical crons that aren't running.
+	 *
+	 * Only returns the list if the user has not dismissed the notification at the top of the screen.
+	 */
+	public function get_list_of_absent_crons() {
+
 		$not_loaded_crons = array();
 
 		if ( ! get_transient( 'wpcd_cron_check' ) ) {
@@ -494,54 +594,8 @@ class WPCD_Init {
 			}
 		}
 
-		// Send email to site administrator for not loaded crons.
-		if ( ! empty( $not_loaded_crons ) ) {
+		return $not_loaded_crons;
 
-			$str_crons  = implode( ', ', $not_loaded_crons );
-			$to         = get_site_option( 'admin_email' );
-			$subject    = sprintf(
-							/* translators: %s: Site title. */
-				__( '[%s] - Some cron(s) are not running', 'wpcd' ),
-				wp_specialchars_decode( get_option( 'blogname' ) )
-			);
-			$body       = array();
-			$body[]     = __( 'Hello Admin,', 'wpcd' );
-			$body[]     = __( '<strong>WPCD: Warning</strong> - ' . $str_crons . ' cron(s) are not running.', 'wpcd' );
-			$body[]     = __( 'Thanks', 'wpcd' );
-
-			$email = array(
-				'to'      => $to,
-				'subject' => $subject,
-				'body'    => implode( "\n", $body ),
-				'headers' => array( 'Content-Type: text/html; charset=UTF-8' ),
-			);
-
-			if ( defined( 'WPCD_CRONS_NOT_RUNNING_EMAIL_TEST' ) && WPCD_CRONS_NOT_RUNNING_EMAIL_TEST ) {
-				wp_mail( $email['to'], wp_specialchars_decode( $email['subject'] ), $email['body'], $email['headers'] );
-			} else {
-				// Current date & time.
-				$current_datetime       = gmdate( 'Y-m-d H:i:s' );
-				$str_current_datetime   = strtotime( $current_datetime );
-
-				// Get next email send date time.
-				$next_email_send_date       = get_option( 'wpcd_crons_not_running_email_next_send_date' );
-				$str_next_email_send_date   = strtotime( $next_email_send_date );
-
-				if ( $str_current_datetime >= $str_next_email_send_date ) {
-					$next_send_time = gmdate( 'Y-m-d H:i:s', strtotime( '+4 hours' ) );
-					update_option( 'wpcd_crons_not_running_email_next_send_date', $next_send_time );
-					wp_mail( $email['to'], wp_specialchars_decode( $email['subject'] ), $email['body'], $email['headers'] );
-				}
-			}
-		}
-
-		// Checks to see if "cron check" transient is set or not. If not set then show an admin notice.
-		if ( ! get_transient( 'wpcd_loaded_timeout' ) && ! get_transient( 'wpcd_cron_check' ) && is_object( $screen ) && in_array( $screen->post_type, $post_types, true ) ) {
-			$class            = 'notice notice-error is-dismissible wpcd-cron-check';
-			$not_loaded_crons = implode( ', ', $not_loaded_crons );
-			$message          = __( '<strong>WPCD: Warning</strong> - ' . $not_loaded_crons . ' cron(s) are not running.', 'wpcd' );
-			printf( '<div class="%1$s"><p>%2$s</p></div>', $class, $message );
-		}
 	}
 
 	/**

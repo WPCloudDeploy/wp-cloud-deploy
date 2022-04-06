@@ -114,6 +114,7 @@ Note: Even though the entire git development history isn't available on github, 
 * New: WPAPP - Add global option to enable delete protection on all new sites.
 * New: WPAPP - Add new feature security options in SETTINGS->APP:WORDPRESS SECURITY to control who can see the EMAIL and NOTES/LABLELS/LINKS checkboxes.
 * New: WPAPP - New tab to allow updating certain values in wp-config.php.
+* New: WPAPP - When we detect that our critical crons are not running, send a warning email to the site admin.  
 * Tweak: Make sure that certain messages only display to users who pass the wpcd_is_admin() check instead of all users.
 * Tweak: WPAPP - Disable old PHP versions on new servers by default.  Add controls to allow admin to re-enable them on a server-by-server basis.
 * Tweak: WPAPP - Preference ipv4 over ipv6 (update bash create-server script)
@@ -141,6 +142,8 @@ Note: Even though the entire git development history isn't available on github, 
 * Fix: WPAPP - The ADD NEW APP RECORD button was not showing up in all cases where it should.
 * Fix: WPAPP - The default color for the PHP 8.1 label in the sites list was not consistent with the colors used for the PHP 8.0 label.
 * Fix: WPAPP - The server tools tab would throw an error if you tried to set the default PHP version to 8.1.
+* Fix: WPAPP - The name of a custom post type was incorrect in an array where we were listing certain custom post types we use.
+* Fix: WPAPP - The process for marking pending log items as failed did not take into account all the new recent state types.
 * Fix: WPAPP - We weren't warning user when they entered the '&()' characters in certain fields where they are invalid.
 * Fix: WPAPP - Some minor grammar errors.
 * Dev: WPAPP - New filter to allow providers to add text to any error messages when a server immediately fails to deploy.

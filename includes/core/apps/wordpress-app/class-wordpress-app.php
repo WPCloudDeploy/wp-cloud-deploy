@@ -158,7 +158,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		// When a server cleanup script is being run.
 		add_action( 'wpcd_cleanup_server_after', array( $this, 'wpcd_cleanup_server_after' ), 10, 1 );
 
-		// When WP has been installed, add temp domain to DNS if configured.
+		// When WP has been installed, add temp domain to DNS if configured as well as perform other actions after the site is successfully installed.
 		add_action( 'wpcd_command_wordpress-app_completed_after_cleanup', array( $this, 'wpcd_wpapp_install_complete' ), 10, 4 );
 
 		// Ajax Hooks.
@@ -1379,7 +1379,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				( strpos( $result, 'Backup has been completed!' ) !== false )
 				||
 				( strpos( $result, 'has been restored' ) !== false );
-				break;				
+				break;
 			case 'backup_restore_schedule.txt':
 				$return =
 				( strpos( $result, 'Backup job configured!' ) !== false )
@@ -3297,12 +3297,12 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	 *
 	 * Action Hook: wpcd_command_wordpress-app_completed_after_cleanup
 	 *
-	 * @param int    $id             post id of server.
+	 * @param int    $server_id      post id of server.
 	 * @param int    $app_id         post id of wp app.
 	 * @param string $name           command name executed for new site.
 	 * @param string $base_command   basename of command.
 	 */
-	public function wpcd_wpapp_install_complete( $id, $app_id, $name, $base_command ) {
+	public function wpcd_wpapp_install_complete( $server_id, $app_id, $name, $base_command ) {
 
 		// If not installing an app, return.
 		if ( 'install_wp' <> $base_command ) {
@@ -3327,11 +3327,29 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		// Log what we're doing.
 		do_action( 'wpcd_log_error', 'Sending request to DNS module to add domain if applicable ' . print_r( $instance, true ), 'trace', __FILE__, __LINE__ );
 
+		// Do the DNS thing.
+		$this->handle_temp_dns_for_new_site( $server_id, $app_id );
+
+		// Install page_cache.
+		$this->handle_page_cache_for_new_site( $app_id, $instance );
+
+	}
+
+	/**
+	 * Add temp domain to DNS when WP install is complete.
+	 *
+	 * Called from function wpcd_wpapp_install_complete
+	 *
+	 * @param int $server_id      post id of server.
+	 * @param int $app_id         post id of wp app.
+	 */
+	public function handle_temp_dns_for_new_site( $server_id, $app_id ) {
+
 		// What's the IP of the server?
-		$ipv4 = WPCD_SERVER()->get_ipv4_address( $id );
+		$ipv4 = WPCD_SERVER()->get_ipv4_address( $server_id );
 
 		// What's the IPv6 of the server?
-		$ipv6 = WPCD_SERVER()->get_ipv6_address( $id );
+		$ipv6 = WPCD_SERVER()->get_ipv6_address( $server_id );
 
 		// What's the domain of the site?
 		$domain = $this->get_domain_name( $app_id );
@@ -3344,6 +3362,25 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			if ( wpcd_get_option( 'wordpress_app_auto_issue_ssl' ) ) {
 				do_action( 'wpcd_wordpress-app_do_toggle_ssl_status', $app_id, 'ssl-status' );
 			}
+		}
+
+		return $dns_success;
+
+	}
+
+	/**
+	 * Add page cache when WP install is complete.
+	 *
+	 * Called from function wpcd_wpapp_install_complete
+	 *
+	 * @param int   $app_id        post id of app.
+	 * @param array $instance      Array passed by calling function containing details of the server and site.
+	 */
+	public function handle_page_cache_for_new_site( $app_id, $instance ) {
+
+		if ( wpcd_get_option( 'wordpress_app_sites_install_page_cache' ) ) {
+			$instance['action_hook'] = 'wpcd_pending_log_toggle_page_cache';
+			WPCD_POSTS_PENDING_TASKS_LOG()->add_pending_task_log_entry( $app_id, 'install-page-cache', $app_id, $instance, 'ready', $app_id, __( 'Waiting To Install Page Cache For New Site', 'wpcd' ) );
 		}
 
 	}
@@ -4383,9 +4420,8 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	/**
 	 * Sets the transient for cron check
 	 * This will be set when user dismisses the notice for cron check
-	 * 
-	 * Action Hook: wp_ajax_set_cron_check 
-	 * 
+	 *
+	 * Action Hook: wp_ajax_set_cron_check
 	 */
 	public function set_cron_check() {
 

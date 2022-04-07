@@ -1145,6 +1145,13 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tab'     => 'wordpress-app-sites',
 			),
 			array(
+				'id'      => 'wordpress_app_sites_install_page_cache',
+				'type'    => 'checkbox',
+				'name'    => __( 'Install and Enable Page Cache?', 'wpcd' ),
+				'tooltip' => __( 'Install and enable the page cache on all new sites?', 'wpcd' ),
+				'tab'     => 'wordpress-app-sites',
+			),
+			array(
 				'type' => 'heading',
 				'name' => __( 'Misc', 'wpcd' ),
 				'desc' => '',

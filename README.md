@@ -112,9 +112,10 @@ Note: Even though the entire git development history isn't available on github, 
 * New: Add install and support links to the plugin entry in the WP plugins list.
 * New: Add code to display the change log directly in the plugin list when a new version is available.
 * New: WPAPP - Add global option to enable delete protection on all new sites.
+* New: WPAPP - Add global option to enable page cache on all new sites.
 * New: WPAPP - Add new feature security options in SETTINGS->APP:WORDPRESS SECURITY to control who can see the EMAIL and NOTES/LABLELS/LINKS checkboxes.
 * New: WPAPP - New tab to allow updating certain values in wp-config.php.
-* New: WPAPP - When we detect that our critical crons are not running, send a warning email to the site admin.  
+* New: WPAPP - When we detect that our critical crons are not running, send a warning email to the site admin.
 * Tweak: Make sure that certain messages only display to users who pass the wpcd_is_admin() check instead of all users.
 * Tweak: WPAPP - Disable old PHP versions on new servers by default.  Add controls to allow admin to re-enable them on a server-by-server basis.
 * Tweak: WPAPP - Preference ipv4 over ipv6 (update bash create-server script)

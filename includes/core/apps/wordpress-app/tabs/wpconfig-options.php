@@ -113,6 +113,9 @@ class WPCD_WORDPRESS_TABS_WPCONFIG extends WPCD_WORDPRESS_TABS {
 			return $result;
 		}
 
+		// Fallthrough.
+		return $result;
+
 	}
 
 	/**

@@ -194,13 +194,8 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 		 */
 		$args = apply_filters( "wpcd_app_{$this->get_app_name()}_before_action_copy_to_existing_site", $args, $action, $id, $instance, $domain, $original_args );
 
-		// we want to make sure this command runs only once in a "swatch beat" for a domain.
-		// e.g. 2 manual backups cannot run for the same domain at the same time (time = swatch beat).
-		// although technically only one command can run per domain (e.g. backup and restore cannot run at the same time).
-		// we are appending the Swatch beat to the command name because this command can be run multiple times.
-		// over the app's lifetime.
-		// but within a swatch beat, it can only be run once.
-		$command             = sprintf( '%s---%s---%d', $action, $domain, date( 'B' ) );
+		// Setup unique command name.
+		$command             = sprintf( '%s---%s---%d', $action, $domain, time() );
 		$instance['command'] = $command;
 		$instance['app_id']  = $id;
 

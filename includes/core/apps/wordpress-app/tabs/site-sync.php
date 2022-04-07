@@ -481,12 +481,7 @@ class WPCD_WORDPRESS_TABS_SITE_SYNC extends WPCD_WORDPRESS_TABS {
 		 *    2. Schedule a site sync - $action = 'schedule-site-sync'
 		 */
 
-		// we want to make sure this command runs only once in a "swatch beat" for a domain.
-		// e.g. 2 manual backups cannot run for the same domain at the same time (time = swatch beat)
-		// although technically only one command can run per domain (e.g. backup and restore cannot run at the same time).
-		// we are appending the Swatch beat to the command name because this command can be run multiple times
-		// over the app's lifetime
-		// but within a swatch beat, it can only be run once.
+		// Setup unique command name.
 		$action = $original_action;
 		if ( empty( $action ) ) {
 			$msg = __( 'The $action variable is empty - returning false from site-sync routine.', 'wpcd' );
@@ -494,7 +489,7 @@ class WPCD_WORDPRESS_TABS_SITE_SYNC extends WPCD_WORDPRESS_TABS {
 			return false;
 		}
 
-		$command                    = sprintf( '%s---%s---%d', $action, $domain, date( 'B' ) );
+		$command                    = sprintf( '%s---%s---%d', $action, $domain, time() );
 		$source_instance['command'] = $command;
 		$source_instance['app_id']  = $id;
 

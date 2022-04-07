@@ -1166,14 +1166,8 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the server instance details for action %s', 'wpcd' ), $action ) );
 		}
 
-		// we want to make sure this command runs only once in a "swatch beat" for a domain.
-		// e.g. 2 manual backups cannot run for the same domain at the same time (time = swatch beat)
-		// although technically only one command can run per domain (e.g. backup and restore cannot run at the same time).
-		// we are appending the Swatch beat to the command name because this command can be run multiple times
-		// over the app's lifetime
-		// but within a swatch beat, it can only be run once.
-		$domain                = '';  // No domain for server level actions.
-		$command               = sprintf( '%s---%s---%d', $action, $domain, date( 'B' ) );
+		// Setup unique command name.
+		$command               = sprintf( '%s---%s---%d', $action, $domain, time() );
 		$instance['command']   = $command;
 		$instance['app_id']    = $id;   // @todo - this is not really the app id - need to test to see if the process will work without this array element.
 		$instance['server_id'] = $id;
@@ -1811,7 +1805,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 
 		// Put some items into the instance array.
 		$domain                = '';  // No domain for server level actions - note that this is NOT the sending domain.
-		$command               = sprintf( '%s---%s---%d', $action, $domain, date( 'B' ) );
+		$command               = sprintf( '%s---%s---%d', $action, $domain, time() );
 		$instance['command']   = $command;
 		$instance['app_id']    = $id;   // @todo - this is not really the app id - need to test to see if the process will work without this array element.
 		$instance['server_id'] = $id;
@@ -1936,7 +1930,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		$domain        = 'nodomain';
 
 		// Put some items into the instance array.
-		$command               = sprintf( '%s---%s---%d', $action, $domain, date( 'B' ) );
+		$command               = sprintf( '%s---%s---%d', $action, $domain, time() );
 		$instance['command']   = $command;
 		$instance['app_id']    = $id;   // @todo - this is not really the app id - need to test to see if the process will work without this array element.
 		$instance['server_id'] = $id;
@@ -2006,7 +2000,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		$domain        = 'nodomain';
 
 		// Put some items into the instance array.
-		$command               = sprintf( '%s---%s---%d', $action, $domain, date( 'B' ) );
+		$command               = sprintf( '%s---%s---%d', $action, $domain, time() );
 		$instance['command']   = $command;
 		$instance['app_id']    = $id;   // @todo - this is not really the app id - need to test to see if the process will work without this array element.
 		$instance['server_id'] = $id;

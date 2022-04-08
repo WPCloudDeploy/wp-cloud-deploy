@@ -707,7 +707,7 @@ class WPCD_WORDPRESS_TABS_SERVER_CALLBACKS extends WPCD_WORDPRESS_TABS {
 				}
 
 				// Add message to be displayed in admin header.
-				wpcd_global_add_admin_notice( __( 'Server callbacks have been scheduled for installation. You can view the progress in the PENDING LOG screen.', 'wpcd' ), 'success' );
+				wpcd_global_add_admin_notice( __( 'Server callbacks have been scheduled for installation. You can view the progress in the PENDING TASKS screen.', 'wpcd' ), 'success' );
 
 			}
 

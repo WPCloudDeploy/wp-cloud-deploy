@@ -26,7 +26,7 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 
 		add_action( "wpcd_command_{$this->get_app_name()}_completed", array( $this, 'command_completed' ), 10, 2 );
 
-		/* Pending Logs Background Task: Run callback for the first time on a server after they're installed */
+		/* Pending Logs Background Task: Install our page cache on a site */
 		add_action( 'wpcd_pending_log_toggle_page_cache', array( $this, 'toggle_page_cache' ), 10, 3 );
 
 	}
@@ -639,7 +639,7 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 			// We'll just reset the $task_status to complete (which is the value it was initialized with) to avoid complaints by PHPcs about an empty if statement.
 			$task_status = 'complete';
 		} else {
-			if ( false === (bool) $result ) {
+			if ( false === (bool) $result || is_wp_error( $result ) ) {
 				$task_status = 'failed';
 			}
 		}

@@ -547,7 +547,7 @@ class WPCD_WORDPRESS_TABS_THEME_AND_PLUGIN_UPDATES extends WPCD_WORDPRESS_TABS {
 				}
 
 				// Add message to be displayed in admin header.
-				wpcd_global_add_admin_notice( __( 'Updates have been scheduled for the selected sites. You can view the progress in the PENDING LOG screen.', 'wpcd' ), 'success' );
+				wpcd_global_add_admin_notice( __( 'Updates have been scheduled for the selected sites. You can view the progress in the PENDING TASKS screen.', 'wpcd' ), 'success' );
 
 			}
 		}

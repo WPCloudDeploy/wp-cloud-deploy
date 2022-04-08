@@ -654,7 +654,7 @@ class WPCD_WORDPRESS_TABS_SERVER_POWER extends WPCD_WORDPRESS_TABS {
 				}
 
 				// Add message to be displayed in admin header.
-				wpcd_global_add_admin_notice( __( 'A soft reboot has been scheduled for the selected servers. You can view the progress in the PENDING LOG screen.', 'wpcd' ), 'success' );
+				wpcd_global_add_admin_notice( __( 'A soft reboot has been scheduled for the selected servers. You can view the progress in the PENDING TASKS screen.', 'wpcd' ), 'success' );
 
 			}
 

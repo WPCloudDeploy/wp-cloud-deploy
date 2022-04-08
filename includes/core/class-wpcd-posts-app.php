@@ -1185,11 +1185,22 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 	 *                      still works.
 	 *                      One place is in tabs tabs/site-sync.php
 	 *
+	 *                      Another tricky place is BULK SITE delete. If you add
+	 *                      additional delete functions here (eg: deleting related posts)
+	 *                      then the bulk site delete functions in tabs/misc.php will
+	 *                      need to be redone.  Make sure you fully test bulk site delete
+	 *                      with any changes you make here!
+	 *
 	 * @param  int $post_id post id.
 	 *
 	 * @return void
 	 */
 	public function wpcd_app_delete_post( $post_id ) {
+
+		// No permissions check if we're running tasks via cron. eg: bulk deletes triggered via pending logs.
+		if ( true === wp_doing_cron() ) {
+			return;
+		}
 
 		if ( get_post_type( $post_id ) === 'wpcd_app' && ! wpcd_is_admin() ) {
 			$user_id     = (int) get_current_user_id();

@@ -23,8 +23,18 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 		add_filter( "wpcd_app_{$this->get_app_name()}_get_tabs", array( $this, 'get_tab_fields' ), 10, 2 );
 		add_filter( "wpcd_app_{$this->get_app_name()}_tab_action", array( $this, 'tab_action' ), 10, 3 );
 
+		// Add bulk action option to the site list to bulk delete sites.
+		add_filter( 'bulk_actions-edit-wpcd_app', array( $this, 'wpcd_add_new_bulk_actions_site' ) );
+
+		// Action hook to handle bulk actions for site.
+		add_filter( 'handle_bulk_actions-edit-wpcd_app', array( $this, 'wpcd_bulk_action_handler_sites' ), 10, 3 );
+
 		// This action hook is only used by the WooCommerce sell wp sites functionality to trigger deletion of a site.
 		add_action( 'wpcd_app_delete_wp_site', array( $this, 'remove_site_via_action_hook' ), 10, 2 );
+
+		/* Pending Logs Background Task: Delete site */
+		add_action( 'wpcd_pending_log_delete_wp_site', array( $this, 'pending_log_remove_site_and_leave_backups' ), 10, 3 );
+		add_action( 'wpcd_pending_log_delete_wp_site_and_backups', array( $this, 'pending_log_remove_site_and_backups' ), 10, 3 );
 	}
 
 	/**
@@ -658,6 +668,70 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
+	 * Remove site and associated backups on disk via an action hook call from pending logs.
+	 *
+	 * Called from an action hook from the pending logs background process - WPCD_POSTS_PENDING_TASKS_LOG()->do_tasks()
+	 *
+	 * Action Hook: wpcd_pending_log_delete_wp_site
+	 *
+	 * @param int   $task_id    Id of pending task that is firing this thing...
+	 * @param int   $site_id    Id of site involved in this action.
+	 * @param array $args       All the data needed to handle this action.
+	 */
+	public function pending_log_remove_site_and_leave_backups( $task_id, $site_id, $args ) {
+		$this->pending_log_remove_site( $task_id, $site_id, $args, 'remove' );
+	}
+
+	/**
+	 * Remove site via an action hook call from pending logs.
+	 *
+	 * Called from an action hook from the pending logs background process - WPCD_POSTS_PENDING_TASKS_LOG()->do_tasks()
+	 *
+	 * Action Hook: wpcd_pending_log_delete_wp_site_and_backups
+	 *
+	 * @param int   $task_id    Id of pending task that is firing this thing...
+	 * @param int   $site_id    Id of site involved in this action.
+	 * @param array $args       All the data needed to handle this action.
+	 */
+	public function pending_log_remove_site_and_backups( $task_id, $site_id, $args ) {
+		$this->pending_log_remove_site( $task_id, $site_id, $args, 'remove_full' );
+	}
+
+	/**
+	 * Helper function to remove site when certain other delete site functions are triggered
+	 * via an action hook call from pending logs.
+	 *
+	 * @param int    $task_id    Id of pending task that is firing this thing...
+	 * @param int    $site_id    Id of site involved in this action.
+	 * @param array  $args       All the data needed to handle this action.
+	 * @param string $action    What kind of site delete are we doing?  Options are 'remove' or 'remove_full'.
+	 */
+	public function pending_log_remove_site( $task_id, $site_id, $args, $action ) {
+
+		// Grab our data array from pending tasks record...
+		$data = WPCD_POSTS_PENDING_TASKS_LOG()->get_data_by_id( $task_id );
+
+		/* Attempt to remove the site */
+		$result = $this->remove_site( $site_id, $action );
+
+		$task_status = 'complete';  // Assume success.
+
+		if ( is_array( $result ) ) {
+			// Some processes return an array array with a success message. This one does not so there's nothing to do here.
+			// We'll just reset the $task_status to complete (which is the value it was initialized with) to avoid complaints by PHPcs about an empty if statement.
+			$task_status = 'complete';
+		} else {
+			if ( false === (bool) $result || is_wp_error( $result ) ) {
+				$task_status = 'failed';
+			}
+		}
+
+		WPCD_POSTS_PENDING_TASKS_LOG()->update_task_by_id( $task_id, $data, $task_status );
+
+	}
+
+
+	/**
 	 * Remove site.
 	 *
 	 * @param int    $id     The postID of the app cpt.
@@ -906,6 +980,96 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 
 		return $success;
 
+	}
+
+	/**
+	 * Add new bulk options in site list screen.
+	 *
+	 * @param array $bulk_array bulk array.
+	 */
+	public function wpcd_add_new_bulk_actions_site( $bulk_array ) {
+
+		// Bail if option isn't enabled.
+		if ( ! ( (bool) wpcd_get_option( 'wordpress_app_enable_bulk_site_delete_on_full_app_list' ) ) ) {
+			return $bulk_array;
+		}
+
+		if ( wpcd_is_admin() ) {
+			$bulk_array['wpcd_sites_bulk_delete_sites']             = __( 'Delete Sites From Server', 'wpcd' );
+			$bulk_array['wpcd_sites_bulk_delete_sites_and_backups'] = __( 'Delete Sites and Backups From Server', 'wpcd' );
+			return $bulk_array;
+		}
+
+	}
+
+	/**
+	 * Returns an array of actions that is valid for the bulk actions menu.
+	 * It's basically the same as the get_valid_actions() function above but
+	 * with the actions prefixed by "wpcd_sites_".
+	 */
+	public function get_valid_bulk_actions() {
+		return array( 'wpcd_sites_bulk_delete_sites', 'wpcd_sites_bulk_delete_sites_and_backups' );
+	}
+
+	/**
+	 * Handle bulk actions for sites.
+	 *
+	 * @param string $redirect_url  redirect url.
+	 * @param string $action        bulk action slug/id - this is not the WPCD action key.
+	 * @param array  $post_ids      all post ids.
+	 */
+	public function wpcd_bulk_action_handler_sites( $redirect_url, $action, $post_ids ) {
+		// Let's remove query args first for redirect url.
+		$redirect_url = remove_query_arg( array( 'wpcd_update_themes_and_plugins' ), $redirect_url );
+
+		// Lets make sure we're an admin otherwise return an error.
+		if ( ! wpcd_is_admin() ) {
+			do_action( 'wpcd_log_error', 'Someone attempted to run a function that required admin privileges.', 'security', __FILE__, __LINE__ );
+
+			// Show error message to user at the top of the admin list as a dismissible notice.
+			wpcd_global_add_admin_notice( __( 'You attempted to run a function that requires admin privileges.', 'wpcd' ), 'error' );
+
+			return $redirect_url;
+		}
+
+		// Verify that the bulk action is one we want to handle here.
+		if ( in_array( $action, $this->get_valid_bulk_actions(), true ) ) {
+
+			// If we have sites to be deleted then add them to the pending log table.
+			if ( ! empty( $post_ids ) ) {
+				foreach ( $post_ids as $app_id ) {
+					$task_name = '';
+					$task_desc = '';
+					switch ( $action ) {
+						case 'wpcd_sites_bulk_delete_sites':
+							$args['action_hook'] = 'wpcd_pending_log_delete_wp_site';
+							$args['action']      = 'remove';
+							$task_name           = 'delete-site';
+							$task_desc           = __( 'Bulk Action: Waiting to delete site.', 'wpcd' );
+							break;
+						case 'wpcd_sites_bulk_delete_sites_and_backups':
+							$args['action_hook'] = 'wpcd_pending_log_delete_wp_site_and_backups';
+							$args['action']      = 'remove_full';
+							$task_name           = 'delete-site-and-backups';
+							$task_desc           = __( 'Bulk Action: Waiting to delete site and associated backups.', 'wpcd' );
+							break;
+
+					}
+					WPCD_POSTS_PENDING_TASKS_LOG()->add_pending_task_log_entry( $app_id, $task_name, $app_id, $args, 'ready', $app_id, $task_desc );
+				}
+
+				// Add message to be displayed in admin header.
+				if ( 1 === count( $post_ids ) ) {
+					/* Translators: %s is the number of sites that have been scheduled for deletion. */
+					wpcd_global_add_admin_notice( sprintf( __( '%s site has been scheduled for deletion. You can view the progress in the PENDING TASKS screen.', 'wpcd' ), count( $post_ids ) ), 'success' );
+				} else {
+					/* Translators: %s is the number of sites that have been scheduled for deletion. */
+					wpcd_global_add_admin_notice( sprintf( __( '%s sites have been scheduled for deletion. You can view the progress in the PENDING TASKS screen.', 'wpcd' ), count( $post_ids ) ), 'success' );
+				}
+			}
+		}
+
+		return $redirect_url;
 	}
 }
 

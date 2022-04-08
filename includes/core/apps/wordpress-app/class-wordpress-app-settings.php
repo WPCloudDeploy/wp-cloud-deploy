@@ -1029,6 +1029,13 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tab'     => 'wordpress-app-general-wpadmin',
 			),
 			array(
+				'id'      => 'wordpress_app_enable_bulk_site_delete_on_full_app_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Enable Bulk Site Delete Action', 'wpcd' ),
+				'tooltip' => __( 'Enable the bulk site delete option for the sites list. This deletes the selected sites on your servers unlike the TRASH option which just removes the records.', 'wpcd' ),
+				'tab'     => 'wordpress-app-general-wpadmin',
+			),			
+			array(
 				'type' => 'heading',
 				'name' => __( 'Labels', 'wpcd' ),
 				'desc' => __( 'Label options specific to the WordPress app.', 'wpcd' ),

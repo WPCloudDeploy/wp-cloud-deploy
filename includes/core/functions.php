@@ -286,7 +286,7 @@ function wpcd_split_lines_into_array( $string ) {
  * The keys and values in a pair in the string must not be separated by spaces.
  * Thus something like this is valid: export action=backup domain=test088.wpvix.com site=test088.wpvix.com.
  * In this example the keys are 'action=', 'domain=' and 'site='.
- * the values are 'backup', 'test088.wpvix.com and 'test088.wpvix.com' respectively.
+ * The values are 'backup', 'test088.wpvix.com and 'test088.wpvix.com' respectively.
  * notice that there is no space between the key= and the value.
  *
  * @param array  $pairs key-value array eg: array( 'wp_password=' => '(***private***)', 'aws_access_key_id=' => '(***private***)', 'aws_secret_access_key=' => '(***private***)'  ).
@@ -479,7 +479,7 @@ function wpcd_get_roles() {
 }
 
 /**
- * Check if the user has permission to do the specific action
+ * Check if the user has permission to perform a specific action.
  *
  * @param  int    $user_id user id.
  * @param  string $permission_name permission name.
@@ -649,6 +649,200 @@ function wpcd_get_posts_by_permission( $permission_name, $post_type, $post_statu
 	}
 
 	return $post__in;
+}
+
+/**
+ * Takes a SERVER feature name and checks our options array to see if
+ * the current user or passed in user id is the author and if authors
+ * are allowed to access that feature.
+ *
+ * We're pulling from the items in the APP:WordPress - Security tab in SETTINGS, subtab FEATURES - SERVERS.
+ *
+ * There is a related function named wpcd_can_author_view_server_tab in /traits/traits-for-class-wordpress-app/tabs-security.php.
+ * It handles similar security for server tabs.  Changes and fixes here should probably be considered for that function as well.
+ *
+ * There is also a very similar to the wpcd_can_author_view_site_feature function
+ * below and changes made here might need to be made there as well.
+ *
+ * @param int    $id             The id of the cpt record for the server.
+ * @param string $feature_name   The name of the feature we're checking. eg: email_metabox.
+ * @param int    $user_id        The userid to check.
+ */
+function wpcd_can_author_view_server_feature( $id, $feature_name, $user_id = 0 ) {
+
+	/* If user is admin then, return true. */
+	if ( wpcd_is_admin( $user_id ) ) {
+		return true;
+	}
+
+	// If not a post, return true.
+	$post = get_post( $id );
+	if ( ( ! $post ) || ( is_wp_error( $post ) ) ) {
+		return true;
+	}
+
+	// Get the user id.
+	if ( empty( $user_id ) ) {
+		$user_id = get_current_user_id();
+	}
+
+	// Setup other variables.
+	$post_author = $post->post_author;
+	$server_type = get_post_meta( $id, 'wpcd_server_server-type', true );
+
+	// If we're not checking a wp-app server post return true.
+	if ( $post->post_type != 'wpcd_app_server' ) {
+		return true;
+	}
+
+	// If the user id we're checking is not the author of the post then just return true.
+	if ( $post_author != $user_id ) {
+		return true;
+	}
+
+	// Check the true/false items in the APP:WordPress - Security tab, subtab FEATURES - SERVERS in SETTINGS.
+	// These items let us know which features should be turned off even if the user is the owner/author of the server.
+	if ( true === (bool) get_post_meta( $id, 'wpcd_wpapp_is_staging', true ) ) {
+		// This is a staging server but we're not really setting or using this so nothing to do.
+		// The concept of a staging server is for future use.
+	} else {
+		// We have a very long settings key so we construct it in pieces.
+		$wpcd_id_prefix       = 'wpcd_wpapp_server_security_exception';
+		$context_tab_short_id = 'live-servers';
+		$owner_key            = 'server-owner';
+		$feature_key          = $feature_name;
+		$setting_key          = "{$wpcd_id_prefix}_{$context_tab_short_id}_{$owner_key}_{$feature_key}";  // See the class-wordpress-app-settings.php file for how this is key is constructed and used. Function: all_server_features_security_fields.
+
+		// Get option value.
+		$exception_flag = (bool) wpcd_get_early_option( $setting_key );
+		if ( true === $exception_flag ) {
+			return false;
+		}
+	}
+
+	// And...still here so check the roles in the APP:WordPress - Security tab, subtab FEATURES - SERVERS in SETTINGS.
+	// These items let us know which features should be turned off based on roles, even if the user is the owner/author of the server.
+	if ( true === (bool) get_post_meta( $id, 'wpcd_wpapp_is_staging', true ) ) {
+		// This is a staging server but we're not really setting or using this concept.  So there is nothing to do here.
+		// The concept of a staging server is for future use.
+	} else {
+		// We have a very long settings key so we construct it in pieces.
+		$prefix               = 'wpcd_wpapp_server_security_exception';
+		$context_tab_short_id = 'live-servers';
+		$feature_key          = $feature_name;
+		$setting_key          = "{$wpcd_id_prefix}_{$context_tab_short_id}_{$feature_key}_roles"; // See the class-wordpress-app-settings.php file for how this is key is constructed and used. Function: all_server_features_security_fields.
+
+		$banned_roles = wpcd_get_early_option( $setting_key );
+
+		if ( is_array( $banned_roles ) ) {
+			$user_data = get_userdata( $user_id );
+			if ( array_intersect( $banned_roles, $user_data->roles ) ) {
+				return false;
+			}
+		}
+	}
+
+	// Got here?  default to true.
+	return true;
+
+}
+
+/**
+ * Takes a feature id and checks to see if it is excluded from being
+ * used by the the author of the ID passed into this function.
+ *
+ * There is a related function named wpcd_can_author_view_site_tab in /traits/traits-for-class-wordpress-app/tabs-security.php.
+ * It handles similar security for site tabs.  Changes and fixes here should probably be considered for that function as well.
+ * 
+ * This is also very similar to the wpcd_can_author_view_server_feature function
+ * above and changes made here might need to be made there as well.
+ *
+ * @param int    $id             The id of the cpt record for the server.
+ * @param string $feature_name   The name of the tab we're checking.
+ * @param int    $user_id        The userid to check.
+ */
+function wpcd_can_author_view_site_feature( $id, $feature_name, $user_id = 0 ) {
+
+	/* If user is admin then, return true. */
+	if ( wpcd_is_admin( $user_id ) ) {
+		return true;
+	}
+
+	// If not a post, return true.
+	$post = get_post( $id );
+	if ( ( ! $post ) || ( is_wp_error( $post ) ) ) {
+		return true;
+	}
+
+	// Get the user id.
+	if ( empty( $user_id ) ) {
+		$user_id = get_current_user_id();
+	}
+
+	// Setup other variables.
+	$post_author = $post->post_author;
+
+	// If we're not checking an app post return true.
+	if ( $post->post_type != 'wpcd_app' ) {
+		return true;
+	}
+
+	// If the user id we're checking is not the author of the post then just return true.
+	if ( $post_author != $user_id ) {
+		return true;
+	}
+
+	// We now know the user is the author of the site post.  Are they also the author of the server post?
+	$both        = false;
+	$server_post = WPCD()->get_server_by_app_id( $id );
+	if ( $server_post ) {
+		if ( $user_id === (int) $server_post->post_author ) {
+			$both = true;
+		}
+	}
+
+	// Staging or live site?
+	if ( true === WPCD()->is_staging_site( $id ) ) {
+		$context_tab_short_id = 'staging-sites';
+	} else {
+		$context_tab_short_id = 'live-sites';
+	}
+
+	// We have a very long settings key so we construct it in pieces.
+	$wpcd_id_prefix = 'wpcd_wpapp_site_security_exception';
+	$feature_key    = $feature_name;
+	if ( true === $both ) {
+		$owner_key = 'site-and-server-owner';
+	} else {
+		$owner_key = 'site-owner';
+	}
+	$setting_key = "{$wpcd_id_prefix}_{$context_tab_short_id}_{$owner_key}_{$feature_key}";  // See the class-wordpress-app-settings.php file for how this is key is constructed and used. Function: all_server_features_security_fields.
+
+	// Get option value.
+	$exception_flag = (bool) wpcd_get_early_option( $setting_key );
+	if ( true === $exception_flag ) {
+		return false;
+	}
+
+	// And...still here so check the roles in the APP:WordPress - Security tab in SETTINGS.
+	// These items let us know which tabs should be turned off based on roles, even if the user is the owner/author of the server.
+	// Just as before, we have a very long settings key so we construct it in pieces.
+	$prefix      = 'wpcd_wpapp_site_security_exception';
+	$feature_key = $feature_name;
+	$setting_key = "{$wpcd_id_prefix}_{$context_tab_short_id}_{$feature_key}_roles"; // See the class-wordpress-app-settings.php file for how this is key is constructed and used. Function: all_server_features_security_fields.
+
+	$banned_roles = wpcd_get_early_option( $setting_key );
+
+	if ( is_array( $banned_roles ) ) {
+		$user_data = get_userdata( $user_id );
+		if ( array_intersect( $banned_roles, $user_data->roles ) ) {
+			return false;
+		}
+	}
+
+	// Got here?  default to true.
+	return true;
+
 }
 
 /**

@@ -49,7 +49,7 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 	 */
 	public function get_view_tab_team_permission_slug() {
 		return 'view_wpapp_server_backup_tab';
-	}	
+	}
 
 	/**
 	 * Populates the tab name.
@@ -364,12 +364,12 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 			'size'       => 90,
 			'save_field' => false,
 		);
-		
+
 		$fields[] = array(
-			'type'       => 'custom_html',
-			'tab'        => 'server_backup',
-			'std'        => '<br />',
-		);		
+			'type' => 'custom_html',
+			'tab'  => 'server_backup',
+			'std'  => '<br />',
+		);
 
 		$fields[] = array(
 			'id'         => 'wpcd_app_action_delete_server_backups',

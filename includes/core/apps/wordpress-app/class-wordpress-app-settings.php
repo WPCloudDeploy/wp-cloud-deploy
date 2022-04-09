@@ -282,16 +282,28 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 	 */
 	public function wordpress_app_metabox_security_tabs() {
 		$tabs = array(
-			'wordpress-app-security-live-sites'    => array(
-				'label' => 'Production Sites',
+			'wordpress-app-security-live-sites'          => array(
+				'label' => 'Tabs - Production Sites',
 				'icon'  => 'dashicons-lock',
 			),
-			'wordpress-app-security-staging-sites' => array(
-				'label' => 'Staging Sites',
+			'wordpress-app-security-staging-sites'       => array(
+				'label' => 'Tabs - Staging Sites',
 				'icon'  => 'dashicons-lock',
 			),
-			'wordpress-app-security-live-servers'  => array(
-				'label' => 'Servers',
+			'wordpress-app-security-live-servers'        => array(
+				'label' => 'Tabs - Servers',
+				'icon'  => 'dashicons-lock',
+			),
+			'wordpress-app-security-features-live-sites' => array(
+				'label' => 'Features - Production Sites',
+				'icon'  => 'dashicons-lock',
+			),
+			'wordpress-app-security-features-staging-sites' => array(
+				'label' => 'Features - Staging Sites',
+				'icon'  => 'dashicons-lock',
+			),
+			'wordpress-app-security-features-servers'    => array(
+				'label' => 'Features - Servers',
 				'icon'  => 'dashicons-lock',
 			),
 		);
@@ -326,13 +338,13 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 	 * Return an array that combines all fields that will go in the WordPress App security tabs.
 	 */
 	public function all_security_fields() {
-		return array_merge( $this->all_site_security_fields(), $this->all_server_security_fields() );
+		return array_merge( $this->all_site_tabs_security_fields(), $this->all_server_tabs_security_fields(), $this->all_site_features_security_fields(), $this->all_server_features_security_fields() );
 	}
 
 	/**
-	 * Return an array that combines all fields that will go in the WordPress App security tabs for SITES.
+	 * Return an array that combines all fields that will go in the WordPress App security tabs for TABS - PRODUCTION SITES & TABS - STAGING SITES
 	 */
-	public function all_site_security_fields() {
+	public function all_site_tabs_security_fields() {
 
 		$fields = array();
 
@@ -349,7 +361,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			'site-and-server-owner' => __( 'Site & Server Owners', 'wpcd' ),
 		);
 
-		// The site tabs we'll be collecting security exceptions for.
+		// The site tabs we'll be collecting security exceptions for. This must be unique across all items in the APP:WordPress - SECURITY tab!
 		$tabs = array(
 			'6g_waf'                   => __( '6G Firewall', 'wpcd' ),
 			'7g_waf'                   => __( '7G Firewall', 'wpcd' ),
@@ -374,6 +386,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			'tools'                    => __( 'Tools', 'wpcd' ),
 			'tweaks'                   => __( 'Tweaks', 'wpcd' ),
 			'wp-site-users'            => __( 'WP Site Users', 'wpcd' ),
+			'wpconfig'                 => __( 'WPConfig', 'wpcd' ),
 			'multisite'                => __( 'Multisite', 'wpcd' ),
 		);
 
@@ -397,7 +410,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			);
 			// Three columns at the top of each settings tab.
 			$fields[] = array(
-				'name'    => __( 'Tab/options', 'wpcd' ),
+				'name'    => __( 'Tab', 'wpcd' ),
 				'id'      => "{$wpcd_id_prefix}_{$context_tab_short_id}_tab_header_column",
 				'type'    => 'custom_html',
 				'std'     => '',
@@ -452,7 +465,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'id'   => "{$wpcd_id_prefix}_{$context_tab_short_id}_site_owner_header_roles",
 				'type' => 'heading',
 				'std'  => '',
-				'desc' => __( 'Which tabs should be hidden from site owners from these roles?', 'wpcd' ),
+				'desc' => __( 'Which tabs should be hidden from site owners with these roles?', 'wpcd' ),
 				'tab'  => $context_tab,
 			);
 			// Loop through the array of site tabs, again.
@@ -491,9 +504,9 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 	}
 
 	/**
-	 * Return an array that combines all fields that will go in the WordPress App security tabs for SERVERS.
+	 * Return an array that combines all fields that will go in the WordPress App security tabs for TABS - SERVERS.
 	 */
-	public function all_server_security_fields() {
+	public function all_server_tabs_security_fields() {
 
 		$fields = array();
 
@@ -508,7 +521,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			'server-owner' => __( 'Server Owners', 'wpcd' ),
 		);
 
-		// The server tabs we'll be collecting security exceptions for.
+		// The server tabs we'll be collecting security exceptions for. This must be unique across all items in the APP:WordPress - SECURITY tab!
 		$tabs = array(
 			'server_backup'   => __( 'Backup', 'wpcd' ),
 			'callbacks'       => __( 'Callbacks', 'wpcd' ),
@@ -549,7 +562,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			);
 			// Two columns at the top of each settings tab.
 			$fields[] = array(
-				'name'    => __( 'Tab/options', 'wpcd' ),
+				'name'    => __( 'Tab', 'wpcd' ),
 				'id'      => "{$wpcd_id_prefix}_{$context_tab_short_id}_tab_header_column",
 				'type'    => 'custom_html',
 				'std'     => '',
@@ -596,7 +609,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'id'   => "{$wpcd_id_prefix}_{$context_tab_short_id}_server_owner_header_roles",
 				'type' => 'heading',
 				'std'  => '',
-				'desc' => __( 'Which tabs should be hidden from server owners from these roles?', 'wpcd' ),
+				'desc' => __( 'Which tabs should be hidden from server owners with these roles?', 'wpcd' ),
 				'tab'  => $context_tab,
 			);
 			// Loop through the array of server tabs, again.
@@ -618,6 +631,266 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 					'select_all_none' => true,
 					'multiple'        => true,
 					'placeholder'     => __( 'Select list of roles that should not see this tab.', 'wpcd' ),
+					'tab'             => $context_tab,
+					'columns'         => 6,
+				);
+
+			}
+		}
+
+		return $fields;
+
+	}
+
+	/**
+	 * Return an array that combines all fields that will go in the WordPress App security tabs for subtabs: FEATURES - PRODUCTION SITES & TABS - STAGING SITES
+	 */
+	public function all_site_features_security_fields() {
+
+		$fields = array();
+
+		// An array of tabs where we'll be creating dynamic settings.  Should be the IDS of existing tabs defined in the 'wordpress_app_metabox_security_tabs' function earlier in this class.
+		// We're going to use the second part of the associative array as a short-id because the tab id itself is too long.
+		$context_tabs = array(
+			'wordpress-app-security-features-live-sites' => 'live-sites',
+			'wordpress-app-security-features-staging-sites' => 'staging-sites',
+		);
+
+		// The owner types we'll be handling.
+		$context_owners = array(
+			'site-owner'            => __( 'Site Owners', 'wpcd' ),
+			'site-and-server-owner' => __( 'Site & Server Owners', 'wpcd' ),
+		);
+
+		// The site features we'll be collecting security exceptions for.  This must be unique across all items in the APP:WordPress - SECURITY tab!
+		$site_features = array(
+			'email_metabox'      => __( 'Email Metabox', 'wpcd' ),
+			'desc_notes_metabox' => __( 'Descriptions Metabox', 'wpcd' ),
+		);
+
+		// Let developers hook into the array here.
+		$site_features = apply_filters( 'wpcd_wordpress-app_site_features_permissions_list', $site_features );
+
+		// Loop through the settings feature array...
+		$wpcd_id_prefix = 'wpcd_wpapp_site_security_exception';
+		foreach ( $context_tabs as $context_tab => $context_tab_short_id ) {
+			// Heading.
+			$desc     = __( 'Which features should be hidden from site owners?', 'wpcd' );
+			$desc    .= '<br />' . __( 'There are two options: 1. Hide a feature from a site owner.  2. Hide a feature from a site owner who is also the owner of a server.', 'wpcd' );
+			$desc    .= '<br />' . __( 'If you only choose an option in the first column but leave the second column disabled then an owner of a site that is also the owner of a server will NOT have the selected feature hidden.', 'wpcd' );
+			$fields[] = array(
+				'name' => __( 'Hide Feature from Site Owners', 'wpcd' ),
+				'id'   => "{$wpcd_id_prefix}_{$context_tab_short_id}_site_owner_header",
+				'type' => 'heading',
+				'std'  => '',
+				'desc' => $desc,
+				'tab'  => $context_tab,
+			);
+			// Three columns at the top of each settings tab.
+			$fields[] = array(
+				'name'    => __( 'Feature', 'wpcd' ),
+				'id'      => "{$wpcd_id_prefix}_{$context_tab_short_id}_tab_header_column",
+				'type'    => 'custom_html',
+				'std'     => '',
+				'columns' => 6,
+				'tab'     => $context_tab,
+			);
+			$fields[] = array(
+				'name'    => __( 'Site Owners', 'wpcd' ),
+				'id'      => "{$wpcd_id_prefix}_{$context_tab_short_id}_site_owner_header_column",
+				'type'    => 'custom_html',
+				'std'     => '',
+				'columns' => 3,
+				'tab'     => $context_tab,
+				'tooltip' => __( 'Disable site owner access to these features.', 'wpcd' ),
+			);
+			$fields[] = array(
+				'name'    => __( 'Site & Server Owners', 'wpcd' ),
+				'id'      => "{$wpcd_id_prefix}_{$context_tab_short_id}_site_server_owner_header_column",
+				'type'    => 'custom_html',
+				'std'     => '',
+				'columns' => 3,
+				'tab'     => $context_tab,
+				'tooltip' => __( 'Disable site owner access to these features even if they are also the server owner.', 'wpcd' ),
+			);
+			// Loop through the array of site features.
+			foreach ( $site_features as $feature_key => $feature_desc ) {
+				// First column is just the label with the tab name.
+				$fields[] = array(
+					'name'    => "{$feature_desc}",
+					'id'      => "{$wpcd_id_prefix}_{$context_tab_short_id}_column1_{$feature_key}_label",
+					'type'    => 'custom_html',
+					'tab'     => $context_tab,
+					'columns' => 6,
+				);
+				// The next two columns are for the owner types.
+				foreach ( $context_owners as $owner_key => $owner_label ) {
+					$fields[] = array(
+						'name'      => '',
+						'id'        => "{$wpcd_id_prefix}_{$context_tab_short_id}_{$owner_key}_{$feature_key}",
+						'type'      => 'switch',
+						'on_label'  => __( 'Hide', 'wpcd' ),
+						'off_label' => __( 'Show', 'wpcd' ),
+						'tab'       => $context_tab,
+						'columns'   => 3,
+					);
+				}
+			}
+
+			// Heading - for roles.
+			$fields[] = array(
+				'name' => __( 'Hide Site Features from Roles', 'wpcd' ),
+				'id'   => "{$wpcd_id_prefix}_{$context_tab_short_id}_site_owner_header_roles",
+				'type' => 'heading',
+				'std'  => '',
+				'desc' => __( 'Which features should be hidden from site owners with these roles?', 'wpcd' ),
+				'tab'  => $context_tab,
+			);
+			// Loop through the array of site features, again.
+			foreach ( $site_features as $feature_key => $feature_desc ) {
+				// First column is just the label with the tab name.
+				$fields[] = array(
+					'name'    => "{$feature_desc}",
+					'id'      => "{$wpcd_id_prefix}_{$context_tab_short_id}_{$owner_key}_{$feature_key}_role_label",
+					'type'    => 'custom_html',
+					'tab'     => $context_tab,
+					'columns' => 6,
+				);
+				// Collect the roles.
+				$fields[] = array(
+					'name'            => '',
+					'id'              => "{$wpcd_id_prefix}_{$context_tab_short_id}_{$feature_key}_roles",
+					'type'            => 'select_advanced',
+					'options'         => wpcd_get_roles(),
+					'select_all_none' => true,
+					'multiple'        => true,
+					'placeholder'     => __( 'Select list of roles that should not see this feature.', 'wpcd' ),
+					'tab'             => $context_tab,
+					'columns'         => 6,
+				);
+
+			}
+		}
+
+		$context_tabs = array(
+			'wordpress-app-security-live-servers'    => 'live-servers',
+			'wordpress-app-security-staging-servers' => 'staging-servers',
+		);
+
+		return $fields;
+
+	}
+
+	/**
+	 * Return an array that combines all fields that will go in the WordPress App security tabs, subtab: FEATURES - SERVERS.
+	 */
+	public function all_server_features_security_fields() {
+
+		$fields = array();
+
+		// An array of tabs where we'll be creating dynamic settings.  Should be the IDS of existing tabs defined in the 'wordpress_app_metabox_security_tabs' function earlier in this class.
+		// We're going to use the second part of the associative array as a short-id because the tab id itself is too long.
+		$context_tabs = array(
+			'wordpress-app-security-features-servers' => 'live-servers',
+		);
+
+		// The owner types we'll be handling.
+		$context_owners = array(
+			'server-owner' => __( 'Server Owners', 'wpcd' ),
+		);
+
+		// The server features we'll be collecting security exceptions for.  This must be unique across all items in the APP:WordPress - SECURITY tab!
+		$svrfeatures = array(
+			'email_metabox'      => __( 'Email Metabox', 'wpcd' ),
+			'desc_notes_metabox' => __( 'Descriptions Metabox', 'wpcd' ),
+		);
+
+		// Let developers hook into the array here.
+		$svrfeatures = apply_filters( 'wpcd_wordpress-app_server_features_permissions_list', $svrfeatures );
+
+		// Loop through the settings tabs...
+		$wpcd_id_prefix = 'wpcd_wpapp_server_security_exception';
+		foreach ( $context_tabs as $context_tab => $context_tab_short_id ) {
+			// Heading.
+			$fields[] = array(
+				'name' => __( 'Hide Certain Features From Server Owners', 'wpcd' ),
+				'id'   => "{$wpcd_id_prefix}_{$context_tab_short_id}_server_owner_header",
+				'type' => 'heading',
+				'std'  => '',
+				'desc' => __( 'Which features should be hidden from server owners?', 'wpcd' ),
+				'tab'  => $context_tab,
+			);
+			// Two columns at the top of each settings tab.
+			$fields[] = array(
+				'name'    => __( 'Feature', 'wpcd' ),
+				'id'      => "{$wpcd_id_prefix}_{$context_tab_short_id}_tab_header_column",
+				'type'    => 'custom_html',
+				'std'     => '',
+				'columns' => 6,
+				'tab'     => $context_tab,
+			);
+			$fields[] = array(
+				'name'    => __( 'Server Owners', 'wpcd' ),
+				'id'      => "{$wpcd_id_prefix}_{$context_tab_short_id}_server_owner_header_column",
+				'type'    => 'custom_html',
+				'std'     => '',
+				'columns' => 6,
+				'tab'     => $context_tab,
+				'tooltip' => __( 'Disable or enable server owner access to these features.', 'wpcd' ),
+			);
+
+			// Loop through the array of server features.
+			foreach ( $svrfeatures as $feature_key => $feature_desc ) {
+				// First column is just the label with the tab name.
+				$fields[] = array(
+					'name'    => "{$feature_desc}",
+					'id'      => "{$wpcd_id_prefix}_{$context_tab_short_id}_column1_{$feature_key}_label",
+					'type'    => 'custom_html',
+					'tab'     => $context_tab,
+					'columns' => 6,
+				);
+				// The next ONE columns are for the owner types.  Only one element in the array but keeping it as a loop to match the pattern for the sites function.
+				foreach ( $context_owners as $owner_key => $owner_label ) {
+					$fields[] = array(
+						'name'      => '',
+						'id'        => "{$wpcd_id_prefix}_{$context_tab_short_id}_{$owner_key}_{$feature_key}",
+						'type'      => 'switch',
+						'on_label'  => __( 'Hide', 'wpcd' ),
+						'off_label' => __( 'Show', 'wpcd' ),
+						'tab'       => $context_tab,
+						'columns'   => 6,
+					);
+				}
+			}
+
+			// Heading - for roles.
+			$fields[] = array(
+				'name' => __( 'Hide Server Features from Roles', 'wpcd' ),
+				'id'   => "{$wpcd_id_prefix}_{$context_tab_short_id}_server_owner_header_roles",
+				'type' => 'heading',
+				'std'  => '',
+				'desc' => __( 'Which features should be hidden from server owners with these roles?', 'wpcd' ),
+				'tab'  => $context_tab,
+			);
+			// Loop through the array of server tabs, again.
+			foreach ( $svrfeatures as $feature_key => $feature_desc ) {
+				// First column is just the label with the tab name.
+				$fields[] = array(
+					'name'    => "{$feature_desc}",
+					'id'      => "{$wpcd_id_prefix}_{$context_tab_short_id}_{$owner_key}_{$feature_key}_role_label",
+					'type'    => 'custom_html',
+					'tab'     => $context_tab,
+					'columns' => 6,
+				);
+				// Collect the roles.
+				$fields[] = array(
+					'name'            => '',
+					'id'              => "{$wpcd_id_prefix}_{$context_tab_short_id}_{$feature_key}_roles",
+					'type'            => 'select_advanced',
+					'options'         => wpcd_get_roles(),
+					'select_all_none' => true,
+					'multiple'        => true,
+					'placeholder'     => __( 'Select list of roles that should not see this feature.', 'wpcd' ),
 					'tab'             => $context_tab,
 					'columns'         => 6,
 				);
@@ -756,6 +1029,13 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tab'     => 'wordpress-app-general-wpadmin',
 			),
 			array(
+				'id'      => 'wordpress_app_enable_bulk_site_delete_on_full_app_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Enable Bulk Site Delete Action', 'wpcd' ),
+				'tooltip' => __( 'Enable the bulk site delete option for the sites list. This deletes the selected sites on your servers unlike the TRASH option which just removes the records.', 'wpcd' ),
+				'tab'     => 'wordpress-app-general-wpadmin',
+			),			
+			array(
 				'type' => 'heading',
 				'name' => __( 'Labels', 'wpcd' ),
 				'desc' => __( 'Label options specific to the WordPress app.', 'wpcd' ),
@@ -766,6 +1046,19 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'type'    => 'checkbox',
 				'name'    => __( 'Show the \'WordPress\' label in server and site lists?', 'wpcd' ),
 				'tooltip' => __( 'If you are running multiple apps you will likely want to know which servers and apps are WordPress related.  If so, turn this on.', 'wpcd' ),
+				'tab'     => 'wordpress-app-general-wpadmin',
+			),
+			array(
+				'type' => 'heading',
+				'name' => __( 'Misc', 'wpcd' ),
+				'desc' => '',
+				'tab'  => 'wordpress-app-general-wpadmin',
+			),
+			array(
+				'id'      => 'wordpress_app_ignore_journalctl_xe',
+				'type'    => 'checkbox',
+				'name'    => __( 'Do not treat Journalctl -xe messages as errors', 'wpcd' ),
+				'tooltip' => __( 'Some bash scripts might trigger journal xe warnings.  Check this box to ignore them.', 'wpcd' ),
 				'tab'     => 'wordpress-app-general-wpadmin',
 			),
 		);
@@ -856,6 +1149,26 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'type'    => 'checkbox',
 				'name'    => __( 'Delete Protect New Sites?', 'wpcd' ),
 				'tooltip' => __( 'Should deletion protection automatically be enabled on new sites?', 'wpcd' ),
+				'tab'     => 'wordpress-app-sites',
+			),
+			array(
+				'id'      => 'wordpress_app_sites_install_page_cache',
+				'type'    => 'checkbox',
+				'name'    => __( 'Install and Enable Page Cache?', 'wpcd' ),
+				'tooltip' => __( 'Install and enable the page cache on all new sites?', 'wpcd' ),
+				'tab'     => 'wordpress-app-sites',
+			),
+			array(
+				'type' => 'heading',
+				'name' => __( 'Misc', 'wpcd' ),
+				'desc' => '',
+				'tab'  => 'wordpress-app-sites',
+			),
+			array(
+				'id'      => 'wordpress_app_do_not_delete_sftp_users_on_site_delete',
+				'type'    => 'checkbox',
+				'name'    => __( 'Do not delete sFTP users when a site is removed.', 'wpcd' ),
+				'tooltip' => __( 'If checked, sFTP users will remain behind as regular Linux users on the Linux server after a site is deleted.  You will not be able to reuse these user names on new sites', 'wpcd' ),
 				'tab'     => 'wordpress-app-sites',
 			),
 		);

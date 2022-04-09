@@ -106,6 +106,9 @@ class WPCD_Init {
 		/* Load languages files */
 		add_action( 'plugins_loaded', array( $this, 'load_plugin_textdomain' ) );
 
+		/* Send email to admin if critical crons aren't running. */
+		add_action( 'init', array( $this, 'send_email_for_absent_crons' ), 20 );
+
 	}
 
 	/**
@@ -204,6 +207,11 @@ class WPCD_Init {
 		require_once wpcd_path . 'includes/core/class-wpcd-posts-pending-tasks-log.php';
 		WPCD_PENDING_TASKS_LOG::activate( $network_wide );
 
+		// Set cron for set some options that the Wisdom plugin will pick up.
+		if ( ! wp_next_scheduled( 'wpcd_wisdom_custom_options' ) ) {
+			wp_schedule_event( time(), 'twicedaily', 'wpcd_wisdom_custom_options' );
+		}
+
 		flush_rewrite_rules();
 	}
 
@@ -249,6 +257,9 @@ class WPCD_Init {
 		require_once wpcd_path . 'includes/core/class-wpcd-posts-log.php';
 		require_once wpcd_path . 'includes/core/class-wpcd-posts-pending-tasks-log.php';
 		WPCD_PENDING_TASKS_LOG::deactivate( $network_wide );
+
+		// Clear old cron.
+		wp_unschedule_hook( 'wpcd_wisdom_custom_options' );
 	}
 
 	/**
@@ -459,6 +470,103 @@ class WPCD_Init {
 			printf( '<div class="%1$s"><p>%2$s</p></div>', $class, $message );
 		}
 
+		// Make sure all our CRONS are running or, if not, that the user has seen and dismissed the warning notice.
+		$not_loaded_crons = $this->get_list_of_absent_crons();
+
+		// Checks to see if "cron check" transient is set or not. If not set then show an admin notice.
+		if ( ! get_transient( 'wpcd_loaded_timeout' ) && ! get_transient( 'wpcd_cron_check' ) && is_object( $screen ) && in_array( $screen->post_type, $post_types, true ) ) {
+			$class            = 'notice notice-error is-dismissible wpcd-cron-check';
+			$not_loaded_crons = implode( ', ', $not_loaded_crons );
+			$message          = __( '<strong>WPCD: Warning</strong> - ' . $not_loaded_crons . ' cron(s) are not running.', 'wpcd' );
+			printf( '<div class="%1$s"><p>%2$s</p></div>', $class, $message );
+		}
+	}
+
+	/**
+	 * If critical crons aren't running, send email to admin.
+	 *
+	 * Action Hook: Init.
+	 */
+	public function send_email_for_absent_crons() {
+
+		// Exit if option to suppress sending these emails is turned on.
+		if ( true === (bool) wpcd_get_early_option( 'wpcd_do_not_send_cron_warning_emails' ) ) {
+			return;
+		}
+
+		// Get list of crons that aren't running.
+		$not_loaded_crons = $this->get_list_of_absent_crons();
+
+		// Send email to site administrator if we have some crons that are not running.
+		if ( ! empty( $not_loaded_crons ) ) {
+
+			$str_crons = implode( ', ', $not_loaded_crons );
+			$to        = get_site_option( 'admin_email' );
+			$headers   = array( 'Content-Type: text/html; charset=UTF-8' );
+			$subject   = sprintf(
+				/* translators: %s: Site title. */
+				__( '[%s] - One or more critical crons are not running...', 'wpcd' ),
+				wp_specialchars_decode( get_option( 'blogname' ) )
+			);
+			$body   = array();
+			$body[] = __( 'Hello Admin,', 'wpcd' );
+			$body[] = '';
+			$body[] = __( '<strong>WPCD: Warning</strong> - certain critical CRONS are not running on your site.  Below are the ones that appear to be missing:', 'wpcd' );
+			$body[] = '';
+			$body[] = $str_crons;
+			$body[] = '';
+			$body[] = __( 'Before contacting support, please try to disable and renable the plugin to reactivate crons. Additionally, please verify that your WP CRON is firing every 1 minute - either from enough frequent site traffic or, better yet, from a native LINUX cron process.', 'wpcd' );
+			$body[] = '';
+			$body[] = __( '--------', 'wpcd' );
+			$body[] = '';
+			$body[] = __( 'If you do not want to receive these emails you can turn them off in the settings area under the MISC tab.', 'wpcd' );
+			$body[] = '';
+			$body[] = __( 'Thanks,', 'wpcd' );
+			$body[] = '';
+			$body[] = __( '- Your WP Management Dashboard BOT.', 'wpcd' );
+
+			// Apply filters to each var for the outgoing email.
+			$headers = apply_filters( 'wpcd_send_email_for_absent_crons_to', $headers );
+			$to      = apply_filters( 'wpcd_send_email_for_absent_crons_to', $to );
+			$subject = apply_filters( 'wpcd_send_email_for_absent_crons_subject', $subject );
+			$body    = apply_filters( 'wpcd_send_email_for_absent_crons_body', $body );
+
+			$email = array(
+				'to'      => $to,
+				'subject' => $subject,
+				'body'    => implode( "\n" . PHP_EOL . '<br />', $body ),
+				'headers' => $headers,
+			);
+
+			if ( defined( 'WPCD_CRONS_NOT_RUNNING_EMAIL_TEST' ) && WPCD_CRONS_NOT_RUNNING_EMAIL_TEST ) {
+				// When this constant is set, we're always going to send an email - useful for TESTING.
+				wp_mail( $email['to'], wp_specialchars_decode( $email['subject'] ), $email['body'], $email['headers'] );
+			} else {
+				// Send an email every 8 hours. Start by getting the current date and time.
+				$current_datetime     = gmdate( 'Y-m-d H:i:s' );
+				$str_current_datetime = strtotime( $current_datetime );
+
+				// Calculate the next date/time to send an alert email. The option wpcd_crons_not_running_email_next_send_date is where we store the next time we have to send an email if all our crons aren't running.
+				$next_email_send_date     = get_option( 'wpcd_crons_not_running_email_next_send_date' );
+				$str_next_email_send_date = strtotime( $next_email_send_date );
+
+				if ( $str_current_datetime >= $str_next_email_send_date ) {
+					$next_send_time = gmdate( 'Y-m-d H:i:s', strtotime( '+8 hours' ) );
+					update_option( 'wpcd_crons_not_running_email_next_send_date', $next_send_time );
+					wp_mail( $email['to'], wp_specialchars_decode( $email['subject'] ), $email['body'], $email['headers'] );
+				}
+			}
+		}
+
+	}
+
+	/**
+	 * Returns a list of critical crons that aren't running.
+	 *
+	 * Only returns the list if the user has not dismissed the notification at the top of the screen.
+	 */
+	public function get_list_of_absent_crons() {
+
 		$not_loaded_crons = array();
 
 		if ( ! get_transient( 'wpcd_cron_check' ) ) {
@@ -482,19 +590,23 @@ class WPCD_Init {
 				}
 			}
 
-			// If empty means all crons are loaded properly, then set the transient.
+			// If empty means all crons are loaded properly, then set the transient so that we can recheck once per hour.
+			// This transient will also be set if the user dismisses the notice they get at the top of the screen.
+			// Here we will set it so that we'll recheck in 1 hour.  If it gets set when the user dismisses the notice it will be set for 12 hours.
+			// See the function set_cron_check() in file class-wordpress-app.php.
 			if ( count( $not_loaded_crons ) === 0 ) {
-				set_transient( 'wpcd_cron_check', 1, 12 * HOUR_IN_SECONDS );
+				set_transient( 'wpcd_cron_check', 1, 1 * HOUR_IN_SECONDS );
+			}
+		} else {
+			// Transient is set.  But the time remaining can sometimes be negative. While we're not sure why that happens, if it is, delete it!
+			$time_left = (int) wpcd_get_transient_remaining_time_in_mins( 'wpcd_cron_check' );
+			if ( $time_left < 0 ) {
+				delete_transient( 'wpcd_cron_check' );
 			}
 		}
 
-		// Checks to see if "cron check" transient is set or not. If not set then show an admin notice.
-		if ( ! get_transient( 'wpcd_loaded_timeout' ) && ! get_transient( 'wpcd_cron_check' ) && is_object( $screen ) && in_array( $screen->post_type, $post_types, true ) ) {
-			$class            = 'notice notice-error is-dismissible wpcd-cron-check';
-			$not_loaded_crons = implode( ', ', $not_loaded_crons );
-			$message          = __( '<strong>WPCD: Warning</strong> - ' . $not_loaded_crons . ' cron(s) are not running.', 'wpcd' );
-			printf( '<div class="%1$s"><p>%2$s</p></div>', $class, $message );
-		}
+		return $not_loaded_crons;
+
 	}
 
 	/**
@@ -547,19 +659,21 @@ class WPCD_Init {
 	 * @return void
 	 */
 	public function wpcd_plugin_update_message( $data, $response ) {
-		if ( isset( $data['upgrade_notice'] ) ) {
-			printf(
-				'<div class="update-message">%s</div>',
-				wp_kses_post( wpautop( $data['upgrade_notice'] ) )
-			);
-		} else {
-			$release_notes      = wpcd_get_string_between( $data['sections']->changelog, '<p>', '<p>' );  // Grab data between two paragraph tags - this gives us the raw release notes for the most recent release.
-			$release_notes      = wpcd_get_string_between( $data['sections']->changelog, '<ul>', '</ul>' ); // Just grab the list and remove everthing above and below it.
-			$release_notes_link = '<br /><a href="https://wpclouddeploy.com/category/release-notes/" target="_blank">' . __( 'View friendly release notes to learn about any breaking changes that might affect you.', 'wpcd' ) . '</a>';
-			printf(
-				'<div class="update-message">%s</div>',
-				'<br />' . wp_kses_post( $release_notes ) . wp_kses_post( $release_notes_link )
-			);
+		if ( ! defined( 'WPCD_HIDE_CHANGELOG_IN_PLUGIN_LIST' ) || ( defined( 'WPCD_HIDE_CHANGELOG_IN_PLUGIN_LIST' ) && ! WPCD_HIDE_CHANGELOG_IN_PLUGIN_LIST ) ) {
+			if ( isset( $data['upgrade_notice'] ) ) {
+				printf(
+					'<div class="update-message">%s</div>',
+					wp_kses_post( wpautop( $data['upgrade_notice'] ) )
+				);
+			} else {
+				$release_notes      = wpcd_get_string_between( $data['sections']->changelog, '<p>', '<p>' );  // Grab data between two paragraph tags - this gives us the raw release notes for the most recent release.
+				$release_notes      = wpcd_get_string_between( $data['sections']->changelog, '<ul>', '</ul>' ); // Just grab the list and remove everthing above and below it.
+				$release_notes_link = '<br /><a href="https://wpclouddeploy.com/category/release-notes/" target="_blank">' . __( 'View friendly release notes to learn about any breaking changes that might affect you.', 'wpcd' ) . '</a>';
+				printf(
+					'<div class="update-message">%s</div>',
+					'<br />' . wp_kses_post( $release_notes ) . wp_kses_post( $release_notes_link )
+				);
+			}
 		}
 	}
 

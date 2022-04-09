@@ -112,6 +112,10 @@ Note: Even though the entire git development history isn't available on github, 
 * New: Add install and support links to the plugin entry in the WP plugins list.
 * New: Add code to display the change log directly in the plugin list when a new version is available.
 * New: WPAPP - Add global option to enable delete protection on all new sites.
+* New: WPAPP - Add global option to enable page cache on all new sites.
+* New: WPAPP - Add new feature security options in SETTINGS->APP:WORDPRESS SECURITY to control who can see the EMAIL and NOTES/LABELS/LINKS checkboxes.
+* New: WPAPP - New tab to allow updating certain values in wp-config.php.
+* New: WPAPP - When we detect that our critical crons are not running, send a warning email to the site admin.
 * Tweak: Make sure that certain messages only display to users who pass the wpcd_is_admin() check instead of all users.
 * Tweak: WPAPP - Disable old PHP versions on new servers by default.  Add controls to allow admin to re-enable them on a server-by-server basis.
 * Tweak: WPAPP - Preference ipv4 over ipv6 (update bash create-server script)
@@ -126,6 +130,11 @@ Note: Even though the entire git development history isn't available on github, 
 * Tweak: WPAPP - New sites will explicitly default to 128M for WP_MEMORY_LIMIT in wp-config.php. 
 * Tweak: WPAPP - New sites will explicitly default WP_MAX_MEMORY_LIMIT to 128M, down from the default of 256M because the default PHP worker memory_limit is set to 128M.
 * Tweak: WPAPP - New sites will explicitly default to setting CONCATENATE_SCRIPTS to false in wp-config.php.
+* Tweak: WPAPP - Add option to remove sFTP users when a site is deleted.
+* Tweak: WPAPP - Add option to treat 'journalctl -xe' output as script failures (experimental).
+* Tweak: WPAPP - When a site is cloned and the root domain of the clone is the one that is set up as the cloudflare temp domain, we will now automatically create the DNS for the clone at Cloudflare.
+* Tweak: WPAPP - Only show the activate/deactivate option on the MISC tab when a site is disabled.  Hide all other options when the site is disabled.
+* Tweak: WPAPP - The option to block the REST API had confusing terminology because it was the inverse of what was actually happening.  Clarified this so that the label uses the term 'blocked' and 'not blocked' instead.
 * Fix: WPAPP - Staging and Cloned sites did not carry-over the metas that indicate the status of the various caches.
 * Fix: WPAPP - Individual toggle switches on monit components were not working - only the 'all' switches did what they were supposed to do.
 * Fix: WPAPP - Fixed an issue with filters on the server and site lists when a different language other than English is used.
@@ -135,13 +144,19 @@ Note: Even though the entire git development history isn't available on github, 
 * Fix: WPAPP - The ADD NEW APP RECORD button was not showing up in all cases where it should.
 * Fix: WPAPP - The default color for the PHP 8.1 label in the sites list was not consistent with the colors used for the PHP 8.0 label.
 * Fix: WPAPP - The server tools tab would throw an error if you tried to set the default PHP version to 8.1.
+* Fix: WPAPP - The name of a custom post type was incorrect in an array where we were listing certain custom post types we use.
+* Fix: WPAPP - The process for marking pending log items as failed did not take into account all the new recent state types.
 * Fix: WPAPP - We weren't warning user when they entered the '&()' characters in certain fields where they are invalid.
 * Fix: WPAPP - Some minor grammar errors.
 * Dev: WPAPP - New filter to allow providers to add text to any error messages when a server immediately fails to deploy.
 * Dev: WPAPP - New action hook on the copy-to-existing-site action (wpcd_app_wordpress-app_before_action_copy_to_existing_site).
 * Dev: Integrate the wisdom plugin.
 * Dev: Update to latest version of metabox.io components.
-
+* Dev: Add New filter hook - wpcd_get_active_cloud_providers.
+* Dev: WPAPP - Add New filter hook - wpcd_wordpress-app_show_deploy_server_button.
+* Dev: WPAPP - Add filters to allow all the key fields on the create-server popup to be accessible to developers.
+* Dev: WPAPP - Better code for unique internal command names when running long running commands.
+* Dev: WPAPP - Bash script changes and tweaks for site-sync - reduced code duplication and made more hardy when simultaneously copying sites to the same server.
 
 4.15.0
 ------

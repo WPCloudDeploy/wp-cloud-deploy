@@ -207,6 +207,7 @@ class WPCD_WORDPRESS_TABS_CLONE_SITE extends WPCD_WORDPRESS_TABS {
 		$valid_actions = array( 'clone-site' );
 		if ( in_array( $action, $valid_actions, true ) ) {
 			if ( false === $this->wpcd_wpapp_site_user_can( $this->get_view_tab_team_permission_slug(), $id ) && false === $this->wpcd_can_author_view_site_tab( $id, $this->get_tab_slug() ) ) {
+				/* translators: %1s is replaced with an internal action name; %2$s is replaced with the file name; %3$s is replaced with the post id being acted on. %4$s is the user id running this action. */
 				return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
 			}
 		}
@@ -293,13 +294,19 @@ class WPCD_WORDPRESS_TABS_CLONE_SITE extends WPCD_WORDPRESS_TABS {
 		// Get the domain we're working on.
 		$domain = $this->get_domain_name( $id );
 
-		// we want to make sure this command runs only once in a "swatch beat" for a domain.
-		// e.g. 2 manual backups cannot run for the same domain at the same time (time = swatch beat).
-		// although technically only one command can run per domain (e.g. backup and restore cannot run at the same time).
-		// we are appending the Swatch beat to the command name because this command can be run multiple times.
-		// over the app's lifetime.
-		// but within a swatch beat, it can only be run once.
-		$command             = sprintf( '%s---%s---%d', $action, $domain, date( 'B' ) );
+		/**
+		 * We've gotten this far, so lets try to configure the DNS to point to the server.
+		 */
+		// 1. What's the server post id?
+		$server_id = $this->get_server_id_by_app_id( $id );
+		// 2. What's the IP of the server?
+		$ipv4 = WPCD_SERVER()->get_ipv4_address( $server_id );
+		$ipv6 = WPCD_SERVER()->get_ipv6_address( $server_id );
+		// 3. Add the DNS
+		$dns_success = WPCD_DNS()->set_dns_for_domain( $new_domain, $ipv4, $ipv6 );
+
+		// Setup unique command name.
+		$command             = sprintf( '%s---%s---%d', $action, $domain, time() );
 		$instance['command'] = $command;
 		$instance['app_id']  = $id;
 

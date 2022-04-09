@@ -475,6 +475,25 @@ class WPCD_Settings {
 				);
 
 				$meta_boxes[] = array(
+					'id'             => 'wpcd-cron-warning-fields',
+					'title'          => __( 'Cron Warning Emails', 'wpcd' ),
+					'settings_pages' => 'wpcd_settings',
+					'tab'            => 'misc',
+					'fields'         => array(
+						array(
+							'type' => 'heading',
+							'name' => __( 'Cron Warning Emails', 'wpcd' ),
+							'desc' => __( 'Control emails sent to Admin when Crons fail to run', 'wpcd' ),
+						),
+						array(
+							'name' => __( 'Do Not Send Cron Warning Emails?', 'wpcd' ),
+							'id'   => 'wpcd_do_not_send_cron_warning_emails',
+							'type' => 'checkbox',
+						),
+					),
+				);
+
+				$meta_boxes[] = array(
 					'id'             => 'wpcd-wisdom-opt-out-fields',
 					'title'          => __( 'Share Statistics', 'wpcd' ),
 					'settings_pages' => 'wpcd_settings',
@@ -489,7 +508,7 @@ class WPCD_Settings {
 							'name'    => __( 'Do Not Share Site Statistics', 'wpcd' ),
 							'id'      => 'wpcd_wisdom_opt_out',
 							'type'    => 'checkbox',
-							'tooltip' => __( 'Data Shared: Current theme & Version, Current WPCD Version, Site Name, WordPress Version, Site Language, Active and Inactive Plugins, System Email, Basic Server data such as PHP version, NGINX version, Memory Limit etc.', 'wpcd' ),
+							'tooltip' => __( 'Data Shared: Current theme & Version, Current WPCD Version, Site Name, WordPress Version, Site Language, Active and Inactive Plugins, System Email, Basic Server data such as PHP version, NGINX version, Memory Limit etc. See privacy policy for more information.', 'wpcd' ),
 						),
 					),
 				);
@@ -1906,7 +1925,13 @@ class WPCD_Settings {
 						// Option does not already exist so log the change.  We check for the option existence first because we don't want to log every time we save - we just want to log the first time.
 						do_action( 'wpcd_log_error', 'Admin has chosen NOT to share statistics.', 'other', __FILE__, __LINE__, array(), false );
 					}
-					update_option( 'wisdom_opt_out', array( 'wisdom_registered_setting' => 1, 'wisdom_opt_out' => 1 ) );
+					update_option(
+						'wisdom_opt_out',
+						array(
+							'wisdom_registered_setting' => 1,
+							'wisdom_opt_out'            => 1,
+						)
+					);
 				} else {
 					// Flag is unset so delete option if it exists.
 					if ( get_option( 'wisdom_opt_out' ) ) {

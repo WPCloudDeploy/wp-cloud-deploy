@@ -134,6 +134,7 @@
 						</select>
 					</div>
 
+					<!-- Server Size dropdown -->
 					<div class="wpcd-create-popup-label-wrap"><label class="wpcd-create-popup-label" for="size"> <?php echo esc_html( __( 'Size', 'wpcd' ) ); ?>  </label></div>
 					<div class="wpcd-create-popup-input-wrap">
 						<select name="size" class="wpcd_app_size">

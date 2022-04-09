@@ -99,7 +99,7 @@ class WPCD_APP extends WPCD_Base {
 	 *
 	 * Right now this is effectively the same as WPCD()->get_cloud_providers()
 	 * which is ALL Providers.
-	 * But, we're including this function in the event that this VPN app
+	 * But, we're including this function in the event that this app
 	 * needs to modify the list before returning it to the caller.
 	 *
 	 * @return array
@@ -368,28 +368,9 @@ class WPCD_APP extends WPCD_Base {
 	 * @return array|boolean Server post or false or error message
 	 */
 	public function get_server_by_app_id( $app_id ) {
+		
+		return WPCD()->get_server_by_app_id( $app_id );
 
-		// If for some reason the $app_id is actually a server id return the server data right away.
-		if ( 'wpcd_app_server' == get_post_type( $app_id ) ) {
-			return get_post( $app_id );
-		}
-
-		// Get the app post.
-		$app_post = get_post( $app_id );
-
-		if ( ! empty( $app_post ) && ! is_wp_error( $app_post ) ) {
-
-			$server_post = get_post( get_post_meta( $app_post->ID, 'parent_post_id', true ) );
-
-			return $server_post;
-
-		} else {
-
-			return false;
-
-		}
-
-		return false;
 	}
 
 	/**
@@ -945,7 +926,7 @@ class WPCD_APP extends WPCD_Base {
 	/**
 	 * The endpoint called when a command's status is relayed to us.
 	 *
-	 * @param array $params params.
+	 * @param WP_REST_Request $params params.
 	 */
 	public function perform_command( WP_REST_Request $params ) {
 		$data       = null;

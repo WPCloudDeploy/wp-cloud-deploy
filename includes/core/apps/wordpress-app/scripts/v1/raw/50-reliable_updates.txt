@@ -213,7 +213,8 @@ function update_check
 		wget -q --no-check-certificate -O reliableupdates2.png $cssurl2
 		
 		# compare orignal image and new image
-		pixel_difference=`curl "https://image-compare.hcti.io/api?image_url=$cssurl1&other_image_url=$cssurl2" --silent --show-error |awk -F':' '{print $NF}'|cut -d'}' -f1`
+		pixel_difference=`curl "https://image-compare.hcti.io/api?image_url=$cssurl1&other_image_url=$cssurl2" --silent --show-error |awk -F'pixel_difference":' '{print $2}'|cut -d',' -f1`
+		percent_difference=`curl "https://image-compare.hcti.io/api?image_url=$cssurl1&other_image_url=$cssurl2" --silent --show-error |awk -F'percent_difference":' '{print $2}'|cut -d'}' -f1`
 		echo "The raw difference beween original and current home page is $pixel_difference pixels."
 		
 		# restore if comparison exceeded threshold

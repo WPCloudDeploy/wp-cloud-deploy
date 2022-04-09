@@ -210,6 +210,7 @@ su - $user_name -c "wp --skip-plugins config set WP_AUTO_UPDATE_CORE minor"
 su - $user_name -c "wp --skip-plugins config set WP_MEMORY_LIMIT 128M"
 su - $user_name -c "wp --skip-plugins config set WP_MAX_MEMORY_LIMIT 128M"
 su - $user_name -c "wp --skip-plugins config set CONCATENATE_SCRIPTS false --raw"
+su - $user_name -c "wp --skip-plugins config set DISALLOW_FILE_EDIT true --raw"
 su - $user_name -c "wp --skip-plugins option update permalink_structure '/%postname%'"
 
 # permissions for the log file

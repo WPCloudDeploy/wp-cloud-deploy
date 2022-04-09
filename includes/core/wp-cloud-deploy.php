@@ -123,8 +123,8 @@ class WP_CLOUD_DEPLOY {
 		add_action( 'admin_notices', array( $this, 'license_notices_server_limit' ) );
 		add_action( 'admin_notices', array( $this, 'license_notices_wpsite_limit' ) );
 
-		/* Set some options that the Wisdom plugin will pick up. This hook is not ideal - needs to be converted to an hourly or daily cron. */
-		add_action( 'admin_notices', array( $this, 'set_wisdom_custom_options' ) );
+		// Set some options that the Wisdom plugin will pick up.
+		add_action( 'wpcd_wisdom_custom_options', array( $this, 'set_wisdom_custom_options' ) );
 
 	}
 
@@ -155,6 +155,9 @@ class WP_CLOUD_DEPLOY {
 				)
 			);
 		}
+
+		// Setting a 24 hour transient but not sure that it's really necessary since it's not being used anywhere.  Might be useful later though.
+		set_transient( 'wpcd_wisdom_custom_options', 1, 1440 * MINUTE_IN_SECONDS );
 	}
 
 	/**
@@ -210,7 +213,7 @@ class WP_CLOUD_DEPLOY {
 				'edit-tags.php?taxonomy=wpcd_app_server_group&amp;post_type=wpcd_app_server' => 20,
 				'edit.php?post_type=wpcd_app'            => 30,
 				'edit-tags.php?taxonomy=wpcd_app_group&post_type=wpcd_app' => 40,
-				'edit.php?s&post_status=all&post_type=wpcd_app&app_type=wordpress-app&filter_action='.__( 'Filter' ) => 50,
+				'edit.php?s&post_status=all&post_type=wpcd_app&app_type=wordpress-app&filter_action=' . __( 'Filter', 'wpcd' ) => 50,
 				'edit.php?post_type=wpcd_cloud_provider' => 60,
 				'edit.php?post_type=wpcd_team'           => 70,
 				'edit.php?post_type=wpcd_ssh_log'        => 80,
@@ -263,7 +266,7 @@ class WP_CLOUD_DEPLOY {
 			( defined( 'WPCD_WPAPP_MENU_NAME' ) ? WPCD_WPAPP_MENU_NAME : __( 'WordPress Sites', 'wpcd' ) ),
 			( defined( 'WPCD_WPAPP_MENU_NAME' ) ? WPCD_WPAPP_MENU_NAME : __( 'WordPress Sites', 'wpcd' ) ),
 			'wpcd_manage_apps',
-			'edit.php?s&post_status=all&post_type=wpcd_app&app_type=wordpress-app&filter_action='.__( 'Filter' ),
+			'edit.php?s&post_status=all&post_type=wpcd_app&app_type=wordpress-app&filter_action=' . __( 'Filter', 'wpcd' ),
 			'',
 			3
 		);
@@ -353,7 +356,7 @@ class WP_CLOUD_DEPLOY {
 				&& 'wordpress-app' === $_GET['app_type'] ) {
 
 				// Set as the current submenu item the WordPress Sites filter menu item.
-				$submenu_file = 'edit.php?s&post_status=all&post_type=wpcd_app&app_type=wordpress-app&filter_action='.__( 'Filter' );
+				$submenu_file = 'edit.php?s&post_status=all&post_type=wpcd_app&app_type=wordpress-app&filter_action=' . __( 'Filter', 'wpcd' );
 			}
 		}
 
@@ -1116,7 +1119,7 @@ class WP_CLOUD_DEPLOY {
 			}
 		}
 
-		return $providers;
+		return apply_filters( 'wpcd_get_active_cloud_providers', $providers );
 
 	}
 
@@ -1156,4 +1159,62 @@ class WP_CLOUD_DEPLOY {
 			WPCD()->classes['wpcd_roles_capabilities'] = new WPCD_ROLES_CAPABILITIES();
 		}
 	}
+	
+	/**
+	 * Returns a server post object using the postid of an app.
+	 *
+	 * @param int $app_id  The app for which to locate the server post.
+	 *
+	 * @return array|boolean Server post or false or error message
+	 */
+	public function get_server_by_app_id( $app_id ) {
+
+		// If for some reason the $app_id is actually a server id return the server data right away.
+		if ( 'wpcd_app_server' == get_post_type( $app_id ) ) {
+			return get_post( $app_id );
+		}
+
+		// Get the app post.
+		$app_post = get_post( $app_id );
+
+		if ( ! empty( $app_post ) && ! is_wp_error( $app_post ) ) {
+
+			$server_post = get_post( get_post_meta( $app_post->ID, 'parent_post_id', true ) );
+
+			return $server_post;
+
+		} else {
+
+			return false;
+
+		}
+
+		return false;
+	}
+
+	/**
+	 * Returns whether a site is a staging site.
+	 *
+	 * Note: We're commingling some things here because 
+	 * only the wordpres-app has the concept of "staging".
+	 * So this should be in that app class but putting 
+	 * it here because we need it in some global functions.
+	 * And there is always the possibility that a future app
+	 * will have both staging and production types.
+	 *
+	 * @param int $app_id ID of app being interrogated.
+	 *
+	 * @return boolean
+	 */
+	public function is_staging_site( $app_id ) {
+
+		$is_staging = (int) get_post_meta( $app_id, 'wpapp_is_staging', true );
+
+		if ( 1 === $is_staging ) {
+			return true;
+		} else {
+			return false;
+		}
+
+	}	
 }

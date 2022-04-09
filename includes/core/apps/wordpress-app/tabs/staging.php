@@ -283,13 +283,8 @@ class WPCD_WORDPRESS_TABS_STAGING extends WPCD_WORDPRESS_TABS {
 		// 3. Add the DNS
 		$dns_success = WPCD_DNS()->set_dns_for_domain( $new_domain, $ipv4, $ipv6 );
 
-		// we want to make sure this command runs only once in a "swatch beat" for a domain.
-		// e.g. 2 manual backups cannot run for the same domain at the same time (time = swatch beat).
-		// although technically only one command can run per domain (e.g. backup and restore cannot run at the same time).
-		// we are appending the Swatch beat to the command name because this command can be run multiple times.
-		// over the app's lifetime.
-		// but within a swatch beat, it can only be run once.
-		$command             = sprintf( '%s---%s---%d', $action, $domain, date( 'B' ) );
+		// Setup unique command name.
+		$command             = sprintf( '%s---%s---%d', $action, $domain, time() );
 		$instance['command'] = $command;
 		$instance['app_id']  = $id;
 
@@ -391,13 +386,8 @@ class WPCD_WORDPRESS_TABS_STAGING extends WPCD_WORDPRESS_TABS {
 			$args
 		);
 
-		// we want to make sure this command runs only once in a "swatch beat" for a domain.
-		// e.g. 2 manual backups cannot run for the same domain at the same time (time = swatch beat).
-		// although technically only one command can run per domain (e.g. backup and restore cannot run at the same time).
-		// we are appending the Swatch beat to the command name because this command can be run multiple times.
-		// over the app's lifetime.
-		// but within a swatch beat, it can only be run once.
-		$command             = sprintf( '%s---%s---%d', $action, $domain, date( 'B' ) );
+		// Setup unique command name.
+		$command             = sprintf( '%s---%s---%d', $action, $domain, time() );
 		$instance['command'] = $command;
 		$instance['app_id']  = $id;
 

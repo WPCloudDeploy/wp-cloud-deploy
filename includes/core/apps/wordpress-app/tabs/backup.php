@@ -24,6 +24,13 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 		add_filter( "wpcd_app_{$this->get_app_name()}_tab_action", array( $this, 'tab_action' ), 10, 3 );
 		/* add_filter( 'wpcd_is_ssh_successful', array( $this, 'was_ssh_successful' ), 10, 5 ); */
 
+		// Allow the manual backup to be triggered via an action hook. Hook Name: wpcd_wordpress-app_manual_backup_for_site.
+		add_action( "wpcd_{$this->get_app_name()}_manual_backup_for_site", array( $this, 'backup_actions' ), 10, 2 );
+
+		/* Pending Logs Background Task: Trigger manual backup */
+		add_action( 'wpcd_pending_log_manual_site_backup', array( $this, 'pending_log_manual_site_backup' ), 10, 3 );
+
+		// Command completed hook.
 		add_action( "wpcd_command_{$this->get_app_name()}_completed", array( $this, 'command_completed' ), 10, 2 );
 
 	}
@@ -33,13 +40,70 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 	 *
 	 * Action Hook: wpcd_command_{$this->get_app_name()}_completed
 	 *
-	 * @param int    $id     The postID of the server cpt.
+	 * @param int    $id     The postID of the site cpt.
 	 * @param string $name   The name of the command.
 	 */
 	public function command_completed( $id, $name ) {
 		if ( get_post_type( $id ) !== 'wpcd_app' ) {
 			return;
 		}
+
+		// The name will have a format as such: command---domain---number.  For example: dry_run---cf1110.wpvix.com---905.
+		// Lets tear it into pieces and put into an array.  The resulting array should look like this with exactly three elements.
+		// [0] => dry_run.
+		// [1] => cf1110.wpvix.com.
+		// [2] => 911.
+		$command_array = explode( '---', $name );
+
+		// if the command is to manually backup a site then we should check to see if the command was successful.
+		// If so, update any pending log records (if it was indeed triggered by a pending log entry).
+		// Regardless, post a notice in the notification tables.
+		if ( 'backup-run-manual' === $command_array[0] ) {
+
+			// Lets pull the logs.
+			$logs = $this->get_app_command_logs( $id, $name );
+
+			// Is the command successful?
+			$success = (bool) $this->is_ssh_successful( $logs, 'backup_restore.txt' );
+
+			// Get the pending log task id from the temporary post meta we added to the site.
+			$task_id = get_post_meta( $id, 'wpapp_pending_log_manual_backup_task_id', true );
+
+			if ( true === $success ) {
+
+				if ( ! empty( $task_id ) ) {
+
+					// Grab our data array from pending tasks record...
+					$data = WPCD_POSTS_PENDING_TASKS_LOG()->get_data_by_id( $task_id );
+
+					// Mark the task as complete.
+					WPCD_POSTS_PENDING_TASKS_LOG()->update_task_by_id( $task_id, $data, 'complete' );
+
+				}
+
+				// Add success notification.
+				do_action( 'wpcd_log_notification', $id, 'alert', __( 'The manual backup has been completed.', 'wpcd' ), 'backup', null );
+
+			} else {
+
+				if ( ! empty( $task_id ) ) {
+
+					// Grab our data array from pending tasks record...
+					$data = WPCD_POSTS_PENDING_TASKS_LOG()->get_data_by_id( $task_id );
+
+					// Mark the task as failed.
+					WPCD_POSTS_PENDING_TASKS_LOG()->update_task_by_id( $task_id, $data, 'failed' );
+
+				}
+
+				// Add failure notification.
+				do_action( 'wpcd_log_notification', $id, 'error', __( 'The manual backup has failed.', 'wpcd' ), 'backup', null );
+
+			}
+		}
+
+		// Delete action-specific the temporary meta if it exists.
+		delete_post_meta( $id, 'wpapp_pending_log_manual_backup_task_id' );
 
 		// remove the 'temporary' meta so that another attempt will run if necessary.
 		delete_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action_status" );
@@ -142,7 +206,7 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 	 * @param string $action action.
 	 * @param int    $id id.
 	 */
-	private function backup_actions( $action, $id ) {
+	public function backup_actions( $action, $id ) {
 		$instance = $this->get_app_instance_details( $id );
 
 		if ( is_wp_error( $instance ) ) {
@@ -178,13 +242,8 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 		// Get the domain we're working on.
 		$domain = get_post_meta( $id, 'wpapp_domain', true );
 
-		// we want to make sure this command runs only once in a "swatch beat" for a domain.
-		// e.g. 2 manual backups cannot run for the same domain at the same time (time = swatch beat).
-		// although technically only one command can run per domain (e.g. backup and restore cannot run at the same time).
-		// we are appending the Swatch beat to the command name because this command can be run multiple times.
-		// over the app's lifetime.
-		// but within a swatch beat, it can only be run once.
-		$command             = sprintf( '%s---%s---%d', $action, $domain, date( 'B' ) );
+		// Setup unique command name.
+		$command             = sprintf( '%s---%s---%d', $action, $domain, time() );
 		$instance['command'] = $command;
 		$instance['app_id']  = $id;
 
@@ -881,6 +940,30 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 
 		// Always return true.
 		return true;
+	}
+
+	/**
+	 * Manual backup for a site - triggered via pending logs background process.
+	 *
+	 * Called from an action hook from the pending logs background process - WPCD_POSTS_PENDING_TASKS_LOG()->do_tasks()
+	 *
+	 * Action Hook: wpcd_pending_log_manual_site_backup
+	 *
+	 * @param int   $task_id    Id of pending task that is firing this thing...
+	 * @param int   $site_id    Id of site on which this action apply.
+	 * @param array $args       All the data needed for this action.
+	 */
+	public function pending_log_manual_site_backup( $task_id, $site_id, $args ) {
+
+		// Grab our data array from pending tasks record...
+		$data = WPCD_POSTS_PENDING_TASKS_LOG()->get_data_by_id( $task_id );
+
+		// Add a postmeta to the site we can use later.
+		update_post_meta( $site_id, 'wpapp_pending_log_manual_backup_task_id', $task_id );
+
+		/* Trigger manual backup for the site */
+		do_action( 'wpcd_wordpress-app_manual_backup_for_site', 'backup-run-manual', $site_id );
+
 	}
 
 }

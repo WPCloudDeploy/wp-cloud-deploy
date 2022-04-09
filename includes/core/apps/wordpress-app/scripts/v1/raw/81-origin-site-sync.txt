@@ -153,7 +153,7 @@ fi
 
 
 
-if [[ $action == "site-sync" || $action == "2" ]]; then
+if [[ $action == "site-sync" || $action == "site-sync-no-record" || $action == "2" ]]; then
     if [ -z $sshuser ]
     then
         read -p "SSH user to login on destination server: " sshuser

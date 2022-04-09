@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 "Project-Id-Version: WP Cloud Deploy\n"
-"POT-Creation-Date: 2022-04-07 22:22-0500\n"
+"POT-Creation-Date: 2022-04-08 22:12-0500\n"
 "PO-Revision-Date: 2020-08-14 19:38-0500\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -894,7 +894,7 @@ msgid "sFTP"
 msgstr ""
 
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:381
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:239
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:282
 msgid "Copy To Server"
 msgstr ""
 
@@ -2590,7 +2590,6 @@ msgstr ""
 #: includes/core/apps/wordpress-app/tabs/tweaks.php:359
 #: includes/core/apps/wordpress-app/tabs/tweaks.php:381
 #: includes/core/apps/wordpress-app/tabs/tweaks.php:403
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:425
 #: includes/core/apps/wordpress-app/tabs/tweaks.php:462
 #: includes/core/apps/wordpress-app/tabs/tweaks.php:484
 #: includes/core/apps/wordpress-app/tabs/tweaks.php:547
@@ -2648,7 +2647,6 @@ msgstr ""
 #: includes/core/apps/wordpress-app/tabs/tweaks.php:360
 #: includes/core/apps/wordpress-app/tabs/tweaks.php:382
 #: includes/core/apps/wordpress-app/tabs/tweaks.php:404
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:426
 #: includes/core/apps/wordpress-app/tabs/tweaks.php:463
 #: includes/core/apps/wordpress-app/tabs/tweaks.php:485
 #: includes/core/apps/wordpress-app/tabs/tweaks.php:548
@@ -2793,8 +2791,8 @@ msgstr ""
 #: includes/core/apps/wordpress-app/tabs/redirect-rules.php:95
 #: includes/core/apps/wordpress-app/tabs/sftp.php:78
 #: includes/core/apps/wordpress-app/tabs/sftp.php:85
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:260
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:267
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:303
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:310
 #: includes/core/apps/wordpress-app/tabs/site-system-users.php:86
 #: includes/core/apps/wordpress-app/tabs/site-system-users.php:91
 #: includes/core/apps/wordpress-app/tabs/site-system-users.php:96
@@ -3147,9 +3145,9 @@ msgstr ""
 #: includes/core/apps/wordpress-app/tabs/tools.php:485
 #: includes/core/apps/wordpress-app/tabs/tools.php:565
 #: includes/core/apps/wordpress-app/tabs/tools.php:624
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:797
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:962
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:1020
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:798
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:963
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:1021
 #: includes/core/apps/wordpress-app/tabs/wp-site-users.php:341
 #: includes/core/apps/wordpress-app/tabs/wp-site-users.php:439
 #: includes/core/apps/wordpress-app/tabs/wp-site-users.php:545
@@ -3189,7 +3187,7 @@ msgstr ""
 #: includes/core/apps/wordpress-app/tabs/php-options.php:882
 #: includes/core/apps/wordpress-app/tabs/redirect-rules.php:382
 #: includes/core/apps/wordpress-app/tabs/sftp.php:663
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:668
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:743
 #: includes/core/apps/wordpress-app/tabs/site-system-users.php:440
 #: includes/core/apps/wordpress-app/tabs/ssl.php:345
 #: includes/core/apps/wordpress-app/tabs/tools.php:412
@@ -5520,7 +5518,7 @@ msgstr ""
 
 #: includes/core/apps/wordpress-app/tabs-server/services.php:496
 #: includes/core/apps/wordpress-app/tabs/cache.php:458
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:898
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:973
 #: includes/core/apps/wordpress-app/tabs/tools.php:290
 msgid "Clear"
 msgstr ""
@@ -5838,7 +5836,7 @@ msgstr ""
 #: includes/core/apps/wordpress-app/tabs/clone-site.php:330
 #: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:219
 #: includes/core/apps/wordpress-app/tabs/phpmyadmin.php:235
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:519
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:593
 #: includes/core/apps/wordpress-app/tabs/staging.php:307
 #: includes/core/apps/wordpress-app/tabs/staging.php:411
 #: includes/core/apps/wordpress-app/tabs/theme-and-plugin-updates.php:281
@@ -6569,9 +6567,9 @@ msgid ""
 msgstr ""
 
 #: includes/core/apps/wordpress-app/tabs-server/tweaks.php:243
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:822
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:987
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:1059
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:823
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:988
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:1060
 #, php-format
 msgid "Unable to %1$s for site: %2$s"
 msgstr ""
@@ -7322,7 +7320,7 @@ msgstr ""
 
 #: includes/core/apps/wordpress-app/tabs/6g_firewall.php:398
 #: includes/core/apps/wordpress-app/tabs/7g_firewall.php:398
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:951
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:1026
 msgid "Important Notes"
 msgstr ""
 
@@ -9292,37 +9290,37 @@ msgstr ""
 msgid "Schedule delete of sFTP user because site is being deleted."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:336
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:572
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:395
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:647
 msgid "Sorry but we were unable to obtain an id for the destination server."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:349
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:409
 msgid ""
 "Sorry but you are not allowed to copy sites to the specified target server."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:356
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:585
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:417
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:660
 msgid ""
 "Sorry but you are not allowed to copy sites from the specified source server."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:364
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:426
 msgid ""
 "Sorry but it looks like you are trying to copy the site to the same server "
 "where it currently resides. If you would like to do that, use the CLONE SITE "
 "tab instead."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:374
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:596
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:437
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:671
 msgid "Sorry but we were unable to obtain the domain name for this app."
 msgstr ""
 
 #. translators: %s is replaced with the internal action name.
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:393
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:615
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:457
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:690
 #, php-format
 msgid ""
 "Unable to execute this request because we cannot get the source server "
@@ -9330,8 +9328,8 @@ msgid ""
 msgstr ""
 
 #. translators: %s is replaced with the internal action name.
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:401
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:623
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:466
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:698
 #, php-format
 msgid ""
 "Unable to execute this request because we cannot get the destination server "
@@ -9339,8 +9337,8 @@ msgid ""
 msgstr ""
 
 #. translators: %s is replaced with the internal action name.
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:411
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:633
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:477
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:708
 #, php-format
 msgid ""
 "Oops - either the source or destination server is missing an ipv4 address - "
@@ -9348,14 +9346,14 @@ msgid ""
 msgstr ""
 
 #. translators: %s is replaced with the internal action name.
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:420
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:487
 #, php-format
 msgid ""
 "Oops - unable to get the login user name for the source server - action %s"
 msgstr ""
 
 #. translators: %s is replaced with the internal action name.
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:429
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:497
 #, php-format
 msgid ""
 "Oops - unable to get the login user name for the destination server - action "
@@ -9363,7 +9361,7 @@ msgid ""
 msgstr ""
 
 #. translators: %s is replaced with the result of the execute_ssh command.
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:452
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:521
 #, php-format
 msgid ""
 "Unable to configure the origin server. The origin server returned this in "
@@ -9371,88 +9369,88 @@ msgid ""
 msgstr ""
 
 #. translators: %s is replaced with the result of the execute_ssh command.
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:467
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:537
 #, php-format
 msgid ""
 "Unable to configure the destination server. The destination server returned "
 "this in response to commands: %s"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:487
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:560
 msgid "The $action variable is empty - returning false from site-sync routine."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:526
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:601
 msgid "Waiting For Site Copy To Complete"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:696
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:771
 msgid "Scheduled Site Sync Metas have been cleared."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:722
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:797
 msgid ""
 "You cannot copy this site to a new server at this time because HTTP2 is "
 "enabled. Please disable it before attempting this operation."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:725
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:742
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:800
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:817
 msgid "Site Sync"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:735
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:810
 msgid ""
 "Copy this site to another server. If the domain already exists on the target "
 "server it will be overwritten."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:737
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:812
 msgid ""
 "You should make sure that your destination server has any optional "
 "components installed. For example,if you enabled REDIS or MEMCACHED on here, "
 "your destination should have that installed."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:739
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:814
 msgid ""
 "***Please see important notes at the bottom of this page if this is the "
 "first time you are using this function!***"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:767
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:842
 msgid "Select Destination Server"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:770
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:845
 msgid "Where would you like to send a copy of this site?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:778
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:853
 msgid "Target server"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:780
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:855
 msgid "Select your destination server"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:799
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:874
 msgid "Copy Now"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:802
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:877
 msgid "Immediately copy this site to the destination server selected above."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:810
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:885
 msgid "Start Copy"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:820
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:895
 msgid "Are you sure you would like to copy this site to the specified server?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:824
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:899
 msgid ""
 "Preparing to copy this site to the specified server...<br /> Please DO NOT "
 "EXIT this screen until you see a popup message indicating that the operation "
@@ -9461,61 +9459,61 @@ msgid ""
 "operation is complete the entire log can be viewed in the COMMAND LOG screen."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:832
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:907
 msgid "Daily Sync - NOTE: Limited Release/Fast-Ring Feature"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:835
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:910
 msgid "Sync this site to the server selected above once per day."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:847
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:922
 #, php-format
 msgid ""
 "This site has already been set up for daily syncing with another server: %s"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:855
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:930
 msgid "Stop Scheduled Sync"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:858
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:933
 msgid "Stop daily syncing to the destination server."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:862
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:937
 msgid "Are you sure you would like to stop the daily sync for this site?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:867
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:942
 msgid "Stop Syncing"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:886
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:961
 msgid "Clear Metas"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:889
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:964
 msgid ""
 "Clear metas and reset plugin state. Any scheduled syncs for this site will "
 "still exist on the server but the plugin will not be aware of it"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:893
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:968
 msgid "Are you sure you would like to clear and reset the metas?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:922
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:997
 msgid "Schedule"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:932
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:1007
 msgid ""
 "Are you sure you would like to schedule this site every day to sync to the "
 "specified server?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:936
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:1011
 msgid ""
 "Preparing to schedule copying this site to the specified server...<br /> "
 "Please DO NOT EXIT this screen until you see a popup message indicating that "
@@ -9525,18 +9523,18 @@ msgid ""
 "in the COMMAND LOG screen."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:945
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:1020
 msgid "Please keep these two notes in mind before using this function:"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:947
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:1022
 msgid ""
 "1. Root access is usually required on both servers.  Therefore this function "
 "might not work on some server providers such as AWS EC2, AWS Lightsail, "
 "Azure & Google Cloud!"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:949
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:1024
 msgid "2. The private ssh key must NOT be protected by a password."
 msgstr ""
 
@@ -10362,6 +10360,14 @@ msgstr ""
 msgid "Rest API"
 msgstr ""
 
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:425
+msgid "Blocked"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:426
+msgid "Not Blocked"
+msgstr ""
+
 #: includes/core/apps/wordpress-app/tabs/tweaks.php:429
 msgid ""
 "Enable or Disable the REST API for this site. Turning off the RESTAPI can "
@@ -10472,18 +10478,18 @@ msgid ""
 "Are you sure you would like to change the maximum upload size for this site?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:932
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:999
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:933
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:1000
 msgid "The status for the selected item has been toggled."
 msgstr ""
 
 #. translators: %s is replaced with the internal action name.
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:1028
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:1029
 #, php-format
 msgid "The upload file size must not be blank for action %s"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:1066
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:1067
 msgid "The maximum allowed file upload size has been updated."
 msgstr ""
 

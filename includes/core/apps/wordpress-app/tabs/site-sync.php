@@ -1056,7 +1056,7 @@ class WPCD_WORDPRESS_TABS_SITE_SYNC extends WPCD_WORDPRESS_TABS {
 		update_post_meta( $site_id, 'wpapp_pending_log_site_sync', $task_id );
 
 		// Should we create a new app record on every new copy?
-		$add_new_app_record = (bool) wpcd_get_option( 'wpapp_sitesync_schedule_new_record' );
+		$add_new_app_record = (bool) get_post_meta( $site_id, 'wpcd_wpapp_sitesync_schedule_new_record', true );
 
 		/* Trigger the site sync */
 		if ( true === $add_new_app_record ) {

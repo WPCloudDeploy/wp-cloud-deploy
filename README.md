@@ -156,6 +156,7 @@ Note: Even though the entire git development history isn't available on github, 
 * Dev: WPAPP - Add New filter hook - wpcd_wordpress-app_show_deploy_server_button.
 * Dev: WPAPP - Add filters to allow all the key fields on the create-server popup to be accessible to developers.
 * Dev: WPAPP - Better code for unique internal command names when running long running commands.
+* Dev: WPAPP - Bash script changes and tweaks for site-sync - reduced code duplication and made more hardy when simultaneously copying sites to the same server.
 
 4.15.0
 ------

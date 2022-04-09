@@ -825,12 +825,12 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 	/**
 	 * Cron function code to clean up the pending logs.
 	 * Anything that has been running for too long
-	 * (around 4 hours) will be marked as failed.
+	 * (around 2 hours) will be marked as failed.
 	 */
 	public function wpcd_clean_up_pending_logs_callback() {
 
 		// Get pending logs.
-		$compare_date = time() - ( 3600 * 4 );
+		$compare_date = time() - ( 3600 * 2 );
 
 		$pending_logs_args = array(
 			'post_type'   => 'wpcd_pending_log',

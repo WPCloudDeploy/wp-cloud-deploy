@@ -36,7 +36,7 @@ class WPCD_WORDPRESS_TABS_SERVER_CALLBACKS extends WPCD_WORDPRESS_TABS {
 		add_action( 'wpcd_wordpress-manage_server_status_callback', array( $this, 'manage_server_status_callback' ), 10, 2 );
 
 		/* Pending Logs Background Task: Trigger installation of callbacks on a server */
-		add_action( 'pending_log_install_a_callback', array( $this, 'pending_log_install_a_callback' ), 10, 3 );
+		add_action( 'wpcd_pending_log_install_a_callback', array( $this, 'pending_log_install_a_callback' ), 10, 3 );
 
 		/* Handle callback success and tag the pending log record as successful */
 		add_action( 'wpcd_server_wordpress-app_server_status_callback_action_successful', array( $this, 'handle_server_status_callback_install_success' ), 10, 3 );
@@ -46,7 +46,8 @@ class WPCD_WORDPRESS_TABS_SERVER_CALLBACKS extends WPCD_WORDPRESS_TABS {
 		add_action( 'wpcd_server_wordpress-app_server_status_callback_first_action_failed', array( $this, 'handle_server_status_callback_install_failed' ), 10, 3 );
 
 		/* Pending Logs Background Task: Run callback for the first time on a server after they're installed */
-		add_action( 'run_server_callbacks', array( $this, 'run_server_callbacks' ), 10, 3 );
+		add_action( 'run_server_callbacks', array( $this, 'run_server_callbacks' ), 10, 3 );  //Deprecated - should be removed in wpcd 4.17 after updating the WC add-ons which use it.
+		add_action( 'wpcd_pending_log_run_server_callbacks', array( $this, 'run_server_callbacks' ), 10, 3 );  // Use this hook going forward instead of the one above.
 
 	}
 
@@ -458,7 +459,7 @@ class WPCD_WORDPRESS_TABS_SERVER_CALLBACKS extends WPCD_WORDPRESS_TABS {
 				case 'run_status_cron':
 				case 'run_status_cron_background':
 					$success = array(
-						'msg'     => __( 'The callbacks have been scheduled execution and should begin shortly. Check back here or view your server list HEALTH column in a few minutes to see the updated information.', 'wpcd' ),
+						'msg'     => __( 'The callbacks have been scheduled to run and should begin shortly. Check back here or view your server list HEALTH column in a few minutes to see the updated information.', 'wpcd' ),
 						'refresh' => 'yes',
 					);
 					break;
@@ -706,7 +707,7 @@ class WPCD_WORDPRESS_TABS_SERVER_CALLBACKS extends WPCD_WORDPRESS_TABS {
 				}
 
 				// Add message to be displayed in admin header.
-				wpcd_global_add_admin_notice( __( 'Server callbacks have been scheduled for installation. You can view the progress in the PENDING LOG screen.', 'wpcd' ), 'success' );
+				wpcd_global_add_admin_notice( __( 'Server callbacks have been scheduled for installation. You can view the progress in the PENDING TASKS screen.', 'wpcd' ), 'success' );
 
 			}
 
@@ -721,7 +722,7 @@ class WPCD_WORDPRESS_TABS_SERVER_CALLBACKS extends WPCD_WORDPRESS_TABS {
 	 *
 	 * Called from an action hook from the pending logs background process - WPCD_POSTS_PENDING_TASKS_LOG()->do_tasks()
 	 *
-	 * Action Hook: pending_log_install_a_callback
+	 * Action Hook: wpcd_pending_log_install_a_callback
 	 *
 	 * @param int   $task_id    Id of pending task that is firing this thing...
 	 * @param int   $server_id  Id of server on which to install the new website.
@@ -813,7 +814,7 @@ class WPCD_WORDPRESS_TABS_SERVER_CALLBACKS extends WPCD_WORDPRESS_TABS {
 					WPCD_POSTS_PENDING_TASKS_LOG()->update_task_by_id( $task_id, $data, 'complete' );
 
 					// Since we have successfully installed the callbacks, we can run them once!
-					$instance['action_hook'] = 'run_server_callbacks';
+					$instance['action_hook'] = 'wpcd_pending_log_run_server_callbacks';
 					WPCD_POSTS_PENDING_TASKS_LOG()->add_pending_task_log_entry( $server_id, 'run-server-callbacks', $server_id, $instance, 'ready', $server_id, __( 'Run Callbacks For The First Time', 'wpcd' ) );
 
 				}

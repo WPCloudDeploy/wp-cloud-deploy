@@ -158,7 +158,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		// When a server cleanup script is being run.
 		add_action( 'wpcd_cleanup_server_after', array( $this, 'wpcd_cleanup_server_after' ), 10, 1 );
 
-		// When WP has been installed, add temp domain to DNS if configured.
+		// When WP has been installed, add temp domain to DNS if configured as well as perform other actions after the site is successfully installed.
 		add_action( 'wpcd_command_wordpress-app_completed_after_cleanup', array( $this, 'wpcd_wpapp_install_complete' ), 10, 4 );
 
 		// Ajax Hooks.
@@ -301,6 +301,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/statistics.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/logs.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/wp-site-users.php';
+		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/wpconfig-options.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/redirect-rules.php';
 
 		if ( defined( 'WPCD_SHOW_SITE_USERS_TAB' ) && WPCD_SHOW_SITE_USERS_TAB ) {
@@ -430,14 +431,14 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			'name'    => __( 'Domain', 'wpcd' ),
 			'type'    => 'custom_html',
 			'std'     => $this->get_domain_name( $app_id ),
-			'columns' => 'left' == $this->get_tab_style() ? 4 : 4,
-			'class'   => 'left' == $this->get_tab_style() ? 'wpcd_site_details_top_row wpcd_site_details_top_row_domain wpcd_site_details_top_row_domain_left' : 'wpcd_site_details_top_row wpcd_site_details_top_row_domain',
+			'columns' => 'left' === $this->get_tab_style() ? 4 : 4,
+			'class'   => 'left' === $this->get_tab_style() ? 'wpcd_site_details_top_row wpcd_site_details_top_row_domain wpcd_site_details_top_row_domain_left' : 'wpcd_site_details_top_row wpcd_site_details_top_row_domain',
 		);
 		$fields[] = array(
-			'name'    => __( 'IPv4', 'wpcd' ),
+			'name'    => __( 'IP', 'wpcd' ),
 			'type'    => 'custom_html',
-			'std'     => $this->get_ipv4_address( $app_id ),
-			'columns' => 'left' == $this->get_tab_style() ? 2 : 2,
+			'std'     => $this->get_all_ip_addresses_for_display( $app_id ),
+			'columns' => 'left' === $this->get_tab_style() ? 2 : 2,
 			'class'   => 'wpcd_site_details_top_row',
 		);
 		$fields[] = array(
@@ -445,7 +446,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			'id'      => 'wpcd_app_action_site-detail-header-view-admin',
 			'type'    => 'button',
 			'std'     => $this->get_formatted_wpadmin_link( $app_id ),
-			'columns' => 'left' == $this->get_tab_style() ? 2 : 2,
+			'columns' => 'left' === $this->get_tab_style() ? 2 : 2,
 			'class'   => 'wpcd_site_details_top_row',
 		);
 		$fields[] = array(
@@ -453,7 +454,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			'id'      => 'wpcd_app_action_site-detail-header-view-site',
 			'type'    => 'button',
 			'std'     => $this->get_formatted_site_link( $app_id ),
-			'columns' => 'left' == $this->get_tab_style() ? 2 : 2,
+			'columns' => 'left' === $this->get_tab_style() ? 2 : 2,
 			'class'   => 'wpcd_site_details_top_row',
 		);
 
@@ -466,7 +467,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			'id'      => 'wpcd_app_action_site-detail-header-view-apps',
 			'type'    => 'button',
 			'std'     => $apps_on_server,
-			'columns' => 'left' == $this->get_tab_style() ? 2 : 2,
+			'columns' => 'left' === $this->get_tab_style() ? 2 : 2,
 			'class'   => 'wpcd_site_details_top_row',
 		);
 
@@ -510,9 +511,9 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		);
 
 		$fields['general-welcome-top-col_2'] = array(
-			'name'    => __( 'IPv4', 'wpcd' ),
+			'name'    => __( 'IP', 'wpcd' ),
 			'type'    => 'custom_html',
-			'std'     => get_post_meta( $id, 'wpcd_server_ipv4', true ),
+			'std'     => WPCD_SERVER()->get_all_ip_addresses_for_display( $id ),
 			'columns' => 3,
 			'class'   => 'wpcd_server_details_top_row',
 		);
@@ -613,6 +614,40 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 	}
 
+	/**
+	 * Returns all the app posts for a particular a domain name.
+	 *
+	 * Usually, only one post exists for a domain.
+	 * But if a domain is pushed to another server, multiple posts might exist.
+	 *
+	 * @param string $domain The domain for which to locate the app post on the server.
+	 *
+	 * @return array|boolean|string array of posts or false or error message
+	 */
+	public function get_apps_by_domain( $domain ) {
+
+		$posts = get_posts(
+			array(
+				'post_type'   => 'wpcd_app',
+				'post_status' => 'private',
+				'numberposts' => -1,
+				'meta_query'  => array(
+					array(
+						'key'   => 'wpapp_domain',
+						'value' => $domain,
+					),
+				),
+			),
+		);
+
+		if ( $posts ) {
+			return $posts;
+		} else {
+			return false;
+		}
+
+	}
+
 
 	/**
 	 * Get the status of ssl stored in the metadata for a site.
@@ -704,6 +739,61 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	}
 
 	/**
+	 * Returns a boolean true/false if a particular PHP version is active.
+	 * Version 4.16 and later of WPCD deactivated earlier versions of PHP
+	 * by default.  Only if the user explicitly activated it was it enabled.
+	 *
+	 * @param int    $server_id ID of server being interrogated...
+	 * @param string $php_version PHP version - eg: php56, php71, php72, php73, php74, php81, php82 etc.
+	 *
+	 * @return boolean
+	 */
+	public function is_php_version_active( $server_id, $php_version ) {
+
+		$initial_plugin_version = $this->get_server_meta_by_app_id( $server_id, 'wpcd_server_plugin_initial_version', true );  // This function is smart enough to know if the ID being passed is a server or app id and adjust accordingly.
+
+		$return = true;  // assume true for active.
+		if ( version_compare( $initial_plugin_version, '4.15.0' ) > -1 ) {
+			// Versions of WPCD later than 4.15 deactivated PHP versions 5.6, 7.1, 7.2 and 7.3.
+			switch ( $php_version ) {
+				case 'php56':
+				case 'php70':
+				case 'php71':
+				case 'php72':
+				case 'php73':
+					$return = false;
+					break;
+			}
+		} else {
+			// Versions of WPCD prior to 4.15 activated almost all php versions.  Except PHP 8.0 and 8.1 are special cases because of the timing of when these were added to servers.
+			switch ( $php_version ) {
+				case 'php80':
+					if ( ! $this->is_php_80_installed( $server_id ) ) {
+						$return = false;
+					}
+					break;
+				case 'php81':
+					if ( ! $this->is_php_81_installed( $server_id ) ) {
+						$return = false;
+					}
+					break;
+			}
+		}
+
+		// Check for metas - this overrides defaults from above.
+		$current_php_activation_state = wpcd_maybe_unserialize( get_post_meta( $server_id, 'wpcd_wpapp_php_activation_state', true ) );
+		if ( is_array( $current_php_activation_state ) ) {
+			if ( ! empty( $current_php_activation_state[ $php_version ] ) ) {
+				if ( 'disabled' === $current_php_activation_state[ $php_version ] ) {
+					$return = false;
+				}
+			}
+		}
+
+		return $return;
+	}
+
+	/**
 	 * Returns a boolean true/false if the 7G V 1.5 Firewall Rules is installed.
 	 *
 	 * @param int $server_id ID of server being interrogated...
@@ -756,7 +846,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 		return false;
 	}
-	
+
 	/**
 	 * Returns a boolean true/false if wpcli 2.5 is installed.
 	 *
@@ -782,7 +872,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		}
 
 		return false;
-	}	
+	}
 
 	/**
 	 * Returns a boolean true/false if the server is a 4.6.0 or later server or was upgraded to that version.
@@ -890,13 +980,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	 */
 	public function is_staging_site( $app_id ) {
 
-		$is_staging = (int) get_post_meta( $app_id, 'wpapp_is_staging', true );
-
-		if ( 1 === $is_staging ) {
-			return true;
-		} else {
-			return false;
-		}
+		return WPCD()->is_staging_site( $app_id );
 
 	}
 
@@ -1063,7 +1147,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			'add_new' => __( 'Deploy A New WordPress Server', 'wpcd' ),
 			'done'    => __( 'The command has completed.', 'wpcd' ),
 		);
-		$args['user_can_provision_servers'] = current_user_can( 'wpcd_provision_servers' );
+		$args['user_can_provision_servers'] = apply_filters( "wpcd_{$this->get_app_name()}_show_deploy_server_button", current_user_can( 'wpcd_provision_servers' ) );  // Filter: wpcd_wordpress-app_show_deploy_server_button.
 		return $args;
 	}
 
@@ -1280,6 +1364,22 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			case 'change_php_option_misc.txt':
 				$return = strpos( $result, 'Successfully changed PHP value' ) !== false;
 				break;
+			case 'toggle_php_active_misc.txt':
+				$return =
+				( strpos( $result, 'has been disabled' ) !== false )
+				||
+				( strpos( $result, 'already disabled' ) !== false )
+				||
+				( strpos( $result, 'has been enabled' ) !== false )
+				||
+				( strpos( $result, 'already enabled' ) !== false );
+				break;
+			case 'backup_restore.txt':
+				$return =
+				( strpos( $result, 'Backup has been completed!' ) !== false )
+				||
+				( strpos( $result, 'has been restored' ) !== false );
+				break;
 			case 'backup_restore_schedule.txt':
 				$return =
 				( strpos( $result, 'Backup job configured!' ) !== false )
@@ -1449,6 +1549,10 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			case 'add_wp_user.txt':
 				$return =
 				( strpos( $result, 'Added user' ) !== false );
+				break;
+			case 'update_wp_config_option.txt':
+				$return =
+				( strpos( $result, 'Updated WPConfig Option Value' ) !== false );
 				break;
 
 			/**************************************************************
@@ -1775,6 +1879,11 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				&&
 				( strpos( $result, 'Installation of required packages failed' ) === false );
 		}
+		if ( $return && ( false === boolval( wpcd_get_option( 'wordpress_app_ignore_journalctl_xe' ) ) ) ) {
+			$return = $return
+				&&
+				( strpos( $result, 'journalctl -xe' ) === false );
+		}
 
 		return apply_filters( 'wpcd_is_ssh_successful', $return, $result, $command, $action, $this->get_app_name() );
 
@@ -1920,6 +2029,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			case 'toggle_wp_debug.txt':
 			case 'restart_php_service.txt':
 			case 'toggle_password_auth_misc.txt':
+			case 'toggle_php_active_misc.txt':
 				$new_array = array_merge(
 					array(
 						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/10-misc.txt',
@@ -1929,7 +2039,6 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 					$additional
 				);
 				break;
-
 			case 'change_domain_quick.txt':
 			case 'change_domain_full.txt':
 				$command_name = $additional['command'];
@@ -2192,6 +2301,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			case 'update_wp_site_option.txt':
 			case 'change_wp_credentials.txt':
 			case 'add_wp_user.txt':
+			case 'update_wp_config_option.txt':
 				$new_array = array_merge(
 					array(
 						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/30-wp_site_things.txt',
@@ -2570,15 +2680,19 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 				/* Get list of regions */
 				$provider_regions = $this->add_provider_support();
+				$provider_regions = apply_filters( "wpcd_{$this->get_app_name()}_provider_regions_create_server_popup", $provider_regions );
 
 				/* Get the list of providers - we'll need it in the popup area */
 				$providers = $this->get_active_providers();
+				$providers = apply_filters( "wpcd_{$this->get_app_name()}_providers_create_server_popup", $providers );
 
 				/* Get list of OSes */
 				$oslist = WPCD()->get_os_list();
+				$oslist = apply_filters( "wpcd_{$this->get_app_name()}_oslist_create_server_popup", $oslist );
 
 				/* Get list of webservers */
 				$webserver_list = WPCD()->get_webserver_list();
+				$webserver_list = apply_filters( "wpcd_{$this->get_app_name()}_webserver_list_create_server_popup", $webserver_list );
 
 				/* Include the popup file */
 				include apply_filters( "wpcd_{$this->get_app_name()}_create_popup", wpcd_path . 'includes/core/apps/wordpress-app/templates/create-popup.php' );
@@ -2668,7 +2782,9 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 					if ( is_wp_error( $result ) ) {
 						$err_msg = $result->get_error_message();
 					}
-					$msg = '<span class="wpcd_pre_install_text_error">' . sprintf( __( 'Unfortunately we could not start deploying this server - most likely because of an error from the provider api. <br />Please contact support or you can check the COMMAND & SSH logs for errors.<br />  You can close this screen and then retry the operation.<br />%s', 'wpcd' ), $err_msg ) . '</span>';
+					$msg = sprintf( __( 'Unfortunately we could not start deploying this server - most likely because of an error from the provider api. <br />Please contact support or you can check the COMMAND & SSH logs for errors.<br />  You can close this screen and then retry the operation.<br />%s', 'wpcd' ), $err_msg );
+					$msg = apply_filters( 'wpcd_wordpress-app-server_deployment_error', $msg );
+					$msg = '<span class="wpcd_pre_install_text_error">' . $msg . '</span>';
 				}
 
 				break;
@@ -2886,13 +3002,27 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		}
 
 		// Get other fields needed to provision the site.
-		$wp_user     = sanitize_text_field( $args['wp_user'] );
-		$wp_password = $args['wp_password'];  // Note that we are NOT sanitizing the password field.  We'll escape every non-alpha-numeric char later before passing to bash.
+		$wp_user     = sanitize_user( sanitize_text_field( $args['wp_user'] ) );
+		$wp_password = $args['wp_password'];  // Note that we are NOT sanitizing the password field.  We'll escape every non-alpha-numeric character later before passing to bash.
 		$wp_email    = sanitize_email( $args['wp_email'] );
 		$wp_version  = sanitize_text_field( $args['wp_version'] );
 		$wp_locale   = sanitize_text_field( $args['wp_locale'] );
 		if ( empty( $wp_locale ) ) {
 			$wp_locale = 'en_US';
+		}
+
+		// Make sure our password does not contain any invalid characters that would cause BASH to throw up.
+		if ( false !== strpbrk( $args['wp_password'], "\;/|<>&()`'" ) || false !== strpbrk( $args['wp_password'], '"' ) || false !== strpbrk( $args['wp_password'], ' ' ) ) {
+			return new \WP_Error( __( 'The password for the site contains invalid characters.', 'wpcd' ) );
+		}
+		// Make sure our email address field does not contain any invalid characters that would cause BASH or WP to throw up.  If it does, stop the process and return.
+		if ( $wp_email !== $args['wp_email'] ) {
+			// This comparison works for this purpose because we're comparing the sanitized email value to the orignal value.  If there are issues, the two will not be the same.
+			return new \WP_Error( __( 'The email address for the site contains invalid characters.', 'wpcd' ) );
+		}
+		// Make sure our user name field does not contain any invalid characters that would cause BASH or WP to throw up.  If it does, stop the process and return.
+		if ( false === validate_username( $args['wp_user'] ) ) {
+			return new \WP_Error( __( 'The user name for the site contains invalid characters.', 'wpcd' ) );
 		}
 
 		// Escape special chars in password with backslashes.
@@ -3114,6 +3244,11 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 		if ( ! is_wp_error( $app_post_id ) && ! empty( $app_post_id ) ) {
 
+			/* Enable app delete protection flag if global option is enabled in settings. */
+			if ( wpcd_get_option( 'wordpress_app_sites_add_delete_protection' ) ) {
+				$this->set_delete_protection_flag( $app_post_id ); // This function is in the ancestor app class (file: class-wpcd-app.php).
+			}
+
 			/**
 			 * Setup an array of fields and loop through them to add them to the wpcd_app cpt record using the array_map function.
 			 * Note that we are passing in the $args variable to the anonymous function by REFERENCE via a USE parm.
@@ -3162,12 +3297,12 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	 *
 	 * Action Hook: wpcd_command_wordpress-app_completed_after_cleanup
 	 *
-	 * @param int    $id             post id of server.
+	 * @param int    $server_id      post id of server.
 	 * @param int    $app_id         post id of wp app.
 	 * @param string $name           command name executed for new site.
 	 * @param string $base_command   basename of command.
 	 */
-	public function wpcd_wpapp_install_complete( $id, $app_id, $name, $base_command ) {
+	public function wpcd_wpapp_install_complete( $server_id, $app_id, $name, $base_command ) {
 
 		// If not installing an app, return.
 		if ( 'install_wp' <> $base_command ) {
@@ -3192,20 +3327,60 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		// Log what we're doing.
 		do_action( 'wpcd_log_error', 'Sending request to DNS module to add domain if applicable ' . print_r( $instance, true ), 'trace', __FILE__, __LINE__ );
 
+		// Do the DNS thing.
+		$this->handle_temp_dns_for_new_site( $server_id, $app_id );
+
+		// Install page_cache.
+		$this->handle_page_cache_for_new_site( $app_id, $instance );
+
+	}
+
+	/**
+	 * Add temp domain to DNS when WP install is complete.
+	 *
+	 * Called from function wpcd_wpapp_install_complete
+	 *
+	 * @param int $server_id      post id of server.
+	 * @param int $app_id         post id of wp app.
+	 */
+	public function handle_temp_dns_for_new_site( $server_id, $app_id ) {
+
 		// What's the IP of the server?
-		$ipv4 = WPCD_SERVER()->get_ipv4_address( $id );
+		$ipv4 = WPCD_SERVER()->get_ipv4_address( $server_id );
+
+		// What's the IPv6 of the server?
+		$ipv6 = WPCD_SERVER()->get_ipv6_address( $server_id );
 
 		// What's the domain of the site?
 		$domain = $this->get_domain_name( $app_id );
 
 		// Add the DNS...
-		$dns_success = WPCD_DNS()->set_dns_for_domain( $domain, $ipv4 );
+		$dns_success = WPCD_DNS()->set_dns_for_domain( $domain, $ipv4, $ipv6 );
 
 		// Attempt to issue SSL..
 		if ( true === (bool) $dns_success ) {
 			if ( wpcd_get_option( 'wordpress_app_auto_issue_ssl' ) ) {
 				do_action( 'wpcd_wordpress-app_do_toggle_ssl_status', $app_id, 'ssl-status' );
 			}
+		}
+
+		return $dns_success;
+
+	}
+
+	/**
+	 * Add page cache when WP install is complete.
+	 *
+	 * Called from function wpcd_wpapp_install_complete
+	 *
+	 * @param int   $app_id        post id of app.
+	 * @param array $instance      Array passed by calling function containing details of the server and site.
+	 */
+	public function handle_page_cache_for_new_site( $app_id, $instance ) {
+
+		if ( wpcd_get_option( 'wordpress_app_sites_install_page_cache' ) ) {
+			$instance['action_hook'] = 'wpcd_pending_log_toggle_page_cache';
+			WPCD_POSTS_PENDING_TASKS_LOG()->add_pending_task_log_entry( $app_id, 'install-page-cache', $app_id, $instance, 'ready', $app_id, __( 'Waiting To Install Page Cache For New Site', 'wpcd' ) );
 		}
 
 	}
@@ -3713,7 +3888,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		}
 
 		$screen     = get_current_screen();
-		$post_types = array( 'wpcd_app_server', 'wpcd_app', 'wpcd_team', 'wpcd_permission_type', 'wpcd_command_log', 'wpcd_ssh_log', 'wpcd_error_log', 'wpcd_pending_tasks_log' );
+		$post_types = array( 'wpcd_app_server', 'wpcd_app', 'wpcd_team', 'wpcd_permission_type', 'wpcd_command_log', 'wpcd_ssh_log', 'wpcd_error_log', 'wpcd_pending_log' );
 
 		if ( is_object( $screen ) && in_array( $screen->post_type, $post_types ) ) {
 			wp_enqueue_script( 'wpcd-admin-common', wpcd_url . 'includes/core/apps/wordpress-app/assets/js/wpcd-admin-common.js', array( 'jquery' ), wpcd_scripts_version, true );
@@ -3995,7 +4170,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		global $pagenow;
 
 		$filter_action = filter_input( INPUT_GET, 'filter_action', FILTER_SANITIZE_STRING );
-		if ( is_admin() && $query->is_main_query() && $query->query['post_type'] == 'wpcd_app' && $pagenow == 'edit.php' && $filter_action == 'Filter' ) {
+		if ( is_admin() && $query->is_main_query() && $query->query['post_type'] == 'wpcd_app' && $pagenow == 'edit.php' && ! empty( $filter_action ) ) {
 			$qv = &$query->query_vars;
 
 			// APP STATUS.
@@ -4245,6 +4420,8 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	/**
 	 * Sets the transient for cron check
 	 * This will be set when user dismisses the notice for cron check
+	 *
+	 * Action Hook: wp_ajax_set_cron_check
 	 */
 	public function set_cron_check() {
 
@@ -4320,34 +4497,6 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	 */
 	public function get_rest_controller( string $controller_name ) {
 		return $this->rest_controllers[ $controller_name ];
-	}
-
-
-	public function xwpcd_wpapp_prepare_server_completed( $server_id, $command_name ) {
-		error_log( 'here' );
-				$server_post = get_post( $server_id );
-
-				// Bail if not a post object.
-		if ( ! $server_post || is_wp_error( $server_post ) ) {
-			return;
-		}
-
-				// Bail if not a WordPress app.
-		if ( 'wordpress-app' <> WPCD_WORDPRESS_APP()->get_server_type( $server_id ) ) {
-			return;
-		}
-
-				// Get server instance array.
-				$instance = WPCD_WORDPRESS_APP()->get_instance_details( $server_id );
-
-		if ( 'wpcd_app_server' === get_post_type( $server_id ) ) {
-
-			// Mark server as delete protected.
-			if ( wpcd_get_option( 'wordpress_app_servers_add_delete_protection' ) ) {
-				WPCD_POSTS_APP_SERVER()->wpcd_app_server_set_deletion_protection_flag( $server_id );
-			}
-		}
-
 	}
 
 }

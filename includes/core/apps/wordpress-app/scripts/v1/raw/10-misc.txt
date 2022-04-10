@@ -5,7 +5,6 @@ if [[ "$EUID" -ne 0 ]]; then
 fi
 
 
-
 # for options where changes are applied to the filesystem
 select_domain () {
 while [[ -z $domain ]]; do
@@ -78,6 +77,8 @@ while [[ -z $action ]]; do
     echo "   32) List of Tables in Database"	
     echo "   33) Add HTTP Auth for WP Login"	
     echo "   34) Remove HTTP Auth for WP Login"	
+    echo "   35) Disable Php Version"
+    echo "   36) Enable Php Version"
     echo
     read -p "Action: " action
     until [[ -z "$action" || "$action" =~ ^[1-9]|2[0-9]|3[0-9]$ ]]; do
@@ -167,6 +168,12 @@ if [[ $action == "change_php_version" || $action == "3" ]]; then
         new_php_version=$(ls /etc/php/ | sed -n "$site_number"p)
     done
 
+    if [ -f /etc/wpcd/php-versions-disabled/php$new_php_version ]
+    then
+            echo "selected php version is disabled"
+            exit
+    fi
+
     rm -f /etc/php/$current_php_version/fpm/pool.d/$domain.conf
     
     user_name=$(echo $domain | cut -c1-32)
@@ -192,8 +199,9 @@ php_admin_value[session.use_cookies] = 1
 php_admin_value[session.use_only_cookies] = 1
 php_admin_value[session.use_trans_sid] = 0" > /etc/php/$new_php_version/fpm/pool.d/$domain.conf
 
-
-    systemctl restart php$current_php_version-fpm
+    if [ ! -f /etc/wpcd/php-versions-disabled/php$current_php_version ]; then
+        systemctl restart php$current_php_version-fpm
+    fi
     systemctl restart php$new_php_version-fpm
 
     echo
@@ -368,7 +376,9 @@ if [[ $action == "remove_php_param" || $action == "11" ]]; then
     sed -i "/$php_param/d" /etc/nginx/sites-enabled/$domain
     systemctl restart nginx
     php_version=$(ls /etc/php/*/fpm/pool.d/$domain.conf | cut -d '/' -f 4)
-    systemctl restart php$php_version-fpm
+    if [ ! -f /etc/wpcd/php-versions-disabled/php$php_version ]; then
+        systemctl restart php$php_version-fpm
+    fi
     echo
     echo "Successfully removed PHP value $php_param for $domain"
     exit
@@ -752,7 +762,9 @@ if [[ $action == "restart_php" || $action == "24" ]]; then
     select_domain
 
     current_php_version=$(ls /etc/php/*/fpm/pool.d/$domain.conf | cut -d '/' -f 4)
-    systemctl restart php$current_php_version-fpm
+    if [ ! -f /etc/wpcd/php-versions-disabled/php$current_php_version ]; then
+        systemctl restart php$current_php_version-fpm
+    fi
 
     echo
     echo "PHP service has restarted for version $current_php_version"
@@ -980,6 +992,74 @@ if [[ $action == "wpadmin_disable_auth" || $action == "34" ]]; then
 
     echo
     echo "Basic authentication disabled for $domain"
+
+    exit
+
+fi
+
+
+if [[ $action == "php_version_disable" || $action == "35" ]]; then
+
+    mkdir -p /etc/wpcd/php-versions-disabled
+    while [[ -z $php_version ]]; do
+        echo
+        echo "Available PHP versions are:"
+        ls /etc/php/ | nl
+        echo
+        echo "Select which PHP version you want to disable"
+        read -p "Select PHP version: " site_number
+        number_of_sites=$(ls /etc/php/ | wc -l)
+        until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
+		echo "$site_number: invalid selection."
+                read -p "Select PHP version: " site_number
+        done
+        php_version=$(ls /etc/php/ | sed -n "$site_number"p)
+    done
+
+    systemctl status php$php_version-fpm |grep running > /dev/null
+    if [ $? -eq 0 ] || [ -f /etc/systemd/system/multi-user.target.wants/php$php_version-fpm.service ]
+    then
+	systemctl stop php$php_version-fpm
+	systemctl disable php$php_version-fpm  > /dev/null 2>&1
+	echo `date +%d-%m-%Y` > /etc/wpcd/php-versions-disabled/php$php_version
+	echo "php version $php_version has been disabled"
+    else
+	echo "php version $php_version already disabled"
+    fi
+
+    exit
+
+fi
+
+
+if [[ $action == "php_version_enable" || $action == "36" ]]; then
+
+    mkdir -p /etc/wpcd/php-versions-disabled
+    while [[ -z $php_version ]]; do
+        echo
+        echo "Available PHP versions are:"
+        ls /etc/php/ | nl
+        echo
+        echo "Select which PHP version you want to disable"
+        read -p "Select PHP version: " site_number
+        number_of_sites=$(ls /etc/php/ | wc -l)
+        until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
+                echo "$site_number: invalid selection."
+                read -p "Select PHP version: " site_number
+        done
+        php_version=$(ls /etc/php/ | sed -n "$site_number"p)
+    done
+
+    systemctl status php$php_version-fpm |grep running > /dev/null
+    if [ $? -ne 0 ] || [ ! -f /etc/systemd/system/multi-user.target.wants/php$php_version-fpm.service ] || [ -f /etc/wpcd/php-versions-disabled/php$php_version ]
+    then
+        systemctl start php$php_version-fpm
+        systemctl enable php$php_version-fpm  > /dev/null 2>&1
+	rm -f /etc/wpcd/php-versions-disabled/php$php_version
+	echo "php version $php_version has been enabled"
+    else
+	echo "php version $php_version already enabled"
+    fi
 
     exit
 

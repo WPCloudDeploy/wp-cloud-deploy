@@ -107,6 +107,8 @@ Database_size=`mysql -e "SELECT ROUND(SUM(data_length + index_length) / 1024 / 1
 Largest_DB_Name=$(mysql -e '\''select * from (SELECT table_schema AS `DB Name`,ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS `Size MB` FROM   information_schema.tables GROUP  BY `DB Name`) AS tmp_table ORDER  BY `Size MB` ASC;'\''|tail -n 1|awk '\''{print $1}'\'')
 Largest_DB_Size=$(mysql -e '\''select * from (SELECT table_schema AS `DB Name`,ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS `Size MB` FROM   information_schema.tables GROUP  BY `DB Name`) AS tmp_table ORDER  BY `Size MB` ASC;'\''|tail -n 1|awk '\''{print $2}'\'')
 Timezone=`cat /etc/timezone`
+php_full_version=$(php -v|head -n 1|cut -d" " -f2|cut -d"-" -f1)
+php_version=$(echo $php_full_version|cut -d'.' -f1-2)
 
 echo ""				>> /var/log/wp-server-status.log
 echo "$(date)"			>> /var/log/wp-server-status.log
@@ -129,17 +131,19 @@ echo "Total size of All databases			:	$Database_size M"  >> /var/log/wp-server-s
 echo "Largest Mysql Database Name			:	$Largest_DB_Name"  >> /var/log/wp-server-status.log
 echo "Largest Mysql Database Size			:	$Largest_DB_Size M"  >> /var/log/wp-server-status.log
 echo "Server Timezone					:	$Timezone"  >> /var/log/wp-server-status.log
+echo "Php Default CLI Version (Full)				:	$php_full_version"  >> /var/log/wp-server-status.log
+echo "Php Default CLI Version		:	$php_version"  >> /var/log/wp-server-status.log
 ' > /usr/local/bin/wp-status
 
 	if [[ -n "$callback_server_status" ]]
 	then
-		echo 'get_count=`echo "restart=$restart&total_updates=$total_updates&security_updates=$security_updates&unattended_package_num=$unattended_package_num&list_of_packages=$list_of_packages&unattended_package_list=$unattended_package_list&uptime=$uptime&cpu_overall=$cpu_since_reboot&cpu_since_reboot=$cpu_now&free_disk=$free_disk&free_disk_percentage=$free_disk_percentage&website_disk=$website_disk&Total_mem=$Total_mem&Used_mem=$Used_mem&Used_mem_percentage=$Used_mem_percentage&Database_size=$Database_size&Largest_DB_Name=$Largest_DB_Name&Largest_DB_Size=$Largest_DB_Size&Timezone=$Timezone" |wc -c`
+		echo 'get_count=`echo "restart=$restart&total_updates=$total_updates&security_updates=$security_updates&unattended_package_num=$unattended_package_num&list_of_packages=$list_of_packages&unattended_package_list=$unattended_package_list&uptime=$uptime&cpu_overall=$cpu_since_reboot&cpu_since_reboot=$cpu_now&free_disk=$free_disk&free_disk_percentage=$free_disk_percentage&website_disk=$website_disk&Total_mem=$Total_mem&Used_mem=$Used_mem&Used_mem_percentage=$Used_mem_percentage&Database_size=$Database_size&Largest_DB_Name=$Largest_DB_Name&Largest_DB_Size=$Largest_DB_Size&Timezone=$Timezone&phpfullversion=$php_full_version&phpversion=$php_version" |wc -c`
 		### When callback url contains greater than 200 Chracter as string then ignore unattended and all packages list from url ##
 		if [[ $get_count -lt 2000 ]]
 		then
-		curl -sS "$callback_server_status?restart=$restart&total_updates=$total_updates&security_updates=$security_updates&unattended_package_num=$unattended_package_num&list_of_packages=$list_of_packages&unattended_package_list=$unattended_package_list&uptime=$uptime&cpu_since_reboot=$cpu_since_reboot&cpu_now=$cpu_now&free_disk=$free_disk&free_disk_percentage=$free_disk_percentage&website_disk=$website_disk&Total_mem=$Total_mem&Used_mem=$Used_mem&Used_mem_percentage=$Used_mem_percentage&Database_size=$Database_size&Largest_DB_Name=$Largest_DB_Name&Largest_DB_Size=$Largest_DB_Size&Timezone=$Timezone"
+		curl -sS "$callback_server_status?restart=$restart&total_updates=$total_updates&security_updates=$security_updates&unattended_package_num=$unattended_package_num&list_of_packages=$list_of_packages&unattended_package_list=$unattended_package_list&uptime=$uptime&cpu_since_reboot=$cpu_since_reboot&cpu_now=$cpu_now&free_disk=$free_disk&free_disk_percentage=$free_disk_percentage&website_disk=$website_disk&Total_mem=$Total_mem&Used_mem=$Used_mem&Used_mem_percentage=$Used_mem_percentage&Database_size=$Database_size&Largest_DB_Name=$Largest_DB_Name&Largest_DB_Size=$Largest_DB_Size&Timezone=$Timezone&phpfullversion=$php_full_version&phpversion=$php_version"
 	else
-		curl -sS "$callback_server_status?restart=$restart&total_updates=$total_updates&security_updates=$security_updates&unattended_package_num=$unattended_package_num&uptime=$uptime&cpu_since_reboot=$cpu_since_reboot&cpu_now=$cpu_now&free_disk=$free_disk&free_disk_percentage=$free_disk_percentage&website_disk=$website_disk&Total_mem=$Total_mem&Used_mem=$Used_mem&Used_mem_percentage=$Used_mem_percentage&Database_size=$Database_size&Largest_DB_Name=$Largest_DB_Name&Largest_DB_Size=$Largest_DB_Size&Timezone=$Timezone"
+		curl -sS "$callback_server_status?restart=$restart&total_updates=$total_updates&security_updates=$security_updates&unattended_package_num=$unattended_package_num&uptime=$uptime&cpu_since_reboot=$cpu_since_reboot&cpu_now=$cpu_now&free_disk=$free_disk&free_disk_percentage=$free_disk_percentage&website_disk=$website_disk&Total_mem=$Total_mem&Used_mem=$Used_mem&Used_mem_percentage=$Used_mem_percentage&Database_size=$Database_size&Largest_DB_Name=$Largest_DB_Name&Largest_DB_Size=$Largest_DB_Size&Timezone=$Timezone&phpfullversion=$php_full_version&phpversion=$php_version"
 		fi'	>> /usr/local/bin/wp-status
 	fi
 

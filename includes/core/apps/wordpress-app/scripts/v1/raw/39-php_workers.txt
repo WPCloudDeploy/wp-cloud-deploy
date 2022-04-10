@@ -25,7 +25,9 @@ exit_script() {
         php-fpm${php_version} -t # checking php fpm configuration
         if [[ $? -eq 0 ]]; then
             if [[ "${PHP_FPM_RELOAD}" -eq 1 && "${DEBUG}" -eq 0 ]]; then
-                systemctl restart php$php_version-fpm || service php$php_version-fpm reload
+                if [[ ! -f /etc/wpcd/php-versions-disabled/php$php_version ]]; then
+                    systemctl restart php$php_version-fpm || service php$php_version-fpm reload
+		fi
             fi
         fi
     fi

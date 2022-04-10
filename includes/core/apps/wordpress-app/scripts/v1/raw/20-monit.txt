@@ -354,13 +354,27 @@ echo 'check system '$domain'
 	chmod 0700 /etc/monit/monitrc
 	ln -s /etc/monit/conf-available/nginx /etc/monit/conf-enabled/nginx
 	ln -s /etc/monit/conf-available/mysql /etc/monit/conf-enabled/mysql
-	ln -s /etc/monit/conf-available/php81 /etc/monit/conf-enabled/php81
-	ln -s /etc/monit/conf-available/php80 /etc/monit/conf-enabled/php80
-	ln -s /etc/monit/conf-available/php74 /etc/monit/conf-enabled/php74
-	ln -s /etc/monit/conf-available/php73 /etc/monit/conf-enabled/php73
-	ln -s /etc/monit/conf-available/php72 /etc/monit/conf-enabled/php72
-	ln -s /etc/monit/conf-available/php71 /etc/monit/conf-enabled/php71
-	ln -s /etc/monit/conf-available/php56 /etc/monit/conf-enabled/php56
+	if [[ ! -f /etc/wpcd/php-versions-disabled/php8.1 ]]; then
+		ln -s /etc/monit/conf-available/php81 /etc/monit/conf-enabled/php81
+	fi
+	if [[ ! -f /etc/wpcd/php-versions-disabled/php8.0 ]]; then	
+		ln -s /etc/monit/conf-available/php80 /etc/monit/conf-enabled/php80
+	fi
+	if [[ ! -f /etc/wpcd/php-versions-disabled/php7.4 ]]; then
+		ln -s /etc/monit/conf-available/php74 /etc/monit/conf-enabled/php74
+	fi
+	if [[ ! -f /etc/wpcd/php-versions-disabled/php7.3 ]]; then
+		ln -s /etc/monit/conf-available/php73 /etc/monit/conf-enabled/php73
+	fi
+	if [[ ! -f /etc/wpcd/php-versions-disabled/php7.2 ]]; then	
+		ln -s /etc/monit/conf-available/php72 /etc/monit/conf-enabled/php72
+	fi
+	if [[ ! -f /etc/wpcd/php-versions-disabled/php7.1 ]]; then	
+		ln -s /etc/monit/conf-available/php71 /etc/monit/conf-enabled/php71
+	fi
+	if [[ ! -f /etc/wpcd/php-versions-disabled/php5.6 ]]; then	
+		ln -s /etc/monit/conf-available/php56 /etc/monit/conf-enabled/php56
+	fi	
 	ln -s /etc/monit/conf-available/filesystem /etc/monit/conf-enabled/filesystem
 	ln -s /etc/monit/conf-available/coresystem /etc/monit/conf-enabled/coresystem
 	systemctl restart monit
@@ -465,13 +479,28 @@ fi
 
 if [[ $action == "enable_php_monit" || $action == "10" ]]; then
 
-	ln -s /etc/monit/conf-available/php81 /etc/monit/conf-enabled/php81
-	ln -s /etc/monit/conf-available/php80 /etc/monit/conf-enabled/php80
-	ln -s /etc/monit/conf-available/php74 /etc/monit/conf-enabled/php74
-	ln -s /etc/monit/conf-available/php73 /etc/monit/conf-enabled/php73
-	ln -s /etc/monit/conf-available/php72 /etc/monit/conf-enabled/php72
-	ln -s /etc/monit/conf-available/php71 /etc/monit/conf-enabled/php71
-	ln -s /etc/monit/conf-available/php56 /etc/monit/conf-enabled/php56
+	if [[ ! -f /etc/wpcd/php-versions-disabled/php8.1 ]]; then
+		ln -s /etc/monit/conf-available/php81 /etc/monit/conf-enabled/php81
+	fi
+	if [[ ! -f /etc/wpcd/php-versions-disabled/php8.0 ]]; then	
+		ln -s /etc/monit/conf-available/php80 /etc/monit/conf-enabled/php80
+	fi
+	if [[ ! -f /etc/wpcd/php-versions-disabled/php7.4 ]]; then
+		ln -s /etc/monit/conf-available/php74 /etc/monit/conf-enabled/php74
+	fi
+	if [[ ! -f /etc/wpcd/php-versions-disabled/php7.3 ]]; then
+		ln -s /etc/monit/conf-available/php73 /etc/monit/conf-enabled/php73
+	fi
+	if [[ ! -f /etc/wpcd/php-versions-disabled/php7.2 ]]; then	
+		ln -s /etc/monit/conf-available/php72 /etc/monit/conf-enabled/php72
+	fi
+	if [[ ! -f /etc/wpcd/php-versions-disabled/php7.1 ]]; then	
+		ln -s /etc/monit/conf-available/php71 /etc/monit/conf-enabled/php71
+	fi
+	if [[ ! -f /etc/wpcd/php-versions-disabled/php5.6 ]]; then	
+		ln -s /etc/monit/conf-available/php56 /etc/monit/conf-enabled/php56
+	fi
+
 	systemctl restart monit
 	
 	echo
@@ -567,13 +596,29 @@ fi
 if [[ $action == "enable_all_monit" || $action == "15" ]]; then
 	ln -s /etc/monit/conf-available/nginx /etc/monit/conf-enabled/nginx
 	ln -s /etc/monit/conf-available/mysql /etc/monit/conf-enabled/mysql
-	ln -s /etc/monit/conf-available/php81 /etc/monit/conf-enabled/php81
-	ln -s /etc/monit/conf-available/php80 /etc/monit/conf-enabled/php80
-	ln -s /etc/monit/conf-available/php74 /etc/monit/conf-enabled/php74
-	ln -s /etc/monit/conf-available/php73 /etc/monit/conf-enabled/php73
-	ln -s /etc/monit/conf-available/php72 /etc/monit/conf-enabled/php72
-	ln -s /etc/monit/conf-available/php71 /etc/monit/conf-enabled/php71
-	ln -s /etc/monit/conf-available/php56 /etc/monit/conf-enabled/php56
+
+	if [[ ! -f /etc/wpcd/php-versions-disabled/php8.1 ]]; then
+		ln -s /etc/monit/conf-available/php81 /etc/monit/conf-enabled/php81
+	fi
+	if [[ ! -f /etc/wpcd/php-versions-disabled/php8.0 ]]; then	
+		ln -s /etc/monit/conf-available/php80 /etc/monit/conf-enabled/php80
+	fi
+	if [[ ! -f /etc/wpcd/php-versions-disabled/php7.4 ]]; then
+		ln -s /etc/monit/conf-available/php74 /etc/monit/conf-enabled/php74
+	fi
+	if [[ ! -f /etc/wpcd/php-versions-disabled/php7.3 ]]; then
+		ln -s /etc/monit/conf-available/php73 /etc/monit/conf-enabled/php73
+	fi
+	if [[ ! -f /etc/wpcd/php-versions-disabled/php7.2 ]]; then	
+		ln -s /etc/monit/conf-available/php72 /etc/monit/conf-enabled/php72
+	fi
+	if [[ ! -f /etc/wpcd/php-versions-disabled/php7.1 ]]; then	
+		ln -s /etc/monit/conf-available/php71 /etc/monit/conf-enabled/php71
+	fi
+	if [[ ! -f /etc/wpcd/php-versions-disabled/php5.6 ]]; then	
+		ln -s /etc/monit/conf-available/php56 /etc/monit/conf-enabled/php56
+	fi
+
 	ln -s /etc/monit/conf-available/filesystem /etc/monit/conf-enabled/filesystem
 	ln -s /etc/monit/conf-available/coresystem /etc/monit/conf-enabled/coresystem
 	systemctl restart monit

@@ -345,7 +345,7 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 		global $pagenow;
 
 		$filter_action = filter_input( INPUT_GET, 'filter_action', FILTER_SANITIZE_STRING );
-		if ( is_admin() && $query->is_main_query() && 'wpcd_pending_log' === $query->query['post_type'] && 'edit.php' === $pagenow && 'Filter' === $filter_action ) {
+		if ( is_admin() && $query->is_main_query() && 'wpcd_pending_log' === $query->query['post_type'] && 'edit.php' === $pagenow && ! empty( $filter_action ) ) {
 			$qv = &$query->query_vars;
 
 			// Pending Task Type.
@@ -825,12 +825,12 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 	/**
 	 * Cron function code to clean up the pending logs.
 	 * Anything that has been running for too long
-	 * (around 4 hours) will be marked as failed.
+	 * (around 2 hours) will be marked as failed.
 	 */
 	public function wpcd_clean_up_pending_logs_callback() {
 
 		// Get pending logs.
-		$compare_date = time() - ( 3600 * 4 );
+		$compare_date = time() - ( 3600 * 2 );
 
 		$pending_logs_args = array(
 			'post_type'   => 'wpcd_pending_log',
@@ -842,9 +842,19 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 				'relation' => 'AND',
 				array(
 					'key'     => 'pending_task_state',
+					'value'   => 'not-ready',
+					'compare' => 'NOT LIKE',
+				),				
+				array(
+					'key'     => 'pending_task_state',
 					'value'   => 'complete',
 					'compare' => 'NOT LIKE',
 				),
+				array(
+					'key'     => 'pending_task_state',
+					'value'   => 'complete-manual',
+					'compare' => 'NOT LIKE',
+				),				
 				array(
 					'key'     => 'pending_task_state',
 					'value'   => 'ready',
@@ -855,6 +865,11 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 					'value'   => 'failed',
 					'compare' => 'NOT LIKE',
 				),
+				array(
+					'key'     => 'pending_task_state',
+					'value'   => 'failed-manual',
+					'compare' => 'NOT LIKE',
+				),				
 				array(
 					'key'     => 'pending_task_state',
 					'value'   => 'failed-timeout',

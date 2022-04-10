@@ -213,7 +213,7 @@ class WPCD_WORDPRESS_TABS_TOOLS extends WPCD_WORDPRESS_TABS {
 			'label'          => __( 'Reset file permissions', 'wpcd' ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
-				'desc' => __( 'Sometimes file permissions are inadvertently changed.  Use this to reset them to their defaults: 644 for files and 2775 for folders.', 'wpcd' ),
+				'desc' => __( 'Sometimes file permissions are inadvertently changed.  Use this to reset them to their defaults: 664 for files and 2775 for folders.', 'wpcd' ),
 			),
 		);
 

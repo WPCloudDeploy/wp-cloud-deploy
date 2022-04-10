@@ -92,7 +92,9 @@ php_admin_value[session.use_cookies] = 1
 php_admin_value[session.use_only_cookies] = 1
 php_admin_value[session.use_trans_sid] = 0" > /etc/php/7.4/fpm/pool.d/$domain.conf
 
-systemctl restart php7.4-fpm
+if [[ ! -f /etc/wpcd/php-versions-disabled/php7.4 ]]; then
+    systemctl restart php7.4-fpm
+fi
 
 # it's very important to escape the variables and quotes within the echo
 echo "include /etc/nginx/common/6g.conf;
@@ -204,6 +206,11 @@ QUERY
 
 # needed so wordpress doesn't freak out and denies direct access
 su - $user_name -c "wp --skip-plugins config set FS_METHOD direct"
+su - $user_name -c "wp --skip-plugins config set WP_AUTO_UPDATE_CORE minor"
+su - $user_name -c "wp --skip-plugins config set WP_MEMORY_LIMIT 128M"
+su - $user_name -c "wp --skip-plugins config set WP_MAX_MEMORY_LIMIT 128M"
+su - $user_name -c "wp --skip-plugins config set CONCATENATE_SCRIPTS false --raw"
+su - $user_name -c "wp --skip-plugins config set DISALLOW_FILE_EDIT true --raw"
 su - $user_name -c "wp --skip-plugins option update permalink_structure '/%postname%'"
 
 # permissions for the log file

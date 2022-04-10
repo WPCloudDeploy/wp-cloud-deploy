@@ -87,6 +87,16 @@ trait wpcd_wpapp_push_commands {
 		$server_time_zone                        = wp_kses( $server_time_zone, array() ); // no html allowed - just in case we get a string from someone we don't expect.
 		$server_status_items['server_time_zone'] = $server_time_zone;
 
+		// default php version (will store only the first two digits eg: 7.4 or 8.1).
+		$server_default_php_version                 = filter_input( INPUT_GET, 'phpversion', FILTER_SANITIZE_STRING );
+		$server_default_php_version                 = wp_kses( $server_default_php_version, array() ); // no html allowed - just in case we get a string from someone we don't expect.
+		$server_status_items['default_php_version'] = $server_default_php_version;
+
+		// default php full version (will store all three sections of the version - eg: 7.4.26).
+		$server_default_php_version_full                 = filter_input( INPUT_GET, 'phpfullversion', FILTER_SANITIZE_STRING );
+		$server_default_php_version_full                 = wp_kses( $server_default_php_version_full, array() ); // no html allowed - just in case we get a string from someone we don't expect.
+		$server_status_items['default_php_version_full'] = $server_default_php_version_full;
+
 		// Finally, add the time reported to the array.
 		$server_status_items['reporting_time']       = time();
 		$server_status_items['reporting_time_human'] = date( 'Y-m-d H:i:s', time() );
@@ -116,6 +126,14 @@ trait wpcd_wpapp_push_commands {
 			if ( 'yes' === $server_status_items['restart'] ) {
 				do_action( 'wpcd_log_notification', $id, 'alert', __( 'This server needs to be restarted for security updates to take effect.', 'wpcd' ), 'updates', null );
 			}
+			if ( '7.4' !== $server_status_items['default_php_version'] ) {
+				/* Translators: %s is the incorrect PHP version. */
+				do_action( 'wpcd_log_notification', $id, 'alert', sprintf( __( 'The default PHP version on this server is incorrect - it should be 7.4 but is currently set to %s.', 'wpcd' ), $server_status_items['default_php_version'] ), 'server-config', null );
+			}
+			if ( empty( $server_status_items['default_php_version'] ) ) {
+				/* Translators: %s is the incorrect PHP version. */
+				do_action( 'wpcd_log_notification', $id, 'notice', __( 'The default PHP version on this server is being reported as an empty string - it is likely that you need to update the callbacks on it.', 'wpcd' ), 'server-config', null );
+			}			
 
 			// Let other plugins react to the new good data with an action hook.
 			do_action( "wpcd_{$this->get_app_name()}_command_{$name}_{$status}_processed_good", $server_status_items, $id );

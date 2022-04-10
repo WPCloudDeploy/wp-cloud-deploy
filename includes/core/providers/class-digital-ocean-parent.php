@@ -220,6 +220,7 @@ class CLOUD_PROVIDER_API_DigitalOcean_Parent extends CLOUD_PROVIDER_API {
 "ssh_keys": [' . wpcd_get_option( 'vpn_' . $this->get_provider_slug() . '_sshkey_id' ) . '],
 "backups":"' . $backups . '",
 "tags": "' . $tags . '",
+"ipv6": true,
 "monitoring": true,
 "user_data": "
 #cloud-config
@@ -452,6 +453,7 @@ runcmd:
 			case 'details':
 				$return['os']     = sprintf( '%s %s', $body->droplet->image->distribution, $body->droplet->image->name );
 				$return['ip']     = $this->get_ipv4_from_body( $body );
+				$return['ipv6']   = $this->get_ipv6_from_body( $body );
 				$return['name']   = $body->droplet->name;
 				$return['status'] = $body->droplet->status;
 				break;
@@ -490,6 +492,23 @@ runcmd:
 	}
 
 	/**
+	 * Extract the IPv6 address from the array that DO returns.
+	 *
+	 * @param object $body Digital Ocean response object to a request for server details.
+	 *
+	 * @return: string IPv6 if it exists, error string otherwise.
+	 */
+	public function get_ipv6_from_body( $body ) {
+
+		if ( ! empty( $body->droplet->networks->v6[0] ) ) {
+			return $body->droplet->networks->v6[0]->ip_address;
+		}
+
+		return 'error-no-ipv6-found';
+
+	}
+
+	/**
 	 * Return servers for auto start
 	 *
 	 * @return array
@@ -501,8 +520,8 @@ runcmd:
 	/**
 	 * Add server to auto start cache list
 	 *
-	 * @param string $server_id  server id
-	 * @param string $action_id
+	 * @param string $server_id  The server id.
+	 * @param string $action_id  The action id.
 	 *
 	 * @return void
 	 */

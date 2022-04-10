@@ -153,7 +153,7 @@ class WPCD_WORDPRESS_TABS_SERVER_GENERAL extends WPCD_WORDPRESS_TABS {
 		$actions['general-welcome-top-col_2'] = array(
 			'name'    => __( 'IPv4', 'wpcd' ),
 			'type'    => 'custom_html',
-			'std'     => get_post_meta( $id, 'wpcd_server_ipv4', true ),
+			'std'     => WPCD_SERVER()->get_all_ip_addresses_for_display( $id ),
 			'columns' => 3,
 			'class'   => 'wpcd_server_details_top_row',
 		);

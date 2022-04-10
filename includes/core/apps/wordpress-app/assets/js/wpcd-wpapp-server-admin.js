@@ -135,7 +135,7 @@
             e.preventDefault();
 
             // Prevent certain chars from being used in fields
-            var other_specialChars = "'\";\\|<>`@$()/";
+            var other_specialChars = "'\";\\|<>`@$&()/";
             var server_name = jQuery('.wpcd_server_name').val();
             var valid_server = check_field_value_chars(other_specialChars, server_name);
 
@@ -250,8 +250,8 @@
                     $('form#wpcd-install input').keyup(function () {
 
                         var error = false;
-                        var specialChars = ";|'\"\\<>`";
-                        var other_specialChars = "'\";\\|<>`@$()/";
+                        var specialChars = ";|'\"\\<>`&()";
+                        var other_specialChars = "'\";\\|<>`@$&()/";
                         $('form#wpcd-install input').each(function () {
 
                             // validate domain field - make sure it has at least one period in it.

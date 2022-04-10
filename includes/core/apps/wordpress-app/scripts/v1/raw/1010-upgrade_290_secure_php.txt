@@ -22,12 +22,13 @@ do
 	echo 'php_admin_value[session.use_trans_sid] = 0' >> $line
 done
 
-systemctl restart php5.6-fpm
-systemctl restart php7.1-fpm
-systemctl restart php7.2-fpm
-systemctl restart php7.3-fpm
-systemctl restart php7.4-fpm
-systemctl restart php8.0-fpm
-systemctl restart php8.1-fpm
+number_of_php=$(ls /etc/php/ | wc -l)
+for (( number=1; number <=$number_of_php; number++ ))
+do
+	version=`ls /etc/php/ | sed -n "$number"p`
+	if [ ! -f /etc/wpcd/php-versions-disabled/php$version ] ; then
+		systemctl restart php$version-fpm > /dev/null 2>&1
+	fi
+done
 
 echo 'upgrade completed'

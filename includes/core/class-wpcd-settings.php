@@ -61,6 +61,9 @@ class WPCD_Settings {
 		// Action hook to check licenses after fields are saved.  This is initiated via a checkbox on the license tab on the settings screen.
 		add_action( 'rwmb_after_save_field', array( $this, 'check_license' ), 10, 5 );
 
+		// Action hook to handle wisdom opt-out settings after fields are saved.  This is initiated via a checkbox on the license tab on the settings screen.
+		add_action( 'rwmb_after_save_field', array( $this, 'handle_wisdom_opt_out' ), 10, 5 );
+
 		// Action hook to check for updates when the WP admin screen is initialized.
 		// This hook used to be admin_init but changed to init to support auto updates feaure released in WP 5.5.0.
 		add_action( 'init', array( $this, 'check_for_updates' ) );
@@ -471,6 +474,45 @@ class WPCD_Settings {
 					),
 				);
 
+				$meta_boxes[] = array(
+					'id'             => 'wpcd-cron-warning-fields',
+					'title'          => __( 'Cron Warning Emails', 'wpcd' ),
+					'settings_pages' => 'wpcd_settings',
+					'tab'            => 'misc',
+					'fields'         => array(
+						array(
+							'type' => 'heading',
+							'name' => __( 'Cron Warning Emails', 'wpcd' ),
+							'desc' => __( 'Control emails sent to Admin when Crons fail to run', 'wpcd' ),
+						),
+						array(
+							'name' => __( 'Do Not Send Cron Warning Emails?', 'wpcd' ),
+							'id'   => 'wpcd_do_not_send_cron_warning_emails',
+							'type' => 'checkbox',
+						),
+					),
+				);
+
+				$meta_boxes[] = array(
+					'id'             => 'wpcd-wisdom-opt-out-fields',
+					'title'          => __( 'Share Statistics', 'wpcd' ),
+					'settings_pages' => 'wpcd_settings',
+					'tab'            => 'misc',
+					'fields'         => array(
+						array(
+							'type' => 'heading',
+							'name' => __( 'Share Statistics', 'wpcd' ),
+							'desc' => __( 'Opt out of sharing site statistics.', 'wpcd' ),
+						),
+						array(
+							'name'    => __( 'Do Not Share Site Statistics', 'wpcd' ),
+							'id'      => 'wpcd_wisdom_opt_out',
+							'type'    => 'checkbox',
+							'tooltip' => __( 'Data Shared: Current theme & Version, Current WPCD Version, Site Name, WordPress Version, Site Language, Active and Inactive Plugins, System Email, Basic Server data such as PHP version, NGINX version, Memory Limit etc. See privacy policy for more information.', 'wpcd' ),
+						),
+					),
+				);
+
 				/**
 				 * Allow others to add their own settings at the end of the MISC tab.
 				 */
@@ -658,10 +700,26 @@ class WPCD_Settings {
 							'type'    => 'checkbox',
 							'name'    => __( 'Show Private State Label?', 'wpcd' ),
 							'tooltip' => __( 'Since all servers and apps are PRIVATE, we do not show this state label. You can force display of the PRIVATE state label with this option.', 'wpcd' ),
-							'desc'    => __( 'Check this to show the text for the PRIVATE state in the server and app list', 'wpcd' ),
+							'desc'    => '',
 							'tab'     => 'wordpress-app-general-wpadmin',
 						),
 
+						// IPv6.
+						array(
+							'type' => 'heading',
+							'name' => __( 'IPv6', 'wpcd' ),
+							'desc' => __( 'How should we handle IPv6 data?', 'wpcd' ),
+						),
+						array(
+							'id'      => 'wpcd_show_ipv6',
+							'type'    => 'checkbox',
+							'name'    => __( 'Show IPv6 Fields?', 'wpcd' ),
+							'tooltip' => __( 'Most systems are not set up for IPv6. But we do sometimes collect it when provided by the server provider. Check this box if you want to  display it when it\'s available and to be able to sort and filter by it.', 'wpcd' ),
+							'desc'    => '',
+							'tab'     => 'wordpress-app-general-wpadmin',
+						),
+
+						// Server sizes.
 						array(
 							'type' => 'heading',
 							'name' => __( 'Server Sizes', 'wpcd' ),
@@ -722,7 +780,7 @@ class WPCD_Settings {
 						array(
 							'type' => 'heading',
 							'name' => __( 'Bulk Email Server Batches', 'wpcd' ),
-							'desc' => __( 'List of all the server batches for send bulk email.', 'wpcd' ),
+							'desc' => __( 'View all email batches sent for servers.', 'wpcd' ),
 						),
 
 						array(
@@ -736,7 +794,7 @@ class WPCD_Settings {
 						array(
 							'type' => 'heading',
 							'name' => __( 'Bulk Email App Batches', 'wpcd' ),
-							'desc' => __( 'List of all the app batches for send bulk email.', 'wpcd' ),
+							'desc' => __( 'Voew all email batches sent for apps.', 'wpcd' ),
 						),
 
 						array(
@@ -1838,6 +1896,50 @@ class WPCD_Settings {
 			if ( 'wpcd_license_force_license_check' === $field['id'] && ( 1 === ( (int) $new ) ) ) {
 				do_action( 'wpcd_log_error', 'Admin requested immediate license validation check on all licenses.', 'trace', __FILE__, __LINE__, array(), false );
 				WPCD_License::validate_all_licenses();
+			}
+		}
+	}
+
+	/**
+	 * Metabox.io Callback function after saving settings fields.
+	 *
+	 * This one will be used to set a standard WordPress option called 'wisdom_opt_out'
+	 * to let the Wisdom plugin know that the user has opted out of sharing statistics.
+	 *
+	 * @see: https://wisdomplugin.com/support/#options
+	 *
+	 * Filter Hook: rwmb_after_save_field
+	 *
+	 * @param string $not_used set to null because it's not used.
+	 * @param array  $field field settings.
+	 * @param string $new new value of field.
+	 * @param string $old old value of field.
+	 * @param int    $object_id the metabox object id.
+	 */
+	public function handle_wisdom_opt_out( $not_used = null, $field, $new, $old, $object_id ) {
+		if ( true === is_admin() ) {
+			/* Did the user enable the opt-out flag? */
+			if ( 'wpcd_wisdom_opt_out' === $field['id'] ) {
+				if ( ( 1 === ( (int) $new ) ) ) {
+					if ( ! get_option( 'wisdom_opt_out' ) ) {
+						// Option does not already exist so log the change.  We check for the option existence first because we don't want to log every time we save - we just want to log the first time.
+						do_action( 'wpcd_log_error', 'Admin has chosen NOT to share statistics.', 'other', __FILE__, __LINE__, array(), false );
+					}
+					update_option(
+						'wisdom_opt_out',
+						array(
+							'wisdom_registered_setting' => 1,
+							'wisdom_opt_out'            => 1,
+						)
+					);
+				} else {
+					// Flag is unset so delete option if it exists.
+					if ( get_option( 'wisdom_opt_out' ) ) {
+						// But first we log the change.
+						do_action( 'wpcd_log_error', 'Admin has chosen to share statistics.', 'other', __FILE__, __LINE__, array(), false );
+					}
+					delete_option( 'wisdom_opt_out' );
+				}
 			}
 		}
 	}

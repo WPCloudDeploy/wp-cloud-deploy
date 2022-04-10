@@ -56,6 +56,8 @@ You can also view all requirements at the bottom of our [getting started documen
 
 Have a change you would like to see incorporated?  Then create a PR (pull request) against the **dev** branch.
 
+Have some time to help test new versions?  Download a zip of the **dev** branch and test - changes that need testing are usually listed in the CHANGE LOG section of this readme file below (under the most recent version number.)
+
 If you'd like to contribute to translations, you can do so in our public [POEDITOR project](https://poeditor.com/join/project?hash=A5I1lpqRes).
 
 ## Premium Versions ##
@@ -72,10 +74,23 @@ Premium features include:
 * Virtual Providers (support multiple accounts on each cloud server provider)
 * Server Sync
 * Support for additional cloud server providers: EC2, LIGHTSAIL, LINODE, VULTR, UPCLOUD, HETZNER, EXOSCALE, GOOGLE, AZURE and ALIBABA
+* Powertools which include features such as summary dashboards and charts, periodic server snapshots and more.
 
 ## Creating Extensions ##
 
 [Articles on creating WPCD extensions](https://wpclouddeploy.com/category/tutorials/)
+
+## About Branches ##
+
+We generally use two branches - the MAIN branch is the most stable version and is suitable for use in a production environment.
+
+The DEV branch is usually stable but not all existing features have been fully regression tested.
+
+If you are starting a project of your own and you'd like to start with a version containing all the latest features, you can usually use the DEV branch.  
+
+The DEV branch is usually promoted to the MAIN branch every 30 to 60 days.
+
+We commit EVERYTHING to our repository so there is no pesky build process necessary.  You can just download the zip from either branch and upload to your WordPress site using the ADD NEW option in the WordPress plugins screen.
 
 ## Plugin History ##
 
@@ -84,13 +99,65 @@ The plugin was always open-source but until October 2021, the source was only av
 
 In October 2021, Version 4.10.8 was pushed to a public Github repository.  Now, anyone can just install the core plugin and immediately get WordPress server management functions that rival SaaS systems.
 
-Note: Even though the entire git development history isn't available on github, the changelog below still reflects the full release history.
+Note: Even though the entire git development history isn't available on github, the change log below still reflects the full release history.
 
 ## Release Notes ##
 
 [Friendly Release Notes](https://wpclouddeploy.com/category/release-notes/)
 
 ## Change Log ##
+4.16.0
+------
+* New: Save any IPv6 address that DigitalOcean assigns to servers.  Request IPv6 addresses on all new DigitalOcean servers.
+* New: Add install and support links to the plugin entry in the WP plugins list.
+* New: Add code to display the change log directly in the plugin list when a new version is available.
+* New: WPAPP - Add global option to enable delete protection on all new sites.
+* New: WPAPP - Add global option to enable page cache on all new sites.
+* New: WPAPP - Add new feature security options in SETTINGS->APP:WORDPRESS SECURITY to control who can see the EMAIL and NOTES/LABELS/LINKS checkboxes.
+* New: WPAPP - New tab to allow updating certain values in wp-config.php.
+* New: WPAPP - When we detect that our critical crons are not running, send a warning email to the site admin.
+* Tweak: Make sure that certain messages only display to users who pass the wpcd_is_admin() check instead of all users.
+* Tweak: WPAPP - Disable old PHP versions on new servers by default.  Add controls to allow admin to re-enable them on a server-by-server basis.
+* Tweak: WPAPP - Preference ipv4 over ipv6 (update bash create-server script)
+* Tweak: WPAPP - Validate certain fields on the server monit/healing tab before allowing an operation - this prevents monit from throwing an error because it cannot parse its configuration files.
+* Tweak: WPAPP - Updated the list of WP versions to add wp 5.9.1.
+* Tweak: WPAPP - Add new notification type to handle upcoming features in the POWERTOOLS add-on.
+* Tweak: WPAPP - Display the final status of PHP versions as they are being installed when the server is provisioned.
+* Tweak: WPAPP - Collect the default PHP version for the server.  Show a notice in the health column if it's not set to 7.4.
+* Tweak: WPAPP - Remove extraneous text on the server backup tab.
+* Tweak: WPAPP - Better validation of certain fields on the backend before a site is created.
+* Tweak: WPAPP - New sites will default to allowing only minor automatic updates to core by setting the WP_AUTO_UPDATE_CORE value in wp-config.php to 'minor'.
+* Tweak: WPAPP - New sites will explicitly default to 128M for WP_MEMORY_LIMIT in wp-config.php. 
+* Tweak: WPAPP - New sites will explicitly default WP_MAX_MEMORY_LIMIT to 128M, down from the default of 256M because the default PHP worker memory_limit is set to 128M.
+* Tweak: WPAPP - New sites will explicitly default to setting CONCATENATE_SCRIPTS to false in wp-config.php.
+* Tweak: WPAPP - Add option to remove sFTP users when a site is deleted.
+* Tweak: WPAPP - Add option to treat 'journalctl -xe' output as script failures (experimental).
+* Tweak: WPAPP - When a site is cloned and the root domain of the clone is the one that is set up as the cloudflare temp domain, we will now automatically create the DNS for the clone at Cloudflare.
+* Tweak: WPAPP - Only show the activate/deactivate option on the MISC tab when a site is disabled.  Hide all other options when the site is disabled.
+* Tweak: WPAPP - The option to block the REST API had confusing terminology because it was the inverse of what was actually happening.  Clarified this so that the label uses the term 'blocked' and 'not blocked' instead.
+* Fix: WPAPP - Staging and Cloned sites did not carry-over the metas that indicate the status of the various caches.
+* Fix: WPAPP - Individual toggle switches on monit components were not working - only the 'all' switches did what they were supposed to do.
+* Fix: WPAPP - Fixed an issue with filters on the server and site lists when a different language other than English is used.
+* Fix: WPAPP - Typo on site TOOLS tab - reset permissions description should say 664 for files, not 644.
+* Fix: WPAPP - Hide a spurious error message when scheduling a site sync process.
+* Fix: WPAPP - The NEW SERVER RECORD button was not showing up in all cases where it should.
+* Fix: WPAPP - The ADD NEW APP RECORD button was not showing up in all cases where it should.
+* Fix: WPAPP - The default color for the PHP 8.1 label in the sites list was not consistent with the colors used for the PHP 8.0 label.
+* Fix: WPAPP - The server tools tab would throw an error if you tried to set the default PHP version to 8.1.
+* Fix: WPAPP - The name of a custom post type was incorrect in an array where we were listing certain custom post types we use.
+* Fix: WPAPP - The process for marking pending log items as failed did not take into account all the new recent state types.
+* Fix: WPAPP - We weren't warning user when they entered the '&()' characters in certain fields where they are invalid.
+* Fix: WPAPP - Some minor grammar errors.
+* Dev: WPAPP - New filter to allow providers to add text to any error messages when a server immediately fails to deploy.
+* Dev: WPAPP - New action hook on the copy-to-existing-site action (wpcd_app_wordpress-app_before_action_copy_to_existing_site).
+* Dev: Integrate the wisdom plugin.
+* Dev: Update to latest version of metabox.io components.
+* Dev: Add New filter hook - wpcd_get_active_cloud_providers.
+* Dev: WPAPP - Add New filter hook - wpcd_wordpress-app_show_deploy_server_button.
+* Dev: WPAPP - Add filters to allow all the key fields on the create-server popup to be accessible to developers.
+* Dev: WPAPP - Better code for unique internal command names when running long running commands.
+* Dev: WPAPP - Bash script changes and tweaks for site-sync - reduced code duplication and made more hardy when simultaneously copying sites to the same server.
+
 4.15.0
 ------
 * New: Add support for enabling/disabling DigitalOcean image backups when the server is created.

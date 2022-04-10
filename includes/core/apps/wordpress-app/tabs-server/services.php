@@ -242,6 +242,26 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 				case 'php-server-restart-php81':
 					$result = $this->do_php_restart( $id, $action );
 					break;
+				case 'php-server-activate-php56':
+				case 'php-server-activate-php70':
+				case 'php-server-activate-php71':
+				case 'php-server-activate-php72':
+				case 'php-server-activate-php73':
+				case 'php-server-activate-php74':
+				case 'php-server-activate-php80':
+				case 'php-server-activate-php81':
+						$result = $this->do_php_activation_toggle( $id, $action );
+					break;
+				case 'php-server-deactivate-php56':
+				case 'php-server-deactivate-php70':
+				case 'php-server-deactivate-php71':
+				case 'php-server-deactivate-php72':
+				case 'php-server-deactivate-php73':
+				case 'php-server-deactivate-php74':
+				case 'php-server-deactivate-php80':
+				case 'php-server-deactivate-php81':
+						$result = $this->do_php_activation_toggle( $id, $action );
+					break;
 			}
 		}
 
@@ -801,7 +821,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		$php80_status   = $default_status;
 		$php81_status   = $default_status;
 
-		// retrieve service status from server meta.
+		// retrieve php service status from server meta.
 		$services_status     = wpcd_maybe_unserialize( get_post_meta( $id, 'wpcd_wpapp_services_php_status', true ) );
 		$last_services_check = get_post_meta( $id, 'wpcd_wpapp_services_php_status_date', true );
 		if ( empty( $last_services_check ) ) {
@@ -827,7 +847,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			unset( $php_services_status['php81'] );
 		}
 
-		// Loop through the $services_status array and update the $php_services_status array for any entries present in $services_status_array.
+		// Loop through the $services_status array and update the $php_services_status array for any entries present in $services_status array.
 		if ( ! empty( $services_status ) ) {
 			foreach ( $php_services_status as $services_key => $service_status ) {
 				if ( isset( $services_status[ $services_key ] ) ) {
@@ -879,23 +899,61 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 				'type'           => 'custom_html',
 			);
 
-			$actions[ "php-server-restart-$services_key" ] = array(
-				'label'          => '',
-				'raw_attributes' => array(
-					'std'     => __( 'Restart', 'wpcd' ),
-					'columns' => 3,
-				),
-				'type'           => 'button',
-			);
+			// Check to see if the version of PHP in this loop iteration is active.
+			$is_php_version_active = $this->is_php_version_active( $id, $services_key );
 
-			$actions[ "php-server-placeholder-$services_key" ] = array(
-				'label'          => '',
-				'raw_attributes' => array(
-					'std'     => '',
-					'columns' => 2,
-				),
-				'type'           => 'custom_html',
-			);
+			if ( true === $is_php_version_active ) {
+				// Maybe allow this php version to be deactivated.
+				$actions[ "php-server-restart-$services_key" ] = array(
+					'label'          => '',
+					'raw_attributes' => array(
+						'std'     => __( 'Restart', 'wpcd' ),
+						'columns' => 3,
+					),
+					'type'           => 'button',
+				);
+
+				if ( 'php74' === $services_key ) {
+					// Do not allow php 7.4 to be deactivated since it's the default for the server.
+					$actions[ "php-server-deactivate-$services_key" ]  = array(
+						'label'          => '',
+						'raw_attributes' => array(
+							'std'     => __( 'n/a', 'wpcd' ),
+							'columns' => 2,
+						),
+						'type'           => 'custom_html',
+					);
+				} else {
+					// Allow this version of php to be deactivated.
+					$actions[ "php-server-deactivate-$services_key" ] = array(
+						'label'          => '',
+						'raw_attributes' => array(
+							'std'     => __( 'Deactivate', 'wpcd' ),
+							'columns' => 2,
+						),
+						'type'           => 'button',
+					);
+				}
+			} else {
+				// Allow this php version to be activated.
+				$actions[ "php-server-restart-$services_key" ]  = array(
+					'label'          => '',
+					'raw_attributes' => array(
+						'std'     => __( 'n/a', 'wpcd' ),
+						'columns' => 3,
+					),
+					'type'           => 'custom_html',
+				);
+				$actions[ "php-server-activate-$services_key" ] = array(
+					'label'          => '',
+					'raw_attributes' => array(
+						'std'     => __( 'Activate', 'wpcd' ),
+						'columns' => 2,
+					),
+					'type'           => 'button',
+				);
+
+			}
 		}
 
 		return $actions;
@@ -1108,14 +1166,8 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the server instance details for action %s', 'wpcd' ), $action ) );
 		}
 
-		// we want to make sure this command runs only once in a "swatch beat" for a domain.
-		// e.g. 2 manual backups cannot run for the same domain at the same time (time = swatch beat)
-		// although technically only one command can run per domain (e.g. backup and restore cannot run at the same time).
-		// we are appending the Swatch beat to the command name because this command can be run multiple times
-		// over the app's lifetime
-		// but within a swatch beat, it can only be run once.
-		$domain                = '';  // No domain for server level actions.
-		$command               = sprintf( '%s---%s---%d', $action, $domain, date( 'B' ) );
+		// Setup unique command name.
+		$command               = sprintf( '%s---%s---%d', $action, $domain, time() );
 		$instance['command']   = $command;
 		$instance['app_id']    = $id;   // @todo - this is not really the app id - need to test to see if the process will work without this array element.
 		$instance['server_id'] = $id;
@@ -1277,6 +1329,13 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			}
 		}
 
+		foreach ( $php_services as $service_key => $nothing ) {
+			$service_state = $this->is_php_version_active( $id, $service_key );
+			if ( false === $service_state ) {
+				$services_status[ $service_key ] = $services_status[ $service_key ] . ' / ' . __( 'deactivated', 'wpcd' );
+			}
+		}
+
 		// write the entire status array to the server cpt.
 		update_post_meta( $id, 'wpcd_wpapp_services_php_status', $services_status );
 		update_post_meta( $id, 'wpcd_wpapp_services_php_status_date', 'Last checked on ' . date( 'Y-m-d H:i:s', current_time( 'timestamp' ) ) );
@@ -1336,6 +1395,161 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 				'msg'     => __( 'Unknown command...', 'wpcd' ),
 				'refresh' => 'no',
 			);
+		}
+
+		return $result;
+
+	}
+
+	/**
+	 * Activate or deactivate a PHP service.
+	 *
+	 * @param int    $id         The postID of the server cpt.
+	 * @param string $action     The action to be performed.
+	 *
+	 * @return boolean success/failure/other
+	 */
+	private function do_php_activation_toggle( $id, $action ) {
+
+		// Get data about the server.
+		$instance = $this->get_server_instance_details( $id );
+
+		if ( is_wp_error( $instance ) ) {
+			/* translators: %s is replaced with the internal action name. */
+			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
+		}
+
+		// Figure out the action for the bash scripts...
+		switch ( $action ) {
+			case 'php-server-activate-php56':
+				$action      = 'php_version_enable';
+				$php_version = 5.6;
+				$php_key     = 'php56';
+				break;
+			case 'php-server-activate-php70':
+				$action      = 'php_version_enable';
+				$php_version = 7.0;
+				$php_key     = 'php70';
+				break;
+			case 'php-server-activate-php71':
+				$action      = 'php_version_enable';
+				$php_version = 7.1;
+				$php_key     = 'php71';
+				break;
+			case 'php-server-activate-php72':
+				$action      = 'php_version_enable';
+				$php_version = 7.2;
+				$php_key     = 'php72';
+				break;
+			case 'php-server-activate-php73':
+				$action      = 'php_version_enable';
+				$php_version = 7.3;
+				$php_key     = 'php73';
+				break;
+			case 'php-server-activate-php74':
+				$action      = 'php_version_enable';
+				$php_version = 7.4;
+				$php_key     = 'php74';
+				break;
+			case 'php-server-activate-php80':
+				$action      = 'php_version_enable';
+				$php_version = 8.0;
+				$php_key     = 'php80';
+				break;
+			case 'php-server-activate-php81':
+				$action      = 'php_version_enable';
+				$php_version = 8.1;
+				$php_key     = 'php81';
+				break;
+
+			case 'php-server-deactivate-php56':
+				$action      = 'php_version_disable';
+				$php_version = 5.6;
+				$php_key     = 'php56';
+				break;
+			case 'php-server-deactivate-php70':
+				$action      = 'php_version_disable';
+				$php_version = 7.0;
+				$php_key     = 'php70';
+				break;
+			case 'php-server-deactivate-php71':
+				$action      = 'php_version_disable';
+				$php_version = 7.1;
+				$php_key     = 'php71';
+				break;
+			case 'php-server-deactivate-php72':
+				$action      = 'php_version_disable';
+				$php_version = 7.2;
+				$php_key     = 'php72';
+				break;
+			case 'php-server-deactivate-php73':
+				$action      = 'php_version_disable';
+				$php_version = 7.3;
+				$php_key     = 'php73';
+				break;
+			case 'php-server-deactivate-php74':
+				$action      = 'php_version_disable';
+				$php_version = 7.4;
+				$php_key     = 'php74';
+				break;
+			case 'php-server-deactivate-php80':
+				$action      = 'php_version_disable';
+				$php_version = 8.0;
+				$php_key     = 'php80';
+				break;
+			case 'php-server-deactivate-php81':
+				$action      = 'php_version_disable';
+				$php_version = 8.1;
+				$php_key     = 'php81';
+				break;
+		}
+
+		// Get the full command to be executed by ssh.
+		$run_cmd = $this->turn_script_into_command(
+			$instance,
+			'toggle_php_active_misc.txt',
+			array(
+				'action'      => $action,
+				'php_version' => (string) $php_version,
+			)
+		);
+
+		// log.
+		// phpcs:ignore
+		do_action( 'wpcd_log_error', sprintf( 'attempting to run command for %s = %s ', print_r( $instance, true ), $run_cmd ), 'trace', __FILE__, __LINE__, $instance, false );
+
+		// execute and evaluate results.
+		$result  = $this->execute_ssh( 'generic', $instance, array( 'commands' => $run_cmd ) );
+		$success = $this->is_ssh_successful( $result, 'toggle_php_active_misc.txt' );
+		if ( ! $success ) {
+			/* translators: %1$s is replaced with the internal action name; %2$s is replaced with the result of the call, usually an error message. */
+			return new \WP_Error( sprintf( __( 'Unable to perform action %1$s for server: %2$s', 'wpcd' ), $action, $result ) );
+		} else {
+			// Get current php states from metas.
+			$current_php_activation_state = wpcd_maybe_unserialize( get_post_meta( $id, 'wpcd_wpapp_php_activation_state', true ) );
+			if ( empty( $current_php_activation_state ) ) {
+				$current_php_activation_state = array();
+			}
+
+			// Enable or disable based on action.
+			$return_msg = __( 'Action failed', 'wpcd' );  // default message - we should never really be in a state where this is shown and retured to the end user because one of the actions below should overwrite it!
+			switch ( $action ) {
+				case 'php_version_enable':
+					$current_php_activation_state[ $php_key ] = 'enabled';
+					update_post_meta( $id, 'wpcd_wpapp_php_activation_state', $current_php_activation_state );
+					$return_msg = __( 'PHP Service Enabled!', 'wpcd' );
+					break;
+				case 'php_version_disable':
+					$current_php_activation_state[ $php_key ] = 'disabled';
+					update_post_meta( $id, 'wpcd_wpapp_php_activation_state', $current_php_activation_state );
+					$return_msg = __( 'PHP Service Disabled!', 'wpcd' );
+					break;
+			}
+
+			// Force update of php services meta...
+			$this->refresh_services_status_php( $id, 'services-status-update-php' );
+
+			return new \WP_Error( $return_msg );
 		}
 
 		return $result;
@@ -1591,7 +1805,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 
 		// Put some items into the instance array.
 		$domain                = '';  // No domain for server level actions - note that this is NOT the sending domain.
-		$command               = sprintf( '%s---%s---%d', $action, $domain, date( 'B' ) );
+		$command               = sprintf( '%s---%s---%d', $action, $domain, time() );
 		$instance['command']   = $command;
 		$instance['app_id']    = $id;   // @todo - this is not really the app id - need to test to see if the process will work without this array element.
 		$instance['server_id'] = $id;
@@ -1716,7 +1930,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		$domain        = 'nodomain';
 
 		// Put some items into the instance array.
-		$command               = sprintf( '%s---%s---%d', $action, $domain, date( 'B' ) );
+		$command               = sprintf( '%s---%s---%d', $action, $domain, time() );
 		$instance['command']   = $command;
 		$instance['app_id']    = $id;   // @todo - this is not really the app id - need to test to see if the process will work without this array element.
 		$instance['server_id'] = $id;
@@ -1786,7 +2000,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		$domain        = 'nodomain';
 
 		// Put some items into the instance array.
-		$command               = sprintf( '%s---%s---%d', $action, $domain, date( 'B' ) );
+		$command               = sprintf( '%s---%s---%d', $action, $domain, time() );
 		$instance['command']   = $command;
 		$instance['app_id']    = $id;   // @todo - this is not really the app id - need to test to see if the process will work without this array element.
 		$instance['server_id'] = $id;

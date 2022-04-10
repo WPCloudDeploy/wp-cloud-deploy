@@ -242,6 +242,7 @@ class WPCD_WORDPRESS_TABS_SERVER_MONIT extends WPCD_WORDPRESS_TABS {
 				'type'           => 'text',
 				'raw_attributes' => array(
 					'desc'           => __( 'Password to use when accessing the Monit dashboard', 'wpcd' ),
+					'tooltip'        => __( 'Please use alphanumeric characters only - otherwise Monit will likely fail to start with a silent syntax error.', 'wpcd' ),
 					'size'           => 60,
 					// the key of the field (the key goes in the request).
 					'data-wpcd-name' => 'monit_auth_pass',
@@ -814,6 +815,7 @@ class WPCD_WORDPRESS_TABS_SERVER_MONIT extends WPCD_WORDPRESS_TABS {
 			'raw_attributes' => array(
 				'std'            => $monit_smtp_pass,
 				'desc'           => __( 'Your password for connecting to the smtp server', 'wpcd' ),
+				'tooltip'        => __( 'Please use alphanumeric characters only - otherwise Monit will likely fail to start with a silent syntax error.', 'wpcd' ),
 				'columns'        => 4,
 				// the key of the field (the key goes in the request).
 				'data-wpcd-name' => 'monit_smtp_pass',
@@ -900,6 +902,17 @@ class WPCD_WORDPRESS_TABS_SERVER_MONIT extends WPCD_WORDPRESS_TABS {
 					$args['password'] = $args['monit_auth_pass']; // make sure that there is a 'password' key in the args array.
 				}
 
+				// Make sure that the password fields do not contain invalid characters.
+				if ( wpcd_clean_alpha_numeric_dashes( $args['monit_auth_user'] ) !== $args['monit_auth_user'] ) {
+					return new \WP_Error( __( 'Unable to setup monit - the user name must consist of alphanumeric characters only.', 'wpcd' ) );
+				}
+				if ( wpcd_clean_alpha_numeric_dashes( $args['monit_auth_pass'] ) !== $args['monit_auth_pass'] ) {
+					return new \WP_Error( __( 'Unable to setup monit - the password must consist of alphanumeric characters only.', 'wpcd' ) );
+				}
+				if ( wpcd_clean_alpha_numeric_dashes( $args['monit_smtp_pass'] ) !== $args['monit_smtp_pass'] ) {
+					return new \WP_Error( __( 'Unable to setup monit - the email password must consist of alphanumeric characters only.', 'wpcd' ) );
+				}
+
 				$email_meta = array();
 				foreach ( $email_fields as $email_field ) {
 					if ( empty( $args[ $email_field ] ) ) {
@@ -923,7 +936,7 @@ class WPCD_WORDPRESS_TABS_SERVER_MONIT extends WPCD_WORDPRESS_TABS {
 			case 'monit-toggle-nginx':
 				// Action needs to set based on current status of NGINX in the database.
 				$monit_nginx = get_post_meta( $id, 'wpcd_wpapp_monit_nginx', true );
-				if ( empty( $monit_nginx ) || 'yes' === $monit_nginx ) {
+				if ( empty( $monit_nginx ) || 'on' === $monit_nginx ) {
 					$action = 'disable_nginx_monit';
 				} else {
 					$action = 'enable_nginx_monit';
@@ -933,7 +946,7 @@ class WPCD_WORDPRESS_TABS_SERVER_MONIT extends WPCD_WORDPRESS_TABS {
 			case 'monit-toggle-mysql':
 				// Action needs to set based on current status of MYSQL in the database.
 				$monit_mysql = get_post_meta( $id, 'wpcd_wpapp_monit_mysql', true );
-				if ( empty( $monit_mysql ) || 'yes' === $monit_mysql ) {
+				if ( empty( $monit_mysql ) || 'on' === $monit_mysql ) {
 					$action = 'disable_mysql_monit';
 				} else {
 					$action = 'enable_mysql_monit';
@@ -943,7 +956,7 @@ class WPCD_WORDPRESS_TABS_SERVER_MONIT extends WPCD_WORDPRESS_TABS {
 			case 'monit-toggle-memcached':
 				// Action needs to set based on current status of MEMCACHED in the database.
 				$monit_memcached = get_post_meta( $id, 'wpcd_wpapp_monit_memcached', true );
-				if ( empty( $monit_memcached ) || 'no' === $monit_memcached ) {
+				if ( empty( $monit_memcached ) || 'on' === $monit_memcached ) {
 					$action = 'disable_memcached_monit';
 				} else {
 					$action = 'enable_memcached_monit';
@@ -953,7 +966,7 @@ class WPCD_WORDPRESS_TABS_SERVER_MONIT extends WPCD_WORDPRESS_TABS {
 			case 'monit-toggle-redis':
 				// Action needs to set based on current status of REDIS in the database.
 				$monit_redis = get_post_meta( $id, 'wpcd_wpapp_monit_redis', true );
-				if ( empty( $monit_redis ) || 'no' === $monit_redis ) {
+				if ( empty( $monit_redis ) || 'on' === $monit_redis ) {
 					$action = 'disable_redis_monit';
 				} else {
 					$action = 'enable_redis_monit';
@@ -962,7 +975,7 @@ class WPCD_WORDPRESS_TABS_SERVER_MONIT extends WPCD_WORDPRESS_TABS {
 			case 'monit-toggle-php':
 				// Action needs to set based on current status of PHP in the database.
 				$monit_php = get_post_meta( $id, 'wpcd_wpapp_monit_php', true );
-				if ( empty( $monit_php ) || 'no' === $monit_php ) {
+				if ( empty( $monit_php ) || 'on' === $monit_php ) {
 					$action = 'disable_php_monit';
 				} else {
 					$action = 'enable_php_monit';
@@ -972,7 +985,7 @@ class WPCD_WORDPRESS_TABS_SERVER_MONIT extends WPCD_WORDPRESS_TABS {
 			case 'monit-toggle-filesys':
 				// Action needs to set based on current status of File System in the database.
 				$monit_filesys = get_post_meta( $id, 'wpcd_wpapp_monit_filesys', true );
-				if ( empty( $monit_filesys ) || 'no' === $monit_filesys ) {
+				if ( empty( $monit_filesys ) || 'on' === $monit_filesys ) {
 					$action = 'disable_filesystem_monit';
 				} else {
 					$action = 'enable_filesystem_monit';
@@ -990,7 +1003,7 @@ class WPCD_WORDPRESS_TABS_SERVER_MONIT extends WPCD_WORDPRESS_TABS {
 			case 'monit-toggle-ssl':
 				// Action needs to set based on current status of SSL in the database.
 				$monit_ssl = get_post_meta( $id, 'wpcd_wpapp_monit_ssl', true );
-				if ( empty( $monit_ssl ) || 'no' === $monit_ssl ) {
+				if ( empty( $monit_ssl ) || 'on' === $monit_ssl ) {
 					$action = 'enable_monit_ssl';
 				} else {
 					$action = 'disable_monit_ssl';
@@ -1171,7 +1184,7 @@ class WPCD_WORDPRESS_TABS_SERVER_MONIT extends WPCD_WORDPRESS_TABS {
 					);
 					break;
 
-				case 'enable_filesys_monit':
+				case 'enable_filesystem_monit':
 					update_post_meta( $id, 'wpcd_wpapp_monit_filesys', 'on' );
 					$success = array(
 						'msg'     => __( 'File System monitoring has been enabled for Monit.', 'wpcd' ),
@@ -1179,7 +1192,7 @@ class WPCD_WORDPRESS_TABS_SERVER_MONIT extends WPCD_WORDPRESS_TABS {
 					);
 					break;
 
-				case 'disable_filesys_monit':
+				case 'disable_filesystem_monit':
 					update_post_meta( $id, 'wpcd_wpapp_monit_filesys', 'off' );
 					$success = array(
 						'msg'     => __( 'File system monitoring has been disabled for Monit.', 'wpcd' ),
@@ -1308,7 +1321,7 @@ class WPCD_WORDPRESS_TABS_SERVER_MONIT extends WPCD_WORDPRESS_TABS {
 	public function wpcd_monit_email_alerts_load_defaults( $id, $action ) {
 
 		// Check for admin user.
-		if ( ! wpcd_is_admin() ) {			
+		if ( ! wpcd_is_admin() ) {
 			return new \WP_Error( __( 'You are not allowed to perform this action - only admins are permitted here.', 'wpcd' ) );
 		}
 

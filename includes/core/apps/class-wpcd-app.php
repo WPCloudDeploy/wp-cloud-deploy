@@ -99,7 +99,7 @@ class WPCD_APP extends WPCD_Base {
 	 *
 	 * Right now this is effectively the same as WPCD()->get_cloud_providers()
 	 * which is ALL Providers.
-	 * But, we're including this function in the event that this VPN app
+	 * But, we're including this function in the event that this app
 	 * needs to modify the list before returning it to the caller.
 	 *
 	 * @return array
@@ -245,6 +245,19 @@ class WPCD_APP extends WPCD_Base {
 		return $this->scripts_folder_relative;
 	}
 
+	/**
+	 * Set the delete protection flag on an app record.
+	 *
+	 * @param  int $post_id post id.
+	 *
+	 * @return void
+	 */
+	public function set_delete_protection_flag( $post_id ) {
+
+		update_post_meta( $post_id, 'wpcd_app_delete_protection', '1' );
+
+	}
+
 
 	/**
 	 * Returns a list of apps (posts) for a given user.
@@ -311,7 +324,7 @@ class WPCD_APP extends WPCD_Base {
 	 * that there is a WordPress specific function in the file
 	 * class-wordpress-app.php.
 	 * It is called get_app_id_by_server_id_and_domain.
-	 * 
+	 *
 	 * Now, on to the next function below.
 	 */
 
@@ -355,28 +368,9 @@ class WPCD_APP extends WPCD_Base {
 	 * @return array|boolean Server post or false or error message
 	 */
 	public function get_server_by_app_id( $app_id ) {
+		
+		return WPCD()->get_server_by_app_id( $app_id );
 
-		// If for some reason the $app_id is actually a server id return the server data right away.
-		if ( 'wpcd_app_server' == get_post_type( $app_id ) ) {
-			return get_post( $app_id );
-		}
-
-		// Get the app post.
-		$app_post = get_post( $app_id );
-
-		if ( ! empty( $app_post ) && ! is_wp_error( $app_post ) ) {
-
-			$server_post = get_post( get_post_meta( $app_post->ID, 'parent_post_id', true ) );
-
-			return $server_post;
-
-		} else {
-
-			return false;
-
-		}
-
-		return false;
 	}
 
 	/**
@@ -440,12 +434,12 @@ class WPCD_APP extends WPCD_Base {
 	 *
 	 * @param int $app_id app_id of app record.
 	 *
-	 * @return string the ipv4 address
+	 * @return string|boolean the ipv4 address or false if we can't get one.
 	 */
 	public function get_ipv4_address( $app_id ) {
 
 		// if for some reason the $app_id is actually a server id return the server data right away.
-		if ( 'wpcd_app_server' == get_post_type( $app_id ) ) {
+		if ( 'wpcd_app_server' === get_post_type( $app_id ) ) {
 			return WPCD_SERVER()->get_ipv4_address( $app_id );
 		}
 
@@ -456,6 +450,63 @@ class WPCD_APP extends WPCD_Base {
 		} else {
 			return false;
 		}
+
+		return false;
+	}
+
+	/**
+	 * Get the IPv6 address on the server record
+	 * given an app post id.
+	 *
+	 * @param int $app_id app_id of app record.
+	 *
+	 * @return string|boolean The ipv6 address or false if we can't get one.
+	 */
+	public function get_ipv6_address( $app_id ) {
+
+		// if for some reason the $app_id is actually a server id return the server data right away.
+		if ( 'wpcd_app_server' === get_post_type( $app_id ) ) {
+			return WPCD_SERVER()->get_ipv6_address( $app_id );
+		}
+
+		// ok, we probably have an app id so work with that.
+		$server_post = $this->get_server_by_app_id( $app_id );
+		if ( $server_post ) {
+			return WPCD_SERVER()->get_ipv6_address( $server_post->ID );
+		} else {
+			return false;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Get the a combination of the IPv4 and IPv6 address for display.
+	 *
+	 * @param int $app_id post id of app record.
+	 *
+	 * @return string the ipv addresses.
+	 */
+	public function get_all_ip_addresses_for_display( $app_id ) {
+
+		$ip   = '';
+		$ipv4 = $this->get_ipv4_address( $app_id );
+		if ( ! empty( $ipv4 ) ) {
+			$ip = $ipv4;
+		}
+		if ( wpcd_get_early_option( 'wpcd_show_ipv6' ) ) {
+			$ipv6 = $this->get_ipv6_address( $app_id );
+			if ( ! empty( $ipv6 ) ) {
+				if ( ! empty( $ip ) ) {
+					$ip .= '<br />' . $ipv6;
+				} else {
+					$ip = $ipv6;
+				}
+			}
+		}
+
+		return $ip;
+
 	}
 
 	/**
@@ -875,7 +926,7 @@ class WPCD_APP extends WPCD_Base {
 	/**
 	 * The endpoint called when a command's status is relayed to us.
 	 *
-	 * @param array $params params.
+	 * @param WP_REST_Request $params params.
 	 */
 	public function perform_command( WP_REST_Request $params ) {
 		$data       = null;

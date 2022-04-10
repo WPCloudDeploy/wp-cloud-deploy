@@ -422,8 +422,8 @@ class WPCD_WORDPRESS_TABS_TWEAKS extends WPCD_WORDPRESS_TABS {
 		$actions['tweaks-toggle-restapi'] = array(
 			'label'          => __( 'Rest API', 'wpcd' ),
 			'raw_attributes' => array(
-				'on_label'            => __( 'Enabled', 'wpcd' ),
-				'off_label'           => __( 'Disabled', 'wpcd' ),
+				'on_label'            => __( 'Blocked', 'wpcd' ),
+				'off_label'           => __( 'Not Blocked', 'wpcd' ),
 				'std'                 => $restapi_status === 'on',
 				'confirmation_prompt' => $restapi_confirmation_prompt,
 				'desc'                => __( 'Enable or Disable the REST API for this site. Turning off the RESTAPI can break some things so test your site fully after turning on this option!', 'wpcd' ),
@@ -755,10 +755,11 @@ class WPCD_WORDPRESS_TABS_TWEAKS extends WPCD_WORDPRESS_TABS {
 				$restapi_status = $this->get_meta_value( $id, 'wpcd_wpapp_restapi_status', 'off', 'off' );
 
 				// Figure out the proper action to send to the server script.
-				if ( 'on' === $restapi_status ) {
-					// currently on so turn it off.
+				if ( 'off' === $restapi_status ) {
+					// Currently not blocked so block it.
 					$server_action = 'disable_restapi';
 				} else {
+					// Currently blocked so unblock it.
 					$server_action = 'enable_restapi';
 				}
 				break;

@@ -49,7 +49,7 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 	 */
 	public function get_view_tab_team_permission_slug() {
 		return 'view_wpapp_server_backup_tab';
-	}	
+	}
 
 	/**
 	 * Populates the tab name.
@@ -323,7 +323,7 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 
 		$fields[] = array(
 			'id'         => 'wpcd_app_action_delete_all_server_backups',
-			'name'       => __( 'Delete All Backups For All Sites On This Server', 'wpcd' ),
+			'name'       => '',
 			'tab'        => 'server_backup',
 			'type'       => 'button',
 			'std'        => __( 'Delete All Backups For All Sites', 'wpcd' ),
@@ -366,8 +366,14 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 		);
 
 		$fields[] = array(
+			'type' => 'custom_html',
+			'tab'  => 'server_backup',
+			'std'  => '<br />',
+		);
+
+		$fields[] = array(
 			'id'         => 'wpcd_app_action_delete_server_backups',
-			'name'       => __( 'Prune Backups For This Server', 'wpcd' ),
+			'name'       => '',
 			'tab'        => 'server_backup',
 			'type'       => 'button',
 			'std'        => __( 'Prune Backups For All Sites On This Server', 'wpcd' ),

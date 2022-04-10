@@ -60,7 +60,7 @@ trait wpcd_wpapp_commands_and_logs {
 								update_post_meta( $id, "wpcd_server_{$this->get_app_name()}_action_status", 'in-progress' );
 								update_post_meta( $id, "wpcd_server_{$this->get_app_name()}_action", 'fetch-logs-from-server' );
 								update_post_meta( $id, "wpcd_server_{$this->get_app_name()}_action_args", array( 'command' => $command ) );
-								break;							
+								break;
 						}
 					}
 				}
@@ -186,6 +186,9 @@ trait wpcd_wpapp_commands_and_logs {
 		/* If we're here, server is up and running, which means we have an IP address. Make sure it gets added to the server record! */
 		if ( $instance['post_id'] && isset( $instance['ip'] ) && $instance['ip'] ) {
 			WPCD_SERVER()->add_ipv4_address( $instance['post_id'], $instance['ip'] );
+		}
+		if ( $instance['post_id'] && isset( $instance['ipv6'] ) && $instance['ipv6'] ) {
+			WPCD_SERVER()->add_ipv6_address( $instance['post_id'], $instance['ipv6'] );
 		}
 
 		/* With the IP address housekeeping finished, we can get the commands to run */
@@ -346,7 +349,7 @@ trait wpcd_wpapp_commands_and_logs {
 			do_action( 'wpcd_log_error', print_r( $key, true ), 'error', __FILE__, __LINE__ );
 			return new \WP_Error( __( 'We are unable to connect to the server at this time because we cannot get a key or instance for the server - please try again later or contact technical support.', 'wpcd' ) );
 		}
-		
+
 		return $key;
 	}
 
@@ -366,7 +369,7 @@ trait wpcd_wpapp_commands_and_logs {
 			return false;
 		}
 
-		$return     = $this->ssh()->download( $attributes['ip'], "{$this->get_app_name()}_{$name}.log.done", '', $attributes, $attributes['root_user'], 2 );
+		$return = $this->ssh()->download( $attributes['ip'], "{$this->get_app_name()}_{$name}.log.done", '', $attributes, $attributes['root_user'], 2 );
 
 		switch ( $return ) {
 			case 102:
@@ -399,7 +402,7 @@ trait wpcd_wpapp_commands_and_logs {
 			return false;
 		}
 
-		$return     = $this->ssh()->download( $attributes['ip'], "{$this->get_app_name()}_{$name}.log.intermed", '', $attributes, $attributes['root_user'], 2 );
+		$return = $this->ssh()->download( $attributes['ip'], "{$this->get_app_name()}_{$name}.log.intermed", '', $attributes, $attributes['root_user'], 2 );
 
 		switch ( $return ) {
 			case 102:
@@ -686,7 +689,7 @@ trait wpcd_wpapp_commands_and_logs {
 					}
 				}
 				break;
-				
+
 			case 'fetch-logs-from-server':
 				$args = get_post_meta( $server_post_id, "wpcd_server_{$this->get_app_name()}_action_args", true );
 				$name = $args['command'];
@@ -696,7 +699,7 @@ trait wpcd_wpapp_commands_and_logs {
 					return;
 				}
 				$logs = $this->get_command_logs( $server_post_id, $name );
-				break;				
+				break;
 
 			case 'email':
 				// *** NOT USED ***.
@@ -747,7 +750,6 @@ trait wpcd_wpapp_commands_and_logs {
 	 *  - Setup critical files backups (Local server configuration backups)
 	 *  - Run services status
 	 *  - Delete protect servers
-	 * 
 	 *
 	 * Action hook: wpcd_command_{$this->get_app_name()}_{$base_command}_{$status} || wpcd_wordpress-app_prepare_server_completed
 	 *
@@ -783,7 +785,7 @@ trait wpcd_wpapp_commands_and_logs {
 			}
 		}
 
-	}	
+	}
 
 
 }

@@ -176,6 +176,7 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 		$columns['wpcd_app_short_desc']  = 'wpcd_app_short_desc';
 		$columns['wpcd_server']          = 'wpcd_server';
 		$columns['wpcd_server_ipv4']     = 'wpcd_server_ipv4';
+		$columns['wpcd_server_ipv6']     = 'wpcd_server_ipv6';
 		$columns['wpcd_server_provider'] = 'wpcd_server_provider';
 		$columns['wpcd_server_region']   = 'wpcd_server_region';
 		$columns['wpcd_owner']           = 'wpcd_owner';
@@ -251,6 +252,12 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 				$value  = empty( $value ) ? $value : $value . '<br />';
 				$value .= __( 'ipv4: ', 'wpcd' ) . $this->get_server_meta_value( $post_id, 'wpcd_server_ipv4' );
 
+				// ipv6.
+				if ( wpcd_get_early_option( 'wpcd_show_ipv6' ) ) {
+					$ipv6   = $this->get_server_meta_value( $post_id, 'wpcd_server_ipv6' );
+					$value .= __( 'ipv6: ', 'wpcd' ) . $this->get_server_meta_value( $post_id, 'wpcd_server_ipv6' );
+				}
+
 				// Show a link that takes you to a list of apps on the server.
 				if ( true === (bool) wpcd_get_option( 'wpcd_hide_app_list_appslink_in_server_column' ) && ( ! wpcd_is_admin() ) ) {
 					// do nothing, only admins are allowed to see this data.
@@ -265,6 +272,11 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 			case 'wpcd_server_ipv4':
 				// Display the ip(v4) of the server.
 				$value = $this->get_server_meta_value( $post_id, 'wpcd_server_ipv4' );
+				break;
+
+			case 'wpcd_server_ipv6':
+				// Display the ip(v6) of the server.
+				$value = $this->get_server_meta_value( $post_id, 'wpcd_server_ipv6' );
 				break;
 
 			case 'wpcd_server_provider':
@@ -390,6 +402,10 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 		$defaults['wpcd_server']      = __( 'Server', 'wpcd' );
 		if ( boolval( wpcd_get_option( 'wpcd_show_app_list_ipv4' ) ) ) {
 			$defaults['wpcd_server_ipv4'] = __( 'IPv4', 'wpcd' );
+			if ( boolval( wpcd_get_option( 'wpcd_show_ipv6' ) ) ) {
+				// Assume if you want to show IPv4 as a separate column in the list then you also want to show IPv6 as a separate column as well.
+				$defaults['wpcd_server_ipv6'] = __( 'IPv6', 'wpcd' );
+			}
 		}
 		if ( boolval( wpcd_get_option( 'wpcd_show_app_list_provider' ) ) ) {
 			$defaults['wpcd_server_provider'] = __( 'Provider', 'wpcd' );
@@ -824,6 +840,11 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 			$ipv4 = $this->generate_meta_dropdown( 'wpcd_app_server', 'wpcd_server_ipv4', __( 'All IPv4', 'wpcd' ) );
 			echo $ipv4;
 
+			if ( wpcd_get_early_option( 'wpcd_show_ipv6' ) ) {
+				$ipv6 = $this->generate_meta_dropdown( 'wpcd_app_server', 'wpcd_server_ipv6', __( 'All IPv6', 'wpcd' ) );
+				echo $ipv6;
+			}
+
 			$taxonomy  = 'wpcd_app_group';
 			$app_group = $this->generate_term_dropdown( $taxonomy, __( 'App Groups', 'wpcd' ) );
 			echo $app_group;
@@ -855,7 +876,7 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 		}
 
 		$filter_action = filter_input( INPUT_GET, 'filter_action', FILTER_SANITIZE_STRING );
-		if ( is_admin() && $query->is_main_query() && 'wpcd_app' === $query->query['post_type'] && 'edit.php' === $pagenow && 'Filter' === $filter_action ) {
+		if ( is_admin() && $query->is_main_query() && 'wpcd_app' === $query->query['post_type'] && 'edit.php' === $pagenow && ! empty( $filter_action ) ) {
 			$qv = &$query->query_vars;
 
 			// APP TYPE.
@@ -937,6 +958,18 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 				$wpcd_server_ipv4 = filter_input( INPUT_GET, 'wpcd_server_ipv4', FILTER_SANITIZE_STRING );
 
 				$parents = $this->get_app_server_ids( 'wpcd_server_ipv4', $wpcd_server_ipv4 );
+
+				$qv['meta_query'][] = array(
+					'field' => 'parent_post_id',
+					'value' => $parents,
+				);
+			}
+
+			// IPv6.
+			if ( isset( $_GET['wpcd_server_ipv6'] ) && ! empty( $_GET['wpcd_server_ipv6'] ) ) {
+				$wpcd_server_ipv6 = filter_input( INPUT_GET, 'wpcd_server_ipv6', FILTER_SANITIZE_STRING );
+
+				$parents = $this->get_app_server_ids( 'wpcd_server_ipv6', $wpcd_server_ipv6 );
 
 				$qv['meta_query'][] = array(
 					'field' => 'parent_post_id',
@@ -1152,11 +1185,22 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 	 *                      still works.
 	 *                      One place is in tabs tabs/site-sync.php
 	 *
+	 *                      Another tricky place is BULK SITE delete. If you add
+	 *                      additional delete functions here (eg: deleting related posts)
+	 *                      then the bulk site delete functions in tabs/misc.php will
+	 *                      need to be redone.  Make sure you fully test bulk site delete
+	 *                      with any changes you make here!
+	 *
 	 * @param  int $post_id post id.
 	 *
 	 * @return void
 	 */
 	public function wpcd_app_delete_post( $post_id ) {
+
+		// No permissions check if we're running tasks via cron. eg: bulk deletes triggered via pending logs.
+		if ( true === wp_doing_cron() ) {
+			return;
+		}
 
 		if ( get_post_type( $post_id ) === 'wpcd_app' && ! wpcd_is_admin() ) {
 			$user_id     = (int) get_current_user_id();
@@ -1220,16 +1264,19 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 	public static function wpcd_app_register_post_and_taxonomy() {
 
 		// If a user can manage apps but cannot manage servers, we need to make the parent menu something other than the server CPT.
-		if ( current_user_can( 'wpcd_manage_apps' )  && ( ! current_user_can( 'wpcd_manage_servers' ) ) ) {
+		if ( current_user_can( 'wpcd_manage_apps' ) && ( ! current_user_can( 'wpcd_manage_servers' ) ) ) {
 			$show_in_menu = true;
-			$create_posts = 'do_not_allow';
-			$menu_name = _x( 'WPCloud Deploy', 'Admin Menu text', 'wpcd' );
-			$menu_icon = 'data:image/svg+xml;base64,' . base64_encode( '<svg fill="black" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="20px" height="20px"><path fill="black" d="M 20 9 C 18.355469 9 17 10.355469 17 12 L 17 68 C 17 69.644531 18.355469 71 20 71 L 60 71 C 61.644531 71 63 69.644531 63 68 L 63 12 C 63 10.355469 61.644531 9 60 9 Z M 20 11 L 60 11 C 60.566406 11 61 11.433594 61 12 L 61 68 C 61 68.566406 60.566406 69 60 69 L 20 69 C 19.433594 69 19 68.566406 19 68 L 19 12 C 19 11.433594 19.433594 11 20 11 Z M 24 16 L 24 42 L 56 42 L 56 16 Z M 26 18 L 54 18 L 54 24 L 26 24 Z M 50 20 C 49.449219 20 49 20.449219 49 21 C 49 21.550781 49.449219 22 50 22 C 50.550781 22 51 21.550781 51 21 C 51 20.449219 50.550781 20 50 20 Z M 26 26 L 54 26 L 54 32 L 26 32 Z M 50 28 C 49.449219 28 49 28.449219 49 29 C 49 29.550781 49.449219 30 50 30 C 50.550781 30 51 29.550781 51 29 C 51 28.449219 50.550781 28 50 28 Z M 26 34 L 54 34 L 54 40 L 26 40 Z M 50 36 C 49.449219 36 49 36.449219 49 37 C 49 37.550781 49.449219 38 50 38 C 50.550781 38 51 37.550781 51 37 C 51 36.449219 50.550781 36 50 36 Z M 25 47 C 24.449219 47 24 47.449219 24 48 C 24 48.550781 24.449219 49 25 49 C 25.550781 49 26 48.550781 26 48 C 26 47.449219 25.550781 47 25 47 Z M 25 51 C 24.449219 51 24 51.449219 24 52 C 24 52.550781 24.449219 53 25 53 C 25.550781 53 26 52.550781 26 52 C 26 51.449219 25.550781 51 25 51 Z M 40 52 C 37.800781 52 36 53.800781 36 56 C 36 58.199219 37.800781 60 40 60 C 42.199219 60 44 58.199219 44 56 C 44 53.800781 42.199219 52 40 52 Z M 40 54 C 41.117188 54 42 54.882813 42 56 C 42 57.117188 41.117188 58 40 58 C 38.882813 58 38 57.117188 38 56 C 38 54.882813 38.882813 54 40 54 Z M 25 55 C 24.449219 55 24 55.449219 24 56 C 24 56.550781 24.449219 57 25 57 C 25.550781 57 26 56.550781 26 56 C 26 55.449219 25.550781 55 25 55 Z M 25 59 C 24.449219 59 24 59.449219 24 60 C 24 60.550781 24.449219 61 25 61 C 25.550781 61 26 60.550781 26 60 C 26 59.449219 25.550781 59 25 59 Z M 25 63 C 24.449219 63 24 63.449219 24 64 C 24 64.550781 24.449219 65 25 65 C 25.550781 65 26 64.550781 26 64 C 26 63.449219 25.550781 63 25 63 Z"/></svg>' );
+			$menu_name    = _x( 'WPCloudDeploy', 'Admin Menu text', 'wpcd' );
+			$menu_icon    = 'data:image/svg+xml;base64,' . base64_encode( '<svg fill="black" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="20px" height="20px"><path fill="black" d="M 20 9 C 18.355469 9 17 10.355469 17 12 L 17 68 C 17 69.644531 18.355469 71 20 71 L 60 71 C 61.644531 71 63 69.644531 63 68 L 63 12 C 63 10.355469 61.644531 9 60 9 Z M 20 11 L 60 11 C 60.566406 11 61 11.433594 61 12 L 61 68 C 61 68.566406 60.566406 69 60 69 L 20 69 C 19.433594 69 19 68.566406 19 68 L 19 12 C 19 11.433594 19.433594 11 20 11 Z M 24 16 L 24 42 L 56 42 L 56 16 Z M 26 18 L 54 18 L 54 24 L 26 24 Z M 50 20 C 49.449219 20 49 20.449219 49 21 C 49 21.550781 49.449219 22 50 22 C 50.550781 22 51 21.550781 51 21 C 51 20.449219 50.550781 20 50 20 Z M 26 26 L 54 26 L 54 32 L 26 32 Z M 50 28 C 49.449219 28 49 28.449219 49 29 C 49 29.550781 49.449219 30 50 30 C 50.550781 30 51 29.550781 51 29 C 51 28.449219 50.550781 28 50 28 Z M 26 34 L 54 34 L 54 40 L 26 40 Z M 50 36 C 49.449219 36 49 36.449219 49 37 C 49 37.550781 49.449219 38 50 38 C 50.550781 38 51 37.550781 51 37 C 51 36.449219 50.550781 36 50 36 Z M 25 47 C 24.449219 47 24 47.449219 24 48 C 24 48.550781 24.449219 49 25 49 C 25.550781 49 26 48.550781 26 48 C 26 47.449219 25.550781 47 25 47 Z M 25 51 C 24.449219 51 24 51.449219 24 52 C 24 52.550781 24.449219 53 25 53 C 25.550781 53 26 52.550781 26 52 C 26 51.449219 25.550781 51 25 51 Z M 40 52 C 37.800781 52 36 53.800781 36 56 C 36 58.199219 37.800781 60 40 60 C 42.199219 60 44 58.199219 44 56 C 44 53.800781 42.199219 52 40 52 Z M 40 54 C 41.117188 54 42 54.882813 42 56 C 42 57.117188 41.117188 58 40 58 C 38.882813 58 38 57.117188 38 56 C 38 54.882813 38.882813 54 40 54 Z M 25 55 C 24.449219 55 24 55.449219 24 56 C 24 56.550781 24.449219 57 25 57 C 25.550781 57 26 56.550781 26 56 C 26 55.449219 25.550781 55 25 55 Z M 25 59 C 24.449219 59 24 59.449219 24 60 C 24 60.550781 24.449219 61 25 61 C 25.550781 61 26 60.550781 26 60 C 26 59.449219 25.550781 59 25 59 Z M 25 63 C 24.449219 63 24 63.449219 24 64 C 24 64.550781 24.449219 65 25 65 C 25.550781 65 26 64.550781 26 64 C 26 63.449219 25.550781 63 25 63 Z"/></svg>' );
 		} else {
 			$show_in_menu = 'edit.php?post_type=wpcd_app_server';
-			$create_posts = false;
-			$menu_name = _x( 'APPs', 'Admin Menu text', 'wpcd' );
-			$menu_icon = '';
+			$menu_name    = _x( 'APPs', 'Admin Menu text', 'wpcd' );
+			$menu_icon    = '';
+		}
+
+		$create_posts = 'do_not_allow';
+		if ( wpcd_is_admin() ) {
+			$create_posts = 'wpcd_manage_all';  // This ensures that the ADD NEW APP RECORD button shows for the admin (since all admins will get the wpcd_manage_all capability).
 		}
 
 		register_post_type(

@@ -43,9 +43,9 @@ trait wpcd_wpapp_tabs_security {
 	 */
 	public function wpcd_wpapp_server_user_can( $permission, $id ) {
 
-		$user_id     = get_current_user_id();
-		$post        = get_post( $id );
-		
+		$user_id = get_current_user_id();
+		$post    = get_post( $id );
+
 		// If not a post object, something is wrong to get out.
 		if ( ( ! $post ) || is_wp_error( $post ) ) {
 			return false;
@@ -72,9 +72,9 @@ trait wpcd_wpapp_tabs_security {
 	 */
 	public function wpcd_wpapp_site_user_can( $permission, $id ) {
 
-		$user_id     = get_current_user_id();
-		$post        = get_post( $id );
-		
+		$user_id = get_current_user_id();
+		$post    = get_post( $id );
+
 		// If not a post object, something is wrong to get out.
 		if ( ( ! $post ) || is_wp_error( $post ) ) {
 			return false;
@@ -246,6 +246,12 @@ trait wpcd_wpapp_tabs_security {
 	 * don't want users who purchased a server to be able to use certain
 	 * server tabs.
 	 *
+	 * If that check passes, we'll check the override values in the
+	 * APP:WordPress - Security tab in SETTINGS
+	 *
+	 * There is a related function named wpcd_can_author_view_server_feature in /core/functions.php.
+	 * It handles similar security for tabs.  Changes and fixes here should probably be considered for that function as well.
+	 *
 	 * @param int    $id         The id of the cpt record for the server.
 	 * @param string $tab_name   The name of the tab we're checking.
 	 * @param int    $user_id    The userid to check.
@@ -350,7 +356,7 @@ trait wpcd_wpapp_tabs_security {
 
 	/**
 	 * Takes a SITE tabname and checks to see if it is excluded from being
-	 * used by t the author of the passed.
+	 * used by the the author of the ID passed into this function.
 	 *
 	 * This is a useful check when running an SaaS style service and you
 	 * don't want users who purchased a server to be able to use certain
@@ -385,7 +391,7 @@ trait wpcd_wpapp_tabs_security {
 		$post_author = $post->post_author;
 		$server_type = get_post_meta( $id, 'wpcd_server_server-type', true );
 
-		// If we're not checking a wp-app server post return true.
+		// If we're not checking an app post return true.
 		if ( $post->post_type != 'wpcd_app' ) {
 			return true;
 		}

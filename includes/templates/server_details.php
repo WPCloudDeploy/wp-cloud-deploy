@@ -74,6 +74,10 @@ wp_nonce_field( 'wpcd_server_nonce_meta_action', 'vpn_meta' );
 	<input type="text" name="wpcd_server_ipv4" id="wpcd_server_ipv4" value="<?php echo esc_html( $wpcd_server_ipv4 ); ?>" />
 </div>
 <div class="wpcd_server_meta_field">
+	<label for="wpcd_server_ipv6"><?php echo esc_html( __( 'IPv6 Address', 'wpcd' ) ); ?></label>
+	<input type="text" name="wpcd_server_ipv6" id="wpcd_server_ipv6" value="<?php echo esc_html( $wpcd_server_ipv6 ); ?>" />
+</div>
+<div class="wpcd_server_meta_field">
 	<label for="wpcd_server_scripts_version"><?php echo esc_html( __( 'Version of app scripts used for this server', 'wpcd' ) ); ?></label>
 	<input type="text" name="wpcd_server_scripts_version" id="wpcd_server_scripts_version" value="<?php echo esc_html( $wpcd_server_scripts_version ); ?>" />
 </div>

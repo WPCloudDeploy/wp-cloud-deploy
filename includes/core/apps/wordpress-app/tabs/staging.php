@@ -105,6 +105,24 @@ class WPCD_WORDPRESS_TABS_STAGING extends WPCD_WORDPRESS_TABS {
 								update_post_meta( $new_app_post_id, 'wpapp_ssl_status', 'on' );
 							}
 
+							// Was nginx page caching enabled on the original site?  If so, the caching plugin was copied as well so add the meta here for that.
+							$nginx_page_cache_status = get_post_meta( $id, 'wpapp_nginx_pagecache_status', true );
+							if ( ! empty( $nginx_page_cache_status ) ) {
+								update_post_meta( $new_app_post_id, 'wpapp_nginx_pagecache_status', $nginx_page_cache_status );
+							}
+
+							// Was memcached enabled on the original site?  If so, the caching plugin was copied as well so add the meta here for that.
+							$memcached_status = get_post_meta( $id, 'wpapp_memcached_status', true );
+							if ( ! empty( $memcached_status ) ) {
+								update_post_meta( $new_app_post_id, 'wpapp_memcached_status', $memcached_status );
+							}
+
+							// Was redis enabled on the original site?  If so, the caching plugin was copied as well so add the meta here for that.
+							$redis_status = get_post_meta( $id, 'wpapp_redis_status', true );
+							if ( ! empty( $redis_status ) ) {
+								update_post_meta( $new_app_post_id, 'wpapp_redis_status', $redis_status );
+							}
+
 							// Make sure we tag the new site as a staging site.
 							update_post_meta( $new_app_post_id, 'wpapp_is_staging', 1 );
 
@@ -261,16 +279,12 @@ class WPCD_WORDPRESS_TABS_STAGING extends WPCD_WORDPRESS_TABS {
 		$server_id = $this->get_server_id_by_app_id( $id );
 		// 2. What's the IP of the server?
 		$ipv4 = WPCD_SERVER()->get_ipv4_address( $server_id );
+		$ipv6 = WPCD_SERVER()->get_ipv6_address( $server_id );
 		// 3. Add the DNS
-		$dns_success = WPCD_DNS()->set_dns_for_domain( $new_domain, $ipv4 );
+		$dns_success = WPCD_DNS()->set_dns_for_domain( $new_domain, $ipv4, $ipv6 );
 
-		// we want to make sure this command runs only once in a "swatch beat" for a domain.
-		// e.g. 2 manual backups cannot run for the same domain at the same time (time = swatch beat).
-		// although technically only one command can run per domain (e.g. backup and restore cannot run at the same time).
-		// we are appending the Swatch beat to the command name because this command can be run multiple times.
-		// over the app's lifetime.
-		// but within a swatch beat, it can only be run once.
-		$command             = sprintf( '%s---%s---%d', $action, $domain, date( 'B' ) );
+		// Setup unique command name.
+		$command             = sprintf( '%s---%s---%d', $action, $domain, time() );
 		$instance['command'] = $command;
 		$instance['app_id']  = $id;
 
@@ -372,13 +386,8 @@ class WPCD_WORDPRESS_TABS_STAGING extends WPCD_WORDPRESS_TABS {
 			$args
 		);
 
-		// we want to make sure this command runs only once in a "swatch beat" for a domain.
-		// e.g. 2 manual backups cannot run for the same domain at the same time (time = swatch beat).
-		// although technically only one command can run per domain (e.g. backup and restore cannot run at the same time).
-		// we are appending the Swatch beat to the command name because this command can be run multiple times.
-		// over the app's lifetime.
-		// but within a swatch beat, it can only be run once.
-		$command             = sprintf( '%s---%s---%d', $action, $domain, date( 'B' ) );
+		// Setup unique command name.
+		$command             = sprintf( '%s---%s---%d', $action, $domain, time() );
 		$instance['command'] = $command;
 		$instance['app_id']  = $id;
 

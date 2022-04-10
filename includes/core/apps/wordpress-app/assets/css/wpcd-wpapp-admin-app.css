@@ -34,18 +34,22 @@
     margin: 2px;
 }
 
-.wpcd_php_version_7_4,
-.wpcd_php_version_8_1 {
+.wpcd_php_version_7_4 {
     border-color: green !important;
 }
 
 .wpcd_php_version_7_3,
 .wpcd_php_version_7_2,
-.wpcd_php_version_7_1 {
+.wpcd_php_version_7_1,
+.wpcd_php_version_7_0 {
     border-color: orange !important;
 }
 
-.wpcd_php_version_8_0 {
+.wpcd_php_version_8_0,
+.wpcd_php_version_8_1,
+.wpcd_php_version_8_2,
+.wpcd_php_version_8_3,
+.wpcd_php_version_9_0 {
     border-color: purple !important;
     color: purple;
 }

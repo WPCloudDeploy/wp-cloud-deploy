@@ -23,8 +23,18 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 		add_filter( "wpcd_app_{$this->get_app_name()}_get_tabs", array( $this, 'get_tab_fields' ), 10, 2 );
 		add_filter( "wpcd_app_{$this->get_app_name()}_tab_action", array( $this, 'tab_action' ), 10, 3 );
 
+		// Add bulk action option to the site list to bulk delete sites.
+		add_filter( 'bulk_actions-edit-wpcd_app', array( $this, 'wpcd_add_new_bulk_actions_site' ) );
+
+		// Action hook to handle bulk actions for site.
+		add_filter( 'handle_bulk_actions-edit-wpcd_app', array( $this, 'wpcd_bulk_action_handler_sites' ), 10, 3 );
+
 		// This action hook is only used by the WooCommerce sell wp sites functionality to trigger deletion of a site.
 		add_action( 'wpcd_app_delete_wp_site', array( $this, 'remove_site_via_action_hook' ), 10, 2 );
+
+		/* Pending Logs Background Task: Delete site */
+		add_action( 'wpcd_pending_log_delete_wp_site', array( $this, 'pending_log_remove_site_and_leave_backups' ), 10, 3 );
+		add_action( 'wpcd_pending_log_delete_wp_site_and_backups', array( $this, 'pending_log_remove_site_and_backups' ), 10, 3 );
 	}
 
 	/**
@@ -86,6 +96,7 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 
 		/* Verify that the user is even allowed to view the app before proceeding to do anything else */
 		if ( ! $this->wpcd_user_can_view_wp_app( $id ) ) {
+			/* Translators: %1: String representing action; %2: Filename where code is being executed; %3: Post id for site or server; %4: WordPress User id */
 			return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
 		}
 
@@ -93,6 +104,7 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 		$valid_actions = array( 'remove', 'remove_full', 'site-status', 'basic-auth-status', 'wplogin-basic-auth-status', 'https-redirect-misc' );
 		if ( in_array( $action, $valid_actions, true ) ) {
 			if ( false === $this->wpcd_wpapp_site_user_can( $this->get_view_tab_team_permission_slug(), $id ) && false === $this->wpcd_can_author_view_site_tab( $id, $this->get_tab_slug() ) ) {
+				/* Translators: %1: String representing action; %2: Filename where code is being executed; %3: Post id for site or server; %4: WordPress User id */
 				return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
 			}
 		}
@@ -103,11 +115,11 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 				case 'remove_full':
 					// remove site - check if user has permission - note that there are TWO checks here - a general one for an app and one for the site itself.
 					if ( ! wpcd_can_current_user_delete_app( $id ) ) {
-						$result = new \WP_Error( __( 'You don\'t have permission To Remove an App.', 'wpcd' ) );
+						$result = new \WP_Error( __( 'You don\'t have permission To remove an App.', 'wpcd' ) );
 						break;
 					}
 					if ( ! $this->wpcd_user_can_remove_wp_site( $id ) ) {
-						$result = new \WP_Error( __( 'You don\'t have permission To Remove a WordPress Site. If you are seeing this message, it probably means you have the ability to remove an app but not delete a site. Plese check with your admin to enable the permissions needed to delete a WordPress site.', 'wpcd' ) );
+						$result = new \WP_Error( __( 'You don\'t have permission To remove a WordPress Site. If you are seeing this message, it probably means you have the ability to remove an app but not delete a site. Plese check with your admin to enable the permissions needed to delete a WordPress site.', 'wpcd' ) );
 						break;
 					}
 					// remove site.
@@ -179,6 +191,12 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 	 */
 	public function get_actions( $id ) {
 
+		// Bail if site is not enabled.
+		if ( ! $this->is_site_enabled( $id ) ) {
+			return array_merge( $this->get_disabled_header_field( '' ), $this->get_site_status_action_fields( $id ) );
+		}
+
+		// Site is not disabled so show all fields.
 		return array_merge(
 			$this->get_initial_credentials( $id ),
 			$this->get_basic_auth_action_fields( $id ),
@@ -219,16 +237,17 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 			$confirmation_prompt = __( 'Are you sure you would like to enable this site?', 'wpcd' );
 		}
 
+		// Option to activate or deactivate site.
 		switch ( $status ) {
 			case 'on':
 			case 'off':
 				$actions['site-status'] = array(
 					'label'          => '',
-					'std'            => $status === 'on',
+					'std'            => 'on' === $status,
 					'raw_attributes' => array(
 						'on_label'            => __( 'Enabled', 'wpcd' ),
 						'off_label'           => __( 'Disabled', 'wpcd' ),
-						'std'                 => $status === 'on',
+						'std'                 => 'on' === $status,
 						'desc'                => 'on' === $status ? __( 'Click to deactivate the site without removing data', 'wpcd' ) : __( 'Click to reactivate the site', 'wpcd' ),
 						'confirmation_prompt' => $confirmation_prompt,
 					),
@@ -237,6 +256,7 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 				break;
 		}
 
+		// Option to delete site.
 		$actions['remove-site-header'] = array(
 			'label'          => __( 'DANGER ZONE: Remove Site', 'wpcd' ),
 			'type'           => 'heading',
@@ -375,10 +395,10 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 					'raw_attributes' => array(
 						'on_label'            => __( 'Enabled', 'wpcd' ),
 						'off_label'           => __( 'Disabled', 'wpcd' ),
-						'std'                 => $basic_auth_status === 'on',
+						'std'                 => 'on' === $basic_auth_status,
 						'desc'                => __( 'Add or remove password protection on your site', 'wpcd' ),
 						'confirmation_prompt' => $confirmation_prompt,                      // fields that contribute data for this action.
-						'data-wpcd-fields'    => json_encode( array( '#wpcd_app_action_basic-auth-user', '#wpcd_app_action_basic-auth-pw' ) ),
+						'data-wpcd-fields'    => wp_json_encode( array( '#wpcd_app_action_basic-auth-user', '#wpcd_app_action_basic-auth-pw' ) ),
 					),
 					'type'           => 'switch',
 				);
@@ -477,10 +497,10 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 					'raw_attributes' => array(
 						'on_label'            => __( 'Enabled', 'wpcd' ),
 						'off_label'           => __( 'Disabled', 'wpcd' ),
-						'std'                 => $wplogin_basic_auth_status === 'on',
+						'std'                 => 'on' === $wplogin_basic_auth_status,
 						'desc'                => __( 'Add or remove password protection for the wp-login page', 'wpcd' ),
 						'confirmation_prompt' => $confirmation_prompt,                      // fields that contribute data for this action.
-						'data-wpcd-fields'    => json_encode( array( '#wpcd_app_action_wplogin-basic-auth-user', '#wpcd_app_action_wplogin-basic-auth-pw' ) ),
+						'data-wpcd-fields'    => wp_json_encode( array( '#wpcd_app_action_wplogin-basic-auth-user', '#wpcd_app_action_wplogin-basic-auth-pw' ) ),
 					),
 					'type'           => 'switch',
 				);
@@ -571,11 +591,11 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 			case 'off':
 				$actions['https-redirect-misc'] = array(
 					'label'          => __( 'Redirect Site to HTTPS', 'wpcd' ),
-					'std'            => $status === 'off',
+					'std'            => 'off' === $status,
 					'raw_attributes' => array(
 						'on_label'            => __( 'Enabled', 'wpcd' ),
 						'off_label'           => __( 'Disabled', 'wpcd' ),
-						'std'                 => $status === 'on',
+						'std'                 => 'on' === $status,
 						'desc'                => __( 'Enable or disable https redirect. This option does NOT automatically issue or revoke SSL certificates! <br />It will, however, reinstall an existing LetsEncrypt certificate if one exists. <br />If you want to automatically create SSL certificates use the actions available on the SSL tab instead.', 'wpcd' ),
 						'confirmation_prompt' => $confirmation_prompt,
 					),
@@ -601,6 +621,7 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 		$instance = $this->get_app_instance_details( $id );
 
 		if ( is_wp_error( $instance ) ) {
+			/* Translators: %s is a string representing the action we're trying to perform. */
 			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
 		}
 
@@ -619,11 +640,13 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 			)
 		);
 
+		// @codingStandardsIgnoreLine - added to ignore the print_r in the line below when linting with PHPcs.
 		do_action( 'wpcd_log_error', sprintf( 'attempting to run command for %s = %s ', print_r( $instance, true ), $run_cmd ), 'trace', __FILE__, __LINE__, $instance, false );
 
 		$result  = $this->execute_ssh( 'generic', $instance, array( 'commands' => $run_cmd ) );
 		$success = $this->is_ssh_successful( $result, 'disable_remove_site.txt' );
 		if ( ! $success ) {
+			/* Translators: %1$s is an internal action name. %2$s is an error message. */
 			return new \WP_Error( sprintf( __( 'Unable to %1$s site: %2$s', 'wpcd' ), $action, $result ) );
 		}
 
@@ -645,6 +668,70 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
+	 * Remove site and associated backups on disk via an action hook call from pending logs.
+	 *
+	 * Called from an action hook from the pending logs background process - WPCD_POSTS_PENDING_TASKS_LOG()->do_tasks()
+	 *
+	 * Action Hook: wpcd_pending_log_delete_wp_site
+	 *
+	 * @param int   $task_id    Id of pending task that is firing this thing...
+	 * @param int   $site_id    Id of site involved in this action.
+	 * @param array $args       All the data needed to handle this action.
+	 */
+	public function pending_log_remove_site_and_leave_backups( $task_id, $site_id, $args ) {
+		$this->pending_log_remove_site( $task_id, $site_id, $args, 'remove' );
+	}
+
+	/**
+	 * Remove site via an action hook call from pending logs.
+	 *
+	 * Called from an action hook from the pending logs background process - WPCD_POSTS_PENDING_TASKS_LOG()->do_tasks()
+	 *
+	 * Action Hook: wpcd_pending_log_delete_wp_site_and_backups
+	 *
+	 * @param int   $task_id    Id of pending task that is firing this thing...
+	 * @param int   $site_id    Id of site involved in this action.
+	 * @param array $args       All the data needed to handle this action.
+	 */
+	public function pending_log_remove_site_and_backups( $task_id, $site_id, $args ) {
+		$this->pending_log_remove_site( $task_id, $site_id, $args, 'remove_full' );
+	}
+
+	/**
+	 * Helper function to remove site when certain other delete site functions are triggered
+	 * via an action hook call from pending logs.
+	 *
+	 * @param int    $task_id    Id of pending task that is firing this thing...
+	 * @param int    $site_id    Id of site involved in this action.
+	 * @param array  $args       All the data needed to handle this action.
+	 * @param string $action    What kind of site delete are we doing?  Options are 'remove' or 'remove_full'.
+	 */
+	public function pending_log_remove_site( $task_id, $site_id, $args, $action ) {
+
+		// Grab our data array from pending tasks record...
+		$data = WPCD_POSTS_PENDING_TASKS_LOG()->get_data_by_id( $task_id );
+
+		/* Attempt to remove the site */
+		$result = $this->remove_site( $site_id, $action );
+
+		$task_status = 'complete';  // Assume success.
+
+		if ( is_array( $result ) ) {
+			// Some processes return an array array with a success message. This one does not so there's nothing to do here.
+			// We'll just reset the $task_status to complete (which is the value it was initialized with) to avoid complaints by PHPcs about an empty if statement.
+			$task_status = 'complete';
+		} else {
+			if ( false === (bool) $result || is_wp_error( $result ) ) {
+				$task_status = 'failed';
+			}
+		}
+
+		WPCD_POSTS_PENDING_TASKS_LOG()->update_task_by_id( $task_id, $data, $task_status );
+
+	}
+
+
+	/**
 	 * Remove site.
 	 *
 	 * @param int    $id     The postID of the app cpt.
@@ -660,10 +747,11 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 		$instance = $this->get_app_instance_details( $id );
 
 		if ( is_wp_error( $instance ) ) {
+			/* Translators: %s is a string representing the action we're trying to perform. */
 			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
 		}
 
-		/* Fire yet another action hook so that other tasks can be completed before site is removed. */
+		/* Fire yet another action hook so that other tasks can be completed before site is removed. Eg: prepare the list of sFTP users to be removed by adding it to pending logs. */
 		do_action( 'wpcd_before_remove_site_action', $id, $action );
 
 		// Get the full command to be executed by ssh.
@@ -681,11 +769,13 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 			)
 		);
 
+		// @codingStandardsIgnoreLine - added to ignore the print_r in the line below when linting with PHPcs.
 		do_action( 'wpcd_log_error', sprintf( 'attempting to run command for %s = %s ', print_r( $instance, true ), $run_cmd ), 'trace', __FILE__, __LINE__, $instance, false );
 
 		$result  = $this->execute_ssh( 'generic', $instance, array( 'commands' => $run_cmd ) );
 		$success = $this->is_ssh_successful( $result, 'disable_remove_site.txt' );
 		if ( ! $success ) {
+			/* Translators: %1$s is an internal action name. %2$s is an error message. */
 			return new \WP_Error( sprintf( __( 'Unable to %1$s site: %2$s', 'wpcd' ), $action, $result ) );
 		} else {
 			// Attempt to delete DNS for the domain...
@@ -720,6 +810,7 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 		$instance = $this->get_app_instance_details( $id );
 
 		if ( is_wp_error( $instance ) ) {
+			/* Translators: %s is a string representing the action we're trying to perform. */
 			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
 		}
 
@@ -761,11 +852,13 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 			)
 		);
 
+		// @codingStandardsIgnoreLine - added to ignore the print_r in the line below when linting with PHPcs.
 		do_action( 'wpcd_log_error', sprintf( 'attempting to run command for %s = %s ', print_r( $instance, true ), $run_cmd ), 'trace', __FILE__, __LINE__, $instance, false );
 
 		$result  = $this->execute_ssh( 'generic', $instance, array( 'commands' => $run_cmd ) );
 		$success = $this->is_ssh_successful( $result, 'basic_auth_misc.txt' );
 		if ( ! $success ) {
+			/* Translators: %1$s is an internal action name. %2$s is an error message. */
 			return new \WP_Error( sprintf( __( 'Unable to %1$s site: %2$s', 'wpcd' ), $action, $result ) );
 		}
 
@@ -786,6 +879,7 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 		$instance = $this->get_app_instance_details( $id );
 
 		if ( is_wp_error( $instance ) ) {
+			/* Translators: %s is a string representing the action we're trying to perform. */
 			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
 		}
 
@@ -827,11 +921,13 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 			)
 		);
 
+		// @codingStandardsIgnoreLine - added to ignore the print_r in the line below when linting with PHPcs.
 		do_action( 'wpcd_log_error', sprintf( 'attempting to run command for %s = %s ', print_r( $instance, true ), $run_cmd ), 'trace', __FILE__, __LINE__, $instance, false );
 
 		$result  = $this->execute_ssh( 'generic', $instance, array( 'commands' => $run_cmd ) );
 		$success = $this->is_ssh_successful( $result, 'basic_auth_wplogin_misc.txt' );
 		if ( ! $success ) {
+			/* Translators: %1$s is an internal action name. %2$s is an error message. */
 			return new \WP_Error( sprintf( __( 'Unable to %1$s site: %2$s', 'wpcd' ), $action, $result ) );
 		}
 
@@ -852,6 +948,7 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 		$instance = $this->get_app_instance_details( $id );
 
 		if ( is_wp_error( $instance ) ) {
+			/* Translators: %s is a string representing the action we're trying to perform. */
 			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
 		}
 
@@ -870,17 +967,109 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 			)
 		);
 
+		// @codingStandardsIgnoreLine - added to ignore the print_r in the line below when linting with PHPcs.
 		do_action( 'wpcd_log_error', sprintf( 'attempting to run command for %s = %s ', print_r( $instance, true ), $run_cmd ), 'trace', __FILE__, __LINE__, $instance, false );
 
 		$result = $this->execute_ssh( 'generic', $instance, array( 'commands' => $run_cmd ) );
 
 		$success = $this->is_ssh_successful( $result, 'toggle_https_misc.txt' );
 		if ( ! $success ) {
+			/* Translators: %1$s is an internal action name. %2$s is an error message. */
 			return new \WP_Error( sprintf( __( 'Unable to %1$s site: %2$s', 'wpcd' ), $action, $result ) );
 		}
 
 		return $success;
 
+	}
+
+	/**
+	 * Add new bulk options in site list screen.
+	 *
+	 * @param array $bulk_array bulk array.
+	 */
+	public function wpcd_add_new_bulk_actions_site( $bulk_array ) {
+
+		// Bail if option isn't enabled.
+		if ( ! ( (bool) wpcd_get_option( 'wordpress_app_enable_bulk_site_delete_on_full_app_list' ) ) ) {
+			return $bulk_array;
+		}
+
+		if ( wpcd_is_admin() ) {
+			$bulk_array['wpcd_sites_bulk_delete_sites']             = __( 'Delete Sites From Server', 'wpcd' );
+			$bulk_array['wpcd_sites_bulk_delete_sites_and_backups'] = __( 'Delete Sites and Backups From Server', 'wpcd' );
+			return $bulk_array;
+		}
+
+	}
+
+	/**
+	 * Returns an array of actions that is valid for the bulk actions menu.
+	 * It's basically the same as the get_valid_actions() function above but
+	 * with the actions prefixed by "wpcd_sites_".
+	 */
+	public function get_valid_bulk_actions() {
+		return array( 'wpcd_sites_bulk_delete_sites', 'wpcd_sites_bulk_delete_sites_and_backups' );
+	}
+
+	/**
+	 * Handle bulk actions for sites.
+	 *
+	 * @param string $redirect_url  redirect url.
+	 * @param string $action        bulk action slug/id - this is not the WPCD action key.
+	 * @param array  $post_ids      all post ids.
+	 */
+	public function wpcd_bulk_action_handler_sites( $redirect_url, $action, $post_ids ) {
+		// Let's remove query args first for redirect url.
+		$redirect_url = remove_query_arg( array( 'wpcd_update_themes_and_plugins' ), $redirect_url );
+
+		// Lets make sure we're an admin otherwise return an error.
+		if ( ! wpcd_is_admin() ) {
+			do_action( 'wpcd_log_error', 'Someone attempted to run a function that required admin privileges.', 'security', __FILE__, __LINE__ );
+
+			// Show error message to user at the top of the admin list as a dismissible notice.
+			wpcd_global_add_admin_notice( __( 'You attempted to run a function that requires admin privileges.', 'wpcd' ), 'error' );
+
+			return $redirect_url;
+		}
+
+		// Verify that the bulk action is one we want to handle here.
+		if ( in_array( $action, $this->get_valid_bulk_actions(), true ) ) {
+
+			// If we have sites to be deleted then add them to the pending log table.
+			if ( ! empty( $post_ids ) ) {
+				foreach ( $post_ids as $app_id ) {
+					$task_name = '';
+					$task_desc = '';
+					switch ( $action ) {
+						case 'wpcd_sites_bulk_delete_sites':
+							$args['action_hook'] = 'wpcd_pending_log_delete_wp_site';
+							$args['action']      = 'remove';
+							$task_name           = 'delete-site';
+							$task_desc           = __( 'Bulk Action: Waiting to delete site.', 'wpcd' );
+							break;
+						case 'wpcd_sites_bulk_delete_sites_and_backups':
+							$args['action_hook'] = 'wpcd_pending_log_delete_wp_site_and_backups';
+							$args['action']      = 'remove_full';
+							$task_name           = 'delete-site-and-backups';
+							$task_desc           = __( 'Bulk Action: Waiting to delete site and associated backups.', 'wpcd' );
+							break;
+
+					}
+					WPCD_POSTS_PENDING_TASKS_LOG()->add_pending_task_log_entry( $app_id, $task_name, $app_id, $args, 'ready', $app_id, $task_desc );
+				}
+
+				// Add message to be displayed in admin header.
+				if ( 1 === count( $post_ids ) ) {
+					/* Translators: %s is the number of sites that have been scheduled for deletion. */
+					wpcd_global_add_admin_notice( sprintf( __( '%s site has been scheduled for deletion. You can view the progress in the PENDING TASKS screen.', 'wpcd' ), count( $post_ids ) ), 'success' );
+				} else {
+					/* Translators: %s is the number of sites that have been scheduled for deletion. */
+					wpcd_global_add_admin_notice( sprintf( __( '%s sites have been scheduled for deletion. You can view the progress in the PENDING TASKS screen.', 'wpcd' ), count( $post_ids ) ), 'success' );
+				}
+			}
+		}
+
+		return $redirect_url;
 	}
 }
 

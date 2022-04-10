@@ -86,4 +86,6 @@ do
 done
 
 
-systemctl restart php$php_version-fpm
+if [ ! -f /etc/wpcd/php-versions-disabled/php$php_version ] ; then
+    systemctl restart php$php_version-fpm
+fi

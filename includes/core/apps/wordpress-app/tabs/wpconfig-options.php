@@ -508,7 +508,7 @@ class WPCD_WORDPRESS_TABS_WPCONFIG extends WPCD_WORDPRESS_TABS {
 			case 'WP_MEMORY_LIMIT':
 			case 'WP_MAX_MEMORY_LIMIT':
 				$args[ $option_key ] = intval( $args[ $option_key ] ); // Make sure we've got an integer value here.
-				$args[ $option_key ] = $args[ $option_key ] . 'MB';  // Megabytes need to be added to the end of the numeric value.
+				$args[ $option_key ] = $args[ $option_key ] . 'M';  // Megabytes need to be added to the end of the numeric value.
 				break;
 			case 'WP_POST_REVISIONS':
 			case 'EMPTY_TRASH_DAYS':

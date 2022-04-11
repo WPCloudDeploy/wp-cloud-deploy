@@ -262,7 +262,7 @@ class WPCD_Init {
 		wp_unschedule_hook( 'wpcd_wisdom_custom_options' );
 
 		// Clear long-lived transients.
-		delete_transient( 'wpcd_wisdom_custom_options_first_run_done');
+		delete_transient( 'wpcd_wisdom_custom_options_first_run_done' );
 	}
 
 	/**

@@ -108,6 +108,10 @@ Note: Even though the entire git development history isn't available on github, 
 ## Change Log ##
 4.16.0
 ------
+* Fix: WPAPP - An issue on the new wp-config tab where "MB" was used instead of "M" (Thanks Sidney).
+
+4.16.0
+------
 * New: Save any IPv6 address that DigitalOcean assigns to servers.  Request IPv6 addresses on all new DigitalOcean servers.
 * New: Add install and support links to the plugin entry in the WP plugins list.
 * New: Add code to display the change log directly in the plugin list when a new version is available.

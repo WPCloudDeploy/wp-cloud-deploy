@@ -106,7 +106,7 @@ Note: Even though the entire git development history isn't available on github, 
 [Friendly Release Notes](https://wpclouddeploy.com/category/release-notes/)
 
 ## Change Log ##
-4.16.0
+4.16.1
 ------
 * Fix: WPAPP - An issue on the new wp-config tab where "MB" was used instead of "M" (Thanks Sidney).
 

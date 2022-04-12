@@ -263,7 +263,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'icon'  => 'dashicons-rest-api',
 			),
 			'wordpress-app-white-label'          => array(
-				'label' => 'White Label Basics',
+				'label' => 'White Label',
 				'icon'  => 'dashicons-randomize',
 			),
 		/*
@@ -1034,7 +1034,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'name'    => __( 'Enable Bulk Site Delete Action', 'wpcd' ),
 				'tooltip' => __( 'Enable the bulk site delete option for the sites list. This deletes the selected sites on your servers unlike the TRASH option which just removes the records.', 'wpcd' ),
 				'tab'     => 'wordpress-app-general-wpadmin',
-			),			
+			),
 			array(
 				'type' => 'heading',
 				'name' => __( 'Labels', 'wpcd' ),
@@ -1773,7 +1773,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 
 		// Header.
 		$fields[] = array(
-			'name' => __( 'White Label Basics', 'wpcd' ),
+			'name' => __( 'Overview', 'wpcd' ),
 			'id'   => 'wordpress-app-white-label-basics-heading',
 			'type' => 'heading',
 			'std'  => '',

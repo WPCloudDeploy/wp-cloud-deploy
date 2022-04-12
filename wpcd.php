@@ -752,7 +752,7 @@ class WPCD_Init {
 		// Setup the Wisdom custom options on first run.
 		if ( function_exists( 'wpcd_start_plugin_tracking' ) ) {
 			if ( ! (bool) get_transient( 'wpcd_wisdom_custom_options_first_run_done' ) ) {
-				do_action( 'wpcd_wisdom_custom_options' );
+				do_action( 'wpcd_wisdom_custom_options' );  // Trigger our custom calculations.
 				$wisdom = wpcd_start_plugin_tracking();
 				$wisdom->schedule_tracking(); // Setup the wisdom cron. Normally this is done automatically by the wisdom code upon plugin activation but we end up bypassing it because we delay things a bit so we can setup custom vars.  So have to set it up manually.
 				set_transient( 'wpcd_wisdom_custom_options_first_run_done', 1, ( 60 * 24 * 7 ) * MINUTE_IN_SECONDS );
@@ -786,8 +786,10 @@ if ( ! function_exists( 'wpcd_start_plugin_tracking' ) ) {
 		return $wisdom;
 	}
 	// Start Wisdom but only if the custom options have been calculated at least once.
-	// The Initial calculation only happens if the admin area has been accessed at least once after the plugin was activated.
+	// The initial calculation only happens if the admin area has been accessed at least once after the plugin was activated.
+	// (See the admin_init() function in the main plugin class above.)
 	// After that the calculations occur on a cron hook.
+	// (See the function set_wisdom_custom_options() in file includes/core/wp-cloud-deploy.php)
 	if ( true === (bool) get_transient( 'wpcd_wisdom_custom_options_first_run_done' ) ) {
 		wpcd_start_plugin_tracking();
 	}

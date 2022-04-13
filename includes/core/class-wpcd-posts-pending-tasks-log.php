@@ -829,6 +829,10 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 	 */
 	public function wpcd_clean_up_pending_logs_callback() {
 
+		// The function ran so update the transient to let the monitoring process know that it ran (even if no records were processed).
+		// We are using 180 minutes here instead of 15 minutes because this cron runs on a 60 minute schedule instead of a 1 min or 15 min schedule.		
+		set_transient( 'wpcd_clean_up_pending_logs_is_active', 1, ( 60 * 3 ) * MINUTE_IN_SECONDS );
+
 		// Get pending logs.
 		$compare_date = time() - ( 3600 * 2 );
 
@@ -926,8 +930,6 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 				}
 			}
 		}
-
-		set_transient( 'wpcd_clean_up_pending_logs_is_active', 1, 60 * MINUTE_IN_SECONDS );
 
 		$response = array(
 			'message' => __( 'Pending logs cleaned up successfully.', 'wpcd' ),

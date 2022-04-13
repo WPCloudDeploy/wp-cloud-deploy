@@ -229,16 +229,16 @@ AuthorizedKeysFile /var/www/$domain/.ssh_$user_name/authorized_keys" >> /etc/ssh
 systemctl restart sshd
 
 # Custom post-processing scripts.
-if [[ ! -z $post_processing_script ]]
+if [[ ! -z $post_processing_script_site ]]
 then
     echo ""
-	echo "Post-processing script option detected - attempting to pull script from $post_processing_script"
-	wget --no-check-certificate -O install_wordpress_post_processing_script.sh $post_processing_script > /dev/null 2>&1
-	dos2unix install_wordpress_post_processing_script.sh > /dev/null 2>&1
+	echo "Post-processing script option detected - attempting to pull script from $post_processing_script_site"
+	wget --no-check-certificate -O post_processing_script_site.sh $post_processing_script_site > /dev/null 2>&1
+	dos2unix post_processing_script_site.sh > /dev/null 2>&1
 	
     echo ""
 	echo "Executing post-processing script..."
-	bash ./install_wordpress_post_processing_script.sh	
+	source ./post_processing_script_site.sh	
 fi
 
 echo

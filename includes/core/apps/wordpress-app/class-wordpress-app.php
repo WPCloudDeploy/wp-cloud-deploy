@@ -3060,6 +3060,10 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			}
 		}
 
+		// Get any post-processing bash script urls from settings.
+		$post_process_script                       = wpcd_get_option( 'wpcd_wpapp_custom_script_after_site_create' );
+		$additional['post_processing_script_site'] = $post_process_script;
+
 		/* Allow devs to hook into the array to add their own elements for use later - likely to be rarely used given that we now have the custom fields array. */
 		$additional = apply_filters( "wpcd_{$this->get_app_name()}_install_wp_app_parms", $additional, $args );
 
@@ -3457,8 +3461,8 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		}
 
 		// Get any post-processing bash script urls from settings.
-		$post_process_script                  = wpcd_get_option( 'wpcd_wpapp_custom_script_after_server_create' );
-		$attributes['post_processing_script'] = $post_process_script;
+		$post_process_script                         = wpcd_get_option( 'wpcd_wpapp_custom_script_after_server_create' );
+		$attributes['post_processing_script_server'] = $post_process_script;
 
 		/* Allow others to populate the attributes array which should get stored in the CPT automatically. */
 		$attributes = apply_filters( "wpcd_{$this->get_app_name()}_initial_server_attributes", $attributes, $args );

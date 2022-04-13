@@ -10,7 +10,6 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 	exit;
 }
 
-
 if ( ! defined( 'wpcd_path' ) ) {
 	define( 'wpcd_path', plugin_dir_path( __FILE__ ) );
 }
@@ -47,6 +46,15 @@ if ( ! empty( $options['uninstall_on_delete'] ) ) {
 	/* The option wpcd_last_upgrade_done holds the numberic version of the last update that was done via the upgrade scripts. */
 	delete_option( 'wpcd_last_upgrade_done' );
 
+	/* Wisdom Options */
+	delete_option( 'wisdom_opt_out' );
+	delete_option( 'wisdom_wpcd_server_count' );
+	delete_option( 'wisdom_wpcd_app_count' );
+
+	/* Clear long-lived transients. */
+	delete_transient( 'wpcd_wisdom_custom_options_first_run_done' );
+
+	/* @TODO: Need to delete all data from all our custom post types. */
 
 	/* These two options are not used right now - need to update an activation function to make them do stuff */
 	delete_option( 'wpcd_last_version_upgrade' );

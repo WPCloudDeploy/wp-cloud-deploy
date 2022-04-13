@@ -106,7 +106,15 @@ Note: Even though the entire git development history isn't available on github, 
 [Friendly Release Notes](https://wpclouddeploy.com/category/release-notes/)
 
 ## Change Log ##
-4.16.0
+4.16.2
+------
+* New: WPAPP - Allow admins to set links to pull and run custom scripts after server and site provisioning is complete.
+* Fix: WPAPP - The action hook used for handle bulk install of callbacks was incorrect (we had changed the name in an earlier 4.16 commit but had not changed it here).  
+* Tweak: Optimized a CRON process
+* Dev: Added some in-line dev notes to aid ourselves and future developers trying to understand why we did some things the way we did them.
+* Dev: Added an item to the future uninstall routine.
+
+4.16.1
 ------
 * Fix: WPAPP - An issue on the new wp-config tab where "MB" was used instead of "M" (Thanks Sidney).
 

@@ -744,12 +744,12 @@ trait wpcd_wpapp_commands_and_logs {
 	}
 
 	/**
-	 * Add tasks to pending log for:
-	 *  - Installing Callbacks
-	 *  - Setup standard backups
-	 *  - Setup critical files backups (Local server configuration backups)
-	 *  - Run services status
-	 *  - Delete protect servers
+	 * Mark any pending log items as complete when the server has been provisioned.
+	 *
+	 * While this function will always be called after a server has been provisioned,
+	 * it only handles the situation where the server was provisioned by a REST API call.
+	 * All other after-server provisioning functions are in the wpcd_wpapp_core_prepare_server_completed()
+	 * function located in traits/after-prepare-server.php.
 	 *
 	 * Action hook: wpcd_command_{$this->get_app_name()}_{$base_command}_{$status} || wpcd_wordpress-app_prepare_server_completed
 	 *

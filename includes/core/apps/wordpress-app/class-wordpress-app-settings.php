@@ -263,9 +263,14 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'icon'  => 'dashicons-rest-api',
 			),
 			'wordpress-app-white-label'          => array(
-				'label' => 'White Label Basics',
+				'label' => 'White Label',
 				'icon'  => 'dashicons-randomize',
 			),
+			'wordpress-app-custom-scripts'       => array(
+				'label' => 'Custom Scripts',
+				'icon'  => 'dashicons-shortcode',
+			),
+		/*
 		/*
 		'wordpress-app-scripts' => array(
 			'label' => 'Scripts',
@@ -330,7 +335,8 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 		$cf_dns_fields                = $this->cf_dns_fields();
 		$rest_api_fields              = $this->rest_api_fields();
 		$white_label_fields           = $this->white_label_fields();
-		$all_fields                   = array_merge( $general_fields, $server_fields, $site_fields, $backup_fields, $fields_and_links, $theme_and_plugin_updates, $email_notification_fields, $slack_notification_fields, $zapier_notification_fields, $button_color_settings_fields, $email_gateway_load_defaults, $cf_dns_fields, $rest_api_fields, $white_label_fields );
+		$custom_scripts               = $this->custom_script_fields();
+		$all_fields                   = array_merge( $general_fields, $server_fields, $site_fields, $backup_fields, $fields_and_links, $theme_and_plugin_updates, $email_notification_fields, $slack_notification_fields, $zapier_notification_fields, $button_color_settings_fields, $email_gateway_load_defaults, $cf_dns_fields, $rest_api_fields, $white_label_fields, $custom_scripts );
 		return $all_fields;
 	}
 
@@ -1034,7 +1040,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'name'    => __( 'Enable Bulk Site Delete Action', 'wpcd' ),
 				'tooltip' => __( 'Enable the bulk site delete option for the sites list. This deletes the selected sites on your servers unlike the TRASH option which just removes the records.', 'wpcd' ),
 				'tab'     => 'wordpress-app-general-wpadmin',
-			),			
+			),
 			array(
 				'type' => 'heading',
 				'name' => __( 'Labels', 'wpcd' ),
@@ -1773,7 +1779,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 
 		// Header.
 		$fields[] = array(
-			'name' => __( 'White Label Basics', 'wpcd' ),
+			'name' => __( 'Overview', 'wpcd' ),
 			'id'   => 'wordpress-app-white-label-basics-heading',
 			'type' => 'heading',
 			'std'  => '',
@@ -1938,6 +1944,87 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tab'  => 'wordpress-app-white-label',
 			);
 		}
+
+		return $fields;
+
+	}
+
+	/**
+	 * Return an array of fields for the custom script fields subtab in the APP:WordPress SETTINGS tab.
+	 */
+	public function custom_script_fields() {
+
+		$fields = array();
+
+		// The list of scripts we'll be handling.
+		$scripts = array(
+			'after_server_create' => array(
+				'label'   => __( 'After Server Provisioning', 'wpcd' ),
+				'tooltip' => __( 'The custom script you would like to run AFTER we successfully complete installing our core stack.', 'wpcd' ),
+			),
+			'after_site_create'   => array(
+				'label'   => __( 'After Site Provisioning', 'wpcd' ),
+				'tooltip' => __( 'The custom script you would like to run AFTER we successfully complete installing our a new WordPress site. Note that if you are using our WooCommerce functions, this runs before any template sites are copied over.', 'wpcd' ),
+			),
+		);
+
+		// Let developers hook into the array here.
+		$scripts = apply_filters( 'wpcd_wordpress-app_custom_script_fields_list', $scripts );
+
+		// Field id prefix.
+		$wpcd_id_prefix = 'wpcd_wpapp_custom_script';
+
+		// Subtab that the fields will display on.
+		$subtab = 'wordpress-app-custom-scripts';
+
+		// Heading.
+		$fields[] = array(
+			'name' => __( 'Custom Bash Scripts', 'wpcd' ),
+			'id'   => $wpcd_id_prefix . '_heading',
+			'type' => 'heading',
+			'std'  => '',
+			'desc' => __( 'Setup the location of BASH custom scripts that are run after certain processes are complete. Using these scripts are easier that writing custom add-ons - but only if you have no need to update data/metas on the WPCD site.', 'wpcd' ),
+			'tab'  => $subtab,
+		);
+
+		// Loop through the scripts array and render TEXT fields to collect the names of scripts.
+		// We'd love to do two columns here like we do on the owner security tab.
+		// Unfortunately METABOX.io messes things up on the other subtabs when we try.
+		foreach ( $scripts as $script_key => $script_data ) {
+
+			// Pull some data out of the $script_data var.
+			$script_label   = $script_data['label'];
+			$script_tooltip = $script_data['tooltip'];
+
+			$fields[] = array(
+				'name'    => "{$script_label}",
+				'id'      => "{$wpcd_id_prefix}_{$script_key}",
+				'type'    => 'url',
+				'tab'     => $subtab,
+				'tooltip' => $script_tooltip,
+			);
+
+		}
+
+		// Secrets Manager API Key.
+		$secrets_mgr_desc  = __( 'You can enter an api key for a secrets manager here.  It will then be available in your environment for use within your custom scripts.  An example of a secrets manager is doppler.com but you can use any manager that only uses a singlet token.', 'wpcd' );
+		$secrets_mgr_desc .= '<br />';
+		$secrets_mgr_desc .= __( 'With a secrets manager you can safely pull in other api keys such as private github keys needed to access private resources.', 'wpcd' );
+
+		$fields[] = array(
+			'name' => __( 'Secrets Manager API Key', 'wpcd' ),
+			'id'   => $wpcd_id_prefix . 'secrets_manager_heading',
+			'type' => 'heading',
+			'std'  => '',
+			'desc' => $secrets_mgr_desc,
+			'tab'  => $subtab,
+		);
+		$fields[] = array(
+			'name' => __( 'Secrets Manager API Key', 'wpcd' ),
+			'id'   => "{$wpcd_id_prefix}_secrets_manager_api_key",
+			'type' => 'text',
+			'tab'  => $subtab,
+		);
 
 		return $fields;
 

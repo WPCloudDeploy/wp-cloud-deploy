@@ -702,7 +702,7 @@ class WPCD_WORDPRESS_TABS_SERVER_CALLBACKS extends WPCD_WORDPRESS_TABS {
 
 			if ( ! empty( $post_ids ) ) {
 				foreach ( $post_ids as $server_id ) {
-					$args['action_hook'] = 'pending_log_install_a_callback';
+					$args['action_hook'] = 'wpcd_pending_log_install_a_callback';
 					WPCD_POSTS_PENDING_TASKS_LOG()->add_pending_task_log_entry( $server_id, 'install-server-callback', $server_id, $args, 'ready', $server_id, __( 'Install Callbacks From Bulk Operation', 'wpcd' ) );
 				}
 

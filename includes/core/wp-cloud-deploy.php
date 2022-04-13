@@ -865,13 +865,14 @@ class WP_CLOUD_DEPLOY {
 		$terms = apply_filters(
 			'wpcd_get_pw_terms_to_clean',
 			array(
-				'wp_password='             => '(***private***)',
-				'aws_access_key_id='       => '(***private***)',
-				'aws_secret_access_key='   => '(***private***)',
-				'--admin_password='        => '(***private***)',
-				'pass='                    => '(***private***)',
-				'dns_cloudflare_api_token' => '(***private***)',
-				'dns_cloudflare_api_key'   => '(***private***)',
+				'wp_password='               => '(***private***)',
+				'aws_access_key_id='         => '(***private***)',
+				'aws_secret_access_key='     => '(***private***)',
+				'--admin_password='          => '(***private***)',
+				'pass='                      => '(***private***)',
+				'dns_cloudflare_api_token'   => '(***private***)',
+				'dns_cloudflare_api_key'     => '(***private***)',
+				'secret_key_manager_api_key' => '(***private***)',
 				"Updated the constant 'DB_PASSWORD' in the 'wp-config.php' file with the value " => '(***private***)' . PHP_EOL,
 
 			)

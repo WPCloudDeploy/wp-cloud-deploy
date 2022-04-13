@@ -21,6 +21,8 @@ trait wpcd_wpapp_after_prepare_server {
 	 *  - Run services status
 	 *  - Delete protect servers
 	 *
+	 * Also removes any sensitive postmeta items from the server record.
+	 *
 	 * Action hook: wpcd_command_{$this->get_app_name()}_{$base_command}_{$status} || wpcd_wordpress-app_prepare_server_completed
 	 *
 	 * @param int    $server_id      The post id of the server record.
@@ -44,6 +46,10 @@ trait wpcd_wpapp_after_prepare_server {
 		$instance = WPCD_WORDPRESS_APP()->get_instance_details( $server_id );
 
 		if ( 'wpcd_app_server' === get_post_type( $server_id ) ) {
+
+			// Remove sensitive post-meta items from the server.
+			delete_post_meta( $server_id, 'wpcd_server_secret_key_manager_api_key' );
+			delete_post_meta( $server_id, 'wpcd_server_post_processing_script_server' ); // Not necessarily sensitive but has the potential to be later.
 
 			// Mark server as delete protected.
 			if ( wpcd_get_option( 'wordpress_app_servers_add_delete_protection' ) ) {

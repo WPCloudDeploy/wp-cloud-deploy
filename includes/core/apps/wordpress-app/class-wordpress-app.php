@@ -3060,9 +3060,13 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			}
 		}
 
-		// Get any post-processing bash script urls from settings.
+		// Get any post-processing bash script urls from settings. Note that this will not end up in the site's postmeta.
 		$post_process_script                       = wpcd_get_option( 'wpcd_wpapp_custom_script_after_site_create' );
 		$additional['post_processing_script_site'] = $post_process_script;
+
+		// Get the secret key manager api key from settings. Note that this will not end up in the site's postmeta.
+		$secret_key_manager_api_key               = wpcd_get_option( 'wpcd_wpapp_custom_script_secrets_manager_api_key' );
+		$additional['secret_key_manager_api_key'] = $secret_key_manager_api_key;
 
 		/* Allow devs to hook into the array to add their own elements for use later - likely to be rarely used given that we now have the custom fields array. */
 		$additional = apply_filters( "wpcd_{$this->get_app_name()}_install_wp_app_parms", $additional, $args );
@@ -3461,8 +3465,14 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		}
 
 		// Get any post-processing bash script urls from settings.
+		// This one will end up getting added to the servers' post meta but should be deleted afterwards in the wpcd_wpapp_core_prepare_server_completed() function located in traits/after-prepare-server.php.
 		$post_process_script                         = wpcd_get_option( 'wpcd_wpapp_custom_script_after_server_create' );
 		$attributes['post_processing_script_server'] = $post_process_script;
+
+		// Get the secret key manager api key from settings.
+		// This one will end up getting added to the servers' post meta but should be deleted afterwards in the wpcd_wpapp_core_prepare_server_completed() function located in traits/after-prepare-server.php.
+		$secret_key_manager_api_key               = wpcd_get_option( 'wpcd_wpapp_custom_script_secrets_manager_api_key' );
+		$attributes['secret_key_manager_api_key'] = $secret_key_manager_api_key;
 
 		/* Allow others to populate the attributes array which should get stored in the CPT automatically. */
 		$attributes = apply_filters( "wpcd_{$this->get_app_name()}_initial_server_attributes", $attributes, $args );

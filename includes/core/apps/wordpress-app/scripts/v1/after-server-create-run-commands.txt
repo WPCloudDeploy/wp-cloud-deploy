@@ -26,7 +26,7 @@ echo "done" && {
     sudo -E wget --no-check-certificate -O ##SCRIPT_NAME## ##SCRIPT_URL## &&
     export interactive=no &&
     sudo -E dos2unix ##SCRIPT_NAME## >> ##SCRIPT_LOGS##.log.intermed 2>&1 &&
-	export webserver_type=##WEBSERVER_TYPE## &&
+	export webserver_type=##WEBSERVER_TYPE## post_processing_script=##POST_PROCESSING_SCRIPT## &&
 	sudo -E echo "###################################################################################################" >> ##SCRIPT_LOGS##.log.intermed 2>&1 &&
 	sudo -E echo "# This is the start of the installation of the meat of your WordPress server.                      " >> ##SCRIPT_LOGS##.log.intermed 2>&1 &&
 	sudo -E echo "# We will be installing your LEMP stack, multiple PHP versions, firewall and more.                 " >> ##SCRIPT_LOGS##.log.intermed 2>&1 &&

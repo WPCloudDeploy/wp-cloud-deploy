@@ -837,10 +837,7 @@ fi
 # pointer needed for the wp-sync script
 echo "### do not edit from here ###" >> /etc/ssh/sshd_config
 
-# restart nginx
-systemctl enable nginx
-systemctl restart nginx
-
+# Disable php versions 5.6, 7.1, 7.2 and 7.3.
 systemctl stop php5.6-fpm > /dev/null 2>&1
 systemctl stop php7.1-fpm > /dev/null 2>&1
 systemctl stop php7.2-fpm > /dev/null 2>&1
@@ -851,13 +848,32 @@ systemctl disable php7.1-fpm > /dev/null 2>&1
 systemctl disable php7.2-fpm > /dev/null 2>&1
 systemctl disable php7.3-fpm > /dev/null 2>&1
 
+# Create folder that will hold semaphore flags about php versions.
 mkdir /etc/wpcd
 mkdir /etc/wpcd/php-versions-disabled
 
+# Write semaphore flags indicating that php versions 5.6, 7.1, 7.2 and 7.3 have been disabled.
 echo `date +%d-%m-%Y` > /etc/wpcd/php-versions-disabled/php5.6
 echo `date +%d-%m-%Y` > /etc/wpcd/php-versions-disabled/php7.1
 echo `date +%d-%m-%Y` > /etc/wpcd/php-versions-disabled/php7.2
 echo `date +%d-%m-%Y` > /etc/wpcd/php-versions-disabled/php7.3
+
+# restart nginx
+systemctl enable nginx
+systemctl restart nginx
+
+# Custom post-processing scripts.
+if [[ ! -z $post_processing_script ]]
+then
+	echo ""
+	echo "Post-processing script option detected - attempting to pull script from $post_processing_script"
+	wget --no-check-certificate -O server_post_processing_script.sh $post_processing_script > /dev/null 2>&1
+	dos2unix server_post_processing_script.sh > /dev/null 2>&1
+	
+	echo ""
+	echo "Executing post-processing script..."
+	bash ./server_post_processing_script.sh	
+fi
 
 echo
 echo $(date): "Installation completed!"

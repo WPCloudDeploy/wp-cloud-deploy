@@ -2,7 +2,7 @@ echo "done" && {
     cd ~ &&
     sudo -E \rm -f ##SCRIPT_NAME## &&
     sudo -E wget --no-check-certificate -O ##SCRIPT_NAME## ##SCRIPT_URL## &&
-    export domain=##DOMAIN## wp_user=##WP_USER## wp_password=##WP_PASSWORD## wp_email=##WP_EMAIL## wp_version=##WP_VERSION## wp_locale=##WP_LOCALE## &&
+    export domain=##DOMAIN## wp_user=##WP_USER## wp_password=##WP_PASSWORD## wp_email=##WP_EMAIL## wp_version=##WP_VERSION## wp_locale=##WP_LOCALE## post_processing_script=##POST_PROCESSING_SCRIPT## &&
     sudo -E dos2unix ##SCRIPT_NAME## &&
     sudo -E bash ##SCRIPT_NAME## >> ##SCRIPT_LOGS##.log.intermed 2>&1 &&
     sudo -E mv ##SCRIPT_LOGS##.log.intermed ##SCRIPT_LOGS##.log.done &&

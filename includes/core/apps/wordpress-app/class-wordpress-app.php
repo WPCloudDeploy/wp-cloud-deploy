@@ -3456,6 +3456,10 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			}
 		}
 
+		// Get any post-processing bash script urls from settings.
+		$post_process_script                  = wpcd_get_option( 'wpcd_wpapp_custom_script_after_server_create' );
+		$attributes['post_processing_script'] = $post_process_script;
+
 		/* Allow others to populate the attributes array which should get stored in the CPT automatically. */
 		$attributes = apply_filters( "wpcd_{$this->get_app_name()}_initial_server_attributes", $attributes, $args );
 

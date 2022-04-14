@@ -145,6 +145,7 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 					$action = 'run_security_updates_cron';  // The bash script expects this.
 					$result = $this->upgrade_linux_all( $id, $action );
 					break;
+
 				case 'server-upgrade-290':
 					$result = $this->upgrade_290( $id, $action );
 					break;
@@ -183,6 +184,10 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 
 				case 'server-upgrade-wpcli':
 					$result = $this->upgrade_wpcli( $id, $action );
+					break;
+
+				case 'server-install-phpintl':
+					$result = $this->install_php_intl( $id, $action );
 					break;
 
 				case 'server-upgrade-delete-meta':
@@ -259,6 +264,12 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 			$actions              = array_merge( $actions, $upgrade_wpcli_fields );
 		}
 
+		// PHP INTL module install options.
+		if ( ! $this->is_php_intl_module_installed( $id ) ) {
+			$upgrade_php_intl_fields = $this->get_upgrade_fields_php_intl( $id );
+			$actions                 = array_merge( $actions, $upgrade_php_intl_fields );
+		}
+
 		// Linux Updates.
 		$upgrade_linux_fields = $this->get_upgrade_fields_linux( $id );
 		$actions              = array_merge( $actions, $upgrade_linux_fields );
@@ -280,7 +291,7 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 		// Set up metabox items.
 		$actions = array();
 
-		$upg_desc  = __( 'Set a cron on the server to immediately run all pending LINUX updates. There will be no interactive feedback as the updates are run as they are run in the background.', 'wpcd' );
+		$upg_desc  = __( 'Set a cron on the server to immediately run all pending LINUX updates. There will be no interactive feedback as the updates are run in the background.', 'wpcd' );
 		$upg_desc .= '<br />';
 		$upg_desc .= __( 'If you need interactive feedback you should log into the server via SSH and run the updates from the command line.', 'wpcd' );
 		$upg_desc .= '<br />';
@@ -662,14 +673,14 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 
 		/*
 		$actions['server-upgrade-php81-meta'] = array(
-			'label'          => '',
-			'raw_attributes' => array(
-				'std'                 => __( 'Remove PHP 8.1 Install Option', 'wpcd' ),
-				'desc'                => __( 'Tag server as having PHP 8.1 installed.', 'wpcd' ),
-				// make sure we give the user a confirmation prompt.
-				'confirmation_prompt' => __( 'Are you sure you would like to tag this server as being upgraded without running the upgrade script?', 'wpcd' ),
-			),
-			'type'           => 'button',
+		'label'          => '',
+		'raw_attributes' => array(
+			'std'                 => __( 'Remove PHP 8.1 Install Option', 'wpcd' ),
+			'desc'                => __( 'Tag server as having PHP 8.1 installed.', 'wpcd' ),
+			// make sure we give the user a confirmation prompt.
+			'confirmation_prompt' => __( 'Are you sure you would like to tag this server as being upgraded without running the upgrade script?', 'wpcd' ),
+		),
+		'type'           => 'button',
 		);
 		*/
 
@@ -714,14 +725,14 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 
 		/*
 		$actions['server-upgrade-7g-meta'] = array(
-			'label'          => '',
-			'raw_attributes' => array(
-				'std'                 => __( 'Remove 7G Upgrade Option', 'wpcd' ),
-				'desc'                => __( 'Tag server as having 7G upgraded.', 'wpcd' ),
-				// make sure we give the user a confirmation prompt.
-				'confirmation_prompt' => __( 'Are you sure you would like to tag this server as being upgraded without running the upgrade script?', 'wpcd' ),
-			),
-			'type'           => 'button',
+		'label'          => '',
+		'raw_attributes' => array(
+			'std'                 => __( 'Remove 7G Upgrade Option', 'wpcd' ),
+			'desc'                => __( 'Tag server as having 7G upgraded.', 'wpcd' ),
+			// make sure we give the user a confirmation prompt.
+			'confirmation_prompt' => __( 'Are you sure you would like to tag this server as being upgraded without running the upgrade script?', 'wpcd' ),
+		),
+		'type'           => 'button',
 		);
 		*/
 
@@ -766,19 +777,60 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 
 		/*
 		$actions['server-upgrade-wpcli-meta'] = array(
-			'label'          => '',
-			'raw_attributes' => array(
-				'std'                 => __( 'Remove WPCLI Upgrade Option', 'wpcd' ),
-				'desc'                => __( 'Tag server as having WPCLI upgraded.', 'wpcd' ),
-				// make sure we give the user a confirmation prompt.
-				'confirmation_prompt' => __( 'Are you sure you would like to tag this server as being upgraded without running the upgrade script?', 'wpcd' ),
-			),
-			'type'           => 'button',
+		'label'          => '',
+		'raw_attributes' => array(
+			'std'                 => __( 'Remove WPCLI Upgrade Option', 'wpcd' ),
+			'desc'                => __( 'Tag server as having WPCLI upgraded.', 'wpcd' ),
+			// make sure we give the user a confirmation prompt.
+			'confirmation_prompt' => __( 'Are you sure you would like to tag this server as being upgraded without running the upgrade script?', 'wpcd' ),
+		),
+		'type'           => 'button',
 		);
 		*/
 
 		return $actions;
 
+	}
+
+	/**
+	 * Gets the fields to shown in the UPGRADE tab in the server details screen
+	 * if the PHP INTL module needs to be installed.
+	 *
+	 * @param int $id the post id of the app cpt record.
+	 *
+	 * @return array Array of actions with key as the action slug and value complying with the structure necessary by metabox.io fields.
+	 */
+	private function get_upgrade_fields_php_intl( $id ) {
+
+		// Set up metabox items.
+		$actions = array();
+
+		$upg_desc  = __( 'Use this button to install the PHP INTL module on your pre-wpcd-4.16.3 server. New servers installed with V4.16.3 or later should already have this installed.', 'wpcd' );
+		$upg_desc .= '<br />';
+		$upg_desc .= __( 'Before running this, you should check to see if your server needs to be restarted because of prior upgrades.  If so, please restart your server before using this option.', 'wpcd' );
+		$upg_desc .= '<br /><b>';
+		$upg_desc .= __( 'You will need to run this TWICE.  The first time you WILL get an AJAX error.  Run it again and it will run to completion.', 'wpcd' );
+		$upg_desc .= '</b>';
+
+		$actions['server-install-header-phpintl'] = array(
+			'label'          => __( 'Install the PHP INTL Module', 'wpcd' ),
+			'type'           => 'heading',
+			'raw_attributes' => array(
+				'desc' => $upg_desc,
+			),
+		);
+
+		$actions['server-install-phpintl'] = array(
+			'label'          => '',
+			'raw_attributes' => array(
+				'std'                 => __( 'Install PHP INTL module on this server', 'wpcd' ),
+				// make sure we give the user a confirmation prompt.
+				'confirmation_prompt' => __( 'Are you sure you would like to install the PHP INTL module on this server?', 'wpcd' ),
+			),
+			'type'           => 'button',
+		);
+
+		return $actions;
 	}
 
 	/**
@@ -1259,6 +1311,74 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 			// Let user know command is complete and force a page rfresh.
 			$result = array(
 				'msg'     => __( 'The WPCLI upgrade has been completed - this page will now refresh', 'wpcd' ),
+				'refresh' => 'yes',
+			);
+		}
+
+		return $result;
+
+	}
+
+	/**
+	 * Run install script for PHP INTL module
+	 *
+	 * @param int    $id         The postID of the server cpt.
+	 * @param string $action     The action to be performed (this matches the string required in the bash scripts if bash scripts are used ).
+	 *
+	 * @return boolean success/failure/other
+	 */
+	public function install_php_intl( $id, $action ) {
+
+		// Get data about the server.
+		$instance = $this->get_server_instance_details( $id );
+
+		if ( is_wp_error( $instance ) ) {
+			/* translators: %s is replaced with the internal action name. */
+			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
+		}
+
+		// Get the full command to be executed by ssh.
+		$run_cmd = $this->turn_script_into_command(
+			$instance,
+			'run_upgrade_install_php_intl.txt',
+			array(
+				'action'      => $action,
+				'interactive' => 'no',
+			)
+		);
+
+		// log.
+		// phpcs:ignore
+		do_action( 'wpcd_log_error', sprintf( 'attempting to run command for %s = %s ', print_r( $instance, true ), $run_cmd ), 'trace', __FILE__, __LINE__, $instance, false ); //PHPcs warning normally issued because of print_r
+
+		// execute.
+		$result = $this->execute_ssh( 'generic', $instance, array( 'commands' => $run_cmd ) );
+
+		// Make sure we don't have a wp_error object being returned...
+		if ( is_wp_error( $result ) ) {
+			return new \WP_Error( __( 'There was a problem installing the PHP INTL module - please check the server logs for more information.', 'wpcd' ) );
+		}
+
+		// evaluate results.
+		if ( strpos( $result, 'journalctl -xe' ) !== false ) {
+			// Looks like there was a problem with restarting the NGINX - So update completion meta and return message.
+			update_post_meta( $id, 'wpcd_server_phpintl_upgrade', 1 );
+			/* translators: %s is replaced with the text of the result of the operation. */
+			return new \WP_Error( sprintf( __( 'There was a problem restarting the nginx server after the install - here is the full output of the upgrade process: %s', 'wpcd' ), $result ) );
+		}
+
+		// If we're here, we know that the nginx server restarted ok so let's do standard success checks.
+		$success = $this->is_ssh_successful( $result, 'run_upgrade_install_php_intl.txt' );
+		if ( ! $success ) {
+			/* translators: %1$s is replaced with the internal action name; %2$s is replaced with the result of the call, usually an error message. */
+			return new \WP_Error( sprintf( __( 'Unable to perform action %1$s for server: %2$s', 'wpcd' ), $action, $result ) );
+		} else {
+			// update server field to tag server as being upgraded.
+			update_post_meta( $id, 'wpcd_server_phpintl_upgrade', 1 );
+
+			// Let user know command is complete and force a page rfresh.
+			$result = array(
+				'msg'     => __( 'The PHP INTL module install has been completed - this page will now refresh', 'wpcd' ),
 				'refresh' => 'yes',
 			);
 		}

@@ -848,7 +848,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	}
 
 	/**
-	 * Returns a boolean true/false if wpcli 2.5 is installed.
+	 * Returns a boolean true/false if wpcli 2.6 is installed.
 	 *
 	 * @param int $server_id ID of server being interrogated...
 	 *
@@ -869,6 +869,29 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			} else {
 				return false;
 			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Returns a boolean true/false if the PHP Module INTL is supposed to be installed on the server.
+	 *
+	 * @param int $server_id ID of server being interrogated...
+	 *
+	 * @return boolean
+	 */
+	public function is_php_intl_module_installed( $server_id ) {
+
+		$initial_plugin_version = $this->get_server_meta_by_app_id( $server_id, 'wpcd_server_plugin_initial_version', true );  // This function is smart enough to know if the ID being passed is a server or app id and adjust accordingly.
+
+		if ( version_compare( $initial_plugin_version, '4.16.2' ) > -1 ) {
+			// Versions of the plugin after 4.16.2 automatically install the PHP INTL module on all new servers.
+			return true;
+		} else {
+			// See if it was manually upgraded - which would leave a meta field value behind on the server CPT record.
+			$it_is_installed = (bool) $this->get_server_meta_by_app_id( $server_id, 'wpcd_server_phpintl_upgrade', true );   // This function is smart enough to know if the ID being passed is a server or app id and adjust accordingly.
+			return $it_is_installed;
 		}
 
 		return false;
@@ -1641,6 +1664,9 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				break;
 			case 'run_upgrade_wpcli.txt':
 				$return = ( strpos( $result, 'WPCLI has been upgraded' ) !== false );
+				break;
+			case 'run_upgrade_install_php_intl.txt':
+				$return = ( strpos( $result, 'PHP intl module has been installed' ) !== false );
 				break;
 			case 'server_status_callback.txt':
 				$return =
@@ -2494,6 +2520,16 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 					array(
 						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/1070-upgrade_wp_cli.txt',
 						'SCRIPT_NAME' => '1070-upgrade_wp_cli.sh',
+					),
+					$common_array,
+					$additional
+				);
+				break;
+			case 'run_upgrade_install_php_intl.txt':
+				$new_array = array_merge(
+					array(
+						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/1080-upgrade_install_php_intl_module.txt',
+						'SCRIPT_NAME' => '1080-upgrade_install_php_intl_module.sh',
 					),
 					$common_array,
 					$additional

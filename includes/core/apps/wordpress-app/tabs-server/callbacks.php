@@ -46,7 +46,7 @@ class WPCD_WORDPRESS_TABS_SERVER_CALLBACKS extends WPCD_WORDPRESS_TABS {
 		add_action( 'wpcd_server_wordpress-app_server_status_callback_first_action_failed', array( $this, 'handle_server_status_callback_install_failed' ), 10, 3 );
 
 		/* Pending Logs Background Task: Run callback for the first time on a server after they're installed */
-		add_action( 'run_server_callbacks', array( $this, 'run_server_callbacks' ), 10, 3 );  //Deprecated - should be removed in wpcd 4.17 after updating the WC add-ons which use it.
+		add_action( 'run_server_callbacks', array( $this, 'run_server_callbacks' ), 10, 3 );  // Deprecated - should be removed in wpcd 4.17 after updating the WC add-ons which use it.
 		add_action( 'wpcd_pending_log_run_server_callbacks', array( $this, 'run_server_callbacks' ), 10, 3 );  // Use this hook going forward instead of the one above.
 
 	}
@@ -98,13 +98,24 @@ class WPCD_WORDPRESS_TABS_SERVER_CALLBACKS extends WPCD_WORDPRESS_TABS {
 	 * @return array    $tabs The default value.
 	 */
 	public function get_tab( $tabs, $id ) {
-		if ( true === $this->wpcd_wpapp_server_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_server_tab( $id, $this->get_tab_slug() ) ) {
+		if ( $this->get_tab_security( $id ) ) {
 			$tabs[ $this->get_tab_slug() ] = array(
 				'label' => __( 'Callbacks', 'wpcd' ),
 				'icon'  => 'far fa-phone-office',
 			);
 		}
 		return $tabs;
+	}
+
+	/**
+	 * Checks whether or not the user can view the current tab.
+	 *
+	 * @param int $id The post ID of the server.
+	 *
+	 * @return boolean
+	 */
+	public function get_tab_security( $id ) {
+		return ( true === $this->wpcd_wpapp_server_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_server_tab( $id, $this->get_tab_slug() ) );
 	}
 
 	/**
@@ -118,7 +129,14 @@ class WPCD_WORDPRESS_TABS_SERVER_CALLBACKS extends WPCD_WORDPRESS_TABS {
 	 * @return array Array of actions, complying with the structure necessary by metabox.io fields.
 	 */
 	public function get_tab_fields( array $fields, $id ) {
+
+		// If user is not allowed to access the tab then don't paint the fields.
+		if ( ! $this->get_tab_security( $id ) ) {
+			return $fields;
+		}
+
 		return $this->get_fields_for_tab( $fields, $id, 'callbacks' );
+
 	}
 
 	/**
@@ -141,12 +159,12 @@ class WPCD_WORDPRESS_TABS_SERVER_CALLBACKS extends WPCD_WORDPRESS_TABS {
 		/* Now verify that the user can perform actions on this screen, assuming that they can view the server */
 		$valid_actions = array( 'server-status-callback-install', 'server-status-callback-remove', 'server-status-callback-run', 'server-status-callback-clear-history-meta' );
 		if ( in_array( $action, $valid_actions, true ) ) {
-			if ( false === $this->wpcd_wpapp_server_user_can( $this->get_view_tab_team_permission_slug(), $id ) && false === $this->wpcd_can_author_view_server_tab( $id, $this->get_tab_slug() ) ) {
+			if ( ! $this->get_tab_security( $id ) ) {
 				return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
 			}
 		}
 
-		if ( true === $this->wpcd_wpapp_server_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_server_tab( $id, $this->get_tab_slug() ) ) {
+		if ( $this->get_tab_security( $id ) ) {
 			switch ( $action ) {
 				case 'server-status-callback-install':
 					$action = 'install_status_cron';

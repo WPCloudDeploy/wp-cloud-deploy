@@ -41,6 +41,17 @@ class WPCD_WORDPRESS_TABS_SERVER_GENERAL extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
+	 * Checks whether or not the user can view the current tab.
+	 *
+	 * @param int $id The post ID of the server.
+	 *
+	 * @return boolean
+	 */
+	public function get_tab_security( $id ) {
+		return ( true === $this->wpcd_wpapp_server_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_server_tab( $id, $this->get_tab_slug() ) );
+	}
+
+	/**
 	 * Gets the fields to be shown in the GENERAL tab.   - NOT USED HERE / PLACEHOLDER ONLY
 	 *
 	 * Filter hook: wpcd_app_{$this->get_app_name()}_get_tabs.
@@ -51,6 +62,12 @@ class WPCD_WORDPRESS_TABS_SERVER_GENERAL extends WPCD_WORDPRESS_TABS {
 	 * @return array Array of actions, complying with the structure necessary by metabox.io fields.
 	 */
 	public function get_tab_fields( array $fields, $id ) {
+
+		// If user is not allowed to access the tab then don't paint the fields.
+		if ( ! $this->get_tab_security( $id ) ) {
+			return $fields;
+		}
+
 		return $this->get_fields_for_tab( $fields, $id, 'general' );
 
 	}

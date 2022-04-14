@@ -109,6 +109,10 @@ Note: Even though the entire git development history isn't available on github, 
 4.16.3
 ------
 * Tweak: WPAPP: Changed the transient timeout for the pending log cron because that cron runs on a 60 min interval instead of a 1 min interval.
+* Fix: Prevent server and site fields from being included in the DOM when their tabs have been disabled for an author or role.
+* Fix: WPAPP - The Monitorix tab did not have a return statement in the proper location in its code.  This could sometimes cause tabs to not appear when certain author-based and role-based security options were enabled on the tab.
+* Fix: WPAPP - The sites tab on the server screen had an incorrect slug. This caused any author-based and role-based security attempting to hide the tab to fail - the tab would always show.
+* Fix: WPAPP - The power tab on the server screen had an incorrect slug. This caused any author-based and role-based security attempting to hide the tab to fail - the tab would always show.
 
 4.16.2
 ------

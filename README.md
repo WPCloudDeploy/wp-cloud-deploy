@@ -108,6 +108,7 @@ Note: Even though the entire git development history isn't available on github, 
 ## Change Log ##
 4.16.3
 ------
+* New: WPAPP - Add the PHP intl module to the base stack on all new servers.
 * Tweak: WPAPP: Changed the transient timeout for the pending log cron because that cron runs on a 60 min interval instead of a 1 min interval.
 * Fix: Prevent server and site fields from being included in the DOM when their tabs have been disabled for an author or role.
 * Fix: WPAPP - The Monitorix tab did not have a return statement in the proper location in its code.  This could sometimes cause tabs to not appear when certain author-based and role-based security options were enabled on the tab.

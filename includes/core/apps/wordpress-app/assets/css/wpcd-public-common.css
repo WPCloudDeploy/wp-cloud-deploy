@@ -296,3 +296,12 @@
 #wpcd_public_wrapper #wpcd_wordpress-app_tab_top_of_site_details button {
         background-color: inherit;
 }
+
+#wpcd_public_wrapper .row-actions {
+        visibility: hidden
+        
+}
+
+#wpcd_public_wrapper tr:hover .row-actions {
+        visibility: visible;
+}

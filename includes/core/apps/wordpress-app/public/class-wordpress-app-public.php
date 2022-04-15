@@ -75,6 +75,7 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 		
 		add_filter('the_content', array( $this, 'public_single_server_content' ) );
 		add_filter('the_content', array( $this, 'public_single_app_content' ) );
+		add_filter( 'the_title', array( $this, 'server_app_title'), 11, 2  );
 
 		add_filter( 'rwmb_meta_box_class_name', array( $this, 'rwmb_meta_box_class_name' ), 10, 2 );
 				
@@ -290,6 +291,7 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 				'ajaxurl' => admin_url( 'admin-ajax.php' ),
 				'is_public' => !is_admin(),
 				'servers_list_page_url' => get_permalink( self::get_servers_list_page_id() ),
+				'apps_list_page_url' => get_permalink( self::get_apps_list_page_id() ),
 				'app_delete_messages' => WPCD_POSTS_APP()->wpcd_app_trash_prompt_messages(),
 				'server_delete_messages' => WPCD_POSTS_APP_SERVER()->wpcd_app_trash_prompt_messages()
 			]
@@ -313,6 +315,23 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 			require_once wpcd_path . 'includes/core/apps/wordpress-app/public/rw_meta_box_public.php';
 		}
 		return $name;
+	}
+	
+	/**
+	 * Remove 'Private:' from apps and servers single posts
+	 * 
+	 * @param string $title
+	 * @param int $id
+	 * 
+	 * @return string
+	 */
+	public function server_app_title( $title, $id ) {
+		if( self::is_app_edit_page() || self::is_server_edit_page() ) {
+			$post = get_post( $id );
+			$title = isset( $post->post_title ) ? $post->post_title : '';
+		}
+		
+		return $title;
 	}
 	
 	/**

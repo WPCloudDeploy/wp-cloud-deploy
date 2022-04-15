@@ -848,7 +848,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	}
 
 	/**
-	 * Returns a boolean true/false if wpcli 2.5 is installed.
+	 * Returns a boolean true/false if wpcli 2.6 is installed.
 	 *
 	 * @param int $server_id ID of server being interrogated...
 	 *
@@ -869,6 +869,29 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			} else {
 				return false;
 			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Returns a boolean true/false if the PHP Module INTL is supposed to be installed on the server.
+	 *
+	 * @param int $server_id ID of server being interrogated...
+	 *
+	 * @return boolean
+	 */
+	public function is_php_intl_module_installed( $server_id ) {
+
+		$initial_plugin_version = $this->get_server_meta_by_app_id( $server_id, 'wpcd_server_plugin_initial_version', true );  // This function is smart enough to know if the ID being passed is a server or app id and adjust accordingly.
+
+		if ( version_compare( $initial_plugin_version, '4.16.2' ) > -1 ) {
+			// Versions of the plugin after 4.16.2 automatically install the PHP INTL module on all new servers.
+			return true;
+		} else {
+			// See if it was manually upgraded - which would leave a meta field value behind on the server CPT record.
+			$it_is_installed = (bool) $this->get_server_meta_by_app_id( $server_id, 'wpcd_server_phpintl_upgrade', true );   // This function is smart enough to know if the ID being passed is a server or app id and adjust accordingly.
+			return $it_is_installed;
 		}
 
 		return false;
@@ -1641,6 +1664,9 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				break;
 			case 'run_upgrade_wpcli.txt':
 				$return = ( strpos( $result, 'WPCLI has been upgraded' ) !== false );
+				break;
+			case 'run_upgrade_install_php_intl.txt':
+				$return = ( strpos( $result, 'PHP intl module has been installed' ) !== false );
 				break;
 			case 'server_status_callback.txt':
 				$return =
@@ -2499,6 +2525,16 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 					$additional
 				);
 				break;
+			case 'run_upgrade_install_php_intl.txt':
+				$new_array = array_merge(
+					array(
+						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/1080-upgrade_install_php_intl_module.txt',
+						'SCRIPT_NAME' => '1080-upgrade_install_php_intl_module.sh',
+					),
+					$common_array,
+					$additional
+				);
+				break;
 			case 'server_status_callback.txt':
 				$new_array = array_merge(
 					array(
@@ -3076,6 +3112,14 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			}
 		}
 
+		// Get any post-processing bash script urls from settings. Note that this will not end up in the site's postmeta.
+		$post_process_script                       = wpcd_get_option( 'wpcd_wpapp_custom_script_after_site_create' );
+		$additional['post_processing_script_site'] = $post_process_script;
+
+		// Get the secret key manager api key from settings. Note that this will not end up in the site's postmeta.
+		$secret_key_manager_api_key               = wpcd_get_option( 'wpcd_wpapp_custom_script_secrets_manager_api_key' );
+		$additional['secret_key_manager_api_key'] = $secret_key_manager_api_key;
+
 		/* Allow devs to hook into the array to add their own elements for use later - likely to be rarely used given that we now have the custom fields array. */
 		$additional = apply_filters( "wpcd_{$this->get_app_name()}_install_wp_app_parms", $additional, $args );
 
@@ -3471,6 +3515,16 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				$attributes[ $field['name'] ] = sanitize_text_field( $args[ $field['name'] ] );
 			}
 		}
+
+		// Get any post-processing bash script urls from settings.
+		// This one will end up getting added to the servers' post meta but should be deleted afterwards in the wpcd_wpapp_core_prepare_server_completed() function located in traits/after-prepare-server.php.
+		$post_process_script                         = wpcd_get_option( 'wpcd_wpapp_custom_script_after_server_create' );
+		$attributes['post_processing_script_server'] = $post_process_script;
+
+		// Get the secret key manager api key from settings.
+		// This one will end up getting added to the servers' post meta but should be deleted afterwards in the wpcd_wpapp_core_prepare_server_completed() function located in traits/after-prepare-server.php.
+		$secret_key_manager_api_key               = wpcd_get_option( 'wpcd_wpapp_custom_script_secrets_manager_api_key' );
+		$attributes['secret_key_manager_api_key'] = $secret_key_manager_api_key;
 
 		/* Allow others to populate the attributes array which should get stored in the CPT automatically. */
 		$attributes = apply_filters( "wpcd_{$this->get_app_name()}_initial_server_attributes", $attributes, $args );

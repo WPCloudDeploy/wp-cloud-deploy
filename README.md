@@ -106,6 +106,27 @@ Note: Even though the entire git development history isn't available on github, 
 [Friendly Release Notes](https://wpclouddeploy.com/category/release-notes/)
 
 ## Change Log ##
+4.16.3
+------
+* New: WPAPP - Add the PHP intl module to the base stack on all new servers (Thanks Sidney).
+* Tweak: WPAPP: Changed the transient timeout for the pending log cron because that cron runs on a 60 min interval instead of a 1 min interval.
+* Fix: Prevent server and site fields from being included in the DOM when their tabs have been disabled for an author or role.
+* Fix: WPAPP - The Monitorix tab did not have a return statement in the proper location in its code.  This could sometimes cause tabs to not appear when certain author-based and role-based security options were enabled on the tab.
+* Fix: WPAPP - The sites tab on the server screen had an incorrect slug. This caused any author-based and role-based security attempting to hide the tab to fail - the tab would always show.
+* Fix: WPAPP - The power tab on the server screen had an incorrect slug. This caused any author-based and role-based security attempting to hide the tab to fail - the tab would always show.
+
+4.16.2
+------
+* New: WPAPP - Allow admins to set links to pull and run custom scripts after server and site provisioning is complete.
+* Fix: WPAPP - The action hook used to handle bulk install of callbacks was incorrect (we had changed the name in an earlier 4.16 commit but had not changed it here).  
+* Tweak: Optimized a CRON process
+* Dev: Added some in-line dev notes to aid ourselves and future developers trying to understand why we did some things the way we did them.
+* Dev: Added an item to the future uninstall routine.
+
+4.16.1
+------
+* Fix: WPAPP - An issue on the new wp-config tab where "MB" was used instead of "M" (Thanks, Sidney).
+
 4.16.0
 ------
 * New: Save any IPv6 address that DigitalOcean assigns to servers.  Request IPv6 addresses on all new DigitalOcean servers.
@@ -135,7 +156,7 @@ Note: Even though the entire git development history isn't available on github, 
 * Tweak: WPAPP - When a site is cloned and the root domain of the clone is the one that is set up as the cloudflare temp domain, we will now automatically create the DNS for the clone at Cloudflare.
 * Tweak: WPAPP - Only show the activate/deactivate option on the MISC tab when a site is disabled.  Hide all other options when the site is disabled.
 * Tweak: WPAPP - The option to block the REST API had confusing terminology because it was the inverse of what was actually happening.  Clarified this so that the label uses the term 'blocked' and 'not blocked' instead.
-* Fix: WPAPP - Staging and Cloned sites did not carry-over the metas that indicate the status of the various caches.
+* Fix: WPAPP - Staging and Cloned sites did not carry over the metas that indicate the status of the various caches.
 * Fix: WPAPP - Individual toggle switches on monit components were not working - only the 'all' switches did what they were supposed to do.
 * Fix: WPAPP - Fixed an issue with filters on the server and site lists when a different language other than English is used.
 * Fix: WPAPP - Typo on site TOOLS tab - reset permissions description should say 664 for files, not 644.

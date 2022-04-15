@@ -228,5 +228,18 @@ PasswordAuthentication yes
 AuthorizedKeysFile /var/www/$domain/.ssh_$user_name/authorized_keys" >> /etc/ssh/sshd_config
 systemctl restart sshd
 
+# Custom post-processing scripts.
+if [[ ! -z $post_processing_script_site ]]
+then
+    echo ""
+	echo "Post-processing script option detected - attempting to pull script from $post_processing_script_site"
+	wget --no-check-certificate -O post_processing_script_site.sh $post_processing_script_site > /dev/null 2>&1
+	dos2unix post_processing_script_site.sh > /dev/null 2>&1
+	
+    echo ""
+	echo "Executing post-processing script..."
+	source ./post_processing_script_site.sh	
+fi
+
 echo
 echo "WordPress has been set up for $domain"

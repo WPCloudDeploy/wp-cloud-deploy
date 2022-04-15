@@ -1439,8 +1439,10 @@ function wpcd_get_current_page_server_id() {
 	} else {
 		global $post;
 		
+		$_server_name = isset( $_SERVER['SERVER_NAME'] ) ? $_SERVER['SERVER_NAME'] : parse_url( home_url( '/' ), PHP_URL_HOST );
+		
 		if( !$post ) {
-			$id =      url_to_postid( "http://".$_SERVER['SERVER_NAME'].$_SERVER['REQUEST_URI'] );
+			$id =      url_to_postid( "http://" . $_server_name . $_SERVER['REQUEST_URI'] );
 		} else {
 			$id = $post->ID;
 		}

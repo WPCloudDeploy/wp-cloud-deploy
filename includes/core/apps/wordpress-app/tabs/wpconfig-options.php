@@ -47,13 +47,24 @@ class WPCD_WORDPRESS_TABS_WPCONFIG extends WPCD_WORDPRESS_TABS {
 	 * @return array    $tabs The default value.
 	 */
 	public function get_tab( $tabs, $id ) {
-		if ( true === $this->wpcd_wpapp_site_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_site_tab( $id, $this->get_tab_slug() ) ) {
+		if ( $this->get_tab_security( $id ) ) {
 			$tabs[ $this->get_tab_slug() ] = array(
 				'label' => __( 'WPConfig', 'wpcd' ),
 				'icon'  => 'fad fa-screwdriver ',
 			);
 		}
 		return $tabs;
+	}
+
+	/**
+	 * Checks whether or not the user can view the current tab.
+	 *
+	 * @param int $id The post ID of the site.
+	 *
+	 * @return boolean
+	 */
+	public function get_tab_security( $id ) {
+		return ( true === $this->wpcd_wpapp_site_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_site_tab( $id, $this->get_tab_slug() ) );
 	}
 
 	/**
@@ -67,6 +78,11 @@ class WPCD_WORDPRESS_TABS_WPCONFIG extends WPCD_WORDPRESS_TABS {
 	 * @return array Array of actions, complying with the structure necessary by metabox.io fields.
 	 */
 	public function get_tab_fields( array $fields, $id ) {
+
+		// If user is not allowed to access the tab then don't paint the fields.
+		if ( ! $this->get_tab_security( $id ) ) {
+			return $fields;
+		}
 
 		return $this->get_fields_for_tab( $fields, $id, $this->get_tab_slug() );
 
@@ -93,14 +109,14 @@ class WPCD_WORDPRESS_TABS_WPCONFIG extends WPCD_WORDPRESS_TABS {
 		$valid_actions2 = array( 'change-any-wpconfig-option' );
 
 		if ( in_array( $action, $valid_actions, true ) || in_array( $action, $valid_actions2, true ) ) {
-			if ( false === $this->wpcd_wpapp_site_user_can( $this->get_view_tab_team_permission_slug(), $id ) && false === $this->wpcd_can_author_view_site_tab( $id, $this->get_tab_slug() ) ) {
+			if ( ! $this->get_tab_security( $id ) ) {
 				/* Translators: %1: String representing action; %2: Filename where code is being executed; %3: Post id for site or server; %4: WordPress User id */
 				return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
 			}
 		}
 
 		// Now do the action.
-		if ( true === $this->wpcd_wpapp_site_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_site_tab( $id, $this->get_tab_slug() ) ) {
+		if ( $this->get_tab_security( $id ) ) {
 			if ( in_array( $action, $valid_actions, true ) ) {
 				$result = $this->update_wp_config_option( $id, $action );
 			} else {
@@ -508,7 +524,7 @@ class WPCD_WORDPRESS_TABS_WPCONFIG extends WPCD_WORDPRESS_TABS {
 			case 'WP_MEMORY_LIMIT':
 			case 'WP_MAX_MEMORY_LIMIT':
 				$args[ $option_key ] = intval( $args[ $option_key ] ); // Make sure we've got an integer value here.
-				$args[ $option_key ] = $args[ $option_key ] . 'MB';  // Megabytes need to be added to the end of the numeric value.
+				$args[ $option_key ] = $args[ $option_key ] . 'M';  // Megabytes need to be added to the end of the numeric value.
 				break;
 			case 'WP_POST_REVISIONS':
 			case 'EMPTY_TRASH_DAYS':

@@ -62,7 +62,7 @@ class WPCD_WORDPRESS_TABS_SERVER_FAIL2BAN extends WPCD_WORDPRESS_TABS {
 	 */
 	public function get_view_tab_team_permission_slug() {
 		return 'view_wpapp_server_fail2ban_tab';
-	}	
+	}
 
 	/**
 	 * Populates the tab name.
@@ -73,13 +73,24 @@ class WPCD_WORDPRESS_TABS_SERVER_FAIL2BAN extends WPCD_WORDPRESS_TABS {
 	 * @return array    $tabs   New array of tabs
 	 */
 	public function get_tab( $tabs, $id ) {
-		if ( true === $this->wpcd_wpapp_server_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_server_tab( $id, $this->get_tab_slug() ) ) {
+		if ( $this->get_tab_security( $id ) ) {
 			$tabs[ $this->get_tab_slug() ] = array(
 				'label' => __( 'Fail2ban', 'wpcd' ),
 				'icon'  => 'fad fa-axe-battle',
 			);
 		}
 		return $tabs;
+	}
+
+	/**
+	 * Checks whether or not the user can view the current tab.
+	 *
+	 * @param int $id The post ID of the server.
+	 *
+	 * @return boolean
+	 */
+	public function get_tab_security( $id ) {
+		return ( true === $this->wpcd_wpapp_server_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_server_tab( $id, $this->get_tab_slug() ) );
 	}
 
 	/**
@@ -93,6 +104,12 @@ class WPCD_WORDPRESS_TABS_SERVER_FAIL2BAN extends WPCD_WORDPRESS_TABS {
 	 * @return array Array of actions, complying with the structure necessary by metabox.io fields.
 	 */
 	public function get_tab_fields( array $fields, $id ) {
+
+		// If user is not allowed to access the tab then don't paint the fields.
+		if ( ! $this->get_tab_security( $id ) ) {
+			return $fields;
+		}
+
 		return $this->get_fields_for_tab( $fields, $id, $this->get_tab_slug() );
 
 	}
@@ -113,8 +130,14 @@ class WPCD_WORDPRESS_TABS_SERVER_FAIL2BAN extends WPCD_WORDPRESS_TABS {
 			return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
 		}
 
+		/**
+		 * Unlike other tabs we're not checking for an array of actions here to return an error message.
+		 * This is because some of the actions are really dynamic.
+		 * Instead we'll just check below directly on the action case statement and fall-through if permissions are denied.
+		 */
+
 		// Perform actions if allowed to do so.
-		if ( true === $this->wpcd_wpapp_server_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_server_tab( $id, $this->get_tab_slug() ) ) {
+		if ( $this->get_tab_security( $id ) ) {
 			switch ( $action ) {
 				case 'fail2ban-install':
 					$action = 'fail2ban_install';
@@ -1015,12 +1038,12 @@ class WPCD_WORDPRESS_TABS_SERVER_FAIL2BAN extends WPCD_WORDPRESS_TABS {
 		}
 
 		if ( ! empty( $ips ) ) {
-			foreach( $ips as $ip => $reason ) {
+			foreach ( $ips as $ip => $reason ) {
 				$return .= $ip . ' / ' . $reason . '<br />';
 			}
 		}
 
-		return $return ;
+		return $return;
 	}
 
 }

@@ -3,7 +3,7 @@
 Plugin Name: WPCloudDeploy
 Plugin URI: https://wpclouddeploy.com
 Description: Deploy and manage cloud servers and apps from inside the WordPress Admin dashboard.
-Version: 4.15.2
+Version: 4.16.3
 Requires at least: 5.4
 Requires PHP: 7.4
 Item Id: 1493
@@ -86,6 +86,9 @@ class WPCD_Init {
 
 		/* Use init hook to load up required files */
 		add_action( 'init', array( $this, 'required_files' ), -20 );
+
+		/* Use admin_init hook to run things that should only be run when the admin is logged in. */
+		add_action( 'admin_init', array( $this, 'admin_init' ) );
 
 		/* Create a custom schedule for 1 minute */
 		add_filter( 'cron_schedules', array( $this, 'custom_cron_schedule' ) );
@@ -260,6 +263,9 @@ class WPCD_Init {
 
 		// Clear old cron.
 		wp_unschedule_hook( 'wpcd_wisdom_custom_options' );
+
+		// Clear long-lived transients.
+		delete_transient( 'wpcd_wisdom_custom_options_first_run_done' );
 	}
 
 	/**
@@ -738,6 +744,23 @@ class WPCD_Init {
 		$wpcd_setup->run_setup();
 	}
 
+	/**
+	 * Processes that run only when in the wp-admin area.
+	 *
+	 * Action Hook: admin_init
+	 */
+	public function admin_init() {
+
+		// Setup the Wisdom custom options on first run.
+		if ( function_exists( 'wpcd_start_plugin_tracking' ) ) {
+			if ( ! (bool) get_transient( 'wpcd_wisdom_custom_options_first_run_done' ) ) {
+				do_action( 'wpcd_wisdom_custom_options' );  // Trigger our custom calculations.
+				$wisdom = wpcd_start_plugin_tracking();
+				$wisdom->schedule_tracking(); // Setup the wisdom cron. Normally this is done automatically by the wisdom code upon plugin activation but we end up bypassing it because we delay things a bit so we can setup custom vars.  So have to set it up manually.
+				set_transient( 'wpcd_wisdom_custom_options_first_run_done', 1, ( 60 * 24 * 7 ) * MINUTE_IN_SECONDS );
+			}
+		}
+	}
 
 }
 
@@ -762,6 +785,14 @@ if ( ! function_exists( 'wpcd_start_plugin_tracking' ) ) {
 			false,
 			3
 		);
+		return $wisdom;
 	}
-	wpcd_start_plugin_tracking();
+	// Start Wisdom but only if the custom options have been calculated at least once.
+	// The initial calculation only happens if the admin area has been accessed at least once after the plugin was activated.
+	// (See the admin_init() function in the main plugin class above.)
+	// After that the calculations occur on a cron hook.
+	// (See the function set_wisdom_custom_options() in file includes/core/wp-cloud-deploy.php)
+	if ( true === (bool) get_transient( 'wpcd_wisdom_custom_options_first_run_done' ) ) {
+		wpcd_start_plugin_tracking();
+	}
 }

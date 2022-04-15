@@ -126,6 +126,9 @@ class WP_CLOUD_DEPLOY {
 		// Set some options that the Wisdom plugin will pick up.
 		add_action( 'wpcd_wisdom_custom_options', array( $this, 'set_wisdom_custom_options' ) );
 
+		// Capture wisdom data weekly instead of monthly.
+		add_filter( 'wisdom_filter_schedule_wpcd', array( $this, 'set_wisdom_schedule' ), 10, 1 );
+
 	}
 
 	/**
@@ -158,6 +161,19 @@ class WP_CLOUD_DEPLOY {
 
 		// Setting a 24 hour transient but not sure that it's really necessary since it's not being used anywhere.  Might be useful later though.
 		set_transient( 'wpcd_wisdom_custom_options', 1, 1440 * MINUTE_IN_SECONDS );
+	}
+
+	/**
+	 * Set the wisdom collection schedule to weekly.
+	 *
+	 * Filter Hook: wisdom_filter_schedule_wpcd
+	 *
+	 * @param string $schedule Current schedule.
+	 *
+	 * @return string new schedule i.e.: 'weekly.
+	 */
+	public function set_wisdom_schedule( $schedule ) {
+		return 'weekly';
 	}
 
 	/**
@@ -849,13 +865,14 @@ class WP_CLOUD_DEPLOY {
 		$terms = apply_filters(
 			'wpcd_get_pw_terms_to_clean',
 			array(
-				'wp_password='             => '(***private***)',
-				'aws_access_key_id='       => '(***private***)',
-				'aws_secret_access_key='   => '(***private***)',
-				'--admin_password='        => '(***private***)',
-				'pass='                    => '(***private***)',
-				'dns_cloudflare_api_token' => '(***private***)',
-				'dns_cloudflare_api_key'   => '(***private***)',
+				'wp_password='               => '(***private***)',
+				'aws_access_key_id='         => '(***private***)',
+				'aws_secret_access_key='     => '(***private***)',
+				'--admin_password='          => '(***private***)',
+				'pass='                      => '(***private***)',
+				'dns_cloudflare_api_token'   => '(***private***)',
+				'dns_cloudflare_api_key'     => '(***private***)',
+				'secret_key_manager_api_key' => '(***private***)',
 				"Updated the constant 'DB_PASSWORD' in the 'wp-config.php' file with the value " => '(***private***)' . PHP_EOL,
 
 			)
@@ -1159,7 +1176,7 @@ class WP_CLOUD_DEPLOY {
 			WPCD()->classes['wpcd_roles_capabilities'] = new WPCD_ROLES_CAPABILITIES();
 		}
 	}
-	
+
 	/**
 	 * Returns a server post object using the postid of an app.
 	 *
@@ -1195,9 +1212,9 @@ class WP_CLOUD_DEPLOY {
 	/**
 	 * Returns whether a site is a staging site.
 	 *
-	 * Note: We're commingling some things here because 
+	 * Note: We're commingling some things here because
 	 * only the wordpres-app has the concept of "staging".
-	 * So this should be in that app class but putting 
+	 * So this should be in that app class but putting
 	 * it here because we need it in some global functions.
 	 * And there is always the possibility that a future app
 	 * will have both staging and production types.
@@ -1216,5 +1233,5 @@ class WP_CLOUD_DEPLOY {
 			return false;
 		}
 
-	}	
+	}
 }

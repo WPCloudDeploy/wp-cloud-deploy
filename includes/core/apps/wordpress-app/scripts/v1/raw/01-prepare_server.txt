@@ -115,49 +115,49 @@ fi
 # @TODO: We should probably make a loop and loop through all these packages one by one as well. 
 echo $(date): "Installing PHP versions - this will take a while too!"
 echo $(date): ".....PHP 5.6 (will be disabled)"
-apt-get install php5.6 php5.6-fpm php5.6-mbstring php5.6-curl php5.6-mysql php5.6-xml php5.6-zip php5.6-gd php5.6-imap php5.6-soap php5.6-bcmath php5.6-imagick -y > /dev/null 2>&1
+apt-get install php5.6 php5.6-fpm php5.6-mbstring php5.6-curl php5.6-mysql php5.6-xml php5.6-zip php5.6-gd php5.6-imap php5.6-soap php5.6-bcmath php5.6-imagick php5.6-intl -y > /dev/null 2>&1
 if [ $? -ne 0 ]  
 then
 	echo "Failed!  Quitting process"
 	exit 1
 fi
 echo $(date): ".....PHP 7.1 (will be disabled)"
-apt-get install php7.1 php7.1-fpm php7.1-mbstring php7.1-curl php7.1-mysql php7.1-xml php7.1-zip php7.1-gd php7.1-imap php7.1-soap php7.1-bcmath php7.1-imagick -y > /dev/null 2>&1
+apt-get install php7.1 php7.1-fpm php7.1-mbstring php7.1-curl php7.1-mysql php7.1-xml php7.1-zip php7.1-gd php7.1-imap php7.1-soap php7.1-bcmath php7.1-imagick php7.1-intl -y > /dev/null 2>&1
 if [ $? -ne 0 ]  
 then
 	echo "Failed!  Quitting process"
 	exit 1
 fi
 echo $(date): ".....PHP 7.2 (will be disabled)"
-apt-get install php7.2 php7.2-fpm php7.2-mbstring php7.2-curl php7.2-mysql php7.2-xml php7.2-zip php7.2-gd php7.2-imap php7.2-soap php7.2-bcmath php7.2-imagick -y > /dev/null 2>&1
+apt-get install php7.2 php7.2-fpm php7.2-mbstring php7.2-curl php7.2-mysql php7.2-xml php7.2-zip php7.2-gd php7.2-imap php7.2-soap php7.2-bcmath php7.2-imagick php7.2-intl -y > /dev/null 2>&1
 if [ $? -ne 0 ]  
 then
 	echo "Failed!  Quitting process"
 	exit 1
 fi
 echo $(date): ".....PHP 7.3 (will be disabled)"
-apt-get install php7.3 php7.3-fpm php7.3-mbstring php7.3-curl php7.3-mysql php7.3-xml php7.3-zip php7.3-gd php7.3-imap php7.3-soap php7.3-bcmath php7.3-imagick -y > /dev/null 2>&1
+apt-get install php7.3 php7.3-fpm php7.3-mbstring php7.3-curl php7.3-mysql php7.3-xml php7.3-zip php7.3-gd php7.3-imap php7.3-soap php7.3-bcmath php7.3-imagick php7.3-intl -y > /dev/null 2>&1
 if [ $? -ne 0 ]  
 then
 	echo "Failed!  Quitting process"
 	exit 1
 fi
 echo $(date): ".....PHP 7.4"
-apt-get install php7.4 php7.4-fpm php7.4-mbstring php7.4-curl php7.4-mysql php7.4-xml php7.4-zip php7.4-gd php7.4-imap php7.4-soap php7.4-bcmath php7.4-imagick -y > /dev/null 2>&1
+apt-get install php7.4 php7.4-fpm php7.4-mbstring php7.4-curl php7.4-mysql php7.4-xml php7.4-zip php7.4-gd php7.4-imap php7.4-soap php7.4-bcmath php7.4-imagick php7.4-intl -y > /dev/null 2>&1
 if [ $? -ne 0 ]  
 then
 	echo "Failed!  Quitting process"
 	exit 1
 fi
 echo $(date): ".....PHP 8.0"
-apt-get install php8.0 php8.0-fpm php8.0-mbstring php8.0-curl php8.0-mysql php8.0-xml php8.0-zip php8.0-gd php8.0-imap php8.0-soap php8.0-bcmath php8.0-imagick -y > /dev/null 2>&1
+apt-get install php8.0 php8.0-fpm php8.0-mbstring php8.0-curl php8.0-mysql php8.0-xml php8.0-zip php8.0-gd php8.0-imap php8.0-soap php8.0-bcmath php8.0-imagick php8.0-intl -y > /dev/null 2>&1
 if [ $? -ne 0 ]  
 then
 	echo "Failed!  Quitting process"
 	exit 1
 fi
 echo $(date): ".....PHP 8.1"
-apt-get install php8.1 php8.1-fpm php8.1-mbstring php8.1-curl php8.1-mysql php8.1-xml php8.1-zip php8.1-gd php8.1-imap php8.1-soap php8.1-bcmath php8.1-imagick -y > /dev/null 2>&1
+apt-get install php8.1 php8.1-fpm php8.1-mbstring php8.1-curl php8.1-mysql php8.1-xml php8.1-zip php8.1-gd php8.1-imap php8.1-soap php8.1-bcmath php8.1-imagick php8.1-intl -y > /dev/null 2>&1
 if [ $? -ne 0 ]  
 then
 	echo "Failed!  Quitting process"
@@ -837,10 +837,7 @@ fi
 # pointer needed for the wp-sync script
 echo "### do not edit from here ###" >> /etc/ssh/sshd_config
 
-# restart nginx
-systemctl enable nginx
-systemctl restart nginx
-
+# Disable php versions 5.6, 7.1, 7.2 and 7.3.
 systemctl stop php5.6-fpm > /dev/null 2>&1
 systemctl stop php7.1-fpm > /dev/null 2>&1
 systemctl stop php7.2-fpm > /dev/null 2>&1
@@ -851,13 +848,32 @@ systemctl disable php7.1-fpm > /dev/null 2>&1
 systemctl disable php7.2-fpm > /dev/null 2>&1
 systemctl disable php7.3-fpm > /dev/null 2>&1
 
+# Create folder that will hold semaphore flags about php versions.
 mkdir /etc/wpcd
 mkdir /etc/wpcd/php-versions-disabled
 
+# Write semaphore flags indicating that php versions 5.6, 7.1, 7.2 and 7.3 have been disabled.
 echo `date +%d-%m-%Y` > /etc/wpcd/php-versions-disabled/php5.6
 echo `date +%d-%m-%Y` > /etc/wpcd/php-versions-disabled/php7.1
 echo `date +%d-%m-%Y` > /etc/wpcd/php-versions-disabled/php7.2
 echo `date +%d-%m-%Y` > /etc/wpcd/php-versions-disabled/php7.3
+
+# restart nginx
+systemctl enable nginx
+systemctl restart nginx
+
+# Custom post-processing scripts.
+if [[ ! -z $post_processing_script_server ]]
+then
+	echo ""
+	echo "Post-processing script option detected - attempting to pull script from $post_processing_script_server"
+	wget --no-check-certificate -O post_processing_script_server.sh $post_processing_script_server > /dev/null 2>&1
+	dos2unix post_processing_script_server.sh > /dev/null 2>&1
+	
+	echo ""
+	echo "Executing post-processing script..."
+	source ./post_processing_script_server.sh	
+fi
 
 echo
 echo $(date): "Installation completed!"

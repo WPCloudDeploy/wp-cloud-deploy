@@ -533,11 +533,17 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			'columns' => 2,
 			'class'   => 'wpcd_server_details_top_row',
 		);
+	
+		if( is_admin() ) {
+			$apps_url    =  admin_url( 'edit.php?post_type=wpcd_app&server_id=' . $id );
+		} else {
+			$apps_url = get_permalink( WPCD_WORDPRESS_APP_PUBLIC::get_apps_list_page_id() ) . '?server_id=' . (string) $id;
+		}
 
 		$fields['general-welcome-top-col_5'] = array(
 			'name'    => __( 'Apps', 'wpcd' ),
 			'type'    => 'custom_html',
-			'std'     => sprintf( '<a href="%s" target="_blank">%d</a>', esc_url( admin_url( 'edit.php?post_type=wpcd_app&server_id=' . $id ) ), WPCD_SERVER()->get_app_count( $id ) ),
+			'std'     => sprintf( '<a href="%s" target="_blank">%d</a>', esc_url( $apps_url ), WPCD_SERVER()->get_app_count( $id ) ),
 			'columns' => 2,
 			'class'   => 'wpcd_server_details_top_row',
 		);

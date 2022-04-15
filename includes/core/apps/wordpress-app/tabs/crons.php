@@ -47,13 +47,24 @@ class WPCD_WORDPRESS_TABS_CRONS extends WPCD_WORDPRESS_TABS {
 	 * @return array    $tabs The default value.
 	 */
 	public function get_tab( $tabs, $id ) {
-		if ( true === $this->wpcd_wpapp_site_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_site_tab( $id, $this->get_tab_slug() ) ) {
+		if ( $this->get_tab_security( $id ) ) {
 			$tabs[ $this->get_tab_slug() ] = array(
 				'label' => __( 'Crons', 'wpcd' ),
 				'icon'  => 'fad fa-clock',
 			);
 		}
 		return $tabs;
+	}
+
+	/**
+	 * Checks whether or not the user can view the current tab.
+	 *
+	 * @param int $id The post ID of the site.
+	 *
+	 * @return boolean
+	 */
+	public function get_tab_security( $id ) {
+		return ( true === $this->wpcd_wpapp_site_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_site_tab( $id, $this->get_tab_slug() ) );
 	}
 
 	/**
@@ -67,6 +78,11 @@ class WPCD_WORDPRESS_TABS_CRONS extends WPCD_WORDPRESS_TABS {
 	 * @return array Array of actions, complying with the structure necessary by metabox.io fields.
 	 */
 	public function get_tab_fields( array $fields, $id ) {
+
+		// If user is not allowed to access the tab then don't paint the fields.
+		if ( ! $this->get_tab_security( $id ) ) {
+			return $fields;
+		}
 
 		return $this->get_fields_for_tab( $fields, $id, $this->get_tab_slug() );
 
@@ -91,12 +107,12 @@ class WPCD_WORDPRESS_TABS_CRONS extends WPCD_WORDPRESS_TABS {
 		/* Now verify that the user can perform actions on this screen, assuming that they can view the server */
 		$valid_actions = array( 'wp-linux-cron-status' );
 		if ( in_array( $action, $valid_actions, true ) ) {
-			if ( false === $this->wpcd_wpapp_site_user_can( $this->get_view_tab_team_permission_slug(), $id ) && false === $this->wpcd_can_author_view_site_tab( $id, $this->get_tab_slug() ) ) {
+			if ( ! $this->get_tab_security( $id ) ) {
 				return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
 			}
 		}
 
-		if ( true === $this->wpcd_wpapp_site_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_site_tab( $id, $this->get_tab_slug() ) ) {
+		if ( $this->get_tab_security( $id ) ) {
 			switch ( $action ) {
 				case 'wp-linux-cron-status':
 					// enable/disable the wp linux cron process.

@@ -1,0 +1,75 @@
+#!/bin/bash
+# This script will install the INTL module for all PHP versions.
+
+echo $(date): "Refreshing repositories..."
+apt-get update > /dev/null 2>&1
+if [ $? -ne 0 ]  
+then
+	echo "Failed!  Quitting process"
+	exit 1
+fi
+
+echo $(date): "Installing INTL module for PHP 5.6...."
+export DEBIAN_FRONTEND=noninteractive
+apt-get install -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"  php5.6-intl -y
+if [ $? -ne 0 ]  
+then
+	echo "Failed!  Quitting process"
+	exit 1
+fi
+
+echo $(date): "Installing INTL module for PHP 7.1...."
+export DEBIAN_FRONTEND=noninteractive
+apt-get install -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"  php7.1-intl -y
+if [ $? -ne 0 ]  
+then
+	echo "Failed!  Quitting process"
+	exit 1
+fi
+
+echo $(date): "Installing INTL module for PHP 7.2...."
+export DEBIAN_FRONTEND=noninteractive
+apt-get install -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"  php7.2-intl -y
+if [ $? -ne 0 ]  
+then
+	echo "Failed!  Quitting process"
+	exit 1
+fi
+
+echo $(date): "Installing INTL module for PHP 7.3...."
+export DEBIAN_FRONTEND=noninteractive
+apt-get install -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"  php7.3-intl -y
+if [ $? -ne 0 ]  
+then
+	echo "Failed!  Quitting process"
+	exit 1
+fi
+
+echo $(date): "Installing INTL module for PHP 7.4...."
+export DEBIAN_FRONTEND=noninteractive
+apt-get install -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"  php7.4-intl -y
+if [ $? -ne 0 ]  
+then
+	echo "Failed!  Quitting process"
+	exit 1
+fi
+
+echo $(date): "Installing INTL module for PHP 8.0...."
+export DEBIAN_FRONTEND=noninteractive
+apt-get install -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"  php8.0-intl -y
+if [ $? -ne 0 ]  
+then
+	echo "Failed!  Quitting process"
+	exit 1
+fi
+
+echo $(date): "Installing INTL module for PHP 8.1...."
+export DEBIAN_FRONTEND=noninteractive
+apt-get install -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"  php8.1-intl -y
+if [ $? -ne 0 ]  
+then
+	echo "Failed!  Quitting process"
+	exit 1
+fi
+
+echo "PHP intl module has been installed."

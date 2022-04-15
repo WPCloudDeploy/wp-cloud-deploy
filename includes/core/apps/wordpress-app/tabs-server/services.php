@@ -101,13 +101,24 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 	 * @return array    $tabs The default value.
 	 */
 	public function get_tab( $tabs, $id ) {
-		if ( true === $this->wpcd_wpapp_server_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_server_tab( $id, $this->get_tab_slug() ) ) {
+		if ( $this->get_tab_security( $id ) ) {
 			$tabs[ $this->get_tab_slug() ] = array(
 				'label' => __( 'Services', 'wpcd' ),
 				'icon'  => 'far fa-concierge-bell',
 			);
 		}
 		return $tabs;
+	}
+
+	/**
+	 * Checks whether or not the user can view the current tab.
+	 *
+	 * @param int $id The post ID of the server.
+	 *
+	 * @return boolean
+	 */
+	public function get_tab_security( $id ) {
+		return ( true === $this->wpcd_wpapp_server_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_server_tab( $id, $this->get_tab_slug() ) );
 	}
 
 	/**
@@ -121,6 +132,12 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 	 * @return array Array of actions, complying with the structure necessary by metabox.io fields.
 	 */
 	public function get_tab_fields( array $fields, $id ) {
+
+		// If user is not allowed to access the tab then don't paint the fields.
+		if ( ! $this->get_tab_security( $id ) ) {
+			return $fields;
+		}
+
 		return $this->get_fields_for_tab( $fields, $id, 'services' );
 
 	}
@@ -145,7 +162,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		// Skipping security action check that would allow us to show the user a nice message if it failed.
 		// If user is not permitted to do something and actually somehow ends up here, it will fall through the SWITCH statement below and silently fail.
 
-		if ( true === $this->wpcd_wpapp_server_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_server_tab( $id, $this->get_tab_slug() ) ) {
+		if ( $this->get_tab_security( $id ) ) {
 			switch ( $action ) {
 				case 'services-status-update':
 					$action = 'services_status_update';
@@ -915,7 +932,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 
 				if ( 'php74' === $services_key ) {
 					// Do not allow php 7.4 to be deactivated since it's the default for the server.
-					$actions[ "php-server-deactivate-$services_key" ]  = array(
+					$actions[ "php-server-deactivate-$services_key" ] = array(
 						'label'          => '',
 						'raw_attributes' => array(
 							'std'     => __( 'n/a', 'wpcd' ),

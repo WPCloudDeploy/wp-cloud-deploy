@@ -106,6 +106,10 @@ Note: Even though the entire git development history isn't available on github, 
 [Friendly Release Notes](https://wpclouddeploy.com/category/release-notes/)
 
 ## Change Log ##
+4.16.4
+------
+* Fix: WPAPP - An incorrect security check in the clone site action was blocking all clone attempts in some instances.
+
 4.16.3
 ------
 * New: WPAPP - Add the PHP intl module to the base stack on all new servers (Thanks Sidney).

@@ -212,12 +212,14 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 
 			case 'wpcd_server':
 				// Display the name of the server.
+				// Start with getting the post id of the server.
+				$server_post_id = get_post_meta( $post_id, 'parent_post_id', true );
+
 				if ( true === (bool) wpcd_get_option( 'wpcd_hide_app_list_server_name_in_server_column' ) && ( ! wpcd_is_admin() ) ) {
 					// do nothing, only admins are allowed to see this data.
 				} else {
-					// Get the server id and title first.
-					$server_post_id = get_post_meta( $post_id, 'parent_post_id', true );
-					$server_title   = wp_kses_post( get_post( $server_post_id )->post_title );
+					// Get server title.
+					$server_title = wp_kses_post( get_post( $server_post_id )->post_title );
 
 					// Show the server title - with a link if the user is able to edit it otherwise without the link.
 					$user_id = get_current_user_id();

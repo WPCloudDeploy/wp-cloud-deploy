@@ -217,7 +217,7 @@ class WPCD_WORDPRESS_TABS_CLONE_SITE extends WPCD_WORDPRESS_TABS {
 		/* Now verify that the user can perform actions on this screen, assuming that they can view the server */
 		$valid_actions = array( 'clone-site' );
 		if ( in_array( $action, $valid_actions, true ) ) {
-			if ( in_array( $action, $valid_actions, true ) ) {
+			if ( ! $this->get_tab_security( $id ) ) {
 				/* translators: %1s is replaced with an internal action name; %2$s is replaced with the file name; %3$s is replaced with the post id being acted on. %4$s is the user id running this action. */
 				return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
 			}

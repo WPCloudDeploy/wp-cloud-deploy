@@ -109,6 +109,7 @@ Note: Even though the entire git development history isn't available on github, 
 4.16.5
 ------
 * Fix: WPAPP - An annoying invalid variable warning in the debug.log file when a certain combination of fields were disabled and the app list was rendered.
+* Fix: WPAPP - Copy to server would result in missing users on the target server in certain edge cases.
 
 4.16.4
 ------

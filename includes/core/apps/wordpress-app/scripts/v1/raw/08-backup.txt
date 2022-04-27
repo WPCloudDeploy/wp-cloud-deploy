@@ -100,7 +100,7 @@ Example: my-wordpress-backups-bucket"
     tar -czf ~/.wp-backup/$domain/"$domain"_"$date"_nginx.tar.gz $(ls sites-enabled/*$domain htpasswd/*$domain 2>/dev/null)
     # backup database
 	echo "=>exporting database for backup..."
-    mysql_db=$(grep DB_NAME /var/www/$domain/html/wp-config.php | cut -d "'" -f 4)
+    mysql_db=$(grep DB_NAME /var/www/$domain/html/wp-config.php |tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
     mysqldump $mysql_db | gzip -9 > ~/.wp-backup/$domain/"$domain"_"$date"_db.gz
     # upload to s3
 	echo "=>Uploading files to Amazon S3..."
@@ -175,8 +175,8 @@ If you continue now, $domain will be reset from backup $backup"
             read -p "Press enter to continue"
             fi
     # remove everything
-    mysql_db=$(grep DB_NAME /var/www/$domain/html/wp-config.php | cut -d "'" -f 4)
-    mysql_user=$(grep DB_USER /var/www/$domain/html/wp-config.php | cut -d "'" -f 4)
+    mysql_db=$(grep DB_NAME /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
+    mysql_user=$(grep DB_USER /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
 	echo "dropping database: $mysql_db ..."
         mariadb <<QUERY
 DROP DATABASE $mysql_db;
@@ -217,9 +217,9 @@ QUERY
     rm -rf temp
 
     # create db stuff
-    mysql_db=$(grep DB_NAME /var/www/$domain/html/wp-config.php | cut -d "'" -f 4)
-    mysql_user=$(grep DB_USER /var/www/$domain/html/wp-config.php | cut -d "'" -f 4)
-    mysql_pass=$(grep DB_PASSWORD /var/www/$domain/html/wp-config.php | cut -d "'" -f 4)
+    mysql_db=$(grep DB_NAME /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
+    mysql_user=$(grep DB_USER /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
+    mysql_pass=$(grep DB_PASSWORD /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
 	echo "creating new database: $mysql_db"
     mariadb <<QUERY
 CREATE DATABASE $mysql_db;
@@ -351,7 +351,7 @@ while IFS=" " read -r domain bucket days s3_sync_delete_parm callback_domain; do
     cd /etc/nginx
     tar -czf ~/.wp-backup/$domain/"$domain"_"$date"_nginx.tar.gz $(ls sites-enabled/*$domain htpasswd/*$domain 2>/dev/null)
     # backup database
-    mysql_db=$(grep DB_NAME /var/www/$domain/html/wp-config.php | cut -d "\'" -f 4)
+    mysql_db=$(grep DB_NAME /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
     mysqldump $mysql_db | gzip -9 > ~/.wp-backup/$domain/"$domain"_"$date"_db.gz
     # check if the database was backed up correctly
     if ! gunzip -c ~/.wp-backup/$domain/"$domain"_"$date"_db.gz | tail -n 1 | grep -qs "Dump completed on"; then
@@ -469,7 +469,7 @@ ls /var/www | grep -v html | while read line; do
     cd /etc/nginx
     tar -czf ~/.wp-backup/$line/"$line"_"$date"_nginx.tar.gz $(ls sites-enabled/*$line htpasswd/*$line 2>/dev/null)
     # backup database
-    mysql_db=$(grep DB_NAME /var/www/$line/html/wp-config.php | cut -d "\'" -f 4)
+    mysql_db=$(grep DB_NAME /var/www/$line/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
     mysqldump $mysql_db | gzip -9 > ~/.wp-backup/$line/"$line"_"$date"_db.gz
     # check if the database was backed up correctly
     if ! gunzip -c ~/.wp-backup/$line/"$line"_"$date"_db.gz | tail -n 1 | grep -qs "Dump completed on"; then

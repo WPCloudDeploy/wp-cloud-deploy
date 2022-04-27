@@ -40,8 +40,8 @@ fi
 
 
 #get the database name
-mysql_db=$(grep DB_NAME /var/www/$domain/html/wp-config.php | cut -d "'" -f 4)
-mysql_dbprefix=$(grep table_prefix /var/www/$domain/html/wp-config.php | cut -d "'" -f 2)
+mysql_db=$(grep DB_NAME /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
+mysql_dbprefix=$(grep table_prefix /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "=" -f2|cut -d";" -f1|tail -c +2 | head -c -2)
 
 
 #backup database

@@ -68,8 +68,8 @@ while [[ -z $action ]]; do
 done
 
 
-mysql_db=$(grep DB_NAME /var/www/$old_domain/html/wp-config.php | cut -d "'" -f 4)
-mysql_dbprefix=$(grep table_prefix /var/www/$old_domain/html/wp-config.php | cut -d "'" -f 2)
+mysql_db=$(grep DB_NAME /var/www/$old_domain/html/wp-config.php | tr -d "[:space:]"|cut -d ',' -f2|cut -d')' -f1|tail -c +2 | head -c -2)
+mysql_dbprefix=$(grep table_prefix /var/www/$old_domain/html/wp-config.php | tr -d "[:space:]"|cut -d '=' -f2|cut -d';' -f1|tail -c +2 | head -c -2)
 
 
 
@@ -168,8 +168,8 @@ mysql_new_db=$(head /dev/urandom | tr -dc a-z | head -c 6)
 mysql_user=$(head /dev/urandom | tr -dc a-z | head -c 6)
 mysql_password=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 16)
 
-mysql_old_db=$(grep DB_NAME /var/www/$new_domain/html/wp-config.php | cut -d "'" -f 4)
-mysql_old_user=$(grep DB_USER /var/www/$new_domain/html/wp-config.php | cut -d "'" -f 4)
+mysql_old_db=$(grep DB_NAME /var/www/$new_domain/html/wp-config.php | tr -d "[:space:]"|cut -d ',' -f2|cut -d')' -f1|tail -c +2 | head -c -2)
+mysql_old_user=$(grep DB_USER /var/www/$new_domain/html/wp-config.php | tr -d "[:space:]"|cut -d ',' -f2|cut -d')' -f1|tail -c +2 | head -c -2)
 
 mariadb <<QUERY
 CREATE DATABASE $mysql_new_db;

@@ -65,8 +65,8 @@ if [[ $action == "install_phpmyadmin" || $action == "1" ]]; then
     echo "phpMyAdmin installed for $site"
     echo
     echo "Login credentials are:"
-    echo "User: $(grep DB_USER /var/www/$site/html/wp-config.php | cut -d "'" -f 4)"
-    echo "Password: $(grep DB_PASSWORD /var/www/$site/html/wp-config.php | cut -d "'" -f 4)"
+    echo "User: $(grep DB_USER /var/www/$site/html/wp-config.php | tr -d "[:space:]"|cut -d ',' -f2|cut -d')' -f1|tail -c +2 | head -c -2)"
+    echo "Password: $(grep DB_PASSWORD /var/www/$site/html/wp-config.php | tr -d "[:space:]"|cut -d ',' -f2|cut -d')' -f1|tail -c +2 | head -c -2)"
     echo "You can access phpMyAdmin at: $site/phpMyAdmin"
 fi
 
@@ -91,8 +91,8 @@ if [[ $action == "update_phpmyadmin" || $action == "2" ]]; then
     echo "phpMyAdmin updated for $site to version $phpmyadmin_version"
     echo
     echo "Login credentials are:"
-    echo "User: $(grep DB_USER /var/www/$site/html/wp-config.php | cut -d "'" -f 4)"
-    echo "Password: $(grep DB_PASSWORD /var/www/$site/html/wp-config.php | cut -d "'" -f 4)"
+    echo "User: $(grep DB_USER /var/www/$site/html/wp-config.php | tr -d "[:space:]"|cut -d ',' -f2|cut -d')' -f1|tail -c +2 | head -c -2)"
+    echo "Password: $(grep DB_PASSWORD /var/www/$site/html/wp-config.php | tr -d "[:space:]"|cut -d ',' -f2|cut -d')' -f1|tail -c +2 | head -c -2)"
     echo "You can access phpMyAdmin at: $site/phpMyAdmin"
 fi
 
@@ -113,8 +113,8 @@ Example: mynewusername"
         read -p "Password: " mysql_password
     fi
 
-    mysql_db=$(grep DB_NAME /var/www/$site/html/wp-config.php | cut -d "'" -f 4)
-    mysql_old_user=$(grep DB_USER /var/www/$site/html/wp-config.php | cut -d "'" -f 4)
+    mysql_db=$(grep DB_NAME /var/www/$site/html/wp-config.php | tr -d "[:space:]"|cut -d ',' -f2|cut -d')' -f1|tail -c +2 | head -c -2)
+    mysql_old_user=$(grep DB_USER /var/www/$site/html/wp-config.php | tr -d "[:space:]"|cut -d ',' -f2|cut -d')' -f1|tail -c +2 | head -c -2)
 
     # Rename MySQL user and change pass
     mariadb <<QUERY
@@ -133,8 +133,8 @@ QUERY
     echo "Access credentials have been updated"
     echo
     echo "Login credentials are:"
-    echo "User: $(grep DB_USER /var/www/$site/html/wp-config.php | cut -d "'" -f 4)"
-    echo "Password: $(grep DB_PASSWORD /var/www/$site/html/wp-config.php | cut -d "'" -f 4)"
+    echo "User: $(grep DB_USER /var/www/$site/html/wp-config.php | tr -d "[:space:]"|cut -d ',' -f2|cut -d')' -f1|tail -c +2 | head -c -2)"
+    echo "Password: $(grep DB_PASSWORD /var/www/$site/html/wp-config.php | tr -d "[:space:]"|cut -d ',' -f2|cut -d')' -f1|tail -c +2 | head -c -2)"
     echo "You can access phpMyAdmin at: $site/phpMyAdmin"
 
 
@@ -231,8 +231,8 @@ if [[ $action == "print_auth" || $action == "9" ]]; then
 
     echo
     echo "Login credentials are:"
-    echo "User: $(grep DB_USER /var/www/$site/html/wp-config.php | cut -d "'" -f 4)"
-    echo "Password: $(grep DB_PASSWORD /var/www/$site/html/wp-config.php | cut -d "'" -f 4)"
+    echo "User: $(grep DB_USER /var/www/$site/html/wp-config.php | tr -d "[:space:]"|cut -d ',' -f2|cut -d')' -f1|tail -c +2 | head -c -2)"
+    echo "Password: $(grep DB_PASSWORD /var/www/$site/html/wp-config.php | tr -d "[:space:]"|cut -d ',' -f2|cut -d')' -f1|tail -c +2 | head -c -2)"
     echo "You can access phpMyAdmin at: $site/phpMyAdmin"
 
 fi

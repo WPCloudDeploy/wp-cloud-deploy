@@ -75,12 +75,12 @@ while [[ -z $action ]]; do
 done
 
 # Get additional source and target data from wp-config.php files.
-mysql_source_db=$(grep DB_NAME /var/www/$source_domain/html/wp-config.php | cut -d "'" -f 4)
-mysql_target_db=$(grep DB_NAME /var/www/$target_domain/html/wp-config.php | cut -d "'" -f 4)
-mysql_target_user=$(grep DB_USER /var/www/$target_domain/html/wp-config.php | cut -d "'" -f 4)
-mysql_target_password=$(grep DB_PASSWORD /var/www/$target_domain/html/wp-config.php | cut -d "'" -f 4)
-mysql_source_prefix=$(grep table_prefix /var/www/$source_domain/html/wp-config.php | cut -d "'" -f 2)
-mysql_target_prefix=$(grep table_prefix /var/www/$target_domain/html/wp-config.php | cut -d "'" -f 2)
+mysql_source_db=$(grep DB_NAME /var/www/$source_domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
+mysql_target_db=$(grep DB_NAME /var/www/$target_domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
+mysql_target_user=$(grep DB_USER /var/www/$target_domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
+mysql_target_password=$(grep DB_PASSWORD /var/www/$target_domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
+mysql_source_prefix=$(grep table_prefix /var/www/$source_domain/html/wp-config.php | tr -d "[:space:]"|cut -d "=" -f2|cut -d";" -f1|tail -c +2 | head -c -2)
+mysql_target_prefix=$(grep table_prefix /var/www/$target_domain/html/wp-config.php | tr -d "[:space:]"|cut -d "=" -f2|cut -d";" -f1|tail -c +2 | head -c -2)
 
 # Get user name...
 user_name=$(echo $target_domain | cut -c1-32)

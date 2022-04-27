@@ -61,9 +61,9 @@ function site_sync {
 
     # dump mysql stuff
     echo "Exporting database. This could take a while..."
-    mysql_db=$(grep DB_NAME /var/www/$domain/html/wp-config.php | cut -d "'\''" -f 4)
-    mysql_user=$(grep DB_USER /var/www/$domain/html/wp-config.php | cut -d "'\''" -f 4)
-    mysql_pass=$(grep DB_PASSWORD /var/www/$domain/html/wp-config.php | cut -d "'\''" -f 4)
+    mysql_db=$(grep DB_NAME /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
+    mysql_user=$(grep DB_USER /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
+    mysql_pass=$(grep DB_PASSWORD /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
 
     if [ -z $site_sync_new_db ] || [ $site_sync_new_db == "no" ]
     then

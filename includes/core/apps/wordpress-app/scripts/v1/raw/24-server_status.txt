@@ -177,7 +177,7 @@ else
 wpupdate=no
 fi
 
-mysqldb=$(grep DB_NAME /var/www/$domain/html/wp-config.php | cut -d "'\''" -f 4)
+mysqldb=$(grep DB_NAME /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
 domain_file_size=`du -sm /var/www/$domain|awk '\''{print $1}'\''`
 domain_db_size=`du -sm /var/lib/mysql/$mysqldb|awk '\''{print $1}'\''`
 

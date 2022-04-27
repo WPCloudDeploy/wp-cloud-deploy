@@ -218,7 +218,7 @@ if [[ $action == "wp2_backup" || $action == "1" ]]; then
 
 	backup_database () {
 		echo "Backing up database..."
-    	mysql_db=$(grep DB_NAME /var/www/$domain/html/wp-config.php | cut -d "'" -f 4)
+    	mysql_db=$(grep DB_NAME /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
     	mysqldump $mysql_db | gzip -9 > ~/.wp-backup2/$domain/"$domain"_"$date"_db.gz
 		echo "Verifying database backup..."
     	if ! gunzip -c ~/.wp-backup2/$domain/"$domain"_"$date"_db.gz | tail -n 1 | grep -qs "Dump completed on"; then
@@ -513,8 +513,8 @@ php_admin_value[session.use_trans_sid] = 0" > /etc/php/7.4/fpm/pool.d/$domain.co
 			fi
 
 			# Cleanup stage
-    		mysql_db=$(grep -s DB_NAME /var/www/$domain/html/wp-config.php | cut -d "'" -f 4)
-    		mysql_user=$(grep -s DB_USER /var/www/$domain/html/wp-config.php | cut -d "'" -f 4)
+    		mysql_db=$(grep -s DB_NAME /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
+    		mysql_user=$(grep -s DB_USER /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
 			echo "Dropping database (if exists) $mysql_db ..."
         	mariadb <<QUERY
 DROP DATABASE IF EXISTS $mysql_db;
@@ -524,7 +524,7 @@ QUERY
 
 			# Restoration stage
 			echo "Creating database: $mysql_db..."
-			mysql_pass=$(grep DB_PASSWORD /var/www/$domain/html/wp-config.php | cut -d "'" -f 4)
+			mysql_pass=$(grep DB_PASSWORD /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
     		mariadb <<QUERY
 CREATE DATABASE $mysql_db;
 CREATE USER '$mysql_user'@'localhost' IDENTIFIED BY '$mysql_pass';

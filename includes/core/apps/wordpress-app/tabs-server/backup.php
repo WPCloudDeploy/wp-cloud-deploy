@@ -254,73 +254,87 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 			$auto_backups_confirmation_prompt_all_sites = __( 'Are you sure you would like to enable daily automatic backups for all sites?', 'wpcd' );
 		}
 
-		$fields[] = array(
-			'name' => __( 'Automatic Backups - All Current and Future Sites On This Server', 'wpcd' ),
-			'desc' => __( 'Enable automatic backups to run once per day for all current and future sites on this server.<br />With this option you do not have to schedule individual backups for each site.<br /> Just configure this once and it will backup all your sites on **this server** once each night.<br />You should set up your S3 credentials and create a bucket for these backups before turning this option on!', 'wpcd' ),
-			'tab'  => 'server_backup',
-			'type' => 'heading',
-		);
-		$fields[] = array(
-			'id'         => 'wpcd_app_action_auto_backup_all_sites_bucket_name',
-			'desc'       => __( 'If this is left blank then the server bucket name shown above or the global bucket name from the SETTINGS screen will be used', 'wpcd' ),
-			'tab'        => 'server_backup',
-			'type'       => 'text',
-			'name'       => __( 'AWS Bucket Name', 'wpcd' ),
-			'std'        => $auto_backup_bucket_all_sites,
-			'attributes' => array(
-				// the key of the field (the key goes in the request).
-				'data-wpcd-name' => 'auto_backup_bucket_name_all_sites',
-			),
-			'size'       => 90,
-			'save_field' => false,
-		);
-		$fields[] = array(
-			'id'         => 'wpcd_app_action_auto_backup_all_sites_retention_days',
-			'desc'       => __( 'If this is left blank or zero, we will default to 7 days. We recommend that you keep this number low and rely on S3 to store your older backups. If this is set to -1, local backups will NEVER be kept (NOT RECOMMENDED)', 'wpcd' ),
-			'tab'        => 'server_backup',
-			'type'       => 'number',
-			'min'        => -1,
-			'name'       => __( 'Retention Days', 'wpcd' ),
-			'std'        => $auto_backup_retention_days_all_sites,
-			'attributes' => array(
-				// the key of the field (the key goes in the request).
-				'data-wpcd-name' => 'auto_backup_retention_days_all_sites',
-			),
-			'size'       => 90,
-			'save_field' => false,
-		);
-		$fields[] = array(
-			'id'         => 'wpcd_app_action_auto_backup_all_sites_delete_remotes',
-			'name'       => __( 'Delete Remote Backups', 'wpcd' ),
-			'tab'        => 'server_backup',
-			'type'       => 'select',
-			'options'    => array(
-				'off' => __( 'Disabled', 'wpcd' ),
-				'on'  => __( 'Enabled', 'wpcd' ),
-			),
-			'std'        => $auto_backup_delete_remotes_all_sites,
-			'desc'       => __( 'Delete remote backups when deleting local backups that exceed the retention days. We recommend that you keep this disabled and set a low number for the retention days above.', 'wpcd' ),
-			'attributes' => array(
-				// the key of the field (the key goes in the request).
-				'data-wpcd-name' => 'auto_backup_delete_remotes_all_sites',
-			),
-			'save_field' => false,
-		);
+		if ( 'on' === $auto_backup_status_all_sites ) {
+			// Backups have been enabled.  Show message about disabling it first before making changes.
+			$fields[] = array(
+				'name' => __( 'Automatic Backups - All Current and Future Sites On This Server', 'wpcd' ),
+				'desc' => __( 'Backups are enabled for this server. If you would like to make changes, please disable it first using the switch below.', 'wpcd' ),
+				'tab'  => 'server_backup',
+				'type' => 'heading',
+			);
+		} else {
+			$fields[] = array(
+				'name' => __( 'Automatic Backups - All Current and Future Sites On This Server', 'wpcd' ),
+				'desc' => __( 'Enable automatic backups to run once per day for all current and future sites on this server.<br />With this option you do not have to schedule individual backups for each site.<br /> Just configure this once and it will backup all your sites on **this server** once each night.<br />You should set up your S3 credentials and create a bucket for these backups before turning this option on!', 'wpcd' ),
+				'tab'  => 'server_backup',
+				'type' => 'heading',
+			);
+		}
+
+		if ( 'on' !== $auto_backup_status_all_sites ) {
+			// Backups are not currently enabled so we can show all fields.
+			$fields[] = array(
+				'id'         => 'wpcd_app_action_auto_backup_all_sites_bucket_name',
+				'desc'       => __( 'If this is left blank then the server bucket name shown above or the global bucket name from the SETTINGS screen will be used', 'wpcd' ),
+				'tab'        => 'server_backup',
+				'type'       => 'text',
+				'name'       => __( 'AWS Bucket Name', 'wpcd' ),
+				'std'        => $auto_backup_bucket_all_sites,
+				'attributes' => array(
+					// the key of the field (the key goes in the request).
+					'data-wpcd-name' => 'auto_backup_bucket_name_all_sites',
+				),
+				'size'       => 90,
+				'save_field' => false,
+			);
+			$fields[] = array(
+				'id'         => 'wpcd_app_action_auto_backup_all_sites_retention_days',
+				'desc'       => __( 'If this is left blank or zero, we will default to 7 days. We recommend that you keep this number low and rely on S3 to store your older backups. If this is set to -1, local backups will NEVER be kept (NOT RECOMMENDED)', 'wpcd' ),
+				'tab'        => 'server_backup',
+				'type'       => 'number',
+				'min'        => -1,
+				'name'       => __( 'Retention Days', 'wpcd' ),
+				'std'        => $auto_backup_retention_days_all_sites,
+				'attributes' => array(
+					// the key of the field (the key goes in the request).
+					'data-wpcd-name' => 'auto_backup_retention_days_all_sites',
+				),
+				'size'       => 90,
+				'save_field' => false,
+			);
+			$fields[] = array(
+				'id'         => 'wpcd_app_action_auto_backup_all_sites_delete_remotes',
+				'name'       => __( 'Delete Remote Backups', 'wpcd' ),
+				'tab'        => 'server_backup',
+				'type'       => 'select',
+				'options'    => array(
+					'off' => __( 'Disabled', 'wpcd' ),
+					'on'  => __( 'Enabled', 'wpcd' ),
+				),
+				'std'        => $auto_backup_delete_remotes_all_sites,
+				'desc'       => __( 'Delete remote backups when deleting local backups that exceed the retention days. We recommend that you keep this disabled and set a low number for the retention days above.', 'wpcd' ),
+				'attributes' => array(
+					// the key of the field (the key goes in the request).
+					'data-wpcd-name' => 'auto_backup_delete_remotes_all_sites',
+				),
+				'save_field' => false,
+			);
+		}
 		$fields[] = array(
 			'id'         => 'wpcd_app_action_auto_backup_all_sites',
-			'name'       => __( 'Schedule It', 'wpcd' ),
+			'name'       => 'on' === $auto_backup_status_all_sites ? '' : __( 'Schedule It', 'wpcd' ),
 			'tab'        => 'server_backup',
 			'type'       => 'switch',
 			'on_label'   => __( 'Enabled', 'wpcd' ),
 			'off_label'  => __( 'Disabled', 'wpcd' ),
 			'std'        => 'on' === $auto_backup_status_all_sites,
-			'desc'       => __( 'Enable or disable daily automatic backups', 'wpcd' ),
+			'desc'       => 'on' === $auto_backup_status_all_sites ? '' : __( 'Enable daily automatic backups', 'wpcd' ),
 			// fields that contribute data for this action.
 			'attributes' => array(
 				// the _action that will be called in ajax.
 				'data-wpcd-action'              => 'backup-run-schedule-all-sites',
 				// fields that contribute data for this action.
-				'data-wpcd-fields'              => wp_json_encode( array( '#wpcd_app_action_auto_backup_all_sites_bucket_name', '#wpcd_app_action_auto_backup_all_sites_retention_days', '#wpcd_app_action_auto_backup_all_sites_delete_remotes' ) ),              // the id.
+				'data-wpcd-fields'              => 'on' === $auto_backup_status_all_sites ? '' : wp_json_encode( array( '#wpcd_app_action_auto_backup_all_sites_bucket_name', '#wpcd_app_action_auto_backup_all_sites_retention_days', '#wpcd_app_action_auto_backup_all_sites_delete_remotes' ) ),              // the id.
 				'data-wpcd-id'                  => $id,
 				// make sure we give the user a confirmation prompt.
 				'data-wpcd-confirmation-prompt' => $auto_backups_confirmation_prompt_all_sites,

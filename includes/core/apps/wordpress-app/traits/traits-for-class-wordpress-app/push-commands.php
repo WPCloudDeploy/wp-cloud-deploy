@@ -122,6 +122,13 @@ trait wpcd_wpapp_push_commands {
 
 			update_post_meta( $id, 'wpcd_server_status_push_history', $history );
 
+			// Add a special meta to indicate that the server might need to be restarted.  We'll use this to allow the server list to be filtered to show only servers needing to be restarted.
+			if ( 'yes' === $server_status_items['restart'] ) {
+				update_post_meta( $id, 'wpcd_server_restart_needed', 'yes' );
+			} else {
+				delete_post_meta( $id, 'wpcd_server_restart_needed' );
+			}
+
 			// Add a user friendly notification record for certain things...
 			if ( 'yes' === $server_status_items['restart'] ) {
 				do_action( 'wpcd_log_notification', $id, 'alert', __( 'This server needs to be restarted for security updates to take effect.', 'wpcd' ), 'updates', null );
@@ -133,7 +140,7 @@ trait wpcd_wpapp_push_commands {
 			if ( empty( $server_status_items['default_php_version'] ) ) {
 				/* Translators: %s is the incorrect PHP version. */
 				do_action( 'wpcd_log_notification', $id, 'notice', __( 'The default PHP version on this server is being reported as an empty string - it is likely that you need to update the callbacks on it.', 'wpcd' ), 'server-config', null );
-			}			
+			}
 
 			// Let other plugins react to the new good data with an action hook.
 			do_action( "wpcd_{$this->get_app_name()}_command_{$name}_{$status}_processed_good", $server_status_items, $id );

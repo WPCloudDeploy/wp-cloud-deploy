@@ -453,80 +453,92 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 			$auto_backups_confirmation_prompt = __( 'Are you sure you would like to enable daily automatic backups for this site?', 'wpcd' );
 		}
 
-		$fields[] = array(
-			'name' => __( 'Automatic Backups - This Site Only', 'wpcd' ),
-			'desc' => __( 'Enable automatic backups to run once per day for this site.  You should set up your S3 credentials in SETTINGS or on the server page and create a bucket for these backups before turning this option on!', 'wpcd' ),
-			'tab'  => 'backup',
-			'type' => 'heading',
-		);
+		if ( 'on' === $auto_backup_status ) {		
+			// Backups have been enabled.  Show message about disabling it first before making changes.
+			$fields[] = array(
+				'name' => __( 'Automatic Backups - This Site Only', 'wpcd' ),
+				'desc' => __( 'Backups are enabled for this site. If you would like to make changes, please disable it first using the switch below.', 'wpcd' ),
+				'tab'  => 'backup',
+				'type' => 'heading',
+			);			
+		} else {
+			$fields[] = array(
+				'name' => __( 'Automatic Backups - This Site Only', 'wpcd' ),
+				'desc' => __( 'Enable automatic backups to run once per day for this site.  You should set up your S3 credentials in SETTINGS or on the server page and create a bucket for these backups before turning this option on!', 'wpcd' ),
+				'tab'  => 'backup',
+				'type' => 'heading',
+			);
+		}
 
 		$hide_field = (bool) wpcd_get_early_option( 'wordpress_app_site_backup_hide_aws_bucket_name' ) && ( ! wpcd_is_admin() );
-		$fields[]   = array(
-			'id'         => 'wpcd_app_action_auto_backup_bucket_name',
-			'desc'       => $hide_field ? '' : __( 'If this is left blank then the global bucket name from the SETTINGS screen will be used.', 'wpcd' ),
-			'tab'        => 'backup',
-			'type'       => $hide_field ? 'hidden' : 'text',
-			'name'       => $hide_field ? '' : __( 'AWS Bucket Name', 'wpcd' ),
-			'std'        => $auto_backup_bucket,
-			'attributes' => array(
-				// the key of the field (the key goes in the request).
-				'data-wpcd-name' => 'auto_backup_bucket_name',
-			),
-			'size'       => 90,
-			'save_field' => false,
-		);
+		if ( 'on' !== $auto_backup_status ) {
+			// Backups are not currently enabled so we can show all fields.		
+			$fields[]   = array(
+				'id'         => 'wpcd_app_action_auto_backup_bucket_name',
+				'desc'       => $hide_field ? '' : __( 'If this is left blank then the global bucket name from the SETTINGS screen will be used.', 'wpcd' ),
+				'tab'        => 'backup',
+				'type'       => $hide_field ? 'hidden' : 'text',
+				'name'       => $hide_field ? '' : __( 'AWS Bucket Name', 'wpcd' ),
+				'std'        => $auto_backup_bucket,
+				'attributes' => array(
+					// the key of the field (the key goes in the request).
+					'data-wpcd-name' => 'auto_backup_bucket_name',
+				),
+				'size'       => 90,
+				'save_field' => false,
+			);
 
-		$hide_field = (bool) wpcd_get_early_option( 'wordpress_app_site_backup_hide_retention_days' ) && ( ! wpcd_is_admin() );
-		$fields[]   = array(
-			'id'         => 'wpcd_app_action_auto_backup_retention_days',
-			'desc'       => $hide_field ? '' : __( 'If left blank or zero, the backups will never be deleted. If set to -1, we will NEVER keep backups on disk (NOT RECOMMENDED).', 'wpcd' ),
-			'tab'        => 'backup',
-			'type'       => $hide_field ? 'hidden' : 'number',
-			'min'        => -1,
-			'name'       => $hide_field ? '' : __( 'Retention Days', 'wpcd' ),
-			'std'        => $auto_backup_retention_days,
-			'attributes' => array(
-				// the key of the field (the key goes in the request).
-				'data-wpcd-name' => 'auto_backup_retention_days',
-			),
-			'size'       => 90,
-			'save_field' => false,
-		);
+			$hide_field = (bool) wpcd_get_early_option( 'wordpress_app_site_backup_hide_retention_days' ) && ( ! wpcd_is_admin() );
+			$fields[]   = array(
+				'id'         => 'wpcd_app_action_auto_backup_retention_days',
+				'desc'       => $hide_field ? '' : __( 'If left blank or zero, the backups will never be deleted. If set to -1, we will NEVER keep backups on disk (NOT RECOMMENDED).', 'wpcd' ),
+				'tab'        => 'backup',
+				'type'       => $hide_field ? 'hidden' : 'number',
+				'min'        => -1,
+				'name'       => $hide_field ? '' : __( 'Retention Days', 'wpcd' ),
+				'std'        => $auto_backup_retention_days,
+				'attributes' => array(
+					// the key of the field (the key goes in the request).
+					'data-wpcd-name' => 'auto_backup_retention_days',
+				),
+				'size'       => 90,
+				'save_field' => false,
+			);
 
-		$hide_field = (bool) wpcd_get_early_option( 'wordpress_app_site_backup_hide_del_remote_backups' ) && ( ! wpcd_is_admin() );
-		$fields[]   = array(
-			'id'         => 'wpcd_app_action_auto_backup_delete_remotes',
-			'name'       => $hide_field ? '' : __( 'Delete Remote Backups', 'wpcd' ),
-			'tab'        => 'backup',
-			'type'       => $hide_field ? 'hidden' : 'select',
-			'options'    => array(
-				'off' => __( 'Disabled', 'wpcd' ),
-				'on'  => __( 'Enabled', 'wpcd' ),
-			),
-			'std'        => $auto_backup_delete_remotes,
-			'desc'       => $hide_field ? '' : __( 'Delete remote backups when deleting local backups that exceed the retention days. We recommend that you keep this disabled and set a low number for the retention days above.', 'wpcd' ),
-			'attributes' => array(
-				// the key of the field (the key goes in the request).
-				'data-wpcd-name' => 'auto_backup_delete_remotes',
-			),
-			'save_field' => false,
-		);
-
+			$hide_field = (bool) wpcd_get_early_option( 'wordpress_app_site_backup_hide_del_remote_backups' ) && ( ! wpcd_is_admin() );
+			$fields[]   = array(
+				'id'         => 'wpcd_app_action_auto_backup_delete_remotes',
+				'name'       => $hide_field ? '' : __( 'Delete Remote Backups', 'wpcd' ),
+				'tab'        => 'backup',
+				'type'       => $hide_field ? 'hidden' : 'select',
+				'options'    => array(
+					'off' => __( 'Disabled', 'wpcd' ),
+					'on'  => __( 'Enabled', 'wpcd' ),
+				),
+				'std'        => $auto_backup_delete_remotes,
+				'desc'       => $hide_field ? '' : __( 'Delete remote backups when deleting local backups that exceed the retention days. We recommend that you keep this disabled and set a low number for the retention days above.', 'wpcd' ),
+				'attributes' => array(
+					// the key of the field (the key goes in the request).
+					'data-wpcd-name' => 'auto_backup_delete_remotes',
+				),
+				'save_field' => false,
+			);
+		}
 		$fields[] = array(
 			'id'         => 'wpcd_app_action_auto_backup',
-			'name'       => __( 'Schedule It', 'wpcd' ),
+			'name'       => 'on' === $auto_backup_status ? '' : __( 'Schedule It', 'wpcd' ),
 			'tab'        => 'backup',
 			'type'       => 'switch',
 			'on_label'   => __( 'Enabled', 'wpcd' ),
 			'off_label'  => __( 'Disabled', 'wpcd' ),
 			'std'        => $auto_backup_status === 'on',
-			'desc'       => __( 'Enable or disable daily automatic backups', 'wpcd' ),
+			'desc'       => 'on' === $auto_backup_status ? '' : __( 'Enable daily automatic backups', 'wpcd' ),
 			// fields that contribute data for this action.
 			'attributes' => array(
 				// the _action that will be called in ajax.
 				'data-wpcd-action'              => 'backup-run-schedule',
 				// fields that contribute data for this action.
-				'data-wpcd-fields'              => json_encode( array( '#wpcd_app_action_auto_backup_bucket_name', '#wpcd_app_action_auto_backup_retention_days', '#wpcd_app_action_auto_backup_delete_remotes' ) ),                // the id.
+				'data-wpcd-fields'              => 'on' === $auto_backup_status ? '' : json_encode( array( '#wpcd_app_action_auto_backup_bucket_name', '#wpcd_app_action_auto_backup_retention_days', '#wpcd_app_action_auto_backup_delete_remotes' ) ),                // the id.
 				'data-wpcd-id'                  => $id,
 				// make sure we give the user a confirmation prompt.
 				'data-wpcd-confirmation-prompt' => $auto_backups_confirmation_prompt,

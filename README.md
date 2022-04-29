@@ -106,6 +106,22 @@ Note: Even though the entire git development history isn't available on github, 
 [Friendly Release Notes](https://wpclouddeploy.com/category/release-notes/)
 
 ## Change Log ##
+4.16.6
+------
+* New: WPAPP - Add option to filter server list based on whether the server needs to be restarted.
+* Tweak: WPAPP - Hide certain backup fields when backups are enabled - applies to both the backup tab on servers and sites.
+
+4.16.5
+------
+* Fix: WPAPP - An annoying invalid variable warning in the debug.log file when a certain combination of fields were disabled and the app list was rendered.
+* Fix: WPAPP - Copy to server would result in missing users on the target server in certain edge cases.
+* Fix: WPAPP - Activating and deactivating PHP versions did not correctly update the UI in the services tab for servers that were created with certain WPCD versions.
+* Fix: WPAPP - An issue when getting database name and other data from the wp-config.php file where the values are wrapped in double-quotes instead of single-quotes. Some plugins such as duplicator pro insist on polluting that file using double-quotes instead of single quotes as is the wp standard.
+
+4.16.4
+------
+* Fix: WPAPP - An incorrect security check in the clone site action was blocking all clone attempts in some instances.
+
 4.16.3
 ------
 * New: WPAPP - Add the PHP intl module to the base stack on all new servers (Thanks Sidney).

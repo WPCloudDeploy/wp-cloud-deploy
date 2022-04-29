@@ -793,6 +793,9 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				if ( 'disabled' === $current_php_activation_state[ $php_version ] ) {
 					$return = false;
 				}
+				if ( 'enabled' === $current_php_activation_state[ $php_version ] ) {
+					$return = true;
+				}
 			}
 		}
 

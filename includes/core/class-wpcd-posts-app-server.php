@@ -1191,6 +1191,9 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 
 			$server_owners = $this->generate_owner_dropdown( $post_type, 'wpcd_server_owner', __( 'Server Owners', 'wpcd' ) );
 			echo $server_owners;
+
+			$restart_needed = $this->generate_meta_dropdown( $post_type, 'wpcd_server_restart_needed', __( 'Restarted Needed', 'wpcd' ) );
+			echo $restart_needed;
 		}
 	}
 
@@ -1293,6 +1296,12 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 					'value'   => $ipv6,
 					'compare' => '=',
 				);
+
+				// Make sure the field exists otherwise all servers will be returned.  Older servers do not have this value and for some reason WP queries will treat empty values as matching the filter.
+				$qv['meta_query'][] = array(
+					'key'     => 'wpcd_server_ipv6',
+					'compare' => 'EXISTS',
+				);
 			}
 
 			// SERVER OWNER.
@@ -1301,6 +1310,23 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 
 				$qv['author'] = $wpcd_server_owner;
 
+			}
+
+			// RESTART NEEDED.
+			if ( isset( $_GET['wpcd_server_restart_needed'] ) && ! empty( $_GET['wpcd_server_restart_needed'] ) ) {
+				$restart_needed = filter_input( INPUT_GET, 'wpcd_server_restart_needed', FILTER_SANITIZE_STRING );
+
+				$qv['meta_query'][] = array(
+					'field'   => 'wpcd_server_restart_needed',
+					'value'   => $restart_needed,
+					'compare' => '=',
+				);
+
+				// Make sure the field exists otherwise all servers will be returned.  Serves with older callbacks will not have this value and for some reason WP queries will treat empty values as matching the filter.
+				$qv['meta_query'][] = array(
+					'key'     => 'wpcd_server_restart_needed',
+					'compare' => 'EXISTS',
+				);
 			}
 		}
 

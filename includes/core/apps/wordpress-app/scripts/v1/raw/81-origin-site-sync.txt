@@ -49,21 +49,21 @@ function site_sync {
 
     echo "Exporting users..."
     user_name=$(echo $domain | cut -c1-32)
-    sudo grep $user_name /etc/passwd > ~/passwd.prod-$domain
-    sudo grep $user_name /etc/passwd | awk -F: '\''{print $1}'\'' | sudo grep -f - /etc/shadow > ~/shadow.prod-$domain
+    sudo grep -w $user_name /etc/passwd > ~/passwd.prod-$domain
+    sudo grep -w $user_name /etc/passwd | awk -F: '\''{print $1}'\'' | sudo grep -f - /etc/shadow > ~/shadow.prod-$domain
     # sync user to destination
     rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" ~/passwd.prod-$domain $sshuser@$destination_ip:~/passwd.prod-$domain < /dev/null
     rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" ~/shadow.prod-$domain $sshuser@$destination_ip:~/shadow.prod-$domain < /dev/null
     # set up users in the destination
 	echo "Setting up users on destination server..."
-    ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo grep -v $user_name /etc/passwd > ~/passwd.new-$domain && sudo cat ~/passwd.prod-$domain >> ~/passwd.new-$domain && sudo cppw ~/passwd.new-$domain" < /dev/null
-    ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "echo $user_name |sudo grep -vf - /etc/shadow > ~/shadow.new-$domain && sudo cat ~/shadow.prod-$domain >> ~/shadow.new-$domain && sudo cppw -s ~/shadow.new-$domain" < /dev/null
+    ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo grep -wv $user_name /etc/passwd > ~/passwd.new-$domain && sudo cat ~/passwd.prod-$domain >> ~/passwd.new-$domain && sudo cppw ~/passwd.new-$domain" < /dev/null
+    ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "echo $user_name |sudo grep -wvf - /etc/shadow > ~/shadow.new-$domain && sudo cat ~/shadow.prod-$domain >> ~/shadow.new-$domain && sudo cppw -s ~/shadow.new-$domain" < /dev/null
 
     # dump mysql stuff
     echo "Exporting database. This could take a while..."
-    mysql_db=$(grep DB_NAME /var/www/$domain/html/wp-config.php | cut -d "'\''" -f 4)
-    mysql_user=$(grep DB_USER /var/www/$domain/html/wp-config.php | cut -d "'\''" -f 4)
-    mysql_pass=$(grep DB_PASSWORD /var/www/$domain/html/wp-config.php | cut -d "'\''" -f 4)
+    mysql_db=$(grep DB_NAME /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
+    mysql_user=$(grep DB_USER /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
+    mysql_pass=$(grep DB_PASSWORD /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
 
     if [ -z $site_sync_new_db ] || [ $site_sync_new_db == "no" ]
     then

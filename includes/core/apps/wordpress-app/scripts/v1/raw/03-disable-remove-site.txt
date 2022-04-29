@@ -87,8 +87,8 @@ if [[ $action == "remove" || $action == "3" ]]; then
         domain=$(ls /var/www/ | grep -v html | sed -n "$site_number"p)
     done
     sed -i "/$domain/d" /etc/wp-backup.conf 2> /dev/null
-    mysql_db=$(grep DB_NAME /var/www/$domain/html/wp-config.php | cut -d "'" -f 4)
-    mysql_user=$(grep DB_USER /var/www/$domain/html/wp-config.php | cut -d "'" -f 4)
+    mysql_db=$(grep DB_NAME /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d ',' -f2|cut -d')' -f1|tail -c +2 | head -c -2)
+    mysql_user=$(grep DB_USER /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d ',' -f2|cut -d')' -f1|tail -c +2 | head -c -2)
     mariadb <<QUERY
 DROP DATABASE $mysql_db;
 DROP USER '$mysql_user'@'localhost';
@@ -135,8 +135,8 @@ if [[ $action == "remove_full" || $action == "4" ]]; then
         domain=$(ls /var/www/ | grep -v html | sed -n "$site_number"p)
     done
     sed -i "/$domain/d" /etc/wp-backup.conf 2> /dev/null
-    mysql_db=$(grep DB_NAME /var/www/$domain/html/wp-config.php | cut -d "'" -f 4)
-    mysql_user=$(grep DB_USER /var/www/$domain/html/wp-config.php | cut -d "'" -f 4)
+    mysql_db=$(grep DB_NAME /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d ',' -f2|cut -d')' -f1|tail -c +2 | head -c -2)
+    mysql_user=$(grep DB_USER /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d ',' -f2|cut -d')' -f1|tail -c +2 | head -c -2)
     mariadb <<QUERY
 DROP DATABASE $mysql_db;
 DROP USER '$mysql_user'@'localhost';

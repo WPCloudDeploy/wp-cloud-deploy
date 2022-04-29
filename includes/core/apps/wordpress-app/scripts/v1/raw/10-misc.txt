@@ -392,7 +392,7 @@ if [[ $action == "show_disk_usage" || $action == "12" ]]; then
     select_domain
 
     echo
-    mysql_db=$(grep DB_NAME /var/www/$domain/html/wp-config.php | cut -d "'" -f 4)
+    mysql_db=$(grep DB_NAME /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
     # echo "Disk usage for $domain is: $(du -hs /var/www/$domain/ | cut -d '/' -f 1). Backups are also using: $(du -hs ~/.wp-backup/$domain/ | cut -d '/' -f 1) while Mysql is using an additional: $(du -sh /var/lib/mysql/$mysql_db |cut -d '/' -f 1)"
 	echo "Domain Files: $(du -hs /var/www/$domain/ | cut -d '/' -f 1)"
 	if [ -d ~/.wp-backup/$domain/ ] 
@@ -939,7 +939,7 @@ if [[ $action == "status_passauth_ssh" || $action == "31" ]]; then
 fi
 
 if [[ $action == "db_table_list" || $action == "32" ]]; then
-    mysql_db=$(grep DB_NAME /var/www/$domain/html/wp-config.php | cut -d "'" -f 4)
+    mysql_db=$(grep DB_NAME /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
     mysql $mysql_db -e 'show tables'
 fi
 

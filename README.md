@@ -110,7 +110,7 @@ Note: Even though the entire git development history isn't available on github, 
 ------
 * New: WPAPP - Add option to filter server list based on whether the server needs to be restarted.
 * Tweak: WPAPP - Hide certain backup fields when backups are enabled - applies to both the backup tab on servers and sites.
-* Fix: WPAPP - Copy to server would result in missing linux users on the target server in certain edge cases (another edge case).
+* Fix: WPAPP - Copy to server (aka site-sync) would result in missing Linux users on the target server in certain edge cases (yet another edge case).
 
 4.16.5
 ------

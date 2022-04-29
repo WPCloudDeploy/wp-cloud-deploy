@@ -6,7 +6,7 @@
  */
 
 ?>
-
+<div class="wpcd-install-popup-container">
 <!-- Before Logo/header action hook -->
 <?php do_action( "wpcd_{$this->get_app_name()}_create_popup_before_header", $providers, $oslist ); ?>				
 
@@ -219,4 +219,5 @@
 		<?php
 	}
 	?>
+</div>
 </div>

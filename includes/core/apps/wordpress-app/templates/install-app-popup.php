@@ -6,7 +6,7 @@
  */
 
 ?>
-
+<div class="wpcd-install-popup-container">
 <!-- Before logo/header action hook -->
 <?php do_action( "wpcd_{$this->get_app_name()}_install_app_popup_before_header", $server_id, $user_id ); ?>
 
@@ -166,3 +166,4 @@ if ( ! wpcd_user_can( $user_id, 'add_app_wpapp', $server_id ) && $post_author !=
 	</div>
 </div>
 <?php } ?>
+</div>

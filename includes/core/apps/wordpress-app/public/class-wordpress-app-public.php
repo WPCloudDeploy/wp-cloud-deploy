@@ -297,6 +297,11 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 			]
 		);
 		
+		
+		if ( self::is_server_edit_page() || self::is_app_edit_page() ) {
+			wp_enqueue_script( 'wpcd-mbio-tabs-fix.', wpcd_url . 'assets/js/wpcd-mbio-tabs-fix.js', array( 'jquery', 'rwmb-tabs' ), wpcd_scripts_version, true );
+		}
+		
 		wp_enqueue_style( 'wpcd-public-common', wpcd_url . 'includes/core/apps/wordpress-app/assets/css/wpcd-public-common.css', wpcd_scripts_version, true );
 	}
 	

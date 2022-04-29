@@ -71,10 +71,15 @@
             if ($clicked.val() === '') {
                 return;
             }
+            var prependTo = null;
+            if( typeof wpcd_wpapp_params != 'undefined' && wpcd_wpapp_params.is_public ) {
+                prependTo = $('#wpcd_public_wrapper');
+            }
 
             $('a.wpcd_action_show_old_logs').magnificPopup({
                 type: 'ajax',
                 modal: true,
+                prependTo : prependTo,
                 callbacks: {
                     ajaxContentAdded: function () {
                         $('.wpcd-log-console').html(params.i10n.loading);
@@ -167,6 +172,7 @@
                 $('.wpcd-install-server').attr('disabled', 'disabled');
                 $('.wpcd-create-popup-fields-wrap').hide(600);
                 $('.wpcd-create-popup-console-wrap').css('float', 'none');
+                $('.wpcd-create-popup-console-wrap').closest('.wpcd-install-popup-container').addClass('wpcd-install-app-container-show-log-console');
 
                 // set a variable that will count how many times we ask for logs and get nothing back...
                 let log_request_count = 0;
@@ -390,6 +396,7 @@
                 $('.wpcd-install-app').attr('disabled', 'disabled');
                 $('.wpcd-create-popup-fields-wrap').hide(600);
                 $('.wpcd-create-popup-console-wrap').css('float', 'none');
+                $('.wpcd-create-popup-console-wrap').closest('.wpcd-install-popup-container').addClass('wpcd-install-app-container-show-log-console');
 
                 $.ajax({
                     url: ajaxurl,

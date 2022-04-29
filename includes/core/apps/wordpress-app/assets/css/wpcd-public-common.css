@@ -168,6 +168,9 @@
         margin-top: 20px;
 }
 
+#wpcd_public_wrapper .rwmb-input label.rwmb-switch-label {
+     cursor: pointer;   
+}
 
 #wpcd_public_wrapper .rwmb-meta-box.wpcd_server_wordpress-app_tab_top_of_server_details label {
         font-size: 12px;
@@ -187,11 +190,6 @@
 }
 
 
-#wpcd_public_wrapper .mfp-container.mfp-s-ready {
-        height: auto;
-}
-
-
 #wpcd_public_wrapper .wpcd-install-app-container.wpcd-popup {
         width: 100%;
         margin-left: 0;
@@ -200,6 +198,23 @@
         padding-right: 2%;
 }
 
+.wpcd-install-app-container-show-log-console {
+        width: 65%;
+        margin: 0 auto;
+}
+
+.wpcd-install-app-container-show-log-console .wpcd-popup .wpcd-create-popup-console-wrap {
+        width : 100%;
+}
+
+.wpcd-install-app-container-show-log-console .wpcd-header {
+        margin-left: 2%;
+        
+}
+
+.wpcd-header {
+        margin-left: 2%;
+}
 
 #wpcd_public_wrapper .wpcd-install-app-container.wpcd-popup .wpcd-create-popup-input-wrap input, 
 #wpcd_public_wrapper .wpcd-install-app-container.wpcd-popup .wpcd-create-popup-input-wrap select {

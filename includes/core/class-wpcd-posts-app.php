@@ -881,7 +881,7 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 	public function wpcd_app_parse_query( $query ) {
 		global $pagenow;
 
-		if ( is_admin() && $query->is_main_query() && 'wpcd_app' === $query->query['post_type'] && 'edit.php' === $pagenow && ! wpcd_is_admin() ) {
+		if ( ( ( is_admin() && $query->is_main_query() && 'edit.php' === $pagenow ) || wpcd_is_public_apps_list_query( $query ) ) && 'wpcd_app' === $query->query['post_type'] && ! wpcd_is_admin() ) {
 
 			$qv          = &$query->query_vars;
 			$post_status = filter_input( INPUT_GET, 'post_status', FILTER_SANITIZE_STRING );

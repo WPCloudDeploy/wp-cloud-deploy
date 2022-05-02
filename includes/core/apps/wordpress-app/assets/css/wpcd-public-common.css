@@ -283,6 +283,11 @@
     padding: 0;
     font-size: 13px;
     color: #646970;
+    margin-bottom: 10px;
+}
+
+#wpcd_public_wrapper .tablenav .no-pages, #wpcd_public_wrapper .tablenav .one-page .pagination-links {
+        display: none;
 }
 
 #wpcd_public_wrapper .subsubsub li {

@@ -86,8 +86,47 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 		add_filter('pre_get_posts', array( $this, 'pre_get_posts' ) );
 		
 		add_action( 'wp_head', array( $this, 'inline_style' ) );
+		
+		add_filter( "wpcd_public_table_views_wpcd_app_server", array( $this, 'wpcd_app_server_table_views' ), 11, 1 );
+		add_filter( "wpcd_public_table_views_wpcd_app", array( $this, 'wpcd_app_table_views' ), 11, 1 );
+		
+		add_filter( 'removable_query_args', array( $this, 'removable_query_args') );
 	}
 	
+	/**
+	 * Remove _page query var to avoid duplication in pagination url
+	 * 
+	 * @param array $args
+	 * 
+	 * @return array
+	 */
+	function removable_query_args( $args ) {
+		
+		$args[] = '_page';
+		return $args;
+	}
+	
+	/**
+	 * manipulate views for servers table
+	 * 
+	 * @param array $views
+	 * 
+	 * @return array
+	 */
+	function wpcd_app_server_table_views( $views ) {
+		return WPCD_POSTS_APP_SERVER()->wpcd_app_manipulate_views( 'wpcd_app_server', $views, 'view_server', true );
+	}
+	
+	/**
+	 * manipulate views for apps table
+	 * 
+	 * @param array $views
+	 * 
+	 * @return array
+	 */
+	function wpcd_app_table_views( $views ) {
+		return WPCD_POSTS_APP()->wpcd_app_manipulate_views( 'wpcd_app', $views, 'view_server', true );
+	}
 	
 	/**
 	 * Single entry point for all public ajax actions.
@@ -478,6 +517,7 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 				</form>
 		
 			</div>
+			<?php $table->update_table_pagination_js(); ?>
 		</div>
 				
 		<?php
@@ -519,8 +559,8 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 					<input type="hidden" name="post_status" class="post_status_page" value="<?php echo !empty( $post_status ) ? esc_attr( $post_status ) : 'all'; ?>" />
 					<?php $table->display(); ?>
 				</form>
-		
 			</div>
+			<?php $table->update_table_pagination_js(); ?>
 		</div>
 				
 		<?php

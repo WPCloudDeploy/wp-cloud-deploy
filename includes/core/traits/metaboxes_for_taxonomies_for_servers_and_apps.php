@@ -431,9 +431,9 @@ trait wpcd_metaboxes_for_taxonomies_for_servers_and_apps {
 	 *
 	 * @return array
 	 */
-	public function wpcd_app_manipulate_views( $post_type, $views, $permission ) {
+	public function wpcd_app_manipulate_views( $post_type, $views, $permission, $is_public_view = false ) {
 
-		if ( ! is_admin() && ! in_array( $post_type, array( 'wpcd_app_server', 'wpcd_app' ) ) ) {
+		if ( !( is_admin() || $is_public_view ) && ! in_array( $post_type, array( 'wpcd_app_server', 'wpcd_app' ) ) ) {
 			return $views;
 		}
 

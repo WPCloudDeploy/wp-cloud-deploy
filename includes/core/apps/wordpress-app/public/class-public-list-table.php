@@ -14,13 +14,6 @@ if( !class_exists( 'WP_Posts_List_Table' ) ) {
 class WPCD_Public_List_Table extends WP_List_Table {
 	
 	/**
-	 * Items per page
-	 * 
-	 * @var int 
-	 */
-	protected $posts_per_page = 10;
-	
-	/**
 	 * Post type
 	 * 
 	 * @var string 
@@ -35,13 +28,18 @@ class WPCD_Public_List_Table extends WP_List_Table {
 	protected $base_url;
 	
 	/**
-	 * Posts count based on status
+	 * User posts count
 	 * 
-	 * @var array
+	 * @var int
 	 */
-	protected $status_post_counts = array();
-
-
+	protected $user_posts_count;
+	
+	/**
+	 * Current status for posts listing
+	 * 
+	 * @var string
+	 */
+	protected $current_post_status = 'all';
 	/**
 	 * Constructor
 	 * 
@@ -49,13 +47,48 @@ class WPCD_Public_List_Table extends WP_List_Table {
 	 */
 	public function __construct( $args = array() ) {
 		
+		global $wpdb;
+		
 		$this->base_url = isset( $args['base_url'] ) ? $args['base_url'] : '';
 		
 		parent:: __construct( array(
 			'singular' => 'table example',
 			'plural'   => 'table examples',
-			'ajax'     => false
+			'ajax'     => false,
+			'screen' => isset( $args['screen'] ) ? $args['screen'] : null
 		) );
+		
+		$_status = filter_input( INPUT_GET, 'post_status', FILTER_SANITIZE_STRING );
+		$this->current_post_status = $_status ? $_status : 'all';
+		$post_type        = $this->post_type;
+		
+		$post_type_object = get_post_type_object( $post_type );
+		$exclude_states = get_post_stati(
+			array(
+				'show_in_admin_all_list' => false,
+			)
+		);
+		
+		$this->user_posts_count = (int) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT( 1 )
+				FROM $wpdb->posts
+				WHERE post_type = %s
+				AND post_status NOT IN ( '" . implode( "','", $exclude_states ) . "' )
+				AND post_author = %d",
+				$post_type,
+				get_current_user_id()
+			)
+		);
+		
+		
+		if ( $this->user_posts_count
+			&& ! current_user_can( $post_type_object->cap->edit_others_posts )
+			&& empty( $_REQUEST['post_status'] ) && empty( $_REQUEST['all_posts'] )
+			&& empty( $_REQUEST['author'] ) && empty( $_REQUEST['show_sticky'] )
+		) {
+			$_GET['author'] = get_current_user_id();
+		}
 	}
 
 	/**
@@ -68,10 +101,8 @@ class WPCD_Public_List_Table extends WP_List_Table {
 	public function get_pagenum() {
 		
 		$pagenum = 0;
-		if( isset( $_REQUEST['paged'] ) ) {
-			$pagenum = filter_input( INPUT_GET, 'paged', FILTER_SANITIZE_NUMBER_INT );
-		} elseif( get_query_var('paged') ) {
-			$pagenum = get_query_var('paged');
+		if( isset( $_REQUEST['_page'] ) ) {
+			$pagenum = filter_input( INPUT_GET, '_page', FILTER_SANITIZE_NUMBER_INT );
 		}
 		
 		if ( isset( $this->_pagination_args['total_pages'] ) && $pagenum > $this->_pagination_args['total_pages'] ) {
@@ -103,90 +134,104 @@ class WPCD_Public_List_Table extends WP_List_Table {
 		}
 		return $item->post_title;
 	}
-
+	
+	
 	/**
-	 * Prepare data for display
+	 * Return posts per page number
 	 * 
-	 * @see WP_List_Table::prepare_items()
+	 * @return int
 	 */
-	public function prepare_items()
-	{
-		$columns  = $this->get_columns();
-		$hidden   = array();
-		$sortable = $this->get_sortable_columns();
-		$this->_column_headers = array(
-			$columns,
-			$hidden,
-			$sortable
-		);
+	private function posts_per_page() {
+		$posts_per_page = (int) get_user_option( "edit_{$this->post_type}_per_page" );
+		if ( empty( $posts_per_page ) || $posts_per_page < 1 ) {
+			$posts_per_page = 20;
+		}
+		
+		$posts_per_page = apply_filters( "edit_{$this->post_type}_per_page", $posts_per_page );
+		$posts_per_page = apply_filters( 'edit_posts_per_page', $posts_per_page, $this->post_type );
+		
+		return $posts_per_page;
+	}
+	
+	
+	/**
+	 * Return results query
+	 * 
+	 * @param boolean|array $q
+	 * 
+	 * @return \WP_Query
+	 */
+	public function posts_query( $q = false ) {
+		
+		if ( false === $q ) {
+			$q = $_GET;
+		}
+		
+		$post_type = $this->post_type;
+		$post_status      = '';
+		$perm             = '';
+		
+		$post_stati = get_post_stati();
+		
+		if ( isset( $q['post_status'] ) && in_array( $q['post_status'], $post_stati, true ) ) {
+			$post_status = $q['post_status'];
+			$perm        = 'readable';
+		}
+		
+		$posts_per_page = $this->posts_per_page();
+		$paged = $this->get_pagenum();
+		
+		$query = compact( 'post_type', 'post_status', 'perm', 'posts_per_page', 'paged' );
+		$query[ $this->front_id() ] = true;
+		
+		return new WP_Query( $query );
+	}
+	
+	/**
+	 * Prepare results
+	 * 
+	 * @global array $avail_post_stati
+	 */
+	public function prepare_items() {
+		global  $avail_post_stati;
 
-		// SQL results
-		$posts = $this->get_sql_results();
+		$wp_query = $this->posts_query();
 		
-		$this->status_post_counts = array();
+		$post_type = $this->post_type;
 		
-		foreach( $posts as $p ) {
-			$this->status_post_counts[$p->post_status] = isset( $this->status_post_counts[$p->post_status] ) ? $this->status_post_counts[$p->post_status]+1 : 1;
-		}
-		
-		
-		$posts_by_status = array();
-		$items = array();
-		
-		foreach( $posts as $p ) {
-			$posts_by_status[$p->post_status][] = $p;
-		}
-		
-		$_status = filter_input( INPUT_GET, 'post_status', FILTER_SANITIZE_STRING );
-		if( $_status ) {
-			$items = isset( $posts_by_status[$_status] ) ? $posts_by_status[$_status] : array();
+		$avail_post_stati = get_available_post_statuses( $post_type );
+
+		$per_page = $this->posts_per_page();
+
+		if ( $wp_query->found_posts || $this->get_pagenum() === 1 ) {
+			$total_items = $wp_query->found_posts;
 		} else {
-			
-			$all_statuses = get_post_stati( array( 'show_in_admin_all_list' => true ) );
-			
-			foreach( $posts as $p ) {
-				if( !in_array($p->post_status, $all_statuses ) ) {
-					continue;
+			$post_counts = (array) wp_count_posts( $post_type, 'readable' );
+
+			if ( isset( $_REQUEST['post_status'] ) && in_array( $_REQUEST['post_status'], $avail_post_stati, true ) ) {
+				$total_items = $post_counts[ $_REQUEST['post_status'] ];
+			} elseif ( isset( $_GET['author'] ) && get_current_user_id() === (int) $_GET['author'] ) {
+				$total_items = $this->user_posts_count;
+			} else {
+				$total_items = array_sum( $post_counts );
+
+				// Subtract post types that are not included in the admin all list.
+				foreach ( get_post_stati( array( 'show_in_admin_all_list' => false ) ) as $state ) {
+					$total_items -= $post_counts[ $state ];
 				}
-				$items[] = $p;
 			}
 		}
+
+		$this->is_trash = isset( $_REQUEST['post_status'] ) && 'trash' === $_REQUEST['post_status'];
+
+		$this->set_pagination_args(
+			array(
+				'total_items' => $total_items,
+				'per_page'    => $per_page,
+			)
+		);
 		
-		$posts = $items;
-		
-		
-		empty( $posts ) AND $posts = array();
-
-		# >>>> Pagination
-		$per_page     = $this->posts_per_page;
-		$current_page = $this->get_pagenum();
-		$total_items  = count( $posts );
-		$this->set_pagination_args( array (
-			'total_items' => $total_items,
-			'per_page'    => $per_page,
-			'total_pages' => ceil( $total_items / $per_page )
-		) );
-		$last_post = $current_page * $per_page;
-		$first_post = $last_post - $per_page + 1;
-		$last_post > $total_items AND $last_post = $total_items;
-
-		// Setup the range of keys/indizes that contain
-		// the posts on the currently displayed page(d).
-		// Flip keys with values as the range outputs the range in the values.
-		$range = array_flip( range( $first_post - 1, $last_post - 1, 1 ) );
-
-		// Filter out the posts we're not displaying on the current page.
-		$posts_array = array_intersect_key( $posts, $range );
-		# <<<< Pagination
-
-		// Prepare the data
-		$permalink = __( 'Edit:' );
-		foreach ( $posts_array as $key => $post )
-		{
-			$link     = get_edit_post_link( $post->ID );
-			$no_title = __( 'No title set' );
-		}
-		$this->items = $posts_array;
+		$this->items = $wp_query->posts;
 	}
 	
 	/**
@@ -224,41 +269,149 @@ class WPCD_Public_List_Table extends WP_List_Table {
 			$label
 		);
 	}
-
+	
 	/**
-	 * Return status view links
+	 * Print table views
+	 * 
+	 * @return void
+	 */
+	public function views() {
+		$views = $this->get_views();
+		
+		$views = apply_filters( "wpcd_public_table_views_{$this->post_type}", $views );
+
+		if ( empty( $views ) ) {
+			return;
+		}
+
+		echo "<ul class='subsubsub'>\n";
+		foreach ( $views as $class => $view ) {
+			$views[ $class ] = "\t<li class='$class'>$view";
+		}
+		echo implode( " |</li>\n", $views ) . "</li>\n";
+		echo '</ul>';
+	}
+	
+	
+	/**
+	 * Return table views
+	 * 
+	 * @global array $avail_post_stati
 	 * 
 	 * @return array
 	 */
 	protected function get_views() {
-		
-		$class = '';
-		$_status = filter_input( INPUT_GET, 'post_status', FILTER_SANITIZE_STRING );
-		
-		if ( empty( $_status ) ) {
-			$class = 'current';
-		}		
-		
-		$num_posts    = wp_count_posts( $this->post_type, 'readable' );
+		global $avail_post_stati;
+
+		$post_type = $this->post_type;
+
+		$status_links = array();
+		$num_posts    = wp_count_posts( $post_type, 'readable' );
 		
 		$total_posts  = array_sum( (array) $num_posts );
+		$class        = '';
+
+		$current_user_id = get_current_user_id();
+		$all_args        = array();
+		$mine            = '';
 		
 		// Subtract post types that are not included in the admin all list.
 		foreach ( get_post_stati( array( 'show_in_admin_all_list' => false ) ) as $state ) {
 			$total_posts -= $num_posts->$state;
 		}
-		
-		$label = sprintf('%s <span class="count">(%s)</span>', __('All', 'wpcd'), $total_posts );
-		$status_links['all'] = $this->get_status_link( [], $label, $class );
-		
-		foreach( $this->status_post_counts as $status => $count ) {
+
+		if ( $this->user_posts_count && $this->user_posts_count !== $total_posts ) {
+			if ( isset( $_GET['author'] ) && ( $current_user_id === (int) $_GET['author'] ) ) {
+				$class = 'current';
+			}
+
+			$mine_args = array('author'    => $current_user_id);
+
+			$mine_inner_html = sprintf(
+				/* translators: %s: Number of posts. */
+				_nx(
+					'Mine <span class="count">(%s)</span>',
+					'Mine <span class="count">(%s)</span>',
+					$this->user_posts_count,
+					'posts'
+				),
+				number_format_i18n( $this->user_posts_count )
+			);
+
+			$mine = $this->get_status_link( $mine_args, $mine_inner_html , $class );
 			
-			$class = empty( $class ) && !empty( $_status ) && $status === $_status ? 'current' : '';
-			$label = sprintf('%s <span class="count">(%s)</span>', ucfirst($status), $count );
-			$status_links[$status] = $this->get_status_link( [ 'post_status' => $status ], $label , $class );
+			$all_args['all_posts'] = 1;
+			$class                 = '';
+		}
+		
+		if ( empty( $class ) && ( $this->is_base_request() || $this->current_post_status == 'all' ) ) {
+			$class = 'current';
+		}
+
+		$all_inner_html = sprintf(
+			/* translators: %s: Number of posts. */
+			_nx(
+				'All <span class="count">(%s)</span>',
+				'All <span class="count">(%s)</span>',
+				$total_posts,
+				'posts'
+			),
+			number_format_i18n( $total_posts )
+		);
+
+		$status_links['all'] = $this->get_status_link( $all_args, $all_inner_html , $class );
+		
+		if ( $mine ) {
+			$status_links['mine'] = $mine;
+		}
+
+		foreach ( get_post_stati( array( 'show_in_admin_status_list' => true ), 'objects' ) as $status ) {
+			$class = '';
+			$status_name = $status->name;
+			
+			if ( ! in_array( $status_name, $avail_post_stati, true ) || empty( $num_posts->$status_name ) ) {
+				continue;
+			}
+
+			if ( isset( $_REQUEST['post_status'] ) && $status_name === $_REQUEST['post_status'] ) {
+				$class = 'current';
+			}
+
+			$status_args = array('post_status' => $status_name);
+
+			$status_label = sprintf(
+				translate_nooped_plural( $status->label_count, $num_posts->$status_name ),
+				number_format_i18n( $num_posts->$status_name )
+			);
+			
+			$status_links[ $status_name ] = $this->get_status_link( $status_args, $status_label , $class );
 		}
 		
 		return $status_links;
+	}
+	
+	/**
+	 * Update paged query var from pagination links
+	 */
+	public function update_table_pagination_js() {
+		?>
+		<script type="text/javascript">
+		( function($){
+
+			$( function() {
+				$('#posts-filter .tablenav-pages .pagination-links a').each( function() {
+					var url = jQuery(this).attr('href');
+					url = url.replace("paged=", "_page=")
+					$(this).attr('href', url);
+				});
+			});
+			
+			$('#posts-filter .tablenav-pages .paging-input input.current-page[name=paged]').attr('name', '_page');
+
+		})(jQuery);
+		
+		</script>
+		<?php
 	}
 	
 	/**
@@ -282,7 +435,7 @@ class WPCD_Public_List_Table extends WP_List_Table {
 	 */
 	protected function extra_tablenav( $which ) {
 		?>
-		<div class="alignleft actions">
+		<div class="actions">
 		<?php
 		if ( 'top' === $which ) {
 			ob_start();

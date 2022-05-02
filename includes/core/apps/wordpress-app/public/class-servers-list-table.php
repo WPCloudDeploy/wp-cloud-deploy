@@ -24,20 +24,14 @@ class Servers_List_Table extends WPCD_Public_List_Table {
 		parent::__construct( $args );
 		$this->prepare_items();
 	}
-
-
+	
 	/**
-	 * Return server posts for listing
+	 * Id for front end listing query identification
 	 * 
-	 * @return array
+	 * @return string
 	 */
-	protected function get_sql_results() {
-		return get_posts(array(
-			'post_type' => 'wpcd_app_server',
-			'post_status' => 'all',
-			'wpcd_app_server_front' => true,
-			'posts_per_page' => -1
-		));
+	protected function front_id() {
+		return 'wpcd_app_server_front';
 	}
 
 	/**

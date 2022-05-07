@@ -4249,7 +4249,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		global $pagenow;
 
 		$filter_action = filter_input( INPUT_GET, 'filter_action', FILTER_SANITIZE_STRING );
-		if ( is_admin() && $query->is_main_query() && $query->query['post_type'] == 'wpcd_app' && $pagenow == 'edit.php' && ! empty( $filter_action ) ) {
+		if ( ( ( is_admin() && $query->is_main_query() && 'edit.php' === $pagenow ) || wpcd_is_public_apps_list_query( $query ) ) && 'wpcd_app' === $query->query['post_type'] && ! empty( $filter_action ) ) {
 			$qv = &$query->query_vars;
 
 			// APP STATUS.
@@ -4410,7 +4410,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			}
 		}
 
-		if ( is_admin() && $query->is_main_query() && $query->query['post_type'] == 'wpcd_app' && $pagenow == 'edit.php' && ! empty( $_GET['wpapp_php_version'] ) && empty( $filter_action ) ) {
+		if ( ( ( is_admin() && $query->is_main_query() && 'edit.php' === $pagenow ) || wpcd_is_public_apps_list_query( $query ) ) && 'wpcd_app' === $query->query['post_type'] && ! empty( $_GET['wpapp_php_version'] ) && empty( $filter_action ) ) {
 
 			$qv               = &$query->query_vars;
 			$qv['meta_query'] = array();

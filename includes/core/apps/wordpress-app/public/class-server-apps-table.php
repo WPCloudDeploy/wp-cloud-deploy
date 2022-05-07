@@ -77,7 +77,7 @@ class WPCD_Server_Apps_List_Table extends WPCD_Public_List_Table {
 	 * @return string|array
 	 */
 	protected function handle_row_actions($post, $column_name, $primary) {
-		if ( $primary !== $column_name ) {
+		if ( 'title' !== $column_name ) {
 			return '';
 		}
 

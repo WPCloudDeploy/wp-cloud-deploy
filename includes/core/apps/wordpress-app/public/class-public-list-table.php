@@ -414,6 +414,319 @@ class WPCD_Public_List_Table extends WP_List_Table {
 		<?php
 	}
 	
+	
+	function print_style() {
+		
+		
+		$template_columns = implode(' ', $this->grid_template_columns());
+		?>
+		
+		<style>
+			
+				.wpcd-grid-table-columns, .wpcd-grid-table-rows .wpcd-grid-table-row {
+						grid-template-columns : <?php echo $template_columns; ?>
+				}
+				
+				@media screen and (max-width: 1000px) {
+						
+						
+						.wpcd-grid-table .wpcd-grid-table-cell {
+								margin-bottom: 20px;
+						}
+
+						.wpcd-grid-table .row_col_name {
+								display: block;
+						}
+
+						.wpcd-grid-table .wpcd-grid-table-row {
+								box-shadow: 0 1px 3px 0 rgb(0 0 0 / 10%), 0 1px 2px 0 rgb(0 0 0 / 6%);
+								border-radius: 6px;
+								background-color: rgba(255, 255, 255, 0.3);
+								margin-bottom: 20px;
+						}
+
+						.wpcd-grid-table-columns, .wpcd-grid-table-rows .wpcd-grid-table-row {
+							grid-template-columns : 2fr 1fr 1fr;
+							border-bottom: 1px solid #ccc;
+							padding: 20px 0;
+						}
+						
+						.wpcd-grid-table-cell {
+								border : 0;
+						}
+						.wpcd-grid-table-columns {
+								display: none;
+						}
+				}
+				
+				@media screen and (max-width: 650px) {
+						.wpcd-grid-table-columns, .wpcd-grid-table-rows .wpcd-grid-table-row {
+							grid-template-columns : 1fr 1fr;
+						}
+				}
+				
+				@media screen and (max-width: 400px) {
+						.wpcd-grid-table-columns, .wpcd-grid-table-rows .wpcd-grid-table-row {
+							grid-template-columns : 1fr;
+						}
+				}
+		</style>
+		
+		<script type="text/javascript">
+		
+		</script>
+		
+		<?php
+	}
+	
+	function grid_template_columns() {
+		
+		
+		list( $columns, $hidden, $sortable, $primary ) = $this->get_column_info();
+
+		$grid_template = [];
+
+		foreach ( $columns as $column_key => $column_display_name ) {
+			$class = array( 'wpcd-grid-table-col' , 'manage-column', "column-$column_key" );
+			
+			
+			$width = 'minmax(100px, 1fr)';
+			
+			if( $column_key == 'title') {
+				$width = 'minmax(200px, 2fr)';
+			}
+
+			$grid_template[ $column_key ] = $width;
+
+		}
+		
+		
+		return apply_filters( $this->post_type . '_grid_template_columns' , $grid_template );
+		
+		
+	}
+	
+	
+	/**
+	 * Prints column headers, accounting for hidden and sortable columns.
+	 *
+	 * @since 3.1.0
+	 *
+	 * @param bool $with_id Whether to set the ID attribute or not
+	 */
+	public function print_column_headers( $with_id = true ) {
+		list( $columns, $hidden, $sortable, $primary ) = $this->get_column_info();
+
+		$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
+		$current_url = remove_query_arg( 'paged', $current_url );
+
+		if ( isset( $_GET['orderby'] ) ) {
+			$current_orderby = $_GET['orderby'];
+		} else {
+			$current_orderby = '';
+		}
+
+		if ( isset( $_GET['order'] ) && 'desc' === $_GET['order'] ) {
+			$current_order = 'desc';
+		} else {
+			$current_order = 'asc';
+		}
+
+		if ( ! empty( $columns['cb'] ) ) {
+			static $cb_counter = 1;
+			$columns['cb']     = '<label class="screen-reader-text" for="cb-select-all-' . $cb_counter . '">' . __( 'Select All' ) . '</label>'
+				. '<input id="cb-select-all-' . $cb_counter . '" type="checkbox" />';
+			$cb_counter++;
+		}
+
+		foreach ( $columns as $column_key => $column_display_name ) {
+			$class = array( 'wpcd-grid-table-col' , 'manage-column', "column-$column_key" );
+
+			if ( in_array( $column_key, $hidden, true ) ) {
+				$class[] = 'hidden';
+			}
+
+			if ( 'cb' === $column_key ) {
+				$class[] = 'check-column';
+			} elseif ( in_array( $column_key, array( 'posts', 'comments', 'links' ), true ) ) {
+				$class[] = 'num';
+			}
+
+			if ( $column_key === $primary ) {
+				$class[] = 'column-primary';
+			}
+
+			if ( isset( $sortable[ $column_key ] ) ) {
+				list( $orderby, $desc_first ) = $sortable[ $column_key ];
+
+				if ( $current_orderby === $orderby ) {
+					$order = 'asc' === $current_order ? 'desc' : 'asc';
+
+					$class[] = 'sorted';
+					$class[] = $current_order;
+				} else {
+					$order = strtolower( $desc_first );
+
+					if ( ! in_array( $order, array( 'desc', 'asc' ), true ) ) {
+						$order = $desc_first ? 'desc' : 'asc';
+					}
+
+					$class[] = 'sortable';
+					$class[] = 'desc' === $order ? 'asc' : 'desc';
+				}
+
+				$column_display_name = sprintf(
+					'<a href="%s"><span>%s</span><span class="sorting-indicator"></span></a>',
+					esc_url( add_query_arg( compact( 'orderby', 'order' ), $current_url ) ),
+					$column_display_name
+				);
+			}
+
+			//$tag   = ( 'cb' === $column_key ) ? 'td' : 'th';
+			$tag   = 'div';
+			$scope = ( 'th' === $tag ) ? 'scope="col"' : '';
+			$id    = $with_id ? "id='$column_key'" : '';
+
+			if ( ! empty( $class ) ) {
+				$class = "class='" . implode( ' ', $class ) . "'";
+			}
+
+			echo "<$tag $scope $id $class>$column_display_name</$tag>";
+		}
+	}
+	
+	
+	/**
+	 * Generates the tbody element for the list table.
+	 *
+	 * @since 3.1.0
+	 */
+	public function display_rows_or_placeholder() {
+		if ( $this->has_items() ) {
+			echo '<div class="wpcd-grid-table-rows">';
+			$this->display_rows();
+			echo '</div>';
+		} else {
+			echo '<tr class="no-items"><td class="colspanchange" colspan="' . $this->get_column_count() . '">';
+			$this->no_items();
+			echo '</td></tr>';
+		}
+	}
+	
+	/**
+	 * Generates the table rows.
+	 *
+	 * @since 3.1.0
+	 */
+	public function display_rows() {
+		foreach ( $this->items as $item ) {
+			$this->single_row( $item );
+		}
+	}
+
+	/**
+	 * Generates content for a single row of the table.
+	 *
+	 * @since 3.1.0
+	 *
+	 * @param object|array $item The current item
+	 */
+	public function single_row( $item ) {
+		echo '<div class="wpcd-grid-table-row">';
+		$this->single_row_columns( $item );
+		echo '</div>';
+	}
+	
+	
+	/**
+	 * Generates the columns for a single row of the table.
+	 *
+	 * @since 3.1.0
+	 *
+	 * @param object|array $item The current item.
+	 */
+	protected function single_row_columns( $item ) {
+		list( $columns, $hidden, $sortable, $primary ) = $this->get_column_info();
+
+		foreach ( $columns as $column_name => $column_display_name ) {
+			
+			echo '<div class="wpcd-grid-table-cell">';
+			$classes = "$column_name column-$column_name";
+			if ( $primary === $column_name ) {
+				$classes .= ' has-row-actions column-primary';
+			}
+
+			if ( in_array( $column_name, $hidden, true ) ) {
+				$classes .= ' hidden';
+			}
+
+			// Comments column uses HTML in the display name with screen reader text.
+			// Strip tags to get closer to a user-friendly string.
+			$data = 'data-colname="' . esc_attr( wp_strip_all_tags( $column_display_name ) ) . '"';
+
+			$attributes = "class='$classes' $data";
+
+			if ( 'cb' === $column_name ) {
+				echo '<th scope="row" class="check-column">';
+				echo $this->column_cb( $item );
+				echo '</th>';
+			} elseif ( method_exists( $this, '_column_' . $column_name ) ) {
+				echo call_user_func(
+					array( $this, '_column_' . $column_name ),
+					$item,
+					$classes,
+					$data,
+					$primary
+				);
+			} elseif ( method_exists( $this, 'column_' . $column_name ) ) {
+				echo "<div $attributes>";
+				echo "<span class=\"row_col_name\">{$column_display_name}: </span>";
+				echo call_user_func( array( $this, 'column_' . $column_name ), $item );
+				echo $this->handle_row_actions( $item, $column_name, $primary );
+				echo '</div>';
+			} else {
+				echo "<div $attributes>";
+				echo "<span class=\"row_col_name\">{$column_display_name}: </span>";
+				echo $this->column_default( $item, $column_name );
+				echo $this->handle_row_actions( $item, $column_name, $primary );
+				echo '</div>';
+			}
+			
+			echo '</div>';
+		}
+	}
+	
+	/**
+	 * Displays the table.
+	 *
+	 * @since 3.1.0
+	 */
+	public function display() {
+		$singular = $this->_args['singular'];
+
+		$this->display_tablenav( 'top' );
+
+		
+		?>
+<div class="wpcd-list-table wpcd-grid-table <?php echo implode( ' ', $this->get_table_classes() ); ?>">
+	
+	<div class="wpcd-grid-table-columns">
+		<?php $this->print_column_headers(); ?>
+	</div>
+	
+	<?php $this->display_rows_or_placeholder(); ?>
+	
+	<div class="wpcd-grid-table-columns">
+		<?php $this->print_column_headers( false ); ?>
+	</div>
+
+</div>
+		<?php
+		$this->display_tablenav( 'bottom' );
+		
+		$this->print_style();
+	}
+	
 	/**
 	 * Override of table nav to avoid breaking with bulk actions & according nonce field
 	 */

@@ -414,82 +414,58 @@ class WPCD_Public_List_Table extends WP_List_Table {
 		<?php
 	}
 	
-	
-	function print_style() {
+	/**
+	 * Return width for responsive view
+	 * 
+	 * @return int
+	 */
+	function grid_responsive_width() {
 		
+		$responsive_width = 0;
+				
+		foreach( $this->grid_template_columns() as $width_template ) {
+
+			$width = 100;
+			if( preg_match('/^minmax\((.*)px,/', $width_template, $width_match ) ) {
+				$width = (int) $width_match[1];
+			}
+			$responsive_width += $width;
+		}
+		
+		return $responsive_width;
+		
+	}
+	
+	/**
+	 * Print grid table columns template
+	 */
+	function print_style() {
 		
 		$template_columns = implode(' ', $this->grid_template_columns());
 		?>
 		
 		<style>
 			
-				.wpcd-grid-table-columns, .wpcd-grid-table-rows .wpcd-grid-table-row {
-						grid-template-columns : <?php echo $template_columns; ?>
-				}
-				
-				@media screen and (max-width: 1000px) {
-						
-						
-						.wpcd-grid-table .wpcd-grid-table-cell {
-								margin-bottom: 20px;
-						}
-
-						.wpcd-grid-table .row_col_name {
-								display: block;
-						}
-
-						.wpcd-grid-table .wpcd-grid-table-row {
-								box-shadow: 0 1px 3px 0 rgb(0 0 0 / 10%), 0 1px 2px 0 rgb(0 0 0 / 6%);
-								border-radius: 6px;
-								background-color: rgba(255, 255, 255, 0.3);
-								margin-bottom: 20px;
-						}
-
-						.wpcd-grid-table-columns, .wpcd-grid-table-rows .wpcd-grid-table-row {
-							grid-template-columns : 2fr 1fr 1fr;
-							border-bottom: 1px solid #ccc;
-							padding: 20px 0;
-						}
-						
-						.wpcd-grid-table-cell {
-								border : 0;
-						}
-						.wpcd-grid-table-columns {
-								display: none;
-						}
-				}
-				
-				@media screen and (max-width: 650px) {
-						.wpcd-grid-table-columns, .wpcd-grid-table-rows .wpcd-grid-table-row {
-							grid-template-columns : 1fr 1fr;
-						}
-				}
-				
-				@media screen and (max-width: 400px) {
-						.wpcd-grid-table-columns, .wpcd-grid-table-rows .wpcd-grid-table-row {
-							grid-template-columns : 1fr;
-						}
-				}
+			.wpcd-grid-table-columns, .wpcd-grid-table-rows .wpcd-grid-table-row {
+					grid-template-columns : <?php echo $template_columns; ?>
+			}	
 		</style>
-		
-		<script type="text/javascript">
-		
-		</script>
 		
 		<?php
 	}
 	
+	/**
+	 * Return grid table columns template for css
+	 * 
+	 * @return string
+	 */
 	function grid_template_columns() {
-		
-		
 		list( $columns, $hidden, $sortable, $primary ) = $this->get_column_info();
 
 		$grid_template = [];
 
 		foreach ( $columns as $column_key => $column_display_name ) {
 			$class = array( 'wpcd-grid-table-col' , 'manage-column', "column-$column_key" );
-			
-			
 			$width = 'minmax(100px, 1fr)';
 			
 			if( $column_key == 'title') {
@@ -497,13 +473,9 @@ class WPCD_Public_List_Table extends WP_List_Table {
 			}
 
 			$grid_template[ $column_key ] = $width;
-
 		}
 		
-		
 		return apply_filters( $this->post_type . '_grid_template_columns' , $grid_template );
-		
-		
 	}
 	
 	
@@ -607,9 +579,9 @@ class WPCD_Public_List_Table extends WP_List_Table {
 			$this->display_rows();
 			echo '</div>';
 		} else {
-			echo '<tr class="no-items"><td class="colspanchange" colspan="' . $this->get_column_count() . '">';
+			echo '<div class="no-items">';
 			$this->no_items();
-			echo '</td></tr>';
+			echo '</div>';
 		}
 	}
 	
@@ -646,6 +618,11 @@ class WPCD_Public_List_Table extends WP_List_Table {
 	 * @param object|array $item The current item.
 	 */
 	protected function single_row_columns( $item ) {
+		global $post;
+		
+		$global_post = $post;
+		$post = $item;
+		
 		list( $columns, $hidden, $sortable, $primary ) = $this->get_column_info();
 
 		foreach ( $columns as $column_name => $column_display_name ) {
@@ -680,13 +657,13 @@ class WPCD_Public_List_Table extends WP_List_Table {
 				);
 			} elseif ( method_exists( $this, 'column_' . $column_name ) ) {
 				echo "<div $attributes>";
-				echo "<span class=\"row_col_name\">{$column_display_name}: </span>";
+				echo "<span class=\"row_col_name\">{$column_display_name}</span>";
 				echo call_user_func( array( $this, 'column_' . $column_name ), $item );
 				echo $this->handle_row_actions( $item, $column_name, $primary );
 				echo '</div>';
 			} else {
 				echo "<div $attributes>";
-				echo "<span class=\"row_col_name\">{$column_display_name}: </span>";
+				echo "<span class=\"row_col_name\">{$column_display_name}</span>";
 				echo $this->column_default( $item, $column_name );
 				echo $this->handle_row_actions( $item, $column_name, $primary );
 				echo '</div>';
@@ -694,6 +671,8 @@ class WPCD_Public_List_Table extends WP_List_Table {
 			
 			echo '</div>';
 		}
+		
+		$post = $global_post;
 	}
 	
 	/**
@@ -705,10 +684,12 @@ class WPCD_Public_List_Table extends WP_List_Table {
 		$singular = $this->_args['singular'];
 
 		$this->display_tablenav( 'top' );
-
+		$max_width = $this->grid_responsive_width();
 		
 		?>
-<div class="wpcd-list-table wpcd-grid-table <?php echo implode( ' ', $this->get_table_classes() ); ?>">
+<div class="wpcd-list-table wpcd-grid-table <?php echo implode( ' ', $this->get_table_classes() ); ?> table-hidden" data-max-width="<?php echo $max_width; ?>">
+	
+	<div class="wpcd-grid-table-loader"></div>
 	
 	<div class="wpcd-grid-table-columns">
 		<?php $this->print_column_headers(); ?>

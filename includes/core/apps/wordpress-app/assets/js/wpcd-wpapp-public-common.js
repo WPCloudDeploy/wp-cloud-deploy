@@ -10,6 +10,27 @@ var ajaxurl=wpcd_wpapp_params.ajaxurl;
     });
 
     function init() {
+            
+            
+        function table_grid_view() {
+
+            $('.wpcd-list-table.wpcd-grid-table').each( function() {
+
+                    $(this).removeClass('table-hidden');
+                    if( $(this).width() < $(this).data('max-width') ) {
+                            $(this).addClass('gridview');
+                    } else {
+                            $(this).removeClass('gridview');
+                    }
+            });
+
+        }
+        
+        $( window ).resize(function() {
+                table_grid_view();
+        });
+        
+        table_grid_view();
 
         
 

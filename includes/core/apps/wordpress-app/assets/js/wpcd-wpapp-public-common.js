@@ -11,7 +11,8 @@ var ajaxurl=wpcd_wpapp_params.ajaxurl;
 
     function init() {
             
-            
+        
+        // Resize the public/front-end grid
         function table_grid_view() {
 
             $('.wpcd-list-table.wpcd-grid-table').each( function() {
@@ -30,6 +31,7 @@ var ajaxurl=wpcd_wpapp_params.ajaxurl;
                 table_grid_view();
         });
         
+        // Call the function to resize the public/front-end grid on first load (function defined above.)
         table_grid_view();
 
         

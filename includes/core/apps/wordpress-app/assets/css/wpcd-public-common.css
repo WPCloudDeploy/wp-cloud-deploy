@@ -349,7 +349,7 @@ button.wpcd_action_install_app.button {
 }
 
 
-/* The following section handles the formatting of the the table list for servers and sites on the front-end. */
+/* The following section handles the formatting of the table list for servers and sites on the front-end. */
 .wpcd-grid-table {
         border-top: rgba(0, 0, 0, 0.1) solid 1px;
         border-left: rgba(0, 0, 0, 0.1) solid 1px;
@@ -357,9 +357,12 @@ button.wpcd_action_install_app.button {
 
 .wpcd-grid-table-col,
 .wpcd-grid-table-cell {
+		background-color: white;
+		border-radius: 10px;
+		padding: 15px;
         border-bottom: rgba(0, 0, 0, 0.1) solid 1px;
         border-right: rgba(0, 0, 0, 0.1) solid 1px;
-        padding: 5px 10px;
+        padding: 20px;
 }
 
 .wpcd-grid-table .no-items {
@@ -418,14 +421,17 @@ button.wpcd_action_install_app.button {
 }
 
 .wpcd-grid-table-rows .wpcd-grid-table-row {
-        font-size: 13px;
+		color: black;
+		font-size: 13px;
+		font-weight: 600;
 }
 
 .wpcd-grid-table-columns,
 .wpcd-grid-table-rows .wpcd-grid-table-row {
         display: grid;
         width: 100%;
-        grid-auto-rows: auto;		
+        grid-auto-rows: auto;
+		grid-row-gap: 10px;
 }
 
 .wpcd-grid-table-rows .wpcd-grid-table-row {
@@ -443,7 +449,6 @@ button.wpcd_action_install_app.button {
 }
 
 .wpcd-grid-table.gridview .wpcd-grid-table-cell {
-        padding-bottom: 20px;
         border-right: rgba(0, 0, 0, 0.06) solid 1px
 }
 
@@ -456,17 +461,21 @@ button.wpcd_action_install_app.button {
 }
 
 .wpcd-grid-table.gridview .wpcd-grid-table-row {
+		background-color: #AEB1D3;
+		border-radius: 8px;        	
         box-shadow: 0 1px 3px 0 rgb(0 0 0 / 10%), 0 1px 2px 0 rgb(0 0 0 / 6%);
         border-radius: 6px;
-        background-color: rgba(255, 255, 255, 0.3);
+        x-background-color: rgba(255, 255, 255, 0.3);
+		padding: 20px;
         margin-bottom: 20px;
 }
 
 .wpcd-grid-table.gridview .wpcd-grid-table-columns,
 .wpcd-grid-table.gridview .wpcd-grid-table-rows .wpcd-grid-table-row {
         grid-template-columns: 1fr 1fr 1fr;
+		column-gap: 20px;
         border-bottom: 1px solid #ccc;
-        padding: 20px 0;
+        x-padding: 20px 0;
 }
 
 

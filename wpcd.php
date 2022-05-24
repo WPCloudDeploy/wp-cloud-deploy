@@ -439,9 +439,7 @@ class WPCD_Init {
 		$php_version    = phpversion();
 		$php_version_id = str_replace( '.', '0', $php_version );
 
-		if ( ! $this->wpcd_is_admin_notice_active( 'notice-php-warning-1' ) ) {
-			return;
-		} else {
+		if ( $this->wpcd_is_admin_notice_active( 'notice-php-warning-1' ) ) {
 			// Here 70400 is a php version 7.4.0
 			if ( (int) $php_version_id < 70400 ) {
 				$class   = 'notice notice-error is-dismissible';
@@ -454,13 +452,11 @@ class WPCD_Init {
 		if ( in_array( isset( $_SERVER['SERVER_ADDR'] ) ? $_SERVER['SERVER_ADDR'] : '', array( '127.0.0.1', '::1' ), true ) ) {
 			if ( ! wpcd_get_early_option( 'hide-local-host-warning' ) ) {
 
-				if ( ! $this->wpcd_is_admin_notice_active( 'notice-localhost-warning-1' ) ) {
-					return;
+				if ( $this->wpcd_is_admin_notice_active( 'notice-localhost-warning-1' ) ) {
+					$class   = 'notice notice-error is-dismissible';
+					$message = __( '<strong>You cannot run the WPCloudDeploy plugin on a localhost server or a server that cannot be reached from the internet.</strong>', 'wpcd' );
+					printf( '<div data-dismissible="notice-localhost-warning-1" data-action="wpcd_admin_dismissible_notice" data-nonce="%1$s" class="%2$s"><p>%3$s</p></div>', wp_create_nonce( 'wpcd-admin-dismissible-notice' ), $class, $message );
 				}
-
-				$class   = 'notice notice-error is-dismissible';
-				$message = __( '<strong>You cannot run the WPCloudDeploy plugin on a localhost server or a server that cannot be reached from the internet.</strong>', 'wpcd' );
-				printf( '<div data-dismissible="notice-localhost-warning-1" data-action="wpcd_admin_dismissible_notice" data-nonce="%1$s" class="%2$s"><p>%3$s</p></div>', wp_create_nonce( 'wpcd-admin-dismissible-notice' ), $class, $message );
 			}
 		}
 
@@ -790,6 +786,11 @@ class WPCD_Init {
 	public function wpcd_admin_dismissible_notice() {
 		// nonce check.
 		check_ajax_referer( 'wpcd-admin-dismissible-notice', 'nonce' );
+
+		/* Permision check - unsure that this is needed since the action is not destructive and might cause issues if the user sees the message and can't dismiss it because they're not an admin. */
+		if ( ! wpcd_is_admin() ) {
+			wp_send_json_error( array( 'msg' => __( 'You are not authorized to perform this action - dismiss readable check.', 'wpcd' ) ) );
+		}
 
 		$option_name        = isset( $_POST['option_name'] ) ? sanitize_text_field( wp_unslash( $_POST['option_name'] ) ) : '';
 		$dismissible_length = isset( $_POST['dismissible_length'] ) ? sanitize_text_field( wp_unslash( $_POST['dismissible_length'] ) ) : 0;

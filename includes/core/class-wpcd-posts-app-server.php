@@ -1501,8 +1501,9 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 	 * Restricts user to delete a post if he/she doesn't have delete_server permission
 	 *
 	 * @param int $post_id post id.
+	 * @param bool $return true=return a value and break, false=do not return a value. 
 	 *
-	 * @return void
+	 * @return void|boolean
 	 */	
 	public function wpcd_app_server_delete_post( $post_id, $return = false ) {
 

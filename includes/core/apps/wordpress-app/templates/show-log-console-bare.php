@@ -17,14 +17,14 @@
 }
 </style>
 <div class="wpcd-install-app-container-show-log-console">
-<div class="wpcd-install-app-container wpcd-popup">
-	<div class="wpcd-action-title-wrap">
-		<div class="wpcd-action-title"><?php echo esc_html( __( 'Viewing Logs for the Selected Server' ) ); ?></div>
-	</div>
-	<div class="wpcd-create-popup-grid-wrap">
-		<div class = "wpcd-create-popup-console-wrap">
-			<?php require wpcd_path . 'includes/core/apps/wordpress-app/templates/log-console.php'; ?>
+	<div class="wpcd-install-app-container wpcd-popup">
+		<div class="wpcd-action-title-wrap">
+			<div class="wpcd-action-title"><?php echo esc_html( __( 'Viewing Logs for the Selected Server' ) ); ?></div>
+		</div>
+		<div class="wpcd-create-popup-grid-wrap">
+			<div class = "wpcd-create-popup-console-wrap">
+				<?php require wpcd_path . 'includes/core/apps/wordpress-app/templates/log-console.php'; ?>
+			</div>
 		</div>
 	</div>
-</div>
 </div>

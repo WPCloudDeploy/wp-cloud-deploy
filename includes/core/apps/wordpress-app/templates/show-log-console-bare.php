@@ -16,7 +16,7 @@
 	float: none !important;
 }
 </style>
-
+<div class="wpcd-install-app-container-show-log-console">
 <div class="wpcd-install-app-container wpcd-popup">
 	<div class="wpcd-action-title-wrap">
 		<div class="wpcd-action-title"><?php echo esc_html( __( 'Viewing Logs for the Selected Server' ) ); ?></div>
@@ -26,4 +26,5 @@
 			<?php require wpcd_path . 'includes/core/apps/wordpress-app/templates/log-console.php'; ?>
 		</div>
 	</div>
+</div>
 </div>

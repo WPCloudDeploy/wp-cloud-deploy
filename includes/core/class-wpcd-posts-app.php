@@ -224,7 +224,7 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 					// Show the server title - with a link if the user is able to edit it otherwise without the link.
 					$user_id = get_current_user_id();
 					if ( wpcd_user_can( $user_id, 'view_server', $server_post_id ) || get_post( $server_post_id )->post_author === $user_id ) {
-						$value = sprintf( '<a href="%s">' . $server_title . '</a>', get_edit_post_link( $server_post_id ) );
+						$value = sprintf( '<a href="%s">' . $server_title . '</a>', ( is_admin() ? get_edit_post_link( $server_post_id ) : get_permalink( $server_post_id ) ) );
 					} else {
 						$value = $server_title;
 					}
@@ -265,7 +265,11 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 					// do nothing, only admins are allowed to see this data.
 				} else {
 					$value  = empty( $value ) ? $value : $value . '<br />';
-					$url    = admin_url( 'edit.php?post_type=wpcd_app&server_id=' . (string) $server_post_id );
+					if( is_admin() ) {
+						$url    = admin_url( 'edit.php?post_type=wpcd_app&server_id=' . (string) $server_post_id );
+					} else {
+						$url = get_permalink( WPCD_WORDPRESS_APP_PUBLIC::get_apps_list_page_id() ) . '?server_id=' . (string) $server_post_id;
+					}
 					$value .= sprintf( '<a href="%s">%s</a>', $url, __( 'Apps on this server', 'wpcd' ) );
 				}
 
@@ -596,6 +600,18 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 		$server_meta_value = wp_kses_post( get_post_meta( $server_post_id, $meta, $single ) );
 		return $server_meta_value;
 	}
+	
+	/**
+	 * Return prompt messages while deleting/restoring an app
+	 * 
+	 * @return array
+	 */
+	public function wpcd_app_trash_prompt_messages() {
+		return array(
+			'delete' => __( 'Are you sure? This will only delete the data from our database.  The application itself will remain on your server. To remove a WordPress app from the server, cancel this operation and use the REMOVE SITE option under the MISC tab.', 'wpcd' ),
+			'restore' => __( 'Please note: Restoring this item will not necessarily restore your app on the server. This item will likely become an orphaned/ghost item - i.e: it will not have a connection to any app or server.', 'wpcd' ),
+		);
+	}
 
 	/**
 	 * Confirmation prompt for all trash actions on app list/detail screen.
@@ -606,9 +622,11 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 	 * @return true
 	 */
 	public function wpcd_app_trash_prompt() {
+		
+		$messages = $this->wpcd_app_trash_prompt_messages();
 		$screen = get_current_screen();
 		if ( in_array( $screen->id, array( 'edit-wpcd_app', 'wpcd_app' ), true ) ) {
-			$prompt_message = __( 'Are you sure? This will only delete the data from our database.  The application itself will remain on your server. To remove a WordPress app from the server, cancel this operation and use the REMOVE SITE option under the MISC tab.', 'wpcd' );
+			$prompt_message = isset( $messages['delete'] ) ? $messages['delete'] : '';
 			?>
 			<script type="text/javascript">
 				jQuery(document).ready(function($){
@@ -637,7 +655,7 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 		}
 
 		if ( 'edit-wpcd_app' === $screen->id ) {
-			$prompt_message = __( 'Please note: Restoring this item will not necessarily restore your app on the server. This item will likely become an orphaned/ghost item - i.e: it will not have a connection to any app or server.', 'wpcd' );
+			$prompt_message = isset( $messages['restore'] ) ? $messages['restore'] : '';
 			?>
 			<script type="text/javascript">
 				jQuery(document).ready(function($){
@@ -819,7 +837,7 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 
 		$post_type = 'wpcd_app';
 
-		if ( is_admin() && 'edit.php' === $pagenow && $typenow === $post_type ) {
+		if ( (is_admin() && 'edit.php' === $pagenow && $typenow === $post_type) || WPCD_WORDPRESS_APP_PUBLIC::is_apps_list_page() ) {
 
 			$apps = $this->generate_meta_dropdown( $post_type, 'app_type', __( 'All App Types', 'wpcd' ) );
 			echo $apps;
@@ -863,7 +881,7 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 	public function wpcd_app_parse_query( $query ) {
 		global $pagenow;
 
-		if ( is_admin() && $query->is_main_query() && 'wpcd_app' === $query->query['post_type'] && 'edit.php' === $pagenow && ! wpcd_is_admin() ) {
+		if ( ( ( is_admin() && $query->is_main_query() && 'edit.php' === $pagenow ) || wpcd_is_public_apps_list_query( $query ) ) && 'wpcd_app' === $query->query['post_type'] && ! wpcd_is_admin() ) {
 
 			$qv          = &$query->query_vars;
 			$post_status = filter_input( INPUT_GET, 'post_status', FILTER_SANITIZE_STRING );
@@ -877,8 +895,8 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 			}
 		}
 
-		$filter_action = filter_input( INPUT_GET, 'filter_action', FILTER_SANITIZE_STRING );
-		if ( is_admin() && $query->is_main_query() && 'wpcd_app' === $query->query['post_type'] && 'edit.php' === $pagenow && ! empty( $filter_action ) ) {
+		$filter_action = filter_input( INPUT_GET, 'filter_action', FILTER_SANITIZE_STRING );	
+		if ( ( ( is_admin() && $query->is_main_query() && 'edit.php' === $pagenow ) || wpcd_is_public_apps_list_query( $query ) ) && 'wpcd_app' === $query->query['post_type'] && 'Filter' === $filter_action ) {
 			$qv = &$query->query_vars;
 
 			// APP TYPE.
@@ -893,8 +911,9 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 			}
 
 			// SERVER.
-			if ( isset( $_GET['wpcd_app_server'] ) && ! empty( $_GET['wpcd_app_server'] ) ) {
-				$wpcd_app_server = filter_input( INPUT_GET, 'wpcd_app_server', FILTER_SANITIZE_STRING );
+			$_wpcd_app_server = is_admin() ? 'wpcd_app_server' : '_wpcd_app_server';
+			if ( isset( $_GET[$_wpcd_app_server] ) && ! empty( $_GET[$_wpcd_app_server] ) ) {
+				$wpcd_app_server = filter_input( INPUT_GET, $_wpcd_app_server, FILTER_SANITIZE_STRING );
 
 				$qv['meta_query'][] = array(
 					'field'   => 'parent_post_id',
@@ -995,7 +1014,7 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 			}
 		}
 
-		if ( is_admin() && $query->is_main_query() && 'wpcd_app' === $query->query['post_type'] && 'edit.php' === $pagenow && ! empty( $_GET['server_id'] ) && empty( $filter_action ) ) {
+		if ( ( ( is_admin() && $query->is_main_query() && 'edit.php' === $pagenow ) || wpcd_is_public_apps_list_query( $query ) ) && 'wpcd_app' === $query->query['post_type'] && ! empty( $_GET['server_id'] ) && empty( $filter_action ) ) {
 
 			$qv               = &$query->query_vars;
 			$qv['meta_query'] = array();
@@ -1011,8 +1030,8 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 
 		}
 
-		if ( is_admin() && $query->is_main_query() && 'wpcd_app' === $query->query['post_type'] && 'edit.php' === $pagenow && ! empty( $_GET['team_id'] ) && empty( $filter_action ) ) {
-
+		//if ( is_admin() && $query->is_main_query() && 'wpcd_app' === $query->query['post_type'] && 'edit.php' === $pagenow && ! empty( $_GET['team_id'] ) && empty( $filter_action ) ) {
+		if ( ( ( is_admin() && $query->is_main_query() && 'edit.php' === $pagenow ) || wpcd_is_public_apps_list_query( $query ) ) && 'wpcd_app' === $query->query['post_type']  && ! empty( $_GET['team_id'] ) && empty( $filter_action ) ) {
 			$qv               = &$query->query_vars;
 			$qv['meta_query'] = array();
 
@@ -1027,7 +1046,7 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 
 		}
 
-		if ( is_admin() && $query->is_main_query() && 'wpcd_app' === $query->query['post_type'] && 'edit.php' === $pagenow && ! empty( $_GET['wpcd_app_group'] ) && empty( $filter_action ) ) {
+		if ( ( ( is_admin() && $query->is_main_query() && 'edit.php' === $pagenow ) || wpcd_is_public_apps_list_query( $query ) ) && 'wpcd_app' === $query->query['post_type'] && ! empty( $_GET['wpcd_app_group'] ) && empty( $filter_action ) ) {
 
 			$qv = &$query->query_vars;
 
@@ -1197,10 +1216,12 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 	 *
 	 * @return void
 	 */
-	public function wpcd_app_delete_post( $post_id ) {
+	public function wpcd_app_delete_post( $post_id, $return = false ) {
+
+		$success = true;
 
 		// No permissions check if we're running tasks via cron. eg: bulk deletes triggered via pending logs.
-		if ( true === wp_doing_cron() ) {
+		if ( true === wp_doing_cron() && is_admin() ) {
 			return;
 		}
 
@@ -1208,10 +1229,17 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 			$user_id     = (int) get_current_user_id();
 			$post_author = (int) get_post( $post_id )->post_author;
 			if ( ! wpcd_user_can( $user_id, 'delete_app_record', $post_id ) && $post_author !== $user_id ) {
-				wp_die( esc_html( __( 'You don\'t have permission to delete this post.', 'wpcd' ) ) );
+				$success = false;
 			}
 		}
-
+		
+		if( $return ) {
+			return $success;
+		}
+		
+		if( !$success ) {
+			wp_die( esc_html( __( 'You don\'t have permission to delete this post.', 'wpcd' ) ) );
+		}
 	}
 
 	/**
@@ -1308,7 +1336,7 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 				'menu_icon'           => $menu_icon,
 				'public'              => true,
 				'exclude_from_search' => true,
-				'publicly_queryable'  => false,
+				'publicly_queryable'  => true,
 				'hierarchical'        => false,
 				'supports'            => array( '' ),
 				'rewrite'             => null,

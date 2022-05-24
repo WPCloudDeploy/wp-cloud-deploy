@@ -36,9 +36,11 @@
                 formData.append('nonce', params.nonce);
                 formData.append('id', id);
                 formData.append('params', '');
-
-				// Used for the 'spinner'
-                var $lock = $(this).parents('#wpbody-content');
+                
+                var is_public = $('#wpcd_public_wrapper').length == 1;
+                
+                // Used for the 'spinner'
+                var $lock = is_public ? $('body') : $(this).parents('#wpbody-content');
                 $lock.lock();
 
                 $.ajax({
@@ -58,7 +60,8 @@
                             if (data.data.result.msg) {
                                 alert(data.data.result.msg);
                             }
-                            location.href = params.redirect;
+                            var redirect_url = is_public ? wpcd_wpapp_params.apps_list_page_url : params.redirect;
+                            location.href = redirect_url;
                         }
                     },
                     complete: function() {

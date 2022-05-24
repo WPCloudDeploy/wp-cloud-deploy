@@ -457,3 +457,31 @@ function wpcd_init_wpcd_email_notifications() {
 function WPCD_EMAIL_NOTIFICATIONS() {
 	return WPCD()->classes['wpcd_email_notifications'];
 }
+
+add_action( 'init', 'wpcd_init_wordpress_app_public', -10, 1 );
+
+/**
+ * Create a class var for WPCD_WORDPRESS_APP_PUBLIC and
+ * add it to the WPCD array of classes for management
+ *
+ * The WPCD_WORDPRESS_APP_PUBLIC class is used to handle all things
+ * related to just front-end views/actions for servers and wordpress apps.
+ */
+function wpcd_init_wordpress_app_public() {
+	if ( function_exists( 'WPCD' ) ) {
+		if ( class_exists( 'WPCD_WORDPRESS_APP_PUBLIC' ) ) {
+			if ( empty( WPCD()->classes['WPCD_WORDPRESS_APP_PUBLIC'] ) ) {
+				WPCD()->classes['WPCD_WORDPRESS_APP_PUBLIC'] = new WPCD_WORDPRESS_APP_PUBLIC();
+			}
+		}
+	}
+}
+
+/**
+ * Function for calling WPCD_WORDPRESS_APP_PUBLIC methods and variables
+ *
+ * @return WPCD_WORDPRESS_APP_PUBLIC;
+ */
+function WPCD_WORDPRESS_APP_PUBLIC() {
+	return WPCD()->classes['WPCD_WORDPRESS_APP_PUBLIC'];
+}

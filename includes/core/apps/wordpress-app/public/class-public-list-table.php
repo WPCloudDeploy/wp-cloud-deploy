@@ -684,7 +684,18 @@ class WPCD_Public_List_Table extends WP_List_Table {
 		$singular = $this->_args['singular'];
 
 		$this->display_tablenav( 'top' );
-		$max_width = $this->grid_responsive_width();
+
+		/**
+		 * The max width var is added to the table output so that a JS script 
+		 * can dynamically add/remove some css classes to help with responsive
+		 * behavior.
+		 * Usually, the $max_width var is set by calling the $this->grid_responsive_width()
+		 * function.  But because we're not interest in a table display at all,
+		 * we're going to hardcode this value to a ridiculously high number.
+		 * If in the future we want a true grid table, just set the value to the
+		 * $this->grid_responsive_width() function.
+		 */
+		$max_width = 999999;
 
 		?>
 			<div class="wpcd-list-table wpcd-grid-table <?php echo implode( ' ', $this->get_table_classes() ); ?> table-hidden" data-max-width="<?php echo $max_width; ?>">

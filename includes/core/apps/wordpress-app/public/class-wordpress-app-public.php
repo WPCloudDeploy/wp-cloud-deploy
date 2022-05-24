@@ -348,7 +348,7 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 
 		if ( 'RW_Meta_Box' === $name && ( self::is_server_edit_page() || self::is_app_edit_page() ) ) {
 			$name = 'RW_Meta_Box_Public';
-			require_once wpcd_path . 'includes/core/apps/wordpress-app/public/rw_meta_box_public.php';
+			require_once wpcd_path . 'includes/core/apps/wordpress-app/public/rw-meta-box-public.php';
 		}
 		return $name;
 	}

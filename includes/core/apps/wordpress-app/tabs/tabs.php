@@ -71,7 +71,7 @@ class WPCD_WORDPRESS_TABS extends WPCD_WORDPRESS_APP {
 						// the _action that will be called in ajax.
 						'data-wpcd-action'              => $slug,
 						// the id, not of much use.
-						'data-wpcd-id'                  => filter_input( INPUT_GET, 'post', FILTER_VALIDATE_INT ),
+						'data-wpcd-id'                  => wpcd_get_current_page_server_id(),
 						// fields that contribute data for this action. For example, if action is to set a password, this will contain the field ID references for the user id and password fields.
 						'data-wpcd-fields'              => isset( $raw_attributes['data-wpcd-fields'] ) ? $raw_attributes['data-wpcd-fields'] : '',
 						// the key of the field (the key goes in the request). For example, if action is to set a password, this will contain the field NAME references for the user id and password fields.

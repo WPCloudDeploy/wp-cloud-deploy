@@ -56,9 +56,16 @@
                 // Add the console element to the body
                 $('body').append($('<a class="wpcd_app_log_console" href="' + ajaxurl + '?nonce=' + params.nonce + '&_action=show-log-console&action=' + params.action + '"></a>'));
                 var $a = $('body').parent().find('a.wpcd_app_log_console');
+                
+                var prependTo = null;
+                if( typeof wpcd_wpapp_params != 'undefined' && wpcd_wpapp_params.is_public ) {
+                    prependTo = $('#wpcd_public_wrapper');
+                }
+
                 $a.magnificPopup({
                     type: 'ajax',
                     modal: true,
+                    prependTo : prependTo,
                     callbacks: {
                         ajaxContentAdded: function() {
                             $('.wpcd-log-console').html($initial_console_message);

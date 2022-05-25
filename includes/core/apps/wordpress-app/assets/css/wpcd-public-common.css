@@ -460,15 +460,34 @@ button.wpcd_action_install_app.button {
         display: none;
 }
 
-/* Server and app group labels.*/
+/* Server and app groups */
+.wpcd-grid-table .column-wpcd_app_group {
+	/* Grid for server and app groups - three columns.  Label will go in the first row. */
+	display: grid;
+	grid-template: "a a a"
+				   "b b b";	
+	grid-row-gap: 15px;
+	column-gap: 20px;
+}
+.wpcd-grid-table .column-wpcd_app_group .row_col_name {
+	/* Assign label to first row of grid. */
+	grid-area: a;
+}
 .wpcd-grid-table .wpcd-app-server-app-group,
 .wpcd-grid-table .wpcd-app-server-app-group {
-		line-height: 20px;
-		display: block;
-        padding: 10px;
-		color: white;
-		border-radius: 5px;
+	/* Assign server and app groups to the 2nd row of the grid.*/
+	grid-area: b;	
 }
+.wpcd-grid-table .wpcd-app-server-app-group,
+.wpcd-grid-table .wpcd-app-server-app-group {
+	/* format the server and app groups into buttons' */
+	line-height: 20px;
+	display: block;
+	padding: 10px;
+	color: white;
+	border-radius: 5px;
+}
+/* End server and app groups */
 
 /* Adjust the bottom margin in the title column label a bit because we'll be increasing the size of the title. */
 .wpcd-grid-table .column-title .row_col_name {

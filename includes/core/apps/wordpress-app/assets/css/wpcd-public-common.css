@@ -357,11 +357,11 @@ button.wpcd_action_install_app.button {
 
 .wpcd-grid-table-col,
 .wpcd-grid-table-cell {
+		/* Make each table cell a white card. */
 		background-color: white;
 		border-radius: 10px;
-		padding: 15px;
-        border-bottom: rgba(0, 0, 0, 0.1) solid 1px;
-        border-right: rgba(0, 0, 0, 0.1) solid 1px;
+        x-border-bottom: rgba(0, 0, 0, 0.1) solid 1px;
+        x-border-right: rgba(0, 0, 0, 0.1) solid 1px;
         padding: 20px;
 }
 
@@ -417,13 +417,21 @@ button.wpcd_action_install_app.button {
         box-shadow: 0 1px 3px 0 rgb(0 0 0 / 10%), 0 1px 2px 0 rgb(0 0 0 / 6%);
         border-radius: 6px;
         background-color: rgba(255, 255, 255, 0.3);
-        margin-bottom: 20px;
+		margin-top: 10px;		
+        margin-bottom: 10px;
 }
 
 .wpcd-grid-table-rows .wpcd-grid-table-row {
 		color: black;
-		font-size: 13px;
+		font-size: 14px;
 		font-weight: 600;
+		margin-top: 40px;
+		margin-bottom: 40px;		
+		background-color: #AEB1D3;
+        box-shadow: 0 1px 3px 0 rgb(0 0 0 / 10%), 0 1px 2px 0 rgb(0 0 0 / 6%);
+        border-radius: 6px;
+        x-background-color: rgba(255, 255, 255, 0.3);
+		padding: 20px;
 }
 
 .wpcd-grid-table-columns,
@@ -431,7 +439,7 @@ button.wpcd_action_install_app.button {
         display: grid;
         width: 100%;
         grid-auto-rows: auto;
-		grid-row-gap: 10px;
+		grid-row-gap: 15px;
 }
 
 .wpcd-grid-table-rows .wpcd-grid-table-row {
@@ -461,6 +469,7 @@ button.wpcd_action_install_app.button {
 }
 
 .wpcd-grid-table.gridview .wpcd-grid-table-row {
+/*	
 		background-color: #AEB1D3;
 		border-radius: 8px;        	
         box-shadow: 0 1px 3px 0 rgb(0 0 0 / 10%), 0 1px 2px 0 rgb(0 0 0 / 6%);
@@ -468,6 +477,7 @@ button.wpcd_action_install_app.button {
         x-background-color: rgba(255, 255, 255, 0.3);
 		padding: 20px;
         margin-bottom: 20px;
+*/		
 }
 
 .wpcd-grid-table.gridview .wpcd-grid-table-columns,
@@ -481,6 +491,16 @@ button.wpcd_action_install_app.button {
 
 .wpcd-grid-table.gridview .wpcd-grid-table-columns {
         display: none;
+}
+
+/* Server and app group labels.*/
+.wpcd-grid-table .wpcd-app-server-app-group,
+.wpcd-grid-table .wpcd-app-server-app-group {
+		line-height: 20px;
+		display: block;
+        padding: 10px;
+		color: white;
+		border-radius: 5px;
 }
 
 

@@ -442,6 +442,7 @@ button.wpcd_action_install_app.button {
 
 .wpcd-grid-table .row_col_name {
         display: block;
+		margin-bottom: 10px;
 }
 
 .wpcd-grid-table .wpcd-grid-table-columns,

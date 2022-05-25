@@ -349,8 +349,11 @@ button.wpcd_action_install_app.button {
 }
 
 
-/* The following section handles the formatting of the table list for servers and sites on the front-end. */
+/**
+ * The following section handles the formatting of the table list for servers and sites on the front-end. 
+ */
 .wpcd-grid-table {
+		/* Formatting for all elements in the table grid */
 		color: black;
 		font-size: 15px;
 		line-height: 20px;
@@ -359,6 +362,7 @@ button.wpcd_action_install_app.button {
 }
 
 .wpcd-grid-table a {
+		/* Link styling for all elements in the table grid */
 		font-weight: 600;
 		font-style: normal;
 }
@@ -372,7 +376,16 @@ button.wpcd_action_install_app.button {
 }
 
 .wpcd-grid-table .no-items {
+		/* @TODO: Not sure what this does - is it needed?  */
         padding: 10px 0;
+}
+
+
+.wpcd-grid-table-rows {
+		/* All rows are in a grid - right now just one column but later we might adjust to make it two. */
+        display: grid;
+		grid-template-columns: 1fr;
+		column-gap: 20px;			
 }
 
 .wpcd-grid-table.table-hidden .wpcd-grid-table-columns,
@@ -422,44 +435,42 @@ button.wpcd_action_install_app.button {
 		/* Nothing here */
 }
 
-/* Each table row */
 .wpcd-grid-table-rows .wpcd-grid-table-row {
+		/* Each table row */
 		margin-top: 40px;
 		margin-bottom: 40px;		
 		background-color: #AEB1D3;
-        x-box-shadow: 0 1px 3px 0 rgb(0 0 0 / 10%), 0 1px 2px 0 rgb(0 0 0 / 6%);
+        xx-box-shadow: 0 1px 3px 0 rgb(0 0 0 / 10%), 0 1px 2px 0 rgb(0 0 0 / 6%);
         border-radius: 6px;
 		padding: 20px;
 }
 
-.wpcd-grid-table-columns,
-.wpcd-grid-table-rows .wpcd-grid-table-row {
-        display: grid;
-        width: 100%;
+.wpcd-grid-table .wpcd-grid-table-columns,
+.wpcd-grid-table .wpcd-grid-table-rows .wpcd-grid-table-row {
+		/* All cells within a row will also be in a grid. */
+        display: grid;		
+        grid-template-columns: 1fr 1fr 1fr;
+		column-gap: 20px;				
         grid-auto-rows: auto;
 		grid-row-gap: 15px;
+        width: 100%;		
 }
 
 .wpcd-grid-table-rows .wpcd-grid-table-row {
+		/* Set the max width for each table row */
         max-width: 1400px;
 		margin-left: auto;
 		margin-right: auto;
 }
 
 .wpcd-grid-table .row_col_name {
+		/* The column name at the top of each card */
         display: block;
 		margin-bottom: 10px;
 }
 
-.wpcd-grid-table .wpcd-grid-table-columns,
-.wpcd-grid-table .wpcd-grid-table-rows .wpcd-grid-table-row {
-        grid-template-columns: 1fr 1fr 1fr;
-		column-gap: 20px;
-        x-border-bottom: 1px solid #ccc;
-}
-
-/* Table title columns?  */
 .wpcd-grid-table .wpcd-grid-table-columns {
+		/* @TODO: Table title columns?  */
         display: none;
 }
 
@@ -492,8 +503,8 @@ button.wpcd_action_install_app.button {
 }
 /* End server and app groups */
 
-/* Adjust the bottom margin in the title column label a bit because we'll be increasing the size of the title. */
 .wpcd-grid-table .column-title .row_col_name {
+	/* Adjust the bottom margin in the title column label a bit because we'll be increasing the size of the title. */
 	margin-bottom: 5px;
 }
 
@@ -509,6 +520,7 @@ button.wpcd_action_install_app.button {
 	x-text-align: center;
 	color: #5560C2;
 }
+/* End make the title bigger */
 
 /* Make row actions buttons */
 .wpcd-grid-table .row-actions a {
@@ -530,6 +542,7 @@ button.wpcd_action_install_app.button {
 .wpcd-grid-table .row-actions .view a:before {
 	/* View link - nothing here */
 }
+/* End make row actions buttons */
 
 @media screen and (max-width: 1200px) {
 

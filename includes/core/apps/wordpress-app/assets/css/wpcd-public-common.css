@@ -351,11 +351,16 @@ button.wpcd_action_install_app.button {
 
 /* The following section handles the formatting of the table list for servers and sites on the front-end. */
 .wpcd-grid-table {
-		font-size: 14px;
+		color: black;
+		font-size: 15px;
+		line-height: 20px;
+		font-weight: 700;
+		font-style: normal;
 }
 
 .wpcd-grid-table a {
-		font-weight: normal;	
+		font-weight: 600;
+		font-style: normal;
 }
 
 .wpcd-grid-table-col,
@@ -363,7 +368,7 @@ button.wpcd_action_install_app.button {
 		/* Make each table cell a white card. */
 		background-color: white;
 		border-radius: 10px;
-        padding: 20px;
+        padding: 35px 30px 35px 30px;
 }
 
 .wpcd-grid-table .no-items {
@@ -417,14 +422,12 @@ button.wpcd_action_install_app.button {
 		/* Nothing here */
 }
 
+/* Each table row */
 .wpcd-grid-table-rows .wpcd-grid-table-row {
-		color: black;
-		font-size: 14px;
-		font-weight: 600;
 		margin-top: 40px;
 		margin-bottom: 40px;		
 		background-color: #AEB1D3;
-        box-shadow: 0 1px 3px 0 rgb(0 0 0 / 10%), 0 1px 2px 0 rgb(0 0 0 / 6%);
+        x-box-shadow: 0 1px 3px 0 rgb(0 0 0 / 10%), 0 1px 2px 0 rgb(0 0 0 / 6%);
         border-radius: 6px;
 		padding: 20px;
 }
@@ -452,7 +455,7 @@ button.wpcd_action_install_app.button {
 .wpcd-grid-table .wpcd-grid-table-rows .wpcd-grid-table-row {
         grid-template-columns: 1fr 1fr 1fr;
 		column-gap: 20px;
-        border-bottom: 1px solid #ccc;
+        x-border-bottom: 1px solid #ccc;
 }
 
 /* Table title columns?  */
@@ -495,23 +498,29 @@ button.wpcd_action_install_app.button {
 }
 
 /* Make the title bigger */
+.wpcd-grid-table .column-title .row_col_name{
+	display: none;
+}
 .wpcd-grid-table .column-title .row_col_name + a {
 	display: block;
-	font-size: 1.4em;
-	margin-bottom: 15px;
-	text-align: center;
-	
+	font-size: 20px;
+	font-weight: 800;
+	margin-bottom: 20px;
+	x-text-align: center;
+	color: #5560C2;
 }
 
 /* Make row actions buttons */
 .wpcd-grid-table .row-actions a {
 	display: inline-block;
 	background-color: #5560C2;
-	padding: 5px 10px 5px 10px;
-	border-radius: 5px;
+	padding: 9px 17px 9px 17px;
+	border-radius: 6px;
 	color: white;
-	font-weight: normal;
+	font-size: 15px;
+	font-weight: 700;
 	margin-right: 15px;
+	min-width: 90px;
 }
 .wpcd-grid-table .row-actions {
 	/* Center the row action buttons within the card. */

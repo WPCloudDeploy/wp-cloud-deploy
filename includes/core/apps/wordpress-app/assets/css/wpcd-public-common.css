@@ -351,8 +351,7 @@ button.wpcd_action_install_app.button {
 
 /* The following section handles the formatting of the table list for servers and sites on the front-end. */
 .wpcd-grid-table {
-        border-top: rgba(0, 0, 0, 0.1) solid 1px;
-        border-left: rgba(0, 0, 0, 0.1) solid 1px;
+	/* Nothing here */
 }
 
 .wpcd-grid-table-col,
@@ -360,8 +359,6 @@ button.wpcd_action_install_app.button {
 		/* Make each table cell a white card. */
 		background-color: white;
 		border-radius: 10px;
-        x-border-bottom: rgba(0, 0, 0, 0.1) solid 1px;
-        x-border-right: rgba(0, 0, 0, 0.1) solid 1px;
         padding: 20px;
 }
 
@@ -372,7 +369,7 @@ button.wpcd_action_install_app.button {
 
 .wpcd-grid-table.table-hidden .wpcd-grid-table-columns,
 .wpcd-grid-table.table-hidden .wpcd-grid-table-rows {
-        /* display: none; */
+        /* Nothing here */
 }
 
 .wpcd-grid-table-loader {
@@ -406,19 +403,15 @@ button.wpcd_action_install_app.button {
 }
 
 .wpcd-grid-table.mobile .wpcd-grid-table-cell {
-        margin-bottom: 20px;
+        /* Nothing here */
 }
 
 .wpcd-grid-table.mobile .row_col_name {
-        display: block;
+        /* Nothing here */
 }
 
 .wpcd-grid-table.mobile .wpcd-grid-table-row {
-        box-shadow: 0 1px 3px 0 rgb(0 0 0 / 10%), 0 1px 2px 0 rgb(0 0 0 / 6%);
-        border-radius: 6px;
-        background-color: rgba(255, 255, 255, 0.3);
-		margin-top: 10px;		
-        margin-bottom: 10px;
+		/* Nothing here */
 }
 
 .wpcd-grid-table-rows .wpcd-grid-table-row {
@@ -430,7 +423,6 @@ button.wpcd_action_install_app.button {
 		background-color: #AEB1D3;
         box-shadow: 0 1px 3px 0 rgb(0 0 0 / 10%), 0 1px 2px 0 rgb(0 0 0 / 6%);
         border-radius: 6px;
-        x-background-color: rgba(255, 255, 255, 0.3);
 		padding: 20px;
 }
 
@@ -448,48 +440,19 @@ button.wpcd_action_install_app.button {
 		margin-right: auto;
 }
 
-.wpcd-grid-table.gridview {
-        border: 0;
-}
-
-.wpcd-grid-table.gridview .wpcd-grid-table-cell {
-        border: 0;
-}
-
-.wpcd-grid-table.gridview .wpcd-grid-table-cell {
-        border-right: rgba(0, 0, 0, 0.06) solid 1px
-}
-
-.wpcd-grid-table.gridview .wpcd-grid-table-cell:nth-child(3n) {
-        border-right: 0;
-}
-
-.wpcd-grid-table.gridview .row_col_name {
+.wpcd-grid-table .row_col_name {
         display: block;
 }
 
-.wpcd-grid-table.gridview .wpcd-grid-table-row {
-/*	
-		background-color: #AEB1D3;
-		border-radius: 8px;        	
-        box-shadow: 0 1px 3px 0 rgb(0 0 0 / 10%), 0 1px 2px 0 rgb(0 0 0 / 6%);
-        border-radius: 6px;
-        x-background-color: rgba(255, 255, 255, 0.3);
-		padding: 20px;
-        margin-bottom: 20px;
-*/		
-}
-
-.wpcd-grid-table.gridview .wpcd-grid-table-columns,
-.wpcd-grid-table.gridview .wpcd-grid-table-rows .wpcd-grid-table-row {
+.wpcd-grid-table .wpcd-grid-table-columns,
+.wpcd-grid-table .wpcd-grid-table-rows .wpcd-grid-table-row {
         grid-template-columns: 1fr 1fr 1fr;
 		column-gap: 20px;
         border-bottom: 1px solid #ccc;
-        x-padding: 20px 0;
 }
 
-
-.wpcd-grid-table.gridview .wpcd-grid-table-columns {
+/* Table title columns?  */
+.wpcd-grid-table .wpcd-grid-table-columns {
         display: none;
 }
 
@@ -503,34 +466,33 @@ button.wpcd_action_install_app.button {
 		border-radius: 5px;
 }
 
-
 @media screen and (max-width: 1200px) {
 
-        .wpcd-grid-table.gridview .wpcd-grid-table-columns,
-        .wpcd-grid-table.gridview .wpcd-grid-table-rows .wpcd-grid-table-row {
+        .wpcd-grid-table .wpcd-grid-table-columns,
+        .wpcd-grid-table .wpcd-grid-table-rows .wpcd-grid-table-row {
                 grid-template-columns: 1fr 1fr;
         }
 
-        .wpcd-grid-table.gridview .wpcd-grid-table-cell:nth-child(3n) {
-                border-right: rgba(0, 0, 0, 0.06) solid 1px
+        .wpcd-grid-table .wpcd-grid-table-cell:nth-child(3n) {
+                /* Nothing here */
         }
 
-        .wpcd-grid-table.gridview .wpcd-grid-table-cell:nth-child(2n) {
-                border-right: 0;
+        .wpcd-grid-table .wpcd-grid-table-cell:nth-child(2n) {
+                /* Nothing here */
         }
 }
 
 @media screen and (max-width: 650px) {
 
-        .wpcd-grid-table.gridview .wpcd-grid-table-columns,
-        .wpcd-grid-table.gridview .wpcd-grid-table-rows .wpcd-grid-table-row {
+        .wpcd-grid-table .wpcd-grid-table-columns,
+        .wpcd-grid-table .wpcd-grid-table-rows .wpcd-grid-table-row {
                 grid-template-columns: 1fr;
         }
 
-        .wpcd-grid-table.gridview .wpcd-grid-table-cell,
-        .wpcd-grid-table.gridview .wpcd-grid-table-cell:nth-child(3n),
-        .wpcd-grid-table.gridview .wpcd-grid-table-cell:nth-child(2n) {
-                border-right: 0;
+        .wpcd-grid-table .wpcd-grid-table-cell,
+        .wpcd-grid-table .wpcd-grid-table-cell:nth-child(3n),
+        .wpcd-grid-table .wpcd-grid-table-cell:nth-child(2n) {
+                /* Nothing here */
         }
 
 }

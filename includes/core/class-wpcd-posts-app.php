@@ -265,7 +265,7 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 					// do nothing, only admins are allowed to see this data.
 				} else {
 					$value  = empty( $value ) ? $value : $value . '<br />';
-					if( is_admin() ) {
+					if ( is_admin() ) {
 						$url    = admin_url( 'edit.php?post_type=wpcd_app&server_id=' . (string) $server_post_id );
 					} else {
 						$url = get_permalink( WPCD_WORDPRESS_APP_PUBLIC::get_apps_list_page_id() ) . '?server_id=' . (string) $server_post_id;
@@ -600,10 +600,10 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 		$server_meta_value = wp_kses_post( get_post_meta( $server_post_id, $meta, $single ) );
 		return $server_meta_value;
 	}
-	
+
 	/**
 	 * Return prompt messages while deleting/restoring an app
-	 * 
+	 *
 	 * @return array
 	 */
 	public function wpcd_app_trash_prompt_messages() {
@@ -622,7 +622,7 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 	 * @return true
 	 */
 	public function wpcd_app_trash_prompt() {
-		
+
 		$messages = $this->wpcd_app_trash_prompt_messages();
 		$screen = get_current_screen();
 		if ( in_array( $screen->id, array( 'edit-wpcd_app', 'wpcd_app' ), true ) ) {
@@ -837,22 +837,24 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 
 		$post_type = 'wpcd_app';
 
-		if ( (is_admin() && 'edit.php' === $pagenow && $typenow === $post_type) || WPCD_WORDPRESS_APP_PUBLIC::is_apps_list_page() ) {
+		if ( ( is_admin() && 'edit.php' === $pagenow && $typenow === $post_type ) || WPCD_WORDPRESS_APP_PUBLIC::is_apps_list_page() ) {
 
 			$apps = $this->generate_meta_dropdown( $post_type, 'app_type', __( 'All App Types', 'wpcd' ) );
 			echo $apps;
 
-			$servers = $this->generate_server_dropdown( __( 'All Servers', 'wpcd' ) );
-			echo $servers;
+			if ( current_user_can( 'wpcd_manage_servers' ) ) {
+				$servers = $this->generate_server_dropdown( __( 'All Servers', 'wpcd' ) );
+				echo $servers;
 
-			$providers = $this->generate_meta_dropdown( 'wpcd_app_server', 'wpcd_server_provider', __( 'All Providers', 'wpcd' ) );
-			echo $providers;
+				$providers = $this->generate_meta_dropdown( 'wpcd_app_server', 'wpcd_server_provider', __( 'All Providers', 'wpcd' ) );
+				echo $providers;
 
-			$regions = $this->generate_meta_dropdown( 'wpcd_app_server', 'wpcd_server_region', __( 'All Regions', 'wpcd' ) );
-			echo $regions;
+				$regions = $this->generate_meta_dropdown( 'wpcd_app_server', 'wpcd_server_region', __( 'All Regions', 'wpcd' ) );
+				echo $regions;
 
-			$server_owners = $this->generate_owner_dropdown( 'wpcd_app_server', 'wpcd_server_owner', __( 'All Server Owners', 'wpcd' ) );
-			echo $server_owners;
+				$server_owners = $this->generate_owner_dropdown( 'wpcd_app_server', 'wpcd_server_owner', __( 'All Server Owners', 'wpcd' ) );
+				echo $server_owners;
+			}
 
 			$app_owners = $this->generate_owner_dropdown( $post_type, 'wpcd_app_owner', __( 'All App Owners', 'wpcd' ) );
 			echo $app_owners;
@@ -895,7 +897,7 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 			}
 		}
 
-		$filter_action = filter_input( INPUT_GET, 'filter_action', FILTER_SANITIZE_STRING );	
+		$filter_action = filter_input( INPUT_GET, 'filter_action', FILTER_SANITIZE_STRING );
 		if ( ( ( is_admin() && $query->is_main_query() && 'edit.php' === $pagenow ) || wpcd_is_public_apps_list_query( $query ) ) && 'wpcd_app' === $query->query['post_type'] && 'Filter' === $filter_action ) {
 			$qv = &$query->query_vars;
 
@@ -912,7 +914,7 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 
 			// SERVER.
 			$_wpcd_app_server = is_admin() ? 'wpcd_app_server' : '_wpcd_app_server';
-			if ( isset( $_GET[$_wpcd_app_server] ) && ! empty( $_GET[$_wpcd_app_server] ) ) {
+			if ( isset( $_GET[ $_wpcd_app_server ] ) && ! empty( $_GET[ $_wpcd_app_server ] ) ) {
 				$wpcd_app_server = filter_input( INPUT_GET, $_wpcd_app_server, FILTER_SANITIZE_STRING );
 
 				$qv['meta_query'][] = array(
@@ -1030,8 +1032,8 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 
 		}
 
-		//if ( is_admin() && $query->is_main_query() && 'wpcd_app' === $query->query['post_type'] && 'edit.php' === $pagenow && ! empty( $_GET['team_id'] ) && empty( $filter_action ) ) {
-		if ( ( ( is_admin() && $query->is_main_query() && 'edit.php' === $pagenow ) || wpcd_is_public_apps_list_query( $query ) ) && 'wpcd_app' === $query->query['post_type']  && ! empty( $_GET['team_id'] ) && empty( $filter_action ) ) {
+		// if ( is_admin() && $query->is_main_query() && 'wpcd_app' === $query->query['post_type'] && 'edit.php' === $pagenow && ! empty( $_GET['team_id'] ) && empty( $filter_action ) ) {
+		if ( ( ( is_admin() && $query->is_main_query() && 'edit.php' === $pagenow ) || wpcd_is_public_apps_list_query( $query ) ) && 'wpcd_app' === $query->query['post_type'] && ! empty( $_GET['team_id'] ) && empty( $filter_action ) ) {
 			$qv               = &$query->query_vars;
 			$qv['meta_query'] = array();
 
@@ -1232,12 +1234,12 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 				$success = false;
 			}
 		}
-		
-		if( $return ) {
+
+		if ( $return ) {
 			return $success;
 		}
-		
-		if( !$success ) {
+
+		if ( ! $success ) {
 			wp_die( esc_html( __( 'You don\'t have permission to delete this post.', 'wpcd' ) ) );
 		}
 	}

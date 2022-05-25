@@ -335,11 +335,11 @@ button.wpcd_action_install_app.button {
 }
 
 #wpcd_public_wrapper .row-actions {
-        visibility: hidden
+        /* Nothing here */
 }
 
 #wpcd_public_wrapper .wpcd-grid-table-row:hover .row-actions {
-        visibility: visible;
+        /* Nothing here */
 }
 
 
@@ -351,7 +351,11 @@ button.wpcd_action_install_app.button {
 
 /* The following section handles the formatting of the table list for servers and sites on the front-end. */
 .wpcd-grid-table {
-	/* Nothing here */
+		font-size: 14px;
+}
+
+.wpcd-grid-table a {
+		font-weight: normal;	
 }
 
 .wpcd-grid-table-col,
@@ -363,7 +367,6 @@ button.wpcd_action_install_app.button {
 }
 
 .wpcd-grid-table .no-items {
-        font-size: 13px;
         padding: 10px 0;
 }
 
@@ -393,7 +396,7 @@ button.wpcd_action_install_app.button {
 }
 
 .wpcd-grid-table-columns {
-        font-size: 14px;
+		/* Nothing here */
 }
 
 .row_col_name {
@@ -465,6 +468,39 @@ button.wpcd_action_install_app.button {
         padding: 10px;
 		color: white;
 		border-radius: 5px;
+}
+
+/* Adjust the bottom margin in the title column label a bit because we'll be increasing the size of the title. */
+.wpcd-grid-table .column-title .row_col_name {
+	margin-bottom: 5px;
+}
+
+/* Make the title bigger */
+.wpcd-grid-table .column-title .row_col_name + a {
+	display: block;
+	font-size: 1.4em;
+	margin-bottom: 15px;
+	text-align: center;
+	
+}
+
+/* Make row actions buttons */
+.wpcd-grid-table .row-actions a {
+	display: inline-block;
+	background-color: #5560C2;
+	padding: 5px 10px 5px 10px;
+	border-radius: 5px;
+	color: white;
+	font-weight: normal;
+	margin-right: 15px;
+}
+.wpcd-grid-table .row-actions {
+	/* Center the row action buttons within the card. */
+	margin: 0 auto;
+	text-align: center;
+}
+.wpcd-grid-table .row-actions .view a:before {
+	/* View link - nothing here */
 }
 
 @media screen and (max-width: 1200px) {

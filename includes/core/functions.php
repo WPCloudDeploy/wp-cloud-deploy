@@ -753,7 +753,7 @@ function wpcd_can_author_view_server_feature( $id, $feature_name, $user_id = 0 )
  *
  * There is a related function named wpcd_can_author_view_site_tab in /traits/traits-for-class-wordpress-app/tabs-security.php.
  * It handles similar security for site tabs.  Changes and fixes here should probably be considered for that function as well.
- * 
+ *
  * This is also very similar to the wpcd_can_author_view_server_feature function
  * above and changes made here might need to be made there as well.
  *
@@ -1332,6 +1332,110 @@ function wpcd_get_documentation_link( $link_option_key, $default_link ) {
 	}
 }
 
+
+/**
+ * Check if wp_query is for front-end servers listing page
+ *
+ * @param object $query WordPress Query Object.
+ *
+ * @return boolean
+ */
+function wpcd_is_public_servers_list_query( $query ) {
+	return isset( $query->query['wpcd_app_server_front'] ) && $query->query['wpcd_app_server_front'];
+}
+
+/**
+ * Check if wp_query is for front-end apps listing page
+ *
+ * @param object $query WordPress Query Object.
+ *
+ * @return boolean
+ */
+function wpcd_is_public_apps_list_query( $query ) {
+	return isset( $query->query['wpcd_app_front'] ) && $query->query['wpcd_app_front'];
+}
+
+/**
+ * Check if a user can edit a server or app.
+ *
+ * @global object $post
+ *
+ * @param null|int $server_id The post id of the server.
+ * @param null|int $user_id The user id.
+ * @param string   $type Should be 'server' or 'app'.
+ *
+ * @return boolean
+ */
+function wpcd_user_can_edit_app_server( $server_id = null, $user_id = null, $type = 'server' ) {
+
+	if ( null === $server_id ) {
+		global $post;
+		$server_id = $post->ID;
+	}
+
+	if ( null === $user_id ) {
+		$user_id = get_current_user_id();
+	}
+
+	if ( ! $server_id || ! $user_id ) {
+		return false;
+	}
+
+	if ( wpcd_is_admin() ) {
+		return true;
+	}
+
+	$post_author = get_post( $server_id )->post_author;
+
+	return ! ( ! wpcd_user_can( $user_id, 'view_' . $type, $server_id ) && $post_author != $user_id );
+}
+
+/**
+ * Return server id from current page url for front-end or from query var on backend
+ *
+ * @global object $post
+ *
+ * @return string|int
+ */
+function wpcd_get_current_page_server_id() {
+
+	$id = '';
+	if ( is_admin() ) {
+		$id = filter_input( INPUT_GET, 'post', FILTER_VALIDATE_INT );
+	} else {
+		global $post;
+
+		$_server_name = isset( $_SERVER['SERVER_NAME'] ) ? $_SERVER['SERVER_NAME'] : parse_url( home_url( '/' ), PHP_URL_HOST );
+
+		if ( ! $post ) {
+			$id = url_to_postid( 'http://' . $_server_name . $_SERVER['REQUEST_URI'] );
+		} else {
+			$id = $post->ID;
+		}
+	}
+
+	return $id;
+}
+
+/**
+ * Takes a string and wraps it with a span and a class.
+ *
+ * For example, if we get a string such as "Domain:" we might
+ * return <span class="wpcd-column-label-domain">Domain:</span>.
+ *
+ * @param string $string The string to wrap.
+ * @param string $hint A portion of the class name eg: "Domain".
+ * @param string $prefix The classname prefix eg: 'column-label'.
+ *
+ * @return string
+ */
+function wpcd_wrap_string_with_span_and_class( $string, $hint, $prefix ) {
+
+	return '<span class="wpcd-$prefix-$hint">' . $string . '</span>';
+
+}
+
+
 /*
 // Functions in this section are for testing only.
 function wpcd_test_01( $attributes ) {
@@ -1366,87 +1470,3 @@ function wpcd_test_create_popup_after_form_option() {
 add_action( "wpcd_wordpress-app_create_popup_after_form_open", 'wpcd_test_create_popup_after_form_option', 10 );
 */
 
-
-/**
- * Check if wp_query is for front-end servers listing page
- * 
- * @param object $query
- * 
- * @return boolean
- */
-function wpcd_is_public_servers_list_query( $query ) {
-	return isset( $query->query['wpcd_app_server_front'] ) && $query->query['wpcd_app_server_front'];
-}
-
-/**
- * Check if wp_query is for front-end apps listing page
- * 
- * @param object $query
- * 
- * @return boolean
- */
-function wpcd_is_public_apps_list_query( $query ) {
-	return isset( $query->query['wpcd_app_front'] ) && $query->query['wpcd_app_front'];
-}
-
-/**
- * Check if a user can edit a server or app.
- * 
- * @global object $post
- * 
- * @param null|int $server_id
- * @param null|int $user_id
- * @param string $type
- * 
- * @return boolean
- */
-function wpcd_user_can_edit_app_server( $server_id = null, $user_id = null, $type = 'server' ) {
-	
-	if( null === $server_id ) {
-		global $post;
-		$server_id = $post->ID;
-	}
-	
-	if( null === $user_id ) {
-		$user_id     = get_current_user_id();
-	}
-	
-	if( !$server_id || !$user_id ) {
-		return false;
-	}
-	
-	if( wpcd_is_admin() ) {
-		return  true;
-	}
-		
-	$post_author = get_post( $server_id )->post_author;
-	
-	return !( ! wpcd_user_can( $user_id, 'view_' . $type, $server_id ) && $post_author != $user_id );
-}
-
-/**
- * Return server id from current page url for front-end or from query var on backend
- * 
- * @global object $post
- * 
- * @return string|int
- */
-function wpcd_get_current_page_server_id() {
-	
-	$id = '';
-	if( is_admin() ) {
-		$id = filter_input( INPUT_GET, 'post', FILTER_VALIDATE_INT );
-	} else {
-		global $post;
-		
-		$_server_name = isset( $_SERVER['SERVER_NAME'] ) ? $_SERVER['SERVER_NAME'] : parse_url( home_url( '/' ), PHP_URL_HOST );
-		
-		if( !$post ) {
-			$id =      url_to_postid( "http://" . $_server_name . $_SERVER['REQUEST_URI'] );
-		} else {
-			$id = $post->ID;
-		}
-	}
-	
-	return $id;
-}

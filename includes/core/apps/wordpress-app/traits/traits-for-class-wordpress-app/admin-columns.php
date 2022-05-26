@@ -584,13 +584,43 @@ trait wpcd_wpapp_admin_column_data {
 	 */
 	public function app_posts_app_table_head( $defaults ) {
 
+		// Staging.
 		if ( wpcd_get_option( 'wordpress_app_show_staging_column_in_site_list' ) ) {
-			$defaults['wpcd_wpapp_staging'] = __( 'Staging', 'wpcd' );
+			$show_it = true;
+			if ( ! is_admin() && ( boolval( wpcd_get_option( 'wordpress_app_fe_hide_staging_in_app_list' ) ) ) ) {
+				$show_it = false;
+			}
+			if ( $show_it ) {
+				$defaults['wpcd_wpapp_staging'] = __( 'Staging', 'wpcd' );
+			}
 		}
 
-		$defaults['wpcd_wpapp_cache'] = __( 'Cache', 'wpcd' );
-		$defaults['wpcd_wpapp_php']   = __( 'PHP', 'wpcd' );
-		$defaults['wpcd_wpapp_ssl']   = __( 'SSL', 'wpcd' );
+		// Cache.
+		$show_it = true;
+		if ( ! is_admin() && ( boolval( wpcd_get_option( 'wordpress_app_fe_hide_cache_in_app_list' ) ) ) ) {
+			$show_it = false;
+		}
+		if ( $show_it ) {
+			$defaults['wpcd_wpapp_cache'] = __( 'Cache', 'wpcd' );
+		}
+
+		// PHP.
+		$show_it = true;
+		if ( ! is_admin() && ( boolval( wpcd_get_option( 'wordpress_app_fe_hide_php_in_app_list' ) ) ) ) {
+			$show_it = false;
+		}
+		if ( $show_it ) {
+			$defaults['wpcd_wpapp_php'] = __( 'PHP', 'wpcd' );
+		}
+
+		// SSL.
+		$show_it = true;
+		if ( ! is_admin() && ( boolval( wpcd_get_option( 'wordpress_app_fe_hide_ssl_in_app_list' ) ) ) ) {
+			$show_it = false;
+		}
+		if ( $show_it ) {
+			$defaults['wpcd_wpapp_ssl'] = __( 'SSL', 'wpcd' );
+		}
 
 		return $defaults;
 
@@ -732,6 +762,13 @@ trait wpcd_wpapp_admin_column_data {
 							$str .= '<b><i>' . $this->get_formatted_wpadmin_link( $staging_id ) . '</b></i>';
 							$str .= '<br />';
 							$str .= '<b><i>' . $this->get_formatted_site_link( $staging_id ) . '</b></i>';
+						}
+					}
+
+					if ( empty( $str ) ) {
+						if ( ! is_admin() ) {
+							// We're on the front-end so display a message for empty data.
+							$str .= __( 'This is not a staging site.', 'wpcd' );
 						}
 					}
 

@@ -444,15 +444,35 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 		}
 
 		// App Summary.
-		$defaults['wpcd_app_summary'] = __( 'App Summary', 'wpcd' );
+		$show_it = true;
+		if ( ! is_admin() && ( boolval( wpcd_get_option( 'wordpress_app_fe_hide_app_summary_in_app_list' ) ) ) ) {
+			$show_it = false;
+		}
+		if ( $show_it ) {
+			$defaults['wpcd_app_summary'] = __( 'App Summary', 'wpcd' );
+		}
 
 		// App Health.
-		if ( boolval( wpcd_get_option( 'wpcd_show_app_list_health' ) ) ) {
-			$defaults['wpcd_app_health'] = __( 'App Health', 'wpcd' );
+		$show_it = true;
+		if ( ! is_admin() && ( boolval( wpcd_get_option( 'wordpress_app_fe_hide_app_health_in_app_list' ) ) ) ) {
+			$show_it = false;
+		}
+		if ( $show_it ) {
+			if ( boolval( wpcd_get_option( 'wpcd_show_app_list_health' ) ) ) {
+				$defaults['wpcd_app_health'] = __( 'App Health', 'wpcd' );
+			}
 		}
 
 		// Server Data.
-		$defaults['wpcd_server'] = __( 'Server', 'wpcd' );
+		$show_it = true;
+		if ( ! is_admin() && ( boolval( wpcd_get_option( 'wordpress_app_fe_hide_server_in_app_list' ) ) ) ) {
+			$show_it = false;
+		}
+		if ( $show_it ) {
+			$defaults['wpcd_server'] = __( 'Server', 'wpcd' );
+		}
+
+		// IPv4 & IPv6.
 		if ( boolval( wpcd_get_option( 'wpcd_show_app_list_ipv4' ) ) ) {
 			$defaults['wpcd_server_ipv4'] = __( 'IPv4', 'wpcd' );
 			if ( boolval( wpcd_get_option( 'wpcd_show_ipv6' ) ) ) {

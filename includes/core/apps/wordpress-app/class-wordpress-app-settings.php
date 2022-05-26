@@ -1352,6 +1352,13 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tab'  => 'wordpress-app-front-end-fields',
 			),
 			array(
+				'id'      => 'wordpress_app_fe_hide_app_title_in_app_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide Title', 'wpcd' ),
+				'tooltip' => __( 'Hide the title field/card in the app list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),				
+			array(
 				'id'      => 'wordpress_app_fe_hide_app_summary_in_app_list',
 				'type'    => 'checkbox',
 				'name'    => __( 'Hide App Summary', 'wpcd' ),

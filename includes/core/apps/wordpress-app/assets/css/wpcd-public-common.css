@@ -376,9 +376,11 @@
 }
 #wpcd_public_wrapper #wpcd_public_apps_container .wpcd-grid-table-cell:first-child {
 	/* Remove cell background for homepage image.  Unfortunately the cell doesn't have a classname so we use first-child since the home-page image will usually be the first column. */
+	/**** none of this works well right now so removing...
 	padding: 0px;
 	border-radius: 0px;
 	background-color: transparent;
+	****/
 }
 /* End format site image - from powerpack */
 

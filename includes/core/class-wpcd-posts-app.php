@@ -418,6 +418,15 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 
 		unset( $defaults['date'] );
 
+		// Title.
+		$show_it = true;
+		if ( ! is_admin() && ( boolval( wpcd_get_option( 'wordpress_app_fe_hide_app_title_in_app_list' ) ) ) ) {
+			$show_it = false;
+		}
+		if ( ! $show_it ) {
+			unset( $defaults['title'] );
+		}
+
 		// App Type.
 		if ( boolval( wpcd_get_option( 'wpcd_show_app_list_app_type' ) ) ) {
 			$defaults['wpcd_app_type'] = __( 'App Type', 'wpcd' );

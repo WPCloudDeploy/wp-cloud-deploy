@@ -418,18 +418,41 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 
 		unset( $defaults['date'] );
 
+		// App Type.
 		if ( boolval( wpcd_get_option( 'wpcd_show_app_list_app_type' ) ) ) {
 			$defaults['wpcd_app_type'] = __( 'App Type', 'wpcd' );
 		}
+
+		// Short Description.
 		if ( boolval( wpcd_get_option( 'wpcd_show_app_list_short_desc' ) ) ) {
-			$defaults['wpcd_app_short_desc'] = __( 'Description', 'wpcd' );
+			$show_it = true;
+			if ( ! is_admin() && ! ( boolval( wpcd_get_option( 'wordpress_app_fe_show_description_in_app_list' ) ) ) ) {
+				$show_it = false;
+			}
+			if ( $show_it ) {
+				$defaults['wpcd_app_short_desc'] = __( 'Description', 'wpcd' );
+			}
 		}
-		$defaults['wpcd_app_group']   = __( 'App Group', 'wpcd' );
+
+		// App Group.
+		$show_it = true;
+		if ( ! is_admin() && ! ( boolval( wpcd_get_option( 'wordpress_app_fe_show_app_group_in_app_list' ) ) ) ) {
+			$show_it = false;
+		}
+		if ( $show_it ) {
+			$defaults['wpcd_app_group'] = __( 'App Group', 'wpcd' );
+		}
+
+		// App Summary.
 		$defaults['wpcd_app_summary'] = __( 'App Summary', 'wpcd' );
+
+		// App Health.
 		if ( boolval( wpcd_get_option( 'wpcd_show_app_list_health' ) ) ) {
 			$defaults['wpcd_app_health'] = __( 'App Health', 'wpcd' );
 		}
-		$defaults['wpcd_server']      = __( 'Server', 'wpcd' );
+
+		// Server Data.
+		$defaults['wpcd_server'] = __( 'Server', 'wpcd' );
 		if ( boolval( wpcd_get_option( 'wpcd_show_app_list_ipv4' ) ) ) {
 			$defaults['wpcd_server_ipv4'] = __( 'IPv4', 'wpcd' );
 			if ( boolval( wpcd_get_option( 'wpcd_show_ipv6' ) ) ) {
@@ -437,22 +460,52 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 				$defaults['wpcd_server_ipv6'] = __( 'IPv6', 'wpcd' );
 			}
 		}
+
+		// Provider.
 		if ( boolval( wpcd_get_option( 'wpcd_show_app_list_provider' ) ) ) {
 			$defaults['wpcd_server_provider'] = __( 'Provider', 'wpcd' );
 		}
+
+		// Region.
 		if ( boolval( wpcd_get_option( 'wpcd_show_app_list_region' ) ) ) {
 			$defaults['wpcd_server_region'] = __( 'Region', 'wpcd' );
 		}
+
+		// Owners.
 		if ( boolval( wpcd_get_option( 'wpcd_show_app_list_owner' ) ) ) {
-			if ( wpcd_is_admin() || ( ! wpcd_is_admin() && ! boolval( wpcd_get_option( 'wpcd_hide_app_list_owner_non_admins' ) ) ) ) {
+			$show_it = false;
+
+			if ( wpcd_is_admin() ) {
+				$show_it = true;
+			}
+
+			if ( ! wpcd_is_admin() && boolval( wpcd_get_option( 'wpcd_hide_app_list_owner_non_admins' ) ) ) {
+				$show_it = false;
+			}
+
+			if ( ! is_admin() && ! ( boolval( wpcd_get_option( 'wordpress_app_fe_show_owner_in_app_list' ) ) ) ) {
+				$show_it = false;
+			}
+
+			if ( $show_it ) {
 				$defaults['wpcd_owner'] = __( 'Owners', 'wpcd' );
 			}
 		}
+
+		// Date.
 		if ( boolval( wpcd_get_option( 'wpcd_show_app_list_date' ) ) ) {
 			$defaults['date'] = __( 'Date', 'wpcd' );
 		}
+
+		// Team.
 		if ( boolval( wpcd_get_option( 'wpcd_show_app_list_team' ) ) ) {
-			$defaults['wpcd_assigned_teams'] = __( 'Teams', 'wpcd' );
+			$show_it = true;
+			if ( ! is_admin() && ! ( boolval( wpcd_get_option( 'wordpress_app_fe_show_teams_in_app_list' ) ) ) ) {
+				$show_it = false;
+			}
+			if ( $show_it ) {
+				$defaults['wpcd_assigned_teams'] = __( 'Teams', 'wpcd' );
+			}
 		}
 
 		return $defaults;

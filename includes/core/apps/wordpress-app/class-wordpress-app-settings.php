@@ -258,6 +258,10 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'label' => 'Email Gateway',
 				'icon'  => 'dashicons-email-alt2',
 			),
+			'wordpress-app-front-end-fields'     => array(
+				'label' => 'Front-end Fields',
+				'icon'  => 'dashicons-editor-kitchensink',
+			),
 			'wordpress-app-rest-api'             => array(
 				'label' => 'Rest API',
 				'icon'  => 'dashicons-rest-api',
@@ -336,7 +340,8 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 		$rest_api_fields              = $this->rest_api_fields();
 		$white_label_fields           = $this->white_label_fields();
 		$custom_scripts               = $this->custom_script_fields();
-		$all_fields                   = array_merge( $general_fields, $server_fields, $site_fields, $backup_fields, $fields_and_links, $theme_and_plugin_updates, $email_notification_fields, $slack_notification_fields, $zapier_notification_fields, $button_color_settings_fields, $email_gateway_load_defaults, $cf_dns_fields, $rest_api_fields, $white_label_fields, $custom_scripts );
+		$front_end_fields             = $this->front_end_fields();
+		$all_fields                   = array_merge( $general_fields, $server_fields, $site_fields, $backup_fields, $fields_and_links, $theme_and_plugin_updates, $email_notification_fields, $slack_notification_fields, $zapier_notification_fields, $button_color_settings_fields, $email_gateway_load_defaults, $cf_dns_fields, $rest_api_fields, $white_label_fields, $custom_scripts, $front_end_fields );
 		return $all_fields;
 	}
 
@@ -1288,6 +1293,119 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 
 		return $fields;
 	}
+
+	/**
+	 * Array of fields used in the front-end fields tab.
+	 */
+	public function front_end_fields() {
+
+		$fields = array(
+			array(
+				'id'   => 'wordpress_front_end_fields_heading_01',
+				'type' => 'heading',
+				'name' => __( 'Servers', 'wpcd' ),
+				'desc' => __( 'Show fields in the server list and server screens when displaying data on the front-end.  These fields are usually HIDDEN by default.', 'wpcd' ),
+				'tab'  => 'wordpress-app-front-end-fields',
+			),
+
+			array(
+				'id'   => 'wordpress_front_end_fields_heading_03',
+				'type' => 'heading',
+				'name' => __( 'Sites - Show Cards', 'wpcd' ),
+				'desc' => __( 'Show cards in the app/site list and related screens when displaying data on the front-end. These cards are usually HIDDEN by default.', 'wpcd' ),
+				'tab'  => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_show_description_in_app_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Show Description', 'wpcd' ),
+				'tooltip' => __( 'Show the description field/card in the app list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_show_app_group_in_app_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Show App Group', 'wpcd' ),
+				'tooltip' => __( 'Show the application group field/card in the app list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_show_owner_in_app_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Show Owner', 'wpcd' ),
+				'tooltip' => __( 'Show the owner list field/card in the app list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_show_teams_in_app_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Show Teams', 'wpcd' ),
+				'tooltip' => __( 'Show the teams list field/card in the app list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+
+			array(
+				'id'   => 'wordpress_front_end_fields_heading_04',
+				'type' => 'heading',
+				'name' => __( 'Sites - Hide Cards', 'wpcd' ),
+				'desc' => __( 'Hide cards in the app/site list and related screens when displaying data on the front-end. These cards are usually shown by default.', 'wpcd' ),
+				'tab'  => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_hide_app_summary_in_app_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide App Summary', 'wpcd' ),
+				'tooltip' => __( 'Hide the app summary field/card in the app list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),			
+			array(
+				'id'      => 'wordpress_app_fe_hide_app_health_in_app_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide App Health', 'wpcd' ),
+				'tooltip' => __( 'Hide the app health field/card in the app list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_hide_server_in_app_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide Server', 'wpcd' ),
+				'tooltip' => __( 'Hide the server field/card in the app list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_hide_staging_in_app_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide Staging', 'wpcd' ),
+				'tooltip' => __( 'Hide the staging field/card in the app list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_hide_cache_in_app_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide Cache', 'wpcd' ),
+				'tooltip' => __( 'Hide the cache field/card in the app list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_hide_php_in_app_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide php', 'wpcd' ),
+				'tooltip' => __( 'Hide the php field/card in the app list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_hide_ssl_in_app_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide ssl', 'wpcd' ),
+				'tooltip' => __( 'Hide the SSL field/card in the app list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+
+		);
+
+		return $fields;
+	}
+
 
 	/**
 	 * Array of fields used to store the default s3 backup settings

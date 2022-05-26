@@ -792,5 +792,47 @@ class WPCD_Public_List_Table extends WP_List_Table {
 		 */
 		do_action( 'manage_posts_extra_tablenav', $which );
 	}
+	
+	
+	/**
+	 * Generates the required HTML for a list of row action links.
+	 *
+	 * @since 3.1.0
+	 *
+	 * @param string[] $actions        An array of action links.
+	 * @param bool     $always_visible Whether the actions should be always visible.
+	 * @return string The HTML for the row actions.
+	 */
+	protected function row_actions( $actions, $always_visible = false ) {
+		$action_count = count( $actions );
+
+		if ( ! $action_count ) {
+			return '';
+		}
+
+		$mode = get_user_setting( 'posts_list_mode', 'list' );
+
+		if ( 'excerpt' === $mode ) {
+			$always_visible = true;
+		}
+
+		$out = '<div class="' . ( $always_visible ? 'row-actions visible' : 'row-actions' ) . '">';
+
+		$i = 0;
+
+		foreach ( $actions as $action => $link ) {
+			++$i;
+
+			$sep = ( $i < $action_count ) ? ' ' : '';
+
+			$out .= "<span class='$action'>$link$sep</span>";
+		}
+
+		$out .= '</div>';
+
+		$out .= '<button type="button" class="toggle-row"><span class="screen-reader-text">' . __( 'Show more details' ) . '</span></button>';
+
+		return $out;
+	}
 
 }

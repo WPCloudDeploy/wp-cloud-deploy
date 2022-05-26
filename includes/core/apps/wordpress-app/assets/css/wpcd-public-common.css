@@ -580,9 +580,6 @@
 }
 
 /* Make the title bigger */
-.wpcd-grid-table .column-title .row_col_name{
-	display: none;
-}
 .wpcd-grid-table .column-title .row_col_name + a {
 	display: block;
 	font-size: 20px;
@@ -590,6 +587,9 @@
 	margin-bottom: 20px;
 	x-text-align: center;
 	color: #5560C2;
+}
+.wpcd-grid-table .column-title .row_col_name{
+	/* Note used - can be used to hide the title label.*/
 }
 /* End make the title bigger */
 

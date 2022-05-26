@@ -657,7 +657,7 @@ class WPCD_Settings {
 							'name'    => __( 'Show the server IP column?', 'wpcd' ),
 							'tooltip' => __( 'The server IP is shown under the SERVER column to save space.  If you would like to sort the list by this field then you need to enable this option so that it is shown in its own column.', 'wpcd' ),
 						),
-						
+
 						array(
 							'id'      => 'wpcd_show_app_list_health',
 							'type'    => 'checkbox',
@@ -2209,6 +2209,14 @@ class WPCD_Settings {
 		$wpcd_settings['wordpress_app_medium_background_color']           = WPCD_MEDIUM_BG_COLOR;
 		$wpcd_settings['wordpress_app_light_background_color']            = WPCD_LIGHT_BG_COLOR;
 		$wpcd_settings['wordpress_app_alternate_accent_background_color'] = WPCD_ALTERNATE_ACCENT_BG_COLOR;
+
+		$wpcd_settings['wordpress_app_fe_primary_brand_color']               = WPCD_FE_PRIMARY_BRAND_COLOR;
+		$wpcd_settings['wordpress_app_fe_secondary_brand_color']             = WPCD_FE_SECONDARY_BRAND_COLOR;
+		$wpcd_settings['wordpress_app_fe_tertiary_brand_color']              = WPCD_FE_TERTIARY_BRAND_COLOR;
+		$wpcd_settings['wordpress_app_fe_accent_background_color']           = WPCD_FE_ACCENT_BG_COLOR;
+		$wpcd_settings['wordpress_app_fe_medium_background_color']           = WPCD_FE_MEDIUM_BG_COLOR;
+		$wpcd_settings['wordpress_app_fe_light_background_color']            = WPCD_FE_LIGHT_BG_COLOR;
+		$wpcd_settings['wordpress_app_fe_alternate_accent_background_color'] = WPCD_FE_ALTERNATE_ACCENT_BG_COLOR;
 
 		// Update the settings options.
 		update_option( 'wpcd_settings', $wpcd_settings );

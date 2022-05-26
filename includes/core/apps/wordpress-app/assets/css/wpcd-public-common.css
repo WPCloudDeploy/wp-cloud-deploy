@@ -351,8 +351,8 @@
 		text-decoration: none;		
 }
 #wpcd_public_wrapper a.deploy_button:hover {
-		border-color: #5560C2;	
-		background-color: #5560C2;
+		border-color: var(--wpcd-front-end-accent-background-color);
+		background-color: var(--wpcd-front-end-accent-background-color);
 }
 /* End format DEPLOY WORDPRESS SERVER button. */
 
@@ -475,7 +475,8 @@
 		/* Each table row */
 		margin-top: 40px;
 		margin-bottom: 40px;		
-		background-color: #AEB1D3;
+		xx-background-color: #AEB1D3;
+		background-color: var(--wpcd-front-end-alternate-accent-background-color);
         xx-box-shadow: 0 1px 3px 0 rgb(0 0 0 / 10%), 0 1px 2px 0 rgb(0 0 0 / 6%);
         border-radius: 6px;
 		padding: 20px;
@@ -552,7 +553,6 @@
 .wpcd-grid-table [class^="wpcd-app-col-element-value-"],
 .wpcd-grid-table [class*=" wpcd-app-col-element-value-"] {
 	float: right;
-	xpadding-top: 10px;
 }
 /* End style in-line value */
 
@@ -560,12 +560,16 @@
 .wpcd-grid-table .wpcd-app-col-element-label-apps_on_server a {
 	display: inline-block;
 	margin-top: 10px;
-	background-color: #5560C2;
+	background-color: var(--wpcd-front-end-accent-background-color);
 	padding: 9px 17px 9px 17px;
 	border-radius: 6px;
 	color: white;
 	font-size: 15px;
 	font-weight: 700;
+}
+.wpcd-grid-table .wpcd-app-col-element-label-apps_on_server a:hover {
+	text-decoration: none;
+	background-color: var(--wpcd-front-end-primary-brand-color);
 }
 /* End Style the "apps on this server link" */
 
@@ -586,17 +590,17 @@
 	font-weight: 800;
 	margin-bottom: 20px;
 	x-text-align: center;
-	color: #5560C2;
+	color: var(--wpcd-front-end-primary-brand-color);
 }
 .wpcd-grid-table .column-title .row_col_name{
 	/* Note used - can be used to hide the title label.*/
 }
 /* End make the title bigger */
 
-/* Make row actions buttons */
+/* Make row action links buttons */
 .wpcd-grid-table .row-actions a {
 	display: inline-block;
-	background-color: #5560C2;
+	background-color: var(--wpcd-front-end-accent-background-color);
 	padding: 9px 17px 9px 17px;
 	border-radius: 6px;
 	color: white;
@@ -605,6 +609,10 @@
 	margin-right: 15px;
 	margin-bottom: 20px;
 	min-width: 90px;
+}
+.wpcd-grid-table .row-actions a:hover {
+	text-decoration: none;
+	background-color: var(--wpcd-front-end-primary-brand-color);
 }
 .wpcd-grid-table .row-actions {
 	/* Center the row action buttons within the card. */

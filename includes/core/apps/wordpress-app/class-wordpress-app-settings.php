@@ -1959,59 +1959,59 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			'hidden'           => array( 'wordpress_app_noshow_logo', '=', '1' ),
 		);
 
-		// Brand Colors.
+		// Brand Colors - wp-admin.
 		$fields[] = array(
-			'name' => __( 'Brand Colors', 'wpcd' ),
+			'name' => __( 'Brand Colors- WP-Admin', 'wpcd' ),
 			'id'   => 'wordpress-app-brand-colors-heading',
 			'type' => 'heading',
 			'std'  => '',
-			'desc' => __( 'These settings are used to manage your brand colors.', 'wpcd' ),
+			'desc' => __( 'These settings are used to manage your brand colors in the wp-admin area.', 'wpcd' ),
 			'tab'  => 'wordpress-app-white-label',
 		);
 
 		/**
-		 * Overrides Brand Colors.
+		 * Overrides Brand Colors for wp-admin.
 		 */
 		// An array of ids and labels for color fields that overide brand colors.
 		$brand_colors = array(
 			'wordpress_app_primary_brand_color'     => array(
 				'label' => __( 'Primary Brand Color', 'wpcd' ),
 				'desc'  => '',
-				'std'   => '#E91E63',
+				'std'   => WPCD_PRIMARY_BRAND_COLOR,
 			),
 			'wordpress_app_secondary_brand_color'   => array(
 				'label' => __( 'Secondary Brand Color', 'wpcd' ),
 				'desc'  => '',
-				'std'   => '#FF5722',
+				'std'   => WPCD_SECONDARY_BRAND_COLOR,
 			),
 			'wordpress_app_tertiary_brand_color'    => array(
 				'label' => __( 'Tertiary Brand Color', 'wpcd' ),
 				'desc'  => '',
-				'std'   => '#03114A',
+				'std'   => WPCD_TERTIARY_BRAND_COLOR,
 			),
 			'wordpress_app_accent_background_color' => array(
 				'label' => __( 'Accent Background Color', 'wpcd' ),
 				'desc'  => '',
-				'std'   => '#3F4C5F',
+				'std'   => WPCD_ACCENT_BG_COLOR,
 			),
 			'wordpress_app_medium_background_color' => array(
 				'label' => __( 'Medium Background Color', 'wpcd' ),
 				'desc'  => '',
-				'std'   => '#FAFAFA',
+				'std'   => WPCD_MEDIUM_BG_COLOR,
 			),
 			'wordpress_app_light_background_color'  => array(
 				'label' => __( 'Light Background Color', 'wpcd' ),
 				'desc'  => '',
-				'std'   => '#FDFDFD',
+				'std'   => WPCD_LIGHT_BG_COLOR,
 			),
 			'wordpress_app_alternate_accent_background_color' => array(
 				'label' => __( 'Alternate Accent Background Color', 'wpcd' ),
 				'desc'  => '',
-				'std'   => '#CFD8DC',
+				'std'   => WPCD_ALTERNATE_ACCENT_BG_COLOR,
 			),
 		);
 
-		// Loop through the brand colors array and generate settings fields.
+		// Loop through the wp-admin brand colors array and generate settings fields.
 		foreach ( $brand_colors as $brand_key => $brand_value ) {
 			// First column is just the label with the tab name.
 			$fields[] = array(
@@ -2025,7 +2025,73 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			);
 		}
 
-		// RESET DEFAULTS BRAND COLORS.
+		// Brand Colors - front-end.
+		$fields[] = array(
+			'name' => __( 'Brand Colors - Front-End', 'wpcd' ),
+			'id'   => 'wordpress-app-brand-colors-heading',
+			'type' => 'heading',
+			'std'  => '',
+			'desc' => __( 'These settings are used to manage your brand colors shown on the front-end of your site.', 'wpcd' ),
+			'tab'  => 'wordpress-app-white-label',
+		);
+
+		/**
+		 * Overrides Brand Colors the front-end.
+		 */
+		// An array of ids and labels for color fields that overide brand colors.
+		$brand_colors = array(
+			'wordpress_app_fe_primary_brand_color'     => array(
+				'label' => __( 'Primary Brand Color', 'wpcd' ),
+				'desc'  => '',
+				'std'   => WPCD_FE_PRIMARY_BRAND_COLOR,
+			),
+			'wordpress_app_fe_secondary_brand_color'   => array(
+				'label' => __( 'Secondary Brand Color', 'wpcd' ),
+				'desc'  => '',
+				'std'   => WPCD_FE_SECONDARY_BRAND_COLOR,
+			),
+			'wordpress_app_fe_tertiary_brand_color'    => array(
+				'label' => __( 'Tertiary Brand Color', 'wpcd' ),
+				'desc'  => '',
+				'std'   => WPCD_FE_TERTIARY_BRAND_COLOR,
+			),
+			'wordpress_app_fe_accent_background_color' => array(
+				'label' => __( 'Accent Background Color', 'wpcd' ),
+				'desc'  => '',
+				'std'   => WPCD_FE_ACCENT_BG_COLOR,
+			),
+			'wordpress_app_fe_medium_background_color' => array(
+				'label' => __( 'Medium Background Color', 'wpcd' ),
+				'desc'  => '',
+				'std'   => WPCD_FE_MEDIUM_BG_COLOR,
+			),
+			'wordpress_app_fe_light_background_color'  => array(
+				'label' => __( 'Light Background Color', 'wpcd' ),
+				'desc'  => '',
+				'std'   => WPCD_FE_LIGHT_BG_COLOR,
+			),
+			'wordpress_app_fe_alternate_accent_background_color' => array(
+				'label' => __( 'Alternate Accent Background Color', 'wpcd' ),
+				'desc'  => '',
+				'std'   => WPCD_FE_ALTERNATE_ACCENT_BG_COLOR,
+			),
+		);
+
+		// Loop through the front-end brand colors array and generate settings fields.
+		foreach ( $brand_colors as $brand_key => $brand_value ) {
+			// First column is just the label with the tab name.
+			$fields[] = array(
+				'name'          => "{$brand_value['label']}",
+				'id'            => "{$brand_key}",
+				'type'          => 'color',
+				'alpha_channel' => true,
+				'desc'          => "{$brand_value['desc']}",
+				'tab'           => 'wordpress-app-white-label',
+				'std'           => "{$brand_value['std']}",
+			);
+		}
+
+		// RESET DEFAULT BRAND COLORS.
 		$fields[] = array(
 			'name'       => '',
 			'type'       => 'button',

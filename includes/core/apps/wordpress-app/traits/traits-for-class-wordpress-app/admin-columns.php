@@ -395,8 +395,6 @@ trait wpcd_wpapp_admin_column_data {
 				break;
 
 			case 'wpcd_server_health':
-				// Add the disk space and RAM data...
-
 				// Check to make sure we're on a WordPress server...
 				if ( 'wordpress-app' <> $this->get_server_type( $post_id ) ) {
 					break;
@@ -444,7 +442,7 @@ trait wpcd_wpapp_admin_column_data {
 					$server_status_callback_status = get_post_meta( $post_id, 'wpcd_wpapp_server_status_callback_installed', true );
 					if ( empty( $server_status_callback_status ) ) {
 						$health            = "<div class='wpcd_waiting_for_data_column'>" . __( 'Callbacks are not installed. Please install from the CALLBACKS tab on this server.', 'wpcd' ) . '</div>';
-						$callback_tab_link = (is_admin() ? get_edit_post_link( $post_id ) : get_permalink( $post_id )) . '#~~callbacks';
+						$callback_tab_link = ( is_admin() ? get_edit_post_link( $post_id ) : get_permalink( $post_id ) ) . '#~~callbacks';
 						$health           .= "<a href='" . $callback_tab_link . "'>" . __( 'Go To Callbacks Tab', 'wpcd' ) . '</a>';
 					} else {
 						$health = "<div class='wpcd_waiting_for_data_column'>" . __( 'Waiting For Data From Callback...', 'wpcd' ) . '</div>';
@@ -532,7 +530,7 @@ trait wpcd_wpapp_admin_column_data {
 					$php_version_class = str_replace( '.', '_', $php_version );
 
 					// Show a link that takes you to a list of apps with the clicked php version.
-					if( is_admin() ) {
+					if ( is_admin() ) {
 						$url = admin_url( 'edit.php?post_type=wpcd_app&wpapp_php_version=' . $php_version );
 					} else {
 						$url = get_permalink( WPCD_WORDPRESS_APP_PUBLIC::get_apps_list_page_id() ) . '?wpapp_php_version=' . $php_version;
@@ -552,7 +550,12 @@ trait wpcd_wpapp_admin_column_data {
 						$page_cache = 'off';
 					}
 
-					echo '<div class="wpcd_page_cache_status">' . __( 'Page Cache: ', 'wpcd' ) . $page_cache . '</div>';
+					$value  = __( 'Page Cache: ', 'wpcd' );
+					$value  = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $value, 'page_cache', 'left' );
+					$value .= WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $page_cache, 'page_cache', 'right' );
+					$value  = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_div_and_class( $value, 'page_cache' );
+
+					echo '<div class="wpcd_page_cache_status">' . $value . '</div>';
 
 					// get the memcached status...
 					$object_cache = wpcd_maybe_unserialize( get_post_meta( $post_id, 'wpapp_memcached_status', true ) );
@@ -572,7 +575,12 @@ trait wpcd_wpapp_admin_column_data {
 						}
 					}
 
-					echo '<div class="wpcd_object_cache_status">' . __( 'Object Cache: ', 'wpcd' ) . $object_cache . '</div>';
+					$value  = __( 'Object Cache: ', 'wpcd' );
+					$value  = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $value, 'object_cache', 'left' );
+					$value .= WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $object_cache, 'object_cache', 'right' );
+					$value  = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_div_and_class( $value, 'object_cache' );
+
+					echo '<div class="wpcd_object_cache_status">' . $value . '</div>';
 
 				}
 

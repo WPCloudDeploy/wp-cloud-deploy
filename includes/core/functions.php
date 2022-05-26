@@ -1431,7 +1431,27 @@ function wpcd_get_current_page_server_id() {
  */
 function wpcd_wrap_string_with_span_and_class( $string, $hint, $prefix ) {
 
-	return '<span class="wpcd-$prefix-$hint">' . $string . '</span>';
+	$class = "wpcd-{$prefix}-{$hint}";
+	return '<span class="' . $class . '">' . $string . '</span>';
+
+}
+
+/**
+ * Takes a string and wraps it with a div and a class.
+ *
+ * For example, if we get a string such as "Domain:" we might
+ * return <div class="wpcd-column-label-domain">Domain:</div>.
+ *
+ * @param string $string The string to wrap.
+ * @param string $hint A portion of the class name eg: "Domain".
+ * @param string $prefix The classname prefix eg: 'column-label'.
+ *
+ * @return string
+ */
+function wpcd_wrap_string_with_div_and_class( $string, $hint, $prefix ) {
+
+	$class = "wpcd-{$prefix}-{$hint}";
+	return '<div class="' . $class . '">' . $string . '</div>';
 
 }
 

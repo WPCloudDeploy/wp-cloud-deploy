@@ -537,6 +537,36 @@
 }
 /* End server and app groups */
 
+/* Style in-line values such as "region: xxx" and "ipv4: xxx */
+.wpcd-grid-table [class^="wpcd-app-col-element-wrap-"],
+.wpcd-grid-table [class*=" wpcd-app-col-element-wrap-"] {
+	display: block;
+	margin-bottom: 15px;
+}
+.wpcd-grid-table [class^="wpcd-app-col-element-label-"],
+.wpcd-grid-table [class*=" wpcd-app-col-element-label-"] {
+	/* Nothing here. */
+}
+.wpcd-grid-table [class^="wpcd-app-col-element-value-"],
+.wpcd-grid-table [class*=" wpcd-app-col-element-value-"] {
+	float: right;
+	xpadding-top: 10px;
+}
+/* End style in-line value */
+
+/* Style the "apps on this server" link - make it a button. */
+.wpcd-grid-table .wpcd-app-col-element-label-apps_on_server a {
+	display: inline-block;
+	margin-top: 10px;
+	background-color: #5560C2;
+	padding: 9px 17px 9px 17px;
+	border-radius: 6px;
+	color: white;
+	font-size: 15px;
+	font-weight: 700;
+}
+/* End Style the "apps on this server link" */
+
 .wpcd-grid-table .column-title .row_col_name {
 	/* Adjust the bottom margin in the title column label a bit because we'll be increasing the size of the title. */
 	margin-bottom: 5px;

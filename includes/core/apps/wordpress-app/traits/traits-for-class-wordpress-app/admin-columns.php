@@ -230,12 +230,76 @@ trait wpcd_wpapp_admin_column_data {
 			}
 		}
 
-		// Add a horizontal divider if we're on the front-end.
-		if ( ! is_admin() ) {
-			$new_column_data .= '<hr />';
+		/* Add in some health data about the site. Only show it though if the separate app health column isn't being shown. */
+		if ( ! boolval( wpcd_get_option( 'wpcd_show_app_list_health' ) ) ) {
+
+			// Add a horizontal divider if we're on the front-end.
+			if ( ! is_admin() ) {
+				$new_column_data .= '<hr />';
+			}
+
+			$new_column_data .= $this->get_app_health_data( $post_id );
+
 		}
 
-		/* Add in some health data about the site. */
+		/* Add data if it's not already in the column */
+		if ( strpos( $column_data, $new_column_data ) !== false ) {
+			// do nothing.
+		} else {
+			// add the new data to the column.
+			$column_data = $column_data . $new_column_data;
+		}
+
+		return $column_data;
+	}
+
+	/**
+	 * Add content to the app health column that shows up in app admin list
+	 *
+	 * Filter Hook: wpcd_app_admin_list_app_health_column
+	 *
+	 * @param string $column_data Data to show in the column.
+	 * @param int    $post_id Id of app post being displayed.
+	 *
+	 * @return string $column_data.
+	 */
+	public function app_admin_list_health_column( $column_data, $post_id ) {
+
+		/* Bail out if the app being evaluated isn't a wp app. */
+		if ( $this->get_app_name() <> get_post_meta( $post_id, 'app_type', true ) ) {
+			return $column_data;
+		}
+
+		/* Calculate our data element */
+		$new_column_data  = '';
+		$new_column_data .= $this->get_app_health_data( $post_id );
+
+		/* If not data, add a notification to that effect. */
+		if ( empty( new_column_data ) ) {
+			$new_column_data = __( 'No data for this app.', 'wpcd' );
+		}
+
+		/* Add data if it's not already in the column */
+		if ( strpos( $column_data, $new_column_data ) !== false ) {
+			// do nothing.
+		} else {
+			// add the new data to the column.
+			$column_data = $column_data . $new_column_data;
+		}
+
+		return $column_data;
+	}
+
+	/**
+	 * Get the app health data formatted as a string.
+	 *
+	 * @param int $post_id Id of app post being displayed.
+	 *
+	 * @return string.
+	 */
+	public function get_app_health_data( $post_id ) {
+		$new_column_data = '';
+
 		$wp_update = $this->get_site_status_callback_string( $post_id, 'wp_update_needed' );
 		if ( ! empty( $wp_update ) ) {
 			$new_column_data .= $wp_update;
@@ -251,19 +315,21 @@ trait wpcd_wpapp_admin_column_data {
 		if ( ( ! empty( $wp_update ) ) || ( ! empty( $plugin_updates_count ) ) || ( ! empty( $theme_updates_count ) ) ) {
 			$data_date = $this->get_site_status_callback_string( $post_id, 'data_date' );
 			if ( ! empty( $data_date ) ) {
-				$new_column_data .= $data_date;
+				if ( is_admin() ) {
+					// Show last updated date in short format.
+					$new_column_data .= $data_date;
+				} else {
+					// Show last updated date in long format for front-end.
+					$value            = __( 'Last Updated: ', 'wpcd' );
+					$value            = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $value, 'health_last_update', 'left' );
+					$value           .= WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $data_date, 'health_last_update', 'right' );
+					$value            = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_div_and_class( $value, 'health_last_update' );
+					$new_column_data .= $value;
+				}
 			}
 		}
 
-		/* Add it if its not already in the column */
-		if ( strpos( $column_data, $new_column_data ) !== false ) {
-			// do nothing.
-		} else {
-			// add the new data to the column.
-			$column_data = $column_data . $new_column_data;
-		}
-
-		return $column_data;
+		return $new_column_data;
 	}
 
 	/**

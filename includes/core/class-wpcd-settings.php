@@ -657,6 +657,13 @@ class WPCD_Settings {
 							'name'    => __( 'Show the server IP column?', 'wpcd' ),
 							'tooltip' => __( 'The server IP is shown under the SERVER column to save space.  If you would like to sort the list by this field then you need to enable this option so that it is shown in its own column.', 'wpcd' ),
 						),
+						
+						array(
+							'id'      => 'wpcd_show_app_list_health',
+							'type'    => 'checkbox',
+							'name'    => __( 'Show the app health column?', 'wpcd' ),
+							'tooltip' => __( 'The app health data is shown under the APP SUMMARY column to save space.  You can enable this option so that it is shown in its own column.', 'wpcd' ),
+						),
 
 						// Applist compound fields: Server Column.
 						array(

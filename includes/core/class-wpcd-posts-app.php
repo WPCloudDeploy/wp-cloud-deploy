@@ -335,6 +335,17 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 
 				break;
 
+			case 'wpcd_app_health':
+				// Nothing here - instead individual app classes will use this filter to populate data about the app.
+				// This way the list can show data about different apps.
+				$value = apply_filters( 'wpcd_app_admin_list_app_health_column', $value, $post_id );
+
+				if ( empty( $value ) ) {
+					$value = 'No data for this app';
+				}
+
+				break;
+
 			case 'wpcd_app_group':
 				$terms = get_the_terms( $post_id, 'wpcd_app_group' );
 				if ( ! empty( $terms ) ) {
@@ -415,6 +426,9 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 		}
 		$defaults['wpcd_app_group']   = __( 'App Group', 'wpcd' );
 		$defaults['wpcd_app_summary'] = __( 'App Summary', 'wpcd' );
+		if ( boolval( wpcd_get_option( 'wpcd_show_app_list_health' ) ) ) {
+			$defaults['wpcd_app_health'] = __( 'App Health', 'wpcd' );
+		}
 		$defaults['wpcd_server']      = __( 'Server', 'wpcd' );
 		if ( boolval( wpcd_get_option( 'wpcd_show_app_list_ipv4' ) ) ) {
 			$defaults['wpcd_server_ipv4'] = __( 'IPv4', 'wpcd' );

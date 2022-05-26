@@ -205,6 +205,9 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		// Show some app details in the wp-admin list of apps.
 		add_filter( 'wpcd_app_admin_list_summary_column', array( &$this, 'app_admin_list_summary_column' ), 10, 2 );
 
+		// Show some app details about the health of the app the wp-admin list of apps.
+		add_filter( 'wpcd_app_admin_list_app_health_column', array( &$this, 'app_admin_list_health_column' ), 10, 2 );
+
 		// Add the INSTALL WordPress button to the server list.
 		add_filter( 'wpcd_app_server_table_content', array( &$this, 'app_server_table_content' ), 10, 3 );
 

@@ -567,6 +567,11 @@
 }
 /* End Style the "apps on this server link" */
 
+.wpcd-grid-table .wpcd-app-col-element-wrap-health_last_update {
+	/* Make the last updated row in the APP HEALTH card a little more vertical space above. */
+	margin-top: 10px;
+}
+
 .wpcd-grid-table .column-title .row_col_name {
 	/* Adjust the bottom margin in the title column label a bit because we'll be increasing the size of the title. */
 	margin-bottom: 5px;

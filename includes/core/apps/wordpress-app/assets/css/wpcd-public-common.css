@@ -322,14 +322,6 @@
         font-weight: 400;
 }
 
-button.wpcd_action_install_app.button {
-        font-size: 13px;
-        padding: 4px 8px;
-        border: #2271b1 solid 1px;
-        border-radius: 3px;
-        margin-top: 3px;
-}
-
 #wpcd_public_wrapper #wpcd_wordpress-app_tab_top_of_site_details button {
         background-color: inherit;
 }
@@ -348,6 +340,48 @@ button.wpcd_action_install_app.button {
         float: none;
 }
 
+/* Format the DEPLOY A WORDPRESS SERVER and INSTALL WORDPRESS buttons. */
+#wpcd_public_wrapper a.deploy_button {
+		background-color: #1B5E20;
+		border: solid;
+		border-color: #1B5E20;
+		padding: 9px 17px 9px 17px;
+		border-radius: 6px;
+		color: white;
+		text-decoration: none;		
+}
+#wpcd_public_wrapper a.deploy_button:hover {
+		border-color: #5560C2;	
+		background-color: #5560C2;
+}
+/* End format DEPLOY WORDPRESS SERVER button. */
+
+/* Format INSTALL WORDPRESS button */
+#wpcd_public_wrapper button.wpcd_action_install_app {
+		/* Colors will be taken from global css vars loaded in the wpcd-server-admin.css stylesheet */
+		padding: 9px 17px 9px 17px;
+		border-radius: 6px;	
+}
+#wpcd_public_wrapper button.wpcd_action_install_app:hover {
+		/* Nothing here */
+}
+/* End Format INSTALL WORDPRESS button */
+
+/* Format site image - from powerpack */
+#wpcd_public_wrapper .wpcd_site_home_page_image.column-wpcd_site_home_page_image a img {
+	min-width: 100%;
+	max-width: 100%;
+	min-height: 100%;
+	border-radius: 10px;
+}
+#wpcd_public_wrapper #wpcd_public_apps_container .wpcd-grid-table-cell:first-child {
+	/* Remove cell background for homepage image.  Unfortunately the cell doesn't have a classname so we use first-child since the home-page image will usually be the first column. */
+	padding: 0px;
+	border-radius: 0px;
+	background-color: transparent;
+}
+/* End format site image - from powerpack */
+
 
 /**
  * The following section handles the formatting of the table list for servers and sites on the front-end. 
@@ -358,7 +392,7 @@ button.wpcd_action_install_app.button {
 		font-size: 15px;
 		line-height: 20px;
 		font-weight: 700;
-		font-style: normal;
+		font-style: normal;		
 }
 
 .wpcd-grid-table a {
@@ -470,7 +504,7 @@ button.wpcd_action_install_app.button {
 }
 
 .wpcd-grid-table .wpcd-grid-table-columns {
-		/* @TODO: Table title columns?  */
+		/* @TODO: Not sure what this is - table title columns?  */
         display: none;
 }
 

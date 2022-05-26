@@ -502,7 +502,7 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 		?>
 		
 		<div id="wpcd_public_wrapper">
-			<div id="wpcd_public_servers_container">
+			<div id="wpcd_public_apps_container">
 				<?php printf( '<a class="button deploy_button" href="%s">%s</a>', get_permalink( self::get_servers_list_page_id() ), __( 'Install WordPress', 'wpcd' ) ); ?>
 				<?php $table->views(); ?>
 				<form id="posts-filter" method="get">

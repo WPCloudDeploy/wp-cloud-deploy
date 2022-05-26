@@ -601,9 +601,9 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 						}
 
 						if ( wpcd_is_admin() || wpcd_user_can( get_current_user_id(), 'view_app', $app_id ) || (int) get_post_field( 'post_author', $app_id ) === get_current_user_id() ) {
-							$url      = is_admin() ? admin_url( 'post.php?post=' . $app_id . '&action=edit' ) : get_permalink( $app_id );
-							$app_link = sprintf( $break_char .'<a href="%s" target="_blank">%s</a>', esc_url( $url ), get_the_title( $app_id ) );
-							$app_link = $this->wpcd_column_wrap_string_with_span_and_class( $app_link, 'server_app_link', 'left' );
+							$url        = is_admin() ? admin_url( 'post.php?post=' . $app_id . '&action=edit' ) : get_permalink( $app_id );
+							$app_link   = sprintf( $break_char . '<a href="%s" target="_blank">%s</a>', esc_url( $url ), get_the_title( $app_id ) );
+							$app_link   = $this->wpcd_column_wrap_string_with_span_and_class( $app_link, 'server_app_link', 'left' );
 							$app_links .= $app_link;
 
 						} else {
@@ -686,36 +686,78 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 	public function app_server_table_head( $defaults ) {
 
 		unset( $defaults['date'] );
+
+		// Description.
 		if ( boolval( wpcd_get_option( 'wpcd_show_server_list_short_desc' ) ) ) {
-			$defaults['wpcd_server_short_desc'] = __( 'Description', 'wpcd' );
+			$show_it = true;
+			if ( ! is_admin() && ( ! boolval( wpcd_get_option( 'wordpress_app_fe_show_description_in_server_list' ) ) ) ) {
+				$show_it = false;
+			}
+			if ( $show_it ) {
+				$defaults['wpcd_server_short_desc'] = __( 'Description', 'wpcd' );
+			}
 		}
-		$defaults['wpcd_server_group']    = __( 'Server Group', 'wpcd' );
-		$defaults['wpcd_server_actions']  = __( 'Server Actions', 'wpcd' );
+
+		// Server Group.
+		$show_it = true;
+		if ( ! is_admin() && ( ! boolval( wpcd_get_option( 'wordpress_app_fe_show_server_group_in_server_list' ) ) ) ) {
+			$show_it = false;
+		}
+		if ( $show_it ) {
+			$defaults['wpcd_server_group'] = __( 'Server Group', 'wpcd' );
+		}
+
+		// Server Actions.
+		$defaults['wpcd_server_actions'] = __( 'Server Actions', 'wpcd' );
+
+		// Server Provider.
 		$defaults['wpcd_server_provider'] = __( 'Provider Details', 'wpcd' );
 
+		// Server Region.
 		if ( boolval( wpcd_get_option( 'wpcd_server_list_region_column' ) ) ) {
 			$defaults['wpcd_server_region'] = __( 'Region', 'wpcd' );
 		}
+
+		// Instance ID.
 		if ( boolval( wpcd_get_option( 'wpcd_server_list_instance_id_column' ) ) ) {
 			$defaults['wpcd_server_instance_id'] = __( 'Instance ID', 'wpcd' );
 		}
+
+		// Local Status.
 		$defaults['wpcd_local_status'] = __( 'Local Status', 'wpcd' );
 		if ( boolval( wpcd_get_option( 'wpcd_show_server_list_server_type' ) ) ) {
 			$defaults['wpcd_server_initial_app'] = __( 'Initial App/<br />Server Type', 'wpcd' );
 		}
+
+		// App Count.
 		$defaults['wpcd_server_app_count'] = __( 'Apps', 'wpcd' );
 		if ( boolval( wpcd_get_option( 'wpcd_show_server_list_date' ) ) ) {
 			$defaults['date'] = __( 'Date', 'wpcd' );
 		}
 
+		// Server owner.
 		if ( boolval( wpcd_get_option( 'wpcd_show_server_list_owner' ) ) ) {
-			if ( wpcd_is_admin() || ( ! wpcd_is_admin() && ! boolval( wpcd_get_option( 'wpcd_hide_server_list_owner_non_admins' ) ) ) ) {
-				$defaults['wpcd_server_owner'] = __( 'Owner', 'wpcd' );
+			$show_it = true;
+			if ( ! is_admin() && ( ! boolval( wpcd_get_option( 'wordpress_app_fe_show_owner_in_server_list' ) ) ) ) {
+				$show_it = false;
+			}
+
+			if ( $show_it ) {
+				if ( wpcd_is_admin() || ( ! wpcd_is_admin() && ! boolval( wpcd_get_option( 'wpcd_hide_server_list_owner_non_admins' ) ) ) ) {
+					$defaults['wpcd_server_owner'] = __( 'Owner', 'wpcd' );
+				}
 			}
 		}
 
+		// Teams.
 		if ( boolval( wpcd_get_option( 'wpcd_show_server_list_team' ) ) ) {
-			$defaults['wpcd_assigned_teams'] = __( 'Teams', 'wpcd' );
+			$show_it = true;
+			if ( ! is_admin() && ( ! boolval( wpcd_get_option( 'wordpress_app_fe_show_teams_in_server_list' ) ) ) ) {
+				$show_it = false;
+			}
+			if ( $show_it ) {
+				$defaults['wpcd_assigned_teams'] = __( 'Teams', 'wpcd' );
+			}
 		}
 
 		return $defaults;

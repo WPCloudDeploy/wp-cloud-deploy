@@ -1303,10 +1303,46 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			array(
 				'id'   => 'wordpress_front_end_fields_heading_01',
 				'type' => 'heading',
-				'name' => __( 'Servers', 'wpcd' ),
+				'name' => __( 'Servers - Show Cards', 'wpcd' ),
 				'desc' => __( 'Show fields in the server list and server screens when displaying data on the front-end.  These fields are usually HIDDEN by default.', 'wpcd' ),
 				'tab'  => 'wordpress-app-front-end-fields',
 			),
+			array(
+				'id'      => 'wordpress_app_fe_show_description_in_server_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Show Description', 'wpcd' ),
+				'tooltip' => __( 'Show the description field/card in the server list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_show_server_group_in_server_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Show Server Group', 'wpcd' ),
+				'tooltip' => __( 'Show the server group field/card in the server list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_show_owner_in_server_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Show Owner', 'wpcd' ),
+				'tooltip' => __( 'Show the owner field/card in the server list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_show_teams_in_server_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Show Teams', 'wpcd' ),
+				'tooltip' => __( 'Show the teams list field/card in the server list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_show_sync_status_in_server_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Show Server Sync Data', 'wpcd' ),
+				'tooltip' => __( 'Show the server sync field/card in the server list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+
 
 			array(
 				'id'   => 'wordpress_front_end_fields_heading_03',

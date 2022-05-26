@@ -562,8 +562,9 @@
 }
 /* End style in-line value */
 
-/* Style the "apps on this server" link - make it a button. */
-.wpcd-grid-table .wpcd-app-col-element-label-apps_on_server a {
+/* Style the "apps on this server" and "Update Remote State" links - make them buttons. */
+.wpcd-grid-table .wpcd-app-col-element-label-apps_on_server a,
+.wpcd-grid-table .wpcd-server-col-element-label-update_remote_state_link a {
 	display: inline-block;
 	margin-top: 10px;
 	background-color: var(--wpcd-front-end-accent-background-color);
@@ -573,7 +574,8 @@
 	font-size: 15px;
 	font-weight: 700;
 }
-.wpcd-grid-table .wpcd-app-col-element-label-apps_on_server a:hover {
+.wpcd-grid-table .wpcd-app-col-element-label-apps_on_server a:hover,
+.wpcd-grid-table .wpcd-server-col-element-label-update_remote_state_link a:hover {
 	text-decoration: none;
 	background-color: var(--wpcd-front-end-primary-brand-color);
 }

@@ -476,22 +476,6 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 					$value .= $this->wpcd_column_wrap_string_with_div_and_class( $value2, 'ips' );
 				}
 
-				/*
-				$value  = '<b>' . strtoupper( $provider_desc ) . '</b>';
-				$value .= '<br />' . '<i>' . $initial_os . '</i>';
-				if ( ! boolval( wpcd_get_option( 'wpcd_server_list_region_column' ) ) ) {
-					$value .= '<br />' . __( 'region     : ', 'wpcd' ) . $region;
-				}
-
-				$value .= '<br />' . __( 'size       : ', 'wpcd' ) . $size;
-				if ( ! boolval( wpcd_get_option( 'wpcd_server_list_instance_id_column' ) ) ) {
-					if ( ( ! boolval( wpcd_get_option( 'wpcd_server_list_hide_instance_id_column' ) ) ) || wpcd_is_admin() ) {
-						$value .= '<br />' . __( 'instance id: ', 'wpcd' ) . $instance_id;
-					}
-				}
-				$value .= '<br />' . '<b>' . $ips . '</b>';
-				*/
-
 				break;
 			case 'wpcd_server_size':
 				// not used right now.
@@ -532,6 +516,8 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 					}
 				}
 
+				$value = $this->wpcd_column_wrap_string_with_div_and_class( $value, 'local_server_status' );
+
 				// If there is a state entered into the database, show it.
 				$state = get_post_meta( $post_id, 'wpcd_server_current_state', true );
 
@@ -549,7 +535,9 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 				}
 
 				if ( ! empty( $state ) ) {
-					$value = $value . '<br />' . __( 'Remote State: ', 'wpcd' ) . $remote_state_text;
+					$value2  = $this->wpcd_column_wrap_string_with_span_and_class( __( 'Remote State:', 'wpcd' ), 'remote_server_state', 'left' );
+					$value2 .= $this->wpcd_column_wrap_string_with_span_and_class( $remote_state_text, 'remote_server_state', 'right' );
+					$value  .= $this->wpcd_column_wrap_string_with_div_and_class( $value2, 'remote_server_state' );
 				}
 
 				// Construct a link to give the user the option to get the true remote status of the server.
@@ -558,8 +546,8 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 					$post_id,
 					__( 'Update Remote State', 'wpcd' )
 				);
-
-				$value = $value . '<br />' . $link_html;
+				$value2   = $this->wpcd_column_wrap_string_with_span_and_class( $link_html, 'update_remote_state_link', 'left' );
+				$value    .= $this->wpcd_column_wrap_string_with_div_and_class( $value2, 'update_remote_state_link' );
 
 				break;
 			case 'wpcd_server_initial_app':

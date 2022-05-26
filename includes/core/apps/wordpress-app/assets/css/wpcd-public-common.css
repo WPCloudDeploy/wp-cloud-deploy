@@ -517,7 +517,7 @@
 	grid-template: "a a a"
 				   "b b b";	
 	grid-row-gap: 15px;
-	column-gap: 20px;
+	grid-column-gap: 20px;
 }
 .wpcd-grid-table .column-wpcd_app_group .row_col_name {
 	/* Assign label to first row of grid. */

@@ -581,6 +581,20 @@
 }
 /* End Style the "apps on this server link" */
 
+/* Style the app links on the server list. */
+.wpcd-grid-table .wpcd-server-col-element-label-server_app_link {
+	display: block;
+	font-size: 15px;
+	font-weight: normal;
+	color: #5560C2;
+	background-color: #F3F3F3;
+	padding: 9px 17px;
+	border-radius: 6px;
+	width: 100%;
+	margin-bottom: 10px;
+}
+/* End style the app links on the server list. */
+
 .wpcd-grid-table .wpcd-app-col-element-wrap-health_last_update {
 	/* Make the last updated row in the APP HEALTH card a little more vertical space above. */
 	margin-top: 10px;

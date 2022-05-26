@@ -546,7 +546,7 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 					$post_id,
 					__( 'Update Remote State', 'wpcd' )
 				);
-				$value2   = $this->wpcd_column_wrap_string_with_span_and_class( $link_html, 'update_remote_state_link', 'left' );
+				$value2    = $this->wpcd_column_wrap_string_with_span_and_class( $link_html, 'update_remote_state_link', 'left' );
 				$value    .= $this->wpcd_column_wrap_string_with_div_and_class( $value2, 'update_remote_state_link' );
 
 				break;
@@ -565,9 +565,12 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 				break;
 
 			case 'wpcd_server_app_count':
-				$app_count = WPCD_SERVER()->get_app_count( $post_id );
-				$url       = is_admin() ? admin_url( 'edit.php?post_type=wpcd_app&' ) : get_permalink( WPCD_WORDPRESS_APP_PUBLIC::get_apps_list_page_id() ) . '?' . 'server_id=' . $post_id;
-				$value     = sprintf( '%s <a href="%s" target="_blank">%d</a>', __( 'App Count: ', 'wpcd' ), esc_url( $url ), $app_count );
+				$app_count                   = WPCD_SERVER()->get_app_count( $post_id );
+				$url                         = is_admin() ? admin_url( 'edit.php?post_type=wpcd_app&' ) : get_permalink( WPCD_WORDPRESS_APP_PUBLIC::get_apps_list_page_id() ) . '?' . 'server_id=' . $post_id;
+				$app_count_label             = $this->wpcd_column_wrap_string_with_span_and_class( __( 'App Count:', 'wpcd' ), 'server_app_count', 'left' );
+				$app_count_value_for_display = $this->wpcd_column_wrap_string_with_span_and_class( $app_count, 'server_app_count', 'right' );
+				$value                       = sprintf( '%s <a href="%s" target="_blank">%s</a>', $app_count_label, esc_url( $url ), $app_count_value_for_display );
+				$value                       = $this->wpcd_column_wrap_string_with_div_and_class( $value, 'server_app_count' );
 
 				// Now get and show up to 4 sites underneath the post count.
 				$args = array(
@@ -587,16 +590,31 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 
 				if ( ! empty( $server_app_ids ) ) {
 
+					$app_links = '';
 					foreach ( $server_app_ids as $app_id ) {
-						if ( wpcd_is_admin() || wpcd_user_can( get_current_user_id(), 'view_app', $app_id ) || (int) get_post_field( 'post_author', $app_id ) === get_current_user_id() ) {
 
-							$url    = is_admin() ? admin_url( 'post.php?post=' . $app_id . '&action=edit' ) : get_permalink( $app_id );
-							$value .= sprintf( '<br /> <a href="%s" target="_blank">%s</a>', esc_url( $url ), get_the_title( $app_id ) );
+						// This defines the break between lines.  Front-end will not have it.  Backend will.
+						if ( is_admin() ) {
+							$break_char = '<br />';
+						} else {
+							$break_char = '';
+						}
+
+						if ( wpcd_is_admin() || wpcd_user_can( get_current_user_id(), 'view_app', $app_id ) || (int) get_post_field( 'post_author', $app_id ) === get_current_user_id() ) {
+							$url      = is_admin() ? admin_url( 'post.php?post=' . $app_id . '&action=edit' ) : get_permalink( $app_id );
+							$app_link = sprintf( $break_char .'<a href="%s" target="_blank">%s</a>', esc_url( $url ), get_the_title( $app_id ) );
+							$app_link = $this->wpcd_column_wrap_string_with_span_and_class( $app_link, 'server_app_link', 'left' );
+							$app_links .= $app_link;
 
 						} else {
-							$value .= sprintf( '<br /> %s ', get_the_title( $app_id ) );
+							$app_link   = sprintf( $break_char . '%s ', get_the_title( $app_id ) );
+							$app_link   = $this->wpcd_column_wrap_string_with_span_and_class( $app_link, 'server_app_link', 'left' );
+							$app_links .= $app_link;
 						}
 					}
+
+					$value .= $this->wpcd_column_wrap_string_with_div_and_class( $app_links, 'server_app_links' );
+
 				}
 
 				break;

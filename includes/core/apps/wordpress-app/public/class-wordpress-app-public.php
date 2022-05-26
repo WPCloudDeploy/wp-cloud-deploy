@@ -503,7 +503,7 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 		
 		<div id="wpcd_public_wrapper">
 			<div id="wpcd_public_apps_container">
-				<?php printf( '<a class="button deploy_button" href="%s">%s</a>', get_permalink( self::get_servers_list_page_id() ), __( 'Install WordPress', 'wpcd' ) ); ?>
+				<?php printf( '<a class="button deploy_button" href="%s">%s</a>', get_permalink( self::get_servers_list_page_id() ), __( 'New WordPress Site', 'wpcd' ) ); ?>
 				<?php $table->views(); ?>
 				<form id="posts-filter" method="get">
 					<input type="hidden" name="post_status" class="post_status_page" value="<?php echo ! empty( $post_status ) ? esc_attr( $post_status ) : 'all'; ?>" />

@@ -340,7 +340,7 @@
         float: none;
 }
 
-/* Format the DEPLOY A WORDPRESS SERVER and INSTALL WORDPRESS buttons. */
+/* Format the DEPLOY A WORDPRESS SERVER and INSTALL WORDPRESS/NEW WORDPRESS SITE buttons. */
 #wpcd_public_wrapper a.deploy_button {
 		background-color: #1B5E20;
 		border: solid;
@@ -356,7 +356,7 @@
 }
 /* End format DEPLOY WORDPRESS SERVER button. */
 
-/* Format INSTALL WORDPRESS button */
+/* Format INSTALL WORDPRESS / NEW WORDPRESS SITE button */
 #wpcd_public_wrapper button.wpcd_action_install_app {
 		/* Colors will be taken from global css vars loaded in the wpcd-server-admin.css stylesheet */
 		padding: 9px 17px 9px 17px;
@@ -603,6 +603,7 @@
 	font-size: 15px;
 	font-weight: 700;
 	margin-right: 15px;
+	margin-bottom: 20px;
 	min-width: 90px;
 }
 .wpcd-grid-table .row-actions {

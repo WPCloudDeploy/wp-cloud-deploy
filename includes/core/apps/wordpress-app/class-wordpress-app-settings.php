@@ -1357,14 +1357,14 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'name'    => __( 'Hide Title', 'wpcd' ),
 				'tooltip' => __( 'Hide the title field/card in the app list on the front-end.', 'wpcd' ),
 				'tab'     => 'wordpress-app-front-end-fields',
-			),				
+			),
 			array(
 				'id'      => 'wordpress_app_fe_hide_app_summary_in_app_list',
 				'type'    => 'checkbox',
 				'name'    => __( 'Hide App Summary', 'wpcd' ),
 				'tooltip' => __( 'Hide the app summary field/card in the app list on the front-end.', 'wpcd' ),
 				'tab'     => 'wordpress-app-front-end-fields',
-			),			
+			),
 			array(
 				'id'      => 'wordpress_app_fe_hide_app_health_in_app_list',
 				'type'    => 'checkbox',
@@ -1405,6 +1405,21 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'type'    => 'checkbox',
 				'name'    => __( 'Hide ssl', 'wpcd' ),
 				'tooltip' => __( 'Hide the SSL field/card in the app list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+
+			array(
+				'id'   => 'wordpress_front_end_fields_heading_general',
+				'type' => 'heading',
+				'name' => __( 'General', 'wpcd' ),
+				'desc' => __( 'Other Options.', 'wpcd' ),
+				'tab'  => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_hide_filter_bar',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide Filter Bar', 'wpcd' ),
+				'tooltip' => __( 'HIDE the filter bar at the top of the server and site list.', 'wpcd' ),
 				'tab'     => 'wordpress-app-front-end-fields',
 			),
 

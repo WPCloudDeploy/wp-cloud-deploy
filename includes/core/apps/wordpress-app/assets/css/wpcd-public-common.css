@@ -542,16 +542,22 @@
 
 /* Style in-line values such as "region: xxx" and "ipv4: xxx */
 .wpcd-grid-table [class^="wpcd-app-col-element-wrap-"],
-.wpcd-grid-table [class*=" wpcd-app-col-element-wrap-"] {
+.wpcd-grid-table [class*=" wpcd-app-col-element-wrap-"],
+.wpcd-grid-table [class^="wpcd-server-col-element-wrap-"],
+.wpcd-grid-table [class*=" wpcd-server-col-element-wrap-"] {
 	display: block;
 	margin-bottom: 15px;
 }
 .wpcd-grid-table [class^="wpcd-app-col-element-label-"],
-.wpcd-grid-table [class*=" wpcd-app-col-element-label-"] {
+.wpcd-grid-table [class*=" wpcd-app-col-element-label-"],
+.wpcd-grid-table [class^="wpcd-server-col-element-label-"],
+.wpcd-grid-table [class*=" wpcd-server-col-element-label-"] {
 	/* Nothing here. */
 }
 .wpcd-grid-table [class^="wpcd-app-col-element-value-"],
-.wpcd-grid-table [class*=" wpcd-app-col-element-value-"] {
+.wpcd-grid-table [class*=" wpcd-app-col-element-value-"],
+.wpcd-grid-table [class^="wpcd-server-col-element-value-"],
+.wpcd-grid-table [class*=" wpcd-server-col-element-value-"] {
 	float: right;
 }
 /* End style in-line value */

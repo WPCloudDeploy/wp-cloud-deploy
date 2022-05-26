@@ -176,12 +176,12 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 		}
 		return $actions;
 	}
-	
+
 	/*
 	 * Register common styles/scripts for the servers/apps.
 	 */
 	public function enqueue_server_post_common_scripts() {
-		
+
 		wp_register_script( 'wpcd-select2-js', wpcd_url . 'assets/js/select2.min.js', array( 'jquery' ), wpcd_scripts_version, true );
 		wp_enqueue_style( 'wpcd-select2-css', wpcd_url . 'assets/css/select2.min.css', array(), wpcd_scripts_version );
 
@@ -223,17 +223,17 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 
 		wp_enqueue_style( 'wpcd-magnific', wpcd_url . 'assets/css/magnific-popup.css', array(), wpcd_scripts_version );
 		wp_enqueue_style( 'wpcd-server-admin', wpcd_url . 'assets/css/wpcd-server-admin.css', array( 'wpcd-magnific' ), wpcd_scripts_version );
-		
+
 	}
-	
+
 	/**
 	 * Register server post chart style/scripts.
-	 * 
+	 *
 	 * @global object $post
 	 */
 	public function enqueue_server_post_chart_scripts() {
 		global $post;
-		
+
 		wp_register_script( 'wpcd-chart-js', wpcd_url . 'assets/js/Chart.min.js', array( 'jquery' ), wpcd_scripts_version, true );
 
 		wp_enqueue_script( 'wpcd-wpapp-server-chart', wpcd_url . 'includes/core/apps/wordpress-app/assets/js/wpcd-wpapp-server-chart.js', array( 'wpcd-chart-js' ), wpcd_scripts_version, true );
@@ -277,7 +277,7 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 		$params['vmstat'] = array_merge( $vmstat_data1, $vmstat_data2 );
 
 		wp_localize_script( 'wpcd-wpapp-server-chart', 'wpcd_server_stat_data', $params );
-		
+
 	}
 
 	/**
@@ -426,7 +426,57 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 				// Initial os.
 				$initial_os = WPCD()->get_os_description( WPCD_SERVER()->get_server_os( $post_id ) );
 
-				// Final output.
+				// Add Provider to final output.
+				$value = strtoupper( $provider_desc );
+				$value = $this->wpcd_column_wrap_string_with_span_and_class( $value, 'provider', 'left' );
+				$value = $this->wpcd_column_wrap_string_with_div_and_class( $value, 'provider' );
+
+				// Add initial OS to final output.
+				if ( ! is_admin() ) {
+					// On the front-end we want both a label and the os value.
+					$value2  = $this->wpcd_column_wrap_string_with_span_and_class( __( 'OS:', 'wpcd' ), 'initial_os', 'left' );
+					$value2 .= $this->wpcd_column_wrap_string_with_span_and_class( $initial_os, 'initial_os', 'right' );
+					$value  .= $this->wpcd_column_wrap_string_with_div_and_class( $value2, 'provider' );
+				} else {
+					// On the back-end we only want the value.
+					$value2 = $this->wpcd_column_wrap_string_with_span_and_class( $initial_os, 'initial_os', 'left' );
+					$value .= $this->wpcd_column_wrap_string_with_div_and_class( $value2, 'provider' );
+				}
+
+				// Add Region to final output.
+				if ( ! boolval( wpcd_get_option( 'wpcd_server_list_region_column' ) ) ) {
+					$value2  = $this->wpcd_column_wrap_string_with_span_and_class( __( 'Region: ', 'wpcd' ), 'region', 'left' );
+					$value2 .= $this->wpcd_column_wrap_string_with_span_and_class( $region, 'region', 'right' );
+					$value  .= $this->wpcd_column_wrap_string_with_div_and_class( $value2, 'region' );
+				}
+
+				// Add size to final output.
+				$value2  = $this->wpcd_column_wrap_string_with_span_and_class( __( 'Size: ', 'wpcd' ), 'server_size', 'left' );
+				$value2 .= $this->wpcd_column_wrap_string_with_span_and_class( $size, 'server_size', 'right' );
+				$value  .= $this->wpcd_column_wrap_string_with_div_and_class( $value2, 'server_size' );
+
+				// Add instance id to final output.
+				if ( ! boolval( wpcd_get_option( 'wpcd_server_list_instance_id_column' ) ) ) {
+					if ( ( ! boolval( wpcd_get_option( 'wpcd_server_list_hide_instance_id_column' ) ) ) || wpcd_is_admin() ) {
+						$value2  = $this->wpcd_column_wrap_string_with_span_and_class( __( 'Instance ID: ', 'wpcd' ), 'instance_id', 'left' );
+						$value2 .= $this->wpcd_column_wrap_string_with_span_and_class( $instance_id, 'instance_id', 'right' );
+						$value  .= $this->wpcd_column_wrap_string_with_div_and_class( $value2, 'instance_id' );
+					}
+				}
+
+				// Add IPs to final output.
+				if ( ! is_admin() ) {
+					// On the front-end we want both a label and the os value.
+					$value2  = $this->wpcd_column_wrap_string_with_span_and_class( __( 'IP:', 'wpcd' ), 'ips', 'left' );
+					$value2 .= $this->wpcd_column_wrap_string_with_span_and_class( $ips, 'ips', 'right' );
+					$value  .= $this->wpcd_column_wrap_string_with_div_and_class( $value2, 'ips' );
+				} else {
+					// On the back-end we only want the value.
+					$value2 = $this->wpcd_column_wrap_string_with_span_and_class( $ips, 'ips', 'left' );
+					$value .= $this->wpcd_column_wrap_string_with_div_and_class( $value2, 'ips' );
+				}
+
+				/*
 				$value  = '<b>' . strtoupper( $provider_desc ) . '</b>';
 				$value .= '<br />' . '<i>' . $initial_os . '</i>';
 				if ( ! boolval( wpcd_get_option( 'wpcd_server_list_region_column' ) ) ) {
@@ -440,6 +490,7 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 					}
 				}
 				$value .= '<br />' . '<b>' . $ips . '</b>';
+				*/
 
 				break;
 			case 'wpcd_server_size':
@@ -527,7 +578,7 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 
 			case 'wpcd_server_app_count':
 				$app_count = WPCD_SERVER()->get_app_count( $post_id );
-				$url = is_admin() ? admin_url( 'edit.php?post_type=wpcd_app&' ) : get_permalink( WPCD_WORDPRESS_APP_PUBLIC::get_apps_list_page_id() ) . '?' . 'server_id=' . $post_id;
+				$url       = is_admin() ? admin_url( 'edit.php?post_type=wpcd_app&' ) : get_permalink( WPCD_WORDPRESS_APP_PUBLIC::get_apps_list_page_id() ) . '?' . 'server_id=' . $post_id;
 				$value     = sprintf( '%s <a href="%s" target="_blank">%d</a>', __( 'App Count: ', 'wpcd' ), esc_url( $url ), $app_count );
 
 				// Now get and show up to 4 sites underneath the post count.
@@ -551,7 +602,7 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 					foreach ( $server_app_ids as $app_id ) {
 						if ( wpcd_is_admin() || wpcd_user_can( get_current_user_id(), 'view_app', $app_id ) || (int) get_post_field( 'post_author', $app_id ) === get_current_user_id() ) {
 
-							$url = is_admin() ? admin_url( 'post.php?post=' . $app_id . '&action=edit' ) : get_permalink( $app_id );
+							$url    = is_admin() ? admin_url( 'post.php?post=' . $app_id . '&action=edit' ) : get_permalink( $app_id );
 							$value .= sprintf( '<br /> <a href="%s" target="_blank">%s</a>', esc_url( $url ), get_the_title( $app_id ) );
 
 						} else {
@@ -933,16 +984,16 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 		wp_update_post( $post );
 		add_action( 'save_post', array( $this, 'save_meta_values' ), 10, 2 ); // re-add hook.
 	}
-	
+
 	/**
 	 * Return prompt messages while deleting/restoring a server
-	 * 
+	 *
 	 * @return array
 	 */
 	public function wpcd_app_trash_prompt_messages() {
 		return array(
-			'delete' => apply_filters( 'wpcd_server_delete_prompt', __( 'ALL data on this server will be LOST! Are you really really sure you want to proceed and delete this server?', 'wpcd' ) ),
-			'restore' => __( 'Please note: Rstoring this item will not restore your server or your server data - it will just be an orphaned record without a connection to any server.', 'wpcd' )
+			'delete'  => apply_filters( 'wpcd_server_delete_prompt', __( 'ALL data on this server will be LOST! Are you really really sure you want to proceed and delete this server?', 'wpcd' ) ),
+			'restore' => __( 'Please note: Rstoring this item will not restore your server or your server data - it will just be an orphaned record without a connection to any server.', 'wpcd' ),
 		);
 	}
 
@@ -956,7 +1007,7 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 	 */
 	public function wpcd_app_trash_prompt() {
 		$messages = $this->wpcd_app_trash_prompt_messages();
-		$screen = get_current_screen();
+		$screen   = get_current_screen();
 		if ( in_array( $screen->id, array( 'edit-wpcd_app_server', 'wpcd_app_server' ), true ) ) {
 			$prompt_message = isset( $messages['delete'] ) ? $messages['delete'] : '';
 			?>
@@ -1212,7 +1263,7 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 
 		$filter_action = filter_input( INPUT_GET, 'filter_action', FILTER_SANITIZE_STRING );
 
-		if ( ( ( is_admin() && $query->is_main_query() && $pagenow == 'edit.php' ) || wpcd_is_public_servers_list_query($query) ) && $query->query['post_type'] == 'wpcd_app_server' && ! wpcd_is_admin() ) {
+		if ( ( ( is_admin() && $query->is_main_query() && $pagenow == 'edit.php' ) || wpcd_is_public_servers_list_query( $query ) ) && $query->query['post_type'] == 'wpcd_app_server' && ! wpcd_is_admin() ) {
 			$qv          = &$query->query_vars;
 			$post_status = filter_input( INPUT_GET, 'post_status', FILTER_SANITIZE_STRING );
 			$post_status = ! empty( $post_status ) ? $post_status : 'private';
@@ -1225,7 +1276,7 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 			}
 		}
 
-		if ( ( ( is_admin() && $query->is_main_query() && $pagenow === 'edit.php' ) || wpcd_is_public_servers_list_query($query) ) && $query->query['post_type'] === 'wpcd_app_server' && $filter_action == 'Filter' ) {
+		if ( ( ( is_admin() && $query->is_main_query() && $pagenow === 'edit.php' ) || wpcd_is_public_servers_list_query( $query ) ) && $query->query['post_type'] === 'wpcd_app_server' && $filter_action == 'Filter' ) {
 			$qv = &$query->query_vars;
 
 			// SERVER PROVIDER.
@@ -1330,7 +1381,7 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 			}
 		}
 
-		if ( ( ( is_admin() && $query->is_main_query() && $pagenow === 'edit.php' ) || wpcd_is_public_servers_list_query($query) ) && $query->query['post_type'] === 'wpcd_app_server' && ! empty( $_GET['team_id'] ) && empty( $filter_action ) ) {
+		if ( ( ( is_admin() && $query->is_main_query() && $pagenow === 'edit.php' ) || wpcd_is_public_servers_list_query( $query ) ) && $query->query['post_type'] === 'wpcd_app_server' && ! empty( $_GET['team_id'] ) && empty( $filter_action ) ) {
 
 			$qv               = &$query->query_vars;
 			$qv['meta_query'] = array();
@@ -1346,7 +1397,7 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 
 		}
 
-		if ( ( ( is_admin() && $query->is_main_query() && $pagenow === 'edit.php' ) || wpcd_is_public_servers_list_query($query) ) && $query->query['post_type'] === 'wpcd_app_server'  && ! empty( $_GET['wpcd_app_server_group'] ) && empty( $filter_action ) ) {
+		if ( ( ( is_admin() && $query->is_main_query() && $pagenow === 'edit.php' ) || wpcd_is_public_servers_list_query( $query ) ) && $query->query['post_type'] === 'wpcd_app_server' && ! empty( $_GET['wpcd_app_server_group'] ) && empty( $filter_action ) ) {
 
 			$qv = &$query->query_vars;
 
@@ -1500,11 +1551,11 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 	/**
 	 * Restricts user to delete a post if he/she doesn't have delete_server permission
 	 *
-	 * @param int $post_id post id.
-	 * @param bool $return true=return a value and break, false=do not return a value. 
+	 * @param int  $post_id post id.
+	 * @param bool $return true=return a value and break, false=do not return a value.
 	 *
 	 * @return void|boolean
-	 */	
+	 */
 	public function wpcd_app_server_delete_post( $post_id, $return = false ) {
 
 		$success = true;
@@ -1515,12 +1566,12 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 				$success = false;
 			}
 		}
-		
-		if( $return ) {
+
+		if ( $return ) {
 			return $success;
 		}
-		
-		if( !$success ) {
+
+		if ( ! $success ) {
 			wp_die( esc_html( __( 'You don\'t have permission to delete this post.', 'wpcd' ) ) );
 		}
 	}
@@ -1606,7 +1657,7 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 				'publicly_queryable'  => true,
 				'hierarchical'        => false,
 				'supports'            => array( '' ),
-				'rewrite'             => ['slug' => 'cloud_server'],
+				'rewrite'             => array( 'slug' => 'cloud_server' ),
 				'capabilities'        => array(
 					// This value is false so that it does not create the "Add New" menu item.
 					// Creating a server will be handled by a custom button.
@@ -2087,6 +2138,48 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 		}
 
 		return $args;
+	}
+
+	/**
+	 * Takes a string and wraps it with a span and a class related to the column name.
+	 *
+	 * For example, if we get a string such as "Domain:" we might
+	 * return <span class="wpcd-column-label-domain">Domain:</span>.
+	 *
+	 * Calls the global function wpcd_wrap_string_with_span_and_class
+	 * defined in the functions.php which does the actual wrapping.
+	 *
+	 * @param string $string The string to wrap.
+	 * @param string $column The column name.
+	 * @param string $align Valid values are 'left' and 'right'.
+	 *
+	 * @return string
+	 */
+	public function wpcd_column_wrap_string_with_span_and_class( $string, $column, $align ) {
+
+		if ( 'left' === $align ) {
+			return wpcd_wrap_string_with_span_and_class( $string, $column, 'server-col-element-label' );
+		} else {
+			return wpcd_wrap_string_with_span_and_class( $string, $column, 'server-col-element-value' );
+		}
+
+	}
+
+	/**
+	 * Takes a string and wraps it with a div.
+	 *
+	 * For example, if we get a string such as "Domain:" we might
+	 * return <div class="wpcd-column-label-domain">Domain:</div>.
+	 *
+	 * @param string $string The string to wrap.
+	 * @param string $column The column name.
+	 *
+	 * @return string
+	 */
+	public function wpcd_column_wrap_string_with_div_and_class( $string, $column ) {
+
+		return wpcd_wrap_string_with_div_and_class( $string, $column, 'server-col-element-wrap' );
+
 	}
 
 }

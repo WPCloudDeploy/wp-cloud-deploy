@@ -687,6 +687,15 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 
 		unset( $defaults['date'] );
 
+		// Title.
+		$show_it = true;
+		if ( ! is_admin() && ( boolval( wpcd_get_option( 'wordpress_app_fe_hide_title_in_server_list' ) ) ) ) {
+			$show_it = false;
+		}
+		if ( ! $show_it ) {
+			unset( $defaults['title'] );
+		}
+
 		// Description.
 		if ( boolval( wpcd_get_option( 'wpcd_show_server_list_short_desc' ) ) ) {
 			$show_it = true;
@@ -708,10 +717,22 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 		}
 
 		// Server Actions.
-		$defaults['wpcd_server_actions'] = __( 'Server Actions', 'wpcd' );
+		$show_it = true;
+		if ( ! is_admin() && ( boolval( wpcd_get_option( 'wordpress_app_fe_hide_server_actions_in_server_list' ) ) ) ) {
+			$show_it = false;
+		}
+		if ( $show_it ) {
+			$defaults['wpcd_server_actions'] = __( 'Server Actions', 'wpcd' );
+		}
 
 		// Server Provider.
-		$defaults['wpcd_server_provider'] = __( 'Provider Details', 'wpcd' );
+		$show_it = true;
+		if ( ! is_admin() && ( boolval( wpcd_get_option( 'wordpress_app_fe_hide_provider_details_in_server_list' ) ) ) ) {
+			$show_it = false;
+		}
+		if ( $show_it ) {
+			$defaults['wpcd_server_provider'] = __( 'Provider Details', 'wpcd' );
+		}
 
 		// Server Region.
 		if ( boolval( wpcd_get_option( 'wpcd_server_list_region_column' ) ) ) {
@@ -724,13 +745,29 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 		}
 
 		// Local Status.
-		$defaults['wpcd_local_status'] = __( 'Local Status', 'wpcd' );
+		$show_it = true;
+		if ( ! is_admin() && ( boolval( wpcd_get_option( 'wordpress_app_fe_hide_local_status_in_server_list' ) ) ) ) {
+			$show_it = false;
+		}
+		if ( $show_it ) {
+			$defaults['wpcd_local_status'] = __( 'Local Status', 'wpcd' );
+		}
+
+		// Server Type.
 		if ( boolval( wpcd_get_option( 'wpcd_show_server_list_server_type' ) ) ) {
 			$defaults['wpcd_server_initial_app'] = __( 'Initial App/<br />Server Type', 'wpcd' );
 		}
 
 		// App Count.
-		$defaults['wpcd_server_app_count'] = __( 'Apps', 'wpcd' );
+		$show_it = true;
+		if ( ! is_admin() && ( boolval( wpcd_get_option( 'wordpress_app_fe_hide_app_count_in_server_list' ) ) ) ) {
+			$show_it = false;
+		}
+		if ( $show_it ) {
+			$defaults['wpcd_server_app_count'] = __( 'Apps', 'wpcd' );
+		}
+
+		// Date.
 		if ( boolval( wpcd_get_option( 'wpcd_show_server_list_date' ) ) ) {
 			$defaults['date'] = __( 'Date', 'wpcd' );
 		}

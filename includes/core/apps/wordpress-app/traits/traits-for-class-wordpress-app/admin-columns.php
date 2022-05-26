@@ -386,8 +386,13 @@ trait wpcd_wpapp_admin_column_data {
 	 * @return $defaults modified array with new columns
 	 */
 	public function app_server_table_head( $defaults ) {
-
-		$defaults['wpcd_server_health'] = __( 'Health', 'wpcd' );
+		$show_it = true;
+		if ( ! is_admin() && ( boolval( wpcd_get_option( 'wordpress_app_fe_hide_health_in_server_list' ) ) ) ) {
+			$show_it = false;
+		}
+		if ( $show_it ) {
+			$defaults['wpcd_server_health'] = __( 'Health', 'wpcd' );
+		}
 
 		return $defaults;
 	}

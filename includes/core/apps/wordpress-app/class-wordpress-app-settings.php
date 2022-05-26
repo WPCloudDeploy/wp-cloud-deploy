@@ -1343,6 +1343,56 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tab'     => 'wordpress-app-front-end-fields',
 			),
 
+			array(
+				'id'   => 'wordpress_front_end_fields_heading_02',
+				'type' => 'heading',
+				'name' => __( 'Servers - Hide Cards', 'wpcd' ),
+				'desc' => __( 'Hide cards in the server list and related screens when displaying data on the front-end. These cards are usually shown by default.', 'wpcd' ),
+				'tab'  => 'wordpress-app-front-end-fields',
+			),
+
+			array(
+				'id'      => 'wordpress_app_fe_hide_title_in_server_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide Title', 'wpcd' ),
+				'tooltip' => __( 'Hide the title field/card in the server list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_hide_server_actions_in_server_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide Server Actions', 'wpcd' ),
+				'tooltip' => __( 'Hide the server actions field/card in the server list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_hide_provider_details_in_server_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide Provider Details', 'wpcd' ),
+				'tooltip' => __( 'Hide the provider details field/card in the server list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_hide_local_status_in_server_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide Local Status', 'wpcd' ),
+				'tooltip' => __( 'Hide the local status field/card in the server list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_hide_app_count_in_server_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide App Count', 'wpcd' ),
+				'tooltip' => __( 'Hide the app count field/card in the server list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_hide_health_in_server_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide Health', 'wpcd' ),
+				'tooltip' => __( 'Hide the health field/card in the server list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
 
 			array(
 				'id'   => 'wordpress_front_end_fields_heading_03',

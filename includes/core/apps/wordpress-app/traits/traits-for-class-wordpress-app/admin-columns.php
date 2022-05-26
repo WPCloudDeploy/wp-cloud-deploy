@@ -138,7 +138,7 @@ trait wpcd_wpapp_admin_column_data {
 			$column_data = $column_data . '<br />';
 		}
 
-		// Display the count of notes and admin notes.
+		// Get the count of notes and admin notes.
 		$labels_count_arr = $this->get_notes_count_string( $post_id );
 		$labels_count_arr = implode( ' ', $labels_count_arr );
 
@@ -147,12 +147,24 @@ trait wpcd_wpapp_admin_column_data {
 		if ( true === (bool) wpcd_get_option( 'wordpress_app_hide_domain_site_summary_column_in_site_list' ) && ( ! wpcd_is_admin() ) ) {
 			// Do nothing.
 		} else {
-			$new_column_data = $new_column_data . __( 'Domain:', 'wpcd' ) . ' ' . get_post_meta( $post_id, 'wpapp_domain', true ) . '<br />';
+			$value  = __( 'Domain: ', 'wpcd' );
+			$data   = get_post_meta( $post_id, 'wpapp_domain', true );
+			$value  = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $value, 'page_cache', 'left' );
+			$value .= WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $data, 'domain', 'right' );
+			$value  = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_div_and_class( $value, 'domain' );
+
+			$new_column_data = $new_column_data . $value;
 		}
 		if ( true === (bool) wpcd_get_option( 'wordpress_app_hide_login_user_site_summary_column_in_site_list' ) && ( ! wpcd_is_admin() ) ) {
 			// Do nothing.
 		} else {
-			$new_column_data = $new_column_data . __( 'User:', 'wpcd' ) . ' ' . get_post_meta( $post_id, 'wpapp_user', true ) . '<br />';
+			$value  = __( 'User: ', 'wpcd' );
+			$data   = get_post_meta( $post_id, 'wpapp_user', true );
+			$value  = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $value, 'wp_login_user', 'left' );
+			$value .= WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $data, 'wp_login_user', 'right' );
+			$value  = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_div_and_class( $value, 'wp_login_user' );
+
+			$new_column_data = $new_column_data . $value;
 		}
 
 		/* Add wp version */
@@ -163,28 +175,64 @@ trait wpcd_wpapp_admin_column_data {
 			if ( 'latest' === $wp_version ) {
 				$wp_version = __( 'Latest', 'wpcd' );
 			}
-			$new_column_data = $new_column_data . __( 'Initial WP Version:', 'wpcd' ) . ' ' . $wp_version . '<br />';
+
+			$value  = __( 'Initial WP Version: ', 'wpcd' );
+			$value  = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $value, 'initial_wp_version', 'left' );
+			$value .= WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $wp_version, 'initial_wp_version', 'right' );
+			$value  = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_div_and_class( $value, 'initial_wp_version' );
+
+			$new_column_data = $new_column_data . $value;
 		}
+
+		// Display the count of notes and admin notes.
 		if ( ! empty( $labels_count_arr ) ) {
 			$new_column_data = $new_column_data . $labels_count_arr . '<br />';
 		}
 
-		$new_column_data = $new_column_data . '<b>' . $this->get_formatted_wpadmin_link( $post_id ) . '</b><br />';
-		$new_column_data = $new_column_data . '<b>' . $this->get_formatted_site_link( $post_id ) . '</b>';
-		$new_column_data = $new_column_data . '<br />' . $this->get_formatted_custom_links( $post_id );
+		// Display the wp-admin login link.
+		$value = $this->get_formatted_wpadmin_link( $post_id );
+		$value = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $value, 'wp_admin_link', 'left' );
 
-		/* If the site is being synced to another server, include data about that here. */
-		$destination_server_id = (int) get_post_meta( $post_id, 'wpcd_wpapp_site_sync_schedule_destination_id', true );
-		if ( $destination_server_id > 0 ) {
-			// Get the name of the server in a formatted link (with a link if the user is able to edit it otherwise without the link.)
-			$destination_server_title = wp_kses_post( get_post( $destination_server_id )->post_title );
-			$user_id                  = get_current_user_id();
-			if ( wpcd_user_can( $user_id, 'view_server', $destination_server_id ) || get_post( $destination_server_id )->post_author === $user_id ) {
-				$destination_server_text = sprintf( '<a href="%s">' . $destination_server_title . '</a>', get_edit_post_link( $destination_server_id ) );
-			} else {
-				$destination_server_text = $destination_server_title;
+		// Display a link to the site home page.
+		$value2 = $this->get_formatted_site_link( $post_id );
+		$value2 = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $value2, 'homepage_link', 'right' );
+
+		if ( is_admin() ) {
+			// Stack site links when displayed in the wp-admin area.
+			$value           = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_div_and_class( $value, 'wp_admin_link' );
+			$new_column_data = $new_column_data . $value;
+			$value2          = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_div_and_class( $value2, 'homepage_link' );
+			$new_column_data = $new_column_data . $value2;
+		} else {
+			// Set links side-by-side shown on the front-end.
+			$value           = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_div_and_class( $value . $value2, 'site_links' );
+			$new_column_data = $new_column_data . $value;
+		}
+
+		// Display any custom links - only displayedin the wp-admin area.
+		if ( is_admin() ) {
+			$new_column_data = $new_column_data . $this->get_formatted_custom_links( $post_id );
+		}
+
+		// If the site is being synced to another server, include data about that here.  It only displayedin the wp-admin area.
+		if ( is_admin() ) {
+			$destination_server_id = (int) get_post_meta( $post_id, 'wpcd_wpapp_site_sync_schedule_destination_id', true );
+			if ( $destination_server_id > 0 ) {
+				// Get the name of the server in a formatted link (with a link if the user is able to edit it otherwise without the link).
+				$destination_server_title = wp_kses_post( get_post( $destination_server_id )->post_title );
+				$user_id                  = get_current_user_id();
+				if ( wpcd_user_can( $user_id, 'view_server', $destination_server_id ) || get_post( $destination_server_id )->post_author === $user_id ) {
+					$destination_server_text = sprintf( '<a href="%s">' . $destination_server_title . '</a>', get_edit_post_link( $destination_server_id ) );
+				} else {
+					$destination_server_text = $destination_server_title;
+				}
+				$new_column_data = $new_column_data . '<span class="wpcd_destination_site_sync_server wpcd_destination_server">' . __( 'Syncing To:', 'wpcd' ) . '<br .>' . $destination_server_text . '</span>';
 			}
-			$new_column_data = $new_column_data . '<span class="wpcd_destination_site_sync_server wpcd_destination_server">' . __( 'Syncing To:', 'wpcd' ) . '<br .>' . $destination_server_text . '</span>';
+		}
+
+		// Add a horizontal divider if we're on the front-end.
+		if ( ! is_admin() ) {
+			$new_column_data .= '<hr />';
 		}
 
 		/* Add in some health data about the site. */
@@ -544,17 +592,19 @@ trait wpcd_wpapp_admin_column_data {
 
 			case 'wpcd_wpapp_cache':
 				if ( 'wordpress-app' === $this->get_app_name() ) {
-					// get the nginx cache status.
+					// get the page cache status.
 					$page_cache = wpcd_maybe_unserialize( get_post_meta( $post_id, 'wpapp_nginx_pagecache_status', true ) );
 					if ( empty( $page_cache ) ) {
 						$page_cache = 'off';
 					}
 
+					// Create a string suitable for displaying the page cache status.
 					$value  = __( 'Page Cache: ', 'wpcd' );
 					$value  = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $value, 'page_cache', 'left' );
 					$value .= WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $page_cache, 'page_cache', 'right' );
 					$value  = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_div_and_class( $value, 'page_cache' );
 
+					// Display the page cache status by echoing out the string we just built.
 					echo '<div class="wpcd_page_cache_status">' . $value . '</div>';
 
 					// get the memcached status...
@@ -575,11 +625,13 @@ trait wpcd_wpapp_admin_column_data {
 						}
 					}
 
+					// Create a string suitable for displaying the object cache status.
 					$value  = __( 'Object Cache: ', 'wpcd' );
 					$value  = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $value, 'object_cache', 'left' );
 					$value .= WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $object_cache, 'object_cache', 'right' );
 					$value  = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_div_and_class( $value, 'object_cache' );
 
+					// Display the object cache status by echoing out the string we just built.
 					echo '<div class="wpcd_object_cache_status">' . $value . '</div>';
 
 				}

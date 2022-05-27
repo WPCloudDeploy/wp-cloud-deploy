@@ -27,9 +27,10 @@
 }
 /* End links should not be underlined. */
 
-/* Button text should not be underlined. */
+/* Button text should not be underlined and text color should be defaulted to white. */
 #wpcd_public_wrapper button,
 #wpcd_public_wrapper a.button {
+	color: white;
 	text-decoration: none;
 	text-decoration-line: none;	
 }

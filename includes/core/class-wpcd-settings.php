@@ -2217,6 +2217,8 @@ class WPCD_Settings {
 		$wpcd_settings['wordpress_app_fe_medium_background_color']           = WPCD_FE_MEDIUM_BG_COLOR;
 		$wpcd_settings['wordpress_app_fe_light_background_color']            = WPCD_FE_LIGHT_BG_COLOR;
 		$wpcd_settings['wordpress_app_fe_alternate_accent_background_color'] = WPCD_FE_ALTERNATE_ACCENT_BG_COLOR;
+		$wpcd_settings['wordpress_app_fe_positive_color']                    = WPCD_FE_POSITIVE_COLOR;
+		$wpcd_settings['wordpress_app_fe_negative_color']                    = WPCD_FE_NEGATIVE_COLOR;
 
 		// Update the settings options.
 		update_option( 'wpcd_settings', $wpcd_settings );

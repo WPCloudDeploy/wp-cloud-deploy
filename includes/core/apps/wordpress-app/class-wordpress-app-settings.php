@@ -2105,7 +2105,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'id'            => "{$brand_key}",
 				'type'          => 'color',
 				'alpha_channel' => true,
-				'desc'          => "{$brand_value['desc']}",
+				'tooltip'       => "{$brand_value['desc']}",
 				'tab'           => 'wordpress-app-white-label',
 				'std'           => "{$brand_value['std']}",
 			);
@@ -2181,7 +2181,6 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'id'            => "{$brand_key}",
 				'type'          => 'color',
 				'alpha_channel' => true,
-				'desc'          => "{$brand_value['desc']}",
 				'tooltip'       => "{$brand_value['desc']}",
 				'tab'           => 'wordpress-app-white-label',
 				'std'           => "{$brand_value['std']}",

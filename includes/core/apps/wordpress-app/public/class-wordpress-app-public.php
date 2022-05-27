@@ -425,7 +425,7 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 					'wpcd_wordpress-app_tab2',
 				);
 
-				echo '<div><a class="button wpcd-back_link" href="' . get_permalink( self::get_servers_list_page_id() ) . '">' . __( 'Cloud Servers', 'wpcd' ) . '</a></div>';
+				echo '<div><a class="button wpcd-back_link" href="' . get_permalink( self::get_apps_list_page_id() ) . '">' . __( 'All Apps', 'wpcd' ) . '</a></div>';
 
 				foreach ( $metaboxes as $mb ) {
 					echo '<div id="' . $mb . '">';

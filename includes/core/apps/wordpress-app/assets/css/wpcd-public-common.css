@@ -9,13 +9,7 @@
 }
 
 #wpcd_public_wrapper {
-
         max-width: 100%;
-}
-
-
-#wpcd_public_wrapper .wpcd-create-popup-label {
-        font-size: 13px;
 }
 
 #wpcd_public_wrapper .wpcd-pre-install,
@@ -26,8 +20,13 @@
         padding-right: 0;
 }
 
+#wpcd_public_wrapper .wpcd-create-popup-label {
+		/* Field labels on popup when creating a new site or server.*/
+        font-size: 13px;
+}
 
 #wpcd_public_wrapper .wpcd-create-popup-label-wrap {
+		/* Field labels on popup when creating a new site needs vertical space between them.*/
         margin-bottom: 6px;
 }
 
@@ -39,13 +38,16 @@
 }
 
 #wpcd_public_wrapper .wpcd-popup .wpcd-log-title {
+		/* Popup title for long running operations. */
         font-size: 26px;
         margin-top: 26px;
         margin-bottom: 26px;
         margin-left: 5px;
 }
 
+/* Close button on popups.*/
 #wpcd_public_wrapper .wpcd-popup .wpcd-log-close-button {
+
         display: inline-block;
         font-size: 13px;
         border-radius: 3px;
@@ -54,11 +56,9 @@
         border: 1px solid #2271b1;
         color: #2271b1;
 }
-
 #wpcd_public_wrapper .wpcd-popup .wpcd-log-close-button a {
         color: inherit;
 }
-
 #wpcd_public_wrapper .wpcd-log-close-wrap {
         margin-top: 13px;
 }
@@ -75,7 +75,6 @@
 #wpcd_public_wrapper td {
         font-size: 14px;
 }
-
 
 #wpcd_public_wrapper .tablenav .tablenav-pages {
         float: right;
@@ -109,7 +108,6 @@
         min-height: 30px;
 }
 
-
 #wpcd_public_wrapper .tablenav .actions select {
         width: 13%;
         float: left;
@@ -126,8 +124,7 @@
         float: left;
 }
 
-#wpcd_public_wrapper .tablenav .actions #post-query-submit,
-#wpcd_public_wrapper .rwmb-input button {
+#wpcd_public_wrapper .tablenav .actions #post-query-submit {
         font-size: 13px;
         padding-top: 0;
         padding-bottom: 0;
@@ -140,18 +137,11 @@
         display: none;
 }
 
-
-#wpcd_public_wrapper a.deploy_button {
-        display: inline-block;
-        margin: 20px 0;
-}
-
 #wpcd_public_wrapper .wpcd-popup .wpcd-log-console,
 #wpcd_public_wrapper .wpcd_custom_tooltiptext,
 #wpcd_public_wrapper .rwmb-tab-panels {
         font-size: 13px;
 }
-
 
 #wpcd_public_wrapper .rwmb-tab-nav {
         padding: 0;
@@ -161,11 +151,9 @@
         font-size: 14px;
 }
 
-
 #wpcd_public_wrapper #wpcd_server_wordpress-app_tab_top_of_server_details {
         margin: 0;
 }
-
 
 #wpcd_public_wrapper #wpcd_server_wordpress-app_tab3 {
         padding-left: 0 !important;
@@ -173,9 +161,16 @@
         margin-top: 20px;
 }
 
+/* Metabox toggle switches */
 #wpcd_public_wrapper .rwmb-input label.rwmb-switch-label {
+		/* Toggle switches need pointer changed on hover. */
         cursor: pointer;
 }
+#wpcd_public_wrapper .rwmb-input .rwmb-switch:checked + .rwmb-switch-status .rwmb-switch-slider {
+		/* Color when switch is enabled. */
+		background-color: var(--wpcd-front-end-positive-color);
+}
+/* End Metabox toggle switches */
 
 #wpcd_public_wrapper .rwmb-meta-box.wpcd_server_wordpress-app_tab_top_of_server_details label {
         font-size: 12px;
@@ -190,12 +185,7 @@
         font-size: 13px;
 }
 
-#wpcd_public_wrapper .wpcd-back_link {
-        display: inline-block;
-        margin-bottom: 20px;
-}
-
-
+/* Styling install popups */
 #wpcd_public_wrapper .wpcd-install-app-container.wpcd-popup {
         width: 100%;
         margin-left: 0;
@@ -260,7 +250,12 @@
         position: relative;
 }
 
+#wpcd_public_wrapper .wpcd-create-popup-input-wrap .wpcd-install-button.wpcd-install-app {
+        font-size: 17px;
+}
+/* End styling install popups */
 
+/* Some SELECT2 Styling. */
 #wpcd_public_wrapper .select2-search input.select2-search__field {
         line-height: 28px;
         border-radius: 4px;
@@ -272,18 +267,15 @@
 #wpcd_public_wrapper .select2-selection {
         font-size: 13px;
 }
+/* End SELECT2 styles. */
 
-
-#wpcd_public_wrapper .wpcd-create-popup-input-wrap .wpcd-install-button.wpcd-install-app {
-        font-size: 17px;
-}
-
-
+/* All buttons default to white text. */
 #wpcd_public_wrapper button .rwmb-button a {
         color: #FFF;
 }
 
 
+/* Style the post counts above the filter bar. */
 #wpcd_public_wrapper .subsubsub {
         list-style: none;
         margin: 8px 0 0;
@@ -321,10 +313,7 @@
         color: #50575e;
         font-weight: 400;
 }
-
-#wpcd_public_wrapper #wpcd_wordpress-app_tab_top_of_site_details button {
-        background-color: inherit;
-}
+/* End style the post counts above the filter bar. */
 
 #wpcd_public_wrapper .row-actions {
         /* Nothing here */
@@ -343,6 +332,7 @@
 /* Format the DEPLOY A WORDPRESS SERVER and INSTALL WORDPRESS/NEW WORDPRESS SITE buttons. */
 #wpcd_public_wrapper a.deploy_button,
 #wpcd_public_wrapper button.wpcd_action_install_app {
+		display: inline-block;
 		background-color: var(--wpcd-front-end-positive-color);
 		border: solid;
 		border-color: var(--wpcd-front-end-positive-color);
@@ -350,6 +340,7 @@
 		border-radius: 3px;
 		color: white;
 		text-decoration: none;		
+        margin: 20px 0;		
 }
 #wpcd_public_wrapper a.deploy_button:hover,
 #wpcd_public_wrapper button.wpcd_action_install_app:hover {
@@ -666,6 +657,8 @@
 }
 /* End make row actions buttons */
 
+
+/* Media queries for the table/grid lists */
 @media screen and (max-width: 1200px) {
 
         .wpcd-grid-table .wpcd-grid-table-columns,
@@ -696,3 +689,81 @@
         }
 
 }
+/* End media queries for the table/grid lists */
+
+/**
+ * Start custom css for the detail pages.
+ */
+ .single-wpcd_app #wpcd_public_wrapper,
+.single-wpcd_app_server #wpcd_public_wrapper {
+	 /* Set a background color for the main container. */
+	 background-color: var(--wpcd-front-end-alternate-accent-background-color);
+	 border-radius: 3px;
+	 padding: 30px 20px;
+ }
+
+#wpcd_public_wrapper .rwmb-input button {
+	/* Buttons */
+	background-color: var(--wpcd-front-end-accent-background-color);
+	padding: 9px 17px 9px 17px;
+	border-radius: 3px;
+} 
+#wpcd_public_wrapper .rwmb-input button:hover {
+	/* Buttons - hover */
+	text-decoration: none;
+	background-color: var(--wpcd-front-end-primary-brand-color);
+	border-color: var(--wpcd-front-end-primary-brand-color);
+}
+
+#wpcd_public_wrapper .wpcd-back_link {
+	/* Back to list buttons */
+	background-color: var(--wpcd-front-end-accent-background-color);
+	padding: 9px 17px 9px 17px;
+	border-radius: 3px;	
+    display: inline-block;
+    margin-bottom: 20px;	
+}
+#wpcd_public_wrapper .wpcd-back_link:hover {
+	/* Back to list buttons - hover */
+	text-decoration: none;
+	background-color: var(--wpcd-front-end-primary-brand-color);
+	border-color: var(--wpcd-front-end-primary-brand-color);	
+}
+
+#wpcd_public_wrapper .wpcd_wordpress-app_tab_top_of_site_details .rwmb-row {
+	/* Summary row at the top of the site detail screen. */
+	background-color: var(--wpcd-front-end-accent-background-color);	
+	margin-bottom: 20px;	
+	padding: 9px 17px 9px 17px;
+	border-radius: 3px;		
+}
+#wpcd_public_wrapper .wpcd_wordpress-app_tab_top_of_site_details .rwmb-row .rwmb-label {
+	/* Summary row at the top of the site detail screen - column titles get brand color. */
+	color: var(--wpcd-front-end-primary-brand-color);
+}
+
+#wpcd_public_wrapper .wpcd_site_details_top_row_domain_left {
+	/* Site domain name at the top of the detail screen - gets brand color. */
+	color: var(--wpcd-front-end-primary-brand-color);
+	text-transform: uppercase;	
+}
+
+#wpcd_public_wrapper .wpcd_wordpress-app_tab_top_of_site_details .rwmb-row button, 
+#wpcd_public_wrapper .wpcd_wordpress-app_tab_top_of_site_details .rwmb-row button a {
+	/* Buttons at the top of the site detail screen. */
+	color: var(--wpcd-front-end-light-background-color);
+	background-color: var(--wpcd-front-end-primary-brand-color);
+	border-color: var(--wpcd-front-end-primary-brand-color);	
+}
+#wpcd_public_wrapper .wpcd_wordpress-app_tab_top_of_site_details .rwmb-row button:hover,
+#wpcd_public_wrapper .wpcd_wordpress-app_tab_top_of_site_details .rwmb-row button a:hover {
+	/* Buttons at the top of the site detail screen - hover. */
+	text-decoration: none;
+	xx-background-color: var(--wpcd-front-end-primary-brand-color);
+	border-color: var(--wpcd-front-end-alternate-accent-background-color);
+}
+ 
+ 
+/**
+ * End custom css for the detail pages.
+ */ 

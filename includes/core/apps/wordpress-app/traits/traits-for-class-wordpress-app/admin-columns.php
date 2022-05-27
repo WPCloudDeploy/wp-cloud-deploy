@@ -386,6 +386,17 @@ trait wpcd_wpapp_admin_column_data {
 	 * @return $defaults modified array with new columns
 	 */
 	public function app_server_table_head( $defaults ) {
+
+		// Webserver type column.
+		$show_it = true;
+		if ( ! is_admin() && ( ! boolval( wpcd_get_option( 'wordpress_app_fe_show_web_server_type_column_in_server_list' ) ) ) ) {
+			$show_it = false;
+		}
+		if ( $show_it ) {
+			$defaults['wpcd_server_web_server_Type'] = __( 'Web Server', 'wpcd' );
+		}
+
+		// Health column.
 		$show_it = true;
 		if ( ! is_admin() && ( boolval( wpcd_get_option( 'wordpress_app_fe_hide_health_in_server_list' ) ) ) ) {
 			$show_it = false;
@@ -451,6 +462,10 @@ trait wpcd_wpapp_admin_column_data {
 	public function app_server_table_content( $value, $column_name, $post_id ) {
 
 		switch ( $column_name ) {
+			case 'wpcd_server_web_server_Type':
+					$value = $this->get_formatted_web_server_type_for_display( $post_id );
+				break;
+
 			case 'wpcd_server_actions':
 				// Check to make sure we're not trying to show this on a deleted post...
 				if ( 'private' <> get_post_status( $post_id ) ) {
@@ -501,6 +516,15 @@ trait wpcd_wpapp_admin_column_data {
 					} else {
 						$value = '<div class="wpcd_server_actions_op_in_progress">' . __( 'An operation seem to be in progress on this server. Please wait for it to complete!', 'wpcd' ) . '</div>';
 					}
+				}
+
+				// Add web server type beneath the button or notice.
+				$show_web_server_type = true;
+				if ( ! is_admin() && ( boolval( wpcd_get_option( 'wordpress_app_fe_hide_web_server_type_element_in_server_list' ) ) ) ) {
+					$show_web_server_type = false;
+				}
+				if ( $show_web_server_type ) {
+					$value .= $this->get_formatted_web_server_type_for_display( $post_id, true );
 				}
 
 				// Add custom links below the install WordPress button...
@@ -576,6 +600,43 @@ trait wpcd_wpapp_admin_column_data {
 
 		return $value;
 
+	}
+
+	/**
+	 * Return the web server type description formatted for display.
+	 *
+	 * @since 5.0
+	 *
+	 * @param int     $post_id The post id of the server or app.
+	 * @param boolean $show_label_in_wpadmin Show the "Web Server:" label when displaying in wp-admin?.
+	 *
+	 * @return string
+	 */
+	public function get_formatted_web_server_type_for_display( $post_id, $show_label_in_wpadmin = false ) {
+		$value           = '';
+		$web_server_type = WPCD_WORDPRESS_APP()->get_web_server_type( $post_id );
+		$web_server_desc = WPCD_WORDPRESS_APP()->get_web_server_description( $web_server_type );
+
+		// Show full string with label?
+		$show_full = false;
+		if ( is_admin() && true === $show_label_in_wpadmin ) {
+			$show_full = - true;
+		}
+		if ( ! is_admin() ) {
+			$show_full = true; // Always show the full string on the frontend.
+		}
+
+		if ( ! $show_full ) {
+			// Show only the value - usually when being displayed in wp-admin in it's own column.
+			$value = WPCD_POSTS_APP_SERVER()->wpcd_column_wrap_string_with_span_and_class( $web_server_desc, 'web_server_desc', 'left' );
+			$value = WPCD_POSTS_APP_SERVER()->wpcd_column_wrap_string_with_div_and_class( $value, 'web_server_desc' );
+		} else {
+			// Show both the label and the value.
+			$value  = WPCD_POSTS_APP_SERVER()->wpcd_column_wrap_string_with_span_and_class( __( 'Web Server: ', 'wpcd' ), 'web_server_desc', 'left' );
+			$value .= WPCD_POSTS_APP_SERVER()->wpcd_column_wrap_string_with_span_and_class( $web_server_desc, 'web_server_desc', 'right' );
+			$value  = WPCD_POSTS_APP_SERVER()->wpcd_column_wrap_string_with_div_and_class( $value, 'web_server_desc' );
+		}
+		return $value;
 	}
 
 	/**

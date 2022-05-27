@@ -201,7 +201,7 @@ class WPCD_Init {
 		require_once wpcd_path . 'includes/core/class-wpcd-posts-app.php';
 		WPCD_POSTS_APP_SERVER::activate( $network_wide );
 		WPCD_POSTS_APP::activate( $network_wide );
-		
+
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/public/class-wordpress-app-public.php';
 		WPCD_WORDPRESS_APP_PUBLIC::activate( $network_wide );
 
@@ -296,7 +296,7 @@ class WPCD_Init {
 		require_once wpcd_path . '/required_plugins/mb-term-meta/mb-term-meta.php';
 		require_once wpcd_path . '/required_plugins/meta-box-columns/meta-box-columns.php';
 		require_once wpcd_path . '/required_plugins/meta-box-group/meta-box-group.php';
-		require_once wpcd_path . '/required_plugins/mb-user-meta/mb-user-meta.php';		
+		require_once wpcd_path . '/required_plugins/mb-user-meta/mb-user-meta.php';
 
 		/* Load up some licensing files. */
 		if ( true === is_admin() ) {
@@ -423,12 +423,14 @@ class WPCD_Init {
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/metaboxes-app.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/metaboxes-server.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/commands-and-logs.php';
+		require_once wpcd_path . 'includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/script-handlers.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/after-prepare-server.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/push-commands.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/admin-columns.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/backup.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/woocommerce_support.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/upgrade.php';
+		require_once wpcd_path . 'includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/unused.php';
 	}
 
 	/**

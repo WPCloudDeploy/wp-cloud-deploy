@@ -66,7 +66,7 @@
 						<div class="wpcd-create-popup-input-wrap">
 							<select name="webserver-type" class="wpcd_app_webserver">
 							<?php
-							$default_web_server = WPCD()->get_default_webserver();
+							$default_web_server = WPCD_WORDPRESS_APP()->get_default_webserver();
 
 							foreach ( $webserver_list as $webserver => $webserver_name ) {
 								$is_selected_webserver = '';

@@ -1336,6 +1336,13 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tab'     => 'wordpress-app-front-end-fields',
 			),
 			array(
+				'id'      => 'wordpress_app_fe_show_web_server_type_column_in_server_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Show Web Server Type (Column)', 'wpcd' ),
+				'tooltip' => __( 'Show the web server field/card in the server list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
 				'id'      => 'wordpress_app_fe_show_sync_status_in_server_list',
 				'type'    => 'checkbox',
 				'name'    => __( 'Show Server Sync Data', 'wpcd' ),
@@ -1387,6 +1394,13 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tab'     => 'wordpress-app-front-end-fields',
 			),
 			array(
+				'id'      => 'wordpress_app_fe_hide_web_server_type_element_in_server_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide Web Server Type (Element)', 'wpcd' ),
+				'tooltip' => __( 'Hide the web server field on the SERVER ACTIONS field/card in the server list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),			
+			array(
 				'id'      => 'wordpress_app_fe_hide_health_in_server_list',
 				'type'    => 'checkbox',
 				'name'    => __( 'Hide Health', 'wpcd' ),
@@ -1413,6 +1427,13 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'type'    => 'checkbox',
 				'name'    => __( 'Show App Group', 'wpcd' ),
 				'tooltip' => __( 'Show the application group field/card in the app list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_show_web_server_type_in_app_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Show Web Server Type', 'wpcd' ),
+				'tooltip' => __( 'Show the web server field/card in the app list on the front-end.', 'wpcd' ),
 				'tab'     => 'wordpress-app-front-end-fields',
 			),
 			array(
@@ -1493,7 +1514,6 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tooltip' => __( 'Hide the SSL field/card in the app list on the front-end.', 'wpcd' ),
 				'tab'     => 'wordpress-app-front-end-fields',
 			),
-
 			array(
 				'id'   => 'wordpress_front_end_fields_heading_general',
 				'type' => 'heading',
@@ -2262,7 +2282,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			'desc' => '',
 			'rows' => 10,
 			'tab'  => 'wordpress-app-white-label',
-		);				
+		);
 
 		return $fields;
 

@@ -463,7 +463,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 		$server_post_id = get_post_meta( $app_id, 'parent_post_id', true );
 		$url            = admin_url( 'edit.php?post_type=wpcd_app&server_id=' . (string) $server_post_id );
-		$apps_on_server = sprintf( '<a href="%s" target="_blank">%s</a>', $url, __( 'View App List', 'wpcd' ) );
+		$apps_on_server = sprintf( '<a href="%s" target="_blank">%s</a>', $url, __( 'View Apps', 'wpcd' ) );
 
 		$fields[] = array(
 			'name'    => __( 'Apps on Server', 'wpcd' ),
@@ -697,7 +697,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			$url_wpadmin = 'http://' . $domain . '/wp-admin';
 		}
 
-		return sprintf( '<a href = "%s" target="_blank">' . __( 'Login to admin area', 'wpcd' ) . '</a>', $url_wpadmin );
+		return sprintf( '<a href = "%s" target="_blank">' . __( 'Admin Login', 'wpcd' ) . '</a>', $url_wpadmin );
 
 	}
 

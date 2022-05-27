@@ -180,9 +180,15 @@
         font-size: 15px;
 }
 
+/* Metabox field labels */
 #wpcd_public_wrapper .rwmb-label,
 #wpcd_public_wrapper .rwmb-label label {
         font-size: 13px;
+}
+
+/* Metabox buttons - default to white text. */
+#wpcd_public_wrapper button .rwmb-button a {
+        color: #FFF;
 }
 
 /* Styling install popups */
@@ -194,21 +200,7 @@
         padding-right: 2%;
 }
 
-.wpcd-install-app-container-show-log-console {
-        width: 65%;
-        margin: 0 auto;
-}
-
-.wpcd-install-app-container-show-log-console .wpcd-popup .wpcd-create-popup-console-wrap {
-        width: 100%;
-}
-
-.wpcd-install-app-container-show-log-console .wpcd-header {
-        margin-left: 2%;
-
-}
-
-.wpcd-header {
+#wpcd_public_wrapper .wpcd-header {
         margin-left: 2%;
 }
 
@@ -255,6 +247,21 @@
 }
 /* End styling install popups */
 
+/* Style console for viewing logs */
+#wpcd_public_wrapper .wpcd-install-app-container-show-log-console {
+        width: 65%;
+        margin: 0 auto;
+}
+
+#wpcd_public_wrapper .wpcd-install-app-container-show-log-console .wpcd-popup .wpcd-create-popup-console-wrap {
+        width: 100%;
+}
+
+#wpcd_public_wrapper .wpcd-install-app-container-show-log-console .wpcd-header {
+        margin-left: 2%;
+}
+/* End style console for viewing logs */
+
 /* Some SELECT2 Styling. */
 #wpcd_public_wrapper .select2-search input.select2-search__field {
         line-height: 28px;
@@ -268,12 +275,6 @@
         font-size: 13px;
 }
 /* End SELECT2 styles. */
-
-/* All buttons default to white text. */
-#wpcd_public_wrapper button .rwmb-button a {
-        color: #FFF;
-}
-
 
 /* Style the post counts above the filter bar. */
 #wpcd_public_wrapper .subsubsub {

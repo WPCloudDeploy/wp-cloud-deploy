@@ -275,7 +275,7 @@ trait wpcd_wpapp_admin_column_data {
 		$new_column_data .= $this->get_app_health_data( $post_id );
 
 		/* If not data, add a notification to that effect. */
-		if ( empty( new_column_data ) ) {
+		if ( empty( $new_column_data ) ) {
 			$new_column_data = __( 'No data for this app.', 'wpcd' );
 		}
 

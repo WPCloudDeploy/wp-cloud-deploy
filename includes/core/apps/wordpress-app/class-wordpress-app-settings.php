@@ -2113,11 +2113,11 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 
 		// Brand Colors - front-end.
 		$fields[] = array(
-			'name' => __( 'Brand Colors - Front-End', 'wpcd' ),
+			'name' => __( 'Brand Colors - Front-End Lists', 'wpcd' ),
 			'id'   => 'wordpress-app-brand-colors-heading',
 			'type' => 'heading',
 			'std'  => '',
-			'desc' => __( 'These settings are used to manage your brand colors shown on the front-end of your site.', 'wpcd' ),
+			'desc' => __( 'These settings are used to manage your brand colors shown on the front-end of your site.  Note that these affect only the server and site lists. The colors for the detail screens are still the same as the colors defined for wp-admin.', 'wpcd' ),
 			'tab'  => 'wordpress-app-white-label',
 		);
 
@@ -2128,7 +2128,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 		$brand_colors = array(
 			'wordpress_app_fe_primary_brand_color'     => array(
 				'label' => __( 'Primary Brand Color', 'wpcd' ),
-				'desc'  => '',
+				'desc'  => __( 'Used for the background hover color on most buttons as well as color of larger text.', 'wpcd' ),
 				'std'   => WPCD_FE_PRIMARY_BRAND_COLOR,
 			),
 			'wordpress_app_fe_secondary_brand_color'   => array(
@@ -2143,7 +2143,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			),
 			'wordpress_app_fe_accent_background_color' => array(
 				'label' => __( 'Accent Background Color', 'wpcd' ),
-				'desc'  => '',
+				'desc'  => __( 'Used for the background color on most buttons.', 'wpcd' ),
 				'std'   => WPCD_FE_ACCENT_BG_COLOR,
 			),
 			'wordpress_app_fe_medium_background_color' => array(
@@ -2153,7 +2153,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			),
 			'wordpress_app_fe_light_background_color'  => array(
 				'label' => __( 'Light Background Color', 'wpcd' ),
-				'desc'  => '',
+				'desc'  => __( 'Used for the background color on cards in the server and app list.', 'wpcd' ),
 				'std'   => WPCD_FE_LIGHT_BG_COLOR,
 			),
 			'wordpress_app_fe_alternate_accent_background_color' => array(
@@ -2162,14 +2162,14 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'std'   => WPCD_FE_ALTERNATE_ACCENT_BG_COLOR,
 			),
 			'wordpress_app_fe_positive_color'          => array(
-				'label'   => __( 'Positive Color', 'wpcd' ),
-				'tooltip' => __( 'Accent color used to indicate something is turned on or a good thing has occured.', 'wpcd' ),
-				'std'     => WPCD_FE_POSITIVE_COLOR,
+				'label' => __( 'Positive Color', 'wpcd' ),
+				'desc'  => __( 'Accent color used to indicate something is turned on or a good thing has occured.', 'wpcd' ),
+				'std'   => WPCD_FE_POSITIVE_COLOR,
 			),
 			'wordpress_app_fe_negative_color'          => array(
-				'label'   => __( 'Negatve Color', 'wpcd' ),
-				'tooltip' => __( 'Accent color used to indicate something is turned off or a bad thing has occured.', 'wpcd' ),
-				'std'     => WPCD_FE_NEGATIVE_COLOR,
+				'label' => __( 'Negative Color', 'wpcd' ),
+				'desc'  => __( 'Accent color used to indicate something is turned off or a bad thing has occured.', 'wpcd' ),
+				'std'   => WPCD_FE_NEGATIVE_COLOR,
 			),
 		);
 
@@ -2182,6 +2182,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'type'          => 'color',
 				'alpha_channel' => true,
 				'desc'          => "{$brand_value['desc']}",
+				'tooltip'       => "{$brand_value['desc']}",
 				'tab'           => 'wordpress-app-white-label',
 				'std'           => "{$brand_value['std']}",
 			);
@@ -2225,7 +2226,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			),
 		);
 
-		// Header.
+		// Documentation Overrides Header.
 		$fields[] = array(
 			'name' => __( 'Documentation Link Overrides', 'wpcd' ),
 			'id'   => 'wordpress-app-doc-link-overides-heading',
@@ -2246,6 +2247,23 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tab'  => 'wordpress-app-white-label',
 			);
 		}
+
+		// Custom CSS.
+		$fields[] = array(
+			'name' => __( 'Custom CSS', 'wpcd' ),
+			'id'   => 'wordpress-app-custom-css-override-header',
+			'type' => 'heading',
+			'desc' => 'Custom CSS is loaded in-line on very WPCD page on both the front-end and back-end.',
+			'tab'  => 'wordpress-app-white-label',
+		);
+		$fields[] = array(
+			'name' => __( 'Custom CSS', 'wpcd' ),
+			'id'   => 'wordpress-app-custom-css-override',
+			'type' => 'textarea',
+			'desc' => '',
+			'rows' => 10,
+			'tab'  => 'wordpress-app-white-label',
+		);				
 
 		return $fields;
 

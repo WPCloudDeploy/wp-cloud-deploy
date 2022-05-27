@@ -406,7 +406,7 @@
 .wpcd-grid-table-col,
 .wpcd-grid-table-cell {
 		/* Make each table cell a white card. */
-		background-color: white;
+		background-color: var(--wpcd-front-end-light-background-color);
 		border-radius: 10px;
         padding: 35px 30px 35px 30px;
 }
@@ -475,7 +475,6 @@
 		/* Each table row */
 		margin-top: 40px;
 		margin-bottom: 40px;		
-		xx-background-color: #AEB1D3;
 		background-color: var(--wpcd-front-end-alternate-accent-background-color);
         xx-box-shadow: 0 1px 3px 0 rgb(0 0 0 / 10%), 0 1px 2px 0 rgb(0 0 0 / 6%);
         border-radius: 6px;

@@ -555,6 +555,9 @@ class WP_CLOUD_DEPLOY {
 		/* Inject brand colors into global style sheet. */
 		$this->wpcd_inject_brand_color_styles();
 
+		/* Inject custom css. */
+		$this->wpcd_inject_custom_css();
+
 		/* Cloud Providers Screen - Uses the settings screen style sheet for now. */
 		if ( is_object( $screen ) && in_array( $screen->post_type, array( 'wpcd_cloud_provider' ) ) ) {
 			wp_enqueue_style( 'wpcd-admin-settings', wpcd_url . 'assets/css/wpcd-admin-settings.css', array(), wpcd_scripts_version );
@@ -659,6 +662,23 @@ class WP_CLOUD_DEPLOY {
 		/* Add some global css. */
 		wp_add_inline_style( 'wpcd-global-css', $global_css );
 
+	}
+
+	/**
+	 * Add custom css defined in settings
+	 * as inline styles to the global style sheet.
+	 */
+	public function wpcd_inject_custom_css() {
+
+		/* Global style sheet. */
+		wp_enqueue_style( 'wpcd-global-css', wpcd_url . 'assets/css/wpcd-global.css', array(), wpcd_scripts_version );
+
+		$global_css = wpcd_get_early_option( 'wordpress-app-custom-css-override' );
+
+		/* Add to global css. */
+		if ( ! empty( $global_css ) ) {
+			wp_add_inline_style( 'wpcd-global-css', $global_css );
+		}
 	}
 
 

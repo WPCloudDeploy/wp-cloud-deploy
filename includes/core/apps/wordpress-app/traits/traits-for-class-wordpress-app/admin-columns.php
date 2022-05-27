@@ -740,6 +740,9 @@ trait wpcd_wpapp_admin_column_data {
 				break;
 
 			case 'wpcd_wpapp_staging':
+				if ( ! ( 'wordpress-app' === $this->get_app_name() ) ) {
+					break;
+				}
 				if ( wpcd_get_option( 'wordpress_app_show_staging_column_in_site_list' ) ) {
 
 					$str = '';

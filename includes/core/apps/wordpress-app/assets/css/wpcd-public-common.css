@@ -12,6 +12,34 @@
         max-width: 100%;
 }
 
+/* Links should not be underlined. */
+#wpcd_public_wrapper a {
+	text-decoration: none;
+	text-decoration-line: none;
+}
+#wpcd_public_wrapper a:hover,
+#wpcd_public_wrapper a:active,
+#wpcd_public_wrapper a:focus,
+#wpcd_public_wrapper a:focus-visible,
+#wpcd_public_wrapper a:visited {
+	text-decoration: none;
+	text-decoration-line: none;
+}
+/* End links should not be underlined. */
+
+/* Button text should not be underlined. */
+#wpcd_public_wrapper button,
+#wpcd_public_wrapper a.button {
+	text-decoration: none;
+	text-decoration-line: none;	
+}
+#wpcd_public_wrapper button:hover,
+#wpcd_public_wrapper a.button:hover {
+	text-decoration: none;
+	text-decoration-line: none;	
+}
+/* End button text should not be underlined. */
+
 #wpcd_public_wrapper .wpcd-pre-install,
 #wpcd_public_wrapper #wpcd_public_servers_container,
 #wpcd_public_wrapper .wpcd_public_container {
@@ -47,7 +75,7 @@
 
 /* Close button on popups.*/
 #wpcd_public_wrapper .wpcd-popup .wpcd-log-close-button {
-
+		text-decoration: none;
         display: inline-block;
         font-size: 13px;
         border-radius: 3px;
@@ -57,6 +85,7 @@
         color: #2271b1;
 }
 #wpcd_public_wrapper .wpcd-popup .wpcd-log-close-button a {
+		text-decoration: none;
         color: inherit;
 }
 #wpcd_public_wrapper .wpcd-log-close-wrap {
@@ -98,6 +127,7 @@
         font-size: 16px;
         line-height: 1.625;
         text-align: center;
+		text-decoration: none;
 }
 
 #wpcd_public_wrapper .tablenav-pages .current-page {
@@ -188,6 +218,7 @@
 
 /* Metabox buttons - default to white text. */
 #wpcd_public_wrapper button .rwmb-button a {
+		text-decoration: none;
         color: #FFF;
 }
 
@@ -340,11 +371,20 @@
 		padding: 9px 17px 9px 17px;
 		border-radius: 3px;
 		color: white;
-		text-decoration: none;		
+		text-decoration: none;
+		text-decoration-line: none;
         margin: 20px 0;		
 }
 #wpcd_public_wrapper a.deploy_button:hover,
-#wpcd_public_wrapper button.wpcd_action_install_app:hover {
+#wpcd_public_wrapper a.deploy_button:active,
+#wpcd_public_wrapper a.deploy_button:focus,
+#wpcd_public_wrapper a.deploy_button:visited,
+#wpcd_public_wrapper button.wpcd_action_install_app:hover,
+#wpcd_public_wrapper button.wpcd_action_install_app:active,
+#wpcd_public_wrapper button.wpcd_action_install_app:focus,
+#wpcd_public_wrapper button.wpcd_action_install_app:visited {
+		text-decoration: none;
+		text-decoration-line: none;
 		border-color: var(--wpcd-front-end-primary-brand-color);
 		background-color: var(--wpcd-front-end-primary-brand-color);
 }
@@ -359,7 +399,7 @@
 }
 /* End Format INSTALL WORDPRESS button */
 
-/* Format site image - from powerpack */
+/* Format site image - from Powerpack */
 #wpcd_public_wrapper .wpcd_site_home_page_image.column-wpcd_site_home_page_image a img {
 	min-width: 100%;
 	max-width: 100%;
@@ -564,6 +604,7 @@
 	color: white;
 	font-size: 15px;
 	font-weight: 700;
+	text-decoration: none;
 }
 .wpcd-grid-table .wpcd-app-col-element-label-apps_on_server a:hover,
 .wpcd-grid-table .wpcd-server-col-element-label-update_remote_state_link a:hover {
@@ -643,6 +684,7 @@
 	margin-right: 15px;
 	margin-bottom: 20px;
 	min-width: 90px;
+	text-decoration: none;
 }
 .wpcd-grid-table .row-actions a:hover {
 	text-decoration: none;
@@ -705,6 +747,7 @@
 
 #wpcd_public_wrapper .rwmb-input button {
 	/* Buttons */
+	text-decoration: none;
 	background-color: var(--wpcd-front-end-accent-background-color);
 	padding: 9px 17px 9px 17px;
 	border-radius: 3px;
@@ -752,6 +795,7 @@
 #wpcd_public_wrapper .wpcd_wordpress-app_tab_top_of_site_details .rwmb-row button, 
 #wpcd_public_wrapper .wpcd_wordpress-app_tab_top_of_site_details .rwmb-row button a {
 	/* Buttons at the top of the site detail screen. */
+	text-decoration: none;
 	color: var(--wpcd-front-end-light-background-color);
 	background-color: var(--wpcd-front-end-primary-brand-color);
 	border-color: var(--wpcd-front-end-primary-brand-color);	
@@ -760,7 +804,6 @@
 #wpcd_public_wrapper .wpcd_wordpress-app_tab_top_of_site_details .rwmb-row button a:hover {
 	/* Buttons at the top of the site detail screen - hover. */
 	text-decoration: none;
-	xx-background-color: var(--wpcd-front-end-primary-brand-color);
 	border-color: var(--wpcd-front-end-alternate-accent-background-color);
 }
  

@@ -61,15 +61,13 @@
 						<?php do_action( "wpcd_{$this->get_app_name()}_create_popup_after_form_open", $providers, $oslist ); ?>
 
 						<!-- Webserver type dropdown -->
-						<?php if ( DEFINED( 'WPCD_WPAPP_SHOW_WEBSERVER_OPTIONS' ) && WPCD_WPAPP_SHOW_WEBSERVER_OPTIONS ) { ?>
+						<?php if ( ! DEFINED( 'WPCD_WPAPP_HIDE_WEBSERVER_OPTIONS' ) || ( DEFINED( 'WPCD_WPAPP_HIDE_WEBSERVER_OPTIONS' ) && ! WPCD_WPAPP_HIDE_WEBSERVER_OPTIONS ) ) { ?>
 						<div class="wpcd-create-popup-label-wrap"><label class="wpcd-create-popup-label" for="webserver-type"> <?php echo esc_html( __( 'Web Server', 'wpcd' ) ); ?>  </label></div>
 						<div class="wpcd-create-popup-input-wrap">
 							<select name="webserver-type" class="wpcd_app_webserver">
 							<?php
-							$default_web_server = wpcd_get_option( 'wordpress_app_default_webserver' );
-							if ( empty( $default_web_server ) ) {
-								$default_web_server = 'nginx';
-							}
+							$default_web_server = WPCD()->get_default_webserver();
+
 							foreach ( $webserver_list as $webserver => $webserver_name ) {
 								$is_selected_webserver = '';
 								if ( $webserver === $default_web_server ) {

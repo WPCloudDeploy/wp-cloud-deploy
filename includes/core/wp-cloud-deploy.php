@@ -707,10 +707,25 @@ class WP_CLOUD_DEPLOY {
 	public static function get_webserver_list() {
 		$webserver_list = array(
 			'nginx'          => __( 'NGINX', 'wpcd' ),
-			'ols'            => __( 'Open Litespeed', 'wpcd' ),
-			'ols-enterprise' => __( 'Litespeed Enterprise', 'wpcd' ),
+			'ols'            => __( 'Open Litespeed (Beta)', 'wpcd' ),
+			'ols-enterprise' => __( 'Litespeed Enterprise (Not Available)', 'wpcd' ),
 		);
 		return apply_filters( 'wpcd_webserver_list', $webserver_list );
+	}
+
+	/**
+	 * Returns the default webserver type.
+	 *
+	 * @since 5.0.0
+	 *
+	 * @return string.
+	 */
+	public static function get_default_webserver() {
+		$default_web_server = wpcd_get_option( 'wordpress_app_default_webserver' );
+		if ( empty( $default_web_server ) ) {
+			$default_web_server = 'nginx';
+		}
+		return apply_filters( 'wpcd_default_web_server_type', $default_web_server );
 	}
 
 	/**

@@ -477,7 +477,7 @@ trait wpcd_wpapp_admin_column_data {
 					break;
 				}
 
-				// adds an 'install WordPress' button to the server actions column.
+				// Adds an 'install WordPress' button to the server actions column.
 				if ( apply_filters( 'wpcd_wpapp_show_install_wp_button', true, $post_id ) ) {
 
 					// Get the state of the server.
@@ -522,6 +522,7 @@ trait wpcd_wpapp_admin_column_data {
 						$value = '<div class="wpcd_server_actions_op_in_progress">' . __( 'An operation seem to be in progress on this server. Please wait for it to complete!', 'wpcd' ) . '</div>';
 					}
 				}
+				// End adds 'install WordPress' button to the server actions column.
 
 				// Add web server type beneath the button or notice.
 				$show_web_server_type = true;

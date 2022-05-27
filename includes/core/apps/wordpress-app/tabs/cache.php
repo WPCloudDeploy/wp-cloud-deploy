@@ -419,7 +419,6 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 			'name' => __( 'Page Cache', 'wpcd' ),
 			'tab'  => 'cache',
 			'type' => 'heading',
-			'desc' => __( 'Enable or disable the NGINX page cache.<br />', 'wpcd' ),
 		);
 
 		// What is the status of the page cache?
@@ -464,7 +463,6 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 			'name' => __( 'Clear Page Cache', 'wpcd' ),
 			'tab'  => 'cache',
 			'type' => 'heading',
-			'desc' => __( 'Clear the NGINX based page cache for this site', 'wpcd' ),
 		);
 		$fields[] = array(
 			'id'         => 'clear-pagecache',
@@ -490,7 +488,6 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 			'name' => __( 'Memcached', 'wpcd' ),
 			'tab'  => 'cache',
 			'type' => 'heading',
-			'desc' => __( 'Enable or disable Memcached on your site.<br />', 'wpcd' ),
 		);
 
 		if ( 'installed' === $this->get_server_installed_service_status( $id, 'memcached' ) ) {

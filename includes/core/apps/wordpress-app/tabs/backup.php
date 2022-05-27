@@ -554,23 +554,6 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 			'tab'  => 'backup',
 			'type' => 'heading',
 		);
-		$fields[] = array(
-			'id'         => 'wpcd_app_action_refresh_backup_list',
-			'name'       => '',
-			'tab'        => 'backup',
-			'type'       => 'button',
-			'std'        => __( 'Refresh Backup List', 'wpcd' ),
-			'desc'       => __( 'Get a list of all the backups on the server - they will be shown in the drop-down below', 'wpcd' ),
-			// fields that contribute data for this action.
-			'attributes' => array(
-				// the _action that will be called in ajax.
-				'data-wpcd-action' => 'refresh-backup-list',
-				// the id.
-				'data-wpcd-id'     => $id,
-			),
-			'class'      => 'wpcd_app_action',
-			'save_field' => false,
-		);
 
 		// Get list of backups from meta and transform into something that the metabox.io select fields can process; plus get other related metadata from the app records.
 		$backup_list_array     = wpcd_maybe_unserialize( get_post_meta( $id, 'wpapp_backups_list', true ) );
@@ -607,12 +590,28 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 			'save_field' => false,
 		);
 		$fields[] = array(
+			'id'         => 'wpcd_app_action_refresh_backup_list',
+			'name'       => '',
+			'tab'        => 'backup',
+			'type'       => 'button',
+			'std'        => __( 'Refresh Backup List', 'wpcd' ),
+			// fields that contribute data for this action.
+			'attributes' => array(
+				// the _action that will be called in ajax.
+				'data-wpcd-action' => 'refresh-backup-list',
+				// the id.
+				'data-wpcd-id'     => $id,
+			),
+			'class'      => 'wpcd_app_action',
+			'save_field' => false,
+			'columns'    => 3,
+		);		
+		$fields[] = array(
 			'id'         => 'wpcd_app_action_restore_backup',
 			'name'       => '',
 			'tab'        => 'backup',
 			'type'       => 'button',
 			'std'        => __( 'Restore Selected Backup', 'wpcd' ),
-			'desc'       => __( 'Restore backup, overwriting all data!!!', 'wpcd' ),
 			// fields that contribute data for this action.
 			'attributes' => array(
 				// the _action that will be called in ajax.
@@ -629,7 +628,7 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 			),
 			'class'      => 'wpcd_app_action',
 			'save_field' => false,
-			'columns'    => 4,
+			'columns'    => 3,
 		);
 		$fields[] = array(
 			'id'         => 'wpcd_app_action_restore_backup_nginx_only',
@@ -637,7 +636,6 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 			'tab'        => 'backup',
 			'type'       => 'button',
 			'std'        => __( 'Restore NGINX Configuration File', 'wpcd' ),
-			'desc'       => __( 'Restore only the site NGINX configuration file from this backup.', 'wpcd' ),
 			// fields that contribute data for this action.
 			'attributes' => array(
 				// the _action that will be called in ajax.
@@ -654,15 +652,14 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 			),
 			'class'      => 'wpcd_app_action',
 			'save_field' => false,
-			'columns'    => 4,
+			'columns'    => 3,
 		);
 		$fields[] = array(
 			'id'         => 'wpcd_app_action_restore_backup_wpconfig_only',
 			'name'       => '',
 			'tab'        => 'backup',
 			'type'       => 'button',
-			'std'        => __( 'Restore WPConfig.php File', 'wpcd' ),
-			'desc'       => __( 'Restore only the site wpconfig.php configuration file from this backup.', 'wpcd' ),
+			'std'        => __( 'Restore wp-config.php File', 'wpcd' ),
 			// fields that contribute data for this action.
 			'attributes' => array(
 				// the _action that will be called in ajax.
@@ -679,14 +676,14 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 			),
 			'class'      => 'wpcd_app_action',
 			'save_field' => false,
-			'columns'    => 4,
+			'columns'    => 3,
 		);
 		/* End restore section */
 
 		/* Delete All Backups */
 		$fields[] = array(
 			'name' => __( 'Delete Backups', 'wpcd' ),
-			'desc' => __( 'Manually delete local backups. Before you can use this option you must have configured backups and run the backup process at least once.', 'wpcd' ),
+			'desc' => __( 'Manually delete local backups i.e.: backups stored on this server. Before you can use this option you must have configured backups and run the backup process at least once.', 'wpcd' ),
 			'tab'  => 'backup',
 			'type' => 'heading',
 		);
@@ -697,7 +694,6 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 			'tab'        => 'backup',
 			'type'       => 'button',
 			'std'        => __( 'Delete All Site Backups', 'wpcd' ),
-			'desc'       => __( 'Delete ALL local backups for this site - i.e.: backups stored on the server.', 'wpcd' ),
 			// fields that contribute data for this action.
 			'attributes' => array(
 				// the _action that will be called in ajax.

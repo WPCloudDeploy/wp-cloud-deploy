@@ -258,6 +258,10 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'label' => 'Email Gateway',
 				'icon'  => 'dashicons-email-alt2',
 			),
+			'wordpress-app-front-end-fields'     => array(
+				'label' => 'Front-end Fields',
+				'icon'  => 'dashicons-editor-kitchensink',
+			),
 			'wordpress-app-rest-api'             => array(
 				'label' => 'Rest API',
 				'icon'  => 'dashicons-rest-api',
@@ -336,7 +340,8 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 		$rest_api_fields              = $this->rest_api_fields();
 		$white_label_fields           = $this->white_label_fields();
 		$custom_scripts               = $this->custom_script_fields();
-		$all_fields                   = array_merge( $general_fields, $server_fields, $site_fields, $backup_fields, $fields_and_links, $theme_and_plugin_updates, $email_notification_fields, $slack_notification_fields, $zapier_notification_fields, $button_color_settings_fields, $email_gateway_load_defaults, $cf_dns_fields, $rest_api_fields, $white_label_fields, $custom_scripts );
+		$front_end_fields             = $this->front_end_fields();
+		$all_fields                   = array_merge( $general_fields, $server_fields, $site_fields, $backup_fields, $fields_and_links, $theme_and_plugin_updates, $email_notification_fields, $slack_notification_fields, $zapier_notification_fields, $button_color_settings_fields, $email_gateway_load_defaults, $cf_dns_fields, $rest_api_fields, $white_label_fields, $custom_scripts, $front_end_fields );
 		return $all_fields;
 	}
 
@@ -1290,6 +1295,227 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 	}
 
 	/**
+	 * Array of fields used in the front-end fields tab.
+	 */
+	public function front_end_fields() {
+
+		$fields = array(
+			array(
+				'id'   => 'wordpress_front_end_fields_heading_01',
+				'type' => 'heading',
+				'name' => __( 'Servers - Show Cards', 'wpcd' ),
+				'desc' => __( 'Show fields in the server list and server screens when displaying data on the front-end.  These fields are usually HIDDEN by default.', 'wpcd' ),
+				'tab'  => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_show_description_in_server_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Show Description', 'wpcd' ),
+				'tooltip' => __( 'Show the description field/card in the server list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_show_server_group_in_server_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Show Server Group', 'wpcd' ),
+				'tooltip' => __( 'Show the server group field/card in the server list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_show_owner_in_server_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Show Owner', 'wpcd' ),
+				'tooltip' => __( 'Show the owner field/card in the server list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_show_teams_in_server_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Show Teams', 'wpcd' ),
+				'tooltip' => __( 'Show the teams list field/card in the server list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_show_sync_status_in_server_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Show Server Sync Data', 'wpcd' ),
+				'tooltip' => __( 'Show the server sync field/card in the server list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+
+			array(
+				'id'   => 'wordpress_front_end_fields_heading_02',
+				'type' => 'heading',
+				'name' => __( 'Servers - Hide Cards', 'wpcd' ),
+				'desc' => __( 'Hide cards in the server list and related screens when displaying data on the front-end. These cards are usually shown by default.', 'wpcd' ),
+				'tab'  => 'wordpress-app-front-end-fields',
+			),
+
+			array(
+				'id'      => 'wordpress_app_fe_hide_title_in_server_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide Title', 'wpcd' ),
+				'tooltip' => __( 'Hide the title field/card in the server list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_hide_server_actions_in_server_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide Server Actions', 'wpcd' ),
+				'tooltip' => __( 'Hide the server actions field/card in the server list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_hide_provider_details_in_server_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide Provider Details', 'wpcd' ),
+				'tooltip' => __( 'Hide the provider details field/card in the server list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_hide_local_status_in_server_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide Local Status', 'wpcd' ),
+				'tooltip' => __( 'Hide the local status field/card in the server list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_hide_app_count_in_server_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide App Count', 'wpcd' ),
+				'tooltip' => __( 'Hide the app count field/card in the server list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_hide_health_in_server_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide Health', 'wpcd' ),
+				'tooltip' => __( 'Hide the health field/card in the server list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+
+			array(
+				'id'   => 'wordpress_front_end_fields_heading_03',
+				'type' => 'heading',
+				'name' => __( 'Sites - Show Cards', 'wpcd' ),
+				'desc' => __( 'Show cards in the app/site list and related screens when displaying data on the front-end. These cards are usually HIDDEN by default.', 'wpcd' ),
+				'tab'  => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_show_description_in_app_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Show Description', 'wpcd' ),
+				'tooltip' => __( 'Show the description field/card in the app list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_show_app_group_in_app_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Show App Group', 'wpcd' ),
+				'tooltip' => __( 'Show the application group field/card in the app list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_show_owner_in_app_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Show Owner', 'wpcd' ),
+				'tooltip' => __( 'Show the owner list field/card in the app list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_show_teams_in_app_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Show Teams', 'wpcd' ),
+				'tooltip' => __( 'Show the teams list field/card in the app list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+
+			array(
+				'id'   => 'wordpress_front_end_fields_heading_04',
+				'type' => 'heading',
+				'name' => __( 'Sites - Hide Cards', 'wpcd' ),
+				'desc' => __( 'Hide cards in the app/site list and related screens when displaying data on the front-end. These cards are usually shown by default.', 'wpcd' ),
+				'tab'  => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_hide_app_title_in_app_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide Title', 'wpcd' ),
+				'tooltip' => __( 'Hide the title field/card in the app list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_hide_app_summary_in_app_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide App Summary', 'wpcd' ),
+				'tooltip' => __( 'Hide the app summary field/card in the app list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_hide_app_health_in_app_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide App Health', 'wpcd' ),
+				'tooltip' => __( 'Hide the app health field/card in the app list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_hide_server_in_app_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide Server', 'wpcd' ),
+				'tooltip' => __( 'Hide the server field/card in the app list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_hide_staging_in_app_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide Staging', 'wpcd' ),
+				'tooltip' => __( 'Hide the staging field/card in the app list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_hide_cache_in_app_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide Cache', 'wpcd' ),
+				'tooltip' => __( 'Hide the cache field/card in the app list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_hide_php_in_app_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide php', 'wpcd' ),
+				'tooltip' => __( 'Hide the php field/card in the app list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_hide_ssl_in_app_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide ssl', 'wpcd' ),
+				'tooltip' => __( 'Hide the SSL field/card in the app list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+
+			array(
+				'id'   => 'wordpress_front_end_fields_heading_general',
+				'type' => 'heading',
+				'name' => __( 'General', 'wpcd' ),
+				'desc' => __( 'Other Options.', 'wpcd' ),
+				'tab'  => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_hide_filter_bar',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide Filter Bar', 'wpcd' ),
+				'tooltip' => __( 'HIDE the filter bar at the top of the server and site list.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+
+		);
+
+		return $fields;
+	}
+
+
+	/**
 	 * Array of fields used to store the default s3 backup settings
 	 * as well as other backup related options.
 	 */
@@ -1819,59 +2045,59 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			'hidden'           => array( 'wordpress_app_noshow_logo', '=', '1' ),
 		);
 
-		// Brand Colors.
+		// Brand Colors - wp-admin.
 		$fields[] = array(
-			'name' => __( 'Brand Colors', 'wpcd' ),
+			'name' => __( 'Brand Colors- WP-Admin', 'wpcd' ),
 			'id'   => 'wordpress-app-brand-colors-heading',
 			'type' => 'heading',
 			'std'  => '',
-			'desc' => __( 'These settings are used to manage your brand colors.', 'wpcd' ),
+			'desc' => __( 'These settings are used to manage your brand colors in the wp-admin area.', 'wpcd' ),
 			'tab'  => 'wordpress-app-white-label',
 		);
 
 		/**
-		 * Overrides Brand Colors.
+		 * Overrides Brand Colors for wp-admin.
 		 */
 		// An array of ids and labels for color fields that overide brand colors.
 		$brand_colors = array(
 			'wordpress_app_primary_brand_color'     => array(
 				'label' => __( 'Primary Brand Color', 'wpcd' ),
 				'desc'  => '',
-				'std'   => '#E91E63',
+				'std'   => WPCD_PRIMARY_BRAND_COLOR,
 			),
 			'wordpress_app_secondary_brand_color'   => array(
 				'label' => __( 'Secondary Brand Color', 'wpcd' ),
 				'desc'  => '',
-				'std'   => '#FF5722',
+				'std'   => WPCD_SECONDARY_BRAND_COLOR,
 			),
 			'wordpress_app_tertiary_brand_color'    => array(
 				'label' => __( 'Tertiary Brand Color', 'wpcd' ),
 				'desc'  => '',
-				'std'   => '#03114A',
+				'std'   => WPCD_TERTIARY_BRAND_COLOR,
 			),
 			'wordpress_app_accent_background_color' => array(
 				'label' => __( 'Accent Background Color', 'wpcd' ),
 				'desc'  => '',
-				'std'   => '#3F4C5F',
+				'std'   => WPCD_ACCENT_BG_COLOR,
 			),
 			'wordpress_app_medium_background_color' => array(
 				'label' => __( 'Medium Background Color', 'wpcd' ),
 				'desc'  => '',
-				'std'   => '#FAFAFA',
+				'std'   => WPCD_MEDIUM_BG_COLOR,
 			),
 			'wordpress_app_light_background_color'  => array(
 				'label' => __( 'Light Background Color', 'wpcd' ),
 				'desc'  => '',
-				'std'   => '#FDFDFD',
+				'std'   => WPCD_LIGHT_BG_COLOR,
 			),
 			'wordpress_app_alternate_accent_background_color' => array(
 				'label' => __( 'Alternate Accent Background Color', 'wpcd' ),
 				'desc'  => '',
-				'std'   => '#CFD8DC',
+				'std'   => WPCD_ALTERNATE_ACCENT_BG_COLOR,
 			),
 		);
 
-		// Loop through the brand colors array and generate settings fields.
+		// Loop through the wp-admin brand colors array and generate settings fields.
 		foreach ( $brand_colors as $brand_key => $brand_value ) {
 			// First column is just the label with the tab name.
 			$fields[] = array(
@@ -1879,13 +2105,89 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'id'            => "{$brand_key}",
 				'type'          => 'color',
 				'alpha_channel' => true,
-				'desc'          => "{$brand_value['desc']}",
+				'tooltip'       => "{$brand_value['desc']}",
 				'tab'           => 'wordpress-app-white-label',
 				'std'           => "{$brand_value['std']}",
 			);
 		}
 
-		// RESET DEFAULTS BRAND COLORS.
+		// Brand Colors - front-end.
+		$fields[] = array(
+			'name' => __( 'Brand Colors - Front-End Lists', 'wpcd' ),
+			'id'   => 'wordpress-app-brand-colors-heading',
+			'type' => 'heading',
+			'std'  => '',
+			'desc' => __( 'These settings are used to manage your brand colors shown on the front-end of your site.  Note that these affect only the server and site lists. The colors for the detail screens are still the same as the colors defined for wp-admin.', 'wpcd' ),
+			'tab'  => 'wordpress-app-white-label',
+		);
+
+		/**
+		 * Overrides Brand Colors the front-end.
+		 */
+		// An array of ids and labels for color fields that overide brand colors.
+		$brand_colors = array(
+			'wordpress_app_fe_primary_brand_color'     => array(
+				'label' => __( 'Primary Brand Color', 'wpcd' ),
+				'desc'  => __( 'Used for the background hover color on most buttons as well as color of larger text.', 'wpcd' ),
+				'std'   => WPCD_FE_PRIMARY_BRAND_COLOR,
+			),
+			'wordpress_app_fe_secondary_brand_color'   => array(
+				'label' => __( 'Secondary Brand Color', 'wpcd' ),
+				'desc'  => '',
+				'std'   => WPCD_FE_SECONDARY_BRAND_COLOR,
+			),
+			'wordpress_app_fe_tertiary_brand_color'    => array(
+				'label' => __( 'Tertiary Brand Color', 'wpcd' ),
+				'desc'  => '',
+				'std'   => WPCD_FE_TERTIARY_BRAND_COLOR,
+			),
+			'wordpress_app_fe_accent_background_color' => array(
+				'label' => __( 'Accent Background Color', 'wpcd' ),
+				'desc'  => __( 'Used for the background color on most buttons.', 'wpcd' ),
+				'std'   => WPCD_FE_ACCENT_BG_COLOR,
+			),
+			'wordpress_app_fe_medium_background_color' => array(
+				'label' => __( 'Medium Background Color', 'wpcd' ),
+				'desc'  => '',
+				'std'   => WPCD_FE_MEDIUM_BG_COLOR,
+			),
+			'wordpress_app_fe_light_background_color'  => array(
+				'label' => __( 'Light Background Color', 'wpcd' ),
+				'desc'  => __( 'Used for the background color on cards in the server and app list.', 'wpcd' ),
+				'std'   => WPCD_FE_LIGHT_BG_COLOR,
+			),
+			'wordpress_app_fe_alternate_accent_background_color' => array(
+				'label' => __( 'Alternate Accent Background Color', 'wpcd' ),
+				'desc'  => '',
+				'std'   => WPCD_FE_ALTERNATE_ACCENT_BG_COLOR,
+			),
+			'wordpress_app_fe_positive_color'          => array(
+				'label' => __( 'Positive Color', 'wpcd' ),
+				'desc'  => __( 'Accent color used to indicate something is turned on or a good thing has occured.', 'wpcd' ),
+				'std'   => WPCD_FE_POSITIVE_COLOR,
+			),
+			'wordpress_app_fe_negative_color'          => array(
+				'label' => __( 'Negative Color', 'wpcd' ),
+				'desc'  => __( 'Accent color used to indicate something is turned off or a bad thing has occured.', 'wpcd' ),
+				'std'   => WPCD_FE_NEGATIVE_COLOR,
+			),
+		);
+
+		// Loop through the front-end brand colors array and generate settings fields.
+		foreach ( $brand_colors as $brand_key => $brand_value ) {
+			// First column is just the label with the tab name.
+			$fields[] = array(
+				'name'          => "{$brand_value['label']}",
+				'id'            => "{$brand_key}",
+				'type'          => 'color',
+				'alpha_channel' => true,
+				'tooltip'       => "{$brand_value['desc']}",
+				'tab'           => 'wordpress-app-white-label',
+				'std'           => "{$brand_value['std']}",
+			);
+		}
+
+		// RESET DEFAULT BRAND COLORS.
 		$fields[] = array(
 			'name'       => '',
 			'type'       => 'button',
@@ -1923,7 +2225,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			),
 		);
 
-		// Header.
+		// Documentation Overrides Header.
 		$fields[] = array(
 			'name' => __( 'Documentation Link Overrides', 'wpcd' ),
 			'id'   => 'wordpress-app-doc-link-overides-heading',
@@ -1944,6 +2246,23 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tab'  => 'wordpress-app-white-label',
 			);
 		}
+
+		// Custom CSS.
+		$fields[] = array(
+			'name' => __( 'Custom CSS', 'wpcd' ),
+			'id'   => 'wordpress-app-custom-css-override-header',
+			'type' => 'heading',
+			'desc' => 'Custom CSS is loaded in-line on very WPCD page on both the front-end and back-end.',
+			'tab'  => 'wordpress-app-white-label',
+		);
+		$fields[] = array(
+			'name' => __( 'Custom CSS', 'wpcd' ),
+			'id'   => 'wordpress-app-custom-css-override',
+			'type' => 'textarea',
+			'desc' => '',
+			'rows' => 10,
+			'tab'  => 'wordpress-app-white-label',
+		);				
 
 		return $fields;
 

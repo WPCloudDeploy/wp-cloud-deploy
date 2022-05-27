@@ -205,6 +205,9 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		// Show some app details in the wp-admin list of apps.
 		add_filter( 'wpcd_app_admin_list_summary_column', array( &$this, 'app_admin_list_summary_column' ), 10, 2 );
 
+		// Show some app details about the health of the app the wp-admin list of apps.
+		add_filter( 'wpcd_app_admin_list_app_health_column', array( &$this, 'app_admin_list_health_column' ), 10, 2 );
+
 		// Add the INSTALL WordPress button to the server list.
 		add_filter( 'wpcd_app_server_table_content', array( &$this, 'app_server_table_content' ), 10, 3 );
 
@@ -460,7 +463,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 		$server_post_id = get_post_meta( $app_id, 'parent_post_id', true );
 		$url            = admin_url( 'edit.php?post_type=wpcd_app&server_id=' . (string) $server_post_id );
-		$apps_on_server = sprintf( '<a href="%s" target="_blank">%s</a>', $url, __( 'View App List', 'wpcd' ) );
+		$apps_on_server = sprintf( '<a href="%s" target="_blank">%s</a>', $url, __( 'View Apps', 'wpcd' ) );
 
 		$fields[] = array(
 			'name'    => __( 'Apps on Server', 'wpcd' ),
@@ -694,7 +697,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			$url_wpadmin = 'http://' . $domain . '/wp-admin';
 		}
 
-		return sprintf( '<a href = "%s" target="_blank">' . __( 'Login to admin area', 'wpcd' ) . '</a>', $url_wpadmin );
+		return sprintf( '<a href = "%s" target="_blank">' . __( 'Admin Login', 'wpcd' ) . '</a>', $url_wpadmin );
 
 	}
 

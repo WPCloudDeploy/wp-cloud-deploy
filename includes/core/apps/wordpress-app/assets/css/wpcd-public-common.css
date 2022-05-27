@@ -593,6 +593,10 @@
 	width: 100%;
 	margin-bottom: 10px;
 }
+.wpcd-grid-table .wpcd-server-col-element-label-server_app_link a {
+	color: #5560C2;
+	font-weight: normal;
+}
 /* End style the app links on the server list. */
 
 /* Style the local status column on the server list - place green borders around the status and state if active. */

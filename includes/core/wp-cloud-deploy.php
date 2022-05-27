@@ -577,7 +577,7 @@ class WP_CLOUD_DEPLOY {
 	}
 
 	/**
-	 * Add the wp-admin and front-end brand color styles 
+	 * Add the wp-admin and front-end brand color styles
 	 * as inline styles to the global style sheet.
 	 */
 	public function wpcd_inject_brand_color_styles() {
@@ -624,8 +624,13 @@ class WP_CLOUD_DEPLOY {
 		$light_bg_color_fe = empty( $light_bg_color_fe ) ? WPCD_FE_LIGHT_BG_COLOR : $light_bg_color_fe;
 
 		$alternate_accent_bg_color_fe = wpcd_get_option( 'wordpress_app_fe_alternate_accent_background_color' );
-		$alternate_accent_bg_color_fe = empty( $alternate_accent_bg_color_fe ) ? WPCD_FE_ALTERNATE_ACCENT_BG_COLOR : $alternate_accent_bg_color_fe;		
+		$alternate_accent_bg_color_fe = empty( $alternate_accent_bg_color_fe ) ? WPCD_FE_ALTERNATE_ACCENT_BG_COLOR : $alternate_accent_bg_color_fe;
 
+		$postive_color_fe = wpcd_get_option( 'wordpress_app_fe_positive_color' );
+		$postive_color_fe = empty( $postive_color_fe ) ? WPCD_FE_POSITIVE_COLOR : $postive_color_fe;
+
+		$negative_color_fe = wpcd_get_option( 'wordpress_app_fe_negative_color' );
+		$negative_color_fe = empty( $negative_color_fe ) ? WPCD_FE_NEGATIVE_COLOR : $negative_color_fe;
 
 		/* Global style sheet. */
 		wp_enqueue_style( 'wpcd-global-css', wpcd_url . 'assets/css/wpcd-global.css', array(), wpcd_scripts_version );
@@ -646,11 +651,13 @@ class WP_CLOUD_DEPLOY {
 			--wpcd-front-end-accent-background-color: {$accent_bg_color_fe};
 			--wpcd-front-end-medium-background-color: {$medium_bg_color_fe};
 			--wpcd-front-end-light-background-color: {$light_bg_color_fe};
-			--wpcd-front-end-alternate-accent-background-color: {$alternate_accent_bg_color_fe};			
+			--wpcd-front-end-alternate-accent-background-color: {$alternate_accent_bg_color_fe};
+			--wpcd-front-end-positive-color: {$postive_color_fe};			
+			--wpcd-front-end-negative-color: {$negative_color_fe};			
 		}";
 
 		/* Add some global css. */
-		wp_add_inline_style( 'wpcd-global-css', $global_css );		
+		wp_add_inline_style( 'wpcd-global-css', $global_css );
 
 	}
 

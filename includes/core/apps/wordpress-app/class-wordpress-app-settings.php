@@ -2161,6 +2161,16 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'desc'  => '',
 				'std'   => WPCD_FE_ALTERNATE_ACCENT_BG_COLOR,
 			),
+			'wordpress_app_fe_positive_color'          => array(
+				'label'   => __( 'Positive Color', 'wpcd' ),
+				'tooltip' => __( 'Accent color used to indicate something is turned on or a good thing has occured.', 'wpcd' ),
+				'std'     => WPCD_FE_POSITIVE_COLOR,
+			),
+			'wordpress_app_fe_negative_color'          => array(
+				'label'   => __( 'Negatve Color', 'wpcd' ),
+				'tooltip' => __( 'Accent color used to indicate something is turned off or a bad thing has occured.', 'wpcd' ),
+				'std'     => WPCD_FE_NEGATIVE_COLOR,
+			),
 		);
 
 		// Loop through the front-end brand colors array and generate settings fields.

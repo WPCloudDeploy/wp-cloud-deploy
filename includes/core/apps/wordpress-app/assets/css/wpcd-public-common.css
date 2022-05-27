@@ -341,26 +341,26 @@
 }
 
 /* Format the DEPLOY A WORDPRESS SERVER and INSTALL WORDPRESS/NEW WORDPRESS SITE buttons. */
-#wpcd_public_wrapper a.deploy_button {
-		background-color: #1B5E20;
+#wpcd_public_wrapper a.deploy_button,
+#wpcd_public_wrapper button.wpcd_action_install_app {
+		background-color: var(--wpcd-front-end-positive-color);
 		border: solid;
-		border-color: #1B5E20;
+		border-color: var(--wpcd-front-end-positive-color);
 		padding: 9px 17px 9px 17px;
-		border-radius: 6px;
+		border-radius: 3px;
 		color: white;
 		text-decoration: none;		
 }
-#wpcd_public_wrapper a.deploy_button:hover {
-		border-color: var(--wpcd-front-end-accent-background-color);
-		background-color: var(--wpcd-front-end-accent-background-color);
+#wpcd_public_wrapper a.deploy_button:hover,
+#wpcd_public_wrapper button.wpcd_action_install_app:hover {
+		border-color: var(--wpcd-front-end-primary-brand-color);
+		background-color: var(--wpcd-front-end-primary-brand-color);
 }
 /* End format DEPLOY WORDPRESS SERVER button. */
 
 /* Format INSTALL WORDPRESS / NEW WORDPRESS SITE button */
 #wpcd_public_wrapper button.wpcd_action_install_app {
-		/* Colors will be taken from global css vars loaded in the wpcd-server-admin.css stylesheet */
-		padding: 9px 17px 9px 17px;
-		border-radius: 6px;	
+		/* Nothing here */
 }
 #wpcd_public_wrapper button.wpcd_action_install_app:hover {
 		/* Nothing here */
@@ -569,7 +569,7 @@
 	margin-top: 10px;
 	background-color: var(--wpcd-front-end-accent-background-color);
 	padding: 9px 17px 9px 17px;
-	border-radius: 6px;
+	border-radius: 3px;
 	color: white;
 	font-size: 15px;
 	font-weight: 700;
@@ -589,11 +589,28 @@
 	color: #5560C2;
 	background-color: #F3F3F3;
 	padding: 9px 17px;
-	border-radius: 6px;
+	border-radius: 3px;
 	width: 100%;
 	margin-bottom: 10px;
 }
 /* End style the app links on the server list. */
+
+/* Style the local status column on the server list - place green borders around the status and state if active. */
+.wpcd-grid-table .wpcd-server-col-element-wrap-local_server_status_active {
+	border-color: var(--wpcd-front-end-positive-color);
+	border-width: 1px;
+	border-style: solid;
+	text-align: center;
+	padding: 9px 17px;
+}
+.wpcd-grid-table .wpcd-server-col-element-value-remote_server_state_active {
+	display: inline-block;
+	border-color: var(--wpcd-front-end-positive-color);
+	border-width: 1px;
+	border-style: solid;
+	padding: 4px 8px;	
+}
+/* End style the local status column on the server list */
 
 .wpcd-grid-table .wpcd-app-col-element-wrap-health_last_update {
 	/* Make the last updated row in the APP HEALTH card a little more vertical space above. */
@@ -624,7 +641,7 @@
 	display: inline-block;
 	background-color: var(--wpcd-front-end-accent-background-color);
 	padding: 9px 17px 9px 17px;
-	border-radius: 6px;
+	border-radius: 3px;
 	color: white;
 	font-size: 15px;
 	font-weight: 700;

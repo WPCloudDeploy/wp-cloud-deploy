@@ -71,7 +71,9 @@ class WPCD_Init {
 			define( 'WPCD_FE_ACCENT_BG_COLOR', '#0d091a' );
 			define( 'WPCD_FE_MEDIUM_BG_COLOR', '#FAFAFA' );
 			define( 'WPCD_FE_LIGHT_BG_COLOR', '#FDFDFD' );
-			define( 'WPCD_FE_ALTERNATE_ACCENT_BG_COLOR', '#CFD8DC' );			
+			define( 'WPCD_FE_ALTERNATE_ACCENT_BG_COLOR', '#CFD8DC' );
+			define( 'WPCD_FE_POSITIVE_COLOR', '#008000' );
+			define( 'WPCD_FE_NEGATIVE_COLOR', '#8B0000' );
 
 			// Define a variable that can be used for versioning scripts - required to force multisite to use different version numbers for each site.
 			if ( is_multisite() ) {

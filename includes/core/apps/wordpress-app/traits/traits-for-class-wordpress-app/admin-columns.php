@@ -534,6 +534,7 @@ trait wpcd_wpapp_admin_column_data {
 					$show_web_server_type = false;
 				}
 				if ( $show_web_server_type ) {
+					// Show it.
 					$value .= $this->get_formatted_web_server_type_for_display( $post_id, true );
 				}
 
@@ -623,9 +624,10 @@ trait wpcd_wpapp_admin_column_data {
 	 * @return string
 	 */
 	public function get_formatted_web_server_type_for_display( $post_id, $show_label_in_wpadmin = false ) {
-		$value           = '';
-		$web_server_type = WPCD_WORDPRESS_APP()->get_web_server_type( $post_id );
-		$web_server_desc = WPCD_WORDPRESS_APP()->get_web_server_description( $web_server_type );
+		$value = '';
+
+		$web_server_type = $this->get_web_server_type( $post_id );
+		$web_server_desc = $this->get_web_server_description( $web_server_type );
 
 		// Show full string with label?
 		$show_full = false;
@@ -659,6 +661,20 @@ trait wpcd_wpapp_admin_column_data {
 	 * @return new array of columns
 	 */
 	public function app_posts_app_table_head( $defaults ) {
+
+		// Webserver type column.
+		$show_it = true;
+		if ( ! is_admin() && ( ! boolval( wpcd_get_option( 'wordpress_app_fe_show_web_server_type_column_in_app_list' ) ) ) ) {
+			// Do not show it on the front-end.
+			$show_it = false;
+		}
+		if ( is_admin() && ! boolval( wpcd_get_option( 'wordpress_app_show_web_server_type_column_in_site_list' ) ) ) {
+			// Not allowed to show it in wp-admin.
+			$show_it = false;
+		}
+		if ( $show_it ) {
+			$defaults['wpcd_wpapp_web_server_type'] = __( 'Web Server', 'wpcd' );
+		}
 
 		// Staging.
 		if ( wpcd_get_option( 'wordpress_app_show_staging_column_in_site_list' ) ) {
@@ -810,6 +826,11 @@ trait wpcd_wpapp_admin_column_data {
 
 				break;
 
+			case 'wpcd_wpapp_web_server_type':
+				$value = $this->get_formatted_web_server_type_for_display( $post_id );
+				echo $value;
+				break;
+
 			case 'wpcd_wpapp_staging':
 				if ( ! ( 'wordpress-app' === $this->get_app_name() ) ) {
 					break;
@@ -859,6 +880,34 @@ trait wpcd_wpapp_admin_column_data {
 
 		}
 
+	}
+
+	/**
+	 * Add content to the server that shows up in app admin list - just before the APPS ON THIS SERVER link.
+	 *
+	 * Filter Hook: wpcd_app_admin_list_server_column_before_apps_link
+	 *
+	 * @param string $column_data Usually empty.
+	 * @param int    $post_id Id of app post being displayed.
+	 *
+	 * @return string
+	 */
+	public function app_admin_list_server_column_before_apps_link( $column_data, $post_id ) {
+
+		$show_web_server_type = true;
+		if ( ! is_admin() && ( boolval( wpcd_get_option( 'wordpress_app_fe_hide_web_server_type_element_in_app_list' ) ) ) ) {
+			// We're on the front-end - do not show there.
+			$show_web_server_type = false;
+		}
+		if ( is_admin() && ( boolval( wpcd_get_option( 'wordpress_app_hide_web_server_element_in_site_list' ) ) ) ) {
+			// We're in wp-admin area but not allowed to show this element.
+			$show_web_server_type = false;
+		}
+		if ( $show_web_server_type ) {
+			// Show it.
+			return $column_data . $this->get_formatted_web_server_type_for_display( $post_id, true );
+
+		}
 	}
 
 	/**
@@ -1080,7 +1129,6 @@ trait wpcd_wpapp_admin_column_data {
 
 	}
 
-
 	/**
 	 * Returns a formatted string with MALWARE STATUS information
 	 * suitable for displaying in a column in the server list.
@@ -1234,7 +1282,5 @@ trait wpcd_wpapp_admin_column_data {
 		return $return;
 
 	}
-
-
 
 }

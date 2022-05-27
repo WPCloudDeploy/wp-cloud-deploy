@@ -205,6 +205,9 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		// Show some app details in the wp-admin list of apps.
 		add_filter( 'wpcd_app_admin_list_summary_column', array( &$this, 'app_admin_list_summary_column' ), 10, 2 );
 
+		// Show some app details in the wp-admin server column.
+		add_filter( 'wpcd_app_admin_list_server_column_before_apps_link', array( &$this, 'app_admin_list_server_column_before_apps_link' ), 10, 2 );		
+
 		// Show some app details about the health of the app the wp-admin list of apps.
 		add_filter( 'wpcd_app_admin_list_app_health_column', array( &$this, 'app_admin_list_health_column' ), 10, 2 );
 
@@ -592,7 +595,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	 *
 	 * @return string|boolean
 	 */
-	public static function get_web_server_type( $post_id ) {
+	public function get_web_server_type( $post_id ) {
 
 		// If for some reason we didn't get a server_id, retrieve it from the app.
 		$server_id = $post_id;

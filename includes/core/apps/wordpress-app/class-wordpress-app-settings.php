@@ -1364,7 +1364,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			array(
 				'id'      => 'wordpress_app_fe_show_web_server_type_column_in_server_list',
 				'type'    => 'checkbox',
-				'name'    => __( 'Show Web Server Type (Column)', 'wpcd' ),
+				'name'    => __( 'Show Web Server Type', 'wpcd' ),
 				'tooltip' => __( 'Show the web server field/card in the server list on the front-end. This column can usually be shown even if it is hidden in wp-admin.', 'wpcd' ),
 				'tab'     => 'wordpress-app-front-end-fields',
 			),
@@ -1456,7 +1456,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tab'     => 'wordpress-app-front-end-fields',
 			),
 			array(
-				'id'      => 'wordpress_app_fe_show_web_server_type_in_app_list',
+				'id'      => 'wordpress_app_fe_show_web_server_type_column_in_app_list',
 				'type'    => 'checkbox',
 				'name'    => __( 'Show Web Server Type', 'wpcd' ),
 				'tooltip' => __( 'Show the web server field/card in the app list on the front-end.', 'wpcd' ),
@@ -1540,6 +1540,13 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tooltip' => __( 'Hide the SSL field/card in the app list on the front-end.', 'wpcd' ),
 				'tab'     => 'wordpress-app-front-end-fields',
 			),
+			array(
+				'id'      => 'wordpress_app_fe_hide_web_server_type_element_in_app_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide Web Server Type (Element)', 'wpcd' ),
+				'tooltip' => __( 'Hide the web server field on the SERVER field/card in the app list on the front-end.  This element can usually be hidden even if it is visible in wp-admin.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),			
 			array(
 				'id'   => 'wordpress_front_end_fields_heading_general',
 				'type' => 'heading',

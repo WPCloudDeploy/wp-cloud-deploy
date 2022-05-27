@@ -368,7 +368,7 @@ class WPCD_APP extends WPCD_Base {
 	 * @return array|boolean Server post or false or error message
 	 */
 	public function get_server_by_app_id( $app_id ) {
-		
+
 		return WPCD()->get_server_by_app_id( $app_id );
 
 	}

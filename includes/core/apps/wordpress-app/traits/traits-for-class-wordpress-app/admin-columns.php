@@ -390,6 +390,11 @@ trait wpcd_wpapp_admin_column_data {
 		// Webserver type column.
 		$show_it = true;
 		if ( ! is_admin() && ( ! boolval( wpcd_get_option( 'wordpress_app_fe_show_web_server_type_column_in_server_list' ) ) ) ) {
+			// Do not show it on the front-end.
+			$show_it = false;
+		}
+		if ( is_admin() && ! boolval( wpcd_get_option( 'wordpress_app_show_web_server_type_column_in_server_list' ) ) ) {
+			// Not allowed to show it in wp-admin.
 			$show_it = false;
 		}
 		if ( $show_it ) {
@@ -463,7 +468,7 @@ trait wpcd_wpapp_admin_column_data {
 
 		switch ( $column_name ) {
 			case 'wpcd_server_web_server_Type':
-					$value = $this->get_formatted_web_server_type_for_display( $post_id );
+				$value = $this->get_formatted_web_server_type_for_display( $post_id );
 				break;
 
 			case 'wpcd_server_actions':
@@ -521,13 +526,18 @@ trait wpcd_wpapp_admin_column_data {
 				// Add web server type beneath the button or notice.
 				$show_web_server_type = true;
 				if ( ! is_admin() && ( boolval( wpcd_get_option( 'wordpress_app_fe_hide_web_server_type_element_in_server_list' ) ) ) ) {
+					// We're on the front-end - do not show there.
+					$show_web_server_type = false;
+				}
+				if ( is_admin() && ( boolval( wpcd_get_option( 'wordpress_app_hide_web_server_element_in_server_list' ) ) ) ) {
+					// We're in wp-admin area but not allowed to show this element.
 					$show_web_server_type = false;
 				}
 				if ( $show_web_server_type ) {
 					$value .= $this->get_formatted_web_server_type_for_display( $post_id, true );
 				}
 
-				// Add custom links below the install WordPress button...
+				// Add custom links below the install WordPress button.
 				$value = $value . '<div class = "wpcd_server_actions_custom_links_wrap">' . $this->get_formatted_custom_links( $post_id ) . '</div>';
 
 				// Display the count of notes and admin notes.

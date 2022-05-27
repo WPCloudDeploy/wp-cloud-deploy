@@ -269,6 +269,12 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 					$value  .= $this->wpcd_column_wrap_string_with_div_and_class( $value2, 'ipv6' );
 				}
 
+				// Add hook here so that other apps can insert data.
+				$hooked_value = apply_filters( 'wpcd_app_admin_list_server_column_before_apps_link', '', $post_id );
+				if ( ! empty( $hooked_value ) ) {
+					$value .= $hooked_value;
+				}
+
 				// Show a link that takes you to a list of apps on the server.
 				if ( true === (bool) wpcd_get_option( 'wpcd_hide_app_list_appslink_in_server_column' ) && ( ! wpcd_is_admin() ) ) {
 					// do nothing, only admins are allowed to see this data.
@@ -281,6 +287,12 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 					$value2 = sprintf( '<a href="%s">%s</a>', $url, __( 'Apps on this server', 'wpcd' ) );
 					$value2 = $this->wpcd_column_wrap_string_with_span_and_class( $value2, 'apps_on_server', 'left' );
 					$value .= $this->wpcd_column_wrap_string_with_div_and_class( $value2, 'apps_on_server' );
+				}
+
+				// Add hook here so that other apps can insert data.
+				$hooked_value = apply_filters( 'wpcd_app_admin_list_server_column_after_apps_link', '', $post_id );
+				if ( ! empty( $hooked_value ) ) {
+					$value .= $hooked_value;
 				}
 
 				break;

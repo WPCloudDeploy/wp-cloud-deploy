@@ -1215,7 +1215,20 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tooltip' => __( 'Show a dropdown of WordPress installation log attempts under the Title column in the Server List', 'wpcd' ),
 				'tab'     => 'wordpress-app-fields-and-links',
 			),
-
+			array(
+				'id'      => 'wordpress_app_show_web_server_type_column_in_server_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Show Web Server Column', 'wpcd' ),
+				'tooltip' => __( 'Show the webserver type as a separate column in the servers list.  Usually it is shown underneath the INSTALL WORDPRESS button in the server actions column.', 'wpcd' ),
+				'tab'     => 'wordpress-app-fields-and-links',
+			),
+			array(
+				'id'      => 'wordpress_app_hide_web_server_element_in_server_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide Web Server Element', 'wpcd' ),
+				'tooltip' => __( 'Hide the webserver type from the server actions column.', 'wpcd' ),
+				'tab'     => 'wordpress-app-fields-and-links',
+			),
 			array(
 				'id'   => 'wordpress_fields_and_links_heading_02',
 				'type' => 'heading',
@@ -1228,6 +1241,20 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'type'    => 'checkbox',
 				'name'    => __( 'Show Staging Column', 'wpcd' ),
 				'tooltip' => __( 'Show the staging column in the site list', 'wpcd' ),
+				'tab'     => 'wordpress-app-fields-and-links',
+			),
+			array(
+				'id'      => 'wordpress_app_show_web_server_type_column_in_site_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Show Web Server Column', 'wpcd' ),
+				'tooltip' => __( 'Show the webserver type as a separate column in the site list. Usually this data is shown in the server column', 'wpcd' ),
+				'tab'     => 'wordpress-app-fields-and-links',
+			),
+			array(
+				'id'      => 'wordpress_app_hide_web_server_element_in_site_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide Web Server Element', 'wpcd' ),
+				'tooltip' => __( 'Hide the webserver type from the server column.', 'wpcd' ),
 				'tab'     => 'wordpress-app-fields-and-links',
 			),
 
@@ -1288,7 +1315,6 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tooltip' => __( 'Hide the additional statisics box on the WordPress Site statistics tab from non-admin users.', 'wpcd' ),
 				'tab'     => 'wordpress-app-fields-and-links',
 			),
-
 		);
 
 		return $fields;
@@ -1333,6 +1359,13 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'type'    => 'checkbox',
 				'name'    => __( 'Show Teams', 'wpcd' ),
 				'tooltip' => __( 'Show the teams list field/card in the server list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_show_web_server_type_column_in_server_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Show Web Server Type', 'wpcd' ),
+				'tooltip' => __( 'Show the web server field/card in the server list on the front-end. This column can usually be shown even if it is hidden in wp-admin.', 'wpcd' ),
 				'tab'     => 'wordpress-app-front-end-fields',
 			),
 			array(
@@ -1387,6 +1420,13 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tab'     => 'wordpress-app-front-end-fields',
 			),
 			array(
+				'id'      => 'wordpress_app_fe_hide_web_server_type_element_in_server_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide Web Server Type (Element)', 'wpcd' ),
+				'tooltip' => __( 'Hide the web server field on the SERVER ACTIONS field/card in the server list on the front-end.  This element can usually be hidden even if it is visible in wp-admin.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
 				'id'      => 'wordpress_app_fe_hide_health_in_server_list',
 				'type'    => 'checkbox',
 				'name'    => __( 'Hide Health', 'wpcd' ),
@@ -1413,6 +1453,13 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'type'    => 'checkbox',
 				'name'    => __( 'Show App Group', 'wpcd' ),
 				'tooltip' => __( 'Show the application group field/card in the app list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_show_web_server_type_column_in_app_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Show Web Server Type', 'wpcd' ),
+				'tooltip' => __( 'Show the web server field/card in the app list on the front-end.', 'wpcd' ),
 				'tab'     => 'wordpress-app-front-end-fields',
 			),
 			array(
@@ -1493,7 +1540,13 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tooltip' => __( 'Hide the SSL field/card in the app list on the front-end.', 'wpcd' ),
 				'tab'     => 'wordpress-app-front-end-fields',
 			),
-
+			array(
+				'id'      => 'wordpress_app_fe_hide_web_server_type_element_in_app_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide Web Server Type (Element)', 'wpcd' ),
+				'tooltip' => __( 'Hide the web server field on the SERVER field/card in the app list on the front-end.  This element can usually be hidden even if it is visible in wp-admin.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),			
 			array(
 				'id'   => 'wordpress_front_end_fields_heading_general',
 				'type' => 'heading',
@@ -1507,6 +1560,14 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'name'    => __( 'Hide Filter Bar', 'wpcd' ),
 				'tooltip' => __( 'HIDE the filter bar at the top of the server and site list.', 'wpcd' ),
 				'tab'     => 'wordpress-app-front-end-fields',
+			),
+
+			array(
+				'id'   => 'wordpress_front_end_fields_heading_notes',
+				'type' => 'heading',
+				'name' => __( 'General', 'wpcd' ),
+				'desc' => __( 'Turning fields on/off on the front-end has a relationship with the visibility of the fields in wp-admin.  In most instances, fields that are not shown in wp-admin cannot be shown on the front-end even if enabled here - and vice-versa. If a toggle here does not work please double-check whether the field is visible or hidden in wp-admin.', 'wpcd' ),
+				'tab'  => 'wordpress-app-front-end-fields',
 			),
 
 		);
@@ -2262,7 +2323,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			'desc' => '',
 			'rows' => 10,
 			'tab'  => 'wordpress-app-white-label',
-		);				
+		);
 
 		return $fields;
 

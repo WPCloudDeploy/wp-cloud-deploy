@@ -386,6 +386,22 @@ trait wpcd_wpapp_admin_column_data {
 	 * @return $defaults modified array with new columns
 	 */
 	public function app_server_table_head( $defaults ) {
+
+		// Webserver type column.
+		$show_it = true;
+		if ( ! is_admin() && ( ! boolval( wpcd_get_option( 'wordpress_app_fe_show_web_server_type_column_in_server_list' ) ) ) ) {
+			// Do not show it on the front-end.
+			$show_it = false;
+		}
+		if ( is_admin() && ! boolval( wpcd_get_option( 'wordpress_app_show_web_server_type_column_in_server_list' ) ) ) {
+			// Not allowed to show it in wp-admin.
+			$show_it = false;
+		}
+		if ( $show_it ) {
+			$defaults['wpcd_server_web_server_Type'] = __( 'Web Server', 'wpcd' );
+		}
+
+		// Health column.
 		$show_it = true;
 		if ( ! is_admin() && ( boolval( wpcd_get_option( 'wordpress_app_fe_hide_health_in_server_list' ) ) ) ) {
 			$show_it = false;
@@ -451,6 +467,10 @@ trait wpcd_wpapp_admin_column_data {
 	public function app_server_table_content( $value, $column_name, $post_id ) {
 
 		switch ( $column_name ) {
+			case 'wpcd_server_web_server_Type':
+				$value = $this->get_formatted_web_server_type_for_display( $post_id );
+				break;
+
 			case 'wpcd_server_actions':
 				// Check to make sure we're not trying to show this on a deleted post...
 				if ( 'private' <> get_post_status( $post_id ) ) {
@@ -503,7 +523,22 @@ trait wpcd_wpapp_admin_column_data {
 					}
 				}
 
-				// Add custom links below the install WordPress button...
+				// Add web server type beneath the button or notice.
+				$show_web_server_type = true;
+				if ( ! is_admin() && ( boolval( wpcd_get_option( 'wordpress_app_fe_hide_web_server_type_element_in_server_list' ) ) ) ) {
+					// We're on the front-end - do not show there.
+					$show_web_server_type = false;
+				}
+				if ( is_admin() && ( boolval( wpcd_get_option( 'wordpress_app_hide_web_server_element_in_server_list' ) ) ) ) {
+					// We're in wp-admin area but not allowed to show this element.
+					$show_web_server_type = false;
+				}
+				if ( $show_web_server_type ) {
+					// Show it.
+					$value .= $this->get_formatted_web_server_type_for_display( $post_id, true );
+				}
+
+				// Add custom links below the install WordPress button.
 				$value = $value . '<div class = "wpcd_server_actions_custom_links_wrap">' . $this->get_formatted_custom_links( $post_id ) . '</div>';
 
 				// Display the count of notes and admin notes.
@@ -579,6 +614,44 @@ trait wpcd_wpapp_admin_column_data {
 	}
 
 	/**
+	 * Return the web server type description formatted for display.
+	 *
+	 * @since 5.0
+	 *
+	 * @param int     $post_id The post id of the server or app.
+	 * @param boolean $show_label_in_wpadmin Show the "Web Server:" label when displaying in wp-admin?.
+	 *
+	 * @return string
+	 */
+	public function get_formatted_web_server_type_for_display( $post_id, $show_label_in_wpadmin = false ) {
+		$value = '';
+
+		$web_server_type = $this->get_web_server_type( $post_id );
+		$web_server_desc = $this->get_web_server_description( $web_server_type );
+
+		// Show full string with label?
+		$show_full = false;
+		if ( is_admin() && true === $show_label_in_wpadmin ) {
+			$show_full = - true;
+		}
+		if ( ! is_admin() ) {
+			$show_full = true; // Always show the full string on the frontend.
+		}
+
+		if ( ! $show_full ) {
+			// Show only the value - usually when being displayed in wp-admin in it's own column.
+			$value = WPCD_POSTS_APP_SERVER()->wpcd_column_wrap_string_with_span_and_class( $web_server_desc, 'web_server_desc', 'left' );
+			$value = WPCD_POSTS_APP_SERVER()->wpcd_column_wrap_string_with_div_and_class( $value, 'web_server_desc' );
+		} else {
+			// Show both the label and the value.
+			$value  = WPCD_POSTS_APP_SERVER()->wpcd_column_wrap_string_with_span_and_class( __( 'Web Server: ', 'wpcd' ), 'web_server_desc', 'left' );
+			$value .= WPCD_POSTS_APP_SERVER()->wpcd_column_wrap_string_with_span_and_class( $web_server_desc, 'web_server_desc', 'right' );
+			$value  = WPCD_POSTS_APP_SERVER()->wpcd_column_wrap_string_with_div_and_class( $value, 'web_server_desc' );
+		}
+		return $value;
+	}
+
+	/**
 	 * Add new columns to the app list
 	 *
 	 * Filter Hook: manage_wpcd_app_posts_columns
@@ -588,6 +661,20 @@ trait wpcd_wpapp_admin_column_data {
 	 * @return new array of columns
 	 */
 	public function app_posts_app_table_head( $defaults ) {
+
+		// Webserver type column.
+		$show_it = true;
+		if ( ! is_admin() && ( ! boolval( wpcd_get_option( 'wordpress_app_fe_show_web_server_type_column_in_app_list' ) ) ) ) {
+			// Do not show it on the front-end.
+			$show_it = false;
+		}
+		if ( is_admin() && ! boolval( wpcd_get_option( 'wordpress_app_show_web_server_type_column_in_site_list' ) ) ) {
+			// Not allowed to show it in wp-admin.
+			$show_it = false;
+		}
+		if ( $show_it ) {
+			$defaults['wpcd_wpapp_web_server_type'] = __( 'Web Server', 'wpcd' );
+		}
 
 		// Staging.
 		if ( wpcd_get_option( 'wordpress_app_show_staging_column_in_site_list' ) ) {
@@ -739,6 +826,11 @@ trait wpcd_wpapp_admin_column_data {
 
 				break;
 
+			case 'wpcd_wpapp_web_server_type':
+				$value = $this->get_formatted_web_server_type_for_display( $post_id );
+				echo $value;
+				break;
+
 			case 'wpcd_wpapp_staging':
 				if ( ! ( 'wordpress-app' === $this->get_app_name() ) ) {
 					break;
@@ -788,6 +880,34 @@ trait wpcd_wpapp_admin_column_data {
 
 		}
 
+	}
+
+	/**
+	 * Add content to the server that shows up in app admin list - just before the APPS ON THIS SERVER link.
+	 *
+	 * Filter Hook: wpcd_app_admin_list_server_column_before_apps_link
+	 *
+	 * @param string $column_data Usually empty.
+	 * @param int    $post_id Id of app post being displayed.
+	 *
+	 * @return string
+	 */
+	public function app_admin_list_server_column_before_apps_link( $column_data, $post_id ) {
+
+		$show_web_server_type = true;
+		if ( ! is_admin() && ( boolval( wpcd_get_option( 'wordpress_app_fe_hide_web_server_type_element_in_app_list' ) ) ) ) {
+			// We're on the front-end - do not show there.
+			$show_web_server_type = false;
+		}
+		if ( is_admin() && ( boolval( wpcd_get_option( 'wordpress_app_hide_web_server_element_in_site_list' ) ) ) ) {
+			// We're in wp-admin area but not allowed to show this element.
+			$show_web_server_type = false;
+		}
+		if ( $show_web_server_type ) {
+			// Show it.
+			return $column_data . $this->get_formatted_web_server_type_for_display( $post_id, true );
+
+		}
 	}
 
 	/**
@@ -1009,7 +1129,6 @@ trait wpcd_wpapp_admin_column_data {
 
 	}
 
-
 	/**
 	 * Returns a formatted string with MALWARE STATUS information
 	 * suitable for displaying in a column in the server list.
@@ -1163,7 +1282,5 @@ trait wpcd_wpapp_admin_column_data {
 		return $return;
 
 	}
-
-
 
 }

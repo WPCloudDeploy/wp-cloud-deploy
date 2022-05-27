@@ -582,6 +582,8 @@ class WP_CLOUD_DEPLOY {
 	/**
 	 * Add the wp-admin and front-end brand color styles
 	 * as inline styles to the global style sheet.
+	 *
+	 * Called from function wpcd_admin_scripts which is hooked into action admin_enqueue_scripts
 	 */
 	public function wpcd_inject_brand_color_styles() {
 
@@ -667,6 +669,8 @@ class WP_CLOUD_DEPLOY {
 	/**
 	 * Add custom css defined in settings
 	 * as inline styles to the global style sheet.
+	 *
+	 * Called from function wpcd_admin_scripts which is hooked into action admin_enqueue_scripts
 	 */
 	public function wpcd_inject_custom_css() {
 
@@ -707,11 +711,12 @@ class WP_CLOUD_DEPLOY {
 	public static function get_webserver_list() {
 		$webserver_list = array(
 			'nginx'          => __( 'NGINX', 'wpcd' ),
-			'ols'            => __( 'Open Litespeed', 'wpcd' ),
-			'ols-enterprise' => __( 'Litespeed Enterprise', 'wpcd' ),
+			'ols'            => __( 'Open Litespeed (Beta)', 'wpcd' ),
+			'ols-enterprise' => __( 'Litespeed Enterprise (Not Available)', 'wpcd' ),
 		);
 		return apply_filters( 'wpcd_webserver_list', $webserver_list );
 	}
+
 
 	/**
 	 * Get the operating system name (full name) initially installed on a server

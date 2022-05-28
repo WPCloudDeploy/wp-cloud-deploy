@@ -356,6 +356,10 @@
 		border-radius: 3px;
         text-decoration: none;
 }
+#wpcd_public_wrapper .subsubsub a:hover {
+	background-color: var(--wpcd-front-end-primary-brand-color);
+	border-color: var(--wpcd-front-end-primary-brand-color);
+}
 
 #wpcd_public_wrapper .subsubsub a.current {
         font-weight: 700;

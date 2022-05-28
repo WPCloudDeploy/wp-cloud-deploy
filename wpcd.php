@@ -297,6 +297,7 @@ class WPCD_Init {
 		require_once wpcd_path . '/required_plugins/meta-box-columns/meta-box-columns.php';
 		require_once wpcd_path . '/required_plugins/meta-box-group/meta-box-group.php';
 		require_once wpcd_path . '/required_plugins/mb-user-meta/mb-user-meta.php';
+		require_once wpcd_path . '/required_plugins/mb-custom-table/mb-custom-table.php';
 
 		/* Load up some licensing files. */
 		if ( true === is_admin() ) {

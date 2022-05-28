@@ -2194,7 +2194,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			'id'   => 'wordpress-app-brand-colors-heading',
 			'type' => 'heading',
 			'std'  => '',
-			'desc' => __( 'These settings are used to manage your brand colors shown on the front-end of your site.  Note that these affect only the server and site lists. The colors for the detail screens are still the same as the colors defined for wp-admin.', 'wpcd' ),
+			'desc' => __( 'These settings are used to manage your brand colors shown on the front-end of your site.', 'wpcd' ),
 			'tab'  => 'wordpress-app-white-label',
 		);
 

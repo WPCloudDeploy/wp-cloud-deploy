@@ -76,19 +76,27 @@
 
 /* Close button on popups.*/
 #wpcd_public_wrapper .wpcd-popup .wpcd-log-close-button {
+		border-color: var(--wpcd-front-end-negative-color);
+		background-color: var(--wpcd-front-end-negative-color);
 		text-decoration: none;
         display: inline-block;
         font-size: 13px;
         border-radius: 3px;
         line-height: 28px;
         padding: 0 10px;
-        border: 1px solid #2271b1;
-        color: #2271b1;
+        xx-border: 1px solid #2271b1;
+        xx-color: #2271b1;
+		color: white;
 }
 #wpcd_public_wrapper .wpcd-popup .wpcd-log-close-button a {
 		text-decoration: none;
         color: inherit;
 }
+#wpcd_public_wrapper .wpcd-popup .wpcd-log-close-button:hover {
+		border-color: var(--wpcd-front-end-primary-brand-color);
+		background-color: var(--wpcd-front-end-primary-brand-color);	
+}
+
 #wpcd_public_wrapper .wpcd-log-close-wrap {
         margin-top: 13px;
 }
@@ -289,8 +297,16 @@
         position: relative;
 }
 
-#wpcd_public_wrapper .wpcd-create-popup-input-wrap .wpcd-install-button.wpcd-install-app {
+#wpcd_public_wrapper .wpcd-create-popup-input-wrap .wpcd-install-button.wpcd-install-app,
+#wpcd_public_wrapper .wpcd-create-popup-input-wrap .wpcd-install-button.wpcd-install-server {
+		/* The install button on the popups */
+		border-radius: 3px;
         font-size: 17px;
+}
+
+#wpcd_public_wrapper .wpcd-install-app-container.wpcd-popup .wpcd-create-popup-fields-wrap .wp_field_error {
+		/* Validation error messages */
+		font-size: 13px;
 }
 /* End styling install popups */
 

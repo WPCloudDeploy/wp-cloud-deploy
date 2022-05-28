@@ -106,6 +106,7 @@
         font-size: 14px;
 }
 
+/* Style filter bar at the top of table/grid */
 #wpcd_public_wrapper .tablenav .tablenav-pages {
         float: right;
         margin: 9px 0 9px;
@@ -140,6 +141,12 @@
 }
 
 #wpcd_public_wrapper .tablenav .actions select {
+		/* Individual filter drop-downs */
+		background-color: var(--wpcd-front-end-accent-background-color);
+		border-color: var(--wpcd-front-end-accent-background-color);
+		border-style: none;
+		color: white;
+		height: 30px;		
         width: 13%;
         float: left;
         margin-bottom: 10px;
@@ -147,22 +154,31 @@
         max-width: 12.5rem;
         padding-top: 0;
         padding-bottom: 0;
+		padding 0 10px;
         font-size: 14px;
         border-radius: 3px;
 }
 
 #wpcd_public_wrapper .tablenav .actions #post-query-submit {
+		/* Submit button next to filter bar. */
+		background-color: var(--wpcd-front-end-primary-brand-color);
+		border-color: var(--wpcd-front-end-primary-brand-color);
+		height: 30px;		
+        min-height: 30px;
         float: left;
-}
-
-#wpcd_public_wrapper .tablenav .actions #post-query-submit {
         font-size: 13px;
         padding-top: 0;
         padding-bottom: 0;
-        min-height: 30px;
         border-width: 1px;
-        display: inline-block;
+		border-radius: 3px;
+        display: inline-block;		
 }
+#wpcd_public_wrapper .tablenav .actions #post-query-submit:hover {
+	/* Submit button next to filter bar - hover. */
+	background-color: var(--wpcd-front-end-accent-background-color);
+	border-color: var(--wpcd-front-end-accent-background-color);
+}
+/* End style filter bar at the top of table/grid */
 
 #wpcd_public_wrapper td button.toggle-row {
         display: none;
@@ -314,8 +330,9 @@
         margin: 8px 0 0;
         padding: 0;
         font-size: 13px;
-        color: #646970;
+        color: #646970;		
         margin-bottom: 10px;
+		
 }
 
 #wpcd_public_wrapper .tablenav .no-pages,
@@ -326,13 +343,18 @@
 #wpcd_public_wrapper .subsubsub li {
         display: inline-block;
         margin: 0;
+		margin-right: 6px;
         padding: 0;
         white-space: nowrap;
 }
 
 #wpcd_public_wrapper .subsubsub a {
+		/* Make individual links buttons */
+		background-color: var(--wpcd-front-end-accent-background-color);
+		color: white;
         line-height: 2;
-        padding: 0.2em;
+        padding: 5px 8px;;
+		border-radius: 3px;
         text-decoration: none;
 }
 
@@ -343,7 +365,7 @@
 
 #wpcd_public_wrapper .subsubsub a .count,
 #wpcd_public_wrapper .subsubsub a.current .count {
-        color: #50575e;
+		color: white;
         font-weight: 400;
 }
 /* End style the post counts above the filter bar. */

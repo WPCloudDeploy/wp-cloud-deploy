@@ -206,7 +206,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		add_filter( 'wpcd_app_admin_list_summary_column', array( &$this, 'app_admin_list_summary_column' ), 10, 2 );
 
 		// Show some app details in the wp-admin server column.
-		add_filter( 'wpcd_app_admin_list_server_column_before_apps_link', array( &$this, 'app_admin_list_server_column_before_apps_link' ), 10, 2 );		
+		add_filter( 'wpcd_app_admin_list_server_column_before_apps_link', array( &$this, 'app_admin_list_server_column_before_apps_link' ), 10, 2 );
 
 		// Show some app details about the health of the app the wp-admin list of apps.
 		add_filter( 'wpcd_app_admin_list_app_health_column', array( &$this, 'app_admin_list_health_column' ), 10, 2 );
@@ -569,6 +569,26 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		}
 
 		return $fields;
+	}
+
+	/**
+	 * Returns a filtered array of allowed WP versions.
+	 *
+	 * @since 5.0.0
+	 *
+	 * @return array.
+	 */
+	public static function get_wp_versions() {
+
+		$versions          = array( 'latest', '6.0', '5.9.3', '5.8.4', '5.7.5', '5.6.7', '5.5.8', '5.4.9', '5.3.11', '5.2.14', '5.1.12', '5.0.15', '4.9.19', '4.8.18', '4.7.22' );
+		$override_versions = wpcd_get_option( 'wordpress_app_allowed_wp_versions' );
+
+		if ( ! empty( $override_versions ) ) {
+			$versions = $override_versions;
+		}
+
+		return apply_filters( 'wpcd_allowed_wp_versions', $versions );
+
 	}
 
 	/**

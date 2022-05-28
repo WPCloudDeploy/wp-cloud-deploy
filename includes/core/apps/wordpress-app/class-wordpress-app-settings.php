@@ -1061,6 +1061,22 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			),
 			array(
 				'type' => 'heading',
+				'name' => __( 'Overrides', 'wpcd' ),
+				'desc' => '',
+				'tab'  => 'wordpress-app-general-wpadmin',
+			),
+			array(
+				'id'                => 'wordpress_app_allowed_wp_versions',
+				'type'              => 'text',
+				'clone'             => true,
+				'size'              => 10,
+				'name'              => __( 'Allowed WP Versions', 'wpcd' ),
+				'tooltip'           => __( 'If you have your own list of WP versions you would like to see on the install screen enter it here. Otherwise we will use our own master list. One version per row. Do not use a 2-digit version - use \'latest\' instead.', 'wpcd' ),
+				'label_description' => __( 'One version per row.', 'wpcd' ),
+				'tab'               => 'wordpress-app-general-wpadmin',
+			),
+			array(
+				'type' => 'heading',
 				'name' => __( 'Misc', 'wpcd' ),
 				'desc' => '',
 				'tab'  => 'wordpress-app-general-wpadmin',
@@ -1546,7 +1562,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'name'    => __( 'Hide Web Server Type (Element)', 'wpcd' ),
 				'tooltip' => __( 'Hide the web server field on the SERVER field/card in the app list on the front-end.  This element can usually be hidden even if it is visible in wp-admin.', 'wpcd' ),
 				'tab'     => 'wordpress-app-front-end-fields',
-			),			
+			),
 			array(
 				'id'   => 'wordpress_front_end_fields_heading_general',
 				'type' => 'heading',

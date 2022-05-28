@@ -374,7 +374,7 @@
 		color: white;
 		text-decoration: none;
 		text-decoration-line: none;
-        margin: 20px 0;		
+        margin: 20px 0;
 }
 #wpcd_public_wrapper a.deploy_button:hover,
 #wpcd_public_wrapper a.deploy_button:active,
@@ -399,6 +399,12 @@
 		/* Nothing here */
 }
 /* End Format INSTALL WORDPRESS button */
+
+/* Format the operation in progress alert in the SERVER ACTIONS column */
+#wpcd_public_wrapper .wpcd_server_actions_op_in_progress {
+	/* Just needs a bit of margin. */
+	margin: 20px 0;
+}
 
 /* Format site image - from Powerpack */
 #wpcd_public_wrapper .wpcd_site_home_page_image.column-wpcd_site_home_page_image a img {

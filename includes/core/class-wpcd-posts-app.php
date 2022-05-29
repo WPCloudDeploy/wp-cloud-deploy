@@ -1339,7 +1339,7 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 		$success = true;
 
 		// No permissions check if we're running tasks via cron. eg: bulk deletes triggered via pending logs.
-		if ( true === wp_doing_cron() && is_admin() ) {
+		if ( true === wp_doing_cron() ) {
 			return;
 		}
 

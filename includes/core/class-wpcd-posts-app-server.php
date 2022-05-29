@@ -1656,6 +1656,13 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 	 * @return void|boolean
 	 */
 	public function wpcd_app_server_delete_post( $post_id, $return = false ) {
+		
+		// No permissions check if we're running tasks via cron. 
+		// We're not doing anything to delete servers via cron right now.
+		// But we might later so adding this check now since we have in the wpcd_app_delete_post() function.
+		if ( true === wp_doing_cron() ) {
+			return;
+		}
 
 		$success = true;
 		if ( get_post_type( $post_id ) === 'wpcd_app_server' && ! wpcd_is_admin() ) {

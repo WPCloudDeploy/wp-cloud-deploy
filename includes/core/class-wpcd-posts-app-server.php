@@ -329,7 +329,7 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 
 		$server_install_feedback_1 = __( 'Just printing a little message here to let you know that we\'re still working on this...', 'wpcd' );
 		$server_install_feedback_2 = __( 'We\'re not going anywhere - still working...', 'wpcd' );
-		$server_install_feedback_3 = __( 'Sorry that it\'s taking a little longer that we\'d like...', 'wpcd' );
+		$server_install_feedback_3 = __( 'Sorry that it\'s taking a little longer than we\'d like...', 'wpcd' );
 		$server_install_feedback_4 = __( 'We\'re really cranking away here....', 'wpcd' );
 		$server_install_feedback_5 = __( 'We\'re continuing to work on this. Your next update will be in about 20 minutes...', 'wpcd' );
 

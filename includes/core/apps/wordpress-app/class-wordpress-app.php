@@ -1403,16 +1403,10 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	}
 
 
-
-
-
-
-
-
 	/**
 	 * Return create server popup view
 	 *
-	 * @param string $view
+	 * @param string $view String indicating whether we're viewing popup from admin or frontend (public).
 	 *
 	 * @return void|string
 	 */
@@ -1540,7 +1534,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 					$invalid_msg = __( 'If you are seeing this message, something went very wrong at the start of the create a new server process. However, we are unable to be more specific at this time about its root cause.', 'wpcd' );
 				}
 
-				// Validate the server name and return right away if invalid format
+				// Validate the server name and return right away if invalid format.
 				$name_pattern = '/^[a-z0-9-_]+$/i';
 
 				if ( false !== strpos( mb_strtolower( $args['provider'] ), 'hivelocity' ) ) {
@@ -1586,6 +1580,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 					if ( is_wp_error( $result ) ) {
 						$err_msg = $result->get_error_message();
 					}
+					/* Translators: %1: Error message. */
 					$msg = sprintf( __( 'Unfortunately we could not start deploying this server - most likely because of an error from the provider api. <br />Please contact support or you can check the COMMAND & SSH logs for errors.<br />  You can close this screen and then retry the operation.<br />%s', 'wpcd' ), $err_msg );
 					$msg = apply_filters( 'wpcd_wordpress-app-server_deployment_error', $msg );
 					$msg = '<span class="wpcd_pre_install_text_error">' . $msg . '</span>';

@@ -418,6 +418,7 @@
 		text-decoration: none;
 		text-decoration-line: none;
         margin: 20px 0;
+		cursor: pointer;
 }
 #wpcd_public_wrapper a.deploy_button:hover,
 #wpcd_public_wrapper a.deploy_button:active,
@@ -431,6 +432,7 @@
 		text-decoration-line: none;
 		border-color: var(--wpcd-front-end-primary-brand-color);
 		background-color: var(--wpcd-front-end-primary-brand-color);
+		cursor: pointer;
 }
 /* End format DEPLOY WORDPRESS SERVER button. */
 

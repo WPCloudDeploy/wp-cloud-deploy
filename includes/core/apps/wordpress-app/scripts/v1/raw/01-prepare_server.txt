@@ -7,9 +7,25 @@ fi
 
 if [[ "$interactive" != "no" ]]; then
     clear
-    echo "This script will install NGINX, MariaDB, PHP, Certbot and WP-CLI in your system"
+    echo "This script will install NGINX, MariaDB, PHP, Certbot and WP-CLI in your system for server $name"
     echo
     read -p "Press enter to start setup"
+fi
+
+# Write the server name out to a file - we might need it later.
+if [ "$name" ]
+then
+	echo "servername=$name" >> /opt/wpcd-server-info.txt
+else
+	echo "servername=" >> /opt/wpcd-server-info.txt
+fi
+
+# Write the post id out to a file - we might need it later.
+if [ "$post_id" ]
+then
+	echo "post_id=$post_id" >> /opt/wpcd-server-info.txt
+else
+	echo "post_id=" >> /opt/wpcd-server-info.txt
 fi
 
 #set a variable to hold the location of the checkpoint folder.

@@ -23,6 +23,8 @@ echo "done" && {
 	} && { 
 	sudo -E apt-get install -y vnstat > /dev/null 2>&1 || { echo "Error installing vnstat. Please delete this server and restart the process." >> ##SCRIPT_LOGS##.log.done 2>&1; } ; 
 	} && {
+	sudo -E wget --no-check-certificate -O ##SCRIPT_COMMON_NAME## ##SCRIPT_COMMON_URL## &&
+	sudo -E dos2unix ##SCRIPT_COMMON_NAME## &&
     sudo -E wget --no-check-certificate -O ##SCRIPT_NAME## ##SCRIPT_URL## &&
     export interactive=no &&
     sudo -E dos2unix ##SCRIPT_NAME## >> ##SCRIPT_LOGS##.log.intermed 2>&1 &&

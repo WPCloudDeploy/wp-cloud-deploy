@@ -1,4 +1,6 @@
 cd ~ && 
+sudo -E wget --no-check-certificate -O ##SCRIPT_COMMON_NAME## ##SCRIPT_COMMON_URL## &&
+sudo -E dos2unix ##SCRIPT_COMMON_NAME## &&
 sudo -E wget --no-check-certificate -O ##SCRIPT_NAME## ##SCRIPT_URL## &&
 export action=##ACTION## callback_backup=##CALLBACK_BACKUP## &&
 sudo -E dos2unix ##SCRIPT_NAME## &&

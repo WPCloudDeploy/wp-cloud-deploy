@@ -1,5 +1,7 @@
 cd ~ &&
 sudo -E \rm -f ##SCRIPT_NAME## &&
+sudo -E wget --no-check-certificate -O ##SCRIPT_COMMON_NAME## ##SCRIPT_COMMON_URL## &&
+sudo -E dos2unix ##SCRIPT_COMMON_NAME## &&
 sudo -E wget --no-check-certificate -O ##SCRIPT_NAME## ##SCRIPT_URL## &&
 export action=##ACTION## domain=##DOMAIN## wps_wpconfig_option=##WPS_WPCONFIG_OPTION## wps_new_wpconfig_option_value=##WPS_NEW_WPCONFIG_OPTION_VALUE## wps_wpconfig_option_is_raw=##WPS_WPCONFIG_OPTION_IS_RAW## &&
 sudo -E dos2unix ##SCRIPT_NAME## &&

@@ -170,6 +170,7 @@
 
 #wpcd_public_wrapper .tablenav .actions #post-query-submit {
 		/* Submit button next to filter bar. */
+		color: white;
 		background-color: var(--wpcd-front-end-primary-brand-color);
 		border-color: var(--wpcd-front-end-primary-brand-color);
 		height: 30px;		

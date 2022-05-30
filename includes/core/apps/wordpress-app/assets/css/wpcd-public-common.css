@@ -701,6 +701,24 @@
 }
 /* End style the local status column on the server list */
 
+/* Style the ADMIN LOGIN and VIEW SITE links in the app list. */
+.wpcd-grid-table .wpcd-app-col-element-label-wp_admin_link a,
+.wpcd-grid-table .wpcd-app-col-element-value-homepage_link a{
+	display: inline-block;
+	color: white;
+	background-color: var(--wpcd-front-end-primary-brand-color);
+	border-color: var(--wpcd-front-end-primary-brand-color);
+	border-width: 1px;
+	border-style: solid;
+	padding: 4px 8px;		
+}
+.wpcd-grid-table .wpcd-app-col-element-label-wp_admin_link a:hover,
+.wpcd-grid-table .wpcd-app-col-element-value-homepage_link a:hover {
+	background-color: var(--wpcd-front-end-accent-background-color);	
+	border-color: var(--wpcd-front-end-accent-background-color);
+
+}
+
 .wpcd-grid-table .wpcd-app-col-element-wrap-health_last_update {
 	/* Make the last updated row in the APP HEALTH card a little more vertical space above. */
 	margin-top: 10px;

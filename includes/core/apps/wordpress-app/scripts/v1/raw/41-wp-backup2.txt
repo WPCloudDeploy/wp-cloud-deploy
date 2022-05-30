@@ -5,6 +5,9 @@ if [[ "$EUID" -ne 0 ]]; then
 	exit
 fi
 
+## Get our common functions
+source 9999-common-functions.sh
+
 clear
 
 
@@ -23,8 +26,8 @@ while [[ -z $action ]]; do
 	echo "   9) Prune local backups for all sites"
 	echo "   10) Delete all backups for a site"
 	echo "   11) Delete all backups for all sites"
-	echo "   12) Show list of domains where backups exist but the domain is not in NGINX"
-	echo "   13) Delete backups from domains that do not exist any more in NGINX"
+	echo "   12) Show list of domains where backups exist but the domain is not in ${g_webserver_type}"
+	echo "   13) Delete backups from domains that do not exist any more in ${g_webserver_type}"
 	echo "   14) List scheduled backups"
 	echo "   15) Upgrade Rclone"
 	echo "   16) Configure Rclone"
@@ -73,7 +76,7 @@ ask_backup_type () {
         echo "   1) Full site backup"
         echo "   2) Files only"
         echo "   3) Database only"
-        echo "   4) NGINX configuration only"
+        echo "   4) $g_webserver_type configuration only"
         echo
         read -p "Schedule: " backup_type
         while [[ -z "$backup_type" ]]; do
@@ -89,7 +92,7 @@ ask_backup_type () {
 	elif [[ $backup_type == "3" ]]; then
 		backup_type="database"
 	elif [[ $backup_type == "4" ]]; then
-		backup_type="nginx"
+		backup_type="webserver"
 	fi
 
 }
@@ -215,6 +218,20 @@ if [[ $action == "wp2_backup" || $action == "1" ]]; then
     	cd /etc/nginx
     	tar -czf ~/.wp-backup2/$domain/"$domain"_"$date"_nginx.tar.gz $(ls sites-enabled/$domain sites-enabled/"$domain"_* htpasswd/$domain htpasswd/"$domain"_* 2>/dev/null)
 	}
+	
+	backup_ols () {
+		echo "Backing up OLS configuration..."
+		cd /usr/local/lsws/conf/
+		tar -czf ~/.wp-backup/$domain/"$domain"_"$date"_ols.tar.gz $(ls vhosts/${domain}/* 2>/dev/null)
+	}
+	
+	backup_webserver () {
+		if [ "$g_webserver_type" = "nginx" ]; then
+			backup_nginx
+		elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]; then
+			backup_ols
+		fi
+	}
 
 	backup_database () {
 		echo "Backing up database..."
@@ -231,14 +248,14 @@ if [[ $action == "wp2_backup" || $action == "1" ]]; then
 
 	if [[ $backup_type == "full" ]]; then
 		backup_files
-		backup_nginx
+		backup_webserver
 		backup_database
 	elif [[ $backup_type == "files" ]]; then
 		backup_files
 	elif [[ $backup_type == "database" ]]; then
 		backup_database
-	elif [[ $backup_type == "nginx" ]]; then
-		backup_nginx
+	elif [[ $backup_type == "webserver" ]]; then
+		backup_webserver
 	fi
 
 	if [[ -n $remotes && $remotes != "local" ]]; then
@@ -248,14 +265,14 @@ if [[ $action == "wp2_backup" || $action == "1" ]]; then
 		do
 			if [[ $backup_type == "full" ]]; then
 				rclone copy ~/.wp-backup2/$domain/"$domain"_"$date"_fs.tar.gz $remote/$domain
-				rclone copy ~/.wp-backup2/$domain/"$domain"_"$date"_nginx.tar.gz $remote/$domain
+				rclone copy ~/.wp-backup2/$domain/"$domain"_"$date"_"${g_webserver_type}".tar.gz $remote/$domain
 				rclone copy ~/.wp-backup2/$domain/"$domain"_"$date"_db.gz $remote/$domain
 			elif [[ $backup_type == "files" ]]; then
 				rclone copy ~/.wp-backup2/$domain/"$domain"_"$date"_fs.tar.gz $remote/$domain
 			elif [[ $backup_type == "database" ]]; then
 				rclone copy ~/.wp-backup2/$domain/"$domain"_"$date"_db.gz $remote/$domain
-			elif [[ $backup_type == "nginx" ]]; then
-				rclone copy ~/.wp-backup2/$domain/"$domain"_"$date"_nginx.tar.gz $remote/$domain
+			elif [[ $backup_type == "webserver" ]]; then
+				rclone copy ~/.wp-backup/$domain/"$domain"_"$date"_"${g_webserver_type}".tar.gz $remote/$domain
 			fi
 			# Upload label if it exists
 			if [[ -e ~/.wp-backup2/$domain/"$domain"_"$date"_label.txt ]]; then
@@ -331,7 +348,7 @@ if [[ $action == "wp2_restore" || $action == "2" ]]; then
     fi
 
 	# If /var/www/$domain exists, let the user know before overwriting
-    if [[ -d /var/www/$domain || -e /etc/nginx/sites-enabled/$domain || -e /etc/nginx/sites-available/$domain || -e /etc/php/5.6/fpm/pool.d/$domain.conf || -e /etc/php/7.1/fpm/pool.d/$domain.conf || -e /etc/php/7.2/fpm/pool.d/$domain.conf || -e /etc/php/7.3/fpm/pool.d/$domain.conf || -e /etc/php/7.4/fpm/pool.d/$domain.conf || -e /etc/php/8.0/fpm/pool.d/$domain.conf || -e /etc/php/8.1/fpm/pool.d/$domain.conf ]]; then
+    if [[ -d /var/www/$domain || -e /etc/nginx/sites-enabled/$domain || -e /etc/nginx/sites-available/$domain || -e /etc/php/5.6/fpm/pool.d/$domain.conf || -e /etc/php/7.1/fpm/pool.d/$domain.conf || -e /etc/php/7.2/fpm/pool.d/$domain.conf || -e /etc/php/7.3/fpm/pool.d/$domain.conf || -e /etc/php/7.4/fpm/pool.d/$domain.conf || -e /etc/php/8.0/fpm/pool.d/$domain.conf || -e /etc/php/8.1/fpm/pool.d/$domain.conf || -d /usr/local/lsws/conf/vhosts/$domain ]]; then
             # we do the following to allow bypassing this check if the user sets $overwrite to "yes"
             if [[ "$overwrite" != "yes" ]]; then
             echo
@@ -403,6 +420,7 @@ if [[ $action == "wp2_restore" || $action == "2" ]]; then
 			echo "Cleaning PHP configuration and restarting PHP process..."
 			php_version=$(ls /etc/php/*/fpm/pool.d/$domain.conf 2>/dev/null | cut -d '/' -f 4)
     		rm -f /etc/php/$php_version/fpm/pool.d/$domain.conf
+		# TODO: Seems like were missing a fi here or the below should be an elif ? 
 		if [ ! -f /etc/wpcd/php-versions-disabled/php$php_version ]; then
       		    systemctl restart php$php_version-fpm
 		fi
@@ -948,11 +966,22 @@ if [[ $action == "wp2_show_orphaned_backups" || $action == "12" ]]; then
 
     echo
     echo "The following sites have orphaned backups:"
-	cd ~/.wp-backup2/
-    sort <<< "$(ls ~/.wp-backup2/; ls /etc/nginx/sites-enabled/; ls /etc/nginx/sites-available/)" | uniq -u | grep -v '^default$\|^monit$\|^monitorix$' |
-	while read -r line; do
-		find $line -maxdepth 0 2>/dev/null
-	done
+	cd ~/.wp-backup/
+	if [ "$g_webserver_type" = "nginx" ]
+	then
+		sort <<< "$(ls ~/.wp-backup/; ls /etc/nginx/sites-enabled/; ls /etc/nginx/sites-available/)" | uniq -u | grep -v '^default$\|^monit$\|^monitorix$' |
+		while read -r line
+		do
+			find $line -maxdepth 0 2>/dev/null
+		done
+	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+	then
+		sort <<< "$(ls ~/.wp-backup/; ls /usr/local/lsws/conf/vhosts/)" | grep -v 'Example$' |uniq -u |
+		while read -r line
+		do
+			find $line -maxdepth 0 2>/dev/null
+		done
+	fi
 
     exit
 
@@ -963,11 +992,22 @@ fi
 if [[ $action == "wp2_remove_orphaned_backups" || $action == "13" ]]; then
 
 	echo
-    cd ~/.wp-backup2/
-    sort <<< "$(ls ~/.wp-backup2/; ls /etc/nginx/sites-enabled/; ls /etc/nginx/sites-available/)" | uniq -u | grep -v '^default$\|^monit$\|^monitorix$' |
-	while read -r line; do
-		find $line -maxdepth 0 2>/dev/null
-	done | xargs rm -rf
+    cd ~/.wp-backup/
+	if [ "$g_webserver_type" = "nginx" ]
+	then
+		sort <<< "$(ls ~/.wp-backup/; ls /etc/nginx/sites-enabled/; ls /etc/nginx/sites-available/)" | uniq -u | grep -v '^default$\|^monit$\|^monitorix$' |
+		while read -r line
+		do
+			find $line -maxdepth 0 2>/dev/null
+		done | xargs rm -rf
+	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+	then
+		sort <<< "$(ls ~/.wp-backup/; ls /usr/local/lsws/conf/vhosts/)" | grep -v 'Example$' |uniq -u |
+		while read -r line
+		do
+			find $line -maxdepth 0 2>/dev/null
+		done | xargs rm -rf
+	fi
 	echo "Orphaned backups have been removed"
 
     exit

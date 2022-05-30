@@ -9,6 +9,8 @@ fi
 ## Get our common functions
 source 9999-common-functions.sh
 
+gf_check_cur_webserver
+
 set_user_name() {
     if [[ -z "${user_name}" ]]; then
         user_name=$(echo $domain | cut -c1-32)
@@ -20,18 +22,18 @@ NGINX_CONF="/etc/nginx/nginx.conf"
 unset NGINX_RELOAD
 unset OLS_RELOAD
 [[ "${domain}" ]] && set_user_name
-if [ "$g_webserver_type" = "nginx" ]; then
+if [ "$gv_webserver_type" = "nginx" ]; then
     [[ "${domain}" ]] && domain_conf="/etc/nginx/sites-enabled/${domain}"
-elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]; then
+elif [ "$gv_webserver_type" = "ols" ]  || [ "$gv_webserver_type" = "ols-enterprise" ]; then
     [[ "${domain}" ]] && domain_conf="/usr/local/lsws/conf/vhosts/${domain}/vhconf.conf"
 fi
 
 get_domain_config_path(){
     local site
     site=$1
-    if [ "$g_webserver_type" = "nginx" ]; then
+    if [ "$gv_webserver_type" = "nginx" ]; then
         domain_conf="/etc/nginx/sites-enabled/${site}"
-    elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]; then
+    elif [ "$gv_webserver_type" = "ols" ]  || [ "$gv_webserver_type" = "ols-enterprise" ]; then
         domain_conf="/usr/local/lsws/conf/vhosts/${site}/vhconf.conf"
     fi
 }
@@ -44,6 +46,15 @@ fix_permissions_on_configs_ols_lsws(){
         chown -R lsadm:lsadm /usr/local/lsws/conf/vhosts/$domain/
     fi
 }
+
+# if [ "$gv_webserver_type" = "nginx" ]; then
+#         [[ "${domain}" ]] && domain_conf="/etc/nginx/sites-enabled/${domain}"
+# elif [ "$gv_webserver_type" = "ols" ]  || [ "$gv_webserver_type" = "ols-enterprise" ]; then
+#     [[ "${domain}" ]] && domain_conf="/usr/local/lsws/conf/vhosts/${domain}/vhconf.conf"
+# fi
+
+# gf_restart_webserver
+
 
 # equals to 1 year (31536000) for most WordPress sites, 
 # but I chose 7d like in Nextcloud
@@ -72,12 +83,12 @@ ols_exit_script() {
 }
 
 exit_script() {
-    if [ "$g_webserver_type" = "nginx" ]; then
+    if [ "$gv_webserver_type" = "nginx" ]; then
         nginx_exit_script
-    elif [ "$g_webserver_type" = "ols" ]; then
+    elif [ "$gv_webserver_type" = "ols" ]; then
         fix_permissions_on_configs_ols_lsws
         ols_exit_script
-    elif [ "$g_webserver_type" = "ols-enterprise" ]; then
+    elif [ "$gv_webserver_type" = "ols-enterprise" ]; then
         fix_permissions_on_configs_ols_lsws
         echo
     fi
@@ -140,9 +151,9 @@ while [[ -z $domain ]]; do
     echo "Please, select which site you want to work with"
     echo
     
-    if [ "$g_webserver_type" = "nginx" ]; then
+    if [ "$gv_webserver_type" = "nginx" ]; then
         select_nginx_enabled_site
-    elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]; then
+    elif [ "$gv_webserver_type" = "ols" ]  || [ "$gv_webserver_type" = "ols-enterprise" ]; then
         select_ols_site
     fi
     get_domain_config_path "$domain"
@@ -575,13 +586,13 @@ is_xmlrpc_disabled_nginx() {
 }
 
 is_xmlrpc_disabled_ols() {
-    cat "/var/www/$domain/html/.htaccess" | grep -qP " - Disable XMLRPC"
+    cat "/var/www/$domain/html/.htaccess" | grep -qP "BP security header - Disable XMLRPC"
 }
 
 is_xmlrpc_disabled(){
-    if [ "$g_webserver_type" = "nginx" ]; then
+    if [ "$gv_webserver_type" = "nginx" ]; then
         is_xmlrpc_disabled_nginx
-    elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]; then
+    elif [ "$gv_webserver_type" = "ols" ]  || [ "$gv_webserver_type" = "ols-enterprise" ]; then
         is_xmlrpc_disabled_ols
     fi
 }
@@ -591,15 +602,15 @@ enable_xmlrpc_nginx(){
 }
 
 enable_xmlrpc_ols(){
-    sed -i "/.* - Disable XMLRPC.*/d"  /var/www/$domain/html/.htaccess
+    sed -i "/.*BP security header - Disable XMLRPC.*/d"  /var/www/$domain/html/.htaccess
     user_name=$(echo $domain | cut -c1-32)
     chown "${user_name}":www-data /var/www/$domain/html/.htaccess
 }
 
 enable_xmlrpc(){
-    if [ "$g_webserver_type" = "nginx" ]; then
+    if [ "$gv_webserver_type" = "nginx" ]; then
         enable_xmlrpc_nginx
-    elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]; then
+    elif [ "$gv_webserver_type" = "ols" ]  || [ "$gv_webserver_type" = "ols-enterprise" ]; then
         enable_xmlrpc_ols
     fi
 }
@@ -609,13 +620,13 @@ disable_xmlrpc_nginx(){
 }
 
 disable_xmlrpc_ols(){
-    sed -i "1 i\RewriteEngine On\nRewriteRule ^(.*)?xmlrpc\.php(.*)\$ - [F,L,NC] #  - Disable XMLRPC" /var/www/$domain/html/.htaccess
+    sed -i "1 i\RewriteEngine On\nRewriteRule ^(.*)?xmlrpc\.php(.*)\$ - [F,L,NC] # BP security header - Disable XMLRPC" /var/www/$domain/html/.htaccess
 }
 
 disable_xmlrpc(){
-    if [ "$g_webserver_type" = "nginx" ]; then
+    if [ "$gv_webserver_type" = "nginx" ]; then
         disable_xmlrpc_nginx
-    elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]; then
+    elif [ "$gv_webserver_type" = "ols" ]  || [ "$gv_webserver_type" = "ols-enterprise" ]; then
         disable_xmlrpc_ols
     fi
 }
@@ -719,17 +730,17 @@ do_disable_xfo() {
 }
 
 do_enable_xfo_sameorigin() {
-    if  [ "$g_webserver_type" = "nginx" ]; then
+    if  [ "$gv_webserver_type" = "nginx" ]; then
         sed -i "${domain_conf}" -re '/client_max_body_size/a \ \ \ \ add_header X-Frame-Options "SAMEORIGIN";'
-    elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]; then
+    elif [ "$gv_webserver_type" = "ols" ]  || [ "$gv_webserver_type" = "ols-enterprise" ]; then
         sed -i "${domain_conf}" -re '/Headers go below this line/a X-Frame-Options "SAMEORIGIN";'
     fi
 }
 
 do_enable_xfo_deny() {
-    if  [ "$g_webserver_type" = "nginx" ]; then
+    if  [ "$gv_webserver_type" = "nginx" ]; then
         sed -i "${domain_conf}" -re '/client_max_body_size/a \ \ \ \ add_header X-Frame-Options "DENY";'
-    elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]; then
+    elif [ "$gv_webserver_type" = "ols" ]  || [ "$gv_webserver_type" = "ols-enterprise" ]; then
         sed -i "${domain_conf}" -re '/Headers go below this line/a X-Frame-Options "DENY";'
     fi
     
@@ -845,21 +856,21 @@ do_disable_csp() {
 }
 
 do_enable_default_csp() {
-    if  [ "$g_webserver_type" = "nginx" ]; then
+    if  [ "$gv_webserver_type" = "nginx" ]; then
         sed -i "${domain_conf}" -re "/client_max_body_size/a \ \ \ \ add_header Content-Security-Policy \"default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src 'self'; img-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self' data:;\" always;"
-    elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]; then
+    elif [ "$gv_webserver_type" = "ols" ]  || [ "$gv_webserver_type" = "ols-enterprise" ]; then
         sed -i "${domain_conf}" -re "/Headers go below this line/a Content-Security-Policy \"default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src 'self'; img-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self' data:;\" always;"
     fi
     
 }
 
 do_enable_custom_csp() {
-    if  [ "$g_webserver_type" = "nginx" ]; then
+    if  [ "$gv_webserver_type" = "nginx" ]; then
         sed -i "${domain_conf}" -re "/client_max_body_size/a \ \ \ \ add_header Content-Security-Policy \"${custom_csp}\" always;"
-    elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]; then
+    elif [ "$gv_webserver_type" = "ols" ]  || [ "$gv_webserver_type" = "ols-enterprise" ]; then
         sed -i "${domain_conf}" -re "/Headers go below this line/a Content-Security-Policy \"${custom_csp}\" always;"
     fi
-
+    
 }
 
 ## Enable default CSP (Content-Security-Policy)
@@ -1029,9 +1040,9 @@ enable_hsts_ols(){
 }
 
 enable_hsts(){
-    if [ "$g_webserver_type" = "nginx" ]; then
+    if [ "$gv_webserver_type" = "nginx" ]; then
         enable_hsts_nginx
-    elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]; then
+    elif [ "$gv_webserver_type" = "ols" ]  || [ "$gv_webserver_type" = "ols-enterprise" ]; then
         enable_hsts_ols
     fi
 }
@@ -1089,9 +1100,9 @@ enable_xss_ols(){
 }
 
 enable_xss(){
-    if [ "$g_webserver_type" = "nginx" ]; then
+    if [ "$gv_webserver_type" = "nginx" ]; then
         enable_xss_nginx
-    elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]; then
+    elif [ "$gv_webserver_type" = "ols" ]  || [ "$gv_webserver_type" = "ols-enterprise" ]; then
         enable_xss_ols
     fi
 }
@@ -1148,9 +1159,9 @@ enable_cto_ols(){
 }
 
 enable_cto(){
-    if [ "$g_webserver_type" = "nginx" ]; then
+    if [ "$gv_webserver_type" = "nginx" ]; then
         enable_cto_nginx
-    elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]; then
+    elif [ "$gv_webserver_type" = "ols" ]  || [ "$gv_webserver_type" = "ols-enterprise" ]; then
         enable_cto_ols
     fi
 }
@@ -1207,9 +1218,9 @@ enable_rp_ols(){
 }
 
 enable_rp(){
-    if [ "$g_webserver_type" = "nginx" ]; then
+    if [ "$gv_webserver_type" = "nginx" ]; then
         enable_rp_nginx
-    elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]; then
+    elif [ "$gv_webserver_type" = "ols" ]  || [ "$gv_webserver_type" = "ols-enterprise" ]; then
         enable_rp_ols
     fi
 }
@@ -1268,17 +1279,17 @@ do_disable_pp() {
 }
 
 do_enable_default_pp() {
-    if [ "$g_webserver_type" = "nginx" ]; then
+    if [ "$gv_webserver_type" = "nginx" ]; then
         sed -i "${domain_conf}" -re '/client_max_body_size/a \ \ \ \ add_header Permissions-Policy "accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()";'
-    elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]; then
+    elif [ "$gv_webserver_type" = "ols" ]  || [ "$gv_webserver_type" = "ols-enterprise" ]; then
         sed -i "${domain_conf}" -re '/Headers go below this line/a Permissions-Policy "accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()";'
     fi
 }
 
 do_enable_custom_pp() {
-    if [ "$g_webserver_type" = "nginx" ]; then
+    if [ "$gv_webserver_type" = "nginx" ]; then
         sed -i "${domain_conf}" -re "/client_max_body_size/a \ \ \ \ add_header Permissions-Policy \"${custom_pp}\";"
-    elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]; then
+    elif [ "$gv_webserver_type" = "ols" ]  || [ "$gv_webserver_type" = "ols-enterprise" ]; then
         sed -i "${domain_conf}" -re "/Headers go below this line/a Permissions-Policy \"${custom_pp}\";"
     fi
     

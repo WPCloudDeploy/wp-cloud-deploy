@@ -1,0 +1,115 @@
+#!/bin/bash
+
+if [[ "$EUID" -ne 0 ]]
+then
+	echo "Sorry, to run this as root"
+	exit
+fi
+
+#################################################################
+# Remove crons.
+#################################################################
+function remove_install_allow_deny-plugins_cron() {
+	(crontab -l 2>/dev/null | sed '/wp-allow-deny-plugins/d' ) | crontab -
+	rm -f /usr/local/bin/wp-allow-deny-plugins
+}
+
+clear
+while [[ -z $action ]]
+do
+	echo
+	echo "What do you want to do?"
+	echo "   1) Install allowed-denied-plugins-scanner Cron"
+	echo "   2) Remove allowed-denied-plugins-scanner Cron"
+	echo
+	read -p "Action: " action
+	until [[ -z "$action" || "$action" =~ ^[1-2]$ ]]
+	do
+		echo "$action: invalid selection."
+		read -p "Action: " action
+	done
+done
+
+################### Install server Status Cron #########
+if [[ $action == "install_allow_deny-plugins_cron" || $action == "1" ]];
+then
+	if [[ -z "$callback_wp_banned_plugins" ]]
+	then
+		read -p "enter callback url to get WP Banned Plugins list:  " callback_wp_banned_plugins
+	fi
+	
+	if [[ -z "$callback_wp_plugin_difference" ]]
+	then
+		read -p "enter callback url to WP Plugin difference in 24 hs:  " callback_wp_plugin_difference
+	fi	
+
+	mkdir -p /etc/wp-plugin-list
+
+	# Install sponge to read and overwrite a file
+	apt install moreutils -y
+
+	# remove crons if they exist...
+	remove_install_allow_deny-plugins_cron
+
+	# set up the helper script
+	echo $'#!/bin/bash
+callback_wp_banned_plugins='$callback_wp_banned_plugins'
+callback_wp_plugin_difference='$callback_wp_plugin_difference'
+
+date=$(date +"%Y-%m-%d"-"%Hh%Mm%Ss")
+
+number_of_sites=$(ls /var/www | grep -v html | wc -l)
+##################### List of Banned Plugins in each site ####################
+for (( number=1; number <=$number_of_sites; number++ ))
+do
+	domain=$(ls /var/www | grep -v html | sed -n "$number"p)
+	user_name=$(echo $domain | cut -c1-32)
+	if [ ! -f /etc/wpcd-allowed-denied-plugins/denied-plugins.txt ]
+	then
+		deny_plugins="akismet"
+	else
+		deny_plugins=`cat /etc/wpcd-allowed-denied-plugins/denied-plugins.txt|tr "\n" ","|sed -e "s/,$/\n/"`
+	fi
+done
+
+##################### Difference of plugins in 24 hrs in each site ###########
+echo "[]" > /tmp/wp-change-plugin.json
+for (( number=1; number <=$number_of_sites; number++ ))
+do
+	domain=$(ls /var/www | grep -v html | sed -n "$number"p)
+	user_name=$(echo $domain | cut -c1-32)
+	if [ ! -f /etc/wp-plugin-list/$domain.txt ]
+	then
+		su - $user_name -c "wp plugin list --field=name" > /etc/wp-plugin-list/$domain.txt
+	fi
+	su - $user_name -c "wp plugin list --field=name" > /tmp/$domain.txt
+	newplugins=`diff /etc/wp-plugin-list/$domain.txt /tmp/$domain.txt |grep "<\|>"|cut -d" " -f2|tr "\n" ","|sed -e "s/,$/\n/"`
+
+	if [ ! -z $newplugins ]
+	then
+		cat /tmp/wp-change-plugin.json| jq --arg domain "$domain" --arg newplugins "$newplugins" '\''. + [{domain: $domain , newplugins: $newplugins }]'\'' |sponge /tmp/wp-change-plugin.json
+		cp /tmp/$domain.txt /etc/wp-plugin-list/$domain.txt
+	fi
+done
+
+curl -H "Content-Type: application/json" --data @/tmp/wp-change-plugin.json "$callback_wp_plugin_difference"
+curl -sS "$callback_wp_banned_plugins?wp_banned_plugins=$deny_plugins"' > /usr/local/bin/wp-allow-deny-plugins
+
+	chmod +x /usr/local/bin/wp-allow-deny-plugins
+	# end set up the helper script
+
+	# if the crontab entry doesn't exist, create it
+	crontab -l | grep -q 'wp-allow-deny-plugins' || (crontab -l 2>/dev/null; echo "0 3 * * * /usr/local/bin/wp-allow-deny-plugins > /dev/null 2>&1") | crontab - > /dev/null
+
+	echo "WP allow deny plugins script configured!"
+	exit
+fi
+
+################### Remove server Status Cron #########
+if [[ $action == "remove_allow_deny-plugins_cron" || $action == "2" ]]
+then
+	remove_install_allow_deny-plugins_cron
+	echo
+	echo "WP allow deny plugins script removed!"
+	exit	
+fi

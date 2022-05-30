@@ -1,240 +1,218 @@
 #!/bin/bash
 
-if [[ "$EUID" -ne 0 ]]; then
+if [[ "$EUID" -ne 0 ]]
+then
 	echo "Sorry, you need to run this as root"
 	exit
 fi
 
+# Get our common functions
+source 9999-common-functions.sh
 
-while [[ -z $action ]]; do
-    clear
-    echo "What do you want to do?"
-    echo "   1) Add SFTP user"
-    echo "   2) Remove SFTP user"
-    echo "   3) Set public key for SFTP user"
-    echo "   4) Remove public key for SFTP user"
-    echo "   5) Change password for SFTP user"
-    echo "   6) Remove existing password for SFTP user"
-    echo
-    read -p "Action: " action
-    until [[ -z "$action" || "$action" =~ ^[1-6]$ ]]; do
-    	echo "$action: invalid selection."
-    	read -p "Action: " action
-    done
+while [[ -z $action ]]
+do
+	clear
+	echo "What do you want to do?"
+	echo "   1) Add SFTP user"
+	echo "   2) Remove SFTP user"
+	echo "   3) Set public key for SFTP user"
+	echo "   4) Remove public key for SFTP user"
+	echo "   5) Change password for SFTP user"
+	echo "   6) Remove existing password for SFTP user"
+	echo
+	read -p "Action: " action
+	until [[ -z "$action" || "$action" =~ ^[1-6]$ ]]
+	do
+		echo "$action: invalid selection."
+		read -p "Action: " action
+	done
 done
 
 # add user
-if [[ $action == "add" || $action == "1" ]]; then
-    while [[ -z $domain ]]; do
-        echo
-        echo "Please, select which site do you wish to add the user for"
-        ls /var/www | grep -v html | nl
-        echo
-        read -p "Select site: " site_number
-        number_of_sites=$(ls /var/www | grep -v html | wc -l)
-        until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
-	    	echo "$site_number: invalid selection."
-	    	read -p "Select site: " site_number
-	    done
-        domain=$(ls /var/www | grep -v html | sed -n "$site_number"p)
-done
+if [[ $action == "add" || $action == "1" ]]
+then
+	while [[ -z $domain ]]
+	do
+		clear
+		echo "Please, select which site do you wish to add the user for"
+		gf_select_domain
+		domain=$(ls /var/www | grep -v html | sed -n "$site_number"p)
+	done
 
-    while [[ -z $user ]]; do
-        echo
-        echo "Enter the desired user name
-Example: john"
-        read -p "User: " user
-    done
+	while [[ -z $user ]]
+	do
+		echo
+		echo "Enter the desired user name Example: john"
+		read -p "User: " user
+	done
 
-    while [[ -z $pass ]]; do
-        echo
-        echo "Enter a password for the user"
-        read -p "Password: " pass
-    done
+	while [[ -z $pass ]]
+	do
+		echo
+		echo "Enter a password for the user"
+		read -p "Password: " pass
+	done
 
-    if id -u $user &>/dev/null; then
-        echo "$user already exists. Use a different user name."
-        exit
-    fi
+	if id -u $user &>/dev/null
+	then
+		echo "$user already exists. Use a different user name."
+		exit
+	fi
 
-    useradd -d "/var/www/$domain/html" -g "www-data" -M -s "/bin/false" $user
-    if [ $? -ne 0 ]; then
-        echo "User add failed! Aborting..."
-        exit 1
-    fi
+	useradd -d "/var/www/$domain/html" -g "www-data" -M -s "/bin/false" $user
+	if [ $? -ne 0 ]
+	then
+		echo "User add failed! Aborting..."
+		exit 1
+	fi
 
-    echo $user:$pass | chpasswd
-    if [ $? -ne 0 ]; then
-        userdel $user
-        echo "Password set failed! Aborting..."
-        exit 1
-    fi
+	echo $user:$pass | chpasswd
+	if [ $? -ne 0 ]
+	then
+		userdel $user
+		echo "Password set failed! Aborting..."
+		exit 1
+	fi
 
-    echo "Match User $user
-	ForceCommand internal-sftp -u 0002 -d html
-	PasswordAuthentication yes
-	ChrootDirectory /var/www/$domain
-	PermitTunnel no
-	AllowAgentForwarding no
-	AllowTcpForwarding no
-	X11Forwarding no
-    AuthorizedKeysFile /var/www/$domain/.ssh_$user/authorized_keys" >> /etc/ssh/sshd_config
+	echo "Match User $user
+ForceCommand internal-sftp -u 0002 -d html
+PasswordAuthentication yes
+ChrootDirectory /var/www/$domain
+PermitTunnel no
+AllowAgentForwarding no
+AllowTcpForwarding no
+X11Forwarding no
+AuthorizedKeysFile /var/www/$domain/.ssh_$user/authorized_keys" >> /etc/ssh/sshd_config
 
-    mkdir -p /var/www/$domain/.ssh_$user/
+	mkdir -p /var/www/$domain/.ssh_$user/
 
-    systemctl restart sshd.service
-    echo
-    echo "Added SFTP user $user"
-    exit
+	systemctl restart sshd.service
+	echo
+	echo "Added SFTP user $user"
+	exit
 fi
 
 # remove user
-if [[ $action == "remove" || $action == "2" ]]; then
-    while [[ -z $user ]]; do
-        echo
-        echo "Please, select which user you wish to remove"
-        grep ':33::/var/www' /etc/passwd | grep '/bin/false' | cut -d ':' -f 1 | nl
-        echo
-        read -p "Select user: " site_number
-        number_of_sites=$(grep ':33::/var/www' /etc/passwd | grep '/bin/false' | cut -d ':' -f 1 | wc -l)
-        until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
-	    	echo "$site_number: invalid selection."
-	    	read -p "Select user: " site_number
-	    done
-        user=$(grep ':33::/var/www' /etc/passwd | grep '/bin/false' | cut -d ':' -f 1 | sed -n "$site_number"p)
-    done
-    # killall needed if user is logged in
-    killall -u $user
-    userdel $user
-    sed -i "/^Match User $user$/,+8 d" /etc/ssh/sshd_config
+if [[ $action == "remove" || $action == "2" ]]
+then
+	while [[ -z $user ]]
+	do
+		echo "Please, select which user you wish to remove"
+		gf_select_sftp_user
+		user=$(grep ':33::/var/www' /etc/passwd | grep '/bin/false' | cut -d ':' -f 1 | sed -n "$site_number"p)
+	done
+	# killall needed if user is logged in
+	killall -u $user
+	userdel $user
+	sed -i "/^Match User $user$/,+8 d" /etc/ssh/sshd_config
 
-    systemctl restart sshd.service
-    echo
-    echo "Removed SFTP user $user"
-    exit
+	systemctl restart sshd.service
+	echo
+	echo "Removed SFTP user $user"
+	exit
 fi
 
 
 
 # set public key
-if [[ $action == "set_key" || $action == "3" ]]; then
-    while [[ -z $user ]]; do
-        echo
-        echo "Please, select which user you wish to set a public key for"
-        grep ':33::/var/www' /etc/passwd | grep '/bin/false' | cut -d ':' -f 1 | nl
-        echo
-        read -p "Select user: " site_number
-        number_of_sites=$(grep ':33::/var/www' /etc/passwd | grep '/bin/false' | cut -d ':' -f 1 | wc -l)
-        until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
-	    	echo "$site_number: invalid selection."
-	    	read -p "Select user: " site_number
-	    done
-        user=$(grep ':33::/var/www' /etc/passwd | grep '/bin/false' | cut -d ':' -f 1 | sed -n "$site_number"p)
-    done
+if [[ $action == "set_key" || $action == "3" ]]
+then
+	while [[ -z $user ]]
+	do
+		echo "Please, select which user you wish to set a public key for"
+		gf_select_sftp_user
+		user=$(grep ':33::/var/www' /etc/passwd | grep '/bin/false' | cut -d ':' -f 1 | sed -n "$site_number"p)
+	done
 
-    while [[ -z $public_key ]]; do
-    echo
-    echo "Specify the absolute path for the public key file you wish to use
-Example: /root/my_public_key.pub"
-    read -p "Public key: " public_key
-    done
+	while [[ -z $public_key ]]
+	do
+		echo
+		echo "Specify the absolute path for the public key file you wish to use
+		Example: /root/my_public_key.pub"
+		read -p "Public key: " public_key
+	done
 
-    domain=$(grep ':33::/var/www' /etc/passwd | grep '/bin/false' | grep $user | cut -d '/' -f 4)
-    cat $public_key > /var/www/$domain/.ssh_$user/authorized_keys
+	domain=$(grep ':33::/var/www' /etc/passwd | grep '/bin/false' | grep $user | cut -d '/' -f 4)
+	cat $public_key > /var/www/$domain/.ssh_$user/authorized_keys
 
-    echo
-    echo "Public key set for $user"
-    exit
+	echo
+	echo "Public key set for $user"
+	exit
 fi
 
 
 # remove public key
-if [[ $action == "remove_key" || $action == "4" ]]; then
-    while [[ -z $user ]]; do
-        echo
-        echo "Please, select which user you wish to remove a public key for"
-        grep ':33::/var/www' /etc/passwd | grep '/bin/false' | cut -d ':' -f 1 | nl
-        echo
-        read -p "Select user: " site_number
-        number_of_sites=$(grep ':33::/var/www' /etc/passwd | grep '/bin/false' | cut -d ':' -f 1 | wc -l)
-        until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
-	    	echo "$site_number: invalid selection."
-	    	read -p "Select user: " site_number
-	    done
-        user=$(grep ':33::/var/www' /etc/passwd | grep '/bin/false' | cut -d ':' -f 1 | sed -n "$site_number"p)
-    done
+if [[ $action == "remove_key" || $action == "4" ]]
+then
+	while [[ -z $user ]]
+	do
+		echo "Please, select which user you wish to remove a public key for"
+		gf_select_sftp_user
+		user=$(grep ':33::/var/www' /etc/passwd | grep '/bin/false' | cut -d ':' -f 1 | sed -n "$site_number"p)
+	done
 
-    domain=$(grep ':33::/var/www' /etc/passwd | grep '/bin/false' | grep $user | cut -d '/' -f 4)
-    rm /var/www/$domain/.ssh_$user/authorized_keys
+	domain=$(grep ':33::/var/www' /etc/passwd | grep '/bin/false' | grep $user | cut -d '/' -f 4)
+	rm /var/www/$domain/.ssh_$user/authorized_keys
 
-    echo
-    echo "Public key removed for $user"
-    exit
+	echo
+	echo "Public key removed for $user"
+	exit
 fi
 
 
 # change password
-if [[ $action == "change_password" || $action == "5" ]]; then
-    while [[ -z $user ]]; do
-        echo
-        echo "Please, select which user you wish to change the password for"
-        grep ':33::/var/www' /etc/passwd | grep '/bin/false' | cut -d ':' -f 1 | nl
-        echo
-        read -p "Select user: " site_number
-        number_of_sites=$(grep ':33::/var/www' /etc/passwd | grep '/bin/false' | cut -d ':' -f 1 | wc -l)
-        until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
-	    	echo "$site_number: invalid selection."
-	    	read -p "Select user: " site_number
-	    done
-        user=$(grep ':33::/var/www' /etc/passwd | grep '/bin/false' | cut -d ':' -f 1 | sed -n "$site_number"p)
-    done
+if [[ $action == "change_password" || $action == "5" ]]
+then
+	while [[ -z $user ]]
+	do
+		echo "Please, select which user you wish to change the password for"
+		gf_select_sftp_user
+		user=$(grep ':33::/var/www' /etc/passwd | grep '/bin/false' | cut -d ':' -f 1 | sed -n "$site_number"p)
+	done
 
-    while [[ -z $pass ]]; do
-        echo
-        echo "Enter a new password for the user"
-        read -p "Password: " pass
-    done
+	while [[ -z $pass ]]
+	do
+		echo
+		echo "Enter a new password for the user"
+		read -p "Password: " pass
+	done
 
-    echo $user:$pass | chpasswd
-    if [ $? -ne 0 ]; then
-        echo "Password change failed! Aborting..."
-        exit 1
-    fi
+	echo $user:$pass | chpasswd
+	if [ $? -ne 0 ]
+	then
+		echo "Password change failed! Aborting..."
+		exit 1
+	fi
 
-    echo
-    echo "Password changed for $user"
-    exit
+	echo
+	echo "Password changed for $user"
+	exit
 fi
 
 
-# remove password
-if [[ $action == "remove_password" || $action == "6" ]]; then
-    while [[ -z $user ]]; do
-        echo
-        echo "Please, select which user you wish to remove the password for"
-        grep ':33::/var/www' /etc/passwd | grep '/bin/false' | cut -d ':' -f 1 | nl
-        echo
-        read -p "Select user: " site_number
-        number_of_sites=$(grep ':33::/var/www' /etc/passwd | grep '/bin/false' | cut -d ':' -f 1 | wc -l)
-        until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
-	    	echo "$site_number: invalid selection."
-	    	read -p "Select user: " site_number
-	    done
-        user=$(grep ':33::/var/www' /etc/passwd | grep '/bin/false' | cut -d ':' -f 1 | sed -n "$site_number"p)
-    done
+	# remove password
+if [[ $action == "remove_password" || $action == "6" ]]
+then
+	while [[ -z $user ]]
+	do
+		echo "Please, select which user you wish to remove the password for"
+		gf_select_sftp_user
+		user=$(grep ':33::/var/www' /etc/passwd | grep '/bin/false' | cut -d ':' -f 1 | sed -n "$site_number"p)
+	done
 
-    domain=$(grep ':33::/var/www' /etc/passwd | grep '/bin/false' | grep $user | cut -d '/' -f 4)
+	domain=$(grep ':33::/var/www' /etc/passwd | grep '/bin/false' | grep $user | cut -d '/' -f 4)
 
-    if [[ ! -e /var/www/$domain/.ssh_$user/authorized_keys ]]; then
-        echo
-        echo "$user does not have a public key configured"
-        echo "Configure a public key before removing his password"
-        exit
-    fi
-    
-    passwd -d $user
+	if [[ ! -e /var/www/$domain/.ssh_$user/authorized_keys ]]
+	then
+		echo
+		echo "$user does not have a public key configured"
+		echo "Configure a public key before removing his password"
+		exit
+	fi
 
-    echo
-    echo "Password removed for $user"
-    exit
+	passwd -d $user
+
+	echo
+	echo "Password removed for $user"
+	exit
 fi

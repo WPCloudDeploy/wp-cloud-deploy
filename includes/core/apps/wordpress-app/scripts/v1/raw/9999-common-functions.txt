@@ -33,6 +33,14 @@ ip6="\[::1?\]" # any or localhost ipv6
 ## common phrases
 SUCCESSFUL='Success!'
 
+### OLS/LSWS functions
+WWW_PATH='/var/www'
+LSDIR='/usr/local/lsws'
+WEBCF="${LSDIR}/conf/httpd_config.conf"
+VHDIR="${LSDIR}/conf/vhosts"
+BOTCRON='/etc/cron.d/certbot'
+PHPVER=lsphp74
+
 #####################################################################
 # Function to calculate required free space for a backup.
 # If not enough space is available, the script will exit.
@@ -41,21 +49,20 @@ SUCCESSFUL='Success!'
 # $1 - Target domain
 #
 #####################################################################
-function g_check_space_or_exit()
+function gf_check_space_or_exit()
 {
 	local target_domain=$1
 	echo "Checking available disk space for $target_domain"
-	
+
 	local file_size=`du -sm /var/www/$target_domain|awk '{print $1}'`
 	local free_size=`df -m|grep -w '/'|awk '{print $4}'`
 	local required_size=`echo "$file_size * 2"|bc`
-	
+
 	if [ $free_size -lt $required_size ]
 	then
 		echo "Server does not have enough disk space to backup the target site. Exiting."
 		exit
 	fi
-	
 }
 
 #####################################################################
@@ -76,11 +83,10 @@ function g_check_space_no_exit()
 {
 	local target_domain=$1
 	echo "Checking available disk space for $target_domain"
-	
+
 	g_file_size=`du -sm /var/www/$target_domain|awk '{print $1}'`
 	g_free_size=`df -m|grep -w '/'|awk '{print $4}'`
 	g_required_size=`echo "$g_file_size * 2"|bc`
-	
 }
 
 #####################################################################
@@ -93,12 +99,11 @@ function g_check_space_no_exit()
 #####################################################################
 function g_flush_cache()
 {
-
 	local user_name=$1
 	local target_domain=$2
-	
+
 	su - $user_name -c "wp cache flush"
-	
+
 	cd /var/www/$target_domain/html/
 
 	su - $user_name -c "wp plugin is-active cache-enabler"
@@ -148,7 +153,6 @@ function g_flush_cache()
 			su - $user_name -c "wp rocket clean --confirm"
 		fi
 	fi
-
 }
 
 #####################################################################
@@ -167,7 +171,7 @@ function g_backup_and_verify()
 
 	cd ~/
 	echo "Preparing to backup $target_domain..."
-	
+
 	## Check if server has enough space to create backup
 	g_check_space_no_exit $target_domain
 	if [ $g_free_size -lt $g_required_size ]
@@ -191,7 +195,6 @@ function g_backup_and_verify()
 		echo "Verify after backup failed, exiting script."
 		exit
 	fi	
-
 }
 
 #####################################################################
@@ -206,9 +209,9 @@ function g_backup_with_updraft()
 {
 	local user_name=$1
 	local target_domain=$2
-	
+
 	echo "Checking for updraftplus..."
-	
+
 	cd /var/www/$target_domain/html/
 	su - $user_name -c "wp plugin is-active updraftplus"
 	if [ $? -eq 0 ]
@@ -220,4 +223,1012 @@ function g_backup_with_updraft()
 			su - $user_name -c "wp updraftplus backup"
 		fi
 	fi
+}
+
+###################################################################
+## Check Which webserver is installed openlitespeed or nginx ######
+### This set g_webserver_type variable 
+###################################################################
+function gf_check_webserver() {
+	if [ -e /usr/local/lsws/bin/lshttpd ]
+	then
+		if /usr/local/lsws/bin/lshttpd -v | grep -q Open
+		then
+			# echo 'You have OpenLiteSpeed installed...'
+			g_webserver_type='ols'
+			g_vhost_conf='vhconf.conf'
+		elif /usr/local/lsws/bin/lshttpd -v | grep -q Enterprise
+		then
+			# LiteSpeed/x.x.x Enterprise
+			# echo 'You have LiteSpeed Enterprise installed...'
+			g_webserver_type='ols-enterprise'
+			g_vhost_conf='vhconf.xml'
+		fi
+	else
+		# echo 'You have Nginx installed...'
+		g_webserver_type='nginx'
+	fi
+}
+gf_check_webserver
+
+###################################################################
+## select domain from installed sites ####
+###################################################################
+function gf_select_domain() {
+	echo
+	ls /var/www | grep -v html | nl
+	read -p "Select site: " site_number
+	number_of_sites=$(ls /var/www | grep -v html | wc -l)
+	until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]
+	do
+		echo "$site_number: invalid selection."
+		read -p "Select site: " site_number
+	done
+}
+
+###################################################################
+#### Select users from all sftp users
+###################################################################
+function gf_select_sftp_user() {
+	grep ':33::/var/www' /etc/passwd | grep '/bin/false' | cut -d ':' -f 1 | nl
+	echo
+	read -p "Select site user: " site_number
+	number_of_sites=$(grep ':33::/var/www' /etc/passwd | grep '/bin/false' | cut -d ':' -f 1 | wc -l)
+	until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]
+	do
+		echo "$site_number: invalid selection."
+		read -p "Select user: " site_number
+	done
+}
+
+###################################################################
+#### Select users from all installed sites 
+###################################################################
+function gf_select_user() {
+	grep ':33::/var/www' /etc/passwd | grep '/bin/bash' | cut -d ':' -f 1 | nl
+	echo
+	read -p "Select site user: " site_number
+	number_of_sites=$(grep ':33::/var/www' /etc/passwd | grep '/bin/bash' | cut -d ':' -f 1 | wc -l)
+	until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]
+	do
+		echo "$site_number: invalid selection."
+		read -p "Select user: " site_number
+	done
+}
+
+###################################################################
+#### select domain from nginx ols sites enabled option
+###################################################################
+function gf_select_domain_nginx_ols() {
+	if [ "$g_webserver_type" = "nginx" ]
+	then
+		ls /etc/nginx/sites-enabled/ | grep -v '^default$\|^monit$\|^monitorix$' | nl
+		read -p "Select site: " site_number
+		number_of_sites=$(ls /etc/nginx/sites-enabled/ | grep -v '^default$\|^monit$\|^monitorix$' | wc -l)
+		until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]
+		do
+			echo "$site_number: invalid selection."
+			read -p "Select site: " site_number
+		done
+		domain=$(ls /etc/nginx/sites-enabled/ | grep -v '^default$\|^monit$\|^monitorix$' | sed -n "$site_number"p)
+	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+	then
+		ls /usr/local/lsws/conf/vhosts/ | grep -Ev "^Example|htgroup|htpasswd|$g_vhost_conf" | nl
+		read -p "Select site: " site_number
+		number_of_sites=$(ls /usr/local/lsws/conf/vhosts/ | grep -Ev "^Example|htgroup|htpasswd|$g_vhost_conf" | wc -l)
+		until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]
+		do
+			echo "$site_number: invalid selection."
+			read -p "Select site: " site_number
+		done
+		domain=$(ls /usr/local/lsws/conf/vhosts/ | grep -Ev "^Example|htgroup|htpasswd|$g_vhost_conf" | sed -n "$site_number"p)
+	fi
+}
+
+###################################################################
+#### Restart Webserver ols or nginx
+###################################################################
+function gf_restart_webserver() {
+	# Restart Appropiate Webserver
+	if [ "$g_webserver_type" = "nginx" ]
+	then
+		# restart nginx
+		systemctl restart nginx
+	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+	then
+		# rm -rf /usr/local/lsws/cachedata/*
+		# kill detached lsphp processes and restart ols
+		/usr/local/lsws/bin/lswsctrl stop >/dev/null 2>&1
+		killall lsphp >/dev/null 2>&1
+		systemctl stop lsws >/dev/null 2>&1
+		systemctl start lsws
+	fi
+}
+
+###################################################################
+#### Check if ssl enabled for ols site
+###################################################################
+function gf_is_ssl_ols() {
+	local olsdomain
+	olsdomain=$1
+	grep -qP "keyFile[ ]*/etc/letsencrypt/live" ${VHDIR}/$olsdomain/$g_vhost_conf
+}
+
+###################################################################
+#### Check if ssl enabled for ols enterprise site
+###################################################################
+function gf_is_ssl_ols_enterprise() {
+	local olsdomain
+	olsdomain=$1
+	# <keyFile>/etc/letsencrypt/live/$VH_NAME/privkey.pem</keyFile>
+	grep -qP "<keyFile>[ ]*/etc/letsencrypt/live" ${VHDIR}/$olsdomain/$g_vhost_conf
+}
+
+
+###################################################################
+#### Enable certbot ssl for nginx domain
+###################################################################
+function gf_enable_certbot_nginx_site() {
+	local nginxdomain
+	local nginxconf
+	nginxdomain=$1
+	nginxconf=$2
+
+	if grep -qs "listen 443" /etc/nginx/sites-enabled/$nginxconf;
+	then
+		echo "SSL Already Enabled";
+		exit
+	else
+		if [[ -z $email ]]
+		then
+			echo "Specify an email for administrative notifications about your certificate"
+			read -p "Email address: " email
+		fi
+		certbot --non-interactive --reinstall --expand --nginx --agree-tos -m $email --allow-subset-of-names --redirect -d $nginxdomain -d www.$nginxdomain || certbot --non-interactive --reinstall --expand --nginx --agree-tos -m $email --allow-subset-of-names --redirect -d $nginxdomain
+		if ! grep -qs "listen 443" /etc/nginx/sites-enabled/$nginxconf
+		then
+			echo "SSL could not be enabled for $nginxdomain"
+			exit
+		fi
+		systemctl restart nginx
+	fi
+}
+
+###################################################################
+#### Disable certbot ssl for nginx domain
+###################################################################
+function gf_disable_certbot_nginx_site() {
+	local nginxdomain
+	local nginxconf
+	nginxdomain=$1
+	nginxconf=$2
+	if grep -qs "managed by Certbot" /etc/nginx/sites-enabled/$nginxconf;
+	then
+		certbot --non-interactive delete --cert-name $nginxdomain
+		sed -i -n '/if ($host/q;p' /etc/nginx/sites-enabled/$nginxconf
+		sed -i '$ d' /etc/nginx/sites-enabled/$nginxconf
+		sed -i '/server {/a listen 80;\nlisten [::]:80;' /etc/nginx/sites-enabled/$nginxconf
+		sed -i '/managed by Certbot/d' /etc/nginx/sites-enabled/$nginxconf
+		systemctl restart nginx
+	else
+		echo "SSL Not enabled for $nginxdomain";
+		exit
+	fi
+}
+
+###################################################################
+#### Disable certbot ssl for ols domain
+###################################################################
+function gf_disable_certbot_ols_site() {
+	local olsdomain
+	olsdomain=$1
+	if [ ! -d "/etc/letsencrypt/live/$olsdomain" ]
+	then
+		echo
+		echo "SSL is already disabled for $olsdomain"
+	fi
+	if [ -d "/etc/letsencrypt/live/$olsdomain" ]
+	then
+		certbot delete --cert-name $olsdomain --noninteractive
+	fi
+	sed -i "s|/etc/letsencrypt/live/$olsdomain/privkey.pem|/usr/local/lsws/conf/example.key|g" ${VHDIR}/${olsdomain}/$g_vhost_conf > /dev/null 2>&1
+	sed -i "s|/etc/letsencrypt/live/$olsdomain/fullchain.pem|/usr/local/lsws/conf/example.crt|g" ${VHDIR}/${olsdomain}/$g_vhost_conf > /dev/null 2>&1
+	echo "certificate has been successfully uninstalled..."
+	gf_restart_webserver
+}
+
+###################################################################
+#### Enable certbot ssl for ols domain
+###################################################################
+function gf_enable_certbot_ols_site() {
+	local olsdomain
+	local DOCHM
+	olsdomain=$1
+	if [[ -z $email ]]
+	then
+		echo "Specify an email for administrative notifications about your certificate"
+		read -p "Email address: " email
+	fi
+	DOCHM="/var/www/${olsdomain}/html"
+	certbot certonly --non-interactive --agree-tos -m ${email} --webroot -w ${DOCHM} -d ${olsdomain} -d www.${olsdomain}||certbot certonly --non-interactive --agree-tos -m ${email} --webroot -w ${DOCHM} -d ${olsdomain}
+
+	if [[ -e /etc/letsencrypt/live/$olsdomain/fullchain.pem ]]
+	then
+		sed -i "s|/usr/local/lsws/conf/example.key|/etc/letsencrypt/live/$olsdomain/privkey.pem|g" ${VHDIR}/${olsdomain}/$g_vhost_conf > /dev/null 2>&1
+		sed -i "s|/usr/local/lsws/conf/example.crt|/etc/letsencrypt/live/$olsdomain/fullchain.pem|g" ${VHDIR}/${olsdomain}/$g_vhost_conf > /dev/null 2>&1
+		echo "certificate has been successfully installed..."
+		gf_restart_webserver
+	else
+		echo "SSL could not be enabled for $olsdomain"
+	fi
+}
+
+###################################################################
+#### Install certbot ssl for ols domain when ssl config already enabled
+####
+#### @TODO: Why are we using certonly here for ols instead of reinstall
+####        like we do for NGINX?
+####
+#### @param $1 The domain we're managing.
+###################################################################
+function gf_install_certbot_ols_site() {
+	local olsdomain
+	local DOCHM
+	olsdomain=$1
+	DOCHM="/var/www/${olsdomain}/html"
+	if gf_is_ssl_ols $olsdomain || gf_is_ssl_ols_enterprise $olsdomain
+	then
+		# certbot certonly --non-interactive --agree-tos -m ${email} --webroot -w ${DOCHM} -d ${olsdomain} -d www.${olsdomain}||certbot certonly --non-interactive --agree-tos -m ${email} --webroot -w ${DOCHM} -d ${olsdomain}
+		certbot certonly --non-interactive -q --expand --agree-tos --register-unsafely-without-email --allow-subset-of-names --webroot -w ${DOCHM} -d ${olsdomain} -d www.${olsdomain}||certbot certonly --non-interactive -q --expand --agree-tos --register-unsafely-without-email --allow-subset-of-names --webroot -w ${DOCHM} -d ${olsdomain}
+	else
+		echo
+		echo "SSL could not be enabled for $olsdomain"
+	fi
+}
+
+###################################################################
+#### Create database
+###################################################################
+function gf_database_create() {
+	local DB_NAME
+	local DB_USERNAME
+	local DB_PASSWORD
+	DB_NAME="$1"
+	DB_USERNAME="$2"
+	DB_PASSWORD="$3"
+
+	echo "Creating ${DB_NAME} and granting priveleges"
+	mariadb <<QUERY
+CREATE DATABASE $DB_NAME;
+GRANT ALL ON $DB_NAME.* TO '$DB_USERNAME'@'localhost' IDENTIFIED BY '$DB_PASSWORD' WITH GRANT OPTION;
+FLUSH PRIVILEGES;
+QUERY
+}
+
+###################################################################
+#### Add php fpm conf for domain with specific username
+###################################################################
+function gf_add_php_conf() {
+	local php_domain
+	local php_user
+	local php_version
+	php_domain=$1
+	php_user=$2
+	php_version=$3
+	echo "[$php_domain]
+user = $php_user
+group = www-data
+listen = /run/php/php-fpm-$php_domain.sock
+listen.owner = $php_user
+listen.group = www-data
+pm = dynamic
+pm.max_children = 5
+pm.start_servers = 2
+pm.min_spare_servers = 1
+pm.max_spare_servers = 3
+php_admin_value[open_basedir] = \"/var/www/$php_domain/html/:/tmp/\"
+php_admin_value[allow_url_fopen] = 0
+php_admin_value[allow_url_include] = 0
+php_admin_value[disable_functions] =  dl, exec, fpassthru, getmypid, getmyuid, highlight_file, link, opcache_get_configuration, passthru, pcntl_exec, pcntl_get_last_error, pcntl_setpriority, pcntl_strerror, pcntl_wifcontinued, phpinfo, popen, posix_ctermid, posix_getcwd, posix_getegid, posix_geteuid, posix_getgid, posix_getgrgid, posix_getgrnam, posix_getgroups, posix_getlogin, posix_getpgid, posix_getpgrp, posix_getpid, posix_getppid, posix_getpwnam, posix_getpwuid, posix_getrlimit, posix_getsid, posix_getuid, posix_isatty, posix_kill, posix_mkfifo, posix_setegid, posix_seteuid, posix_setgid, posix_setpgid, posix_setsid, posix_setuid, posix_times, posix_ttyname, posix_uname, proc_close, proc_get_status, proc_nice, proc_open, proc_terminate, shell_exec, show_source, source, system, virtual
+php_admin_value[session.use_strict_mode] = 1
+php_admin_value[session.cookie_httponly] = 1
+php_admin_value[session.use_cookies] = 1
+php_admin_value[session.use_only_cookies] = 1
+php_admin_value[session.use_trans_sid] = 0" > /etc/php/$php_version/fpm/pool.d/$php_domain.conf
+	if [[ ! -f /etc/wpcd/php-versions-disabled/$php_version ]]
+	then
+		systemctl restart php$php_version-fpm
+	fi
+}
+
+###################################################################
+#### add nginx conf for newly created site
+###################################################################
+function gf_add_nginx_conf() {
+	local nginx_domain
+	local nginx_webroot
+	local nginx_site
+	nginx_domain=$1
+	nginx_webroot=$2
+	nginx_site=$3
+	# it's very important to escape the variables and quotes within the echo
+	echo "include /etc/nginx/common/6g.conf;
+include /etc/nginx/common/7g[.]conf;
+include /etc/nginx/userconfigs/http/*.conf;		#user custom configuration
+
+server {
+
+include /etc/nginx/common/deny*.conf;
+include /etc/nginx/userconfigs/server/*.conf;	#user custom configuration
+
+listen 80;
+listen [::]:80;
+
+root /var/www/$nginx_webroot/html;
+index index.php index.html index.htm;
+
+server_name $nginx_domain www.$nginx_domain;
+
+client_max_body_size 25M;
+
+# Needed for page-level caching when cache-enabler plugin is installed
+include /etc/nginx/common/cache_enabler.conf;
+
+# Compress certain files with gzip.
+include /etc/nginx/common/gzip[.]conf;	
+
+# Cache certain filetypes in the browser
+include /etc/nginx/common/browsercache[.]conf;	
+
+# Prepare for phpmyadmin when it's installed
+location ~ /phpMyAdmin/.*\.php$ {
+allow all;
+include snippets/fastcgi-php.conf;
+fastcgi_pass unix:/run/php/php-fpm-$nginx_webroot.sock;
+}
+
+# Handler for PHP files
+location ~ \.php$ {
+# Restrict wp-login to 10 requests per period
+location ~ \wp-login.php$ {
+limit_req zone=WPLOGIN;
+include snippets/fastcgi-php.conf;
+fastcgi_pass unix:/run/php/php-fpm-$nginx_webroot.sock;
+}
+
+fastcgi_param PHP_VALUE \"
+\";
+include snippets/fastcgi-php.conf;
+fastcgi_pass unix:/run/php/php-fpm-$nginx_webroot.sock;
+fastcgi_buffers 16 32k;
+fastcgi_buffer_size 64k;
+fastcgi_busy_buffers_size 64k;		
+}
+
+location / {
+try_files \$cache_enabler_uri \$cache_enabler_uri2 @cachemiss; 
+}
+
+location @cachemiss {
+try_files \$uri \$uri/ \$custom_subdir/index.php?\$args; 
+}
+
+# Security Headers	
+add_header X-Frame-Options \"SAMEORIGIN\" always;
+add_header X-XSS-Protection \"1; mode=block\" always;
+add_header X-Content-Type-Options \"nosniff\" always;
+add_header Referrer-Policy \"no-referrer, strict-origin-when-cross-origin\" always;
+add_header X-Download-Options \"noopen\";
+add_header Strict-Transport-Security \"max-age=30000000; includeSubDomains; preload\" always;
+
+# OSCP Settings
+ssl_stapling on;
+ssl_stapling_verify on;	
+
+# include user custom configurations
+include /etc/nginx/userconfigs/site/$nginx_webroot-*.conf;
+
+}" > /etc/nginx/sites-enabled/$nginx_site
+}
+
+
+###################################################################
+#### Add ols main conf
+###################################################################
+function gf_add_ols_main_conf() {
+	
+	# Reference: https://openlitespeed.org/kb/ols-configuration-examples/#Main_Configuration_File
+	# https://openlitespeed.org/kb/openlitespeed-directive-working-in-progress/
+	# We are going to overwrite the default config entirely.
+	cat > ${WEBCF} <<- EOF
+	serverName                \$HOSTNAME
+	user                      nobody
+	group                     nogroup
+	priority                  0
+	enableLVE                 0
+	inMemBufSize              60M
+	swappingDir               /tmp/lshttpd/swap
+	autoFix503                1
+	gracefulRestartTimeout    300
+	mime                      conf/mime.properties
+	showVersionNumber         0
+	adminEmails               root@localhost
+
+	errorlog logs/error.log {
+	  logLevel                DEBUG
+	  debugLevel              0
+	  rollingSize             10M
+	  enableStderrLog         1
+	}
+
+	accesslog logs/access.log {
+	  logFormat               %h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"
+	  rollingSize             10M
+	  keepDays                30
+	  compressArchive         1
+	}
+
+	indexFiles                index.html, index.php
+
+	expires  {
+	  enableExpires           1
+	  expiresByType           image/*=A604800,text/css=A604800,application/x-javascript=A604800,application/javascript=A604800,font/*=A604800,application/x-font-ttf=A604800
+	}
+	autoLoadHtaccess          1
+
+	tuning  {
+	  maxConnections          10000
+	  maxSSLConnections       10000
+	  connTimeout             300
+	  maxKeepAliveReq         10000
+	  keepAliveTimeout        5
+	  sndBufSize              0
+	  rcvBufSize              0
+	  maxReqURLLen            32768
+	  maxReqHeaderSize        65536
+	  maxReqBodySize          2047M
+	  maxDynRespHeaderSize    32768
+	  maxDynRespSize          2047M
+	  maxCachedFileSize       4096
+	  totalInMemCacheSize     20M
+	  maxMMapFileSize         256K
+	  totalMMapCacheSize      40M
+	  useSendfile             1
+	  fileETag                28
+	  enableGzipCompress      1
+	  compressibleTypes       text/*, application/atom+xml, application/geo+json, application/x-javascript, application/javascript, application/xml, application/xml+rss, application/json, application/ld+json, application/rdf+xml, application/rss+xml, application/schema+json, application/manifest+json, application/vnd.ms-fontobject, application/vnd.geo+json, application/wasm, application/x-font, application/x-font-opentype, application/x-font-otf, application/x-font-truetype, application/x-font-ttf, application/xhtml+xml, application/x-web-app-manifest+json, image/svg+xml, image/x-icon, image/x-win-bitmap, image/vnd.microsoft.icon, image/bmp, font/eot, font/opentype, font/otf, font/ttf
+	  enableDynGzipCompress   1
+	  gzipCompressLevel       9
+	  gzipAutoUpdateStatic    1
+	  gzipStaticCompressLevel 6
+	  brStaticCompressLevel   11
+	  gzipMaxFileSize         20M
+	  gzipMinFileSize         300
+
+	  quicEnable              1
+	  quicShmDir              /dev/shm
+	}
+
+	fileAccessControl  {
+	  followSymbolLink        2
+	  checkSymbolLink         0
+	  forceStrictOwnership    1
+	  requiredPermissionMask  000
+	  restrictedPermissionMask 000
+	}
+
+	perClientConnLimit  {
+	  staticReqPerSec         0
+	  dynReqPerSec            0
+	  outBandwidth            0
+	  inBandwidth             0
+	  softLimit               10000
+	  hardLimit               10000
+	  gracePeriod             15
+	  banPeriod               300
+	}
+
+	CGIRLimit  {
+	  maxCGIInstances         20
+	  minUID                  11
+	  minGID                  10
+	  priority                0
+	  CPUSoftLimit            10
+	  CPUHardLimit            50
+	  memSoftLimit            1460M
+	  memHardLimit            1470M
+	  procSoftLimit           400
+	  procHardLimit           450
+	}
+	bubbleWrap                1
+
+	accessDenyDir  {
+	  dir                     /
+	  dir                     /etc/*
+	  dir                     /dev/*
+	  dir                     conf/*
+	  dir                     admin/conf/*
+	}
+	
+	# The remote IPS Sucuri/CloudFlare ranges: https://kb.sucuri.net/firewall/Troubleshooting/same-user-ip#litespeed https://www.cloudflare.com/ips/ and reference: https://openlitespeed.org/kb/show-real-visitor-ip-instead-of-cloudflare-ips/ 
+	accessControl  {
+	  allow                   ALL, localhostT, 127.0.0.1T, 2a06:98c0::/29T, 2c0f:f248::/32T, 103.21.244.0/22T, 103.22.200.0/22T, 103.31.4.0/22T, 104.16.0.0/13T, 104.24.0.0/14T, 108.162.192.0/18T, 131.0.72.0/22T, 2400:cb00::/32T, 141.101.64.0/18T, 162.158.0.0/15T, 172.64.0.0/13T, 173.245.48.0/20T, 188.114.96.0/20T, 190.93.240.0/20T, 197.234.240.0/22T, 198.41.128.0/17T, 2405:8100::/32T, 2405:b500::/32T, 2606:4700::/32T, 2803:f800::/32T, 192.88.134.0/23T, 185.93.228.0/22T, 66.248.200.0/22T, 208.109.0.0/22T, 2a02:fe80::/29T
+	}
+
+	extprocessor lsphp {
+	  type                    lsapi
+	  address                 uds://tmp/lshttpd/lsphp.sock
+	  maxConns                10
+	  env                     PHP_LSAPI_CHILDREN=10
+	  env                     LSAPI_AVOID_FORK=200M
+	  initTimeout             60
+	  retryTimeout            0
+	  persistConn             1
+	  respBuffer              0
+	  autoStart               1
+	  path                    lsphp74/bin/lsphp
+	  backlog                 100
+	  instances               1
+	  priority                0
+	  memSoftLimit            2047M
+	  memHardLimit            2047M
+	  procSoftLimit           1400
+	  procHardLimit           1500
+	}
+
+	scripthandler  {
+	  add                     lsapi:lsphp php
+	}
+
+	railsDefaults  {
+	  maxConns                1
+	  env                     LSAPI_MAX_IDLE=60
+	  initTimeout             60
+	  retryTimeout            0
+	  pcKeepAliveTimeout      60
+	  respBuffer              0
+	  backlog                 50
+	  runOnStartUp            3
+	  extMaxIdleTime          300
+	  priority                3
+	  memSoftLimit            2047M
+	  memHardLimit            2047M
+	  procSoftLimit           500
+	  procHardLimit           600
+	}
+
+	wsgiDefaults  {
+	  maxConns                5
+	  env                     LSAPI_MAX_IDLE=60
+	  initTimeout             60
+	  retryTimeout            0
+	  pcKeepAliveTimeout      60
+	  respBuffer              0
+	  backlog                 50
+	  runOnStartUp            3
+	  extMaxIdleTime          300
+	  priority                3
+	  memSoftLimit            2047M
+	  memHardLimit            2047M
+	  procSoftLimit           500
+	  procHardLimit           600
+	}
+
+	nodeDefaults  {
+	  maxConns                5
+	  env                     LSAPI_MAX_IDLE=60
+	  initTimeout             60
+	  retryTimeout            0
+	  pcKeepAliveTimeout      60
+	  respBuffer              0
+	  backlog                 50
+	  runOnStartUp            3
+	  extMaxIdleTime          300
+	  priority                3
+	  memSoftLimit            2047M
+	  memHardLimit            2047M
+	  procSoftLimit           500
+	  procHardLimit           600
+	}
+	
+	# https://openlitespeed.org/kb/openlitespeed-cache-module/
+	module cache {
+	  internal                1
+	#          1
+	checkPrivateCache   1
+	checkPublicCache    1
+	maxCacheObjSize     10000000
+	maxStaleAge         200
+	qsCache             1
+	reqCookieCache      1
+	respCookieCache     1
+	ignoreReqCacheCtrl  1
+	ignoreRespCacheCtrl 0
+
+	enableCache         0
+	expireInSeconds     3600
+	enablePrivateCache  0
+	privateExpireInSeconds 3600
+	ls_enabled              1
+	}
+
+	virtualhost Example {
+	  vhRoot                  Example/
+	  configFile              conf/vhosts/Example/vhconf.conf
+	  allowSymbolLink         1
+	  enableScript            1
+	  restrained              1
+	  setUIDMode              0
+	}
+
+	listener Default {
+	  address                 *:80
+	  secure                  0
+	  map                     Example *
+	}
+
+	listener Defaultssl {
+	  address                 *:443
+	  secure                  1
+	  keyFile                 /usr/local/lsws/conf/example.key
+	  certFile                /usr/local/lsws/conf/example.crt
+	  map                     Example *
+	}
+
+	# Commented out for future use if we actually need this
+	# vhTemplate WPCDDefault {
+	#   templateFile            \$SERVER_ROOT/conf/templates/wpcd-default.conf
+	#   listeners               Default, Defaultssl
+	#   note                    custom ols vhost template for wp-cloud-deploy admins to modify
+	# }
+	EOF
+	chmod 750 ${WEBCF} > /dev/null 2>&1
+	chown lsadm:nogroup ${WEBCF} > /dev/null 2>&1
+	systemctl stop lsws >/dev/null 2>&1
+    systemctl start lsws >/dev/null 2>&1
+}
+
+###################################################################
+#### Add ols vhost conf
+###################################################################
+function gf_add_ols_conf() {
+	local olsdomain
+	olsdomain=$1
+
+	mkdir -p $VHDIR/$olsdomain
+	touch $VHDIR/$olsdomain/htpasswd
+	touch $VHDIR/$olsdomain/htgroup
+
+	cat > ${VHDIR}/${olsdomain}/$g_vhost_conf <<- EOF
+	docRoot                   \$VH_ROOT/html
+	vhDomain                  \$VH_DOMAIN
+	vhAliases                 www.\$VH_DOMAIN
+	adminEmails               admin@\$VH_DOMAIN
+	enableGzip                1
+	enableBr                  1
+
+	errorlog \$VH_ROOT/html/logs/\$VH_NAME.error_log {
+	  useServer               0
+	  logLevel                ERROR
+	  rollingSize             10M
+	}
+
+	accesslog \$VH_ROOT/html/logs/\$VH_NAME.access_log {
+	  useServer               0
+	  logFormat               "%h %l %u %t "%r" %>s %b "%{Referer}i" "%{User-Agent}i""
+	  logHeaders              7
+	  rollingSize             10M
+	  keepDays                10
+	  compressArchive         1
+	}
+
+	index  {
+	  useServer               0
+	  indexFiles              index.php, index.html
+	}
+
+	scripthandler  {
+	  add                     lsapi:${PHPVER} php
+	}
+
+	expires {
+	  enableExpires 1
+	}
+
+	accessControl {
+	  allow *
+	}
+
+	phpIniOverride  {
+	php_admin_flag log_errors On
+	php_admin_value error_log logs/php_error_log
+	php_admin_value open_basedir "\$VH_ROOT/html:/tmp/"
+	php_admin_value disable_functions "dl, exec, fpassthru, getmypid, getmyuid, highlight_file, link, opcache_get_configuration, passthru, pcntl_exec, pcntl_get_last_error, pcntl_setpriority, pcntl_strerror, pcntl_wifcontinued, phpinfo, popen, posix_ctermid, posix_getcwd, posix_getegid, posix_geteuid, posix_getgid, posix_getgrgid, posix_getgrnam, posix_getgroups, posix_getlogin, posix_getpgid, posix_getpgrp, posix_getpid, posix_getppid, posix_getpwnam, posix_getpwuid, posix_getrlimit, posix_getsid, posix_getuid, posix_isatty, posix_kill, posix_mkfifo, posix_setegid, posix_seteuid, posix_setgid, posix_setpgid, posix_setsid, posix_setuid, posix_times, posix_ttyname, posix_uname, proc_close, proc_get_status, proc_nice, proc_open, proc_terminate, shell_exec, show_source, source, system, virtual"
+	php_admin_flag allow_url_fopen Off
+	php_admin_value session.use_strict_mode 1
+	php_admin_value session.cookie_httponly 1
+	php_admin_value session.use_cookies 1
+	php_admin_value session.use_only_cookies 1
+	php_admin_value session.use_trans_sid 0
+	}
+
+	realm Default {
+	  note                    Default password protected realm
+
+	  userDB  {
+	    location              \$SERVER_ROOT/conf/vhosts/\$VH_NAME/htpasswd
+	  }
+
+	  groupDB  {
+	    location              \$SERVER_ROOT/conf/vhosts/\$VH_NAME/htgroup
+	  }
+	}
+	bubbleWrap                1
+
+	extprocessor ${PHPVER} {
+	  type                    lsapi
+	  address                 uds://tmp/lshttpd/\$VH_NAME.sock
+	  maxConns                35
+	  env                     PHP_LSAPI_MAX_REQUESTS=5000
+	  env                     PHP_LSAPI_CHILDREN=35
+	  env                     PHP_INI_SCAN_DIR=:\$VH_ROOT/html
+	  initTimeout             600
+	  retryTimeout            0
+	  persistConn             1
+	  respBuffer              0
+	  autoStart               1
+	  path                    ${LSDIR}/${PHPVER}/bin/lsphp
+	  backlog                 100
+	  instances               1
+	  runOnStartUp            1
+	  priority                0
+	  memSoftLimit            2047M
+	  memHardLimit            2047M
+	  procSoftLimit           400
+	  procHardLimit           500
+	}
+
+	### Insert context configs below this line
+	
+	# https://openlitespeed.org/kb/access-control/#Using_a_Context
+	context exp:error_log|wp-config-sample.php|\.pl|\.cgi|\.lua|\.perl|\.sql|\.sh|wp-config.php|php.ini|\.log {
+	  location                $DOC_ROOT/$0
+	  allowBrowse             0
+	  note                    Block access to scripts and files we don't want executed
+
+	  rewrite  {
+
+	  }
+	  addDefaultCharset       off
+
+	  phpIniOverride  {
+
+	  }
+	}
+
+	context /logs/ {
+	  location                logs/
+	  allowBrowse             0
+	  note                    Deny public access to logs directory
+
+	  rewrite  {
+
+	  }
+	  addDefaultCharset       off
+
+	  phpIniOverride  {
+
+	  }
+	}
+
+	context / {
+	  allowBrowse             1
+	  note                    Default Context Headers
+	  extraHeaders            <<<END_extraHeaders
+	  END_extraHeaders
+	  
+	  rewrite  {
+	    enable			1
+	  }
+	
+	  addDefaultCharset       off
+	
+	  phpIniOverride  {
+
+	  }
+	}
+
+	context /phpMyAdmin/ {
+	  allowBrowse             1
+	  note                    PhpMyadmin header
+
+	  rewrite  {
+	    enable                1
+	  }
+	
+	  addDefaultCharset       off
+	  phpIniOverride  {
+
+	  }
+	}
+
+
+	rewrite  {
+	  enable                  1
+	  autoLoadHtaccess        1
+	  logLevel                0
+	  rules                   <<<END_rules
+	RewriteRule ^/wp-content/uploads/.*\.php$ - [F]
+	RewriteRule ^/wp-content/files/.*\.php$ - [F]
+	RewriteRule ^/wp-content/updraft/.*$ - [F,L]
+	RewriteRule "(^|/)\.(?!well-known\/)" - [F]
+	END_rules
+	}
+
+	vhssl  {
+	  keyFile                 /usr/local/lsws/conf/example.key
+	  certFile                /usr/local/lsws/conf/example.crt
+	  certChain               1
+	  sslProtocol             24
+	  ciphers                 EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:AES256+EDH:ECDHE-RSA-AES128-GCM-SHA384:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA128:DHE-RSA-AES128-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES128-GCM-SHA128:ECDHE-RSA-AES128-SHA384:ECDHE-RSA-AES128-SHA128:ECDHE-RSA-AES128-SHA:ECDHE-RSA-AES128-SHA:DHE-RSA-AES128-SHA128:DHE-RSA-AES128-SHA128:DHE-RSA-AES128-SHA:DHE-RSA-AES128-SHA:ECDHE-RSA-DES-CBC3-SHA:EDH-RSA-DES-CBC3-SHA:AES128-GCM-SHA384:AES128-GCM-SHA128:AES128-SHA128:AES128-SHA128:AES128-SHA:AES128-SHA:DES-CBC3-SHA:HIGH:!aNULL:!eNULL:!EXPORT:!DES:!MD5:!PSK:!RC4
+	  enableECDHE             1
+	  renegProtection         1
+	  sslSessionCache         1
+	  enableSpdy              15
+	  enableQuic              1
+	  enableStapling          1
+	  ocspRespMaxAge          86400
+	}
+	EOF
+	chown -R lsadm:lsadm ${VHDIR}/*
+
+	NEWKEY="  map                     ${olsdomain} www.${olsdomain}, ${olsdomain}"
+	PORT_ARR=$(grep "address.*:[0-9]"  ${WEBCF} | awk '{print substr($2,3)}'|uniq)
+	if [  ${#PORT_ARR[@]} != 0 ]
+	then
+		for PORT in ${PORT_ARR[@]}
+		do
+			sed -i "/:$PORT$/{N;s/$/\n$NEWKEY/}" "${WEBCF}"
+		done
+	else
+		echo 'No listener port detected, listener setup skip!'
+	fi
+	echo "
+virtualhost ${olsdomain} {
+vhRoot                  /var/www/${olsdomain}
+configFile              ${VHDIR}/${olsdomain}/$g_vhost_conf
+allowSymbolLink         1
+enableScript            1
+restrained              1
+setUIDMode              2
+}" >>${WEBCF}
+	systemctl restart lsws
+	cat 7G-Firewall-OLS.txt > /var/www/${olsdomain}/html/.htaccess
+	cat 6G-Firewall-OLS.txt >> /var/www/${olsdomain}/html/.htaccess
+	# Commented out so we can remove after testing
+# 	echo "open_basedir = \"/var/www/${olsdomain}/html/:/tmp/\"
+# allow_url_fopen = 0
+# allow_url_include = 0
+# disable_functions =  dl, exec, fpassthru, getmypid, getmyuid, highlight_file, link, opcache_get_configuration, passthru, pcntl_exec, pcntl_get_last_error, pcntl_setpriority, pcntl_strerror, pcntl_wifcontinued, phpinfo, popen, posix_ctermid, posix_getcwd, posix_getegid, posix_geteuid, posix_getgid, posix_getgrgid, posix_getgrnam, posix_getgroups, posix_getlogin, posix_getpgid, posix_getpgrp, posix_getpid, posix_getppid, posix_getpwnam, posix_getpwuid, posix_getrlimit, posix_getsid, posix_getuid, posix_isatty, posix_kill, posix_mkfifo, posix_setegid, posix_seteuid, posix_setgid, posix_setpgid, posix_setsid, posix_setuid, posix_times, posix_ttyname, posix_uname, proc_close, proc_get_status, proc_nice, proc_open, proc_terminate, shell_exec, show_source, source, system, virtual
+# session.use_strict_mode = 1
+# session.cookie_httponly = 1
+# session.use_cookies = 1
+# session.use_only_cookies = 1
+# session.use_trans_sid = 0" > /var/www/${olsdomain}/html/php.ini
+	gf_ols_htaccess ${olsdomain}
+}
+
+
+#####################################################################
+### select phpversion for nginx fpm
+#####################################################################
+function gf_select_phpversion
+{
+	if [ "$g_webserver_type" = "nginx" ]
+	then
+		ls /etc/php/ | nl
+		read -p "Select PHP version: " site_number
+		number_of_sites=$(ls /etc/php/ | wc -l)
+		until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]
+		do
+			echo "$site_number: invalid selection."
+			read -p "Select PHP version: " site_number
+		done
+	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+	then
+		ls /usr/local/lsws|grep lsphp | nl
+		read -p "Select PHP version: " site_number
+		number_of_sites=$(ls /usr/local/lsws|grep lsphp | wc -l)
+		until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]
+		do
+			echo "$site_number: invalid selection."
+			read -p "Select PHP version: " site_number
+		done
+	fi
+}
+
+#####################################################################
+### htaccess default for ols site
+#####################################################################
+function gf_ols_htaccess
+{
+	local olsdomain
+	local DOCHM
+	olsdomain=$1
+	DOCHM="/var/www/${olsdomain}/html"
+	touch "${DOCHM}/.htaccess"
+	# https://riptutorial.com/bash/example/2135/indenting-here-documents
+	# Special Note: Tabs should be maintained for the indenting for this work!
+	cat > "${DOCHM}/.htaccess" <<-'EOL'
+	# BEGIN WordPress
+	<IfModule mod_rewrite.c>
+	RewriteEngine On
+	RewriteBase /
+	RewriteRule ^index\.php$ - [L]
+	RewriteCond %{REQUEST_FILENAME} !-f
+	RewriteCond %{REQUEST_FILENAME} !-d
+	RewriteRule . /index.php [L]
+	</IfModule>
+	# END WordPress
+	EOL
+}
+
+#####################################################################
+### 7G firewall enable for ols
+#####################################################################
+function gf_7g_ols_enable {
+        local module
+        module=$1
+        grep -q "# 7G:\[$module\]" /var/www/$domain/html/.htaccess
+        if [ $? -ne 0 ]
+        then
+                sed -n "/# 7G:\[$module\]/, /# 7G:\[$module\] END/p" 7G-Firewall-OLS.txt >> /var/www/$domain/html/.htaccess
+                user_name=$(echo $domain | cut -c1-32)
+                chown "${user_name}" /var/www/$domain/html/.htaccess
+        fi
+}
+
+#####################################################################
+### 7G firewall rule disable for ols
+#####################################################################
+function gf_7g_ols_disable {
+        local module
+        module=$1
+        grep -q "# 7G:\[$module\]" /var/www/$domain/html/.htaccess
+        if [ $? -eq 0 ]
+        then
+                sed -i "/# 7G:\[$module\]/,/# 7G:\[$module\] END/d" /var/www/$domain/html/.htaccess
+                user_name=$(echo $domain | cut -c1-32)
+                chown "${user_name}" /var/www/$domain/html/.htaccess
+        fi
+}
+
+#####################################################################
+### 6G firewall enable for ols
+#####################################################################
+function gf_6g_ols_enable {
+        local module
+        module=$1
+        grep -q "# 6G:\[$module\]" /var/www/$domain/html/.htaccess
+        if [ $? -ne 0 ]
+        then
+                sed -n "/# 6G:\[$module\]/, /# 6G:\[$module\] END/p" 6G-Firewall-OLS.txt >> /var/www/$domain/html/.htaccess
+                user_name=$(echo $domain | cut -c1-32)
+                chown "${user_name}" /var/www/$domain/html/.htaccess
+        fi
+}
+
+#####################################################################
+### 6G firewall rule disable for ols
+#####################################################################
+function gf_6g_ols_disable {
+        local module
+        module=$1
+        grep -q "# 6G:\[$module\]" /var/www/$domain/html/.htaccess
+        if [ $? -eq 0 ]
+        then
+                sed -i "/# 6G:\[$module\]/,/# 6G:\[$module\] END/d" /var/www/$domain/html/.htaccess
+                user_name=$(echo $domain | cut -c1-32)
+                chown "${user_name}" /var/www/$domain/html/.htaccess
+        fi
 }

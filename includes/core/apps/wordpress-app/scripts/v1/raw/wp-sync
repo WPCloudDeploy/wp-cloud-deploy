@@ -1,42 +1,51 @@
 #!/bin/bash
 # this is the helper script. you don't need to run it directly
 
+function check_webserver() {
+	if [ -e /usr/local/lsws/bin/lshttpd ]
+	then
+		if /usr/local/lsws/bin/lshttpd -v | grep -q Open
+		then
+			webserver_type='ols'
+		elif /usr/local/lsws/bin/lshttpd -v | grep -q Enterprise
+		then
+			webserver_type='ols-enterprise'
+		fi
+	else
+		webserver_type='nginx'
+	fi
+}
+
 
 # create lockfile
 # not used in this script, but used to avoid conclicts with 01-origin.sh
 touch /tmp/wp-sync.lock
 
 # if the script isn't running from /usr/local/bin, we assume that the user did run it manually by mistake
-if ! dirname $0 | grep -qs "/usr/local/bin"; then
-    echo "This script is not meant to be used standalone"
-    echo
-    echo "Run 71-origin.sh to configure it"
-
+if ! dirname $0 | grep -qs "/usr/local/bin"
+then
+	echo "This script is not meant to be used standalone"
+	echo
+	echo "Run 71-origin.sh to configure it"
 	# remove lockfile
 	rm -f /tmp/wp-sync.lock	
-	
-    exit
+	exit
 fi
 
 # if destination host is unavailable, we are done
-if ! ssh -o ConnectTimeout=30 -o StrictHostKeyChecking=no -o PasswordAuthentication=no root@$dest "echo" &>/dev/null; then
-    echo "$(date) Destination server not connectable" >> /var/log/wp-sync.log
-
+if ! ssh -o ConnectTimeout=30 -o StrictHostKeyChecking=no -o PasswordAuthentication=no root@$dest "echo" &>/dev/null
+then
+	echo "$(date) Destination server not connectable" >> /var/log/wp-sync.log
 	# remove lockfile
 	rm -f /tmp/wp-sync.lock	
-
-    exit
+	exit
 else
-    echo "$(date) Starting wp-sync job" >> /var/log/wp-sync.log
+	echo "$(date) Starting wp-sync job" >> /var/log/wp-sync.log
 fi
-
-
 
 # remove leftover from 71-origin.sh
 # if we reached this point, wp-sync is now fully configured
-rm -f /var/www/html/51796720716872671235391607993835.pub
-
-
+rm -f /var/www/html/51796720716872671235391607993835.pub /usr/local/lsws/Example/html/51796720716872671235391607993835.pub > /dev/null 2>&1
 
 # export users
 awk -F: '($3>=500) && ($3!=65534) && ($4==33)' /etc/passwd > /root/passwd.prod
@@ -51,13 +60,17 @@ ssh -o StrictHostKeyChecking=no root@$dest "awk -F: '(\$3<500) {print \$1}' /etc
 ssh -o StrictHostKeyChecking=no root@$dest "rm -f /root/passwd.prod /root/passwd.new /root/shadow.prod /root/shadow.new"
 
 
-
 # dump all databases
 mysqldump --all-databases --add-drop-database > /root/databases_backup.sql
 # dump all mysql users and passwords
 mariadb -e"select concat('show grants for ','\'',user,'\'@\'',host,'\'') from mysql.user" > /root/user_list_with_header.txt
 sed '1d' /root/user_list_with_header.txt > /root/user.txt
-while read user; do  mariadb -e"$user" > /root/user_grant.txt; sed '1d' /root/user_grant.txt >> /root/user_privileges.txt; echo "flush privileges" >> /root/user_privileges.txt; done < /root/user.txt
+
+while read user
+do
+	mariadb -e"$user" > /root/user_grant.txt; sed '1d' /root/user_grant.txt >> /root/user_privileges.txt; echo "flush privileges" >> /root/user_privileges.txt
+done < /root/user.txt
+
 awk '{print $0";"}'  /root/user_privileges.txt >/root/user_privileges_final.sql
 # sync sql files to destination
 rsync -a -e 'ssh -o StrictHostKeyChecking=no' /root/user_privileges_final.sql $dest:/root/user_privileges_final.sql
@@ -69,29 +82,29 @@ ssh -o StrictHostKeyChecking=no root@$dest "mariadb < /root/user_privileges_fina
 ssh -o StrictHostKeyChecking=no root@$dest "rm -f /root/databases_backup.sql /root/user_privileges_final.sql"
 
 
-
 # sync files
 rsync -a --delete -e 'ssh -o StrictHostKeyChecking=no' /var/www root@$dest:/var && echo "$(date) Site sync completed" >> /var/log/wp-sync.log || echo "$(date) Site sync failed" >> /var/log/wp-sync.log
 rsync -a --delete -e 'ssh -o StrictHostKeyChecking=no' /etc/nginx root@$dest:/etc
 rsync -a --delete -e 'ssh -o StrictHostKeyChecking=no' /etc/php root@$dest:/etc
+rsync -a --delete -e 'ssh -o StrictHostKeyChecking=no' /usr/local/lsws root@$dest:/usr/local/
 rsync -a --delete -e 'ssh -o StrictHostKeyChecking=no' /etc/letsencrypt root@$dest:/etc
 # exclude root crontab because we don't want to migrate the backup wp-backup job
 rsync -a --delete -e 'ssh -o StrictHostKeyChecking=no' --exclude /var/spool/cron/crontabs/root /var/spool/cron root@$dest:/var/spool
 
+if [ "$webserver_type" = "nginx" ]
+then
+	# restart services
+	phpversion=(5.6 7.1 7.2 7.3 7.4 8.0 8.1)
+	for ver in "${phpversion[@]}"
+	do
+		ssh -o StrictHostKeyChecking=no root@$dest "[[ ! -f /etc/wpcd/php-versions-disabled/$ver ]] && systemctl restart php$ver-fpm" && echo "$(date) PHP $ver restart completed" >> /var/log/wp-sync.log || echo "$(date) PHP $ver restart failed" >> /var/log/wp-sync.log
+	done
+elif [ "$webserver_type" = "ols" ] || [ "$webserver_type" = "ols-enterprise" ]
+then
+	ssh -o StrictHostKeyChecking=no root@$dest "/usr/local/lsws/bin/lswsctrl stop >/dev/null 2>&1 ; killall lsphp >/dev/null 2>&1 ; systemctl stop lsws >/dev/null 2>&1; systemctl start lsws"
+fi
 
-
-# restart services
-ssh -o StrictHostKeyChecking=no root@$dest "[[ ! -f /etc/wpcd/php-versions-disabled/php5.6 ]] && systemctl restart php5.6-fpm" && echo "$(date) PHP 5.6 restart completed" >> /var/log/wp-sync.log || echo "$(date) PHP 5.6 restart failed" >> /var/log/wp-sync.log
-ssh -o StrictHostKeyChecking=no root@$dest "[[ ! -f /etc/wpcd/php-versions-disabled/php7.1 ]] && systemctl restart php7.1-fpm" && echo "$(date) PHP 7.1 restart completed" >> /var/log/wp-sync.log || echo "$(date) PHP 7.1 restart failed" >> /var/log/wp-sync.log
-ssh -o StrictHostKeyChecking=no root@$dest "[[ ! -f /etc/wpcd/php-versions-disabled/php7.2 ]] && systemctl restart php7.2-fpm" && echo "$(date) PHP 7.2 restart completed" >> /var/log/wp-sync.log || echo "$(date) PHP 7.2 restart failed" >> /var/log/wp-sync.log
-ssh -o StrictHostKeyChecking=no root@$dest "[[ ! -f /etc/wpcd/php-versions-disabled/php7.3 ]] && systemctl restart php7.3-fpm" && echo "$(date) PHP 7.3 restart completed" >> /var/log/wp-sync.log || echo "$(date) PHP 7.3 restart failed" >> /var/log/wp-sync.log
-ssh -o StrictHostKeyChecking=no root@$dest "[[ ! -f /etc/wpcd/php-versions-disabled/php7.4 ]] && systemctl restart php7.4-fpm" && echo "$(date) PHP 7.4 restart completed" >> /var/log/wp-sync.log || echo "$(date) PHP 7.4 restart failed" >> /var/log/wp-sync.log
-ssh -o StrictHostKeyChecking=no root@$dest "[[ ! -f /etc/wpcd/php-versions-disabled/php8.0 ]] && systemctl restart php8.0-fpm" && echo "$(date) PHP 8.0 restart completed" >> /var/log/wp-sync.log || echo "$(date) PHP 8.0 restart failed" >> /var/log/wp-sync.log
-ssh -o StrictHostKeyChecking=no root@$dest "[[ ! -f /etc/wpcd/php-versions-disabled/php8.1 ]] && systemctl restart php8.1-fpm" && echo "$(date) PHP 8.1 restart completed" >> /var/log/wp-sync.log || echo "$(date) PHP 8.1 restart failed" >> /var/log/wp-sync.log
-ssh -o StrictHostKeyChecking=no root@$dest "systemctl restart nginx" && echo "$(date) nginx restart completed" >> /var/log/wp-sync.log || echo "$(date) nginx restart failed" >> /var/log/wp-sync.log
 ssh -o StrictHostKeyChecking=no root@$dest "systemctl restart cron" && echo "$(date) cron restart completed" >> /var/log/wp-sync.log || echo "$(date) cron restart failed" >> /var/log/wp-sync.log
-
-
 
 # sync sshd config
 sed -e '1,/do not edit from here/ d' /etc/ssh/sshd_config > /root/sshdmatches
@@ -99,7 +112,6 @@ rsync -a -e 'ssh -o StrictHostKeyChecking=no' /root/sshdmatches $dest:/root/sshd
 rm -f /root/sshdmatches
 ssh -o StrictHostKeyChecking=no root@$dest 'sed -i "/do not edit from here/q" /etc/ssh/sshd_config && cat /root/sshdmatches >> /etc/ssh/sshd_config && rm -f /root/sshdmatches'
 ssh -o StrictHostKeyChecking=no root@$dest "systemctl restart sshd" && echo "$(date) SSH restart completed" >> /var/log/wp-sync.log || echo "$(date) SSH restart failed" >> /var/log/wp-sync.log
-
 
 
 # remove lockfile

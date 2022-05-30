@@ -1,136 +1,200 @@
 #!/bin/bash
-if [[ "$EUID" -ne 0 ]]; then
+if [[ "$EUID" -ne 0 ]]
+then
 	echo "Sorry, you need to run this as root"
 	exit
 fi
 
+## Get our common functions
+source 9999-common-functions.sh
 
-
-while [[ -z $action ]]; do
-    clear
-    echo "What do you want to do?"
-    echo "   1) Install Redis"
-    echo "   2) Enable Redis for a site"
-    echo "   3) Disable Redis for a site"
-    echo "   4) Clear Redis cache"
-    echo "   5) Restart Redis"
-    echo "   6) Remove Redis"
-    echo
-    read -p "Action: " action
-    until [[ -z "$action" || "$action" =~ ^[1-6]$ ]]; do
-    	echo "$action: invalid selection."
-    	read -p "Action: " action
-    done
+while [[ -z $action ]]
+do
+	clear
+	echo "What do you want to do?"
+	echo "   1) Install Redis"
+	echo "   2) Enable Redis for a site"
+	echo "   3) Disable Redis for a site"
+	echo "   4) Clear Redis cache"
+	echo "   5) Restart Redis"
+	echo "   6) Remove Redis"
+	echo
+	read -p "Action: " action
+	until [[ -z "$action" || "$action" =~ ^[1-6]$ ]]
+	do
+		echo "$action: invalid selection."
+		read -p "Action: " action
+	done
 done
 
-if [[ $action == "install_redis" || $action == "1" ]]; then
 
-    if hash redis-cli 2>/dev/null; then
-        echo
-        echo "Redis is already installed!"
-        exit
-    fi
+if [[ $action == "install_redis" || $action == "1" ]]
+then
+	if hash redis-cli 2>/dev/null
+	then
+		echo
+		echo "Redis is already installed!"
+		exit
+	fi
+	apt-get install redis-server -y 
 
-    apt-get install redis-server php8.1-redis php8.0-redis php7.4-redis php7.3-redis php7.2-redis php7.1-redis php5.6-redis -y
-	
 	# Was redis installed?  If the redis.conf file does not exist there's a good chance it wasn't installed properly or not at all.
-    if [ ! -f /etc/redis/redis.conf ]
-    then
-	    echo "redis has not been properly installed";
-	    exit
-    fi
+	if [ ! -f /etc/redis/redis.conf ]
+	then
+		echo "redis has not been properly installed";
+		exit
+	fi
 	
-    sed -i "s/supervised no/supervised systemd/g" /etc/redis/redis.conf
-    systemctl restart redis
+	sed -i "s/supervised no/supervised systemd/g" /etc/redis/redis.conf
+	systemctl restart redis
 
-    echo
-    echo "Redis has been installed. You can run this script again to enable it for a site."
-    exit
+	if [ "$g_webserver_type" = "nginx" ]
+	then
+		apt-get install -y php?.?-redis
+	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+	then
+		apt-get install -y lsphp??-redis
+	fi
+	gf_restart_webserver
+	echo
+	echo "Redis has been installed. You can run this script again to enable it for a site."
+	exit
 fi
 
 
-if [[ $action == "enable" || $action == "2" ]]; then
+if [[ $action == "enable" || $action == "2" ]]
+then
+	if ! hash redis-cli 2>/dev/null
+	then
+		echo
+		echo "Redis is not installed on server!"
+		exit
+	fi
 
-    while [[ -z $domain ]]; do
-        echo
-        echo "Please, select which site you want to work with"
-        echo
-        ls /var/www/ | grep -v html | nl
-        read -p "Select site: " site_number
-        number_of_sites=$(ls /var/www/ | grep -v html | wc -l)
-        until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
-	    	echo "$site_number: invalid selection."
-	    	read -p "Select site: " site_number
-	    done
-        domain=$(ls /var/www/ | grep -v html | sed -n "$site_number"p)
-    done
-    user_name=$(echo $domain | cut -c1-32)
+	while [[ -z $domain ]]
+	do
+		echo
+		echo "Please, select which site you want to work with"
+		gf_select_domain
+		domain=$(ls /var/www/ | grep -v html | sed -n "$site_number"p)
+	done
+	user_name=$(echo $domain | cut -c1-32)
 
-    if [[ -e /var/www/$domain/html/wp-content/object-cache.php ]]; then
-        echo "An object cache is already enabled for $domain"
-        echo
-        echo "If you want to enable Redis, the currently enabled cache system needs to be disabled first."
-        exit
-    fi
-
-    cd /var/www/$domain/html/
-    su - $user_name -c "wp plugin install --activate redis-cache"
-    su - $user_name -c "cd /var/www/$domain/html/wp-content/; ln -s ./plugins/redis-cache/includes/object-cache.php ./object-cache.php"
-
-    echo
-    echo "Redis has been enabled for $domain"
-    exit
+	if [[ -e /var/www/$domain/html/wp-content/object-cache.php ]]
+	then
+		echo "An object cache is already enabled for $domain"
+		echo
+		echo "If you want to enable Redis, the currently enabled cache system needs to be disabled first."
+	exit
+	fi
+	if [ "$g_webserver_type" = "nginx" ]
+	then
+		su - $user_name -c "wp plugin install --activate redis-cache"
+		su - $user_name -c "cd /var/www/$domain/html/wp-content/; ln -s ./plugins/redis-cache/includes/object-cache.php ./object-cache.php"
+	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+        then
+		su - $user_name -c "wp plugin list|grep -q litespeed-cache"
+		if [ $? -eq 0 ]
+		then
+			su - $user_name -c "wp plugin is-active litespeed-cache"
+			if [ $? -ne 0 ]
+			then
+				su - $user_name -c "wp plugin activate litespeed-cache"
+			fi
+		else
+			su - "$user_name" -c "wp --skip-plugins plugin install litespeed-cache && wp --skip-plugins plugin activate litespeed-cache && wp litespeed-online init"
+		fi
+		su - "$user_name" -c "wp litespeed-option set object true && wp litespeed-option set object-port 6379 && wp litespeed-option set object-host 127.0.0.1 && wp litespeed-option set object-kind 1 && wp cache flush"
+	fi
+	echo
+	echo "Redis has been enabled for $domain"
+	exit
 fi
 
 
-if [[ $action == "disable" || $action == "3" ]]; then
+if [[ $action == "disable" || $action == "3" ]]
+then
+	if ! hash redis-cli 2>/dev/null
+	then
+		echo
+		echo "Redis is not installed on server!"
+		exit
+	fi
 
-    while [[ -z $domain ]]; do
-        echo
-        echo "Please, select which site you want to work with"
-        echo
-        ls /var/www/ | grep -v html | nl
-        read -p "Select site: " site_number
-        number_of_sites=$(ls /var/www/ | grep -v html | wc -l)
-        until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
-	    	echo "$site_number: invalid selection."
-	    	read -p "Select site: " site_number
-	    done
-        domain=$(ls /var/www/ | grep -v html | sed -n "$site_number"p)
-    done
-    user_name=$(echo $domain | cut -c1-32)
+	while [[ -z $domain ]]
+	do
+		echo
+		echo "Please, select which site you want to work with"
+		gf_select_domain
+		domain=$(ls /var/www/ | grep -v html | sed -n "$site_number"p)
+	done
+	user_name=$(echo $domain | cut -c1-32)
 
-    cd /var/www/$domain/html/
-    rm -f wp-content/object-cache.php
-    su - $user_name -c "wp plugin uninstall --deactivate redis-cache"
-
-    echo
-    echo "Redis has been disabled for $domain"
-    exit
+	if [ "$g_webserver_type" = "nginx" ]
+	then
+		rm -f /var/www/$domain/html/wp-content/object-cache.php
+		su - $user_name -c "wp plugin uninstall --deactivate redis-cache"
+	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+        then
+		su - "$user_name" -c "wp litespeed-option set object false && wp cache flush"
+	fi
+	echo
+	echo "Redis has been disabled for $domain"
+	exit
 fi
 
 
-if [[ $action == "redis_clear" || $action == "4" ]]; then
-    redis-cli FLUSHALL
-    echo
-    echo "Redis cache has been cleared"
-    exit
+if [[ $action == "redis_clear" || $action == "4" ]]
+then
+	if ! hash redis-cli 2>/dev/null
+	then
+		echo
+		echo "Redis is not installed on server!"
+		exit
+	fi
+
+	redis-cli FLUSHALL
+	echo
+	echo "Redis cache has been cleared"
+	exit
 fi
 
 
-if [[ $action == "redis_restart" || $action == "5" ]]; then
-    systemctl restart redis.service
-    echo
-    echo "Redis server has been restarted"
-    exit
+if [[ $action == "redis_restart" || $action == "5" ]]
+then
+	if ! hash redis-cli 2>/dev/null
+	then
+		echo
+		echo "Redis is not installed on server!"
+		exit
+	fi
+
+	systemctl restart redis.service
+	echo
+	echo "Redis server has been restarted"
+	exit
 fi
 
 
-if [[ $action == "remove_redis" || $action == "6" ]]; then
+if [[ $action == "remove_redis" || $action == "6" ]]
+then
+	if ! hash redis-cli 2>/dev/null
+	then
+		echo
+		echo "Redis is not installed on server!"
+		exit
+	fi
 
-    apt-get remove redis-server php8.1-redis php8.0-redis php7.4-redis php7.3-redis php7.2-redis php7.1-redis php5.6-redis redis-tools -y
-
-    echo
-    echo "Redis has been removed from the system."
-    exit
+	apt-get remove redis-server redis* -y
+	if [ "$g_webserver_type" = "nginx" ]
+	then
+		apt-get remove -y php?.?-redis
+	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+	then
+		apt-get remove -y lsphp??-redis
+	fi
+	gf_restart_webserver
+	echo
+	echo "Redis has been removed from the system."
+	exit
 fi

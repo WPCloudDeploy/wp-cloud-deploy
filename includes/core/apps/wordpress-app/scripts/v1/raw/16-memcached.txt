@@ -1,137 +1,214 @@
 #!/bin/bash
-if [[ "$EUID" -ne 0 ]]; then
+if [[ "$EUID" -ne 0 ]]
+then
 	echo "Sorry, you need to run this as root"
 	exit
 fi
 
+## Get our common functions
+source 9999-common-functions.sh
 
-
-while [[ -z $action ]]; do
-    clear
-    echo "What do you want to do?"
-    echo "   1) Install Memcached"
-    echo "   2) Enable Memcached for a site"
-    echo "   3) Disable Memcached for a site"
-    echo "   4) Clear Memcached cache"
-    echo "   5) Restart Memcached"
-    echo "   6) Remove Memcached"
-    echo
-    read -p "Action: " action
-    until [[ -z "$action" || "$action" =~ ^[1-6]$ ]]; do
-    	echo "$action: invalid selection."
-    	read -p "Action: " action
-    done
+while [[ -z $action ]]
+do
+	clear
+	echo "What do you want to do?"
+	echo "   1) Install Memcached"
+	echo "   2) Enable Memcached for a site"
+	echo "   3) Disable Memcached for a site"
+	echo "   4) Clear Memcached cache"
+	echo "   5) Restart Memcached"
+	echo "   6) Remove Memcached"
+	echo
+	read -p "Action: " action
+	until [[ -z "$action" || "$action" =~ ^[1-6]$ ]]
+	do
+		echo "$action: invalid selection."
+		read -p "Action: " action
+	done
 done
 
-if [[ $action == "install_memcached" || $action == "1" ]]; then
 
-    if hash memcached 2>/dev/null; then
-        echo
-        echo "Memcached is already installed!"
-        exit
-    fi
+if [[ $action == "install_memcached" || $action == "1" ]]
+then
+	if hash memcached 2>/dev/null
+	then
+		echo
+		echo "Memcached is already installed!"
+		exit
+	fi
 
-    apt-get install memcached php5.6-memcache php7.1-memcache php7.2-memcache php7.3-memcache php7.4-memcache php8.0-memcache php8.1-memcache -y
+	apt-get install -y memcached
+	systemctl enable memcached
+	systemctl start memcached
 
-    number_of_php=$(ls /etc/php/ | wc -l)
-    for (( number=1; number <=$number_of_php; number++ ))
-    do
-        version=`ls /etc/php/ | sed -n "$number"p`
-        if [ ! -f /etc/wpcd/php-versions-disabled/php$version ] ; then
-                systemctl restart php$version-fpm > /dev/null 2>&1
-        fi
-    done
-
-    echo
-    echo "Memcached has been installed. You can run this script again to enable it for a site."
-    exit
+	if [ "$g_webserver_type" = "nginx" ]
+	then
+		apt-get install -y php?.?-memcache
+		number_of_php=$(ls /etc/php/ | wc -l)
+		for (( number=1; number <=$number_of_php; number++ ))
+		do
+			version=`ls /etc/php/ | sed -n "$number"p`
+			if [ ! -f /etc/wpcd/php-versions-disabled/$version ] 
+			then
+				systemctl restart php$version-fpm > /dev/null 2>&1
+			fi
+		done
+	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+	then
+		apt-get install -y lsphp??-memcached
+	fi
+	gf_restart_webserver
+	echo
+	echo "Memcached has been installed. You can run this script again to enable it for a site."
+	exit
 fi
 
 
-if [[ $action == "enable" || $action == "2" ]]; then
+if [[ $action == "enable" || $action == "2" ]]
+then
+	if ! hash memcached 2>/dev/null
+	then
+		echo "Memcached is not installed !"
+		exit
+	fi
 
-    while [[ -z $domain ]]; do
-        echo
-        echo "Please, select which site you want to work with"
-        echo
-        ls /var/www/ | grep -v html | nl
-        read -p "Select site: " site_number
-        number_of_sites=$(ls /var/www/ | grep -v html | wc -l)
-        until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
-	    	echo "$site_number: invalid selection."
-	    	read -p "Select site: " site_number
-	    done
-        domain=$(ls /var/www/ | grep -v html | sed -n "$site_number"p)
-    done
+	while [[ -z $domain ]]
+	do
+		echo
+		echo "Please, select which site you want to work with"
+		gf_select_domain
+		domain=$(ls /var/www/ | grep -v html | sed -n "$site_number"p)
+	done
 
-    if [[ -e /var/www/$domain/html/wp-content/object-cache.php ]]; then
-        echo "An object cache is already enabled for $domain"
-        echo
-        echo "If you want to enable Memcached, the currently enabled cache system needs to be disabled first."
-        exit
-    fi
-
-    user_name=$(echo $domain | cut -c1-32)
-
+	if [[ -e /var/www/$domain/html/wp-content/object-cache.php ]]
+	then
+		echo "An object cache is already enabled for $domain"
+		echo
+		echo "If you want to enable Memcached, the currently enabled cache system needs to be disabled first."
+		exit
+	fi
+	
+	user_name=$(echo $domain | cut -c1-32)
 	# Delete all transients to get the options table as small as possible. Memcached only allows 1 MB object size and wp --skip-plugins adds the entire options table as a single object grrrrr...
 	cd /var/www/$domain/html/
 	su - $user_name -c "wp --skip-plugins transient delete --all"
-	
-	# Install the WP object cache plugin for memcached
-    su - $user_name -c "wget https://github.com/Automattic/wp-memcached/raw/master/object-cache.php -O /var/www/$domain/html/wp-content/object-cache.php"
-    chmod -R g+w /var/www/$domain/html/wp-content/object-cache.php
+	if [ "$g_webserver_type" = "nginx" ]
+	then
+		# Install the WP object cache plugin for memcached
+		su - $user_name -c "wget https://github.com/Automattic/wp-memcached/raw/master/object-cache.php -O /var/www/$domain/html/wp-content/object-cache.php"
+		chmod -R g+w /var/www/$domain/html/wp-content/object-cache.php
+	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+	then
+		su - $user_name -c "wp plugin list|grep -q litespeed-cache"
+		if [ $? -eq 0 ]
+		then
+			su - $user_name -c "wp plugin is-active litespeed-cache"
+			if [ $? -ne 0 ]
+			then
+				su - $user_name -c "wp plugin activate litespeed-cache"
+			fi
+		else
+			su - "$user_name" -c "wp --skip-plugins plugin install litespeed-cache && wp --skip-plugins plugin activate litespeed-cache && wp litespeed-online init"
+		fi
+		su - "$user_name" -c "wp litespeed-option set object true && wp litespeed-option set object-port 11211 && wp litespeed-option set object-host 127.0.0.1 && wp litespeed-option set object-kind 0 && wp cache flush"
+	fi
 
-    echo
-    echo "Memcached has been enabled for $domain"
-    exit
+	echo
+	echo "Memcached has been enabled for $domain"
+	exit
 fi
 
 
-if [[ $action == "disable" || $action == "3" ]]; then
+if [[ $action == "disable" || $action == "3" ]]
+then
+	if ! hash memcached 2>/dev/null
+	then
+		echo "Memcached is not installed !"
+		exit
+	fi
 
-    while [[ -z $domain ]]; do
-        echo
-        echo "Please, select which site you want to work with"
-        echo
-        ls /var/www/ | grep -v html | nl
-        read -p "Select site: " site_number
-        number_of_sites=$(ls /var/www/ | grep -v html | wc -l)
-        until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
-	    	echo "$site_number: invalid selection."
-	    	read -p "Select site: " site_number
-	    done
-        domain=$(ls /var/www/ | grep -v html | sed -n "$site_number"p)
-    done
-
-    rm -f /var/www/$domain/html/wp-content/object-cache.php
-
-    echo
-    echo "Memcached has been disabled for $domain"
-    exit
+	while [[ -z $domain ]]
+	do
+		echo
+		echo "Please, select which site you want to work with"
+		gf_select_domain
+		domain=$(ls /var/www/ | grep -v html | sed -n "$site_number"p)
+	done
+	user_name=$(echo $domain | cut -c1-32)
+	if [ "$g_webserver_type" = "nginx" ]
+	then
+		rm -f /var/www/$domain/html/wp-content/object-cache.php
+	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+	then
+		# Disable Object Memcached in the litespeed-cache for wp plugin settings.
+		# https://docs.litespeedtech.com/lscache/lscwp/cli/
+		# https://docs.litespeedtech.com/lscache/lscwp/cache/#object-tab
+		su - "$user_name" -c "wp litespeed-option set object false && wp cache flush"
+	fi
+	echo
+	echo "Memcached has been disabled for $domain"
+	exit
 fi
 
 
-if [[ $action == "memcached_clear" || $action == "4" ]]; then
-    (sleep 2; echo flush_all; sleep 2; echo quit; ) | telnet 127.0.0.1 11211
-    echo
-    echo "Memcached cache has been cleared"
-    exit
+if [[ $action == "memcached_clear" || $action == "4" ]]
+then
+	if ! hash memcached 2>/dev/null
+	then
+		echo "Memcached is not installed !"
+		exit
+	fi
+
+	(sleep 2; echo flush_all; sleep 2; echo quit; ) | telnet 127.0.0.1 11211
+	echo
+	echo "Memcached cache has been cleared"
+	exit
 fi
 
 
-if [[ $action == "memcached_restart" || $action == "5" ]]; then
-    systemctl restart memcached.service
-    echo
-    echo "Memcached server has been restarted"
-    exit
+if [[ $action == "memcached_restart" || $action == "5" ]]
+then
+	if ! hash memcached 2>/dev/null
+	then
+		echo "Memcached is not installed !"
+		exit
+	fi
+
+	systemctl restart memcached.service
+	echo
+	echo "Memcached server has been restarted"
+	exit
 fi
 
 
-if [[ $action == "remove_memcached" || $action == "6" ]]; then
+if [[ $action == "remove_memcached" || $action == "6" ]]
+then
+	if ! hash memcached 2>/dev/null
+	then
+		echo "Memcached is not installed !"
+		exit
+	fi
 
-    apt-get remove memcached php5.6-memcache php7.1-memcache php7.2-memcache php7.3-memcache php7.4-memcache php8.0-memcache php8.1-memcache -y
-
-    echo
-    echo "Memcached has been removed from the system."
-    exit
+	systemctl stop memcached
+	apt-get remove -y memcached
+	if [ "$g_webserver_type" = "nginx" ]
+	then
+		apt-get remove -y php?.?-memcache
+		number_of_php=$(ls /etc/php/ | wc -l)
+		for (( number=1; number <=$number_of_php; number++ ))
+		do
+			version=`ls /etc/php/ | sed -n "$number"p`
+			if [ ! -f /etc/wpcd/php-versions-disabled/$version ] 
+			then
+				systemctl restart php$version-fpm > /dev/null 2>&1
+			fi
+		done
+	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+	then
+		apt-get remove -y lsphp??-memcached
+	fi
+	gf_restart_webserver
+	echo
+	echo "Memcached has been removed from the system."
+	exit
 fi

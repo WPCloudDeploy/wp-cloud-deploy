@@ -5,7 +5,11 @@ then
 	exit
 fi
 
-while [[ -z $action ]]; do
+## Get our common functions
+source 9999-common-functions.sh
+
+while [[ -z $action ]]
+do
 	echo
 	echo "What do you want to do?"
 	echo
@@ -25,7 +29,8 @@ while [[ -z $action ]]; do
 	echo "   14) Install Crowdsec Dashboard"
 	echo "   15) WhiteList Ip Address"
 	read -p "Action: " action
-	until [[ -z "$action" || "$action" -ge 1 && "$action" -le 15 ]]; do
+	until [[ -z "$action" || "$action" -ge 1 && "$action" -le 15 ]]
+	do
 		echo "$action: invalid selection."
 		read -p "Action: " action
 	done
@@ -59,12 +64,15 @@ function crowdsec_install
 	systemctl enable crowdsec > /dev/null 2>&1
 	systemctl restart crowdsec > /dev/null 2>&1
 
-	######## Install nginx bouncers ####
-	rm -rf cs-nginx-bouncer*
-	wget https://github.com/crowdsecurity/cs-nginx-bouncer/releases/download/v0.0.4/cs-nginx-bouncer.tgz
-	tar xzf cs-nginx-bouncer.tgz
-	cd cs-nginx-bouncer-*
-	yes|bash install.sh
+	if [ "$g_webserver_type" = "nginx" ]
+	then
+		######## Install nginx bouncers ####
+		rm -rf cs-nginx-bouncer*
+		wget https://github.com/crowdsecurity/cs-nginx-bouncer/releases/download/v0.0.4/cs-nginx-bouncer.tgz
+		tar xzf cs-nginx-bouncer.tgz
+		cd cs-nginx-bouncer-*
+		yes|bash install.sh
+	fi
 	echo "Crowdsec cscli has been installed"
 }
 
@@ -74,20 +82,22 @@ function crowdsec_remove
 	if hash cscli 2>/dev/null
 	then
 		echo
-		#### Remove nginx bouncers
-		rm -rf cs-nginx-bouncer*
-		wget https://github.com/crowdsecurity/cs-nginx-bouncer/releases/download/v0.0.4/cs-nginx-bouncer.tgz
-		tar xvzf cs-nginx-bouncer.tgz
-		cd cs-nginx-bouncer-*
-		yes|bash uninstall.sh
-
+		if [ "$g_webserver_type" = "nginx" ]
+		then
+			#### Remove nginx bouncers
+			rm -rf cs-nginx-bouncer*
+			wget https://github.com/crowdsecurity/cs-nginx-bouncer/releases/download/v0.0.4/cs-nginx-bouncer.tgz
+			tar xvzf cs-nginx-bouncer.tgz
+			cd cs-nginx-bouncer-*
+			yes|bash uninstall.sh
+			rm -f /etc/nginx/sites-enabled/crowdsec.conf
+		fi
 		rm -rf crowdsec-v*
 		curl -s https://api.github.com/repos/crowdsecurity/crowdsec/releases/latest | grep browser_download_url| cut -d '"' -f 4  | wget -q -O crowdsec-release.tgz -i -
 		tar xzf crowdsec-release.tgz
 		cd crowdsec-v*
 		bash wizard.sh --uninstall
-		rm -f /etc/nginx/sites-enabled/crowdsec.conf
-		systemctl restart nginx
+		gf_restart_webserver
 		echo "crowdsec has been removed"
 	else
 		echo "crowdsec is Not installed!"
@@ -204,27 +214,17 @@ function crowdsec_ssl_enable
 		echo "crowdsec are not installed!"
 		exit
 	fi
-	if grep -qs "listen 443" /etc/nginx/sites-enabled/crowdsec.conf;
+
+	if [ "$g_webserver_type" = "nginx" ]
 	then
-		echo "SSL Already Enabled";
-	else
 		domain=`grep -m 1 server_name /etc/nginx/sites-enabled/crowdsec.conf |awk '{print $2}'`
-		if [[ -z $email ]]
-		then
-			echo
-			echo "Specify an email for administrative notifications about your certificate"
-			read -p "Email address: " email
-		fi
-		certbot --non-interactive --reinstall --expand --nginx --agree-tos -m $email --allow-subset-of-names --redirect -d $domain -d www.$domain
-	
-		if ! grep -qs "listen 443" /etc/nginx/sites-enabled/crowdsec.conf
-		then
-			echo "SSL could not be enabled for $domain"
-			exit
-		fi
-		systemctl restart nginx
-		echo "SSL has been enabled for $domain"
+		gf_enable_certbot_nginx_site $domain crowdsec.conf
+        elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+	then
+		domain=`cat /usr/local/lsws/conf/vhosts/*/crowdsec.txt`
+		gf_enable_certbot_ols_site $domain
 	fi
+	echo "SSL has been enabled for $domain"
 }
 
 ###################################### Crowdsec Disable SSL  Function ##########
@@ -235,21 +235,16 @@ function crowdsec_ssl_disable
 		echo "Crowdsec is Not installed yet!"
 		exit
 	fi
-
-	if grep -qs "managed by Certbot" /etc/nginx/sites-enabled/crowdsec.conf;
+	if [ "$g_webserver_type" = "nginx" ]
 	then
 		domain=`grep -m 1 server_name /etc/nginx/sites-enabled/crowdsec.conf |awk '{print $2}'`
-		certbot delete --cert-name $domain
-		sed -i -n '/if ($host/q;p' /etc/nginx/sites-enabled/crowdsec.conf
-		sed -i '$ d' /etc/nginx/sites-enabled/crowdsec.conf
-		sed -i '/server {/a listen 80;\nlisten [::]:80;' /etc/nginx/sites-enabled/crowdsec.conf
-		sed -i '/managed by Certbot/d' /etc/nginx/sites-enabled/crowdsec.conf
-
-		systemctl restart nginx
-		echo "SSL has been disabled for Crodsec";
-	else
-		echo "SSL Not enabled for Crowdsec";
+		gf_disable_certbot_nginx_site $domain crowdsec.conf
+	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+	then
+		domain=`cat /usr/local/lsws/conf/vhosts/*/crowdsec.txt`
+		gf_disable_certbot_ols_site $domain
 	fi
+	echo "SSL has been disabled for Crodsec";
 }
 
 ###################################### Crowdsec Add Basic Auth##########
@@ -260,15 +255,24 @@ function crowdsec_auth_add
 		echo "Crowdsec is Not installed yet!"
 		exit
 	fi
-
-	grep -w auth /etc/nginx/sites-enabled/crowdsec.conf
-	if [ $? -eq 0 ]
+	if [ "$g_webserver_type" = "nginx" ]
 	then
-		echo "Basic Auth already enabled"
-	else
-		sed -i 's/#auth/auth/g' /etc/nginx/sites-enabled/crowdsec.conf
-		systemctl restart nginx > /dev/null
-		echo "Basic auth has been enabled"
+		grep -w auth /etc/nginx/sites-enabled/crowdsec.conf
+		if [ $? -eq 0 ]
+		then
+			echo "Basic Auth already enabled"
+		else
+			sed -i 's/#auth/auth/g' /etc/nginx/sites-enabled/crowdsec.conf
+			systemctl restart nginx > /dev/null
+			echo "Basic auth has been enabled"
+		fi
+	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+	then
+		echo "AuthName "Dialog prompt"
+AuthType Basic
+AuthUserFile /var/www/$domain/html/.htpasswd
+Require valid-user" > /var/www/$domain/html/.htaccess
+		echo " RewriteRule ^(.*)$ https://127.0.0.1:3000/$1 [P,L]" >> /var/www/$domain/html/.htaccess
 	fi
 }
 
@@ -280,14 +284,20 @@ function crowdsec_auth_remove
 		echo "Crowdsec is Not installed yet!"
 		exit
 	fi
-
-	grep -w '#auth' /etc/nginx/sites-enabled/crowdsec.conf
-	if [ $? -eq 0 ]
+	if [ "$g_webserver_type" = "nginx" ]
 	then
-		echo "Basic Auth already disabled"
-	else
-		sed -i 's/auth/#auth/g' /etc/nginx/sites-enabled/crowdsec.conf
-		systemctl restart nginx > /dev/null
+		grep -w '#auth' /etc/nginx/sites-enabled/crowdsec.conf
+		if [ $? -eq 0 ]
+		then
+			echo "Basic Auth already disabled"
+		else
+			sed -i 's/auth/#auth/g' /etc/nginx/sites-enabled/crowdsec.conf
+			systemctl restart nginx > /dev/null
+			echo "Basic Auth has been disabled"
+		fi
+	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+	then
+		echo "RewriteRule ^(.*)$ https://127.0.0.1:3000/$1 [P,L]" >> /var/www/$domain/html/.htaccess
 		echo "Basic Auth has been disabled"
 	fi
 }
@@ -417,9 +427,11 @@ function crowdsec_install_dashboard
 
 	sed -i 's/listen_uri:.*/listen_uri: 0.0.0.0:8080/g' /etc/crowdsec/config.yaml
 	mkdir -p /etc/nginx/htpasswd /var/www/$domain/html
-	htpasswd -b -c /etc/nginx/htpasswd/$domain $user $pass
 
-	echo "server {
+	if [ "$g_webserver_type" = "nginx" ]
+	then
+		htpasswd -b -c /etc/nginx/htpasswd/$domain $user $pass
+		echo "server {
 
 	listen 80;
 	listen [::]:80;
@@ -429,14 +441,25 @@ function crowdsec_install_dashboard
 	auth_basic \"Protected\";
 
 	location / {
-         proxy_pass http://127.0.0.1:3000;
-         client_max_body_size 100M;
+proxy_pass http://127.0.0.1:3000;
+client_max_body_size 100M;
 	}
 }" > /etc/nginx/sites-enabled/crowdsec.conf
 
-	systemctl restart nginx
+		systemctl restart nginx
+	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+	then
+		htpasswd -b -c /var/www/$domain/html/.htpasswd $user $pass
+		echo "Vhost configuring with OLS....";
+		gf_add_ols_conf $domain
+		echo "$domain" > /usr/local/lsws/conf/vhosts/$domain/crowdsec.txt
+		echo "AuthName "Dialog prompt"
+AuthType Basic
+AuthUserFile /var/www/$domain/html/.htpasswd
+Require valid-user" > /var/www/$domain/html/.htaccess
+		echo " RewriteRule ^(.*)$ https://127.0.0.1:3000/$1 [P,L]" >> /var/www/$domain/html/.htaccess
+	fi
 	systemctl restart crowdsec
-
 	echo "Dashboard has been configured on $domain"
 }
 
@@ -451,8 +474,8 @@ function crowdsec_whitelist
 
 	if [[ -z $whitelist_ip ]]
 	then
-                read -p "Enter Ip to Whitelist: " whitelist_ip
-        fi
+		read -p "Enter Ip to Whitelist: " whitelist_ip
+	fi
 
 	grep $whitelist_ip /etc/crowdsec/parsers/s02-enrich/whitelists.yaml
 	if [ $? -eq 0 ]

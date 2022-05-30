@@ -106,13 +106,15 @@ class WPCD_WORDPRESS_TABS_SERVER_TOOLS extends WPCD_WORDPRESS_TABS {
 
 		/* Verify that the user is even allowed to view the server before proceeding to do anything else */
 		if ( ! $this->wpcd_user_can_view_wp_server( $id ) ) {
+			/* Translators: %1s is replaced with an internal action name; %2$s is replaced with the file name; %3$s is replaced with the post id being acted on. %4$s is the user id running this action. */
 			return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
 		}
 
 		/* Now verify that the user can perform actions on this screen, assuming that they can view the server */
-		$valid_actions = array( 'server-cleanup-metas', 'server-cleanup-rest-api-test', 'reset-server-default-php-version', 'remove-php80rc1-reset-imagick' );
+		$valid_actions = array( 'server-cleanup-metas', 'server-cleanup-rest-api-test', 'reset-server-default-php-version' );
 		if ( in_array( $action, $valid_actions, true ) ) {
 			if ( ! $this->get_tab_security( $id ) ) {
+				/* Translators: %1s is replaced with an internal action name; %2$s is replaced with the file name; %3$s is replaced with the post id being acted on. %4$s is the user id running this action. */
 				return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
 			}
 		}
@@ -128,10 +130,6 @@ class WPCD_WORDPRESS_TABS_SERVER_TOOLS extends WPCD_WORDPRESS_TABS {
 				case 'reset-server-default-php-version':
 					$result = $this->reset_php_default_version( $id, $action );
 					break;
-				case 'remove-php80rc1-reset-imagick':
-					$result = $this->remove_80rc1_reset_imagick( $id, $action );
-					break;
-
 			}
 		}
 
@@ -255,29 +253,6 @@ class WPCD_WORDPRESS_TABS_SERVER_TOOLS extends WPCD_WORDPRESS_TABS {
 			'type'           => 'button',
 		);
 
-		/**
-		 * Remove php 8.0 RC1 remnants and update image magic to version specific modules.
-		 */
-		$confirmation_prompt = __( 'Are you sure you would like to remove all remnants of PHP 8.0 RC1 and reset the PHP Imagick Module?', 'wpcd' );
-
-		$actions['remove-php80rc1-reset-imagick-header'] = array(
-			'label'          => __( 'Remove PHP 8.0 RC1 Remnants', 'wpcd' ),
-			'type'           => 'heading',
-			'raw_attributes' => array(
-				'desc' => __( 'Certain automatic updates installed PHP 8.0 RC1.  This option removes PHP 8.0 RC1 and installs version specific modules for Imagick. DO NOT USE UNLESS ADVISED BY WPCD TECH SUPPORT!', 'wpcd' ),
-			),
-		);
-
-		$actions['remove-php80rc1-reset-imagick'] = array(
-			'label'          => '',
-			'raw_attributes' => array(
-				'std'                 => __( 'Remove PHP 8.0 RC1 & Reset Imagick Module', 'wpcd' ),
-				'confirmation_prompt' => $confirmation_prompt,
-				'desc'                => '',
-			),
-			'type'           => 'button',
-		);
-
 		return $actions;
 
 	}
@@ -297,6 +272,7 @@ class WPCD_WORDPRESS_TABS_SERVER_TOOLS extends WPCD_WORDPRESS_TABS {
 		$instance = $this->get_server_instance_details( $id );
 
 		if ( is_wp_error( $instance ) ) {
+			/* Translators: %s is the action we are attempting to perform. */
 			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
 		}
 
@@ -330,6 +306,7 @@ class WPCD_WORDPRESS_TABS_SERVER_TOOLS extends WPCD_WORDPRESS_TABS {
 		$instance = $this->get_server_instance_details( $id );
 
 		if ( is_wp_error( $instance ) ) {
+			/* Translators: %s is the action we are attempting to perform. */
 			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
 		}
 
@@ -375,6 +352,7 @@ class WPCD_WORDPRESS_TABS_SERVER_TOOLS extends WPCD_WORDPRESS_TABS {
 		$instance = $this->get_server_instance_details( $id );
 
 		if ( is_wp_error( $instance ) ) {
+			/* Translators: %s is the action we are attempting to perform. */
 			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
 		}
 
@@ -401,7 +379,7 @@ class WPCD_WORDPRESS_TABS_SERVER_TOOLS extends WPCD_WORDPRESS_TABS {
 					$result2_4 = $this->execute_ssh( 'generic', $instance, array( 'commands' => "sudo update-alternatives --install /usr/bin/pecl pecl /usr/local/lsws/lsphp$new_php_version_no_periods/bin/pecl 111 && echo 'Done Part 4'" ) );
 					$result2_5 = $this->execute_ssh( 'generic', $instance, array( 'commands' => "sudo update-alternatives --install /usr/lib/pear pear /usr/local/lsws/lsphp$new_php_version_no_periods/bin/pear 111 && echo 'Done Part 5'" ) );
 					if ( ! is_wp_error( $result2_1 ) ) {
-						$result2 = $result2_1 . ' ' . $result2_2 . ' ' . $result2_3 . ' ' .result2_4 . ' '  . result2_5;
+						$result2 = $result2_1 . ' ' . $result2_2 . ' ' . $result2_3 . ' ' . result2_4 . ' ' . result2_5;
 						if ( empty( $result2 ) ) {
 							$result2 = __( 'It looks like no data was returned when trying to change PHP versions.  Check SSH and Error logs for more info.', 'wpcd' );
 						}
@@ -429,7 +407,6 @@ class WPCD_WORDPRESS_TABS_SERVER_TOOLS extends WPCD_WORDPRESS_TABS {
 			$preamble2 .= __( 'This is the result of attempting to change your php version..' . PHP_EOL, 'wpcd' );
 			$preamble2 .= '========================' . PHP_EOL;
 
-			/* $preamble = __( 'Please check the output below - it should show your desired PHP version somewhere in the text!' .PHP_EOL, 'wpcd' ) ; */
 			$preamble3  = '========================' . PHP_EOL;
 			$preamble3 .= __( 'This is your new default server PHP version.' . PHP_EOL, 'wpcd' );
 			$preamble3 .= '========================' . PHP_EOL;
@@ -439,34 +416,6 @@ class WPCD_WORDPRESS_TABS_SERVER_TOOLS extends WPCD_WORDPRESS_TABS {
 
 			return new \WP_Error( $preamble1 . $result . $preamble2 . $result2 . $preamble3 . $result3 );
 		}
-
-	}
-
-
-
-
-	/**
-	 * Remove PHP 8.0 RC1 and install php version specific imagick modules.
-	 *
-	 * @param int    $id     The postID of the app cpt.
-	 * @param string $action The action to be performed (this matches the string required in the bash scripts if used ).
-	 *
-	 * @return boolean|WP_Error    success/failure
-	 */
-	private function remove_80rc1_reset_imagick( $id, $action ) {
-
-		// Get the instance details.
-		$instance = $this->get_server_instance_details( $id );
-
-		if ( is_wp_error( $instance ) ) {
-			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
-		}
-
-		$result  = $this->execute_ssh( 'generic', $instance, array( 'commands' => 'sudo apt-get update' ) );
-		$result2 = $this->execute_ssh( 'generic', $instance, array( 'commands' => 'sudo apt-get remove php8.0 php8.0-cli php8.0-common php8.0-imagick php8.0-opcache php8.0-readline libapache2-mod-php8.0 php-imagick -y' ) );
-		$result3 = $this->execute_ssh( 'generic', $instance, array( 'commands' => 'sudo apt-get install php5.6-imagick php7.1-imagick php7.2-imagick php7.3-imagick php7.4-imagick -y' ) );
-
-		return new \WP_Error( __( 'Process completed - please check the SSH logs to verify that the process was successful', 'wpcd' ) );
 
 	}
 

@@ -17,7 +17,7 @@ fi
 webserver_type="$(echo "$webserver_type" | awk '{ print tolower($1) }')"
 if [[ "$webserver_type" == "nginx" ]] || [[ "$webserver_type" == "ols" ]] || [[ "$webserver_type" = "ols-enterprise" ]]
 then
-	echo "Valid webserver_type provide: $webserver_type proceeding..."
+	echo "A valid webserver_type was provided: $webserver_type - proceeding..."
 else
 	echo "Sorry, you need to provided an invalid webserver: $webserver_type"
 	echo "Valid webserver_types are: nginx, ols, ols-enterprise"
@@ -211,23 +211,39 @@ then
 	fi
 
 	# install build essentials for pecl/pear and dev requirements
-	echo "$(date): Building pecl/pear essentials"
-	apt-get install -y libmagickwand-dev pkg-config build-essential snmp pkg-config openssl libssl-dev autoconf automake libtool libxml2-dev libssl-dev  > /dev/null 2>&1
+	# We need to do these in pieces otherwise our front-end UI will not like it if it takes too long to report updates.
+	echo "$(date): Building pecl/pear essentials - part 1"
+	apt-get install -y libmagickwand-dev pkg-config build-essential snmp pkg-config > /dev/null 2>&1
+	if [ $? -ne 0 ]
+	then
+		echo "Failed!  Quitting process"
+		exit 1
+	fi
+	echo "$(date): Building pecl/pear essentials - part 2"
+	apt-get install -y openssl libssl-dev autoconf automake libtool libxml2-dev libssl-dev  > /dev/null 2>&1
+	if [ $? -ne 0 ]
+	then
+		echo "Failed!  Quitting process"
+		exit 1
+	fi	
+
+	# Install all possible lsphp-dev and pear and packages
+	# We need to do these in pieces otherwise our front-end UI will not like it if it takes too long to report updates.
+	echo "$(date): Installing pear and other related ols packages part 1"
+	apt-get install -y lsphp?? lsphp??-common lsphp??-dev lsphp??-pear lsphp??-mysql   > /dev/null 2>&1
+	if [ $? -ne 0 ]
+	then
+		echo "Failed!  Quitting process"
+		exit 1
+	fi
+	echo "$(date): Installing pear and other related ols packages part 2"
+	apt-get install -y lsphp??-imap lsphp??-curl lsphp??-gd lsphp??-imap lsphp??-imagick lsphp??-intl lsphp*  > /dev/null 2>&1
 	if [ $? -ne 0 ]
 	then
 		echo "Failed!  Quitting process"
 		exit 1
 	fi
 
-	# Install all possible lsphp-dev and pear and packages
-	echo "$(date): Installing pear and other related ols packages"
-	apt-get install -y lsphp?? lsphp??-common lsphp??-dev lsphp??-pear lsphp??-mysql lsphp??-imap lsphp??-curl lsphp??-gd lsphp??-imap lsphp??-imagick lsphp??-intl lsphp*  > /dev/null 2>&1
-	if [ $? -ne 0 ]
-	then
-		echo "Failed!  Quitting process"
-		exit 1
-	fi
-	
 	# Use PHP 7.4 as the default
 	echo "$(date): Making PHP 7.4 the default PHP version"
 	rm -f /usr/bin/php > /dev/null 2>&1
@@ -885,7 +901,6 @@ then
 fi
 if [ "$webserver_type" = "ols" ]  || [ "$webserver_type" = "ols-enterprise" ]
 then
-	echo "$webserver_type" evaluated as true
 	ufw allow 7080 > /dev/null 2>&1
 	if [ $? -ne 0 ]
 	then

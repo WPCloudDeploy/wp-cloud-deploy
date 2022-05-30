@@ -17,7 +17,7 @@ fi
 webserver_type="$(echo "$webserver_type" | awk '{ print tolower($1) }')"
 if [[ "$webserver_type" == "nginx" ]] || [[ "$webserver_type" == "ols" ]] || [[ "$webserver_type" = "ols-enterprise" ]]
 then
-	echo "A valid webserver_type was provided: $webserver_type - proceeding..."
+	# Do nothing - it's valid, that's all we care about.
 else
 	echo "Sorry, you need to provided an invalid webserver: $webserver_type"
 	echo "Valid webserver_types are: nginx, ols, ols-enterprise"
@@ -901,11 +901,16 @@ then
 fi
 if [ "$webserver_type" = "ols" ]  || [ "$webserver_type" = "ols-enterprise" ]
 then
-	ufw allow 7080 > /dev/null 2>&1
-	if [ $? -ne 0 ]
-	then
-		echo "Unable to setup OLS/LSWS admin port on firewall! This is not a fatal error but you should double-check your rules after this process is completed."
-	fi
+	# This is where we would open the port to allow the litespeed browser management interface on port 7080.
+	# But we're not allowing that now since the default pages allow an attacker to view php config and other sensitive info.
+	# The console also is, by default, not protected by SSL.
+	# Users can open the port using the firewall script later if they need this.
+	
+	# ufw allow 7080 > /dev/null 2>&1
+	# if [ $? -ne 0 ]
+	# then
+	#	echo "Unable to setup OLS/LSWS admin port on firewall! This is not a fatal error but you should double-check your rules after this process is completed."
+	# fi
 fi
 
 ufw --force enable > /dev/null 2>&1

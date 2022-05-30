@@ -393,7 +393,7 @@ class WPCD_Settings {
 						array(
 							'type' => 'heading',
 							'name' => 'Timeout for Long Running Commands',
-							'desc' => __( 'When running commands, they are terminated after 15 minutes if not complete. This option allows you to increase that timeout. It is useful when provisioning very slow VMs at certain providers.', 'wpcd' ),
+							'desc' => __( 'When running commands, they are terminated after 25 minutes if not complete. This option allows you to increase that timeout. It is useful when provisioning very slow VMs at certain providers.', 'wpcd' ),
 						),
 
 						array(
@@ -402,8 +402,8 @@ class WPCD_Settings {
 							'type'        => 'number',
 							'min'         => 15,
 							'max'         => 120,
-							'std'         => 15,
-							'placeholder' => 15,
+							'std'         => 25,
+							'placeholder' => 25,
 							'size'        => 10,
 						),
 					),

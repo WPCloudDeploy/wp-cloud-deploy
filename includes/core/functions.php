@@ -146,12 +146,15 @@ function wpcd_get_early_option( $option_id, $domain = 'wpcd_settings' ) {
 
 /**
  * Returns the timeout for long running commands.
- * Defaults to 15 minutes if not already set.
+ * Defaults to 25 minutes if not already set.
+ *
+ * Default changed from 15 min to 25 min in WPCD 5.0.
+ *
  */
 function wpcd_get_long_running_command_timeout() {
 	$timeout = wpcd_get_option( 'long-command-timeout' );
 	if ( empty( $timeout ) ) {
-		$timeout = 15;  // default timeout is 15 minutes.
+		$timeout = 25;  // default timeout is 25 minutes.
 	}
 	return $timeout;
 }

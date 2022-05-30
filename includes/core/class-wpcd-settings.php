@@ -23,7 +23,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Setup setttings screen
+ * Setup settings screen
  *
  * @package wpcd
  * @version 1.0.0 / wpcd
@@ -274,7 +274,7 @@ class WPCD_Settings {
 							'size' => 10,
 						),
 						array(
-							'name' => __( 'Auto Trim Pending Log', 'wpcd' ),
+							'name' => __( 'Auto Trim Pending Tasks', 'wpcd' ),
 							'id'   => 'auto_trim_pending_log_limit',
 							'type' => 'number',
 							'size' => 10,

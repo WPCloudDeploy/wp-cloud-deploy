@@ -108,6 +108,13 @@ class WPCD_REST_API_Controller_Servers extends WPCD_REST_API_Controller_Base {
 		// handle optional owner email.
 		$author_email = filter_var( $request->get_param( 'author_email' ), FILTER_SANITIZE_EMAIL );
 		$this->validate_author_email( $author_email, true );
+		
+		// handle optional server type.
+		$webserver_type = sanitize_text_field( $request->get_param( 'webserver_type' ) );
+		$valid_webserver_types = WPCD()->get_webserver_list();
+		if ( ! in_array( $webserver_type, $valid_webserver_types, true ) ) {
+			$webserver_type = WPCD_WORDPRESS_APP()->get_default_webserver();
+		}
 
 		// setup server attributes array needed to create the server.
 		$attributes = array(
@@ -121,6 +128,7 @@ class WPCD_REST_API_Controller_Servers extends WPCD_REST_API_Controller_Base {
 			'provider'         => sanitize_text_field( $parameters['provider'] ),
 			'author_email'     => ! empty( $author_email ) ? $author_email : '',
 			'init'             => true,
+			'webserver_type'   => $webserver_type,
 			'wp_restapi_flag'  => 'yes',
 		);
 

@@ -86,12 +86,12 @@ chmod -R g+ws "$wphome"
 
 if [ "$g_webserver_type" = "nginx" ]
 then
-	echo "Vhost configuring with Nginx....";
+	echo "The webserver is Nginx....";
 	gf_add_php_conf "$domain" "$user_name" 7.4
 	gf_add_nginx_conf "$domain" "$domain" "$domain"
 elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 then
-	echo "Vhost configuring with OLS....";
+	echo "The webserver is Litespeed....";
 	gf_add_ols_conf "$domain"
 fi
 

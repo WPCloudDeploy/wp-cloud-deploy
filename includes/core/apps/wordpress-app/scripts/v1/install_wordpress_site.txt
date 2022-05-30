@@ -1,8 +1,14 @@
 echo "done" && {
     cd ~ &&
     sudo -E \rm -f ##SCRIPT_NAME## &&
+    sudo -E \rm -f ##SCRIPT_SIX_G_COMMANDS_NAME## &&
+    sudo -E \rm -f ##SCRIPT_SEVEN_G_COMMANDS_NAME## &&
 	sudo -E wget --no-check-certificate -O ##SCRIPT_COMMON_NAME## ##SCRIPT_COMMON_URL## &&
 	sudo -E dos2unix ##SCRIPT_COMMON_NAME## &&	
+    sudo -E wget --no-check-certificate -O ##SCRIPT_SIX_G_COMMANDS_NAME## ##SIX_G_COMMANDS_URL## &&
+	sudo -E dos2unix ##SCRIPT_SIX_G_COMMANDS_NAME## &&
+    sudo -E wget --no-check-certificate -O ##SCRIPT_SEVEN_G_COMMANDS_NAME## ##SEVEN_G_COMMANDS_URL## &&
+	sudo -E dos2unix ##SCRIPT_SEVEN_G_COMMANDS_NAME## &&	      
     sudo -E wget --no-check-certificate -O ##SCRIPT_NAME## ##SCRIPT_URL## &&
     export domain=##DOMAIN## wp_user=##WP_USER## wp_password=##WP_PASSWORD## wp_email=##WP_EMAIL## wp_version=##WP_VERSION## wp_locale=##WP_LOCALE## post_processing_script_site=##POST_PROCESSING_SCRIPT_SITE##  secret_key_manager_api_key=##SECRET_KEY_MANAGER_API_KEY## &&
     sudo -E dos2unix ##SCRIPT_NAME## &&

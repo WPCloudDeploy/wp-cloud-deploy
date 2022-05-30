@@ -674,6 +674,10 @@ trait wpcd_wpapp_script_handlers {
 				$command_name = $additional['command'];
 				$new_array    = array_merge(
 					array(
+						'SIX_G_COMMANDS_URL'   => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/6G-Firewall-OLS.txt',
+						'SCRIPT_SIX_G_COMMANDS_NAME'  => '6G-Firewall-OLS.txt',
+						'SEVEN_G_COMMANDS_URL'   => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/7G-Firewall-OLS.txt',
+						'SCRIPT_SEVEN_G_COMMANDS_NAME'  => '7G-Firewall-OLS.txt',
 						'SCRIPT_URL'   => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/02-install_wordpress_site.txt',
 						'SCRIPT_NAME'  => '02-install_wordpress_site.sh',
 						'SCRIPT_LOGS'  => "{$this->get_app_name()}_{$command_name}",

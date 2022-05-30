@@ -368,6 +368,9 @@ class WPCD_WORDPRESS_TABS_SERVER_TOOLS extends WPCD_WORDPRESS_TABS {
 			return new \WP_Error( __( 'You must specify a VALID PHP version!', 'wpcd' ) );
 		}
 
+		// Create a var with the new version without periods.
+		$new_php_version_no_periods = str_replace( '.', '', $new_php_version );
+
 		// Get the instance details.
 		$instance = $this->get_server_instance_details( $id );
 
@@ -381,8 +384,38 @@ class WPCD_WORDPRESS_TABS_SERVER_TOOLS extends WPCD_WORDPRESS_TABS {
 		if ( strpos( $result, $new_php_version ) !== false ) {
 			return new \WP_Error( __( 'It looks like your current default PHP version is already at your desired version. No changes were made.', 'wpcd' ) );
 		} else {
-			// Not at our desired php version - so change it.
-			$result2 = $this->execute_ssh( 'generic', $instance, array( 'commands' => "sudo update-alternatives --set php /usr/bin/php$new_php_version" ) );  // notice double-quotes in the command and the embedded php variable!
+			/**
+			 * Not at our desired php version - so change it.
+			 * The change commands depend on the web server type - OLS has a more complex set.
+			 */
+			// What type of web server are we running?
+			$webserver_type = $this->get_web_server_type( $id );
+
+			switch ( $webserver_type ) {
+				case 'ols':
+				case 'ols-enterprise':
+					// notice double-quotes in the command and the embedded php variable!
+					$result2_1 = $this->execute_ssh( 'generic', $instance, array( 'commands' => "sudo update-alternatives --install /usr/bin/php php /usr/local/lsws/lsphp$new_php_version_no_periods/bin/php 111 && echo 'Done Part 1'" ) );
+					$result2_2 = $this->execute_ssh( 'generic', $instance, array( 'commands' => "sudo update-alternatives --install /usr/bin/phar phar /usr/local/lsws/lsphp$new_php_version_no_periods/bin/phar$new_php_version.phar 111 && echo 'Done Part 2'" ) );
+					$result2_3 = $this->execute_ssh( 'generic', $instance, array( 'commands' => "sudo update-alternatives --install /usr/bin/phar.phar phar.phar /usr/local/lsws/lsphp$new_php_version_no_periods/bin/phar$new_php_version.phar 111 && echo 'Done Part 3'" ) );
+					$result2_4 = $this->execute_ssh( 'generic', $instance, array( 'commands' => "sudo update-alternatives --install /usr/bin/pecl pecl /usr/local/lsws/lsphp$new_php_version_no_periods/bin/pecl 111 && echo 'Done Part 4'" ) );
+					$result2_5 = $this->execute_ssh( 'generic', $instance, array( 'commands' => "sudo update-alternatives --install /usr/lib/pear pear /usr/local/lsws/lsphp$new_php_version_no_periods/bin/pear 111 && echo 'Done Part 5'" ) );
+					if ( ! is_wp_error( $result2_1 ) ) {
+						$result2 = $result2_1 . ' ' . $result2_2 . ' ' . $result2_3 . ' ' .result2_4 . ' '  . result2_5;
+						if ( empty( $result2 ) ) {
+							$result2 = __( 'It looks like no data was returned when trying to change PHP versions.  Check SSH and Error logs for more info.', 'wpcd' );
+						}
+					} else {
+						$result2 = __( 'It looks like an error was thrown when trying to change PHP versions.  Check SSH and Error logs for more info.', 'wpcd' );
+					}
+					break;
+
+				case 'nginx':
+				default:
+					$result2 = $this->execute_ssh( 'generic', $instance, array( 'commands' => "sudo update-alternatives --set php /usr/bin/php$new_php_version" ) );  // notice double-quotes in the command and the embedded php variable!
+					break;
+
+			}
 
 			// And check version again.
 			$result3 = $this->execute_ssh( 'generic', $instance, array( 'commands' => 'sudo php --version' ) );

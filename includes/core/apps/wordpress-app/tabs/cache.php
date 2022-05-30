@@ -166,7 +166,7 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 		$domain = $this->get_domain_name( $id );
 
 		// Figure out the action to used based on the current status in our database.
-		$pc_status = get_post_meta( $id, 'wpapp_nginx_pagecache_status', true );
+		$pc_status = $this->get_page_cache_status( $id );
 		if ( empty( $pc_status ) ) {
 			$pc_status = 'off';
 		}
@@ -197,17 +197,17 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 
 		// Now that we know we're successful, lets update a meta indicating the status of page cache on the site.
 		if ( 'enable_page_cache' === $action ) {
-			update_post_meta( $id, 'wpapp_nginx_pagecache_status', 'on' );
+			$this->set_page_cache_status( $id, 'on' );
 		} elseif ( 'disable_page_cache' === $action ) {
-			update_post_meta( $id, 'wpapp_nginx_pagecache_status', 'off' );
+			$this->set_page_cache_status( $id, 'off' );
 		}
 
 		// Success message and force refresh.
 		if ( ! is_wp_error( $result ) ) {
 			if ( 'enable_page_cache' === $action ) {
-				$success_msg = __( 'NGINX pagecache has been enabled for this site.', 'wpcd' );
+				$success_msg = __( 'The pagecache has been enabled for this site.', 'wpcd' );
 			} else {
-				$success_msg = __( 'NGINX pagecache has been disabled for this site.', 'wpcd' );
+				$success_msg = __( 'The pagecache has been disabled for this site.', 'wpcd' );
 			}
 			$result = array(
 				'msg'     => $success_msg,
@@ -421,8 +421,8 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 			'type' => 'heading',
 		);
 
-		// What is the status of the page cache?
-		$pc_status = get_post_meta( $id, 'wpapp_nginx_pagecache_status', true );
+		// What is the status of the page cache?		
+		$pc_status = $this->get_page_cache_status( $id );
 		if ( empty( $pc_status ) ) {
 			$pc_status = 'off';
 		}

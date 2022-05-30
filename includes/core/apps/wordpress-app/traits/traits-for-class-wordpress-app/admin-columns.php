@@ -782,7 +782,7 @@ trait wpcd_wpapp_admin_column_data {
 			case 'wpcd_wpapp_cache':
 				if ( 'wordpress-app' === $this->get_app_name() ) {
 					// get the page cache status.
-					$page_cache = wpcd_maybe_unserialize( get_post_meta( $post_id, 'wpapp_nginx_pagecache_status', true ) );
+					$page_cache = WPCD_WORDPRESS_APP()->get_page_cache_status( $post_id );
 					if ( empty( $page_cache ) ) {
 						$page_cache = 'off';
 					}

@@ -1119,6 +1119,53 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	}
 
 	/**
+	 * Returns an indicator whether the page cache is enabled or not.
+	 *
+	 * @param int $app_id ID of app being interrogated.
+	 *
+	 * @return string 'on' or 'off'
+	 */
+	public function get_page_cache_status( $app_id ) {
+		// Default current status.
+		$current_status = '';
+
+		/**
+		 * We have to handle older WPCD versions (versions prior to WPCD 5.0).
+		 */
+		// First, check to see if the nginx meta has a value.
+		$nginx_value = get_post_meta( $app_id, 'wpapp_nginx_pagecache_status', true );
+
+		// If it does, convert it to our new meta and delete the old value.
+		if ( ! empty( $nginx_value ) ) {
+			update_post_meta( $app_id, 'wpapp_pagecache_status', $nginx_value );
+			delete_post_meta( $app_id, 'wpapp_nginx_pagecache_status' );
+		}
+
+		// Now we can pick up the current status after any conversions.
+		$current_status = wpcd_maybe_unserialize( get_post_meta( $app_id, 'wpapp_pagecache_status', true ) );		
+
+		if ( empty( $current_status ) ) {
+			$current_status = 'off';
+		}
+
+		return $current_status;
+
+	}
+
+	/**
+	 * Sets the page cache status meta on an app record..
+	 *
+	 * @param int    $app_id ID of app.
+	 * @param string $status The status to set - should be 'on' or 'off'.
+	 *
+	 * @return boolean|array|object
+	 */
+	public function set_page_cache_status( $app_id, $status ) {
+		return update_post_meta( $app_id, 'wpapp_pagecache_status', $status );
+	}
+
+
+	/**
 	 * Returns whether a site is a staging site.
 	 *
 	 * @param int $app_id ID of app being interrogated.
@@ -2103,6 +2150,13 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			/* Add the password field to the CPT separately because it needs to be encrypted */
 			update_post_meta( $app_post_id, 'wpapp_password', $this::encrypt( $args['wp_password'] ) );
 
+			/**
+			 * Page caching is enabled by default for both NGINX and OLS so update the post meta to show that.
+			 * As of WPCD 5.0, we're retiring the wpapp_nginx_pagecache_status meta and using just
+			 * 'wpapp_pagecache_status' instead.
+			 */
+			update_post_meta( $id, 'wpapp_pagecache_status', 'on' );
+
 			/* Everything good, return the post id of the new app record */
 			return $app_post_id;
 
@@ -2973,19 +3027,19 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 					$qv['meta_query'][] = array(
 						'relation' => 'OR',
 						array(
-							'key'     => 'wpapp_nginx_pagecache_status',
+							'key'     => 'wpapp_pagecache_status',
 							'value'   => $wpapp_page_cache_status,
 							'compare' => '=',
 						),
 						array(
-							'key'     => 'wpapp_nginx_pagecache_status',
+							'key'     => 'wpapp_pagecache_status',
 							'compare' => 'NOT EXISTS',
 						),
 					);
 
 				} else {
 					$qv['meta_query'][] = array(
-						'key'     => 'wpapp_nginx_pagecache_status',
+						'key'     => 'wpapp_pagecache_status',
 						'value'   => $wpapp_page_cache_status,
 						'compare' => '=',
 					);

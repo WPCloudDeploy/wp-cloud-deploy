@@ -667,6 +667,23 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	}
 
 	/**
+	 * Get the webserver name (full name) installed on a server given an app or server id.
+	 *
+	 * @since 5.0
+	 *
+	 * @param int $post_id The post id of the server or app record.
+	 *
+	 * @return string
+	 */
+	public function get_web_server_description_by_id( $post_id ) {
+
+		$web_server_type = $this->get_web_server_type( $post_id );
+
+		return $this->get_web_server_description( $web_server_type );
+
+	}
+
+	/**
 	 * Get the domain name used for a wp app instance
 	 *
 	 * @param int $app_id post id of app record.

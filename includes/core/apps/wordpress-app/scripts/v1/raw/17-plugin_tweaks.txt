@@ -8,11 +8,12 @@ fi
 ## Get our common functions
 source 9999-common-functions.sh
 
-#!/bin/bash
-if [[ "$EUID" -ne 0 ]]
+# Exit if the web server is not nginx.
+# This entire script only applies to NGINX servers.
+if [ "$g_webserver_type" != "nginx" ]
 then
-	echo "Sorry, you need to run this as root"
-	exit
+    echo "Error: This operation can only be applied to NGINX servers."
+    exit 1
 fi
 
 

@@ -1167,9 +1167,6 @@ function gf_ols_htaccess
 	DOCHM="/var/www/${olsdomain}/html"
 	touch "${DOCHM}/.htaccess"
 	
-	cat 7G-Firewall-OLS.txt > "${DOCHM}/.htaccess"
-	cat 6G-Firewall-OLS.txt >> "${DOCHM}/.htaccess"
-
 	# https://riptutorial.com/bash/example/2135/indenting-here-documents
 	# Special Note: Tabs should be maintained for the indenting for this work!
 	cat >> "${DOCHM}/.htaccess" <<-'EOL'

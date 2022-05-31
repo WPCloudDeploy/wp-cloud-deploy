@@ -841,6 +841,8 @@ trait wpcd_wpapp_script_handlers {
 			case '6g_firewall.txt':
 				$new_array = array_merge(
 					array(
+						'SIX_G_COMMANDS_URL'   => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/6G-Firewall-OLS.txt',
+						'SCRIPT_SIX_G_COMMANDS_NAME'  => '6G-Firewall-OLS.txt',				
 						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/15-6g_firewall.txt',
 						'SCRIPT_NAME' => '15-6g_firewall.sh',
 					),
@@ -851,6 +853,8 @@ trait wpcd_wpapp_script_handlers {
 			case '7g_firewall.txt':
 				$new_array = array_merge(
 					array(
+						'SEVEN_G_COMMANDS_URL'   => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/7G-Firewall-OLS.txt',
+						'SCRIPT_SEVEN_G_COMMANDS_NAME'  => '7G-Firewall-OLS.txt',
 						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/40-7g_firewall.txt',
 						'SCRIPT_NAME' => '40-7g_firewall.sh',
 					),

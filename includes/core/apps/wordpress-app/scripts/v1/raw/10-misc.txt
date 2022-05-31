@@ -224,10 +224,15 @@ then
 			new_php_version=$(ls /usr/local/lsws|grep lsphp| sed -n "$site_number"p)
 		fi
 	done
-	if [ -f /etc/wpcd/php-versions-disabled/$new_php_version ]
-	then
-		echo "selected php version is disabled"
-		exit
+
+	if [ "$g_webserver_type" = "nginx" ]
+	then	
+		# The concept of versions disabled only applies to NGINX.
+		if [ -f /etc/wpcd/php-versions-disabled/$new_php_version ]
+		then
+			echo "selected php version is disabled"
+			exit
+		fi
 	fi
 
 	user_name=$(echo $domain | cut -c1-32)
@@ -238,6 +243,8 @@ then
 		then
 			systemctl restart php$current_php_version-fpm
 		fi
+		# @TODO: Why add a new php conf file from scratch.  Shouldn't we save a copy of the existing one before we delete it above and then move it to the new php version?
+		# Though we would have to handle the situation where there was no original file (maybe because something got corrupted.)
 		gf_add_php_conf $domain $user_name $new_php_version
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
@@ -917,6 +924,7 @@ then
 		fi
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
+		#TODO: Need to set the $current_php_version var just like we do for nginx above. Otherwise the message we echo out will not contain the version data.
 		gf_restart_webserver
 	fi
 	echo

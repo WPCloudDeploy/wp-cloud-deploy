@@ -293,6 +293,7 @@ class WPCD_WORDPRESS_TABS_SERVER_LOGS extends WPCD_WORDPRESS_TABS {
 				return array(
 					'/usr/local/lsws/logs/access.log' => sprintf( __( '%s Access Log', 'wpcd' ), $webserver_type_name ),
 					'/usr/local/lsws/logs/error.log'  => sprintf( __( '%s Error Log', 'wpcd' ), $webserver_type_name ),
+					'/usr/local/lsws/logs/stderr.log' => sprintf( __( '%s Standard Ouput Error Log', 'wpcd' ), $webserver_type_name ),
 					'/var/log/mysql/error.log'        => __( 'MYSQL Error Log', 'wpcd' ),
 					'/var/log/wp-backup.log'          => __( 'Site WP Backup Logs', 'wpcd' ),
 					'/var/log/wp-full-backup.log'     => __( 'Full Server WP Backup Logs', 'wpcd' ),

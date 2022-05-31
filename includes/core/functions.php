@@ -149,7 +149,6 @@ function wpcd_get_early_option( $option_id, $domain = 'wpcd_settings' ) {
  * Defaults to 25 minutes if not already set.
  *
  * Default changed from 15 min to 25 min in WPCD 5.0.
- *
  */
 function wpcd_get_long_running_command_timeout() {
 	$timeout = wpcd_get_option( 'long-command-timeout' );
@@ -397,6 +396,20 @@ function wpcd_get_dir_list( $directory ) {
 	$dirlist           = array_values( $scanned_directory );
 
 	return $dirlist;
+}
+
+/**
+ * Given a number such as 7.4 or 74, return the
+ * OLS php service name such as lsphp74.
+ *
+ * @param string $version PHP version to handle.
+ *
+ * @return string
+ */
+function wpcd_convert_php_version_to_ols_service( $version ) {
+	// Strip periods.
+	$version = str_replace( '.', '', $version );
+	return 'lsphp' . $version;
 }
 
 /**

@@ -1142,13 +1142,98 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		}
 
 		// Now we can pick up the current status after any conversions.
-		$current_status = wpcd_maybe_unserialize( get_post_meta( $app_id, 'wpapp_pagecache_status', true ) );		
+		$current_status = wpcd_maybe_unserialize( get_post_meta( $app_id, 'wpapp_pagecache_status', true ) );
 
 		if ( empty( $current_status ) ) {
 			$current_status = 'off';
 		}
 
 		return $current_status;
+
+	}
+
+	/**
+	 * Get an array of PHP versions that are valid and active on the server.
+	 *
+	 * @param int|string $id The post id of the site.
+	 *
+	 * @return array Associated array of php versions.
+	 */
+	public function get_php_versions( $id ) {
+
+		/* What type of web server are we running? */
+		$webserver_type = $this->get_web_server_type( $id );
+
+		// Create single element array if php 8.0 is installed.
+		if ( $this->is_php_80_installed( $id ) ) {
+			$php80 = array( '8.0' => '8.0' );
+		} else {
+			$php80 = array();
+		}
+
+		// Create single element array if php 8.1 is installed.
+		if ( $this->is_php_81_installed( $id ) ) {
+			$php81 = array( '8.1' => '8.1' );
+		} else {
+			$php81 = array();
+		}
+
+		// Array of other PHP versions - notable here is that OLS does not support php 5.6.
+		switch ( $webserver_type ) {
+			case 'ols':
+			case 'ols-enterprise':
+				$other_php_versions = array(
+					'7.4' => '7.4',
+					'7.3' => '7.3',
+					'7.2' => '7.2',
+					'7.1' => '7.1',
+				);
+				break;
+
+			case 'nginx':
+			default:
+				$other_php_versions = array(
+					'7.4' => '7.4',
+					'7.3' => '7.3',
+					'7.2' => '7.2',
+					'7.1' => '7.1',
+					'5.6' => '5.6',
+				);
+				break;
+		}
+
+		// Array of php version options.
+		$php_select_options = array_merge(
+			$other_php_versions,
+			$php80,
+			$php81
+		);
+
+		// Filter out inactive versions.  Only applies to NGINX.  OLS always have all versions active.
+		if ( 'nginx' === $webserver_type ) {
+			// Remove invalid PHP versions (those that are deactivated on the server).
+			$server_id = $this->get_server_id_by_app_id( $id );
+			if ( ! empty( $server_id ) ) {
+				$php_versions = array(
+					'php56' => '5.6',
+					'php71' => '7.1',
+					'php72' => '7.2',
+					'php73' => '7.3',
+					'php74' => '7.4',
+					'php80' => '8.0',
+					'php81' => '8.1',
+				);
+				foreach ( $php_versions as $php_version_key => $php_version ) {
+					if ( ! $this->is_php_version_active( $server_id, $php_version_key ) ) {
+						if ( ! empty( $php_select_options[ $php_version ] ) ) {
+							unset( $php_select_options[ $php_version ] );
+						}
+					}
+				}
+			}
+		}
+
+		return $php_select_options;
 
 	}
 

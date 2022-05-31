@@ -329,7 +329,7 @@ function gf_select_domain_nginx_ols() {
 #### Restart Webserver ols or nginx
 ###################################################################
 function gf_restart_webserver() {
-	# Restart Appropiate Webserver
+	# Restart Appropriate Webserver
 	if [ "$g_webserver_type" = "nginx" ]
 	then
 		# restart nginx

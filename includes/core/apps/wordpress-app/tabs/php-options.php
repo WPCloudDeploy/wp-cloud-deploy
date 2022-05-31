@@ -220,6 +220,23 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 
 		$actions = array();
 
+		/* What type of web server are we running? */
+		$webserver_type = $this->get_web_server_type( $id );
+
+		/* Set description based on web server. */
+		switch ( $webserver_type ) {
+			case 'ols':
+			case 'ols-enterprise':
+				$desc = __( 'Restart the PHP service for this site', 'wpcd' );
+				break;
+
+			case 'nginx':
+			default:
+				$desc = __( 'Restart the PHP FPM service for this site', 'wpcd' );
+				break;
+
+		}
+
 		/* Set the text of the confirmation prompt */
 		$confirmation_prompt = '';
 		$confirmation_prompt = __( 'Are you sure you would like to restart the PHP service for this site??', 'wpcd' );
@@ -228,7 +245,7 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 			'label'          => __( 'Restart PHP Service', 'wpcd' ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
-				'desc' => __( 'Restart the PHP FPM service for this site', 'wpcd' ),
+				'desc' => $desc,
 			),
 		);
 
@@ -256,6 +273,9 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 
 		$actions = array();
 
+		/* What type of web server are we running? */
+		$webserver_type = $this->get_web_server_type( $id );
+
 		/* What is the current php version site? */
 		$current_version = get_post_meta( $id, 'wpapp_php_version', true );
 		if ( empty( $current_version ) ) {
@@ -274,52 +294,25 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 			),
 		);
 
-		// Create single element array if php 8.0 is installed.
-		if ( $this->is_php_80_installed( $id ) ) {
-			$php80 = array( '8.0' => '8.0' );
-		} else {
-			$php80 = array();
-		}
+		// Get an associated array of PHP versions.
+		$php_select_options_raw = $this->get_php_versions( $id );
 
-		// Create single element array if php 8.1 is installed.
-		if ( $this->is_php_81_installed( $id ) ) {
-			$php81 = array( '8.1' => '8.1' );
-		} else {
-			$php81 = array();
-		}
-
-		// Array of php version options.
-		$php_select_options = array_merge(
-			array(
-				'7.4' => '7.4',
-				'7.3' => '7.3',
-				'7.2' => '7.2',
-				'7.1' => '7.1',
-				'5.6' => '5.6',
-			),
-			$php80,
-			$php81
-		);
-
-		// Remove invalid PHP versions (those that are deactivated on the server).
-		$server_id = $this->get_server_id_by_app_id( $id );
-		if ( ! empty( $server_id ) ) {
-			$php_versions = array(
-				'php56' => '5.6',
-				'php71' => '7.1',
-				'php72' => '7.2',
-				'php73' => '7.3',
-				'php74' => '7.4',
-				'php80' => '8.0',
-				'php81' => '8.1',
-			);
-			foreach ( $php_versions as $php_version_key => $php_version ) {
-				if ( ! $this->is_php_version_active( $server_id, $php_version_key ) ) {
-					if ( ! empty( $php_select_options[ $php_version ] ) ) {
-						unset( $php_select_options[ $php_version ] );
-					}
+		// Convert the keys of the array to a list of OLS services if necessary.
+		$php_select_options = array();
+		switch ( $webserver_type ) {
+			case 'ols':
+			case 'ols-enterprise':
+				foreach ( $php_select_options_raw as $php_version_key => $php_version ) {
+					$service                        = wpcd_convert_php_version_to_ols_service( $php_version );
+					$php_select_options[ $service ] = $php_version;
 				}
-			}
+				break;
+
+			case 'nginx':
+			default:
+				$php_select_options = $php_select_options_raw;
+				break;
+
 		}
 
 		$actions['change-php-version-new-version'] = array(
@@ -672,7 +665,7 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 
 		$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
 
-		// Special sanitization for the new version...
+		// Special sanitization for the new version.
 		$new_php_version = '';
 		if ( isset( $args['new_php_version'] ) ) {
 			$new_php_version         = $args['new_php_version'];  // Get the version before we escape it for the linux command line - we'll need this if the action is successful.

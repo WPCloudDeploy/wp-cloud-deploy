@@ -12,7 +12,7 @@ OLS_PASS_PROTECT_ROOT='### Enabling Password Protection config start
 context / {
 allowBrowse             1
 note             Password Protect document root for domain
-realm                   SampleProtectedArea
+realm                   Default
 accessControl  {
 allow                 *
 }
@@ -28,11 +28,19 @@ preprocessed_VAR=$(printf '%s\n' "$OLS_PASS_PROTECT_ROOT" | sed 's/\\/&&/g;s/^[[
 
 ########## Wp-admin protection
 OLS_PASS_PROTECT_WP_ADMIN='### Enabling Password Protection wp-admin config start
-context /wp-admin/ {
-location wp-admin/
+realm Wpadmin {
+	note                    Wp-Admin password protected realm
+	userDB  {
+		location              $SERVER_ROOT/conf/vhosts/$VH_NAME/htpasswd-wpadmin
+	}
+}
+
+context /wp-login.php {
+location wp-login.php
 allowBrowse             1
 note             Password Protect wp-admin for domain
-realm                   SampleProtectedArea
+realm                   Wpadmin
+accessControl  {
 allow                 *
 }
 rewrite  {
@@ -243,8 +251,6 @@ then
 		then
 			systemctl restart php$current_php_version-fpm
 		fi
-		# @TODO: Why add a new php conf file from scratch.  Shouldn't we save a copy of the existing one before we delete it above and then move it to the new php version?
-		# Though we would have to handle the situation where there was no original file (maybe because something got corrupted.)
 		gf_add_php_conf $domain $user_name $new_php_version
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
@@ -414,9 +420,8 @@ then
 		sed -i "/fastcgi_param PHP_VALUE/a $php_param;" /etc/nginx/sites-enabled/$domain
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
-		sed -i "/$(echo $php_param | cut -d "=" -f 1)/d" /var/www/$domain/html/php.ini > /dev/null 2>&1
-		echo "$php_param" >> /var/www/$domain/html/php.ini
-		chown "${user_name}":www-data /var/www/$domain/html/php.ini
+		sed -i "/$(echo $php_param | cut -d "=" -f 1)/d" /usr/local/lsws/conf/vhosts/$domain/$g_vhost_conf
+		sed -i "0,/phpIniOverride/s//php_admin_value ${php_param}\n&/" /usr/local/lsws/conf/vhosts/$domain/$g_vhost_conf
 	fi
 	echo
 	echo "Successfully changed PHP value $php_param for $domain"
@@ -445,15 +450,15 @@ then
 			php_param=$(sed -n '/fastcgi_param PHP_VALUE/,/";/p' /etc/nginx/sites-enabled/$domain | sed '1d;$d' | sed -n "$site_number"p)
 		elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 		then
-			sed -n '/^.*/,/";/p' /var/www/$domain/html/php.ini | nl
+			grep php_admin_value /usr/local/lsws/conf/vhosts/$domain/$g_vhost_conf |cut -d' ' -f2 |nl
 			read -p "PHP value: " site_number
-			number_of_sites=$(sed -n '/^.*/,/";/p' /var/www/$domain/html/php.ini | wc -l)
+			number_of_sites=$(grep php_admin_value /usr/local/lsws/conf/vhosts/$domain/$g_vhost_conf| wc -l)
 			until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]
 			do
 				echo "$site_number: invalid selection."
 				read -p "PHP value: " site_number
 			done
-			php_param=$(sed -n '/^.*/,/";/p' /var/www/$domain/html/php.ini | sed -n "$site_number"p)
+			php_param=$(grep php_admin_value /usr/local/lsws/conf/vhosts/$domain/$g_vhost_conf| cut -d' ' -f2|sed -n "$site_number"p)
 		fi
 	done
 	if [ "$g_webserver_type" = "nginx" ]
@@ -467,8 +472,7 @@ then
 		fi
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
-		sed -i "/$php_param/d" /var/www/$domain/html/php.ini
-		chown "${user_name}":www-data /var/www/$domain/html/php.ini
+		sed -i "/$(echo $php_param | cut -d "=" -f 1)/d" /usr/local/lsws/conf/vhosts/$domain/$g_vhost_conf
 	fi
 	gf_restart_webserver
 	echo
@@ -863,6 +867,7 @@ then
 		sed -i "/fastcgi_param PHP_VALUE/a post_max_size=$upload_limit\M;" /etc/nginx/sites-enabled/$domain
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
+		# @TODO: These changes need to be made in the site vHost File in the phpIniOverride section, not the site /html/php.ini file.	
 		# if parameter is already set, we delete it before configuring the new one
 		sed -i "/upload_max_filesize/d" /var/www/$domain/html/php.ini
 		sed -i "/post_max_size/d" /var/www/$domain/html/php.ini
@@ -924,7 +929,7 @@ then
 		fi
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
-		#TODO: Need to set the $current_php_version var just like we do for nginx above. Otherwise the message we echo out will not contain the version data.
+		current_php_version=$(grep lsapi: /usr/local/lsws/conf/vhosts/$domain/$g_vhost_conf|cut -d':' -f2|cut -d' ' -f1)
 		gf_restart_webserver
 	fi
 	echo
@@ -1149,7 +1154,7 @@ then
 	then
 		sed -i -e "/### Insert context configs below this line/a\\
 		${preprocessed_VAR2%?}"  /usr/local/lsws/conf/vhosts/$domain/$g_vhost_conf
-		htpasswd -b /usr/local/lsws/conf/vhosts/$domain/htpasswd $user $pass
+		htpasswd -b -c /usr/local/lsws/conf/vhosts/$domain/htpasswd-wpadmin $user $pass
 		chown -R lsadm:lsadm /usr/local/lsws/conf/vhosts/$domain/
 	fi
 	gf_restart_webserver
@@ -1169,6 +1174,7 @@ then
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
 		sed -i -re '/### Enabling Password Protection wp-admin config start/{:a;N;/### Enabling Password Protection wp-admin config end/!ba};/note             Password Protect wp-admin for domain/d' /usr/local/lsws/conf/vhosts/$domain/$g_vhost_conf
+		rm /usr/local/lsws/conf/vhosts/$domain/htpasswd-wpadmin > /dev/null 2>&1
 		chown -R lsadm:lsadm /usr/local/lsws/conf/vhosts/$domain/
 	fi
 	gf_restart_webserver

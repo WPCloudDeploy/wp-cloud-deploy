@@ -125,14 +125,14 @@ allowSymbolLink         1
 enableScript            1
 restrained              1
 setUIDMode              2
-}" >> /tmp/$domain
+}" | sudo tee /tmp/$domain > /dev/null
 
-	ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "[[ ! -f /usr/local/lsws/conf/vhosts/$domain/$vhost_conf ]] && sed -i \"/:80$/{N;s/$/\n$NEWKEY/}\" /usr/local/lsws/conf/httpd_config.conf"
-	ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "[[ ! -f /usr/local/lsws/conf/vhosts/$domain/$vhost_conf ]] && sed -i \"/:443$/{N;s/$/\n$NEWKEY/}\" /usr/local/lsws/conf/httpd_config.conf"
 	sudo rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /tmp/$domain $sshuser@$destination_ip:/tmp/$domain > /dev/null 2>&1 < /dev/null
-	ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "[[ ! -f /usr/local/lsws/conf/vhosts/$domain/$vhost_conf ]] && cat /tmp/$domain >> /usr/local/lsws/conf/httpd_config.conf" 
+	ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "if ! sudo grep -qw \"virtualhost $domain \" /usr/local/lsws/conf/httpd_config.conf; then sudo sed -i \"/:80$/{N;s/$/\n$NEWKEY/}\" /usr/local/lsws/conf/httpd_config.conf ; fi"
+	ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "if ! sudo grep -qw \"virtualhost $domain \" /usr/local/lsws/conf/httpd_config.conf; then sudo sed -i \"/:443$/{N;s/$/\n$NEWKEY/}\" /usr/local/lsws/conf/httpd_config.conf ; fi"
+	ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "if ! sudo grep -qw \"virtualhost $domain \" /usr/local/lsws/conf/httpd_config.conf; then sudo cat /tmp/$domain |sudo tee -a /usr/local/lsws/conf/httpd_config.conf > /dev/null ; fi"
 	sudo rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /usr/local/lsws/conf/vhosts/$domain/ $sshuser@$destination_ip:/usr/local/lsws/conf/vhosts/$domain/ > /dev/null 2>&1 < /dev/null
-	ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "/usr/local/lsws/bin/lswsctrl stop >/dev/null 2>&1 ; killall lsphp >/dev/null 2>&1 ; systemctl stop lsws >/dev/null 2>&1; systemctl start lsws"
+	ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo /usr/local/lsws/bin/lswsctrl stop >/dev/null 2>&1 ; sudo killall lsphp >/dev/null 2>&1 ; sudo systemctl stop lsws >/dev/null 2>&1; sudo systemctl start lsws"
 else
 	php_version=$(ls /etc/php/*/fpm/pool.d/$domain.conf | cut -d '\''/'\'' -f 4)
 	sudo rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /etc/php/$php_version/fpm/pool.d/$domain.conf $sshuser@$destination_ip:/etc/php/$php_version/fpm/pool.d < /dev/null
@@ -163,7 +163,7 @@ sudo rm -f ~/passwd.prod-$domain ~/shadow.prod-$domain ~/dbimport-$domain.sql ~/
 
 echo "Site Sync Completed Successfully."' |sudo tee /usr/local/bin/sync-site.sh > /dev/null
 
-	chmod +x /usr/local/bin/sync-site.sh
+	sudo chmod +x /usr/local/bin/sync-site.sh
 }
 
 if [[ $action == "auth" || $action == "1" ]]
@@ -206,6 +206,14 @@ then
 		exit
 	fi
 
+	remote_webserver_type=$(ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "if sudo test -f /usr/local/lsws/bin/lshttpd; then echo "ols"; else echo "nginx"; fi")
+
+	if ! [[ $g_webserver_type =~ $remote_webserver_type ]]
+	then
+		echo "Local Webserver type is $g_webserver_type But Remote Webserver is other than $g_webserver_type . 
+		Both server webserver type should be same"
+		exit 1
+	fi
 	# if host was connectable, ask user what site does he want to copy
 	while [[ -z $domain ]]
 	do
@@ -230,7 +238,7 @@ then
 		fi
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
-		if [[ ! -e /usr/local/lsws/conf/vhosts/$domain ]]
+		if ! sudo test -d /usr/local/lsws/conf/vhosts/$domain
 		then
 			echo "$domain OLS configuration is not present. Aborting!"
 			exit
@@ -241,7 +249,7 @@ then
 	sudo rm -f /var/www/html/97317319160494330146381820240308.pub /usr/local/lsws/Example/html/97317319160494330146381820240308.pub
 
 	site_sync
-	bash /usr/local/bin/sync-site.sh $domain $destination_ip $sshuser $localuser
+	sudo bash /usr/local/bin/sync-site.sh $domain $destination_ip $sshuser $localuser
 fi
 
 if [[ $action == "schedule-site-sync" || $action == "3" ]]
@@ -289,7 +297,7 @@ date=`date +%d-%m-%y-%H`
 exec >> /var/log/wp-sync-$date.log 2>&1
 
 curl -sS "$site_sync_callback_url?domain=$domain&destination_server=$destination_ip&syncstatus=start"
-bash /usr/local/bin/sync-site.sh $domain $destination_ip $sshuser $localuser
+sudo bash /usr/local/bin/sync-site.sh $domain $destination_ip $sshuser $localuser
 
 sleep 3
 curl -sS "$site_sync_callback_url?domain=$domain&destination_server=$destination_ip&syncstatus=end" 

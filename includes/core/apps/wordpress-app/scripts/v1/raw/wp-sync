@@ -43,6 +43,16 @@ else
 	echo "$(date) Starting wp-sync job" >> /var/log/wp-sync.log
 fi
 
+remote_webserver_type=$(ssh -o StrictHostKeyChecking=no -o PasswordAuthentication=no root@$dest "if sudo test -f /usr/local/lsws/bin/lshttpd; then echo "ols"; else echo "nginx"; fi")
+
+if ! [[ $webserver_type =~ $remote_webserver_type ]]
+then
+	echo "Local Webserver type is $webserver_type But Remote Webserver is other than $webserver_type . 
+	Both server webserver type should be same" >> /var/log/wp-sync.log
+	rm -f /tmp/wp-sync.lock
+	exit
+fi
+
 # remove leftover from 71-origin.sh
 # if we reached this point, wp-sync is now fully configured
 rm -f /var/www/html/51796720716872671235391607993835.pub /usr/local/lsws/Example/html/51796720716872671235391607993835.pub > /dev/null 2>&1
@@ -84,10 +94,10 @@ ssh -o StrictHostKeyChecking=no root@$dest "rm -f /root/databases_backup.sql /ro
 
 # sync files
 rsync -a --delete -e 'ssh -o StrictHostKeyChecking=no' /var/www root@$dest:/var && echo "$(date) Site sync completed" >> /var/log/wp-sync.log || echo "$(date) Site sync failed" >> /var/log/wp-sync.log
-rsync -a --delete -e 'ssh -o StrictHostKeyChecking=no' /etc/nginx root@$dest:/etc
-rsync -a --delete -e 'ssh -o StrictHostKeyChecking=no' /etc/php root@$dest:/etc
-rsync -a --delete -e 'ssh -o StrictHostKeyChecking=no' /usr/local/lsws root@$dest:/usr/local/
-rsync -a --delete -e 'ssh -o StrictHostKeyChecking=no' /etc/letsencrypt root@$dest:/etc
+rsync -a --delete -e 'ssh -o StrictHostKeyChecking=no' /etc/nginx root@$dest:/etc > /dev/null 2>&1
+rsync -a --delete -e 'ssh -o StrictHostKeyChecking=no' /etc/php root@$dest:/etc  > /dev/null 2>&1
+rsync -a --delete -e 'ssh -o StrictHostKeyChecking=no' /usr/local/lsws root@$dest:/usr/local/ > /dev/null 2>&1
+rsync -a --delete -e 'ssh -o StrictHostKeyChecking=no' /etc/letsencrypt root@$dest:/etc > /dev/null 2>&1
 # exclude root crontab because we don't want to migrate the backup wp-backup job
 rsync -a --delete -e 'ssh -o StrictHostKeyChecking=no' --exclude /var/spool/cron/crontabs/root /var/spool/cron root@$dest:/var/spool
 

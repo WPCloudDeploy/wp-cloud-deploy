@@ -221,4 +221,4 @@ then
 	exit
 fi
 
-echo -e "${RED}ERROR: Invalid action '${action}'
+echo -e "${RED}ERROR: Invalid action '${action}'"

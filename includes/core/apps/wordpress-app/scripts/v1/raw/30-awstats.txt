@@ -32,7 +32,7 @@ OLS_PASS_PROTECT_ROOT='### Enabling Password Protection config start
 context / {
 allowBrowse             1
 note             Password Protect document root for domain
-realm                   SampleProtectedArea
+realm                   Default
 accessControl  {
 allow                 *
 }

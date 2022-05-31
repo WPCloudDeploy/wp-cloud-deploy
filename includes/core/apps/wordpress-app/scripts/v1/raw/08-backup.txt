@@ -69,6 +69,14 @@ function remove_ols_site() {
 	systemctl restart lsws
 }
 
+function restore_ols_site() {
+	rsync -az vhosts/$domain /usr/local/lsws/conf/vhosts/
+	chown -R lsadm:lsadm /usr/local/lsws/conf/vhosts/$domain
+	if ! grep -qw "virtualhost $domain " ${WEBCF}
+	then
+		gf_add_ols_httpd_conf $domain
+	fi
+}
 
 # configure aws credentials if it's our first time
 if [[ ! -e ~/.aws/credentials ]]
@@ -284,8 +292,7 @@ QUERY
 		restore_nginx_configs
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
-		# @TODO: Not sure what this is doing and why we dont' have a restore_ols_configs function like we do for nginx a few lines above.
-		mv vhosts/$domain /usr/local/lsws/conf/vhosts/$domain
+		restore_ols_site
 	fi
 
 	cd ..
@@ -895,12 +902,9 @@ then
 		restore_nginx_configs
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
-		# @TODO: Not sure what this is doing and why we dont' have a restore_ols_configs function like we do for nginx a few lines above.
-		mv vhosts/$domain /usr/local/lsws/conf/vhosts/$domain
+		restore_ols_site
 		# Restore just the .htaccess file as well
-		# @TODO: Not all sites seem to have an .htaccess file so need to suppress errors if we attempt to restore a non-existent file.
-		# @TODO: Maybe we're not backing up hidden files?  If so, we need to do this.
-		tar -zvxf ../../"$backup"_fs.tar.gz $domain/html/.htaccess $domain/html/.htaccess
+		tar -zvxf ../../"$backup"_fs.tar.gz $domain/html/.htaccess
 		mv $domain/html/.htaccess /var/www/$domain/html/.htaccess
 		user_name=$(echo $domain | cut -c1-32)
 		chown "${user_name}":www-data /var/www/$domain/html/.htaccess

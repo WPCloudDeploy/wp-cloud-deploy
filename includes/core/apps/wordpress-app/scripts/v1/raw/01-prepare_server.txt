@@ -18,6 +18,7 @@ webserver_type="$(echo "$webserver_type" | awk '{ print tolower($1) }')"
 if [[ "$webserver_type" == "nginx" ]] || [[ "$webserver_type" == "ols" ]] || [[ "$webserver_type" = "ols-enterprise" ]]
 then
 	# Do nothing - it's valid, that's all we care about.
+	echo 
 else
 	echo "Sorry, you need to provided an invalid webserver: $webserver_type"
 	echo "Valid webserver_types are: nginx, ols, ols-enterprise"
@@ -194,6 +195,7 @@ then
 	fi
 
 	gf_add_ols_main_conf
+	gf_check_webserver
 	gf_restart_webserver
 	service lsws status > /dev/null 2>&1
 	if [ $? -ne 0 ] 
@@ -911,6 +913,7 @@ then
 	# then
 	#	echo "Unable to setup OLS/LSWS admin port on firewall! This is not a fatal error but you should double-check your rules after this process is completed."
 	# fi
+	echo
 fi
 
 ufw --force enable > /dev/null 2>&1

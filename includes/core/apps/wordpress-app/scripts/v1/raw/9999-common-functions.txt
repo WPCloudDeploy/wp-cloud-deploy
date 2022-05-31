@@ -908,7 +908,7 @@ function gf_add_ols_conf() {
 	docRoot                   \$VH_ROOT/html
 	vhDomain                  \$VH_DOMAIN
 	vhAliases                 www.\$VH_DOMAIN
-	adminEmails               admin@\$VH_DOMAIN
+	adminEmails               admin@$olsdomain
 	enableGzip                1
 	enableBr                  1
 
@@ -949,7 +949,7 @@ function gf_add_ols_conf() {
 	phpIniOverride  {
 	php_admin_flag log_errors On
 	php_admin_value error_log logs/php_error_log
-	php_admin_value open_basedir "\$VH_ROOT/html:/tmp/"
+	php_admin_value open_basedir "/var/www/${olsdomain}/html:/tmp/"
 	php_admin_value disable_functions "dl, exec, fpassthru, getmypid, getmyuid, highlight_file, link, opcache_get_configuration, passthru, pcntl_exec, pcntl_get_last_error, pcntl_setpriority, pcntl_strerror, pcntl_wifcontinued, phpinfo, popen, posix_ctermid, posix_getcwd, posix_getegid, posix_geteuid, posix_getgid, posix_getgrgid, posix_getgrnam, posix_getgroups, posix_getlogin, posix_getpgid, posix_getpgrp, posix_getpid, posix_getppid, posix_getpwnam, posix_getpwuid, posix_getrlimit, posix_getsid, posix_getuid, posix_isatty, posix_kill, posix_mkfifo, posix_setegid, posix_seteuid, posix_setgid, posix_setpgid, posix_setsid, posix_setuid, posix_times, posix_ttyname, posix_uname, proc_close, proc_get_status, proc_nice, proc_open, proc_terminate, shell_exec, show_source, source, system, virtual"
 	php_admin_flag allow_url_fopen Off
 	php_admin_value session.use_strict_mode 1
@@ -1003,7 +1003,7 @@ function gf_add_ols_conf() {
 	
 	# https://openlitespeed.org/kb/access-control/#Using_a_Context
 	context exp:error_log|wp-config-sample.php|\.pl|\.cgi|\.lua|\.perl|\.sql|\.sh|wp-config.php|php.ini|\.log {
-	  location                $DOC_ROOT/$0
+	  location                \$DOC_ROOT/\$0
 	  allowBrowse             0
 	  note                    Block access to scripts and files we don't want executed
 
@@ -1093,6 +1093,18 @@ function gf_add_ols_conf() {
 	EOF
 	chown -R lsadm:lsadm ${VHDIR}/*
 
+	gf_add_ols_httpd_conf ${olsdomain}
+	gf_ols_htaccess ${olsdomain}
+}
+
+
+###################################################################
+#### Add ols httpd conf for domain
+###################################################################
+function gf_add_ols_httpd_conf() {
+	local olsdomain
+	olsdomain=$1
+
 	NEWKEY="  map                     ${olsdomain} www.${olsdomain}, ${olsdomain}"
 	PORT_ARR=$(grep "address.*:[0-9]"  ${WEBCF} | awk '{print substr($2,3)}'|uniq)
 	if [  ${#PORT_ARR[@]} != 0 ]
@@ -1114,21 +1126,7 @@ restrained              1
 setUIDMode              2
 }" >>${WEBCF}
 	systemctl restart lsws
-	cat 7G-Firewall-OLS.txt > /var/www/${olsdomain}/html/.htaccess
-	cat 6G-Firewall-OLS.txt >> /var/www/${olsdomain}/html/.htaccess
-	# Commented out so we can remove after testing
-# 	echo "open_basedir = \"/var/www/${olsdomain}/html/:/tmp/\"
-# allow_url_fopen = 0
-# allow_url_include = 0
-# disable_functions =  dl, exec, fpassthru, getmypid, getmyuid, highlight_file, link, opcache_get_configuration, passthru, pcntl_exec, pcntl_get_last_error, pcntl_setpriority, pcntl_strerror, pcntl_wifcontinued, phpinfo, popen, posix_ctermid, posix_getcwd, posix_getegid, posix_geteuid, posix_getgid, posix_getgrgid, posix_getgrnam, posix_getgroups, posix_getlogin, posix_getpgid, posix_getpgrp, posix_getpid, posix_getppid, posix_getpwnam, posix_getpwuid, posix_getrlimit, posix_getsid, posix_getuid, posix_isatty, posix_kill, posix_mkfifo, posix_setegid, posix_seteuid, posix_setgid, posix_setpgid, posix_setsid, posix_setuid, posix_times, posix_ttyname, posix_uname, proc_close, proc_get_status, proc_nice, proc_open, proc_terminate, shell_exec, show_source, source, system, virtual
-# session.use_strict_mode = 1
-# session.cookie_httponly = 1
-# session.use_cookies = 1
-# session.use_only_cookies = 1
-# session.use_trans_sid = 0" > /var/www/${olsdomain}/html/php.ini
-	gf_ols_htaccess ${olsdomain}
 }
-
 
 #####################################################################
 ### select phpversion for nginx fpm
@@ -1168,9 +1166,13 @@ function gf_ols_htaccess
 	olsdomain=$1
 	DOCHM="/var/www/${olsdomain}/html"
 	touch "${DOCHM}/.htaccess"
+	
+	cat 7G-Firewall-OLS.txt > "${DOCHM}/.htaccess"
+	cat 6G-Firewall-OLS.txt >> "${DOCHM}/.htaccess"
+
 	# https://riptutorial.com/bash/example/2135/indenting-here-documents
 	# Special Note: Tabs should be maintained for the indenting for this work!
-	cat > "${DOCHM}/.htaccess" <<-'EOL'
+	cat >> "${DOCHM}/.htaccess" <<-'EOL'
 	# BEGIN WordPress
 	<IfModule mod_rewrite.c>
 	RewriteEngine On

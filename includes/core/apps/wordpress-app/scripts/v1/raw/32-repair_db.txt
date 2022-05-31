@@ -5,6 +5,13 @@
 # wp cli 'repair' command only works on the older ISAM tables.
 # So, this file cannot be used right now.
 
+# How about these ones I used to use alot on cPanel/CyberPanel?
+# Repair Check and optimize all Databases as root in detached screen session 
+# touch /root/mysql_check_repair_optimize.txt ; screen -dmS repair_optimize_mysql bash -c 'mysqlcheck -u root --auto-repair --all-databases | tee /root/mysql_check_repair_optimize.txt && mysqlcheck -o -u root --all-databases | tee -a /root/mysql_check_repair_optimize.txt; exec sh' ; tail -f /root/mysql_check_repair_optimize.txt
+
+# Repair/Check/Optimize database
+# database_name="DatabaseName_not_provided_in_form"; sudo mysqlcheck -u root --auto-repair ${database_name} && sudo mysqlcheck -o -u root ${database_name} ;
+
 if [[ "$EUID" -ne 0 ]]
 then
 	echo "Sorry, you need to run this as root"

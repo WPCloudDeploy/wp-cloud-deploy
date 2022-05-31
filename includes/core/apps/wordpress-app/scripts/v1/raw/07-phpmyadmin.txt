@@ -54,7 +54,7 @@ then
 	rm -rf phpMyAdmin-5.2.0-all-languages.tar.gz phpMyAdmin-5.2.0-all-languages
 	mkdir /var/www/$domain/html/phpMyAdmin/tmp
 	chmod 775 /var/www/$domain/html/phpMyAdmin/tmp
-	chown -R www-data:www-data /var/www/$domain/html/phpMyAdmin
+	chown -R $user_name:www-data /var/www/$domain/html/phpMyAdmin
 
 	echo
 	echo "phpMyAdmin installed for $domain"
@@ -80,7 +80,7 @@ then
 	rm -rf phpMyAdmin-$phpmyadmin_version-all-languages.tar.gz phpMyAdmin-$phpmyadmin_version-all-languages
 	mkdir /var/www/$domain/html/phpMyAdmin/tmp
 	chmod 775 /var/www/$domain/html/phpMyAdmin/tmp
-	chown -R www-data:www-data /var/www/$domain/html/phpMyAdmin
+	chown -R $user_name:www-data /var/www/$domain/html/phpMyAdmin
 
 	echo
 	echo "phpMyAdmin updated for $domain to version $phpmyadmin_version"

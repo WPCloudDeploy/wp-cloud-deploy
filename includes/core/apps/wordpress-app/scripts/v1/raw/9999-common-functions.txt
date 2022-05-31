@@ -661,13 +661,15 @@ function gf_add_ols_main_conf() {
 	  logLevel                DEBUG
 	  debugLevel              0
 	  rollingSize             10M
+	  keepDays                35
+	  compressArchive         1
 	  enableStderrLog         1
 	}
 
 	accesslog logs/access.log {
 	  logFormat               %h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"
 	  rollingSize             10M
-	  keepDays                30
+	  keepDays                35
 	  compressArchive         1
 	}
 
@@ -914,6 +916,8 @@ function gf_add_ols_conf() {
 	  useServer               0
 	  logLevel                ERROR
 	  rollingSize             10M
+	  keepDays                35
+	  compressArchive         1
 	}
 
 	accesslog \$VH_ROOT/html/logs/\$VH_NAME.access_log {
@@ -921,7 +925,7 @@ function gf_add_ols_conf() {
 	  logFormat               "%h %l %u %t "%r" %>s %b "%{Referer}i" "%{User-Agent}i""
 	  logHeaders              7
 	  rollingSize             10M
-	  keepDays                10
+	  keepDays                35
 	  compressArchive         1
 	}
 
@@ -953,6 +957,10 @@ function gf_add_ols_conf() {
 	php_admin_value session.use_cookies 1
 	php_admin_value session.use_only_cookies 1
 	php_admin_value session.use_trans_sid 0
+	php_admin_value memory_limit 128M
+	php_admin_value post_max_size 25M
+	php_admin_value upload_max_filesize 25M
+	php_admin_value max_execution_time 7200		
 	}
 
 	realm Default {

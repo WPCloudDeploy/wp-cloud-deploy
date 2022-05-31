@@ -214,14 +214,14 @@ then
 
 	# install build essentials for pecl/pear and dev requirements
 	# We need to do these in pieces otherwise our front-end UI will not like it if it takes too long to report updates.
-	echo "$(date): Building pecl/pear essentials - part 1"
+	echo "$(date): Building pecl/pear essentials - part 1 of 2"
 	apt-get install -y libmagickwand-dev pkg-config build-essential snmp pkg-config > /dev/null 2>&1
 	if [ $? -ne 0 ]
 	then
 		echo "Failed!  Quitting process"
 		exit 1
 	fi
-	echo "$(date): Building pecl/pear essentials - part 2"
+	echo "$(date): Building pecl/pear essentials - part 2 of 2"
 	apt-get install -y openssl libssl-dev autoconf automake libtool libxml2-dev libssl-dev  > /dev/null 2>&1
 	if [ $? -ne 0 ]
 	then
@@ -231,14 +231,14 @@ then
 
 	# Install all possible lsphp-dev and pear and packages
 	# We need to do these in pieces otherwise our front-end UI will not like it if it takes too long to report updates.
-	echo "$(date): Installing pear and other related ols packages part 1"
+	echo "$(date): Installing pear and other related ols packages part 1 of 2"
 	apt-get install -y lsphp?? lsphp??-common lsphp??-dev lsphp??-pear lsphp??-mysql   > /dev/null 2>&1
 	if [ $? -ne 0 ]
 	then
 		echo "Failed!  Quitting process"
 		exit 1
 	fi
-	echo "$(date): Installing pear and other related ols packages part 2"
+	echo "$(date): Installing pear and other related ols packages part 2 of 2"
 	apt-get install -y lsphp??-imap lsphp??-curl lsphp??-gd lsphp??-imap lsphp??-imagick lsphp??-intl lsphp*  > /dev/null 2>&1
 	if [ $? -ne 0 ]
 	then
@@ -812,7 +812,7 @@ fastcgi_hide_header X-Powered-By;
 			sed -i "s/;opcache.file_update_protection=2/opcache.file_update_protection=60/g" /usr/local/lsws/lsphp${phpver}/etc/php/${lsphpver}/litespeed/php.ini
        		done 
 
-		echo 'Installling OLS htaccess scan crontab file for Cron to scan every 3 minutes for .htaccess file changes and restart openlitespeed'
+		echo "$(date): Installling OLS htaccess scan crontab file for Cron to scan every 3 minutes for .htaccess file changes and restart openlitespeed"
 		cat >> /etc/cron.d/openlitespeed_htaccess_scan <<-EOL
 # Cron to scan every 3 minutes for .htaccess file changes and restart openlitespeed
 */3 * * * * root if ! find /var/www/*/html/ -maxdepth 2 -type f -newer /usr/local/lsws/admin/cgid -name '.htaccess' -exec false {} +; then systemctl restart lsws; fi

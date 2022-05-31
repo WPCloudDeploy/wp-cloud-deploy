@@ -546,6 +546,14 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 			return array();
 		}
 
+		/* What type of web server are we running? */
+		$webserver_type = $this->get_web_server_type( $id );
+
+		/* We should only show this section for nginx servers */
+		if ( 'nginx' !== $webserver_type ) {
+			return array();
+		}
+
 		/* Set the text of the confirmation prompt */
 		$confirmation_prompt = __( 'Are you sure you would like to update your PHP Workers? If you set these values incorrectly, your server will NOT restart!', 'wpcd' );
 

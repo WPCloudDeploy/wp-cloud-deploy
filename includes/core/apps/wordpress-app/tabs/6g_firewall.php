@@ -197,12 +197,29 @@ class WPCD_WORDPRESS_TABS_6G_FIREWALL extends WPCD_WORDPRESS_TABS {
 			return array_merge( $fields, $this->get_disabled_header_field( '6g_waf' ) );
 		}
 
+		// Get Webserver Type.
+		$webserver_type = $this->get_web_server_type( $id );
+
+		// Set heading description based on web server type.
+		switch ( $webserver_type ) {
+			case 'ols':
+			case 'ols-enterprise':
+				$heading_desc = __( '6G Web Application Firewall / Powered by the Litespeed Web Server Engine', 'wpcd' );
+				break;
+
+			case 'nginx':
+			default:
+				$heading_desc = __( '6G Web Application Firewall / Powered by the Nginx Web Server Engine', 'wpcd' );
+				break;
+
+		}
+
 		// Basic checks passed, ok to proceed.
 		$desc  = __( 'Manage the 6G WAF.', 'wpcd' );
 		$desc .= '<br />';
 
 		$fields[] = array(
-			'name' => __( '6G Web Application Firewall / Powered by the Nginx Web Server Engine', 'wpcd' ),
+			'name' => $heading_desc,
 			'tab'  => '6g_waf',
 			'type' => 'heading',
 			'desc' => $desc,

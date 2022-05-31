@@ -191,7 +191,7 @@ then
 		echo "Backup was attempted, but the MySQL database seems to be corrupted!"
 	fi
 	echo
-	echo "Backup has been completed!"
+		echo "Backup has been completed!"
 	exit
 fi
 
@@ -262,10 +262,12 @@ QUERY
 		userdel $user_name
 	fi
 
-	# start restore
+	### start restore
 	# restore files
-	echo "adding new system user..."	
+	echo "adding new system user..."
 	useradd -d "/var/www/$domain/html" -g "www-data" -M -s "/bin/bash" $user_name
+	
+	# @TODO: Check error output to make sure user added successfully otherwise abort the script.
 
 	cd $domain
 	echo "restoring files..."	
@@ -282,6 +284,7 @@ QUERY
 		restore_nginx_configs
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
+		# @TODO: Not sure what this is doing and why we dont' have a restore_ols_configs function like we do for nginx a few lines above.
 		mv vhosts/$domain /usr/local/lsws/conf/vhosts/$domain
 	fi
 
@@ -321,6 +324,7 @@ QUERY
 	# reset object cache
 	su - $user_name -c "wp cache flush"
 
+	# Attempt to issue SSL certificates.
 	if [ "$g_webserver_type" = "nginx" ]
 	then
 		# if at least one site had ssl enabled, restore it, except if we are dealing with a wildcard multisite
@@ -840,8 +844,9 @@ then
 	exit
 fi
 
-
-if [[ $action == "restore_nginx" || $action == "15" ]]
+# Note "restore_nginx" action is deprecated and no plugin or script code should be using it.
+# Use "restore_webserver_config" instead.
+if [[ $action == "restore_webserver_config" || $action == "restore_nginx" || $action == "15" ]]
 then
 	cd ~/.wp-backup/
 	# ask the user which site to restore
@@ -878,19 +883,23 @@ then
 		remove_ols_site
 	fi
 
+	# restore configuration file.
 	cd $domain
-	# restore nginx config
 	mkdir -p temp
 	cd temp
 	echo "restoring $g_webserver_type configuration..."	
 	tar xzf ../../"$backup"_$g_webserver_type.tar.gz
 	if [ "$g_webserver_type" = "nginx" ]
 	then
+		# restore nginx config
 		restore_nginx_configs
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
+		# @TODO: Not sure what this is doing and why we dont' have a restore_ols_configs function like we do for nginx a few lines above.
 		mv vhosts/$domain /usr/local/lsws/conf/vhosts/$domain
 		# Restore just the .htaccess file as well
+		# @TODO: Not all sites seem to have an .htaccess file so need to suppress errors if we attempt to restore a non-existent file.
+		# @TODO: Maybe we're not backing up hidden files?  If so, we need to do this.
 		tar -zvxf ../../"$backup"_fs.tar.gz $domain/html/.htaccess $domain/html/.htaccess
 		mv $domain/html/.htaccess /var/www/$domain/html/.htaccess
 		user_name=$(echo $domain | cut -c1-32)

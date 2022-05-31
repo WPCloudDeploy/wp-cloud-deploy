@@ -100,6 +100,9 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 				do_action( 'wpcd_log_notification', $id, 'error', __( 'The manual backup has failed.', 'wpcd' ), 'backup', null );
 
 			}
+			
+			// Regardless, lets force a refresh of the backup list.
+			$this->refresh_backup_list( $id );
 		}
 
 		// Delete action-specific the temporary meta if it exists.
@@ -172,7 +175,7 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 		}
 
 		/* Now verify that the user can perform actions on this screen, assuming that they can view the server */
-		$valid_actions = array( 'backup-run-manual', 'backup-run-schedule', 'restore-from-backup', 'restore-from-backup-nginx-only', 'restore-from-backup-wpconfig-only', 'delete-all-local-site-backups', 'prune-local-site-backups' );
+		$valid_actions = array( 'backup-run-manual', 'backup-run-schedule', 'restore-from-backup', 'restore-from-backup-webserver-config-only', 'restore-from-backup-wpconfig-only', 'delete-all-local-site-backups', 'prune-local-site-backups' );
 		if ( in_array( $action, $valid_actions, true ) ) {
 			if ( ! $this->get_tab_security( $id ) ) {
 				return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
@@ -191,7 +194,7 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 					$result = $this->refresh_backup_list( $id );  // no action being passed in - don't need it - it'll get figured out in the function.
 					break;
 				case 'restore-from-backup':
-				case 'restore-from-backup-nginx-only':
+				case 'restore-from-backup-webserver-config-only':
 				case 'restore-from-backup-wpconfig-only':
 					$result = $this->backup_actions( $action, $id );
 					break;
@@ -276,7 +279,7 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 				break;
 
 			case 'restore-from-backup':
-			case 'restore-from-backup-nginx-only':
+			case 'restore-from-backup-webserver-config-only':
 			case 'restore-from-backup-wpconfig-only':
 				// Make sure we have a backup to restore.
 				if ( empty( $args['backup_item'] ) ) {
@@ -297,8 +300,8 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 					case 'restore-from-backup':
 						$restore_action = 'restore'; // Full restore.
 						break;
-					case 'restore-from-backup-nginx-only':
-						$restore_action = 'restore_nginx';
+					case 'restore-from-backup-webserver-config-only':
+						$restore_action = 'restore_webserver_config';
 						break;
 					case 'restore-from-backup-wpconfig-only':
 						$restore_action = 'restore_wpconfig';
@@ -631,20 +634,20 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 			'columns'    => 3,
 		);
 		$fields[] = array(
-			'id'         => 'wpcd_app_action_restore_backup_nginx_only',
+			'id'         => 'wpcd_app_action_restore_backup_webserver_config_only',
 			'name'       => '',
 			'tab'        => 'backup',
 			'type'       => 'button',
-			'std'        => __( 'Restore NGINX Configuration File', 'wpcd' ),
+			'std'        => __( 'Restore Web Server Configuration', 'wpcd' ),
 			// fields that contribute data for this action.
 			'attributes' => array(
 				// the _action that will be called in ajax.
-				'data-wpcd-action'              => 'restore-from-backup-nginx-only',
+				'data-wpcd-action'              => 'restore-from-backup-webserver-config-only',
 				// the id.
 				'data-wpcd-id'                  => $id,
 				// fields that contribute data for this action.
-				'data-wpcd-fields'              => json_encode( array( '#wpcd_app_action_backup_list' ) ),              // make sure we give the user a confirmation prompt.
-				'data-wpcd-confirmation-prompt' => __( 'Are you really really SURE you want to restore this backup, overwriting your NGINX web server configuration file on the existing site?', 'wpcd' ),
+				'data-wpcd-fields'              => json_encode( array( '#wpcd_app_action_backup_list' ) ), // make sure we give the user a confirmation prompt.
+				'data-wpcd-confirmation-prompt' => __( 'Are you really really SURE you want to restore this backup, overwriting your web server configuration file on the existing site?', 'wpcd' ),
 				// show log console?
 				'data-show-log-console'         => true,
 				// Initial console message.

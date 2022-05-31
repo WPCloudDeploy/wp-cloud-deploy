@@ -2155,7 +2155,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			 * As of WPCD 5.0, we're retiring the wpapp_nginx_pagecache_status meta and using just
 			 * 'wpapp_pagecache_status' instead.
 			 */
-			update_post_meta( $id, 'wpapp_pagecache_status', 'on' );
+			$this->set_page_cache_status( $app_post_id, 'on' );
 
 			/* Everything good, return the post id of the new app record */
 			return $app_post_id;

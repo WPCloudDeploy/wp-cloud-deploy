@@ -413,6 +413,22 @@ function wpcd_convert_php_version_to_ols_service( $version ) {
 }
 
 /**
+ * Given an ols php service such as lsphp74, return 7.4
+ *
+ * @param string $phpservice OLS PHP Service name- eg: lsphp81.
+ *
+ * @return string.
+ */
+function wpcd_convert_ols_phpservice_to_php_version( $phpservice ) {
+
+	// Get last two characters of phpservice.
+	$version = mb_substr( $phpservice, -2 );
+	$version = mb_substr( $version, 0, 1 ) . '.' . mb_substr( $version, 1, 1 );  // Reminder: First character position is 0, not 1.
+	return $version;
+
+}
+
+/**
  * Get The Post ID from a form submission.
  * This is usually used when the post id isn't explicitly passed into a function or filter or action hook.
  *

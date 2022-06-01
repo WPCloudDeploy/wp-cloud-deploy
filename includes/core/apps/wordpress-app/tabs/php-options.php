@@ -298,6 +298,7 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 		$php_select_options_raw = $this->get_php_versions( $id );
 
 		// Convert the keys of the array to a list of OLS services if necessary.
+		// For OLS, the service name is the PHP version for bash.
 		$php_select_options = array();
 		switch ( $webserver_type ) {
 			case 'ols':
@@ -306,6 +307,8 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 					$service                        = wpcd_convert_php_version_to_ols_service( $php_version );
 					$php_select_options[ $service ] = $php_version;
 				}
+				// Also need to convert the current version so that it can be defaulted for the SELECT input.
+				$current_version = wpcd_convert_php_version_to_ols_service( $current_version );
 				break;
 
 			case 'nginx':
@@ -673,7 +676,11 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 
 		$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
 
+		// What type of web server are we running?
+		$webserver_type = $this->get_web_server_type( $id );
+
 		// Special sanitization for the new version.
+		// Reminder: ols versions are names such as lsphp74 while nginx versions are just 7.4.
 		$new_php_version = '';
 		if ( isset( $args['new_php_version'] ) ) {
 			$new_php_version         = $args['new_php_version'];  // Get the version before we escape it for the linux command line - we'll need this if the action is successful.
@@ -703,7 +710,17 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 		$result  = $this->execute_ssh( 'generic', $instance, array( 'commands' => $run_cmd ) );
 		$success = $this->is_ssh_successful( $result, 'change_php_version_misc.txt' );
 		if ( ! $success ) {
+			/* Translators: %1 is an action, %2 is the site / domain name. */
 			return new \WP_Error( sprintf( __( 'Unable to %1$s site: %2$s', 'wpcd' ), $action, $result ) );
+		}
+
+		/**
+		 * Need to do some translation of the version if the web server is litespeed.
+		 * This is because the litespeed version is something like 'lsphp80' and we
+		 * need to record a three digit character like '8.0' in the db.
+		 */
+		if ( 'nginx' !== $webserver_type ) {
+			$new_php_version = wpcd_convert_ols_phpservice_to_php_version( $new_php_version );
 		}
 
 		// Record the new version on the app record.

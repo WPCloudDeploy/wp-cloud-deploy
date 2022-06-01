@@ -44,12 +44,12 @@ function remove_ols_site() {
 	then
 		certbot delete --cert-name $domain --noninteractive
 	fi
-	rm -rf /usr/local/lsws/conf/vhosts/$domain
-	rm -rf /usr/local/lsws/conf/vhosts-disabled/$domain
+	rm -rf ${VHDIR}/$domain
+	rm -rf ${LSDIR}/conf/vhosts-disabled/$domain
 	# remove the block like below
 	# virtualhost somedomain.tld {
 	# vhRoot                  /var/www/somedomain.tld
-	# configFile              /usr/local/lsws/conf/vhosts/somedomain.tld/$g_vhost_conf
+	# configFile              ${VHDIR}/somedomain.tld/$g_vhost_conf
 	# allowSymbolLink         1
 	# enableScript            1
 	# restrained              1
@@ -57,23 +57,23 @@ function remove_ols_site() {
 	# user                    $VH_USER
 	# group                   $VH_USER
 	# }
-	sed -i -re "/virtualhost ${domain} \{/{:a;N;/\}/!ba};/vhRoot                  \/var\/www\/$domain/d" /usr/local/lsws/conf/httpd_config.conf
+	sed -i -re "/virtualhost ${domain} \{/{:a;N;/\}/!ba};/vhRoot                  \/var\/www\/$domain/d" ${WEBCF}
 	# remove the map lines inserted on the multiple listeners blocks like below
 	# map                     somedomain.tld somedomain.tld
-	sed -i "/[ ]*map[ ]*${domain} www.${domain}, ${domain}/d" /usr/local/lsws/conf/httpd_config.conf
+	sed -i "/[ ]*map[ ]*${domain} www.${domain}, ${domain}/d" ${WEBCF}
 	systemctl restart lsws
 }
 
 function select_ols_site_to_enable() {
-	ls /usr/local/lsws/conf/vhosts-disabled/ | grep -Ev "^Example|htgroup|htpasswd|$g_vhost_conf" | nl
+	ls ${LSDIR}/conf/vhosts-disabled/ | grep -Ev "^Example|htgroup|htpasswd|$g_vhost_conf" | nl
 	read -p "Select site: " site_number
-	number_of_sites=$(ls /usr/local/lsws/conf/vhosts-disabled/ | grep -Ev "^Example|htgroup|htpasswd|$g_vhost_conf" | wc -l)
+	number_of_sites=$(ls ${LSDIR}/conf/vhosts-disabled/ | grep -Ev "^Example|htgroup|htpasswd|$g_vhost_conf" | wc -l)
 	until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]
 	do
 		echo "$site_number: invalid selection."
 		read -p "Select site: " site_number
 	done
-	domain=$(ls /usr/local/lsws/conf/vhosts-disabled/ | grep -Ev "^Example|htgroup|htpasswd|$g_vhost_conf" | sed -n "$site_number"p)
+	domain=$(ls ${LSDIR}/conf/vhosts-disabled/ | grep -Ev "^Example|htgroup|htpasswd|$g_vhost_conf" | sed -n "$site_number"p)
 }
 
 
@@ -110,8 +110,8 @@ then
 		systemctl restart nginx
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
-		mkdir -p /usr/local/lsws/conf/vhosts-disabled
-		mv /usr/local/lsws/conf/vhosts/$domain /usr/local/lsws/conf/vhosts-disabled/$domain
+		mkdir -p ${LSDIR}/conf/vhosts-disabled
+		mv ${VHDIR}/$domain ${LSDIR}/conf/vhosts-disabled/$domain
 		systemctl restart lsws
 	fi
 	echo
@@ -142,7 +142,7 @@ then
 		systemctl restart nginx
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
-		mv /usr/local/lsws/conf/vhosts-disabled/$domain /usr/local/lsws/conf/vhosts/$domain
+		mv ${LSDIR}/conf/vhosts-disabled/$domain ${VHDIR}/$domain
 		systemctl restart lsws
 	fi
 	echo

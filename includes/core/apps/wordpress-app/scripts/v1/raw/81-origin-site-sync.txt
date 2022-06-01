@@ -120,7 +120,7 @@ then
 	echo "
 virtualhost ${domain} {
 vhRoot                  /var/www/${domain}
-configFile              /usr/local/lsws/conf/vhosts/${domain}/${vhost_conf}
+configFile              ${VHDIR}/${domain}/${vhost_conf}
 allowSymbolLink         1
 enableScript            1
 restrained              1
@@ -131,7 +131,7 @@ setUIDMode              2
 	ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "if ! sudo grep -qw \"virtualhost $domain \" /usr/local/lsws/conf/httpd_config.conf; then sudo sed -i \"/:80$/{N;s/$/\n$NEWKEY/}\" /usr/local/lsws/conf/httpd_config.conf ; fi"
 	ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "if ! sudo grep -qw \"virtualhost $domain \" /usr/local/lsws/conf/httpd_config.conf; then sudo sed -i \"/:443$/{N;s/$/\n$NEWKEY/}\" /usr/local/lsws/conf/httpd_config.conf ; fi"
 	ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "if ! sudo grep -qw \"virtualhost $domain \" /usr/local/lsws/conf/httpd_config.conf; then sudo cat /tmp/$domain |sudo tee -a /usr/local/lsws/conf/httpd_config.conf > /dev/null ; fi"
-	sudo rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /usr/local/lsws/conf/vhosts/$domain/ $sshuser@$destination_ip:/usr/local/lsws/conf/vhosts/$domain/ > /dev/null 2>&1 < /dev/null
+	sudo rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" ${VHDIR}/$domain/ $sshuser@$destination_ip:${VHDIR}/$domain/ > /dev/null 2>&1 < /dev/null
 	ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo /usr/local/lsws/bin/lswsctrl stop >/dev/null 2>&1 ; sudo killall lsphp >/dev/null 2>&1 ; sudo systemctl stop lsws >/dev/null 2>&1; sudo systemctl start lsws"
 else
 	php_version=$(ls /etc/php/*/fpm/pool.d/$domain.conf | cut -d '\''/'\'' -f 4)
@@ -238,7 +238,7 @@ then
 		fi
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
-		if ! sudo test -d /usr/local/lsws/conf/vhosts/$domain
+		if ! sudo test -d ${VHDIR}/$domain
 		then
 			echo "$domain OLS configuration is not present. Aborting!"
 			exit

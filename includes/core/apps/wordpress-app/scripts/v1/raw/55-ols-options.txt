@@ -18,15 +18,15 @@ set_user_name() {
 }
 
 # DEBUG=1 # debug mode, run this script using: sudo DEBUG=1 ./55-options.sh
-OLS_CONF="${LSDIR}/conf/httpd_config.conf"
+OLS_CONF="${WEBCF}"
 unset OLS_RELOAD
 [[ "${domain}" ]] && set_user_name
-[[ "${domain}" ]] && domain_conf="/usr/local/lsws/conf/vhosts/${domain}/vhconf.conf"
+[[ "${domain}" ]] && domain_conf="${VHDIR}/${domain}/vhconf.conf"
 
 get_domain_config_path(){
     local site
     site=$1
-    domain_conf="/usr/local/lsws/conf/vhosts/${site}/vhconf.conf"
+    domain_conf="${VHDIR}/${site}/vhconf.conf"
 }
 
 fix_permissions_on_configs_ols_lsws(){
@@ -34,7 +34,7 @@ fix_permissions_on_configs_ols_lsws(){
     # if domain is set let's try to fix permissions username would be set by previous command if domain exists
     if [[ -n "${domain}" ]]; then
         chown "${user_name}":www-data /var/www/$domain/html/.htaccess
-        chown -R lsadm:lsadm /usr/local/lsws/conf/vhosts/$domain/
+        chown -R lsadm:lsadm ${VHDIR}/$domain/
     fi
 }
 
@@ -72,14 +72,14 @@ done
 
 
 function select_ols_site(){
-    ls /usr/local/lsws/conf/vhosts/ | grep -Ev '^Example' | nl
+    ls ${VHDIR}/ | grep -Ev '^Example' | nl
     read -p "Select site: " site_number
-    number_of_sites=$(ls /usr/local/lsws/conf/vhosts/ | grep -Ev '^Example' | wc -l)
+    number_of_sites=$(ls ${VHDIR}/ | grep -Ev '^Example' | wc -l)
     until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
         echo "$site_number: invalid selection."
         read -p "Select site: " site_number
     done
-    domain=$(ls /usr/local/lsws/conf/vhosts/ | grep -Ev '^Example' | sed -n "$site_number"p)
+    domain=$(ls ${VHDIR}/ | grep -Ev '^Example' | sed -n "$site_number"p)
 }
 
 
@@ -1756,14 +1756,14 @@ get_php_version() {
         exit 1
     else
         if [[ -z "${php_version}" ]]; then
-            ls /usr/local/lsws/conf/vhosts/$domain/$g_vhost_conf > /dev/null 2>&1
+            ls ${VHDIR}/$domain/$g_vhost_conf > /dev/null 2>&1
             if [[ $? -ne 0 ]]; then
                 echo -e "${RED}Error. Could not get the php version. The vhost php conf file was not found for '${domain}'${NC}" >&2 # ERROR
                 exit 1
             fi
         
             get_domain_config_path "$domain"
-            php_version=$(grep -sEo 'lsphp[0-9]{2}' /usr/local/lsws/conf/vhosts/$domain/$g_vhost_conf|head -n1)
+            php_version=$(grep -sEo 'lsphp[0-9]{2}' ${VHDIR}/$domain/$g_vhost_conf|head -n1)
             php_domain_conf=domain_conf
             php_app="php${php_version}" # command for current php version
             php_app_su="sudo -u ${user_name} ${php_app}" # command for current php under user (please, use stdin for php code)

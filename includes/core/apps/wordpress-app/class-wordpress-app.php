@@ -650,7 +650,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 		switch ( $web_server_type ) {
 			case 'ols':
-				$return = __( 'Open Litespeed', 'wpcd' );
+				$return = __( 'OpenLiteSpeed', 'wpcd' );
 				break;
 
 			case 'nginx':
@@ -658,7 +658,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				break;
 
 			case 'ols-enterprise':
-				$return = __( 'Litespeed Enterprise', 'wpcd' );
+				$return = __( 'LiteSpeed Enterprise', 'wpcd' );
 				break;
 		}
 

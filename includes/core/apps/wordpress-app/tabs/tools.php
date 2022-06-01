@@ -240,7 +240,6 @@ class WPCD_WORDPRESS_TABS_TOOLS extends WPCD_WORDPRESS_TABS {
 			'label'          => '',
 			'raw_attributes' => array(
 				'std'                 => __( 'Reset', 'wpcd' ),
-				'desc'                => __( 'Reset file permissions for this site.', 'wpcd' ),
 				'confirmation_prompt' => __( 'Are you sure you would like to reset the file permissions for this website?', 'wpcd' ),
 			),
 			'type'           => 'button',
@@ -288,7 +287,6 @@ class WPCD_WORDPRESS_TABS_TOOLS extends WPCD_WORDPRESS_TABS {
 				'label'          => '',
 				'raw_attributes' => array(
 					'std'                 => __( 'Reset', 'wpcd' ),
-					'desc'                => __( 'Add the most recent list of restricted PHP functions to your site.', 'wpcd' ),
 					'confirmation_prompt' => $confirmation_prompt,
 				),
 				'type'           => 'button',
@@ -312,7 +310,6 @@ class WPCD_WORDPRESS_TABS_TOOLS extends WPCD_WORDPRESS_TABS {
 			'label'          => '',
 			'raw_attributes' => array(
 				'std'                 => __( 'Clear', 'wpcd' ),
-				'desc'                => __( 'Remove all metas that trigger background processes, thereby resetting them.', 'wpcd' ),
 				'confirmation_prompt' => $confirmation_prompt,
 			),
 			'type'           => 'button',

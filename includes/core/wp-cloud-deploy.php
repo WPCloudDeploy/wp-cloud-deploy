@@ -712,7 +712,7 @@ class WP_CLOUD_DEPLOY {
 		$webserver_list = array(
 			'nginx'          => __( 'NGINX', 'wpcd' ),
 			'ols'            => __( 'OpenLiteSpeed (Beta)', 'wpcd' ),
-			'ols-enterprise' => __( 'LiteSpeed Enterprise (Not Available)', 'wpcd' ),
+			'ols-enterprise' => __( 'LiteSpeed Enterprise (Beta)', 'wpcd' ),
 		);
 		return apply_filters( 'wpcd_webserver_list', $webserver_list );
 	}

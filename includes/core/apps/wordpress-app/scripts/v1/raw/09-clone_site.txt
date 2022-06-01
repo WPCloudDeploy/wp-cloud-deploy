@@ -131,23 +131,30 @@ su - $new_user_name -c "wp --skip-plugins config set DB_NAME $mysql_new_db"
 su - $new_user_name -c "wp --skip-plugins config set DB_USER $mysql_user"
 su - $new_user_name -c "wp --skip-plugins config set DB_PASSWORD $mysql_password"
 su - $new_user_name -c "wp --skip-plugins search-replace $old_domain $new_domain --recurse-objects --network --skip-columns=guid --skip-tables=wp_users --all-tables-with-prefix"
+
 # wp-cli doesn't shuffle WP_CACHE_KEY_SALT, which is important for us
 # so we use the generator once to get the additional salt we need and shuffle again so there are no duplicates
 su - $new_user_name -c "wp --skip-plugins config shuffle-salts"
 su - $new_user_name -c 'wp --skip-plugins config set WP_CACHE_KEY_SALT "$(wp --skip-plugins config get AUTH_KEY)"'
 su - $new_user_name -c "wp --skip-plugins config shuffle-salts"
-# if cache is enabled, we disable it to avoid conflicts
+
+# Flush page caches and disable object caches.
 su - $new_user_name -c "wp cache flush"
-su - $new_user_name -c "wp cache-enabler clear 2>/dev/null"
+if [ "$g_webserver_type" = "nginx" ]
+then
+	su - $new_user_name -c "wp cache-enabler clear 2>/dev/null"
+fi
 rm -f wp-content/object-cache.php
 if [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 then
-	su - $new_user_name -c "wp litespeed-option set object false && wp cache flush"
+	su - $new_user_name -c "wp litespeed-option set object false 2>/dev/null"
+	su - $new_user_name -c "wp cache flush 2>/dev/null"  
 fi
 su - $new_user_name -c "wp plugin uninstall --deactivate redis-cache 2>/dev/null"
 su - $new_user_name -c "wp --skip-plugins config set DOMAIN_CURRENT_SITE $new_domain --no-add 2>/dev/null"
 
 
+# Possibly issue SSL certificates or, if not, change the domain on the site to plain old 'http'
 if [ "$g_webserver_type" = "nginx" ]
 then
 	# reissue certificate if previous domain had https enabled and was not a multisite wildcard
@@ -155,7 +162,7 @@ then
 	then
 		echo "Attempting to obtain new ssl certificates..."
 		certbot --non-interactive --reinstall --expand --nginx --agree-tos --register-unsafely-without-email --allow-subset-of-names --redirect -d $new_domain -d www.$new_domain
-# Change configuration to HTTP if HTTPS certificate couldn't be obtained
+		# Change configuration to HTTP if HTTPS certificate couldn't be obtained
 		if [ $? -ne 0 ]
 		then
 			su - $new_user_name -c "wp --skip-plugins option update home http://$new_domain"
@@ -216,7 +223,10 @@ elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise
 then
 	if gf_is_ssl_ols $old_domain || gf_is_ssl_ols_enterprise $old_domain
 	then
+		echo "Attempting to obtain new ssl certificates..."
 		gf_enable_certbot_ols_site "$new_domain"
+		# @TODO: Need to check to see if we have an SSL certificate for the new site.
+		# If not, need to set the DOMAIN of the site to http:  See line # 167 above for what we do in NGINX.
 	fi
 fi
 

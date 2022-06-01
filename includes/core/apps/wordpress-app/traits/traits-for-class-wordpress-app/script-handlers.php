@@ -12,7 +12,7 @@
  * Trait wpcd_wpapp_script_handlers
  */
 trait wpcd_wpapp_script_handlers {
-	
+
 	/**
 	 * This interprets the ssh result and reduces to a boolean value to indicate if a command succeeded or failed.
 	 *
@@ -40,7 +40,12 @@ trait wpcd_wpapp_script_handlers {
 				||
 				( strpos( $result, 'http2 disabled for domain' ) !== false )
 				||
-				( strpos( $result, 'http2 is already disabled for domain' ) !== false );
+				( strpos( $result, 'http2 is already disabled for domain' ) !== false )
+				||
+				( strpos( $result, 'Successfully received certificate' ) !== false )
+				||
+				( strpos( $result, 'certificate has been successfully installed' ) !== false );
+
 				break;
 			case 'add_remove_sftp.txt':
 				$return =
@@ -630,7 +635,7 @@ trait wpcd_wpapp_script_handlers {
 
 		return apply_filters( 'wpcd_is_ssh_successful', $return, $result, $command, $action, $this->get_app_name() );
 
-	}	
+	}
 
 	/**
 	 * Different scripts needs different placeholders/handling.
@@ -674,14 +679,14 @@ trait wpcd_wpapp_script_handlers {
 				$command_name = $additional['command'];
 				$new_array    = array_merge(
 					array(
-						'SIX_G_COMMANDS_URL'   => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/6G-Firewall-OLS.txt',
-						'SCRIPT_SIX_G_COMMANDS_NAME'  => '6G-Firewall-OLS.txt',
-						'SEVEN_G_COMMANDS_URL'   => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/7G-Firewall-OLS.txt',
-						'SCRIPT_SEVEN_G_COMMANDS_NAME'  => '7G-Firewall-OLS.txt',
-						'SCRIPT_URL'   => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/02-install_wordpress_site.txt',
-						'SCRIPT_NAME'  => '02-install_wordpress_site.sh',
-						'SCRIPT_LOGS'  => "{$this->get_app_name()}_{$command_name}",
-						'CALLBACK_URL' => $this->get_command_url( $instance['post_id'], $command_name, 'completed' ),
+						'SIX_G_COMMANDS_URL'           => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/6G-Firewall-OLS.txt',
+						'SCRIPT_SIX_G_COMMANDS_NAME'   => '6G-Firewall-OLS.txt',
+						'SEVEN_G_COMMANDS_URL'         => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/7G-Firewall-OLS.txt',
+						'SCRIPT_SEVEN_G_COMMANDS_NAME' => '7G-Firewall-OLS.txt',
+						'SCRIPT_URL'                   => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/02-install_wordpress_site.txt',
+						'SCRIPT_NAME'                  => '02-install_wordpress_site.sh',
+						'SCRIPT_LOGS'                  => "{$this->get_app_name()}_{$command_name}",
+						'CALLBACK_URL'                 => $this->get_command_url( $instance['post_id'], $command_name, 'completed' ),
 					),
 					$common_array,
 					$additional
@@ -841,10 +846,10 @@ trait wpcd_wpapp_script_handlers {
 			case '6g_firewall.txt':
 				$new_array = array_merge(
 					array(
-						'SIX_G_COMMANDS_URL'   => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/6G-Firewall-OLS.txt',
-						'SCRIPT_SIX_G_COMMANDS_NAME'  => '6G-Firewall-OLS.txt',				
-						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/15-6g_firewall.txt',
-						'SCRIPT_NAME' => '15-6g_firewall.sh',
+						'SIX_G_COMMANDS_URL'         => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/6G-Firewall-OLS.txt',
+						'SCRIPT_SIX_G_COMMANDS_NAME' => '6G-Firewall-OLS.txt',
+						'SCRIPT_URL'                 => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/15-6g_firewall.txt',
+						'SCRIPT_NAME'                => '15-6g_firewall.sh',
 					),
 					$common_array,
 					$additional
@@ -853,10 +858,10 @@ trait wpcd_wpapp_script_handlers {
 			case '7g_firewall.txt':
 				$new_array = array_merge(
 					array(
-						'SEVEN_G_COMMANDS_URL'   => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/7G-Firewall-OLS.txt',
-						'SCRIPT_SEVEN_G_COMMANDS_NAME'  => '7G-Firewall-OLS.txt',
-						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/40-7g_firewall.txt',
-						'SCRIPT_NAME' => '40-7g_firewall.sh',
+						'SEVEN_G_COMMANDS_URL'         => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/7G-Firewall-OLS.txt',
+						'SCRIPT_SEVEN_G_COMMANDS_NAME' => '7G-Firewall-OLS.txt',
+						'SCRIPT_URL'                   => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/40-7g_firewall.txt',
+						'SCRIPT_NAME'                  => '40-7g_firewall.sh',
 					),
 					$common_array,
 					$additional

@@ -839,6 +839,9 @@ class WPCD_WORDPRESS_TABS_SITE_SYNC extends WPCD_WORDPRESS_TABS {
 		$source_server    = $this->get_server_by_app_id( $id );
 		$source_server_id = $source_server->ID;
 
+		// What type of web server are we running?
+		$webserver_type = $this->get_web_server_type( $id );
+
 		// Now we need to construct an array of server posts that the user is allowed to see.
 		$post__in = wpcd_get_posts_by_permission( 'view_server', 'wpcd_app_server' );
 
@@ -847,6 +850,20 @@ class WPCD_WORDPRESS_TABS_SITE_SYNC extends WPCD_WORDPRESS_TABS {
 			$post__in,
 			function( $array_entry ) use ( $source_server_id ) {
 				if ( $source_server_id === (int) $array_entry ) {
+					return false;
+				} else {
+					return $array_entry;
+				}
+			}
+		);
+
+		// Remove from the array any server that does not match the webserver type where this site is running.
+		// Note the use of ArrayMap and passing in the $webserver_type to the annoymous function.
+		$post__in = array_filter(
+			$post__in,
+			function( $array_entry ) use ( $webserver_type ) {
+				$this_webserver_type = $this->get_web_server_type( (int) $array_entry );
+				if ( $this_webserver_type !== $webserver_type ) {
 					return false;
 				} else {
 					return $array_entry;

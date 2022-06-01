@@ -323,7 +323,8 @@ QUERY
 	rm -f wp-content/object-cache.php
 	if [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
-		su - $user_name -c "wp litespeed-option set object false && wp cache flush"
+		su - $user_name -c "wp litespeed-option set object false 2>/dev/null"
+		su - $user_name -c "wp cache flush 2>/dev/null"		
 	fi
 
 	su - $user_name -c "wp plugin uninstall --deactivate redis-cache 2>/dev/null"

@@ -100,9 +100,25 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 				do_action( 'wpcd_log_notification', $id, 'error', __( 'The manual backup has failed.', 'wpcd' ), 'backup', null );
 
 			}
-			
+
 			// Regardless, lets force a refresh of the backup list.
 			$this->refresh_backup_list( $id );
+		}
+
+		// If we're restoring a site check to see if the command was successful.
+		// if it was, we should remove metas related to object caches.
+		if ( 'restore-from-backup' === $command_array[0] ) {
+			// Lets pull the logs.
+			$logs = $this->get_app_command_logs( $id, $name );
+
+			// Was the command successful?
+			$success = (bool) $this->is_ssh_successful( $logs, 'backup_restore.txt' );
+
+			// If it was, then update the metas for memcached and redis.
+			if ( true === $success ) {
+				update_post_meta( $id, 'wpapp_memcached_status', 'off' );
+				update_post_meta( $id, 'wpapp_redis_status', 'off' );
+			}
 		}
 
 		// Delete action-specific the temporary meta if it exists.
@@ -456,14 +472,14 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 			$auto_backups_confirmation_prompt = __( 'Are you sure you would like to enable daily automatic backups for this site?', 'wpcd' );
 		}
 
-		if ( 'on' === $auto_backup_status ) {		
+		if ( 'on' === $auto_backup_status ) {
 			// Backups have been enabled.  Show message about disabling it first before making changes.
 			$fields[] = array(
 				'name' => __( 'Automatic Backups - This Site Only', 'wpcd' ),
 				'desc' => __( 'Backups are enabled for this site. If you would like to make changes, please disable it first using the switch below.', 'wpcd' ),
 				'tab'  => 'backup',
 				'type' => 'heading',
-			);			
+			);
 		} else {
 			$fields[] = array(
 				'name' => __( 'Automatic Backups - This Site Only', 'wpcd' ),
@@ -475,8 +491,8 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 
 		$hide_field = (bool) wpcd_get_early_option( 'wordpress_app_site_backup_hide_aws_bucket_name' ) && ( ! wpcd_is_admin() );
 		if ( 'on' !== $auto_backup_status ) {
-			// Backups are not currently enabled so we can show all fields.		
-			$fields[]   = array(
+			// Backups are not currently enabled so we can show all fields.
+			$fields[] = array(
 				'id'         => 'wpcd_app_action_auto_backup_bucket_name',
 				'desc'       => $hide_field ? '' : __( 'If this is left blank then the global bucket name from the SETTINGS screen will be used.', 'wpcd' ),
 				'tab'        => 'backup',
@@ -608,7 +624,7 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 			'class'      => 'wpcd_app_action',
 			'save_field' => false,
 			'columns'    => 3,
-		);		
+		);
 		$fields[] = array(
 			'id'         => 'wpcd_app_action_restore_backup',
 			'name'       => '',

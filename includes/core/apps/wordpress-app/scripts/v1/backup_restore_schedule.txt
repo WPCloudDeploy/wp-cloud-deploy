@@ -2,6 +2,6 @@ cd ~ &&
 sudo -E wget --no-check-certificate -O ##SCRIPT_COMMON_NAME## ##SCRIPT_COMMON_URL## &&
 sudo -E dos2unix ##SCRIPT_COMMON_NAME## &&
 sudo -E wget --no-check-certificate -O ##SCRIPT_NAME## ##SCRIPT_URL## &&
-export action=##ACTION## domain=##DOMAIN## job=##DOMAIN## days=##AUTO_BACKUP_RETENTION_DAYS## aws_access_key_id=##AWS_ACCESS_KEY_ID## aws_secret_access_key=##AWS_SECRET_ACCESS_KEY## bucket=##AWS_BUCKET_NAME## s3_sync_delete_parm=##S3_SYNC_DELETE_PARM## callback_domain=##CALLBACK_DOMAIN## &&
+export action=##ACTION## domain=##DOMAIN## job=##DOMAIN## days=##AUTO_BACKUP_RETENTION_DAYS## aws_access_key_id=##AWS_ACCESS_KEY_ID## aws_secret_access_key=##AWS_SECRET_ACCESS_KEY## bucket=##AWS_BUCKET_NAME## aws_region=##AWS_REGION## s3_sync_delete_parm=##S3_SYNC_DELETE_PARM## callback_domain=##CALLBACK_DOMAIN## &&
 sudo -E dos2unix ##SCRIPT_NAME## &&
 sudo -E bash ##SCRIPT_NAME##

@@ -37,9 +37,9 @@ function rename_nginx_site_confs() {
 }
 
 function rename_ols_site_confs() {
-	mv /usr/local/lsws/conf/vhosts/"$old_domain" /usr/local/lsws/conf/vhosts/"$new_domain"
-	chown lsadm:lsadm /usr/local/lsws/conf/vhosts/$new_domain/$g_vhost_conf > /dev/null 2>&1
-	sed -i "s/$old_domain/$new_domain/g" /usr/local/lsws/conf/vhosts/$new_domain/$g_vhost_conf > /dev/null 2>&1
+	mv ${VHDIR}/"$old_domain" ${VHDIR}/"$new_domain"
+	chown lsadm:lsadm ${VHDIR}/$new_domain/$g_vhost_conf > /dev/null 2>&1
+	sed -i "s/$old_domain/$new_domain/g" ${VHDIR}/$new_domain/$g_vhost_conf > /dev/null 2>&1
 
 	# Main config 
 	sed -i "s/$old_domain/$new_domain/g" /usr/local/lsws/conf/httpd_config.{conf,xml} 2>/dev/null
@@ -88,14 +88,14 @@ then
 	fi
 elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 then
-	if [ -d "/usr/local/lsws/conf/vhosts/$new_domain" ]
+	if [ -d "${VHDIR}/$new_domain" ]
 	then
 		echo "Destination domain already exists. Aborting!"
 		exit
 	fi
-	if [ ! -d "/usr/local/lsws/conf/vhosts/$old_domain" ]
+	if [ ! -d "${VHDIR}/$old_domain" ]
 	then
-		echo "$old_domain ols/lsws config directory: /usr/local/lsws/conf/vhosts/$old_domain is not present. Aborting!"
+		echo "$old_domain ols/lsws config directory: ${VHDIR}/$old_domain is not present. Aborting!"
 		exit
 	fi
 	if gf_is_ssl_ols $old_domain || gf_is_ssl_ols_enterprise $old_domain
@@ -188,7 +188,7 @@ then
 	rename_nginx_site_confs
 elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 then
-	php_version=$(grep -sEo 'lsphp[0-9]{2}' /usr/local/lsws/conf/vhosts/$old_domain/$g_vhost_conf | awk -F':' '{print $2}'|sort -u)
+	php_version=$(grep -sEo 'lsphp[0-9]{2}' ${VHDIR}/$old_domain/$g_vhost_conf | awk -F':' '{print $2}'|sort -u)
 	rename_ols_site_confs
 fi
 

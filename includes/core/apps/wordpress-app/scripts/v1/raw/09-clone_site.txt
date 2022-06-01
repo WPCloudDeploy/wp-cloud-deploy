@@ -43,14 +43,14 @@ then
 	fi
 elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 then
-	if [ -d "/usr/local/lsws/conf/vhosts/$new_domain" ]
+	if [ -d "${VHDIR}/$new_domain" ]
 	then
 		echo "Destination domain already exists. Aborting!"
 		exit
 	fi    
-	if [ ! -d "/usr/local/lsws/conf/vhosts/$old_domain" ]
+	if [ ! -d "${VHDIR}/$old_domain" ]
 	then
-		echo "$old_domain ols/lsws config directory: /usr/local/lsws/conf/vhosts/$old_domain is not present. Aborting!"
+		echo "$old_domain ols/lsws config directory: ${VHDIR}/$old_domain is not present. Aborting!"
 		exit
 	fi
 	if gf_is_ssl_ols $old_domain || gf_is_ssl_ols_enterprise $old_domain
@@ -225,8 +225,11 @@ then
 	then
 		echo "Attempting to obtain new ssl certificates..."
 		gf_enable_certbot_ols_site "$new_domain"
-		# @TODO: Need to check to see if we have an SSL certificate for the new site.
-		# If not, need to set the DOMAIN of the site to http:  See line # 167 above for what we do in NGINX.
+		if [ ! -f /etc/letsencrypt/live/$new_domain/fullchain.pem  ]
+		then
+			su - $new_user_name -c "wp --skip-plugins option update home http://$new_domain"
+			su - $new_user_name -c "wp --skip-plugins option update siteurl http://$new_domain"
+		fi
 	fi
 fi
 

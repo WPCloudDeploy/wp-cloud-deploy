@@ -204,18 +204,18 @@ function awstats_install
 		useradd -d "/var/www/$domain/html" -g "www-data" -M -s "/bin/bash" $domain
 		gf_add_ols_conf $domain
 		sed -i -e "/### Insert context configs below this line/a\\
-		${preprocessed_VAR%?}"  /usr/local/lsws/conf/vhosts/$domain/$g_vhost_conf
-		htpasswd -b /usr/local/lsws/conf/vhosts/$domain/htpasswd $user $pass
-		chown -R lsadm:lsadm /usr/local/lsws/conf/vhosts/$domain/
+		${preprocessed_VAR%?}"  ${VHDIR}/$domain/$g_vhost_conf
+		htpasswd -b ${VHDIR}/$domain/htpasswd $user $pass
+		chown -R lsadm:lsadm ${VHDIR}/$domain/
 		
 		ln -sf /usr/lib/cgi-bin /var/www/$domain/html/cgi-bin
 		ln -sf /usr/share/awstats/icon/* /var/www/html/awstats-icon
 
 		sed -i -e "/### Insert context configs below this line/a\\
-		${AWSTATS_VAR%?}"  /usr/local/lsws/conf/vhosts/$domain/$g_vhost_conf
+		${AWSTATS_VAR%?}"  ${VHDIR}/$domain/$g_vhost_conf
 
 		chmod -R 755 /var/lib/awstats
-		echo "$domain" > /usr/local/lsws/conf/vhosts/$domain/awstats.txt
+		echo "$domain" > ${VHDIR}/$domain/awstats.txt
 		cp /etc/awstats/awstats.conf /etc/awstats/awstats.conf.local
 		sed -i "/.*awstats.conf.local.*/d" /etc/awstats/awstats.conf.local
 		sed -i "s/SiteDomain=.*/SiteDomain=\"$domain\"/g" /etc/awstats/awstats.conf.local
@@ -257,14 +257,14 @@ function awstats_remove
 		rm -f /etc/nginx/sites-enabled/awstats.conf > /dev/null 2>&1
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
-		domain=`cat /usr/local/lsws/conf/vhosts/*/awstats.txt`
+		domain=`cat ${VHDIR}/*/awstats.txt`
 		if [ -d "/etc/letsencrypt/live/$domain" ]
 		then
 			certbot delete --cert-name $domain --noninteractive
 		fi
-		rm -rf /usr/local/lsws/conf/vhosts/$domain /usr/local/lsws/conf/vhosts-disabled/$domain
-		sed -i -re "/virtualhost ${domain} \{/{:a;N;/\}/!ba};/vhRoot                  \/var\/www\/$domain/d" /usr/local/lsws/conf/httpd_config.conf
-		sed -i "/[ ]*map[ ]*${domain} www.${domain}, ${domain}/d" /usr/local/lsws/conf/httpd_config.conf
+		rm -rf ${VHDIR}/$domain ${LSDIR}/conf/vhosts-disabled/$domain
+		sed -i -re "/virtualhost ${domain} \{/{:a;N;/\}/!ba};/vhRoot                  \/var\/www\/$domain/d" ${WEBCF}
+		sed -i "/[ ]*map[ ]*${domain} www.${domain}, ${domain}/d" ${WEBCF}
 	fi
 	rm -rf /var/www/$domain > /dev/null 2>&1
 	apt-get remove awstats -y  > /dev/null
@@ -301,7 +301,7 @@ function awstats_ssl_enable
 		gf_enable_certbot_nginx_site $domain awstats.conf
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
-		domain=`cat /usr/local/lsws/conf/vhosts/*/awstats.txt`
+		domain=`cat ${VHDIR}/*/awstats.txt`
 		gf_enable_certbot_ols_site $domain
 	fi
 }
@@ -322,7 +322,7 @@ function awstats_ssl_disable
 		gf_disable_certbot_nginx_site $domain awstats.conf
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
-		domain=`cat /usr/local/lsws/conf/vhosts/*/awstats.txt`
+		domain=`cat ${VHDIR}/*/awstats.txt`
 		gf_disable_certbot_ols_site $domain
 	fi
 }
@@ -357,10 +357,10 @@ function awstats_auth_change
 		htpasswd -b -c /etc/nginx/htpasswd/$domain $user $pass
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
-		domain=`cat /usr/local/lsws/conf/vhosts/*/awstats.txt`
-		echo "" > /usr/local/lsws/conf/vhosts/$domain/htpasswd
-		htpasswd -b /usr/local/lsws/conf/vhosts/$domain/htpasswd $user $pass
-		chown -R lsadm:lsadm /usr/local/lsws/conf/vhosts/$domain/
+		domain=`cat ${VHDIR}/*/awstats.txt`
+		echo "" > ${VHDIR}/$domain/htpasswd
+		htpasswd -b ${VHDIR}/$domain/htpasswd $user $pass
+		chown -R lsadm:lsadm ${VHDIR}/$domain/
 	fi
 	gf_restart_webserver
 	echo "Auth has been updated"

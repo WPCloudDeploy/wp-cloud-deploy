@@ -221,7 +221,7 @@ function crowdsec_ssl_enable
 		gf_enable_certbot_nginx_site $domain crowdsec.conf
         elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
-		domain=`cat /usr/local/lsws/conf/vhosts/*/crowdsec.txt`
+		domain=`cat ${VHDIR}/*/crowdsec.txt`
 		gf_enable_certbot_ols_site $domain
 	fi
 	echo "SSL has been enabled for $domain"
@@ -241,7 +241,7 @@ function crowdsec_ssl_disable
 		gf_disable_certbot_nginx_site $domain crowdsec.conf
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
-		domain=`cat /usr/local/lsws/conf/vhosts/*/crowdsec.txt`
+		domain=`cat ${VHDIR}/*/crowdsec.txt`
 		gf_disable_certbot_ols_site $domain
 	fi
 	echo "SSL has been disabled for Crodsec";
@@ -452,7 +452,7 @@ client_max_body_size 100M;
 		htpasswd -b -c /var/www/$domain/html/.htpasswd $user $pass
 		echo "Vhost configuring with OLS....";
 		gf_add_ols_conf $domain
-		echo "$domain" > /usr/local/lsws/conf/vhosts/$domain/crowdsec.txt
+		echo "$domain" > ${VHDIR}/$domain/crowdsec.txt
 		echo "AuthName "Dialog prompt"
 AuthType Basic
 AuthUserFile /var/www/$domain/html/.htpasswd

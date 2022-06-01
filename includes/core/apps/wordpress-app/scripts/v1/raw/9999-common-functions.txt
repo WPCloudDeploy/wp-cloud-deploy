@@ -313,15 +313,15 @@ function gf_select_domain_nginx_ols() {
 		domain=$(ls /etc/nginx/sites-enabled/ | grep -v '^default$\|^monit$\|^monitorix$' | sed -n "$site_number"p)
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
-		ls /usr/local/lsws/conf/vhosts/ | grep -Ev "^Example|htgroup|htpasswd|$g_vhost_conf" | nl
+		ls ${VHDIR}/ | grep -Ev "^Example|htgroup|htpasswd|$g_vhost_conf" | nl
 		read -p "Select site: " site_number
-		number_of_sites=$(ls /usr/local/lsws/conf/vhosts/ | grep -Ev "^Example|htgroup|htpasswd|$g_vhost_conf" | wc -l)
+		number_of_sites=$(ls ${VHDIR}/ | grep -Ev "^Example|htgroup|htpasswd|$g_vhost_conf" | wc -l)
 		until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]
 		do
 			echo "$site_number: invalid selection."
 			read -p "Select site: " site_number
 		done
-		domain=$(ls /usr/local/lsws/conf/vhosts/ | grep -Ev "^Example|htgroup|htpasswd|$g_vhost_conf" | sed -n "$site_number"p)
+		domain=$(ls ${VHDIR}/ | grep -Ev "^Example|htgroup|htpasswd|$g_vhost_conf" | sed -n "$site_number"p)
 	fi
 }
 
@@ -947,6 +947,7 @@ function gf_add_ols_conf() {
 	}
 
 	phpIniOverride  {
+	### Insert common phpIni
 	php_admin_flag log_errors On
 	php_admin_value error_log logs/php_error_log
 	php_admin_value open_basedir "/var/www/${olsdomain}/html:/tmp/"

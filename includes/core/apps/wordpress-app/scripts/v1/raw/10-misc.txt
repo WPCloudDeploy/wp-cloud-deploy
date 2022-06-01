@@ -138,7 +138,7 @@ then
 		fi
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
-		if grep -qs 'note             Password Protect document root for domain' /usr/local/lsws/conf/vhosts/$domain/$g_vhost_conf
+		if grep -qs 'note             Password Protect document root for domain' ${VHDIR}/$domain/$g_vhost_conf
 		then
 			echo
 			echo "Basic auth is already enabled for $domain!"
@@ -172,9 +172,9 @@ then
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
 		sed -i -e "/### Insert context configs below this line/a\\
-		${preprocessed_VAR%?}"  /usr/local/lsws/conf/vhosts/$domain/$g_vhost_conf
-		htpasswd -b /usr/local/lsws/conf/vhosts/$domain/htpasswd $user $pass
-		chown -R lsadm:lsadm /usr/local/lsws/conf/vhosts/$domain/
+		${preprocessed_VAR%?}"  ${VHDIR}/$domain/$g_vhost_conf
+		htpasswd -b ${VHDIR}/$domain/htpasswd $user $pass
+		chown -R lsadm:lsadm ${VHDIR}/$domain/
 	fi
 	gf_restart_webserver
 	echo
@@ -194,10 +194,10 @@ then
 	then
 		# Emptying file to remove all users but leaving it in place
 		# shellcheck disable=SC2188
-		# > /usr/local/lsws/conf/vhosts/$domain/htpasswd
+		# > ${VHDIR}/$domain/htpasswd
 		# Remove block from vhost config
-		sed -i -re '/### Enabling Password Protection config start/{:a;N;/### Enabling Password Protection config end/!ba};/note             Password Protect document root for domain/d' /usr/local/lsws/conf/vhosts/$domain/$g_vhost_conf
-		chown -R lsadm:lsadm /usr/local/lsws/conf/vhosts/$domain/
+		sed -i -re '/### Enabling Password Protection config start/{:a;N;/### Enabling Password Protection config end/!ba};/note             Password Protect document root for domain/d' ${VHDIR}/$domain/$g_vhost_conf
+		chown -R lsadm:lsadm ${VHDIR}/$domain/
 	fi
 	gf_restart_webserver
 	echo
@@ -214,7 +214,7 @@ then
 		current_php_version=$(ls /etc/php/*/fpm/pool.d/$domain.conf | cut -d '/' -f 4)
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
-		current_php_version=$(grep -sEo 'lsphp[0-9]{2}' /usr/local/lsws/conf/vhosts/$domain/$g_vhost_conf|head -n1)
+		current_php_version=$(grep -sEo 'lsphp[0-9]{2}' ${VHDIR}/$domain/$g_vhost_conf|head -n1)
 	fi
 
 	while [[ -z $new_php_version ]]
@@ -254,7 +254,7 @@ then
 		gf_add_php_conf $domain $user_name $new_php_version
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
-		sed -i "s/$current_php_version/$new_php_version/g" /usr/local/lsws/conf/vhosts/$domain/$g_vhost_conf > /dev/null 2>&1
+		sed -i "s/$current_php_version/$new_php_version/g" ${VHDIR}/$domain/$g_vhost_conf > /dev/null 2>&1
 	fi
 	gf_restart_webserver
 	echo
@@ -267,13 +267,26 @@ if [[ $action == "reset_permissions" || $action == "4" ]]
 then
 	select_domain
 	user_name=$(echo $domain | cut -c1-32)
-
-	chown -R root:root /var/www/$domain/
-	chown -R $user_name:www-data /var/www/$domain/html/
-	chmod -R g+w /var/www/$domain/html
-	chmod -R g+s /var/www/$domain/html
-	find /var/www/$domain/html -type f -exec chmod 664 {} +
-	find /var/www/$domain/html -type d -exec chmod 2775 {} +
+	if [ "$g_webserver_type" = "nginx" ]
+	then
+		chown -R root:root /var/www/$domain/
+		chown -R www-data:www-data /var/www/$domain/html/
+		chmod -R g+w /var/www/$domain/html
+		chmod -R g+s /var/www/$domain/html
+		find /var/www/$domain/html -type f -exec chmod 664 {} +
+		find /var/www/$domain/html -type d -exec chmod 2775 {} +	
+	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+	then	
+		chown -R root:root /var/www/"$domain"/
+		chown -R "${user_name}":www-data /var/www/"$domain"/html/
+		chown -R "${user_name}":www-data /var/www/"$domain"/html/logs/
+		# Hidden files test support: https://serverfault.com/a/156481
+		chown -R "${user_name}":www-data /var/www/"$domain"/html/.[^.]*
+		chown -R "${user_name}":www-data "${wphome}"
+		chmod -R g+ws "/var/www/$domain/html"
+		find /var/www/$domain/html -type f -exec chmod 664 {} +
+		find /var/www/$domain/html -type d -exec chmod 2775 {} +
+	fi		
 	echo
 	echo "Permissions have been reset for $domain"
 	exit
@@ -296,7 +309,7 @@ then
 		sed -i "/client_max_body_size/a add_header $header;" /etc/nginx/sites-enabled/$domain
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
-		sed -i "/<<<END_extraHeaders/a $header;" /usr/local/lsws/conf/vhosts/$domain/$g_vhost_conf > /dev/null 2>&1
+		sed -i "/<<<END_extraHeaders/a $header;" ${VHDIR}/$domain/$g_vhost_conf > /dev/null 2>&1
 	fi
 	gf_restart_webserver
 	echo
@@ -313,17 +326,17 @@ then
 		while [[ -z $header ]]
 		do
 			echo "Select the HTTP header which you wish to remove"
-			sed -n '/extraHeaders/, /END_extraHeaders/{ /extraHeaders/! { /END_extraHeaders/! p}}' /usr/local/lsws/conf/vhosts/$domain/$g_vhost_conf| nl
+			sed -n '/extraHeaders/, /END_extraHeaders/{ /extraHeaders/! { /END_extraHeaders/! p}}' ${VHDIR}/$domain/$g_vhost_conf| nl
 			read -p "Header: " site_number
-			number_of_sites=$(sed -n '/extraHeaders/, /END_extraHeaders/{ /extraHeaders/! { /END_extraHeaders/! p}}' /usr/local/lsws/conf/vhosts/$domain/$g_vhost_conf| wc -l )
+			number_of_sites=$(sed -n '/extraHeaders/, /END_extraHeaders/{ /extraHeaders/! { /END_extraHeaders/! p}}' ${VHDIR}/$domain/$g_vhost_conf| wc -l )
 			until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]
 			do
 				echo "$site_number: invalid selection."
 				read -p "Header: " site_number
 			done
-			header=$(sed -n '/extraHeaders/, /END_extraHeaders/{ /extraHeaders/! { /END_extraHeaders/! p}}' /usr/local/lsws/conf/vhosts/$domain/$g_vhost_conf | sed -n "$site_number"p)
+			header=$(sed -n '/extraHeaders/, /END_extraHeaders/{ /extraHeaders/! { /END_extraHeaders/! p}}' ${VHDIR}/$domain/$g_vhost_conf | sed -n "$site_number"p)
 		done
-		sed -i "\#$header#d" /usr/local/lsws/conf/vhosts/$domain/$g_vhost_conf
+		sed -i "\#$header#d" ${VHDIR}/$domain/$g_vhost_conf
 	elif [ "$g_webserver_type" = "nginx" ]
 	then
 		while [[ -z $header ]]
@@ -420,8 +433,8 @@ then
 		sed -i "/fastcgi_param PHP_VALUE/a $php_param;" /etc/nginx/sites-enabled/$domain
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
-		sed -i "/$(echo $php_param | cut -d "=" -f 1)/d" /usr/local/lsws/conf/vhosts/$domain/$g_vhost_conf
-		sed -i "0,/phpIniOverride/s//php_admin_value ${php_param}\n&/" /usr/local/lsws/conf/vhosts/$domain/$g_vhost_conf
+		sed -i "/$(echo $php_param | cut -d "=" -f 1)/d" ${VHDIR}/$domain/$g_vhost_conf
+		sed -i -e "/### Insert common phpIni/a\\php_admin_value ${php_param}"  ${VHDIR}/$domain/$g_vhost_conf
 	fi
 	echo
 	echo "Successfully changed PHP value $php_param for $domain"
@@ -450,15 +463,15 @@ then
 			php_param=$(sed -n '/fastcgi_param PHP_VALUE/,/";/p' /etc/nginx/sites-enabled/$domain | sed '1d;$d' | sed -n "$site_number"p)
 		elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 		then
-			grep php_admin_value /usr/local/lsws/conf/vhosts/$domain/$g_vhost_conf |cut -d' ' -f2 |nl
+			grep php_admin_value ${VHDIR}/$domain/$g_vhost_conf |cut -d' ' -f2 |nl
 			read -p "PHP value: " site_number
-			number_of_sites=$(grep php_admin_value /usr/local/lsws/conf/vhosts/$domain/$g_vhost_conf| wc -l)
+			number_of_sites=$(grep php_admin_value ${VHDIR}/$domain/$g_vhost_conf| wc -l)
 			until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]
 			do
 				echo "$site_number: invalid selection."
 				read -p "PHP value: " site_number
 			done
-			php_param=$(grep php_admin_value /usr/local/lsws/conf/vhosts/$domain/$g_vhost_conf| cut -d' ' -f2|sed -n "$site_number"p)
+			php_param=$(grep php_admin_value ${VHDIR}/$domain/$g_vhost_conf| cut -d' ' -f2|sed -n "$site_number"p)
 		fi
 	done
 	if [ "$g_webserver_type" = "nginx" ]
@@ -472,7 +485,7 @@ then
 		fi
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
-		sed -i "/$(echo $php_param | cut -d "=" -f 1)/d" /usr/local/lsws/conf/vhosts/$domain/$g_vhost_conf
+		sed -i "/$(echo $php_param | cut -d "=" -f 1)/d" ${VHDIR}/$domain/$g_vhost_conf
 	fi
 	gf_restart_webserver
 	echo
@@ -867,13 +880,10 @@ then
 		sed -i "/fastcgi_param PHP_VALUE/a post_max_size=$upload_limit\M;" /etc/nginx/sites-enabled/$domain
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
-		# @TODO: These changes need to be made in the site vHost File in the phpIniOverride section, not the site /html/php.ini file.	
-		# if parameter is already set, we delete it before configuring the new one
-		sed -i "/upload_max_filesize/d" /var/www/$domain/html/php.ini
-		sed -i "/post_max_size/d" /var/www/$domain/html/php.ini
-		echo "/upload_max_filesize=$upload_limit\M" >> /var/www/$domain/html/php.ini
-		echo "post_max_size=$upload_limit\M" >> /var/www/$domain/html/php.ini
-		chown "${user_name}":www-data /var/www/$domain/html/php.ini
+		sed -i "/upload_max_filesize/d" ${VHDIR}/$domain/$g_vhost_conf
+		sed -i "/post_max_size/d" ${VHDIR}/$domain/$g_vhost_conf
+		sed -i -e "/### Insert common phpIni/a\\php_admin_value upload_max_filesize=${upload_limit}M"  ${VHDIR}/$domain/$g_vhost_conf
+		sed -i -e "/### Insert common phpIni/a\\php_admin_value post_max_size=${upload_limit}M"  ${VHDIR}/$domain/$g_vhost_conf
 	fi
 	gf_restart_webserver
 	echo
@@ -929,7 +939,7 @@ then
 		fi
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
-		current_php_version=$(grep lsapi: /usr/local/lsws/conf/vhosts/$domain/$g_vhost_conf|cut -d':' -f2|cut -d' ' -f1)
+		current_php_version=$(grep lsapi: ${VHDIR}/$domain/$g_vhost_conf|cut -d':' -f2|cut -d' ' -f1)
 		gf_restart_webserver
 	fi
 	echo
@@ -1120,7 +1130,7 @@ then
 		fi
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
-		if grep -qs 'note             Password Protect wp-admin for domain' /usr/local/lsws/conf/vhosts/$domain/$g_vhost_conf
+		if grep -qs 'note             Password Protect wp-admin for domain' ${VHDIR}/$domain/$g_vhost_conf
 		then
 			echo "Wp Admin auth is already enabled for $domain!"
 			exit
@@ -1153,9 +1163,9 @@ then
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
 		sed -i -e "/### Insert context configs below this line/a\\
-		${preprocessed_VAR2%?}"  /usr/local/lsws/conf/vhosts/$domain/$g_vhost_conf
-		htpasswd -b -c /usr/local/lsws/conf/vhosts/$domain/htpasswd-wpadmin $user $pass
-		chown -R lsadm:lsadm /usr/local/lsws/conf/vhosts/$domain/
+		${preprocessed_VAR2%?}"  ${VHDIR}/$domain/$g_vhost_conf
+		htpasswd -b -c ${VHDIR}/$domain/htpasswd-wpadmin $user $pass
+		chown -R lsadm:lsadm ${VHDIR}/$domain/
 	fi
 	gf_restart_webserver
 	echo
@@ -1173,9 +1183,9 @@ then
 		rm /etc/nginx/htpasswd/$domain-wpadmin
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
-		sed -i -re '/### Enabling Password Protection wp-admin config start/{:a;N;/### Enabling Password Protection wp-admin config end/!ba};/note             Password Protect wp-admin for domain/d' /usr/local/lsws/conf/vhosts/$domain/$g_vhost_conf
-		rm /usr/local/lsws/conf/vhosts/$domain/htpasswd-wpadmin > /dev/null 2>&1
-		chown -R lsadm:lsadm /usr/local/lsws/conf/vhosts/$domain/
+		sed -i -re '/### Enabling Password Protection wp-admin config start/{:a;N;/### Enabling Password Protection wp-admin config end/!ba};/note             Password Protect wp-admin for domain/d' ${VHDIR}/$domain/$g_vhost_conf
+		rm ${VHDIR}/$domain/htpasswd-wpadmin > /dev/null 2>&1
+		chown -R lsadm:lsadm ${VHDIR}/$domain/
 	fi
 	gf_restart_webserver
 	echo

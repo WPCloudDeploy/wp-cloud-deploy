@@ -427,6 +427,7 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 			'name'       => $hide_field ? '' : __( 'AWS Bucket Name', 'wpcd' ),
 			'id'         => 'wpcd_app_aws_bucket_manual_backup',
 			'desc'       => $hide_field ? '' : __( 'Put the backup in this bucket. Leave this blank if you would like the backup to be placed in the default bucket.', 'wpcd' ),
+			'tooltip'    => $hide_field ? '' : __( 'The bucket should exist in the same region you specified for your AWS credentials.', 'wpcd' ),
 			'tab'        => 'backup',
 			'type'       => $hide_field ? 'hidden' : 'text',
 			'save_field' => false,
@@ -495,6 +496,7 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 			$fields[] = array(
 				'id'         => 'wpcd_app_action_auto_backup_bucket_name',
 				'desc'       => $hide_field ? '' : __( 'If this is left blank then the global bucket name from the SETTINGS screen will be used.', 'wpcd' ),
+				'tooltip'    => $hide_field ? '' : __( 'The bucket should exist in the same region you specified for your AWS credentials.', 'wpcd' ),
 				'tab'        => 'backup',
 				'type'       => $hide_field ? 'hidden' : 'text',
 				'name'       => $hide_field ? '' : __( 'AWS Bucket Name', 'wpcd' ),

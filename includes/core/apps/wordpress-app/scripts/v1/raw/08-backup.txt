@@ -63,15 +63,15 @@ function restore_nginx_configs() {
 }
 
 function remove_ols_site() {
-	rm -rf /usr/local/lsws/conf/vhosts/$domain
-	rm -rf /usr/local/lsws/conf/vhosts-disabled/$domain
+	rm -rf ${VHDIR}/$domain
+	rm -rf ${LSDIR}/conf/vhosts-disabled/$domain
 	echo "restarting web server..."
 	systemctl restart lsws
 }
 
 function restore_ols_site() {
-	rsync -az vhosts/$domain /usr/local/lsws/conf/vhosts/
-	chown -R lsadm:lsadm /usr/local/lsws/conf/vhosts/$domain
+	rsync -az vhosts/$domain ${VHDIR}/
+	chown -R lsadm:lsadm ${VHDIR}/$domain
 	if ! grep -qw "virtualhost $domain " ${WEBCF}
 	then
 		gf_add_ols_httpd_conf $domain
@@ -95,15 +95,23 @@ then
 		echo "Specify your AWS Secret Access Key"
 		read -p "AWS Secret Access Key: " aws_secret_access_key
 	fi
+
+	if [[ -z $aws_region ]]
+	then
+		echo
+		echo "Specify your default region"
+		read -p "Default Region: " aws_region
+	fi	
 fi
 
 # if aws credentials were provided interactively or in environment variables, write them to the credentials file
-if [[ $aws_access_key_id ]] && [[ $aws_secret_access_key ]]
+if [[ $aws_access_key_id ]] && [[ $aws_secret_access_key ]] && [[ $aws_region ]]
 then
 	mkdir -p ~/.aws
 	echo "[default]
-aws_access_key_id = $aws_access_key_id
-aws_secret_access_key = $aws_secret_access_key" > ~/.aws/credentials
+aws_access_key_id=$aws_access_key_id
+aws_secret_access_key=$aws_secret_access_key 
+region=$aws_region" > ~/.aws/credentials
 	echo
 	echo "AWS credentials have been saved"	
 fi
@@ -173,7 +181,7 @@ then
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
 		# backup ols or lsws config directory
-		# /usr/local/lsws/conf/vhosts/$domain
+		# ${VHDIR}/$domain
 		echo "=>backing up ols/ols-enterprise configuration..."
 		cd /usr/local/lsws/conf/
 		tar -czf ~/.wp-backup/$domain/"$domain"_"$date"_"${g_webserver_type}".tar.gz $(ls vhosts/${domain}/* 2>/dev/null)
@@ -235,7 +243,7 @@ then
 	#fi
 
 	# if /var/www/$domain exists, let the user know before overwriting
-	if [[ -d /var/www/$domain || -e /etc/nginx/sites-enabled/$domain || -e /etc/nginx/sites-available/$domain || -e /etc/php/5.6/fpm/pool.d/$domain.conf || -e /etc/php/7.1/fpm/pool.d/$domain.conf || -e /etc/php/7.2/fpm/pool.d/$domain.conf || -e /etc/php/7.3/fpm/pool.d/$domain.conf || -e /etc/php/7.4/fpm/pool.d/$domain.conf || -e /etc/php/8.0/fpm/pool.d/$domain.conf || -e /etc/php/8.1/fpm/pool.d/$domain.conf || -d /usr/local/lsws/conf/vhosts/$domain ]]
+	if [[ -d /var/www/$domain || -e /etc/nginx/sites-enabled/$domain || -e /etc/nginx/sites-available/$domain || -e /etc/php/5.6/fpm/pool.d/$domain.conf || -e /etc/php/7.1/fpm/pool.d/$domain.conf || -e /etc/php/7.2/fpm/pool.d/$domain.conf || -e /etc/php/7.3/fpm/pool.d/$domain.conf || -e /etc/php/7.4/fpm/pool.d/$domain.conf || -e /etc/php/8.0/fpm/pool.d/$domain.conf || -e /etc/php/8.1/fpm/pool.d/$domain.conf || -d ${VHDIR}/$domain ]]
 	then
 		# we do the following to allow bypassing this check if the user sets $overwrite to "yes"
 		if [[ "$overwrite" != "yes" ]]
@@ -819,7 +827,7 @@ then
 		done
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
-		sort <<< "$(ls ~/.wp-backup/; ls /usr/local/lsws/conf/vhosts/)" | grep -v 'Example$' |uniq -u |
+		sort <<< "$(ls ~/.wp-backup/; ls ${VHDIR}/)" | grep -v 'Example$' |uniq -u |
 		while read -r line
 		do
 			find $line -maxdepth 0 2>/dev/null
@@ -842,7 +850,7 @@ then
 		done | xargs rm -rf
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
-		sort <<< "$(ls ~/.wp-backup/; ls /usr/local/lsws/conf/vhosts/)" | grep -v 'Example$' |uniq -u |
+		sort <<< "$(ls ~/.wp-backup/; ls ${VHDIR}/)" | grep -v 'Example$' |uniq -u |
 		while read -r line
 		do
 			find $line -maxdepth 0 2>/dev/null

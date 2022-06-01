@@ -1,133 +1,109 @@
 #!/bin/bash
 
-if [[ "$EUID" -ne 0 ]]; then
+if [[ "$EUID" -ne 0 ]]
+then
 	echo "Sorry, you need to run this as root"
 	exit
 fi
 
+## Get our common functions
+source 9999-common-functions.sh
 
-while [[ -z $action ]]; do
-    clear
-    echo "What do you want to do?"
-    echo "   1) Set public key for site user"
-    echo "   2) Remove public key for site user"
-    echo "   3) Change password for site user"
-    echo "   4) Remove existing password for site user"
-    echo
-    read -p "Action: " action
-    until [[ -z "$action" || "$action" =~ ^[1-4]$ ]]; do
-    	echo "$action: invalid selection."
-    	read -p "Action: " action
-    done
+while [[ -z $action ]]
+do
+	clear
+	echo "What do you want to do?"
+	echo "   1) Set public key for site user"
+	echo "   2) Remove public key for site user"
+	echo "   3) Change password for site user"
+	echo "   4) Remove existing password for site user"
+	echo
+	read -p "Action: " action
+	until [[ -z "$action" || "$action" =~ ^[1-4]$ ]]
+	do
+		echo "$action: invalid selection."
+		read -p "Action: " action
+	done
 done
 
 
-
-
 # set public key
-if [[ $action == "site_user_set_key" || $action == "1" ]]; then
-    while [[ -z $user ]]; do
-        echo
-        echo "Please, select which site user you wish to set a public key for"
-        grep ':33::/var/www' /etc/passwd | grep '/bin/bash' | cut -d ':' -f 1 | nl
-        echo
-        read -p "Select site user: " site_number
-        number_of_sites=$(grep ':33::/var/www' /etc/passwd | grep '/bin/bash' | cut -d ':' -f 1 | wc -l)
-        until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
-	    	echo "$site_number: invalid selection."
-	    	read -p "Select user: " site_number
-	    done
-        user=$(grep ':33::/var/www' /etc/passwd | grep '/bin/bash' | cut -d ':' -f 1 | sed -n "$site_number"p)
-    done
+if [[ $action == "site_user_set_key" || $action == "1" ]]
+then
+	while [[ -z $user ]]
+	do
+		echo
+		echo "Please, select which site user you wish to set a public key for"
+		gf_select_user
+		user=$(grep ':33::/var/www' /etc/passwd | grep '/bin/bash' | cut -d ':' -f 1 | sed -n "$site_number"p)
+	done
+	if [[ -z $public_key ]]
+	then
+		echo
+		echo "Specify the absolute path for the public key file you wish to use
+		Example: /root/my_public_key.pub"
+		read -p "Public key: " public_key
+	fi
 
-    if [[ -z $public_key ]]; then
-    echo
-    echo "Specify the absolute path for the public key file you wish to use
-Example: /root/my_public_key.pub"
-    read -p "Public key: " public_key
-    fi
-
-    cat $public_key > /var/www/$user/.ssh_$user/authorized_keys
-
-    echo
-    echo "Public key set for $user"
-    exit
+	cat $public_key > /var/www/$user/.ssh_$user/authorized_keys
+	echo
+	echo "Public key set for $user"
+	exit
 fi
 
 
 # remove public key
-if [[ $action == "site_user_remove_key" || $action == "2" ]]; then
-    while [[ -z $user ]]; do
-        echo
-        echo "Please, select which site user you wish to remove a public key for"
-        grep ':33::/var/www' /etc/passwd | grep '/bin/bash' | cut -d ':' -f 1 | nl
-        echo
-        read -p "Select site user: " site_number
-        number_of_sites=$(grep ':33::/var/www' /etc/passwd | grep '/bin/bash' | cut -d ':' -f 1 | wc -l)
-        until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
-	    	echo "$site_number: invalid selection."
-	    	read -p "Select user: " site_number
-	    done
-        user=$(grep ':33::/var/www' /etc/passwd | grep '/bin/bash' | cut -d ':' -f 1 | sed -n "$site_number"p)
-    done
-
-    rm -f /var/www/$user/.ssh_$user/authorized_keys
-
-    echo
-    echo "Public key removed for $user"
-    exit
+if [[ $action == "site_user_remove_key" || $action == "2" ]]
+then
+	while [[ -z $user ]]
+	do
+		echo
+		echo "Please, select which site user you wish to remove a public key for"
+		gf_select_user
+		user=$(grep ':33::/var/www' /etc/passwd | grep '/bin/bash' | cut -d ':' -f 1 | sed -n "$site_number"p)
+	done
+	rm -f /var/www/$user/.ssh_$user/authorized_keys
+	echo
+	echo "Public key removed for $user"
+	exit
 fi
 
 
 # change password
-if [[ $action == "site_user_change_password" || $action == "3" ]]; then
-    while [[ -z $user ]]; do
-        echo
-        echo "Please, select which site user you wish to change the password for"
-        grep ':33::/var/www' /etc/passwd | grep '/bin/bash' | cut -d ':' -f 1 | nl
-        echo
-        read -p "Select site user: " site_number
-        number_of_sites=$(grep ':33::/var/www' /etc/passwd | grep '/bin/bash' | cut -d ':' -f 1 | wc -l)
-        until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
-	    	echo "$site_number: invalid selection."
-	    	read -p "Select user: " site_number
-	    done
-        user=$(grep ':33::/var/www' /etc/passwd | grep '/bin/bash' | cut -d ':' -f 1 | sed -n "$site_number"p)
-    done
-
-    if [[ -z $pass ]]; then
-        echo
-        echo "Enter a new password for the user"
-        read -p "Password: " pass
-    fi
-
-    echo $user:$pass | chpasswd
-
-    echo
-    echo "Password changed for $user"
-    exit
+if [[ $action == "site_user_change_password" || $action == "3" ]]
+then
+	while [[ -z $user ]]
+	do
+		echo
+		echo "Please, select which site user you wish to change the password for"
+		gf_select_user
+		user=$(grep ':33::/var/www' /etc/passwd | grep '/bin/bash' | cut -d ':' -f 1 | sed -n "$site_number"p)
+	done
+	if [[ -z $pass ]]
+	then
+		echo
+		echo "Enter a new password for the user"
+		read -p "Password: " pass
+	fi
+	echo $user:$pass | chpasswd
+	echo
+	echo "Password changed for $user"
+	exit
 fi
 
 
 # remove password
-if [[ $action == "site_user_remove_password" || $action == "4" ]]; then
-    while [[ -z $user ]]; do
-        echo
-        echo "Please, select which site user you wish to remove the password for"
-        grep ':33::/var/www' /etc/passwd | grep '/bin/bash' | cut -d ':' -f 1 | nl
-        echo
-        read -p "Select site user: " site_number
-        number_of_sites=$(grep ':33::/var/www' /etc/passwd | grep '/bin/bash' | cut -d ':' -f 1 | wc -l)
-        until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
-	    	echo "$site_number: invalid selection."
-	    	read -p "Select user: " site_number
-	    done
-        user=$(grep ':33::/var/www' /etc/passwd | grep '/bin/bash' | cut -d ':' -f 1 | sed -n "$site_number"p)
-    done
-
-    passwd -d $user
-
-    echo
-    echo "Password removed for $user"
-    exit
+if [[ $action == "site_user_remove_password" || $action == "4" ]]
+then
+	while [[ -z $user ]]
+	do
+		echo
+		echo "Please, select which site user you wish to remove the password for"
+		gf_select_user
+		user=$(grep ':33::/var/www' /etc/passwd | grep '/bin/bash' | cut -d ':' -f 1 | sed -n "$site_number"p)
+	done
+	passwd -d $user
+	echo
+	echo "Password removed for $user"
+	exit
 fi

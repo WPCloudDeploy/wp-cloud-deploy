@@ -1,79 +1,94 @@
 #!/bin/bash
-if [[ "$EUID" -ne 0 ]]; then
+if [[ "$EUID" -ne 0 ]]
+then
 	echo "Sorry, you need to run this as root"
 	exit
 fi
 
+## Get our common functions
+source 9999-common-functions.sh
 
-
-while [[ -z $domain ]]; do
-    clear
-    echo "Please, select which site you want to work with"
-    ls /var/www | grep -v html | nl
-    echo
-    read -p "Select site: " site_number
-    number_of_sites=$(ls /var/www | grep -v html | wc -l)
-    until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
-    	echo "$site_number: invalid selection."
-    	read -p "Select site: " site_number
-    done
-    domain=$(ls /var/www | grep -v html | sed -n "$site_number"p)
+while [[ -z $domain ]]
+do
+	clear
+	echo "Please, select which site you want to work with"
+	gf_select_domain
+	domain=$(ls /var/www | grep -v html | sed -n "$site_number"p)
 done
 
 
-
-while [[ -z $action ]]; do
-    clear
-    echo "What do you want to do?"
-    echo "   1) Enable WordPress Cache"
-    echo "   2) Disable WordPress Cache"
-    echo "   3) Clear WordPress Cache"
-    echo
-    read -p "Action: " action
-    until [[ -z "$action" || "$action" =~ ^[1-3]$ ]]; do
-    	echo "$action: invalid selection."
-    	read -p "Action: " action
-    done
+while [[ -z $action ]]
+do
+	clear
+	echo "What do you want to do?"
+	echo "   1) Enable WordPress Cache"
+	echo "   2) Disable WordPress Cache"
+	echo "   3) Clear WordPress Cache"
+	echo
+	read -p "Action: " action
+	until [[ -z "$action" || "$action" =~ ^[1-3]$ ]]
+	do
+		echo "$action: invalid selection."
+		read -p "Action: " action
+	done
 done
-
-
 
 user_name=$(echo $domain | cut -c1-32)
 
 
-
-cd /var/www/$domain/html/
-
-
-
-if [[ $action == "enable_page_cache" || $action == "1" ]]; then
-
-    su - $user_name -c "wp  plugin install --activate cache-enabler"
-	su - $user_name -c "wp --skip-plugins config set WP_CACHE true"
-
-    echo
-    echo "WordPress Cache has been enabled for $domain"
-    exit
+if [[ $action == "enable_page_cache" || $action == "1" ]]
+then
+	if [ "$g_webserver_type" = "nginx" ]
+	then
+		su - $user_name -c "wp plugin install --activate cache-enabler"
+		su - $user_name -c "wp --skip-plugins config set WP_CACHE true"
+	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+	then
+		su - "$user_name" -c "wp --skip-plugins plugin install litespeed-cache && wp --skip-plugins plugin activate litespeed-cache && wp litespeed-online init"
+	fi
+	gf_restart_webserver
+	echo
+	echo "WordPress Cache has been enabled for $domain"
+	exit
 fi
 
 
-if [[ $action == "disable_page_cache" || $action == "2" ]]; then
-
-    su - $user_name -c "wp plugin deactivate cache-enabler"
-    su - $user_name -c "wp plugin uninstall cache-enabler"
-	su - $user_name -c "wp --skip-plugins config set WP_CACHE false"
-
-    echo
-    echo "WordPress Cache has been disabled for $domain"
-    exit
+if [[ $action == "disable_page_cache" || $action == "2" ]]
+then
+	if [ "$g_webserver_type" = "nginx" ]
+	then
+		su - $user_name -c "wp plugin deactivate cache-enabler"
+		su - $user_name -c "wp plugin uninstall cache-enabler"
+		su - $user_name -c "wp --skip-plugins config set WP_CACHE false"
+	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+	then
+		su - "$user_name" -c "wp --skip-plugins plugin deactivate litespeed-cache && wp --skip-plugins plugin uninstall litespeed-cache"
+	fi
+	gf_restart_webserver
+	echo
+	echo "WordPress Cache has been disabled for $domain"
+	exit
 fi
 
 
-if [[ $action == "clear_page_cache" || $action == "3" ]]; then
-
-    su - $user_name -c "wp cache-enabler clear"
-
-    echo
-    echo "WordPress Cache has been cleared for $domain"
-    exit
+if [[ $action == "clear_page_cache" || $action == "3" ]]
+then
+	# if [ "$g_webserver_type" = "nginx" ]
+	# then
+	# 	su - $user_name -c "wp cache-enabler clear"
+	# elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+	# then
+	# 	su - "$user_name" -c "wp litespeed-purge all"
+	# fi
+	
+	# All in one go approach for all known ones. It's not like we're checking exit status or care if each command is successful.
+	# do this if not successful||do this|| etc and a breaks out when it hits last alternate and followed by universal wordpress cache clear
+	su - "$user_name" -c "wp cache-enabler clear||wp w3-total-cache flush all||wp fastest-cache clear all||wp litespeed-purge all||wp cache flush all; wp cli cache clear;"
+	
+	# systemctl restart memcached
+	# systemctl restart redis # Would this be useful or as a server parameter like webserver_type passed in so we know which to restart?
+	gf_restart_webserver
+	echo
+	echo "WordPress Cache has been cleared for $domain"
+	exit
 fi

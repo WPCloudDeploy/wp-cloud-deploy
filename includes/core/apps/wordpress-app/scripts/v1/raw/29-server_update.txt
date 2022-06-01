@@ -8,8 +8,8 @@ fi
 
 clear
 
-
-while [[ -z $action ]]; do
+while [[ -z $action ]]
+do
 	echo
 	echo "What do you want to do?"
 	echo "   1) Count Number of Pending Updates"
@@ -19,11 +19,13 @@ while [[ -z $action ]]; do
 	echo "   5) Run Security Updates in Background via Cron"
 	echo
 	read -p "Action: " action
-	until [[ -z "$action" || "$action" =~ ^[1-5]$ ]]; do
+	until [[ -z "$action" || "$action" =~ ^[1-5]$ ]]
+	do
 		echo "$action: invalid selection."
 		read -p "Action: " action
 	done
 done
+
 
 ################### Count Updates #########
 if [[ $action == "count_updates" || $action == "1" ]];
@@ -91,10 +93,9 @@ then
 	curl -sS "$callback_server_status?restart=$restart&total_updates=$total_updates&list_of_packages=$list_of_packages"
 fi'  > /usr/local/bin/server-status
 
-chmod +x /usr/local/bin/server-status
-echo "bash /usr/local/bin/server-status" |at now + 1 minutes
-
-echo "Updates have been scheduled to run via cron!"
+	chmod +x /usr/local/bin/server-status
+	echo "bash /usr/local/bin/server-status" |at now + 1 minutes
+	echo "Updates have been scheduled to run via cron!"
 fi
 
 
@@ -126,8 +127,7 @@ then
 	curl -sS "$callback_server_status?restart=$restart&total_updates=$total_updates&list_of_packages=$list_of_packages"
 fi'  > /usr/local/bin/server-status
 
-chmod +x /usr/local/bin/server-status
-echo "bash /usr/local/bin/server-status" |at now + 1 minutes
-
-echo "Security Updates have been scheduled to run via cron!"
+	chmod +x /usr/local/bin/server-status
+	echo "bash /usr/local/bin/server-status" |at now + 1 minutes
+	echo "Security Updates have been scheduled to run via cron!"
 fi

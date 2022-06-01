@@ -650,7 +650,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 		switch ( $web_server_type ) {
 			case 'ols':
-				$return = __( 'Open Lightspeed', 'wpcd' );
+				$return = __( 'Open Litespeed', 'wpcd' );
 				break;
 
 			case 'nginx':
@@ -658,11 +658,28 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				break;
 
 			case 'ols-enterprise':
-				$return = __( 'Open Lightspeed Enterprise', 'wpcd' );
+				$return = __( 'Litespeed Enterprise', 'wpcd' );
 				break;
 		}
 
 		return $return;
+
+	}
+
+	/**
+	 * Get the webserver name (full name) installed on a server given an app or server id.
+	 *
+	 * @since 5.0
+	 *
+	 * @param int $post_id The post id of the server or app record.
+	 *
+	 * @return string
+	 */
+	public function get_web_server_description_by_id( $post_id ) {
+
+		$web_server_type = $this->get_web_server_type( $post_id );
+
+		return $this->get_web_server_description( $web_server_type );
 
 	}
 
@@ -1100,6 +1117,138 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		return $current_status;
 
 	}
+
+	/**
+	 * Returns an indicator whether the page cache is enabled or not.
+	 *
+	 * @param int $app_id ID of app being interrogated.
+	 *
+	 * @return string 'on' or 'off'
+	 */
+	public function get_page_cache_status( $app_id ) {
+		// Default current status.
+		$current_status = '';
+
+		/**
+		 * We have to handle older WPCD versions (versions prior to WPCD 5.0).
+		 */
+		// First, check to see if the nginx meta has a value.
+		$nginx_value = get_post_meta( $app_id, 'wpapp_nginx_pagecache_status', true );
+
+		// If it does, convert it to our new meta and delete the old value.
+		if ( ! empty( $nginx_value ) ) {
+			update_post_meta( $app_id, 'wpapp_pagecache_status', $nginx_value );
+			delete_post_meta( $app_id, 'wpapp_nginx_pagecache_status' );
+		}
+
+		// Now we can pick up the current status after any conversions.
+		$current_status = wpcd_maybe_unserialize( get_post_meta( $app_id, 'wpapp_pagecache_status', true ) );
+
+		if ( empty( $current_status ) ) {
+			$current_status = 'off';
+		}
+
+		return $current_status;
+
+	}
+
+	/**
+	 * Get an array of PHP versions that are valid and active on the server.
+	 *
+	 * @param int|string $id The post id of the site.
+	 *
+	 * @return array Associated array of php versions.
+	 */
+	public function get_php_versions( $id ) {
+
+		/* What type of web server are we running? */
+		$webserver_type = $this->get_web_server_type( $id );
+
+		// Create single element array if php 8.0 is installed.
+		if ( $this->is_php_80_installed( $id ) ) {
+			$php80 = array( '8.0' => '8.0' );
+		} else {
+			$php80 = array();
+		}
+
+		// Create single element array if php 8.1 is installed.
+		if ( $this->is_php_81_installed( $id ) ) {
+			$php81 = array( '8.1' => '8.1' );
+		} else {
+			$php81 = array();
+		}
+
+		// Array of other PHP versions - notable here is that OLS does not support php 5.6.
+		switch ( $webserver_type ) {
+			case 'ols':
+			case 'ols-enterprise':
+				$other_php_versions = array(
+					'7.4' => '7.4',
+					'7.3' => '7.3',
+					'7.2' => '7.2',
+					'7.1' => '7.1',
+				);
+				break;
+
+			case 'nginx':
+			default:
+				$other_php_versions = array(
+					'7.4' => '7.4',
+					'7.3' => '7.3',
+					'7.2' => '7.2',
+					'7.1' => '7.1',
+					'5.6' => '5.6',
+				);
+				break;
+		}
+
+		// Array of php version options.
+		$php_select_options = array_merge(
+			$other_php_versions,
+			$php80,
+			$php81
+		);
+
+		// Filter out inactive versions.  Only applies to NGINX.  OLS always have all versions active.
+		if ( 'nginx' === $webserver_type ) {
+			// Remove invalid PHP versions (those that are deactivated on the server).
+			$server_id = $this->get_server_id_by_app_id( $id );
+			if ( ! empty( $server_id ) ) {
+				$php_versions = array(
+					'php56' => '5.6',
+					'php71' => '7.1',
+					'php72' => '7.2',
+					'php73' => '7.3',
+					'php74' => '7.4',
+					'php80' => '8.0',
+					'php81' => '8.1',
+				);
+				foreach ( $php_versions as $php_version_key => $php_version ) {
+					if ( ! $this->is_php_version_active( $server_id, $php_version_key ) ) {
+						if ( ! empty( $php_select_options[ $php_version ] ) ) {
+							unset( $php_select_options[ $php_version ] );
+						}
+					}
+				}
+			}
+		}
+
+		return $php_select_options;
+
+	}
+
+	/**
+	 * Sets the page cache status meta on an app record..
+	 *
+	 * @param int    $app_id ID of app.
+	 * @param string $status The status to set - should be 'on' or 'off'.
+	 *
+	 * @return boolean|array|object
+	 */
+	public function set_page_cache_status( $app_id, $status ) {
+		return update_post_meta( $app_id, 'wpapp_pagecache_status', $status );
+	}
+
 
 	/**
 	 * Returns whether a site is a staging site.
@@ -2086,6 +2235,13 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			/* Add the password field to the CPT separately because it needs to be encrypted */
 			update_post_meta( $app_post_id, 'wpapp_password', $this::encrypt( $args['wp_password'] ) );
 
+			/**
+			 * Page caching is enabled by default for both NGINX and OLS so update the post meta to show that.
+			 * As of WPCD 5.0, we're retiring the wpapp_nginx_pagecache_status meta and using just
+			 * 'wpapp_pagecache_status' instead.
+			 */
+			$this->set_page_cache_status( $app_post_id, 'on' );
+
 			/* Everything good, return the post id of the new app record */
 			return $app_post_id;
 
@@ -2956,19 +3112,19 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 					$qv['meta_query'][] = array(
 						'relation' => 'OR',
 						array(
-							'key'     => 'wpapp_nginx_pagecache_status',
+							'key'     => 'wpapp_pagecache_status',
 							'value'   => $wpapp_page_cache_status,
 							'compare' => '=',
 						),
 						array(
-							'key'     => 'wpapp_nginx_pagecache_status',
+							'key'     => 'wpapp_pagecache_status',
 							'compare' => 'NOT EXISTS',
 						),
 					);
 
 				} else {
 					$qv['meta_query'][] = array(
-						'key'     => 'wpapp_nginx_pagecache_status',
+						'key'     => 'wpapp_pagecache_status',
 						'value'   => $wpapp_page_cache_status,
 						'compare' => '=',
 					);

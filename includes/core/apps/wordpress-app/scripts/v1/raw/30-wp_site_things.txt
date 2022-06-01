@@ -4,21 +4,15 @@ if [[ "$EUID" -ne 0 ]]; then
 	exit
 fi
 
-
+## Get our common functions
+source 9999-common-functions.sh
 
 # for options where changes are applied to the filesystem
 select_domain () {
 while [[ -z $domain ]]; do
     clear
     echo "Please, select which site you want to work with"
-    ls /var/www | grep -v html | nl
-    echo
-    read -p "Select site: " site_number
-    number_of_sites=$(ls /var/www | grep -v html | wc -l)
-    until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
-    	echo "$site_number: invalid selection."
-    	read -p "Select site: " site_number
-    done
+    gf_select_domain
     domain=$(ls /var/www | grep -v html | sed -n "$site_number"p)
 done
 }
@@ -30,14 +24,7 @@ while [[ -z $domain ]]; do
     echo
     echo "Please, select which site you want to work with"
     echo
-    ls /etc/nginx/sites-enabled/ | grep -v '^default$\|^monit$\|^monitorix$' | nl
-    read -p "Select site: " site_number
-    number_of_sites=$(ls /etc/nginx/sites-enabled/ | grep -v '^default$\|^monit$\|^monitorix$' | wc -l)
-    until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
-    	echo "$site_number: invalid selection."
-    	read -p "Select site: " site_number
-    done
-    domain=$(ls /etc/nginx/sites-enabled/ | grep -v '^default$\|^monit$\|^monitorix$' | sed -n "$site_number"p)
+    gf_select_domain_nginx_ols
 done
 }
 

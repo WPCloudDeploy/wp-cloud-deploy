@@ -108,10 +108,10 @@ class WPCD_WORDPRESS_TABS_CLONE_SITE extends WPCD_WORDPRESS_TABS {
 								update_post_meta( $new_app_post_id, 'wpapp_ssl_status', 'on' );
 							}
 
-							// Was nginx page caching enabled on the original site?  If so, the caching plugin was copied as well so add the meta here for that.
-							$nginx_page_cache_status = get_post_meta( $id, 'wpapp_nginx_pagecache_status', true );
-							if ( ! empty( $nginx_page_cache_status ) ) {
-								update_post_meta( $new_app_post_id, 'wpapp_nginx_pagecache_status', $nginx_page_cache_status );
+							// Was page caching enabled on the original site?  If so, the caching plugin was copied as well so add the meta here for that.
+							$page_cache_status = $this->get_page_cache_status( $id );
+							if ( ! empty( $page_cache_status ) ) {
+								$this->set_page_cache_status( $new_app_post_id, $page_cache_status );
 							}
 
 							// Was memcached enabled on the original site?  If so, the caching plugin was copied as well so add the meta here for that.
@@ -449,7 +449,6 @@ class WPCD_WORDPRESS_TABS_CLONE_SITE extends WPCD_WORDPRESS_TABS {
 			'tab'        => 'clone-site',
 			'type'       => 'button',
 			'std'        => __( 'Clone Site', 'wpcd' ),
-			'desc'       => __( 'Make a copy of this site to the new domain', 'wpcd' ),
 			'attributes' => array(
 				// the _action that will be called in ajax.
 				'data-wpcd-action'              => 'clone-site',

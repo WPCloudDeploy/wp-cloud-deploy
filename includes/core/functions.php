@@ -146,12 +146,14 @@ function wpcd_get_early_option( $option_id, $domain = 'wpcd_settings' ) {
 
 /**
  * Returns the timeout for long running commands.
- * Defaults to 15 minutes if not already set.
+ * Defaults to 25 minutes if not already set.
+ *
+ * Default changed from 15 min to 25 min in WPCD 5.0.
  */
 function wpcd_get_long_running_command_timeout() {
 	$timeout = wpcd_get_option( 'long-command-timeout' );
 	if ( empty( $timeout ) ) {
-		$timeout = 15;  // default timeout is 15 minutes.
+		$timeout = 25;  // default timeout is 25 minutes.
 	}
 	return $timeout;
 }
@@ -394,6 +396,36 @@ function wpcd_get_dir_list( $directory ) {
 	$dirlist           = array_values( $scanned_directory );
 
 	return $dirlist;
+}
+
+/**
+ * Given a number such as 7.4 or 74, return the
+ * OLS php service name such as lsphp74.
+ *
+ * @param string $version PHP version to handle.
+ *
+ * @return string
+ */
+function wpcd_convert_php_version_to_ols_service( $version ) {
+	// Strip periods.
+	$version = str_replace( '.', '', $version );
+	return 'lsphp' . $version;
+}
+
+/**
+ * Given an ols php service such as lsphp74, return 7.4
+ *
+ * @param string $phpservice OLS PHP Service name- eg: lsphp81.
+ *
+ * @return string.
+ */
+function wpcd_convert_ols_phpservice_to_php_version( $phpservice ) {
+
+	// Get last two characters of phpservice.
+	$version = mb_substr( $phpservice, -2 );
+	$version = mb_substr( $version, 0, 1 ) . '.' . mb_substr( $version, 1, 1 );  // Reminder: First character position is 0, not 1.
+	return $version;
+
 }
 
 /**

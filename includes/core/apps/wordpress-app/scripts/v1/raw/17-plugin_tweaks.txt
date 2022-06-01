@@ -1,59 +1,69 @@
 #!/bin/bash
-if [[ "$EUID" -ne 0 ]]; then
+if [[ "$EUID" -ne 0 ]]
+then
 	echo "Sorry, you need to run this as root"
 	exit
 fi
 
-#!/bin/bash
-if [[ "$EUID" -ne 0 ]]; then
-	echo "Sorry, you need to run this as root"
-	exit
+## Get our common functions
+source 9999-common-functions.sh
+
+# Exit if the web server is not nginx.
+# This entire script only applies to NGINX servers.
+if [ "$g_webserver_type" != "nginx" ]
+then
+    echo "Error: This operation can only be applied to NGINX servers."
+    exit 1
 fi
 
 
-while [[ -z $domain ]]; do
-    echo
-    echo "Please, select which site you want to work with"
-    echo
-    ls /etc/nginx/sites-enabled/ | grep -v '^default$\|^monit$\|^monitorix$' | nl
-    read -p "Select site: " site_number
-    number_of_sites=$(ls /etc/nginx/sites-enabled/ | grep -v '^default$\|^monit$\|^monitorix$' | wc -l)
-    until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
-    	echo "$site_number: invalid selection."
-    	read -p "Select site: " site_number
-    done
-    domain=$(ls /etc/nginx/sites-enabled/ | grep -v '^default$\|^monit$\|^monitorix$' | sed -n "$site_number"p)
+while [[ -z $domain ]]
+do
+	echo
+	echo "Please, select which site you want to work with"
+	gf_select_domain_nginx_ols
 done
 
 
-while [[ -z $action ]]; do
-    echo "What do you want to do?"
-    echo "   1) Enable Easy Digital Downloads NGINX directives"
-    echo "   2) Disable Easy Digital Downloads NGINX directives"
-    echo
-    read -p "Action: " action
-    until [[ -z "$action" || "$action" =~ ^[1-2]$ ]]; do
-    	echo "$action: invalid selection."
-    	read -p "Action: " action
-    done
+while [[ -z $action ]]
+do
+	echo "What do you want to do?"
+	echo "   1) Enable Easy Digital Downloads NGINX directives"
+	echo "   2) Disable Easy Digital Downloads NGINX directives"
+	echo
+	read -p "Action: " action
+	until [[ -z "$action" || "$action" =~ ^[1-2]$ ]]
+	do
+		echo "$action: invalid selection."
+		read -p "Action: " action
+	done
 done
 
 
-if [[ $action == "enable_edd" || $action == "1" ]]; then
-    if grep -qs 'rewrite ^/wp-content/uploads/edd/' /etc/nginx/sites-enabled/$domain; then
-        echo "Easy Digital Downloads NGINX directives are already enabled"
-        exit
-    fi
-    sed -i '/client_max_body_size/a rewrite ^/wp-content/uploads/edd/(.*)\.zip$ / permanent;' /etc/nginx/sites-enabled/$domain
-    systemctl restart nginx
-    echo
-    echo "Easy Digital Downloads NGINX directives enabled for $domain"
+if [[ $action == "enable_edd" || $action == "1" ]]
+then
+	if [ "$g_webserver_type" = "nginx" ]
+	then
+		if grep -qs 'rewrite ^/wp-content/uploads/edd/' /etc/nginx/sites-enabled/$domain
+		then
+			echo "Easy Digital Downloads NGINX directives are already enabled"
+			exit
+		fi
+		sed -i '/client_max_body_size/a rewrite ^/wp-content/uploads/edd/(.*)\.zip$ / permanent;' /etc/nginx/sites-enabled/$domain
+		systemctl restart nginx
+		echo
+		echo "Easy Digital Downloads NGINX directives enabled for $domain"
+	fi
 fi
 
 
-if [[ $action == "disable_edd" || $action == "2" ]]; then
-    sed -i '/rewrite \^\/wp-content\/uploads\/edd/d' /etc/nginx/sites-enabled/$domain
-    systemctl restart nginx
-    echo
-    echo "Easy Digital Downloads NGINX directives disabled for $domain"
+if [[ $action == "disable_edd" || $action == "2" ]]
+then
+	if [ "$g_webserver_type" = "nginx" ]
+	then
+		sed -i '/rewrite \^\/wp-content\/uploads\/edd/d' /etc/nginx/sites-enabled/$domain
+		systemctl restart nginx
+		echo
+		echo "Easy Digital Downloads NGINX directives disabled for $domain"
+	fi
 fi

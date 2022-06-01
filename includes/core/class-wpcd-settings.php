@@ -23,7 +23,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Setup setttings screen
+ * Setup settings screen
  *
  * @package wpcd
  * @version 1.0.0 / wpcd
@@ -274,7 +274,7 @@ class WPCD_Settings {
 							'size' => 10,
 						),
 						array(
-							'name' => __( 'Auto Trim Pending Log', 'wpcd' ),
+							'name' => __( 'Auto Trim Pending Tasks', 'wpcd' ),
 							'id'   => 'auto_trim_pending_log_limit',
 							'type' => 'number',
 							'size' => 10,
@@ -393,7 +393,7 @@ class WPCD_Settings {
 						array(
 							'type' => 'heading',
 							'name' => 'Timeout for Long Running Commands',
-							'desc' => __( 'When running commands, they are terminated after 15 minutes if not complete. This option allows you to increase that timeout. It is useful when provisioning very slow VMs at certain providers.', 'wpcd' ),
+							'desc' => __( 'When running commands, they are terminated after 25 minutes if not complete. This option allows you to increase that timeout. It is useful when provisioning very slow VMs at certain providers.', 'wpcd' ),
 						),
 
 						array(
@@ -402,8 +402,8 @@ class WPCD_Settings {
 							'type'        => 'number',
 							'min'         => 15,
 							'max'         => 120,
-							'std'         => 15,
-							'placeholder' => 15,
+							'std'         => 25,
+							'placeholder' => 25,
 							'size'        => 10,
 						),
 					),

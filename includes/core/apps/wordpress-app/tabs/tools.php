@@ -194,6 +194,9 @@ class WPCD_WORDPRESS_TABS_TOOLS extends WPCD_WORDPRESS_TABS {
 			return $this->get_disabled_header_field();
 		}
 
+		/* What type of web server are we running? */
+		$webserver_type = $this->get_web_server_type( $id );
+
 		// Basic checks passed, ok to proceed.
 		$actions = array();
 
@@ -237,30 +240,34 @@ class WPCD_WORDPRESS_TABS_TOOLS extends WPCD_WORDPRESS_TABS {
 			'label'          => '',
 			'raw_attributes' => array(
 				'std'                 => __( 'Reset', 'wpcd' ),
-				'desc'                => __( 'Reset file permissions for this site.', 'wpcd' ),
 				'confirmation_prompt' => __( 'Are you sure you would like to reset the file permissions for this website?', 'wpcd' ),
 			),
 			'type'           => 'button',
 		);
 
-		/* EDD NGINX */
-		$actions['tools-edd-nginx-header'] = array(
-			'label'          => __( 'NGINX Rules for Easy Digital Downloads', 'wpcd' ),
-			'type'           => 'heading',
-			'raw_attributes' => array(
-				'desc' => __( 'Easy Digital Downloads require specical rules to be added to the NGINX web server in order to protect the EDD files.  This section allows you to add those rules. You should only add them if you are using EDD.', 'wpcd' ),
-			),
-		);
+		/**
+		 * EDD NGINX
+		 */
+		/* We should only show this section for nginx servers */
+		if ( 'nginx' === $webserver_type ) {
+			$actions['tools-edd-nginx-header'] = array(
+				'label'          => __( 'NGINX Rules for Easy Digital Downloads', 'wpcd' ),
+				'type'           => 'heading',
+				'raw_attributes' => array(
+					'desc' => __( 'Easy Digital Downloads require specical rules to be added to the NGINX web server in order to protect the EDD files.  This section allows you to add those rules. You should only add them if you are using EDD.', 'wpcd' ),
+				),
+			);
 
-		$actions['tools-edd-nginx-add'] = array(
-			'label'          => '',
-			'raw_attributes' => array(
-				'std'                 => __( 'Add EDD Rules', 'wpcd' ),
-				'desc'                => __( 'Add the EDD Rules for the NGINX web server.', 'wpcd' ),
-				'confirmation_prompt' => __( 'Are you sure you would like to add the EDD NGINX rules to your NGINX configuration file for this website?', 'wpcd' ),
-			),
-			'type'           => 'button',
-		);
+			$actions['tools-edd-nginx-add'] = array(
+				'label'          => '',
+				'raw_attributes' => array(
+					'std'                 => __( 'Add EDD Rules', 'wpcd' ),
+					'desc'                => __( 'Add the EDD Rules for the NGINX web server.', 'wpcd' ),
+					'confirmation_prompt' => __( 'Are you sure you would like to add the EDD NGINX rules to your NGINX configuration file for this website?', 'wpcd' ),
+				),
+				'type'           => 'button',
+			);
+		}
 
 		/* RESTRICTED PHP FUNCTIONS */
 		if ( wpcd_is_admin() ) {
@@ -280,7 +287,6 @@ class WPCD_WORDPRESS_TABS_TOOLS extends WPCD_WORDPRESS_TABS {
 				'label'          => '',
 				'raw_attributes' => array(
 					'std'                 => __( 'Reset', 'wpcd' ),
-					'desc'                => __( 'Add the most recent list of restricted PHP functions to your site.', 'wpcd' ),
 					'confirmation_prompt' => $confirmation_prompt,
 				),
 				'type'           => 'button',
@@ -304,7 +310,6 @@ class WPCD_WORDPRESS_TABS_TOOLS extends WPCD_WORDPRESS_TABS {
 			'label'          => '',
 			'raw_attributes' => array(
 				'std'                 => __( 'Clear', 'wpcd' ),
-				'desc'                => __( 'Remove all metas that trigger background processes, thereby resetting them.', 'wpcd' ),
 				'confirmation_prompt' => $confirmation_prompt,
 			),
 			'type'           => 'button',
@@ -446,6 +451,14 @@ class WPCD_WORDPRESS_TABS_TOOLS extends WPCD_WORDPRESS_TABS {
 	 * @return boolean|WP_Error    success/failure
 	 */
 	private function manage_edd_nginx_rules( $id, $action ) {
+
+		/* What type of web server are we running? */
+		$webserver_type = $this->get_web_server_type( $id );
+
+		/* We should run this for nginx servers */
+		if ( 'nginx' !== $webserver_type ) {
+			return new \WP_Error( sprintf( __( 'Unable to execute this request because this action is only valid for NGINX web servers: The action is: %s', 'wpcd' ), $action ) );
+		}
 
 		$instance = $this->get_app_instance_details( $id );
 

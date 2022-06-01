@@ -961,6 +961,15 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'options' => WPCD()->get_os_list(),
 			),
 			array(
+				'id'      => 'wordpress_app_default_webserver',
+				'type'    => 'select',
+				'name'    => __( 'Default Web Server', 'wpcd' ),
+				'tooltip' => __( 'Select the default Webserver to be used when deploying a new WordPress server!', 'wpcd' ),
+				'tab'     => 'wordpress-app-general-wpadmin',
+				'std'     => 'nginx',
+				'options' => WPCD()->get_webserver_list(),
+			),			
+			array(
 				'id'      => 'wordpress_app_use_extended_server_name',
 				'type'    => 'checkbox',
 				'name'    => __( 'Override the server name?', 'wpcd' ),

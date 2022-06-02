@@ -894,6 +894,41 @@
 	color: var(--wpcd-front-end-alternate-accent-background-color);
 }
 
+/** 
+ * Make the data under the domain name when we're using left menus smaller and in chicklet boxes.
+ * Note that we're not using css id #wpcd_wordpress-app_tab_top_of_site_details to target these
+ * items because we want them to work when the tabs are horizontal as well.
+ */
+#wpcd_public_wrapper .wpcd_site_details_top_row  .wpcd_site_details_top_row_element_wrapper .wpcd_medium_chicklet {
+	font-size: 12px;
+	padding: 5px;
+	border-radius:3px;
+	border: solid 1px;
+	margin-right: 5px;
+	min-width: 20px;	
+}
+#wpcd_public_wrapper .wpcd_site_details_top_row .wpcd_site_details_top_row_element_wrapper  .wpcd_site_details_top_row_element_wstype {
+	color: var(--wpcd-primary-brand-color);
+	border-color: var(--wpcd-primary-brand-color);	
+}
+#wpcd_public_wrapper .wpcd_site_details_top_row .wpcd_site_details_top_row_element_wrapper  .wpcd_site_details_top_row_element_ssl_on {
+	color: green;
+	border-color: green;	
+}
+#wpcd_public_wrapper .wpcd_site_details_top_row .wpcd_site_details_top_row_element_wrapper  .wpcd_site_details_top_row_element_ssl_off {
+	color: gray;
+	border-color: gray;	
+}
+#wpcd_public_wrapper .wpcd_site_details_top_row .wpcd_site_details_top_row_element_wrapper  .wpcd_site_details_top_row_element_page_cache_on {
+	color: var(--wpcd-front-end-positive-color);
+	border-color: var(--wpcd-front-end-positive-color);
+}
+#wpcd_public_wrapper .wpcd_site_details_top_row .wpcd_site_details_top_row_element_wrapper  .wpcd_site_details_top_row_element_page_cache_off {
+	color: gray;
+	border-color: gray;	
+}
+/* End make the data under the domain name when we're using left menus smaller and in chiclet boxes...*/
+
 /* Background color and text for tabs - vertical */
 #wpcd_public_wrapper .wpcd-wpapp-actions .rwmb-tabs-left .rwmb-tab-nav {
 	background-color: var(--wpcd-front-end-accent-background-color);

@@ -895,12 +895,13 @@
 }
 
 /** 
- * Make the data under the domain name when we're using left menus smaller and in chicklet boxes.
+ * Make the data under the domain name when we're using left menus smaller and format as tiny chicklet boxes.
  * Note that we're not using css id #wpcd_wordpress-app_tab_top_of_site_details to target these
  * items because we want them to work when the tabs are horizontal as well.
  */
 #wpcd_public_wrapper .wpcd_site_details_top_row  .wpcd_site_details_top_row_element_wrapper .wpcd_medium_chicklet {
-	font-size: 12px;
+	font-size: 10px;
+	font-weight: normal;
 	padding: 5px;
 	border-radius:3px;
 	border: solid 1px;

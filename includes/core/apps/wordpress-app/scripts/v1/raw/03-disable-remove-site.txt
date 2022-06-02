@@ -189,7 +189,7 @@ QUERY
 	echo
 	if [[ $action == "remove_full" || $action == "4" ]]
 	then
-		rm -rf ~/.wp-backup/$domain
+		rm -rf /root/.wp-backup/$domain
 		echo "$domain and its local backups have been removed"
 	else
 		echo "$domain has been removed"

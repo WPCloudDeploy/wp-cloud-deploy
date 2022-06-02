@@ -30,6 +30,16 @@ ip="[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+" # any ipv4
 ip6="\[::1?\]" # any or localhost ipv6
 ## end regex patterns
 
+## regex patterns http2
+ip="[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+" # any ipv4
+ip6="\[::1?\]" # any or localhost ipv6
+remove_http2="s/(^${sm}listen${sp}($ip:)?($ip6:)?[0-9]+${sp}ssl)${sp}http2/\1/"
+add_http2="s/(^${sm}listen${sp}($ip:)?($ip6:)?[0-9]+${sp}ssl)(${sm}http2)?/\1 http2/"
+has_ssl="^${sm}listen${sp}(${ip}:)?(${ip6}:)?[0-9]+${sp}ssl"
+has_http2="^${sm}listen${sp}(${ip}:)?(${ip6}:)?[0-9]+${sp}ssl${sp}http2"
+has_http2_ols="([ ]*enableSpdy[ ]*(4|5|7|15))"
+## end regex patterns http2
+
 ## common phrases
 SUCCESSFUL='Success!'
 
@@ -388,7 +398,11 @@ function gf_enable_certbot_nginx_site() {
 		if ! grep -qs "listen 443" /etc/nginx/sites-enabled/$nginxconf
 		then
 			echo "SSL could not be enabled for $nginxdomain"
-			exit
+			# important that we exit here. Otherwise script #4 which uses this will proceed as if nothing happened.
+			# That in turn will inform any UI using these scripts that SSL was successful - which it was NOT.
+			# If we need a calling script to continue even after SSL has failed then we need a way to return a value
+			# to the calling script and make sure that script #4 and other ssl handling scripts make use of the returned value.			
+			exit 1
 		fi
 		systemctl restart nginx
 	fi
@@ -460,6 +474,69 @@ function gf_enable_certbot_ols_site() {
 		gf_restart_webserver
 	else
 		echo "SSL could not be enabled for $olsdomain"
+		# important that we exit here. Otherwise script #4 which uses this will proceed as if nothing happened.
+		# That in turn will inform any UI using these scripts that SSL was successful - which it was NOT.
+		# If we need a calling script to continue even after SSL has failed then we need a way to return a value
+		# to the calling script and make sure that script #4 and other ssl handling scripts make use of the returned value.
+		exit 1  
+	fi
+}
+
+function gf_is_http2_ols() {
+	local domain
+	domain="$1"
+	# https://http2.pro/doc/LiteSpeed
+	# https://www.litespeedtech.com/support/wiki/doku.php/litespeed_wiki:config:enable-http2
+	# If is any one of these values http2 is enabled 4,5,7,15
+	grep -qP "${has_http2_ols}" ${VHDIR}/${domain}/$g_vhost_conf
+}
+
+###################################################################
+#### Enable http2 for ols domain
+###################################################################
+function gf_enable_http2_ols_site() {
+	local olsdomain
+	olsdomain=$1
+	if gf_is_ssl_ols "$olsdomain"
+	then
+		if gf_is_http2_ols "$olsdomain"
+		then
+			echo -e "${BLUE}http2 is already enabled for domain='${olsdomain}', nothing to do${NC}" # SKIP
+		else
+			# Setting to 15 is default which enables HTTP/3, HTTP/2, and SPDY HTTP
+			sed -i 's|enableSpdy.*|enableSpdy              15|' ${VHDIR}/${olsdomain}/$g_vhost_conf
+			if gf_is_http2_ols "$olsdomain"
+			then
+				echo -e "${GREEN}http2 enabled for domain='${olsdomain}' ${NC}" # ACTION
+				gf_restart_webserver
+			else
+				echo -e "${RED}ERROR: enabling http2 for '${olsdomain}' error${NC}" >&2 # ERROR
+			fi
+		fi
+	else
+		echo -e "${ORANGE}Could not enable http2 on '${olsdomain}' when SSL is disabled${NC}" # WARNING
+	fi
+}
+
+###################################################################
+#### Disable http2 for ols domain
+###################################################################
+function gf_disable_http2_ols_site() {
+	local olsdomain
+	olsdomain=$1
+	if gf_is_http2_ols "$olsdomain"
+	then
+		# Setting to 11 is disables HTTP/2 and leaves HTTP/3, and SPDY HTTP enabled
+		sed -i 's|enableSpdy.*|enableSpdy              11|' ${VHDIR}/${olsdomain}/$g_vhost_conf
+		if gf_is_http2_ols "$olsdomain"
+		then
+			echo -e "${RED}ERROR: http2 disabling for '${olsdomain}' error${NC}" >&2 # ERROR
+		else
+			echo -e "${GREEN}http2 disabled for domain='${olsdomain}' ${NC}" # ACTION
+			gf_restart_webserver
+		fi
+	else
+		echo -e "${BLUE}http2 is already disabled for domain='${olsdomain}', nothing to do${NC}" # SKIP
 	fi
 }
 

@@ -504,6 +504,7 @@ function gf_enable_http2_ols_site() {
 			echo -e "${BLUE}http2 is already enabled for domain='${olsdomain}', nothing to do${NC}" # SKIP
 		else
 			# Setting to 15 is default which enables HTTP/3, HTTP/2, and SPDY HTTP
+			# Other valid numbers can be found in our internal issue tracking here: https://bitbucket.org/structuredmarketsinc/fireupwp-bash-scripts/issues/267/question-ols-http2
 			sed -i 's|enableSpdy.*|enableSpdy              15|' ${VHDIR}/${olsdomain}/$g_vhost_conf
 			if gf_is_http2_ols "$olsdomain"
 			then
@@ -527,7 +528,9 @@ function gf_disable_http2_ols_site() {
 	if gf_is_http2_ols "$olsdomain"
 	then
 		# Setting to 11 is disables HTTP/2 and leaves HTTP/3, and SPDY HTTP enabled
-		sed -i 's|enableSpdy.*|enableSpdy              11|' ${VHDIR}/${olsdomain}/$g_vhost_conf
+		# Setting to 1 only enables HTTP 1.1.
+		# Other valid numbers can be found in our internal issue tracking here: https://bitbucket.org/structuredmarketsinc/fireupwp-bash-scripts/issues/267/question-ols-http2
+		sed -i 's|enableSpdy.*|enableSpdy              0|' ${VHDIR}/${olsdomain}/$g_vhost_conf
 		if gf_is_http2_ols "$olsdomain"
 		then
 			echo -e "${RED}ERROR: http2 disabling for '${olsdomain}' error${NC}" >&2 # ERROR

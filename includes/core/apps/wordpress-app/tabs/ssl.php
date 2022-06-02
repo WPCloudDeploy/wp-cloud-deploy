@@ -161,6 +161,9 @@ class WPCD_WORDPRESS_TABS_SSL extends WPCD_WORDPRESS_TABS {
 		 * Basic checks passed, ok to proceed
 		 */
 
+		// What type of web server are we running?
+		$webserver_type = $this->get_web_server_type( $id );
+
 		// Get SSL status.
 		$status = get_post_meta( $id, 'wpapp_ssl_status', true );
 		if ( empty( $status ) ) {
@@ -189,13 +192,13 @@ class WPCD_WORDPRESS_TABS_SSL extends WPCD_WORDPRESS_TABS {
 		);
 
 		if ( 'on' <> $status ) {
-			$desc = __( 'Click to enable SSL. <br />Turning this on will result in an attempt to obtain a certificate from LETSEncrypt.  <br />If it fails, check the logs under the SSH LOG menu option. <br />Note that if you attempt to turn on SSL too many times in a row LETSEncrypt will block your domain for a period of time.', 'wpcd' );
+			$desc = __( 'Click to enable SSL. <br />Turning this on will result in an attempt to obtain a certificate from LETSEncrypt.  <br />If it fails, check the logs under the SSH LOG menu option. <br />Note that if you attempt to turn on SSL too many times in a row LETSEncrypt will block your domain for 7 days or more.', 'wpcd' );
 		} else {
 			$desc = __( 'Click to disable SSL', 'wpcd' );
 		}
 
 		$actions['ssl-status'] = array(
-			'label'          => __( 'SSL Status', 'wpcd' ),
+			'label'          => '',
 			'raw_attributes' => array(
 				'on_label'            => __( 'Enabled', 'wpcd' ),
 				'off_label'           => __( 'Disabled', 'wpcd' ),
@@ -237,30 +240,43 @@ class WPCD_WORDPRESS_TABS_SSL extends WPCD_WORDPRESS_TABS {
 			// Check multisite status and do nothing if multisite is enabled.
 			if ( 'on' <> get_post_meta( $id, 'wpapp_multisite_enabled', true ) ) {
 
+				/* Set the HTTP2 title and other text based on the type of webserver we're running. */
+				switch ( $webserver_type ) {
+					case 'ols':
+					case 'ols-enterprise':
+						$http_fragment_text = __( 'HTTP2/HTTP3/SPDY', 'wpcd' );
+						break;
+
+					case 'nginx':
+					default:
+						$http_fragment_text = __( 'HTTP2', 'wpcd' );
+						break;
+
+				}
+
 				/* Set the confirmation prompt based on the the current status of this flag */
 				$confirmation_prompt = '';
 				if ( 'on' === $http2_status ) {
-					$confirmation_prompt_http2 = __( 'Are you sure you would like to disable HTTP2?', 'wpcd' );
+					$confirmation_prompt_http2 = sprintf( __( 'Are you sure you would like to disable %s?', 'wpcd' ), $http_fragment_text );
 				} else {
-					$confirmation_prompt_http2 = __( 'Are you sure you would like to enable HTTP2?', 'wpcd' );
+					$confirmation_prompt_http2 = sprintf( __( 'Are you sure you would like to enable %s?', 'wpcd' ), $http_fragment_text );
 				}
 
 				$actions['ssl-http2-header'] = array(
 					'name'           => '',
-					'label'          => __( 'HTTP2', 'wpcd' ),
+					'label'          => sprintf( '%s', $http_fragment_text ),
 					'type'           => 'heading',
 					'raw_attributes' => array(
-						'desc' => __( 'Manage HTTP2.', 'wpcd' ),
+						'desc' => sprintf( __( 'Manage %s', 'wpcd' ), $http_fragment_text ),
 					),
 				);
 
 				$actions['ssl-http2-status'] = array(
-					'label'          => __( 'HTTP2 Status', 'wpcd' ),
+					'label'          => '',
 					'raw_attributes' => array(
 						'on_label'            => __( 'Enabled', 'wpcd' ),
 						'off_label'           => __( 'Disabled', 'wpcd' ),
 						'std'                 => $http2_status === 'on',
-						'desc'                => __( 'Enable or disable HTTP2.', 'wpcd' ),
 						'confirmation_prompt' => $confirmation_prompt_http2,
 					),
 					'type'           => 'switch',
@@ -286,6 +302,9 @@ class WPCD_WORDPRESS_TABS_SSL extends WPCD_WORDPRESS_TABS {
 	 */
 	public function toggle_ssl_status_action( $id, $action ) {
 
+		// What type of web server are we running?
+		$webserver_type = $this->get_web_server_type( $id );
+
 		$result = '';
 
 		switch ( $action ) {
@@ -296,8 +315,38 @@ class WPCD_WORDPRESS_TABS_SSL extends WPCD_WORDPRESS_TABS {
 				}
 				$result = $this->toggle_ssl_status( $id, $current_status === 'on' ? 'disable' : 'enable' );
 				if ( ! is_wp_error( $result ) ) {
-					update_post_meta( $id, 'wpapp_ssl_status', $current_status === 'on' ? 'off' : 'on' );
-					update_post_meta( $id, 'wpapp_ssl_http2_status', 'off' );  // We can only turn ssl on/off if HTTP2 is off so this meta is always going to be "off".
+
+					// What's the new status?
+					$new_ssl_status = 'on' === $current_status ? 'off' : 'on';
+
+					// Update metas.
+					$this->set_ssl_status( $id, $new_ssl_status );
+
+					/*
+					update_post_meta( $id, 'wpapp_ssl_status', $new_ssl_status );
+
+					// Update HTTP2 status based on webserver type.
+					switch ( $webserver_type ) {
+						case 'ols':
+						case 'ols-enterprise':
+							if ( 'on' === $current_status ) {
+								// Prior status was on so we just turned it off.
+								update_post_meta( $id, 'wpapp_ssl_http2_status', 'off' );  // OLS always have http2, http3 and spdy turned on by default so this is actually incorrect.  Will handle later.
+							} else {
+								// Prior status of off so we just turned it on.
+								update_post_meta( $id, 'wpapp_ssl_http2_status', 'on' );  // OLS always have http2, http3 and spdy turned on by default.
+							}
+							break;
+
+						case 'nginx':
+						default:
+							// For NGINX we can only turn ssl on/off if HTTP2 is off so this meta is always going to be "off".
+							update_post_meta( $id, 'wpapp_ssl_http2_status', 'off' );
+							break;
+
+					}
+					*/
+
 					$result = array( 'refresh' => 'yes' );
 				}
 				break;

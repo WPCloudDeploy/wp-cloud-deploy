@@ -56,7 +56,7 @@ class WPCD_Public_List_Table extends WP_List_Table {
 				'singular' => 'table example',
 				'plural'   => 'table examples',
 				'ajax'     => false,
-				'screen'   => isset( $args['screen'] ) ? $args['screen'] : null,
+				'screen'   => $this->post_type,
 			)
 		);
 

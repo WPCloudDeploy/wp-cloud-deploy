@@ -499,11 +499,11 @@ then
 	select_domain
 	echo
 	mysql_db=$(grep DB_NAME /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
-	# echo "Disk usage for $domain is: $(du -hs /var/www/$domain/ | cut -d '/' -f 1). Backups are also using: $(du -hs ~/.wp-backup/$domain/ | cut -d '/' -f 1) while Mysql is using an additional: $(du -sh /var/lib/mysql/$mysql_db |cut -d '/' -f 1)"
+	# echo "Disk usage for $domain is: $(du -hs /var/www/$domain/ | cut -d '/' -f 1). Backups are also using: $(du -hs /root/.wp-backup/$domain/ | cut -d '/' -f 1) while Mysql is using an additional: $(du -sh /var/lib/mysql/$mysql_db |cut -d '/' -f 1)"
 	echo "Domain Files: $(du -hs /var/www/$domain/ | cut -d '/' -f 1)"
-	if [ -d ~/.wp-backup/$domain/ ] 
+	if [ -d /root/.wp-backup/$domain/ ] 
 	then
-		echo "Backups: $(du -hs ~/.wp-backup/$domain/ | cut -d '/' -f 1)"
+		echo "Backups: $(du -hs /root/.wp-backup/$domain/ | cut -d '/' -f 1)"
 	else 
 		echo "Backups: 0M"
 	fi

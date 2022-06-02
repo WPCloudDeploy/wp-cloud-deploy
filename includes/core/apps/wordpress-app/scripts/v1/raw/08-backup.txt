@@ -10,6 +10,8 @@ fi
 source 9999-common-functions.sh
 
 clear
+localuser=$(sh -c 'echo ${SUDO_USER:-$USER}')
+user_home=$(eval echo "~$localuser")
 
 function select_backup() {
 	echo
@@ -28,7 +30,7 @@ function select_backup() {
 
 
 function select_site() {
-	cd ~/.wp-backup/
+	cd /root/.wp-backup/
 	ls | nl
 	echo
 	read -p "Select site: " item_number
@@ -79,7 +81,7 @@ function restore_ols_site() {
 }
 
 # configure aws credentials if it's our first time
-if [[ ! -e ~/.aws/credentials ]]
+if [[ ! -e $user_home/.aws/credentials ]]
 then
 	echo "We need to configure your credentials for uploading to AWS S3"
 	if [[ -z $aws_access_key_id ]]
@@ -107,11 +109,11 @@ fi
 # if aws credentials were provided interactively or in environment variables, write them to the credentials file
 if [[ $aws_access_key_id ]] && [[ $aws_secret_access_key ]] && [[ $aws_region ]]
 then
-	mkdir -p ~/.aws
+	mkdir -p $user_home/.aws
 	echo "[default]
 aws_access_key_id=$aws_access_key_id
 aws_secret_access_key=$aws_secret_access_key 
-region=$aws_region" > ~/.aws/credentials
+region=$aws_region" > $user_home/.aws/credentials
 	echo
 	echo "AWS credentials have been saved"	
 fi
@@ -165,43 +167,43 @@ then
 		read -p "Bucket name: " aws_bucket_name
 	fi
 
-	mkdir -p ~/.wp-backup/$domain/
+	mkdir -p /root/.wp-backup/$domain/
 	# backup /var/www
 	echo "=>backing up files..."
 	date=$(date +"%Y-%m-%d"-"%Hh%Mm%Ss")
 	cd /var/www
-	tar -czf ~/.wp-backup/$domain/"$domain"_"$date"_fs.tar.gz $domain/*
+	tar -czf /root/.wp-backup/$domain/"$domain"_"$date"_fs.tar.gz $domain/*
 
 	if [ "$g_webserver_type" = "nginx" ]
 	then
 		# backup nginx config and htpasswd
 		echo "=>backing up nginx configuration..."
 		cd /etc/nginx
-		tar -czf ~/.wp-backup/$domain/"$domain"_"$date"_"${g_webserver_type}".tar.gz $(ls sites-enabled/*$domain htpasswd/*$domain 2>/dev/null)
+		tar -czf /root/.wp-backup/$domain/"$domain"_"$date"_"${g_webserver_type}".tar.gz $(ls sites-enabled/*$domain htpasswd/*$domain 2>/dev/null)
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
 		# backup ols or lsws config directory
 		# ${VHDIR}/$domain
 		echo "=>backing up ols/ols-enterprise configuration..."
 		cd /usr/local/lsws/conf/
-		tar -czf ~/.wp-backup/$domain/"$domain"_"$date"_"${g_webserver_type}".tar.gz $(ls vhosts/${domain}/* 2>/dev/null)
+		tar -czf /root/.wp-backup/$domain/"$domain"_"$date"_"${g_webserver_type}".tar.gz $(ls vhosts/${domain}/* 2>/dev/null)
 	fi
 
 	# backup database
 	echo "=>exporting database for backup..."
 	mysql_db=$(grep DB_NAME /var/www/$domain/html/wp-config.php |tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
-	mysqldump $mysql_db | gzip -9 > ~/.wp-backup/$domain/"$domain"_"$date"_db.gz
+	mysqldump $mysql_db | gzip -9 > /root/.wp-backup/$domain/"$domain"_"$date"_db.gz
 	# upload to s3
 	echo "=>Uploading files to Amazon S3..."
-	aws s3 cp ~/.wp-backup/$domain/"$domain"_"$date"_fs.tar.gz s3://$aws_bucket_name/$domain/"$domain"_"$date"_fs.tar.gz --sse --only-show-errors
+	AWS_SHARED_CREDENTIALS_FILE=$user_home/.aws/credentials aws s3 cp /root/.wp-backup/$domain/"$domain"_"$date"_fs.tar.gz s3://$aws_bucket_name/$domain/"$domain"_"$date"_fs.tar.gz --sse --only-show-errors
 	echo "=>Uploading $g_webserver_type configuration to Amazon S3..."
-	aws s3 cp ~/.wp-backup/$domain/"$domain"_"$date"_"${g_webserver_type}".tar.gz s3://$aws_bucket_name/$domain/"$domain"_"$date"_"${g_webserver_type}".tar.gz --sse --only-show-errors
+	AWS_SHARED_CREDENTIALS_FILE=$user_home/.aws/credentials aws s3 cp /root/.wp-backup/$domain/"$domain"_"$date"_"${g_webserver_type}".tar.gz s3://$aws_bucket_name/$domain/"$domain"_"$date"_"${g_webserver_type}".tar.gz --sse --only-show-errors
 	echo "=>Uploading database to to Amazon S3..."
-	aws s3 cp ~/.wp-backup/$domain/"$domain"_"$date"_db.gz s3://$aws_bucket_name/$domain/"$domain"_"$date"_db.gz --sse --only-show-errors
+	AWS_SHARED_CREDENTIALS_FILE=$user_home/.aws/credentials aws s3 cp /root/.wp-backup/$domain/"$domain"_"$date"_db.gz s3://$aws_bucket_name/$domain/"$domain"_"$date"_db.gz --sse --only-show-errors
 
 	# check if the database was backed up correctly
 	echo "Verifying database backup..."
-	if ! gunzip -c ~/.wp-backup/$domain/"$domain"_"$date"_db.gz | tail -n 1 | grep -qs "Dump completed on"
+	if ! gunzip -c /root/.wp-backup/$domain/"$domain"_"$date"_db.gz | tail -n 1 | grep -qs "Dump completed on"
 	then
 		echo
 		echo "Backup was attempted, but the MySQL database seems to be corrupted!"
@@ -214,7 +216,7 @@ fi
 
 if [[ $action == "restore" || $action == "2" ]]
 then
-	cd ~/.wp-backup/
+	cd /root/.wp-backup/
 	# ask the user which site to restore
 	while [[ -z $site ]]
 	do
@@ -411,8 +413,9 @@ then
 	# set up the helper script
 	# note that we always create this script when this section is run in case it changes between versions.	
 	echo $'#!/bin/bash
-while IFS=" " read -r domain bucket days s3_sync_delete_parm callback_domain
+while IFS=" " read -r domain bucket days localuser s3_sync_delete_parm callback_domain
 do
+	user_home=$(eval echo "~$localuser")
 	# Callback to notify that backup has started.
 	if [[ -n "$callback_domain" ]]
 	then
@@ -435,28 +438,28 @@ do
 	}
 	check_cur_webserver
 
-	mkdir -p ~/.wp-backup/$domain/
+	mkdir -p /root/.wp-backup/$domain/
 	# backup /var/www
 	date=$(date +"%Y-%m-%d"-"%Hh%Mm%Ss")
 	cd /var/www
-	tar -czf ~/.wp-backup/$domain/"$domain"_"$date"_fs.tar.gz $domain/*
+	tar -czf /root/.wp-backup/$domain/"$domain"_"$date"_fs.tar.gz $domain/*
 	if [ "$webserver_type" = "nginx" ]
 	then
 		# backup nginx config and htpasswd
 		cd /etc/nginx
-		tar -czf ~/.wp-backup/$domain/"$domain"_"$date"_"${webserver_type}".tar.gz $(ls sites-enabled/*$domain htpasswd/*$domain 2>/dev/null)
+		tar -czf /root/.wp-backup/$domain/"$domain"_"$date"_"${webserver_type}".tar.gz $(ls sites-enabled/*$domain htpasswd/*$domain 2>/dev/null)
 	elif [ "$webserver_type" = "ols" ]  || [ "$webserver_type" = "ols-enterprise" ]
 	then
 		# backing up ols/ols-enterprise configuration
 		cd /usr/local/lsws/conf/
-		tar -czf ~/.wp-backup/$domain/"$domain"_"$date"_"${webserver_type}".tar.gz $(ls vhosts/${domain}/* 2>/dev/null)
+		tar -czf /root/.wp-backup/$domain/"$domain"_"$date"_"${webserver_type}".tar.gz $(ls vhosts/${domain}/* 2>/dev/null)
 	fi
 
 	# backup database
 	mysql_db=$(grep DB_NAME /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
-	mysqldump $mysql_db | gzip -9 > ~/.wp-backup/$domain/"$domain"_"$date"_db.gz
+	mysqldump $mysql_db | gzip -9 > /root/.wp-backup/$domain/"$domain"_"$date"_db.gz
 	# check if the database was backed up correctly
-	if ! gunzip -c ~/.wp-backup/$domain/"$domain"_"$date"_db.gz | tail -n 1 | grep -qs "Dump completed on"
+	if ! gunzip -c /root/.wp-backup/$domain/"$domain"_"$date"_db.gz | tail -n 1 | grep -qs "Dump completed on"
 	then
 		echo "$(date) $domain database dump failed" >> /var/log/wp-backup.log
 	fi
@@ -464,10 +467,10 @@ do
 	# if days = 0, do not delete anything
 	if [[ $days != "0" && $days != "-1" ]]
 	then
-		find ~/.wp-backup/$domain/ -type f -mtime +$days -exec rm -f {} \;
+		find /root/.wp-backup/$domain/ -type f -mtime +$days -exec rm -f {} \;
 	fi
 	# sync to s3
-	/usr/local/bin/aws s3 sync ~/.wp-backup/$domain/ s3://$bucket/$domain --$s3_sync_delete_parm && echo "$(date) $domain backup successful" >> /var/log/wp-backup.log || echo "$(date) $domain backup failed" 
+	AWS_SHARED_CREDENTIALS_FILE=$user_home/.aws/credentials /usr/local/bin/aws s3 sync /root/.wp-backup/$domain/ s3://$bucket/$domain --$s3_sync_delete_parm && echo "$(date) $domain backup successful" >> /var/log/wp-backup.log || echo "$(date) $domain backup failed" >> /var/log/wp-backup.log
 	# Callback to notify that backup is completed.
 	if [[ -n "$callback_domain" ]]
 	then
@@ -476,7 +479,7 @@ do
 	# delete all local backups if days is set to -1
 	if [[ $days = "-1" ]]
 	then
-		rm -f ~/.wp-backup/$domain/* \;
+		rm -f /root/.wp-backup/$domain/* \;
 	fi >> /var/log/wp-backup.log
 done < /etc/wp-backup.conf' > /usr/local/bin/wp-backup
 
@@ -519,7 +522,7 @@ done < /etc/wp-backup.conf' > /usr/local/bin/wp-backup
 		read -p "Retention days: " days
 	fi
 	sed -i "/$domain/d" /etc/wp-backup.conf
-	echo $domain $bucket $days $s3_sync_delete_parm $callback_domain >> /etc/wp-backup.conf
+	echo $domain $bucket $days $localuser $s3_sync_delete_parm $callback_domain >> /etc/wp-backup.conf
 	echo
 	echo "Backup job configured!"
 	exit
@@ -555,13 +558,15 @@ then
 	# set up the helper script
 	# note that we always create this script when this section is run in case it changes between versions.
 	echo $'#!/bin/bash
+	localuser=$3
+	user_home=$(eval echo "~$localuser")
 ls /var/www | grep -v html | while read line
 do
 	# Callback to notify that backup has started.
-	# $4 should be the callback domain var...
-	if [[ -n "$4" ]]
+	# $5 should be the callback domain var...
+	if [[ -n "$5" ]]
 	then
-		wget -q -O /dev/null $4/wp-json/wordpress-app/v1/command/1/start_domain_backup/completed/1/?domain=$line
+		wget -q -O /dev/null $5/wp-json/wordpress-app/v1/command/1/start_domain_backup/completed/1/?domain=$line
 	fi
 
 	function check_cur_webserver() {
@@ -580,28 +585,28 @@ do
 	}
 	check_cur_webserver
 
-	mkdir -p ~/.wp-backup/$line/
+	mkdir -p /root/.wp-backup/$line/
 	# backup /var/www
 	date=$(date +"%Y-%m-%d"-"%Hh%Mm%Ss")
 	cd /var/www
-	tar -czf ~/.wp-backup/$line/"$line"_"$date"_fs.tar.gz $line/*
+	tar -czf /root/.wp-backup/$line/"$line"_"$date"_fs.tar.gz $line/*
 	if [ "$webserver_type" = "nginx" ]
 	then
 		# backup nginx config and htpasswd
 		cd /etc/nginx
-		tar -czf ~/.wp-backup/$line/"$line"_"$date"_"${webserver_type}".tar.gz $(ls sites-enabled/*$line htpasswd/*$line 2>/dev/null)
+		tar -czf /root/.wp-backup/$line/"$line"_"$date"_"${webserver_type}".tar.gz $(ls sites-enabled/*$line htpasswd/*$line 2>/dev/null)
 	elif [ "$webserver_type" = "ols" ]  || [ "$webserver_type" = "ols-enterprise" ]
 	then
 		# backing up ols/ols-enterprise configuration
 		cd /usr/local/lsws/conf/
-		tar -czf ~/.wp-backup/$line/"$line"_"$date"_"${webserver_type}".tar.gz $(ls vhosts/$line/* 2>/dev/null)
+		tar -czf /root/.wp-backup/$line/"$line"_"$date"_"${webserver_type}".tar.gz $(ls vhosts/$line/* 2>/dev/null)
 	fi
 
 	# backup database
 	mysql_db=$(grep DB_NAME /var/www/$line/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
-	mysqldump $mysql_db | gzip -9 > ~/.wp-backup/$line/"$line"_"$date"_db.gz
+	mysqldump $mysql_db | gzip -9 > /root/.wp-backup/$line/"$line"_"$date"_db.gz
 	# check if the database was backed up correctly
-	if ! gunzip -c ~/.wp-backup/$line/"$line"_"$date"_db.gz | tail -n 1 | grep -qs "Dump completed on"
+	if ! gunzip -c /root/.wp-backup/$line/"$line"_"$date"_db.gz | tail -n 1 | grep -qs "Dump completed on"
 	then
 		echo "$(date) $line database dump failed" >> /var/log/wp-full-backup.log
 	fi
@@ -609,20 +614,20 @@ do
 	# if days = 0, do not delete anything
 	if [[ $1 != "0" && $1 != "-1" ]]
 	then
-		find ~/.wp-backup/$line/ -type f -mtime +$1 -exec rm -f {} \;
+		find /root/.wp-backup/$line/ -type f -mtime +$1 -exec rm -f {} \;
 	fi
 	# sync to s3
-	/usr/local/bin/aws s3 sync ~/.wp-backup/$line/ s3://$2/$line --$3 && echo "$(date) $domain backup successful" >> /var/log/wp-full-backup.log || echo "$(date) $domain backup failed" >> /var/log/wp-full-backup.log
+	AWS_SHARED_CREDENTIALS_FILE=$user_home/.aws/credentials /usr/local/bin/aws s3 sync /root/.wp-backup/$line/ s3://$2/$line --$4 && echo "$(date) $domain backup successful" >> /var/log/wp-full-backup.log || echo "$(date) $domain backup failed" >> /var/log/wp-full-backup.log
 	# Callback to notify that backup is completed.
-	# $4 should be the callback domain var...
-	if [[ -n "$4" ]]
+	# $5 should be the callback domain var...
+	if [[ -n "$5" ]]
 	then
-		wget -q -O /dev/null $4/wp-json/wordpress-app/v1/command/1/end_domain_backup/completed/1/?domain=$line
+		wget -q -O /dev/null $5/wp-json/wordpress-app/v1/command/1/end_domain_backup/completed/1/?domain=$line
 	fi
 	# remove all local backups if days is set to -1
 	if [[ $1 = "-1" ]]
 	then
-		rm -f ~/.wp-backup/$line/* \;
+		rm -f /root/.wp-backup/$line/* \;
 	fi
 done' > /usr/local/bin/wp-full-backup
 
@@ -656,7 +661,7 @@ done' > /usr/local/bin/wp-full-backup
 	fi
 	(crontab -l 2>/dev/null | sed '/wp-full-backup/d' ) | crontab -
 	# if the crontab entry doesn't exist, create it
-	(crontab -l 2>/dev/null; echo "30 5 * * * /usr/local/bin/wp-full-backup $days $bucket $s3_sync_delete_parm $callback_domain > /dev/null 2>&1") | crontab -
+	(crontab -l 2>/dev/null; echo "30 5 * * * /usr/local/bin/wp-full-backup $days $bucket $localuser $s3_sync_delete_parm $callback_domain > /dev/null 2>&1") | crontab -
 	echo
 	echo "Full backup job configured!"
 	exit
@@ -689,10 +694,10 @@ then
 		read -p "AWS Secret Access Key: " aws_secret_access_key
 	fi
 
-	mkdir -p ~/.aws
+	mkdir -p $user_home/.aws
 	echo "[default]
 aws_access_key_id = $aws_access_key_id
-aws_secret_access_key = $aws_secret_access_key" > ~/.aws/credentials
+aws_secret_access_key = $aws_secret_access_key" > $user_home/.aws/credentials
 	echo
 	echo "AWS credentials have been saved"
 	exit
@@ -701,13 +706,13 @@ fi
 
 if [[ $action == "list_backups" || $action == "8" ]]
 then
-	if [ ! -d ~/.wp-backup ]
+	if [ ! -d /root/.wp-backup ]
 	then
 		echo "Backup Directory Not exist"
 		exit 1
 	fi
 
-	cd ~/.wp-backup/
+	cd /root/.wp-backup/
 	# ask the user which site to list backups from
 	while [[ -z $site ]]
 	do
@@ -742,7 +747,7 @@ then
 		read -p "Retention days: " days
 	fi
 
-	find ~/.wp-backup/$site/ -type f -mtime +$days -exec rm -f {} \;
+	find /root/.wp-backup/$site/ -type f -mtime +$days -exec rm -f {} \;
 
 	echo
 	echo "$site backups older than $days days have been deleted"
@@ -760,7 +765,7 @@ then
 		Example: 30"
 		read -p "Retention days: " days
 	fi
-	find ~/.wp-backup/ -type f -mtime +$days -exec rm -f {} \;
+	find /root/.wp-backup/ -type f -mtime +$days -exec rm -f {} \;
 	echo
 	echo "All backups older than $days days have been deleted"
 	exit
@@ -769,7 +774,7 @@ fi
 
 if [[ $action == "delete_site_backups" || $action == "11" ]]
 then
-	cd ~/.wp-backup/
+	cd /root/.wp-backup/
 	while [[ -z $site ]]
 	do
 		echo
@@ -787,7 +792,7 @@ then
 		read -p "Press enter to continue"
 	fi
 
-	rm -fr ~/.wp-backup/$site
+	rm -fr /root/.wp-backup/$site
 	echo
 	echo "$site backups have been deleted"
 	exit
@@ -805,7 +810,7 @@ then
 		echo
 		read -p "Press enter to continue"
 	fi
-	rm -rf ~/.wp-backup/*
+	rm -rf /root/.wp-backup/*
 
 	echo
 	echo "All backups have been deleted"
@@ -817,17 +822,17 @@ if [[ $action == "show_orphaned_backups" || $action == "13" ]]
 then
 	echo
 	echo "The following sites have orphaned backups:"
-	cd ~/.wp-backup/
+	cd /root/.wp-backup/
 	if [ "$g_webserver_type" = "nginx" ]
 	then
-		sort <<< "$(ls ~/.wp-backup/; ls /etc/nginx/sites-enabled/; ls /etc/nginx/sites-available/)" | uniq -u | grep -v '^default$\|^monit$\|^monitorix$' |
+		sort <<< "$(ls /root/.wp-backup/; ls /etc/nginx/sites-enabled/; ls /etc/nginx/sites-available/)" | uniq -u | grep -v '^default$\|^monit$\|^monitorix$' |
 		while read -r line
 		do
 			find $line -maxdepth 0 2>/dev/null
 		done
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
-		sort <<< "$(ls ~/.wp-backup/; ls ${VHDIR}/)" | grep -v 'Example$' |uniq -u |
+		sort <<< "$(ls /root/.wp-backup/; ls ${VHDIR}/)" | grep -v 'Example$' |uniq -u |
 		while read -r line
 		do
 			find $line -maxdepth 0 2>/dev/null
@@ -840,17 +845,17 @@ fi
 if [[ $action == "remove_orphaned_backups" || $action == "14" ]]
 then
 	echo
-	cd ~/.wp-backup/
+	cd /root/.wp-backup/
 	if [ "$g_webserver_type" = "nginx" ]
 	then
-		sort <<< "$(ls ~/.wp-backup/; ls /etc/nginx/sites-enabled/; ls /etc/nginx/sites-available/)" | uniq -u | grep -v '^default$\|^monit$\|^monitorix$' |
+		sort <<< "$(ls /root/.wp-backup/; ls /etc/nginx/sites-enabled/; ls /etc/nginx/sites-available/)" | uniq -u | grep -v '^default$\|^monit$\|^monitorix$' |
 		while read -r line
 		do
 			find $line -maxdepth 0 2>/dev/null
 		done | xargs rm -rf
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
-		sort <<< "$(ls ~/.wp-backup/; ls ${VHDIR}/)" | grep -v 'Example$' |uniq -u |
+		sort <<< "$(ls /root/.wp-backup/; ls ${VHDIR}/)" | grep -v 'Example$' |uniq -u |
 		while read -r line
 		do
 			find $line -maxdepth 0 2>/dev/null
@@ -864,7 +869,7 @@ fi
 # Use "restore_webserver_config" instead.
 if [[ $action == "restore_webserver_config" || $action == "restore_nginx" || $action == "15" ]]
 then
-	cd ~/.wp-backup/
+	cd /root/.wp-backup/
 	# ask the user which site to restore
 	while [[ -z $site ]]
 	do
@@ -932,7 +937,7 @@ fi
 
 if [[ $action == "restore_wpconfig" || $action == "16" ]]
 then
-	cd ~/.wp-backup/
+	cd /root/.wp-backup/
 	# ask the user which site to restore
 	while [[ -z $site ]]
 	do

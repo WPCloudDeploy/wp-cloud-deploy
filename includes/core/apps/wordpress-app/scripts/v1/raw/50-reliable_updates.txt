@@ -212,7 +212,7 @@ function update_check
 		if [[ $pixel_difference -ge $threshold ]]
 		then
 			echo "Comparison failed - restoring from backup..."
-			backup=$(find ~/.wp-backup -type f -name "$domain*fs.tar.gz" | cut -d "/" -f 4-5 | cut -d "_" -f 1-2 | sort -nr | sed -n 1p)
+			backup=$(find /root/.wp-backup -type f -name "$domain*fs.tar.gz" | cut -d "/" -f 4-5 | cut -d "_" -f 1-2 | sort -nr | sed -n 1p)
 			if [ -z $backup ]
 			then
 				echo "Restore Skipped because no backup found"

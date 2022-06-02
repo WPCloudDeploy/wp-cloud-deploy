@@ -182,9 +182,9 @@ mysqldb=$(grep DB_NAME /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|c
 domain_file_size=`du -sm /var/www/$domain|awk '\''{print $1}'\''`
 domain_db_size=`du -sm /var/lib/mysql/$mysqldb|awk '\''{print $1}'\''`
 
-if [ -d ~/.wp-backup/$domain ]
+if [ -d /root/.wp-backup/$domain ]
 then
-	domain_backup_size=`du -sm ~/.wp-backup/$domain|awk '\''{print $1}'\''`
+	domain_backup_size=`du -sm /root/.wp-backup/$domain|awk '\''{print $1}'\''`
 else
 	domain_backup_size=0
 fi

@@ -52,14 +52,14 @@ mysql_dbprefix=$(grep table_prefix /var/www/$domain/html/wp-config.php | tr -d "
 #backup database
 echo "Backing up database..."
 date=$(date +"%Y-%m-%d"-"%Hh%Mm%Ss")
-mkdir -p ~/.wp-backup/$domain/
-mysqldump $mysql_db | gzip -9 > ~/.wp-backup/$domain/"$domain"_"$date"_db.gz
+mkdir -p /root/.wp-backup/$domain/
+mysqldump $mysql_db | gzip -9 > /root/.wp-backup/$domain/"$domain"_"$date"_db.gz
 if [ $? -ne 0 ]  
 then
 	echo "Database backup failed! Database repair aborted!"
 	exit
 fi
-echo "Database backed up to ~/.wp-backup/$domain/"$domain"_"$date"_db.gz"
+echo "Database backed up to /root/.wp-backup/$domain/"$domain"_"$date"_db.gz"
 
 if [[ $action == "db_repair_full_wp_cli_isam" || $action == "1" ]]
 then

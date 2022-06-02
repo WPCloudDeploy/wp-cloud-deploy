@@ -84,6 +84,10 @@
                 data: JSON.parse(wpcd_server_stat_data.disk_stat.chart_column_Available)
             }]
         };
+        
+        if( $('#wpcd-diskstatistics-canvas').length == 0 ) {
+                return;
+        }
 
         // Get the element for the chart to render
         var ctx = document.getElementById('wpcd-diskstatistics-canvas').getContext('2d');
@@ -162,7 +166,10 @@
                 }
             }
         };
-
+        
+        if( $('#'+element_id).length == 0 ) {
+                return;
+        }
         // Get the element for the chart to render
         var ctx = document.getElementById(element_id).getContext('2d');
 
@@ -190,6 +197,10 @@
                 data: JSON.parse(wpcd_server_stat_data.vmstat.chart_column_memory)
             }]
         };
+        
+        if( $('#wpcd-vmstat-canvas').length == 0 ) {
+                return;
+        }
 
         // Get the element for the chart to render
         var ctx = document.getElementById('wpcd-vmstat-canvas').getContext('2d');

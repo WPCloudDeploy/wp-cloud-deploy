@@ -3,6 +3,10 @@
     Author     : Tahir Nazir
 */
 
+.wpcd_public_clear {
+        clear: both;
+	float: none;
+}
 
 .rwmb-meta-box .rwmb-tabs {
         margin: 0;

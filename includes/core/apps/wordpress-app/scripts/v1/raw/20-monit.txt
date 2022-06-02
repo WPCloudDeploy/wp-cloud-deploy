@@ -4,6 +4,11 @@ if [[ "$EUID" -ne 0 ]]; then
 	exit
 fi
 
+## Get our common functions
+source 9999-common-functions.sh
+
+clear
+
 #
 # Add callback function to be used later in the script
 #
@@ -77,7 +82,10 @@ Example: monit.myblog.com"
     	read -p "Domain: " domain
 	fi
 
-	echo "server {
+	
+	if [ "$g_webserver_type" = "nginx" ]
+	then
+		echo "server {
     
     listen 80;
     listen [::]:80;
@@ -91,8 +99,13 @@ Example: monit.myblog.com"
     }
 
 }" > /etc/nginx/sites-enabled/monit
-
 	systemctl restart nginx
+
+	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]; then
+	# TODO: Get this working https://docs.openlitespeed.org/docs/advanced/proxy
+	echo ""
+
+	fi
 
 	apt-get install -y monit
 
@@ -223,26 +236,51 @@ include /etc/monit/conf-enabled/*" > /etc/monit/monitrc
 	Alert_memory=`echo $memalert| awk '{printf("%d", $1)}'`
 	Restart_memory=`echo $memrestart| awk '{printf("%d", $1)}'`
 
-echo ' check process nginx with pidfile /var/run/nginx.pid
-   group www
-   group nginx
-   start program = "/bin/systemctl restart nginx"
-   stop program = "/bin/systemctl restart nginx"
-   if failed host 127.0.0.1 port 80 then restart
-   if 5 restarts with 5 cycles then timeout
-   if cpu is greater than '$Alert_cpu'% for 2 cycles then alert
-   if cpu > '$Restart_cpu'% for 5 cycles then restart
-   depend nginx_bin
-   depend nginx_rc
+	if [ "$g_webserver_type" = "nginx" ] ; then
+		cat > /etc/monit/conf-available/nginx <<- EOF
+		check process nginx with pidfile /var/run/nginx.pid
+			group www
+			group nginx
+			start program = "/usr/bin/systemctl restart nginx"
+			stop program = "/usr/bin/systemctl restart nginx"
+			if failed host 127.0.0.1 port 80 then restart
+			if 5 restarts with 5 cycles then timeout
+			if cpu is greater than '$Alert_cpu'% for 2 cycles then alert
+			if cpu > '$Restart_cpu'% for 5 cycles then restart
+			depend nginx_bin
+			depend nginx_rc
 
- check file nginx_bin with path /usr/sbin/nginx
-   group nginx
-   include /etc/monit/templates/rootbin
+			check file nginx_bin with path /usr/sbin/nginx
+			group nginx
+			include /etc/monit/templates/rootbin
 
- check file nginx_rc with path /etc/init.d/nginx
-   group nginx
-   include /etc/monit/templates/rootbin
-' > /etc/monit/conf-available/nginx
+			check file nginx_rc with path /etc/init.d/nginx
+			group nginx
+			include /etc/monit/templates/rootbin
+		EOF
+		
+	elif [ "$g_webserver_type" = "ols" ]; then
+		# Config below works for OLS to monitor service
+		cat > /etc/monit/conf-available/openlitespeed <<- EOF
+		check process OpenLiteSpeed with pidfile /tmp/lshttpd/lshttpd.pid
+			start program = "/usr/bin/systemctl start lshttpd"
+			stop program = "/usr/bin/systemctl stop lshttpd"
+			if failed host 127.0.0.1 port 80 protocol http then restart
+			if 5 restarts with 5 cycles then timeout
+			if cpu is greater than '$Alert_cpu'% for 2 cycles then alert
+			if cpu > '$Restart_cpu'% for 5 cycles then restart
+		EOF
+	elif [ "$g_webserver_type" = "ols-enterprise" ]; then
+		cat > /etc/monit/conf-available/ols-enterprise <<- EOF
+		check process OpenLiteSpeed with pidfile /tmp/lshttpd/lshttpd.pid
+			start program = "/usr/bin/systemctl start lshttpd"
+			stop program = "/usr/bin/systemctl stop lshttpd"
+			if failed host 127.0.0.1 port 80 protocol http then restart
+			if 5 restarts with 5 cycles then timeout
+			if cpu is greater than '$Alert_cpu'% for 2 cycles then alert
+			if cpu > '$Restart_cpu'% for 5 cycles then restart
+		EOF
+	fi
 
 echo ' check process mysqld with pidfile /var/run/mysqld/mysqld.pid
    group database
@@ -352,29 +390,33 @@ echo 'check system '$domain'
    ' > /etc/monit/conf-available/coresystem
 
 	chmod 0700 /etc/monit/monitrc
-	ln -s /etc/monit/conf-available/nginx /etc/monit/conf-enabled/nginx
 	ln -s /etc/monit/conf-available/mysql /etc/monit/conf-enabled/mysql
-	if [[ ! -f /etc/wpcd/php-versions-disabled/php8.1 ]]; then
-		ln -s /etc/monit/conf-available/php81 /etc/monit/conf-enabled/php81
+	
+	if [ "$g_webserver_type" = "nginx" ] ; then
+		ln -s /etc/monit/conf-available/nginx /etc/monit/conf-enabled/nginx
+		if [[ ! -f /etc/wpcd/php-versions-disabled/php8.1 ]]; then
+			ln -s /etc/monit/conf-available/php81 /etc/monit/conf-enabled/php81
+		fi
+		if [[ ! -f /etc/wpcd/php-versions-disabled/php8.0 ]]; then	
+			ln -s /etc/monit/conf-available/php80 /etc/monit/conf-enabled/php80
+		fi
+		if [[ ! -f /etc/wpcd/php-versions-disabled/php7.4 ]]; then
+			ln -s /etc/monit/conf-available/php74 /etc/monit/conf-enabled/php74
+		fi
+		if [[ ! -f /etc/wpcd/php-versions-disabled/php7.3 ]]; then
+			ln -s /etc/monit/conf-available/php73 /etc/monit/conf-enabled/php73
+		fi
+		if [[ ! -f /etc/wpcd/php-versions-disabled/php7.2 ]]; then	
+			ln -s /etc/monit/conf-available/php72 /etc/monit/conf-enabled/php72
+		fi
+		if [[ ! -f /etc/wpcd/php-versions-disabled/php7.1 ]]; then	
+			ln -s /etc/monit/conf-available/php71 /etc/monit/conf-enabled/php71
+		fi
+		if [[ ! -f /etc/wpcd/php-versions-disabled/php5.6 ]]; then	
+			ln -s /etc/monit/conf-available/php56 /etc/monit/conf-enabled/php56
+		fi
 	fi
-	if [[ ! -f /etc/wpcd/php-versions-disabled/php8.0 ]]; then	
-		ln -s /etc/monit/conf-available/php80 /etc/monit/conf-enabled/php80
-	fi
-	if [[ ! -f /etc/wpcd/php-versions-disabled/php7.4 ]]; then
-		ln -s /etc/monit/conf-available/php74 /etc/monit/conf-enabled/php74
-	fi
-	if [[ ! -f /etc/wpcd/php-versions-disabled/php7.3 ]]; then
-		ln -s /etc/monit/conf-available/php73 /etc/monit/conf-enabled/php73
-	fi
-	if [[ ! -f /etc/wpcd/php-versions-disabled/php7.2 ]]; then	
-		ln -s /etc/monit/conf-available/php72 /etc/monit/conf-enabled/php72
-	fi
-	if [[ ! -f /etc/wpcd/php-versions-disabled/php7.1 ]]; then	
-		ln -s /etc/monit/conf-available/php71 /etc/monit/conf-enabled/php71
-	fi
-	if [[ ! -f /etc/wpcd/php-versions-disabled/php5.6 ]]; then	
-		ln -s /etc/monit/conf-available/php56 /etc/monit/conf-enabled/php56
-	fi	
+	
 	ln -s /etc/monit/conf-available/filesystem /etc/monit/conf-enabled/filesystem
 	ln -s /etc/monit/conf-available/coresystem /etc/monit/conf-enabled/coresystem
 	systemctl restart monit

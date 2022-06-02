@@ -74,11 +74,14 @@ class WPCD_WORDPRESS_TABS_SERVER_MONITORIX extends WPCD_WORDPRESS_TABS {
 	 * @return array    $tabs The default value.
 	 */
 	public function get_tab( $tabs, $id ) {
-		if ( $this->get_tab_security( $id ) ) {
-			$tabs[ $this->get_tab_slug() ] = array(
-				'label' => __( 'Monitorix', 'wpcd' ),
-				'icon'  => 'far fa-traffic-light-stop',
-			);
+		// Monitorx is only valid for NGINX servers for now.
+		if ( 'nginx' === $this->get_web_server_type( $id ) ) {
+			if ( $this->get_tab_security( $id ) ) {
+				$tabs[ $this->get_tab_slug() ] = array(
+					'label' => __( 'Monitorix', 'wpcd' ),
+					'icon'  => 'far fa-traffic-light-stop',
+				);
+			}
 		}
 		return $tabs;
 	}
@@ -108,6 +111,11 @@ class WPCD_WORDPRESS_TABS_SERVER_MONITORIX extends WPCD_WORDPRESS_TABS {
 
 		// If user is not allowed to access the tab then don't paint the fields.
 		if ( ! $this->get_tab_security( $id ) ) {
+			return $fields;
+		}
+
+		// Monitorx is only valid for NGINX servers for now.
+		if ( ! ( 'nginx' === $this->get_web_server_type( $id ) ) ) {
 			return $fields;
 		}
 

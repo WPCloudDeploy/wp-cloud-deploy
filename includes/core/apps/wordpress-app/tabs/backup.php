@@ -100,6 +100,25 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 				do_action( 'wpcd_log_notification', $id, 'error', __( 'The manual backup has failed.', 'wpcd' ), 'backup', null );
 
 			}
+
+			// Regardless, lets force a refresh of the backup list.
+			$this->refresh_backup_list( $id );
+		}
+
+		// If we're restoring a site check to see if the command was successful.
+		// if it was, we should remove metas related to object caches.
+		if ( 'restore-from-backup' === $command_array[0] ) {
+			// Lets pull the logs.
+			$logs = $this->get_app_command_logs( $id, $name );
+
+			// Was the command successful?
+			$success = (bool) $this->is_ssh_successful( $logs, 'backup_restore.txt' );
+
+			// If it was, then update the metas for memcached and redis.
+			if ( true === $success ) {
+				update_post_meta( $id, 'wpapp_memcached_status', 'off' );
+				update_post_meta( $id, 'wpapp_redis_status', 'off' );
+			}
 		}
 
 		// Delete action-specific the temporary meta if it exists.
@@ -172,7 +191,7 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 		}
 
 		/* Now verify that the user can perform actions on this screen, assuming that they can view the server */
-		$valid_actions = array( 'backup-run-manual', 'backup-run-schedule', 'restore-from-backup', 'restore-from-backup-nginx-only', 'restore-from-backup-wpconfig-only', 'delete-all-local-site-backups', 'prune-local-site-backups' );
+		$valid_actions = array( 'backup-run-manual', 'backup-run-schedule', 'restore-from-backup', 'restore-from-backup-webserver-config-only', 'restore-from-backup-wpconfig-only', 'delete-all-local-site-backups', 'prune-local-site-backups' );
 		if ( in_array( $action, $valid_actions, true ) ) {
 			if ( ! $this->get_tab_security( $id ) ) {
 				return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
@@ -191,7 +210,7 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 					$result = $this->refresh_backup_list( $id );  // no action being passed in - don't need it - it'll get figured out in the function.
 					break;
 				case 'restore-from-backup':
-				case 'restore-from-backup-nginx-only':
+				case 'restore-from-backup-webserver-config-only':
 				case 'restore-from-backup-wpconfig-only':
 					$result = $this->backup_actions( $action, $id );
 					break;
@@ -276,7 +295,7 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 				break;
 
 			case 'restore-from-backup':
-			case 'restore-from-backup-nginx-only':
+			case 'restore-from-backup-webserver-config-only':
 			case 'restore-from-backup-wpconfig-only':
 				// Make sure we have a backup to restore.
 				if ( empty( $args['backup_item'] ) ) {
@@ -297,8 +316,8 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 					case 'restore-from-backup':
 						$restore_action = 'restore'; // Full restore.
 						break;
-					case 'restore-from-backup-nginx-only':
-						$restore_action = 'restore_nginx';
+					case 'restore-from-backup-webserver-config-only':
+						$restore_action = 'restore_webserver_config';
 						break;
 					case 'restore-from-backup-wpconfig-only':
 						$restore_action = 'restore_wpconfig';
@@ -408,6 +427,7 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 			'name'       => $hide_field ? '' : __( 'AWS Bucket Name', 'wpcd' ),
 			'id'         => 'wpcd_app_aws_bucket_manual_backup',
 			'desc'       => $hide_field ? '' : __( 'Put the backup in this bucket. Leave this blank if you would like the backup to be placed in the default bucket.', 'wpcd' ),
+			'tooltip'    => $hide_field ? '' : __( 'The bucket should exist in the same region you specified for your AWS credentials.', 'wpcd' ),
 			'tab'        => 'backup',
 			'type'       => $hide_field ? 'hidden' : 'text',
 			'save_field' => false,
@@ -453,14 +473,14 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 			$auto_backups_confirmation_prompt = __( 'Are you sure you would like to enable daily automatic backups for this site?', 'wpcd' );
 		}
 
-		if ( 'on' === $auto_backup_status ) {		
+		if ( 'on' === $auto_backup_status ) {
 			// Backups have been enabled.  Show message about disabling it first before making changes.
 			$fields[] = array(
 				'name' => __( 'Automatic Backups - This Site Only', 'wpcd' ),
 				'desc' => __( 'Backups are enabled for this site. If you would like to make changes, please disable it first using the switch below.', 'wpcd' ),
 				'tab'  => 'backup',
 				'type' => 'heading',
-			);			
+			);
 		} else {
 			$fields[] = array(
 				'name' => __( 'Automatic Backups - This Site Only', 'wpcd' ),
@@ -472,10 +492,11 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 
 		$hide_field = (bool) wpcd_get_early_option( 'wordpress_app_site_backup_hide_aws_bucket_name' ) && ( ! wpcd_is_admin() );
 		if ( 'on' !== $auto_backup_status ) {
-			// Backups are not currently enabled so we can show all fields.		
-			$fields[]   = array(
+			// Backups are not currently enabled so we can show all fields.
+			$fields[] = array(
 				'id'         => 'wpcd_app_action_auto_backup_bucket_name',
 				'desc'       => $hide_field ? '' : __( 'If this is left blank then the global bucket name from the SETTINGS screen will be used.', 'wpcd' ),
+				'tooltip'    => $hide_field ? '' : __( 'The bucket should exist in the same region you specified for your AWS credentials.', 'wpcd' ),
 				'tab'        => 'backup',
 				'type'       => $hide_field ? 'hidden' : 'text',
 				'name'       => $hide_field ? '' : __( 'AWS Bucket Name', 'wpcd' ),
@@ -605,7 +626,7 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 			'class'      => 'wpcd_app_action',
 			'save_field' => false,
 			'columns'    => 3,
-		);		
+		);
 		$fields[] = array(
 			'id'         => 'wpcd_app_action_restore_backup',
 			'name'       => '',
@@ -631,20 +652,20 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 			'columns'    => 3,
 		);
 		$fields[] = array(
-			'id'         => 'wpcd_app_action_restore_backup_nginx_only',
+			'id'         => 'wpcd_app_action_restore_backup_webserver_config_only',
 			'name'       => '',
 			'tab'        => 'backup',
 			'type'       => 'button',
-			'std'        => __( 'Restore NGINX Configuration File', 'wpcd' ),
+			'std'        => __( 'Restore Web Server Configuration', 'wpcd' ),
 			// fields that contribute data for this action.
 			'attributes' => array(
 				// the _action that will be called in ajax.
-				'data-wpcd-action'              => 'restore-from-backup-nginx-only',
+				'data-wpcd-action'              => 'restore-from-backup-webserver-config-only',
 				// the id.
 				'data-wpcd-id'                  => $id,
 				// fields that contribute data for this action.
-				'data-wpcd-fields'              => json_encode( array( '#wpcd_app_action_backup_list' ) ),              // make sure we give the user a confirmation prompt.
-				'data-wpcd-confirmation-prompt' => __( 'Are you really really SURE you want to restore this backup, overwriting your NGINX web server configuration file on the existing site?', 'wpcd' ),
+				'data-wpcd-fields'              => json_encode( array( '#wpcd_app_action_backup_list' ) ), // make sure we give the user a confirmation prompt.
+				'data-wpcd-confirmation-prompt' => __( 'Are you really really SURE you want to restore this backup, overwriting your web server configuration file on the existing site?', 'wpcd' ),
 				// show log console?
 				'data-show-log-console'         => true,
 				// Initial console message.

@@ -711,8 +711,8 @@ class WP_CLOUD_DEPLOY {
 	public static function get_webserver_list() {
 		$webserver_list = array(
 			'nginx'          => __( 'NGINX', 'wpcd' ),
-			'ols'            => __( 'Open Litespeed (Beta)', 'wpcd' ),
-			'ols-enterprise' => __( 'Litespeed Enterprise (Not Available)', 'wpcd' ),
+			'ols'            => __( 'OpenLiteSpeed (Beta)', 'wpcd' ),
+			// 'ols-enterprise' => __( 'LiteSpeed Enterprise (Beta)', 'wpcd' ),
 		);
 		return apply_filters( 'wpcd_webserver_list', $webserver_list );
 	}

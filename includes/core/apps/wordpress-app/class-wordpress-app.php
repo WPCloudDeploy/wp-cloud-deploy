@@ -431,10 +431,45 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	 * @TODO: strip out inline styles and move to admin stylesheet?
 	 */
 	private function get_general_fields( array $fields, $app_id ) {
+
+		// What type of web server are we running?
+		$webserver_type      = $this->get_web_server_type( $app_id );
+		$webserver_type_name = $this->get_web_server_description_by_id( $app_id );
+
+		// SSL enabled?
+		$ssl_status               = $this->get_site_local_ssl_status( $app_id );   // Returns a boolean.
+		$ssl_status_display_value = true === $ssl_status ? __( 'On', 'wpcd' ) : __( 'Off', 'wpcd' );
+		if ( true === boolval( $ssl_status ) ) {
+			$ssl_class_name = 'wpcd_site_details_top_row_element_ssl_on';
+		} else {
+			$ssl_class_name = 'wpcd_site_details_top_row_element_ssl_off';
+		}
+
+		// Page Cache.
+		$page_cache_status        = $this->get_page_cache_status( $app_id );
+		$page_cache_display_value = 'on' === $page_cache_status ? __( 'On', 'wpcd' ) : __( 'Off', 'wpcd' );
+		if ( 'on' === $page_cache_status ) {
+			$page_cache_class_name = 'wpcd_site_details_top_row_element_page_cache_on';
+		} else {
+			$page_cache_class_name = 'wpcd_site_details_top_row_element_page_cache_off';
+		}
+
+		// Wrap the page cache and ssl status into a set of spans that will go underneath the domain name.
+		$other_data  = '<div class="wpcd_site_details_top_row_element_wrapper">';
+		$other_data .= '<span class="wpcd_medium_chicklet wpcd_site_details_top_row_element_wstype">' . $webserver_type_name . '</span>';
+		$other_data .= '<span class=" wpcd_medium_chicklet ' . $ssl_class_name . '">' . sprintf( __( 'SSL: %s', 'wpcd' ), $ssl_status_display_value ) . '</span>';
+		$other_data .= '<span class=" wpcd_medium_chicklet ' . $page_cache_class_name . '">' . sprintf( __( 'Cache: %s', 'wpcd' ), $page_cache_display_value ) . '</span>';
+		$other_data .= '</div>';
+
+		// There should be no 'other data' if the setting to not show it is enabled.
+		if ( wpcd_get_option( 'wordpress_app_hide_chicklet_area_in_site_detail' ) ) {
+			$other_data = '';
+		}
+
 		$fields[] = array(
 			'name'    => __( 'Domain', 'wpcd' ),
 			'type'    => 'custom_html',
-			'std'     => $this->get_domain_name( $app_id ),
+			'std'     => $this->get_domain_name( $app_id ) . $other_data,
 			'columns' => 'left' === $this->get_tab_style() ? 4 : 4,
 			'class'   => 'left' === $this->get_tab_style() ? 'wpcd_site_details_top_row wpcd_site_details_top_row_domain wpcd_site_details_top_row_domain_left' : 'wpcd_site_details_top_row wpcd_site_details_top_row_domain',
 		);
@@ -650,7 +685,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 		switch ( $web_server_type ) {
 			case 'ols':
-				$return = __( 'Open Lightspeed', 'wpcd' );
+				$return = __( 'OpenLiteSpeed', 'wpcd' );
 				break;
 
 			case 'nginx':
@@ -658,11 +693,28 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				break;
 
 			case 'ols-enterprise':
-				$return = __( 'Open Lightspeed Enterprise', 'wpcd' );
+				$return = __( 'LiteSpeed Enterprise', 'wpcd' );
 				break;
 		}
 
 		return $return;
+
+	}
+
+	/**
+	 * Get the webserver name (full name) installed on a server given an app or server id.
+	 *
+	 * @since 5.0
+	 *
+	 * @param int $post_id The post id of the server or app record.
+	 *
+	 * @return string
+	 */
+	public function get_web_server_description_by_id( $post_id ) {
+
+		$web_server_type = $this->get_web_server_type( $post_id );
+
+		return $this->get_web_server_description( $web_server_type );
 
 	}
 
@@ -1102,6 +1154,138 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	}
 
 	/**
+	 * Returns an indicator whether the page cache is enabled or not.
+	 *
+	 * @param int $app_id ID of app being interrogated.
+	 *
+	 * @return string 'on' or 'off'
+	 */
+	public function get_page_cache_status( $app_id ) {
+		// Default current status.
+		$current_status = '';
+
+		/**
+		 * We have to handle older WPCD versions (versions prior to WPCD 5.0).
+		 */
+		// First, check to see if the nginx meta has a value.
+		$nginx_value = get_post_meta( $app_id, 'wpapp_nginx_pagecache_status', true );
+
+		// If it does, convert it to our new meta and delete the old value.
+		if ( ! empty( $nginx_value ) ) {
+			update_post_meta( $app_id, 'wpapp_pagecache_status', $nginx_value );
+			delete_post_meta( $app_id, 'wpapp_nginx_pagecache_status' );
+		}
+
+		// Now we can pick up the current status after any conversions.
+		$current_status = wpcd_maybe_unserialize( get_post_meta( $app_id, 'wpapp_pagecache_status', true ) );
+
+		if ( empty( $current_status ) ) {
+			$current_status = 'off';
+		}
+
+		return $current_status;
+
+	}
+
+	/**
+	 * Get an array of PHP versions that are valid and active on the server.
+	 *
+	 * @param int|string $id The post id of the site.
+	 *
+	 * @return array Associated array of php versions.
+	 */
+	public function get_php_versions( $id ) {
+
+		/* What type of web server are we running? */
+		$webserver_type = $this->get_web_server_type( $id );
+
+		// Create single element array if php 8.0 is installed.
+		if ( $this->is_php_80_installed( $id ) ) {
+			$php80 = array( '8.0' => '8.0' );
+		} else {
+			$php80 = array();
+		}
+
+		// Create single element array if php 8.1 is installed.
+		if ( $this->is_php_81_installed( $id ) ) {
+			$php81 = array( '8.1' => '8.1' );
+		} else {
+			$php81 = array();
+		}
+
+		// Array of other PHP versions - notable here is that OLS does not support php 5.6.
+		switch ( $webserver_type ) {
+			case 'ols':
+			case 'ols-enterprise':
+				$other_php_versions = array(
+					'7.4' => '7.4',
+					'7.3' => '7.3',
+					'7.2' => '7.2',
+					'7.1' => '7.1',
+				);
+				break;
+
+			case 'nginx':
+			default:
+				$other_php_versions = array(
+					'7.4' => '7.4',
+					'7.3' => '7.3',
+					'7.2' => '7.2',
+					'7.1' => '7.1',
+					'5.6' => '5.6',
+				);
+				break;
+		}
+
+		// Array of php version options.
+		$php_select_options = array_merge(
+			$other_php_versions,
+			$php80,
+			$php81
+		);
+
+		// Filter out inactive versions.  Only applies to NGINX.  OLS always have all versions active.
+		if ( 'nginx' === $webserver_type ) {
+			// Remove invalid PHP versions (those that are deactivated on the server).
+			$server_id = $this->get_server_id_by_app_id( $id );
+			if ( ! empty( $server_id ) ) {
+				$php_versions = array(
+					'php56' => '5.6',
+					'php71' => '7.1',
+					'php72' => '7.2',
+					'php73' => '7.3',
+					'php74' => '7.4',
+					'php80' => '8.0',
+					'php81' => '8.1',
+				);
+				foreach ( $php_versions as $php_version_key => $php_version ) {
+					if ( ! $this->is_php_version_active( $server_id, $php_version_key ) ) {
+						if ( ! empty( $php_select_options[ $php_version ] ) ) {
+							unset( $php_select_options[ $php_version ] );
+						}
+					}
+				}
+			}
+		}
+
+		return $php_select_options;
+
+	}
+
+	/**
+	 * Sets the page cache status meta on an app record..
+	 *
+	 * @param int    $app_id ID of app.
+	 * @param string $status The status to set - should be 'on' or 'off'.
+	 *
+	 * @return boolean|array|object
+	 */
+	public function set_page_cache_status( $app_id, $status ) {
+		return update_post_meta( $app_id, 'wpapp_pagecache_status', $status );
+	}
+
+
+	/**
 	 * Returns whether a site is a staging site.
 	 *
 	 * @param int $app_id ID of app being interrogated.
@@ -1178,7 +1362,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	/**
 	 * Get a formatted link to the front-end of the site
 	 *
-	 * @param string $app_id is the post id of the app record we're asking about.
+	 * @param int $app_id is the post id of the app record we're asking about.
 	 *
 	 * @return string
 	 */
@@ -1197,6 +1381,44 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		}
 
 		return sprintf( '<a href = "%s" target="_blank">' . __( 'View site', 'wpcd' ) . '</a>', $url_site );
+
+	}
+
+	/**
+	 * Sets the status of SSL metas and, if necesssary, http2 as well.
+	 *
+	 * @param int    $app_id is the post id of the app record we're working with.
+	 * @param string $ssl_status Should be 'on' or 'off'.
+	 *
+	 * @return void
+	 */
+	public function set_ssl_status( $app_id, $ssl_status ) {
+
+		// What type of web server are we running?
+		$webserver_type = $this->get_web_server_type( $app_id );
+
+		update_post_meta( $app_id, 'wpapp_ssl_status', $ssl_status );
+
+		// Update HTTP2 status based on webserver type.
+		switch ( $webserver_type ) {
+			case 'ols':
+			case 'ols-enterprise':
+				if ( 'on' === $ssl_status ) {
+					// SSL turned on so we turn http2 on.
+					update_post_meta( $app_id, 'wpapp_ssl_http2_status', 'on' );  // OLS always have http2, http3 and spdy turned on by default.
+				} else {
+					// SSL turned off so we turn http2 off.
+					update_post_meta( $app_id, 'wpapp_ssl_http2_status', 'off' );
+				}
+				break;
+
+			case 'nginx':
+			default:
+				// For NGINX we can only turn ssl on/off if HTTP2 is off so this meta is always going to be "off".
+				update_post_meta( $app_id, 'wpapp_ssl_http2_status', 'off' );
+				break;
+
+		}
 
 	}
 
@@ -1403,16 +1625,10 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	}
 
 
-
-
-
-
-
-
 	/**
 	 * Return create server popup view
 	 *
-	 * @param string $view
+	 * @param string $view String indicating whether we're viewing popup from admin or frontend (public).
 	 *
 	 * @return void|string
 	 */
@@ -1540,7 +1756,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 					$invalid_msg = __( 'If you are seeing this message, something went very wrong at the start of the create a new server process. However, we are unable to be more specific at this time about its root cause.', 'wpcd' );
 				}
 
-				// Validate the server name and return right away if invalid format
+				// Validate the server name and return right away if invalid format.
 				$name_pattern = '/^[a-z0-9-_]+$/i';
 
 				if ( false !== strpos( mb_strtolower( $args['provider'] ), 'hivelocity' ) ) {
@@ -1586,6 +1802,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 					if ( is_wp_error( $result ) ) {
 						$err_msg = $result->get_error_message();
 					}
+					/* Translators: %1: Error message. */
 					$msg = sprintf( __( 'Unfortunately we could not start deploying this server - most likely because of an error from the provider api. <br />Please contact support or you can check the COMMAND & SSH logs for errors.<br />  You can close this screen and then retry the operation.<br />%s', 'wpcd' ), $err_msg );
 					$msg = apply_filters( 'wpcd_wordpress-app-server_deployment_error', $msg );
 					$msg = '<span class="wpcd_pre_install_text_error">' . $msg . '</span>';
@@ -2090,6 +2307,13 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 			/* Add the password field to the CPT separately because it needs to be encrypted */
 			update_post_meta( $app_post_id, 'wpapp_password', $this::encrypt( $args['wp_password'] ) );
+
+			/**
+			 * Page caching is enabled by default for both NGINX and OLS so update the post meta to show that.
+			 * As of WPCD 5.0, we're retiring the wpapp_nginx_pagecache_status meta and using just
+			 * 'wpapp_pagecache_status' instead.
+			 */
+			$this->set_page_cache_status( $app_post_id, 'on' );
 
 			/* Everything good, return the post id of the new app record */
 			return $app_post_id;
@@ -2961,19 +3185,19 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 					$qv['meta_query'][] = array(
 						'relation' => 'OR',
 						array(
-							'key'     => 'wpapp_nginx_pagecache_status',
+							'key'     => 'wpapp_pagecache_status',
 							'value'   => $wpapp_page_cache_status,
 							'compare' => '=',
 						),
 						array(
-							'key'     => 'wpapp_nginx_pagecache_status',
+							'key'     => 'wpapp_pagecache_status',
 							'compare' => 'NOT EXISTS',
 						),
 					);
 
 				} else {
 					$qv['meta_query'][] = array(
-						'key'     => 'wpapp_nginx_pagecache_status',
+						'key'     => 'wpapp_pagecache_status',
 						'value'   => $wpapp_page_cache_status,
 						'compare' => '=',
 					);

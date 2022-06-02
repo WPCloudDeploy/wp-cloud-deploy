@@ -8,84 +8,109 @@
 # $functions_list comma-separated list of functions. Example: "getmypid,ignore_user_abort,shell_exec" or "getmypid"
 
 
-if [[ "$EUID" -ne 0 ]]; then
+if [[ "$EUID" -ne 0 ]]
+then
 	echo "Sorry, you need to run this as root"
 	exit
 fi
 
+## Get our common functions
+source 9999-common-functions.sh
 
-
-if [[ -z $domain ]]; then
-    clear
-    echo "Which domain name do you want to manage?
-Example: myblog.com"
-    read -p "Domain: " domain
-fi
-
-if [[ ! $(ls /etc/php/*/fpm/pool.d/$domain.conf) ]]; then
-    echo
-    echo "Domain not found!"
-    exit
-fi
-
-
-php_version=$(ls /etc/php/*/fpm/pool.d/$domain.conf | cut -d '/' -f 4)
-
-
-while [[ -z $action ]]; do
-    echo
-    echo "What do you want to do?"
-    echo
-    echo "   1) Enable PHP function (remove from disabled functions list)"
-    echo "   2) Disable PHP function (add to disabled functions list)"
-    read -p "Action: " action
-    until [[ -z "$action" || "$action" =~ ^[1-2]$ ]]; do
-    	echo "$action: invalid selection."
-    	read -p "Action: " action
-    done
-done
-
-
-if [[ -z $functions_list ]]; then
-    clear
-    echo "Which function/s do you want to manage?
-Example: getmypid
-Example 2: getmypid,ignore_user_abort,shell_exec"
-    read -p "Functions list: " functions_list
-fi
-
-
-echo
-
-
-IFS=","
-for function_name in $functions_list
+while [[ -z $domain ]]
 do
-    if [[ $action == "enable_php_function" || $action == "1" ]]; then
-		# search for a comma followed by a space and the name of the function
-    	sed -e "s/, $function_name//g" -i /etc/php/*/fpm/pool.d/$domain.conf
-		# search for a comma followed by the name of the function with no spaces
-		sed -e "s/,$function_name//g" -i /etc/php/*/fpm/pool.d/$domain.conf
-		# search for a comma followed by two spaces and then the name of the function with no spaces
-		sed -e "s/,  $function_name//g" -i /etc/php/*/fpm/pool.d/$domain.conf
-		
-		# handle the situation where there is only one function name and there are one or two spaces between the "=" sign and the function name or spaces after the function name.
-		sed -e "s/php_admin_value\[disable_functions\] = $function_name, /php_admin_value\[disable_functions\] = /g" -i /etc/php/*/fpm/pool.d/$domain.conf		
-    	sed -e "s/php_admin_value\[disable_functions\] =  $function_name, /php_admin_value\[disable_functions\] = /g" -i /etc/php/*/fpm/pool.d/$domain.conf
-		sed -e "s/php_admin_value\[disable_functions\] =  $function_name /php_admin_value\[disable_functions\] = /g" -i /etc/php/*/fpm/pool.d/$domain.conf
-		sed -e "s/php_admin_value\[disable_functions\] = $function_name /php_admin_value\[disable_functions\] = /g" -i /etc/php/*/fpm/pool.d/$domain.conf
-		sed -e "s/php_admin_value\[disable_functions\] =  $function_name/php_admin_value\[disable_functions\] = /g" -i /etc/php/*/fpm/pool.d/$domain.conf
-		sed -e "s/php_admin_value\[disable_functions\] = $function_name/php_admin_value\[disable_functions\] = /g" -i /etc/php/*/fpm/pool.d/$domain.conf
-
-    	echo "$function_name has been enabled for $domain"
-    fi
-    if [[ $action == "disable_php_function" || $action == "2" ]]; then
-    	sed -e "s/php_admin_value\[disable_functions\] = /php_admin_value\[disable_functions\] = $function_name, /g" -i /etc/php/*/fpm/pool.d/$domain.conf
-		echo "$function_name has been disabled for $domain"
-    fi
+	clear
+	echo "Which domain name do you want to manage?"
+	gf_select_domain
+	domain=$(ls /var/www | grep -v html | sed -n "$site_number"p)
 done
 
 
-if [ ! -f /etc/wpcd/php-versions-disabled/php$php_version ] ; then
-    systemctl restart php$php_version-fpm
+while [[ -z $action ]]
+do
+	echo
+	echo "What do you want to do?"
+	echo
+	echo "   1) Enable PHP function (remove from disabled functions list)"
+	echo "   2) Disable PHP function (add to disabled functions list)"
+	read -p "Action: " action
+	until [[ -z "$action" || "$action" =~ ^[1-2]$ ]]
+	do
+		echo "$action: invalid selection."
+		read -p "Action: " action
+	done
+done
+
+
+if [[ -z $functions_list ]]
+then
+	clear
+	echo "Which function/s do you want to manage?
+	Example: getmypid
+	Example 2: getmypid,ignore_user_abort,shell_exec"
+	read -p "Functions list: " functions_list
+fi
+
+
+if [[ $action == "enable_php_function" || $action == "1" ]]
+then
+	IFS=","
+	for function_name in $functions_list
+	do
+		if [ "$g_webserver_type" = "nginx" ]
+		then
+			php_version=$(ls /etc/php/*/fpm/pool.d/$domain.conf | cut -d '/' -f 4)
+			sed -i "s/[ ]*$function_name[ ]*,//g"  /etc/php/*/fpm/pool.d/$domain.conf
+			sed -i "s/,[ ]*$function_name[ ]*//g"  /etc/php/*/fpm/pool.d/$domain.conf
+			sed -i "s/[ ]*$function_name[ ]*//g"  /etc/php/*/fpm/pool.d/$domain.conf
+			if [ ! -f /etc/wpcd/php-versions-disabled/php$php_version ] 
+			then
+				systemctl restart php$php_version-fpm
+			fi
+		elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+		then
+			# sed -i "s/[ ]*$function_name[ ]*,//g" /var/www/$domain/html/php.ini
+			# sed -i "s/,[ ]*$function_name[ ]*//g" /var/www/$domain/html/php.ini
+			# sed -i "s/[ ]*$function_name[ ]*//g" /var/www/$domain/html/php.ini
+			
+			# alternative in vhost config
+			sed -i "s/[ ]*$function_name[ ]*,//g" "${VHDIR}/$domain/$g_vhost_conf"
+			sed -i "s/,[ ]*$function_name[ ]*//g" "${VHDIR}/$domain/$g_vhost_conf"
+			sed -i "s/[ ]*$function_name[ ]*//g" "${VHDIR}/$domain/$g_vhost_conf"
+		fi
+		echo "$function_name has been enabled for $domain"
+		gf_restart_webserver
+	done
+fi
+
+if [[ $action == "disable_php_function" || $action == "2" ]]
+then
+	IFS=","
+	for function_name in $functions_list
+	do
+		if [ "$g_webserver_type" = "nginx" ]
+		then
+			php_version=$(ls /etc/php/*/fpm/pool.d/$domain.conf | cut -d '/' -f 4)
+			sed -e "s/php_admin_value\[disable_functions\] = /php_admin_value\[disable_functions\] = $function_name, /g" -i /etc/php/*/fpm/pool.d/$domain.conf
+			if [ ! -f /etc/wpcd/php-versions-disabled/php$php_version ] 
+			then
+				systemctl restart php$php_version-fpm
+			fi
+		elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+		then
+			grep disable_functions "${VHDIR}/$domain/$g_vhost_conf" > /dev/null 2>&1
+			if [ $? -eq 0 ]
+			then
+				# sed -i "s/disable_functions = /disable_functions = $function_name, /g" /var/www/$domain/html/php.ini
+				# Alternate way if in vhost config
+				sed -e "s/php_admin_value\[disable_functions\] = /php_admin_value\[disable_functions\] = $function_name, /g" -i "${VHDIR}/$domain/$g_vhost_conf"
+			else
+				# this might get trickier cause we could just put specific disable but not sure if would work if disabled in global level
+				# We would most likely have to do some fancy inserts into the vhost
+				echo "disable_functions = $function_name" > /var/www/$domain/html/php.ini
+			fi
+			gf_restart_webserver
+		fi
+		echo "$function_name has been disabled for $domain"
+	done
 fi

@@ -178,7 +178,7 @@ class WPCD_WORDPRESS_TABS_SERVER_LOGS extends WPCD_WORDPRESS_TABS {
 			'type'           => 'select',
 			// 'save_field' => false,
 			'raw_attributes' => array(
-				'options'        => $this->get_log_list(),
+				'options'        => $this->get_log_list( $id ),
 				// the key of the field (the key goes in the request).
 				'data-wpcd-name' => 'server_log_name',
 			),
@@ -235,7 +235,7 @@ class WPCD_WORDPRESS_TABS_SERVER_LOGS extends WPCD_WORDPRESS_TABS {
 		$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
 
 		/* Make sure the log name has not been tampered with. We will not be escaping the log file name since we can validate it against our own known good list. */
-		if ( ! isset( $this->get_log_list()[ $args['server_log_name'] ] ) ) {
+		if ( ! isset( $this->get_log_list( $id )[ $args['server_log_name'] ] ) ) {
 			return new \WP_Error( __( 'We were unable to validate the log file name - this might be a security concern!.', 'wpcd' ) );
 		}
 
@@ -276,29 +276,65 @@ class WPCD_WORDPRESS_TABS_SERVER_LOGS extends WPCD_WORDPRESS_TABS {
 
 	/**
 	 * Return a key-value array of logs that we can retrieve for the server.
+	 *
+	 * @param int $id post id of server record.
+	 *
+	 * @return array
 	 */
-	public function get_log_list() {
-		return array(
-			'/var/log/nginx/access.log'       => __( 'NGINX Access Log', 'wpcd' ),
-			'/var/log/nginx/error.log'        => __( 'NGINX Error Log', 'wpcd' ),
-			'/var/log/mysql/error.log'        => __( 'MYSQL Error Log', 'wpcd' ),
-			'/var/log/wp-backup.log'          => __( 'Site WP Backup Logs', 'wpcd' ),
-			'/var/log/wp-full-backup.log'     => __( 'Full Server WP Backup Logs', 'wpcd' ),
-			'/var/log/syslog'                 => __( 'SYSLog', 'wpcd' ),
-			'/var/log/unattended-upgrades/unattended-upgrades.log' => __( 'Unattended Upgrades Summary Log', 'wpcd' ),
-			'/var/log/unattended-upgrades/unattended-upgrades-dpkg.log' => __( 'Unattended Upgrades Detail Log', 'wpcd' ),
-			'/var/log/dpkg.log'               => __( 'Recently installed or removed packages, AKA dpkg.log', 'wpcd' ),
-			'/var/log/redis/redis-server.log' => __( 'REDIS Log', 'wpcd' ),
-			'/var/log/php7.1-fpm.log'         => __( 'PHP 7.1 FPM Log', 'wpcd' ),
-			'/var/log/php7.2-fpm.log'         => __( 'PHP 7.2 FPM Log', 'wpcd' ),
-			'/var/log/php7.3-fpm.log'         => __( 'PHP 7.3 FPM Log', 'wpcd' ),
-			'/var/log/php7.4-fpm.log'         => __( 'PHP 7.4 FPM Log', 'wpcd' ),
-			'/var/log/php8.0-fpm.log'         => __( 'PHP 8.0 FPM Log', 'wpcd' ),
-			'/var/log/php8.1-fpm.log'         => __( 'PHP 8.1 FPM Log', 'wpcd' ),
-			'/var/log/auth.log'               => __( 'Authorization Log', 'wpcd' ),
-			'/var/log/ufw.log'                => __( 'UFW Firewall Log', 'wpcd' ),
-			'/var/log/wp-server-status.log'   => __( 'WPCD Server Status Callback Log', 'wpcd' ),
-		);
+	public function get_log_list( $id ) {
+
+		// What type of web server are we running?
+		$webserver_type      = $this->get_web_server_type( $id );
+		$webserver_type_name = $this->get_web_server_description_by_id( $id );
+
+		switch ( $webserver_type ) {
+			case 'ols':
+			case 'ols-enterprise':
+				return array(
+					'/usr/local/lsws/logs/access.log' => sprintf( __( '%s Access Log', 'wpcd' ), $webserver_type_name ),
+					'/usr/local/lsws/logs/error.log'  => sprintf( __( '%s Error Log', 'wpcd' ), $webserver_type_name ),
+					'/usr/local/lsws/logs/stderr.log' => sprintf( __( '%s Standard Ouput Error Log', 'wpcd' ), $webserver_type_name ),
+					'/var/log/mysql/error.log'        => __( 'MYSQL Error Log', 'wpcd' ),
+					'/var/log/wp-backup.log'          => __( 'Site WP Backup Logs', 'wpcd' ),
+					'/var/log/wp-full-backup.log'     => __( 'Full Server WP Backup Logs', 'wpcd' ),
+					'/var/log/syslog'                 => __( 'SYSLog', 'wpcd' ),
+					'/var/log/unattended-upgrades/unattended-upgrades.log' => __( 'Unattended Upgrades Summary Log', 'wpcd' ),
+					'/var/log/unattended-upgrades/unattended-upgrades-dpkg.log' => __( 'Unattended Upgrades Detail Log', 'wpcd' ),
+					'/var/log/dpkg.log'               => __( 'Recently installed or removed packages, AKA dpkg.log', 'wpcd' ),
+					'/var/log/redis/redis-server.log' => __( 'REDIS Log', 'wpcd' ),
+					'/var/log/auth.log'               => __( 'Authorization Log', 'wpcd' ),
+					'/var/log/ufw.log'                => __( 'UFW Firewall Log', 'wpcd' ),
+					'/var/log/wp-server-status.log'   => __( 'WPCD Server Status Callback Log', 'wpcd' ),
+				);
+				break;
+
+			case 'nginx':
+			default:
+				return array(
+					'/var/log/nginx/access.log'       => __( 'NGINX Access Log', 'wpcd' ),
+					'/var/log/nginx/error.log'        => __( 'NGINX Error Log', 'wpcd' ),
+					'/var/log/mysql/error.log'        => __( 'MYSQL Error Log', 'wpcd' ),
+					'/var/log/wp-backup.log'          => __( 'Site WP Backup Logs', 'wpcd' ),
+					'/var/log/wp-full-backup.log'     => __( 'Full Server WP Backup Logs', 'wpcd' ),
+					'/var/log/syslog'                 => __( 'SYSLog', 'wpcd' ),
+					'/var/log/unattended-upgrades/unattended-upgrades.log' => __( 'Unattended Upgrades Summary Log', 'wpcd' ),
+					'/var/log/unattended-upgrades/unattended-upgrades-dpkg.log' => __( 'Unattended Upgrades Detail Log', 'wpcd' ),
+					'/var/log/dpkg.log'               => __( 'Recently installed or removed packages, AKA dpkg.log', 'wpcd' ),
+					'/var/log/redis/redis-server.log' => __( 'REDIS Log', 'wpcd' ),
+					'/var/log/php7.1-fpm.log'         => __( 'PHP 7.1 FPM Log', 'wpcd' ),
+					'/var/log/php7.2-fpm.log'         => __( 'PHP 7.2 FPM Log', 'wpcd' ),
+					'/var/log/php7.3-fpm.log'         => __( 'PHP 7.3 FPM Log', 'wpcd' ),
+					'/var/log/php7.4-fpm.log'         => __( 'PHP 7.4 FPM Log', 'wpcd' ),
+					'/var/log/php8.0-fpm.log'         => __( 'PHP 8.0 FPM Log', 'wpcd' ),
+					'/var/log/php8.1-fpm.log'         => __( 'PHP 8.1 FPM Log', 'wpcd' ),
+					'/var/log/auth.log'               => __( 'Authorization Log', 'wpcd' ),
+					'/var/log/ufw.log'                => __( 'UFW Firewall Log', 'wpcd' ),
+					'/var/log/wp-server-status.log'   => __( 'WPCD Server Status Callback Log', 'wpcd' ),
+				);
+
+				break;
+
+		}
 	}
 
 }

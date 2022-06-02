@@ -1,5 +1,7 @@
 echo "done" && {
     cd ~ && 
+	sudo -E wget --no-check-certificate -O ##SCRIPT_COMMON_NAME## ##SCRIPT_COMMON_URL## &&
+	sudo -E dos2unix ##SCRIPT_COMMON_NAME## &&	
     sudo -E wget --no-check-certificate -O ##SCRIPT_NAME## ##SCRIPT_URL## &&
 	export action=##ACTION## domain=##DOMAIN## interactive=##INTERACTIVE## destination_ip=##DESTINATION_IP## origin_ip=##ORIGIN_IP## sshuser=##SSHUSER## site_sync_callback_url=##SITE_SYNC_CALLBACK_URL## &&
     sudo -E dos2unix ##SCRIPT_NAME## &&

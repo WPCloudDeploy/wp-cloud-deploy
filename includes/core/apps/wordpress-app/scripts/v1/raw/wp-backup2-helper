@@ -9,7 +9,8 @@ if ! dirname $0 | grep -qs "/usr/local/bin"; then
     exit
 fi
 
-
+## Get our common functions
+source 9999-common-functions.sh
 
 hour=$(date +%H)
 day=$(date +%A)
@@ -74,6 +75,20 @@ backup_nginx () {
 	tar -czf ~/.wp-backup2/$domain/"$domain"_"$date"_nginx.tar.gz $(ls sites-enabled/$domain sites-enabled/"$domain"_* htpasswd/$domain htpasswd/"$domain"_* 2>/dev/null)
 }
 
+backup_ols () {
+		echo "Backing up OLS configuration..."
+		cd /usr/local/lsws/conf/
+		tar -czf ~/.wp-backup/$domain/"$domain"_"$date"_ols.tar.gz $(ls vhosts/${domain}/* 2>/dev/null)
+}
+
+backup_webserver () {
+	if [ "$g_webserver_type" = "nginx" ]; then
+		backup_nginx
+	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]; then
+		backup_ols
+	fi
+}
+
 backup_database () {
     mysql_db=$(grep DB_NAME /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
     mysqldump $mysql_db | gzip -9 > ~/.wp-backup2/$domain/"$domain"_"$date"_db.gz
@@ -115,8 +130,8 @@ remote_upload () {
 			rclone copy ~/.wp-backup2/$domain/ --include "/$domain"_"$date"_"fs*" $remote/$domain && echo "$(date) $domain backup successful" >> /var/log/wp-backup2.log || echo "$(date) $domain backup failed" >> /var/log/wp-backup2.log
 		elif [[ $backup_type == "database" ]]; then
 			rclone copy ~/.wp-backup2/$domain/"$domain"_"$date"_db.gz $remote/$domain && echo "$(date) $domain backup successful" >> /var/log/wp-backup2.log || echo "$(date) $domain backup failed" >> /var/log/wp-backup2.log
-		elif [[ $backup_type == "nginx" ]]; then
-			rclone copy ~/.wp-backup2/$domain/"$domain"_"$date"_nginx.tar.gz $remote/$domain && echo "$(date) $domain backup successful" >> /var/log/wp-backup2.log || echo "$(date) $domain backup failed" >> /var/log/wp-backup2.log
+		elif [[ $backup_type == "webserver" ]]; then
+			rclone copy ~/.wp-backup2/$domain/"$domain"_"$date"_"${g_webserver_type}".tar.gz $remote/$domain && echo "$(date) $domain backup successful" >> /var/log/wp-backup2.log || echo "$(date) $domain backup failed" >> /var/log/wp-backup2.log
 		fi
 	done
 }
@@ -129,14 +144,14 @@ perform_backup () {
 			set_exclusions
 			if [[ $backup_type == "full" ]]; then
 				backup_files
-				backup_nginx
+				backup_webserver
 				backup_database
 			elif [[ $backup_type == "files" ]]; then
 				backup_files
 			elif [[ $backup_type == "database" ]]; then
 				backup_database
-			elif [[ $backup_type == "nginx" ]]; then
-				backup_nginx
+			elif [[ $backup_type == "webserver" ]]; then
+				backup_webserver
 			fi
 			remote_upload
 		done
@@ -147,14 +162,14 @@ perform_backup () {
 		
 		if [[ $backup_type == "full" ]]; then
 			backup_files
-			backup_nginx
+			backup_webserver
 			backup_database
 		elif [[ $backup_type == "files" ]]; then
 			backup_files
 		elif [[ $backup_type == "database" ]]; then
 			backup_database
-		elif [[ $backup_type == "nginx" ]]; then
-			backup_nginx
+		elif [[ $backup_type == "webserver" ]]; then
+			backup_webserver
 		fi
 		remote_upload
 	fi

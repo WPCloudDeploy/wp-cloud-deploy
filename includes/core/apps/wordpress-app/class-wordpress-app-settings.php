@@ -961,6 +961,15 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'options' => WPCD()->get_os_list(),
 			),
 			array(
+				'id'      => 'wordpress_app_default_webserver',
+				'type'    => 'select',
+				'name'    => __( 'Default Web Server', 'wpcd' ),
+				'tooltip' => __( 'Select the default Webserver to be used when deploying a new WordPress server!', 'wpcd' ),
+				'tab'     => 'wordpress-app-general-wpadmin',
+				'std'     => 'nginx',
+				'options' => WPCD()->get_webserver_list(),
+			),
+			array(
 				'id'      => 'wordpress_app_use_extended_server_name',
 				'type'    => 'checkbox',
 				'name'    => __( 'Override the server name?', 'wpcd' ),
@@ -1273,6 +1282,13 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tooltip' => __( 'Hide the webserver type from the server column.', 'wpcd' ),
 				'tab'     => 'wordpress-app-fields-and-links',
 			),
+			array(
+				'id'      => 'wordpress_app_hide_chicklet_area_in_site_detail',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide Chicklet Area', 'wpcd' ),
+				'tooltip' => __( 'Hides the three labels that show the web server type, SSL status and Cache status beneath the domain name in the site detail screen.', 'wpcd' ),
+				'tab'     => 'wordpress-app-fields-and-links',
+			),			
 
 			array(
 				'id'   => 'wordpress_fields_and_links_heading_03',
@@ -1620,6 +1636,15 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'type'    => 'text',
 				'name'    => __( 'AWS Secret Key', 'wpcd' ),
 				'tooltip' => __( 'AWS Secret Key', 'wpcd' ),
+				'tab'     => 'wordpress-app-backup',
+				'size'    => 60,
+			),
+			array(
+				'id'      => 'wordpress_app_aws_default_region',
+				'type'    => 'text',
+				'name'    => __( 'Default Region', 'wpcd' ),
+				'tooltip' => __( 'The region where your default bucket is located. If this is incorrect and does not match your bucket location, backups will not be uploaded to AWS!', 'wpcd' ),
+				'desc'    => sprintf( __( '<a href="%s" target="_blank" >Valid Regions</a>', 'wpcd'), 'https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html#concepts-available-regions' ),
 				'tab'     => 'wordpress-app-backup',
 				'size'    => 60,
 			),
@@ -2194,7 +2219,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			'id'   => 'wordpress-app-brand-colors-heading',
 			'type' => 'heading',
 			'std'  => '',
-			'desc' => __( 'These settings are used to manage your brand colors shown on the front-end of your site.  Note that these affect only the server and site lists. The colors for the detail screens are still the same as the colors defined for wp-admin.', 'wpcd' ),
+			'desc' => __( 'These settings are used to manage your brand colors shown on the front-end of your site.', 'wpcd' ),
 			'tab'  => 'wordpress-app-white-label',
 		);
 

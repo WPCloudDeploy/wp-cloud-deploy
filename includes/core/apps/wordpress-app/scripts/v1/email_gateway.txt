@@ -1,5 +1,7 @@
 cd ~ &&
 sudo -E \rm -f ##SCRIPT_NAME## &&
+sudo -E wget --no-check-certificate -O ##SCRIPT_COMMON_NAME## ##SCRIPT_COMMON_URL## &&
+sudo -E dos2unix ##SCRIPT_COMMON_NAME## &&
 sudo -E wget --no-check-certificate -O ##SCRIPT_NAME## ##SCRIPT_URL## &&
 export action=##ACTION## domain=##DOMAIN## smtp_server=##SMTP_SERVER## smtp_user=##SMTP_USER## smtp_pass=##SMTP_PASS## hostname1=##HOSTNAME1## from=##FROM## to=##TO## &&
 sudo -E dos2unix ##SCRIPT_NAME## &&

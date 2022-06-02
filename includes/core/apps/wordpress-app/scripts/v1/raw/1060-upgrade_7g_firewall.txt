@@ -3,6 +3,8 @@
 
 echo $(date): "Upgrading 7G firewall to V1.5..."
 
+mv /etc/nginx/common/7g.conf /etc/nginx/common/7g.conf.old
+
 cat > /etc/nginx/common/7g.conf << 'EOF'
 # 7G FIREWALL - NGINX v1.5
 # @ https://perishablepress.com/7g-firewall-nginx/

@@ -329,7 +329,7 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 
 		$server_install_feedback_1 = __( 'Just printing a little message here to let you know that we\'re still working on this...', 'wpcd' );
 		$server_install_feedback_2 = __( 'We\'re not going anywhere - still working...', 'wpcd' );
-		$server_install_feedback_3 = __( 'Sorry that it\'s taking a little longer that we\'d like...', 'wpcd' );
+		$server_install_feedback_3 = __( 'Sorry that it\'s taking a little longer than we\'d like...', 'wpcd' );
 		$server_install_feedback_4 = __( 'We\'re really cranking away here....', 'wpcd' );
 		$server_install_feedback_5 = __( 'We\'re continuing to work on this. Your next update will be in about 20 minutes...', 'wpcd' );
 
@@ -545,7 +545,7 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 				$partial_class_name = 'remote_server_state';
 				if ( 'active' === $state ) {
 					$partial_class_name = 'remote_server_state_active';
-				}				
+				}
 
 				// Wrap the state in our usual spans and divs with the constructed class name.
 				if ( ! empty( $state ) ) {
@@ -870,6 +870,7 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 		$wpcd_server_plugin_initial_version = get_post_meta( $post->ID, 'wpcd_server_plugin_initial_version', true );
 		$wpcd_server_plugin_updated_version = get_post_meta( $post->ID, 'wpcd_server_plugin_updated_version', true );
 		$wpcd_server_server_type            = get_post_meta( $post->ID, 'wpcd_server_server-type', true );
+		$wpcd_server_webserver_type         = get_post_meta( $post->ID, 'wpcd_server_webserver_type', true );
 		$wpcd_server_initial_app_name       = get_post_meta( $post->ID, 'wpcd_server_initial_app_name', true );
 
 		$wpcd_server_action_status              = get_post_meta( $post->ID, 'wpcd_server_action_status', true );
@@ -1032,6 +1033,7 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 		$wpcd_server_plugin_initial_version = filter_input( INPUT_POST, 'wpcd_server_plugin_initial_version', FILTER_SANITIZE_STRING );
 		$wpcd_server_plugin_updated_version = filter_input( INPUT_POST, 'wpcd_server_plugin_updated_version', FILTER_SANITIZE_STRING );
 		$wpcd_server_server_type            = filter_input( INPUT_POST, 'wpcd_server_server-type', FILTER_SANITIZE_STRING );
+		$wpcd_server_webserver_type         = filter_input( INPUT_POST, 'wpcd_server_webserver_type', FILTER_SANITIZE_STRING );
 
 		$wpcd_server_action_status              = filter_input( INPUT_POST, 'wpcd_server_action_status', FILTER_SANITIZE_STRING );
 		$wpcd_server_after_create_action_app_id = filter_input( INPUT_POST, 'wpcd_server_after_create_action_app_id', FILTER_SANITIZE_STRING );
@@ -1061,6 +1063,7 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 		update_post_meta( $post_id, 'wpcd_server_plugin_initial_version', $wpcd_server_plugin_initial_version );
 		update_post_meta( $post_id, 'wpcd_server_plugin_updated_version', $wpcd_server_plugin_updated_version );
 		update_post_meta( $post_id, 'wpcd_server_server-type', $wpcd_server_server_type );
+		update_post_meta( $post_id, 'wpcd_server_webserver_type', $wpcd_server_webserver_type );
 
 		update_post_meta( $post_id, 'wpcd_server_created', $wpcd_server_created );
 		update_post_meta( $post_id, 'wpcd_server_parent_post_id', $wpcd_server_parent_post_id );
@@ -1656,6 +1659,13 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 	 * @return void|boolean
 	 */
 	public function wpcd_app_server_delete_post( $post_id, $return = false ) {
+
+		// No permissions check if we're running tasks via cron.
+		// We're not doing anything to delete servers via cron right now.
+		// But we might later so adding this check now since we have in the wpcd_app_delete_post() function.
+		if ( true === wp_doing_cron() ) {
+			return;
+		}
 
 		$success = true;
 		if ( get_post_type( $post_id ) === 'wpcd_app_server' && ! wpcd_is_admin() ) {

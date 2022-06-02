@@ -289,7 +289,7 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 					$message = __( 'Error in moving the item to Trash.', 'wpcd' );
 				} else {
 					$success = true;
-					$message = __( 'App moved to Trash.', 'wpcd' );
+					$message = __( 'The site has been deleted.', 'wpcd' );
 				}
 
 				break;
@@ -300,7 +300,7 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 					$message = __( 'Error while deleting this item.', 'wpcd' );
 				} else {
 					$success = true;
-					$message = __( 'App deleted.', 'wpcd' );
+					$message = __( 'The site has been deleted.', 'wpcd' );
 				}
 
 				break;
@@ -311,7 +311,7 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 					$message = __( 'Error while restoring the item from trash.', 'wpcd' );
 				} else {
 					$success = true;
-					$message = __( 'App restored.', 'wpcd' );
+					$message = __( 'The site record has been restored from trash but the site is likely no longer physically present on the server.', 'wpcd' );
 				}
 				break;
 			case 'wpcd_public_server_trash':
@@ -321,7 +321,7 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 					$message = __( 'Error in moving the item to Trash.', 'wpcd' );
 				} else {
 					$success = true;
-					$message = __( 'Server moved to Trash.', 'wpcd' );
+					$message = __( 'The server has been deleted.', 'wpcd' );
 				}
 				break;
 			case 'wpcd_public_server_delete':
@@ -331,7 +331,7 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 					$message = __( 'Error while deleting this item.', 'wpcd' );
 				} else {
 					$success = true;
-					$message = __( 'Server deleted.', 'wpcd' );
+					$message = __( 'The server has been deleted.', 'wpcd' );
 				}
 				break;
 			case 'wpcd_public_server_restore':
@@ -341,7 +341,7 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 					$message = __( 'Error while restoring the item from trash.', 'wpcd' );
 				} else {
 					$success = true;
-					$message = __( 'Server restored.', 'wpcd' );
+					$message = __( 'The server record has been restored but the link to the server at your server provider has likely been broken or the server no longer exists at the provider.', 'wpcd' );
 				}
 				break;
 		}

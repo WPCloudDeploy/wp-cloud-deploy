@@ -8,7 +8,8 @@ fi
 
 clear
 
-while [[ -z $action ]]; do
+while [[ -z $action ]]
+do
 	echo
 	echo "What do you want to do?"
 	echo "   1) Add Cron to Backup config files (every 4 hrs)"
@@ -16,7 +17,8 @@ while [[ -z $action ]]; do
 	echo "   3) Remove All Backup Configuration files"
 	echo
 	read -p "Action: " action
-	until [[ -z "$action" || "$action" =~ ^[1-3]$ ]]; do
+	until [[ -z "$action" || "$action" =~ ^[1-3]$ ]]
+	do
 		echo "$action: invalid selection."
 		read -p "Action: " action
 	done
@@ -48,6 +50,7 @@ then
 	fi	
 	
 	mkdir -p $backuptmp $backupdir
+	rsync -az /usr/local/lsws/ $backuptmp/lsws/ 2>/dev/null
 	rsync -az /etc/nginx/ $backuptmp/nginx/ 2>/dev/null
 	rsync -az /etc/php/ $backuptmp/php/ 2>/dev/null
 	rsync -az /etc/letsencrypt/live/ $backuptmp/letsencrypt/ 2>/dev/null

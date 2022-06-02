@@ -9,8 +9,7 @@ fi
 #################################################################
 # Remove crons.
 #################################################################
-function remove_status_cron() 
-{
+function remove_status_cron () {
 	(crontab -l 2>/dev/null | sed '/wp-status/d' ) | crontab -
 	(crontab -l 2>/dev/null | sed '/wp-site-status/d' ) | crontab -
 	rm -f /usr/local/bin/wp-status
@@ -19,7 +18,8 @@ function remove_status_cron()
 }
 
 clear
-while [[ -z $action ]]; do
+while [[ -z $action ]]
+do
 	echo
 	echo "What do you want to do?"
 	echo "   1) Install Server status Cron"
@@ -28,7 +28,8 @@ while [[ -z $action ]]; do
 	echo "   4) Schedule Server status Cron To Execute Immediately"
 	echo
 	read -p "Action: " action
-	until [[ -z "$action" || "$action" =~ ^[1-4]$ ]]; do
+	until [[ -z "$action" || "$action" =~ ^[1-4]$ ]]
+do
 		echo "$action: invalid selection."
 		read -p "Action: " action
 	done

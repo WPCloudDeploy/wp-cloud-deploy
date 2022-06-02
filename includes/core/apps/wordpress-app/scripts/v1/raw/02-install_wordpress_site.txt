@@ -1,245 +1,253 @@
 #!/bin/bash
-if [[ "$EUID" -ne 0 ]]; then
+if [[ "$EUID" -ne 0 ]]
+then
 	echo "Sorry, you need to run this as root"
 	exit
 fi
 
 clear
+## Get our common functions
+source 9999-common-functions.sh
 
-while [[ -z $domain ]]; do
-    echo "Which domain name do you want for your site?
-Specify just the domain name without www or http://
-Example: myblog.com"
-    read -p "Domain: " domain
+### Check webserver type
+pwd=$(pwd)
+
+while [[ -z $domain ]]
+do
+	echo "Which domain name do you want for your site?
+	Specify just the domain name without www or http://
+	Example: myblog.com"
+	read -p "Domain: " domain
 done
 
-while [[ -z $wp_user ]]; do
-    echo
-    echo "Specify a name for the WordPress administrative user
-Example: admin"
-    read -p "Admin user name: " wp_user
+while [[ -z $wp_user ]]
+do
+	echo
+	echo "Specify a name for the WordPress administrative user
+	Example: admin"
+	read -p "Admin user name: " wp_user
 done
 
-while [[ -z $wp_password ]]; do
-    echo
-    echo "Specify a password for the WordPress administrative user"
-    read -p "Admin user password: " wp_password
+while [[ -z $wp_password ]]
+do
+	echo
+	echo "Specify a password for the WordPress administrative user"
+	read -p "Admin user password: " wp_password
 done
 
-while [[ -z $wp_email ]]; do
-    echo
-    echo "Specify an email address for the WordPress administrative user
-Example: admin@example.com"
-    read -p "Email address: " wp_email
+while [[ -z $wp_email ]]
+do
+	echo
+	echo "Specify an email address for the WordPress administrative user
+	Example: admin@example.com"
+	read -p "Email address: " wp_email
 done
 
-while [[ -z $wp_version ]]; do
-    echo
-    echo "Specify your desired WordPress version to install
-Examples: latest, nightly, 4.0, 5.3.2"
-    read -p "WordPress version: " wp_version
+while [[ -z $wp_version ]]
+do
+	echo
+	echo "Specify your desired WordPress version to install
+	Examples: latest, nightly, 4.0, 5.3.2"
+	read -p "WordPress version: " wp_version
 done
 
-if [[ -z $wp_locale ]]; then
-    echo
-    echo "Specify a locale for the WordPress installation"
-    echo "Or leave blank for en_US"
-    read -p "Locale: " wp_locale
-    if [[ -z "$wp_locale" ]]; then
-        wp_locale="en_US"
-    fi
+if [[ -z $wp_locale ]]
+then
+	echo
+	echo "Specify a locale for the WordPress installation"
+	echo "Or leave blank for en_US"
+	read -p "Locale: " wp_locale
+	if [[ -z "$wp_locale" ]]
+	then
+		wp_locale="en_US"
+	fi
 fi
-
 
 mysql_db=$(head /dev/urandom | tr -dc a-z | head -c 6)
 mysql_dbprefix=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 5)
 mysql_user=$(head /dev/urandom | tr -dc a-z | head -c 6)
 mysql_pass=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 16)
 
-mariadb <<QUERY
-CREATE DATABASE $mysql_db;
-GRANT ALL ON $mysql_db.* TO '$mysql_user'@'localhost' IDENTIFIED BY '$mysql_pass' WITH GRANT OPTION;
-FLUSH PRIVILEGES;
-QUERY
+gf_database_create "$mysql_db" "$mysql_user" "$mysql_pass"
 
-user_name=$(echo $domain | cut -c1-32)
+wphome="/var/www/$domain/html"
+user_name="$(echo $domain | cut -c1-32)"
 
-if id -u $user_name &>/dev/null; then
+if id -u "$user_name" &>/dev/null
+then
 	echo "User name collision. Aborting..."
 	exit
 fi
 
-useradd -d "/var/www/$domain/html" -g "www-data" -M -s "/bin/bash" $user_name
+mkdir -p "${wphome}/logs"
+useradd -d "${wphome}" -g www-data -M -s "/bin/bash" "${user_name}"
+chown -R "${user_name}":www-data "${wphome}"
+chmod -R g+ws "$wphome"
 
-echo "[$domain]
-user = $user_name
-group = www-data
-listen = /run/php/php-fpm-$domain.sock
-listen.owner = $user_name
-listen.group = www-data
-pm = dynamic
-pm.max_children = 5
-pm.start_servers = 2
-pm.min_spare_servers = 1
-pm.max_spare_servers = 3
-php_admin_value[open_basedir] = \"/var/www/$domain/html/:/tmp/\"
-php_admin_value[allow_url_fopen] = 0
-php_admin_value[allow_url_include] = 0
-php_admin_value[disable_functions] =  dl, exec, fpassthru, getmypid, getmyuid, highlight_file, link, opcache_get_configuration, passthru, pcntl_exec, pcntl_get_last_error, pcntl_setpriority, pcntl_strerror, pcntl_wifcontinued, phpinfo, popen, posix_ctermid, posix_getcwd, posix_getegid, posix_geteuid, posix_getgid, posix_getgrgid, posix_getgrnam, posix_getgroups, posix_getlogin, posix_getpgid, posix_getpgrp, posix_getpid, posix_getppid, posix_getpwnam, posix_getpwuid, posix_getrlimit, posix_getsid, posix_getuid, posix_isatty, posix_kill, posix_mkfifo, posix_setegid, posix_seteuid, posix_setgid, posix_setpgid, posix_setsid, posix_setuid, posix_times, posix_ttyname, posix_uname, proc_close, proc_get_status, proc_nice, proc_open, proc_terminate, shell_exec, show_source, source, system, virtual
-php_admin_value[session.use_strict_mode] = 1
-php_admin_value[session.cookie_httponly] = 1
-php_admin_value[session.use_cookies] = 1
-php_admin_value[session.use_only_cookies] = 1
-php_admin_value[session.use_trans_sid] = 0" > /etc/php/7.4/fpm/pool.d/$domain.conf
-
-if [[ ! -f /etc/wpcd/php-versions-disabled/php7.4 ]]; then
-    systemctl restart php7.4-fpm
+if [ "$g_webserver_type" = "nginx" ]
+then
+	echo "The webserver is Nginx....";
+	gf_add_php_conf "$domain" "$user_name" 7.4
+	gf_add_nginx_conf "$domain" "$domain" "$domain"
+elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+then
+	echo "The webserver is Litespeed....";
+	gf_add_ols_conf "$domain"
 fi
 
-# it's very important to escape the variables and quotes within the echo
-echo "include /etc/nginx/common/6g.conf;
-include /etc/nginx/common/7g[.]conf;
-include /etc/nginx/userconfigs/http/*.conf;		# user custom configuration
+cd "${wphome}"
+su - "$user_name" -c "wp --skip-plugins core download --version=$wp_version --locale=$wp_locale"
+su - "$user_name" -c "wp --skip-plugins config create --dbname=$mysql_db --dbuser=$mysql_user --dbpass=$mysql_pass --dbprefix="$mysql_dbprefix"_"
 
-server {
-
-    include /etc/nginx/common/deny[.]conf;
-    include /etc/nginx/userconfigs/server/*.conf;	# user custom configuration
-    
-    listen 80;
-    listen [::]:80;
-
-    root /var/www/$domain/html;
-    index index.php index.html index.htm;
-
-    server_name $domain www.$domain;
-
-    client_max_body_size 25M;
-
-    # Needed for page-level caching when cache-enabler plugin is installed
-    include /etc/nginx/common/cache_enabler.conf;
-	
-    # Compress certain files with gzip.
-    include /etc/nginx/common/gzip[.]conf;
-	
-    # Cache certain filetypes in the browser
-    include /etc/nginx/common/browsercache[.]conf;
-
-    # Prepare for phpmyadmin when it's installed
-    location ~ /phpMyAdmin/.*\.php$ {
-        allow all;
-        include snippets/fastcgi-php.conf;
-        fastcgi_pass unix:/run/php/php-fpm-$domain.sock;
-    }
-
-    # Handler for PHP files
-    location ~ \.php$ {
-        # Restrict wp-login to 10 requests per period
-        location ~ \wp-login.php$ {
-            limit_req zone=WPLOGIN;
-            include snippets/fastcgi-php.conf;
-            fastcgi_pass unix:/run/php/php-fpm-$domain.sock;
-        }
-		
-        fastcgi_param PHP_VALUE \"
-        \";
-        include snippets/fastcgi-php.conf;
-        fastcgi_pass unix:/run/php/php-fpm-$domain.sock;
-        fastcgi_buffers 16 32k;
-        fastcgi_buffer_size 64k;
-        fastcgi_busy_buffers_size 64k;		
-    }
-
-    location / {
-        try_files \$cache_enabler_uri \$cache_enabler_uri2 @cachemiss; 
-    }
-
-    location @cachemiss {
-        try_files \$uri \$uri/ \$custom_subdir/index.php?\$args; 
-    }
-	
-    # Security Headers	
-    add_header X-Frame-Options \"SAMEORIGIN\" always;
-    add_header X-XSS-Protection \"1; mode=block\" always;
-    add_header X-Content-Type-Options \"nosniff\" always;
-    add_header Referrer-Policy \"no-referrer, strict-origin-when-cross-origin\" always;
-    add_header X-Download-Options \"noopen\";
-    add_header Strict-Transport-Security \"max-age=30000000; includeSubDomains; preload\" always;
-	
-    # OSCP Settings
-    ssl_stapling on;
-    ssl_stapling_verify on;
-	
-    # include user custom configurations
-    include /etc/nginx/userconfigs/site/$domain-*.conf;
-}" > /etc/nginx/sites-enabled/$domain
-
-mkdir -p /var/www/$domain/html/
-chown -R www-data:www-data /var/www/$domain/html/
-chmod -R g+w /var/www/$domain/html
-chmod -R g+s /var/www/$domain/html
-
-cd /var/www/$domain/html/
-su - $user_name -c "wp --skip-plugins core download --version=$wp_version --locale=$wp_locale"
-su - $user_name -c "wp --skip-plugins config create --dbname=$mysql_db --dbuser=$mysql_user --dbpass=$mysql_pass --dbprefix="$mysql_dbprefix"_"
-
-if hash sendmail 2>/dev/null; then
-    su - $user_name -c "wp --skip-plugins core install --url=$domain --title=$domain --admin_user=$wp_user --admin_password=$wp_password --admin_email=$wp_email"
+if hash sendmail 2>/dev/null
+then
+	su - "$user_name" -c "wp --skip-plugins core install --url=$domain --title=$domain --admin_user=$wp_user --admin_password=$wp_password --admin_email=$wp_email"
 else
-    # don't try to send the welcome email if sendmail is not available
-    echo "Sendmail was not detected. No email will be sent to the admin when this installation is complete"
-    su - $user_name -c "wp --skip-plugins core install --url=$domain --title=$domain --admin_user=$wp_user --admin_password=$wp_password --admin_email=$wp_email --skip-email"
+	# don't try to send the welcome email if sendmail is not available
+	echo "Sendmail was not detected. No email will be sent to the admin when this installation is complete"
+	su - "$user_name" -c "wp --skip-plugins core install --url=$domain --title=$domain --admin_user=$wp_user --admin_password=$wp_password --admin_email=$wp_email --skip-email"
 fi
 
 # needed to work around wp-cli issues with passwords containing some special characters
 # we hash and salt the $wp_password manually and inject it directly into the database
 wp_password_hashed=$(echo "<?php
-require_once( '/var/www/$domain/html/wp-load.php' );
+require_once( '$wphome/wp-load.php' );
 \$password = '$wp_password';
 \$hash_password = wp_hash_password(\$password);
 echo \$hash_password;
 ?>" | php)
+
 mariadb <<QUERY
 USE $mysql_db;
 UPDATE ${mysql_dbprefix}_users SET user_pass='$wp_password_hashed' WHERE user_login='$wp_user';
 QUERY
 
 # needed so wordpress doesn't freak out and denies direct access
-su - $user_name -c "wp --skip-plugins config set FS_METHOD direct"
-su - $user_name -c "wp --skip-plugins config set WP_AUTO_UPDATE_CORE minor"
-su - $user_name -c "wp --skip-plugins config set WP_MEMORY_LIMIT 128M"
-su - $user_name -c "wp --skip-plugins config set WP_MAX_MEMORY_LIMIT 128M"
-su - $user_name -c "wp --skip-plugins config set CONCATENATE_SCRIPTS false --raw"
-su - $user_name -c "wp --skip-plugins config set DISALLOW_FILE_EDIT true --raw"
-su - $user_name -c "wp --skip-plugins option update permalink_structure '/%postname%'"
+su - "$user_name" -c "wp --skip-plugins config set FS_METHOD direct"
+su - "$user_name" -c "wp --skip-plugins config set WP_AUTO_UPDATE_CORE minor"
+su - "$user_name" -c "wp --skip-plugins config set WP_MEMORY_LIMIT 128M"
+su - "$user_name" -c "wp --skip-plugins config set WP_MAX_MEMORY_LIMIT 128M"
+su - "$user_name" -c "wp --skip-plugins config set CONCATENATE_SCRIPTS false --raw"
+su - "$user_name" -c "wp --skip-plugins config set DISALLOW_FILE_EDIT true --raw"
+su - "$user_name" -c "wp --skip-plugins option update permalink_structure '/%postname%'"
 
 # permissions for the log file
-su - $user_name -c "touch /var/www/$domain/html/wp-content/debug.log"
-chmod g+w /var/www/$domain/html/wp-content/debug.log
+su - "$user_name" -c "touch $wphome/wp-content/debug.log"
 
-chmod -R g+w /var/www/$domain/html
+chown -R "$user_name":www-data "$wphome"
+chmod -R g+ws "$wphome"
 
-systemctl restart nginx
+# Install page cache
+if [ "$g_webserver_type" = "nginx" ]
+then
+	su - "$user_name" -c "wp  plugin install --activate cache-enabler"
+	su - "$user_name" -c "wp --skip-plugins config set WP_CACHE true"
+elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+then
+	su - "$user_name" -c "wp --skip-plugins plugin install litespeed-cache && wp --skip-plugins plugin activate litespeed-cache && wp litespeed-online init"
+fi
+
+# Restart Webserver
+gf_restart_webserver
 
 # prepare for ssh public key authentication
-mkdir -p /var/www/$domain/.ssh_$user_name/
+mkdir -p "/var/www/$domain/.ssh_$user_name/"
 echo "Match User $user_name
 PasswordAuthentication yes
 AuthorizedKeysFile /var/www/$domain/.ssh_$user_name/authorized_keys" >> /etc/ssh/sshd_config
 systemctl restart sshd
 
 # Custom post-processing scripts.
-if [[ ! -z $post_processing_script_site ]]
+if [[ -n "$post_processing_script_site" ]] # True if the length of string is non-zero. https://www.shellcheck.net/wiki/SC2236
 then
-    echo ""
+	echo ""
 	echo "Post-processing script option detected - attempting to pull script from $post_processing_script_site"
-	wget --no-check-certificate -O post_processing_script_site.sh $post_processing_script_site > /dev/null 2>&1
+	wget --no-check-certificate -O post_processing_script_site.sh "$post_processing_script_site" > /dev/null 2>&1
 	dos2unix post_processing_script_site.sh > /dev/null 2>&1
-	
-    echo ""
+	echo ""
 	echo "Executing post-processing script..."
 	source ./post_processing_script_site.sh	
 fi
 
 echo
 echo "WordPress has been set up for $domain"
+
+#####################################################
+########   BluePrint Plugins/Themes/Files ###########
+#####################################################
+if [ -n "$blueprint" ]
+then
+	cd "$pwd"
+	tempdate=$(date +"%Y-%m-%d"-"%Hh%Mm%Ss")
+	apt-get install jq -y  > /dev/null 2>&1
+
+	count="$(jq length $blueprint)"
+	index=0
+	while [ $index -lt $count ]
+	do
+		mkdir "/tmp/$tempdate"
+		destination=$(cat $blueprint |jq .[$index].destination |cut -d'"' -f2)
+		source_location=$(cat $blueprint |jq .[$index].source|cut -d'"' -f2)
+		username=$(cat $blueprint |jq .[$index].source_access.username|cut -d'"' -f2)
+		password=$(cat $blueprint |jq .[$index].source_access.password|cut -d'"' -f2|sed 's/@/%40/g')
+		activation=$(cat $blueprint |jq .[$index].activation|cut -d'"' -f2)
+		repo=$(cat $blueprint |jq .[$index].source|cut -d'"' -f2 |awk -F'/' '{print $NF}' |cut -d'.' -f1)
+		if [ -n "$password" ]
+		then
+			giturl=$(echo $source_location|sed "s/:\/\//:\/\/$username:$password@/g")
+		fi
+
+		######## Github Repo clone #####
+		echo "$source_location" |grep -q 'github.com\|gitlab.com\|bitbucket.org'
+		if [ $? -eq 0 ]
+		then
+			if [ -z "$password" ]
+			then
+				git clone "$source_location" "/tmp/$tempdate/$repo"
+			else
+				git clone "$giturl" "/tmp/$tempdate/$repo"
+			fi
+		else
+			file=$(echo $source_location |awk -F'/' '{print $NF}')
+			wget -q "$source_location" -O "/tmp/$tempdate/$file"
+			if [[ $file == *.zip ]]
+			then
+				unzip "/tmp/$tempdate/$file" -d "/tmp/$tempdate/"
+				rm -f "/tmp/$tempdate/$file"
+			elif [[ $file == *.tar.gz ]]
+			then
+				tar xzf "/tmp/$tempdate/$file" -C "/tmp/$tempdate/"
+				rm -f "/tmp/$tempdate/$file"
+			elif [[ $file == *.tar.bz2 ]]
+			then
+				tar xjf "/tmp/$tempdate/$file" -C "/tmp/$tempdate/"
+				rm -f "/tmp/$tempdate/$file"
+			elif [[ $file == *.tar ]]
+			then
+				tar xf "/tmp/$tempdate/$file" -C "/tmp/$tempdate/"
+				rm -f "/tmp/$tempdate/$file"
+			fi
+		fi
+		if [ "$destination" == "theme" ]
+		then
+			rsync -az /tmp/"$tempdate"/ /var/www/"$domain"/html/wp-content/themes/
+			if [ "$activation" == "yes" ]
+			then
+				su - "$user_name" -c "wp theme activate $repo"
+			fi
+		elif [ "$destination" == "plugin" ]
+		then
+			rsync -az /tmp/"$tempdate"/ /var/www/"$domain"/html/wp-content/plugins/
+			if [ "$activation" == "yes" ]
+			then
+				su - "$user_name" -c "wp plugin activate $repo"
+			fi
+		else
+			rsync -az /tmp/"$tempdate"/ "/var/www/$domain/html/$destination/"
+		fi
+		index=$(($index+1))
+		rm -rf "/tmp/$tempdate"
+	done
+	chown -R "$user_name":www-data /var/www/"$domain"/html
+	chmod -R g+w /var/www/"$domain"/html
+fi

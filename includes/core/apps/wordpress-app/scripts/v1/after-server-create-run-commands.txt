@@ -9,7 +9,7 @@ echo "done" && {
 	} && {	
 	sleep 60 ; 
 	} && {
-	sudo -E echo $(date): "The webserver type is ##WEBSERVER_TYPE##" >> ##SCRIPT_LOGS##.log.intermed 2>&1 ;
+	sudo -E echo $(date): "The webserver type is ##WEBSERVER_TYPE##" and the server name is ##NAME## >> ##SCRIPT_LOGS##.log.intermed 2>&1 ;
 	} && {	
 	sudo -E echo $(date): "Updating repositories to get latest files. This will take a while..." >> ##SCRIPT_LOGS##.log.intermed 2>&1 ;
 	} && {
@@ -23,13 +23,15 @@ echo "done" && {
 	} && { 
 	sudo -E apt-get install -y vnstat > /dev/null 2>&1 || { echo "Error installing vnstat. Please delete this server and restart the process." >> ##SCRIPT_LOGS##.log.done 2>&1; } ; 
 	} && {
+	sudo -E wget --no-check-certificate -O ##SCRIPT_COMMON_NAME## ##SCRIPT_COMMON_URL## &&
+	sudo -E dos2unix ##SCRIPT_COMMON_NAME## &&
     sudo -E wget --no-check-certificate -O ##SCRIPT_NAME## ##SCRIPT_URL## &&
     export interactive=no &&
     sudo -E dos2unix ##SCRIPT_NAME## >> ##SCRIPT_LOGS##.log.intermed 2>&1 &&
-	export webserver_type=##WEBSERVER_TYPE## post_processing_script_server=##POST_PROCESSING_SCRIPT_SERVER## secret_key_manager_api_key=##SECRET_KEY_MANAGER_API_KEY## &&
+	export webserver_type=##WEBSERVER_TYPE## name=##NAME## post_id=##POST_ID## post_processing_script_server=##POST_PROCESSING_SCRIPT_SERVER## secret_key_manager_api_key=##SECRET_KEY_MANAGER_API_KEY## &&
 	sudo -E echo "###################################################################################################" >> ##SCRIPT_LOGS##.log.intermed 2>&1 &&
 	sudo -E echo "# This is the start of the installation of the meat of your WordPress server.                      " >> ##SCRIPT_LOGS##.log.intermed 2>&1 &&
-	sudo -E echo "# We will be installing your LEMP stack, multiple PHP versions, firewall and more.                 " >> ##SCRIPT_LOGS##.log.intermed 2>&1 &&
+	sudo -E echo "# We will be installing your Webserver stack, multiple PHP versions, firewall and more.            " >> ##SCRIPT_LOGS##.log.intermed 2>&1 &&
 	sudo -E echo "# Expect this next phase to take 10 or more minutes so please be patient.                          " >> ##SCRIPT_LOGS##.log.intermed 2>&1 &&
 	sudo -E echo "# We will update you periodically...                                                               " >> ##SCRIPT_LOGS##.log.intermed 2>&1 &&
 	sudo -E echo "###################################################################################################" >> ##SCRIPT_LOGS##.log.intermed 2>&1 &&

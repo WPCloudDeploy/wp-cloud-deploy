@@ -369,6 +369,7 @@ class WPCD_WORDPRESS_TABS_REDIRECT_RULES extends WPCD_WORDPRESS_TABS {
 					return new \WP_Error( __( 'Sorry but we need an internal keycode to perform this action and one was not provided - probably a system error - contact tech support.', 'wpcd' ) );
 				}
 				// Escape values we'll be using...
+				$args['original_key_code'] = $args['key_code'];  // Save the original value before escaping for shell because we'll need it later to update our db.
 				$args['key_code'] = escapeshellarg( $args['key_code'] );
 				break;
 			case 'redirect_remove_all_rules_from_site':
@@ -420,7 +421,7 @@ class WPCD_WORDPRESS_TABS_REDIRECT_RULES extends WPCD_WORDPRESS_TABS {
 				break;
 			case 'redirect_remove_rule_from_site_by_key_code':
 				$saved_values = wpcd_maybe_unserialize( get_post_meta( $id, 'wpapp_redirect_rules', true ) );
-				unset( $saved_values[ $args['key_code'] ] );
+				unset( $saved_values[ $args['original_key_code'] ] );
 				update_post_meta( $id, 'wpapp_redirect_rules', $saved_values );
 
 				// Set up return with success message.

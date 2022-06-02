@@ -16,17 +16,25 @@ All management features are available inside of wp-admin on your WordPress site.
 
 [View a full list of WordPress-focused features](https://wpclouddeploy.com/features/)
 
-## Getting Started ##
+## Getting Started: The Easier Way ##
 
-You can get a rapid start by using the [pre-configured droplet at digital ocean.](https://marketplace.digitalocean.com/apps/wpclouddeploy).
+You can get a rapid start by using the [pre-configured droplet at digital ocean.](https://marketplace.digitalocean.com/apps/wpclouddeploy)
 
 Just deploy the droplet, login with your ssh credentials and follow the instructions to setup your domain and other info.
+
+Then follow the [getting started documentation on the WPCloudDeploy site](https://wpclouddeploy.com/documentation/wpcloud-deploy/introduction-to-wpcloud-deploy/).
+
+These instructions will help you create ssh keys, api keys and connect to your account at DigitalOcean.
+
+## Getting Started: The Less Easier Way ##
 
 Alternatively, you can download the zip file from here and install it like you would any other WordPress plugin. You will need to tweak your webserver so check out [the pre-requisites](https://wpclouddeploy.com/documentation/wpcloud-deploy/requirements/) before going down this road.
 
 Then, to install WordPress servers and sites, follow the [getting started documentation on the WPCloudDeploy site](https://wpclouddeploy.com/documentation/wpcloud-deploy/introduction-to-wpcloud-deploy/)
 
-Also, please make sure you [sign up for our notifications](https://wpclouddeploy.com/mailpoet-group/basic-subscription-form/) so that you can be notified of project updates.
+## Notifications and Updates ##
+
+Please consider [signing up for our notifications](https://wpclouddeploy.com/mailpoet-group/basic-subscription-form/) so that you can be notified of project updates.
 
 ## Documentation ##
 
@@ -51,7 +59,7 @@ Features of the plugin include:
 
 ## Requirements ##
 * WordPress 5.6 or later
-* PHP 7.4 (8.x is not yet supported primarily because many server provider PHP API wrappers and some of our PHP dependencies do not support it (yet).)
+* PHP 7.4 (8.x is not yet supported primarily because many server provider PHP API wrappers and some of our PHP dependencies do not yet support it.)
 
 Once the plugin is installed please view additional changes required to PHP and web server execution timeout values under the WPCLOUDDEPLOY->SETTINGS->GENERAL SETTINGS tab.
 You can also view all requirements at the bottom of our [getting started documentation](https://wpclouddeploy.com/documentation/wpcloud-deploy/introduction-to-wpcloud-deploy/) or in the [requirements documentation](https://wpclouddeploy.com/documentation/wpcloud-deploy/requirements/)
@@ -905,7 +913,7 @@ Skipped.
 * magnific-popup (assets/js, assets/css)
 
 ## Contributing
- * [elindydotcom](https://github.com/elindydotcom)
+ * [elindydotcom](https://github.com/elindydotcom): Project Manager
  * [Bhargav Bhanderi](https://github.com/bhargavcreolestudios)
  * [Muhammad Tahir Nazir](https://github.com/tahir1235)
  * [wpjohnny](https://github.com/wpjohnny)

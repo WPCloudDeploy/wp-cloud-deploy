@@ -900,6 +900,16 @@ Skipped.
 * Select2 (assets/js)
 * magnific-popup (assets/js, assets/css)
 
+## Contributing
+ * [elindydotcom]https://github.com/elindydotcom
+ * [Bhargav Bhanderi]https://github.com/bhargavcreolestudios
+ * [Muhammad Tahir Nazir]https://github.com/tahir1235
+ * [wpjohnny]https://github.com/wpjohnny
+ * [Michael Ramsey]https://github.com/meramsey
+ * [Sidney Andrews]https://github.com/osidney
+ * [Vlad Olaru]https://github.com/vladolaru
+ 
+  
 ### Running the test suite
 
 1. Set up a localhost MySQL database with the credentials defined in `wp-tests-config.php`.

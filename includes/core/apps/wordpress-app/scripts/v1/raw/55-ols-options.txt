@@ -9,7 +9,7 @@ fi
 ## Get our common functions
 source 9999-common-functions.sh
 
-gf_check_cur_webserver
+clear
 
 set_user_name() {
     if [[ -z "${user_name}" ]]; then
@@ -18,7 +18,7 @@ set_user_name() {
 }
 
 # DEBUG=1 # debug mode, run this script using: sudo DEBUG=1 ./55-options.sh
-OLS_CONF="${WEBCF}"
+OLS_CONF="/usr/local/lsws/conf/httpd_config.conf"
 unset OLS_RELOAD
 [[ "${domain}" ]] && set_user_name
 [[ "${domain}" ]] && domain_conf="${VHDIR}/${domain}/vhconf.conf"
@@ -47,7 +47,7 @@ ols_exit_script() {
     /usr/local/lsws/bin/openlitespeed -t # checking ols configuration
     if [[ $? -eq 0 ]]; then
         if [[ "${OLS_RELOAD}" -eq 1 && "${DEBUG}" -eq 0 ]]; then
-            killall lsphp
+            killall -9 lsphp
             systemctl restart lsws || service lsws restart
         fi
     fi
@@ -161,63 +161,23 @@ while [[ -z $action ]]; do
 done
 i=1 # reset menu index
 
-## regex patterns 'gzip'
-has_gzip_old_on="^${sm}gzip${sp}on${sm};"
-has_gzip_old_off="^${sm}gzip${sp}off${sm};"
-## end regex patterns 'gzip'
-
-is_gzip_old_on() {
-    cat "${OLS_CONF}" | grep -qP "${has_gzip_old_on}"
-}
-
-is_gzip_old_off() {
-    cat "${OLS_CONF}" | grep -qP "${has_gzip_old_off}"
-}
-
 is_gzip_on() {
-    cat "${OLS_CONF}" | grep -qP "^${sm}include${sp}/etc/nginx/common/gzip\[\.\]conf;"
+    # Pattern 'enableGzipCompress      1'
+    cat "${OLS_CONF}" | grep -qP "enableGzipCompress      1"
 }
 
 do_enable_gzip() {
-    sed -i "${OLS_CONF}" -e "/^http {/a \ \n \ \ \ \ \ \ \ # Compress certain files with gzip.\n \ \ \ \ \ \ \ include /etc/nginx/common/gzip[.]conf;\n"
+    sed -i "s|enableGzipCompress.*|enableGzipCompress      1|" "${OLS_CONF}"
 }
 
 do_disable_gzip() {
-    sed -i "${OLS_CONF}" -re "/# Compress certain files with gzip./d"
-    sed -i "${OLS_CONF}" -re "/include \/etc\/nginx\/common\/gzip\[\.\]conf;/d"
+    # Pattern 'enableGzipCompress      0'
+    sed -i "s|enableGzipCompress.*|enableGzipCompress      0|" "${OLS_CONF}"
 }
 
-remove_old_gzip_settings() {
-    # remove old setting 'gzip on'
-    if is_gzip_old_on; then
-        sed -i "${OLS_CONF}" -re "/${has_gzip_old_on}/d"
-        if is_gzip_old_on; then
-            echo -e "${RED}ERROR: cannot disable old setting 'gzip on' for all sites${NC}" >&2 # ERROR
-            exit 1
-        else
-            echo -e "${GREEN}Old setting 'gzip on' removed for all sites${NC}" # ACTION
-            OLS_RELOAD=1
-        fi
-    fi
-    # remove old setting 'gzip off'
-    if is_gzip_old_off; then
-        sed -i "${OLS_CONF}" -re "/${has_gzip_old_off}/d"
-        if is_gzip_old_off; then
-            echo -e "${RED}ERROR: cannot disable old setting 'gzip off' for all sites${NC}" >&2 # ERROR
-            exit 1
-        else
-            echo -e "${GREEN}Old setting 'gzip off' removed for all sites${NC}" # ACTION
-            OLS_RELOAD=1
-        fi
-    fi
-    sed -i "${OLS_CONF}" -re "/^${sm}gzip_/d" > /dev/null 2>&1 # remove other gzip settings for all sites if exist
-    sed -i "${OLS_CONF}" -re "/^${sm}#${sm}gzip_/d" > /dev/null 2>&1 # remove other gzip settings for all sites if exist
-    sed -i "${OLS_CONF}" -re "/^${sm}#${sm}Gzip Settings/d" > /dev/null 2>&1 # 
-}
 
 ## Enabling gzip ${LSDIR}/conf/httpd_config.conf (all sites)
 if [[ "${action}" == 'enable_gzip' || "${action}" == "$((i++))" ]]; then
-    remove_old_gzip_settings
     if is_gzip_on; then
         echo -e "${BLUE}gzip for all sites is already enabled${NC}" # SKIP
     else
@@ -236,7 +196,6 @@ fi
 
 ## Disabling gzip
 if [[ "${action}" == 'disable_gzip' || "${action}" == "$((i++))" ]]; then
-    remove_old_gzip_settings
     if is_gzip_on; then
         do_disable_gzip
         if is_gzip_on; then
@@ -254,32 +213,26 @@ fi
 ## End Disabling gzip
 
 
-## regex patterns http2
-ip="[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+" # any ipv4
-ip6="\[::1?\]" # any or localhost ipv6
-remove_http2="s/(^${sm}listen${sp}($ip:)?($ip6:)?[0-9]+${sp}ssl)${sp}http2/\1/"
-add_http2="s/(^${sm}listen${sp}($ip:)?($ip6:)?[0-9]+${sp}ssl)(${sm}http2)?/\1 http2/"
-has_ssl="^${sm}listen${sp}(${ip}:)?(${ip6}:)?[0-9]+${sp}ssl"
-has_http2="^${sm}listen${sp}(${ip}:)?(${ip6}:)?[0-9]+${sp}ssl${sp}http2"
-## end regex patterns http2
+# ## regex patterns http2
+# ip="[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+" # any ipv4
+# ip6="\[::1?\]" # any or localhost ipv6
+# remove_http2="s/(^${sm}listen${sp}($ip:)?($ip6:)?[0-9]+${sp}ssl)${sp}http2/\1/"
+# add_http2="s/(^${sm}listen${sp}($ip:)?($ip6:)?[0-9]+${sp}ssl)(${sm}http2)?/\1 http2/"
+# has_ssl="^${sm}listen${sp}(${ip}:)?(${ip6}:)?[0-9]+${sp}ssl"
+# has_http2="^${sm}listen${sp}(${ip}:)?(${ip6}:)?[0-9]+${sp}ssl${sp}http2"
+# has_http2_ols="([ ]*enableSpdy[ ]*(4|5|7|15))"
+# ## end regex patterns http2
 
-is_ssl() {
-    cat "${domain_conf}" | grep -qP "${has_ssl}"
-}
-
-is_http2() {
-    cat "${domain_conf}" | grep -qP "${has_http2}"
-}
 
 ## Enable http2
 if [[ "${action}" == 'enable_http2' || "${action}" == "$((i++))" ]]; then
     select_domain_mu
-    if is_ssl; then
-        if is_http2; then
+    if gf_is_ssl_ols "$domain"; then
+        if gf_is_http2_ols; then
             echo -e "${BLUE}http2 is already enabled for '${domain}'${NC}" # SKIP
         else
-            sed -i "${domain_conf}" -re "${add_http2}"
-            if is_http2; then
+            gf_enable_http2_ols_site "$domain"
+            if gf_is_http2_ols; then
                 echo -e "${GREEN} ${SUCCESSFUL} http2 enabled for '${domain}'${NC}" # ACTION
                 OLS_RELOAD=1
             else
@@ -296,9 +249,9 @@ fi
 ## Disable http2
 if [[ "${action}" == 'disable_http2' || "${action}" == "$((i++))" ]]; then
     select_domain_mu
-    if is_http2; then
-        sed -i "${domain_conf}" -re "${remove_http2}"
-        if is_http2; then
+    if gf_is_http2_ols "$domain"; then
+        gf_disable_http2_ols_site "$domain"
+        if gf_is_http2_ols "$domain"; then
             echo -e "${RED}ERROR: http2 disabling error for '${domain}'${NC}" >&2 # ERROR
         else
             echo -e "${GREEN} ${SUCCESSFUL} http2 disabled for '${domain}'${NC}" # ACTION
@@ -368,7 +321,7 @@ if [[ "${action}" == 'disable_cache' || "${action}" == "$((i++))" ]]; then
                 echo -e "${RED}ERROR: cache disabling error for '${domain}'${NC}" >&2 # ERROR
             else
                 echo -e "${GREEN} ${SUCCESSFUL} cache disabled for '${domain}'${NC}" # ACTION
-                NGINX_RELOAD=1
+                OLS_RELOAD=1
             fi
         else
             echo -e "${BLUE}cache is already disabled for '${domain}'${NC}" # SKIP
@@ -848,6 +801,8 @@ if [[ "${action}" == 'enable_brotli' || "${action}" == "$((i++))" ]]; then
     if is_brotli_on; then
         echo -e "${BLUE}brotli is already enabled for '${domain}'${NC}" # SKIP
     else
+        sed -i 's|enableBr.*|enableBr                  1|' "${domain_conf}"
+        # TODO: Adjust to OLS
         sed -i "${domain_conf}" -re "/client_max_body_size/a \ \ \ \ brotli on; brotli_comp_level 6; brotli_static on; brotli_types text/plain text/css application/javascript application/x-javascript text/xml application/xml application/xml+rss text/javascript image/x-icon image/vnd.microsoft.icon image/bmp image/svg+xml;"
         if is_brotli_on; then
             echo -e "${GREEN} ${SUCCESSFUL} brotli enabled for '${domain}'${NC}" # ACTION
@@ -864,7 +819,8 @@ fi
 if [[ "${action}" == 'disable_brotli' || "${action}" == "$((i++))" ]]; then
     select_domain_mu
     if is_brotli_on; then
-        sed -i "${domain_conf}" -re "/brotli on/d"
+        # enableBr                  0
+        sed -i 's|enableBr.*|enableBr                  0|' "${domain_conf}"
         if is_brotli_on; then
             echo -e "${RED}ERROR: brotli disabling error for '${domain}'${NC}" >&2 # ERROR
         else
@@ -1176,16 +1132,16 @@ fi
 
 
 is_gzip_domain_on() {
-    # Line looks like: `enableGzip                  1` but as someone could mangle spaces let's ignore how many tabs/spaces there are when matching if its on.
-    cat "${domain_conf}" | grep -qP "enableGzip.\s+.1"
+    # Line looks like: `enableGzip                  1`
+    cat "${domain_conf}" | grep -qP "enableGzip                  1"
 }
 
 do_enable_gzip_domain() {
-    sed -i "${domain_conf}" -e "/enableGzip.\s+.0/enableGzip                  1/"
+    sed -i "s|enableGzip.*|enableGzip                  1|" "${domain_conf}"
 }
 
 do_disable_gzip_domain() {
-    sed -i "${domain_conf}" -e "/enableGzip.\s+.1/enableGzip                  0/"
+    sed -i "s|enableGzip.*|enableGzip                  0|" "${domain_conf}"
 }
 
 ## Enable gzip for a domain

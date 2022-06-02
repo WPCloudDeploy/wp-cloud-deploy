@@ -61,54 +61,6 @@ enable_http2_nginx() {
 	fi
 }
 
-### OLS functions
-
-is_http2_ols() {
-	# https://http2.pro/doc/LiteSpeed
-	# https://www.litespeedtech.com/support/wiki/doku.php/litespeed_wiki:config:enable-http2
-	# If is any one of these values http2 is enabled 4,5,7,15
-	grep -qP "${has_http2_ols}" ${VHDIR}/${domain}/$g_vhost_conf
-}
-
-enable_http2_ols() {
-	if gf_is_ssl_ols $domain
-	then
-		if is_http2_ols
-		then
-			echo -e "${BLUE}http2 is already enabled for domain='${domain}', nothing to do${NC}" # SKIP
-		else
-			# Setting to 15 is default which enables HTTP/3, HTTP/2, and SPDY HTTP
-			sed -i 's|enableSpdy.*|enableSpdy              15|' ${VHDIR}/${domain}/$g_vhost_conf
-			if is_http2_ols
-			then
-				echo -e "${GREEN}http2 enabled for domain='${domain}' ${NC}" # ACTION
-				gf_restart_webserver
-			else
-				echo -e "${RED}ERROR: enabling http2 for '${domain}' error${NC}" >&2 # ERROR
-			fi
-		fi
-	else
-		echo -e "${ORANGE}Could not enable http2 on '${domain}' when SSL is disabled${NC}" # WARNING
-	fi
-}
-
-disable_http2_ols() {
-	if is_http2_ols
-	then
-		# Setting to 11 is disables HTTP/2 and leaves HTTP/3, and SPDY HTTP enabled
-		sed -i 's|enableSpdy.*|enableSpdy              11|' ${VHDIR}/${domain}/$g_vhost_conf
-		if is_http2_ols
-		then
-			echo -e "${RED}ERROR: http2 disabling for '${domain}' error${NC}" >&2 # ERROR
-		else
-			echo -e "${GREEN}http2 disabled for domain='${domain}' ${NC}" # ACTION
-			gf_restart_webserver
-		fi
-	else
-		echo -e "${BLUE}http2 is already disabled for domain='${domain}', nothing to do${NC}" # SKIP
-	fi
-}
-
 ########################### Script Start here ############
 while [[ -z $domain ]]
 do
@@ -153,7 +105,7 @@ then
 		gf_enable_certbot_nginx_site $domain $domain
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
-		gf_enable_certbot_ols_site $domain
+		gf_enable_certbot_ols_site "$domain"
 	fi
 
 	cd /var/www/$domain/html/
@@ -179,16 +131,16 @@ then
 		gf_disable_certbot_nginx_site $domain $domain
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
-		disable_http2_ols # disable http2 if enabled
-		gf_disable_certbot_ols_site $domain
+		gf_disable_http2_ols_site "$domain" # disable http2 if enabled
+		gf_disable_certbot_ols_site "$domain"
 	fi
 
 	cd /var/www/$domain/html/
-	su - $user_name -c "wp --skip-plugins option update home http://$domain"
-	su - $user_name -c "wp --skip-plugins option update siteurl http://$domain"
+	su - "$user_name" -c "wp --skip-plugins option update home http://$domain"
+	su - "$user_name" -c "wp --skip-plugins option update siteurl http://$domain"
 	# reset cache
-	su - $user_name -c "wp cache flush"
-	su - $user_name -c "wp cache-enabler clear 2>/dev/null"
+	su - "$user_name" -c "wp cache flush"
+	su - "$user_name" -c "wp cache-enabler clear 2>/dev/null"
 	
 	echo
 	echo "SSL has been disabled for $domain"
@@ -203,7 +155,7 @@ then
 		enable_http2_nginx
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
-		enable_http2_ols
+		gf_enable_http2_ols_site "$domain"
 	fi
 	exit
 fi
@@ -216,7 +168,7 @@ then
 		disable_http2_nginx
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
-		disable_http2_ols
+		gf_disable_http2_ols_site "$domain"
 	fi
 	exit
 fi

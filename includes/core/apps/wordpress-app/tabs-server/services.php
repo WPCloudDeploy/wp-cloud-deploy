@@ -2355,7 +2355,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 
 		}
 
-		/* Translators: %s is the full name of the webserver eg: Open Litespeed. */
+		/* Translators: %s is the full name of the webserver eg: OpenLiteSpeed. */
 		$success_message = sprintf( __( 'The %s webserver service has restarted.', 'wpcd' ), $webserver_type_name );
 
 		switch ( $webserver_type ) {

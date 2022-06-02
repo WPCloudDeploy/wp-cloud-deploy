@@ -650,7 +650,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 		switch ( $web_server_type ) {
 			case 'ols':
-				$return = __( 'Open Litespeed', 'wpcd' );
+				$return = __( 'OpenLiteSpeed', 'wpcd' );
 				break;
 
 			case 'nginx':
@@ -658,7 +658,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				break;
 
 			case 'ols-enterprise':
-				$return = __( 'Litespeed Enterprise', 'wpcd' );
+				$return = __( 'LiteSpeed Enterprise', 'wpcd' );
 				break;
 		}
 
@@ -1327,7 +1327,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	/**
 	 * Get a formatted link to the front-end of the site
 	 *
-	 * @param string $app_id is the post id of the app record we're asking about.
+	 * @param int $app_id is the post id of the app record we're asking about.
 	 *
 	 * @return string
 	 */
@@ -1346,6 +1346,44 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		}
 
 		return sprintf( '<a href = "%s" target="_blank">' . __( 'View site', 'wpcd' ) . '</a>', $url_site );
+
+	}
+
+	/**
+	 * Sets the status of SSL metas and, if necesssary, http2 as well.
+	 *
+	 * @param int    $app_id is the post id of the app record we're working with.
+	 * @param string $ssl_status Should be 'on' or 'off'.
+	 *
+	 * @return void
+	 */
+	public function set_ssl_status( $app_id, $ssl_status ) {
+
+		// What type of web server are we running?
+		$webserver_type = $this->get_web_server_type( $app_id );
+
+		update_post_meta( $app_id, 'wpapp_ssl_status', $ssl_status );
+
+		// Update HTTP2 status based on webserver type.
+		switch ( $webserver_type ) {
+			case 'ols':
+			case 'ols-enterprise':
+				if ( 'on' === $ssl_status ) {
+					// SSL turned on so we turn http2 on.
+					update_post_meta( $app_id, 'wpapp_ssl_http2_status', 'on' );  // OLS always have http2, http3 and spdy turned on by default.
+				} else {
+					// SSL turned off so we turn http2 off.
+					update_post_meta( $app_id, 'wpapp_ssl_http2_status', 'off' );
+				}
+				break;
+
+			case 'nginx':
+			default:
+				// For NGINX we can only turn ssl on/off if HTTP2 is off so this meta is always going to be "off".
+				update_post_meta( $app_id, 'wpapp_ssl_http2_status', 'off' );
+				break;
+
+		}
 
 	}
 

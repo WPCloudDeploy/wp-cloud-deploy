@@ -18,7 +18,11 @@ All management features are available inside of wp-admin on your WordPress site.
 
 ## Getting Started ##
 
-Download the zip file from this site and install it like you would any other WordPress plugin.
+You can get a rapid start by using the [pre-configured droplet at digital ocean.](https://marketplace.digitalocean.com/apps/wpclouddeploy).
+
+Just deploy the droplet, login with your ssh credentials and follow the instructions to setup your domain and other info.
+
+Alternatively, you can download the zip file from here and install it like you would any other WordPress plugin. You will need to tweak your webserver so check out [the pre-requisites](https://wpclouddeploy.com/documentation/wpcloud-deploy/requirements/) before going down this road.
 
 Then, to install WordPress servers and sites, follow the [getting started documentation on the WPCloudDeploy site](https://wpclouddeploy.com/documentation/wpcloud-deploy/introduction-to-wpcloud-deploy/)
 

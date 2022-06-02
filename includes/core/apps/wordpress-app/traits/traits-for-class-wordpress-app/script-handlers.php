@@ -1357,6 +1357,7 @@ trait wpcd_wpapp_script_handlers {
 						'SCRIPT_URL2'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/wp-sync',
 						'SCRIPT_NAME2' => 'wp-sync',
 					),
+					$common_array,
 					$additional
 				);
 				break;
@@ -1366,6 +1367,7 @@ trait wpcd_wpapp_script_handlers {
 						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/72-destination.txt',
 						'SCRIPT_NAME' => '72-destination.sh',
 					),
+					$common_array,
 					$additional
 				);
 				break;
@@ -1375,6 +1377,7 @@ trait wpcd_wpapp_script_handlers {
 						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/71-origin.txt',
 						'SCRIPT_NAME' => '71-origin.sh',
 					),
+					$common_array,
 					$additional
 				);
 				break;

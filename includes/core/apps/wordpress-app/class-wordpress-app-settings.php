@@ -1282,6 +1282,13 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tooltip' => __( 'Hide the webserver type from the server column.', 'wpcd' ),
 				'tab'     => 'wordpress-app-fields-and-links',
 			),
+			array(
+				'id'      => 'wordpress_app_hide_chicklet_area_in_site_detail',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide Chicklet Area', 'wpcd' ),
+				'tooltip' => __( 'Hides the three labels that show the web server type, SSL status and Cache status beneath the domain name in the site detail screen.', 'wpcd' ),
+				'tab'     => 'wordpress-app-fields-and-links',
+			),			
 
 			array(
 				'id'   => 'wordpress_fields_and_links_heading_03',

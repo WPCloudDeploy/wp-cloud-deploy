@@ -431,10 +431,45 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	 * @TODO: strip out inline styles and move to admin stylesheet?
 	 */
 	private function get_general_fields( array $fields, $app_id ) {
+
+		// What type of web server are we running?
+		$webserver_type      = $this->get_web_server_type( $app_id );
+		$webserver_type_name = $this->get_web_server_description_by_id( $app_id );
+
+		// SSL enabled?
+		$ssl_status               = $this->get_site_local_ssl_status( $app_id );   // Returns a boolean.
+		$ssl_status_display_value = true === $ssl_status ? __( 'On', 'wpcd' ) : __( 'Off', 'wpcd' );
+		if ( true === boolval( $ssl_status ) ) {
+			$ssl_class_name = 'wpcd_site_details_top_row_element_ssl_on';
+		} else {
+			$ssl_class_name = 'wpcd_site_details_top_row_element_ssl_off';
+		}
+
+		// Page Cache.
+		$page_cache_status        = $this->get_page_cache_status( $app_id );
+		$page_cache_display_value = 'on' === $page_cache_status ? __( 'On', 'wpcd' ) : __( 'Off', 'wpcd' );
+		if ( 'on' === $page_cache_status ) {
+			$page_cache_class_name = 'wpcd_site_details_top_row_element_page_cache_on';
+		} else {
+			$page_cache_class_name = 'wpcd_site_details_top_row_element_page_cache_off';
+		}
+
+		// Wrap the page cache and ssl status into a set of spans that will go underneath the domain name.
+		$other_data  = '<div class="wpcd_site_details_top_row_element_wrapper">';
+		$other_data .= '<span class="wpcd_medium_chicklet wpcd_site_details_top_row_element_wstype">' . $webserver_type_name . '</span>';
+		$other_data .= '<span class=" wpcd_medium_chicklet ' . $ssl_class_name . '">' . sprintf( __( 'SSL: %s', 'wpcd' ), $ssl_status_display_value ) . '</span>';
+		$other_data .= '<span class=" wpcd_medium_chicklet ' . $page_cache_class_name . '">' . sprintf( __( 'Cache: %s', 'wpcd' ), $page_cache_display_value ) . '</span>';
+		$other_data .= '</div>';
+
+		// There should be no 'other data' if the setting to not show it is enabled.
+		if ( wpcd_get_option( 'wordpress_app_hide_chicklet_area_in_site_detail' ) ) {
+			$other_data = '';
+		}
+
 		$fields[] = array(
 			'name'    => __( 'Domain', 'wpcd' ),
 			'type'    => 'custom_html',
-			'std'     => $this->get_domain_name( $app_id ),
+			'std'     => $this->get_domain_name( $app_id ) . $other_data,
 			'columns' => 'left' === $this->get_tab_style() ? 4 : 4,
 			'class'   => 'left' === $this->get_tab_style() ? 'wpcd_site_details_top_row wpcd_site_details_top_row_domain wpcd_site_details_top_row_domain_left' : 'wpcd_site_details_top_row wpcd_site_details_top_row_domain',
 		);

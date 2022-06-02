@@ -47,12 +47,15 @@ var ajaxurl=wpcd_wpapp_params.ajaxurl;
             
             var prompt = "";
             var prompr_action_name = action == 'trash' ? 'delete' : action;
+            var messages = new Array();
+            
             if( 'app' == type ) {
-                    prompt = wpcd_wpapp_params.app_delete_messages[prompr_action_name];
+                    messages = JSON.parse( wpcd_public_app_delete_messages );
             } else if( 'server' == type ) {
-                    prompt = wpcd_wpapp_params.server_delete_messages[prompr_action_name];
+                    messages = JSON.parse( wpcd_public_server_delete_messages );
             }
             
+            prompt = messages[ prompr_action_name ];
             if( !confirm( prompt ) ) {
                     return;
             }

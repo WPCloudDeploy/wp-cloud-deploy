@@ -57,10 +57,12 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 	 */
 	public function __construct() {
 
+		add_filter( 'wpcd_wordpress-app_settings_fields', array( $this, 'wpcd_public_app_settings_fields' ), 20, 1 );
 		if ( ! is_admin() ) {
 			$this->public_hooks();
 		} elseif ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
 			add_action( 'wp_ajax_wpcd_public_wordpress-app', array( $this, 'ajax_public' ) );
+			add_action( 'wp_ajax_wpcd_public_create_pages', array( $this, 'ajax_public_create_pages' ) );
 		}
 	}
 
@@ -90,6 +92,113 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 		add_filter( 'wpcd_public_table_views_wpcd_app', array( $this, 'wpcd_app_table_views' ), 11, 1 );
 
 		add_filter( 'removable_query_args', array( $this, 'removable_query_args' ) );
+		add_filter( 'wpcd_app_script_args', array( $this, 'add_public_script_args_app' ), 20, 2 );
+		add_action( "wpcd_wordpress-app_create_popup_after_console_wrap", array( $this, 'wpcd_wordpress_create_popup_after_console_wrap' ) , 100, 0 );
+	}
+	
+	/**
+	 * Add div after console view to clear css float
+	 */
+	public function wpcd_wordpress_create_popup_after_console_wrap() {
+		echo '<div class="wpcd_public_clear"></div>';
+	}
+	
+	
+	/**
+	 * Add setting fields for public pages
+	 * 
+	 * @param type $fields
+	 * 
+	 * @return array
+	 */
+	public function wpcd_public_app_settings_fields( $fields ) {
+		
+		$public_fields = array (
+			array(
+				'id'   => 'wordpress_front_end_fields_heading_public_pages',
+				'type' => 'heading',
+				'name' => __( 'Public Pages', 'wpcd' ),
+				'desc' => __( 'Other Options.', 'wpcd' ),
+				'tab'  => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_public_apps_list_page',
+				'type'    => 'text',
+				'name'    => __( 'Apps Page', 'wpcd' ),
+				'desc' => __( 'Page id to display apps table on front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+				'std'  =>  self::get_apps_list_page_id(),
+				'save_field' => false,
+				'attributes' => array('readonly' => 'readonly')
+			),
+			array(
+				'id'   => 'wordpress_public_servers_list_page',
+				'type' => 'text',
+				'name' => __( 'Servers Page', 'wpcd' ),
+				'desc' => __( 'Page id to display servers table on front-end.', 'wpcd' ),
+				'tab'  => 'wordpress-app-front-end-fields',
+				'std'  => self::get_servers_list_page_id(),
+				'save_field' => false,
+				'attributes' => array('readonly' => 'readonly')
+			),
+			array(
+				'id'   => 'wordpress_public_server_deploy_page',
+				'type' => 'text',
+				'name' => __( 'Server Deploy Page', 'wpcd' ),
+				'desc' => __( 'Page id to display deploy server form.', 'wpcd' ),
+				'tab'  => 'wordpress-app-front-end-fields',
+				'std'  => self::get_server_deploy_page_id(),
+				'save_field' => false,
+				'attributes' => array('readonly' => 'readonly')
+			),
+			
+			array(
+				'type'       => 'button',
+				'std'        => __( 'Create', 'wpcd' ),
+				'name' => __( 'Create missing pages', 'wpcd' ),
+				'tab'  => 'wordpress-app-front-end-fields',
+				'desc' => __( 'Create missing front-end pages.', 'wpcd' ),
+				'attributes' => array(
+					'id'          => 'wordpress_public_create_pages_button',
+					'data-action' => 'wpcd_public_create_pages',
+					'data-nonce'  => wp_create_nonce( 'wpcd-create-public-pages' ),
+				),
+			)
+		);
+		
+		return array_merge( $fields, $public_fields );
+	}
+	
+	/**
+	 * Create missing public pages via ajax
+	 */
+	public function ajax_public_create_pages() {
+		
+		$nonce  = filter_input( INPUT_POST, 'nonce', FILTER_SANITIZE_STRING );
+		
+		$data = [];
+		if ( wp_verify_nonce( $nonce, "wpcd-create-public-pages" ) ) {
+			self::create_pages();
+			$data['msg'] = __( 'Missing pages successfully created.', 'wpcd' );
+		}
+		wp_send_json_success( $data );
+	}
+	
+	/**
+	 * Change redirect to public apps listing page.
+	 * 
+	 * @param array $args args.
+	 * @param string $script script
+	 * 
+	 * @return array
+	 */
+	public function add_public_script_args_app( $args, $script ) {
+		
+		if( self::is_public_page() ) {
+			$args['redirect'] = get_permalink( self::get_apps_list_page_id() );
+		}
+		
+		return $args;
 	}
 
 	/**
@@ -328,7 +437,15 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 				'server_delete_messages' => WPCD_POSTS_APP_SERVER()->wpcd_app_trash_prompt_messages(),
 			)
 		);
-
+		
+		?>
+		
+		<script type="text/javascript">
+		 var wpcd_public_app_delete_messages   = '<?php echo json_encode( array_map('esc_html', WPCD_POSTS_APP()->wpcd_app_trash_prompt_messages() ) ); ?>';
+		 var wpcd_public_server_delete_messages = '<?php echo json_encode( array_map('esc_html', WPCD_POSTS_APP_SERVER()->wpcd_app_trash_prompt_messages() ) ); ?>';
+		</script>
+		<?php
+		
 		if ( self::is_server_edit_page() || self::is_app_edit_page() ) {
 			wp_enqueue_script( 'wpcd-mbio-tabs-fix.', wpcd_url . 'assets/js/wpcd-mbio-tabs-fix.js', array( 'jquery', 'rwmb-tabs' ), wpcd_scripts_version, true );
 		}
@@ -690,7 +807,7 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 			case 'servers_list':
 				$page_id = self::get_servers_list_page_id();
 				break;
-			case 'servers_list':
+			case 'apps_list':
 				$page_id = self::get_apps_list_page_id();
 				break;
 			case 'deploy_server':
@@ -739,7 +856,7 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 	 * @return boolean
 	 */
 	public static function apps_list_page_exists( $check_exists = false ) {
-		return self::page_exists( 'appss_list', $check_exists );
+		return self::page_exists( 'apps_list', $check_exists );
 	}
 
 	/**
@@ -780,7 +897,7 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 				)
 			);
 
-			add_option( 'wpcd_public_servers_list_page_id', $page_id );
+			update_option( 'wpcd_public_servers_list_page_id', $page_id );
 		}
 
 		if ( ! self::apps_list_page_exists( true ) ) {
@@ -795,7 +912,7 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 				)
 			);
 
-			add_option( 'wpcd_public_apps_list_page_id', $page_id );
+			update_option( 'wpcd_public_apps_list_page_id', $page_id );
 		}
 
 		if ( ! self::deploy_server_page_exists( true ) ) {
@@ -810,7 +927,7 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 				)
 			);
 
-			add_option( 'wpcd_public_deploy_server_page_id', $page_id );
+			update_option( 'wpcd_public_deploy_server_page_id', $page_id );
 		}
 	}
 

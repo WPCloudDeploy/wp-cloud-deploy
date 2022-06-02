@@ -10,6 +10,8 @@ You can add additional support for EC2, LIGHTSAIL, LINODE, VULTR, UPCLOUD, HETZN
 
 **It is primarily used to install and manage WordPress servers and applications.** But it also includes sample apps for just basic servers (i.e., servers with no additional apps) and OpenVPN servers.
 
+![WPCloudDeploy Dashboard](https://wpclouddeploy.com/wp-content/uploads/2022/04/wpcd-v4-095.png)
+
 Its extensible model allow developers to add new apps in the future.
 
 All management features are available inside of wp-admin on your WordPress site.  Apart from the server providers, you do not need a 3rd party SaaS service to manage your servers and apps.
@@ -49,9 +51,9 @@ Full documentation is located on the WPCloudDeploy website.
 Features of the plugin include:
 
 * APP: WordPress - **EXTENSIVE** support for deploying and managing WordPress servers and sites from inside the WordPress admin dashboard. This is the primary app type that this plugin supports.  
-* APP: OpenVPN - includes front-end purchase and management.
 * Integrated DigitalOcean Cloud Provider.
 * Extensible server provider model supports EC2, LIGHTSAIL, LINODE, VULTR, UPCLOUD, HETZNER, EXOSCALE and other cloud providers via additional plugins.
+* Extra App: OpenVPN - includes front-end purchase and management. This helps developers to see how multiple functions can potentially co-exist inside the framework.
 
 ## Roadmap ##
 

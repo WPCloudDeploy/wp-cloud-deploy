@@ -6,9 +6,7 @@
 
 The plugin makes it easy to deploy servers at well-known providers such as DigitalOcean, AWS and more.  However, the core plugin only includes support for DigitalOcean.
 
-You can add additional support for EC2, LIGHTSAIL, LINODE, VULTR, UPCLOUD, HETZNER, EXOSCALE, GOOGLE, AZURE and ALIBABA by [purchasing a premium subscription](https://wpclouddeploy.com/pricing/). 
-
-**It is primarily used to install and manage WordPress servers and applications.** But it also includes sample apps for just basic servers (i.e., servers with no additional apps) and OpenVPN servers.
+**It is primarily used to install and manage WordPress servers and applications.** 
 
 ![WPCloudDeploy Dashboard](https://wpclouddeploy.com/wp-content/uploads/2022/04/wpcd-v4-095.png)
 
@@ -53,7 +51,8 @@ Features of the plugin include:
 * APP: WordPress - **EXTENSIVE** support for deploying and managing WordPress servers and sites from inside the WordPress admin dashboard. This is the primary app type that this plugin supports.  
 * Integrated DigitalOcean Cloud Provider.
 * Extensible server provider model supports EC2, LIGHTSAIL, LINODE, VULTR, UPCLOUD, HETZNER, EXOSCALE and other cloud providers via additional plugins.
-* Extra App: OpenVPN - includes front-end purchase and management. This helps developers to see how multiple functions can potentially co-exist inside the framework.
+* Extra App: OpenVPN - includes front-end purchase and management. This helps developers to see how multiple apps can potentially co-exist inside the framework.
+* Extra App: Basic Server - deploy simple servers with no additional apps pre-installed. This helps developers to see how multiple apps can potentially co-exist inside the framework.
 
 ## Roadmap ##
 
@@ -80,6 +79,7 @@ A premium version of this plugin is available on the WPCloudDeploy website.  You
 
 Premium features include:
 
+* Support for additional cloud providers: EC2, LIGHTSAIL, LINODE, VULTR, UPCLOUD, HETZNER, EXOSCALE, GOOGLE, AZURE and ALIBABA
 * WP Multisite support
 * REDIS support for WP
 * Bring your own server
@@ -89,6 +89,8 @@ Premium features include:
 * Server Sync
 * Support for additional cloud server providers: EC2, LIGHTSAIL, LINODE, VULTR, UPCLOUD, HETZNER, EXOSCALE, GOOGLE, AZURE and ALIBABA
 * Powertools which include features such as summary dashboards and charts, periodic server snapshots and more.
+
+[Purchase a premium subscription](https://wpclouddeploy.com/pricing/). 
 
 ## Creating Extensions ##
 

@@ -1,5 +1,6 @@
 #!/bin/bash
-# Script #55 OLS Options which the equivalent of 34 Nginx options
+# Script #55 OLS Options which will be the OpenliteSpeed equivalent of 34 Nginx options
+# Still Work in process and should not be used for production stuff as it is not complete
 
 if [[ "$EUID" -ne 0 ]]; then
     echo "Sorry, you need to run this as root"
@@ -27,6 +28,12 @@ get_domain_config_path(){
     local site
     site=$1
     domain_conf="${VHDIR}/${site}/vhconf.conf"
+}
+
+get_domain_htaccess_path(){
+    local site
+    site=$1
+    domain_htaccess="/var/www/$site/html/.htaccess"
 }
 
 fix_permissions_on_configs_ols_lsws(){
@@ -66,6 +73,7 @@ while [[ -z $domain ]]; do
     clear
     gf_select_domain_nginx_ols
     get_domain_config_path "$domain"
+    get_domain_htaccess_path "$domain"
     set_user_name
 done
 }
@@ -83,7 +91,7 @@ function select_ols_site(){
 }
 
 
-# for options where changes are applied to the NGINX configuration
+# for options where changes are applied to the OLS configuration
 select_domain_mu () {
 while [[ -z $domain ]]; do
     echo
@@ -91,6 +99,7 @@ while [[ -z $domain ]]; do
     echo
     select_ols_site
     get_domain_config_path "$domain"
+    get_domain_htaccess_path "$domain"
     set_user_name
 done
 }
@@ -105,8 +114,6 @@ while [[ -z $action ]]; do
     echo "   $((i++))) Enable browser 'cache' for a single site"
     echo "   $((i++))) Disable browser 'cache' for a single site"
     echo "   $((i++))) Remove browser 'cache' settings for a single site"
-    echo "   $((i++))) Add browser cache type(s) for a single site"
-    echo "   $((i++))) Remove browser cache type(s) for a single site"
     echo "   $((i++))) Enable XMLRPC"
     echo "   $((i++))) Disable XMLRPC"
     echo "   $((i++))) Enable REST API"
@@ -132,25 +139,14 @@ while [[ -z $action ]]; do
     echo "   $((i++))) Disable Permissions-Policy"
     echo "   $((i++))) Enable gzip for a domain"
     echo "   $((i++))) Disable gzip for a domain"
-    echo "   $((i++))) Enable 'common' browser 'cache' (using 'include')"
-    echo "   $((i++))) Disable 'common' browser 'cache' (using 'include')"
-    echo "   $((i++))) Add 'common' browser cache type(s) for graphics files (using 'include')"
-    echo "   $((i++))) Remove 'common' browser cache type(s) for graphics files (using 'include')"
-    echo "   $((i++))) Add 'common' browser cache type(s) for scripts and stylesheets (using 'include')"
-    echo "   $((i++))) Remove 'common' browser cache type(s) for scripts and stylesheets (using 'include')"
-    echo " -- TWEAKS -- "
-    echo "   $((i++))) Set 'worker processes' directive (all sites)"
-    echo "   $((i++))) Remove 'worker processes' directive (all sites)"
-    echo "   $((i++))) Set 'worker connections' directive (all sites)"
-    echo "   $((i++))) Remove 'worker connections' directive (all sites)"
-    echo "   $((i++))) Set 'client_max_body_size' directive (all sites)"
-    echo "   $((i++))) Remove 'client_max_body_size' directive (all sites)"
-    echo "   $((i++))) Set 'send_timeout' directive (all sites)"
-    echo "   $((i++))) Remove 'send_timeout' directive (all sites)"
-    echo "   $((i++))) Set timezone for NGINX (all sites)"
-    echo "   $((i++))) Remove timezone for NGINX (use OS timezone settings) (all sites)"
-    echo "   $((i++))) Set timezone for PHP POOL (domain)"
-    echo "   $((i++))) Remove timezone for PHP POOL (use OS timezone settings) (domain)"
+    echo "   $((i++))) Set 'maxReqBodySize' directive (all sites)"    # client_max_body_size
+    echo "   $((i++))) Remove 'maxReqBodySize' directive (all sites)"       # client_max_body_size
+    echo "   $((i++))) Set 'connTimeout' directive (all sites)"            # connTimeout
+    echo "   $((i++))) Remove 'connTimeout' directive (all sites)"         # connTimeout
+    # echo "   $((i++))) Set timezone for OLS (all sites)"
+    # echo "   $((i++))) Remove timezone for OLS (use OS timezone settings) (all sites)"
+    # echo "   $((i++))) Set timezone for PHP (domain)"
+    # echo "   $((i++))) Remove timezone for PHP (use OS timezone settings) (domain)"
     echo 
     echo "$((i--))" > /dev/null
     read -p "Action: " action
@@ -161,6 +157,7 @@ while [[ -z $action ]]; do
 done
 i=1 # reset menu index
 
+# https://openlitespeed.org/kb/openlitespeed-directive-working-in-progress/#enableGzipCompress
 is_gzip_on() {
     # Pattern 'enableGzipCompress      1'
     cat "${OLS_CONF}" | grep -qP "enableGzipCompress      1"
@@ -213,35 +210,10 @@ fi
 ## End Disabling gzip
 
 
-# ## regex patterns http2
-# ip="[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+" # any ipv4
-# ip6="\[::1?\]" # any or localhost ipv6
-# remove_http2="s/(^${sm}listen${sp}($ip:)?($ip6:)?[0-9]+${sp}ssl)${sp}http2/\1/"
-# add_http2="s/(^${sm}listen${sp}($ip:)?($ip6:)?[0-9]+${sp}ssl)(${sm}http2)?/\1 http2/"
-# has_ssl="^${sm}listen${sp}(${ip}:)?(${ip6}:)?[0-9]+${sp}ssl"
-# has_http2="^${sm}listen${sp}(${ip}:)?(${ip6}:)?[0-9]+${sp}ssl${sp}http2"
-# has_http2_ols="([ ]*enableSpdy[ ]*(4|5|7|15))"
-# ## end regex patterns http2
-
-
 ## Enable http2
 if [[ "${action}" == 'enable_http2' || "${action}" == "$((i++))" ]]; then
     select_domain_mu
-    if gf_is_ssl_ols "$domain"; then
-        if gf_is_http2_ols; then
-            echo -e "${BLUE}http2 is already enabled for '${domain}'${NC}" # SKIP
-        else
-            gf_enable_http2_ols_site "$domain"
-            if gf_is_http2_ols; then
-                echo -e "${GREEN} ${SUCCESSFUL} http2 enabled for '${domain}'${NC}" # ACTION
-                OLS_RELOAD=1
-            else
-                echo -e "${RED}ERROR: http2 enabling error${NC} for '${domain}'${NC}" >&2 # ERROR
-            fi
-        fi
-    else
-        echo -e "${ORANGE}WARNING: Could not enable http2 when SSL is disabled on '${domain}'${NC}" # WARNING
-    fi
+    gf_enable_http2_ols_site "$domain"
     exit_script
 fi
 ## End enable http2
@@ -249,38 +221,75 @@ fi
 ## Disable http2
 if [[ "${action}" == 'disable_http2' || "${action}" == "$((i++))" ]]; then
     select_domain_mu
-    if gf_is_http2_ols "$domain"; then
-        gf_disable_http2_ols_site "$domain"
-        if gf_is_http2_ols "$domain"; then
-            echo -e "${RED}ERROR: http2 disabling error for '${domain}'${NC}" >&2 # ERROR
-        else
-            echo -e "${GREEN} ${SUCCESSFUL} http2 disabled for '${domain}'${NC}" # ACTION
-            OLS_RELOAD=1
-        fi
-    else
-        echo -e "${BLUE}http2 is already disabled for '${domain}'${NC}" # SKIP
-    fi
+    gf_disable_http2_ols_site "$domain"
     exit_script
 fi
 ## End disable http2
 
 
 ## Regex patterns for browser cache
-has_cache_settings="# 34-options_cache"
-has_cache_on="\{expires [^-][^;]*;\} ${has_cache_settings}"
-enable_cache="s/(\{expires )[^;]+(;\} ${has_cache_settings})/\1${CACHE_MAX_AGE}\2/"
-disable_cache="s/(\{expires )[^;]+(;\} ${has_cache_settings})/\1-1\2/"
-default_cache="/${has_cache_settings}/d"
-enabled_cache_settings="location ~* \\\\.(js|css|png|jpg|jpeg|gif|ico|bmp|svg|svgz|mp4|woff|woff2|ttf|eof)$ {expires ${CACHE_MAX_AGE};} ${has_cache_settings}"
-disabled_cache_settings="location ~* \\\\.(js|css|png|jpg|jpeg|gif|ico|bmp|svg|svgz|mp4|woff|woff2|ttf|eof)$ {expires -1;} ${has_cache_settings}"
+has_cache_settings="### marker BROWSER CACHE"
 ## End Regex patterns for browser cache
 
 is_cache_settings() {
-    cat "${domain_conf}" | grep -qP "${has_cache_settings}"
+    get_domain_htaccess_path "$domain"
+    cat "${domain_htaccess}" | grep -qP "${has_cache_settings}"
 }
 
 is_cache_on() {
-    cat "${domain_conf}" | grep -qP "${has_cache_on}"
+    # This is kinda pointless is_cache_settings will only ever has that block if its enabled. otherwise its deleted entirely 
+    # there isn't a bool besides in wp settings
+    cat "${domain_htaccess}" | grep -qP "${has_cache_settings}"
+}
+# https://docs.litespeedtech.com/lscache/lscwp/cache/#how-to-set-it-up
+# https://docs.litespeedtech.com/lscache/lscwp/cache/#browser-tab
+# For reference only
+
+# ### marker BROWSER CACHE start ###
+# <IfModule mod_expires.c>
+# ExpiresActive on
+# ExpiresByType application/pdf A31557600
+# ExpiresByType image/x-icon A31557600
+# ExpiresByType image/vnd.microsoft.icon A31557600
+# ExpiresByType image/svg+xml A31557600
+
+# ExpiresByType image/jpg A31557600
+# ExpiresByType image/jpeg A31557600
+# ExpiresByType image/png A31557600
+# ExpiresByType image/gif A31557600
+# ExpiresByType image/webp A31557600
+
+# ExpiresByType video/ogg A31557600
+# ExpiresByType audio/ogg A31557600
+# ExpiresByType video/mp4 A31557600
+# ExpiresByType video/webm A31557600
+
+# ExpiresByType text/css A31557600
+# ExpiresByType text/javascript A31557600
+# ExpiresByType application/javascript A31557600
+# ExpiresByType application/x-javascript A31557600
+
+# ExpiresByType application/x-font-ttf A31557600
+# ExpiresByType application/x-font-woff A31557600
+# ExpiresByType application/font-woff A31557600
+# ExpiresByType application/font-woff2 A31557600
+# ExpiresByType application/vnd.ms-fontobject A31557600
+# ExpiresByType font/ttf A31557600
+# ExpiresByType font/otf A31557600
+# ExpiresByType font/woff A31557600
+# ExpiresByType font/woff2 A31557600
+# </IfModule>
+# ### marker BROWSER CACHE end ###
+
+# WP UI: https://domain.tld/wp-admin/admin.php?page=litespeed-cache#browser
+enable_browser_cache(){
+    cd /var/www/$domain/html/
+    su - "$user_name" -c "wp litespeed-option set cache-browser 1"
+}
+
+disable_browser_cache(){
+    cd /var/www/$domain/html/
+    su - "$user_name" -c "wp litespeed-option set cache-browser 0"
 }
 
 ## Enable Browser Cache
@@ -290,7 +299,7 @@ if [[ "${action}" == 'enable_cache' || "${action}" == "$((i++))" ]]; then
         if is_cache_on; then
             echo -e "${BLUE}cache is already enabled for '${domain}'${NC}" # SKIP
         else
-            sed -i "${domain_conf}" -re "${enable_cache}"
+            enable_browser_cache
             if is_cache_on; then
                 echo -e "${GREEN} ${SUCCESSFUL} cache enabled for '${domain}'${NC}" # ACTION
                 OLS_RELOAD=1
@@ -299,7 +308,7 @@ if [[ "${action}" == 'enable_cache' || "${action}" == "$((i++))" ]]; then
             fi
         fi
     else
-        sed -i "${domain_conf}" -re "s/^(${sm}location${sp}\/${sm}\{)/\1\n        ${enabled_cache_settings}/"
+        enable_browser_cache
         if is_cache_on; then
             echo -e "${GREEN} ${SUCCESSFUL} cache enabled for '${domain}'${NC}" # ACTION
             OLS_RELOAD=1
@@ -316,7 +325,7 @@ if [[ "${action}" == 'disable_cache' || "${action}" == "$((i++))" ]]; then
     select_domain_mu
     if is_cache_settings; then
         if is_cache_on; then
-            sed -i "${domain_conf}" -re "${disable_cache}"
+            disable_browser_cache
             if is_cache_on; then
                 echo -e "${RED}ERROR: cache disabling error for '${domain}'${NC}" >&2 # ERROR
             else
@@ -327,7 +336,7 @@ if [[ "${action}" == 'disable_cache' || "${action}" == "$((i++))" ]]; then
             echo -e "${BLUE}cache is already disabled for '${domain}'${NC}" # SKIP
         fi
     else
-        sed -i "${domain_conf}" -re "s/^(${sm}location${sp}\/${sm}\{)/\1\n        ${disabled_cache_settings}/"
+        disable_browser_cache
         if is_cache_settings; then
             echo -e "${GREEN} ${SUCCESSFUL} cache disabled for '${domain}'${NC}" # ACTION
             OLS_RELOAD=1
@@ -343,7 +352,7 @@ fi
 if [[ "${action}" == 'default_cache' || "${action}" == "$((i++))" ]]; then
     select_domain_mu
     if is_cache_settings; then
-        sed -i "${domain_conf}" -re "${default_cache}"
+        disable_browser_cache
         if is_cache_settings; then
             echo -e "${RED}ERROR: cache to default (remove all cache settings) error for '${domain}'${NC}" >&2 #ERROR
         else
@@ -356,117 +365,6 @@ if [[ "${action}" == 'default_cache' || "${action}" == "$((i++))" ]]; then
     exit_script
 fi
 ## End Remove Browser Cache Settings
-
-
-## Add cache type(s)
-current_cache_types() {
-    cat "${domain_conf}" | grep -P "${has_cache_settings}" | sed -re 's/^.*\(([^)]*)\).*$/\1/' | sed -re 's/\|/,/g'
-}
-
-add_cache_types_greeting() {
-    echo
-    echo "Let's add file types to the browser cache settings"
-    echo "current types: $(current_cache_types)"
-    echo " please enter wanted types split by comma (e. g. jpeg,bmp,svg)"
-}
-
-ask_add_cache_types() {
-    if [[ -z "${cache_types}" ]]; then
-        add_cache_types_greeting
-        read -p "Adding types: " cache_types
-    fi
-}
-
-is_has_cache_type() {
-    cat "${domain_conf}" | grep -P "${has_cache_settings}" | grep -qP "(\(|\|)${cache_type}(\||\))"
-}
-
-if [[ "${action}" == 'add_cache_types' || "${action}" == "$((i++))" ]]; then
-    select_domain_mu
-    if is_cache_settings; then
-        ask_add_cache_types
-        if [[ ! -z "${cache_types}" ]]; then
-            cache_types_list=($(echo -n "${cache_types}" | sed -re 's/[,. ;]/\n/g'))
-            for cache_type in "${cache_types_list[@]}"; do
-                if [[ ! -z ${cache_type} ]]; then
-                    if is_has_cache_type; then
-                        echo -e "${BLUE}'${cache_type}' is already in the file types list in '${domain}'${NC}" # SKIP
-                    else
-                        sed -i "${domain_conf}" -re "s/(\)\\$ \{expires [^; ]+;\} ${has_cache_settings})/|${cache_type}\1/"
-                        if is_has_cache_type; then
-                            echo -e "${GREEN} ${SUCCESSFUL} '${cache_type}' added into the file types list in '${domain}'${NC}" # ACTION
-                            OLS_RELOAD=1
-                        else
-                            echo -e "${RED}ERROR: '${cache_type}' adding into the file types list error in '${domain}'${NC}" >&2 # ERROR
-                        fi
-                    fi
-                fi
-            done
-        else
-            echo -e "${BLUE}cache_types is not set for '${domain}'${NC}" # SKIP
-        fi
-    else
-        echo -e "${RED}ERROR: Could not add cache type(s), the cache is not set for '${domain}'${NC}" >&2 # ERROR
-    fi
-    exit_script
-fi
-## End add cache type(s)
-
-## Remove cache type(s)
-del_cache_types_greeting() {
-    echo
-    echo "Let's delete file types from the browser cache settings"
-    echo "current types: $(current_cache_types)"
-    echo " please enter wanted types split by comma (e. g. jpeg,bmp,svg)"
-}
-
-ask_del_cache_types() {
-    if [[ -z "${cache_types}" ]]; then
-        del_cache_types_greeting
-        read -p "Deleting types: " cache_types
-    fi
-}
-
-if [[ "${action}" == 'del_cache_types' || "${action}" == "$((i++))" ]]; then
-    select_domain_mu
-    if is_cache_settings; then
-        ask_del_cache_types
-        if [[ ! -z "${cache_types}" ]]; then
-            cache_types_list=($(echo -n "${cache_types}" | sed -re 's/[,. ;]/\n/g'))
-            for cache_type in "${cache_types_list[@]}"; do
-                if [[ ! -z ${cache_type} ]]; then
-                    if is_has_cache_type; then
-                        sed -i "${domain_conf}" -re "s/(\(.*)\|${cache_type}\|(.*\)\\$ \{expires [^; ]+;\} ${has_cache_settings})/\1|\2/"
-                        sed -i "${domain_conf}" -re "s/(\()${cache_type}\|(.*\)\\$ \{expires [^; ]+;\} ${has_cache_settings})/\1\2/"
-                        sed -i "${domain_conf}" -re "s/(\(.*)\|${cache_type}(\)\\$ \{expires [^; ]+;\} ${has_cache_settings})/\1\2/"
-                        sed -i "${domain_conf}" -re "s/(\()${cache_type}(\)\\$ \{expires [^; ]+;\} ${has_cache_settings})/\1\2/"
-                        if is_has_cache_type; then
-                            echo -e "${RED}ERROR: '${cache_type}' deleting from the file types list error in '${domain}'${NC}" # ERROR
-                        else
-                            echo -e "${GREEN} ${SUCCESSFUL} '${cache_type}' removed from the file types list in '${domain}'${NC}" # ACTION
-                            OLS_RELOAD=1
-                        fi
-                    else
-                        echo -e "${BLUE}'${cache_type}' is already not in the file types list in '${domain}'${NC}" # SKIP
-                    fi
-                fi
-            done
-        else
-            echo -e "${BLUE}cache_types is not set for '${domain}'${NC}" # SKIP
-        fi
-    else
-        echo -e "${RED}ERROR: Could not del cache type(s), the cache is not set for '${domain}'${NC}" >&2 # ERROR
-    fi
-    exit_script
-fi
-## End remove cache type(s)
-
-
-## regex patterns for xmlrpc
-has_xmlrpc_disabled="^${sm}location${sm}~${sm}xmlrpc\\.php\\$ ?${sm}\\{deny${sp}all;\\}"
-enable_xmlrpc_regex="/${has_xmlrpc_disabled}/d"
-disable_xmlrpc_regex="s/^(${sm}location${sm}~${sm}\\\\.php\\$ ?${sm}\{)/\\1\\n        location ~ xmlrpc.php\$ {deny all;}/"
-## end regex patterns xmlrpc
 
 
 is_xmlrpc_disabled(){
@@ -789,10 +687,10 @@ fi
 ## End Disable default CSP (Content-Security-Policy)
 
 # https://openlitespeed.org/kb/using-gzip-brotli-compression/
-
+# All brotli files settings are done at the server level which is in the gf_add_ols_main_conf
 is_brotli_on() {
-    # Line looks like: `enableBr                  1` but as someone could mangle spaces let's ignore how many tabs/spaces there are when matching if its on.
-    cat "${domain_conf}" | grep -qP "enableBr.\s+.1"
+    # Line looks like: `enableBr                  1`
+    cat "${domain_conf}" | grep -qP "enableBr                  1"
 }
 
 ## Enable Brotli
@@ -802,8 +700,6 @@ if [[ "${action}" == 'enable_brotli' || "${action}" == "$((i++))" ]]; then
         echo -e "${BLUE}brotli is already enabled for '${domain}'${NC}" # SKIP
     else
         sed -i 's|enableBr.*|enableBr                  1|' "${domain_conf}"
-        # TODO: Adjust to OLS
-        sed -i "${domain_conf}" -re "/client_max_body_size/a \ \ \ \ brotli on; brotli_comp_level 6; brotli_static on; brotli_types text/plain text/css application/javascript application/x-javascript text/xml application/xml application/xml+rss text/javascript image/x-icon image/vnd.microsoft.icon image/bmp image/svg+xml;"
         if is_brotli_on; then
             echo -e "${GREEN} ${SUCCESSFUL} brotli enabled for '${domain}'${NC}" # ACTION
             OLS_RELOAD=1
@@ -1180,631 +1076,376 @@ if [[ "${action}" == 'disable_gzip_domain' || "${action}" == "$((i++))" ]]; then
 fi
 ## End Disable gzip for a domain
 
-
-is_cache_include_on() {
-    cat "${domain_conf}" | grep -qP "^${sm}include${sp}/etc/nginx/common/browsercache\[\.\]conf;"
-}
-
-# TODO: Does this apply? Would this not just be a litespeed-wp cli option?
-# https://docs.litespeedtech.com/lscache/lscwp/cli/#set-a-particular-option
-#  wp litespeed-option all | grep browser
-# cache-browser	1
-# cache-ttl_browser	31557600
-do_enable_cache_include() {
-    # sed -i "${domain_conf}" -re "/client_max_body_size/a \ \ \ \ include /etc/nginx/common/browsercache[.]conf;\n"
-    # sed -i "${domain_conf}" -re "/client_max_body_size/a \ \n \ \ \ # Cache certain filetypes in the browser"
-    echo TODO
-}
-
-do_disable_cache_include() {
-    # sed -i "${domain_conf}" -re "/# Cache certain filetypes in the browser/d"
-    # sed -i "${domain_conf}" -re "/include \/etc\/nginx\/common\/browsercache\[\.\]conf;/d"
-    echo TODO
-}
-
-## Enable browser cache using 'include'
-if [[ "${action}" == 'enable_cache_include' || "${action}" == "$((i++))" ]]; then
-    select_domain_mu
-    if is_cache_include_on; then
-        echo -e "${BLUE}browser cache (include) is already enabled for '${domain}'${NC}" # SKIP
-    else
-        do_enable_cache_include
-        if is_cache_include_on; then
-            echo -e "${GREEN} ${SUCCESSFUL} browser cache (include) enabled for '${domain}'${NC}" # ACTION
-            OLS_RELOAD=1
-        else
-            echo -e "${RED}ERROR: browser cache (include) enabling error for '${domain}'${NC}" >&2 # ERROR
-        fi
-    fi
-    exit_script
-fi
-## End Enable browser cache using 'include'
-
-## Disable broswer cache using 'include'
-if [[ "${action}" == 'disable_cache_include' || "${action}" == "$((i++))" ]]; then
-    select_domain_mu
-    if is_cache_include_on; then
-        do_disable_cache_include
-        if is_cache_include_on; then
-            echo -e "${RED}ERROR: browser cache (include) disabling error for '${domain}'${NC}" >&2 # ERROR
-        else
-            echo -e "${GREEN} ${SUCCESSFUL} browser cache (include) disabled for '${domain}'${NC}" # ACTION
-            OLS_RELOAD=1
-        fi
-    else
-        echo -e "${BLUE}browser cache (include) is already disabled for '${domain}'${NC}" # SKIP
-    fi
-    exit_script
-fi
-## End Disable browser cache using 'include'
-
-
-# TODO: not sure if this applicable?
-browser_cache_conf="/etc/nginx/common/browsercache.conf"
-graphics_location_lineno=$(cat "${browser_cache_conf}" | sed -nre '/# Graphics files/,/^location/=' | tail -n 1)
-script_location_lineno=$(cat "${browser_cache_conf}" | sed -nre '/# CSS and JS files/,/^location/=' | tail -n 1)
-
-current_graphics_cache_types() {
-    cat "${browser_cache_conf}" | sed -nre "${graphics_location_lineno}p" | sed -re 's/^.*\(([^)]*)\).*$/\1/' | sed -re 's/\|/,/g' | sed -re 's/^(\?:)//'
-}
-
-current_script_cache_types() {
-    cat "${browser_cache_conf}" | sed -nre "${script_location_lineno}p" | sed -re 's/^.*\(([^)]*)\).*$/\1/' | sed -re 's/\|/,/g' | sed -re 's/^(\?:)//'
-}
-
-add_graphics_cache_types_greeting() {
-    echo
-    echo "Let's add graphics file type(s) to the browser cache settings (all sites)"
-    echo "current types: $(current_graphics_cache_types)"
-    echo " please enter wanted types split by comma (e. g. jpeg,bmp,svg)"
-}
-
-ask_add_graphics_cache_types() {
-    if [[ -z "${cache_types}" ]]; then
-        add_graphics_cache_types_greeting
-        read -p "Adding types: " cache_types
-    fi
-}
-
-is_has_graphics_cache_type() {
-    cat "${browser_cache_conf}" | sed -nre "${graphics_location_lineno}p" | grep -qP "(:|\(|\|)${cache_type}(\||\))"
-}
-
-## Add browser cache type(s) for graphics files (all sites)
-if [[ "${action}" == 'add_graphics_cache_types' || "${action}" == "$((i++))" ]]; then
-    ask_add_graphics_cache_types
-    if [[ ! -z "${cache_types}" ]]; then
-        cache_types_list=($(echo -n "${cache_types}" | sed -re 's/[,. ;]/\n/g'))
-        for cache_type in "${cache_types_list[@]}"; do
-            if [[ ! -z ${cache_type} ]]; then
-                if is_has_graphics_cache_type; then
-                    echo -e "${BLUE}'${cache_type}' is already in the graphics files list${NC}" # SKIP
-                else
-                    sed -i "${browser_cache_conf}" -re "${graphics_location_lineno}s/(\)\\$ \{)/|${cache_type}\1/"
-                    if is_has_graphics_cache_type; then
-                        echo -e "${GREEN} ${SUCCESSFUL} '${cache_type}' added into the graphics files list${NC}" # ACTION
-                        OLS_RELOAD=1
-                    else
-                        echo -e "${RED}ERROR: '${cache_type}' adding into the grapics files list${NC}" >&2 # ERROR
-                    fi
-                fi
-            fi
-        done
-    else
-        echo -e "${BLUE}cache_types is not set'${NC}" # SKIP
-    fi
-    exit_script
-fi
-## End Add browser cache type(s) for graphics files (all sites)
-
-
-del_graphics_cache_types_greeting() {
-    echo
-    echo "Let's delete graphics file type(s) from the browser cache settings (all sites)"
-    echo "current types: $(current_graphics_cache_types)"
-    echo " please enter wanted types split by comma (e. g. jpeg,bmp,svg)"
-}
-
-ask_del_graphics_cache_types() {
-    if [[ -z "${cache_types}" ]]; then
-        del_graphics_cache_types_greeting
-        read -p "Deleting types: " cache_types
-    fi
-}
-
-## Remove browser cache type(s) for graphics files (all sites)
-if [[ "${action}" == 'del_graphics_cache_types' || "${action}" == "$((i++))" ]]; then
-    ask_del_graphics_cache_types
-    if [[ ! -z "${cache_types}" ]]; then
-        cache_types_list=($(echo -n "${cache_types}" | sed -re 's/[,. ;]/\n/g'))
-        for cache_type in "${cache_types_list[@]}"; do
-            if [[ ! -z ${cache_type} ]]; then
-                if is_has_graphics_cache_type; then
-                    sed -i "${browser_cache_conf}" -re "${graphics_location_lineno}s/(\(\?:.*)\|${cache_type}\|(.*\)\\$ \{)/\1|\2/"
-                    sed -i "${browser_cache_conf}" -re "${graphics_location_lineno}s/(\(\?:)${cache_type}\|(.*\)\\$ \{)/\1\2/"
-                    sed -i "${browser_cache_conf}" -re "${graphics_location_lineno}s/(\(.*)\|${cache_type}(\)\\$ \{)/\1\2/"
-                    sed -i "${browser_cache_conf}" -re "${graphics_location_lineno}s/(\(\?:)${cache_type}(\)\\$ \{)/\1\2/"
-                    if is_has_graphics_cache_type; then
-                        echo -e "${RED}ERROR: '${cache_type}' deleting from the graphics files list${NC}" >&2 # ERROR
-                    else
-                        echo -e "${GREEN} ${SUCCESSFUL} '${cache_type}' removed from the graphics files list${NC}" # ACTION
-                        OLS_RELOAD=1
-                    fi
-                else
-                    echo -e "${BLUE}'${cache_type}' is already not in the graphics files list${NC}" # SKIP
-                fi
-            fi
-        done
-    else
-        echo -e "${BLUE}cache_types is not set'${NC}" # SKIP
-    fi
-    exit_script
-fi
-## End Remove browser cache type(s) for graphics files (all sites)
-
-
-add_script_cache_types_greeting() {
-    echo
-    echo "Let's add styles and scripts file type(s) to the browser cache settings (all sites)"
-    echo "current types: $(current_script_cache_types)"
-    echo " please enter wanted types split by comma (e. g. js,css,scss)"
-}
-
-ask_add_script_cache_types() {
-    if [[ -z "${cache_types}" ]]; then
-        add_script_cache_types_greeting
-        read -p "Adding types: " cache_types
-    fi
-}
-
-is_has_script_cache_type() {
-    cat "${browser_cache_conf}" | sed -nre "${script_location_lineno}p" | grep -qP "(:|\(|\|)${cache_type}(\||\))"
-}
-
-## Add browser cache type(s) for styles and script files (all sites)
-if [[ "${action}" == 'add_script_cache_types' || "${action}" == "$((i++))" ]]; then
-    ask_add_script_cache_types
-    if [[ ! -z "${cache_types}" ]]; then
-        cache_types_list=($(echo -n "${cache_types}" | sed -re 's/[,. ;]/\n/g'))
-        for cache_type in "${cache_types_list[@]}"; do
-            if [[ ! -z ${cache_type} ]]; then
-                if is_has_script_cache_type; then
-                    echo -e "${BLUE}'${cache_type}' is already in the styles and scripts files list${NC}" # SKIP
-                else
-                    sed -i "${browser_cache_conf}" -re "${script_location_lineno}s/(\)\\$ \{)/|${cache_type}\1/"
-                    if is_has_script_cache_type; then
-                        echo -e "${GREEN} ${SUCCESSFUL} '${cache_type}' added into the styles and scripts files list${NC}" # ACTION
-                        OLS_RELOAD=1
-                    else
-                        echo -e "${RED}ERROR: '${cache_type}' adding into the scripts and styles files list${NC}" >&2 # ERROR
-                    fi
-                fi
-            fi
-        done
-    else
-        echo -e "${BLUE}cache_types is not set'${NC}" # SKIP
-    fi
-    exit_script
-fi
-## End Add browser cache type(s) for styles and script files (all sites)
-
-del_script_cache_types_greeting() {
-    echo
-    echo "Let's delete styles and scripts file type(s) from the browser cache settings (all sites)"
-    echo "current types: $(current_script_cache_types)"
-    echo " please enter wanted types split by comma (e. g. js,css,scss)"
-}
-
-ask_del_script_cache_types() {
-    if [[ -z "${cache_types}" ]]; then
-        del_script_cache_types_greeting
-        read -p "Deleting types: " cache_types
-    fi
-}
-
-## Remove browser cache type(s) for styles and scripts files (all sites)
-if [[ "${action}" == 'del_script_cache_types' || "${action}" == "$((i++))" ]]; then
-    ask_del_script_cache_types
-    if [[ ! -z "${cache_types}" ]]; then
-        cache_types_list=($(echo -n "${cache_types}" | sed -re 's/[,. ;]/\n/g'))
-        for cache_type in "${cache_types_list[@]}"; do
-            if [[ ! -z ${cache_type} ]]; then
-                if is_has_script_cache_type; then
-                    sed -i "${browser_cache_conf}" -re "${script_location_lineno}s/(\(\?:.*)\|${cache_type}\|(.*\)\\$ \{)/\1|\2/"
-                    sed -i "${browser_cache_conf}" -re "${script_location_lineno}s/(\(\?:)${cache_type}\|(.*\)\\$ \{)/\1\2/"
-                    sed -i "${browser_cache_conf}" -re "${script_location_lineno}s/(\(.*)\|${cache_type}(\)\\$ \{)/\1\2/"
-                    sed -i "${browser_cache_conf}" -re "${script_location_lineno}s/(\(\?:)${cache_type}(\)\\$ \{)/\1\2/"
-                    if is_has_script_cache_type; then
-                        echo -e "${RED}ERROR: '${cache_type}' deleting from the styles and scripts files list${NC}" >&2 # ERROR
-                    else
-                        echo -e "${GREEN} ${SUCCESSFUL} '${cache_type}' removed from the styles and scripts files list${NC}" # ACTION
-                        OLS_RELOAD=1
-                    fi
-                else
-                    echo -e "${BLUE}'${cache_type}' is already not in the styles and scripts files list${NC}" # SKIP
-                fi
-            fi
-        done
-    else
-        echo -e "${BLUE}cache_types is not set'${NC}" # SKIP
-    fi
-    exit_script
-fi
-## End Remove browser cache type(s) for styles and scripts files (all sites)
-
 # From what I can tell maxReqBodySize "Max Request Body Size (bytes)" is the equivalent server level directive
 # https://openlitespeed.org/kb/openlitespeed-directive-working-in-progress/#maxReqBodySize
 # Specifies the maximum size of an HTTP request body.
 #   maxReqBodySize          2047M
-is_client_max_body_size_enabled() {
+is_max_req_body_size_enabled() {
     grep -qP "^${sm}maxReqBodySize${sp}" "${OLS_CONF}"
 }
 
-disable_client_max_body_size() {
+disable_max_req_body_size() {
     # Let's maybe comment it out so we can easily re enable it later : https://stackoverflow.com/a/29685539/1621381
     sed -i '/^[^#]/ s/\(^.*maxReqBodySize.*$\)/#\ \1/' "${OLS_CONF}" 
 }
 
-ask_client_max_body_size() {
-    if [[ -z "${client_max_body_size}" ]]; then
-        echo "Please enter a value for the 'client_max_body_size' directive"
+ask_max_req_body_size() {
+    if [[ -z "${max_req_body_size}" ]]; then # client_max_body_size
+        echo "Please enter a value for the 'max_req_body_size' directive" # client_max_body_size
         echo 
-        read -p "Value (size)): " client_max_body_size
-        while [[ -z "${client_max_body_size}" ]]; do
+        read -p "Value (size)): " max_req_body_size
+        while [[ -z "${max_req_body_size}" ]]; do
             echo "Invalid value!!"
-            read -p "Value (s): " client_max_body_size
+            read -p "Value (s): " max_req_body_size
         done
     fi
 }
 
-enable_client_max_body_size() {
+enable_max_req_body_size() {
      # Let's replace the matching line which will presumably be commented out but this will replace that line regardless.
-    sed -i "/maxReqBodySize/c\  maxReqBodySize             ${client_max_body_size}" "${OLS_CONF}"
+    sed -i "/maxReqBodySize/c\  maxReqBodySize             ${max_req_body_size}" "${OLS_CONF}"
 }
 
-print_current_client_max_body_size() {
+print_current_max_req_body_size() {
     # Number valid range >= 1M
     # Numbers can be represented as 10240 or 10K.
     #   maxReqBodySize          2047M
     grep -P "^${sm}maxReqBodySize${sp}" "${OLS_CONF}" | grep -Eo "[[:digit:]]+[[:alpha:]]"
 }
 
-set_client_max_body_size() {
+set_max_req_body_size() {
     # kinda redundant I think enable/set could be the same thing cause it will enable/set with whatever is provided/
-    sed -i "/maxReqBodySize/c\  maxReqBodySize             ${client_max_body_size}" "${OLS_CONF}"
+    sed -i "/maxReqBodySize/c\  maxReqBodySize             ${max_req_body_size}" "${OLS_CONF}"
 }
 
-## Set the 'client_max_body_size' directive (all sites)
-if [[ "${action}" == 'set_client_max_body_size' || "${action}" == "$((i++))" ]]; then
-    ask_client_max_body_size
-    if is_client_max_body_size_enabled; then
-        if [[ "${client_max_body_size}" == "$(print_current_client_max_body_size)" ]]; then
-            echo -e "${BLUE}'client_max_body_size' is already equal to ${client_max_body_size} for all sites${NC}" # SKIP
+## Set the 'max_req_body_size' directive (all sites)  # old client_max_body_size
+if [[ "${action}" == 'set_max_req_body_size' || "${action}" == "$((i++))" ]]; then
+    ask_max_req_body_size
+    if is_max_req_body_size_enabled; then
+        if [[ "${max_req_body_size}" == "$(print_current_max_req_body_size)" ]]; then
+            echo -e "${BLUE}'max_req_body_size' is already equal to ${max_req_body_size} for all sites${NC}" # SKIP
         else
-            set_client_max_body_size
-            if [[ "${client_max_body_size}" == "$(print_current_client_max_body_size)" ]]; then
-                echo -e "${GREEN} ${SUCCESSFUL} 'client_max_body_size' set to ${client_max_body_size} for all sites${NC}" # ACTION
+            set_max_req_body_size
+            if [[ "${max_req_body_size}" == "$(print_current_max_req_body_size)" ]]; then
+                echo -e "${GREEN} ${SUCCESSFUL} 'max_req_body_size' set to ${max_req_body_size} for all sites${NC}" # ACTION
             else
-                echo -e "${RED}ERROR: 'client_max_body_size' setting to ${client_max_body_size} failed for all sites${NC}" >&2 # ERROR
+                echo -e "${RED}ERROR: 'max_req_body_size' setting to ${max_req_body_size} failed for all sites${NC}" >&2 # ERROR
                 exit 1
             fi
         fi
-        # echo "current wp=$(print_current_client_max_body_size)"
+        # echo "current wp=$(print_current_max_req_body_size)"
     else
-        enable_client_max_body_size
-        if is_client_max_body_size_enabled; then
-            echo -e "${GREEN} ${SUCCESSFUL} 'client_max_body_size' enabled (${client_max_body_size}) for all sites${NC}" # ACTION
+        enable_max_req_body_size
+        if is_max_req_body_size_enabled; then
+            echo -e "${GREEN} ${SUCCESSFUL} 'max_req_body_size' enabled (${max_req_body_size}) for all sites${NC}" # ACTION
             OLS_RELOAD=1
         else
-            echo -e "${RED}ERROR: 'client_max_body_size' enabled failed for all sites${NC}" >&2 # ERROR
+            echo -e "${RED}ERROR: 'max_req_body_size' enabled failed for all sites${NC}" >&2 # ERROR
             exit 1
         fi
     fi
     exit_script
 fi
-## End Set the 'client_max_body_size' directive (all sites)
+## End Set the 'max_req_body_size' directive (all sites)  # old client_max_body_size
 
-## Disable 'client_max_body_size' directive
-if [[ "${action}" == 'disable_client_max_body_size' || "${action}" == "$((i++))" ]]; then
-    if is_client_max_body_size_enabled; then
-        disable_client_max_body_size
-        if is_client_max_body_size_enabled; then
-            echo -e "${RED}ERROR: 'client_max_body_size' disabling failed for all sites${NC}" >&2 # ERROR
+## Disable 'client_max_body_size' directive # old client_max_body_size
+if [[ "${action}" == 'disable_max_req_body_size' || "${action}" == "$((i++))" ]]; then
+    if is_max_req_body_size_enabled; then
+        disable_max_req_body_size
+        if is_max_req_body_size_enabled; then
+            echo -e "${RED}ERROR: 'max_req_body_size' disabling failed for all sites${NC}" >&2 # ERROR
             exit 1
         else
-            echo -e "${GREEN} ${SUCCESSFUL} 'client_max_body_size' disabled for all sites${NC}" # ACTION
+            echo -e "${GREEN} ${SUCCESSFUL} 'max_req_body_size' disabled for all sites${NC}" # ACTION
             OLS_RELOAD=1
         fi
     else
-        echo -e "${BLUE}'client_max_body_size' is already disabled for all sites${NC}" # SKIP
+        echo -e "${BLUE}'max_req_body_size' is already disabled for all sites${NC}" # SKIP
     fi
     exit_script
 fi
-## End Disable 'client_max_body_size' directive
+## End Disable 'max_req_body_size' directive # old client_max_body_size
 
 
 # https://openlitespeed.org/kb/openlitespeed-directive-working-in-progress/#connTimeout
 # connTimeout
 # Specifies the maximum connection idle time (seconds) allowed during processing one request
-is_send_timeout_enabled() {
+is_conn_timeout_enabled() {
     grep -qP "^${sm}connTimeout${sp}" ${OLS_CONF}
 }
 
-disable_send_timeout() {
+disable_conn_timeout() {
     # Let's maybe comment it out so we can easily re enable it later : https://stackoverflow.com/a/29685539/1621381
     sed -i '/^[^#]/ s/\(^.*connTimeout.*$\)/#\ \1/' "${OLS_CONF}" 
 }
 
 
-ask_send_timeout() {
-    if [[ -z "${send_timeout}" ]]; then
-        echo "Please enter a value for the 'send_timeout' directive"
+ask_conn_timeout() {
+    if [[ -z "${conn_timeout}" ]]; then # old send_timeout
+        echo "Please enter a value for the 'connTimeout' directive"
         echo 
-        read -p "Value (an integer): " send_timeout
-        until [[ "${send_timeout}" =~ ^[0-9]+$ && "${send_timeout}" -ge '1' ]]; do
+        read -p "Value (an integer): " conn_timeout
+        until [[ "${conn_timeout}" =~ ^[0-9]+$ && "${conn_timeout}" -ge '1' ]]; do
             echo "Invalid value!!"
-            read -p "Value (an integer): " send_timeout
+            read -p "Value (an integer): " conn_timeout
         done
     fi
-    if ! [[ "${send_timeout}" =~ ^[0-9]+$ && "${send_timeout}" -ge '1' ]]; then
-        echo -e "${RED}ERROR: the value '${send_timeout}' of the 'send_timeout' is invalid${NC}" >&2 # ERROR
+    if ! [[ "${conn_timeout}" =~ ^[0-9]+$ && "${conn_timeout}" -ge '1' ]]; then
+        echo -e "${RED}ERROR: the value '${conn_timeout}' of the 'conn_timeout' is invalid${NC}" >&2 # ERROR
         exit 1
     fi
 }
 
-enable_send_timeout() {
+enable_conn_timeout() {
     # Let's replace the matching line which will presumably be commented out but this will replace that line regardless.
-    sed -i "/connTimeout/c\  connTimeout             ${send_timeout}" "${OLS_CONF}"
+    sed -i "/connTimeout/c\  connTimeout             ${conn_timeout}" "${OLS_CONF}"
 }
 
-print_current_send_timeout() {
+print_current_conn_timeout() {
     grep -P "^${sm}connTimeout${sp}" "${OLS_CONF}" | grep -Eo "[[:digit:]]+"
 }
 
-set_send_timeout() {
-    sed -i "/connTimeout/c\  connTimeout             ${send_timeout}" "${OLS_CONF}"
+set_conn_timeout() {
+    sed -i "/connTimeout/c\  connTimeout             ${conn_timeout}" "${OLS_CONF}"
 }
 
-## Set the 'send_timeout' directive (all sites)
-if [[ "${action}" == 'set_send_timeout' || "${action}" == "$((i++))" ]]; then
-    ask_send_timeout
-    if is_send_timeout_enabled; then
-        if [[ "${send_timeout}" == "$(print_current_send_timeout)" ]]; then
-            echo -e "${BLUE}'send_timeout' is already equal to ${send_timeout} for all sites${NC}" # SKIP
+## Set the 'conn_timeout' directive (all sites) # old send_timeout
+if [[ "${action}" == 'set_conn_timeout' || "${action}" == "$((i++))" ]]; then
+    ask_conn_timeout
+    if is_conn_timeout_enabled; then
+        if [[ "${conn_timeout}" == "$(print_current_conn_timeout)" ]]; then
+            echo -e "${BLUE}'conn_timeout' is already equal to ${conn_timeout} for all sites${NC}" # SKIP
         else
-            set_send_timeout
-            if [[ "${send_timeout}" == "$(print_current_send_timeout)" ]]; then
-                echo -e "${GREEN} ${SUCCESSFUL} 'send_timeout' set to ${send_timeout} for all sites${NC}" # ACTION
+            set_conn_timeout
+            if [[ "${conn_timeout}" == "$(print_current_conn_timeout)" ]]; then
+                echo -e "${GREEN} ${SUCCESSFUL} 'conn_timeout' set to ${conn_timeout} for all sites${NC}" # ACTION
             else
-                echo -e "${RED}ERROR: 'send_timeout' setting to ${send_timeout} failed for all sites${NC}" >&2 # ERROR
+                echo -e "${RED}ERROR: 'conn_timeout' setting to ${conn_timeout} failed for all sites${NC}" >&2 # ERROR
                 exit 1
             fi
         fi
-        # echo "current wp=$(print_current_send_timeout)"
+        # echo "current wp=$(print_current_conn_timeout)"
     else
-        enable_send_timeout
-        if is_send_timeout_enabled; then
-            echo -e "${GREEN} ${SUCCESSFUL} 'send_timeout' enabled (${send_timeout}) for all sites${NC}" # ACTION
+        enable_conn_timeout
+        if is_conn_timeout_enabled; then
+            echo -e "${GREEN} ${SUCCESSFUL} 'conn_timeout' enabled (${conn_timeout}) for all sites${NC}" # ACTION
             OLS_RELOAD=1
         else
-            echo -e "${RED}ERROR: 'send_timeout' enabled failed for all sites${NC}" >&2 # ERROR
+            echo -e "${RED}ERROR: 'conn_timeout' enabled failed for all sites${NC}" >&2 # ERROR
             exit 1
         fi
     fi
     exit_script
 fi
-## End Set the 'send_timeout' directive (all sites)
+## End Set the 'conn_timeout' directive (all sites) # old send_timeout
 
-## Disable 'send_timeout' directive
-if [[ "${action}" == 'disable_send_timeout' || "${action}" == "$((i++))" ]]; then
-    if is_send_timeout_enabled; then
-        disable_send_timeout
-        if is_send_timeout_enabled; then
-            echo -e "${RED}ERROR: 'send_timeout' disabling failed for all sites${NC}" >&2 # ERROR
+## Disable 'conn_timeout' directive # old send_timeout
+if [[ "${action}" == 'disable_conn_timeout' || "${action}" == "$((i++))" ]]; then
+    if is_conn_timeout_enabled; then
+        disable_conn_timeout
+        if is_conn_timeout_enabled; then
+            echo -e "${RED}ERROR: 'conn_timeout' disabling failed for all sites${NC}" >&2 # ERROR
             exit 1
         else
-            echo -e "${GREEN} ${SUCCESSFUL} 'send_timeout' disabled for all sites${NC}" # ACTION
+            echo -e "${GREEN} ${SUCCESSFUL} 'conn_timeout' disabled for all sites${NC}" # ACTION
             OLS_RELOAD=1
         fi
     else
-        echo -e "${BLUE}'send_timeout' is already disabled for all sites${NC}" # SKIP
+        echo -e "${BLUE}'conn_timeout' is already disabled for all sites${NC}" # SKIP
     fi
     exit_script
 fi
-## End Disable 'send_timeout' directive
+## End Disable 'conn_timeout' directive # old send_timeout
 
-is_timezone() {
-    grep -qP "^${sm}(export${sp})?TZ=" /etc/default/nginx
-}
+# https://openlitespeed.org/kb/default-php-settings-for-openlitespeed/#The_default_phpini_locations
 
-disable_timezone() {
-    sed -i /etc/default/nginx -re "/^${sm}(export${sp})?TZ=/d"
-}
+# Below timezone stuff is not functional do not use without refactoring and testing further.
+# is_timezone() {
+#     grep -qP "^${sm}(export${sp})?TZ=" /etc/default/openlitespeed
+# }
 
-ask_timezone() {
-    if [[ -z "${timezone}" ]]; then
-        echo "Please enter a value for the 'timezone' e.g. Asia/Krasnoyarsk"
-        echo 
-        read -p "Timezone: " timezone
-        while [[ -z "${timezone}" ]]; do
-            echo "Invalid value!!"
-            read -p "Timezone: " timezone
-        done
-    fi
-}
+# disable_timezone() {
+#     sed -i /etc/default/openlitespeed -re "/^${sm}(export${sp})?TZ=/d"
+# }
 
-enable_timezone() {
-    echo "export TZ='${timezone}'" >> /etc/default/nginx
-}
+# ask_timezone() {
+#     if [[ -z "${timezone}" ]]; then
+#         echo "Please enter a value for the 'timezone' e.g. Asia/Krasnoyarsk"
+#         echo 
+#         read -p "Timezone: " timezone
+#         while [[ -z "${timezone}" ]]; do
+#             echo "Invalid value!!"
+#             read -p "Timezone: " timezone
+#         done
+#     fi
+# }
 
-# print_current_timezone(void): string
-print_current_timezone() {
-    grep -P "^${sm}(export${sp})?TZ=" /etc/default/nginx | sed -re "s/^${sm}(export${sp})TZ='?\"?//" | sed -re "s/^([^'\"]+).*/\1/"
-}
+# enable_timezone() {
+#     echo "export TZ='${timezone}'" >> /etc/default/openlitespeed
+# }
 
-set_timezone() {
-    escaped_timezone=$(echo "${timezone}" | sed -re 's/\//\\\//g')
-    sed -i /etc/default/nginx -re "s/^(${sm}(export${sp})?TZ='?\"?)[^'\"]*/\1${escaped_timezone}/"
-}
+# # print_current_timezone(void): string
+# print_current_timezone() {
+#     grep -P "^${sm}(export${sp})?TZ=" /etc/default/openlitespeed | sed -re "s/^${sm}(export${sp})TZ='?\"?//" | sed -re "s/^([^'\"]+).*/\1/"
+# }
 
-# TODO: should we just do this is in all the php.ini files for lsphp? Or do we want to set this individually in every single vhost or user's local php.ini?
-## Set timezone lsws all sites
-if [[ "${action}" == 'set_timezone' || "${action}" == "$((i++))" ]]; then
-    ask_timezone
-    if [[ ! -f /etc/default/nginx ]]; then
-        touch /etc/default/nginx
-    fi
-    if is_timezone; then
-        if [[ "${timezone}" == "$(print_current_timezone)" ]]; then
-            echo -e "${BLUE}'timezone' is already equal to '${timezone}' for all sites${NC}" # SKIP
-        else
-            set_timezone
-            if [[ "${timezone}" == "$(print_current_timezone)" ]]; then
-                echo -e "${GREEN} ${SUCCESSFUL} 'timezone' set to '${timezone}' for all sites${NC}" # ACTION
-                systemctl restart lsws || service lsws restart # RESTART LSWS
-            else
-                echo -e "${RED}ERROR: 'timezone' setting to '${timezone}' failed for all sites${NC}" >&2 # ERROR
-                exit 1
-            fi
-        fi
-    else
-        enable_timezone
-        if is_timezone; then
-            echo -e "${GREEN} ${SUCCESSFUL} 'timezone' enabled '${timezone}' for all sites${NC}" # ACTION
-            systemctl restart lsws || service lsws restart # RESTART LSWS
-        else
-            echo -e "${RED}ERROR: enabling timezone '${timezone}' (TZ env variable) failed for all sites${NC}" >&2 # ERROR
-            exit  1
-        fi
-    fi
-    exit
-fi
-## End set timezone openlitespeed all sites
+# set_timezone() {
+#     for phpver in $(ls -1 /usr/local/lsws/ |grep lsphp | sed 's/lsphp//g') ; do 
+#         sed -i -e 's|^date.timezone.*|date.timezone = "'${timezone}'"|g' /usr/local/lsws/lsphp${phpver}/etc/php/$(echo $phpver | sed 's/^\(.\{1\}\)/\1./')/litespeed/php.ini; 
+#     done;
+# }
 
-## Disable 'timezone' openlitespeed all sites
-if [[ "${action}" == 'disable_timezone' || "${action}" == "$((i++))" ]]; then
-    if is_timezone; then
-        disable_timezone
-        if is_timezone; then
-            echo -e "${RED}ERROR: 'timezone' disabling failed for all sites${NC}" >&2 # ERROR
-            exit 1
-        else
-            echo -e "${GREEN} ${SUCCESSFUL} 'timezone' disabled for all sites${NC}" # ACTION
-            systemctl restart lsws || service lsws restart # RESTART LSWS
-        fi
-    else
-        echo -e "${BLUE}'timezone' is already disabled for all sites${NC}" # SKIP
-    fi
-    exit_script
-fi
-## End Disable 'timezone' lsws all sites
+# # TODO: should we just do this is in all the php.ini files for lsphp? Or do we want to set this individually in every single vhost or user's local php.ini?
+# ## Set timezone lsws all sites
+# if [[ "${action}" == 'set_timezone' || "${action}" == "$((i++))" ]]; then
+#     ask_timezone
+#     if is_timezone; then
+#         if [[ "${timezone}" == "$(print_current_timezone)" ]]; then
+#             echo -e "${BLUE}'timezone' is already equal to '${timezone}' for all sites${NC}" # SKIP
+#         else
+#             set_timezone
+#             if [[ "${timezone}" == "$(print_current_timezone)" ]]; then
+#                 echo -e "${GREEN} ${SUCCESSFUL} 'timezone' set to '${timezone}' for all sites${NC}" # ACTION
+#                 systemctl restart lsws || service lsws restart # RESTART LSWS
+#             else
+#                 echo -e "${RED}ERROR: 'timezone' setting to '${timezone}' failed for all sites${NC}" >&2 # ERROR
+#                 exit 1
+#             fi
+#         fi
+#     else
+#         enable_timezone
+#         if is_timezone; then
+#             echo -e "${GREEN} ${SUCCESSFUL} 'timezone' enabled '${timezone}' for all sites${NC}" # ACTION
+#             systemctl restart lsws || service lsws restart # RESTART LSWS
+#         else
+#             echo -e "${RED}ERROR: enabling timezone '${timezone}' (TZ env variable) failed for all sites${NC}" >&2 # ERROR
+#             exit  1
+#         fi
+#     fi
+#     exit
+# fi
+# ## End set timezone openlitespeed all sites
+
+# ## Disable 'timezone' openlitespeed all sites
+# if [[ "${action}" == 'disable_timezone' || "${action}" == "$((i++))" ]]; then
+#     if is_timezone; then
+#         disable_timezone
+#         if is_timezone; then
+#             echo -e "${RED}ERROR: 'timezone' disabling failed for all sites${NC}" >&2 # ERROR
+#             exit 1
+#         else
+#             echo -e "${GREEN} ${SUCCESSFUL} 'timezone' disabled for all sites${NC}" # ACTION
+#             systemctl restart lsws || service lsws restart # RESTART LSWS
+#         fi
+#     else
+#         echo -e "${BLUE}'timezone' is already disabled for all sites${NC}" # SKIP
+#     fi
+#     exit_script
+# fi
+# ## End Disable 'timezone' lsws all sites
 
 
 
-# inits
-# $php_version - current php version, like 7.4
-# $php_domain_conf - current php conf for the selected domain
-# $php_app - command for current php version
-# $php_app_su - command for current php under user (please, use stdin for php code)
-get_php_version() {
-    if [[ -z "${domain}" ]]; then
-        echo -e "${RED}Error. Could not get php version \$domain is empty.${NC}" >&2 # ERROR
-        exit 1
-    else
-        if [[ -z "${php_version}" ]]; then
-            ls ${VHDIR}/$domain/$g_vhost_conf > /dev/null 2>&1
-            if [[ $? -ne 0 ]]; then
-                echo -e "${RED}Error. Could not get the php version. The vhost php conf file was not found for '${domain}'${NC}" >&2 # ERROR
-                exit 1
-            fi
+# # inits
+# # $php_version - current php version, like 7.4
+# # $php_domain_conf - current php conf for the selected domain
+# # $php_app - command for current php version
+# # $php_app_su - command for current php under user (please, use stdin for php code)
+# get_php_version() {
+#     if [[ -z "${domain}" ]]; then
+#         echo -e "${RED}Error. Could not get php version \$domain is empty.${NC}" >&2 # ERROR
+#         exit 1
+#     else
+#         if [[ -z "${php_version}" ]]; then
+#             ls ${VHDIR}/$domain/$g_vhost_conf > /dev/null 2>&1
+#             if [[ $? -ne 0 ]]; then
+#                 echo -e "${RED}Error. Could not get the php version. The vhost php conf file was not found for '${domain}'${NC}" >&2 # ERROR
+#                 exit 1
+#             fi
         
-            get_domain_config_path "$domain"
-            php_version=$(grep -sEo 'lsphp[0-9]{2}' ${VHDIR}/$domain/$g_vhost_conf|head -n1)
-            php_domain_conf=domain_conf
-            php_app="php${php_version}" # command for current php version
-            php_app_su="sudo -u ${user_name} ${php_app}" # command for current php under user (please, use stdin for php code)
-            # Not sure what this does of if the above is needed?
-        fi
-    fi
-}
+#             get_domain_config_path "$domain"
+#             php_version=$(grep -sEo 'lsphp[0-9]{2}' ${VHDIR}/$domain/$g_vhost_conf|head -n1)
+#             php_domain_conf=domain_conf
+#             php_app="php${php_version}" # command for current php version
+#             php_app_su="sudo -u ${user_name} ${php_app}" # command for current php under user (please, use stdin for php code)
+#             # Not sure what this does of if the above is needed?
+#         fi
+#     fi
+# }
 
-is_php_timezone() {
-    grep -qP "^${sm}php_admin_value\[date\.timezone\]${sm}=" ${php_domain_conf}
-}
+# is_php_timezone() {
+#     grep -qP "^${sm}php_admin_value\[date\.timezone\]${sm}=" ${php_domain_conf}
+# }
 
-disable_php_timezone() {
-    sed -i "${php_domain_conf}" -re "/^${sm}php_admin_value\[date\.timezone\]${sm}=/d"
-}
+# disable_php_timezone() {
+#     sed -i "${php_domain_conf}" -re "/^${sm}php_admin_value\[date\.timezone\]${sm}=/d"
+# }
 
-enable_php_timezone() {
-    echo "php_admin_value[date.timezone] = '${timezone}'" >> ${php_domain_conf}
-}
+# enable_php_timezone() {
+#     echo "php_admin_value[date.timezone] = '${timezone}'" >> ${php_domain_conf}
+# }
 
-# print_current_php_timezone(void): string
-print_current_php_timezone() {
-    grep -P "^${sm}php_admin_value\[date\.timezone\]${sm}=${sm}" ${php_domain_conf} | sed -re "s/^${sm}php_admin_value\[date\.timezone\]${sm}=${sm}'?\"?//" | sed -re "s/^([^'\"]+).*/\1/"
-}
+# # print_current_php_timezone(void): string
+# print_current_php_timezone() {
+#     grep -P "^${sm}php_admin_value\[date\.timezone\]${sm}=${sm}" ${php_domain_conf} | sed -re "s/^${sm}php_admin_value\[date\.timezone\]${sm}=${sm}'?\"?//" | sed -re "s/^([^'\"]+).*/\1/"
+# }
 
-set_php_timezone() {
-    escaped_timezone=$(echo "${timezone}" | sed -re 's/\//\\\//g')
-    sed -i ${php_domain_conf} -re "s/^(${sm}php_admin_value\[date\.timezone\]${sm}=${sm}'?\"?)[^'\"]*/\1${escaped_timezone}/"
-}
+# set_php_timezone() {
+#     escaped_timezone=$(echo "${timezone}" | sed -re 's/\//\\\//g')
+#     sed -i ${php_domain_conf} -re "s/^(${sm}php_admin_value\[date\.timezone\]${sm}=${sm}'?\"?)[^'\"]*/\1${escaped_timezone}/"
+# }
 
-## Set timezone for php pool for domain
-if [[ "${action}" == 'set_php_timezone' || "${action}" == "$((i++))" ]]; then
-    select_domain_mu
-    get_php_version
-    ask_timezone
-    if is_php_timezone; then
-        if [[ "${timezone}" == "$(print_current_php_timezone)" ]]; then
-            echo -e "${BLUE}php 'timezone' is already equal to '${timezone}' for '${domain}'${NC}" # SKIP
-        else
-            set_php_timezone
-            if [[ "${timezone}" == "$(print_current_php_timezone)" ]]; then
-                echo -e "${GREEN} ${SUCCESSFUL} php 'timezone' set to '${timezone}' for '${domain}'${NC}" # ACTION
-                if [[ ! -f /etc/wpcd/php-versions-disabled/${php_app} ]]; then
-                    systemctl restart ${php_app}-fpm || service ${php_app}-fpm restart # restart php
-		        fi
-            else
-                echo -e "${RED}ERROR: 'timezone' setting to '${timezone}' failed for '${domain}'${NC}" >&2 # ERROR
-                exit 1
-            fi
-        fi
-    else
-        enable_php_timezone
-        if is_php_timezone; then
-            echo -e "${GREEN} ${SUCCESSFUL} php 'timezone' enabled '${timezone}' for '${domain}'${NC}" # ACTION
-            if [[ ! -f /etc/wpcd/php-versions-disabled/${php_app} ]]; then
-                systemctl restart ${php_app}-fpm || service ${php_app}-fpm restart # restart php
-	        fi
-        else
-            echo -e "${RED}ERROR: settings timezone '${timezone}' (TZ env variable) failed for '${domain}'${NC}" >&2 # ERROR
-            exit  1
-        fi
-    fi
-    exit
-fi
-## End Set timezone for php pool for domain
+# ## Set timezone for php pool for domain
+# if [[ "${action}" == 'set_php_timezone' || "${action}" == "$((i++))" ]]; then
+#     select_domain_mu
+#     get_php_version
+#     ask_timezone
+#     if is_php_timezone; then
+#         if [[ "${timezone}" == "$(print_current_php_timezone)" ]]; then
+#             echo -e "${BLUE}php 'timezone' is already equal to '${timezone}' for '${domain}'${NC}" # SKIP
+#         else
+#             set_php_timezone
+#             if [[ "${timezone}" == "$(print_current_php_timezone)" ]]; then
+#                 echo -e "${GREEN} ${SUCCESSFUL} php 'timezone' set to '${timezone}' for '${domain}'${NC}" # ACTION
+#                 gf_restart_webserver
+#             else
+#                 echo -e "${RED}ERROR: 'timezone' setting to '${timezone}' failed for '${domain}'${NC}" >&2 # ERROR
+#                 exit 1
+#             fi
+#         fi
+#     else
+#         enable_php_timezone
+#         if is_php_timezone; then
+#             echo -e "${GREEN} ${SUCCESSFUL} php 'timezone' enabled '${timezone}' for '${domain}'${NC}" # ACTION
+#             gf_restart_webserver
+#         else
+#             echo -e "${RED}ERROR: settings timezone '${timezone}' (TZ env variable) failed for '${domain}'${NC}" >&2 # ERROR
+#             exit  1
+#         fi
+#     fi
+#     exit
+# fi
+# ## End Set timezone for php pool for domain
 
 
-## Disable 'timezone' lsws for php pool for domain
-if [[ "${action}" == 'disable_php_timezone' || "${action}" == "$((i++))" ]]; then
-    select_domain_mu
-    get_php_version
-    if is_php_timezone; then
-        disable_php_timezone
-        if is_php_timezone; then
-            echo -e "${RED}ERROR: php 'timezone' disabling failed for '${domain}'${NC}" >&2 # ERROR
-            exit 1
-        else
-            echo -e "${GREEN} ${SUCCESSFUL} php 'timezone' disabled for '${domain}'${NC}" # ACTION
-            systemctl restart lsws || service lsws restart # RESTART LSWS
-        fi
-    else
-        echo -e "${BLUE}php 'timezone' is already disabled for '${domain}'${NC}" # SKIP
-    fi
-    exit_script
-fi
-## End Disable 'timezone' lsws for php pool for domain
+# ## Disable 'timezone' lsws for php pool for domain
+# if [[ "${action}" == 'disable_php_timezone' || "${action}" == "$((i++))" ]]; then
+#     select_domain_mu
+#     get_php_version
+#     if is_php_timezone; then
+#         disable_php_timezone
+#         if is_php_timezone; then
+#             echo -e "${RED}ERROR: php 'timezone' disabling failed for '${domain}'${NC}" >&2 # ERROR
+#             exit 1
+#         else
+#             echo -e "${GREEN} ${SUCCESSFUL} php 'timezone' disabled for '${domain}'${NC}" # ACTION
+#             gf_restart_webserver # RESTART LSWS
+#         fi
+#     else
+#         echo -e "${BLUE}php 'timezone' is already disabled for '${domain}'${NC}" # SKIP
+#     fi
+#     exit_script
+# fi
+# ## End Disable 'timezone' lsws for php pool for domain
 
 echo -e "${RED}ERROR: Invalid action '${action}'${NC}"

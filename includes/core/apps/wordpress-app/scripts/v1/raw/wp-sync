@@ -18,7 +18,7 @@ function check_webserver() {
 
 
 # create lockfile
-# not used in this script, but used to avoid conclicts with 01-origin.sh
+# not used in this script, but used to avoid conflicts with 01-origin.sh
 touch /tmp/wp-sync.lock
 
 # if the script isn't running from /usr/local/bin, we assume that the user did run it manually by mistake
@@ -43,6 +43,10 @@ else
 	echo "$(date) Starting wp-sync job" >> /var/log/wp-sync.log
 fi
 
+# What's the local server type?
+check_webserver
+
+# What's the remote server type?
 remote_webserver_type=$(ssh -o StrictHostKeyChecking=no -o PasswordAuthentication=no root@$dest "if sudo test -f /usr/local/lsws/bin/lshttpd; then echo "ols"; else echo "nginx"; fi")
 
 if ! [[ $webserver_type =~ $remote_webserver_type ]]

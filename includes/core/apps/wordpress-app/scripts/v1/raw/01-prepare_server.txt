@@ -839,7 +839,7 @@ EOL
 			php_utc_result=$(/usr/local/lsws/lsphp${phpver}/bin/php -i 2>&1 | grep -Ei 'date.timezone')
 			if ! echo "$php_utc_result"| grep UTC >/dev/null 2>&1
 			then
-				echo "Configuring Timezonedb for UTC for LSPHP $phpver failed"
+				echo "Configuring Timezone for UTC for LSPHP $phpver failed"
 				echo "Found: $php_utc_result"
 			fi
        		done

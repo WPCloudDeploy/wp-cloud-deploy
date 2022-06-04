@@ -291,7 +291,7 @@ disable_browser_cache(){
 }
 
 ## Enable Browser Cache
-if [[ "${action}" == 'enable_cache' || "${action}" == "$((i++))" ]]; then
+if [[ "${action}" == 'enable_browser_cache' || "${action}" == "$((i++))" ]]; then
     select_domain_mu
     if is_cache_settings; then
         if is_cache_on; then
@@ -319,7 +319,7 @@ fi
 ## End Enable Browser Cache
 
 ## Disable Browser Cache
-if [[ "${action}" == 'disable_cache' || "${action}" == "$((i++))" ]]; then
+if [[ "${action}" == 'disable_browser_cache' || "${action}" == "$((i++))" ]]; then
     select_domain_mu
     if is_cache_settings; then
         if is_cache_on; then
@@ -366,17 +366,24 @@ fi
 
 
 is_xmlrpc_disabled(){
-    cat "/var/www/$domain/html/.htaccess" | grep -qP "WPCD security header - Disable XMLRPC"
+    # cat "/var/www/$domain/html/.htaccess" | grep -qP "WPCD security header - Disable XMLRPC"
+    cat "/var/www/$domain/html/.htaccess" | grep -qP "### DISABLE XMLRPC start"
 }
 
 enable_xmlrpc(){
-    sed -i "/.*WPCD security header - Disable XMLRPC.*/d"  /var/www/$domain/html/.htaccess
+    # We may have to leave this one for legacy purposes maybe?
+    sed -i "/.*WPCD security header - Disable XMLRPC.*/d"  /var/www/$domain/html/.htaccess > /dev/null 2>&1
+    # This should be solid approach though and how we should do all the others
+    sed -i -re '/### DISABLE XMLRPC start/{:a;N;/### DISABLE XMLRPC end/!ba};/RewriteRule/d' /var/www/$domain/html/.htaccess
     user_name=$(echo $domain | cut -c1-32)
     chown "${user_name}":www-data /var/www/$domain/html/.htaccess
 }
 
 disable_xmlrpc(){
-    sed -i "1 i\RewriteEngine On\nRewriteRule ^(.*)?xmlrpc\.php(.*)\$ - [F,L,NC] # WPCD security header - Disable XMLRPC" /var/www/$domain/html/.htaccess
+    # Old
+    # sed -i "1 i\RewriteEngine On\nRewriteRule ^(.*)?xmlrpc\.php(.*)\$ - [F,L,NC] # WPCD security header - Disable XMLRPC" /var/www/$domain/html/.htaccess
+    # New
+    sed -i "1 i\### DISABLE XMLRPC start\nRewriteEngine On\nRewriteRule ^(.*)?xmlrpc\.php(.*)\$ - [F,L,NC]\n### DISABLE XMLRPC end" /var/www/$domain/html/.htaccess
 }
 
 ## Enable XMLRPC

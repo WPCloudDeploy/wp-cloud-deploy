@@ -39,8 +39,8 @@ while [[ -z $action ]]; do
 	clear
 	echo "What do you want to do?"
 	echo "   1) Install Monit"
-	echo "   2) Enable NGINX monitoring"
-	echo "   3) Disable NGINX monitoring"
+	echo "   2) Enable Webserver monitoring"
+	echo "   3) Disable Webserver monitoring"
 	echo "   4) Enable MySQL monitoring"
 	echo "   5) Disable MySQL monitoring"
 	echo "   6) Enable Redis monitoring"
@@ -245,8 +245,8 @@ include /etc/monit/conf-enabled/*" > /etc/monit/monitrc
 			stop program = "/usr/bin/systemctl restart nginx"
 			if failed host 127.0.0.1 port 80 then restart
 			if 5 restarts with 5 cycles then timeout
-			if cpu is greater than '$Alert_cpu'% for 2 cycles then alert
-			if cpu > '$Restart_cpu'% for 5 cycles then restart
+			if cpu is greater than $Alert_cpu% for 2 cycles then alert
+			if cpu > $Restart_cpu% for 5 cycles then restart
 			depend nginx_bin
 			depend nginx_rc
 
@@ -261,14 +261,14 @@ include /etc/monit/conf-enabled/*" > /etc/monit/monitrc
 		
 	elif [ "$g_webserver_type" = "ols" ]; then
 		# Config below works for OLS to monitor service
-		cat > /etc/monit/conf-available/openlitespeed <<- EOF
+		cat > /etc/monit/conf-available/ols <<- EOF
 		check process OpenLiteSpeed with pidfile /tmp/lshttpd/lshttpd.pid
 			start program = "/usr/bin/systemctl start lshttpd"
 			stop program = "/usr/bin/systemctl stop lshttpd"
 			if failed host 127.0.0.1 port 80 protocol http then restart
 			if 5 restarts with 5 cycles then timeout
-			if cpu is greater than '$Alert_cpu'% for 2 cycles then alert
-			if cpu > '$Restart_cpu'% for 5 cycles then restart
+			if cpu is greater than $Alert_cpu% for 2 cycles then alert
+			if cpu > $Restart_cpu% for 5 cycles then restart
 		EOF
 	elif [ "$g_webserver_type" = "ols-enterprise" ]; then
 		cat > /etc/monit/conf-available/ols-enterprise <<- EOF
@@ -277,8 +277,8 @@ include /etc/monit/conf-enabled/*" > /etc/monit/monitrc
 			stop program = "/usr/bin/systemctl stop lshttpd"
 			if failed host 127.0.0.1 port 80 protocol http then restart
 			if 5 restarts with 5 cycles then timeout
-			if cpu is greater than '$Alert_cpu'% for 2 cycles then alert
-			if cpu > '$Restart_cpu'% for 5 cycles then restart
+			if cpu is greater than $Alert_cpu% for 2 cycles then alert
+			if cpu > $Restart_cpu% for 5 cycles then restart
 		EOF
 	fi
 
@@ -427,24 +427,25 @@ echo 'check system '$domain'
 fi
 
 
-if [[ $action == "enable_nginx_monit" || $action == "2" ]]; then
-
-	ln -s /etc/monit/conf-available/nginx /etc/monit/conf-enabled/nginx
+if [[ $action == "enable_webserver_monit" || $action == "2" ]]; then #  enable_nginx_monit
+	
+	
+	ln -s /etc/monit/conf-available/"$g_webserver_type" /etc/monit/conf-enabled/"$g_webserver_type"
 	systemctl restart monit
 	
 	echo
-	echo "NGINX monitoring has been enabled "
+	echo "$g_webserver_type monitoring has been enabled "
 	exit
 fi
 
 
-if [[ $action == "disable_nginx_monit" || $action == "3" ]]; then
+if [[ $action == "disable_webserver_monit" || $action == "3" ]]; then #  disable_nginx_monit
 
-	rm -f /etc/monit/conf-enabled/nginx
+	rm -f /etc/monit/conf-enabled/"$g_webserver_type"
 	systemctl restart monit
 
 	echo
-	echo "NGINX monitoring has been disabled"
+	echo "$g_webserver_type monitoring has been disabled"
 	exit
 fi
 
@@ -520,27 +521,29 @@ fi
 
 
 if [[ $action == "enable_php_monit" || $action == "10" ]]; then
-
-	if [[ ! -f /etc/wpcd/php-versions-disabled/php8.1 ]]; then
-		ln -s /etc/monit/conf-available/php81 /etc/monit/conf-enabled/php81
-	fi
-	if [[ ! -f /etc/wpcd/php-versions-disabled/php8.0 ]]; then	
-		ln -s /etc/monit/conf-available/php80 /etc/monit/conf-enabled/php80
-	fi
-	if [[ ! -f /etc/wpcd/php-versions-disabled/php7.4 ]]; then
-		ln -s /etc/monit/conf-available/php74 /etc/monit/conf-enabled/php74
-	fi
-	if [[ ! -f /etc/wpcd/php-versions-disabled/php7.3 ]]; then
-		ln -s /etc/monit/conf-available/php73 /etc/monit/conf-enabled/php73
-	fi
-	if [[ ! -f /etc/wpcd/php-versions-disabled/php7.2 ]]; then	
-		ln -s /etc/monit/conf-available/php72 /etc/monit/conf-enabled/php72
-	fi
-	if [[ ! -f /etc/wpcd/php-versions-disabled/php7.1 ]]; then	
-		ln -s /etc/monit/conf-available/php71 /etc/monit/conf-enabled/php71
-	fi
-	if [[ ! -f /etc/wpcd/php-versions-disabled/php5.6 ]]; then	
-		ln -s /etc/monit/conf-available/php56 /etc/monit/conf-enabled/php56
+	
+	if [ "$g_webserver_type" = "nginx" ] ; then
+		if [[ ! -f /etc/wpcd/php-versions-disabled/php8.1 ]]; then
+			ln -s /etc/monit/conf-available/php81 /etc/monit/conf-enabled/php81
+		fi
+		if [[ ! -f /etc/wpcd/php-versions-disabled/php8.0 ]]; then	
+			ln -s /etc/monit/conf-available/php80 /etc/monit/conf-enabled/php80
+		fi
+		if [[ ! -f /etc/wpcd/php-versions-disabled/php7.4 ]]; then
+			ln -s /etc/monit/conf-available/php74 /etc/monit/conf-enabled/php74
+		fi
+		if [[ ! -f /etc/wpcd/php-versions-disabled/php7.3 ]]; then
+			ln -s /etc/monit/conf-available/php73 /etc/monit/conf-enabled/php73
+		fi
+		if [[ ! -f /etc/wpcd/php-versions-disabled/php7.2 ]]; then	
+			ln -s /etc/monit/conf-available/php72 /etc/monit/conf-enabled/php72
+		fi
+		if [[ ! -f /etc/wpcd/php-versions-disabled/php7.1 ]]; then	
+			ln -s /etc/monit/conf-available/php71 /etc/monit/conf-enabled/php71
+		fi
+		if [[ ! -f /etc/wpcd/php-versions-disabled/php5.6 ]]; then	
+			ln -s /etc/monit/conf-available/php56 /etc/monit/conf-enabled/php56
+		fi
 	fi
 
 	systemctl restart monit
@@ -552,14 +555,16 @@ fi
 
 
 if [[ $action == "disable_php_monit" || $action == "11" ]]; then
-
-	rm -f /etc/monit/conf-enabled/php81
-	rm -f /etc/monit/conf-enabled/php80
-	rm -f /etc/monit/conf-enabled/php74
-	rm -f /etc/monit/conf-enabled/php73
-	rm -f /etc/monit/conf-enabled/php72
-	rm -f /etc/monit/conf-enabled/php71
-	rm -f /etc/monit/conf-enabled/php56
+	
+	if [ "$g_webserver_type" = "nginx" ] ; then
+		rm -f /etc/monit/conf-enabled/php81
+		rm -f /etc/monit/conf-enabled/php80
+		rm -f /etc/monit/conf-enabled/php74
+		rm -f /etc/monit/conf-enabled/php73
+		rm -f /etc/monit/conf-enabled/php72
+		rm -f /etc/monit/conf-enabled/php71
+		rm -f /etc/monit/conf-enabled/php56
+	fi
 	systemctl restart monit
 
 	echo
@@ -636,29 +641,31 @@ fi
 
 
 if [[ $action == "enable_all_monit" || $action == "15" ]]; then
-	ln -s /etc/monit/conf-available/nginx /etc/monit/conf-enabled/nginx
+	ln -s /etc/monit/conf-available/"$g_webserver_type" /etc/monit/conf-enabled/"$g_webserver_type"
 	ln -s /etc/monit/conf-available/mysql /etc/monit/conf-enabled/mysql
-
-	if [[ ! -f /etc/wpcd/php-versions-disabled/php8.1 ]]; then
-		ln -s /etc/monit/conf-available/php81 /etc/monit/conf-enabled/php81
-	fi
-	if [[ ! -f /etc/wpcd/php-versions-disabled/php8.0 ]]; then	
-		ln -s /etc/monit/conf-available/php80 /etc/monit/conf-enabled/php80
-	fi
-	if [[ ! -f /etc/wpcd/php-versions-disabled/php7.4 ]]; then
-		ln -s /etc/monit/conf-available/php74 /etc/monit/conf-enabled/php74
-	fi
-	if [[ ! -f /etc/wpcd/php-versions-disabled/php7.3 ]]; then
-		ln -s /etc/monit/conf-available/php73 /etc/monit/conf-enabled/php73
-	fi
-	if [[ ! -f /etc/wpcd/php-versions-disabled/php7.2 ]]; then	
-		ln -s /etc/monit/conf-available/php72 /etc/monit/conf-enabled/php72
-	fi
-	if [[ ! -f /etc/wpcd/php-versions-disabled/php7.1 ]]; then	
-		ln -s /etc/monit/conf-available/php71 /etc/monit/conf-enabled/php71
-	fi
-	if [[ ! -f /etc/wpcd/php-versions-disabled/php5.6 ]]; then	
-		ln -s /etc/monit/conf-available/php56 /etc/monit/conf-enabled/php56
+	
+	if [ "$g_webserver_type" = "nginx" ] ; then
+		if [[ ! -f /etc/wpcd/php-versions-disabled/php8.1 ]]; then
+			ln -s /etc/monit/conf-available/php81 /etc/monit/conf-enabled/php81
+		fi
+		if [[ ! -f /etc/wpcd/php-versions-disabled/php8.0 ]]; then	
+			ln -s /etc/monit/conf-available/php80 /etc/monit/conf-enabled/php80
+		fi
+		if [[ ! -f /etc/wpcd/php-versions-disabled/php7.4 ]]; then
+			ln -s /etc/monit/conf-available/php74 /etc/monit/conf-enabled/php74
+		fi
+		if [[ ! -f /etc/wpcd/php-versions-disabled/php7.3 ]]; then
+			ln -s /etc/monit/conf-available/php73 /etc/monit/conf-enabled/php73
+		fi
+		if [[ ! -f /etc/wpcd/php-versions-disabled/php7.2 ]]; then	
+			ln -s /etc/monit/conf-available/php72 /etc/monit/conf-enabled/php72
+		fi
+		if [[ ! -f /etc/wpcd/php-versions-disabled/php7.1 ]]; then	
+			ln -s /etc/monit/conf-available/php71 /etc/monit/conf-enabled/php71
+		fi
+		if [[ ! -f /etc/wpcd/php-versions-disabled/php5.6 ]]; then	
+			ln -s /etc/monit/conf-available/php56 /etc/monit/conf-enabled/php56
+		fi
 	fi
 
 	ln -s /etc/monit/conf-available/filesystem /etc/monit/conf-enabled/filesystem
@@ -672,19 +679,22 @@ fi
 
 
 if [[ $action == "disable_all_monit" || $action == "16" ]]; then
-	rm -f /etc/monit/conf-enabled/nginx
+	rm -f /etc/monit/conf-enabled/"$g_webserver_type"
 	rm -f /etc/monit/conf-enabled/mysql
-	rm -f /etc/monit/conf-enabled/php81
-	rm -f /etc/monit/conf-enabled/php80
-	rm -f /etc/monit/conf-enabled/php74
-	rm -f /etc/monit/conf-enabled/php73
-	rm -f /etc/monit/conf-enabled/php72
-	rm -f /etc/monit/conf-enabled/php71
-	rm -f /etc/monit/conf-enabled/php56
 	rm -f /etc/monit/conf-enabled/filesystem
 	rm -f /etc/monit/conf-enabled/coresystem
 	rm -f /etc/monit/conf-enabled/memcached
 	rm -f /etc/monit/conf-enabled/redis
+	if [ "$g_webserver_type" = "nginx" ] ; then
+		rm -f /etc/monit/conf-enabled/php81
+		rm -f /etc/monit/conf-enabled/php80
+		rm -f /etc/monit/conf-enabled/php74
+		rm -f /etc/monit/conf-enabled/php73
+		rm -f /etc/monit/conf-enabled/php72
+		rm -f /etc/monit/conf-enabled/php71
+		rm -f /etc/monit/conf-enabled/php56
+	fi
+	
 	systemctl restart monit
 	echo
 	echo "All monitors disabled"
@@ -703,17 +713,24 @@ if [[ $action == "enable_monit_ssl" || $action == "17" ]]; then
 Example: admin@example.com"
         read -p "Email address: " email
     fi
+	
+	if [ "$g_webserver_type" = "nginx" ] ; then
+		certbot --non-interactive --reinstall --expand --nginx --agree-tos -m $email --allow-subset-of-names --redirect -d $domain -d www.$domain
 
-    certbot --non-interactive --reinstall --expand --nginx --agree-tos -m $email --allow-subset-of-names --redirect -d $domain -d www.$domain
+		if ! grep -qs "listen 443" /etc/nginx/sites-enabled/monit; then
+			echo
+			echo "SSL could not be enabled for $domain"
+			exit
+		fi
 
-    if ! grep -qs "listen 443" /etc/nginx/sites-enabled/monit; then
-        echo
-        echo "SSL could not be enabled for $domain"
-        exit
-    fi
+		sed -i '/sub_filter_once off/a sub_filter "http://"  "https://";' /etc/nginx/sites-enabled/monit
 
-	sed -i '/sub_filter_once off/a sub_filter "http://"  "https://";' /etc/nginx/sites-enabled/monit
-	systemctl restart nginx
+	elif [ "$g_webserver_type" = "ols" ]; then
+		echo TODO
+	
+	fi
+
+	gf_restart_webserver
 
     echo
     echo "SSL has been enabled for $domain"
@@ -723,32 +740,38 @@ fi
 
 
 if [[ $action == "disable_monit_ssl" || $action == "18" ]]; then
+	
+	if [ "$g_webserver_type" = "nginx" ] ; then
+		domain=$(grep server_name /etc/nginx/sites-enabled/monit -m 1 | cut -d "_" -f 2 | cut -d " " -f 2)
 
-	domain=$(grep server_name /etc/nginx/sites-enabled/monit -m 1 | cut -d "_" -f 2 | cut -d " " -f 2)
+		if ! grep -qs 'managed by Certbot' /etc/nginx/sites-enabled/monit; then
+			echo
+			echo "SSL is already disabled for $domain"
+			exit
+		fi
+		certbot delete --cert-name $domain --noninteractive
 
-    if ! grep -qs 'managed by Certbot' /etc/nginx/sites-enabled/monit; then
-        echo
-        echo "SSL is already disabled for $domain"
-        exit
-    fi
-    certbot delete --cert-name $domain --noninteractive
+		echo "server {
+		
+		listen 80;
+		listen [::]:80;
 
-	echo "server {
-    
-    listen 80;
-    listen [::]:80;
+		server_name $domain www.$domain;
 
-    server_name $domain www.$domain;
+		location / {
+			proxy_pass http://127.0.0.1:48756;
+			sub_filter_once off;
+			sub_filter \"127.0.0.1:48756\" \"$domain\";
+		}
 
-    location / {
-        proxy_pass http://127.0.0.1:48756;
-		sub_filter_once off;
-		sub_filter \"127.0.0.1:48756\" \"$domain\";
-    }
+	}" > /etc/nginx/sites-enabled/monit
+	
+	elif [ "$g_webserver_type" = "ols" ]; then
+		echo TODO
+	
+	fi
 
-}" > /etc/nginx/sites-enabled/monit
-
-    systemctl restart nginx
+    gf_restart_webserver
 
     echo
     echo "SSL has been disabled for $domain"
@@ -777,8 +800,12 @@ if [[ $action == "remove_monit" || $action == "21" ]]; then
 	(crontab -l 2>/dev/null | sed '/monit-reporting/d' ) | crontab -
 	apt-get remove monit -y
 	apt-get purge monit -y
-	rm -rf /etc/nginx/sites-enabled/monit /usr/local/bin/monit-reporting /etc/monit /var/log/monit.log
-	service nginx restart
+	if [ "$g_webserver_type" = "nginx" ] ; then
+		rm -rf /etc/nginx/sites-enabled/monit 
+	fi
+	rm -rf /usr/local/bin/monit-reporting /etc/monit /var/log/monit.log
+	
+	gf_restart_webserver
 	
     echo
     echo "Monit has been removed."

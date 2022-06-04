@@ -1210,7 +1210,8 @@ do_disable_cache_include() {
 }
 
 ## Enable browser cache using 'include'
-if [[ "${action}" == 'enable_cache_include' || "${action}" == "$((i++))" ]]; then
+## Action enable_cache_include deprecated - use enable_browser_cache instead
+if [[ "${action}" == 'enable_cache_include' || "${action}" == 'enable_browser_cache'  || "${action}" == "$((i++))" ]]; then
     select_domain_mu
     if is_cache_include_on; then
         echo -e "${BLUE}browser cache (include) is already enabled for '${domain}'${NC}" # SKIP
@@ -1228,7 +1229,8 @@ fi
 ## End Enable browser cache using 'include'
 
 ## Disable broswer cache using 'include'
-if [[ "${action}" == 'disable_cache_include' || "${action}" == "$((i++))" ]]; then
+## Action disable_cache_include deprecated - use disable_browser_cache instead
+if [[ "${action}" == 'disable_cache_include' || "${action}" == 'disable_browser_cache' || "${action}" == "$((i++))" ]]; then
     select_domain_mu
     if is_cache_include_on; then
         do_disable_cache_include

@@ -1112,11 +1112,17 @@ function gf_add_ols_conf() {
 
 	  }
 	}
-
+	# The comment placeholders must remain for header operations to work as expected!!
 	context / {
 	  allowBrowse             1
 	  note                    Default Context Headers
 	  extraHeaders            <<<END_extraHeaders
+	  # Headers go below this line
+		X-XSS-Protection "1; mode=block" always;
+		X-Frame-Options "SAMEORIGIN";
+		Referrer-Policy no-referrer, strict-origin-when-cross-origin;
+		Strict-Transport-Security: max-age=31536000; includeSubDomains; preload	  
+	  # Headers go above this line
 	  END_extraHeaders
 	  
 	  rewrite  {
@@ -1125,20 +1131,6 @@ function gf_add_ols_conf() {
 	
 	  addDefaultCharset       off
 	
-	  phpIniOverride  {
-
-	  }
-	}
-
-	context /phpMyAdmin/ {
-	  allowBrowse             1
-	  note                    PhpMyadmin header
-
-	  rewrite  {
-	    enable                1
-	  }
-	
-	  addDefaultCharset       off
 	  phpIniOverride  {
 
 	  }
@@ -1247,19 +1239,17 @@ function gf_ols_htaccess
 	olsdomain=$1
 	DOCHM="/var/www/${olsdomain}/html"
 	touch "${DOCHM}/.htaccess"
-	
+	# https://openlitespeed.org/kb/migrate-apache-rewrite-rules-to-openlitespeed/#Useful_Examples
 	# https://riptutorial.com/bash/example/2135/indenting-here-documents
 	# Special Note: Tabs should be maintained for the indenting for this work!
 	cat >> "${DOCHM}/.htaccess" <<-'EOL'
 	# BEGIN WordPress
-	<IfModule mod_rewrite.c>
 	RewriteEngine On
 	RewriteBase /
-	RewriteRule ^index\.php$ - [L]
+	RewriteRule ^/index.php$ - [L]
 	RewriteCond %{REQUEST_FILENAME} !-f
 	RewriteCond %{REQUEST_FILENAME} !-d
 	RewriteRule . /index.php [L]
-	</IfModule>
 	# END WordPress
 	EOL
 }

@@ -448,6 +448,10 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 		
 		if ( self::is_server_edit_page() || self::is_app_edit_page() ) {
 			wp_enqueue_script( 'wpcd-mbio-tabs-fix.', wpcd_url . 'assets/js/wpcd-mbio-tabs-fix.js', array( 'jquery', 'rwmb-tabs' ), wpcd_scripts_version, true );
+			
+			// Enqueue the font-awesome pro kit.
+			wp_register_script( 'wpcd-fontawesome-pro', 'https://kit.fontawesome.com/4fa00a8874.js', array(), 5.0, true );
+			wp_enqueue_script( 'wpcd-fontawesome-pro' );
 		}
 
 		wp_enqueue_style( 'wpcd-public-common', wpcd_url . 'includes/core/apps/wordpress-app/assets/css/wpcd-public-common.css', wpcd_scripts_version, true );
@@ -499,11 +503,13 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 		if ( self::is_server_edit_page() ) {
 			if ( wpcd_user_can_edit_app_server() && class_exists( 'RW_Meta_Box' ) ) {
 				ob_start();
-
-				$metaboxes = array(
-					'wpcd_server_wordpress-app_tab_top_of_server_details',
-					'wpcd_server_wordpress-app_tab3',
-				);
+				
+				$metaboxes = array();
+				if( WPCD_WORDPRESS_APP()->get_tab_style_server() == 'left' ) {
+					$metaboxes[] = 'wpcd_server_wordpress-app_tab_top_of_server_details';
+				}
+				
+				$metaboxes[] = 'wpcd_server_wordpress-app_tab3';
 
 				echo '<div><a class="button wpcd-back_link" href="' . get_permalink( self::get_servers_list_page_id() ) . '">' . __( 'Cloud Servers', 'wpcd' ) . '</a></div>';
 
@@ -537,10 +543,12 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 			if ( wpcd_user_can_edit_app_server( null, null, 'app' ) && class_exists( 'RW_Meta_Box' ) ) {
 
 				ob_start();
-				$metaboxes = array(
-					'wpcd_wordpress-app_tab_top_of_site_details',
-					'wpcd_wordpress-app_tab2',
-				);
+				$metaboxes = array();
+				if( WPCD_WORDPRESS_APP()->get_tab_style() == 'left' ) {
+					$metaboxes[] = 'wpcd_wordpress-app_tab_top_of_site_details';
+				}
+				
+				$metaboxes[] = 'wpcd_wordpress-app_tab2';
 
 				echo '<div><a class="button wpcd-back_link" href="' . get_permalink( self::get_apps_list_page_id() ) . '">' . __( 'All Apps', 'wpcd' ) . '</a></div>';
 
@@ -818,7 +826,7 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 		if ( $page_id && $check_exists ) {
 			$page = get_post( $page_id );
 
-			if ( ! $page ) {
+			if ( ! $page || $page->post_status == 'trash' ) {
 				$page_id = false;
 			}
 		}

@@ -8,6 +8,7 @@
 # This script is meant to be used in the origin server
 
 ## Get our common functions
+## IMPORTANT NOTE: This script should be in the same folder as the 9999-common-functions.sh file when being run.
 source 9999-common-functions.sh
 
 ### Check webserver type
@@ -20,7 +21,7 @@ then
 	sudo apt-get install -y rsync
 fi
 
-
+# Get Desitnation IP.
 if [[ -z $destination_ip ]]
 then
 	echo
@@ -28,7 +29,7 @@ then
 	read -p "Destination server IP: " destination_ip
 fi
 
-
+# Menu
 while [[ -z $action ]]
 do
 	echo
@@ -46,7 +47,8 @@ do
 	done
 done
 
-
+# Function to create file that does the actual syncing.
+# @TODO: We need to embed comments in this file that indicates what we're doing in it.
 function site_sync {
 	echo $'#!/bin/bash
 domain=$1

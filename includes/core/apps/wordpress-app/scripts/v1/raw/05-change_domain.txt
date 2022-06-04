@@ -192,12 +192,23 @@ then
 	rename_ols_site_confs
 fi
 
+# Delete old user
 userdel $old_user_name -f
+
+# Move all files from old location to new location.
 mv /var/www/$old_domain /var/www/$new_domain
+
+# Add new user.
 useradd -d "/var/www/$new_domain/html" -g "www-data" -M -s "/bin/bash" $new_user_name
+
+# Permissions for new user.
 chown -R $new_user_name:www-data /var/www/$new_domain/html/
 
-sed -i "s/$old_domain/$new_domain/g" /var/www/$new_domain/html/php.ini 2> /dev/null
+# if php.ini exists, search it for the old domain and replace any entries with the new domain.
+if [[ -f "/var/www/$new_domain/html/php.ini" ]]
+then
+	sed -i "s/$old_domain/$new_domain/g" /var/www/$new_domain/html/php.ini
+fi
 
 echo "Copying to new database..."
 # start of MySQL database name and credentials change, to avoid conflicts (re: issue #132)

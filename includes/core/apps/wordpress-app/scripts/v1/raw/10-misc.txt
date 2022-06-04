@@ -282,7 +282,6 @@ then
 		chown -R "${user_name}":www-data /var/www/"$domain"/html/logs/
 		# Hidden files test support: https://serverfault.com/a/156481
 		chown -R "${user_name}":www-data /var/www/"$domain"/html/.[^.]*
-		chown -R "${user_name}":www-data "${wphome}"
 		chmod -R g+ws "/var/www/$domain/html"
 		find /var/www/$domain/html -type f -exec chmod 664 {} +
 		find /var/www/$domain/html -type d -exec chmod 2775 {} +

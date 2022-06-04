@@ -252,6 +252,7 @@ trait wpcd_wpapp_script_handlers {
 				( strpos( $result, 'All Rewrite rules have been removed' ) !== false );
 				break;
 			case 'nginx_options.txt':
+			case 'ols_options.txt':
 				// This one is a mix of server and site level items - mostly site level items.
 				$return =
 				( strpos( $result, 'already enabled' ) !== false )
@@ -987,6 +988,17 @@ trait wpcd_wpapp_script_handlers {
 					array(
 						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/34-nginx_options.txt',
 						'SCRIPT_NAME' => '34-nginx_options.sh',
+					),
+					$common_array,
+					$additional
+				);
+				break;
+			case 'ols_options.txt':
+				// This one is a mix of server and site level items - mostly site level items.
+				$new_array = array_merge(
+					array(
+						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/55-ols_options.txt',
+						'SCRIPT_NAME' => '55-ols_options.sh',
 					),
 					$common_array,
 					$additional

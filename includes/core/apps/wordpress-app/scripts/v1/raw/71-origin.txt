@@ -15,9 +15,7 @@ source 9999-common-functions.sh
 ### Check webserver type
 gf_check_webserver
 
-
 basedir=$(dirname $0)
-
 
 if [[ ! -e $basedir/wp-sync ]]
 then
@@ -153,6 +151,7 @@ apt-get install -y rsync
 # set up helper script
 cp $basedir/wp-sync /usr/local/bin/wp-sync
 sed -i "3 i dest=$destination_ip" /usr/local/bin/wp-sync
+sed -i "3 i localuser=$localuser" /usr/local/bin/wp-sync
 
 if [[ -n "$callback_start_sync" ]]
 then
@@ -165,6 +164,7 @@ fi
 
 chmod +x /usr/local/bin/wp-sync
 # add crontab
+(crontab -l 2>/dev/null | sed "/wp-sync/d") | crontab -
 (crontab -l 2>/dev/null; echo "*/$sync_interval * * * * /usr/local/bin/wp-sync > /dev/null 2>&1") | crontab -
 
 echo "

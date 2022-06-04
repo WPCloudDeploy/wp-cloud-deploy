@@ -291,7 +291,7 @@ disable_browser_cache(){
 }
 
 ## Enable Browser Cache
-if [[ "${action}" == 'enable_cache' || "${action}" == "$((i++))" ]]; then
+if [[ "${action}" == 'enable_browser_cache' || "${action}" == "$((i++))" ]]; then
     select_domain_mu
     if is_cache_settings; then
         if is_cache_on; then
@@ -319,7 +319,7 @@ fi
 ## End Enable Browser Cache
 
 ## Disable Browser Cache
-if [[ "${action}" == 'disable_cache' || "${action}" == "$((i++))" ]]; then
+if [[ "${action}" == 'disable_browser_cache' || "${action}" == "$((i++))" ]]; then
     select_domain_mu
     if is_cache_settings; then
         if is_cache_on; then

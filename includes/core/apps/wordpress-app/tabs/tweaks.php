@@ -818,9 +818,9 @@ class WPCD_WORDPRESS_TABS_TWEAKS extends WPCD_WORDPRESS_TABS {
 				// Figure out the proper action to send to the server script.
 				if ( 'on' === $browser_cache_status ) {
 					// currently on so turn it off.
-					$server_action = 'disable_cache_include';
+					$server_action = 'disable_browser_cache';
 				} else {
-					$server_action = 'enable_cache_include';
+					$server_action = 'enable_browser_cache';
 				}
 				break;
 		}

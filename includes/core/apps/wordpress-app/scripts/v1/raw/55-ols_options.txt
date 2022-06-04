@@ -1,6 +1,4 @@
 #!/bin/bash
-# Script #55 OLS Options which will be the OpenliteSpeed equivalent of 34 Nginx options
-# Still Work in process and should not be used for production stuff as it is not complete
 
 if [[ "$EUID" -ne 0 ]]; then
     echo "Sorry, you need to run this as root"

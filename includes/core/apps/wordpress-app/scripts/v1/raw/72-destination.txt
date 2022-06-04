@@ -7,6 +7,9 @@ fi
 
 # This script is meant to be run in the destination server
 
+## Get our common functions
+source 9999-common-functions.sh
+
 if [[ "$interactive" != "no" ]]
 then
 	clear

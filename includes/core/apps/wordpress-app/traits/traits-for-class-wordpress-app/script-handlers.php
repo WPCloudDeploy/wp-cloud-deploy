@@ -252,6 +252,7 @@ trait wpcd_wpapp_script_handlers {
 				( strpos( $result, 'All Rewrite rules have been removed' ) !== false );
 				break;
 			case 'nginx_options.txt':
+			case 'ols_options.txt':
 				// This one is a mix of server and site level items - mostly site level items.
 				$return =
 				( strpos( $result, 'already enabled' ) !== false )
@@ -992,6 +993,17 @@ trait wpcd_wpapp_script_handlers {
 					$additional
 				);
 				break;
+			case 'ols_options.txt':
+				// This one is a mix of server and site level items - mostly site level items.
+				$new_array = array_merge(
+					array(
+						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/55-ols_options.txt',
+						'SCRIPT_NAME' => '55-ols_options.sh',
+					),
+					$common_array,
+					$additional
+				);
+				break;
 			case 'php_workers.txt':
 				$new_array = array_merge(
 					array(
@@ -1357,6 +1369,7 @@ trait wpcd_wpapp_script_handlers {
 						'SCRIPT_URL2'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/wp-sync',
 						'SCRIPT_NAME2' => 'wp-sync',
 					),
+					$common_array,
 					$additional
 				);
 				break;
@@ -1366,6 +1379,7 @@ trait wpcd_wpapp_script_handlers {
 						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/72-destination.txt',
 						'SCRIPT_NAME' => '72-destination.sh',
 					),
+					$common_array,
 					$additional
 				);
 				break;
@@ -1375,6 +1389,7 @@ trait wpcd_wpapp_script_handlers {
 						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/71-origin.txt',
 						'SCRIPT_NAME' => '71-origin.sh',
 					),
+					$common_array,
 					$additional
 				);
 				break;

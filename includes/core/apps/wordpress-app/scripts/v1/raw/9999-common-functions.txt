@@ -199,7 +199,7 @@ function g_backup_and_verify()
 	fi
 
 	# verify the backup
-	backup_files=`find ~/.wp-backup/$domain/ -iname *.gz -mmin -180|wc -l`
+	backup_files=`find /root/.wp-backup/$domain/ -iname *.gz -mmin -180|wc -l`
 	if [ $backup_files -lt 3 ]
 	then
 		echo "Verify after backup failed, exiting script."

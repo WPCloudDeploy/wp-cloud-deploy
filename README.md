@@ -122,6 +122,16 @@ Note: Even though the entire git development history isn't available on github, 
 [Friendly Release Notes](https://wpclouddeploy.com/category/release-notes/)
 
 ## Change Log ##
+5.0.0
+------
+* New: Front-end UI and related shortcodes.
+* New: Support for OpenLiteSpeed.
+* Tweak: Remove extraneous text from certain tabs.
+* Tweak: Override list of WP versions.
+* Tweak: Tweak: When a manual backup is run, we refresh the backup list automatically.
+* Fix: Redirect rules were not being deleted in our database even when deleted on the site.
+* Dev: Filter for the valid list of WP versions - wpcd_allowed_wp_versions
+
 4.16.6
 ------
 * New: WPAPP - Add option to filter server list based on whether the server needs to be restarted.

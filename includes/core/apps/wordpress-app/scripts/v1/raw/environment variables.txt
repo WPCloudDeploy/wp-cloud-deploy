@@ -100,7 +100,8 @@ If it's our first time, the AWS S3 credentials will need to be configured.
 This can be done running the script interactively or setting the following variables:
 $aws_access_key_id = AWS Access Key ID
 $aws_secret_access_key = AWS Secret Access Key
-If it is not our first time but both variables are set, the AWS credentials will be overwritten with the new values.
+$aws_region = default region
+If it is not our first time but all three variables are set, the AWS credentials will be overwritten with the new values.
 
 For $action = "backup", the following variables are needed:
 $domain = domain of the website to create a backup from (example: myblog.com)
@@ -112,7 +113,7 @@ $site = domain of the website to restore (example: myblog.com)
 $overwrite = set it to "yes" if the site already exists and you still want to restore it. This is a safety measure.
 $backup = backup name in the following format: myblog.com/myblog.com_2020-01-15-19h26m44s
 To obtain a list of available backups in the right format, run the following command:
-find ~/.wp-backup/ -type f -name "*fs.tar.gz" | cut -d "/" -f 2-3 | cut -d "_" -f 1-2
+find /root/.wp-backup/ -type f -name "*fs.tar.gz" | cut -d "/" -f 2-3 | cut -d "_" -f 1-2
 It will list available backups in the correct format to set them in the $backup variable.
 
 For $action = "schedule", the following variables are needed:
@@ -164,7 +165,7 @@ For $action = "restore_webserver_config", the following variables are needed:
 $site = domain of the website to restore (example: myblog.com)
 $backup = backup name in the following format: myblog.com/myblog.com_2020-01-15-19h26m44s
 To obtain a list of available backups in the right format, run the following command:
-find ~/.wp-backup/ -type f -name "*nginx.tar.gz" | cut -d "/" -f 2-3 | cut -d "_" -f 1-2
+find /root/.wp-backup/ -type f -name "*nginx.tar.gz" | cut -d "/" -f 2-3 | cut -d "_" -f 1-2
 It will list available backups in the correct format to set them in the $backup variable.
 
 For $action = "restore_nginx" - this action is deprecated.  Use the "restore_webserver_config" action described just above instead.
@@ -173,7 +174,7 @@ For $action = "restore_wpconfig", the following variables are needed:
 $site = domain of the website to restore (example: myblog.com)
 $backup = backup name in the following format: myblog.com/myblog.com_2020-01-15-19h26m44s
 To obtain a list of available backups in the right format, run the following command:
-find ~/.wp-backup/ -type f -name "*fs.tar.gz" | cut -d "/" -f 2-3 | cut -d "_" -f 1-2
+find /root/.wp-backup/ -type f -name "*fs.tar.gz" | cut -d "/" -f 2-3 | cut -d "_" -f 1-2
 It will list available backups in the correct format to set them in the $backup variable.
 
 

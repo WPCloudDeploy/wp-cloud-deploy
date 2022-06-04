@@ -60,27 +60,33 @@ then
 		if [ "$g_webserver_type" = "nginx" ]
 		then
 			php_version=$(ls /etc/php/*/fpm/pool.d/$domain.conf | cut -d '/' -f 4)
-			sed -i "s/[ ]*$function_name[ ]*,//g"  /etc/php/*/fpm/pool.d/$domain.conf
-			sed -i "s/,[ ]*$function_name[ ]*//g"  /etc/php/*/fpm/pool.d/$domain.conf
-			sed -i "s/[ ]*$function_name[ ]*//g"  /etc/php/*/fpm/pool.d/$domain.conf
+			sed -i "/disable_functions/ s/,[ ]*$function_name[ ]*,/,/g" /etc/php/*/fpm/pool.d/$domain.conf
+			sed -i "/disable_functions/ s/=[ ]*$function_name[ ]*,/= /g" /etc/php/*/fpm/pool.d/$domain.conf
+			sed -i "/disable_functions/ s/,[ ]*$function_name[ ]*$//g" /etc/php/*/fpm/pool.d/$domain.conf
+			sed -i "/disable_functions/ s/=[ ]*$function_name[ ]*$/= /g" /etc/php/*/fpm/pool.d/$domain.conf
 			if [ ! -f /etc/wpcd/php-versions-disabled/php$php_version ] 
 			then
-				systemctl restart php$php_version-fpm
+				echo #do nothing.
 			fi
 		elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 		then
-			# sed -i "s/[ ]*$function_name[ ]*,//g" /var/www/$domain/html/php.ini
-			# sed -i "s/,[ ]*$function_name[ ]*//g" /var/www/$domain/html/php.ini
-			# sed -i "s/[ ]*$function_name[ ]*//g" /var/www/$domain/html/php.ini
-			
-			# alternative in vhost config
-			sed -i "s/[ ]*$function_name[ ]*,//g" "${VHDIR}/$domain/$g_vhost_conf"
-			sed -i "s/,[ ]*$function_name[ ]*//g" "${VHDIR}/$domain/$g_vhost_conf"
-			sed -i "s/[ ]*$function_name[ ]*//g" "${VHDIR}/$domain/$g_vhost_conf"
+			sed -i "/disable_functions/ s/,[ ]*$function_name[ ]*,/,/g" "${VHDIR}/$domain/$g_vhost_conf"
+			sed -i "/disable_functions/ s/\"[ ]*$function_name[ ]*,/\"/g" "${VHDIR}/$domain/$g_vhost_conf"
+			sed -i "/disable_functions/ s/,[ ]*$function_name[ ]*\"/\"/g" "${VHDIR}/$domain/$g_vhost_conf"
+			sed -i "/disable_functions/ s/\"[ ]*$function_name[ ]*\"/\"\"/g"  "${VHDIR}/$domain/$g_vhost_conf"
 		fi
-		echo "$function_name has been enabled for $domain"
-		gf_restart_webserver
 	done
+	
+	# Restart web server.
+	if [ "$g_webserver_type" = "nginx" ]
+	then
+		systemctl restart php$php_version-fpm
+	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+	then
+		gf_restart_webserver
+	fi		
+	echo 
+	echo "$functions_list has been enabled for $domain"
 fi
 
 if [[ $action == "disable_php_function" || $action == "2" ]]
@@ -91,26 +97,34 @@ then
 		if [ "$g_webserver_type" = "nginx" ]
 		then
 			php_version=$(ls /etc/php/*/fpm/pool.d/$domain.conf | cut -d '/' -f 4)
-			sed -e "s/php_admin_value\[disable_functions\] = /php_admin_value\[disable_functions\] = $function_name, /g" -i /etc/php/*/fpm/pool.d/$domain.conf
+			sed -i "s/disable_functions][ ]*=/disable_functions] = $function_name,/g"  /etc/php/*/fpm/pool.d/$domain.conf
 			if [ ! -f /etc/wpcd/php-versions-disabled/php$php_version ] 
 			then
-				systemctl restart php$php_version-fpm
+				echo  # nothing to do
 			fi
 		elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 		then
 			grep disable_functions "${VHDIR}/$domain/$g_vhost_conf" > /dev/null 2>&1
 			if [ $? -eq 0 ]
 			then
-				# sed -i "s/disable_functions = /disable_functions = $function_name, /g" /var/www/$domain/html/php.ini
-				# Alternate way if in vhost config
-				sed -e "s/php_admin_value\[disable_functions\] = /php_admin_value\[disable_functions\] = $function_name, /g" -i "${VHDIR}/$domain/$g_vhost_conf"
+				sed -i "s/disable_functions[ ]*\"/disable_functions \"$function_name,/g"  "${VHDIR}/$domain/$g_vhost_conf"
 			else
-				# this might get trickier cause we could just put specific disable but not sure if would work if disabled in global level
-				# We would most likely have to do some fancy inserts into the vhost
-				echo "disable_functions = $function_name" > /var/www/$domain/html/php.ini
+				echo "Unable to disable function $function_name"
 			fi
-			gf_restart_webserver
 		fi
-		echo "$function_name has been disabled for $domain"
 	done
+
+	# Restart web server.
+	if [ "$g_webserver_type" = "nginx" ]
+	then
+		sed -i "/disable_functions/ s/,[ ]*$//g" /etc/php/*/fpm/pool.d/$domain.conf
+		systemctl restart php$php_version-fpm
+	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+	then
+		sed -i "/disable_functions/ s/,\"/\"/g" "${VHDIR}/$domain/$g_vhost_conf"
+		gf_restart_webserver
+	fi	
+
+	echo 
+	echo "$functions_list has been disabled for $domain"
 fi

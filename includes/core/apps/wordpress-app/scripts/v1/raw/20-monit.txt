@@ -9,6 +9,75 @@ source 9999-common-functions.sh
 
 clear
 
+###################################################################
+#### Add ols monit vhost conf
+###################################################################
+function add_ols_monit_conf() {
+	local olsdomain
+	olsdomain=$1
+
+	mkdir -p $VHDIR/$olsdomain
+	mkdir -p /var/www/$olsdomain/html/.well-known/acme-challenge
+
+	cat > ${VHDIR}/${olsdomain}/$g_vhost_conf <<- EOF
+	docRoot                   /var/www/$olsdomain/html
+
+	extprocessor monithttp {
+	type                    proxy
+	address                 127.0.0.1:48756
+	note                    Monit
+	maxConns                1000
+	initTimeout             5
+	retryTimeout            0
+	respBuffer              0
+	}
+	
+	context /.well-known/ {
+	  allowBrowse             1
+
+	  rewrite  {
+
+	  }
+	  addDefaultCharset       off
+
+	  phpIniOverride  {
+
+	  }
+	}
+
+	context / {
+	type                    proxy
+	handler                 monithttp
+	addDefaultCharset       off
+	}
+	
+	rewrite  {
+	  enable                  1
+	  autoLoadHtaccess        1
+	  rules                   <<<END_rules
+	RewriteRule "(^|/)\.(?!well-known\/)" - [F]
+	END_rules
+	}
+	
+	vhssl  {
+	  keyFile                 /usr/local/lsws/conf/example.key
+	  certFile                /usr/local/lsws/conf/example.crt
+	  certChain               1
+	  sslProtocol             24
+	  ciphers                 EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:AES256+EDH:ECDHE-RSA-AES128-GCM-SHA384:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA128:DHE-RSA-AES128-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES128-GCM-SHA128:ECDHE-RSA-AES128-SHA384:ECDHE-RSA-AES128-SHA128:ECDHE-RSA-AES128-SHA:ECDHE-RSA-AES128-SHA:DHE-RSA-AES128-SHA128:DHE-RSA-AES128-SHA128:DHE-RSA-AES128-SHA:DHE-RSA-AES128-SHA:ECDHE-RSA-DES-CBC3-SHA:EDH-RSA-DES-CBC3-SHA:AES128-GCM-SHA384:AES128-GCM-SHA128:AES128-SHA128:AES128-SHA128:AES128-SHA:AES128-SHA:DES-CBC3-SHA:HIGH:!aNULL:!eNULL:!EXPORT:!DES:!MD5:!PSK:!RC4
+	  enableECDHE             1
+	  renegProtection         1
+	  sslSessionCache         1
+	  enableSpdy              15
+	  enableQuic              1
+	  enableStapling          1
+	  ocspRespMaxAge          86400
+	}
+	EOF
+	chown -R lsadm:lsadm ${VHDIR}/*
+	gf_add_ols_httpd_conf ${olsdomain}
+}
+
 #
 # Add callback function to be used later in the script
 #
@@ -102,8 +171,8 @@ Example: monit.myblog.com"
 	systemctl restart nginx
 
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]; then
-	# TODO: Get this working https://docs.openlitespeed.org/docs/advanced/proxy
-	echo ""
+	# https://openlitespeed.org/kb/reverse-proxy-basics/#Method_1_Proxy_with_Context
+		add_ols_monit_conf "$domain"
 
 	fi
 
@@ -263,22 +332,22 @@ include /etc/monit/conf-enabled/*" > /etc/monit/monitrc
 		# Config below works for OLS to monitor service
 		cat > /etc/monit/conf-available/ols <<- EOF
 		check process OpenLiteSpeed with pidfile /tmp/lshttpd/lshttpd.pid
-			start program = "/usr/bin/systemctl start lshttpd"
-			stop program = "/usr/bin/systemctl stop lshttpd"
-			if failed host 127.0.0.1 port 80 protocol http then restart
-			if 5 restarts with 5 cycles then timeout
-			if cpu is greater than $Alert_cpu% for 2 cycles then alert
-			if cpu > $Restart_cpu% for 5 cycles then restart
+		    start program = "/usr/bin/systemctl start lshttpd"
+		    stop program = "/usr/bin/systemctl stop lshttpd"
+		    if failed host 127.0.0.1 port 80 protocol http then restart
+		    if 5 restarts with 5 cycles then timeout
+		    if cpu is greater than $Alert_cpu% for 2 cycles then alert
+		    if cpu > $Restart_cpu% for 5 cycles then restart
 		EOF
 	elif [ "$g_webserver_type" = "ols-enterprise" ]; then
 		cat > /etc/monit/conf-available/ols-enterprise <<- EOF
 		check process OpenLiteSpeed with pidfile /tmp/lshttpd/lshttpd.pid
-			start program = "/usr/bin/systemctl start lshttpd"
-			stop program = "/usr/bin/systemctl stop lshttpd"
-			if failed host 127.0.0.1 port 80 protocol http then restart
-			if 5 restarts with 5 cycles then timeout
-			if cpu is greater than $Alert_cpu% for 2 cycles then alert
-			if cpu > $Restart_cpu% for 5 cycles then restart
+		    start program = "/usr/bin/systemctl start lshttpd"
+		    stop program = "/usr/bin/systemctl stop lshttpd"
+		    if failed host 127.0.0.1 port 80 protocol http then restart
+		    if 5 restarts with 5 cycles then timeout
+		    if cpu is greater than $Alert_cpu% for 2 cycles then alert
+		    if cpu > $Restart_cpu% for 5 cycles then restart
 		EOF
 	fi
 
@@ -324,7 +393,8 @@ echo 'check process memcached with pidfile "/var/run/memcached/memcached.pid"
     if failed host 127.0.0.1 port 11211 then restart
 '> /etc/monit/conf-available/memcached
 
-echo 'check process php81-fpm with pidfile /var/run/php/php8.1-fpm.pid
+if [ "$g_webserver_type" = "nginx" ] ; then
+	echo 'check process php81-fpm with pidfile /var/run/php/php8.1-fpm.pid
     start program = "/bin/systemctl start php8.1-fpm"
     stop program  = "/bin/systemctl stop php8.1-fpm"
     if cpu is greater than '$Alert_cpu'% for 3 cycles then alert
@@ -332,7 +402,7 @@ echo 'check process php81-fpm with pidfile /var/run/php/php8.1-fpm.pid
     if totalmem > '$Restart_memory' MB then alert
 ' > /etc/monit/conf-available/php81
 
-echo 'check process php80-fpm with pidfile /var/run/php/php8.0-fpm.pid
+	echo 'check process php80-fpm with pidfile /var/run/php/php8.0-fpm.pid
     start program = "/bin/systemctl start php8.0-fpm"
     stop program  = "/bin/systemctl stop php8.0-fpm"
     if cpu is greater than '$Alert_cpu'% for 3 cycles then alert
@@ -340,7 +410,7 @@ echo 'check process php80-fpm with pidfile /var/run/php/php8.0-fpm.pid
     if totalmem > '$Restart_memory' MB then alert
 ' > /etc/monit/conf-available/php80
 
-echo 'check process php74-fpm with pidfile /var/run/php/php7.4-fpm.pid
+	echo 'check process php74-fpm with pidfile /var/run/php/php7.4-fpm.pid
     start program = "/bin/systemctl start php7.4-fpm"
     stop program  = "/bin/systemctl stop php7.4-fpm"
     if cpu is greater than '$Alert_cpu'% for 3 cycles then alert
@@ -348,7 +418,7 @@ echo 'check process php74-fpm with pidfile /var/run/php/php7.4-fpm.pid
     if totalmem > '$Restart_memory' MB then alert
 ' > /etc/monit/conf-available/php74
 
-echo 'check process php73-fpm with pidfile /var/run/php/php7.3-fpm.pid
+	echo 'check process php73-fpm with pidfile /var/run/php/php7.3-fpm.pid
     start program = "/bin/systemctl start php7.3-fpm"
     stop program  = "/bin/systemctl stop php7.3-fpm"
     if cpu is greater than '$Alert_cpu'% for 3 cycles then alert
@@ -356,7 +426,7 @@ echo 'check process php73-fpm with pidfile /var/run/php/php7.3-fpm.pid
     if totalmem > '$Restart_memory' MB then alert
 ' > /etc/monit/conf-available/php73
 
-echo 'check process php72-fpm with pidfile /var/run/php/php7.2-fpm.pid
+	echo 'check process php72-fpm with pidfile /var/run/php/php7.2-fpm.pid
     start program = "/bin/systemctl start php7.2-fpm"
     stop program  = "/bin/systemctl stop php7.2-fpm"
     if cpu is greater than '$Alert_cpu'% for 3 cycles then alert
@@ -364,7 +434,7 @@ echo 'check process php72-fpm with pidfile /var/run/php/php7.2-fpm.pid
     if totalmem > '$Restart_memory' MB then alert
 ' > /etc/monit/conf-available/php72
 
-echo 'check process php71-fpm with pidfile /var/run/php/php7.1-fpm.pid
+	echo 'check process php71-fpm with pidfile /var/run/php/php7.1-fpm.pid
     start program = "/bin/systemctl start php7.1-fpm"
     stop program  = "/bin/systemctl stop php7.1-fpm"
     if cpu is greater than '$Alert_cpu'% for 3 cycles then alert
@@ -372,13 +442,14 @@ echo 'check process php71-fpm with pidfile /var/run/php/php7.1-fpm.pid
     if totalmem > '$Restart_memory' MB then alert
 ' > /etc/monit/conf-available/php71
 
-echo 'check process php56-fpm with pidfile /var/run/php/php5.6-fpm.pid
+	echo 'check process php56-fpm with pidfile /var/run/php/php5.6-fpm.pid
     start program = "/bin/systemctl start php5.6-fpm"
     stop program  = "/bin/systemctl stop php5.6-fpm"
     if cpu is greater than '$Alert_cpu'% for 3 cycles then alert
     if cpu is greater than '$Restart_cpu'% for 5 cycles then restart
     if totalmem > '$Restart_memory' MB then alert
 ' > /etc/monit/conf-available/php56
+fi
 
 echo 'CHECK FILESYSTEM system PATH /
      if space usage > 80% then alert
@@ -705,7 +776,8 @@ fi
 
 if [[ $action == "enable_monit_ssl" || $action == "17" ]]; then
 
-	domain=$(grep server_name /etc/nginx/sites-enabled/monit | cut -d "_" -f 2 | cut -d " " -f 2)
+	#domain=$(grep server_name /etc/nginx/sites-enabled/monit | cut -d "_" -f 2 | cut -d " " -f 2)
+	gf_select_domain_nginx_ols
 
     if [[ -z $email ]]; then
         echo
@@ -726,8 +798,18 @@ Example: admin@example.com"
 		sed -i '/sub_filter_once off/a sub_filter "http://"  "https://";' /etc/nginx/sites-enabled/monit
 
 	elif [ "$g_webserver_type" = "ols" ]; then
-		echo TODO
-	
+
+		DOCHM="/var/www/${domain}/html"
+		certbot certonly --non-interactive --reinstall --agree-tos --agree-tos -m $email --webroot -w ${DOCHM} -d $domain
+		# systemctl stop lsws ; certbot certonly --non-interactive --agree-tos --register-unsafely-without-email --standalone --preferred-challenges http -d ${domain} ; systemctl start lsws ;
+		
+		if [[ -e /etc/letsencrypt/live/$domain/fullchain.pem ]]; then
+			sed -i "s|/usr/local/lsws/conf/example.key|/etc/letsencrypt/live/$domain/privkey.pem|g" ${VHDIR}/${domain}/$g_vhost_conf > /dev/null 2>&1
+			sed -i "s|/usr/local/lsws/conf/example.crt|/etc/letsencrypt/live/$domain/fullchain.pem|g" ${VHDIR}/${domain}/$g_vhost_conf > /dev/null 2>&1
+			# TODO: insert redirect to https inside the rewrite under wellknown rule just above END_rules
+			# RewriteCond %{SERVER_PORT} ^80$
+			# RewriteRule .* https://%{SERVER_NAME}%{REQUEST_URI} [R=301,L]
+		fi
 	fi
 
 	gf_restart_webserver
@@ -768,6 +850,7 @@ if [[ $action == "disable_monit_ssl" || $action == "18" ]]; then
 	
 	elif [ "$g_webserver_type" = "ols" ]; then
 		echo TODO
+		gf_disable_certbot_ols_site "$domain"
 	
 	fi
 

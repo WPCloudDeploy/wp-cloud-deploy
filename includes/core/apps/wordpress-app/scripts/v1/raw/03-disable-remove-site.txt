@@ -10,19 +10,7 @@ source 9999-common-functions.sh
 
 #### Nginx functions
 function remove_nginx_site() {
-	if grep -qs "listen 443" /etc/nginx/sites-enabled/$domain
-	then
-		certbot delete --cert-name $domain --noninteractive
-	fi
-
-	rm -f /etc/nginx/sites-*/$domain*
-	systemctl restart nginx
-	php_version=$(ls /etc/php/*/fpm/pool.d/$domain.conf | cut -d '/' -f 4)
-	rm -f /etc/php/$php_version/fpm/pool.d/$domain.conf
-	if [[ ! -f /etc/wpcd/php-versions-disabled/$php_version ]]
-	then
-		systemctl restart php$php_version-fpm
-	fi
+	gf_remove_nginx_site $domain
 }
 
 
@@ -40,28 +28,7 @@ function select_nginx_site_to_enable() {
 
 #### OLS functions
 function remove_ols_site() {
-	if [ -d "/etc/letsencrypt/live/$domain" ]
-	then
-		certbot delete --cert-name $domain --noninteractive
-	fi
-	rm -rf ${VHDIR}/$domain
-	rm -rf ${LSDIR}/conf/vhosts-disabled/$domain
-	# remove the block like below
-	# virtualhost somedomain.tld {
-	# vhRoot                  /var/www/somedomain.tld
-	# configFile              ${VHDIR}/somedomain.tld/$g_vhost_conf
-	# allowSymbolLink         1
-	# enableScript            1
-	# restrained              1
-	# setUIDMode              2
-	# user                    $VH_USER
-	# group                   $VH_USER
-	# }
-	sed -i -re "/virtualhost ${domain} \{/{:a;N;/\}/!ba};/vhRoot                  \/var\/www\/$domain/d" ${WEBCF}
-	# remove the map lines inserted on the multiple listeners blocks like below
-	# map                     somedomain.tld somedomain.tld
-	sed -i "/[ ]*map[ ]*${domain} www.${domain}, ${domain}/d" ${WEBCF}
-	systemctl restart lsws
+	gf_remove_ols_site $domain
 }
 
 function select_ols_site_to_enable() {

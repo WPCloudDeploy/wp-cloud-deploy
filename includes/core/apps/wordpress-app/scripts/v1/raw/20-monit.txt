@@ -776,11 +776,6 @@ fi
 
 if [[ $action == "enable_monit_ssl" || $action == "17" ]]; then
 
-	#domain=$(grep server_name /etc/nginx/sites-enabled/monit | cut -d "_" -f 2 | cut -d " " -f 2)
-	while [[ -z $domain ]]; do
-		gf_select_domain_nginx_ols
-	done
-	
     if [[ -z $email ]]; then
         echo
         echo "Specify an email for administrative notifications about your certificate
@@ -789,6 +784,17 @@ Example: admin@example.com"
     fi
 	
 	if [ "$g_webserver_type" = "nginx" ] ; then
+		# For nginx, the config file in sites-enabled is always called 'monit' so no need to ask the user for the domain name.
+		# We can get it by searching the sites-enabled folder for the 'monit' config file.
+		domain=$(grep server_name /etc/nginx/sites-enabled/monit | cut -d "_" -f 2 | cut -d " " -f 2)
+
+		# If for some reason we don't have a domain name we need to quit.
+		while [[ -z $domain ]]; do
+			echo "SSL could not be enabled - unable to locate NGINX config file."
+			exit 1
+		done
+
+		# Enable SSL.
 		certbot --non-interactive --reinstall --expand --nginx --agree-tos -m $email --allow-subset-of-names --redirect -d $domain -d www.$domain
 
 		if ! grep -qs "listen 443" /etc/nginx/sites-enabled/monit; then
@@ -800,9 +806,17 @@ Example: admin@example.com"
 		sed -i '/sub_filter_once off/a sub_filter "http://"  "https://";' /etc/nginx/sites-enabled/monit
 
 	elif [ "$g_webserver_type" = "ols" ]; then
-	
+
+		# Unlike NGINX, ols needs the actual domain name so we ask the user for it (or get from env.)
+		while [[ -z $domain ]]; do
+			gf_select_domain_nginx_ols
+		done
+
+		# Setup OLS Folders.	
 		DOCHM="/var/www/${domain}/html"
 		mkdir -p ${DOCHM}/.well-known/acme-challenge
+
+		# Enable SSL.
 		certbot certonly --non-interactive --reinstall --agree-tos --agree-tos -m $email --webroot -w ${DOCHM} -d $domain
 
 		if [[ -e /etc/letsencrypt/live/$domain/fullchain.pem ]]; then
@@ -827,6 +841,8 @@ fi
 if [[ $action == "disable_monit_ssl" || $action == "18" ]]; then
 	
 	if [ "$g_webserver_type" = "nginx" ] ; then
+		# For nginx, the config file in sites-enabled is always called 'monit' so no need to ask the user for the domain name.
+		# We can get it by searching the sites-enabled folder for the 'monit' config file.
 		domain=$(grep server_name /etc/nginx/sites-enabled/monit -m 1 | cut -d "_" -f 2 | cut -d " " -f 2)
 
 		if ! grep -qs 'managed by Certbot' /etc/nginx/sites-enabled/monit; then
@@ -852,12 +868,16 @@ if [[ $action == "disable_monit_ssl" || $action == "18" ]]; then
 	}" > /etc/nginx/sites-enabled/monit
 	
 	elif [ "$g_webserver_type" = "ols" ]; then
+		# Unlike NGINX, ols needs the actual domain name so we ask the user for it (or get from env.)
+		while [[ -z $domain ]]; do
+			gf_select_domain_nginx_ols
+		done	
+
 		# Lets find and delete the two lines with '# Enable HTTPS'
 		# RewriteCond %{SERVER_PORT} ^80$ # Enable HTTPS
 		# RewriteRule .* https://%{SERVER_NAME}%{REQUEST_URI} [R=301,L] # Enable HTTPS
 		sed -i "${VHDIR}/${domain}/$g_vhost_conf" -re '/# Enable HTTPS/d'
 		gf_disable_certbot_ols_site "$domain"
-	
 	fi
 
     gf_restart_webserver
@@ -891,8 +911,21 @@ if [[ $action == "remove_monit" || $action == "21" ]]; then
 	apt-get purge monit -y
 
 	rm -rf /etc/monit/conf-enabled/"$g_webserver_type"
-	if [ "$g_webserver_type" = "nginx" ] ; then
+	if [ "$g_webserver_type" = "nginx" ]
+	then		
+		# For nginx, the config file in sites-enabled is always called 'monit' so no need to ask the user for the domain name.
+		# We can get it by searching the sites-enabled folder for the 'monit' config file.
+		domain=$(grep server_name /etc/nginx/sites-enabled/monit -m 1 | cut -d "_" -f 2 | cut -d " " -f 2)
+		gf_remove_nginx_site $domain
+		# The gf_remove_nginx_site doesn't know anything about the specially named 'monit' config file so we'll delete it here.
 		rm -rf /etc/nginx/sites-enabled/monit 
+	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+	then
+		# Unlike NGINX, ols needs the actual domain name so we ask the user for it (or get from env.)
+		while [[ -z $domain ]]; do
+			gf_select_domain_nginx_ols
+		done	
+		gf_remove_ols_site $domain
 	fi
 	rm -rf /usr/local/bin/monit-reporting /etc/monit /var/log/monit.log
 	

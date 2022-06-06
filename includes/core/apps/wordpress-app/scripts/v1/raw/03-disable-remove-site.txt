@@ -8,24 +8,6 @@ fi
 ## Get our common functions
 source 9999-common-functions.sh
 
-#### Nginx functions
-function remove_nginx_site() {
-	if grep -qs "listen 443" /etc/nginx/sites-enabled/$domain
-	then
-		certbot delete --cert-name $domain --noninteractive
-	fi
-
-	rm -f /etc/nginx/sites-*/$domain*
-	systemctl restart nginx
-	php_version=$(ls /etc/php/*/fpm/pool.d/$domain.conf | cut -d '/' -f 4)
-	rm -f /etc/php/$php_version/fpm/pool.d/$domain.conf
-	if [[ ! -f /etc/wpcd/php-versions-disabled/$php_version ]]
-	then
-		systemctl restart php$php_version-fpm
-	fi
-}
-
-
 function select_nginx_site_to_enable() {
 	ls /etc/nginx/sites-available/ | grep -v '^default$\|^monit$\|^monitorix$' | nl
 	read -p "Select site: " site_number
@@ -38,31 +20,6 @@ function select_nginx_site_to_enable() {
 	domain=$(ls /etc/nginx/sites-available/ | grep -v '^default$\|^monit$\|^monitorix$' | sed -n "$site_number"p)
 }
 
-#### OLS functions
-function remove_ols_site() {
-	if [ -d "/etc/letsencrypt/live/$domain" ]
-	then
-		certbot delete --cert-name $domain --noninteractive
-	fi
-	rm -rf ${VHDIR}/$domain
-	rm -rf ${LSDIR}/conf/vhosts-disabled/$domain
-	# remove the block like below
-	# virtualhost somedomain.tld {
-	# vhRoot                  /var/www/somedomain.tld
-	# configFile              ${VHDIR}/somedomain.tld/$g_vhost_conf
-	# allowSymbolLink         1
-	# enableScript            1
-	# restrained              1
-	# setUIDMode              2
-	# user                    $VH_USER
-	# group                   $VH_USER
-	# }
-	sed -i -re "/virtualhost ${domain} \{/{:a;N;/\}/!ba};/vhRoot                  \/var\/www\/$domain/d" ${WEBCF}
-	# remove the map lines inserted on the multiple listeners blocks like below
-	# map                     somedomain.tld somedomain.tld
-	sed -i "/[ ]*map[ ]*${domain} www.${domain}, ${domain}/d" ${WEBCF}
-	systemctl restart lsws
-}
 
 function select_ols_site_to_enable() {
 	ls ${LSDIR}/conf/vhosts-disabled/ | grep -Ev "^Example|htgroup|htpasswd|$g_vhost_conf" | nl
@@ -171,10 +128,10 @@ QUERY
 
 	if [ "$g_webserver_type" = "nginx" ]
 	then
-		remove_nginx_site
+		gf_remove_nginx_site "$domain"
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
-		remove_ols_site
+		gf_remove_ols_site "$domain"
 	fi
 
 	user_name=$(echo $domain | cut -c1-32)

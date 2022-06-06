@@ -714,7 +714,6 @@ include /etc/nginx/userconfigs/site/$nginx_webroot-*.conf;
 }" > /etc/nginx/sites-enabled/$nginx_site
 }
 
-
 ###################################################################
 #### Add ols main conf
 ###################################################################
@@ -1166,15 +1165,15 @@ function gf_add_ols_conf() {
 	EOF
 	chown -R lsadm:lsadm ${VHDIR}/*
 
-	gf_add_ols_httpd_conf ${olsdomain}
+	gf_add_domain_ols_httpd_conf ${olsdomain}
 	gf_ols_htaccess ${olsdomain}
 }
 
 
 ###################################################################
-#### Add ols httpd conf for domain
+#### Add domain to httpd conf for ols
 ###################################################################
-function gf_add_ols_httpd_conf() {
+function gf_add_domain_ols_httpd_conf() {
 	local olsdomain
 	olsdomain=$1
 
@@ -1198,6 +1197,31 @@ enableScript            1
 restrained              1
 setUIDMode              2
 }" >>${WEBCF}
+	systemctl restart lsws
+}
+
+###################################################################
+#### Remove domain from httpd conf for ols
+###################################################################
+function gf_remove_domain_ols_httpd_conf() {
+	local olsdomain
+	olsdomain="$1"
+
+	# remove the block like below
+	# virtualhost somedomain.tld {
+	# vhRoot                  /var/www/somedomain.tld
+	# configFile              ${VHDIR}/somedomain.tld/$g_vhost_conf
+	# allowSymbolLink         1
+	# enableScript            1
+	# restrained              1
+	# setUIDMode              2
+	# user                    $VH_USER
+	# group                   $VH_USER
+	# }
+	sed -i -re "/virtualhost ${olsdomain} \{/{:a;N;/\}/!ba};/vhRoot                  \/var\/www\/$olsdomain/d" ${WEBCF}
+	# remove the map lines inserted on the multiple listeners blocks like below
+	# map                     somedomain.tld somedomain.tld
+	sed -i "/[ ]*map[ ]*${olsdomain} www.${olsdomain}, ${olsdomain}/d" ${WEBCF}
 	systemctl restart lsws
 }
 
@@ -1312,4 +1336,45 @@ function gf_6g_ols_disable {
                 user_name=$(echo $domain | cut -c1-32)
                 chown "${user_name}" /var/www/$domain/html/.htaccess
         fi
+}
+
+#####################################################################
+### Remove an NGINX Site.
+###
+### @param $1 Domain
+#####################################################################
+function gf_remove_nginx_site() {
+	local domain
+	domain=$1
+	if grep -qs "listen 443" /etc/nginx/sites-enabled/$domain
+	then
+		certbot delete --cert-name $domain --noninteractive
+	fi
+
+	rm -f /etc/nginx/sites-*/$domain*
+	systemctl restart nginx
+	local php_version
+	php_version=$(ls /etc/php/*/fpm/pool.d/$domain.conf | cut -d '/' -f 4)
+	rm -f /etc/php/$php_version/fpm/pool.d/$domain.conf
+	if [[ ! -f /etc/wpcd/php-versions-disabled/$php_version ]]
+	then
+		systemctl restart php$php_version-fpm
+	fi
+}
+
+#####################################################################
+### Remove an ols Site.
+###
+### @param $1 Domain
+#####################################################################
+function gf_remove_ols_site() {
+	local domain
+	domain=$1	
+	if [ -d "/etc/letsencrypt/live/$domain" ]
+	then
+		certbot delete --cert-name $domain --noninteractive
+	fi
+	rm -rf ${VHDIR}/$domain
+	rm -rf ${LSDIR}/conf/vhosts-disabled/$domain
+	gf_remove_domain_ols_httpd_conf "$domain"
 }

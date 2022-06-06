@@ -65,10 +65,7 @@ function restore_nginx_configs() {
 }
 
 function remove_ols_site() {
-	rm -rf ${VHDIR}/$domain
-	rm -rf ${LSDIR}/conf/vhosts-disabled/$domain
-	echo "restarting web server..."
-	systemctl restart lsws
+	gf_remove_ols_site "$domain"
 }
 
 function restore_ols_site() {
@@ -76,7 +73,7 @@ function restore_ols_site() {
 	chown -R lsadm:lsadm ${VHDIR}/$domain
 	if ! grep -qw "virtualhost $domain " ${WEBCF}
 	then
-		gf_add_ols_httpd_conf $domain
+		gf_add_domain_ols_httpd_conf $domain
 	fi
 }
 

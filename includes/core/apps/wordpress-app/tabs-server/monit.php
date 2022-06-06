@@ -465,14 +465,14 @@ class WPCD_WORDPRESS_TABS_SERVER_MONIT extends WPCD_WORDPRESS_TABS {
 			 */
 
 			// Start with what's the current Webserver status?
-			$$monit_webserver = get_post_meta( $id, 'wpcd_wpapp_monit_webserver', true );
-			if ( empty( $$monit_webserver ) ) {
-				$$monit_webserver = 'on';
+			$monit_webserver = get_post_meta( $id, 'wpcd_wpapp_monit_webserver', true );
+			if ( empty( $monit_webserver ) ) {
+				$monit_webserver = 'on';
 			}
 
 			// Set confirmation prompt based on current webserver status.
 			$confirmation_prompt = '';
-			if ( 'on' === $$monit_webserver ) {
+			if ( 'on' === $monit_webserver ) {
 				$confirmation_prompt = __( 'Are you sure you would like to disable Webserver monitoring?', 'wpcd' );
 			} else {
 				$confirmation_prompt = __( 'Are you sure you would like to enable Webserver monitoring?', 'wpcd' );
@@ -483,7 +483,7 @@ class WPCD_WORDPRESS_TABS_SERVER_MONIT extends WPCD_WORDPRESS_TABS {
 				'raw_attributes' => array(
 					'on_label'            => __( 'Enabled', 'wpcd' ),
 					'off_label'           => __( 'Disabled', 'wpcd' ),
-					'std'                 => $$monit_webserver === 'on',
+					'std'                 => $monit_webserver === 'on',
 					'desc'                => __( 'Enable or disable Webserver monitoring.', 'wpcd' ),
 					'confirmation_prompt' => $confirmation_prompt,
 				),
@@ -957,8 +957,8 @@ class WPCD_WORDPRESS_TABS_SERVER_MONIT extends WPCD_WORDPRESS_TABS {
 
 			case 'monit-toggle-webserver':
 				// Action needs to set based on current status of Webserver in the database.
-				$$monit_webserver = get_post_meta( $id, 'wpcd_wpapp_monit_webserver', true );
-				if ( empty( $$monit_webserver ) || 'on' === $$monit_webserver ) {
+				$monit_webserver = get_post_meta( $id, 'wpcd_wpapp_monit_webserver', true );
+				if ( empty( $monit_webserver ) || 'on' === $monit_webserver ) {
 					$action = 'disable_webserver_monit';
 				} else {
 					$action = 'enable_webserver_monit';

@@ -714,7 +714,6 @@ include /etc/nginx/userconfigs/site/$nginx_webroot-*.conf;
 }" > /etc/nginx/sites-enabled/$nginx_site
 }
 
-
 ###################################################################
 #### Add ols main conf
 ###################################################################
@@ -1166,15 +1165,15 @@ function gf_add_ols_conf() {
 	EOF
 	chown -R lsadm:lsadm ${VHDIR}/*
 
-	gf_add_ols_httpd_conf ${olsdomain}
+	gf_add_domain_ols_httpd_conf ${olsdomain}
 	gf_ols_htaccess ${olsdomain}
 }
 
 
 ###################################################################
-#### Add ols httpd conf for domain
+#### Add domain to httpd conf for ols
 ###################################################################
-function gf_add_ols_httpd_conf() {
+function gf_add_domain_ols_httpd_conf() {
 	local olsdomain
 	olsdomain=$1
 
@@ -1198,6 +1197,31 @@ enableScript            1
 restrained              1
 setUIDMode              2
 }" >>${WEBCF}
+	systemctl restart lsws
+}
+
+###################################################################
+#### Remove domain from httpd conf for ols
+###################################################################
+function gf_remove_domain_ols_httpd_conf() {
+	local olsdomain
+	olsdomain="$1"
+
+	# remove the block like below
+	# virtualhost somedomain.tld {
+	# vhRoot                  /var/www/somedomain.tld
+	# configFile              ${VHDIR}/somedomain.tld/$g_vhost_conf
+	# allowSymbolLink         1
+	# enableScript            1
+	# restrained              1
+	# setUIDMode              2
+	# user                    $VH_USER
+	# group                   $VH_USER
+	# }
+	sed -i -re "/virtualhost ${olsdomain} \{/{:a;N;/\}/!ba};/vhRoot                  \/var\/www\/$olsdomain/d" ${WEBCF}
+	# remove the map lines inserted on the multiple listeners blocks like below
+	# map                     somedomain.tld somedomain.tld
+	sed -i "/[ ]*map[ ]*${olsdomain} www.${olsdomain}, ${olsdomain}/d" ${WEBCF}
 	systemctl restart lsws
 }
 
@@ -1352,20 +1376,5 @@ function gf_remove_ols_site() {
 	fi
 	rm -rf ${VHDIR}/$domain
 	rm -rf ${LSDIR}/conf/vhosts-disabled/$domain
-	# remove the block like below
-	# virtualhost somedomain.tld {
-	# vhRoot                  /var/www/somedomain.tld
-	# configFile              ${VHDIR}/somedomain.tld/$g_vhost_conf
-	# allowSymbolLink         1
-	# enableScript            1
-	# restrained              1
-	# setUIDMode              2
-	# user                    $VH_USER
-	# group                   $VH_USER
-	# }
-	sed -i -re "/virtualhost ${domain} \{/{:a;N;/\}/!ba};/vhRoot                  \/var\/www\/$domain/d" ${WEBCF}
-	# remove the map lines inserted on the multiple listeners blocks like below
-	# map                     somedomain.tld somedomain.tld
-	sed -i "/[ ]*map[ ]*${domain} www.${domain}, ${domain}/d" ${WEBCF}
-	systemctl restart lsws
+	gf_remove_domain_ols_httpd_conf "$domain"
 }

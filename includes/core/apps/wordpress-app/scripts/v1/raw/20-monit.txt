@@ -75,7 +75,7 @@ function add_ols_monit_conf() {
 	}
 	EOF
 	chown -R lsadm:lsadm ${VHDIR}/*
-	gf_add_ols_httpd_conf ${olsdomain}
+	gf_add_domain_ols_httpd_conf ${olsdomain}
 }
 
 #

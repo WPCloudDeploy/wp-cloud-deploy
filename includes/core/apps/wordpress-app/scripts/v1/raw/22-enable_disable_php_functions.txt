@@ -15,6 +15,11 @@ then
 fi
 
 ## Get our common functions
+if [[ ! -f 9999-common-functions.sh ]]
+then
+	echo "The file 9999-common-functions.sh is missing"
+	exit 1
+fi
 source 9999-common-functions.sh
 
 while [[ -z $domain ]]

@@ -4,7 +4,20 @@ if [[ "$EUID" -ne 0 ]]; then
 	exit
 fi
 
+## Get our common functions
+if [[ ! -f 9999-common-functions.sh ]]
+then
+	echo "The file 9999-common-functions.sh is missing"
+	exit 1
+fi
+source 9999-common-functions.sh
 
+# Not supported on OLS yet.
+if [ "$webserver_type" != "nginx" ]
+then
+    echo "Monitorix is only supported on NGINX."
+    exit 1
+fi
 
 while [[ -z $action ]]; do
     clear

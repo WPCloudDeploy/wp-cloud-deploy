@@ -7,7 +7,19 @@ if [[ "$EUID" -ne 0 ]]; then
 fi
 
 ## Get our common functions
+if [[ ! -f 9999-common-functions.sh ]]
+then
+	echo "The file 9999-common-functions.sh is missing"
+	exit 1
+fi
 source 9999-common-functions.sh
+
+# Not supported on OLS.
+if [ "$webserver_type" != "nginx" ]
+then
+    echo "These operations are only supported on NGINX."
+    exit 1
+fi
 
 set_user_name() {
     if [[ -z "${user_name}" ]]; then

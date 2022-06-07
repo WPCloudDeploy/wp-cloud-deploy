@@ -134,6 +134,7 @@ wget -qO- $origin_ip/97317319160494330146381820240308.pub | grep "ssh-rsa" >> $u
 chmod go-w $user_home
 chmod 700 $user_home/.ssh
 chmod 600 $user_home/.ssh/authorized_keys
+chown -R $localuser.$localuser $user_home/.ssh
 # End setup ssh key
 
 

@@ -119,14 +119,22 @@ then
 		fi
 	done
 
-	# Restart web server.
+	# Remove any extra trailing commas.
+	# @see comment at bottom of bitbucket issue: https://bitbucket.org/structuredmarketsinc/fireupwp-bash-scripts/issues/264/ols-weird-behavior-with-the-22
 	if [ "$g_webserver_type" = "nginx" ]
 	then
 		sed -i "/disable_functions/ s/,[ ]*$//g" /etc/php/*/fpm/pool.d/$domain.conf
-		systemctl restart php$php_version-fpm
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
 		sed -i "/disable_functions/ s/,\"/\"/g" "${VHDIR}/$domain/$g_vhost_conf"
+	fi
+
+	# Restart web server.
+	if [ "$g_webserver_type" = "nginx" ]
+	then
+		systemctl restart php$php_version-fpm
+	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+	then
 		gf_restart_webserver
 	fi	
 

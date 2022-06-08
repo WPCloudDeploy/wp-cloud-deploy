@@ -498,7 +498,7 @@ echo 'check system '$domain'
 	systemctl restart monit
 	echo
 	echo "Monit has been installed."
-	echo "It available at: http://$domain"
+	echo "It is available at: http://$domain"
 	exit
 fi
 
@@ -911,11 +911,18 @@ if [[ $action == "remove_callback" || $action == "20" ]]; then
 fi
 
 if [[ $action == "remove_monit" || $action == "21" ]]; then
+
+	# Remove any cron entries related to monit.
 	(crontab -l 2>/dev/null | sed '/monit-reporting/d' ) | crontab -
+
+	# Remove monit executables, forceably if necessary.
 	apt-get remove monit -y
 	apt-get purge monit -y
 
+	# Remove monit configuration.
 	rm -rf /etc/monit/conf-enabled/"$g_webserver_type"
+
+	# Remove monit web configuration.
 	if [ "$g_webserver_type" = "nginx" ]
 	then
 		### We cannot call the gf_remove_nginx_site() function because it will try to remove 
@@ -937,8 +944,11 @@ if [[ $action == "remove_monit" || $action == "21" ]]; then
 		done	
 		gf_remove_ols_site $domain
 	fi
+
+	# Remove any other monit files including log files.
 	rm -rf /usr/local/bin/monit-reporting /etc/monit /var/log/monit.log
 	
+	# Finally, restart web server.
 	gf_restart_webserver
 	
     echo

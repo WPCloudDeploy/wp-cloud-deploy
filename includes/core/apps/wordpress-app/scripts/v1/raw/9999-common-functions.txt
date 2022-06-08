@@ -736,7 +736,7 @@ function gf_add_ols_main_conf() {
 	showVersionNumber         0
 	adminEmails               root@localhost
 
-	errorlog logs/error.log {
+	errorlog \$SERVER_ROOT/logs/error.log {
 	  logLevel                DEBUG
 	  debugLevel              0
 	  rollingSize             10M
@@ -745,7 +745,7 @@ function gf_add_ols_main_conf() {
 	  enableStderrLog         1
 	}
 
-	accesslog logs/access.log {
+	accesslog \$SERVER_ROOT/logs/access.log {
 	  logFormat               %h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"
 	  rollingSize             10M
 	  keepDays                35

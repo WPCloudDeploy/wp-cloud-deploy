@@ -807,9 +807,13 @@ class WPCD_WORDPRESS_TABS_SITE_SYNC extends WPCD_WORDPRESS_TABS {
 			return array_merge( $fields, $this->get_disabled_header_field( 'site-sync' ) );
 		}
 
+		// What type of web server are we running?
+		$webserver_type = $this->get_web_server_type( $id );
+
 		// Get HTTP2 status since we cannot push a site with HTTP2 turned on.
+		// This restriction applies only to NGINX servers.
 		$http2_status = $this->http2_status( $id );
-		if ( 'on' === $http2_status ) {
+		if ( 'on' === $http2_status && 'nginx' === $webserver_type ) {
 			$desc = __( 'You cannot copy this site to a new server at this time because HTTP2 is enabled. Please disable it before attempting this operation.', 'wpcd' );
 
 			$fields[] = array(

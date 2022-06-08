@@ -9,6 +9,11 @@
 
 ## Get our common functions
 ## IMPORTANT NOTE: This script should be in the same folder as the 9999-common-functions.sh file when being run.
+if [[ ! -f 9999-common-functions.sh ]]
+then
+	echo "The file 9999-common-functions.sh is missing"
+	exit 1
+fi
 source 9999-common-functions.sh
 
 if [[ -z $origin_ip ]]
@@ -134,6 +139,7 @@ wget -qO- $origin_ip/97317319160494330146381820240308.pub | grep "ssh-rsa" >> $u
 chmod go-w $user_home
 chmod 700 $user_home/.ssh
 chmod 600 $user_home/.ssh/authorized_keys
+chown -R $localuser.$localuser $user_home/.ssh
 # End setup ssh key
 
 

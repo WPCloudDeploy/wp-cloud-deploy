@@ -5,6 +5,11 @@ if [[ "$EUID" -ne 0 ]]; then
 fi
 
 ## Get our common functions
+if [[ ! -f 9999-common-functions.sh ]]
+then
+	echo "The file 9999-common-functions.sh is missing"
+	exit 1
+fi
 source 9999-common-functions.sh
 
 clear
@@ -493,7 +498,7 @@ echo 'check system '$domain'
 	systemctl restart monit
 	echo
 	echo "Monit has been installed."
-	echo "It available at: http://$domain"
+	echo "It is available at: http://$domain"
 	exit
 fi
 
@@ -906,18 +911,30 @@ if [[ $action == "remove_callback" || $action == "20" ]]; then
 fi
 
 if [[ $action == "remove_monit" || $action == "21" ]]; then
+
+	# Remove any cron entries related to monit.
 	(crontab -l 2>/dev/null | sed '/monit-reporting/d' ) | crontab -
+
+	# Remove monit executables, forceably if necessary.
 	apt-get remove monit -y
 	apt-get purge monit -y
 
+	# Remove monit configuration.
 	rm -rf /etc/monit/conf-enabled/"$g_webserver_type"
+
+	# Remove monit web configuration.
 	if [ "$g_webserver_type" = "nginx" ]
-	then		
-		# For nginx, the config file in sites-enabled is always called 'monit' so no need to ask the user for the domain name.
-		# We can get it by searching the sites-enabled folder for the 'monit' config file.
+	then
+		### We cannot call the gf_remove_nginx_site() function because it will try to remove 
+		### some files and folders that don't exist (eg: PHP pool files).
+		### So we remove only the two portions required - SSL and the nginx config in sites-enabled.
+		# 1. Remove SSL.
 		domain=$(grep server_name /etc/nginx/sites-enabled/monit -m 1 | cut -d "_" -f 2 | cut -d " " -f 2)
-		gf_remove_nginx_site $domain
-		# The gf_remove_nginx_site doesn't know anything about the specially named 'monit' config file so we'll delete it here.
+		if grep -qs "listen 443" /etc/nginx/sites-enabled/monit
+		then
+			certbot delete --cert-name $domain --noninteractive
+		fi
+		# 2. Remove nginx configuration from etc/nginx/sites-enabled.
 		rm -rf /etc/nginx/sites-enabled/monit 
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
@@ -927,8 +944,11 @@ if [[ $action == "remove_monit" || $action == "21" ]]; then
 		done	
 		gf_remove_ols_site $domain
 	fi
+
+	# Remove any other monit files including log files.
 	rm -rf /usr/local/bin/monit-reporting /etc/monit /var/log/monit.log
 	
+	# Finally, restart web server.
 	gf_restart_webserver
 	
     echo

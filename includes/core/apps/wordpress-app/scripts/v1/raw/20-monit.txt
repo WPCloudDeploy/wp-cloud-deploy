@@ -917,12 +917,17 @@ if [[ $action == "remove_monit" || $action == "21" ]]; then
 
 	rm -rf /etc/monit/conf-enabled/"$g_webserver_type"
 	if [ "$g_webserver_type" = "nginx" ]
-	then		
-		# For nginx, the config file in sites-enabled is always called 'monit' so no need to ask the user for the domain name.
-		# We can get it by searching the sites-enabled folder for the 'monit' config file.
+	then
+		### We cannot call the gf_remove_nginx_site() function because it will try to remove 
+		### some files and folders that don't exist (eg: PHP pool files).
+		### So we remove only the two portions required - SSL and the nginx config in sites-enabled.
+		# 1. Remove SSL.
 		domain=$(grep server_name /etc/nginx/sites-enabled/monit -m 1 | cut -d "_" -f 2 | cut -d " " -f 2)
-		gf_remove_nginx_site $domain
-		# The gf_remove_nginx_site doesn't know anything about the specially named 'monit' config file so we'll delete it here.
+		if grep -qs "listen 443" /etc/nginx/sites-enabled/monit
+		then
+			certbot delete --cert-name $domain --noninteractive
+		fi
+		# 2. Remove nginx configuration from etc/nginx/sites-enabled.
 		rm -rf /etc/nginx/sites-enabled/monit 
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then

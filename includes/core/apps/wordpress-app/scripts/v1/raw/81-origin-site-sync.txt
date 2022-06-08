@@ -321,11 +321,17 @@ do
 date=`date +%d-%m-%y-%H`
 exec >> /var/log/wp-sync-$date.log 2>&1
 
-curl -sS "$site_sync_callback_url?domain=$domain&destination_server=$destination_ip&syncstatus=start"
-sudo bash /usr/local/bin/sync-site.sh $domain $destination_ip $sshuser $localuser
+if [[ -d "/var/www/$domain" ]]
+then
+	if sudo test -d "/usr/local/lsws/conf/vhosts/$domain" || [[ -e "/etc/nginx/sites-enabled/$domain" ]]
+	then
+		curl -sS "$site_sync_callback_url?domain=$domain&destination_server=$destination_ip&syncstatus=start"
+		sudo bash /usr/local/bin/sync-site.sh $domain $destination_ip $sshuser $localuser < /dev/null
 
-sleep 3
-curl -sS "$site_sync_callback_url?domain=$domain&destination_server=$destination_ip&syncstatus=end" 
+		sleep 3
+		curl -sS "$site_sync_callback_url?domain=$domain&destination_server=$destination_ip&syncstatus=end" 
+	fi
+fi
 done < /etc/wp-site-sync.conf' |sudo tee /usr/local/bin/sync-website > /dev/null
 
 	sudo chmod +x /usr/local/bin/sync-website

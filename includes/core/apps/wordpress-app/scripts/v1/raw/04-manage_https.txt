@@ -1,10 +1,16 @@
 #!/bin/bash
-if [[ "$EUID" -ne 0 ]]; then
+if [[ "$EUID" -ne 0 ]]
+then
 	echo "Sorry, you need to run this as root"
 	exit
 fi
 
 ## Get our common functions
+if [[ ! -f 9999-common-functions.sh ]]
+then
+	echo "The file 9999-common-functions.sh is missing"
+	exit 1
+fi
 source 9999-common-functions.sh
 
 ## regex patterns http2
@@ -12,177 +18,164 @@ remove_http2="s/(^${sm}listen${sp}($ip:)?($ip6:)?[0-9]+${sp}ssl)${sp}http2/\1/"
 add_http2="s/(^${sm}listen${sp}($ip:)?($ip6:)?[0-9]+${sp}ssl)(${sm}http2)?/\1 http2/"
 has_ssl="^${sm}listen${sp}(${ip}:)?(${ip6}:)?[0-9]+${sp}ssl"
 has_http2="^${sm}listen${sp}(${ip}:)?(${ip6}:)?[0-9]+${sp}ssl${sp}http2"
+has_http2_ols="([ ]*enableSpdy[ ]*(4|5|7|15))"
 ## end regex patterns http2
 
-is_ssl() {
-    cat "${domain_conf}" | grep -qP "${has_ssl}"
+is_ssl_nginx() {
+	cat "${domain_conf}" | grep -qP "${has_ssl}"
 }
 
-is_http2() {
-    cat "${domain_conf}" | grep -qP "${has_http2}"
+is_http2_nginx() {
+	cat "${domain_conf}" | grep -qP "${has_http2}"
 }
 
-disable_http2() {
-    if is_http2; then
-        sed -i "${domain_conf}" -re "${remove_http2}"
-        if is_http2; then
-            echo -e "${RED}ERROR: http2 disabling for '${domain}' error${NC}" >&2 # ERROR
-        fi
-    fi
+disable_http2_nginx() {
+	if is_http2_nginx
+	then
+		sed -i "${domain_conf}" -re "${remove_http2}"
+		if is_http2_nginx
+		then
+			echo -e "${RED}ERROR: http2 disabling for '${domain}' error${NC}" >&2 # ERROR
+		else
+			echo -e "${GREEN}http2 disabled for domain='${domain}' ${NC}" # ACTION
+			systemctl restart nginx
+		fi
+	else
+		echo -e "${BLUE}http2 is already disabled for domain='${domain}', nothing to do${NC}" # SKIP
+	fi
 }
 
-enable_http2() {
-    if is_ssl; then
-        if ! is_http2; then
-            sed -i "${domain_conf}" -re "${add_http2}"
-            if ! is_http2; then
-                echo -e "${RED}ERROR: http2 enabling for '${domain}' error${NC}" >&2 # ERROR
-            fi
-        fi
-    fi
+enable_http2_nginx() {
+	if is_ssl_nginx
+	then
+		if is_http2_nginx
+		then
+			echo -e "${BLUE}http2 is already enabled for domain='${domain}', nothing to do${NC}" # SKIP
+		else
+			sed -i "${domain_conf}" -re "${add_http2}"
+			if is_http2_nginx
+			then
+				echo -e "${GREEN}http2 enabled for domain='${domain}' ${NC}" # ACTION
+				systemctl restart nginx
+			else
+				echo -e "${RED}ERROR: enabling http2 for '${domain}' error${NC}" >&2 # ERROR
+			fi
+		fi
+	else
+		echo -e "${ORANGE}Could not enable http2 on '${domain}' when SSL is disabled${NC}" # WARNING
+	fi
 }
 
-
-while [[ -z $domain ]]; do
-    clear
-    echo "Please, select which site you want to work with"
-    echo
-    ls /var/www | grep -v html | nl
-    read -p "Select site: " site_number
-    number_of_sites=$(ls /var/www | grep -v html | wc -l)
-    until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
-		echo "$site_number: invalid selection."
-		read -p "Select site: " site_number
-	done
-    domain=$(ls /var/www | grep -v html | sed -n "$site_number"p)
+########################### Script Start here ############
+while [[ -z $domain ]]
+do
+	clear
+	echo "Please, select which site you want to work with"
+	gf_select_domain
+	domain=$(ls /var/www | grep -v html | sed -n "$site_number"p)
 done
 
+user_name=$(echo $domain | cut -c1-32)
 # variable that points to nginx conf file for domain.
 domain_conf="/etc/nginx/sites-enabled/${domain}"
 
-# call http2 functions 
-is_http2
-old_http2=$?
-
-
-while [[ -z $action ]]; do
-    echo
-    echo "What do you want to do?"
-    echo
-    echo "   1) Enable HTTPS"
-    echo "   2) Disable HTTPS"
-    echo "   3) Enable HTTP2"
-    echo "   4) Disable HTTP2"
-    read -p "Action: " action
-    until [[ -z "$action" || "$action" =~ ^[1-4]$ ]]; do
-    	echo "$action: invalid selection."
-    	read -p "Action: " action
-    done
+while [[ -z $action ]]
+do
+	echo
+	echo "What do you want to do?"
+	echo
+	echo "   1) Enable HTTPS"
+	echo "   2) Disable HTTPS"
+	echo "   3) Enable HTTP2"
+	echo "   4) Disable HTTP2"
+	read -p "Action: " action
+	until [[ -z "$action" || "$action" =~ ^[1-4]$ ]]
+	do
+		echo "$action: invalid selection."
+		read -p "Action: " action
+	done
 done
 
+if [[ $action == "enable" || $action == "1" ]]
+then
+	if [[ -z $email ]]
+	then
+		echo
+		echo "Specify an email for administrative notifications about your certificate
+		Example: admin@example.com"
+		read -p "Email address: " email
+	fi
+	if [ "$g_webserver_type" = "nginx" ]
+	then
+		gf_enable_certbot_nginx_site $domain $domain
+	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+	then
+		gf_enable_certbot_ols_site "$domain"
+	fi
 
-if [[ $action == "enable" || $action == "1" ]]; then
-    disable_http2 # disable http2 if enabled
-    if [[ -z $email ]]; then
-        echo
-        echo "Specify an email for administrative notifications about your certificate
-Example: admin@example.com"
-        read -p "Email address: " email
-    fi
-    certbot --non-interactive --reinstall --expand --nginx --agree-tos -m $email --allow-subset-of-names --redirect -d $domain -d www.$domain
+	cd /var/www/$domain/html/
+	su - $user_name -c "wp --skip-plugins option update home https://$domain"
+	su - $user_name -c "wp --skip-plugins option update siteurl https://$domain"
+	# reset cache
+	su - $user_name -c "wp cache flush"
+	su - $user_name -c "wp cache-enabler clear 2>/dev/null"
 
-    if ! grep -qs "listen 443" /etc/nginx/sites-enabled/$domain; then
-        echo
-        echo "SSL could not be enabled for $domain"
-        exit
-    fi
+	gf_restart_webserver
 
-    cd /var/www/$domain/html/
-    user_name=$(echo $domain | cut -c1-32)
-    su - $user_name -c "wp --skip-plugins option update home https://$domain"
-    su - $user_name -c "wp --skip-plugins option update siteurl https://$domain"
-    # reset cache
-    su - $user_name -c "wp cache flush"
-    su - $user_name -c "wp cache-enabler clear 2>/dev/null"
-
-    if [[ $old_http2 -eq 0 ]]; then
-        enable_http2
-        systemctl restart nginx
-    fi
-
-    echo
-    echo "SSL has been enabled for $domain"
-
-    exit
-fi
-
-if [[ $action == "disable" || $action == "2" ]]; then
-    
-    if ! grep -qs 'managed by Certbot' /etc/nginx/sites-enabled/$domain; then
-        echo
-        echo "SSL is already disabled for $domain"
-        exit
-    fi
-
-    disable_http2 # disable http2 if enabled
-
-    certbot delete --cert-name $domain --noninteractive
-
-    if grep -qs "managed by Certbot" /etc/nginx/sites-enabled/$domain; then
-        sed -i -n '/if ($host/q;p' /etc/nginx/sites-enabled/$domain
-        sed -i '$ d' /etc/nginx/sites-enabled/$domain
-        sed -i '/server {/a listen 80;\nlisten [::]:80;' /etc/nginx/sites-enabled/$domain
-        sed -i '/managed by Certbot/d' /etc/nginx/sites-enabled/$domain
-    fi
-    systemctl restart nginx
-
-    cd /var/www/$domain/html/
-    user_name=$(echo $domain | cut -c1-32)
-    su - $user_name -c "wp --skip-plugins option update home http://$domain"
-    su - $user_name -c "wp --skip-plugins option update siteurl http://$domain"
-    # reset cache
-    su - $user_name -c "wp cache flush"
-    su - $user_name -c "wp cache-enabler clear 2>/dev/null"
-
-    echo
-    echo "SSL has been disabled for $domain"
-
-    exit
+	echo
+	echo "SSL has been enabled for $domain"
+	exit
 fi
 
 
-if [[ $action == "enable_http2" || $action == "3" ]]; then
-    if is_ssl; then
-        if is_http2; then
-            echo -e "${BLUE}http2 is already enabled for domain='${domain}', nothing to do${NC}" # SKIP
-        else
-            sed -i "${domain_conf}" -re "${add_http2}"
-            if is_http2; then
-                echo -e "${GREEN}http2 enabled for domain='${domain}' ${NC}" # ACTION
-                systemctl restart nginx
-            else
-                echo -e "${RED}ERROR: enabling http2 for '${domain}' error${NC}" >&2 # ERROR
-            fi
-        fi
-    else
-        echo -e "${ORANGE}Could not enable http2 on '${domain}' when SSL is disabled${NC}" # WARNING
-    fi
-    exit
+if [[ $action == "disable" || $action == "2" ]]
+then
+	if [ "$g_webserver_type" = "nginx" ]
+	then
+		disable_http2_nginx # disable http2 if enabled
+		gf_disable_certbot_nginx_site $domain $domain
+	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+	then
+		gf_disable_http2_ols_site "$domain" # disable http2 if enabled
+		gf_disable_certbot_ols_site "$domain"
+	fi
+
+	cd /var/www/$domain/html/
+	su - "$user_name" -c "wp --skip-plugins option update home http://$domain"
+	su - "$user_name" -c "wp --skip-plugins option update siteurl http://$domain"
+	# reset cache
+	su - "$user_name" -c "wp cache flush"
+	su - "$user_name" -c "wp cache-enabler clear 2>/dev/null"
+	
+	echo
+	echo "SSL has been disabled for $domain"
+	exit
 fi
 
-if [[ $action == "disable_http2" || $action == "4" ]]; then
-    if is_http2; then
-        sed -i "${domain_conf}" -re "${remove_http2}"
-        if is_http2; then
-            echo -e "${RED}ERROR: http2 disabling for '${domain}' error${NC}" >&2 # ERROR
-        else
-            echo -e "${GREEN}http2 disabled for domain='${domain}' ${NC}" # ACTION
-            systemctl restart nginx
-        fi
-    else
-        echo -e "${BLUE}http2 is already disabled for domain='${domain}', nothing to do${NC}" # SKIP
-    fi
-    exit
+
+if [[ $action == "enable_http2" || $action == "3" ]]
+then
+	if [ "$g_webserver_type" = "nginx" ]
+	then
+		enable_http2_nginx
+	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+	then
+		gf_enable_http2_ols_site "$domain"
+	fi
+	exit
 fi
 
-echo -e "${RED}ERROR: Invalid action '${action}'
+
+if [[ $action == "disable_http2" || $action == "4" ]]
+then
+	if [ "$g_webserver_type" = "nginx" ]
+	then
+		disable_http2_nginx
+	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+	then
+		gf_disable_http2_ols_site "$domain"
+	fi
+	exit
+fi
+
+echo -e "${RED}ERROR: Invalid action '${action}'"

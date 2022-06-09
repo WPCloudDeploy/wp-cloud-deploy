@@ -355,7 +355,7 @@ class WPCD_WORDPRESS_TABS_SERVER_USERS extends WPCD_WORDPRESS_TABS {
 		// send the command.
 		$result = $this->submit_generic_server_command( $id, $action, $command, true );  // notice the last parm is true to force the function to return the raw results to us for evaluation instead of a wp-error object.
 
-		// If not error, then add or update in our database the list of ports that are opened or closed.
+		// If not error, then add or update the password in our database.
 		if ( ( ! is_wp_error( $result ) ) && $result ) {
 
 			if ( strpos( $result, 'Password Successfully Updated' ) !== false ) {

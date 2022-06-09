@@ -552,7 +552,42 @@ class WP_CLOUD_DEPLOY {
 		// What screen are we on?
 		$screen = get_current_screen();
 
-		// Get brand color settings.
+		/* Inject brand colors into global style sheet. */
+		$this->wpcd_inject_brand_color_styles();
+
+		/* Inject custom css. */
+		$this->wpcd_inject_custom_css();
+
+		/* Cloud Providers Screen - Uses the settings screen style sheet for now. */
+		if ( is_object( $screen ) && in_array( $screen->post_type, array( 'wpcd_cloud_provider' ) ) ) {
+			wp_enqueue_style( 'wpcd-admin-settings', wpcd_url . 'assets/css/wpcd-admin-settings.css', array(), wpcd_scripts_version );
+		}
+
+		/* CSS common to server and app screens. */
+		if ( is_object( $screen ) && in_array( $screen->post_type, array( 'wpcd_app_server', 'wpcd_app' ) ) ) {
+			wp_enqueue_style( 'wpcd-common-admin', wpcd_url . 'assets/css/wpcd-common-admin.css', array(), wpcd_scripts_version );
+		}
+
+		/* Style sheet for the settings screen. */
+		if ( 'wpcd_app_server_page_wpcd_settings' === $hook ||
+			'wpcd_app_server_page_wpcd_faq_and_help' === $hook ) {
+			wp_enqueue_style( 'wpcd-admin-settings', wpcd_url . 'assets/css/wpcd-admin-settings.css', array(), wpcd_scripts_version );
+			if ( defined( 'WPCD_SKIP_SERVER_SIZES_SETTING' ) && WPCD_SKIP_SERVER_SIZES_SETTING ) {
+				wp_enqueue_style( 'wpcd-admin-settings-server-sizes', wpcd_url . 'assets/css/wpcd-admin-settings-server-sizes.css', array(), wpcd_scripts_version );
+			}
+		}
+
+	}
+
+	/**
+	 * Add the wp-admin and front-end brand color styles
+	 * as inline styles to the global style sheet.
+	 *
+	 * Called from function wpcd_admin_scripts which is hooked into action admin_enqueue_scripts
+	 */
+	public function wpcd_inject_brand_color_styles() {
+
+		// Get brand color settings for the wp-admin area.
 		$primary_brand_color = wpcd_get_option( 'wordpress_app_primary_brand_color' );
 		$primary_brand_color = empty( $primary_brand_color ) ? WPCD_PRIMARY_BRAND_COLOR : $primary_brand_color;
 
@@ -574,6 +609,34 @@ class WP_CLOUD_DEPLOY {
 		$alternate_accent_bg_color = wpcd_get_option( 'wordpress_app_alternate_accent_background_color' );
 		$alternate_accent_bg_color = empty( $alternate_accent_bg_color ) ? WPCD_ALTERNATE_ACCENT_BG_COLOR : $alternate_accent_bg_color;
 
+		// Get brand color settings for the front-end.
+		$primary_brand_color_fe = wpcd_get_option( 'wordpress_app_fe_primary_brand_color' );
+		$primary_brand_color_fe = empty( $primary_brand_color_fe ) ? WPCD_FE_PRIMARY_BRAND_COLOR : $primary_brand_color_fe;
+
+		$secondary_brand_color_fe = wpcd_get_option( 'wordpress_app_fe_secondary_brand_color' );
+		$secondary_brand_color_fe = empty( $secondary_brand_color_fe ) ? WPCD_FE_SECONDARY_BRAND_COLOR : $secondary_brand_color_fe;
+
+		$tertiary_brand_color_fe = wpcd_get_option( 'wordpress_app_fe_tertiary_brand_color' );
+		$tertiary_brand_color_fe = empty( $tertiary_brand_color_fe ) ? WPCD_FE_TERTIARY_BRAND_COLOR : $tertiary_brand_color_fe;
+
+		$accent_bg_color_fe = wpcd_get_option( 'wordpress_app_fe_accent_background_color' );
+		$accent_bg_color_fe = empty( $accent_bg_color_fe ) ? WPCD_FE_ACCENT_BG_COLOR : $accent_bg_color_fe;
+
+		$medium_bg_color_fe = wpcd_get_option( 'wordpress_app_fe_medium_background_color' );
+		$medium_bg_color_fe = empty( $medium_bg_color_fe ) ? WPCD_FE_MEDIUM_BG_COLOR : $medium_bg_color_fe;
+
+		$light_bg_color_fe = wpcd_get_option( 'wordpress_app_fe_light_background_color' );
+		$light_bg_color_fe = empty( $light_bg_color_fe ) ? WPCD_FE_LIGHT_BG_COLOR : $light_bg_color_fe;
+
+		$alternate_accent_bg_color_fe = wpcd_get_option( 'wordpress_app_fe_alternate_accent_background_color' );
+		$alternate_accent_bg_color_fe = empty( $alternate_accent_bg_color_fe ) ? WPCD_FE_ALTERNATE_ACCENT_BG_COLOR : $alternate_accent_bg_color_fe;
+
+		$postive_color_fe = wpcd_get_option( 'wordpress_app_fe_positive_color' );
+		$postive_color_fe = empty( $postive_color_fe ) ? WPCD_FE_POSITIVE_COLOR : $postive_color_fe;
+
+		$negative_color_fe = wpcd_get_option( 'wordpress_app_fe_negative_color' );
+		$negative_color_fe = empty( $negative_color_fe ) ? WPCD_FE_NEGATIVE_COLOR : $negative_color_fe;
+
 		/* Global style sheet. */
 		wp_enqueue_style( 'wpcd-global-css', wpcd_url . 'assets/css/wpcd-global.css', array(), wpcd_scripts_version );
 
@@ -586,30 +649,40 @@ class WP_CLOUD_DEPLOY {
 			--wpcd-medium-background-color: {$medium_bg_color};
 			--wpcd-light-background-color: {$light_bg_color};
 			--wpcd-alternate-accent-background-color: {$alternate_accent_bg_color};
+
+			--wpcd-front-end-primary-brand-color: {$primary_brand_color_fe};
+			--wpcd-front-end-secondary-brand-color: {$secondary_brand_color_fe};
+			--wpcd-front-end-tertiary-brand-color: {$tertiary_brand_color_fe};
+			--wpcd-front-end-accent-background-color: {$accent_bg_color_fe};
+			--wpcd-front-end-medium-background-color: {$medium_bg_color_fe};
+			--wpcd-front-end-light-background-color: {$light_bg_color_fe};
+			--wpcd-front-end-alternate-accent-background-color: {$alternate_accent_bg_color_fe};
+			--wpcd-front-end-positive-color: {$postive_color_fe};			
+			--wpcd-front-end-negative-color: {$negative_color_fe};			
 		}";
 
 		/* Add some global css. */
 		wp_add_inline_style( 'wpcd-global-css', $global_css );
 
-		/* Cloud Providers Screen - Uses the settings screen style sheet for now. */
-		if ( is_object( $screen ) && in_array( $screen->post_type, array( 'wpcd_cloud_provider' ) ) ) {
-			wp_enqueue_style( 'wpcd-admin-settings', wpcd_url . 'assets/css/wpcd-admin-settings.css', array(), wpcd_scripts_version );
-		}
+	}
 
-		/* CSS common to server and app screens. */
-		if ( is_object( $screen ) && in_array( $screen->post_type, array( 'wpcd_app_server', 'wpcd_app' ) ) ) {
-			wp_enqueue_style( 'wpcd-common-admin', wpcd_url . 'assets/css/wpcd-common-admin.css', array(), wpcd_scripts_version );
-		}
+	/**
+	 * Add custom css defined in settings
+	 * as inline styles to the global style sheet.
+	 *
+	 * Called from function wpcd_admin_scripts which is hooked into action admin_enqueue_scripts
+	 */
+	public function wpcd_inject_custom_css() {
 
-		/* Style sheet for the settings screen. */
-		if ( 'wpcd_app_server_page_wpcd_settings' === $hook ||
-			'wpcd_app_server_page_wpcd_faq_and_help' === $hook ) {
-			wp_enqueue_style( 'wpcd-admin-settings', wpcd_url . 'assets/css/wpcd-admin-settings.css', array(), wpcd_scripts_version );
-			if ( defined( 'WPCD_SKIP_SERVER_SIZES_SETTING' ) && WPCD_SKIP_SERVER_SIZES_SETTING ) {
-				wp_enqueue_style( 'wpcd-admin-settings-server-sizes', wpcd_url . 'assets/css/wpcd-admin-settings-server-sizes.css', array(), wpcd_scripts_version );
-			}
-		}
+		/* Global style sheet. */
+		wp_enqueue_style( 'wpcd-global-css', wpcd_url . 'assets/css/wpcd-global.css', array(), wpcd_scripts_version );
 
+		$global_css = wpcd_get_early_option( 'wordpress-app-custom-css-override' );
+
+		/* Add to global css. */
+		if ( ! empty( $global_css ) ) {
+			wp_add_inline_style( 'wpcd-global-css', $global_css );
+		}
 	}
 
 
@@ -638,11 +711,12 @@ class WP_CLOUD_DEPLOY {
 	public static function get_webserver_list() {
 		$webserver_list = array(
 			'nginx'          => __( 'NGINX', 'wpcd' ),
-			'ols'            => __( 'Open Litespeed', 'wpcd' ),
-			'ols-enterprise' => __( 'Litespeed Enterprise', 'wpcd' ),
+			'ols'            => __( 'OpenLiteSpeed (Beta)', 'wpcd' ),
+			// 'ols-enterprise' => __( 'LiteSpeed Enterprise (Beta)', 'wpcd' ),
 		);
 		return apply_filters( 'wpcd_webserver_list', $webserver_list );
 	}
+
 
 	/**
 	 * Get the operating system name (full name) initially installed on a server

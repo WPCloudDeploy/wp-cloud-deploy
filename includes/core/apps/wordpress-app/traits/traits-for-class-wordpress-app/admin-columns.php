@@ -138,7 +138,7 @@ trait wpcd_wpapp_admin_column_data {
 			$column_data = $column_data . '<br />';
 		}
 
-		// Display the count of notes and admin notes.
+		// Get the count of notes and admin notes.
 		$labels_count_arr = $this->get_notes_count_string( $post_id );
 		$labels_count_arr = implode( ' ', $labels_count_arr );
 
@@ -147,12 +147,24 @@ trait wpcd_wpapp_admin_column_data {
 		if ( true === (bool) wpcd_get_option( 'wordpress_app_hide_domain_site_summary_column_in_site_list' ) && ( ! wpcd_is_admin() ) ) {
 			// Do nothing.
 		} else {
-			$new_column_data = $new_column_data . __( 'Domain:', 'wpcd' ) . ' ' . get_post_meta( $post_id, 'wpapp_domain', true ) . '<br />';
+			$value  = __( 'Domain: ', 'wpcd' );
+			$data   = get_post_meta( $post_id, 'wpapp_domain', true );
+			$value  = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $value, 'page_cache', 'left' );
+			$value .= WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $data, 'domain', 'right' );
+			$value  = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_div_and_class( $value, 'domain' );
+
+			$new_column_data = $new_column_data . $value;
 		}
 		if ( true === (bool) wpcd_get_option( 'wordpress_app_hide_login_user_site_summary_column_in_site_list' ) && ( ! wpcd_is_admin() ) ) {
 			// Do nothing.
 		} else {
-			$new_column_data = $new_column_data . __( 'User:', 'wpcd' ) . ' ' . get_post_meta( $post_id, 'wpapp_user', true ) . '<br />';
+			$value  = __( 'User: ', 'wpcd' );
+			$data   = get_post_meta( $post_id, 'wpapp_user', true );
+			$value  = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $value, 'wp_login_user', 'left' );
+			$value .= WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $data, 'wp_login_user', 'right' );
+			$value  = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_div_and_class( $value, 'wp_login_user' );
+
+			$new_column_data = $new_column_data . $value;
 		}
 
 		/* Add wp version */
@@ -163,31 +175,131 @@ trait wpcd_wpapp_admin_column_data {
 			if ( 'latest' === $wp_version ) {
 				$wp_version = __( 'Latest', 'wpcd' );
 			}
-			$new_column_data = $new_column_data . __( 'Initial WP Version:', 'wpcd' ) . ' ' . $wp_version . '<br />';
+
+			$value  = __( 'Initial WP Version: ', 'wpcd' );
+			$value  = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $value, 'initial_wp_version', 'left' );
+			$value .= WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $wp_version, 'initial_wp_version', 'right' );
+			$value  = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_div_and_class( $value, 'initial_wp_version' );
+
+			$new_column_data = $new_column_data . $value;
 		}
+
+		// Display the count of notes and admin notes.
 		if ( ! empty( $labels_count_arr ) ) {
 			$new_column_data = $new_column_data . $labels_count_arr . '<br />';
 		}
 
-		$new_column_data = $new_column_data . '<b>' . $this->get_formatted_wpadmin_link( $post_id ) . '</b><br />';
-		$new_column_data = $new_column_data . '<b>' . $this->get_formatted_site_link( $post_id ) . '</b>';
-		$new_column_data = $new_column_data . '<br />' . $this->get_formatted_custom_links( $post_id );
+		// Display the wp-admin login link.
+		$value = $this->get_formatted_wpadmin_link( $post_id );
+		$value = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $value, 'wp_admin_link', 'left' );
 
-		/* If the site is being synced to another server, include data about that here. */
-		$destination_server_id = (int) get_post_meta( $post_id, 'wpcd_wpapp_site_sync_schedule_destination_id', true );
-		if ( $destination_server_id > 0 ) {
-			// Get the name of the server in a formatted link (with a link if the user is able to edit it otherwise without the link.)
-			$destination_server_title = wp_kses_post( get_post( $destination_server_id )->post_title );
-			$user_id                  = get_current_user_id();
-			if ( wpcd_user_can( $user_id, 'view_server', $destination_server_id ) || get_post( $destination_server_id )->post_author === $user_id ) {
-				$destination_server_text = sprintf( '<a href="%s">' . $destination_server_title . '</a>', get_edit_post_link( $destination_server_id ) );
-			} else {
-				$destination_server_text = $destination_server_title;
-			}
-			$new_column_data = $new_column_data . '<span class="wpcd_destination_site_sync_server wpcd_destination_server">' . __( 'Syncing To:', 'wpcd' ) . '<br .>' . $destination_server_text . '</span>';
+		// Display a link to the site home page.
+		$value2 = $this->get_formatted_site_link( $post_id );
+		$value2 = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $value2, 'homepage_link', 'right' );
+
+		if ( is_admin() ) {
+			// Stack site links when displayed in the wp-admin area.
+			$value           = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_div_and_class( $value, 'wp_admin_link' );
+			$new_column_data = $new_column_data . $value;
+			$value2          = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_div_and_class( $value2, 'homepage_link' );
+			$new_column_data = $new_column_data . $value2;
+		} else {
+			// Set links side-by-side shown on the front-end.
+			$value           = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_div_and_class( $value . $value2, 'site_links' );
+			$new_column_data = $new_column_data . $value;
 		}
 
-		/* Add in some health data about the site. */
+		// Display any custom links - only displayedin the wp-admin area.
+		if ( is_admin() ) {
+			$new_column_data = $new_column_data . $this->get_formatted_custom_links( $post_id );
+		}
+
+		// If the site is being synced to another server, include data about that here.  It only displayedin the wp-admin area.
+		if ( is_admin() ) {
+			$destination_server_id = (int) get_post_meta( $post_id, 'wpcd_wpapp_site_sync_schedule_destination_id', true );
+			if ( $destination_server_id > 0 ) {
+				// Get the name of the server in a formatted link (with a link if the user is able to edit it otherwise without the link).
+				$destination_server_title = wp_kses_post( get_post( $destination_server_id )->post_title );
+				$user_id                  = get_current_user_id();
+				if ( wpcd_user_can( $user_id, 'view_server', $destination_server_id ) || get_post( $destination_server_id )->post_author === $user_id ) {
+					$destination_server_text = sprintf( '<a href="%s">' . $destination_server_title . '</a>', get_edit_post_link( $destination_server_id ) );
+				} else {
+					$destination_server_text = $destination_server_title;
+				}
+				$new_column_data = $new_column_data . '<span class="wpcd_destination_site_sync_server wpcd_destination_server">' . __( 'Syncing To:', 'wpcd' ) . '<br .>' . $destination_server_text . '</span>';
+			}
+		}
+
+		/* Add in some health data about the site. Only show it though if the separate app health column isn't being shown. */
+		if ( ! boolval( wpcd_get_option( 'wpcd_show_app_list_health' ) ) ) {
+
+			// Add a horizontal divider if we're on the front-end.
+			if ( ! is_admin() ) {
+				$new_column_data .= '<hr />';
+			}
+
+			$new_column_data .= $this->get_app_health_data( $post_id );
+
+		}
+
+		/* Add data if it's not already in the column */
+		if ( strpos( $column_data, $new_column_data ) !== false ) {
+			// do nothing.
+		} else {
+			// add the new data to the column.
+			$column_data = $column_data . $new_column_data;
+		}
+
+		return $column_data;
+	}
+
+	/**
+	 * Add content to the app health column that shows up in app admin list
+	 *
+	 * Filter Hook: wpcd_app_admin_list_app_health_column
+	 *
+	 * @param string $column_data Data to show in the column.
+	 * @param int    $post_id Id of app post being displayed.
+	 *
+	 * @return string $column_data.
+	 */
+	public function app_admin_list_health_column( $column_data, $post_id ) {
+
+		/* Bail out if the app being evaluated isn't a wp app. */
+		if ( $this->get_app_name() <> get_post_meta( $post_id, 'app_type', true ) ) {
+			return $column_data;
+		}
+
+		/* Calculate our data element */
+		$new_column_data  = '';
+		$new_column_data .= $this->get_app_health_data( $post_id );
+
+		/* If not data, add a notification to that effect. */
+		if ( empty( $new_column_data ) ) {
+			$new_column_data = __( 'No data for this app.', 'wpcd' );
+		}
+
+		/* Add data if it's not already in the column */
+		if ( strpos( $column_data, $new_column_data ) !== false ) {
+			// do nothing.
+		} else {
+			// add the new data to the column.
+			$column_data = $column_data . $new_column_data;
+		}
+
+		return $column_data;
+	}
+
+	/**
+	 * Get the app health data formatted as a string.
+	 *
+	 * @param int $post_id Id of app post being displayed.
+	 *
+	 * @return string.
+	 */
+	public function get_app_health_data( $post_id ) {
+		$new_column_data = '';
+
 		$wp_update = $this->get_site_status_callback_string( $post_id, 'wp_update_needed' );
 		if ( ! empty( $wp_update ) ) {
 			$new_column_data .= $wp_update;
@@ -203,19 +315,21 @@ trait wpcd_wpapp_admin_column_data {
 		if ( ( ! empty( $wp_update ) ) || ( ! empty( $plugin_updates_count ) ) || ( ! empty( $theme_updates_count ) ) ) {
 			$data_date = $this->get_site_status_callback_string( $post_id, 'data_date' );
 			if ( ! empty( $data_date ) ) {
-				$new_column_data .= $data_date;
+				if ( is_admin() ) {
+					// Show last updated date in short format.
+					$new_column_data .= $data_date;
+				} else {
+					// Show last updated date in long format for front-end.
+					$value            = __( 'Last Updated: ', 'wpcd' );
+					$value            = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $value, 'health_last_update', 'left' );
+					$value           .= WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $data_date, 'health_last_update', 'right' );
+					$value            = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_div_and_class( $value, 'health_last_update' );
+					$new_column_data .= $value;
+				}
 			}
 		}
 
-		/* Add it if its not already in the column */
-		if ( strpos( $column_data, $new_column_data ) !== false ) {
-			// do nothing.
-		} else {
-			// add the new data to the column.
-			$column_data = $column_data . $new_column_data;
-		}
-
-		return $column_data;
+		return $new_column_data;
 	}
 
 	/**
@@ -273,7 +387,28 @@ trait wpcd_wpapp_admin_column_data {
 	 */
 	public function app_server_table_head( $defaults ) {
 
-		$defaults['wpcd_server_health'] = __( 'Health', 'wpcd' );
+		// Webserver type column.
+		$show_it = true;
+		if ( ! is_admin() && ( ! boolval( wpcd_get_option( 'wordpress_app_fe_show_web_server_type_column_in_server_list' ) ) ) ) {
+			// Do not show it on the front-end.
+			$show_it = false;
+		}
+		if ( is_admin() && ! boolval( wpcd_get_option( 'wordpress_app_show_web_server_type_column_in_server_list' ) ) ) {
+			// Not allowed to show it in wp-admin.
+			$show_it = false;
+		}
+		if ( $show_it ) {
+			$defaults['wpcd_server_web_server_Type'] = __( 'Web Server', 'wpcd' );
+		}
+
+		// Health column.
+		$show_it = true;
+		if ( ! is_admin() && ( boolval( wpcd_get_option( 'wordpress_app_fe_hide_health_in_server_list' ) ) ) ) {
+			$show_it = false;
+		}
+		if ( $show_it ) {
+			$defaults['wpcd_server_health'] = __( 'Health', 'wpcd' );
+		}
 
 		return $defaults;
 	}
@@ -332,13 +467,17 @@ trait wpcd_wpapp_admin_column_data {
 	public function app_server_table_content( $value, $column_name, $post_id ) {
 
 		switch ( $column_name ) {
+			case 'wpcd_server_web_server_Type':
+				$value = $this->get_formatted_web_server_type_for_display( $post_id );
+				break;
+
 			case 'wpcd_server_actions':
 				// Check to make sure we're not trying to show this on a deleted post...
 				if ( 'private' <> get_post_status( $post_id ) ) {
 					break;
 				}
 
-				// adds an 'install WordPress' button to the server actions column.
+				// Adds an 'install WordPress' button to the server actions column.
 				if ( apply_filters( 'wpcd_wpapp_show_install_wp_button', true, $post_id ) ) {
 
 					// Get the state of the server.
@@ -383,8 +522,24 @@ trait wpcd_wpapp_admin_column_data {
 						$value = '<div class="wpcd_server_actions_op_in_progress">' . __( 'An operation seem to be in progress on this server. Please wait for it to complete!', 'wpcd' ) . '</div>';
 					}
 				}
+				// End adds 'install WordPress' button to the server actions column.
 
-				// Add custom links below the install WordPress button...
+				// Add web server type beneath the button or notice.
+				$show_web_server_type = true;
+				if ( ! is_admin() && ( boolval( wpcd_get_option( 'wordpress_app_fe_hide_web_server_type_element_in_server_list' ) ) ) ) {
+					// We're on the front-end - do not show there.
+					$show_web_server_type = false;
+				}
+				if ( is_admin() && ( boolval( wpcd_get_option( 'wordpress_app_hide_web_server_element_in_server_list' ) ) ) ) {
+					// We're in wp-admin area but not allowed to show this element.
+					$show_web_server_type = false;
+				}
+				if ( $show_web_server_type ) {
+					// Show it.
+					$value .= $this->get_formatted_web_server_type_for_display( $post_id, true );
+				}
+
+				// Add custom links below the install WordPress button.
 				$value = $value . '<div class = "wpcd_server_actions_custom_links_wrap">' . $this->get_formatted_custom_links( $post_id ) . '</div>';
 
 				// Display the count of notes and admin notes.
@@ -395,8 +550,6 @@ trait wpcd_wpapp_admin_column_data {
 				break;
 
 			case 'wpcd_server_health':
-				// Add the disk space and RAM data...
-
 				// Check to make sure we're on a WordPress server...
 				if ( 'wordpress-app' <> $this->get_server_type( $post_id ) ) {
 					break;
@@ -444,7 +597,7 @@ trait wpcd_wpapp_admin_column_data {
 					$server_status_callback_status = get_post_meta( $post_id, 'wpcd_wpapp_server_status_callback_installed', true );
 					if ( empty( $server_status_callback_status ) ) {
 						$health            = "<div class='wpcd_waiting_for_data_column'>" . __( 'Callbacks are not installed. Please install from the CALLBACKS tab on this server.', 'wpcd' ) . '</div>';
-						$callback_tab_link = (is_admin() ? get_edit_post_link( $post_id ) : get_permalink( $post_id )) . '#~~callbacks';
+						$callback_tab_link = ( is_admin() ? get_edit_post_link( $post_id ) : get_permalink( $post_id ) ) . '#~~callbacks';
 						$health           .= "<a href='" . $callback_tab_link . "'>" . __( 'Go To Callbacks Tab', 'wpcd' ) . '</a>';
 					} else {
 						$health = "<div class='wpcd_waiting_for_data_column'>" . __( 'Waiting For Data From Callback...', 'wpcd' ) . '</div>';
@@ -462,6 +615,44 @@ trait wpcd_wpapp_admin_column_data {
 	}
 
 	/**
+	 * Return the web server type description formatted for display.
+	 *
+	 * @since 5.0
+	 *
+	 * @param int     $post_id The post id of the server or app.
+	 * @param boolean $show_label_in_wpadmin Show the "Web Server:" label when displaying in wp-admin?.
+	 *
+	 * @return string
+	 */
+	public function get_formatted_web_server_type_for_display( $post_id, $show_label_in_wpadmin = false ) {
+		$value = '';
+
+		$web_server_type = $this->get_web_server_type( $post_id );
+		$web_server_desc = $this->get_web_server_description( $web_server_type );
+
+		// Show full string with label?
+		$show_full = false;
+		if ( is_admin() && true === $show_label_in_wpadmin ) {
+			$show_full = - true;
+		}
+		if ( ! is_admin() ) {
+			$show_full = true; // Always show the full string on the frontend.
+		}
+
+		if ( ! $show_full ) {
+			// Show only the value - usually when being displayed in wp-admin in it's own column.
+			$value = WPCD_POSTS_APP_SERVER()->wpcd_column_wrap_string_with_span_and_class( $web_server_desc, 'web_server_desc', 'left' );
+			$value = WPCD_POSTS_APP_SERVER()->wpcd_column_wrap_string_with_div_and_class( $value, 'web_server_desc' );
+		} else {
+			// Show both the label and the value.
+			$value  = WPCD_POSTS_APP_SERVER()->wpcd_column_wrap_string_with_span_and_class( __( 'Web Server: ', 'wpcd' ), 'web_server_desc', 'left' );
+			$value .= WPCD_POSTS_APP_SERVER()->wpcd_column_wrap_string_with_span_and_class( $web_server_desc, 'web_server_desc', 'right' );
+			$value  = WPCD_POSTS_APP_SERVER()->wpcd_column_wrap_string_with_div_and_class( $value, 'web_server_desc' );
+		}
+		return $value;
+	}
+
+	/**
 	 * Add new columns to the app list
 	 *
 	 * Filter Hook: manage_wpcd_app_posts_columns
@@ -472,13 +663,57 @@ trait wpcd_wpapp_admin_column_data {
 	 */
 	public function app_posts_app_table_head( $defaults ) {
 
-		if ( wpcd_get_option( 'wordpress_app_show_staging_column_in_site_list' ) ) {
-			$defaults['wpcd_wpapp_staging'] = __( 'Staging', 'wpcd' );
+		// Webserver type column.
+		$show_it = true;
+		if ( ! is_admin() && ( ! boolval( wpcd_get_option( 'wordpress_app_fe_show_web_server_type_column_in_app_list' ) ) ) ) {
+			// Do not show it on the front-end.
+			$show_it = false;
+		}
+		if ( is_admin() && ! boolval( wpcd_get_option( 'wordpress_app_show_web_server_type_column_in_site_list' ) ) ) {
+			// Not allowed to show it in wp-admin.
+			$show_it = false;
+		}
+		if ( $show_it ) {
+			$defaults['wpcd_wpapp_web_server_type'] = __( 'Web Server', 'wpcd' );
 		}
 
-		$defaults['wpcd_wpapp_cache'] = __( 'Cache', 'wpcd' );
-		$defaults['wpcd_wpapp_php']   = __( 'PHP', 'wpcd' );
-		$defaults['wpcd_wpapp_ssl']   = __( 'SSL', 'wpcd' );
+		// Staging.
+		if ( wpcd_get_option( 'wordpress_app_show_staging_column_in_site_list' ) ) {
+			$show_it = true;
+			if ( ! is_admin() && ( boolval( wpcd_get_option( 'wordpress_app_fe_hide_staging_in_app_list' ) ) ) ) {
+				$show_it = false;
+			}
+			if ( $show_it ) {
+				$defaults['wpcd_wpapp_staging'] = __( 'Staging', 'wpcd' );
+			}
+		}
+
+		// Cache.
+		$show_it = true;
+		if ( ! is_admin() && ( boolval( wpcd_get_option( 'wordpress_app_fe_hide_cache_in_app_list' ) ) ) ) {
+			$show_it = false;
+		}
+		if ( $show_it ) {
+			$defaults['wpcd_wpapp_cache'] = __( 'Cache', 'wpcd' );
+		}
+
+		// PHP.
+		$show_it = true;
+		if ( ! is_admin() && ( boolval( wpcd_get_option( 'wordpress_app_fe_hide_php_in_app_list' ) ) ) ) {
+			$show_it = false;
+		}
+		if ( $show_it ) {
+			$defaults['wpcd_wpapp_php'] = __( 'PHP', 'wpcd' );
+		}
+
+		// SSL.
+		$show_it = true;
+		if ( ! is_admin() && ( boolval( wpcd_get_option( 'wordpress_app_fe_hide_ssl_in_app_list' ) ) ) ) {
+			$show_it = false;
+		}
+		if ( $show_it ) {
+			$defaults['wpcd_wpapp_ssl'] = __( 'SSL', 'wpcd' );
+		}
 
 		return $defaults;
 
@@ -532,7 +767,7 @@ trait wpcd_wpapp_admin_column_data {
 					$php_version_class = str_replace( '.', '_', $php_version );
 
 					// Show a link that takes you to a list of apps with the clicked php version.
-					if( is_admin() ) {
+					if ( is_admin() ) {
 						$url = admin_url( 'edit.php?post_type=wpcd_app&wpapp_php_version=' . $php_version );
 					} else {
 						$url = get_permalink( WPCD_WORDPRESS_APP_PUBLIC::get_apps_list_page_id() ) . '?wpapp_php_version=' . $php_version;
@@ -546,13 +781,20 @@ trait wpcd_wpapp_admin_column_data {
 
 			case 'wpcd_wpapp_cache':
 				if ( 'wordpress-app' === $this->get_app_name() ) {
-					// get the nginx cache status.
-					$page_cache = wpcd_maybe_unserialize( get_post_meta( $post_id, 'wpapp_nginx_pagecache_status', true ) );
+					// get the page cache status.
+					$page_cache = WPCD_WORDPRESS_APP()->get_page_cache_status( $post_id );
 					if ( empty( $page_cache ) ) {
 						$page_cache = 'off';
 					}
 
-					echo '<div class="wpcd_page_cache_status">' . __( 'Page Cache: ', 'wpcd' ) . $page_cache . '</div>';
+					// Create a string suitable for displaying the page cache status.
+					$value  = __( 'Page Cache: ', 'wpcd' );
+					$value  = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $value, 'page_cache', 'left' );
+					$value .= WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $page_cache, 'page_cache', 'right' );
+					$value  = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_div_and_class( $value, 'page_cache' );
+
+					// Display the page cache status by echoing out the string we just built.
+					echo '<div class="wpcd_page_cache_status">' . $value . '</div>';
 
 					// get the memcached status...
 					$object_cache = wpcd_maybe_unserialize( get_post_meta( $post_id, 'wpapp_memcached_status', true ) );
@@ -572,13 +814,28 @@ trait wpcd_wpapp_admin_column_data {
 						}
 					}
 
-					echo '<div class="wpcd_object_cache_status">' . __( 'Object Cache: ', 'wpcd' ) . $object_cache . '</div>';
+					// Create a string suitable for displaying the object cache status.
+					$value  = __( 'Object Cache: ', 'wpcd' );
+					$value  = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $value, 'object_cache', 'left' );
+					$value .= WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $object_cache, 'object_cache', 'right' );
+					$value  = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_div_and_class( $value, 'object_cache' );
+
+					// Display the object cache status by echoing out the string we just built.
+					echo '<div class="wpcd_object_cache_status">' . $value . '</div>';
 
 				}
 
 				break;
 
+			case 'wpcd_wpapp_web_server_type':
+				$value = $this->get_formatted_web_server_type_for_display( $post_id );
+				echo $value;
+				break;
+
 			case 'wpcd_wpapp_staging':
+				if ( ! ( 'wordpress-app' === $this->get_app_name() ) ) {
+					break;
+				}
 				if ( wpcd_get_option( 'wordpress_app_show_staging_column_in_site_list' ) ) {
 
 					$str = '';
@@ -609,6 +866,13 @@ trait wpcd_wpapp_admin_column_data {
 						}
 					}
 
+					if ( empty( $str ) ) {
+						if ( ! is_admin() ) {
+							// We're on the front-end so display a message for empty data.
+							$str .= __( 'This is not a staging site.', 'wpcd' );
+						}
+					}
+
 					echo $str;
 
 				}
@@ -617,6 +881,34 @@ trait wpcd_wpapp_admin_column_data {
 
 		}
 
+	}
+
+	/**
+	 * Add content to the server that shows up in app admin list - just before the APPS ON THIS SERVER link.
+	 *
+	 * Filter Hook: wpcd_app_admin_list_server_column_before_apps_link
+	 *
+	 * @param string $column_data Usually empty.
+	 * @param int    $post_id Id of app post being displayed.
+	 *
+	 * @return string
+	 */
+	public function app_admin_list_server_column_before_apps_link( $column_data, $post_id ) {
+
+		$show_web_server_type = true;
+		if ( ! is_admin() && ( boolval( wpcd_get_option( 'wordpress_app_fe_hide_web_server_type_element_in_app_list' ) ) ) ) {
+			// We're on the front-end - do not show there.
+			$show_web_server_type = false;
+		}
+		if ( is_admin() && ( boolval( wpcd_get_option( 'wordpress_app_hide_web_server_element_in_site_list' ) ) ) ) {
+			// We're in wp-admin area but not allowed to show this element.
+			$show_web_server_type = false;
+		}
+		if ( $show_web_server_type ) {
+			// Show it.
+			return $column_data . $this->get_formatted_web_server_type_for_display( $post_id, true );
+
+		}
 	}
 
 	/**
@@ -838,7 +1130,6 @@ trait wpcd_wpapp_admin_column_data {
 
 	}
 
-
 	/**
 	 * Returns a formatted string with MALWARE STATUS information
 	 * suitable for displaying in a column in the server list.
@@ -992,7 +1283,5 @@ trait wpcd_wpapp_admin_column_data {
 		return $return;
 
 	}
-
-
 
 }

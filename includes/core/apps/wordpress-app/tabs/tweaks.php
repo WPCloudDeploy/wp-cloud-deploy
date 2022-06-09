@@ -673,6 +673,23 @@ class WPCD_WORDPRESS_TABS_TWEAKS extends WPCD_WORDPRESS_TABS {
 	 * @return boolean success/failure/other
 	 */
 	private function tweaks_toggle_a_thing( $id, $action ) {
+		
+		// What type of web server are we running?
+		$webserver_type      = $this->get_web_server_type( $id );
+		$webserver_type_name = $this->get_web_server_description_by_id( $id );
+
+		switch ( $webserver_type ) {
+			case 'ols':
+			case 'ols-enterprise':
+				$bridge_file = 'ols_options.txt';
+				break;
+
+			case 'nginx':
+			default:
+				$bridge_file = 'nginx_options.txt';
+				break;
+
+		}		
 
 		// Action name that we'll be sending to the server.
 		$server_action = '';
@@ -801,9 +818,9 @@ class WPCD_WORDPRESS_TABS_TWEAKS extends WPCD_WORDPRESS_TABS {
 				// Figure out the proper action to send to the server script.
 				if ( 'on' === $browser_cache_status ) {
 					// currently on so turn it off.
-					$server_action = 'disable_cache_include';
+					$server_action = 'disable_browser_cache';
 				} else {
-					$server_action = 'enable_cache_include';
+					$server_action = 'enable_browser_cache';
 				}
 				break;
 		}
@@ -817,7 +834,7 @@ class WPCD_WORDPRESS_TABS_TWEAKS extends WPCD_WORDPRESS_TABS {
 		// Get the full command to be executed by ssh.
 		$run_cmd = $this->turn_script_into_command(
 			$instance,
-			'nginx_options.txt',
+			$bridge_file,
 			array(
 				'action' => $server_action,
 				'domain' => get_post_meta(
@@ -832,7 +849,7 @@ class WPCD_WORDPRESS_TABS_TWEAKS extends WPCD_WORDPRESS_TABS {
 
 		// Run the command.
 		$result  = $this->execute_ssh( 'generic', $instance, array( 'commands' => $run_cmd ) );
-		$success = $this->is_ssh_successful( $result, 'nginx_options.txt' );
+		$success = $this->is_ssh_successful( $result, $bridge_file );
 
 		// Check for success.
 		if ( ! $success ) {

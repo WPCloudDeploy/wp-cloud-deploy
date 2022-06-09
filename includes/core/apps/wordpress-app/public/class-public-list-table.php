@@ -56,7 +56,7 @@ class WPCD_Public_List_Table extends WP_List_Table {
 				'singular' => 'table example',
 				'plural'   => 'table examples',
 				'ajax'     => false,
-				'screen'   => isset( $args['screen'] ) ? $args['screen'] : null,
+				'screen'   => $this->post_type,
 			)
 		);
 
@@ -276,6 +276,12 @@ class WPCD_Public_List_Table extends WP_List_Table {
 	 * @return void
 	 */
 	public function views() {
+
+		if ( boolval( wpcd_get_option( 'wordpress_app_fe_hide_filter_bar' ) ) ) {
+			// If we're hiding the filter bar, we don't need the views either.
+			return;
+		}
+
 		$views = $this->get_views();
 
 		$views = apply_filters( "wpcd_public_table_views_{$this->post_type}", $views );
@@ -288,7 +294,7 @@ class WPCD_Public_List_Table extends WP_List_Table {
 		foreach ( $views as $class => $view ) {
 			$views[ $class ] = "\t<li class='$class'>$view";
 		}
-		echo implode( " |</li>\n", $views ) . "</li>\n";
+		echo implode( "  </li>\n", $views ) . "</li>\n";
 		echo '</ul>';
 	}
 
@@ -439,7 +445,7 @@ class WPCD_Public_List_Table extends WP_List_Table {
 	/**
 	 * Print grid table columns template
 	 */
-	function print_style() {
+	public function print_style() {
 
 		$template_columns = implode( ' ', $this->grid_template_columns() );
 		?>
@@ -459,7 +465,7 @@ class WPCD_Public_List_Table extends WP_List_Table {
 	 *
 	 * @return string
 	 */
-	function grid_template_columns() {
+	public function grid_template_columns() {
 		list( $columns, $hidden, $sortable, $primary ) = $this->get_column_info();
 
 		$grid_template = array();
@@ -683,10 +689,12 @@ class WPCD_Public_List_Table extends WP_List_Table {
 	public function display() {
 		$singular = $this->_args['singular'];
 
-		$this->display_tablenav( 'top' );
+		if ( ! boolval( wpcd_get_option( 'wordpress_app_fe_hide_filter_bar' ) ) ) {
+			$this->display_tablenav( 'top' );
+		}
 
 		/**
-		 * The max width var is added to the table output so that a JS script 
+		 * The max width var is added to the table output so that a JS script
 		 * can dynamically add/remove some css classes to help with responsive
 		 * behavior.
 		 * Usually, the $max_width var is set by calling the $this->grid_responsive_width()
@@ -792,8 +800,8 @@ class WPCD_Public_List_Table extends WP_List_Table {
 		 */
 		do_action( 'manage_posts_extra_tablenav', $which );
 	}
-	
-	
+
+
 	/**
 	 * Generates the required HTML for a list of row action links.
 	 *

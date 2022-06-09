@@ -11,7 +11,8 @@ var ajaxurl=wpcd_wpapp_params.ajaxurl;
 
     function init() {
             
-            
+        
+        // Resize the public/front-end grid
         function table_grid_view() {
 
             $('.wpcd-list-table.wpcd-grid-table').each( function() {
@@ -30,6 +31,7 @@ var ajaxurl=wpcd_wpapp_params.ajaxurl;
                 table_grid_view();
         });
         
+        // Call the function to resize the public/front-end grid on first load (function defined above.)
         table_grid_view();
 
         
@@ -45,12 +47,15 @@ var ajaxurl=wpcd_wpapp_params.ajaxurl;
             
             var prompt = "";
             var prompr_action_name = action == 'trash' ? 'delete' : action;
+            var messages = new Array();
+            
             if( 'app' == type ) {
-                    prompt = wpcd_wpapp_params.app_delete_messages[prompr_action_name];
+                    messages = JSON.parse( wpcd_public_app_delete_messages );
             } else if( 'server' == type ) {
-                    prompt = wpcd_wpapp_params.server_delete_messages[prompr_action_name];
+                    messages = JSON.parse( wpcd_public_server_delete_messages );
             }
             
+            prompt = messages[ prompr_action_name ];
             if( !confirm( prompt ) ) {
                     return;
             }

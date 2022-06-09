@@ -1,1066 +1,1264 @@
 #!/bin/bash
-if [[ "$EUID" -ne 0 ]]; then
+if [[ "$EUID" -ne 0 ]]
+then
 	echo "Sorry, you need to run this as root"
 	exit
 fi
 
+## Get our common functions
+if [[ ! -f 9999-common-functions.sh ]]
+then
+	echo "The file 9999-common-functions.sh is missing"
+	exit 1
+fi
+source 9999-common-functions.sh
+
+OLS_PASS_PROTECT_ROOT='### Enabling Password Protection config start
+context / {
+allowBrowse             1
+note             Password Protect document root for domain
+realm                   Default
+accessControl  {
+allow                 *
+}
+rewrite  {
+}
+addDefaultCharset       off
+phpIniOverride  {
+}
+}
+### Enabling Password Protection config end'
+
+preprocessed_VAR=$(printf '%s\n' "$OLS_PASS_PROTECT_ROOT" | sed 's/\\/&&/g;s/^[[:blank:]]/\\&/;s/$/\\/')
+
+########## Wp-admin protection
+OLS_PASS_PROTECT_WP_ADMIN='### Enabling Password Protection wp-admin config start
+realm Wpadmin {
+	note                    Wp-Admin password protected realm
+	userDB  {
+		location              $SERVER_ROOT/conf/vhosts/$VH_NAME/htpasswd-wpadmin
+	}
+}
+
+context /wp-login.php {
+location wp-login.php
+allowBrowse             1
+note             Password Protect wp-admin for domain
+realm                   Wpadmin
+accessControl  {
+allow                 *
+}
+rewrite  {
+}
+phpIniOverride  {
+}
+}
+### Enabling Password Protection wp-admin config end'
+
+preprocessed_VAR2=$(printf '%s\n' "$OLS_PASS_PROTECT_WP_ADMIN" | sed 's/\\/&&/g;s/^[[:blank:]]/\\&/;s/$/\\/')
+
 
 # for options where changes are applied to the filesystem
 select_domain () {
-while [[ -z $domain ]]; do
-    clear
-    echo "Please, select which site you want to work with"
-    ls /var/www | grep -v html | nl
-    echo
-    read -p "Select site: " site_number
-    number_of_sites=$(ls /var/www | grep -v html | wc -l)
-    until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
-    	echo "$site_number: invalid selection."
-    	read -p "Select site: " site_number
-    done
-    domain=$(ls /var/www | grep -v html | sed -n "$site_number"p)
-done
+	while [[ -z $domain ]]
+	do
+		clear
+		echo "Please, select which site you want to work with"
+		gf_select_domain
+		domain=$(ls /var/www | grep -v html | sed -n "$site_number"p)
+	done
 }
 
 
 # for options where changes are applied to the NGINX configuration
 select_domain_mu () {
-while [[ -z $domain ]]; do
-    echo
-    echo "Please, select which site you want to work with"
-    echo
-    ls /etc/nginx/sites-enabled/ | grep -v '^default$\|^monit$\|^monitorix$' | nl
-    read -p "Select site: " site_number
-    number_of_sites=$(ls /etc/nginx/sites-enabled/ | grep -v '^default$\|^monit$\|^monitorix$' | wc -l)
-    until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
-    	echo "$site_number: invalid selection."
-    	read -p "Select site: " site_number
-    done
-    domain=$(ls /etc/nginx/sites-enabled/ | grep -v '^default$\|^monit$\|^monitorix$' | sed -n "$site_number"p)
-done
+	while [[ -z $domain ]]
+	do
+		echo
+		echo "Please, select which site you want to work with"
+		gf_select_domain_nginx_ols
+	done
 }
 
 
-while [[ -z $action ]]; do
-    echo "What do you want to do?"
-    echo "   1) Enable password authentication"
-    echo "   2) Disable password authentication"
-    echo "   3) Change PHP version for a site"
-    echo "   4) Fix WordPress file and folder permissions"
-    echo "   5) Add HTTP headers for a site"
-    echo "   6) Remove HTTP headers for a site"
-    echo "   7) Add a cron job"
-    echo "   8) Delete a cron job"
-    echo "   9) Edit the cron jobs"
-    echo "   10) Add PHP options for a site"
-    echo "   11) Remove PHP options for a site"
-    echo "   12) Show used disk space"
-    echo "   13) Disable WordPress cron and enable system cron for WordPress"
-    echo "   14) Disable system cron for WordPress and enable WordPress cron"
-    echo "   15) Enable HTTPS redirection from HTTP"
-    echo "   16) Disable HTTPS redirection from HTTP"
-    echo "   17) Enable a PHP module"
-    echo "   18) Disable a PHP module"
-    echo "   19) List all cron jobs across all users/system"
-    echo "   20) Turn on WordPress Debug Flags"
-    echo "   21) Turn off WordPress Debug Flags"
-    echo "   22) Change WordPress Upload File Limits"
-    echo "   23) Add a a new admin user to a site"
-    echo "   24) Restart the current php version for a site"
-    echo "   25) Restart NGINX"
-    echo "   26) Restart MariaDB"
-    echo "   27) Restart Redis"
-    echo "   28) Restart Memcached"
-    echo "   29) Enable SSH Password Authentication for a user"
-    echo "   30) Disable SSH Password Authentication for a user"
-    echo "   31) Status of ssh Password Authentication for a user"	
-    echo "   32) List of Tables in Database"	
-    echo "   33) Add HTTP Auth for WP Login"	
-    echo "   34) Remove HTTP Auth for WP Login"	
-    echo "   35) Disable Php Version"
-    echo "   36) Enable Php Version"
-    echo
-    read -p "Action: " action
-    until [[ -z "$action" || "$action" =~ ^[1-9]|2[0-9]|3[0-9]$ ]]; do
-    	echo "$action: invalid selection."
-    	read -p "Action: " action
-    done
+while [[ -z $action ]]
+do
+	echo "What do you want to do?"
+	echo "   1) Enable password authentication"
+	echo "   2) Disable password authentication"
+	echo "   3) Change PHP version for a site"
+	echo "   4) Fix WordPress file and folder permissions"
+	echo "   5) Add HTTP headers for a site"
+	echo "   6) Remove HTTP headers for a site"
+	echo "   7) Add a cron job"
+	echo "   8) Delete a cron job"
+	echo "   9) Edit the cron jobs"
+	echo "   10) Add PHP options for a site"
+	echo "   11) Remove PHP options for a site"
+	echo "   12) Show used disk space"
+	echo "   13) Disable WordPress cron and enable system cron for WordPress"
+	echo "   14) Disable system cron for WordPress and enable WordPress cron"
+	echo "   15) Enable HTTPS redirection from HTTP"
+	echo "   16) Disable HTTPS redirection from HTTP"
+	echo "   17) Enable a PHP module"
+	echo "   18) Disable a PHP module"
+	echo "   19) List all cron jobs across all users/system"
+	echo "   20) Turn on WordPress Debug Flags"
+	echo "   21) Turn off WordPress Debug Flags"
+	echo "   22) Change WordPress Upload File Limits"
+	echo "   23) Add a a new admin user to a site"
+	echo "   24) Restart the current php version for a site"
+	echo "   25) Restart Webserver"
+	echo "   26) Restart MariaDB"
+	echo "   27) Restart Redis"
+	echo "   28) Restart Memcached"
+	echo "   29) Enable SSH Password Authentication for a user"
+	echo "   30) Disable SSH Password Authentication for a user"
+	echo "   31) Status of ssh Password Authentication for a user"	
+	echo "   32) List of Tables in Database"	
+	echo "   33) Add HTTP Auth for WP Login"	
+	echo "   34) Remove HTTP Auth for WP Login"	
+	echo "   35) Disable Php Version"
+	echo "   36) Enable Php Version"
+	echo
+	read -p "Action: " action
+	until [[ -z "$action" || "$action" =~ ^[1-9]|2[0-9]|3[0-9]$ ]]
+	do
+		echo "$action: invalid selection."
+		read -p "Action: " action
+	done
 done
 
 
-
-if [[ $action == "enable_auth" || $action == "1" ]]; then
-
-    select_domain_mu
-
-    if grep -qs auth_basic /etc/nginx/sites-enabled/$domain; then
-        echo
-        echo "Basic auth is already enabled for $domain!"
-        exit
-    fi
-
-    if [[ -z $user ]]; then
-        echo
-        echo "Specify a user name for basic authentication
-Example: admin"
-        read -p "User name: " user
-    fi
-
-    if [[ -z $pass ]]; then
-        echo
-        echo "Specify a password"
-        read -p "Password: " pass
-    fi
-
-    # password auth
-    cd /etc/nginx
-    sed -i "/client_max_body_size/a auth_basic_user_file /etc/nginx/htpasswd/$domain;" sites-enabled/$domain
-    sed -i "/client_max_body_size/a auth_basic “Protected”;" sites-enabled/$domain
-    mkdir -p htpasswd
-    htpasswd -b -c htpasswd/$domain $user $pass
-    systemctl restart nginx
-
-    echo
-    echo "Basic authentication enabled for $domain"
-    exit
-
-fi
-
-
-
-if [[ $action == "disable_auth" || $action == "2" ]]; then
-
-    select_domain_mu
-
-    sed -i '/auth_basic/d' /etc/nginx/sites-enabled/$domain
-    systemctl restart nginx
-    rm /etc/nginx/htpasswd/$domain
-
-    echo
-    echo "Basic authentication disabled for $domain"
-
-    exit
-
-fi
-
-
-
-if [[ $action == "change_php_version" || $action == "3" ]]; then
-
-    select_domain
-
-    current_php_version=$(ls /etc/php/*/fpm/pool.d/$domain.conf | cut -d '/' -f 4)
-
-    while [[ -z $new_php_version ]]; do
-        echo
-        echo "Current PHP version for $domain is $current_php_version"
-        echo
-        echo "Available PHP versions are:"
-        ls /etc/php/ | nl
-        echo
-        echo "Select which PHP version you want to configure for $domain."
-        read -p "Select PHP version: " site_number
-        number_of_sites=$(ls /etc/php/ | wc -l)
-        until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
-        	echo "$site_number: invalid selection."
-        	read -p "Select PHP version: " site_number
-        done
-        new_php_version=$(ls /etc/php/ | sed -n "$site_number"p)
-    done
-
-    if [ -f /etc/wpcd/php-versions-disabled/php$new_php_version ]
-    then
-            echo "selected php version is disabled"
-            exit
-    fi
-
-    rm -f /etc/php/$current_php_version/fpm/pool.d/$domain.conf
-    
-    user_name=$(echo $domain | cut -c1-32)
-
-    echo "[$domain]
-user = $user_name
-group = www-data
-listen = /run/php/php-fpm-$domain.sock
-listen.owner = $user_name
-listen.group = www-data
-pm = dynamic
-pm.max_children = 5
-pm.start_servers = 2
-pm.min_spare_servers = 1
-pm.max_spare_servers = 3
-php_admin_value[open_basedir] = \"/var/www/$domain/html/:/tmp/\"
-php_admin_value[allow_url_fopen] = 0
-php_admin_value[allow_url_include] = 0
-php_admin_value[disable_functions] =  dl, exec, fpassthru, getmypid, getmyuid, highlight_file, link, opcache_get_configuration, passthru, pcntl_exec, pcntl_get_last_error, pcntl_setpriority, pcntl_strerror, pcntl_wifcontinued, phpinfo, popen, posix_ctermid, posix_getcwd, posix_getegid, posix_geteuid, posix_getgid, posix_getgrgid, posix_getgrnam, posix_getgroups, posix_getlogin, posix_getpgid, posix_getpgrp, posix_getpid, posix_getppid, posix_getpwnam, posix_getpwuid, posix_getrlimit, posix_getsid, posix_getuid, posix_isatty, posix_kill, posix_mkfifo, posix_setegid, posix_seteuid, posix_setgid, posix_setpgid, posix_setsid, posix_setuid, posix_times, posix_ttyname, posix_uname, proc_close, proc_get_status, proc_nice, proc_open, proc_terminate, shell_exec, show_source, source, system, virtual
-php_admin_value[session.use_strict_mode] = 1
-php_admin_value[session.cookie_httponly] = 1
-php_admin_value[session.use_cookies] = 1
-php_admin_value[session.use_only_cookies] = 1
-php_admin_value[session.use_trans_sid] = 0" > /etc/php/$new_php_version/fpm/pool.d/$domain.conf
-
-    if [ ! -f /etc/wpcd/php-versions-disabled/php$current_php_version ]; then
-        systemctl restart php$current_php_version-fpm
-    fi
-    systemctl restart php$new_php_version-fpm
-
-    echo
-    echo "PHP version changed to $new_php_version for $domain"
-    exit
-fi
-
-
-
-if [[ $action == "reset_permissions" || $action == "4" ]]; then
-
-    select_domain
-
-    chown -R root:root /var/www/$domain/
-    chown -R www-data:www-data /var/www/$domain/html/
-    chmod -R g+w /var/www/$domain/html
-    chmod -R g+s /var/www/$domain/html
-    find /var/www/$domain/html -type f -exec chmod 664 {} +
-    find /var/www/$domain/html -type d -exec chmod 2775 {} +
-    echo
-    echo "Permissions have been reset for $domain"
-    exit
-fi
-
-
-
-if [[ $action == "add_header" || $action == "5" ]]; then
-
-    select_domain_mu
-
-    if [[ -z $header ]]; then
-        echo
-        echo "Specify the HTTP header and its value which you wish to add"
-        echo "Example: Access-Control-Allow-Origin https://mysite.com"
-        echo
-        read -p "Header: " header
-    fi
-    sed -i "/client_max_body_size/a add_header $header;" /etc/nginx/sites-enabled/$domain
-    systemctl restart nginx
-    echo
-    echo "Header $header added for $domain"
-    exit
-fi
-
-
-
-if [[ $action == "remove_header" || $action == "6" ]]; then
-
-    select_domain_mu
-
-    while [[ -z $header ]]; do
-        echo
-        echo "Select the HTTP header which you wish to remove"
-        grep add_header /etc/nginx/sites-enabled/$domain | cut -d " " -f 2-3 | cut -d ';' -f 1 | nl
-        read -p "Header: " site_number
-        number_of_sites=$(grep add_header /etc/nginx/sites-enabled/$domain | cut -d " " -f 2-3 | cut -d ';' -f 1 | wc -l)
-        until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
-        	echo "$site_number: invalid selection."
-        	read -p "Header: " site_number
-        done
-        header=$(grep add_header /etc/nginx/sites-enabled/$domain | cut -d " " -f 2-3 | cut -d ';' -f 1 | sed -n "$site_number"p)
-    done
-
-    sed -i "/$header/d" /etc/nginx/sites-enabled/$domain
-    systemctl restart nginx
-    echo
-    echo "Header $header removed for $domain"
-    exit
-
-fi
-
-
-
-if [[ $action == "add_cron_job" || $action == "7" ]]; then
-
-    select_domain
-    user_name=$(echo $domain | cut -c1-32)
-
-    if [[ -z $cron_job ]]; then
-    echo
-    echo "Specify the cron job in crontab format
-Example: 0 * * * * touch /var/www/$domain/html/testfile"
-    read -p "Cron job: " cron_job
-    fi
-    (su - $user_name -c "crontab -l 2>/dev/null"; echo "$cron_job") | su - $user_name -c "crontab -"
-    echo
-    echo "Cron job configured for $domain"
-fi
-
-
-
-if [[ $action == "delete_cron_job" || $action == "8" ]]; then
-    
-    select_domain
-    user_name=$(echo $domain | cut -c1-32)
-
-    while [[ -z $cron_job ]]; do
-        echo
-        echo "Select the cron job which you wish to remove"
-        su - $user_name -c "crontab -l" | nl
-        read -p "Cron job: " site_number
-        number_of_sites=$(su - $user_name -c "crontab -l" | wc -l)
-        until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
-        	echo "$site_number: invalid selection."
-        	read -p "Cron job: " site_number
-        done
-        cron_job=$(su - $user_name -c "crontab -l" | sed -n "$site_number"p)
-    done
-
-    # needed to remove asterisks
-    escaped_cron_job=$(echo "$cron_job" | sed 's/\*/\\*/g')
-    (su - $user_name -c "crontab -l 2>/dev/null" | sed "\:$escaped_cron_job:d") | su - $user_name -c "crontab -"
-
-    echo
-    echo "Cron job deleted for $domain"
-    exit
-fi
-
-
-
-if [[ $action == "crontab" || $action == "9" ]]; then
-
-    select_domain
-    user_name=$(echo $domain | cut -c1-32)
-
-    echo
-    read -p "Press enter to start the crontab editor for $domain"
-    su - $user_name -c "crontab -e"
-fi
-
-
-
-if [[ $action == "add_php_param" || $action == "10" ]]; then
-
-    select_domain
-
-    if [[ -z $php_param ]]; then
-        echo
-        echo "Specify the PHP value which you wish to add"
-        echo "Example: upload_max_filesize=200M"
-        echo
-        read -p "PHP value: " php_param
-    fi
-    # if parameter is already set, we delete it before configuring the new one
-    sed -i "/$(echo $php_param | cut -d "=" -f 1)/d" /etc/nginx/sites-enabled/$domain
-    sed -i "/fastcgi_param PHP_VALUE/a $php_param;" /etc/nginx/sites-enabled/$domain
-    echo
-    echo "Successfully changed PHP value $php_param for $domain"
-    systemctl restart nginx
-    exit
-fi
-
-
-
-if [[ $action == "remove_php_param" || $action == "11" ]]; then
-
-    select_domain
-
-    while [[ -z $php_param ]]; do
-        echo
-        echo "Specify the PHP value which you wish to remove"
-        sed -n '/fastcgi_param PHP_VALUE/,/";/p' /etc/nginx/sites-enabled/$domain | sed '1d;$d' | nl
-        read -p "PHP value: " site_number
-        number_of_sites=$(sed -n '/fastcgi_param PHP_VALUE/,/";/p' /etc/nginx/sites-enabled/$domain | sed '1d;$d' | wc -l)
-        until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
-        	echo "$site_number: invalid selection."
-        	read -p "PHP value: " site_number
-        done
-        php_param=$(sed -n '/fastcgi_param PHP_VALUE/,/";/p' /etc/nginx/sites-enabled/$domain | sed '1d;$d' | sed -n "$site_number"p)
-    done
-
-    sed -i "/$php_param/d" /etc/nginx/sites-enabled/$domain
-    systemctl restart nginx
-    php_version=$(ls /etc/php/*/fpm/pool.d/$domain.conf | cut -d '/' -f 4)
-    if [ ! -f /etc/wpcd/php-versions-disabled/php$php_version ]; then
-        systemctl restart php$php_version-fpm
-    fi
-    echo
-    echo "Successfully removed PHP value $php_param for $domain"
-    exit
-
-fi
-
-
-
-if [[ $action == "show_disk_usage" || $action == "12" ]]; then
-
-    select_domain
-
-    echo
-    mysql_db=$(grep DB_NAME /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
-    # echo "Disk usage for $domain is: $(du -hs /var/www/$domain/ | cut -d '/' -f 1). Backups are also using: $(du -hs ~/.wp-backup/$domain/ | cut -d '/' -f 1) while Mysql is using an additional: $(du -sh /var/lib/mysql/$mysql_db |cut -d '/' -f 1)"
-	echo "Domain Files: $(du -hs /var/www/$domain/ | cut -d '/' -f 1)"
-	if [ -d ~/.wp-backup/$domain/ ] 
+if [[ $action == "enable_auth" || $action == "1" ]]
+then
+	select_domain_mu
+	if [ "$g_webserver_type" = "nginx" ]
 	then
-		echo "Backups: $(du -hs ~/.wp-backup/$domain/ | cut -d '/' -f 1)"
+		if grep -qs auth_basic /etc/nginx/sites-enabled/$domain
+		then
+			echo
+			echo "Basic auth is already enabled for $domain!"
+			exit
+		fi
+	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+	then
+		if grep -qs 'note             Password Protect document root for domain' ${VHDIR}/$domain/$g_vhost_conf
+		then
+			echo
+			echo "Basic auth is already enabled for $domain!"
+			exit
+		fi 
+	fi
+
+	if [[ -z $user ]]
+	then
+		echo
+		echo "Specify a user name for basic authentication
+		Example: admin"
+		read -p "User name: " user
+	fi
+
+	if [[ -z $pass ]]
+	then
+		echo
+		echo "Specify a password"
+		read -p "Password: " pass
+	fi
+
+	if [ "$g_webserver_type" = "nginx" ]
+	then
+		# password auth
+		cd /etc/nginx
+		sed -i "/client_max_body_size/a auth_basic_user_file /etc/nginx/htpasswd/$domain;" sites-enabled/$domain
+		sed -i "/client_max_body_size/a auth_basic “Protected”;" sites-enabled/$domain
+		mkdir -p htpasswd
+		htpasswd -b -c htpasswd/$domain $user $pass
+	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+	then
+		sed -i -e "/### Insert context configs below this line/a\\
+		${preprocessed_VAR%?}"  ${VHDIR}/$domain/$g_vhost_conf
+		htpasswd -b ${VHDIR}/$domain/htpasswd $user $pass
+		chown -R lsadm:lsadm ${VHDIR}/$domain/
+	fi
+	gf_restart_webserver
+	echo
+	echo "Basic authentication enabled for $domain"
+	exit
+fi
+
+
+if [[ $action == "disable_auth" || $action == "2" ]]
+then
+	select_domain_mu
+	if [ "$g_webserver_type" = "nginx" ]
+	then
+		sed -i '/auth_basic/d' /etc/nginx/sites-enabled/$domain
+		rm /etc/nginx/htpasswd/$domain
+	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+	then
+		# Emptying file to remove all users but leaving it in place
+		# shellcheck disable=SC2188
+		# > ${VHDIR}/$domain/htpasswd
+		# Remove block from vhost config
+		sed -i -re '/### Enabling Password Protection config start/{:a;N;/### Enabling Password Protection config end/!ba};/note             Password Protect document root for domain/d' ${VHDIR}/$domain/$g_vhost_conf
+		chown -R lsadm:lsadm ${VHDIR}/$domain/
+	fi
+	gf_restart_webserver
+	echo
+	echo "Basic authentication disabled for $domain"
+	exit
+fi
+
+
+if [[ $action == "change_php_version" || $action == "3" ]]
+then
+	select_domain
+	if [ "$g_webserver_type" = "nginx" ]
+	then
+		current_php_version=$(ls /etc/php/*/fpm/pool.d/$domain.conf | cut -d '/' -f 4)
+	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+	then
+		current_php_version=$(grep -sEo 'lsphp[0-9]{2}' ${VHDIR}/$domain/$g_vhost_conf|head -n1)
+	fi
+
+	while [[ -z $new_php_version ]]
+	do
+		echo
+		echo "Current PHP version for $domain is $current_php_version"
+		echo
+		echo "Select which PHP version you want to configure for $domain."
+		gf_select_phpversion
+		if [ "$g_webserver_type" = "nginx" ]
+		then
+			new_php_version=$(ls /etc/php/ | sed -n "$site_number"p)
+		elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+		then
+			new_php_version=$(ls /usr/local/lsws|grep lsphp| sed -n "$site_number"p)
+		fi
+	done
+
+	if [ "$g_webserver_type" = "nginx" ]
+	then	
+		# The concept of versions disabled only applies to NGINX.
+		if [ -f /etc/wpcd/php-versions-disabled/$new_php_version ]
+		then
+			echo "selected php version is disabled"
+			exit
+		fi
+	fi
+
+	user_name=$(echo $domain | cut -c1-32)
+	if [ "$g_webserver_type" = "nginx" ]
+	then
+		rm -f /etc/php/$current_php_version/fpm/pool.d/$domain.conf
+		if [[ ! -f /etc/wpcd/php-versions-disabled/$current_php_version ]]
+		then
+			systemctl restart php$current_php_version-fpm
+		fi
+		gf_add_php_conf $domain $user_name $new_php_version
+	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+	then
+		sed -i "s/$current_php_version/$new_php_version/g" ${VHDIR}/$domain/$g_vhost_conf > /dev/null 2>&1
+	fi
+	gf_restart_webserver
+	echo
+	echo "PHP version changed to $new_php_version for $domain"
+	exit
+fi
+
+
+if [[ $action == "reset_permissions" || $action == "4" ]]
+then
+	select_domain
+	user_name=$(echo $domain | cut -c1-32)
+	if [ "$g_webserver_type" = "nginx" ]
+	then
+		chown -R root:root /var/www/$domain/
+		chown -R www-data:www-data /var/www/$domain/html/
+		chmod -R g+w /var/www/$domain/html
+		chmod -R g+s /var/www/$domain/html
+		find /var/www/$domain/html -type f -exec chmod 664 {} +
+		find /var/www/$domain/html -type d -exec chmod 2775 {} +	
+	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+	then	
+		chown -R root:root /var/www/"$domain"/
+		chown -R "${user_name}":www-data /var/www/"$domain"/html/
+		chown -R "${user_name}":www-data /var/www/"$domain"/html/logs/
+		# Hidden files test support: https://serverfault.com/a/156481
+		chown -R "${user_name}":www-data /var/www/"$domain"/html/.[^.]*
+		chmod -R g+ws "/var/www/$domain/html"
+		find /var/www/$domain/html -type f -exec chmod 664 {} +
+		find /var/www/$domain/html -type d -exec chmod 2775 {} +
+	fi		
+	echo
+	echo "Permissions have been reset for $domain"
+	exit
+fi
+
+
+if [[ $action == "add_header" || $action == "5" ]]
+then
+	select_domain_mu
+	if [[ -z $header ]]
+	then
+		echo
+		echo "Specify the HTTP header and its value which you wish to add"
+		echo "Example: Access-Control-Allow-Origin https://mysite.com"
+		echo
+		read -p "Header: " header
+	fi
+	if [ "$g_webserver_type" = "nginx" ]
+	then
+		sed -i "/client_max_body_size/a add_header $header;" /etc/nginx/sites-enabled/$domain
+	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+	then
+		sed -i "/<<<END_extraHeaders/a $header;" ${VHDIR}/$domain/$g_vhost_conf > /dev/null 2>&1
+	fi
+	gf_restart_webserver
+	echo
+	echo "Header $header added for $domain"
+	exit
+fi
+
+
+if [[ $action == "remove_header" || $action == "6" ]]
+then
+	select_domain_mu
+	if [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+	then
+		while [[ -z $header ]]
+		do
+			echo "Select the HTTP header which you wish to remove"
+			sed -n '/extraHeaders/, /END_extraHeaders/{ /extraHeaders/! { /END_extraHeaders/! p}}' ${VHDIR}/$domain/$g_vhost_conf| nl
+			read -p "Header: " site_number
+			number_of_sites=$(sed -n '/extraHeaders/, /END_extraHeaders/{ /extraHeaders/! { /END_extraHeaders/! p}}' ${VHDIR}/$domain/$g_vhost_conf| wc -l )
+			until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]
+			do
+				echo "$site_number: invalid selection."
+				read -p "Header: " site_number
+			done
+			header=$(sed -n '/extraHeaders/, /END_extraHeaders/{ /extraHeaders/! { /END_extraHeaders/! p}}' ${VHDIR}/$domain/$g_vhost_conf | sed -n "$site_number"p)
+		done
+		sed -i "\#$header#d" ${VHDIR}/$domain/$g_vhost_conf
+	elif [ "$g_webserver_type" = "nginx" ]
+	then
+		while [[ -z $header ]]
+		do
+			echo
+			echo "Select the HTTP header which you wish to remove"
+			grep add_header /etc/nginx/sites-enabled/$domain | cut -d " " -f 2-3 | cut -d ';' -f 1 | nl
+			read -p "Header: " site_number
+			number_of_sites=$(grep add_header /etc/nginx/sites-enabled/$domain | cut -d " " -f 2-3 | cut -d ';' -f 1 | wc -l)
+			until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]
+			do
+				echo "$site_number: invalid selection."
+				read -p "Header: " site_number
+			done
+			header=$(grep add_header /etc/nginx/sites-enabled/$domain | cut -d " " -f 2-3 | cut -d ';' -f 1 | sed -n "$site_number"p)
+		done
+		sed -i "\#$header#d" /etc/nginx/sites-enabled/$domain
+	fi
+	gf_restart_webserver
+	echo "Header $header removed for $domain"
+	exit
+fi
+
+
+if [[ $action == "add_cron_job" || $action == "7" ]]
+then
+	select_domain
+	user_name=$(echo $domain | cut -c1-32)
+	if [[ -z $cron_job ]]
+	then
+		echo
+		echo "Specify the cron job in crontab format
+		Example: 0 * * * * touch /var/www/$domain/html/testfile"
+		read -p "Cron job: " cron_job
+	fi
+	(su - $user_name -c "crontab -l 2>/dev/null"; echo "$cron_job") | su - $user_name -c "crontab -"
+	echo
+	echo "Cron job configured for $domain"
+fi
+
+
+if [[ $action == "delete_cron_job" || $action == "8" ]]
+then
+	select_domain
+	user_name=$(echo $domain | cut -c1-32)
+	while [[ -z $cron_job ]]
+	do
+		echo
+		echo "Select the cron job which you wish to remove"
+		su - $user_name -c "crontab -l" | nl
+		read -p "Cron job: " site_number
+		number_of_sites=$(su - $user_name -c "crontab -l" | wc -l)
+		until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]
+		do
+			echo "$site_number: invalid selection."
+			read -p "Cron job: " site_number
+		done
+		cron_job=$(su - $user_name -c "crontab -l" | sed -n "$site_number"p)
+	done
+	# needed to remove asterisks
+	escaped_cron_job=$(echo "$cron_job" | sed 's/\*/\\*/g')
+	(su - $user_name -c "crontab -l 2>/dev/null" | sed "\:$escaped_cron_job:d") | su - $user_name -c "crontab -"
+	echo
+	echo "Cron job deleted for $domain"
+	exit
+fi
+
+
+if [[ $action == "crontab" || $action == "9" ]]
+then
+	select_domain
+	user_name=$(echo $domain | cut -c1-32)
+	echo
+	read -p "Press enter to start the crontab editor for $domain"
+	su - $user_name -c "crontab -e"
+fi
+
+
+if [[ $action == "add_php_param" || $action == "10" ]]
+then
+	select_domain
+	if [[ -z $php_param ]]
+	then
+		echo
+		echo "Specify the PHP value which you wish to add"
+		echo "Example: upload_max_filesize=200M"
+		echo
+		read -p "PHP value: " php_param
+	fi
+	if [ "$g_webserver_type" = "nginx" ]
+	then
+		# if parameter is already set, we delete it before configuring the new one
+		sed -i "/$(echo $php_param | cut -d "=" -f 1)/d" /etc/nginx/sites-enabled/$domain
+		sed -i "/fastcgi_param PHP_VALUE/a $php_param;" /etc/nginx/sites-enabled/$domain
+	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+	then
+		sed -i "/$(echo $php_param | cut -d "=" -f 1)/d" ${VHDIR}/$domain/$g_vhost_conf
+		sed -i -e "/### Insert common phpIni/a\\php_admin_value ${php_param}"  ${VHDIR}/$domain/$g_vhost_conf
+	fi
+	echo
+	echo "Successfully changed PHP value $php_param for $domain"
+	gf_restart_webserver
+	exit
+fi
+
+
+if [[ $action == "remove_php_param" || $action == "11" ]]
+then
+	select_domain
+	while [[ -z $php_param ]]
+	do
+		echo
+		echo "Specify the PHP value which you wish to remove"
+		if [ "$g_webserver_type" = "nginx" ]
+		then
+			sed -n '/fastcgi_param PHP_VALUE/,/";/p' /etc/nginx/sites-enabled/$domain | sed '1d;$d' | nl
+			read -p "PHP value: " site_number
+			number_of_sites=$(sed -n '/fastcgi_param PHP_VALUE/,/";/p' /etc/nginx/sites-enabled/$domain | sed '1d;$d' | wc -l)
+			until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]
+			do
+				echo "$site_number: invalid selection."
+				read -p "PHP value: " site_number
+			done
+			php_param=$(sed -n '/fastcgi_param PHP_VALUE/,/";/p' /etc/nginx/sites-enabled/$domain | sed '1d;$d' | sed -n "$site_number"p)
+		elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+		then
+			grep php_admin_value ${VHDIR}/$domain/$g_vhost_conf |cut -d' ' -f2 |nl
+			read -p "PHP value: " site_number
+			number_of_sites=$(grep php_admin_value ${VHDIR}/$domain/$g_vhost_conf| wc -l)
+			until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]
+			do
+				echo "$site_number: invalid selection."
+				read -p "PHP value: " site_number
+			done
+			php_param=$(grep php_admin_value ${VHDIR}/$domain/$g_vhost_conf| cut -d' ' -f2|sed -n "$site_number"p)
+		fi
+	done
+	if [ "$g_webserver_type" = "nginx" ]
+	then
+		sed -i "/$php_param/d" /etc/nginx/sites-enabled/$domain
+		systemctl restart nginx
+		php_version=$(ls /etc/php/*/fpm/pool.d/$domain.conf | cut -d '/' -f 4)
+		if [ ! -f /etc/wpcd/php-versions-disabled/$php_version ]
+		then
+			systemctl restart php$php_version-fpm
+		fi
+	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+	then
+		sed -i "/$(echo $php_param | cut -d "=" -f 1)/d" ${VHDIR}/$domain/$g_vhost_conf
+	fi
+	gf_restart_webserver
+	echo
+	echo "Successfully removed PHP value $php_param for $domain"
+	exit
+fi
+
+
+if [[ $action == "show_disk_usage" || $action == "12" ]]
+then
+	select_domain
+	echo
+	mysql_db=$(grep DB_NAME /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
+	# echo "Disk usage for $domain is: $(du -hs /var/www/$domain/ | cut -d '/' -f 1). Backups are also using: $(du -hs /root/.wp-backup/$domain/ | cut -d '/' -f 1) while Mysql is using an additional: $(du -sh /var/lib/mysql/$mysql_db |cut -d '/' -f 1)"
+	echo "Domain Files: $(du -hs /var/www/$domain/ | cut -d '/' -f 1)"
+	if [ -d /root/.wp-backup/$domain/ ] 
+	then
+		echo "Backups: $(du -hs /root/.wp-backup/$domain/ | cut -d '/' -f 1)"
 	else 
 		echo "Backups: 0M"
 	fi
-	echo "DB: $(du -sh /var/lib/mysql/$mysql_db |cut -d '/' -f 1)"
-    exit
+		echo "DB: $(du -sh /var/lib/mysql/$mysql_db |cut -d '/' -f 1)"
+		exit
 fi
 
 
-
-if [[ $action == "enable_system_cron" || $action == "13" ]]; then
-
-    select_domain
-    user_name=$(echo $domain | cut -c1-32)
-
-    while [[ -z $schedule ]]; do
-        echo "How often do you want it to run?"
-        echo "   1) Every minute"
+if [[ $action == "enable_system_cron" || $action == "13" ]]
+then
+	select_domain
+	user_name=$(echo $domain | cut -c1-32)
+	while [[ -z $schedule ]]
+	do
+		echo "How often do you want it to run?"
+		echo "   1) Every minute"
 		echo "   2) Every two minutes"
 		echo "   3) Every three minutes"
-        echo "   4) Every 5 minutes"
-        echo "   5) Every 15 minutes"
-        echo "   6) Every hour"
-        echo
-        read -p "Schedule: " schedule
-        while [[ -z "$schedule" ]]; do
-            echo "$schedule: invalid selection."
-            read -p "Schedule: " schedule
-        done
-    done
-	
+		echo "   4) Every 5 minutes"
+		echo "   5) Every 15 minutes"
+		echo "   6) Every hour"
+		echo
+		read -p "Schedule: " schedule
+		while [[ -z "$schedule" ]]
+		do
+			echo "$schedule: invalid selection."
+			read -p "Schedule: " schedule
+		done
+	done
 	# Figure out if we're on a network
-    is_network=false
-    cd /var/www/$domain/html
-    su - $user_name -c "wp site list" > /dev/null 2>&1
-    if [ $? -ne 0 ]
-    then
+	is_network=false
+	cd /var/www/$domain/html
+	su - $user_name -c "wp site list" > /dev/null 2>&1
+	if [ $? -ne 0 ]
+	then
 		echo "Not a network site, adding cron for single site."
-    else
+	else
 		is_network=true
 		echo "This is a network site, adding cron to loop through all sub-sites."
-    fi	
+	fi	
 
-    if [[ $schedule == "1" || $schedule == "1m" ]]; then
-	echo "$domain 1 $is_network" >> /usr/local/bin/wpcron.txt
-    fi
-	
-    if [[ $schedule == "2" || $schedule == "2m" ]]; then
-	echo "$domain 2 $is_network" >> /usr/local/bin/wpcron.txt
-    fi
-	
-    if [[ $schedule == "3" || $schedule == "3m" ]]; then
-	echo "$domain 3 $is_network" >> /usr/local/bin/wpcron.txt
-    fi	
+	if [[ $schedule == "1" || $schedule == "1m" ]]
+	then
+		echo "$domain 1 $is_network" >> /usr/local/bin/wpcron.txt
+	fi
+	if [[ $schedule == "2" || $schedule == "2m" ]]
+	then
+		echo "$domain 2 $is_network" >> /usr/local/bin/wpcron.txt
+	fi
+	if [[ $schedule == "3" || $schedule == "3m" ]]
+	then
+		echo "$domain 3 $is_network" >> /usr/local/bin/wpcron.txt
+	fi	
+	if [[ $schedule == "4" || $schedule == "5m" ]]
+	then
+		echo "$domain 5 $is_network" >> /usr/local/bin/wpcron.txt
+	fi
+	if [[ $schedule == "5" || $schedule == "15m" ]]
+	then
+		echo "$domain 15 $is_network" >> /usr/local/bin/wpcron.txt
+	fi
+	if [[ $schedule == "6" || $schedule == "1h" ]]
+	then
+		echo "$domain 60 $is_network" >> /usr/local/bin/wpcron.txt
+	fi
 
-    if [[ $schedule == "4" || $schedule == "5m" ]]; then
-	echo "$domain 5 $is_network" >> /usr/local/bin/wpcron.txt
-    fi
+	echo $'#!/bin/bash
+minutes=`date +%M`
+while read line
+do
+domain=`echo $line|cut -d" " -f1`
+period=`echo $line|cut -d" " -f2`
+network=`echo $line|cut -d" " -f3`
 
-    if [[ $schedule == "5" || $schedule == "15m" ]]; then
-	echo "$domain 15 $is_network" >> /usr/local/bin/wpcron.txt
-    fi
+crontime=`echo $((minutes % period))`
+if [ $crontime == 0 ] && [ $network == "true" ]
+then
+logger "WPCD: running cron for network: $domain"
+user_name=$(echo $domain | cut -c1-32)
+su - $user_name -c \"wp site list --field=url | xargs -i -n1 wp cron event run --due-now --url=\\"{}\\" \" > /dev/null 2>&1
+fi
 
-    if [[ $schedule == "6" || $schedule == "1h" ]]; then
-	echo "$domain 60 $is_network" >> /usr/local/bin/wpcron.txt
-    fi
-	
-    echo $'#!/bin/bash
-    minutes=`date +%M`
-    while read line
-    do
-	    domain=`echo $line|cut -d" " -f1`
-	    period=`echo $line|cut -d" " -f2`
-	    network=`echo $line|cut -d" " -f3`
+if [ $crontime == 0 ] && [ $network == "false" ]
+then
+logger "WPCD: running cron for standard domain: $domain"
+user_name=$(echo $domain | cut -c1-32)
+su - $user_name -c "wp cron event run --due-now > /dev/null 2>&1"
+fi
+done < /usr/local/bin/wpcron.txt' > /usr/local/bin/wp-systemcron
+	chmod +x /usr/local/bin/wp-systemcron
 
-	    crontime=`echo $((minutes % period))`
-	    if [ $crontime == 0 ] && [ $network == "true" ]
-        then
-            logger "WPCD: running cron for network: $domain"
-            user_name=$(echo $domain | cut -c1-32)
-            su - $user_name -c \"wp site list --field=url | xargs -i -n1 wp cron event run --due-now --url=\\"{}\\" \" > /dev/null 2>&1
-        fi
+	crontab -l | grep -q 'wp-systemcron' || (crontab -l 2>/dev/null; echo "* * * * * bash /usr/local/bin/wp-systemcron > /dev/null 2>&1") |crontab -
 
-        if [ $crontime == 0 ] && [ $network == "false" ]
-	    then
-            logger "WPCD: running cron for standard domain: $domain"
-            user_name=$(echo $domain | cut -c1-32)
-            su - $user_name -c "wp cron event run --due-now > /dev/null 2>&1"
-	    fi
-    done < /usr/local/bin/wpcron.txt' > /usr/local/bin/wp-systemcron
-    chmod +x /usr/local/bin/wp-systemcron
+	cd /var/www/$domain/html/
+	su - $user_name -c "wp --skip-plugins config set DISABLE_WP_CRON true"
 
-    crontab -l | grep -q 'wp-systemcron' || (crontab -l 2>/dev/null; echo "* * * * * bash /usr/local/bin/wp-systemcron > /dev/null 2>&1") |crontab -
-	
-    cd /var/www/$domain/html/
-    su - $user_name -c "wp --skip-plugins config set DISABLE_WP_CRON true"
-
-    echo
-    echo "System cron enabled for $domain"
-    exit
+	echo
+	echo "System cron enabled for $domain"
+	exit
 fi
 
 
 
-if [[ $action == "disable_system_cron" || $action == "14" ]]; then
-
-    select_domain
-    user_name=$(echo $domain | cut -c1-32)
-	
+if [[ $action == "disable_system_cron" || $action == "14" ]]
+then
+	select_domain
+	user_name=$(echo $domain | cut -c1-32)
 	# remove any line that has the domain on it.
-    sed -i "/$domain/d" /usr/local/bin/wpcron.txt
-    
+	sed -i "/$domain/d" /usr/local/bin/wpcron.txt
+
 	# how many characters remain?
 	wplist=`cat /usr/local/bin/wpcron.txt|wc -l`
-	
+
 	# if the file is empty, remove the entire cron entry from the cron tables.
-    if [ $wplist == 0 ]
-    then
-	    (crontab -l 2>/dev/null | sed '/wp-systemcron/d' ) | crontab -
-    fi
-	
+	if [ $wplist == 0 ]
+	then
+		(crontab -l 2>/dev/null | sed '/wp-systemcron/d' ) | crontab -
+	fi
+
 	# Remove left over entries from the cron tables related to older version of this script
 	# searching for two different versions of the entry in crontab since the format changed over time (with and without the --skip-plugins)
-    (su - $user_name -c "crontab -l 2>/dev/null" | sed '/wp --skip-plugins cron/d' ) | su - $user_name -c "crontab -"
+	(su - $user_name -c "crontab -l 2>/dev/null" | sed '/wp --skip-plugins cron/d' ) | su - $user_name -c "crontab -"
 	(su - $domain -c "crontab -l 2>/dev/null" | sed '/wp cron/d' ) | su - $domain -c "crontab -"
 	# End Remove left over entries from the cron tables related to older version of this script
-	
-    cd /var/www/$domain/html/
-    su - $user_name -c "wp --skip-plugins config delete DISABLE_WP_CRON"
 
-    echo
-    echo "System cron disabled for $domain"
-    exit
+	cd /var/www/$domain/html/
+	su - $user_name -c "wp --skip-plugins config delete DISABLE_WP_CRON"
+
+	echo
+	echo "System cron disabled for $domain"
+	exit
 fi
 
 
+if [[ $action == "enable_https_redir" || $action == "15" ]]
+then
+	select_domain_mu
+	user_name=$(echo $domain | cut -c1-32)
+	home_directory="/var/www/$domain/html"
 
-if [[ $action == "enable_https_redir" || $action == "15" ]]; then
-
-    select_domain_mu
-
-    # if it is not a wildcard multisite, we can use certbot to configure the redirection
-    if ! grep -q 'server_name \.' /etc/nginx/sites-enabled/$domain; then
-        # if current certificate includes the www subdomain, pass it to certbot
-        # else, pass only the domain without www
-        # this is needed to prevent certbot from renewing the root domain certificate when www is not present
-        if openssl x509 -in /etc/letsencrypt/live/$domain/cert.pem -noout -text | grep -qs www.$domain; then
-            certbot --non-interactive -q --reinstall --expand --nginx --agree-tos --register-unsafely-without-email --allow-subset-of-names --redirect -d $domain -d www.$domain
-        else
-            certbot --non-interactive -q --reinstall --expand --nginx --agree-tos --register-unsafely-without-email --allow-subset-of-names --redirect -d $domain
-        fi
-    # else, it is a wildcard multisite and we must configure the redirection manually
-    else
-        sed -i '/listen 80;/d' /etc/nginx/sites-enabled/$domain
-	    sed -i '/listen \[\:\:\]\:80;/d' /etc/nginx/sites-enabled/$domain
-
-	    # it's very important to escape the variables and quotes within the echo
-	echo "
+	if [ "$g_webserver_type" = "nginx" ]
+	then
+		# if it is not a wildcard multisite, we can use certbot to configure the redirection
+		if ! grep -q 'server_name \.' /etc/nginx/sites-enabled/$domain
+		then
+			# if current certificate includes the www subdomain, pass it to certbot
+			# else, pass only the domain without www
+			# this is needed to prevent certbot from renewing the root domain certificate when www is not present
+			if openssl x509 -in /etc/letsencrypt/live/$domain/cert.pem -noout -text | grep -qs www.$domain
+			then
+				certbot --non-interactive -q --reinstall --expand --nginx --agree-tos --register-unsafely-without-email --allow-subset-of-names --redirect -d $domain -d www.$domain
+			else
+				certbot --non-interactive -q --reinstall --expand --nginx --agree-tos --register-unsafely-without-email --allow-subset-of-names --redirect -d $domain
+			fi
+			# else, it is a wildcard multisite and we must configure the redirection manually
+		else
+			sed -i '/listen 80;/d' /etc/nginx/sites-enabled/$domain
+			sed -i '/listen \[\:\:\]\:80;/d' /etc/nginx/sites-enabled/$domain
+			# it's very important to escape the variables and quotes within the echo
+			echo "
 server {
-    listen 80;
-    listen [::]:80;
+listen 80;
+listen [::]:80;
 
-    server_name .$domain;
+server_name .$domain;
 
-    return 301 https://\$host\$request_uri;
+return 301 https://\$host\$request_uri;
 }" >> /etc/nginx/sites-enabled/$domain
-        systemctl restart nginx
-    fi
-    echo
-    echo "HTTPS redirect enabled for $domain"
-    exit
+			systemctl restart nginx
+		fi
+	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+	then
+		HTACC=${home_directory}/.htaccess
+		grep 'https://%{HTTP_HOST}%{REQUEST_URI}' ${HTACC}
+		if [ $? -ne 0 ]
+		then
+			echo "$(echo '
+### Forcing HTTPS rule start
+RewriteEngine On
+RewriteCond %{SERVER_PORT} 80
+RewriteRule (.*) https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+### Forcing HTTPS rule end
+' | cat - ${HTACC})" >${HTACC}
+			certbot certonly --non-interactive --expand --agree-tos --register-unsafely-without-email --webroot -w ${home_directory} -d ${domain} -d www.${domain}
+			gf_restart_webserver
+		fi
+	fi
+
+	echo
+	echo "HTTPS redirect enabled for $domain"
+	exit
 fi
 
 
-
-if [[ $action == "disable_https_redir" || $action == "16" ]]; then
-
-    select_domain_mu
-
-    if ! grep -qs 'return 301 https://$host$request_uri' /etc/nginx/sites-enabled/$domain; then
-        echo
-        echo "SSL redirection is already disabled for $domain"
-        exit
-    fi
-    # for multisite wildcard sites:
-    sed -i -n '/listen 80/q;p' /etc/nginx/sites-enabled/$domain
-    # for normal sites:
-    sed -i -n '/if ($host/q;p' /etc/nginx/sites-enabled/$domain
-    # for all sites:
-    sed -i '$ d' /etc/nginx/sites-enabled/$domain
-    sed -i '/server {/a listen 80;\nlisten [::]:80;' /etc/nginx/sites-enabled/$domain
-    systemctl restart nginx
-    echo
-    echo "HTTPS redirect disabled for $domain"
-    exit
+if [[ $action == "disable_https_redir" || $action == "16" ]]
+then
+	select_domain_mu
+	if [ "$g_webserver_type" = "nginx" ]
+	then
+		if ! grep -qs 'return 301 https://$host$request_uri' /etc/nginx/sites-enabled/$domain
+		then
+			echo
+			echo "SSL redirection is already disabled for $domain"
+			exit
+		fi
+		# for multisite wildcard sites:
+		sed -i -n '/listen 80/q;p' /etc/nginx/sites-enabled/$domain
+		# for normal sites:
+		sed -i -n '/if ($host/q;p' /etc/nginx/sites-enabled/$domain
+		# for all sites:
+		sed -i '$ d' /etc/nginx/sites-enabled/$domain
+		sed -i '/server {/a listen 80;\nlisten [::]:80;' /etc/nginx/sites-enabled/$domain
+	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+	then
+		sed -i -re '/### Forcing HTTPS rule start/{:a;N;/### Forcing HTTPS rule end/!ba};/RewriteRule/d' /var/www/$domain/html/.htaccess
+		chown "${user_name}":www-data /var/www/$domain/html/.htaccess
+	fi
+	gf_restart_webserver
+	echo
+	echo "HTTPS redirect disabled for $domain"
+	exit
 fi
 
 
-
-if [[ $action == "enable_php_mod" || $action == "17" ]]; then
-
-    while [[ -z $module ]]; do
-        clear
-        echo "Select which module should be enabled"
-        ls /etc/php/7.4/mods-available/ | sed 's/.ini//' | nl
-        echo
-        read -p "Select module: " site_number
-        number_of_sites=$(ls /etc/php/7.4/mods-available/ | sed 's/.ini//' | wc -l)
-        until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
-        	echo "$site_number: invalid selection."
-        	read -p "Select module: " site_number
-        done
-        module=$(ls /etc/php/7.4/mods-available/ | sed 's/.ini//' | sed -n "$site_number"p)
-    done
-
-    phpenmod $module
-
-    echo
-    echo "$module PHP module has been enabled"
-    exit
+if [[ $action == "enable_php_mod" || $action == "17" ]]
+then
+	echo "Select which module should be enabled"
+	if [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+	then
+		while [[ -z $module ]]
+		do
+			ls /usr/local/lsws/lsphp74/etc/php/7.4/mods-disabled | sed 's/.ini//' | nl
+			echo
+			read -p "Select module: " site_number
+			number_of_sites=$(ls /usr/local/lsws/lsphp74/etc/php/7.4/mods-disabled | sed 's/.ini//' |wc -l)
+			until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]
+			do
+				echo "$site_number: invalid selection."
+				read -p "Select module: " site_number
+			done
+			module=$(ls /usr/local/lsws/lsphp74/etc/php/7.4/mods-disabled | sed 's/.ini//' | sed -n "$site_number"p)
+		done
+		mv /usr/local/lsws/lsphp74/etc/php/7.4/mods-disabled/$module.ini /usr/local/lsws/lsphp74/etc/php/7.4/mods-available/
+	elif [ "$g_webserver_type" = "nginx" ]
+	then
+		while [[ -z $module ]]
+		do
+			ls /etc/php/7.4/mods-available/ | sed 's/.ini//' | nl
+			echo
+			read -p "Select module: " site_number
+			number_of_sites=$(ls /etc/php/7.4/mods-available/ | sed 's/.ini//' | wc -l)
+			until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]
+			do
+				echo "$site_number: invalid selection."
+				read -p "Select module: " site_number
+			done
+			module=$(ls /etc/php/7.4/mods-available/ | sed 's/.ini//' | sed -n "$site_number"p)
+		done
+		phpenmod $module
+	fi
+	echo
+	gf_restart_webserver
+	echo "$module PHP module has been enabled"
+	exit
 fi
 
 
-
-if [[ $action == "disable_php_mod" || $action == "18" ]]; then
-
-    while [[ -z $module ]]; do
-        clear
-        echo "Select which module should be disabled"
-        ls /etc/php/?.?/mods-available/ | sed 's/.ini//' | sed '/\//d' | sed '/^$/d' | sort -u | nl
-        echo
-        read -p "Select module: " site_number
-        number_of_sites=$(ls /etc/php/?.?/mods-available/ | sed 's/.ini//' | sed '/\//d' | sed '/^$/d' | sort -u | wc -l)
-        until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
-        	echo "$site_number: invalid selection."
-        	read -p "Select module: " site_number
-        done
-        module=$(ls /etc/php/?.?/mods-available/ | sed 's/.ini//' | sed '/\//d' | sed '/^$/d' | sort -u | sed -n "$site_number"p)
-    done
-
-    phpdismod $module
-
-    echo
-    echo "$module PHP module has been disabled"
-    exit
+if [[ $action == "disable_php_mod" || $action == "18" ]]
+then
+	echo "Select which module should be disabled"
+	if [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+	then
+		mkdir -p /usr/local/lsws/lsphp74/etc/php/7.4/mods-disabled
+		while [[ -z $module ]]
+		do
+			ls /usr/local/lsws/lsphp74/etc/php/7.4/mods-available | sed 's/.ini//' | nl
+			echo
+			read -p "Select module: " site_number
+			number_of_sites=$(ls /usr/local/lsws/lsphp74/etc/php/7.4/mods-available | sed 's/.ini//' |wc -l)
+			until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]
+			do
+				echo "$site_number: invalid selection."
+				read -p "Select module: " site_number
+			done
+			module=$(ls /usr/local/lsws/lsphp74/etc/php/7.4/mods-available | sed 's/.ini//' | sed -n "$site_number"p)
+		done
+		mv /usr/local/lsws/lsphp74/etc/php/7.4/mods-available/$module.ini /usr/local/lsws/lsphp74/etc/php/7.4/mods-disabled/
+	elif [ "$g_webserver_type" = "nginx" ]
+	then
+		while [[ -z $module ]]
+		do
+			ls /etc/php/?.?/mods-available/ | sed 's/.ini//' | sed '/\//d' | sed '/^$/d' | sort -u | nl
+			echo
+			read -p "Select module: " site_number
+			number_of_sites=$(ls /etc/php/?.?/mods-available/ | sed 's/.ini//' | sed '/\//d' | sed '/^$/d' | sort -u | wc -l)
+			until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]
+			do
+				echo "$site_number: invalid selection."
+				read -p "Select module: " site_number
+			done
+			module=$(ls /etc/php/?.?/mods-available/ | sed 's/.ini//' | sed '/\//d' | sed '/^$/d' | sort -u | sed -n "$site_number"p)
+		done
+		phpdismod $module
+	fi
+	gf_restart_webserver
+	echo
+	echo "$module PHP module has been disabled"
+	exit
 fi
 
 
-
-if [[ $action == "list_cron" || $action == "19" ]]; then
-
-    # list crontab for root
-    echo "Crontab for root:"
-    crontab -u root -l | sed -e '/^[ \t]*#/d'
-    # list crontab for web users
-    for user in $(ls /var/www | grep -v html); do
-        echo
-        echo "Crontab for $user:"
-        crontab -u $(echo $user | cut -c1-32) -l | sed -e '/^[ \t]*#/d'
-    done
-
-    exit
+if [[ $action == "list_cron" || $action == "19" ]]
+then
+	# list crontab for root
+	echo "Crontab for root:"
+	crontab -u root -l | sed -e '/^[ \t]*#/d'
+	# list crontab for web users
+	for user in $(ls /var/www | grep -v html)
+	do
+		echo
+		echo "Crontab for $user:"
+		crontab -u $(echo $user | cut -c1-32) -l | sed -e '/^[ \t]*#/d'
+	done
+	exit
 fi
 
 
-
-if [[ $action == "enable_debug" || $action == "20" ]]; then
-
-    select_domain
-    user_name=$(echo $domain | cut -c1-32)
-
-    cd /var/www/$domain/html/
-    su - $user_name -c "wp --skip-plugins config set WP_DEBUG true --raw"
+if [[ $action == "enable_debug" || $action == "20" ]]
+then
+	select_domain
+	user_name=$(echo $domain | cut -c1-32)
+	cd /var/www/$domain/html/
+	su - $user_name -c "wp --skip-plugins config set WP_DEBUG true --raw"
 	su - $user_name -c "wp --skip-plugins config set WP_DEBUG_DISPLAY false --raw"
 	su - $user_name -c "wp --skip-plugins config set WP_DEBUG_LOG true --raw"
 	su - $user_name -c "touch /var/www/$domain/html/wp-content/debug.log"
 	chmod g+w /var/www/$domain/html/wp-content/debug.log	
-    echo
-    echo "WordPress debug flags enabled for $domain"
-    exit
+	echo
+	echo "WordPress debug flags enabled for $domain"
+	exit
 fi
 
 
-
-if [[ $action == "disable_debug" || $action == "21" ]]; then
-
-    select_domain
-    user_name=$(echo $domain | cut -c1-32)
-
-    cd /var/www/$domain/html/
-    su - $user_name -c "wp --skip-plugins config set WP_DEBUG false --raw"
-
-    echo
-    echo "WordPress debug flags disabled for $domain"
-    exit
+if [[ $action == "disable_debug" || $action == "21" ]]
+then
+	select_domain
+	user_name=$(echo $domain | cut -c1-32)
+	cd /var/www/$domain/html/
+	su - $user_name -c "wp --skip-plugins config set WP_DEBUG false --raw"
+	echo
+	echo "WordPress debug flags disabled for $domain"
+	exit
 fi
 
 
-
-if [[ $action == "change_upload_limits" || $action == "22" ]]; then
-
-    select_domain
-
-    if [[ -z $upload_limit ]]; then
-        echo
-        echo "Specify the upload limit in megabytes
-Example: 500"
-        read -p "Upload limit: " upload_limit
-    fi
-
-    sed -i "/client_max_body_size/c\client_max_body_size $upload_limit\M\;" /etc/nginx/sites-enabled/$domain
-    # if parameter is already set, we delete it before configuring the new one
-    sed -i "/upload_max_filesize/d" /etc/nginx/sites-enabled/$domain
-    sed -i "/post_max_size/d" /etc/nginx/sites-enabled/$domain
-    sed -i "/fastcgi_param PHP_VALUE/a upload_max_filesize=$upload_limit\M;" /etc/nginx/sites-enabled/$domain
-    sed -i "/fastcgi_param PHP_VALUE/a post_max_size=$upload_limit\M;" /etc/nginx/sites-enabled/$domain
-    systemctl restart nginx
-
-    echo
-	echo "File upload limits have been changed for $domain"
-    exit
-fi
-
-
-
-if [[ $action == "add_admin" || $action == "23" ]]; then
-
-    select_domain
-    user_name=$(echo $domain | cut -c1-32)
-
-    if [[ -z $wp_user ]]; then
-        echo
-        echo "Specify a name for the WordPress administrative user
-Example: admin"
-        read -p "Admin user name: " wp_user
-    fi
-
-    if [[ -z $wp_password ]]; then
-        echo
-        echo "Specify a password for the WordPress administrative user"
-        read -p "Admin user password: " wp_password
-    fi
-
-    if [[ -z $wp_email ]]; then
-        echo
-        echo "Specify an email address for the WordPress administrative user
-Example: admin@example.com"
-        read -p "Email address: " wp_email
-    fi
-
-    cd /var/www/$domain/html/
-    su - $user_name -c "wp --skip-plugins user create $wp_user $wp_email --role=administrator --user_pass=$wp_password"
-
-    echo
-    echo "User $wp_user added as an administrator to $domain"
-    exit
-fi
-
-
-
-if [[ $action == "restart_php" || $action == "24" ]]; then
-
-    select_domain
-
-    current_php_version=$(ls /etc/php/*/fpm/pool.d/$domain.conf | cut -d '/' -f 4)
-    if [ ! -f /etc/wpcd/php-versions-disabled/php$current_php_version ]; then
-        systemctl restart php$current_php_version-fpm
-    fi
-
-    echo
-    echo "PHP service has restarted for version $current_php_version"
-    exit
-fi
-
-
-
-if [[ $action == "restart_nginx" || $action == "25" ]]; then
-
-    systemctl restart nginx
-
-    echo
-    echo "NGINX has been restarted"
-    exit
-fi
-
-
-
-if [[ $action == "restart_mariadb" || $action == "26" ]]; then
-
-    systemctl restart mariadb
-
-    echo
-    echo "MariaDB has been restarted"
-    exit
-fi
-
-
-
-if [[ $action == "restart_redis" || $action == "27" ]]; then
-
-    systemctl restart redis
-
-    echo
-    echo "Redis has been restarted"
-    exit
-fi
-
-
-
-if [[ $action == "restart_memcached" || $action == "28" ]]; then
-
-    systemctl restart memcached.service
-
-    echo
-    echo "Memcached has been restarted"
-    exit
-fi
-
-if [[ $action == "enable_passauth_ssh" || $action == "29" ]]; then
-
-    if [[ -z $ssh_user ]]; then
-        echo
-        echo "Enabling password based authentication - enter ssh user:"
-        read -p "SSH User:" ssh_user
-    fi
-
-    if [ "$ssh_user" == "root" ]
-    then
-        sed -i 's/^PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config
-        line=`sed -n "1,/^Match/{=;p;}" /etc/ssh/sshd_config |sed '{N;s/\n/ /}'|grep -v '#'|grep "PasswordAuthentication"|cut -d' ' -f1`
-        if [ ! -z $line ]
-        then
-            sed -i "$line s/.*/PasswordAuthentication yes/" /etc/ssh/sshd_config
-        fi
-        echo "SSH password auth has been enabled for user $ssh_user"
-        systemctl restart sshd
-        exit
-    fi
-
-    grep "Match User $ssh_user" /etc/ssh/sshd_config|grep -v '#'
-    if [ $? -eq 0 ]
-    then
-        line=`sed -n "/Match User $ssh_user/,/Match/{=;p;}" /etc/ssh/sshd_config |sed '{N;s/\n/ /}'|grep PasswordAuthentication|cut -d' ' -f1`
-        if [ ! -z $line ]
+if [[ $action == "change_upload_limits" || $action == "22" ]]
+then
+	select_domain
+	if [[ -z $upload_limit ]]
 	then
-            sed -i "$line s/.*/PasswordAuthentication yes/" /etc/ssh/sshd_config
+		echo
+		echo "Specify the upload limit in megabytes
+		Example: 500"
+		read -p "Upload limit: " upload_limit
 	fi
-    else
-        echo "Match User $ssh_user" >> /etc/ssh/sshd_config
-        echo "PasswordAuthentication yes" >> /etc/ssh/sshd_config
-    fi
-    echo "SSH password auth has been enabled for user $ssh_user"
-    systemctl restart sshd
-    exit
+
+	if [ "$g_webserver_type" = "nginx" ]
+	then
+		sed -i "/client_max_body_size/c\client_max_body_size $upload_limit\M\;" /etc/nginx/sites-enabled/$domain
+		# if parameter is already set, we delete it before configuring the new one
+		sed -i "/upload_max_filesize/d" /etc/nginx/sites-enabled/$domain
+		sed -i "/post_max_size/d" /etc/nginx/sites-enabled/$domain
+		sed -i "/fastcgi_param PHP_VALUE/a upload_max_filesize=$upload_limit\M;" /etc/nginx/sites-enabled/$domain
+		sed -i "/fastcgi_param PHP_VALUE/a post_max_size=$upload_limit\M;" /etc/nginx/sites-enabled/$domain
+	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+	then
+		sed -i "/upload_max_filesize/d" ${VHDIR}/$domain/$g_vhost_conf
+		sed -i "/post_max_size/d" ${VHDIR}/$domain/$g_vhost_conf
+		sed -i -e "/### Insert common phpIni/a\\php_admin_value upload_max_filesize=${upload_limit}M"  ${VHDIR}/$domain/$g_vhost_conf
+		sed -i -e "/### Insert common phpIni/a\\php_admin_value post_max_size=${upload_limit}M"  ${VHDIR}/$domain/$g_vhost_conf
+	fi
+	gf_restart_webserver
+	echo
+	echo "File upload limits have been changed for $domain"
+	exit
 fi
 
-if [[ $action == "disable_passauth_ssh" || $action == "30" ]]; then
 
-    if [[ -z $ssh_user ]]; then
-        echo
-        echo "Disabling password based authentication - enter ssh user:"
-        read -p "Ssh User:" ssh_user
-    fi
+if [[ $action == "add_admin" || $action == "23" ]]
+then
+	select_domain
+	user_name=$(echo $domain | cut -c1-32)
+	if [[ -z $wp_user ]]
+	then
+		echo
+		echo "Specify a name for the WordPress administrative user
+		Example: admin"
+		read -p "Admin user name: " wp_user
+	fi
 
-    if [ "$ssh_user" == "root" ]
-    then
-        grep "^PermitRootLogin" /etc/ssh/sshd_config
+	if [[ -z $wp_password ]]
+	then
+		echo
+		echo "Specify a password for the WordPress administrative user"
+		read -p "Admin user password: " wp_password
+	fi
+
+	if [[ -z $wp_email ]]
+	then
+		echo
+		echo "Specify an email address for the WordPress administrative user
+		Example: admin@example.com"
+		read -p "Email address: " wp_email
+	fi
+	cd /var/www/$domain/html/
+	su - $user_name -c "wp --skip-plugins user create $wp_user $wp_email --role=administrator --user_pass=$wp_password"
+
+	echo
+	echo "User $wp_user added as an administrator to $domain"
+	exit
+fi
+
+
+if [[ $action == "restart_php" || $action == "24" ]]
+then
+	select_domain
+	if [ "$g_webserver_type" = "nginx" ]
+	then
+		current_php_version=$(ls /etc/php/*/fpm/pool.d/$domain.conf | cut -d '/' -f 4)
+		if [ ! -f /etc/wpcd/php-versions-disabled/$current_php_version ]
+		then
+			systemctl restart php$current_php_version-fpm
+		fi
+	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+	then
+		current_php_version=$(grep lsapi: ${VHDIR}/$domain/$g_vhost_conf|cut -d':' -f2|cut -d' ' -f1)
+		gf_restart_webserver
+	fi
+	echo
+	echo "PHP service has restarted for version $current_php_version"
+	exit
+fi
+
+
+if [[ $action == "restart_nginx" || $action == "restart_web_server" || $action == "25" ]]
+then
+	gf_restart_webserver
+	echo
+	echo "The webserver has been restarted ($g_webserver_type)"
+	exit
+fi
+
+
+if [[ $action == "restart_mariadb" || $action == "26" ]]
+then
+	systemctl restart mariadb
+	echo
+	echo "MariaDB has been restarted"
+	exit
+fi
+
+
+if [[ $action == "restart_redis" || $action == "27" ]]
+then
+	systemctl restart redis
+	echo
+	echo "Redis has been restarted"
+	exit
+fi
+
+
+if [[ $action == "restart_memcached" || $action == "28" ]]
+then
+	systemctl restart memcached.service
+	echo
+	echo "Memcached has been restarted"
+	exit
+fi
+
+if [[ $action == "enable_passauth_ssh" || $action == "29" ]]
+then
+	if [[ -z $ssh_user ]]
+	then
+		echo
+		echo "Enabling password based authentication - enter ssh user:"
+		read -p "SSH User:" ssh_user
+	fi
+
+	if [ "$ssh_user" == "root" ]
+	then
+		sed -i 's/^PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config
+		line=`sed -n "1,/^Match/{=;p;}" /etc/ssh/sshd_config |sed '{N;s/\n/ /}'|grep -v '#'|grep "PasswordAuthentication"|cut -d' ' -f1`
+		if [ ! -z $line ]
+		then
+			sed -i "$line s/.*/PasswordAuthentication yes/" /etc/ssh/sshd_config
+		fi
+		echo "SSH password auth has been enabled for user $ssh_user"
+		systemctl restart sshd
+		exit
+	fi
+
+	grep "Match User $ssh_user" /etc/ssh/sshd_config|grep -v '#'
 	if [ $? -eq 0 ]
 	then
-            sed -i 's/^PermitRootLogin.*/PermitRootLogin prohibit-password/' /etc/ssh/sshd_config
-        else
-            sed -i '1s/^/PermitRootLogin prohibit-password\n/' /etc/ssh/sshd_config
+		line=`sed -n "/Match User $ssh_user/,/Match/{=;p;}" /etc/ssh/sshd_config |sed '{N;s/\n/ /}'|grep PasswordAuthentication|cut -d' ' -f1`
+		if [ ! -z $line ]
+		then
+			sed -i "$line s/.*/PasswordAuthentication yes/" /etc/ssh/sshd_config
+		fi
+	else
+		echo "Match User $ssh_user" >> /etc/ssh/sshd_config
+		echo "PasswordAuthentication yes" >> /etc/ssh/sshd_config
 	fi
-    
-        line=`sed -n "1,/^Match/{=;p;}" /etc/ssh/sshd_config |sed '{N;s/\n/ /}'|grep -v '#'|grep "PasswordAuthentication"|cut -d' ' -f1`
-        if [ ! -z $line ]
-        then
-            sed -i "$line s/.*/PasswordAuthentication no/" /etc/ssh/sshd_config
-        else
-            sed -i '2s/^/PasswordAuthentication no\n/' /etc/ssh/sshd_config
-	fi
-
-        echo "SSH password auth has been disabled for user $ssh_user"
-        systemctl restart sshd
-        exit
-    fi
-
-    grep "Match User $ssh_user" /etc/ssh/sshd_config|grep -v '#'
-    if [ $? -eq 0 ]
-    then
-        line=`sed -n "/Match User $ssh_user/,/Match/{=;p;}" /etc/ssh/sshd_config |sed '{N;s/\n/ /}'|grep PasswordAuthentication|cut -d' ' -f1`
-        if [ ! -z $line ]
-	then
-            sed -i "$line s/.*/PasswordAuthentication no/" /etc/ssh/sshd_config
-	fi
-    else
-        echo "Match User $ssh_user" >> /etc/ssh/sshd_config
-        echo "PasswordAuthentication no" >> /etc/ssh/sshd_config
-    fi
-    echo "SSH password auth has been disabled for user $ssh_user"
-    systemctl restart sshd
-    exit
-fi
-
-if [[ $action == "status_passauth_ssh" || $action == "31" ]]; then
-
-    if [[ -z $ssh_user ]]; then
-        echo
-        echo "Checking ssh authentication status - enter ssh user:"
-        read -p "Ssh User:" ssh_user
-    fi
-
-    grep $ssh_user /etc/passwd > /dev/null
-    if [ $? -ne 0 ]
-    then
-        echo "$ssh_user not exist"
+	echo "SSH password auth has been enabled for user $ssh_user"
+	systemctl restart sshd
 	exit
-    fi
+fi
 
-    if [ "$ssh_user" == "root" ]
-    then
-        sed -n "1,/^Match/{=;p;}" /etc/ssh/sshd_config |sed '{N;s/\n/ /}'|grep -v '#'|grep -E "PasswordAuthentication|PermitRootLogin"|grep -qi no
-        if [ $? -eq 0 ]
-        then
-            echo "Ssh Pass Auth Disabled for $ssh_user"
-        else
-	    echo "SSH Pass Auth Enabled for $ssh_user"
+
+if [[ $action == "disable_passauth_ssh" || $action == "30" ]]
+then
+	if [[ -z $ssh_user ]]
+	then
+		echo
+		echo "Disabling password based authentication - enter ssh user:"
+		read -p "Ssh User:" ssh_user
 	fi
-        exit
-    fi
 
-    sed -n "/Match User $ssh_user/,/Match/{=;p;}" /etc/ssh/sshd_config |grep PasswordAuthentication|grep -qi no 
-    if [ $? -eq 0 ]
-    then
-        echo "Ssh password auth has been disabled for user $ssh_user"
-    else
-        echo "SSH Pass Auth Enabled for $ssh_user"
-    fi
-    exit
-fi
+	if [ "$ssh_user" == "root" ]
+	then
+		grep "^PermitRootLogin" /etc/ssh/sshd_config
+		if [ $? -eq 0 ]
+		then
+			sed -i 's/^PermitRootLogin.*/PermitRootLogin prohibit-password/' /etc/ssh/sshd_config
+		else
+			sed -i '1s/^/PermitRootLogin prohibit-password\n/' /etc/ssh/sshd_config
+		fi
+		line=`sed -n "1,/^Match/{=;p;}" /etc/ssh/sshd_config |sed '{N;s/\n/ /}'|grep -v '#'|grep "PasswordAuthentication"|cut -d' ' -f1`
+		if [ ! -z $line ]
+		then
+			sed -i "$line s/.*/PasswordAuthentication no/" /etc/ssh/sshd_config
+		else
+			sed -i '2s/^/PasswordAuthentication no\n/' /etc/ssh/sshd_config
+		fi
+		echo "SSH password auth has been disabled for user $ssh_user"
+		systemctl restart sshd
+		exit
+	fi
 
-if [[ $action == "db_table_list" || $action == "32" ]]; then
-    mysql_db=$(grep DB_NAME /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
-    mysql $mysql_db -e 'show tables'
-fi
-
-if [[ $action == "wpadmin_enable_auth" || $action == "33" ]]; then
-
-    select_domain_mu
-
-    if grep -qs "Protected Admin" /etc/nginx/sites-enabled/$domain; then
-        echo
-        echo "Wp Admin auth is already enabled for $domain!"
-        exit
-    fi
-
-    if [[ -z $user ]]; then
-        echo
-        echo "Specify a user name for basic authentication
-Example: admin"
-        read -p "User name: " user
-    fi
-
-    if [[ -z $pass ]]; then
-        echo
-        echo "Specify a password"
-        read -p "Password: " pass
-    fi
-
-    # password auth
-    cd /etc/nginx
-    sed -i "/wp-login.php/a auth_basic_user_file /etc/nginx/htpasswd/$domain-wpadmin;" sites-enabled/$domain
-    sed -i '/wp-login.php/a auth_basic "Protected Admin";' sites-enabled/$domain
-    mkdir -p htpasswd
-    htpasswd -b -c htpasswd/$domain-wpadmin $user $pass
-    systemctl restart nginx
-
-    echo
-    echo "Basic authentication enabled for $domain Admin section"
-    exit
-
+	grep "Match User $ssh_user" /etc/ssh/sshd_config|grep -v '#'
+	if [ $? -eq 0 ]
+	then
+		line=`sed -n "/Match User $ssh_user/,/Match/{=;p;}" /etc/ssh/sshd_config |sed '{N;s/\n/ /}'|grep PasswordAuthentication|cut -d' ' -f1`
+		if [ ! -z $line ]
+		then
+			sed -i "$line s/.*/PasswordAuthentication no/" /etc/ssh/sshd_config
+		fi
+	else
+		echo "Match User $ssh_user" >> /etc/ssh/sshd_config
+		echo "PasswordAuthentication no" >> /etc/ssh/sshd_config
+	fi
+	echo "SSH password auth has been disabled for user $ssh_user"
+	systemctl restart sshd
+	exit
 fi
 
 
+if [[ $action == "status_passauth_ssh" || $action == "31" ]]
+then
+	if [[ -z $ssh_user ]]
+	then
+		echo
+		echo "Checking ssh authentication status - enter ssh user:"
+		read -p "Ssh User:" ssh_user
+	fi
+	grep $ssh_user /etc/passwd > /dev/null
+	if [ $? -ne 0 ]
+	then
+		echo "$ssh_user not exist"
+		exit
+	fi
 
-if [[ $action == "wpadmin_disable_auth" || $action == "34" ]]; then
+	if [ "$ssh_user" == "root" ]
+	then
+		sed -n "1,/^Match/{=;p;}" /etc/ssh/sshd_config |sed '{N;s/\n/ /}'|grep -v '#'|grep -E "PasswordAuthentication|PermitRootLogin"|grep -qi no
+		if [ $? -eq 0 ]
+		then
+			echo "Ssh Pass Auth Disabled for $ssh_user"
+		else
+			echo "SSH Pass Auth Enabled for $ssh_user"
+		fi
+		exit
+	fi
 
-    select_domain_mu
-
-    sed -i '/Protected Admin/I,+1 d' /etc/nginx/sites-enabled/$domain
-    systemctl restart nginx
-    rm /etc/nginx/htpasswd/$domain-wpadmin
-
-    echo
-    echo "Basic authentication disabled for $domain"
-
-    exit
-
+	sed -n "/Match User $ssh_user/,/Match/{=;p;}" /etc/ssh/sshd_config |grep PasswordAuthentication|grep -qi no 
+	if [ $? -eq 0 ]
+	then
+		echo "Ssh password auth has been disabled for user $ssh_user"
+	else
+		echo "SSH Pass Auth Enabled for $ssh_user"
+	fi
+	exit
 fi
 
 
-if [[ $action == "php_version_disable" || $action == "35" ]]; then
-
-    mkdir -p /etc/wpcd/php-versions-disabled
-    while [[ -z $php_version ]]; do
-        echo
-        echo "Available PHP versions are:"
-        ls /etc/php/ | nl
-        echo
-        echo "Select which PHP version you want to disable"
-        read -p "Select PHP version: " site_number
-        number_of_sites=$(ls /etc/php/ | wc -l)
-        until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
-		echo "$site_number: invalid selection."
-                read -p "Select PHP version: " site_number
-        done
-        php_version=$(ls /etc/php/ | sed -n "$site_number"p)
-    done
-
-    systemctl status php$php_version-fpm |grep running > /dev/null
-    if [ $? -eq 0 ] || [ -f /etc/systemd/system/multi-user.target.wants/php$php_version-fpm.service ]
-    then
-	systemctl stop php$php_version-fpm
-	systemctl disable php$php_version-fpm  > /dev/null 2>&1
-	echo `date +%d-%m-%Y` > /etc/wpcd/php-versions-disabled/php$php_version
-	echo "php version $php_version has been disabled"
-    else
-	echo "php version $php_version already disabled"
-    fi
-
-    exit
-
+if [[ $action == "db_table_list" || $action == "32" ]]
+then
+	select_domain
+	mysql_db=$(grep DB_NAME /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
+	mysql $mysql_db -e 'show tables'
 fi
 
 
-if [[ $action == "php_version_enable" || $action == "36" ]]; then
+if [[ $action == "wpadmin_enable_auth" || $action == "33" ]]
+then
+	select_domain_mu
+	if [ "$g_webserver_type" = "nginx" ]
+	then
+		if grep -qs "Protected Admin" /etc/nginx/sites-enabled/$domain
+		then
+			echo
+			echo "Wp Admin auth is already enabled for $domain!"
+			exit
+		fi
+	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+	then
+		if grep -qs 'note             Password Protect wp-admin for domain' ${VHDIR}/$domain/$g_vhost_conf
+		then
+			echo "Wp Admin auth is already enabled for $domain!"
+			exit
+		fi
+	fi
 
-    mkdir -p /etc/wpcd/php-versions-disabled
-    while [[ -z $php_version ]]; do
-        echo
-        echo "Available PHP versions are:"
-        ls /etc/php/ | nl
-        echo
-        echo "Select which PHP version you want to disable"
-        read -p "Select PHP version: " site_number
-        number_of_sites=$(ls /etc/php/ | wc -l)
-        until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
-                echo "$site_number: invalid selection."
-                read -p "Select PHP version: " site_number
-        done
-        php_version=$(ls /etc/php/ | sed -n "$site_number"p)
-    done
+	if [[ -z $user ]]
+	then
+		echo
+		echo "Specify a user name for basic authentication
+		Example: admin"
+		read -p "User name: " user
+	fi
 
-    systemctl status php$php_version-fpm |grep running > /dev/null
-    if [ $? -ne 0 ] || [ ! -f /etc/systemd/system/multi-user.target.wants/php$php_version-fpm.service ] || [ -f /etc/wpcd/php-versions-disabled/php$php_version ]
-    then
-        systemctl start php$php_version-fpm
-        systemctl enable php$php_version-fpm  > /dev/null 2>&1
-	rm -f /etc/wpcd/php-versions-disabled/php$php_version
-	echo "php version $php_version has been enabled"
-    else
-	echo "php version $php_version already enabled"
-    fi
+	if [[ -z $pass ]]
+	then
+		echo
+		echo "Specify a password"
+		read -p "Password: " pass
+	fi
 
-    exit
+	# password auth
+	if [ "$g_webserver_type" = "nginx" ]
+	then
+		cd /etc/nginx
+		sed -i "/wp-login.php/a auth_basic_user_file /etc/nginx/htpasswd/$domain-wpadmin;" sites-enabled/$domain
+		sed -i '/wp-login.php/a auth_basic "Protected Admin";' sites-enabled/$domain
+		mkdir -p htpasswd
+		htpasswd -b -c htpasswd/$domain-wpadmin $user $pass
+	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+	then
+		sed -i -e "/### Insert context configs below this line/a\\
+		${preprocessed_VAR2%?}"  ${VHDIR}/$domain/$g_vhost_conf
+		htpasswd -b -c ${VHDIR}/$domain/htpasswd-wpadmin $user $pass
+		chown -R lsadm:lsadm ${VHDIR}/$domain/
+	fi
+	gf_restart_webserver
+	echo
+	echo "Basic authentication enabled for $domain Admin section"
+	exit
+fi
 
+
+if [[ $action == "wpadmin_disable_auth" || $action == "34" ]]
+then
+	select_domain_mu
+	if [ "$g_webserver_type" = "nginx" ]
+	then
+		sed -i '/Protected Admin/I,+1 d' /etc/nginx/sites-enabled/$domain
+		rm /etc/nginx/htpasswd/$domain-wpadmin
+	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+	then
+		sed -i -re '/### Enabling Password Protection wp-admin config start/{:a;N;/### Enabling Password Protection wp-admin config end/!ba};/note             Password Protect wp-admin for domain/d' ${VHDIR}/$domain/$g_vhost_conf
+		rm ${VHDIR}/$domain/htpasswd-wpadmin > /dev/null 2>&1
+		chown -R lsadm:lsadm ${VHDIR}/$domain/
+	fi
+	gf_restart_webserver
+	echo
+	echo "Basic authentication disabled for $domain"
+	exit
+fi
+
+
+if [[ $action == "php_version_disable" || $action == "35" ]]
+then
+	if [ "$g_webserver_type" = "nginx" ]
+	then
+		mkdir -p /etc/wpcd/php-versions-disabled
+		while [[ -z $php_version ]]
+		do
+			echo
+			echo "Available PHP versions are:"
+			echo "Select which PHP version you want to disable"
+			gf_select_phpversion
+			php_version=$(ls /etc/php/ | sed -n "$site_number"p)
+		done
+
+		systemctl status php$php_version-fpm |grep running > /dev/null
+		if [ $? -eq 0 ] || [ -f /etc/systemd/system/multi-user.target.wants/php$php_version-fpm.service ]
+		then
+			systemctl stop php$php_version-fpm
+			systemctl disable php$php_version-fpm  > /dev/null 2>&1
+			echo `date +%d-%m-%Y` > /etc/wpcd/php-versions-disabled/$php_version
+			echo "php version $php_version has been disabled"
+		else
+			echo "php version $php_version already disabled"
+		fi
+		exit
+	fi
+fi
+
+
+if [[ $action == "php_version_enable" || $action == "36" ]]
+then
+	if [ "$g_webserver_type" = "nginx" ]
+	then
+		mkdir -p /etc/wpcd/php-versions-disabled
+		while [[ -z $php_version ]]
+		do
+			echo
+			echo "Available PHP versions are:"
+			ls /etc/wpcd/php-versions-disabled/ | nl
+			echo
+			echo "Select which PHP version you want to enable"
+			read -p "Select PHP version: " site_number
+			number_of_sites=$(ls /etc/wpcd/php-versions-disabled/ | wc -l)
+			until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]
+			do
+				echo "$site_number: invalid selection."
+				read -p "Select PHP version: " site_number
+			done
+			php_version=$(ls /etc/wpcd/php-versions-disabled/ | sed -n "$site_number"p)
+		done
+
+		systemctl status php$php_version-fpm |grep running > /dev/null
+		if [ $? -ne 0 ] || [ ! -f /etc/systemd/system/multi-user.target.wants/php$php_version-fpm.service ] || [ -f /etc/wpcd/php-versions-disabled/$php_version ]
+		then
+			systemctl start php$php_version-fpm
+			systemctl enable php$php_version-fpm  > /dev/null 2>&1
+			rm -f /etc/wpcd/php-versions-disabled/$php_version
+			echo "php version $php_version has been enabled"
+		else
+			echo "php version $php_version already enabled"
+		fi
+		exit
+	fi
 fi

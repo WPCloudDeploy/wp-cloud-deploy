@@ -8,7 +8,8 @@ fi
 
 clear
 
-while [[ -z $action ]]; do
+while [[ -z $action ]]
+do
 	echo
 	echo "What do you want to do?"
 	echo "   1) Install Callback Notification Process"
@@ -16,7 +17,8 @@ while [[ -z $action ]]; do
 	echo "   3) Run Callback Notification Process"
 	echo
 	read -p "Action: " action
-	until [[ -z "$action" || "$action" =~ ^[1-3]$ ]]; do
+	until [[ -z "$action" || "$action" =~ ^[1-3]$ ]]
+	do
 		echo "$action: invalid selection."
 		read -p "Action: " action
 	done

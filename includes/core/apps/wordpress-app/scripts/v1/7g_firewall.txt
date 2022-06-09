@@ -1,5 +1,10 @@
 cd ~ &&
 sudo -E \rm -f ##SCRIPT_NAME## &&
+sudo -E \rm -f ##SCRIPT_SEVEN_G_COMMANDS_NAME## &&
+sudo -E wget --no-check-certificate -O ##SCRIPT_COMMON_NAME## ##SCRIPT_COMMON_URL## &&
+sudo -E dos2unix ##SCRIPT_COMMON_NAME## &&
+sudo -E wget --no-check-certificate -O ##SCRIPT_SEVEN_G_COMMANDS_NAME## ##SEVEN_G_COMMANDS_URL## &&
+sudo -E dos2unix ##SCRIPT_SEVEN_G_COMMANDS_NAME## &&	
 sudo -E wget --no-check-certificate -O ##SCRIPT_NAME## ##SCRIPT_URL## &&
 export action=##ACTION## domain=##DOMAIN## &&
 sudo -E dos2unix ##SCRIPT_NAME## &&

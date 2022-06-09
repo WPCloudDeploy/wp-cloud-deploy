@@ -1,0 +1,46 @@
+#!/bin/bash
+
+if [[ "$EUID" -ne 0 ]]
+then
+	echo "Sorry, to run this as root"
+	exit
+fi
+
+clear
+
+while [[ -z $action ]]
+do
+	echo
+	echo "What do you want to do?"
+	echo "   1) Show logs for scheduled individual site backups"
+	echo "   2) Show logs for scheduled all sites backup"
+	echo "   3) Show wp-sync logs"
+	echo
+	read -p "Action: " action
+	until [[ -z "$action" || "$action" =~ ^[1-3]$ ]]
+	do
+		echo "$action: invalid selection."
+		read -p "Action: " action
+	done
+done
+
+
+if [[ $action == "individual_backups" || $action == "1" ]]
+then
+	tail -n 30 /var/log/wp-backup.log
+	exit
+fi
+
+
+if [[ $action == "full_backups" || $action == "2" ]]
+then
+	tail -n 30 /var/log/wp-full-backup.log
+	exit
+fi
+
+
+if [[ $action == "wp_sync" || $action == "3" ]]
+then
+	tail -n 30 /var/log/wp-sync.log
+	exit
+fi

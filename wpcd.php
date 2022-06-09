@@ -3,7 +3,7 @@
 Plugin Name: WPCloudDeploy
 Plugin URI: https://wpclouddeploy.com
 Description: Deploy and manage cloud servers and apps from inside the WordPress Admin dashboard.
-Version: 4.16.6
+Version: 4.17.0
 Requires at least: 5.4
 Requires PHP: 7.4
 Item Id: 1493
@@ -55,7 +55,7 @@ class WPCD_Init {
 			define( 'WPCD_REST_VERSION', '1' );
 			define( 'WPCD_DB_VERSION', '1' );
 
-			// Define the default brand colors.
+			// Define the default brand colors for wp-admin.
 			define( 'WPCD_PRIMARY_BRAND_COLOR', '#E91E63' );
 			define( 'WPCD_SECONDARY_BRAND_COLOR', '#FF5722' );
 			define( 'WPCD_TERTIARY_BRAND_COLOR', '#03114A' );
@@ -63,6 +63,17 @@ class WPCD_Init {
 			define( 'WPCD_MEDIUM_BG_COLOR', '#FAFAFA' );
 			define( 'WPCD_LIGHT_BG_COLOR', '#FDFDFD' );
 			define( 'WPCD_ALTERNATE_ACCENT_BG_COLOR', '#CFD8DC' );
+
+			// Define the default brand colors for front-end.
+			define( 'WPCD_FE_PRIMARY_BRAND_COLOR', '#E91E63' );
+			define( 'WPCD_FE_SECONDARY_BRAND_COLOR', '#281d67' );
+			define( 'WPCD_FE_TERTIARY_BRAND_COLOR', '#03114A' );
+			define( 'WPCD_FE_ACCENT_BG_COLOR', '#0d091a' );
+			define( 'WPCD_FE_MEDIUM_BG_COLOR', '#FAFAFA' );
+			define( 'WPCD_FE_LIGHT_BG_COLOR', '#FDFDFD' );
+			define( 'WPCD_FE_ALTERNATE_ACCENT_BG_COLOR', '#CFD8DC' );
+			define( 'WPCD_FE_POSITIVE_COLOR', '#008000' );
+			define( 'WPCD_FE_NEGATIVE_COLOR', '#8B0000' );
 
 			// Define a variable that can be used for versioning scripts - required to force multisite to use different version numbers for each site.
 			if ( is_multisite() ) {
@@ -193,7 +204,7 @@ class WPCD_Init {
 		require_once wpcd_path . 'includes/core/class-wpcd-posts-app.php';
 		WPCD_POSTS_APP_SERVER::activate( $network_wide );
 		WPCD_POSTS_APP::activate( $network_wide );
-		
+
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/public/class-wordpress-app-public.php';
 		WPCD_WORDPRESS_APP_PUBLIC::activate( $network_wide );
 
@@ -288,7 +299,8 @@ class WPCD_Init {
 		require_once wpcd_path . '/required_plugins/mb-term-meta/mb-term-meta.php';
 		require_once wpcd_path . '/required_plugins/meta-box-columns/meta-box-columns.php';
 		require_once wpcd_path . '/required_plugins/meta-box-group/meta-box-group.php';
-		require_once wpcd_path . '/required_plugins/mb-user-meta/mb-user-meta.php';		
+		require_once wpcd_path . '/required_plugins/mb-user-meta/mb-user-meta.php';
+		require_once wpcd_path . '/required_plugins/mb-custom-table/mb-custom-table.php';
 
 		/* Load up some licensing files. */
 		if ( true === is_admin() ) {
@@ -415,12 +427,14 @@ class WPCD_Init {
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/metaboxes-app.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/metaboxes-server.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/commands-and-logs.php';
+		require_once wpcd_path . 'includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/script-handlers.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/after-prepare-server.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/push-commands.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/admin-columns.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/backup.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/woocommerce_support.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/upgrade.php';
+		require_once wpcd_path . 'includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/unused.php';
 	}
 
 	/**

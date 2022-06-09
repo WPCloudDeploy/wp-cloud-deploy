@@ -146,12 +146,14 @@ function wpcd_get_early_option( $option_id, $domain = 'wpcd_settings' ) {
 
 /**
  * Returns the timeout for long running commands.
- * Defaults to 15 minutes if not already set.
+ * Defaults to 25 minutes if not already set.
+ *
+ * Default changed from 15 min to 25 min in WPCD 5.0.
  */
 function wpcd_get_long_running_command_timeout() {
 	$timeout = wpcd_get_option( 'long-command-timeout' );
 	if ( empty( $timeout ) ) {
-		$timeout = 15;  // default timeout is 15 minutes.
+		$timeout = 25;  // default timeout is 25 minutes.
 	}
 	return $timeout;
 }
@@ -394,6 +396,36 @@ function wpcd_get_dir_list( $directory ) {
 	$dirlist           = array_values( $scanned_directory );
 
 	return $dirlist;
+}
+
+/**
+ * Given a number such as 7.4 or 74, return the
+ * OLS php service name such as lsphp74.
+ *
+ * @param string $version PHP version to handle.
+ *
+ * @return string
+ */
+function wpcd_convert_php_version_to_ols_service( $version ) {
+	// Strip periods.
+	$version = str_replace( '.', '', $version );
+	return 'lsphp' . $version;
+}
+
+/**
+ * Given an ols php service such as lsphp74, return 7.4
+ *
+ * @param string $phpservice OLS PHP Service name- eg: lsphp81.
+ *
+ * @return string.
+ */
+function wpcd_convert_ols_phpservice_to_php_version( $phpservice ) {
+
+	// Get last two characters of phpservice.
+	$version = mb_substr( $phpservice, -2 );
+	$version = mb_substr( $version, 0, 1 ) . '.' . mb_substr( $version, 1, 1 );  // Reminder: First character position is 0, not 1.
+	return $version;
+
 }
 
 /**
@@ -753,7 +785,7 @@ function wpcd_can_author_view_server_feature( $id, $feature_name, $user_id = 0 )
  *
  * There is a related function named wpcd_can_author_view_site_tab in /traits/traits-for-class-wordpress-app/tabs-security.php.
  * It handles similar security for site tabs.  Changes and fixes here should probably be considered for that function as well.
- * 
+ *
  * This is also very similar to the wpcd_can_author_view_server_feature function
  * above and changes made here might need to be made there as well.
  *
@@ -1332,6 +1364,130 @@ function wpcd_get_documentation_link( $link_option_key, $default_link ) {
 	}
 }
 
+
+/**
+ * Check if wp_query is for front-end servers listing page
+ *
+ * @param object $query WordPress Query Object.
+ *
+ * @return boolean
+ */
+function wpcd_is_public_servers_list_query( $query ) {
+	return isset( $query->query['wpcd_app_server_front'] ) && $query->query['wpcd_app_server_front'];
+}
+
+/**
+ * Check if wp_query is for front-end apps listing page
+ *
+ * @param object $query WordPress Query Object.
+ *
+ * @return boolean
+ */
+function wpcd_is_public_apps_list_query( $query ) {
+	return isset( $query->query['wpcd_app_front'] ) && $query->query['wpcd_app_front'];
+}
+
+/**
+ * Check if a user can edit a server or app.
+ *
+ * @global object $post
+ *
+ * @param null|int $server_id The post id of the server.
+ * @param null|int $user_id The user id.
+ * @param string   $type Should be 'server' or 'app'.
+ *
+ * @return boolean
+ */
+function wpcd_user_can_edit_app_server( $server_id = null, $user_id = null, $type = 'server' ) {
+
+	if ( null === $server_id ) {
+		global $post;
+		$server_id = $post->ID;
+	}
+
+	if ( null === $user_id ) {
+		$user_id = get_current_user_id();
+	}
+
+	if ( ! $server_id || ! $user_id ) {
+		return false;
+	}
+
+	if ( wpcd_is_admin() ) {
+		return true;
+	}
+
+	$post_author = get_post( $server_id )->post_author;
+
+	return ! ( ! wpcd_user_can( $user_id, 'view_' . $type, $server_id ) && $post_author != $user_id );
+}
+
+/**
+ * Return server id from current page url for front-end or from query var on backend
+ *
+ * @global object $post
+ *
+ * @return string|int
+ */
+function wpcd_get_current_page_server_id() {
+
+	$id = '';
+	if ( is_admin() ) {
+		$id = filter_input( INPUT_GET, 'post', FILTER_VALIDATE_INT );
+	} else {
+		global $post;
+
+		$_server_name = isset( $_SERVER['SERVER_NAME'] ) ? $_SERVER['SERVER_NAME'] : parse_url( home_url( '/' ), PHP_URL_HOST );
+
+		if ( ! $post ) {
+			$id = url_to_postid( 'http://' . $_server_name . $_SERVER['REQUEST_URI'] );
+		} else {
+			$id = $post->ID;
+		}
+	}
+
+	return $id;
+}
+
+/**
+ * Takes a string and wraps it with a span and a class.
+ *
+ * For example, if we get a string such as "Domain:" we might
+ * return <span class="wpcd-column-label-domain">Domain:</span>.
+ *
+ * @param string $string The string to wrap.
+ * @param string $hint A portion of the class name eg: "Domain".
+ * @param string $prefix The classname prefix eg: 'column-label'.
+ *
+ * @return string
+ */
+function wpcd_wrap_string_with_span_and_class( $string, $hint, $prefix ) {
+
+	$class = "wpcd-{$prefix}-{$hint}";
+	return '<span class="' . $class . '">' . $string . '</span>';
+
+}
+
+/**
+ * Takes a string and wraps it with a div and a class.
+ *
+ * For example, if we get a string such as "Domain:" we might
+ * return <div class="wpcd-column-label-domain">Domain:</div>.
+ *
+ * @param string $string The string to wrap.
+ * @param string $hint A portion of the class name eg: "Domain".
+ * @param string $prefix The classname prefix eg: 'column-label'.
+ *
+ * @return string
+ */
+function wpcd_wrap_string_with_div_and_class( $string, $hint, $prefix ) {
+
+	$class = "wpcd-{$prefix}-{$hint}";
+	return '<div class="' . $class . '">' . $string . '</div>';
+
+}
+
+
 /*
 // Functions in this section are for testing only.
 function wpcd_test_01( $attributes ) {
@@ -1366,87 +1522,3 @@ function wpcd_test_create_popup_after_form_option() {
 add_action( "wpcd_wordpress-app_create_popup_after_form_open", 'wpcd_test_create_popup_after_form_option', 10 );
 */
 
-
-/**
- * Check if wp_query is for front-end servers listing page
- * 
- * @param object $query
- * 
- * @return boolean
- */
-function wpcd_is_public_servers_list_query( $query ) {
-	return isset( $query->query['wpcd_app_server_front'] ) && $query->query['wpcd_app_server_front'];
-}
-
-/**
- * Check if wp_query is for front-end apps listing page
- * 
- * @param object $query
- * 
- * @return boolean
- */
-function wpcd_is_public_apps_list_query( $query ) {
-	return isset( $query->query['wpcd_app_front'] ) && $query->query['wpcd_app_front'];
-}
-
-/**
- * Check if a user can edit a server or app.
- * 
- * @global object $post
- * 
- * @param null|int $server_id
- * @param null|int $user_id
- * @param string $type
- * 
- * @return boolean
- */
-function wpcd_user_can_edit_app_server( $server_id = null, $user_id = null, $type = 'server' ) {
-	
-	if( null === $server_id ) {
-		global $post;
-		$server_id = $post->ID;
-	}
-	
-	if( null === $user_id ) {
-		$user_id     = get_current_user_id();
-	}
-	
-	if( !$server_id || !$user_id ) {
-		return false;
-	}
-	
-	if( wpcd_is_admin() ) {
-		return  true;
-	}
-		
-	$post_author = get_post( $server_id )->post_author;
-	
-	return !( ! wpcd_user_can( $user_id, 'view_' . $type, $server_id ) && $post_author != $user_id );
-}
-
-/**
- * Return server id from current page url for front-end or from query var on backend
- * 
- * @global object $post
- * 
- * @return string|int
- */
-function wpcd_get_current_page_server_id() {
-	
-	$id = '';
-	if( is_admin() ) {
-		$id = filter_input( INPUT_GET, 'post', FILTER_VALIDATE_INT );
-	} else {
-		global $post;
-		
-		$_server_name = isset( $_SERVER['SERVER_NAME'] ) ? $_SERVER['SERVER_NAME'] : parse_url( home_url( '/' ), PHP_URL_HOST );
-		
-		if( !$post ) {
-			$id =      url_to_postid( "http://" . $_server_name . $_SERVER['REQUEST_URI'] );
-		} else {
-			$id = $post->ID;
-		}
-	}
-	
-	return $id;
-}

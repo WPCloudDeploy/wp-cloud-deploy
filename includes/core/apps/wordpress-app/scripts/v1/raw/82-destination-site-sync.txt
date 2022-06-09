@@ -1,25 +1,36 @@
 #!/bin/bash
-#if [[ "$EUID" -ne 0 ]]; then
+#if [[ "$EUID" -ne 0 ]]
+#then
 #	echo "Sorry, you need to run this as root"
 #	exit
 #fi
 
 # This script is meant to be run in the destination server
 
-if [[ -z $origin_ip ]]; then
-    echo
-    echo "Please, specify the ORIGIN server IP address"
-    read -p "Origin server IP: " origin_ip
+## Get our common functions
+## IMPORTANT NOTE: This script should be in the same folder as the 9999-common-functions.sh file when being run.
+if [[ ! -f 9999-common-functions.sh ]]
+then
+	echo "The file 9999-common-functions.sh is missing"
+	exit 1
+fi
+source 9999-common-functions.sh
+
+if [[ -z $origin_ip ]]
+then
+	echo
+	echo "Please, specify the ORIGIN server IP address"
+	read -p "Origin server IP: " origin_ip
 fi
 
 # if SSH key is not available, do not continue
-if ! wget -qO- $origin_ip/97317319160494330146381820240308.pub | grep "ssh-rsa" &>/dev/null; then
-    echo "SSH key not available in the origin server!"
-    echo
-    echo "Please, run 81-origin.sh in the origin server and try again."
-    exit
+if ! wget -qO- $origin_ip/97317319160494330146381820240308.pub | grep "ssh-rsa" &>/dev/null
+then
+	echo "SSH key not available in the origin server!"
+	echo
+	echo "Please, run 81-origin.sh in the origin server and try again."
+	exit
 fi
-
 
 
 # set up
@@ -128,6 +139,7 @@ wget -qO- $origin_ip/97317319160494330146381820240308.pub | grep "ssh-rsa" >> $u
 chmod go-w $user_home
 chmod 700 $user_home/.ssh
 chmod 600 $user_home/.ssh/authorized_keys
+chown -R $localuser.$localuser $user_home/.ssh
 # End setup ssh key
 
 

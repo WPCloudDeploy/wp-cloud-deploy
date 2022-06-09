@@ -39,6 +39,30 @@
             }
         });
     }
+    
+    // To create public pages.
+    function initCreatePublicPages() {
+        $('body').on('click', '#wordpress_public_create_pages_button', function(e) {
+            e.preventDefault();
+
+            var action = $(this).data('action');
+            var nonce = $(this).data('nonce');
+
+            $.ajax({
+                url: ajaxurl,
+                method: 'POST',
+                data: {
+                    action: action,
+                    nonce: nonce
+                },
+                success: function(data) {
+                    alert(data.data.msg);
+                    location.reload();
+                }
+            });
+
+        });
+    }
 
     // for cleaning up apps - triggered from the SETTINGS->TOOLS->CLEAN UP APPS button.
     function initCleanUpApps() {
@@ -211,6 +235,7 @@
 
 
     function init() {
+        initCreatePublicPages();
         initPasswordToggle();
         initCleanUpApps();
         initCleanUpServers();

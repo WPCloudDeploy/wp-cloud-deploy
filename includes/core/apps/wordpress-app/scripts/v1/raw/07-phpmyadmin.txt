@@ -1,238 +1,253 @@
 #!/bin/bash
-if [[ "$EUID" -ne 0 ]]; then
+if [[ "$EUID" -ne 0 ]]
+then
 	echo "Sorry, you need to run this as root"
 	exit
 fi
 
+## Get our common functions
+if [[ ! -f 9999-common-functions.sh ]]
+then
+	echo "The file 9999-common-functions.sh is missing"
+	exit 1
+fi
+source 9999-common-functions.sh
+
+while [[ -z $domain ]]
+do
+	clear
+	echo "Please, select which site you want to work with"
+	gf_select_domain
+	domain=$(ls /var/www | grep -v html | sed -n "$site_number"p)
+done
 
 
-while [[ -z $site ]]; do
-    clear
-    echo "Please, select which site you want to work with"
-    ls /var/www | grep -v html | nl
-    echo
-    read -p "Select site: " site_number
-    number_of_sites=$(ls /var/www | grep -v html | wc -l)
-    until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
-		echo "$site_number: invalid selection."
-		read -p "Select site: " site_number
+while [[ -z $action ]]
+do
+	echo
+	echo "What do you want to do?"
+	echo
+	echo "   1) Install phpMyAdmin"
+	echo "   2) Update phpMyAdmin to the latest version"
+	echo "   3) Change username and password"
+	echo "   4) Remove phpMyAdmin"
+	echo "   5) Enable IP address restrictions"
+	echo "   6) Disable IP address restrictions"
+	echo "   7) Add IP address to the whitelist"
+	echo "   8) Remove IP address from the whitelist"
+	echo "   9) Print username and password"
+	read -p "Action: " action
+	until [[ -z "$action" || "$action" =~ ^[1-9]$ ]]
+	do
+		echo "$action: invalid selection."
+		read -p "Action: " action
 	done
-    site=$(ls /var/www | grep -v html | sed -n "$site_number"p)
 done
 
 
+user_name=$(echo $domain | cut -c1-32)
 
-while [[ -z $action ]]; do
-    echo
-    echo "What do you want to do?"
-    echo
-    echo "   1) Install phpMyAdmin"
-    echo "   2) Update phpMyAdmin to the latest version"
-    echo "   3) Change username and password"
-    echo "   4) Remove phpMyAdmin"
-    echo "   5) Enable IP address restrictions"
-    echo "   6) Disable IP address restrictions"
-    echo "   7) Add IP address to the whitelist"
-    echo "   8) Remove IP address from the whitelist"
-    echo "   9) Print username and password"
-    read -p "Action: " action
-    until [[ -z "$action" || "$action" =~ ^[1-9]$ ]]; do
-    	echo "$action: invalid selection."
-    	read -p "Action: " action
-    done
-done
+if [[ $action == "install_phpmyadmin" || $action == "1" ]]
+then
+	wget https://files.phpmyadmin.net/phpMyAdmin/5.2.0/phpMyAdmin-5.2.0-all-languages.tar.gz
+	tar xzf phpMyAdmin-5.2.0-all-languages.tar.gz
+	cp phpMyAdmin-5.2.0-all-languages/config.sample.inc.php phpMyAdmin-5.2.0-all-languages/config.inc.php
+	sed -i '/blowfish_secret/d' phpMyAdmin-5.2.0-all-languages/config.inc.php
+	echo "\$cfg['blowfish_secret'] = '$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 32)';" >> phpMyAdmin-5.2.0-all-languages/config.inc.php
+	mkdir -p /var/www/$domain/html/phpMyAdmin
+	mv phpMyAdmin-5.2.0-all-languages/* /var/www/$domain/html/phpMyAdmin
+	rm -rf phpMyAdmin-5.2.0-all-languages.tar.gz phpMyAdmin-5.2.0-all-languages
+	mkdir /var/www/$domain/html/phpMyAdmin/tmp
+	chmod 775 /var/www/$domain/html/phpMyAdmin/tmp
+	chown -R $user_name:www-data /var/www/$domain/html/phpMyAdmin
 
-
-
-user_name=$(echo $site | cut -c1-32)
-
-
-
-if [[ $action == "install_phpmyadmin" || $action == "1" ]]; then
-    wget https://files.phpmyadmin.net/phpMyAdmin/5.0.4/phpMyAdmin-5.0.4-all-languages.tar.gz
-    tar xzf phpMyAdmin-5.0.4-all-languages.tar.gz
-    cp phpMyAdmin-5.0.4-all-languages/config.sample.inc.php phpMyAdmin-5.0.4-all-languages/config.inc.php
-    sed -i '/blowfish_secret/d' phpMyAdmin-5.0.4-all-languages/config.inc.php
-    echo "\$cfg['blowfish_secret'] = '$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 32)';" >> phpMyAdmin-5.0.4-all-languages/config.inc.php
-    mkdir -p /var/www/$site/html/phpMyAdmin
-    mv phpMyAdmin-5.0.4-all-languages/* /var/www/$site/html/phpMyAdmin
-    rm -rf phpMyAdmin-5.0.4-all-languages.tar.gz phpMyAdmin-5.0.4-all-languages
-    mkdir /var/www/$site/html/phpMyAdmin/tmp
-    chmod 775 /var/www/$site/html/phpMyAdmin/tmp
-    chown -R www-data:www-data /var/www/$site/html/phpMyAdmin
-
-    echo
-    echo "phpMyAdmin installed for $site"
-    echo
-    echo "Login credentials are:"
-    echo "User: $(grep DB_USER /var/www/$site/html/wp-config.php | tr -d "[:space:]"|cut -d ',' -f2|cut -d')' -f1|tail -c +2 | head -c -2)"
-    echo "Password: $(grep DB_PASSWORD /var/www/$site/html/wp-config.php | tr -d "[:space:]"|cut -d ',' -f2|cut -d')' -f1|tail -c +2 | head -c -2)"
-    echo "You can access phpMyAdmin at: $site/phpMyAdmin"
+	echo
+	echo "phpMyAdmin installed for $domain"
+	echo
+	echo "Login credentials are:"
+	echo "User: $(grep DB_USER /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d ',' -f2|cut -d')' -f1|tail -c +2 | head -c -2)"
+	echo "Password: $(grep DB_PASSWORD /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d ',' -f2|cut -d')' -f1|tail -c +2 | head -c -2)"
+	echo "You can access phpMyAdmin at: $domain/phpMyAdmin"
 fi
 
 
+if [[ $action == "update_phpmyadmin" || $action == "2" ]]
+then
+	wget https://www.phpmyadmin.net/downloads/phpMyAdmin-latest-all-languages.tar.gz
+	tar xzf phpMyAdmin-*-all-languages.tar.gz
+	phpmyadmin_version=$(find -maxdepth 1 -type d -name "phpMyAdmin-*-all-languages" | cut -d "-" -f 2)
+	cp phpMyAdmin-$phpmyadmin_version-all-languages/config.sample.inc.php phpMyAdmin-$phpmyadmin_version-all-languages/config.inc.php
+	sed -i '/blowfish_secret/d' phpMyAdmin-$phpmyadmin_version-all-languages/config.inc.php
+	echo "\$cfg['blowfish_secret'] = '$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 32)';" >> phpMyAdmin-$phpmyadmin_version-all-languages/config.inc.php
+	rm -rf /var/www/$domain/html/phpMyAdmin
+	mkdir -p /var/www/$domain/html/phpMyAdmin
+	mv phpMyAdmin-$phpmyadmin_version-all-languages/* /var/www/$domain/html/phpMyAdmin
+	rm -rf phpMyAdmin-$phpmyadmin_version-all-languages.tar.gz phpMyAdmin-$phpmyadmin_version-all-languages
+	mkdir /var/www/$domain/html/phpMyAdmin/tmp
+	chmod 775 /var/www/$domain/html/phpMyAdmin/tmp
+	chown -R $user_name:www-data /var/www/$domain/html/phpMyAdmin
 
-if [[ $action == "update_phpmyadmin" || $action == "2" ]]; then
-    wget https://www.phpmyadmin.net/downloads/phpMyAdmin-latest-all-languages.tar.gz
-    tar xzf phpMyAdmin-*-all-languages.tar.gz
-    phpmyadmin_version=$(find -maxdepth 1 -type d -name "phpMyAdmin-*-all-languages" | cut -d "-" -f 2)
-    cp phpMyAdmin-$phpmyadmin_version-all-languages/config.sample.inc.php phpMyAdmin-$phpmyadmin_version-all-languages/config.inc.php
-    sed -i '/blowfish_secret/d' phpMyAdmin-$phpmyadmin_version-all-languages/config.inc.php
-    echo "\$cfg['blowfish_secret'] = '$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 32)';" >> phpMyAdmin-$phpmyadmin_version-all-languages/config.inc.php
-    rm -rf /var/www/$site/html/phpMyAdmin
-    mkdir -p /var/www/$site/html/phpMyAdmin
-    mv phpMyAdmin-$phpmyadmin_version-all-languages/* /var/www/$site/html/phpMyAdmin
-    rm -rf phpMyAdmin-$phpmyadmin_version-all-languages.tar.gz phpMyAdmin-$phpmyadmin_version-all-languages
-    mkdir /var/www/$site/html/phpMyAdmin/tmp
-    chmod 775 /var/www/$site/html/phpMyAdmin/tmp
-    chown -R www-data:www-data /var/www/$site/html/phpMyAdmin
-
-    echo
-    echo "phpMyAdmin updated for $site to version $phpmyadmin_version"
-    echo
-    echo "Login credentials are:"
-    echo "User: $(grep DB_USER /var/www/$site/html/wp-config.php | tr -d "[:space:]"|cut -d ',' -f2|cut -d')' -f1|tail -c +2 | head -c -2)"
-    echo "Password: $(grep DB_PASSWORD /var/www/$site/html/wp-config.php | tr -d "[:space:]"|cut -d ',' -f2|cut -d')' -f1|tail -c +2 | head -c -2)"
-    echo "You can access phpMyAdmin at: $site/phpMyAdmin"
+	echo
+	echo "phpMyAdmin updated for $domain to version $phpmyadmin_version"
+	echo
+	echo "Login credentials are:"
+	echo "User: $(grep DB_USER /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d ',' -f2|cut -d')' -f1|tail -c +2 | head -c -2)"
+	echo "Password: $(grep DB_PASSWORD /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d ',' -f2|cut -d')' -f1|tail -c +2 | head -c -2)"
+	echo "You can access phpMyAdmin at: $domain/phpMyAdmin"
 fi
 
 
+if [[ $action == "change_auth_phpmyadmin" || $action == "3" ]]
+then
+	if [[ -z $mysql_user ]]
+	then
+		echo
+		echo "Specify a new user name Example: mynewusername"
+		read -p "User name: " mysql_user
+	fi
 
-if [[ $action == "change_auth_phpmyadmin" || $action == "3" ]]; then
+	if [[ -z $mysql_pass ]]
+	then
+		echo
+		echo "Specify a new password"
+		read -p "Password: " mysql_password
+	fi
 
-    if [[ -z $mysql_user ]]; then
-        echo
-        echo "Specify a new user name
-Example: mynewusername"
-        read -p "User name: " mysql_user
-    fi
+	mysql_db=$(grep DB_NAME /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d ',' -f2|cut -d')' -f1|tail -c +2 | head -c -2)
+	mysql_old_user=$(grep DB_USER /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d ',' -f2|cut -d')' -f1|tail -c +2 | head -c -2)
 
-    if [[ -z $mysql_pass ]]; then
-        echo
-        echo "Specify a new password"
-        read -p "Password: " mysql_password
-    fi
-
-    mysql_db=$(grep DB_NAME /var/www/$site/html/wp-config.php | tr -d "[:space:]"|cut -d ',' -f2|cut -d')' -f1|tail -c +2 | head -c -2)
-    mysql_old_user=$(grep DB_USER /var/www/$site/html/wp-config.php | tr -d "[:space:]"|cut -d ',' -f2|cut -d')' -f1|tail -c +2 | head -c -2)
-
-    # Rename MySQL user and change pass
-    mariadb <<QUERY
+	# Rename MySQL user and change pass
+	mariadb <<QUERY
 RENAME USER '$mysql_old_user'@'localhost' TO '$mysql_user'@'localhost';
 SET PASSWORD FOR '$mysql_user'@'localhost' = PASSWORD('$mysql_password');
 FLUSH PRIVILEGES;
 QUERY
 
-    # Update WP config
-    cd /var/www/$site/html/
-    su - $user_name -c "wp --skip-plugins config set DB_USER $mysql_user"
-    su - $user_name -c "wp --skip-plugins config set DB_PASSWORD $mysql_password"
-    su - $user_name -c "wp cache flush"
+	# Update WP config
+	su - $user_name -c "wp --skip-plugins config set DB_USER $mysql_user"
+	su - $user_name -c "wp --skip-plugins config set DB_PASSWORD $mysql_password"
+	su - $user_name -c "wp cache flush"
 
-    echo
-    echo "Access credentials have been updated"
-    echo
-    echo "Login credentials are:"
-    echo "User: $(grep DB_USER /var/www/$site/html/wp-config.php | tr -d "[:space:]"|cut -d ',' -f2|cut -d')' -f1|tail -c +2 | head -c -2)"
-    echo "Password: $(grep DB_PASSWORD /var/www/$site/html/wp-config.php | tr -d "[:space:]"|cut -d ',' -f2|cut -d')' -f1|tail -c +2 | head -c -2)"
-    echo "You can access phpMyAdmin at: $site/phpMyAdmin"
-
-
+	echo
+	echo "Access credentials have been updated"
+	echo
+	echo "Login credentials are:"
+	echo "User: $(grep DB_USER /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d ',' -f2|cut -d')' -f1|tail -c +2 | head -c -2)"
+	echo "Password: $(grep DB_PASSWORD /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d ',' -f2|cut -d')' -f1|tail -c +2 | head -c -2)"
+	echo "You can access phpMyAdmin at: $domain/phpMyAdmin"
 fi
 
 
-
-if [[ $action == "remove_phpmyadmin" || $action == "4" ]]; then
-
-    rm -rf /var/www/$site/html/phpMyAdmin
-
-    echo
-    echo "phpMyAdmin has been removed for $site"
-
+if [[ $action == "remove_phpmyadmin" || $action == "4" ]]
+then
+	rm -rf /var/www/$domain/html/phpMyAdmin
+	echo
+	echo "phpMyAdmin has been removed for $domain"
 fi
 
 
+if [[ $action == "enable_phpmyadmin_whitelist" || $action == "5" ]]
+then
+	if [ "$g_webserver_type" = "nginx" ]
+	then
+		sed -i "/allow all;/c\deny all;" /etc/nginx/sites-enabled/$domain
+	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+	then
+		echo 'RewriteRule ^phpMyAdmin/.*$ - [R=403,NC,L]' >> /var/www/$domain/html/.htaccess
+	fi
 
-if [[ $action == "enable_phpmyadmin_whitelist" || $action == "5" ]]; then
-
-    sed -i "/allow all;/c\deny all;" /etc/nginx/sites-enabled/$site
-    systemctl restart nginx
-
-    echo
-    echo "phpMyAdmin access restrictions enabled for $site"
-    exit
+	gf_restart_webserver
+	echo
+	echo "phpMyAdmin access restrictions enabled for $domain"
+	exit
 fi
 
 
+if [[ $action == "disable_phpmyadmin_whitelist" || $action == "6" ]]
+then
+	if [ "$g_webserver_type" = "nginx" ]
+	then
+		sed -i "/deny all;/c\allow all;" /etc/nginx/sites-enabled/$domain
+	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+	then
+		# Remove Rewrite rule to do redirect to Rickroll youtube link.
+		sed -i '/RewriteRule ^phpMyAdmin/d' /var/www/$domain/html/.htaccess
+	fi
 
-if [[ $action == "disable_phpmyadmin_whitelist" || $action == "6" ]]; then
-
-    sed -i "/deny all;/c\allow all;" /etc/nginx/sites-enabled/$site
-    systemctl restart nginx
-
-    echo
-    echo "phpMyAdmin access restrictions disabled for $site"
-    exit
+	gf_restart_webserver
+	echo
+	echo "phpMyAdmin access restrictions disabled for $domain"
+	exit
 fi
 
 
+if [[ $action == "add_whitelisted_ip" || $action == "7" ]]
+then
+	if [[ -z $whitelistip ]]
+	then
+		echo "Specify the IP address which you wish to add"
+		echo "Example: 12.34.56.78"
+		read -p "IP address: " whitelistip
+	fi
+	if [ "$g_webserver_type" = "nginx" ]
+	then
+		sed -i "/location ~ \/phpMyAdmin/a allow $whitelistip;" /etc/nginx/sites-enabled/$domain
+	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+	then
+		ip_rewrite_allow=$(echo "RewriteCond %{REMOTE_ADDR}" '!'"${whitelistip}"|sed 's|\.|\\\.|g')
+		# We need to only insert this right before the matching phpmyadmin redirect
+		sed -i "/RewriteRule \^phpMyAdmin.*/i $(printf %q "$ip_rewrite_allow")"  /var/www/$domain/html/.htaccess
+	fi
+	gf_restart_webserver
 
-if [[ $action == "add_whitelisted_ip" || $action == "7" ]]; then
-
-    if [[ -z $ip ]]; then
-        echo
-        echo "Specify the IP address which you wish to add"
-        echo "Example: 12.34.56.78"
-        echo
-        read -p "IP address: " ip
-    fi
-    sed -i "/location ~ \/phpMyAdmin/a allow $ip;" /etc/nginx/sites-enabled/$site
-    systemctl restart nginx
-    echo
-    echo "$ip added to the phpMyAdmin whitelist for $site"
-    exit
+	echo
+	echo "$whitelistip added to the phpMyAdmin whitelist for $domain"
+	exit
 fi
 
 
+if [[ $action == "remove_whitelisted_ip" || $action == "8" ]]
+then
+	if [ "$g_webserver_type" = "nginx" ]
+	then
+		while [[ -z $whitelistip ]]
+		do
+			echo "Specify the IP address which you wish to remove"
+			sed -n '/location ~ \/phpMyAdmin/,/ all;/p' /etc/nginx/sites-enabled/$domain | sed '1d;$d' | sed 's/allow //g' | sed 's/;//g' | nl
+			read -p "IP address: " site_number
+			number_of_sites=$(sed -n '/location ~ \/phpMyAdmin/,/ all;/p' /etc/nginx/sites-enabled/$domain | sed '1d;$d' | sed 's/allow //g' | sed 's/;//g' | wc -l)
+			until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]
+			do
+				echo "$site_number: invalid selection."
+				read -p "IP address: " whitelistip
+			done
+			whitelistip=$(sed -n '/location ~ \/phpMyAdmin/,/ all;/p' /etc/nginx/sites-enabled/$domain | sed '1d;$d' | sed 's/allow //g' | sed 's/;//g' | sed -n "$site_number"p)
+		done
+	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+	then
+		if [[ -z $whitelistip ]]
+		then
+			echo "Specify the IP address which you wish to add"
+			echo "Example: 12.34.56.78"
+			read -p "IP address: " whitelistip
+		fi
+		# We want to remove the line that looks like : RewriteCond %{REMOTE_ADDR} !^12\.34\.56\.78
+		ip_rewrite=$(echo ${whitelistip}|sed 's|\.|\\\.|g')
+		sed -i '/RewriteCond %{REMOTE_ADDR} !'$(printf %q "$ip_rewrite")'/d' /var/www/$domain/html/.htaccess
+	fi
 
-if [[ $action == "remove_whitelisted_ip" || $action == "8" ]]; then
-
-    while [[ -z $ip ]]; do
-        echo
-        echo "Specify the IP address which you wish to remove"
-        sed -n '/location ~ \/phpMyAdmin/,/ all;/p' /etc/nginx/sites-enabled/$site | sed '1d;$d' | sed 's/allow //g' | sed 's/;//g' | nl
-        read -p "IP address: " site_number
-        number_of_sites=$(sed -n '/location ~ \/phpMyAdmin/,/ all;/p' /etc/nginx/sites-enabled/$site | sed '1d;$d' | sed 's/allow //g' | sed 's/;//g' | wc -l)
-        until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
-        	echo "$site_number: invalid selection."
-        	read -p "IP address: " ip
-        done
-        ip=$(sed -n '/location ~ \/phpMyAdmin/,/ all;/p' /etc/nginx/sites-enabled/$site | sed '1d;$d' | sed 's/allow //g' | sed 's/;//g' | sed -n "$site_number"p)
-    done
-
-
-    if [[ -z $ip ]]; then
-        echo
-        echo "Specify the IP address which you wish to add"
-        echo "Example: 12.34.56.78"
-        echo
-        read -p "IP address: " ip
-    fi
-    sed -i "/allow $ip/d" /etc/nginx/sites-enabled/$site
-    systemctl restart nginx
-    echo
-    echo "$ip removed from the phpMyAdmin whitelist for $site"
-    exit
+	gf_restart_webserver
+	echo
+	echo "$whitelistip removed from the phpMyAdmin whitelist for $domain"
+	exit
 fi
 
 
-
-if [[ $action == "print_auth" || $action == "9" ]]; then
-
-    echo
-    echo "Login credentials are:"
-    echo "User: $(grep DB_USER /var/www/$site/html/wp-config.php | tr -d "[:space:]"|cut -d ',' -f2|cut -d')' -f1|tail -c +2 | head -c -2)"
-    echo "Password: $(grep DB_PASSWORD /var/www/$site/html/wp-config.php | tr -d "[:space:]"|cut -d ',' -f2|cut -d')' -f1|tail -c +2 | head -c -2)"
-    echo "You can access phpMyAdmin at: $site/phpMyAdmin"
-
+if [[ $action == "print_auth" || $action == "9" ]]
+then
+	echo
+	echo "Login credentials are:"
+	echo "User: $(grep DB_USER /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d ',' -f2|cut -d')' -f1|tail -c +2 | head -c -2)"
+	echo "Password: $(grep DB_PASSWORD /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d ',' -f2|cut -d')' -f1|tail -c +2 | head -c -2)"
+	echo "You can access phpMyAdmin at: $domain/phpMyAdmin"
 fi

@@ -169,7 +169,8 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 					$result = $this->refresh_services_status( $id, $action );
 					break;
 				case 'web-server-restart':
-					$result = $this->submit_generic_server_command( $id, $action, 'sudo service nginx restart && echo "' . __( 'The Nginx Service has restarted', 'wpcd' ) . '"' );
+					// $result = $this->submit_generic_server_command( $id, $action, 'sudo service nginx restart && echo "' . __( 'The Nginx Service has restarted', 'wpcd' ) . '"' );
+					$result = $this->restart_webserver( $id, $action );
 					break;
 				case 'db-server-restart':
 					$result = $this->submit_generic_server_command( $id, $action, 'sudo service mariadb restart && echo "' . __( 'The MariaDB database Service has restarted', 'wpcd' ) . '"' );
@@ -308,7 +309,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 
 		// Initialize some services status vars.
 		$default_status   = __( 'Installed - Click REFRESH SERVICES to get running status.', 'wpcd' );
-		$nginx_status     = $default_status;
+		$webserver_status = $default_status;
 		$mariadb_status   = $default_status;
 		$memcached_status = $default_status;
 		$ufw_status       = $default_status;
@@ -321,8 +322,8 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		}
 
 		if ( ! empty( $services_status ) ) {
-			if ( isset( $services_status['nginx'] ) ) {
-				$nginx_status = $services_status['nginx'];
+			if ( isset( $services_status['webserver'] ) ) {
+				$webserver_status = $services_status['webserver'];
 			}
 			if ( isset( $services_status['mariadb'] ) ) {
 				$mariadb_status = $services_status['mariadb'];
@@ -370,11 +371,14 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			),
 		);
 
-		/* NGINX web Server */
+		/* Web Server */
+		$webserver_type              = $this->get_web_server_type( $id );
+		$webserver_type_name         = $this->get_web_server_description_by_id( $id );
 		$actions['web-server-label'] = array(
 			'label'          => __( 'Service', 'wpcd' ),
 			'raw_attributes' => array(
-				'std'     => __( 'Nginx Web Server', 'wpcd' ),
+				/* Translators: %s is the web server type eg, NGINX, OLS etc. */
+				'std'     => sprintf( __( '%s Web Server', 'wpcd' ), $webserver_type_name ),
 				'columns' => wpcd_get_early_option( 'wordpress_app_hide_notes_on_server_services_tab' ) ? 4 : 3,
 			),
 			'type'           => 'custom_html',
@@ -383,7 +387,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		$actions['web-server-status'] = array(
 			'label'          => __( 'Status', 'wpcd' ),
 			'raw_attributes' => array(
-				'std'     => $nginx_status,
+				'std'     => $webserver_status,
 				'columns' => wpcd_get_early_option( 'wordpress_app_hide_notes_on_server_services_tab' ) ? 5 : 2,
 			),
 			'type'           => 'custom_html',
@@ -807,7 +811,9 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		}
 
 		/* PHP Processes */
-		$actions = array_merge( $actions, $this->get_php_fields( $id ) );
+		if ( 'nginx' === $webserver_type ) {
+			$actions = array_merge( $actions, $this->get_php_fields( $id ) );
+		}
 
 		return $actions;
 
@@ -1230,16 +1236,33 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		// Array to hold status of services.
 		$services_status = array();
 
-		// get nginx status.
-		$command    = 'sudo service nginx status';
+		// What type of web server are we running?
+		$webserver_type      = $this->get_web_server_type( $id );
+		$webserver_type_name = $this->get_web_server_description_by_id( $id );
+
+		switch ( $webserver_type ) {
+			case 'ols':
+			case 'ols-enterprise':
+				$webserver_service = 'lsws';
+				break;
+
+			case 'nginx':
+			default:
+				$webserver_service = 'nginx';
+				break;
+
+		}
+
+		// get webserver status.
+		$command    = 'sudo service ' . $webserver_service . ' status';
 		$raw_status = $this->submit_generic_server_command( $id, $action, $command, true );
 		if ( is_wp_error( $raw_status ) ) {
-			$services_status['nginx'] = __( 'still unknown - last status request errored', 'wpcd' );
+			$services_status['webserver'] = __( 'still unknown - last status request errored', 'wpcd' );
 		} else {
 			if ( ( strpos( $raw_status, 'Started A high performance web server' ) !== false ) || ( strpos( $raw_status, 'active (running) since' ) !== false ) ) {
-				$services_status['nginx'] = 'running';
+				$services_status['webserver'] = 'running';
 			} else {
-				$services_status['nginx'] = 'errored';
+				$services_status['webserver'] = 'errored';
 			}
 		}
 
@@ -2303,6 +2326,53 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		$return     .= '</div>';
 
 		return $return;
+	}
+
+	/**
+	 * Restart the approrpriate webserver
+	 *
+	 * @param int    $id         The postID of the server cpt.
+	 * @param string $action     The action to be performed (this matches the string required in the bash scripts if bash scripts are used ).
+	 *
+	 * @return boolean success/failure/other
+	 */
+	public function restart_webserver( $id, $action ) {
+		$result = __( 'Action Failed.', 'wpcd' );
+
+		$webserver_type      = $this->get_web_server_type( $id );
+		$webserver_type_name = $this->get_web_server_description_by_id( $id );
+
+		switch ( $webserver_type ) {
+			case 'ols':
+			case 'ols-enterprise':
+				$webserver_service = 'lsws';
+				break;
+
+			case 'nginx':
+			default:
+				$webserver_service = 'nginx';
+				break;
+
+		}
+
+		/* Translators: %s is the full name of the webserver eg: OpenLiteSpeed. */
+		$success_message = sprintf( __( 'The %s webserver service has restarted.', 'wpcd' ), $webserver_type_name );
+
+		switch ( $webserver_type ) {
+			case 'ols':
+			case 'ols-enterprise':
+				$result = $this->submit_generic_server_command( $id, $action, 'sudo killall -9 lsphp' ); // Kill all litespeed php services.
+				$result = $this->submit_generic_server_command( $id, $action, 'systemctl stop lsws' ); // Stop the litespeed service.
+				$result = $this->submit_generic_server_command( $id, $action, "sudo systemctl start lsws && echo {$success_message}" );
+				break;
+
+			case 'nginx':
+				$result = $this->submit_generic_server_command( $id, $action, "sudo service {$webserver_service} restart && echo {$success_message}" );
+				break;
+		}
+
+		return $result;
+
 	}
 
 	/**

@@ -138,8 +138,8 @@
 }
 
 #wpcd-install .wpcd-create-popup-input-wp-version-select2-wrap .select2-selection__rendered {
-	/* this attemps to make the select2 drop-down 100% wide on the create wordpress site popup screen. 
-	   unfortuately it doesn't work.
+	/* This attempts to make the select2 drop-down 100% wide on the create wordpress site popup screen. 
+	   unfortunately it doesn't work.
 	*/
 	min-width: 50%;
 }
@@ -508,13 +508,13 @@ div[id^='wpcd_server_wordpress-app'] {
 
 button.wpcd_action_install_app.button {
 	background-color: #1B5E20;
-	color: white !important;
+	color: white;
 }
 
 button.wpcd_action_install_app.button:hover {
 	background-color: var(--wpcd-tertiary-brand-color);
-	border-color: var(--wpcd-tertiary-brand-color) !important;
-	color: white !important;
+	border-color: var(--wpcd-tertiary-brand-color);
+	color: white;
 }
 
 /******************************************************************************************/
@@ -678,7 +678,7 @@ a.wpcd-stat-switch {
 	background-color: orange;
 }
 
-/* For when a server has an operation in progres... */
+/* For when a server has an operation in progress... */
 
 .wpcd_server_actions_op_in_progress {
 	padding: 2px 8px;
@@ -693,6 +693,32 @@ a.wpcd-stat-switch {
 	margin: 2px;
 	margin-left: 0px;
 	width: 90%;
+}
+
+/* Provider name in the provider details column should be bold. Note that we add the wp-admin class qualifier so that we don't inadvertently apply the styles to the front-end. */
+.wp-admin .wpcd-server-col-element-label-provider {
+	font-weight: bold;
+}
+
+/* Initial OS in the provider details column should be italic. Note that we add the wp-admin class qualifier so that we don't inadvertently apply the styles to the front-end. */
+.wp-admin .wpcd-server-col-element-label-initial_os {
+	font-style: italic;
+}
+
+/* IP Addresses in the provider details column should be bold. Note that we add the wp-admin class qualifier so that we don't inadvertently apply the styles to the front-end. */
+.wp-admin .wpcd-server-col-element-label-ips {
+	font-weight: bold;
+}
+
+/* Web server type in the SERVER ACTIONS menu should be a transparent box.  Note that we add the wp-admin class qualifier so that we don't inadvertently apply the styles to the front-end. */
+.wp-admin .wpcd-server-col-element-wrap-web_server_desc {
+	display: inline-block;
+	margin: 2px;
+	margin-left: 0px;	
+	padding: 2px 8px;
+	border: solid 1px;
+	border-radius: 3px;
+	border-color: orange;
 }
 
 /* Custom Tooltip CSS */

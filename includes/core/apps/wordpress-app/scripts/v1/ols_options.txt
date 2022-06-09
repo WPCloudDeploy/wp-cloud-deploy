@@ -1,0 +1,7 @@
+cd ~ && 
+sudo -E wget --no-check-certificate -O ##SCRIPT_NAME## ##SCRIPT_URL## &&
+sudo -E wget --no-check-certificate -O ##SCRIPT_COMMON_NAME## ##SCRIPT_COMMON_URL## &&
+sudo -E dos2unix ##SCRIPT_COMMON_NAME## &&
+export action=##ACTION## domain=##DOMAIN## cache_types=##CACHE_TYPES## custom_csp=##CUSTOM_CSP## custom_pp=##CUSTOM_PP## &&
+sudo -E dos2unix ##SCRIPT_NAME## &&
+sudo -E bash ##SCRIPT_NAME##

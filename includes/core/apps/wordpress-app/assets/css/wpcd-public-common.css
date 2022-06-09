@@ -3,58 +3,104 @@
     Author     : Tahir Nazir
 */
 
+.wpcd_public_clear {
+        clear: both;
+	float: none;
+}
 
 .rwmb-meta-box .rwmb-tabs {
         margin: 0;
 }
 
 #wpcd_public_wrapper {
-        
         max-width: 100%;
 }
 
-
-#wpcd_public_wrapper .wpcd-create-popup-label {
-        font-size: 13px;
+/* Links should not be underlined. */
+#wpcd_public_wrapper a {
+	text-decoration: none;
+	text-decoration-line: none;
 }
+#wpcd_public_wrapper a:hover,
+#wpcd_public_wrapper a:active,
+#wpcd_public_wrapper a:focus,
+#wpcd_public_wrapper a:focus-visible,
+#wpcd_public_wrapper a:visited {
+	text-decoration: none;
+	text-decoration-line: none;
+}
+/* End links should not be underlined. */
 
-#wpcd_public_wrapper .wpcd-pre-install, #wpcd_public_wrapper #wpcd_public_servers_container, #wpcd_public_wrapper .wpcd_public_container {
+/* Button text should not be underlined and text color should be defaulted to white. */
+#wpcd_public_wrapper button,
+#wpcd_public_wrapper a.button {
+	background-color: var(--wpcd-front-end-accent-background-color);
+	border-color: var(--wpcd-front-end-accent-background-color);
+	color: white;
+	text-decoration: none;
+	text-decoration-line: none;	
+}
+#wpcd_public_wrapper button:hover,
+#wpcd_public_wrapper a.button:hover {
+	text-decoration: none;
+	text-decoration-line: none;	
+}
+/* End button text should not be underlined. */
+
+#wpcd_public_wrapper .wpcd-pre-install,
+#wpcd_public_wrapper #wpcd_public_servers_container,
+#wpcd_public_wrapper .wpcd_public_container {
         width: 96%;
         margin: 0 auto;
         padding-right: 0;
 }
 
+#wpcd_public_wrapper .wpcd-create-popup-label {
+		/* Field labels on popup when creating a new site or server.*/
+        font-size: 13px;
+}
 
 #wpcd_public_wrapper .wpcd-create-popup-label-wrap {
+		/* Field labels on popup when creating a new site needs vertical space between them.*/
         margin-bottom: 6px;
 }
 
 
-#wpcd_public_wrapper .wpcd-create-popup-grid-wrap:after {        
-        content :' ';
+#wpcd_public_wrapper .wpcd-create-popup-grid-wrap:after {
+        content: ' ';
         float: none;
-        clear:both;
+        clear: both;
 }
 
 #wpcd_public_wrapper .wpcd-popup .wpcd-log-title {
+		/* Popup title for long running operations. */
         font-size: 26px;
         margin-top: 26px;
         margin-bottom: 26px;
         margin-left: 5px;
 }
 
+/* Close button on popups.*/
 #wpcd_public_wrapper .wpcd-popup .wpcd-log-close-button {
+		border-color: var(--wpcd-front-end-negative-color);
+		background-color: var(--wpcd-front-end-negative-color);
+		text-decoration: none;
         display: inline-block;
         font-size: 13px;
         border-radius: 3px;
         line-height: 28px;
         padding: 0 10px;
-        border: 1px solid #2271b1;
-        color: #2271b1;
+        xx-border: 1px solid #2271b1;
+        xx-color: #2271b1;
+		color: white;
 }
-
 #wpcd_public_wrapper .wpcd-popup .wpcd-log-close-button a {
+		text-decoration: none;
         color: inherit;
+}
+#wpcd_public_wrapper .wpcd-popup .wpcd-log-close-button:hover {
+		border-color: var(--wpcd-front-end-primary-brand-color);
+		background-color: var(--wpcd-front-end-primary-brand-color);	
 }
 
 #wpcd_public_wrapper .wpcd-log-close-wrap {
@@ -62,7 +108,7 @@
 }
 
 #wpcd_public_wrapper .wpcd-log-wrap {
-    padding: 3px 26px 26px 26px;
+        padding: 3px 26px 26px 26px;
 }
 
 
@@ -74,79 +120,89 @@
         font-size: 14px;
 }
 
-
+/* Style filter bar at the top of table/grid */
 #wpcd_public_wrapper .tablenav .tablenav-pages {
-    float: right;
-    margin: 9px 0 9px;
-    font-size: 14px;
+        float: right;
+        margin: 9px 0 9px;
+        font-size: 14px;
 }
 
 #wpcd_public_wrapper .tablenav .displaying-num {
-    margin-right: 7px;
+        margin-right: 7px;
 }
 
-#wpcd_public_wrapper .tablenav .tablenav-pages .button, 
+#wpcd_public_wrapper .tablenav .tablenav-pages .button,
 #wpcd_public_wrapper .tablenav .tablenav-pages .tablenav-pages-navspan {
-    display: inline-block;
-    vertical-align: baseline;
-    min-width: 30px;
-    min-height: 30px;
-    margin: 0;
-    padding: 0 4px;
-    border-width: 1px;
-    font-size: 16px;
-    line-height: 1.625;
-    text-align: center;
+        display: inline-block;
+        vertical-align: baseline;
+        min-width: 30px;
+        min-height: 30px;
+        margin: 0;
+        padding: 0 4px;
+        border-width: 1px;
+        font-size: 16px;
+        line-height: 1.625;
+        text-align: center;
+		text-decoration: none;
 }
 
 #wpcd_public_wrapper .tablenav-pages .current-page {
-    margin: 0 2px 0 0;
-    font-size: 13px;
-    padding: 0 8px;
-    text-align: center;
-    min-height: 30px;
+        margin: 0 2px 0 0;
+        font-size: 13px;
+        padding: 0 8px;
+        text-align: center;
+        min-height: 30px;
 }
 
-
 #wpcd_public_wrapper .tablenav .actions select {
-    width: 13%;
-    float: left;
-    margin-bottom: 10px;
-    margin-right: 6px;
-    max-width: 12.5rem;
-    padding-top: 0;
-    padding-bottom: 0;
-    font-size: 14px;
-    border-radius: 3px;
+		/* Individual filter drop-downs */
+		background-color: var(--wpcd-front-end-accent-background-color);
+		border-color: var(--wpcd-front-end-accent-background-color);
+		border-style: none;
+		color: white;
+		height: 30px;		
+        width: 13%;
+        float: left;
+        margin-bottom: 10px;
+        margin-right: 6px;        
+        padding-top: 0;
+        padding-bottom: 0;
+		padding 0 10px;
+        font-size: 14px;
+        border-radius: 3px;
 }
 
 #wpcd_public_wrapper .tablenav .actions #post-query-submit {
-    float: left;
+		/* Submit button next to filter bar. */
+		color: white;
+		background-color: var(--wpcd-front-end-primary-brand-color);
+		border-color: var(--wpcd-front-end-primary-brand-color);
+		height: 30px;		
+        min-height: 30px;
+        float: left;
+        font-size: 13px;
+        padding-top: 0;
+        padding-bottom: 0;
+        border-width: 1px;
+		border-radius: 3px;
+        display: inline-block;		
 }
-
-#wpcd_public_wrapper .tablenav .actions #post-query-submit, #wpcd_public_wrapper .rwmb-input button {
-    font-size: 13px;
-    padding-top: 0;
-    padding-bottom: 0;
-    min-height: 30px;
-    border-width: 1px;
-    display: inline-block;
+#wpcd_public_wrapper .tablenav .actions #post-query-submit:hover {
+	/* Submit button next to filter bar - hover. */
+	background-color: var(--wpcd-front-end-accent-background-color);
+	border-color: var(--wpcd-front-end-accent-background-color);
 }
+/* End style filter bar at the top of table/grid */
 
 #wpcd_public_wrapper td button.toggle-row {
         display: none;
 }
 
-
-#wpcd_public_wrapper a.deploy_button {
-    display: inline-block;
-    margin: 20px 0;
-}
-
-#wpcd_public_wrapper .wpcd-popup .wpcd-log-console, #wpcd_public_wrapper .wpcd_custom_tooltiptext,#wpcd_public_wrapper .rwmb-tab-panels {
+#wpcd_public_wrapper .wpcd-popup .wpcd-log-console,
+#wpcd_public_wrapper .wpcd_custom_tooltiptext,
+#wpcd_public_wrapper .rwmb-tab-panels {
         font-size: 13px;
 }
-
 
 #wpcd_public_wrapper .rwmb-tab-nav {
         padding: 0;
@@ -156,11 +212,9 @@
         font-size: 14px;
 }
 
-
 #wpcd_public_wrapper #wpcd_server_wordpress-app_tab_top_of_server_details {
         margin: 0;
 }
-
 
 #wpcd_public_wrapper #wpcd_server_wordpress-app_tab3 {
         padding-left: 0 !important;
@@ -168,9 +222,16 @@
         margin-top: 20px;
 }
 
+/* Metabox toggle switches */
 #wpcd_public_wrapper .rwmb-input label.rwmb-switch-label {
-     cursor: pointer;   
+		/* Toggle switches need pointer changed on hover. */
+        cursor: pointer;
 }
+#wpcd_public_wrapper .rwmb-input .rwmb-switch:checked + .rwmb-switch-status .rwmb-switch-slider {
+		/* Color when switch is enabled. */
+		background-color: var(--wpcd-front-end-positive-color);
+}
+/* End Metabox toggle switches */
 
 #wpcd_public_wrapper .rwmb-meta-box.wpcd_server_wordpress-app_tab_top_of_server_details label {
         font-size: 12px;
@@ -180,16 +241,19 @@
         font-size: 15px;
 }
 
-#wpcd_public_wrapper .rwmb-label, #wpcd_public_wrapper .rwmb-label label {
+/* Metabox field labels */
+#wpcd_public_wrapper .rwmb-label,
+#wpcd_public_wrapper .rwmb-label label {
         font-size: 13px;
 }
 
-#wpcd_public_wrapper .wpcd-back_link {
-        display: inline-block;
-        margin-bottom: 20px;
+/* Metabox buttons - default to white text. */
+#wpcd_public_wrapper button .rwmb-button a {
+		text-decoration: none;
+        color: #FFF;
 }
 
-
+/* Styling install popups */
 #wpcd_public_wrapper .wpcd-install-app-container.wpcd-popup {
         width: 100%;
         margin-left: 0;
@@ -198,25 +262,11 @@
         padding-right: 2%;
 }
 
-.wpcd-install-app-container-show-log-console {
-        width: 65%;
-        margin: 0 auto;
-}
-
-.wpcd-install-app-container-show-log-console .wpcd-popup .wpcd-create-popup-console-wrap {
-        width : 100%;
-}
-
-.wpcd-install-app-container-show-log-console .wpcd-header {
-        margin-left: 2%;
-        
-}
-
-.wpcd-header {
+#wpcd_public_wrapper .wpcd-header {
         margin-left: 2%;
 }
 
-#wpcd_public_wrapper .wpcd-install-app-container.wpcd-popup .wpcd-create-popup-input-wrap input, 
+#wpcd_public_wrapper .wpcd-install-app-container.wpcd-popup .wpcd-create-popup-input-wrap input,
 #wpcd_public_wrapper .wpcd-install-app-container.wpcd-popup .wpcd-create-popup-input-wrap select {
         font-size: 14px;
         box-shadow: 0 0 0 transparent;
@@ -254,7 +304,35 @@
         position: relative;
 }
 
+#wpcd_public_wrapper .wpcd-create-popup-input-wrap .wpcd-install-button.wpcd-install-app,
+#wpcd_public_wrapper .wpcd-create-popup-input-wrap .wpcd-install-button.wpcd-install-server {
+		/* The install button on the popups */
+		border-radius: 3px;
+        font-size: 17px;
+}
 
+#wpcd_public_wrapper .wpcd-install-app-container.wpcd-popup .wpcd-create-popup-fields-wrap .wp_field_error {
+		/* Validation error messages */
+		font-size: 13px;
+}
+/* End styling install popups */
+
+/* Style console for viewing logs */
+#wpcd_public_wrapper .wpcd-install-app-container-show-log-console {
+        width: 65%;
+        margin: 0 auto;
+}
+
+#wpcd_public_wrapper .wpcd-install-app-container-show-log-console .wpcd-popup .wpcd-create-popup-console-wrap {
+        width: 100%;
+}
+
+#wpcd_public_wrapper .wpcd-install-app-container-show-log-console .wpcd-header {
+        margin-left: 2%;
+}
+/* End style console for viewing logs */
+
+/* Some SELECT2 Styling. */
 #wpcd_public_wrapper .select2-search input.select2-search__field {
         line-height: 28px;
         border-radius: 4px;
@@ -262,76 +340,68 @@
         margin-right: 1px;
 }
 
-#wpcd_public_wrapper ul.select2-results__options li.select2-results__option, #wpcd_public_wrapper .select2-selection {
+#wpcd_public_wrapper ul.select2-results__options li.select2-results__option,
+#wpcd_public_wrapper .select2-selection {
         font-size: 13px;
 }
+/* End SELECT2 styles. */
 
-
-#wpcd_public_wrapper .wpcd-create-popup-input-wrap .wpcd-install-button.wpcd-install-app {
-        font-size: 17px;
-}
-
-
-#wpcd_public_wrapper button .rwmb-button a {
-	color: #FFF;
-}
-
-
+/* Style the post counts above the filter bar. */
 #wpcd_public_wrapper .subsubsub {
-    list-style: none;
-    margin: 8px 0 0;
-    padding: 0;
-    font-size: 13px;
-    color: #646970;
-    margin-bottom: 10px;
+        list-style: none;
+        margin: 8px 0 0;
+        padding: 0;
+        font-size: 13px;
+        color: #646970;		
+        margin-bottom: 10px;
+		
 }
 
-#wpcd_public_wrapper .tablenav .no-pages, #wpcd_public_wrapper .tablenav .one-page .pagination-links {
+#wpcd_public_wrapper .tablenav .no-pages,
+#wpcd_public_wrapper .tablenav .one-page .pagination-links {
         display: none;
 }
 
 #wpcd_public_wrapper .subsubsub li {
-    display: inline-block;
-    margin: 0;
-    padding: 0;
-    white-space: nowrap;
+        display: inline-block;
+        margin: 0;
+		margin-right: 6px;
+        padding: 0;
+        white-space: nowrap;
 }
 
 #wpcd_public_wrapper .subsubsub a {
-    line-height: 2;
-    padding: 0.2em;
-    text-decoration: none;
+		/* Make individual links buttons */
+		background-color: var(--wpcd-front-end-accent-background-color);
+		color: white;
+        line-height: 2;
+        padding: 5px 8px;;
+		border-radius: 3px;
+        text-decoration: none;
+}
+#wpcd_public_wrapper .subsubsub a:hover {
+	background-color: var(--wpcd-front-end-primary-brand-color);
+	border-color: var(--wpcd-front-end-primary-brand-color);
 }
 
 #wpcd_public_wrapper .subsubsub a.current {
-    font-weight: 700;
-    border: none;
+        font-weight: 700;
+        border: none;
 }
 
-#wpcd_public_wrapper .subsubsub a .count, #wpcd_public_wrapper .subsubsub a.current .count {
-    color: #50575e;
-    font-weight: 400;
+#wpcd_public_wrapper .subsubsub a .count,
+#wpcd_public_wrapper .subsubsub a.current .count {
+		color: white;
+        font-weight: 400;
 }
-
-button.wpcd_action_install_app.button {
-        font-size: 13px;
-        padding: 4px 8px;
-        border: #2271b1 solid 1px;
-        border-radius: 3px;
-        margin-top: 3px;
-}
-
-#wpcd_public_wrapper #wpcd_wordpress-app_tab_top_of_site_details button {
-        background-color: inherit;
-}
+/* End style the post counts above the filter bar. */
 
 #wpcd_public_wrapper .row-actions {
-        visibility: hidden
-        
+        /* Nothing here */
 }
 
 #wpcd_public_wrapper .wpcd-grid-table-row:hover .row-actions {
-        visibility: visible;
+        /* Nothing here */
 }
 
 
@@ -340,25 +410,112 @@ button.wpcd_action_install_app.button {
         float: none;
 }
 
+/* Format the DEPLOY A WORDPRESS SERVER and INSTALL WORDPRESS/NEW WORDPRESS SITE buttons. */
+#wpcd_public_wrapper a.deploy_button,
+#wpcd_public_wrapper button.wpcd_action_install_app {
+		display: inline-block;
+		background-color: var(--wpcd-front-end-positive-color);
+		border: solid;
+		border-color: var(--wpcd-front-end-positive-color);
+		padding: 9px 17px 9px 17px;
+		border-radius: 3px;
+		color: white;
+		text-decoration: none;
+		text-decoration-line: none;
+        margin: 20px 0;
+		cursor: pointer;
+}
+#wpcd_public_wrapper a.deploy_button:hover,
+#wpcd_public_wrapper a.deploy_button:active,
+#wpcd_public_wrapper a.deploy_button:focus,
+#wpcd_public_wrapper a.deploy_button:visited,
+#wpcd_public_wrapper button.wpcd_action_install_app:hover,
+#wpcd_public_wrapper button.wpcd_action_install_app:active,
+#wpcd_public_wrapper button.wpcd_action_install_app:focus,
+#wpcd_public_wrapper button.wpcd_action_install_app:visited {
+		text-decoration: none;
+		text-decoration-line: none;
+		border-color: var(--wpcd-front-end-primary-brand-color);
+		background-color: var(--wpcd-front-end-primary-brand-color);
+		cursor: pointer;
+}
+/* End format DEPLOY WORDPRESS SERVER button. */
 
-.wpcd-grid-table {
-        border-top: rgba(0, 0, 0, 0.1) solid 1px;
-        border-left: rgba(0, 0, 0, 0.1) solid 1px;
+/* Format INSTALL WORDPRESS / NEW WORDPRESS SITE button */
+#wpcd_public_wrapper button.wpcd_action_install_app {
+		/* Nothing here */
+}
+#wpcd_public_wrapper button.wpcd_action_install_app:hover {
+		/* Nothing here */
+}
+/* End Format INSTALL WORDPRESS button */
+
+/* Format the operation in progress alert in the SERVER ACTIONS column */
+#wpcd_public_wrapper .wpcd_server_actions_op_in_progress {
+	/* Just needs a bit of margin. */
+	margin: 20px 0;
 }
 
-.wpcd-grid-table-col, .wpcd-grid-table-cell {
-        border-bottom: rgba(0, 0, 0, 0.1) solid 1px;
-        border-right: rgba(0, 0, 0, 0.1) solid 1px;
-        padding: 5px 10px;
+/* Format site image - from Powerpack */
+#wpcd_public_wrapper .wpcd_site_home_page_image.column-wpcd_site_home_page_image a img {
+	min-width: 100%;
+	max-width: 100%;
+	min-height: 100%;
+	border-radius: 10px;
+}
+#wpcd_public_wrapper #wpcd_public_apps_container .wpcd-grid-table-cell:first-child {
+	/* Remove cell background for homepage image.  Unfortunately the cell doesn't have a classname so we use first-child since the home-page image will usually be the first column. */
+	/**** none of this works well right now so removing...
+	padding: 0px;
+	border-radius: 0px;
+	background-color: transparent;
+	****/
+}
+/* End format site image - from powerpack */
+
+
+/**
+ * The following section handles the formatting of the table list for servers and sites on the front-end. 
+ */
+.wpcd-grid-table {
+		/* Formatting for all elements in the table grid */
+		color: black;
+		font-size: 15px;
+		line-height: 20px;
+		font-weight: 700;
+		font-style: normal;		
+}
+
+.wpcd-grid-table a {
+		/* Link styling for all elements in the table grid */
+		font-weight: 600;
+		font-style: normal;
+}
+
+.wpcd-grid-table-col,
+.wpcd-grid-table-cell {
+		/* Make each table cell a white card. */
+		background-color: var(--wpcd-front-end-light-background-color);
+		border-radius: 10px;
+        padding: 35px 30px 35px 30px;
 }
 
 .wpcd-grid-table .no-items {
-        font-size: 13px;
+		/* @TODO: Not sure what this does - is it needed?  */
         padding: 10px 0;
 }
 
-.wpcd-grid-table.table-hidden .wpcd-grid-table-columns, .wpcd-grid-table.table-hidden .wpcd-grid-table-rows {
-        display: none;
+
+.wpcd-grid-table-rows {
+		/* All rows are in a grid - right now just one column but later we might adjust to make it two. */
+        display: grid;
+		grid-template-columns: 1fr;
+		column-gap: 20px;			
+}
+
+.wpcd-grid-table.table-hidden .wpcd-grid-table-columns,
+.wpcd-grid-table.table-hidden .wpcd-grid-table-rows {
+        /* Nothing here */
 }
 
 .wpcd-grid-table-loader {
@@ -374,7 +531,7 @@ button.wpcd_action_install_app.button {
 }
 
 .wpcd-grid-table * {
-    word-wrap: break-word;
+        word-wrap: break-word;
 }
 
 .wpcd-grid-table button.toggle-row {
@@ -382,7 +539,7 @@ button.wpcd_action_install_app.button {
 }
 
 .wpcd-grid-table-columns {
-        font-size: 14px;
+		/* Nothing here */
 }
 
 .row_col_name {
@@ -392,94 +549,404 @@ button.wpcd_action_install_app.button {
 }
 
 .wpcd-grid-table.mobile .wpcd-grid-table-cell {
-        margin-bottom: 20px;
+        /* Nothing here */
 }
 
 .wpcd-grid-table.mobile .row_col_name {
-        display: block;
+        /* Nothing here */
 }
 
 .wpcd-grid-table.mobile .wpcd-grid-table-row {
-        box-shadow: 0 1px 3px 0 rgb(0 0 0 / 10%), 0 1px 2px 0 rgb(0 0 0 / 6%);
-        border-radius: 6px;
-        background-color: rgba(255, 255, 255, 0.3);
-        margin-bottom: 20px;
+		/* Nothing here */
 }
 
 .wpcd-grid-table-rows .wpcd-grid-table-row {
-        font-size: 13px;
-}
-
-.wpcd-grid-table-columns, .wpcd-grid-table-rows .wpcd-grid-table-row {
-        display: grid;
-        width: 100%;
-        grid-auto-rows: auto;
-}
-
-.wpcd-grid-table.gridview {
-        border : 0;
-}
-
-.wpcd-grid-table.gridview .wpcd-grid-table-cell {
-        border : 0;
-}
-
-.wpcd-grid-table.gridview .wpcd-grid-table-cell {
-        padding-bottom: 20px;
-        border-right: rgba(0, 0, 0, 0.06) solid 1px
-}
-
-.wpcd-grid-table.gridview .wpcd-grid-table-cell:nth-child(3n) {
-        border-right: 0;
-}
-
-.wpcd-grid-table.gridview .row_col_name {
-        display: block;
-}
-
-.wpcd-grid-table.gridview .wpcd-grid-table-row {
-        box-shadow: 0 1px 3px 0 rgb(0 0 0 / 10%), 0 1px 2px 0 rgb(0 0 0 / 6%);
+		/* Each table row */
+		margin-top: 40px;
+		margin-bottom: 40px;		
+		background-color: var(--wpcd-front-end-alternate-accent-background-color);
+        xx-box-shadow: 0 1px 3px 0 rgb(0 0 0 / 10%), 0 1px 2px 0 rgb(0 0 0 / 6%);
         border-radius: 6px;
-        background-color: rgba(255, 255, 255, 0.3);
-        margin-bottom: 20px;
+		padding: 20px;
 }
 
-.wpcd-grid-table.gridview .wpcd-grid-table-columns, .wpcd-grid-table.gridview .wpcd-grid-table-rows .wpcd-grid-table-row {
-        grid-template-columns : 1fr 1fr 1fr;
-        border-bottom: 1px solid #ccc;
-        padding: 20px 0;
+.wpcd-grid-table .wpcd-grid-table-columns,
+.wpcd-grid-table .wpcd-grid-table-rows .wpcd-grid-table-row {
+		/* All cells within a row will also be in a grid. */
+        display: grid;		
+        grid-template-columns: 1fr 1fr 1fr;
+		column-gap: 20px;				
+        grid-auto-rows: auto;
+		grid-row-gap: 15px;
+        width: 100%;		
 }
 
+.wpcd-grid-table-rows .wpcd-grid-table-row {
+		/* Set the max width for each table row */
+        max-width: 1400px;
+		margin-left: auto;
+		margin-right: auto;
+}
 
-.wpcd-grid-table.gridview .wpcd-grid-table-columns {
+.wpcd-grid-table .row_col_name {
+		/* The column name at the top of each card */
+        display: block;
+		margin-bottom: 10px;
+}
+
+.wpcd-grid-table .wpcd-grid-table-columns {
+		/* @TODO: Not sure what this is - table title columns?  */
         display: none;
 }
 
+/* Server and app groups */
+.wpcd-grid-table .column-wpcd_app_group {
+	/* Grid for server and app groups - three columns.  Label will go in the first row. */
+	display: grid;
+	grid-template: "a a a"
+				   "b b b";	
+	grid-row-gap: 15px;
+	grid-column-gap: 20px;
+}
+.wpcd-grid-table .column-wpcd_app_group .row_col_name {
+	/* Assign label to first row of grid. */
+	grid-area: a;
+}
+.wpcd-grid-table .wpcd-app-server-app-group,
+.wpcd-grid-table .wpcd-app-server-app-group {
+	/* Assign server and app groups to the 2nd row of the grid.*/
+	grid-area: b;	
+}
+.wpcd-grid-table .wpcd-app-server-app-group,
+.wpcd-grid-table .wpcd-app-server-app-group {
+	/* format the server and app groups into buttons' */
+	line-height: 20px;
+	display: block;
+	padding: 10px;
+	color: white;
+	border-radius: 5px;
+}
+/* End server and app groups */
+
+/* Style in-line values such as "region: xxx" and "ipv4: xxx */
+.wpcd-grid-table [class^="wpcd-app-col-element-wrap-"],
+.wpcd-grid-table [class*=" wpcd-app-col-element-wrap-"],
+.wpcd-grid-table [class^="wpcd-server-col-element-wrap-"],
+.wpcd-grid-table [class*=" wpcd-server-col-element-wrap-"] {
+	display: block;
+	margin-bottom: 15px;
+}
+.wpcd-grid-table [class^="wpcd-app-col-element-label-"],
+.wpcd-grid-table [class*=" wpcd-app-col-element-label-"],
+.wpcd-grid-table [class^="wpcd-server-col-element-label-"],
+.wpcd-grid-table [class*=" wpcd-server-col-element-label-"] {
+	/* Nothing here. */
+}
+.wpcd-grid-table [class^="wpcd-app-col-element-value-"],
+.wpcd-grid-table [class*=" wpcd-app-col-element-value-"],
+.wpcd-grid-table [class^="wpcd-server-col-element-value-"],
+.wpcd-grid-table [class*=" wpcd-server-col-element-value-"] {
+	float: right;
+}
+/* End style in-line value */
+
+/* Style the "apps on this server" and "Update Remote State" links - make them buttons. */
+.wpcd-grid-table .wpcd-app-col-element-label-apps_on_server a,
+.wpcd-grid-table .wpcd-server-col-element-label-update_remote_state_link a {
+	display: inline-block;
+	margin-top: 10px;
+	background-color: var(--wpcd-front-end-accent-background-color);
+	padding: 9px 17px 9px 17px;
+	border-radius: 3px;
+	color: white;
+	font-size: 15px;
+	font-weight: 700;
+	text-decoration: none;
+}
+.wpcd-grid-table .wpcd-app-col-element-label-apps_on_server a:hover,
+.wpcd-grid-table .wpcd-server-col-element-label-update_remote_state_link a:hover {
+	text-decoration: none;
+	background-color: var(--wpcd-front-end-primary-brand-color);
+}
+/* End Style the "apps on this server link" */
+
+/* Style the app links on the server list. */
+.wpcd-grid-table .wpcd-server-col-element-label-server_app_link {
+	display: block;
+	font-size: 15px;
+	font-weight: normal;
+	color: #5560C2;
+	background-color: #F3F3F3;
+	padding: 9px 17px;
+	border-radius: 3px;
+	width: 100%;
+	margin-bottom: 10px;
+}
+.wpcd-grid-table .wpcd-server-col-element-label-server_app_link a {
+	color: #5560C2;
+	font-weight: normal;
+}
+/* End style the app links on the server list. */
+
+/* Style the local status column on the server list - place green borders around the status and state if active. */
+.wpcd-grid-table .wpcd-server-col-element-wrap-local_server_status_active {
+	border-color: var(--wpcd-front-end-positive-color);
+	border-width: 1px;
+	border-style: solid;
+	text-align: center;
+	padding: 9px 17px;
+}
+.wpcd-grid-table .wpcd-server-col-element-value-remote_server_state_active {
+	display: inline-block;
+	border-color: var(--wpcd-front-end-positive-color);
+	border-width: 1px;
+	border-style: solid;
+	padding: 4px 8px;	
+}
+/* End style the local status column on the server list */
+
+/* Style the ADMIN LOGIN and VIEW SITE links in the app list. */
+.wpcd-grid-table .wpcd-app-col-element-label-wp_admin_link a,
+.wpcd-grid-table .wpcd-app-col-element-value-homepage_link a{
+	display: inline-block;
+	color: white;
+	background-color: var(--wpcd-front-end-primary-brand-color);
+	border-color: var(--wpcd-front-end-primary-brand-color);
+	border-width: 1px;
+	border-style: solid;
+	padding: 4px 8px;		
+}
+.wpcd-grid-table .wpcd-app-col-element-label-wp_admin_link a:hover,
+.wpcd-grid-table .wpcd-app-col-element-value-homepage_link a:hover {
+	background-color: var(--wpcd-front-end-accent-background-color);	
+	border-color: var(--wpcd-front-end-accent-background-color);
+
+}
+
+.wpcd-grid-table .wpcd-app-col-element-wrap-health_last_update {
+	/* Make the last updated row in the APP HEALTH card a little more vertical space above. */
+	margin-top: 10px;
+}
+
+.wpcd-grid-table .column-title .row_col_name {
+	/* Adjust the bottom margin in the title column label a bit because we'll be increasing the size of the title. */
+	margin-bottom: 5px;
+}
+
+/* Make the title bigger */
+.wpcd-grid-table .column-title .row_col_name + a {
+	display: block;
+	font-size: 20px;
+	font-weight: 800;
+	margin-bottom: 20px;
+	x-text-align: center;
+	color: var(--wpcd-front-end-primary-brand-color);
+}
+.wpcd-grid-table .column-title .row_col_name{
+	/* Note used - can be used to hide the title label.*/
+}
+/* End make the title bigger */
+
+/* Make row action links buttons */
+.wpcd-grid-table .row-actions a {
+	display: inline-block;
+	background-color: var(--wpcd-front-end-accent-background-color);
+	padding: 9px 17px 9px 17px;
+	border-radius: 3px;
+	color: white;
+	font-size: 15px;
+	font-weight: 700;
+	margin-right: 15px;
+	margin-bottom: 20px;
+	min-width: 90px;
+	text-decoration: none;
+}
+.wpcd-grid-table .row-actions a:hover {
+	text-decoration: none;
+	background-color: var(--wpcd-front-end-primary-brand-color);
+}
+.wpcd-grid-table .row-actions {
+	/* Center the row action buttons within the card. */
+	margin: 0 auto;
+	text-align: center;
+}
+.wpcd-grid-table .row-actions .view a:before {
+	/* View link - nothing here */
+}
+/* End make row actions buttons */
+
+
+/* Media queries for the table/grid lists */
+@media screen and (max-width: 1200px) {
+
+        .wpcd-grid-table .wpcd-grid-table-columns,
+        .wpcd-grid-table .wpcd-grid-table-rows .wpcd-grid-table-row {
+                grid-template-columns: 1fr 1fr;
+        }
+
+        .wpcd-grid-table .wpcd-grid-table-cell:nth-child(3n) {
+                /* Nothing here */
+        }
+
+        .wpcd-grid-table .wpcd-grid-table-cell:nth-child(2n) {
+                /* Nothing here */
+        }
+}
 
 @media screen and (max-width: 650px) {
-        .wpcd-grid-table.gridview .wpcd-grid-table-columns, .wpcd-grid-table.gridview .wpcd-grid-table-rows .wpcd-grid-table-row {
-                grid-template-columns : 1fr 1fr;
+
+        .wpcd-grid-table .wpcd-grid-table-columns,
+        .wpcd-grid-table .wpcd-grid-table-rows .wpcd-grid-table-row {
+                grid-template-columns: 1fr;
         }
-        
-        .wpcd-grid-table.gridview .wpcd-grid-table-cell:nth-child(3n) {
-                border-right: rgba(0, 0, 0, 0.06) solid 1px
+
+        .wpcd-grid-table .wpcd-grid-table-cell,
+        .wpcd-grid-table .wpcd-grid-table-cell:nth-child(3n),
+        .wpcd-grid-table .wpcd-grid-table-cell:nth-child(2n) {
+                /* Nothing here */
         }
-        
-        .wpcd-grid-table.gridview .wpcd-grid-table-cell:nth-child(2n) {
-                border-right: 0;
-        }
+
+}
+/* End media queries for the table/grid lists */
+
+/**
+ * Start custom css for the detail pages.
+ */
+ .single-wpcd_app #wpcd_public_wrapper,
+.single-wpcd_app_server #wpcd_public_wrapper {
+	 /* Set a background color for the main container. */
+	 background-color: var(--wpcd-front-end-alternate-accent-background-color);
+	 border-radius: 3px;
+	 padding: 30px 20px;
+ }
+
+#wpcd_public_wrapper .rwmb-input button {
+	/* Buttons */
+	text-decoration: none;
+	background-color: var(--wpcd-front-end-accent-background-color);
+	padding: 9px 17px 9px 17px;
+	border-radius: 3px;
+} 
+#wpcd_public_wrapper .rwmb-input button:hover {
+	/* Buttons - hover */
+	text-decoration: none;
+	background-color: var(--wpcd-front-end-primary-brand-color);
+	border-color: var(--wpcd-front-end-primary-brand-color);
 }
 
-@media screen and (max-width: 400px) {
-        .wpcd-grid-table.gridview .wpcd-grid-table-columns, .wpcd-grid-table.gridview .wpcd-grid-table-rows .wpcd-grid-table-row {
-                grid-template-columns : 1fr;
-        }
-        
-        .wpcd-grid-table.gridview .wpcd-grid-table-cell,
-        .wpcd-grid-table.gridview .wpcd-grid-table-cell:nth-child(3n), 
-        .wpcd-grid-table.gridview .wpcd-grid-table-cell:nth-child(2n)
-        {
-                border-right: 0;
-        }
-        
+#wpcd_public_wrapper .wpcd-back_link {
+	/* Back to list buttons */
+	background-color: var(--wpcd-front-end-accent-background-color);
+	padding: 9px 17px 9px 17px;
+	border-radius: 3px;	
+    display: inline-block;
+    margin-bottom: 20px;	
 }
+#wpcd_public_wrapper .wpcd-back_link:hover {
+	/* Back to list buttons - hover */
+	text-decoration: none;
+	background-color: var(--wpcd-front-end-primary-brand-color);
+	border-color: var(--wpcd-front-end-primary-brand-color);	
+}
+
+#wpcd_public_wrapper .wpcd_wordpress-app_tab_top_of_site_details .rwmb-row {
+	/* Summary row at the top of the site detail screen. */
+	background-color: var(--wpcd-front-end-accent-background-color);	
+	margin-bottom: 20px;	
+	padding: 9px 17px 9px 17px;
+	border-radius: 3px;		
+}
+#wpcd_public_wrapper .wpcd_wordpress-app_tab_top_of_site_details .rwmb-row .rwmb-label {
+	/* Summary row at the top of the site detail screen - column titles get brand color. */
+	color: var(--wpcd-front-end-primary-brand-color);
+}
+
+#wpcd_public_wrapper .wpcd_wordpress-app_tab_top_of_site_details .rwmb-row {
+	/* Summary row at the top of the site detail screen - other text needs color to stand out. */
+	color: var(--wpcd-front-end-light-background-color);
+}
+
+#wpcd_public_wrapper .wpcd_site_details_top_row_domain_left {
+	/* Site domain name at the top of the detail screen - gets brand color. */
+	color: var(--wpcd-front-end-primary-brand-color);
+	text-transform: uppercase;	
+}
+
+#wpcd_public_wrapper .wpcd_wordpress-app_tab_top_of_site_details .rwmb-row button, 
+#wpcd_public_wrapper .wpcd_wordpress-app_tab_top_of_site_details .rwmb-row button a {
+	/* Buttons at the top of the site detail screen. */
+	text-decoration: none;
+	color: var(--wpcd-front-end-light-background-color);
+	background-color: var(--wpcd-front-end-primary-brand-color);
+	border-color: var(--wpcd-front-end-primary-brand-color);	
+}
+#wpcd_public_wrapper .wpcd_wordpress-app_tab_top_of_site_details .rwmb-row button:hover,
+#wpcd_public_wrapper .wpcd_wordpress-app_tab_top_of_site_details .rwmb-row button a:hover {
+	/* Buttons at the top of the site detail screen - hover. */
+	text-decoration: none;
+	border-color: var(--wpcd-front-end-alternate-accent-background-color);
+}
+
+#wpcd_public_wrapper #wpcd_server_wordpress-app_tab_top_of_server_details {
+	/* Summary row at the top of the server detail screen */
+	background-color: var(--wpcd-front-end-accent-background-color);
+	border-radius: 3px;
+}
+
+#wpcd_public_wrapper #wpcd_server_wordpress-app_tab_top_of_server_details a {
+	/* Summary row at the top of the server detail screen - links in this top metabox need a different color to make it stand out. */
+	color: var(--wpcd-front-end-alternate-accent-background-color);
+}
+
+/** 
+ * Make the data under the domain name when we're using left menus smaller and format as tiny chicklet boxes.
+ * Note that we're not using css id #wpcd_wordpress-app_tab_top_of_site_details to target these
+ * items because we want them to work when the tabs are horizontal as well.
+ */
+#wpcd_public_wrapper .wpcd_site_details_top_row  .wpcd_site_details_top_row_element_wrapper .wpcd_medium_chicklet {
+	font-size: 10px;
+	font-weight: normal;
+	padding: 5px;
+	border-radius:3px;
+	border: solid 1px;
+	margin-right: 5px;
+	min-width: 20px;	
+}
+#wpcd_public_wrapper .wpcd_site_details_top_row .wpcd_site_details_top_row_element_wrapper  .wpcd_site_details_top_row_element_wstype {
+	color: var(--wpcd-primary-brand-color);
+	border-color: var(--wpcd-primary-brand-color);	
+}
+#wpcd_public_wrapper .wpcd_site_details_top_row .wpcd_site_details_top_row_element_wrapper  .wpcd_site_details_top_row_element_ssl_on {
+	color: green;
+	border-color: green;	
+}
+#wpcd_public_wrapper .wpcd_site_details_top_row .wpcd_site_details_top_row_element_wrapper  .wpcd_site_details_top_row_element_ssl_off {
+	color: gray;
+	border-color: gray;	
+}
+#wpcd_public_wrapper .wpcd_site_details_top_row .wpcd_site_details_top_row_element_wrapper  .wpcd_site_details_top_row_element_page_cache_on {
+	color: var(--wpcd-front-end-positive-color);
+	border-color: var(--wpcd-front-end-positive-color);
+}
+#wpcd_public_wrapper .wpcd_site_details_top_row .wpcd_site_details_top_row_element_wrapper  .wpcd_site_details_top_row_element_page_cache_off {
+	color: gray;
+	border-color: gray;	
+}
+/* End make the data under the domain name when we're using left menus smaller and in chiclet boxes...*/
+
+/* Background color and text for tabs - vertical */
+#wpcd_public_wrapper .wpcd-wpapp-actions .rwmb-tabs-left .rwmb-tab-nav {
+	background-color: var(--wpcd-front-end-accent-background-color);
+}
+
+#wpcd_public_wrapper .wpcd-wpapp-actions .rwmb-tabs-left .rwmb-tab-nav .rwmb-tab-active {
+	background-image: linear-gradient( to right, var(--wpcd-accent-front-end-background-color), var(--wpcd-accent-front-end-background-color) 50%, var(--wpcd-alternate-front-end-accent-background-color) 50%);
+}
+/* End background color and text for tabs - vertical */
+
+
+ 
+ 
+/**
+ * End custom css for the detail pages.
+ */ 

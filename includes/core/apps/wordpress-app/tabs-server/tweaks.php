@@ -229,6 +229,23 @@ class WPCD_WORDPRESS_TABS_SERVER_TWEAKS extends WPCD_WORDPRESS_TABS {
 	 */
 	private function server_tweaks_gzip( $id, $action ) {
 
+		// What type of web server are we running?
+		$webserver_type      = $this->get_web_server_type( $id );
+		$webserver_type_name = $this->get_web_server_description_by_id( $id );
+
+		switch ( $webserver_type ) {
+			case 'ols':
+			case 'ols-enterprise':
+				$bridge_file = 'ols_options.txt';
+				break;
+
+			case 'nginx':
+			default:
+				$bridge_file = 'nginx_options.txt';
+				break;
+
+		}
+
 		// What is the current gzip status?
 		$gzip_status = $this->get_meta_value( $id, 'wpcd_wpapp_gzip_status', 'on' );
 
@@ -247,13 +264,13 @@ class WPCD_WORDPRESS_TABS_SERVER_TWEAKS extends WPCD_WORDPRESS_TABS {
 		}
 
 		// Get the full command to be executed by ssh.
-		$run_cmd = $this->turn_script_into_command( $instance, 'nginx_options.txt', array( 'action' => $action ) );
+		$run_cmd = $this->turn_script_into_command( $instance, $bridge_file, array( 'action' => $action ) );
 
 		do_action( 'wpcd_log_error', sprintf( 'attempting to run command for %s = %s ', print_r( $instance, true ), $run_cmd ), 'trace', __FILE__, __LINE__, $instance, false );
 
 		// Run the command.
 		$result  = $this->execute_ssh( 'generic', $instance, array( 'commands' => $run_cmd ) );
-		$success = $this->is_ssh_successful( $result, 'nginx_options.txt' );
+		$success = $this->is_ssh_successful( $result, $bridge_file );
 
 		// Check for success.
 		if ( ! $success ) {

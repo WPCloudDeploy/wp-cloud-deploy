@@ -9,40 +9,63 @@ then
 	exit 1
 fi
 
-echo $(date): "Installing PHP 8.1...."
-export DEBIAN_FRONTEND=noninteractive
-apt-get install -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"  php8.1 php8.1-fpm php8.1-mbstring php8.1-curl php8.1-mysql php8.1-xml php8.1-zip php8.1-gd php8.1-imap php8.1-soap php8.1-bcmath php8.1-imagick -y
-if [ $? -ne 0 ]  
+## Get our common functions
+if [[ ! -f 9999-common-functions.sh ]]
 then
-	echo "Failed!  Quitting process"
+	echo "The file 9999-common-functions.sh is missing"
 	exit 1
 fi
+source 9999-common-functions.sh
 
-# Update php.ini file to increase filesize uploads allowed in WordPress
-echo $(date): "Adding required entries in php.ini to allow for larger file uploads in WordPress..."
-sed -i "s/upload_max_filesize = 2M/upload_max_filesize = 25M/g" /etc/php/8.1/fpm/php.ini
-sed -i "s/post_max_size = 8M/post_max_size = 25M/g" /etc/php/8.1/fpm/php.ini
+echo $(date): "Installing PHP 8.1...."
+export DEBIAN_FRONTEND=noninteractive
+# Add Vhost config based on webserver_type
+if [ "$g_webserver_type" = "nginx" ]; then
+	apt-get install -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"  php8.1 php8.1-fpm php8.1-mbstring php8.1-curl php8.1-mysql php8.1-xml php8.1-zip php8.1-gd php8.1-imap php8.1-soap php8.1-bcmath php8.1-imagick -y
+	if [ $? -ne 0 ]  
+	then
+		echo "Failed!  Quitting process"
+		exit 1
+	fi
 
-# Update php.ini to enable and configure opcache
-echo $(date): "Updating OPCACHE parameters in php.ini..."
-sed -i "s/;opcache.enable=1/opcache.enable=1/g" /etc/php/8.1/fpm/php.ini
-sed -i "s/;opcache.enable_cli=0/opcache.enable_cli=1/g" /etc/php/8.1/fpm/php.ini
-sed -i "s/;opcache.interned_strings_buffer=8/opcache.interned_strings_buffer=8/g" /etc/php/8.1/fpm/php.ini
-sed -i "s/;opcache.max_accelerated_files=10000/opcache.max_accelerated_files=100000/g" /etc/php/8.1/fpm/php.ini
-sed -i "s/;opcache.memory_consumption=128/opcache.memory_consumption=128/g" /etc/php/8.1/fpm/php.ini
-sed -i "s/;opcache.save_comments=1/opcache.save_comments=1/g" /etc/php/8.1/fpm/php.ini
-sed -i "s/;opcache.revalidate_freq=2/opcache.revalidate_freq=1/g" /etc/php/8.1/fpm/php.ini
-sed -i "s/;opcache.use_cwd=1/opcache.use_cwd=1/g" /etc/php/8.1/fpm/php.ini
-sed -i "s/;opcache.validate_root=0/opcache.validate_root=1/g" /etc/php/8.1/fpm/php.ini
-sed -i "s/;opcache.validate_permission=0/opcache.validate_permission=1/g" /etc/php/8.1/fpm/php.ini
-sed -i "s/;opcache.file_update_protection=2/opcache.file_update_protection=60/g" /etc/php/8.1/fpm/php.ini
+	# Update php.ini file to increase filesize uploads allowed in WordPress
+	echo $(date): "Adding required entries in php.ini to allow for larger file uploads in WordPress..."
+	sed -i "s/upload_max_filesize = 2M/upload_max_filesize = 25M/g" /etc/php/8.1/fpm/php.ini
+	sed -i "s/post_max_size = 8M/post_max_size = 25M/g" /etc/php/8.1/fpm/php.ini
 
-# Restarting php
-echo $(date): "Restarting PHP processes..."
-if [ ! -f /etc/wpcd/php-versions-disabled/php8.1 ] ; then
-    systemctl restart php8.1-fpm > /dev/null 2>&1
+	# Update php.ini to enable and configure opcache
+	echo $(date): "Updating OPCACHE parameters in php.ini..."
+	sed -i "s/;opcache.enable=1/opcache.enable=1/g" /etc/php/8.1/fpm/php.ini
+	sed -i "s/;opcache.enable_cli=0/opcache.enable_cli=1/g" /etc/php/8.1/fpm/php.ini
+	sed -i "s/;opcache.interned_strings_buffer=8/opcache.interned_strings_buffer=8/g" /etc/php/8.1/fpm/php.ini
+	sed -i "s/;opcache.max_accelerated_files=10000/opcache.max_accelerated_files=100000/g" /etc/php/8.1/fpm/php.ini
+	sed -i "s/;opcache.memory_consumption=128/opcache.memory_consumption=128/g" /etc/php/8.1/fpm/php.ini
+	sed -i "s/;opcache.save_comments=1/opcache.save_comments=1/g" /etc/php/8.1/fpm/php.ini
+	sed -i "s/;opcache.revalidate_freq=2/opcache.revalidate_freq=1/g" /etc/php/8.1/fpm/php.ini
+	sed -i "s/;opcache.use_cwd=1/opcache.use_cwd=1/g" /etc/php/8.1/fpm/php.ini
+	sed -i "s/;opcache.validate_root=0/opcache.validate_root=1/g" /etc/php/8.1/fpm/php.ini
+	sed -i "s/;opcache.validate_permission=0/opcache.validate_permission=1/g" /etc/php/8.1/fpm/php.ini
+	sed -i "s/;opcache.file_update_protection=2/opcache.file_update_protection=60/g" /etc/php/8.1/fpm/php.ini
+
+	# Restarting php
+	echo $(date): "Restarting PHP processes..."
+	if [ ! -f /etc/wpcd/php-versions-disabled/php8.1 ] ; then
+		systemctl restart php8.1-fpm > /dev/null 2>&1
+	fi
+
+# OLS Wrapper
+elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]; then	
+	# We shouldn't need to presumably run this ever as noone would have had this installed before that is missing this stuff afaik
+	# This is just here so if someone is on OLS/LS they don't bork their server running the nginx related stuff that gets pulled in. Seen it once for WPJ.
+	# Install all possible lsphp-dev and pear and packages
+	apt-get install -y lsphp81 lsphp81-common lsphp81-dev lsphp81-pear lsphp81-mysql lsphp81-imap lsphp81-curl lsphp81-memcached lsphp81-redis lsphp*
+	if [ $? -ne 0 ]  
+	then
+		echo "Failed!  Quitting process"
+		exit 1
+	fi
+
 fi
 
-service nginx restart
-
+gf_restart_webserver
 echo "PHP 8.1 has been installed."

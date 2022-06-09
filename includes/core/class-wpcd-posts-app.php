@@ -228,6 +228,9 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 					} else {
 						$value = $server_title;
 					}
+
+					$value = $this->wpcd_column_wrap_string_with_span_and_class( $value, 'server_title', 'left' );
+					$value = $this->wpcd_column_wrap_string_with_div_and_class( $value, 'server_title' );
 				}
 
 				// Server post id.
@@ -238,39 +241,58 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 				if ( true === (bool) wpcd_get_option( 'wpcd_hide_app_list_provider_in_server_column' ) && ( ! wpcd_is_admin() ) ) {
 					// do nothing, only admins are allowed to see this data.
 				} else {
-					$value  = empty( $value ) ? $value : $value . '<br />';
-					$value .= __( 'Provider: ', 'wpcd' ) . WPCD()->wpcd_get_cloud_provider_desc( $this->get_server_meta_value( $post_id, 'wpcd_server_provider' ) );
+					$value   = empty( $value ) ? $value : $value;
+					$value2  = $this->wpcd_column_wrap_string_with_span_and_class( __( 'Provider: ', 'wpcd' ), 'server_provider', 'left' );
+					$value2 .= $this->wpcd_column_wrap_string_with_span_and_class( WPCD()->wpcd_get_cloud_provider_desc( $this->get_server_meta_value( $post_id, 'wpcd_server_provider' ) ), 'server_provider', 'right' );
+					$value  .= $this->wpcd_column_wrap_string_with_div_and_class( $value2, 'server_provider' );
 				}
 
 				// server region.
 				if ( true === (bool) wpcd_get_option( 'wpcd_hide_app_list_region_in_server_column' ) && ( ! wpcd_is_admin() ) ) {
 					// do nothing, only admins are allowed to see this data.
 				} else {
-					$value  = empty( $value ) ? $value : $value . '<br />';
-					$value .= __( 'Region: ', 'wpcd' ) . $this->get_server_meta_value( $post_id, 'wpcd_server_region' );
+					$value2  = $this->wpcd_column_wrap_string_with_span_and_class( __( 'Region: ', 'wpcd' ), 'region', 'left' );
+					$value2 .= $this->wpcd_column_wrap_string_with_span_and_class( $this->get_server_meta_value( $post_id, 'wpcd_server_region' ), 'region', 'right' );
+					$value  .= $this->wpcd_column_wrap_string_with_div_and_class( $value2, 'server_region' );
 				}
 
 				// ipv4.
-				$value  = empty( $value ) ? $value : $value . '<br />';
-				$value .= __( 'ipv4: ', 'wpcd' ) . $this->get_server_meta_value( $post_id, 'wpcd_server_ipv4' );
+				$value2  = $this->wpcd_column_wrap_string_with_span_and_class( __( 'ipv4: ', 'wpcd' ), 'ipv4', 'left' );
+				$value2 .= $this->wpcd_column_wrap_string_with_span_and_class( $this->get_server_meta_value( $post_id, 'wpcd_server_ipv4' ), 'ipv4', 'right' );
+				$value  .= $this->wpcd_column_wrap_string_with_div_and_class( $value2, 'ipv4' );
 
 				// ipv6.
 				if ( wpcd_get_early_option( 'wpcd_show_ipv6' ) ) {
-					$ipv6   = $this->get_server_meta_value( $post_id, 'wpcd_server_ipv6' );
-					$value .= __( 'ipv6: ', 'wpcd' ) . $this->get_server_meta_value( $post_id, 'wpcd_server_ipv6' );
+					$ipv6    = $this->get_server_meta_value( $post_id, 'wpcd_server_ipv6' );
+					$value2  = $this->wpcd_column_wrap_string_with_span_and_class( __( 'ipv6: ', 'wpcd' ), 'ipv6', 'left' );
+					$value2 .= $this->wpcd_column_wrap_string_with_span_and_class( $this->get_server_meta_value( $post_id, 'wpcd_server_ipv6' ), 'ipv6', 'right' );
+					$value  .= $this->wpcd_column_wrap_string_with_div_and_class( $value2, 'ipv6' );
+				}
+
+				// Add hook here so that other apps can insert data.
+				$hooked_value = apply_filters( 'wpcd_app_admin_list_server_column_before_apps_link', '', $post_id );
+				if ( ! empty( $hooked_value ) ) {
+					$value .= $hooked_value;
 				}
 
 				// Show a link that takes you to a list of apps on the server.
 				if ( true === (bool) wpcd_get_option( 'wpcd_hide_app_list_appslink_in_server_column' ) && ( ! wpcd_is_admin() ) ) {
 					// do nothing, only admins are allowed to see this data.
 				} else {
-					$value  = empty( $value ) ? $value : $value . '<br />';
 					if ( is_admin() ) {
-						$url    = admin_url( 'edit.php?post_type=wpcd_app&server_id=' . (string) $server_post_id );
+						$url = admin_url( 'edit.php?post_type=wpcd_app&server_id=' . (string) $server_post_id );
 					} else {
 						$url = get_permalink( WPCD_WORDPRESS_APP_PUBLIC::get_apps_list_page_id() ) . '?server_id=' . (string) $server_post_id;
 					}
-					$value .= sprintf( '<a href="%s">%s</a>', $url, __( 'Apps on this server', 'wpcd' ) );
+					$value2 = sprintf( '<a href="%s">%s</a>', $url, __( 'Apps on this server', 'wpcd' ) );
+					$value2 = $this->wpcd_column_wrap_string_with_span_and_class( $value2, 'apps_on_server', 'left' );
+					$value .= $this->wpcd_column_wrap_string_with_div_and_class( $value2, 'apps_on_server' );
+				}
+
+				// Add hook here so that other apps can insert data.
+				$hooked_value = apply_filters( 'wpcd_app_admin_list_server_column_after_apps_link', '', $post_id );
+				if ( ! empty( $hooked_value ) ) {
+					$value .= $hooked_value;
 				}
 
 				break;
@@ -321,6 +343,17 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 
 				if ( empty( $value ) ) {
 					$value = 'no data for this app';
+				}
+
+				break;
+
+			case 'wpcd_app_health':
+				// Nothing here - instead individual app classes will use this filter to populate data about the app.
+				// This way the list can show data about different apps.
+				$value = apply_filters( 'wpcd_app_admin_list_app_health_column', $value, $post_id );
+
+				if ( empty( $value ) ) {
+					$value = 'No data for this app';
 				}
 
 				break;
@@ -397,15 +430,70 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 
 		unset( $defaults['date'] );
 
+		// Title.
+		$show_it = true;
+		if ( ! is_admin() && ( boolval( wpcd_get_option( 'wordpress_app_fe_hide_app_title_in_app_list' ) ) ) ) {
+			$show_it = false;
+		}
+		if ( ! $show_it ) {
+			unset( $defaults['title'] );
+		}
+
+		// App Type.
 		if ( boolval( wpcd_get_option( 'wpcd_show_app_list_app_type' ) ) ) {
 			$defaults['wpcd_app_type'] = __( 'App Type', 'wpcd' );
 		}
+
+		// Short Description.
 		if ( boolval( wpcd_get_option( 'wpcd_show_app_list_short_desc' ) ) ) {
-			$defaults['wpcd_app_short_desc'] = __( 'Description', 'wpcd' );
+			$show_it = true;
+			if ( ! is_admin() && ! ( boolval( wpcd_get_option( 'wordpress_app_fe_show_description_in_app_list' ) ) ) ) {
+				$show_it = false;
+			}
+			if ( $show_it ) {
+				$defaults['wpcd_app_short_desc'] = __( 'Description', 'wpcd' );
+			}
 		}
-		$defaults['wpcd_app_group']   = __( 'App Group', 'wpcd' );
-		$defaults['wpcd_app_summary'] = __( 'App Summary', 'wpcd' );
-		$defaults['wpcd_server']      = __( 'Server', 'wpcd' );
+
+		// App Group.
+		$show_it = true;
+		if ( ! is_admin() && ! ( boolval( wpcd_get_option( 'wordpress_app_fe_show_app_group_in_app_list' ) ) ) ) {
+			$show_it = false;
+		}
+		if ( $show_it ) {
+			$defaults['wpcd_app_group'] = __( 'App Group', 'wpcd' );
+		}
+
+		// App Summary.
+		$show_it = true;
+		if ( ! is_admin() && ( boolval( wpcd_get_option( 'wordpress_app_fe_hide_app_summary_in_app_list' ) ) ) ) {
+			$show_it = false;
+		}
+		if ( $show_it ) {
+			$defaults['wpcd_app_summary'] = __( 'App Summary', 'wpcd' );
+		}
+
+		// App Health.
+		$show_it = true;
+		if ( ! is_admin() && ( boolval( wpcd_get_option( 'wordpress_app_fe_hide_app_health_in_app_list' ) ) ) ) {
+			$show_it = false;
+		}
+		if ( $show_it ) {
+			if ( boolval( wpcd_get_option( 'wpcd_show_app_list_health' ) ) ) {
+				$defaults['wpcd_app_health'] = __( 'App Health', 'wpcd' );
+			}
+		}
+
+		// Server Data.
+		$show_it = true;
+		if ( ! is_admin() && ( boolval( wpcd_get_option( 'wordpress_app_fe_hide_server_in_app_list' ) ) ) ) {
+			$show_it = false;
+		}
+		if ( $show_it ) {
+			$defaults['wpcd_server'] = __( 'Server', 'wpcd' );
+		}
+
+		// IPv4 & IPv6.
 		if ( boolval( wpcd_get_option( 'wpcd_show_app_list_ipv4' ) ) ) {
 			$defaults['wpcd_server_ipv4'] = __( 'IPv4', 'wpcd' );
 			if ( boolval( wpcd_get_option( 'wpcd_show_ipv6' ) ) ) {
@@ -413,22 +501,52 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 				$defaults['wpcd_server_ipv6'] = __( 'IPv6', 'wpcd' );
 			}
 		}
+
+		// Provider.
 		if ( boolval( wpcd_get_option( 'wpcd_show_app_list_provider' ) ) ) {
 			$defaults['wpcd_server_provider'] = __( 'Provider', 'wpcd' );
 		}
+
+		// Region.
 		if ( boolval( wpcd_get_option( 'wpcd_show_app_list_region' ) ) ) {
 			$defaults['wpcd_server_region'] = __( 'Region', 'wpcd' );
 		}
+
+		// Owners.
 		if ( boolval( wpcd_get_option( 'wpcd_show_app_list_owner' ) ) ) {
-			if ( wpcd_is_admin() || ( ! wpcd_is_admin() && ! boolval( wpcd_get_option( 'wpcd_hide_app_list_owner_non_admins' ) ) ) ) {
+			$show_it = false;
+
+			if ( wpcd_is_admin() ) {
+				$show_it = true;
+			}
+
+			if ( ! wpcd_is_admin() && boolval( wpcd_get_option( 'wpcd_hide_app_list_owner_non_admins' ) ) ) {
+				$show_it = false;
+			}
+
+			if ( ! is_admin() && ! ( boolval( wpcd_get_option( 'wordpress_app_fe_show_owner_in_app_list' ) ) ) ) {
+				$show_it = false;
+			}
+
+			if ( $show_it ) {
 				$defaults['wpcd_owner'] = __( 'Owners', 'wpcd' );
 			}
 		}
+
+		// Date.
 		if ( boolval( wpcd_get_option( 'wpcd_show_app_list_date' ) ) ) {
 			$defaults['date'] = __( 'Date', 'wpcd' );
 		}
+
+		// Team.
 		if ( boolval( wpcd_get_option( 'wpcd_show_app_list_team' ) ) ) {
-			$defaults['wpcd_assigned_teams'] = __( 'Teams', 'wpcd' );
+			$show_it = true;
+			if ( ! is_admin() && ! ( boolval( wpcd_get_option( 'wordpress_app_fe_show_teams_in_app_list' ) ) ) ) {
+				$show_it = false;
+			}
+			if ( $show_it ) {
+				$defaults['wpcd_assigned_teams'] = __( 'Teams', 'wpcd' );
+			}
 		}
 
 		return $defaults;
@@ -608,7 +726,7 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 	 */
 	public function wpcd_app_trash_prompt_messages() {
 		return array(
-			'delete' => __( 'Are you sure? This will only delete the data from our database.  The application itself will remain on your server. To remove a WordPress app from the server, cancel this operation and use the REMOVE SITE option under the MISC tab.', 'wpcd' ),
+			'delete'  => __( 'Are you sure? This will only delete the data from our database.  The application itself will remain on your server. To remove a WordPress app from the server, cancel this operation and use the REMOVE SITE option under the MISC tab.', 'wpcd' ),
 			'restore' => __( 'Please note: Restoring this item will not necessarily restore your app on the server. This item will likely become an orphaned/ghost item - i.e: it will not have a connection to any app or server.', 'wpcd' ),
 		);
 	}
@@ -624,7 +742,7 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 	public function wpcd_app_trash_prompt() {
 
 		$messages = $this->wpcd_app_trash_prompt_messages();
-		$screen = get_current_screen();
+		$screen   = get_current_screen();
 		if ( in_array( $screen->id, array( 'edit-wpcd_app', 'wpcd_app' ), true ) ) {
 			$prompt_message = isset( $messages['delete'] ) ? $messages['delete'] : '';
 			?>
@@ -1223,7 +1341,7 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 		$success = true;
 
 		// No permissions check if we're running tasks via cron. eg: bulk deletes triggered via pending logs.
-		if ( true === wp_doing_cron() && is_admin() ) {
+		if ( true === wp_doing_cron() ) {
 			return;
 		}
 
@@ -1779,6 +1897,48 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 		}
 
 		return $args;
+	}
+
+	/**
+	 * Takes a string and wraps it with a span and a class related to the column name.
+	 *
+	 * For example, if we get a string such as "Domain:" we might
+	 * return <span class="wpcd-column-label-domain">Domain:</span>.
+	 *
+	 * Calls the global function wpcd_wrap_string_with_span_and_class
+	 * defined in the functions.php which does the actual wrapping.
+	 *
+	 * @param string $string The string to wrap.
+	 * @param string $column The column name.
+	 * @param string $align Valid values are 'left' and 'right'.
+	 *
+	 * @return string
+	 */
+	public function wpcd_column_wrap_string_with_span_and_class( $string, $column, $align ) {
+
+		if ( 'left' === $align ) {
+			return wpcd_wrap_string_with_span_and_class( $string, $column, 'app-col-element-label' );
+		} else {
+			return wpcd_wrap_string_with_span_and_class( $string, $column, 'app-col-element-value' );
+		}
+
+	}
+
+	/**
+	 * Takes a string and wraps it with a div.
+	 *
+	 * For example, if we get a string such as "Domain:" we might
+	 * return <div class="wpcd-column-label-domain">Domain:</div>.
+	 *
+	 * @param string $string The string to wrap.
+	 * @param string $column The column name.
+	 *
+	 * @return string
+	 */
+	public function wpcd_column_wrap_string_with_div_and_class( $string, $column ) {
+
+		return wpcd_wrap_string_with_div_and_class( $string, $column, 'app-col-element-wrap' );
+
 	}
 
 }

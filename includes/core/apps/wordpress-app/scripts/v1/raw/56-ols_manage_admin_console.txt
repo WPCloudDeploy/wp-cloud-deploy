@@ -1,0 +1,140 @@
+#!/usr/bin/env bash
+
+if [[ "$EUID" -ne 0 ]]
+then
+	echo "Sorry, you need to run this as root"
+	exit
+fi
+
+## Get our common functions
+if [[ ! -f 9999-common-functions.sh ]]
+then
+	echo "The file 9999-common-functions.sh is missing"
+	exit 1
+fi
+source 9999-common-functions.sh
+
+
+# The below is a much more efficient and sane approach then trying to interactively walk through the prompts in the below: 
+# /usr/local/lsws/admin/misc/admpass.sh
+ols_user_pass_reset(){
+    local admin_pass
+    local admin_user
+    default_admin_username='admin'
+    admin_user="${1:-$default_admin_username}" # optional param so we can selectively change admin username from default 'admin' but only if provided
+    admin_pass="$2"
+    ENCRYPT_PASS=$("/usr/local/lsws/admin/fcgi-bin/admin_php" -q "/usr/local/lsws/admin/misc/htpasswd.php" $admin_pass)
+    if [ $? = 0 ] ; then
+        echo "${admin_user}:$ENCRYPT_PASS" > "/usr/local/lsws/admin/conf/htpasswd"
+        if [ $? = 0 ] ; then
+            echo "Set OpenLiteSpeed Web Admin access."
+        else
+            echo "OpenLiteSpeed WebAdmin password not changed."
+        fi
+    fi
+}
+
+enable_webconsole(){
+	ufw allow 7080 > /dev/null 2>&1
+	if [ $? -ne 0 ]
+	then
+		echo "Unable to setup OLS/LSWS admin port on firewall!"
+	fi
+}
+
+disable_webconsole(){
+	ufw delete allow 7080 > /dev/null 2>&1
+	if [ $? -ne 0 ]
+	then
+		echo "Unable to disable OLS/LSWS admin port on firewall!"
+	fi
+}
+
+enable_signed_ssl_ols_admin(){
+    local domain
+    domain="$1"
+    domain_cert="/etc/letsencrypt/live/${domain}/fullchain.pem"
+    domain_key="/etc/letsencrypt/live/${domain}/privkey.pem"
+    
+    if [[ -f ${domain_cert} ]] && [[ -f ${domain_key} ]]; then
+        echo "The domain has both a cert and key file that exists enabling...."
+		# Back up current ones so we have something to restore when we disable SSL
+		cp /usr/local/lsws/admin/conf/webadmin.crt /usr/local/lsws/admin/conf/webadmin.crt-bak
+		cp /usr/local/lsws/admin/conf/webadmin.key /usr/local/lsws/admin/conf/webadmin.key-bak
+        echo "Symlinking LE Signed SSL for OLS WebUI"
+        # Symlink domain ssl path to the same path for OLS/CSF SSL forcefully
+        ln -fs "${domain_cert}" /usr/local/lsws/admin/conf/webadmin.crt;
+        ln -fs "${domain_key}" /usr/local/lsws/admin/conf/webadmin.key;
+        echo "Restarting OLS WebUI services"
+        service lsws restart
+    else
+		echo "Domain certificates missing to enable SSL"
+		exit 1
+    fi
+}
+
+
+disable_signed_ssl_ols_admin(){
+	unlink /usr/local/lsws/admin/conf/webadmin.crt
+	unlink /usr/local/lsws/admin/conf/webadmin.key
+	
+	# Restore default self signed ones
+	echo "Disabling SSL and restoring default self signed files"
+	mv /usr/local/lsws/admin/conf/webadmin.crt-bak /usr/local/lsws/admin/conf/webadmin.crt 
+	mv /usr/local/lsws/admin/conf/webadmin.key-bak /usr/local/lsws/admin/conf/webadmin.key
+	echo "Restarting OLS WebUI services"
+    service lsws restart
+}
+
+# Litespeed's path is slightly different but otherwise the same
+enable_signed_ssl_ols_enterprise_admin(){
+    local domain
+    domain="$1"
+    domain_cert="/etc/letsencrypt/live/${domain}/fullchain.pem"
+    domain_key="/etc/letsencrypt/live/${domain}/privkey.pem"
+    
+    if [[ -f ${domain_cert} ]] && [[ -f ${domain_key} ]]; then
+        echo "The domain has both a cert and key file that exists!"
+		# Back up current ones so we have something to restore when we disable SSL
+		cp /usr/local/lsws/admin/conf/cert/admin.crt /usr/local/lsws/admin/conf/cert/admin.crt-bak
+		cp /usr/local/lsws/admin/conf/cert/admin.key /usr/local/lsws/admin/conf/cert/admin.key-bak
+        echo "Symlinking LE Signed SSL for Litespeed WebUI"
+        # Symlink domain ssl path to the same path for LiteSpeed SSL forcefully
+        ln -fs "${domain_cert}" /usr/local/lsws/admin/conf/cert/admin.crt;
+        ln -fs "${domain_key}" /usr/local/lsws/admin/conf/cert/admin.key;
+        echo "Restarting Litespeed WebUI services"
+        service lsws restart
+	else
+		echo "Domain certificates missing to enable SSL"
+		exit 1
+    fi
+}
+
+disable_signed_ssl_ols_admin(){
+	unlink /usr/local/lsws/admin/conf/cert/admin.crt
+	unlink /usr/local/lsws/admin/conf/cert/admin.key
+	# Restore default self signed ones
+	echo "Disabling SSL and restoring default self signed files"
+	mv /usr/local/lsws/admin/conf/cert/admin.crt-bak /usr/local/lsws/admin/conf/cert/admin.crt 
+	mv /usr/local/lsws/admin/conf/cert/admin.key-bak /usr/local/lsws/admin/conf/cert/admin.key
+	echo "Restarting Litespeed WebUI services"
+    service lsws restart
+}
+
+enable_ols_ssl_for_domain(){
+	local domain
+	domain="$1"
+	
+	gf_enable_certbot_ols_site "$domain"
+	enable_signed_ssl_ols_admin "$domain"
+
+	if true | openssl s_client -connect $domain:7080 2>/dev/null | \
+		openssl x509 -noout -checkend 0; then
+		echo "Certificate is not expired"
+	else
+		echo "Certificate is expired"
+		echo | openssl s_client -servername $domain -connect $domain:7080 2>/dev/null | openssl x509 -noout -issuer -subject -dates
+		exit 1
+	fi
+}
+

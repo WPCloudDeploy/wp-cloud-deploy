@@ -1,21 +1,72 @@
 #!/bin/bash
-if [[ "$EUID" -ne 0 ]]; then
+if [[ "$EUID" -ne 0 ]]
+then
 	echo "Sorry, you need to run this as root"
 	exit 1
 fi
 
+## Get our common functions
+if [[ ! -f 9999-common-functions.sh ]]
+then
+	echo "The file 9999-common-functions.sh is missing"
+	exit 1
+fi
+source 9999-common-functions.sh
 
-if [[ "$interactive" != "no" ]]; then
-    clear
-    echo "This script will install NGINX, MariaDB, PHP, Certbot and WP-CLI in your system"
-    echo
-    read -p "Press enter to start setup"
+# Set webserver type default value if not set as environment
+if [ -z "$webserver_type" ]
+then
+	webserver_type="nginx"
 fi
 
-#set a variable to hold the location of the checkpoint folder.
+webserver_type="$(echo "$webserver_type" | awk '{ print tolower($1) }')"
+if [[ "$webserver_type" == "nginx" ]] || [[ "$webserver_type" == "ols" ]] || [[ "$webserver_type" = "ols-enterprise" ]]
+then
+	# Do nothing - it's valid, that's all we care about.
+	echo 
+else
+	echo "Sorry, you need to provided an invalid webserver: $webserver_type"
+	echo "Valid webserver_types are: nginx, ols, ols-enterprise"
+	exit 1
+fi
+
+if [[ "$interactive" != "no" ]]
+then
+	clear
+	echo "This script will install $webserver_type, MariaDB, PHP, Certbot and WP-CLI in your system."
+	echo
+	read -p "Press enter to start setup"
+fi
+
+if [ "$webserver_type" != "nginx" ]
+then
+	if grep -q '22.04' /etc/os-release
+	then
+		echo "OLS not yet supported for Ubuntu 22.04"
+		exit
+	fi
+fi
+
+# Write the server name out to a file - we might need it later.
+if [ "$name" ]
+then
+	echo "servername=$name" >> /opt/wpcd-server-info.txt
+else
+	echo "servername=" >> /opt/wpcd-server-info.txt
+fi
+
+# Write the post id out to a file - we might need it later.
+if [ "$post_id" ]
+then
+	echo "post_id=$post_id" >> /opt/wpcd-server-info.txt
+else
+	echo "post_id=" >> /opt/wpcd-server-info.txt
+fi
+
+# set a variable to hold the location of the checkpoint folder.
 CHKPOINT_FOLDER='.wpcd-server-provision-checkpoints'
 
-#create the checkpoint folder
+# create the checkpoint folder
 if [ ! -d $CHKPOINT_FOLDER ]
 then
 	mkdir $CHKPOINT_FOLDER
@@ -59,7 +110,7 @@ else
 		echo "Failed!  Quitting process"
 		exit 1
 	fi
-	
+
 	#checkpoint to indicate we have done this block...
 	touch "$CHKPOINT_FOLDER/checkpoint10-end.txt"	
 fi #checkpoint10.txt
@@ -95,77 +146,125 @@ else
 		echo "Failed!  Quitting process"
 		exit 1
 	fi
-	
+
 	#checkpoint to indicate we have done this block...
 	touch "$CHKPOINT_FOLDER/checkpoint20-end.txt"
 fi #checkpoint20.txt
 
-# Adding and installing LEMP stack, starting with NGINX and MARIADB - we'll do PHP in the next block.
-# @TODO: We should probably make a loop and loop through all these packages one by one 
-echo $(date): "Installing LEMP stack - this will take a while!"
-apt-get install nginx mariadb-server mariadb-client apache2-utils unzip rename -y > /dev/null 2>&1
-if [ $? -ne 0 ]  
+if [ "$webserver_type" = "nginx" ]
 then
-	echo "Failed!  Quitting process"
-	exit 1
+	# Adding and installing LEMP stack, starting with NGINX and MARIADB - we'll do PHP in the next block.
+	# @TODO: We should probably make a loop and loop through all these packages one by one 
+	echo $(date): "Installing LEMP stack - this will take a while!"
+	apt-get install nginx mariadb-server mariadb-client apache2-utils unzip rename -y > /dev/null 2>&1
+	if [ $? -ne 0 ]
+	then
+		echo "Failed!  Quitting process"
+		exit 1
+	fi
+
+	# Adding and installing PHP stack
+	# @TODO: We should probably make a loop and loop through all these packages one by one as well. 
+	echo $(date): "Installing PHP versions - this will take a while too!"
+	phpversion=(5.6 7.1 7.2 7.3 7.4 8.0 8.1)
+	for ver in "${phpversion[@]}"
+	do
+		echo $(date): ".....PHP $ver"
+		apt-get install php$ver php$ver-fpm php$ver-mbstring php$ver-curl php$ver-mysql php$ver-xml php$ver-zip php$ver-gd php$ver-imap php$ver-soap php$ver-bcmath php$ver-imagick php$ver-intl -y > /dev/null 2>&1
+		if [ $? -ne 0 ]  
+		then
+			echo "Failed!  Quitting process"
+			exit 1
+		fi
+	done
+
+	# Use PHP 7.4 as the default
+	echo $(date): "Making PHP 7.4 the default PHP version"
+	update-alternatives --set php /usr/bin/php7.4 > /dev/null 2>&1
 fi
 
+if [ "$webserver_type" = "ols" ]  || [ "$webserver_type" = "ols-enterprise" ]
+then
+	# Adding and installing MARIADB.
+	echo "$(date): Installing OpenLiteSpeed/OLS Enterprise stack - this will take a while!"
 
-# Adding and installing PHP stack
-# @TODO: We should probably make a loop and loop through all these packages one by one as well. 
-echo $(date): "Installing PHP versions - this will take a while too!"
-echo $(date): ".....PHP 5.6 (will be disabled)"
-apt-get install php5.6 php5.6-fpm php5.6-mbstring php5.6-curl php5.6-mysql php5.6-xml php5.6-zip php5.6-gd php5.6-imap php5.6-soap php5.6-bcmath php5.6-imagick php5.6-intl -y > /dev/null 2>&1
-if [ $? -ne 0 ]  
-then
-	echo "Failed!  Quitting process"
-	exit 1
+	# OLS/LSPHP installation here specifying lsphp74
+	# https://openlitespeed.org/kb/1-click-install/#Where_is_OLS_installed_to
+	# Silent with Suppress all except errors
+	# https://explainshell.com/explain?cmd=curl+-S+-s+-k+https%3A%2F%2Fraw.githubusercontent.com%2Flitespeedtech%2Fols1clk%2Fmaster%2Fols1clk.sh
+	bash <(curl --show-error --silent -k https://raw.githubusercontent.com/litespeedtech/ols1clk/master/ols1clk.sh ) --quiet --lsphp 74 > /dev/null 2>&1
+	if [ $? -ne 0 ] 
+	then
+		echo "Failed!  Quitting process"
+		exit 1
+	fi
+
+	gf_add_ols_main_conf
+	gf_check_webserver
+	gf_restart_webserver
+	service lsws status > /dev/null 2>&1
+	if [ $? -ne 0 ] 
+	then
+		echo "Failed!  Quitting process"
+		exit 1
+	fi
+
+	echo "$(date): Installing MariaDB repository and packages"
+	apt-get install -y mariadb-server mariadb-client apache2-utils unzip rename bubblewrap > /dev/null 2>&1
+	if [ $? -ne 0 ]
+	then
+		echo "Failed!  Quitting process"
+		exit 1
+	fi
+
+	# install build essentials for pecl/pear and dev requirements
+	# We need to do these in pieces otherwise our front-end UI will not like it if it takes too long to report updates.
+	echo "$(date): Building pecl/pear essentials - part 1 of 2"
+	apt-get install -y libmagickwand-dev pkg-config build-essential snmp pkg-config > /dev/null 2>&1
+	if [ $? -ne 0 ]
+	then
+		echo "Failed!  Quitting process"
+		exit 1
+	fi
+	echo "$(date): Building pecl/pear essentials - part 2 of 2"
+	apt-get install -y openssl libssl-dev autoconf automake libtool libxml2-dev libssl-dev  > /dev/null 2>&1
+	if [ $? -ne 0 ]
+	then
+		echo "Failed!  Quitting process"
+		exit 1
+	fi	
+
+	# Install all possible lsphp-dev and pear and packages
+	# We need to do these in pieces otherwise our front-end UI will not like it if it takes too long to report updates.
+	echo "$(date): Installing pear and other related ols packages part 1 of 2"
+	apt-get install -y lsphp?? lsphp??-common lsphp??-dev lsphp??-pear lsphp??-mysql   > /dev/null 2>&1
+	if [ $? -ne 0 ]
+	then
+		echo "Failed!  Quitting process"
+		exit 1
+	fi
+	echo "$(date): Installing pear and other related ols packages part 2 of 2"
+	apt-get install -y lsphp??-imap lsphp??-curl lsphp??-gd lsphp??-imap lsphp??-imagick lsphp??-intl lsphp*  > /dev/null 2>&1
+	if [ $? -ne 0 ]
+	then
+		echo "Failed!  Quitting process"
+		exit 1
+	fi
+
+	# Use PHP 7.4 as the default
+	echo "$(date): Making PHP 7.4 the default PHP version"
+	rm -f /usr/bin/php > /dev/null 2>&1
+	rm -f /usr/bin/phar > /dev/null 2>&1
+	rm -f /usr/bin/phar.phar > /dev/null 2>&1
+	rm -f /usr/bin/pecl > /dev/null 2>&1
+	rm -f /usr/lib/pear > /dev/null 2>&1
+	# https://stackoverflow.com/questions/55513672/how-to-add-a-path-to-update-alternatives-config-php
+	update-alternatives --install /usr/bin/php php /usr/local/lsws/lsphp74/bin/php 111 > /dev/null 2>&1
+	update-alternatives --install /usr/bin/phar phar /usr/local/lsws/lsphp74/bin/phar7.4.phar 111 > /dev/null 2>&1
+	update-alternatives --install /usr/bin/phar.phar phar.phar /usr/local/lsws/lsphp74/bin/phar7.4.phar 111 > /dev/null 2>&1
+	update-alternatives --install /usr/bin/pecl pecl /usr/local/lsws/lsphp74/bin/pecl 111 > /dev/null 2>&1
+	update-alternatives --install /usr/lib/pear pear /usr/local/lsws/lsphp74/bin/pear 111 > /dev/null 2>&1
 fi
-echo $(date): ".....PHP 7.1 (will be disabled)"
-apt-get install php7.1 php7.1-fpm php7.1-mbstring php7.1-curl php7.1-mysql php7.1-xml php7.1-zip php7.1-gd php7.1-imap php7.1-soap php7.1-bcmath php7.1-imagick php7.1-intl -y > /dev/null 2>&1
-if [ $? -ne 0 ]  
-then
-	echo "Failed!  Quitting process"
-	exit 1
-fi
-echo $(date): ".....PHP 7.2 (will be disabled)"
-apt-get install php7.2 php7.2-fpm php7.2-mbstring php7.2-curl php7.2-mysql php7.2-xml php7.2-zip php7.2-gd php7.2-imap php7.2-soap php7.2-bcmath php7.2-imagick php7.2-intl -y > /dev/null 2>&1
-if [ $? -ne 0 ]  
-then
-	echo "Failed!  Quitting process"
-	exit 1
-fi
-echo $(date): ".....PHP 7.3 (will be disabled)"
-apt-get install php7.3 php7.3-fpm php7.3-mbstring php7.3-curl php7.3-mysql php7.3-xml php7.3-zip php7.3-gd php7.3-imap php7.3-soap php7.3-bcmath php7.3-imagick php7.3-intl -y > /dev/null 2>&1
-if [ $? -ne 0 ]  
-then
-	echo "Failed!  Quitting process"
-	exit 1
-fi
-echo $(date): ".....PHP 7.4"
-apt-get install php7.4 php7.4-fpm php7.4-mbstring php7.4-curl php7.4-mysql php7.4-xml php7.4-zip php7.4-gd php7.4-imap php7.4-soap php7.4-bcmath php7.4-imagick php7.4-intl -y > /dev/null 2>&1
-if [ $? -ne 0 ]  
-then
-	echo "Failed!  Quitting process"
-	exit 1
-fi
-echo $(date): ".....PHP 8.0"
-apt-get install php8.0 php8.0-fpm php8.0-mbstring php8.0-curl php8.0-mysql php8.0-xml php8.0-zip php8.0-gd php8.0-imap php8.0-soap php8.0-bcmath php8.0-imagick php8.0-intl -y > /dev/null 2>&1
-if [ $? -ne 0 ]  
-then
-	echo "Failed!  Quitting process"
-	exit 1
-fi
-echo $(date): ".....PHP 8.1"
-apt-get install php8.1 php8.1-fpm php8.1-mbstring php8.1-curl php8.1-mysql php8.1-xml php8.1-zip php8.1-gd php8.1-imap php8.1-soap php8.1-bcmath php8.1-imagick php8.1-intl -y > /dev/null 2>&1
-if [ $? -ne 0 ]  
-then
-	echo "Failed!  Quitting process"
-	exit 1
-fi
-# Use PHP 7.4 as the default
-echo $(date): "Making PHP 7.4 the default PHP version"
-update-alternatives --set php /usr/bin/php7.4 > /dev/null 2>&1
 
 
 # Install Certbot...
@@ -174,9 +273,11 @@ then
 	echo "Skip installing certbot since it has already been done."
 else	
 	echo $(date): "Installing Certbot. This can take more than 5 minutes..."
-	if ! hash snap 2>/dev/null; then
+	if ! hash snap 2>/dev/null
+	then
 		apt-get install snapd -y
-		if [ $? -ne 0 ]; then
+		if [ $? -ne 0 ]
+		then
 			echo "Failed!  Quitting process"
 			exit 1
 		fi
@@ -221,13 +322,14 @@ else
 	snap install certbot-dns-ovh > /dev/null 2>&1
 	snap set certbot trust-plugin-with-root=ok > /dev/null 2>&1
 	snap install certbot-dns-route53 > /dev/null 2>&1
-	
+
 	#checkpoint to indicate we have done this block...
 	touch "$CHKPOINT_FOLDER/checkpoint100-end.txt"
 fi #checkpoint100.txt
 
 # if the unattended-upgrades package isn't installed, install it
-if ! dpkg -s unattended-upgrades &>/dev/null; then
+if ! dpkg -s unattended-upgrades &>/dev/null
+then
 	echo $(date): "Installing Unattended Upgrade process since it was not enabled on this server..."
 	apt-get install -y unattended-upgrades
 fi
@@ -261,503 +363,414 @@ else
 	sed -i '/Unattended-Upgrade::Allowed-Origins /a "LP-PPA-ondrej-nginx:${distro_codename}";' /etc/apt/apt.conf.d/50unattended-upgrades
 	sed -i '/Unattended-Upgrade::Allowed-Origins /a "LP-PPA-ondrej-php:${distro_codename}";' /etc/apt/apt.conf.d/50unattended-upgrades	
 
-	# Update php.ini file to increase filesize uploads allowed in WordPress
-	echo $(date): "Adding required entries in php.ini to allow for larger file uploads in WordPress..."
-	sed -i "s/upload_max_filesize = 2M/upload_max_filesize = 25M/g" /etc/php/5.6/fpm/php.ini
-	sed -i "s/post_max_size = 8M/post_max_size = 25M/g" /etc/php/5.6/fpm/php.ini
-	sed -i "s/upload_max_filesize = 2M/upload_max_filesize = 25M/g" /etc/php/7.1/fpm/php.ini
-	sed -i "s/post_max_size = 8M/post_max_size = 25M/g" /etc/php/7.1/fpm/php.ini
-	sed -i "s/upload_max_filesize = 2M/upload_max_filesize = 25M/g" /etc/php/7.2/fpm/php.ini
-	sed -i "s/post_max_size = 8M/post_max_size = 25M/g" /etc/php/7.2/fpm/php.ini
-	sed -i "s/upload_max_filesize = 2M/upload_max_filesize = 25M/g" /etc/php/7.3/fpm/php.ini
-	sed -i "s/post_max_size = 8M/post_max_size = 25M/g" /etc/php/7.3/fpm/php.ini
-	sed -i "s/upload_max_filesize = 2M/upload_max_filesize = 25M/g" /etc/php/7.4/fpm/php.ini
-	sed -i "s/post_max_size = 8M/post_max_size = 25M/g" /etc/php/7.4/fpm/php.ini
-	sed -i "s/upload_max_filesize = 2M/upload_max_filesize = 25M/g" /etc/php/8.0/fpm/php.ini
-	sed -i "s/post_max_size = 8M/post_max_size = 25M/g" /etc/php/8.0/fpm/php.ini
-	sed -i "s/upload_max_filesize = 2M/upload_max_filesize = 25M/g" /etc/php/8.1/fpm/php.ini
-	sed -i "s/post_max_size = 8M/post_max_size = 25M/g" /etc/php/8.1/fpm/php.ini
-	# Update php.ini to enable and configure opcache
-	sed -i "s/;opcache.enable=1/opcache.enable=1/g" /etc/php/5.6/fpm/php.ini
-	sed -i "s/;opcache.enable=1/opcache.enable=1/g" /etc/php/7.1/fpm/php.ini
-	sed -i "s/;opcache.enable=1/opcache.enable=1/g" /etc/php/7.2/fpm/php.ini
-	sed -i "s/;opcache.enable=1/opcache.enable=1/g" /etc/php/7.3/fpm/php.ini
-	sed -i "s/;opcache.enable=1/opcache.enable=1/g" /etc/php/7.4/fpm/php.ini
-	sed -i "s/;opcache.enable=1/opcache.enable=1/g" /etc/php/8.0/fpm/php.ini
-	sed -i "s/;opcache.enable=1/opcache.enable=1/g" /etc/php/8.1/fpm/php.ini
+	if [ "$webserver_type" = "nginx" ]
+	then
+		# Update php.ini file to increase filesize uploads allowed in WordPress
+		echo $(date): "Adding required entries in php.ini to allow for larger file uploads in WordPress..."
+		phpversion=(5.6 7.1 7.2 7.3 7.4 8.0 8.1)
+		for ver in "${phpversion[@]}"
+		do
+			sed -i "s/upload_max_filesize = 2M/upload_max_filesize = 25M/g" /etc/php/$ver/fpm/php.ini
+			sed -i "s/post_max_size = 8M/post_max_size = 25M/g" /etc/php/$ver/fpm/php.ini
 
-	sed -i "s/;opcache.enable_cli=0/opcache.enable_cli=1/g" /etc/php/5.6/fpm/php.ini
-	sed -i "s/;opcache.enable_cli=0/opcache.enable_cli=1/g" /etc/php/7.1/fpm/php.ini
-	sed -i "s/;opcache.enable_cli=0/opcache.enable_cli=1/g" /etc/php/7.2/fpm/php.ini
-	sed -i "s/;opcache.enable_cli=0/opcache.enable_cli=1/g" /etc/php/7.3/fpm/php.ini
-	sed -i "s/;opcache.enable_cli=0/opcache.enable_cli=1/g" /etc/php/7.4/fpm/php.ini
-	sed -i "s/;opcache.enable_cli=0/opcache.enable_cli=1/g" /etc/php/8.0/fpm/php.ini
-	sed -i "s/;opcache.enable_cli=0/opcache.enable_cli=1/g" /etc/php/8.1/fpm/php.ini
+			# Update php.ini to enable and configure opcache
+			sed -i "s/;opcache.enable=1/opcache.enable=1/g" /etc/php/$ver/fpm/php.ini
+			sed -i "s/;opcache.enable_cli=0/opcache.enable_cli=1/g" /etc/php/$ver/fpm/php.ini
+			sed -i "s/;opcache.interned_strings_buffer=8/opcache.interned_strings_buffer=8/g" /etc/php/$ver/fpm/php.ini
+			sed -i "s/;opcache.max_accelerated_files=10000/opcache.max_accelerated_files=100000/g" /etc/php/$ver/fpm/php.ini
+			sed -i "s/;opcache.memory_consumption=128/opcache.memory_consumption=128/g" /etc/php/$ver/fpm/php.ini
+			sed -i "s/;opcache.save_comments=1/opcache.save_comments=1/g" /etc/php/$ver/fpm/php.ini
+			sed -i "s/;opcache.revalidate_freq=2/opcache.revalidate_freq=1/g" /etc/php/$ver/fpm/php.ini
+			sed -i "s/;opcache.use_cwd=1/opcache.use_cwd=1/g" /etc/php/$ver/fpm/php.ini
+			sed -i "s/;opcache.validate_root=0/opcache.validate_root=1/g" /etc/php/$ver/fpm/php.ini
+			sed -i "s/;opcache.validate_permission=0/opcache.validate_permission=1/g" /etc/php/$ver/fpm/php.ini
+			sed -i "s/;opcache.file_update_protection=2/opcache.file_update_protection=60/g" /etc/php/$ver/fpm/php.ini
 
-	sed -i "s/;opcache.interned_strings_buffer=8/opcache.interned_strings_buffer=8/g" /etc/php/5.6/fpm/php.ini
-	sed -i "s/;opcache.interned_strings_buffer=8/opcache.interned_strings_buffer=8/g" /etc/php/7.1/fpm/php.ini
-	sed -i "s/;opcache.interned_strings_buffer=8/opcache.interned_strings_buffer=8/g" /etc/php/7.2/fpm/php.ini
-	sed -i "s/;opcache.interned_strings_buffer=8/opcache.interned_strings_buffer=8/g" /etc/php/7.3/fpm/php.ini
-	sed -i "s/;opcache.interned_strings_buffer=8/opcache.interned_strings_buffer=8/g" /etc/php/7.4/fpm/php.ini
-	sed -i "s/;opcache.interned_strings_buffer=8/opcache.interned_strings_buffer=8/g" /etc/php/8.0/fpm/php.ini
-	sed -i "s/;opcache.interned_strings_buffer=8/opcache.interned_strings_buffer=8/g" /etc/php/8.1/fpm/php.ini
+			# Restarting php
+			echo $(date): "Restarting PHP processes..."
+			systemctl restart php$ver-fpm > /dev/null 2>&1
+		done
 
-	sed -i "s/;opcache.max_accelerated_files=10000/opcache.max_accelerated_files=100000/g" /etc/php/5.6/fpm/php.ini
-	sed -i "s/;opcache.max_accelerated_files=10000/opcache.max_accelerated_files=100000/g" /etc/php/7.1/fpm/php.ini
-	sed -i "s/;opcache.max_accelerated_files=10000/opcache.max_accelerated_files=100000/g" /etc/php/7.2/fpm/php.ini
-	sed -i "s/;opcache.max_accelerated_files=10000/opcache.max_accelerated_files=100000/g" /etc/php/7.3/fpm/php.ini
-	sed -i "s/;opcache.max_accelerated_files=10000/opcache.max_accelerated_files=100000/g" /etc/php/7.4/fpm/php.ini
-	sed -i "s/;opcache.max_accelerated_files=10000/opcache.max_accelerated_files=100000/g" /etc/php/8.0/fpm/php.ini
-	sed -i "s/;opcache.max_accelerated_files=10000/opcache.max_accelerated_files=100000/g" /etc/php/8.1/fpm/php.ini
+		# Configure NGINX to accept extra-long domain names (the seven back-slashes are to insert spaces before the actual line is inserted )
+		sed -i '/^http {/a \ \n \ \ \ \ \ \ \ # Accept extra-long domain names \n \ \ \ \ \ \ \ server_names_hash_bucket_size 128;' /etc/nginx/nginx.conf
 
-	sed -i "s/;opcache.memory_consumption=128/opcache.memory_consumption=128/g" /etc/php/5.6/fpm/php.ini
-	sed -i "s/;opcache.memory_consumption=128/opcache.memory_consumption=128/g" /etc/php/7.1/fpm/php.ini
-	sed -i "s/;opcache.memory_consumption=128/opcache.memory_consumption=128/g" /etc/php/7.2/fpm/php.ini
-	sed -i "s/;opcache.memory_consumption=128/opcache.memory_consumption=128/g" /etc/php/7.3/fpm/php.ini
-	sed -i "s/;opcache.memory_consumption=128/opcache.memory_consumption=128/g" /etc/php/7.4/fpm/php.ini
-	sed -i "s/;opcache.memory_consumption=128/opcache.memory_consumption=128/g" /etc/php/8.0/fpm/php.ini
-	sed -i "s/;opcache.memory_consumption=128/opcache.memory_consumption=128/g" /etc/php/8.1/fpm/php.ini
+		# Configure nginx worker_cpu_affinity, worker_rlimit_nofile, pcre_jit, multi_accept, worker_connections, accept_mutex, epoll
+		sed -i '/^worker_processes auto;/a worker_cpu_affinity auto;' /etc/nginx/nginx.conf
+		sed -i '/^worker_processes auto;/a worker_rlimit_nofile 100000;' /etc/nginx/nginx.conf
+		sed -i '/^pid \/run\/nginx.pid;/a pcre_jit on;' /etc/nginx/nginx.conf
 
-	sed -i "s/;opcache.save_comments=1/opcache.save_comments=1/g" /etc/php/5.6/fpm/php.ini
-	sed -i "s/;opcache.save_comments=1/opcache.save_comments=1/g" /etc/php/7.1/fpm/php.ini
-	sed -i "s/;opcache.save_comments=1/opcache.save_comments=1/g" /etc/php/7.2/fpm/php.ini
-	sed -i "s/;opcache.save_comments=1/opcache.save_comments=1/g" /etc/php/7.3/fpm/php.ini
-	sed -i "s/;opcache.save_comments=1/opcache.save_comments=1/g" /etc/php/7.4/fpm/php.ini
-	sed -i "s/;opcache.save_comments=1/opcache.save_comments=1/g" /etc/php/8.0/fpm/php.ini
-	sed -i "s/;opcache.save_comments=1/opcache.save_comments=1/g" /etc/php/8.1/fpm/php.ini
+		sed -i "s/# multi_accept on;/multi_accept on;/g" /etc/nginx/nginx.conf  ## Search for commented out multi_accept_on and uncomment it.
+		sed -i "s/worker_connections 768;/worker_connections 2048;/g" /etc/nginx/nginx.conf  ## search for existing worker_connections directive and increase it.
 
-	sed -i "s/;opcache.revalidate_freq=2/opcache.revalidate_freq=1/g" /etc/php/5.6/fpm/php.ini
-	sed -i "s/;opcache.revalidate_freq=2/opcache.revalidate_freq=1/g" /etc/php/7.1/fpm/php.ini
-	sed -i "s/;opcache.revalidate_freq=2/opcache.revalidate_freq=1/g" /etc/php/7.2/fpm/php.ini
-	sed -i "s/;opcache.revalidate_freq=2/opcache.revalidate_freq=1/g" /etc/php/7.3/fpm/php.ini
-	sed -i "s/;opcache.revalidate_freq=2/opcache.revalidate_freq=1/g" /etc/php/7.4/fpm/php.ini
-	sed -i "s/;opcache.revalidate_freq=2/opcache.revalidate_freq=1/g" /etc/php/8.0/fpm/php.ini
-	sed -i "s/;opcache.revalidate_freq=2/opcache.revalidate_freq=1/g" /etc/php/8.1/fpm/php.ini
+		sed -i '/^events {/a \ \ \ \ \ \ \ \ use epoll;' /etc/nginx/nginx.conf  ## add epoll directive to events block
+		sed -i '/^events {/a \ \ \ \ \ \ \ \ accept_mutex on;' /etc/nginx/nginx.conf ## add accept_mutex directive to events block
 
-	sed -i "s/;opcache.use_cwd=1/opcache.use_cwd=1/g" /etc/php/5.6/fpm/php.ini
-	sed -i "s/;opcache.use_cwd=1/opcache.use_cwd=1/g" /etc/php/7.1/fpm/php.ini
-	sed -i "s/;opcache.use_cwd=1/opcache.use_cwd=1/g" /etc/php/7.2/fpm/php.ini
-	sed -i "s/;opcache.use_cwd=1/opcache.use_cwd=1/g" /etc/php/7.3/fpm/php.ini
-	sed -i "s/;opcache.use_cwd=1/opcache.use_cwd=1/g" /etc/php/7.4/fpm/php.ini
-	sed -i "s/;opcache.use_cwd=1/opcache.use_cwd=1/g" /etc/php/8.0/fpm/php.ini
-	sed -i "s/;opcache.use_cwd=1/opcache.use_cwd=1/g" /etc/php/8.1/fpm/php.ini
+		# sed -i '/^http {/a \ \ \ \ \ \ \  # TLS Dynamic Records Patch: See https://github.com/nginx-modules/ngx_http_tls_dyn_size \n \ \ \ \ \ \ \ ssl_dyn_rec_enable on;' /etc/nginx/nginx.conf  ## ssl_dyn_rec_enable
+		sed -i '/^http {/a \ \n \ \ \ \ \ \ \ # AIO: See https://www.nginx.com/blog/thread-pools-boost-performance-9x/ and http://nginx.org/en/docs/http/ngx_http_core_module.html#aio \n \ \ \ \ \ \ \ aio threads;' /etc/nginx/nginx.conf  ## AIO threads
+		sed -i '/^http {/a \ \ \ \ \ \ \ \ variables_hash_bucket_size 512;' /etc/nginx/nginx.conf ## increase size of hash table
+		sed -i '/^http {/a \ \ \ \ \ \ \ \ variables_hash_max_size 4096;' /etc/nginx/nginx.conf  ## increase size of hash table
+		sed -i '/^http {/a \ \ \ \ \ \ \ \ keepalive_timeout 8;' /etc/nginx/nginx.conf ## add keepalive_timeout directive to http block to reduce keep_alive directive from the default 75s to 8s.
+		sed -i '/^http {/a \ \ \ \ \ \ \ \ reset_timedout_connection on;' /etc/nginx/nginx.conf ## add reset_timedout_connection directive to remove data from memory as soon as a connection times out. See http://nginx.org/en/docs/http/ngx_http_core_module.html#reset_timedout_connection
 
-	sed -i "s/;opcache.validate_root=0/opcache.validate_root=1/g" /etc/php/5.6/fpm/php.ini
-	sed -i "s/;opcache.validate_root=0/opcache.validate_root=1/g" /etc/php/7.1/fpm/php.ini
-	sed -i "s/;opcache.validate_root=0/opcache.validate_root=1/g" /etc/php/7.2/fpm/php.ini
-	sed -i "s/;opcache.validate_root=0/opcache.validate_root=1/g" /etc/php/7.3/fpm/php.ini
-	sed -i "s/;opcache.validate_root=0/opcache.validate_root=1/g" /etc/php/7.4/fpm/php.ini
-	sed -i "s/;opcache.validate_root=0/opcache.validate_root=1/g" /etc/php/8.0/fpm/php.ini
-	sed -i "s/;opcache.validate_root=0/opcache.validate_root=1/g" /etc/php/8.1/fpm/php.ini
+		# Install rate limiting zone for wp-login.php (the seven back-slashes are to insert spaces before the actual line is inserted )
+		sed -i '/default_type application\/octet-stream;/a \ \n \ \ \ \ \ \ \ # Set zone to restrict rate of trying certain actions - primarily logins \n \ \ \ \ \ \ \ limit_req_zone \$binary_remote_addr zone=WPLOGIN:10m rate=10r\/s;' /etc/nginx/nginx.conf
 
-	sed -i "s/;opcache.validate_permission=0/opcache.validate_permission=1/g" /etc/php/5.6/fpm/php.ini
-	sed -i "s/;opcache.validate_permission=0/opcache.validate_permission=1/g" /etc/php/7.1/fpm/php.ini
-	sed -i "s/;opcache.validate_permission=0/opcache.validate_permission=1/g" /etc/php/7.2/fpm/php.ini
-	sed -i "s/;opcache.validate_permission=0/opcache.validate_permission=1/g" /etc/php/7.3/fpm/php.ini
-	sed -i "s/;opcache.validate_permission=0/opcache.validate_permission=1/g" /etc/php/7.4/fpm/php.ini
-	sed -i "s/;opcache.validate_permission=0/opcache.validate_permission=1/g" /etc/php/8.0/fpm/php.ini
-	sed -i "s/;opcache.validate_permission=0/opcache.validate_permission=1/g" /etc/php/8.1/fpm/php.ini
+		# Create some folders to hold user custom config files
+		mkdir -p /etc/nginx/userconfigs/
+		mkdir -p /etc/nginx/userconfigs/http		# User custom configs for the the http block will go here.
+		mkdir -p /etc/nginx/userconfigs/server		# User custom configs for the server block will go here.
+		mkdir -p /etc/nginx/userconfigs/site		# User custom configs for a particular site will go here.
 
-	sed -i "s/;opcache.file_update_protection=2/opcache.file_update_protection=60/g" /etc/php/5.6/fpm/php.ini
-	sed -i "s/;opcache.file_update_protection=2/opcache.file_update_protection=60/g" /etc/php/7.1/fpm/php.ini
-	sed -i "s/;opcache.file_update_protection=2/opcache.file_update_protection=60/g" /etc/php/7.2/fpm/php.ini
-	sed -i "s/;opcache.file_update_protection=2/opcache.file_update_protection=60/g" /etc/php/7.3/fpm/php.ini
-	sed -i "s/;opcache.file_update_protection=2/opcache.file_update_protection=60/g" /etc/php/7.4/fpm/php.ini
-	sed -i "s/;opcache.file_update_protection=2/opcache.file_update_protection=60/g" /etc/php/8.0/fpm/php.ini
-	sed -i "s/;opcache.file_update_protection=2/opcache.file_update_protection=60/g" /etc/php/8.1/fpm/php.ini
+		# Make sure we include the /etc/nginx/userconfigs/http/*.conf files in the nginx.conf file.
+		sed -i '/include \/etc\/nginx\/conf.d\/\*.conf;/a \ \ \ \ \ \ \ \ include \/etc\/nginx\/userconfigs\/http\/*[.]conf;' /etc/nginx/nginx.conf  
 
-	# Restarting php
-	echo $(date): "Restarting PHP processes..."
-	systemctl restart php5.6-fpm > /dev/null 2>&1
-	systemctl restart php7.1-fpm > /dev/null 2>&1
-	systemctl restart php7.2-fpm > /dev/null 2>&1
-	systemctl restart php7.3-fpm > /dev/null 2>&1
-	systemctl restart php7.4-fpm > /dev/null 2>&1
-	systemctl restart php8.0-fpm > /dev/null 2>&1
-	systemctl restart php8.1-fpm > /dev/null 2>&1
-
-	# Configure NGINX to accept extra-long domain names (the seven back-slashes are to insert spaces before the actual line is inserted )
-	sed -i '/^http {/a \ \n \ \ \ \ \ \ \ # Accept extra-long domain names \n \ \ \ \ \ \ \ server_names_hash_bucket_size 128;' /etc/nginx/nginx.conf
-
-	# Configure nginx worker_cpu_affinity, worker_rlimit_nofile, pcre_jit, multi_accept, worker_connections, accept_mutex, epoll
-	sed -i '/^worker_processes auto;/a worker_cpu_affinity auto;' /etc/nginx/nginx.conf
-	sed -i '/^worker_processes auto;/a worker_rlimit_nofile 100000;' /etc/nginx/nginx.conf
-	sed -i '/^pid \/run\/nginx.pid;/a pcre_jit on;' /etc/nginx/nginx.conf
-
-	sed -i "s/# multi_accept on;/multi_accept on;/g" /etc/nginx/nginx.conf  ## Search for commented out multi_accept_on and uncomment it.
-	sed -i "s/worker_connections 768;/worker_connections 2048;/g" /etc/nginx/nginx.conf  ## search for existing worker_connections directive and increase it.
-
-	sed -i '/^events {/a \ \ \ \ \ \ \ \ use epoll;' /etc/nginx/nginx.conf  ## add epoll directive to events block
-	sed -i '/^events {/a \ \ \ \ \ \ \ \ accept_mutex on;' /etc/nginx/nginx.conf ## add accept_mutex directive to events block
-
-	# sed -i '/^http {/a \ \ \ \ \ \ \  # TLS Dynamic Records Patch: See https://github.com/nginx-modules/ngx_http_tls_dyn_size \n \ \ \ \ \ \ \ ssl_dyn_rec_enable on;' /etc/nginx/nginx.conf  ## ssl_dyn_rec_enable
-	sed -i '/^http {/a \ \n \ \ \ \ \ \ \ # AIO: See https://www.nginx.com/blog/thread-pools-boost-performance-9x/ and http://nginx.org/en/docs/http/ngx_http_core_module.html#aio \n \ \ \ \ \ \ \ aio threads;' /etc/nginx/nginx.conf  ## AIO threads
-	sed -i '/^http {/a \ \ \ \ \ \ \ \ variables_hash_bucket_size 512;' /etc/nginx/nginx.conf ## increase size of hash table
-	sed -i '/^http {/a \ \ \ \ \ \ \ \ variables_hash_max_size 4096;' /etc/nginx/nginx.conf  ## increase size of hash table
-	sed -i '/^http {/a \ \ \ \ \ \ \ \ keepalive_timeout 8;' /etc/nginx/nginx.conf ## add keepalive_timeout directive to http block to reduce keep_alive directive from the default 75s to 8s.
-	sed -i '/^http {/a \ \ \ \ \ \ \ \ reset_timedout_connection on;' /etc/nginx/nginx.conf ## add reset_timedout_connection directive to remove data from memory as soon as a connection times out. See http://nginx.org/en/docs/http/ngx_http_core_module.html#reset_timedout_connection
-
-	# Install rate limiting zone for wp-login.php (the seven back-slashes are to insert spaces before the actual line is inserted )
-	sed -i '/default_type application\/octet-stream;/a \ \n \ \ \ \ \ \ \ # Set zone to restrict rate of trying certain actions - primarily logins \n \ \ \ \ \ \ \ limit_req_zone \$binary_remote_addr zone=WPLOGIN:10m rate=10r\/s;' /etc/nginx/nginx.conf
-
-	# Create some folders to hold user custom config files
-	mkdir -p /etc/nginx/userconfigs/
-	mkdir -p /etc/nginx/userconfigs/http		# User custom configs for the the http block will go here.
-	mkdir -p /etc/nginx/userconfigs/server		# User custom configs for the server block will go here.
-	mkdir -p /etc/nginx/userconfigs/site		# User custom configs for a particular site will go here.
-
-	# Make sure we include the /etc/nginx/userconfigs/http/*.conf files in the nginx.conf file.
-	sed -i '/include \/etc\/nginx\/conf.d\/\*.conf;/a \ \ \ \ \ \ \ \ include \/etc\/nginx\/userconfigs\/http\/*[.]conf;' /etc/nginx/nginx.conf  
-
-	# create /etc/nginx/common/6g.conf, which will contain the 6G Firewall 
-	echo $(date): "Installing 6G Firewall..."
-	mkdir -p /etc/nginx/common/
-	cat > /etc/nginx/common/6g.conf << 'EOF'
+		# create /etc/nginx/common/6g.conf, which will contain the 6G Firewall 
+		echo $(date): "Installing 6G Firewall..."
+		mkdir -p /etc/nginx/common/
+		cat > /etc/nginx/common/6g.conf << 'EOF'
 # 6G Firewall mappings adapted from https://perishablepress.com/6g/
 
 # User agents
 map $http_user_agent $bad_bot {
-	default 0;
-	"~*([a-z0-9]{2000})" 1;
-	~*(archive.org|binlar|casper|checkpriv|choppy|clshttp|cmsworld|diavol|dotbot|extract|feedfinder|flicky|g00g1e|harvest|heritrix|htmlparser|libwww|httrack|kmccrew|loader|miner|nikto|nutch|planetwork|postrank|purebot|pycurl|python|seekerspider|siclab|skygrid|sqlmap|sucker|turnit|vikspider|winhttp|xxxyy|youda|zmeu|zune) 2;
+default 0;
+"~*([a-z0-9]{2000})" 1;
+~*(archive.org|binlar|casper|checkpriv|choppy|clshttp|cmsworld|diavol|dotbot|extract|feedfinder|flicky|g00g1e|harvest|heritrix|htmlparser|libwww|httrack|kmccrew|loader|miner|nikto|nutch|planetwork|postrank|purebot|pycurl|python|seekerspider|siclab|skygrid|sqlmap|sucker|turnit|vikspider|winhttp|xxxyy|youda|zmeu|zune) 2;
 }
 
 # Referrers
 map $http_referer $bad_referer {
-	default 0;
-	"~*([a-z0-9]{2000})" 1;
-	~*(semalt.com|todaperfeita) 2;
+default 0;
+"~*([a-z0-9]{2000})" 1;
+~*(semalt.com|todaperfeita) 2;
 }
 
 # Query strings
 map $query_string $bad_querystring {
-	default 0;
-	~*(eval\() 1;
-	~*(127\.0\.0\.1) 2;
-	"~*([a-z0-9]{2000})" 3;
-	"~*(javascript:)(.*)(;)" 4;
-	~*(base64_encode)(.*)(\() 5;
-	~*(GLOBALS|REQUEST)(=|\[|%) 6;
-	~*(<|%3C)(.*)script(.*)(>|%3) 7;
-	~*(\\|\.\.\.|\.\./|~|`|<|>|\|) 8;
-	~*(boot\.ini|etc/passwd|self/environ) 9;
-	~*(thumbs?(_editor|open)?|tim(thumb)?)\.php 10;
-	~*(\'|\")(.*)(drop|insert|md5|select|union|concat) 11;
-    ~*(/|%2f)(:|%3a)(/|%2f) 12;
+default 0;
+~*(eval\() 1;
+~*(127\.0\.0\.1) 2;
+"~*([a-z0-9]{2000})" 3;
+"~*(javascript:)(.*)(;)" 4;
+~*(base64_encode)(.*)(\() 5;
+~*(GLOBALS|REQUEST)(=|\[|%) 6;
+~*(<|%3C)(.*)script(.*)(>|%3) 7;
+~*(\\|\.\.\.|\.\./|~|`|<|>|\|) 8;
+~*(boot\.ini|etc/passwd|self/environ) 9;
+~*(thumbs?(_editor|open)?|tim(thumb)?)\.php 10;
+~*(\'|\")(.*)(drop|insert|md5|select|union|concat) 11;
+~*(/|%2f)(:|%3a)(/|%2f) 12;
 }
 
 # Request strings
 map $request_uri $bad_request {
-	default 0;
-	"~*([a-z0-9]{2000})" 1;
-	~*(ftp|php):/ 2;
-	~*(base64_encode)(.*)(\() 3;
-	~*(=\\\'|=\\%27|/\\\'/?)\. 4;
-	"~*/(\$(\&)?|\*|\"|\.ht|,|&|&amp;?)/?$" 5;
-	~*(\{0\}|\(/\(|\.\.\.|\+\+\+|\\\"\\\") 6;
-	"~*(~|`|<|>|;|\\|\s|\{|\}|\[|\]|\|)" 7;
-	~*/(=|\$&|_mm|cgi-|etc/passwd|muieblack) 8;
-	"~*(&pws=0|\_vti\_|\(null\)|\{\$itemURL\}|echo(.*)kae|etc/passwd|eval\(|self/environ)" 9;
-	~*\.(aspx?|bash|bak?|cfg|cgi|dll|exe|git|hg|ini|jsp|log|mdb|out|sql|svn|swp|tar|rar|rdf)$ 10;
-	~*/(^$|(wp-)?config|mobiquo|phpinfo|shell|sqlpatch|thumb|thumb_editor|thumbopen|timthumb|webshell)\.php 11;
+default 0;
+"~*([a-z0-9]{2000})" 1;
+~*(ftp|php):/ 2;
+~*(base64_encode)(.*)(\() 3;
+~*(=\\\'|=\\%27|/\\\'/?)\. 4;
+"~*/(\$(\&)?|\*|\"|\.ht|,|&|&amp;?)/?$" 5;
+~*(\{0\}|\(/\(|\.\.\.|\+\+\+|\\\"\\\") 6;
+"~*(~|`|<|>|;|\\|\s|\{|\}|\[|\]|\|)" 7;
+~*/(=|\$&|_mm|cgi-|etc/passwd|muieblack) 8;
+"~*(&pws=0|\_vti\_|\(null\)|\{\$itemURL\}|echo(.*)kae|etc/passwd|eval\(|self/environ)" 9;
+~*\.(aspx?|bash|bak?|cfg|cgi|dll|exe|git|hg|ini|jsp|log|mdb|out|sql|svn|swp|tar|rar|rdf)$ 10;
+~*/(^$|(wp-)?config|mobiquo|phpinfo|shell|sqlpatch|thumb|thumb_editor|thumbopen|timthumb|webshell)\.php 11;
 }
 
 # Request methods
 map $request_method $not_allowed_method {
-    default 0;
-    ~*^(connect) 1;
-    ~*^(debug) 2;
-    ~*^(delete) 3;
-    ~*^(move) 4;
-    ~*^(patch) 5;
-    ~*^(put) 6;
-    ~*^(trace) 7;
-    ~*^(track) 8;
+default 0;
+~*^(connect) 1;
+~*^(debug) 2;
+~*^(delete) 3;
+~*^(move) 4;
+~*^(patch) 5;
+~*^(put) 6;
+~*^(trace) 7;
+~*^(track) 8;
 }
 EOF
 
 
-
-	# create /etc/nginx/common/7g.conf, which will contain the 7G Firewall 
-	echo $(date): "Installing 7G Firewall..."
-	mkdir -p /etc/nginx/common/
-	cat > /etc/nginx/common/7g.conf << 'EOF'
+		# create /etc/nginx/common/7g.conf, which will contain the 7G Firewall 
+		echo $(date): "Installing 7G Firewall..."
+		mkdir -p /etc/nginx/common/
+		cat > /etc/nginx/common/7g.conf << 'EOF'
 # 7G FIREWALL - NGINX v1.5
 # @ https://perishablepress.com/7g-firewall-nginx/
 
 map $query_string $bad_querystring_7g {
-	
-	default 0;
-	
-	"~*([a-z0-9]{2000,})" 1;
-	"~*(/|%2f)(:|%3a)(/|%2f)" 2;
-	"~*(order(\s|%20)by(\s|%20)1--)" 3;
-	"~*(/|%2f)(\*|%2a)(\*|%2a)(/|%2f)" 4;
-	"~*(`|<|>|\^|\|\\|0x00|%00|%0d%0a)" 5;
-	"~*(ckfinder|fck|fckeditor|fullclick)" 6;
-	"~*(cmd|command)(=|%3d)(chdir|mkdir)(.*)(x20)" 7;
-	"~*(globals|mosconfig([a-z_]{1,22})|request)(=|\[)" 8;
-	"~*(/|%2f)((wp-)?config)((\.|%2e)inc)?((\.|%2e)php)" 9;
-	"~*(thumbs?(_editor|open)?|tim(thumbs?)?)((\.|%2e)php)" 10;
-	"~*(absolute_|base|root_)(dir|path)(=|%3d)(ftp|https?)" 11;
-	"~*(localhost|loopback|127(\.|%2e)0(\.|%2e)0(\.|%2e)1)" 12;
-	"~*(s)?(ftp|inurl|php)(s)?(:(/|%2f|%u2215)(/|%2f|%u2215))" 13;
-	"~*(\.|20)(get|the)(_|%5f)(permalink|posts_page_url)(\(|%28)" 14;
-	"~*((boot|win)((\.|%2e)ini)|etc(/|%2f)passwd|self(/|%2f)environ)" 15;
-	"~*(((/|%2f){3,3})|((\.|%2e){3,3})|((\.|%2e){2,2})(/|%2f|%u2215))" 16;
-	"~*(benchmark|char|exec|fopen|function|html)(.*)(\(|%28)(.*)(\)|%29)" 17;
-	"~*(php)([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})" 18;
-	"~*(e|%65|%45)(v|%76|%56)(a|%61|%31)(l|%6c|%4c)(.*)(\(|%28)(.*)(\)|%29)" 19;
-	"~*(/|%2f)(=|%3d|$&|_mm|cgi(\.|-)|inurl(:|%3a)(/|%2f)|(mod|path)(=|%3d)(\.|%2e))" 20;
-	"~*(<|%3c)(.*)(e|%65|%45)(m|%6d|%4d)(b|%62|%42)(e|%65|%45)(d|%64|%44)(.*)(>|%3e)" 21;
-	"~*(<|%3c)(.*)(i|%69|%49)(f|%66|%46)(r|%72|%52)(a|%61|%41)(m|%6d|%4d)(e|%65|%45)(.*)(>|%3e)" 22;
-	"~*(<|%3c)(.*)(o|%4f|%6f)(b|%62|%42)(j|%4a|%6a)(e|%65|%45)(c|%63|%43)(t|%74|%54)(.*)(>|%3e)" 23;
-	"~*(<|%3c)(.*)(s|%73|%53)(c|%63|%43)(r|%72|%52)(i|%69|%49)(p|%70|%50)(t|%74|%54)(.*)(>|%3e)" 24;
-	"~*(\+|%2b|%20)(d|%64|%44)(e|%65|%45)(l|%6c|%4c)(e|%65|%45)(t|%74|%54)(e|%65|%45)(\+|%2b|%20)" 25;
-	"~*(\+|%2b|%20)(i|%69|%49)(n|%6e|%4e)(s|%73|%53)(e|%65|%45)(r|%72|%52)(t|%74|%54)(\+|%2b|%20)" 26;
-	"~*(\+|%2b|%20)(s|%73|%53)(e|%65|%45)(l|%6c|%4c)(e|%65|%45)(c|%63|%43)(t|%74|%54)(\+|%2b|%20)" 27;
-	"~*(\+|%2b|%20)(u|%75|%55)(p|%70|%50)(d|%64|%44)(a|%61|%41)(t|%74|%54)(e|%65|%45)(\+|%2b|%20)" 28;
-	"~*(\\x00|(\"|%22|\'|%27)?0(\"|%22|\'|%27)?(=|%3d)(\"|%22|\'|%27)?0|cast(\(|%28)0x|or%201(=|%3d)1)" 29;
-	"~*(g|%67|%47)(l|%6c|%4c)(o|%6f|%4f)(b|%62|%42)(a|%61|%41)(l|%6c|%4c)(s|%73|%53)(=|\[|%[0-9A-Z]{0,2})" 30;
-	"~*(_|%5f)(r|%72|%52)(e|%65|%45)(q|%71|%51)(u|%75|%55)(e|%65|%45)(s|%73|%53)(t|%74|%54)(=|\[|%[0-9A-Z]{2,})" 31;
-	"~*(j|%6a|%4a)(a|%61|%41)(v|%76|%56)(a|%61|%31)(s|%73|%53)(c|%63|%43)(r|%72|%52)(i|%69|%49)(p|%70|%50)(t|%74|%54)(:|%3a)(.*)(;|%3b|\)|%29)" 32;
-	"~*(b|%62|%42)(a|%61|%41)(s|%73|%53)(e|%65|%45)(6|%36)(4|%34)(_|%5f)(e|%65|%45|d|%64|%44)(e|%65|%45|n|%6e|%4e)(c|%63|%43)(o|%6f|%4f)(d|%64|%44)(e|%65|%45)(.*)(\()(.*)(\))" 33;
-	"~*(@copy|\$_(files|get|post)|allow_url_(fopen|include)|auto_prepend_file|blexbot|browsersploit|(c99|php)shell|curl(_exec|test)|disable_functions?|document_root|elastix|encodeuricom|exploit|fclose|fgets|file_put_contents|fputs|fsbuff|fsockopen|gethostbyname|grablogin|hmei7|input_file|null|open_basedir|outfile|passthru|phpinfo|popen|proc_open|quickbrute|remoteview|root_path|safe_mode|shell_exec|site((.){0,2})copier|sux0r|trojan|user_func_array|wget|xertive)" 34;
-	"~*(;|<|>|\'|\"|\)|%0a|%0d|%22|%27|%3c|%3e|%00)(.*)(/\*|alter|base64|benchmark|cast|concat|convert|create|encode|declare|delete|drop|insert|md5|request|script|select|set|union|update)" 35;
-	"~*((\+|%2b)(concat|delete|get|select|union)(\+|%2b))" 36;
-	"~*(union)(.*)(select)(.*)(\(|%28)" 37;
-	"~*(concat|eval)(.*)(\(|%28)" 38;
-	
+
+default 0;
+
+"~*([a-z0-9]{2000,})" 1;
+"~*(/|%2f)(:|%3a)(/|%2f)" 2;
+"~*(order(\s|%20)by(\s|%20)1--)" 3;
+"~*(/|%2f)(\*|%2a)(\*|%2a)(/|%2f)" 4;
+"~*(`|<|>|\^|\|\\|0x00|%00|%0d%0a)" 5;
+"~*(ckfinder|fck|fckeditor|fullclick)" 6;
+"~*(cmd|command)(=|%3d)(chdir|mkdir)(.*)(x20)" 7;
+"~*(globals|mosconfig([a-z_]{1,22})|request)(=|\[)" 8;
+"~*(/|%2f)((wp-)?config)((\.|%2e)inc)?((\.|%2e)php)" 9;
+"~*(thumbs?(_editor|open)?|tim(thumbs?)?)((\.|%2e)php)" 10;
+"~*(absolute_|base|root_)(dir|path)(=|%3d)(ftp|https?)" 11;
+"~*(localhost|loopback|127(\.|%2e)0(\.|%2e)0(\.|%2e)1)" 12;
+"~*(s)?(ftp|inurl|php)(s)?(:(/|%2f|%u2215)(/|%2f|%u2215))" 13;
+"~*(\.|20)(get|the)(_|%5f)(permalink|posts_page_url)(\(|%28)" 14;
+"~*((boot|win)((\.|%2e)ini)|etc(/|%2f)passwd|self(/|%2f)environ)" 15;
+"~*(((/|%2f){3,3})|((\.|%2e){3,3})|((\.|%2e){2,2})(/|%2f|%u2215))" 16;
+"~*(benchmark|char|exec|fopen|function|html)(.*)(\(|%28)(.*)(\)|%29)" 17;
+"~*(php)([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})" 18;
+"~*(e|%65|%45)(v|%76|%56)(a|%61|%31)(l|%6c|%4c)(.*)(\(|%28)(.*)(\)|%29)" 19;
+"~*(/|%2f)(=|%3d|$&|_mm|cgi(\.|-)|inurl(:|%3a)(/|%2f)|(mod|path)(=|%3d)(\.|%2e))" 20;
+"~*(<|%3c)(.*)(e|%65|%45)(m|%6d|%4d)(b|%62|%42)(e|%65|%45)(d|%64|%44)(.*)(>|%3e)" 21;
+"~*(<|%3c)(.*)(i|%69|%49)(f|%66|%46)(r|%72|%52)(a|%61|%41)(m|%6d|%4d)(e|%65|%45)(.*)(>|%3e)" 22;
+"~*(<|%3c)(.*)(o|%4f|%6f)(b|%62|%42)(j|%4a|%6a)(e|%65|%45)(c|%63|%43)(t|%74|%54)(.*)(>|%3e)" 23;
+"~*(<|%3c)(.*)(s|%73|%53)(c|%63|%43)(r|%72|%52)(i|%69|%49)(p|%70|%50)(t|%74|%54)(.*)(>|%3e)" 24;
+"~*(\+|%2b|%20)(d|%64|%44)(e|%65|%45)(l|%6c|%4c)(e|%65|%45)(t|%74|%54)(e|%65|%45)(\+|%2b|%20)" 25;
+"~*(\+|%2b|%20)(i|%69|%49)(n|%6e|%4e)(s|%73|%53)(e|%65|%45)(r|%72|%52)(t|%74|%54)(\+|%2b|%20)" 26;
+"~*(\+|%2b|%20)(s|%73|%53)(e|%65|%45)(l|%6c|%4c)(e|%65|%45)(c|%63|%43)(t|%74|%54)(\+|%2b|%20)" 27;
+"~*(\+|%2b|%20)(u|%75|%55)(p|%70|%50)(d|%64|%44)(a|%61|%41)(t|%74|%54)(e|%65|%45)(\+|%2b|%20)" 28;
+"~*(\\x00|(\"|%22|\'|%27)?0(\"|%22|\'|%27)?(=|%3d)(\"|%22|\'|%27)?0|cast(\(|%28)0x|or%201(=|%3d)1)" 29;
+"~*(g|%67|%47)(l|%6c|%4c)(o|%6f|%4f)(b|%62|%42)(a|%61|%41)(l|%6c|%4c)(s|%73|%53)(=|\[|%[0-9A-Z]{0,2})" 30;
+"~*(_|%5f)(r|%72|%52)(e|%65|%45)(q|%71|%51)(u|%75|%55)(e|%65|%45)(s|%73|%53)(t|%74|%54)(=|\[|%[0-9A-Z]{2,})" 31;
+"~*(j|%6a|%4a)(a|%61|%41)(v|%76|%56)(a|%61|%31)(s|%73|%53)(c|%63|%43)(r|%72|%52)(i|%69|%49)(p|%70|%50)(t|%74|%54)(:|%3a)(.*)(;|%3b|\)|%29)" 32;
+"~*(b|%62|%42)(a|%61|%41)(s|%73|%53)(e|%65|%45)(6|%36)(4|%34)(_|%5f)(e|%65|%45|d|%64|%44)(e|%65|%45|n|%6e|%4e)(c|%63|%43)(o|%6f|%4f)(d|%64|%44)(e|%65|%45)(.*)(\()(.*)(\))" 33;
+"~*(@copy|\$_(files|get|post)|allow_url_(fopen|include)|auto_prepend_file|blexbot|browsersploit|(c99|php)shell|curl(_exec|test)|disable_functions?|document_root|elastix|encodeuricom|exploit|fclose|fgets|file_put_contents|fputs|fsbuff|fsockopen|gethostbyname|grablogin|hmei7|input_file|null|open_basedir|outfile|passthru|phpinfo|popen|proc_open|quickbrute|remoteview|root_path|safe_mode|shell_exec|site((.){0,2})copier|sux0r|trojan|user_func_array|wget|xertive)" 34;
+"~*(;|<|>|\'|\"|\)|%0a|%0d|%22|%27|%3c|%3e|%00)(.*)(/\*|alter|base64|benchmark|cast|concat|convert|create|encode|declare|delete|drop|insert|md5|request|script|select|set|union|update)" 35;
+"~*((\+|%2b)(concat|delete|get|select|union)(\+|%2b))" 36;
+"~*(union)(.*)(select)(.*)(\(|%28)" 37;
+"~*(concat|eval)(.*)(\(|%28)" 38;
+
 }
 
 map $request_uri $bad_request_7g {
-	
-	default 0;
-	
-	"~*(\^|`|<|>|\\|\|)" 1;
-	"~*([a-z0-9]{2000,})" 2;
-	"~*(=?\\\(\'|%27)/?)(\.)" 3;
-	"~*(/)(\*|\"|\'|\.|,|&|&amp;?)/?$" 4;
-	"~*(\.)(php)(\()?([0-9]+)(\))?(/)?$" 5;
-	"~*(/)(vbulletin|boards|vbforum)(/)?" 6;
-	"~*(/)((.*)header:|(.*)set-cookie:(.*)=)" 7;
-	"~*(/)(ckfinder|fck|fckeditor|fullclick)" 8;
-	"~*(\.(s?ftp-?)config|(s?ftp-?)config\.)" 9;
-	"~*(\{0\}|\"?0\"?=\"?0|\(/\(|\.\.\.|\+\+\+|\\\")" 10;
-	"~*(thumbs?(_editor|open)?|tim(thumbs?)?)(\.php)" 11;
-	"~*(\.|20)(get|the)(_)(permalink|posts_page_url)(\()" 12;
-	"~*(///|\?\?|/&&|/\*(.*)\*/|/:/|\\\\|0x00|%00|%0d%0a)" 13;
-	"~*(/%7e)(root|ftp|bin|nobody|named|guest|logs|sshd)(/)" 14;
-	"~*(/)(etc|var)(/)(hidden|secret|shadow|ninja|passwd|tmp)(/)?$" 15;
-	"~*(s)?(ftp|http|inurl|php)(s)?(:(/|%2f|%u2215)(/|%2f|%u2215))" 16;
-	"~*(/)(=|\$&?|&?(pws|rk)=0|_mm|_vti_|cgi(\.|-)?|(=|/|;|,)nt\.)" 17;
-	"~*(\.)(ds_store|htaccess|htpasswd|init?|mysql-select-db)(/)?$" 18;
-	"~*(/)(bin)(/)(cc|chmod|chsh|cpp|echo|id|kill|mail|nasm|perl|ping|ps|python|tclsh)(/)?$" 19;
-	"~*(/)(::[0-9999]|%3a%3a[0-9999]|127\.0\.0\.1|localhost|loopback|makefile|pingserver|wwwroot)(/)?" 20;
-	"~*(\(null\)|\{\$itemURL\}|cAsT\(0x|echo(.*)kae|etc/passwd|eval\(|self/environ|\+union\+all\+select)" 21;
-	"~*(/)?j((\s)+)?a((\s)+)?v((\s)+)?a((\s)+)?s((\s)+)?c((\s)+)?r((\s)+)?i((\s)+)?p((\s)+)?t((\s)+)?(%3a|:)" 22;
-	"~*(/)(awstats|(c99|php|web)shell|document_root|error_log|listinfo|muieblack|remoteview|site((.){0,2})copier|sqlpatch|sux0r)" 23;
-	"~*(/)((php|web)?shell|crossdomain|fileditor|locus7|nstview|php(get|remoteview|writer)|r57|remview|sshphp|storm7|webadmin)(.*)(\.|\()" 24;
-	"~*(/)(author-panel|bitrix|class|database|(db|mysql)-?admin|filemanager|htdocs|httpdocs|https?|mailman|mailto|msoffice|mysql|_?php-my-admin(.*)|tmp|undefined|usage|var|vhosts|webmaster|www)(/)" 25;
-	"~*(base64_(en|de)code|benchmark|child_terminate|curl_exec|e?chr|eval|function|fwrite|(f|p)open|html|leak|passthru|p?fsockopen|phpinfo|posix_(kill|mkfifo|setpgid|setsid|setuid)|proc_(close|get_status|nice|open|terminate)|(shell_)?exec|system)(.*)(\()(.*)(\))" 26;
-	"~*(/)(^$|00.temp00|0day|3index|3xp|70bex?|admin_events|bkht|(php|web)?shell|c99|config(\.)?bak|curltest|db|dompdf|filenetworks|hmei7|index\.php/index\.php/index|jahat|kcrew|keywordspy|libsoft|marg|mobiquo|mysql|nessus|php-?info|racrew|sql|vuln|(web-?|wp-)?(conf\b|config(uration)?)|xertive)(\.php)" 27;
-	"~*(\.)(7z|ab4|ace|afm|ashx|aspx?|bash|ba?k?|bin|bz2|cfg|cfml?|cgi|conf\b|config|ctl|dat|db|dist|dll|eml|engine|env|et2|exe|fec|fla|git|hg|inc|ini|inv|jsp|log|lqd|make|mbf|mdb|mmw|mny|module|old|one|orig|out|passwd|pdb|phtml|pl|profile|psd|pst|ptdb|pwd|py|qbb|qdf|rar|rdf|save|sdb|sql|sh|soa|svn|swf|swl|swo|swp|stx|tar|tax|tgz|theme|tls|tmd|wow|xtmpl|ya?ml|zlib)$" 28;
-	
+
+default 0;
+
+"~*(\^|`|<|>|\\|\|)" 1;
+"~*([a-z0-9]{2000,})" 2;
+"~*(=?\\\(\'|%27)/?)(\.)" 3;
+"~*(/)(\*|\"|\'|\.|,|&|&amp;?)/?$" 4;
+"~*(\.)(php)(\()?([0-9]+)(\))?(/)?$" 5;
+"~*(/)(vbulletin|boards|vbforum)(/)?" 6;
+"~*(/)((.*)header:|(.*)set-cookie:(.*)=)" 7;
+"~*(/)(ckfinder|fck|fckeditor|fullclick)" 8;
+"~*(\.(s?ftp-?)config|(s?ftp-?)config\.)" 9;
+"~*(\{0\}|\"?0\"?=\"?0|\(/\(|\.\.\.|\+\+\+|\\\")" 10;
+"~*(thumbs?(_editor|open)?|tim(thumbs?)?)(\.php)" 11;
+"~*(\.|20)(get|the)(_)(permalink|posts_page_url)(\()" 12;
+"~*(///|\?\?|/&&|/\*(.*)\*/|/:/|\\\\|0x00|%00|%0d%0a)" 13;
+"~*(/%7e)(root|ftp|bin|nobody|named|guest|logs|sshd)(/)" 14;
+"~*(/)(etc|var)(/)(hidden|secret|shadow|ninja|passwd|tmp)(/)?$" 15;
+"~*(s)?(ftp|http|inurl|php)(s)?(:(/|%2f|%u2215)(/|%2f|%u2215))" 16;
+"~*(/)(=|\$&?|&?(pws|rk)=0|_mm|_vti_|cgi(\.|-)?|(=|/|;|,)nt\.)" 17;
+"~*(\.)(ds_store|htaccess|htpasswd|init?|mysql-select-db)(/)?$" 18;
+"~*(/)(bin)(/)(cc|chmod|chsh|cpp|echo|id|kill|mail|nasm|perl|ping|ps|python|tclsh)(/)?$" 19;
+"~*(/)(::[0-9999]|%3a%3a[0-9999]|127\.0\.0\.1|localhost|loopback|makefile|pingserver|wwwroot)(/)?" 20;
+"~*(\(null\)|\{\$itemURL\}|cAsT\(0x|echo(.*)kae|etc/passwd|eval\(|self/environ|\+union\+all\+select)" 21;
+"~*(/)?j((\s)+)?a((\s)+)?v((\s)+)?a((\s)+)?s((\s)+)?c((\s)+)?r((\s)+)?i((\s)+)?p((\s)+)?t((\s)+)?(%3a|:)" 22;
+"~*(/)(awstats|(c99|php|web)shell|document_root|error_log|listinfo|muieblack|remoteview|site((.){0,2})copier|sqlpatch|sux0r)" 23;
+"~*(/)((php|web)?shell|crossdomain|fileditor|locus7|nstview|php(get|remoteview|writer)|r57|remview|sshphp|storm7|webadmin)(.*)(\.|\()" 24;
+"~*(/)(author-panel|bitrix|class|database|(db|mysql)-?admin|filemanager|htdocs|httpdocs|https?|mailman|mailto|msoffice|mysql|_?php-my-admin(.*)|tmp|undefined|usage|var|vhosts|webmaster|www)(/)" 25;
+"~*(base64_(en|de)code|benchmark|child_terminate|curl_exec|e?chr|eval|function|fwrite|(f|p)open|html|leak|passthru|p?fsockopen|phpinfo|posix_(kill|mkfifo|setpgid|setsid|setuid)|proc_(close|get_status|nice|open|terminate)|(shell_)?exec|system)(.*)(\()(.*)(\))" 26;
+"~*(/)(^$|00.temp00|0day|3index|3xp|70bex?|admin_events|bkht|(php|web)?shell|c99|config(\.)?bak|curltest|db|dompdf|filenetworks|hmei7|index\.php/index\.php/index|jahat|kcrew|keywordspy|libsoft|marg|mobiquo|mysql|nessus|php-?info|racrew|sql|vuln|(web-?|wp-)?(conf\b|config(uration)?)|xertive)(\.php)" 27;
+"~*(\.)(7z|ab4|ace|afm|ashx|aspx?|bash|ba?k?|bin|bz2|cfg|cfml?|cgi|conf\b|config|ctl|dat|db|dist|dll|eml|engine|env|et2|exe|fec|fla|git|hg|inc|ini|inv|jsp|log|lqd|make|mbf|mdb|mmw|mny|module|old|one|orig|out|passwd|pdb|phtml|pl|profile|psd|pst|ptdb|pwd|py|qbb|qdf|rar|rdf|save|sdb|sql|sh|soa|svn|swf|swl|swo|swp|stx|tar|tax|tgz|theme|tls|tmd|wow|xtmpl|ya?ml|zlib)$" 28;
+
 }
 
 map $http_user_agent $bad_bot_7g {
-	
-	default 0;
-	
-	"~*([a-z0-9]{2000,})" 1;
-	"~*(&lt;|%0a|%0d|%27|%3c|%3e|%00|0x00)" 2;
-	"~*(ahrefs|alexibot|majestic|mj12bot|rogerbot)" 3;
-	"~*((c99|php|web)shell|remoteview|site((.){0,2})copier)" 4;
-	"~*(econtext|eolasbot|eventures|liebaofast|nominet|oppo\sa33)" 5;
-	"~*(base64_decode|bin/bash|disconnect|eval|lwp-download|unserialize|\\\x22)" 6;
-	"~*(acapbot|acoonbot|asterias|attackbot|backdorbot|becomebot|binlar|blackwidow|blekkobot|blexbot|blowfish|bullseye|bunnys|butterfly|careerbot|casper|checkpriv|cheesebot|cherrypick|chinaclaw|choppy|clshttp|cmsworld|copernic|copyrightcheck|cosmos|crescent|cy_cho|datacha|demon|diavol|discobot|dittospyder|dotbot|dotnetdotcom|dumbot|emailcollector|emailsiphon|emailwolf|extract|eyenetie|feedfinder|flaming|flashget|flicky|foobot|g00g1e|getright|gigabot|go-ahead-got|gozilla|grabnet|grafula|harvest|heritrix|httrack|icarus6j|jetbot|jetcar|jikespider|kmccrew|leechftp|libweb|linkextractor|linkscan|linkwalker|loader|masscan|miner|mechanize|morfeus|moveoverbot|netmechanic|netspider|nicerspro|nikto|ninja|nutch|octopus|pagegrabber|petalbot|planetwork|postrank|proximic|purebot|pycurl|python|queryn|queryseeker|radian6|radiation|realdownload|scooter|seekerspider|semalt|siclab|sindice|sistrix|sitebot|siteexplorer|sitesnagger|skygrid|smartdownload|snoopy|sosospider|spankbot|spbot|sqlmap|stackrambler|stripper|sucker|surftbot|sux0r|suzukacz|suzuran|takeout|teleport|telesoft|true_robots|turingos|turnit|vampire|vikspider|voideye|webleacher|webreaper|webstripper|webvac|webviewer|webwhacker|winhttp|wwwoffle|woxbot|xaldon|xxxyy|yamanalab|yioopbot|youda|zeus|zmeu|zune|zyborg)" 7;
-	
+
+default 0;
+
+"~*([a-z0-9]{2000,})" 1;
+"~*(&lt;|%0a|%0d|%27|%3c|%3e|%00|0x00)" 2;
+"~*(ahrefs|alexibot|majestic|mj12bot|rogerbot)" 3;
+"~*((c99|php|web)shell|remoteview|site((.){0,2})copier)" 4;
+"~*(econtext|eolasbot|eventures|liebaofast|nominet|oppo\sa33)" 5;
+"~*(base64_decode|bin/bash|disconnect|eval|lwp-download|unserialize|\\\x22)" 6;
+"~*(acapbot|acoonbot|asterias|attackbot|backdorbot|becomebot|binlar|blackwidow|blekkobot|blexbot|blowfish|bullseye|bunnys|butterfly|careerbot|casper|checkpriv|cheesebot|cherrypick|chinaclaw|choppy|clshttp|cmsworld|copernic|copyrightcheck|cosmos|crescent|cy_cho|datacha|demon|diavol|discobot|dittospyder|dotbot|dotnetdotcom|dumbot|emailcollector|emailsiphon|emailwolf|extract|eyenetie|feedfinder|flaming|flashget|flicky|foobot|g00g1e|getright|gigabot|go-ahead-got|gozilla|grabnet|grafula|harvest|heritrix|httrack|icarus6j|jetbot|jetcar|jikespider|kmccrew|leechftp|libweb|linkextractor|linkscan|linkwalker|loader|masscan|miner|mechanize|morfeus|moveoverbot|netmechanic|netspider|nicerspro|nikto|ninja|nutch|octopus|pagegrabber|petalbot|planetwork|postrank|proximic|purebot|pycurl|python|queryn|queryseeker|radian6|radiation|realdownload|scooter|seekerspider|semalt|siclab|sindice|sistrix|sitebot|siteexplorer|sitesnagger|skygrid|smartdownload|snoopy|sosospider|spankbot|spbot|sqlmap|stackrambler|stripper|sucker|surftbot|sux0r|suzukacz|suzuran|takeout|teleport|telesoft|true_robots|turingos|turnit|vampire|vikspider|voideye|webleacher|webreaper|webstripper|webvac|webviewer|webwhacker|winhttp|wwwoffle|woxbot|xaldon|xxxyy|yamanalab|yioopbot|youda|zeus|zmeu|zune|zyborg)" 7;
+
 }
 
 map $http_referer $bad_referer_7g {
-	
-	default 0;
-	
-	"~*(semalt.com|todaperfeita)" 1;
-	"~*(order(\s|%20)by(\s|%20)1--)" 2;
-	"~*(blue\spill|cocaine|ejaculat|erectile|erections|hoodia|huronriveracres|impotence|levitra|libido|lipitor|phentermin|pro[sz]ac|sandyauer|tramadol|troyhamby|ultram|unicauca|valium|viagra|vicodin|xanax|ypxaieo)" 3;
-	
+
+default 0;
+
+"~*(semalt.com|todaperfeita)" 1;
+"~*(order(\s|%20)by(\s|%20)1--)" 2;
+"~*(blue\spill|cocaine|ejaculat|erectile|erections|hoodia|huronriveracres|impotence|levitra|libido|lipitor|phentermin|pro[sz]ac|sandyauer|tramadol|troyhamby|ultram|unicauca|valium|viagra|vicodin|xanax|ypxaieo)" 3;
+
 }
 
 map $request_method $not_allowed_method_7g {
-	
-	default 0;
-	
-	"~*^(connect)" 1;
-	"~*^(debug)" 2;
-	"~*^(move)" 3;
-	"~*^(trace)" 4;
-	"~*^(track)" 5;
-	
+
+default 0;
+
+"~*^(connect)" 1;
+"~*^(debug)" 2;
+"~*^(move)" 3;
+"~*^(trace)" 4;
+"~*^(track)" 5;
+
 }
 EOF
 
 
+		echo $(date): "Installing common nginx entries..."
+		# create /etc/nginx/common/cache_enabler.conf which contains needed configuration for the Cache Enabler plugin
+		cat > /etc/nginx/common/cache_enabler.conf << 'EOF'
+# This file defines variables needed for the Cache Enabler WordPress plugin by KeyCDN
+# It just defines variables and doesn't do much by iteslf.
+# It's meant to be included in the site configuration
 
-	echo $(date): "Installing common nginx entries..."
-	# create /etc/nginx/common/cache_enabler.conf which contains needed configuration for the Cache Enabler plugin
-	cat > /etc/nginx/common/cache_enabler.conf << 'EOF'
-	# This file defines variables needed for the Cache Enabler WordPress plugin by KeyCDN
-	# It just defines variables and doesn't do much by iteslf.
-	# It's meant to be included in the site configuration
+set $cache_uri $request_uri;
 
-    set $cache_uri $request_uri;
+# bypass cache if POST requests or URLs with a query string
+if ($request_method = POST) {
+set $cache_uri 'nullcache';
+}
+if ($query_string != "") {
+set $cache_uri 'nullcache';
+}
 
-	# bypass cache if POST requests or URLs with a query string
-    if ($request_method = POST) {
-        set $cache_uri 'nullcache';
-    }
-    if ($query_string != "") {
-        set $cache_uri 'nullcache';
-    }
+# bypass cache if URLs containing the following strings
+if ($request_uri ~* "(/wp-admin/|/xmlrpc.php|/wp-(app|cron|login|register|mail).php|wp-.*.php|/feed/|index.php|wp-comments-popup.php|wp-links-opml.php|wp-locations.php|sitemap(index)?.xml|[a-z0-9-]+-sitemap([0-9]+)?.xml)") {
+set $cache_uri 'nullcache';
+}
 
-	# bypass cache if URLs containing the following strings
-    if ($request_uri ~* "(/wp-admin/|/xmlrpc.php|/wp-(app|cron|login|register|mail).php|wp-.*.php|/feed/|index.php|wp-comments-popup.php|wp-links-opml.php|wp-locations.php|sitemap(index)?.xml|[a-z0-9-]+-sitemap([0-9]+)?.xml)") {
-        set $cache_uri 'nullcache';
-    }
+# bypass cache if the cookies containing the following strings
+if ($http_cookie ~* "comment_author|wordpress_[a-f0-9]+|wp-postpass|wordpress_logged_in") {
+set $cache_uri 'nullcache';
+}
 
-	# bypass cache if the cookies containing the following strings
-    if ($http_cookie ~* "comment_author|wordpress_[a-f0-9]+|wp-postpass|wordpress_logged_in") {
-        set $cache_uri 'nullcache';
-    }
+# custom sub directory e.g. /blog
+set $custom_subdir '';
 
-	# custom sub directory e.g. /blog
-    set $custom_subdir '';
+# default html files
+# two variables with and without a slash need to be defined to satisfy following situations:
+# https://myblog.com/hello-world
+# https://myblog.com/hello-world/
+set $cache_enabler_uri '${custom_subdir}/wp-content/cache/cache-enabler/${http_host}${cache_uri}index.html';
+set $cache_enabler_uri2 '${custom_subdir}/wp-content/cache/cache-enabler/${http_host}${cache_uri}/index.html';
 
-	# default html files
-	# two variables with and without a slash need to be defined to satisfy following situations:
-	# https://myblog.com/hello-world
-	# https://myblog.com/hello-world/
-    set $cache_enabler_uri '${custom_subdir}/wp-content/cache/cache-enabler/${http_host}${cache_uri}index.html';
-    set $cache_enabler_uri2 '${custom_subdir}/wp-content/cache/cache-enabler/${http_host}${cache_uri}/index.html';
-
-	# webp html files
-	# two variables with and without a slash need to be defined to satisfy following situations:
-	# https://myblog.com/hello-world
-	# https://myblog.com/hello-world/
-    if ($http_accept ~* "image/webp") {
-        set $cache_enabler_uri '${custom_subdir}/wp-content/cache/cache-enabler/${http_host}${cache_uri}index-webp.html';
-        set $cache_enabler_uri2 '${custom_subdir}/wp-content/cache/cache-enabler/${http_host}${cache_uri}/index-webp.html';
-    }
+# webp html files
+# two variables with and without a slash need to be defined to satisfy following situations:
+# https://myblog.com/hello-world
+# https://myblog.com/hello-world/
+if ($http_accept ~* "image/webp") {
+set $cache_enabler_uri '${custom_subdir}/wp-content/cache/cache-enabler/${http_host}${cache_uri}index-webp.html';
+set $cache_enabler_uri2 '${custom_subdir}/wp-content/cache/cache-enabler/${http_host}${cache_uri}/index-webp.html';
+}
 EOF
 
-	# create /etc/nginx/common/gzip.conf which contains needed configuration to enable gzip for certain file types
-	cat > /etc/nginx/common/gzip.conf << 'EOF'
+		# create /etc/nginx/common/gzip.conf which contains needed configuration to enable gzip for certain file types
+		cat > /etc/nginx/common/gzip.conf << 'EOF'
 ##
-	# Gzip Settings
-	##
+# Gzip Settings
+##
 
-	gzip on;
-	
-	gzip_disable "msie6";
+gzip on;
 
-	gzip_vary on;
-	gzip_static on;
-	gzip_proxied expired no-cache no-store private auth;
-	gzip_comp_level 6;
-	gzip_buffers 32 16k;
-	gzip_http_version 1.1;
-	gzip_min_length 10240;
-	
-	gzip_types
-	application/atom+xml
-	application/geo+json
-	application/javascript
-	application/json
-	application/ld+json
-	application/manifest+json
-	application/rdf+xml
-	application/rss+xml
-	application/vnd.ms-fontobject
-	application/wasm
-	application/x-font-opentype
-	application/x-font-truetype
-	application/x-font-ttf
-	application/x-javascript
-	application/x-web-app-manifest+json
-	application/xhtml+xml
-	application/xml
-	application/xml+rss
-	font/eot
-	font/opentype
-	font/otf
-	image/bmp
-	image/svg+xml
-	image/vnd.microsoft.icon
-	image/x-icon
-	image/x-win-bitmap
-	text/cache-manifest
-	text/calendar
-	text/css
-	text/javascript
-	text/markdown
-	text/plain
-	text/vcard
-	text/vnd.rim.location.xloc
-	text/vtt
-	text/x-component
-	text/x-cross-domain-policy
-	text/xml;
+gzip_disable "msie6";
+
+gzip_vary on;
+gzip_static on;
+gzip_proxied expired no-cache no-store private auth;
+gzip_comp_level 6;
+gzip_buffers 32 16k;
+gzip_http_version 1.1;
+gzip_min_length 10240;
+
+gzip_types
+application/atom+xml
+application/geo+json
+application/javascript
+application/json
+application/ld+json
+application/manifest+json
+application/rdf+xml
+application/rss+xml
+application/vnd.ms-fontobject
+application/wasm
+application/x-font-opentype
+application/x-font-truetype
+application/x-font-ttf
+application/x-javascript
+application/x-web-app-manifest+json
+application/xhtml+xml
+application/xml
+application/xml+rss
+font/eot
+font/opentype
+font/otf
+image/bmp
+image/svg+xml
+image/vnd.microsoft.icon
+image/x-icon
+image/x-win-bitmap
+text/cache-manifest
+text/calendar
+text/css
+text/javascript
+text/markdown
+text/plain
+text/vcard
+text/vnd.rim.location.xloc
+text/vtt
+text/x-component
+text/x-cross-domain-policy
+text/xml;
 EOF
 
-	# create /etc/nginx/common/browsercache.conf which contains items that should be cached by the browser
-	cat > /etc/nginx/common/browsercache.conf << 'EOF'
+		# create /etc/nginx/common/browsercache.conf which contains items that should be cached by the browser
+		cat > /etc/nginx/common/browsercache.conf << 'EOF'
 
 # Graphics files should be cached by the browser for long periods of time
 location ~* \.(?:ogg|ogv|svg|svgz|eot|otf|woff|woff2|ttf|jpg|jpeg|gif|png|ico|bmp|swf)$ {
 
-	add_header Cache-Control "public, max-age=30000000, stale-while-revalidate=7, stale-if-error=7";
-	access_log off;
-	log_not_found off;
-	expires 300d;
-	
+add_header Cache-Control "public, max-age=30000000, stale-while-revalidate=7, stale-if-error=7";
+access_log off;
+log_not_found off;
+expires 300d;
+
 }
 
 # CSS and JS files should be cached by the browser for short periods of time
 location ~* \.(?:css|js|less|scss)$ {
 
-	add_header Cache-Control "public, max-age=600000, stale-while-revalidate=7, stale-if-error=7";
-	access_log off;
-	log_not_found off;
-	expires 7d;
-	
+add_header Cache-Control "public, max-age=600000, stale-while-revalidate=7, stale-if-error=7";
+access_log off;
+log_not_found off;
+expires 7d;
+
 }
 
 EOF
 
-echo '# block access to hidden files/dirs (except .well-known)
+		echo '# block access to hidden files/dirs (except .well-known)
 location ~ /\.(?!well-known) {
-	deny all;
+deny all;
 }
 
 # do not allow running of any other cgi scripts
-location ~* .(pl|cgi|py|sh|lua)$ {
+location ~ (\.pl$|\.cgi$|\.lua$|\.py$|\.perl$|\.sh$) {
 	return 444;
 }
 
 # block download of .log and .sql files
 location ~\.(log|sql)$ {
-	deny all;
+deny all;
 }
 
 # block access to wp-content/updraft
 location ~ /(wp-content/updraft) {
-   deny all;
+deny all;
 }
 
 # deny access to .php files in the uploads directory
 location ~* /(?:uploads|files)/.*\.php\$ {
-   deny all;
+deny all;
 }
 
 # hide nginx version
@@ -767,6 +780,75 @@ server_tokens off;
 fastcgi_hide_header X-Powered-By;
 ' > /etc/nginx/common/deny.conf
 
+	fi
+
+	if [ "$webserver_type" = "ols" ]  || [ "$webserver_type" = "ols-enterprise" ]
+	then
+		echo "$(date): Setup php sessions for lsphp versions"
+		# Create the session path directories and chmod it for security to 1733 like the existing one is.
+		for version in $(ls /usr/local/lsws|grep lsphp); 
+		do
+			mkdir -p "/var/lib/lsphp/session/$version"
+			chmod -R 1733 "/var/lib/lsphp/session/$version"
+		done
+
+		for phpver in $(ls -1 /usr/local/lsws/ |grep lsphp | sed 's/lsphp//g') 
+		do
+			# echo "LSPHP $phpver" ; # Disable useless echo but leave for debugging
+			lsphpver=$(echo $phpver | sed 's/^\(.\{1\}\)/\1./');
+			sed -i -e "s|^;session.save_path.*|session.save_path = '/var/lib/lsphp/session/lsphp${phpver}'|g" -e "s|^session.save_path.*|session.save_path = '/var/lib/lsphp/session/lsphp${phpver}'|g" /usr/local/lsws/lsphp${phpver}/etc/php/${lsphpver}/litespeed/php.ini ;
+			# /usr/local/lsws/lsphp${phpver}/bin/php -i |grep -Ei 'session.save_path' && echo "" # Disable useless echo but leave for debugging
+	
+			sed -i 's/^memory_limit.*/memory_limit = 1024M/g' /usr/local/lsws/lsphp${phpver}/etc/php/${lsphpver}/litespeed/php.ini
+		    sed -i 's/^post_max_size.*/post_max_size = 25M/g' /usr/local/lsws/lsphp${phpver}/etc/php/${lsphpver}/litespeed/php.ini
+		    sed -i 's/^upload_max_filesize.*/upload_max_filesize = 25M/g' /usr/local/lsws/lsphp${phpver}/etc/php/${lsphpver}/litespeed/php.ini
+			sed -i 's/^max_execution_time.*/max_execution_time = 7200/g' /usr/local/lsws/lsphp${phpver}/etc/php/${lsphpver}/litespeed/php.ini
+			# Update php.ini to enable and configure opcache
+			sed -i "s/;opcache.enable=1/opcache.enable=1/g" /usr/local/lsws/lsphp${phpver}/etc/php/${lsphpver}/litespeed/php.ini
+			sed -i "s/;opcache.enable_cli=0/opcache.enable_cli=1/g" /usr/local/lsws/lsphp${phpver}/etc/php/${lsphpver}/litespeed/php.ini
+			sed -i "s/;opcache.interned_strings_buffer=8/opcache.interned_strings_buffer=8/g" /usr/local/lsws/lsphp${phpver}/etc/php/${lsphpver}/litespeed/php.ini
+			sed -i "s/;opcache.max_accelerated_files=10000/opcache.max_accelerated_files=100000/g" /usr/local/lsws/lsphp${phpver}/etc/php/${lsphpver}/litespeed/php.ini
+			sed -i "s/;opcache.memory_consumption=128/opcache.memory_consumption=128/g" /usr/local/lsws/lsphp${phpver}/etc/php/${lsphpver}/litespeed/php.ini
+			sed -i "s/;opcache.save_comments=1/opcache.save_comments=1/g" /usr/local/lsws/lsphp${phpver}/etc/php/${lsphpver}/litespeed/php.ini
+			sed -i "s/;opcache.revalidate_freq=2/opcache.revalidate_freq=1/g" /usr/local/lsws/lsphp${phpver}/etc/php/${lsphpver}/litespeed/php.ini
+			sed -i "s/;opcache.use_cwd=1/opcache.use_cwd=1/g" /usr/local/lsws/lsphp${phpver}/etc/php/${lsphpver}/litespeed/php.ini
+			sed -i "s/;opcache.validate_root=0/opcache.validate_root=1/g" /usr/local/lsws/lsphp${phpver}/etc/php/${lsphpver}/litespeed/php.ini
+			sed -i "s/;opcache.validate_permission=0/opcache.validate_permission=1/g" /usr/local/lsws/lsphp${phpver}/etc/php/${lsphpver}/litespeed/php.ini
+			sed -i "s/;opcache.file_update_protection=2/opcache.file_update_protection=60/g" /usr/local/lsws/lsphp${phpver}/etc/php/${lsphpver}/litespeed/php.ini
+       		done 
+
+		echo "$(date): Installling OLS htaccess scan crontab file for Cron to scan every 3 minutes for .htaccess file changes and restart openlitespeed"
+		cat >> /etc/cron.d/openlitespeed_htaccess_scan <<-EOL
+# Cron to scan every 3 minutes for .htaccess file changes and restart openlitespeed
+*/3 * * * * root if ! find /var/www/*/html/ -maxdepth 2 -type f -newer /usr/local/lsws/admin/cgid -name '.htaccess' -exec false {} +; then systemctl restart lsws; fi
+EOL
+		chmod +x /etc/cron.d/openlitespeed_htaccess_scan > /dev/null 2>&1
+
+		echo "$(date): Update pecl for lsphp versions"
+		for version in $(ls /usr/local/lsws|grep lsphp)
+		do
+			/usr/local/lsws/"${version}"/bin/pecl channel-update pecl.php.net > /dev/null 2>&1
+		done
+
+		echo "$(date): Install timezonedb pecl extension needed for Litespeed/OLS and update timezone to UTC by default"
+		Extension='timezonedb';
+		for phpver in $(ls -1 /usr/local/lsws/ |grep lsphp | sed 's/lsphp//g')
+		do
+			php_ini="/usr/local/lsws/lsphp${phpver}/etc/php/$(echo $phpver | sed 's/^\(.\{1\}\)/\1./')/litespeed/php.ini"
+			# Subshell should do what we want by capturing it all and also combining both streams into dev null
+			(printf '\n' |/usr/local/lsws/lsphp${phpver}/bin/pecl install ${Extension} >/dev/null 2>&1) >/dev/null 2>&1
+			# We really don't need to check error conditions on timezonedb I think ive seen cases where it throws weird exit codes
+			# or where it might not exist yet when php81 came out the timezonedb extension wasn't out for a few weeks which isn't a big deal but shouldn't cause fatal error.
+			echo "extension=${Extension}.so" >> ${php_ini}
+			sed -i -e 's|^;date.timezone.*|date.timezone = "UTC"|g' /usr/local/lsws/lsphp${phpver}/etc/php/$(echo $phpver | sed 's/^\(.\{1\}\)/\1./')/litespeed/php.ini;
+			php_utc_result=$(/usr/local/lsws/lsphp${phpver}/bin/php -i 2>&1 | grep -Ei 'date.timezone')
+			if ! echo "$php_utc_result"| grep UTC >/dev/null 2>&1
+			then
+				echo "Configuring Timezone for UTC for LSPHP $phpver failed"
+				echo "Found: $php_utc_result"
+			fi
+       		done
+	fi
 	#checkpoint to indicate we have done this block...
 	touch "$CHKPOINT_FOLDER/checkpoint150-end.txt"	
 fi #checkpoint150.txt
@@ -779,23 +861,20 @@ apt-get install -y libpcre2-8-0 > /dev/null 2>&1
 
 # Getting WPCLI Packages
 echo $(date): "Getting and installing WPCLI packages..."
-wget https://github.com/wp-cli/builds/raw/gh-pages/deb/php-wpcli_2.6.0_all.deb  > /dev/null 2>&1
-dpkg -i php-wpcli_2.6.0_all.deb  > /dev/null 2>&1
-rm -f php-wpcli_2.6.0_all.deb  > /dev/null 2>&1
+wget --quiet -O /usr/local/bin/wp https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+sudo chmod +x /usr/local/bin/wp
 wp cli update --yes --allow-root  > /dev/null 2>&1
 
 
-
-
 # if aws cli is not present, install it
-if ! hash aws2 2>/dev/null; then
+if ! hash aws2 2>/dev/null
+then
 	echo $(date): "Getting and installing AWS CLI..."
-    wget "https://d1vvhvl2y92vvt.cloudfront.net/awscli-exe-linux-x86_64.zip"  > /dev/null 2>&1
-    unzip awscli-exe-linux-x86_64.zip  > /dev/null 2>&1
-    ./aws/install  > /dev/null 2>&1
-    rm -rf aws awscli-exe-linux-x86_64.zip  > /dev/null 2>&1
+	wget "https://d1vvhvl2y92vvt.cloudfront.net/awscli-exe-linux-x86_64.zip"  > /dev/null 2>&1
+	unzip awscli-exe-linux-x86_64.zip  > /dev/null 2>&1
+	./aws/install  > /dev/null 2>&1
+	rm -rf aws awscli-exe-linux-x86_64.zip  > /dev/null 2>&1
 fi
-
 
 
 # ufw
@@ -827,40 +906,59 @@ if [ $? -ne 0 ]
 then
 	echo "Unable to setup https port on firewall! This is not a fatal error but you should double-check your rules after this process is completed."
 fi
+if [ "$webserver_type" = "ols" ]  || [ "$webserver_type" = "ols-enterprise" ]
+then
+	# This is where we would open the port to allow the litespeed browser management interface on port 7080.
+	# But we're not allowing that now since the default pages allow an attacker to view php config and other sensitive info.
+	# The console also is, by default, not protected by SSL.
+	# Users can open the port using the firewall script later if they need this.
+	
+	# ufw allow 7080 > /dev/null 2>&1
+	# if [ $? -ne 0 ]
+	# then
+	#	echo "Unable to setup OLS/LSWS admin port on firewall! This is not a fatal error but you should double-check your rules after this process is completed."
+	# fi
+	echo
+fi
+
 ufw --force enable > /dev/null 2>&1
 if [ $? -ne 0 ] 
 then
 	echo "Unable to activate firewall! This is not a fatal error but you should investigate this after this server process is complete."
 fi
 
-
 # pointer needed for the wp-sync script
 echo "### do not edit from here ###" >> /etc/ssh/sshd_config
 
-# Disable php versions 5.6, 7.1, 7.2 and 7.3.
-systemctl stop php5.6-fpm > /dev/null 2>&1
-systemctl stop php7.1-fpm > /dev/null 2>&1
-systemctl stop php7.2-fpm > /dev/null 2>&1
-systemctl stop php7.3-fpm > /dev/null 2>&1
+if [ "$webserver_type" = "nginx" ]
+then
+	# Create folder that will hold semaphore flags about php versions.
+	mkdir /etc/wpcd
+	mkdir /etc/wpcd/php-versions-disabled
 
-systemctl disable php5.6-fpm > /dev/null 2>&1
-systemctl disable php7.1-fpm > /dev/null 2>&1
-systemctl disable php7.2-fpm > /dev/null 2>&1
-systemctl disable php7.3-fpm > /dev/null 2>&1
+	phpversion=(5.6 7.1 7.2 7.3)
+	for ver in "${phpversion[@]}"
+	do
+		# Disable php versions except php7.4 and greater.
+		systemctl stop php$ver-fpm > /dev/null 2>&1
+		systemctl disable php$ver-fpm > /dev/null 2>&1
 
-# Create folder that will hold semaphore flags about php versions.
-mkdir /etc/wpcd
-mkdir /etc/wpcd/php-versions-disabled
+		# Write semaphore flags indicating that php versions 5.6, 7.1, 7.2 and 7.3 have been disabled.
+		echo `date +%d-%m-%Y` > /etc/wpcd/php-versions-disabled/$ver
+	done
 
-# Write semaphore flags indicating that php versions 5.6, 7.1, 7.2 and 7.3 have been disabled.
-echo `date +%d-%m-%Y` > /etc/wpcd/php-versions-disabled/php5.6
-echo `date +%d-%m-%Y` > /etc/wpcd/php-versions-disabled/php7.1
-echo `date +%d-%m-%Y` > /etc/wpcd/php-versions-disabled/php7.2
-echo `date +%d-%m-%Y` > /etc/wpcd/php-versions-disabled/php7.3
-
-# restart nginx
-systemctl enable nginx
-systemctl restart nginx
+	# restart nginx
+	systemctl enable php7.4-fpm
+	systemctl restart php7.4-fpm
+	systemctl enable nginx
+	systemctl restart nginx
+elif [ "$webserver_type" = "ols" ]  || [ "$webserver_type" = "ols-enterprise" ]
+then
+	# restart ols/ols-enterprise
+	killall -9 lsphp >/dev/null 2>&1
+	systemctl stop lsws >/dev/null 2>&1
+	systemctl start lsws >/dev/null 2>&1
+fi
 
 # Custom post-processing scripts.
 if [[ ! -z $post_processing_script_server ]]
@@ -869,12 +967,11 @@ then
 	echo "Post-processing script option detected - attempting to pull script from $post_processing_script_server"
 	wget --no-check-certificate -O post_processing_script_server.sh $post_processing_script_server > /dev/null 2>&1
 	dos2unix post_processing_script_server.sh > /dev/null 2>&1
-	
 	echo ""
 	echo "Executing post-processing script..."
 	source ./post_processing_script_server.sh	
 fi
 
 echo
-echo $(date): "Installation completed!"
+echo "$(date): Installation completed!"
 echo

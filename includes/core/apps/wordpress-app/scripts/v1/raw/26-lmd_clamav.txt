@@ -5,7 +5,8 @@ then
 	exit
 fi
 
-while [[ -z $action ]]; do
+while [[ -z $action ]]
+do
 	echo
 	echo "What do you want to do?"
 	echo
@@ -20,15 +21,15 @@ while [[ -z $action ]]; do
 	echo "   9) Scan in Background"
 	echo "   10) Update Notification Email"
 	read -p "Action: " action
-	until [[ -z "$action" || "$action" =~ ^[1-9]|2[0-9]$ ]]; do
+	until [[ -z "$action" || "$action" =~ ^[1-9]|2[0-9]$ ]]
+	do
 		echo "$action: invalid selection."
 		read -p "Action: " action
 	done
 done
 
 ###################################### Antivirus Install Function ##########
-function antivirus_install
-{
+function antivirus_install() {
 	memory=$(free -m | awk '/^Mem:/{print $2}') ;
 	if [ $memory -lt 1100 ]
 	then
@@ -108,8 +109,7 @@ function antivirus_install
 }
 
 ###################################### Antivirus Remove Function ##########
-function antivirus_remove
-{
+function antivirus_remove() {
 	echo "y"|bash /usr/local/maldetect/uninstall.sh  > /dev/null 2>&1
 	apt-get remove clamav* -y > /dev/null 2>&1
 	(crontab -l 2>/dev/null | sed '/maldet/d' ) | crontab -
@@ -119,8 +119,7 @@ function antivirus_remove
 }
 
 ###################################### Antivirus Update ##########
-function antivirus_update
-{
+function antivirus_update() {
 	if hash clamscan 2>/dev/null
 	then
 		systemctl stop clamav-freshclam
@@ -144,8 +143,7 @@ function antivirus_update
 }
 
 ###################################### Antivirus Run Scan Now ##########
-function antivirus_scan
-{
+function antivirus_scan() {
 	if hash maldet 2>/dev/null
 	then
 		bash /usr/local/bin/maldet
@@ -156,8 +154,7 @@ function antivirus_scan
 }
 
 ###################################### Antivirus Disable Cron ##########
-function antivirus_disable_cron
-{
+function antivirus_disable_cron() {
 	if hash maldet 2>/dev/null
 	then
 		(crontab -l 2>/dev/null | sed '/maldet/d' ) | crontab -
@@ -169,8 +166,7 @@ function antivirus_disable_cron
 }
 
 ###################################### Antivirus Enable Cron ##########
-function antivirus_enable_cron
-{
+function antivirus_enable_cron() {
 	if hash maldet 2>/dev/null
 	then
 		crontab -l | grep -q 'maldet' || (crontab -l 2>/dev/null; echo "0 2 * * * /usr/local/bin/maldet > /dev/null 2>&1") | crontab -
@@ -182,8 +178,7 @@ function antivirus_enable_cron
 }
 
 ###################################### Antivirus Purge Data ##########
-function antivirus_purge
-{
+function antivirus_purge() {
 	if hash maldet 2>/dev/null
 	then
 		maldet -p > /dev/null
@@ -194,8 +189,7 @@ function antivirus_purge
 }
 
 ###################################### Antivirus Restart Services ##########
-function antivirus_restart
-{
+function antivirus_restart() {
 	if hash maldet 2>/dev/null
 	then
 		systemctl restart clamav-freshclam
@@ -208,8 +202,7 @@ function antivirus_restart
 }
 
 ###################################### Antivirus Run Scan Now in Background ##########
-function antivirus_scan_background
-{
+function antivirus_scan_background() {
 	if hash maldet 2>/dev/null
 	then
 		screen -d -m -S scanning bash /usr/local/bin/maldet
@@ -220,8 +213,7 @@ function antivirus_scan_background
 }
 
 ###################################### Antivirus Update Notification Email Address ##########
-function antivirus_update_email
-{
+function antivirus_update_email() {
 	if hash maldet 2>/dev/null
 	then
 		if [ -z $emailid ]

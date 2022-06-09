@@ -250,6 +250,12 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 		// Action hook to handle ajax request to set transient if user closed the notice for cron check.
 		add_action( 'wp_ajax_set_cron_check', array( $this, 'set_cron_check' ) );
+
+		// Action hook to handle ajax request to set transient if user closed the notice for php version check.
+		add_action( 'wp_ajax_php_version_check', array( $this, 'php_version_check' ) );
+
+		// Action hook to handle ajax request to set transient if user closed the notice for localhost check.
+		add_action( 'wp_ajax_localhost_version_check', array( $this, 'localhost_version_check' ) );
 	}
 
 	/**
@@ -2843,10 +2849,12 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				'wpcd-admin-common',
 				'readableCheck',
 				array(
-					'nonce'              => wp_create_nonce( 'wpcd-admin' ),
-					'action'             => 'set_readable_check',
-					'check_again_action' => 'readable_check_again',
-					'cron_check_action'  => 'set_cron_check',
+					'nonce'              		=> wp_create_nonce( 'wpcd-admin' ),
+					'action'             		=> 'set_readable_check',
+					'check_again_action' 		=> 'readable_check_again',
+					'cron_check_action'  		=> 'set_cron_check',
+					'php_version_check_action'  => 'php_version_check',
+					'localhost_check_action'  	=> 'localhost_version_check',
 				)
 			);
 		}
@@ -3382,6 +3390,50 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 		/* Permissions passed - set transient. */
 		set_transient( 'wpcd_cron_check', 1, 12 * HOUR_IN_SECONDS );
+		wp_die();
+
+	}
+
+	/**
+	 * Sets the transient for php version check
+	 * This will be set when user dismisses the notice for php version check
+	 *
+	 * Action Hook: wp_ajax_php_version_check
+	 */
+	public function php_version_check() {
+
+		/* Nonce check */
+		check_ajax_referer( 'wpcd-admin', 'nonce' );
+
+		/* Permision check - unsure that this is needed since the action is not destructive and might cause issues if the user sees the message and can't dismiss it because they're not an admin. */
+		if ( ! wpcd_is_admin() ) {
+			wp_send_json_error( array( 'msg' => __( 'You are not authorized to perform this action - dismiss php version check.', 'wpcd' ) ) );
+		}
+
+		/* Permissions passed - set transient. */
+		set_transient( 'wpcd_php_version_check', 1, 24 * HOUR_IN_SECONDS );
+		wp_die();
+
+	}
+
+	/**
+	 * Sets the transient for localhost check
+	 * This will be set when user dismisses the notice for localhost check
+	 *
+	 * Action Hook: wp_ajax_localhost_version_check
+	 */
+	public function localhost_version_check() {
+
+		/* Nonce check */
+		check_ajax_referer( 'wpcd-admin', 'nonce' );
+
+		/* Permision check - unsure that this is needed since the action is not destructive and might cause issues if the user sees the message and can't dismiss it because they're not an admin. */
+		if ( ! wpcd_is_admin() ) {
+			wp_send_json_error( array( 'msg' => __( 'You are not authorized to perform this action - dismiss localhost check.', 'wpcd' ) ) );
+		}
+
+		/* Permissions passed - set transient. */
+		set_transient( 'wpcd_localhost_check', 1, 24 * HOUR_IN_SECONDS );
 		wp_die();
 
 	}

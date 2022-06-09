@@ -63,6 +63,38 @@
 			});
 		});
 
+		// Dismiss the admin notice that shows up when the PHP version does not match the condition.
+		$('body').on('click', '.wpcd-php-version-check .notice-dismiss', function (e) {
+			e.preventDefault();
+			$.ajax({
+				url: ajaxurl,
+				method: 'POST',
+				data: {
+					action: readableCheck.php_version_check_action,
+					nonce: readableCheck.nonce,
+				},
+				success: function (data) {
+					location.reload();
+				}
+			});
+		});
+
+		// Dismiss the admin notice that shows up when the plugin is on a localhost server.
+		$('body').on('click', '.wpcd-localhost-check .notice-dismiss', function (e) {
+			e.preventDefault();
+			$.ajax({
+				url: ajaxurl,
+				method: 'POST',
+				data: {
+					action: readableCheck.localhost_check_action,
+					nonce: readableCheck.nonce,
+				},
+				success: function (data) {
+					location.reload();
+				}
+			});
+		});
+
 	}
 
 })(jQuery, readableCheck);

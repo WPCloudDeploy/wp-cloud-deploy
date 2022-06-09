@@ -123,9 +123,6 @@ class WPCD_Init {
 		/* Send email to admin if critical crons aren't running. */
 		add_action( 'init', array( $this, 'send_email_for_absent_crons' ), 20 );
 
-		// Ajax hook for admin dismissible notice.
-		add_action( 'wp_ajax_wpcd_admin_dismissible_notice', array( $this, 'wpcd_admin_dismissible_notice' ) );
-
 	}
 
 	/**
@@ -451,26 +448,31 @@ class WPCD_Init {
 			return;
 		}
 
+		$screen     = get_current_screen();
+		$post_types = array( 'wpcd_app_server', 'wpcd_app', 'wpcd_team', 'wpcd_permission_type', 'wpcd_command_log', 'wpcd_ssh_log', 'wpcd_error_log', 'wpcd_pending_log' );
+
 		$php_version    = phpversion();
 		$php_version_id = str_replace( '.', '0', $php_version );
 
-		if ( $this->wpcd_is_admin_notice_active( 'notice-php-warning-1' ) ) {
+		// Checks to see if "php version check" transient is set or not. If not set then show an admin notice.
+		if ( ! get_transient( 'wpcd_php_version_check' ) && is_object( $screen ) && in_array( $screen->post_type, $post_types, true ) ) {
 			// Here 70400 is a php version 7.4.0
 			if ( (int) $php_version_id < 70400 ) {
-				$class   = 'notice notice-error is-dismissible';
+				$class   = 'notice notice-error is-dismissible wpcd-php-version-check';
 				/* translators: %s php version */
 				$message = sprintf( __( '<strong>WPCloudDeploy plugin requires a PHP version greater or equal to "7.4.0". You are running %s.</strong>', 'wpcd' ), $php_version );
-				printf( '<div data-dismissible="notice-php-warning-1" data-action="wpcd_admin_dismissible_notice" data-nonce="%1$s" class="%2$s"><p>%3$s</p></div>', wp_create_nonce( 'wpcd-admin-dismissible-notice' ), $class, $message );
+				printf( '<div data-dismissible="notice-php-warning" class="%2$s"><p>%3$s</p></div>', wp_create_nonce( 'wpcd-admin-dismissible-notice' ), $class, $message );
 			}
 		}
 
 		if ( in_array( isset( $_SERVER['SERVER_ADDR'] ) ? $_SERVER['SERVER_ADDR'] : '', array( '127.0.0.1', '::1' ), true ) ) {
 			if ( ! wpcd_get_early_option( 'hide-local-host-warning' ) ) {
 
-				if ( $this->wpcd_is_admin_notice_active( 'notice-localhost-warning-1' ) ) {
-					$class   = 'notice notice-error is-dismissible';
+				// Checks to see if "localhost check" transient is set or not. If not set then show an admin notice.
+				if ( ! get_transient( 'wpcd_localhost_check' ) && is_object( $screen ) && in_array( $screen->post_type, $post_types, true ) ) {
+					$class   = 'notice notice-error is-dismissible wpcd-localhost-check';
 					$message = __( '<strong>You cannot run the WPCloudDeploy plugin on a localhost server or a server that cannot be reached from the internet.</strong>', 'wpcd' );
-					printf( '<div data-dismissible="notice-localhost-warning-1" data-action="wpcd_admin_dismissible_notice" data-nonce="%1$s" class="%2$s"><p>%3$s</p></div>', wp_create_nonce( 'wpcd-admin-dismissible-notice' ), $class, $message );
+					printf( '<div data-dismissible="notice-localhost-warning" class="%2$s"><p>%3$s</p></div>', wp_create_nonce( 'wpcd-admin-dismissible-notice' ), $class, $message );
 				}
 			}
 		}
@@ -497,9 +499,6 @@ class WPCD_Init {
 			$message = __( 'Warning: WPCloudDeploy cannot use the WordPress default permalink. Please change the permalinks option to something other than <em>plain.</em> This can be done under the WordPress <strong>SETTINGS->Permalinks</strong> menu option.', 'wpcd' );
 			printf( '<div class="%1$s"><p>%2$s</p></div>', $class, $message );
 		}
-
-		$screen     = get_current_screen();
-		$post_types = array( 'wpcd_app_server', 'wpcd_app', 'wpcd_team', 'wpcd_permission_type', 'wpcd_command_log', 'wpcd_ssh_log', 'wpcd_error_log', 'wpcd_pending_log' );
 
 		// Checks to see if "text files are readable" transient is set or not. If not set then show an admin notice.
 		if ( ! get_transient( 'wpcd_readable_check' ) && is_object( $screen ) && in_array( $screen->post_type, $post_types, true ) ) {
@@ -792,91 +791,6 @@ class WPCD_Init {
 				set_transient( 'wpcd_wisdom_custom_options_first_run_done', 1, ( 60 * 24 * 7 ) * MINUTE_IN_SECONDS );
 			}
 		}
-	}
-
-	/**
-	 * Handles Ajax request to persist notices dismissal.
-	 * Uses check_ajax_referer to verify nonce.
-	 */
-	public function wpcd_admin_dismissible_notice() {
-		// nonce check.
-		check_ajax_referer( 'wpcd-admin-dismissible-notice', 'nonce' );
-
-		/* Permision check - unsure that this is needed since the action is not destructive and might cause issues if the user sees the message and can't dismiss it because they're not an admin. */
-		if ( ! wpcd_is_admin() ) {
-			wp_send_json_error( array( 'msg' => __( 'You are not authorized to perform this action - dismiss readable check.', 'wpcd' ) ) );
-		}
-
-		$option_name        = isset( $_POST['option_name'] ) ? sanitize_text_field( wp_unslash( $_POST['option_name'] ) ) : '';
-		$dismissible_length = isset( $_POST['dismissible_length'] ) ? sanitize_text_field( wp_unslash( $_POST['dismissible_length'] ) ) : 0;
-
-		if ( 'forever' !== $dismissible_length ) {
-			// If $dismissible_length is not an integer default to 1.
-			$dismissible_length = ( 0 === absint( $dismissible_length ) ) ? 1 : $dismissible_length;
-			$dismissible_length = strtotime( absint( $dismissible_length ) . ' days' );
-		}
-
-		$this->wpcd_set_admin_notice_cache( $option_name, $dismissible_length );
-		wp_die();
-	}
-
-	/**
-	 * Is admin notice active?
-	 *
-	 * @param string $arg data-dismissible content of notice.
-	 *
-	 * @return bool
-	 */
-	public function wpcd_is_admin_notice_active( $arg ) {
-		$array       = explode( '-', $arg );
-		$length      = array_pop( $array );
-		$option_name = implode( '-', $array );
-		$db_record   = $this->wpcd_get_admin_notice_cache( $option_name );
-
-		if ( 'forever' === $db_record ) {
-			return false;
-		} elseif ( absint( $db_record ) >= time() ) {
-			return false;
-		} else {
-			return true;
-		}
-	}
-
-	/**
-	 * Returns admin notice cached timeout.
-	 *
-	 * @param string|bool $id admin notice name or false.
-	 *
-	 * @return array|bool The timeout. False if expired.
-	 */
-	public function wpcd_get_admin_notice_cache( $id = false ) {
-		if ( ! $id ) {
-			return false;
-		}
-		$cache_key = 'wpcd-' . ( $id );
-		$timeout   = get_site_option( $cache_key );
-		$timeout   = 'forever' === $timeout ? time() + 60 : $timeout;
-
-		if ( empty( $timeout ) || time() > $timeout ) {
-			return false;
-		}
-
-		return $timeout;
-	}
-
-	/**
-	 * Sets admin notice timeout in site option.
-	 *
-	 * @param string      $id       Data Identifier.
-	 * @param string|bool $timeout  Timeout for admin notice.
-	 *
-	 * @return bool
-	 */
-	public function wpcd_set_admin_notice_cache( $id, $timeout ) {
-		$cache_key = 'wpcd-' . ( $id );
-		update_site_option( $cache_key, $timeout );
-
-		return true;
 	}
 
 }

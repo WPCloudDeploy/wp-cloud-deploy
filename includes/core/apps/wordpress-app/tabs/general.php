@@ -132,12 +132,18 @@ class WPCD_WORDPRESS_TABS_GENERAL extends WPCD_WORDPRESS_TABS {
 	 */
 	public function get_actions( $id ) {
 
+		// If admin has an admin lock in place and the user is not admin they should see a locked notice instead of the general fields.
+		if ( $this->get_admin_lock_status( $id ) && ! wpcd_is_admin() ) {
+			return $this->get_general_fields_admin_locked( $id );
+		}
+
 		return $this->get_general_fields( $id );
 
 	}
 
 	/**
-	 * Gets the fields GENERAL tab.
+	 * Gets the fields for the GENERAL tab if the site is not locked by the admin.
+	 * If the site is locked by the admin, there's a different function to return fields (below this one).
 	 *
 	 * @param int $id the post id of the app cpt record.
 	 *
@@ -224,6 +230,29 @@ class WPCD_WORDPRESS_TABS_GENERAL extends WPCD_WORDPRESS_TABS {
 				'std' => $config_desc,
 			),
 			'type'           => 'custom_html',
+		);
+
+		return $actions;
+
+	}
+
+	/**
+	 * Gets the fields for the GENERAL tab if the site is locked by the admin.
+	 *
+	 * @param int $id the post id of the app cpt record.
+	 *
+	 * @return array Array of actions with key as the action slug and value complying with the structure necessary by metabox.io fields.
+	 */
+	private function get_general_fields_admin_locked( $id ) {
+
+		$actions = array();
+
+		$actions['general-welcome-header'] = array(
+			'label'          => __( 'This site is locked.', 'wpcd' ),
+			'type'           => 'heading',
+			'raw_attributes' => array(
+				'desc' => __( 'This is has been locked by the administrator. Please contact support.', 'wpcd' ),
+			),
 		);
 
 		return $actions;

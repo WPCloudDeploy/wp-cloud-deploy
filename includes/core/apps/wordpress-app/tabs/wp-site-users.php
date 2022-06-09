@@ -74,8 +74,13 @@ class WPCD_WORDPRESS_TABS_WP_SITE_USERS extends WPCD_WORDPRESS_TABS {
 	 * @return boolean
 	 */
 	public function get_tab_security( $id ) {
+		// If admin has an admin lock in place and the user is not admin they cannot view the tab or perform actions on them.
+		if ( $this->get_admin_lock_status( $id ) && ! wpcd_is_admin() ) {
+			return false;
+		}
+		// If we got here then check team and other permissions.
 		return ( true === $this->wpcd_wpapp_site_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_site_tab( $id, $this->get_tab_slug() ) );
-	}	
+	}
 
 	/**
 	 * Gets the fields to be shown in the WP SITE USERS tab.
@@ -92,7 +97,7 @@ class WPCD_WORDPRESS_TABS_WP_SITE_USERS extends WPCD_WORDPRESS_TABS {
 		// If user is not allowed to access the tab then don't paint the fields.
 		if ( ! $this->get_tab_security( $id ) ) {
 			return $fields;
-		}		
+		}
 
 		return $this->get_fields_for_tab( $fields, $id, $this->get_tab_slug() );
 

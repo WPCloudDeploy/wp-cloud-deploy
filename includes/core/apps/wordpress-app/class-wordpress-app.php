@@ -1154,6 +1154,45 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	}
 
 	/**
+	 * Sets the admin lock status.
+	 *
+	 * @param int         $app_id $app_id ID of app being interrogated.
+	 * @param string|bool $status Status of admin lock ('on','off',true,false).
+	 *
+	 * @return void
+	 */
+	public function set_admin_lock_status( $app_id, $status ) {
+
+		if ( true === $status || 'on' === $status ) {
+			update_post_meta( $app_id, 'wpcd_wpapp_admin_lock_status', 'on' );
+		}
+
+		if ( false === $status || 'off' === $status ) {
+			update_post_meta( $app_id, 'wpcd_wpapp_admin_lock_status', 'off' );
+		}
+
+	}
+
+	/**
+	 * Returns an indicator whether a site has the admin lock disabled or enabled.
+	 *
+	 * @param int $app_id ID of app being interrogated.
+	 *
+	 * @return string 'on' or 'off'
+	 */
+	public function get_admin_lock_status( $app_id ) {
+
+		$current_status = get_post_meta( $app_id, 'wpcd_wpapp_admin_lock_status', true );
+
+		if ( empty( $current_status ) ) {
+			$current_status = 'off';
+		}
+
+		return $current_status;
+
+	}
+
+	/**
 	 * Returns an indicator whether the page cache is enabled or not.
 	 *
 	 * @param int $app_id ID of app being interrogated.

@@ -126,6 +126,7 @@ Note: Even though the entire git development history isn't available on github, 
 ------
 * New: Front-end UI and related shortcodes.
 * New: Support for OpenLiteSpeed.
+* New: Admin lock for sites.
 * Tweak: Remove extraneous text from certain tabs.
 * Tweak: Override list of WP versions.
 * Tweak: Tweak: When a manual backup is run, we refresh the backup list automatically.

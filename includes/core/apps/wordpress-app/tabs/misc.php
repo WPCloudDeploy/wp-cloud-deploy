@@ -166,11 +166,8 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 				case 'admin-lock-status':
 					// toggle admin lock.
 					$current_status = $this->get_admin_lock_status( $id );
-					if ( empty( $current_status ) ) {
-						$current_status = 'off';
-					}
 					// we don't have to perform any server operations, just update a meta.
-					$new_status = 'on' === $current_status ? 'off' : 'on';
+					$new_status = true === $current_status ? 'off' : 'on';
 					$this->set_admin_lock_status( $id, $new_status );
 					$result = array( 'refresh' => 'yes' );
 					break;
@@ -325,7 +322,7 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 
 		/* Set the confirmation prompt based on the the current status of the site */
 		$confirmation_prompt = '';
-		if ( 'on' === $status ) {
+		if ( true === $status ) {
 			$confirmation_prompt = __( 'Are you sure you would like to disable the admin lock for this site?', 'wpcd' );
 		} else {
 			$confirmation_prompt = __( 'Are you sure you would like to enable the admin lock for this site?', 'wpcd' );
@@ -333,16 +330,16 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 
 		// Option to activate or deactivate site.
 		switch ( $status ) {
-			case 'on':
-			case 'off':
+			case true:
+			case false:
 				$actions['admin-lock-status'] = array(
 					'label'          => '',
 					'std'            => 'on' === $status,
 					'raw_attributes' => array(
 						'on_label'            => __( 'Enabled', 'wpcd' ),
 						'off_label'           => __( 'Disabled', 'wpcd' ),
-						'std'                 => 'on' === $status,
-						'desc'                => 'on' === $status ? __( 'Click to enable tabs for non-admins', 'wpcd' ) : __( 'Click to disable tabs for non-admins', 'wpcd' ),
+						'std'                 => true === $status,
+						'desc'                => true === $status ? __( 'Click to enable tabs for non-admins', 'wpcd' ) : __( 'Click to disable tabs for non-admins', 'wpcd' ),
 						'confirmation_prompt' => $confirmation_prompt,
 					),
 					'type'           => 'switch',

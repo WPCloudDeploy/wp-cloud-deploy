@@ -1178,7 +1178,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	 *
 	 * @param int $app_id ID of app being interrogated.
 	 *
-	 * @return string 'on' or 'off'
+	 * @return boolean
 	 */
 	public function get_admin_lock_status( $app_id ) {
 
@@ -1188,7 +1188,15 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			$current_status = 'off';
 		}
 
-		return $current_status;
+		if ( 'off' === $current_status ) {
+			return false;
+		}
+
+		if ( 'on' === $current_status ) {
+			return true;
+		}
+
+		return false;
 
 	}
 

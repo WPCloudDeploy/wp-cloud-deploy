@@ -1430,6 +1430,20 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	}
 
 	/**
+	 * Sets the disk quota for a site.
+	 *
+	 * @param int $app_id The post id of the app we're working with.
+	 * @param int $quota  The disk quota for the site in megabytes.
+	 *
+	 * @return boolean|wp_error|object The value returned from the update_post_meta function.
+	 */
+	public function set_site_disk_quota( $app_id, $quota ) {
+
+		return update_post_meta( $app_id, 'wpcd_app_disk_space_quota', $quota );
+
+	}
+
+	/**
 	 * Get the total amount of disk space used for the site.
 	 *
 	 * This only works if the callbacks are installed and have run at least once to populate the appropriate meta.
@@ -2417,6 +2431,11 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			 * 'wpapp_pagecache_status' instead.
 			 */
 			$this->set_page_cache_status( $app_post_id, 'on' );
+
+			/**
+			 * Set Quotas
+			 */
+			$this->set_site_disk_quota( $app_post_id, wpcd_get_option( 'wordpress_app_sites_default_new_site_disk_quota' ) );
 
 			/* Everything good, return the post id of the new app record */
 			return $app_post_id;

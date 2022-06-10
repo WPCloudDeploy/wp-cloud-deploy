@@ -262,6 +262,9 @@ trait wpcd_wpapp_metaboxes_app {
 		// @TODO: this value isn't collected correctly inside this function - something about the way MBIO sets up the metabox prevents this.
 		$allowed_disk = (int) get_post_meta( $post_id, 'wpcd_app_max_disk_space_allowed', true );
 
+		// What is the default global quota?
+		$default_global_quota = (int) wpcd_get_early_option( 'wordpress_app_sites_default_disk_quota' );
+
 		// Register a metabox to hold disk limits (and possibly other limits in the future).
 		$metaboxes[] = array(
 			'id'       => 'wpcd_app_quotas',
@@ -273,10 +276,11 @@ trait wpcd_wpapp_metaboxes_app {
 
 				// Field to hold the max diskspace allowed.
 				array(
-					'name' => __( 'Disk Quota (MB).', 'wpcd' ),
-					'id'   => 'wpcd_app_disk_space_quota',
-					'type' => 'number',
-					'std'  => 500,
+					'name'    => __( 'Disk Quota (MB)', 'wpcd' ),
+					'id'      => 'wpcd_app_disk_space_quota',
+					'type'    => 'number',
+					'std'     => 0,
+					'tooltip' => $default_global_quota > 0 ? sprintf( __( 'A global quota of %dMB applies to all sites if this value is zero or empty.', 'wpcd' ), $default_global_quota ) : '',
 				),
 
 				// Field to hold current usage.

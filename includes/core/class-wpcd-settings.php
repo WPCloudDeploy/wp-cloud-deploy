@@ -118,7 +118,7 @@ class WPCD_Settings {
 				// Set some long text used for the introduction and welcome message.
 				$ssh_welcome_text = '';
 				if ( ! defined( 'WPCD_SKIP_WELCOME_MESSAGE' ) || ( defined( 'WPCD_SKIP_WELCOME_MESSAGE' ) && ! WPCD_SKIP_WELCOME_MESSAGE ) ) {
-					$ssh_welcome_text  = __( 'Hello - thanks for choosing WPCloud Deploy.  We make it easy for you to deploy new servers and websites from right here inside your WordPress Admin screen.', 'wpcd' );
+					$ssh_welcome_text  = __( 'Hello - thanks for choosing WPCloudDeploy.  We make it easy for you to deploy new servers and websites from right here inside your WordPress Admin screen.', 'wpcd' );
 					$ssh_welcome_text .= '<br />';
 					/* translators: %s: The link to the WPCD website. */
 					$ssh_welcome_text .= sprintf( __( 'Learn more on our site at <a href="%s">wpclouddeploy.com</a>.', 'wpcd' ), 'https://wpclouddeploy.com' );

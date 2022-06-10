@@ -23,6 +23,9 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 		add_filter( "wpcd_app_{$this->get_app_name()}_get_tabs", array( $this, 'get_tab_fields' ), 10, 2 );
 		add_filter( "wpcd_app_{$this->get_app_name()}_tab_action", array( $this, 'tab_action' ), 10, 3 );
 
+		// Allow the disable site action to be triggered via an action hook.  Will primarily be used by the woocommerce add-on and REST API.
+		add_action( 'wpcd_wordpress-app_do_toggle_site_status', array( $this, 'toggle_site_status_action' ), 10, 3 );
+
 		// Add bulk action option to the site list to bulk delete sites.
 		add_filter( 'bulk_actions-edit-wpcd_app', array( $this, 'wpcd_add_new_bulk_actions_site' ) );
 
@@ -153,24 +156,13 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 					break;
 				case 'site-status':
 					// enable/disable site.
-					$current_status = $this->site_status( $id );
-					if ( empty( $current_status ) ) {
-						$current_status = 'on';
-					}
-					$result = $this->toggle_site_status( $id, 'on' === $current_status ? 'disable' : 'enable' );
-					if ( ! is_wp_error( $result ) ) {
-						update_post_meta( $id, 'wpapp_site_status', 'on' === $current_status ? 'off' : 'on' );
-						$result = array( 'refresh' => 'yes' );
-					}
+					$this->toggle_site_status_action( $id, $action );
 					break;
 				case 'admin-lock-status':
 					// toggle admin lock.
 					$current_status = $this->get_admin_lock_status( $id );
-					if ( empty( $current_status ) ) {
-						$current_status = 'off';
-					}
 					// we don't have to perform any server operations, just update a meta.
-					$new_status = 'on' === $current_status ? 'off' : 'on';
+					$new_status = true === $current_status ? 'off' : 'on';
 					$this->set_admin_lock_status( $id, $new_status );
 					$result = array( 'refresh' => 'yes' );
 					break;
@@ -325,7 +317,7 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 
 		/* Set the confirmation prompt based on the the current status of the site */
 		$confirmation_prompt = '';
-		if ( 'on' === $status ) {
+		if ( true === $status ) {
 			$confirmation_prompt = __( 'Are you sure you would like to disable the admin lock for this site?', 'wpcd' );
 		} else {
 			$confirmation_prompt = __( 'Are you sure you would like to enable the admin lock for this site?', 'wpcd' );
@@ -333,16 +325,16 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 
 		// Option to activate or deactivate site.
 		switch ( $status ) {
-			case 'on':
-			case 'off':
+			case true:
+			case false:
 				$actions['admin-lock-status'] = array(
 					'label'          => '',
 					'std'            => 'on' === $status,
 					'raw_attributes' => array(
 						'on_label'            => __( 'Enabled', 'wpcd' ),
 						'off_label'           => __( 'Disabled', 'wpcd' ),
-						'std'                 => 'on' === $status,
-						'desc'                => 'on' === $status ? __( 'Click to enable tabs for non-admins', 'wpcd' ) : __( 'Click to disable tabs for non-admins', 'wpcd' ),
+						'std'                 => true === $status,
+						'desc'                => true === $status ? __( 'Click to enable tabs for non-admins', 'wpcd' ) : __( 'Click to disable tabs for non-admins', 'wpcd' ),
 						'confirmation_prompt' => $confirmation_prompt,
 					),
 					'type'           => 'switch',
@@ -714,6 +706,54 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 		}
 
 		return $actions;
+
+	}
+
+	/**
+	 * Helper function to set some meta values before and after toggling site status.
+	 *
+	 * Can be called directly or by an action hook.
+	 *
+	 * Action hook: wpcd_wordpress-app_do_toggle_site_status (Optional).
+	 *
+	 * @param int    $id     The postID of the app cpt.
+	 * @param string $action The action to be performed  - always 'site-status'.
+	 * @param string $new_status The new status to force the site into.  If empty it will toggle the existing status.
+	 *
+	 * @return string|WP_Error
+	 */
+	public function toggle_site_status_action( $id, $action, $new_status = '' ) {
+
+		$result = '';
+
+		if ( empty( $new_status)) {
+			// The parameter $new_status is empty so we'll just toggle the existings status.
+			$current_status = $this->site_status( $id );
+			if ( empty( $current_status ) ) {
+				$current_status = 'on';
+			}
+		} else {
+			// The parameter $new_status is not empty so we'll force the $current_status var to the opposite of it and then toggle.
+			switch ( $new_status ) {
+				case 'on':
+					$current_status = 'off';
+					break;
+				case 'off':
+					$current_status = 'on';
+					break;
+				default:
+					$current_status = 'on';
+					break;
+			}
+		}
+
+		$result = $this->toggle_site_status( $id, 'on' === $current_status ? 'disable' : 'enable' );
+		if ( ! is_wp_error( $result ) ) {
+			update_post_meta( $id, 'wpapp_site_status', 'on' === $current_status ? 'off' : 'on' );
+			$result = array( 'refresh' => 'yes' );
+		}
+
+		return $result;  // Will not matter in an action hook.
 
 	}
 

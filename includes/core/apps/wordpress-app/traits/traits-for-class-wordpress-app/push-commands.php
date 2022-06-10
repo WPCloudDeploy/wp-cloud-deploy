@@ -244,6 +244,9 @@ trait wpcd_wpapp_push_commands {
 			// update the meta that holds the sites needs update check.
 			update_post_meta( $app_id, 'wpcd_site_needs_updates', $update_needed );
 
+			// Check site quotas.
+			$this->check_site_quotas( $app_id );
+
 			// Let other plugins react to the new good data with an action hook.
 			do_action( "wpcd_{$this->get_app_name()}_command_{$name}_{$status}_processed_good", $sites_status_items, $app_id, $id );
 
@@ -258,6 +261,49 @@ trait wpcd_wpapp_push_commands {
 
 		// Let other plugins react to the new data (regardless of it's good or bad) with an action hook.
 		do_action( "wpcd_{$this->get_app_name()}_command_{$name}_{$status}_processed", $sites_status_items, $app_id, $id );
+
+	}
+
+
+	/**
+	 * Checks the limits defined for the site against the newly received data.
+	 *
+	 * Currently only checks disk space limits since that is all that we can do right now.
+	 * There's no way to measure bandwidth or cpu usage.
+	 *
+	 * @param int $app_id The post id of the app we're working with.
+	 *
+	 * @return void.
+	 */
+	public function check_site_quotas( $app_id ) {
+
+		// How much diskspace is allowed?
+		$disk_space_quota = $this->get_site_disk_quota( $app_id );
+
+		// How much disk space was used?
+		$used_disk = $this->get_total_disk_used( $app_id );
+
+		// if disk limit is exceeded add notification and maybe disable and lock site.
+		if ( $used_disk > $disk_space_quota && $disk_space_quota > 0 ) {
+			/* translators: %s is replaced with the number of plugin updates pending for the site. */
+			do_action( 'wpcd_log_notification', $app_id, 'alert', sprintf( __( 'This site has exceeded its disk quota: Allowed quota: %1$d MB, Currently used: %2$d MB.', 'wpcd' ), $disk_space_quota, $used_disk ), 'quotas', null );
+
+			// Maybe disable the site. But only do it if the site has not already in that state.
+			if ( boolval( wpcd_get_option( 'wordpress_app_sites_disk_quota_disable_site' ) ) ) {
+				if ( 'on' === $this->site_status( $app_id ) ) {
+					do_action( 'wpcd_wordpress-app_do_toggle_site_status', $app_id, 'site-status', 'off' );
+					do_action( 'wpcd_log_notification', $app_id, 'alert', __( 'This site is being disabled because the disk quota has been exceeded.', 'wpcd' ), 'quotas', null );
+				}
+			}
+
+			// Maybe apply an admin lock to the site. But only do it if the site has not already in that state.
+			if ( boolval( wpcd_get_option( 'wordpress_app_sites_disk_quota_admin_lock_site' ) ) ) {
+				if ( ! $this->get_admin_lock_status( $app_id ) ) {
+					WPCD_WORDPRESS_APP()->set_admin_lock_status( $app_id, 'on' );
+					do_action( 'wpcd_log_notification', $app_id, 'alert', __( 'This site has had it\'s admin lock applied because the disk quota has been exceeded.', 'wpcd' ), 'quotas', null );
+				}
+			}
+		}
 
 	}
 

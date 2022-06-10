@@ -1314,7 +1314,7 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 			'priority' => 'low',
 			'fields'   => array(
 
-				// add a checkbox field.
+				// add a checkbox field to remove all delete links from the screen.
 				array(
 					'desc' => __( 'Check this box to remove all delete links from the screen - it will prevent this app from being accidentally deleted.', 'wpcd' ),
 					'id'   => 'wpcd_app_delete_protection',

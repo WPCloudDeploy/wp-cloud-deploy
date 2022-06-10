@@ -223,8 +223,11 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		// Save Meta Values.
 		add_action( 'save_post', array( $this, 'app_admin_save_meta_values' ), 10, 2 );
 
-		// Add Metabox.IO metaboxes for the WordPress app into the APP details CPT screen.
+		// Add primary Metabox.IO metaboxes for the WordPress app into the APP details CPT screen.
 		add_filter( "wpcd_app_{$this->get_app_name()}_metaboxes", array( $this, 'add_meta_boxes' ), 10, 1 );
+
+		// Add misc Metabox.IO metaboxes for the WordPress app into the APP details CPT screen. These will be placed in the sidebar or under the primary boxes.
+		add_filter( 'rwmb_meta_boxes', array( $this, 'add_meta_boxes_misc' ), 10, 1 );
 
 		// Add Metabox.IO metaboxes for the SERVER CPT into the server details CPT screen.
 		add_filter( 'rwmb_meta_boxes', array( $this, 'register_server_metaboxes' ), 10, 1 ); // Register application metabox stub with filter. Note that this is a METABOX.IO filter, not a core WP filter.
@@ -1184,7 +1187,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	 *
 	 * @param int $app_id ID of app being interrogated.
 	 *
-	 * @return string 'on' or 'off'
+	 * @return boolean
 	 */
 	public function get_admin_lock_status( $app_id ) {
 
@@ -1194,7 +1197,15 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			$current_status = 'off';
 		}
 
-		return $current_status;
+		if ( 'off' === $current_status ) {
+			return false;
+		}
+
+		if ( 'on' === $current_status ) {
+			return true;
+		}
+
+		return false;
 
 	}
 
@@ -1400,6 +1411,73 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		$live_id = (int) get_post_meta( $app_id, 'wpapp_cloned_from_id', true );
 
 		return $live_id;
+
+	}
+
+	/**
+	 * Gets the disk quota defined for a site.
+	 *
+	 * @param int $app_id The post id of the app we're working with.
+	 *
+	 * @return int disk quota defined for a site or global setting.
+	 */
+	public function get_site_disk_quota( $app_id ) {
+
+		// Get the quota defined on the site.
+		$disk_space_quota = (int) get_post_meta( $app_id, 'wpcd_app_disk_space_quota', true );
+
+		// No quota? Check global default.
+		if ( empty( $disk_space_quota ) ) {
+			$disk_space_quota = (int) wpcd_get_option( 'wordpress_app_sites_default_disk_quota' );
+		}
+
+		return $disk_space_quota;
+
+	}
+
+	/**
+	 * Sets the disk quota for a site.
+	 *
+	 * @param int $app_id The post id of the app we're working with.
+	 * @param int $quota  The disk quota for the site in megabytes.
+	 *
+	 * @return boolean|wp_error|object The value returned from the update_post_meta function.
+	 */
+	public function set_site_disk_quota( $app_id, $quota ) {
+
+		return update_post_meta( $app_id, 'wpcd_app_disk_space_quota', $quota );
+
+	}
+
+	/**
+	 * Get the total amount of disk space used for the site.
+	 *
+	 * This only works if the callbacks are installed and have run at least once to populate the appropriate meta.
+	 *
+	 * @param int $app_id is the post id of the app record we're asking about.
+	 */
+	public function get_total_disk_used( $app_id ) {
+
+		$disk_used = 0;
+
+		$site_push_data = wpcd_maybe_unserialize( get_post_meta( $app_id, 'wpcd_site_status_push', true ) );
+
+		if ( ! empty( $site_push_data ) ) {
+
+			if ( ! empty( $site_push_data['domain_file_size'] ) ) {
+				$disk_used = $disk_used + (int) $site_push_data['domain_file_size'];
+			}
+
+			if ( ! empty( $site_push_data['domain_file_size'] ) ) {
+				$disk_used = $disk_used + (int) $site_push_data['domain_file_size'];
+			}
+
+			if ( ! empty( $site_push_data['domain_backup_size'] ) ) {
+				$disk_used = $disk_used + (int) $site_push_data['domain_backup_size'];
+			}
+		}
+
+		return $disk_used;
 
 	}
 
@@ -2359,6 +2437,11 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			 * 'wpapp_pagecache_status' instead.
 			 */
 			$this->set_page_cache_status( $app_post_id, 'on' );
+
+			/**
+			 * Set Quotas
+			 */
+			$this->set_site_disk_quota( $app_post_id, wpcd_get_option( 'wordpress_app_sites_default_new_site_disk_quota' ) );
 
 			/* Everything good, return the post id of the new app record */
 			return $app_post_id;

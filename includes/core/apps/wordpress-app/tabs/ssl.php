@@ -23,7 +23,7 @@ class WPCD_WORDPRESS_TABS_SSL extends WPCD_WORDPRESS_TABS {
 		add_filter( "wpcd_app_{$this->get_app_name()}_get_tabs", array( $this, 'get_tab_fields' ), 10, 2 );
 		add_filter( "wpcd_app_{$this->get_app_name()}_tab_action", array( $this, 'tab_action' ), 10, 3 );
 
-		// Allow the toggle_ssl_status action to be triggered via an action hook.  Will primarily be used by the woocommerce add-ons.
+		// Allow the toggle_ssl_status action to be triggered via an action hook.  Will primarily be used by the woocommerce add-on and REST API.
 		add_action( 'wpcd_wordpress-app_do_toggle_ssl_status', array( $this, 'toggle_ssl_status_action' ), 10, 2 );
 
 	}
@@ -326,31 +326,6 @@ class WPCD_WORDPRESS_TABS_SSL extends WPCD_WORDPRESS_TABS {
 
 					// Update metas.
 					$this->set_ssl_status( $id, $new_ssl_status );
-
-					/*
-					update_post_meta( $id, 'wpapp_ssl_status', $new_ssl_status );
-
-					// Update HTTP2 status based on webserver type.
-					switch ( $webserver_type ) {
-						case 'ols':
-						case 'ols-enterprise':
-							if ( 'on' === $current_status ) {
-								// Prior status was on so we just turned it off.
-								update_post_meta( $id, 'wpapp_ssl_http2_status', 'off' );  // OLS always have http2, http3 and spdy turned on by default so this is actually incorrect.  Will handle later.
-							} else {
-								// Prior status of off so we just turned it on.
-								update_post_meta( $id, 'wpapp_ssl_http2_status', 'on' );  // OLS always have http2, http3 and spdy turned on by default.
-							}
-							break;
-
-						case 'nginx':
-						default:
-							// For NGINX we can only turn ssl on/off if HTTP2 is off so this meta is always going to be "off".
-							update_post_meta( $id, 'wpapp_ssl_http2_status', 'off' );
-							break;
-
-					}
-					*/
 
 					$result = array( 'refresh' => 'yes' );
 				}

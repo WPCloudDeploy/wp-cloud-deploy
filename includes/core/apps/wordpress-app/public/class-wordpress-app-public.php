@@ -71,7 +71,7 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 	 */
 	private function public_hooks() {
 
-		// Make sure WordPress loads up our css and js scripts on frontend
+		// Make sure WordPress loads up our css and js scripts on frontend.
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ), 10, 1 );
 
 		add_filter( 'the_content', array( $this, 'public_single_server_content' ) );
@@ -93,27 +93,27 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 
 		add_filter( 'removable_query_args', array( $this, 'removable_query_args' ) );
 		add_filter( 'wpcd_app_script_args', array( $this, 'add_public_script_args_app' ), 20, 2 );
-		add_action( "wpcd_wordpress-app_create_popup_after_console_wrap", array( $this, 'wpcd_wordpress_create_popup_after_console_wrap' ) , 100, 0 );
+		add_action( 'wpcd_wordpress-app_create_popup_after_console_wrap', array( $this, 'wpcd_wordpress_create_popup_after_console_wrap' ), 100, 0 );
 	}
-	
+
 	/**
 	 * Add div after console view to clear css float
 	 */
 	public function wpcd_wordpress_create_popup_after_console_wrap() {
 		echo '<div class="wpcd_public_clear"></div>';
 	}
-	
-	
+
+
 	/**
 	 * Add setting fields for public pages
-	 * 
+	 *
 	 * @param type $fields
-	 * 
+	 *
 	 * @return array
 	 */
 	public function wpcd_public_app_settings_fields( $fields ) {
-		
-		$public_fields = array (
+
+		$public_fields = array(
 			array(
 				'id'   => 'wordpress_front_end_fields_heading_public_pages',
 				'type' => 'heading',
@@ -122,82 +122,82 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 				'tab'  => 'wordpress-app-front-end-fields',
 			),
 			array(
-				'id'      => 'wordpress_public_apps_list_page',
-				'type'    => 'text',
-				'name'    => __( 'Apps Page', 'wpcd' ),
-				'desc' => __( 'Page id to display apps table on front-end.', 'wpcd' ),
-				'tab'     => 'wordpress-app-front-end-fields',
-				'std'  =>  self::get_apps_list_page_id(),
+				'id'         => 'wordpress_public_apps_list_page',
+				'type'       => 'text',
+				'name'       => __( 'Apps Page', 'wpcd' ),
+				'desc'       => __( 'Page id to display apps table on front-end.', 'wpcd' ),
+				'tab'        => 'wordpress-app-front-end-fields',
+				'std'        => self::get_apps_list_page_id(),
 				'save_field' => false,
-				'attributes' => array('readonly' => 'readonly')
+				'attributes' => array( 'readonly' => 'readonly' ),
 			),
 			array(
-				'id'   => 'wordpress_public_servers_list_page',
-				'type' => 'text',
-				'name' => __( 'Servers Page', 'wpcd' ),
-				'desc' => __( 'Page id to display servers table on front-end.', 'wpcd' ),
-				'tab'  => 'wordpress-app-front-end-fields',
-				'std'  => self::get_servers_list_page_id(),
+				'id'         => 'wordpress_public_servers_list_page',
+				'type'       => 'text',
+				'name'       => __( 'Servers Page', 'wpcd' ),
+				'desc'       => __( 'Page id to display servers table on front-end.', 'wpcd' ),
+				'tab'        => 'wordpress-app-front-end-fields',
+				'std'        => self::get_servers_list_page_id(),
 				'save_field' => false,
-				'attributes' => array('readonly' => 'readonly')
+				'attributes' => array( 'readonly' => 'readonly' ),
 			),
 			array(
-				'id'   => 'wordpress_public_server_deploy_page',
-				'type' => 'text',
-				'name' => __( 'Server Deploy Page', 'wpcd' ),
-				'desc' => __( 'Page id to display deploy server form.', 'wpcd' ),
-				'tab'  => 'wordpress-app-front-end-fields',
-				'std'  => self::get_server_deploy_page_id(),
+				'id'         => 'wordpress_public_server_deploy_page',
+				'type'       => 'text',
+				'name'       => __( 'Server Deploy Page', 'wpcd' ),
+				'desc'       => __( 'Page id to display deploy server form.', 'wpcd' ),
+				'tab'        => 'wordpress-app-front-end-fields',
+				'std'        => self::get_server_deploy_page_id(),
 				'save_field' => false,
-				'attributes' => array('readonly' => 'readonly')
+				'attributes' => array( 'readonly' => 'readonly' ),
 			),
-			
+
 			array(
 				'type'       => 'button',
 				'std'        => __( 'Create', 'wpcd' ),
-				'name' => __( 'Create missing pages', 'wpcd' ),
-				'tab'  => 'wordpress-app-front-end-fields',
-				'desc' => __( 'Create missing front-end pages.', 'wpcd' ),
+				'name'       => __( 'Create missing pages', 'wpcd' ),
+				'tab'        => 'wordpress-app-front-end-fields',
+				'desc'       => __( 'Create missing front-end pages.', 'wpcd' ),
 				'attributes' => array(
 					'id'          => 'wordpress_public_create_pages_button',
 					'data-action' => 'wpcd_public_create_pages',
 					'data-nonce'  => wp_create_nonce( 'wpcd-create-public-pages' ),
 				),
-			)
+			),
 		);
-		
+
 		return array_merge( $fields, $public_fields );
 	}
-	
+
 	/**
 	 * Create missing public pages via ajax
 	 */
 	public function ajax_public_create_pages() {
-		
-		$nonce  = filter_input( INPUT_POST, 'nonce', FILTER_SANITIZE_STRING );
-		
-		$data = [];
-		if ( wp_verify_nonce( $nonce, "wpcd-create-public-pages" ) ) {
+
+		$nonce = filter_input( INPUT_POST, 'nonce', FILTER_SANITIZE_STRING );
+
+		$data = array();
+		if ( wp_verify_nonce( $nonce, 'wpcd-create-public-pages' ) ) {
 			self::create_pages();
 			$data['msg'] = __( 'Missing pages successfully created.', 'wpcd' );
 		}
 		wp_send_json_success( $data );
 	}
-	
+
 	/**
 	 * Change redirect to public apps listing page.
-	 * 
-	 * @param array $args args.
+	 *
+	 * @param array  $args args.
 	 * @param string $script script
-	 * 
+	 *
 	 * @return array
 	 */
 	public function add_public_script_args_app( $args, $script ) {
-		
-		if( self::is_public_page() ) {
+
+		if ( self::is_public_page() ) {
 			$args['redirect'] = get_permalink( self::get_apps_list_page_id() );
 		}
-		
+
 		return $args;
 	}
 
@@ -437,21 +437,23 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 				'server_delete_messages' => WPCD_POSTS_APP_SERVER()->wpcd_app_trash_prompt_messages(),
 			)
 		);
-		
+
 		?>
-		
+
 		<script type="text/javascript">
-		 var wpcd_public_app_delete_messages   = '<?php echo json_encode( array_map('esc_html', WPCD_POSTS_APP()->wpcd_app_trash_prompt_messages() ) ); ?>';
-		 var wpcd_public_server_delete_messages = '<?php echo json_encode( array_map('esc_html', WPCD_POSTS_APP_SERVER()->wpcd_app_trash_prompt_messages() ) ); ?>';
+		var wpcd_public_app_delete_messages   = '<?php echo json_encode( array_map( 'esc_html', WPCD_POSTS_APP()->wpcd_app_trash_prompt_messages() ) ); ?>';
+		var wpcd_public_server_delete_messages = '<?php echo json_encode( array_map( 'esc_html', WPCD_POSTS_APP_SERVER()->wpcd_app_trash_prompt_messages() ) ); ?>';
 		</script>
 		<?php
-		
+
 		if ( self::is_server_edit_page() || self::is_app_edit_page() ) {
 			wp_enqueue_script( 'wpcd-mbio-tabs-fix.', wpcd_url . 'assets/js/wpcd-mbio-tabs-fix.js', array( 'jquery', 'rwmb-tabs' ), wpcd_scripts_version, true );
-			
+
 			// Enqueue the font-awesome pro kit.
-			wp_register_script( 'wpcd-fontawesome-pro', 'https://kit.fontawesome.com/4fa00a8874.js', array(), 5.0, true );
-			wp_enqueue_script( 'wpcd-fontawesome-pro' );
+			if ( ! boolval( wpcd_get_early_option( 'wordpress_app_disable_front_end_icons' ) ) ) {
+				wp_register_script( 'wpcd-fontawesome-pro', 'https://kit.fontawesome.com/4fa00a8874.js', array(), 5.0, true );
+				wp_enqueue_script( 'wpcd-fontawesome-pro' );
+			}
 		}
 
 		wp_enqueue_style( 'wpcd-public-common', wpcd_url . 'includes/core/apps/wordpress-app/assets/css/wpcd-public-common.css', wpcd_scripts_version, true );
@@ -460,8 +462,8 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 	/**
 	 * Register custom metabox class name
 	 *
-	 * @param string $name
-	 * @param array  $setting
+	 * @param string $name Name of metabox.
+	 * @param array  $setting Not used.
 	 *
 	 * @return string
 	 */
@@ -503,12 +505,12 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 		if ( self::is_server_edit_page() ) {
 			if ( wpcd_user_can_edit_app_server() && class_exists( 'RW_Meta_Box' ) ) {
 				ob_start();
-				
+
 				$metaboxes = array();
-				if( WPCD_WORDPRESS_APP()->get_tab_style_server() == 'left' ) {
+				if ( WPCD_WORDPRESS_APP()->get_tab_style_server() == 'left' ) {
 					$metaboxes[] = 'wpcd_server_wordpress-app_tab_top_of_server_details';
 				}
-				
+
 				$metaboxes[] = 'wpcd_server_wordpress-app_tab3';
 
 				echo '<div><a class="button wpcd-back_link" href="' . get_permalink( self::get_servers_list_page_id() ) . '">' . __( 'Cloud Servers', 'wpcd' ) . '</a></div>';
@@ -544,10 +546,10 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 
 				ob_start();
 				$metaboxes = array();
-				if( WPCD_WORDPRESS_APP()->get_tab_style() == 'left' ) {
+				if ( WPCD_WORDPRESS_APP()->get_tab_style() == 'left' ) {
 					$metaboxes[] = 'wpcd_wordpress-app_tab_top_of_site_details';
 				}
-				
+
 				$metaboxes[] = 'wpcd_wordpress-app_tab2';
 
 				echo '<div><a class="button wpcd-back_link" href="' . get_permalink( self::get_apps_list_page_id() ) . '">' . __( 'All Apps', 'wpcd' ) . '</a></div>';

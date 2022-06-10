@@ -2353,9 +2353,25 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'data-action'      => 'wpcd_reset_defaults_brand_colors',
 				'data-nonce'       => wp_create_nonce( 'wpcd-reset-brand-colors' ),
 				'data-loading_msg' => __( 'Please wait...', 'wpcd' ),
-				'data-confirm'     => __( 'Are you sure you would like to reset the brand colors with defaults?', 'wpcd' ),
+				'data-confirm'     => __( 'Are you sure you would like to reset the brand colors with defaults?  This will reset both the front-end and back-end colors to the WPCD defaults.', 'wpcd' ),
 			),
 			'tab'        => 'wordpress-app-white-label',
+		);
+
+		// DISABLE FONTAWESOME.
+		$fields[] = array(
+			'name' => __( 'Front-end Icons', 'wpcd' ),
+			'id'   => 'wordpress-app-front-end-icons-heading',
+			'type' => 'heading',
+			'std'  => '',
+			'tab'  => 'wordpress-app-white-label',
+		);
+		$fields[] = array(
+			'name'    => 'Disable tab icons on the front-end',
+			'id'      => 'wordpress_app_disable_front_end_icons',
+			'type'    => 'checkbox',
+			'tooltip' => __( 'This will prevent the Fontawesome icon files from loading. The css markup will still be present in the html but without the fontawesome css file the markup will not do anything.  You can use the same markup to apply your own icons if you prefer as long as no other plugin or theme loads the Fontawesome files.', 'wpcd' ),
+			'tab'     => 'wordpress-app-white-label',
 		);
 
 		/**

@@ -1197,7 +1197,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			array(
 				'type' => 'heading',
 				'name' => __( 'Disk Quota', 'wpcd' ),
-				'desc' => __( 'Disk quotas for each site are evaluated once each day - they are not evaluated in real-time!  For real-time alerts on usage for the entire disk, use the HEALING option in the server tab.', 'wpcd' ),				
+				'desc' => __( 'Disk quotas for each site are evaluated once each day - they are not evaluated in real-time!  For real-time alerts on usage for the entire disk, use the HEALING option in the server tab.', 'wpcd' ),
 				'tab'  => 'wordpress-app-sites',
 			),
 			array(
@@ -1217,7 +1217,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'desc'    => __( 'Size in MB', 'wpcd' ),
 				'tooltip' => __( 'This is the quota that will be added to each new site. This will override the global quota set above for all new sites.', 'wpcd' ),
 				'tab'     => 'wordpress-app-sites',
-			),			
+			),
 			array(
 				'id'      => 'wordpress_app_sites_disk_quota_disable_site',
 				'type'    => 'checkbox',
@@ -1230,6 +1230,23 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'type'    => 'checkbox',
 				'name'    => __( 'Apply Admin Lock When Quota Exceeded?', 'wpcd' ),
 				'tooltip' => __( 'The admin lock will disable all tabs for the site. A the customer cannot manage it or reactivate it. Only an admin will be able to remove the lock.', 'wpcd' ),
+				'tab'     => 'wordpress-app-sites',
+			),
+
+			array(
+				'type' => 'heading',
+				'name' => __( 'Admin Lock', 'wpcd' ),
+				'desc' => '',
+				'tab'  => 'wordpress-app-sites',
+			),
+			array(
+				'id'      => 'wordpress_app_sites_default_admin_lock_msg',
+				'type'    => 'wysiwyg',
+				'options' => array(
+					'textarea_rows' => 8,
+				),
+				'name'    => __( 'Message To Display When Admin Lock Is Applied', 'wpcd' ),
+				'tooltip' => __( 'This message will display on the GENERAL tab of a site when an admin lock is applied.', 'wpcd' ),
 				'tab'     => 'wordpress-app-sites',
 			),
 			array(

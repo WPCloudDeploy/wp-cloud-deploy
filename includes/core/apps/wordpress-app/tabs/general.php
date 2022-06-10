@@ -247,13 +247,26 @@ class WPCD_WORDPRESS_TABS_GENERAL extends WPCD_WORDPRESS_TABS {
 
 		$actions = array();
 
+		// What message should we display to the user?
+		$user_msg = wpcd_get_early_option( 'wordpress_app_sites_default_admin_lock_msg' );
+
 		$actions['general-welcome-header'] = array(
 			'label'          => __( 'This site is locked.', 'wpcd' ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
-				'desc' => __( 'This is has been locked by the administrator. Please contact support.', 'wpcd' ),
+				'desc' => empty( $user_msg ) ? __( 'This is has been locked by the administrator. Please contact support.', 'wpcd' ) : '',
 			),
 		);
+
+		if ( ! empty( $user_msg ) ) {
+			$actions['general-admin-locked-user-msg'] = array(
+				'type'           => 'custom_html',
+				'raw_attributes' => array(
+					'std'  => $user_msg,
+					'desc' => '',
+				),
+			);
+		}
 
 		return $actions;
 

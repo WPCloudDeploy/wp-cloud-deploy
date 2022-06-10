@@ -1409,6 +1409,22 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	}
 
 	/**
+	 * Gets the disk quota defined for a site.
+	 *
+	 * @param int $app_id The post id of the app we're working with.
+	 *
+	 * @return int disk quota defined for a site or global setting.
+	 */
+	public function get_site_disk_quota( $app_id ) {
+
+		// Get the quota defined on the site.
+		$disk_space_quota = (int) get_post_meta( $app_id, 'wpcd_app_disk_space_quota', true );
+
+		return $disk_space_quota;
+
+	}
+
+	/**
 	 * Get the total amount of disk space used for the site.
 	 *
 	 * This only works if the callbacks are installed and have run at least once to populate the appropriate meta.

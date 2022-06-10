@@ -1196,6 +1196,26 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			),
 			array(
 				'type' => 'heading',
+				'name' => __( 'Disk Quota', 'wpcd' ),
+				'desc' => __( 'Disk quotas for each site are evaluated once each day - they are not evaluated in real-time!  For real-time alerts on usage for the entire disk, use the HEALING option in the server tab.', 'wpcd' ),
+				'tab'  => 'wordpress-app-sites',
+			),
+			array(
+				'id'      => 'wordpress_app_sites_disk_quota_disable_site',
+				'type'    => 'checkbox',
+				'name'    => __( 'Disable Site?', 'wpcd' ),
+				'tooltip' => __( 'Disabling a site will prevent visitors from viewing it.', 'wpcd' ),
+				'tab'     => 'wordpress-app-sites',
+			),
+			array(
+				'id'      => 'wordpress_app_sites_disk_quota_admin_lock_site',
+				'type'    => 'checkbox',
+				'name'    => __( 'Activate Admin Lock?', 'wpcd' ),
+				'tooltip' => __( 'The admin lock will disable all tabs for the site. A the customer cannot manage it or reactivate it. Only an admin will be able to remove the lock.', 'wpcd' ),
+				'tab'     => 'wordpress-app-sites',
+			),
+			array(
+				'type' => 'heading',
 				'name' => __( 'Misc', 'wpcd' ),
 				'desc' => '',
 				'tab'  => 'wordpress-app-sites',
@@ -1288,8 +1308,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'name'    => __( 'Hide Chicklet Area', 'wpcd' ),
 				'tooltip' => __( 'Hides the three labels that show the web server type, SSL status and Cache status beneath the domain name in the site detail screen.', 'wpcd' ),
 				'tab'     => 'wordpress-app-fields-and-links',
-			),			
-
+			),
 			array(
 				'id'   => 'wordpress_fields_and_links_heading_03',
 				'type' => 'heading',
@@ -1644,7 +1663,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'type'    => 'text',
 				'name'    => __( 'Default Region', 'wpcd' ),
 				'tooltip' => __( 'The region where your default bucket is located. If this is incorrect and does not match your bucket location, backups will not be uploaded to AWS!', 'wpcd' ),
-				'desc'    => sprintf( __( '<a href="%s" target="_blank" >Valid Regions</a>', 'wpcd'), 'https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html#concepts-available-regions' ),
+				'desc'    => sprintf( __( '<a href="%s" target="_blank" >Valid Regions</a>', 'wpcd' ), 'https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html#concepts-available-regions' ),
 				'tab'     => 'wordpress-app-backup',
 				'size'    => 60,
 			),

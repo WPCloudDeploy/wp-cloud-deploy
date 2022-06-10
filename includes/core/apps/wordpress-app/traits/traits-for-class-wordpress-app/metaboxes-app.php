@@ -273,7 +273,7 @@ trait wpcd_wpapp_metaboxes_app {
 
 				// Field to hold the max diskspace allowed.
 				array(
-					'name' => __( 'Max Disk (MB).', 'wpcd' ),
+					'name' => __( 'Disk Quota (MB).', 'wpcd' ),
 					'id'   => 'wpcd_app_disk_space_quota',
 					'type' => 'number',
 					'std'  => 500,

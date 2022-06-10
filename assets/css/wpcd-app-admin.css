@@ -7,12 +7,12 @@
 /******************************************************************************************/
 
 .wpcd_search_owner_filter+.select2-container--default .select2-selection--single .select2-selection__rendered {
-    line-height: 32px !important;
+    line-height: 32px;
 }
 
 .wpcd_search_owner_filter+.select2-container--default .select2-selection--single {
-    height: 1.92rem !important;
-    font-size: 14px !important;
+    height: 30px;
+    font-size: 14px;
 }
 
 .tablenav .actions:not(.bulkactions) .wpcd_search_owner_filter+.select2-container--default {

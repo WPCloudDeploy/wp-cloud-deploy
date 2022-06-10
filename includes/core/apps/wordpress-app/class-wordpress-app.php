@@ -232,6 +232,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		// Add Metabox.IO metaboxes for the SERVER CPT into the server details CPT screen.
 		add_filter( 'rwmb_meta_boxes', array( $this, 'register_server_metaboxes' ), 10, 1 ); // Register application metabox stub with filter. Note that this is a METABOX.IO filter, not a core WP filter.
 		add_filter( "wpcd_server_{$this->get_app_name()}_metaboxes", array( $this, 'add_meta_boxes_server' ), 10, 1 );
+		add_filter( 'rwmb_meta_boxes', array( $this, 'register_server_metaboxes_misc' ), 10, 1 ); // These will be placed in the sidebar or under the primary boxes.
 
 		// Action hook to fire on new site created on WP Multisite.
 		add_action( 'wp_initialize_site', array( $this, 'wpapp_schedule_events_for_new_site' ), 10, 2 );
@@ -1159,7 +1160,9 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	/**
 	 * Sets the admin lock status.
 	 *
-	 * @param int         $app_id $app_id ID of app being interrogated.
+	 * @since 5.0
+	 *
+	 * @param int         $app_id Post id of app being updated.
 	 * @param string|bool $status Status of admin lock ('on','off',true,false).
 	 *
 	 * @return void
@@ -1178,6 +1181,8 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 	/**
 	 * Returns an indicator whether a site has the admin lock disabled or enabled.
+	 *
+	 * @since 5.0
 	 *
 	 * @param int $app_id ID of app being interrogated.
 	 *
@@ -1204,7 +1209,83 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	}
 
 	/**
+	 * Sets the maximum number of sites allowed on a server.
+	 *
+	 * @since 5.0
+	 *
+	 * @param int $id ID of server to update.
+	 * @param int $count Number of sites allowed on the server.
+	 *
+	 * @return boolean|object The return value from the update_post_meta function.
+	 */
+	public function set_server_max_sites_allowed( $id, $count ) {
+		return update_post_meta( $id, 'wpcd_server_max_sites', $count );
+	}
+
+
+	/**
+	 * Returns the maximum sites allowed on a server.
+	 *
+	 * @since 5.0
+	 *
+	 * @param int $id ID of server being interrogated.
+	 *
+	 * @return int
+	 */
+	public function get_server_max_sites_allowed( $id ) {
+		return (int) get_post_meta( $id, 'wpcd_server_max_sites', true );
+	}
+
+	/**
+	 * Returns true if server has exceeded the sites allowed, false otherwise.
+	 * If the number of sites allowed on a server is set to zero then return false.
+	 *
+	 * @since 5.0
+	 *
+	 * @param int $id ID of server being interrogated.
+	 *
+	 * @return boolean
+	 */
+	public function get_has_server_exceeded_sites_allowed( $id ) {
+
+		// Make sure the ID is for a server post type.
+		$server_id = 0;
+		$post_type = get_post_type( $id );
+		if ( ( 'wpcd_app_server' !== $post_type ) && ( 'wpcd_app' === $post_type ) ) {
+			$server_id = $this->get_server_id_by_app_id( $id );
+		} else {
+			if ( 'wpcd_app_server' === $post_type ) {
+				$server_id = $id;
+			}
+		}
+
+		// If we don't have a server id return false.
+		if ( ! $server_id ) {
+			return false;
+		}
+
+		// Get max number of sites sites allowed on server.
+		$sites_allowed = $this->get_server_max_sites_allowed( $server_id );
+
+		if ( $sites_allowed > 0 ) {
+			// Get count of sites on server.
+			$current_count = WPCD_SERVER()->get_app_count( $server_id );
+
+			if ( $current_count >= $sites_allowed ) {
+				return true;
+			} else {
+				return false;
+			}
+		}
+
+		return false;
+
+	}
+
+	/**
 	 * Returns an indicator whether the page cache is enabled or not.
+	 *
+	 * @since 5.0
 	 *
 	 * @param int $app_id ID of app being interrogated.
 	 *

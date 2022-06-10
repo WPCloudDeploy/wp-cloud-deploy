@@ -397,6 +397,11 @@ class WPCD_WORDPRESS_TABS_CLONE_SITE extends WPCD_WORDPRESS_TABS {
 			return array_merge( $fields, $this->get_disabled_header_field( 'clone-site' ) );
 		}
 
+		// If the number of sites allowed on the server have been exceeded, return.
+		if ( $this->get_has_server_exceeded_sites_allowed( $id ) && ! wpcd_is_admin() ) {
+			return array_merge( $fields, $this->get_max_sites_exceeded_header_field( 'clone-site' ) );
+		}
+
 		// Allow a third party to show a different set of fields instead.
 		// This can be useful if a custom plugin determines that clone operations are not allowed.
 		// For example, the WC SITES SUBSCRIPTION add-on uses this to disable cloning when the number of sites a user is allowed is exceeded.

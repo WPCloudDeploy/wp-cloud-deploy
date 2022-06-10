@@ -2367,7 +2367,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			'tab'  => 'wordpress-app-white-label',
 		);
 		$fields[] = array(
-			'name'    => 'Disable tab icons on the front-end',
+			'name'    => 'Disable Tab Icons on the Front-end',
 			'id'      => 'wordpress_app_disable_front_end_icons',
 			'type'    => 'checkbox',
 			'tooltip' => __( 'This will prevent the Fontawesome icon files from loading. The css markup will still be present in the html but without the fontawesome css file the markup will not do anything.  You can use the same markup to apply your own icons if you prefer as long as no other plugin or theme loads the Fontawesome files.', 'wpcd' ),

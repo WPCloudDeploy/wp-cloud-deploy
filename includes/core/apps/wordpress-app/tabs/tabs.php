@@ -128,9 +128,8 @@ class WPCD_WORDPRESS_TABS extends WPCD_WORDPRESS_APP {
 	}
 
 	/**
-	 * If a site is disabled then tabs can call_user_func
-	 * this function to show a standard "site is disabled
-	 * message.
+	 * If a site is disabled then tabs can this function
+	 * to show a standard "site is disabled message.
 	 *
 	 * @param string $tab    The tab id - if this is empty, assume that the tab id will be automatically filled in.
 	 *
@@ -163,5 +162,41 @@ class WPCD_WORDPRESS_TABS extends WPCD_WORDPRESS_APP {
 		return $actions;
 
 	}
+	
+	/**
+	 * If a site is on a server where the maximum sites
+	 * allowed have been exceeded, return his header.
+	 *
+	 * @param string $tab    The tab id - if this is empty, assume that the tab id will be automatically filled in.
+	 *
+	 * @return array
+	 */
+	public function get_max_sites_exceeded_header_field( $tab = '' ) {
+
+		$actions = array();
+
+		$desc       = __( 'This site is on a server where the maximum number of allowed sites have been met or exceeded. Please contact your admin or customer support for assistance.', 'wpcd' );
+		$random_str = wpcd_random_str( 20, '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ' );
+
+		if ( empty( $tab ) ) {
+			$actions[ 'function-not-available-status-header-' . $random_str ] = array(
+				'label'          => __( 'This Function is Not Available', 'wpcd' ),
+				'type'           => 'heading',
+				'raw_attributes' => array(
+					'desc' => $desc,
+				),
+			);
+		} else {
+			$actions[ 'function-not-available-status-header-' . $random_str ] = array(
+				'name' => __( 'This Function is Not Available', 'wpcd' ),
+				'type' => 'heading',
+				'tab'  => $tab,
+				'desc' => $desc,
+			);
+		}
+
+		return $actions;
+
+	}	
 
 }

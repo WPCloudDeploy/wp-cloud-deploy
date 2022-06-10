@@ -502,6 +502,14 @@ class WPCD_WORDPRESS_TABS_STAGING extends WPCD_WORDPRESS_TABS {
 			return array_merge( $fields, $this->get_disabled_header_field( 'staging' ) );
 		}
 
+		// If the number of sites allowed on the server have been exceeded we will not show the staging buttons.
+		// BUT, if a staging site already exists, we have to show the buttons so that the site can be pushed back and forth between staging and production.
+		if ( ! $this->is_staging_site( $id ) && empty( $this->get_companion_staging_site_domain( $id ) ) ) {
+			if ( $this->get_has_server_exceeded_sites_allowed( $id ) && ! wpcd_is_admin() ) {
+				return array_merge( $fields, $this->get_max_sites_exceeded_header_field( 'staging' ) );
+			}
+		}
+
 		// Get HTTP2 status since we cannot clone a site with HTTP2 turned on.
 		$http2_status = $this->http2_status( $id );
 		if ( 'on' === $http2_status ) {
@@ -565,6 +573,7 @@ class WPCD_WORDPRESS_TABS_STAGING extends WPCD_WORDPRESS_TABS {
 				'save_field' => false,
 			);
 		} else {
+
 			// We got here so ok to show fields related to cloning the site to staging.
 			$desc = __( 'Make a copy of this site for development, testing and trouble-shooting.', 'wpcd' );
 
@@ -610,6 +619,7 @@ class WPCD_WORDPRESS_TABS_STAGING extends WPCD_WORDPRESS_TABS {
 				'class'      => 'wpcd_app_action',
 				'save_field' => false,
 			);
+
 		}
 
 		return $fields;

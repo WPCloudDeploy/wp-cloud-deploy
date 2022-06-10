@@ -147,6 +147,12 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 		// Filter hook to change the argument to exclude app terms - will be used to exclude certain items in the app group metabox.
 		add_action( 'get_terms_args', array( $this, 'wpcd_exclude_from_app_term_args' ), 1000, 2 );
 
+		// Include Styles & Scripts.
+		add_action( 'admin_enqueue_scripts', array( $this, 'wpcd_app_admin_enqueue_styles_and_scripts' ) );
+
+		// Action hook to load options for server & app owners filter.
+		add_action( 'wp_ajax_wpcd_load_server_app_owners_options', array( $this, 'wpcd_load_server_app_owners_options' ) );
+
 	}
 
 	/**
@@ -184,6 +190,51 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 
 		return $columns;
 	}
+
+	/**
+	 * Register styles and scripts in the admin area for app screens.
+	 *
+	 * @param string $hook hook.
+	 */
+	public function wpcd_app_admin_enqueue_styles_and_scripts( $hook ) {
+		$screen = get_current_screen();
+
+		if ( 'wpcd_app' === $screen->post_type ) {
+
+			wp_enqueue_style( 'wpcd-select2-css', wpcd_url . 'assets/css/select2.min.css', array(), wpcd_scripts_version );
+
+			wp_enqueue_script( 'wpcd-select2-js', wpcd_url . 'assets/js/select2.min.js', array( 'jquery' ), wpcd_scripts_version, true );
+
+			wp_enqueue_style( 'wpcd-app-admin-css', wpcd_url . 'assets/css/wpcd-app-admin.css', array(), wpcd_scripts_version );
+
+			wp_enqueue_script( 'wpcd-app-admin-js', wpcd_url . 'assets/js/wpcd-app-admin.js', array( 'jquery' ), wpcd_scripts_version, false );
+
+			wp_localize_script(
+				'wpcd-app-admin-js',
+				'app_owner_params',
+				apply_filters(
+					'wpcd_app_script_args',
+					array(
+						'i10n'   => array(
+							'nonce'                     => wp_create_nonce( 'wpcd-server-app-owners-selection' ),
+							'action'                    => 'wpcd_load_server_app_owners_options',
+							'server_post_type'          => 'wpcd_app_server',
+							'server_field_key'          => 'wpcd_server_owner',
+							'server_first_option'       => __( 'All Server Owners', 'wpcd' ),
+							'app_post_type'             => 'wpcd_app',
+							'app_filter_key'            => 'wpcd_app_owner',
+							'app_first_option'          => __( 'All App Owners', 'wpcd' ),
+							'no_owners_found_msg'       => __( 'No owners found.', 'wpcd' ),
+							'search_owner_placeholder'  => __( 'Search owner here', 'wpcd' ),
+						),
+					),
+					'wpcd-app-admin-js'
+				)
+			);
+
+		}
+	}
+
 
 	/**
 	 * Add contents to the APPs table columns
@@ -1939,6 +1990,80 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 
 		return wpcd_wrap_string_with_div_and_class( $string, $column, 'app-col-element-wrap' );
 
+	}
+
+	/**
+	 * Load the options for server or app owner filter.
+	 *
+	 * Action hook: wp_ajax_wpcd_load_server_app_owners_options
+	 *
+	 * @return void
+	 */
+	public function wpcd_load_server_app_owners_options() {
+		// Nonce check.
+		check_ajax_referer( 'wpcd-server-app-owners-selection', 'nonce' );
+
+		// Permissions check by user to load sites which user has access to view.
+		$current_user_id = get_current_user_id();
+
+		$post_type          = filter_input( INPUT_POST, 'post_type', FILTER_SANITIZE_STRING );
+		$field_key          = filter_input( INPUT_POST, 'field_key', FILTER_SANITIZE_STRING );
+		$first_option       = filter_input( INPUT_POST, 'first_option', FILTER_SANITIZE_STRING );
+		$search_term        = filter_input( INPUT_POST, 'search_term', FILTER_SANITIZE_STRING );
+		$search_term        = trim( $search_term );
+		$owner_options_arr  = array( '0' => __( $first_option, 'wpcd' ) );
+
+		if ( ! empty( $search_term ) ) {
+			global $wpdb;
+
+			$post_status = 'private';
+
+			if ( 'wpcd_app_server' === $post_type ) {
+				$permission = 'view_server';
+			} elseif ( 'wpcd_app' === $post_type ) {
+				$permission = 'view_app';
+			}
+
+			$posts = wpcd_get_posts_by_permission( $permission, $post_type, $post_status );
+
+			if ( ! $posts || empty( $posts ) ) {
+				return;
+			}
+
+			if ( count( $posts ) == 0 ) {
+				return '';
+			}
+
+			$posts_placeholder = implode( ', ', array_fill( 0, count( $posts ), '%d' ) );
+			$query_fields      = array_merge( array( $post_type, $post_status ), $posts );
+
+			$sql   = $wpdb->prepare( "SELECT DISTINCT post_author FROM {$wpdb->posts} WHERE post_type = %s AND post_status = %s  AND ID IN ( " . $posts_placeholder . ' ) ORDER BY post_author', $query_fields );
+			$posts = $wpdb->get_results( $sql );
+
+			if ( ! empty( $posts ) ) {
+				foreach ( $posts as $p ) {
+					if ( in_array( $p->post_author, $owners ) ) {
+						continue;
+					}
+					$owners[]         = $p->post_author;
+					$post_author_id   = $p->post_author;
+					$post_author_name = empty( $post_author_id ) ? __( 'No Author or Owner provided.', 'wpcd' ) : esc_html( get_user_by( 'ID', $post_author_id )->user_login );
+
+					// Match search term with owner name.
+					if ( strpos( $post_author_name, $search_term ) !== false ) {
+						$owner_options_arr[ $post_author_id ] = $post_author_name;
+					}
+				}
+			}
+		}
+
+		$result = array(
+			'items' => $owner_options_arr,
+		);
+
+		wp_send_json_success( $result );
+
+		exit;
 	}
 
 }

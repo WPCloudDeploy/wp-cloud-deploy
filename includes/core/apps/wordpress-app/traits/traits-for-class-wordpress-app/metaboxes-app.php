@@ -241,4 +241,69 @@ trait wpcd_wpapp_metaboxes_app {
 
 	}
 
+	/**
+	 * To add custom metabox on app details screen.
+	 * Multiple metaboxes created for:
+	 * 1. Disk limits
+	 * 2. (comming soon)
+	 *
+	 * Filter hook: rwmb_meta_boxes
+	 *
+	 * @param  array $metaboxes metaboxes.
+	 *
+	 * @return array
+	 */
+	public function add_meta_boxes_misc( $metaboxes ) {
+
+		// What's the post id we're looking at?
+		$post_id = filter_input( INPUT_GET, 'post', FILTER_VALIDATE_INT );
+
+		// How much diskspace is allowed?
+		// @TODO: this value isn't collected correctly inside this function - something about the way MBIO sets up the metabox prevents this.
+		$allowed_disk = (int) get_post_meta( $post_id, 'wpcd_app_max_disk_space_allowed', true );
+
+		// Register a metabox to hold disk limits (and possibly other limits in the future).
+		$metaboxes[] = array(
+			'id'       => 'wpcd_app_quotas',
+			'title'    => __( 'Quotas and Limits', 'wpcd' ),
+			'pages'    => array( 'wpcd_app' ), // displays on wpcd_app post type only.
+			'context'  => 'side',
+			'priority' => 'low',
+			'fields'   => array(
+
+				// Field to hold the max diskspace allowed.
+				array(
+					'name' => __( 'Max Disk (MB).', 'wpcd' ),
+					'id'   => 'wpcd_app_disk_space_quota',
+					'type' => 'number',
+					'std'  => 500,
+				),
+
+				// Field to hold current usage.
+				// @TODO: doesn't work because we can't get the $allowed_disk var properly above.
+			/*
+				array(
+					'name'       => __( 'Current Usage.', 'wpcd' ),
+					'id'         => 'wpcd_app_current_disk_used',
+					'type'       => 'slider',
+					'std'        => $this->get_total_disk_used( $post_id ),
+					'js_options' => array(
+						'min' => 0,
+						'max' => $allowed_disk,
+					),
+					'suffix'     => __( 'MB', 'wpcd' ),
+					'save_field' => false,
+					'readonly'   => true,
+					'disabled'   => true,
+				),
+			*/
+
+			),
+		);
+
+		return $metaboxes;
+
+	}
+
+
 }

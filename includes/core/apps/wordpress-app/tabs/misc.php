@@ -24,7 +24,7 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 		add_filter( "wpcd_app_{$this->get_app_name()}_tab_action", array( $this, 'tab_action' ), 10, 3 );
 
 		// Allow the disable site action to be triggered via an action hook.  Will primarily be used by the woocommerce add-on and REST API.
-		add_action( 'wpcd_wordpress-app_do_toggle_site_status', array( $this, 'toggle_site_status_action' ), 10, 2 );
+		add_action( 'wpcd_wordpress-app_do_toggle_site_status', array( $this, 'toggle_site_status_action' ), 10, 3 );
 
 		// Add bulk action option to the site list to bulk delete sites.
 		add_filter( 'bulk_actions-edit-wpcd_app', array( $this, 'wpcd_add_new_bulk_actions_site' ) );
@@ -717,18 +717,36 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 	 * Action hook: wpcd_wordpress-app_do_toggle_site_status (Optional).
 	 *
 	 * @param int    $id     The postID of the app cpt.
-	 * @param string $action The action to be performed  - 'ssl-status' or 'ssl-http2-status'.
+	 * @param string $action The action to be performed  - always 'site-status'.
+	 * @param string $new_status The new status to force the site into.  If empty it will toggle the existing status.
 	 *
 	 * @return string|WP_Error
 	 */
-	public function toggle_site_status_action( $id, $action ) {
+	public function toggle_site_status_action( $id, $action, $new_status = '' ) {
 
 		$result = '';
 
-		$current_status = $this->site_status( $id );
-		if ( empty( $current_status ) ) {
-			$current_status = 'on';
+		if ( empty( $new_status)) {
+			// The parameter $new_status is empty so we'll just toggle the existings status.
+			$current_status = $this->site_status( $id );
+			if ( empty( $current_status ) ) {
+				$current_status = 'on';
+			}
+		} else {
+			// The parameter $new_status is not empty so we'll force the $current_status var to the opposite of it and then toggle.
+			switch ( $new_status ) {
+				case 'on':
+					$current_status = 'off';
+					break;
+				case 'off':
+					$current_status = 'on';
+					break;
+				default:
+					$current_status = 'on';
+					break;
+			}
 		}
+
 		$result = $this->toggle_site_status( $id, 'on' === $current_status ? 'disable' : 'enable' );
 		if ( ! is_wp_error( $result ) ) {
 			update_post_meta( $id, 'wpapp_site_status', 'on' === $current_status ? 'off' : 'on' );

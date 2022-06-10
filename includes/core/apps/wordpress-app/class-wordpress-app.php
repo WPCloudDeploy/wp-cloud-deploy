@@ -1420,6 +1420,11 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		// Get the quota defined on the site.
 		$disk_space_quota = (int) get_post_meta( $app_id, 'wpcd_app_disk_space_quota', true );
 
+		// No quota? Check global default.
+		if ( empty( $disk_space_quota ) ) {
+			$disk_space_quota = (int) wpcd_get_option( 'wordpress_app_sites_default_disk_quota' );
+		}
+
 		return $disk_space_quota;
 
 	}

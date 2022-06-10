@@ -935,6 +935,13 @@ trait wpcd_wpapp_admin_column_data {
 			}
 		}
 
+		/* Show whether the site is admin locked */
+		if ( 'wpcd_app' === get_post_type( $post ) && 'wordpress-app' == $this->get_app_type( $post->ID ) ) {
+			if ( $this->get_admin_lock_status( $post->ID ) ) {
+				$states['wpcd-wpapp-status'] = __( 'Admin Locked', 'wpcd' );
+			}
+		}
+
 		/* Show whether the site is a staging site */
 		if ( 'wpcd_app' === get_post_type( $post ) && 'wordpress-app' == $this->get_app_type( $post->ID ) ) {
 			if ( true === $this->is_staging_site( $post->ID ) ) {

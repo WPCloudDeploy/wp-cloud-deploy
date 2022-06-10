@@ -50,7 +50,7 @@ then
 	fi	
 	
 	mkdir -p $backuptmp $backupdir
-	rsync -az /usr/local/lsws/ $backuptmp/lsws/ 2>/dev/null
+	rsync -az /usr/local/lsws/conf $backuptmp/lsws/conf 2>/dev/null
 	rsync -az /etc/nginx/ $backuptmp/nginx/ 2>/dev/null
 	rsync -az /etc/php/ $backuptmp/php/ 2>/dev/null
 	rsync -az /etc/letsencrypt/live/ $backuptmp/letsencrypt/ 2>/dev/null

@@ -1654,6 +1654,13 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tooltip' => __( 'HIDE the filter bar at the top of the server and site list from the admin. Usually this is shown to admins.', 'wpcd' ),
 				'tab'     => 'wordpress-app-front-end-fields',
 			),
+			array(
+				'id'      => 'wordpress_app_fe_show_install_wp_button_top_of_list_page',
+				'type'    => 'checkbox',
+				'name'    => __( 'Show the Install WordPress Button', 'wpcd' ),
+				'tooltip' => __( 'Show the install WordPress button at the top of the list page?', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),			
 
 			array(
 				'id'   => 'wordpress_front_end_fields_heading_notes',

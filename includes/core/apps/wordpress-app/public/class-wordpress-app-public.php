@@ -639,7 +639,12 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 		?>
 		<div id="wpcd_public_wrapper">
 			<div id="wpcd_public_apps_container">
-				<?php printf( '<a class="button deploy_button" href="%s">%s</a>', get_permalink( self::get_servers_list_page_id() ), __( 'New WordPress Site', 'wpcd' ) ); ?>
+				<?php 
+					/* Show INSTALL WORDPRESS button at the top of the app list page? */
+					if ( boolval( wpcd_get_early_option( 'wordpress_app_fe_show_install_wp_button_top_of_list_page' ) ) ) {
+						printf( '<a class="button deploy_button" href="%s">%s</a>', get_permalink( self::get_servers_list_page_id() ), __( 'New WordPress Site', 'wpcd' ) ); 
+					}
+				?>
 				<?php $table->views(); ?>
 				<form id="posts-filter" method="get">
 					<input type="hidden" name="post_status" class="post_status_page" value="<?php echo ! empty( $post_status ) ? esc_attr( $post_status ) : 'all'; ?>" />

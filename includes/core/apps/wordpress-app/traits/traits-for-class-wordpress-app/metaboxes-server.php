@@ -133,6 +133,11 @@ trait wpcd_wpapp_metaboxes_server {
 	 */
 	public function register_server_metaboxes_misc( $metaboxes ) {
 
+		// Only visible to admins.
+		if ( ! wpcd_is_admin() ) {
+			return $metaboxes;
+		}
+
 		// What's the post id we're looking at?
 		$post_id = filter_input( INPUT_GET, 'post', FILTER_VALIDATE_INT );
 

@@ -255,6 +255,11 @@ trait wpcd_wpapp_metaboxes_app {
 	 */
 	public function add_meta_boxes_misc( $metaboxes ) {
 
+		// Only visible to admins.
+		if ( ! wpcd_is_admin() ) {
+			return $metaboxes;
+		}
+
 		// What's the post id we're looking at?
 		$post_id = filter_input( INPUT_GET, 'post', FILTER_VALIDATE_INT );
 

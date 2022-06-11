@@ -675,8 +675,24 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 		?>
 		<div id="wpcd_public_wrapper">
 			<div id="wpcd_public_servers_container">
+				
+				<div id="wpcd_public_servers_top_button_bar_wrap">
+					<?php 
+					/**
+					 * Action hook: Allow developers to add buttons here?
+					 */
+					do_action( 'wpcd_wpapp_frontend_server_list_before_deploy_button' ); 
+					?>
 					
-				<?php printf( '<a class="button deploy_button" href="%s">%s</a>', get_permalink( self::get_server_deploy_page_id() ), __( 'Deploy A New WordPress Server', 'wpcd' ) ); ?>
+					<?php printf( '<a class="button deploy_button" href="%s">%s</a>', get_permalink( self::get_server_deploy_page_id() ), __( 'Deploy A New WordPress Server', 'wpcd' ) ); ?>
+					
+					<?php 
+					/**
+					 * Action hook: Allow developers to add buttons here?
+					 */
+					do_action( 'wpcd_wpapp_frontend_server_list_after_deploy_button' ); 
+					?>
+				</div>
 				<?php $table->views(); ?>
 				<form id="posts-filter" method="get">
 					<input type="hidden" name="post_status" class="post_status_page" value="<?php echo ! empty( $post_status ) ? esc_attr( $post_status ) : 'all'; ?>" />

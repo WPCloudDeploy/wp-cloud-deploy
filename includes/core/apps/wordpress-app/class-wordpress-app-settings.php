@@ -1646,7 +1646,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'name'    => __( 'Show Filter Bar To Non-Admins', 'wpcd' ),
 				'tooltip' => __( 'Show the filter bar at the top of the server and site list to non-admin users. This is usually hidden from non-admins.', 'wpcd' ),
 				'tab'     => 'wordpress-app-front-end-fields',
-			),			
+			),
 			array(
 				'id'      => 'wordpress_app_fe_hide_filter_bar_from_admin',
 				'type'    => 'checkbox',

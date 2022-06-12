@@ -473,6 +473,41 @@
 }
 /* End format site image - from powerpack */
 
+/**
+ * The following section handles promo buttons. 
+ */
+ #wpcd_public_wrapper .wpcd_promo_button_wrap {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	column-gap: 10px;				
+	grid-auto-rows: auto;
+	grid-row-gap: 15px;
+	max-width: 600px;
+ }
+#wpcd_public_wrapper .wpcd-wpapp-instance-promo a {
+	font-size: small;
+}
+
+#wpcd_public_wrapper .wpcd-wpapp-instance-promo-button {
+	margin-top: 0.25em;
+	margin-bottom: 0.25em;
+}
+
+#wpcd_public_wrapper .wpcd-wpapp-instance-promo-button a {
+	font-size: small;
+	color: white;
+	background-color: #004D40;
+	border-radius: 3px;
+	border-width: 0px;
+	padding: 1em;
+}
+@media screen and (max-width: 600px) {
+	/* Don't show promos on small screen where real estate is at a premium */
+	#wpcd_public_wrapper .wpcd_promo_button_wrap {
+		display: none;
+	}
+}
+/* End section to handle promo buttons */
 
 /**
  * The following section handles the formatting of the table list for servers and sites on the front-end. 

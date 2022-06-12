@@ -277,10 +277,15 @@ class WPCD_Public_List_Table extends WP_List_Table {
 	 */
 	public function views() {
 
-		if ( boolval( wpcd_get_option( 'wordpress_app_fe_hide_filter_bar' ) ) ) {
-			// If we're hiding the filter bar, we don't need the views either.
+		// Should we hide the filter bar and filter view buttons from the admin?
+		if ( wpcd_is_admin() && boolval( wpcd_get_option( 'wordpress_app_fe_hide_filter_bar_from_admin' ) ) ) {
 			return;
 		}
+		
+		// Show the filter bar to non-admin users?
+		if ( ! wpcd_is_admin() && ! boolval( wpcd_get_option( 'wordpress_app_fe_show_filter_bar' ) ) ) {
+			return;
+		}		
 
 		$views = $this->get_views();
 
@@ -689,7 +694,16 @@ class WPCD_Public_List_Table extends WP_List_Table {
 	public function display() {
 		$singular = $this->_args['singular'];
 
-		if ( ! boolval( wpcd_get_option( 'wordpress_app_fe_hide_filter_bar' ) ) ) {
+		// Should we hide the filter bar and filter view buttons from the admin?
+		if ( wpcd_is_admin() && boolval( wpcd_get_option( 'wordpress_app_fe_hide_filter_bar_from_admin' ) ) ) {
+			// do nothing - move on and paint the display as normal.
+		}
+		if ( wpcd_is_admin() && ! boolval( wpcd_get_option( 'wordpress_app_fe_hide_filter_bar_from_admin' ) ) ) {
+			$this->display_tablenav( 'top' );
+		}	
+
+		// Show the filter bar to non-admin users?
+		if ( ! wpcd_is_admin() && boolval( wpcd_get_option( 'wordpress_app_fe_show_filter_bar' ) ) ) {
 			$this->display_tablenav( 'top' );
 		}
 

@@ -526,7 +526,8 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 	}
 
 	/**
-	 * Return a list of task posts
+	 * Return a list of task posts, searching for a combination of
+	 * pending_task_key, state and type.
 	 *
 	 * @param string $key    Match the 'pending_task_key' meta.
 	 * @param string $state  Match the 'pending_task_state' meta.
@@ -561,6 +562,42 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 	}
 
 	/**
+	 * Return a list of task posts, searching for a combination of
+	 * parent, state and type.
+	 *
+	 * @param string $parent Match the 'parent_post_id' meta.
+	 * @param string $state  Match the 'pending_task_state' meta.
+	 * @param string $type   Match the 'pending_task_type' meta.
+	 */
+	public function get_tasks_by_parent_state_type( $parent, $state, $type ) {
+
+		$args = array(
+			'post_type'      => 'wpcd_pending_log',
+			'post_status'    => 'private',
+			'posts_per_page' => -1,
+			'meta_query'     => array(
+				array(
+					'key'   => 'parent_post_id',
+					'value' => $parent,
+				),
+				array(
+					'key'   => 'pending_task_state',
+					'value' => $state,
+				),
+				array(
+					'key'   => 'pending_task_type',
+					'value' => $type,
+				),
+			),
+		);
+
+		$task_posts = get_posts( $args );
+
+		return $task_posts;
+
+	}
+
+	/**
 	 * Update a task.  All parameters are optional except $id for the task.
 	 *
 	 * @param int      $id The id of the task record.
@@ -569,6 +606,7 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 	 * @param string   $task_reference other cross-reference data if needed.
 	 * @param string   $task_comment task comment.
 	 * @param bool|int $reset_start_date Date to put in the start date meta or, if set to TRUE, empty the start date meta completely.
+	 * @param string   $task_message A message to add to the task record.
 	 */
 	public function update_task_by_id( $id, $task_details = array(), $task_state = '', $task_reference = '', $task_comment = '', $reset_start_date = false, $task_message = '' ) {
 
@@ -830,7 +868,7 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 	public function wpcd_clean_up_pending_logs_callback() {
 
 		// The function ran so update the transient to let the monitoring process know that it ran (even if no records were processed).
-		// We are using 180 minutes here instead of 15 minutes because this cron runs on a 60 minute schedule instead of a 1 min or 15 min schedule.		
+		// We are using 180 minutes here instead of 15 minutes because this cron runs on a 60 minute schedule instead of a 1 min or 15 min schedule.
 		set_transient( 'wpcd_clean_up_pending_logs_is_active', 1, ( 60 * 3 ) * MINUTE_IN_SECONDS );
 
 		// Get pending logs.
@@ -848,7 +886,7 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 					'key'     => 'pending_task_state',
 					'value'   => 'not-ready',
 					'compare' => 'NOT LIKE',
-				),				
+				),
 				array(
 					'key'     => 'pending_task_state',
 					'value'   => 'complete',
@@ -858,7 +896,7 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 					'key'     => 'pending_task_state',
 					'value'   => 'complete-manual',
 					'compare' => 'NOT LIKE',
-				),				
+				),
 				array(
 					'key'     => 'pending_task_state',
 					'value'   => 'ready',
@@ -873,7 +911,7 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 					'key'     => 'pending_task_state',
 					'value'   => 'failed-manual',
 					'compare' => 'NOT LIKE',
-				),				
+				),
 				array(
 					'key'     => 'pending_task_state',
 					'value'   => 'failed-timeout',

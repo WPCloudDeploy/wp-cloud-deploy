@@ -421,7 +421,7 @@ class WPCD_APP extends WPCD_Base {
 	 */
 	public function get_server_type( $server_id ) {
 
-		// Get the app post.
+		// Get the server post.
 		$server_type = get_post_meta( $server_id, 'wpcd_server_initial_app_name', true );
 
 		return $server_type;

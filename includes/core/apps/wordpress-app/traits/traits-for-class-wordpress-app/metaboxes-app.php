@@ -264,12 +264,11 @@ trait wpcd_wpapp_metaboxes_app {
 		$post_id = wpcd_get_post_id_from_global();
 
 		// Don't have a valid post_id?  Return!
-		if ( ! post_id ) {
+		if ( ! $post_id ) {
 			return $metaboxes;
 		}
 
 		// How much diskspace is allowed?
-		// @TODO: this value isn't collected correctly inside this function - something about the way MBIO sets up the metabox prevents this.
 		$allowed_disk = $this->get_site_disk_quota( $post_id );
 
 		// What is the default global quota?
@@ -310,7 +309,7 @@ trait wpcd_wpapp_metaboxes_app {
 						'max'      => $allowed_disk,
 						'disabled' => true,
 					),
-					'suffix'     => __( 'MB', 'wpcd' ),
+					'suffix'     => __( ' MB', 'wpcd' ),
 					'save_field' => false,
 					'readonly'   => true,
 					'disabled'   => true,

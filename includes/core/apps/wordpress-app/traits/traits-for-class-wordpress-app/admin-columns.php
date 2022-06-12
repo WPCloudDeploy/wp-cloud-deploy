@@ -192,10 +192,10 @@ trait wpcd_wpapp_admin_column_data {
 			$current_disk_usage = $this->get_total_disk_used( $post_id );
 
 			/* Translators: %d is the amount of disk space quota allowed for the site. */
-			$allowed_disk_display = sprintf( __( '%dMB', 'wpcd' ), $allowed_disk );
+			$allowed_disk_display = sprintf( __( '%d MB', 'wpcd' ), $allowed_disk );
 
 			/* Translators: %d is the amount of disk space in use for the site. */
-			$current_disk_usage_display = sprintf( __( '%dMB', 'wpcd' ), $current_disk_usage );
+			$current_disk_usage_display = sprintf( __( '%d MB', 'wpcd' ), $current_disk_usage );
 
 			if ( $allowed_disk > 0 ) {
 				$value  = __( 'Disk Quota: ', 'wpcd' );

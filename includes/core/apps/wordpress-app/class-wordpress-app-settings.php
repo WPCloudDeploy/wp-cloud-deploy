@@ -1372,6 +1372,13 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tooltip' => __( 'Hide the initial WP version data in the site summary column from non-admins in the site list', 'wpcd' ),
 				'tab'     => 'wordpress-app-fields-and-links',
 			),
+			array(
+				'id'      => 'wordpress_app_hide_disk_quota_in_summary_column_in_site_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide Disk Quota information in Site Summary Column', 'wpcd' ),
+				'tooltip' => __( 'Hide disk quota information in the site summary column from non-admins in the site list', 'wpcd' ),
+				'tab'     => 'wordpress-app-fields-and-links',
+			),
 
 			array(
 				'id'   => 'wordpress_fields_and_links_heading_04',

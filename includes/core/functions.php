@@ -1488,16 +1488,16 @@ function wpcd_wrap_string_with_div_and_class( $string, $hint, $prefix ) {
 }
 
 /**
- * Return the post id when viewing a post and the 
+ * Return the post id when viewing a post and the
  * id is not otherwise available.
  *
  * This is very useful when using the metabox filters
  * to setup a metabox.
- * 
+ *
  * @since 5.0
- *  * 
+ *  *
  * @see: https://support.metabox.io/topic/get-post-metabox-data-inside-of-mb-block-default-value/
- * 
+ *
  * @return int.
  */
 function wpcd_get_post_id_from_global() {
@@ -1507,7 +1507,7 @@ function wpcd_get_post_id_from_global() {
 	} elseif ( isset( $_POST['post_ID'] ) ) {
 		$post_id = intval( $_POST['post_ID'] );
 	}
-	return $post_id;	
+	return $post_id;
 }
 
 

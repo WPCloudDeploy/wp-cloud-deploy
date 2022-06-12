@@ -184,6 +184,37 @@ trait wpcd_wpapp_admin_column_data {
 			$new_column_data = $new_column_data . $value;
 		}
 
+		/* Add disk quota information */
+		if ( true === (bool) wpcd_get_option( 'wordpress_app_hide_disk_quota_in_summary_column_in_site_list' ) && ( ! wpcd_is_admin() ) ) {
+			// Do nothing.
+		} else {
+			$allowed_disk       = $this->get_site_disk_quota( $post_id );
+			$current_disk_usage = $this->get_total_disk_used( $post_id );
+
+			/* Translators: %d is the amount of disk space quota allowed for the site. */
+			$allowed_disk_display = sprintf( __( '%dMB', 'wpcd' ), $allowed_disk );
+
+			/* Translators: %d is the amount of disk space in use for the site. */
+			$current_disk_usage_display = sprintf( __( '%dMB', 'wpcd' ), $current_disk_usage );
+
+			if ( $allowed_disk > 0 ) {
+				$value  = __( 'Disk Quota: ', 'wpcd' );
+				$value  = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $value, 'disk_quota', 'left' );
+				$value .= WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $allowed_disk_display, 'disk_quota', 'right' );
+				$value  = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_div_and_class( $value, 'disk_quota' );
+
+				$new_column_data = $new_column_data . $value;
+
+				$value  = __( 'Disk Quota Used: ', 'wpcd' );
+				$value  = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $value, 'disk_quota_used', 'left' );
+				$value .= WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $current_disk_usage_display, 'disk_quota_used', 'right' );
+				$value  = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_div_and_class( $value, 'disk_quota_used' );
+
+				$new_column_data = $new_column_data . $value;
+
+			}
+		}
+
 		// Display the count of notes and admin notes.
 		if ( ! empty( $labels_count_arr ) ) {
 			$new_column_data = $new_column_data . $labels_count_arr . '<br />';

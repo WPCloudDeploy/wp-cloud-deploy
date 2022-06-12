@@ -661,17 +661,18 @@ class WPCD_Public_List_Table extends WP_List_Table {
 					$data,
 					$primary
 				);
-			} elseif ( method_exists( $this, 'column_' . $column_name ) ) {
-				echo "<div $attributes>";
-				echo "<span class=\"row_col_name\">{$column_display_name}</span>";
-				echo call_user_func( array( $this, 'column_' . $column_name ), $item );
-				echo $this->handle_row_actions( $item, $column_name, $primary );
-				echo '</div>';
 			} else {
 				echo "<div $attributes>";
 				echo "<span class=\"row_col_name\">{$column_display_name}</span>";
-				echo $this->column_default( $item, $column_name );
-				echo $this->handle_row_actions( $item, $column_name, $primary );
+				if ( method_exists( $this, 'column_' . $column_name ) ) {
+					echo call_user_func( array( $this, 'column_' . $column_name ), $item );
+				} else {
+					echo $this->column_default( $item, $column_name );
+				}
+				if( $column_name === 'title' ) {
+					echo $this->handle_row_actions( $item, $column_name, $primary );
+					do_action( "wpcd_public_{$this->post_type}_table_after_row_actions" );
+				}
 				echo '</div>';
 			}
 

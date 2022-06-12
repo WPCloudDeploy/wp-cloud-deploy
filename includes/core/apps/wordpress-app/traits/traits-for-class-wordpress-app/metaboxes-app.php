@@ -261,14 +261,22 @@ trait wpcd_wpapp_metaboxes_app {
 		}
 
 		// What's the post id we're looking at?
-		$post_id = filter_input( INPUT_GET, 'post', FILTER_VALIDATE_INT );
+		$post_id = wpcd_get_post_id_from_global();
+
+		// Don't have a valid post_id?  Return!
+		if ( ! post_id ) {
+			return $metaboxes;
+		}
 
 		// How much diskspace is allowed?
 		// @TODO: this value isn't collected correctly inside this function - something about the way MBIO sets up the metabox prevents this.
-		$allowed_disk = (int) get_post_meta( $post_id, 'wpcd_app_max_disk_space_allowed', true );
+		$allowed_disk = $this->get_site_disk_quota( $post_id );
 
 		// What is the default global quota?
 		$default_global_quota = (int) wpcd_get_early_option( 'wordpress_app_sites_default_disk_quota' );
+
+		// How much space are we currently using?
+		$current_disk_usage = $this->get_total_disk_used( $post_id );
 
 		// Register a metabox to hold disk limits (and possibly other limits in the future).
 		$metaboxes[] = array(
@@ -285,27 +293,28 @@ trait wpcd_wpapp_metaboxes_app {
 					'id'      => 'wpcd_app_disk_space_quota',
 					'type'    => 'number',
 					'std'     => 0,
+					/* Translators: %d is the global disk quota that applies to sites if a site does not have a separate quota value applied. */
 					'tooltip' => $default_global_quota > 0 ? sprintf( __( 'A global quota of %dMB applies to all sites if this value is zero or empty.', 'wpcd' ), $default_global_quota ) : '',
 				),
 
 				// Field to hold current usage.
 				// @TODO: doesn't work because we can't get the $allowed_disk var properly above.
-			/*
 				array(
-					'name'       => __( 'Current Usage.', 'wpcd' ),
+					'name'       => __( 'In Use', 'wpcd' ),
 					'id'         => 'wpcd_app_current_disk_used',
 					'type'       => 'slider',
-					'std'        => $this->get_total_disk_used( $post_id ),
+					'std'        => $current_disk_usage,
+					'desc'       => $current_disk_usage > $allowed_disk ? __( 'This site has exceeded its assigned disk quota.', 'wpcd' ) : '',
 					'js_options' => array(
-						'min' => 0,
-						'max' => $allowed_disk,
+						'min'      => 0,
+						'max'      => $allowed_disk,
+						'disabled' => true,
 					),
 					'suffix'     => __( 'MB', 'wpcd' ),
 					'save_field' => false,
 					'readonly'   => true,
 					'disabled'   => true,
 				),
-			*/
 
 			),
 		);

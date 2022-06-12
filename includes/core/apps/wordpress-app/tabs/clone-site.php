@@ -304,6 +304,14 @@ class WPCD_WORDPRESS_TABS_CLONE_SITE extends WPCD_WORDPRESS_TABS {
 			return new \WP_Error( $message );
 		}
 
+		// Allow developers to validate the new domain and bailout if necessary.
+		if ( ! apply_filters( 'wpcd_wpapp_validate_domain_on_clone', true, $args['new_domain'] ) ) {
+			/* translators: %s is replaced with the internal action name. */
+			$message = sprintf( __( 'The new domain has failed validation.  Please try again: %s', 'wpcd' ), $action );
+			do_action( "wpcd_{$this->get_app_name()}_clone_site_failed", $id, $action, $message, $args );
+			return new \WP_Error( $message );
+		}
+
 		// sanitize the fields to allow them to be used safely on the bash command line.
 		$args['new_domain'] = escapeshellarg( sanitize_text_field( $args['new_domain'] ) );
 

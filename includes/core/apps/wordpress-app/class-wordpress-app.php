@@ -2287,8 +2287,19 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		$secret_key_manager_api_key               = wpcd_get_option( 'wpcd_wpapp_custom_script_secrets_manager_api_key' );
 		$additional['secret_key_manager_api_key'] = $secret_key_manager_api_key;
 
-		/* Allow devs to hook into the array to add their own elements for use later - likely to be rarely used given that we now have the custom fields array. */
+		/**
+		 * Allow devs to hook into the array to add their own elements for use later - likely to be rarely used given that we now have the custom fields array.
+		 * Filter Name: wpcd_wordpress-app_install_wp_app_parms.
+		 */
 		$additional = apply_filters( "wpcd_{$this->get_app_name()}_install_wp_app_parms", $additional, $args );
+
+		/**
+		 * Allow devs to validate data in a way that can terminate processing.
+		 * Filter Name: wpcd_wordpress-app_install_wp_app_parms_validate.
+		 */
+		if ( ! apply_filters( "wpcd_{$this->get_app_name()}_install_wp_app_parms_validate", true, $additional, $args ) ) {
+			return new \WP_Error( __( 'There are some invalid data in this create site request. Please correct and try again.', 'wpcd' ) );
+		}
 
 		// command length should be <= 42.
 		// $command = 'install_wp_' . md5( $domain );.

@@ -281,11 +281,11 @@ class WPCD_Public_List_Table extends WP_List_Table {
 		if ( wpcd_is_admin() && boolval( wpcd_get_option( 'wordpress_app_fe_hide_filter_bar_from_admin' ) ) ) {
 			return;
 		}
-		
+
 		// Show the filter bar to non-admin users?
 		if ( ! wpcd_is_admin() && ! boolval( wpcd_get_option( 'wordpress_app_fe_show_filter_bar' ) ) ) {
 			return;
-		}		
+		}
 
 		$views = $this->get_views();
 
@@ -416,11 +416,11 @@ class WPCD_Public_List_Table extends WP_List_Table {
 					$(this).attr('href', url);
 				});
 			});
-			
+
 			$('#posts-filter .tablenav-pages .paging-input input.current-page[name=paged]').attr('name', '_page');
 
 		})(jQuery);
-		
+
 		</script>
 		<?php
 	}
@@ -430,7 +430,7 @@ class WPCD_Public_List_Table extends WP_List_Table {
 	 *
 	 * @return int
 	 */
-	function grid_responsive_width() {
+	public function grid_responsive_width() {
 
 		$responsive_width = 0;
 
@@ -453,15 +453,13 @@ class WPCD_Public_List_Table extends WP_List_Table {
 	public function print_style() {
 
 		$template_columns = implode( ' ', $this->grid_template_columns() );
+
 		?>
-		
-		<style>
-			
-			.wpcd-grid-table-columns, .wpcd-grid-table-rows .wpcd-grid-table-row {
-					grid-template-columns : <?php echo $template_columns; ?>
-			}	
-		</style>
-		
+			<style>
+				.wpcd-grid-table-columns, .wpcd-grid-table-rows .wpcd-grid-table-row {
+						grid-template-columns : <?php echo $template_columns; ?>
+				}	
+			</style>
 		<?php
 	}
 
@@ -673,10 +671,15 @@ class WPCD_Public_List_Table extends WP_List_Table {
 					echo call_user_func( array( $this, 'column_' . $column_name ), $item );
 				} else {
 					echo $this->column_default( $item, $column_name );
+					// Dynamic Action hook: eg: wpcd_public_wpcd_app_server_table_after_row_actions_for_date.
+					do_action( "wpcd_public_{$this->post_type}_table_after_row_actions_{$column_name}", $item, $column_name );
+					do_action( "wpcd_public_{$this->post_type}_table_after_row_actions", $item, $column_name, $primary );
 				}
-				if( $column_name === 'title' ) {
+				if ( $column_name === 'title' ) {
 					echo $this->handle_row_actions( $item, $column_name, $primary );
-					do_action( "wpcd_public_{$this->post_type}_table_after_row_actions" );
+					// Action hook: wpcd_public_wpcd_app_server_table_after_row_actions_for_title.
+					// Action hook: wpcd_public_wpcd_app_table_after_row_actions_for_title.
+					do_action( "wpcd_public_{$this->post_type}_table_after_row_actions_for_{$column_name}", $item, $column_name, $primary ); 
 				}
 				echo '</div>';
 			}
@@ -701,7 +704,7 @@ class WPCD_Public_List_Table extends WP_List_Table {
 		}
 		if ( wpcd_is_admin() && ! boolval( wpcd_get_option( 'wordpress_app_fe_hide_filter_bar_from_admin' ) ) ) {
 			$this->display_tablenav( 'top' );
-		}	
+		}
 
 		// Show the filter bar to non-admin users?
 		if ( ! wpcd_is_admin() && boolval( wpcd_get_option( 'wordpress_app_fe_show_filter_bar' ) ) ) {

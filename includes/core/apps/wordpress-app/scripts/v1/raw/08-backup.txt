@@ -48,40 +48,6 @@ function select_site() {
 	site=$(ls | sed -n "$item_number"p)
 }
 
-function remove_nginx_site() {
-	rm -f /etc/nginx/sites-*/*$domain
-	rm -f /etc/nginx/htpasswd/*$domain
-	echo "restarting web server..."
-	systemctl restart nginx
-	php_version=$(ls /etc/php/*/fpm/pool.d/$domain.conf | cut -d '/' -f 4)
-	echo "removing php configuration and restarting php process..."
-	rm /etc/php/$php_version/fpm/pool.d/$domain.conf
-	if [[ ! -f /etc/wpcd/php-versions-disabled/$php_version ]]
-	then
-		systemctl restart php$php_version-fpm
-	fi
-}
-
-function restore_nginx_configs() {
-	mv sites-enabled/*$domain /etc/nginx/sites-enabled/
-	mv htpasswd/*$domain /etc/nginx/htpasswd/ 2>/dev/null
-
-	gf_add_php_conf $domain $user_name 7.4
-}
-
-function remove_ols_site() {
-	gf_remove_ols_site "$domain"
-}
-
-function restore_ols_site() {
-	rsync -az vhosts/$domain ${VHDIR}/
-	chown -R lsadm:lsadm ${VHDIR}/$domain
-	if ! grep -qw "virtualhost $domain " ${WEBCF}
-	then
-		gf_add_domain_ols_httpd_conf $domain
-	fi
-}
-
 # configure aws credentials if it's our first time
 if [[ ! -e $user_home/.aws/credentials ]]
 then
@@ -274,10 +240,10 @@ QUERY
 		rm -rf /var/www/$domain
 		if [ "$g_webserver_type" = "nginx" ]
 		then
-			remove_nginx_site
+			gf_remove_nginx_site "$domain"
 		elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 		then
-			remove_ols_site
+			gf_remove_ols_site "$domain"
 		fi
 		userdel $user_name
 	fi
@@ -301,10 +267,10 @@ QUERY
 
 	if [ "$g_webserver_type" = "nginx" ]
 	then
-		restore_nginx_configs
+		gf_restore_nginx_site "$domain"
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
-		restore_ols_site
+		gf_restore_ols_site "$domain"
 	fi
 
 	cd ..
@@ -900,10 +866,10 @@ then
 	
 	if [ "$g_webserver_type" = "nginx" ]
 	then
-		remove_nginx_site
+		gf_remove_nginx_site "$domain"
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
-		remove_ols_site
+		gf_remove_ols_site "$domain"
 	fi
 
 	# restore configuration file.
@@ -915,10 +881,10 @@ then
 	if [ "$g_webserver_type" = "nginx" ]
 	then
 		# restore nginx config
-		restore_nginx_configs
+		gf_restore_nginx_site "$domain"
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
-		restore_ols_site
+		gf_restore_ols_site "$domain"
 		# Restore just the .htaccess file as well
 		tar -zvxf ../../"$backup"_fs.tar.gz $domain/html/.htaccess
 		mv $domain/html/.htaccess /var/www/$domain/html/.htaccess

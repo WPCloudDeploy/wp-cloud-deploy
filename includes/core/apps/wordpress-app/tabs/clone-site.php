@@ -304,6 +304,14 @@ class WPCD_WORDPRESS_TABS_CLONE_SITE extends WPCD_WORDPRESS_TABS {
 			return new \WP_Error( $message );
 		}
 
+		// Allow developers to validate the new domain and bailout if necessary.
+		if ( ! apply_filters( 'wpcd_wpapp_validate_domain_on_clone', true, $args['new_domain'] ) ) {
+			/* translators: %s is replaced with the internal action name. */
+			$message = sprintf( __( 'The new domain has failed validation.  Please try again: %s', 'wpcd' ), $action );
+			do_action( "wpcd_{$this->get_app_name()}_clone_site_failed", $id, $action, $message, $args );
+			return new \WP_Error( $message );
+		}
+
 		// sanitize the fields to allow them to be used safely on the bash command line.
 		$args['new_domain'] = escapeshellarg( sanitize_text_field( $args['new_domain'] ) );
 
@@ -395,6 +403,11 @@ class WPCD_WORDPRESS_TABS_CLONE_SITE extends WPCD_WORDPRESS_TABS {
 		// Bail if site is not enabled.
 		if ( ! $this->is_site_enabled( $id ) ) {
 			return array_merge( $fields, $this->get_disabled_header_field( 'clone-site' ) );
+		}
+
+		// If the number of sites allowed on the server have been exceeded, return.
+		if ( $this->get_has_server_exceeded_sites_allowed( $id ) && ! wpcd_is_admin() ) {
+			return array_merge( $fields, $this->get_max_sites_exceeded_header_field( 'clone-site' ) );
 		}
 
 		// Allow a third party to show a different set of fields instead.

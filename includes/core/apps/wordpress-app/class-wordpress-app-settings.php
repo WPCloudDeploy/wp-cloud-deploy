@@ -1372,6 +1372,13 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tooltip' => __( 'Hide the initial WP version data in the site summary column from non-admins in the site list', 'wpcd' ),
 				'tab'     => 'wordpress-app-fields-and-links',
 			),
+			array(
+				'id'      => 'wordpress_app_hide_disk_quota_in_summary_column_in_site_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide Disk Quota information in Site Summary Column', 'wpcd' ),
+				'tooltip' => __( 'Hide disk quota information in the site summary column from non-admins in the site list', 'wpcd' ),
+				'tab'     => 'wordpress-app-fields-and-links',
+			),
 
 			array(
 				'id'   => 'wordpress_fields_and_links_heading_04',
@@ -1641,12 +1648,26 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tab'  => 'wordpress-app-front-end-fields',
 			),
 			array(
-				'id'      => 'wordpress_app_fe_hide_filter_bar',
+				'id'      => 'wordpress_app_fe_show_filter_bar',
 				'type'    => 'checkbox',
-				'name'    => __( 'Hide Filter Bar', 'wpcd' ),
-				'tooltip' => __( 'HIDE the filter bar at the top of the server and site list.', 'wpcd' ),
+				'name'    => __( 'Show Filter Bar To Non-Admins', 'wpcd' ),
+				'tooltip' => __( 'Show the filter bar at the top of the server and site list to non-admin users. This is usually hidden from non-admins.', 'wpcd' ),
 				'tab'     => 'wordpress-app-front-end-fields',
 			),
+			array(
+				'id'      => 'wordpress_app_fe_hide_filter_bar_from_admin',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide Filter Bar From Admin', 'wpcd' ),
+				'tooltip' => __( 'HIDE the filter bar at the top of the server and site list from the admin. Usually this is shown to admins.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_show_install_wp_button_top_of_list_page',
+				'type'    => 'checkbox',
+				'name'    => __( 'Show the Install WordPress Button', 'wpcd' ),
+				'tooltip' => __( 'Show the install WordPress button at the top of the list page?', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),			
 
 			array(
 				'id'   => 'wordpress_front_end_fields_heading_notes',
@@ -2353,9 +2374,25 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'data-action'      => 'wpcd_reset_defaults_brand_colors',
 				'data-nonce'       => wp_create_nonce( 'wpcd-reset-brand-colors' ),
 				'data-loading_msg' => __( 'Please wait...', 'wpcd' ),
-				'data-confirm'     => __( 'Are you sure you would like to reset the brand colors with defaults?', 'wpcd' ),
+				'data-confirm'     => __( 'Are you sure you would like to reset the brand colors with defaults?  This will reset both the front-end and back-end colors to the WPCD defaults.', 'wpcd' ),
 			),
 			'tab'        => 'wordpress-app-white-label',
+		);
+
+		// DISABLE FONTAWESOME.
+		$fields[] = array(
+			'name' => __( 'Front-end Icons', 'wpcd' ),
+			'id'   => 'wordpress-app-front-end-icons-heading',
+			'type' => 'heading',
+			'std'  => '',
+			'tab'  => 'wordpress-app-white-label',
+		);
+		$fields[] = array(
+			'name'    => 'Disable Tab Icons on the Front-end',
+			'id'      => 'wordpress_app_disable_front_end_icons',
+			'type'    => 'checkbox',
+			'tooltip' => __( 'This will prevent the Fontawesome icon files from loading. The css markup will still be present in the html but without the fontawesome css file the markup will not do anything.  You can use the same markup to apply your own icons if you prefer as long as no other plugin or theme loads the Fontawesome files.', 'wpcd' ),
+			'tab'     => 'wordpress-app-white-label',
 		);
 
 		/**

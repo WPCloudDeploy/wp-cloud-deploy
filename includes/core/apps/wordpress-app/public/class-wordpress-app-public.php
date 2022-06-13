@@ -23,14 +23,14 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 	private static $instance;
 
 	/**
-	 * is it server edit page
+	 * Is it the server edit page?
 	 *
 	 * @var null|boolean
 	 */
 	public $is_server_edit_page = null;
 
 	/**
-	 * is it app listing page
+	 * Is it app listing page?
 	 *
 	 * @var null|boolean
 	 */
@@ -71,7 +71,7 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 	 */
 	private function public_hooks() {
 
-		// Make sure WordPress loads up our css and js scripts on frontend
+		// Make sure WordPress loads up our css and js scripts on frontend.
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ), 10, 1 );
 
 		add_filter( 'the_content', array( $this, 'public_single_server_content' ) );
@@ -93,27 +93,29 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 
 		add_filter( 'removable_query_args', array( $this, 'removable_query_args' ) );
 		add_filter( 'wpcd_app_script_args', array( $this, 'add_public_script_args_app' ), 20, 2 );
-		add_action( "wpcd_wordpress-app_create_popup_after_console_wrap", array( $this, 'wpcd_wordpress_create_popup_after_console_wrap' ) , 100, 0 );
+		add_action( 'wpcd_wordpress-app_create_popup_after_console_wrap', array( $this, 'wpcd_wordpress_create_popup_after_console_wrap' ), 100, 0 );
 	}
-	
+
 	/**
 	 * Add div after console view to clear css float
 	 */
 	public function wpcd_wordpress_create_popup_after_console_wrap() {
 		echo '<div class="wpcd_public_clear"></div>';
 	}
-	
-	
+
+
 	/**
-	 * Add setting fields for public pages
-	 * 
-	 * @param type $fields
-	 * 
+	 * Add setting fields for public pages so that admin can reset the pages if necessary.
+	 *
+	 * Filter Hook: wpcd_wordpress-app_settings_fields
+	 *
+	 * @param type $fields Current array of settings fields.
+	 *
 	 * @return array
 	 */
 	public function wpcd_public_app_settings_fields( $fields ) {
-		
-		$public_fields = array (
+
+		$public_fields = array(
 			array(
 				'id'   => 'wordpress_front_end_fields_heading_public_pages',
 				'type' => 'heading',
@@ -122,117 +124,117 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 				'tab'  => 'wordpress-app-front-end-fields',
 			),
 			array(
-				'id'      => 'wordpress_public_apps_list_page',
-				'type'    => 'text',
-				'name'    => __( 'Apps Page', 'wpcd' ),
-				'desc' => __( 'Page id to display apps table on front-end.', 'wpcd' ),
-				'tab'     => 'wordpress-app-front-end-fields',
-				'std'  =>  self::get_apps_list_page_id(),
+				'id'         => 'wordpress_public_apps_list_page',
+				'type'       => 'text',
+				'name'       => __( 'Apps Page', 'wpcd' ),
+				'desc'       => __( 'Page id to display apps table on front-end.', 'wpcd' ),
+				'tab'        => 'wordpress-app-front-end-fields',
+				'std'        => self::get_apps_list_page_id(),
 				'save_field' => false,
-				'attributes' => array('readonly' => 'readonly')
+				'attributes' => array( 'readonly' => 'readonly' ),
 			),
 			array(
-				'id'   => 'wordpress_public_servers_list_page',
-				'type' => 'text',
-				'name' => __( 'Servers Page', 'wpcd' ),
-				'desc' => __( 'Page id to display servers table on front-end.', 'wpcd' ),
-				'tab'  => 'wordpress-app-front-end-fields',
-				'std'  => self::get_servers_list_page_id(),
+				'id'         => 'wordpress_public_servers_list_page',
+				'type'       => 'text',
+				'name'       => __( 'Servers Page', 'wpcd' ),
+				'desc'       => __( 'Page id to display servers table on front-end.', 'wpcd' ),
+				'tab'        => 'wordpress-app-front-end-fields',
+				'std'        => self::get_servers_list_page_id(),
 				'save_field' => false,
-				'attributes' => array('readonly' => 'readonly')
+				'attributes' => array( 'readonly' => 'readonly' ),
 			),
 			array(
-				'id'   => 'wordpress_public_server_deploy_page',
-				'type' => 'text',
-				'name' => __( 'Server Deploy Page', 'wpcd' ),
-				'desc' => __( 'Page id to display deploy server form.', 'wpcd' ),
-				'tab'  => 'wordpress-app-front-end-fields',
-				'std'  => self::get_server_deploy_page_id(),
+				'id'         => 'wordpress_public_server_deploy_page',
+				'type'       => 'text',
+				'name'       => __( 'Server Deploy Page', 'wpcd' ),
+				'desc'       => __( 'Page id to display deploy server form.', 'wpcd' ),
+				'tab'        => 'wordpress-app-front-end-fields',
+				'std'        => self::get_server_deploy_page_id(),
 				'save_field' => false,
-				'attributes' => array('readonly' => 'readonly')
+				'attributes' => array( 'readonly' => 'readonly' ),
 			),
-			
+
 			array(
 				'type'       => 'button',
 				'std'        => __( 'Create', 'wpcd' ),
-				'name' => __( 'Create missing pages', 'wpcd' ),
-				'tab'  => 'wordpress-app-front-end-fields',
-				'desc' => __( 'Create missing front-end pages.', 'wpcd' ),
+				'name'       => __( 'Create missing pages', 'wpcd' ),
+				'tab'        => 'wordpress-app-front-end-fields',
+				'desc'       => __( 'Create missing front-end pages.', 'wpcd' ),
 				'attributes' => array(
 					'id'          => 'wordpress_public_create_pages_button',
 					'data-action' => 'wpcd_public_create_pages',
 					'data-nonce'  => wp_create_nonce( 'wpcd-create-public-pages' ),
 				),
-			)
+			),
 		);
-		
+
 		return array_merge( $fields, $public_fields );
 	}
-	
+
 	/**
 	 * Create missing public pages via ajax
 	 */
 	public function ajax_public_create_pages() {
-		
-		$nonce  = filter_input( INPUT_POST, 'nonce', FILTER_SANITIZE_STRING );
-		
-		$data = [];
-		if ( wp_verify_nonce( $nonce, "wpcd-create-public-pages" ) ) {
+
+		$nonce = filter_input( INPUT_POST, 'nonce', FILTER_SANITIZE_STRING );
+
+		$data = array();
+		if ( wp_verify_nonce( $nonce, 'wpcd-create-public-pages' ) ) {
 			self::create_pages();
 			$data['msg'] = __( 'Missing pages successfully created.', 'wpcd' );
 		}
 		wp_send_json_success( $data );
 	}
-	
+
 	/**
 	 * Change redirect to public apps listing page.
-	 * 
-	 * @param array $args args.
-	 * @param string $script script
-	 * 
+	 *
+	 * @param array  $args Current args.
+	 * @param string $script Current script.
+	 *
 	 * @return array
 	 */
 	public function add_public_script_args_app( $args, $script ) {
-		
-		if( self::is_public_page() ) {
+
+		if ( self::is_public_page() ) {
 			$args['redirect'] = get_permalink( self::get_apps_list_page_id() );
 		}
-		
+
 		return $args;
 	}
 
 	/**
 	 * Remove _page query var to avoid duplication in pagination url
 	 *
-	 * @param array $args
+	 * @param array $args Current args.
 	 *
 	 * @return array
 	 */
-	function removable_query_args( $args ) {
+	public function removable_query_args( $args ) {
 
 		$args[] = '_page';
 		return $args;
 	}
 
 	/**
-	 * manipulate views for servers table
+	 * Manipulate views for servers table.
 	 *
-	 * @param array $views
+	 * @param array $views Current views.
 	 *
 	 * @return array
 	 */
-	function wpcd_app_server_table_views( $views ) {
+	public function wpcd_app_server_table_views( $views ) {
 		return WPCD_POSTS_APP_SERVER()->wpcd_app_manipulate_views( 'wpcd_app_server', $views, 'view_server', true );
 	}
 
 	/**
-	 * manipulate views for apps table
+	 * Manipulate views for apps table.
 	 *
-	 * @param array $views
+	 * @param array $views Current views.
 	 *
 	 * @return array
 	 */
-	function wpcd_app_table_views( $views ) {
+	public function wpcd_app_table_views( $views ) {
 		return WPCD_POSTS_APP()->wpcd_app_manipulate_views( 'wpcd_app', $views, 'view_server', true );
 	}
 
@@ -369,7 +371,7 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 	 *
 	 * @return string
 	 */
-	function wpcd_deploy_server() {
+	public function wpcd_deploy_server() {
 
 		ob_start();
 		WPCD_WORDPRESS_APP()->ajax_server_handle_create_popup( 'public' );
@@ -437,21 +439,23 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 				'server_delete_messages' => WPCD_POSTS_APP_SERVER()->wpcd_app_trash_prompt_messages(),
 			)
 		);
-		
+
 		?>
-		
+
 		<script type="text/javascript">
-		 var wpcd_public_app_delete_messages   = '<?php echo json_encode( array_map('esc_html', WPCD_POSTS_APP()->wpcd_app_trash_prompt_messages() ) ); ?>';
-		 var wpcd_public_server_delete_messages = '<?php echo json_encode( array_map('esc_html', WPCD_POSTS_APP_SERVER()->wpcd_app_trash_prompt_messages() ) ); ?>';
+		var wpcd_public_app_delete_messages   = '<?php echo json_encode( array_map( 'esc_html', WPCD_POSTS_APP()->wpcd_app_trash_prompt_messages() ) ); ?>';
+		var wpcd_public_server_delete_messages = '<?php echo json_encode( array_map( 'esc_html', WPCD_POSTS_APP_SERVER()->wpcd_app_trash_prompt_messages() ) ); ?>';
 		</script>
 		<?php
-		
+
 		if ( self::is_server_edit_page() || self::is_app_edit_page() ) {
 			wp_enqueue_script( 'wpcd-mbio-tabs-fix.', wpcd_url . 'assets/js/wpcd-mbio-tabs-fix.js', array( 'jquery', 'rwmb-tabs' ), wpcd_scripts_version, true );
-			
+
 			// Enqueue the font-awesome pro kit.
-			wp_register_script( 'wpcd-fontawesome-pro', 'https://kit.fontawesome.com/4fa00a8874.js', array(), 5.0, true );
-			wp_enqueue_script( 'wpcd-fontawesome-pro' );
+			if ( ! boolval( wpcd_get_early_option( 'wordpress_app_disable_front_end_icons' ) ) ) {
+				wp_register_script( 'wpcd-fontawesome-pro', 'https://kit.fontawesome.com/4fa00a8874.js', array(), 5.0, true );
+				wp_enqueue_script( 'wpcd-fontawesome-pro' );
+			}
 		}
 
 		wp_enqueue_style( 'wpcd-public-common', wpcd_url . 'includes/core/apps/wordpress-app/assets/css/wpcd-public-common.css', wpcd_scripts_version, true );
@@ -460,8 +464,8 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 	/**
 	 * Register custom metabox class name
 	 *
-	 * @param string $name
-	 * @param array  $setting
+	 * @param string $name Name of metabox.
+	 * @param array  $setting Not used.
 	 *
 	 * @return string
 	 */
@@ -477,8 +481,10 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 	/**
 	 * Remove 'Private:' from apps and servers single posts
 	 *
-	 * @param string $title
-	 * @param int    $id
+	 * Filter Hook: the_title
+	 *
+	 * @param string $title Current title before we overwrite it.
+	 * @param int    $id The post id of the post we're handling here.
 	 *
 	 * @return string
 	 */
@@ -494,21 +500,23 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 	/**
 	 * Return single server content
 	 *
-	 * @param string $content
+	 * Filter Hook: the_content
+	 *
+	 * @param string $content Current page content before we overwrite it.
 	 *
 	 * @return string
 	 */
-	function public_single_server_content( $content ) {
+	public function public_single_server_content( $content ) {
 
 		if ( self::is_server_edit_page() ) {
 			if ( wpcd_user_can_edit_app_server() && class_exists( 'RW_Meta_Box' ) ) {
 				ob_start();
-				
+
 				$metaboxes = array();
-				if( WPCD_WORDPRESS_APP()->get_tab_style_server() == 'left' ) {
+				if ( WPCD_WORDPRESS_APP()->get_tab_style_server() == 'left' ) {
 					$metaboxes[] = 'wpcd_server_wordpress-app_tab_top_of_server_details';
 				}
-				
+
 				$metaboxes[] = 'wpcd_server_wordpress-app_tab3';
 
 				echo '<div><a class="button wpcd-back_link" href="' . get_permalink( self::get_servers_list_page_id() ) . '">' . __( 'Cloud Servers', 'wpcd' ) . '</a></div>';
@@ -533,21 +541,23 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 	/**
 	 * Return single server app content
 	 *
-	 * @param string $content
+	 * Filter Hook: the_content
+	 *
+	 * @param string $content Current page content before we overwrite it.
 	 *
 	 * @return string
 	 */
-	function public_single_app_content( $content ) {
+	public function public_single_app_content( $content ) {
 
 		if ( self::is_app_edit_page() ) {
 			if ( wpcd_user_can_edit_app_server( null, null, 'app' ) && class_exists( 'RW_Meta_Box' ) ) {
 
 				ob_start();
 				$metaboxes = array();
-				if( WPCD_WORDPRESS_APP()->get_tab_style() == 'left' ) {
+				if ( WPCD_WORDPRESS_APP()->get_tab_style() == 'left' ) {
 					$metaboxes[] = 'wpcd_wordpress-app_tab_top_of_site_details';
 				}
-				
+
 				$metaboxes[] = 'wpcd_wordpress-app_tab2';
 
 				echo '<div><a class="button wpcd-back_link" href="' . get_permalink( self::get_apps_list_page_id() ) . '">' . __( 'All Apps', 'wpcd' ) . '</a></div>';
@@ -573,11 +583,11 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 	/**
 	 * Customize query for front-end pages
 	 *
-	 * @param object $query
+	 * @param object $query Current query object.
 	 *
 	 * @return object
 	 */
-	function pre_get_posts( $query ) {
+	public function pre_get_posts( $query ) {
 
 		if ( is_admin() || ! $query->is_main_query() || ! is_single() ) {
 			return $query;
@@ -623,23 +633,28 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 		);
 
 		$post_status = filter_input( INPUT_GET, 'post_status', FILTER_SANITIZE_STRING );
+
 		ob_start();
+
 		?>
-		
 		<div id="wpcd_public_wrapper">
 			<div id="wpcd_public_apps_container">
-				<?php printf( '<a class="button deploy_button" href="%s">%s</a>', get_permalink( self::get_servers_list_page_id() ), __( 'New WordPress Site', 'wpcd' ) ); ?>
+				<?php 
+					/* Show INSTALL WORDPRESS button at the top of the app list page? */
+					if ( boolval( wpcd_get_early_option( 'wordpress_app_fe_show_install_wp_button_top_of_list_page' ) ) ) {
+						printf( '<a class="button deploy_button" href="%s">%s</a>', get_permalink( self::get_servers_list_page_id() ), __( 'New WordPress Site', 'wpcd' ) ); 
+					}
+				?>
 				<?php $table->views(); ?>
 				<form id="posts-filter" method="get">
 					<input type="hidden" name="post_status" class="post_status_page" value="<?php echo ! empty( $post_status ) ? esc_attr( $post_status ) : 'all'; ?>" />
 					<?php $table->display(); ?>
 				</form>
-		
 			</div>
 			<?php $table->update_table_pagination_js(); ?>
 		</div>
-				
 		<?php
+
 		return ob_get_clean();
 	}
 
@@ -673,8 +688,29 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 		?>
 		<div id="wpcd_public_wrapper">
 			<div id="wpcd_public_servers_container">
-					
-				<?php printf( '<a class="button deploy_button" href="%s">%s</a>', get_permalink( self::get_server_deploy_page_id() ), __( 'Deploy A New WordPress Server', 'wpcd' ) ); ?>
+
+				<div id="wpcd_public_servers_top_button_bar_wrap">
+					<?php
+					/**
+					 * Action hook: Allow developers to add buttons here?
+					 */
+					do_action( 'wpcd_wpapp_frontend_server_list_before_deploy_button' );
+					?>
+
+					<?php
+					// Filter: wpcd_wordpress-app_show_deploy_server_front_end_button.
+					if ( apply_filters( 'wpcd_{WPCD_WORDPRESS_APP()->get_app_name()}_show_deploy_server_front_end_button', current_user_can( 'wpcd_provision_servers' ) ) ) {
+						printf( '<a class="button deploy_button" href="%s">%s</a>', get_permalink( self::get_server_deploy_page_id() ), __( 'Deploy A New WordPress Server', 'wpcd' ) );
+					}
+					?>
+
+					<?php
+					/**
+					 * Action hook: Allow developers to add buttons here?
+					 */
+					do_action( 'wpcd_wpapp_frontend_server_list_after_deploy_button' );
+					?>
+				</div>
 				<?php $table->views(); ?>
 				<form id="posts-filter" method="get">
 					<input type="hidden" name="post_status" class="post_status_page" value="<?php echo ! empty( $post_status ) ? esc_attr( $post_status ) : 'all'; ?>" />
@@ -683,7 +719,7 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 			</div>
 			<?php $table->update_table_pagination_js(); ?>
 		</div>
-				
+
 		<?php
 		return ob_get_clean();
 	}
@@ -746,7 +782,7 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 
 		$object = self::instance();
 
-		if ( $object->is_apps_listing_page === null ) {
+		if ( null === $object->is_apps_listing_page ) {
 			$url                          = 'http://' . $_SERVER['SERVER_NAME'] . explode( '?', $_SERVER['REQUEST_URI'] )[0];
 			$post_id                      = url_to_postid( $url );
 			$object->is_apps_listing_page = $post_id && $post_id == self::get_apps_list_page_id() ? true : false;
@@ -802,8 +838,8 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 	/**
 	 * Check if a public page exists
 	 *
-	 * @param string  $name
-	 * @param boolean $check_exists
+	 * @param string  $name Name of page.
+	 * @param boolean $check_exists Check if it exists.
 	 *
 	 * @return boolean
 	 */

@@ -560,6 +560,7 @@ class WPCD_NOTIFY_SENT extends WPCD_POSTS_LOG {
 				$this->add_user_notify_sent_log_entry( $alert_id, $notify_type, sprintf( __( 'Email notification sent successfully for notification_id : %d', 'wpcd' ), $notify_log_id ), $notify_ref, '1', $sent_to, null );
 			}
 		} else {
+			$sent_to = $user_email;
 			$this->add_user_notify_sent_log_entry( $alert_id, $notify_type, sprintf( __( 'Could not send email notification due to empty email subject or body field for notification_id : %d', 'wpcd' ), $notify_log_id ), $notify_ref, '0', $sent_to, null );
 		}
 	}

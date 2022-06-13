@@ -31,6 +31,21 @@
 		}
 	}
 	/* End do not show screen if wpsite licenses exceeded */
+
+
+	/* Do not show screen if max sites allowed on server has been exceeded */
+	if ( WPCD_WORDPRESS_APP()->get_has_server_exceeded_sites_allowed( $server_id ) && ! wpcd_is_admin() ) {
+		?>
+		<div class="wpcd-install-app-container wpcd-popup">
+			<div class="wpcd-no-install-wp-permission">
+			<?php echo esc_html( __( 'Oops! The maximum number of sites allowed on this server has been reached or exceeded!  Please contact your admin or support for assistance.', 'wpcd' ) ); ?></div>
+			</div>
+		</div>			
+		<?php
+		return;
+	}
+	/* End do not show screen if max sites allowed on server has been exceeded */
+
 	?>
 
 	<?php

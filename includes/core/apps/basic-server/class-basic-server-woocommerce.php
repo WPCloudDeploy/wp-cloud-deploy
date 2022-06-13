@@ -253,20 +253,25 @@ class BASIC_SERVER_WooCommerce extends WPCD_WOOCOMMERCE {
 					'post_status' => 'private',
 					'numberposts' => 300,
 					'meta_query'  => array(
+						'relation' => 'AND',
 						array(
 							'key'   => 'wpcd_server_wc_order_id',
 							'value' => $order_id,
 						),
+						array(
+							'key'   => 'wpcd_server_initial_app_name',
+							'value' => 'basic-server',
+						),						
 					),
 					'fields'      => 'ids',
 				)
 			);
 
-			do_action( 'wpcd_log_error', 'Cancelling ' . count( $instances ) . " instances in WC order ($order_id)", 'debug', __FILE__, __LINE__ );
+			do_action( 'wpcd_log_error', 'Canceling ' . count( $instances ) . " instances in WC order ($order_id)", 'debug', __FILE__, __LINE__ );
 
 			if ( $instances ) {
 				foreach ( $instances as $id ) {
-					do_action( 'wpcd_log_error', "Cancelling Server $id as part of WC order ($order_id)", 'debug', __FILE__, __LINE__ );
+					do_action( 'wpcd_log_error', "Canceling Server $id as part of WC order ($order_id)", 'debug', __FILE__, __LINE__ );
 					do_action( 'wpcd_basic_server_app_action', $id, 'delete' );
 				}
 			}

@@ -460,7 +460,7 @@
 #wpcd_public_wrapper .wpcd_site_home_page_image.column-wpcd_site_home_page_image a img {
 	min-width: 100%;
 	max-width: 100%;
-	min-height: 100%;
+	max-height: 250px;
 	border-radius: 10px;
 }
 #wpcd_public_wrapper #wpcd_public_apps_container .wpcd-grid-table-cell:first-child {

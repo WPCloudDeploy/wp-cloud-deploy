@@ -96,6 +96,66 @@ class WPCD_WOOCOMMERCE {
 	}
 
 	/**
+	 * Does the cart contain a renewal order?
+	 *
+	 * @param object $order  WC Order Object.
+	 */
+	public function is_cart_renewal( $order = null ) {
+
+		$is_renewal = wcs_cart_contains_renewal();
+
+		if ( $is_renewal && ! is_wp_error( $is_renewal ) ) {
+			return true;
+		}
+
+		if ( $order ) {
+			if ( true === wcs_order_contains_renewal( $order ) ) {
+				return true;
+			}
+		}
+
+		return false;
+
+	}
+
+	/**
+	 * Does the cart contain a subscription switch object?
+	 *
+	 * @return boolean True - cart has at least one subscription switch object in it, false otherwise.
+	 */
+	public function is_cart_subscription_switch() {
+
+		$return = false;
+		if ( ! is_null( WC()->cart ) ) {
+			foreach ( WC()->cart->get_cart() as $cart_item_key => $cart_item ) {
+				if ( ! empty( $cart_item['subscription_switch'] ) ) {
+					$return = true;
+				}
+			}
+		}
+
+		return $return;
+
+	}
+
+	/**
+	 * Does the order contain a subscription switch?
+	 *
+	 * @param object|int $order  WC Order Object or WC order id.
+	 */
+	public function is_order_subscription_switch( $order ) {
+
+		if ( $order ) {
+			if ( true === wcs_order_contains_switch( $order ) ) {
+				return true;
+			}
+		}
+
+		return false;
+
+	}
+
+	/**
 	 * Returns the thank you text to show.
 	 *
 	 * @since 1.0.0

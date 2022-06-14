@@ -50,6 +50,7 @@ then
 	fi	
 	
 	mkdir -p $backuptmp $backupdir
+	mkdir -p $backuptmp/lsws/conf/
 	rsync -az /usr/local/lsws/conf/ $backuptmp/lsws/conf/ 2>/dev/null
 	mkdir -p $backuptmp/lsws/lsphp{72,73,74,80,81}/etc/php/{7.2,7.3,7.4,8.0,8.1}/litespeed/ 2>/dev/null
 	rsync -az /usr/local/lsws/lsphp72/etc/php/7.2/litespeed/php.ini $backuptmp/lsws/lsphp72/etc/php/7.2/litespeed/php.ini 2>/dev/null

@@ -1011,7 +1011,7 @@ fi
 
 if [[ $action == "wp2_configure_rclone" || $action == "16" ]]
 then
-	rclone config edit
+	rclone config
 	exit
 fi
 

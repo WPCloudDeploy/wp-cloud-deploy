@@ -64,7 +64,7 @@ function wpcd_delete_child_posts( $post_type, $post_id ) {
 
 	$posts_to_delete = wpcd_get_child_posts( $post_type, $post_id );
 
-	apply_filters( 'wpcd_server_delete_automatice_images_for_sites', $post_type, $posts_to_delete );
+	apply_filters( 'wpcd_get_child_posts_for_delete', $post_type, $posts_to_delete );
 
 	if ( ! empty( $posts_to_delete ) ) {
 		foreach ( $posts_to_delete as $post ) {

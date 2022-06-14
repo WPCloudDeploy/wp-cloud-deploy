@@ -1352,9 +1352,12 @@ function gf_remove_nginx_site() {
 	fi
 
 	rm -f /etc/nginx/sites-*/$domain*
+	rm -f /etc/nginx/htpasswd/*$domain
+	echo "restarting web server..."
 	systemctl restart nginx
 	local php_version
 	php_version=$(ls /etc/php/*/fpm/pool.d/$domain.conf | cut -d '/' -f 4)
+	echo "removing php configuration and restarting php process..."
 	rm -f /etc/php/$php_version/fpm/pool.d/$domain.conf
 	if [[ ! -f /etc/wpcd/php-versions-disabled/$php_version ]]
 	then
@@ -1377,4 +1380,34 @@ function gf_remove_ols_site() {
 	rm -rf ${VHDIR}/$domain
 	rm -rf ${LSDIR}/conf/vhosts-disabled/$domain
 	gf_remove_domain_ols_httpd_conf "$domain"
+}
+
+#####################################################################
+### Restore an ols Site.
+###
+### @param $1 Domain
+#####################################################################
+function gf_restore_ols_site() {
+	local domain
+	domain=$1
+	rsync -az vhosts/$domain ${VHDIR}/
+	chown -R lsadm:lsadm ${VHDIR}/$domain
+	if ! grep -qw "virtualhost $domain " ${WEBCF}
+	then
+		gf_add_domain_ols_httpd_conf $domain
+	fi
+}	
+
+#####################################################################
+### Restore an nginx Site.
+###
+### @param $1 Domain
+#####################################################################
+function gf_restore_nginx_site() {
+	local domain
+	domain=$1
+	mv sites-enabled/*$domain /etc/nginx/sites-enabled/
+	mv htpasswd/*$domain /etc/nginx/htpasswd/ 2>/dev/null
+
+	gf_add_php_conf $domain $user_name 7.4
 }

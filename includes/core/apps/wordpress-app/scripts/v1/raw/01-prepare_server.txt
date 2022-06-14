@@ -823,7 +823,11 @@ fastcgi_hide_header X-Powered-By;
 */3 * * * * root if ! find /var/www/*/html/ -maxdepth 2 -type f -newer /usr/local/lsws/admin/cgid -name '.htaccess' -exec false {} +; then systemctl restart lsws; fi
 EOL
 		chmod +x /etc/cron.d/openlitespeed_htaccess_scan > /dev/null 2>&1
-
+		
+		# Setup symlink of the ols/lsws logs folder "/usr/local/lsws/logs" into the conventional /var/log/ folder into /var/log/lsws
+		# This breaks the least amount of things for existing users without needing global config changes and ensures pros familiar with OLS aren't confused when looking and people unfamiliar with OLS still see the logs where conventionally they expect too.
+		ln -s /usr/local/lsws/logs /var/log/lsws > /dev/null 2>&1
+		
 		echo "$(date): Update pecl for lsphp versions"
 		for version in $(ls /usr/local/lsws|grep lsphp)
 		do

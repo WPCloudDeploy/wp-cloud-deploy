@@ -1549,6 +1549,27 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tab'     => 'wordpress-app-front-end-fields',
 			),
 			array(
+				'id'      => 'wordpress_app_fe_show_cache_in_app_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Show Cache', 'wpcd' ),
+				'tooltip' => __( 'Show the cache field/card in the app list on the front-end. This data is already shown in the APP FEATURES card but you can choose to also show it in a separate card.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_show_php_in_app_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Show PHP', 'wpcd' ),
+				'tooltip' => __( 'Show the php field/card in the app list on the front-end. This data is already shown in the APP FEATURES card but you can choose to also show it in a separate card.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_show_ssl_in_app_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Show SSL', 'wpcd' ),
+				'tooltip' => __( 'Show the SSL field/card in the app list on the front-end. This data is already shown in the APP FEATURES card but you can choose to also show it in a separate card.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
 				'id'      => 'wordpress_app_fe_show_web_server_type_column_in_app_list',
 				'type'    => 'checkbox',
 				'name'    => __( 'Show Web Server Type', 'wpcd' ),
@@ -1592,6 +1613,13 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tab'     => 'wordpress-app-front-end-fields',
 			),
 			array(
+				'id'      => 'wordpress_app_fe_hide_app_features_in_app_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide App Features', 'wpcd' ),
+				'tooltip' => __( 'Hide the app features field/card in the app list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
 				'id'      => 'wordpress_app_fe_hide_app_health_in_app_list',
 				'type'    => 'checkbox',
 				'name'    => __( 'Hide App Health', 'wpcd' ),
@@ -1610,27 +1638,6 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'type'    => 'checkbox',
 				'name'    => __( 'Hide Staging', 'wpcd' ),
 				'tooltip' => __( 'Hide the staging field/card in the app list on the front-end.', 'wpcd' ),
-				'tab'     => 'wordpress-app-front-end-fields',
-			),
-			array(
-				'id'      => 'wordpress_app_fe_hide_cache_in_app_list',
-				'type'    => 'checkbox',
-				'name'    => __( 'Hide Cache', 'wpcd' ),
-				'tooltip' => __( 'Hide the cache field/card in the app list on the front-end.', 'wpcd' ),
-				'tab'     => 'wordpress-app-front-end-fields',
-			),
-			array(
-				'id'      => 'wordpress_app_fe_hide_php_in_app_list',
-				'type'    => 'checkbox',
-				'name'    => __( 'Hide php', 'wpcd' ),
-				'tooltip' => __( 'Hide the php field/card in the app list on the front-end.', 'wpcd' ),
-				'tab'     => 'wordpress-app-front-end-fields',
-			),
-			array(
-				'id'      => 'wordpress_app_fe_hide_ssl_in_app_list',
-				'type'    => 'checkbox',
-				'name'    => __( 'Hide ssl', 'wpcd' ),
-				'tooltip' => __( 'Hide the SSL field/card in the app list on the front-end.', 'wpcd' ),
 				'tab'     => 'wordpress-app-front-end-fields',
 			),
 			array(
@@ -1667,8 +1674,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'name'    => __( 'Show the Install WordPress Button', 'wpcd' ),
 				'tooltip' => __( 'Show the install WordPress button at the top of the list page?', 'wpcd' ),
 				'tab'     => 'wordpress-app-front-end-fields',
-			),			
-
+			),
 			array(
 				'id'   => 'wordpress_front_end_fields_heading_notes',
 				'type' => 'heading',

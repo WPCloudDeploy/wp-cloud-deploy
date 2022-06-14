@@ -305,7 +305,7 @@ trait wpcd_wpapp_admin_column_data {
 		$new_column_data  = '';
 		$new_column_data .= $this->get_app_health_data( $post_id );
 
-		/* If not data, add a notification to that effect. */
+		/* If no data, add a notification to that effect. */
 		if ( empty( $new_column_data ) ) {
 			$new_column_data = __( 'No data for this app.', 'wpcd' );
 		}
@@ -565,7 +565,7 @@ trait wpcd_wpapp_admin_column_data {
 					// We're in wp-admin area but not allowed to show this element.
 					$show_web_server_type = false;
 				}
-				if ( $show_web_server_type && $this->get_app_name() === $this->get_server_type( $post_id) ) {
+				if ( $show_web_server_type && $this->get_app_name() === $this->get_server_type( $post_id ) ) {
 					// Show it.
 					$value .= $this->get_formatted_web_server_type_for_display( $post_id, true );
 				}
@@ -721,7 +721,7 @@ trait wpcd_wpapp_admin_column_data {
 
 		// Cache.
 		$show_it = true;
-		if ( ! is_admin() && ( boolval( wpcd_get_option( 'wordpress_app_fe_hide_cache_in_app_list' ) ) ) ) {
+		if ( ! is_admin() && ( ! boolval( wpcd_get_option( 'wordpress_app_fe_show_cache_in_app_list' ) ) ) ) {
 			$show_it = false;
 		}
 		if ( $show_it ) {
@@ -730,7 +730,7 @@ trait wpcd_wpapp_admin_column_data {
 
 		// PHP.
 		$show_it = true;
-		if ( ! is_admin() && ( boolval( wpcd_get_option( 'wordpress_app_fe_hide_php_in_app_list' ) ) ) ) {
+		if ( ! is_admin() && ( ! boolval( wpcd_get_option( 'wordpress_app_fe_show_php_in_app_list' ) ) ) ) {
 			$show_it = false;
 		}
 		if ( $show_it ) {
@@ -739,11 +739,22 @@ trait wpcd_wpapp_admin_column_data {
 
 		// SSL.
 		$show_it = true;
-		if ( ! is_admin() && ( boolval( wpcd_get_option( 'wordpress_app_fe_hide_ssl_in_app_list' ) ) ) ) {
+		if ( ! is_admin() && ( ! boolval( wpcd_get_option( 'wordpress_app_fe_show_ssl_in_app_list' ) ) ) ) {
 			$show_it = false;
 		}
 		if ( $show_it ) {
 			$defaults['wpcd_wpapp_ssl'] = __( 'SSL', 'wpcd' );
+		}
+
+		// App Features - only applicable to the front-end.
+		if ( ! is_admin() ) {
+			$show_it = true;
+			if ( ! is_admin() && ( boolval( wpcd_get_option( 'wordpress_app_fe_hide_app_features_in_app_list' ) ) ) ) {
+				$show_it = false;
+			}
+			if ( $show_it ) {
+				$defaults['wpcd_wpapp_features'] = __( 'App Features', 'wpcd' );
+			}
 		}
 
 		return $defaults;
@@ -770,92 +781,15 @@ trait wpcd_wpapp_admin_column_data {
 		switch ( $column_name ) {
 
 			case 'wpcd_wpapp_ssl':
-				if ( 'wordpress-app' === $this->get_app_name() ) {
-					// add the ssl status.
-					$ssl_status = wpcd_maybe_unserialize( get_post_meta( $post_id, 'wpapp_ssl_status', true ) );
-					if ( empty( $ssl_status ) ) {
-						$ssl_status = 'off';
-					}
-
-					if ( 'off' == $ssl_status ) {
-						echo '<div class="wpcd_ssl_status wpcd_ssl_status_off">' . $ssl_status . '</div>';
-					} else {
-						echo '<div class="wpcd_ssl_status wpcd_ssl_status_on">' . $ssl_status . '</div>';
-					}
-				}
-
+				echo wp_kses_post( $this->get_formatted_ssl_for_display( $post_id ) );
 				break;
 
 			case 'wpcd_wpapp_php':
-				if ( 'wordpress-app' === $this->get_app_name() ) {
-					// add the php version.
-					$php_version = wpcd_maybe_unserialize( get_post_meta( $post_id, 'wpapp_php_version', true ) );
-					if ( empty( $php_version ) ) {
-						$php_version = '7.4';
-					}
-
-					// Create a variable that can be used as part of a css class name - periods are not allowed in class names.
-					$php_version_class = str_replace( '.', '_', $php_version );
-
-					// Show a link that takes you to a list of apps with the clicked php version.
-					if ( is_admin() ) {
-						$url = admin_url( 'edit.php?post_type=wpcd_app&wpapp_php_version=' . $php_version );
-					} else {
-						$url = get_permalink( WPCD_WORDPRESS_APP_PUBLIC::get_apps_list_page_id() ) . '?wpapp_php_version=' . $php_version;
-					}
-
-					echo "<a href=\"$url\" class=\"wpcd_php_version wpcd_php_version_$php_version_class\">" . $php_version . '</a>';
-
-				}
-
+				echo wp_kses_post( $this->get_formatted_php_version_for_display( $post_id ) );
 				break;
 
 			case 'wpcd_wpapp_cache':
-				if ( 'wordpress-app' === $this->get_app_name() ) {
-					// get the page cache status.
-					$page_cache = WPCD_WORDPRESS_APP()->get_page_cache_status( $post_id );
-					if ( empty( $page_cache ) ) {
-						$page_cache = 'off';
-					}
-
-					// Create a string suitable for displaying the page cache status.
-					$value  = __( 'Page Cache: ', 'wpcd' );
-					$value  = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $value, 'page_cache', 'left' );
-					$value .= WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $page_cache, 'page_cache', 'right' );
-					$value  = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_div_and_class( $value, 'page_cache' );
-
-					// Display the page cache status by echoing out the string we just built.
-					echo '<div class="wpcd_page_cache_status">' . $value . '</div>';
-
-					// get the memcached status...
-					$object_cache = wpcd_maybe_unserialize( get_post_meta( $post_id, 'wpapp_memcached_status', true ) );
-					if ( empty( $object_cache ) ) {
-						$object_cache = 'off';
-					} elseif ( 'on' === $object_cache ) {
-						$object_cache = 'MemCached';
-					}
-
-					// get the redis status.
-					if ( 'off' === $object_cache ) {
-						$object_cache = wpcd_maybe_unserialize( get_post_meta( $post_id, 'wpapp_redis_status', true ) );
-						if ( empty( $object_cache ) ) {
-							$object_cache = 'off';
-						} elseif ( 'on' === $object_cache ) {
-							$object_cache = 'REDIS';
-						}
-					}
-
-					// Create a string suitable for displaying the object cache status.
-					$value  = __( 'Object Cache: ', 'wpcd' );
-					$value  = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $value, 'object_cache', 'left' );
-					$value .= WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $object_cache, 'object_cache', 'right' );
-					$value  = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_div_and_class( $value, 'object_cache' );
-
-					// Display the object cache status by echoing out the string we just built.
-					echo '<div class="wpcd_object_cache_status">' . $value . '</div>';
-
-				}
-
+				echo wp_kses_post( $this->get_formatted_cache_for_display( $post_id ) );
 				break;
 
 			case 'wpcd_wpapp_web_server_type':
@@ -910,8 +844,165 @@ trait wpcd_wpapp_admin_column_data {
 
 				break;
 
+			case 'wpcd_wpapp_features':
+				/**
+				 * This column only shows on the front-end hence the formatting of strings are only for that purpose.
+				 */
+
+				// Create a string suitable for displaying the ssl status.
+				$ssl    = $this->get_formatted_ssl_for_display( $post_id );
+				$value  = __( 'SSL: ', 'wpcd' );
+				$value  = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $value, 'site_ssl', 'left' );
+				$value .= WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $ssl, 'site_ssl', 'right' );
+				$value  = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_div_and_class( $value, 'site_ssl' );
+				echo wp_kses_post( $value );
+
+				// Create a string suitable for displaying the php version.
+				$php    = $this->get_formatted_php_version_for_display( $post_id );
+				$value  = __( 'PHP: ', 'wpcd' );
+				$value  = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $value, 'site_php', 'left' );
+				$value .= WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $php, 'site_php', 'right' );
+				$value  = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_div_and_class( $value, 'site_php' );
+				echo wp_kses_post( $value );
+
+				// Get a string suitable for displaying the cache information.
+				$cache = $this->get_formatted_cache_for_display( $post_id );
+				echo wp_kses_post( $cache );
+
+				break;
+
 		}
 
+	}
+
+	/**
+	 * Return a formatted string of the SSL status for display.
+	 *
+	 * @since 5.0
+	 *
+	 * @param int $post_id The post id of the app we're working with.
+	 *
+	 * @return string
+	 */
+	public function get_formatted_ssl_for_display( $post_id ) {
+
+		if ( 'wordpress-app' === $this->get_app_name() ) {
+			// add the ssl status.
+			$ssl_status = wpcd_maybe_unserialize( get_post_meta( $post_id, 'wpapp_ssl_status', true ) );
+			if ( empty( $ssl_status ) ) {
+				$ssl_status = 'off';
+			}
+
+			if ( 'off' == $ssl_status ) {
+				return '<div class="wpcd_ssl_status wpcd_ssl_status_off">' . $ssl_status . '</div>';
+			} else {
+				return '<div class="wpcd_ssl_status wpcd_ssl_status_on">' . $ssl_status . '</div>';
+			}
+		}
+		return '';
+	}
+
+	/**
+	 * Return a formatted string of the cache status for display.
+	 *
+	 * @since 5.0
+	 *
+	 * @param int $post_id The post id of the app we're working with.
+	 *
+	 * @return string
+	 */
+	public function get_formatted_cache_for_display( $post_id ) {
+
+		if ( 'wordpress-app' === $this->get_app_name() ) {
+			// get the page cache status.
+			$page_cache = WPCD_WORDPRESS_APP()->get_page_cache_status( $post_id );
+			if ( empty( $page_cache ) ) {
+				$page_cache = 'off';
+			}
+
+			// Create a string suitable for displaying the page cache status.
+			$pc_value  = __( 'Page Cache: ', 'wpcd' );
+			$pc_value  = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $pc_value, 'page_cache', 'left' );
+			$pc_value .= WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $page_cache, 'page_cache', 'right' );
+			$pc_value  = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_div_and_class( $pc_value, 'page_cache' );
+
+			// Wrap the string in a div.
+			if ( 'off' === $page_cache ) {
+				$pc_value = '<div class="wpcd_page_cache_status wpcd_page_cache_off">' . $pc_value . '</div>';
+			} else {
+				$pc_value = '<div class="wpcd_page_cache_status wpcd_page_cache_on">' . $pc_value . '</div>';
+			}
+
+			// get the memcached status...
+			$object_cache = wpcd_maybe_unserialize( get_post_meta( $post_id, 'wpapp_memcached_status', true ) );
+			if ( empty( $object_cache ) ) {
+				$object_cache = 'off';
+			} elseif ( 'on' === $object_cache ) {
+				$object_cache = 'MemCached';
+			}
+
+			// get the redis status.
+			if ( 'off' === $object_cache ) {
+				$object_cache = wpcd_maybe_unserialize( get_post_meta( $post_id, 'wpapp_redis_status', true ) );
+				if ( empty( $object_cache ) ) {
+					$object_cache = 'off';
+				} elseif ( 'on' === $object_cache ) {
+					$object_cache = 'REDIS';
+				}
+			}
+
+			// Create a string suitable for displaying the object cache status.
+			$oc_value  = __( 'Object Cache: ', 'wpcd' );
+			$oc_value  = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $oc_value, 'object_cache', 'left' );
+			$oc_value .= WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $object_cache, 'object_cache', 'right' );
+			$oc_value  = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_div_and_class( $oc_value, 'object_cache' );
+
+			// Wrap the string in a div.
+			if ( 'off' === $object_cache ) {
+				$oc_value = '<div class="wpcd_object_cache_status wpcd_object_cache_off">' . $oc_value . '</div>';
+			} else {
+				$oc_value = '<div class="wpcd_object_cache_status wpcd_object_cache_on">' . $oc_value . '</div>';
+			}
+
+			return $pc_value . $oc_value;
+
+		}
+
+		return '';
+
+	}
+
+	/**
+	 * Return a formatted string of the php version for display.
+	 *
+	 * @since 5.0
+	 *
+	 * @param int $post_id The post id of the app we're working with.
+	 *
+	 * @return string
+	 */
+	public function get_formatted_php_version_for_display( $post_id ) {
+		if ( 'wordpress-app' === $this->get_app_name() ) {
+			// add the php version.
+			$php_version = wpcd_maybe_unserialize( get_post_meta( $post_id, 'wpapp_php_version', true ) );
+			if ( empty( $php_version ) ) {
+				$php_version = '7.4';
+			}
+
+			// Create a variable that can be used as part of a css class name - periods are not allowed in class names.
+			$php_version_class = str_replace( '.', '_', $php_version );
+
+			// Show a link that takes you to a list of apps with the clicked php version.
+			if ( is_admin() ) {
+				$url = admin_url( 'edit.php?post_type=wpcd_app&wpapp_php_version=' . $php_version );
+			} else {
+				$url = get_permalink( WPCD_WORDPRESS_APP_PUBLIC::get_apps_list_page_id() ) . '?wpapp_php_version=' . $php_version;
+			}
+
+			return "<a href=\"$url\" class=\"wpcd_php_version wpcd_php_version_$php_version_class\">" . $php_version . '</a>';
+
+		}
+		return '';
 	}
 
 	/**

@@ -749,13 +749,52 @@
 	border-color: var(--wpcd-front-end-primary-brand-color);
 	border-width: 1px;
 	border-style: solid;
-	padding: 4px 8px;		
+	padding: 4px 8px;
+	border-radius: 3px;
 }
 .wpcd-grid-table .wpcd-app-col-element-label-wp_admin_link a:hover,
 .wpcd-grid-table .wpcd-app-col-element-value-homepage_link a:hover {
 	background-color: var(--wpcd-front-end-accent-background-color);	
 	border-color: var(--wpcd-front-end-accent-background-color);
 
+}
+
+/* Style the SSL value in the app list. */
+.wpcd-grid-table .wpcd_ssl_status {
+	min-width: 50px;
+	text-transform: uppercase;
+	text-align: center;
+}
+
+/* Style the PHP value in the app list */
+.wpcd-grid-table .wpcd_php_version {
+	min-width: 50px;
+	text-align: center;
+}
+
+/* Style the PAGE and OBJECT CACHE values in the app list (APP FEATURES card) */
+.wpcd-grid-table .wpcd_page_cache_status .wpcd-app-col-element-value-page_cache,
+.wpcd-grid-table .wpcd_object_cache_status .wpcd-app-col-element-value-object_cache {
+    display: inline-block;
+	min-width: 50px;
+	text-align: center;
+    padding: 2px 8px;
+    font-weight: 700;
+    color: #fff;
+    vertical-align: baseline;
+    border-radius: 3px;
+    margin: 2px;
+	text-transform: uppercase;
+}
+.wpcd-grid-table .wpcd_page_cache_off .wpcd-app-col-element-value-page_cache {
+	color: red;
+}
+.wpcd-grid-table .wpcd_object_cache_off .wpcd-app-col-element-value-object_cache {
+    color: orange;
+}
+.wpcd-grid-table .wpcd_page_cache_on .wpcd-app-col-element-value-page_cache,
+.wpcd-grid-table .wpcd_object_cache_on .wpcd-app-col-element-value-object_cache {
+	color: green;
 }
 
 .wpcd-grid-table .wpcd-app-col-element-wrap-health_last_update {

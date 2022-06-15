@@ -79,6 +79,11 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 
 		// Action hook to clean up pending logs.
 		add_action( 'wp_ajax_clean_up_pending_logs_action', array( $this, 'wpcd_clean_up_pending_logs_callback' ) );
+
+		// Delete the pending logs on site deletion.
+		add_action( 'wp_trash_post', array( $this, 'wpcd_wpapp_pending_log_post_delete' ), 11, 1 );
+		add_action( 'before_delete_post', array( $this, 'wpcd_wpapp_pending_log_post_delete' ), 11, 1 );
+		add_action( 'wpcd_before_remove_site_action', array( $this, 'wpcd_wpapp_pending_log_post_delete' ), 11, 1 );
 	}
 
 	/**
@@ -1068,4 +1073,82 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 		}
 
 	}
+
+	/**
+	 * Delete the pending logs on site deletion.
+	 *
+	 * @param int $post_id site post id.
+	 */
+	public function wpcd_wpapp_pending_log_post_delete( $post_id ) {
+
+		$state_meta = array(
+			'relation' => 'OR',
+			array(
+				'key'   => 'pending_task_state',
+				'value' => 'ready',
+			),
+			array(
+				'key'   => 'pending_task_state',
+				'value' => 'in-process',
+			),
+			array(
+				'key'   => 'pending_task_state',
+				'value' => 'not-ready',
+			),
+		);
+
+		// Delete the pending logs where the OWNER/PARENT is the same as site or server id.
+		if ( ( get_post_type( $post_id ) === 'wpcd_app' || get_post_type( $post_id ) === 'wpcd_app_server' ) && wpcd_is_admin() ) {
+			$log_args = array(
+				'post_type'      => 'wpcd_pending_log',
+				'post_status'    => 'private',
+				'posts_per_page' => -1,
+				'fields'         => 'ids', // Only get post IDs.
+				'meta_query'     => array(
+					'relation' => 'AND',
+					array(
+						'key'   => 'parent_post_id',
+						'value' => $post_id, // Server OR Site.
+					),
+					$state_meta,
+				),
+			);
+
+			$log_posts = get_posts( $log_args );
+
+			if ( ! empty( $log_posts ) ) {
+				foreach ( $log_posts as $key => $value ) {
+					wp_delete_post( $value );
+				}
+			}
+		}
+
+		// Delete the pending logs where the ASSOCIATED SERVER ID is the same as site id.
+		if ( get_post_type( $post_id ) === 'wpcd_app_server' ) {
+			$pending_log_args = array(
+				'post_type'      => 'wpcd_pending_log',
+				'post_status'    => 'private',
+				'posts_per_page' => -1,
+				'fields'         => 'ids', // Only get post IDs.
+				'meta_query'     => array(
+					'relation' => 'AND',
+					array(
+						'key'   => 'pending_task_associated_server_id',
+						'value' => $post_id,
+					),
+					$state_meta,
+				),
+			);
+
+			$pending_log_posts = get_posts( $pending_log_args );
+
+			if ( ! empty( $pending_log_posts ) ) {
+				foreach ( $pending_log_posts as $key => $value ) {
+					wp_delete_post( $value );
+				}
+			}
+		}
+
+	}
+
 }

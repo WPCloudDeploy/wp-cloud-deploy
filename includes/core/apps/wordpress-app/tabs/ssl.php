@@ -249,7 +249,7 @@ class WPCD_WORDPRESS_TABS_SSL extends WPCD_WORDPRESS_TABS {
 				switch ( $webserver_type ) {
 					case 'ols':
 					case 'ols-enterprise':
-						$http_fragment_text = __( 'HTTP2/HTTP3/SPDY', 'wpcd' );
+						$http_fragment_text = __( 'HTTP2', 'wpcd' ); // This should be "HTTP2/HTTP3/SPDY" but I'm not convinced that lsws is actually handling this correctly.
 						break;
 
 					case 'nginx':

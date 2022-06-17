@@ -1,0 +1,95 @@
+#!/bin/bash
+if [[ "$EUID" -ne 0 ]]
+then
+	echo "Sorry, you need to run this as root"
+	exit
+fi
+
+## Get our common functions
+if [[ ! -f 9999-common-functions.sh ]]
+then
+	echo "The file 9999-common-functions.sh is missing"
+	exit 1
+fi
+source 9999-common-functions.sh
+
+while [[ -z $action ]]
+do
+	echo
+	echo "What do you want to do?"
+	echo
+	echo "   1) Switch to Remote Database"
+	echo "   2) Switch to local Database"
+	echo "   3) Copy database from local to Remote"
+	echo "   4) Copy database from Remote to local"
+	read -p "Action: " action
+	until [[ -z "$action" || "$action" =~ ^[0-4]+$ ]]
+	do
+		echo "$action: invalid selection."
+		read -p "Action: " action
+	done
+done
+
+if [[ $action == "switch_remote" || $action == "1" ]]
+then
+        if [[ -z $remote_dbserver ]]
+        then
+		echo "Please enter Remote Database server IP: "
+                read -p "Remote Database ServerIP: " remote_dbserver
+        fi
+
+	echo "[client]
+	host=$remote_dbserver" > /root/.my.cnf
+
+	for domain in /var/www/*
+	do
+		if [ ! -f "${domain}/html/wp-config.php" ]
+		then
+			continue
+		fi
+		gf_get_dbhost $domain
+		sed -i "s/$g_mysql_host/$remote_dbserver/g" $domain/html/wp-config.php
+	done
+fi
+
+
+if [[ $action == "switch_local" || $action == "2" ]]
+then
+	rm -f /root/.my.cnf
+
+	for domain in /var/www/*
+	do
+		if [ ! -f "${domain}/html/wp-config.php" ]
+		then
+			continue
+		fi
+		gf_get_dbhost $domain
+		sed -i "s/$g_mysql_host/localhost/g" $domain/html/wp-config.php
+	done
+fi
+
+
+if [[ $action == "copy_to_remote" || $action == "3" ]]
+then
+        if [[ -z $remote_dbserver ]]
+        then
+		echo "Please enter Remote Database server IP where database need to copy: "
+                read -p "Remote Database ServerIP: " remote_dbserver
+        fi
+	mysqldump --all-databases --add-drop-database > /root/databases_bkpcopy.sql
+	mysql --host $remote_dbserver < /root/databases_bkpcopy.sql
+	rm /root/databases_bkpcopy.sql
+fi
+
+
+if [[ $action == "copy_to_local" || $action == "4" ]]
+then
+        if [[ -z $remote_dbserver ]]
+        then
+		echo "Please enter Remote Database server IP from where database need to download: "
+                read -p "Remote Database ServerIP: " remote_dbserver
+        fi
+	mysqldump --host $remote_dbserver --all-databases --add-drop-database > /root/databases_bkpcopy.sql
+	mysql --host localhost < /root/databases_bkpcopy.sql
+	rm /root/databases_bkpcopy.sql
+fi

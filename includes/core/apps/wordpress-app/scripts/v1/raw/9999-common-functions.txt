@@ -403,6 +403,9 @@ function gf_enable_certbot_nginx_site() {
 			# If we need a calling script to continue even after SSL has failed then we need a way to return a value
 			# to the calling script and make sure that script #4 and other ssl handling scripts make use of the returned value.			
 			exit 1
+		else
+			echo
+			echo "SSL has been enabled for $nginxdomain"		
 		fi
 		systemctl restart nginx
 	fi
@@ -470,15 +473,12 @@ function gf_enable_certbot_ols_site() {
 	then
 		sed -i "s|/usr/local/lsws/conf/example.key|/etc/letsencrypt/live/$olsdomain/privkey.pem|g" ${VHDIR}/${olsdomain}/$g_vhost_conf > /dev/null 2>&1
 		sed -i "s|/usr/local/lsws/conf/example.crt|/etc/letsencrypt/live/$olsdomain/fullchain.pem|g" ${VHDIR}/${olsdomain}/$g_vhost_conf > /dev/null 2>&1
-		echo "certificate has been successfully installed..."
+		echo
+		echo "SSL has been enabled for $olsdomain"
+		echo		
 		gf_restart_webserver
 	else
 		echo "SSL could not be enabled for $olsdomain"
-		# important that we exit here. Otherwise script #4 which uses this will proceed as if nothing happened.
-		# That in turn will inform any UI using these scripts that SSL was successful - which it was NOT.
-		# If we need a calling script to continue even after SSL has failed then we need a way to return a value
-		# to the calling script and make sure that script #4 and other ssl handling scripts make use of the returned value.
-		exit 1  
 	fi
 }
 
@@ -576,14 +576,16 @@ function gf_database_create() {
 	local DB_NAME
 	local DB_USERNAME
 	local DB_PASSWORD
+	local DB_HOST
 	DB_NAME="$1"
 	DB_USERNAME="$2"
 	DB_PASSWORD="$3"
+	DB_HOST="$4"
 
 	# echo "Creating ${DB_NAME} and granting privileges"
 	mariadb <<QUERY
 CREATE DATABASE $DB_NAME;
-GRANT ALL ON $DB_NAME.* TO '$DB_USERNAME'@'localhost' IDENTIFIED BY '$DB_PASSWORD' WITH GRANT OPTION;
+GRANT ALL ON $DB_NAME.* TO '$DB_USERNAME'@'$DB_HOST' IDENTIFIED BY '$DB_PASSWORD' WITH GRANT OPTION;
 FLUSH PRIVILEGES;
 QUERY
 }
@@ -1279,6 +1281,25 @@ function gf_ols_htaccess
 }
 
 #####################################################################
+### setup default ols example page
+#####################################################################
+function gf_ols_default_page
+{
+	# https://riptutorial.com/bash/example/2135/indenting-here-documents
+	# Special Note: Tabs should be maintained for the indenting for this work!
+	cat > "/usr/local/lsws/Example/html/index.html" <<-'EOL'
+	<!DOCTYPE html>
+	<html lang="en">
+	<head>
+	</head>
+	<body>
+		<H1>This is the default page on your WPCloudDeploy server. You are probably here because we could not find the site you are looking for.</H1>
+	</body>
+	</html>
+	EOL
+}
+
+#####################################################################
 ### 7G firewall enable for ols
 #####################################################################
 function gf_7g_ols_enable {
@@ -1410,4 +1431,17 @@ function gf_restore_nginx_site() {
 	mv htpasswd/*$domain /etc/nginx/htpasswd/ 2>/dev/null
 
 	gf_add_php_conf $domain $user_name 7.4
+}
+
+#####################################################################
+### Get database host for domain
+#####################################################################
+function gf_get_dbhost() {
+	local domain
+	domain=$1
+	g_mysql_host=$(grep DB_HOST /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
+	if [ -z $g_mysql_host ]
+	then
+		g_mysql_host=localhost
+	fi
 }

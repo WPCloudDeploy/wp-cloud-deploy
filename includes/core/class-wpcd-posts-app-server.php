@@ -580,7 +580,7 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 
 			case 'wpcd_server_app_count':
 				$app_count                   = WPCD_SERVER()->get_app_count( $post_id );
-				$url                         = is_admin() ? admin_url( 'edit.php?post_type=wpcd_app&' ) : get_permalink( WPCD_WORDPRESS_APP_PUBLIC::get_apps_list_page_id() ) . '?' . 'server_id=' . $post_id;
+				$url                         = is_admin() ? admin_url( 'edit.php?post_type=wpcd_app&filter_action=Filter&wpcd_app_server_dd=' . $post_id ) : get_permalink( WPCD_WORDPRESS_APP_PUBLIC::get_apps_list_page_id() ) . '?filter_action=Filter&_wpcd_app_server_dd=' . $post_id;
 				$app_count_label             = $this->wpcd_column_wrap_string_with_span_and_class( __( 'App Count:', 'wpcd' ), 'server_app_count', 'left' );
 				$app_count_value_for_display = $this->wpcd_column_wrap_string_with_span_and_class( $app_count, 'server_app_count', 'right' );
 				$value                       = sprintf( '%s <a href="%s" target="_blank">%s</a>', $app_count_label, esc_url( $url ), $app_count_value_for_display );

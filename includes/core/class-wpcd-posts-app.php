@@ -1082,7 +1082,7 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 			}
 
 			// SERVER.
-			$_wpcd_app_server = is_admin() ? 'wpcd_app_server' : '_wpcd_app_server';
+			$_wpcd_app_server = is_admin() ? 'wpcd_app_server_dd' : '_wpcd_app_server_dd';
 			if ( isset( $_GET[ $_wpcd_app_server ] ) && ! empty( $_GET[ $_wpcd_app_server ] ) ) {
 				$wpcd_app_server = filter_input( INPUT_GET, $_wpcd_app_server, FILTER_SANITIZE_STRING );
 

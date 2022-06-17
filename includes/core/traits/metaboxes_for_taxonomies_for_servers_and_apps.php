@@ -278,7 +278,7 @@ trait wpcd_metaboxes_for_taxonomies_for_servers_and_apps {
 			return '';
 		}
 
-		$name = is_admin() ? $post_type : "_{$post_type}";
+		$name = is_admin() ? 'wpcd_app_server_dd' : '_wpcd_app_server_dd';
 		$html          = '';
 		$html         .= sprintf( '<select name="%s" id="filter-by-%s">', $name, $post_type );
 		$html         .= sprintf( '<option value="">%s</option>', $first_option );

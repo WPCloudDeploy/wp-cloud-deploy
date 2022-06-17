@@ -461,10 +461,6 @@ class WPCD_NOTIFY_LOG extends WPCD_POSTS_LOG {
 			}
 		}
 
-		// @TODO: This should not be called here every single time the logs are updated. This should have a cron job or something else.
-		/* Clean up old log entries */
-		$this->clean_up_old_log_entries( 'wpcd_notify_log' );
-
 		return $post_id;
 
 	}

@@ -305,9 +305,6 @@ class WPCD_SSH_LOG extends WPCD_POSTS_LOG {
 			update_post_meta( $post_id, 'ssh_cmd_result', $result );
 		}
 
-		/* Clean up old log entries */
-		$this->clean_up_old_log_entries( 'wpcd_ssh_log' );
-
 		return $post_id;
 
 	}

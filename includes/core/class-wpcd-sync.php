@@ -116,18 +116,55 @@ class WPCD_SYNC {
 
 			// remove cron if auto export disable.
 			if ( $wpcd_sync_auto_export == 0 || empty( $wpcd_sync_auto_export ) ) {
-				wp_unschedule_hook( 'wpcd_export_data_actions' );
-				wp_clear_scheduled_hook( 'wpcd_export_data_actions', $old_schedule_args );
-				wp_clear_scheduled_hook( 'wpcd_export_data_actions', $schedule_args );
+
+				if ( is_multisite() && is_plugin_active_for_network( wpcd_plugin ) ) {
+					// Get all blogs in the network.
+					$blog_ids = get_sites( array( 'fields' => 'ids' ) );
+					foreach ( $blog_ids as $blog_id ) {
+						switch_to_blog( $blog_id );
+						wp_unschedule_hook( 'wpcd_export_data_actions' );
+						wp_clear_scheduled_hook( 'wpcd_export_data_actions', $old_schedule_args );
+						wp_clear_scheduled_hook( 'wpcd_export_data_actions', $schedule_args );
+						restore_current_blog();
+					}
+				} else {
+					wp_unschedule_hook( 'wpcd_export_data_actions' );
+					wp_clear_scheduled_hook( 'wpcd_export_data_actions', $old_schedule_args );
+					wp_clear_scheduled_hook( 'wpcd_export_data_actions', $schedule_args );
+				}
 			}
 
 			// set cron if export settings changed.
 			if ( $output_matched == 0 ) {
-				wp_unschedule_hook( 'wpcd_export_data_actions' );
-				wp_clear_scheduled_hook( 'wpcd_export_data_actions', $old_schedule_args );
+
+				if ( is_multisite() && is_plugin_active_for_network( wpcd_plugin ) ) {
+					// Get all blogs in the network.
+					$blog_ids = get_sites( array( 'fields' => 'ids' ) );
+					foreach ( $blog_ids as $blog_id ) {
+						switch_to_blog( $blog_id );
+						wp_unschedule_hook( 'wpcd_export_data_actions' );
+						wp_clear_scheduled_hook( 'wpcd_export_data_actions', $old_schedule_args );
+						restore_current_blog();
+					}
+				} else {
+					wp_unschedule_hook( 'wpcd_export_data_actions' );
+					wp_clear_scheduled_hook( 'wpcd_export_data_actions', $old_schedule_args );
+				}
+
 				if ( $wpcd_sync_auto_export == 1 ) {
 					if ( isset( $wpcd_sync_set_cron ) && ! empty( $wpcd_sync_set_cron ) ) {
-						wp_schedule_event( time(), $wpcd_sync_set_cron, 'wpcd_export_data_actions', $schedule_args );
+
+						if ( is_multisite() && is_plugin_active_for_network( wpcd_plugin ) ) {
+							// Get all blogs in the network.
+							$blog_ids = get_sites( array( 'fields' => 'ids' ) );
+							foreach ( $blog_ids as $blog_id ) {
+								switch_to_blog( $blog_id );
+								wp_schedule_event( time(), $wpcd_sync_set_cron, 'wpcd_export_data_actions', $schedule_args );
+								restore_current_blog();
+							}
+						} else {
+							wp_schedule_event( time(), $wpcd_sync_set_cron, 'wpcd_export_data_actions', $schedule_args );
+						}
 					}
 				}
 			}

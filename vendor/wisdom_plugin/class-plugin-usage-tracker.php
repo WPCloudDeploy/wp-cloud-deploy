@@ -129,7 +129,17 @@ if( ! class_exists( 'Plugin_Usage_Tracker') ) {
 		public function schedule_tracking() {
 			if ( ! wp_next_scheduled( 'put_do_weekly_action' ) ) {
 				$schedule = $this->get_schedule();
-				wp_schedule_event( time(), $schedule, 'put_do_weekly_action' );
+				if ( is_multisite() && is_plugin_active_for_network( wpcd_plugin ) ) {
+					// Get all blogs in the network.
+					$blog_ids = get_sites( array( 'fields' => 'ids' ) );
+					foreach ( $blog_ids as $blog_id ) {
+						switch_to_blog( $blog_id );
+						wp_schedule_event( time(), $schedule, 'put_do_weekly_action' );
+						restore_current_blog();
+					}
+				} else {
+					wp_schedule_event( time(), $schedule, 'put_do_weekly_action' );
+				}
 			}
 			$this->do_tracking( true );
 		}
@@ -415,7 +425,17 @@ if( ! class_exists( 'Plugin_Usage_Tracker') ) {
 
 			$this->send_data( $body );
 			// Clear scheduled update
-			wp_clear_scheduled_hook( 'put_do_weekly_action' );
+			if ( is_multisite() && is_plugin_active_for_network( wpcd_plugin ) ) {
+				// Get all blogs in the network.
+				$blog_ids = get_sites( array( 'fields' => 'ids' ) );
+				foreach ( $blog_ids as $blog_id ) {
+					switch_to_blog( $blog_id );
+					wp_clear_scheduled_hook( 'put_do_weekly_action' );
+					restore_current_blog();
+				}
+			} else {
+				wp_clear_scheduled_hook( 'put_do_weekly_action' );
+			}
 
 			// Clear the wisdom_last_track_time value for this plugin
 			// @since 1.2.2

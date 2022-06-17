@@ -439,8 +439,21 @@ runcmd:
 				$return['action_id'] = $body->action->id;
 
 				$this->cacheAutoStartServer( $attributes['id'], $body->action->id );
-				wp_clear_scheduled_hook( 'wpcd_' . $this->get_provider_slug() . '_auto_start_after_resize_cron' );
-				wp_schedule_event( time(), 'every_minute', 'wpcd_' . $this->get_provider_slug() . '_auto_start_after_resize_cron' );
+
+				if ( is_multisite() && is_plugin_active_for_network( wpcd_plugin ) ) {
+					// Get all blogs in the network.
+					$blog_ids = get_sites( array( 'fields' => 'ids' ) );
+					foreach ( $blog_ids as $blog_id ) {
+						switch_to_blog( $blog_id );
+						wp_clear_scheduled_hook( 'wpcd_' . $this->get_provider_slug() . '_auto_start_after_resize_cron' );
+						wp_schedule_event( time(), 'every_minute', 'wpcd_' . $this->get_provider_slug() . '_auto_start_after_resize_cron' );
+						restore_current_blog();
+					}
+				} else {
+					wp_clear_scheduled_hook( 'wpcd_' . $this->get_provider_slug() . '_auto_start_after_resize_cron' );
+					wp_schedule_event( time(), 'every_minute', 'wpcd_' . $this->get_provider_slug() . '_auto_start_after_resize_cron' );
+				}
+				
 
 				break;
 			case 'status':
@@ -544,7 +557,18 @@ runcmd:
 
 		// Bail if no servers are in the array.
 		if ( empty( $all_servers ) ) {
-			wp_clear_scheduled_hook( 'wpcd_' . $this->get_provider_slug() . '_auto_start_after_resize_cron' );
+			if ( is_multisite() && is_plugin_active_for_network( wpcd_plugin ) ) {
+				// Get all blogs in the network.
+				$blog_ids = get_sites( array( 'fields' => 'ids' ) );
+				foreach ( $blog_ids as $blog_id ) {
+					switch_to_blog( $blog_id );
+					wp_clear_scheduled_hook( 'wpcd_' . $this->get_provider_slug() . '_auto_start_after_resize_cron' );
+					restore_current_blog();
+				}
+			} else {
+				wp_clear_scheduled_hook( 'wpcd_' . $this->get_provider_slug() . '_auto_start_after_resize_cron' );
+			}
+			
 			return;
 		}
 
@@ -597,7 +621,17 @@ runcmd:
 
 		// Clear out the cron if all servers have been processed.
 		if ( empty( $all_servers ) ) {
-			wp_clear_scheduled_hook( 'wpcd_' . $this->get_provider_slug() . '_auto_start_after_resize_cron' );
+			if ( is_multisite() && is_plugin_active_for_network( wpcd_plugin ) ) {
+				// Get all blogs in the network.
+				$blog_ids = get_sites( array( 'fields' => 'ids' ) );
+				foreach ( $blog_ids as $blog_id ) {
+					switch_to_blog( $blog_id );
+					wp_clear_scheduled_hook( 'wpcd_' . $this->get_provider_slug() . '_auto_start_after_resize_cron' );
+					restore_current_blog();
+				}
+			} else {
+				wp_clear_scheduled_hook( 'wpcd_' . $this->get_provider_slug() . '_auto_start_after_resize_cron' );
+			}
 		}
 
 	}

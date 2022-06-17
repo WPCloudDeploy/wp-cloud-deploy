@@ -222,8 +222,21 @@ class WPCD_Init {
 		WPCD_PENDING_TASKS_LOG::activate( $network_wide );
 
 		// Set cron for set some options that the Wisdom plugin will pick up.
-		if ( ! wp_next_scheduled( 'wpcd_wisdom_custom_options' ) ) {
-			wp_schedule_event( time(), 'twicedaily', 'wpcd_wisdom_custom_options' );
+
+		if ( is_multisite() && $network_wide ) {
+			// Get all blogs in the network.
+			$blog_ids = get_sites( array( 'fields' => 'ids' ) );
+			foreach ( $blog_ids as $blog_id ) {
+				switch_to_blog( $blog_id );
+				if ( ! wp_next_scheduled( 'wpcd_wisdom_custom_options' ) ) {
+					wp_schedule_event( time(), 'twicedaily', 'wpcd_wisdom_custom_options' );
+				}
+				restore_current_blog();
+			}
+		} else {
+			if ( ! wp_next_scheduled( 'wpcd_wisdom_custom_options' ) ) {
+				wp_schedule_event( time(), 'twicedaily', 'wpcd_wisdom_custom_options' );
+			}
 		}
 
 		flush_rewrite_rules();
@@ -273,7 +286,17 @@ class WPCD_Init {
 		WPCD_PENDING_TASKS_LOG::deactivate( $network_wide );
 
 		// Clear old cron.
-		wp_unschedule_hook( 'wpcd_wisdom_custom_options' );
+		if ( is_multisite() && $network_wide ) {
+			// Get all blogs in the network.
+			$blog_ids = get_sites( array( 'fields' => 'ids' ) );
+			foreach ( $blog_ids as $blog_id ) {
+				switch_to_blog( $blog_id );
+				wp_unschedule_hook( 'wpcd_wisdom_custom_options' );
+				restore_current_blog();
+			}
+		} else {
+			wp_unschedule_hook( 'wpcd_wisdom_custom_options' );
+		}
 
 		// Clear long-lived transients.
 		delete_transient( 'wpcd_wisdom_custom_options_first_run_done' );

@@ -176,7 +176,7 @@ class WPCD_License {
 
 				// If this is the core plugin, store the license limits in a setting.
 				if ( (int) WPCD_ITEM_ID === (int) $item_id ) {
-					if ( 0 === $license_data->license_limit ) {
+					if ( '0' === (string) $license_data->license_limit ) {
 						update_option( 'wpcd_license_limit', 'unlimited' );
 					} else {
 						update_option( 'wpcd_license_limit', $license_data->license_limit );
@@ -367,7 +367,7 @@ class WPCD_License {
 			if ( empty( $server_limit ) ) {
 				return 3;  // Default allow 3 servers.
 			} else {
-				return $server_limit;
+				return (int) $server_limit;
 			}
 		}
 		return 3; // Should never get here!
@@ -389,7 +389,7 @@ class WPCD_License {
 			if ( empty( $server_limit ) ) {
 				return 5; // Default allow 5 sites.
 			} else {
-				return $server_limit * 3;  // We'll allow up to three sites per server if a server limit is set.
+				return  ( ( (int) $server_limit ) * 3 );  // We'll allow up to three sites per server if a server limit is set.
 			}
 		}
 		return 5; // Should never get here!
@@ -400,7 +400,7 @@ class WPCD_License {
 	 *
 	 * Note that this check includes ALL server types including WP, VPN, BASIC SERVER etc.
 	 *
-	 * @return boolean true=more servers are allowd; false = allowed server count limit reached.
+	 * @return boolean true=more servers are allowed; false = allowed server count limit reached.
 	 */
 	public static function check_server_limit() {
 
@@ -416,7 +416,7 @@ class WPCD_License {
 	/**
 	 * Check to see if we have exceeded the maximum number of allowed wp sites
 	 *
-	 * @return boolean true=more wp sites are allowd; false = allowed wpsite count limit reached.
+	 * @return boolean true=more wp sites are allowed; false = allowed wpsite count limit reached.
 	 */
 	public static function check_wpsite_limit() {
 

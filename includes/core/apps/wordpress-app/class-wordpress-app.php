@@ -2628,9 +2628,9 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	 */
 	public function handle_page_cache_for_new_site( $app_id, $instance ) {
 
-		if ( wpcd_get_option( 'wordpress_app_sites_install_page_cache' ) ) {
+		if ( wpcd_get_option( 'wordpress_app_sites_disable_page_cache' ) ) {
 			$instance['action_hook'] = 'wpcd_pending_log_toggle_page_cache';
-			WPCD_POSTS_PENDING_TASKS_LOG()->add_pending_task_log_entry( $app_id, 'install-page-cache', $app_id, $instance, 'ready', $app_id, __( 'Waiting To Install Page Cache For New Site', 'wpcd' ) );
+			WPCD_POSTS_PENDING_TASKS_LOG()->add_pending_task_log_entry( $app_id, 'disable-page-cache', $app_id, $instance, 'ready', $app_id, __( 'Waiting To Install Page Cache For New Site', 'wpcd' ) );
 		}
 
 	}

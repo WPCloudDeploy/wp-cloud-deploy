@@ -124,10 +124,11 @@ then
 	done
 	mysql_db=$(grep DB_NAME /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d ',' -f2|cut -d')' -f1|tail -c +2 | head -c -2)
 	mysql_user=$(grep DB_USER /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d ',' -f2|cut -d')' -f1|tail -c +2 | head -c -2)
+	gf_get_dbhost $domain
 
 	mariadb <<QUERY
 DROP DATABASE $mysql_db;
-DROP USER '$mysql_user'@'localhost';
+DROP USER '$mysql_user'@'$g_mysql_host';
 FLUSH PRIVILEGES;
 QUERY
 

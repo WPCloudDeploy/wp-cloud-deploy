@@ -200,6 +200,7 @@ then
 	fi
 
 	gf_add_ols_main_conf
+	gf_ols_default_page
 	gf_check_webserver
 	gf_restart_webserver
 	service lsws status > /dev/null 2>&1

@@ -133,6 +133,10 @@ Note: Even though the entire git development history isn't available on github, 
 * Fix: Redirect rules were not being deleted in our database even when deleted on the site.
 * Dev: Filter for the valid list of WP versions - wpcd_allowed_wp_versions
 
+4.16.7
+------
+* Hotfix: License check needs to handle the updated data type being returned from the EDD server.
+
 4.16.6
 ------
 * New: WPAPP - Add option to filter server list based on whether the server needs to be restarted.

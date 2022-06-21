@@ -106,6 +106,10 @@ Note: Even though the entire git development history isn't available on github, 
 [Friendly Release Notes](https://wpclouddeploy.com/category/release-notes/)
 
 ## Change Log ##
+4.16.7
+------
+* Hotfix: License check needs to handle the updated data type being returned from the EDD server.
+
 4.16.6
 ------
 * New: WPAPP - Add option to filter server list based on whether the server needs to be restarted.

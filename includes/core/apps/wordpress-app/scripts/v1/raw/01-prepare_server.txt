@@ -13,7 +13,11 @@ then
 fi
 source 9999-common-functions.sh
 
-# Set webserver type default value if not set as environment
+# Set the webserver type default value if not set by the environment.
+# Note that the 9999 script above cannot set the g_webserver_type var yet because 
+# at this point nothing is installed on the server!
+# This is the only script where the webserver_type var is $webserver_type and not $g_webserver_type.
+# the webserver_type var is supposed to be set by the environment before this script is invoked.
 if [ -z "$webserver_type" ]
 then
 	webserver_type="nginx"

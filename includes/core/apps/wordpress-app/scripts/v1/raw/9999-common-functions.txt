@@ -236,8 +236,11 @@ function g_backup_with_updraft()
 }
 
 ###################################################################
-## Check Which webserver is installed openlitespeed or nginx ######
-### This set g_webserver_type variable 
+## Checks which webserver is installed: openlitespeed or nginx.
+## It sets the global g_webserver_type variable which is used
+## by almost every other script.
+## 
+## @export: g_webserver_type 
 ###################################################################
 function gf_check_webserver() {
 	if [ -e /usr/local/lsws/bin/lshttpd ]
@@ -1177,7 +1180,11 @@ function gf_add_ols_conf() {
 ###################################################################
 function gf_add_domain_ols_httpd_conf() {
 	local olsdomain
+	local vhost_conf_name
 	olsdomain=$1
+	default_vhost_conf_name="$olsdomain"
+    vhost_conf_name="${2:-$default_vhost_conf_name}" # optional param so we can selectively change vhost conf name from default 'domain.tld' only if provided
+	
 
 	NEWKEY="  map                     ${olsdomain} www.${olsdomain}, ${olsdomain}"
 	PORT_ARR=$(grep "address.*:[0-9]"  ${WEBCF} | awk '{print substr($2,3)}'|uniq)
@@ -1193,7 +1200,7 @@ function gf_add_domain_ols_httpd_conf() {
 	echo "
 virtualhost ${olsdomain} {
 vhRoot                  /var/www/${olsdomain}
-configFile              ${VHDIR}/${olsdomain}/$g_vhost_conf
+configFile              ${VHDIR}/${vhost_conf_name}/$g_vhost_conf
 allowSymbolLink         1
 enableScript            1
 restrained              1
@@ -1393,13 +1400,16 @@ function gf_remove_nginx_site() {
 #####################################################################
 function gf_remove_ols_site() {
 	local domain
-	domain=$1	
+	local vhost_conf_name
+	domain=$1
+	default_vhost_conf_name="$domain"
+    vhost_conf_name="${2:-$default_vhost_conf_name}"
 	if [ -d "/etc/letsencrypt/live/$domain" ]
 	then
 		certbot delete --cert-name $domain --noninteractive
 	fi
-	rm -rf ${VHDIR}/$domain
-	rm -rf ${LSDIR}/conf/vhosts-disabled/$domain
+	rm -rf ${VHDIR}/$vhost_conf_name
+	rm -rf ${LSDIR}/conf/vhosts-disabled/$vhost_conf_name
 	gf_remove_domain_ols_httpd_conf "$domain"
 }
 

@@ -24,7 +24,7 @@ class CLOUD_PROVIDER_API_DigitalOcean_Parent extends CLOUD_PROVIDER_API {
 	 * If no other logic is provided to choose an image, this will
 	 * generally be the one choosen.
 	 */
-	const _IMAGE = 'ubuntu-18-04-x64';
+	const _IMAGE = 'ubuntu-20-04-x64';
 
 	/**
 	 * A text string with the cloud provider's api key.
@@ -108,6 +108,8 @@ class CLOUD_PROVIDER_API_DigitalOcean_Parent extends CLOUD_PROVIDER_API {
 					return 'ubuntu-18-04-x64';  // no break statement needed after this since we're returning out of the function.
 				case 'ubuntu2004lts':
 					return 'ubuntu-20-04-x64';  // no break statement needed after this since we're returning out of the function.
+				case 'ubuntu2204lts':
+					return 'ubuntu-22-04-x64';  // no break statement needed after this since we're returning out of the function.
 				default:
 					return self::_IMAGE;
 			}

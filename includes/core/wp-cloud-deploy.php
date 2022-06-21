@@ -696,8 +696,22 @@ class WP_CLOUD_DEPLOY {
 	public static function get_os_list() {
 		$oslist = array(
 			'ubuntu2004lts' => __( 'Ubuntu 20.04 LTS', 'wpcd' ),
+			'ubuntu2204lts' => __( 'Ubuntu 22.04 LTS (Early Beta)', 'wpcd' ),
 			'ubuntu1804lts' => __( 'Ubuntu 18.04 LTS', 'wpcd' ),
 		);
+
+		// Remove some entries based on settings.
+		if ( (bool) wpcd_get_option( 'wordpress_app_disable_ubuntu_lts_1804' ) ) {
+			unset( $oslist['ubuntu1804lts'] );
+		}
+		if ( (bool) wpcd_get_option( 'wordpress_app_disable_ubuntu_lts_2004' ) ) {
+			unset( $oslist['ubuntu2004lts'] );
+		}
+		if ( (bool) wpcd_get_option( 'wordpress_app_disable_ubuntu_lts_2204' ) ) {
+			unset( $oslist['ubuntu2204lts'] );
+		}
+
+		// Return filtered array.
 		return apply_filters( 'wpcd_os_list', $oslist );
 	}
 
@@ -710,8 +724,8 @@ class WP_CLOUD_DEPLOY {
 	 */
 	public static function get_webserver_list() {
 		$webserver_list = array(
-			'nginx'          => __( 'NGINX', 'wpcd' ),
-			'ols'            => __( 'OpenLiteSpeed (Beta)', 'wpcd' ),
+			'nginx' => __( 'NGINX', 'wpcd' ),
+			'ols'   => __( 'OpenLiteSpeed (Beta)', 'wpcd' ),
 			// 'ols-enterprise' => __( 'LiteSpeed Enterprise (Beta)', 'wpcd' ),
 		);
 		return apply_filters( 'wpcd_webserver_list', $webserver_list );
@@ -738,6 +752,10 @@ class WP_CLOUD_DEPLOY {
 
 			case 'ubuntu2004lts':
 				$return = __( 'Ubuntu 20.04 LTS', 'wpcd' );
+				break;
+
+			case 'ubuntu2204lts':
+				$return = __( 'Ubuntu 22.04 LTS', 'wpcd' );
 				break;
 		}
 

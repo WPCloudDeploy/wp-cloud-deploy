@@ -222,7 +222,6 @@ class WPCD_Init {
 		WPCD_PENDING_TASKS_LOG::activate( $network_wide );
 
 		// Set cron for set some options that the Wisdom plugin will pick up.
-
 		if ( is_multisite() && $network_wide ) {
 			// Get all blogs in the network.
 			$blog_ids = get_sites( array( 'fields' => 'ids' ) );
@@ -479,18 +478,18 @@ class WPCD_Init {
 
 		// Checks to see if "php version check" transient is set or not. If not set then show an admin notice.
 		if ( ! get_transient( 'wpcd_php_version_check' ) && is_object( $screen ) && in_array( $screen->post_type, $post_types, true ) ) {
-			// Here 70400 is a php version 7.4.0
+			// Here 70400 is a php version 7.4.0.
 			if ( (int) $php_version_id < 70400 ) {
-				$class   = 'notice notice-error is-dismissible wpcd-php-version-check';
+				$class = 'notice notice-error is-dismissible wpcd-php-version-check';
 				/* translators: %s php version */
 				$message = sprintf( __( '<strong>WPCloudDeploy plugin requires a PHP version greater or equal to "7.4.0". You are running %s.</strong>', 'wpcd' ), $php_version );
 				printf( '<div data-dismissible="notice-php-warning" class="%2$s"><p>%3$s</p></div>', wp_create_nonce( 'wpcd-admin-dismissible-notice' ), $class, $message );
 			}
 		}
 
+		// Are we running on localhost?  Of so throw error.
 		if ( in_array( isset( $_SERVER['SERVER_ADDR'] ) ? $_SERVER['SERVER_ADDR'] : '', array( '127.0.0.1', '::1' ), true ) ) {
 			if ( ! wpcd_get_early_option( 'hide-local-host-warning' ) ) {
-
 				// Checks to see if "localhost check" transient is set or not. If not set then show an admin notice.
 				if ( ! get_transient( 'wpcd_localhost_check' ) && is_object( $screen ) && in_array( $screen->post_type, $post_types, true ) ) {
 					$class   = 'notice notice-error is-dismissible wpcd-localhost-check';

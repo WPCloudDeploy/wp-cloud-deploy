@@ -64,6 +64,8 @@ function wpcd_delete_child_posts( $post_type, $post_id ) {
 
 	$posts_to_delete = wpcd_get_child_posts( $post_type, $post_id );
 
+	apply_filters( 'wpcd_get_child_posts_for_delete', $post_type, $posts_to_delete );
+
 	if ( ! empty( $posts_to_delete ) ) {
 		foreach ( $posts_to_delete as $post ) {
 			wp_delete_post( $post->ID, true ); // Note the TRUE parm - we're NOT sending to trash but deleting right away.
@@ -1544,4 +1546,3 @@ function wpcd_test_create_popup_after_form_option() {
 }
 add_action( "wpcd_wordpress-app_create_popup_after_form_open", 'wpcd_test_create_popup_after_form_option', 10 );
 */
-

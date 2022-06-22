@@ -322,17 +322,17 @@ class WPCD_EMAIL_NOTIFICATIONS {
 	 * Function for showing the metabox fields.
 	 */
 	public function display_email_notifications_metaboxes() {
-		
+
 		// Get the post id from the $_POST global var.
 		$post_id   = filter_input( INPUT_GET, 'post', FILTER_SANITIZE_NUMBER_INT );
-		
+
 		// Check to see if this should be displayed.  The id of the permission is 'email_metabox'.
 		if ( ! wpcd_can_author_view_server_feature( $post_id, 'email_metabox' ) ) {
 			return false;
 		}
 		if ( ! wpcd_can_author_view_site_feature( $post_id, 'email_metabox' ) ) {
 			return false;
-		}		
+		}
 
 		// Register meta boxes and fields for email notifications.
 		add_filter(

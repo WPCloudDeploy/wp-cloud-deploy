@@ -317,10 +317,6 @@ class WPCD_COMMAND_LOG extends WPCD_POSTS_LOG {
 			update_post_meta( $post_id, 'command_reference', $cmd_reference );
 		}
 
-		// @TODO: This should not be called here every single time the logs are updated. This should have a cron job or something else.
-		/* Clean up old log entries */
-		$this->clean_up_old_log_entries( 'wpcd_command_log' );
-
 		return $post_id;
 
 	}

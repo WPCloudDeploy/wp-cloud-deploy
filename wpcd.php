@@ -222,8 +222,21 @@ class WPCD_Init {
 		WPCD_PENDING_TASKS_LOG::activate( $network_wide );
 
 		// Set cron for set some options that the Wisdom plugin will pick up.
-		if ( ! wp_next_scheduled( 'wpcd_wisdom_custom_options' ) ) {
-			wp_schedule_event( time(), 'twicedaily', 'wpcd_wisdom_custom_options' );
+
+		if ( is_multisite() && $network_wide ) {
+			// Get all blogs in the network.
+			$blog_ids = get_sites( array( 'fields' => 'ids' ) );
+			foreach ( $blog_ids as $blog_id ) {
+				switch_to_blog( $blog_id );
+				if ( ! wp_next_scheduled( 'wpcd_wisdom_custom_options' ) ) {
+					wp_schedule_event( time(), 'twicedaily', 'wpcd_wisdom_custom_options' );
+				}
+				restore_current_blog();
+			}
+		} else {
+			if ( ! wp_next_scheduled( 'wpcd_wisdom_custom_options' ) ) {
+				wp_schedule_event( time(), 'twicedaily', 'wpcd_wisdom_custom_options' );
+			}
 		}
 
 		flush_rewrite_rules();
@@ -273,7 +286,17 @@ class WPCD_Init {
 		WPCD_PENDING_TASKS_LOG::deactivate( $network_wide );
 
 		// Clear old cron.
-		wp_unschedule_hook( 'wpcd_wisdom_custom_options' );
+		if ( is_multisite() && $network_wide ) {
+			// Get all blogs in the network.
+			$blog_ids = get_sites( array( 'fields' => 'ids' ) );
+			foreach ( $blog_ids as $blog_id ) {
+				switch_to_blog( $blog_id );
+				wp_unschedule_hook( 'wpcd_wisdom_custom_options' );
+				restore_current_blog();
+			}
+		} else {
+			wp_unschedule_hook( 'wpcd_wisdom_custom_options' );
+		}
 
 		// Clear long-lived transients.
 		delete_transient( 'wpcd_wisdom_custom_options_first_run_done' );
@@ -448,11 +471,32 @@ class WPCD_Init {
 			return;
 		}
 
+		$screen     = get_current_screen();
+		$post_types = array( 'wpcd_app_server', 'wpcd_app', 'wpcd_team', 'wpcd_permission_type', 'wpcd_command_log', 'wpcd_ssh_log', 'wpcd_error_log', 'wpcd_pending_log' );
+
+		$php_version    = phpversion();
+		$php_version_id = str_replace( '.', '0', $php_version );
+
+		// Checks to see if "php version check" transient is set or not. If not set then show an admin notice.
+		if ( ! get_transient( 'wpcd_php_version_check' ) && is_object( $screen ) && in_array( $screen->post_type, $post_types, true ) ) {
+			// Here 70400 is a php version 7.4.0
+			if ( (int) $php_version_id < 70400 ) {
+				$class   = 'notice notice-error is-dismissible wpcd-php-version-check';
+				/* translators: %s php version */
+				$message = sprintf( __( '<strong>WPCloudDeploy plugin requires a PHP version greater or equal to "7.4.0". You are running %s.</strong>', 'wpcd' ), $php_version );
+				printf( '<div data-dismissible="notice-php-warning" class="%2$s"><p>%3$s</p></div>', wp_create_nonce( 'wpcd-admin-dismissible-notice' ), $class, $message );
+			}
+		}
+
 		if ( in_array( isset( $_SERVER['SERVER_ADDR'] ) ? $_SERVER['SERVER_ADDR'] : '', array( '127.0.0.1', '::1' ), true ) ) {
 			if ( ! wpcd_get_early_option( 'hide-local-host-warning' ) ) {
-				$class   = 'notice notice-error';
-				$message = __( '<strong>You cannot run the WPCloudDeploy plugin on a localhost server or a server that cannot be reached from the internet.</strong>', 'wpcd' );
-				printf( '<div class="%1$s"><p>%2$s</p></div>', $class, $message );
+
+				// Checks to see if "localhost check" transient is set or not. If not set then show an admin notice.
+				if ( ! get_transient( 'wpcd_localhost_check' ) && is_object( $screen ) && in_array( $screen->post_type, $post_types, true ) ) {
+					$class   = 'notice notice-error is-dismissible wpcd-localhost-check';
+					$message = __( '<strong>You cannot run the WPCloudDeploy plugin on a localhost server or a server that cannot be reached from the internet.</strong>', 'wpcd' );
+					printf( '<div data-dismissible="notice-localhost-warning" class="%2$s"><p>%3$s</p></div>', wp_create_nonce( 'wpcd-admin-dismissible-notice' ), $class, $message );
+				}
 			}
 		}
 
@@ -478,9 +522,6 @@ class WPCD_Init {
 			$message = __( 'Warning: WPCloudDeploy cannot use the WordPress default permalink. Please change the permalinks option to something other than <em>plain.</em> This can be done under the WordPress <strong>SETTINGS->Permalinks</strong> menu option.', 'wpcd' );
 			printf( '<div class="%1$s"><p>%2$s</p></div>', $class, $message );
 		}
-
-		$screen     = get_current_screen();
-		$post_types = array( 'wpcd_app_server', 'wpcd_app', 'wpcd_team', 'wpcd_permission_type', 'wpcd_command_log', 'wpcd_ssh_log', 'wpcd_error_log', 'wpcd_pending_log' );
 
 		// Checks to see if "text files are readable" transient is set or not. If not set then show an admin notice.
 		if ( ! get_transient( 'wpcd_readable_check' ) && is_object( $screen ) && in_array( $screen->post_type, $post_types, true ) ) {

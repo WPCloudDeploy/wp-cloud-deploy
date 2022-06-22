@@ -129,6 +129,8 @@ class WP_CLOUD_DEPLOY {
 		// Capture wisdom data weekly instead of monthly.
 		add_filter( 'wisdom_filter_schedule_wpcd', array( $this, 'set_wisdom_schedule' ), 10, 1 );
 
+		// Action hook to fire on new site created on WP Multisite.
+		add_action( 'wp_initialize_site', array( $this, 'wpcd_wisdom_custom_options_events' ), 10, 2 );
 	}
 
 	/**
@@ -1323,6 +1325,33 @@ class WP_CLOUD_DEPLOY {
 			return true;
 		} else {
 			return false;
+		}
+
+	}
+
+	/**
+	 * To schedule events for newly created site on WP Multisite.
+	 *
+	 * Action hook: wp_initialize_site
+	 *
+	 * @param  object $new_site new site.
+	 * @param  array  $args args.
+	 * @return void
+	 */
+	public function wpcd_wisdom_custom_options_events( $new_site, $args ) {
+
+		$plugin_name = wpcd_plugin;
+
+		// To check the plugin is active network-wide.
+		if ( is_plugin_active_for_network( $plugin_name ) ) {
+
+			$blog_id = $new_site->blog_id;
+
+			switch_to_blog( $blog_id );
+			if ( ! wp_next_scheduled( 'wpcd_wisdom_custom_options' ) ) {
+				wp_schedule_event( time(), 'twicedaily', 'wpcd_wisdom_custom_options' );
+			}
+			restore_current_blog();
 		}
 
 	}

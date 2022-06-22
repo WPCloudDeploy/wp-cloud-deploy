@@ -1,0 +1,27 @@
+/******************************************************************************************/
+
+
+/* Style dropdown filters on app screen                                                   */
+
+
+/******************************************************************************************/
+
+.wpcd_search_owner_filter+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: 32px;
+}
+
+.wpcd_search_owner_filter+.select2-container--default .select2-selection--single {
+    height: 30px;
+    font-size: 14px;
+}
+
+.tablenav .actions:not(.bulkactions) .wpcd_search_owner_filter+.select2-container--default {
+    width: 13%;
+    margin-bottom: 10px;
+}
+
+.tablenav .actions .wpcd_search_owner_filter+.select2-container--default {
+    float: left;
+    margin-right: 6px;
+    max-width: 12.5rem;
+}

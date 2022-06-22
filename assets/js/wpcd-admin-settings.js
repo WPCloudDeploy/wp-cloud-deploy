@@ -200,7 +200,6 @@
         });
     }
 
-
     function init() {
         initCreatePublicPages();
         initPasswordToggle();

@@ -92,7 +92,7 @@ else
 fi
 cat > ~/dbimport-$domain.sql <<QUERY
 create database $mysql_new_db;
-GRANT ALL ON $mysql_new_db.* TO '\''$mysql_user'\''@'\''$mysql_host'\'' IDENTIFIED BY '\''$mysql_pass'\'' WITH GRANT OPTION;
+GRANT ALL ON $mysql_new_db.* TO '\''$mysql_user'\''@'\''localhost'\'' IDENTIFIED BY '\''$mysql_pass'\'' WITH GRANT OPTION;
 FLUSH PRIVILEGES;
 QUERY
 # sync sql files to destination
@@ -108,6 +108,7 @@ ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destinati
 echo "Pushing files to target server. This could take a while..."
 sudo rsync -a --stats --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /var/www/$domain $sshuser@$destination_ip:/var/www < /dev/null
 sudo ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo sed -i '\''s/$mysql_db/$mysql_new_db/g'\'' /var/www/$domain/html/wp-config.php"
+sudo ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo sed -i '\''s/$mysql_host/localhost/g'\'' /var/www/$domain/html/wp-config.php"
 sudo rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /etc/nginx/sites-enabled/*$domain $sshuser@$destination_ip:/etc/nginx/sites-enabled > /dev/null 2>&1 < /dev/null
 sudo rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /etc/nginx/htpasswd/*$domain $sshuser@$destination_ip:/etc/nginx/htpasswd/ > /dev/null 2>&1 > /dev/null 2>&1 < /dev/null
 ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo mkdir -p /etc/letsencrypt/" < /dev/null

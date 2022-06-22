@@ -73,7 +73,7 @@ mysql_dbprefix=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 5)
 mysql_user=$(head /dev/urandom | tr -dc a-z | head -c 6)
 mysql_pass=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 16)
 
-gf_database_create "$mysql_db" "$mysql_user" "$mysql_pass"
+gf_database_create "$mysql_db" "$mysql_user" "$mysql_pass" "localhost"
 
 wphome="/var/www/$domain/html"
 user_name="$(echo $domain | cut -c1-32)"

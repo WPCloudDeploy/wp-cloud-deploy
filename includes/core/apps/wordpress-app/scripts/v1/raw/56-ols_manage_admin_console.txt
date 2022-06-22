@@ -125,8 +125,11 @@ enable_ols_ssl_for_domain(){
 	local domain
 	domain="$1"
 	
-	gf_enable_certbot_ols_site "$domain"
-	enable_signed_ssl_ols_admin "$domain"
+	gf_enable_certbot_ols_site "$domain"  # This function call echos any success/failure messages so no need to handle here.
+	if [ -f /etc/letsencrypt/live/$domain/fullchain.pem  ]
+	then
+		enable_signed_ssl_ols_admin "$domain"
+	fi
 
 	if true | openssl s_client -connect $domain:7080 2>/dev/null | \
 		openssl x509 -noout -checkend 0; then

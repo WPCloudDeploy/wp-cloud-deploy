@@ -115,11 +115,12 @@ then
 
 	mysql_db=$(grep DB_NAME /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d ',' -f2|cut -d')' -f1|tail -c +2 | head -c -2)
 	mysql_old_user=$(grep DB_USER /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d ',' -f2|cut -d')' -f1|tail -c +2 | head -c -2)
+	gf_get_dbhost $domain
 
 	# Rename MySQL user and change pass
 	mariadb <<QUERY
-RENAME USER '$mysql_old_user'@'localhost' TO '$mysql_user'@'localhost';
-SET PASSWORD FOR '$mysql_user'@'localhost' = PASSWORD('$mysql_password');
+RENAME USER '$mysql_old_user'@'$g_mysql_host' TO '$mysql_user'@'$g_mysql_host';
+SET PASSWORD FOR '$mysql_user'@'$g_mysql_host' = PASSWORD('$mysql_password');
 FLUSH PRIVILEGES;
 QUERY
 

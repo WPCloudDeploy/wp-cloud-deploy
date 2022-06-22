@@ -223,8 +223,9 @@ mysql_password=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 16)
 
 mysql_old_db=$(grep DB_NAME /var/www/$new_domain/html/wp-config.php | tr -d "[:space:]"|cut -d ',' -f2|cut -d')' -f1|tail -c +2 | head -c -2)
 mysql_old_user=$(grep DB_USER /var/www/$new_domain/html/wp-config.php | tr -d "[:space:]"|cut -d ',' -f2|cut -d')' -f1|tail -c +2 | head -c -2)
+gf_get_dbhost $new_domain
 
-gf_database_create "${mysql_new_db}" "${mysql_user}" "${mysql_password}"
+gf_database_create "${mysql_new_db}" "${mysql_user}" "${mysql_password}" "${g_mysql_host}"
 
 mysqldump $mysql_old_db | mariadb $mysql_new_db
 if [ $? -ne 0 ]  
@@ -236,7 +237,7 @@ fi
 # drop old database and credentials
 mariadb <<QUERY
 DROP DATABASE $mysql_old_db;
-DROP USER '$mysql_old_user'@'localhost';
+DROP USER '$mysql_old_user'@'$g_mysql_host';
 FLUSH PRIVILEGES;
 QUERY
 

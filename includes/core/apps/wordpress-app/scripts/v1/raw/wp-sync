@@ -109,6 +109,8 @@ rsync -a --delete -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa
 rsync -a --delete -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /usr/local/lsws root@$dest:/usr/local/ > /dev/null 2>&1
 rsync -a --delete -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /etc/letsencrypt root@$dest:/etc > /dev/null 2>&1
 
+ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" root@$dest "sed -i \"s/DB_HOST.*/DB_HOST', 'localhost' );/g\" /var/www/*/html/wp-config.php"
+
 # exclude root crontab because we don't want to migrate the backup wp-backup job.
 rsync -a --delete -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" --exclude /var/spool/cron/crontabs/root /var/spool/cron root@$dest:/var/spool
 

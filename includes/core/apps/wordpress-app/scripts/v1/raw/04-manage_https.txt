@@ -107,24 +107,30 @@ then
 	fi
 	if [ "$g_webserver_type" = "nginx" ]
 	then
-		gf_enable_certbot_nginx_site $domain $domain
+		gf_enable_certbot_nginx_site $domain $domain   # This function call echos any success/failure messages so no need to handle here.
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
-		gf_enable_certbot_ols_site "$domain"
+		gf_enable_certbot_ols_site "$domain"   # This function call echos any success/failure messages so no need to handle here.
 	fi
 
-	cd /var/www/$domain/html/
-	su - $user_name -c "wp --skip-plugins option update home https://$domain"
-	su - $user_name -c "wp --skip-plugins option update siteurl https://$domain"
-	# reset cache
-	su - $user_name -c "wp cache flush"
-	su - $user_name -c "wp cache-enabler clear 2>/dev/null"
+	if [ -f /etc/letsencrypt/live/$domain/fullchain.pem  ]
+	then
+		cd /var/www/$domain/html/
+		su - $user_name -c "wp --skip-plugins option update home https://$domain"
+		su - $user_name -c "wp --skip-plugins option update siteurl https://$domain"
+		# reset cache
+		su - $user_name -c "wp cache flush"
+		su - $user_name -c "wp cache-enabler clear 2>/dev/null"
+		gf_restart_webserver
 
-	gf_restart_webserver
-
-	echo
-	echo "SSL has been enabled for $domain"
-	exit
+		echo
+		echo "SSL has been enabled for $domain"
+		exit
+	else
+		echo
+		echo "Unable to activate SSL for $domain"
+		exit	
+	fi
 fi
 
 

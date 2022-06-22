@@ -428,7 +428,7 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 		$server_id             = $this->get_server_by_app_id( $id );
 		$server_edit_post_link = get_edit_post_link( $server_id );
 
-		/* PAGE CACHE with CACHE ENABLER PLUGIN */
+		/* PAGE CACHE */
 		$fields[] = array(
 			'name' => __( 'Page Cache', 'wpcd' ),
 			'tab'  => 'cache',
@@ -473,29 +473,31 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 		/**
 		 * Clear the page cache
 		 */
-		$fields[] = array(
-			'name' => __( 'Clear Page Cache', 'wpcd' ),
-			'tab'  => 'cache',
-			'type' => 'heading',
-		);
-		$fields[] = array(
-			'id'         => 'clear-pagecache',
-			'name'       => '',
-			'tab'        => 'cache',
-			'type'       => 'button',
-			'std'        => __( 'Clear', 'wpcd' ),
-			'desc'       => '',
-			'attributes' => array(
-				// the _action that will be called in ajax.
-				'data-wpcd-action'              => 'site-clear-pagecache',
-				// the id.
-				'data-wpcd-id'                  => $id,
-				// make sure we give the user a confirmation prompt.
-				'data-wpcd-confirmation-prompt' => sprintf( __( 'Are you sure you would like to clear the %s page cache for this site?', 'wpcd' ), $webserver_type_name ),
-			),
-			'class'      => 'wpcd_app_action',
-			'save_field' => false,
-		);
+		if ( 'on' === $pc_status ) {
+			$fields[] = array(
+				'name' => __( 'Clear Page Cache', 'wpcd' ),
+				'tab'  => 'cache',
+				'type' => 'heading',
+			);
+			$fields[] = array(
+				'id'         => 'clear-pagecache',
+				'name'       => '',
+				'tab'        => 'cache',
+				'type'       => 'button',
+				'std'        => __( 'Clear', 'wpcd' ),
+				'desc'       => '',
+				'attributes' => array(
+					// the _action that will be called in ajax.
+					'data-wpcd-action'              => 'site-clear-pagecache',
+					// the id.
+					'data-wpcd-id'                  => $id,
+					// make sure we give the user a confirmation prompt.
+					'data-wpcd-confirmation-prompt' => sprintf( __( 'Are you sure you would like to clear the %s page cache for this site?', 'wpcd' ), $webserver_type_name ),
+				),
+				'class'      => 'wpcd_app_action',
+				'save_field' => false,
+			);
+		}
 
 		/* MEMCACHED */
 		$fields[] = array(

@@ -124,14 +124,19 @@ Note: Even though the entire git development history isn't available on github, 
 ## Change Log ##
 5.0.0
 ------
-* New: Front-end UI and related shortcodes.
-* New: Support for OpenLiteSpeed.
-* New: Admin lock for sites.
-* Tweak: Remove extraneous text from certain tabs.
-* Tweak: Override list of WP versions.
-* Tweak: Tweak: When a manual backup is run, we refresh the backup list automatically.
-* Fix: Redirect rules were not being deleted in our database even when deleted on the site.
-* Dev: Filter for the valid list of WP versions - wpcd_allowed_wp_versions
+* New: WPAPP - Front-end UI and related shortcodes.
+* New: WPAPP - Support for OpenLiteSpeed.
+* New: WPAPP - Admin lock for sites.
+* Tweak: WPAPP - Remove extraneous text from certain tabs.
+* Tweak: WPAPP - Override list of WP versions.
+* Tweak: WPAPP - When a manual backup is run, we refresh the backup list automatically.
+* Tweak: WPAPP - Do not show the option to clear the page cache if it has not been installed.
+* Fix: WPAPP - Redirect rules were not being deleted in our database even when deleted on the site.
+* Dev: WPAPP - Filter for the valid list of WP versions - wpcd_allowed_wp_versions
+
+4.16.7
+------
+* Hotfix: License check needs to handle the updated data type being returned from the EDD server.
 
 4.16.6
 ------

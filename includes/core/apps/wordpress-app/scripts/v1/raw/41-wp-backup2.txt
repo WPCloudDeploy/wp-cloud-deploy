@@ -244,6 +244,7 @@ then
 	ask_backup_type
 	
 	date=$(date +"%Y-%m-%d"-"%Hh%Mm%Ss")
+	mkdir -p /root/.wp-backup2/$domain/
 
 	# $backup_label == "blank" can be set to avoid this interactive question if user doesn't want to specify a label
 	if [[ -z $backup_label ]]
@@ -260,8 +261,6 @@ then
 
 	# $remotes == "local" can be set to avoid this interactive question if user doesn't want to upload the backup
 	ask_remotes
-
-	mkdir -p /root/.wp-backup2/$domain/
 
 	backup_files () {
 		ask_exclusions
@@ -557,16 +556,17 @@ then
 		mysql_db=$(grep -s DB_NAME /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
 		mysql_user=$(grep -s DB_USER /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
 		mysql_pass=$(grep DB_PASSWORD /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
+		gf_get_dbhost $domain
 		echo "Dropping database (if exists) $mysql_db ..."
 		mariadb <<QUERY
 DROP DATABASE IF EXISTS $mysql_db;
-DROP USER IF EXISTS '$mysql_user'@'localhost';
+DROP USER IF EXISTS '$mysql_user'@'$g_mysql_host';
 FLUSH PRIVILEGES;
 QUERY
 
 		# Restoration stage
 		echo "Creating database: $mysql_db..."
-		gf_database_create "${mysql_db}" "${mysql_user}" "${mysql_pass}"
+		gf_database_create "${mysql_db}" "${mysql_user}" "${mysql_pass}" "${g_mysql_host}"
 
 		echo "Restoring database..."
 		cd /root/.wp-backup2/

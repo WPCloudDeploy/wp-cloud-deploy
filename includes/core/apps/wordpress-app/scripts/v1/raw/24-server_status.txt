@@ -48,8 +48,8 @@ then
 		read -p "enter callback url to get sites status:  " callback_sites_status
 	fi	
 
-	# make sure bc is installed
-	apt-get install bc -y
+	# make sure bc and at is installed
+	apt-get install bc at -y
 	
 	# remove crons if they exist...
 	remove_status_cron

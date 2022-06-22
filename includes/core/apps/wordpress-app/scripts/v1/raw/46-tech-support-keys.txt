@@ -34,6 +34,9 @@ do
 	done
 done
 
+### Make sure at command install
+apt-get install at -y 
+
 ###################################### Generate new temporary ssh keys ##########
 function tech_keys
 {

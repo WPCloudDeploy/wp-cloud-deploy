@@ -341,7 +341,7 @@ function netdata_remove
 	fi
 	domain=$(grep -m 1 server_name /etc/nginx/sites-enabled/netdata.conf 2>&1 > /dev/null|awk '{print $2}')
 	netdata_ssl_disable
-	bash /usr/libexec/netdata/netdata-uninstaller.sh --yes -f
+	bash <(curl -Ss https://my-netdata.io/kickstart.sh) --uninstall --dont-wait --non-interactive
 	if [ $? -ne 0 ]
 	then
 		echo "Failed to uninstall. Please check if the apt-get command has been locked by another process - you might have to restart the server and try the operation again."

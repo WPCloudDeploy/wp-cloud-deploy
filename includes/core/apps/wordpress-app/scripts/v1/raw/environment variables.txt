@@ -900,12 +900,14 @@ $domain = domain name to be managed (example: myblog.com)
 $action = one of the following values to enable or disable rulesets (they are self explanatory): "enable_all_7g", "disable_all_7g", "enable_user_agent_7g", "disable_user_agent_7g", "enable_referrer_7g", "disable_referrer_7g", "enable_query_string_7g", "disable_query_string_7g", "enable_request_string_7g", "disable_request_string_7g", "enable_request_method_7g", "disable_request_method_7g"
 
 -----------------------------------
-41  -- saved for later --
+41  -- wp-backup2.sh --
 -----------------------------------
+See the readme.txt file in the wp-backup2 folder.
 
 -----------------------------------
-42  -- saved for later --
+42  -- 42-allowed-and-denied-plugins.sh --
 -----------------------------------
+(Coming soon).
 
 -----------------------------------
 43-netdata.sh

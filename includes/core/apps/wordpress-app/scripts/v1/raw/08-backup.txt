@@ -229,10 +229,11 @@ then
 		# remove everything
 		mysql_db=$(grep DB_NAME /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
 		mysql_user=$(grep DB_USER /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
+		gf_get_dbhost $domain
 		echo "dropping database: $mysql_db ..."
 		mariadb <<QUERY
 DROP DATABASE $mysql_db;
-DROP USER '$mysql_user'@'localhost';
+DROP USER '$mysql_user'@'$g_mysql_host';
 FLUSH PRIVILEGES;
 QUERY
 
@@ -280,8 +281,9 @@ QUERY
 	mysql_db=$(grep DB_NAME /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
 	mysql_user=$(grep DB_USER /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
 	mysql_pass=$(grep DB_PASSWORD /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
+	gf_get_dbhost $domain
 	echo "creating new database: $mysql_db"
-	gf_database_create "${mysql_db}" "${mysql_user}" "${mysql_pass}"
+	gf_database_create "${mysql_db}" "${mysql_user}" "${mysql_pass}" "${g_mysql_host}"
 	# restore db dump
 	cd ..
 	echo "restoring database..."	

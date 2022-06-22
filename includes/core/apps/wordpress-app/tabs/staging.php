@@ -109,7 +109,7 @@ class WPCD_WORDPRESS_TABS_STAGING extends WPCD_WORDPRESS_TABS {
 							$page_cache_status = $this->get_page_cache_status( $id );
 							if ( ! empty( $page_cache_status ) ) {
 								$this->set_page_cache_status( $new_app_post_id, $page_cache_status );
-							}							
+							}
 
 							// Was memcached enabled on the original site?  If so, the caching plugin was copied as well so add the meta here for that.
 							$memcached_status = get_post_meta( $id, 'wpapp_memcached_status', true );
@@ -510,9 +510,12 @@ class WPCD_WORDPRESS_TABS_STAGING extends WPCD_WORDPRESS_TABS {
 			}
 		}
 
+		/* What type of web server are we running? */
+		$webserver_type = $this->get_web_server_type( $id );
+
 		// Get HTTP2 status since we cannot clone a site with HTTP2 turned on.
 		$http2_status = $this->http2_status( $id );
-		if ( 'on' === $http2_status ) {
+		if ( 'on' === $http2_status && 'nginx' === $webserver_type ) {
 			$desc = __( 'You cannot clone this site at this time because HTTP2 is enabled. Please disable it before attempting this operation.', 'wpcd' );
 
 			$fields[] = array(

@@ -22,12 +22,12 @@ function add_ols_netdata_conf() {
 	local olsdomain
 	olsdomain=$1
 
-	mkdir -p $VHDIR/$olsdomain
+	mkdir -p $VHDIR/netdata
 	mkdir -p /var/www/$olsdomain/html/.well-known/acme-challenge
-	touch $VHDIR/$olsdomain/htpasswd
-	touch $VHDIR/$olsdomain/htgroup
+	touch $VHDIR/netdata/htpasswd
+	touch $VHDIR/netdata/htgroup
 	
-	cat > ${VHDIR}/${olsdomain}/$g_vhost_conf <<- EOF
+	cat > ${VHDIR}/netdata/$g_vhost_conf <<- EOF
 	docRoot                   /var/www/$olsdomain/html
 
 	extprocessor netdatahttp {
@@ -97,7 +97,7 @@ function add_ols_netdata_conf() {
 	}
 	EOF
 	chown -R lsadm:lsadm ${VHDIR}/*
-	gf_add_domain_ols_httpd_conf ${olsdomain}
+	gf_add_domain_ols_httpd_conf "${olsdomain}" "netdata"
 }
 
 OLS_PASS_PROTECT_ROOT='### Enabling Password Protection config start
@@ -214,8 +214,8 @@ function netdata_install
 		
 	elif [ "$g_webserver_type" = "ols" ]; then
 		add_ols_netdata_conf "$domain"
-		htpasswd -b ${VHDIR}/$domain/htpasswd $user $pass
-		chown -R lsadm:lsadm ${VHDIR}/$domain/
+		htpasswd -b -c ${VHDIR}/netdata/htpasswd $user $pass
+		chown -R lsadm:lsadm ${VHDIR}/netdata/
 	elif [ "$g_webserver_type" = "ols-enterprise" ]; then
 		echo 'Not implemented for ols-enterprise'
 	fi
@@ -339,9 +339,9 @@ function netdata_remove
 		echo "netdata is Not installed yet!"
 		exit
 	fi
-	domain=`grep -m 1 server_name /etc/nginx/sites-enabled/netdata.conf 2>&1 > /dev/null|awk '{print $2}'`
+	domain=$(grep -m 1 server_name /etc/nginx/sites-enabled/netdata.conf 2>&1 > /dev/null|awk '{print $2}')
 	netdata_ssl_disable
-	bash /usr/libexec/netdata/netdata-uninstaller.sh --yes -f
+	bash <(curl -Ss https://my-netdata.io/kickstart.sh) --uninstall --dont-wait --non-interactive
 	if [ $? -ne 0 ]
 	then
 		echo "Failed to uninstall. Please check if the apt-get command has been locked by another process - you might have to restart the server and try the operation again."
@@ -351,12 +351,8 @@ function netdata_remove
 	if [ "$g_webserver_type" = "nginx" ] ; then
 		rm -f /etc/nginx/sites-enabled/netdata.conf > /dev/null 2>&1
 	elif [ "$g_webserver_type" = "ols" ] ; then
-		# Unlike NGINX, ols needs the actual domain name so we ask the user for it (or get from env.)
-		while [[ -z $domain ]]; do
-			gf_select_domain_nginx_ols
-		done	
-		gf_remove_ols_site "$domain"
-		
+		domain=$(grep -m 1 docRoot /usr/local/lsws/conf/vhosts/netdata/vhconf.conf |awk '{print $2}'|grep -E -o "\b[A-Za-z0-9.-]+\.[A-Za-z]{2,6}\b")
+		gf_remove_ols_site "$domain" "netdata"
 	elif [ "$g_webserver_type" = "ols-enterprise" ] ; then
 		echo 'Not implemented for ols-enterprise'
 	fi
@@ -417,11 +413,7 @@ function netdata_ssl_enable
 			fi
 		fi
 	elif [ "$g_webserver_type" = "ols" ] ; then
-		# Unlike NGINX, ols needs the actual domain name so we ask the user for it (or get from env.)
-		while [[ -z $domain ]]; do
-			gf_select_domain_nginx_ols
-		done
-		
+		domain=$(grep -m 1 docRoot /usr/local/lsws/conf/vhosts/netdata/vhconf.conf |awk '{print $2}'|grep -E -o "\b[A-Za-z0-9.-]+\.[A-Za-z]{2,6}\b")
 		# Setup OLS Folders.	
 		DOCHM="/var/www/${domain}/html"
 		mkdir -p ${DOCHM}/.well-known/acme-challenge
@@ -430,12 +422,12 @@ function netdata_ssl_enable
 		certbot certonly --non-interactive --reinstall --agree-tos --agree-tos -m $email --webroot -w ${DOCHM} -d $domain
 
 		if [[ -e /etc/letsencrypt/live/$domain/fullchain.pem ]]; then
-			sed -i "s|/usr/local/lsws/conf/example.key|/etc/letsencrypt/live/$domain/privkey.pem|g" ${VHDIR}/${domain}/$g_vhost_conf > /dev/null 2>&1
-			sed -i "s|/usr/local/lsws/conf/example.crt|/etc/letsencrypt/live/$domain/fullchain.pem|g" ${VHDIR}/${domain}/$g_vhost_conf > /dev/null 2>&1
+			sed -i "s|/usr/local/lsws/conf/example.key|/etc/letsencrypt/live/$domain/privkey.pem|g" ${VHDIR}/netdata/$g_vhost_conf > /dev/null 2>&1
+			sed -i "s|/usr/local/lsws/conf/example.crt|/etc/letsencrypt/live/$domain/fullchain.pem|g" ${VHDIR}/netdata/$g_vhost_conf > /dev/null 2>&1
 			# insert redirect to https inside the rewrite under wellknown rule just under <<<END_rules
 			# RewriteCond %{SERVER_PORT} ^80$ # Enable HTTPS
 			# RewriteRule .* https://%{SERVER_NAME}%{REQUEST_URI} [R=301,L] # Enable HTTPS
-			sed -i "${VHDIR}/${domain}/$g_vhost_conf" -re "/<<<END_rules/a RewriteCond %{SERVER_PORT} ^80$ # Enable HTTPS\nRewriteRule .* https:\/\/%{SERVER_NAME}%{REQUEST_URI} [R=301,L] # Enable HTTPS"
+			sed -i "${VHDIR}/netdata/$g_vhost_conf" -re "/<<<END_rules/a RewriteCond %{SERVER_PORT} ^80$ # Enable HTTPS\nRewriteRule .* https:\/\/%{SERVER_NAME}%{REQUEST_URI} [R=301,L] # Enable HTTPS"
 		fi
 		
 	elif [ "$g_webserver_type" = "ols-enterprise" ] ; then
@@ -459,7 +451,7 @@ function netdata_ssl_disable
 	if [ "$g_webserver_type" = "nginx" ] ; then
 		if grep -qs "managed by Certbot" /etc/nginx/sites-enabled/netdata.conf;
 		then
-			domain=`grep -m 1 server_name /etc/nginx/sites-enabled/netdata.conf |awk '{print $2}'`
+			domain=$(grep -m 1 server_name /etc/nginx/sites-enabled/netdata.conf |awk '{print $2}')
 			certbot delete --cert-name $domain --noninteractive
 			sed -i -n '/if ($host/q;p' /etc/nginx/sites-enabled/netdata.conf
 			sed -i '$ d' /etc/nginx/sites-enabled/netdata.conf
@@ -473,15 +465,12 @@ function netdata_ssl_disable
 		fi
 
 	elif [ "$g_webserver_type" = "ols" ] ; then
-		# Unlike NGINX, ols needs the actual domain name so we ask the user for it (or get from env.)
-		while [[ -z $domain ]]; do
-			gf_select_domain_nginx_ols
-		done	
+		domain=$(grep -m 1 docRoot /usr/local/lsws/conf/vhosts/netdata/vhconf.conf |awk '{print $2}'|grep -E -o "\b[A-Za-z0-9.-]+\.[A-Za-z]{2,6}\b")
 
 		# Lets find and delete the two lines with '# Enable HTTPS'
 		# RewriteCond %{SERVER_PORT} ^80$ # Enable HTTPS
 		# RewriteRule .* https://%{SERVER_NAME}%{REQUEST_URI} [R=301,L] # Enable HTTPS
-		sed -i "${VHDIR}/${domain}/$g_vhost_conf" -re '/# Enable HTTPS/d'
+		sed -i "${VHDIR}/netdata/$g_vhost_conf" -re '/# Enable HTTPS/d'
 		gf_disable_certbot_ols_site "$domain"
 		
 	elif [ "$g_webserver_type" = "ols-enterprise" ] ; then
@@ -512,17 +501,13 @@ function netdata_auth_add
 			echo "Basic Auth has been enabled"
 		fi
 	elif [ "$g_webserver_type" = "ols" ] ; then
-		# Unlike NGINX, ols needs the actual domain name so we ask the user for it (or get from env.)
-		while [[ -z $domain ]]; do
-			gf_select_domain_nginx_ols
-		done
-		grep -wq '### Enabling Password Protection config' ${VHDIR}/$domain/$g_vhost_conf
+		grep -wq '### Enabling Password Protection config' ${VHDIR}/netdata/$g_vhost_conf
 		if [ $? -eq 0 ]
 		then
 			echo "Basic Auth already enable"
 		else
 			sed -i -e "/### Insert context configs below this line/a\\
-			${preprocessed_VAR%?}"  ${VHDIR}/$domain/$g_vhost_conf
+			${preprocessed_VAR%?}"  ${VHDIR}/netdata/$g_vhost_conf
 			systemctl restart lsws > /dev/null
 		fi
 	elif [ "$g_webserver_type" = "ols-enterprise" ] ; then
@@ -551,19 +536,14 @@ function netdata_auth_remove
 			echo "Basic Auth has been disabled"
 		fi
 	elif [ "$g_webserver_type" = "ols" ] ; then
-		# Unlike NGINX, ols needs the actual domain name so we ask the user for it (or get from env.)
-		while [[ -z $domain ]]; do
-			gf_select_domain_nginx_ols
-		done
-
-		grep -wq '### Enabling Password Protection config' ${VHDIR}/$domain/$g_vhost_conf
+		grep -wq '### Enabling Password Protection config' ${VHDIR}/netdata/$g_vhost_conf
 		if [ $? -eq 1 ]
 		then
 			echo "Basic Auth already disabled"
 		else
 			# Remove block from vhost config
-			sed -i -re '/### Enabling Password Protection config start/{:a;N;/### Enabling Password Protection config end/!ba};/note             Password Protect document root for domain/d' ${VHDIR}/$domain/$g_vhost_conf
-			chown -R lsadm:lsadm ${VHDIR}/$domain/
+			sed -i -re '/### Enabling Password Protection config start/{:a;N;/### Enabling Password Protection config end/!ba};/note             Password Protect document root for domain/d' ${VHDIR}/netdata/$g_vhost_conf
+			chown -R lsadm:lsadm ${VHDIR}/netdata/
 			systemctl restart lsws > /dev/null
 		fi
 	elif [ "$g_webserver_type" = "ols-enterprise" ] ; then
@@ -598,17 +578,13 @@ function netdata_auth_change
 	fi
 	
 	if [ "$g_webserver_type" = "nginx" ] ; then
-		domain=`grep -m 1 server_name /etc/nginx/sites-enabled/netdata.conf |awk '{print $2}'`
+		domain=$(grep -m 1 server_name /etc/nginx/sites-enabled/netdata.conf |awk '{print $2}')
 		rm -f /etc/nginx/htpasswd/$domain > /dev/null
 		htpasswd -b -c /etc/nginx/htpasswd/$domain $user $pass
 	elif [ "$g_webserver_type" = "ols" ] ; then
-		# Unlike NGINX, ols needs the actual domain name so we ask the user for it (or get from env.)
-		while [[ -z $domain ]]; do
-			gf_select_domain_nginx_ols
-		done
-		rm -f ${VHDIR}/$domain/htpasswd > /dev/null
-		htpasswd -b ${VHDIR}/$domain/htpasswd $user $pass
-		chown -R lsadm:lsadm ${VHDIR}/$domain/
+		rm -f ${VHDIR}/netdata/htpasswd > /dev/null
+		htpasswd -b -c ${VHDIR}/netdata/htpasswd $user $pass
+		chown -R lsadm:lsadm ${VHDIR}/netdata/
 	elif [ "$g_webserver_type" = "ols-enterprise" ] ; then
 		echo 'Not implemented for ols-enterprise'
 	fi
@@ -666,11 +642,7 @@ function netdata_set_registry
 				exit
 			fi
 		elif [ "$g_webserver_type" = "ols" ] ; then
-			# Unlike NGINX, ols needs the actual domain name so we ask the user for it (or get from env.)
-			while [[ -z $domain ]]; do
-				gf_select_domain_nginx_ols
-			done	
-			grep -w '### Enabling Password Protection config' ${VHDIR}/$domain/$g_vhost_conf
+			grep -w '### Enabling Password Protection config' ${VHDIR}/netdata/$g_vhost_conf
 			if [ $? -ne 0 ]
 			then
 				echo "Please disable http authentication"

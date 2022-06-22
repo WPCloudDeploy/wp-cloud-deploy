@@ -13,7 +13,7 @@ fi
 source 9999-common-functions.sh
 
 # Not supported on OLS yet.
-if [ "$webserver_type" != "nginx" ]
+if [ "$g_webserver_type" != "nginx" ]
 then
     echo "This upgrade operation is only supported on NGINX."
     exit 1

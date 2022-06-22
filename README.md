@@ -127,10 +127,12 @@ Note: Even though the entire git development history isn't available on github, 
 * New: WPAPP - Front-end UI and related shortcodes.
 * New: WPAPP - Support for OpenLiteSpeed.
 * New: WPAPP - Admin lock for sites.
+* New: WPAPP - Preliminary support for Ubuntu 22.04 LTS.
 * Tweak: WPAPP - Remove extraneous text from certain tabs.
 * Tweak: WPAPP - Override list of WP versions.
 * Tweak: WPAPP - When a manual backup is run, we refresh the backup list automatically.
 * Tweak: WPAPP - Do not show the option to clear the page cache if it has not been installed.
+* Tweak: WPAPP - Option to not show each OS when creating a server (helps if you only want to support the most recent or a particular OS version.)
 * Fix: WPAPP - Redirect rules were not being deleted in our database even when deleted on the site.
 * Dev: WPAPP - Filter for the valid list of WP versions - wpcd_allowed_wp_versions
 

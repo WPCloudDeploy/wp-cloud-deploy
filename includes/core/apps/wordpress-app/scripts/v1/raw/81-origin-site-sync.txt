@@ -142,7 +142,7 @@ setUIDMode              2
 	ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "if ! sudo grep -qw \"virtualhost $domain \" /usr/local/lsws/conf/httpd_config.conf; then sudo sed -i \"/:443$/{N;s/$/\n$NEWKEY/}\" /usr/local/lsws/conf/httpd_config.conf ; fi"
 	ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "if ! sudo grep -qw \"virtualhost $domain \" /usr/local/lsws/conf/httpd_config.conf; then sudo cat /tmp/$domain |sudo tee -a /usr/local/lsws/conf/httpd_config.conf > /dev/null ; fi"
 	sudo rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /usr/local/lsws/conf/vhosts/$domain/ $sshuser@$destination_ip:/usr/local/lsws/conf/vhosts/$domain/ > /dev/null 2>&1 < /dev/null
-	ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo /usr/local/lsws/bin/lswsctrl stop >/dev/null 2>&1 ; sudo killall lsphp >/dev/null 2>&1 ; sudo systemctl stop lsws >/dev/null 2>&1; sudo systemctl start lsws"
+	ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo /usr/local/lsws/bin/lswsctrl stop >/dev/null 2>&1 ; sudo killall -9 lsphp >/dev/null 2>&1 ; sudo systemctl stop lsws >/dev/null 2>&1; sudo systemctl start lsws"
 else
 	php_version=$(ls /etc/php/*/fpm/pool.d/$domain.conf | cut -d '\''/'\'' -f 4)
 	sudo rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /etc/php/$php_version/fpm/pool.d/$domain.conf $sshuser@$destination_ip:/etc/php/$php_version/fpm/pool.d < /dev/null

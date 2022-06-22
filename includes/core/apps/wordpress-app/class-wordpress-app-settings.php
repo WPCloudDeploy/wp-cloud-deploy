@@ -947,8 +947,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 		$fields = array(
 			array(
 				'type' => 'heading',
-				'name' => __( 'Server Options', 'wpcd' ),
-				'desc' => __( 'Server options specific to the WordPress app.', 'wpcd' ),
+				'name' => __( 'Operating Systems', 'wpcd' ),
 				'tab'  => 'wordpress-app-general-wpadmin',
 			),
 			array(
@@ -959,6 +958,33 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tab'     => 'wordpress-app-general-wpadmin',
 				'std'     => 'ubuntu2004lts',
 				'options' => WPCD()->get_os_list(),
+			),
+			array(
+				'id'      => 'wordpress_app_disable_ubuntu_lts_1804',
+				'type'    => 'checkbox',
+				'name'    => __( 'Disable Ubuntu 18.04 LTS?', 'wpcd' ),
+				'tooltip' => __( 'Do not show the option to install Ubuntu 18.04 LTS servers.', 'wpcd' ),
+				'tab'     => 'wordpress-app-general-wpadmin',
+			),
+			array(
+				'id'      => 'wordpress_app_disable_ubuntu_lts_2004',
+				'type'    => 'checkbox',
+				'name'    => __( 'Disable Ubuntu 20.04 LTS?', 'wpcd' ),
+				'tooltip' => __( 'Do not show the option to install Ubuntu 20.04 LTS servers.', 'wpcd' ),
+				'tab'     => 'wordpress-app-general-wpadmin',
+			),
+			array(
+				'id'      => 'wordpress_app_disable_ubuntu_lts_2204',
+				'type'    => 'checkbox',
+				'name'    => __( 'Disable Ubuntu 22.04 LTS?', 'wpcd' ),
+				'tooltip' => __( 'Do not show the option to install Ubuntu 22.04 LTS servers.', 'wpcd' ),
+				'tab'     => 'wordpress-app-general-wpadmin',
+			),
+			array(
+				'type' => 'heading',
+				'name' => __( 'Server Options', 'wpcd' ),
+				'desc' => __( 'Server options specific to the WordPress app.', 'wpcd' ),
+				'tab'  => 'wordpress-app-general-wpadmin',
 			),
 			array(
 				'id'      => 'wordpress_app_default_webserver',
@@ -1098,7 +1124,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tab'     => 'wordpress-app-general-wpadmin',
 			),
 		);
-		return $fields;
+			return $fields;
 
 	}
 

@@ -15,7 +15,7 @@ fi
 source 9999-common-functions.sh
 
 # Not supported on OLS.
-if [ "$webserver_type" != "nginx" ]
+if [ "$g_webserver_type" != "nginx" ]
 then
     echo "These operations are only supported on NGINX."
     exit 1

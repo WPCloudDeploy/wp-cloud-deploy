@@ -116,55 +116,18 @@ class WPCD_SYNC {
 
 			// remove cron if auto export disable.
 			if ( $wpcd_sync_auto_export == 0 || empty( $wpcd_sync_auto_export ) ) {
-
-				if ( is_multisite() && is_plugin_active_for_network( wpcd_plugin ) ) {
-					// Get all blogs in the network.
-					$blog_ids = get_sites( array( 'fields' => 'ids' ) );
-					foreach ( $blog_ids as $blog_id ) {
-						switch_to_blog( $blog_id );
-						wp_unschedule_hook( 'wpcd_export_data_actions' );
-						wp_clear_scheduled_hook( 'wpcd_export_data_actions', $old_schedule_args );
-						wp_clear_scheduled_hook( 'wpcd_export_data_actions', $schedule_args );
-						restore_current_blog();
-					}
-				} else {
-					wp_unschedule_hook( 'wpcd_export_data_actions' );
-					wp_clear_scheduled_hook( 'wpcd_export_data_actions', $old_schedule_args );
-					wp_clear_scheduled_hook( 'wpcd_export_data_actions', $schedule_args );
-				}
+				wp_unschedule_hook( 'wpcd_export_data_actions' );
+				wp_clear_scheduled_hook( 'wpcd_export_data_actions', $old_schedule_args );
+				wp_clear_scheduled_hook( 'wpcd_export_data_actions', $schedule_args );
 			}
 
 			// set cron if export settings changed.
 			if ( $output_matched == 0 ) {
-
-				if ( is_multisite() && is_plugin_active_for_network( wpcd_plugin ) ) {
-					// Get all blogs in the network.
-					$blog_ids = get_sites( array( 'fields' => 'ids' ) );
-					foreach ( $blog_ids as $blog_id ) {
-						switch_to_blog( $blog_id );
-						wp_unschedule_hook( 'wpcd_export_data_actions' );
-						wp_clear_scheduled_hook( 'wpcd_export_data_actions', $old_schedule_args );
-						restore_current_blog();
-					}
-				} else {
-					wp_unschedule_hook( 'wpcd_export_data_actions' );
-					wp_clear_scheduled_hook( 'wpcd_export_data_actions', $old_schedule_args );
-				}
-
+				wp_unschedule_hook( 'wpcd_export_data_actions' );
+				wp_clear_scheduled_hook( 'wpcd_export_data_actions', $old_schedule_args );
 				if ( $wpcd_sync_auto_export == 1 ) {
 					if ( isset( $wpcd_sync_set_cron ) && ! empty( $wpcd_sync_set_cron ) ) {
-
-						if ( is_multisite() && is_plugin_active_for_network( wpcd_plugin ) ) {
-							// Get all blogs in the network.
-							$blog_ids = get_sites( array( 'fields' => 'ids' ) );
-							foreach ( $blog_ids as $blog_id ) {
-								switch_to_blog( $blog_id );
-								wp_schedule_event( time(), $wpcd_sync_set_cron, 'wpcd_export_data_actions', $schedule_args );
-								restore_current_blog();
-							}
-						} else {
-							wp_schedule_event( time(), $wpcd_sync_set_cron, 'wpcd_export_data_actions', $schedule_args );
-						}
+						wp_schedule_event( time(), $wpcd_sync_set_cron, 'wpcd_export_data_actions', $schedule_args );
 					}
 				}
 			}
@@ -956,44 +919,50 @@ class WPCD_SYNC {
 					if ( $wpcd_permission_rule ) {
 						$new_wpcd_permission_rule = array();
 						foreach ( $wpcd_permission_rule as $rule ) {
-							$server_permissions = $rule['wpcd_server_permissions'];
 
-							if ( $server_permissions ) {
-								foreach ( $server_permissions as $key => $server_permission ) {
-									$server_permissions[ $key ] = get_post_meta( $server_permission, 'wpcd_permission_name', true );
+							if ( isset( $rule['wpcd_server_permissions'] ) ) {
+								$server_permissions = $rule['wpcd_server_permissions'];
+
+								if ( $server_permissions ) {
+									foreach ( $server_permissions as $key => $server_permission ) {
+										$server_permissions[ $key ] = get_post_meta( $server_permission, 'wpcd_permission_name', true );
+									}
+									$rule['wpcd_server_permissions'] = $server_permissions;
 								}
-								$rule['wpcd_server_permissions'] = $server_permissions;
 							}
 
-							$app_permissions = $rule['wpcd_app_permissions'];
-							if ( $app_permissions ) {
-								foreach ( $app_permissions as $key => $app_permission ) {
-									$app_permissions[ $key ] = get_post_meta( $app_permission, 'wpcd_permission_name', true );
+							if ( isset( $rule['wpcd_app_permissions'] ) ) {
+								$app_permissions = $rule['wpcd_app_permissions'];
+								if ( $app_permissions ) {
+									foreach ( $app_permissions as $key => $app_permission ) {
+										$app_permissions[ $key ] = get_post_meta( $app_permission, 'wpcd_permission_name', true );
+									}
+									$rule['wpcd_app_permissions'] = $app_permissions;
 								}
-								$rule['wpcd_app_permissions'] = $app_permissions;
+								$new_wpcd_permission_rule[] = $rule;
 							}
-							$new_wpcd_permission_rule[] = $rule;
+
+							$team_member = 0;
+							if ( isset( $rule['wpcd_app_permissions'] ) ) {
+								$team_member = $rule['wpcd_team_member'];
+							}
+
+							// Get user by ID.
+							$user = new WP_User( $team_member );
+
+							// if user id exists then continue.
+							if ( array_key_exists( $team_member, $exported_users ) ) {
+								continue;
+							}
+
+							// user data to be exported.
+							$exported_users[ $team_member ]['user_id']    = $team_member;
+							$exported_users[ $team_member ]['user_login'] = $user->data->user_login;
+							$exported_users[ $team_member ]['user_email'] = $user->data->user_email;
+							$exported_users[ $team_member ]['user_roles'] = $user->roles;
 						}
 
 						$team_posts[ $team->ID ]['post_meta']['wpcd_permission_rule'] = $new_wpcd_permission_rule;
-					}
-
-					foreach ( $wpcd_permission_rule as $rule ) {
-						$team_member = $rule['wpcd_team_member'];
-
-						// Get user by ID.
-						$user = new WP_User( $team_member );
-
-						// if user id exists then continue.
-						if ( array_key_exists( $team_member, $exported_users ) ) {
-							continue;
-						}
-
-						// user data to be exported.
-						$exported_users[ $team_member ]['user_id']    = $team_member;
-						$exported_users[ $team_member ]['user_login'] = $user->data->user_login;
-						$exported_users[ $team_member ]['user_email'] = $user->data->user_email;
-						$exported_users[ $team_member ]['user_roles'] = $user->roles;
 					}
 				}
 

@@ -1003,48 +1003,18 @@ class WPCD_EMAIL_NOTIFICATIONS {
 				update_post_meta( $post_id, 'wpcd_scheduled_email_cron_run', '0' );
 
 				// Clear old cron for this post_id.
-				if ( is_multisite() && is_plugin_active_for_network( wpcd_plugin ) ) {
-					// Get all blogs in the network.
-					$blog_ids = get_sites( array( 'fields' => 'ids' ) );
-					foreach ( $blog_ids as $blog_id ) {
-						switch_to_blog( $blog_id );
-						wp_clear_scheduled_hook( 'wpcd_check_for_scheduled_compose_email_send', $schedule_args );
-						restore_current_blog();
-					}
-				} else {
-					wp_clear_scheduled_hook( 'wpcd_check_for_scheduled_compose_email_send', $schedule_args );
-				}
+				wp_clear_scheduled_hook( 'wpcd_check_for_scheduled_compose_email_send', $schedule_args );
 
 				// If scheduled time greater than the current time then set cron.
 				if ( $scheduled_time > $current_time ) {
 					// Schedule cron.
-					if ( is_multisite() && is_plugin_active_for_network( wpcd_plugin ) ) {
-						// Get all blogs in the network.
-						$blog_ids = get_sites( array( 'fields' => 'ids' ) );
-						foreach ( $blog_ids as $blog_id ) {
-							switch_to_blog( $blog_id );
-							wp_schedule_event( time(), 'every_two_minute', 'wpcd_check_for_scheduled_compose_email_send', $schedule_args );
-							restore_current_blog();
-						}
-					} else {
-						wp_schedule_event( time(), 'every_two_minute', 'wpcd_check_for_scheduled_compose_email_send', $schedule_args );
-					}
+					wp_schedule_event( time(), 'every_two_minute', 'wpcd_check_for_scheduled_compose_email_send', $schedule_args );
 				}
 			} else {
 				update_post_meta( $post_id, 'wpcd_scheduled_email_cron_run', '0' );
 
 				// Clear old cron for this post_id.
-				if ( is_multisite() && is_plugin_active_for_network( wpcd_plugin ) ) {
-					// Get all blogs in the network.
-					$blog_ids = get_sites( array( 'fields' => 'ids' ) );
-					foreach ( $blog_ids as $blog_id ) {
-						switch_to_blog( $blog_id );
-						wp_clear_scheduled_hook( 'wpcd_check_for_scheduled_compose_email_send', $schedule_args );
-						restore_current_blog();
-					}
-				} else {
-					wp_clear_scheduled_hook( 'wpcd_check_for_scheduled_compose_email_send', $schedule_args );
-				}
+				wp_clear_scheduled_hook( 'wpcd_check_for_scheduled_compose_email_send', $schedule_args );
 			}
 
 			$msg = array( 'msg' => __( 'The message has been saved as draft.', 'wpcd' ) );
@@ -1490,17 +1460,7 @@ class WPCD_EMAIL_NOTIFICATIONS {
 
 			// Clear cron for this post_id.
 			$schedule_args = array( $post_id );
-			if ( is_multisite() && is_plugin_active_for_network( wpcd_plugin ) ) {
-				// Get all blogs in the network.
-				$blog_ids = get_sites( array( 'fields' => 'ids' ) );
-				foreach ( $blog_ids as $blog_id ) {
-					switch_to_blog( $blog_id );
-					wp_clear_scheduled_hook( 'wpcd_check_for_scheduled_compose_email_send', $schedule_args );
-					restore_current_blog();
-				}
-			} else {
-				wp_clear_scheduled_hook( 'wpcd_check_for_scheduled_compose_email_send', $schedule_args );
-			}
+			wp_clear_scheduled_hook( 'wpcd_check_for_scheduled_compose_email_send', $schedule_args );
 		}
 	}
 

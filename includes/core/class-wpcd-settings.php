@@ -1388,7 +1388,7 @@ class WPCD_Settings {
 				 * Button to automatically create ssh keys.
 				 */
 				if ( WPCD()->get_provider_api( $provider )->get_feature_flag( 'ssh_create' ) && ! $this->is_api_key_empty( $provider ) ) {
-					$ssh_auto_create_keys_heading_desc  = __( 'SSH keys are critical the proper operation of this service.', 'wpcd' );
+					$ssh_auto_create_keys_heading_desc  = __( 'SSH keys are critical for proper operation of this service.', 'wpcd' );
 					$ssh_auto_create_keys_heading_desc .= '<br />' . __( 'This provider can automatically create your SSH keys for you and submit them to your account.', 'wpcd' );
 					$ssh_auto_create_keys_heading_desc .= '<br />' . __( 'If you are not familiar with creating and managing keys or you would like a set of keys created for you, click the button below.', 'wpcd' );
 					$ssh_auto_create_keys_heading_desc .= '<br />' . __( 'However, it is important that you only do this if you have not already created servers with your own keys!', 'wpcd' );
@@ -1504,7 +1504,7 @@ class WPCD_Settings {
 								'id'      => "vpn_{$provider}_tags_on_server_create",
 								'type'    => 'text',
 								'name'    => __( 'Tag For New Servers', 'wpcd' ),
-								'desc'    => __( 'Note: Some providers require that you use tags that have already been defined while others allow you to set random/dynamic tgs.', 'wpcd' ),
+								'desc'    => __( 'Note: Some providers require that you use tags that have already been defined while others allow you to set random/dynamic tags.', 'wpcd' ),
 								'size'    => '30',
 								'tab'     => $tab_id,
 								'tooltip' => __( 'Apply this tag to every new server. If left blank, the tag will default to WPCD for providers that allow for dynamic/random tags.', 'wpcd' ),
@@ -1858,7 +1858,7 @@ class WPCD_Settings {
 		}
 
 		// Extract the provider from the ajax request.
-		$provider = wp_kses( FILTER_INPUT( INPUT_POST, 'provider', FILTER_SANITIZE_STRING ), array() );
+		$provider = sanitize_text_field( FILTER_INPUT( INPUT_POST, 'provider', FILTER_DEFAULT ), array() );
 
 		// Call the clear cache function.
 		WPCD()->get_provider_api( $provider )->clear_cache();
@@ -1898,11 +1898,28 @@ class WPCD_Settings {
 		$attributes['public_key']      = $key_pair['public'];
 		$attributes['public_key_name'] = 'WPCD_AUTO_CREATE_' . wpcd_random_str( 10, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' );
 
-		// Call the clear cache function.
+		// Call the ssh_create function.
 		$key_id = WPCD()->get_provider_api( $provider )->call( 'ssh_create', $attributes );
-		error_log( print_r( $key_id, true ) );
-		// ok, we got this far...
-		$msg = __( 'The key has been created. This page will now refresh.', 'wpcd' );
+
+		if ( is_array( $key_id ) && ( ! is_wp_error( $key_id ) ) && ( $key_id ) && ( ! empty( $key_id['ssh_key_id'] ) ) ) {
+
+			// Ok, we got this far. Save to our options array.
+			wpcd_set_option( "vpn_{$provider}_sshkey_id", $key_id['ssh_key_id'] );
+			wpcd_set_option( "vpn_{$provider}_sshkey", WPCD()->encrypt( $key_pair['private'] ) );
+			wpcd_set_option( "vpn_{$provider}_public_sshkey", $key_pair['public'] );
+			wpcd_set_option( "vpn_{$provider}_sshkeynotes", $attributes['public_key_name'] . ': ' . __( 'This key was automatically created.', 'wpcd' ) );
+
+			// Set success message.
+			$msg = __( 'The key has been created. This page will now refresh.', 'wpcd' );
+		} else {
+
+			// Failed.
+			$msg = __( 'The attempt to create an ssh key pair was not successful.  Please try again and/or contact our support team. This page will now refresh.', 'wpcd' );
+
+		}
+
+		// Clear cache so that when the page refreshes we can get new data.
+		WPCD()->get_provider_api( $provider )->clear_cache();
 
 		$return = array( 'msg' => $msg );
 

@@ -49,6 +49,9 @@ class WPCD_Settings {
 		// Action hook to clear provider cache.
 		add_action( 'wp_ajax_wpcd_provider_clear_cache', array( $this, 'wpcd_provider_clear_cache' ) );
 
+		// Action hook to automatically create ssh keys.
+		add_action( 'wp_ajax_wpcd_provider_auto_create_ssh_key', array( $this, 'wpcd_provider_auto_create_ssh_key' ) );
+
 		// Action hook to check for plugin updates. This is initiated via a button on the license tab on the settings screen.
 		add_action( 'wp_ajax_wpcd_check_for_updates', array( $this, 'wpcd_check_for_updates' ) );
 
@@ -1355,6 +1358,9 @@ class WPCD_Settings {
 			 */
 			/* translators: %1: provider name. %2: provider name again. */
 			$ssh_keys_heading_desc = sprintf( __( 'For security, we only use public-private key pairs for server management. You must upload at least one public key to %1$s. Public keys that have been uploaded to %2$s\'s dashboard will show up in the drop-down below once your credentials above are configured and saved.<br /><br />You must click the SAVE SETTINGS at the bottom of this screen at least once after you enter your api key above in order for this list to populate. If the list continues to be blank, double-check that you have added at least one SSH key in your cloud provider\'s dashboard.', 'wpcd' ), $provider, $provider );
+			if ( WPCD()->get_provider_api( $provider )->get_feature_flag( 'ssh_create' ) ) {
+				$ssh_keys_heading_desc .= '<br /><br />' . __( 'Note: If you used the button above to automatically create keys and that operation was successful, you new keys should already be setup below. ', 'wpcd' );
+			}
 			$ssh_keys_heading_desc = apply_filters( "wpcd_cloud_provider_settings_ssh_keys_heading_desc_{$provider}", $ssh_keys_heading_desc );
 			$fields_part3          = array();
 			if ( ! $this->is_api_key_empty( $provider ) ) {
@@ -1377,6 +1383,46 @@ class WPCD_Settings {
 						'tab'     => $tab_id,
 					),
 				);
+
+				/**
+				 * Button to automatically create ssh keys.
+				 */
+				if ( WPCD()->get_provider_api( $provider )->get_feature_flag( 'ssh_create' ) && ! $this->is_api_key_empty( $provider ) ) {
+					$ssh_auto_create_keys_heading_desc  = __( 'SSH keys are critical the proper operation of this service.', 'wpcd' );
+					$ssh_auto_create_keys_heading_desc .= '<br />' . __( 'This provider can automatically create your SSH keys for you and submit them to your account.', 'wpcd' );
+					$ssh_auto_create_keys_heading_desc .= '<br />' . __( 'If you are not familiar with creating and managing keys or you would like a set of keys created for you, click the button below.', 'wpcd' );
+					$ssh_auto_create_keys_heading_desc .= '<br />' . __( 'However, it is important that you only do this if you have not already created servers with your own keys!', 'wpcd' );
+					$ssh_auto_create_keys_heading_desc .= '<br />' . __( 'Otherwise you could be locked out of your servers and your keys could be lost!', 'wpcd' );
+					$ssh_auto_create_keys_heading_desc .= '<br />' . __( 'If this operation is successful you should immediately make a copy of your private key which will be shown in the text boxes below. Store it in a safe place!', 'wpcd' );
+
+					$fields_auto_create_ssh_keys = array(
+						array(
+							'type' => 'heading',
+							'tab'  => $tab_id,
+							'name' => __( 'Automatically Create SSH Keys: STOP AND READ CAREFULLY!', 'wpcd' ),
+							'desc' => $ssh_auto_create_keys_heading_desc,
+						),
+
+						array(
+							'id'         => "vpn_{$provider}_auto_create_ssh_key",
+							'type'       => 'button',
+							'std'        => __( 'Create SSH Keys', 'wpcd' ),
+							'attributes' => array(
+								'class'         => 'wpcd-provider-auto-create-ssh-key',
+								'data-action'   => 'wpcd_provider_auto_create_ssh_key',
+								'data-nonce'    => wp_create_nonce( 'wpcd-auto-create-ssh-key' ),
+								'data-provider' => $provider,
+							),
+							'tab'        => $tab_id,
+						),
+					);
+				} else {
+					$fields_auto_create_ssh_keys = array();
+				}
+
+				if ( ! empty( $fields_auto_create_ssh_keys ) ) {
+					$fields_part3 = array_merge( $fields_auto_create_ssh_keys, $fields_part3 );
+				}
 
 				$fields_part3 = apply_filters( "wpcd_cloud_provider_settings_after_part3_{$provider}", $fields_part3, $tab_id );
 			}
@@ -1819,6 +1865,44 @@ class WPCD_Settings {
 
 		// ok, we got this far...
 		$msg = __( 'The cache has been cleared for this provider. This page will now refresh.', 'wpcd' );
+
+		$return = array( 'msg' => $msg );
+
+		wp_send_json_success( $return );
+		wp_die();
+	}
+
+	/**
+	 * Automatically Create SSH Key at the provider.
+	 */
+	public function wpcd_provider_auto_create_ssh_key() {
+
+		// nonce check.
+		check_ajax_referer( 'wpcd-auto-create-ssh-key', 'nonce' );
+
+		// Permissions check.
+		if ( ! wpcd_is_admin() ) {
+
+			$error_msg = array( 'msg' => __( 'You are not allowed to perform this action - only admins are permitted here.', 'wpcd' ) );
+			wp_send_json_error( $error_msg );
+			wp_die();
+
+		}
+
+		// Extract the provider from the ajax request.
+		$provider = sanitize_text_field( FILTER_INPUT( INPUT_POST, 'provider', FILTER_DEFAULT ), array() );
+
+		// Create key.
+		$key_pair                      = WPCD_WORDPRESS_APP()->ssh()->create_key_pair();
+		$attributes                    = array();
+		$attributes['public_key']      = $key_pair['public'];
+		$attributes['public_key_name'] = 'WPCD_AUTO_CREATE_' . wpcd_random_str( 10, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' );
+
+		// Call the clear cache function.
+		$key_id = WPCD()->get_provider_api( $provider )->call( 'ssh_create', $attributes );
+		error_log( print_r( $key_id, true ) );
+		// ok, we got this far...
+		$msg = __( 'The key has been created. This page will now refresh.', 'wpcd' );
 
 		$return = array( 'msg' => $msg );
 

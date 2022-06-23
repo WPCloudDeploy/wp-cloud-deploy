@@ -154,6 +154,7 @@ class CLOUD_PROVIDER_API {
 		$feature_flags['enable_dynamic_tags_on_server_create'] = false;  // Does the provider support enabling random tag(s) when a server is initially created?
 		$feature_flags['dynamic_tags']                         = false;  // Does the provider support creating random tags?
 		$feature_flags['resize']                               = false;  // Does the provider support resizing operations?
+		$feature_flags['ssh_create']                           = false;  // Does the provider support creating ssh keys?
 
 		$this->set_cache_key_prefix();
 

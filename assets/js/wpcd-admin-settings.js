@@ -137,6 +137,32 @@
 
         });
     }
+	
+    // for automatically creating ssh keys.
+    function initClearProviderCache() {
+        $('body').on('click', '.wpcd-provider-auto-create-ssh-key', function(e) {
+            e.preventDefault();
+
+            var action = $(this).data('action');
+            var nonce = $(this).data('nonce');
+            var provider = $(this).data('provider');
+
+            $.ajax({
+                url: ajaxurl,
+                method: 'POST',
+                data: {
+                    action: action,
+                    nonce: nonce,
+                    provider: provider
+                },
+                success: function(data) {
+                    alert(data.data.msg);
+                    location.reload();
+                }
+            });
+
+        });
+    }	
 
     // Checking for WPCD updates - triggered from the SETTINGS->LICENSE AND UPDATES->CHECK FOR UPDATES button
     // Validate licenses - triggered from the SETTINGS->LICENSE AND UPDATES->VALIDATE LICENSES button

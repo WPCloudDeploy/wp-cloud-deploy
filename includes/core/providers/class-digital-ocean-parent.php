@@ -54,6 +54,9 @@ class CLOUD_PROVIDER_API_DigitalOcean_Parent extends CLOUD_PROVIDER_API {
 		/* Set flag to indicate that this provider supports creating ssh keys */
 		$this->set_feature_flag( 'ssh_create', true );
 
+		/* Set flag to indicate that this provider supports testing connections to it. */
+		$this->set_feature_flag( 'test_connection', true );
+
 		/* Set flag that indicates we will support snapshots */
 		$this->set_feature_flag( 'snapshots', true );
 		$this->set_feature_flag( 'snapshot-delete', false );  // We can't support this in DigitalOcean because the create snapshot api or subsequent endpoints do not actually return the snapshot ID.
@@ -318,6 +321,9 @@ runcmd:
 					"name": "' . $ssh_key_name . '"
 				}';
 				break;
+			case 'test_connection':
+				$endpoint = 'regions'; // If we can get a set of regions we've probably got a good connection.
+				break;
 			default:
 				return new WP_Error( 'not supported' );
 		}
@@ -474,6 +480,13 @@ runcmd:
 				break;
 			case 'ssh_create':
 				$return['ssh_key_id'] = $body->ssh_key->id;
+				break;
+			case 'test_connection':
+				if ( ! empty( $body->regions ) ) {
+					$return['test_status'] = true;
+				} else {
+					$return['test_status'] = false;
+				}
 				break;
 			case 'action':
 				/* We are not using this endpoint right now. */

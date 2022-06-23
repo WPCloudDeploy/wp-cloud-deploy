@@ -52,6 +52,12 @@ class WPCD_Settings {
 		// Action hook to automatically create ssh keys.
 		add_action( 'wp_ajax_wpcd_provider_auto_create_ssh_key', array( $this, 'wpcd_provider_auto_create_ssh_key' ) );
 
+		// Action hook to automatically create ssh keys.
+		add_action( 'wp_ajax_wpcd_provider_auto_create_ssh_key', array( $this, 'wpcd_provider_auto_create_ssh_key' ) );
+
+		// Action hook to test provider connection.
+		add_action( 'wp_ajax_wpcd_provider_test_provider_connection', array( $this, 'wpcd_provider_test_provider_connection' ) );
+
 		// Action hook to check for plugin updates. This is initiated via a button on the license tab on the settings screen.
 		add_action( 'wp_ajax_wpcd_check_for_updates', array( $this, 'wpcd_check_for_updates' ) );
 
@@ -1335,6 +1341,40 @@ class WPCD_Settings {
 
 			);
 
+			/**
+			 * Button to test provider connection.
+			 */
+			if ( WPCD()->get_provider_api( $provider )->get_feature_flag( 'test_connection' ) && ! $this->is_api_key_empty( $provider ) ) {
+				$ssh_test_connection_heading_desc = __( 'Note: You must click the SAVE SETTINGS button at the bottom of this page to save your api credentials before you can test your connection.', 'wpcd' );
+
+				$fields_test_provider_connection = array(
+					array(
+						'type' => 'heading',
+						'tab'  => $tab_id,
+						'name' => __( 'Test Connection To Provider', 'wpcd' ),
+						'desc' => $ssh_test_connection_heading_desc,
+					),
+					array(
+						'id'         => "vpn_{$provider}_test_provider_connection",
+						'type'       => 'button',
+						'std'        => __( 'Test Connection', 'wpcd' ),
+						'attributes' => array(
+							'class'         => 'wpcd-provider-test-provider-connection',
+							'data-action'   => 'wpcd_provider_test_provider_connection',
+							'data-nonce'    => wp_create_nonce( 'wpcd-test-provider-connection' ),
+							'data-provider' => $provider,
+						),
+						'tab'        => $tab_id,
+					),
+				);
+			} else {
+				$fields_test_provider_connection = array();
+			}
+
+			if ( ! empty( $fields_test_provider_connection ) ) {
+				$fields_part1 = array_merge( $fields_part1, $fields_test_provider_connection );
+			}
+
 			$fields_part1 = apply_filters( "wpcd_cloud_provider_settings_after_part1_{$provider}", $fields_part1, $tab_id );
 
 			/* Basic instructional fields after api keys are filled in. */
@@ -1353,6 +1393,8 @@ class WPCD_Settings {
 				);
 			}
 
+			$can_connect_to_provider =  $this->wpcd_can_connect_to_provider( $provider );
+
 			/**
 			 * SSH Key fields.
 			 */
@@ -1363,7 +1405,7 @@ class WPCD_Settings {
 			}
 			$ssh_keys_heading_desc = apply_filters( "wpcd_cloud_provider_settings_ssh_keys_heading_desc_{$provider}", $ssh_keys_heading_desc );
 			$fields_part3          = array();
-			if ( ! $this->is_api_key_empty( $provider ) ) {
+			if ( ! $this->is_api_key_empty( $provider ) && $can_connect_to_provider ) {
 				$fields_part3 = array(
 					array(
 						'type' => 'heading',
@@ -1428,7 +1470,7 @@ class WPCD_Settings {
 			}
 
 			$fields_part4 = array();
-			if ( ! $this->is_api_key_empty( $provider ) ) {
+			if ( ! $this->is_api_key_empty( $provider ) && $can_connect_to_provider ) {
 				$private_keys_text_note = apply_filters( 'wpcd_cloud_provider_settings_important_private_key_notes', '<a href="https://wpclouddeploy.com/documentation/_notes/important-notes-about-private-ssh-keys/" target="_blank" >' . __( 'View important notes about private keys.', 'wpcd' ) . '</a>' );
 				$fields_part4           = array(
 					array(
@@ -1466,7 +1508,7 @@ class WPCD_Settings {
 
 			/* Sizes fields; Other optional Fields; */
 			$fields_part5 = array();
-			if ( ! $this->is_api_key_empty( $provider ) ) {
+			if ( ! $this->is_api_key_empty( $provider ) && $can_connect_to_provider ) {
 
 				// Backups?
 				if ( WPCD()->get_provider_api( $provider )->get_feature_flag( 'enable_backups_on_server_create' ) ) {
@@ -1535,7 +1577,7 @@ class WPCD_Settings {
 			}
 
 			$fields_part6 = array();
-			if ( ! $this->is_api_key_empty( $provider ) ) {
+			if ( ! $this->is_api_key_empty( $provider ) && $can_connect_to_provider ) {
 
 				$fields_part6 = array(
 					array(
@@ -1558,7 +1600,7 @@ class WPCD_Settings {
 			}
 
 			$fields_part7 = array();
-			if ( ! $this->is_api_key_empty( $provider ) ) {
+			if ( ! $this->is_api_key_empty( $provider ) && $can_connect_to_provider ) {
 
 				// Get list of cached transients for this provider.
 				$cached_transient_list = WPCD()->get_provider_api( $provider )->get_cached_transient_list();
@@ -1842,6 +1884,8 @@ class WPCD_Settings {
 
 	/**
 	 * Clear a provider's cache
+	 *
+	 * Action Hook: wp_ajax_wpcd_provider_clear_cache
 	 */
 	public function wpcd_provider_clear_cache() {
 
@@ -1874,6 +1918,8 @@ class WPCD_Settings {
 
 	/**
 	 * Automatically Create SSH Key at the provider.
+	 *
+	 * Action Hook: wp_ajax_wpcd_provider_auto_create_ssh_key
 	 */
 	public function wpcd_provider_auto_create_ssh_key() {
 
@@ -1925,6 +1971,82 @@ class WPCD_Settings {
 
 		wp_send_json_success( $return );
 		wp_die();
+	}
+
+	/**
+	 * Test connection to provider.
+	 *
+	 * Action Hook: wp_ajax_wpcd_provider_test_provider_connection
+	 */
+	public function wpcd_provider_test_provider_connection() {
+
+		// nonce check.
+		check_ajax_referer( 'wpcd-test-provider-connection', 'nonce' );
+
+		// Permissions check.
+		if ( ! wpcd_is_admin() ) {
+
+			$error_msg = array( 'msg' => __( 'You are not allowed to perform this action - only admins are permitted here.', 'wpcd' ) );
+			wp_send_json_error( $error_msg );
+			wp_die();
+
+		}
+
+		// Extract the provider from the ajax request.
+		$provider = sanitize_text_field( FILTER_INPUT( INPUT_POST, 'provider', FILTER_DEFAULT ), array() );
+
+		// Call the test_connection function.
+		$attributes        = array();
+		$connection_status = WPCD()->get_provider_api( $provider )->call( 'test_connection', $attributes );
+
+		if ( true === $connection_status['test_status'] ) {
+
+			// Set success message.
+			$msg = __( 'The connection was successful.', 'wpcd' );
+
+		} else {
+
+			// Failed.
+			$msg = __( 'The attempt to connect to your provider with the api keys provided was unsuccessful.  Please try again and/or contact our support team. This page will now refresh.', 'wpcd' );
+
+		}
+
+		// Clear cache so that when the page refreshes we can get new data.
+		WPCD()->get_provider_api( $provider )->clear_cache();		
+
+		$return = array( 'msg' => $msg );
+
+		wp_send_json_success( $return );
+		wp_die();
+	}
+
+	/**
+	 * Can we connect to the provider?
+	 *
+	 * @param string $provider The provider slug.
+	 *
+	 * @return boolean.
+	 */
+	public function wpcd_can_connect_to_provider( $provider ) {
+
+		$return = false;
+
+		if ( WPCD()->get_provider_api( $provider )->get_feature_flag( 'test_connection' ) ) {
+
+			$attributes        = array();
+			$connection_status = WPCD()->get_provider_api( $provider )->call( 'test_connection', $attributes );
+
+			$return = $connection_status['test_status'];
+
+		} else {
+			$return = true;  // If the provider does not have the ability to test a connection, always return true.
+		}
+
+		// Clear cache so that when the page refreshes we can get new data.
+		WPCD()->get_provider_api( $provider )->clear_cache();
+
+		return $return;
+
 	}
 
 	/**

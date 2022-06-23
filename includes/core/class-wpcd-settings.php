@@ -1393,7 +1393,7 @@ class WPCD_Settings {
 				);
 			}
 
-			$can_connect_to_provider =  $this->wpcd_can_connect_to_provider( $provider );
+			$can_connect_to_provider = $this->wpcd_can_connect_to_provider( $provider );
 
 			/**
 			 * SSH Key fields.
@@ -2012,7 +2012,7 @@ class WPCD_Settings {
 		}
 
 		// Clear cache so that when the page refreshes we can get new data.
-		WPCD()->get_provider_api( $provider )->clear_cache();		
+		WPCD()->get_provider_api( $provider )->clear_cache();
 
 		$return = array( 'msg' => $msg );
 
@@ -2033,17 +2033,38 @@ class WPCD_Settings {
 
 		if ( WPCD()->get_provider_api( $provider )->get_feature_flag( 'test_connection' ) ) {
 
-			$attributes        = array();
-			$connection_status = WPCD()->get_provider_api( $provider )->call( 'test_connection', $attributes );
+			// See if transient is already set.
+			$apikey = WPCD()->get_provider_api( $provider )->get_api_key();
+			$transient_key    = 'wpcd_provider_connection_test_success_flag_' . $provider . hash( 'sha256', $apikey );
+			$transient_status = get_transient( $transient_key );
 
-			$return = $connection_status['test_status'];
+			if ( 'connection_successful' === $transient_status ) {
+				$return = true;
+			} else {
+				if ( ! $transient_status ) {
+					// Transient does not exist so check for connection and then update the transient if successful.
+					$attributes        = array();
+					$connection_status = WPCD()->get_provider_api( $provider )->call( 'test_connection', $attributes );
 
+					if ( true === $connection_status['test_status'] ) {
+						set_transient( $transient_key, 'connection_successful', 86400 ); // Transient set to expire in 24 hours. Note we are not using a boolean for this transient for good reason.
+					}
+
+					/**
+					 * Clear cache so that when the page refreshes we can get new data.
+					 * We need to be careful where we place this call otherwise the cache
+					 * can be inadvertently cleared for all providers everytime we load up
+					 * or refresh settings page
+					 */
+					WPCD()->get_provider_api( $provider )->clear_cache();
+
+					$return = $connection_status['test_status'];
+
+				}
+			}
 		} else {
 			$return = true;  // If the provider does not have the ability to test a connection, always return true.
 		}
-
-		// Clear cache so that when the page refreshes we can get new data.
-		WPCD()->get_provider_api( $provider )->clear_cache();
 
 		return $return;
 

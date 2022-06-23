@@ -51,6 +51,12 @@ class CLOUD_PROVIDER_API_DigitalOcean_Parent extends CLOUD_PROVIDER_API {
 		/* Set link to cloud provider's user dashboard */
 		$this->set_provider_dashboard_link( 'https://cloud.digitalocean.com/account/api/tokens' );
 
+		/* Set flag to indicate that this provider supports creating ssh keys */
+		$this->set_feature_flag( 'ssh_create', true );
+
+		/* Set flag to indicate that this provider supports testing connections to it. */
+		$this->set_feature_flag( 'test_connection', true );
+
 		/* Set flag that indicates we will support snapshots */
 		$this->set_feature_flag( 'snapshots', true );
 		$this->set_feature_flag( 'snapshot-delete', false );  // We can't support this in DigitalOcean because the create snapshot api or subsequent endpoints do not actually return the snapshot ID.
@@ -72,7 +78,7 @@ class CLOUD_PROVIDER_API_DigitalOcean_Parent extends CLOUD_PROVIDER_API {
 		$provider = $this->get_provider_slug();
 		add_filter( "wpcd_cloud_provider_settings_api_key_label_desc_{$provider}", array( $this, 'set_link_to_provider_dashboard' ) );
 
-		// Run cron to auto start server after resize
+		/* Run cron to auto start server after resize */
 		add_action( 'wpcd_' . $this->get_provider_slug() . '_auto_start_after_resize_cron', array( $this, 'doAutoStartServer' ), 10 );
 
 	}
@@ -305,6 +311,19 @@ runcmd:
 					"type": "resize", "size":"' . $attributes['new_size'] . '"
 				}';
 				break;
+			case 'ssh_create':
+				$endpoint       = 'account/keys';
+				$action         = 'POST';
+				$ssh_key_name   = $attributes['public_key_name'];
+				$new_public_key = $attributes['public_key'];
+				$body           = '{
+					"public_key": "' . $new_public_key . '", 
+					"name": "' . $ssh_key_name . '"
+				}';
+				break;
+			case 'test_connection':
+				$endpoint = 'regions'; // If we can get a set of regions we've probably got a good connection.
+				break;
 			default:
 				return new WP_Error( 'not supported' );
 		}
@@ -458,6 +477,16 @@ runcmd:
 				$return['ipv6']   = $this->get_ipv6_from_body( $body );
 				$return['name']   = $body->droplet->name;
 				$return['status'] = $body->droplet->status;
+				break;
+			case 'ssh_create':
+				$return['ssh_key_id'] = $body->ssh_key->id;
+				break;
+			case 'test_connection':
+				if ( ! empty( $body->regions ) ) {
+					$return['test_status'] = true;
+				} else {
+					$return['test_status'] = false;
+				}
 				break;
 			case 'action':
 				/* We are not using this endpoint right now. */

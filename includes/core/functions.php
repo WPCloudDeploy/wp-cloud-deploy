@@ -129,6 +129,7 @@ function wpcd_get_option( $option_id, $domain = 'wpcd_settings' ) {
 	}
 
 }
+
 /**
  * This is the same as the wpcd_get_option function above.  But it
  * goes directly to the WordPress options function instead.
@@ -145,6 +146,33 @@ function wpcd_get_early_option( $option_id, $domain = 'wpcd_settings' ) {
 
 	return $value;
 }
+
+/**
+ * Directly write to our metabox option array.
+ *
+ * This function should almost never be used!
+ * We only use this in one place right now - when automatically create
+ * and setting ssh keys for a provider
+ *
+ * @param int    $option_id option_id.
+ * @param string $option_value The value to write to the option element in our options array.
+ * @param string $domain domain.
+ *
+ * @return bool
+ */
+function wpcd_set_option( $option_id, $option_value, $domain = 'wpcd_settings' ) {
+
+	// Retrieve our options array.
+	$options = get_option( $domain );
+
+	// Write to it.
+	$options[ $option_id ] = $option_value;
+
+	// Save it and return result of the wp option save operation.
+	return update_option( $domain, $options );
+
+}
+
 
 /**
  * Returns the timeout for long running commands.

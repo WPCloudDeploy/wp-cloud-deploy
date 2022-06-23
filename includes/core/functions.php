@@ -64,7 +64,8 @@ function wpcd_delete_child_posts( $post_type, $post_id ) {
 
 	$posts_to_delete = wpcd_get_child_posts( $post_type, $post_id );
 
-	apply_filters( 'wpcd_get_child_posts_for_delete', $post_type, $posts_to_delete );
+	// Delete all the posts based on custom meta value.
+	do_action( 'wpcd_get_child_posts_for_delete', $posts_to_delete, $post_type );
 
 	if ( ! empty( $posts_to_delete ) ) {
 		foreach ( $posts_to_delete as $post ) {

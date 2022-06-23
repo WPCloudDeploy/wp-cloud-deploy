@@ -1450,7 +1450,7 @@ class WPCD_Settings {
 						array(
 							'id'         => "vpn_{$provider}_auto_create_ssh_key",
 							'type'       => 'button',
-							'std'        => __( 'Create SSH Keys', 'wpcd' ),
+							'std'        => __( 'Create SSH Key-Pair', 'wpcd' ),
 							'attributes' => array(
 								'class'         => 'wpcd-provider-auto-create-ssh-key',
 								'data-action'   => 'wpcd_provider_auto_create_ssh_key',
@@ -1958,11 +1958,11 @@ class WPCD_Settings {
 			wpcd_set_option( "vpn_{$provider}_sshkeynotes", $attributes['public_key_name'] . ': ' . __( 'This key was automatically created.', 'wpcd' ) );
 
 			// Set success message.
-			$msg = __( 'The key has been created. This page will now refresh.', 'wpcd' );
+			$msg = __( 'The ssh key-pair has been created. This page will now refresh.', 'wpcd' );
 		} else {
 
 			// Failed.
-			$msg = __( 'The attempt to create an ssh key pair was not successful.  Please try again and/or contact our support team. This page will now refresh.', 'wpcd' );
+			$msg = __( 'The attempt to create an ssh key-pair was not successful.  Please try again and/or contact our support team. This page will now refresh.', 'wpcd' );
 
 		}
 

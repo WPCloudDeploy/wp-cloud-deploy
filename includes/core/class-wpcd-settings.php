@@ -1306,7 +1306,39 @@ class WPCD_Settings {
 				);
 				array_unshift( $fields_part0, $wpcd_provider_top_warning );
 			}
-			/* End Add warning for providers that are in use */
+			/* End add warning for providers that are in use */
+
+			/**
+			 * Button to test provider connection.  This will be added into an array later below.
+			 */
+			if ( WPCD()->get_provider_api( $provider )->get_feature_flag( 'test_connection' ) && ! $this->is_api_key_empty( $provider ) ) {
+				$last_test_connection_status = $this->wpcd_get_last_test_connection_status( $provider );
+				if ( true === $last_test_connection_status ) {
+					$ssh_test_connection_heading_desc = __( 'The last attempt to test your connection to this provider was successful.', 'wpcd' );
+				} else {
+					$ssh_test_connection_heading_desc = __( 'The last test was unsuccessful or a test has never been run on this provider.', 'wpcd' );
+				}
+
+				$fields_test_provider_connection = array(
+					'id'         => "vpn_{$provider}_test_provider_connection",
+					'type'       => 'button',
+					'std'        => __( 'Test Connection', 'wpcd' ),
+					'desc'       => $ssh_test_connection_heading_desc,
+					'attributes' => array(
+						'class'         => 'wpcd-provider-test-provider-connection',
+						'data-action'   => 'wpcd_provider_test_provider_connection',
+						'data-nonce'    => wp_create_nonce( 'wpcd-test-provider-connection' ),
+						'data-provider' => $provider,
+					),
+					'tab'        => $tab_id,
+				);
+			} else {
+				$fields_test_provider_connection = array(
+					'type' => 'hidden',
+					'std'  => 'not used - empty because this provider does not support testing a provider connection.',
+					'tab'  => $tab_id,
+				);
+			}
 
 			/* First group of api fields */
 			$fields_part1 = array(
@@ -1330,50 +1362,20 @@ class WPCD_Settings {
 					'desc' => __( 'Your notes about this api key - optional', 'wpcd' ),
 					'tab'  => $tab_id,
 				),
+
+				$fields_test_provider_connection,
+
 				apply_filters(
 					"wpcd_cloud_provider_settings_after_api_{$provider}",
 					array(
-						'type' => 'divider',
+						'type' => 'hidden',
+						'std'  => 'not used - marker for filter after api key.',
 						'tab'  => $tab_id,
 					),
 					$tab_id
 				),
 
 			);
-
-			/**
-			 * Button to test provider connection.
-			 */
-			if ( WPCD()->get_provider_api( $provider )->get_feature_flag( 'test_connection' ) && ! $this->is_api_key_empty( $provider ) ) {
-				$ssh_test_connection_heading_desc = __( 'Note: You must click the SAVE SETTINGS button at the bottom of this page to save your api credentials before you can test your connection.', 'wpcd' );
-
-				$fields_test_provider_connection = array(
-					array(
-						'type' => 'heading',
-						'tab'  => $tab_id,
-						'name' => __( 'Test Connection To Provider', 'wpcd' ),
-						'desc' => $ssh_test_connection_heading_desc,
-					),
-					array(
-						'id'         => "vpn_{$provider}_test_provider_connection",
-						'type'       => 'button',
-						'std'        => __( 'Test Connection', 'wpcd' ),
-						'attributes' => array(
-							'class'         => 'wpcd-provider-test-provider-connection',
-							'data-action'   => 'wpcd_provider_test_provider_connection',
-							'data-nonce'    => wp_create_nonce( 'wpcd-test-provider-connection' ),
-							'data-provider' => $provider,
-						),
-						'tab'        => $tab_id,
-					),
-				);
-			} else {
-				$fields_test_provider_connection = array();
-			}
-
-			if ( ! empty( $fields_test_provider_connection ) ) {
-				$fields_part1 = array_merge( $fields_part1, $fields_test_provider_connection );
-			}
 
 			$fields_part1 = apply_filters( "wpcd_cloud_provider_settings_after_part1_{$provider}", $fields_part1, $tab_id );
 
@@ -1977,6 +1979,8 @@ class WPCD_Settings {
 	 * Test connection to provider.
 	 *
 	 * Action Hook: wp_ajax_wpcd_provider_test_provider_connection
+	 *
+	 * Related functions: wpcd_can_connect_to_provider (below) and wpcd_get_last_test_connection_status (below)
 	 */
 	public function wpcd_provider_test_provider_connection() {
 
@@ -1995,11 +1999,19 @@ class WPCD_Settings {
 		// Extract the provider from the ajax request.
 		$provider = sanitize_text_field( FILTER_INPUT( INPUT_POST, 'provider', FILTER_DEFAULT ), array() );
 
+		// Setup variables to be used by transient and then delete the existing one.
+		$apikey        = WPCD()->get_provider_api( $provider )->get_api_key();
+		$transient_key = 'wpcd_provider_connection_test_success_flag_' . $provider . hash( 'sha256', $apikey );
+		delete_transient( $transient_key );
+
 		// Call the test_connection function.
 		$attributes        = array();
 		$connection_status = WPCD()->get_provider_api( $provider )->call( 'test_connection', $attributes );
 
 		if ( true === $connection_status['test_status'] ) {
+
+			// Update transient.
+			set_transient( $transient_key, 'connection_successful', 86400 ); // Transient set to expire in 24 hours. Note we are not using a boolean for this transient for good reason.
 
 			// Set success message.
 			$msg = __( 'The connection was successful.', 'wpcd' );
@@ -2023,6 +2035,8 @@ class WPCD_Settings {
 	/**
 	 * Can we connect to the provider?
 	 *
+	 * Related functions: wpcd_provider_test_provider_connection (above) and wpcd_get_last_test_connection_status (below)
+	 *
 	 * @param string $provider The provider slug.
 	 *
 	 * @return boolean.
@@ -2034,7 +2048,7 @@ class WPCD_Settings {
 		if ( WPCD()->get_provider_api( $provider )->get_feature_flag( 'test_connection' ) ) {
 
 			// See if transient is already set.
-			$apikey = WPCD()->get_provider_api( $provider )->get_api_key();
+			$apikey           = WPCD()->get_provider_api( $provider )->get_api_key();
 			$transient_key    = 'wpcd_provider_connection_test_success_flag_' . $provider . hash( 'sha256', $apikey );
 			$transient_status = get_transient( $transient_key );
 
@@ -2046,8 +2060,13 @@ class WPCD_Settings {
 					$attributes        = array();
 					$connection_status = WPCD()->get_provider_api( $provider )->call( 'test_connection', $attributes );
 
-					if ( true === $connection_status['test_status'] ) {
-						set_transient( $transient_key, 'connection_successful', 86400 ); // Transient set to expire in 24 hours. Note we are not using a boolean for this transient for good reason.
+					if ( ! is_wp_error( $connection_status ) ) {
+						if ( true === $connection_status['test_status'] ) {
+							$return = true;
+							set_transient( $transient_key, 'connection_successful', 86400 ); // Transient set to expire in 24 hours. Note we are not using a boolean for this transient for good reason.
+						}
+					} else {
+						$return = false;
 					}
 
 					/**
@@ -2058,12 +2077,41 @@ class WPCD_Settings {
 					 */
 					WPCD()->get_provider_api( $provider )->clear_cache();
 
-					$return = $connection_status['test_status'];
-
 				}
 			}
 		} else {
 			$return = true;  // If the provider does not have the ability to test a connection, always return true.
+		}
+
+		return $return;
+
+	}
+
+	/**
+	 * What was the result of the last attempt to connect to the provider?
+	 *
+	 * @param string $provider The provider slug.
+	 *
+	 * @return boolean.
+	 */
+	public function wpcd_get_last_test_connection_status( $provider ) {
+
+		$return = false;
+
+		if ( WPCD()->get_provider_api( $provider )->get_feature_flag( 'test_connection' ) ) {
+
+			// See if transient is already set.
+			$apikey           = WPCD()->get_provider_api( $provider )->get_api_key();
+			$transient_key    = 'wpcd_provider_connection_test_success_flag_' . $provider . hash( 'sha256', $apikey );
+			$transient_status = get_transient( $transient_key );
+
+			if ( 'connection_successful' === $transient_status ) {
+				$return = true;
+			} else {
+				$return = false;
+			}
+		} else {
+			$return = false;
 		}
 
 		return $return;

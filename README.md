@@ -128,6 +128,8 @@ Note: Even though the entire git development history isn't available on github, 
 * New: WPAPP - Support for OpenLiteSpeed.
 * New: WPAPP - Admin lock for sites.
 * New: WPAPP - Preliminary support for Ubuntu 22.04 LTS.
+* New: WPAPP - Auto-create SSH Key Pair for DigitalOcean.
+* New: WPAPP - Add a TEST button in the providers setting area to validate the apikey entered for DigitalOcean before allowing other fields to show.
 * Tweak: WPAPP - Remove extraneous text from certain tabs.
 * Tweak: WPAPP - Override list of WP versions.
 * Tweak: WPAPP - When a manual backup is run, we refresh the backup list automatically.

@@ -135,56 +135,49 @@ class WPCD_Admin_Setup_Wizard {
 			return;
 		}
 		$default_steps = array(
-			'product_setup'            => array(
-				'name'    => __( 'Product Setup', 'awesome-support' ),
-				'view'    => array( $this, 'as_product_setup_setup' ),
-				'handler' => array( $this, 'as_product_setup_setup_save' ),
+			'general_setup'            => array(
+				'name'    => __( 'General', 'wpcd' ),
+				'view'    => array( $this, 'wpcd_general_setup' ),
+				'handler' => array( $this, 'wpcd_general_setup_save' ),
 			),
-			'submit_ticket_page'       => array(
-				'name'    => __( 'Submit ticket page', 'awesome-support' ),
-				'view'    => array( $this, 'as_setup_submit_ticket_page' ),
-				'handler' => array( $this, 'as_setup_submit_ticket_page_save' ),
+			'connect_to_provider'       => array(
+				'name'    => __( 'Connect To Provider', 'wpcd' ),
+				'view'    => array( $this, 'wpcd_connect_to_provider' ),
+				'handler' => array( $this, 'wpcd_connect_to_provider_save' ),
 			),
 			'my_ticket_page'           => array(
-				'name'    => __( 'My ticket Page', 'awesome-support' ),
+				'name'    => __( 'My ticket Page', 'wpcd' ),
 				'view'    => array( $this, 'as_setup_my_ticket_page' ),
 				'handler' => array( $this, 'as_setup_my_ticket_page_save' ),
 			),
 			'priorities'               => array(
-				'name'    => __( 'Priorities', 'awesome-support' ),
+				'name'    => __( 'Priorities', 'wpcd' ),
 				'view'    => array( $this, 'as_setup_priorities' ),
 				'handler' => array( $this, 'as_setup_priorities_save' ),
 			),
 			'departments'              => array(
-				'name'    => __( 'Departments', 'awesome-support' ),
+				'name'    => __( 'Departments', 'wpcd' ),
 				'view'    => array( $this, 'as_setup_departments' ),
 				'handler' => array( $this, 'as_setup_departments_save' ),
 			),
 			'ticket_submit_user_roles' => array(
-				'name'    => __( 'Existing Users', 'awesome-support' ),
+				'name'    => __( 'Existing Users', 'wpcd' ),
 				'view'    => array( $this, 'as_setup_ticket_submit_user_roles' ),
 				'handler' => array( $this, 'as_setup_ticket_submit_user_roles_save' ),
 			),
 			'lets_go'                  => array(
-				'name'    => __( "Let's Go", 'awesome-support' ),
+				'name'    => __( "Let's Go", 'wpcd' ),
 				'view'    => array( $this, 'as_setup_lets_go' ),
 				'handler' => array( $this, 'as_setup_lets_go_save' ),
 			),
 		);
 
-		// Admin styles
-		// wp_enqueue_style( 'as-admin-style', WPAS_URL . 'assets/admin/css/admin.css', WPAS_VERSION );
-
+		// Load styles and scripts.
 		wp_enqueue_style( 'wpcd-common-admin', wpcd_url . 'assets/css/wpcd-setup-wizard.css', array(), wpcd_scripts_version );
-		// wp_enqueue_style( 'admin-wizard-style', WPAS_URL . 'assets/admin/css/setup-wizard.css', WPAS_VERSION );
-
-
 		wp_enqueue_script( 'wpcd-admin-script', wpcd_url . 'assets/js/wpcd-setup-wizard-support.js', array( 'jquery' ), wpcd_scripts_version, true );
-		//wp_register_script( 'as-admin-script', WPAS_URL . 'assets/admin/js/as-setup.js', array( 'jquery' ), '1.0.0' );
-
 		wp_enqueue_script( 'wpcd-setup', wpcd_url . 'assets/js/wpcd-setup-wizard-support.js', array( 'jquery', 'wp-util' ), wpcd_scripts_version, true );
-		// wp_register_script( 'as-setup', WPAS_URL . '/assets/admin/js/as-setup.js', array( 'jquery', 'wp-util' ), WPAS_VERSION );
 
+		// What is the next step?
 		$this->steps = apply_filters( 'as_setup_wizard_steps', $default_steps );
 		$this->step  = isset( $_GET['step'] ) ? sanitize_key( $_GET['step'] ) : current( array_keys( $this->steps ) ); // WPCS: CSRF ok, input var ok.
 
@@ -211,14 +204,14 @@ class WPCD_Admin_Setup_Wizard {
 		<head>
 			<meta name="viewport" content="width=device-width" />
 			<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-			<title><?php esc_html_e( 'Awesome Support &rsaquo; Setup Wizard', 'awesome-support' ); ?></title>
+			<title><?php esc_html_e( 'WPCloudDeploy &rsaquo; Setup Wizard', 'wpcd' ); ?></title>
 			<?php wp_print_scripts( 'as-setup' ); ?>
 			<?php do_action( 'admin_print_styles' ); ?>
 			<?php do_action( 'admin_head' ); ?>
 		</head>
 		<body class="as-setup wp-core-ui">
 			<div class="as-setup-wizard">
-			<h1 id="as-logo"><a href="https://getawesomesupport.com/">Awesome Support</a></h1>			
+			<h1 id="as-logo"><a href="https://wpclouddeploy.com/">WPCloudDeploy</a></h1>			
 		<?php
 	}
 
@@ -261,7 +254,7 @@ class WPCD_Admin_Setup_Wizard {
 		/*
 		printf(
 			'<p class="sub-heading">%s</p>',
-			__( 'Welcome to Awesome Support! This setup wizard will help you to quickly configure your new support system so that you can start processing customer requests right away.  So lets get started with our first question!', 'awesome-support' )
+			__( 'Welcome to Awesome Support! This setup wizard will help you to quickly configure your new support system so that you can start processing customer requests right away.  So lets get started with our first question!', 'wpcd' )
 		);
 		*/
 		if ( ! empty( $this->steps[ $this->step ]['view'] ) ) {
@@ -278,14 +271,14 @@ class WPCD_Admin_Setup_Wizard {
 	public function setup_wizard_footer() {
 		$about_us_link = add_query_arg(
 			array(
-				'post_type' => 'ticket',
-				'page'      => 'wpas-about',
+				'post_type' => 'wpcd_app_server',
+				'page'      => 'wpcd_settings#tab-cloud-provider',
 			),
 			admin_url( 'edit.php' )
 		)
 		?>
 		<?php if ( 'lets_go' !== $this->step ) : ?>
-			<a class="not-now" href="<?php echo esc_url( $about_us_link ); ?>"><?php esc_html_e( 'Not right now', 'awesome-support' ); ?></a>
+			<a class="not-now" href="<?php echo esc_url( $about_us_link ); ?>"><?php esc_html_e( 'Not right now', 'wpcd' ); ?></a>
 		<?php endif; ?>
 				</div><!-- .setup-wizard -->
 			</body>
@@ -294,57 +287,65 @@ class WPCD_Admin_Setup_Wizard {
 	}
 
 	/**
-	 * Awesome Support Multiple or single Product setup
+	 * General Setup
 	 */
-	public function as_product_setup_setup() {
-		$support_products = wpcd_get_option( 'support_products' );
+	public function wpcd_general_setup() {
+		// Heading.
 		printf(
 			'<p class="sub-heading">%s</p>',
-			__( 'Welcome to Awesome Support! This setup wizard will help you to quickly configure your new support system so that you can start processing customer requests right away.  So lets get started with our first question!', 'awesome-support' )
+			esc_html_e( 'Welcome to WPCloudDeploy! This setup wizard will help you get the basics configured and connected to your DigitalOcean account.', 'wpcd' )
 		);
+
 		?>
-		<form method="post">			
-			<p><b><?php _e( 'Would you like to turn on support for multiple products?', 'awesome-support' ); ?> </b></p>
-			<p><?php _e( 'If you only offer support for one product you do not need to turn on multi-product support. But if you offer support for multiple products then you should respond YES to this question.', 'awesome-support' ); ?></p>
-			<p><?php _e( 'Note: You can change your mind later by going to the TICKETS->SETTINGS->PRODUCTS MANAGEMENT tab.', 'awesome-support' ); ?></p>			
-			<label for="product_type_yes">Yes</label>
-			<input type="radio" name="product_type" id='product_type_yes' value="yes" checked />
-			<label for="product_type_no">No</label>
-			<input type="radio" name="product_type" id='product_type_no' value="no"/>
+		<form method="post">
+			<p><b><?php esc_html_e( 'Encryption Key', 'wpcd' ); ?> </b></p>			
+			<?php
+			// See if wpcd encryption key is defined.
+			if ( ! DEFINED( 'WPCD_ENCRYPTION_KEY' ) ) {
+				?>
+				<p><?php esc_html_e( 'Setting up an encryption key in your wp-config.php file helps to protect your sensitive data such as your API keys and SSH keys.', 'wpcd' ); ?> </p>
+				<p><?php esc_html_e( 'We strongly recommend that you set this up now. If you set it up later, you will need to re-enter your sensitive data (api keys etc.)', 'wpcd' ); ?> </p>
+				<p><b><?php esc_html_e( 'Please use your sFTP client to add the WPCD_ENCRYPTION_KEY constant into your wp-config.php file.', 'wpcd' ); ?> </b></p>
+				<p><pre><?php esc_html_e( "define( 'WPCD_ENCRYPTION_KEY', 'your very long encryption key goes here' );", 'wpcd' ); ?> </pre></p>
+				<p><?php esc_html_e( 'Click the continue button when this task is completed. You will not be able to move on to the next step until this task is completed.', 'wpcd' ); ?> </p>
+				<?php
+
+			} else {
+				?>
+				<p><?php esc_html_e( 'Sweet! Your WPCD_ENCRYPTION_KEY constant is defined. We can move on to the next step.', 'wpcd' ); ?> </p>
+				<p><?php esc_html_e( 'Click the CONTINUE button', 'wpcd' ); ?> </p>
+				<?php
+			}
+			?>
+
 			<input type="submit" name="save_step" value="Continue">
-			<?php wp_nonce_field( 'as-setup' ); ?>
+			<?php wp_nonce_field( 'wpcd-setup' ); ?>
 		</form>
 		<?php
 	}
 
 	/**
-	 * Awesome Support Multiple or single Product setup on save
+	 * General Setup Save
 	 */
-	public function as_product_setup_setup_save() {
-		check_admin_referer( 'as-setup' );
-		$product_type = ( isset( $_POST['product_type'] ) ) ? sanitize_text_field( $_POST['product_type'] ) : '';
-
-		// If the user needs multiple products we need to update the plugin options
-		$options = maybe_unserialize( get_option( 'wpas_options' ) );
-		// If multiple product is selected, make product selection multiple.
-		if ( ! empty( $product_type ) && 'yes' === $product_type ) {
-			$options['support_products'] = '1';
+	public function wpcd_general_setup_save() {
+		check_admin_referer( 'wpcd-setup' );
+		if ( ! DEFINED( 'WPCD_ENCRYPTION_KEY' ) ) {
+			// Do not move on from the wizard since the encryption key is not defined in wp-config.php.
+			wp_safe_redirect( esc_url_raw( $this->get_this_step_link() ) );
 		} else {
-			$options['support_products'] = '0';
+			wp_safe_redirect( esc_url_raw( $this->get_next_step_link() ) );
 		}
-		update_option( 'wpas_options', serialize( $options ) );
-		wp_safe_redirect( esc_url_raw( $this->get_next_step_link() ) );
 	}
 
 	/**
-	 * Awesome Support submit ticket page setup view.
+	 * Connect To Provider setup view.
 	 */
-	public function as_setup_submit_ticket_page() {
+	public function wpcd_connect_to_provider() {
 		?>
 		<form method="post">
-			<p><b><?php _e( 'Which menu would you like to add the SUBMIT TICKET page to?', 'awesome-support' ); ?> </b></p>
-			<p><?php _e( 'We have created a new page that users can access to submit tickets to your new support system.  However, the page first needs to be added to one of your menus so that the user can easily access it.', 'awesome-support' ); ?> </p>
-			<p><?php _e( 'Note: If you change your mind later you can remove the page from your menu or add it to a new menu via APPEARANCE->MENUS.', 'awesome-support' ); ?></p>
+			<p><b><?php _e( 'Which menu would you like to add the SUBMIT TICKET page to?', 'wpcd' ); ?> </b></p>
+			<p><?php _e( 'We have created a new page that users can access to submit tickets to your new support system.  However, the page first needs to be added to one of your menus so that the user can easily access it.', 'wpcd' ); ?> </p>
+			<p><?php _e( 'Note: If you change your mind later you can remove the page from your menu or add it to a new menu via APPEARANCE->MENUS.', 'wpcd' ); ?></p>
 			<?php
 			$menu_lists = wp_get_nav_menus();
 			if ( ! empty( $menu_lists ) ) {
@@ -356,7 +357,7 @@ class WPCD_Admin_Setup_Wizard {
 				echo '<input type="submit" name="save_step" value="Continue">';
 				wp_nonce_field( 'as-setup' );
 			} else {
-				echo __( 'It looks like you have a brand new install of WordPress without any menus.  So please setup at least one menu first. Click <a href="' . admin_url( 'nav-menus.php' ) . '" class="contrast-link">here</a> to setup your first menu.', 'awesome-support' );
+				echo __( 'It looks like you have a brand new install of WordPress without any menus.  So please setup at least one menu first. Click <a href="' . admin_url( 'nav-menus.php' ) . '" class="contrast-link">here</a> to setup your first menu.', 'wpcd' );
 			}
 			?>
 		</form>
@@ -364,9 +365,9 @@ class WPCD_Admin_Setup_Wizard {
 	}
 
 	/**
-	 * Awesome Support submit ticket page setup on save.
+	 * Connect To Provider setup on save.
 	 */
-	public function as_setup_submit_ticket_page_save() {
+	public function wpcd_connect_to_provider_save() {
 		check_admin_referer( 'as-setup' );
 		$ticket_submit           = wpas_get_option( 'ticket_submit' );
 		$wpas_ticket_submit_manu = ( isset( $_POST['wpas_ticket_submit_manu'] ) && ! empty( $_POST['wpas_ticket_submit_manu'] ) ) ? intval( $_POST['wpas_ticket_submit_manu'] ) : 0;
@@ -378,7 +379,7 @@ class WPCD_Admin_Setup_Wizard {
 					'menu-item-db-id'     => $ticket_submit,
 					'menu-item-object-id' => $ticket_submit,
 					'menu-item-object'    => 'page',
-					'menu-item-title'     => wp_strip_all_tags( __( 'Submit Ticket', 'awesome-support' ) ),
+					'menu-item-title'     => wp_strip_all_tags( __( 'Submit Ticket', 'wpcd' ) ),
 					'menu-item-status'    => 'publish',
 					'menu-item-type'      => 'post_type',
 				)
@@ -393,9 +394,9 @@ class WPCD_Admin_Setup_Wizard {
 	public function as_setup_my_ticket_page() {
 		?>
 		<form method="post">
-			<p><b><?php _e( 'Which menu would you like to add the MY TICKETS page to?', 'awesome-support' ); ?> </b></p>
-			<p><?php _e( 'We have created a new page that users can access to view their existing tickets.  This step allows you to add that page to one of your existing menus so users can easily access it.', 'awesome-support' ); ?></p>
-			<p><?php _e( 'Note: If you change your mind later you can remove the page from your menu or add it to a new menu via APPEARANCE->MENUS.', 'awesome-support' ); ?></p>
+			<p><b><?php _e( 'Which menu would you like to add the MY TICKETS page to?', 'wpcd' ); ?> </b></p>
+			<p><?php _e( 'We have created a new page that users can access to view their existing tickets.  This step allows you to add that page to one of your existing menus so users can easily access it.', 'wpcd' ); ?></p>
+			<p><?php _e( 'Note: If you change your mind later you can remove the page from your menu or add it to a new menu via APPEARANCE->MENUS.', 'wpcd' ); ?></p>
 			<?php
 			$menu_lists = wp_get_nav_menus();
 			echo '<select name="wpas_ticket_list_menu">';
@@ -425,7 +426,7 @@ class WPCD_Admin_Setup_Wizard {
 					'menu-item-db-id'     => $ticket_list,
 					'menu-item-object-id' => $ticket_list,
 					'menu-item-object'    => 'page',
-					'menu-item-title'     => wp_strip_all_tags( __( 'My Tickets', 'awesome-support' ) ),
+					'menu-item-title'     => wp_strip_all_tags( __( 'My Tickets', 'wpcd' ) ),
 					'menu-item-status'    => 'publish',
 					'menu-item-type'      => 'post_type',
 				)
@@ -441,10 +442,10 @@ class WPCD_Admin_Setup_Wizard {
 		$support_priority = wpas_get_option( 'support_priority' );
 		?>
 		<form method="post">
-			<p><b><?php _e( 'Would you like to use the priority field in your tickets?', 'awesome-support' ); ?> </b></p>
-			<p><?php _e( 'Turn this option on if you would like to assign priorities to your tickets.', 'awesome-support' ); ?> </p>
-			<p><?php _e( 'After you have finished with the wizard you can configure your priority levels under TICKETS->PRIORITIES.', 'awesome-support' ); ?> </p>
-			<p><?php _e( 'You can also tweak how priorities work by changing settings under the TICKETS->SETTINGS->FIELDS tab.', 'awesome-support' ); ?> </p>
+			<p><b><?php _e( 'Would you like to use the priority field in your tickets?', 'wpcd' ); ?> </b></p>
+			<p><?php _e( 'Turn this option on if you would like to assign priorities to your tickets.', 'wpcd' ); ?> </p>
+			<p><?php _e( 'After you have finished with the wizard you can configure your priority levels under TICKETS->PRIORITIES.', 'wpcd' ); ?> </p>
+			<p><?php _e( 'You can also tweak how priorities work by changing settings under the TICKETS->SETTINGS->FIELDS tab.', 'wpcd' ); ?> </p>
 			<label for='property_field_yes'>Yes</label>
 			<input type="radio" name="property_field" id='property_field_yes' value="yes" checked />
 			<label for='property_field_no'>No</label>
@@ -479,10 +480,10 @@ class WPCD_Admin_Setup_Wizard {
 		?>
 		<form method="post">
 			
-			<h2><?php _e( 'Important! How do you want to handle your existing users?', 'awesome-support' ); ?></h2>
-			<p><em><?php _e( 'By default, none of your existing users will be allowed to submit ticket. However, you can adjust this based on your existing user roles.', 'awesome-support' ); ?></em></p>
-			<p><b><?php _e( 'Any of the user roles you check below will automatically be allowed to submit tickets.', 'awesome-support' ); ?></b>
-			<span><em><?php _e( ' If you do not choose any roles then only new users will be allowed to submit tickets!  If this is a new installation of WordPress with no existing users then you can just skip to the next step by clicking the CONTINUE button. ', 'awesome-support' ); ?></em></span>
+			<h2><?php _e( 'Important! How do you want to handle your existing users?', 'wpcd' ); ?></h2>
+			<p><em><?php _e( 'By default, none of your existing users will be allowed to submit ticket. However, you can adjust this based on your existing user roles.', 'wpcd' ); ?></em></p>
+			<p><b><?php _e( 'Any of the user roles you check below will automatically be allowed to submit tickets.', 'wpcd' ); ?></b>
+			<span><em><?php _e( ' If you do not choose any roles then only new users will be allowed to submit tickets!  If this is a new installation of WordPress with no existing users then you can just skip to the next step by clicking the CONTINUE button. ', 'wpcd' ); ?></em></span>
 			</p>
 			
 			<?php
@@ -552,10 +553,10 @@ class WPCD_Admin_Setup_Wizard {
 		$departments = wpas_get_option( 'departments' );
 		?>
 		<form method="post">
-			<p><b><?php _e( 'Do you want to enable Departments?', 'awesome-support' ); ?> </b></p>
-			<p><?php _e( 'Turn this option on if you would like to assign departments to your tickets.', 'awesome-support' ); ?> </p>
-			<p><?php _e( 'Once enabled, you can configure your list of departments by going to TICKETS->DEPARTMENTS.', 'awesome-support' ); ?> </p>
-			<p><?php _e( 'You can turn this off later if you change your mind by going to the TICKETS->SETTINGS->FIELDS tab.', 'awesome-support' ); ?> </p>			
+			<p><b><?php _e( 'Do you want to enable Departments?', 'wpcd' ); ?> </b></p>
+			<p><?php _e( 'Turn this option on if you would like to assign departments to your tickets.', 'wpcd' ); ?> </p>
+			<p><?php _e( 'Once enabled, you can configure your list of departments by going to TICKETS->DEPARTMENTS.', 'wpcd' ); ?> </p>
+			<p><?php _e( 'You can turn this off later if you change your mind by going to the TICKETS->SETTINGS->FIELDS tab.', 'wpcd' ); ?> </p>			
 			<label for='departments_field_yes'>Yes</label>
 			<input type="radio" name="departments_field" id='departments_field_yes' value="yes" checked />
 			<label for='departments_field_no'>No</label>
@@ -590,16 +591,16 @@ class WPCD_Admin_Setup_Wizard {
 	public function as_setup_lets_go() {
 		?>
 		<form method="post">
-			<p><b><?php _e( 'Your new support system is all set up and ready to go!', 'awesome-support' ); ?></b></p>
-			<p><?php _e( 'If your menus are active in your theme your users will now able to register for an account and submit tickets.', 'awesome-support' ); ?></p>
-			<p><b><?php _e( 'Do you have existing users in your WordPress System?', 'awesome-support' ); ?></b></p>
+			<p><b><?php _e( 'Your new support system is all set up and ready to go!', 'wpcd' ); ?></b></p>
+			<p><?php _e( 'If your menus are active in your theme your users will now able to register for an account and submit tickets.', 'wpcd' ); ?></p>
+			<p><b><?php _e( 'Do you have existing users in your WordPress System?', 'wpcd' ); ?></b></p>
 			<p>
 			<?php
-			echo sprintf( __( 'If so, you will want to read <b><u><a %s>this article</a></b></u> on our website.', 'awesome-support' ), 'href="https://getawesomesupport.com/documentation/awesome-support/admin-handling-existing-users-after-installation/" target="_blank" ' );
+			echo sprintf( __( 'If so, you will want to read <b><u><a %s>this article</a></b></u> on our website.', 'wpcd' ), 'href="https://getawesomesupport.com/documentation/awesome-support/admin-handling-existing-users-after-installation/" target="_blank" ' );
 			?>
 			</p>
-			<p><b><?php _e( 'Where are my support tickets?', 'awesome-support' ); ?></b></p>
-			<p><?php _e( 'You can now access your support tickets and other support options under the new TICKETS menu option.', 'awesome-support' ); ?></p>
+			<p><b><?php _e( 'Where are my support tickets?', 'wpcd' ); ?></b></p>
+			<p><?php _e( 'You can now access your support tickets and other support options under the new TICKETS menu option.', 'wpcd' ); ?></p>
 			<input type="submit" name="save_step" value="Let's Go">
 			<?php wp_nonce_field( 'as-setup' ); ?>
 		</form>
@@ -646,6 +647,30 @@ class WPCD_Admin_Setup_Wizard {
 		}
 
 		return add_query_arg( 'step', $keys[ $step_index + 1 ], remove_query_arg( 'activate_error' ) );
+	}
+
+	/**
+	 * Get the URL for the next step's screen.
+	 *
+	 * @param string $step  slug (default: current step).
+	 * @return string       URL for current step.
+	 */
+	public function get_this_step_link( $step = '' ) {
+		if ( ! $step ) {
+			$step = $this->step;
+		}
+
+		$keys = array_keys( $this->steps );
+		if ( end( $keys ) === $step ) {
+			return admin_url();
+		}
+
+		$step_index = array_search( $step, $keys, true );
+		if ( false === $step_index ) {
+			return '';
+		}
+
+		return add_query_arg( 'step', $keys[ $step_index ], remove_query_arg( 'activate_error' ) );
 	}
 
 }

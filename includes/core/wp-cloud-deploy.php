@@ -547,6 +547,10 @@ class WP_CLOUD_DEPLOY {
 	 *
 	 * Action hook: admin_enqueue_scripts
 	 *
+	 * Note: Even though this is loaded on an admin hook, the PUBLIC class
+	 * will manually call this function to get these scripts loaded up on the
+	 * frontend as well!
+	 *
 	 * @param string $hook hook.
 	 */
 	public function wpcd_admin_scripts( $hook ) {

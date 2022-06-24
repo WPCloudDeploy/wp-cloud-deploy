@@ -86,12 +86,14 @@ mysql_new_db=$(head /dev/urandom | tr -dc a-z | head -c 6)
 mysql_user=$(head /dev/urandom | tr -dc a-z | head -c 6)
 mysql_password=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 16)
 
-mysql_old_db=$(grep DB_NAME /var/www/$old_domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
 gf_get_dbhost $old_domain
+gf_get_dbname $old_domain
+gf_get_dbuser $old_domain
+gf_get_dbpass $old_domain
 
-gf_database_create "${mysql_new_db}" "${mysql_user}" "${mysql_password}" "${g_mysql_host}"
+gf_database_create "${mysql_new_db}" "${mysql_user}" "${mysql_password}" "localhost"
 
-mysqldump $mysql_old_db | mariadb $mysql_new_db
+mysqldump -h $g_mysql_host -u $g_mysql_user -p"$g_mysql_pass" $g_mysql_name | mariadb $mysql_new_db
 
 useradd -d "/var/www/$new_domain/html" -g "www-data" -M -s "/bin/bash" $new_user_name
 
@@ -136,6 +138,7 @@ cd /var/www/$new_domain/html/
 su - $new_user_name -c "wp --skip-plugins config set DB_NAME $mysql_new_db"
 su - $new_user_name -c "wp --skip-plugins config set DB_USER $mysql_user"
 su - $new_user_name -c "wp --skip-plugins config set DB_PASSWORD $mysql_password"
+su - $new_user_name -c "wp --skip-plugins config set DB_HOST localhost"
 su - $new_user_name -c "wp --skip-plugins search-replace $old_domain $new_domain --recurse-objects --network --skip-columns=guid --skip-tables=wp_users --all-tables-with-prefix"
 
 # wp-cli doesn't shuffle WP_CACHE_KEY_SALT, which is important for us

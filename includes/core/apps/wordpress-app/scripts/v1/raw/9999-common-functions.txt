@@ -1455,3 +1455,30 @@ function gf_get_dbhost() {
 		g_mysql_host=localhost
 	fi
 }
+
+#####################################################################
+### Get database User for domain
+#####################################################################
+function gf_get_dbuser() {
+	local domain
+	domain=$1
+	g_mysql_user=$(grep DB_USER /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
+}
+
+#####################################################################
+### Get database Password for domain
+#####################################################################
+function gf_get_dbpass() {
+	local domain
+	domain=$1
+	g_mysql_pass=$(grep DB_PASSWORD /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
+}
+
+#####################################################################
+### Get database Name for domain
+#####################################################################
+function gf_get_dbname() {
+	local domain
+	domain=$1
+	g_mysql_name=$(grep DB_NAME /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
+}

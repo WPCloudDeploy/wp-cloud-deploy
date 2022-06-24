@@ -13,6 +13,59 @@ then
 fi
 source 9999-common-functions.sh
 
+function remote_dbaccess {
+        if [[ -z $remote_dbhost ]]
+        then
+                read -p "Remote Database ServerIP: " remote_dbhost
+        fi
+
+        if [[ -z $remote_dbname ]]
+        then
+                read -p "Remote Database Name: " remote_dbname
+        fi
+
+        if [[ -z $remote_dbuser ]]
+        then
+                read -p "Remote Database UserName: " remote_dbuser
+        fi
+
+        if [[ -z $remote_dbpass ]]
+        then
+                read -p "Remote Database Password: " remote_dbpass
+        fi
+}
+
+
+function local_dbaccess {
+        if [[ -z $local_dbname ]]
+        then
+                read -p "Localhost Database Name: " local_dbname
+        fi
+
+        if [[ -z $local_dbuser ]]
+        then
+                read -p "Local Database UserName: " local_dbuser
+        fi
+
+        if [[ -z $local_dbpass ]]
+        then
+                read -p "Local Database Password: " local_dbpass
+        fi
+}
+
+
+while [[ -z $domain ]]
+do
+	echo
+	echo "Please, select which site you want to work with"
+	gf_select_domain_nginx_ols
+done
+
+gf_get_dbhost $domain
+gf_get_dbname $domain
+gf_get_dbuser $domain
+gf_get_dbpass $domain
+
 while [[ -z $action ]]
 do
 	echo
@@ -32,64 +85,68 @@ done
 
 if [[ $action == "switch_remote" || $action == "1" ]]
 then
-        if [[ -z $remote_dbserver ]]
-        then
-		echo "Please enter Remote Database server IP: "
-                read -p "Remote Database ServerIP: " remote_dbserver
-        fi
+	echo "Please enter Remote Database server Detail : "
+	remote_dbaccess
 
-	echo "[client]
-	host=$remote_dbserver" > /root/.my.cnf
-
-	for domain in /var/www/*
-	do
-		if [ ! -f "${domain}/html/wp-config.php" ]
-		then
-			continue
-		fi
-		gf_get_dbhost $domain
-		sed -i "s/$g_mysql_host/$remote_dbserver/g" $domain/html/wp-config.php
-	done
+	sed -i "s/$g_mysql_host/$remote_dbhost/g" /var/www/$domain/html/wp-config.php
+	sed -i "s/$g_mysql_name/$remote_dbname/g" /var/www/$domain/html/wp-config.php
+	sed -i "s/$g_mysql_user/$remote_dbuser/g" /var/www/$domain/html/wp-config.php
+	sed -i "s/$g_mysql_pass/$remote_dbpass/g" /var/www/$domain/html/wp-config.php
+	echo "Database has been switched to Remote server for $domain"
 fi
 
 
 if [[ $action == "switch_local" || $action == "2" ]]
 then
-	rm -f /root/.my.cnf
+	if [ $g_mysql_host == "localhost" ]
+	then
+		echo "Mysql host is already set to localhost"
+		exit
+	fi
+	echo "Please enter Local Database server Detail : "
+	local_dbaccess
 
-	for domain in /var/www/*
-	do
-		if [ ! -f "${domain}/html/wp-config.php" ]
-		then
-			continue
-		fi
-		gf_get_dbhost $domain
-		sed -i "s/$g_mysql_host/localhost/g" $domain/html/wp-config.php
-	done
+	sed -i "s/$g_mysql_host/localhost/g" /var/www/$domain/html/wp-config.php
+	sed -i "s/$g_mysql_name/$local_dbname/g" /var/www/$domain/html/wp-config.php
+	sed -i "s/$g_mysql_user/$local_dbuser/g" /var/www/$domain/html/wp-config.php
+	sed -i "s/$g_mysql_pass/$local_dbpass/g" /var/www/$domain/html/wp-config.php
+	echo "Database has been switched to Localhost server for $domain"
 fi
 
 
 if [[ $action == "copy_to_remote" || $action == "3" ]]
 then
-        if [[ -z $remote_dbserver ]]
-        then
-		echo "Please enter Remote Database server IP where database need to copy: "
-                read -p "Remote Database ServerIP: " remote_dbserver
-        fi
-	mysqldump --all-databases --add-drop-database > /root/databases_bkpcopy.sql
-	mysql --host $remote_dbserver < /root/databases_bkpcopy.sql
-	rm /root/databases_bkpcopy.sql
+	if [ $g_mysql_host != "localhost" ]
+	then
+		echo "Mysql host is not set to Localhost"
+		exit
+	fi
+	echo "Please enter Remote Database server detail where Database need to copy: "
+	remote_dbaccess
+
+	mysqldump -h localhost -u $g_mysql_user -p"$g_mysql_pass" $g_mysql_name > /root/$g_mysql_name.sql
+	mysql -h $remote_dbhost -u $remote_dbuser -p"$remote_dbpass" -e "drop database $remote_dbname"
+	mysql -h $remote_dbhost -u $remote_dbuser -p"$remote_dbpass" -e "create database $remote_dbname"
+	mysql -h $remote_dbhost -u $remote_dbuser -p"$remote_dbpass" $remote_dbname < /root/$g_mysql_name.sql
+	rm -f /root/$g_mysql_name.sql
+	echo "Database has been copied to Remote server for $domain"
 fi
 
 
 if [[ $action == "copy_to_local" || $action == "4" ]]
 then
-        if [[ -z $remote_dbserver ]]
-        then
-		echo "Please enter Remote Database server IP from where database need to download: "
-                read -p "Remote Database ServerIP: " remote_dbserver
-        fi
-	mysqldump --host $remote_dbserver --all-databases --add-drop-database > /root/databases_bkpcopy.sql
-	mysql --host localhost < /root/databases_bkpcopy.sql
-	rm /root/databases_bkpcopy.sql
+	if [ $g_mysql_host == "localhost" ]
+	then
+		echo "Mysql host is not set to Remote Host, so no such information available"
+		exit
+	fi
+	echo "Please enter Local Database server Detail where dabase need to copy: "
+	local_dbaccess
+
+	mysqldump -h $g_mysql_host -u $g_mysql_user -p"$g_mysql_pass" $g_mysql_name > /root/$g_mysql_name.sql 
+	mysql -h localhost -u $local_dbuser -p"$local_dbpass" -e "drop database $local_dbname"
+	mysql -h localhost -u $local_dbuser -p"$local_dbpass" -e "create database $local_dbname"
+	mysql -h localhost -u $local_dbuser -p"$local_dbpass" $local_dbname < /root/$g_mysql_name.sql
+	rm -f /root/$g_mysql_name.sql
+	echo "Database has been Copied to localhost server for $domain"
 fi

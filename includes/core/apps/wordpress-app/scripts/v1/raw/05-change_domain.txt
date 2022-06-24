@@ -18,7 +18,12 @@ function database_backup() {
 	echo "Backing up database..."
 	date=$(date +"%Y-%m-%d"-"%Hh%Mm%Ss")
 	mkdir -p /root/.wp-backup/$old_domain/
-	mysqldump $mysql_db | gzip -9 > /root/.wp-backup/$old_domain/"$old_domain"_"$date"_db.gz
+	gf_get_dbhost $old_domain
+	gf_get_dbuser $old_domain
+	gf_get_dbname $old_domain
+	gf_get_dbpass $old_domain
+
+	mysqldump -h ${g_mysql_host} -u ${g_mysql_user} -p${g_mysql_pass} ${g_mysql_name} | gzip -9 > /root/.wp-backup/$old_domain/"$old_domain"_"$date"_db.gz
 	if [ $? -ne 0 ]  
 	then
 		echo "Database backup failed! Domain change aborted!"
@@ -221,13 +226,14 @@ mysql_new_db=$(head /dev/urandom | tr -dc a-z | head -c 6)
 mysql_user=$(head /dev/urandom | tr -dc a-z | head -c 6)
 mysql_password=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 16)
 
-mysql_old_db=$(grep DB_NAME /var/www/$new_domain/html/wp-config.php | tr -d "[:space:]"|cut -d ',' -f2|cut -d')' -f1|tail -c +2 | head -c -2)
-mysql_old_user=$(grep DB_USER /var/www/$new_domain/html/wp-config.php | tr -d "[:space:]"|cut -d ',' -f2|cut -d')' -f1|tail -c +2 | head -c -2)
+gf_database_create "${mysql_new_db}" "${mysql_user}" "${mysql_password}" "localhost"
+
 gf_get_dbhost $new_domain
+gf_get_dbuser $new_domain
+gf_get_dbname $new_domain
+gf_get_dbpass $new_domain
 
-gf_database_create "${mysql_new_db}" "${mysql_user}" "${mysql_password}" "${g_mysql_host}"
-
-mysqldump $mysql_old_db | mariadb $mysql_new_db
+mysqldump -h ${g_mysql_host} -u ${g_mysql_user} -p${g_mysql_pass} ${g_mysql_name} | mariadb $mysql_new_db
 if [ $? -ne 0 ]  
 then
 	echo "Database copy failed! Process aborted!"
@@ -235,9 +241,9 @@ then
 fi
 
 # drop old database and credentials
-mariadb <<QUERY
-DROP DATABASE $mysql_old_db;
-DROP USER '$mysql_old_user'@'$g_mysql_host';
+mariadb -h $g_mysql_host <<QUERY
+DROP DATABASE $g_mysql_name;
+DROP USER $g_mysql_user;
 FLUSH PRIVILEGES;
 QUERY
 
@@ -245,6 +251,7 @@ cd /var/www/$new_domain/html/
 su - $new_user_name -c "wp --skip-plugins config set DB_NAME $mysql_new_db"
 su - $new_user_name -c "wp --skip-plugins config set DB_USER $mysql_user"
 su - $new_user_name -c "wp --skip-plugins config set DB_PASSWORD $mysql_password"
+su - $new_user_name -c "wp --skip-plugins config set DB_HOST localhost"
 # end of MySQL database name and credentials change, to avoid conflicts (re: issue #132)
 
 # wp-cli doesn't shuffle WP_CACHE_KEY_SALT, which is important for us

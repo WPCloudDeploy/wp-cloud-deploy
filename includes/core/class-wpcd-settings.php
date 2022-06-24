@@ -1904,7 +1904,7 @@ class WPCD_Settings {
 		}
 
 		// Extract the provider from the ajax request.
-		$provider = sanitize_text_field( FILTER_INPUT( INPUT_POST, 'provider', FILTER_DEFAULT ), array() );
+		$provider = sanitize_text_field( FILTER_INPUT( INPUT_POST, 'provider', FILTER_DEFAULT ) );
 
 		// Call the clear cache function.
 		WPCD()->get_provider_api( $provider )->clear_cache();
@@ -1938,7 +1938,7 @@ class WPCD_Settings {
 		}
 
 		// Extract the provider from the ajax request.
-		$provider = sanitize_text_field( FILTER_INPUT( INPUT_POST, 'provider', FILTER_DEFAULT ), array() );
+		$provider = sanitize_text_field( FILTER_INPUT( INPUT_POST, 'provider', FILTER_DEFAULT ) );
 
 		// Create key.
 		$key_pair                      = WPCD_WORDPRESS_APP()->ssh()->create_key_pair();
@@ -1981,6 +1981,8 @@ class WPCD_Settings {
 	 * Action Hook: wp_ajax_wpcd_provider_test_provider_connection
 	 *
 	 * Related functions: wpcd_can_connect_to_provider (below) and wpcd_get_last_test_connection_status (below)
+	 *
+	 * Changes to this might need to be reflected in our setup wizard code: /includes/core/class-wpcd-setup-wizard.
 	 */
 	public function wpcd_provider_test_provider_connection() {
 
@@ -1997,7 +1999,7 @@ class WPCD_Settings {
 		}
 
 		// Extract the provider from the ajax request.
-		$provider = sanitize_text_field( FILTER_INPUT( INPUT_POST, 'provider', FILTER_DEFAULT ), array() );
+		$provider = sanitize_text_field( FILTER_INPUT( INPUT_POST, 'provider', FILTER_DEFAULT ) );
 
 		// Setup variables to be used by transient and then delete the existing one.
 		$apikey        = WPCD()->get_provider_api( $provider )->get_api_key();

@@ -140,7 +140,7 @@ class WPCD_Admin_Setup_Wizard {
 				'view'    => array( $this, 'wpcd_general_setup' ),
 				'handler' => array( $this, 'wpcd_general_setup_save' ),
 			),
-			'connect_to_provider'       => array(
+			'connect_to_provider'      => array(
 				'name'    => __( 'Connect To Provider', 'wpcd' ),
 				'view'    => array( $this, 'wpcd_connect_to_provider' ),
 				'handler' => array( $this, 'wpcd_connect_to_provider_save' ),
@@ -312,7 +312,7 @@ class WPCD_Admin_Setup_Wizard {
 
 			} else {
 				?>
-				<p><?php esc_html_e( 'Sweet! Your WPCD_ENCRYPTION_KEY constant is defined. We can move on to the next step.', 'wpcd' ); ?> </p>
+				<p><?php esc_html_e( 'Sweet! Your WPCD_ENCRYPTION_KEY constant is defined. You can continue to the next step.', 'wpcd' ); ?> </p>
 				<p><?php esc_html_e( 'Click the CONTINUE button', 'wpcd' ); ?> </p>
 				<?php
 			}
@@ -343,22 +343,22 @@ class WPCD_Admin_Setup_Wizard {
 	public function wpcd_connect_to_provider() {
 		?>
 		<form method="post">
-			<p><b><?php _e( 'Which menu would you like to add the SUBMIT TICKET page to?', 'wpcd' ); ?> </b></p>
-			<p><?php _e( 'We have created a new page that users can access to submit tickets to your new support system.  However, the page first needs to be added to one of your menus so that the user can easily access it.', 'wpcd' ); ?> </p>
-			<p><?php _e( 'Note: If you change your mind later you can remove the page from your menu or add it to a new menu via APPEARANCE->MENUS.', 'wpcd' ); ?></p>
+			<p><b><?php esc_html_e( 'Connect To Your DigitalOcean Account', 'wpcd' ); ?> </b></p>
+			<p><?php esc_html_e( 'Create an API TOKEN at DigitalOcean and enter it below.', 'wpcd' ); ?> </p>
+			<p><?php esc_html_e( 'You can create a token by navigating to: https://cloud.digitalocean.com/account/api.', 'wpcd' ); ?></p>
+			<p><?php esc_html_e( 'There you can click the GENERATE NEW TOKEN button and follow the instructions.  Please make sure that you assign WRITE permissions and that you select a long-running expiration date so that your access is not pre-maturely cut-off.', 'wpcd' ); ?></p>
+			<label for="digital-ocean-api-token"><?php esc_html_e( 'Enter Your DigitalOcean API Key:', 'wpcd' ); ?></label>
+			<input type="text" name="digital-ocean-api-token" />
 			<?php
-			$menu_lists = wp_get_nav_menus();
-			if ( ! empty( $menu_lists ) ) {
-				echo '<select name="wpas_ticket_submit_manu">';
-				foreach ( $menu_lists as $key => $menu ) {
-					echo '<option value="' . $menu->term_id . '">' . $menu->name . '</option>';
-				}
-				echo '<select>';
-				echo '<input type="submit" name="save_step" value="Continue">';
-				wp_nonce_field( 'as-setup' );
-			} else {
-				echo __( 'It looks like you have a brand new install of WordPress without any menus.  So please setup at least one menu first. Click <a href="' . admin_url( 'nav-menus.php' ) . '" class="contrast-link">here</a> to setup your first menu.', 'wpcd' );
+			echo '<input type="submit" name="save_step" value="Continue">';
+			if ( sanitize_text_field( get_query_var( 'error_msg' ) ) ) {
+				$error_msg = sanitize_text_field( get_query_var( 'error_msg' ) );
+				?>
+				<p><?php esc_html_e( $error_msg ); ?></p>
+				<?php
 			}
+
+			wp_nonce_field( 'wpas-setup-connect-to-provider' );
 			?>
 		</form>
 		<?php
@@ -368,24 +368,36 @@ class WPCD_Admin_Setup_Wizard {
 	 * Connect To Provider setup on save.
 	 */
 	public function wpcd_connect_to_provider_save() {
-		check_admin_referer( 'as-setup' );
-		$ticket_submit           = wpas_get_option( 'ticket_submit' );
-		$wpas_ticket_submit_manu = ( isset( $_POST['wpas_ticket_submit_manu'] ) && ! empty( $_POST['wpas_ticket_submit_manu'] ) ) ? intval( $_POST['wpas_ticket_submit_manu'] ) : 0;
-		if ( ! empty( $ticket_submit ) && ! is_array( $ticket_submit ) ) {
-			wp_update_nav_menu_item(
-				$wpas_ticket_submit_manu,
-				0,
-				array(
-					'menu-item-db-id'     => $ticket_submit,
-					'menu-item-object-id' => $ticket_submit,
-					'menu-item-object'    => 'page',
-					'menu-item-title'     => wp_strip_all_tags( __( 'Submit Ticket', 'wpcd' ) ),
-					'menu-item-status'    => 'publish',
-					'menu-item-type'      => 'post_type',
-				)
-			);
+		check_admin_referer( 'wpas-setup-connect-to-provider' );
+
+		// Extract the token from the _POST global var.
+		$api_key = sanitize_text_field( FILTER_INPUT( INPUT_POST, 'digital-ocean-api-token', FILTER_DEFAULT ) );
+
+		// Empty key?  Stay on the current step.
+		if ( empty( $api_key ) ) {
+			wp_safe_redirect( esc_url_raw( add_query_arg( array( 'error_msg' => __( 'Please fill in the API token.', 'wpcd' ) ), $this->get_this_step_link() ) ) );
 		}
-		wp_safe_redirect( esc_url_raw( $this->get_next_step_link() ) );
+
+		// Otherwise, update the digital ocean option.
+		$provider = 'digital-ocean';
+		wpcd_set_option( "vpn_{$provider}_sshkey_id", WPCD()->encrypt( $api_key ) );
+
+		// Now test connection.
+		// This code is a duplicate of what's in the wpcd_provider_test_provider_connection() function in file includes/core/class-wpcd-settings.php.
+		$transient_key = 'wpcd_provider_connection_test_success_flag_' . $provider . hash( 'sha256', $api_key );
+		delete_transient( $transient_key );
+
+		// Call the test_connection function.
+		$attributes        = array();
+		$connection_status = WPCD()->get_provider_api( $provider )->call( 'test_connection', $attributes );
+		if ( true === $connection_status['test_status'] ) {
+			// Go to next step.
+			wp_safe_redirect( esc_url_raw( $this->get_next_step_link() ) );
+		} else {
+			// Stay on this step.
+			wp_safe_redirect( esc_url_raw( $this->get_this_step_link() ) );
+		}
+
 	}
 
 	/**

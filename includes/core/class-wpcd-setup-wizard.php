@@ -38,10 +38,10 @@ class WPCD_Admin_Setup_Wizard {
 	 * Hook in tabs.
 	 */
 	public function __construct() {
-		// check if current user can manage wizard.
-		// add_action( 'admin_menu', array( $this, 'admin_menus' ) );
+
+		add_action( 'admin_menu', array( $this, 'admin_menus' ) );
 		add_action( 'admin_init', array( $this, 'maybe_ask_setup_wizard' ) );
-		// add_action( 'admin_init', array( $this, 'setup_wizard' ) );
+		add_action( 'admin_init', array( $this, 'setup_wizard' ) );
 
 		/* AJAX Function for skipping setup wizard. */
 		add_action( 'wp_ajax_wpcd_skip_wizard_setup', array( $this, 'wpcd_skip_wizard_setup' ) );
@@ -51,7 +51,7 @@ class WPCD_Admin_Setup_Wizard {
 	 * Add admin menus/screens.
 	 */
 	public function admin_menus() {
-		add_dashboard_page( '', '', 'manage_options', 'as-setup', '' );
+		add_dashboard_page( '', '', 'manage_options', 'wpcd-setup', '' );
 	}
 
 	/**
@@ -131,7 +131,7 @@ class WPCD_Admin_Setup_Wizard {
 	 * Show the setup wizard.
 	 */
 	public function setup_wizard() {
-		if ( empty( $_GET['page'] ) || 'as-setup' !== $_GET['page'] ) { // WPCS: CSRF ok, input var ok.
+		if ( empty( $_GET['page'] ) || 'wpcd-setup' !== $_GET['page'] ) { // WPCS: CSRF ok, input var ok.
 			return;
 		}
 		$default_steps = array(
@@ -173,10 +173,17 @@ class WPCD_Admin_Setup_Wizard {
 		);
 
 		// Admin styles
-		wp_enqueue_style( 'as-admin-style', WPAS_URL . 'assets/admin/css/admin.css', WPAS_VERSION );
-		wp_enqueue_style( 'admin-wizard-style', WPAS_URL . 'assets/admin/css/setup-wizard.css', WPAS_VERSION );
-		wp_register_script( 'as-admin-script', WPAS_URL . 'assets/admin/js/as-setup.js', array( 'jquery' ), '1.0.0' );
-		wp_register_script( 'as-setup', WPAS_URL . '/assets/admin/js/as-setup.js', array( 'jquery', 'wp-util' ), WPAS_VERSION );
+		// wp_enqueue_style( 'as-admin-style', WPAS_URL . 'assets/admin/css/admin.css', WPAS_VERSION );
+
+		wp_enqueue_style( 'wpcd-common-admin', wpcd_url . 'assets/css/wpcd-setup-wizard.css', array(), wpcd_scripts_version );
+		// wp_enqueue_style( 'admin-wizard-style', WPAS_URL . 'assets/admin/css/setup-wizard.css', WPAS_VERSION );
+
+
+		wp_enqueue_script( 'wpcd-admin-script', wpcd_url . 'assets/js/wpcd-setup-wizard-support.js', array( 'jquery' ), wpcd_scripts_version, true );
+		//wp_register_script( 'as-admin-script', WPAS_URL . 'assets/admin/js/as-setup.js', array( 'jquery' ), '1.0.0' );
+
+		wp_enqueue_script( 'wpcd-setup', wpcd_url . 'assets/js/wpcd-setup-wizard-support.js', array( 'jquery', 'wp-util' ), wpcd_scripts_version, true );
+		// wp_register_script( 'as-setup', WPAS_URL . '/assets/admin/js/as-setup.js', array( 'jquery', 'wp-util' ), WPAS_VERSION );
 
 		$this->steps = apply_filters( 'as_setup_wizard_steps', $default_steps );
 		$this->step  = isset( $_GET['step'] ) ? sanitize_key( $_GET['step'] ) : current( array_keys( $this->steps ) ); // WPCS: CSRF ok, input var ok.
@@ -290,7 +297,7 @@ class WPCD_Admin_Setup_Wizard {
 	 * Awesome Support Multiple or single Product setup
 	 */
 	public function as_product_setup_setup() {
-		$support_products = wpas_get_option( 'support_products' );
+		$support_products = wpcd_get_option( 'support_products' );
 		printf(
 			'<p class="sub-heading">%s</p>',
 			__( 'Welcome to Awesome Support! This setup wizard will help you to quickly configure your new support system so that you can start processing customer requests right away.  So lets get started with our first question!', 'awesome-support' )

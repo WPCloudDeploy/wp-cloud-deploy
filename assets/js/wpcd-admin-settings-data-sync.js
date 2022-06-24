@@ -1,18 +1,18 @@
 /*
  * This JS file is loaded for the WPCD settings screen.
-*/
+ */
 
-(function ($, wpcd_admin_settings_data_sync_params) {
+(function($, wpcd_admin_settings_data_sync_params) {
 
     var interval;
 
-    $(document).ready(function () {
+    $(document).ready(function() {
         init();
     });
 
     // for validate sync options when save the settings
     function initValidateSyncOptions() {
-        jQuery("#post.rwmb-settings-form").submit(function () {
+        jQuery("#post.rwmb-settings-form").submit(function() {
             if (jQuery('#wpcd_sync_auto_export').is(":checked")) {
                 var validated = initValidation();
                 if (!validated) {
@@ -33,7 +33,7 @@
         }
 
         // show or hide auto export option on enable or disable
-        jQuery('#wpcd_sync_auto_export').on('click', function (e) {
+        jQuery('#wpcd_sync_auto_export').on('click', function(e) {
             if (jQuery(this).is(":checked")) {
                 jQuery('#wpcd_sync_set_cron').parent().parent().show();
             } else {
@@ -45,7 +45,7 @@
     // for actions on the SETTINGS->SYNC Tab
     function initSyncPush() {
         // for pushing the data on target site - triggered from the SETTINGS->SYNC->PUSH button
-        $('body').on('click', '#wpcd-sync-push', function (e) {
+        $('body').on('click', '#wpcd-sync-push', function(e) {
             e.preventDefault();
 
             jQuery('.display_waiting_message').remove();
@@ -86,12 +86,12 @@
                         wpcd_sync_password: wpcd_sync_password,
                         wpcd_export_all_settings: wpcd_export_all_settings,
                     },
-                    success: function (data) {
+                    success: function(data) {
                         jQuery('.display_waiting_message').remove();
                         alert(data.data.msg);
                         location.reload();
                     },
-                    error: function (error) {
+                    error: function(error) {
                         jQuery('.display_waiting_message').remove();
                         jQuery('#wpcd-sync-push').removeAttr('disabled');
                     }
@@ -102,7 +102,7 @@
         });
 
         // for deleting the data received as a file 
-        $('body').on('click', '.wpcd-received-files-delete', function (e) {
+        $('body').on('click', '.wpcd-received-files-delete', function(e) {
             e.preventDefault();
 
             jQuery('.display_waiting_message').remove();
@@ -122,12 +122,12 @@
                     file_name: file_name,
                     restore_id: restore_id,
                 },
-                success: function (data) {
+                success: function(data) {
                     jQuery('.display_waiting_message').remove();
                     alert(data.data.msg);
                     location.reload();
                 },
-                error: function (error) {
+                error: function(error) {
                     jQuery(this).css('pointer-events', 'inherit');
                     jQuery('.display_waiting_message').remove();
                 }
@@ -136,14 +136,14 @@
 
 
         // for enter the decryption key before restore file
-        jQuery('body').on('click', '.close_custom_popup', function (e) {
+        jQuery('body').on('click', '.close_custom_popup', function(e) {
             jQuery('.cover-popup-bg-sec').hide();
             jQuery('.modal').hide();
         });
 
 
         // for restoring the data received as a file
-        $('body').on('click', '.wpcd-received-files-restore', function (e) {
+        $('body').on('click', '.wpcd-received-files-restore', function(e) {
             e.preventDefault();
 
             // clear fields values
@@ -168,7 +168,7 @@
 
 
         // enter decryption key in popup and process ahead
-        $('body').on('click', '#enter_decryption_key', function (e) {
+        $('body').on('click', '#enter_decryption_key', function(e) {
             e.preventDefault();
 
             jQuery('.display_waiting_message').remove();
@@ -205,13 +205,13 @@
                             delete_existing: delete_existing,
                             decryption_key_to_restore: decryption_key_to_restore,
                         },
-                        success: function (data) {
+                        success: function(data) {
                             jQuery('.display_waiting_message').remove();
                             alert(data.data.msg);
                             location.reload();
                         },
-                        error: function (error) {
-                            jQuery(current_file_element).css('pointer-events', 'inherit');
+                        error: function(error) {
+                            jQuery('a[data-file-name="' + file_name + '"]').css('pointer-events', 'inherit');
                             jQuery('.display_waiting_message').remove();
                         }
                     });
@@ -221,7 +221,7 @@
 
 
         // save the encryption key value
-        $('body').on('click', '#wpcd-encryption-key-save', function (e) {
+        $('body').on('click', '#wpcd-encryption-key-save', function(e) {
             e.preventDefault();
 
             jQuery('.display_waiting_message').remove();
@@ -248,12 +248,12 @@
                     nonce: nonce,
                     wpcd_encryption_key_v2: wpcd_encryption_key_v2,
                 },
-                success: function (data) {
+                success: function(data) {
                     jQuery('.display_waiting_message').remove();
                     alert(data.data.msg);
                     location.reload();
                 },
-                error: function (error) {
+                error: function(error) {
                     jQuery('.display_waiting_message').remove();
                     jQuery('#wpcd-encryption-key-save').removeAttr('disabled');
                 }

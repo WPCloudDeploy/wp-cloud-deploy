@@ -43,17 +43,21 @@
 	/* Style the CLICK HERE button at the top of the admin screen that starts the wizard */
 	border: 1px;
 	border: solid:;
-	border-color: orange;
-	background-color: orange;
+	border-color: #E91E63;
+	background-color: #E91E63;
 	padding: 10px;
 	margin-top: 20px;
 	vertical-align: middle;
-	border-radius: 5px;
+	border-radius: 3px;
 }
 .wpcd-wizard-notice .wpcd-button-wizard-primary a {
 	color: white;
 	text-decoration: none;
 	vertical-align: middle;
+}
+.wpcd-wizard-notice .wpcd-button-wizard-primary:hover {
+	background-color: #03114A;
+	border-color: white;
 }
 
 .wpcd-wizard-notice .wpcd-button-wizard-skip a {

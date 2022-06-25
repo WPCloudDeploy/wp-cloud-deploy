@@ -86,7 +86,7 @@ class WPCD_Admin_Setup_Wizard {
 			<div class="updated wpcd-wizard-notice">
 				<h1 class="wizard-main-heading"><?php _e( 'WPCloudDeploy: First Time Install', 'wpcd' ); ?></h1>
 				<p class="wizard-first-line"><?php _e( 'Thank you for installing WPCloudDeploy. Please choose an option below to get started.', 'wpcd' ); ?></p>
-				<p class="wizard-normal wizard-second-line"><?php _e( 'If this is not the first time you are using WPCLoudDeploy or you would like to manually configure your initial settings, then you should choose to skip this process. Otherwise proceed by clicking the orange button.', 'wpcd' ); ?></p>		
+				<p class="wizard-normal wizard-second-line"><?php _e( 'If this is not the first time you are using WPCLoudDeploy or you would like to manually configure your initial settings, then you should choose to skip this process. Otherwise proceed by clicking the button.', 'wpcd' ); ?></p>		
 				<p><span class="wpcd-button-wizard-primary"><?php _e( '<a href="' . admin_url( 'index.php?page=wpcd-setup' ) . '">Click here To Get Started Now</a>', 'wpcd' ); ?></span>		
 					<span class="wpcd-button-wizard-skip"><?php _e( '<a href="#" id="wpcd-skip-wizard">Or skip this process</a>', 'wpcd' ); ?>
 				</p>		
@@ -332,8 +332,10 @@ class WPCD_Admin_Setup_Wizard {
 		if ( ! DEFINED( 'WPCD_ENCRYPTION_KEY' ) ) {
 			// Do not move on from the wizard since the encryption key is not defined in wp-config.php.
 			wp_safe_redirect( esc_url_raw( $this->get_this_step_link() ) );
+			exit;
 		} else {
 			wp_safe_redirect( esc_url_raw( $this->get_next_step_link() ) );
+			exit;
 		}
 	}
 
@@ -351,10 +353,11 @@ class WPCD_Admin_Setup_Wizard {
 			<input type="text" name="digital-ocean-api-token" />
 			<?php
 			echo '<input type="submit" name="save_step" value="Continue">';
-			if ( sanitize_text_field( get_query_var( 'error_msg' ) ) ) {
-				$error_msg = sanitize_text_field( get_query_var( 'error_msg' ) );
+			// Extract error message from url - this could be set by the save function for this step.
+			if ( $this->get_error_message_from_url() ) {
+				$error_msg = $this->get_error_message_from_url();
 				?>
-				<p><?php esc_html_e( $error_msg ); ?></p>
+				<p style="color:red;"><?php esc_html_e( $error_msg ); ?></p>
 				<?php
 			}
 
@@ -375,12 +378,13 @@ class WPCD_Admin_Setup_Wizard {
 
 		// Empty key?  Stay on the current step.
 		if ( empty( $api_key ) ) {
-			wp_safe_redirect( esc_url_raw( add_query_arg( array( 'error_msg' => __( 'Please fill in the API token.', 'wpcd' ) ), $this->get_this_step_link() ) ) );
+			wp_safe_redirect( esc_url_raw( add_query_arg( array( 'error_msg' => __( 'Please provide the DigitalOcean API Key/Token.', 'wpcd' ) ), $this->get_this_step_link() ) ) );
+			exit;
 		}
 
 		// Otherwise, update the digital ocean option.
 		$provider = 'digital-ocean';
-		wpcd_set_option( "vpn_{$provider}_sshkey_id", WPCD()->encrypt( $api_key ) );
+		wpcd_set_option( "vpn_{$provider}_apikey", WPCD()->encrypt( $api_key ) );
 
 		// Now test connection.
 		// This code is a duplicate of what's in the wpcd_provider_test_provider_connection() function in file includes/core/class-wpcd-settings.php.
@@ -390,12 +394,14 @@ class WPCD_Admin_Setup_Wizard {
 		// Call the test_connection function.
 		$attributes        = array();
 		$connection_status = WPCD()->get_provider_api( $provider )->call( 'test_connection', $attributes );
-		if ( true === $connection_status['test_status'] ) {
+		if ( ! is_wp_error( $connection_status ) && ! empty( $connection_status['test_status'] ) && true === $connection_status['test_status'] ) {
 			// Go to next step.
 			wp_safe_redirect( esc_url_raw( $this->get_next_step_link() ) );
+			exit;
 		} else {
 			// Stay on this step.
-			wp_safe_redirect( esc_url_raw( $this->get_this_step_link() ) );
+			wp_safe_redirect( esc_url_raw( add_query_arg( array( 'error_msg' => __( 'We were unable to connect to DigitalOcean with this API key/token. Please try a different one.', 'wpcd' ) ), $this->get_this_step_link() ) ) );
+			exit;
 		}
 
 	}
@@ -636,6 +642,14 @@ class WPCD_Admin_Setup_Wizard {
 	}
 
 	/**
+	 * Extract and return an error message from the URL.
+	 */
+	public function get_error_message_from_url() {
+		$msg = sanitize_text_field( FILTER_INPUT( INPUT_GET, 'error_msg', FILTER_DEFAULT) );
+		return $msg;
+	}
+
+	/**
 	 * Get the URL for the next step's screen.
 	 *
 	 * @param string $step  slug (default: current step).
@@ -658,11 +672,11 @@ class WPCD_Admin_Setup_Wizard {
 			return '';
 		}
 
-		return add_query_arg( 'step', $keys[ $step_index + 1 ], remove_query_arg( 'activate_error' ) );
+		return remove_query_arg( 'error_msg', add_query_arg( 'step', $keys[ $step_index + 1 ], remove_query_arg( 'activate_error' ) ) );
 	}
 
 	/**
-	 * Get the URL for the next step's screen.
+	 * Get the URL for the current step's screen.
 	 *
 	 * @param string $step  slug (default: current step).
 	 * @return string       URL for current step.

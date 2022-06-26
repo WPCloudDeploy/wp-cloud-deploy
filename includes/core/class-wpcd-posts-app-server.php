@@ -407,11 +407,15 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 
 				// Region.
 				$region = get_post_meta( $post_id, 'wpcd_server_region', true );
+				$region = WPCD()->get_provider_api( $provider )->get_region_description( $region );
 
 				// Size.
 				$size = get_post_meta( $post_id, 'wpcd_server_size', true );
 				if ( empty( $size ) ) {
 					$size = get_post_meta( $post_id, 'wpcd_server_size_raw', true );
+				}
+				if ( ! empty( $size ) ) {
+					$size = WPCD()->get_provider_api( $provider )->get_size_description( $size );
 				}
 				if ( empty( $size ) ) {
 					$size = 'unknown';

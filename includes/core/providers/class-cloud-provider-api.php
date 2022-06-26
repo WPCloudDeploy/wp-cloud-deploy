@@ -426,6 +426,34 @@ class CLOUD_PROVIDER_API {
 	}
 
 	/**
+	 * Return the region description given a region code.
+	 *
+	 * Descendent classes should override this function.
+	 * But if they don't we'll just return what's passed in.
+	 *
+	 * @param string $region Region code.
+	 *
+	 * @return string.
+	 */
+	public function get_region_description( $region ) {
+		return $region;
+	}
+
+	/**
+	 * Return the size description given a size code.
+	 *
+	 * Descendent classes should override this function.
+	 * But if they don't we'll just return what's passed in.
+	 *
+	 * @param string $size Size code.
+	 *
+	 * @return string.
+	 */
+	public function get_size_description( $size ) {
+		return $size;
+	}
+
+	/**
 	 * Get a list of methods that will be cached.
 	 */
 	public function get_cache_methods() {

@@ -102,7 +102,7 @@ class WPCD_Admin_Setup_Wizard {
 	 * Action Hook: admin_enqueue_scripts.
 	 */
 	public function wpcd_setup_wizard_scripts() {
-		wp_enqueue_style( 'wpcd-common-admin', wpcd_url . 'assets/css/wpcd-setup-wizard-notice.css', array(), wpcd_scripts_version );
+		wp_enqueue_style( 'wpcd-admin-wizard-notice', wpcd_url . 'assets/css/wpcd-setup-wizard-notice.css', array(), wpcd_scripts_version );
 		wp_enqueue_script( 'wpcd-admin-wizard-script', wpcd_url . 'assets/js/wpcd-setup-wizard.js', array( 'jquery' ), wpcd_scripts_version, true );
 		wp_localize_script(
 			'wpcd-admin-wizard-script',

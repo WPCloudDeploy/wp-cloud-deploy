@@ -62,12 +62,22 @@ class WPCD_Admin_Setup_Wizard {
 	public function maybe_ask_setup_wizard() {
 
 		/**
-		 * Ask for setup plugin using Setup wizard.
 		 * Proceed only if both options 'wpcd_plugin_setup' & 'wpcd_skip_wizard_setup' = false
 		 * 'wpas_plugin_setup' will be added at the end of wizard steps
 		 * 'wpas_skip_wizard_setup' will be set to true if user choose to skip wizrd from admin notice
 		 */
 		if ( ! get_option( 'wpcd_plugin_setup', false ) && ! get_option( 'wpcd_skip_wizard_setup', false ) ) {
+
+			/**
+			 * If we already have at least one server setup, do not show wizard prompt.
+			 */
+			$count_servers = wp_count_posts( 'wpcd_app_server' )->private;
+			if ( $count_servers > 0 ) {
+				add_option( 'wpcd_skip_wizard_setup', true );
+				return;
+			}
+
+			// Show Wizard prompt.
 			add_action( 'admin_notices', array( $this, 'wpcd_ask_setup_wizard' ), 1 );
 			add_action( 'admin_enqueue_scripts', array( $this, 'wpcd_setup_wizard_scripts' ), 10, 1 );
 		}
@@ -409,7 +419,7 @@ class WPCD_Admin_Setup_Wizard {
 			<p><?php esc_html_e( 'We use SSH keys, not passwords, to connect to your server.', 'wpcd' ); ?></p>
 			<p><?php esc_html_e( 'We will create a new ssh key-pair for you and submit the public portion to your DigitalOcean account.', 'wpcd' ); ?></p>
 			<p><?php esc_html_e( 'Click the CONTINUE button below to do this now.', 'wpcd' ); ?></p>
-			<p><?php esc_html_e( 'If you prefer to use your own keys, you can cancel this assistant using the NOT RIGHT NOW button.', 'wpcd' ); ?></p>
+			<p><?php esc_html_e( 'If you prefer to use your own keys, you can cancel this assistant using the NOT RIGHT NOW button and enter your own keys in the SETTINGS area.', 'wpcd' ); ?></p>
 			<input type="submit" name="save_step" value="Continue">
 			<?php wp_nonce_field( 'wpcd-ssh-keys' ); ?>
 		</form>

@@ -406,7 +406,7 @@ class WPCD_NOTIFY_LOG extends WPCD_POSTS_LOG {
 	 * @param string $notification_reference any additional or third party reference.
 	 * @param int    $post_id The ID of an existing log, if it exists.
 	 */
-	public function add_notify_log_entry( $parent_post_id, $notification_type = 'notice', $message, $notification_reference = '', $post_id = null ) {
+	public function add_notify_log_entry( $parent_post_id, $notification_type, $message, $notification_reference = '', $post_id = null ) {
 
 		// Author is current user or system.
 		$author_id = get_current_user();

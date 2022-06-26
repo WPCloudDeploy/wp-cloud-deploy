@@ -1741,7 +1741,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 	 *
 	 * @return boolean always true.
 	 */
-	public function set_service_state( $id, $service = 'ufw', $state ) {
+	public function set_service_state( $id, $service, $state ) {
 
 		$services_status             = wpcd_maybe_unserialize( get_post_meta( $id, 'wpcd_wpapp_services_status', true ) );
 		$services_status[ $service ] = $state;

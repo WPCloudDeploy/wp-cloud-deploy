@@ -2165,7 +2165,7 @@ class WPCD_Settings {
 	 * @param string $old old value of field.
 	 * @param int    $object_id the metabox object id.
 	 */
-	public function check_license( $not_used = null, $field, $new, $old, $object_id ) {
+	public function check_license( $not_used, $field, $new, $old, $object_id ) {
 		if ( true === is_admin() ) {
 
 			/* Is the field a license field for the core plugin? If so, check licenses for the core plugin. */
@@ -2217,7 +2217,7 @@ class WPCD_Settings {
 	 * @param string $old old value of field.
 	 * @param int    $object_id the metabox object id.
 	 */
-	public function handle_wisdom_opt_out( $not_used = null, $field, $new, $old, $object_id ) {
+	public function handle_wisdom_opt_out( $not_used, $field, $new, $old, $object_id ) {
 		if ( true === is_admin() ) {
 			/* Did the user enable the opt-out flag? */
 			if ( 'wpcd_wisdom_opt_out' === $field['id'] ) {

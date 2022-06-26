@@ -270,7 +270,7 @@ class WPCD_NOTIFY_SENT extends WPCD_POSTS_LOG {
 	 * @param string  $sent_to notification sent to email/slack/zapier.
 	 * @param int     $post_id The ID of an existing log, if it exists.
 	 */
-	public function add_user_notify_sent_log_entry( $parent_post_id, $notification_type = 'notice', $message, $notification_reference = '', $success, $sent_to = null, $post_id = null ) {
+	public function add_user_notify_sent_log_entry( $parent_post_id, $notification_type, $message, $notification_reference, $success, $sent_to = null, $post_id = null ) {
 
 		// Author is current user or system.
 		$author_id = get_current_user();

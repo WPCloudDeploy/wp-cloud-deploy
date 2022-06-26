@@ -19,15 +19,17 @@ textarea {
 
 input[type="submit"] {
 	cursor: pointer;
-	background: #FFF;
-	margin: 0 5px;
+	background: green;
+	color: white;
+	margin: 0 0px;
 	transition: .3s ease;
 }
 
 input[type="submit"]:hover {
-	color: #69a463;
-	background: #FFF;
-	border-color: #69a463;
+	xcolor: #69a463;
+	xbackground: #FFF;
+	border-color: #6AA463;
+	background-color: #6AA463;
 }
 
 a:focus, 

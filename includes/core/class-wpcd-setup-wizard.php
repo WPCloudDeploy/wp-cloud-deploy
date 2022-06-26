@@ -337,9 +337,11 @@ class WPCD_Admin_Setup_Wizard {
 			<p><b><?php esc_html_e( 'Connect To Your DigitalOcean Account', 'wpcd' ); ?> </b></p>
 			<p><?php esc_html_e( 'Create an API TOKEN at DigitalOcean and enter it below.', 'wpcd' ); ?> </p>
 			<p><?php esc_html_e( 'You can create a token by navigating to: https://cloud.digitalocean.com/account/api.', 'wpcd' ); ?></p>
-			<p><?php esc_html_e( 'There you can click the GENERATE NEW TOKEN button and follow the instructions.  Please make sure that you assign WRITE permissions and that you select a long-running expiration date so that your access is not pre-maturely cut-off.', 'wpcd' ); ?></p>
-			<label for="digital-ocean-api-token"><?php esc_html_e( 'Enter Your DigitalOcean API Key:', 'wpcd' ); ?></label>
-			<input type="text" name="digital-ocean-api-token" />
+			<p><?php esc_html_e( 'There you can click the GENERATE NEW TOKEN button and follow the instructions.', 'wpcd' ); ?></p>
+			<p><?php esc_html_e( 'Please make sure that you assign WRITE permissions and that you select a long-running expiration date.', 'wpcd' ); ?></p>
+			<b><label for="digital-ocean-api-token"><?php esc_html_e( 'Enter Your DigitalOcean API Key:', 'wpcd' ); ?></label></b>
+			<input type="text" name="digital-ocean-api-token" size="100" />
+			<br /><br />
 			<?php
 			echo '<input type="submit" name="save_step" value="Continue">';
 			// Extract error message from url - this could be set by the save function for this step.
@@ -407,7 +409,7 @@ class WPCD_Admin_Setup_Wizard {
 			<p><?php esc_html_e( 'We use SSH keys, not passwords, to connect to your server.', 'wpcd' ); ?></p>
 			<p><?php esc_html_e( 'We will create a new ssh key-pair for you and submit the public portion to your DigitalOcean account.', 'wpcd' ); ?></p>
 			<p><?php esc_html_e( 'Click the CONTINUE button below to do this now.', 'wpcd' ); ?></p>
-			<p><?php esc_html_e( 'If you prefer to use your own keys, you can cancel this Wizard using the NOT RIGHT NOW button.', 'wpcd' ); ?></p>
+			<p><?php esc_html_e( 'If you prefer to use your own keys, you can cancel this assistant using the NOT RIGHT NOW button.', 'wpcd' ); ?></p>
 			<input type="submit" name="save_step" value="Continue">
 			<?php wp_nonce_field( 'wpcd-ssh-keys' ); ?>
 		</form>
@@ -474,6 +476,7 @@ class WPCD_Admin_Setup_Wizard {
 	 */
 	public function wpcd_setup_lets_go_save() {
 		check_admin_referer( 'wpcd-setup-complete' );
+		add_option( 'wpcd_plugin_setup', true );  // Prevents the wizard from showing on the screen.
 		wp_safe_redirect(
 			add_query_arg(
 				array(

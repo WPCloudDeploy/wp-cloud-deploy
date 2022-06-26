@@ -77,6 +77,13 @@ class WPCD_Admin_Setup_Wizard {
 				return;
 			}
 
+			/**
+			 * If METABOX is not already installed, skip since we can't do anything until that is installed.
+			 */
+			if ( ! class_exists( 'RWMB_Core' ) ) {
+				return;
+			}
+
 			// Show Wizard prompt.
 			add_action( 'admin_notices', array( $this, 'wpcd_ask_setup_wizard' ), 1 );
 			add_action( 'admin_enqueue_scripts', array( $this, 'wpcd_setup_wizard_scripts' ), 10, 1 );

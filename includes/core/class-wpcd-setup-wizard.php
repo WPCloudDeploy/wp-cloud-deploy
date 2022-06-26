@@ -190,13 +190,13 @@ class WPCD_Admin_Setup_Wizard {
 			<meta name="viewport" content="width=device-width" />
 			<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 			<title><?php esc_html_e( 'WPCloudDeploy &rsaquo; Setup Wizard', 'wpcd' ); ?></title>
-			<?php wp_print_scripts( 'as-setup' ); ?>
+			<?php wp_print_scripts( 'wpcd-setup' ); ?>
 			<?php do_action( 'admin_print_styles' ); ?>
 			<?php do_action( 'admin_head' ); ?>
 		</head>
-		<body class="as-setup wp-core-ui">
-			<div class="as-setup-wizard">
-			<h1 id="as-logo"><a href="https://wpclouddeploy.com/">WPCloudDeploy</a></h1>			
+		<body class="wpcd-setup wp-core-ui">
+			<div class="wpcd-setup-wizard">
+			<h1 id="wpcd-logo"><a href="https://wpclouddeploy.com/">WPCloudDeploy</a></h1>			
 		<?php
 	}
 
@@ -207,7 +207,7 @@ class WPCD_Admin_Setup_Wizard {
 	public function setup_wizard_steps() {
 		$output_steps = $this->steps;
 		?>
-		<ol class="as-setup-steps">
+		<ol class="wpcd-setup-steps">
 			<?php foreach ( $output_steps as $step_key => $step ) : ?>
 				<?php
 					/**
@@ -235,7 +235,7 @@ class WPCD_Admin_Setup_Wizard {
 	 * Output the content for the current step.
 	 */
 	public function setup_wizard_content() {
-		echo '<div class="as-setup-content">';
+		echo '<div class="wpcd-setup-content">';
 		/*
 		printf(
 			'<p class="sub-heading">%s</p>',
@@ -276,13 +276,17 @@ class WPCD_Admin_Setup_Wizard {
 	 */
 	public function wpcd_general_setup() {
 		// Heading.
+		/*
 		printf(
 			'<p class="sub-heading">%s</p>',
 			esc_html_e( 'Welcome to WPCloudDeploy! This setup wizard will help you get the basics configured and connected to your DigitalOcean account.', 'wpcd' )
 		);
+		*/
 
 		?>
 		<form method="post">
+			<p><b><?php esc_html_e( 'Welcome to WPCloudDeploy!', 'wpcd' ); ?> </b></p>	
+			<p><?php esc_html_e( 'This setup wizard will help you get the basics configured and connected to your DigitalOcean account', 'wpcd' ); ?> </p>	
 			<p><b><?php esc_html_e( 'Encryption Key', 'wpcd' ); ?> </b></p>			
 			<?php
 			// See if wpcd encryption key is defined.
@@ -298,7 +302,7 @@ class WPCD_Admin_Setup_Wizard {
 			} else {
 				?>
 				<p><?php esc_html_e( 'Sweet! Your WPCD_ENCRYPTION_KEY constant is defined. You can continue to the next step.', 'wpcd' ); ?> </p>
-				<p><?php esc_html_e( 'Click the CONTINUE button', 'wpcd' ); ?> </p>
+				<p><?php esc_html_e( 'Please click the CONTINUE button below.', 'wpcd' ); ?> </p>
 				<?php
 			}
 			?>
@@ -346,7 +350,7 @@ class WPCD_Admin_Setup_Wizard {
 				<?php
 			}
 
-			wp_nonce_field( 'wpas-setup-connect-to-provider' );
+			wp_nonce_field( 'wpcd-setup-connect-to-provider' );
 			?>
 		</form>
 		<?php
@@ -358,7 +362,7 @@ class WPCD_Admin_Setup_Wizard {
 	 * @NOTE: Portions of this code is a duplicate of what's in the wpcd_provider_test_provider_connection() function in file includes/core/class-wpcd-settings.php.
 	 */
 	public function wpcd_connect_to_provider_save() {
-		check_admin_referer( 'wpas-setup-connect-to-provider' );
+		check_admin_referer( 'wpcd-setup-connect-to-provider' );
 
 		// Extract the token from the _POST global var.
 		$api_key = sanitize_text_field( FILTER_INPUT( INPUT_POST, 'digital-ocean-api-token', FILTER_DEFAULT ) );

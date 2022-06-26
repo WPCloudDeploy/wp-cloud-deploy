@@ -37,25 +37,25 @@ textarea:focus {
 	outline: none;
 }
 
-#as-logo {
+#wpcd-logo {
 	color: #444;
 	margin: 0;
 	text-align: center;
 }
 
-.as-setup-wizard {
+.wpcd-setup-wizard {
 	padding: 80px 20px;
 	margin: 0 auto;
 	max-width: 900px;
 }
 
-.as-setup-steps {
+.wpcd-setup-steps {
 	padding: 0;
 	margin: 1em 0 2em;
 	text-align: center;
 }
 
-.as-setup-steps li {
+.wpcd-setup-steps li {
 	display: inline-block;
 	padding: 12px;
 	font-weight: 500;
@@ -68,14 +68,14 @@ textarea:focus {
 	width: 100%;
 }
 
-.as-setup-steps li .hint {
+.wpcd-setup-steps li .hint {
 	margin-bottom: 12px;
 	font-weight: 300;
 	font-size: 16px;
 	color: #999;
 }
 
-.as-setup-steps li:before {
+.wpcd-setup-steps li:before {
 	border-bottom: 4px solid transparent;
 	position: absolute;
 	bottom: 18px;
@@ -92,7 +92,7 @@ textarea:focus {
 	background-repeat: no-repeat;
 }
 
-.as-setup-steps li:after {
+.wpcd-setup-steps li:after {
     content: counter(step-counter);
     margin-right: 5px;
     font-size: 80%;
@@ -103,20 +103,20 @@ textarea:focus {
     border-radius: 3px;
 }
 
-.as-setup-steps li.done:after {
+.wpcd-setup-steps li.done:after {
 	background-color: #6aa463;
 	content: '\2713';
 }
 
-.as-setup-steps li.done:before {
+.wpcd-setup-steps li.done:before {
 	background-image: linear-gradient(to right, #6aa463 0%, #6aa463 100%);
 }
 
-.as-setup-steps li.active .hint {
+.wpcd-setup-steps li.active .hint {
 	color: #333;
 }
 
-.as-setup-steps li.active:before {
+.wpcd-setup-steps li.active:before {
 	border-bottom: 4px solid transparent;
 	background-image: linear-gradient(to right, #6aa463 0%,#6aa463 50%,#e5e5e5 51%,#e5e5e5 100%);
 	background-origin: border-box;
@@ -124,11 +124,11 @@ textarea:focus {
 	background-repeat: no-repeat;
 }
 
-.as-setup-steps li.active:after {
+.wpcd-setup-steps li.active:after {
 	background-color: #a6c7a2;
 }
 
-.as-setup-content {
+.wpcd-setup-content {
 	background: #fff;
 	padding: 40px 60px;
 	color: #666;

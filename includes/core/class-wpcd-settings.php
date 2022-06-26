@@ -2062,8 +2062,8 @@ class WPCD_Settings {
 					$attributes        = array();
 					$connection_status = WPCD()->get_provider_api( $provider )->call( 'test_connection', $attributes );
 
-					if ( ! is_wp_error( $connection_status ) ) {
-						if ( true === $connection_status['test_status'] ) {
+					if ( ! is_wp_error( $connection_status ) && ! empty( $connection_status['test_status'] ) ) {
+						if ( true === (bool) $connection_status['test_status'] ) {
 							$return = true;
 							set_transient( $transient_key, 'connection_successful', 86400 ); // Transient set to expire in 24 hours. Note we are not using a boolean for this transient for good reason.
 						}

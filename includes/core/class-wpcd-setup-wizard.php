@@ -135,40 +135,25 @@ class WPCD_Admin_Setup_Wizard {
 			return;
 		}
 		$default_steps = array(
-			'general_setup'            => array(
+			'general_setup'       => array(
 				'name'    => __( 'General', 'wpcd' ),
 				'view'    => array( $this, 'wpcd_general_setup' ),
 				'handler' => array( $this, 'wpcd_general_setup_save' ),
 			),
-			'connect_to_provider'      => array(
+			'connect_to_provider' => array(
 				'name'    => __( 'Connect To Provider', 'wpcd' ),
 				'view'    => array( $this, 'wpcd_connect_to_provider' ),
 				'handler' => array( $this, 'wpcd_connect_to_provider_save' ),
 			),
-			'my_ticket_page'           => array(
-				'name'    => __( 'My ticket Page', 'wpcd' ),
-				'view'    => array( $this, 'as_setup_my_ticket_page' ),
-				'handler' => array( $this, 'as_setup_my_ticket_page_save' ),
+			'create_ssh_keys'     => array(
+				'name'    => __( 'Create SSH Keys', 'wpcd' ),
+				'view'    => array( $this, 'wpcd_create_ssh_keys' ),
+				'handler' => array( $this, 'wpcd_create_ssh_keys_save' ),
 			),
-			'priorities'               => array(
-				'name'    => __( 'Priorities', 'wpcd' ),
-				'view'    => array( $this, 'as_setup_priorities' ),
-				'handler' => array( $this, 'as_setup_priorities_save' ),
-			),
-			'departments'              => array(
-				'name'    => __( 'Departments', 'wpcd' ),
-				'view'    => array( $this, 'as_setup_departments' ),
-				'handler' => array( $this, 'as_setup_departments_save' ),
-			),
-			'ticket_submit_user_roles' => array(
-				'name'    => __( 'Existing Users', 'wpcd' ),
-				'view'    => array( $this, 'as_setup_ticket_submit_user_roles' ),
-				'handler' => array( $this, 'as_setup_ticket_submit_user_roles_save' ),
-			),
-			'lets_go'                  => array(
-				'name'    => __( "Let's Go", 'wpcd' ),
-				'view'    => array( $this, 'as_setup_lets_go' ),
-				'handler' => array( $this, 'as_setup_lets_go_save' ),
+			'lets_go'             => array(
+				'name'    => __( 'Ready', 'wpcd' ),
+				'view'    => array( $this, 'wpcd_setup_lets_go' ),
+				'handler' => array( $this, 'wpcd_setup_lets_go_save' ),
 			),
 		);
 
@@ -369,6 +354,8 @@ class WPCD_Admin_Setup_Wizard {
 
 	/**
 	 * Connect To Provider setup on save.
+	 *
+	 * @NOTE: Portions of this code is a duplicate of what's in the wpcd_provider_test_provider_connection() function in file includes/core/class-wpcd-settings.php.
 	 */
 	public function wpcd_connect_to_provider_save() {
 		check_admin_referer( 'wpas-setup-connect-to-provider' );
@@ -394,7 +381,7 @@ class WPCD_Admin_Setup_Wizard {
 		// Call the test_connection function.
 		$attributes        = array();
 		$connection_status = WPCD()->get_provider_api( $provider )->call( 'test_connection', $attributes );
-		if ( ! is_wp_error( $connection_status ) && ! empty( $connection_status['test_status'] ) && true === $connection_status['test_status'] ) {
+		if ( ! is_wp_error( $connection_status ) && ! empty( $connection_status['test_status'] ) && true === (bool) $connection_status['test_status'] ) {
 			// Go to next step.
 			wp_safe_redirect( esc_url_raw( $this->get_next_step_link() ) );
 			exit;
@@ -407,220 +394,73 @@ class WPCD_Admin_Setup_Wizard {
 	}
 
 	/**
-	 * Awesome Support my tickets page setup view.
+	 * Create SSH keys at cloud provider view.
 	 */
-	public function as_setup_my_ticket_page() {
+	public function wpcd_create_ssh_keys() {
 		?>
 		<form method="post">
-			<p><b><?php _e( 'Which menu would you like to add the MY TICKETS page to?', 'wpcd' ); ?> </b></p>
-			<p><?php _e( 'We have created a new page that users can access to view their existing tickets.  This step allows you to add that page to one of your existing menus so users can easily access it.', 'wpcd' ); ?></p>
-			<p><?php _e( 'Note: If you change your mind later you can remove the page from your menu or add it to a new menu via APPEARANCE->MENUS.', 'wpcd' ); ?></p>
-			<?php
-			$menu_lists = wp_get_nav_menus();
-			echo '<select name="wpas_ticket_list_menu">';
-			foreach ( $menu_lists as $key => $menu ) {
-				echo '<option value="' . $menu->term_id . '">' . $menu->name . '</option>';
-			}
-			echo '<select>';
-			?>
+			<p><b><?php esc_html_e( 'Create SSH Keys', 'wpcd' ); ?> </b></p>
+			<p><?php esc_html_e( 'We use SSH keys, not passwords, to connect to your server.', 'wpcd' ); ?></p>
+			<p><?php esc_html_e( 'We will create a new ssh key-pair for you and submit the public portion to your DigitalOcean account.', 'wpcd' ); ?></p>
+			<p><?php esc_html_e( 'Click the CONTINUE button below to do this now.', 'wpcd' ); ?></p>
+			<p><?php esc_html_e( 'If you prefer to use your own keys, you can cancel this Wizard using the NOT RIGHT NOW button.', 'wpcd' ); ?></p>
 			<input type="submit" name="save_step" value="Continue">
-			<?php wp_nonce_field( 'as-setup' ); ?>
+			<?php wp_nonce_field( 'wpcd-ssh-keys' ); ?>
 		</form>
 		<?php
 	}
 
 	/**
-	 * Awesome Support my ticket page setup on save.
+	 * Create SSH keys at cloud provider on save.
+	 *
+	 * @NOTE: Portions of this code is a duplicate of what's in the wpcd_provider_auto_create_ssh_key() function in file includes/core/class-wpcd-settings.php.
 	 */
-	public function as_setup_my_ticket_page_save() {
-		check_admin_referer( 'as-setup' );
-		$ticket_list           = wpas_get_option( 'ticket_list' );
-		$wpas_ticket_list_menu = ( isset( $_POST['wpas_ticket_list_menu'] ) && ! empty( $_POST['wpas_ticket_list_menu'] ) ) ? intval( $_POST['wpas_ticket_list_menu'] ) : 0;
-		if ( ! empty( $ticket_list ) && ! is_array( $ticket_list ) ) {
-			wp_update_nav_menu_item(
-				$wpas_ticket_list_menu,
-				0,
-				array(
-					'menu-item-db-id'     => $ticket_list,
-					'menu-item-object-id' => $ticket_list,
-					'menu-item-object'    => 'page',
-					'menu-item-title'     => wp_strip_all_tags( __( 'My Tickets', 'wpcd' ) ),
-					'menu-item-status'    => 'publish',
-					'menu-item-type'      => 'post_type',
-				)
-			);
-		}
-		wp_safe_redirect( esc_url_raw( $this->get_next_step_link() ) );
-	}
+	public function wpcd_create_ssh_keys_save() {
+		check_admin_referer( 'wpcd-ssh-keys' );
 
-		/**
-		 * Awesome Support priorities setup view.
-		 */
-	public function as_setup_priorities() {
-		$support_priority = wpas_get_option( 'support_priority' );
-		?>
-		<form method="post">
-			<p><b><?php _e( 'Would you like to use the priority field in your tickets?', 'wpcd' ); ?> </b></p>
-			<p><?php _e( 'Turn this option on if you would like to assign priorities to your tickets.', 'wpcd' ); ?> </p>
-			<p><?php _e( 'After you have finished with the wizard you can configure your priority levels under TICKETS->PRIORITIES.', 'wpcd' ); ?> </p>
-			<p><?php _e( 'You can also tweak how priorities work by changing settings under the TICKETS->SETTINGS->FIELDS tab.', 'wpcd' ); ?> </p>
-			<label for='property_field_yes'>Yes</label>
-			<input type="radio" name="property_field" id='property_field_yes' value="yes" checked />
-			<label for='property_field_no'>No</label>
-			<input type="radio" name="property_field" id='property_field_no' value="no"/>
-			<input type="submit" name="save_step" value="Continue">
-			<?php wp_nonce_field( 'as-setup' ); ?>
-		</form>
-		<?php
-	}
+		// Create key.
+		$provider                      = 'digital-ocean';
+		$key_pair                      = WPCD_WORDPRESS_APP()->ssh()->create_key_pair();
+		$attributes                    = array();
+		$attributes['public_key']      = $key_pair['public'];
+		$attributes['public_key_name'] = 'WPCD_AUTO_CREATE_' . wpcd_random_str( 10, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' );
 
-	/**
-	 * Awesome Support priorities setup on save.
-	 */
-	public function as_setup_priorities_save() {
-		check_admin_referer( 'as-setup' );
-		$property_field = ( isset( $_POST['property_field'] ) ) ? sanitize_text_field( $_POST['property_field'] ) : '';
-		$options        = unserialize( get_option( 'wpas_options', array() ) );
-		if ( ! empty( $property_field ) && 'yes' === $property_field ) {
-			$options['support_priority'] = '1';
+		// Call the ssh_create function.
+		$key_id = WPCD()->get_provider_api( $provider )->call( 'ssh_create', $attributes );
+
+		if ( is_array( $key_id ) && ( ! is_wp_error( $key_id ) ) && ( $key_id ) && ( ! empty( $key_id['ssh_key_id'] ) ) ) {
+
+			// Ok, we got this far. Save to our options array.
+			wpcd_set_option( "vpn_{$provider}_sshkey_id", $key_id['ssh_key_id'] );
+			wpcd_set_option( "vpn_{$provider}_sshkey", WPCD()->encrypt( $key_pair['private'] ) );
+			wpcd_set_option( "vpn_{$provider}_public_sshkey", $key_pair['public'] );
+			wpcd_set_option( "vpn_{$provider}_sshkeynotes", $attributes['public_key_name'] . ': ' . __( 'This key was automatically created.', 'wpcd' ) );
+
+			wp_safe_redirect( esc_url_raw( $this->get_next_step_link() ) );
+			exit;
+
 		} else {
-			$options['support_priority'] = 0;
+			// Stay on this step.
+			wp_safe_redirect( esc_url_raw( add_query_arg( array( 'error_msg' => __( 'It looks like we were unable to create the key for you. You can try again or cancel this wizard and setup your own pair in the settings area.', 'wpcd' ) ), $this->get_this_step_link() ) ) );
+			exit;
 		}
-		update_option( 'wpas_options', serialize( $options ) );
-		wp_safe_redirect( esc_url_raw( $this->get_next_step_link() ) );
-	}
-
-	/**
-	 * Awesome Support ticket submit allowed roles setup view.
-	 */
-	public function as_setup_ticket_submit_user_roles() {
-
-		?>
-		<form method="post">
-			
-			<h2><?php _e( 'Important! How do you want to handle your existing users?', 'wpcd' ); ?></h2>
-			<p><em><?php _e( 'By default, none of your existing users will be allowed to submit ticket. However, you can adjust this based on your existing user roles.', 'wpcd' ); ?></em></p>
-			<p><b><?php _e( 'Any of the user roles you check below will automatically be allowed to submit tickets.', 'wpcd' ); ?></b>
-			<span><em><?php _e( ' If you do not choose any roles then only new users will be allowed to submit tickets!  If this is a new installation of WordPress with no existing users then you can just skip to the next step by clicking the CONTINUE button. ', 'wpcd' ); ?></em></span>
-			</p>
-			
-			<?php
-
-			$all_roles = get_editable_roles();
-
-			$skip_roles = array(
-				'wpas_manager',
-				'wpas_support_manager',
-				'wpas_agent',
-				'wpas_user',
-			);
-
-			foreach ( $all_roles as $r_name => $r ) {
-				if ( ! in_array( $r_name, $skip_roles ) ) {
-					printf( '<label><input type="checkbox" name="roles[]" value="%s" /> %s</label><br />', $r_name, $r['name'] );
-				}
-			}
-
-			?>
-			<br />
-			<input type="submit" name="save_step" value="Continue">
-			<?php wp_nonce_field( 'as-setup' ); ?>
-		</form>
-		<?php
-	}
-
-	/**
-	 * Awesome Support ticket submit allowed roles setup on save.
-	 */
-	public function as_setup_ticket_submit_user_roles_save() {
-
-		check_admin_referer( 'as-setup' );
-
-		$selected_roles = filter_input( INPUT_POST, 'roles', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY );
-
-		$selected_roles = $selected_roles && is_array( $selected_roles ) ? $selected_roles : array();
-
-		$capabilities = array(
-			'view_ticket',
-			'create_ticket',
-			'close_ticket',
-			'reply_ticket',
-			'attach_files',
-		);
-
-		foreach ( $selected_roles as $role_name ) {
-			$role = get_role( $role_name );
-
-			foreach ( $capabilities as $capability ) {
-				$role->add_cap( $capability );
-			}
-		}
-
-		// Don't show setup wizard link on plug-in activation.
-		update_option( 'wpas_plugin_setup', 'done' );
-
-		wp_safe_redirect( esc_url_raw( $this->get_next_step_link() ) );
-	}
-
-
-
-		/**
-		 * Awesome Support departments setup view.
-		 */
-	public function as_setup_departments() {
-		$departments = wpas_get_option( 'departments' );
-		?>
-		<form method="post">
-			<p><b><?php _e( 'Do you want to enable Departments?', 'wpcd' ); ?> </b></p>
-			<p><?php _e( 'Turn this option on if you would like to assign departments to your tickets.', 'wpcd' ); ?> </p>
-			<p><?php _e( 'Once enabled, you can configure your list of departments by going to TICKETS->DEPARTMENTS.', 'wpcd' ); ?> </p>
-			<p><?php _e( 'You can turn this off later if you change your mind by going to the TICKETS->SETTINGS->FIELDS tab.', 'wpcd' ); ?> </p>			
-			<label for='departments_field_yes'>Yes</label>
-			<input type="radio" name="departments_field" id='departments_field_yes' value="yes" checked />
-			<label for='departments_field_no'>No</label>
-			<input type="radio" name="departments_field" id='departments_field_no' value="no"/>
-			<input type="submit" name="save_step" value="Continue">
-			<?php wp_nonce_field( 'as-setup' ); ?>
-		</form>
-		<?php
-	}
-
-	/**
-	 * Awesome Support departments setup on save.
-	 */
-	public function as_setup_departments_save() {
-		check_admin_referer( 'as-setup' );
-		$departments_field = ( isset( $_POST['departments_field'] ) ) ? sanitize_text_field( $_POST['departments_field'] ) : '';
-		$options           = unserialize( get_option( 'wpas_options', array() ) );
-		if ( ! empty( $departments_field ) && 'yes' === $departments_field ) {
-			$options['departments'] = '1';
-		} else {
-			$options['departments'] = '0';
-		}
-		update_option( 'wpas_options', serialize( $options ) );
-		// Don't show setup wizard link on plug-in activation.
-		update_option( 'wpas_plugin_setup', 'done' );
-		wp_safe_redirect( esc_url_raw( $this->get_next_step_link() ) );
 	}
 
 	/**
 	 * Lets Go page view for think you message and all.
 	 */
-	public function as_setup_lets_go() {
+	public function wpcd_setup_lets_go() {
 		?>
 		<form method="post">
-			<p><b><?php _e( 'Your new support system is all set up and ready to go!', 'wpcd' ); ?></b></p>
-			<p><?php _e( 'If your menus are active in your theme your users will now able to register for an account and submit tickets.', 'wpcd' ); ?></p>
-			<p><b><?php _e( 'Do you have existing users in your WordPress System?', 'wpcd' ); ?></b></p>
+			<p><b><?php esc_html_e( 'WPCloudDeploy is all set up and ready to go!', 'wpcd' ); ?></b></p>
+			<p><?php esc_html_e( 'You should now be able to create your first server at DigitalOcean.', 'wpcd' ); ?></p>
 			<p>
 			<?php
-			echo sprintf( __( 'If so, you will want to read <b><u><a %s>this article</a></b></u> on our website.', 'wpcd' ), 'href="https://getawesomesupport.com/documentation/awesome-support/admin-handling-existing-users-after-installation/" target="_blank" ' );
+			echo sprintf( __( 'You can go to the server list to create your first server or <b><u><a %s>View The Documentation</a></b></u>.', 'wpcd' ), 'href="https://wpclouddeploy.com/doc-landing/" target="_blank" ' );
 			?>
 			</p>
-			<p><b><?php _e( 'Where are my support tickets?', 'wpcd' ); ?></b></p>
-			<p><?php _e( 'You can now access your support tickets and other support options under the new TICKETS menu option.', 'wpcd' ); ?></p>
-			<input type="submit" name="save_step" value="Let's Go">
-			<?php wp_nonce_field( 'as-setup' ); ?>
+			<input type="submit" name="save_step" value="Create First Server">
+			<?php wp_nonce_field( 'wpcd-setup-complete' ); ?>
 		</form>
 		<?php
 	}
@@ -628,12 +468,12 @@ class WPCD_Admin_Setup_Wizard {
 	/**
 	 * Lets Go button click
 	 */
-	public function as_setup_lets_go_save() {
-		wp_redirect(
+	public function wpcd_setup_lets_go_save() {
+		check_admin_referer( 'wpcd-setup-complete' );
+		wp_safe_redirect(
 			add_query_arg(
 				array(
-					'post_type' => 'ticket',
-					'page'      => 'wpas-about',
+					'post_type' => 'wpcd_app_server',
 				),
 				admin_url( 'edit.php' )
 			)
@@ -645,7 +485,7 @@ class WPCD_Admin_Setup_Wizard {
 	 * Extract and return an error message from the URL.
 	 */
 	public function get_error_message_from_url() {
-		$msg = sanitize_text_field( FILTER_INPUT( INPUT_GET, 'error_msg', FILTER_DEFAULT) );
+		$msg = sanitize_text_field( FILTER_INPUT( INPUT_GET, 'error_msg', FILTER_DEFAULT ) );
 		return $msg;
 	}
 

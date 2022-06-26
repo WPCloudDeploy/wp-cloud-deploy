@@ -425,6 +425,16 @@ class WPCD_Init {
 		 */
 		$wpcd_throwaaway_var = new WP_CLOUD_DEPLOY();
 
+		/**
+		 * Finally, maybe ask for setup using Setup wizard.
+		 * Proceed only if both options 'wpcd_plugin_setup' & 'wpcd_skip_wizard_setup' = false
+		 * 'wpas_plugin_setup' will be added at the end of wizard steps
+		 * 'wpas_skip_wizard_setup' will be set to true if user choose to skip wizrd from admin notice
+		 */
+		if ( ! get_option( 'wpcd_plugin_setup', false ) && ! get_option( 'wpcd_skip_wizard_setup', false ) ) {
+			require_once wpcd_path . 'includes/core/class-wpcd-setup-wizard.php';
+		}
+
 	}
 
 	/**
@@ -813,6 +823,7 @@ class WPCD_Init {
 				set_transient( 'wpcd_wisdom_custom_options_first_run_done', 1, ( 60 * 24 * 7 ) * MINUTE_IN_SECONDS );
 			}
 		}
+
 	}
 
 }
@@ -829,6 +840,9 @@ if ( ! class_exists( 'Plugin_Usage_Tracker' ) ) {
 	require_once dirname( __FILE__ ) . '/vendor/wisdom_plugin/class-plugin-usage-tracker.php';
 }
 if ( ! function_exists( 'wpcd_start_plugin_tracking' ) ) {
+	/**
+	 * Start statistics tracking using the Wisdom Plugin.
+	 */
 	function wpcd_start_plugin_tracking() {
 		$wisdom = new Plugin_Usage_Tracker(
 			__FILE__,
@@ -844,7 +858,7 @@ if ( ! function_exists( 'wpcd_start_plugin_tracking' ) ) {
 	// The initial calculation only happens if the admin area has been accessed at least once after the plugin was activated.
 	// (See the admin_init() function in the main plugin class above.)
 	// After that the calculations occur on a cron hook.
-	// (See the function set_wisdom_custom_options() in file includes/core/wp-cloud-deploy.php)
+	// (See the function set_wisdom_custom_options() in file includes/core/wp-cloud-deploy.php).
 	if ( true === (bool) get_transient( 'wpcd_wisdom_custom_options_first_run_done' ) ) {
 		wpcd_start_plugin_tracking();
 	}

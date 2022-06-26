@@ -50,6 +50,10 @@ if ( ! empty( $options['uninstall_on_delete'] ) ) {
 	delete_option( 'wisdom_opt_out' );
 	delete_option( 'wisdom_wpcd_server_count' );
 	delete_option( 'wisdom_wpcd_app_count' );
+	
+	/* Setup Wizard Options */
+	delete_option( 'wpcd_plugin_setup' );
+	delete_option( 'wpcd_skip_wizard_setup' );
 
 	/* Clear long-lived transients. */
 	delete_transient( 'wpcd_wisdom_custom_options_first_run_done' );

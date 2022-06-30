@@ -48,6 +48,41 @@ class WPCD_WOOCOMMERCE {
 
 		return $found;
 	}
+	
+	/**
+	 * Checks whether all items of a particular type on an order has or has not suppressed thank you notices.
+	 * If at least one item of the specified type on the order  has not suppressed the
+	 * thank you notice, return false.
+	 * 
+	 * If all items of the specified type on the order has suppressed the thank you notice return true.
+	 *
+	 * It is expected that the item meta name follows a particular convention:
+	 *     wpcd_app_{$item_type}_no_global_thankyou_notice
+	 *
+	 * @since 5.0.0
+	 *
+	 * @param array  $order The woocommerce order object array.
+	 * @param string $item_type The type of item that should be in the order.
+	 *
+	 * @return bool
+	 */
+	protected function does_order_suppress_thank_you_notice( $order, $item_type ) {
+		$return = true;
+		$items = $order->get_items();
+		foreach ( $items as $item ) {
+			$product_id = $item->get_product_id();
+			$is_type    = get_post_meta( $product_id, "wpcd_app_{$item_type}_product", true );
+			if ( 'yes' === $is_type ) {
+				$suppress = get_post_meta( $product_id, "wpcd_app_{$item_type}_no_global_thankyou_notice", true );
+				if ( 'yes' !== $suppress ) {
+					$return = false;			
+					break;
+				}
+			}
+		}
+
+		return $return;
+	}	
 
 	/**
 	 * Checks if the WC cart contains an item of the given type.

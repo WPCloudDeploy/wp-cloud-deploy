@@ -1337,6 +1337,17 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 	 * @return boolean success/failure/other
 	 */
 	private function refresh_services_status_php( $id, $action ) {
+		
+		// What is the webserver type?
+		$webserver_type = $this->get_web_server_type( $id );
+		if ( 'nginx' !== $webserver_type ) {
+			// PHP FPM status can only be acquired for NGINX server types.
+			$result = array(
+				'msg'     => __( 'This request cannot be completed because the webserver is not an NGINX webserver - this page will now refresh', 'wpcd' ),
+				'refresh' => 'yes',
+			);
+			return $result;
+		}
 
 		// Array to hold status of services.
 		$services_status = array();

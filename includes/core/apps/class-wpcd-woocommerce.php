@@ -48,12 +48,12 @@ class WPCD_WOOCOMMERCE {
 
 		return $found;
 	}
-	
+
 	/**
 	 * Checks whether all items of a particular type on an order has or has not suppressed thank you notices.
 	 * If at least one item of the specified type on the order  has not suppressed the
 	 * thank you notice, return false.
-	 * 
+	 *
 	 * If all items of the specified type on the order has suppressed the thank you notice return true.
 	 *
 	 * It is expected that the item meta name follows a particular convention:
@@ -68,21 +68,21 @@ class WPCD_WOOCOMMERCE {
 	 */
 	protected function does_order_suppress_thank_you_notice( $order, $item_type ) {
 		$return = true;
-		$items = $order->get_items();
+		$items  = $order->get_items();
 		foreach ( $items as $item ) {
 			$product_id = $item->get_product_id();
 			$is_type    = get_post_meta( $product_id, "wpcd_app_{$item_type}_product", true );
 			if ( 'yes' === $is_type ) {
 				$suppress = get_post_meta( $product_id, "wpcd_app_{$item_type}_no_global_thankyou_notice", true );
 				if ( 'yes' !== $suppress ) {
-					$return = false;			
+					$return = false;
 					break;
 				}
 			}
 		}
 
 		return $return;
-	}	
+	}
 
 	/**
 	 * Checks if the WC cart contains an item of the given type.
@@ -105,6 +105,32 @@ class WPCD_WOOCOMMERCE {
 		}
 
 		return $found;
+
+	}
+
+	/**
+	 * Given a WOOCOMMERCE order, return a one dimensional array with just
+	 * the unique product ids on it.
+	 *
+	 * @since 5.0
+	 *
+	 * @param object $order The order we're extracting product ids from.
+	 *
+	 * @return array
+	 */
+	protected function get_unique_products_on_order( $order ) {
+
+		$return = array();
+
+		$items = $order->get_items();
+		foreach ( $items as $item ) {
+			$product_id = $item->get_product_id();
+			if ( ! in_array( $product_id, $return, true ) ) {
+				array_push( $return, $product_id );
+			}
+		}
+
+		return $return;
 
 	}
 
@@ -198,10 +224,35 @@ class WPCD_WOOCOMMERCE {
 	 * @param string $str The current text of the thank you page.
 	 * @param array  $order The woocommerce order object array.
 	 * @param string $item_type The type of item that should be in the order.
+	 * @param bool   $global Whether to return the global thank you text from settings or the one(s) stored in products on the order.
 	 *
 	 * @return string
 	 */
-	protected function get_thank_you_text( $str, $order, $item_type ) {
+	protected function get_thank_you_text( $str, $order, $item_type, $global = true ) {
+
+		if ( true === $global ) {
+			return $this->get_global_thank_you_text( $str, $order, $item_type );
+		}
+
+		if ( ! $global ) {
+			return $this->get_product_thank_you_text( $str, $order, $item_type );
+		}
+
+	}
+
+	/**
+	 * Returns the thank you text to show.
+	 * It pulls the thank-you text from the global settings.
+	 *
+	 * @since 5.0.0
+	 *
+	 * @param string $str The current text of the thank you page.
+	 * @param array  $order The woocommerce order object array.
+	 * @param string $item_type The type of item that should be in the order.
+	 *
+	 * @return string
+	 */
+	protected function get_global_thank_you_text( $str, $order, $item_type ) {
 		// Get the text to show at the top of the thank you page.
 		$addl_text         = wpcd_get_option( "{$item_type}_general_wc_thank_you_text_before" );
 		$addl_text_to_show = '';  // Temporary holding variable for text that will be concatenated to the incoming $str variable.
@@ -229,7 +280,53 @@ class WPCD_WOOCOMMERCE {
 		}
 
 		// Allow apps to hook in and modify the string further.
-		return apply_filters( 'wpcd_thank_you_text', $str, $order, $item_type );
+		return apply_filters( 'wpcd_global_thank_you_text', $str, $order, $item_type );
+	}
+
+	/**
+	 * Returns the thank you text to show.
+	 * It pulls the thank-you text from the individual products.
+	 *
+	 * @since 5.0.0
+	 *
+	 * @param string $str The current text of the thank you page.
+	 * @param array  $order The woocommerce order object array.
+	 * @param string $product_item_type The type of item that should be in the order.
+	 * @param string $settings_item_type A substring that helps construct the option value to pull certain things from settings.
+	 *
+	 * @return string
+	 */
+	protected function get_product_thank_you_text( $str, $order, $product_item_type, $settings_item_type ) {
+
+		$products = $this->get_unique_products_on_order( $order );
+
+		foreach ( $products as $product_id ) {
+			// Get text from product.
+			$addl_text_to_show = get_post_meta( $product_id, "wpcd_app_{$product_item_type}_product_thankyou_notice", true );
+
+			if ( ! empty( $addl_text_to_show ) ) {
+
+				// Maybe add a link to the vpn account page as well....
+				// Only if the token ##VPNACCOUNTPAGE## exists in the $addl_text to show option/variable.
+				$acct_option = boolval( wpcd_get_option( "{$settings_item_type}_general_wc_show_acct_link_ty_page" ) );
+				$acct_url    = wpcd_get_option( "{$settings_item_type}_general_wc_ty_acct_link_url" );
+				$acct_text   = wpcd_get_option( "{$settings_item_type}_general_wc_ty_acct_link_text" );
+
+				if ( ! empty( $acct_text ) && ! empty( $acct_url ) && true == $acct_option ) {
+					$type              = str_replace( '_', '', strtoupper( $settings_item_type ) );
+					$accnt_link        = '<div class="wpcd-vpn-wc-thank-you-acct-page-link-wrap">' . '<a href=' . '"' . $acct_url . '"' . '>' . $acct_text . '</a>' . '</div>';
+					$addl_text_to_show = str_replace( "##{$type}ACCOUNTPAGE##", $accnt_link, $addl_text_to_show );
+				}
+
+				// Now create the entire text string to be returned to the action hook.
+				if ( ! empty( $addl_text_to_show ) ) {
+					$str = apply_filters( 'wpcd_product_thank_you_text', $addl_text_to_show, $str, $order, $product_id, $product_item_type, $settings_item_type ) . $str;
+				}
+			}
+		}
+
+		// Allow apps to hook in and modify the string further.
+		return apply_filters( 'wpcd_all_product_thank_you_text', $str, $order, $product_item_type, $settings_item_type );
 	}
 
 	/**
@@ -295,7 +392,7 @@ class WPCD_WOOCOMMERCE {
 				break;
 		}
 
-		echo $value;
+		echo wp_kses_post( $value );
 
 	}
 }

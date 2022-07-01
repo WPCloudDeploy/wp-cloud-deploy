@@ -74,11 +74,14 @@ class WPCD_WORDPRESS_TABS_SERVER_GOACCESS extends WPCD_WORDPRESS_TABS {
 	 * @return array    $tabs The default value.
 	 */
 	public function get_tab( $tabs, $id ) {
-		if ( $this->get_tab_security( $id ) ) {
-			$tabs['goaccess'] = array(
-				'label' => __( 'Goaccess', 'wpcd' ),
-				'icon'  => 'fad fa-user-chart',
-			);
+		// GoAccess is only valid for NGINX servers for now.
+		if ( 'nginx' === $this->get_web_server_type( $id ) ) {
+			if ( $this->get_tab_security( $id ) ) {
+				$tabs['goaccess'] = array(
+					'label' => __( 'Goaccess', 'wpcd' ),
+					'icon'  => 'fad fa-user-chart',
+				);
+			}
 		}
 		return $tabs;
 	}

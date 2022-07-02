@@ -1744,7 +1744,7 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 				'labels'              => array(
 					'name'                  => _x( 'Cloud Servers', 'Post type general name', 'wpcd' ),
 					'singular_name'         => _x( 'Cloud Server', 'Post type singular name', 'wpcd' ),
-					'menu_name'             => defined( 'WPCD_MENU_NAME' ) ? WPCD_MENU_NAME : _x( 'WPCloud Deploy', 'Admin Menu text', 'wpcd' ),
+					'menu_name'             => defined( 'WPCD_MENU_NAME' ) ? WPCD_MENU_NAME : _x( 'WPCloudDeploy', 'Admin Menu text', 'wpcd' ),
 					'name_admin_bar'        => _x( 'Cloud Server', 'Add New on Toolbar', 'wpcd' ),
 					'add_new'               => __( 'New Server Record', 'wpcd' ),
 					'add_new_item'          => __( 'New Server Record', 'wpcd' ),

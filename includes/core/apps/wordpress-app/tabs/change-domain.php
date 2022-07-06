@@ -81,6 +81,11 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 					);
 					wp_update_post( $post_data );
 
+					// Maybe update the SSL meta.
+					if ( strpos( $logs, 'All challenges have failed' ) !== false ) {
+						$this->set_ssl_status( $id, 'off' );
+					}
+
 					// Wrapup - let things hook in here - primarily the multisite and WC add-ons.
 					do_action( "wpcd_{$this->get_app_name()}_site_change_domain_completed", $id, $old_domain, $new_domain, $name );
 

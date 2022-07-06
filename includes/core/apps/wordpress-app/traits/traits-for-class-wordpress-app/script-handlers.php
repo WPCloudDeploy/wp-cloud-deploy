@@ -32,6 +32,8 @@ trait wpcd_wpapp_script_handlers {
 				$return =
 				( strpos( $result, 'SSL has been ' ) !== false )
 				||
+				( strpos( $result, 'SSL Already Enabled' ) !== false )
+				||
 				( strpos( $result, 'SSL is already disabled for' ) !== false )
 				||
 				( strpos( $result, 'http2 is already enabled for domain' ) !== false )

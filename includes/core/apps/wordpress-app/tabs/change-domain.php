@@ -587,9 +587,12 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 			return array_merge( $fields, $this->get_disabled_header_field( 'change-domain' ) );
 		}
 
-		// Get HTTP2 status since we cannot change domain with HTTP2 turned on.
+		// What type of web server are we running?
+		$webserver_type = $this->get_web_server_type( $id );
+
+		// Get HTTP2 status since we cannot change domain with HTTP2 turned on for NGINX.
 		$http2_status = $this->http2_status( $id );
-		if ( 'on' === $http2_status ) {
+		if ( 'on' === $http2_status && 'nginx' === $webserver_type ) {
 			$desc = __( 'You cannot change your site domain at this time because HTTP2 is enabled. Please disable it before attempting this operation.', 'wpcd' );
 
 			$fields[] = array(

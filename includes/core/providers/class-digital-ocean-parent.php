@@ -341,6 +341,33 @@ runcmd:
 			)
 		);
 
+		/* Check for errors after execution and retry once more after sleeping if certain types of errors */
+		if ( is_wp_error( $response ) || ( ! in_array( intval( $response['response']['code'] ), array( 200, 201, 202, 204, 302, 301 ) ) ) ) {
+
+			if ( in_array( $method, array( 'details', 'status', 'test_connection' ), true ) ) {
+				// phpcs:ignore
+				do_action( 'wpcd_log_error', "$method with " . print_r( $attributes, true ) . ' gives error response - trying again. Response is = ' . print_r( $response, true ), 'error', __FILE__, __LINE__ ); //PHPcs warning normally issued because of print_r
+
+				// Wait 6 seconds.
+				sleep( 6 );
+
+				// Retry.
+				$response = wp_remote_request(
+					self::_URL . $endpoint,
+					array(
+						'method'  => $action,
+						'headers' => array(
+							'Content-Type'  => 'application/json',
+							'Authorization' => 'Bearer ' . $this->api_key,
+						),
+						'body'    => $body,
+					)
+				);
+
+			}
+		}
+		/* End retry if necessary. */
+
 		// phpcs:ignore
 		do_action( 'wpcd_log_error', "$method with " . print_r( $attributes, true ) . " with $body", 'debug', __FILE__, __LINE__ ); //PHPcs warning normally issued because of print_r
 
@@ -510,12 +537,16 @@ runcmd:
 	 */
 	public function get_ipv4_from_body( $body ) {
 
-		if ( 'public' == $return['ip'] = $body->droplet->networks->v4[0]->type ) {
-			return $body->droplet->networks->v4[0]->ip_address;
+		if ( ! empty( $body->droplet->networks->v4[0] ) ) {
+			if ( 'public' == $return['ip'] = $body->droplet->networks->v4[0]->type ) {
+				return $body->droplet->networks->v4[0]->ip_address;
+			}
 		}
 
-		if ( 'public' == $return['ip'] = $body->droplet->networks->v4[1]->type ) {
-			return $body->droplet->networks->v4[1]->ip_address;
+		if ( ! empty( $body->droplet->networks->v4[1] ) ) {
+			if ( 'public' == $return['ip'] = $body->droplet->networks->v4[1]->type ) {
+				return $body->droplet->networks->v4[1]->ip_address;
+			}
 		}
 
 		return 'error-no-ip-found';

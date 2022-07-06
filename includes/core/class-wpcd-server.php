@@ -228,10 +228,14 @@ class WPCD_Server extends WPCD_Base {
 	 * @return mixed
 	 */
 	public function delete_server( $attributes ) {
+		$instance = null;
 		$action   = 'delete';
-		$instance = WPCD()->get_provider_api( $attributes['provider'] )->call( $action, $attributes );
+		$provider_api = WPCD()->get_provider_api( $attributes['provider'] );
+		if ( ! empty( $provider_api ) ) {
+			$instance = $provider_api->call( $action, $attributes );
+		}
 		// if the instance is missing from the provider or if the destroy method succeeds.
-		if ( is_wp_error( $instance ) || 'done' === $instance['status'] ) {
+		if ( empty( $instance) || is_wp_error( $instance ) || 'done' === $instance['status'] ) {
 			wp_trash_post( $attributes['post_id'] );
 			wpcd_delete_child_posts( 'wpcd_app', $attributes['post_id'] ); // delete all app child posts associated with the server...
 			$this->add_action_to_history( $action, $attributes );

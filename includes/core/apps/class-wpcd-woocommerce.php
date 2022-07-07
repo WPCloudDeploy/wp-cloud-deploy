@@ -22,6 +22,9 @@ class WPCD_WOOCOMMERCE {
 		// Action hook to add the WooCommerce Order ID and Subscription ID into the Reference Column of the Pending Tasks table.
 		add_action( 'manage_wpcd_pending_log_posts_custom_column', array( $this, 'pending_tasks_log_table_content' ), 10, 2 );
 
+		// Filter hook to potentially inject some css classes into the rows of the public/front-end views.
+		add_filter( 'wpcd_public_table_single_row', array( $this, 'wpcd_public_table_single_row' ), 10, 2 );
+
 	}
 
 	/**
@@ -393,6 +396,44 @@ class WPCD_WOOCOMMERCE {
 		}
 
 		echo wp_kses_post( $value );
+
+	}
+
+	/**
+	 * Inject css classes into individual rows on the front-end.
+	 *
+	 * @since 5.0
+	 *
+	 * @param array   $css_classes Array of existing classes.
+	 * @param WP_POST $item Post object representing the post being handled.
+	 *
+	 * @return array.
+	 */
+	public function wpcd_public_table_single_row( $css_classes, $item ) {
+
+		$post_id = $item->ID;
+
+		if ( 'wpcd_app' === $item->post_type ) {
+			// Check to see if we have a wc product id on the app post.
+			if ( ! empty( $post_id ) ) {
+				$product_id = get_post_meta( $post_id, 'wpapp_wc_product_id', true );
+				if ( ! empty( $product_id ) ) {
+					$css_classes[] = 'wpcd_wc_product_id_' . (string) $product_id;
+				}
+			}
+		}
+
+		if ( 'wpcd_app_server' === $item->post_type ) {
+			// Check to see if we have a wc product id on the server post.
+			if ( ! empty( $post_id ) ) {
+				$product_id = get_post_meta( $post_id, 'wpcd_server_wc_product_id', true );
+				if ( ! empty( $product_id ) ) {
+					$css_classes[] = 'wpcd_wc_product_id_' . (string) $product_id;
+				}
+			}
+		}
+
+		return $css_classes;
 
 	}
 }

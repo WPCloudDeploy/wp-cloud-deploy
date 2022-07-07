@@ -418,7 +418,14 @@ class WPCD_WOOCOMMERCE {
 			if ( ! empty( $post_id ) ) {
 				$product_id = get_post_meta( $post_id, 'wpapp_wc_product_id', true );
 				if ( ! empty( $product_id ) ) {
+					/* Add the product ID to the classes. */
 					$css_classes[] = 'wpcd_wc_product_id_' . (string) $product_id;
+
+					/* Add categories to the classes. */
+					$product_categories = $this->get_wc_product_categories();
+					foreach ( $product_categories as $key => $category ) {
+						$css_classes[] = 'wpcd_wc_product_cat_' . (string) $category->name;
+					}
 				}
 			}
 		}
@@ -428,12 +435,43 @@ class WPCD_WOOCOMMERCE {
 			if ( ! empty( $post_id ) ) {
 				$product_id = get_post_meta( $post_id, 'wpcd_server_wc_product_id', true );
 				if ( ! empty( $product_id ) ) {
+					/* Add the product ID to the classes. */
 					$css_classes[] = 'wpcd_wc_product_id_' . (string) $product_id;
+
+					/* Add categories to the classes. */
+					$product_categories = $this->get_wc_product_categories();
+					foreach ( $product_categories as $key => $category ) {
+						$css_classes[] = 'wpcd_wc_product_cat_' . (string) $category->name;
+					}
 				}
 			}
 		}
 
 		return $css_classes;
 
+	}
+
+	/**
+	 * Get a list of product categories for woocommerce products.
+	 *
+	 * Only returns the top level categories, not the child categories.
+	 *
+	 * @since 5.0.
+	 *
+	 * @return array
+	 */
+	public function get_wc_product_categories() {
+		$orderby    = 'name';
+		$order      = 'asc';
+		$hide_empty = false;
+		$cat_args   = array(
+			'orderby'    => $orderby,
+			'order'      => $order,
+			'hide_empty' => $hide_empty,
+		);
+
+		$product_categories = get_terms( 'product_cat', $cat_args );
+
+		return $product_categories;
 	}
 }

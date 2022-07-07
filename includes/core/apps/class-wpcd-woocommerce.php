@@ -147,7 +147,7 @@ class WPCD_WOOCOMMERCE {
 	 *
 	 * @return bool
 	 */
-	protected function is_product_type( $product_id, $item_type ) {
+	public function is_product_type( $product_id, $item_type ) {
 
 		$is_type = get_post_meta( $product_id, "wpcd_app_{$item_type}_product", true );
 

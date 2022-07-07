@@ -422,9 +422,9 @@ class WPCD_WOOCOMMERCE {
 					$css_classes[] = 'wpcd_wc_product_id_' . (string) $product_id;
 
 					/* Add categories to the classes. */
-					$product_categories = $this->get_wc_product_categories();
+					$product_categories = $this->get_wc_product_categories( $product_id );
 					foreach ( $product_categories as $key => $category ) {
-						$css_classes[] = 'wpcd_wc_product_cat_' . (string) $category->name;
+						$css_classes[] = 'wpcd_wc_product_cat_' . (string) $category->slug;
 					}
 				}
 			}
@@ -439,9 +439,9 @@ class WPCD_WOOCOMMERCE {
 					$css_classes[] = 'wpcd_wc_product_id_' . (string) $product_id;
 
 					/* Add categories to the classes. */
-					$product_categories = $this->get_wc_product_categories();
+					$product_categories = $this->get_wc_product_categories( $product_id );
 					foreach ( $product_categories as $key => $category ) {
-						$css_classes[] = 'wpcd_wc_product_cat_' . (string) $category->name;
+						$css_classes[] = 'wpcd_wc_product_cat_' . (string) $category->slug;
 					}
 				}
 			}
@@ -460,7 +460,7 @@ class WPCD_WOOCOMMERCE {
 	 *
 	 * @return array
 	 */
-	public function get_wc_product_categories() {
+	public function get_all_wc_product_categories() {
 		$orderby    = 'name';
 		$order      = 'asc';
 		$hide_empty = false;
@@ -473,5 +473,22 @@ class WPCD_WOOCOMMERCE {
 		$product_categories = get_terms( 'product_cat', $cat_args );
 
 		return $product_categories;
+	}
+
+	/**
+	 * Get a list of product categories for a single woocommerce product.
+	 *
+	 * Only returns the top level categories, not the child categories.
+	 *
+	 * @since 5.0.
+	 * 
+	 * @param int $product_id Product id for the wc product we need to get.
+	 *
+	 * @return array
+	 */
+	public function get_wc_product_categories( $product_id ) {
+
+		return get_the_terms( $product_id, 'product_cat' );
+
 	}
 }

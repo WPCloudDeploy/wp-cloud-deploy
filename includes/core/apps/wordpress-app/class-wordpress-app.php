@@ -859,6 +859,21 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	}
 
 	/**
+	 * Get a formatted public admin link (front end admin link.)
+	 *
+	 * @param string $app_id is the post id of the app record we're asking about.
+	 * @param string $label The label for the link.
+	 *
+	 * @return string
+	 */
+	public function get_formatted_public_admin_link( $app_id, $label ) {
+
+		$link = get_permalink( $app_id );
+		return sprintf( '<a href = "%s" target="_blank">' . $label . '</a>', $link );
+
+	}
+
+	/**
 	 * Returns a boolean true/false if PHP 80 is supposed to be installed.
 	 *
 	 * @param int $server_id ID of server being interrogated...
@@ -1566,11 +1581,12 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	/**
 	 * Get a formatted link to the front-end of the site
 	 *
-	 * @param int $app_id is the post id of the app record we're asking about.
+	 * @param int    $app_id is the post id of the app record we're asking about.
+	 * @param string $label Label for link (optional).
 	 *
 	 * @return string
 	 */
-	public function get_formatted_site_link( $app_id ) {
+	public function get_formatted_site_link( $app_id, $label = '' ) {
 
 		// get ssl status first.
 		$ssl = $this->get_site_local_ssl_status( $app_id );
@@ -1578,13 +1594,18 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		// get domain name.
 		$domain = $this->get_domain_name( $app_id );
 
+		// Label.
+		if ( empty( $label ) ) {
+			$label = __( 'View site', 'wpcd' );
+		}
+
 		if ( true == $ssl ) {
 			$url_site = 'https://' . $domain;
 		} else {
 			$url_site = 'http://' . $domain;
 		}
 
-		return sprintf( '<a href = "%s" target="_blank">' . __( 'View site', 'wpcd' ) . '</a>', $url_site );
+		return sprintf( '<a href = "%s" target="_blank">' . $label . '</a>', $url_site );
 
 	}
 
@@ -3063,12 +3084,12 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				'wpcd-admin-common',
 				'readableCheck',
 				array(
-					'nonce'              		=> wp_create_nonce( 'wpcd-admin' ),
-					'action'             		=> 'set_readable_check',
-					'check_again_action' 		=> 'readable_check_again',
-					'cron_check_action'  		=> 'set_cron_check',
-					'php_version_check_action'  => 'php_version_check',
-					'localhost_check_action'  	=> 'localhost_version_check',
+					'nonce'                    => wp_create_nonce( 'wpcd-admin' ),
+					'action'                   => 'set_readable_check',
+					'check_again_action'       => 'readable_check_again',
+					'cron_check_action'        => 'set_cron_check',
+					'php_version_check_action' => 'php_version_check',
+					'localhost_check_action'   => 'localhost_version_check',
 				)
 			);
 		}

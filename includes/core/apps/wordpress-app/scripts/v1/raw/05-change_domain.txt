@@ -260,8 +260,15 @@ su - $new_user_name -c "wp --skip-plugins config shuffle-salts"
 su - $new_user_name -c 'wp --skip-plugins config set WP_CACHE_KEY_SALT "$(wp --skip-plugins config get AUTH_KEY)"'
 su - $new_user_name -c "wp --skip-plugins config shuffle-salts"
 
-echo "restarting web server..."
-gf_restart_webserver
+# echo "restarting web server..."
+# We should NOT restart the webserver here.  It will fail because we have changed some critical paths in the 
+# rename_nginx_site_confs function at the top of this file (around line 46 or so).
+# If you really really want to do this, then see the following commit in the bitbucket repo:
+# 049504a0ef8dda00fbebd07e89f453289b230d88.
+# That commmit resets some paths before ssl and updates them after ssl to ensure the web server restarts properly.
+# Right now it's not necessary to go through those gyrations because it seems that everything works properly.
+# without restarting here.
+# gf_restart_webserver
 
 if [ "$g_webserver_type" = "nginx" ]
 then

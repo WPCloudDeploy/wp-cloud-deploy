@@ -458,7 +458,6 @@ function netdata_ssl_disable
 			sed -i '/server {/a listen 80;\nlisten [::]:80;' /etc/nginx/sites-enabled/netdata.conf
 			sed -i '/managed by Certbot/d' /etc/nginx/sites-enabled/netdata.conf
 
-			systemctl restart nginxsystemctl restart nginx > /dev/null
 			echo "SSL has been disabled for netdata";
 		else
 			echo "SSL was not enabled for netdata so nothing to disable";
@@ -472,12 +471,10 @@ function netdata_ssl_disable
 		# RewriteRule .* https://%{SERVER_NAME}%{REQUEST_URI} [R=301,L] # Enable HTTPS
 		sed -i "${VHDIR}/netdata/$g_vhost_conf" -re '/# Enable HTTPS/d'
 		gf_disable_certbot_ols_site "$domain"
-		
 	elif [ "$g_webserver_type" = "ols-enterprise" ] ; then
 		echo 'Not implemented for ols-enterprise'
 	fi
-	
-	
+	gf_restart_webserver
 }
 
 ###################################### Netdata Add Basic Auth##########
@@ -497,22 +494,21 @@ function netdata_auth_add
 			echo "Basic Auth already enabled"
 		else
 			sed -i 's/#auth/auth/g' /etc/nginx/sites-enabled/netdata.conf
-			systemctl restart nginx > /dev/null
 			echo "Basic Auth has been enabled"
 		fi
 	elif [ "$g_webserver_type" = "ols" ] ; then
 		grep -wq '### Enabling Password Protection config' ${VHDIR}/netdata/$g_vhost_conf
 		if [ $? -eq 0 ]
 		then
-			echo "Basic Auth already enable"
+			echo "Basic Auth already enabled"
 		else
 			sed -i -e "/### Insert context configs below this line/a\\
 			${preprocessed_VAR%?}"  ${VHDIR}/netdata/$g_vhost_conf
-			systemctl restart lsws > /dev/null
 		fi
 	elif [ "$g_webserver_type" = "ols-enterprise" ] ; then
 		echo 'Not implemented for ols-enterprise'
 	fi
+	gf_restart_webserver
 }
 
 ###################################### Netdata Remove Basic Auth##########
@@ -532,7 +528,6 @@ function netdata_auth_remove
 			echo "Basic Auth already disabled"
 		else
 			sed -i 's/auth/#auth/g' /etc/nginx/sites-enabled/netdata.conf
-			systemctl restart nginx > /dev/null
 			echo "Basic Auth has been disabled"
 		fi
 	elif [ "$g_webserver_type" = "ols" ] ; then
@@ -544,12 +539,11 @@ function netdata_auth_remove
 			# Remove block from vhost config
 			sed -i -re '/### Enabling Password Protection config start/{:a;N;/### Enabling Password Protection config end/!ba};/note             Password Protect document root for domain/d' ${VHDIR}/netdata/$g_vhost_conf
 			chown -R lsadm:lsadm ${VHDIR}/netdata/
-			systemctl restart lsws > /dev/null
 		fi
 	elif [ "$g_webserver_type" = "ols-enterprise" ] ; then
 		echo 'Not implemented for ols-enterprise'
 	fi
-	
+	gf_restart_webserver
 	
 }
 

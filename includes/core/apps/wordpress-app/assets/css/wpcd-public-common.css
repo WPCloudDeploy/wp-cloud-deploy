@@ -742,7 +742,9 @@
 
 /* Style the ADMIN LOGIN and VIEW SITE links in the app list. */
 .wpcd-grid-table .wpcd-app-col-element-label-wp_admin_link a,
-.wpcd-grid-table .wpcd-app-col-element-value-homepage_link a{
+.wpcd-grid-table .wpcd-app-col-element-label-public_admin_link a,
+.wpcd-grid-table .wpcd-app-col-element-value-homepage_link a {
+	/* Note: The public_admin_link element is not part of core wpcd but is there for add-ons or custom code that might need it later. */
 	display: inline-block;
 	color: white;
 	background-color: var(--wpcd-front-end-primary-brand-color);
@@ -753,6 +755,7 @@
 	border-radius: 3px;
 }
 .wpcd-grid-table .wpcd-app-col-element-label-wp_admin_link a:hover,
+.wpcd-grid-table .wpcd-app-col-element-label-public_admin_link a:hover,
 .wpcd-grid-table .wpcd-app-col-element-value-homepage_link a:hover {
 	background-color: var(--wpcd-front-end-accent-background-color);	
 	border-color: var(--wpcd-front-end-accent-background-color);

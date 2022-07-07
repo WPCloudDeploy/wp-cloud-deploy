@@ -639,7 +639,8 @@ class WPCD_Public_List_Table extends WP_List_Table {
 
 		foreach ( $columns as $column_name => $column_display_name ) {
 
-			echo '<div class="wpcd-grid-table-cell">';
+			$wrapper_classes = 'wpcd-grid-table-cell ' . 'wpcd-grid-cell-col-wrap-' . $column_name;
+			echo '<div class="' . $wrapper_classes . '">';
 			$classes = "$column_name column-$column_name";
 			if ( $primary === $column_name ) {
 				$classes .= ' has-row-actions column-primary';

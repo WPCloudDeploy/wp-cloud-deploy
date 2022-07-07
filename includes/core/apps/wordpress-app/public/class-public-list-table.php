@@ -613,7 +613,10 @@ class WPCD_Public_List_Table extends WP_List_Table {
 	 * @param object|array $item The current item
 	 */
 	public function single_row( $item ) {
-		echo '<div class="wpcd-grid-table-row">';
+		$css_classes = array( 'wpcd-grid-table-row' );
+		$css_classes = apply_filters( 'wpcd_public_table_single_row', $css_classes, $item );
+		$classes = implode( ' ', $css_classes );
+		echo '<div class="' . $classes . '">';
 		$this->single_row_columns( $item );
 		echo '</div>';
 	}

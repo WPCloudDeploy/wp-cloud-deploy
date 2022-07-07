@@ -186,6 +186,9 @@ function wpcd_get_long_running_command_timeout() {
 	if ( empty( $timeout ) ) {
 		$timeout = 25;  // default timeout is 25 minutes.
 	}
+	if ( (int) $timeout < 25 ) {
+		$timeout = 25;
+	}
 	return $timeout;
 }
 

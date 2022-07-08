@@ -424,7 +424,8 @@ class WPCD_WOOCOMMERCE {
 					/* Add categories to the classes. */
 					$product_categories = $this->get_wc_product_categories( $product_id );
 					foreach ( $product_categories as $key => $category ) {
-						$css_classes[] = 'wpcd_wc_product_cat_' . (string) $category->slug;
+						$css_classes[] = 'wpcd_wc_product_cat_slug_' . (string) $category->slug;
+						$css_classes[] = 'wpcd_wc_product_cat_id_' . (string) $category->term_id;
 					}
 				}
 			}
@@ -441,7 +442,8 @@ class WPCD_WOOCOMMERCE {
 					/* Add categories to the classes. */
 					$product_categories = $this->get_wc_product_categories( $product_id );
 					foreach ( $product_categories as $key => $category ) {
-						$css_classes[] = 'wpcd_wc_product_cat_' . (string) $category->slug;
+						$css_classes[] = 'wpcd_wc_product_cat_slug_' . (string) $category->slug;
+						$css_classes[] = 'wpcd_wc_product_cat_id_' . (string) $category->term_id;
 					}
 				}
 			}

@@ -322,7 +322,7 @@ trait wpcd_wpapp_metaboxes_app {
 					'id'         => 'wpcd_app_current_disk_used',
 					'type'       => 'slider',
 					'std'        => $current_disk_usage,
-					'desc'       => $current_disk_usage > $allowed_disk ? __( 'This site has exceeded its assigned disk quota.', 'wpcd' ) : '',
+					'desc'       => ( $current_disk_usage > $allowed_disk && $allowed_disk > 0 ) ? __( 'This site has exceeded its assigned disk quota.', 'wpcd' ) : '',
 					'js_options' => array(
 						'min'      => 0,
 						'max'      => $allowed_disk,

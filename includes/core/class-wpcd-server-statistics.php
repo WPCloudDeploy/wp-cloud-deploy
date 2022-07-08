@@ -49,6 +49,10 @@ class WPCD_SERVER_STATISTICS {
 
 		$disk_statistics = wp_strip_all_tags( $disk_statistics );
 
+		if ( empty( $disk_statistics ) ) {
+			return array();
+		}
+
 		$disk_statistics_parts = array_filter( preg_split( '/\r\n|\r|\n/', $disk_statistics ) );
 
 		$label_for_datasets = $disk_statistics_parts[0];
@@ -135,6 +139,10 @@ class WPCD_SERVER_STATISTICS {
 
 		$vnstat_data = wp_strip_all_tags( $vnstat_data );
 
+		if ( empty( $vnstat_data ) ) {
+			return array();
+		}
+
 		$vnstat_data = explode( ';', $vnstat_data );
 
 		$curr_day_vnstat_data   = array();
@@ -210,6 +218,11 @@ class WPCD_SERVER_STATISTICS {
 
 		// Remove tags from the string.
 		$vmstat_data = wp_strip_all_tags( $vmstat_data );
+
+		// If no data just return.
+		if ( empty( $vmstat_data ) ) {
+			return array();
+		}
 
 		// Explode string by new line character.
 		$vmstat_data_parts = array_filter( preg_split( '/\r\n|\r|\n/', $vmstat_data ) );

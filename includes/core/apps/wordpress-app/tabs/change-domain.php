@@ -861,6 +861,7 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 
 		$fields[] = array(
 			'name' => __( 'Change Domain Documentation', 'wpcd' ),
+			'id'   => 'wpcd_change_domain_documentation',
 			'tab'  => 'change-domain',
 			'type' => 'heading',
 			'desc' => $desc,

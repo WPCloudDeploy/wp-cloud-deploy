@@ -28,7 +28,7 @@ class WPCD_WORDPRESS_TABS extends WPCD_WORDPRESS_APP {
 	 * This function isn't used for all tabs, just for ones that are less complex.
 	 * Tabs such as the sFTP and Backup & Restore uses their own function.
 	 *
-	 * This uses a function called get_actions that is expected to be defined by the descendent class.
+	 * This uses a function called get_actions that is expected to be defined by the descendant class.
 	 * That function should return an array in a specific format - something like this:
 				['basic-auth-status'] = array(
 					'label' => __( 'Basic Authentication', 'wpcd' ),
@@ -57,7 +57,7 @@ class WPCD_WORDPRESS_TABS extends WPCD_WORDPRESS_APP {
 			return $fields;
 		}
 
-		$actions = $this->get_actions( $id );  // get_actions needs to be defined by the descendent class if this get_fields function ever gets called!
+		$actions = $this->get_actions( $id );  // get_actions needs to be defined by the descendant class if this get_fields function ever gets called!
 		foreach ( $actions as $slug => $attributes ) {
 			$raw_attributes = isset( $attributes['raw_attributes'] ) ? $attributes['raw_attributes'] : array();
 			$fields[]       = array_merge(

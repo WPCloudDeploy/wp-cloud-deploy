@@ -76,6 +76,25 @@ trait wpcd_wpapp_metaboxes_app {
 			}
 		}
 
+		/* Make sure each field has a css class name */
+		foreach ( $fields as $key => $field ) {
+			if ( ! empty( $field['class'] ) ) {
+				// There's a class already defined so just add another one.
+				if ( ! empty( $field['id'] ) ) {
+					$fields[$key]['class'] .= ' ' . $field['id'] . '_wrap';
+				} else {
+					// make up something here since we don't have a field id.
+				}
+			} else {
+				// There's no class defined so just create one.
+				if ( ! empty( $field['id'] ) ) {
+					$fields[$key]['class'] = ' ' . $field['id'] . '_wrap';
+				} else {
+					// make up something here since we don't have a field id.
+				}
+			}
+		}
+
 		/* Setup some variables used for printing output */
 		$server_post_id = get_post_meta( $id, 'parent_post_id', true );
 		$user_id        = get_current_user_id();

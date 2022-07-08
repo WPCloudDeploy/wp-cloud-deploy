@@ -45,7 +45,7 @@ class Servers_List_Table extends WPCD_Public_List_Table {
 	 * Print no item message
 	 */
 	public function no_items() {
-		_e( 'No server found.' );
+		_e( 'We searched high and low but unfortunately we could not find any servers.', 'wpcd' );
 	}
 
 	/**

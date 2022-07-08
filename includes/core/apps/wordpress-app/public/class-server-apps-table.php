@@ -45,7 +45,7 @@ class WPCD_Server_Apps_List_Table extends WPCD_Public_List_Table {
 	 * Print no item message
 	 */
 	public function no_items() {
-		_e( 'No app found.' );
+		_e( 'We searched high and low but unfortunately we could not find any apps.', 'wpcd' );
 	}
 
 	/**

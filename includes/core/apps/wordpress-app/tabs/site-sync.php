@@ -123,7 +123,7 @@ class WPCD_WORDPRESS_TABS_SITE_SYNC extends WPCD_WORDPRESS_TABS {
 							foreach ( $apps as $app ) {
 								$app_id = $app->ID;
 								// Remove an action hook that will prevent wp_delete_post from returning because of a permission check.
-								// We need to do this because the AJAX user has an ID of zero and so has no permssions!.
+								// We need to do this because the AJAX user has an ID of zero and so has no permissions!.
 								// This will cause the before_delete_action hook to kill WP with the DIE statement.
 								// By now AJAX permissions have passed so can bypass that security check.
 								remove_action( 'before_delete_post', array( WPCD_POSTS_APP(), 'wpcd_app_delete_post' ), 10 );
@@ -533,8 +533,13 @@ class WPCD_WORDPRESS_TABS_SITE_SYNC extends WPCD_WORDPRESS_TABS {
 		$result  = $this->execute_ssh( 'generic', $source_instance, array( 'commands' => $run_cmd ) );
 		$success = $this->is_ssh_successful( $result, 'site_sync_origin_setup.txt' );
 		if ( ! $success ) {
-			/* translators: %s is replaced with the result of the execute_ssh command. */
-			$msg = sprintf( __( 'Unable to configure the origin server. The origin server returned this in response to commands: %s', 'wpcd' ), $result );
+			if ( is_wp_error( $result) ) {
+				/* translators: %s is replaced with the result of the execute_ssh command. */
+				$msg = sprintf( __( 'Unable to configure the origin server. The origin server returned this in response to commands: %s', 'wpcd' ), $result->get_error_message() );
+			} else {
+				/* translators: %s is replaced with the result of the execute_ssh command. */
+				$msg = sprintf( __( 'Unable to configure the origin server. The origin server returned this in response to commands: %s', 'wpcd' ), $result );
+			}
 			do_action( 'wpcd_log_error', sprintf( '%s: %s', $msg, print_r( $args, true ) ), 'error', __FILE__, __LINE__, $source_instance, false );
 			do_action( "wpcd_{$this->get_app_name()}_site_sync_failed_early", $id, $action, $msg, $source_instance );
 			return new \WP_Error( $msg );

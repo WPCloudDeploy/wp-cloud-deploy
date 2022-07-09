@@ -727,7 +727,7 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 			'name'       => __( 'Change Meta', 'wpcd' ),
 			'tab'        => 'change-domain',
 			'type'       => 'button',
-			'std'        => __( 'Change Record Only', 'wpcd' ),
+			'std'        => __( 'Change Record', 'wpcd' ),
 			'tooltip'    => __( 'Update the record in this plugin only. You might need to do this if a prior operation only partially succeeded or you changed the domain using another plugin such as UpdraftPlus.', 'wpcd' ),
 			'attributes' => array(
 				// the _action that will be called in ajax.

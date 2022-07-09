@@ -282,7 +282,8 @@ class WPCD_WORDPRESS_TABS_SERVER_CALLBACKS extends WPCD_WORDPRESS_TABS {
 				'label'          => '',
 				'raw_attributes' => array(
 					'std'                 => __( 'Run Now', 'wpcd' ),
-					'desc'                => __( 'Execute this callback immediately.', 'wpcd' ), // make sure we give the user a confirmation prompt.
+					'desc'                => '', 
+					// make sure we give the user a confirmation prompt.
 					'confirmation_prompt' => __( 'Are you sure you would like to run these callbacks immediately?', 'wpcd' ),
 					'columns'             => 3,
 				),
@@ -294,7 +295,8 @@ class WPCD_WORDPRESS_TABS_SERVER_CALLBACKS extends WPCD_WORDPRESS_TABS {
 				'label'          => '',
 				'raw_attributes' => array(
 					'std'                 => __( 'Remove', 'wpcd' ),
-					'desc'                => __( 'Uninstall this callback agent from your server.', 'wpcd' ), // make sure we give the user a confirmation prompt.
+					'desc'                => '', 
+					// make sure we give the user a confirmation prompt.
 					'confirmation_prompt' => __( 'Are you sure you would like to remove this callback?', 'wpcd' ),
 					'columns'             => 3,
 				),
@@ -306,7 +308,8 @@ class WPCD_WORDPRESS_TABS_SERVER_CALLBACKS extends WPCD_WORDPRESS_TABS {
 				'label'          => '',
 				'raw_attributes' => array(
 					'std'                 => __( 'Clear History', 'wpcd' ),
-					'desc'                => __( 'Clear the history of data received.', 'wpcd' ), // make sure we give the user a confirmation prompt.
+					'desc'                => '', 
+					// make sure we give the user a confirmation prompt.
 					'confirmation_prompt' => __( 'Are you sure you would like to clear the history of this callback?', 'wpcd' ),
 					'columns'             => 3,
 				),

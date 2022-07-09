@@ -387,7 +387,7 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 				'tab'        => 'database',
 				'type'       => 'button',
 				'std'        => __( 'Install PHPMyAdmin', 'wpcd' ),
-				'desc'       => __( 'The tool for managing your database is not enabled. Click this button to enable it now.', 'wpcd' ),
+				'desc'       => '',
 				'attributes' => array(
 					// the _action that will be called in ajax.
 					'data-wpcd-action'              => 'install-phpmyadmin',

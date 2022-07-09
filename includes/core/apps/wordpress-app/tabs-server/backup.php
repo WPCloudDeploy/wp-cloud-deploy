@@ -362,7 +362,7 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 		/* Delete All Backups */
 		$fields[] = array(
 			'name' => __( 'Delete Backups', 'wpcd' ),
-			'desc' => __( 'Manually delete local backups. Before you can use these options you must have configured backups and run the backup process at least once.', 'wpcd' ),
+			'desc' => __( 'Manually delete LOCAL backups. Backups stored at AWS will not be deleted. Before you can use this option you must have configured backups and run the backup process at least once.', 'wpcd' ),
 			'tab'  => 'server_backup',
 			'type' => 'heading',
 		);
@@ -373,7 +373,7 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 			'tab'        => 'server_backup',
 			'type'       => 'button',
 			'std'        => __( 'Delete All Backups For All Sites', 'wpcd' ),
-			'desc'       => __( 'Only backups that are stored locally on this server will be deleted. Backups stored at AWS will not be deleted.', 'wpcd' ),
+			'desc'       => '',
 			// fields that contribute data for this action.
 			'attributes' => array(
 				// the _action that will be called in ajax.

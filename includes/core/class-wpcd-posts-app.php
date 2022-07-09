@@ -215,17 +215,17 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 				apply_filters(
 					'wpcd_app_script_args',
 					array(
-						'i10n'   => array(
-							'nonce'                     => wp_create_nonce( 'wpcd-server-app-owners-selection' ),
-							'action'                    => 'wpcd_load_server_app_owners_options',
-							'server_post_type'          => 'wpcd_app_server',
-							'server_field_key'          => 'wpcd_server_owner',
-							'server_first_option'       => __( 'All Server Owners', 'wpcd' ),
-							'app_post_type'             => 'wpcd_app',
-							'app_filter_key'            => 'wpcd_app_owner',
-							'app_first_option'          => __( 'All App Owners', 'wpcd' ),
-							'no_owners_found_msg'       => __( 'No owners found.', 'wpcd' ),
-							'search_owner_placeholder'  => __( 'Search owner here', 'wpcd' ),
+						'i10n' => array(
+							'nonce'                    => wp_create_nonce( 'wpcd-server-app-owners-selection' ),
+							'action'                   => 'wpcd_load_server_app_owners_options',
+							'server_post_type'         => 'wpcd_app_server',
+							'server_field_key'         => 'wpcd_server_owner',
+							'server_first_option'      => __( 'All Server Owners', 'wpcd' ),
+							'app_post_type'            => 'wpcd_app',
+							'app_filter_key'           => 'wpcd_app_owner',
+							'app_first_option'         => __( 'All App Owners', 'wpcd' ),
+							'no_owners_found_msg'      => __( 'No owners found.', 'wpcd' ),
+							'search_owner_placeholder' => __( 'Search owner here', 'wpcd' ),
 						),
 					),
 					'wpcd-app-admin-js'
@@ -308,14 +308,22 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 				}
 
 				// ipv4.
-				$value2  = $this->wpcd_column_wrap_string_with_span_and_class( __( 'ipv4: ', 'wpcd' ), 'ipv4', 'left' );
+				if ( is_admin() ) {
+					$value2 = $this->wpcd_column_wrap_string_with_span_and_class( __( 'ipv4: ', 'wpcd' ), 'ipv4', 'left' );
+				} else {
+					$value2 = $this->wpcd_column_wrap_string_with_span_and_class( __( 'IPv4: ', 'wpcd' ), 'ipv4', 'left' );
+				}
 				$value2 .= $this->wpcd_column_wrap_string_with_span_and_class( $this->get_server_meta_value( $post_id, 'wpcd_server_ipv4' ), 'ipv4', 'right' );
 				$value  .= $this->wpcd_column_wrap_string_with_div_and_class( $value2, 'ipv4' );
 
 				// ipv6.
 				if ( wpcd_get_early_option( 'wpcd_show_ipv6' ) ) {
-					$ipv6    = $this->get_server_meta_value( $post_id, 'wpcd_server_ipv6' );
-					$value2  = $this->wpcd_column_wrap_string_with_span_and_class( __( 'ipv6: ', 'wpcd' ), 'ipv6', 'left' );
+					$ipv6 = $this->get_server_meta_value( $post_id, 'wpcd_server_ipv6' );
+					if ( is_admin() ) {
+						$value2 = $this->wpcd_column_wrap_string_with_span_and_class( __( 'ipv6: ', 'wpcd' ), 'ipv6', 'left' );
+					} else {
+						$value2 = $this->wpcd_column_wrap_string_with_span_and_class( __( 'IPv6: ', 'wpcd' ), 'ipv6', 'left' );
+					}
 					$value2 .= $this->wpcd_column_wrap_string_with_span_and_class( $this->get_server_meta_value( $post_id, 'wpcd_server_ipv6' ), 'ipv6', 'right' );
 					$value  .= $this->wpcd_column_wrap_string_with_div_and_class( $value2, 'ipv6' );
 				}
@@ -2006,12 +2014,12 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 		// Permissions check by user to load sites which user has access to view.
 		$current_user_id = get_current_user_id();
 
-		$post_type          = filter_input( INPUT_POST, 'post_type', FILTER_SANITIZE_STRING );
-		$field_key          = filter_input( INPUT_POST, 'field_key', FILTER_SANITIZE_STRING );
-		$first_option       = filter_input( INPUT_POST, 'first_option', FILTER_SANITIZE_STRING );
-		$search_term        = filter_input( INPUT_POST, 'search_term', FILTER_SANITIZE_STRING );
-		$search_term        = trim( $search_term );
-		$owner_options_arr  = array( '0' => __( $first_option, 'wpcd' ) );
+		$post_type         = filter_input( INPUT_POST, 'post_type', FILTER_SANITIZE_STRING );
+		$field_key         = filter_input( INPUT_POST, 'field_key', FILTER_SANITIZE_STRING );
+		$first_option      = filter_input( INPUT_POST, 'first_option', FILTER_SANITIZE_STRING );
+		$search_term       = filter_input( INPUT_POST, 'search_term', FILTER_SANITIZE_STRING );
+		$search_term       = trim( $search_term );
+		$owner_options_arr = array( '0' => __( $first_option, 'wpcd' ) );
 
 		if ( ! empty( $search_term ) ) {
 			global $wpdb;

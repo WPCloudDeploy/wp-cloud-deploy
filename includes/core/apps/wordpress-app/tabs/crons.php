@@ -182,7 +182,7 @@ class WPCD_WORDPRESS_TABS_CRONS extends WPCD_WORDPRESS_TABS {
 		/* Get the cron interval that is currently set */
 		$current_cron_interval = get_post_meta( $id, 'wpapp_wp_linux_cron_interval', true );
 		if ( empty( $current_cron_interval ) ) {
-			$current_cron_interval = '1m';
+			$current_cron_interval = '15m';
 		}
 
 		$actions['wp-linux-cron-header'] = array(

@@ -712,6 +712,10 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 		}
 		if ( ! $show_it ) {
 			unset( $defaults['title'] );
+		} else {
+			if ( ! is_admin() ) {
+				$defaults['title'] = __( 'Server Name', 'wpcd' );
+			}
 		}
 
 		// Description.

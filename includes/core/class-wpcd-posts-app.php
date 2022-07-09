@@ -496,6 +496,11 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 		}
 		if ( ! $show_it ) {
 			unset( $defaults['title'] );
+		} else {
+			if ( ! is_admin() ) {
+				// Change the column title for the front-end.
+				$defaults['title'] = __( 'Site', 'wpcd') ;
+			}
 		}
 
 		// App Type.

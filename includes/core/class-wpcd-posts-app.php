@@ -275,13 +275,21 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 					// Show the server title - with a link if the user is able to edit it otherwise without the link.
 					$user_id = get_current_user_id();
 					if ( wpcd_user_can( $user_id, 'view_server', $server_post_id ) || get_post( $server_post_id )->post_author === $user_id ) {
-						$value = sprintf( '<a href="%s">' . $server_title . '</a>', ( is_admin() ? get_edit_post_link( $server_post_id ) : get_permalink( $server_post_id ) ) );
+						$display_name = sprintf( '<a href="%s">' . $server_title . '</a>', ( is_admin() ? get_edit_post_link( $server_post_id ) : get_permalink( $server_post_id ) ) );
 					} else {
-						$value = $server_title;
+						$display_name = $server_title;
 					}
 
-					$value = $this->wpcd_column_wrap_string_with_span_and_class( $value, 'server_title', 'left' );
-					$value = $this->wpcd_column_wrap_string_with_div_and_class( $value, 'server_title' );
+					if ( is_admin() ) {
+						// Only need name in wp-admin area.
+						$value = $this->wpcd_column_wrap_string_with_span_and_class( $display_name, 'server_title', 'left' );
+						$value = $this->wpcd_column_wrap_string_with_div_and_class( $value, 'server_title' );
+					} else {
+						// Frontend need label and name.
+						$value2  = $this->wpcd_column_wrap_string_with_span_and_class( __( 'Name: ', 'wpcd' ), 'server_name', 'left' );
+						$value2 .= $this->wpcd_column_wrap_string_with_span_and_class( $display_name, 'server_name', 'right' );
+						$value  .= $this->wpcd_column_wrap_string_with_div_and_class( $value2, 'server_name' );	
+					}
 				}
 
 				// Server post id.

@@ -288,7 +288,7 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 						// Frontend need label and name.
 						$value2  = $this->wpcd_column_wrap_string_with_span_and_class( __( 'Name: ', 'wpcd' ), 'server_name', 'left' );
 						$value2 .= $this->wpcd_column_wrap_string_with_span_and_class( $display_name, 'server_name', 'right' );
-						$value  .= $this->wpcd_column_wrap_string_with_div_and_class( $value2, 'server_name' );	
+						$value  .= $this->wpcd_column_wrap_string_with_div_and_class( $value2, 'server_name' );
 					}
 				}
 
@@ -507,7 +507,7 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 		} else {
 			if ( ! is_admin() ) {
 				// Change the column title for the front-end.
-				$defaults['title'] = __( 'Site', 'wpcd') ;
+				$defaults['title'] = __( 'Site', 'wpcd' );
 			}
 		}
 

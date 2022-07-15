@@ -198,7 +198,7 @@ then
 	then
 		apt-get remove -y lsphp??-redis
 	fi
-	gf_restart_webserver
+	gf_restart_webserver "true"
 	echo
 	echo "Redis has been removed from the system."
 	exit

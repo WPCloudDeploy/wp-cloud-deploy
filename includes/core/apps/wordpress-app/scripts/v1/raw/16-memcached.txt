@@ -212,7 +212,7 @@ then
 	then
 		apt-get remove -y lsphp??-memcached
 	fi
-	gf_restart_webserver
+	gf_restart_webserver "true"
 	echo
 	echo "Memcached has been removed from the system."
 	exit

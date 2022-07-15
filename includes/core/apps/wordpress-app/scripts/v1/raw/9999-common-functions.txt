@@ -341,7 +341,10 @@ function gf_select_domain_nginx_ols() {
 ###################################################################
 #### Restart Webserver ols or nginx
 ###################################################################
+# shellcheck disable=SC2120
 function gf_restart_webserver() {
+	local killall
+	killall="${1:-false}"
 	# Restart Appropriate Webserver
 	if [ "$g_webserver_type" = "nginx" ]
 	then
@@ -349,14 +352,20 @@ function gf_restart_webserver() {
 		systemctl restart nginx
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
-		# rm -rf /usr/local/lsws/cachedata/*
-		# kill detached lsphp processes and restart ols
-		/usr/local/lsws/bin/lswsctrl stop >/dev/null 2>&1
-		killall lsphp >/dev/null 2>&1
-		systemctl stop lsws >/dev/null 2>&1
-		systemctl start lsws
+		if [ "$killall" = "true" ]
+		then
+			# rm -rf /usr/local/lsws/cachedata/*
+			# kill detached lsphp processes and restart ols
+			/usr/local/lsws/bin/lswsctrl stop >/dev/null 2>&1
+			killall -9 lsphp >/dev/null 2>&1
+			systemctl stop lsws >/dev/null 2>&1
+			systemctl start lsws
+		else
+			systemctl restart lsws
+		fi
 	fi
 }
+
 
 ###################################################################
 #### Check if ssl enabled for ols site

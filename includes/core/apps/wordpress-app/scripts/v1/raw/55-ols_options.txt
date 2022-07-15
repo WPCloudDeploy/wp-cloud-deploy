@@ -57,8 +57,7 @@ ols_exit_script() {
     /usr/local/lsws/bin/openlitespeed -t # checking ols configuration
     if [[ $? -eq 0 ]]; then
         if [[ "${OLS_RELOAD}" -eq 1 && "${DEBUG}" -eq 0 ]]; then
-            killall -9 lsphp
-            systemctl restart lsws || service lsws restart
+            gf_restart_webserver "true"
         fi
     fi
     exit

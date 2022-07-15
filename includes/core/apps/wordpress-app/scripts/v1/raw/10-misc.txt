@@ -812,7 +812,7 @@ then
 		done
 		phpdismod $module
 	fi
-	gf_restart_webserver
+	gf_restart_webserver "true"
 	echo
 	echo "$module PHP module has been disabled"
 	exit

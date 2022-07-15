@@ -963,10 +963,7 @@ then
 	systemctl restart nginx
 elif [ "$webserver_type" = "ols" ]  || [ "$webserver_type" = "ols-enterprise" ]
 then
-	# restart ols/ols-enterprise
-	killall -9 lsphp >/dev/null 2>&1
-	systemctl stop lsws >/dev/null 2>&1
-	systemctl start lsws >/dev/null 2>&1
+	gf_restart_webserver
 fi
 
 # Custom post-processing scripts.

@@ -504,6 +504,7 @@ function netdata_auth_add
 		else
 			sed -i -e "/### Insert context configs below this line/a\\
 			${preprocessed_VAR%?}"  ${VHDIR}/netdata/$g_vhost_conf
+			chown -R lsadm:lsadm ${VHDIR}/netdata/
 		fi
 	elif [ "$g_webserver_type" = "ols-enterprise" ] ; then
 		echo 'Not implemented for ols-enterprise'

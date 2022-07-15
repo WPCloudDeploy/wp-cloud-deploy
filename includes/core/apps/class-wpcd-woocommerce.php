@@ -25,6 +25,9 @@ class WPCD_WOOCOMMERCE {
 		// Filter hook to potentially inject some css classes into the rows of the public/front-end views.
 		add_filter( 'wpcd_public_table_single_row', array( $this, 'wpcd_public_table_single_row' ), 10, 2 );
 
+		// Remove the resubscribe button from the WC account area.
+		add_filter( 'wcs_can_user_resubscribe_to_subscription', array( $this, 'wpcd_remove_wc_resubscribe_button' ), 100 );
+
 	}
 
 	/**
@@ -483,7 +486,7 @@ class WPCD_WOOCOMMERCE {
 	 * Only returns the top level categories, not the child categories.
 	 *
 	 * @since 5.0.
-	 * 
+	 *
 	 * @param int $product_id Product id for the wc product we need to get.
 	 *
 	 * @return array
@@ -491,6 +494,25 @@ class WPCD_WOOCOMMERCE {
 	public function get_wc_product_categories( $product_id ) {
 
 		return get_the_terms( $product_id, 'product_cat' );
+
+	}
+
+	/**
+	 * Remove the resubscribe button from the WC account area.
+	 *
+	 * Note that this affects ALL user subscriptions including non-wpcd subscriptions.
+	 * Unfortunately the WC hook does not provide access to the subscription object.
+	 * So there's no way to filter the action to only our products.
+	 *
+	 * Filter Hook: wcs_can_user_resubscribe_to_subscription
+	 *
+	 * @since 5.0.
+	 *
+	 * @return boolean
+	 */
+	public function wpcd_remove_wc_resubscribe_button() {
+
+		return false;
 
 	}
 }

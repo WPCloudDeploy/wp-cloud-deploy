@@ -616,7 +616,7 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 	public function server_apps_shortcode() {
 
 		if ( ! get_current_user_id() ) {
-			return '<div id="wpcd_public_wrapper"><div class="wpcd_public_container">' . esc_html( __( 'You don\'t have permission to servers list.', 'wpcd' ) ) . '</div></div>';
+			return '<div id="wpcd_public_wrapper"><div class="wpcd_public_container">' . esc_html( __( 'You don\'t have permission to view the applications list. Perhaps you\'re not logged in?', 'wpcd' ) ) . '</div></div>';
 		}
 
 		if ( ! class_exists( 'RW_Meta_Box' ) ) {
@@ -667,7 +667,7 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 	public function servers_shortcode() {
 
 		if ( ! get_current_user_id() ) {
-			return '<div id="wpcd_public_wrapper"><div class="wpcd_public_container">' . esc_html( __( 'You don\'t have permission to servers list.', 'wpcd' ) ) . '</div></div>';
+			return '<div id="wpcd_public_wrapper"><div class="wpcd_public_container">' . esc_html( __( 'You don\'t have permission to view the servers list. Perhaps you\'re not logged in?', 'wpcd' ) ) . '</div></div>';
 		}
 
 		if ( ! class_exists( 'RW_Meta_Box' ) ) {

@@ -1861,7 +1861,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 		/* Check permissions */
 		if ( ! current_user_can( 'wpcd_provision_servers' ) ) {
-			$invalid_msg = __( 'You don\'t have access to provision a server.', 'wpcd' );
+			$invalid_msg = __( 'You don\'t have access to provision a server. Perhaps you\'re not logged in?', 'wpcd' );
 			if ( $view == 'public' ) {
 				echo $invalid_msg;
 			} else {
@@ -1956,7 +1956,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			case 'create':
 				/* Check permissions */
 				if ( ! current_user_can( 'wpcd_provision_servers' ) ) {
-					$invalid_msg = __( 'You don\'t have access to provision a server.', 'wpcd' );
+					$invalid_msg = __( 'You don\'t have access to provision a server. Perhaps you\'re not logged in?', 'wpcd' );
 					wp_send_json_error( array( 'msg' => $invalid_msg ) );
 					break;
 				}

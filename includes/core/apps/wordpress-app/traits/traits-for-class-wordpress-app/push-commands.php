@@ -182,17 +182,20 @@ trait wpcd_wpapp_push_commands {
 		// Create an array to hold items taken from the $_request object.
 		$sites_status_items = array();
 
-		// get domain name.
-		$sites_status_items['domain']           = filter_input( INPUT_GET, 'domain', FILTER_SANITIZE_STRING );
-		$sites_status_items['public_ip']        = filter_input( INPUT_GET, 'publicip', FILTER_SANITIZE_STRING );
-		$sites_status_items['wp_update_needed'] = filter_input( INPUT_GET, 'wpupdate', FILTER_SANITIZE_STRING );
+		// Get domain name.
+		$sites_status_items['domain']           = wp_kses( filter_input( INPUT_GET, 'domain', FILTER_SANITIZE_STRING ), array() );
+		$sites_status_items['public_ip']        = wp_kses( filter_input( INPUT_GET, 'publicip', FILTER_SANITIZE_STRING ), array() );
+		$sites_status_items['wp_update_needed'] = wp_kses( filter_input( INPUT_GET, 'wpupdate', FILTER_SANITIZE_STRING ), array() );
 
-		// get numeric elements.
+		// Get numeric elements.
 		$sites_status_items['domain_file_size']     = filter_input( INPUT_GET, 'domain_file_usage', FILTER_SANITIZE_NUMBER_INT );
 		$sites_status_items['domain_db_size']       = filter_input( INPUT_GET, 'domain_db_size', FILTER_SANITIZE_NUMBER_INT );
 		$sites_status_items['domain_backup_size']   = filter_input( INPUT_GET, 'domain_backup_size', FILTER_SANITIZE_NUMBER_INT );
 		$sites_status_items['plugin_updates_count'] = filter_input( INPUT_GET, 'pluginupdate', FILTER_SANITIZE_NUMBER_INT );
 		$sites_status_items['theme_updates_count']  = filter_input( INPUT_GET, 'themeupdate', FILTER_SANITIZE_NUMBER_INT );
+
+		// Get WP Version.
+		$sites_status_items['wp_version'] = wp_kses( filter_input( INPUT_GET, 'wpversion', FILTER_SANITIZE_STRING ), array() );
 
 		// Finally, add the time reported to the array.
 		$sites_status_items['reporting_time']       = time();
@@ -203,6 +206,11 @@ trait wpcd_wpapp_push_commands {
 
 		// Stamp the site/app record with the array.
 		if ( 'wpcd_app' === get_post_type( $app_id ) ) {
+
+			// update wp version meta.
+			if ( ! empty( $sites_status_items['wp_version'] ) ) {
+				update_post_meta( $app_id, 'wpapp_current_version', $sites_status_items['wp_version'] );
+			}
 
 			// update the meta that holds the current data..
 			update_post_meta( $app_id, 'wpcd_site_status_push', $sites_status_items );

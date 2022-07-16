@@ -171,15 +171,22 @@ trait wpcd_wpapp_admin_column_data {
 		if ( true === (bool) wpcd_get_option( 'wordpress_app_hide_initial_wp_version_site_summary_column_in_site_list' ) && ( ! wpcd_is_admin() ) ) {
 			// Do nothing.
 		} else {
-			$wp_version = get_post_meta( $post_id, 'wpapp_version', true );
-			if ( 'latest' === $wp_version ) {
-				$wp_version = __( 'Latest', 'wpcd' );
+			$wp_version = get_post_meta( $post_id, 'wpapp_current_version', true );  // If the the latest version meta was updated by callbacks, use that.
+			if ( empty( $wp_version ) ) {
+				$wp_version = get_post_meta( $post_id, 'wpapp_version', true );
+				if ( 'latest' === $wp_version ) {
+					$wp_version = __( 'Latest', 'wpcd' );
+				}
+				$value  = __( 'Initial WP Version: ', 'wpcd' );
+				$column_class = 'initial_wp_version';
+			} else {
+				$value  = __( 'WP Version: ', 'wpcd' );
+				$column_class = 'wp_version';
 			}
 
-			$value  = __( 'Initial WP Version: ', 'wpcd' );
-			$value  = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $value, 'initial_wp_version', 'left' );
-			$value .= WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $wp_version, 'initial_wp_version', 'right' );
-			$value  = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_div_and_class( $value, 'initial_wp_version' );
+			$value  = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $value, $column_class, 'left' );
+			$value .= WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $wp_version, $column_class, 'right' );
+			$value  = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_div_and_class( $value, $column_class );
 
 			$new_column_data = $new_column_data . $value;
 		}

@@ -401,7 +401,7 @@ class WPCD_APP extends WPCD_Base {
 	 *
 	 * @param int $app_id  The app_id to get the app_type for.
 	 *
-	 * @return sring|boolean
+	 * @return string|boolean
 	 */
 	public function get_app_type( $app_id ) {
 

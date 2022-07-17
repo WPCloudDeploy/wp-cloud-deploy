@@ -402,12 +402,25 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 				break;
 			case 'wpcd_server_provider':
 				// Provider.
-				$provider      = get_post_meta( $post_id, 'wpcd_server_provider', true );
+				$provider = get_post_meta( $post_id, 'wpcd_server_provider', true );
+
+				// If provider is empty for some reason just break.
+				if ( empty( $provider ) || is_wp_error( $provider ) ) {
+					break;
+				}
+
+				// Provider api.
+				$provider_api = WPCD()->get_provider_api( $provider );
+				if ( empty( $provider_api ) || is_wp_error( $provider_api ) ) {
+					break;
+				}
+
+				// Provider description.
 				$provider_desc = WPCD()->wpcd_get_cloud_provider_desc( $provider );
 
 				// Region.
 				$region = get_post_meta( $post_id, 'wpcd_server_region', true );
-				$region = WPCD()->get_provider_api( $provider )->get_region_description( $region );
+				$region = $provider_api->get_region_description( $region );
 
 				// Size.
 				$size = get_post_meta( $post_id, 'wpcd_server_size', true );
@@ -415,7 +428,7 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 					$size = get_post_meta( $post_id, 'wpcd_server_size_raw', true );
 				}
 				if ( ! empty( $size ) ) {
-					$size = WPCD()->get_provider_api( $provider )->get_size_description( $size );
+					$size = $provider_api->get_size_description( $size );
 				}
 				if ( empty( $size ) ) {
 					$size = 'unknown';

@@ -149,12 +149,37 @@ class WPCD_WORDPRESS_TABS_SERVER_RESIZE extends WPCD_WORDPRESS_TABS {
 
 		$actions = array();
 
-		/* Get a list of server sizes */
+		/* Get provider and bail if invalid. */
 		$provider = WPCD_SERVER()->get_server_provider( $id );
-		$sizes    = WPCD()->get_provider_api( $provider )->call( 'sizes' );
+		if ( empty( $provider ) || is_wp_error( $provider ) ) {
+			$actions['server-resize-provider-header'] = array(
+				'label'          => __( 'Resize', 'wpcd' ),
+				'type'           => 'heading',
+				'raw_attributes' => array(
+					'desc' => __( 'We are unable to acquire provider details. This is not typical and you should seek out support to resolve it.', 'wpcd' ),
+				),
+			);
+			return $actions;
+		}
+
+		// Provider api.
+		$provider_api = WPCD()->get_provider_api( $provider );
+		if ( empty( $provider_api ) || is_wp_error( $provider_api ) ) {
+			$actions['server-resize-provider-header'] = array(
+				'label'          => __( 'Resize', 'wpcd' ),
+				'type'           => 'heading',
+				'raw_attributes' => array(
+					'desc' => __( 'We are unable to acquire provider details. This is not typical and you should seek out support to resolve it.', 'wpcd' ),
+				),
+			);
+			return $actions;
+		}
+
+		/* Get a list of server sizes */
+		$sizes = $provider_api->call( 'sizes' );
 
 		/* Bail out if resize isn't supported. */
-		if ( ! (bool) WPCD()->get_provider_api( $provider )->get_feature_flag( 'resize' ) ) {
+		if ( ! (bool) $provider_api->get_feature_flag( 'resize' ) ) {
 			$actions['server-resize-provider-header'] = array(
 				'label'          => __( 'Resize', 'wpcd' ),
 				'type'           => 'heading',

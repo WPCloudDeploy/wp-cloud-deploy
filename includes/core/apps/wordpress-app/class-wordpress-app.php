@@ -2012,6 +2012,18 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 					}
 				}
 
+				/**
+				 * Certain combinations of webservers and os's aren't allowed.
+				 */
+				if ( 'ubuntu2204lts' === $os && ( 'ols' === $webserver || 'ols-enterprise' === $webserver ) ) {
+					wp_send_json_error( array( 'msg' => __( 'OpenLiteSpeed is not yet supported on Ubuntu 22.04 LTS.', 'wpcd' ) ) );
+					break;
+				}
+				if ( 'ubuntu1804lts' === $os && ( 'ols' === $webserver || 'ols-enterprise' === $webserver ) ) {
+					wp_send_json_error( array( 'msg' => __( 'OpenLiteSpeed is not yet supported on Ubuntu 18.04 LTS.', 'wpcd' ) ) );
+					break;
+				}
+
 				/* Everything ok so far - create the server instance. */
 				$result = $this->create_instance();
 

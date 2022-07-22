@@ -121,7 +121,7 @@ class WPCD_Init {
 		add_action( 'plugins_loaded', array( $this, 'load_plugin_textdomain' ) );
 
 		/* Send email to admin if critical crons aren't running. */
-		add_action( 'init', array( $this, 'send_email_for_absent_crons' ), 20 );
+		add_action( 'shutdown', array( $this, 'send_email_for_absent_crons' ), 20 );
 
 	}
 

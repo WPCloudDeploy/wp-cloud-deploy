@@ -411,8 +411,10 @@ class WPCD_WORDPRESS_TABS_SERVER_TOOLS extends WPCD_WORDPRESS_TABS {
 			$preamble3 .= __( 'This is your new default server PHP version.' . PHP_EOL, 'wpcd' );
 			$preamble3 .= '========================' . PHP_EOL;
 
-			// Set postmeta.
-			update_post_meta( $id, 'wpcd_default_php_version', $new_php_version );
+			// Set postmeta.  But only update it if the new version matches the requested version.
+			if ( strpos( $result3, $new_php_version ) !== false ) {
+				update_post_meta( $id, 'wpcd_default_php_version', $new_php_version );
+			}
 
 			return new \WP_Error( $preamble1 . $result . $preamble2 . $result2 . $preamble3 . $result3 );
 		}

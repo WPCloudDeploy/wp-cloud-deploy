@@ -288,7 +288,8 @@ else
 		fi
 	fi
 	echo $(date): ".....Installing Snap Core for Certbot..."
-	snap install core > /dev/null 2>&1
+	snap install core > /dev/null 2>&1 #run once without error checking - some providers require this to set up some things (eg: promox containers).
+	snap install core > /dev/null 2>&1 #run again and then do error checking.
 	if [ $? -ne 0 ]  
 	then
 		echo "Failed!  Quitting process"

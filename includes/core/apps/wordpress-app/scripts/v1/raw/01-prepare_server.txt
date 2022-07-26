@@ -886,6 +886,9 @@ then
 	rm -rf aws awscli-exe-linux-x86_64.zip  > /dev/null 2>&1
 fi
 
+# Make sure update-notifier is installed - weirdly some vms/containers don't have this installed.
+echo $(date): "Installing update-notifier - this can take a while sometimes..."
+apt-get install -y update-notifier > /dev/null 2>&1
 
 # ufw
 echo $(date): "Configuring firewall..."

@@ -442,7 +442,7 @@ class CLOUD_PROVIDER_API {
 	/**
 	 * Return the size description given a size code.
 	 *
-	 * Descendent classes should override this function.
+	 * Descendant classes should override this function.
 	 * But if they don't we'll just return what's passed in.
 	 *
 	 * @param string $size Size code.

@@ -427,10 +427,12 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 				if ( empty( $size ) ) {
 					$size = get_post_meta( $post_id, 'wpcd_server_size_raw', true );
 				}
-				if ( ! empty( $size ) ) {
+				if ( ! empty( $size ) || '0' === (string) $size ) {
+					// A string value of '0' is valid so we include it in the above IF statement. 
 					$size = $provider_api->get_size_description( $size );
 				}
-				if ( empty( $size ) ) {
+				if ( empty( $size ) && ( '0' !== (string) $size ) ) {
+					// A string value of '0' is valid so we excluded it in the above IF statement otherwise the empty check will pass because '0' is falsy.
 					$size = 'unknown';
 				}
 
@@ -500,7 +502,8 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 				if ( empty( $value ) ) {
 					$value = get_post_meta( $post_id, 'wpcd_server_size_raw', true );
 				}
-				if ( empty( $value ) ) {
+				if ( empty( $value ) && '0' !== (string) $value ) {
+					// A string value of '0' is valid so we excluded it in the above IF statement.
 					$value = 'unknown';
 				}
 				break;

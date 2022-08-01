@@ -634,7 +634,10 @@ trait wpcd_wpapp_admin_column_data {
 				if ( empty( $health ) ) {
 					$server_status_callback_status = get_post_meta( $post_id, 'wpcd_wpapp_server_status_callback_installed', true );
 					if ( empty( $server_status_callback_status ) ) {
-						$health            = "<div class='wpcd_waiting_for_data_column'>" . __( 'Callbacks are not installed. Please install from the CALLBACKS tab on this server.', 'wpcd' ) . '</div>';
+						$health_msg = __( 'Callbacks are not installed.', 'wpcd' );
+						$health_msg .= '<br /><br />' . __( 'We usually auto-install them after a server has been deployed.', 'wpcd' );
+						$health_msg .= '<br /><br />' . __( 'Please wait 30 mins and if you still see this message, install them from the CALLBACKS tab.', 'wpcd' );
+						$health            = "<div class='wpcd_waiting_for_data_column'>" . $health_msg . '</div>';
 						$callback_tab_link = ( is_admin() ? get_edit_post_link( $post_id ) : get_permalink( $post_id ) ) . '#~~callbacks';
 						$health           .= "<div class='wpcd_go_to_callbacks_tab_column'>" . "<a href='" . $callback_tab_link . "'>" . __( 'Go To Callbacks Tab', 'wpcd' ) . '</a>' . '</div>';
 					} else {

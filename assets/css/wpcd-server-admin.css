@@ -618,6 +618,7 @@ a.wpcd-stat-switch {
 }
 
 .wpcd_waiting_for_data_column {
+	font-size: small;
 	border-color: orange !important;
 }
 

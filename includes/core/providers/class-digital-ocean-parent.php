@@ -394,7 +394,8 @@ runcmd:
 		switch ( $method ) {
 			case 'sizes':
 				foreach ( $body->sizes as $size ) {
-					if ( 1 === (int) $size->available ) {
+					// Make sure size is available and that it's not one of the smaller sizes (512MB RAM) before adding it to the return array.
+					if ( 1 === (int) $size->available && ( false === strpos( $size->slug, '512mb' ) ) ) {
 						/* translators: %1$s is the digital ocean slug/plan description. Hopefully the remaining replacements are self-explanatory - they all refer to various aspects of the digital ocean plan. */
 						$return[ $size->slug ] = sprintf( __( '%1$s (%2$d CPUs, %3$d MB RAM, %4$d GB SSD, $%5$d per month USD, %6$d TB data transfer/month)', 'wpcd' ), $size->slug, $size->vcpus, $size->memory, $size->disk, $size->price_monthly, $size->transfer );
 					}

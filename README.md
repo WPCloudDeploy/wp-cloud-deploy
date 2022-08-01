@@ -128,13 +128,14 @@ Note: Even though the entire git development history isn't available on github, 
 * New: WPAPP - Support for OpenLiteSpeed.
 * New: WPAPP - Admin lock for sites.
 * New: WPAPP - Preliminary support for Ubuntu 22.04 LTS.
-* New: WPAPP - Auto-create SSH Key Pair for DigitalOcean.
-* New: WPAPP - Add a TEST button in the providers setting area to validate the apikey entered for DigitalOcean before allowing other fields to show.
+* New: WPAPP - Auto-create SSH Key Pair for DigitalOcean and other selected providers.
+* New: WPAPP - Add a TEST button in the providers setting area to validate the apikey entered for DigitalOcean (and certain other selected providers) before allowing other fields to show.
+* New: WPAPP - Allow the admin to curate the list of WP versions shown to customers and other users who create sites.
 * Tweak: WPAPP - Remove extraneous text from certain tabs.
-* Tweak: WPAPP - Override list of WP versions.
-* Tweak: WPAPP - When a manual backup is run, we refresh the backup list automatically.
+* Tweak: WPAPP - When a manual backup is run we now automatically refresh the backup listing.
 * Tweak: WPAPP - Do not show the option to clear the page cache if it has not been installed.
 * Tweak: WPAPP - Option to not show each OS when creating a server (helps if you only want to support the most recent or a particular OS version.)
+* Tweak: WPAPP - Exclude servers with 512MB RAM from the server sizes list for the DigitalOcean provider.
 * Fix: WPAPP - Redirect rules were not being deleted in our database even when deleted on the site.
 * Fix: WPAPP - Attempt to detect when we were unable to get an SSL certificate during the domain change process and toggle the SSL meta to reflect that.
 * Fix: WPAPP - Server statistics tab would throw silent errors if statistics were never collected.

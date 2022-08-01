@@ -80,10 +80,14 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 		// Action hook to clean up pending logs.
 		add_action( 'wp_ajax_clean_up_pending_logs_action', array( $this, 'wpcd_clean_up_pending_logs_callback' ) );
 
+		// Action hook of notification to long pending task.
+		add_action( 'wpcd_email_alert_for_long_pending_tasks', array( $this, 'wpcd_send_email_alert_for_long_pending_tasks' ) );
+
 		// Delete the pending logs on site deletion.
 		add_action( 'wp_trash_post', array( $this, 'wpcd_wpapp_pending_log_post_delete' ), 11, 1 );
 		add_action( 'before_delete_post', array( $this, 'wpcd_wpapp_pending_log_post_delete' ), 11, 1 );
 		add_action( 'wpcd_before_remove_site_action', array( $this, 'wpcd_wpapp_pending_log_post_delete' ), 11, 1 );
+
 	}
 
 	/**
@@ -1003,10 +1007,12 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 			foreach ( $blog_ids as $blog_id ) {
 				switch_to_blog( $blog_id );
 				self::wpcd_clean_up_pending_logs_events();
+				self::wpcd_send_email_alert_for_long_pending_tasks_events();
 				restore_current_blog();
 			}
 		} else {
 			self::wpcd_clean_up_pending_logs_events();
+			self::wpcd_send_email_alert_for_long_pending_tasks_events();
 		}
 
 	}
@@ -1025,6 +1031,17 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 	}
 
 	/**
+	 * Schedule events on Activation of the plugin.
+	 *
+	 * @return void
+	 */
+	public static function wpcd_send_email_alert_for_long_pending_tasks_events() {
+		// Clear old crons.
+		wp_unschedule_hook( 'wpcd_email_alert_for_long_pending_tasks' );
+		wp_schedule_event( time(), 'every_fifteen_minute', 'wpcd_email_alert_for_long_pending_tasks' );
+	}
+
+	/**
 	 * Fires on deactivation of plugin.
 	 *
 	 * @param  boolean $network_wide    True if plugin is deactivated network-wide.
@@ -1039,13 +1056,25 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 			foreach ( $blog_ids as $blog_id ) {
 				switch_to_blog( $blog_id );
 				self::wpcd_cleanup_pending_logs_clear_scheduled_events();
+				self::wpcd_clear_send_email_for_long_pending_task_events();
 				restore_current_blog();
 			}
 		} else {
 			self::wpcd_cleanup_pending_logs_clear_scheduled_events();
+			self::wpcd_clear_send_email_for_long_pending_task_events();
 		}
 
 	}
+
+	/**
+	 * Clears scheduled events on Deactivation of the plugin.
+	 *
+	 * @return void
+	 */
+	public static function wpcd_clear_send_email_for_long_pending_task_events() {
+		wp_unschedule_hook( 'wpcd_email_alert_for_long_pending_tasks' );
+	}
+
 
 	/**
 	 * Clears scheduled events on Deactivation of the plugin.
@@ -1076,6 +1105,7 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 
 			switch_to_blog( $blog_id );
 			self::wpcd_clean_up_pending_logs_events();
+			self::wpcd_send_email_alert_for_long_pending_tasks_events();
 			restore_current_blog();
 		}
 
@@ -1158,4 +1188,75 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 
 	}
 
+	/**
+	 * Scheduled notification cron for "in process" tasks which is running more than 15 minutes.
+	 *
+	 * @return void
+	 */
+	public function wpcd_send_email_alert_for_long_pending_tasks() {
+
+		// Tasks should be running of more than 15 minutes.
+		set_transient( 'wpcd_send_email_alert_for_long_pending_tasks_is_active', 1, ( 15 * MINUTE_IN_SECONDS ) );
+
+		$compare_time = time() - ( 15 * MINUTE_IN_SECONDS );
+
+		$pending_task_args = array(
+			'post_type'   => 'wpcd_pending_log',
+			'post_status' => 'private',
+			'numberposts' => -1,
+			'orderby'     => 'date',
+			'order'       => 'DESC',
+			'fields'      => 'ids',
+			'meta_query'  => array(
+				'relation' => 'AND',
+				array(
+					'key'     => 'pending_task_state',
+					'value'   => 'in-process',
+					'compare' => '=',
+				),
+				array(
+					'key'     => 'pending_task_start_date',
+					'value'   => $compare_time,
+					'compare' => '<=',
+				),
+			),
+		);
+
+		$pending_task_found = get_posts( $pending_task_args );
+
+		if ( ! empty( $pending_task_found ) ) {
+
+			foreach ( $pending_task_found as $task_details ) {
+
+				$pending_task_type                 = get_post_meta( $task_details, 'pending_task_type', true );
+				$pending_task_key                  = get_post_meta( $task_details, 'pending_task_key', true );
+				$pending_task_state                = get_post_meta( $task_details, 'pending_task_state', true );
+				$pending_task_attempts             = get_post_meta( $task_details, 'pending_task_attempts', true );
+				$pending_task_reference            = get_post_meta( $task_details, 'pending_task_reference', true );
+				$pending_task_comment              = get_post_meta( $task_details, 'pending_task_comment', true );
+				$pending_task_start_date           = get_post_meta( $task_details, 'pending_task_start_date', true );
+				$parent_post_id                    = get_post_meta( $task_details, 'parent_post_id', true );
+				$pending_task_parent_post_type     = get_post_meta( $task_details, 'pending_task_parent_post_type', true );
+				$pending_task_associated_server_id = get_post_meta( $task_details, 'pending_task_associated_server_id', true );
+
+				$email_body  = wp_sprintf( '%s: %s', __( 'Pending Task Type', 'wpcd' ), $pending_task_type ) . '<br /><br />';
+				$email_body .= wp_sprintf( '%s: %s', __( 'Key', 'wpcd' ), $pending_task_key ) . '<br /><br />';
+				$email_body .= wp_sprintf( '%s: %s', __( 'State', 'wpcd' ), $pending_task_state ) . '<br /><br />';
+				$email_body .= wp_sprintf( '%s: %s', __( 'Attempts To Complete', 'wpcd' ), $pending_task_attempts ) . '<br /><br />';
+				$email_body .= wp_sprintf( '%s: %s', __( 'Reference', 'wpcd' ), $pending_task_reference ) . '<br /><br />';
+				$email_body .= wp_sprintf( '%s: %s', __( 'Comment', 'wpcd' ), $pending_task_comment ) . '<br /><br />';
+				$email_body .= wp_sprintf( '%s: %s', __( 'Date Started', 'wpcd' ), gmdate( 'Y-m-d @ H:i', $pending_task_start_date ) ) . '<br /><br />';
+				$email_body .= wp_sprintf( '%s: %s', __( 'Log Owner or Parent ID', 'wpcd' ), $parent_post_id ) . '<br /><br />';
+				$email_body .= wp_sprintf( '%s: %s', __( 'Parent Post Type', 'wpcd' ), $pending_task_parent_post_type ) . '<br /><br />';
+				$email_body .= wp_sprintf( '%s: %s', __( 'Associated Server ID', 'wpcd' ), $pending_task_associated_server_id );
+
+				wp_mail(
+					get_option( 'admin_email' ),
+					__( 'Long Running Pending Tasks', 'wpcd' ),
+					$email_body,
+					array( 'Content-Type: text/html; charset=UTF-8' )
+				);
+			}
+		}
+	}
 }

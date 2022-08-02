@@ -649,81 +649,81 @@ function gf_add_nginx_conf() {
 	nginx_webroot=$2
 	nginx_site=$3
 	# it's very important to escape the variables and quotes within the echo
-	echo "include /etc/nginx/common/6g.conf;
+	echo "include /etc/nginx/common/6g[.]conf;
 include /etc/nginx/common/7g[.]conf;
 include /etc/nginx/userconfigs/http/*.conf;		#user custom configuration
 
 server {
 
-include /etc/nginx/common/deny*.conf;
-include /etc/nginx/userconfigs/server/*.conf;	#user custom configuration
+    include /etc/nginx/common/deny*.conf;
+    include /etc/nginx/userconfigs/server/*.conf;	#user custom configuration
 
-listen 80;
-listen [::]:80;
+    listen 80;
+    listen [::]:80;
 
-root /var/www/$nginx_webroot/html;
-index index.php index.html index.htm;
+    root /var/www/$nginx_webroot/html;
+    index index.php index.html index.htm;
 
-server_name $nginx_domain www.$nginx_domain;
+    server_name $nginx_domain www.$nginx_domain;
 
-client_max_body_size 25M;
+    client_max_body_size 25M;
 
-# Needed for page-level caching when cache-enabler plugin is installed
-include /etc/nginx/common/cache_enabler.conf;
+    # Needed for page-level caching when cache-enabler plugin is installed
+    include /etc/nginx/common/cache_enabler.conf;
 
-# Compress certain files with gzip.
-include /etc/nginx/common/gzip[.]conf;	
+    # Compress certain files with gzip.
+    include /etc/nginx/common/gzip[.]conf;
 
-# Cache certain filetypes in the browser
-include /etc/nginx/common/browsercache[.]conf;	
+    # Cache certain filetypes in the browser
+    include /etc/nginx/common/browsercache[.]conf;
 
-# Prepare for phpmyadmin when it's installed
-location ~ /phpMyAdmin/.*\.php$ {
-allow all;
-include snippets/fastcgi-php.conf;
-fastcgi_pass unix:/run/php/php-fpm-$nginx_webroot.sock;
-}
+    # Prepare for phpmyadmin when it's installed
+    location ~ /phpMyAdmin/.*\.php$ {
+        allow all;
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/run/php/php-fpm-$nginx_webroot.sock;
+    }
 
-# Handler for PHP files
-location ~ \.php$ {
-# Restrict wp-login to 10 requests per period
-location ~ \wp-login.php$ {
-limit_req zone=WPLOGIN;
-include snippets/fastcgi-php.conf;
-fastcgi_pass unix:/run/php/php-fpm-$nginx_webroot.sock;
-}
+    # Handler for PHP files
+    location ~ \.php$ {
+        # Restrict wp-login to 10 requests per period
+        location ~ \wp-login.php$ {
+            limit_req zone=WPLOGIN;
+            include snippets/fastcgi-php.conf;
+            fastcgi_pass unix:/run/php/php-fpm-$nginx_webroot.sock;
+        }
 
-fastcgi_param PHP_VALUE \"
-\";
-include snippets/fastcgi-php.conf;
-fastcgi_pass unix:/run/php/php-fpm-$nginx_webroot.sock;
-fastcgi_buffers 16 32k;
-fastcgi_buffer_size 64k;
-fastcgi_busy_buffers_size 64k;		
-}
+        fastcgi_param PHP_VALUE \"
+        \";
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/run/php/php-fpm-$nginx_webroot.sock;
+        fastcgi_buffers 16 32k;
+        fastcgi_buffer_size 64k;
+        fastcgi_busy_buffers_size 64k;
+    }
 
-location / {
-try_files \$cache_enabler_uri \$cache_enabler_uri2 @cachemiss; 
-}
+    location / {
+        try_files \$cache_enabler_uri \$cache_enabler_uri2 @cachemiss; 
+    }
 
-location @cachemiss {
-try_files \$uri \$uri/ \$custom_subdir/index.php?\$args; 
-}
+    location @cachemiss {
+        try_files \$uri \$uri/ \$custom_subdir/index.php?\$args; 
+    }
 
-# Security Headers	
-add_header X-Frame-Options \"SAMEORIGIN\" always;
-add_header X-XSS-Protection \"1; mode=block\" always;
-add_header X-Content-Type-Options \"nosniff\" always;
-add_header Referrer-Policy \"no-referrer, strict-origin-when-cross-origin\" always;
-add_header X-Download-Options \"noopen\";
-add_header Strict-Transport-Security \"max-age=30000000; includeSubDomains; preload\" always;
+    # Security Headers	
+    add_header X-Frame-Options \"SAMEORIGIN\" always;
+    add_header X-XSS-Protection \"1; mode=block\" always;
+    add_header X-Content-Type-Options \"nosniff\" always;
+    add_header Referrer-Policy \"no-referrer, strict-origin-when-cross-origin\" always;
+    add_header X-Download-Options \"noopen\";
+    add_header Strict-Transport-Security \"max-age=30000000; includeSubDomains; preload\" always;
 
-# OSCP Settings
-ssl_stapling on;
-ssl_stapling_verify on;	
+    # OSCP Settings
+    ssl_stapling on;
+    ssl_stapling_verify on;	
 
-# include user custom configurations
-include /etc/nginx/userconfigs/site/$nginx_webroot-*.conf;
+    # include user custom configurations
+    include /etc/nginx/userconfigs/site/$nginx_webroot-*.conf;
 
 }" > /etc/nginx/sites-enabled/$nginx_site
 }

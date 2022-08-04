@@ -1010,7 +1010,7 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 	public function save_meta_values( $post_id, $post ) {
 
 		// Add nonce for security and authentication.
-		$nonce_name   = filter_input( INPUT_POST, 'vpn_meta', FILTER_SANITIZE_STRING );
+		$nonce_name   = sanitize_text_field( filter_input( INPUT_POST, 'vpn_meta', FILTER_UNSAFE_RAW ) );
 		$nonce_action = 'wpcd_server_nonce_meta_action';
 
 		// Check if nonce is valid.
@@ -1038,31 +1038,31 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 			return;
 		}
 
-		$wpcd_server_title                = filter_input( INPUT_POST, 'wpcd_server_title', FILTER_SANITIZE_STRING );
-		$wpcd_server_region               = filter_input( INPUT_POST, 'wpcd_server_region', FILTER_SANITIZE_STRING );
-		$wpcd_server_size                 = filter_input( INPUT_POST, 'wpcd_server_size', FILTER_SANITIZE_STRING );
-		$wpcd_server_size_raw             = filter_input( INPUT_POST, 'wpcd_server_size_raw', FILTER_SANITIZE_STRING );
-		$wpcd_server_ipv4                 = filter_input( INPUT_POST, 'wpcd_server_ipv4', FILTER_SANITIZE_STRING );
-		$wpcd_server_ipv6                 = filter_input( INPUT_POST, 'wpcd_server_ipv6', FILTER_SANITIZE_STRING );
-		$wpcd_server_name                 = filter_input( INPUT_POST, 'wpcd_server_name', FILTER_SANITIZE_STRING );
-		$wpcd_server_wc_order_id          = filter_input( INPUT_POST, 'wpcd_server_wc_order_id', FILTER_SANITIZE_STRING );
-		$wpcd_server_provider             = filter_input( INPUT_POST, 'wpcd_server_provider', FILTER_SANITIZE_STRING );
-		$wpcd_server_provider_instance_id = filter_input( INPUT_POST, 'wpcd_server_provider_instance_id', FILTER_SANITIZE_STRING );
-		$wpcd_server_created              = filter_input( INPUT_POST, 'wpcd_server_created', FILTER_SANITIZE_STRING );
+		$wpcd_server_title                = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_server_title', FILTER_UNSAFE_RAW ) );
+		$wpcd_server_region               = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_server_region', FILTER_UNSAFE_RAW ) );
+		$wpcd_server_size                 = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_server_size', FILTER_UNSAFE_RAW ) );
+		$wpcd_server_size_raw             = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_server_size_raw', FILTER_UNSAFE_RAW ) );
+		$wpcd_server_ipv4                 = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_server_ipv4', FILTER_UNSAFE_RAW ) );
+		$wpcd_server_ipv6                 = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_server_ipv6', FILTER_UNSAFE_RAW ) );
+		$wpcd_server_name                 = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_server_name', FILTER_UNSAFE_RAW ) );
+		$wpcd_server_wc_order_id          = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_server_wc_order_id', FILTER_UNSAFE_RAW ) );
+		$wpcd_server_provider             = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_server_provider', FILTER_UNSAFE_RAW ) );
+		$wpcd_server_provider_instance_id = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_server_provider_instance_id', FILTER_UNSAFE_RAW ) );
+		$wpcd_server_created              = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_server_created', FILTER_UNSAFE_RAW ) );
 		$wpcd_server_parent_post_id       = filter_input( INPUT_POST, 'wpcd_server_parent_post_id', FILTER_SANITIZE_NUMBER_INT );
-		$wpcd_server_scripts_version      = filter_input( INPUT_POST, 'wpcd_server_scripts_version', FILTER_SANITIZE_STRING );
+		$wpcd_server_scripts_version      = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_server_scripts_version', FILTER_UNSAFE_RAW ) );
 
-		$wpcd_server_init                   = filter_input( INPUT_POST, 'wpcd_server_init', FILTER_SANITIZE_STRING );
-		$wpcd_server_initial_app_name       = filter_input( INPUT_POST, 'wpcd_server_initial_app_name', FILTER_SANITIZE_STRING );
-		$wpcd_server_plugin_initial_version = filter_input( INPUT_POST, 'wpcd_server_plugin_initial_version', FILTER_SANITIZE_STRING );
-		$wpcd_server_plugin_updated_version = filter_input( INPUT_POST, 'wpcd_server_plugin_updated_version', FILTER_SANITIZE_STRING );
-		$wpcd_server_server_type            = filter_input( INPUT_POST, 'wpcd_server_server-type', FILTER_SANITIZE_STRING );
-		$wpcd_server_webserver_type         = filter_input( INPUT_POST, 'wpcd_server_webserver_type', FILTER_SANITIZE_STRING );
+		$wpcd_server_init                   = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_server_init', FILTER_UNSAFE_RAW ) );
+		$wpcd_server_initial_app_name       = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_server_initial_app_name', FILTER_UNSAFE_RAW ) );
+		$wpcd_server_plugin_initial_version = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_server_plugin_initial_version', FILTER_UNSAFE_RAW ) );
+		$wpcd_server_plugin_updated_version = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_server_plugin_updated_version', FILTER_UNSAFE_RAW ) );
+		$wpcd_server_server_type            = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_server_server-type', FILTER_UNSAFE_RAW ) );
+		$wpcd_server_webserver_type         = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_server_webserver_type', FILTER_UNSAFE_RAW ) );
 
-		$wpcd_server_action_status              = filter_input( INPUT_POST, 'wpcd_server_action_status', FILTER_SANITIZE_STRING );
-		$wpcd_server_after_create_action_app_id = filter_input( INPUT_POST, 'wpcd_server_after_create_action_app_id', FILTER_SANITIZE_STRING );
-		$wpcd_server_command_mutex              = filter_input( INPUT_POST, 'wpcd_server_command_mutex', FILTER_SANITIZE_STRING );
-		$wpcd_server_last_upgrade_done          = filter_input( INPUT_POST, 'wpcd_server_last_upgrade_done', FILTER_SANITIZE_STRING );
+		$wpcd_server_action_status              = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_server_action_status', FILTER_UNSAFE_RAW ) );
+		$wpcd_server_after_create_action_app_id = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_server_after_create_action_app_id', FILTER_UNSAFE_RAW ) );
+		$wpcd_server_command_mutex              = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_server_command_mutex', FILTER_UNSAFE_RAW ) );
+		$wpcd_server_last_upgrade_done          = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_server_last_upgrade_done', FILTER_UNSAFE_RAW ) );
 
 		$wpcd_server_owner = filter_input( INPUT_POST, 'wpcd_server_owner', FILTER_SANITIZE_NUMBER_INT );
 
@@ -1387,11 +1387,11 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 
 		global $pagenow;
 
-		$filter_action = filter_input( INPUT_GET, 'filter_action', FILTER_SANITIZE_STRING );
+		$filter_action = sanitize_text_field( filter_input( INPUT_GET, 'filter_action', FILTER_UNSAFE_RAW ) );
 
 		if ( ( ( is_admin() && $query->is_main_query() && $pagenow == 'edit.php' ) || wpcd_is_public_servers_list_query( $query ) ) && $query->query['post_type'] == 'wpcd_app_server' && ! wpcd_is_admin() ) {
 			$qv          = &$query->query_vars;
-			$post_status = filter_input( INPUT_GET, 'post_status', FILTER_SANITIZE_STRING );
+			$post_status = sanitize_text_field( filter_input( INPUT_GET, 'post_status', FILTER_UNSAFE_RAW ) );
 			$post_status = ! empty( $post_status ) ? $post_status : 'private';
 			$post__in    = wpcd_get_posts_by_permission( 'view_server', 'wpcd_app_server', $post_status );
 
@@ -1407,7 +1407,7 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 
 			// SERVER PROVIDER.
 			if ( isset( $_GET['wpcd_server_provider'] ) && ! empty( $_GET['wpcd_server_provider'] ) ) {
-				$server_provider = filter_input( INPUT_GET, 'wpcd_server_provider', FILTER_SANITIZE_STRING );
+				$server_provider = sanitize_text_field( filter_input( INPUT_GET, 'wpcd_server_provider', FILTER_UNSAFE_RAW ) );
 
 				$qv['meta_query'][] = array(
 					'field'   => 'wpcd_server_provider',
@@ -1418,7 +1418,7 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 
 			// REGION.
 			if ( isset( $_GET['wpcd_server_region'] ) && ! empty( $_GET['wpcd_server_region'] ) ) {
-				$region = filter_input( INPUT_GET, 'wpcd_server_region', FILTER_SANITIZE_STRING );
+				$region = sanitize_text_field( filter_input( INPUT_GET, 'wpcd_server_region', FILTER_UNSAFE_RAW ) );
 
 				$qv['meta_query'][] = array(
 					'field'   => 'wpcd_server_region',
@@ -1429,7 +1429,7 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 
 			// LOCAL STATUS.
 			if ( isset( $_GET['wpcd_server_current_state'] ) && ! empty( $_GET['wpcd_server_current_state'] ) ) {
-				$local_status = filter_input( INPUT_GET, 'wpcd_server_current_state', FILTER_SANITIZE_STRING );
+				$local_status = sanitize_text_field( filter_input( INPUT_GET, 'wpcd_server_current_state', FILTER_UNSAFE_RAW ) );
 
 				$qv['meta_query'][] = array(
 					'field'   => 'wpcd_server_current_state',
@@ -1455,7 +1455,7 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 
 			// IPv4.
 			if ( isset( $_GET['wpcd_server_ipv4'] ) && ! empty( $_GET['wpcd_server_ipv4'] ) ) {
-				$ipv4 = filter_input( INPUT_GET, 'wpcd_server_ipv4', FILTER_SANITIZE_STRING );
+				$ipv4 = sanitize_text_field( filter_input( INPUT_GET, 'wpcd_server_ipv4', FILTER_UNSAFE_RAW ) );
 
 				$qv['meta_query'][] = array(
 					'field'   => 'wpcd_server_ipv4',
@@ -1466,7 +1466,7 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 
 			// IPv6.
 			if ( isset( $_GET['wpcd_server_ipv6'] ) && ! empty( $_GET['wpcd_server_ipv6'] ) ) {
-				$ipv6 = filter_input( INPUT_GET, 'wpcd_server_ipv6', FILTER_SANITIZE_STRING );
+				$ipv6 = sanitize_text_field( filter_input( INPUT_GET, 'wpcd_server_ipv6', FILTER_UNSAFE_RAW ) );
 
 				$qv['meta_query'][] = array(
 					'field'   => 'wpcd_server_ipv6',
@@ -1483,7 +1483,7 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 
 			// SERVER OWNER.
 			if ( isset( $_GET['wpcd_server_owner'] ) && ! empty( $_GET['wpcd_server_owner'] ) ) {
-				$wpcd_server_owner = filter_input( INPUT_GET, 'wpcd_server_owner', FILTER_SANITIZE_STRING );
+				$wpcd_server_owner = sanitize_text_field( filter_input( INPUT_GET, 'wpcd_server_owner', FILTER_UNSAFE_RAW ) );
 
 				$qv['author'] = $wpcd_server_owner;
 
@@ -1491,7 +1491,7 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 
 			// RESTART NEEDED.
 			if ( isset( $_GET['wpcd_server_restart_needed'] ) && ! empty( $_GET['wpcd_server_restart_needed'] ) ) {
-				$restart_needed = filter_input( INPUT_GET, 'wpcd_server_restart_needed', FILTER_SANITIZE_STRING );
+				$restart_needed = sanitize_text_field( filter_input( INPUT_GET, 'wpcd_server_restart_needed', FILTER_UNSAFE_RAW ) );
 
 				$qv['meta_query'][] = array(
 					'field'   => 'wpcd_server_restart_needed',

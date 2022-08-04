@@ -190,7 +190,7 @@ class WPCD_NOTIFY_LOG extends WPCD_POSTS_LOG {
 		$html          = '';
 		$html         .= sprintf( '<select name="%s" id="filter-by-%s">', $field_key, $field_key );
 		$html         .= sprintf( '<option value="">%s</option>', $first_option );
-		$get_field_key = filter_input( INPUT_GET, $field_key, FILTER_SANITIZE_STRING );
+		$get_field_key = sanitize_text_field( filter_input( INPUT_GET, $field_key, FILTER_UNSAFE_RAW ) );
 		foreach ( $result as $row ) {
 			if ( empty( $row->meta_value ) ) {
 				continue;
@@ -213,13 +213,13 @@ class WPCD_NOTIFY_LOG extends WPCD_POSTS_LOG {
 	public function wpcd_notification_list_parse_query( $query ) {
 		global $pagenow;
 
-		$filter_action = filter_input( INPUT_GET, 'filter_action', FILTER_SANITIZE_STRING );
+		$filter_action = sanitize_text_field( filter_input( INPUT_GET, 'filter_action', FILTER_UNSAFE_RAW ) );
 		if ( is_admin() && $query->is_main_query() && 'wpcd_notify_log' === $query->query['post_type'] && 'edit.php' === $pagenow && ! empty( $filter_action ) ) {
 			$qv = &$query->query_vars;
 
 			// NOTIFICATION TYPE.
 			if ( isset( $_GET['notification_type'] ) && ! empty( $_GET['notification_type'] ) ) {
-				$notification_type = filter_input( INPUT_GET, 'notification_type', FILTER_SANITIZE_STRING );
+				$notification_type = sanitize_text_field( filter_input( INPUT_GET, 'notification_type', FILTER_UNSAFE_RAW ) );
 
 				$qv['meta_query'][] = array(
 					'field'   => 'notification_type',
@@ -230,7 +230,7 @@ class WPCD_NOTIFY_LOG extends WPCD_POSTS_LOG {
 
 			// NOTIFICATION REFERENCE.
 			if ( isset( $_GET['notification_reference'] ) && ! empty( $_GET['notification_reference'] ) ) {
-				$notification_reference = filter_input( INPUT_GET, 'notification_reference', FILTER_SANITIZE_STRING );
+				$notification_reference = sanitize_text_field( filter_input( INPUT_GET, 'notification_reference', FILTER_UNSAFE_RAW ) );
 
 				$qv['meta_query'][] = array(
 					'field'   => 'notification_reference',

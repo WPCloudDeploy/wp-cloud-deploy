@@ -189,7 +189,7 @@ trait wpcd_metaboxes_for_taxonomies_for_servers_and_apps {
 		$html          = '';
 		$html         .= sprintf( '<select name="%s" id="filter-by-%s">', $field_key, $field_key );
 		$html         .= sprintf( '<option value="">%s</option>', $first_option );
-		$get_field_key = filter_input( INPUT_GET, $field_key, FILTER_SANITIZE_STRING );
+		$get_field_key = sanitize_text_field( filter_input( INPUT_GET, $field_key, FILTER_UNSAFE_RAW ) );
 		foreach ( $result as $row ) {
 			if ( empty( $row->meta_value ) ) {
 				continue;
@@ -237,7 +237,7 @@ trait wpcd_metaboxes_for_taxonomies_for_servers_and_apps {
 		$html          = '';
 		$html         .= sprintf( '<select name="%s" id="filter-by-%s">', $taxonomy, $taxonomy );
 		$html         .= sprintf( '<option value="">%s</option>', $first_option );
-		$get_field_key = filter_input( INPUT_GET, $taxonomy, FILTER_SANITIZE_STRING );
+		$get_field_key = sanitize_text_field( filter_input( INPUT_GET, $taxonomy, FILTER_UNSAFE_RAW ) );
 		foreach ( $terms as $term ) {
 			$term_id   = $term->term_id;
 			$term_name = $term->name;
@@ -282,7 +282,7 @@ trait wpcd_metaboxes_for_taxonomies_for_servers_and_apps {
 		$html          = '';
 		$html         .= sprintf( '<select name="%s" id="filter-by-%s">', $name, $post_type );
 		$html         .= sprintf( '<option value="">%s</option>', $first_option );
-		$get_field_key = filter_input( INPUT_GET, $name, FILTER_SANITIZE_STRING );
+		$get_field_key = sanitize_text_field( filter_input( INPUT_GET, $name, FILTER_UNSAFE_RAW ) );
 
 		foreach ( $posts as $p ) {
 			$post_id    = $p->ID;
@@ -342,7 +342,7 @@ trait wpcd_metaboxes_for_taxonomies_for_servers_and_apps {
 		$html          = '';
 		$html         .= sprintf( '<select class="%s" name="%s" id="filter-by-%s">', $select_class, $field_key, $field_key );
 		$html         .= sprintf( '<option value="">%s</option>', $first_option );
-		$get_field_key = filter_input( INPUT_GET, $field_key, FILTER_SANITIZE_STRING );
+		$get_field_key = sanitize_text_field( filter_input( INPUT_GET, $field_key, FILTER_UNSAFE_RAW ) );
 		$owners        = array();
 
 		foreach ( $posts as $p ) {

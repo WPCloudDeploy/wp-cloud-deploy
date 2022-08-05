@@ -1738,9 +1738,9 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		check_ajax_referer( 'wpcd-app', 'nonce' );
 
 		/* Get action requested */
-		$action = filter_input( INPUT_POST, '_action', FILTER_SANITIZE_STRING );
+		$action = sanitize_text_field( filter_input( INPUT_POST, '_action', FILTER_UNSAFE_RAW ) );
 		if ( empty( $action ) ) {
-			$action = filter_input( INPUT_GET, '_action', FILTER_SANITIZE_STRING );
+			$action = sanitize_text_field( filter_input( INPUT_GET, '_action', FILTER_UNSAFE_RAW ) );
 		}
 
 		/* Get app id */
@@ -3371,13 +3371,13 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	public function wpapp_wpcd_app_parse_query( $query ) {
 		global $pagenow;
 
-		$filter_action = filter_input( INPUT_GET, 'filter_action', FILTER_SANITIZE_STRING );
+		$filter_action = sanitize_text_field( filter_input( INPUT_GET, 'filter_action', FILTER_UNSAFE_RAW ) );
 		if ( ( ( is_admin() && $query->is_main_query() && 'edit.php' === $pagenow ) || wpcd_is_public_apps_list_query( $query ) ) && 'wpcd_app' === $query->query['post_type'] && ! empty( $filter_action ) ) {
 			$qv = &$query->query_vars;
 
 			// APP STATUS.
 			if ( isset( $_GET['wpapp_site_status'] ) && ! empty( $_GET['wpapp_site_status'] ) ) {
-				$wpapp_site_status = filter_input( INPUT_GET, 'wpapp_site_status', FILTER_SANITIZE_STRING );
+				$wpapp_site_status = sanitize_text_field( filter_input( INPUT_GET, 'wpapp_site_status', FILTER_UNSAFE_RAW ) );
 
 				if ( $wpapp_site_status === 'on' ) {
 
@@ -3405,7 +3405,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 			// PHP VERSION.
 			if ( isset( $_GET['wpapp_php_version'] ) && ! empty( $_GET['wpapp_php_version'] ) ) {
-				$wpapp_php_version = filter_input( INPUT_GET, 'wpapp_php_version', FILTER_SANITIZE_STRING );
+				$wpapp_php_version = sanitize_text_field( filter_input( INPUT_GET, 'wpapp_php_version', FILTER_UNSAFE_RAW ) );
 
 				if ( $wpapp_php_version === '7.4' ) {
 
@@ -3433,7 +3433,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 			// PAGE CACHE.
 			if ( isset( $_GET['wpapp_page_cache_status'] ) && ! empty( $_GET['wpapp_page_cache_status'] ) ) {
-				$wpapp_page_cache_status = filter_input( INPUT_GET, 'wpapp_page_cache_status', FILTER_SANITIZE_STRING );
+				$wpapp_page_cache_status = sanitize_text_field( filter_input( INPUT_GET, 'wpapp_page_cache_status', FILTER_UNSAFE_RAW ) );
 
 				if ( $wpapp_page_cache_status === 'off' ) {
 
@@ -3461,7 +3461,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 			// OBJECT CACHE.
 			if ( isset( $_GET['wpapp_object_cache_status'] ) && ! empty( $_GET['wpapp_object_cache_status'] ) ) {
-				$wpapp_object_cache_status = filter_input( INPUT_GET, 'wpapp_object_cache_status', FILTER_SANITIZE_STRING );
+				$wpapp_object_cache_status = sanitize_text_field( filter_input( INPUT_GET, 'wpapp_object_cache_status', FILTER_UNSAFE_RAW ) );
 
 				if ( $wpapp_object_cache_status === 'off' ) {
 
@@ -3510,7 +3510,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 			// SITE NEEDS UPDATES.
 			if ( isset( $_GET['wpapp_sites_needs_updates'] ) && ! empty( $_GET['wpapp_sites_needs_updates'] ) ) {
-				$wpapp_sites_needs_updates = filter_input( INPUT_GET, 'wpapp_sites_needs_updates', FILTER_SANITIZE_STRING );
+				$wpapp_sites_needs_updates = sanitize_text_field( filter_input( INPUT_GET, 'wpapp_sites_needs_updates', FILTER_UNSAFE_RAW ) );
 
 				if ( $wpapp_sites_needs_updates === 'yes' ) {
 
@@ -3538,7 +3538,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			$qv               = &$query->query_vars;
 			$qv['meta_query'] = array();
 
-			$wpapp_php_version = filter_input( INPUT_GET, 'wpapp_php_version', FILTER_SANITIZE_STRING );
+			$wpapp_php_version = sanitize_text_field( filter_input( INPUT_GET, 'wpapp_php_version', FILTER_UNSAFE_RAW ) );
 
 			if ( $wpapp_php_version == '7.4' ) {
 				$qv['meta_query'][] = array(
@@ -3579,7 +3579,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		$html          = '';
 		$html         .= sprintf( '<select name="%s" id="filter-by-%s">', $field_key, $field_key );
 		$html         .= sprintf( '<option value="">%s</option>', $first_option );
-		$get_field_key = filter_input( INPUT_GET, $field_key, FILTER_SANITIZE_STRING );
+		$get_field_key = sanitize_text_field( filter_input( INPUT_GET, $field_key, FILTER_UNSAFE_RAW ) );
 		foreach ( $options as $key => $value ) {
 
 			$selected = selected( $get_field_key, $key, false );

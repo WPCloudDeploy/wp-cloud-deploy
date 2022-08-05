@@ -60,12 +60,12 @@ class WPCD_SYNC {
 	public function check_for_settings_values_changed( $object_id ) {
 		if ( true === is_admin() && 'wpcd_settings' === $object_id ) {
 
-			$wpcd_sync_target_site    = filter_input( INPUT_POST, 'wpcd_sync_target_site', FILTER_SANITIZE_STRING );
-			$wpcd_sync_enc_key        = filter_input( INPUT_POST, 'wpcd_sync_enc_key', FILTER_SANITIZE_STRING );
-			$wpcd_sync_user_id        = filter_input( INPUT_POST, 'wpcd_sync_user_id', FILTER_SANITIZE_STRING );
-			$wpcd_sync_password       = filter_input( INPUT_POST, 'wpcd_sync_password', FILTER_SANITIZE_STRING );
+			$wpcd_sync_target_site    = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_sync_target_site', FILTER_UNSAFE_RAW ) );
+			$wpcd_sync_enc_key        = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_sync_enc_key', FILTER_UNSAFE_RAW ) );
+			$wpcd_sync_user_id        = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_sync_user_id', FILTER_UNSAFE_RAW ) );
+			$wpcd_sync_password       = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_sync_password', FILTER_UNSAFE_RAW ) );
 			$wpcd_sync_auto_export    = filter_input( INPUT_POST, 'wpcd_sync_auto_export', FILTER_SANITIZE_NUMBER_INT );
-			$wpcd_sync_set_cron       = filter_input( INPUT_POST, 'wpcd_sync_set_cron', FILTER_SANITIZE_STRING );
+			$wpcd_sync_set_cron       = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_sync_set_cron', FILTER_UNSAFE_RAW ) );
 			$wpcd_export_all_settings = filter_input( INPUT_POST, 'wpcd_export_all_settings', FILTER_SANITIZE_NUMBER_INT );
 			$ajax                     = 0;
 
@@ -153,8 +153,8 @@ class WPCD_SYNC {
 
 		global $wpdb;
 
-		$file_name  = filter_input( INPUT_POST, 'file_name', FILTER_SANITIZE_STRING );
-		$restore_id = filter_input( INPUT_POST, 'restore_id', FILTER_SANITIZE_STRING );
+		$file_name  = sanitize_text_field( filter_input( INPUT_POST, 'file_name', FILTER_UNSAFE_RAW ) );
+		$restore_id = sanitize_text_field( filter_input( INPUT_POST, 'restore_id', FILTER_UNSAFE_RAW ) );
 
 		$user_id = get_current_user_id();
 
@@ -204,10 +204,10 @@ class WPCD_SYNC {
 
 		global $wpdb;
 
-		$file_name       = filter_input( INPUT_POST, 'file_name', FILTER_SANITIZE_STRING );
-		$restore_id      = filter_input( INPUT_POST, 'restore_id', FILTER_SANITIZE_STRING );
+		$file_name       = sanitize_text_field( filter_input( INPUT_POST, 'file_name', FILTER_UNSAFE_RAW ) );
+		$restore_id      = sanitize_text_field( filter_input( INPUT_POST, 'restore_id', FILTER_UNSAFE_RAW ) );
 		$delete_existing = filter_input( INPUT_POST, 'delete_existing', FILTER_VALIDATE_BOOLEAN );
-		$key             = filter_input( INPUT_POST, 'decryption_key_to_restore', FILTER_SANITIZE_STRING );
+		$key             = sanitize_text_field( filter_input( INPUT_POST, 'decryption_key_to_restore', FILTER_UNSAFE_RAW ) );
 
 		$user_id = get_current_user_id();
 
@@ -787,10 +787,10 @@ class WPCD_SYNC {
 
 		}
 
-		$wpcd_sync_target_site    = filter_input( INPUT_POST, 'wpcd_sync_target_site', FILTER_SANITIZE_STRING );
-		$wpcd_sync_enc_key        = filter_input( INPUT_POST, 'wpcd_sync_enc_key', FILTER_SANITIZE_STRING );
-		$wpcd_sync_user_id        = filter_input( INPUT_POST, 'wpcd_sync_user_id', FILTER_SANITIZE_STRING );
-		$wpcd_sync_password       = filter_input( INPUT_POST, 'wpcd_sync_password', FILTER_SANITIZE_STRING );
+		$wpcd_sync_target_site    = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_sync_target_site', FILTER_UNSAFE_RAW ) );
+		$wpcd_sync_enc_key        = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_sync_enc_key', FILTER_UNSAFE_RAW ) );
+		$wpcd_sync_user_id        = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_sync_user_id', FILTER_UNSAFE_RAW ) );
+		$wpcd_sync_password       = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_sync_password', FILTER_UNSAFE_RAW ) );
 		$wpcd_export_all_settings = filter_input( INPUT_POST, 'wpcd_export_all_settings', FILTER_SANITIZE_NUMBER_INT );
 
 		$wpcd_sync_target_site = WPCD()->encrypt( $wpcd_sync_target_site );
@@ -1082,7 +1082,7 @@ class WPCD_SYNC {
 
 		}
 
-		$wpcd_encryption_key_v2 = filter_input( INPUT_POST, 'wpcd_encryption_key_v2', FILTER_SANITIZE_STRING );
+		$wpcd_encryption_key_v2 = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_encryption_key_v2', FILTER_UNSAFE_RAW ) );
 
 		update_option( 'wpcd_encryption_key_v2', $wpcd_encryption_key_v2 );
 

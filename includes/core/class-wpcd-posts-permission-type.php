@@ -270,7 +270,7 @@ class WPCD_POSTS_PERMISSION_TYPE {
 
 		check_ajax_referer( 'wpcd-permission', 'nonce' );
 
-		$wpcd_permission_name = filter_input( INPUT_POST, 'wpcd_permission_name', FILTER_SANITIZE_STRING );
+		$wpcd_permission_name = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_permission_name', FILTER_UNSAFE_RAW ) );
 		$post_id              = filter_input( INPUT_POST, 'post_id', FILTER_SANITIZE_NUMBER_INT );
 
 		$args = array(

@@ -1401,7 +1401,7 @@ class WPCD_APP extends WPCD_Base {
 	 */
 	public function save_meta_values_for_background_task_details( $post_id, $post ) {
 		// Add nonce for security and authentication.
-		$nonce_name   = filter_input( INPUT_POST, 'app_meta', FILTER_SANITIZE_STRING );
+		$nonce_name   = sanitize_text_field( filter_input( INPUT_POST, 'app_meta', FILTER_UNSAFE_RAW ) );
 		$nonce_action = 'wpcd_app_nonce_meta_action';
 
 		// Check if nonce is valid.
@@ -1429,10 +1429,10 @@ class WPCD_APP extends WPCD_Base {
 			return;
 		}
 
-		$wpcd_app_action_status = filter_input( INPUT_POST, 'wpcd_app_action_status', FILTER_SANITIZE_STRING );
-		$wpcd_app_action        = filter_input( INPUT_POST, 'wpcd_app_action', FILTER_SANITIZE_STRING );
-		$wpcd_app_action_args   = filter_input( INPUT_POST, 'wpcd_app_action_args', FILTER_SANITIZE_STRING );
-		$wpcd_app_command_mutex = filter_input( INPUT_POST, 'wpcd_app_command_mutex', FILTER_SANITIZE_STRING );
+		$wpcd_app_action_status = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_app_action_status', FILTER_UNSAFE_RAW ) );
+		$wpcd_app_action        = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_app_action', FILTER_UNSAFE_RAW ) );
+		$wpcd_app_action_args   = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_app_action_args', FILTER_UNSAFE_RAW ) );
+		$wpcd_app_command_mutex = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_app_command_mutex', FILTER_UNSAFE_RAW ) );
 		$wpcd_temp_log_id       = filter_input( INPUT_POST, 'wpcd_temp_log_id', FILTER_SANITIZE_NUMBER_INT );
 
 		// save action arguments as array.

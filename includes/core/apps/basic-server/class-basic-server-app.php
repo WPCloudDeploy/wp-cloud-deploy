@@ -1344,7 +1344,7 @@ class WPCD_BASIC_SERVER_APP extends WPCD_APP {
 		}
 
 		// Add nonce for security and authentication.
-		$nonce_name   = filter_input( INPUT_POST, 'basic_server_meta', FILTER_SANITIZE_STRING );
+		$nonce_name   = sanitize_text_field( filter_input( INPUT_POST, 'basic_server_meta', FILTER_UNSAFE_RAW ) );
 		$nonce_action = 'wpcd_basic_server_app_nonce_meta_action';
 
 		// Check if nonce is valid.
@@ -1373,7 +1373,7 @@ class WPCD_BASIC_SERVER_APP extends WPCD_APP {
 		}
 
 		/* Get new values */
-		$wpcd_basic_server_app_scripts_version = filter_input( INPUT_POST, 'wpcd_basic_serverscripts_version', FILTER_SANITIZE_STRING );
+		$wpcd_basic_server_app_scripts_version = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_basic_serverscripts_version', FILTER_UNSAFE_RAW ) );
 
 		/* Add new values to database */
 		update_post_meta( $post_id, 'basic_server_scripts_version', $wpcd_basic_server_app_scripts_version );

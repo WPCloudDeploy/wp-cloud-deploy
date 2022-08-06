@@ -103,7 +103,7 @@ class WPCD_Admin_Setup_Wizard {
 			<div class="updated wpcd-wizard-notice">
 				<h1 class="wizard-main-heading"><?php _e( 'WPCloudDeploy: First Time Install', 'wpcd' ); ?></h1>
 				<p class="wizard-first-line"><?php _e( 'Thank you for installing WPCloudDeploy. Please choose an option below to get started.', 'wpcd' ); ?></p>
-				<p class="wizard-normal wizard-second-line"><?php _e( 'If this is not the first time you are using WPCLoudDeploy or you would like to manually configure your initial settings, then you should choose to skip this process. Otherwise proceed by clicking the button.', 'wpcd' ); ?></p>		
+				<p class="wizard-normal wizard-second-line"><?php _e( 'If this is not the first time you are using WPCloudDeploy or you would like to manually configure your initial settings, then you should choose to skip this process. Otherwise proceed by clicking the button.', 'wpcd' ); ?></p>		
 				<p><span class="wpcd-button-wizard-primary"><?php _e( '<a href="' . admin_url( 'index.php?page=wpcd-setup' ) . '">Click here To Get Started Now</a>', 'wpcd' ); ?></span>		
 					<span class="wpcd-button-wizard-skip"><?php _e( '<a href="#" id="wpcd-skip-wizard">Or skip this process</a>', 'wpcd' ); ?>
 				</p>		

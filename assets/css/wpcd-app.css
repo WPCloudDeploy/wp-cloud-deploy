@@ -118,6 +118,7 @@ div[id^='wpcd_wordpress-app'] {
 	color: var(--wpcd-secondary-brand-color);
 	font-size: 1.25em;
 	margin-top: -10px;
+	overflow-x: clip; /* Don't allow long domain names to wrap to wrap */
 }
 
 /** 

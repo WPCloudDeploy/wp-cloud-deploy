@@ -15,6 +15,10 @@ fi
 source 9999-common-functions.sh
 
 
+
+###################################################################
+#### OLS Admin password Reset
+###################################################################
 # The below is a much more efficient and sane approach then trying to interactively walk through the prompts in the below: 
 # /usr/local/lsws/admin/misc/admpass.sh
 ols_user_pass_reset(){
@@ -34,22 +38,35 @@ ols_user_pass_reset(){
     fi
 }
 
-enable_webconsole(){
+###################################################################
+#### Enable WebConsole Port
+###################################################################
+enable_webconsole_port(){
 	ufw allow 7080 > /dev/null 2>&1
 	if [ $? -ne 0 ]
 	then
 		echo "Unable to setup OLS/LSWS admin port on firewall!"
+		exit 1
 	fi
+	echo "Enabled OLS/LSWS admin port on firewall!"
 }
 
-disable_webconsole(){
+###################################################################
+#### Disable WebConsole Port
+###################################################################
+disable_webconsole_port(){
 	ufw delete allow 7080 > /dev/null 2>&1
 	if [ $? -ne 0 ]
 	then
 		echo "Unable to disable OLS/LSWS admin port on firewall!"
+		exit 1
 	fi
+	echo "Disabled OLS/LSWS admin port on firewall!"
 }
 
+###################################################################
+#### Enable SSL for OLS console for domain
+###################################################################
 enable_signed_ssl_ols_admin(){
     local domain
     domain="$1"
@@ -66,14 +83,16 @@ enable_signed_ssl_ols_admin(){
         ln -fs "${domain_cert}" /usr/local/lsws/admin/conf/webadmin.crt;
         ln -fs "${domain_key}" /usr/local/lsws/admin/conf/webadmin.key;
         echo "Restarting OLS WebUI services"
-        service lsws restart
+        gf_restart_webserver
     else
 		echo "Domain certificates missing to enable SSL"
 		exit 1
     fi
 }
 
-
+###################################################################
+#### Disable SSL for OLS console for domain
+###################################################################
 disable_signed_ssl_ols_admin(){
 	unlink /usr/local/lsws/admin/conf/webadmin.crt
 	unlink /usr/local/lsws/admin/conf/webadmin.key
@@ -86,6 +105,9 @@ disable_signed_ssl_ols_admin(){
     service lsws restart
 }
 
+###################################################################
+#### Enable SSL for LiteSpeed Enterprise console for domain
+###################################################################
 # Litespeed's path is slightly different but otherwise the same
 enable_signed_ssl_ols_enterprise_admin(){
     local domain
@@ -110,7 +132,10 @@ enable_signed_ssl_ols_enterprise_admin(){
     fi
 }
 
-disable_signed_ssl_ols_admin(){
+###################################################################
+#### Disable SSL for LiteSpeed Enterprise console for domain
+###################################################################
+disable_signed_ssl_ols_enterprise_admin(){
 	unlink /usr/local/lsws/admin/conf/cert/admin.crt
 	unlink /usr/local/lsws/admin/conf/cert/admin.key
 	# Restore default self signed ones
@@ -121,14 +146,52 @@ disable_signed_ssl_ols_admin(){
     service lsws restart
 }
 
-enable_ols_ssl_for_domain(){
+###################################################################
+#### Enable console and set user/pass
+###################################################################
+enable_ols_console(){
+	
+	if [[ -z $user ]]
+	then
+		echo
+		echo "Specify a user name to access to OLS Console"
+		read -p "User name: " user
+	fi
+
+	if [[ -z $pass ]]
+	then
+		echo
+		echo "Specify a password"
+		read -p "Password: " pass
+	fi
+	
+	ols_user_pass_reset "$user" "$pass"
+	enable_webconsole_port
+
+}
+
+###################################################################
+#### Disable console port
+###################################################################
+disable_ols_console(){
+	disable_webconsole_port
+}
+
+###################################################################
+#### Enable SSL for console for domain
+###################################################################
+enable_console_ssl_for_domain(){
 	local domain
 	domain="$1"
 	
 	gf_enable_certbot_ols_site "$domain"  # This function call echos any success/failure messages so no need to handle here.
 	if [ -f /etc/letsencrypt/live/$domain/fullchain.pem  ]
 	then
-		enable_signed_ssl_ols_admin "$domain"
+		if [ "$g_webserver_type" = "ols" ] ; then
+			enable_signed_ssl_ols_admin "$domain"
+		elif [ "$g_webserver_type" = "ols-enterprise" ] ; then
+			enable_signed_ssl_ols_enterprise_admin "$domain"
+		fi
 	fi
 
 	if true | openssl s_client -connect $domain:7080 2>/dev/null | \
@@ -141,3 +204,75 @@ enable_ols_ssl_for_domain(){
 	fi
 }
 
+###################################### OLS Console Enable SSL  Function ##########
+function ols_console_ssl_enable
+{
+	if [[ -z $domain ]]
+		then
+			echo "Which domain name do you want to use for OLS Console SSL?
+			Example: mydomain.com"
+			read -p "Domain: " domain
+		fi
+	enable_console_ssl_for_domain "$domain"
+	
+	gf_restart_webserver
+	echo "SSL has been enabled for OLS console https://$domain:7080"
+	
+}
+
+###################################### OLS Console Disable (Revert to Default) SSL Function ##########
+function ols_console_ssl_disable
+{
+
+	if [ "$g_webserver_type" = "ols" ] ; then
+		disable_signed_ssl_ols_admin
+	elif [ "$g_webserver_type" = "ols-enterprise" ] ; then
+		disable_signed_ssl_ols_enterprise_admin
+	fi
+	gf_restart_webserver
+	echo "SSL has been disabled for OLS console $domain"
+}
+
+while [[ -z $action ]]
+do
+	echo
+	echo "What do you want to do?"
+	echo
+	echo "   1) Enable OLS Console"
+	echo "   2) Disable OLS Console"
+	echo "   3) Enable OLS Console SSL"
+	echo "   4) Disable OLS Console SSL"
+	read -p "Action: " action
+	until [[ -z "$action" || "$action" =~ ^[1-4]$ ]]
+	do
+		echo "$action: invalid selection."
+		read -p "Action: " action
+	done
+done
+
+
+########################################################################################################3
+########################################################################################################3
+############## Enable OLS Console 
+if [[ $action == "enable_ols_console" || $action == "1" ]]
+then
+	enable_ols_console
+fi
+
+############ Disable OLS Console 
+if [[ $action == "disable_ols_console" || $action == "2" ]]
+then
+	disable_ols_console
+fi
+
+##############  Enable Console SSL
+if [[ $action == "ols_console_ssl_enable" || $action == "3" ]]
+then
+	ols_console_ssl_enable
+fi
+
+############## Disable SSL
+if [[ $action == "ols_console_ssl_disable" || $action == "4" ]]
+then
+	ols_console_ssl_disable
+fi

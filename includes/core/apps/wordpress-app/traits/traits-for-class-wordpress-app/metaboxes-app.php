@@ -208,7 +208,7 @@ trait wpcd_wpapp_metaboxes_app {
 		}
 
 		// Add nonce for security and authentication.
-		$nonce_name   = filter_input( INPUT_POST, 'wpapp_meta', FILTER_SANITIZE_STRING );
+		$nonce_name   = sanitize_text_field( filter_input( INPUT_POST, 'wpapp_meta', FILTER_UNSAFE_RAW ) );
 		$nonce_action = 'wpcd_wp_app_nonce_meta_action';
 
 		// Check if nonce is valid.
@@ -237,12 +237,12 @@ trait wpcd_wpapp_metaboxes_app {
 		}
 
 		/* Get new values */
-		$wpcd_wpapp_domain             = filter_input( INPUT_POST, 'wpcd_wpapp_domain', FILTER_SANITIZE_STRING );
-		$wpcd_wpapp_userid             = filter_input( INPUT_POST, 'wpcd_wpapp_userid', FILTER_SANITIZE_STRING );
+		$wpcd_wpapp_domain             = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_wpapp_domain', FILTER_UNSAFE_RAW ) );
+		$wpcd_wpapp_userid             = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_wpapp_userid', FILTER_UNSAFE_RAW ) );
 		$wpcd_wpapp_email              = filter_input( INPUT_POST, 'wpcd_wpapp_email', FILTER_SANITIZE_EMAIL );
 		$wpcd_wpapp_password           = filter_input( INPUT_POST, 'wpcd_wpapp_password' );  // cannot sanitize passwords unfortunately.
-		$wpcd_wpapp_initial_version    = filter_input( INPUT_POST, 'wpcd_wpapp_initial_version', FILTER_SANITIZE_STRING );
-		$wpcd_wpapp_staging_domain     = filter_input( INPUT_POST, 'wpcd_wpapp_staging_domain', FILTER_SANITIZE_STRING );
+		$wpcd_wpapp_initial_version    = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_wpapp_initial_version', FILTER_UNSAFE_RAW ) );
+		$wpcd_wpapp_staging_domain     = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_wpapp_staging_domain', FILTER_UNSAFE_RAW ) );
 		$wpcd_wpapp_staging_domain_id  = filter_input( INPUT_POST, 'wpcd_wpapp_staging_domain_id', FILTER_SANITIZE_NUMBER_INT );
 		$wpcd_wpapp_wc_order_id        = filter_input( INPUT_POST, 'wpcd_wpapp_wc_order_id', FILTER_SANITIZE_NUMBER_INT );
 		$wpcd_wpapp_wc_subscription_id = filter_input( INPUT_POST, 'wpcd_wpapp_wc_subscription_id', FILTER_SANITIZE_NUMBER_INT );

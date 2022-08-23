@@ -223,14 +223,14 @@ class WPCD_POSTS_CLOUD_PROVIDER extends WPCD_Posts_Base {
 	public function wpcd_cloud_provider_list_parse_query( $query ) {
 		global $pagenow;
 
-		$filter_action = filter_input( INPUT_GET, 'filter_action', FILTER_SANITIZE_STRING );
+		$filter_action = sanitize_text_field( filter_input( INPUT_GET, 'filter_action', FILTER_UNSAFE_RAW ) );
 		if ( is_admin() && $query->is_main_query() && 'wpcd_cloud_provider' === $query->query['post_type'] && 'edit.php' === $pagenow && ! empty( $filter_action ) ) {
 
 			$qv = &$query->query_vars;
 
 			// PROVIDER TYPE.
 			if ( isset( $_GET['wpcd_cloud_provider_type'] ) && ! empty( $_GET['wpcd_cloud_provider_type'] ) ) {
-				$wpcd_cloud_provider_type = filter_input( INPUT_GET, 'wpcd_cloud_provider_type', FILTER_SANITIZE_STRING );
+				$wpcd_cloud_provider_type = sanitize_text_field( filter_input( INPUT_GET, 'wpcd_cloud_provider_type', FILTER_UNSAFE_RAW ) );
 
 				$qv['meta_query'][] = array(
 					'field'   => 'wpcd_cloud_provider_type',
@@ -241,7 +241,7 @@ class WPCD_POSTS_CLOUD_PROVIDER extends WPCD_Posts_Base {
 
 			// PROVIDER STATUS.
 			if ( isset( $_GET['wpcd_cloud_provider_inactive'] ) && ! empty( $_GET['wpcd_cloud_provider_inactive'] ) ) {
-				$wpcd_cloud_provider_inactive = filter_input( INPUT_GET, 'wpcd_cloud_provider_inactive', FILTER_SANITIZE_STRING );
+				$wpcd_cloud_provider_inactive = sanitize_text_field( filter_input( INPUT_GET, 'wpcd_cloud_provider_inactive', FILTER_UNSAFE_RAW ) );
 
 				if ( 'active' === $wpcd_cloud_provider_inactive ) {
 					$qv['meta_query'][] = array(
@@ -325,7 +325,7 @@ class WPCD_POSTS_CLOUD_PROVIDER extends WPCD_Posts_Base {
 		$html          = '';
 		$html         .= sprintf( '<select name="%s" id="filter-by-%s">', $field_key, $field_key );
 		$html         .= sprintf( '<option value="">%s</option>', $first_option );
-		$get_field_key = filter_input( INPUT_GET, $field_key, FILTER_SANITIZE_STRING );
+		$get_field_key = sanitize_text_field( filter_input( INPUT_GET, $field_key, FILTER_UNSAFE_RAW ) );
 		foreach ( $result as $row ) {
 			if ( empty( $row->meta_value ) ) {
 				continue;

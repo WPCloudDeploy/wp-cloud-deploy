@@ -1693,7 +1693,7 @@ class WPCD_VPN_APP extends WPCD_APP {
 		}
 
 		// Add nonce for security and authentication.
-		$nonce_name   = filter_input( INPUT_POST, 'vpn_meta', FILTER_SANITIZE_STRING );
+		$nonce_name   = sanitize_text_field( filter_input( INPUT_POST, 'vpn_meta', FILTER_UNSAFE_RAW ) );
 		$nonce_action = 'wpcd_vpn_app_nonce_meta_action';
 
 		// Check if nonce is valid.
@@ -1722,11 +1722,11 @@ class WPCD_VPN_APP extends WPCD_APP {
 		}
 
 		/* Get new values */
-		$wpcd_vpn_app_dns             = filter_input( INPUT_POST, 'wpcd_vpn_dns', FILTER_SANITIZE_STRING );
-		$wpcd_vpn_app_protocol        = filter_input( INPUT_POST, 'wpcd_vpn_protocol', FILTER_SANITIZE_STRING );
-		$wpcd_vpn_app_port            = filter_input( INPUT_POST, 'wpcd_vpn_port', FILTER_SANITIZE_STRING );
-		$wpcd_vpn_app_clients         = filter_input( INPUT_POST, 'wpcd_vpn_clients', FILTER_SANITIZE_STRING );
-		$wpcd_vpn_app_scripts_version = filter_input( INPUT_POST, 'wpcd_vpn_scripts_version', FILTER_SANITIZE_STRING );
+		$wpcd_vpn_app_dns             = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_vpn_dns', FILTER_UNSAFE_RAW ) );
+		$wpcd_vpn_app_protocol        = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_vpn_protocol', FILTER_UNSAFE_RAW ) );
+		$wpcd_vpn_app_port            = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_vpn_port', FILTER_UNSAFE_RAW ) );
+		$wpcd_vpn_app_clients         = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_vpn_clients', FILTER_UNSAFE_RAW ) );
+		$wpcd_vpn_app_scripts_version = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_vpn_scripts_version', FILTER_UNSAFE_RAW ) );
 		$wpcd_vpn_app_max_clients     = filter_input( INPUT_POST, 'wpcd_vpn_max_clients', FILTER_SANITIZE_NUMBER_INT );
 
 		/* Add new values to database */

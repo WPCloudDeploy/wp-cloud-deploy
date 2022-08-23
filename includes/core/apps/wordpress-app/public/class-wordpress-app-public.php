@@ -176,7 +176,7 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 	 */
 	public function ajax_public_create_pages() {
 
-		$nonce = filter_input( INPUT_POST, 'nonce', FILTER_SANITIZE_STRING );
+		$nonce = sanitize_text_field( filter_input( INPUT_POST, 'nonce', FILTER_UNSAFE_RAW ) );
 
 		$data = array();
 		if ( wp_verify_nonce( $nonce, 'wpcd-create-public-pages' ) ) {
@@ -244,9 +244,9 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 	public function ajax_public() {
 
 		/* Get action requested */
-		$action = filter_input( INPUT_POST, '_action', FILTER_SANITIZE_STRING );
+		$action = sanitize_text_field( filter_input( INPUT_POST, '_action', FILTER_UNSAFE_RAW ) );
 		$id     = filter_input( INPUT_POST, 'id', FILTER_VALIDATE_INT );
-		$nonce  = filter_input( INPUT_POST, 'nonce', FILTER_SANITIZE_STRING );
+		$nonce  = sanitize_text_field( filter_input( INPUT_POST, 'nonce', FILTER_UNSAFE_RAW ) );
 
 		$app_actions = array(
 			'wpcd_public_app_trash',
@@ -632,7 +632,7 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 			)
 		);
 
-		$post_status = filter_input( INPUT_GET, 'post_status', FILTER_SANITIZE_STRING );
+		$post_status = sanitize_text_field( filter_input( INPUT_GET, 'post_status', FILTER_UNSAFE_RAW ) );
 
 		ob_start();
 
@@ -683,7 +683,7 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 			)
 		);
 
-		$post_status = filter_input( INPUT_GET, 'post_status', FILTER_SANITIZE_STRING );
+		$post_status = sanitize_text_field( filter_input( INPUT_GET, 'post_status', FILTER_UNSAFE_RAW ) );
 		ob_start();
 		?>
 		<div id="wpcd_public_wrapper">

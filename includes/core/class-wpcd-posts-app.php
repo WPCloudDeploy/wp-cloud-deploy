@@ -688,7 +688,7 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 	 */
 	public function save_meta_values( $post_id, $post ) {
 		// Add nonce for security and authentication.
-		$nonce_name   = filter_input( INPUT_POST, 'app_meta', FILTER_SANITIZE_STRING );
+		$nonce_name   = sanitize_text_field( filter_input( INPUT_POST, 'app_meta', FILTER_UNSAFE_RAW ) );
 		$nonce_action = 'wpcd_app_nonce_meta_action';
 
 		// Check if nonce is valid.
@@ -716,8 +716,8 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 			return;
 		}
 
-		$app_post_title      = filter_input( INPUT_POST, 'app_post_title', FILTER_SANITIZE_STRING );
-		$wpcd_app_type       = filter_input( INPUT_POST, 'app_type', FILTER_SANITIZE_STRING );
+		$app_post_title      = sanitize_text_field( filter_input( INPUT_POST, 'app_post_title', FILTER_UNSAFE_RAW ) );
+		$wpcd_app_type       = sanitize_text_field( filter_input( INPUT_POST, 'app_type', FILTER_UNSAFE_RAW ) );
 		$wpcd_parent_post_id = filter_input( INPUT_POST, 'parent_post_id', FILTER_SANITIZE_NUMBER_INT );
 		$wpcd_app_owner      = filter_input( INPUT_POST, 'wpcd_app_owner', FILTER_SANITIZE_NUMBER_INT );
 
@@ -1076,7 +1076,7 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 		if ( ( ( is_admin() && $query->is_main_query() && 'edit.php' === $pagenow ) || wpcd_is_public_apps_list_query( $query ) ) && 'wpcd_app' === $query->query['post_type'] && ! wpcd_is_admin() ) {
 
 			$qv          = &$query->query_vars;
-			$post_status = filter_input( INPUT_GET, 'post_status', FILTER_SANITIZE_STRING );
+			$post_status = sanitize_text_field( filter_input( INPUT_GET, 'post_status', FILTER_UNSAFE_RAW ) );
 			$post_status = ! empty( $post_status ) ? $post_status : 'private';
 			$post__in    = wpcd_get_posts_by_permission( 'view_app', 'wpcd_app', $post_status );
 
@@ -1087,13 +1087,13 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 			}
 		}
 
-		$filter_action = filter_input( INPUT_GET, 'filter_action', FILTER_SANITIZE_STRING );
+		$filter_action = sanitize_text_field( filter_input( INPUT_GET, 'filter_action', FILTER_UNSAFE_RAW ) );
 		if ( ( ( is_admin() && $query->is_main_query() && 'edit.php' === $pagenow ) || wpcd_is_public_apps_list_query( $query ) ) && 'wpcd_app' === $query->query['post_type'] && 'Filter' === $filter_action ) {
 			$qv = &$query->query_vars;
 
 			// APP TYPE.
 			if ( isset( $_GET['app_type'] ) && ! empty( $_GET['app_type'] ) ) {
-				$app_type = filter_input( INPUT_GET, 'app_type', FILTER_SANITIZE_STRING );
+				$app_type = sanitize_text_field( filter_input( INPUT_GET, 'app_type', FILTER_UNSAFE_RAW ) );
 
 				$qv['meta_query'][] = array(
 					'field'   => 'app_type',
@@ -1105,7 +1105,7 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 			// SERVER.
 			$_wpcd_app_server = is_admin() ? 'wpcd_app_server_dd' : '_wpcd_app_server_dd';
 			if ( isset( $_GET[ $_wpcd_app_server ] ) && ! empty( $_GET[ $_wpcd_app_server ] ) ) {
-				$wpcd_app_server = filter_input( INPUT_GET, $_wpcd_app_server, FILTER_SANITIZE_STRING );
+				$wpcd_app_server = sanitize_text_field( filter_input( INPUT_GET, $_wpcd_app_server, FILTER_UNSAFE_RAW ) );
 
 				$qv['meta_query'][] = array(
 					'field'   => 'parent_post_id',
@@ -1116,7 +1116,7 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 
 			// SERVER PROVIDER.
 			if ( isset( $_GET['wpcd_server_provider'] ) && ! empty( $_GET['wpcd_server_provider'] ) ) {
-				$wpcd_server_provider = filter_input( INPUT_GET, 'wpcd_server_provider', FILTER_SANITIZE_STRING );
+				$wpcd_server_provider = sanitize_text_field( filter_input( INPUT_GET, 'wpcd_server_provider', FILTER_UNSAFE_RAW ) );
 
 				$parents = $this->get_app_server_ids( 'wpcd_server_provider', $wpcd_server_provider );
 
@@ -1128,7 +1128,7 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 
 			// REGION.
 			if ( isset( $_GET['wpcd_server_region'] ) && ! empty( $_GET['wpcd_server_region'] ) ) {
-				$wpcd_server_region = filter_input( INPUT_GET, 'wpcd_server_region', FILTER_SANITIZE_STRING );
+				$wpcd_server_region = sanitize_text_field( filter_input( INPUT_GET, 'wpcd_server_region', FILTER_UNSAFE_RAW ) );
 
 				$parents = $this->get_app_server_ids( 'wpcd_server_region', $wpcd_server_region );
 
@@ -1140,7 +1140,7 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 
 			// SERVER OWNER.
 			if ( isset( $_GET['wpcd_server_owner'] ) && ! empty( $_GET['wpcd_server_owner'] ) ) {
-				$wpcd_server_owner = filter_input( INPUT_GET, 'wpcd_server_owner', FILTER_SANITIZE_STRING );
+				$wpcd_server_owner = sanitize_text_field( filter_input( INPUT_GET, 'wpcd_server_owner', FILTER_UNSAFE_RAW ) );
 
 				$parents = get_posts(
 					array(
@@ -1160,7 +1160,7 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 
 			// APP OWNER.
 			if ( isset( $_GET['wpcd_app_owner'] ) && ! empty( $_GET['wpcd_app_owner'] ) ) {
-				$wpcd_app_owner = filter_input( INPUT_GET, 'wpcd_app_owner', FILTER_SANITIZE_STRING );
+				$wpcd_app_owner = sanitize_text_field( filter_input( INPUT_GET, 'wpcd_app_owner', FILTER_UNSAFE_RAW ) );
 
 				$qv['author'] = $wpcd_app_owner;
 
@@ -1168,7 +1168,7 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 
 			// IPv4.
 			if ( isset( $_GET['wpcd_server_ipv4'] ) && ! empty( $_GET['wpcd_server_ipv4'] ) ) {
-				$wpcd_server_ipv4 = filter_input( INPUT_GET, 'wpcd_server_ipv4', FILTER_SANITIZE_STRING );
+				$wpcd_server_ipv4 = sanitize_text_field( filter_input( INPUT_GET, 'wpcd_server_ipv4', FILTER_UNSAFE_RAW ) );
 
 				$parents = $this->get_app_server_ids( 'wpcd_server_ipv4', $wpcd_server_ipv4 );
 
@@ -1180,7 +1180,7 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 
 			// IPv6.
 			if ( isset( $_GET['wpcd_server_ipv6'] ) && ! empty( $_GET['wpcd_server_ipv6'] ) ) {
-				$wpcd_server_ipv6 = filter_input( INPUT_GET, 'wpcd_server_ipv6', FILTER_SANITIZE_STRING );
+				$wpcd_server_ipv6 = sanitize_text_field( filter_input( INPUT_GET, 'wpcd_server_ipv6', FILTER_UNSAFE_RAW ) );
 
 				$parents = $this->get_app_server_ids( 'wpcd_server_ipv6', $wpcd_server_ipv6 );
 
@@ -2027,10 +2027,10 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 		// Permissions check by user to load sites which user has access to view.
 		$current_user_id = get_current_user_id();
 
-		$post_type         = filter_input( INPUT_POST, 'post_type', FILTER_SANITIZE_STRING );
-		$field_key         = filter_input( INPUT_POST, 'field_key', FILTER_SANITIZE_STRING );
-		$first_option      = filter_input( INPUT_POST, 'first_option', FILTER_SANITIZE_STRING );
-		$search_term       = filter_input( INPUT_POST, 'search_term', FILTER_SANITIZE_STRING );
+		$post_type         = sanitize_text_field( filter_input( INPUT_POST, 'post_type', FILTER_UNSAFE_RAW ) );
+		$field_key         = sanitize_text_field( filter_input( INPUT_POST, 'field_key', FILTER_UNSAFE_RAW ) );
+		$first_option      = sanitize_text_field( filter_input( INPUT_POST, 'first_option', FILTER_UNSAFE_RAW ) );
+		$search_term       = sanitize_text_field( filter_input( INPUT_POST, 'search_term', FILTER_UNSAFE_RAW ) );
 		$search_term       = trim( $search_term );
 		$owner_options_arr = array( '0' => __( $first_option, 'wpcd' ) );
 

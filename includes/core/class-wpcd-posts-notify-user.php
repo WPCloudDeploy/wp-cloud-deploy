@@ -544,15 +544,15 @@ class WPCD_NOTIFY_USER extends WPCD_Posts_Base {
 
 		// User alert id.
 		$post_id         = filter_input( INPUT_POST, 'post_id', FILTER_SANITIZE_NUMBER_INT );
-		$profile_name    = filter_input( INPUT_POST, 'profile_name', FILTER_SANITIZE_STRING );
-		$email_addresses = filter_input( INPUT_POST, 'email_addresses', FILTER_SANITIZE_STRING );
-		$slack_webhooks  = filter_input( INPUT_POST, 'slack_webhooks', FILTER_SANITIZE_STRING );
+		$profile_name    = sanitize_text_field( filter_input( INPUT_POST, 'profile_name', FILTER_UNSAFE_RAW ) );
+		$email_addresses = sanitize_text_field( filter_input( INPUT_POST, 'email_addresses', FILTER_UNSAFE_RAW ) );
+		$slack_webhooks  = sanitize_text_field( filter_input( INPUT_POST, 'slack_webhooks', FILTER_UNSAFE_RAW ) );
 		$send_to_zapier  = filter_input( INPUT_POST, 'send_to_zapier', FILTER_SANITIZE_NUMBER_INT );
-		$zapier_webhooks = filter_input( INPUT_POST, 'zapier_webhooks', FILTER_SANITIZE_STRING );
-		$servers         = filter_var_array( $selected_servers, FILTER_SANITIZE_STRING );
-		$sites           = filter_var_array( $selected_sites, FILTER_SANITIZE_STRING );
-		$types           = filter_var_array( $selected_types, FILTER_SANITIZE_STRING );
-		$references      = filter_var_array( $selected_references, FILTER_SANITIZE_STRING );
+		$zapier_webhooks = sanitize_text_field( filter_input( INPUT_POST, 'zapier_webhooks', FILTER_UNSAFE_RAW ) );
+		$servers         = filter_var_array( $selected_servers, FILTER_UNSAFE_RAW );
+		$sites           = filter_var_array( $selected_sites, FILTER_UNSAFE_RAW );
+		$types           = filter_var_array( $selected_types, FILTER_UNSAFE_RAW );
+		$references      = filter_var_array( $selected_references, FILTER_UNSAFE_RAW );
 
 		// Permission check - user access for server ids.
 		if ( ! empty( $servers ) ) {
@@ -720,7 +720,7 @@ class WPCD_NOTIFY_USER extends WPCD_Posts_Base {
 			wp_die();
 		}
 
-		$zapier_webhooks = filter_input( INPUT_POST, 'zapier_webhooks', FILTER_SANITIZE_STRING );
+		$zapier_webhooks = sanitize_text_field( filter_input( INPUT_POST, 'zapier_webhooks', FILTER_UNSAFE_RAW ) );
 
 		$date              = gmdate( 'Y-m-d' );
 		$time              = gmdate( 'H:i:s' );
@@ -1126,7 +1126,7 @@ class WPCD_NOTIFY_USER extends WPCD_Posts_Base {
 
 		// Store custom fields values.
 		$profile_name = '';
-		$profile_name = filter_input( INPUT_POST, 'wpcd_notify_user_profile_name', FILTER_SANITIZE_STRING );
+		$profile_name = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_notify_user_profile_name', FILTER_UNSAFE_RAW ) );
 
 		if ( empty( $profile_name ) ) {
 			$update_profile_name = 'Submitted by ' . $user_login;

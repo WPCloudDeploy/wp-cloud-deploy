@@ -60,7 +60,7 @@ class WPCD_Public_List_Table extends WP_List_Table {
 			)
 		);
 
-		$_status                   = filter_input( INPUT_GET, 'post_status', FILTER_SANITIZE_STRING );
+		$_status                   = sanitize_text_field( filter_input( INPUT_GET, 'post_status', FILTER_UNSAFE_RAW ) );
 		$this->current_post_status = $_status ? $_status : 'all';
 		$post_type                 = $this->post_type;
 

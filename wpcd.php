@@ -641,7 +641,7 @@ class WPCD_Init {
 		$not_loaded_crons = array();
 
 		if ( ! get_transient( 'wpcd_cron_check' ) ) {
-			$wpcd_crons = array( 'do_deferred_actions_for_server', 'do_deferred_actions_for_app', 'wordpress_file_watcher_delete_temp_files', 'scan_new_notifications_to_send', 'clean_up_pending_logs' );
+			$wpcd_crons = array( 'send_email_alert_for_long_pending_tasks', 'do_deferred_actions_for_server', 'do_deferred_actions_for_app', 'wordpress_file_watcher_delete_temp_files', 'scan_new_notifications_to_send', 'clean_up_pending_logs' );
 			$wpcd_crons = apply_filters( 'wpcd_crons_needing_active_check', $wpcd_crons );
 
 			if ( defined( 'WPCD_LOAD_VPN_APP' ) && ( true === WPCD_LOAD_VPN_APP ) ) {

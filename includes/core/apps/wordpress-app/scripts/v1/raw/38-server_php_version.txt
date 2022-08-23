@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+
+if [[ "$EUID" -ne 0 ]]
+then
+	echo "Sorry, you need to run this as root"
+	exit
+fi
+
+## Get our common functions
+if [[ ! -f 9999-common-functions.sh ]]
+then
+	echo "The file 9999-common-functions.sh is missing"
+	exit 1
+fi
+source 9999-common-functions.sh
+
+# Get the version of PHP that should be activated for the server.
+if [[ -z $server_php_version ]]; then
+	echo
+	echo "Specify the new PHP version"
+	read -p "New PHP Version: " server_php_version
+fi
+
+# Now change the version based on the type of web server we're on.
+if [ "$g_webserver_type" = "nginx" ]
+then
+	sudo update-alternatives --set php /usr/bin/php$server_php_version
+	echo "Server level PHP version has been updated to $server_php_version for webserver type $g_webserver_type"
+	exit
+fi
+
+if [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+then
+
+	# Remove everything
+	sudo update-alternatives --remove-all php
+	sudo update-alternatives --remove-all phar
+	sudo update-alternatives --remove-all phar.phar
+	sudo update-alternatives --remove-all pecl
+	sudo update-alternatives --remove-all pear
+	
+	# Add it all back.
+	sudo update-alternatives --install /usr/bin/php php /usr/local/lsws/$server_php_version/bin/php 111
+	sudo update-alternatives --install /usr/bin/phar phar /usr/local/lsws/$server_php_version/bin/phar 111
+	sudo update-alternatives --install /usr/bin/phar.phar phar.phar /usr/local/lsws/$server_php_version/bin/phar.phar 111
+	sudo update-alternatives --install /usr/bin/pecl pecl /usr/local/lsws/$server_php_version/bin/pecl 111
+	sudo update-alternatives --install /usr/lib/pear pear /usr/local/lsws/$server_php_version/bin/pear 111
+
+	echo "Server level PHP version has been updated to $server_php_version for webserver type $g_webserver_type"
+	exit
+fi
+
+# If you get here then something went wrong.
+echo "Looks like something unexpected occurred if you're seeing this message!"
+

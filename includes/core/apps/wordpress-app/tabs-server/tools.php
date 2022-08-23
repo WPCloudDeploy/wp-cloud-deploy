@@ -218,12 +218,12 @@ class WPCD_WORDPRESS_TABS_SERVER_TOOLS extends WPCD_WORDPRESS_TABS {
 			'label'          => __( 'Set PHP Default Version', 'wpcd' ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
-				'desc' => __( 'The default PHP version should be PHP 7.4.  However some automatic security upgrades might set this to PHP 8.0 which will break things - badly!  Use this to reset the default PHP version to 7.4.', 'wpcd' ),
+				'desc' => __( 'The server level default PHP version should be PHP 7.4. This is the PHP version used to run all WP-CLI commands or other server level PHP scripts not running directly inside WordPress. If you set this to something other than the default 7.4 you could potentially break things - badly!', 'wpcd' ),
 			),
 		);
 
 		$actions['reset-server-default-php-version-select'] = array(
-			'label'          => __( 'PHP Version', 'wpcd' ),
+			'label'          => __( 'New Server Default PHP Version', 'wpcd' ),
 			'type'           => 'select',
 			'raw_attributes' => array(
 				'options'        => array(
@@ -369,6 +369,40 @@ class WPCD_WORDPRESS_TABS_SERVER_TOOLS extends WPCD_WORDPRESS_TABS {
 			// What type of web server are we running?
 			$webserver_type = $this->get_web_server_type( $id );
 
+			// Based on the webserver type the actual php version we pass in is slightly different.
+			$server_php_version = '';
+
+			switch ( $webserver_type ) {
+				case 'ols':
+				case 'ols-enterprise':
+					$server_php_version = 'lsphp' . $new_php_version_no_periods;
+					break;
+
+				case 'nginx':
+				default:
+					$server_php_version = $new_php_version;
+					break;
+			}
+
+			// Add the new version var to the args array - this is what the bash script will expect in the environment vars.
+			$args['server_php_version'] = $server_php_version;
+
+			// Get the full command to be executed by ssh.
+			$run_cmd = $this->turn_script_into_command( $instance, 'server_php_version.txt', array_merge( $args, array( 'action' => $action ) ) );
+
+			// Log what we're doing.
+			do_action( 'wpcd_log_error', sprintf( 'attempting to run command for %s = %s ', print_r( $instance, true ), $run_cmd ), 'trace', __FILE__, __LINE__, $instance, false );
+
+			// Run the command.
+			$result2_1 = $this->execute_ssh( 'generic', $instance, array( 'commands' => $run_cmd ) );
+			$success   = $this->is_ssh_successful( $result2_1, 'server_php_version.txt' );
+			if ( ! $success ) {
+				$result2 = $result2_1;
+			} else {
+				$result2 = __( 'It looks like the attempt to change the PHP version may have been successful - see SSH logs for the full log of this action.', 'wpcd' );
+			}
+
+			/*
 			switch ( $webserver_type ) {
 				case 'ols':
 				case 'ols-enterprise':
@@ -394,7 +428,7 @@ class WPCD_WORDPRESS_TABS_SERVER_TOOLS extends WPCD_WORDPRESS_TABS {
 					break;
 
 			}
-
+			*/
 			// And check version again.
 			$result3 = $this->execute_ssh( 'generic', $instance, array( 'commands' => 'sudo php --version' ) );
 

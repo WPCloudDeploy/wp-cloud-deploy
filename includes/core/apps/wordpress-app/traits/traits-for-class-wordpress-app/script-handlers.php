@@ -597,6 +597,10 @@ trait wpcd_wpapp_script_handlers {
 				||
 				( strpos( $result, 'Security Updates have been scheduled to run via cron' ) !== false );
 				break;
+			case 'server_php_version.txt':
+				$return =
+				( strpos( $result, 'Server level PHP version has been updated to' ) !== false );
+				break;
 
 			/**************************************************************
 			* The items below this are SERVER SYNC items, not APP items   *
@@ -1353,6 +1357,16 @@ trait wpcd_wpapp_script_handlers {
 					array(
 						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/29-server_update.txt',
 						'SCRIPT_NAME' => '29-server_update.sh',
+					),
+					$common_array,
+					$additional
+				);
+				break;
+			case 'server_php_version.txt':
+				$new_array = array_merge(
+					array(
+						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/38-server_php_version.txt',
+						'SCRIPT_NAME' => '38-server_php_version.sh',
 					),
 					$common_array,
 					$additional

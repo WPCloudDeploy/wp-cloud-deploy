@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 "Project-Id-Version: WP Cloud Deploy\n"
-"POT-Creation-Date: 2022-08-01 00:36-0500\n"
+"POT-Creation-Date: 2022-08-23 02:41-0500\n"
 "PO-Revision-Date: 2020-08-14 19:38-0500\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -361,7 +361,7 @@ msgstr ""
 
 #: includes/core/apps/basic-server/class-basic-server-app.php:1297
 #: includes/core/class-wpcd-posts-app.php:565
-#: includes/core/class-wpcd-posts-pending-tasks-log.php:260
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:264
 #: includes/core/class-wpcd-posts-ssh-log.php:206
 msgid "Server"
 msgstr ""
@@ -844,7 +844,7 @@ msgid "Copy To Existing Site"
 msgstr ""
 
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:384
-#: includes/core/apps/wordpress-app/tabs/crons.php:52
+#: includes/core/apps/wordpress-app/tabs/crons.php:56
 msgid "Crons"
 msgstr ""
 
@@ -869,7 +869,7 @@ msgstr ""
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1280
 #: includes/core/apps/wordpress-app/tabs/misc.php:68
 #: includes/core/class-wpcd-posts-notify-user.php:935
-#: includes/core/class-wpcd-settings.php:1157
+#: includes/core/class-wpcd-settings.php:1164
 msgid "Misc"
 msgstr ""
 
@@ -938,8 +938,8 @@ msgstr ""
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:550
 #: includes/core/apps/wordpress-app/tabs-server/tools.php:57
 #: includes/core/apps/wordpress-app/tabs/tools.php:59
-#: includes/core/class-wpcd-settings.php:760
-#: includes/core/class-wpcd-settings.php:1159
+#: includes/core/class-wpcd-settings.php:767
+#: includes/core/class-wpcd-settings.php:1166
 msgid "Tools"
 msgstr ""
 
@@ -1092,7 +1092,7 @@ msgstr ""
 
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:548
 #: includes/core/apps/wordpress-app/tabs-server/sshkeys.php:180
-#: includes/core/class-wpcd-settings.php:1415
+#: includes/core/class-wpcd-settings.php:1422
 msgid "SSH Keys"
 msgstr ""
 
@@ -1429,7 +1429,7 @@ msgid ""
 msgstr ""
 
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1086
-#: includes/core/class-wpcd-settings.php:711
+#: includes/core/class-wpcd-settings.php:718
 msgid "Labels"
 msgstr ""
 
@@ -2268,7 +2268,7 @@ msgid ""
 msgstr ""
 
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1843
-#: includes/core/class-wpcd-settings.php:1349
+#: includes/core/class-wpcd-settings.php:1356
 msgid "API Key"
 msgstr ""
 
@@ -2471,7 +2471,7 @@ msgstr ""
 #: includes/core/apps/wordpress-app/tabs/site-system-users.php:228
 #: includes/core/apps/wordpress-app/tabs/wp-site-users.php:198
 #: includes/core/apps/wordpress-app/tabs/wp-site-users.php:295
-#: includes/core/class-wpcd-settings.php:883
+#: includes/core/class-wpcd-settings.php:890
 msgid "Password"
 msgstr ""
 
@@ -2742,8 +2742,8 @@ msgstr ""
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2408
 #: includes/core/class-wpcd-posts-log.php:167
 #: includes/core/class-wpcd-posts-notify-user.php:468
-#: includes/core/class-wpcd-settings.php:1080
-#: includes/core/class-wpcd-settings.php:1092
+#: includes/core/class-wpcd-settings.php:1087
+#: includes/core/class-wpcd-settings.php:1099
 #: includes/templates/notify_user_form_popup.php:133
 #: includes/templates/notify_user_form_popup.php:237
 msgid "Please wait..."
@@ -2951,93 +2951,89 @@ msgstr ""
 msgid "Admin Login"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:1599
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:1612
 msgid "View site"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:1698
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:1725
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:1711
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:1738
 msgid "The command has completed."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:1699
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:1712
 msgid "Checking server for updated progress information..."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:1700
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:1713
 msgid ""
 "Last progress check resulted in no new data. The operation seems to still be "
 "in progress. However, if you see this error more than 10 times or so, it "
 "might be because the connection to the WordPress server has been severed."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:1724
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:1737
 #: includes/core/apps/wordpress-app/public/class-wordpress-app-public.php:703
 #: includes/core/apps/wordpress-app/templates/create-popup.php:47
 msgid "Deploy A New WordPress Server"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:1751
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:1764
 #: includes/core/apps/wordpress-app/public/class-wordpress-app-public.php:266
 #: includes/core/apps/wordpress-app/public/class-wordpress-app-public.php:272
 msgid "You are not allowed to perform this operation on this app."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:1810
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:1823
 msgid "Invalid server ID"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:1816
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:1829
 msgid "Invalid server"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:1832
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:1845
 msgid "Invalid site ID"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:1838
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:1851
 msgid "Invalid app"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:1844
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:1857
 msgid "No server found"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:1864
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:1959
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:1877
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:1972
 msgid ""
 "You don't have access to provision a server. Perhaps you're not logged in?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:1924
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2086
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:1937
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2095
 msgid "You don't have permission to install WordPress on this server."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:1981
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:1994
 msgid ""
 "If you are seeing this message, something went very wrong at the start of "
 "the create a new server process. However, we are unable to be more specific "
 "at this time about its root cause."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2002
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2015
 msgid "Invalid OS - security issue?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2010
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2023
 msgid "Invalid Webserver type - security issue?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2019
-msgid "OpenLiteSpeed is not yet supported on Ubuntu 22.04 LTS."
-msgstr ""
-
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2023
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2032
 msgid "OpenLiteSpeed is not yet supported on Ubuntu 18.04 LTS."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2032
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2041
 msgid ""
 "Waiting for the server to startup...<br />We recommend that you do NOT exit "
 "this screen until you see a pop-up indicating that the installation is "
@@ -3048,7 +3044,7 @@ msgid ""
 "progress reports."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2043
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2052
 #, php-format
 msgid ""
 "Unfortunately we could not start deploying this server - most likely because "
@@ -3057,67 +3053,67 @@ msgid ""
 "and then retry the operation.<br />%s"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2101
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2110
 msgid ""
 "Please fill out all the requested data - we cannot create a site without all "
 "the requested data!  Please close this screen and try again."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2109
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2118
 msgid ""
 "Waiting for the installation to begin...<br />Do not exit this screen until "
 "you see a popup indicating that the installation is complete."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2120
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2129
 msgid "Missing required parameter."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2127
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2136
 msgid "Invalid post type."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2133
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2142
 msgid "You are not allowed to perform this operation on this server."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2145
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2154
 msgid "Status sync completed."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2258
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2267
 msgid "This domain already exists in our system."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2274
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2283
 msgid "The password for the site contains invalid characters."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2279
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2288
 msgid "The email address for the site contains invalid characters."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2283
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2292
 msgid "The user name for the site contains invalid characters."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2340
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2349
 msgid ""
 "There are some invalid data in this create site request. Please correct and "
 "try again."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2672
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2681
 msgid "Waiting To Install Page Cache For New Site"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2858
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2867
 msgid ""
 "Here are the basic steps needed to build your first server and deploy your "
 "first WordPress site:"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2862
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2871
 msgid ""
 "Double-check that your current web server where this plugin is deployed has "
 "the appropriate timeouts as listed at the bottom of this screen. You will "
@@ -3125,98 +3121,98 @@ msgid ""
 "increased."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2865
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2874
 msgid ""
 "Make sure you have created and uploaded an SSH key pair to your server "
 "providers' dashboard."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2868
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2877
 msgid "Generate an API key in your server providers' dashboard."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2871
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2880
 msgid ""
 "Add your cloud server provider API key and other credentials to the WPCLOUD "
 "DEPLOY->SETTINGS screen - under the CLOUD PROVIDERS tab / menu."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2874
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2883
 msgid ""
 "Click on the ALL CLOUD SERVERS menu option and use the DEPLOY A NEW "
 "WordPress SERVER button to deploy a server."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2877
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2886
 msgid ""
 "After the server is deployed, go back to the ALL CLOUD SERVERS menu option "
 "and click the INSTALL WordPress button in the server list."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2882
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2891
 msgid "Quick Start Guide"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2888
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2897
 msgid "Deploy Your First WordPress Site"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2921
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2930
 msgid ""
 "To create a new server, first make sure you add your cloud provider "
 "credentials under the SETTINGS screen."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2923
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2932
 msgid ""
 "Then, you can click the DEPLOY A NEW WordPress SERVER button at the top of "
 "this screen to create your first server."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:3031
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:3052
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:3040
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:3061
 #: includes/core/class-wpcd-posts-app-server.php:200
 #: includes/core/class-wpcd-posts-app-server.php:337
 msgid "Loading"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:3078
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:3087
 #: includes/core/apps/wordpress-app/tabs/misc.php:396
 msgid ""
 "Are you sure you would like to delete this site and data? This action is NOT "
 "reversible!"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:3079
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:3088
 #: includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/admin-columns.php:108
 #: includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/admin-columns.php:537
 msgid "Install WordPress"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:3082
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:3091
 #: includes/core/class-wpcd-posts-app-server.php:218
 msgid "Are you sure you want to perform this bulk action?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:3251
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:3260
 msgid "You are not authorized to perform this action - dismiss readable check."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:3287
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:3296
 msgid ""
 "You are not authorized to perform this action - do readable check again."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:3294
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:3303
 msgid "Readable check successful!"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:3299
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:3308
 msgid "Readable check failed!"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:3324
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:3344
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:3333
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:3353
 #: includes/core/apps/wordpress-app/tabs-server/backup.php:327
 #: includes/core/apps/wordpress-app/tabs-server/backup.php:343
 #: includes/core/apps/wordpress-app/tabs-server/backup.php:483
@@ -3251,7 +3247,7 @@ msgstr ""
 #: includes/core/apps/wordpress-app/tabs/backup.php:558
 #: includes/core/apps/wordpress-app/tabs/cache.php:457
 #: includes/core/apps/wordpress-app/tabs/cache.php:530
-#: includes/core/apps/wordpress-app/tabs/crons.php:224
+#: includes/core/apps/wordpress-app/tabs/crons.php:228
 #: includes/core/apps/wordpress-app/tabs/misc.php:276
 #: includes/core/apps/wordpress-app/tabs/misc.php:334
 #: includes/core/apps/wordpress-app/tabs/misc.php:497
@@ -3273,8 +3269,8 @@ msgstr ""
 msgid "Enabled"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:3325
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:3345
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:3334
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:3354
 #: includes/core/apps/wordpress-app/tabs-server/backup.php:326
 #: includes/core/apps/wordpress-app/tabs-server/backup.php:344
 #: includes/core/apps/wordpress-app/tabs-server/backup.php:484
@@ -3309,7 +3305,7 @@ msgstr ""
 #: includes/core/apps/wordpress-app/tabs/backup.php:559
 #: includes/core/apps/wordpress-app/tabs/cache.php:458
 #: includes/core/apps/wordpress-app/tabs/cache.php:531
-#: includes/core/apps/wordpress-app/tabs/crons.php:225
+#: includes/core/apps/wordpress-app/tabs/crons.php:229
 #: includes/core/apps/wordpress-app/tabs/misc.php:277
 #: includes/core/apps/wordpress-app/tabs/misc.php:335
 #: includes/core/apps/wordpress-app/tabs/misc.php:498
@@ -3332,49 +3328,49 @@ msgstr ""
 msgid "Disabled"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:3327
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:3336
 msgid "App Status"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:3339
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:3348
 #: includes/core/apps/wordpress-app/tabs-server/tools.php:226
 #: includes/core/apps/wordpress-app/tabs/php-options.php:327
 msgid "PHP Version"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:3347
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:3356
 #: includes/core/apps/wordpress-app/tabs/cache.php:433
 msgid "Page Cache"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:3350
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:3359
 msgid "Object Cache"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:3355
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:3364
 #: includes/templates/notify_user_alert_list.php:62
 msgid "Yes"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:3356
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:3365
 #: includes/templates/notify_user_alert_list.php:62
 msgid "No"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:3358
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:3367
 msgid "Site Needs Updates"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:3635
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:3644
 msgid "You are not authorized to perform this action - dismiss cron check."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:3657
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:3666
 msgid ""
 "You are not authorized to perform this action - dismiss php version check."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:3679
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:3688
 msgid ""
 "You are not authorized to perform this action - dismiss localhost check."
 msgstr ""
@@ -3452,7 +3448,7 @@ msgstr ""
 #: includes/core/class-wpcd-posts-notify-log.php:343
 #: includes/core/class-wpcd-posts-notify-sent-log.php:214
 #: includes/core/class-wpcd-posts-notify-user.php:415
-#: includes/core/class-wpcd-posts-pending-tasks-log.php:263
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:267
 #: includes/core/class-wpcd-posts-ssh-log.php:209
 #: includes/core/class-wpcd-posts-team.php:745
 msgid "Date"
@@ -3473,7 +3469,7 @@ msgstr ""
 
 #: includes/core/apps/wordpress-app/public/class-server-apps-table.php:103
 #: includes/core/apps/wordpress-app/public/class-servers-list-table.php:103
-#: includes/core/class-wpcd-settings.php:2390
+#: includes/core/class-wpcd-settings.php:2397
 msgid "Restore"
 msgstr ""
 
@@ -3698,8 +3694,8 @@ msgstr ""
 #: includes/core/apps/wordpress-app/tabs/clone-site.php:247
 #: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:113
 #: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:120
-#: includes/core/apps/wordpress-app/tabs/crons.php:109
-#: includes/core/apps/wordpress-app/tabs/crons.php:116
+#: includes/core/apps/wordpress-app/tabs/crons.php:113
+#: includes/core/apps/wordpress-app/tabs/crons.php:120
 #: includes/core/apps/wordpress-app/tabs/general.php:106
 #: includes/core/apps/wordpress-app/tabs/general.php:113
 #: includes/core/apps/wordpress-app/tabs/logs.php:95
@@ -3967,7 +3963,7 @@ msgstr ""
 #: includes/core/class-wpcd-email-notifications.php:792
 #: includes/core/class-wpcd-email-notifications.php:1777
 #: includes/core/class-wpcd-email-notifications.php:1795
-#: includes/core/class-wpcd-settings.php:2386
+#: includes/core/class-wpcd-settings.php:2393
 #: includes/templates/notify_user_alert_list.php:44
 #: includes/templates/notify_user_alert_list.php:71
 msgid "Delete"
@@ -4053,7 +4049,7 @@ msgstr ""
 #: includes/core/apps/wordpress-app/tabs/change-domain.php:524
 #: includes/core/apps/wordpress-app/tabs/clone-site.php:302
 #: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:188
-#: includes/core/apps/wordpress-app/tabs/crons.php:255
+#: includes/core/apps/wordpress-app/tabs/crons.php:281
 #: includes/core/apps/wordpress-app/tabs/logs.php:228
 #: includes/core/apps/wordpress-app/tabs/logs.php:249
 #: includes/core/apps/wordpress-app/tabs/misc.php:774
@@ -4111,7 +4107,7 @@ msgstr ""
 #: includes/core/apps/wordpress-app/tabs-server/backup.php:1048
 #: includes/core/apps/wordpress-app/tabs-server/backup.php:1107
 #: includes/core/apps/wordpress-app/tabs/backup.php:924
-#: includes/core/apps/wordpress-app/tabs/crons.php:291
+#: includes/core/apps/wordpress-app/tabs/crons.php:321
 #: includes/core/apps/wordpress-app/tabs/misc.php:799
 #: includes/core/apps/wordpress-app/tabs/misc.php:928
 #: includes/core/apps/wordpress-app/tabs/misc.php:1011
@@ -5801,12 +5797,12 @@ msgstr ""
 #: includes/core/class-wpcd-posts-app-server.php:2131
 #: includes/core/class-wpcd-posts-app.php:1847
 #: includes/core/class-wpcd-posts-cloud-provider.php:275
-#: includes/core/class-wpcd-settings.php:1900
-#: includes/core/class-wpcd-settings.php:1934
-#: includes/core/class-wpcd-settings.php:1995
-#: includes/core/class-wpcd-settings.php:2436
-#: includes/core/class-wpcd-settings.php:2464
-#: includes/core/class-wpcd-settings.php:2490
+#: includes/core/class-wpcd-settings.php:1907
+#: includes/core/class-wpcd-settings.php:1941
+#: includes/core/class-wpcd-settings.php:2002
+#: includes/core/class-wpcd-settings.php:2443
+#: includes/core/class-wpcd-settings.php:2471
+#: includes/core/class-wpcd-settings.php:2497
 #: includes/core/class-wpcd-sync.php:148 includes/core/class-wpcd-sync.php:199
 #: includes/core/class-wpcd-sync.php:784 includes/core/class-wpcd-sync.php:1079
 msgid ""
@@ -6410,8 +6406,8 @@ msgstr ""
 #: includes/core/apps/wordpress-app/tabs/change-domain.php:756
 #: includes/core/class-wpcd-email-notifications.php:721
 #: includes/core/class-wpcd-email-notifications.php:767
-#: includes/core/class-wpcd-settings.php:1360
-#: includes/core/class-wpcd-settings.php:1502
+#: includes/core/class-wpcd-settings.php:1367
+#: includes/core/class-wpcd-settings.php:1509
 msgid "Notes"
 msgstr ""
 
@@ -9383,45 +9379,45 @@ msgstr ""
 msgid "Settings have been saved for this site."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/crons.php:177
+#: includes/core/apps/wordpress-app/tabs/crons.php:181
 msgid ""
 "Are you sure you would like to disable the Linux cron for this site? This "
 "will re-enable the native WordPress Cron process."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/crons.php:179
+#: includes/core/apps/wordpress-app/tabs/crons.php:183
 msgid ""
 "Are you sure you would like to enable a native Linux cron process for this "
 "site?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/crons.php:189
-#: includes/core/apps/wordpress-app/tabs/crons.php:222
+#: includes/core/apps/wordpress-app/tabs/crons.php:193
+#: includes/core/apps/wordpress-app/tabs/crons.php:226
 msgid "Linux Cron"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/crons.php:192
+#: includes/core/apps/wordpress-app/tabs/crons.php:196
 msgid ""
 "Enable a Linux cron process and disable the native WordPress cron process.  "
 "This can bypass several limitations in the native WordPress cron process and "
 "ensure that future background processes kick off in a more timely manner. "
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/crons.php:199
+#: includes/core/apps/wordpress-app/tabs/crons.php:203
 msgid "Interval"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/crons.php:200
+#: includes/core/apps/wordpress-app/tabs/crons.php:204
 msgid ""
 "How often should we run background processes in WordPress?  We recommend one "
 "minute."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/crons.php:228
+#: includes/core/apps/wordpress-app/tabs/crons.php:232
 msgid "Click to enable Cron"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/crons.php:228
+#: includes/core/apps/wordpress-app/tabs/crons.php:232
 #, php-format
 msgid "Click to disable Linux Cron (%s)"
 msgstr ""
@@ -10811,7 +10807,7 @@ msgstr ""
 
 #. translators: %s: A link to the help documentation for providers.
 #: includes/core/apps/wordpress-app/tabs/statistics.php:302
-#: includes/core/class-wpcd-settings.php:1261
+#: includes/core/class-wpcd-settings.php:1268
 #, php-format
 msgid "%s"
 msgstr ""
@@ -13004,12 +13000,12 @@ msgid "Adding..."
 msgstr ""
 
 #: includes/core/class-wpcd-email-notifications.php:306
-#: includes/core/class-wpcd-settings.php:1869
+#: includes/core/class-wpcd-settings.php:1876
 msgid "Deleting..."
 msgstr ""
 
 #: includes/core/class-wpcd-email-notifications.php:307
-#: includes/core/class-wpcd-settings.php:1871
+#: includes/core/class-wpcd-settings.php:1878
 msgid "Saving..."
 msgstr ""
 
@@ -13925,7 +13921,7 @@ msgid "App Health"
 msgstr ""
 
 #: includes/core/class-wpcd-posts-app.php:573
-#: includes/core/class-wpcd-settings.php:726
+#: includes/core/class-wpcd-settings.php:733
 msgid "IPv6"
 msgstr ""
 
@@ -14356,15 +14352,15 @@ msgstr ""
 #: includes/core/class-wpcd-posts-notify-log.php:271
 #: includes/core/class-wpcd-posts-notify-sent-log.php:138
 #: includes/core/class-wpcd-posts-notify-sent-log.php:141
-#: includes/core/class-wpcd-posts-pending-tasks-log.php:187
-#: includes/core/class-wpcd-posts-pending-tasks-log.php:190
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:191
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:194
 msgid "Parent post not found"
 msgstr ""
 
 #: includes/core/class-wpcd-posts-command-log.php:212
 #: includes/core/class-wpcd-posts-notify-log.php:337
 #: includes/core/class-wpcd-posts-notify-sent-log.php:208
-#: includes/core/class-wpcd-posts-pending-tasks-log.php:254
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:258
 msgid "Owner/Parent"
 msgstr ""
 
@@ -14373,7 +14369,7 @@ msgstr ""
 #: includes/core/class-wpcd-posts-notify-log.php:338
 #: includes/core/class-wpcd-posts-notify-sent-log.php:209
 #: includes/core/class-wpcd-posts-notify-user.php:411
-#: includes/core/class-wpcd-posts-pending-tasks-log.php:255
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:259
 msgid "Type"
 msgstr ""
 
@@ -14385,6 +14381,7 @@ msgstr ""
 #: includes/core/class-wpcd-posts-notify-log.php:340
 #: includes/core/class-wpcd-posts-notify-sent-log.php:211
 #: includes/core/class-wpcd-posts-notify-user.php:412
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:1255
 #: includes/templates/pending_tasks_log.php:48
 msgid "Reference"
 msgstr ""
@@ -14606,12 +14603,12 @@ msgid "Notification Log list"
 msgstr ""
 
 #: includes/core/class-wpcd-posts-notify-log.php:160
-#: includes/core/class-wpcd-posts-pending-tasks-log.php:288
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:292
 msgid "All Types"
 msgstr ""
 
 #: includes/core/class-wpcd-posts-notify-log.php:164
-#: includes/core/class-wpcd-posts-pending-tasks-log.php:300
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:304
 msgid "All References"
 msgstr ""
 
@@ -15065,58 +15062,58 @@ msgid ""
 "selected servers/sites."
 msgstr ""
 
-#: includes/core/class-wpcd-posts-pending-tasks-log.php:97
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:101
 msgctxt "Post type general name"
 msgid "Pending Tasks"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-pending-tasks-log.php:98
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:102
 msgctxt "Post type singular name"
 msgid "Pending Task"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-pending-tasks-log.php:99
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:103
 msgctxt "Admin Menu text"
 msgid "Pending Task"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-pending-tasks-log.php:100
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:104
 msgctxt "Add New on Toolbar"
 msgid "Pending Task"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-pending-tasks-log.php:101
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:105
 msgid "Edit Pending Task"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-pending-tasks-log.php:102
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:106
 msgid "View Pending Task"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-pending-tasks-log.php:103
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:107
 msgid "Pending Tasks"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-pending-tasks-log.php:104
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:108
 msgid "Search Pending Task Log"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-pending-tasks-log.php:105
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:109
 msgid "No Pending Task Logs were found."
 msgstr ""
 
-#: includes/core/class-wpcd-posts-pending-tasks-log.php:106
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:110
 msgid "No Pending Task Logs were found in Trash."
 msgstr ""
 
-#: includes/core/class-wpcd-posts-pending-tasks-log.php:107
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:111
 msgctxt ""
 "Screen reader text for the filter links heading on the post type listing "
 "screen. Default \"Filter posts list\"/\"Filter pages list\". Added in 4.4"
 msgid "Filter Pending Tasks Log list"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-pending-tasks-log.php:108
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:112
 msgctxt ""
 "Screen reader text for the pagination heading on the post type listing "
 "screen. Default \"Posts list navigation\"/\"Pages list navigation\". Added "
@@ -15124,58 +15121,61 @@ msgctxt ""
 msgid "Pending Tasks Log list navigation"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-pending-tasks-log.php:109
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:113
 msgctxt ""
 "Screen reader text for the items list heading on the post type listing "
 "screen. Default \"Posts list\"/\"Pages list\". Added in 4.4"
 msgid "Pending Task list"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-pending-tasks-log.php:204
-#: includes/core/class-wpcd-posts-pending-tasks-log.php:207
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:208
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:211
 msgid "No Server"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-pending-tasks-log.php:256
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:260
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:1252
 #: includes/templates/pending_tasks_log.php:33
 msgid "Key"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-pending-tasks-log.php:257
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:261
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:1253
 #: includes/templates/pending_tasks_log.php:38
 msgid "State"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-pending-tasks-log.php:258
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:262
 msgid "Attempts"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-pending-tasks-log.php:259
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:263
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:1256
 #: includes/templates/pending_tasks_log.php:53
 msgid "Comment"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-pending-tasks-log.php:261
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:265
 msgid "Start Date"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-pending-tasks-log.php:262
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:266
 msgid "Complete Date"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-pending-tasks-log.php:292
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:296
 msgid "All States"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-pending-tasks-log.php:296
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:300
 msgid "All Parents"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-pending-tasks-log.php:409
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:413
 msgid "Pending Tasks Log"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-pending-tasks-log.php:803
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:807
 #, php-format
 msgid ""
 "The PENDING TASKS background process is skipping tasks on the server with ID "
@@ -15183,36 +15183,78 @@ msgid ""
 "process."
 msgstr ""
 
-#: includes/core/class-wpcd-posts-pending-tasks-log.php:821
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:825
 msgid "Reset state to READY"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-pending-tasks-log.php:822
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:826
 msgid "Reset state to IN-PROCESS"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-pending-tasks-log.php:823
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:827
 msgid "Mark as Complete"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-pending-tasks-log.php:824
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:828
 msgid "Mark as Failed"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-pending-tasks-log.php:963
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:967
 #, php-format
 msgid ""
 "A pending task with id %s was marked as failed because it took too long to "
 "complete."
 msgstr ""
 
-#: includes/core/class-wpcd-posts-pending-tasks-log.php:970
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:974
 #, php-format
 msgid "Stuck pending log cleaned up successfully.(%s)"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-pending-tasks-log.php:985
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:989
 msgid "Pending logs cleaned up successfully."
+msgstr ""
+
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:1235
+msgid ""
+"The following background tasks (aka pending task) have been started but are "
+"taking a long time to complete.  You should take a look and see if there is "
+"an issue that is preventing them from completing properly."
+msgstr ""
+
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:1251
+#: includes/templates/pending_tasks_log.php:28
+msgid "Pending Task Type"
+msgstr ""
+
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:1254
+#: includes/templates/pending_tasks_log.php:43
+msgid "Attempts To Complete"
+msgstr ""
+
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:1257
+#: includes/templates/pending_tasks_log.php:67
+msgid "Date Started"
+msgstr ""
+
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:1258
+#: includes/templates/command_log.php:43
+#: includes/templates/pending_tasks_log.php:82
+msgid "Log Owner or Parent ID"
+msgstr ""
+
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:1259
+#: includes/templates/pending_tasks_log.php:86
+msgid "Parent Post Type"
+msgstr ""
+
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:1260
+#: includes/templates/pending_tasks_log.php:90
+msgid "Associated Server ID"
+msgstr ""
+
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:1268
+msgid "One or more background tasks are taking a long time to complete."
 msgstr ""
 
 #: includes/core/class-wpcd-posts-permission-type.php:82
@@ -15956,7 +15998,7 @@ msgid ""
 msgstr ""
 
 #: includes/core/class-wpcd-settings.php:203
-#: includes/core/class-wpcd-settings.php:1158
+#: includes/core/class-wpcd-settings.php:1165
 msgid "Logging and Tracing"
 msgstr ""
 
@@ -16138,7 +16180,7 @@ msgid ""
 msgstr ""
 
 #: includes/core/class-wpcd-settings.php:409
-#: includes/core/class-wpcd-settings.php:1064
+#: includes/core/class-wpcd-settings.php:1071
 msgid "Timeout"
 msgstr ""
 
@@ -16189,31 +16231,50 @@ msgstr ""
 
 #: includes/core/class-wpcd-settings.php:488
 #: includes/core/class-wpcd-settings.php:494
-msgid "Cron Warning Emails"
+msgid "Warning Emails"
 msgstr ""
 
 #: includes/core/class-wpcd-settings.php:495
-msgid "Control emails sent to Admin when Crons fail to run"
+msgid "Control emails sent to Admin when certain actions fail to run"
 msgstr ""
 
 #: includes/core/class-wpcd-settings.php:498
 msgid "Do Not Send Cron Warning Emails?"
 msgstr ""
 
+#: includes/core/class-wpcd-settings.php:501
+msgid ""
+"Emails are sent when we detect that certain critical processes are not "
+"running as scheduled. This flag disables those emails. It is useful to "
+"disable these messages if the emails are constantly being sent but are false "
+"postitives."
+msgstr ""
+
+#: includes/core/class-wpcd-settings.php:504
+msgid "Do Not Send Pending Log Warning Emails?"
+msgstr ""
+
 #: includes/core/class-wpcd-settings.php:507
-#: includes/core/class-wpcd-settings.php:513
-msgid "Share Statistics"
+msgid ""
+"Emails are sent when we detect that there are pending tasks that have "
+"started but not completed in a reasonable time. This option disables those "
+"emails."
 msgstr ""
 
 #: includes/core/class-wpcd-settings.php:514
+#: includes/core/class-wpcd-settings.php:520
+msgid "Share Statistics"
+msgstr ""
+
+#: includes/core/class-wpcd-settings.php:521
 msgid "Opt out of sharing site statistics."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:517
+#: includes/core/class-wpcd-settings.php:524
 msgid "Do Not Share Site Statistics"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:520
+#: includes/core/class-wpcd-settings.php:527
 msgid ""
 "Data Shared: Current theme & Version, Current WPCD Version, Site Name, "
 "WordPress Version, Site Language, Active and Inactive Plugins, System Email, "
@@ -16221,77 +16282,77 @@ msgid ""
 "privacy policy for more information."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:532
+#: includes/core/class-wpcd-settings.php:539
 msgid "All Cloud Providers"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:547
-#: includes/core/class-wpcd-settings.php:1155
+#: includes/core/class-wpcd-settings.php:554
+#: includes/core/class-wpcd-settings.php:1162
 msgid "Fields"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:553
+#: includes/core/class-wpcd-settings.php:560
 msgid "Server List Fields"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:554
+#: includes/core/class-wpcd-settings.php:561
 msgid ""
 "Some columns on the server list are hidden. Use the options below to show "
 "them."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:559
-#: includes/core/class-wpcd-settings.php:619
+#: includes/core/class-wpcd-settings.php:566
+#: includes/core/class-wpcd-settings.php:626
 msgid "Show the short description column?"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:564
+#: includes/core/class-wpcd-settings.php:571
 msgid "Show the instance id as a separate column?"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:565
+#: includes/core/class-wpcd-settings.php:572
 msgid ""
 "The instance id is normally shown under the PROVIDER DETAILS column. If you "
 "want it as a separate column, turn this flag on."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:570
+#: includes/core/class-wpcd-settings.php:577
 msgid "HIDE the instance id from the server list?"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:571
+#: includes/core/class-wpcd-settings.php:578
 msgid ""
 "The instance id is normally shown under the PROVIDER DETAILS column. Check "
 "this field to not display it at all. Note that this applies only to non-"
 "admins.  It will always display for admins."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:576
+#: includes/core/class-wpcd-settings.php:583
 msgid "Show the region as a separate column?"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:577
+#: includes/core/class-wpcd-settings.php:584
 msgid ""
 "The region is normally shown under the PROVIDER DETAILS column. If you want "
 "it as a separate column, turn this flag on."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:582
-#: includes/core/class-wpcd-settings.php:624
+#: includes/core/class-wpcd-settings.php:589
+#: includes/core/class-wpcd-settings.php:631
 msgid "Show the date column?"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:583
+#: includes/core/class-wpcd-settings.php:590
 msgid ""
 "The server creation date column takes up space and is usually not that "
 "useful after a while.  If you need it, just turn this flag on."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:588
+#: includes/core/class-wpcd-settings.php:595
 msgid "Show the server type column?"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:589
+#: includes/core/class-wpcd-settings.php:596
 msgid ""
 "The server type column takes up space but if you are only using one "
 "application type then this isn't useful information.  If you need it because "
@@ -16299,379 +16360,379 @@ msgid ""
 "on."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:594
+#: includes/core/class-wpcd-settings.php:601
 msgid "Show the server owner column?"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:595
+#: includes/core/class-wpcd-settings.php:602
 msgid ""
 "The server type column takes up space but if you are the only owner or "
 "server manager then this isn't useful information.  If you need it because "
 "you indeed have multiple owners for your servers, just turn this flag on."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:600
-#: includes/core/class-wpcd-settings.php:642
+#: includes/core/class-wpcd-settings.php:607
+#: includes/core/class-wpcd-settings.php:649
 msgid "Hide owner column from non-admins?"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:601
-#: includes/core/class-wpcd-settings.php:643
+#: includes/core/class-wpcd-settings.php:608
+#: includes/core/class-wpcd-settings.php:650
 msgid ""
 "Do not show the owner column to non-admins, even if the above option is "
 "turned on."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:606
+#: includes/core/class-wpcd-settings.php:613
 msgid "Show the server team column?"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:607
+#: includes/core/class-wpcd-settings.php:614
 msgid ""
 "The server team column takes up space but if you are not using teams then "
 "this isn't useful information so by default it is turned off. Check this box "
 "to turn it on."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:613
+#: includes/core/class-wpcd-settings.php:620
 msgid "App List Fields"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:614
+#: includes/core/class-wpcd-settings.php:621
 msgid ""
 "Some columns on the applications list are hidden. Use the options below to "
 "show them."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:625
+#: includes/core/class-wpcd-settings.php:632
 msgid ""
 "The app creation date column takes up space and is usually not that useful "
 "after a while.  If you need it, just turn this flag on."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:630
+#: includes/core/class-wpcd-settings.php:637
 msgid "Show the application type column?"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:631
+#: includes/core/class-wpcd-settings.php:638
 msgid ""
 "The application type column takes up space but if you are only using one "
 "application type then this isn't useful information.  If you need it because "
 "you are handling multiple types of applications, just turn this flag on."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:636
+#: includes/core/class-wpcd-settings.php:643
 msgid "Show the app owner column?"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:637
+#: includes/core/class-wpcd-settings.php:644
 msgid ""
 "The app owner column takes up space but if you are the only owner then this "
 "isn't useful information.  If you need it because you indeed have multiple "
 "owners for your apps, just turn this flag on."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:648
+#: includes/core/class-wpcd-settings.php:655
 msgid "Show the app team column?"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:649
+#: includes/core/class-wpcd-settings.php:656
 msgid ""
 "The app team column takes up space but if you are not using teams then this "
 "isn't useful information so by default it is turned off. Check this box to "
 "turn it on."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:654
+#: includes/core/class-wpcd-settings.php:661
 msgid "Show the server provider column?"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:655
+#: includes/core/class-wpcd-settings.php:662
 msgid ""
 "The server provider is shown under the SERVER column to save space.  If you "
 "would like to sort the list by this field then you need to enable this "
 "option so that it is shown in its own column."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:660
+#: includes/core/class-wpcd-settings.php:667
 msgid "Show the server region column?"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:661
+#: includes/core/class-wpcd-settings.php:668
 msgid ""
 "The server region is shown under the SERVER column to save space.  If you "
 "would like to sort the list by this field then you need to enable this "
 "option so that it is shown in its own column."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:666
+#: includes/core/class-wpcd-settings.php:673
 msgid "Show the server IP column?"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:667
+#: includes/core/class-wpcd-settings.php:674
 msgid ""
 "The server IP is shown under the SERVER column to save space.  If you would "
 "like to sort the list by this field then you need to enable this option so "
 "that it is shown in its own column."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:673
+#: includes/core/class-wpcd-settings.php:680
 msgid "Show the app health column?"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:674
+#: includes/core/class-wpcd-settings.php:681
 msgid ""
 "The app health data is shown under the APP SUMMARY column to save space.  "
 "You can enable this option so that it is shown in its own column."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:680
+#: includes/core/class-wpcd-settings.php:687
 msgid "App List Compound Fields"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:681
+#: includes/core/class-wpcd-settings.php:688
 msgid ""
 "You can make some of the columns that hold multiple pieces of information "
 "shorter for non-admin users."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:686
+#: includes/core/class-wpcd-settings.php:693
 msgid "Hide the server name in the server column?"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:687
+#: includes/core/class-wpcd-settings.php:694
 msgid ""
 "The server name is usually shown in the SERVER column on the sites screen. "
 "Check this box to remove it for non-admin users."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:692
+#: includes/core/class-wpcd-settings.php:699
 msgid "Hide the provider data in the server column?"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:693
+#: includes/core/class-wpcd-settings.php:700
 msgid ""
 "The provider information is usually shown in the SERVER column on the sites "
 "screen. Check this box to remove it for non-admin users."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:698
+#: includes/core/class-wpcd-settings.php:705
 msgid "Hide the region data in the server column?"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:699
+#: includes/core/class-wpcd-settings.php:706
 msgid ""
 "The region information is usually shown in the SERVER column on the sites "
 "screen. Check this box to remove it for non-admin users."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:704
+#: includes/core/class-wpcd-settings.php:711
 msgid "Hide the link to apps in the server column?"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:705
+#: includes/core/class-wpcd-settings.php:712
 msgid ""
 "A link to other apps on the server is usually shown in the SERVER column on "
 "the sites screen. Check this box to remove it for non-admin users."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:712
+#: includes/core/class-wpcd-settings.php:719
 msgid ""
 "Labels are additional short pieces of data that appear next to the "
 "application title in the application list."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:717
+#: includes/core/class-wpcd-settings.php:724
 msgid "Show Private State Label?"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:718
+#: includes/core/class-wpcd-settings.php:725
 msgid ""
 "Since all servers and apps are PRIVATE, we do not show this state label. You "
 "can force display of the PRIVATE state label with this option."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:727
+#: includes/core/class-wpcd-settings.php:734
 msgid "How should we handle IPv6 data?"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:732
+#: includes/core/class-wpcd-settings.php:739
 msgid "Show IPv6 Fields?"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:733
+#: includes/core/class-wpcd-settings.php:740
 msgid ""
 "Most systems are not set up for IPv6. But we do sometimes collect it when "
 "provided by the server provider. Check this box if you want to  display it "
 "when it's available and to be able to sort and filter by it."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:741
-#: includes/core/class-wpcd-settings.php:1569
+#: includes/core/class-wpcd-settings.php:748
+#: includes/core/class-wpcd-settings.php:1576
 msgid "Server Sizes"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:742
+#: includes/core/class-wpcd-settings.php:749
 msgid ""
 "If selling with WooCommerce and you want custom server sizes, add them "
 "here.  If nothing is added here the default sizes will remain Large, Medium "
 "and Small."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:749
+#: includes/core/class-wpcd-settings.php:756
 msgid "Size Code - No Spaces"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:750
+#: includes/core/class-wpcd-settings.php:757
 msgid "Size Description (Customers see this!)"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:767
+#: includes/core/class-wpcd-settings.php:774
 msgid ""
 "This action resets all in-process metas for all apps. This means that any "
 "background process that is \"stuck\" will stop running and any app "
 "deployment that is in-process will be terminated."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:772
+#: includes/core/class-wpcd-settings.php:779
 msgid "Clean Up Apps"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:783
+#: includes/core/class-wpcd-settings.php:790
 msgid ""
 "This action resets all in-process metas for all servers. This means that any "
 "background process that is \"stuck\" will stop running and any server "
 "deployment that is in-process will be terminated."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:788
+#: includes/core/class-wpcd-settings.php:795
 msgid "Clean Up Servers"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:798
+#: includes/core/class-wpcd-settings.php:805
 msgid "Bulk Email Server Batches"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:799
+#: includes/core/class-wpcd-settings.php:806
 msgid "View all email batches sent for servers."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:804
+#: includes/core/class-wpcd-settings.php:811
 msgid "Server Batches"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:812
+#: includes/core/class-wpcd-settings.php:819
 msgid "Bulk Email App Batches"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:813
+#: includes/core/class-wpcd-settings.php:820
 msgid "Voew all email batches sent for apps."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:818
+#: includes/core/class-wpcd-settings.php:825
 msgid "App Batches"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:831
+#: includes/core/class-wpcd-settings.php:838
 msgid "Sync"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:835
+#: includes/core/class-wpcd-settings.php:842
 msgid "Send Data"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:836
+#: includes/core/class-wpcd-settings.php:843
 msgid "Received Data"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:845
+#: includes/core/class-wpcd-settings.php:852
 msgid ""
 "Data sync allows you to push your server and site custom post type records "
 "to another WPCD site.  You can do this to create a point-in-time backup or "
 "you can schedule it to push as often as once per hour."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:852
+#: includes/core/class-wpcd-settings.php:859
 msgid ""
 "Use this section to configure the details of the site that will be receiving "
 "your data."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:856
+#: includes/core/class-wpcd-settings.php:863
 msgid "Destination Site"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:860
+#: includes/core/class-wpcd-settings.php:867
 msgid "This is the site that will receive data."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:865
+#: includes/core/class-wpcd-settings.php:872
 #: includes/core/class-wpcd-setup-wizard.php:307
 msgid "Encryption Key"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:869
+#: includes/core/class-wpcd-settings.php:876
 msgid ""
 "This is the key that will be used to encrypt the data before sending it."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:874
+#: includes/core/class-wpcd-settings.php:881
 msgid "User ID"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:878
+#: includes/core/class-wpcd-settings.php:885
 msgid ""
 "Your user name on the destination site - this can be any admin account on "
 "the destination."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:887
+#: includes/core/class-wpcd-settings.php:894
 msgid "Your password for your admin account on the destination site."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:895
+#: includes/core/class-wpcd-settings.php:902
 msgid ""
 "Use this section to configure how often you would like to push data.  If you "
 "do not want to push on a regular basis, just turn off the first check-box."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:900
+#: includes/core/class-wpcd-settings.php:907
 msgid "Do you want to enable auto export?"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:903
+#: includes/core/class-wpcd-settings.php:910
 msgid ""
 "Turn this on to push your server and site metadata on a regular basis to "
 "destination site you configured above."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:908
+#: includes/core/class-wpcd-settings.php:915
 msgid "How frequently do you want send your data?"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:912
+#: includes/core/class-wpcd-settings.php:919
 msgid "Hourly"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:913
+#: includes/core/class-wpcd-settings.php:920
 msgid "Daily"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:915
+#: includes/core/class-wpcd-settings.php:922
 msgid "This applies only if the checkbox above is enabled."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:923
+#: includes/core/class-wpcd-settings.php:930
 msgid ""
 "We automatically export your server, sites and team data. However, you can "
 "optionally include additional data."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:927
+#: includes/core/class-wpcd-settings.php:934
 msgid "Do you want to export your settings?"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:930
+#: includes/core/class-wpcd-settings.php:937
 msgid ""
 "If you include your settings, you will be able to be up and running faster "
 "on the destination site.  But it will wipe out any settings on that site. "
@@ -16679,30 +16740,30 @@ msgid ""
 "config.php file on this site to the destination site."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:937
+#: includes/core/class-wpcd-settings.php:944
 msgid ""
 "You can export data immediately without waiting for a scheduled sync to fire."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:942
+#: includes/core/class-wpcd-settings.php:949
 msgid "PUSH"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:948
+#: includes/core/class-wpcd-settings.php:955
 msgid ""
 "Export your data to the destination site now.  This will NOT save your "
 "settings from above - we recommend you use the BLUE SAVE button at the very "
 "bottom of this screen to save your settings."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:956
+#: includes/core/class-wpcd-settings.php:963
 msgid ""
 "If this site is a destination that receives data from another server then "
 "you can configure your restore options in this section as well as initiate a "
 "restore operation."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:963
+#: includes/core/class-wpcd-settings.php:970
 msgid ""
 "In order to restore your SETTINGS data you need the encryption key from your "
 "wp-config.php file from the origin site.  You can add it to the wp-config."
@@ -16712,164 +16773,164 @@ msgid ""
 "on the settings screen on this site."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:974
+#: includes/core/class-wpcd-settings.php:981
 msgid "How many recently received files would you like to keep?"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:980
+#: includes/core/class-wpcd-settings.php:987
 msgid "Set to 0 to store unlimited received files."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:986
+#: includes/core/class-wpcd-settings.php:993
 msgid "Received Files"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:987
+#: includes/core/class-wpcd-settings.php:994
 msgid ""
 "Use the options below to import SERVER and APP records sent from an origin "
 "site."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1009
+#: includes/core/class-wpcd-settings.php:1016
 msgid "License And Automatic Updates"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1017
+#: includes/core/class-wpcd-settings.php:1024
 msgid "The license for the core WPCD plugin"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1020
+#: includes/core/class-wpcd-settings.php:1027
 msgid "License"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1024
+#: includes/core/class-wpcd-settings.php:1031
 msgid ""
 "Please enter your license key for the core plugin. Note: If you have an ALL "
 "ACCESS or BUSINESS bundle license please do not use those bundle keys; "
 "instead use the CORE plugin license key."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1030
+#: includes/core/class-wpcd-settings.php:1037
 msgid "The licenses for installed add-ons"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1043
+#: includes/core/class-wpcd-settings.php:1050
 msgid "Options that control the license and update checks"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1046
+#: includes/core/class-wpcd-settings.php:1053
 msgid "WPCD Store URL"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1052
+#: includes/core/class-wpcd-settings.php:1059
 msgid ""
 "Enter the url to the WPCD store.  If left blank it will be set to https://"
 "wpclouddeploy.com."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1055
+#: includes/core/class-wpcd-settings.php:1062
 msgid "Period For Checking Licenses"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1061
+#: includes/core/class-wpcd-settings.php:1068
 msgid ""
 "How often should we check for license expiration and validity?  This value "
 "is specified in hours."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1070
+#: includes/core/class-wpcd-settings.php:1077
 msgid "Set a timeout in seconds for each call we make to the licensing server."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1074
-#: includes/core/class-wpcd-settings.php:1075
+#: includes/core/class-wpcd-settings.php:1081
+#: includes/core/class-wpcd-settings.php:1082
 msgid "Check for updates"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1082
+#: includes/core/class-wpcd-settings.php:1089
 msgid ""
 "After the screen refreshes, navigate to the WordPress Updates screen to see "
 "notices of any new WPCD updates that might be available."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1086
-#: includes/core/class-wpcd-settings.php:1087
+#: includes/core/class-wpcd-settings.php:1093
+#: includes/core/class-wpcd-settings.php:1094
 msgid "Validate licenses"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1094
+#: includes/core/class-wpcd-settings.php:1101
 msgid ""
 "After the screen refreshes, scroll up to see license detail messages under "
 "each license key field."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1097
+#: includes/core/class-wpcd-settings.php:1104
 msgid "Force Update Check"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1101
+#: includes/core/class-wpcd-settings.php:1108
 msgid ""
 "Check this box and save settings to force an update check immediately. Use "
 "this option if the buttons above do not seem to be working."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1102
-#: includes/core/class-wpcd-settings.php:1110
+#: includes/core/class-wpcd-settings.php:1109
+#: includes/core/class-wpcd-settings.php:1117
 msgid ""
 "You should uncheck this box and save again to turn this off - otherwise you "
 "will be taking an unncessary performance penalty every time you save this "
 "screen."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1105
+#: includes/core/class-wpcd-settings.php:1112
 msgid "Force License Check"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1109
+#: includes/core/class-wpcd-settings.php:1116
 msgid ""
 "Check this box and save settings to force an immediate license check on all "
 "licenses. Use this option if the buttons above do not seem to be working."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1142
-#: includes/core/class-wpcd-settings.php:1147
+#: includes/core/class-wpcd-settings.php:1149
+#: includes/core/class-wpcd-settings.php:1154
 msgid "Cloud Providers"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1146
+#: includes/core/class-wpcd-settings.php:1153
 msgid "General Settings"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1161
+#: includes/core/class-wpcd-settings.php:1168
 msgid "License & Updates"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1165
+#: includes/core/class-wpcd-settings.php:1172
 msgid "Data Sync"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1172
+#: includes/core/class-wpcd-settings.php:1179
 msgid "Settings"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1253
-#: includes/core/class-wpcd-settings.php:1272
+#: includes/core/class-wpcd-settings.php:1260
+#: includes/core/class-wpcd-settings.php:1279
 msgid "API Keys"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1259
+#: includes/core/class-wpcd-settings.php:1266
 msgid "Need Help?"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1261
+#: includes/core/class-wpcd-settings.php:1268
 msgid "View the documentation"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1291
+#: includes/core/class-wpcd-settings.php:1298
 msgid "Learn more"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1297
+#: includes/core/class-wpcd-settings.php:1304
 #, php-format
 msgid ""
 "WPCD: Warning - This provider is being used by one or more servers.  Caution "
@@ -16877,36 +16938,36 @@ msgid ""
 "server(s) could be broken. %s"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1317
+#: includes/core/class-wpcd-settings.php:1324
 msgid ""
 "The last attempt to test your connection to this provider was successful."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1319
+#: includes/core/class-wpcd-settings.php:1326
 msgid ""
 "The last test was unsuccessful or a test has never been run on this provider."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1325
+#: includes/core/class-wpcd-settings.php:1332
 msgid "Test Connection"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1350
+#: includes/core/class-wpcd-settings.php:1357
 msgid ""
 "You can get this key from your providers security or API dashboard. It is "
 "encrypted before being stored in the database."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1362
+#: includes/core/class-wpcd-settings.php:1369
 msgid "Your notes about this api key - optional"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1390
+#: includes/core/class-wpcd-settings.php:1397
 #: includes/templates/error_log.php:46
 msgid "Additional Data"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1392
+#: includes/core/class-wpcd-settings.php:1399
 msgid ""
 "When you save your API keys you will see additional fields open up below. If "
 "you do not see these additional fields, try clicking the SAVE SETTINGS "
@@ -16914,7 +16975,7 @@ msgid ""
 msgstr ""
 
 #. translators: %1: provider name. %2: provider name again.
-#: includes/core/class-wpcd-settings.php:1404
+#: includes/core/class-wpcd-settings.php:1411
 #, php-format
 msgid ""
 "For security, we only use public-private key pairs for server management. "
@@ -16927,17 +16988,17 @@ msgid ""
 "cloud provider's dashboard."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1406
+#: includes/core/class-wpcd-settings.php:1413
 msgid ""
 "Note: If you used the button above to automatically create keys and that "
 "operation was successful, you new keys should already be setup below. "
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1422
+#: includes/core/class-wpcd-settings.php:1429
 msgid "Public SSH Key"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1423
+#: includes/core/class-wpcd-settings.php:1430
 msgid ""
 "For most providers this public key is stored at the provider and will be "
 "installed into each server instance when the instance is first created.  If "
@@ -16949,65 +17010,65 @@ msgid ""
 msgstr ""
 
 #. translators: %s: provider name.
-#: includes/core/class-wpcd-settings.php:1426
+#: includes/core/class-wpcd-settings.php:1433
 #, php-format
 msgid ""
 "Public key saved in %s. If you have just uploaded your public key and do not "
 "see it here, try clicking the CLEAR CACHE button at the bottom of this page."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1435
+#: includes/core/class-wpcd-settings.php:1442
 msgid "SSH keys are critical for proper operation of this service."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1436
+#: includes/core/class-wpcd-settings.php:1443
 msgid ""
 "This provider can automatically create your SSH keys for you and submit them "
 "to your account."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1437
+#: includes/core/class-wpcd-settings.php:1444
 msgid ""
 "If you are not familiar with creating and managing keys or you would like a "
 "set of keys created for you, click the button below."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1438
+#: includes/core/class-wpcd-settings.php:1445
 msgid ""
 "However, it is important that you only do this if you have not already "
 "created servers with your own keys!"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1439
+#: includes/core/class-wpcd-settings.php:1446
 msgid ""
 "Otherwise you could be locked out of your servers and your keys could be "
 "lost!"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1440
+#: includes/core/class-wpcd-settings.php:1447
 msgid ""
 "If this operation is successful you should immediately make a copy of your "
 "private key which will be shown in the text boxes below. Store it in a safe "
 "place!"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1446
+#: includes/core/class-wpcd-settings.php:1453
 msgid "Automatically Create SSH Keys: STOP AND READ CAREFULLY!"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1453
+#: includes/core/class-wpcd-settings.php:1460
 msgid "Create SSH Key-Pair"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1476
+#: includes/core/class-wpcd-settings.php:1483
 msgid "View important notes about private keys."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1481
+#: includes/core/class-wpcd-settings.php:1488
 msgid "Private SSH Key"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1484
+#: includes/core/class-wpcd-settings.php:1491
 #, php-format
 msgid ""
 "Private key corresponding to the selected public key - it will be used to "
@@ -17016,116 +17077,116 @@ msgid ""
 "entered at the end of the key-text.  %s"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1492
+#: includes/core/class-wpcd-settings.php:1499
 msgid "Private SSH Key Password"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1494
+#: includes/core/class-wpcd-settings.php:1501
 msgid ""
 "Password for the above private key. It will be encrypted on save and "
 "decrypted when retrieved."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1494
+#: includes/core/class-wpcd-settings.php:1501
 msgid ""
 "If your private key does not have a password associated with it you can "
 "leave this blank."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1494
+#: includes/core/class-wpcd-settings.php:1501
 msgid ""
 "Note: For keypairs generated on a MAC or on WSL, do NOT apply a password to "
 "your private key file!"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1504
+#: includes/core/class-wpcd-settings.php:1511
 msgid "Your notes about this ssh key - optional"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1521
+#: includes/core/class-wpcd-settings.php:1528
 msgid "Provider Backups"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1523
+#: includes/core/class-wpcd-settings.php:1530
 msgid "Set provider backup behavior if backups are supported."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1528
+#: includes/core/class-wpcd-settings.php:1535
 msgid "Enable Provider Backups"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1530
+#: includes/core/class-wpcd-settings.php:1537
 msgid "Enable automatic backups for every new server."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1543
+#: includes/core/class-wpcd-settings.php:1550
 msgid "Tags"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1545
+#: includes/core/class-wpcd-settings.php:1552
 msgid "Set provider behavior if server tags are supported."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1550
+#: includes/core/class-wpcd-settings.php:1557
 msgid "Tag For New Servers"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1551
+#: includes/core/class-wpcd-settings.php:1558
 msgid ""
 "Note: Some providers require that you use tags that have already been "
 "defined while others allow you to set random/dynamic tags."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1554
+#: includes/core/class-wpcd-settings.php:1561
 msgid ""
 "Apply this tag to every new server. If left blank, the tag will default to "
 "WPCD for providers that allow for dynamic/random tags."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1571
+#: includes/core/class-wpcd-settings.php:1578
 msgid ""
 "These pre-defined sizes are used when defining products in the WooCommerce "
 "screens."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1589
+#: includes/core/class-wpcd-settings.php:1596
 msgid "Change provider display name / description."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1596
+#: includes/core/class-wpcd-settings.php:1603
 msgid "Alternative Name"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1597
+#: includes/core/class-wpcd-settings.php:1604
 msgid "Use this as the providers display name"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1615
+#: includes/core/class-wpcd-settings.php:1622
 msgid ""
 "If keys, sizes and other information in the drop-down selects above is not "
 "up-to-date, you can clear the cache which will force a refresh from your "
 "cloud provider. The cache is usually cleared every 24 hours."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1622
+#: includes/core/class-wpcd-settings.php:1629
 msgid "Clear Cached Data"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1636
+#: includes/core/class-wpcd-settings.php:1643
 msgid ""
 "Any data cached in transients for this provider is listed below. To refresh "
 "the cache click the CLEAR CACHE button above."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1653
+#: includes/core/class-wpcd-settings.php:1660
 msgid "Error Messages"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1751
+#: includes/core/class-wpcd-settings.php:1758
 msgid "Cache Limits for Cloud Providers"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1753
+#: includes/core/class-wpcd-settings.php:1760
 msgid ""
 "We need to cache data received from your cloud provider - this helps with "
 "performance as well as rate-limits that the cloud provider sets.  We "
@@ -17133,83 +17194,83 @@ msgid ""
 "have completed your provider setup.  The intial values are set at 15 minutes."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1761
+#: includes/core/class-wpcd-settings.php:1768
 msgid "Number of minutes to cache this data retrieved from cloud provider"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1864
+#: includes/core/class-wpcd-settings.php:1871
 msgid "Please enter Target Site url."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1865
-#: includes/core/class-wpcd-settings.php:1874
+#: includes/core/class-wpcd-settings.php:1872
+#: includes/core/class-wpcd-settings.php:1881
 msgid "Please enter Encryption Key."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1866
+#: includes/core/class-wpcd-settings.php:1873
 msgid "Please enter User ID."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1867
+#: includes/core/class-wpcd-settings.php:1874
 msgid "Please enter Password."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1868
+#: includes/core/class-wpcd-settings.php:1875
 msgid "Please wait for a while..."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1870
+#: includes/core/class-wpcd-settings.php:1877
 msgid "Restoring..."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1872
+#: includes/core/class-wpcd-settings.php:1879
 msgid "Are you sure you would like to import this data?"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1913
+#: includes/core/class-wpcd-settings.php:1920
 msgid ""
 "The cache has been cleared for this provider. This page will now refresh."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1958
+#: includes/core/class-wpcd-settings.php:1965
 #: includes/core/class-wpcd-setup-wizard.php:460
 msgid "This key was automatically created."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1961
+#: includes/core/class-wpcd-settings.php:1968
 msgid "The ssh key-pair has been created. This page will now refresh."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:1965
+#: includes/core/class-wpcd-settings.php:1972
 msgid ""
 "The attempt to create an ssh key-pair was not successful.  Please try again "
 "and/or contact our support team. This page will now refresh."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:2019
+#: includes/core/class-wpcd-settings.php:2026
 msgid "The connection was successful."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:2024
+#: includes/core/class-wpcd-settings.php:2031
 msgid ""
 "The attempt to connect to your provider with the api keys provided was "
 "unsuccessful.  Please try again and/or contact our support team. This page "
 "will now refresh."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:2269
+#: includes/core/class-wpcd-settings.php:2276
 msgid "Please enter your license key for this item."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:2351
+#: includes/core/class-wpcd-settings.php:2358
 msgid "No files received yet."
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:2388
+#: includes/core/class-wpcd-settings.php:2395
 msgid "Delete Existing & Restore"
 msgstr ""
 
-#: includes/core/class-wpcd-settings.php:2520
+#: includes/core/class-wpcd-settings.php:2527
 msgid ""
 "Brand colors fields have been reset defaults. This page will now refresh."
 msgstr ""
@@ -17226,7 +17287,7 @@ msgstr ""
 
 #: includes/core/class-wpcd-setup-wizard.php:106
 msgid ""
-"If this is not the first time you are using WPCLoudDeploy or you would like "
+"If this is not the first time you are using WPCloudDeploy or you would like "
 "to manually configure your initial settings, then you should choose to skip "
 "this process. Otherwise proceed by clicking the button."
 msgstr ""
@@ -17947,11 +18008,6 @@ msgstr ""
 msgid "Command Result"
 msgstr ""
 
-#: includes/templates/command_log.php:43
-#: includes/templates/pending_tasks_log.php:82
-msgid "Log Owner or Parent ID"
-msgstr ""
-
 #: includes/templates/error_log.php:28
 msgid "Error Type"
 msgstr ""
@@ -18118,14 +18174,6 @@ msgstr ""
 msgid "Submit"
 msgstr ""
 
-#: includes/templates/pending_tasks_log.php:28
-msgid "Pending Task Type"
-msgstr ""
-
-#: includes/templates/pending_tasks_log.php:43
-msgid "Attempts To Complete"
-msgstr ""
-
 #: includes/templates/pending_tasks_log.php:58
 msgid "History / Last error Message"
 msgstr ""
@@ -18134,24 +18182,12 @@ msgstr ""
 msgid "Messages"
 msgstr ""
 
-#: includes/templates/pending_tasks_log.php:67
-msgid "Date Started"
-msgstr ""
-
 #: includes/templates/pending_tasks_log.php:72
 msgid "Date Completed"
 msgstr ""
 
 #: includes/templates/pending_tasks_log.php:77
 msgid "Related Data"
-msgstr ""
-
-#: includes/templates/pending_tasks_log.php:86
-msgid "Parent Post Type"
-msgstr ""
-
-#: includes/templates/pending_tasks_log.php:90
-msgid "Associated Server ID"
 msgstr ""
 
 #: includes/templates/sent_email_details_popup.php:34

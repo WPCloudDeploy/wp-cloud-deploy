@@ -150,6 +150,9 @@ else
 		echo "Failed!  Quitting process"
 		exit 1
 	fi
+	
+	# Make sure CURL is installed.
+	apt-get install curl -y > /dev/null 2>&1	
 
 	#checkpoint to indicate we have done this block...
 	touch "$CHKPOINT_FOLDER/checkpoint20-end.txt"

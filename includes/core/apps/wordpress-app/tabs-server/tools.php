@@ -402,33 +402,6 @@ class WPCD_WORDPRESS_TABS_SERVER_TOOLS extends WPCD_WORDPRESS_TABS {
 				$result2 = __( 'It looks like the attempt to change the PHP version may have been successful - see SSH logs for the full log of this action.', 'wpcd' );
 			}
 
-			/*
-			switch ( $webserver_type ) {
-				case 'ols':
-				case 'ols-enterprise':
-					// notice double-quotes in the command and the embedded php variable!
-					$result2_1 = $this->execute_ssh( 'generic', $instance, array( 'commands' => "sudo update-alternatives --install /usr/bin/php php /usr/local/lsws/lsphp$new_php_version_no_periods/bin/php 111 && echo 'Done Part 1'" ) );
-					$result2_2 = $this->execute_ssh( 'generic', $instance, array( 'commands' => "sudo update-alternatives --install /usr/bin/phar phar /usr/local/lsws/lsphp$new_php_version_no_periods/bin/phar$new_php_version.phar 111 && echo 'Done Part 2'" ) );
-					$result2_3 = $this->execute_ssh( 'generic', $instance, array( 'commands' => "sudo update-alternatives --install /usr/bin/phar.phar phar.phar /usr/local/lsws/lsphp$new_php_version_no_periods/bin/phar$new_php_version.phar 111 && echo 'Done Part 3'" ) );
-					$result2_4 = $this->execute_ssh( 'generic', $instance, array( 'commands' => "sudo update-alternatives --install /usr/bin/pecl pecl /usr/local/lsws/lsphp$new_php_version_no_periods/bin/pecl 111 && echo 'Done Part 4'" ) );
-					$result2_5 = $this->execute_ssh( 'generic', $instance, array( 'commands' => "sudo update-alternatives --install /usr/lib/pear pear /usr/local/lsws/lsphp$new_php_version_no_periods/bin/pear 111 && echo 'Done Part 5'" ) );
-					if ( ! is_wp_error( $result2_1 ) ) {
-						$result2 = $result2_1 . ' ' . $result2_2 . ' ' . $result2_3 . ' ' . result2_4 . ' ' . result2_5;
-						if ( empty( $result2 ) ) {
-							$result2 = __( 'It looks like no data was returned when trying to change PHP versions.  Check SSH and Error logs for more info.', 'wpcd' );
-						}
-					} else {
-						$result2 = __( 'It looks like an error was thrown when trying to change PHP versions.  Check SSH and Error logs for more info.', 'wpcd' );
-					}
-					break;
-
-				case 'nginx':
-				default:
-					$result2 = $this->execute_ssh( 'generic', $instance, array( 'commands' => "sudo update-alternatives --set php /usr/bin/php$new_php_version" ) );  // notice double-quotes in the command and the embedded php variable!
-					break;
-
-			}
-			*/
 			// And check version again.
 			$result3 = $this->execute_ssh( 'generic', $instance, array( 'commands' => 'sudo php --version' ) );
 

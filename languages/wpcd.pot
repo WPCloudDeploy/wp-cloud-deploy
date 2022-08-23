@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 "Project-Id-Version: WP Cloud Deploy\n"
-"POT-Creation-Date: 2022-08-23 02:41-0500\n"
+"POT-Creation-Date: 2022-08-23 14:52-0500\n"
 "PO-Revision-Date: 2020-08-14 19:38-0500\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3333,7 +3333,6 @@ msgid "App Status"
 msgstr ""
 
 #: includes/core/apps/wordpress-app/class-wordpress-app.php:3348
-#: includes/core/apps/wordpress-app/tabs-server/tools.php:226
 #: includes/core/apps/wordpress-app/tabs/php-options.php:327
 msgid "PHP Version"
 msgstr ""
@@ -7438,9 +7437,14 @@ msgstr ""
 
 #: includes/core/apps/wordpress-app/tabs-server/tools.php:221
 msgid ""
-"The default PHP version should be PHP 7.4.  However some automatic security "
-"upgrades might set this to PHP 8.0 which will break things - badly!  Use "
-"this to reset the default PHP version to 7.4."
+"The server level default PHP version should be PHP 7.4. This is the PHP "
+"version used to run all WP-CLI commands or other server level PHP scripts "
+"not running directly inside WordPress. If you set this to something other "
+"than the default 7.4 you could potentially break things - badly!"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/tabs-server/tools.php:226
+msgid "New Server Default PHP Version"
 msgstr ""
 
 #: includes/core/apps/wordpress-app/tabs-server/tools.php:247
@@ -7472,27 +7476,21 @@ msgid ""
 "version. No changes were made."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/tools.php:384
+#: includes/core/apps/wordpress-app/tabs-server/tools.php:402
 msgid ""
-"It looks like no data was returned when trying to change PHP versions.  "
-"Check SSH and Error logs for more info."
+"It looks like the attempt to change the PHP version may have been successful "
+"- see SSH logs for the full log of this action."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/tools.php:387
-msgid ""
-"It looks like an error was thrown when trying to change PHP versions.  Check "
-"SSH and Error logs for more info."
-msgstr ""
-
-#: includes/core/apps/wordpress-app/tabs-server/tools.php:403
+#: includes/core/apps/wordpress-app/tabs-server/tools.php:410
 msgid "This was your prior default server PHP version."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/tools.php:407
-msgid "This is the result of attempting to change your php version.."
+#: includes/core/apps/wordpress-app/tabs-server/tools.php:414
+msgid "This is the result of attempting to change your php version."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/tools.php:411
+#: includes/core/apps/wordpress-app/tabs-server/tools.php:418
 msgid "This is your new default server PHP version."
 msgstr ""
 

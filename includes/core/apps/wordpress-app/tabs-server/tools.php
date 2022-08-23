@@ -396,6 +396,8 @@ class WPCD_WORDPRESS_TABS_SERVER_TOOLS extends WPCD_WORDPRESS_TABS {
 			// Run the command.
 			$result2_1 = $this->execute_ssh( 'generic', $instance, array( 'commands' => $run_cmd ) );
 			$success   = $this->is_ssh_successful( $result2_1, 'server_php_version.txt' );
+
+			// Set output message part based on whether the command was successful or not.
 			if ( ! $success ) {
 				$result2 = $result2_1;
 			} else {
@@ -411,7 +413,7 @@ class WPCD_WORDPRESS_TABS_SERVER_TOOLS extends WPCD_WORDPRESS_TABS {
 			$preamble1 .= '========================' . PHP_EOL;
 
 			$preamble2  = '========================' . PHP_EOL;
-			$preamble2 .= __( 'This is the result of attempting to change your php version..' . PHP_EOL, 'wpcd' );
+			$preamble2 .= __( 'This is the result of attempting to change your php version.' . PHP_EOL, 'wpcd' );
 			$preamble2 .= '========================' . PHP_EOL;
 
 			$preamble3  = '========================' . PHP_EOL;

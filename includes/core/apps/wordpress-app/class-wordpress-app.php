@@ -1351,6 +1351,10 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		/* What type of web server are we running? */
 		$webserver_type = $this->get_web_server_type( $id );
 
+		/* What OS are we running on? */
+		$server_id = $this->get_server_id_by_app_id( $id );
+		$os        = WPCD_SERVER()->get_server_os( $server_id );
+
 		// Create single element array if php 8.0 is installed.
 		if ( $this->is_php_80_installed( $id ) ) {
 			$php80 = array( '8.0' => '8.0' );
@@ -1365,16 +1369,25 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			$php81 = array();
 		}
 
-		// Array of other PHP versions - notable here is that OLS does not support php 5.6.
+		// Array of other PHP versions - notable here is that OLS does not support php 5.6 and it doesn't support anything below 7.4 on Ubuntu 22.04.
 		switch ( $webserver_type ) {
 			case 'ols':
 			case 'ols-enterprise':
-				$other_php_versions = array(
-					'7.4' => '7.4',
-					'7.3' => '7.3',
-					'7.2' => '7.2',
-					'7.1' => '7.1',
-				);
+				switch ( $os ) {
+					case 'ubuntu2204lts':
+						$other_php_versions = array(
+							'7.4' => '7.4',
+						);
+						break;
+					default:
+						$other_php_versions = array(
+							'7.4' => '7.4',
+							'7.3' => '7.3',
+							'7.2' => '7.2',
+							'7.1' => '7.1',
+						);
+						break;
+				}
 				break;
 
 			case 'nginx':
@@ -1396,7 +1409,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			$php81
 		);
 
-		// Filter out inactive versions.  Only applies to NGINX.  OLS always have all versions active.
+		// Filter out inactive versions.  Only applies to NGINX.  OLS always have all versions listed in the above switch statement active.
 		if ( 'nginx' === $webserver_type ) {
 			// Remove invalid PHP versions (those that are deactivated on the server).
 			$server_id = $this->get_server_id_by_app_id( $id );
@@ -2015,10 +2028,6 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				/**
 				 * Certain combinations of webservers and os's aren't allowed.
 				 */
-				if ( 'ubuntu2204lts' === $os && ( 'ols' === $webserver || 'ols-enterprise' === $webserver ) ) {
-					wp_send_json_error( array( 'msg' => __( 'OpenLiteSpeed is not yet supported on Ubuntu 22.04 LTS.', 'wpcd' ) ) );
-					break;
-				}
 				if ( 'ubuntu1804lts' === $os && ( 'ols' === $webserver || 'ols-enterprise' === $webserver ) ) {
 					wp_send_json_error( array( 'msg' => __( 'OpenLiteSpeed is not yet supported on Ubuntu 18.04 LTS.', 'wpcd' ) ) );
 					break;

@@ -1189,14 +1189,19 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 	}
 
 	/**
-	 * Scheduled notification cron for "in process" tasks which is running more than 15 minutes.
+	 * Send email to wpcd site admin if any pending task has been started but more than 15 mins has gone by without it completing.
 	 *
 	 * @return void
 	 */
 	public function wpcd_send_email_alert_for_long_pending_tasks() {
 
-		// Tasks should be running of more than 15 minutes.
+		// Set transient to indicate this task was run.
 		set_transient( 'wpcd_send_email_alert_for_long_pending_tasks_is_active', 1, ( 15 * MINUTE_IN_SECONDS ) );
+
+		// Do not bother if a setting is enabled to prevent these emails from being sent.
+		if ( true === (bool) wpcd_get_early_option( 'wpcd_do_not_send_pending_log_warning_emails' ) ) {
+			return;
+		}
 
 		$compare_time = time() - ( 15 * MINUTE_IN_SECONDS );
 
@@ -1226,6 +1231,10 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 
 		if ( ! empty( $pending_task_found ) ) {
 
+			// Starting text of email.
+			$email_body = __( 'The following background tasks (aka pending task) have been started but are taking a long time to complete.  You should take a look and see if there is an issue that is preventing them from completing properly.', 'wpcd' ) . '<br /><br />';
+
+			// Add in details to email for each pending task affected.
 			foreach ( $pending_task_found as $task_details ) {
 
 				$pending_task_type                 = get_post_meta( $task_details, 'pending_task_type', true );
@@ -1239,7 +1248,7 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 				$pending_task_parent_post_type     = get_post_meta( $task_details, 'pending_task_parent_post_type', true );
 				$pending_task_associated_server_id = get_post_meta( $task_details, 'pending_task_associated_server_id', true );
 
-				$email_body  = wp_sprintf( '%s: %s', __( 'Pending Task Type', 'wpcd' ), $pending_task_type ) . '<br /><br />';
+				$email_body .= wp_sprintf( '%s: %s', __( 'Pending Task Type', 'wpcd' ), $pending_task_type ) . '<br /><br />';
 				$email_body .= wp_sprintf( '%s: %s', __( 'Key', 'wpcd' ), $pending_task_key ) . '<br /><br />';
 				$email_body .= wp_sprintf( '%s: %s', __( 'State', 'wpcd' ), $pending_task_state ) . '<br /><br />';
 				$email_body .= wp_sprintf( '%s: %s', __( 'Attempts To Complete', 'wpcd' ), $pending_task_attempts ) . '<br /><br />';
@@ -1248,15 +1257,19 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 				$email_body .= wp_sprintf( '%s: %s', __( 'Date Started', 'wpcd' ), gmdate( 'Y-m-d @ H:i', $pending_task_start_date ) ) . '<br /><br />';
 				$email_body .= wp_sprintf( '%s: %s', __( 'Log Owner or Parent ID', 'wpcd' ), $parent_post_id ) . '<br /><br />';
 				$email_body .= wp_sprintf( '%s: %s', __( 'Parent Post Type', 'wpcd' ), $pending_task_parent_post_type ) . '<br /><br />';
-				$email_body .= wp_sprintf( '%s: %s', __( 'Associated Server ID', 'wpcd' ), $pending_task_associated_server_id );
+				$email_body .= wp_sprintf( '%s: %s', __( 'Associated Server ID', 'wpcd' ), $pending_task_associated_server_id ) . '<br /><br />';
+				$email_body .= '<hr />';
 
-				wp_mail(
-					get_option( 'admin_email' ),
-					__( 'Long Running Pending Tasks', 'wpcd' ),
-					$email_body,
-					array( 'Content-Type: text/html; charset=UTF-8' )
-				);
 			}
+
+			// Send the email.
+			wp_mail(
+				get_option( 'admin_email' ),
+				__( 'One or more background tasks are taking a long time to complete.', 'wpcd' ),
+				$email_body,
+				array( 'Content-Type: text/html; charset=UTF-8' )
+			);
+
 		}
 	}
 }

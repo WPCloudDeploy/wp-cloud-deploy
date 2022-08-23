@@ -484,20 +484,27 @@ class WPCD_Settings {
 				);
 
 				$meta_boxes[] = array(
-					'id'             => 'wpcd-cron-warning-fields',
-					'title'          => __( 'Cron Warning Emails', 'wpcd' ),
+					'id'             => 'wpcd-email-warning-fields',
+					'title'          => __( 'Warning Emails', 'wpcd' ),
 					'settings_pages' => 'wpcd_settings',
 					'tab'            => 'misc',
 					'fields'         => array(
 						array(
 							'type' => 'heading',
-							'name' => __( 'Cron Warning Emails', 'wpcd' ),
-							'desc' => __( 'Control emails sent to Admin when Crons fail to run', 'wpcd' ),
+							'name' => __( 'Warning Emails', 'wpcd' ),
+							'desc' => __( 'Control emails sent to Admin when certain actions fail to run', 'wpcd' ),
 						),
 						array(
-							'name' => __( 'Do Not Send Cron Warning Emails?', 'wpcd' ),
-							'id'   => 'wpcd_do_not_send_cron_warning_emails',
-							'type' => 'checkbox',
+							'name'    => __( 'Do Not Send Cron Warning Emails?', 'wpcd' ),
+							'id'      => 'wpcd_do_not_send_cron_warning_emails',
+							'type'    => 'checkbox',
+							'tooltip' => __( 'Emails are sent when we detect that certain critical processes are not running as scheduled. This flag disables those emails. It is useful to disable these messages if the emails are constantly being sent but are false postitives.', 'wpcd' ),
+						),
+						array(
+							'name'    => __( 'Do Not Send Pending Log Warning Emails?', 'wpcd' ),
+							'id'      => 'wpcd_do_not_send_pending_log_warning_emails',
+							'type'    => 'checkbox',
+							'tooltip' => __( 'Emails are sent when we detect that there are pending tasks that have started but not completed in a reasonable time. This option disables those emails.', 'wpcd' ),
 						),
 					),
 				);

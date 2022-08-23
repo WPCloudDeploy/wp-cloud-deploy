@@ -141,6 +141,7 @@ Note: Even though the entire git development history isn't available on github, 
 * Fix: WPAPP - Server statistics tab would throw silent errors if statistics were never collected.
 * Dev: WPAPP - Filter for the valid list of WP versions - wpcd_allowed_wp_versions
 * Dev: WPAPP - Filter to allow other processes to add classes to individual rows on the front-end/public pages - wpcd_public_table_single_row
+* Dev: PHP 8.0/8.1 support for core - only applies to certain providers that have enabled PHP 8.x support for their PHP API wrappers.
 
 4.16.7
 ------

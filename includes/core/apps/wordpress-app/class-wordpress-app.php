@@ -1369,16 +1369,35 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			$php81 = array();
 		}
 
-		// Array of other PHP versions - notable here is that OLS does not support php 5.6 and it doesn't support anything below 7.4 on Ubuntu 22.04.
+		// Array of other PHP versions.
 		switch ( $webserver_type ) {
 			case 'ols':
 			case 'ols-enterprise':
+				/* Different versions of PHP are supported on each OS for OLS.  Notable here is it does not support php 5.6 at all and it doesn't support anything below 7.4 on Ubuntu 22.04. */
 				switch ( $os ) {
+					case 'ubuntu1804lts':
+						$other_php_versions = array(
+							'7.4' => '7.4',
+							'7.3' => '7.3',
+							'7.2' => '7.2',
+							'7.1' => '7.1',
+						);
+						break;
+
+					case 'ubuntu2004lts':
+						$other_php_versions = array(
+							'7.4' => '7.4',
+							'7.3' => '7.3',
+							'7.2' => '7.2',
+						);
+						break;
+
 					case 'ubuntu2204lts':
 						$other_php_versions = array(
 							'7.4' => '7.4',
 						);
 						break;
+
 					default:
 						$other_php_versions = array(
 							'7.4' => '7.4',

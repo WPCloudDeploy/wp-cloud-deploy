@@ -263,6 +263,17 @@ trait wpcd_wpapp_script_handlers {
 				||
 				( strpos( $result, 'Success!' ) !== false );
 				break;
+			case 'ols_manage_admin_console.txt':
+				// This one is a mix of server and site level items - mostly site level items.
+				$return =
+				( strpos( $result, 'Set OpenLiteSpeed Web Admin access' ) !== false )
+				||
+				( strpos( $result, 'OpenLiteSpeed WebAdmin password not changed' ) !== false )
+				||
+				( strpos( $result, 'Unable to setup OLS/LSWS admin port on firewall!' ) !== false )
+				||
+				( strpos( $result, 'Enabled OLS/LSWS admin port on firewall!' ) !== false );
+			break;
 			case 'php_workers.txt':
 				$return =
 				( strpos( $result, 'PHP Workers Updated' ) !== false );
@@ -1005,6 +1016,17 @@ trait wpcd_wpapp_script_handlers {
 					array(
 						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/55-ols_options.txt',
 						'SCRIPT_NAME' => '55-ols_options.sh',
+					),
+					$common_array,
+					$additional
+				);
+				break;
+			case 'ols_manage_admin_console.txt':
+				// This one is a mix of server and site level items - mostly site level items.
+				$new_array = array_merge(
+					array(
+						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/56-ols_manage_admin_console.txt',
+						'SCRIPT_NAME' => '56-ols_manage_admin_console.sh',
 					),
 					$common_array,
 					$additional

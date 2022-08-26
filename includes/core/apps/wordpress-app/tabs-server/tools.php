@@ -345,7 +345,7 @@ class WPCD_WORDPRESS_TABS_SERVER_TOOLS extends WPCD_WORDPRESS_TABS {
 			return new \WP_Error( __( 'You must specify a VALID PHP version!', 'wpcd' ) );
 		}
 
-		// Create a var with the new version without periods.
+		// Create a var with the new version without periods. We're no longer using this but keeping the call in case we need it in the future.
 		$new_php_version_no_periods = str_replace( '.', '', $new_php_version );
 
 		// Get the instance details.
@@ -366,26 +366,8 @@ class WPCD_WORDPRESS_TABS_SERVER_TOOLS extends WPCD_WORDPRESS_TABS {
 			 * Not at our desired php version - so change it.
 			 * The change commands depend on the web server type - OLS has a more complex set.
 			 */
-			// What type of web server are we running?
-			$webserver_type = $this->get_web_server_type( $id );
-
-			// Based on the webserver type the actual php version we pass in is slightly different.
-			$server_php_version = '';
-
-			switch ( $webserver_type ) {
-				case 'ols':
-				case 'ols-enterprise':
-					$server_php_version = 'lsphp' . $new_php_version_no_periods;
-					break;
-
-				case 'nginx':
-				default:
-					$server_php_version = $new_php_version;
-					break;
-			}
-
 			// Add the new version var to the args array - this is what the bash script will expect in the environment vars.
-			$args['server_php_version'] = $server_php_version;
+			$args['server_php_version'] = $new_php_version;
 
 			// Get the full command to be executed by ssh.
 			$run_cmd = $this->turn_script_into_command( $instance, 'server_php_version.txt', array_merge( $args, array( 'action' => $action ) ) );

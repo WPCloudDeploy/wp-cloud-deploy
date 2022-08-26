@@ -377,13 +377,11 @@ div[id^='wpcd_server_wordpress-app'] {
 }
 
 /* Font awesome pro icons need a little it more margin... */
-
 .wpcd-wpapp-actions .rwmb-tab-nav i {
 	margin-right: .5em;
 }
 
 /* The first row at the top of the server screen needs some extra love - bigger fonts for values. */
-
 .wpcd_server_details_top_row {
 	font-size: 1.2em !important;
 	/* font-weight: bold !important; */
@@ -396,6 +394,26 @@ div[id^='wpcd_server_wordpress-app'] {
 	font-size: 0.75em !important;
 	color: var(--wpcd-primary-brand-color);
 }
+
+
+/** 
+ * Make the data under the domain name on the server detail screen smaller and format as tiny chicklet boxes.
+ */
+.wpcd_server_wordpress-app_tab_top_of_server_details .wpcd_server_details_top_row .wpcd_medium_chicklet {
+	/* Applies to all medium sized chicklets - duplicated in wpcd-app.css */
+	font-size: 10px;
+	font-weight: normal;
+	padding: 5px;
+	border-radius:3px;
+	border: solid 1px;
+	margin-right: 5px;
+	min-width: 20px;
+}
+.wpcd_server_wordpress-app_tab_top_of_server_details .wpcd_server_details_top_row .wpcd_site_details_top_row_element_wstype {
+	color: var(--wpcd-primary-brand-color);
+	border-color: var(--wpcd-primary-brand-color);	
+}
+
 
 @media only screen and (max-width: 1300px) {
 	/* As the screen gets smaller decrease the size of the font for values though. */

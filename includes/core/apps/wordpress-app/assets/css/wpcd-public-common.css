@@ -976,7 +976,7 @@
 }
 
 /** 
- * Make the data under the domain name when we're using left menus smaller and format as tiny chicklet boxes.
+ * Make the data under the domain name on the app detail screen when we're using left menus smaller and format as tiny chicklet boxes.
  * Note that we're not using css id #wpcd_wordpress-app_tab_top_of_site_details to target these
  * items because we want them to work when the tabs are horizontal as well.
  */
@@ -1009,9 +1009,9 @@
 	color: gray;
 	border-color: gray;	
 }
-/* End make the data under the domain name when we're using left menus smaller and in chiclet boxes...*/
+/* End make the data under the domain name on the app detail when we're using left menus smaller and in chiclet boxes...*/
 
-/* Background color and text for tabs - vertical */
+/* Background color and text for tabs - vertical - app detail */
 #wpcd_public_wrapper .wpcd-wpapp-actions .rwmb-tabs-left .rwmb-tab-nav {
 	background-color: var(--wpcd-front-end-accent-background-color);
 }
@@ -1019,9 +1019,25 @@
 #wpcd_public_wrapper .wpcd-wpapp-actions .rwmb-tabs-left .rwmb-tab-nav .rwmb-tab-active {
 	background-image: linear-gradient( to right, var(--wpcd-accent-front-end-background-color), var(--wpcd-accent-front-end-background-color) 50%, var(--wpcd-alternate-front-end-accent-background-color) 50%);
 }
-/* End background color and text for tabs - vertical */
+/* End background color and text for tabs - vertical - app detail*/
 
-
+/** 
+ * Make the data under the domain name on the server detail screen smaller and format as tiny chicklet boxes.
+ */
+#wpcd_public_wrapper .wpcd_server_wordpress-app_tab_top_of_server_details .wpcd_server_details_top_row .wpcd_medium_chicklet {
+	/* Applies to all medium sized chicklets - duplicated in wpcd-app.css, wpcd-server-admin */
+	font-size: 10px;
+	font-weight: normal;
+	padding: 5px;
+	border-radius:3px;
+	border: solid 1px;
+	margin-right: 5px;
+	min-width: 20px;
+}
+#wpcd_public_wrapper .wpcd_server_wordpress-app_tab_top_of_server_details .wpcd_server_details_top_row .wpcd_site_details_top_row_element_wstype {
+	color: var(--wpcd-primary-brand-color);
+	border-color: var(--wpcd-primary-brand-color);	
+}
  
  
 /**

@@ -14,6 +14,55 @@ then
 fi
 source 9999-common-functions.sh
 
+function clear_php_alternatives(){
+	echo "Clearing current php alternatives defaults...."
+	# Always required and only affects the default server level php version not individual sites...
+	rm -f /usr/bin/php > /dev/null 2>&1
+	rm -f /usr/bin/phar > /dev/null 2>&1
+	rm -f /usr/bin/phar.phar > /dev/null 2>&1
+	rm -f /usr/bin/pecl > /dev/null 2>&1
+	rm -f /usr/lib/pear > /dev/null 2>&1
+	sudo update-alternatives --remove-all php
+	sudo update-alternatives --remove-all phar
+	sudo update-alternatives --remove-all phar.phar
+	sudo update-alternatives --remove-all pecl
+	sudo update-alternatives --remove-all pear
+	echo "Cleared current php alternatives defaults...."
+}
+
+function update_lsphp_default_version(){
+	# Always required and only affects the default server level php version not individual sites...
+	local phpver
+	local lsphpver
+	local default_phpver
+	default_phpver='7.4'
+	lsphpver="${1:-$default_phpver}" # 7.0,7.1,7.2,7.3,7.4,8.0,8.1,etc
+	phpver=$(echo $lsphpver | sed 's|\.||g')  # 70,71,72,73,74,80,81,etc
+
+	echo "Changing php default version to phpver: ${phpver} lsphpver: ${lsphpver}"
+	
+	# Clear alternatives defaults
+	clear_php_alternatives
+	
+	if [ "$phpver" = "70" ]  || [ "$phpver" = "71" ]|| [ "$phpver" = "72" ]|| [ "$phpver" = "73" ]; then
+		# phpver is 72,73 use un versioned phar.phar
+		sudo update-alternatives --install /usr/bin/php php /usr/local/lsws/lsphp${phpver}/bin/php 111
+		sudo update-alternatives --install /usr/bin/phar phar /usr/local/lsws/lsphp${phpver}/bin/phar 111
+		sudo update-alternatives --install /usr/bin/phar.phar phar.phar /usr/local/lsws/lsphp${phpver}/bin/phar.phar 111
+		sudo update-alternatives --install /usr/bin/pecl pecl /usr/local/lsws/lsphp${phpver}/bin/pecl 111
+		sudo update-alternatives --install /usr/lib/pear pear /usr/local/lsws/lsphp${phpver}/bin/pear 111
+
+	elif [ "$phpver" = "74" ] || [ "$phpver" = "80" ]  || [ "$phpver" = "81" ]|| [ "$phpver" = "82" ]|| [ "$phpver" = "83" ]; then
+		# for 74,80,81,etc with versioned phar: phar${lsphpver}.phar
+		sudo update-alternatives --install /usr/bin/php php /usr/local/lsws/lsphp${phpver}/bin/php 111
+		sudo update-alternatives --install /usr/bin/phar phar /usr/local/lsws/lsphp${phpver}/bin/phar${lsphpver}.phar 111
+		sudo update-alternatives --install /usr/bin/phar.phar phar.phar /usr/local/lsws/lsphp${phpver}/bin/phar${lsphpver}.phar 111
+		sudo update-alternatives --install /usr/bin/pecl pecl /usr/local/lsws/lsphp${phpver}/bin/pecl 111
+		sudo update-alternatives --install /usr/bin/pecl pecl /usr/local/lsws/lsphp${phpver}/bin/pecl 111
+		sudo update-alternatives --install /usr/lib/pear pear /usr/local/lsws/lsphp${phpver}/bin/pear 111
+	fi
+}
+
 # Get the version of PHP that should be activated for the server.
 if [[ -z $server_php_version ]]; then
 	echo
@@ -32,20 +81,7 @@ fi
 if [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 then
 
-	# Remove everything
-	sudo update-alternatives --remove-all php
-	sudo update-alternatives --remove-all phar
-	sudo update-alternatives --remove-all phar.phar
-	sudo update-alternatives --remove-all pecl
-	sudo update-alternatives --remove-all pear
-	
-	# Add it all back.
-	sudo update-alternatives --install /usr/bin/php php /usr/local/lsws/$server_php_version/bin/php 111
-	sudo update-alternatives --install /usr/bin/phar phar /usr/local/lsws/$server_php_version/bin/phar 111
-	sudo update-alternatives --install /usr/bin/phar.phar phar.phar /usr/local/lsws/$server_php_version/bin/phar.phar 111
-	sudo update-alternatives --install /usr/bin/pecl pecl /usr/local/lsws/$server_php_version/bin/pecl 111
-	sudo update-alternatives --install /usr/lib/pear pear /usr/local/lsws/$server_php_version/bin/pear 111
-
+	update_lsphp_default_version "$server_php_version"
 	echo "Server level PHP version has been updated to $server_php_version for webserver type $g_webserver_type"
 	exit
 fi

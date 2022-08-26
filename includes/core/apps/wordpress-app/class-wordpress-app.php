@@ -551,10 +551,18 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	 */
 	private function get_general_fields_server( array $fields, $id ) {
 
+		// What type of web server are we running?
+		$webserver_type      = $this->get_web_server_type( $id );
+		$webserver_type_name = $this->get_web_server_description_by_id( $id );
+
+		$other_data  = '<div class="wpcd_site_details_top_row_element_wrapper">';
+		$other_data .= '<span class="wpcd_medium_chicklet wpcd_site_details_top_row_element_wstype">' . $webserver_type_name . '</span>';
+		$other_data .= '</div>';
+
 		$fields['general-welcome-top-col_1'] = array(
 			'name'    => __( 'Server Name', 'wpcd' ),
 			'type'    => 'custom_html',
-			'std'     => get_post_meta( $id, 'wpcd_server_name', true ),
+			'std'     => get_post_meta( $id, 'wpcd_server_name', true ) . $other_data,
 			'columns' => 3,
 			'class'   => 'wpcd_server_details_top_row',
 		);

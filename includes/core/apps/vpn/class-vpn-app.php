@@ -109,6 +109,14 @@ class WPCD_VPN_APP extends WPCD_APP {
 		// Action hook to fire on new site created on WP Multisite.
 		add_action( 'wp_initialize_site', array( $this, 'vpn_schedule_events_for_new_site' ), 10, 2 );
 
+		/* Make sure that we show the server sizes on the provider settings screen - by default they are turned off in settings. */
+		add_filter(
+			'wpcd_show_server_sizes_in_settings',
+			function() {
+				return true;
+			}
+		);
+
 	}
 
 	/**

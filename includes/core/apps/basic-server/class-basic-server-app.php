@@ -64,6 +64,14 @@ class WPCD_BASIC_SERVER_APP extends WPCD_APP {
 		// setup WordPress hooks.
 		$this->hooks();
 
+		/* Make sure that we show the server sizes on the provider settings screen - by default they are turned off in settings. */
+		add_filter(
+			'wpcd_show_server_sizes_in_settings',
+			function() {
+				return true;
+			}
+		);
+
 		// Global for backwards compatibility.
 		$GLOBALS['wpcd_app_basic_server'] = $this;
 

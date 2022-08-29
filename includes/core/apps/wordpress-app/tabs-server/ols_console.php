@@ -112,7 +112,7 @@ class WPCD_WORDPRESS_TABS_SERVER_OLS_CONSOLE extends WPCD_WORDPRESS_TABS {
 		}
 
 		/* Now verify that the user can perform actions on this screen, assuming that they can view the server */
-		$valid_actions = array( 'enable-ols-console', 'disable-ols-console', 'enable-ols-console-ssl' );
+		$valid_actions = array( 'enable-ols-console', 'disable-ols-console' );
 		if ( in_array( $action, $valid_actions, true ) ) {
 			if ( ! $this->get_tab_security( $id ) ) {
 				/* translators: %1s is replaced with an internal action name; %2$s is replaced with the file name; %3$s is replaced with the post id being acted on. %4$s is the user id running this action. */
@@ -156,7 +156,7 @@ class WPCD_WORDPRESS_TABS_SERVER_OLS_CONSOLE extends WPCD_WORDPRESS_TABS {
 	 * @param string $type type.
 	 * @param int    $id id.
 	 */
-	public function get_field_header_desc( $type, $id, $status = '' ) {
+	public function get_field_header_desc( $type, $id ) {
 
 		// Check ols console enable or not.
 
@@ -168,13 +168,6 @@ class WPCD_WORDPRESS_TABS_SERVER_OLS_CONSOLE extends WPCD_WORDPRESS_TABS {
 				else :
 					$desc = '';
 				endif;
-				break;
-			case 2:
-				if ( 'on' <> $status ) {
-					$desc = __( 'Click to enable OLS Console SSL.', 'wpcd' );
-				} else {
-					$desc = __( 'Click to disable OLS Console SSL', 'wpcd' );
-				}
 				break;
 			default:
 				$desc = '';
@@ -274,38 +267,6 @@ class WPCD_WORDPRESS_TABS_SERVER_OLS_CONSOLE extends WPCD_WORDPRESS_TABS {
 				'type'           => 'button',
 			);
 
-			// Get SSL status.
-			$ssl_status = get_post_meta( $id, 'wpapp_ols_console_ssl_status', true );
-			if ( empty( $ssl_status ) ) {
-				$ssl_status = 'off';
-			}
-
-			// Set the confirmation prompt based on the the current status of this flag.
-			$confirmation_prompt = '';
-			if ( 'on' === $ssl_status ) {
-				$confirmation_prompt = __( 'Are you sure you would like to disable SSL?', 'wpcd' );
-			} else {
-				$confirmation_prompt = __( 'Are you sure you would like to enable SSL?', 'wpcd' );
-			}
-
-			// SSL Header.
-			$actions['ols-console-ssl-header'] = array(
-				'label' => __( 'OLS Console SSL', 'wpcd' ),
-				'type'  => 'heading',
-			);
-
-			// SSL Option.
-			$actions['enable-ols-console-ssl'] = array(
-				'label'          => '',
-				'raw_attributes' => array(
-					'on_label'            => __( 'Enabled', 'wpcd' ),
-					'off_label'           => __( 'Disabled', 'wpcd' ),
-					'std'                 => $ssl_status === 'on',
-					'desc'                => $this->get_field_header_desc( 2, $id, $ssl_status ),
-					'confirmation_prompt' => $confirmation_prompt,
-				),
-				'type'           => 'switch',
-			);
 		}
 
 		return $actions;
@@ -326,6 +287,10 @@ class WPCD_WORDPRESS_TABS_SERVER_OLS_CONSOLE extends WPCD_WORDPRESS_TABS {
 		$check_ols_console_status = get_post_meta( $id, 'wpcd_wpapp_enable_ols_console', true );
 		$ols_console_username     = get_post_meta( $id, 'wpcd_wpapp_username_for_ols_console', true );
 		$ols_console_pass         = get_post_meta( $id, 'wpcd_wpapp_password_for_ols_console', true );
+		$ipv4                     = WPCD_SERVER()->get_ipv4_address( $id );
+		$ols_console_url          = 'https://' . $ipv4 . ':7080';
+		$launch                   = sprintf( '<a href="%s" target="_blank">', $ols_console_url ) . __( 'Launch OLS Console', 'wpcd' ) . '</a>';
+
 		// Format the data.
 		$return              = '<div class="wpcd_push_data wpcd_server_status_push_data">';
 				$return     .= '<div class="wpcd_push_data_inner_wrap wpcd_server_status_push_data_inner_wrap">';
@@ -338,15 +303,15 @@ class WPCD_WORDPRESS_TABS_SERVER_OLS_CONSOLE extends WPCD_WORDPRESS_TABS {
 				$return     .= '</div>';
 
 				$return     .= '<div class="wpcd_push_data_label_item wpcd_server_status_push_data_label_item">';
-					$return .= __( 'Enable Console SSL:', 'wpcd' );
-				$return     .= '</div>';
-
-				$return     .= '<div class="wpcd_push_data_value_item wpcd_server_status_push_data_value_item">';
-					$return .= esc_html( 'No' );
+					$return .= __( 'URL:', 'wpcd' );
 				$return     .= '</div>';
 
 				$return     .= '<div class="wpcd_push_data_label_item wpcd_server_status_push_data_label_item">';
-					$return .= __( 'OLS Admin User Name:', 'wpcd' );
+					$return .= $launch;
+				$return     .= '</div>';
+
+				$return     .= '<div class="wpcd_push_data_label_item wpcd_server_status_push_data_label_item">';
+					$return .= __( 'User Name:', 'wpcd' );
 				$return     .= '</div>';
 
 				$return     .= '<div class="wpcd_push_data_value_item wpcd_server_status_push_data_value_item">';
@@ -354,11 +319,11 @@ class WPCD_WORDPRESS_TABS_SERVER_OLS_CONSOLE extends WPCD_WORDPRESS_TABS {
 				$return     .= '</div>';
 
 				$return     .= '<div class="wpcd_push_data_label_item wpcd_server_status_push_data_label_item">';
-					$return .= __( 'OLS Admin Password:', 'wpcd' );
+					$return .= __( 'Password:', 'wpcd' );
 				$return     .= '</div>';
 
 				$return     .= '<div class="wpcd_push_data_value_item wpcd_server_status_push_data_value_item">';
-					$return .= $ols_console_pass;
+					$return .= WPCD()->decrypt( $ols_console_pass );
 				$return     .= '</div>';
 
 			$return .= '</div>';
@@ -461,7 +426,7 @@ class WPCD_WORDPRESS_TABS_SERVER_OLS_CONSOLE extends WPCD_WORDPRESS_TABS {
 				case 'enable_ols_console':
 					update_post_meta( $id, 'wpcd_wpapp_enable_ols_console', 'yes' );
 					update_post_meta( $id, 'wpcd_wpapp_username_for_ols_console', $user_name );
-					update_post_meta( $id, 'wpcd_wpapp_password_for_ols_console', $pass );
+					update_post_meta( $id, 'wpcd_wpapp_password_for_ols_console', WPCD()->encrypt( $pass ) );
 					$success = array(
 						'msg'     => __( 'OLS console successfully enable.', 'wpcd' ),
 						'refresh' => 'yes',
@@ -471,7 +436,6 @@ class WPCD_WORDPRESS_TABS_SERVER_OLS_CONSOLE extends WPCD_WORDPRESS_TABS {
 					delete_post_meta( $id, 'wpcd_wpapp_enable_ols_console' );
 					delete_post_meta( $id, 'wpcd_wpapp_username_for_ols_console' );
 					delete_post_meta( $id, 'wpcd_wpapp_password_for_ols_console' );
-					delete_post_meta( $id, 'wpapp_ols_console_ssl_status' );
 					$success = array(
 						'msg'     => __( 'OLS console successfully disable.', 'wpcd' ),
 						'refresh' => 'yes',

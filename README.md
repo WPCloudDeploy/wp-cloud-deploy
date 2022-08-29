@@ -140,6 +140,7 @@ Note: Even though the entire git development history isn't available on github, 
 * Fix: WPAPP - Redirect rules were not being deleted in our database even when deleted on the site.
 * Fix: WPAPP - Attempt to detect when we were unable to get an SSL certificate during the domain change process and toggle the SSL meta to reflect that.
 * Fix: WPAPP - Server statistics tab would throw silent errors if statistics were never collected.
+* Fix: Show more options for DigitalOcean server sizes.
 * Dev: WPAPP - Filter for the valid list of WP versions - wpcd_allowed_wp_versions
 * Dev: WPAPP - Filter to allow other processes to add classes to individual rows on the front-end/public pages - wpcd_public_table_single_row
 * Dev: PHP 8.0/8.1 support for core - only applies to certain providers that have enabled PHP 8.x support for their PHP API wrappers.

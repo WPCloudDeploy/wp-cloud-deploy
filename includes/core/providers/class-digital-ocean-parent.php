@@ -185,6 +185,7 @@ class CLOUD_PROVIDER_API_DigitalOcean_Parent extends CLOUD_PROVIDER_API {
 		$run_cmd  = '';
 		switch ( $method ) {
 			case 'sizes':
+				$endpoint = 'sizes' . '?page=1&per_page=200';
 				break;
 			case 'keys':
 				$endpoint = 'account/keys';

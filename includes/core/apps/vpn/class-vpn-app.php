@@ -109,6 +109,14 @@ class WPCD_VPN_APP extends WPCD_APP {
 		// Action hook to fire on new site created on WP Multisite.
 		add_action( 'wp_initialize_site', array( $this, 'vpn_schedule_events_for_new_site' ), 10, 2 );
 
+		/* Make sure that we show the server sizes on the provider settings screen - by default they are turned off in settings. */
+		add_filter(
+			'wpcd_show_server_sizes_in_settings',
+			function() {
+				return true;
+			}
+		);
+
 	}
 
 	/**
@@ -159,7 +167,7 @@ class WPCD_VPN_APP extends WPCD_APP {
 		$result = $this->do_instance_action( sanitize_text_field( $_POST['vpn_id'] ), sanitize_text_field( $_POST['vpn_app_id'] ), sanitize_text_field( $_POST['vpn_action'] ), $additional );
 		if ( is_wp_error( $result ) ) {
 			wp_send_json_error( array( 'msg' => $result->get_error_code() ) );
-		} else if ( empty( $result ) ) {
+		} elseif ( empty( $result ) ) {
 			wp_send_json_error();
 		}
 
@@ -668,7 +676,7 @@ class WPCD_VPN_APP extends WPCD_APP {
 			array( '$NAME', '$PROVIDER', '$IP', '$PROTOCOL', '$SIZE', '$USERS', '$URL' ),
 			array(
 				get_post_meta( $server_post->ID, 'wpcd_server_name', true ),
-				$this->get_providers()[$provider],
+				$this->get_providers()[ $provider ],
 				$details['ip'],
 				$protocol,
 				$size,
@@ -1026,14 +1034,14 @@ class WPCD_VPN_APP extends WPCD_APP {
 							$foot_break = true;
 							break;
 						case 'connected':
-							$buttons   .= '<div class="wpcd-vpn-action-head">' . __( "What's connected?", 'wpcd' ) . '</div>'; // Add in the section title text.
+							$buttons   .= '<div class="wpcd-vpn-action-head">' . __( "What's Connected?", 'wpcd' ) . '</div>'; // Add in the section title text.
 							$buttons   .= '<select class="wpcd-vpn-additional wpcd-vpn-connected wpcd-vpn-select" name="name"></select>';
 							$buttons   .= '<button style="display: none;" class="wpcd-vpn-action-type wpcd-vpn-action-disconnect" data-action="disconnect" data-id="' . $server_post->ID . '">' . __( 'Disconnect', 'wpcd' ) . '</button>';
 							$help_tip   = __( 'View connected users - only applies if you contact us to turn on logging for your instance', 'wpcd' );
 							$foot_break = true;
 							break;
 						case 'add-user':
-							$buttons .= '<div class="wpcd-vpn-action-head">' . __( 'Add and remove users', 'wpcd' ) . '</div>'; // Add in the section title text.
+							$buttons .= '<div class="wpcd-vpn-action-head">' . __( 'Add & Remove users', 'wpcd' ) . '</div>'; // Add in the section title text.
 							$buttons .= '<input type="text" name="name" id="wpcd-vpn-input-text-add-user-name" class="wpcd-vpn-additional wpcd-vpn-input-text">';
 							$help_tip = __( 'Type a name with no spaces into the field above and click the ADD USER button. After a few seconds you will be prompted to download the user configuration file. Or you can use the DOWNLOAD CONFIGURATION FILE button to get it later.', 'wpcd' );
 							break;
@@ -1050,7 +1058,7 @@ class WPCD_VPN_APP extends WPCD_APP {
 							$foot_break = true;
 							break;
 						case 'download-file':
-							$buttons .= '<div class="wpcd-vpn-action-head">' . __( 'Configure your devices', 'wpcd' ) . '</div>'; // Add in the section title text.
+							$buttons .= '<div class="wpcd-vpn-action-head">' . __( 'Configure Your Devices', 'wpcd' ) . '</div>'; // Add in the section title text.
 							$clients  = wpcd_maybe_unserialize( get_post_meta( $app_post->ID, 'vpn_clients', true ) );
 							if ( $clients ) {
 								$buttons .= '<select class="wpcd-vpn-additional wpcd-vpn-client-list wpcd-vpn-download-file wpcd-vpn-select" name="name">';
@@ -1117,7 +1125,15 @@ class WPCD_VPN_APP extends WPCD_APP {
 				$total = array();
 			}
 
+			// Get subscription id from server cpt.
 			$subscription = wpcd_maybe_unserialize( get_post_meta( $server_post->ID, 'wpcd_server_wc_subscription', true ) );
+
+			// Make $subscription var an array for use later.
+			if ( ! is_array( $subscription ) ) {
+				$subscription_array = array( $subscription );
+			} else {
+				$subscription_array = $subscription;
+			}
 
 			/* These strings are the class names for the icons from our custom icomoon font file */
 			$provider_icon = '<div class="icon-spvpnprovider"><span class="path1"></span><span class="path2"></span></div>';
@@ -1133,12 +1149,12 @@ class WPCD_VPN_APP extends WPCD_APP {
 					<div class="wpcd-vpn-instance-name">' . get_post_meta( $server_post->ID, 'wpcd_server_name', true ) . '</div>
 
 					<div class="wpcd-vpn-instance-atts">' .
-						'<div class="wpcd-vpn-instance-atts-provider-wrap">' . $provider_icon . '<div class="wpcd-vpn-instance-atts-provider-label">' . __( 'Provider', 'wpcd' )        . ': ' . '</div>' . $this->get_providers()[$provider] . '</div>
-						<div class="wpcd-vpn-instance-atts-region-wrap">'    . $region_icon   . '<div class="wpcd-vpn-instance-atts-region-label">'   . __( 'Region', 'wpcd' )          . ': ' . '</div>' . $display_region . '</div>
-						<div class="wpcd-vpn-instance-atts-size-wrap">'      . $size_icon     . '<div class="wpcd-vpn-instance-atts-size-label">'     . __( 'Size', 'wpcd' )            . ': ' . '</div>' . WPCD()->classes['wpcd_app_vpn_wc']::$sizes[ strval( $size ) ] . '</div>
-						<div class="wpcd-vpn-instance-atts-proto-wrap">'     . $protocol_icon . '<div class="wpcd-vpn-instance-atts-proto-label">'    . __( 'Protocol', 'wpcd' )        . ': ' . '</div>' . $protocol . '</div>
-						<div class="wpcd-vpn-instance-atts-users-wrap">'     . $users_icon    . '<div class="wpcd-vpn-instance-atts-users-label">'    . __( 'Users / Allowed', 'wpcd' ) . ': ' . '</div>' . sprintf( '%d / %d', count( $total ), $max ) . '</div>
-						<div class="wpcd-vpn-instance-atts-subid-wrap">'     . $subid_icon    . '<div class="wpcd-vpn-instance-atts-sub-label">'      . __( 'Subscription ID', 'wpcd' ) . ': ' . '</div>' . implode( ', ', $subscription ) . '</div>' ;
+						'<div class="wpcd-vpn-instance-atts-provider-wrap">' . $provider_icon . '<div class="wpcd-vpn-instance-atts-provider-label">' . __( 'Provider', 'wpcd' ) . ': ' . '</div>' . $this->get_providers()[ $provider ] . '</div>
+						<div class="wpcd-vpn-instance-atts-region-wrap">' . $region_icon . '<div class="wpcd-vpn-instance-atts-region-label">' . __( 'Region', 'wpcd' ) . ': ' . '</div>' . $display_region . '</div>
+						<div class="wpcd-vpn-instance-atts-size-wrap">' . $size_icon . '<div class="wpcd-vpn-instance-atts-size-label">' . __( 'Size', 'wpcd' ) . ': ' . '</div>' . WPCD()->classes['wpcd_app_vpn_wc']::$sizes[ strval( $size ) ] . '</div>
+						<div class="wpcd-vpn-instance-atts-proto-wrap">' . $protocol_icon . '<div class="wpcd-vpn-instance-atts-proto-label">' . __( 'Protocol', 'wpcd' ) . ': ' . '</div>' . $protocol . '</div>
+						<div class="wpcd-vpn-instance-atts-users-wrap">' . $users_icon . '<div class="wpcd-vpn-instance-atts-users-label">' . __( 'Users / Allowed', 'wpcd' ) . ': ' . '</div>' . sprintf( '%d / %d', count( $total ), $max ) . '</div>
+						<div class="wpcd-vpn-instance-atts-subid-wrap">' . $subid_icon . '<div class="wpcd-vpn-instance-atts-sub-label">' . __( 'Subscription ID', 'wpcd' ) . ': ' . '</div>' . implode( ', ', $subscription_array ) . '</div>';
 
 			$output .= '</div>';
 			$output  = $this->add_promo_link( 1, $output );

@@ -363,9 +363,14 @@ class WPCD_WORDPRESS_TABS_SSL extends WPCD_WORDPRESS_TABS {
 			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
 		}
 
-		// Do not allow any changes to SSL if HTTP2 is turned on.
-		if ( 'on' === $this->http2_status( $id ) && ( 'enable' === $action || 'disable' === $action ) ) {
-			return new \WP_Error( __( 'Please disable HTTP2 before attempting to change your SSL status', 'wpcd' ) );
+		// What type of web server are we running?
+		$webserver_type = $this->get_web_server_type( $id );
+
+		// Do not allow any changes to SSL if HTTP2 is turned on and the server is NGINX.
+		if ( 'nginx' === $webserver_type ) {
+			if ( 'on' === $this->http2_status( $id ) && ( 'enable' === $action || 'disable' === $action ) ) {
+				return new \WP_Error( __( 'Please disable HTTP2 before attempting to change your SSL status', 'wpcd' ) );
+			}
 		}
 
 		// Get the full command to be executed by ssh.

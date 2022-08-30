@@ -346,7 +346,6 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs-server/ufw_firewall.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs-server/backup.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs-server/monit.php';
-		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs-server/ols_console.php';
 
 		// Possibly add required files for ssh console.
 		$option_hide_ssh_console = get_option( 'wpcd_wpapp_ssh_console_hide' );
@@ -375,6 +374,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs-server/monitorix.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs-server/goaccess.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs-server/resize.php';
+		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs-server/ols_console.php';
 
 		/**
 		 * Need to add new tabs or add data to existing tabs from an add-on?

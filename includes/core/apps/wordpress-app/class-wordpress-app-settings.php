@@ -550,6 +550,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			'svr_tools'       => __( 'Tools', 'wpcd' ),
 			'svr_tweaks'      => __( 'Tweaks', 'wpcd' ),
 			'firewall'        => __( 'Firewall', 'wpcd' ),
+			'ols_console'     => __( 'OpenLiteSpeed Web Console Manager', 'wpcd' ),
 			'server_upgrade'  => __( 'Upgrades', 'wpcd' ),
 			'server-users'    => __( 'Users', 'wpcd' ),
 			'serversync'      => __( 'Server Sync', 'wpcd' ),

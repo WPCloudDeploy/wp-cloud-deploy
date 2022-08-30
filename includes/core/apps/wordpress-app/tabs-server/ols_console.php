@@ -158,15 +158,15 @@ class WPCD_WORDPRESS_TABS_SERVER_OLS_CONSOLE extends WPCD_WORDPRESS_TABS {
 	 */
 	public function get_field_header_desc( $type, $id ) {
 
-		// Check ols console enable or not.
-
+		// Check whether the ols console is enabled or not and return an appropriate string for the header.
 		switch ( $type ) {
 			case 1:
-				$check_ols_console_status = $this->is_ols_console_enable( $id );
+				$check_ols_console_status = $this->is_ols_console_enabled( $id );
 				if ( empty( $check_ols_console_status ) ) :
-					$desc = __( 'Set user/pass for enable ols console', 'wpcd' );
+					$desc  = __( 'The OpenLiteSpeed Webserver Manager console is not installed.', 'wpcd' );
+					$desc .= '<br />' . __( 'To install it please enter a username & password, then click the INSTALL button.', 'wpcd' );
 				else :
-					$desc = '';
+					$desc = __( 'When launching the OpenLiteSpeed Webserver Manager console you will encounter a security warning related to SSL. This is because the OLS server is using a self-signed certificate. Traffic is still encrypted between your browser and the console with the self-signed certificate so you should approve the browser request to ignore the warning.', 'wpcd' );
 				endif;
 				break;
 			default:
@@ -192,16 +192,17 @@ class WPCD_WORDPRESS_TABS_SERVER_OLS_CONSOLE extends WPCD_WORDPRESS_TABS {
 
 		// Check ols console enable or not.
 
-		$check_ols_console_status = $this->is_ols_console_enable( $id );
+		$check_ols_console_status = $this->is_ols_console_enabled( $id );
 
 		$actions['ols-console-header-main'] = array(
-			'label'          => __( 'OLS Console', 'wpcd' ),
+			'label'          => __( 'OpenLiteSpeed Webserver Manager Console', 'wpcd' ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
 				'desc' => $this->get_field_header_desc( 1, $id ),
 			),
 		);
 
+		/* Console is enabled, show appropriate fields for that. */
 		if ( ! empty( $check_ols_console_status ) ) {
 
 			$actions['server-status-callback-data-display'] = array(
@@ -214,6 +215,7 @@ class WPCD_WORDPRESS_TABS_SERVER_OLS_CONSOLE extends WPCD_WORDPRESS_TABS {
 		}
 
 		if ( empty( $check_ols_console_status ) ) {
+			/* Console is disabled, show appropriate fields for that. */
 
 			$actions['username-for-ols-console'] = array(
 				'label'          => __( 'User Name', 'wpcd' ),
@@ -240,10 +242,10 @@ class WPCD_WORDPRESS_TABS_SERVER_OLS_CONSOLE extends WPCD_WORDPRESS_TABS {
 			$actions['enable-ols-console'] = array(
 				'label'          => '',
 				'raw_attributes' => array(
-					'std'                 => __( 'Run Now', 'wpcd' ),
+					'std'                 => __( 'Install', 'wpcd' ),
 					'desc'                => '',
 					// make sure we give the user a confirmation prompt.
-					'confirmation_prompt' => __( 'Are you sure you would like to enable ols console?', 'wpcd' ),
+					'confirmation_prompt' => __( 'Are you sure you would like to enable the OpenLiteSpeed webserver manager console?', 'wpcd' ),
 					'data-wpcd-fields'    => json_encode( array( '#wpcd_app_action_username-for-ols-console', '#wpcd_app_action_password-for-ols-console' ) ),
 				),
 				'type'           => 'button',
@@ -251,18 +253,19 @@ class WPCD_WORDPRESS_TABS_SERVER_OLS_CONSOLE extends WPCD_WORDPRESS_TABS {
 
 		} else {
 
+			/* Console is enabled, show additional appropriate fields for that. */
 			$actions['disable-ols-console-header'] = array(
-				'label' => __( 'Disable OLS Console', 'wpcd' ),
+				'label' => __( 'Disable The OpenLiteSpeed Webserver Manager Console', 'wpcd' ),
 				'type'  => 'heading',
 			);
 
 			$actions['disable-ols-console'] = array(
 				'label'          => '',
 				'raw_attributes' => array(
-					'std'                 => __( 'Disabled', 'wpcd' ),
+					'std'                 => __( 'Disable', 'wpcd' ),
 					'desc'                => '',
 					// make sure we give the user a confirmation prompt.
-					'confirmation_prompt' => __( 'Are you sure you would like to disable ols console?', 'wpcd' ),
+					'confirmation_prompt' => __( 'Are you sure you would like to disable the OpenLiteSpeed webserver manager console?', 'wpcd' ),
 				),
 				'type'           => 'button',
 			);
@@ -295,7 +298,7 @@ class WPCD_WORDPRESS_TABS_SERVER_OLS_CONSOLE extends WPCD_WORDPRESS_TABS {
 		$return              = '<div class="wpcd_push_data wpcd_server_status_push_data">';
 				$return     .= '<div class="wpcd_push_data_inner_wrap wpcd_server_status_push_data_inner_wrap">';
 				$return     .= '<div class="wpcd_push_data_label_item wpcd_server_status_push_data_label_item">';
-					$return .= __( 'Enable OLS Console:', 'wpcd' );
+					$return .= __( 'Is OLS Console Enabled?', 'wpcd' );
 				$return     .= '</div>';
 
 				$return     .= '<div class="wpcd_push_data_value_item wpcd_server_status_push_data_value_item">';
@@ -418,6 +421,7 @@ class WPCD_WORDPRESS_TABS_SERVER_OLS_CONSOLE extends WPCD_WORDPRESS_TABS {
 		$result  = $this->execute_ssh( 'generic', $instance, array( 'commands' => $run_cmd ) );
 		$success = $this->is_ssh_successful( $result, 'ols_manage_admin_console.txt' );
 		if ( ! $success ) {
+			/* Translators: %1$s: Action string; %2$s: Error string/message. */
 			return new \WP_Error( sprintf( __( 'Unable to %1$s : %2$s', 'wpcd' ), $action, $result ) );
 		} else {
 
@@ -428,7 +432,7 @@ class WPCD_WORDPRESS_TABS_SERVER_OLS_CONSOLE extends WPCD_WORDPRESS_TABS {
 					update_post_meta( $id, 'wpcd_wpapp_username_for_ols_console', $user_name );
 					update_post_meta( $id, 'wpcd_wpapp_password_for_ols_console', WPCD()->encrypt( $pass ) );
 					$success = array(
-						'msg'     => __( 'OLS console successfully enable.', 'wpcd' ),
+						'msg'     => __( 'OLS console successfully enabled.', 'wpcd' ),
 						'refresh' => 'yes',
 					);
 					break;
@@ -437,7 +441,7 @@ class WPCD_WORDPRESS_TABS_SERVER_OLS_CONSOLE extends WPCD_WORDPRESS_TABS {
 					delete_post_meta( $id, 'wpcd_wpapp_username_for_ols_console' );
 					delete_post_meta( $id, 'wpcd_wpapp_password_for_ols_console' );
 					$success = array(
-						'msg'     => __( 'OLS console successfully disable.', 'wpcd' ),
+						'msg'     => __( 'OLS console successfully disabled.', 'wpcd' ),
 						'refresh' => 'yes',
 					);
 					break;
@@ -454,7 +458,7 @@ class WPCD_WORDPRESS_TABS_SERVER_OLS_CONSOLE extends WPCD_WORDPRESS_TABS {
 	 * @param int $id     The postID of the server cpt.
 	 * @return boolean    true/false
 	 */
-	public function is_ols_console_enable( $id ) {
+	public function is_ols_console_enabled( $id ) {
 
 		$check_ols_console_enable = get_post_meta( $id, 'wpcd_wpapp_enable_ols_console', 'yes' );
 

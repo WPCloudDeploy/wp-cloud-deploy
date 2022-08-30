@@ -398,6 +398,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			'tweaks'                   => __( 'Tweaks', 'wpcd' ),
 			'wp-site-users'            => __( 'WP Site Users', 'wpcd' ),
 			'wpconfig'                 => __( 'WPConfig', 'wpcd' ),
+			'file-manager'             => __( 'File Manager', 'wpcd' ),
 			'multisite'                => __( 'Multisite', 'wpcd' ),
 		);
 

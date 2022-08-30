@@ -55,7 +55,7 @@ class WPCD_WORDPRESS_TABS_FILE_MANAGER extends WPCD_WORDPRESS_TABS {
 			// Is the command successful?
 			$success = $this->is_ssh_successful( $logs, 'manage_tinyfilemanager.txt' );
 
-			if ( true == $success ) {
+			if ( true === $success ) {
 
 				// We need to parse the log files to find.
 				// 1. user name.
@@ -97,7 +97,7 @@ class WPCD_WORDPRESS_TABS_FILE_MANAGER extends WPCD_WORDPRESS_TABS {
 			// Is the command successful?
 			$success = $this->is_ssh_successful( $logs, 'manage_tinyfilemanager.txt' );
 
-			if ( true == $success ) {
+			if ( true === $success ) {
 
 					update_post_meta( $id, 'wpapp_file_manager_status', 'off' );
 					delete_post_meta( $id, 'wpapp_file_manager_user_id' );
@@ -220,6 +220,7 @@ class WPCD_WORDPRESS_TABS_FILE_MANAGER extends WPCD_WORDPRESS_TABS {
 
 		// Bail if error.
 		if ( is_wp_error( $instance ) ) {
+			/* Translators: %s is the action id we're trying to execute. It is usually a string without spaces, not a number. */
 			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
 		}
 
@@ -281,6 +282,7 @@ class WPCD_WORDPRESS_TABS_FILE_MANAGER extends WPCD_WORDPRESS_TABS {
 				);
 				break;
 			default:
+				/* Update & Remove */
 				$run_cmd = $this->turn_script_into_command(
 					$instance,
 					'manage_tinyfilemanager.txt',
@@ -294,6 +296,7 @@ class WPCD_WORDPRESS_TABS_FILE_MANAGER extends WPCD_WORDPRESS_TABS {
 
 		// double-check just in case of errors.
 		if ( empty( $run_cmd ) || is_wp_error( $run_cmd ) ) {
+			/* Translators: %s is the action id we're trying to execute. It is usually a string without spaces, not a number. */
 			return new \WP_Error( sprintf( __( 'Something went wrong - we are unable to construct a proper command for this action - %s', 'wpcd' ), $action ) );
 		}
 
@@ -330,16 +333,16 @@ class WPCD_WORDPRESS_TABS_FILE_MANAGER extends WPCD_WORDPRESS_TABS {
 		}
 
 		// Manage fields base on installed file manager.
-
-		$check_file_manager_status = $this->is_install_file_manager( $id );
+		$file_manager_status = $this->is_file_manager_installed( $id );
 
 		// What is the status of File Manager?
-		if ( empty( $check_file_manager_status ) ) {
-			$check_file_manager_status = 'off';
+		if ( empty( $file_manager_status ) ) {
+			$file_manager_status = 'off';
 		}
 
-		if ( 'off' == $check_file_manager_status ) {
-			$desc = __( 'Set user/pass for install File Manager.', 'wpcd' );
+		if ( 'off' === $file_manager_status ) {
+			$desc  = __( 'The File Manager is not installed.', 'wpcd' );
+			$desc .= '<br />' . __( 'To install it please enter a username & password, then click the INSTALL button.', 'wpcd' );
 		} else {
 			$desc = '';
 		}
@@ -351,10 +354,9 @@ class WPCD_WORDPRESS_TABS_FILE_MANAGER extends WPCD_WORDPRESS_TABS {
 			'desc' => $desc,
 		);
 
-		if ( 'off' == $check_file_manager_status ) {
+		if ( 'off' === $file_manager_status ) {
 
 			// File Manager is not installed on this site, so show button & fields to install it.
-
 			$fields[] = array(
 				'id'         => 'username-for-file-manager',
 				'name'       => __( 'User Name:', 'wpcd' ),
@@ -418,7 +420,7 @@ class WPCD_WORDPRESS_TABS_FILE_MANAGER extends WPCD_WORDPRESS_TABS {
 			$file_manager_user_id  = str_replace( 'User:', '', $file_manager_user_id );
 			$file_manager_password = str_replace( 'Password:', '', $file_manager_password );
 
-			if ( 'on' == get_post_meta( $id, 'wpapp_ssl_status', true ) ) {
+			if ( true === $this->get_site_local_ssl_status( $id ) ) {
 				$file_manager_url = 'https://' . $this->get_domain_name( $id ) . '/' . 'filemanager';
 			} else {
 				$file_manager_url = 'http://' . $this->get_domain_name( $id ) . '/' . 'filemanager';
@@ -435,7 +437,7 @@ class WPCD_WORDPRESS_TABS_FILE_MANAGER extends WPCD_WORDPRESS_TABS {
 			$fields[] = array(
 				'tab'  => 'file-manager',
 				'type' => 'custom_html',
-				'std'  => __( 'User Name: ', 'wpcd' ) . $file_manager_user_id . '<br />' . __( 'Password: ', 'wpcd' ) . $file_manager_password,
+				'std'  => __( 'User Name: ', 'wpcd' ) . esc_html( $file_manager_user_id ) . '<br />' . __( 'Password: ', 'wpcd' ) . esc_html( $file_manager_password ),
 			);
 
 			// New fields section for change username & password.
@@ -443,7 +445,7 @@ class WPCD_WORDPRESS_TABS_FILE_MANAGER extends WPCD_WORDPRESS_TABS {
 				'name' => __( 'File Manager- Change Credentials', 'wpcd' ),
 				'tab'  => 'file-manager',
 				'type' => 'heading',
-				'desc' => __( 'Set new username and password for access file manager', 'wpcd' ),
+				'desc' => __( 'Set a new username and password for the file manager', 'wpcd' ),
 			);
 
 			$fields[] = array(
@@ -494,51 +496,58 @@ class WPCD_WORDPRESS_TABS_FILE_MANAGER extends WPCD_WORDPRESS_TABS {
 					// show log console?
 					'data-show-log-console'         => true,
 					// Initial console message.
-					'data-initial-console-message'  => __( 'Preparing to update details for File Manager.<br /> Please DO NOT EXIT this screen until you see a popup message indicating that the operation has completed or has errored.<br />This terminal should refresh every 60-90 seconds with updated progress information from the server. <br /> After the operation is complete the entire log can be viewed in the COMMAND LOG screen.', 'wpcd' ),
+					'data-initial-console-message'  => __( 'Preparing to update File Manager.<br /> Please DO NOT EXIT this screen until you see a popup message indicating that the operation has completed or has errored.<br />This terminal should refresh every 60-90 seconds with updated progress information from the server. <br /> After the operation is complete the entire log can be viewed in the COMMAND LOG screen.', 'wpcd' ),
 				),
 				'class'      => 'wpcd_app_action',
 				'save_field' => true,
 			);
 
-			// New fields section for update and remove of File Manager.
+			// Fields section for update and remove of File Manager.
 			$fields[] = array(
-				'name' => __( 'File Manager- Update and Remove', 'wpcd' ),
+				'name' => __( 'Upgrade File Manager', 'wpcd' ),
 				'tab'  => 'file-manager',
 				'type' => 'heading',
-				'desc' => __( 'Update and/or remove File Manager', 'wpcd' ),
+				'desc' => __( 'Update the File Manager to the latest version.', 'wpcd' ),
 			);
 
 			// Update File Manager.
 			$fields[] = array(
 				'id'         => 'update-tinyfilemanager',
-				'name'       => __( 'Update File Manager', 'wpcd' ),
+				'name'       => '',
 				'tab'        => 'file-manager',
 				'type'       => 'button',
 				'std'        => __( 'Update File Manager', 'wpcd' ),
-				'desc'       => __( 'Update the File Manager to the latest version.', 'wpcd' ),
+				'desc'       => '',
 				'attributes' => array(
 					// the _action that will be called in ajax.
 					'data-wpcd-action'              => 'update-tinyfilemanager',
 					// the id.
 					'data-wpcd-id'                  => $id,
 					// make sure we give the user a confirmation prompt.
-					'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like to update the File Manager?', 'wpcd' ),
+					'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like to upgrade the File Manager?', 'wpcd' ),
 					'data-show-log-console'         => true,
 					// Initial console message.
-					'data-initial-console-message'  => __( 'Preparing to update File Manager.<br /> Please DO NOT EXIT this screen until you see a popup message indicating that the operation has completed or has errored.<br />This terminal should refresh every 60-90 seconds with updated progress information from the server. <br /> After the operation is complete the entire log can be viewed in the COMMAND LOG screen.', 'wpcd' ),
+					'data-initial-console-message'  => __( 'Preparing to upgrade File Manager.<br /> Please DO NOT EXIT this screen until you see a popup message indicating that the operation has completed or has errored.<br />This terminal should refresh every 60-90 seconds with updated progress information from the server. <br /> After the operation is complete the entire log can be viewed in the COMMAND LOG screen.', 'wpcd' ),
 				),
 				'class'      => 'wpcd_app_action',
 				'save_field' => false,
 			);
 
+			$fields[] = array(
+				'name' => __( 'Remove File Manager', 'wpcd' ),
+				'tab'  => 'file-manager',
+				'type' => 'heading',
+				'desc' => '',
+			);
+
 			// Remove File Manager.
 			$fields[] = array(
 				'id'         => 'remove-tinyfilemanager',
-				'name'       => __( 'Remove File Manager', 'wpcd' ),
+				'name'       => '',
 				'tab'        => 'file-manager',
 				'type'       => 'button',
 				'std'        => __( 'Remove File Manager', 'wpcd' ),
-				'desc'       => __( 'Remove the File Manager from this site.', 'wpcd' ),
+				'desc'       => '',
 				'attributes' => array(
 					// the _action that will be called in ajax.
 					'data-wpcd-action'              => 'remove-tinyfilemanager',
@@ -561,18 +570,18 @@ class WPCD_WORDPRESS_TABS_FILE_MANAGER extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
-	 * Check File Manager Install OR Not
+	 * Check whether the file manager is installed.
 	 *
 	 * @param int $id     The postID of the server cpt.
 	 * @return boolean    true/false
 	 */
-	public function is_install_file_manager( $id ) {
+	public function is_file_manager_installed( $id ) {
 
-		$check_file_manager_status = get_post_meta( $id, 'wpapp_file_manager_status', 'on' );
+		$file_manager_status = get_post_meta( $id, 'wpapp_file_manager_status', 'on' );
 
-		if ( ! empty( $check_file_manager_status ) ) {
+		if ( ! empty( $file_manager_status ) ) {
 
-			return $check_file_manager_status;
+			return $file_manager_status;
 		}
 
 		return 'off';

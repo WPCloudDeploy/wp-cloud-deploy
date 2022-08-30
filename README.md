@@ -130,6 +130,7 @@ Note: Even though the entire git development history isn't available on github, 
 * New: WPAPP - Preliminary support for Ubuntu 22.04 LTS.
 * New: WPAPP - Auto-create SSH Key Pair for DigitalOcean and other selected providers.
 * New: WPAPP - Add a TEST button in the providers setting area to validate the apikey entered for DigitalOcean (and certain other selected providers) before allowing other fields to show.
+* New: WPAPP - File Manager per site.
 * New: WPAPP - Allow the admin to curate the list of WP versions shown to customers and other users who create sites.
 * New: WPAPP - Send email to wpcd site admin when a pending task has been running for more than 15 minutes.
 * Tweak: WPAPP - Remove extraneous text from certain tabs.

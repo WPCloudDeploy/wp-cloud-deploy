@@ -1652,7 +1652,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	}
 
 	/**
-	 * Sets the status of SSL metas and, if necesssary, http2 as well.
+	 * Sets the status of SSL metas and, if necessary, http2 as well.
 	 *
 	 * @param int    $app_id is the post id of the app record we're working with.
 	 * @param string $ssl_status Should be 'on' or 'off'.

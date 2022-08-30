@@ -318,7 +318,7 @@ class WPCD_WORDPRESS_TABS_SERVER_OLS_CONSOLE extends WPCD_WORDPRESS_TABS {
 				$return     .= '</div>';
 
 				$return     .= '<div class="wpcd_push_data_value_item wpcd_server_status_push_data_value_item">';
-					$return .= $ols_console_username;
+					$return .= esc_html( $ols_console_username );
 				$return     .= '</div>';
 
 				$return     .= '<div class="wpcd_push_data_label_item wpcd_server_status_push_data_label_item">';
@@ -350,6 +350,7 @@ class WPCD_WORDPRESS_TABS_SERVER_OLS_CONSOLE extends WPCD_WORDPRESS_TABS {
 
 		// Bail if error.
 		if ( is_wp_error( $instance ) ) {
+			/* Translators: %s is the action id we're trying to execute. It is usually a string without spaces, not a number. */
 			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the server instance details for action %s', 'wpcd' ), $action ) );
 		}
 

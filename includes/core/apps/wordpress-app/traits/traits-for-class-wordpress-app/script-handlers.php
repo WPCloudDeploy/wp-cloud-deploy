@@ -162,6 +162,16 @@ trait wpcd_wpapp_script_handlers {
 				||
 				( strpos( $result, 'phpMyAdmin has been removed for' ) !== false );
 				break;
+			case 'manage_tinyfilemanager.txt':
+				$return =
+				( strpos( $result, 'Filemanager installed for' ) !== false )
+				||
+				( strpos( $result, 'FileManager updated for' ) !== false )
+				||
+				( strpos( $result, 'Access credentials have been updated' ) !== false )
+				||
+				( strpos( $result, 'FileManager has been removed for' ) !== false );
+				break;
 			case '6g_firewall.txt':
 				$return =
 				( strpos( $result, 'Enabled 6G Firewall' ) !== false )
@@ -853,6 +863,19 @@ trait wpcd_wpapp_script_handlers {
 					array(
 						'SCRIPT_URL'   => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/07-phpmyadmin.txt',
 						'SCRIPT_NAME'  => '07-phpmyadmin.sh',
+						'SCRIPT_LOGS'  => "{$this->get_app_name()}_{$command_name}",
+						'CALLBACK_URL' => $this->get_command_url( $instance['app_id'], $command_name, 'completed' ),
+					),
+					$common_array,
+					$additional
+				);
+				break;
+			case 'manage_tinyfilemanager.txt':
+				$command_name = $additional['command'];
+				$new_array    = array_merge(
+					array(
+						'SCRIPT_URL'   => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/57-tinyfilemanager.txt',
+						'SCRIPT_NAME'  => '57-tinyfilemanager.sh',
 						'SCRIPT_LOGS'  => "{$this->get_app_name()}_{$command_name}",
 						'CALLBACK_URL' => $this->get_command_url( $instance['app_id'], $command_name, 'completed' ),
 					),

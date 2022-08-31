@@ -21,9 +21,11 @@ do
 	echo "What do you want to do?"
 	echo "   1) Install allowed-denied-plugins-scanner Cron"
 	echo "   2) Remove allowed-denied-plugins-scanner Cron"
+	echo "   3) Add plugin to deny list"
+	echo "   4) Remove plugin from deny list"
 	echo
 	read -p "Action: " action
-	until [[ -z "$action" || "$action" =~ ^[1-2]$ ]]
+	until [[ -z "$action" || "$action" =~ ^[1-4]$ ]]
 	do
 		echo "$action: invalid selection."
 		read -p "Action: " action
@@ -43,7 +45,7 @@ then
 		read -p "enter callback url to WP Plugin difference in 24 hs:  " callback_wp_plugin_difference
 	fi	
 
-	mkdir -p /etc/wp-plugin-list
+	mkdir -p /etc/wpcd/wp-plugin-list
 
 	# Install sponge to read and overwrite a file
 	apt install moreutils -y
@@ -64,11 +66,11 @@ for (( number=1; number <=$number_of_sites; number++ ))
 do
 	domain=$(ls /var/www | grep -v html | sed -n "$number"p)
 	user_name=$(echo $domain | cut -c1-32)
-	if [ ! -f /etc/wpcd-allowed-denied-plugins/denied-plugins.txt ]
+	if [ ! -f /etc/wpcd/wpcd-allowed-denied-plugins/denied-plugins.txt ]
 	then
 		deny_plugins="akismet"
 	else
-		deny_plugins=`cat /etc/wpcd-allowed-denied-plugins/denied-plugins.txt|tr "\n" ","|sed -e "s/,$/\n/"`
+		deny_plugins=`cat /etc/wpcd/wpcd-allowed-denied-plugins/denied-plugins.txt|tr "\n" ","|sed -e "s/,$/\n/"`
 	fi
 done
 
@@ -78,17 +80,17 @@ for (( number=1; number <=$number_of_sites; number++ ))
 do
 	domain=$(ls /var/www | grep -v html | sed -n "$number"p)
 	user_name=$(echo $domain | cut -c1-32)
-	if [ ! -f /etc/wp-plugin-list/$domain.txt ]
+	if [ ! -f /etc/wpcd/wp-plugin-list/$domain.txt ]
 	then
-		su - $user_name -c "wp plugin list --field=name" > /etc/wp-plugin-list/$domain.txt
+		su - $user_name -c "wp plugin list --field=name" > /etc/wpcd/wp-plugin-list/$domain.txt
 	fi
 	su - $user_name -c "wp plugin list --field=name" > /tmp/$domain.txt
-	newplugins=`diff /etc/wp-plugin-list/$domain.txt /tmp/$domain.txt |grep "<\|>"|cut -d" " -f2|tr "\n" ","|sed -e "s/,$/\n/"`
+	newplugins=`diff /etc/wpcd/wp-plugin-list/$domain.txt /tmp/$domain.txt |grep "<\|>"|cut -d" " -f2|tr "\n" ","|sed -e "s/,$/\n/"`
 
 	if [ ! -z $newplugins ]
 	then
 		cat /tmp/wp-change-plugin.json| jq --arg domain "$domain" --arg newplugins "$newplugins" '\''. + [{domain: $domain , newplugins: $newplugins }]'\'' |sponge /tmp/wp-change-plugin.json
-		cp /tmp/$domain.txt /etc/wp-plugin-list/$domain.txt
+		cp /tmp/$domain.txt /etc/wpcd/wp-plugin-list/$domain.txt
 	fi
 done
 
@@ -112,4 +114,35 @@ then
 	echo
 	echo "WP allow deny plugins script removed!"
 	exit	
+fi
+
+
+################### Add plugin to deny list #########
+if [[ $action == "add_plugin_deny" || $action == "3" ]]
+then
+	mkdir -p /etc/wpcd/wpcd-allowed-denied-plugins
+	if [[ -z "$add_plugin_denylist" ]]
+	then
+		read -p "Enter plugin name seperated by comma to add in deny list : " add_plugin_denylist
+	fi
+	for plugin in ${add_plugin_denylist//,/ }
+	do
+		sed -i "/^$plugin$/d" /etc/wpcd/wpcd-allowed-denied-plugins/denied-plugins.txt
+		echo "$plugin" >> /etc/wpcd/wpcd-allowed-denied-plugins/denied-plugins.txt
+	done
+fi
+
+
+################### Remove plugin from deny list #########
+if [[ $action == "remove_plugin_deny" || $action == "4" ]]
+then
+	mkdir -p /etc/wpcd/wpcd-allowed-denied-plugins
+	if [[ -z "$remove_plugin_denylist" ]]
+	then
+		read -p "Enter plugin name seperated by comma to remove from deny list : " remove_plugin_denylist
+	fi
+	for plugin in ${remove_plugin_denylist//,/ }
+	do
+		sed -i "/^$plugin$/d" /etc/wpcd/wpcd-allowed-denied-plugins/denied-plugins.txt
+	done
 fi

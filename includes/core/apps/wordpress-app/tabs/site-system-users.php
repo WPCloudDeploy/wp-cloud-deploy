@@ -210,7 +210,7 @@ class WPCD_WORDPRESS_TABS_SITE_SYSTEM_USERS extends WPCD_WORDPRESS_TABS {
 
 		/*
 		$fields[] = array(
-				'name' => __( '', 'wpcd' ),
+				'name' => '',
 				'tab'	=> 'site-system-users',
 				'type' => 'divider',
 		);

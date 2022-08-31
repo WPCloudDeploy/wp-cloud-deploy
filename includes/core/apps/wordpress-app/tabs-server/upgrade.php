@@ -338,7 +338,7 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 		);
 
 		$actions['run-linux-updates-all'] = array(
-			'label'          => __( '', 'wpcd' ),
+			'label'          => '',
 			'raw_attributes' => array(
 				'std'                 => __( 'Run All Linux Updates Now', 'wpcd' ),
 				// make sure we give the user a confirmation prompt.
@@ -350,7 +350,7 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 		);
 
 		$actions['run-linux-updates-security'] = array(
-			'label'          => __( '', 'wpcd' ),
+			'label'          => '',
 			'raw_attributes' => array(
 				'std'                 => __( 'Run Linux Security Updates Only', 'wpcd' ),
 				// make sure we give the user a confirmation prompt.

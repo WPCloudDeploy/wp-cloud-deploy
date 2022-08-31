@@ -383,7 +383,7 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 			// PHPMyAdmin is not installed on this site, so show button to install it.
 			$fields[] = array(
 				'id'         => 'install-phpmyadmin',
-				'name'       => __( 'Install PHPMyAdmin', 'wpcd' ),
+				'name'       => '',
 				'tab'        => 'database',
 				'type'       => 'button',
 				'std'        => __( 'Install PHPMyAdmin', 'wpcd' ),
@@ -413,7 +413,7 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 			$phpmyadmin_user_id  = str_replace( 'User:', '', $phpmyadmin_user_id );
 			$phpmyadmin_password = str_replace( 'Password:', '', $phpmyadmin_password );
 
-			if ( 'on' == get_post_meta( $id, 'wpapp_ssl_status', true ) ) {
+			if ( true === $this->get_site_local_ssl_status( $id ) ) {
 				$phpmyadmin_url = 'https://' . $this->get_domain_name( $id ) . '/' . 'phpMyAdmin';
 			} else {
 				$phpmyadmin_url = 'http://' . $this->get_domain_name( $id ) . '/' . 'phpMyAdmin';
@@ -444,7 +444,7 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 			// update php my admin.
 			$fields[] = array(
 				'id'         => 'update-phpmyadmin',
-				'name'       => __( 'Update PHPMyAdmin', 'wpcd' ),
+				'name'       => '',
 				'tab'        => 'database',
 				'type'       => 'button',
 				'std'        => __( 'Update PHPMyAdmin', 'wpcd' ),
@@ -467,7 +467,7 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 			// remove phpmyadmin.
 			$fields[] = array(
 				'id'         => 'remove-phpmyadmin',
-				'name'       => __( 'Remove PHPMyAdmin', 'wpcd' ),
+				'name'       => '',
 				'tab'        => 'database',
 				'type'       => 'button',
 				'std'        => __( 'Remove PHPMyAdmin', 'wpcd' ),

@@ -178,7 +178,7 @@ class WPCD_WORDPRESS_TABS_GENERAL extends WPCD_WORDPRESS_TABS {
 
 			// SSL Status.
 			$config_desc .= '<br />';
-			if ( 'on' === get_post_meta( $id, 'wpapp_ssl_status', true ) ) {
+			if ( true === $this->get_site_local_ssl_status( $id ) ) {
 				$ssl          = true;
 				$config_desc .= $ok_span . __( 'Your site seems to be secured with SSL.', 'wpcd' );
 			} else {

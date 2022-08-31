@@ -898,11 +898,12 @@ trait wpcd_wpapp_admin_column_data {
 
 		if ( 'wordpress-app' === $this->get_app_name() ) {
 			// add the ssl status.
-			$ssl_status = wpcd_maybe_unserialize( get_post_meta( $post_id, 'wpapp_ssl_status', true ) );
-			if ( empty( $ssl_status ) ) {
+			if ( true === $this->get_site_local_ssl_status( $post_id ) ) {
+				$ssl_status = 'on';
+			} else {
 				$ssl_status = 'off';
-			}
-
+			}	
+			
 			if ( 'off' == $ssl_status ) {
 				return '<div class="wpcd_ssl_status wpcd_ssl_status_off">' . $ssl_status . '</div>';
 			} else {

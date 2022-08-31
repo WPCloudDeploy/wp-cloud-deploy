@@ -91,8 +91,8 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 
 				}
 
-					// And delete the temporary meta.
-					delete_post_meta( $id, 'wpapp_domain_change_new_target_domain' );
+				// And delete the temporary meta.
+				delete_post_meta( $id, 'wpapp_domain_change_new_target_domain' );
 			} else {
 				// Add action hook to indicate failure...
 				$message = __( 'Change domain command failed - check the command logs for more information.', 'wpcd' );
@@ -298,7 +298,7 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 
 		// Disable the ssl flag on the cpt - user can turn it on manually later.
 		// Note that it will be disabled even if there is an SSL certificate already issued.
-		update_post_meta( $id, 'wpapp_ssl_status', 'off' );
+		$this->set_ssl_status( $id, 'off' );
 
 		// If domain not set on the CPT , let user know.
 		if ( ! $set_cpt ) {

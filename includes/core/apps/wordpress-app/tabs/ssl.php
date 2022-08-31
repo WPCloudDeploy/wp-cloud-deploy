@@ -170,8 +170,9 @@ class WPCD_WORDPRESS_TABS_SSL extends WPCD_WORDPRESS_TABS {
 		$webserver_type = $this->get_web_server_type( $id );
 
 		// Get SSL status.
-		$status = get_post_meta( $id, 'wpapp_ssl_status', true );
-		if ( empty( $status ) ) {
+		if ( true === $this->get_site_local_ssl_status( $id ) ) {
+			$status = 'on';
+		} else {
 			$status = 'off';
 		}
 
@@ -314,8 +315,9 @@ class WPCD_WORDPRESS_TABS_SSL extends WPCD_WORDPRESS_TABS {
 
 		switch ( $action ) {
 			case 'ssl-status':
-				$current_status = get_post_meta( $id, 'wpapp_ssl_status', true );
-				if ( empty( $current_status ) ) {
+				if ( true === $this->get_site_local_ssl_status( $id ) ) {
+					$current_status = 'on';
+				} else {
 					$current_status = 'off';
 				}
 				$result = $this->toggle_ssl_status( $id, $current_status === 'on' ? 'disable' : 'enable' );

@@ -102,7 +102,7 @@ class WPCD_WORDPRESS_TABS_STAGING extends WPCD_WORDPRESS_TABS {
 							// Was SSL enabled for the cloned site?  If so, flip the SSL metavalues...
 							$success = $this->is_ssh_successful( $logs, 'manage_https.txt' );  // ***Very important Note: We didn't actually run the manage_https script.  We are just using the check logic for it to see if the same keyword output is in the clone site output since we are using the same keywords for both scripts.
 							if ( true == $success ) {
-								update_post_meta( $new_app_post_id, 'wpapp_ssl_status', 'on' );
+								$this->set_ssl_status( $new_app_post_id, 'on' );
 							}
 
 							// Was page caching enabled on the original site?  If so, the caching plugin was copied as well so add the meta here for that.

@@ -217,10 +217,11 @@ class WPCD_WORDPRESS_TABS_SITES extends WPCD_WORDPRESS_TABS {
 					'type'           => 'custom_html',
 				);
 
-				$ssl_status = get_post_meta( $app_id, 'wpapp_ssl_status', true );
-				if ( empty( $ssl_status ) ) {
+				if ( true === $this->get_site_local_ssl_status( $app_id ) ) {
+					$ssl_status = 'on';
+				} else {
 					$ssl_status = 'off';
-				}
+				}				
 
 				$actions[ 'site-ssl-label_' . $app_id ] = array(
 					'label'          => '',

@@ -1544,6 +1544,22 @@ function wpcd_get_post_id_from_global() {
 	return $post_id;
 }
 
+/**
+ * Takes a IP and wraps it with a div tag of copy.
+ *
+ * @param string $ip The string to wrap.
+ *
+ * @return string
+ */
+function wpcd_wrap_ip_with_copy_text( $ip ) {
+
+	$copy_ip  = '<div class="click-to-copy">';
+	$copy_ip .= '<span class="click-to-copy-text">' . $ip . '</span>';
+	$copy_ip .= '<span data-label="' . __( 'Copied', 'wpcd' ) . '" class="click-to-copy-label copy-hidden">' . __( 'Copy', 'wpcd' ) . '</span>';
+	$copy_ip .= '</div>';
+
+	return $copy_ip;
+}
 
 /*
 // Functions in this section are for testing only.

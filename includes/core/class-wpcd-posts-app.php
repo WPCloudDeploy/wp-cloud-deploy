@@ -365,13 +365,17 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 				break;
 
 			case 'wpcd_server_ipv4':
+				// Copy IP.
+				$copy_app_ipv4 = wpcd_wrap_ip_with_copy_text( $this->get_server_meta_value( $post_id, 'wpcd_server_ipv4' ) );
 				// Display the ip(v4) of the server.
-				$value = $this->get_server_meta_value( $post_id, 'wpcd_server_ipv4' );
+				$value = $copy_app_ipv4;
 				break;
 
 			case 'wpcd_server_ipv6':
+				// Copy IP.
+				$copy_app_ipv6 = wpcd_wrap_ip_with_copy_text( $this->get_server_meta_value( $post_id, 'wpcd_server_ipv6' ) );
 				// Display the ip(v6) of the server.
-				$value = $this->get_server_meta_value( $post_id, 'wpcd_server_ipv6' );
+				$value = $copy_app_ipv6;
 				break;
 
 			case 'wpcd_server_provider':

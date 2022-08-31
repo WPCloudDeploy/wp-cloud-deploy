@@ -52,7 +52,7 @@ Features of the plugin include:
 
 * APP: WordPress - **EXTENSIVE** support for deploying and managing WordPress servers and sites from inside the WordPress admin dashboard. This is the primary app type that this plugin supports.  
 * Integrated DigitalOcean Cloud Provider.
-* Extensible server provider model supports EC2, LIGHTSAIL, LINODE, VULTR, UPCLOUD, HETZNER, EXOSCALE and other cloud providers via additional plugins.
+* Extensible server provider model supports EC2, LIGHTSAIL, LINODE, VULTR, UPCLOUD, HETZNER, EXOSCALE and other public and private cloud providers via additional plugins.
 * Extra App: OpenVPN - includes front-end purchase and management. This helps developers to see how multiple apps can potentially co-exist inside the framework.
 * Extra App: Basic Server - deploy simple servers with no additional apps pre-installed. This helps developers to see how multiple apps can potentially co-exist inside the framework.
 
@@ -62,7 +62,7 @@ Features of the plugin include:
 
 ## Requirements ##
 * WordPress 5.6 or later
-* PHP 7.4 (8.x is not yet supported primarily because many server provider PHP API wrappers and some of our PHP dependencies do not yet support it.)
+* PHP 7.4 or higher (For certain premium modules 8.x will throw warning errors.  This is because the server providers have not fully updated or debugged their PHP api wrappers for 8.x)
 
 Once the plugin is installed please view additional changes required to PHP and web server execution timeout values under the WPCLOUDDEPLOY->SETTINGS->GENERAL SETTINGS tab.
 You can also view all requirements at the bottom of our [getting started documentation](https://wpclouddeploy.com/documentation/wpcloud-deploy/introduction-to-wpcloud-deploy/) or in the [requirements documentation](https://wpclouddeploy.com/documentation/wpcloud-deploy/requirements/)

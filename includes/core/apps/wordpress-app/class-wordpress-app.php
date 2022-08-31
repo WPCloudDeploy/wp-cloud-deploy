@@ -635,7 +635,8 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	 */
 	public static function get_wp_versions() {
 
-		$versions          = array( 'latest', '6.0.1', '5.9.3', '5.8.4', '5.7.5', '5.6.7', '5.5.8', '5.4.9', '5.3.11', '5.2.14', '5.1.12', '5.0.15', '4.9.19', '4.8.18', '4.7.22' );
+		//@SEE: https://wordpress.org/download/releases/
+		$versions          = array( 'latest', '6.0.2', '5.9.4', '5.8.5', '5.7.7', '5.6.9', '5.5.10', '5.4.11', '5.3.13', '5.2.16', '5.1.14', '5.0.17', '4.9.21', '4.8.20', '4.7.24' );
 		$override_versions = wpcd_get_option( 'wordpress_app_allowed_wp_versions' );
 
 		if ( ! empty( $override_versions ) ) {

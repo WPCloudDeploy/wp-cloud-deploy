@@ -16,6 +16,8 @@ All management features are available inside of wp-admin on your WordPress site.
 
 [View a full list of WordPress-focused features](https://wpclouddeploy.com/features/)
 
+![WPCloudDeploy Dashboard on The Front End For Clients](https://wpclouddeploy.com/wp-content/uploads/2022/06/wpcd-front-end-04.png)
+
 ## Getting Started: The Easier Way ##
 
 You can get a rapid start by using the [pre-configured droplet at digital ocean.](https://marketplace.digitalocean.com/apps/wpclouddeploy)

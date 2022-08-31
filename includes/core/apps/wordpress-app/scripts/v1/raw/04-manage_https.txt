@@ -107,10 +107,13 @@ then
 	fi
 	if [ "$g_webserver_type" = "nginx" ]
 	then
-		gf_enable_certbot_nginx_site $domain $domain   # This function call echos any success/failure messages so no need to handle here.
+		gf_enable_certbot_nginx_site $domain $domain   # This function call echoes any success/failure messages so no need to handle here.
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
-		gf_enable_certbot_ols_site "$domain"   # This function call echos any success/failure messages so no need to handle here.
+		gf_disable_https_redirect_ols_htaccess "$domain" # Disable any existing redirects.
+		if gf_enable_certbot_ols_site "$domain"; then   # This function call echoes any success/failure messages so no need to handle here.
+			gf_enable_https_redirect_ols_htaccess "$domain"  # This function call echoes any success/failure messages so no need to handle here.
+		fi
 	fi
 
 	if [ -f /etc/letsencrypt/live/$domain/fullchain.pem  ]
@@ -144,6 +147,7 @@ then
 	then
 		gf_disable_http2_ols_site "$domain" # disable http2 if enabled
 		gf_disable_certbot_ols_site "$domain"
+		gf_disable_https_redirect_ols_htaccess "$domain"
 	fi
 
 	cd /var/www/$domain/html/

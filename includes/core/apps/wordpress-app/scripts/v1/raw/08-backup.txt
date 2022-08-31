@@ -367,7 +367,10 @@ QUERY
 		fi
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
-		gf_install_certbot_ols_site $domain
+		gf_disable_https_redirect_ols_htaccess "$domain" # Remove existing https any redirects.
+		if gf_enable_certbot_ols_site "$domain" "register_unsafely" ; then   # This function call echoes any success/failure messages so no need to handle here.
+			gf_enable_https_redirect_ols_htaccess "$domain"  # This function call echoes any success/failure messages so no need to handle here.
+		fi	
 	fi
 
 	echo "cleaning up and restarting web server..."	

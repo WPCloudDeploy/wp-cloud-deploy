@@ -184,7 +184,7 @@ enable_console_ssl_for_domain(){
 	local domain
 	domain="$1"
 	
-	gf_enable_certbot_ols_site "$domain"  # This function call echos any success/failure messages so no need to handle here.
+	gf_enable_certbot_ols_site "$domain"  # This function call echoes any success/failure messages so no need to handle here.
 	if [ -f /etc/letsencrypt/live/$domain/fullchain.pem  ]
 	then
 		if [ "$g_webserver_type" = "ols" ] ; then
@@ -194,14 +194,7 @@ enable_console_ssl_for_domain(){
 		fi
 	fi
 
-	if true | openssl s_client -connect $domain:7080 2>/dev/null | \
-		openssl x509 -noout -checkend 0; then
-		echo "Certificate is not expired"
-	else
-		echo "Certificate is expired"
-		echo | openssl s_client -servername $domain -connect $domain:7080 2>/dev/null | openssl x509 -noout -issuer -subject -dates
-		exit 1
-	fi
+	gf_check_ssl_valid "$domain" "7080"  # This function call echoes any success/failure messages so no need to handle here.
 }
 
 ###################################### OLS Console Enable SSL  Function ##########

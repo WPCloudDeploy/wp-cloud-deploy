@@ -233,7 +233,10 @@ then
 	if gf_is_ssl_ols $old_domain || gf_is_ssl_ols_enterprise $old_domain
 	then
 		echo "Attempting to obtain new ssl certificates..."
-		gf_enable_certbot_ols_site "$new_domain"
+		gf_disable_https_redirect_ols_htaccess "$new_domain" # Remove existing https any redirects.
+		if gf_enable_certbot_ols_site "$new_domain"; then   # This function call echoes any success/failure messages so no need to handle here.
+			gf_enable_https_redirect_ols_htaccess "$new_domain"  # This function call echoes any success/failure messages so no need to handle here.
+		fi		
 		if [ ! -f /etc/letsencrypt/live/$new_domain/fullchain.pem  ]
 		then
 			su - $new_user_name -c "wp --skip-plugins option update home http://$new_domain"

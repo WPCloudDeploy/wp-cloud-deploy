@@ -366,6 +366,23 @@ function gf_restart_webserver() {
 	fi
 }
 
+#####################################################################
+### Check SSL certificate valid (Signed and not expired)
+#####################################################################
+function gf_check_ssl_valid(){
+	local domain
+	local port
+	domain="$1"
+	port="${2:-443}" # defaults to port 443 unless provided
+	if true | openssl s_client -connect "${domain}":"${port}" 2>/dev/null | \
+		openssl x509 -noout -checkend 0; then
+		echo "Certificate is not selfsigned/expired for: ${domain}:${port}"
+	else
+		echo "Error: Certificate is selfsigned/expired for: ${domain}:${port}"
+		echo | openssl s_client -servername "$domain" -connect "${domain}":"${port}" 2>/dev/null | openssl x509 -noout -issuer -subject -dates
+		exit 1
+	fi
+}
 
 ###################################################################
 #### Check if ssl enabled for ols site
@@ -467,30 +484,141 @@ function gf_disable_certbot_ols_site() {
 }
 
 ###################################################################
+#### Enable https redirect for ols domain in .htaccess
+###################################################################
+function gf_enable_https_redirect_ols_htaccess() {
+	local olsdomain
+	olsdomain=$1
+	
+	HTACC="/var/www/$olsdomain/html/.htaccess"
+	grep 'https://%{HTTP_HOST}%{REQUEST_URI}' "${HTACC}"
+	if [ $? -ne 0 ] ; then
+		sed -i "1 i\### Forcing HTTPS rule start\nRewriteEngine On\nRewriteCond %{SERVER_PORT} 80\nRewriteRule (.*) https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]\n### Forcing HTTPS rule end" "${HTACC}"
+		chown "${user_name}":www-data "${HTACC}"
+		echo
+		echo "HTTPS redirect enabled for $olsdomain"
+		gf_restart_webserver
+	else
+		echo
+		echo "HTTPS redirect already enabled for $olsdomain"
+	fi
+}
+
+###################################################################
+#### Disable https redirect for ols domain in .htaccess
+###################################################################
+function gf_disable_https_redirect_ols_htaccess() {
+	local olsdomain
+	olsdomain=$1
+	
+	HTACC="/var/www/$olsdomain/html/.htaccess"
+	grep 'https://%{HTTP_HOST}%{REQUEST_URI}' "${HTACC}"
+	if [ $? -ne 0 ] ; then
+		echo
+		echo "HTTPS redirect already disabled for $olsdomain"
+	else
+		sed -i -re '/### Forcing HTTPS rule start/{:a;N;/### Forcing HTTPS rule end/!ba};/RewriteRule/d' "${HTACC}"
+		chown "${user_name}":www-data "${HTACC}"
+		echo
+		echo "HTTPS redirect disabled for $olsdomain"
+		gf_restart_webserver
+	fi
+	
+}
+
+###################################################################
+#### Enable https redirect for ols vhost conf
+###################################################################
+function gf_enable_https_redirect_ols_vhost() {
+	local olsdomain
+	local vhost_conf_name
+	olsdomain=$1
+	default_vhost_conf_name="$olsdomain"
+    vhost_conf_name="${2:-$default_vhost_conf_name}" # optional param so we can selectively change vhost conf name from default 'domain.tld' only if provided
+	
+	# In vhost config
+	# insert redirect to https inside the rewrite under wellknown rule just under <<<END_rules
+	# RewriteCond %{SERVER_PORT} ^80$ # Enable HTTPS
+	# RewriteRule .* https://%{SERVER_NAME}%{REQUEST_URI} [R=301,L] # Enable HTTPS
+	sed -i "${VHDIR}/${vhost_conf_name}/$g_vhost_conf" -re "/<<<END_rules/a RewriteCond %{SERVER_PORT} ^80$ # Enable HTTPS\nRewriteRule .* https:\/\/%{SERVER_NAME}%{REQUEST_URI} [R=301,L] # Enable HTTPS"
+	chown -R lsadm:lsadm ${VHDIR}/${vhost_conf_name}/*
+	echo
+	echo "HTTPS redirect enabled for $vhost_conf_name"
+	gf_restart_webserver
+}
+
+###################################################################
+#### Disable https redirect for ols vhost conf
+###################################################################
+function gf_disable_https_redirect_ols_vhost() {
+	local olsdomain
+	local vhost_conf_name
+	olsdomain=$1
+	default_vhost_conf_name="$olsdomain"
+    vhost_conf_name="${2:-$default_vhost_conf_name}" # optional param so we can selectively change vhost conf name from default 'domain.tld' only if provided
+	
+	# Lets find and delete the two lines with '# Enable HTTPS'
+	# RewriteCond %{SERVER_PORT} ^80$ # Enable HTTPS
+	# RewriteRule .* https://%{SERVER_NAME}%{REQUEST_URI} [R=301,L] # Enable HTTPS
+	sed -i "${VHDIR}/${vhost_conf_name}/$g_vhost_conf" -re '/# Enable HTTPS/d'
+	chown -R lsadm:lsadm ${VHDIR}/${vhost_conf_name}/*
+	echo
+	echo "HTTPS redirect disabled for $vhost_conf_name"
+	gf_restart_webserver
+}
+
+###################################################################
 #### Enable certbot ssl for ols domain
+#### $1: Domain name
+#### $2: Register Unsafely (optional, any value)
 ###################################################################
 function gf_enable_certbot_ols_site() {
 	local olsdomain
+	local register_unsafely
 	local DOCHM
+	local l_user_name
+	
 	olsdomain=$1
-	if [[ -z $email ]]
+	register_unsafely=$2
+	l_user_name=$(echo $olsdomain | cut -c1-32)
+	
+	# only ask for email if register_unsafely flag isn't set.
+	if [[ -z $register_unsafely ]]
 	then
-		echo "Specify an email for administrative notifications about your certificate"
-		read -p "Email address: " email
+		if [[ -z $email ]]
+		then
+			echo "Specify an email for administrative notifications about your certificate"
+			read -p "Email address: " email
+		fi
 	fi
 	DOCHM="/var/www/${olsdomain}/html"
-	certbot certonly --non-interactive --agree-tos -m ${email} --webroot -w ${DOCHM} -d ${olsdomain} -d www.${olsdomain}||certbot certonly --non-interactive --agree-tos -m ${email} --webroot -w ${DOCHM} -d ${olsdomain}
-
+	
+	# Call certbot.
+	if [[ -z $email ]] 
+	then
+		# Register unsafely.
+		certbot certonly --non-interactive --agree-tos --register-unsafely-without-email --allow-subset-of-names --expand --webroot -w ${DOCHM} -d ${olsdomain} -d www.${olsdomain}||certbot certonly --non-interactive --agree-tos --register-unsafely-without-email --allow-subset-of-names --expand --webroot -w ${DOCHM} -d ${olsdomain}
+	else
+		# A value for the email address should be available otherwise this will cause issues.
+		certbot certonly --non-interactive --agree-tos -m ${email} --allow-subset-of-names  --expand --webroot -w ${DOCHM} -d ${olsdomain} -d www.${olsdomain}||certbot certonly --non-interactive --agree-tos -m ${email} --allow-subset-of-names --expand --webroot -w ${DOCHM} -d ${olsdomain}
+	fi
+	
 	if [[ -e /etc/letsencrypt/live/$olsdomain/fullchain.pem ]]
 	then
 		sed -i "s|/usr/local/lsws/conf/example.key|/etc/letsencrypt/live/$olsdomain/privkey.pem|g" ${VHDIR}/${olsdomain}/$g_vhost_conf > /dev/null 2>&1
 		sed -i "s|/usr/local/lsws/conf/example.crt|/etc/letsencrypt/live/$olsdomain/fullchain.pem|g" ${VHDIR}/${olsdomain}/$g_vhost_conf > /dev/null 2>&1
+		# Should we check that https works before reporting this? If so uncomment the below line.
+		# gf_check_ssl_valid "$olsdomain"
+		gf_enable_https_redirect_ols_htaccess "$olsdomain" 
+		gf_restart_webserver			
 		echo
 		echo "SSL has been enabled for $olsdomain"
 		echo		
-		gf_restart_webserver
 	else
+		# Certbot failed.
 		echo "SSL could not be enabled for $olsdomain"
+		# Error handling needs to be done by the calling function.
+		return 1
 	fi
 }
 
@@ -533,6 +661,8 @@ function gf_enable_http2_ols_site() {
 
 ###################################################################
 #### Disable http2 for ols domain
+####
+#### $1 The domain we're working with.
 ###################################################################
 function gf_disable_http2_ols_site() {
 	local olsdomain
@@ -555,14 +685,16 @@ function gf_disable_http2_ols_site() {
 	fi
 }
 
-###################################################################
+##########################################################################
 #### Install certbot ssl for ols domain when ssl config already enabled
 ####
 #### @TODO: Why are we using certonly here for ols instead of reinstall
 ####        like we do for NGINX?
 ####
 #### @param $1 The domain we're managing.
-###################################################################
+####
+#### *** Does not look like this function is used anywhere right now.
+##########################################################################
 function gf_install_certbot_ols_site() {
 	local olsdomain
 	local DOCHM
@@ -1309,7 +1441,7 @@ function gf_ols_default_page
 	<head>
 	</head>
 	<body>
-		<H1>This is the default page on your WPCloudDeploy server. You are probably here because we could not find the site you are looking for.</H1>
+		<H1>This is the default page on your Webserver. You are probably here because we could not find the site you are looking for.</H1>
 	</body>
 	</html>
 	EOL
@@ -1490,4 +1622,32 @@ function gf_get_dbname() {
 	local domain
 	domain=$1
 	g_mysql_name=$(grep DB_NAME /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
+}
+
+#####################################################################
+### Check database connection details
+#####################################################################
+function gf_check_db_connection(){
+	local dbhost
+	local dbname
+	local dbuser
+	local dbpass
+	local dbport
+	dbhost="$1"
+	dbname="$2"
+	dbuser="$3"
+	dbpass="$4"
+	dbport="${5:-3306}" # defaults to port 3306 unless provided
+	
+	database_details_sanitized="database ${dbname} via user: ${dbuser} at host: ${dbhost}:${dbport}"
+	
+	if mysql --skip-reconnect -h "${dbhost}" -u "${dbuser}" -p"${dbpass}" -P "${dbport}" "${dbname}" -e "SHOW TABLES;" &> /dev/null ; then
+		# database exists and is connectable
+		echo "Success we could connect to ${database_details_sanitized}"
+	else
+		mysql_connection_error="$(mysql -h "${dbhost}" -u "${dbuser}" -p"${dbpass}" -P "${dbport}" "${dbname}" -e "SHOW TABLES;" 2>&1 | tee -a /dev/null)"
+		echo "Database connection failed to ${database_details_sanitized} with error: $mysql_connection_error"
+		echo "Please ensure remote mysql grants and firewall are configured properly.."
+		exit 1
+	fi
 }

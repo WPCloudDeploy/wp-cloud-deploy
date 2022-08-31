@@ -344,7 +344,15 @@ then
 	done
 elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 then
-	gf_install_certbot_ols_site $new_domain
+	if [[ -z $email ]]
+	then
+		echo "No email set, likely because prior domain did not have ssl enabled. Skipping SSL attempt!"
+	else
+		gf_disable_https_redirect_ols_htaccess "$new_domain" # Remove existing https any redirects.
+		if gf_enable_certbot_ols_site "$new_domain"; then   # This function call echoes any success/failure messages so no need to handle here.
+			gf_enable_https_redirect_ols_htaccess "$new_domain"  # This function call echoes any success/failure messages so no need to handle here.
+		fi
+	fi
 fi
 
 echo "cleaning up and restarting web server..."

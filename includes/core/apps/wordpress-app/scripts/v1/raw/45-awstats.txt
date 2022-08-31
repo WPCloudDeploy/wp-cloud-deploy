@@ -304,14 +304,14 @@ function awstats_ssl_enable
 	then
 		domain=`grep -m 1 server_name /etc/nginx/sites-enabled/awstats.conf |awk '{print $2}'`
 		gf_enable_certbot_nginx_site $domain awstats.conf
-		# The function gf_enable_certbot_nginx_site used issues a message whther or not the certificate has been issued so no need to handle here.
-		# Only need to handle here if you have additional code that needs to be executed after the certicate has been issued - which is not the case here.		
+		# The function gf_enable_certbot_nginx_site used issues a message whether or not the certificate has been issued so no need to handle here.
+		# Only need to handle here if you have additional code that needs to be executed after the certificate has been issued - which is not the case here.		
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
 		domain=`cat ${VHDIR}/*/awstats.txt`
-		gf_enable_certbot_ols_site $domain
-		# The function gf_enable_certbot_ols_site used above issues a message whther or not the certificate has been issued so no need to handle here.
-		# Only need to handle here if you have additional code that needs to be executed after the certicate has been issued - which is not the case here.		
+		gf_enable_certbot_ols_site $domain  "register_unsafely"
+		# The function gf_enable_certbot_ols_site used above issues a message whether or not the certificate has been issued so no need to handle here.
+		# Only need to handle here if you have additional code that needs to be executed after the certificate has been issued - which is not the case here.		
 	fi
 }
 

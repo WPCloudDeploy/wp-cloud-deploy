@@ -380,7 +380,7 @@ function gf_check_ssl_valid(){
 	else
 		echo "Error: Certificate is selfsigned/expired for: ${domain}:${port}"
 		echo | openssl s_client -servername "$domain" -connect "${domain}":"${port}" 2>/dev/null | openssl x509 -noout -issuer -subject -dates
-		exit 1
+		return 1
 	fi
 }
 
@@ -609,7 +609,7 @@ function gf_enable_certbot_ols_site() {
 		sed -i "s|/usr/local/lsws/conf/example.crt|/etc/letsencrypt/live/$olsdomain/fullchain.pem|g" ${VHDIR}/${olsdomain}/$g_vhost_conf > /dev/null 2>&1
 		# Should we check that https works before reporting this? If so uncomment the below line.
 		# gf_check_ssl_valid "$olsdomain"
-		gf_enable_https_redirect_ols_htaccess "$olsdomain" 
+		gf_enable_https_redirect_ols_htaccess "$olsdomain" # The calling program might handle this redirect but it doesn't hurt to do it here as well, just in case.
 		gf_restart_webserver			
 		echo
 		echo "SSL has been enabled for $olsdomain"
@@ -1650,4 +1650,108 @@ function gf_check_db_connection(){
 		echo "Please ensure remote mysql grants and firewall are configured properly.."
 		exit 1
 	fi
+}
+
+#####################################################################
+### Add Server metadata to the server metadata file.
+###
+### $1: Metadata key
+### $2: Metadata value
+#####################################################################
+function gf_set_server_metadata(){
+	local metakey;
+	local metavalue;
+	metakey=$1
+	metavalue=$2
+	mkdir -p /etc/wpcd
+	
+	# Move metadata file from old location to new location on legacy servers.
+	if [ -f /opt/wpcd-server-info.txt ]
+	then
+		if [ ! -f /etc/wpcd/wpcd-server-info.txt ]
+		then
+			mv /opt/wpcd-server-info.txt /etc/wpcd/wpcd-server-info.txt
+		fi
+	fi
+	
+	touch /etc/wpcd/wpcd-server-info.txt;
+	sed -i "/$metakey=/d" /etc/wpcd/wpcd-server-info.txt
+	echo "$metakey=$metavalue" >> /etc/wpcd/wpcd-server-info.txt
+}
+
+#####################################################################
+### Add general Metadata to the sites metadata file.
+### This metadata applies to all sites.
+###
+### $1: Metadata key
+### $2: Metadata value
+#####################################################################
+function gf_set_sites_metadata(){
+	local metakey;
+	local metavalue;
+	metakey=$1
+	metavalue=$2
+	mkdir -p /etc/wpcd
+	touch /etc/wpcd/wpcd-sites-info.txt;
+	sed -i "/$metakey=/d" /etc/wpcd/wpcd-sites-info.txt
+	echo "$metakey=$metavalue" >> /etc/wpcd/wpcd-sites-info.txt
+}
+
+#####################################################################
+### Add Domain Metadata to the domain meta file.
+###
+### $1: Metadata key
+### $2: Metadata value
+### $3: Domain
+#####################################################################
+function gf_set_domain_metadata(){
+	local metakey;
+	local metavalue;
+	local domain;
+	metakey=$1
+	metavalue=$2
+	domain=$3
+	mkdir -p /etc/wpcd
+	mkdir -p /etc/wpcd/$domain
+	touch /etc/wpcd//$domain/$domain;
+	sed -i "/$metakey=/d" /etc/wpcd/$domain/$domain
+	echo "$metakey=$metavalue" >> /etc/wpcd/$domain/$domain
+}
+
+
+#####################################################################
+### Return Metadata
+###
+### Eg Usage: gf_get_wpcd_metadata -t metatype -d domain-name -k key -f default-value 
+#####################################################################
+function gf_get_metadata(){
+	local metatype;
+	local metakey;
+	local defaultvalue;
+	local domain;
+	while getopts 't:k:d:f:' arg
+	do
+		case ${arg} in
+			t) metatype=${OPTARG};;
+			k) metakey=${OPTARG};;
+			d) domain=${OPTARG};;
+			f) defaultvalue=${OPTARG};;
+			*) return 1 # illegal option
+		esac
+	done
+	if [ "$metatype" == "server" ]
+	then
+		value=$(grep "$metakey=" /etc/wpcd/wpcd-server-info.txt|cut -d'=' -f2)
+	elif [ "$metatype" == "sites" ]
+	then
+		value=$(grep "$metakey=" /etc/wpcd/wpcd-sites-info.txt|cut -d'=' -f2)
+	elif [ "$metatype" == "domain" ]
+	then
+		value=$(grep "$metakey=" /etc/wpcd/$domain/$domain|cut -d'=' -f2)
+	fi
+	if [ -z $value ]
+	then
+		value=$defaultvalue
+	fi
+	echo $value
 }

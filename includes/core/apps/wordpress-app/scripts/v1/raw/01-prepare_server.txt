@@ -52,20 +52,8 @@ then
 fi
 
 # Write the server name out to a file - we might need it later.
-if [ "$name" ]
-then
-	echo "servername=$name" >> /opt/wpcd-server-info.txt
-else
-	echo "servername=" >> /opt/wpcd-server-info.txt
-fi
-
-# Write the post id out to a file - we might need it later.
-if [ "$post_id" ]
-then
-	echo "post_id=$post_id" >> /opt/wpcd-server-info.txt
-else
-	echo "post_id=" >> /opt/wpcd-server-info.txt
-fi
+gf_set_server_metadata 'servername' $name
+gf_set_server_metadata 'post_id' $post_id
 
 # set a variable to hold the location of the checkpoint folder.
 CHKPOINT_FOLDER='.wpcd-server-provision-checkpoints'
@@ -891,7 +879,7 @@ fi
 
 # Make sure update-notifier is installed - weirdly some vms/containers don't have this installed.
 echo $(date): "Installing update-notifier - this can take a while sometimes..."
-apt-get install -y update-notifier > /dev/null 2>&1
+apt-get install -y update-notifier-common > /dev/null 2>&1
 
 # ufw
 echo $(date): "Configuring firewall..."
@@ -949,8 +937,8 @@ echo "### do not edit from here ###" >> /etc/ssh/sshd_config
 if [ "$webserver_type" = "nginx" ]
 then
 	# Create folder that will hold semaphore flags about php versions.
-	mkdir /etc/wpcd
-	mkdir /etc/wpcd/php-versions-disabled
+	mkdir -p /etc/wpcd
+	mkdir -p /etc/wpcd/php-versions-disabled
 
 	phpversion=(5.6 7.1 7.2 7.3)
 	for ver in "${phpversion[@]}"

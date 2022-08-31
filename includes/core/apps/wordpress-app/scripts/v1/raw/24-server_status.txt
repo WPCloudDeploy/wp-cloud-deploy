@@ -52,7 +52,7 @@ then
 	apt-get install bc at -y
 	
 	# make sure update-notifier is installed (weirdly some images don't have this...).
-	sudo apt-get install -y update-notifier
+	sudo apt-get install -y update-notifier-common
 	
 	# remove crons if they exist...
 	remove_status_cron

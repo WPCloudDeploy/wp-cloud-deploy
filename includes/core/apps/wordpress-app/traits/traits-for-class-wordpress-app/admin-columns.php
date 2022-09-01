@@ -1174,7 +1174,7 @@ trait wpcd_wpapp_admin_column_data {
 					if ( isset( $server_status_items['default_php_version'] ) && ! empty( $server_status_items['default_php_version'] ) && '7.4' !== $server_status_items['default_php_version'] ) {
 
 						/* Translators: %s is the incorrect PHP version. */
-						$return .= sprintf( __( 'The default PHP server version is incorrect! It should be 7.4 but is currently set to %s!', 'wpcd' ), $server_status_items['default_php_version'] );
+						$return .= sprintf( __( 'The default PHP server version is incorrect. It should be 7.4, 8.0 or 8.1 but is currently set to %s!', 'wpcd' ), $server_status_items['default_php_version'] );
 
 						$class = 'wpcd_incorrect_php_default_version';
 

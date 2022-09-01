@@ -33,7 +33,9 @@
     margin: 2px;
 }
 
-.wpcd_php_version_7_4 {
+.wpcd_php_version_7_4,
+.wpcd_php_version_8_0,
+.wpcd_php_version_8_1 {
     border-color: green !important;
 }
 
@@ -44,8 +46,6 @@
     border-color: orange !important;
 }
 
-.wpcd_php_version_8_0,
-.wpcd_php_version_8_1,
 .wpcd_php_version_8_2,
 .wpcd_php_version_8_3,
 .wpcd_php_version_9_0 {

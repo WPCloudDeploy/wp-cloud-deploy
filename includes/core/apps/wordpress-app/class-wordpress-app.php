@@ -474,8 +474,12 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		$other_data .= '</div>';
 
 		// Copy IP.
-		
-		$copy_app_ip = wpcd_wrap_ip_with_copy_text( $this->get_all_ip_addresses_for_display( $app_id ) );
+
+		$copy_app_ip = wpcd_wrap_ip_with_copy_text( $this->get_ipv4_address( $app_id ) );
+
+		if ( wpcd_get_early_option( 'wpcd_show_ipv6' ) ) {
+			$copy_app_ip .= wpcd_wrap_ip_with_copy_text( $this->get_ipv6_address( $app_id ) );
+		}
 
 		// There should be no 'other data' if the setting to not show it is enabled.
 		if ( wpcd_get_option( 'wordpress_app_hide_chicklet_area_in_site_detail' ) ) {
@@ -565,7 +569,10 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		$other_data .= '<span class="wpcd_medium_chicklet wpcd_site_details_top_row_element_wstype">' . $webserver_type_name . '</span>';
 		$other_data .= '</div>';
 
-		$copy_ip = wpcd_wrap_ip_with_copy_text( WPCD_SERVER()->get_all_ip_addresses_for_display( $id ) );
+		$copy_ip = wpcd_wrap_ip_with_copy_text( WPCD_SERVER()->get_ipv4_address( $id ) );
+		if ( wpcd_get_early_option( 'wpcd_show_ipv6' ) ) {
+			$copy_ip .= wpcd_wrap_ip_with_copy_text( WPCD_SERVER()->get_ipv6_address( $id ) );
+		}
 
 		$fields['general-welcome-top-col_1'] = array(
 			'name'    => __( 'Server Name', 'wpcd' ),

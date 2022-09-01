@@ -321,8 +321,9 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 				} else {
 					$value2 = $this->wpcd_column_wrap_string_with_span_and_class( __( 'IPv4: ', 'wpcd' ), 'ipv4', 'left' );
 				}
-				$value2 .= $this->wpcd_column_wrap_string_with_span_and_class( $this->get_server_meta_value( $post_id, 'wpcd_server_ipv4' ), 'ipv4', 'right' );
-				$value  .= $this->wpcd_column_wrap_string_with_div_and_class( $value2, 'ipv4' );
+				$get_ipv4 = $this->wpcd_column_wrap_string_with_span_and_class( $this->get_server_meta_value( $post_id, 'wpcd_server_ipv4' ), 'ipv4', 'right' );
+				$value2  .= wpcd_wrap_ip_with_copy_text( $get_ipv4 );
+				$value   .= $this->wpcd_column_wrap_string_with_div_and_class( $value2, 'ipv4' );
 
 				// ipv6.
 				if ( wpcd_get_early_option( 'wpcd_show_ipv6' ) ) {
@@ -332,8 +333,9 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 					} else {
 						$value2 = $this->wpcd_column_wrap_string_with_span_and_class( __( 'IPv6: ', 'wpcd' ), 'ipv6', 'left' );
 					}
-					$value2 .= $this->wpcd_column_wrap_string_with_span_and_class( $this->get_server_meta_value( $post_id, 'wpcd_server_ipv6' ), 'ipv6', 'right' );
-					$value  .= $this->wpcd_column_wrap_string_with_div_and_class( $value2, 'ipv6' );
+					$get_ipv6 = $this->wpcd_column_wrap_string_with_span_and_class( $this->get_server_meta_value( $post_id, 'wpcd_server_ipv6' ), 'ipv6', 'right' );
+					$value2  .= wpcd_wrap_ip_with_copy_text( $get_ipv6 );
+					$value   .= $this->wpcd_column_wrap_string_with_div_and_class( $value2, 'ipv6' );
 				}
 
 				// Add hook here so that other apps can insert data.

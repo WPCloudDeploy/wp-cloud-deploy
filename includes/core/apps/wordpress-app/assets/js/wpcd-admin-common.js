@@ -95,18 +95,37 @@
             });
         });
 
+        // Use Copy Clipboard when connection unsecure.
+        function unsecuredCopyToClipboard(text) {
+            const input = document.createElement("input");
+            input.setAttribute("type", "text");
+            input.value = text;
+            document.body.appendChild(input);
+            // input.focus();
+            input.select();
+            try {
+                document.execCommand('copy');
+            } catch (err) {
+                console.error('Unable to copy to clipboard', err);
+            }
+            document.body.removeChild(input);
+        }
+
         // Click to copy functionality.
         $('body').on('click', '.click-to-copy-label', function(e) {
             e.preventDefault();
 
             /* Get the IP field */
-            var copyText = $(this).closest('span').prev('.click-to-copy-text').addClass('DestQID');
+            var copyText = $(this).closest('span').prev('.click-to-copy-text');
 
             /* Copy the IP inside the IP field */
-            var IP = copyText.html().replace(/<br\s*\/?>/gi, ' ');
+            var IP = copyText.text();
 
-            navigator.clipboard.writeText(IP);
-
+            if (window.isSecureContext && navigator.clipboard) {
+                navigator.clipboard.writeText(IP);
+            } else {
+                unsecuredCopyToClipboard(IP);
+            }
             /* Alert the copied IP */
             var $copiedElement = $("<span>");
             $copiedElement.addClass('copied').text($(this).data('label'));

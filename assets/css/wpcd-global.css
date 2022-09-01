@@ -40,5 +40,47 @@
     cursor: pointer;
 }
 
+.wpcd-grid-cell-col-wrap-wpcd_server .wpcd_server .wpcd-app-col-element-wrap-ipv4,
+.wpcd-grid-cell-col-wrap-wpcd_server .wpcd_server .wpcd-app-col-element-wrap-ipv6 {
+    display: flex;
+    justify-content: space-between;
+}
+
+.type-wpcd_app .wpcd_server_ipv6 {
+    display: flex;
+    justify-content: space-between;
+}
+
+.type-wpcd_app .wpcd_server_ipv6 .click-to-copy {
+    display: flex;
+    flex-direction: column;
+}
+
+.type-wpcd_app .wpcd_server_ipv6 .click-to-copy .click-to-copy-text {
+    word-break: break-all;
+}
+
+.wpcd-grid-cell-col-wrap-wpcd_server .wpcd_server .wpcd-app-col-element-wrap-ipv4 .click-to-copy,
+.wpcd-grid-cell-col-wrap-wpcd_server .wpcd_server .wpcd-app-col-element-wrap-ipv6 .click-to-copy {
+    display: flex;
+}
+
+.wpcd_site_details_top_row .rwmb-input .click-to-copy,
+.wpcd_server_details_top_row .rwmb-input .click-to-copy {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+}
+
+.wpcd_site_details_top_row .rwmb-input .click-to-copy .click-to-copy-text,
+.wpcd_server_details_top_row .rwmb-input .click-to-copy .click-to-copy-text {
+    word-break: break-all;
+}
+
+.wpcd_site_details_top_row .rwmb-input .click-to-copy .click-to-copy-label,
+.wpcd_server_details_top_row .rwmb-input .click-to-copy .click-to-copy-label {
+    margin-bottom: 5px;
+}
+
 
 /* End Custom click to copy css*/

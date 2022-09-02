@@ -82,5 +82,15 @@
     margin-bottom: 5px;
 }
 
+.rwmb-tab-panel-file-manager .rwmb-row .rwmb-input .wpcd_tool_details,
+.rwmb-tab-panel-database .rwmb-row .rwmb-input .wpcd_tool_details {
+    display: flex;
+}
+
+.rwmb-tab-panel-file-manager .rwmb-row .rwmb-input .wpcd_tool_details .wpcd-click-to-copy,
+.rwmb-tab-panel-database .rwmb-row .rwmb-input .wpcd_tool_details .wpcd-click-to-copy {
+    margin-left: 5px;
+}
+
 
 /* End Custom click to copy css*/

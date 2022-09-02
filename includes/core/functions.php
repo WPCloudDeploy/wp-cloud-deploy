@@ -1555,7 +1555,7 @@ function wpcd_wrap_ip_with_copy_text( $ip ) {
 
 	$copy_ip  = '<div class="wpcd-click-to-copy">';
 	$copy_ip .= '<span class="wpcd-click-to-copy-text">' . $ip . '</span>';
-	$copy_ip .= '<span data-label="' . __( 'Copied', 'wpcd' ) . '" class="wpcd-click-to-copy-label wpcd-copy-hidden">' . __( 'Copy', 'wpcd' ) . '</span>';
+	$copy_ip .= '<span data-label="' . __( 'Copied', 'wpcd' ) . '" class="wpcd-click-to-copy-label wpcd-copy-hidden">' . __( 'Click to copy', 'wpcd' ) . '</span>';
 	$copy_ip .= '</div>';
 
 	return $copy_ip;

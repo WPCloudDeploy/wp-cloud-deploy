@@ -112,11 +112,12 @@
         }
 
         // Click to copy functionality.
-        $('body').on('click', '.wpcd-click-to-copy-label', function(e) {
+        $('body').on('click', '.wpcd-click-to-copy', function(e) {
             e.preventDefault();
 
+            console.log(e);
             /* Get the IP field */
-            var copyText = $(this).closest('span').prev('.wpcd-click-to-copy-text');
+            var copyText = $(this).find('.wpcd-click-to-copy-text');
 
             /* Copy the IP inside the IP field */
             var IP = copyText.text();
@@ -128,9 +129,9 @@
             }
             /* Alert the copied IP */
             var $copiedElement = $("<span>");
-            $copiedElement.addClass('wpcd-copied').text($(this).data('label'));
-            $(this).parent('div').append($copiedElement);
-            $(this).addClass('wpcd-copy-hidden');
+            $copiedElement.addClass('wpcd-copied').text($(this).find('.wpcd-click-to-copy-label').data('label'));
+            $(this).append($copiedElement);
+            $(this).find('.wpcd-click-to-copy-label').addClass('wpcd-copy-hidden');
             $copiedElement.fadeIn(100);
             $copiedElement.fadeOut(2000);
             setTimeout(function() { $($copiedElement).remove() }, 3000);

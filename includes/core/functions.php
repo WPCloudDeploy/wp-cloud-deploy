@@ -1553,15 +1553,25 @@ function wpcd_get_post_id_from_global() {
  * @since 5.0
  *
  * @param string $data_string The string to wrap.
+ * @param bool   $break True = wrap with a div False = wrap with a span
  *
  * @return string
  */
-function wpcd_wrap_clipboard_copy( $data_string ) {
+function wpcd_wrap_clipboard_copy( $data_string, $break = true ) {
 
-	$return  = '<div class="wpcd-click-to-copy">';
+	if ( true === $break ) {
+		$return  = '<div class="wpcd-click-to-copy">';
+	} else {
+		$return  = '<span class="wpcd-click-to-copy">';
+	}
 	$return .= '<span class="wpcd-click-to-copy-text">' . $data_string . '</span>';
 	$return .= '<span data-label="' . __( 'Copied', 'wpcd' ) . '" class="wpcd-click-to-copy-label wpcd-copy-hidden">' . __( 'Click to copy', 'wpcd' ) . '</span>';
-	$return .= '</div>';
+	
+	if ( true === $break ) {
+		$return .= '</div>';
+	} else {
+		$return .= '</span>';
+	}
 
 	return $return;
 }

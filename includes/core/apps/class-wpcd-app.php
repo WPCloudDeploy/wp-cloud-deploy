@@ -492,15 +492,15 @@ class WPCD_APP extends WPCD_Base {
 		$ip   = '';
 		$ipv4 = $this->get_ipv4_address( $app_id );
 		if ( ! empty( $ipv4 ) ) {
-			$ip = $ipv4;
+			$ip = wpcd_wrap_clipboard_copy( $ipv4, false );
 		}
 		if ( wpcd_get_early_option( 'wpcd_show_ipv6' ) ) {
 			$ipv6 = $this->get_ipv6_address( $app_id );
 			if ( ! empty( $ipv6 ) ) {
 				if ( ! empty( $ip ) ) {
-					$ip .= '<br />' . $ipv6;
+					$ip .= '<br />' . wpcd_wrap_clipboard_copy( $ipv6, false );
 				} else {
-					$ip = $ipv6;
+					$ip = wpcd_wrap_clipboard_copy( $ipv6 );
 				}
 			}
 		}

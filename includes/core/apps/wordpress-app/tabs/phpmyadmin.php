@@ -421,11 +421,11 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 
 			$launch              = sprintf( '<a href="%s" target="_blank">', $phpmyadmin_url ) . __( 'Launch PHPMyAdmin', 'wpcd' ) . '</a>';
 			$phpmyadmin_details  = '<div class="wpcd_tool_details">';
-			$phpmyadmin_details .= __( 'User Id: ', 'wpcd' ) . wpcd_wrap_ip_with_copy_text( $phpmyadmin_user_id );
+			$phpmyadmin_details .= __( 'User Id: ', 'wpcd' ) . wpcd_wrap_clipboard_copy( $phpmyadmin_user_id );
 			$phpmyadmin_details .= '</div>';
 
 			$phpmyadmin_details  .= '<div class="wpcd_tool_details">';
-			$phpmyadmin_details .= __( 'Password: ', 'wpcd' ) . wpcd_wrap_ip_with_copy_text( $phpmyadmin_password );
+			$phpmyadmin_details .= __( 'Password: ', 'wpcd' ) . wpcd_wrap_clipboard_copy( $phpmyadmin_password );
 			$phpmyadmin_details .= '</div>';
 
 			$fields[] = array(

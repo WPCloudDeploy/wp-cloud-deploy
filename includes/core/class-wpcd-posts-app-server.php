@@ -491,15 +491,15 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 					$get_ipv4 = $this->wpcd_column_wrap_string_with_span_and_class( $ipv4, 'ips', 'right' );
 					$get_ipv6 = $this->wpcd_column_wrap_string_with_span_and_class( $ipv6, 'ips', 'right' );
 					$value2   = $this->wpcd_column_wrap_string_with_span_and_class( __( 'IP:', 'wpcd' ), 'ips', 'left' );
-					$value2  .= wpcd_wrap_ip_with_copy_text( $get_ipv4 );
-					$value2  .= wpcd_wrap_ip_with_copy_text( $get_ipv6 );
+					$value2  .= wpcd_wrap_clipboard_copy( $get_ipv4 );
+					$value2  .= wpcd_wrap_clipboard_copy( $get_ipv6 );
 					$value   .= $this->wpcd_column_wrap_string_with_div_and_class( $value2, 'ips' );
 				} else {
 					// On the back-end we only want the value.
 					$get_ipv4 = $this->wpcd_column_wrap_string_with_span_and_class( $ipv4, 'ips', 'left' );
 					$get_ipv6 = $this->wpcd_column_wrap_string_with_span_and_class( $ipv6, 'ips', 'left' );
-					$value2   = wpcd_wrap_ip_with_copy_text( $get_ipv4 );
-					$value2  .= wpcd_wrap_ip_with_copy_text( $get_ipv6 );
+					$value2   = wpcd_wrap_clipboard_copy( $get_ipv4 );
+					$value2  .= wpcd_wrap_clipboard_copy( $get_ipv6 );
 					$value   .= $this->wpcd_column_wrap_string_with_div_and_class( $value2, 'ips' );
 				}
 

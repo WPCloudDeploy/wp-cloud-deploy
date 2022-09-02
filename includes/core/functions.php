@@ -1551,7 +1551,7 @@ function wpcd_get_post_id_from_global() {
  *
  * @return string
  */
-function wpcd_wrap_ip_with_copy_text( $ip ) {
+function wpcd_wrap_clipboard_copy( $ip ) {
 
 	$copy_ip  = '<div class="wpcd-click-to-copy">';
 	$copy_ip .= '<span class="wpcd-click-to-copy-text">' . $ip . '</span>';

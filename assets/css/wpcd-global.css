@@ -1,5 +1,6 @@
 /* This file is loaded globally on the dashboard */
 
+
 /* Note: As of WPCD 4.13 Brand colors have been removed from this file and added as dynamic php vars to wp-cloud-deploy.php. */
 
 
@@ -13,3 +14,83 @@
     opacity: 1 !important;
     color: var(--wpcd-primary-brand-color);
 }
+
+
+/* Custom click to copy css*/
+
+.wpcd-click-to-copy-label {
+    color: #9696e7;
+    margin-left: 5px;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.wpcd-copied {
+    color: #9696e7;
+    margin-left: 5px;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.wpcd-copy-hidden {
+    display: none
+}
+
+.wpcd-click-to-copy {
+    cursor: pointer;
+}
+
+.wpcd-grid-cell-col-wrap-wpcd_server .wpcd_server .wpcd-app-col-element-wrap-ipv4,
+.wpcd-grid-cell-col-wrap-wpcd_server .wpcd_server .wpcd-app-col-element-wrap-ipv6 {
+    display: flex;
+    justify-content: space-between;
+}
+
+.type-wpcd_app .wpcd_server_ipv6 {
+    display: flex;
+    justify-content: space-between;
+}
+
+.type-wpcd_app .wpcd_server_ipv6 .wpcd-click-to-copy {
+    display: flex;
+    flex-direction: column;
+}
+
+.type-wpcd_app .wpcd_server_ipv6 .wpcd-click-to-copy .wpcd-click-to-copy-text {
+    word-break: break-all;
+}
+
+.wpcd-grid-cell-col-wrap-wpcd_server .wpcd_server .wpcd-app-col-element-wrap-ipv4 .wpcd-click-to-copy,
+.wpcd-grid-cell-col-wrap-wpcd_server .wpcd_server .wpcd-app-col-element-wrap-ipv6 .wpcd-click-to-copy {
+    display: flex;
+}
+
+.wpcd_site_details_top_row .rwmb-input .wpcd-click-to-copy,
+.wpcd_server_details_top_row .rwmb-input .wpcd-click-to-copy {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+}
+
+.wpcd_site_details_top_row .rwmb-input .wpcd-click-to-copy .wpcd-click-to-copy-text,
+.wpcd_server_details_top_row .rwmb-input .wpcd-click-to-copy .wpcd-click-to-copy-text {
+    word-break: break-all;
+}
+
+.wpcd_site_details_top_row .rwmb-input .wpcd-click-to-copy .wpcd-click-to-copy-label,
+.wpcd_server_details_top_row .rwmb-input .wpcd-click-to-copy .wpcd-click-to-copy-label {
+    margin-bottom: 5px;
+}
+
+.rwmb-tab-panel-file-manager .rwmb-row .rwmb-input .wpcd_tool_details,
+.rwmb-tab-panel-database .rwmb-row .rwmb-input .wpcd_tool_details {
+    display: flex;
+}
+
+.rwmb-tab-panel-file-manager .rwmb-row .rwmb-input .wpcd_tool_details .wpcd-click-to-copy,
+.rwmb-tab-panel-database .rwmb-row .rwmb-input .wpcd_tool_details .wpcd-click-to-copy {
+    margin-left: 5px;
+}
+
+
+/* End Custom click to copy css*/

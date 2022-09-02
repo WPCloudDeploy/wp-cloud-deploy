@@ -473,6 +473,14 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		$other_data .= '<span class=" wpcd_medium_chicklet ' . $page_cache_class_name . '">' . sprintf( __( 'Cache: %s', 'wpcd' ), $page_cache_display_value ) . '</span>';
 		$other_data .= '</div>';
 
+		// Copy IP.
+
+		$copy_app_ip = wpcd_wrap_clipboard_copy( $this->get_ipv4_address( $app_id ) );
+
+		if ( wpcd_get_early_option( 'wpcd_show_ipv6' ) ) {
+			$copy_app_ip .= wpcd_wrap_clipboard_copy( $this->get_ipv6_address( $app_id ) );
+		}
+
 		// There should be no 'other data' if the setting to not show it is enabled.
 		if ( wpcd_get_option( 'wordpress_app_hide_chicklet_area_in_site_detail' ) ) {
 			$other_data = '';
@@ -488,7 +496,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		$fields[] = array(
 			'name'    => __( 'IP', 'wpcd' ),
 			'type'    => 'custom_html',
-			'std'     => $this->get_all_ip_addresses_for_display( $app_id ),
+			'std'     => $copy_app_ip,
 			'columns' => 'left' === $this->get_tab_style() ? 2 : 2,
 			'class'   => 'wpcd_site_details_top_row',
 		);
@@ -561,6 +569,11 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		$other_data .= '<span class="wpcd_medium_chicklet wpcd_site_details_top_row_element_wstype">' . $webserver_type_name . '</span>';
 		$other_data .= '</div>';
 
+		$copy_ip = wpcd_wrap_clipboard_copy( WPCD_SERVER()->get_ipv4_address( $id ) );
+		if ( wpcd_get_early_option( 'wpcd_show_ipv6' ) ) {
+			$copy_ip .= wpcd_wrap_clipboard_copy( WPCD_SERVER()->get_ipv6_address( $id ) );
+		}
+
 		$fields['general-welcome-top-col_1'] = array(
 			'name'    => __( 'Server Name', 'wpcd' ),
 			'type'    => 'custom_html',
@@ -572,7 +585,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		$fields['general-welcome-top-col_2'] = array(
 			'name'    => __( 'IP', 'wpcd' ),
 			'type'    => 'custom_html',
-			'std'     => WPCD_SERVER()->get_all_ip_addresses_for_display( $id ),
+			'std'     => $copy_ip,
 			'columns' => 3,
 			'class'   => 'wpcd_server_details_top_row',
 		);
@@ -635,7 +648,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	 */
 	public static function get_wp_versions() {
 
-		//@SEE: https://wordpress.org/download/releases/
+		// @SEE: https://wordpress.org/download/releases/
 		$versions          = array( 'latest', '6.0.2', '5.9.4', '5.8.5', '5.7.7', '5.6.9', '5.5.10', '5.4.11', '5.3.13', '5.2.16', '5.1.14', '5.0.17', '4.9.21', '4.8.20', '4.7.24' );
 		$override_versions = wpcd_get_option( 'wordpress_app_allowed_wp_versions' );
 

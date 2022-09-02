@@ -426,7 +426,14 @@ class WPCD_WORDPRESS_TABS_FILE_MANAGER extends WPCD_WORDPRESS_TABS {
 				$file_manager_url = 'http://' . $this->get_domain_name( $id ) . '/' . 'filemanager';
 			}
 
-			$launch = sprintf( '<a href="%s" target="_blank">', $file_manager_url ) . __( 'Launch File Manager', 'wpcd' ) . '</a>';
+			$launch                = sprintf( '<a href="%s" target="_blank">', $file_manager_url ) . __( 'Launch File Manager', 'wpcd' ) . '</a>';
+			$file_manager_details  = '<div class="wpcd_tool_details">';
+			$file_manager_details .= __( 'User Name: ', 'wpcd' ) . wpcd_wrap_clipboard_copy( esc_html( $file_manager_user_id ) );
+			$file_manager_details .= '</div>';
+
+			$file_manager_details .= '<div class="wpcd_tool_details">';
+			$file_manager_details .= __( 'Password: ', 'wpcd' ) . wpcd_wrap_clipboard_copy( esc_html( $file_manager_password ) );
+			$file_manager_details .= '</div>';
 
 			$fields[] = array(
 				'tab'   => 'file-manager',
@@ -437,7 +444,7 @@ class WPCD_WORDPRESS_TABS_FILE_MANAGER extends WPCD_WORDPRESS_TABS {
 			$fields[] = array(
 				'tab'  => 'file-manager',
 				'type' => 'custom_html',
-				'std'  => __( 'User Name: ', 'wpcd' ) . esc_html( $file_manager_user_id ) . '<br />' . __( 'Password: ', 'wpcd' ) . esc_html( $file_manager_password ),
+				'std'  => $file_manager_details,
 			);
 
 			// New fields section for change username & password.

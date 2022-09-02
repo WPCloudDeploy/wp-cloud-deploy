@@ -428,7 +428,7 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 					$size = get_post_meta( $post_id, 'wpcd_server_size_raw', true );
 				}
 				if ( ! empty( $size ) || '0' === (string) $size ) {
-					// A string value of '0' is valid so we include it in the above IF statement. 
+					// A string value of '0' is valid so we include it in the above IF statement.
 					$size = $provider_api->get_size_description( $size );
 				}
 				if ( empty( $size ) && ( '0' !== (string) $size ) ) {
@@ -440,7 +440,9 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 				$instance_id = get_post_meta( $post_id, 'wpcd_server_provider_instance_id', true );
 
 				// ipv4 & ipv6 for display.
-				$ips = WPCD_SERVER()->get_all_ip_addresses_for_display( $post_id );
+				$ips  = WPCD_SERVER()->get_all_ip_addresses_for_display( $post_id );
+				$ipv4 = WPCD_SERVER()->get_ipv4_address( $post_id );
+				$ipv6 = WPCD_SERVER()->get_ipv6_address( $post_id );
 
 				// Initial os.
 				$initial_os = WPCD()->get_os_description( WPCD_SERVER()->get_server_os( $post_id ) );
@@ -486,13 +488,19 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 				// Add IPs to final output.
 				if ( ! is_admin() ) {
 					// On the front-end we want both a label and the os value.
-					$value2  = $this->wpcd_column_wrap_string_with_span_and_class( __( 'IP:', 'wpcd' ), 'ips', 'left' );
-					$value2 .= $this->wpcd_column_wrap_string_with_span_and_class( $ips, 'ips', 'right' );
-					$value  .= $this->wpcd_column_wrap_string_with_div_and_class( $value2, 'ips' );
+					$get_ipv4 = $this->wpcd_column_wrap_string_with_span_and_class( $ipv4, 'ips', 'right' );
+					$get_ipv6 = $this->wpcd_column_wrap_string_with_span_and_class( $ipv6, 'ips', 'right' );
+					$value2   = $this->wpcd_column_wrap_string_with_span_and_class( __( 'IP:', 'wpcd' ), 'ips', 'left' );
+					$value2  .= wpcd_wrap_clipboard_copy( $get_ipv4 );
+					$value2  .= wpcd_wrap_clipboard_copy( $get_ipv6 );
+					$value   .= $this->wpcd_column_wrap_string_with_div_and_class( $value2, 'ips' );
 				} else {
 					// On the back-end we only want the value.
-					$value2 = $this->wpcd_column_wrap_string_with_span_and_class( $ips, 'ips', 'left' );
-					$value .= $this->wpcd_column_wrap_string_with_div_and_class( $value2, 'ips' );
+					$get_ipv4 = $this->wpcd_column_wrap_string_with_span_and_class( $ipv4, 'ips', 'left' );
+					$get_ipv6 = $this->wpcd_column_wrap_string_with_span_and_class( $ipv6, 'ips', 'left' );
+					$value2   = wpcd_wrap_clipboard_copy( $get_ipv4 );
+					$value2  .= wpcd_wrap_clipboard_copy( $get_ipv6 );
+					$value   .= $this->wpcd_column_wrap_string_with_div_and_class( $value2, 'ips' );
 				}
 
 				break;

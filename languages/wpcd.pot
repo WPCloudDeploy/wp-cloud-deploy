@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 "Project-Id-Version: WP Cloud Deploy\n"
-"POT-Creation-Date: 2022-08-30 23:30-0500\n"
+"POT-Creation-Date: 2022-09-02 11:37-0500\n"
 "PO-Revision-Date: 2020-08-14 19:38-0500\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -321,10 +321,10 @@ msgstr ""
 #: includes/core/apps/vpn/class-vpn-woocommerce.php:101
 #: includes/core/apps/vpn/class-vpn-woocommerce.php:199
 #: includes/core/apps/vpn/class-vpn-woocommerce.php:293
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:581
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:593
 #: includes/core/apps/wordpress-app/tabs-server/general.php:179
 #: includes/core/apps/wordpress-app/templates/create-popup.php:108
-#: includes/core/class-wpcd-posts-app.php:579
+#: includes/core/class-wpcd-posts-app.php:585
 #: includes/templates/app_details.php:49
 #: includes/templates/server_details.php:53
 msgid "Provider"
@@ -338,11 +338,11 @@ msgstr ""
 #: includes/core/apps/vpn/class-vpn-woocommerce.php:112
 #: includes/core/apps/vpn/class-vpn-woocommerce.php:206
 #: includes/core/apps/vpn/class-vpn-woocommerce.php:304
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:589
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:601
 #: includes/core/apps/wordpress-app/tabs-server/general.php:187
 #: includes/core/apps/wordpress-app/templates/create-popup.php:122
-#: includes/core/class-wpcd-posts-app-server.php:777
-#: includes/core/class-wpcd-posts-app.php:584
+#: includes/core/class-wpcd-posts-app-server.php:785
+#: includes/core/class-wpcd-posts-app.php:590
 #: includes/templates/server_details.php:61
 msgid "Region"
 msgstr ""
@@ -360,7 +360,7 @@ msgid "Subscription ID"
 msgstr ""
 
 #: includes/core/apps/basic-server/class-basic-server-app.php:1305
-#: includes/core/class-wpcd-posts-app.php:565
+#: includes/core/class-wpcd-posts-app.php:571
 #: includes/core/class-wpcd-posts-pending-tasks-log.php:264
 #: includes/core/class-wpcd-posts-ssh-log.php:206
 msgid "Server"
@@ -1033,7 +1033,7 @@ msgstr ""
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:586
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:812
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:846
-#: includes/core/class-wpcd-posts-app-server.php:1369
+#: includes/core/class-wpcd-posts-app-server.php:1377
 msgid "Server Owners"
 msgstr ""
 
@@ -2896,7 +2896,7 @@ msgstr ""
 msgid "Cache: %s"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:482
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:489
 #: includes/core/apps/wordpress-app/tabs-server/goaccess.php:232
 #: includes/core/apps/wordpress-app/tabs-server/monit.php:238
 #: includes/core/apps/wordpress-app/tabs-server/monitorix.php:232
@@ -2905,147 +2905,147 @@ msgstr ""
 msgid "Domain"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:489
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:573
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:496
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:585
 msgid "IP"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:496
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:503
 msgid "Admin"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:504
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:511
 msgid "Front-end"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:514
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:521
 msgid "View Apps"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:517
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:524
 msgid "Apps on Server"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:534
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:619
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:541
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:631
 msgid "Upgrade Notice"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:565
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:577
 #: includes/core/apps/wordpress-app/tabs-server/general.php:163
-#: includes/core/class-wpcd-posts-app-server.php:733
+#: includes/core/class-wpcd-posts-app-server.php:741
 #: includes/templates/app_details.php:45
 msgid "Server Name"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:603
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:615
 #: includes/core/apps/wordpress-app/tabs-server/general.php:195
-#: includes/core/class-wpcd-posts-app-server.php:805
+#: includes/core/class-wpcd-posts-app-server.php:813
 #: includes/core/class-wpcd-posts-team.php:743
 #: includes/templates/team_details.php:40
 #: includes/templates/user_details.php:46
 msgid "Apps"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:709
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:721
 msgid "OpenLiteSpeed"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:713
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:725
 msgid "Nginx"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:717
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:729
 msgid "LiteSpeed Enterprise"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:868
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:880
 msgid "Admin Login"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:1642
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:1654
 msgid "View site"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:1741
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:1768
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:1753
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:1780
 msgid "The command has completed."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:1742
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:1754
 msgid "Checking server for updated progress information..."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:1743
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:1755
 msgid ""
 "Last progress check resulted in no new data. The operation seems to still be "
 "in progress. However, if you see this error more than 10 times or so, it "
 "might be because the connection to the WordPress server has been severed."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:1767
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:1779
 #: includes/core/apps/wordpress-app/public/class-wordpress-app-public.php:703
 #: includes/core/apps/wordpress-app/templates/create-popup.php:47
 msgid "Deploy A New WordPress Server"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:1794
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:1806
 #: includes/core/apps/wordpress-app/public/class-wordpress-app-public.php:266
 #: includes/core/apps/wordpress-app/public/class-wordpress-app-public.php:272
 msgid "You are not allowed to perform this operation on this app."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:1853
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:1865
 msgid "Invalid server ID"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:1859
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:1871
 msgid "Invalid server"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:1875
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:1887
 msgid "Invalid site ID"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:1881
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:1893
 msgid "Invalid app"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:1887
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:1899
 msgid "No server found"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:1907
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2002
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:1919
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2014
 msgid ""
 "You don't have access to provision a server. Perhaps you're not logged in?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:1967
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2125
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:1979
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2137
 msgid "You don't have permission to install WordPress on this server."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2024
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2036
 msgid ""
 "If you are seeing this message, something went very wrong at the start of "
 "the create a new server process. However, we are unable to be more specific "
 "at this time about its root cause."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2045
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2057
 msgid "Invalid OS - security issue?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2053
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2065
 msgid "Invalid Webserver type - security issue?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2062
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2074
 msgid "OpenLiteSpeed is not yet supported on Ubuntu 18.04 LTS."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2071
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2083
 msgid ""
 "Waiting for the server to startup...<br />We recommend that you do NOT exit "
 "this screen until you see a pop-up indicating that the installation is "
@@ -3056,7 +3056,7 @@ msgid ""
 "progress reports."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2082
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2094
 #, php-format
 msgid ""
 "Unfortunately we could not start deploying this server - most likely because "
@@ -3065,67 +3065,67 @@ msgid ""
 "and then retry the operation.<br />%s"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2140
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2152
 msgid ""
 "Please fill out all the requested data - we cannot create a site without all "
 "the requested data!  Please close this screen and try again."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2148
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2160
 msgid ""
 "Waiting for the installation to begin...<br />Do not exit this screen until "
 "you see a popup indicating that the installation is complete."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2159
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2171
 msgid "Missing required parameter."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2166
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2178
 msgid "Invalid post type."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2172
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2184
 msgid "You are not allowed to perform this operation on this server."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2184
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2196
 msgid "Status sync completed."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2297
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2309
 msgid "This domain already exists in our system."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2313
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2325
 msgid "The password for the site contains invalid characters."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2318
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2330
 msgid "The email address for the site contains invalid characters."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2322
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2334
 msgid "The user name for the site contains invalid characters."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2379
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2391
 msgid ""
 "There are some invalid data in this create site request. Please correct and "
 "try again."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2711
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2723
 msgid "Waiting To Install Page Cache For New Site"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2897
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2909
 msgid ""
 "Here are the basic steps needed to build your first server and deploy your "
 "first WordPress site:"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2901
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2913
 msgid ""
 "Double-check that your current web server where this plugin is deployed has "
 "the appropriate timeouts as listed at the bottom of this screen. You will "
@@ -3133,98 +3133,98 @@ msgid ""
 "increased."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2904
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2916
 msgid ""
 "Make sure you have created and uploaded an SSH key pair to your server "
 "providers' dashboard."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2907
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2919
 msgid "Generate an API key in your server providers' dashboard."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2910
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2922
 msgid ""
 "Add your cloud server provider API key and other credentials to the WPCLOUD "
 "DEPLOY->SETTINGS screen - under the CLOUD PROVIDERS tab / menu."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2913
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2925
 msgid ""
 "Click on the ALL CLOUD SERVERS menu option and use the DEPLOY A NEW "
 "WordPress SERVER button to deploy a server."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2916
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2928
 msgid ""
 "After the server is deployed, go back to the ALL CLOUD SERVERS menu option "
 "and click the INSTALL WordPress button in the server list."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2921
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2933
 msgid "Quick Start Guide"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2927
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2939
 msgid "Deploy Your First WordPress Site"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2960
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2972
 msgid ""
 "To create a new server, first make sure you add your cloud provider "
 "credentials under the SETTINGS screen."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2962
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2974
 msgid ""
 "Then, you can click the DEPLOY A NEW WordPress SERVER button at the top of "
 "this screen to create your first server."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:3070
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:3091
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:3082
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:3103
 #: includes/core/class-wpcd-posts-app-server.php:200
 #: includes/core/class-wpcd-posts-app-server.php:337
 msgid "Loading"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:3117
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:3129
 #: includes/core/apps/wordpress-app/tabs/misc.php:396
 msgid ""
 "Are you sure you would like to delete this site and data? This action is NOT "
 "reversible!"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:3118
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:3130
 #: includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/admin-columns.php:108
 #: includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/admin-columns.php:537
 msgid "Install WordPress"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:3121
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:3133
 #: includes/core/class-wpcd-posts-app-server.php:218
 msgid "Are you sure you want to perform this bulk action?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:3290
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:3302
 msgid "You are not authorized to perform this action - dismiss readable check."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:3326
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:3338
 msgid ""
 "You are not authorized to perform this action - do readable check again."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:3333
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:3345
 msgid "Readable check successful!"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:3338
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:3350
 msgid "Readable check failed!"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:3363
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:3383
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:3375
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:3395
 #: includes/core/apps/wordpress-app/tabs-server/backup.php:327
 #: includes/core/apps/wordpress-app/tabs-server/backup.php:343
 #: includes/core/apps/wordpress-app/tabs-server/backup.php:483
@@ -3281,8 +3281,8 @@ msgstr ""
 msgid "Enabled"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:3364
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:3384
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:3376
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:3396
 #: includes/core/apps/wordpress-app/tabs-server/backup.php:326
 #: includes/core/apps/wordpress-app/tabs-server/backup.php:344
 #: includes/core/apps/wordpress-app/tabs-server/backup.php:484
@@ -3340,48 +3340,48 @@ msgstr ""
 msgid "Disabled"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:3366
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:3378
 msgid "App Status"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:3378
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:3390
 #: includes/core/apps/wordpress-app/tabs/php-options.php:327
 msgid "PHP Version"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:3386
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:3398
 #: includes/core/apps/wordpress-app/tabs/cache.php:433
 msgid "Page Cache"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:3389
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:3401
 msgid "Object Cache"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:3394
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:3406
 #: includes/templates/notify_user_alert_list.php:62
 msgid "Yes"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:3395
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:3407
 #: includes/templates/notify_user_alert_list.php:62
 msgid "No"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:3397
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:3409
 msgid "Site Needs Updates"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:3674
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:3686
 msgid "You are not authorized to perform this action - dismiss cron check."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:3696
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:3708
 msgid ""
 "You are not authorized to perform this action - dismiss php version check."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:3718
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:3730
 msgid ""
 "You are not authorized to perform this action - dismiss localhost check."
 msgstr ""
@@ -3451,8 +3451,8 @@ msgstr ""
 #: includes/core/apps/wordpress-app/public/class-server-apps-table.php:60
 #: includes/core/apps/wordpress-app/public/class-servers-list-table.php:60
 #: includes/core/class-wpcd-email-notifications.php:1776
-#: includes/core/class-wpcd-posts-app-server.php:810
-#: includes/core/class-wpcd-posts-app.php:610
+#: includes/core/class-wpcd-posts-app-server.php:818
+#: includes/core/class-wpcd-posts-app.php:616
 #: includes/core/class-wpcd-posts-cloud-provider.php:168
 #: includes/core/class-wpcd-posts-command-log.php:216
 #: includes/core/class-wpcd-posts-error-log.php:190
@@ -3600,14 +3600,14 @@ msgstr ""
 
 #: includes/core/apps/wordpress-app/public/class-wordpress-app-public.php:522
 #: includes/core/apps/wordpress-app/public/class-wordpress-app-public.php:936
-#: includes/core/class-wpcd-posts-app-server.php:1773
+#: includes/core/class-wpcd-posts-app-server.php:1781
 msgid "Cloud Servers"
 msgstr ""
 
 #: includes/core/apps/wordpress-app/public/class-wordpress-app-public.php:532
 #: includes/core/apps/wordpress-app/public/class-wordpress-app-public.php:573
-#: includes/core/class-wpcd-posts-app-server.php:1672
-#: includes/core/class-wpcd-posts-app.php:1385
+#: includes/core/class-wpcd-posts-app-server.php:1680
+#: includes/core/class-wpcd-posts-app.php:1391
 #: includes/core/class-wpcd-posts-team.php:579
 msgid "You don't have permission to edit this post."
 msgstr ""
@@ -4856,7 +4856,7 @@ msgid "This is a test for AJAX functions inside the Server Details scree."
 msgstr ""
 
 #: includes/core/apps/wordpress-app/tabs-server/general.php:171
-#: includes/core/class-wpcd-posts-app.php:570
+#: includes/core/class-wpcd-posts-app.php:576
 #: includes/templates/app_details.php:53
 msgid "IPv4"
 msgstr ""
@@ -4923,15 +4923,15 @@ msgstr ""
 #: includes/core/apps/wordpress-app/tabs-server/goaccess.php:314
 #: includes/core/apps/wordpress-app/tabs-server/monit.php:373
 #: includes/core/apps/wordpress-app/tabs-server/monitorix.php:315
-#: includes/core/apps/wordpress-app/tabs/phpmyadmin.php:433
+#: includes/core/apps/wordpress-app/tabs/phpmyadmin.php:424
 msgid "User Id: "
 msgstr ""
 
 #: includes/core/apps/wordpress-app/tabs-server/goaccess.php:314
 #: includes/core/apps/wordpress-app/tabs-server/monit.php:373
 #: includes/core/apps/wordpress-app/tabs-server/monitorix.php:315
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:440
-#: includes/core/apps/wordpress-app/tabs/phpmyadmin.php:433
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:435
+#: includes/core/apps/wordpress-app/tabs/phpmyadmin.php:428
 msgid "Password: "
 msgstr ""
 
@@ -5815,8 +5815,8 @@ msgstr ""
 #. translators: %s is replaced with the internal action name.
 #: includes/core/apps/wordpress-app/tabs-server/monit.php:1348
 #: includes/core/apps/wordpress-app/tabs-server/services.php:1915
-#: includes/core/class-wpcd-posts-app-server.php:2131
-#: includes/core/class-wpcd-posts-app.php:1847
+#: includes/core/class-wpcd-posts-app-server.php:2139
+#: includes/core/class-wpcd-posts-app.php:1853
 #: includes/core/class-wpcd-posts-cloud-provider.php:275
 #: includes/core/class-wpcd-settings.php:1907
 #: includes/core/class-wpcd-settings.php:1941
@@ -6133,13 +6133,13 @@ msgstr ""
 
 #: includes/core/apps/wordpress-app/tabs-server/ols_console.php:317
 #: includes/core/apps/wordpress-app/tabs/file-manager.php:362
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:453
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:460
 msgid "User Name:"
 msgstr ""
 
 #: includes/core/apps/wordpress-app/tabs-server/ols_console.php:325
 #: includes/core/apps/wordpress-app/tabs/file-manager.php:376
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:467
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:474
 msgid "Password:"
 msgstr ""
 
@@ -7160,8 +7160,8 @@ msgid "Link to front-end"
 msgstr ""
 
 #: includes/core/apps/wordpress-app/tabs-server/sites.php:209
-#: includes/core/class-wpcd-posts-app-server.php:535
-#: includes/core/class-wpcd-posts-app-server.php:541
+#: includes/core/class-wpcd-posts-app-server.php:543
+#: includes/core/class-wpcd-posts-app-server.php:549
 #: includes/core/class-wpcd-posts-cloud-provider.php:207
 #: includes/core/providers/class-cloud-provider-api.php:408
 msgid "Active"
@@ -9560,30 +9560,30 @@ msgstr ""
 msgid "Launch File Manager"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:440
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:431
 msgid "User Name: "
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:445
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:452
 msgid "File Manager- Change Credentials"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:448
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:455
 msgid "Set a new username and password for the file manager"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:485
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:492
 #: includes/core/apps/wordpress-app/tabs/php-options.php:646
 #: includes/core/apps/wordpress-app/tabs/theme-and-plugin-updates.php:397
 #: includes/templates/notify_user_form_popup.php:232
 msgid "Update"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:495
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:502
 msgid "Are you sure you would like to update details?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:499
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:506
 msgid ""
 "Preparing to update File Manager.<br /> Please DO NOT EXIT this screen until "
 "you see a popup message indicating that the operation has completed or has "
@@ -9592,23 +9592,23 @@ msgid ""
 "the entire log can be viewed in the COMMAND LOG screen."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:507
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:514
 msgid "Upgrade File Manager"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:510
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:517
 msgid "Update the File Manager to the latest version."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:519
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:526
 msgid "Update File Manager"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:527
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:534
 msgid "Are you sure you would like to upgrade the File Manager?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:530
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:537
 msgid ""
 "Preparing to upgrade File Manager.<br /> Please DO NOT EXIT this screen "
 "until you see a popup message indicating that the operation has completed or "
@@ -9617,16 +9617,16 @@ msgid ""
 "complete the entire log can be viewed in the COMMAND LOG screen."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:537
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:549
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:544
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:556
 msgid "Remove File Manager"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:557
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:564
 msgid "Are you sure you would like to remove the File Manager from this site?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:560
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:567
 msgid ""
 "Preparing to remove File Manager.<br /> Please DO NOT EXIT this screen until "
 "you see a popup message indicating that the operation has completed or has "
@@ -10256,30 +10256,30 @@ msgstr ""
 msgid "Launch PHPMyAdmin"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/phpmyadmin.php:438
+#: includes/core/apps/wordpress-app/tabs/phpmyadmin.php:445
 msgid "Database Tools - Update and Remove"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/phpmyadmin.php:441
+#: includes/core/apps/wordpress-app/tabs/phpmyadmin.php:448
 msgid "Update and/or remove PHPMyAdmin"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/phpmyadmin.php:450
+#: includes/core/apps/wordpress-app/tabs/phpmyadmin.php:457
 msgid "Update PHPMyAdmin"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/phpmyadmin.php:451
+#: includes/core/apps/wordpress-app/tabs/phpmyadmin.php:458
 msgid "Update the PHPMyAdmin tool to the latest version."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/phpmyadmin.php:458
+#: includes/core/apps/wordpress-app/tabs/phpmyadmin.php:465
 msgid ""
 "Are you sure you would like to update the PHPMyAdmin tool? This is a risky "
 "operation and should only be done if there are security issues that need to "
 "be addressed!"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/phpmyadmin.php:461
+#: includes/core/apps/wordpress-app/tabs/phpmyadmin.php:468
 msgid ""
 "Preparing to update PHPMyAdmin.<br /> Please DO NOT EXIT this screen until "
 "you see a popup message indicating that the operation has completed or has "
@@ -10288,19 +10288,19 @@ msgid ""
 "the entire log can be viewed in the COMMAND LOG screen."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/phpmyadmin.php:473
+#: includes/core/apps/wordpress-app/tabs/phpmyadmin.php:480
 msgid "Remove PHPMyAdmin"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/phpmyadmin.php:474
+#: includes/core/apps/wordpress-app/tabs/phpmyadmin.php:481
 msgid "Remove the PHPMyAdmin tool from this site."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/phpmyadmin.php:481
+#: includes/core/apps/wordpress-app/tabs/phpmyadmin.php:488
 msgid "Are you sure you would like to remove the PHPAdmin tool from this site?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/phpmyadmin.php:484
+#: includes/core/apps/wordpress-app/tabs/phpmyadmin.php:491
 msgid ""
 "Preparing to remove PHPMyAdmin.<br /> Please DO NOT EXIT this screen until "
 "you see a popup message indicating that the operation has completed or has "
@@ -12507,8 +12507,8 @@ msgstr ""
 #: includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/admin-columns.php:1177
 #, php-format
 msgid ""
-"The default PHP server version is incorrect! It should be 7.4 but is "
-"currently set to %s!"
+"The default PHP server version is incorrect. It should be 7.4, 8.0 or 8.1 "
+"but is currently set to %s!"
 msgstr ""
 
 #: includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/admin-columns.php:1189
@@ -12683,8 +12683,8 @@ msgstr ""
 #: includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/push-commands.php:138
 #, php-format
 msgid ""
-"The default PHP version on this server is incorrect - it should be 7.4 but "
-"is currently set to %s."
+"The default PHP version on this server is incorrect - it should be 7.4, 8.0 "
+"or 8.1 but is currently set to %s."
 msgstr ""
 
 #: includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/push-commands.php:142
@@ -13723,58 +13723,58 @@ msgstr ""
 msgid "Invalid version. Please select or enter a valid WordPress version."
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app-server.php:456
+#: includes/core/class-wpcd-posts-app-server.php:458
 msgid "OS:"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app-server.php:467
+#: includes/core/class-wpcd-posts-app-server.php:469
 #: includes/core/class-wpcd-posts-app.php:313
 msgid "Region: "
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app-server.php:473
+#: includes/core/class-wpcd-posts-app-server.php:475
 msgid "Size: "
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app-server.php:480
+#: includes/core/class-wpcd-posts-app-server.php:482
 msgid "Instance ID: "
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app-server.php:489
+#: includes/core/class-wpcd-posts-app-server.php:493
 msgid "IP:"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app-server.php:522
-#: includes/core/class-wpcd-posts-app-server.php:526
+#: includes/core/class-wpcd-posts-app-server.php:530
+#: includes/core/class-wpcd-posts-app-server.php:534
 msgid "***************************"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app-server.php:523
+#: includes/core/class-wpcd-posts-app-server.php:531
 msgid "Record restored from trash."
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app-server.php:524
+#: includes/core/class-wpcd-posts-app-server.php:532
 msgid "The Server likely has been deleted at your cloud provider."
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app-server.php:525
+#: includes/core/class-wpcd-posts-app-server.php:533
 msgid "There is no link from this item to any live server."
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app-server.php:572
+#: includes/core/class-wpcd-posts-app-server.php:580
 msgid "Remote State:"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app-server.php:581
+#: includes/core/class-wpcd-posts-app-server.php:589
 msgid "Update Remote State"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app-server.php:604
+#: includes/core/class-wpcd-posts-app-server.php:612
 msgid "App Count:"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app-server.php:668
-#: includes/core/class-wpcd-posts-app.php:440
+#: includes/core/class-wpcd-posts-app-server.php:676
+#: includes/core/class-wpcd-posts-app.php:446
 #: includes/templates/notify_user_form_popup.php:157
 #: includes/templates/notify_user_form_popup.php:175
 #: includes/templates/notify_user_form_popup.php:198
@@ -13782,188 +13782,188 @@ msgstr ""
 msgid "None"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app-server.php:701
-#: includes/core/class-wpcd-posts-app.php:471
-#: includes/core/class-wpcd-posts-app.php:476
+#: includes/core/class-wpcd-posts-app-server.php:709
+#: includes/core/class-wpcd-posts-app.php:477
+#: includes/core/class-wpcd-posts-app.php:482
 msgid "No team assigned."
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app-server.php:744
-#: includes/core/class-wpcd-posts-app.php:526
+#: includes/core/class-wpcd-posts-app-server.php:752
+#: includes/core/class-wpcd-posts-app.php:532
 #: includes/core/traits/metaboxes_for_labels_notes_for_servers_and_apps.php:192
 msgid "Description"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app-server.php:754
+#: includes/core/class-wpcd-posts-app-server.php:762
 msgid "Server Group"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app-server.php:763
+#: includes/core/class-wpcd-posts-app-server.php:771
 #: includes/templates/server_details.php:154
 msgid "Server Actions"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app-server.php:772
+#: includes/core/class-wpcd-posts-app-server.php:780
 msgid "Provider Details"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app-server.php:782
+#: includes/core/class-wpcd-posts-app-server.php:790
 msgid "Instance ID"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app-server.php:791
-#: includes/core/class-wpcd-posts-app-server.php:1354
+#: includes/core/class-wpcd-posts-app-server.php:799
+#: includes/core/class-wpcd-posts-app-server.php:1362
 msgid "Local Status"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app-server.php:796
+#: includes/core/class-wpcd-posts-app-server.php:804
 msgid "Initial App/<br />Server Type"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app-server.php:822
+#: includes/core/class-wpcd-posts-app-server.php:830
 msgid "Owner"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app-server.php:834
-#: includes/core/class-wpcd-posts-app.php:620
+#: includes/core/class-wpcd-posts-app-server.php:842
+#: includes/core/class-wpcd-posts-app.php:626
 #: includes/core/class-wpcd-posts-team.php:151
 #: includes/core/wp-cloud-deploy.php:429
 msgid "Teams"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app-server.php:859
+#: includes/core/class-wpcd-posts-app-server.php:867
 msgid "Server Details"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app-server.php:925
-#: includes/core/class-wpcd-posts-app-server.php:969
+#: includes/core/class-wpcd-posts-app-server.php:933
+#: includes/core/class-wpcd-posts-app-server.php:977
 msgid ""
 "recovering from datetime conversion exception, showing raw data for this "
 "item below"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app-server.php:1121
+#: includes/core/class-wpcd-posts-app-server.php:1129
 msgid ""
 "ALL data on this server will be LOST! Are you really really sure you want to "
 "proceed and delete this server?"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app-server.php:1122
+#: includes/core/class-wpcd-posts-app-server.php:1130
 msgid ""
 "Please note: Rstoring this item will not restore your server or your server "
 "data - it will just be an orphaned record without a connection to any server."
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app-server.php:1348
-#: includes/core/class-wpcd-posts-app.php:1039
+#: includes/core/class-wpcd-posts-app-server.php:1356
+#: includes/core/class-wpcd-posts-app.php:1045
 msgid "All Providers"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app-server.php:1351
-#: includes/core/class-wpcd-posts-app.php:1042
+#: includes/core/class-wpcd-posts-app-server.php:1359
+#: includes/core/class-wpcd-posts-app.php:1048
 msgid "All Regions"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app-server.php:1358
-#: includes/core/class-wpcd-posts-app-server.php:1827
+#: includes/core/class-wpcd-posts-app-server.php:1366
+#: includes/core/class-wpcd-posts-app-server.php:1835
 msgid "Server Groups"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app-server.php:1361
-#: includes/core/class-wpcd-posts-app.php:1052
+#: includes/core/class-wpcd-posts-app-server.php:1369
+#: includes/core/class-wpcd-posts-app.php:1058
 msgid "All IPv4"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app-server.php:1365
-#: includes/core/class-wpcd-posts-app.php:1056
+#: includes/core/class-wpcd-posts-app-server.php:1373
+#: includes/core/class-wpcd-posts-app.php:1062
 msgid "All IPv6"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app-server.php:1372
+#: includes/core/class-wpcd-posts-app-server.php:1380
 msgid "Restarted Needed"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app-server.php:1579
+#: includes/core/class-wpcd-posts-app-server.php:1587
 msgid "Change Server Owner"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app-server.php:1592
+#: includes/core/class-wpcd-posts-app-server.php:1600
 msgid "Select Server Owner"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app-server.php:1607
+#: includes/core/class-wpcd-posts-app-server.php:1615
 msgid "Server Owner is required."
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app-server.php:1618
+#: includes/core/class-wpcd-posts-app-server.php:1626
 msgid "Server Delete Protection"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app-server.php:1627
+#: includes/core/class-wpcd-posts-app-server.php:1635
 msgid ""
 "Check this box to remove all delete links from the screen - it will prevent "
 "this server from being accidentally deleted."
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app-server.php:1708
-#: includes/core/class-wpcd-posts-app.php:1433
+#: includes/core/class-wpcd-posts-app-server.php:1716
+#: includes/core/class-wpcd-posts-app.php:1439
 msgid "You don't have permission to delete this post."
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app-server.php:1765
+#: includes/core/class-wpcd-posts-app-server.php:1773
 msgctxt "Post type general name"
 msgid "Cloud Servers"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app-server.php:1766
+#: includes/core/class-wpcd-posts-app-server.php:1774
 msgctxt "Post type singular name"
 msgid "Cloud Server"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app-server.php:1767
-#: includes/core/class-wpcd-posts-app.php:1491
+#: includes/core/class-wpcd-posts-app-server.php:1775
+#: includes/core/class-wpcd-posts-app.php:1497
 msgctxt "Admin Menu text"
 msgid "WPCloudDeploy"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app-server.php:1768
+#: includes/core/class-wpcd-posts-app-server.php:1776
 msgctxt "Add New on Toolbar"
 msgid "Cloud Server"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app-server.php:1769
-#: includes/core/class-wpcd-posts-app-server.php:1770
+#: includes/core/class-wpcd-posts-app-server.php:1777
+#: includes/core/class-wpcd-posts-app-server.php:1778
 msgid "New Server Record"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app-server.php:1771
+#: includes/core/class-wpcd-posts-app-server.php:1779
 msgid "Edit Cloud Server"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app-server.php:1772
+#: includes/core/class-wpcd-posts-app-server.php:1780
 msgid "View Cloud Server"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app-server.php:1774
+#: includes/core/class-wpcd-posts-app-server.php:1782
 msgid "Search Cloud Servers"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app-server.php:1775
+#: includes/core/class-wpcd-posts-app-server.php:1783
 msgid "No Application Servers were found."
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app-server.php:1776
+#: includes/core/class-wpcd-posts-app-server.php:1784
 msgid "No Application Servers were found in Trash."
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app-server.php:1777
+#: includes/core/class-wpcd-posts-app-server.php:1785
 msgctxt ""
 "Screen reader text for the filter links heading on the post type listing "
 "screen. Default \"Filter posts list\"/\"Filter pages list\". Added in 4.4"
 msgid "Filter Cloud Servers list"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app-server.php:1778
+#: includes/core/class-wpcd-posts-app-server.php:1786
 msgctxt ""
 "Screen reader text for the pagination heading on the post type listing "
 "screen. Default \"Posts list navigation\"/\"Pages list navigation\". Added "
@@ -13971,86 +13971,86 @@ msgctxt ""
 msgid "Cloud Servers list navigation"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app-server.php:1779
+#: includes/core/class-wpcd-posts-app-server.php:1787
 msgctxt ""
 "Screen reader text for the items list heading on the post type listing "
 "screen. Default \"Posts list\"/\"Pages list\". Added in 4.4"
 msgid "Cloud Servers list"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app-server.php:1817
+#: includes/core/class-wpcd-posts-app-server.php:1825
 msgctxt "taxonomy general name"
 msgid "Cloud Server Groups"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app-server.php:1818
+#: includes/core/class-wpcd-posts-app-server.php:1826
 msgctxt "taxonomy singular name"
 msgid "Cloud Server Group"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app-server.php:1819
+#: includes/core/class-wpcd-posts-app-server.php:1827
 msgid "Search Cloud Server Groups"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app-server.php:1820
+#: includes/core/class-wpcd-posts-app-server.php:1828
 msgid "All Cloud Server Groups"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app-server.php:1821
+#: includes/core/class-wpcd-posts-app-server.php:1829
 msgid "Parent Cloud Server Group"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app-server.php:1822
+#: includes/core/class-wpcd-posts-app-server.php:1830
 msgid "Parent Cloud Server Group:"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app-server.php:1823
+#: includes/core/class-wpcd-posts-app-server.php:1831
 msgid "Edit Cloud Server Group"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app-server.php:1824
+#: includes/core/class-wpcd-posts-app-server.php:1832
 msgid "Update Cloud Server Group"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app-server.php:1825
+#: includes/core/class-wpcd-posts-app-server.php:1833
 msgid "Add New Cloud Server Group"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app-server.php:1826
+#: includes/core/class-wpcd-posts-app-server.php:1834
 msgid "New Cloud Server Group Name"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app-server.php:2041
-#: includes/core/class-wpcd-posts-app.php:1801
+#: includes/core/class-wpcd-posts-app-server.php:2049
+#: includes/core/class-wpcd-posts-app.php:1807
 msgid "You are not allowed to change the owner."
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app-server.php:2059
+#: includes/core/class-wpcd-posts-app-server.php:2067
 msgid "Server Count"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app-server.php:2159
-#: includes/core/class-wpcd-posts-app.php:1876
+#: includes/core/class-wpcd-posts-app-server.php:2167
+#: includes/core/class-wpcd-posts-app.php:1882
 msgid "Clean Up completed!"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app-server.php:2162
+#: includes/core/class-wpcd-posts-app-server.php:2170
 msgid "No Server Records found!"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app-server.php:2182
-#: includes/core/class-wpcd-posts-app.php:1899
+#: includes/core/class-wpcd-posts-app-server.php:2190
+#: includes/core/class-wpcd-posts-app.php:1905
 #: includes/core/traits/metaboxes_for_taxonomies_for_servers_and_apps.php:69
 msgid "Color"
 msgstr ""
 
 #: includes/core/class-wpcd-posts-app.php:223
-#: includes/core/class-wpcd-posts-app.php:1045
+#: includes/core/class-wpcd-posts-app.php:1051
 msgid "All Server Owners"
 msgstr ""
 
 #: includes/core/class-wpcd-posts-app.php:226
-#: includes/core/class-wpcd-posts-app.php:1049
+#: includes/core/class-wpcd-posts-app.php:1055
 msgid "All App Owners"
 msgstr ""
 
@@ -14078,66 +14078,66 @@ msgstr ""
 msgid "IPv4: "
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app.php:331
+#: includes/core/class-wpcd-posts-app.php:332
 msgid "ipv6: "
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app.php:333
+#: includes/core/class-wpcd-posts-app.php:334
 msgid "IPv6: "
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app.php:354
+#: includes/core/class-wpcd-posts-app.php:356
 msgid "Apps on this server"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app.php:394
+#: includes/core/class-wpcd-posts-app.php:400
 msgid "Unable to get author/owner"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app.php:401
+#: includes/core/class-wpcd-posts-app.php:407
 msgid "Svr:"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app.php:401
+#: includes/core/class-wpcd-posts-app.php:407
 msgid "App:"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app.php:510
+#: includes/core/class-wpcd-posts-app.php:516
 msgid "Site"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app.php:516
+#: includes/core/class-wpcd-posts-app.php:522
 #: includes/templates/app_details.php:41
 msgid "App Type"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app.php:536
-#: includes/core/class-wpcd-posts-app.php:1566
+#: includes/core/class-wpcd-posts-app.php:542
+#: includes/core/class-wpcd-posts-app.php:1572
 msgid "App Group"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app.php:545
+#: includes/core/class-wpcd-posts-app.php:551
 msgid "App Summary"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app.php:555
+#: includes/core/class-wpcd-posts-app.php:561
 msgid "App Health"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app.php:573
+#: includes/core/class-wpcd-posts-app.php:579
 #: includes/core/class-wpcd-settings.php:733
 msgid "IPv6"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app.php:604
+#: includes/core/class-wpcd-posts-app.php:610
 msgid "Owners"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app.php:645
+#: includes/core/class-wpcd-posts-app.php:651
 msgid "Application Details"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app.php:801
+#: includes/core/class-wpcd-posts-app.php:807
 msgid ""
 "Are you sure? This will only delete the data from our database.  The "
 "application itself will remain on your server. To remove a WordPress app "
@@ -14145,105 +14145,105 @@ msgid ""
 "the MISC tab."
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app.php:802
+#: includes/core/class-wpcd-posts-app.php:808
 msgid ""
 "Please note: Restoring this item will not necessarily restore your app on "
 "the server. This item will likely become an orphaned/ghost item - i.e: it "
 "will not have a connection to any app or server."
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app.php:1032
+#: includes/core/class-wpcd-posts-app.php:1038
 msgid "All App Types"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app.php:1036
+#: includes/core/class-wpcd-posts-app.php:1042
 msgid "All Servers"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app.php:1061
+#: includes/core/class-wpcd-posts-app.php:1067
 #: includes/core/wp-cloud-deploy.php:294 includes/core/wp-cloud-deploy.php:295
 msgid "App Groups"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app.php:1292
+#: includes/core/class-wpcd-posts-app.php:1298
 msgid "Change App Owner"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app.php:1305
+#: includes/core/class-wpcd-posts-app.php:1311
 msgid "Select App Owner"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app.php:1320
+#: includes/core/class-wpcd-posts-app.php:1326
 msgid "App Owner is required."
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app.php:1332
+#: includes/core/class-wpcd-posts-app.php:1338
 msgid "App Delete Protection"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app.php:1340
+#: includes/core/class-wpcd-posts-app.php:1346
 msgid ""
 "Check this box to remove all delete links from the screen - it will prevent "
 "this app from being accidentally deleted."
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app.php:1495
+#: includes/core/class-wpcd-posts-app.php:1501
 msgctxt "Admin Menu text"
 msgid "APPs"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app.php:1508
+#: includes/core/class-wpcd-posts-app.php:1514
 msgctxt "Post type general name"
 msgid "APPs"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app.php:1509
+#: includes/core/class-wpcd-posts-app.php:1515
 msgctxt "Post type singular name"
 msgid "APP"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app.php:1511
+#: includes/core/class-wpcd-posts-app.php:1517
 msgctxt "Add New on Toolbar"
 msgid "APPs"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app.php:1512
+#: includes/core/class-wpcd-posts-app.php:1518
 msgctxt "Add New Button"
 msgid "Add New App Record"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app.php:1513
+#: includes/core/class-wpcd-posts-app.php:1519
 msgid "Edit APP"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app.php:1514
+#: includes/core/class-wpcd-posts-app.php:1520
 msgid "View APP"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app.php:1515
+#: includes/core/class-wpcd-posts-app.php:1521
 msgid "All APPs"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app.php:1516
+#: includes/core/class-wpcd-posts-app.php:1522
 msgid "Search APPs"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app.php:1517
+#: includes/core/class-wpcd-posts-app.php:1523
 msgid "No Applications were found."
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app.php:1518
+#: includes/core/class-wpcd-posts-app.php:1524
 msgid "No Applications were found in Trash."
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app.php:1519
+#: includes/core/class-wpcd-posts-app.php:1525
 msgctxt ""
 "Screen reader text for the filter links heading on the post type listing "
 "screen. Default \"Filter posts list\"/\"Filter pages list\". Added in 4.4"
 msgid "Filter APPs list"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app.php:1520
+#: includes/core/class-wpcd-posts-app.php:1526
 msgctxt ""
 "Screen reader text for the pagination heading on the post type listing "
 "screen. Default \"Posts list navigation\"/\"Pages list navigation\". Added "
@@ -14251,60 +14251,60 @@ msgctxt ""
 msgid "APPs list navigation"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app.php:1521
+#: includes/core/class-wpcd-posts-app.php:1527
 msgctxt ""
 "Screen reader text for the items list heading on the post type listing "
 "screen. Default \"Posts list\"/\"Pages list\". Added in 4.4"
 msgid "APPs list"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app.php:1556
+#: includes/core/class-wpcd-posts-app.php:1562
 msgctxt "taxonomy general name"
 msgid "App Groups"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app.php:1557
+#: includes/core/class-wpcd-posts-app.php:1563
 msgctxt "taxonomy singular name"
 msgid "App Group"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app.php:1558
+#: includes/core/class-wpcd-posts-app.php:1564
 msgid "Search App Groups"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app.php:1559
+#: includes/core/class-wpcd-posts-app.php:1565
 msgid "All App Groups"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app.php:1560
+#: includes/core/class-wpcd-posts-app.php:1566
 msgid "Parent App Group"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app.php:1561
+#: includes/core/class-wpcd-posts-app.php:1567
 msgid "Parent App Group:"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app.php:1562
+#: includes/core/class-wpcd-posts-app.php:1568
 msgid "Edit App Group"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app.php:1563
+#: includes/core/class-wpcd-posts-app.php:1569
 msgid "Update App Group"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app.php:1564
+#: includes/core/class-wpcd-posts-app.php:1570
 msgid "Add New App Group"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app.php:1565
+#: includes/core/class-wpcd-posts-app.php:1571
 msgid "New App Group Name"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app.php:1879
+#: includes/core/class-wpcd-posts-app.php:1885
 msgid "No APP Records found!"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-app.php:2071
+#: includes/core/class-wpcd-posts-app.php:2077
 #: includes/core/traits/metaboxes_for_taxonomies_for_servers_and_apps.php:354
 msgid "No Author or Owner provided."
 msgstr ""
@@ -17698,6 +17698,14 @@ msgstr ""
 msgid "Wrong Nonce"
 msgstr ""
 
+#: includes/core/functions.php:1563
+msgid "Copied"
+msgstr ""
+
+#: includes/core/functions.php:1563
+msgid "Click to copy"
+msgstr ""
+
 #. translators: %s is with a URL link to the cloud providers dashboard.
 #: includes/core/providers/class-cloud-provider-api.php:363
 #, php-format
@@ -18096,12 +18104,12 @@ msgstr ""
 msgid "Ubuntu 20.04 LTS"
 msgstr ""
 
-#: includes/core/wp-cloud-deploy.php:705
-msgid "Ubuntu 22.04 LTS (Early Beta)"
+#: includes/core/wp-cloud-deploy.php:705 includes/core/wp-cloud-deploy.php:764
+msgid "Ubuntu 22.04 LTS"
 msgstr ""
 
-#: includes/core/wp-cloud-deploy.php:706 includes/core/wp-cloud-deploy.php:756
-msgid "Ubuntu 18.04 LTS"
+#: includes/core/wp-cloud-deploy.php:706
+msgid "Ubuntu 18.04 LTS (Deprecated, EOL April 2023)"
 msgstr ""
 
 #: includes/core/wp-cloud-deploy.php:733
@@ -18112,8 +18120,8 @@ msgstr ""
 msgid "OpenLiteSpeed (Beta)"
 msgstr ""
 
-#: includes/core/wp-cloud-deploy.php:764
-msgid "Ubuntu 22.04 LTS"
+#: includes/core/wp-cloud-deploy.php:756
+msgid "Ubuntu 18.04 LTS"
 msgstr ""
 
 #: includes/core/wp-cloud-deploy.php:1160

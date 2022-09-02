@@ -135,6 +135,7 @@ Note: Even though the entire git development history isn't available on github, 
 * New: WPAPP - File Manager per site.
 * New: WPAPP - Allow the admin to curate the list of WP versions shown to customers and other users who create sites.
 * New: WPAPP - Send email to wpcd site admin when a pending task has been running for more than 15 minutes.
+* New: WPAPP - Click-to-copy IP address to clipboard.  Same with PHPMyAdmin and FileManager Userid/password.
 * Tweak: WPAPP - Remove extraneous text from certain tabs.
 * Tweak: WPAPP - When a manual backup is run we now automatically refresh the backup listing.
 * Tweak: WPAPP - Do not show the option to clear the page cache if it has not been installed.

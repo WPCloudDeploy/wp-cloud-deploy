@@ -1545,20 +1545,25 @@ function wpcd_get_post_id_from_global() {
 }
 
 /**
- * Takes a IP and wraps it with a div tag of copy.
+ * Takes a text string such as an IP address and
+ * wraps it with special a div/span CSS.
+ * The div/span is used to trigger a JS function
+ * to copy the wrapped data to the clipboard.
  *
- * @param string $ip The string to wrap.
+ * @since 5.0
+ *
+ * @param string $data_string The string to wrap.
  *
  * @return string
  */
-function wpcd_wrap_clipboard_copy( $ip ) {
+function wpcd_wrap_clipboard_copy( $data_string ) {
 
-	$copy_ip  = '<div class="wpcd-click-to-copy">';
-	$copy_ip .= '<span class="wpcd-click-to-copy-text">' . $ip . '</span>';
-	$copy_ip .= '<span data-label="' . __( 'Copied', 'wpcd' ) . '" class="wpcd-click-to-copy-label wpcd-copy-hidden">' . __( 'Click to copy', 'wpcd' ) . '</span>';
-	$copy_ip .= '</div>';
+	$return  = '<div class="wpcd-click-to-copy">';
+	$return .= '<span class="wpcd-click-to-copy-text">' . $data_string . '</span>';
+	$return .= '<span data-label="' . __( 'Copied', 'wpcd' ) . '" class="wpcd-click-to-copy-label wpcd-copy-hidden">' . __( 'Click to copy', 'wpcd' ) . '</span>';
+	$return .= '</div>';
 
-	return $copy_ip;
+	return $return;
 }
 
 /*

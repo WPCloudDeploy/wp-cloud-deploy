@@ -474,7 +474,6 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		$other_data .= '</div>';
 
 		// Copy IP.
-
 		$copy_app_ip = wpcd_wrap_clipboard_copy( $this->get_ipv4_address( $app_id ) );
 
 		if ( wpcd_get_early_option( 'wpcd_show_ipv6' ) ) {

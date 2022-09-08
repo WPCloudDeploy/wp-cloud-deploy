@@ -141,7 +141,6 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 
 			if ( true == $success ) {
 
-				$server_name = WPCD_SERVER()->get_server_name( $id );
 				update_post_meta( $id, 'is_remote_database', 'no' );
 				delete_post_meta( $id, 'remote_database_server_name' );
 			}

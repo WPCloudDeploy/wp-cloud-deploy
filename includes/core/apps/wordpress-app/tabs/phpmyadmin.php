@@ -259,16 +259,16 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 					$result = $this->manage_phpmyadmin( 'remove_phpmyadmin', $id );
 					break;
 				case 'remote-database':
-					$result = $this->manage_phpmyadmin( 'switch_remote', $id );
+					$result = $this->manage_remote_db( 'switch_remote', $id );
 					break;
 				case 'local-database':
-					$result = $this->manage_phpmyadmin( 'switch_local', $id );
+					$result = $this->manage_remote_db( 'switch_local', $id );
 					break;
 				case 'copy-database-from-local-to-remote':
-					$result = $this->manage_phpmyadmin( 'copy_to_remote', $id );
+					$result = $this->manage_remote_db( 'copy_to_remote', $id );
 					break;
 				case 'copy-database-from-remote-to-local':
-					$result = $this->manage_phpmyadmin( 'copy_to_local', $id );
+					$result = $this->manage_remote_db( 'copy_to_local', $id );
 					break;
 
 			}
@@ -287,6 +287,58 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 	 * @return boolean|object Can return wp_error, true/false
 	 */
 	public function manage_phpmyadmin( $action, $id ) {
+
+		// Get the instance details.
+		$instance = $this->get_app_instance_details( $id );
+
+		// Bail if error.
+		if ( is_wp_error( $instance ) ) {
+			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
+		}
+
+		// Get the domain we're working on.
+		$domain = $this->get_domain_name( $id );
+
+		// Setup unique command name.
+		$command             = sprintf( '%s---%s---%d', $action, $domain, time() );
+		$instance['command'] = $command;
+		$instance['app_id']  = $id;
+
+		// construct the run command.
+		$run_cmd = $this->turn_script_into_command(
+			$instance,
+			'manage_phpmyadmin.txt',
+			array(
+				'command' => $command,
+				'action'  => $action,
+				'domain'  => $domain,
+			)
+		);
+		// double-check just in case of errors.
+		if ( empty( $run_cmd ) || is_wp_error( $run_cmd ) ) {
+			return new \WP_Error( sprintf( __( 'Something went wrong - we are unable to construct a proper command for this action - %s', 'wpcd' ), $action ) );
+		}
+
+		/**
+		 * Run the constructed commmand
+		 * Check out the write up about the different aysnc methods we use
+		 * here: https://wpclouddeploy.com/documentation/wpcloud-deploy-dev-notes/ssh-execution-models/
+		 */
+		$return = $this->run_async_command_type_2( $id, $command, $run_cmd, $instance, $action );
+
+		return $return;
+
+	}
+
+	/**
+	 * Manage remote database - Switch and copy local/remote database.
+	 *
+	 * @param string $action The action key to send to the bash script.  This is actually the key of the drop-down select.
+	 * @param int    $id the id of the app post being handled.
+	 *
+	 * @return boolean|object Can return wp_error, true/false
+	 */
+	public function manage_remote_db( $action, $id ) {
 
 		// Get the instance details.
 		$instance = $this->get_app_instance_details( $id );
@@ -397,25 +449,15 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 					$instance,
 					'manage_database_operation.txt',
 					array(
-						'command'       => $command,
-						'action'        => $action,
-						'domain'        => $domain,
+						'command'      => $command,
+						'action'       => $action,
+						'domain'       => $domain,
 						'local_dbname' => $local_dbname_for_copy,
 						'local_dbuser' => $local_dbuser_for_copy,
 						'local_dbpass' => $local_dbpass_for_copy,
 					)
 				);
 				break;
-			default:
-				$run_cmd = $this->turn_script_into_command(
-					$instance,
-					'manage_phpmyadmin.txt',
-					array(
-						'command' => $command,
-						'action'  => $action,
-						'domain'  => $domain,
-					)
-				);
 		}
 
 		// double-check just in case of errors.
@@ -683,6 +725,8 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 			$running_database_server_name = __( 'Site is using a local database.', 'wpcd' );
 		}
 
+		// New fields section for switch to remote or local database.
+
 		$fields[] = array(
 			'name' => __( 'Remote Database - Switch To Remote OR Local Database', 'wpcd' ),
 			'tab'  => 'database',
@@ -694,12 +738,14 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 
 		if ( $is_remote_database == 'yes' ) {
 
+			// Server name.
 			$fields[] = array(
 				'tab'  => 'database',
 				'type' => 'custom_html',
 				'std'  => __( 'Server Name: ', 'wpcd' ) . $server_name,
 			);
 
+			// Local database name.
 			$fields[] = array(
 				'id'         => 'local-dbname',
 				'name'       => __( 'DB Name:', 'wpcd' ),
@@ -716,6 +762,7 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 				),
 			);
 
+			// Local database username.
 			$fields[] = array(
 				'id'         => 'local-dbuser',
 				'name'       => __( 'DB Username:', 'wpcd' ),
@@ -731,6 +778,7 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 				),
 			);
 
+			// Local database password.
 			$fields[] = array(
 				'id'         => 'local-dbpass',
 				'name'       => __( 'DB Password:', 'wpcd' ),
@@ -746,6 +794,7 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 				),
 			);
 
+			// Switch to local database.
 			$fields[] = array(
 				'id'         => 'local-database',
 				'name'       => '',
@@ -769,7 +818,7 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 				'save_field' => false,
 			);
 
-			// Copy Database.
+			// Copy database remote to local.
 
 			$fields[] = array(
 				'name' => __( 'Copy Databas - Remote to local', 'wpcd' ),
@@ -778,6 +827,7 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 				'desc' => 'Please fill up database details of local database.',
 			);
 
+			// Local database name.
 			$fields[] = array(
 				'id'         => 'local-dbname-for-copy',
 				'name'       => __( 'DB Name:', 'wpcd' ),
@@ -793,6 +843,7 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 				),
 			);
 
+			// Local database username.
 			$fields[] = array(
 				'id'         => 'local-dbuser-for-copy',
 				'name'       => __( 'DB Username:', 'wpcd' ),
@@ -808,6 +859,7 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 				),
 			);
 
+			// Local database password.
 			$fields[] = array(
 				'id'         => 'local-dbpass-for-copy',
 				'name'       => __( 'DB Password:', 'wpcd' ),
@@ -823,6 +875,7 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 				),
 			);
 
+			// Copy database from remote to local.
 			$fields[] = array(
 				'id'         => 'copy-database-from-remote-to-local',
 				'name'       => '',
@@ -848,6 +901,7 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 
 		} else {
 
+			// Remote database host.
 			$fields[] = array(
 				'id'         => 'remote-dbhost',
 				'name'       => __( 'DB Host:', 'wpcd' ),
@@ -863,6 +917,7 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 				),
 			);
 
+			// Remote database name.
 			$fields[] = array(
 				'id'         => 'remote-dbname',
 				'name'       => __( 'DB Name:', 'wpcd' ),
@@ -878,6 +933,7 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 				),
 			);
 
+			// Remote database username.
 			$fields[] = array(
 				'id'         => 'remote-dbuser',
 				'name'       => __( 'DB Username:', 'wpcd' ),
@@ -893,6 +949,7 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 				),
 			);
 
+			// Remote database password.
 			$fields[] = array(
 				'id'         => 'remote-dbpass',
 				'name'       => __( 'DB Password:', 'wpcd' ),
@@ -908,6 +965,7 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 				),
 			);
 
+			// Switch to remote database.
 			$fields[] = array(
 				'id'         => 'remote-database',
 				'name'       => '',
@@ -931,7 +989,7 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 				'save_field' => false,
 			);
 
-			// Copy Database.
+			// Copy database local to remote.
 
 			$fields[] = array(
 				'name' => __( 'Copy Databas - Local to remote', 'wpcd' ),
@@ -940,6 +998,7 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 				'desc' => 'Please fill up database details of remote database.',
 			);
 
+			// Remote database host.
 			$fields[] = array(
 				'id'         => 'remote-dbhost-for-copy',
 				'name'       => __( 'DB Host:', 'wpcd' ),
@@ -954,6 +1013,7 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 				),
 			);
 
+			// Remote database name.
 			$fields[] = array(
 				'id'         => 'remote-dbname-for-copy',
 				'name'       => __( 'DB Name:', 'wpcd' ),
@@ -969,6 +1029,7 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 				),
 			);
 
+			// Remote database username.
 			$fields[] = array(
 				'id'         => 'remote-dbuser-for-copy',
 				'name'       => __( 'DB Username:', 'wpcd' ),
@@ -984,6 +1045,7 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 				),
 			);
 
+			// Remote database password.
 			$fields[] = array(
 				'id'         => 'remote-dbpass-for-copy',
 				'name'       => __( 'DB Password:', 'wpcd' ),
@@ -999,6 +1061,7 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 				),
 			);
 
+			// Copy database from local to remote.
 			$fields[] = array(
 				'id'         => 'copy-database-from-local-to-remote',
 				'name'       => '',

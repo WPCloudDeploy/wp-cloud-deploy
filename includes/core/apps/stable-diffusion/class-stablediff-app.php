@@ -415,7 +415,11 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 	 * @TODO: Update this header to list examples and parameters and expected inputs.
 	 */
 	public function do_deferred_actions() {
+		
+		set_transient( 'wpcd_do_deferred_actions_for_stablediff_is_active', 1, wpcd_get_long_running_command_timeout() * MINUTE_IN_SECONDS );
+		
 		do_action( 'wpcd_log_error', 'doing do_deferred_actions', 'debug', __FILE__, __LINE__ );
+		
 		$posts = get_posts(
 			array(
 				'post_type'   => 'wpcd_app_server',
@@ -439,7 +443,6 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 			}
 		}
 
-		set_transient( 'wpcd_do_deferred_actions_for_stablediff_is_active', 1, wpcd_get_long_running_command_timeout() * MINUTE_IN_SECONDS );
 	}
 
 	/**

@@ -179,6 +179,37 @@ function WPCD_BASIC_SERVER_APP() {
 	return WPCD()->classes['WPCD_BASIC_SERVER_APP'];
 }
 
+add_action( 'init', 'wpcd_init_stablediff_app', -10, 1 );
+/**
+ * Create a class var for WPCD_STABLEDIFF_APP and
+ * add it to the WPCD array of classes for management
+ *
+ * This class handles all items related to the management
+ * of the STABLEDIFF app.
+ *
+ * @TODO: This really shouldn't happen here.  Instead
+ * we need a process to have apps register their main
+ * classes with WPCD and go from there.
+ */
+function wpcd_init_stablediff_app() {
+	if ( function_exists( 'WPCD' ) ) {
+		if ( class_exists( 'WPCD_STABLEDIFF_APP' ) ) {
+			if ( empty( WPCD()->classes['WPCD_STABLEDIFF_APP'] ) ) {
+				WPCD()->classes['WPCD_STABLEDIFF_APP'] = new WPCD_STABLEDIFF_APP();
+			}
+		}
+	}
+}
+
+/**
+ * Function for calling WPCD_STABLEDIFF_APP methods and variables
+ *
+ * @return WPCD_STABLEDIFF_APP;
+ */
+function WPCD_STABLEDIFF_APP() {
+	return WPCD()->classes['WPCD_STABLEDIFF_APP'];
+}
+
 add_action( 'init', 'wpcd_init_wordpress_app', -10, 1 );
 /**
  * Create a class var for WPCD_WORDPRESS_APP and

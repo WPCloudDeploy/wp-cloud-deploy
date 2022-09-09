@@ -415,11 +415,11 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 	 * @TODO: Update this header to list examples and parameters and expected inputs.
 	 */
 	public function do_deferred_actions() {
-		
+
 		set_transient( 'wpcd_do_deferred_actions_for_stablediff_is_active', 1, wpcd_get_long_running_command_timeout() * MINUTE_IN_SECONDS );
-		
+
 		do_action( 'wpcd_log_error', 'doing do_deferred_actions', 'debug', __FILE__, __LINE__ );
-		
+
 		$posts = get_posts(
 			array(
 				'post_type'   => 'wpcd_app_server',
@@ -642,9 +642,9 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 		$server_post = $this->get_server_by_app_id( $app_post->ID );
 
 		// Get provider from server record.
-		$provider = get_post_meta( $server_post->ID, 'wpcd_server_provider', true );
-		$stablediff_id   = get_post_meta( $server_post->ID, 'wpcd_server_provider_instance_id', true );
-		$details  = WPCD()->get_provider_api( $provider )->call( 'details', array( 'id' => $stablediff_id ) );
+		$provider      = get_post_meta( $server_post->ID, 'wpcd_server_provider', true );
+		$stablediff_id = get_post_meta( $server_post->ID, 'wpcd_server_provider_instance_id', true );
+		$details       = WPCD()->get_provider_api( $provider )->call( 'details', array( 'id' => $stablediff_id ) );
 
 		// Get protocol from stablediff app record.
 		$protocol = get_post_meta( $app_post_id, 'stablediff_protocol', true );
@@ -933,7 +933,7 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 		);
 		wp_register_style( 'wpcd-stablediff-magnific', wpcd_url . 'assets/css/magnific-popup.css', array(), wpcd_scripts_version );
 		wp_enqueue_style( 'wpcd-stablediff', wpcd_url . 'includes/core/apps/stable-diffusion/assets/css/wpcd-stablediff.css', array( 'wpcd-stablediff-magnific' ), wpcd_scripts_version );
-		wp_enqueue_style( 'wpcd-stablediff-fonts', wpcd_url . 'assets/fonts/stablediffwebsite.css', array(), wpcd_scripts_version );
+		wp_enqueue_style( 'wpcd-stablediff-fonts', wpcd_url . 'includes/core/apps/stable-diffusion/assets/fonts/stablediffwebsite.css', array(), wpcd_scripts_version );
 
 		$output = '<div class="wpcd-stablediff-instances-list">';
 		foreach ( $app_posts as $app_post ) {
@@ -947,9 +947,9 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 			$server_post = $this->get_server_by_app_id( $app_post->ID );
 
 			// Get some data from the server post.
-			$provider = get_post_meta( $server_post->ID, 'wpcd_server_provider', true );
-			$stablediff_id   = get_post_meta( $server_post->ID, 'wpcd_server_provider_instance_id', true );
-			$region   = get_post_meta( $server_post->ID, 'wpcd_server_region', true );
+			$provider      = get_post_meta( $server_post->ID, 'wpcd_server_provider', true );
+			$stablediff_id = get_post_meta( $server_post->ID, 'wpcd_server_provider_instance_id', true );
+			$region        = get_post_meta( $server_post->ID, 'wpcd_server_region', true );
 
 			// Get regions from the provider.
 			if ( ! empty( WPCD()->get_provider_api( $provider ) ) ) {

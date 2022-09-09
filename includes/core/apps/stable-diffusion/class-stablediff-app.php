@@ -87,9 +87,9 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 
 		// @TODO: Need to convert these to Ultimate Member hooks.
 		add_filter( 'spmm_account_page_default_tabs_hook', array( &$this, 'account_tabs' ), 100 );
-		add_filter( 'spmm_account_content_hook_vpn', array( &$this, 'account_stablediff_tab_content' ), 10, 2 );
+		add_filter( 'spmm_account_content_hook_stablediff', array( &$this, 'account_stablediff_tab_content' ), 10, 2 );
 
-		add_action( 'wp_ajax_wpcd_vpn', array( &$this, 'ajax' ) );
+		add_action( 'wp_ajax_wpcd_stablediff', array( &$this, 'ajax' ) );
 
 		add_action( 'woocommerce_account_downloads_endpoint', array( &$this, 'account_downloads_tab_content' ) ); // Add content to account tab 'Downloads' to let users know where to find downloads.
 
@@ -101,14 +101,14 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 		add_action( 'save_post', array( $this, 'app_admin_save_meta_values' ), 10, 2 );         // Save Meta Values.
 		add_filter( 'wpcd_app_server_admin_list_local_status_column', array( &$this, 'app_server_admin_list_local_status_column' ), 10, 2 );  // Show the server status.
 
-		// Add a state called "VPN" to the app when its shown on the app list.
+		// Add a state called "StableDiff" to the app when its shown on the app list.
 		add_filter( 'display_post_states', array( $this, 'display_post_states' ), 20, 2 );
 
 		/* Register shortcodes */
-		add_shortcode( 'wpcd_app_vpn_instances', array( &$this, 'app_stablediff_shortcode' ) );
+		add_shortcode( 'wpcd_app_stablediff_instances', array( &$this, 'app_stablediff_shortcode' ) );
 
 		// Action hook to fire on new site created on WP Multisite.
-		add_action( 'wp_initialize_site', array( $this, 'vpn_schedule_events_for_new_site' ), 10, 2 );
+		add_action( 'wp_initialize_site', array( $this, 'stablediff_schedule_events_for_new_site' ), 10, 2 );
 
 		/* Make sure that we show the server sizes on the provider settings screen - by default they are turned off in settings. */
 		add_filter(
@@ -202,7 +202,7 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 	 * @return mixed
 	 */
 	public function account_tabs( $tabs ) {
-		$tabs[299]['vpn'] = array(
+		$tabs[299]['stablediff'] = array(
 			'icon'        => 'spmm-faicon-desktop',
 			'title'       => __( 'Stable Diffusion 1.5 Server Instances', 'wpcd' ),
 			'custom'      => true,
@@ -248,7 +248,7 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 	 *
 	 * @param string $provider name of provider.
 	 *
-	 * @return VPN_API_Provider_{provider}()
+	 * @return STABLEDIFF_API_Provider_{provider}()
 	 */
 	public function api( $provider ) {
 
@@ -506,8 +506,8 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 			$x         = array_map(
 				function( $f ) use ( &$instance, $app_post_id ) {
 					if ( isset( $instance[ $f ] ) ) {
-						update_post_meta( $app_post_id, 'vpn_' . $f, $instance[ $f ] );
-						$instance['apps']['app'][ 'vpn_' . $f ] = $instance[ $f ];
+						update_post_meta( $app_post_id, 'stabldiff_' . $f, $instance[ $f ] );
+						$instance['apps']['app'][ 'stablediff_' . $f ] = $instance[ $f ];
 					}
 				},
 				$appfields
@@ -640,23 +640,23 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 
 		// Get provider from server record.
 		$provider = get_post_meta( $server_post->ID, 'wpcd_server_provider', true );
-		$vpn_id   = get_post_meta( $server_post->ID, 'wpcd_server_provider_instance_id', true );
-		$details  = WPCD()->get_provider_api( $provider )->call( 'details', array( 'id' => $vpn_id ) );
+		$stablediff_id   = get_post_meta( $server_post->ID, 'wpcd_server_provider_instance_id', true );
+		$details  = WPCD()->get_provider_api( $provider )->call( 'details', array( 'id' => $stablediff_id ) );
 
-		// Get protocol from vpn app record.
-		$protocol = get_post_meta( $app_post_id, 'vpn_protocol', true );
-		$port     = get_post_meta( $app_post_id, 'vpn_port', true );
-		$protocol = sprintf( '%s / %d', WPCD()->classes['wpcd_app_vpn_wc']->protocol[ strval( $protocol ) ], $port );
+		// Get protocol from stablediff app record.
+		$protocol = get_post_meta( $app_post_id, 'stablediff_protocol', true );
+		$port     = get_post_meta( $app_post_id, 'stablediff_port', true );
+		$protocol = sprintf( '%s / %d', WPCD()->classes['wpcd_app_stablediff_wc']->protocol[ strval( $protocol ) ], $port );
 
 		// Get server size from server record.
 		$size     = get_post_meta( $server_post->ID, 'wpcd_server_size', true );
-		$size     = WPCD()->classes['wpcd_app_vpn_wc']::$sizes[ strval( $size ) ];
+		$size     = WPCD()->classes['wpcd_app_stablediff_wc']::$sizes[ strval( $size ) ];
 		$region   = get_post_meta( $server_post->ID, 'wpcd_server_region', true );
 		$provider = get_post_meta( $server_post->ID, 'wpcd_server_provider', true );
 
-		// Get max clients allowed from vpn app record.
-		$max   = get_post_meta( $app_post_id, 'vpn_max_clients', true );
-		$total = wpcd_maybe_unserialize( get_post_meta( $app_post_id, 'vpn_clients', true ) );
+		// Get max clients allowed from stablediff app record.
+		$max   = get_post_meta( $app_post_id, 'stablediff_max_clients', true );
+		$total = wpcd_maybe_unserialize( get_post_meta( $app_post_id, 'stablediff_clients', true ) );
 		if ( empty( $total ) ) {
 			$total = array();
 		} else {
@@ -689,7 +689,7 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 	 */
 	public function add_remove_client( $app_post_id, $name, $type = 'add' ) {
 		do_action( 'wpcd_log_error', "trying to $type client with name $name", 'debug', __FILE__, __LINE__ );
-		$clients = wpcd_maybe_unserialize( get_post_meta( $app_post_id, 'vpn_clients', true ) );
+		$clients = wpcd_maybe_unserialize( get_post_meta( $app_post_id, 'stablediff_clients', true ) );
 		if ( ! $clients ) {
 			$clients = array();
 		}
@@ -705,7 +705,7 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 				$clients[] = $client;
 			}
 		}
-		update_post_meta( $app_post_id, 'vpn_clients', $clients );
+		update_post_meta( $app_post_id, 'stablediff_clients', $clients );
 	}
 
 	/**
@@ -919,7 +919,7 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 		/* End get a list of regions and providers - need this to build dropdowns and such */
 
 		wp_register_script( 'wpcd-stablediff-magnific', wpcd_url . 'assets/js/jquery.magnific-popup.min.js', array( 'jquery' ), wpcd_scripts_version, true );
-		wp_enqueue_script( 'wpcd-stablediff', wpcd_url . 'assets/js/wpcd-vpn.js', array( 'wpcd-stablediff-magnific', 'wp-util' ), wpcd_scripts_version, true );
+		wp_enqueue_script( 'wpcd-stablediff', wpcd_url . 'assets/js/wpcd-stablediff.js', array( 'wpcd-stablediff-magnific', 'wp-util' ), wpcd_scripts_version, true );
 		wp_localize_script(
 			'wpcd-stablediff',
 			'attributes',
@@ -929,13 +929,13 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 			)
 		);
 		wp_register_style( 'wpcd-stablediff-magnific', wpcd_url . 'assets/css/magnific-popup.css', array(), wpcd_scripts_version );
-		wp_enqueue_style( 'wpcd-stablediff', wpcd_url . 'assets/css/wpcd-vpn.css', array( 'wpcd-stablediff-magnific' ), wpcd_scripts_version );
-		wp_enqueue_style( 'wpcd-stablediff-fonts', wpcd_url . 'assets/fonts/spinupvpnwebsite.css', array(), wpcd_scripts_version );
+		wp_enqueue_style( 'wpcd-stablediff', wpcd_url . 'assets/css/wpcd-stablediff.css', array( 'wpcd-stablediff-magnific' ), wpcd_scripts_version );
+		wp_enqueue_style( 'wpcd-stablediff-fonts', wpcd_url . 'assets/fonts/spinupstablediffwebsite.css', array(), wpcd_scripts_version );
 
 		$output = '<div class="wpcd-stablediff-instances-list">';
 		foreach ( $app_posts as $app_post ) {
 
-			// Skip any non-vpn apps.
+			// Skip any non-stablediff apps.
 			if ( ! ( 'stablediff' === $this->get_app_type( $app_post->ID ) ) ) {
 				continue;
 			}
@@ -945,7 +945,7 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 
 			// Get some data from the server post.
 			$provider = get_post_meta( $server_post->ID, 'wpcd_server_provider', true );
-			$vpn_id   = get_post_meta( $server_post->ID, 'wpcd_server_provider_instance_id', true );
+			$stablediff_id   = get_post_meta( $server_post->ID, 'wpcd_server_provider_instance_id', true );
 			$region   = get_post_meta( $server_post->ID, 'wpcd_server_region', true );
 
 			// Get regions from the provider.
@@ -964,7 +964,7 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 			$actions = array();
 			$details = null;
 			if ( ! empty( WPCD()->get_provider_api( $provider ) ) ) {
-				$details = WPCD()->get_provider_api( $provider )->call( 'details', array( 'id' => $vpn_id ) );
+				$details = WPCD()->get_provider_api( $provider )->call( 'details', array( 'id' => $stablediff_id ) );
 			}
 			// problem fetching details. Maybe instance was deleted?
 			if ( is_wp_error( $details ) || empty( $details ) ) {
@@ -990,24 +990,24 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 					$btn_icon_class = '';  /* classname to render icon before text on some buttons */
 					switch ( $action ) {
 						case 'off':
-							$btn_icon_class = '<span class="icon-spvpnpower_off"></span>';
+							$btn_icon_class = '<span class="icon-spstablediffpower_off"></span>';
 							$help_tip       = __( 'Power off the server. No one will be able to connect until you power it back on.', 'wpcd' );
 							break;
 						case 'on':
 							$help_tip = __( 'Turn on the server.  After clicking this, wait a couple of mins to let it spin up before attempting to connect.', 'wpcd' );
 							break;
 						case 'reboot':
-							$btn_icon_class = '<span class="icon-spvpnreboot"></span>';
+							$btn_icon_class = '<span class="icon-spstablediffreboot"></span>';
 							$buttons       .= '<div class="wpcd-stablediff-action-head">' . __( 'Reboot/Reinstall/Poweroff', 'wpcd' ) . '</div>'; // Add in the section title text.
 							$help_tip       = __( 'Restart the server.  Hey - it is a computer and sometimes you just need to do this.', 'wpcd' );
 							break;
 						case 'reinstall':
-							$btn_icon_class = '<span class="icon-spvpnreinstall"></span>';
+							$btn_icon_class = '<span class="icon-spstablediffreinstall"></span>';
 							$help_tip       = __( 'Start over.  This will put the server back into a brand new state, removing all users and data and creating a single new user.', 'wpcd' );
 							$foot_break     = true;
 							break;
 						case 'relocate':
-							$btn_icon_class = '<span class="icon-spvpnreinstall"></span>';
+							$btn_icon_class = '<span class="icon-spstablediffreinstall"></span>';
 							$buttons       .= '<div class="wpcd-stablediff-action-head">' . __( 'Move Your Server', 'wpcd' ) . '</div>'; // Add in the section title text.
 							$select1        = '<select class="wpcd-stablediff-additional wpcd-stablediff-provider wpcd-stablediff-select" name="provider">';
 							foreach ( $providers as $slug => $name ) {
@@ -1035,11 +1035,11 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 							break;
 						case 'add-user':
 							$buttons .= '<div class="wpcd-stablediff-action-head">' . __( 'Add & Remove users', 'wpcd' ) . '</div>'; // Add in the section title text.
-							$buttons .= '<input type="text" name="name" id="wpcd-stablediff-input-text-add-user-name" class="wpcd-stablediff-additional wpcd-vpn-input-text">';
+							$buttons .= '<input type="text" name="name" id="wpcd-stablediff-input-text-add-user-name" class="wpcd-stablediff-additional wpcd-stablediff-input-text">';
 							$help_tip = __( 'Type a name with no spaces into the field above and click the ADD USER button. After a few seconds you will be prompted to download the user configuration file. Or you can use the DOWNLOAD CONFIGURATION FILE button to get it later.', 'wpcd' );
 							break;
 						case 'remove-user':
-							$clients = wpcd_maybe_unserialize( get_post_meta( $app_post->ID, 'vpn_clients', true ) );
+							$clients = wpcd_maybe_unserialize( get_post_meta( $app_post->ID, 'stablediff_clients', true ) );
 							if ( $clients ) {
 								$buttons .= '<select class="wpcd-stablediff-additional wpcd-stablediff-client-list wpcd-stablediff-remove-user wpcd-stablediff-select" name="name">';
 								foreach ( $clients as $client ) {
@@ -1052,7 +1052,7 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 							break;
 						case 'download-file':
 							$buttons .= '<div class="wpcd-stablediff-action-head">' . __( 'Configure Your Devices', 'wpcd' ) . '</div>'; // Add in the section title text.
-							$clients  = wpcd_maybe_unserialize( get_post_meta( $app_post->ID, 'vpn_clients', true ) );
+							$clients  = wpcd_maybe_unserialize( get_post_meta( $app_post->ID, 'stablediff_clients', true ) );
 							if ( $clients ) {
 								$buttons .= '<select class="wpcd-stablediff-additional wpcd-stablediff-client-list wpcd-stablediff-download-file wpcd-stablediff-select" name="name">';
 								foreach ( $clients as $client ) {
@@ -1096,7 +1096,7 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 						$buttons = __( 'The instance is currently transitioning state. <br />This happens just after a new purchase when a server is starting up or when rebooting or relocating. <br />Please check back in a few minutes. If you continue to see this message after that please contact our support team.', 'wpcd' );
 						break;
 					case 'errored':
-						$buttons = __( 'An error occurred in the VPN server. Please check back in a few minutes. If you continue to see this message after that please contact our support team.', 'wpcd' );
+						$buttons = __( 'An error occurred in the Stable Diffusion server. Please check back in a few minutes. If you continue to see this message after that please contact our support team.', 'wpcd' );
 						break;
 					case 'new':
 						$buttons = __( 'The instance is initializing. Please check back in a few minutes. If you continue to see this message after that please contact our support team.', 'wpcd' );
@@ -1107,13 +1107,13 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 				}
 			}
 
-			$protocol = get_post_meta( $app_post->ID, 'vpn_protocol', true );
-			$port     = get_post_meta( $app_post->ID, 'vpn_port', true );
-			$protocol = sprintf( '%s / %d', WPCD()->classes['wpcd_app_vpn_wc']->protocol[ strval( $protocol ) ], $port );
+			$protocol = get_post_meta( $app_post->ID, 'stablediff_protocol', true );
+			$port     = get_post_meta( $app_post->ID, 'stablediff_port', true );
+			$protocol = sprintf( '%s / %d', WPCD()->classes['wpcd_app_stablediff_wc']->protocol[ strval( $protocol ) ], $port );
 			$size     = get_post_meta( $server_post->ID, 'wpcd_server_size', true );
 
-			$max   = get_post_meta( $app_post->ID, 'vpn_max_clients', true );
-			$total = wpcd_maybe_unserialize( get_post_meta( $app_post->ID, 'vpn_clients', true ) );
+			$max   = get_post_meta( $app_post->ID, 'stablediff_max_clients', true );
+			$total = wpcd_maybe_unserialize( get_post_meta( $app_post->ID, 'stablediff_clients', true ) );
 			if ( empty( $total ) ) {
 				$total = array();
 			}
@@ -1129,25 +1129,25 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 			}
 
 			/* These strings are the class names for the icons from our custom icomoon font file */
-			$provider_icon = '<div class="icon-spvpnprovider"><span class="path1"></span><span class="path2"></span></div>';
-			$region_icon   = '<div class="icon-spvpnregion"><span class="path1"></span><span class="path2"></span></div>';
-			$size_icon     = '<div class="icon-spvpnsize"><span class="path1"></span><span class="path2"></span><span class="path3"></span><span class="path4"></span><span class="path5"></span></div>';
-			$protocol_icon = '<div class="icon-spvpnprotocol"><span class="path1"></span><span class="path2"></span><span class="path3"></span><span class="path4"></span><span class="path5"></span></div>';
-			$users_icon    = '<div class="icon-spvpnusers"><span class="path1"></span><span class="path2"></span></div>';
-			$subid_icon    = '<div class="icon-spvpnsubscription_id"><span class="path1"></span><span class="path2"></span><span class="path3"></span><span class="path4"></span><span class="path5"></span><span class="path6"></span><span class="path7"></span></div>';
+			$provider_icon = '<div class="icon-spstablediffprovider"><span class="path1"></span><span class="path2"></span></div>';
+			$region_icon   = '<div class="icon-spstablediffregion"><span class="path1"></span><span class="path2"></span></div>';
+			$size_icon     = '<div class="icon-spstablediffsize"><span class="path1"></span><span class="path2"></span><span class="path3"></span><span class="path4"></span><span class="path5"></span></div>';
+			$protocol_icon = '<div class="icon-spstablediffprotocol"><span class="path1"></span><span class="path2"></span><span class="path3"></span><span class="path4"></span><span class="path5"></span></div>';
+			$users_icon    = '<div class="icon-spstablediffusers"><span class="path1"></span><span class="path2"></span></div>';
+			$subid_icon    = '<div class="icon-spstablediffsubscription_id"><span class="path1"></span><span class="path2"></span><span class="path3"></span><span class="path4"></span><span class="path5"></span><span class="path6"></span><span class="path7"></span></div>';
 			/* End classnames from icomoon font file */
 
 			$output .= '
-				<div class="wpcd-vpn-instance">
-					<div class="wpcd-vpn-instance-name">' . get_post_meta( $server_post->ID, 'wpcd_server_name', true ) . '</div>
+				<div class="wpcd-stablediff-instance">
+					<div class="wpcd-stablediff-instance-name">' . get_post_meta( $server_post->ID, 'wpcd_server_name', true ) . '</div>
 
-					<div class="wpcd-vpn-instance-atts">' .
-						'<div class="wpcd-vpn-instance-atts-provider-wrap">' . $provider_icon . '<div class="wpcd-stablediff-instance-atts-provider-label">' . __( 'Provider', 'wpcd' ) . ': ' . '</div>' . $this->get_providers()[ $provider ] . '</div>
-						<div class="wpcd-vpn-instance-atts-region-wrap">' . $region_icon . '<div class="wpcd-stablediff-instance-atts-region-label">' . __( 'Region', 'wpcd' ) . ': ' . '</div>' . $display_region . '</div>
-						<div class="wpcd-vpn-instance-atts-size-wrap">' . $size_icon . '<div class="wpcd-stablediff-instance-atts-size-label">' . __( 'Size', 'wpcd' ) . ': ' . '</div>' . WPCD()->classes['wpcd_app_vpn_wc']::$sizes[ strval( $size ) ] . '</div>
-						<div class="wpcd-vpn-instance-atts-proto-wrap">' . $protocol_icon . '<div class="wpcd-stablediff-instance-atts-proto-label">' . __( 'Protocol', 'wpcd' ) . ': ' . '</div>' . $protocol . '</div>
-						<div class="wpcd-vpn-instance-atts-users-wrap">' . $users_icon . '<div class="wpcd-stablediff-instance-atts-users-label">' . __( 'Users / Allowed', 'wpcd' ) . ': ' . '</div>' . sprintf( '%d / %d', count( $total ), $max ) . '</div>
-						<div class="wpcd-vpn-instance-atts-subid-wrap">' . $subid_icon . '<div class="wpcd-stablediff-instance-atts-sub-label">' . __( 'Subscription ID', 'wpcd' ) . ': ' . '</div>' . implode( ', ', $subscription_array ) . '</div>';
+					<div class="wpcd-stablediff-instance-atts">' .
+						'<div class="wpcd-stablediff-instance-atts-provider-wrap">' . $provider_icon . '<div class="wpcd-stablediff-instance-atts-provider-label">' . __( 'Provider', 'wpcd' ) . ': ' . '</div>' . $this->get_providers()[ $provider ] . '</div>
+						<div class="wpcd-stablediff-instance-atts-region-wrap">' . $region_icon . '<div class="wpcd-stablediff-instance-atts-region-label">' . __( 'Region', 'wpcd' ) . ': ' . '</div>' . $display_region . '</div>
+						<div class="wpcd-stablediff-instance-atts-size-wrap">' . $size_icon . '<div class="wpcd-stablediff-instance-atts-size-label">' . __( 'Size', 'wpcd' ) . ': ' . '</div>' . WPCD()->classes['wpcd_app_stablediff_wc']::$sizes[ strval( $size ) ] . '</div>
+						<div class="wpcd-stablediff-instance-atts-proto-wrap">' . $protocol_icon . '<div class="wpcd-stablediff-instance-atts-proto-label">' . __( 'Protocol', 'wpcd' ) . ': ' . '</div>' . $protocol . '</div>
+						<div class="wpcd-stablediff-instance-atts-users-wrap">' . $users_icon . '<div class="wpcd-stablediff-instance-atts-users-label">' . __( 'Users / Allowed', 'wpcd' ) . ': ' . '</div>' . sprintf( '%d / %d', count( $total ), $max ) . '</div>
+						<div class="wpcd-stablediff-instance-atts-subid-wrap">' . $subid_icon . '<div class="wpcd-stablediff-instance-atts-sub-label">' . __( 'Subscription ID', 'wpcd' ) . ': ' . '</div>' . implode( ', ', $subscription_array ) . '</div>';
 
 			$output .= '</div>';
 			$output  = $this->add_promo_link( 1, $output );
@@ -1229,8 +1229,8 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 			}
 		}
 
-		$max_users = intval( get_post_meta( $id, 'vpn_max_clients', true ) );
-		$clients   = wpcd_maybe_unserialize( get_post_meta( $id, 'vpn_clients', true ) );
+		$max_users = intval( get_post_meta( $id, 'stablediff_max_clients', true ) );
+		$clients   = wpcd_maybe_unserialize( get_post_meta( $id, 'stablediff_clients', true ) );
 		if ( $clients ) {
 			$clients = count( $clients );
 		} else {
@@ -1256,10 +1256,10 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 	}
 
 	/**
-	 * Performs an SSH command on a VPN instance.
+	 * Performs an SSH command on a Stable Diffusion instance.
 	 *
 	 * @param string $action Action to perform.
-	 * @param array  $attributes Attributes of the VPN instance.
+	 * @param array  $attributes Attributes of the Stable Diffusion instance.
 	 * @param array  $additional Additional data that may be required for the action.
 	 *
 	 * @return mixed
@@ -1280,13 +1280,13 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 
 		$root_user = WPCD()->get_provider_api( $attributes['provider'] )->get_root_user();
 
-		$passwd = wpcd_get_option( 'vpn_' . $attributes['provider'] . '_sshkey_passwd' );
+		$passwd = wpcd_get_option( 'stablediff_' . $attributes['provider'] . '_sshkey_passwd' );
 		if ( ! empty( $passwd ) ) {
 			$passwd = self::decrypt( $passwd );
 		}
 		$key = array(
 			'passwd' => $passwd,
-			'key'    => wpcd_get_option( 'vpn_' . $attributes['provider'] . '_sshkey' ),
+			'key'    => wpcd_get_option( 'stablediff_' . $attributes['provider'] . '_sshkey' ),
 		);
 
 		$post_id     = $attributes['post_id'];
@@ -1296,12 +1296,12 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 		switch ( $action ) {
 			case 'add-user':
 				$name     = $additional['name'];
-				$commands = 'export vpn_option=' . $action_int . '; export vpn_client="' . $name . '"; sudo -E bash /root/openvpn-script.sh;';
+				$commands = 'export stablediff_option=' . $action_int . '; export stablediff_client="' . $name . '"; sudo -E bash /root/openvpn-script.sh;';
 				$result   = $this->ssh()->exec( $ip, $commands, $key, $action, $post_id, $root_user );
 				break;
 			case 'remove-user':
 				$name     = $additional['name'];
-				$commands = 'export vpn_option=' . $action_int . '; export vpn_client="' . $name . '"; sudo -E bash /root/openvpn-script.sh;';
+				$commands = 'export stablediff_option=' . $action_int . '; export stablediff_client="' . $name . '"; sudo -E bash /root/openvpn-script.sh;';
 				$result   = $this->ssh()->exec( $ip, $commands, $key, $action, $post_id, $root_user );
 				break;
 			case 'download-file':
@@ -1368,7 +1368,7 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 
 
 	/**
-	 * Adds the promotion mark up text to the VPN user account area.
+	 * Adds the promotion mark up text to the Stable Diffusion user account area.
 	 *
 	 * @param int    $linkid Which promo are we adding?  For now there is only one....
 	 *
@@ -1390,7 +1390,7 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 						$markup .= '<div class="wpcd-stablediff-instance-promo wpcd-stablediff-instance-promo-01" >' . '<a href=' . '"' . $promo_url . '"' . '>' . $promo_text . '</a>' . '</div>';
 					} else {
 						// make it a button...
-						$markup .= '<div class="wpcd-vpn-instance-promo-button wpcd-vpn-instance-promo-button-01" >' . '<a href=' . '"' . $promo_url . '"' . '>' . $promo_text . '</a>' . '</div>';
+						$markup .= '<div class="wpcd-stablediff-instance-promo-button wpcd-stablediff-instance-promo-button-01" >' . '<a href=' . '"' . $promo_url . '"' . '>' . $promo_text . '</a>' . '</div>';
 					}
 				}
 				break;
@@ -1427,7 +1427,7 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 
 		if ( ! empty( $acct_url ) ) {
 			$output_str  = '<div class = "wpcd-stablediff-acct-downloads-text-wrap">';
-			$output_str .= '<h3 class = "wpcd-stablediff-acct-downloads-text-header">' . __( 'Are you looking for the VPN applications for your device?', 'wpcd' ) . '</h3>';
+			$output_str .= '<h3 class = "wpcd-stablediff-acct-downloads-text-header">' . __( 'Are you looking for the Stable Diffusion applications for your device?', 'wpcd' ) . '</h3>';
 			$output_str .= '<p class = "wpcd-stablediff-acct-downloads-text">' . __( 'To connect to your server you need to download the OPENVPN CLIENT application for your device. Check out our <a href="%s">help pages</a> for more information on how to download these applications and connect to your server.  <br /><br />There you will find instructions for iOS, Android, Windows 10 and more.', 'wpcd' ) . '</p>';
 			$output_str .= '</div>';
 
@@ -1478,7 +1478,7 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 		// Setup return variable.
 		$run_cmd = '';
 
-		/* first check that we are handling a VPN app / server - use attributes array */
+		/* first check that we are handling a Stable Diffusion app / server - use attributes array */
 		$ok_to_run = false;
 		if ( isset( $attributes['app_post_id'] ) ) {
 			$app_type = $this->get_app_type( $attributes['app_post_id'] );
@@ -1499,15 +1499,15 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 			/* this does not belong to us so just quit now */
 			return $run_cmd;
 		}
-		/* End first check that we are handling a VPN app / server - use attributes array */
+		/* End first check that we are handling a Stable Diffusion app / server - use attributes array */
 
 		/* Good to go - now get some data from our app post and stick it in the attributes array */
-		$attributes['port']            = get_post_meta( $attributes['app_post_id'], 'vpn_port', true );
-		$attributes['protocol']        = get_post_meta( $attributes['app_post_id'], 'vpn_protocol', true );
-		$attributes['dns']             = get_post_meta( $attributes['app_post_id'], 'vpn_dns', true );
-		$attributes['clients']         = wpcd_maybe_unserialize( get_post_meta( $attributes['app_post_id'], 'vpn_dns', true ) );
-		$attributes['max_clients']     = get_post_meta( $attributes['app_post_id'], 'vpn_max_clients', true );
-		$attributes['scripts_version'] = get_post_meta( $attributes['app_post_id'], 'vpn_scripts_version', true );
+		$attributes['port']            = get_post_meta( $attributes['app_post_id'], 'stablediff_port', true );
+		$attributes['protocol']        = get_post_meta( $attributes['app_post_id'], 'stablediff_protocol', true );
+		$attributes['dns']             = get_post_meta( $attributes['app_post_id'], 'stablediff_dns', true );
+		$attributes['clients']         = wpcd_maybe_unserialize( get_post_meta( $attributes['app_post_id'], 'stablediff_dns', true ) );
+		$attributes['max_clients']     = get_post_meta( $attributes['app_post_id'], 'stablediff_max_clients', true );
+		$attributes['scripts_version'] = get_post_meta( $attributes['app_post_id'], 'stablediff_scripts_version', true );
 
 		/* And, since this is the start up script, need to make sure that include a couple of items */
 		$attributes['option'] = 1;  // Tells the script to add a user.
@@ -1520,7 +1520,7 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 		if ( isset( $attributes['scripts_version'] ) && ( ! empty( $attributes['scripts_version'] ) ) ) {
 			$script_version = $attributes['scripts_version'];
 		} else {
-			$script_version = wpcd_get_option( 'vpn_script_version' );
+			$script_version = wpcd_get_option( 'stablediff_script_version' );
 		}
 		if ( empty( $script_version ) ) {
 			$script_version = 'v1';
@@ -1583,8 +1583,8 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 	 */
 	public function app_admin_list_summary_column( $column_data, $post_id ) {
 
-		/* Bail out if the app being evaluated isn't a vpn app. */
-		if ( 'vpn' <> get_post_meta( $post_id, 'app_type', true ) ) {
+		/* Bail out if the app being evaluated isn't a Stable Diffusion app. */
+		if ( 'stablediff' <> get_post_meta( $post_id, 'app_type', true ) ) {
 			return $column_data;
 		}
 
@@ -1594,10 +1594,10 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 		}
 
 		/* Add our data element */
-		$column_data = $column_data . 'port: ' . get_post_meta( $post_id, 'vpn_port', true ) . '<br />';
-		$column_data = $column_data . 'protocol: ' . $this->get_protocols()[ strval( get_post_meta( $post_id, 'vpn_protocol', true ) ) ] . '<br />';
-		$column_data = $column_data . 'dns: ' . $this->get_dns_providers()[ strval( get_post_meta( $post_id, 'vpn_dns', true ) ) ] . '<br />';
-		$column_data = $column_data . 'max clients: ' . get_post_meta( $post_id, 'vpn_max_clients', true );
+		$column_data = $column_data . 'port: ' . get_post_meta( $post_id, 'stablediff_port', true ) . '<br />';
+		$column_data = $column_data . 'protocol: ' . $this->get_protocols()[ strval( get_post_meta( $post_id, 'stablediff_protocol', true ) ) ] . '<br />';
+		$column_data = $column_data . 'dns: ' . $this->get_dns_providers()[ strval( get_post_meta( $post_id, 'stablediff_dns', true ) ) ] . '<br />';
+		$column_data = $column_data . 'max clients: ' . get_post_meta( $post_id, 'stablediff_max_clients', true );
 
 		return $column_data;
 	}
@@ -1659,27 +1659,27 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 	 */
 	public function render_stablediff_app_details_meta_box( $post ) {
 
-		/* Only render data in the metabox when the app-type is a vpn. */
+		/* Only render data in the metabox when the app-type is a stable diffusion app. */
 		if ( ! ( 'stablediff' === get_post_meta( $post->ID, 'app_type', true ) ) ) {
 			return;
 		}
 
 		$html = '';
 
-		$wpcd_vpn_app_dns             = get_post_meta( $post->ID, 'vpn_dns', true );
-		$wpcd_vpn_app_port            = get_post_meta( $post->ID, 'vpn_port', true );
-		$wpcd_vpn_app_protocol        = get_post_meta( $post->ID, 'vpn_protocol', true );
-		$wpcd_vpn_app_max_clients     = get_post_meta( $post->ID, 'vpn_max_clients', true );
-		$wpcd_vpn_app_scripts_version = get_post_meta( $post->ID, 'vpn_scripts_version', true );
-		$wpcd_vpn_app_clients         = wpcd_maybe_unserialize( get_post_meta( $post->ID, 'vpn_clients', true ) );
+		$wpcd_stablediff_app_dns             = get_post_meta( $post->ID, 'stablediff_dns', true );
+		$wpcd_stablediff_app_port            = get_post_meta( $post->ID, 'stablediff_port', true );
+		$wpcd_stablediff_app_protocol        = get_post_meta( $post->ID, 'stablediff_protocol', true );
+		$wpcd_stablediff_app_max_clients     = get_post_meta( $post->ID, 'stablediff_max_clients', true );
+		$wpcd_stablediff_app_scripts_version = get_post_meta( $post->ID, 'stablediff_scripts_version', true );
+		$wpcd_stablediff_app_clients         = wpcd_maybe_unserialize( get_post_meta( $post->ID, 'stablediff_clients', true ) );
 
-		// Get VPN clients array and convert into "," separated string.
-		if ( ! empty( $wpcd_vpn_app_clients ) && is_array( $wpcd_vpn_app_clients ) ) {
-			$wpcd_vpn_app_clients = implode( ',', $wpcd_vpn_app_clients );
+		// Get Stable Diffusion clients array and convert into "," separated string.
+		if ( ! empty( $wpcd_stablediff_app_clients ) && is_array( $wpcd_stablediff_app_clients ) ) {
+			$wpcd_stablediff_app_clients = implode( ',', $wpcd_stablediff_app_clients );
 		}
 
 		ob_start();
-		require wpcd_path . 'includes/core/apps/vpn/templates/vpn_app_details.php';
+		require wpcd_path . 'includes/core/apps/stablediff/templates/stablediff_app_details.php';
 		$html = ob_get_contents();
 		ob_end_clean();
 
@@ -1696,13 +1696,13 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 	 */
 	public function app_admin_save_meta_values( $post_id, $post ) {
 
-		/* Only save metabox data when the app-type is a vpn. */
-		if ( ! ( 'vpn' === get_post_meta( $post->ID, 'app_type', true ) ) ) {
+		/* Only save metabox data when the app-type is a stable diffusion app. */
+		if ( ! ( 'stablediff' === get_post_meta( $post->ID, 'app_type', true ) ) ) {
 			return;
 		}
 
 		// Add nonce for security and authentication.
-		$nonce_name   = sanitize_text_field( filter_input( INPUT_POST, 'vpn_meta', FILTER_UNSAFE_RAW ) );
+		$nonce_name   = sanitize_text_field( filter_input( INPUT_POST, 'stablediff_meta', FILTER_UNSAFE_RAW ) );
 		$nonce_action = 'wpcd_stablediff_app_nonce_meta_action';
 
 		// Check if nonce is valid.
@@ -1731,25 +1731,25 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 		}
 
 		/* Get new values */
-		$wpcd_vpn_app_dns             = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_vpn_dns', FILTER_UNSAFE_RAW ) );
-		$wpcd_vpn_app_protocol        = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_vpn_protocol', FILTER_UNSAFE_RAW ) );
-		$wpcd_vpn_app_port            = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_vpn_port', FILTER_UNSAFE_RAW ) );
-		$wpcd_vpn_app_clients         = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_vpn_clients', FILTER_UNSAFE_RAW ) );
-		$wpcd_vpn_app_scripts_version = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_vpn_scripts_version', FILTER_UNSAFE_RAW ) );
-		$wpcd_vpn_app_max_clients     = filter_input( INPUT_POST, 'wpcd_vpn_max_clients', FILTER_SANITIZE_NUMBER_INT );
+		$wpcd_stablediff_app_dns             = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_stablediff_dns', FILTER_UNSAFE_RAW ) );
+		$wpcd_stablediff_app_protocol        = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_stablediff_protocol', FILTER_UNSAFE_RAW ) );
+		$wpcd_stablediff_app_port            = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_stablediff_port', FILTER_UNSAFE_RAW ) );
+		$wpcd_stablediff_app_clients         = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_stablediff_clients', FILTER_UNSAFE_RAW ) );
+		$wpcd_stablediff_app_scripts_version = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_stablediff_scripts_version', FILTER_UNSAFE_RAW ) );
+		$wpcd_stablediff_app_max_clients     = filter_input( INPUT_POST, 'wpcd_stablediff_max_clients', FILTER_SANITIZE_NUMBER_INT );
 
 		/* Add new values to database */
-		update_post_meta( $post_id, 'vpn_dns', $wpcd_vpn_app_dns );
-		update_post_meta( $post_id, 'vpn_protocol', $wpcd_vpn_app_protocol );
-		update_post_meta( $post_id, 'vpn_port', $wpcd_vpn_app_port );
-		update_post_meta( $post_id, 'vpn_scripts_version', $wpcd_vpn_app_scripts_version );
-		update_post_meta( $post_id, 'vpn_max_clients', $wpcd_vpn_app_max_clients );
+		update_post_meta( $post_id, 'stablediff_dns', $wpcd_stablediff_app_dns );
+		update_post_meta( $post_id, 'stablediff_protocol', $wpcd_stablediff_app_protocol );
+		update_post_meta( $post_id, 'stablediff_port', $wpcd_stablediff_app_port );
+		update_post_meta( $post_id, 'stablediff_scripts_version', $wpcd_stablediff_app_scripts_version );
+		update_post_meta( $post_id, 'stablediff_max_clients', $wpcd_stablediff_app_max_clients );
 
-		// save VPN clients as array.
-		if ( ! empty( $wpcd_vpn_app_clients ) ) {
-			$wpcd_vpn_app_clients = explode( ',', $wpcd_vpn_app_clients );
+		// save stable diffusion clients as array.
+		if ( ! empty( $wpcd_stablediff_app_clients ) ) {
+			$wpcd_stablediff_app_clients = explode( ',', $wpcd_stablediff_app_clients );
 		}
-		update_post_meta( $post_id, 'vpn_clients', $wpcd_vpn_app_clients );
+		update_post_meta( $post_id, 'stablediff_clients', $wpcd_stablediff_app_clients );
 
 	}
 

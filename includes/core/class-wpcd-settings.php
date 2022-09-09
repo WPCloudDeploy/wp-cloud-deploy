@@ -1519,22 +1519,64 @@ class WPCD_Settings {
 			$fields_part5 = array();
 			if ( ! $this->is_api_key_empty( $provider ) && $can_connect_to_provider ) {
 
+				// Custom images.
+				if ( WPCD()->get_provider_api( $provider )->get_feature_flag( 'custom_images' ) ) {
+					$fields_part5 = array_merge(
+						$fields_part5,
+						array(
+							array(
+								'type' => 'heading',
+								'tab'  => $tab_id,
+								'name' => __( 'Custom Snapshots & Images', 'wpcd' ),
+								'desc' => __( 'These snapshots can be used in place of the default OS images.  Please check our documentation for this provider to get more details on the limitations of using custom snapshots & custom images.', 'wpcd' ),
+							),
+							array(
+								'id'      => "vpn_{$provider}_ubuntu1804lts",
+								'type'    => 'text',
+								'name'    => __( 'Ubuntu 18.04', 'wpcd' ),
+								'desc'    => __( 'The custom snapshot, image or backup id to be used instead of the default Ubuntu 18.04 image.', 'wpcd' ),
+								'tooltip' => __( 'See our documentation for for more information about this item.', 'wpcd' ),
+								'tab'     => $tab_id,
+							),
+							array(
+								'id'      => "vpn_{$provider}_ubuntu2004lts",
+								'type'    => 'text',
+								'name'    => __( 'Ubuntu 20.04', 'wpcd' ),
+								'desc'    => __( 'The custom snapshot, image or backup id to be used instead of the default Ubuntu 20.04 image.', 'wpcd' ),
+								'tooltip' => __( 'See our documentation for for more information about this item.', 'wpcd' ),
+								'tab'     => $tab_id,
+							),
+							array(
+								'id'      => "vpn_{$provider}_ubuntu2204lts",
+								'type'    => 'text',
+								'name'    => __( 'Ubuntu 22.04', 'wpcd' ),
+								'desc'    => __( 'The custom snapshot, image or backup id to be used instead of the default Ubuntu 22.04 image.', 'wpcd' ),
+								'tooltip' => __( 'See our documentation for for more information about this item.', 'wpcd' ),
+								'tab'     => $tab_id,
+							),
+						),
+					);
+				}
+
 				// Backups?
 				if ( WPCD()->get_provider_api( $provider )->get_feature_flag( 'enable_backups_on_server_create' ) ) {
-					$fields_part5 = array(
+					$fields_part5 = array_merge(
+						$fields_part5,
 						array(
-							'id'   => "vpn_{$provider}_provider_backups",
-							'type' => 'heading',
-							'name' => __( 'Provider Backups', 'wpcd' ),
-							'tab'  => $tab_id,
-							'desc' => __( 'Set provider backup behavior if backups are supported.', 'wpcd' ),
-						),
-						array(
-							'id'      => "vpn_{$provider}_enable_provider_backups_on_server_create",
-							'type'    => 'checkbox',
-							'name'    => __( 'Enable Provider Backups', 'wpcd' ),
-							'tab'     => $tab_id,
-							'tooltip' => __( 'Enable automatic backups for every new server.', 'wpcd' ),
+							array(
+								'id'   => "vpn_{$provider}_provider_backups",
+								'type' => 'heading',
+								'name' => __( 'Provider Backups', 'wpcd' ),
+								'tab'  => $tab_id,
+								'desc' => __( 'Set provider backup behavior if backups are supported.', 'wpcd' ),
+							),
+							array(
+								'id'      => "vpn_{$provider}_enable_provider_backups_on_server_create",
+								'type'    => 'checkbox',
+								'name'    => __( 'Enable Provider Backups', 'wpcd' ),
+								'tab'     => $tab_id,
+								'tooltip' => __( 'Enable automatic backups for every new server.', 'wpcd' ),
+							),
 						),
 					);
 				}

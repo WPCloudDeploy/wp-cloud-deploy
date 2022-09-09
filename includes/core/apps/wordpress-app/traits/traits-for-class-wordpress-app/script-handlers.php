@@ -164,27 +164,13 @@ trait wpcd_wpapp_script_handlers {
 				break;
 			case 'manage_database_operation.txt':
 				$return =
-				( strpos( $result, 'Database could not be switched to' ) !== false )
+				( strpos( $result, 'Please enter Remote Database server' ) !== false )
 				||
 				( strpos( $result, 'Database has been switched to' ) !== false )
 				||
-				( strpos( $result, 'Mysql host is already set to' ) !== false )
-				||
-				( strpos( $result, 'Please enter Remote Database server Detail' ) !== false )
-				||
 				( strpos( $result, 'Please enter Local Database server' ) !== false )
 				||
-				( strpos( $result, 'Mysql host is not set to' ) !== false )
-				||
-				( strpos( $result, 'Local Database' ) !== false )
-				||
-				( strpos( $result, 'Remote Database' ) !== false )
-				||
-				( strpos( $result, 'Database has been copied' ) !== false )
-				||
-				( strpos( $result, 'Remote Database could not be accessed' ) !== false )
-				||
-				( strpos( $result, 'Local Database could not be accessed' ) !== false );
+				( strpos( $result, 'Database has been copied' ) !== false );
 				break;
 			case 'manage_tinyfilemanager.txt':
 				$return =

@@ -919,7 +919,7 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 		/* End get a list of regions and providers - need this to build dropdowns and such */
 
 		wp_register_script( 'wpcd-stablediff-magnific', wpcd_url . 'assets/js/jquery.magnific-popup.min.js', array( 'jquery' ), wpcd_scripts_version, true );
-		wp_enqueue_script( 'wpcd-stablediff', wpcd_url . 'assets/js/wpcd-stablediff.js', array( 'wpcd-stablediff-magnific', 'wp-util' ), wpcd_scripts_version, true );
+		wp_enqueue_script( 'wpcd-stablediff', wpcd_url . 'includes/core/apps/stable-diffusion/assets/js/wpcd-stablediff.js', array( 'wpcd-stablediff-magnific', 'wp-util' ), wpcd_scripts_version, true );
 		wp_localize_script(
 			'wpcd-stablediff',
 			'attributes',
@@ -929,8 +929,8 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 			)
 		);
 		wp_register_style( 'wpcd-stablediff-magnific', wpcd_url . 'assets/css/magnific-popup.css', array(), wpcd_scripts_version );
-		wp_enqueue_style( 'wpcd-stablediff', wpcd_url . 'assets/css/wpcd-stablediff.css', array( 'wpcd-stablediff-magnific' ), wpcd_scripts_version );
-		wp_enqueue_style( 'wpcd-stablediff-fonts', wpcd_url . 'assets/fonts/spinupstablediffwebsite.css', array(), wpcd_scripts_version );
+		wp_enqueue_style( 'wpcd-stablediff', wpcd_url . 'includes/core/apps/stable-diffusion/assets/css/wpcd-stablediff.css', array( 'wpcd-stablediff-magnific' ), wpcd_scripts_version );
+		wp_enqueue_style( 'wpcd-stablediff-fonts', wpcd_url . 'assets/fonts/stablediffwebsite.css', array(), wpcd_scripts_version );
 
 		$output = '<div class="wpcd-stablediff-instances-list">';
 		foreach ( $app_posts as $app_post ) {

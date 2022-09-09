@@ -280,7 +280,7 @@ class STABLEDIFF_WooCommerce extends WPCD_WOOCOMMERCE {
 			$provider_regions[ $provider ] = $locations;
 		}
 
-		wp_enqueue_script( 'wpcd-stablediff-wc', wpcd_url . 'assets/js/wpcd-stablediff-wc.js', array( 'jquery', 'select2', 'wp-util' ), wpcd_scripts_version, true );
+		wp_enqueue_script( 'wpcd-stablediff-wc', wpcd_url . 'includes/core/apps/stable-diffusion/assets/js/wpcd-stablediff-wc.js', array( 'jquery', 'select2', 'wp-util' ), wpcd_scripts_version, true );
 		wp_localize_script( 'wpcd-stablediff-wc', 'attributes', array( 'provider_regions' => $provider_regions ) );
 
 		echo '<div class="wpcd-stablediff-custom-fields">';

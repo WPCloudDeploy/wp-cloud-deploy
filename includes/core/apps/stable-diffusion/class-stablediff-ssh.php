@@ -17,7 +17,7 @@ use phpseclib3\Crypt\RSA;
 use phpseclib3\Crypt\PublicKeyLoader;
 
 /**
- * Class VPN_SSH
+ * Class STABLEDIFF_SSH
  */
 class STABLEDIFF_SSH extends WPCD_SSH {
 

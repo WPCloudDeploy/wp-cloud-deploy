@@ -1679,7 +1679,7 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 		}
 
 		ob_start();
-		require wpcd_path . 'includes/core/apps/stablediff/templates/stablediff_app_details.php';
+		require wpcd_path . 'includes/core/apps/stable-diffusion/templates/stablediff_app_details.php';
 		$html = ob_get_contents();
 		ob_end_clean();
 

@@ -569,7 +569,13 @@ class WPCD_BASIC_SERVER_APP extends WPCD_APP {
 	 */
 	public function do_instance_action( $server_post_id, $action, $additional = array() ) {
 
+		// Bail if the post type is not a server.
 		if ( get_post_type( $server_post_id ) !== 'wpcd_app_server' || empty( $action ) ) {
+			return;
+		}
+
+		// Bail if the server type is not a basic server.
+		if ( 'basic-server' !== $this->get_server_type( $server_post_id ) ) {
 			return;
 		}
 

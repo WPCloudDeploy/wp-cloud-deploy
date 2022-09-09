@@ -723,7 +723,13 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 	 */
 	public function do_instance_action( $server_post_id, $app_post_id, $action, $additional = array() ) {
 
+		// Bail if the post type is not a server.
 		if ( get_post_type( $server_post_id ) !== 'wpcd_app_server' || empty( $action ) ) {
+			return;
+		}
+
+		// Bail if the server type is not a stable diffusion server.
+		if ( 'stablediff' !== $this->get_server_type( $server_post_id ) ) {
 			return;
 		}
 
@@ -1299,18 +1305,18 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 		switch ( $action ) {
 			case 'add-user':
 				$name     = $additional['name'];
-				$commands = 'export stablediff_option=' . $action_int . '; export stablediff_client="' . $name . '"; sudo -E bash /root/openvpn-script.sh;';
+				$commands = 'export stablediff_option=' . $action_int . '; export stablediff_client="' . $name . '"; sudo -E bash ~/openvpn-script.sh;';
 				$result   = $this->ssh()->exec( $ip, $commands, $key, $action, $post_id, $root_user );
 				break;
 			case 'remove-user':
 				$name     = $additional['name'];
-				$commands = 'export stablediff_option=' . $action_int . '; export stablediff_client="' . $name . '"; sudo -E bash /root/openvpn-script.sh;';
+				$commands = 'export stablediff_option=' . $action_int . '; export stablediff_client="' . $name . '"; sudo -E bash ~/openvpn-script.sh;';
 				$result   = $this->ssh()->exec( $ip, $commands, $key, $action, $post_id, $root_user );
 				break;
 			case 'download-file':
 				$name          = $additional['name'];
 				$instance_name = get_post_meta( $post_id, 'wpcd_server_name', true );
-				$result        = $this->ssh()->download( $ip, '/root/' . $name . '.ovpn', '', $key, $root_user );  // @TODO: This assumues root user which will not work on AWS and other providers who default to a non-root user.
+				$result        = $this->ssh()->download( $ip, '~/' . $name . '.ovpn', '', $key, $root_user );  // @TODO: This assumues root user which will not work on AWS and other providers who default to a non-root user.
 				if ( is_wp_error( $result ) ) {
 					echo wp_send_json_error( array( 'msg' => $result->get_error_code() ) );
 				}

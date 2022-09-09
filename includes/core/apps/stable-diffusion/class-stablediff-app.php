@@ -1283,13 +1283,13 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 
 		$root_user = WPCD()->get_provider_api( $attributes['provider'] )->get_root_user();
 
-		$passwd = wpcd_get_option( 'stablediff_' . $attributes['provider'] . '_sshkey_passwd' );
+		$passwd = wpcd_get_option( 'vpn_' . $attributes['provider'] . '_sshkey_passwd' );
 		if ( ! empty( $passwd ) ) {
 			$passwd = self::decrypt( $passwd );
 		}
 		$key = array(
 			'passwd' => $passwd,
-			'key'    => wpcd_get_option( 'stablediff_' . $attributes['provider'] . '_sshkey' ),
+			'key'    => wpcd_get_option( 'vpn_' . $attributes['provider'] . '_sshkey' ),
 		);
 
 		$post_id     = $attributes['post_id'];

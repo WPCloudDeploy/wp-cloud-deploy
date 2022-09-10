@@ -118,9 +118,10 @@
 	font-size: small;
 	margin-top: 1em;
 	margin-bottom: 0.5em;
+	padding: 4px 8px;
 }
 
-/* text color and other button asthetics */
+/* text color and other button aesthetics */
 
 .wpcd-stablediff-action-type {
 	color: white;
@@ -130,7 +131,7 @@
 
 .wpcd-stablediff-action-type:hover {
 	color: white;
-	/* these colors should really be pulling from the SPMM config options...*/
+	/* these colors should really be pulling from the WPCD config options...*/
 	background-color: #031470;
 	/* these colors should really be a config options...*/
 	border-width: 0px;

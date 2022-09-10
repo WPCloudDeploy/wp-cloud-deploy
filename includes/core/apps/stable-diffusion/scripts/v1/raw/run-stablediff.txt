@@ -24,9 +24,15 @@ source /home/$WPCD_USER/miniconda3/etc/profile.d/conda.sh
 echo "Activating Conda Environment 'ldm'"
 conda activate ldm
 
-# Warm up the server
-echo "Warming up server with first image request...this will take a very very long time!"
-python scripts/txt2img.py --prompt "Blue Tesla Car on Dark Background" --plms --ckpt sd-v1-4.ckpt --skip_grid --n_samples 1 
+# runs stable diffusion.  Environment variables should already be set because the params.sh file was already run.
+echo "Running stable diffusion with requested parameters!"
+python scripts/txt2img.py --prompt "$AI_PROMPT" --plms --ckpt sd-v1-4.ckpt --skip_grid --n_samples $AI_SAMPLES --outdir $AI_OUTPUT_DIR --ddim_steps $AI_STEPS --H $AI_HEIGHT --W $AI_WIDTH --seed $AI_SEED
+
+# Let WPCD know that we're done.
+if [[ -n "$CALLBACK_URL_SUCCESS" ]]
+then
+	curl -sS "$CALLBACK_URL_SUCCESS?done=1"
+fi
 
 # show output as finished.
 echo

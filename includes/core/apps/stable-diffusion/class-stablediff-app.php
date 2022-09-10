@@ -1555,7 +1555,7 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 		$parameter_file = 'stablediff-install-startup-parameters-' . sprintf( '%s-%s', $attributes['wc_order_id'], $attributes['region'] ) . '.txt';
 
 		/* Construct an array of placeholder tokens for the run command file  */
-		$place_holder_1 = array( 'URL-SCRIPT' => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/' . 'install-stablediff.txt' );
+		$place_holder_1 = array( 'URL-SCRIPT' => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/' . 'install-stablediff.txt' );
 		$place_holder_2 = array( 'URL-SCRIPT-PARAMS' => $this->get_script_temp_path_uri() . '/' . $parameter_file );
 		$place_holders  = array_merge( $place_holder_1, $place_holder_2 );
 

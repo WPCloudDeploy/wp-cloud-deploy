@@ -1,0 +1,13 @@
+echo "done" && {
+    cd ~ ; 
+	} && {
+	sudo -E wget --no-check-certificate -O run-stablediff.sh ##URL-SCRIPT##  &&
+	sudo -E dos2unix run-stablediff.sh &&
+    sudo -E wget --no-check-certificate -O stablediff-script-params.sh ##URL-SCRIPT-PARAMS##  &&
+    export interactive=no &&
+    sudo -E dos2unix stablediff-script-params.sh &&
+	sudo -E chmod 500 run-stablediff.sh stablediff-script-params.sh &&
+	sudo -E chown $WPCD_USER:$WPCD_USER *.sh &&
+	bash ~/stablediff-script.sh >> stablediff-run-status-$TASK_ID.log &&
+	cat stablediff-run-status-$TASK_ID.log # So that it's output to the ssh virtual terminal.
+}

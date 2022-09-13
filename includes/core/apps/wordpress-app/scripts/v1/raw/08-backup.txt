@@ -163,11 +163,11 @@ then
 	mysqldump $mysql_db | gzip -9 > /root/.wp-backup/$domain/"$domain"_"$date"_db.gz
 	# upload to s3
 	echo "=>Uploading files to Amazon S3..."
-	AWS_SHARED_CREDENTIALS_FILE=$user_home/.aws/credentials aws s3 cp /root/.wp-backup/$domain/"$domain"_"$date"_fs.tar.gz s3://$aws_bucket_name/$domain/"$domain"_"$date"_fs.tar.gz --sse --only-show-errors
+	AWS_SHARED_CREDENTIALS_FILE=$user_home/.aws/credentials aws s3 cp /root/.wp-backup/$domain/"$domain"_"$date"_fs.tar.gz s3://$aws_bucket_name/$domain/"$domain"_"$date"_fs.tar.gz --sse --only-show-errors ${s3_endpoint:+--endpoint-url=$s3_endpoint}
 	echo "=>Uploading $g_webserver_type configuration to Amazon S3..."
-	AWS_SHARED_CREDENTIALS_FILE=$user_home/.aws/credentials aws s3 cp /root/.wp-backup/$domain/"$domain"_"$date"_"${g_webserver_type}".tar.gz s3://$aws_bucket_name/$domain/"$domain"_"$date"_"${g_webserver_type}".tar.gz --sse --only-show-errors
+	AWS_SHARED_CREDENTIALS_FILE=$user_home/.aws/credentials aws s3 cp /root/.wp-backup/$domain/"$domain"_"$date"_"${g_webserver_type}".tar.gz s3://$aws_bucket_name/$domain/"$domain"_"$date"_"${g_webserver_type}".tar.gz --sse --only-show-errors ${s3_endpoint:+--endpoint-url=$s3_endpoint}
 	echo "=>Uploading database to to Amazon S3..."
-	AWS_SHARED_CREDENTIALS_FILE=$user_home/.aws/credentials aws s3 cp /root/.wp-backup/$domain/"$domain"_"$date"_db.gz s3://$aws_bucket_name/$domain/"$domain"_"$date"_db.gz --sse --only-show-errors
+	AWS_SHARED_CREDENTIALS_FILE=$user_home/.aws/credentials aws s3 cp /root/.wp-backup/$domain/"$domain"_"$date"_db.gz s3://$aws_bucket_name/$domain/"$domain"_"$date"_db.gz --sse --only-show-errors ${s3_endpoint:+--endpoint-url=$s3_endpoint}
 
 	# check if the database was backed up correctly
 	echo "Verifying database backup..."

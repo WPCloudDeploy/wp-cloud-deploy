@@ -224,6 +224,20 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 			'size'       => 10,
 		);
 		$fields[] = array(
+			'name'       => __( 'S3 Endpoint URL', 'wpcd' ),
+			'id'         => 'wpcd_app_s3_endpoint',
+			'tab'        => 'server_backup',
+			'type'       => 'text',
+			'tooltip'    => __( 'Set this if you want to use an alternative S3-compatible service.', 'wpcd' ),
+			'save_field' => false,
+			'attributes' => array(
+				// the key of the field (the key goes in the request).
+				'data-wpcd-name' => 's3_endpoint',
+			),
+			'std'        => get_post_meta( $id, 'wpcd_wpapp_backup_s3_endpoint', true ),
+			'size'       => 90,
+		);
+		$fields[] = array(
 			'id'         => 'wpcd_app_action_change_cred',
 			'name'       => '',
 			'tab'        => 'server_backup',
@@ -607,6 +621,12 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 			// Get the one from the global settings screen...
 			$creds['aws_region'] = escapeshellarg( wpcd_get_option( 'wordpress_app_aws_default_region' ) );
 		}
+		if ( ! empty( $args['s3_endpoint'] ) ) {
+			$creds['s3_endpoint'] = escapeshellarg( $args['s3_endpoint'] );
+		} else {
+			// Get the one from the global settings screen...
+			$creds['s3_endpoint'] = escapeshellarg( wpcd_get_option( 'wordpress_app_s3_endpoint' ) );
+		}
 
 		// If at this point both the credential fields are still blank, error out.
 		if ( empty( $creds['aws_access_key_id'] ) || empty( $creds['aws_secret_access_key'] ) || empty( $creds['aws_region'] ) ) {
@@ -649,6 +669,7 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 			update_post_meta( $server_id, 'wpcd_wpapp_backup_aws_secret', self::encrypt( $args['aws_secret'] ) );
 			update_post_meta( $server_id, 'wpcd_wpapp_backup_aws_bucket', $args['aws_bucket'] );
 			update_post_meta( $server_id, 'wpcd_wpapp_backup_aws_region', $args['aws_region'] );
+			update_post_meta( $server_id, 'wpcd_wpapp_backup_s3_endpoint', $args['s3_endpoint'] );
 
 		} elseif ( empty( $args['aws_key'] ) && empty( $args['aws_secret'] ) && empty( $args['aws_bucket'] ) ) {
 
@@ -657,6 +678,7 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 			delete_post_meta( $server_id, 'wpcd_wpapp_backup_aws_secret' );
 			delete_post_meta( $server_id, 'wpcd_wpapp_backup_aws_bucket' );
 			delete_post_meta( $server_id, 'wpcd_wpapp_backup_aws_region' );
+			delete_post_meta( $server_id, 'wpcd_wpapp_backup_s3_endpoint' );
 
 		} else {
 			// something ambiguous - let user know...

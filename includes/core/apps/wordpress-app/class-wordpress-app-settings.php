@@ -1767,6 +1767,15 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'size'    => 60,
 			),
 			array(
+				'id'      => 'wordpress_app_s3_endpoint',
+				'type'    => 'text',
+				'name'    => __( 'S3 Endpoint URL', 'wpcd' ),
+				'tooltip' => __( 'Set this if you want to use an alternative S3-compatible service.', 'wpcd' ),
+				'tab'     => 'wordpress-app-backup',
+				'std'     => wpcd_get_option( 'wordpress_app_s3_endpoint' ),
+				'size'    => 60,
+			),
+			array(
 				'id'   => 'wordpress_app_backup_warning',
 				'type' => 'custom_html',
 				'std'  => __( 'Warning! If you are using our SELL SERVERS WITH WOOCOMMERCE premium option, do NOT set these defaults. Otherwise all servers, including your customer servers, will be able to get these. Since your customers might be able to log into their own servers, they will be able to view these credentials. Instead, set them on each server as needed.  See our WOOCOMMERCE documentation for more information or contact our support team with your questions.', 'wpcd' ),

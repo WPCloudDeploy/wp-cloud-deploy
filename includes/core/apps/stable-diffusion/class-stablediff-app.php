@@ -55,6 +55,9 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 	 * WPCD_STABLEDIFF_APP constructor.
 	 */
 	public function __construct() {
+
+		parent::__construct();
+
 		// Set app name.
 		$this->set_app_name( 'stablediff' );
 		$this->set_app_description( 'Stable Diffusion 1.4 Server' );
@@ -111,7 +114,7 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 		add_action( 'wp_initialize_site', array( $this, 'stablediff_schedule_events_for_new_site' ), 10, 2 );
 
 		// Push commands & callbacks.
-		add_action( "wpcd_{$this->get_app_name()}_command_install_stable_diff_status_update", array( &$this, 'callback_install_server_status' ), 10, 4 );
+		add_action( "wpcd_{$this->get_app_name()}_command_install_stable_diff_progress-report", array( &$this, 'callback_install_server_status' ), 10, 4 );
 
 		/* Make sure that we show the server sizes on the provider settings screen - by default they are turned off in settings. */
 		add_filter(
@@ -1483,6 +1486,34 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 	 *
 	 * @param array $attributes Attributes of the server and app being provisioned.
 	 *
+	 *  $atttributes:
+     * 	[post_id] => 72850
+     * 	[app_post_id] => 72851
+     * 	[plugin_initial_version] => 4.24.0
+     * 	[plugin_updated_version] => 4.24.0
+     * 	[initial_app_name] => stablediff
+     * 	[region] => us-west-1
+     * 	[size] => small
+     * 	[name] => rhonda-hahn-2022-09-14-023838-72849-1
+     * 	[wc_order_id] => 72848
+     * 	[wc_subscription] => a:1:{i:0;i:72849;}
+     * 	[wc_user_id] => 6
+     * 	[provider] => 72055-stablediff
+     * 	[provider_instance_id] => i-056cb59c0ecb3c3e8
+     * 	[server_name] => rhonda-hahn-2022-09-14-023838-72849-1
+     * 	[created] => 2022-09-13 21:38:40
+     * 	[actions] => a:1:{s:7:"created";i:1663123120;}
+     * 	[action] => after-server-create-commands
+     * 	[after_create_action_app_id] => 72851
+     * 	[action_status] => in-progress
+     * 	[last_deferred_action_source] => a:1:{s:11:" 1663123120";s:10:"stablediff";}
+     * 	[init] => 1
+     * 	[ipv4] => 18.144.11.171
+     * 	[status] => active
+     * 	[action_id] => 
+     * 	[os] => ami-08948efa38f6c51f0
+     * 	[ip] => 18.144.11.17
+	 *
 	 * @return string $run_cmd
 	 */
 	public function get_after_server_create_commands( $attributes ) {
@@ -1527,7 +1558,10 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 
 		/* Calculate Callback URL and stick that into the array as well */
 		$command_name               = 'install_stable_diff';
-		$attributes['callback_url'] = $this->get_command_url( $id, $command_name, 'status_update' );
+		$attributes['callback_url'] = $this->get_command_url( $attributes['post_id'], $command_name, 'progress-report' );
+
+		/* Root user name. */
+		$attributes['WPCD_USER'] = WPCD()->get_provider_api( $attributes['provider'] )->get_root_user();
 
 		/* What version of the scripts are we getting? */
 
@@ -1820,7 +1854,7 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 	/**
 	 * Handles server status during server deployment process.
 	 *
-	 * Action Hook: wpcd_{$this->get_app_name()}_command_install_stable_diff_status_update || wpcd_stablediff_command_install_stable_diff_status_update
+	 * Action Hook: wpcd_{$this->get_app_name()}_command_install_stable_diff_progress-report || wpcd_stablediff_command_install_stable_diff_progress-report
 	 *
 	 * @param int    $id server post id.
 	 * @param int    $command_id an id that is given to the bash script at the time it's first run. Doesn't do anything for us in this context so it's not used here.

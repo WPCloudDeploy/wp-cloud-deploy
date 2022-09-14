@@ -926,6 +926,9 @@ class WPCD_APP extends WPCD_Base {
 	/**
 	 * The endpoint called when a command's status is relayed to us.
 	 *
+	 * This function is defined as a callable by our 
+	 * register_rest_endpoint() function.
+	 *
 	 * @param WP_REST_Request $params params.
 	 */
 	public function perform_command( WP_REST_Request $params ) {
@@ -942,7 +945,7 @@ class WPCD_APP extends WPCD_Base {
 			return new WP_REST_Response( array( 'error' => new WP_Error( __( 'Invalid name: %s', 'wpcd' ) ) ) );
 		}
 		// if status is not in a limited set.
-		if ( ! $status || ! in_array( $status, apply_filters( 'wpcd_command_statuses', array( 'started', 'completed', 'errored' ), $name ), true ) ) {
+		if ( ! $status || ! in_array( $status, apply_filters( 'wpcd_command_statuses', array( 'started', 'completed', 'errored', 'in-progress', 'misc', 'progress-report' ), $name ), true ) ) {
 			return new WP_REST_Response( array( 'error' => new WP_Error( sprintf( __( 'Invalid status: %s', 'wpcd' ), $status ) ) ) );
 		}
 		if ( ! $command_id ) {
@@ -971,6 +974,9 @@ class WPCD_APP extends WPCD_Base {
 
 	/**
 	 * Mark the command with the status.
+	 *
+	 * Note: This is called from a number of functions
+	 * including the generic perform_command() function.
 	 *
 	 * @param int    $id id.
 	 * @param string $name name.

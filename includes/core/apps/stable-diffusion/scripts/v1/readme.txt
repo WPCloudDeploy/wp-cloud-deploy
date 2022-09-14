@@ -2,6 +2,6 @@ after-server-create-run-commands.txt - the commands that will be sent to a serve
 
 digital-ocean-startup-run-commands.txt - not used in this app.
 
-install-open-vpn.txt - script that will be executed to create the vpn server.  It is going to be called via a wget command from the after-server-create-run-commands.txt script.
+install-stablediff.txt - script that will be executed to create the vpn server.  It is going to be called via a wget command from the after-server-create-run-commands.txt script.
 
 params.sh - Tokens that will be used to pass parameters to install-open-vpn.txt script using linux EXPORT environmental variables.

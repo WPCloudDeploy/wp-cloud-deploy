@@ -1134,7 +1134,7 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 				}
 			}
 
-			$protocol = get_post_meta( $app_post->ID, 'stablediff_protocol', true );
+			$ipv4     = WPCD_SERVER()->get_ipv4_address( $server_post->ID );
 			$port     = get_post_meta( $app_post->ID, 'stablediff_port', true );
 			$protocol = sprintf( '%s / %d', WPCD()->classes['wpcd_app_stablediff_wc']->protocol[ strval( $protocol ) ], $port );
 			$size     = get_post_meta( $server_post->ID, 'wpcd_server_size', true );
@@ -1159,7 +1159,7 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 			$provider_icon = '<div class="icon-spstablediffprovider"><span class="path1"></span><span class="path2"></span></div>';
 			$region_icon   = '<div class="icon-spstablediffregion"><span class="path1"></span><span class="path2"></span></div>';
 			$size_icon     = '<div class="icon-spstablediffsize"><span class="path1"></span><span class="path2"></span><span class="path3"></span><span class="path4"></span><span class="path5"></span></div>';
-			$protocol_icon = '<div class="icon-spstablediffprotocol"><span class="path1"></span><span class="path2"></span><span class="path3"></span><span class="path4"></span><span class="path5"></span></div>';
+			$ip_icon       = '<div class="icon-spstablediffip"><span class="path1"></span><span class="path2"></span><span class="path3"></span><span class="path4"></span><span class="path5"></span></div>';
 			$users_icon    = '<div class="icon-spstablediffusers"><span class="path1"></span><span class="path2"></span></div>';
 			$subid_icon    = '<div class="icon-spstablediffsubscription_id"><span class="path1"></span><span class="path2"></span><span class="path3"></span><span class="path4"></span><span class="path5"></span><span class="path6"></span><span class="path7"></span></div>';
 			/* End classnames from icomoon font file */
@@ -1172,7 +1172,7 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 						'<div class="wpcd-stablediff-instance-atts-provider-wrap">' . $provider_icon . '<div class="wpcd-stablediff-instance-atts-provider-label">' . __( 'Provider', 'wpcd' ) . ': ' . '</div>' . $this->get_providers()[ $provider ] . '</div>
 						<div class="wpcd-stablediff-instance-atts-region-wrap">' . $region_icon . '<div class="wpcd-stablediff-instance-atts-region-label">' . __( 'Region', 'wpcd' ) . ': ' . '</div>' . $display_region . '</div>
 						<div class="wpcd-stablediff-instance-atts-size-wrap">' . $size_icon . '<div class="wpcd-stablediff-instance-atts-size-label">' . __( 'Size', 'wpcd' ) . ': ' . '</div>' . WPCD()->classes['wpcd_app_stablediff_wc']::$sizes[ strval( $size ) ] . '</div>
-						<div class="wpcd-stablediff-instance-atts-proto-wrap">' . $protocol_icon . '<div class="wpcd-stablediff-instance-atts-proto-label">' . __( 'Protocol', 'wpcd' ) . ': ' . '</div>' . $protocol . '</div>
+						<div class="wpcd-stablediff-instance-atts-ip-wrap">' . $ip_icon . '<div class="wpcd-stablediff-instance-atts-ip-label">' . __( 'IPv4', 'wpcd' ) . ': ' . '</div>' . $ipv4 . '</div>
 						<div class="wpcd-stablediff-instance-atts-users-wrap">' . $users_icon . '<div class="wpcd-stablediff-instance-atts-users-label">' . __( 'Users / Allowed', 'wpcd' ) . ': ' . '</div>' . sprintf( '%d / %d', count( $total ), $max ) . '</div>
 						<div class="wpcd-stablediff-instance-atts-subid-wrap">' . $subid_icon . '<div class="wpcd-stablediff-instance-atts-sub-label">' . __( 'Subscription ID', 'wpcd' ) . ': ' . '</div>' . implode( ', ', $subscription_array ) . '</div>';
 
@@ -1524,7 +1524,7 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 	 *  [status] => active
 	 *  [action_id] =>
 	 *  [os] => ami-08948efa38f6c51f0
-	 *  [ip] => 18.144.11.17
+	 *  [ip] => 18.144.11.17.
 	 *
 	 * @return string $run_cmd
 	 */

@@ -77,27 +77,27 @@
   content: "\e90c";
   color: #031470;
 }
-.icon-spstablediffprotocol .path1:before {
+.icon-spstablediffip .path1:before {
   content: "\e90d";
   color: rgb(246, 38, 92);
   opacity: 0.1;
 }
-.icon-spstablediffprotocol .path2:before {
+.icon-spstablediffip .path2:before {
   content: "\e90e";
   margin-left: -1em;
   color: rgb(246, 38, 92);
 }
-.icon-spstablediffprotocol .path3:before {
+.icon-spstablediffip .path3:before {
   content: "\e90f";
   margin-left: -1em;
   color: rgb(246, 38, 92);
 }
-.icon-spstablediffprotocol .path4:before {
+.icon-spstablediffip .path4:before {
   content: "\e910";
   margin-left: -1em;
   color: rgb(246, 38, 92);
 }
-.icon-spstablediffprotocol .path5:before {
+.icon-spstablediffip .path5:before {
   content: "\e911";
   margin-left: -1em;
   color: rgb(246, 38, 92);

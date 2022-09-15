@@ -49,7 +49,7 @@
 
 /* 
  Format each of the individual items for the instance attributes 
- i.e: provider, region, protocol, users, subscription id
+ i.e: provider, region, ipv4, users, subscription id
  basically we're making them nice looking boxes with an icon 
  above each label.
  */
@@ -75,7 +75,7 @@
 	color: #90A4AE;
 }
 
-.icon-spstablediffprovider, .icon-spstablediffregion, .icon-spstablediffsize, .icon-spstablediffprotocol, .icon-spstablediffusers, .icon-spstablediffsubscription_id {
+.icon-spstablediffprovider, .icon-spstablediffregion, .icon-spstablediffsize, .icon-spstablediffip, .icon-spstablediffusers, .icon-spstablediffsubscription_id {
 	/* This formats the iconmoon icons in the iconmoon font file */
 	font-size: 32px !important;
 }

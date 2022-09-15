@@ -45,7 +45,7 @@ fi
 # Let WPCD know that we're done.
 if [[ -n "$CALLBACK_URL" ]]
 then
-	curl -sS "$CALLBACK_URL?done=1"
+	curl -sS "$CALLBACK_URL?state=done"
 fi
 
 # show output as finished.

@@ -805,16 +805,28 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 
 					if ( true == $this->run_after_server_create_commands( $attributes ) ) {
 
-						// Delete data from the database since it is no longer necessary.
-						delete_post_meta( $attributes['post_id'], 'wpcd_server_after_create_action_app_id' );
+						// Mark server so that it knows the first part of the install is completed.
+						update_post_meta( $attributes['post_id'], 'wpcd_server_action', 'ai-warming-up' );
 
-						// And schedule emails to be sent..
-						update_post_meta( $attributes['post_id'], 'wpcd_server_action', 'email' );
+						// The function that sends the server ready email will need this later.
 						update_post_meta( $attributes['post_id'], 'wpcd_server_action_email_app_id', $app_post_id );
-						WPCD_SERVER()->add_deferred_action_history( $attributes['post_id'], $this->get_app_name() );
+
+						/**
+						 * All other metas that would normally get updated here eg(VPN and BASIC SERVER apps)
+						 * are now being updated in the callback_install_server_status function.
+						 *
+						 * This is because it takes a long time to warm up the server and it's really not
+						 * going to be ready until that is complete.
+						 *
+						 * Then and only then will do a curl/rest callback which will trigger the
+						 * callback_install_server_status function to update metas and prepare to send emails.
+						 */
 
 					}
 				}
+				break;
+			case 'ai-warming-up':
+				// Do nothing.
 				break;
 			case 'email':
 				$state = $details['status'];
@@ -1487,32 +1499,32 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 	 * @param array $attributes Attributes of the server and app being provisioned.
 	 *
 	 *  $atttributes:
-     * 	[post_id] => 72850
-     * 	[app_post_id] => 72851
-     * 	[plugin_initial_version] => 4.24.0
-     * 	[plugin_updated_version] => 4.24.0
-     * 	[initial_app_name] => stablediff
-     * 	[region] => us-west-1
-     * 	[size] => small
-     * 	[name] => rhonda-hahn-2022-09-14-023838-72849-1
-     * 	[wc_order_id] => 72848
-     * 	[wc_subscription] => a:1:{i:0;i:72849;}
-     * 	[wc_user_id] => 6
-     * 	[provider] => 72055-stablediff
-     * 	[provider_instance_id] => i-056cb59c0ecb3c3e8
-     * 	[server_name] => rhonda-hahn-2022-09-14-023838-72849-1
-     * 	[created] => 2022-09-13 21:38:40
-     * 	[actions] => a:1:{s:7:"created";i:1663123120;}
-     * 	[action] => after-server-create-commands
-     * 	[after_create_action_app_id] => 72851
-     * 	[action_status] => in-progress
-     * 	[last_deferred_action_source] => a:1:{s:11:" 1663123120";s:10:"stablediff";}
-     * 	[init] => 1
-     * 	[ipv4] => 18.144.11.171
-     * 	[status] => active
-     * 	[action_id] => 
-     * 	[os] => ami-08948efa38f6c51f0
-     * 	[ip] => 18.144.11.17
+	 *  [post_id] => 72850
+	 *  [app_post_id] => 72851
+	 *  [plugin_initial_version] => 4.24.0
+	 *  [plugin_updated_version] => 4.24.0
+	 *  [initial_app_name] => stablediff
+	 *  [region] => us-west-1
+	 *  [size] => small
+	 *  [name] => rhonda-hahn-2022-09-14-023838-72849-1
+	 *  [wc_order_id] => 72848
+	 *  [wc_subscription] => a:1:{i:0;i:72849;}
+	 *  [wc_user_id] => 6
+	 *  [provider] => 72055-stablediff
+	 *  [provider_instance_id] => i-056cb59c0ecb3c3e8
+	 *  [server_name] => rhonda-hahn-2022-09-14-023838-72849-1
+	 *  [created] => 2022-09-13 21:38:40
+	 *  [actions] => a:1:{s:7:"created";i:1663123120;}
+	 *  [action] => after-server-create-commands
+	 *  [after_create_action_app_id] => 72851
+	 *  [action_status] => in-progress
+	 *  [last_deferred_action_source] => a:1:{s:11:" 1663123120";s:10:"stablediff";}
+	 *  [init] => 1
+	 *  [ipv4] => 18.144.11.171
+	 *  [status] => active
+	 *  [action_id] =>
+	 *  [os] => ami-08948efa38f6c51f0
+	 *  [ip] => 18.144.11.17
 	 *
 	 * @return string $run_cmd
 	 */
@@ -1854,6 +1866,10 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 	/**
 	 * Handles server status during server deployment process.
 	 *
+	 * This function is called as the server is being prepared.  The server bash script makes periodic callbacks/restapi calls
+	 * that trigger this function.
+	 * It passes one queryparm called 'state' with one of three values.
+	 *
 	 * Action Hook: wpcd_{$this->get_app_name()}_command_install_stable_diff_progress-report || wpcd_stablediff_command_install_stable_diff_progress-report
 	 *
 	 * @param int    $id server post id.
@@ -1861,138 +1877,56 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 	 * @param string $name name.
 	 * @param string $status status.
 	 *
-	 * @return void.
+	 * @return void|boolean.
 	 */
 	public function callback_install_server_status( $id, $command_id, $name, $status ) {
 
-error_log("callback - here - $status");
-return true;
-
-		// Set variable to status, in this case it is always "completed" - will be used in action hooks later.
-		$status = 'completed';
-
-		// set variable to name, in this case it is always "server_status" - will be used in action hooks later.
-		$name = 'server_status';
-
-		// Create an array to hold items taken from the $_request object.
-		$server_status_items = array();
-
-		// get restart status item.
-		$server_status_items['restart'] = sanitize_text_field( filter_input( INPUT_GET, 'restart', FILTER_UNSAFE_RAW ) );
-		if ( ! in_array( $server_status_items['restart'], array( 'yes', 'no' ) ) ) {
-			$server_status_items['restart'] = 'unknown';
+		// Set variable to status if not set in the parameters. In this case it will default to "completed" - will be used in action hooks later.
+		if ( empty( $status ) ) {
+			$status = 'completed';
 		}
 
-		// get numeric elements.
-		$server_status_items['total_updates']           = filter_input( INPUT_GET, 'total_updates', FILTER_SANITIZE_NUMBER_INT );
-		$server_status_items['security_updates']        = filter_input( INPUT_GET, 'security_updates', FILTER_SANITIZE_NUMBER_INT );
-		$server_status_items['unattended_package_num']  = filter_input( INPUT_GET, 'unattended_package_num', FILTER_SANITIZE_NUMBER_INT );
-		$server_status_items['free_disk_space']         = filter_input( INPUT_GET, 'free_disk', FILTER_SANITIZE_NUMBER_INT );
-		$server_status_items['free_disk_space_percent'] = filter_input( INPUT_GET, 'free_disk_percentage', FILTER_SANITIZE_NUMBER_INT );
-		$server_status_items['total_memory']            = filter_input( INPUT_GET, 'Total_mem', FILTER_SANITIZE_NUMBER_INT );
-		$server_status_items['used_memory']             = filter_input( INPUT_GET, 'Used_mem', FILTER_SANITIZE_NUMBER_INT );
-		$server_status_items['used_memory_percent']     = filter_input( INPUT_GET, 'Used_mem_percentage', FILTER_SANITIZE_NUMBER_INT );
-		$server_status_items['database_size']           = filter_input( INPUT_GET, 'Database_size', FILTER_SANITIZE_NUMBER_INT );
-		$server_status_items['database_size_largest']   = filter_input( INPUT_GET, 'Largest_DB_Size', FILTER_SANITIZE_NUMBER_INT );
-		$server_status_items['up_time']                 = filter_input( INPUT_GET, 'uptime', FILTER_SANITIZE_NUMBER_INT );
-		$server_status_items['cpu_now']                 = filter_input( INPUT_GET, 'cpu_now', FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION );
-		$server_status_items['cpu_since_reboot']        = filter_input( INPUT_GET, 'cpu_since_reboot', FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION );
+		// set variable to name, in this case it is always "install_stable_diff" - will be used in action hooks later.
+		$name = 'install_stable_diff';
 
-		// get largest database name.
-		$server_status_items['largest_database'] = wp_kses( filter_input( INPUT_GET, 'Largest_DB_Name', FILTER_UNSAFE_RAW ), array() );
+		// Get server state.  It should be 'starting_warmup', 'warmup_complete', 'done'.
+		$server_state = sanitize_text_field( filter_input( INPUT_GET, 'state', FILTER_UNSAFE_RAW ) );
 
-		// get list of packages to be updated - it's a comma-delimited string.
-		$package_list                            = sanitize_text_field( filter_input( INPUT_GET, 'list_of_packages', FILTER_UNSAFE_RAW ) );
-		$package_list                            = wp_kses( $package_list, array() ); // no html allowed - just in case we get a string from someone we don't expect.
-		$package_list                            = explode( ',', $package_list );
-		$server_status_items['list_of_packages'] = $package_list;
+		if ( ! in_array( $server_state, array( 'starting_warmup', 'warmup_complete', 'done' ), true ) ) {
+			// Invalid server_state given so log error and return.
+			do_action( 'wpcd_log_error', 'An invalid callback request was received for function callback_install_server_status - received server id ' . (string) $id, 'security', __FILE__, __LINE__ );
+			return false;
+		}
 
-		// get list of unattended packages to be updated or that requires attention - it's a comma-delimited string.
-		$unattended_package_list                        = sanitize_text_field( filter_input( INPUT_GET, 'unattended_package_list', FILTER_UNSAFE_RAW ) );
-		$unattended_package_list                        = wp_kses( $unattended_package_list, array() ); // no html allowed - just in case we get a string from someone we don't expect.
-		$unattended_package_list                        = explode( ',', $unattended_package_list );
-		$server_status_items['unattended_package_list'] = $unattended_package_list;
-
-		// get list of websites and diskspace used by each one.
-		$website_diskspace                        = wp_kses( filter_input( INPUT_GET, 'website_disk', FILTER_UNSAFE_RAW ), array() );
-		$website_diskspace                        = explode( ',', $website_diskspace );
-		$server_status_items['website_diskspace'] = $website_diskspace;
-
-		// server time zone.
-		$server_time_zone                        = sanitize_text_field( filter_input( INPUT_GET, 'Timezone', FILTER_UNSAFE_RAW ) );
-		$server_time_zone                        = wp_kses( $server_time_zone, array() ); // no html allowed - just in case we get a string from someone we don't expect.
-		$server_status_items['server_time_zone'] = $server_time_zone;
-
-		// default php version (will store only the first two digits eg: 7.4 or 8.1).
-		$server_default_php_version                 = sanitize_text_field( filter_input( INPUT_GET, 'phpversion', FILTER_UNSAFE_RAW ) );
-		$server_default_php_version                 = wp_kses( $server_default_php_version, array() ); // no html allowed - just in case we get a string from someone we don't expect.
-		$server_status_items['default_php_version'] = $server_default_php_version;
-
-		// default php full version (will store all three sections of the version - eg: 7.4.26).
-		$server_default_php_version_full                 = sanitize_text_field( filter_input( INPUT_GET, 'phpfullversion', FILTER_UNSAFE_RAW ) );
-		$server_default_php_version_full                 = wp_kses( $server_default_php_version_full, array() ); // no html allowed - just in case we get a string from someone we don't expect.
-		$server_status_items['default_php_version_full'] = $server_default_php_version_full;
-
-		// Finally, add the time reported to the array.
-		$server_status_items['reporting_time']       = time();
-		$server_status_items['reporting_time_human'] = date( 'Y-m-d H:i:s', time() );
-
-		// Stamp the server record with the array.
+		// Update server metas based on server state.
 		if ( 'wpcd_app_server' === get_post_type( $id ) ) {
 
-			// update the meta that holds the current data..
-			update_post_meta( $id, 'wpcd_server_status_push', $server_status_items );
+			switch ( $server_state ) {
+				case 'starting_warmup':
+					WPCD_SERVER()->add_deferred_action_history( $id, $server_state );
+					do_action( 'wpcd_log_notification', $id, 'notice', __( 'The stable diffusion server is about to begin the warmup process.', 'wpcd' ), 'server-prepare', null );
+					break;
+				case 'warmup_complete':
+					do_action( 'wpcd_log_notification', $id, 'notice', __( 'The stable diffusion server has completed the warmup process.', 'wpcd' ), 'server-prepare', null );
+					WPCD_SERVER()->add_deferred_action_history( $id, $server_state );
+					break;
+				case 'done':
+					do_action( 'wpcd_log_notification', $id, 'notice', __( 'The stable diffusion server is ready.', 'wpcd' ), 'server-prepare', null );
 
-			// add to history meta as well.
-			$history = wpcd_maybe_unserialize( get_post_meta( $id, 'wpcd_server_status_push_history', true ) );
-			if ( empty( $history ) ) {
-				$history = array();
+					// Delete certain metas from the database since it is no longer necessary.
+					delete_post_meta( $id, 'wpcd_server_after_create_action_app_id' );
+
+					// Schedule emails to be sent..
+					update_post_meta( $id, 'wpcd_server_action', 'email' );
+
+					// Add to history.
+					WPCD_SERVER()->add_deferred_action_history( $id, $server_state );
+					break;
 			}
-
-			$history[ ' ' . (string) time() ] = $server_status_items; // we have to force the time element to be a string by putting a space in front of it otherwise manipulating the array as a key-value pair is a big problem if we want to purge just part of the array later.
-
-			if ( count( $history ) >= 10 ) {
-				// take the last element off to prevent history from getting too big.
-				$removed = array_shift( $history );
-			}
-
-			update_post_meta( $id, 'wpcd_server_status_push_history', $history );
-
-			// Add a special meta to indicate that the server might need to be restarted.  We'll use this to allow the server list to be filtered to show only servers needing to be restarted.
-			if ( 'yes' === $server_status_items['restart'] ) {
-				update_post_meta( $id, 'wpcd_server_restart_needed', 'yes' );
-			} else {
-				delete_post_meta( $id, 'wpcd_server_restart_needed' );
-			}
-
-			// Add a user friendly notification record for certain things...
-			if ( 'yes' === $server_status_items['restart'] ) {
-				do_action( 'wpcd_log_notification', $id, 'alert', __( 'This server needs to be restarted for security updates to take effect.', 'wpcd' ), 'updates', null );
-			}
-			if ( ! in_array( $server_status_items['default_php_version'], array( '7.4', '8.0', '8.1' ) ) ) {
-				/* Translators: %s is the incorrect PHP version. */
-				do_action( 'wpcd_log_notification', $id, 'alert', sprintf( __( 'The default PHP version on this server is incorrect - it should be 7.4, 8.0 or 8.1 but is currently set to %s.', 'wpcd' ), $server_status_items['default_php_version'] ), 'server-config', null );
-			}
-			if ( empty( $server_status_items['default_php_version'] ) ) {
-				/* Translators: %s is the incorrect PHP version. */
-				do_action( 'wpcd_log_notification', $id, 'notice', __( 'The default PHP version on this server is being reported as an empty string - it is likely that you need to update the callbacks on it.', 'wpcd' ), 'server-config', null );
-			}
-
-			// Let other plugins react to the new good data with an action hook.
-			do_action( "wpcd_{$this->get_app_name()}_command_{$name}_{$status}_processed_good", $server_status_items, $id );
-
 		} else {
-
 			do_action( 'wpcd_log_error', 'Data received for server that does not exist - received server id ' . (string) $id . '<br /> The first 5000 characters of the received data is shown below after being sanitized with WP_KSES:<br /> ' . substr( wp_kses( print_r( $_REQUEST, true ), array() ), 0, 5000 ), 'security', __FILE__, __LINE__ );
-
-			// Let other plugins react to the new bad data with an action hook.
-			do_action( "wpcd_{$this->get_app_name()}_command_{$name}_{$status}_processed_bad", $server_status_items, $id );
-
 		}
 
-		// Let other plugins react to the new data (regardless of it's good or bad) with an action hook.
-		do_action( "wpcd_{$this->get_app_name()}_command_{$name}_{$status}_processed", $server_status_items, $id );
-
-	}	
+	}
 
 }

@@ -127,12 +127,12 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 	}
 
 	/**
-	 * Instantiate the set of actions that are allowed.
+	 * Create a key-value appear of actions and descriptions.
 	 */
 	public function set_actions() {
 		self::$_actions = array(
 			'download-file' => __( 'Download Configuration File', 'wpcd' ),
-			'add-user'      => __( 'Add User', 'wpcd' ),
+			'request-image' => __( 'Request Image', 'wpcd' ),
 			'relocate'      => __( 'Relocate', 'wpcd' ),
 			'reinstall'     => __( 'Reinstall', 'wpcd' ),
 			'reboot'        => __( 'Reboot', 'wpcd' ),
@@ -142,6 +142,28 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 			'connected'     => __( 'List Clients', 'wpcd' ),
 			'instructions'  => __( 'View Instructions', 'wpcd' ),
 		);
+	}
+
+	/**
+	 * Return array of actions and description
+	 */
+	public function get_actions() {
+		return self::$_actions;
+	}
+
+	/**
+	 * Return the description or label of of an action given an action key.
+	 *
+	 * @param string $action Action key eg:request-image.
+	 *
+	 * @return string
+	 */
+	public function get_action_description( $action ) {
+
+		$actions = $this->get_actions();
+
+		return ! empty( $actions[ $action ] ) ? $actions[ $action ] : false;
+
 	}
 
 	/**
@@ -172,13 +194,15 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 
 		/* Run the action */
 		$result = $this->do_instance_action( sanitize_text_field( $_POST['stablediff_id'] ), sanitize_text_field( $_POST['stablediff_app_id'] ), sanitize_text_field( $_POST['stablediff_action'] ), $additional );
+
+		/* If error, return to browser and do nothing else. */
 		if ( is_wp_error( $result ) ) {
 			wp_send_json_error( array( 'msg' => $result->get_error_code() ) );
 		} elseif ( empty( $result ) ) {
 			wp_send_json_error();
 		}
 
-		/* Perform stuff based on the action requested and its results after being run */
+		/* Perform after-action stuff based on the action requested and its results after being run */
 		switch ( $_POST['stablediff_action'] ) {
 			case 'add-user':
 				// download the file as soon as the user is added.
@@ -197,6 +221,7 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 				break;
 		}
 
+		/* If we got here, most things were successful to send result. */
 		wp_send_json_success( array( 'result' => $result ) );
 	}
 
@@ -544,6 +569,9 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 	 * server is in an "active" state, ready for commands.
 	 *
 	 * @param array $instance Array of attributes for the custom post type.
+	 *
+	 * Note: Some of the types of data that can be found in the $instance array is described
+	 * at the top of the get_after_server_create_commands function.
 	 */
 	private function run_after_server_create_commands( $instance ) {
 
@@ -570,6 +598,28 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 		}
 
 		return false;
+
+	}
+
+	/**
+	 * Submit a request to the server to generate images.
+	 *
+	 * @param array $attributes An array of attributes with server and app data.
+	 * @param array $additional An array of data that we might need - this is usually provided by html forms data.
+	 *
+	 * Note: Some of the types of data that can be found in the $attributes array is described
+	 * at the top of the get_after_server_create_commands function.
+	 *
+	 * @return boolean|wp_error
+	 */
+	public function request_image( $attributes, $additional ) {
+
+		$result = true;
+
+		error_log(print_r($attributes,true));
+		error_log(print_r($additional,true));
+
+		return $result;
 
 	}
 
@@ -803,7 +853,7 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 					// Merge post ids and server details into a single array.
 					$attributes = array_merge( $attributes, $details );
 
-					if ( true == $this->run_after_server_create_commands( $attributes ) ) {
+					if ( true === $this->run_after_server_create_commands( $attributes ) ) {
 
 						// Mark server so that it knows the first part of the install is completed.
 						update_post_meta( $attributes['post_id'], 'wpcd_server_action', 'ai-warming-up' );
@@ -830,7 +880,7 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 				break;
 			case 'email':
 				$state = $details['status'];
-				// send email only when 'active'.
+				// send email only when server is 'active'.
 				if ( 'active' === $state ) {
 					// Deleting these three items means that sending this email is the last thing in the deferred action sequence and no more deferred actions will occur for this server.
 					delete_post_meta( $attributes['post_id'], 'wpcd_server_action_status' );
@@ -885,6 +935,9 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 				break;
 			case 'details':
 				// already called.
+				break;
+			case 'request-image':
+				$result = $this->request_image( $attributes, $additional );
 				break;
 			case 'add-user':
 				// fall-through.
@@ -1007,7 +1060,7 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 				foreach ( $actions as $action ) {
 
 					// Some actions require a 'wrapping' div to help the breaks for css-grid.
-					if ( 'download-file' === $action || 'add-user' === $action || 'reboot' === $action || 'relocate' === $action || 'connected' === $action ) {
+					if ( 'download-file' === $action || 'request-image' === $action || 'reboot' === $action || 'relocate' === $action || 'connected' === $action ) {
 						$buttons = $buttons . '<div class="wpcd-stablediff-instance-multi-button-block-wrap">';  // this should be matched later with a footer div.
 					}
 
@@ -1060,10 +1113,10 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 							$help_tip   = __( 'View connected users - only applies if you contact us to turn on logging for your instance', 'wpcd' );
 							$foot_break = true;
 							break;
-						case 'add-user':
-							$buttons .= '<div class="wpcd-stablediff-action-head">' . __( 'Add & Remove users', 'wpcd' ) . '</div>'; // Add in the section title text.
-							$buttons .= '<input type="text" name="name" id="wpcd-stablediff-input-text-add-user-name" class="wpcd-stablediff-additional wpcd-stablediff-input-text">';
-							$help_tip = __( 'Type a name with no spaces into the field above and click the ADD USER button. After a few seconds you will be prompted to download the user configuration file. Or you can use the DOWNLOAD CONFIGURATION FILE button to get it later.', 'wpcd' );
+						case 'request-image':
+							$buttons .= '<div class="wpcd-stablediff-action-head">' . __( 'Request Image', 'wpcd' ) . '</div>'; // Add in the section title text.
+							$buttons .= '<input type="text" name="image-prompt" id="wpcd-stablediff-input-text-request-image" class="wpcd-stablediff-additional wpcd-stablediff-input-text">';
+							$help_tip = __( 'Describe the image you would like to generate.', 'wpcd' );
 							break;
 						case 'remove-user':
 							$clients = wpcd_maybe_unserialize( get_post_meta( $app_post->ID, 'stablediff_clients', true ) );
@@ -1104,7 +1157,7 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 						}
 					}
 
-					$buttons .= '<button ' . $attributes . ' class="wpcd-stablediff-action-type wpcd-stablediff-action-' . $action . '" data-action="' . $action . '" data-id="' . $server_post->ID . '" data-app-id="' . $app_post->ID . '">' . $btn_icon_class . ' ' . self::$_actions[ $action ] . '</button>';
+					$buttons .= '<button ' . $attributes . ' class="wpcd-stablediff-action-type wpcd-stablediff-action-' . $action . '" data-action="' . $action . '" data-id="' . $server_post->ID . '" data-app-id="' . $app_post->ID . '">' . $btn_icon_class . ' ' . $this->get_action_description( $action ) . '</button>';
 
 					if ( ! empty( $help_tip ) ) {
 						$buttons .= '<div class="wpcd-stablediff-action-help-tip">' . $help_tip . '</div>'; // Add in the help text.
@@ -1199,7 +1252,7 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 		$actions = array(
 			'download-file',
 			'instructions',
-			'add-user',
+			'request-image',
 			'remove-user',
 			'reboot',
 			'off',

@@ -1029,7 +1029,13 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 				$state = $details['status'];
 				// run commands only when the server is 'active'.
 				if ( 'active' === $state ) {
-					// First grab the app post id from the database because if this action.
+
+					// We only want to run this once so check to see if there is anything in the 'wpcd_server_action' meta....
+					if ( 'ai-warming-up' === (string) get_post_meta( $attributes['post_id'], 'wpcd_server_action', true ) ) {
+						break;
+					}
+
+					// Grab the app post id from the database because if this action.
 					// needed to be repeated after a failure, it is possible that the.
 					// only place the app id exists is in the database and not the.
 					// attributes array.
@@ -1367,6 +1373,9 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 				}
 			} elseif ( is_string( $actions ) ) {
 				switch ( $actions ) {
+					case 'ai-warming-up':
+						$buttons = __( 'We are currently warming up the Stable Diffusion AI engine for this server - this can take 20 minutes or more. We will send you an email when this is complete.', 'wpcd' );
+						break;
 					case 'in-progress':
 						$buttons = __( 'The instance is currently transitioning state. <br />This happens just after a new purchase when a server is starting up or when rebooting or relocating. <br />Please check back in a few minutes - it can take as long as 20 minutes to deploy a new server. If you continue to see this message after that please contact our support team.', 'wpcd' );
 						break;
@@ -1466,12 +1475,19 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 		$server_post = $this->get_server_by_app_id( $id );
 
 		// What's the state of the server?
-		$state  = $details['status'];
+		$state = $details['status']; // This is the provider state of the server, in particular whether the server is on, off or in some other power mode.
+
+		// What is the installation or other activity status of the server?  If this is filled in it means something is running on the server.
 		$status = get_post_meta( $server_post->ID, 'wpcd_server_action_status', true );
+
+		// For stable diffusion servers, if the server is being newly installed, relocated or rebuilt, we have a warming up action.  Are we in that state?
+		if ( 'ai-warming-up' === (string) get_post_meta( $server_post->ID, 'wpcd_server_action', true ) ) {
+			$status = get_post_meta( $server_post->ID, 'wpcd_server_action', true );
+		}
 
 		do_action( 'wpcd_log_error', "Determining actions for $id in current state ($state) with action status ($status)", 'debug', __FILE__, __LINE__ );
 
-		if ( in_array( $status, array( 'in-progress', 'errored' ) ) ) {
+		if ( in_array( $status, array( 'in-progress', 'errored', 'ai-warming-up' ) ) ) {
 			// stuck in the middle with you?
 			return $status;
 		}

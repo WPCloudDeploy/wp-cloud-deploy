@@ -249,7 +249,7 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 				// the id.
 				'data-wpcd-id'                  => $id,
 				// fields that contribute data for this action.
-				'data-wpcd-fields'              => wp_json_encode( array( '#wpcd_app_aws_key', '#wpcd_app_aws_secret', '#wpcd_app_aws_bucket', '#wpcd_app_aws_region' ) ),
+				'data-wpcd-fields'              => wp_json_encode( array( '#wpcd_app_aws_key', '#wpcd_app_aws_secret', '#wpcd_app_aws_bucket', '#wpcd_app_aws_region', '#wpcd_app_s3_endpoint' ) ),
 				// make sure we give the user a confirmation prompt.
 				'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like to save these credentials?', 'wpcd' ),
 			),

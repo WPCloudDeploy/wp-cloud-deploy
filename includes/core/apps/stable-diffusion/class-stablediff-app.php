@@ -1320,8 +1320,8 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 							break;
 						case 'last-image-request':
 							$buttons                    .= '<hr />';
-							$buttons                    .= '<div class="wpcd-stablediff-action-head">' . __( 'Last Requested Image', 'wpcd' ) . '</div>'; // Add in the section title text.
-							$last_requested_image_prompt = __( 'No Valid Image Requests Were Found.', 'wpcd' ); // Default output
+							$buttons                    .= '<div class="wpcd-stablediff-action-head">' . __( 'Most Recent Requested Image', 'wpcd' ) . '</div>'; // Add in the section title text.
+							$last_requested_image_prompt = __( 'No Valid Image Requests Were Found.', 'wpcd' ); // Default output.
 
 							// Get the task id for the last requested image.
 							$last_requested_image_task_id = get_post_meta( $server_post->ID, 'wpcd_stablediff_last_requested_image_task_id', true );
@@ -1342,9 +1342,13 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 
 							if ( ! empty( $image_urls ) && is_array( $image_urls ) && count( $image_urls ) > 0 ) {
 								$last_generated_image = end( $image_urls ); // most recent image will be at the bottom of the array.
-								$image_to_show = $last_generated_image['signed-url']; // most recent image will be at the bottom of the array.
+								$image_to_show        = $last_generated_image['signed-url'];
 
 								$buttons .= sprintf( '<img class="wpcd-stablediff-generated-img" src=%s />', $image_to_show );
+
+								$prompt   = $last_generated_image['prompt'];
+								$buttons .= '<p class="wpcd-stablediff-action-help-tip">' . $prompt . '</p>';
+
 							} else {
 								$msg      = __( 'No images have been generated recently.', 'wpcd' );
 								$buttons .= '<p class="wpcd-stablediff-action-help-tip">' . $msg . '</p>';
@@ -1398,11 +1402,14 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 						$buttons .= '<div class="wpcd-stablediff-action-help-tip">' . $input_help_tip . '</div>'; // Add in the help text that goes underneath the input fields.
 					}
 
-					$buttons .= '<button ' . $attributes . ' class="wpcd-stablediff-action-type wpcd-stablediff-action-' . $action . '" data-action="' . $action . '" data-id="' . $server_post->ID . '" data-app-id="' . $app_post->ID . '">' . $btn_icon_class . ' ' . $this->get_action_description( $action ) . '</button>';
+					// Add an actual button for most things (but not all).
+					if ( ! in_array( $action, array( 'last-completed-image', 'last-image-request' ), true ) ) {
+						$buttons .= '<button ' . $attributes . ' class="wpcd-stablediff-action-type wpcd-stablediff-action-' . $action . '" data-action="' . $action . '" data-id="' . $server_post->ID . '" data-app-id="' . $app_post->ID . '">' . $btn_icon_class . ' ' . $this->get_action_description( $action ) . '</button>';
 
-					// Add help tip below the buttons.
-					if ( ! empty( $help_tip ) ) {
-						$buttons .= '<div class="wpcd-stablediff-action-help-tip">' . $help_tip . '</div>'; // Add in the help text.
+						// Add help tip below the buttons.
+						if ( ! empty( $help_tip ) ) {
+							$buttons .= '<div class="wpcd-stablediff-action-help-tip">' . $help_tip . '</div>'; // Add in the help text.
+						}
 					}
 
 					$buttons .= '</div> <!-- closing div for this button action block --> ';  // closing div for this button action block.

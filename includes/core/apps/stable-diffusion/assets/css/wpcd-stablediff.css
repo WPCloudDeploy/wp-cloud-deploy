@@ -226,6 +226,13 @@ input.wpcd-stablediff-additional.wpcd-stablediff-input-text {
 	height: 100%;
 }
 
+/* Generated Images */
+.wpcd-stablediff-generated-img {
+	width: 100%;
+	border-radius: 8px;
+	margin-bottom: 1em;
+}
+
 /* Make the data inside the instructions screen a css grid */
 
 .wpcd-stablediff-instructions-popup-content-grid {

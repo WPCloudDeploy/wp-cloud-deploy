@@ -13,6 +13,16 @@ if [[ -e /$WPCD_USER/stablediff-script-params.sh ]]; then
     source /$WPCD_USER/stablediff-script-params.sh
 fi
 
+# Install AWS CLI - later we'll make this part of the EC2 image.
+if ! hash aws2 2>/dev/null
+then
+	echo $(date): "Getting and installing AWS CLI..."
+	wget "https://d1vvhvl2y92vvt.cloudfront.net/awscli-exe-linux-x86_64.zip"  > /dev/null 2>&1
+	unzip awscli-exe-linux-x86_64.zip  > /dev/null 2>&1
+	sudo ./aws/install  > /dev/null 2>&1
+	rm -rf aws awscli-exe-linux-x86_64.zip  > /dev/null 2>&1
+fi
+
 # Switch folders
 cd /home/$WPCD_USER/stable-diffusion
 

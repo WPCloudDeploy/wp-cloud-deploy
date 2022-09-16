@@ -82,7 +82,7 @@
 
 /* End format each of the individual items for the instance attributes */
 
-/* Make instance actions area a css grid (things like the restart, ad user etc)*/
+/* Make instance actions area a css grid */
 
 .wpcd-stablediff-instance-actions {
 	display: grid;
@@ -177,6 +177,16 @@
 }
 
 /* End individual button styles */
+
+/* Image thumbnail Grids */
+
+.wpcd-stablediff-image-grid-wrapper {
+	display: grid;
+	grid-template-areas: "j j " "j j " "j j ";
+	/*1 row, 2 columns */
+	grid-template-columns: 1fr 1fr;
+	grid-column-gap: 1em;	
+}
 
 /* box headers on the wpcd-vpn account screen */
 

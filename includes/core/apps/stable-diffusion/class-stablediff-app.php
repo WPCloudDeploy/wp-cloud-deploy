@@ -1260,7 +1260,7 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 				foreach ( $actions as $action ) {
 
 					// Some actions require a 'wrapping' div to help the breaks for css-grid.
-					if ( in_array( $action, array( 'download-file', 'request-image', 'last-completed-image', 'reboot', 'relocate', 'connected', 'remove-user' ), true ) ) {
+					if ( in_array( $action, array( 'download-file', 'request-image', 'last-completed-image', 'reboot', 'relocate', 'connected', 'remove-user', 'image-grid-1', 'image-grid-2' ), true ) ) {
 						$buttons = $buttons . '<div class="wpcd-stablediff-instance-multi-button-block-wrap">';  // this should be matched later with a footer div.
 					}
 
@@ -1391,6 +1391,86 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 							$foot_break = true;
 
 							break;
+
+						case 'image-grid-1':
+							// Show the four most recent images in a grid of thumbnails.
+
+							$buttons .= '<div class="wpcd-stablediff-action-head">' . __( 'Recent Images Grid #1', 'wpcd' ) . '</div>'; // Add in the section title text.
+
+							// Get list of images from the server meta.
+							$images = wpcd_maybe_unserialize( get_post_meta( $server_post->ID, 'wpcd_stablediff_image_urls', true ) );
+
+							if ( ! empty( $images ) && is_array( $images ) && count( $images ) > 0 ) {
+
+								// Add div wrapper for grid.
+								$buttons .= '<div class="wpcd-stablediff-image-grid-wrapper">';
+
+								// Get an array iterator that is reversed.
+								$reverted_images_iterator = new ArrayIterator( array_reverse( $images ) );
+								$cnt                      = 0;
+								foreach ( $reverted_images_iterator as $image ) {
+									$cnt++;
+
+									$image_url = $image['signed-url'];
+									$prompt    = $image['prompt'];
+									$buttons  .= sprintf( '<div class="wpcd-stablediff-image-thumbnail"><img class="wpcd-stablediff-generated-img" alt="%s" src=%s /></div>', $prompt, $image_url );
+
+									// Only images 1-4 should be shown.
+									if ( $cnt >= 4 ) {
+										break;
+									}
+								}
+
+								// Close div wrapper
+								$buttons .= '</div>';
+							} else {
+								$msg      = __( 'No images are available for this grid. Start generating images using the REQUEST IMAGES button above.', 'wpcd' );
+								$buttons .= '<p class="wpcd-stablediff-action-help-tip">' . $msg . '</p>';
+							}
+							$foot_break = true;
+							break;
+						case 'image-grid-2':
+							// Show the second four most recent images in a grid of thumbnails.
+
+							$buttons .= '<div class="wpcd-stablediff-action-head">' . __( 'Recent Images Grid #2', 'wpcd' ) . '</div>'; // Add in the section title text.
+
+							// Get list of images from the server meta.
+							$images = wpcd_maybe_unserialize( get_post_meta( $server_post->ID, 'wpcd_stablediff_image_urls', true ) );
+
+							if ( ! empty( $images ) && is_array( $images ) && count( $images ) > 4 ) {
+
+								// Add div wrapper for grid.
+								$buttons .= '<div class="wpcd-stablediff-image-grid-wrapper">';
+
+								// Get an array iterator that is reversed.
+								$reverted_images_iterator = new ArrayIterator( array_reverse( $images ) );
+								$cnt                      = 0;
+								foreach ( $reverted_images_iterator as $image ) {
+									$cnt++;
+
+									// Skip the first 4 images
+									if ( $cnt <= 4 ) {
+										continue;
+									}
+
+									$image_url = $image['signed-url'];
+									$prompt    = $image['prompt'];
+									$buttons  .= sprintf( '<div class="wpcd-stablediff-image-thumbnail"><img class="wpcd-stablediff-generated-img" alt="%s" src=%s /></div>', $prompt, $image_url );
+
+									// Only images 5-8 should be shown.
+									if ( $cnt >= 8 ) {
+										break;
+									}
+								}
+
+								// Close div wrapper
+								$buttons .= '</div>';
+							} else {
+								$msg      = __( 'No images are available for this grid. Generate more images using the REQUEST IMAGES button above.', 'wpcd' );
+								$buttons .= '<p class="wpcd-stablediff-action-help-tip">' . $msg . '</p>';
+							}
+							$foot_break = true;
+							break;							
 						case 'remove-user':
 							$buttons .= '<div class="wpcd-stablediff-action-head">' . __( 'Remove User', 'wpcd' ) . '</div>'; // Add in the section title text.
 							$clients  = wpcd_maybe_unserialize( get_post_meta( $app_post->ID, 'stablediff_clients', true ) );
@@ -1437,7 +1517,7 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 					}
 
 					// Add an actual button for most things (but not all).
-					if ( ! in_array( $action, array( 'last-completed-image', 'last-image-request', 'completed-images-urls' ), true ) ) {
+					if ( ! in_array( $action, array( 'last-completed-image', 'last-image-request', 'completed-images-urls', 'image-grid-1', 'image-grid-2' ), true ) ) {
 						$buttons .= '<button ' . $attributes . ' class="wpcd-stablediff-action-type wpcd-stablediff-action-' . $action . '" data-action="' . $action . '" data-id="' . $server_post->ID . '" data-app-id="' . $app_post->ID . '">' . $btn_icon_class . ' ' . $this->get_action_description( $action ) . '</button>';
 
 						// Add help tip below the buttons.
@@ -1539,6 +1619,8 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 			'last-image-request',
 			'completed-images-urls',
 			'last-completed-image',
+			'image-grid-1',
+			'image-grid-2',
 			'remove-user',
 			'reboot',
 			'off',

@@ -290,6 +290,7 @@ class STABLEDIFF_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'id'   => 'stablediff_app_s3_heading_01',
 				'type' => 'heading',
 				'name' => __( 'AWS S3 Credentials', 'wpcd' ),
+				'desc' => __( 'Images will be uploaded to the AWS S3 bucket specified below.  Respect security best practice - please make sure your credentials are restricted to the specied bucket.', 'wpcd' ),
 				'tab'  => 'stablediff-s3',
 			),
 			array(

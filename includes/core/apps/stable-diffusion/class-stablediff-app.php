@@ -139,7 +139,7 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 	public function set_actions() {
 		self::$_actions = array(
 			'download-file' => __( 'Download Configuration File', 'wpcd' ),
-			'request-image' => __( 'Request Image', 'wpcd' ),
+			'request-image' => __( 'Request Images', 'wpcd' ),
 			'relocate'      => __( 'Relocate', 'wpcd' ),
 			'reinstall'     => __( 'Reinstall', 'wpcd' ),
 			'reboot'        => __( 'Reboot', 'wpcd' ),
@@ -1252,7 +1252,8 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 						$buttons = $buttons . '<div class="wpcd-stablediff-instance-multi-button-block-wrap">';  // this should be matched later with a footer div.
 					}
 
-					$help_tip       = ''; // text that will go underneath each button...
+					$help_tip       = ''; // text that will go underneath each button.
+					$input_help_tip = ''; // text that will go underneath each input field.
 					$foot_break     = false;  // whether or not to insert a footer div after the block.
 					$buttons       .= '<div class="wpcd-stablediff-instance-button-block">'; // opening div for button action block.
 					$btn_icon_class = '';  /* classname to render icon before text on some buttons */
@@ -1271,7 +1272,7 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 							break;
 						case 'reinstall':
 							$btn_icon_class = '<span class="icon-spstablediffreinstall"></span>';
-							$help_tip       = __( 'Start over.  This will put the server back into a brand new state, removing all users and data and creating a single new user.', 'wpcd' );
+							$help_tip       = __( 'Start over.  This will put the server back into a brand new state, removing all files. Please make sure you download all existing files before using this operation!', 'wpcd' );
 							$foot_break     = true;
 							break;
 						case 'relocate':
@@ -1291,7 +1292,7 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 							$select1   .= '</select>';
 							$select2   .= '</select>';
 							$buttons   .= $select1 . $select2;
-							$help_tip   = __( 'Move your server to a different location. All user data will be removed and you will need to download new configuration files and setup additional users if needed.', 'wpcd' );
+							$help_tip   = __( 'Move your server to a different location. All existing image files will be removed - please make sure you download them before using this option!', 'wpcd' );
 							$foot_break = true;
 							break;
 						case 'connected':
@@ -1302,9 +1303,9 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 							$foot_break = true;
 							break;
 						case 'request-image':
-							$buttons .= '<div class="wpcd-stablediff-action-head">' . __( 'Request Image', 'wpcd' ) . '</div>'; // Add in the section title text.
+							$buttons .= '<div class="wpcd-stablediff-action-head">' . __( 'Request Images', 'wpcd' ) . '</div>'; // Add in the section title text.
 							$buttons .= '<input type="text" name="image-prompt" id="wpcd-stablediff-input-text-request-image" class="wpcd-stablediff-additional wpcd-stablediff-input-text">';
-							$help_tip = __( 'Describe the image you would like to generate.', 'wpcd' );
+							$input_help_tip = __( 'Describe the image you would like to generate and then use the REQUEST IMAGES button below to submit the request to the server.', 'wpcd' );
 							break;
 						case 'remove-user':
 							$clients = wpcd_maybe_unserialize( get_post_meta( $app_post->ID, 'stablediff_clients', true ) );
@@ -1345,8 +1346,14 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 						}
 					}
 
+					// Add help tip below the input fields.
+					if ( ! empty( $input_help_tip ) ) {
+						$buttons .= '<div class="wpcd-stablediff-action-help-tip">' . $input_help_tip . '</div>'; // Add in the help text that goes underneath the input fields.
+					}
+
 					$buttons .= '<button ' . $attributes . ' class="wpcd-stablediff-action-type wpcd-stablediff-action-' . $action . '" data-action="' . $action . '" data-id="' . $server_post->ID . '" data-app-id="' . $app_post->ID . '">' . $btn_icon_class . ' ' . $this->get_action_description( $action ) . '</button>';
 
+					// Add help tip below the buttons.
 					if ( ! empty( $help_tip ) ) {
 						$buttons .= '<div class="wpcd-stablediff-action-help-tip">' . $help_tip . '</div>'; // Add in the help text.
 					}
@@ -1361,7 +1368,7 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 			} elseif ( is_string( $actions ) ) {
 				switch ( $actions ) {
 					case 'in-progress':
-						$buttons = __( 'The instance is currently transitioning state. <br />This happens just after a new purchase when a server is starting up or when rebooting or relocating. <br />Please check back in a few minutes. If you continue to see this message after that please contact our support team.', 'wpcd' );
+						$buttons = __( 'The instance is currently transitioning state. <br />This happens just after a new purchase when a server is starting up or when rebooting or relocating. <br />Please check back in a few minutes - it can take as long as 20 minutes to deploy a new server. If you continue to see this message after that please contact our support team.', 'wpcd' );
 						break;
 					case 'errored':
 						$buttons = __( 'An error occurred in the Stable Diffusion server. Please check back in a few minutes. If you continue to see this message after that please contact our support team.', 'wpcd' );
@@ -2181,6 +2188,8 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 	 * that trigger this function.
 	 * It passes two queryparms called 'state' and taskid.
 	 *
+	 * It will be called multiple times.  It will be called when things are completed as well as once for each image uploaded to S3.
+	 *
 	 * Action Hook: wpcd_{$this->get_app_name()}_command_stablediff_request_image_progress-report || wpcd_stablediff_command_stablediff_request_image_progress-report
 	 *
 	 * @param int    $id server post id.
@@ -2216,10 +2225,29 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 			return false;
 		}
 
-		// Maybe send email?
+		// Do we have a signed URL?  If so we need to add it to the server record.
+		$signed_url64 = sanitize_text_field( wp_unslash( filter_input( INPUT_GET, 'awssignedurl64', FILTER_UNSAFE_RAW ) ) ); // The aws signed url encoded in base64 to avoid complications with ampersands.
+		if ( ! empty( $signed_url64 ) ) {
+			$signed_url = base64_decode( $signed_url64, true ); // decode the url.
+
+			// Add it to the server record.
+			$all_image_urls = wpcd_maybe_unserialize( get_post_meta( $id, 'wpcd_stablediff_image_urls', true ) );
+			if ( empty( $all_image_urls ) ) {
+				$all_image_urls = array();
+			}
+			array_push( $all_image_urls, $signed_url );
+			update_post_meta( $id, 'wpcd_stablediff_image_urls', $all_image_urls );
+
+		}
 
 		// Update task to done.
-		WPCD_POSTS_PENDING_TASKS_LOG()->update_task_by_id( $task_id, false, 'complete' );
+		if ( 'done' === $request_state ) {
+
+			// Maybe send email?
+
+			// Update task record to flag it as done.
+			WPCD_POSTS_PENDING_TASKS_LOG()->update_task_by_id( $task_id, false, 'complete' );
+		}
 
 	}
 

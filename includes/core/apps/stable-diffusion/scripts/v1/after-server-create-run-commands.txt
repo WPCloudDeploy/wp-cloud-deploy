@@ -34,7 +34,7 @@ echo "done" && {
     sudo -E dos2unix stablediff-script-params.sh &&
 	sudo -E chmod 500 stablediff-script.sh stablediff-script-params.sh &&
 	sudo -E chown $WPCD_USER:$WPCD_USER *.sh &&
-	echo 'bash ~/stablediff-script.sh >> stablediff-install-status.log' | at now +1 minutes && # Note: notice that there is no SUDO here - this is because some python components don't like bash.  So where sudo is needed it's done inside the script itself.
+	echo 'bash ~/stablediff-script.sh >> stablediff-install-status.log 2>&1' | at now +1 minutes && # Note: notice that there is no SUDO here - this is because some python components don't like bash.  So where sudo is needed it's done inside the script itself.
 	at -l &&
 	at -l >> stablediff-install-status.log
 }

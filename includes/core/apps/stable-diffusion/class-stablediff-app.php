@@ -1260,7 +1260,7 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 				foreach ( $actions as $action ) {
 
 					// Some actions require a 'wrapping' div to help the breaks for css-grid.
-					if ( in_array( $action, array( 'download-file', 'request-image', 'last-completed-image', 'reboot', 'relocate', 'connected', 'remove-user', 'image-grid-1', 'image-grid-2' ), true ) ) {
+					if ( in_array( $action, array( 'download-file', 'request-image', 'last-completed-image', 'reboot', 'relocate', 'image-grid-1', 'image-grid-2' ), true ) ) {
 						$buttons = $buttons . '<div class="wpcd-stablediff-instance-multi-button-block-wrap">';  // this should be matched later with a footer div.
 					}
 
@@ -1307,13 +1307,6 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 							$select2   .= '</select>';
 							$buttons   .= $select1 . $select2;
 							$help_tip   = __( 'Move your server to a different location. All existing image files will be removed - please make sure you download them before using this option!', 'wpcd' );
-							$foot_break = true;
-							break;
-						case 'connected':
-							$buttons   .= '<div class="wpcd-stablediff-action-head">' . __( "What's Connected?", 'wpcd' ) . '</div>'; // Add in the section title text.
-							$buttons   .= '<select class="wpcd-stablediff-additional wpcd-stablediff-connected wpcd-stablediff-select" name="name"></select>';
-							$buttons   .= '<button style="display: none;" class="wpcd-vpstablediffn-action-type wpcd-stablediff-action-disconnect" data-action="disconnect" data-id="' . $server_post->ID . '">' . __( 'Disconnect', 'wpcd' ) . '</button>';
-							$help_tip   = __( 'View connected users - only applies if you contact us to turn on logging for your instance', 'wpcd' );
 							$foot_break = true;
 							break;
 						case 'request-image':
@@ -1471,19 +1464,6 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 							}
 							$foot_break = true;
 							break;							
-						case 'remove-user':
-							$buttons .= '<div class="wpcd-stablediff-action-head">' . __( 'Remove User', 'wpcd' ) . '</div>'; // Add in the section title text.
-							$clients  = wpcd_maybe_unserialize( get_post_meta( $app_post->ID, 'stablediff_clients', true ) );
-							if ( $clients ) {
-								$buttons .= '<select class="wpcd-stablediff-additional wpcd-stablediff-client-list wpcd-stablediff-remove-user wpcd-stablediff-select" name="name">';
-								foreach ( $clients as $client ) {
-									$buttons .= '<option value="' . $client . '">' . $client . '</option>';
-								}
-								$buttons .= '</select>';
-							}
-							$help_tip   = __( 'Remove the selected user from the Stable Diffusion server.  They will no longer be able to connect to the Server.', 'wpcd' );
-							$foot_break = true;
-							break;
 						case 'download-file':
 							$buttons .= '<div class="wpcd-stablediff-action-head">' . __( 'Configure Your Devices', 'wpcd' ) . '</div>'; // Add in the section title text.
 							$clients  = wpcd_maybe_unserialize( get_post_meta( $app_post->ID, 'stablediff_clients', true ) );
@@ -1621,13 +1601,11 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 			'last-completed-image',
 			'image-grid-1',
 			'image-grid-2',
-			'remove-user',
 			'reboot',
 			'off',
 			'on',
 			'reinstall',
 			'relocate',
-			'connected',
 			'download-file',
 			'instructions',
 		);

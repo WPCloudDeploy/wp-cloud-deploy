@@ -51,7 +51,7 @@ then
 			l_signedurl64=$(echo "$l_signedurl" | base64 --wrap=0)
 			echo "64bit signed url in base64: $l_signedurl64"
 			# Send it via the callback url.
-			curl -sS "$CALLBACK_URL?state=in_progress&file=$file&taskid=$TASK_ID&awssignedurl64=$l_signedurl64"
+			curl -sS "$CALLBACK_URL?state=in_progress&file=$file&folder=$AWS_FOLDER&taskid=$TASK_ID&awssignedurl64=$l_signedurl64"
 		fi		
 	done
 	

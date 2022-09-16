@@ -1303,8 +1303,8 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 							$foot_break = true;
 							break;
 						case 'request-image':
-							$buttons .= '<div class="wpcd-stablediff-action-head">' . __( 'Request Images', 'wpcd' ) . '</div>'; // Add in the section title text.
-							$buttons .= '<input type="text" name="image-prompt" id="wpcd-stablediff-input-text-request-image" class="wpcd-stablediff-additional wpcd-stablediff-input-text">';
+							$buttons       .= '<div class="wpcd-stablediff-action-head">' . __( 'Request Images', 'wpcd' ) . '</div>'; // Add in the section title text.
+							$buttons       .= '<input type="text" name="image-prompt" id="wpcd-stablediff-input-text-request-image" class="wpcd-stablediff-additional wpcd-stablediff-input-text">';
 							$input_help_tip = __( 'Describe the image you would like to generate and then use the REQUEST IMAGES button below to submit the request to the server.', 'wpcd' );
 							break;
 						case 'remove-user':
@@ -2228,14 +2228,27 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 		// Do we have a signed URL?  If so we need to add it to the server record.
 		$signed_url64 = sanitize_text_field( wp_unslash( filter_input( INPUT_GET, 'awssignedurl64', FILTER_UNSAFE_RAW ) ) ); // The aws signed url encoded in base64 to avoid complications with ampersands.
 		if ( ! empty( $signed_url64 ) ) {
+
 			$signed_url = base64_decode( $signed_url64, true ); // decode the url.
+
+			// Get the folder name that we uploaded files into.
+			$aws_folder = sanitize_text_field( wp_unslash( filter_input( INPUT_GET, 'folder', FILTER_UNSAFE_RAW ) ) );
+
+			// What's the file name?
+			$aws_file = sanitize_text_field( wp_unslash( filter_input( INPUT_GET, 'file', FILTER_UNSAFE_RAW ) ) );
 
 			// Add it to the server record.
 			$all_image_urls = wpcd_maybe_unserialize( get_post_meta( $id, 'wpcd_stablediff_image_urls', true ) );
 			if ( empty( $all_image_urls ) ) {
 				$all_image_urls = array();
 			}
-			array_push( $all_image_urls, $signed_url );
+
+			$all_image_urls[ $aws_folder . '-' . $aws_file ] = array(
+				'signed-url' => $signed_url,
+				'taskid'     => $task_id,
+				'filename'   => $aws_file,
+			);
+
 			update_post_meta( $id, 'wpcd_stablediff_image_urls', $all_image_urls );
 
 		}

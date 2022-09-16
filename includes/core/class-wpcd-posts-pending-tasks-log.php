@@ -574,16 +574,20 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 	 * Return a list of task posts, searching for a combination of
 	 * parent, state and type.
 	 *
-	 * @param string $parent Match the 'parent_post_id' meta.
-	 * @param string $state  Match the 'pending_task_state' meta.
-	 * @param string $type   Match the 'pending_task_type' meta.
+	 * @param string $parent   Match the 'parent_post_id' meta.
+	 * @param string $state    Match the 'pending_task_state' meta.
+	 * @param string $type     Match the 'pending_task_type' meta.
+	 * @param string $orderby  Field to order by.
+	 * @param string $order    Order by ASCENDING (ASC) or DESCENDING (DESC).
 	 */
-	public function get_tasks_by_parent_state_type( $parent, $state, $type ) {
+	public function get_tasks_by_parent_state_type( $parent, $state, $type, $orderby = 'ID', $order = 'ASC'  ) {
 
 		$args = array(
 			'post_type'      => 'wpcd_pending_log',
 			'post_status'    => 'private',
 			'posts_per_page' => -1,
+			'orderby'        => $orderby,
+			'order'          => $order,			
 			'meta_query'     => array(
 				array(
 					'key'   => 'parent_post_id',

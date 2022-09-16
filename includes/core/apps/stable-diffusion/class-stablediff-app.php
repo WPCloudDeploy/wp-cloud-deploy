@@ -664,6 +664,9 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 		// Create task record here so we can get an id to add to the $additional array.
 		$task_id = WPCD_POSTS_PENDING_TASKS_LOG()->add_pending_task_log_entry( $server_post_id, 'stablediff_request_image', $server_post_id, array_merge( $instance, $additional ), 'not-ready', $server_post_id, __( 'Waiting To Request Stable Diffusion Images', 'wpcd' ) );
 
+		// Add/update a meta on the server record that points to this latest request (needed for the ui, nothing operational).
+		update_post_meta( $server_post_id, 'wpcd_stablediff_last_requested_image_task_id', $task_id );
+
 		// Add the task id to the $additional array.
 		$additional['task_id'] = $task_id;
 
@@ -1254,7 +1257,8 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 				foreach ( $actions as $action ) {
 
 					// Some actions require a 'wrapping' div to help the breaks for css-grid.
-					if ( 'download-file' === $action || 'request-image' === $action || 'reboot' === $action || 'relocate' === $action || 'connected' === $action ) {
+					if ( in_array( $action, array( 'download-file', 'request-image', 'reboot', 'relocate', 'connected', 'remove-user' ), true ) ) {
+						// if ( 'download-file' === $action || 'request-image' === $action || 'reboot' === $action || 'relocate' === $action || 'connected' === $action ) {
 						$buttons = $buttons . '<div class="wpcd-stablediff-instance-multi-button-block-wrap">';  // this should be matched later with a footer div.
 					}
 
@@ -1313,8 +1317,25 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 							$buttons       .= '<input type="text" name="image-prompt" id="wpcd-stablediff-input-text-request-image" class="wpcd-stablediff-additional wpcd-stablediff-input-text">';
 							$input_help_tip = __( 'Describe the image you would like to generate and then use the REQUEST IMAGES button below to submit the request to the server.', 'wpcd' );
 							break;
+						case 'last-image-request':
+							$buttons                    .= '<hr />';
+							$buttons                    .= '<div class="wpcd-stablediff-action-head">' . __( 'Last Requested Image', 'wpcd' ) . '</div>'; // Add in the section title text.
+							$last_requested_image_prompt = __( 'No Valid Image Requests Were Found.', 'wpcd' ); // Default output
+
+							// Get the task id for the last requested image.
+							$last_requested_image_task_id = get_post_meta( $server_post->ID, 'wpcd_stablediff_last_requested_image_task_id', true );
+							if ( ! empty( $last_requested_image_task_id ) ) {
+								$task_details = WPCD_POSTS_PENDING_TASKS_LOG()->get_pending_task_details_by_id( $last_requested_image_task_id );
+								if ( ! empty( $task_details ) && ! empty( $task_details['AI_PROMPT'] ) ) {
+									$last_requested_image_prompt = $task_details['AI_PROMPT'];
+								}
+							}
+							$buttons   .= '<p class="wpcd-stablediff-action-help-tip">' . $last_requested_image_prompt . '</p>';
+							$foot_break = true;
+							break;
 						case 'remove-user':
-							$clients = wpcd_maybe_unserialize( get_post_meta( $app_post->ID, 'stablediff_clients', true ) );
+							$buttons .= '<div class="wpcd-stablediff-action-head">' . __( 'Remove User', 'wpcd' ) . '</div>'; // Add in the section title text.
+							$clients  = wpcd_maybe_unserialize( get_post_meta( $app_post->ID, 'stablediff_clients', true ) );
 							if ( $clients ) {
 								$buttons .= '<select class="wpcd-stablediff-additional wpcd-stablediff-client-list wpcd-stablediff-remove-user wpcd-stablediff-select" name="name">';
 								foreach ( $clients as $client ) {
@@ -1366,7 +1387,7 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 
 					$buttons .= '</div> <!-- closing div for this button action block --> ';  // closing div for this button action block.
 
-					if ( true == $foot_break ) {
+					if ( true === $foot_break ) {
 						$buttons .= '<div class="wpcd-stablediff-action-foot $action">' . '</div>'; // Add in footer break as necessary - styling will be done in CSS file of course.
 						$buttons .= '</div> <!-- close multi-button block wrap -->'; // close up a multi-button block wrap.
 					}
@@ -1391,10 +1412,12 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 				}
 			}
 
-			$ipv4     = WPCD_SERVER()->get_ipv4_address( $server_post->ID );
-			$port     = get_post_meta( $app_post->ID, 'stablediff_port', true );
-			$protocol = sprintf( '%s / %d', WPCD()->classes['wpcd_app_stablediff_wc']->protocol[ strval( $protocol ) ], $port );
-			$size     = get_post_meta( $server_post->ID, 'wpcd_server_size', true );
+			// Get some basic data about the server.
+			$ipv4 = WPCD_SERVER()->get_ipv4_address( $server_post->ID );
+			$size = get_post_meta( $server_post->ID, 'wpcd_server_size', true );
+
+			// Get data from pending logs for any images requested.
+			$image_requests = $this->get_pending_images_count( $server_post->ID );
 
 			$max   = get_post_meta( $app_post->ID, 'stablediff_max_clients', true );
 			$total = wpcd_maybe_unserialize( get_post_meta( $app_post->ID, 'stablediff_clients', true ) );
@@ -1430,7 +1453,7 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 						<div class="wpcd-stablediff-instance-atts-region-wrap">' . $region_icon . '<div class="wpcd-stablediff-instance-atts-region-label">' . __( 'Region', 'wpcd' ) . ': ' . '</div>' . $display_region . '</div>
 						<div class="wpcd-stablediff-instance-atts-size-wrap">' . $size_icon . '<div class="wpcd-stablediff-instance-atts-size-label">' . __( 'Size', 'wpcd' ) . ': ' . '</div>' . WPCD()->classes['wpcd_app_stablediff_wc']::$sizes[ strval( $size ) ] . '</div>
 						<div class="wpcd-stablediff-instance-atts-ip-wrap">' . $ip_icon . '<div class="wpcd-stablediff-instance-atts-ip-label">' . __( 'IPv4', 'wpcd' ) . ': ' . '</div>' . $ipv4 . '</div>
-						<div class="wpcd-stablediff-instance-atts-users-wrap">' . $users_icon . '<div class="wpcd-stablediff-instance-atts-users-label">' . __( 'Users / Allowed', 'wpcd' ) . ': ' . '</div>' . sprintf( '%d / %d', count( $total ), $max ) . '</div>
+						<div class="wpcd-stablediff-instance-atts-users-wrap">' . $users_icon . '<div class="wpcd-stablediff-instance-atts-users-label">' . __( 'Image Requests Pending', 'wpcd' ) . ': ' . '</div>' . sprintf( '%d', $image_requests ) . '</div>
 						<div class="wpcd-stablediff-instance-atts-subid-wrap">' . $subid_icon . '<div class="wpcd-stablediff-instance-atts-sub-label">' . __( 'Subscription ID', 'wpcd' ) . ': ' . '</div>' . implode( ', ', $subscription_array ) . '</div>';
 
 			$output .= '</div>';
@@ -1454,9 +1477,8 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 	private function get_actions_for_instance( $id, $details ) {
 		/* Note: the order of items in this array is very important for styling purposes so re-arrange at your own risk. */
 		$actions = array(
-			'download-file',
-			'instructions',
 			'request-image',
+			'last-image-request',
 			'remove-user',
 			'reboot',
 			'off',
@@ -1464,6 +1486,8 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 			'reinstall',
 			'relocate',
 			'connected',
+			'download-file',
+			'instructions',
 		);
 
 		// problem fetching details. Maybe instance was deleted?
@@ -1516,29 +1540,6 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 			return $state;
 		} else {
 			if ( ( $key = array_search( 'on', $actions ) ) !== false ) {
-				unset( $actions[ $key ] );
-			}
-		}
-
-		$max_users = intval( get_post_meta( $id, 'stablediff_max_clients', true ) );
-		$clients   = wpcd_maybe_unserialize( get_post_meta( $id, 'stablediff_clients', true ) );
-		if ( $clients ) {
-			$clients = count( $clients );
-		} else {
-			$clients = 0;
-		}
-		if ( $max_users === $clients ) {
-			if ( ( $key = array_search( 'add-user', $actions ) ) !== false ) {
-				unset( $actions[ $key ] );
-			}
-		} elseif ( 0 === $clients ) {
-			if ( ( $key = array_search( 'remove-user', $actions ) ) !== false ) {
-				unset( $actions[ $key ] );
-			}
-			if ( ( $key = array_search( 'connected', $actions ) ) !== false ) {
-				unset( $actions[ $key ] );
-			}
-			if ( ( $key = array_search( 'download-file', $actions ) ) !== false ) {
 				unset( $actions[ $key ] );
 			}
 		}
@@ -2129,6 +2130,38 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 			'1' => 'UDP',
 			'2' => 'TCP',
 		);
+	}
+
+	/**
+	 * Get a list of pending log image request posts that have not been completed yet.
+	 *
+	 * @param string $server_id The server id for which we're making this request.
+	 *
+	 * @return array|bool|object|wp_error
+	 */
+	public function get_pending_images( $server_id ) {
+
+		$image_requests_ready      = WPCD_POSTS_PENDING_TASKS_LOG()->get_tasks_by_key_state_type( $server_id, 'ready', 'stablediff_request_image' );
+		$image_requests_not_ready  = WPCD_POSTS_PENDING_TASKS_LOG()->get_tasks_by_key_state_type( $server_id, 'not-ready', 'stablediff_request_image' );
+		$image_requests_in_process = WPCD_POSTS_PENDING_TASKS_LOG()->get_tasks_by_key_state_type( $server_id, 'in-process', 'stablediff_request_image' );
+
+		return array_merge( $image_requests_ready, $image_requests_not_ready, $image_requests_in_process );
+
+	}
+
+	/**
+	 * Get a count of pending log image request posts that have not been completed yet.
+	 *
+	 * @param string $server_id The server id for which we're making this request.
+	 *
+	 * @return array|bool|object|wp_error
+	 */
+	public function get_pending_images_count( $server_id ) {
+
+		$pending_images = $this->get_pending_images( $server_id );
+
+		return count( $pending_images );
+
 	}
 
 	/**

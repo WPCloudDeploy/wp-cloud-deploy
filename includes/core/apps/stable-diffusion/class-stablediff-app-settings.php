@@ -112,6 +112,10 @@ class STABLEDIFF_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'label' => 'General',
 				'icon'  => 'dashicons-text',
 			),
+			'stablediff-s3'         => array(
+				'label' => 'AWS S3',
+				'icon'  => 'dashicons-images-alt2',
+			),
 			'stablediff-scripts'    => array(
 				'label' => 'Scripts',
 				'icon'  => 'dashicons-format-aside',
@@ -132,7 +136,8 @@ class STABLEDIFF_APP_SETTINGS extends WPCD_APP_SETTINGS {
 		$general_fields = $this->general_fields();
 		$promo_fields   = $this->promotional_fields();
 		$script_fields  = $this->scripts_fields();
-		$all_fields     = array_merge( $general_fields, $promo_fields, $script_fields );
+		$s3_fields      = $this->s3_fields();
+		$all_fields     = array_merge( $general_fields, $promo_fields, $script_fields, $s3_fields );
 		return $all_fields;
 	}
 
@@ -273,6 +278,60 @@ class STABLEDIFF_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			),
 		);
 		return $fields;
+	}
+
+	/**
+	 * Array of fields used to store s3 settings.
+	 */
+	public function s3_fields() {
+
+		$fields = array(
+			array(
+				'id'   => 'stablediff_app_s3_heading_01',
+				'type' => 'heading',
+				'name' => __( 'AWS S3 Credentials', 'wpcd' ),
+				'tab'  => 'stablediff-s3',
+			),
+			array(
+				'id'      => 'stablediff_app_aws_access_key',
+				'type'    => 'text',
+				'name'    => __( 'AWS Access Key ID', 'wpcd' ),
+				'tooltip' => __( 'AWS Access Key ID', 'wpcd' ),
+				'tab'     => 'stablediff-s3',
+				'std'     => wpcd_get_option( 'stablediff_app_aws_access_key' ),
+				'size'    => 60,
+			),
+			array(
+				'id'      => 'stablediff_app_aws_secret_key',
+				'type'    => 'text',
+				'name'    => __( 'AWS Secret Key', 'wpcd' ),
+				'tooltip' => __( 'AWS Secret Key', 'wpcd' ),
+				'tab'     => 'stablediff-s3',
+				'size'    => 60,
+			),
+			array(
+				'id'   => 'stablediff_app_aws_default_region',
+				'type' => 'text',
+				'name' => __( 'Default Region', 'wpcd' ),
+				'tab'  => 'stablediff-s3',
+				'desc'    => sprintf( __( '<a href="%s" target="_blank" >Valid Regions</a>', 'wpcd' ), 'https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html#concepts-available-regions' ),
+				'std'     => wpcd_get_option( 'stablediff_app_aws_default_region' ),
+				'size' => 60,
+			),
+			array(
+				'id'      => 'stablediff_app_aws_bucket',
+				'type'    => 'text',
+				'name'    => __( 'AWS Bucket Name', 'wpcd' ),
+				'tooltip' => __( 'AWS Bucket Name', 'wpcd' ),
+				'tab'     => 'stablediff-s3',
+				'std'     => wpcd_get_option( 'stablediff_app_aws_bucket' ),
+				'size'    => 60,
+			),
+
+		);
+
+		return $fields;
+
 	}
 
 }

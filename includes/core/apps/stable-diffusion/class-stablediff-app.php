@@ -647,6 +647,13 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 		$additional['AI_HEIGHT']     = 512;
 		$additional['AI_SEED']       = random_int( 20, 999999 );
 
+		// Add S3 vars so that files can be uploaded to bucket.
+		$additional['AWS_ACCESS_KEY_ID']     = wpcd_get_option( 'stablediff_app_aws_access_key' );
+		$additional['AWS_SECRET_ACCESS_KEY'] = wpcd_get_option( 'stablediff_app_aws_secret_key' );
+		$additional['AWS_DEFAULT_REGION']    = wpcd_get_option( 'stablediff_app_aws_default_region' );
+		$additional['AWS_BUCKET']            = wpcd_get_option( 'stablediff_app_aws_bucket' );
+		$additional['AWS_FOLDER']            = $folder_name;
+
 		// Add other environment vars needed for bash script.
 		$additional['server_id'] = $server_post_id;
 

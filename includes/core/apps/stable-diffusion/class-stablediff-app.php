@@ -113,8 +113,15 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 		// Action hook to fire on new site created on WP Multisite.
 		add_action( 'wp_initialize_site', array( $this, 'stablediff_schedule_events_for_new_site' ), 10, 2 );
 
+		// Handle script replacement tokens when called from function turn_script_into_command.
+		add_filter( "wpcd_script_placeholders_{$this->get_app_name()}", array( $this, 'script_placeholders' ), 10, 6 );
+
+		/* Pending Logs Background Task: Request Image. */
+		add_action( 'wpcd_pending_log_stablediff_request_image', array( $this, 'handle_task_request_image' ), 10, 3 );
+
 		// Push commands & callbacks.
-		add_action( "wpcd_{$this->get_app_name()}_command_install_stable_diff_progress-report", array( &$this, 'callback_install_server_status' ), 10, 4 );
+		add_action( "wpcd_{$this->get_app_name()}_command_install_stable_diff_progress-report", array( &$this, 'callback_install_server_status' ), 10, 4 ); // For getting status of server as it's being deployed.
+		add_action( "wpcd_{$this->get_app_name()}_command_stablediff_request_image_progress-report", array( &$this, 'callback_request_image' ), 10, 4 ); // For getting progress report when user requests image.
 
 		/* Make sure that we show the server sizes on the provider settings screen - by default they are turned off in settings. */
 		add_filter(
@@ -602,7 +609,7 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 	}
 
 	/**
-	 * Submit a request to the server to generate images.
+	 * Setup a background task to submit a request to the server to generate images.
 	 *
 	 * @param array $attributes An array of attributes with server and app data.
 	 * @param array $additional An array of data that we might need - this is usually provided by html forms data.
@@ -616,10 +623,133 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 
 		$result = true;
 
-		error_log(print_r($attributes,true));
-		error_log(print_r($additional,true));
+		$server_post_id = $attributes['post_id'];
+
+		// Get data about the server.
+		$instance = $this->get_server_instance_details( $server_post_id );
+		$provider = $instance['provider'];
+
+		// Get provider handle since we'll need to get the root user name.
+		$root_user = WPCD()->get_provider_api( $provider )->get_root_user();
+
+		// Generate a folder name.
+		$folder_name = wpcd_generate_uuid();
+
+		// Add elements to the additional array that are needed for the bash script.
+		$additional['wpcd_user'] = $root_user;
+
+		// Add defaults for stable diffusion command line.
+		$additional['AI_PROMPT']     = sanitize_text_field( $additional['image-prompt'] );
+		$additional['AI_SAMPLES']    = 2;
+		$additional['AI_OUTPUT_DIR'] = 'outputs/wpcd-outputs/' . $folder_name;
+		$additional['AI_STEPS']      = 50;
+		$additional['AI_WIDTH']      = 512;
+		$additional['AI_HEIGHT']     = 512;
+		$additional['AI_SEED']       = random_int( 20, 9999999 );
+
+		// Add other environment vars needed for bash script.
+		$additional['server_id'] = $server_post_id;
+
+		// Generate Callback URL and stick in the $additional array as well.
+		$command_name               = 'stablediff_request_image';
+		$additional['callback_url'] = $this->get_command_url( $server_post_id, $command_name, 'progress-report' );
+
+		// Create task record here so we can get an id to add to the $additional array.
+		$task_id = WPCD_POSTS_PENDING_TASKS_LOG()->add_pending_task_log_entry( $server_post_id, 'stablediff_request_image', $server_post_id, array_merge( $instance, $additional ), 'not-ready', $server_post_id, __( 'Waiting To Request Stable Diffusion Images', 'wpcd' ) );
+
+		// Add the task id to the $additional array.
+		$additional['task_id'] = $task_id;
+
+		$run_cmd = $this->turn_script_into_command(
+			$attributes,
+			'before-run-default-stablediff.txt',
+			$additional,
+		);
+
+		// Add the run command to the task record.
+		$additional['run_cmd']     = $run_cmd;
+		$additional['action_hook'] = 'wpcd_pending_log_stablediff_request_image'; // Action hook.
+		WPCD_POSTS_PENDING_TASKS_LOG()->update_task_by_id( $task_id, array_merge( $instance, $additional ), 'ready' );
+
+		error_log( print_r( $attributes, true ) );
+		error_log( print_r( $additional, true ) );
+
+		error_log( 'instance array:' );
+		error_log( print_r( $instance, true ) );
+
+		error_log( 'this is the result of turn_script_into_command:' );
+		error_log( $run_cmd );
 
 		return $result;
+
+	}
+
+	/**
+	 * Submit a request to the server to generate images.
+	 *
+	 * Called from an action hook from the pending logs background process - WPCD_POSTS_PENDING_TASKS_LOG()->do_tasks()
+	 *
+	 * Action Hook: wpcd_pending_log_stablediff_request_image
+	 *
+	 * @param int   $task_id    Id of pending task that is firing this thing...
+	 * @param int   $server_id  Post Id of server on which this action apply.
+	 * @param array $args       All the data needed for this action.
+	 */
+	public function handle_task_request_image( $task_id, $server_id, $args ) {
+
+		error_log( 'handling task for request inmage...' . $server_id );
+		error_log( print_r( $args, true ) );
+
+		// Execute ssh command.
+		$run_cmd = $args['run_cmd'];
+		if ( ! empty( $run_cmd ) ) {
+			$run_cmd = str_replace( ' - ', '', $run_cmd );
+			$result  = $this->execute_ssh( 'generic', $args, array( 'commands' => $run_cmd ) );
+			if ( is_wp_error( $result ) ) {
+				return false;
+			} else {
+				return true;
+			}
+		}
+
+		// In most cases we would mark the task complete here.  BUT, we're not doing that in this situation.
+		// Instead we are going to wait for a callback that will tell us the task is complete.
+		// Then and only then will we mark the task as complete.
+	}
+
+	/**
+	 * Different scripts needs different placeholders/handling.
+	 *
+	 * Filter Hook: wpcd_script_placeholders_{$this->get_app_name()}
+	 *
+	 * @param array  $array              The array of placeholders, usually empty but since this is the first param, its the one returned as the modified value.
+	 * @param string $script_name        Script_name.
+	 * @param string $script_version     The version of script to be used.
+	 * @param array  $instance           Various pieces of data about the server or app being used. It can use the following keys. post_id: the ID of the post.
+	 * @param string $command            The command being constructed.
+	 * @param array  $additional         An array of any additional data we might need.
+	 */
+	public function script_placeholders( $array, $script_name, $script_version, $instance, $command, $additional ) {
+		$new_array = array();
+
+		$common_array = array(
+			'COMMON_PARARMS_URL' => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/params.sh',
+		);
+
+		switch ( $script_name ) {
+			case 'before-run-default-stablediff.txt':
+				$new_array = array_merge(
+					array(
+						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/run-default-stablediff.txt',
+						'SCRIPT_NAME' => 'run-stablediff.sh',
+					),
+					$common_array,
+					$additional
+				);
+				break;
+		}
+
+		return array_merge( $array, $new_array );
 
 	}
 
@@ -677,6 +807,69 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 
 		$result = $this->execute_ssh( 'generic', $instance, array( 'commands' => $run_cmd ) );
 
+	}
+
+	/**
+	 * Validates the server and returns the server instance details.
+	 *
+	 * NOTE: This is almost an exact duplicate of the function with the same name
+	 * in class-wordpress-app.php. It's only difference is that the function
+	 * get_instance_details that it calls doesn't handle custom fields.
+	 * If it wasn't for custom fields we could have hand a common function.
+	 *
+	 * @param int $server_id server id.
+	 */
+	public function get_server_instance_details( $server_id ) {
+		if ( ! $server_id ) {
+			return new \WP_Error( __( 'Invalid server ID', 'wpcd' ) );
+		}
+
+		// Verify the cpt type.
+		$post = get_post( $server_id );
+		if ( 'wpcd_app_server' !== $post->post_type ) {
+			return new \WP_Error( __( 'Invalid server', 'wpcd' ) );
+		}
+
+		$instance = $this->get_instance_details( $server_id );
+
+		return $instance;
+	}
+
+	/**
+	 * Generates the instances' details that are required by other functions.
+	 *
+	 * NOTE: This is almost an exact duplicate of the function with the same name
+	 * in class-wordpress-app.php. It's only difference is that it doesn't handle
+	 * custom fields since this app doesn't have them.
+	 * If it wasn't for custom fields we could have hand a common function.
+	 *
+	 * @param int $id id.
+	 */
+	public function get_instance_details( $id ) {
+		$attributes = array(
+			'post_id' => $id,
+		);
+
+		/* Get data from server post */
+		$all_meta = get_post_meta( $id );
+		foreach ( $all_meta as $key => $value ) {
+			if ( 'wpcd_server_app_post_id' == $key ) {
+				continue;  // this key, if present, should not be added to the array since it shouldn't even be in the server cpt in the first place. But it might get there accidentally on certain operations.
+			}
+
+			// Any field that starts with "wpcd_server_" goes into the array.
+			if ( strpos( $key, 'wpcd_server_' ) === 0 ) {
+				$value = wpcd_maybe_unserialize( $value );
+				$attributes[ str_replace( 'wpcd_server_', '', $key ) ] = is_array( $value ) && count( $value ) === 1 ? $value[0] : $value;
+			}
+		}
+
+		$details = WPCD()->get_provider_api( $attributes['provider'] )->call( 'details', array( 'id' => $attributes['provider_instance_id'] ) );
+
+		// Merge post ids and server details into a single array.
+		$attributes = array_merge( $attributes, $details );
+
+		return $attributes;
 	}
 
 	/**
@@ -1369,8 +1562,12 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 			'key'    => wpcd_get_option( 'vpn_' . $attributes['provider'] . '_sshkey' ),
 		);
 
-		$post_id     = $attributes['post_id'];
-		$app_post_id = $attributes['app_post_id'];
+		$post_id = $attributes['post_id'];
+		if ( ! empty( $attributes['app_post_id'] ) ) {
+			$app_post_id = $attributes['app_post_id'];
+		} else {
+			$app_post_id = '';
+		}
 
 		$result = null;
 		switch ( $action ) {
@@ -1941,6 +2138,74 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 
 		// set variable to name, in this case it is always "install_stable_diff" - will be used in action hooks later.
 		$name = 'install_stable_diff';
+
+		// Get server state.  It should be 'starting_warmup', 'warmup_complete', 'done'.
+		$server_state = sanitize_text_field( filter_input( INPUT_GET, 'state', FILTER_UNSAFE_RAW ) );
+
+		if ( ! in_array( $server_state, array( 'starting_warmup', 'warmup_complete', 'done' ), true ) ) {
+			// Invalid server_state given so log error and return.
+			do_action( 'wpcd_log_error', 'An invalid callback request was received for function callback_install_server_status - received server id ' . (string) $id, 'security', __FILE__, __LINE__ );
+			return false;
+		}
+
+		// Update server metas based on server state.
+		if ( 'wpcd_app_server' === get_post_type( $id ) ) {
+
+			switch ( $server_state ) {
+				case 'starting_warmup':
+					WPCD_SERVER()->add_deferred_action_history( $id, $server_state );
+					do_action( 'wpcd_log_notification', $id, 'notice', __( 'The stable diffusion server is about to begin the warmup process.', 'wpcd' ), 'server-prepare', null );
+					break;
+				case 'warmup_complete':
+					do_action( 'wpcd_log_notification', $id, 'notice', __( 'The stable diffusion server has completed the warmup process.', 'wpcd' ), 'server-prepare', null );
+					WPCD_SERVER()->add_deferred_action_history( $id, $server_state );
+					break;
+				case 'done':
+					do_action( 'wpcd_log_notification', $id, 'notice', __( 'The stable diffusion server is ready.', 'wpcd' ), 'server-prepare', null );
+
+					// Delete certain metas from the database since it is no longer necessary.
+					delete_post_meta( $id, 'wpcd_server_after_create_action_app_id' );
+
+					// Schedule emails to be sent..
+					update_post_meta( $id, 'wpcd_server_action', 'email' );
+
+					// Add to history.
+					WPCD_SERVER()->add_deferred_action_history( $id, $server_state );
+					break;
+			}
+		} else {
+			do_action( 'wpcd_log_error', 'Data received for server that does not exist - received server id ' . (string) $id . '<br /> The first 5000 characters of the received data is shown below after being sanitized with WP_KSES:<br /> ' . substr( wp_kses( print_r( $_REQUEST, true ), array() ), 0, 5000 ), 'security', __FILE__, __LINE__ );
+		}
+
+	}
+
+	/**
+	 * Handles status after request for image is submitted to the server..
+	 *
+	 * This function is called as the server generates images.  The server bash script makes periodic callbacks/restapi calls
+	 * that trigger this function.
+	 * It passes two queryparms called 'state' and taskid.
+	 *
+	 * Action Hook: wpcd_{$this->get_app_name()}_command_stablediff_request_image_progress-report || wpcd_stablediff_command_stablediff_request_image_progress-report
+	 *
+	 * @param int    $id server post id.
+	 * @param int    $command_id an id that is given to the bash script at the time it's first run. Doesn't do anything for us in this context so it's not used here.
+	 * @param string $name name.
+	 * @param string $status status.
+	 *
+	 * @return void|boolean.
+	 */
+	public function callback_request_image( $id, $command_id, $name, $status ) {
+
+		// Set variable to status if not set in the parameters. In this case it will default to "completed" - will be used in action hooks later.
+		if ( empty( $status ) ) {
+			$status = 'completed';
+		}
+
+		// set variable to name, in this case it is always "install_stable_diff" - will be used in action hooks later.
+		$name = 'stablediff_request_image';
+
+		error_log( 'request images completed - server callback.' );
 
 		// Get server state.  It should be 'starting_warmup', 'warmup_complete', 'done'.
 		$server_state = sanitize_text_field( filter_input( INPUT_GET, 'state', FILTER_UNSAFE_RAW ) );

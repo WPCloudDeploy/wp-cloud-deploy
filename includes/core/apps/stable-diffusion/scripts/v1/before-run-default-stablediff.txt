@@ -1,13 +1,24 @@
 echo "done" && {
     cd ~ ; 
 	} && {
-	sudo -E wget --no-check-certificate -O run-stablediff.sh ##URL-SCRIPT##  &&
+	export WPCD_USER=##WPCD_USER##
+	export AI_PROMPT=##AI_PROMPT##
+	export AI_SAMPLES=##AI_SAMPLES##
+	export AI_OUTPUT_DIR=##AI_OUTPUT_DIR##
+	export AI_STEPS=##AI_STEPS##
+	export AI_WIDTH=##AI_WIDTH##
+	export AI_HEIGHT=##AI_HEIGHT##
+	export AI_SEED=##AI_SEED##
+	export CALLBACK_URL=##CALLBACK_URL##
+	export CALLBACK_URL_ALT=##CALLBACK_URL_ALT##
+	export SERVER_ID=##SERVER_ID##
+	export APP_ID=##APP_ID##
+	export TASK_ID=##TASK_ID##	
+	sudo -E wget --no-check-certificate -O ##SCRIPT_NAME## ##SCRIPT_URL##  &&
 	sudo -E dos2unix run-stablediff.sh &&
-    sudo -E wget --no-check-certificate -O stablediff-script-params.sh ##URL-SCRIPT-PARAMS##  &&
     export interactive=no &&
-    sudo -E dos2unix stablediff-script-params.sh &&
-	sudo -E chmod 500 run-stablediff.sh stablediff-script-params.sh &&
-	sudo -E chown $WPCD_USER:$WPCD_USER *.sh &&
-	bash ~/stablediff-script.sh >> stablediff-run-status-$TASK_ID.log &&
+	sudo -E chmod 500 ##SCRIPT_NAME## &&
+	sudo -E chown $WPCD_USER:$WPCD_USER ##SCRIPT_NAME## &&
+	bash ~/##SCRIPT_NAME## >> stablediff-run-status-$TASK_ID.log &&
 	cat stablediff-run-status-$TASK_ID.log # So that it's output to the ssh virtual terminal.
 }

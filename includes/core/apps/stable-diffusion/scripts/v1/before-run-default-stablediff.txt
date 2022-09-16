@@ -2,7 +2,7 @@ echo "done" && {
     cd ~ ; 
 	} && {
 	export WPCD_USER=##WPCD_USER##
-	export AI_PROMPT=##AI_PROMPT##
+	export AI_PROMPT="##AI_PROMPT##"
 	export AI_SAMPLES=##AI_SAMPLES##
 	export AI_OUTPUT_DIR=##AI_OUTPUT_DIR##
 	export AI_STEPS=##AI_STEPS##

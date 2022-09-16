@@ -645,7 +645,7 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 		$additional['AI_STEPS']      = 50;
 		$additional['AI_WIDTH']      = 512;
 		$additional['AI_HEIGHT']     = 512;
-		$additional['AI_SEED']       = random_int( 20, 9999999 );
+		$additional['AI_SEED']       = random_int( 20, 999999 );
 
 		// Add other environment vars needed for bash script.
 		$additional['server_id'] = $server_post_id;
@@ -671,15 +671,6 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 		$additional['action_hook'] = 'wpcd_pending_log_stablediff_request_image'; // Action hook.
 		WPCD_POSTS_PENDING_TASKS_LOG()->update_task_by_id( $task_id, array_merge( $instance, $additional ), 'ready' );
 
-		error_log( print_r( $attributes, true ) );
-		error_log( print_r( $additional, true ) );
-
-		error_log( 'instance array:' );
-		error_log( print_r( $instance, true ) );
-
-		error_log( 'this is the result of turn_script_into_command:' );
-		error_log( $run_cmd );
-
 		return $result;
 
 	}
@@ -696,9 +687,6 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 	 * @param array $args       All the data needed for this action.
 	 */
 	public function handle_task_request_image( $task_id, $server_id, $args ) {
-
-		error_log( 'handling task for request inmage...' . $server_id );
-		error_log( print_r( $args, true ) );
 
 		// Execute ssh command.
 		$run_cmd = $args['run_cmd'];
@@ -2205,45 +2193,26 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 		// set variable to name, in this case it is always "install_stable_diff" - will be used in action hooks later.
 		$name = 'stablediff_request_image';
 
-		error_log( 'request images completed - server callback.' );
+		// Get command state.  It should be 'in_progress', 'done'.
+		$request_state = sanitize_text_field( filter_input( INPUT_GET, 'state', FILTER_UNSAFE_RAW ) );
 
-		// Get server state.  It should be 'starting_warmup', 'warmup_complete', 'done'.
-		$server_state = sanitize_text_field( filter_input( INPUT_GET, 'state', FILTER_UNSAFE_RAW ) );
-
-		if ( ! in_array( $server_state, array( 'starting_warmup', 'warmup_complete', 'done' ), true ) ) {
-			// Invalid server_state given so log error and return.
-			do_action( 'wpcd_log_error', 'An invalid callback request was received for function callback_install_server_status - received server id ' . (string) $id, 'security', __FILE__, __LINE__ );
+		if ( ! in_array( $request_state, array( 'in_progress', 'done' ), true ) ) {
+			// Invalid request_state given so log error and return.
+			do_action( 'wpcd_log_error', 'An invalid callback request was received for function callback_request_image - received server id ' . (string) $id, 'security', __FILE__, __LINE__ );
 			return false;
 		}
 
-		// Update server metas based on server state.
-		if ( 'wpcd_app_server' === get_post_type( $id ) ) {
-
-			switch ( $server_state ) {
-				case 'starting_warmup':
-					WPCD_SERVER()->add_deferred_action_history( $id, $server_state );
-					do_action( 'wpcd_log_notification', $id, 'notice', __( 'The stable diffusion server is about to begin the warmup process.', 'wpcd' ), 'server-prepare', null );
-					break;
-				case 'warmup_complete':
-					do_action( 'wpcd_log_notification', $id, 'notice', __( 'The stable diffusion server has completed the warmup process.', 'wpcd' ), 'server-prepare', null );
-					WPCD_SERVER()->add_deferred_action_history( $id, $server_state );
-					break;
-				case 'done':
-					do_action( 'wpcd_log_notification', $id, 'notice', __( 'The stable diffusion server is ready.', 'wpcd' ), 'server-prepare', null );
-
-					// Delete certain metas from the database since it is no longer necessary.
-					delete_post_meta( $id, 'wpcd_server_after_create_action_app_id' );
-
-					// Schedule emails to be sent..
-					update_post_meta( $id, 'wpcd_server_action', 'email' );
-
-					// Add to history.
-					WPCD_SERVER()->add_deferred_action_history( $id, $server_state );
-					break;
-			}
-		} else {
-			do_action( 'wpcd_log_error', 'Data received for server that does not exist - received server id ' . (string) $id . '<br /> The first 5000 characters of the received data is shown below after being sanitized with WP_KSES:<br /> ' . substr( wp_kses( print_r( $_REQUEST, true ), array() ), 0, 5000 ), 'security', __FILE__, __LINE__ );
+		// Get the task id.  If we didn't get one, say bye-bye.
+		$task_id = sanitize_text_field( filter_input( INPUT_GET, 'taskid', FILTER_SANITIZE_NUMBER_INT ) );
+		if ( empty( $task_id ) ) {
+			do_action( 'wpcd_log_error', 'No task id was provided in function callback_request_image - received server id ' . (string) $id, 'security', __FILE__, __LINE__ );
+			return false;
 		}
+
+		// Maybe send email?
+
+		// Update task to done.
+		WPCD_POSTS_PENDING_TASKS_LOG()->update_task_by_id( $task_id, false, 'complete' );
 
 	}
 

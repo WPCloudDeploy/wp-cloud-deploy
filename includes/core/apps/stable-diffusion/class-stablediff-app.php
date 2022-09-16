@@ -1257,16 +1257,17 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 				foreach ( $actions as $action ) {
 
 					// Some actions require a 'wrapping' div to help the breaks for css-grid.
-					if ( in_array( $action, array( 'download-file', 'request-image', 'reboot', 'relocate', 'connected', 'remove-user' ), true ) ) {
-						// if ( 'download-file' === $action || 'request-image' === $action || 'reboot' === $action || 'relocate' === $action || 'connected' === $action ) {
+					if ( in_array( $action, array( 'download-file', 'request-image', 'last-completed-image', 'reboot', 'relocate', 'connected', 'remove-user' ), true ) ) {
 						$buttons = $buttons . '<div class="wpcd-stablediff-instance-multi-button-block-wrap">';  // this should be matched later with a footer div.
 					}
 
+					// Initialize important vars for this iteration of the loop.
 					$help_tip       = ''; // text that will go underneath each button.
 					$input_help_tip = ''; // text that will go underneath each input field.
 					$foot_break     = false;  // whether or not to insert a footer div after the block.
 					$buttons       .= '<div class="wpcd-stablediff-instance-button-block">'; // opening div for button action block.
 					$btn_icon_class = '';  /* classname to render icon before text on some buttons */
+
 					switch ( $action ) {
 						case 'off':
 							$btn_icon_class = '<span class="icon-spstablediffpower_off"></span>';
@@ -1332,6 +1333,25 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 							}
 							$buttons   .= '<p class="wpcd-stablediff-action-help-tip">' . $last_requested_image_prompt . '</p>';
 							$foot_break = true;
+							break;
+						case 'last-completed-image':
+							$buttons .= '<div class="wpcd-stablediff-action-head">' . __( 'Recently Generated Image', 'wpcd' ) . '</div>'; // Add in the section title text.
+
+							// Get list of images from the server meta.
+							$image_urls = wpcd_maybe_unserialize( get_post_meta( $server_post->ID, 'wpcd_stablediff_image_urls', true ) );
+
+							if ( ! empty( $image_urls ) && is_array( $image_urls ) && count( $image_urls ) > 0 ) {
+								$last_generated_image = end( $image_urls ); // most recent image will be at the bottom of the array.
+								$image_to_show = $last_generated_image['signed-url']; // most recent image will be at the bottom of the array.
+
+								$buttons .= sprintf( '<img class="wpcd-stablediff-generated-img" src=%s />', $image_to_show );
+							} else {
+								$msg      = __( 'No images have been generated recently.', 'wpcd' );
+								$buttons .= '<p class="wpcd-stablediff-action-help-tip">' . $msg . '</p>';
+							}
+
+							$foot_break = true;
+
 							break;
 						case 'remove-user':
 							$buttons .= '<div class="wpcd-stablediff-action-head">' . __( 'Remove User', 'wpcd' ) . '</div>'; // Add in the section title text.
@@ -1479,6 +1499,7 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 		$actions = array(
 			'request-image',
 			'last-image-request',
+			'last-completed-image',
 			'remove-user',
 			'reboot',
 			'off',

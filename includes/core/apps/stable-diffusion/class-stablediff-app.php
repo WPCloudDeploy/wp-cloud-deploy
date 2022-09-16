@@ -1250,6 +1250,9 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 				$actions = $this->get_actions_for_instance( $app_post->ID, $details );
 			}
 
+			// Get data from pending logs for any images requested.
+			$pending_image_requests = $this->get_pending_images_count( $server_post->ID );
+
 			// Start building display HTML for this particular server/app instance.
 			$buttons         = '';
 			$html_attributes = array();
@@ -1317,6 +1320,8 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 							$buttons       .= '<div class="wpcd-stablediff-action-head">' . __( 'Request Images', 'wpcd' ) . '</div>'; // Add in the section title text.
 							$buttons       .= '<input type="text" name="image-prompt" id="wpcd-stablediff-input-text-request-image" class="wpcd-stablediff-additional wpcd-stablediff-input-text">';
 							$input_help_tip = __( 'Describe the image you would like to generate and then use the REQUEST IMAGES button below to submit the request to the server.', 'wpcd' );
+							$help_tip       = sprintf( __( 'You have %s image requests pending. Each request will generate four images.', 'wpcd' ), $pending_image_requests );
+
 							break;
 						case 'last-image-request':
 							$buttons                    .= '<hr />';
@@ -1331,7 +1336,36 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 									$last_requested_image_prompt = $task_details['AI_PROMPT'];
 								}
 							}
-							$buttons   .= '<p class="wpcd-stablediff-action-help-tip">' . $last_requested_image_prompt . '</p>';
+							$buttons .= '<p class="wpcd-stablediff-action-help-tip">' . $last_requested_image_prompt . '</p>';
+							break;
+						case 'completed-images-urls':
+							// Show the URLS for 10 most recently completed images.
+
+							$buttons .= '<hr />';
+							$buttons .= '<div class="wpcd-stablediff-action-head">' . __( 'Download Your Most Recent Generated Images', 'wpcd' ) . '</div>'; // Add in the section title text.
+
+							// Get list of images from the server meta.
+							$images = wpcd_maybe_unserialize( get_post_meta( $server_post->ID, 'wpcd_stablediff_image_urls', true ) );
+
+							if ( ! empty( $images ) && is_array( $images ) && count( $images ) > 0 ) {
+								// Get an array iterator that is reversed.
+								$reverted_images_iterator = new ArrayIterator( array_reverse( $images ) );
+								$cnt                      = 0;
+								foreach ( $reverted_images_iterator as $image ) {
+									$cnt++;
+
+									$image_url   = $image['signed-url'];
+									$image_label = sprintf( __( 'Image generated on: %s', 'wpcd' ), $image['date-generated-gmt'] );
+
+									$buttons .= sprintf( '<a href="%s" target="_blank">%s</a><br />', $image_url, $image_label );
+									if ( $cnt >= 10 ) {
+										break;
+									}
+								}
+							} else {
+								$msg      = __( 'No generated images were found for this server. use the REQUEST IMAGES button above to generate your first one!', 'wpcd' );
+								$buttons .= '<p class="wpcd-stablediff-action-help-tip">' . $msg . '</p>';
+							}
 							$foot_break = true;
 							break;
 						case 'last-completed-image':
@@ -1403,7 +1437,7 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 					}
 
 					// Add an actual button for most things (but not all).
-					if ( ! in_array( $action, array( 'last-completed-image', 'last-image-request' ), true ) ) {
+					if ( ! in_array( $action, array( 'last-completed-image', 'last-image-request', 'completed-images-urls' ), true ) ) {
 						$buttons .= '<button ' . $attributes . ' class="wpcd-stablediff-action-type wpcd-stablediff-action-' . $action . '" data-action="' . $action . '" data-id="' . $server_post->ID . '" data-app-id="' . $app_post->ID . '">' . $btn_icon_class . ' ' . $this->get_action_description( $action ) . '</button>';
 
 						// Add help tip below the buttons.
@@ -1443,9 +1477,6 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 			$ipv4 = WPCD_SERVER()->get_ipv4_address( $server_post->ID );
 			$size = get_post_meta( $server_post->ID, 'wpcd_server_size', true );
 
-			// Get data from pending logs for any images requested.
-			$image_requests = $this->get_pending_images_count( $server_post->ID );
-
 			$max   = get_post_meta( $app_post->ID, 'stablediff_max_clients', true );
 			$total = wpcd_maybe_unserialize( get_post_meta( $app_post->ID, 'stablediff_clients', true ) );
 			if ( empty( $total ) ) {
@@ -1480,7 +1511,7 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 						<div class="wpcd-stablediff-instance-atts-region-wrap">' . $region_icon . '<div class="wpcd-stablediff-instance-atts-region-label">' . __( 'Region', 'wpcd' ) . ': ' . '</div>' . $display_region . '</div>
 						<div class="wpcd-stablediff-instance-atts-size-wrap">' . $size_icon . '<div class="wpcd-stablediff-instance-atts-size-label">' . __( 'Size', 'wpcd' ) . ': ' . '</div>' . WPCD()->classes['wpcd_app_stablediff_wc']::$sizes[ strval( $size ) ] . '</div>
 						<div class="wpcd-stablediff-instance-atts-ip-wrap">' . $ip_icon . '<div class="wpcd-stablediff-instance-atts-ip-label">' . __( 'IPv4', 'wpcd' ) . ': ' . '</div>' . $ipv4 . '</div>
-						<div class="wpcd-stablediff-instance-atts-users-wrap">' . $users_icon . '<div class="wpcd-stablediff-instance-atts-users-label">' . __( 'Image Requests Pending', 'wpcd' ) . ': ' . '</div>' . sprintf( '%d', $image_requests ) . '</div>
+						<div class="wpcd-stablediff-instance-atts-users-wrap">' . $users_icon . '<div class="wpcd-stablediff-instance-atts-users-label">' . __( 'Image Requests Pending', 'wpcd' ) . ': ' . '</div>' . sprintf( '%d', $pending_image_requests ) . '</div>
 						<div class="wpcd-stablediff-instance-atts-subid-wrap">' . $subid_icon . '<div class="wpcd-stablediff-instance-atts-sub-label">' . __( 'Subscription ID', 'wpcd' ) . ': ' . '</div>' . implode( ', ', $subscription_array ) . '</div>';
 
 			$output .= '</div>';
@@ -1506,6 +1537,7 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 		$actions = array(
 			'request-image',
 			'last-image-request',
+			'completed-images-urls',
 			'last-completed-image',
 			'remove-user',
 			'reboot',

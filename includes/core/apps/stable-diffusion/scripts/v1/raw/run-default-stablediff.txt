@@ -47,11 +47,13 @@ then
 		# Let WPCD know what the URL is for this file.
 		if [[ -n "$CALLBACK_URL" ]]
 		then
-			# Convert url to base64 otherwise the ampersands screw things up.
+			# Convert url and prompt to base64 otherwise the ampersands and spaces screw things up.
 			l_signedurl64=$(echo "$l_signedurl" | base64 --wrap=0)
+			l_ai_prompt64=$(echo "$AI_PROMPT" | base64  --wrap=0)
 			echo "64bit signed url in base64: $l_signedurl64"
+			echo "AI Prompt in base 64: $l_ai_prompt64"
 			# Send it via the callback url.
-			curl -sS "$CALLBACK_URL?state=in_progress&file=$file&folder=$AWS_FOLDER&taskid=$TASK_ID&awssignedurl64=$l_signedurl64"
+			curl -sS "$CALLBACK_URL?state=in_progress&file=$file&folder=$AWS_FOLDER&taskid=$TASK_ID&awssignedurl64=$l_signedurl64&aiprompt64=$l_ai_prompt64"
 		fi		
 	done
 	

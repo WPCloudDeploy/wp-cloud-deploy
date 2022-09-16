@@ -17,8 +17,9 @@ fi
 if ! hash aws2 2>/dev/null
 then
 	echo $(date): "Getting and installing AWS CLI..."
-	wget "https://d1vvhvl2y92vvt.cloudfront.net/awscli-exe-linux-x86_64.zip"  > /dev/null 2>&1
-	unzip awscli-exe-linux-x86_64.zip  > /dev/null 2>&1
+	sudo wget "https://d1vvhvl2y92vvt.cloudfront.net/awscli-exe-linux-x86_64.zip"  > /dev/null 2>&1
+	sudo unzip awscli-exe-linux-x86_64.zip  > /dev/null 2>&1
+	ls # For debugging so we can see if the zip file exists and was unzipped properly.
 	sudo ./aws/install  > /dev/null 2>&1
 	rm -rf aws awscli-exe-linux-x86_64.zip  > /dev/null 2>&1
 fi

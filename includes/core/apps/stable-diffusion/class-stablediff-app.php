@@ -2286,6 +2286,10 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 			// What's the file name?
 			$aws_file = sanitize_text_field( wp_unslash( filter_input( INPUT_GET, 'file', FILTER_UNSAFE_RAW ) ) );
 
+			// What was the prompt used?
+			$ai_prompt_64 = sanitize_text_field( wp_unslash( filter_input( INPUT_GET, 'aiprompt64', FILTER_UNSAFE_RAW ) ) );
+			$ai_prompt    = base64_decode( $ai_prompt_64, true );
+
 			// Add it to the server record.
 			$all_image_urls = wpcd_maybe_unserialize( get_post_meta( $id, 'wpcd_stablediff_image_urls', true ) );
 			if ( empty( $all_image_urls ) ) {
@@ -2293,9 +2297,12 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 			}
 
 			$all_image_urls[ $aws_folder . '-' . $aws_file ] = array(
-				'signed-url' => $signed_url,
-				'taskid'     => $task_id,
-				'filename'   => $aws_file,
+				'signed-url'         => $signed_url,
+				'taskid'             => $task_id,
+				'filename'           => $aws_file,
+				'prompt'             => $ai_prompt,
+				'date-generated'     => time(),
+				'date-generated-gmt' => gmdate( 'Y-m-d H:i:s' ),
 			);
 
 			update_post_meta( $id, 'wpcd_stablediff_image_urls', $all_image_urls );

@@ -1516,7 +1516,7 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 			} elseif ( is_string( $actions ) ) {
 				switch ( $actions ) {
 					case 'ai-warming-up':
-						$buttons = __( 'We are currently warming up the Stable Diffusion AI engine for this server - this can take 20 minutes or more. We will send you an email when this is complete.', 'wpcd' );
+						$buttons .= '<p class="wpcd-stablediff-action-warning">' . __( 'We are currently warming up the Stable Diffusion AI engine for this server - this can take 20 minutes or more. We will send you an email when this is complete.', 'wpcd' ) . '</p>';
 						break;
 					case 'in-progress':
 						$buttons = __( 'The instance is currently transitioning state. <br />This happens just after a new purchase when a server is starting up or when rebooting or relocating. <br />Please check back in a few minutes - it can take as long as 20 minutes to deploy a new server. If you continue to see this message after that please contact our support team.', 'wpcd' );

@@ -178,7 +178,7 @@ class STABLEDIFF_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'type'    => 'text',
 				'name'    => __( 'URL To First Product Being Promoted', 'wpcd' ),
 				'std'     => 'https://yourdomain.com/store/product1',
-				'tooltip' => __( 'You can add a link to the top of all subscriptions in the users VPN Account screen.  This link can be to your store page or to a specific item.  Do NOT use a link that automatically adds a product to the cart.', 'wpcd' ),
+				'tooltip' => __( 'You can add a link to the top of all subscriptions in the users Account screen.  This link can be to your store page or to a specific item.  Do NOT use a link that automatically adds a product to the cart.', 'wpcd' ),
 				'tab'     => 'stablediff-promotions',
 			),
 			array(
@@ -200,7 +200,7 @@ class STABLEDIFF_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'type'    => 'text',
 				'name'    => __( 'URL To Second Product Being Promoted', 'wpcd' ),
 				'std'     => 'https://yourdomain.com/store/product2',
-				'tooltip' => __( 'You can add a link to the top of the VPN instances page when there are no instances on the page.  This link can be to your store page or to a specific item.  Do NOT use a link that automatically adds a product to the cart.', 'wpcd' ),
+				'tooltip' => __( 'You can add a link to the top of the server instances page when there are no instances on the page.  This link can be to your store page or to a specific item.  Do NOT use a link that automatically adds a product to the cart.', 'wpcd' ),
 				'tab'     => 'stablediff-promotions',
 			),
 			array(

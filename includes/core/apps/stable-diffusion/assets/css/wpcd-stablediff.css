@@ -25,13 +25,9 @@
 /* the name of the instance */
 
 .wpcd-stablediff-instance-name {
-	color: black;
-	font-weight: bold;
-	padding-top: 0.3em;
-	padding-bottom: 0.3em;
-	
 	background-color: #64748B;
 	color: white;
+	font-weight: bold;
 	padding: 1.5em;
 	border-radius: 4px;
 }
@@ -201,6 +197,15 @@
 /* Format action errors */
 .wpcd-stablediff-action-error {
 	background-color: red;
+	color: white;
+	padding: 2em;
+	font-size: smaller;
+	border-radius: 4px;
+}
+
+/* Format warning errors */
+.wpcd-stablediff-action-warning {
+	background-color: #FB923C;
 	color: white;
 	padding: 2em;
 	font-size: smaller;

@@ -188,6 +188,15 @@
 	grid-column-gap: 1em;	
 }
 
+/* Format action errors */
+.wpcd-stablediff-action-error {
+	background-color: red;
+	color: white;
+	padding: 2em;
+	font-size: smaller;
+	border-radius: 4px;
+}
+
 /* box headers on the wpcd-vpn account screen */
 
 .wpcd-stablediff-action-head {

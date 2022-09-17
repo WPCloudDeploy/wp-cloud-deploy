@@ -1260,7 +1260,7 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 				foreach ( $actions as $action ) {
 
 					// Some actions require a 'wrapping' div to help the breaks for css-grid.
-					if ( in_array( $action, array( 'download-file', 'request-image', 'last-completed-image', 'reboot', 'relocate', 'image-grid-1', 'image-grid-2' ), true ) ) {
+					if ( in_array( $action, array( 'download-file', 'request-image', 'last-completed-image', 'reboot', 'relocate', 'image-grid-1', 'image-grid-2', 'instructions' ), true ) ) {
 						$buttons = $buttons . '<div class="wpcd-stablediff-instance-multi-button-block-wrap">';  // this should be matched later with a footer div.
 					}
 
@@ -1306,14 +1306,18 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 							$select1   .= '</select>';
 							$select2   .= '</select>';
 							$buttons   .= $select1 . $select2;
-							$help_tip   = __( 'Move your server to a different location. All existing image files will be removed - please make sure you download them before using this option!', 'wpcd' );
+							$help_tip   = __( 'Move your server to a different location. All existing image files will be removed - please make sure you download them before using this option. Please note that not all server sizes are available in all regions. So please consider checking with our support folks before moving your server so we can verify that your size is still available in your target region.', 'wpcd' );
 							$foot_break = true;
 							break;
 						case 'request-image':
-							$buttons       .= '<div class="wpcd-stablediff-action-head">' . __( 'Request Images', 'wpcd' ) . '</div>'; // Add in the section title text.
-							$buttons       .= '<input type="text" name="image-prompt" id="wpcd-stablediff-input-text-request-image" class="wpcd-stablediff-additional wpcd-stablediff-input-text">';
-							$input_help_tip = __( 'Describe the image you would like to generate and then use the REQUEST IMAGES button below to submit the request to the server.', 'wpcd' );
-							$help_tip       = sprintf( __( 'You have %s image requests pending. Each request will generate four images.', 'wpcd' ), $pending_image_requests );
+							$buttons .= '<div class="wpcd-stablediff-action-head">' . __( 'Request Images', 'wpcd' ) . '</div>'; // Add in the section title text.
+							if ( 'off' === (string) $details['status'] ) {
+								$buttons .= sprintf( '<p class="wpcd-stablediff-action-error"> %s</p>', __( 'The server is turned off - you cannot request images at this time.  Please use the options in the POWER section below to restart the server.', 'wpcd' ) );
+							} else {
+								$buttons       .= '<input type="text" name="image-prompt" id="wpcd-stablediff-input-text-request-image" class="wpcd-stablediff-additional wpcd-stablediff-input-text">';
+								$input_help_tip = __( 'Describe the image you would like to generate and then use the REQUEST IMAGES button below to submit the request to the server.', 'wpcd' );
+								$help_tip       = sprintf( __( 'You have %s image requests pending. Each request will generate four images.', 'wpcd' ), $pending_image_requests );
+							}
 
 							break;
 						case 'last-image-request':
@@ -1336,6 +1340,8 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 
 							$buttons .= '<hr />';
 							$buttons .= '<div class="wpcd-stablediff-action-head">' . __( 'Download Your Most Recent Generated Images', 'wpcd' ) . '</div>'; // Add in the section title text.
+							$msg = __( 'All links expire after 7 days!', 'wpcd' );
+							$buttons .= '<p class="wpcd-stablediff-action-help-tip">' . $msg . '</p>';
 
 							// Get list of images from the server meta.
 							$images = wpcd_maybe_unserialize( get_post_meta( $server_post->ID, 'wpcd_stablediff_image_urls', true ) );
@@ -1463,24 +1469,13 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 								$buttons .= '<p class="wpcd-stablediff-action-help-tip">' . $msg . '</p>';
 							}
 							$foot_break = true;
-							break;							
-						case 'download-file':
-							$buttons .= '<div class="wpcd-stablediff-action-head">' . __( 'Configure Your Devices', 'wpcd' ) . '</div>'; // Add in the section title text.
-							$clients  = wpcd_maybe_unserialize( get_post_meta( $app_post->ID, 'stablediff_clients', true ) );
-							if ( $clients ) {
-								$buttons .= '<select class="wpcd-stablediff-additional wpcd-stablediff-client-list wpcd-stablediff-download-file wpcd-stablediff-select" name="name">';
-								foreach ( $clients as $client ) {
-									$buttons .= '<option value="' . $client . '">' . $client . '</option>';
-								}
-								$buttons .= '</select>';
-							}
-							$help_tip = __( 'Download this file and import it into your OPENVPN client on our device.  Click the instructions button or check our help pages for more information.', 'wpcd' );
 							break;
 						case 'instructions':
+							$buttons        .= '<div class="wpcd-stablediff-action-head">' . __( 'Help & Support', 'wpcd' ) . '</div>'; // Add in the section title text.
 							$summary         = $this->get_app_instance_summary( $app_post->ID, false );
 							$html_attributes = array( 'href' => '#instructions-' . $server_post->ID );
 							$buttons        .= '<div id="instructions-' . $server_post->ID . '" class="wpcd-stablediff-instructions mfp-hide">' . $summary . '</div>';
-							$help_tip        = __( 'Click here to get help on how to install your configuration file and connect to the Stable Diffusion server.', 'wpcd' );
+							$help_tip        = __( 'Click here to get help on how to best use your new Stable Diffusion server.', 'wpcd' );
 							$foot_break      = true;
 							break;
 					}
@@ -1498,11 +1493,16 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 
 					// Add an actual button for most things (but not all).
 					if ( ! in_array( $action, array( 'last-completed-image', 'last-image-request', 'completed-images-urls', 'image-grid-1', 'image-grid-2' ), true ) ) {
-						$buttons .= '<button ' . $attributes . ' class="wpcd-stablediff-action-type wpcd-stablediff-action-' . $action . '" data-action="' . $action . '" data-id="' . $server_post->ID . '" data-app-id="' . $app_post->ID . '">' . $btn_icon_class . ' ' . $this->get_action_description( $action ) . '</button>';
 
-						// Add help tip below the buttons.
-						if ( ! empty( $help_tip ) ) {
-							$buttons .= '<div class="wpcd-stablediff-action-help-tip">' . $help_tip . '</div>'; // Add in the help text.
+						if ( 'off' === (string) $details['status'] && 'request-image' === $action ) {
+							// Do nothing - we dont' want to addthe request image button if the server is turned off.
+						} else {
+							$buttons .= '<button ' . $attributes . ' class="wpcd-stablediff-action-type wpcd-stablediff-action-' . $action . '" data-action="' . $action . '" data-id="' . $server_post->ID . '" data-app-id="' . $app_post->ID . '">' . $btn_icon_class . ' ' . $this->get_action_description( $action ) . '</button>';
+
+							// Add help tip below the buttons.
+							if ( ! empty( $help_tip ) ) {
+								$buttons .= '<div class="wpcd-stablediff-action-help-tip">' . $help_tip . '</div>'; // Add in the help text.
+							}
 						}
 					}
 
@@ -1606,7 +1606,6 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 			'on',
 			'reinstall',
 			'relocate',
-			'download-file',
 			'instructions',
 		);
 

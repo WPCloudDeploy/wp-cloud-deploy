@@ -1028,20 +1028,25 @@ trait wpcd_wpapp_admin_column_data {
 	 */
 	public function app_admin_list_server_column_before_apps_link( $column_data, $post_id ) {
 
-		$show_web_server_type = true;
-		if ( ! is_admin() && ( boolval( wpcd_get_option( 'wordpress_app_fe_hide_web_server_type_element_in_app_list' ) ) ) ) {
-			// We're on the front-end - do not show there.
-			$show_web_server_type = false;
-		}
-		if ( is_admin() && ( boolval( wpcd_get_option( 'wordpress_app_hide_web_server_element_in_site_list' ) ) ) ) {
-			// We're in wp-admin area but not allowed to show this element.
-			$show_web_server_type = false;
-		}
-		if ( $show_web_server_type ) {
-			// Show it.
-			return $column_data . $this->get_formatted_web_server_type_for_display( $post_id, true );
+		// Maybe show web server information if the app type is wpapp
+		if ( 'wordpress-app' === $this->get_app_type( $post_id ) ) {
+			$show_web_server_type = true;
+			if ( ! is_admin() && ( boolval( wpcd_get_option( 'wordpress_app_fe_hide_web_server_type_element_in_app_list' ) ) ) ) {
+				// We're on the front-end - do not show there.
+				$show_web_server_type = false;
+			}
+			if ( is_admin() && ( boolval( wpcd_get_option( 'wordpress_app_hide_web_server_element_in_site_list' ) ) ) ) {
+				// We're in wp-admin area but not allowed to show this element.
+				$show_web_server_type = false;
+			}
+			if ( $show_web_server_type ) {
+				// Show it.
+				return $column_data . $this->get_formatted_web_server_type_for_display( $post_id, true );
 
+			}
 		}
+		
+		return $column_data;
 	}
 
 	/**

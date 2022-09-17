@@ -39,7 +39,7 @@ then
 	for file in $(aws s3 ls s3://$AWS_BUCKET/$AWS_FOLDER/samples/ | awk '{print $NF}'); do
 		echo "Handling File: $file"
 		echo "###signed-file-delimiter-start###"
-		l_signedurl=$(aws s3 presign "s3://$AWS_BUCKET/$AWS_FOLDER/samples/$file" --region $AWS_DEFAULT_REGION)
+		l_signedurl=$(aws s3 presign "s3://$AWS_BUCKET/$AWS_FOLDER/samples/$file" --region $AWS_DEFAULT_REGION --expires-in 604800)
 		echo $l_signedurl
 		echo -e "###signed-file-delimiter-end### \n"
 		

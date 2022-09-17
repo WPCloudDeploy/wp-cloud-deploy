@@ -2409,6 +2409,9 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 			$ai_prompt_64 = sanitize_text_field( wp_unslash( filter_input( INPUT_GET, 'aiprompt64', FILTER_UNSAFE_RAW ) ) );
 			$ai_prompt    = base64_decode( $ai_prompt_64, true );
 
+			// What seed was used?
+			$seed = filter_input( INPUT_GET, 'seed', FILTER_SANITIZE_NUMBER_INT );
+
 			// Add it to the server record.
 			$all_image_urls = wpcd_maybe_unserialize( get_post_meta( $id, 'wpcd_stablediff_image_urls', true ) );
 			if ( empty( $all_image_urls ) ) {
@@ -2420,6 +2423,7 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 				'taskid'             => $task_id,
 				'filename'           => $aws_file,
 				'prompt'             => $ai_prompt,
+				'seed'               => $seed,
 				'date-generated'     => time(),
 				'date-generated-gmt' => gmdate( 'Y-m-d H:i:s' ),
 			);

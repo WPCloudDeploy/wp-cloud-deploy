@@ -54,7 +54,7 @@ then
 			echo "64bit signed url in base64: $l_signedurl64"
 			echo "AI Prompt in base 64: $l_ai_prompt64"
 			# Send it via the callback url.
-			curl -sS "$CALLBACK_URL?state=in_progress&file=$file&folder=$AWS_FOLDER&taskid=$TASK_ID&awssignedurl64=$l_signedurl64&aiprompt64=$l_ai_prompt64"
+			curl -sS "$CALLBACK_URL?state=in_progress&file=$file&folder=$AWS_FOLDER&taskid=$TASK_ID&awssignedurl64=$l_signedurl64&aiprompt64=$l_ai_prompt64&seed=$AI_SEED"
 		fi		
 	done
 	

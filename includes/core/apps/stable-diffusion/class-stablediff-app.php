@@ -1340,7 +1340,7 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 
 							$buttons .= '<hr />';
 							$buttons .= '<div class="wpcd-stablediff-action-head">' . __( 'Download Your Most Recent Generated Images', 'wpcd' ) . '</div>'; // Add in the section title text.
-							$msg = __( 'All links expire after 7 days!', 'wpcd' );
+							$msg      = __( 'All links expire after 7 days!', 'wpcd' );
 							$buttons .= '<p class="wpcd-stablediff-action-help-tip">' . $msg . '</p>';
 
 							// Get list of images from the server meta.
@@ -1850,7 +1850,7 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 			$output_str = apply_filters( 'wpcd-stablediff-acct-downloads-text', $output_str );
 
 			// Send it to the screen.
-			echo sprintf( $output_str, $acct_url );
+			echo wp_kses_post( sprintf( $output_str, $acct_url ) );
 		}
 
 	}
@@ -2034,7 +2034,7 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 	public function app_admin_list_summary_column( $column_data, $post_id ) {
 
 		/* Bail out if the app being evaluated isn't a Stable Diffusion app. */
-		if ( 'stablediff' <> get_post_meta( $post_id, 'app_type', true ) ) {
+		if ( 'stablediff' !== (string) get_post_meta( $post_id, 'app_type', true ) ) {
 			return $column_data;
 		}
 
@@ -2043,11 +2043,18 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 			$column_data = $column_data . '<br />';
 		}
 
+		/* Convert app post id to server id. */
+		$server_id = $this->get_server_id_by_app_id( $post_id );
+
+		/* Get data from pending logs for any images requested. */
+		$pending_image_requests = $this->get_pending_images_count( $server_id );
+
+		/* Get data from server for any images generated.  */
+		$generated_images_count = $this->get_generated_images_count( $server_id );
+
 		/* Add our data element */
-		$column_data = $column_data . 'port: ' . get_post_meta( $post_id, 'stablediff_port', true ) . '<br />';
-		$column_data = $column_data . 'protocol: ' . $this->get_protocols()[ strval( get_post_meta( $post_id, 'stablediff_protocol', true ) ) ] . '<br />';
-		$column_data = $column_data . 'dns: ' . $this->get_dns_providers()[ strval( get_post_meta( $post_id, 'stablediff_dns', true ) ) ] . '<br />';
-		$column_data = $column_data . 'max clients: ' . get_post_meta( $post_id, 'stablediff_max_clients', true );
+		$column_data = $column_data . 'Pending Image Requests: ' . (string) $pending_image_requests . '<br />';
+		$column_data = $column_data . 'Total Images Generated: ' . (string) $generated_images_count . '<br />';
 
 		return $column_data;
 	}
@@ -2116,17 +2123,7 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 
 		$html = '';
 
-		$wpcd_stablediff_app_dns             = get_post_meta( $post->ID, 'stablediff_dns', true );
-		$wpcd_stablediff_app_port            = get_post_meta( $post->ID, 'stablediff_port', true );
-		$wpcd_stablediff_app_protocol        = get_post_meta( $post->ID, 'stablediff_protocol', true );
-		$wpcd_stablediff_app_max_clients     = get_post_meta( $post->ID, 'stablediff_max_clients', true );
 		$wpcd_stablediff_app_scripts_version = get_post_meta( $post->ID, 'stablediff_scripts_version', true );
-		$wpcd_stablediff_app_clients         = wpcd_maybe_unserialize( get_post_meta( $post->ID, 'stablediff_clients', true ) );
-
-		// Get Stable Diffusion clients array and convert into "," separated string.
-		if ( ! empty( $wpcd_stablediff_app_clients ) && is_array( $wpcd_stablediff_app_clients ) ) {
-			$wpcd_stablediff_app_clients = implode( ',', $wpcd_stablediff_app_clients );
-		}
 
 		ob_start();
 		require wpcd_path . 'includes/core/apps/stable-diffusion/templates/stablediff_app_details.php';
@@ -2181,25 +2178,10 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 		}
 
 		/* Get new values */
-		$wpcd_stablediff_app_dns             = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_stablediff_dns', FILTER_UNSAFE_RAW ) );
-		$wpcd_stablediff_app_protocol        = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_stablediff_protocol', FILTER_UNSAFE_RAW ) );
-		$wpcd_stablediff_app_port            = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_stablediff_port', FILTER_UNSAFE_RAW ) );
-		$wpcd_stablediff_app_clients         = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_stablediff_clients', FILTER_UNSAFE_RAW ) );
 		$wpcd_stablediff_app_scripts_version = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_stablediff_scripts_version', FILTER_UNSAFE_RAW ) );
-		$wpcd_stablediff_app_max_clients     = filter_input( INPUT_POST, 'wpcd_stablediff_max_clients', FILTER_SANITIZE_NUMBER_INT );
 
 		/* Add new values to database */
-		update_post_meta( $post_id, 'stablediff_dns', $wpcd_stablediff_app_dns );
-		update_post_meta( $post_id, 'stablediff_protocol', $wpcd_stablediff_app_protocol );
-		update_post_meta( $post_id, 'stablediff_port', $wpcd_stablediff_app_port );
 		update_post_meta( $post_id, 'stablediff_scripts_version', $wpcd_stablediff_app_scripts_version );
-		update_post_meta( $post_id, 'stablediff_max_clients', $wpcd_stablediff_app_max_clients );
-
-		// save stable diffusion clients as array.
-		if ( ! empty( $wpcd_stablediff_app_clients ) ) {
-			$wpcd_stablediff_app_clients = explode( ',', $wpcd_stablediff_app_clients );
-		}
-		update_post_meta( $post_id, 'stablediff_clients', $wpcd_stablediff_app_clients );
 
 	}
 
@@ -2280,6 +2262,43 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 		$pending_images = $this->get_pending_images( $server_id );
 
 		return count( $pending_images );
+
+	}
+
+	/**
+	 * Returns an array of URLs containing images generated by the server.
+	 *
+	 * @param int $server_id The server post id.
+	 *
+	 * @return array|wp_error
+	 */
+	public function get_generated_images_urls( $server_id ) {
+
+		$images = wpcd_maybe_unserialize( get_post_meta( $server_post->ID, 'wpcd_stablediff_image_urls', true ) );
+
+		return $images;
+
+	}
+
+	/**
+	 * Returns the number of images we've generated for the server.
+	 *
+	 * @param int $server_id The server post id.
+	 *
+	 * @return array|wp_error
+	 */
+	public function get_generated_images_count( $server_id ) {
+
+		$count  = 0;
+		$images = $this->get_generated_images_urls( $server_id );
+
+		if ( is_array( $images ) ) {
+
+			$count = count( $images );
+
+		}
+
+		return $count;
 
 	}
 

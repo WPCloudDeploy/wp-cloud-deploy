@@ -1842,8 +1842,8 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 
 		if ( ! empty( $acct_url ) ) {
 			$output_str  = '<div class = "wpcd-stablediff-acct-downloads-text-wrap">';
-			$output_str .= '<h3 class = "wpcd-stablediff-acct-downloads-text-header">' . __( 'Are you looking for the Stable Diffusion applications for your device?', 'wpcd' ) . '</h3>';
-			$output_str .= '<p class = "wpcd-stablediff-acct-downloads-text">' . __( 'To connect to your server you need to download the OPENVPN CLIENT application for your device. Check out our <a href="%s">help pages</a> for more information on how to download these applications and connect to your server.  <br /><br />There you will find instructions for iOS, Android, Windows 10 and more.', 'wpcd' ) . '</p>';
+			$output_str .= '<h3 class = "wpcd-stablediff-acct-downloads-text-header">' . __( 'Are you looking for the Stable Diffusion app?', 'wpcd' ) . '</h3>';
+			$output_str .= '<p class = "wpcd-stablediff-acct-downloads-text">' . __( 'To generate images you should navigate to your Stable Diffusion Servers panel. Check out our <a href="%s">help pages</a> for more information on how to use your Stable Diffusion server.', 'wpcd' ) . '</p>';
 			$output_str .= '</div>';
 
 			// Make sure developers can change the message.

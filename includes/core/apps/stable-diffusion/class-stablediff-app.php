@@ -1412,7 +1412,7 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 
 									$image_url = $image['signed-url'];
 									$prompt    = $image['prompt'];
-									$buttons  .= sprintf( '<div class="wpcd-stablediff-image-thumbnail"><img class="wpcd-stablediff-generated-img" alt="%s" src=%s /></div>', $prompt, $image_url );
+									$buttons  .= sprintf( '<div class="wpcd-stablediff-image-thumbnail"><img class="wpcd-stablediff-generated-img" title = "%s" alt="%s" src=%s /></div>', $prompt, $prompt, $image_url );
 
 									// Only images 1-4 should be shown.
 									if ( $cnt >= 4 ) {
@@ -1454,7 +1454,7 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 
 									$image_url = $image['signed-url'];
 									$prompt    = $image['prompt'];
-									$buttons  .= sprintf( '<div class="wpcd-stablediff-image-thumbnail"><img class="wpcd-stablediff-generated-img" alt="%s" src=%s /></div>', $prompt, $image_url );
+									$buttons  .= sprintf( '<div class="wpcd-stablediff-image-thumbnail"><img class="wpcd-stablediff-generated-img" title = "%s" alt="%s" src=%s /></div>', $prompt, $prompt, $image_url );
 
 									// Only images 5-8 should be shown.
 									if ( $cnt >= 8 ) {

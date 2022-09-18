@@ -914,7 +914,7 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 		}
 		$users = sprintf( '%d / %d', $total, $max );
 
-		$template = file_get_contents( dirname( __FILE__ ) . '/templates/' . ( $email ? 'email' : 'popup' ) . '.html' );
+		$template = file_get_contents( dirname( __FILE__ ) . '/templates/' . ( $email ? 'email' : 'help_popup' ) . '.html' );
 		return str_replace(
 			array( '$NAME', '$PROVIDER', '$IP', '$PROTOCOL', '$SIZE', '$USERS', '$URL' ),
 			array(

@@ -162,6 +162,16 @@ trait wpcd_wpapp_script_handlers {
 				||
 				( strpos( $result, 'phpMyAdmin has been removed for' ) !== false );
 				break;
+			case 'manage_database_operation.txt':
+				$return =
+				( strpos( $result, 'Please enter Remote Database server' ) !== false )
+				||
+				( strpos( $result, 'Database has been switched to' ) !== false )
+				||
+				( strpos( $result, 'Please enter Local Database server' ) !== false )
+				||
+				( strpos( $result, 'Database has been copied' ) !== false );
+				break;
 			case 'manage_tinyfilemanager.txt':
 				$return =
 				( strpos( $result, 'Filemanager installed for' ) !== false )
@@ -863,6 +873,19 @@ trait wpcd_wpapp_script_handlers {
 					array(
 						'SCRIPT_URL'   => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/07-phpmyadmin.txt',
 						'SCRIPT_NAME'  => '07-phpmyadmin.sh',
+						'SCRIPT_LOGS'  => "{$this->get_app_name()}_{$command_name}",
+						'CALLBACK_URL' => $this->get_command_url( $instance['app_id'], $command_name, 'completed' ),
+					),
+					$common_array,
+					$additional
+				);
+				break;
+			case 'manage_database_operation.txt':
+				$command_name = $additional['command'];
+				$new_array    = array_merge(
+					array(
+						'SCRIPT_URL'   => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/53-database-operation.txt',
+						'SCRIPT_NAME'  => '53-database-operation.sh',
 						'SCRIPT_LOGS'  => "{$this->get_app_name()}_{$command_name}",
 						'CALLBACK_URL' => $this->get_command_url( $instance['app_id'], $command_name, 'completed' ),
 					),

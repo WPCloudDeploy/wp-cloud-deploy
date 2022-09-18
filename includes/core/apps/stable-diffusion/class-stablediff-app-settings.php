@@ -128,6 +128,10 @@ class STABLEDIFF_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'label' => 'Promotions',
 				'icon'  => 'dashicons-testimonial',
 			),
+			'stablediff-help'        => array(
+				'label' => 'Help',
+				'icon'  => 'dashicons-editor-help',
+			),
 		);
 
 		return $tabs;
@@ -142,7 +146,8 @@ class STABLEDIFF_APP_SETTINGS extends WPCD_APP_SETTINGS {
 		$promo_fields       = $this->promotional_fields();
 		$script_fields      = $this->scripts_fields();
 		$s3_fields          = $this->s3_fields();
-		$all_fields         = array_merge( $general_fields, $woocommerce_fields, $promo_fields, $script_fields, $s3_fields );
+		$help_fields        = $this->help_fields();
+		$all_fields         = array_merge( $general_fields, $woocommerce_fields, $promo_fields, $script_fields, $s3_fields, $help_fields );
 		return $all_fields;
 	}
 
@@ -342,12 +347,6 @@ class STABLEDIFF_APP_SETTINGS extends WPCD_APP_SETTINGS {
 
 		$fields = array(
 			array(
-				'id'   => 'stablediff_s3_header',
-				'type' => 'heading',
-				'name' => __( 'S3 Settings', 'wpcd' ),
-				'tab'  => 'stablediff-s3',
-			),
-			array(
 				'id'   => 'stablediff_app_s3_heading_01',
 				'type' => 'heading',
 				'name' => __( 'AWS S3 Credentials', 'wpcd' ),
@@ -394,6 +393,32 @@ class STABLEDIFF_APP_SETTINGS extends WPCD_APP_SETTINGS {
 
 		return $fields;
 
+	}
+
+	/**
+	 * Return array portion of field settings for use in the help tab.
+	 */
+	public function help_fields() {
+
+		$instructions  = __( 'The Stable Diffusion app is not really fully designed for 3rd party use.', 'wpcd' );
+		$instructions .= '<br />';
+		$instructions .= __( 'This is because it requires our AWS EC2 provider AND a specially configured EC2 image.', 'wpcd' );
+		$instructions .= '<br />';
+		$instructions .= __( 'If you really really want to use this app, then contact our support team so that we can create the EC2 image in your AWS account.', 'wpcd' );
+		$instructions .= '<br />';
+		$instructions .= __( 'And, you will also need our All-Access license since that contains the AWS EC2 server provider..', 'wpcd' );
+
+		$fields = array(
+			array(
+				'id'   => 'stablediff_help_header',
+				'type' => 'heading',
+				'name' => __( 'Important Instructions', 'wpcd' ),
+				'desc' => $instructions,
+				'tab'  => 'stablediff-help',
+			),
+		);
+
+			return $fields;
 	}
 
 }

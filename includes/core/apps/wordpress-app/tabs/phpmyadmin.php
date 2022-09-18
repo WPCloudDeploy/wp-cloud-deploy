@@ -125,8 +125,8 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 			if ( true == $success ) {
 
 				$server_name = WPCD_SERVER()->get_server_name( $id );
-				update_post_meta( $id, 'is_remote_database', 'yes' );
-				update_post_meta( $id, 'remote_database_server_name', $server_name );
+				update_post_meta( $id, 'wpapp_is_remote_database', 'yes' );
+				update_post_meta( $id, 'wpapp_remote_database_server_name', $server_name );
 			}
 		}
 
@@ -141,8 +141,8 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 
 			if ( true === $success ) {
 
-				update_post_meta( $id, 'is_remote_database', 'no' );
-				delete_post_meta( $id, 'remote_database_server_name' );
+				update_post_meta( $id, 'wpapp_is_remote_database', 'no' );
+				delete_post_meta( $id, 'wpapp_remote_database_server_name' );
 			}
 		}
 
@@ -543,179 +543,29 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 			return array_merge( $fields, $this->get_disabled_header_field( 'database' ) );
 		}
 
-		// Bail if certain 6G or 7G firewall items are enabled.
-		$fw_6g = get_post_meta( $id, 'wpapp_6g_status', true );
-		$fw_7g = get_post_meta( $id, 'wpapp_7g_status', true );
-		if ( ! empty( $fw_6g ) && ! empty( $fw_6g['6g_query_string'] ) && 'on' === $fw_6g['6g_query_string'] ) {
-			$fields[] = array(
-				'name' => __( 'Database [Disabled]', 'wpcd' ),
-				'tab'  => 'database',
-				'type' => 'heading',
-				'desc' => __( 'You must disable the 6G firewall QUERY STRING rules before PHPMyAdmin can be used.', 'wpcd' ),
-			);
-			return $fields;
-		}
-		if ( ! empty( $fw_7g ) && ! empty( $fw_7g['7g_query_string'] ) && 'on' === $fw_7g['7g_query_string'] ) {
-			$fields[] = array(
-				'name' => __( 'Database [Disabled]', 'wpcd' ),
-				'tab'  => 'database',
-				'type' => 'heading',
-				'desc' => __( 'You must disable the 7G firewall QUERY STRING and REQUEST STRING rules before PHPMyAdmin can be used.', 'wpcd' ),
-			);
-			return $fields;
-		}
-		if ( ! empty( $fw_7g ) && ! empty( $fw_7g['7g_query_string'] ) && 'on' === $fw_7g['7g_request_string'] ) {
-			$fields[] = array(
-				'name' => __( 'Database [Disabled]', 'wpcd' ),
-				'tab'  => 'database',
-				'type' => 'heading',
-				'desc' => __( 'You must disable the 7G firewall QUERY STRING and REQUEST STRING rules before PHPMyAdmin can be used.', 'wpcd' ),
-			);
-			return $fields;
-		}
-		// End Bail if certain 6G or 7G firewall items are enabled.
+		$fields = $this->get_php_myadmin_fields( $fields, $id );
 
-		$desc  = __( 'Use PHPMyAdmin to access and manage the data in your WordPress database.', 'wpcd' );
-		$desc .= '<br />';
-		$desc .= __( 'This is a very powerful tool with which you can easily corrupt your database beyond repair.', 'wpcd' );
-		$desc .= '<br />';
-		$desc .= __( 'Before performing any actions with it, we urge you to backup your site!', 'wpcd' );
-		$desc .= '<br />';
-		$desc .= __( 'Finally, because this tool is accessible from the internet we suggest that you remove it when you are done using it.  Or, at least, restrict access to it by your IP address.', 'wpcd' );
-
-		$fields[] = array(
-			'name' => __( 'Database', 'wpcd' ),
-			'tab'  => 'database',
-			'type' => 'heading',
-			'desc' => $desc,
-		);
-
-		// What is the status of PHPMyAdmin?
-		$pa_status = get_post_meta( $id, 'wpapp_phpmyadmin_status', true );
-		if ( empty( $pa_status ) ) {
-			$pa_status = 'off';
+		if ( wpcd_is_admin() ) {
+			$fields = $this->get_local_remote_db_fields( $fields, $id );
 		}
 
-		if ( 'off' == $pa_status ) {
-			// PHPMyAdmin is not installed on this site, so show button to install it.
-			$fields[] = array(
-				'id'         => 'install-phpmyadmin',
-				'name'       => '',
-				'tab'        => 'database',
-				'type'       => 'button',
-				'std'        => __( 'Install PHPMyAdmin', 'wpcd' ),
-				'desc'       => '',
-				'attributes' => array(
-					// the _action that will be called in ajax.
-					'data-wpcd-action'              => 'install-phpmyadmin',
-					// the id.
-					'data-wpcd-id'                  => $id,
-					// make sure we give the user a confirmation prompt.
-					'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like to install the PHPMyAdmin tool?', 'wpcd' ),
-					// show log console?
-					'data-show-log-console'         => true,
-					// Initial console message.
-					'data-initial-console-message'  => __( 'Preparing to install PHPMyAdmin.<br /> Please DO NOT EXIT this screen until you see a popup message indicating that the operation has completed or has errored.<br />This terminal should refresh every 60-90 seconds with updated progress information from the server. <br /> After the operation is complete the entire log can be viewed in the COMMAND LOG screen.', 'wpcd' ),
-				),
-				'class'      => 'wpcd_app_action',
-				'save_field' => false,
-			);
-		} else {
+		return $fields;
 
-			// use custom html to show a launch link.
-			$phpmyadmin_user_id  = get_post_meta( $id, 'wpapp_phpmyadmin_user_id', true );
-			$phpmyadmin_password = $this::decrypt( get_post_meta( $id, 'wpapp_phpmyadmin_user_password', true ) );
+	}
 
-			// Remove any "user:" and "Password:" phrases that might be embedded inside the user id and password strings.
-			$phpmyadmin_user_id  = str_replace( 'User:', '', $phpmyadmin_user_id );
-			$phpmyadmin_password = str_replace( 'Password:', '', $phpmyadmin_password );
-
-			if ( true === $this->get_site_local_ssl_status( $id ) ) {
-				$phpmyadmin_url = 'https://' . $this->get_domain_name( $id ) . '/' . 'phpMyAdmin';
-			} else {
-				$phpmyadmin_url = 'http://' . $this->get_domain_name( $id ) . '/' . 'phpMyAdmin';
-			}
-
-			$launch              = sprintf( '<a href="%s" target="_blank">', $phpmyadmin_url ) . __( 'Launch PHPMyAdmin', 'wpcd' ) . '</a>';
-			$phpmyadmin_details  = '<div class="wpcd_tool_details">';
-			$phpmyadmin_details .= __( 'User Id: ', 'wpcd' ) . wpcd_wrap_clipboard_copy( $phpmyadmin_user_id );
-			$phpmyadmin_details .= '</div>';
-
-			$phpmyadmin_details .= '<div class="wpcd_tool_details">';
-			$phpmyadmin_details .= __( 'Password: ', 'wpcd' ) . wpcd_wrap_clipboard_copy( $phpmyadmin_password );
-			$phpmyadmin_details .= '</div>';
-
-			$fields[] = array(
-				'tab'   => 'database',
-				'type'  => 'custom_html',
-				'std'   => $launch,
-				'class' => 'button',
-			);
-			$fields[] = array(
-				'tab'  => 'database',
-				'type' => 'custom_html',
-				'std'  => $phpmyadmin_details,
-			);
-
-			// new fields section for update and remove of phpmyadmin.
-			$fields[] = array(
-				'name' => __( 'Database Tools - Update and Remove', 'wpcd' ),
-				'tab'  => 'database',
-				'type' => 'heading',
-				'desc' => __( 'Update and/or remove PHPMyAdmin', 'wpcd' ),
-			);
-
-			// update php my admin.
-			$fields[] = array(
-				'id'         => 'update-phpmyadmin',
-				'name'       => '',
-				'tab'        => 'database',
-				'type'       => 'button',
-				'std'        => __( 'Update PHPMyAdmin', 'wpcd' ),
-				'desc'       => __( 'Update the PHPMyAdmin tool to the latest version.', 'wpcd' ),
-				'attributes' => array(
-					// the _action that will be called in ajax.
-					'data-wpcd-action'              => 'update-phpmyadmin',
-					// the id.
-					'data-wpcd-id'                  => $id,
-					// make sure we give the user a confirmation prompt.
-					'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like to update the PHPMyAdmin tool? This is a risky operation and should only be done if there are security issues that need to be addressed!', 'wpcd' ),
-					'data-show-log-console'         => true,
-					// Initial console message.
-					'data-initial-console-message'  => __( 'Preparing to update PHPMyAdmin.<br /> Please DO NOT EXIT this screen until you see a popup message indicating that the operation has completed or has errored.<br />This terminal should refresh every 60-90 seconds with updated progress information from the server. <br /> After the operation is complete the entire log can be viewed in the COMMAND LOG screen.', 'wpcd' ),
-				),
-				'class'      => 'wpcd_app_action',
-				'save_field' => false,
-			);
-
-			// remove phpmyadmin.
-			$fields[] = array(
-				'id'         => 'remove-phpmyadmin',
-				'name'       => '',
-				'tab'        => 'database',
-				'type'       => 'button',
-				'std'        => __( 'Remove PHPMyAdmin', 'wpcd' ),
-				'desc'       => __( 'Remove the PHPMyAdmin tool from this site.', 'wpcd' ),
-				'attributes' => array(
-					// the _action that will be called in ajax.
-					'data-wpcd-action'              => 'remove-phpmyadmin',
-					// the id.
-					'data-wpcd-id'                  => $id,
-					// make sure we give the user a confirmation prompt.
-					'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like to remove the PHPAdmin tool from this site?', 'wpcd' ),
-					'data-show-log-console'         => true,
-					// Initial console message.
-					'data-initial-console-message'  => __( 'Preparing to remove PHPMyAdmin.<br /> Please DO NOT EXIT this screen until you see a popup message indicating that the operation has completed or has errored.<br />This terminal should refresh every 60-90 seconds with updated progress information from the server. <br /> After the operation is complete the entire log can be viewed in the COMMAND LOG screen.', 'wpcd' ),
-				),
-				'class'      => 'wpcd_app_action',
-				'save_field' => false,
-			);
-		}
+	/**
+	 * Gets the fields to be shown for the local-remote db switch management section.
+	 *
+	 * @param array $fields fields.
+	 * @param int   $id id.
+	 *
+	 * @return array Array of actions, complying with the structure necessary by metabox.io fields.
+	 */
+	public function get_local_remote_db_fields( array $fields, $id ) {
 
 		// Remote Database Options.
-
-		$is_remote_database = get_post_meta( $id, 'is_remote_database', true );
-		$server_name        = get_post_meta( $id, 'remote_database_server_name', true );
+		$is_remote_database = get_post_meta( $id, 'wpapp_is_remote_database', true );
+		$server_name        = get_post_meta( $id, 'wpapp_remote_database_server_name', true );
 
 		if ( empty( $is_remote_database ) ) {
 
@@ -723,10 +573,10 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 		}
 
 		if ( $is_remote_database === 'yes' ) {
-			$section_heading              = __( 'Remote Database - Switch To Local Database', 'wpcd' );
+			$section_heading              = __( 'Remote Database - Switch To Local Database [Beta]', 'wpcd' );
 			$running_database_server_name = __( 'This site is currently using a remote database. To switch to a local database please enter the local database information and click the SWITCH button.', 'wpcd' );
 		} else {
-			$section_heading              = __( 'Local Database - Switch To Remote Database', 'wpcd' );
+			$section_heading              = __( 'Local Database - Switch To Remote Database [Beta]', 'wpcd' );
 			$running_database_server_name = __( 'This site is currently using a local database.  To switch to a remote database please enter the remote database information and click the SWITCH button.', 'wpcd' );
 		}
 		$running_database_server_name .= '<br />' . __( 'Please note that that switching databases does NOT automatically copy the database between local and remote or vice-versa.', 'wpcd' );
@@ -824,7 +674,7 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 
 			// Copy database remote to local.
 			$fields[] = array(
-				'name' => __( 'Copy Database - Remote to local', 'wpcd' ),
+				'name' => __( 'Copy Database - Remote to local [Beta]', 'wpcd' ),
 				'tab'  => 'database',
 				'type' => 'heading',
 				'desc' => __( 'Enter connection information for the local database.', 'wpcd' ),
@@ -1009,7 +859,7 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 
 			// Copy database local to remote.
 			$fields[] = array(
-				'name' => __( 'Copy Database - Local to remote', 'wpcd' ),
+				'name' => __( 'Copy Database - Local to remote [Beta]', 'wpcd' ),
 				'tab'  => 'database',
 				'type' => 'heading',
 				'desc' => __( 'To copy your data to a remote database please enter the connection information for the remote database and then click the COPY DATABASE button.', 'wpcd' ),
@@ -1121,6 +971,203 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 
 		return $fields;
 
+	}
+
+	/**
+	 * Gets the fields to be shown for the phpmyadmin section.
+	 *
+	 * @param array $fields fields.
+	 * @param int   $id id.
+	 *
+	 * @return array Array of actions, complying with the structure necessary by metabox.io fields.
+	 */
+	public function get_php_myadmin_fields( array $fields, $id ) {
+
+		if ( ! $id ) {
+			// id not found!
+			return $fields;
+		}
+
+		// If user is not allowed to access the tab then don't paint the fields.
+		if ( ! $this->get_tab_security( $id ) ) {
+			return $fields;
+		}
+
+		// Bail if site is not enabled.
+		if ( ! $this->is_site_enabled( $id ) ) {
+			return array_merge( $fields, $this->get_disabled_header_field( 'database' ) );
+		}
+
+		// Bail if certain 6G or 7G firewall items are enabled.
+		$fw_6g = get_post_meta( $id, 'wpapp_6g_status', true );
+		$fw_7g = get_post_meta( $id, 'wpapp_7g_status', true );
+		if ( ! empty( $fw_6g ) && ! empty( $fw_6g['6g_query_string'] ) && 'on' === $fw_6g['6g_query_string'] ) {
+			$fields[] = array(
+				'name' => __( 'Database [Disabled]', 'wpcd' ),
+				'tab'  => 'database',
+				'type' => 'heading',
+				'desc' => __( 'You must disable the 6G firewall QUERY STRING rules before PHPMyAdmin can be used.', 'wpcd' ),
+			);
+			return $fields;
+		}
+		if ( ! empty( $fw_7g ) && ! empty( $fw_7g['7g_query_string'] ) && 'on' === $fw_7g['7g_query_string'] ) {
+			$fields[] = array(
+				'name' => __( 'Database [Disabled]', 'wpcd' ),
+				'tab'  => 'database',
+				'type' => 'heading',
+				'desc' => __( 'You must disable the 7G firewall QUERY STRING and REQUEST STRING rules before PHPMyAdmin can be used.', 'wpcd' ),
+			);
+			return $fields;
+		}
+		if ( ! empty( $fw_7g ) && ! empty( $fw_7g['7g_query_string'] ) && 'on' === $fw_7g['7g_request_string'] ) {
+			$fields[] = array(
+				'name' => __( 'Database [Disabled]', 'wpcd' ),
+				'tab'  => 'database',
+				'type' => 'heading',
+				'desc' => __( 'You must disable the 7G firewall QUERY STRING and REQUEST STRING rules before PHPMyAdmin can be used.', 'wpcd' ),
+			);
+			return $fields;
+		}
+		// End Bail if certain 6G or 7G firewall items are enabled.
+
+		$desc  = __( 'Use PHPMyAdmin to access and manage the data in your WordPress database.', 'wpcd' );
+		$desc .= '<br />';
+		$desc .= __( 'This is a very powerful tool with which you can easily corrupt your database beyond repair.', 'wpcd' );
+		$desc .= '<br />';
+		$desc .= __( 'Before performing any actions with it, we urge you to backup your site!', 'wpcd' );
+		$desc .= '<br />';
+		$desc .= __( 'Finally, because this tool is accessible from the internet we suggest that you remove it when you are done using it.  Or, at least, restrict access to it by your IP address.', 'wpcd' );
+
+		$fields[] = array(
+			'name' => __( 'Database', 'wpcd' ),
+			'tab'  => 'database',
+			'type' => 'heading',
+			'desc' => $desc,
+		);
+
+		// What is the status of PHPMyAdmin?
+		$pa_status = get_post_meta( $id, 'wpapp_phpmyadmin_status', true );
+		if ( empty( $pa_status ) ) {
+			$pa_status = 'off';
+		}
+
+		if ( 'off' == $pa_status ) {
+			// PHPMyAdmin is not installed on this site, so show button to install it.
+			$fields[] = array(
+				'id'         => 'install-phpmyadmin',
+				'name'       => '',
+				'tab'        => 'database',
+				'type'       => 'button',
+				'std'        => __( 'Install PHPMyAdmin', 'wpcd' ),
+				'desc'       => '',
+				'attributes' => array(
+					// the _action that will be called in ajax.
+					'data-wpcd-action'              => 'install-phpmyadmin',
+					// the id.
+					'data-wpcd-id'                  => $id,
+					// make sure we give the user a confirmation prompt.
+					'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like to install the PHPMyAdmin tool?', 'wpcd' ),
+					// show log console?
+					'data-show-log-console'         => true,
+					// Initial console message.
+					'data-initial-console-message'  => __( 'Preparing to install PHPMyAdmin.<br /> Please DO NOT EXIT this screen until you see a popup message indicating that the operation has completed or has errored.<br />This terminal should refresh every 60-90 seconds with updated progress information from the server. <br /> After the operation is complete the entire log can be viewed in the COMMAND LOG screen.', 'wpcd' ),
+				),
+				'class'      => 'wpcd_app_action',
+				'save_field' => false,
+			);
+		} else {
+
+			// use custom html to show a launch link.
+			$phpmyadmin_user_id  = get_post_meta( $id, 'wpapp_phpmyadmin_user_id', true );
+			$phpmyadmin_password = $this::decrypt( get_post_meta( $id, 'wpapp_phpmyadmin_user_password', true ) );
+
+			// Remove any "user:" and "Password:" phrases that might be embedded inside the user id and password strings.
+			$phpmyadmin_user_id  = str_replace( 'User:', '', $phpmyadmin_user_id );
+			$phpmyadmin_password = str_replace( 'Password:', '', $phpmyadmin_password );
+
+			if ( true === $this->get_site_local_ssl_status( $id ) ) {
+				$phpmyadmin_url = 'https://' . $this->get_domain_name( $id ) . '/' . 'phpMyAdmin';
+			} else {
+				$phpmyadmin_url = 'http://' . $this->get_domain_name( $id ) . '/' . 'phpMyAdmin';
+			}
+
+			$launch              = sprintf( '<a href="%s" target="_blank">', $phpmyadmin_url ) . __( 'Launch PHPMyAdmin', 'wpcd' ) . '</a>';
+			$phpmyadmin_details  = '<div class="wpcd_tool_details">';
+			$phpmyadmin_details .= __( 'User Id: ', 'wpcd' ) . wpcd_wrap_clipboard_copy( $phpmyadmin_user_id );
+			$phpmyadmin_details .= '</div>';
+
+			$phpmyadmin_details .= '<div class="wpcd_tool_details">';
+			$phpmyadmin_details .= __( 'Password: ', 'wpcd' ) . wpcd_wrap_clipboard_copy( $phpmyadmin_password );
+			$phpmyadmin_details .= '</div>';
+
+			$fields[] = array(
+				'tab'   => 'database',
+				'type'  => 'custom_html',
+				'std'   => $launch,
+				'class' => 'button',
+			);
+			$fields[] = array(
+				'tab'  => 'database',
+				'type' => 'custom_html',
+				'std'  => $phpmyadmin_details,
+			);
+
+			// new fields section for update and remove of phpmyadmin.
+			$fields[] = array(
+				'name' => __( 'Database Tools - Update and Remove', 'wpcd' ),
+				'tab'  => 'database',
+				'type' => 'heading',
+				'desc' => __( 'Update and/or remove PHPMyAdmin', 'wpcd' ),
+			);
+
+			// update php my admin.
+			$fields[] = array(
+				'id'         => 'update-phpmyadmin',
+				'name'       => '',
+				'tab'        => 'database',
+				'type'       => 'button',
+				'std'        => __( 'Update PHPMyAdmin', 'wpcd' ),
+				'desc'       => __( 'Update the PHPMyAdmin tool to the latest version.', 'wpcd' ),
+				'attributes' => array(
+					// the _action that will be called in ajax.
+					'data-wpcd-action'              => 'update-phpmyadmin',
+					// the id.
+					'data-wpcd-id'                  => $id,
+					// make sure we give the user a confirmation prompt.
+					'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like to update the PHPMyAdmin tool? This is a risky operation and should only be done if there are security issues that need to be addressed!', 'wpcd' ),
+					'data-show-log-console'         => true,
+					// Initial console message.
+					'data-initial-console-message'  => __( 'Preparing to update PHPMyAdmin.<br /> Please DO NOT EXIT this screen until you see a popup message indicating that the operation has completed or has errored.<br />This terminal should refresh every 60-90 seconds with updated progress information from the server. <br /> After the operation is complete the entire log can be viewed in the COMMAND LOG screen.', 'wpcd' ),
+				),
+				'class'      => 'wpcd_app_action',
+				'save_field' => false,
+			);
+
+			// remove phpmyadmin.
+			$fields[] = array(
+				'id'         => 'remove-phpmyadmin',
+				'name'       => '',
+				'tab'        => 'database',
+				'type'       => 'button',
+				'std'        => __( 'Remove PHPMyAdmin', 'wpcd' ),
+				'desc'       => __( 'Remove the PHPMyAdmin tool from this site.', 'wpcd' ),
+				'attributes' => array(
+					// the _action that will be called in ajax.
+					'data-wpcd-action'              => 'remove-phpmyadmin',
+					// the id.
+					'data-wpcd-id'                  => $id,
+					// make sure we give the user a confirmation prompt.
+					'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like to remove the PHPAdmin tool from this site?', 'wpcd' ),
+					'data-show-log-console'         => true,
+					// Initial console message.
+					'data-initial-console-message'  => __( 'Preparing to remove PHPMyAdmin.<br /> Please DO NOT EXIT this screen until you see a popup message indicating that the operation has completed or has errored.<br />This terminal should refresh every 60-90 seconds with updated progress information from the server. <br /> After the operation is complete the entire log can be viewed in the COMMAND LOG screen.', 'wpcd' ),
+				),
+				'class'      => 'wpcd_app_action',
+				'save_field' => false,
+			);
+		}
+
+		return $fields;
 	}
 
 }

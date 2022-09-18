@@ -502,7 +502,7 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 			}
 
 			// Do not add these fields to the server record - they belong to the app record.
-			if ( in_array( $key, array( 'max_clients', 'dns', 'protocol', 'port', 'clients', 'scripts_version' ), true ) ) {
+			if ( in_array( $key, array( 'scripts_version' ), true ) ) {
 				continue;
 			}
 
@@ -543,7 +543,7 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 			 * Setup an array of fields and loop through them to add them to the wpcd_app cpt record using the array_map function.
 			 * Note that we are passing in the $instance variable to the anonymous function by REFERENCE via a USE parm.
 			*/
-			$appfields = array( 'max_clients', 'dns', 'protocol', 'port', 'clients', 'scripts_version' );
+			$appfields = array( 'scripts_version' );
 			$x         = array_map(
 				function( $f ) use ( &$instance, $app_post_id ) {
 					if ( isset( $instance[ $f ] ) ) {
@@ -908,11 +908,11 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 				$details['ip'],
 				$size,
 				site_url( 'account' ),
-				wpcd_get_option('stablediff_general_servers_page_url'),
+				wpcd_get_option( 'stablediff_general_servers_page_url' ),
 				site_url( 'submit-ticket' ),
 				site_url( 'my-tickets' ),
-				wpcd_get_option('stablediff_general_help_url'),
-				get_bloginfo( 'name'),
+				wpcd_get_option( 'stablediff_general_help_url' ),
+				get_bloginfo( 'name' ),
 			),
 			$template
 		);
@@ -1161,6 +1161,24 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 		$clouds           = WPCD()->get_active_cloud_providers();
 		$regions          = array();
 		$providers        = array();
+
+		// What providers are we actually allowed to use on the front-end?
+		$allowed_providers = wpcd_get_option( 'stablediff_general_allowed_providers_fe' );
+		if ( ! empty( $allowed_providers ) ) {
+			$allowed_providers = explode( ',', $allowed_providers );
+		} else {
+			$allowed_providers = array();
+		}
+
+		// Remove any providers not allowed on the front-end.
+		if ( ! empty( $allowed_providers ) ) {
+			foreach ( $clouds as $provider => $name ) {
+				if ( ! in_array( $provider, $allowed_providers, true ) ) {
+					unset( $clouds[ $provider ] );
+				}
+			}
+		}
+
 		foreach ( $clouds as $provider => $name ) {
 			$locs = WPCD()->get_provider_api( $provider )->call( 'regions' );
 
@@ -1200,7 +1218,7 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 
 		// Font awesome.
 		wp_register_script( 'wpcd-fontawesome-pro', 'https://kit.fontawesome.com/4fa00a8874.js', array(), 6.2, true );
-		wp_enqueue_script( 'wpcd-fontawesome-pro' );		
+		wp_enqueue_script( 'wpcd-fontawesome-pro' );
 		/* End register script and styles */
 
 		$output = '<div class="wpcd-stablediff-instances-list">';
@@ -1939,16 +1957,7 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 		/* End first check that we are handling a Stable Diffusion app / server - use attributes array */
 
 		/* Good to go - now get some data from our app post and stick it in the attributes array */
-		$attributes['port']            = get_post_meta( $attributes['app_post_id'], 'stablediff_port', true );
-		$attributes['protocol']        = get_post_meta( $attributes['app_post_id'], 'stablediff_protocol', true );
-		$attributes['dns']             = get_post_meta( $attributes['app_post_id'], 'stablediff_dns', true );
-		$attributes['clients']         = wpcd_maybe_unserialize( get_post_meta( $attributes['app_post_id'], 'stablediff_dns', true ) );
-		$attributes['max_clients']     = get_post_meta( $attributes['app_post_id'], 'stablediff_max_clients', true );
 		$attributes['scripts_version'] = get_post_meta( $attributes['app_post_id'], 'stablediff_scripts_version', true );
-
-		/* And, since this is the start up script, need to make sure that include a couple of items */
-		$attributes['option'] = 1;  // Tells the script to add a user.
-		$attributes['client'] = 'client1';  // Name of client to add...
 
 		/* Calculate Callback URL and stick that into the array as well */
 		$command_name               = 'install_stable_diff';
@@ -2201,30 +2210,6 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 			$states['wpcd-server-type'] = 'Stable Diffusion';  // Unfortunately we don't have a server type description function we can call right now so hardcoding the value here.
 		}
 		return $states;
-	}
-
-
-	/**
-	 * Return an array of dns providers.
-	 */
-	public function get_dns_providers() {
-		return array(
-			'1' => 'Default',
-			'2' => '1.1.1.1',
-			'3' => 'Google',
-			'4' => 'OpenDNS',
-			'5' => 'Verisign',
-		);
-	}
-
-	/**
-	 * Return an array of protocols.
-	 */
-	public function get_protocols() {
-		return array(
-			'1' => 'UDP',
-			'2' => 'TCP',
-		);
 	}
 
 	/**

@@ -260,13 +260,21 @@ class STABLEDIFF_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tab'     => 'stablediff-general',
 			),
 			array(
+				'id'      => 'stablediff_general_allowed_providers_fe',
+				'type'    => 'text',
+				'name'    => __( 'Allowed Providers For Front-end', 'wpcd' ),
+				'default' => 'awsec2',
+				'tooltip' => __( 'Enter a command separated list of provider slugs that users will be allowed to use when relocating servers.', 'wpcd' ),
+				'tab'     => 'stablediff-general',
+			),			
+			array(
 				'id'      => 'stablediff_general_servers_page_url',
 				'type'    => 'text',
 				'name'    => __( 'URL To Server Page', 'wpcd' ),
 				'default' => 'https://domain.com/stable-diffusion-servers',
 				'tooltip' => __( 'Full URL to the page that contains the stable diffusion shortcodes.  This will be used in emails to the user.', 'wpcd' ),
 				'tab'     => 'stablediff-general',
-			),			
+			),
 			array(
 				'id'      => 'stablediff_general_notes',
 				'type'    => 'textarea',

@@ -139,7 +139,7 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 			// Is the command successful?
 			$success = $this->is_ssh_successful( $logs, 'manage_database_operation.txt' );
 
-			if ( true == $success ) {
+			if ( true === $success ) {
 
 				update_post_meta( $id, 'is_remote_database', 'no' );
 				delete_post_meta( $id, 'remote_database_server_name' );
@@ -386,6 +386,7 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 				break;
 			case 'switch_remote':
 				$remote_dbhost = $args['dbhost_for_remote_database'];
+				$remote_dbport = $args['dbport_for_remote_database'];
 				$remote_dbname = $args['dbname_for_remote_database'];
 				$remote_dbuser = $args['dbuser_for_remote_database'];
 				$remote_dbpass = $args['dbpass_for_remote_database'];
@@ -403,6 +404,7 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 						'action'        => $action,
 						'domain'        => $domain,
 						'remote_dbhost' => $remote_dbhost,
+						'remote_dbport' => $remote_dbport,
 						'remote_dbname' => $remote_dbname,
 						'remote_dbuser' => $remote_dbuser,
 						'remote_dbpass' => $remote_dbpass,
@@ -411,6 +413,7 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 				break;
 			case 'copy_to_remote':
 				$remote_dbhost_for_copy = $args['remote_dbhost_for_copy'];
+				$remote_dbport_for_copy = $args['remote_dbport_for_copy'];
 				$remote_dbname_for_copy = $args['remote_dbname_for_copy'];
 				$remote_dbuser_for_copy = $args['remote_dbuser_for_copy'];
 				$remote_dbpass_for_copy = $args['remote_dbpass_for_copy'];
@@ -428,6 +431,7 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 						'action'        => $action,
 						'domain'        => $domain,
 						'remote_dbhost' => $remote_dbhost_for_copy,
+						'remote_dbport' => $remote_dbport_for_copy,
 						'remote_dbname' => $remote_dbname_for_copy,
 						'remote_dbuser' => $remote_dbuser_for_copy,
 						'remote_dbpass' => $remote_dbpass_for_copy,
@@ -718,24 +722,26 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 			$is_remote_database = 'no';
 		}
 
-		if ( $is_remote_database == 'yes' ) {
-			$running_database_server_name = __( 'Site is using a remote database.', 'wpcd' );
+		if ( $is_remote_database === 'yes' ) {
+			$section_heading              = __( 'Remote Database - Switch To Local Database', 'wpcd' );
+			$running_database_server_name = __( 'This site is currently using a remote database. To switch to a local database please enter the local database information and click the SWITCH button.', 'wpcd' );
 		} else {
-			$running_database_server_name = __( 'Site is using a local database.', 'wpcd' );
+			$section_heading              = __( 'Local Database - Switch To Remote Database', 'wpcd' );
+			$running_database_server_name = __( 'This site is currently using a local database.  To switch to a remote database please enter the remote database information and click the SWITCH button.', 'wpcd' );
 		}
+		$running_database_server_name .= '<br />' . __( 'Please note that that switching databases does NOT automatically copy the database between local and remote or vice-versa.', 'wpcd' );
+		$running_database_server_name .= '<br />' . __( 'You can use the options in the COPY DATABASE section below to copy the data BEFORE switching the database.', 'wpcd' );
 
-		// New fields section for switch to remote or local database.
-
+		// Section for switching between remote and local databases.
 		$fields[] = array(
-			'name' => __( 'Remote Database - Switch To Remote OR Local Database', 'wpcd' ),
+			'name' => $section_heading,
 			'tab'  => 'database',
 			'type' => 'heading',
 			'desc' => $running_database_server_name,
 		);
 
 		// Switch To Remote Database.
-
-		if ( $is_remote_database == 'yes' ) {
+		if ( $is_remote_database === 'yes' ) {
 
 			// Server name.
 			$fields[] = array(
@@ -750,7 +756,6 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 				'name'       => __( 'DB Name:', 'wpcd' ),
 				'tab'        => 'database',
 				'type'       => 'text',
-				'desc'       => __( 'Please fill up database details of local database.', 'wpcd' ),
 				'attributes' => array(
 					'desc'             => '',
 					// the _action that will be called in ajax.
@@ -818,12 +823,11 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 			);
 
 			// Copy database remote to local.
-
 			$fields[] = array(
-				'name' => __( 'Copy Databas - Remote to local', 'wpcd' ),
+				'name' => __( 'Copy Database - Remote to local', 'wpcd' ),
 				'tab'  => 'database',
 				'type' => 'heading',
-				'desc' => 'Please fill up database details of local database.',
+				'desc' => __( 'Enter connection information for the local database.', 'wpcd' ),
 			);
 
 			// Local database name.
@@ -892,7 +896,7 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 					'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like copy database from remote to local?', 'wpcd' ),
 					'data-show-log-console'         => true,
 					// Initial console message.
-					'data-initial-console-message'  => __( 'Preparing copy database from remote to local.<br /> Please DO NOT EXIT this screen until you see a popup message indicating that the operation has completed or has errored.<br />This terminal should refresh every 60-90 seconds with updated progress information from the server. <br /> After the operation is complete the entire log can be viewed in the COMMAND LOG screen.', 'wpcd' ),
+					'data-initial-console-message'  => __( 'Preparing to copy your database from remote to local.<br /> Please DO NOT EXIT this screen until you see a popup message indicating that the operation has completed or has errored.<br />This terminal should refresh every 60-90 seconds with updated progress information from the server. <br /> After the operation is complete the entire log can be viewed in the COMMAND LOG screen.', 'wpcd' ),
 				),
 				'class'      => 'wpcd_app_action',
 				'save_field' => false,
@@ -906,13 +910,28 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 				'name'       => __( 'DB Host:', 'wpcd' ),
 				'tab'        => 'database',
 				'type'       => 'text',
-				'desc'       => __( 'Please fill up database details of remote database.', 'wpcd' ),
 				'attributes' => array(
 					'desc'             => '',
 					'data-wpcd-action' => 'remote-dbhost',
 					'std'              => '',
 					// the key of the field (the key goes in the request).
 					'data-wpcd-name'   => 'dbhost_for_remote_database',
+				),
+			);
+
+			// Remote database port.
+			$fields[] = array(
+				'id'         => 'remote-dbport',
+				'name'       => __( 'DB Port:', 'wpcd' ),
+				'tab'        => 'database',
+				'type'       => 'text',
+				'attributes' => array(
+					'desc'             => '',
+					// the _action that will be called in ajax.
+					'data-wpcd-action' => 'remote-dbport',
+					'std'              => '',
+					// the key of the field (the key goes in the request).
+					'data-wpcd-name'   => 'dbport_for_remote_database',
 				),
 			);
 
@@ -973,7 +992,7 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 				'std'        => __( 'Switch To Remote Database', 'wpcd' ),
 				'attributes' => array(
 					// Get User Name & Password.
-					'data-wpcd-fields'              => json_encode( array( '#remote-dbhost', '#remote-dbname', '#remote-dbuser', '#remote-dbpass' ) ),
+					'data-wpcd-fields'              => json_encode( array( '#remote-dbhost', '#remote-dbport', '#remote-dbname', '#remote-dbuser', '#remote-dbpass' ) ),
 					// the _action that will be called in ajax.
 					'data-wpcd-action'              => 'remote-database',
 					// the id.
@@ -982,19 +1001,18 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 					'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like switch to remote database?', 'wpcd' ),
 					'data-show-log-console'         => true,
 					// Initial console message.
-					'data-initial-console-message'  => __( 'Preparing switch to remote database.<br /> Please DO NOT EXIT this screen until you see a popup message indicating that the operation has completed or has errored.<br />This terminal should refresh every 60-90 seconds with updated progress information from the server. <br /> After the operation is complete the entire log can be viewed in the COMMAND LOG screen.', 'wpcd' ),
+					'data-initial-console-message'  => __( 'Preparing to switch to remote database.<br /> Please DO NOT EXIT this screen until you see a popup message indicating that the operation has completed or has errored.<br />This terminal should refresh every 60-90 seconds with updated progress information from the server. <br /> After the operation is complete the entire log can be viewed in the COMMAND LOG screen.', 'wpcd' ),
 				),
 				'class'      => 'wpcd_app_action',
 				'save_field' => false,
 			);
 
 			// Copy database local to remote.
-
 			$fields[] = array(
-				'name' => __( 'Copy Databas - Local to remote', 'wpcd' ),
+				'name' => __( 'Copy Database - Local to remote', 'wpcd' ),
 				'tab'  => 'database',
 				'type' => 'heading',
-				'desc' => 'Please fill up database details of remote database.',
+				'desc' => __( 'To copy your data to a remote database please enter the connection information for the remote database and then click the COPY DATABASE button.', 'wpcd' ),
 			);
 
 			// Remote database host.
@@ -1009,6 +1027,22 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 					'std'              => '',
 					// the key of the field (the key goes in the request).
 					'data-wpcd-name'   => 'remote_dbhost_for_copy',
+				),
+			);
+
+			// Remote database port.
+			$fields[] = array(
+				'id'         => 'remote-dbport-for-copy',
+				'name'       => __( 'DB Port:', 'wpcd' ),
+				'tab'        => 'database',
+				'type'       => 'text',
+				'attributes' => array(
+					'desc'             => '',
+					// the _action that will be called in ajax.
+					'data-wpcd-action' => 'remote-dbport-for-coy',
+					'std'              => '',
+					// the key of the field (the key goes in the request).
+					'data-wpcd-name'   => 'remote_dbport_for_copy',
 				),
 			);
 
@@ -1069,7 +1103,7 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 				'std'        => __( 'Copy Database From Local To Remote', 'wpcd' ),
 				'attributes' => array(
 					// Get User Name & Password.
-					'data-wpcd-fields'              => json_encode( array( '#remote-dbhost-for-copy', '#remote-dbname-for-copy', '#remote-dbuser-for-copy', '#remote-dbpass-for-copy' ) ),
+					'data-wpcd-fields'              => json_encode( array( '#remote-dbhost-for-copy', '#remote-dbport-for-copy', '#remote-dbname-for-copy', '#remote-dbuser-for-copy', '#remote-dbpass-for-copy' ) ),
 					// the _action that will be called in ajax.
 					'data-wpcd-action'              => 'copy-database-from-local-to-remote',
 					// the id.
@@ -1078,7 +1112,7 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 					'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like copy database from local to remote?', 'wpcd' ),
 					'data-show-log-console'         => true,
 					// Initial console message.
-					'data-initial-console-message'  => __( 'Preparing copy database from local to remote.<br /> Please DO NOT EXIT this screen until you see a popup message indicating that the operation has completed or has errored.<br />This terminal should refresh every 60-90 seconds with updated progress information from the server. <br /> After the operation is complete the entire log can be viewed in the COMMAND LOG screen.', 'wpcd' ),
+					'data-initial-console-message'  => __( 'Preparing to copy database from local to remote.<br /> Please DO NOT EXIT this screen until you see a popup message indicating that the operation has completed or has errored.<br />This terminal should refresh every 60-90 seconds with updated progress information from the server. <br /> After the operation is complete the entire log can be viewed in the COMMAND LOG screen.', 'wpcd' ),
 				),
 				'class'      => 'wpcd_app_action',
 				'save_field' => false,

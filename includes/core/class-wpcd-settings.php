@@ -1894,7 +1894,7 @@ class WPCD_Settings {
 	public function enqueue_scripts( $hook ) {
 
 		// Enqueue the font-awesome pro kit.
-		wp_register_script( 'wpcd-fontawesome-pro', 'https://kit.fontawesome.com/4fa00a8874.js', array(), 5.0, true );
+		wp_register_script( 'wpcd-fontawesome-pro', 'https://kit.fontawesome.com/4fa00a8874.js', array(), 6.2, true );
 		wp_enqueue_script( 'wpcd-fontawesome-pro' );
 
 		// Enqueue some of our scripts.

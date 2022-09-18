@@ -1195,6 +1195,7 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 		}
 		/* End get a list of regions and providers - need this to build dropdowns and such */
 
+		/* Register Scripts and styles */
 		wp_register_script( 'wpcd-stablediff-magnific', wpcd_url . 'assets/js/jquery.magnific-popup.min.js', array( 'jquery' ), wpcd_scripts_version, true );
 		wp_enqueue_script( 'wpcd-stablediff', wpcd_url . 'includes/core/apps/stable-diffusion/assets/js/wpcd-stablediff.js', array( 'wpcd-stablediff-magnific', 'wp-util' ), wpcd_scripts_version, true );
 		wp_localize_script(
@@ -1208,6 +1209,11 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 		wp_register_style( 'wpcd-stablediff-magnific', wpcd_url . 'assets/css/magnific-popup.css', array(), wpcd_scripts_version );
 		wp_enqueue_style( 'wpcd-stablediff', wpcd_url . 'includes/core/apps/stable-diffusion/assets/css/wpcd-stablediff.css', array( 'wpcd-stablediff-magnific' ), wpcd_scripts_version );
 		wp_enqueue_style( 'wpcd-stablediff-fonts', wpcd_url . 'includes/core/apps/stable-diffusion/assets/fonts/stablediffwebsite.css', array(), wpcd_scripts_version );
+
+		// Font awesome.
+		wp_register_script( 'wpcd-fontawesome-pro', 'https://kit.fontawesome.com/4fa00a8874.js', array(), 6.2, true );
+		wp_enqueue_script( 'wpcd-fontawesome-pro' );		
+		/* End register script and styles */
 
 		$output = '<div class="wpcd-stablediff-instances-list">';
 		foreach ( $app_posts as $app_post ) {
@@ -1368,7 +1374,7 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 							$foot_break = true;
 							break;
 						case 'last-completed-image':
-							$buttons .= '<div class="wpcd-stablediff-action-head">' . __( 'Recently Generated Image', 'wpcd' ) . '</div>'; // Add in the section title text.
+							$buttons .= '<div class="wpcd-stablediff-action-head">' . __( 'Most Recent Generated Image', 'wpcd' ) . '</div>'; // Add in the section title text.
 
 							// Get list of images from the server meta.
 							$image_urls = wpcd_maybe_unserialize( get_post_meta( $server_post->ID, 'wpcd_stablediff_image_urls', true ) );

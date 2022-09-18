@@ -175,6 +175,10 @@ class WPCD_Init {
 			require_once wpcd_path . 'includes/core/apps/basic-server/class-basic-server-app.php';
 		}
 
+		if ( defined( 'WPCD_LOAD_STABLEDIFF_APP' ) && ( true === WPCD_LOAD_STABLEDIFF_APP ) ) {
+			require_once wpcd_path . 'includes/core/apps/stable-diffusion/class-stablediff-app.php';
+		}
+
 		// @TODO: Have to make these static till autoloading is implemented
 		// @TODO: This is also poor because N crons will be registered for N providers even if only one provider is actually active and has credentials
 		if ( defined( 'WPCD_LOAD_VPN_APP' ) && ( true === WPCD_LOAD_VPN_APP ) ) {
@@ -182,6 +186,10 @@ class WPCD_Init {
 		}
 		if ( defined( 'WPCD_LOAD_BASIC_SERVER_APP' ) && ( true === WPCD_LOAD_BASIC_SERVER_APP ) ) {
 			WPCD_BASIC_SERVER_APP::activate( $network_wide );
+		}
+		
+		if ( defined( 'WPCD_LOAD_STABLEDIFF_APP' ) && ( true === WPCD_LOAD_STABLEDIFF_APP ) ) {
+			WPCD_STABLEDIFF_APP::activate( $network_wide );
 		}
 
 		$this->wpcd_load_wpapp_traits();
@@ -257,6 +265,10 @@ class WPCD_Init {
 			require_once wpcd_path . 'includes/core/apps/basic-server/class-basic-server-app.php';
 		}
 
+		if ( defined( 'WPCD_LOAD_STABLEDIFF_APP' ) && ( true === WPCD_LOAD_STABLEDIFF_APP ) ) {
+			require_once wpcd_path . 'includes/core/apps/stable-diffusion/class-stablediff-app.php';
+		}
+
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/class-wordpress-app.php';
 
 		if ( defined( 'WPCD_LOAD_VPN_APP' ) && ( true === WPCD_LOAD_VPN_APP ) ) {
@@ -265,6 +277,10 @@ class WPCD_Init {
 
 		if ( defined( 'WPCD_LOAD_BASIC_SERVER_APP' ) && ( true === WPCD_LOAD_BASIC_SERVER_APP ) ) {
 			WPCD_BASIC_SERVER_APP::deactivate( $network_wide );
+		}
+
+		if ( defined( 'WPCD_LOAD_STABLEDIFF_APP' ) && ( true === WPCD_LOAD_STABLEDIFF_APP ) ) {
+			WPCD_STABLEDIFF_APP::deactivate( $network_wide );
 		}
 
 		WPCD_WORDPRESS_APP::deactivate( $network_wide );
@@ -399,6 +415,17 @@ class WPCD_Init {
 			require_once wpcd_path . 'includes/core/apps/basic-server/class-basic-server-ssh.php';
 			require_once wpcd_path . 'includes/core/apps/basic-server/class-basic-server-woocommerce.php';
 		}
+
+		/**
+		* For the STABLEDIFF App
+		*/		
+		/* @TODO: Need to find a more dynamic way to load these by letting apps register themselves at the right time and having them load up their own files */
+		if ( defined( 'WPCD_LOAD_STABLEDIFF_APP' ) && ( true === WPCD_LOAD_STABLEDIFF_APP ) ) {
+			require_once wpcd_path . 'includes/core/apps/stable-diffusion/class-stablediff-app.php';
+			require_once wpcd_path . 'includes/core/apps/stable-diffusion/class-stablediff-app-settings.php';
+			require_once wpcd_path . 'includes/core/apps/stable-diffusion/class-stablediff-ssh.php';
+			require_once wpcd_path . 'includes/core/apps/stable-diffusion/class-stablediff-woocommerce.php';
+		}		
 
 		/**
 		* For the WP App
@@ -652,6 +679,11 @@ class WPCD_Init {
 			if ( defined( 'WPCD_LOAD_BASIC_SERVER_APP' ) && ( true === WPCD_LOAD_BASIC_SERVER_APP ) ) {
 				$wpcd_crons[] = 'do_deferred_actions_for_basic_server';
 			}
+			
+			if ( defined( 'WPCD_LOAD_STABLEDIFF_APP' ) && ( true === WPCD_LOAD_STABLEDIFF_APP ) ) {
+				$wpcd_crons[] = 'do_deferred_actions_for_stablediff';
+			}
+			
 
 			foreach ( $wpcd_crons as $cron ) {
 				$cron_transient = "wpcd_{$cron}_is_active";

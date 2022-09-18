@@ -1,0 +1,239 @@
+@font-face {
+  font-family: 'stablediffwebsite';
+  src:  url('stablediffwebsite.eot?r5n5gq');
+  src:  url('stablediffwebsite.eot?r5n5gq#iefix') format('embedded-opentype'),
+    url('stablediffwebsite.ttf?r5n5gq') format('truetype'),
+    url('stablediffwebsite.woff?r5n5gq') format('woff'),
+    url('stablediffwebsite.svg?r5n5gq#stablediffwebsite') format('svg');
+  font-weight: normal;
+  font-style: normal;
+  font-display: block;
+}
+
+[class^="icon-spstablediff"], [class*=" icon-spstablediff"] {
+  /* use !important to prevent issues with browser extensions that change fonts */
+  font-family: 'stablediffwebsite' !important;
+  speak: none;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+
+  /* Better Font Rendering =========== */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-spstablediffaccount:before {
+  content: "\e900";
+  color: #849098;
+}
+.icon-spstablediffaccount_hover:before {
+  content: "\e901";
+  color: #031470;
+}
+.icon-spstablediffbilling_address:before {
+  content: "\e902";
+  color: #849098;
+}
+.icon-spstablediffbilling_address_hover:before {
+  content: "\e903";
+  color: #031470;
+}
+.icon-spstablediffchange_password:before {
+  content: "\e904";
+  color: #849098;
+}
+.icon-spstablediffchange_password_hover:before {
+  content: "\e905";
+  color: #031470;
+}
+.icon-spstablediffdownloads:before {
+  content: "\e906";
+  color: #849098;
+}
+.icon-spstablediffdownloads_hover:before {
+  content: "\e907";
+  color: #031470;
+}
+.icon-spstablediffmy_orders:before {
+  content: "\e908";
+  color: #849098;
+}
+.icon-spstablediffmy_orders_hover:before {
+  content: "\e909";
+  color: #031470;
+}
+.icon-spstablediffpower_off:before {
+  content: "\e90a";
+  color: #fff;
+}
+.icon-spstablediffprivacy:before {
+  content: "\e90b";
+  color: #849098;
+}
+.icon-spstablediffprivacy_hover:before {
+  content: "\e90c";
+  color: #031470;
+}
+.icon-spstablediffip .path1:before {
+  content: "\e90d";
+  color: rgb(246, 38, 92);
+  opacity: 0.1;
+}
+.icon-spstablediffip .path2:before {
+  content: "\e90e";
+  margin-left: -1em;
+  color: rgb(246, 38, 92);
+}
+.icon-spstablediffip .path3:before {
+  content: "\e90f";
+  margin-left: -1em;
+  color: rgb(246, 38, 92);
+}
+.icon-spstablediffip .path4:before {
+  content: "\e910";
+  margin-left: -1em;
+  color: rgb(246, 38, 92);
+}
+.icon-spstablediffip .path5:before {
+  content: "\e911";
+  margin-left: -1em;
+  color: rgb(246, 38, 92);
+}
+.icon-spstablediffprovider .path1:before {
+  content: "\e912";
+  color: rgb(52, 152, 219);
+  opacity: 0.1;
+}
+.icon-spstablediffprovider .path2:before {
+  content: "\e913";
+  margin-left: -1em;
+  color: rgb(52, 152, 219);
+}
+.icon-spstablediffreboot:before {
+  content: "\e914";
+  color: #fff;
+}
+.icon-spstablediffregion .path1:before {
+  content: "\e915";
+  color: rgb(140, 31, 224);
+  opacity: 0.1;
+}
+.icon-spstablediffregion .path2:before {
+  content: "\e916";
+  margin-left: -1em;
+  color: rgb(140, 31, 224);
+}
+.icon-spstablediffregion .path3:before {
+  content: "\e917";
+  margin-left: -1em;
+  color: rgb(140, 31, 224);
+}
+.icon-spstablediffreinstall:before {
+  content: "\e918";
+  color: #fff;
+}
+.icon-spstablediffshipping_address:before {
+  content: "\e919";
+  color: #849098;
+}
+.icon-spstablediffshipping_address_hover:before {
+  content: "\e91a";
+  color: #031470;
+}
+.icon-spstablediffsize .path1:before {
+  content: "\e91b";
+  color: rgb(52, 219, 197);
+  opacity: 0.1;
+}
+.icon-spstablediffsize .path2:before {
+  content: "\e91c";
+  margin-left: -1em;
+  color: rgb(52, 219, 197);
+}
+.icon-spstablediffsize .path3:before {
+  content: "\e91d";
+  margin-left: -1em;
+  color: rgb(52, 219, 197);
+}
+.icon-spstablediffsize .path4:before {
+  content: "\e91e";
+  margin-left: -1em;
+  color: rgb(52, 219, 197);
+}
+.icon-spstablediffsize .path5:before {
+  content: "\e91f";
+  margin-left: -1em;
+  color: rgb(52, 219, 197);
+}
+.icon-spstablediffsubscription:before {
+  content: "\e920";
+  color: #849098;
+}
+.icon-spstablediffsubscription_hover:before {
+  content: "\e921";
+  color: #031470;
+}
+.icon-spstablediffsubscription_id .path1:before {
+  content: "\e922";
+  color: rgb(235, 126, 29);
+  opacity: 0.1;
+}
+.icon-spstablediffsubscription_id .path2:before {
+  content: "\e923";
+  margin-left: -1em;
+  color: rgb(235, 126, 29);
+}
+.icon-spstablediffsubscription_id .path3:before {
+  content: "\e924";
+  margin-left: -1em;
+  color: rgb(235, 126, 29);
+}
+.icon-spstablediffsubscription_id .path4:before {
+  content: "\e925";
+  margin-left: -1em;
+  color: rgb(235, 126, 29);
+}
+.icon-spstablediffsubscription_id .path5:before {
+  content: "\e926";
+  margin-left: -1em;
+  color: rgb(235, 126, 29);
+}
+.icon-spstablediffsubscription_id .path6:before {
+  content: "\e927";
+  margin-left: -1em;
+  color: rgb(235, 126, 29);
+}
+.icon-spstablediffsubscription_id .path7:before {
+  content: "\e928";
+  margin-left: -1em;
+  color: rgb(235, 126, 29);
+}
+.icon-spstablediffsupport_tickets:before {
+  content: "\e929";
+  color: #849098;
+}
+.icon-spstablediffsupport_tickets_hover:before {
+  content: "\e92a";
+  color: #031470;
+}
+.icon-spstablediffusers .path1:before {
+  content: "\e92b";
+  color: rgb(52, 219, 83);
+  opacity: 0.1;
+}
+.icon-spstablediffusers .path2:before {
+  content: "\e92c";
+  margin-left: -1em;
+  color: rgb(52, 219, 83);
+}
+.icon-spstablediffvpn_instances:before {
+  content: "\e92d";
+  color: #849098;
+}
+.icon-spstablediffvpn_instances_hover:before {
+  content: "\e92e";
+  color: #031470;
+}

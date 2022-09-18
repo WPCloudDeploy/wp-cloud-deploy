@@ -75,7 +75,7 @@ wp_nonce_field( 'wpcd_app_nonce_meta_action', 'app_meta' );
 <hr />
 <div class="pending_tasks_log_meta_field">
 	<label for="pending_task_details"><?php echo esc_html( __( 'Related Data', 'wpcd' ) ); ?></label>
-	<p><?php echo esc_html( print_r( $pending_task_details, true ) ); ?></p>
+	<p><?php echo wpautop( esc_html( print_r( $pending_task_details, true ) ) ); ?></p>
 </div>
 <hr />
 <div class="pending_tasks_log_meta_field">

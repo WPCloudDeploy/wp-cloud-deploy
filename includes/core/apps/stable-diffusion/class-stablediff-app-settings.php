@@ -260,13 +260,13 @@ class STABLEDIFF_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tab'     => 'stablediff-general',
 			),
 			array(
-				'id'      => 'stablediff_general_allowed_providers_fe',
+				'id'      => 'stablediff_general_allowed_providers',
 				'type'    => 'text',
 				'name'    => __( 'Allowed Providers For Front-end', 'wpcd' ),
 				'default' => 'awsec2',
-				'tooltip' => __( 'Enter a command separated list of provider slugs that users will be allowed to use when relocating servers.', 'wpcd' ),
+				'tooltip' => __( 'Enter a command separated list of provider slugs that users will be restricted to.', 'wpcd' ),
 				'tab'     => 'stablediff-general',
-			),			
+			),
 			array(
 				'id'      => 'stablediff_general_servers_page_url',
 				'type'    => 'text',

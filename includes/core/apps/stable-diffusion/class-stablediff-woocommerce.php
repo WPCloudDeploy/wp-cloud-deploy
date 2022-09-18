@@ -15,20 +15,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 class STABLEDIFF_WooCommerce extends WPCD_WOOCOMMERCE {
 
 	/**
-	 * Holds a list of protocols - usually just TCP and UDP
-	 *
-	 * @var $protocol protocol.
-	 */
-	public $protocol;
-
-	/**
-	 * Holds a list of dns providers such as google, opendns and verisign
-	 *
-	 * @var $dns dns.
-	 */
-	public $dns;
-
-	/**
 	 * Available server sizes when ordering
 	 *
 	 * @var $sizes sizes.
@@ -44,9 +30,6 @@ class STABLEDIFF_WooCommerce extends WPCD_WOOCOMMERCE {
 			'medium' => __( 'Medium', 'wpcd' ),
 			'large'  => __( 'Large', 'wpcd' ),
 		);
-
-		$this->protocol = WPCD_STABLEDIFF_APP()->get_protocols();
-		$this->dns      = WPCD_STABLEDIFF_APP()->get_dns_providers();
 
 		// WooCommerce related hooks.
 		add_action( 'woocommerce_product_data_panels', array( &$this, 'wc_stablediff_options' ) );
@@ -116,17 +99,6 @@ class STABLEDIFF_WooCommerce extends WPCD_WOOCOMMERCE {
 						$value = __( 'missing', 'wpcd' );
 					}
 					break;
-				case 'wpcd_app_stablediff_protocol':
-					$key   = __( 'Protocol', 'wpcd' );
-					$value = $this->protocol[ strval( $meta->value ) ];
-					break;
-				case 'wpcd_app_stablediff_dns':
-					$key   = __( 'DNS', 'wpcd' );
-					$value = $this->dns[ wp_strip_all_tags( $meta->value ) ];
-					break;
-				case 'wpcd_app_stablediff_port':
-					$key = __( 'Port', 'wpcd' );
-					break;
 			}
 			$value     = $args['autop'] ? $value : wp_kses_post( make_clickable( trim( $value ) ) );
 			$strings[] = '<strong class="wc-item-meta-label">' . $key . ':</strong> ' . $value;
@@ -163,27 +135,6 @@ class STABLEDIFF_WooCommerce extends WPCD_WOOCOMMERCE {
 				true
 			);
 		}
-		if ( isset( $values['wpcd_app_stablediff_protocol'] ) ) {
-			$item->add_meta_data(
-				'wpcd_app_stablediff_protocol',
-				$values['wpcd_app_stablediff_protocol'],
-				true
-			);
-		}
-		if ( isset( $values['wpcd_app_stablediff_dns'] ) ) {
-			$item->add_meta_data(
-				'wpcd_app_stablediff_dns',
-				$values['wpcd_app_stablediff_dns'],
-				true
-			);
-		}
-		if ( isset( $values['wpcd_app_stablediff_port'] ) ) {
-			$item->add_meta_data(
-				'wpcd_app_stablediff_port',
-				$values['wpcd_app_stablediff_port'],
-				true
-			);
-		}
 	}
 
 	/**
@@ -205,24 +156,6 @@ class STABLEDIFF_WooCommerce extends WPCD_WOOCOMMERCE {
 			$item_data[] = array(
 				'key'   => __( 'Region', 'wpcd' ),
 				'value' => wc_clean( $regions[ $cart_item_data['wpcd_app_stablediff_region'] ] ),
-			);
-		}
-		if ( isset( $cart_item_data['wpcd_app_stablediff_protocol'] ) ) {
-			$item_data[] = array(
-				'key'   => __( 'Protocol', 'wpcd' ),
-				'value' => wc_clean( $this->protocol[ $cart_item_data['wpcd_app_stablediff_protocol'] ] ),
-			);
-		}
-		if ( isset( $cart_item_data['wpcd_app_stablediff_dns'] ) ) {
-			$item_data[] = array(
-				'key'   => __( 'DNS', 'wpcd' ),
-				'value' => wc_clean( $this->dns[ $cart_item_data['wpcd_app_stablediff_dns'] ] ),
-			);
-		}
-		if ( isset( $cart_item_data['wpcd_app_stablediff_port'] ) ) {
-			$item_data[] = array(
-				'key'   => __( 'Port', 'wpcd' ),
-				'value' => wc_clean( $cart_item_data['wpcd_app_stablediff_port'] ),
 			);
 		}
 		return $item_data;
@@ -259,6 +192,24 @@ class STABLEDIFF_WooCommerce extends WPCD_WOOCOMMERCE {
 		$clouds           = WPCD_STABLEDIFF_APP()->get_active_providers();
 		$regions          = array();
 		$providers        = array();
+
+		// What providers are we actually allowed to use in the store?
+		$allowed_providers = wpcd_get_option( 'stablediff_general_allowed_providers' );
+		if ( ! empty( $allowed_providers ) ) {
+			$allowed_providers = explode( ',', $allowed_providers );
+		} else {
+			$allowed_providers = array();
+		}
+
+		// Remove any providers not allowed on the front-end.
+		if ( ! empty( $allowed_providers ) ) {
+			foreach ( $clouds as $provider => $name ) {
+				if ( ! in_array( $provider, $allowed_providers, true ) ) {
+					unset( $clouds[ $provider ] );
+				}
+			}
+		}
+
 		foreach ( $clouds as $provider => $name ) {
 			$locs = WPCD_STABLEDIFF_APP()->api( $provider )->call( 'regions' );
 
@@ -304,40 +255,6 @@ class STABLEDIFF_WooCommerce extends WPCD_WOOCOMMERCE {
 				'label'    => __( 'Region', 'wpcd' ),
 				'options'  => $regions,
 				'required' => true,
-			)
-		);
-
-		woocommerce_form_field(
-			'wpcd_app_stablediff_protocol',
-			array(
-				'type'    => 'select',
-				'class'   => array( 'form-row-wide' ),
-				'label'   => __( 'Protocol', 'wpcd' ),
-				'options' => $this->protocol,
-			)
-		);
-
-		woocommerce_form_field(
-			'wpcd_app_stablediff_port',
-			array(
-				'type'              => 'number',
-				'class'             => array( 'form-row-wide' ),
-				'label'             => __( 'Port', 'wpcd' ),
-				'default'           => 1194,
-				'custom_attributes' => array(
-					'min' => 1,
-					'max' => 65535,
-				),
-			)
-		);
-
-		woocommerce_form_field(
-			'wpcd_app_stablediff_dns',
-			array(
-				'type'    => 'select',
-				'class'   => array( 'form-row-wide' ),
-				'label'   => __( 'DNS', 'wpcd' ),
-				'options' => $this->dns,
 			)
 		);
 
@@ -462,12 +379,7 @@ class STABLEDIFF_WooCommerce extends WPCD_WOOCOMMERCE {
 						'scripts_version'  => $scripts_version,
 						'region'           => $region,
 						'size'             => get_post_meta( $product_id, 'wpcd_app_stablediff_size', true ),
-						'max_clients'      => get_post_meta( $product_id, 'wpcd_app_stablediff_max_clients', true ),
-						'dns'              => wc_get_order_item_meta( $item->get_id(), 'wpcd_app_stablediff_dns', true ),
-						'protocol'         => wc_get_order_item_meta( $item->get_id(), 'wpcd_app_stablediff_protocol', true ),
-						'port'             => wc_get_order_item_meta( $item->get_id(), 'wpcd_app_stablediff_port', true ),
 						'name'             => $name,
-						'client'           => 'client1',
 						'wc_order_id'      => $order_id,
 						'wc_subscription'  => $subscription,
 						'wc_user_id'       => $user->ID,

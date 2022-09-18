@@ -1163,7 +1163,7 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 		$providers        = array();
 
 		// What providers are we actually allowed to use on the front-end?
-		$allowed_providers = wpcd_get_option( 'stablediff_general_allowed_providers_fe' );
+		$allowed_providers = wpcd_get_option( 'stablediff_general_allowed_providers' );
 		if ( ! empty( $allowed_providers ) ) {
 			$allowed_providers = explode( ',', $allowed_providers );
 		} else {

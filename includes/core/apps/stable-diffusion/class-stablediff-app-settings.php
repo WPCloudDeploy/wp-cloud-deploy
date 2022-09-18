@@ -108,19 +108,23 @@ class STABLEDIFF_APP_SETTINGS extends WPCD_APP_SETTINGS {
 	 */
 	public function metabox_tabs() {
 		$tabs = array(
-			'stablediff-general'    => array(
+			'stablediff-general'     => array(
 				'label' => 'General',
 				'icon'  => 'dashicons-text',
 			),
-			'stablediff-s3'         => array(
+			'stablediff-woocommerce' => array(
+				'label' => 'WooCommerce',
+				'icon'  => 'dashicons-store',
+			),
+			'stablediff-s3'          => array(
 				'label' => 'AWS S3',
 				'icon'  => 'dashicons-images-alt2',
 			),
-			'stablediff-scripts'    => array(
+			'stablediff-scripts'     => array(
 				'label' => 'Scripts',
 				'icon'  => 'dashicons-format-aside',
 			),
-			'stablediff-promotions' => array(
+			'stablediff-promotions'  => array(
 				'label' => 'Promotions',
 				'icon'  => 'dashicons-testimonial',
 			),
@@ -133,11 +137,12 @@ class STABLEDIFF_APP_SETTINGS extends WPCD_APP_SETTINGS {
 	 * Return an array that combines all fields that will go on all tabs.
 	 */
 	public function all_fields() {
-		$general_fields = $this->general_fields();
-		$promo_fields   = $this->promotional_fields();
-		$script_fields  = $this->scripts_fields();
-		$s3_fields      = $this->s3_fields();
-		$all_fields     = array_merge( $general_fields, $promo_fields, $script_fields, $s3_fields );
+		$general_fields     = $this->general_fields();
+		$woocommerce_fields = $this->woocommerce_fields();
+		$promo_fields       = $this->promotional_fields();
+		$script_fields      = $this->scripts_fields();
+		$s3_fields          = $this->s3_fields();
+		$all_fields         = array_merge( $general_fields, $woocommerce_fields, $promo_fields, $script_fields, $s3_fields );
 		return $all_fields;
 	}
 
@@ -147,6 +152,12 @@ class STABLEDIFF_APP_SETTINGS extends WPCD_APP_SETTINGS {
 	public function scripts_fields() {
 
 		$fields = array(
+			array(
+				'id'   => 'stablediff_scripts_header',
+				'type' => 'heading',
+				'name' => __( 'Scripts', 'wpcd' ),
+				'tab'  => 'stablediff-scripts',
+			),
 			array(
 				'id'   => 'stablediff_script_version',
 				'type' => 'text',
@@ -173,6 +184,12 @@ class STABLEDIFF_APP_SETTINGS extends WPCD_APP_SETTINGS {
 	public function promotional_fields() {
 
 		$fields = array(
+			array(
+				'id'   => 'stablediff_promo_header',
+				'type' => 'heading',
+				'name' => __( 'Promotional Fields', 'wpcd' ),
+				'tab'  => 'stablediff-promotions',
+			),
 			array(
 				'id'      => 'stablediff_promo_item01_url',
 				'type'    => 'text',
@@ -227,8 +244,13 @@ class STABLEDIFF_APP_SETTINGS extends WPCD_APP_SETTINGS {
 	 * Return array portion of field settings for use in the general fields tab.
 	 */
 	public function general_fields() {
-
 		$fields = array(
+			array(
+				'id'   => 'stablediff_general_header',
+				'type' => 'heading',
+				'name' => __( 'General Settings', 'wpcd' ),
+				'tab'  => 'stablediff-general',
+			),
 			array(
 				'id'      => 'stablediff_general_help_url',
 				'type'    => 'text',
@@ -238,36 +260,13 @@ class STABLEDIFF_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tab'     => 'stablediff-general',
 			),
 			array(
-				'id'      => 'stablediff_general_wc_thank_you_text_before',
-				'type'    => 'textarea',
-				'name'    => __( 'WooCommerce Thank You Page Text', 'wpcd' ),
-				'tooltip' => __( 'You will likely need to give the user some instructions on how to proceed after checking out. This will go at the top of the thank-you page after checkout - it will not completely replace any existing text though!', 'wpcd' ),
-				'rows'    => '10',
-				'tab'     => 'stablediff-general',
-			),
-			array(
-				'id'      => 'stablediff_general_wc_show_acct_link_ty_page',
-				'type'    => 'checkbox',
-				'name'    => __( 'Show a link to the Stable Diffusion account screen on the thank you page?', 'wpcd' ),
-				'tooltip' => __( 'You can offer the user an option to go straight to their account page after checkout.  Turn this on and fill out the two boxes below to enable this. IMPORTANT: For this to work, you do need the token ##STABLEDIFFACCOUNTPAGE## in the thank you text above.', 'wpcd' ),
-				'tab'     => 'stablediff-general',
-			),
-			array(
-				'id'      => 'stablediff_general_wc_ty_acct_link_url',
+				'id'      => 'stablediff_general_servers_page_url',
 				'type'    => 'text',
-				'name'    => __( 'URL to Your Stable Diffusion Account Page', 'wpcd' ),
-				'default' => 'https://domain.com/account/stablediff/',
-				'tooltip' => __( 'You can offer the user an option to go straight to their account page after checkout. This link is the account page link you will send them to.', 'wpcd' ),
+				'name'    => __( 'URL To Server Page', 'wpcd' ),
+				'default' => 'https://domain.com/stable-diffusion-servers',
+				'tooltip' => __( 'Full URL to the page that contains the stable diffusion shortcodes.  This will be used in emails to the user.', 'wpcd' ),
 				'tab'     => 'stablediff-general',
-			),
-			array(
-				'id'      => 'stablediff_general_wc_ty_acct_link_text',
-				'type'    => 'text',
-				'name'    => __( 'Text that the user should see for the account link on the thank you page', 'wpcd' ),
-				'tooltip' => __( 'Example: Go to your account page now', 'wpcd' ),
-				'size'    => '90',
-				'tab'     => 'stablediff-general',
-			),
+			),			
 			array(
 				'id'      => 'stablediff_general_notes',
 				'type'    => 'textarea',
@@ -275,6 +274,54 @@ class STABLEDIFF_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tooltip' => __( 'Use this to store any private notes related to Stable Diffusion configurations. This is a notational field only.', 'wpcd' ),
 				'rows'    => '10',
 				'tab'     => 'stablediff-general',
+			),
+		);
+
+		return $fields;
+	}
+
+	/**
+	 * Return array portion of field settings for use in the woocommerce fields tab.
+	 */
+	public function woocommerce_fields() {
+
+		$fields = array(
+			array(
+				'id'   => 'stablediff_wc_header',
+				'type' => 'heading',
+				'name' => __( 'WooCommerce Settings', 'wpcd' ),
+				'tab'  => 'stablediff-woocommerce',
+			),
+			array(
+				'id'      => 'stablediff_general_wc_thank_you_text_before',
+				'type'    => 'textarea',
+				'name'    => __( 'WooCommerce Thank You Page Text', 'wpcd' ),
+				'tooltip' => __( 'You will likely need to give the user some instructions on how to proceed after checking out. This will go at the top of the thank-you page after checkout - it will not completely replace any existing text though!', 'wpcd' ),
+				'rows'    => '10',
+				'tab'     => 'stablediff-woocommerce',
+			),
+			array(
+				'id'      => 'stablediff_general_wc_show_acct_link_ty_page',
+				'type'    => 'checkbox',
+				'name'    => __( 'Show a link to the Stable Diffusion account screen on the thank you page?', 'wpcd' ),
+				'tooltip' => __( 'You can offer the user an option to go straight to their account page after checkout.  Turn this on and fill out the two boxes below to enable this. IMPORTANT: For this to work, you do need the token ##STABLEDIFFACCOUNTPAGE## in the thank you text above.', 'wpcd' ),
+				'tab'     => 'stablediff-woocommerce',
+			),
+			array(
+				'id'      => 'stablediff_general_wc_ty_acct_link_url',
+				'type'    => 'text',
+				'name'    => __( 'URL to Your Stable Diffusion Account Page', 'wpcd' ),
+				'default' => 'https://domain.com/account/stablediff/',
+				'tooltip' => __( 'You can offer the user an option to go straight to their account page after checkout. This link is the account page link you will send them to.', 'wpcd' ),
+				'tab'     => 'stablediff-woocommerce',
+			),
+			array(
+				'id'      => 'stablediff_general_wc_ty_acct_link_text',
+				'type'    => 'text',
+				'name'    => __( 'Text that the user should see for the account link on the thank you page', 'wpcd' ),
+				'tooltip' => __( 'Example: Go to your account page now', 'wpcd' ),
+				'size'    => '90',
+				'tab'     => 'stablediff-woocommerce',
 			),
 		);
 		return $fields;
@@ -286,6 +333,12 @@ class STABLEDIFF_APP_SETTINGS extends WPCD_APP_SETTINGS {
 	public function s3_fields() {
 
 		$fields = array(
+			array(
+				'id'   => 'stablediff_s3_header',
+				'type' => 'heading',
+				'name' => __( 'S3 Settings', 'wpcd' ),
+				'tab'  => 'stablediff-s3',
+			),
 			array(
 				'id'   => 'stablediff_app_s3_heading_01',
 				'type' => 'heading',
@@ -315,8 +368,8 @@ class STABLEDIFF_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'type' => 'text',
 				'name' => __( 'Default Region', 'wpcd' ),
 				'tab'  => 'stablediff-s3',
-				'desc'    => sprintf( __( '<a href="%s" target="_blank" >Valid Regions</a>', 'wpcd' ), 'https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html#concepts-available-regions' ),
-				'std'     => wpcd_get_option( 'stablediff_app_aws_default_region' ),
+				'desc' => sprintf( __( '<a href="%s" target="_blank" >Valid Regions</a>', 'wpcd' ), 'https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html#concepts-available-regions' ),
+				'std'  => wpcd_get_option( 'stablediff_app_aws_default_region' ),
 				'size' => 60,
 			),
 			array(

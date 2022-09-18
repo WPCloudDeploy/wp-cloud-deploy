@@ -893,38 +893,26 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 		$stablediff_id = get_post_meta( $server_post->ID, 'wpcd_server_provider_instance_id', true );
 		$details       = WPCD()->get_provider_api( $provider )->call( 'details', array( 'id' => $stablediff_id ) );
 
-		// Get protocol from stablediff app record.
-		$protocol = get_post_meta( $app_post_id, 'stablediff_protocol', true );
-		$port     = get_post_meta( $app_post_id, 'stablediff_port', true );
-		$protocol = sprintf( '%s / %d', WPCD()->classes['wpcd_app_stablediff_wc']->protocol[ strval( $protocol ) ], $port );
-
 		// Get server size from server record.
 		$size     = get_post_meta( $server_post->ID, 'wpcd_server_size', true );
 		$size     = WPCD()->classes['wpcd_app_stablediff_wc']::$sizes[ strval( $size ) ];
 		$region   = get_post_meta( $server_post->ID, 'wpcd_server_region', true );
 		$provider = get_post_meta( $server_post->ID, 'wpcd_server_provider', true );
 
-		// Get max clients allowed from stablediff app record.
-		$max   = get_post_meta( $app_post_id, 'stablediff_max_clients', true );
-		$total = wpcd_maybe_unserialize( get_post_meta( $app_post_id, 'stablediff_clients', true ) );
-		if ( empty( $total ) ) {
-			$total = array();
-		} else {
-			$total = count( $total );
-		}
-		$users = sprintf( '%d / %d', $total, $max );
-
 		$template = file_get_contents( dirname( __FILE__ ) . '/templates/' . ( $email ? 'email' : 'help_popup' ) . '.html' );
 		return str_replace(
-			array( '$NAME', '$PROVIDER', '$IP', '$PROTOCOL', '$SIZE', '$USERS', '$URL' ),
+			array( '$NAME', '$PROVIDER', '$IP', '$SIZE', '$ACCOUNTPAGE', '$SERVERPAGE', '$NEWTICKET', '$MYTICKETS', '$HELPPAGE', '$SITENAME' ),
 			array(
 				get_post_meta( $server_post->ID, 'wpcd_server_name', true ),
 				$this->get_providers()[ $provider ],
 				$details['ip'],
-				$protocol,
 				$size,
-				$users,
 				site_url( 'account' ),
+				wpcd_get_option('stablediff_general_servers_page_url'),
+				site_url( 'submit-ticket' ),
+				site_url( 'my-tickets' ),
+				wpcd_get_option('stablediff_general_help_url'),
+				get_bloginfo( 'name'),
 			),
 			$template
 		);

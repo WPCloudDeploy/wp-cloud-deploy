@@ -124,9 +124,15 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 
 			if ( true == $success ) {
 
-				$server_name = WPCD_SERVER()->get_server_name( $id );
+				// Indicate that we are connecting to a remote database.
 				update_post_meta( $id, 'wpapp_is_remote_database', 'yes' );
-				update_post_meta( $id, 'wpapp_remote_database_server_name', $server_name );
+
+				update_post_meta( $id, 'wpapp_db_host', get_post_meta( $id, 'wpapp_temp_db_host', true ) );
+				update_post_meta( $id, 'wpapp_db_port', get_post_meta( $id, 'wpapp_temp_db_port', true ) );
+				update_post_meta( $id, 'wpapp_db_name', get_post_meta( $id, 'wpapp_temp_db_name', true ) );
+				update_post_meta( $id, 'wpapp_db_user', get_post_meta( $id, 'wpapp_temp_db_user', true ) );
+				update_post_meta( $id, 'wpapp_db_pass', get_post_meta( $id, 'wpapp_temp_db_pass', true ) );
+
 			}
 		}
 
@@ -142,7 +148,13 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 			if ( true === $success ) {
 
 				update_post_meta( $id, 'wpapp_is_remote_database', 'no' );
-				delete_post_meta( $id, 'wpapp_remote_database_server_name' );
+
+				update_post_meta( $id, 'wpapp_db_host', get_post_meta( $id, 'wpapp_temp_db_host', true ) );
+				update_post_meta( $id, 'wpapp_db_port', get_post_meta( $id, 'wpapp_temp_db_port', true ) );
+				update_post_meta( $id, 'wpapp_db_name', get_post_meta( $id, 'wpapp_temp_db_name', true ) );
+				update_post_meta( $id, 'wpapp_db_user', get_post_meta( $id, 'wpapp_temp_db_user', true ) );
+				update_post_meta( $id, 'wpapp_db_pass', get_post_meta( $id, 'wpapp_temp_db_pass', true ) );
+
 			}
 		}
 
@@ -167,6 +179,13 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 			$this->is_ssh_successful( $logs, 'manage_database_operation.txt' );
 
 		}
+
+		// Remove some metas that may be present.
+		delete_post_meta( $id, 'wpapp_temp_db_host' );
+		delete_post_meta( $id, 'wpapp_temp_db_port' );
+		delete_post_meta( $id, 'wpapp_temp_db_name' );
+		delete_post_meta( $id, 'wpapp_temp_db_user' );
+		delete_post_meta( $id, 'wpapp_temp_db_pass' );
 
 		// remove the 'temporary' meta so that another attempt will run if necessary.
 		delete_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action_status" );
@@ -383,6 +402,14 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 						'local_dbpass' => $local_dbpass,
 					)
 				);
+
+				// Update some temporary metas that we'll use later if the command succeeds.
+				update_post_meta( $id, 'wpapp_temp_db_host', 'localhost' );
+				update_post_meta( $id, 'wpapp_temp_db_port', '3301' );
+				update_post_meta( $id, 'wpapp_temp_db_name', $local_dbname );
+				update_post_meta( $id, 'wpapp_temp_db_user', $local_dbuser );
+				update_post_meta( $id, 'wpapp_temp_db_pass', self::encrypt( $local_dbpass ) );
+
 				break;
 			case 'switch_remote':
 				$remote_dbhost = $args['dbhost_for_remote_database'];
@@ -410,6 +437,14 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 						'remote_dbpass' => $remote_dbpass,
 					)
 				);
+
+				// Update some temporary metas that we'll use later if the command succeeds.
+				update_post_meta( $id, 'wpapp_temp_db_host', $remote_dbhost );
+				update_post_meta( $id, 'wpapp_temp_db_port', $remote_dbport );
+				update_post_meta( $id, 'wpapp_temp_db_name', $remote_dbname );
+				update_post_meta( $id, 'wpapp_temp_db_user', $remote_dbuser );
+				update_post_meta( $id, 'wpapp_temp_db_pass', self::encrypt( $remote_dbpass ) );
+
 				break;
 			case 'copy_to_remote':
 				$remote_dbhost_for_copy = $args['remote_dbhost_for_copy'];
@@ -565,13 +600,22 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 
 		// Remote Database Options.
 		$is_remote_database = get_post_meta( $id, 'wpapp_is_remote_database', true );
-		$server_name        = get_post_meta( $id, 'wpapp_remote_database_server_name', true );
 
+		// Current database settings.
+		$current_db_host           = get_post_meta( $id, 'wpapp_db_host', true );
+		$current_db_port           = get_post_meta( $id, 'wpapp_db_port', true );
+		$current_db_name           = get_post_meta( $id, 'wpapp_db_name', true );
+		$current_db_user           = get_post_meta( $id, 'wpapp_db_user', true );
+		$current_db_pass           = get_post_meta( $id, 'wpapp_db_pass', true );
+		$current_db_pass_decrypted = self::decrypt( $current_db_pass );
+
+		// Set default remote flag if it's empty.
 		if ( empty( $is_remote_database ) ) {
 
 			$is_remote_database = 'no';
 		}
 
+		// Set some text for the header depending on whether we have a local or remote database in use.
 		if ( $is_remote_database === 'yes' ) {
 			$section_heading              = __( 'Remote Database - Switch To Local Database [Beta]', 'wpcd' );
 			$running_database_server_name = __( 'This site is currently using a remote database. To switch to a local database please enter the local database information and click the SWITCH button.', 'wpcd' );
@@ -581,6 +625,33 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 		}
 		$running_database_server_name .= '<br />' . __( 'Please note that that switching databases does NOT automatically copy the database between local and remote or vice-versa.', 'wpcd' );
 		$running_database_server_name .= '<br />' . __( 'You can use the options in the COPY DATABASE section below to copy the data BEFORE switching the database.', 'wpcd' );
+
+		// Show the current database info if we have it.
+		if ( ! empty( $current_db_host ) || ! empty( $current_db_port ) || ! empty( $current_db_name ) || ! empty( $current_db_user ) || ! empty( $current_db_pass_decrypted ) ) {
+			$fields[] = array(
+				'name' => __( 'Current Database Connection Information', 'wpcd' ),
+				'tab'  => 'database',
+				'type' => 'heading',
+				'desc' => __( 'The following is the information we have saved from prior database operations. If you have directly updated the wp-config.php file then this information is likely not correct.', 'wpcd' ),
+			);
+
+			$db_info  = sprintf( __( 'Host: %s', 'wpcd' ), $current_db_host );
+			$db_info .= '<br />';
+			$db_info .= sprintf( __( 'Port: %s', 'wpcd' ), $current_db_port );
+			$db_info .= '<br />';
+			$db_info .= sprintf( __( 'DB Name: %s', 'wpcd' ), $current_db_name );
+			$db_info .= '<br />';
+			$db_info .= sprintf( __( 'DB User: %s', 'wpcd' ), $current_db_user );
+			$db_info .= '<br />';
+			$db_info .= sprintf( __( 'DB Pass: %s', 'wpcd' ), $current_db_pass_decrypted );
+
+			$fields[] = array(
+				'tab'  => 'database',
+				'type' => 'custom_html',
+				'std'  => $db_info,
+			);
+
+		}
 
 		// Section for switching between remote and local databases.
 		$fields[] = array(
@@ -592,13 +663,6 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 
 		// Switch To Remote Database.
 		if ( $is_remote_database === 'yes' ) {
-
-			// Server name.
-			$fields[] = array(
-				'tab'  => 'database',
-				'type' => 'custom_html',
-				'std'  => __( 'Server Name: ', 'wpcd' ) . $server_name,
-			);
 
 			// Local database name.
 			$fields[] = array(

@@ -325,6 +325,8 @@ function wpcd_split_lines_into_array( $string ) {
  * The values are 'backup', 'test088.wpvix.com and 'test088.wpvix.com' respectively.
  * notice that there is no space between the key= and the value.
  *
+ * Note: Only the first occurrence will be replaced.
+ *
  * @param array  $pairs key-value array eg: array( 'wp_password=' => '(***private***)', 'aws_access_key_id=' => '(***private***)', 'aws_secret_access_key=' => '(***private***)'  ).
  * @param string $ihaystack The haystack to search for the key-value pairs.
  *

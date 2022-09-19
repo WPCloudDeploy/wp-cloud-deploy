@@ -61,12 +61,20 @@ then
 	chmod 775 /var/www/$domain/html/phpMyAdmin/tmp
 	chown -R $user_name:www-data /var/www/$domain/html/phpMyAdmin
 
+	gf_get_dbhost $domain
+	gf_get_dbname $domain
+	gf_get_dbuser $domain
+	gf_get_dbpass $domain
+
 	echo
 	echo "phpMyAdmin installed for $domain"
 	echo
 	echo "Login credentials are:"
-	echo "User: $(grep DB_USER /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d ',' -f2|cut -d')' -f1|tail -c +2 | head -c -2)"
-	echo "Password: $(grep DB_PASSWORD /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d ',' -f2|cut -d')' -f1|tail -c +2 | head -c -2)"
+	echo "Host: $g_mysql_host"
+	echo "Database: $g_mysql_name"
+	echo "User: $g_mysql_user"
+	echo "Password: $g_mysql_pass"
+	
 	echo "You can access phpMyAdmin at: $domain/phpMyAdmin"
 fi
 
@@ -86,13 +94,20 @@ then
 	mkdir /var/www/$domain/html/phpMyAdmin/tmp
 	chmod 775 /var/www/$domain/html/phpMyAdmin/tmp
 	chown -R $user_name:www-data /var/www/$domain/html/phpMyAdmin
+	
+	gf_get_dbhost $domain
+	gf_get_dbname $domain
+	gf_get_dbuser $domain
+	gf_get_dbpass $domain	
 
 	echo
 	echo "phpMyAdmin updated for $domain to version $phpmyadmin_version"
 	echo
 	echo "Login credentials are:"
-	echo "User: $(grep DB_USER /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d ',' -f2|cut -d')' -f1|tail -c +2 | head -c -2)"
-	echo "Password: $(grep DB_PASSWORD /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d ',' -f2|cut -d')' -f1|tail -c +2 | head -c -2)"
+	echo "Host: $g_mysql_host"
+	echo "Database: $g_mysql_name"
+	echo "User: $g_mysql_user"
+	echo "Password: $g_mysql_pass"
 	echo "You can access phpMyAdmin at: $domain/phpMyAdmin"
 fi
 
@@ -129,12 +144,19 @@ QUERY
 	su - $user_name -c "wp --skip-plugins config set DB_PASSWORD $mysql_password"
 	su - $user_name -c "wp cache flush"
 
+	gf_get_dbhost $domain
+	gf_get_dbname $domain
+	gf_get_dbuser $domain
+	gf_get_dbpass $domain
+
 	echo
 	echo "Access credentials have been updated"
 	echo
 	echo "Login credentials are:"
-	echo "User: $(grep DB_USER /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d ',' -f2|cut -d')' -f1|tail -c +2 | head -c -2)"
-	echo "Password: $(grep DB_PASSWORD /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d ',' -f2|cut -d')' -f1|tail -c +2 | head -c -2)"
+	echo "Host: $g_mysql_host"
+	echo "Database: $g_mysql_name"
+	echo "User: $g_mysql_user"
+	echo "Password: $g_mysql_pass"
 	echo "You can access phpMyAdmin at: $domain/phpMyAdmin"
 fi
 
@@ -246,9 +268,17 @@ fi
 
 if [[ $action == "print_auth" || $action == "9" ]]
 then
+
+	gf_get_dbhost $domain
+	gf_get_dbname $domain
+	gf_get_dbuser $domain
+	gf_get_dbpass $domain
+	
 	echo
 	echo "Login credentials are:"
-	echo "User: $(grep DB_USER /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d ',' -f2|cut -d')' -f1|tail -c +2 | head -c -2)"
-	echo "Password: $(grep DB_PASSWORD /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d ',' -f2|cut -d')' -f1|tail -c +2 | head -c -2)"
+	echo "Host: $g_mysql_host"
+	echo "Database: $g_mysql_name"
+	echo "User: $g_mysql_user"
+	echo "Password: $g_mysql_pass"
 	echo "You can access phpMyAdmin at: $domain/phpMyAdmin"
 fi

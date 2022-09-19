@@ -968,6 +968,8 @@ class WP_CLOUD_DEPLOY {
 				'aws_secret_access_key='     => '(***private***)',
 				'--admin_password='          => '(***private***)',
 				'pass='                      => '(***private***)',
+				'remote_dbpass='             => '(***private***)',
+				'local_dbpass='              => '(***private***)',
 				'dns_cloudflare_api_token'   => '(***private***)',
 				'dns_cloudflare_api_key'     => '(***private***)',
 				'secret_key_manager_api_key' => '(***private***)',

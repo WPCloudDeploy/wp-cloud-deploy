@@ -142,9 +142,13 @@ do
 	done
 done
 
-mysql_db=$(grep DB_NAME /var/www/$old_domain/html/wp-config.php | tr -d "[:space:]"|cut -d ',' -f2|cut -d')' -f1|tail -c +2 | head -c -2)
-mysql_dbprefix=$(grep table_prefix /var/www/$old_domain/html/wp-config.php | tr -d "[:space:]"|cut -d '=' -f2|cut -d';' -f1|tail -c +2 | head -c -2)
-
+gf_get_dbname $old_domain
+gf_get_dbprefix $old_domain
+mysql_db=$g_mysql_name
+mysql_dbprefix=$g_mysql_dbprefix
+# Let's unset the globals now that they been copied. This prevents them being still set further below when we reuse the same function
+unset g_mysql_name
+unset g_mysql_dbprefix
 
 if id -u $new_user_name &>/dev/null
 then

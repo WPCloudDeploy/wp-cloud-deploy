@@ -93,7 +93,6 @@ then
 	# Get remote database information
 	remote_dbaccess
 	
-	sudo ufw allow from "$remote_dbhost" to any port 3306
 	if gf_check_db_connection "$remote_dbhost" "$remote_dbname" "$remote_dbuser" "$remote_dbpass" "$remote_dbport"; then
 		# database exists and is connectable
 		sed -i "s|$g_mysql_host|$remote_dbhost:$remote_dbport|g" /var/www/"$domain"/html/wp-config.php
@@ -101,7 +100,6 @@ then
 		sed -i "s|$g_mysql_user|$remote_dbuser|g" /var/www/"$domain"/html/wp-config.php
 		sed -i "s|$g_mysql_pass|$remote_dbpass|g" /var/www/"$domain"/html/wp-config.php
 	else
-		sudo ufw delete allow from "$remote_dbhost" to any port 3306
 		echo "Database could not be switched to Remote server for $domain due to an error."
 		exit 1
 	fi

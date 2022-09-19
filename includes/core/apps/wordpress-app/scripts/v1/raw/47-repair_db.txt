@@ -55,7 +55,7 @@ gf_get_dbhost $domain
 gf_get_dbname $domain
 gf_get_dbuser $domain
 gf_get_dbpass $domain
-mysql_dbprefix=$(grep table_prefix /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "=" -f2|cut -d";" -f1|tail -c +2 | head -c -2)
+gf_get_dbprefix $domain
 
 #backup database
 echo "Backing up database..."

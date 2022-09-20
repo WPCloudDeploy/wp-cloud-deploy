@@ -1333,7 +1333,7 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 							if ( 'off' === (string) $details['status'] ) {
 								$buttons .= sprintf( '<p class="wpcd-stablediff-action-error"> %s</p>', __( 'The server is turned off - you cannot request images at this time.  Please use the options in the POWER section below to restart the server.', 'wpcd' ) );
 							} else {
-								//$buttons       .= '<input type="text" name="image-prompt" id="wpcd-stablediff-input-text-request-image" class="wpcd-stablediff-additional wpcd-stablediff-input-text">';
+								// $buttons       .= '<input type="text" name="image-prompt" id="wpcd-stablediff-input-text-request-image" class="wpcd-stablediff-additional wpcd-stablediff-input-text">';
 								$buttons       .= '<textarea name="image-prompt" id="wpcd-stablediff-input-text-request-image" class="wpcd-stablediff-additional wpcd-stablediff-input-text" rows="6" cols="50"></textarea>';
 								$input_help_tip = __( 'Describe the image you would like to generate and then use the REQUEST IMAGES button below to submit the request to the server.', 'wpcd' );
 								$help_tip       = sprintf( __( 'You have %s image requests pending. Each request will generate four images.', 'wpcd' ), $pending_image_requests );
@@ -1430,9 +1430,11 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 								foreach ( $reverted_images_iterator as $image ) {
 									$cnt++;
 
-									$image_url = $image['signed-url'];
-									$prompt    = $image['prompt'];
-									$buttons  .= sprintf( '<div class="wpcd-stablediff-image-thumbnail"><img class="wpcd-stablediff-generated-img" title = "%s" alt="%s" src=%s /></div>', $prompt, $prompt, $image_url );
+									$image_url          = $image['signed-url'];
+									$prompt             = $image['prompt'];
+									$image_grid_element = sprintf( '<div class="wpcd-stablediff-image-thumbnail"><img class="wpcd-stablediff-generated-img" title = "%s" alt="%s" src=%s /></div>', $prompt, $prompt, $image_url );
+									$image_grid_element = sprintf( '<a href="%s" target="blank">', $image_url ) . $image_grid_element . '</a>';
+									$buttons           .= $image_grid_element;
 
 									// Only images 1-4 should be shown.
 									if ( $cnt >= 4 ) {
@@ -1472,9 +1474,11 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 										continue;
 									}
 
-									$image_url = $image['signed-url'];
-									$prompt    = $image['prompt'];
-									$buttons  .= sprintf( '<div class="wpcd-stablediff-image-thumbnail"><img class="wpcd-stablediff-generated-img" title = "%s" alt="%s" src=%s /></div>', $prompt, $prompt, $image_url );
+									$image_url          = $image['signed-url'];
+									$prompt             = $image['prompt'];
+									$image_grid_element = sprintf( '<div class="wpcd-stablediff-image-thumbnail"><img class="wpcd-stablediff-generated-img" title = "%s" alt="%s" src=%s /></div>', $prompt, $prompt, $image_url );
+									$image_grid_element = sprintf( '<a href="%s" target="blank">', $image_url ) . $image_grid_element . '</a>';
+									$buttons           .= $image_grid_element;
 
 									// Only images 5-8 should be shown.
 									if ( $cnt >= 8 ) {

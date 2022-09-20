@@ -1333,7 +1333,8 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 							if ( 'off' === (string) $details['status'] ) {
 								$buttons .= sprintf( '<p class="wpcd-stablediff-action-error"> %s</p>', __( 'The server is turned off - you cannot request images at this time.  Please use the options in the POWER section below to restart the server.', 'wpcd' ) );
 							} else {
-								$buttons       .= '<input type="text" name="image-prompt" id="wpcd-stablediff-input-text-request-image" class="wpcd-stablediff-additional wpcd-stablediff-input-text">';
+								//$buttons       .= '<input type="text" name="image-prompt" id="wpcd-stablediff-input-text-request-image" class="wpcd-stablediff-additional wpcd-stablediff-input-text">';
+								$buttons       .= '<textarea name="image-prompt" id="wpcd-stablediff-input-text-request-image" class="wpcd-stablediff-additional wpcd-stablediff-input-text" rows="6" cols="50"></textarea>';
 								$input_help_tip = __( 'Describe the image you would like to generate and then use the REQUEST IMAGES button below to submit the request to the server.', 'wpcd' );
 								$help_tip       = sprintf( __( 'You have %s image requests pending. Each request will generate four images.', 'wpcd' ), $pending_image_requests );
 							}

@@ -197,7 +197,7 @@ a.wpcd-stablediff-server-page-button:hover {
 	border-color: #0C942D
 }
 .wpcd-stablediff-action-request-image {
-	padding: 16px 16px;
+	padding: 12px 16px;
 }
 
 .wpcd-stablediff-action-reinstall {
@@ -206,6 +206,11 @@ a.wpcd-stablediff-server-page-button:hover {
 	border-color: #FF5722
 }
 /* End individual button styles */
+
+/* Size the textarea where you type in the image request */
+#wpcd-stablediff-input-text-request-image {
+	height: 8em;
+}
 
 /* Image thumbnail Grids */
 .wpcd-stablediff-image-grid-wrapper {

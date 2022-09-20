@@ -599,9 +599,11 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 			$result  = $this->execute_ssh( 'generic', $instance, array( 'commands' => $run_cmd ) );
 			if ( is_wp_error( $result ) ) {
 				return false;
-			} else {
-				return true;
 			}
+			if ( strpos( $result, 'Please delete this server' ) !== false ) {
+				return false;
+			}
+			return true;
 		}
 
 		return false;
@@ -1057,6 +1059,11 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 						 * callback_install_server_status function to update metas and prepare to send emails.
 						 */
 
+					} else {
+						// Error when provisioning server.
+						// Mark server so that it knows there was an error.
+						// Later we can probably just clear all metas and then trigger a reinstall.
+						update_post_meta( $attributes['post_id'], 'wpcd_server_action_status', 'errored' );
 					}
 				}
 				break;

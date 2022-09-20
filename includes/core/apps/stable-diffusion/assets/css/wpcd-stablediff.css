@@ -14,7 +14,6 @@
 }
 
 /* the box that contains each instance - applies to all devices */
-
 .wpcd-stablediff-instance {
 	padding: 2%;
 	margin: 2% 0px;
@@ -23,7 +22,6 @@
 
 
 /* the name of the instance */
-
 .wpcd-stablediff-instance-name {
 	background-color: #64748B;
 	color: white;
@@ -37,7 +35,6 @@
 }
 
 /* Make instance attributes a css grid (things like the provider, size etc)*/
-
 .wpcd-stablediff-instance-atts {
 	display: grid;
 	grid-template-areas: "i i i i i i";
@@ -59,7 +56,6 @@
  basically we're making them nice looking boxes with an icon 
  above each label.
  */
-
 .wpcd-stablediff-instance-atts>div {
 	margin-top: 15px;
 	margin-right: 4%;
@@ -81,7 +77,12 @@
 	color: #90A4AE;
 }
 
-.icon-spstablediffprovider, .icon-spstablediffregion, .icon-spstablediffsize, .icon-spstablediffip, .icon-spstablediffusers, .icon-spstablediffsubscription_id {
+.icon-spstablediffprovider, 
+.icon-spstablediffregion, 
+.icon-spstablediffsize, 
+.icon-spstablediffip, 
+.icon-spstablediffusers, 
+.icon-spstablediffsubscription_id {
 	/* This formats the iconmoon icons in the iconmoon font file */
 	font-size: 32px !important;
 }
@@ -89,7 +90,6 @@
 /* End format each of the individual items for the instance attributes */
 
 /* Make instance actions area a css grid */
-
 .wpcd-stablediff-instance-actions {
 	display: grid;
 	grid-template-areas: "i i " "i i " "i i ";
@@ -107,7 +107,6 @@
 }
 
 /* Style the wrapper around each group of buttons inside the instance container */
-
 .wpcd-stablediff-instance-multi-button-block-wrap {
 	background-color: white;
 	margin-top: 4%;
@@ -119,7 +118,6 @@
 }
 
 /* General button styles */
-
 .wpcd-stablediff-action-type {
 	font-size: small;
 	margin-top: 1em;
@@ -128,7 +126,6 @@
 }
 
 /* text color and other button aesthetics */
-
 .wpcd-stablediff-action-type {
 	color: white;
 	border-radius: 3px;
@@ -144,36 +141,63 @@
 }
 
 /* Style the individual buttons */
-
-.wpcd-stablediff-action-download-file, .wpcd-stablediff-action-reboot, .wpcd-stablediff-action-relocate, .wpcd-stablediff-action-connected {
+.wpcd-stablediff-action-download-file, 
+.wpcd-stablediff-action-reboot, 
+.wpcd-stablediff-action-relocate, 
+.wpcd-stablediff-action-connected {
 	background-color: #031470;
-	box-shadow: 0 0 5px 5px #CFD8DC;
+	/* box-shadow: 0 0 5px 5px #CFD8DC; */
 }
 
-.wpcd-stablediff-action-download-file:hover, .wpcd-stablediff-action-reboot:hover, .wpcd-stablediff-action-relocate:hover, .wpcd-stablediff-action-connected:hover {
+.wpcd-stablediff-action-download-file:hover, 
+.wpcd-stablediff-action-reboot:hover, 
+.wpcd-stablediff-action-relocate:hover, 
+.wpcd-stablediff-action-connected:hover {
 	background-color: #0C942D;
 }
 
 .wpcd-stablediff-action-instructions {
+	background-color: #CFD8DC;
+	/*
 	border-color: #CFD8DC;
 	border-width: 1px;
 	border: solid;
-	color: #90A4AE !important;
+	*/
+	padding: 8px 16px;
+	color: black;
+	/* color: #90A4AE !important; */
 	font-weight: bold;
-	background-color: white;
-	box-shadow: 0 0 5px 5px #CFD8DC;
+	/* background-color: white; */
+	/* box-shadow: 0 0 5px 5px #CFD8DC; */
 }
 
-.wpcd-stablediff-action-off, .wpcd-stablediff-action-remove-user {
+.wpcd-stablediff-server-page-button {
+	/* This button is shown in the HELP popup. */
+	display: inline-block;
+	padding: 8px 16px;
+	background-color: #FF5722;
+	color: white;
+	border: none;
+}
+a.wpcd-stablediff-server-page-button:hover {
+	background-color: #031470;
+}
+
+.wpcd-stablediff-action-off, 
+.wpcd-stablediff-action-remove-user {
 	/* red */
 	background-color: #D60D0F;
 	border-color: #D60D0F;
 }
 
-.wpcd-stablediff-action-request-image, .wpcd-stablediff-action-on {
+.wpcd-stablediff-action-request-image, 
+.wpcd-stablediff-action-on {
 	/* green */
 	background-color: #0C942D;
 	border-color: #0C942D
+}
+.wpcd-stablediff-action-request-image {
+	padding: 16px 16px;
 }
 
 .wpcd-stablediff-action-reinstall {
@@ -181,11 +205,9 @@
 	background-color: #FF5722;
 	border-color: #FF5722
 }
-
 /* End individual button styles */
 
 /* Image thumbnail Grids */
-
 .wpcd-stablediff-image-grid-wrapper {
 	display: grid;
 	grid-template-areas: "j j " "j j " "j j ";
@@ -213,7 +235,6 @@
 }
 
 /* box headers on the wpcd-vpn account screen */
-
 .wpcd-stablediff-action-head {
 	color: black;
 	font-weight: bold;
@@ -225,26 +246,23 @@
 }
 
 /* the dropdown in actions of the instance */
-
 .wpcd-stablediff-select {
 	margin-top: 1em;
 }
 
 /* help tip underneath each button */
-
 .wpcd-stablediff-action-help-tip {
 	font-size: x-small;
 }
 
 /* put some margin under the text inputs */
-
 input.wpcd-stablediff-additional.wpcd-stablediff-input-text {
 	margin-bottom: 10px !important;
 }
 
 /* the instructions popup */
-
-.wpcd-stablediff-alert, .wpcd-stablediff-instructions {
+.wpcd-stablediff-alert, 
+.wpcd-stablediff-instructions {
 	position: relative;
 	background: #EEEEEE;
 	padding: 20px;
@@ -254,7 +272,6 @@ input.wpcd-stablediff-additional.wpcd-stablediff-input-text {
 }
 
 /* instructions popup content */
-
 .wpcd-stablediff-instructions-popup-content-wrap {
 	width: 80%;
 	height: 100%;
@@ -268,7 +285,6 @@ input.wpcd-stablediff-additional.wpcd-stablediff-input-text {
 }
 
 /* Make the data inside the instructions screen a css grid */
-
 .wpcd-stablediff-instructions-popup-content-grid {
 	display: grid;
 	grid-template-areas: "i i i";
@@ -294,7 +310,6 @@ input.wpcd-stablediff-additional.wpcd-stablediff-input-text {
 }
 
 /* Styling for each box inside the instructions grid..*/
-
 .wpcd-stablediff-instructions-grid-item {
 	background-color: white;
 	margin-top: 4%;
@@ -307,14 +322,13 @@ input.wpcd-stablediff-additional.wpcd-stablediff-input-text {
 }
 
 /* Styling for the ABOUT YOUR SERVER and HELP box */
-
-.wpcd-stablediff-instructions-grid-item-about-server, .wpcd-stablediff-instructions-grid-item-help {
+.wpcd-stablediff-instructions-grid-item-about-server, 
+.wpcd-stablediff-instructions-grid-item-help {
 	font-size: smaller;
 	;
 }
 
 /* Error messages in magnific popup */
-
 @media only screen and (min-width: 1250px) {
 	.wpcd-stablediff-alert {
 		width: 40%;
@@ -357,17 +371,14 @@ input.wpcd-stablediff-additional.wpcd-stablediff-input-text {
 	border-radius: 5px;
 	padding: 2em;
 }
-
 /* End format error messages in magnific popup */
 
 /* Promo links on the wpcd-vpn user account screen */
-
 .wpcd-stablediff-instance-promo a {
 	font-size: small;
 }
 
 /* Promo buttons on the wpcd-vpn user account screen */
-
 .wpcd-stablediff-instance-promo-button {
 	margin-top: 0.5em;
 	margin-bottom: 1em;
@@ -384,7 +395,6 @@ input.wpcd-stablediff-additional.wpcd-stablediff-input-text {
 }
 
 /* the spinner - start */
-
 .locker, .locker-loader {
 	position: absolute;
 	top: 0;
@@ -405,7 +415,6 @@ input.wpcd-stablediff-additional.wpcd-stablediff-input-text {
 	z-index: 1001;
 	background: url(/wp-includes/images/wpspin-2x.gif) no-repeat center center;
 }
-
 /* the spinner - end */
 
 /***********************************************************************/
@@ -413,7 +422,6 @@ input.wpcd-stablediff-additional.wpcd-stablediff-input-text {
 /* All this code just to style SELECTs on the VPN ACCOUNT SCREEN       */
 
 /**********************************************************************/
-
 .wpcd-stablediff-select {
 	margin-bottom: 10px;
 	border-radius: 5px;
@@ -457,4 +465,4 @@ input.wpcd-stablediff-additional.wpcd-stablediff-input-text {
 	font-weight: normal;
 }
 
-/* End style SELECTs on the VPN ACCOUNT SCREEN */
+/* End style SELECTs on the Stable Diffusion ACCOUNT SCREEN */

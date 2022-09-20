@@ -20,7 +20,7 @@ echo "done" && {
 	} && {
 	sudo -E echo $(date): "Installing dos2unix. This will take a while..." ;
 	} && {
-	sudo -E apt-get install -yqm dos2unix > /dev/null 2>&1 || { echo "Error installing dos2unix. Please delete this server and restart the process."; } ;
+	sudo -E apt-get install -y dos2unix > /dev/null 2>&1 || { echo "Error installing dos2unix. Please delete this server and restart the process."; } ;
 	} && { 
 	sudo -E echo $(date): "Installing AT command..." ;
 	} && { 

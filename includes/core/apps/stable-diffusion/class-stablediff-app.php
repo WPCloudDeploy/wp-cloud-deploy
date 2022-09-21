@@ -599,9 +599,11 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 			$result  = $this->execute_ssh( 'generic', $instance, array( 'commands' => $run_cmd ) );
 			if ( is_wp_error( $result ) ) {
 				return false;
-			} else {
-				return true;
 			}
+			if ( strpos( $result, 'Please delete this server' ) !== false ) {
+				return false;
+			}
+			return true;
 		}
 
 		return false;
@@ -1057,6 +1059,11 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 						 * callback_install_server_status function to update metas and prepare to send emails.
 						 */
 
+					} else {
+						// Error when provisioning server.
+						// Mark server so that it knows there was an error.
+						// Later we can probably just clear all metas and then trigger a reinstall.
+						update_post_meta( $attributes['post_id'], 'wpcd_server_action_status', 'errored' );
 					}
 				}
 				break;
@@ -1221,6 +1228,9 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 		wp_enqueue_script( 'wpcd-fontawesome-pro' );
 		/* End register script and styles */
 
+		// Set up var that will tell us we need to inject js script to refresh page after 60 seconds.
+		$page_needs_auto_refresh = false;
+
 		$output = '<div class="wpcd-stablediff-instances-list">';
 		foreach ( $app_posts as $app_post ) {
 
@@ -1264,6 +1274,9 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 
 			// Get data from pending logs for any images requested.
 			$pending_image_requests = $this->get_pending_images_count( $server_post->ID );
+			if ( $pending_image_requests > 0 ) {
+				$page_needs_auto_refresh = true;
+			}
 
 			// Start building display HTML for this particular server/app instance.
 			$buttons         = '';
@@ -1326,7 +1339,8 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 							if ( 'off' === (string) $details['status'] ) {
 								$buttons .= sprintf( '<p class="wpcd-stablediff-action-error"> %s</p>', __( 'The server is turned off - you cannot request images at this time.  Please use the options in the POWER section below to restart the server.', 'wpcd' ) );
 							} else {
-								$buttons       .= '<input type="text" name="image-prompt" id="wpcd-stablediff-input-text-request-image" class="wpcd-stablediff-additional wpcd-stablediff-input-text">';
+								// $buttons       .= '<input type="text" name="image-prompt" id="wpcd-stablediff-input-text-request-image" class="wpcd-stablediff-additional wpcd-stablediff-input-text">';
+								$buttons       .= '<textarea name="image-prompt" id="wpcd-stablediff-input-text-request-image" class="wpcd-stablediff-additional wpcd-stablediff-input-text" rows="6" cols="50"></textarea>';
 								$input_help_tip = __( 'Describe the image you would like to generate and then use the REQUEST IMAGES button below to submit the request to the server.', 'wpcd' );
 								$help_tip       = sprintf( __( 'You have %s image requests pending. Each request will generate four images.', 'wpcd' ), $pending_image_requests );
 							}
@@ -1422,9 +1436,11 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 								foreach ( $reverted_images_iterator as $image ) {
 									$cnt++;
 
-									$image_url = $image['signed-url'];
-									$prompt    = $image['prompt'];
-									$buttons  .= sprintf( '<div class="wpcd-stablediff-image-thumbnail"><img class="wpcd-stablediff-generated-img" title = "%s" alt="%s" src=%s /></div>', $prompt, $prompt, $image_url );
+									$image_url          = $image['signed-url'];
+									$prompt             = $image['prompt'];
+									$image_grid_element = sprintf( '<div class="wpcd-stablediff-image-thumbnail"><img class="wpcd-stablediff-generated-img" title = "%s" alt="%s" src=%s /></div>', $prompt, $prompt, $image_url );
+									$image_grid_element = sprintf( '<a href="%s" target="blank">', $image_url ) . $image_grid_element . '</a>';
+									$buttons           .= $image_grid_element;
 
 									// Only images 1-4 should be shown.
 									if ( $cnt >= 4 ) {
@@ -1464,9 +1480,11 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 										continue;
 									}
 
-									$image_url = $image['signed-url'];
-									$prompt    = $image['prompt'];
-									$buttons  .= sprintf( '<div class="wpcd-stablediff-image-thumbnail"><img class="wpcd-stablediff-generated-img" title = "%s" alt="%s" src=%s /></div>', $prompt, $prompt, $image_url );
+									$image_url          = $image['signed-url'];
+									$prompt             = $image['prompt'];
+									$image_grid_element = sprintf( '<div class="wpcd-stablediff-image-thumbnail"><img class="wpcd-stablediff-generated-img" title = "%s" alt="%s" src=%s /></div>', $prompt, $prompt, $image_url );
+									$image_grid_element = sprintf( '<a href="%s" target="blank">', $image_url ) . $image_grid_element . '</a>';
+									$buttons           .= $image_grid_element;
 
 									// Only images 5-8 should be shown.
 									if ( $cnt >= 8 ) {
@@ -1574,6 +1592,12 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 			$subid_icon    = '<div class="icon-spstablediffsubscription_id"><span class="path1"></span><span class="path2"></span><span class="path3"></span><span class="path4"></span><span class="path5"></span><span class="path6"></span><span class="path7"></span></div>';
 			/* End classnames from icomoon font file */
 
+			/* If we need to auto refresh because we have pending images in the queue then we want to add a span next to the images pending. */
+			$after_pending_requests_span = '';
+			if ( ( (int) $pending_image_requests > 0 ) && true === (bool) wpcd_get_option( 'stablediff_frontend_load_auto_refresh' ) ) {
+				$after_pending_requests_span = '<span class="wpcd-stablediff-instance-auto-refresh"></span>';
+			}
+
 			$output .= '
 				<div class="wpcd-stablediff-instance">
 					<div class="wpcd-stablediff-instance-name">' . get_post_meta( $server_post->ID, 'wpcd_server_name', true ) . '</div>
@@ -1583,7 +1607,7 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 						<div class="wpcd-stablediff-instance-atts-region-wrap">' . $region_icon . '<div class="wpcd-stablediff-instance-atts-region-label">' . __( 'Region', 'wpcd' ) . ': ' . '</div>' . $display_region . '</div>
 						<div class="wpcd-stablediff-instance-atts-size-wrap">' . $size_icon . '<div class="wpcd-stablediff-instance-atts-size-label">' . __( 'Size', 'wpcd' ) . ': ' . '</div>' . WPCD()->classes['wpcd_app_stablediff_wc']::$sizes[ strval( $size ) ] . '</div>
 						<div class="wpcd-stablediff-instance-atts-ip-wrap">' . $ip_icon . '<div class="wpcd-stablediff-instance-atts-ip-label">' . __( 'IPv4', 'wpcd' ) . ': ' . '</div>' . $ipv4 . '</div>
-						<div class="wpcd-stablediff-instance-atts-users-wrap">' . $users_icon . '<div class="wpcd-stablediff-instance-atts-users-label">' . __( 'Image Requests Pending', 'wpcd' ) . ': ' . '</div>' . sprintf( '%d', $pending_image_requests ) . '</div>
+						<div class="wpcd-stablediff-instance-atts-users-wrap">' . $users_icon . '<div class="wpcd-stablediff-instance-atts-users-label">' . __( 'Image Requests Pending', 'wpcd' ) . ': ' . '</div>' . sprintf( '%d %s', $pending_image_requests, $after_pending_requests_span ) . '</div>
 						<div class="wpcd-stablediff-instance-atts-subid-wrap">' . $subid_icon . '<div class="wpcd-stablediff-instance-atts-sub-label">' . __( 'Subscription ID', 'wpcd' ) . ': ' . '</div>' . implode( ', ', $subscription_array ) . '</div>';
 
 			$output .= '</div>';
@@ -1592,6 +1616,31 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 				</div>';
 		}
 		$output .= '</div>';
+
+		// Add js to auto refresh page every 180 seconds if necessary.
+		if ( true === $page_needs_auto_refresh && true === (bool) wpcd_get_option( 'stablediff_frontend_load_auto_refresh' ) ) {
+
+			// What refresh interval should we use?
+			$refresh_interval = wpcd_get_option( 'stablediff_frontend_auto_refresh_interval' );
+			if ( empty( $refresh_interval ) ) {
+				$refresh_interval = 180 * 1000; // Default to 180 seconds.
+			} else {
+				$refresh_interval = (int) $refresh_interval * 1000;
+				// Checking again just in case the above calc resulted in zero for some reason.
+				if ( empty( $refresh_interval ) || $refresh_interval < 0 ) {
+					$refresh_interval = 180 * 1000; // Default to 180 seconds.
+				}
+			}
+
+			// Heredoc to help make the multiline js easier.
+			$js = <<<EOD
+			<script type="text/javascript">
+			setTimeout(function () { location.reload(true); }, $refresh_interval);
+			</script>
+			EOD;
+
+			$output .= $js;
+		}
 
 		return $output;
 	}
@@ -1999,7 +2048,7 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 		$parameter_file = 'stablediff-install-startup-parameters-' . sprintf( '%s-%s', $attributes['wc_order_id'], $attributes['region'] ) . '.txt';
 
 		/* Construct an array of placeholder tokens for the run command file  */
-		$place_holder_1 = array( 'URL-SCRIPT' => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/' . 'install-stablediff.txt' );
+		$place_holder_1 = array( 'URL-SCRIPT' => trailingslashit( WPCD_URL ) . $this->get_scripts_folder_relative() . $script_version . '/raw/' . 'install-stablediff.txt' );
 		$place_holder_2 = array( 'URL-SCRIPT-PARAMS' => $this->get_script_temp_path_uri() . '/' . $parameter_file );
 		$place_holders  = array_merge( $place_holder_1, $place_holder_2 );
 

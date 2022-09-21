@@ -120,6 +120,10 @@ class STABLEDIFF_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'label' => 'AWS S3',
 				'icon'  => 'dashicons-images-alt2',
 			),
+			'stablediff-frontend'    => array(
+				'label' => 'Front End',
+				'icon'  => 'dashicons-cover-image',
+			),
 			'stablediff-scripts'     => array(
 				'label' => 'Scripts',
 				'icon'  => 'dashicons-format-aside',
@@ -147,7 +151,8 @@ class STABLEDIFF_APP_SETTINGS extends WPCD_APP_SETTINGS {
 		$script_fields      = $this->scripts_fields();
 		$s3_fields          = $this->s3_fields();
 		$help_fields        = $this->help_fields();
-		$all_fields         = array_merge( $general_fields, $woocommerce_fields, $promo_fields, $script_fields, $s3_fields, $help_fields );
+		$frontend_fields    = $this->frontend_fields();
+		$all_fields         = array_merge( $general_fields, $woocommerce_fields, $promo_fields, $script_fields, $s3_fields, $frontend_fields, $help_fields );
 		return $all_fields;
 	}
 
@@ -394,6 +399,40 @@ class STABLEDIFF_APP_SETTINGS extends WPCD_APP_SETTINGS {
 		return $fields;
 
 	}
+
+	/**
+	 * Return array portion of field settings for use in the frontend fields tab.
+	 */
+	public function frontend_fields() {
+
+		$fields = array(
+			array(
+				'id'   => 'stablediff_frontend_header',
+				'type' => 'heading',
+				'name' => __( 'Frontend Controls', 'wpcd' ),
+				'tab'  => 'stablediff-frontend',
+			),
+			array(
+				'id'      => 'stablediff_frontend_load_auto_refresh',
+				'type'    => 'checkbox',
+				'name'    => __( 'AutoRefresh Page When There Are Pending Requests?', 'wpcd' ),
+				'tooltip' => __( 'Automatically refresh the page at regular intervals when there are image requests in the queue.', 'wpcd' ),
+				'tab'     => 'stablediff-frontend',
+			),
+			array(
+				'id'   => 'stablediff_frontend_auto_refresh_interval',
+				'type' => 'number',
+				'name' => __( 'Auto-refresh Interval In Seconds', 'wpcd' ),
+				'tab'  => 'stablediff-frontend',
+				'std'  => 180,
+				'size' => 5,
+			),
+		);
+
+		return $fields;
+
+	}
+
 
 	/**
 	 * Return array portion of field settings for use in the help tab.

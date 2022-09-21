@@ -1592,6 +1592,12 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 			$subid_icon    = '<div class="icon-spstablediffsubscription_id"><span class="path1"></span><span class="path2"></span><span class="path3"></span><span class="path4"></span><span class="path5"></span><span class="path6"></span><span class="path7"></span></div>';
 			/* End classnames from icomoon font file */
 
+			/* If we need to auto refresh because we have pending images in the queue then we want to add a span next to the images pending. */
+			$after_pending_requests_span = '';
+			if ( ( (int) $pending_image_requests > 0 ) && true === (bool) wpcd_get_option( 'stablediff_frontend_load_auto_refresh' ) ) {
+				$after_pending_requests_span = '<span class="wpcd-stablediff-instance-auto-refresh"></span>';
+			}
+
 			$output .= '
 				<div class="wpcd-stablediff-instance">
 					<div class="wpcd-stablediff-instance-name">' . get_post_meta( $server_post->ID, 'wpcd_server_name', true ) . '</div>
@@ -1601,7 +1607,7 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 						<div class="wpcd-stablediff-instance-atts-region-wrap">' . $region_icon . '<div class="wpcd-stablediff-instance-atts-region-label">' . __( 'Region', 'wpcd' ) . ': ' . '</div>' . $display_region . '</div>
 						<div class="wpcd-stablediff-instance-atts-size-wrap">' . $size_icon . '<div class="wpcd-stablediff-instance-atts-size-label">' . __( 'Size', 'wpcd' ) . ': ' . '</div>' . WPCD()->classes['wpcd_app_stablediff_wc']::$sizes[ strval( $size ) ] . '</div>
 						<div class="wpcd-stablediff-instance-atts-ip-wrap">' . $ip_icon . '<div class="wpcd-stablediff-instance-atts-ip-label">' . __( 'IPv4', 'wpcd' ) . ': ' . '</div>' . $ipv4 . '</div>
-						<div class="wpcd-stablediff-instance-atts-users-wrap">' . $users_icon . '<div class="wpcd-stablediff-instance-atts-users-label">' . __( 'Image Requests Pending', 'wpcd' ) . ': ' . '</div>' . sprintf( '%d', $pending_image_requests ) . '</div>
+						<div class="wpcd-stablediff-instance-atts-users-wrap">' . $users_icon . '<div class="wpcd-stablediff-instance-atts-users-label">' . __( 'Image Requests Pending', 'wpcd' ) . ': ' . '</div>' . sprintf( '%d %s', $pending_image_requests, $after_pending_requests_span ) . '</div>
 						<div class="wpcd-stablediff-instance-atts-subid-wrap">' . $subid_icon . '<div class="wpcd-stablediff-instance-atts-sub-label">' . __( 'Subscription ID', 'wpcd' ) . ': ' . '</div>' . implode( ', ', $subscription_array ) . '</div>';
 
 			$output .= '</div>';

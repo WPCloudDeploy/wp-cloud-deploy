@@ -212,6 +212,12 @@ a.wpcd-stablediff-server-page-button:hover {
 	height: 8em;
 }
 
+/* Spinner next to qty if auto-refresh page is enabled. */
+.wpcd-stablediff-instance-auto-refresh {
+	padding: 20px;
+	background: url(/wp-content/plugins/wp-cloud-deploy/assets/images/spinner.gif) no-repeat center center;
+}
+
 /* Image thumbnail Grids */
 .wpcd-stablediff-image-grid-wrapper {
 	display: grid;

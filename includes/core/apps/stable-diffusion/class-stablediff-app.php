@@ -1228,6 +1228,9 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 		wp_enqueue_script( 'wpcd-fontawesome-pro' );
 		/* End register script and styles */
 
+		// Set up var that will tell us we need to inject js script to refresh page after 60 seconds.
+		$page_needs_auto_refresh = false;
+
 		$output = '<div class="wpcd-stablediff-instances-list">';
 		foreach ( $app_posts as $app_post ) {
 
@@ -1271,6 +1274,9 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 
 			// Get data from pending logs for any images requested.
 			$pending_image_requests = $this->get_pending_images_count( $server_post->ID );
+			if ( $pending_image_requests > 0 ) {
+				$page_needs_auto_refresh = true;
+			}
 
 			// Start building display HTML for this particular server/app instance.
 			$buttons         = '';
@@ -1604,6 +1610,31 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 				</div>';
 		}
 		$output .= '</div>';
+
+		// Add js to auto refresh page every 180 seconds if necessary.
+		if ( true === $page_needs_auto_refresh && true === (bool) wpcd_get_option( 'stablediff_frontend_load_auto_refresh' ) ) {
+
+			// What refresh interval should we use?
+			$refresh_interval = wpcd_get_option( 'stablediff_frontend_auto_refresh_interval' );
+			if ( empty( $refresh_interval ) ) {
+				$refresh_interval = 180 * 1000; // Default to 180 seconds.
+			} else {
+				$refresh_interval = (int) $refresh_interval * 1000;
+				// Checking again just in case the above calc resulted in zero for some reason.
+				if ( empty( $refresh_interval ) || $refresh_interval < 0 ) {
+					$refresh_interval = 180 * 1000; // Default to 180 seconds.
+				}
+			}
+
+			// Heredoc to help make the multiline js easier.
+			$js = <<<EOD
+			<script type="text/javascript">
+			setTimeout(function () { location.reload(true); }, $refresh_interval);
+			</script>
+			EOD;
+
+			$output .= $js;
+		}
 
 		return $output;
 	}

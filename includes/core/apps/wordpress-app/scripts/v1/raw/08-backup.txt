@@ -443,7 +443,7 @@ do
 		find /root/.wp-backup/$domain/ -type f -mtime +$days -exec rm -f {} \;
 	fi
 	# sync to s3
-	AWS_SHARED_CREDENTIALS_FILE=$user_home/.aws/credentials /usr/local/bin/aws s3 sync /root/.wp-backup/$domain/ s3://$bucket/$domain --$s3_sync_delete_parm && echo "$(date) $domain backup successful" >> /var/log/wp-backup.log || echo "$(date) $domain backup failed" >> /var/log/wp-backup.log
+	AWS_SHARED_CREDENTIALS_FILE=$user_home/.aws/credentials /usr/local/bin/aws s3 sync /root/.wp-backup/$domain/ s3://$bucket/$domain --$s3_sync_delete_parm ${s3_endpoint:+--endpoint-url=$s3_endpoint} && echo "$(date) $domain backup successful" >> /var/log/wp-backup.log || echo "$(date) $domain backup failed" >> /var/log/wp-backup.log
 	# Callback to notify that backup is completed.
 	if [[ -n "$callback_domain" ]]
 	then
@@ -590,7 +590,7 @@ do
 		find /root/.wp-backup/$line/ -type f -mtime +$1 -exec rm -f {} \;
 	fi
 	# sync to s3
-	AWS_SHARED_CREDENTIALS_FILE=$user_home/.aws/credentials /usr/local/bin/aws s3 sync /root/.wp-backup/$line/ s3://$2/$line --$4 && echo "$(date) $domain backup successful" >> /var/log/wp-full-backup.log || echo "$(date) $domain backup failed" >> /var/log/wp-full-backup.log
+	AWS_SHARED_CREDENTIALS_FILE=$user_home/.aws/credentials /usr/local/bin/aws s3 sync /root/.wp-backup/$line/ s3://$2/$line --$4 ${s3_endpoint:+--endpoint-url=$s3_endpoint} && echo "$(date) $domain backup successful" >> /var/log/wp-full-backup.log || echo "$(date) $domain backup failed" >> /var/log/wp-full-backup.log
 	# Callback to notify that backup is completed.
 	# $5 should be the callback domain var...
 	if [[ -n "$5" ]]

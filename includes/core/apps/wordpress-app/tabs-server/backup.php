@@ -213,8 +213,8 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 			'id'         => 'wpcd_app_aws_region',
 			'tab'        => 'server_backup',
 			'type'       => 'text',
-			'tooltip'    => sprintf( __( 'You can find a list of valid regions here: <a href="%s" target="_blank" >Valid Regions</a>', 'wpcd'), 'https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html#concepts-available-regions' ),
-			'desc'       => sprintf( __( '<a href="%s" target="_blank" >Valid Regions</a>', 'wpcd'), 'https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html#concepts-available-regions' ),
+			'tooltip'    => sprintf( __( 'You can find a list of valid regions here: <a href="%s" target="_blank" >Valid Regions</a>', 'wpcd' ), 'https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html#concepts-available-regions' ),
+			'desc'       => sprintf( __( '<a href="%s" target="_blank" >Valid Regions</a>', 'wpcd' ), 'https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html#concepts-available-regions' ),
 			'save_field' => false,
 			'attributes' => array(
 				// the key of the field (the key goes in the request).
@@ -224,18 +224,20 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 			'size'       => 10,
 		);
 		$fields[] = array(
-			'name'       => __( 'S3 Endpoint URL', 'wpcd' ),
-			'id'         => 'wpcd_app_s3_endpoint',
-			'tab'        => 'server_backup',
-			'type'       => 'text',
-			'tooltip'    => __( 'Set this if you want to use an alternative S3-compatible service.', 'wpcd' ),
-			'save_field' => false,
-			'attributes' => array(
+			'name'              => __( 'S3 Endpoint URL', 'wpcd' ),
+			'id'                => 'wpcd_app_s3_endpoint',
+			'tab'               => 'server_backup',
+			'type'              => 'text',
+			'label_description' => __( 'Optional', 'wpcd' ),
+			'placeholder'       => __( 'https:/endpoint.com', 'wpcd' ),
+			'tooltip'           => __( 'Only set this if you want to use an alternative S3-compatible service. MUST start with "https://"!', 'wpcd' ),
+			'save_field'        => false,
+			'attributes'        => array(
 				// the key of the field (the key goes in the request).
 				'data-wpcd-name' => 's3_endpoint',
 			),
-			'std'        => get_post_meta( $id, 'wpcd_wpapp_backup_s3_endpoint', true ),
-			'size'       => 90,
+			'std'               => get_post_meta( $id, 'wpcd_wpapp_backup_s3_endpoint', true ),
+			'size'              => 90,
 		);
 		$fields[] = array(
 			'id'         => 'wpcd_app_action_change_cred',

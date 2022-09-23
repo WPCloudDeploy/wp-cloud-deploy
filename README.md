@@ -136,6 +136,7 @@ Note: Even though the entire git development history isn't available on github, 
 * New: WPAPP - Allow the admin to curate the list of WP versions shown to customers and other users who create sites.
 * New: WPAPP - Send email to wpcd site admin when a pending task has been running for more than 15 minutes.
 * New: WPAPP - Click-to-copy IP address to clipboard.  Same with PHPMyAdmin and FileManager Userid/password.
+* New: WPAPP - You can now backup to S3 compatible endpoints.  We've tested with DigitalOcean spaces and backblaze.
 * Tweak: WPAPP - Remove extraneous text from certain tabs.
 * Tweak: WPAPP - When a manual backup is run we now automatically refresh the backup listing.
 * Tweak: WPAPP - Do not show the option to clear the page cache if it has not been installed.
@@ -955,6 +956,7 @@ Skipped.
  * [Michael Ramsey](https://github.com/meramsey)
  * [Sidney Andrews](https://github.com/osidney)
  * [Vlad Olaru](https://github.com/vladolaru)
+ * [Kevin Shenk](https://github.com/batonac)
  
   
 ### Running the test suite

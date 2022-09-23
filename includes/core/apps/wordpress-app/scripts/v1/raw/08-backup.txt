@@ -163,11 +163,11 @@ then
 	mysqldump $mysql_db | gzip -9 > /root/.wp-backup/$domain/"$domain"_"$date"_db.gz
 	# upload to s3
 	echo "=>Uploading files to Amazon S3..."
-	AWS_SHARED_CREDENTIALS_FILE=$user_home/.aws/credentials aws s3 cp /root/.wp-backup/$domain/"$domain"_"$date"_fs.tar.gz s3://$aws_bucket_name/$domain/"$domain"_"$date"_fs.tar.gz --sse --only-show-errors
+	AWS_SHARED_CREDENTIALS_FILE=$user_home/.aws/credentials aws s3 cp /root/.wp-backup/$domain/"$domain"_"$date"_fs.tar.gz s3://$aws_bucket_name/$domain/"$domain"_"$date"_fs.tar.gz --sse --only-show-errors ${s3_endpoint:+--endpoint-url=$s3_endpoint}
 	echo "=>Uploading $g_webserver_type configuration to Amazon S3..."
-	AWS_SHARED_CREDENTIALS_FILE=$user_home/.aws/credentials aws s3 cp /root/.wp-backup/$domain/"$domain"_"$date"_"${g_webserver_type}".tar.gz s3://$aws_bucket_name/$domain/"$domain"_"$date"_"${g_webserver_type}".tar.gz --sse --only-show-errors
+	AWS_SHARED_CREDENTIALS_FILE=$user_home/.aws/credentials aws s3 cp /root/.wp-backup/$domain/"$domain"_"$date"_"${g_webserver_type}".tar.gz s3://$aws_bucket_name/$domain/"$domain"_"$date"_"${g_webserver_type}".tar.gz --sse --only-show-errors ${s3_endpoint:+--endpoint-url=$s3_endpoint}
 	echo "=>Uploading database to to Amazon S3..."
-	AWS_SHARED_CREDENTIALS_FILE=$user_home/.aws/credentials aws s3 cp /root/.wp-backup/$domain/"$domain"_"$date"_db.gz s3://$aws_bucket_name/$domain/"$domain"_"$date"_db.gz --sse --only-show-errors
+	AWS_SHARED_CREDENTIALS_FILE=$user_home/.aws/credentials aws s3 cp /root/.wp-backup/$domain/"$domain"_"$date"_db.gz s3://$aws_bucket_name/$domain/"$domain"_"$date"_db.gz --sse --only-show-errors ${s3_endpoint:+--endpoint-url=$s3_endpoint}
 
 	# check if the database was backed up correctly
 	echo "Verifying database backup..."
@@ -443,7 +443,7 @@ do
 		find /root/.wp-backup/$domain/ -type f -mtime +$days -exec rm -f {} \;
 	fi
 	# sync to s3
-	AWS_SHARED_CREDENTIALS_FILE=$user_home/.aws/credentials /usr/local/bin/aws s3 sync /root/.wp-backup/$domain/ s3://$bucket/$domain --$s3_sync_delete_parm && echo "$(date) $domain backup successful" >> /var/log/wp-backup.log || echo "$(date) $domain backup failed" >> /var/log/wp-backup.log
+	AWS_SHARED_CREDENTIALS_FILE=$user_home/.aws/credentials /usr/local/bin/aws s3 sync /root/.wp-backup/$domain/ s3://$bucket/$domain --$s3_sync_delete_parm ${s3_endpoint:+--endpoint-url=$s3_endpoint} && echo "$(date) $domain backup successful" >> /var/log/wp-backup.log || echo "$(date) $domain backup failed" >> /var/log/wp-backup.log
 	# Callback to notify that backup is completed.
 	if [[ -n "$callback_domain" ]]
 	then
@@ -590,7 +590,7 @@ do
 		find /root/.wp-backup/$line/ -type f -mtime +$1 -exec rm -f {} \;
 	fi
 	# sync to s3
-	AWS_SHARED_CREDENTIALS_FILE=$user_home/.aws/credentials /usr/local/bin/aws s3 sync /root/.wp-backup/$line/ s3://$2/$line --$4 && echo "$(date) $domain backup successful" >> /var/log/wp-full-backup.log || echo "$(date) $domain backup failed" >> /var/log/wp-full-backup.log
+	AWS_SHARED_CREDENTIALS_FILE=$user_home/.aws/credentials /usr/local/bin/aws s3 sync /root/.wp-backup/$line/ s3://$2/$line --$4 ${s3_endpoint:+--endpoint-url=$s3_endpoint} && echo "$(date) $domain backup successful" >> /var/log/wp-full-backup.log || echo "$(date) $domain backup failed" >> /var/log/wp-full-backup.log
 	# Callback to notify that backup is completed.
 	# $5 should be the callback domain var...
 	if [[ -n "$5" ]]

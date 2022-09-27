@@ -120,7 +120,7 @@
             var copyText = $(this).find('.wpcd-click-to-copy-text');
 
             /* Copy the IP inside the IP field */
-            var IP = copyText.text();
+            var IP = copyText.text().trim();
 
             if (window.isSecureContext && navigator.clipboard) {
                 navigator.clipboard.writeText(IP);
@@ -138,7 +138,6 @@
         });
 
         // Show copy text on mouse hover.
-
         $(".wpcd-click-to-copy").hover(
             function() {
                 $(this).children(".wpcd-click-to-copy-label").removeClass("wpcd-copy-hidden");

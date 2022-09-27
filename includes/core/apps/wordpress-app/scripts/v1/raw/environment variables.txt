@@ -109,6 +109,7 @@ $aws_bucket_name = AWS S3 bucket name where you want to save the backup
 optional: $callback_domain - the domain to report the start and end of the backups. We had to hardcode the callback url so only need the domain.
 optional: $s3_endpoint - set if using an alternative s3-compatible service to AWS. If this parameter is set, the $callback_domain must also be set!
 
+
 For $action = "restore", the following variables are needed:
 $site = domain of the website to restore (example: myblog.com)
 $overwrite = set it to "yes" if the site already exists and you still want to restore it. This is a safety measure.

@@ -1079,19 +1079,6 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 		}
 		// End Bail if certain 6G or 7G firewall items are enabled.
 
-		// Bail if the database is a remote one.
-		$is_remote_database = get_post_meta( $id, 'wpapp_is_remote_database', true );
-		if ( 'yes' === $is_remote_database ) {
-			$fields[] = array(
-				'name' => __( 'Database Management With PHPMyAdmin [Disabled]', 'wpcd' ),
-				'tab'  => 'database',
-				'type' => 'heading',
-				'desc' => __( 'This site is using a remote database. PHPMYAdmin cannot be used.', 'wpcd' ),
-			);
-			return $fields;
-		}
-		// End bail if the database is a remote one.
-
 		$desc  = __( 'Use PHPMyAdmin to access and manage the data in your WordPress database.', 'wpcd' );
 		$desc .= '<br />';
 		$desc .= __( 'This is a very powerful tool with which you can easily corrupt your database beyond repair.', 'wpcd' );
@@ -1161,6 +1148,13 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 			$phpmyadmin_details .= '<div class="wpcd_tool_details">';
 			$phpmyadmin_details .= __( 'Password: ', 'wpcd' ) . wpcd_wrap_clipboard_copy( $phpmyadmin_password );
 			$phpmyadmin_details .= '</div>';
+
+			if ( true === wpcd_is_admin() ) {
+				// We'll be showing the options to switch local and remote databases to admins.
+				// So need to warn them that phpMyAdmin needs to be reinstalled if they do so.
+				$phpmyadmin_details .= '<br />';
+				$phpmyadmin_details .= '<hr />' . __( 'Admin Note: If you have switched between local and remote databases AFTER installing PHPMyAdmin, it is critical that you uninstall and reinstall it so that the new database information is entered into the PHPMyAdmin configuration files.  Otherwise you will end up connecting to the old database! ', 'wpcd' ) . '<hr />';
+			}
 
 			$fields[] = array(
 				'tab'   => 'database',

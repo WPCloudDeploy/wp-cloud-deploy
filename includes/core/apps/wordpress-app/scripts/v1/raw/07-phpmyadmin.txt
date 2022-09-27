@@ -66,6 +66,8 @@ then
 	gf_get_dbuser $domain
 	gf_get_dbpass $domain
 
+	sed -i "s/localhost/$g_mysql_host/g" /var/www/$domain/html/phpMyAdmin/config.inc.php
+
 	echo
 	echo "phpMyAdmin installed for $domain"
 	echo
@@ -100,6 +102,8 @@ then
 	gf_get_dbuser $domain
 	gf_get_dbpass $domain	
 
+	sed -i "s/localhost/$g_mysql_host/g" /var/www/$domain/html/phpMyAdmin/config.inc.php
+	
 	echo
 	echo "phpMyAdmin updated for $domain to version $phpmyadmin_version"
 	echo
@@ -125,17 +129,21 @@ then
 	then
 		echo
 		echo "Specify a new password"
-		read -p "Password: " mysql_password
+		read -p "Password: " mysql_pass
 	fi
 
 	mysql_db=$(grep DB_NAME /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d ',' -f2|cut -d')' -f1|tail -c +2 | head -c -2)
 	mysql_old_user=$(grep DB_USER /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d ',' -f2|cut -d')' -f1|tail -c +2 | head -c -2)
 	gf_get_dbhost $domain
+	gf_get_dbname $domain
+	gf_get_dbuser $domain
+	gf_get_dbpass $domain
+	gf_get_dbport $domain
 
 	# Rename MySQL user and change pass
-	mariadb <<QUERY
-RENAME USER '$mysql_old_user'@'$g_mysql_host' TO '$mysql_user'@'$g_mysql_host';
-SET PASSWORD FOR '$mysql_user'@'$g_mysql_host' = PASSWORD('$mysql_password');
+	mysql -h $g_mysql_host_noport -P $g_mysql_dbport -u $mysql_old_user -p"$g_mysql_pass" <<QUERY
+RENAME USER '$mysql_old_user' TO '$mysql_user';
+SET PASSWORD FOR '$mysql_user' = PASSWORD('$mysql_pass');
 FLUSH PRIVILEGES;
 QUERY
 

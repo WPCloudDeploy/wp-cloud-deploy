@@ -159,8 +159,12 @@ then
 
 	# backup database
 	echo "=>exporting database for backup..."
-	mysql_db=$(grep DB_NAME /var/www/$domain/html/wp-config.php |tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
-	mysqldump $mysql_db | gzip -9 > /root/.wp-backup/$domain/"$domain"_"$date"_db.gz
+	gf_get_dbhost $domain
+	gf_get_dbuser $domain
+	gf_get_dbname $domain
+	gf_get_dbpass $domain
+	gf_get_dbport $domain
+	mysqldump -h ${g_mysql_host_noport} -P ${g_mysql_dbport}  -u ${g_mysql_user} -p"${g_mysql_pass}" ${g_mysql_name} | gzip -9 > /root/.wp-backup/$domain/"$domain"_"$date"_db.gz
 	
 	# set variable that will output target message.
 	if [[ $s3_endpoint ]]
@@ -236,15 +240,22 @@ then
 			read -p "Press enter to continue"
 		fi
 		# remove everything
-		mysql_db=$(grep DB_NAME /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
-		mysql_user=$(grep DB_USER /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
 		gf_get_dbhost $domain
-		echo "dropping database: $mysql_db ..."
-		mariadb <<QUERY
+		gf_get_dbuser $domain
+		gf_get_dbname $domain
+		gf_get_dbpass $domain
+		gf_get_dbport $domain
+		echo "dropping database: $g_mysql_name ..."
+		if [ $g_mysql_host_noport == "localhost" ]
+		then
+			mysql <<QUERY
 DROP DATABASE $mysql_db;
-DROP USER '$mysql_user'@'$g_mysql_host';
+DELETE from mysql.user where user='$mysql_user';
 FLUSH PRIVILEGES;
 QUERY
+		else
+			mysql -h ${g_mysql_host_noport} -P ${g_mysql_dbport} -u ${g_mysql_user} -p"${g_mysql_pass}" -e "DROP DATABASE $g_mysql_name"
+		fi
 
 		echo "removing existing files..."
 		rm -rf /var/www/$domain
@@ -287,17 +298,24 @@ QUERY
 	rm -rf temp
 
 	# create db stuff
-	mysql_db=$(grep DB_NAME /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
-	mysql_user=$(grep DB_USER /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
-	mysql_pass=$(grep DB_PASSWORD /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
 	gf_get_dbhost $domain
-	echo "creating new database: $mysql_db"
-	gf_database_create "${mysql_db}" "${mysql_user}" "${mysql_pass}" "${g_mysql_host}"
+	gf_get_dbuser $domain
+	gf_get_dbname $domain
+	gf_get_dbpass $domain
+	gf_get_dbport $domain
+	echo "creating new database: $g_mysql_name"
+	if [ $g_mysql_host_noport == "localhost" ]
+	then
+		gf_database_create "${g_mysql_name}" "${g_mysql_user}" "${g_mysql_pass}" "localhost"
+	else
+		mysql -h ${g_mysql_host_noport} -P ${g_mysql_dbport} -u ${g_mysql_user} -p"${g_mysql_pass}" -e "CREATE DATABASE $g_mysql_name"
+	fi
+
 	# restore db dump
 	cd ..
 	echo "restoring database..."	
 	gunzip -c "$backup"_db.gz > db.sql
-	mariadb -D $mysql_db < db.sql
+	mysql -h ${g_mysql_host_noport} -P ${g_mysql_dbport} -u ${g_mysql_user} -p"${g_mysql_pass}" $g_mysql_name < db.sql
 	rm -f db.sql
 
 	# manage other needed stuff
@@ -438,8 +456,18 @@ do
 	fi
 
 	# backup database
-	mysql_db=$(grep DB_NAME /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
-	mysqldump $mysql_db | gzip -9 > /root/.wp-backup/$domain/"$domain"_"$date"_db.gz
+	mysql_db=$(grep DB_NAME /var/www/$line/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
+	mysql_user=$(grep DB_USER /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
+	mysql_pass=$(grep DB_PASSWORD /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
+	mysql_host=$(grep DB_HOST /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
+	mysql_host_noport=$(echo $mysql_host|cut -d: -f1)
+	mysql_dbport=$(echo $mysql_host|awk -F: '{print $2}')
+	if [ -z $mysql_dbport ]
+	then
+		mysql_dbport=3306
+	fi
+	mysqldump -h ${mysql_host_noport} -P ${mysql_dbport} -u ${mysql_user} -p${mysql_pass} ${mysql_db} | gzip -9 > /root/.wp-backup/$domain/"$domain"_"$date"_db.gz
+
 	# check if the database was backed up correctly
 	if ! gunzip -c /root/.wp-backup/$domain/"$domain"_"$date"_db.gz | tail -n 1 | grep -qs "Dump completed on"
 	then
@@ -596,7 +624,16 @@ do
 
 	# backup database
 	mysql_db=$(grep DB_NAME /var/www/$line/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
-	mysqldump $mysql_db | gzip -9 > /root/.wp-backup/$line/"$line"_"$date"_db.gz
+	mysql_user=$(grep DB_USER /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
+	mysql_pass=$(grep DB_PASSWORD /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
+	mysql_host=$(grep DB_HOST /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
+	mysql_host_noport=$(echo $mysql_host|cut -d: -f1)
+	mysql_dbport=$(echo $mysql_host|awk -F: '{print $2}')
+	if [ -z $mysql_dbport ]
+	then
+		mysql_dbport=3306
+	fi
+	mysqldump -h ${mysql_host_noport} -P ${mysql_dbport} -u ${mysql_user} -p${mysql_pass} ${mysql_db} | gzip -9 > /root/.wp-backup/$line/"$line"_"$date"_db.gz
 	# check if the database was backed up correctly
 	if ! gunzip -c /root/.wp-backup/$line/"$line"_"$date"_db.gz | tail -n 1 | grep -qs "Dump completed on"
 	then

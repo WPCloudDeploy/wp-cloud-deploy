@@ -70,6 +70,7 @@ gf_get_dbhost $domain
 gf_get_dbname $domain
 gf_get_dbuser $domain
 gf_get_dbpass $domain
+gf_get_dbport $domain
 
 while [[ -z $action ]]
 do
@@ -95,10 +96,10 @@ then
 	
 	if gf_check_db_connection "$remote_dbhost" "$remote_dbname" "$remote_dbuser" "$remote_dbpass" "$remote_dbport"; then
 		# database exists and is connectable
-		sed -i "s|$g_mysql_host|$remote_dbhost:$remote_dbport|g" /var/www/"$domain"/html/wp-config.php
-		sed -i "s|$g_mysql_name|$remote_dbname|g" /var/www/"$domain"/html/wp-config.php
-		sed -i "s|$g_mysql_user|$remote_dbuser|g" /var/www/"$domain"/html/wp-config.php
-		sed -i "s|$g_mysql_pass|$remote_dbpass|g" /var/www/"$domain"/html/wp-config.php
+		sed -i "/DB_HOST/ s|$g_mysql_host|$remote_dbhost:$remote_dbport|g" /var/www/"$domain"/html/wp-config.php
+		sed -i "/DB_NAME/ s|$g_mysql_name|$remote_dbname|g" /var/www/"$domain"/html/wp-config.php
+		sed -i "/DB_USER/ s|$g_mysql_user|$remote_dbuser|g" /var/www/"$domain"/html/wp-config.php
+		sed -i "/DB_PASSWORD/ s|$g_mysql_pass|$remote_dbpass|g" /var/www/"$domain"/html/wp-config.php
 	else
 		echo "Database could not be switched to Remote server for $domain due to an error."
 		exit 1
@@ -110,7 +111,7 @@ fi
 
 if [[ $action == "switch_local" || $action == "2" ]]
 then
-	if [ "$g_mysql_host" == "localhost" ]
+	if [ "$g_mysql_host_noport" == "localhost" ]
 	then
 		echo "Mysql host is already set to localhost"
 		exit
@@ -121,10 +122,10 @@ then
 	
 	if gf_check_db_connection "localhost" "$local_dbname" "$local_dbuser" "$local_dbpass"; then
 		# database exists and is connectable
-		sed -i "s|$g_mysql_host|localhost|g" /var/www/"$domain"/html/wp-config.php
-		sed -i "s|$g_mysql_name|$local_dbname|g" /var/www/"$domain"/html/wp-config.php
-		sed -i "s|$g_mysql_user|$local_dbuser|g" /var/www/"$domain"/html/wp-config.php
-		sed -i "s|$g_mysql_pass|$local_dbpass|g" /var/www/"$domain"/html/wp-config.php
+		sed -i "/DB_HOST/ s|$g_mysql_host|localhost|g" /var/www/"$domain"/html/wp-config.php
+		sed -i "/DB_NAME/ s|$g_mysql_name|$local_dbname|g" /var/www/"$domain"/html/wp-config.php
+		sed -i "/DB_USER/ s|$g_mysql_user|$local_dbuser|g" /var/www/"$domain"/html/wp-config.php
+		sed -i "/DB_PASSWORD/ s|$g_mysql_pass|$local_dbpass|g" /var/www/"$domain"/html/wp-config.php
 	else
 		echo "Database could not be switched to Localhost server for $domain due to an error."
 		exit 1
@@ -135,7 +136,7 @@ fi
 
 if [[ $action == "copy_to_remote" || $action == "3" ]]
 then
-	if [ "$g_mysql_host" != "localhost" ]
+	if [ "$g_mysql_host_noport" != "localhost" ]
 	then
 		echo "Mysql host is not set to Localhost"
 		exit
@@ -174,7 +175,7 @@ fi
 
 if [[ $action == "copy_to_local" || $action == "4" ]]
 then
-	if [ "$g_mysql_host" == "localhost" ]
+	if [ "$g_mysql_host_noport" == "localhost" ]
 	then
 		echo "Mysql host is not set to Remote Host, so no such information available"
 		exit
@@ -185,7 +186,7 @@ then
 
 	if gf_check_db_connection "$g_mysql_host" "$g_mysql_name" "$g_mysql_user" "$g_mysql_pass"; then
 		echo "Exporting remote database..."
-		mysqldump -h "$g_mysql_host" -u "$g_mysql_user" -p"$g_mysql_pass" "$g_mysql_name" > /root/"$g_mysql_name".sql
+		mysqldump -h "$g_mysql_host_noport" -P "$g_mysql_dbport" -u "$g_mysql_user" -p"$g_mysql_pass" "$g_mysql_name" > /root/"$g_mysql_name".sql
 	else
 		echo "Remote Database could not be accessed due to an error."
 		echo "Copy failed - please check your connection information and try again!"

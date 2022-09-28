@@ -502,7 +502,8 @@ if [[ $action == "show_disk_usage" || $action == "12" ]]
 then
 	select_domain
 	echo
-	mysql_db=$(grep DB_NAME /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
+	gf_get_dbhost $domain
+	gf_get_dbname $domain
 	# echo "Disk usage for $domain is: $(du -hs /var/www/$domain/ | cut -d '/' -f 1). Backups are also using: $(du -hs /root/.wp-backup/$domain/ | cut -d '/' -f 1) while Mysql is using an additional: $(du -sh /var/lib/mysql/$mysql_db |cut -d '/' -f 1)"
 	echo "Domain Files: $(du -hs /var/www/$domain/ | cut -d '/' -f 1)"
 	if [ -d /root/.wp-backup/$domain/ ] 
@@ -511,8 +512,13 @@ then
 	else 
 		echo "Backups: 0M"
 	fi
-		echo "DB: $(du -sh /var/lib/mysql/$mysql_db |cut -d '/' -f 1)"
-		exit
+	if [ $g_mysql_host_noport == "localhost" ]
+	then
+		echo "DB: $(du -sh /var/lib/mysql/$g_mysql_name |cut -d '/' -f 1)"
+	else
+		echo "DB: 0M"
+	fi
+	exit
 fi
 
 
@@ -1109,8 +1115,12 @@ fi
 if [[ $action == "db_table_list" || $action == "32" ]]
 then
 	select_domain
-	mysql_db=$(grep DB_NAME /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
-	mysql $mysql_db -e 'show tables'
+	gf_get_dbname $domain
+	gf_get_dbpass $domain
+	gf_get_dbuser $domain
+	gf_get_dbhost $domain
+	gf_get_dbport $domain
+	mysql -h $g_mysql_host_noport -P $g_mysql_dbport -u $g_mysql_user -p"$g_mysql_pass" $g_mysql_name -e 'show tables'
 fi
 
 

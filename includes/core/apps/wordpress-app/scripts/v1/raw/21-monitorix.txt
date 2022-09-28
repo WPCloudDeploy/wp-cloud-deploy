@@ -145,7 +145,7 @@ Example: admin"
 	mysql_user=$(head /dev/urandom | tr -dc a-z | head -c 6)
 	mysql_pass=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 16)
 
-	mariadb <<QUERY
+	mysql <<QUERY
 CREATE USER '$mysql_user'@'localhost' IDENTIFIED BY '$mysql_pass';
 FLUSH PRIVILEGES;
 QUERY
@@ -168,7 +168,7 @@ fi
 if [[ $action == "remove_monitorix" || $action == "2" ]]; then
 
 	mysql_user=$(grep 3306 /etc/monitorix/conf.d/00-debian.conf | cut -d ',' -f 2 | cut -d ' ' -f 2)
-	mariadb <<QUERY
+	mysql <<QUERY
 DROP USER '$mysql_user'@'localhost';
 FLUSH PRIVILEGES;
 QUERY

@@ -238,7 +238,7 @@ function netdata_install
 		fi
 	fi
 
-	mariadb <<QUERY
+	mysql <<QUERY
 	create user 'netdata'@'localhost';
 	grant usage on *.* to 'netdata'@'localhost';
 	flush privileges;
@@ -358,7 +358,7 @@ function netdata_remove
 	fi
 	
 	rm -rf /var/www/$domain/html > /dev/null 2>&1
-        mariadb <<QUERY
+        mysql <<QUERY
         delete from mysql.user where user='netdata';
         flush privileges;
 QUERY

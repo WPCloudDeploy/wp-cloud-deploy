@@ -107,6 +107,8 @@ For $action = "backup", the following variables are needed:
 $domain = domain of the website to create a backup from (example: myblog.com)
 $aws_bucket_name = AWS S3 bucket name where you want to save the backup
 optional: $callback_domain - the domain to report the start and end of the backups. We had to hardcode the callback url so only need the domain.
+optional: $s3_endpoint - set if using an alternative s3-compatible service to AWS. If this parameter is set, the $callback_domain must also be set!
+
 
 For $action = "restore", the following variables are needed:
 $site = domain of the website to restore (example: myblog.com)
@@ -122,6 +124,7 @@ $bucket = AWS S3 bucket name where you want to save the backup
 $days = number of days the backup for this domain should be retained (or 0 days if you don't wish to limit retention days)
 Additionally, the following variables can be filled when setting up the first scheduled backup with callback URLs to get notifications on start and completion of the cron jobs: $callback_start_backup $callback_finished_backup
 optional: $s3_sync_delete_parm can be set to 'delete' to automatically delete remote backups when pruning local backups.
+optional: $s3_endpoint - the s3 compatible endpoint if AWS isn't being used.  If this parameter is set, the $callback_domain must also be set!
 
 For $action = "unschedule", the following variable is needed:
 $job = Scheduled job in the following format: DOMAIN S3_BUCKET RETENTION_DAYS
@@ -139,7 +142,8 @@ For $action = "schedule_full", the following variables are needed:
 $bucket = AWS S3 bucket name where you want to save the backup
 $days = number of days the backup should be retained (or 0 days if you don't wish to limit retention days)
 optional: $s3_sync_delete_parm can be set to 'delete' to automatically delete remote backups when pruning local backups.
-optional: $callback_domain - the domain to report the start and end of the backups. We had to hardcode the callback url so only need the domain.
+optional: $callback_domain - the domain to report the start and end of the backups. We had to hardcode the callback url so only need the domain.  If this parameter is set, then the s3_sync_delete_parm must be set as well.
+optional: $s3_endpoint - the s3 compatible endpoint if AWS isn't being used.  If this parameter is set, the $callback_domain must also be set!
 
 For $action = "unschedule_full" no additional variables are needed.
 
@@ -878,8 +882,9 @@ $conf_backup_enable:
 	- $callback_backup - callback URL for reporting status of backup
 
 -----------------------------------
-38  -- saved for later --
+38-server_php_version.sh
 -----------------------------------
+$server_php_version - the version of php that should be activated for the server.
 
 -----------------------------------
 39-php_workers.sh

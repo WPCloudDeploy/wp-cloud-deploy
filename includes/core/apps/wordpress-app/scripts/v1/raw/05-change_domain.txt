@@ -22,8 +22,9 @@ function database_backup() {
 	gf_get_dbuser $old_domain
 	gf_get_dbname $old_domain
 	gf_get_dbpass $old_domain
+	gf_get_dbport $old_domain
 
-	mysqldump -h ${g_mysql_host} -u ${g_mysql_user} -p${g_mysql_pass} ${g_mysql_name} | gzip -9 > /root/.wp-backup/$old_domain/"$old_domain"_"$date"_db.gz
+	mysqldump -h ${g_mysql_host_noport} -P ${g_mysql_dbport} -u ${g_mysql_user} -p"${g_mysql_pass}" ${g_mysql_name} | gzip -9 > /root/.wp-backup/$old_domain/"$old_domain"_"$date"_db.gz
 	if [ $? -ne 0 ]  
 	then
 		echo "Database backup failed! Domain change aborted!"
@@ -142,9 +143,13 @@ do
 	done
 done
 
-mysql_db=$(grep DB_NAME /var/www/$old_domain/html/wp-config.php | tr -d "[:space:]"|cut -d ',' -f2|cut -d')' -f1|tail -c +2 | head -c -2)
-mysql_dbprefix=$(grep table_prefix /var/www/$old_domain/html/wp-config.php | tr -d "[:space:]"|cut -d '=' -f2|cut -d';' -f1|tail -c +2 | head -c -2)
-
+gf_get_dbname $old_domain
+gf_get_dbprefix $old_domain
+mysql_db=$g_mysql_name
+mysql_dbprefix=$g_mysql_dbprefix
+# Let's unset the globals now that they been copied. This prevents them being still set further below when we reuse the same function
+unset g_mysql_name
+unset g_mysql_dbprefix
 
 if id -u $new_user_name &>/dev/null
 then
@@ -156,7 +161,7 @@ if [[ $action == "domain_only" || $action == "1" ]]
 then
 	######### Backup database ####
 	database_backup
-	mariadb <<QUERY
+	mysql -h ${g_mysql_host_noport} -P ${g_mysql_dbport} -u ${g_mysql_user} -p"${g_mysql_pass}" <<QUERY
 USE $mysql_db;
 UPDATE ${mysql_dbprefix}options SET option_value = replace(option_value, '$old_domain', '$new_domain') WHERE option_name = 'home' OR option_name = 'siteurl';
 UPDATE ${mysql_dbprefix}posts SET guid = REPLACE (guid, '$old_domain', '$new_domain');
@@ -232,8 +237,9 @@ gf_get_dbhost $new_domain
 gf_get_dbuser $new_domain
 gf_get_dbname $new_domain
 gf_get_dbpass $new_domain
+gf_get_dbport $new_domain
 
-mysqldump -h ${g_mysql_host} -u ${g_mysql_user} -p${g_mysql_pass} ${g_mysql_name} | mariadb $mysql_new_db
+mysqldump -h ${g_mysql_host_noport} -P ${g_mysql_dbport} -u ${g_mysql_user} -p"${g_mysql_pass}" ${g_mysql_name} | mysql $mysql_new_db
 if [ $? -ne 0 ]  
 then
 	echo "Database copy failed! Process aborted!"
@@ -241,9 +247,9 @@ then
 fi
 
 # drop old database and credentials
-mariadb -h $g_mysql_host <<QUERY
+mysql -h ${g_mysql_host_noport} -P ${g_mysql_dbport} -u ${g_mysql_user} -p"${g_mysql_pass}" <<QUERY
 DROP DATABASE $g_mysql_name;
-DROP USER $g_mysql_user;
+DELETE from mysql.user where user='$g_mysql_user';
 FLUSH PRIVILEGES;
 QUERY
 

@@ -1,0 +1,65 @@
+#!/bin/bash
+
+# set temporary environment vars.
+source stablediff-script-params.sh
+if [[ -n "$WPCD_USER" ]]
+then
+	echo "WPCD USER environment var not set, using default of 'ubuntu'..."
+	WPCD_USER=ubuntu
+fi
+
+# Output the environment vars in the parameters file.
+if [[ -e /$WPCD_USER/stablediff-script-params.sh ]]; then
+    source /$WPCD_USER/stablediff-script-params.sh
+fi
+
+# Install AWS CLI - later we'll make this part of the EC2 image.
+if ! hash aws2 2>/dev/null
+then
+	echo $(date): "Getting and installing AWS CLI..."
+	sudo wget "https://d1vvhvl2y92vvt.cloudfront.net/awscli-exe-linux-x86_64.zip"  > /dev/null 2>&1
+	sudo unzip awscli-exe-linux-x86_64.zip  > /dev/null 2>&1
+	ls # For debugging so we can see if the zip file exists and was unzipped properly.
+	sudo ./aws/install  > /dev/null 2>&1
+	rm -rf aws awscli-exe-linux-x86_64.zip  > /dev/null 2>&1
+fi
+
+# Switch folders
+cd /home/$WPCD_USER/stable-diffusion
+
+echo "Contents of stable-diffusion folder..."
+ls
+
+# conda does not work inside bash scripts.
+# see https://github.com/conda/conda/issues/7980
+# this is the workaround.
+source /home/$WPCD_USER/miniconda3/etc/profile.d/conda.sh
+
+# Set python environment
+echo "Activating Conda Environment 'ldm'"
+conda activate ldm
+
+# Warm up the server
+echo "Warming up server with first image request...this will take a very very long time!"
+if [[ -n "$CALLBACK_URL" ]]
+then
+	echo "Sending server warming status to callback $CALLBACK_URL"
+	curl -sS "$CALLBACK_URL?state=starting_warmup"
+fi
+python scripts/txt2img.py --prompt "Blue Tesla Car on Dark Background" --plms --ckpt sd-v1-4.ckpt --skip_grid --n_samples 1 
+if [[ -n "$CALLBACK_URL" ]]
+then
+	echo "Sending server warming status complete to callback $CALLBACK_URL"
+	curl -sS "$CALLBACK_URL?state=warmup_complete"
+fi
+
+# Let WPCD know that we're done.
+if [[ -n "$CALLBACK_URL" ]]
+then
+	curl -sS "$CALLBACK_URL?state=done"
+fi
+
+# show output as finished.
+echo
+echo "Finished!"
+echo

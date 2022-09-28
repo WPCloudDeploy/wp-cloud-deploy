@@ -159,15 +159,28 @@ then
 
 	# backup database
 	echo "=>exporting database for backup..."
-	mysql_db=$(grep DB_NAME /var/www/$domain/html/wp-config.php |tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
-	mysqldump $mysql_db | gzip -9 > /root/.wp-backup/$domain/"$domain"_"$date"_db.gz
+	gf_get_dbhost $domain
+	gf_get_dbuser $domain
+	gf_get_dbname $domain
+	gf_get_dbpass $domain
+	gf_get_dbport $domain
+	mysqldump -h ${g_mysql_host_noport} -P ${g_mysql_dbport}  -u ${g_mysql_user} -p"${g_mysql_pass}" ${g_mysql_name} | gzip -9 > /root/.wp-backup/$domain/"$domain"_"$date"_db.gz
+	
+	# set variable that will output target message.
+	if [[ $s3_endpoint ]]
+	then
+		s3_message="S3 compatible service."
+	else
+		s3_message="Amazon S3"
+	fi	
+	
 	# upload to s3
-	echo "=>Uploading files to Amazon S3..."
-	AWS_SHARED_CREDENTIALS_FILE=$user_home/.aws/credentials aws s3 cp /root/.wp-backup/$domain/"$domain"_"$date"_fs.tar.gz s3://$aws_bucket_name/$domain/"$domain"_"$date"_fs.tar.gz --sse --only-show-errors
-	echo "=>Uploading $g_webserver_type configuration to Amazon S3..."
-	AWS_SHARED_CREDENTIALS_FILE=$user_home/.aws/credentials aws s3 cp /root/.wp-backup/$domain/"$domain"_"$date"_"${g_webserver_type}".tar.gz s3://$aws_bucket_name/$domain/"$domain"_"$date"_"${g_webserver_type}".tar.gz --sse --only-show-errors
-	echo "=>Uploading database to to Amazon S3..."
-	AWS_SHARED_CREDENTIALS_FILE=$user_home/.aws/credentials aws s3 cp /root/.wp-backup/$domain/"$domain"_"$date"_db.gz s3://$aws_bucket_name/$domain/"$domain"_"$date"_db.gz --sse --only-show-errors
+	echo "=>Uploading files to $s3_message..."
+	AWS_SHARED_CREDENTIALS_FILE=$user_home/.aws/credentials aws s3 cp /root/.wp-backup/$domain/"$domain"_"$date"_fs.tar.gz s3://$aws_bucket_name/$domain/"$domain"_"$date"_fs.tar.gz --sse --only-show-errors ${s3_endpoint:+--endpoint-url=$s3_endpoint}
+	echo "=>Uploading $g_webserver_type configuration to $s3_message..."
+	AWS_SHARED_CREDENTIALS_FILE=$user_home/.aws/credentials aws s3 cp /root/.wp-backup/$domain/"$domain"_"$date"_"${g_webserver_type}".tar.gz s3://$aws_bucket_name/$domain/"$domain"_"$date"_"${g_webserver_type}".tar.gz --sse --only-show-errors ${s3_endpoint:+--endpoint-url=$s3_endpoint}
+	echo "=>Uploading database to to $s3_message..."
+	AWS_SHARED_CREDENTIALS_FILE=$user_home/.aws/credentials aws s3 cp /root/.wp-backup/$domain/"$domain"_"$date"_db.gz s3://$aws_bucket_name/$domain/"$domain"_"$date"_db.gz --sse --only-show-errors ${s3_endpoint:+--endpoint-url=$s3_endpoint}
 
 	# check if the database was backed up correctly
 	echo "Verifying database backup..."
@@ -227,15 +240,22 @@ then
 			read -p "Press enter to continue"
 		fi
 		# remove everything
-		mysql_db=$(grep DB_NAME /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
-		mysql_user=$(grep DB_USER /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
 		gf_get_dbhost $domain
-		echo "dropping database: $mysql_db ..."
-		mariadb <<QUERY
+		gf_get_dbuser $domain
+		gf_get_dbname $domain
+		gf_get_dbpass $domain
+		gf_get_dbport $domain
+		echo "dropping database: $g_mysql_name ..."
+		if [ $g_mysql_host_noport == "localhost" ]
+		then
+			mysql <<QUERY
 DROP DATABASE $mysql_db;
-DROP USER '$mysql_user'@'$g_mysql_host';
+DELETE from mysql.user where user='$mysql_user';
 FLUSH PRIVILEGES;
 QUERY
+		else
+			mysql -h ${g_mysql_host_noport} -P ${g_mysql_dbport} -u ${g_mysql_user} -p"${g_mysql_pass}" -e "DROP DATABASE $g_mysql_name"
+		fi
 
 		echo "removing existing files..."
 		rm -rf /var/www/$domain
@@ -278,17 +298,24 @@ QUERY
 	rm -rf temp
 
 	# create db stuff
-	mysql_db=$(grep DB_NAME /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
-	mysql_user=$(grep DB_USER /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
-	mysql_pass=$(grep DB_PASSWORD /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
 	gf_get_dbhost $domain
-	echo "creating new database: $mysql_db"
-	gf_database_create "${mysql_db}" "${mysql_user}" "${mysql_pass}" "${g_mysql_host}"
+	gf_get_dbuser $domain
+	gf_get_dbname $domain
+	gf_get_dbpass $domain
+	gf_get_dbport $domain
+	echo "creating new database: $g_mysql_name"
+	if [ $g_mysql_host_noport == "localhost" ]
+	then
+		gf_database_create "${g_mysql_name}" "${g_mysql_user}" "${g_mysql_pass}" "localhost"
+	else
+		mysql -h ${g_mysql_host_noport} -P ${g_mysql_dbport} -u ${g_mysql_user} -p"${g_mysql_pass}" -e "CREATE DATABASE $g_mysql_name"
+	fi
+
 	# restore db dump
 	cd ..
 	echo "restoring database..."	
 	gunzip -c "$backup"_db.gz > db.sql
-	mariadb -D $mysql_db < db.sql
+	mysql -h ${g_mysql_host_noport} -P ${g_mysql_dbport} -u ${g_mysql_user} -p"${g_mysql_pass}" $g_mysql_name < db.sql
 	rm -f db.sql
 
 	# manage other needed stuff
@@ -386,7 +413,7 @@ then
 	# set up the helper script
 	# note that we always create this script when this section is run in case it changes between versions.	
 	echo $'#!/bin/bash
-while IFS=" " read -r domain bucket days localuser s3_sync_delete_parm callback_domain
+while IFS=" " read -r domain bucket days localuser s3_sync_delete_parm callback_domain s3_endpoint
 do
 	user_home=$(eval echo "~$localuser")
 	# Callback to notify that backup has started.
@@ -429,21 +456,41 @@ do
 	fi
 
 	# backup database
-	mysql_db=$(grep DB_NAME /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
-	mysqldump $mysql_db | gzip -9 > /root/.wp-backup/$domain/"$domain"_"$date"_db.gz
+	mysql_db=$(grep DB_NAME /var/www/$line/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
+	mysql_user=$(grep DB_USER /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
+	mysql_pass=$(grep DB_PASSWORD /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
+	mysql_host=$(grep DB_HOST /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
+	mysql_host_noport=$(echo $mysql_host|cut -d: -f1)
+	mysql_dbport=$(echo $mysql_host|awk -F: '{print $2}')
+	if [ -z $mysql_dbport ]
+	then
+		mysql_dbport=3306
+	fi
+	mysqldump -h ${mysql_host_noport} -P ${mysql_dbport} -u ${mysql_user} -p${mysql_pass} ${mysql_db} | gzip -9 > /root/.wp-backup/$domain/"$domain"_"$date"_db.gz
+
 	# check if the database was backed up correctly
 	if ! gunzip -c /root/.wp-backup/$domain/"$domain"_"$date"_db.gz | tail -n 1 | grep -qs "Dump completed on"
 	then
 		echo "$(date) $domain database dump failed" >> /var/log/wp-backup.log
 	fi
+
 	# delete old backups
 	# if days = 0, do not delete anything
 	if [[ $days != "0" && $days != "-1" ]]
 	then
 		find /root/.wp-backup/$domain/ -type f -mtime +$days -exec rm -f {} \;
 	fi
+
+	# If we have an S3 compatible endpoint URL, construct the parameter that needs to go in the S3 command line.
+	if [[ $s3_endpoint ]] 
+	then
+		s3_endpoint_parm="--endpoint-url=$s3_endpoint"
+	else
+		s3_endpoint_parm=" "
+	fi
+
 	# sync to s3
-	AWS_SHARED_CREDENTIALS_FILE=$user_home/.aws/credentials /usr/local/bin/aws s3 sync /root/.wp-backup/$domain/ s3://$bucket/$domain --$s3_sync_delete_parm && echo "$(date) $domain backup successful" >> /var/log/wp-backup.log || echo "$(date) $domain backup failed" >> /var/log/wp-backup.log
+	AWS_SHARED_CREDENTIALS_FILE=$user_home/.aws/credentials /usr/local/bin/aws s3 sync /root/.wp-backup/$domain/ s3://$bucket/$domain --$s3_sync_delete_parm $s3_endpoint_parm && echo "$(date) $domain backup successful" >> /var/log/wp-backup.log || echo "$(date) $domain backup failed" >> /var/log/wp-backup.log
 	# Callback to notify that backup is completed.
 	if [[ -n "$callback_domain" ]]
 	then
@@ -456,16 +503,9 @@ do
 	fi >> /var/log/wp-backup.log
 done < /etc/wp-backup.conf' > /usr/local/bin/wp-backup
 
-#        if [[ -n "$callback_start_backup" ]]
-#then
-#            sed -i "3 i wget -q -O \/dev\/null $callback_start_backup?domain=\$domain" /usr/local/bin/wp-backup
-#        fi
-#        if [[ -n "$callback_finished_backup" ]]
-#then
-#			sed -i "$ i wget -q -O \/dev\/null $callback_start_backup?domain=\$domain" /usr/local/bin/wp-backup
-#        fi
 	chmod +x /usr/local/bin/wp-backup
 	# end set up the helper script
+
 	# if the crontab entry doesn't exist, create it
 	crontab -l | grep -q 'wp-backup' || (crontab -l 2>/dev/null; echo "0 6 * * * /usr/local/bin/wp-backup > /dev/null 2>&1") | crontab -
 
@@ -477,7 +517,7 @@ done < /etc/wp-backup.conf' > /usr/local/bin/wp-backup
 		echo
 		gf_select_domain
 		domain=$(ls /var/www | grep -v html | sed -n "$site_number"p)
-	fi
+	fi	
 	if [[ -z $bucket ]]
 	then
 		echo
@@ -495,7 +535,7 @@ done < /etc/wp-backup.conf' > /usr/local/bin/wp-backup
 		read -p "Retention days: " days
 	fi
 	sed -i "/$domain/d" /etc/wp-backup.conf
-	echo $domain $bucket $days $localuser $s3_sync_delete_parm $callback_domain >> /etc/wp-backup.conf
+	echo $domain $bucket $days $localuser $s3_sync_delete_parm $callback_domain $s3_endpoint >> /etc/wp-backup.conf
 	echo
 	echo "Backup job configured!"
 	exit
@@ -528,8 +568,15 @@ fi
 
 if [[ $action == "schedule_full" || $action == "5" ]]
 then
-	# set up the helper script
-	# note that we always create this script when this section is run in case it changes between versions.
+	# Set up the helper script
+	# Note that we always create this script when this section is run in case it changes between versions.
+	# The helper script will accept the following params:
+	# $1 = $days 
+	# $2 = $bucket 
+	# $3 = $localuser 
+	# $4 = s3_sync_delete_parm 
+	# $5 = $callback_domain 
+	# $6 = $s3_endpoint
 	echo $'#!/bin/bash
 	localuser=$3
 	user_home=$(eval echo "~$localuser")
@@ -577,20 +624,39 @@ do
 
 	# backup database
 	mysql_db=$(grep DB_NAME /var/www/$line/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
-	mysqldump $mysql_db | gzip -9 > /root/.wp-backup/$line/"$line"_"$date"_db.gz
+	mysql_user=$(grep DB_USER /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
+	mysql_pass=$(grep DB_PASSWORD /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
+	mysql_host=$(grep DB_HOST /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
+	mysql_host_noport=$(echo $mysql_host|cut -d: -f1)
+	mysql_dbport=$(echo $mysql_host|awk -F: '{print $2}')
+	if [ -z $mysql_dbport ]
+	then
+		mysql_dbport=3306
+	fi
+	mysqldump -h ${mysql_host_noport} -P ${mysql_dbport} -u ${mysql_user} -p${mysql_pass} ${mysql_db} | gzip -9 > /root/.wp-backup/$line/"$line"_"$date"_db.gz
 	# check if the database was backed up correctly
 	if ! gunzip -c /root/.wp-backup/$line/"$line"_"$date"_db.gz | tail -n 1 | grep -qs "Dump completed on"
 	then
 		echo "$(date) $line database dump failed" >> /var/log/wp-full-backup.log
 	fi
+	
 	# delete old backups
 	# if days = 0, do not delete anything
 	if [[ $1 != "0" && $1 != "-1" ]]
 	then
 		find /root/.wp-backup/$line/ -type f -mtime +$1 -exec rm -f {} \;
 	fi
+	
+	# If we have an S3 compatible endpoint URL, construct the parameter that needs to go in the S3 command line.
+	if [[ $6 ]] 
+	then
+		s3_endpoint_parm="--endpoint-url=$6"
+	else
+		s3_endpoint_parm=" "
+	fi	
+	
 	# sync to s3
-	AWS_SHARED_CREDENTIALS_FILE=$user_home/.aws/credentials /usr/local/bin/aws s3 sync /root/.wp-backup/$line/ s3://$2/$line --$4 && echo "$(date) $domain backup successful" >> /var/log/wp-full-backup.log || echo "$(date) $domain backup failed" >> /var/log/wp-full-backup.log
+	AWS_SHARED_CREDENTIALS_FILE=$user_home/.aws/credentials /usr/local/bin/aws s3 sync /root/.wp-backup/$line/ s3://$2/$line --$4 $s3_endpoint_parm && echo "$(date) $domain backup successful" >> /var/log/wp-full-backup.log || echo "$(date) $domain backup failed" >> /var/log/wp-full-backup.log
 	# Callback to notify that backup is completed.
 	# $5 should be the callback domain var...
 	if [[ -n "$5" ]]
@@ -634,7 +700,7 @@ done' > /usr/local/bin/wp-full-backup
 	fi
 	(crontab -l 2>/dev/null | sed '/wp-full-backup/d' ) | crontab -
 	# if the crontab entry doesn't exist, create it
-	(crontab -l 2>/dev/null; echo "30 5 * * * /usr/local/bin/wp-full-backup $days $bucket $localuser $s3_sync_delete_parm $callback_domain > /dev/null 2>&1") | crontab -
+	(crontab -l 2>/dev/null; echo "30 5 * * * /usr/local/bin/wp-full-backup $days $bucket $localuser $s3_sync_delete_parm $callback_domain $s3_endpoint > /dev/null 2>&1") | crontab -
 	echo
 	echo "Full backup job configured!"
 	exit

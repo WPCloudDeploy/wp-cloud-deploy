@@ -727,7 +727,7 @@ function gf_database_create() {
 	DB_HOST="$4"
 
 	# echo "Creating ${DB_NAME} and granting privileges"
-	mariadb <<QUERY
+	mysql <<QUERY
 CREATE DATABASE $DB_NAME;
 GRANT ALL ON $DB_NAME.* TO '$DB_USERNAME'@'$DB_HOST' IDENTIFIED BY '$DB_PASSWORD' WITH GRANT OPTION;
 FLUSH PRIVILEGES;
@@ -1595,6 +1595,7 @@ function gf_get_dbhost() {
 	then
 		g_mysql_host=localhost
 	fi
+	g_mysql_host_noport=$(echo $g_mysql_host|cut -d: -f1)
 }
 
 #####################################################################
@@ -1625,6 +1626,28 @@ function gf_get_dbname() {
 }
 
 #####################################################################
+### Get database prefix for domain
+#####################################################################
+function gf_get_dbprefix() {
+	local domain
+	domain=$1
+	g_mysql_dbprefix=$(grep table_prefix /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d '=' -f2|cut -d';' -f1|tail -c +2 | head -c -2)
+}
+
+#####################################################################
+### Get database port for domain
+#####################################################################
+function gf_get_dbport() {
+	local domain
+	domain=$1
+	g_mysql_dbport=$(grep DB_HOST /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2|awk -F: '{print $2}')
+	if [ -z $g_mysql_dbport ]
+	then
+		g_mysql_dbport=3306
+	fi
+}
+
+#####################################################################
 ### Check database connection details
 #####################################################################
 function gf_check_db_connection(){
@@ -1643,12 +1666,12 @@ function gf_check_db_connection(){
 	
 	if mysql --skip-reconnect -h "${dbhost}" -u "${dbuser}" -p"${dbpass}" -P "${dbport}" "${dbname}" -e "SHOW TABLES;" &> /dev/null ; then
 		# database exists and is connectable
-		echo "Success we could connect to ${database_details_sanitized}"
+		echo "Success - we can connect to ${database_details_sanitized}"
 	else
 		mysql_connection_error="$(mysql -h "${dbhost}" -u "${dbuser}" -p"${dbpass}" -P "${dbport}" "${dbname}" -e "SHOW TABLES;" 2>&1 | tee -a /dev/null)"
 		echo "Database connection failed to ${database_details_sanitized} with error: $mysql_connection_error"
 		echo "Please ensure remote mysql grants and firewall are configured properly.."
-		exit 1
+		return 1
 	fi
 }
 
@@ -1719,11 +1742,18 @@ function gf_set_domain_metadata(){
 }
 
 
-#####################################################################
+###############################################################################################
 ### Return Metadata
 ###
 ### Eg Usage: gf_get_wpcd_metadata -t metatype -d domain-name -k key -f default-value 
-#####################################################################
+###
+### $1: Metadata Type - can be one of two values 'sites' or 'server'
+### $2: Metadata key - the key to be read from the meta file.
+### $3: Default value - the default value to use if no data is found for the requested key.
+### $3: Domain - Only required if $1 is 'sites'
+###
+### @return: wpcd_metavalue is global variable in which requested metadata will be placed.
+###############################################################################################
 function gf_get_metadata(){
 	local metatype;
 	local metakey;
@@ -1741,17 +1771,16 @@ function gf_get_metadata(){
 	done
 	if [ "$metatype" == "server" ]
 	then
-		value=$(grep "$metakey=" /etc/wpcd/wpcd-server-info.txt|cut -d'=' -f2)
+		wpcd_metavalue=$(grep "$metakey=" /etc/wpcd/wpcd-server-info.txt|cut -d'=' -f2)
 	elif [ "$metatype" == "sites" ]
 	then
-		value=$(grep "$metakey=" /etc/wpcd/wpcd-sites-info.txt|cut -d'=' -f2)
+		wpcd_metavalue=$(grep "$metakey=" /etc/wpcd/wpcd-sites-info.txt|cut -d'=' -f2)
 	elif [ "$metatype" == "domain" ]
 	then
-		value=$(grep "$metakey=" /etc/wpcd/$domain/$domain|cut -d'=' -f2)
+		wpcd_metavalue=$(grep "$metakey=" /etc/wpcd/$domain/$domain|cut -d'=' -f2)
 	fi
-	if [ -z $value ]
+	if [ -z $wpcd_metavalue ]
 	then
-		value=$defaultvalue
+		wpcd_metavalue=$defaultvalue
 	fi
-	echo $value
 }

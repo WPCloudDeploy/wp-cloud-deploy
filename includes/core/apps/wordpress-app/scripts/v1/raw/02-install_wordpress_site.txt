@@ -122,7 +122,7 @@ require_once( '$wphome/wp-load.php' );
 echo \$hash_password;
 ?>" | php)
 
-mariadb <<QUERY
+mysql <<QUERY
 USE $mysql_db;
 UPDATE ${mysql_dbprefix}_users SET user_pass='$wp_password_hashed' WHERE user_login='$wp_user';
 QUERY

@@ -248,6 +248,7 @@ class WPCD_WORDPRESS_TABS_THEME_AND_PLUGIN_UPDATES extends WPCD_WORDPRESS_TABS {
 		$key    = $creds['aws_access_key_id'];
 		$secret = $creds['aws_secret_access_key'];
 		$bucket = $creds['aws_bucket_name'];
+		$endpoint = $creds['s3_endpoint'];
 
 		// Now, fill in all the other items that the bash script needs to run properly.
 		$args['update_type']      = '1';

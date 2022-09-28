@@ -177,10 +177,10 @@ trait wpcd_wpapp_admin_column_data {
 				if ( 'latest' === $wp_version ) {
 					$wp_version = __( 'Latest', 'wpcd' );
 				}
-				$value  = __( 'Initial WP Version: ', 'wpcd' );
+				$value        = __( 'Initial WP Version: ', 'wpcd' );
 				$column_class = 'initial_wp_version';
 			} else {
-				$value  = __( 'WP Version: ', 'wpcd' );
+				$value        = __( 'WP Version: ', 'wpcd' );
 				$column_class = 'wp_version';
 			}
 
@@ -634,9 +634,9 @@ trait wpcd_wpapp_admin_column_data {
 				if ( empty( $health ) ) {
 					$server_status_callback_status = get_post_meta( $post_id, 'wpcd_wpapp_server_status_callback_installed', true );
 					if ( empty( $server_status_callback_status ) ) {
-						$health_msg = __( 'Callbacks are not installed.', 'wpcd' );
-						$health_msg .= '<br /><br />' . __( 'We usually auto-install them after a server has been deployed.', 'wpcd' );
-						$health_msg .= '<br /><br />' . __( 'Please wait 30 mins and if you still see this message, install them from the CALLBACKS tab.', 'wpcd' );
+						$health_msg        = __( 'Callbacks are not installed.', 'wpcd' );
+						$health_msg       .= '<br /><br />' . __( 'We usually auto-install them after a server has been deployed.', 'wpcd' );
+						$health_msg       .= '<br /><br />' . __( 'Please wait 30 mins and if you still see this message, install them from the CALLBACKS tab.', 'wpcd' );
 						$health            = "<div class='wpcd_waiting_for_data_column'>" . $health_msg . '</div>';
 						$callback_tab_link = ( is_admin() ? get_edit_post_link( $post_id ) : get_permalink( $post_id ) ) . '#~~callbacks';
 						$health           .= "<div class='wpcd_go_to_callbacks_tab_column'>" . "<a href='" . $callback_tab_link . "'>" . __( 'Go To Callbacks Tab', 'wpcd' ) . '</a>' . '</div>';
@@ -902,8 +902,8 @@ trait wpcd_wpapp_admin_column_data {
 				$ssl_status = 'on';
 			} else {
 				$ssl_status = 'off';
-			}	
-			
+			}
+
 			if ( 'off' == $ssl_status ) {
 				return '<div class="wpcd_ssl_status wpcd_ssl_status_off">' . $ssl_status . '</div>';
 			} else {
@@ -1028,20 +1028,25 @@ trait wpcd_wpapp_admin_column_data {
 	 */
 	public function app_admin_list_server_column_before_apps_link( $column_data, $post_id ) {
 
-		$show_web_server_type = true;
-		if ( ! is_admin() && ( boolval( wpcd_get_option( 'wordpress_app_fe_hide_web_server_type_element_in_app_list' ) ) ) ) {
-			// We're on the front-end - do not show there.
-			$show_web_server_type = false;
-		}
-		if ( is_admin() && ( boolval( wpcd_get_option( 'wordpress_app_hide_web_server_element_in_site_list' ) ) ) ) {
-			// We're in wp-admin area but not allowed to show this element.
-			$show_web_server_type = false;
-		}
-		if ( $show_web_server_type ) {
-			// Show it.
-			return $column_data . $this->get_formatted_web_server_type_for_display( $post_id, true );
+		// Maybe show web server information if the app type is wpapp
+		if ( 'wordpress-app' === $this->get_app_type( $post_id ) ) {
+			$show_web_server_type = true;
+			if ( ! is_admin() && ( boolval( wpcd_get_option( 'wordpress_app_fe_hide_web_server_type_element_in_app_list' ) ) ) ) {
+				// We're on the front-end - do not show there.
+				$show_web_server_type = false;
+			}
+			if ( is_admin() && ( boolval( wpcd_get_option( 'wordpress_app_hide_web_server_element_in_site_list' ) ) ) ) {
+				// We're in wp-admin area but not allowed to show this element.
+				$show_web_server_type = false;
+			}
+			if ( $show_web_server_type ) {
+				// Show it.
+				return $column_data . $this->get_formatted_web_server_type_for_display( $post_id, true );
 
+			}
 		}
+
+		return $column_data;
 	}
 
 	/**
@@ -1171,15 +1176,25 @@ trait wpcd_wpapp_admin_column_data {
 					break;
 
 				case 'default_php_version':
-					if ( isset( $server_status_items['default_php_version'] ) && ! empty( $server_status_items['default_php_version'] ) && '7.4' !== $server_status_items['default_php_version'] ) {
+					if ( isset( $server_status_items['default_php_version'] ) && ! empty( $server_status_items['default_php_version'] ) ) {
 
-						/* Translators: %s is the incorrect PHP version. */
-						$return .= sprintf( __( 'The default PHP server version is incorrect. It should be 7.4, 8.0 or 8.1 but is currently set to %s!', 'wpcd' ), $server_status_items['default_php_version'] );
+						// What versions of PHP should we warn for?
+						$bad_php_versions = wpcd_get_option( 'wordpress_app_servers_default_php_warn_versions' );
+						if ( empty( $bad_php_versions ) ) {
+							$bad_php_versions = array( '5.6', '7.1', '7.2', '7.3' );
+						}
 
-						$class = 'wpcd_incorrect_php_default_version';
+						// Set warning message if the current PHP version is in the array of ones we should warn for.
+						if ( in_array( $server_status_items['default_php_version'], $bad_php_versions, true ) ) {
 
-						$return = "<div class='$class'>" . $return . '</div>';
+							/* Translators: %s is the incorrect PHP version. */
+							$return .= sprintf( __( 'The default PHP server version is incorrect. It is currently set to %s.', 'wpcd' ), $server_status_items['default_php_version'] );
 
+							$class = 'wpcd_incorrect_php_default_version';
+
+							$return = "<div class='$class'>" . $return . '</div>';
+
+						}
 					}
 					break;
 

@@ -1,0 +1,72 @@
+#!/bin/bash
+
+# set temporary environment vars.
+if [[ -n "$WPCD_USER" ]]
+then
+	echo "WPCD USER environment var not set, using default of 'ubuntu'..."
+	WPCD_USER=ubuntu
+fi
+
+# Switch folders
+cd /home/$WPCD_USER/stable-diffusion
+
+echo "Contents of stable-diffusion folder..."
+ls
+
+# conda does not work inside bash scripts.
+# see https://github.com/conda/conda/issues/7980
+# this is the workaround.
+source /home/$WPCD_USER/miniconda3/etc/profile.d/conda.sh
+
+# Set python environment
+echo "Activating Conda Environment 'ldm'"
+conda activate ldm
+
+# runs stable diffusion.  Environment variables should already be set because the bootstrap script should have already set the environment vars.
+echo "Running stable diffusion with requested parameters!"
+python scripts/txt2img.py --prompt "$AI_PROMPT" --plms --ckpt sd-v1-4.ckpt --skip_grid --n_samples $AI_SAMPLES --outdir $AI_OUTPUT_DIR --ddim_steps $AI_STEPS --H $AI_HEIGHT --W $AI_WIDTH --seed $AI_SEED
+
+# Upload files to aws s3.
+echo $(date): "Uploading files to S3..."
+if [[ -n "$AWS_BUCKET" ]]
+then
+	# Upload files to S3.
+	aws s3 cp /home/$WPCD_USER/stable-diffusion/$AI_OUTPUT_DIR s3://$AWS_BUCKET/$AWS_FOLDER --recursive
+	
+	# Get signed url for all files in folder.
+	echo -e $(date): "Getting presigned url for files in folder...\n"
+	echo ""
+	for file in $(aws s3 ls s3://$AWS_BUCKET/$AWS_FOLDER/samples/ | awk '{print $NF}'); do
+		echo "Handling File: $file"
+		echo "###signed-file-delimiter-start###"
+		# @SEE https://awscli.amazonaws.com/v2/documentation/api/latest/reference/s3/presign.html for s3 presign options.
+		l_signedurl=$(aws s3 presign "s3://$AWS_BUCKET/$AWS_FOLDER/samples/$file" --region $AWS_DEFAULT_REGION --expires-in 604800)
+		echo $l_signedurl
+		echo -e "###signed-file-delimiter-end### \n"
+		
+		# Send URL to callback.
+		# Let WPCD know what the URL is for this file.
+		if [[ -n "$CALLBACK_URL" ]]
+		then
+			# Convert url and prompt to base64 otherwise the ampersands and spaces screw things up.
+			l_signedurl64=$(echo "$l_signedurl" | base64 --wrap=0)
+			l_ai_prompt64=$(echo "$AI_PROMPT" | base64  --wrap=0)
+			echo "64bit signed url in base64: $l_signedurl64"
+			echo "AI Prompt in base 64: $l_ai_prompt64"
+			# Send it via the callback url.
+			curl -sS "$CALLBACK_URL?state=in_progress&file=$file&folder=$AWS_FOLDER&taskid=$TASK_ID&awssignedurl64=$l_signedurl64&aiprompt64=$l_ai_prompt64&seed=$AI_SEED"
+		fi		
+	done
+	
+fi
+
+# Let WPCD know that we're done.
+if [[ -n "$CALLBACK_URL" ]]
+then
+	curl -sS "$CALLBACK_URL?state=done&taskid=$TASK_ID"
+fi
+
+# show output as finished.
+echo
+echo "Finished!"
+echo

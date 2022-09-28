@@ -1190,6 +1190,31 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tooltip' => __( 'Most new servers have a lot of updates that need to be run overnight. You can turn this on to force the updates to run asap.  Note that this will chew up CPU cycles and cause your server to be slow for a bit. If you need to use your servers immediately do not enable this.', 'wpcd' ),
 				'tab'     => 'wordpress-app-servers',
 			),
+			array(
+				'type' => 'heading',
+				'name' => __( 'Server Health Warnings: PHP', 'wpcd' ),
+				'desc' => __( 'We set a default server wide version for PHP under which wp-cli is run. You can get warnings on which versions are NOT allowed to be the default.', 'wpcd' ),
+				'tab'  => 'wordpress-app-servers',
+			),
+			array(
+				'id'              => 'wordpress_app_servers_default_php_warn_versions',
+				'type'            => 'checkbox_list',
+				'name'            => __( 'Show Warning In Health Column For These PHP Versions', 'wpcd' ),
+				'tooltip'         => __( 'If we detect that the default version of PHP for a server is set to any of the selected versions above, we will show a warning in the HEALTH column in the server list.', 'wpcd' ),
+				'options'         => array(
+					'5.6' => '5.6',
+					'7.1' => '7.1',
+					'7.2' => '7.2',
+					'7.3' => '7.3',
+					'7.4' => '7.4',
+					'8.0' => '8.0',
+					'8.1' => '8.1',
+					'8.2' => '8.2',
+				),
+				'std'             => ( array( '5.6', '7.1', '7.2', '7.3' ) ),
+				'select_all_none' => true,
+				'tab'             => 'wordpress-app-servers',
+			),
 
 		);
 
@@ -1765,6 +1790,17 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tab'     => 'wordpress-app-backup',
 				'std'     => wpcd_get_option( 'wordpress_app_aws_bucket' ),
 				'size'    => 60,
+			),
+			array(
+				'id'                => 'wordpress_app_s3_endpoint',
+				'type'              => 'text',
+				'name'              => __( 'S3 Endpoint URL', 'wpcd' ),
+				'label_description' => __( 'Optional', 'wpcd' ),
+				'placeholder'       => __( 'https:/endpoint.com', 'wpcd' ),
+				'tooltip'           => __( 'Only set this if you want to use an alternative S3-compatible service. MUST start with "https://"!', 'wpcd' ),
+				'tab'               => 'wordpress-app-backup',
+				'std'               => wpcd_get_option( 'wordpress_app_s3_endpoint' ),
+				'size'              => 60,
 			),
 			array(
 				'id'   => 'wordpress_app_backup_warning',

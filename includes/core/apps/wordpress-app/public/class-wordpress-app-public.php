@@ -453,7 +453,7 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 
 			// Enqueue the font-awesome pro kit.
 			if ( ! boolval( wpcd_get_early_option( 'wordpress_app_disable_front_end_icons' ) ) ) {
-				wp_register_script( 'wpcd-fontawesome-pro', 'https://kit.fontawesome.com/4fa00a8874.js', array(), 5.0, true );
+				wp_register_script( 'wpcd-fontawesome-pro', 'https://kit.fontawesome.com/4fa00a8874.js', array(), 6.2, true );
 				wp_enqueue_script( 'wpcd-fontawesome-pro' );
 			}
 		}

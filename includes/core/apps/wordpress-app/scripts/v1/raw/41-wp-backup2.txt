@@ -285,8 +285,12 @@ then
 
 	backup_database () {
 		echo "Backing up database..."
-		mysql_db=$(grep DB_NAME /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
-		mysqldump $mysql_db | gzip -9 > /root/.wp-backup2/$domain/"$domain"_"$date"_db.gz
+		gf_get_dbhost $domain
+		gf_get_dbuser $domain
+		gf_get_dbpass $domain
+		gf_get_dbname $domain
+		gf_get_dbport $domain
+		mysqldump -h "$g_mysql_host_noport" -P "$g_mysql_dbport" -u "$g_mysql_user" -p"$g_mysql_pass" "$g_mysql_name" | gzip -9 > /root/.wp-backup2/$domain/"$domain"_"$date"_db.gz
 		echo "Verifying database backup..."
 		if ! gunzip -c /root/.wp-backup2/$domain/"$domain"_"$date"_db.gz | tail -n 1 | grep -qs "Dump completed on";
 		then
@@ -536,6 +540,7 @@ then
 			fi
 		elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 		then
+			gf_disable_https_redirect_ols_htaccess "$domain" # Remove existing https any redirects.
 			gf_enable_certbot_ols_site "$domain" "register_unsafely"  # This function call echoes any success/failure messages so no need to handle here.
 		fi
 	fi
@@ -553,25 +558,38 @@ then
 		fi
 
 		# Cleanup stage
-		mysql_db=$(grep -s DB_NAME /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
-		mysql_user=$(grep -s DB_USER /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
-		mysql_pass=$(grep DB_PASSWORD /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
-		gf_get_dbhost $domain
-		echo "Dropping database (if exists) $mysql_db ..."
-		mariadb <<QUERY
-DROP DATABASE IF EXISTS $mysql_db;
-DROP USER IF EXISTS '$mysql_user'@'$g_mysql_host';
+                gf_get_dbhost $domain
+                gf_get_dbuser $domain
+                gf_get_dbpass $domain
+                gf_get_dbname $domain
+		gf_get_dbport $domain
+		echo "Dropping database (if exists) $g_mysql_name ..."
+		if [ $g_mysql_host_noport == "localhost" ]
+		then
+			mysql <<QUERY
+DROP DATABASE IF EXISTS $g_mysql_name;
+DELETE from mysql.user where user='$g_mysql_user';
 FLUSH PRIVILEGES;
 QUERY
+		else
+			mysql -h "$g_mysql_host_noport" -P "$g_mysql_dbport" -u "$g_mysql_user" -p"$g_mysql_pass" <<QUERY
+DROP DATABASE IF EXISTS $g_mysql_name;
+QUERY
+		fi
 
 		# Restoration stage
-		echo "Creating database: $mysql_db..."
-		gf_database_create "${mysql_db}" "${mysql_user}" "${mysql_pass}" "${g_mysql_host}"
+		echo "Creating database: $g_mysql_name..."
+		if [ $g_mysql_host_noport == "localhost" ]
+		then
+			gf_database_create "${g_mysql_name}" "${g_mysql_user}" "${g_mysql_pass}" "localhost"
+		else
+			mysql -h ${g_mysql_host_noport} -P ${g_mysql_dbport} -u ${g_mysql_user} -p"${g_mysql_pass}" -e "CREATE DATABASE $g_mysql_name"
+		fi
 
 		echo "Restoring database..."
 		cd /root/.wp-backup2/
 		gunzip -c "$backup"_db.gz > db.sql
-		mariadb -D $mysql_db < db.sql
+		mysql -h "$g_mysql_host_noport" -P "$g_mysql_dbport" -u "$g_mysql_user" -p"$g_mysql_pass" -D $g_mysql_name < db.sql
 		rm -f db.sql
 	fi
 	echo "cleaning up and restarting web server..."

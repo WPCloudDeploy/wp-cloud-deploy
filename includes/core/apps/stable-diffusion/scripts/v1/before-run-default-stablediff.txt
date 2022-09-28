@@ -1,0 +1,29 @@
+echo "done" && {
+    cd ~ ; 
+	} && {
+	export WPCD_USER=##WPCD_USER##
+	export AI_PROMPT="##AI_PROMPT##"
+	export AI_SAMPLES=##AI_SAMPLES##
+	export AI_OUTPUT_DIR=##AI_OUTPUT_DIR##
+	export AI_STEPS=##AI_STEPS##
+	export AI_WIDTH=##AI_WIDTH##
+	export AI_HEIGHT=##AI_HEIGHT##
+	export AI_SEED=##AI_SEED##
+	export CALLBACK_URL=##CALLBACK_URL##
+	export CALLBACK_URL_ALT=##CALLBACK_URL_ALT##
+	export SERVER_ID=##SERVER_ID##
+	export APP_ID=##APP_ID##
+	export TASK_ID=##TASK_ID##
+	export AWS_ACCESS_KEY_ID=##AWS_ACCESS_KEY_ID## 
+	export AWS_SECRET_ACCESS_KEY=##AWS_SECRET_ACCESS_KEY##
+	export AWS_DEFAULT_REGION=##AWS_DEFAULT_REGION##
+	export AWS_BUCKET=##AWS_BUCKET##
+	export AWS_FOLDER=##AWS_FOLDER##
+	sudo -E wget --no-check-certificate -O ##SCRIPT_NAME## ##SCRIPT_URL##  &&
+	sudo -E dos2unix run-stablediff.sh &&
+    export interactive=no &&
+	sudo -E chmod 500 ##SCRIPT_NAME## &&
+	sudo -E chown $WPCD_USER:$WPCD_USER ##SCRIPT_NAME## &&
+	bash ~/##SCRIPT_NAME## >> stablediff-run-status-$TASK_ID.log &&
+	cat stablediff-run-status-$TASK_ID.log # So that it's output to the ssh virtual terminal.
+}

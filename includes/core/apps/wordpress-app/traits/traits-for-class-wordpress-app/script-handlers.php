@@ -164,11 +164,9 @@ trait wpcd_wpapp_script_handlers {
 				break;
 			case 'manage_database_operation.txt':
 				$return =
-				( strpos( $result, 'Please enter Remote Database server' ) !== false )
+				( strpos( $result, 'Mysql host is already set to localhost' ) !== false )
 				||
 				( strpos( $result, 'Database has been switched to' ) !== false )
-				||
-				( strpos( $result, 'Please enter Local Database server' ) !== false )
 				||
 				( strpos( $result, 'Database has been copied' ) !== false );
 				break;

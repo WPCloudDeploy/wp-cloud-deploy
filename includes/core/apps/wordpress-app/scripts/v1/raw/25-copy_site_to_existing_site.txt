@@ -71,11 +71,28 @@ done
 
 # Get additional source and target data from wp-config.php files.
 mysql_source_db=$(grep DB_NAME /var/www/$source_domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
-mysql_target_db=$(grep DB_NAME /var/www/$target_domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
-mysql_target_user=$(grep DB_USER /var/www/$target_domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
-mysql_target_password=$(grep DB_PASSWORD /var/www/$target_domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
+mysql_source_host=$(grep DB_HOST /var/www/$source_domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
+mysql_source_user=$(grep DB_USER /var/www/$source_domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
+mysql_source_pass=$(grep DB_PASSWORD /var/www/$source_domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
 mysql_source_prefix=$(grep table_prefix /var/www/$source_domain/html/wp-config.php | tr -d "[:space:]"|cut -d "=" -f2|cut -d";" -f1|tail -c +2 | head -c -2)
+mysql_source_host_noport=$(echo $mysql_source_host|cut -d: -f1)
+mysql_source_dbport=$(echo $mysql_source_host|awk -F: '{print $2}')
+if [ -z $mysql_source_dbport ]
+then
+	mysql_source_dbport=3306
+fi
+
+mysql_target_db=$(grep DB_NAME /var/www/$target_domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
+mysql_target_host=$(grep DB_HOST /var/www/$target_domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
+mysql_target_user=$(grep DB_USER /var/www/$target_domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
+mysql_target_pass=$(grep DB_PASSWORD /var/www/$target_domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
 mysql_target_prefix=$(grep table_prefix /var/www/$target_domain/html/wp-config.php | tr -d "[:space:]"|cut -d "=" -f2|cut -d";" -f1|tail -c +2 | head -c -2)
+mysql_target_host_noport=$(echo $mysql_target_host|cut -d: -f1)
+mysql_target_dbport=$(echo $mysql_target_host|awk -F: '{print $2}')
+if [ -z $mysql_target_dbport ]
+then
+	mysql_target_dbport=3306
+fi
 
 # Get user name...
 user_name=$(echo $target_domain | cut -c1-32)
@@ -86,16 +103,15 @@ user_name=$(echo $target_domain | cut -c1-32)
 # @TODO: PRIVILEGES are not being assigned to db user right now.
 #####################################################################
 function copy_db() {
-	       mysql <<QUERY
+	       mysql -h ${mysql_target_host_noport} -P ${mysql_target_dbport} -u ${mysql_target_user} -p"${mysql_target_pass}" <<QUERY
 DROP DATABASE $mysql_target_db;
 CREATE DATABASE $mysql_target_db;
-FLUSH PRIVILEGES;
 QUERY
 
 	echo "Copying database..."
 
 	# Copy database over to target
-	mysqldump $mysql_source_db | mysql $mysql_target_db
+	mysqldump -h ${mysql_source_host_noport} -P ${mysql_source_dbport} -u ${mysql_source_user} -p"${mysql_source_pass}" $mysql_source_db | mysql -h ${mysql_target_host_noport} -P ${mysql_target_dbport} -u ${mysql_target_user} -p"${mysql_target_pass}" $mysql_target_db
 	
 	# Change table prefix in wp-config.php
 	if [[ $wpconfig != 'y' ]] && [[ $wpconfig != 'Y' ]]
@@ -135,7 +151,8 @@ function copy_wpconfig() {
 	cd /var/www/$target_domain/html/
 	su - $target_domain -c "wp --skip-plugins config set DB_NAME $mysql_target_db"
 	su - $target_domain -c "wp --skip-plugins config set DB_USER $mysql_target_user"
-	su - $target_domain -c "wp --skip-plugins config set DB_PASSWORD $mysql_target_password"
+	su - $target_domain -c "wp --skip-plugins config set DB_PASSWORD $mysql_target_pass"
+	su - $target_domain -c "wp --skip-plugins config set DB_HOST $mysql_target_host"
 	su - $target_domain -c "wp --skip-plugins search-replace $source_domain $target_domain --recurse-objects --network --skip-columns=guid --skip-tables=wp_users"
 	# wp-cli doesn't shuffle WP_CACHE_KEY_SALT, which is important for us
 	# so we use the generator once to get the additional salt we need and shuffle again so there are no duplicates
@@ -209,7 +226,7 @@ function copy_partial_db() {
 		read -p "Enter a list of tables (comma separated) to copy: " wpincludedbtable
 	fi
 	
-	mysql $mysql_source_db -e 'show tables'|tail -n +2 > /tmp/wpalltables-$tempdate
+	mysql -h ${mysql_source_host_noport} -P ${mysql_source_dbport} -u ${mysql_source_user} -p"${mysql_source_pass}" $mysql_source_db -e 'show tables'|tail -n +2 > /tmp/wpalltables-$tempdate
 
 	if [[ ! -z $wpexcludedbtable ]]
 	then
@@ -219,7 +236,7 @@ function copy_partial_db() {
 			if [ $? -ne 0 ]
 			then
 				table_target=`echo $table|sed -e "s/$mysql_source_prefix/$mysql_target_prefix/g"`
-				mysqldump $mysql_source_db $table | sed -e "s/$table/$table_target/g" |mysql $mysql_target_db
+				mysqldump -h ${mysql_source_host_noport} -P ${mysql_source_dbport}  -u ${mysql_source_user} -p"${mysql_source_pass}" $mysql_source_db $table | sed -e "s/$table/$table_target/g" |mysql -h ${mysql_target_host_noport} -P ${mysql_target_dbport} -u ${mysql_target_user} -p"${mysql_target_pass}" $mysql_target_db
 			fi
 		done < /tmp/wpalltables-$tempdate
 	fi
@@ -232,7 +249,7 @@ function copy_partial_db() {
 			if [ $? -eq 0 ]
 			then
 				table_target=`echo $table|sed -e "s/$mysql_source_prefix/$mysql_target_prefix/g"`
-				mysqldump $mysql_source_db $table | sed -e "s/$table/$table_target/g" |mysql $mysql_target_db
+				mysqldump -h ${mysql_source_host_noport} -P ${mysql_source_dbport} -u ${mysql_source_user} -p"${mysql_source_pass}" $mysql_source_db $table | sed -e "s/$table/$table_target/g" |mysql -h ${mysql_target_host_noport} -P ${mysql_target_dbport} -u ${mysql_target_user} -p"${mysql_target_pass}" $mysql_target_db
 			fi
 		done < /tmp/wpalltables-$tempdate
 	fi

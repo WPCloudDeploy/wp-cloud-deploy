@@ -124,9 +124,15 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 
 			if ( true == $success ) {
 
-				$server_name = WPCD_SERVER()->get_server_name( $id );
-				update_post_meta( $id, 'is_remote_database', 'yes' );
-				update_post_meta( $id, 'remote_database_server_name', $server_name );
+				// Indicate that we are connecting to a remote database.
+				update_post_meta( $id, 'wpapp_is_remote_database', 'yes' );
+
+				update_post_meta( $id, 'wpapp_db_host', get_post_meta( $id, 'wpapp_temp_db_host', true ) );
+				update_post_meta( $id, 'wpapp_db_port', get_post_meta( $id, 'wpapp_temp_db_port', true ) );
+				update_post_meta( $id, 'wpapp_db_name', get_post_meta( $id, 'wpapp_temp_db_name', true ) );
+				update_post_meta( $id, 'wpapp_db_user', get_post_meta( $id, 'wpapp_temp_db_user', true ) );
+				update_post_meta( $id, 'wpapp_db_pass', get_post_meta( $id, 'wpapp_temp_db_pass', true ) );
+
 			}
 		}
 
@@ -139,10 +145,16 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 			// Is the command successful?
 			$success = $this->is_ssh_successful( $logs, 'manage_database_operation.txt' );
 
-			if ( true == $success ) {
+			if ( true === $success ) {
 
-				update_post_meta( $id, 'is_remote_database', 'no' );
-				delete_post_meta( $id, 'remote_database_server_name' );
+				update_post_meta( $id, 'wpapp_is_remote_database', 'no' );
+
+				update_post_meta( $id, 'wpapp_db_host', get_post_meta( $id, 'wpapp_temp_db_host', true ) );
+				update_post_meta( $id, 'wpapp_db_port', get_post_meta( $id, 'wpapp_temp_db_port', true ) );
+				update_post_meta( $id, 'wpapp_db_name', get_post_meta( $id, 'wpapp_temp_db_name', true ) );
+				update_post_meta( $id, 'wpapp_db_user', get_post_meta( $id, 'wpapp_temp_db_user', true ) );
+				update_post_meta( $id, 'wpapp_db_pass', get_post_meta( $id, 'wpapp_temp_db_pass', true ) );
+
 			}
 		}
 
@@ -167,6 +179,13 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 			$this->is_ssh_successful( $logs, 'manage_database_operation.txt' );
 
 		}
+
+		// Remove some metas that may be present.
+		delete_post_meta( $id, 'wpapp_temp_db_host' );
+		delete_post_meta( $id, 'wpapp_temp_db_port' );
+		delete_post_meta( $id, 'wpapp_temp_db_name' );
+		delete_post_meta( $id, 'wpapp_temp_db_user' );
+		delete_post_meta( $id, 'wpapp_temp_db_pass' );
 
 		// remove the 'temporary' meta so that another attempt will run if necessary.
 		delete_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action_status" );
@@ -383,9 +402,18 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 						'local_dbpass' => $local_dbpass,
 					)
 				);
+
+				// Update some temporary metas that we'll use later if the command succeeds.
+				update_post_meta( $id, 'wpapp_temp_db_host', 'localhost' );
+				update_post_meta( $id, 'wpapp_temp_db_port', '3301' );
+				update_post_meta( $id, 'wpapp_temp_db_name', $local_dbname );
+				update_post_meta( $id, 'wpapp_temp_db_user', $local_dbuser );
+				update_post_meta( $id, 'wpapp_temp_db_pass', self::encrypt( $local_dbpass ) );
+
 				break;
 			case 'switch_remote':
 				$remote_dbhost = $args['dbhost_for_remote_database'];
+				$remote_dbport = $args['dbport_for_remote_database'];
 				$remote_dbname = $args['dbname_for_remote_database'];
 				$remote_dbuser = $args['dbuser_for_remote_database'];
 				$remote_dbpass = $args['dbpass_for_remote_database'];
@@ -403,14 +431,24 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 						'action'        => $action,
 						'domain'        => $domain,
 						'remote_dbhost' => $remote_dbhost,
+						'remote_dbport' => $remote_dbport,
 						'remote_dbname' => $remote_dbname,
 						'remote_dbuser' => $remote_dbuser,
 						'remote_dbpass' => $remote_dbpass,
 					)
 				);
+
+				// Update some temporary metas that we'll use later if the command succeeds.
+				update_post_meta( $id, 'wpapp_temp_db_host', $remote_dbhost );
+				update_post_meta( $id, 'wpapp_temp_db_port', $remote_dbport );
+				update_post_meta( $id, 'wpapp_temp_db_name', $remote_dbname );
+				update_post_meta( $id, 'wpapp_temp_db_user', $remote_dbuser );
+				update_post_meta( $id, 'wpapp_temp_db_pass', self::encrypt( $remote_dbpass ) );
+
 				break;
 			case 'copy_to_remote':
 				$remote_dbhost_for_copy = $args['remote_dbhost_for_copy'];
+				$remote_dbport_for_copy = $args['remote_dbport_for_copy'];
 				$remote_dbname_for_copy = $args['remote_dbname_for_copy'];
 				$remote_dbuser_for_copy = $args['remote_dbuser_for_copy'];
 				$remote_dbpass_for_copy = $args['remote_dbpass_for_copy'];
@@ -428,6 +466,7 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 						'action'        => $action,
 						'domain'        => $domain,
 						'remote_dbhost' => $remote_dbhost_for_copy,
+						'remote_dbport' => $remote_dbport_for_copy,
 						'remote_dbname' => $remote_dbname_for_copy,
 						'remote_dbuser' => $remote_dbuser_for_copy,
 						'remote_dbpass' => $remote_dbpass_for_copy,
@@ -539,12 +578,481 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 			return array_merge( $fields, $this->get_disabled_header_field( 'database' ) );
 		}
 
+		$fields = $this->get_php_myadmin_fields( $fields, $id );
+
+		if ( wpcd_is_admin() ) {
+			$fields = $this->get_local_remote_db_fields( $fields, $id );
+		}
+
+		return $fields;
+
+	}
+
+	/**
+	 * Gets the fields to be shown for the local-remote db switch management section.
+	 *
+	 * @param array $fields fields.
+	 * @param int   $id id.
+	 *
+	 * @return array Array of actions, complying with the structure necessary by metabox.io fields.
+	 */
+	public function get_local_remote_db_fields( array $fields, $id ) {
+
+		// Remote Database Options.
+		$is_remote_database = get_post_meta( $id, 'wpapp_is_remote_database', true );
+
+		// Current database settings.
+		$current_db_host           = get_post_meta( $id, 'wpapp_db_host', true );
+		$current_db_port           = get_post_meta( $id, 'wpapp_db_port', true );
+		$current_db_name           = get_post_meta( $id, 'wpapp_db_name', true );
+		$current_db_user           = get_post_meta( $id, 'wpapp_db_user', true );
+		$current_db_pass           = get_post_meta( $id, 'wpapp_db_pass', true );
+		$current_db_pass_decrypted = self::decrypt( $current_db_pass );
+
+		// Set default remote flag if it's empty.
+		if ( empty( $is_remote_database ) ) {
+
+			$is_remote_database = 'no';
+		}
+
+		// Set some text for the header depending on whether we have a local or remote database in use.
+		if ( $is_remote_database === 'yes' ) {
+			$section_heading              = __( 'Remote Database - Switch To Local Database [Beta]', 'wpcd' );
+			$running_database_server_name = __( 'This site is currently using a remote database. To switch to a local database please enter the local database information and click the SWITCH button.', 'wpcd' );
+		} else {
+			$section_heading              = __( 'Local Database - Switch To Remote Database [Beta]', 'wpcd' );
+			$running_database_server_name = __( 'This site is currently using a local database.  To switch to a remote database please enter the remote database information and click the SWITCH button.', 'wpcd' );
+		}
+		$running_database_server_name .= '<br />' . __( 'Please note that that switching databases does NOT automatically copy the database between local and remote or vice-versa.', 'wpcd' );
+		$running_database_server_name .= '<br />' . __( 'You can use the options in the COPY DATABASE section below to copy the data BEFORE switching the database.', 'wpcd' );
+
+		// Show the current database info if we have it.
+		if ( ! empty( $current_db_host ) || ! empty( $current_db_port ) || ! empty( $current_db_name ) || ! empty( $current_db_user ) || ! empty( $current_db_pass_decrypted ) ) {
+			$fields[] = array(
+				'name' => __( 'Current Database Connection Information', 'wpcd' ),
+				'tab'  => 'database',
+				'type' => 'heading',
+				'desc' => __( 'The following is the information we have saved from prior database operations. If you have directly updated the wp-config.php file then this information is likely not correct.', 'wpcd' ),
+			);
+
+			$db_info  = sprintf( __( 'Host: %s', 'wpcd' ), $current_db_host );
+			$db_info .= '<br />';
+			$db_info .= sprintf( __( 'Port: %s', 'wpcd' ), $current_db_port );
+			$db_info .= '<br />';
+			$db_info .= sprintf( __( 'DB Name: %s', 'wpcd' ), $current_db_name );
+			$db_info .= '<br />';
+			$db_info .= sprintf( __( 'DB User: %s', 'wpcd' ), $current_db_user );
+			$db_info .= '<br />';
+			$db_info .= sprintf( __( 'DB Pass: %s', 'wpcd' ), $current_db_pass_decrypted );
+
+			$fields[] = array(
+				'tab'  => 'database',
+				'type' => 'custom_html',
+				'std'  => $db_info,
+			);
+
+		}
+
+		// Section for switching between remote and local databases.
+		$fields[] = array(
+			'name' => $section_heading,
+			'tab'  => 'database',
+			'type' => 'heading',
+			'desc' => $running_database_server_name,
+		);
+
+		// Switch To Remote Database.
+		if ( $is_remote_database === 'yes' ) {
+
+			// Local database name.
+			$fields[] = array(
+				'id'         => 'local-dbname',
+				'name'       => __( 'DB Name:', 'wpcd' ),
+				'tab'        => 'database',
+				'type'       => 'text',
+				'attributes' => array(
+					'desc'             => '',
+					// the _action that will be called in ajax.
+					'data-wpcd-action' => 'local-dbname',
+					'std'              => '',
+					// the key of the field (the key goes in the request).
+					'data-wpcd-name'   => 'dbname_for_local_database',
+				),
+			);
+
+			// Local database username.
+			$fields[] = array(
+				'id'         => 'local-dbuser',
+				'name'       => __( 'DB Username:', 'wpcd' ),
+				'tab'        => 'database',
+				'type'       => 'text',
+				'attributes' => array(
+					'desc'             => '',
+					// the _action that will be called in ajax.
+					'data-wpcd-action' => 'local-dbuser',
+					'std'              => '',
+					// the key of the field (the key goes in the request).
+					'data-wpcd-name'   => 'dbuser_for_local_database',
+				),
+			);
+
+			// Local database password.
+			$fields[] = array(
+				'id'         => 'local-dbpass',
+				'name'       => __( 'DB Password:', 'wpcd' ),
+				'tab'        => 'database',
+				'type'       => 'password',
+				'attributes' => array(
+					'desc'             => '',
+					// the _action that will be called in ajax.
+					'data-wpcd-action' => 'local-dbpass',
+					'std'              => '',
+					// the key of the field (the key goes in the request).
+					'data-wpcd-name'   => 'dbpass_for_local_database',
+				),
+			);
+
+			// Switch to local database.
+			$fields[] = array(
+				'id'         => 'local-database',
+				'name'       => '',
+				'tab'        => 'database',
+				'type'       => 'button',
+				'std'        => __( 'Switch To Local Database', 'wpcd' ),
+				'attributes' => array(
+					// Get User Name & Password.
+					'data-wpcd-fields'              => json_encode( array( '#local-dbname', '#local-dbuser', '#local-dbpass' ) ),
+					// the _action that will be called in ajax.
+					'data-wpcd-action'              => 'local-database',
+					// the id.
+					'data-wpcd-id'                  => $id,
+					// make sure we give the user a confirmation prompt.
+					'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like switch to local database?', 'wpcd' ),
+					'data-show-log-console'         => true,
+					// Initial console message.
+					'data-initial-console-message'  => __( 'Preparing switch to local database.<br /> Please DO NOT EXIT this screen until you see a popup message indicating that the operation has completed or has errored.<br />This terminal should refresh every 60-90 seconds with updated progress information from the server. <br /> After the operation is complete the entire log can be viewed in the COMMAND LOG screen.', 'wpcd' ),
+				),
+				'class'      => 'wpcd_app_action',
+				'save_field' => false,
+			);
+
+			// Copy database remote to local.
+			$fields[] = array(
+				'name' => __( 'Copy Database - Remote to local [Beta]', 'wpcd' ),
+				'tab'  => 'database',
+				'type' => 'heading',
+				'desc' => __( 'Enter connection information for the local database.', 'wpcd' ),
+			);
+
+			// Local database name.
+			$fields[] = array(
+				'id'         => 'local-dbname-for-copy',
+				'name'       => __( 'DB Name:', 'wpcd' ),
+				'tab'        => 'database',
+				'type'       => 'text',
+				'attributes' => array(
+					'desc'             => '',
+					// the _action that will be called in ajax.
+					'data-wpcd-action' => 'local-dbname-for-copy',
+					'std'              => '',
+					// the key of the field (the key goes in the request).
+					'data-wpcd-name'   => 'local_dbname_for_copy',
+				),
+			);
+
+			// Local database username.
+			$fields[] = array(
+				'id'         => 'local-dbuser-for-copy',
+				'name'       => __( 'DB Username:', 'wpcd' ),
+				'tab'        => 'database',
+				'type'       => 'text',
+				'attributes' => array(
+					'desc'             => '',
+					// the _action that will be called in ajax.
+					'data-wpcd-action' => 'local-dbuser-for-copy',
+					'std'              => '',
+					// the key of the field (the key goes in the request).
+					'data-wpcd-name'   => 'local_dbuser_for_copy',
+				),
+			);
+
+			// Local database password.
+			$fields[] = array(
+				'id'         => 'local-dbpass-for-copy',
+				'name'       => __( 'DB Password:', 'wpcd' ),
+				'tab'        => 'database',
+				'type'       => 'password',
+				'attributes' => array(
+					'desc'             => '',
+					// the _action that will be called in ajax.
+					'data-wpcd-action' => 'local-dbpass-for-copy',
+					'std'              => '',
+					// the key of the field (the key goes in the request).
+					'data-wpcd-name'   => 'local_dbpass_for_copy',
+				),
+			);
+
+			// Copy database from remote to local.
+			$fields[] = array(
+				'id'         => 'copy-database-from-remote-to-local',
+				'name'       => '',
+				'tab'        => 'database',
+				'type'       => 'button',
+				'std'        => __( 'Copy Database From Remote To Local', 'wpcd' ),
+				'attributes' => array(
+					// Get User Name & Password.
+					'data-wpcd-fields'              => json_encode( array( '#local-dbname-for-copy', '#local-dbuser-for-copy', '#local-dbpass-for-copy' ) ),
+					// the _action that will be called in ajax.
+					'data-wpcd-action'              => 'copy-database-from-remote-to-local',
+					// the id.
+					'data-wpcd-id'                  => $id,
+					// make sure we give the user a confirmation prompt.
+					'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like copy database from remote to local?', 'wpcd' ),
+					'data-show-log-console'         => true,
+					// Initial console message.
+					'data-initial-console-message'  => __( 'Preparing to copy your database from remote to local.<br /> Please DO NOT EXIT this screen until you see a popup message indicating that the operation has completed or has errored.<br />This terminal should refresh every 60-90 seconds with updated progress information from the server. <br /> After the operation is complete the entire log can be viewed in the COMMAND LOG screen.', 'wpcd' ),
+				),
+				'class'      => 'wpcd_app_action',
+				'save_field' => false,
+			);
+
+		} else {
+
+			// Remote database host.
+			$fields[] = array(
+				'id'         => 'remote-dbhost',
+				'name'       => __( 'DB Host:', 'wpcd' ),
+				'tab'        => 'database',
+				'type'       => 'text',
+				'attributes' => array(
+					'desc'             => '',
+					'data-wpcd-action' => 'remote-dbhost',
+					'std'              => '',
+					// the key of the field (the key goes in the request).
+					'data-wpcd-name'   => 'dbhost_for_remote_database',
+				),
+			);
+
+			// Remote database port.
+			$fields[] = array(
+				'id'         => 'remote-dbport',
+				'name'       => __( 'DB Port:', 'wpcd' ),
+				'tab'        => 'database',
+				'type'       => 'text',
+				'attributes' => array(
+					'desc'             => '',
+					// the _action that will be called in ajax.
+					'data-wpcd-action' => 'remote-dbport',
+					'std'              => '',
+					// the key of the field (the key goes in the request).
+					'data-wpcd-name'   => 'dbport_for_remote_database',
+				),
+			);
+
+			// Remote database name.
+			$fields[] = array(
+				'id'         => 'remote-dbname',
+				'name'       => __( 'DB Name:', 'wpcd' ),
+				'tab'        => 'database',
+				'type'       => 'text',
+				'attributes' => array(
+					'desc'             => '',
+					// the _action that will be called in ajax.
+					'data-wpcd-action' => 'remote-dbname',
+					'std'              => '',
+					// the key of the field (the key goes in the request).
+					'data-wpcd-name'   => 'dbname_for_remote_database',
+				),
+			);
+
+			// Remote database username.
+			$fields[] = array(
+				'id'         => 'remote-dbuser',
+				'name'       => __( 'DB Username:', 'wpcd' ),
+				'tab'        => 'database',
+				'type'       => 'text',
+				'attributes' => array(
+					'desc'             => '',
+					// the _action that will be called in ajax.
+					'data-wpcd-action' => 'remote-dbuser',
+					'std'              => '',
+					// the key of the field (the key goes in the request).
+					'data-wpcd-name'   => 'dbuser_for_remote_database',
+				),
+			);
+
+			// Remote database password.
+			$fields[] = array(
+				'id'         => 'remote-dbpass',
+				'name'       => __( 'DB Password:', 'wpcd' ),
+				'tab'        => 'database',
+				'type'       => 'password',
+				'attributes' => array(
+					'desc'             => '',
+					// the _action that will be called in ajax.
+					'data-wpcd-action' => 'remote-dbpass',
+					'std'              => '',
+					// the key of the field (the key goes in the request).
+					'data-wpcd-name'   => 'dbpass_for_remote_database',
+				),
+			);
+
+			// Switch to remote database.
+			$fields[] = array(
+				'id'         => 'remote-database',
+				'name'       => '',
+				'tab'        => 'database',
+				'type'       => 'button',
+				'std'        => __( 'Switch To Remote Database', 'wpcd' ),
+				'attributes' => array(
+					// Get User Name & Password.
+					'data-wpcd-fields'              => json_encode( array( '#remote-dbhost', '#remote-dbport', '#remote-dbname', '#remote-dbuser', '#remote-dbpass' ) ),
+					// the _action that will be called in ajax.
+					'data-wpcd-action'              => 'remote-database',
+					// the id.
+					'data-wpcd-id'                  => $id,
+					// make sure we give the user a confirmation prompt.
+					'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like switch to remote database?', 'wpcd' ),
+					'data-show-log-console'         => true,
+					// Initial console message.
+					'data-initial-console-message'  => __( 'Preparing to switch to remote database.<br /> Please DO NOT EXIT this screen until you see a popup message indicating that the operation has completed or has errored.<br />This terminal should refresh every 60-90 seconds with updated progress information from the server. <br /> After the operation is complete the entire log can be viewed in the COMMAND LOG screen.', 'wpcd' ),
+				),
+				'class'      => 'wpcd_app_action',
+				'save_field' => false,
+			);
+
+			// Copy database local to remote.
+			$fields[] = array(
+				'name' => __( 'Copy Database - Local to remote [Beta]', 'wpcd' ),
+				'tab'  => 'database',
+				'type' => 'heading',
+				'desc' => __( 'To copy your data to a remote database please enter the connection information for the remote database and then click the COPY DATABASE button.', 'wpcd' ),
+			);
+
+			// Remote database host.
+			$fields[] = array(
+				'id'         => 'remote-dbhost-for-copy',
+				'name'       => __( 'DB Host:', 'wpcd' ),
+				'tab'        => 'database',
+				'type'       => 'text',
+				'attributes' => array(
+					'desc'             => '',
+					'data-wpcd-action' => 'remote-dbhost-for-copy',
+					'std'              => '',
+					// the key of the field (the key goes in the request).
+					'data-wpcd-name'   => 'remote_dbhost_for_copy',
+				),
+			);
+
+			// Remote database port.
+			$fields[] = array(
+				'id'         => 'remote-dbport-for-copy',
+				'name'       => __( 'DB Port:', 'wpcd' ),
+				'tab'        => 'database',
+				'type'       => 'text',
+				'attributes' => array(
+					'desc'             => '',
+					// the _action that will be called in ajax.
+					'data-wpcd-action' => 'remote-dbport-for-coy',
+					'std'              => '',
+					// the key of the field (the key goes in the request).
+					'data-wpcd-name'   => 'remote_dbport_for_copy',
+				),
+			);
+
+			// Remote database name.
+			$fields[] = array(
+				'id'         => 'remote-dbname-for-copy',
+				'name'       => __( 'DB Name:', 'wpcd' ),
+				'tab'        => 'database',
+				'type'       => 'text',
+				'attributes' => array(
+					'desc'             => '',
+					// the _action that will be called in ajax.
+					'data-wpcd-action' => 'remote-dbname-for-copy',
+					'std'              => '',
+					// the key of the field (the key goes in the request).
+					'data-wpcd-name'   => 'remote_dbname_for_copy',
+				),
+			);
+
+			// Remote database username.
+			$fields[] = array(
+				'id'         => 'remote-dbuser-for-copy',
+				'name'       => __( 'DB Username:', 'wpcd' ),
+				'tab'        => 'database',
+				'type'       => 'text',
+				'attributes' => array(
+					'desc'             => '',
+					// the _action that will be called in ajax.
+					'data-wpcd-action' => 'remote-dbuser-for-copy',
+					'std'              => '',
+					// the key of the field (the key goes in the request).
+					'data-wpcd-name'   => 'remote_dbuser_for_copy',
+				),
+			);
+
+			// Remote database password.
+			$fields[] = array(
+				'id'         => 'remote-dbpass-for-copy',
+				'name'       => __( 'DB Password:', 'wpcd' ),
+				'tab'        => 'database',
+				'type'       => 'password',
+				'attributes' => array(
+					'desc'             => '',
+					// the _action that will be called in ajax.
+					'data-wpcd-action' => 'remote-dbpass-for-copy',
+					'std'              => '',
+					// the key of the field (the key goes in the request).
+					'data-wpcd-name'   => 'remote_dbpass_for_copy',
+				),
+			);
+
+			// Copy database from local to remote.
+			$fields[] = array(
+				'id'         => 'copy-database-from-local-to-remote',
+				'name'       => '',
+				'tab'        => 'database',
+				'type'       => 'button',
+				'std'        => __( 'Copy Database From Local To Remote', 'wpcd' ),
+				'attributes' => array(
+					// Get User Name & Password.
+					'data-wpcd-fields'              => json_encode( array( '#remote-dbhost-for-copy', '#remote-dbport-for-copy', '#remote-dbname-for-copy', '#remote-dbuser-for-copy', '#remote-dbpass-for-copy' ) ),
+					// the _action that will be called in ajax.
+					'data-wpcd-action'              => 'copy-database-from-local-to-remote',
+					// the id.
+					'data-wpcd-id'                  => $id,
+					// make sure we give the user a confirmation prompt.
+					'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like copy database from local to remote?', 'wpcd' ),
+					'data-show-log-console'         => true,
+					// Initial console message.
+					'data-initial-console-message'  => __( 'Preparing to copy database from local to remote.<br /> Please DO NOT EXIT this screen until you see a popup message indicating that the operation has completed or has errored.<br />This terminal should refresh every 60-90 seconds with updated progress information from the server. <br /> After the operation is complete the entire log can be viewed in the COMMAND LOG screen.', 'wpcd' ),
+				),
+				'class'      => 'wpcd_app_action',
+				'save_field' => false,
+			);
+		}
+
+		return $fields;
+
+	}
+
+	/**
+	 * Gets the fields to be shown for the phpmyadmin section.
+	 *
+	 * @param array $fields fields.
+	 * @param int   $id id.
+	 *
+	 * @return array Array of actions, complying with the structure necessary by metabox.io fields.
+	 */
+	public function get_php_myadmin_fields( array $fields, $id ) {
+
 		// Bail if certain 6G or 7G firewall items are enabled.
 		$fw_6g = get_post_meta( $id, 'wpapp_6g_status', true );
 		$fw_7g = get_post_meta( $id, 'wpapp_7g_status', true );
 		if ( ! empty( $fw_6g ) && ! empty( $fw_6g['6g_query_string'] ) && 'on' === $fw_6g['6g_query_string'] ) {
 			$fields[] = array(
-				'name' => __( 'Database [Disabled]', 'wpcd' ),
+				'name' => __( 'Database Management With PHPMyAdmin [Disabled]', 'wpcd' ),
 				'tab'  => 'database',
 				'type' => 'heading',
 				'desc' => __( 'You must disable the 6G firewall QUERY STRING rules before PHPMyAdmin can be used.', 'wpcd' ),
@@ -553,7 +1061,7 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 		}
 		if ( ! empty( $fw_7g ) && ! empty( $fw_7g['7g_query_string'] ) && 'on' === $fw_7g['7g_query_string'] ) {
 			$fields[] = array(
-				'name' => __( 'Database [Disabled]', 'wpcd' ),
+				'name' => __( 'Database Management With PHPMyAdmin [Disabled]', 'wpcd' ),
 				'tab'  => 'database',
 				'type' => 'heading',
 				'desc' => __( 'You must disable the 7G firewall QUERY STRING and REQUEST STRING rules before PHPMyAdmin can be used.', 'wpcd' ),
@@ -562,7 +1070,7 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 		}
 		if ( ! empty( $fw_7g ) && ! empty( $fw_7g['7g_query_string'] ) && 'on' === $fw_7g['7g_request_string'] ) {
 			$fields[] = array(
-				'name' => __( 'Database [Disabled]', 'wpcd' ),
+				'name' => __( 'Database Management With PHPMyAdmin [Disabled]', 'wpcd' ),
 				'tab'  => 'database',
 				'type' => 'heading',
 				'desc' => __( 'You must disable the 7G firewall QUERY STRING and REQUEST STRING rules before PHPMyAdmin can be used.', 'wpcd' ),
@@ -641,6 +1149,13 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 			$phpmyadmin_details .= __( 'Password: ', 'wpcd' ) . wpcd_wrap_clipboard_copy( $phpmyadmin_password );
 			$phpmyadmin_details .= '</div>';
 
+			if ( true === wpcd_is_admin() ) {
+				// We'll be showing the options to switch local and remote databases to admins.
+				// So need to warn them that phpMyAdmin needs to be reinstalled if they do so.
+				$phpmyadmin_details .= '<br />';
+				$phpmyadmin_details .= '<hr />' . __( 'Admin Note: If you have switched between local and remote databases AFTER installing PHPMyAdmin, it is critical that you uninstall and reinstall it so that the new database information is entered into the PHPMyAdmin configuration files.  Otherwise you will end up connecting to the old database! ', 'wpcd' ) . '<hr />';
+			}
+
 			$fields[] = array(
 				'tab'   => 'database',
 				'type'  => 'custom_html',
@@ -708,385 +1223,7 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 			);
 		}
 
-		// Remote Database Options.
-
-		$is_remote_database = get_post_meta( $id, 'is_remote_database', true );
-		$server_name        = get_post_meta( $id, 'remote_database_server_name', true );
-
-		if ( empty( $is_remote_database ) ) {
-
-			$is_remote_database = 'no';
-		}
-
-		if ( $is_remote_database == 'yes' ) {
-			$running_database_server_name = __( 'Site is using a remote database.', 'wpcd' );
-		} else {
-			$running_database_server_name = __( 'Site is using a local database.', 'wpcd' );
-		}
-
-		// New fields section for switch to remote or local database.
-
-		$fields[] = array(
-			'name' => __( 'Remote Database - Switch To Remote OR Local Database', 'wpcd' ),
-			'tab'  => 'database',
-			'type' => 'heading',
-			'desc' => $running_database_server_name,
-		);
-
-		// Switch To Remote Database.
-
-		if ( $is_remote_database == 'yes' ) {
-
-			// Server name.
-			$fields[] = array(
-				'tab'  => 'database',
-				'type' => 'custom_html',
-				'std'  => __( 'Server Name: ', 'wpcd' ) . $server_name,
-			);
-
-			// Local database name.
-			$fields[] = array(
-				'id'         => 'local-dbname',
-				'name'       => __( 'DB Name:', 'wpcd' ),
-				'tab'        => 'database',
-				'type'       => 'text',
-				'desc'       => __( 'Please fill up database details of local database.', 'wpcd' ),
-				'attributes' => array(
-					'desc'             => '',
-					// the _action that will be called in ajax.
-					'data-wpcd-action' => 'local-dbname',
-					'std'              => '',
-					// the key of the field (the key goes in the request).
-					'data-wpcd-name'   => 'dbname_for_local_database',
-				),
-			);
-
-			// Local database username.
-			$fields[] = array(
-				'id'         => 'local-dbuser',
-				'name'       => __( 'DB Username:', 'wpcd' ),
-				'tab'        => 'database',
-				'type'       => 'text',
-				'attributes' => array(
-					'desc'             => '',
-					// the _action that will be called in ajax.
-					'data-wpcd-action' => 'local-dbuser',
-					'std'              => '',
-					// the key of the field (the key goes in the request).
-					'data-wpcd-name'   => 'dbuser_for_local_database',
-				),
-			);
-
-			// Local database password.
-			$fields[] = array(
-				'id'         => 'local-dbpass',
-				'name'       => __( 'DB Password:', 'wpcd' ),
-				'tab'        => 'database',
-				'type'       => 'password',
-				'attributes' => array(
-					'desc'             => '',
-					// the _action that will be called in ajax.
-					'data-wpcd-action' => 'local-dbpass',
-					'std'              => '',
-					// the key of the field (the key goes in the request).
-					'data-wpcd-name'   => 'dbpass_for_local_database',
-				),
-			);
-
-			// Switch to local database.
-			$fields[] = array(
-				'id'         => 'local-database',
-				'name'       => '',
-				'tab'        => 'database',
-				'type'       => 'button',
-				'std'        => __( 'Switch To Local Database', 'wpcd' ),
-				'attributes' => array(
-					// Get User Name & Password.
-					'data-wpcd-fields'              => json_encode( array( '#local-dbname', '#local-dbuser', '#local-dbpass' ) ),
-					// the _action that will be called in ajax.
-					'data-wpcd-action'              => 'local-database',
-					// the id.
-					'data-wpcd-id'                  => $id,
-					// make sure we give the user a confirmation prompt.
-					'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like switch to local database?', 'wpcd' ),
-					'data-show-log-console'         => true,
-					// Initial console message.
-					'data-initial-console-message'  => __( 'Preparing switch to local database.<br /> Please DO NOT EXIT this screen until you see a popup message indicating that the operation has completed or has errored.<br />This terminal should refresh every 60-90 seconds with updated progress information from the server. <br /> After the operation is complete the entire log can be viewed in the COMMAND LOG screen.', 'wpcd' ),
-				),
-				'class'      => 'wpcd_app_action',
-				'save_field' => false,
-			);
-
-			// Copy database remote to local.
-
-			$fields[] = array(
-				'name' => __( 'Copy Databas - Remote to local', 'wpcd' ),
-				'tab'  => 'database',
-				'type' => 'heading',
-				'desc' => 'Please fill up database details of local database.',
-			);
-
-			// Local database name.
-			$fields[] = array(
-				'id'         => 'local-dbname-for-copy',
-				'name'       => __( 'DB Name:', 'wpcd' ),
-				'tab'        => 'database',
-				'type'       => 'text',
-				'attributes' => array(
-					'desc'             => '',
-					// the _action that will be called in ajax.
-					'data-wpcd-action' => 'local-dbname-for-copy',
-					'std'              => '',
-					// the key of the field (the key goes in the request).
-					'data-wpcd-name'   => 'local_dbname_for_copy',
-				),
-			);
-
-			// Local database username.
-			$fields[] = array(
-				'id'         => 'local-dbuser-for-copy',
-				'name'       => __( 'DB Username:', 'wpcd' ),
-				'tab'        => 'database',
-				'type'       => 'text',
-				'attributes' => array(
-					'desc'             => '',
-					// the _action that will be called in ajax.
-					'data-wpcd-action' => 'local-dbuser-for-copy',
-					'std'              => '',
-					// the key of the field (the key goes in the request).
-					'data-wpcd-name'   => 'local_dbuser_for_copy',
-				),
-			);
-
-			// Local database password.
-			$fields[] = array(
-				'id'         => 'local-dbpass-for-copy',
-				'name'       => __( 'DB Password:', 'wpcd' ),
-				'tab'        => 'database',
-				'type'       => 'password',
-				'attributes' => array(
-					'desc'             => '',
-					// the _action that will be called in ajax.
-					'data-wpcd-action' => 'local-dbpass-for-copy',
-					'std'              => '',
-					// the key of the field (the key goes in the request).
-					'data-wpcd-name'   => 'local_dbpass_for_copy',
-				),
-			);
-
-			// Copy database from remote to local.
-			$fields[] = array(
-				'id'         => 'copy-database-from-remote-to-local',
-				'name'       => '',
-				'tab'        => 'database',
-				'type'       => 'button',
-				'std'        => __( 'Copy Database From Remote To Local', 'wpcd' ),
-				'attributes' => array(
-					// Get User Name & Password.
-					'data-wpcd-fields'              => json_encode( array( '#local-dbname-for-copy', '#local-dbuser-for-copy', '#local-dbpass-for-copy' ) ),
-					// the _action that will be called in ajax.
-					'data-wpcd-action'              => 'copy-database-from-remote-to-local',
-					// the id.
-					'data-wpcd-id'                  => $id,
-					// make sure we give the user a confirmation prompt.
-					'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like copy database from remote to local?', 'wpcd' ),
-					'data-show-log-console'         => true,
-					// Initial console message.
-					'data-initial-console-message'  => __( 'Preparing copy database from remote to local.<br /> Please DO NOT EXIT this screen until you see a popup message indicating that the operation has completed or has errored.<br />This terminal should refresh every 60-90 seconds with updated progress information from the server. <br /> After the operation is complete the entire log can be viewed in the COMMAND LOG screen.', 'wpcd' ),
-				),
-				'class'      => 'wpcd_app_action',
-				'save_field' => false,
-			);
-
-		} else {
-
-			// Remote database host.
-			$fields[] = array(
-				'id'         => 'remote-dbhost',
-				'name'       => __( 'DB Host:', 'wpcd' ),
-				'tab'        => 'database',
-				'type'       => 'text',
-				'desc'       => __( 'Please fill up database details of remote database.', 'wpcd' ),
-				'attributes' => array(
-					'desc'             => '',
-					'data-wpcd-action' => 'remote-dbhost',
-					'std'              => '',
-					// the key of the field (the key goes in the request).
-					'data-wpcd-name'   => 'dbhost_for_remote_database',
-				),
-			);
-
-			// Remote database name.
-			$fields[] = array(
-				'id'         => 'remote-dbname',
-				'name'       => __( 'DB Name:', 'wpcd' ),
-				'tab'        => 'database',
-				'type'       => 'text',
-				'attributes' => array(
-					'desc'             => '',
-					// the _action that will be called in ajax.
-					'data-wpcd-action' => 'remote-dbname',
-					'std'              => '',
-					// the key of the field (the key goes in the request).
-					'data-wpcd-name'   => 'dbname_for_remote_database',
-				),
-			);
-
-			// Remote database username.
-			$fields[] = array(
-				'id'         => 'remote-dbuser',
-				'name'       => __( 'DB Username:', 'wpcd' ),
-				'tab'        => 'database',
-				'type'       => 'text',
-				'attributes' => array(
-					'desc'             => '',
-					// the _action that will be called in ajax.
-					'data-wpcd-action' => 'remote-dbuser',
-					'std'              => '',
-					// the key of the field (the key goes in the request).
-					'data-wpcd-name'   => 'dbuser_for_remote_database',
-				),
-			);
-
-			// Remote database password.
-			$fields[] = array(
-				'id'         => 'remote-dbpass',
-				'name'       => __( 'DB Password:', 'wpcd' ),
-				'tab'        => 'database',
-				'type'       => 'password',
-				'attributes' => array(
-					'desc'             => '',
-					// the _action that will be called in ajax.
-					'data-wpcd-action' => 'remote-dbpass',
-					'std'              => '',
-					// the key of the field (the key goes in the request).
-					'data-wpcd-name'   => 'dbpass_for_remote_database',
-				),
-			);
-
-			// Switch to remote database.
-			$fields[] = array(
-				'id'         => 'remote-database',
-				'name'       => '',
-				'tab'        => 'database',
-				'type'       => 'button',
-				'std'        => __( 'Switch To Remote Database', 'wpcd' ),
-				'attributes' => array(
-					// Get User Name & Password.
-					'data-wpcd-fields'              => json_encode( array( '#remote-dbhost', '#remote-dbname', '#remote-dbuser', '#remote-dbpass' ) ),
-					// the _action that will be called in ajax.
-					'data-wpcd-action'              => 'remote-database',
-					// the id.
-					'data-wpcd-id'                  => $id,
-					// make sure we give the user a confirmation prompt.
-					'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like switch to remote database?', 'wpcd' ),
-					'data-show-log-console'         => true,
-					// Initial console message.
-					'data-initial-console-message'  => __( 'Preparing switch to remote database.<br /> Please DO NOT EXIT this screen until you see a popup message indicating that the operation has completed or has errored.<br />This terminal should refresh every 60-90 seconds with updated progress information from the server. <br /> After the operation is complete the entire log can be viewed in the COMMAND LOG screen.', 'wpcd' ),
-				),
-				'class'      => 'wpcd_app_action',
-				'save_field' => false,
-			);
-
-			// Copy database local to remote.
-
-			$fields[] = array(
-				'name' => __( 'Copy Databas - Local to remote', 'wpcd' ),
-				'tab'  => 'database',
-				'type' => 'heading',
-				'desc' => 'Please fill up database details of remote database.',
-			);
-
-			// Remote database host.
-			$fields[] = array(
-				'id'         => 'remote-dbhost-for-copy',
-				'name'       => __( 'DB Host:', 'wpcd' ),
-				'tab'        => 'database',
-				'type'       => 'text',
-				'attributes' => array(
-					'desc'             => '',
-					'data-wpcd-action' => 'remote-dbhost-for-copy',
-					'std'              => '',
-					// the key of the field (the key goes in the request).
-					'data-wpcd-name'   => 'remote_dbhost_for_copy',
-				),
-			);
-
-			// Remote database name.
-			$fields[] = array(
-				'id'         => 'remote-dbname-for-copy',
-				'name'       => __( 'DB Name:', 'wpcd' ),
-				'tab'        => 'database',
-				'type'       => 'text',
-				'attributes' => array(
-					'desc'             => '',
-					// the _action that will be called in ajax.
-					'data-wpcd-action' => 'remote-dbname-for-copy',
-					'std'              => '',
-					// the key of the field (the key goes in the request).
-					'data-wpcd-name'   => 'remote_dbname_for_copy',
-				),
-			);
-
-			// Remote database username.
-			$fields[] = array(
-				'id'         => 'remote-dbuser-for-copy',
-				'name'       => __( 'DB Username:', 'wpcd' ),
-				'tab'        => 'database',
-				'type'       => 'text',
-				'attributes' => array(
-					'desc'             => '',
-					// the _action that will be called in ajax.
-					'data-wpcd-action' => 'remote-dbuser-for-copy',
-					'std'              => '',
-					// the key of the field (the key goes in the request).
-					'data-wpcd-name'   => 'remote_dbuser_for_copy',
-				),
-			);
-
-			// Remote database password.
-			$fields[] = array(
-				'id'         => 'remote-dbpass-for-copy',
-				'name'       => __( 'DB Password:', 'wpcd' ),
-				'tab'        => 'database',
-				'type'       => 'password',
-				'attributes' => array(
-					'desc'             => '',
-					// the _action that will be called in ajax.
-					'data-wpcd-action' => 'remote-dbpass-for-copy',
-					'std'              => '',
-					// the key of the field (the key goes in the request).
-					'data-wpcd-name'   => 'remote_dbpass_for_copy',
-				),
-			);
-
-			// Copy database from local to remote.
-			$fields[] = array(
-				'id'         => 'copy-database-from-local-to-remote',
-				'name'       => '',
-				'tab'        => 'database',
-				'type'       => 'button',
-				'std'        => __( 'Copy Database From Local To Remote', 'wpcd' ),
-				'attributes' => array(
-					// Get User Name & Password.
-					'data-wpcd-fields'              => json_encode( array( '#remote-dbhost-for-copy', '#remote-dbname-for-copy', '#remote-dbuser-for-copy', '#remote-dbpass-for-copy' ) ),
-					// the _action that will be called in ajax.
-					'data-wpcd-action'              => 'copy-database-from-local-to-remote',
-					// the id.
-					'data-wpcd-id'                  => $id,
-					// make sure we give the user a confirmation prompt.
-					'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like copy database from local to remote?', 'wpcd' ),
-					'data-show-log-console'         => true,
-					// Initial console message.
-					'data-initial-console-message'  => __( 'Preparing copy database from local to remote.<br /> Please DO NOT EXIT this screen until you see a popup message indicating that the operation has completed or has errored.<br />This terminal should refresh every 60-90 seconds with updated progress information from the server. <br /> After the operation is complete the entire log can be viewed in the COMMAND LOG screen.', 'wpcd' ),
-				),
-				'class'      => 'wpcd_app_action',
-				'save_field' => false,
-			);
-		}
-
 		return $fields;
-
 	}
 
 }

@@ -122,15 +122,26 @@ then
 		echo
 		gf_select_domain_nginx_ols
 	done
-	mysql_db=$(grep DB_NAME /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d ',' -f2|cut -d')' -f1|tail -c +2 | head -c -2)
-	mysql_user=$(grep DB_USER /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d ',' -f2|cut -d')' -f1|tail -c +2 | head -c -2)
+	gf_get_dbname $domain
+	gf_get_dbuser $domain
 	gf_get_dbhost $domain
+	gf_get_dbpass $domain
+	gf_get_dbport $domain
 
-	mariadb <<QUERY
-DROP DATABASE $mysql_db;
-DROP USER '$mysql_user'@'$g_mysql_host';
+	if [ $g_mysql_host_noport == "localhost" ]
+	then
+		mysql <<QUERY
+DROP DATABASE $g_mysql_name;
+DELETE from mysql.user where user='$g_mysql_user';
 FLUSH PRIVILEGES;
 QUERY
+	else
+		mysql -h $g_mysql_host_noport -P $g_mysql_dbport $ -u $g_mysql_user -p"$g_mysql_pass" <<QUERY
+DROP DATABASE $g_mysql_name;
+DELETE from mysql.user where user='$g_mysql_user';
+FLUSH PRIVILEGES;
+QUERY
+	fi
 
 	if [ "$g_webserver_type" = "nginx" ]
 	then

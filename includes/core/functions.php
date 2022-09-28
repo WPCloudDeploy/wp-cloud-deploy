@@ -325,6 +325,8 @@ function wpcd_split_lines_into_array( $string ) {
  * The values are 'backup', 'test088.wpvix.com and 'test088.wpvix.com' respectively.
  * notice that there is no space between the key= and the value.
  *
+ * Note: Only the first occurrence will be replaced.
+ *
  * @param array  $pairs key-value array eg: array( 'wp_password=' => '(***private***)', 'aws_access_key_id=' => '(***private***)', 'aws_secret_access_key=' => '(***private***)'  ).
  * @param string $ihaystack The haystack to search for the key-value pairs.
  *
@@ -1529,7 +1531,7 @@ function wpcd_wrap_string_with_div_and_class( $string, $hint, $prefix ) {
  * to setup a metabox.
  *
  * @since 5.0
- *  *
+ *
  * @see: https://support.metabox.io/topic/get-post-metabox-data-inside-of-mb-block-default-value/
  *
  * @return int.
@@ -1553,20 +1555,20 @@ function wpcd_get_post_id_from_global() {
  * @since 5.0
  *
  * @param string $data_string The string to wrap.
- * @param bool   $break True = wrap with a div False = wrap with a span
+ * @param bool   $break True = wrap with a div False = wrap with a span.
  *
  * @return string
  */
 function wpcd_wrap_clipboard_copy( $data_string, $break = true ) {
 
 	if ( true === $break ) {
-		$return  = '<div class="wpcd-click-to-copy">';
+		$return = '<div class="wpcd-click-to-copy">';
 	} else {
-		$return  = '<span class="wpcd-click-to-copy">';
+		$return = '<span class="wpcd-click-to-copy">';
 	}
 	$return .= '<span class="wpcd-click-to-copy-text">' . $data_string . '</span>';
 	$return .= '<span data-label="' . __( 'Copied', 'wpcd' ) . '" class="wpcd-click-to-copy-label wpcd-copy-hidden">' . __( 'Click to copy', 'wpcd' ) . '</span>';
-	
+
 	if ( true === $break ) {
 		$return .= '</div>';
 	} else {
@@ -1574,6 +1576,30 @@ function wpcd_wrap_clipboard_copy( $data_string, $break = true ) {
 	}
 
 	return $return;
+}
+
+/**
+ * Generate and return a unique uuid.
+ *
+ * @credit: https://www.uuidgenerator.net/dev-corner/php
+ *
+ * @since 5.0
+ */
+function wpcd_generate_uuid() {
+
+	// Generate 16 bytes (128 bits) of random data or use the data passed into the function.
+	$data = $data ?? random_bytes( 16 );
+	assert( strlen( $data ) == 16 );
+
+	// Set version to 0100.
+	$data[6] = chr( ord( $data[6] ) & 0x0f | 0x40 );
+
+	// Set bits 6-7 to 10.
+	$data[8] = chr( ord( $data[8] ) & 0x3f | 0x80 );
+
+	// Output the 36 character UUID.
+	return vsprintf( '%s%s-%s-%s-%s-%s%s%s', str_split( bin2hex( $data ), 4 ) );
+
 }
 
 /*

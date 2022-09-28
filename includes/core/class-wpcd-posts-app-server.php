@@ -898,6 +898,7 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 		$wpcd_server_initial_app_name       = get_post_meta( $post->ID, 'wpcd_server_initial_app_name', true );
 
 		$wpcd_server_action_status              = get_post_meta( $post->ID, 'wpcd_server_action_status', true );
+		$wpcd_server_action                     = get_post_meta( $post->ID, 'wpcd_server_action', true );
 		$wpcd_server_after_create_action_app_id = get_post_meta( $post->ID, 'wpcd_server_after_create_action_app_id', true );
 		$wpcd_server_command_mutex              = get_post_meta( $post->ID, 'wpcd_command_mutex', true );  // Notice the lack of "server" in this post meta field.
 		$wpcd_server_last_upgrade_done          = get_post_meta( $post->ID, 'wpcd_last_upgrade_done', true ); // Notice the lack of "server" in this post meta field.
@@ -1060,6 +1061,7 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 		$wpcd_server_webserver_type         = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_server_webserver_type', FILTER_UNSAFE_RAW ) );
 
 		$wpcd_server_action_status              = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_server_action_status', FILTER_UNSAFE_RAW ) );
+		$wpcd_server_action                     = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_server_action', FILTER_UNSAFE_RAW ) );
 		$wpcd_server_after_create_action_app_id = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_server_after_create_action_app_id', FILTER_UNSAFE_RAW ) );
 		$wpcd_server_command_mutex              = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_server_command_mutex', FILTER_UNSAFE_RAW ) );
 		$wpcd_server_last_upgrade_done          = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_server_last_upgrade_done', FILTER_UNSAFE_RAW ) );
@@ -1094,6 +1096,7 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 		update_post_meta( $post_id, 'wpcd_server_actions', $wpcd_server_actions );
 		update_post_meta( $post_id, 'wpcd_server_scripts_version', $wpcd_server_scripts_version );
 		update_post_meta( $post_id, 'wpcd_server_action_status', $wpcd_server_action_status );
+		update_post_meta( $post_id, 'wpcd_server_action', $wpcd_server_action );
 		update_post_meta( $post_id, 'wpcd_server_after_create_action_app_id', $wpcd_server_after_create_action_app_id );
 
 		// Notice that these two fields do not have the word "server" in it.

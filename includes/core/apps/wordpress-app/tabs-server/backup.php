@@ -213,8 +213,8 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 			'id'         => 'wpcd_app_aws_region',
 			'tab'        => 'server_backup',
 			'type'       => 'text',
-			'tooltip'    => sprintf( __( 'You can find a list of valid regions here: <a href="%s" target="_blank" >Valid Regions</a>', 'wpcd'), 'https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html#concepts-available-regions' ),
-			'desc'       => sprintf( __( '<a href="%s" target="_blank" >Valid Regions</a>', 'wpcd'), 'https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html#concepts-available-regions' ),
+			'tooltip'    => sprintf( __( 'You can find a list of valid regions here: <a href="%s" target="_blank" >Valid Regions</a>', 'wpcd' ), 'https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html#concepts-available-regions' ),
+			'desc'       => sprintf( __( '<a href="%s" target="_blank" >Valid Regions</a>', 'wpcd' ), 'https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html#concepts-available-regions' ),
 			'save_field' => false,
 			'attributes' => array(
 				// the key of the field (the key goes in the request).
@@ -222,6 +222,22 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 			),
 			'std'        => get_post_meta( $id, 'wpcd_wpapp_backup_aws_region', true ),
 			'size'       => 10,
+		);
+		$fields[] = array(
+			'name'              => __( 'S3 Endpoint URL', 'wpcd' ),
+			'id'                => 'wpcd_app_s3_endpoint',
+			'tab'               => 'server_backup',
+			'type'              => 'text',
+			'label_description' => __( 'Optional', 'wpcd' ),
+			'placeholder'       => __( 'https:/endpoint.com', 'wpcd' ),
+			'tooltip'           => __( 'Only set this if you want to use an alternative S3-compatible service. MUST start with "https://"!', 'wpcd' ),
+			'save_field'        => false,
+			'attributes'        => array(
+				// the key of the field (the key goes in the request).
+				'data-wpcd-name' => 's3_endpoint',
+			),
+			'std'               => get_post_meta( $id, 'wpcd_wpapp_backup_s3_endpoint', true ),
+			'size'              => 90,
 		);
 		$fields[] = array(
 			'id'         => 'wpcd_app_action_change_cred',
@@ -235,7 +251,7 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 				// the id.
 				'data-wpcd-id'                  => $id,
 				// fields that contribute data for this action.
-				'data-wpcd-fields'              => wp_json_encode( array( '#wpcd_app_aws_key', '#wpcd_app_aws_secret', '#wpcd_app_aws_bucket', '#wpcd_app_aws_region' ) ),
+				'data-wpcd-fields'              => wp_json_encode( array( '#wpcd_app_aws_key', '#wpcd_app_aws_secret', '#wpcd_app_aws_bucket', '#wpcd_app_aws_region', '#wpcd_app_s3_endpoint' ) ),
 				// make sure we give the user a confirmation prompt.
 				'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like to save these credentials?', 'wpcd' ),
 			),
@@ -607,6 +623,12 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 			// Get the one from the global settings screen...
 			$creds['aws_region'] = escapeshellarg( wpcd_get_option( 'wordpress_app_aws_default_region' ) );
 		}
+		if ( ! empty( $args['s3_endpoint'] ) ) {
+			$creds['s3_endpoint'] = escapeshellarg( $args['s3_endpoint'] );
+		} else {
+			// Get the one from the global settings screen...
+			$creds['s3_endpoint'] = escapeshellarg( wpcd_get_option( 'wordpress_app_s3_endpoint' ) );
+		}
 
 		// If at this point both the credential fields are still blank, error out.
 		if ( empty( $creds['aws_access_key_id'] ) || empty( $creds['aws_secret_access_key'] ) || empty( $creds['aws_region'] ) ) {
@@ -649,6 +671,7 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 			update_post_meta( $server_id, 'wpcd_wpapp_backup_aws_secret', self::encrypt( $args['aws_secret'] ) );
 			update_post_meta( $server_id, 'wpcd_wpapp_backup_aws_bucket', $args['aws_bucket'] );
 			update_post_meta( $server_id, 'wpcd_wpapp_backup_aws_region', $args['aws_region'] );
+			update_post_meta( $server_id, 'wpcd_wpapp_backup_s3_endpoint', $args['s3_endpoint'] );
 
 		} elseif ( empty( $args['aws_key'] ) && empty( $args['aws_secret'] ) && empty( $args['aws_bucket'] ) ) {
 
@@ -657,6 +680,7 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 			delete_post_meta( $server_id, 'wpcd_wpapp_backup_aws_secret' );
 			delete_post_meta( $server_id, 'wpcd_wpapp_backup_aws_bucket' );
 			delete_post_meta( $server_id, 'wpcd_wpapp_backup_aws_region' );
+			delete_post_meta( $server_id, 'wpcd_wpapp_backup_s3_endpoint' );
 
 		} else {
 			// something ambiguous - let user know...

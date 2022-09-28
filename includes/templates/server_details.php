@@ -126,6 +126,10 @@ wp_nonce_field( 'wpcd_server_nonce_meta_action', 'vpn_meta' );
 	<input type="text" name="wpcd_server_action_status" id="wpcd_server_action_status" value="<?php echo esc_html( $wpcd_server_action_status ); ?>" />
 </div>
 <div class="wpcd_server_meta_field">
+	<label for="wpcd_server_action"><?php echo esc_html( __( 'Action', 'wpcd' ) ); ?></label>
+	<input type="text" name="wpcd_server_action" id="wpcd_server_action" value="<?php echo esc_html( $wpcd_server_action ); ?>" />
+</div>
+<div class="wpcd_server_meta_field">
 	<label for="wpcd_server_command_mutex"><?php echo esc_html( __( 'Command Mutex', 'wpcd' ) ); ?></label>
 	<input type="text" name="wpcd_server_command_mutex" id="wpcd_server_command_mutex" value="<?php echo esc_html( $wpcd_server_command_mutex ); ?>" />
 </div>

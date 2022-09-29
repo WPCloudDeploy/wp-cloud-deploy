@@ -1,6 +1,6 @@
 <?php
 /**
- * This class handles custom fields.
+ * This class handles WP CLI command for linux cron.
  *
  * @package wpcd
  */
@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Setup certain license functions
+ * BETTER WPCD CRONS
  *
  * @package wpcd
  * @version 1.0.0 / wpcd
@@ -23,19 +23,16 @@ class BETTER_WPCD_CRONS {
 	 */
 	public function wpcd_wp_cron_actions() {
 
-		// Perform action only when defined( 'DISABLE_WP_CRON','true' ).
-		if ( defined( 'DISABLE_WP_CRON' ) && DISABLE_WP_CRON == false ) {
+		// Perform action only when defined( 'DISABLE_WPCD_CRON','true' ).
+		if ( defined( 'DISABLE_WPCD_CRON' ) && DISABLE_WPCD_CRON == false ) {
 
-			WP_CLI::warning( __( 'DISABLE_WP_CRON should be (true) in wp-config.php', 'wpcd' ) );
+			WP_CLI::warning( __( 'DISABLE_WPCD_CRON should be (true) in wp-config.php', 'wpcd' ) );
 			exit();
 		}
 
 		/**
 		 * Perform all actions that need a polling mechanism.
-		 *
-		 * It searches for all 'wpcd_app' CPTs that have "wpcd_app_{$this->get_app_name()}_action_status" as 'in-progress'
-		 * and calls the action wpcd_app_{$this->get_app_name()}_action on each post.
-		*/
+		 */
 		do_action( 'wpcd_wordpress_deferred_actions_for_apps' );
 
 		/**
@@ -66,8 +63,6 @@ class BETTER_WPCD_CRONS {
 
 		/**
 		 * Send email to wpcd site admin if any pending task has been started but more than 15 mins has gone by without it completing.
-		 *
-		 * @return void
 		 */
 		do_action( 'wpcd_email_alert_for_long_pending_tasks' );
 
@@ -85,63 +80,8 @@ class BETTER_WPCD_CRONS {
 		 * Check that user has opted in
 		 * Collect data
 		 * Then send it back
-		 *
-		 * @since 1.0.0
-		 * @param $force    Force tracking if it's not time
 		 */
 		do_action( 'put_do_weekly_action' );
-
-		/**
-		 * Cron function code to send compose email on scheduled time.
-		 *
-		 * @param int $post_id server or app id.
-		 */
-		// Get all servers.
-		$server_args = array(
-			'post_type'      => 'wpcd_app_server',
-			'post_status'    => 'private',
-			'posts_per_page' => -1,
-			'fields'         => 'ids',
-		);
-		$server_ids  = get_posts( $server_args );
-
-		// Get all apps.
-		$app_args = array(
-			'post_type'      => 'wpcd_app',
-			'post_status'    => 'private',
-			'posts_per_page' => -1,
-			'fields'         => 'ids',
-		);
-		$app_ids  = get_posts( $app_args );
-
-		$server_app_ids = array_merge( $server_ids, $app_ids );
-
-		// Set the cron for servers and apps.
-		if ( ! empty( $server_app_ids ) ) {
-			foreach ( $server_app_ids as $key => $value ) {
-				$scheduled_enabled = get_post_meta( $value, 'wpcd_compose_email_schedule_email_enable', true );
-				$scheduled_time    = get_post_meta( $value, 'wpcd_compose_email_schedule_email_datetime', true );
-				if ( 1 === (int) $scheduled_enabled ) {
-					if ( strtotime( $scheduled_time ) > time() ) {
-						$schedule_args = array( $value );
-						// Set new crons for compose email.
-						do_action( 'wpcd_check_for_scheduled_compose_email_send', $schedule_args );
-					}
-				}
-			}
-		}
-
-		/**
-		 * Gets the common code for export data
-		 *
-		 * @param string $wpcd_sync_target_site wpcd_sync_target_site.
-		 * @param string $wpcd_sync_enc_key wpcd_sync_enc_key.
-		 * @param int    $wpcd_sync_user_id wpcd_sync_user_id.
-		 * @param string $wpcd_sync_password wpcd_sync_password.
-		 * @param array  $wpcd_export_all_settings wpcd_export_all_settings.
-		 * @param int    $ajax ajax.
-		 */
-		// do_action( 'wpcd_export_data_actions' );
 
 		/**
 		 * Perform all deferred actions that need multiple steps to perform.
@@ -161,24 +101,8 @@ class BETTER_WPCD_CRONS {
 
 		/**
 		 * Perform all deferred or background actions for a server.
-		 *
-		 * It searches for all 'wpcd_app_server' CPTs that have "wpcd_server_{$this->get_app_name()}_action_status" as 'in-progress'
-		 * and calls the action wpcd_server_{$this->get_app_name()}_action on each post.
-		 *
-		 * Each server might have a task running on it that needs to be called.  This is specified in the
-		 * meta wpcd_server_{$this->get_app_name()}_action.
-		 * After processing each server's action that way, it will then call the PENDING TASKS function
-		 * to see if any new processes can be started on servers that don't already have tasks running on them.
 		 */
 		do_action( 'wpcd_wordpress_deferred_actions_for_server' );
-
-		/**
-		 * Cron action to restart servers after resize
-		 *
-		 * @return void
-		 */
-		// $this->doAutoStartServer();
-		// _auto_start_after_resize_cron
 
 		/**
 		 * Cron function code to clean up the pending logs.

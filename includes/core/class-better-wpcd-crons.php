@@ -19,7 +19,29 @@ if ( ! defined( 'ABSPATH' ) ) {
 class BETTER_WPCD_CRONS {
 
 	/**
-	 * Set up WP cron actions.
+	 * Disable WP cron when defined( 'DISABLE_WPCD_CRON','true' ) for WPCD
+	 */
+	private function wpcd_disable_wp_cron() {
+		// Perform action only when defined( 'DISABLE_WPCD_CRON','true' ).
+
+		if ( defined( 'DISABLE_WPCD_CRON' ) && DISABLE_WPCD_CRON == true ) {
+			// Clear old crons.
+			wp_unschedule_hook( 'wpcd_wordpress_deferred_actions_for_apps' );
+			wp_unschedule_hook( 'wpcd_scan_notifications_actions' );
+			wp_unschedule_hook( 'wpcd_vpn_deferred_actions' );
+			wp_unschedule_hook( 'wpcd_wordpress_file_watcher' );
+			wp_unschedule_hook( 'wpcd_email_alert_for_long_pending_tasks' );
+			wp_unschedule_hook( 'wpcd_wisdom_custom_options' );
+			wp_unschedule_hook( 'put_do_weekly_action' );
+			wp_unschedule_hook( 'wpcd_basic_server_deferred_actions' );
+			wp_unschedule_hook( 'wpcd_vpn_file_watcher' );
+			wp_unschedule_hook( 'wpcd_wordpress_deferred_actions_for_server' );
+			wp_unschedule_hook( 'wpcd_clean_up_pending_logs' );
+		}
+	}
+
+	/**
+	 * Set up WP cron actions for WPCD.
 	 */
 	public function wpcd_wp_cron_actions() {
 
@@ -29,6 +51,11 @@ class BETTER_WPCD_CRONS {
 			WP_CLI::warning( __( 'DISABLE_WPCD_CRON should be (true) in wp-config.php', 'wpcd' ) );
 			exit();
 		}
+
+		/**
+		 * Unschedule cron when defined( 'DISABLE_WPCD_CRON','true' ).
+		 */
+		$this->wpcd_disable_wp_cron();
 
 		/**
 		 * Perform all actions that need a polling mechanism.
@@ -110,6 +137,59 @@ class BETTER_WPCD_CRONS {
 		 * (around 2 hours) will be marked as failed.
 		 */
 		do_action( 'wpcd_clean_up_pending_logs' );
+	}
+
+	/**
+	 * Disable powertool cron when defined( 'DISABLE_WPCD_CRON','true' ) for WPCD
+	 */
+	private function wpcd_disable_powertool_cron() {
+		// Perform action only when defined( 'DISABLE_WPCD_CRON','true' ).
+
+		if ( defined( 'DISABLE_WPCD_CRON' ) && DISABLE_WPCD_CRON == true ) {
+			// Clear old crons.
+			wp_unschedule_hook( 'wpcd_scan_scheduled_apps_automatic_image' );
+			wp_unschedule_hook( 'wpcd_scan_scheduled_apps' );
+			wp_unschedule_hook( 'wpcd_scan_scheduled_servers' );
+		}
+	}
+
+	/**
+	 * Set up WP cron actions for Powertool.
+	 */
+	public function wpcd_powertool_cron_actions() {
+
+		// Perform action only when defined( 'DISABLE_WPCD_CRON','true' ).
+		if ( defined( 'DISABLE_WPCD_CRON' ) && DISABLE_WPCD_CRON == false ) {
+
+			WP_CLI::warning( __( 'DISABLE_WPCD_CRON should be (true) in wp-config.php', 'wpcd' ) );
+			exit();
+		}
+
+		/**
+		 * Unschedule cron when defined( 'DISABLE_WPCD_CRON','true' ).
+		 */
+		$this->wpcd_disable_powertool_cron();
+
+		/**
+		 * Cron function code to scan all apps past due for having their images captured.
+		 *
+		 * Action Hook: wpcd_scan_scheduled_apps_automatic_image
+		 */
+		do_action( 'wpcd_scan_scheduled_apps_automatic_image' );
+
+		/**
+		 * Cron function code for scan for all scheduled apps to create snapshots.
+		 *
+		 * Action Hook: wpcd_scan_scheduled_apps
+		 */
+		do_action( 'wpcd_scan_scheduled_apps' );
+
+		/**
+		 * Cron function code for scan for all scheduled servers to create snapshots.
+		 *
+		 * Action Hook: wpcd_scan_scheduled_servers
+		 */
+		do_action( 'wpcd_scan_scheduled_servers' );
 	}
 
 }

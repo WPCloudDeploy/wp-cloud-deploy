@@ -193,6 +193,7 @@ class WPCD_WORDPRESS_TABS_KEYS extends WPCD_WORDPRESS_TABS {
 				'desc'           => __( 'The root user id - usually "root" or "ubuntu" for AWS SERVERS.', 'wpcd' ),
 				// the key of the field (the key goes in the request).
 				'data-wpcd-name' => 'ssh_root_user',
+				'spellcheck'     => 'false',
 			),
 		);
 
@@ -205,6 +206,7 @@ class WPCD_WORDPRESS_TABS_KEYS extends WPCD_WORDPRESS_TABS {
 				// the key of the field (the key goes in the request).
 				'data-wpcd-name' => 'ssh_private_key',
 				'class'          => 'wpcd_app_pass_toggle',
+				'spellcheck'     => 'false',
 			),
 		);
 
@@ -217,6 +219,7 @@ class WPCD_WORDPRESS_TABS_KEYS extends WPCD_WORDPRESS_TABS {
 				// the key of the field (the key goes in the request).
 				'data-wpcd-name' => 'ssh_private_key_password',
 				'class'          => 'wpcd_app_pass_toggle',
+				'spellcheck'     => 'false',
 			),
 		);
 
@@ -228,6 +231,7 @@ class WPCD_WORDPRESS_TABS_KEYS extends WPCD_WORDPRESS_TABS {
 				'desc'           => __( 'The public key data for the private key entered above.  This is complete optional - we do not use it to connect to the server since the server should already have this information for your root user. However, sometimes it\'s good to see this data.', 'wpcd' ),
 				// the key of the field (the key goes in the request).
 				'data-wpcd-name' => 'ssh_public_key',
+				'spellcheck'     => 'false',
 			),
 		);
 

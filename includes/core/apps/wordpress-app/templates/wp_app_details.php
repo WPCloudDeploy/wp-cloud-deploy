@@ -49,7 +49,7 @@ wp_nonce_field( 'wpcd_wp_app_nonce_meta_action', 'wpapp_meta' );
 </div>
 <div class="wpapp_meta_field">
 	<label for="wpcd_wpapp_password"><?php echo esc_html( __( 'Initial Password', 'wpcd' ) ); ?></label>
-	<input type="text" name="wpcd_wpapp_password" id="wpcd_wpapp_password" value="<?php echo esc_attr( $wpcd_wpapp_password ); ?>" />
+	<input type="text" name="wpcd_wpapp_password" id="wpcd_wpapp_password" spellcheck="false" value="<?php echo esc_attr( $wpcd_wpapp_password ); ?>" />
 	<br />
 	<small><?php echo esc_html( __( 'You can change this to match the value you set after the initial install.', 'wpcd' ) ); ?></small>
 </div>

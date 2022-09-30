@@ -81,6 +81,8 @@ class WPCD_WORDPRESS_TABS extends WPCD_WORDPRESS_APP {
 						'data-show-log-console'         => isset( $raw_attributes['log_console'] ) ? $raw_attributes['log_console'] : '',
 						// Initial console message.
 						'data-initial-console-message'  => isset( $raw_attributes['console_message'] ) ? $raw_attributes['console_message'] : '',
+						// Spellcheck security issue.
+						'spellcheck'                    => isset( $raw_attributes['spellcheck'] ) ? $raw_attributes['spellcheck'] : 'true',
 					),
 					'class'      => isset( $raw_attributes['class'] ) ? 'wpcd_app_action ' . $raw_attributes['class'] : 'wpcd_app_action',
 					'save_field' => false,
@@ -162,7 +164,7 @@ class WPCD_WORDPRESS_TABS extends WPCD_WORDPRESS_APP {
 		return $actions;
 
 	}
-	
+
 	/**
 	 * If a site is on a server where the maximum sites
 	 * allowed have been exceeded, return his header.
@@ -197,6 +199,6 @@ class WPCD_WORDPRESS_TABS extends WPCD_WORDPRESS_APP {
 
 		return $actions;
 
-	}	
+	}
 
 }

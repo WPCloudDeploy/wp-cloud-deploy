@@ -368,6 +368,7 @@ class WPCD_WORDPRESS_TABS_FILE_MANAGER extends WPCD_WORDPRESS_TABS {
 					'std'              => '',
 					// the key of the field (the key goes in the request).
 					'data-wpcd-name'   => 'username_for_file_manager',
+					'spellcheck'       => 'false',
 				),
 			);
 
@@ -383,6 +384,7 @@ class WPCD_WORDPRESS_TABS_FILE_MANAGER extends WPCD_WORDPRESS_TABS {
 					'std'              => '',
 					// the key of the field (the key goes in the request).
 					'data-wpcd-name'   => 'password_for_file_manager',
+					'spellcheck'       => 'false',
 				),
 			);
 

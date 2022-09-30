@@ -225,6 +225,7 @@ class WPCD_WORDPRESS_TABS_SERVER_OLS_CONSOLE extends WPCD_WORDPRESS_TABS {
 					'std'            => '',
 					// the key of the field (the key goes in the request).
 					'data-wpcd-name' => 'username_for_ols_console',
+					'spellcheck'     => 'false',
 				),
 			);
 
@@ -236,6 +237,7 @@ class WPCD_WORDPRESS_TABS_SERVER_OLS_CONSOLE extends WPCD_WORDPRESS_TABS {
 					'std'            => '',
 					// the key of the field (the key goes in the request).
 					'data-wpcd-name' => 'password_for_ols_console',
+					'spellcheck'     => 'false',
 				),
 			);
 

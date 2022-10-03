@@ -27,7 +27,7 @@
         $('body').delegate('select[name="wpcd_bulk_installs_provider[]"]', 'change', function (e) {
 
             var bulk_install_provider = $(this);
-
+            
             if (Object.keys(attributes.provider_regions).length > 0) {
                
                 $(bulk_install_provider).closest('.wpcd-bulk-installs-form-fields').find('select[name="wpcd_bulk_installs_region[]"]').empty();

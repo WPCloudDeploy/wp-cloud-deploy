@@ -693,6 +693,7 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 					'std'              => '',
 					// the key of the field (the key goes in the request).
 					'data-wpcd-name'   => 'dbuser_for_local_database',
+					'spellcheck'       => 'false',
 				),
 			);
 
@@ -709,6 +710,7 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 					'std'              => '',
 					// the key of the field (the key goes in the request).
 					'data-wpcd-name'   => 'dbpass_for_local_database',
+					'spellcheck'       => 'false',
 				),
 			);
 
@@ -773,6 +775,7 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 					'std'              => '',
 					// the key of the field (the key goes in the request).
 					'data-wpcd-name'   => 'local_dbuser_for_copy',
+					'spellcheck'       => 'false',
 				),
 			);
 
@@ -789,6 +792,7 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 					'std'              => '',
 					// the key of the field (the key goes in the request).
 					'data-wpcd-name'   => 'local_dbpass_for_copy',
+					'spellcheck'       => 'false',
 				),
 			);
 
@@ -878,6 +882,7 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 					'std'              => '',
 					// the key of the field (the key goes in the request).
 					'data-wpcd-name'   => 'dbuser_for_remote_database',
+					'spellcheck'       => 'false',
 				),
 			);
 
@@ -894,6 +899,7 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 					'std'              => '',
 					// the key of the field (the key goes in the request).
 					'data-wpcd-name'   => 'dbpass_for_remote_database',
+					'spellcheck'       => 'false',
 				),
 			);
 
@@ -989,6 +995,7 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 					'std'              => '',
 					// the key of the field (the key goes in the request).
 					'data-wpcd-name'   => 'remote_dbuser_for_copy',
+					'spellcheck'       => 'false',
 				),
 			);
 
@@ -1005,6 +1012,7 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 					'std'              => '',
 					// the key of the field (the key goes in the request).
 					'data-wpcd-name'   => 'remote_dbpass_for_copy',
+					'spellcheck'       => 'false',
 				),
 			);
 

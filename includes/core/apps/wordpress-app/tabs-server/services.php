@@ -680,6 +680,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 				'columns'        => 4,
 				// the key of the field (the key goes in the request).
 				'data-wpcd-name' => 'smtp_user',
+				'spellcheck'  => 'false',				
 			),
 		);
 		$actions['email-gateway-smtp-password'] = array(
@@ -691,6 +692,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 				'columns'        => 4,
 				// the key of the field (the key goes in the request).
 				'data-wpcd-name' => 'smtp_pass',
+				'spellcheck'  => 'false',				
 			),
 		);
 		$actions['email-gateway-smtp-domain']   = array(

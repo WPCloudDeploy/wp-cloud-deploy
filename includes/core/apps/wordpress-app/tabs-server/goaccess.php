@@ -247,6 +247,7 @@ class WPCD_WORDPRESS_TABS_SERVER_GOACCESS extends WPCD_WORDPRESS_TABS {
 					'size'           => 60,
 					// the key of the field (the key goes in the request).
 					'data-wpcd-name' => 'goaccess_auth_user',
+					'spellcheck'  => 'false',
 				),
 
 			);
@@ -258,6 +259,7 @@ class WPCD_WORDPRESS_TABS_SERVER_GOACCESS extends WPCD_WORDPRESS_TABS {
 					'size'           => 60,
 					// the key of the field (the key goes in the request).
 					'data-wpcd-name' => 'goaccess_auth_pass',
+					'spellcheck'  => 'false',
 				),
 			);
 			$actions['goaccess-install']       = array(

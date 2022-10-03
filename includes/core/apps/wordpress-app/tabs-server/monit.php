@@ -253,6 +253,7 @@ class WPCD_WORDPRESS_TABS_SERVER_MONIT extends WPCD_WORDPRESS_TABS {
 					'size'           => 60,
 					// the key of the field (the key goes in the request).
 					'data-wpcd-name' => 'monit_auth_user',
+					'spellcheck'     => 'false',
 				),
 
 			);
@@ -266,6 +267,7 @@ class WPCD_WORDPRESS_TABS_SERVER_MONIT extends WPCD_WORDPRESS_TABS {
 					'size'           => 60,
 					// the key of the field (the key goes in the request).
 					'data-wpcd-name' => 'monit_auth_pass',
+					'spellcheck'     => 'false',
 				),
 			);
 
@@ -829,6 +831,7 @@ class WPCD_WORDPRESS_TABS_SERVER_MONIT extends WPCD_WORDPRESS_TABS {
 				'columns'        => 4,
 				// the key of the field (the key goes in the request).
 				'data-wpcd-name' => 'monit_smtp_user',
+				'spellcheck'     => 'false',
 			),
 		);
 		$actions['monit-smtp-password'] = array(
@@ -841,6 +844,7 @@ class WPCD_WORDPRESS_TABS_SERVER_MONIT extends WPCD_WORDPRESS_TABS {
 				'columns'        => 4,
 				// the key of the field (the key goes in the request).
 				'data-wpcd-name' => 'monit_smtp_pass',
+				'spellcheck'     => 'false',
 			),
 		);
 		$actions['monit-alert-email']   = array(
@@ -852,6 +856,7 @@ class WPCD_WORDPRESS_TABS_SERVER_MONIT extends WPCD_WORDPRESS_TABS {
 				'columns'        => 4,
 				// the key of the field (the key goes in the request).
 				'data-wpcd-name' => 'monit_alert_email',
+				'spellcheck'     => 'false',
 			),
 		);
 

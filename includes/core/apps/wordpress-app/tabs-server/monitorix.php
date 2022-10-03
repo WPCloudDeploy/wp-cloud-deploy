@@ -247,6 +247,7 @@ class WPCD_WORDPRESS_TABS_SERVER_MONITORIX extends WPCD_WORDPRESS_TABS {
 					'size'           => 60,
 					// the key of the field (the key goes in the request).
 					'data-wpcd-name' => 'monitorix_auth_user',
+					'spellcheck'  => 'false',
 				),
 
 			);
@@ -259,6 +260,7 @@ class WPCD_WORDPRESS_TABS_SERVER_MONITORIX extends WPCD_WORDPRESS_TABS {
 					'size'           => 60,
 					// the key of the field (the key goes in the request).
 					'data-wpcd-name' => 'monitorix_auth_pass',
+					'spellcheck'  => 'false',
 				),
 			);
 			$actions['monitorix-install']       = array(

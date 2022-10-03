@@ -431,9 +431,12 @@ class WPCD_Settings {
 						),
 
 						array(
-							'name' => __( 'Backup', 'wpcd' ),
-							'id'   => 'backup-settings',
-							'type' => 'backup',
+							'name'       => __( 'Backup', 'wpcd' ),
+							'id'         => 'backup-settings',
+							'type'       => 'backup',
+							'attributes' => array(
+								'spellcheck' => 'false',
+							),
 						),
 					),
 				);
@@ -869,31 +872,40 @@ class WPCD_Settings {
 							),
 
 							array(
-								'name' => __( 'Encryption Key', 'wpcd' ),
-								'id'   => 'wpcd_sync_enc_key',
-								'type' => 'text',
-								'size' => 60,
-								'desc' => __( 'This is the key that will be used to encrypt the data before sending it.', 'wpcd' ),
-								'tab'  => 'data_sync_send',
+								'name'       => __( 'Encryption Key', 'wpcd' ),
+								'id'         => 'wpcd_sync_enc_key',
+								'type'       => 'text',
+								'size'       => 60,
+								'desc'       => __( 'This is the key that will be used to encrypt the data before sending it.', 'wpcd' ),
+								'tab'        => 'data_sync_send',
+								'attributes' => array(
+									'spellcheck' => 'false',
+								),
 							),
 
 							array(
-								'name' => __( 'User ID', 'wpcd' ),
-								'id'   => 'wpcd_sync_user_id',
-								'type' => 'text',
-								'size' => 60,
-								'desc' => __( 'Your user name on the destination site - this can be any admin account on the destination.', 'wpcd' ),
-								'tab'  => 'data_sync_send',
+								'name'       => __( 'User ID', 'wpcd' ),
+								'id'         => 'wpcd_sync_user_id',
+								'type'       => 'text',
+								'size'       => 60,
+								'desc'       => __( 'Your user name on the destination site - this can be any admin account on the destination.', 'wpcd' ),
+								'tab'        => 'data_sync_send',
+								'attributes' => array(
+									'spellcheck' => 'false',
+								),
 							),
 
 							array(
-								'name'  => __( 'Password', 'wpcd' ),
-								'id'    => 'wpcd_sync_password',
-								'type'  => 'text',
-								'size'  => 60,
-								'desc'  => __( 'Your password for your admin account on the destination site.', 'wpcd' ),
-								'class' => 'wpcd_settings_pass_toggle',
-								'tab'   => 'data_sync_send',
+								'name'       => __( 'Password', 'wpcd' ),
+								'id'         => 'wpcd_sync_password',
+								'type'       => 'text',
+								'size'       => 60,
+								'desc'       => __( 'Your password for your admin account on the destination site.', 'wpcd' ),
+								'class'      => 'wpcd_settings_pass_toggle',
+								'tab'        => 'data_sync_send',
+								'attributes' => array(
+									'spellcheck' => 'false',
+								),
 							),
 
 							array(
@@ -1024,11 +1036,14 @@ class WPCD_Settings {
 									'desc' => __( 'The license for the core WPCD plugin', 'wpcd' ),
 								),
 								array(
-									'name' => __( 'License', 'wpcd' ),
-									'id'   => "wpcd_item_license_$core_item_id",
-									'type' => 'text',
-									'size' => 40,
-									'desc' => empty( wpcd_get_early_option( "wpcd_item_license_$core_item_id" ) ) ? __( 'Please enter your license key for the core plugin. Note: If you have an ALL ACCESS or BUSINESS bundle license please do not use those bundle keys; instead use the CORE plugin license key.', 'wpcd' ) : get_transient( "wpcd_license_notes_for_$core_item_id" ) . '<br />' . get_transient( "wpcd_license_updates_for_$core_item_id" ),
+									'name'       => __( 'License', 'wpcd' ),
+									'id'         => "wpcd_item_license_$core_item_id",
+									'type'       => 'text',
+									'size'       => 40,
+									'desc'       => empty( wpcd_get_early_option( "wpcd_item_license_$core_item_id" ) ) ? __( 'Please enter your license key for the core plugin. Note: If you have an ALL ACCESS or BUSINESS bundle license please do not use those bundle keys; instead use the CORE plugin license key.', 'wpcd' ) : get_transient( "wpcd_license_notes_for_$core_item_id" ) . '<br />' . get_transient( "wpcd_license_updates_for_$core_item_id" ),
+									'attributes' => array(
+										'spellcheck' => 'false',
+									),
 								),
 
 								array(
@@ -1359,6 +1374,9 @@ class WPCD_Settings {
 					'size'              => '60',
 					'tab'               => $tab_id,
 					'class'             => 'wpcd_settings_pass_toggle',
+					'attributes'        => array(
+						'spellcheck' => 'false',
+					),
 				),
 
 				array(
@@ -1483,24 +1501,30 @@ class WPCD_Settings {
 				$private_keys_text_note = apply_filters( 'wpcd_cloud_provider_settings_important_private_key_notes', '<a href="https://wpclouddeploy.com/documentation/_notes/important-notes-about-private-ssh-keys/" target="_blank" >' . __( 'View important notes about private keys.', 'wpcd' ) . '</a>' );
 				$fields_part4           = array(
 					array(
-						'id'    => "vpn_{$provider}_sshkey",
-						'type'  => 'textarea',
-						'name'  => __( 'Private SSH Key', 'wpcd' ),
-						'rows'  => '10',
+						'id'         => "vpn_{$provider}_sshkey",
+						'type'       => 'textarea',
+						'name'       => __( 'Private SSH Key', 'wpcd' ),
+						'rows'       => '10',
 						/* Translators: 1. %s - A note about private keys */
-						'desc'  => apply_filters( 'wpcd_private_ssh_key_settings_desc', sprintf( __( 'Private key corresponding to the selected public key - it will be used to connect to the instance. The key will be encrypted when saved and decrypted when retrieved. Also, make sure that there are no spaces or extra lines entered at the end of the key-text.  %s', 'wpcd' ), $private_keys_text_note ) ),
-						'tab'   => $tab_id,
-						'class' => 'wpcd_settings_pass_toggle',
+						'desc'       => apply_filters( 'wpcd_private_ssh_key_settings_desc', sprintf( __( 'Private key corresponding to the selected public key - it will be used to connect to the instance. The key will be encrypted when saved and decrypted when retrieved. Also, make sure that there are no spaces or extra lines entered at the end of the key-text.  %s', 'wpcd' ), $private_keys_text_note ) ),
+						'tab'        => $tab_id,
+						'class'      => 'wpcd_settings_pass_toggle',
+						'attributes' => array(
+							'spellcheck' => 'false',
+						),
 					),
 
 					array(
-						'id'    => "vpn_{$provider}_sshkey_passwd",
-						'type'  => 'text',
-						'name'  => __( 'Private SSH Key Password', 'wpcd' ),
-						'size'  => '90',
-						'desc'  => sprintf( __( 'Password for the above private key. It will be encrypted on save and decrypted when retrieved.', 'wpcd' ), $name ) . '<br />' . __( 'If your private key does not have a password associated with it you can leave this blank.', 'wpcd' ) . '<br />' . __( 'Note: For keypairs generated on a MAC or on WSL, do NOT apply a password to your private key file!', 'wpcd' ),
-						'tab'   => $tab_id,
-						'class' => 'wpcd_settings_pass_toggle',
+						'id'         => "vpn_{$provider}_sshkey_passwd",
+						'type'       => 'text',
+						'name'       => __( 'Private SSH Key Password', 'wpcd' ),
+						'size'       => '90',
+						'desc'       => sprintf( __( 'Password for the above private key. It will be encrypted on save and decrypted when retrieved.', 'wpcd' ), $name ) . '<br />' . __( 'If your private key does not have a password associated with it you can leave this blank.', 'wpcd' ) . '<br />' . __( 'Note: For keypairs generated on a MAC or on WSL, do NOT apply a password to your private key file!', 'wpcd' ),
+						'tab'        => $tab_id,
+						'class'      => 'wpcd_settings_pass_toggle',
+						'attributes' => array(
+							'spellcheck' => 'false',
+						),
 					),
 
 					array(
@@ -2311,11 +2335,14 @@ class WPCD_Settings {
 			if ( ! empty( $item ) ) {
 				foreach ( $item as $item_id => $item_name ) {
 					$fields[] = array(
-						'name' => "{$item_name['name']}",
-						'id'   => "wpcd_item_license_$item_id",
-						'type' => 'text',
-						'size' => 40,
-						'desc' => empty( wpcd_get_early_option( "wpcd_item_license_$item_id" ) ) ? __( 'Please enter your license key for this item.', 'wpcd' ) : get_transient( "wpcd_license_notes_for_$item_id" ) . '<br />' . get_transient( "wpcd_license_updates_for_$item_id" ),
+						'name'       => "{$item_name['name']}",
+						'id'         => "wpcd_item_license_$item_id",
+						'type'       => 'text',
+						'size'       => 40,
+						'desc'       => empty( wpcd_get_early_option( "wpcd_item_license_$item_id" ) ) ? __( 'Please enter your license key for this item.', 'wpcd' ) : get_transient( "wpcd_license_notes_for_$item_id" ) . '<br />' . get_transient( "wpcd_license_updates_for_$item_id" ),
+						'attributes' => array(
+							'spellcheck' => 'false',
+						),
 					);
 				}
 			}
@@ -2462,7 +2489,7 @@ class WPCD_Settings {
 					<label for="wpcd_encryption_key_v2">Encryption Key From Origin Site</label>
 				</div>
 				
-				<div class="rwmb-input"><input size="60" value="' . $wpcd_encryption_key_v2 . '" type="text" id="wpcd_encryption_key_v2" class="rwmb-text valid" name="wpcd_encryption_key_v2" aria-invalid="false"></div></div>
+				<div class="rwmb-input"><input size="60" value="' . $wpcd_encryption_key_v2 . '" type="text" id="wpcd_encryption_key_v2" class="rwmb-text valid" name="wpcd_encryption_key_v2" spellcheck="false" aria-invalid="false"></div></div>
 
 				<div class="rwmb-field rwmb-button-wrapper"><div class="rwmb-input"><button type="button" id="wpcd-encryption-key-save" class="rwmb-button button hide-if-no-js" data-action="wpcd_encryption_key_save" data-nonce="' . wp_create_nonce( 'wpcd-encryption-key-save' ) . '">Save</button></div></div>';
 

@@ -172,6 +172,7 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 			'attributes' => array(
 				// the key of the field (the key goes in the request).
 				'data-wpcd-name' => 'aws_key',
+				'spellcheck'     => 'false',
 			),
 			'std'        => get_post_meta( $id, 'wpcd_wpapp_backup_aws_key', true ),
 			'size'       => 60,
@@ -190,6 +191,7 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 			'attributes' => array(
 				// the key of the field (the key goes in the request).
 				'data-wpcd-name' => 'aws_secret',
+				'spellcheck'     => 'false',
 			),
 			'class'      => 'wpcd_app_pass_toggle',
 			'std'        => $pass,
@@ -204,6 +206,7 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 			'attributes' => array(
 				// the key of the field (the key goes in the request).
 				'data-wpcd-name' => 'aws_bucket',
+				'spellcheck'     => 'false',
 			),
 			'std'        => get_post_meta( $id, 'wpcd_wpapp_backup_aws_bucket', true ),
 			'size'       => 90,
@@ -314,6 +317,7 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 				'attributes' => array(
 					// the key of the field (the key goes in the request).
 					'data-wpcd-name' => 'auto_backup_bucket_name_all_sites',
+					'spellcheck'     => 'false',
 				),
 				'size'       => 90,
 				'save_field' => false,

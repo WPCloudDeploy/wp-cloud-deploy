@@ -393,6 +393,7 @@ class WPCD_Init {
 		if ( is_admin() ) {
 			require_once wpcd_path . 'includes/core/functions-handle-admin-notices.php';
 		}
+		require_once wpcd_path . 'includes/core/class-better-wpcd-crons.php';
 
 		/**
 		* For the VPN App

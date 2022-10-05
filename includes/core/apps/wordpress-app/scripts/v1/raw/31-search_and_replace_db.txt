@@ -51,7 +51,7 @@ gf_get_dbprefix $domain
 echo "Backing up database..."
 date=$(date +"%Y-%m-%d"-"%Hh%Mm%Ss")
 mkdir -p /root/.wp-backup/$domain/
-mysqldump -h $g_mysql_host_noport -P $g_mysql_dbport -u $g_mysql_user -p"$g_mysql_pass" $g_mysql_name | gzip -9 > /root/.wp-backup/$domain/"$domain"_"$date"_db.gz
+mysqldump --routines -h $g_mysql_host_noport -P $g_mysql_dbport -u $g_mysql_user -p"$g_mysql_pass" $g_mysql_name | gzip -9 > /root/.wp-backup/$domain/"$domain"_"$date"_db.gz
 if [ $? -ne 0 ]  
 then
 	echo "Database backup failed! Domain change aborted!"

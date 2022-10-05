@@ -111,7 +111,7 @@ QUERY
 	echo "Copying database..."
 
 	# Copy database over to target
-	mysqldump -h ${mysql_source_host_noport} -P ${mysql_source_dbport} -u ${mysql_source_user} -p"${mysql_source_pass}" $mysql_source_db | mysql -h ${mysql_target_host_noport} -P ${mysql_target_dbport} -u ${mysql_target_user} -p"${mysql_target_pass}" $mysql_target_db
+	mysqldump --routines -h ${mysql_source_host_noport} -P ${mysql_source_dbport} -u ${mysql_source_user} -p"${mysql_source_pass}" $mysql_source_db | mysql -h ${mysql_target_host_noport} -P ${mysql_target_dbport} -u ${mysql_target_user} -p"${mysql_target_pass}" $mysql_target_db
 	
 	# Change table prefix in wp-config.php
 	if [[ $wpconfig != 'y' ]] && [[ $wpconfig != 'Y' ]]
@@ -236,7 +236,7 @@ function copy_partial_db() {
 			if [ $? -ne 0 ]
 			then
 				table_target=`echo $table|sed -e "s/$mysql_source_prefix/$mysql_target_prefix/g"`
-				mysqldump -h ${mysql_source_host_noport} -P ${mysql_source_dbport}  -u ${mysql_source_user} -p"${mysql_source_pass}" $mysql_source_db $table | sed -e "s/$table/$table_target/g" |mysql -h ${mysql_target_host_noport} -P ${mysql_target_dbport} -u ${mysql_target_user} -p"${mysql_target_pass}" $mysql_target_db
+				mysqldump --routines -h ${mysql_source_host_noport} -P ${mysql_source_dbport}  -u ${mysql_source_user} -p"${mysql_source_pass}" $mysql_source_db $table | sed -e "s/$table/$table_target/g" |mysql -h ${mysql_target_host_noport} -P ${mysql_target_dbport} -u ${mysql_target_user} -p"${mysql_target_pass}" $mysql_target_db
 			fi
 		done < /tmp/wpalltables-$tempdate
 	fi
@@ -249,7 +249,7 @@ function copy_partial_db() {
 			if [ $? -eq 0 ]
 			then
 				table_target=`echo $table|sed -e "s/$mysql_source_prefix/$mysql_target_prefix/g"`
-				mysqldump -h ${mysql_source_host_noport} -P ${mysql_source_dbport} -u ${mysql_source_user} -p"${mysql_source_pass}" $mysql_source_db $table | sed -e "s/$table/$table_target/g" |mysql -h ${mysql_target_host_noport} -P ${mysql_target_dbport} -u ${mysql_target_user} -p"${mysql_target_pass}" $mysql_target_db
+				mysqldump --routines -h ${mysql_source_host_noport} -P ${mysql_source_dbport} -u ${mysql_source_user} -p"${mysql_source_pass}" $mysql_source_db $table | sed -e "s/$table/$table_target/g" |mysql -h ${mysql_target_host_noport} -P ${mysql_target_dbport} -u ${mysql_target_user} -p"${mysql_target_pass}" $mysql_target_db
 			fi
 		done < /tmp/wpalltables-$tempdate
 	fi

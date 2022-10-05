@@ -94,7 +94,7 @@ gf_get_dbport $old_domain
 
 gf_database_create "${mysql_new_db}" "${mysql_user}" "${mysql_password}" "localhost"
 
-mysqldump -h $g_mysql_host_noport -P $g_mysql_dbport -u $g_mysql_user -p"$g_mysql_pass" $g_mysql_name | mysql $mysql_new_db
+mysqldump --routines -h $g_mysql_host_noport -P $g_mysql_dbport -u $g_mysql_user -p"$g_mysql_pass" $g_mysql_name | mysql $mysql_new_db
 
 useradd -d "/var/www/$new_domain/html" -g "www-data" -M -s "/bin/bash" $new_user_name
 

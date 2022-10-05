@@ -83,11 +83,11 @@ mysql_host=$(grep DB_HOST /var/www/$domain/html/wp-config.php | tr -d "[:space:]
 
 if [ -z $site_sync_new_db ] || [ $site_sync_new_db == "no" ]
 then
-	sudo mysqldump --databases $mysql_db --add-drop-database > ~/database_backup-$domain.sql
+	sudo mysqldump --routines --databases $mysql_db --add-drop-database > ~/database_backup-$domain.sql
 	mysql_new_db=$mysql_db
 	ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo mariadb -e '\''drop database $mysql_new_db'\''"
 else
-	sudo mysqldump $mysql_db > ~/database_backup-$domain.sql
+	sudo mysqldump --routines $mysql_db > ~/database_backup-$domain.sql
 	mysql_new_db=$(head /dev/urandom | tr -dc a-z | head -c 6)
 fi
 cat > ~/dbimport-$domain.sql <<QUERY

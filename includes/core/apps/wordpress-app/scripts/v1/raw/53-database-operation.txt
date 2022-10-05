@@ -148,7 +148,7 @@ then
 	if gf_check_db_connection "localhost" "$g_mysql_name" "$g_mysql_user" "$g_mysql_pass"; then
 		# database exists and is connectable lets now dump it
 		echo "Exporting local database..."
-		mysqldump -h localhost -u "$g_mysql_user" -p"$g_mysql_pass" "$g_mysql_name" > /root/"$g_mysql_name".sql
+		mysqldump --routines -h localhost -u "$g_mysql_user" -p"$g_mysql_pass" "$g_mysql_name" > /root/"$g_mysql_name".sql
 	else
 		echo "Local Database: $g_mysql_name could not be accessed with user: $g_mysql_user due to an error."
 		echo "Copy failed - please check your connection information and try again!"
@@ -186,7 +186,7 @@ then
 
 	if gf_check_db_connection "$g_mysql_host" "$g_mysql_name" "$g_mysql_user" "$g_mysql_pass"; then
 		echo "Exporting remote database..."
-		mysqldump -h "$g_mysql_host_noport" -P "$g_mysql_dbport" -u "$g_mysql_user" -p"$g_mysql_pass" "$g_mysql_name" > /root/"$g_mysql_name".sql
+		mysqldump --routines -h "$g_mysql_host_noport" -P "$g_mysql_dbport" -u "$g_mysql_user" -p"$g_mysql_pass" "$g_mysql_name" > /root/"$g_mysql_name".sql
 	else
 		echo "Remote Database could not be accessed due to an error."
 		echo "Copy failed - please check your connection information and try again!"

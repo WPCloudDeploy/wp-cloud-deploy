@@ -77,7 +77,7 @@ ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" root@$dest "awk -F:
 ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" root@$dest "rm -f /root/passwd.prod /root/passwd.new /root/shadow.prod /root/shadow.new"
 
 # dump all databases.
-mysqldump --all-databases --add-drop-database > /root/databases_backup.sql
+mysqldump --routines --all-databases --add-drop-database > /root/databases_backup.sql
 
 # dump all mysql users and passwords.
 mariadb -e"select concat('show grants for ','\'',user,'\'@\'',host,'\'') from mysql.user" > /root/user_list_with_header.txt

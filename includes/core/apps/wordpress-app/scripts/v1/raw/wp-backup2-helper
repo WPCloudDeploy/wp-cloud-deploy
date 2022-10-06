@@ -107,7 +107,7 @@ backup_webserver () {
 
 backup_database () {
 	mysql_db=$(grep DB_NAME /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
-	mysqldump $mysql_db | gzip -9 > ~/.wp-backup2/$domain/"$domain"_"$date"_db.gz
+	mysqldump --routines $mysql_db | gzip -9 > ~/.wp-backup2/$domain/"$domain"_"$date"_db.gz
 }
 
 

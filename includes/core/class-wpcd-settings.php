@@ -833,6 +833,45 @@ class WPCD_Settings {
 
 					),
 				);
+				
+				$meta_boxes[] = array(
+					'id'             => 'wordpress-provider-settings',
+					'title'          => __( 'Provider', 'wpcd' ),
+					'settings_pages' => 'wpcd_settings',
+					'tab'            => 'wordpress-provider-settings',
+					'fields'		=> array(
+						array(
+							'name' => __( 'Roles allowed to add', 'wpcd' ),
+							'id'   => 'provider_add_allowed_roles',
+							'type' => 'select_advanced',
+							'options'         => wpcd_get_roles(),
+							'select_all_none' => true,
+							'multiple'        => true,
+							'desc' => __('', 'wpcd' ),
+							'placeholder'     => __( 'Select allowed roles.', 'wpcd' )
+						),
+					)
+				);
+				
+				$meta_boxes[] = array(
+					'id'             => 'wordpress-dns-settings',
+					'title'          => __( 'DNS', 'wpcd' ),
+					'settings_pages' => 'wpcd_settings',
+					'tab'            => 'wordpress-dns-settings',
+					'fields'		=> array(
+			
+						array(
+							'name' => __( 'Roles allowed to add', 'wpcd' ),
+							'id'   => 'dns_add_allowed_roles',
+							'type' => 'select_advanced',
+							'options'         => wpcd_get_roles(),
+							'select_all_none' => true,
+							'multiple'        => true,
+							'desc' => __('', 'wpcd' ),
+							'placeholder'     => __( 'Select allowed roles.', 'wpcd' )
+						),
+					)
+				);
 
 				// Data Syncing.
 				if ( wpcd_data_sync_allowed() ) {
@@ -1170,6 +1209,9 @@ class WPCD_Settings {
 			);
 		}
 
+		$tabs['wordpress-provider-settings']    = __( 'Provider', 'wpcd' );
+		$tabs['wordpress-dns-settings']			= __( 'DNS', 'wpcd' );
+		
 		// Allow other components to hook into this and setup their own tabs..
 		$tabs = apply_filters( 'wpcd_settings_tabs', $tabs );
 
@@ -1920,9 +1962,13 @@ class WPCD_Settings {
 		// Enqueue the font-awesome pro kit.
 		wp_register_script( 'wpcd-fontawesome-pro', 'https://kit.fontawesome.com/4fa00a8874.js', array(), 6.2, true );
 		wp_enqueue_script( 'wpcd-fontawesome-pro' );
-
+		
+		wp_register_script( 'wpcd-magnific', wpcd_url . 'assets/js/jquery.magnific-popup.min.js', array( 'jquery' ), wpcd_scripts_version, true );
+		wp_enqueue_style( 'wpcd-magnific', wpcd_url . 'assets/css/magnific-popup.css', array(), wpcd_scripts_version );
+		wp_enqueue_script( 'wpcd-custom_table', wpcd_url . 'assets/js/custom_table.js', array( 'jquery', 'wpcd-magnific' ), wpcd_scripts_version, true );
+		
 		// Enqueue some of our scripts.
-		wp_register_script( 'wpcd-admin-settings', wpcd_url . 'assets/js/wpcd-admin-settings.js', array( 'jquery', 'wp-util' ), wpcd_scripts_version, true );
+		wp_register_script( 'wpcd-admin-settings', wpcd_url . 'assets/js/wpcd-admin-settings.js', array( 'jquery', 'wpcd-magnific' ,  'wp-util' ), wpcd_scripts_version, true );
 		wp_enqueue_script( 'wpcd-admin-settings' );
 
 		wp_register_script( 'wpcd-admin-settings-data-sync', wpcd_url . 'assets/js/wpcd-admin-settings-data-sync.js', array( 'jquery', 'wp-util' ), wpcd_scripts_version, true );

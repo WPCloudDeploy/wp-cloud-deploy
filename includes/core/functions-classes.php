@@ -50,6 +50,48 @@ function wpcd_init_wpcd_settings() {
 }
 
 
+require_once 'custom-table/api/class-wpcd-custom-table-api.php';
+require_once 'custom-table/api/class-wpcd-ct-provider-api.php';
+require_once 'custom-table/api/class-wpcd-ct-dns-provider-api.php';
+require_once 'custom-table/api/class-wpcd-ct-dns-zone-api.php';
+require_once 'custom-table/api/class-wpcd-ct-dns-zone-record-api.php';
+
+require_once 'custom-table/class-wpcd-ct-list-table.php';
+require_once 'custom-table/class-wpcd-ct-childs-list-table.php';
+require_once 'custom-table/class-wpcd-custom-table.php';
+require_once 'custom-table/class-wpcd-provider.php';
+require_once 'custom-table/class-wpcd-dns-provider.php';
+require_once 'custom-table/class-wpcd-dns-zone.php';
+require_once 'custom-table/class-wpcd-dns-zone-record.php';
+
+
+add_action( 'init', 'wpcd_init_wpcd_custom_table_classes', -10, 1 );
+
+/**
+ * Init custom table classes
+ */
+function wpcd_init_wpcd_custom_table_classes() {
+	
+	if ( function_exists( 'WPCD' ) ) {
+		if ( empty( WPCD()->classes['WPCD_PROVIDER_SETTINGS'] ) ) {
+			WPCD()->classes['WPCD_PROVIDER_SETTINGS'] = WPCD_MB_Custom_Table::get( 'provider' );
+		}
+		
+		if ( empty( WPCD()->classes['WPCD_DNS_PROVIDER_SETTINGS'] ) ) {
+			WPCD()->classes['WPCD_DNS_PROVIDER_SETTINGS'] = WPCD_MB_Custom_Table::get( 'dns_provider' );
+		}
+		
+		if ( empty( WPCD()->classes['WPCD_DNS_Zone'] ) ) {
+			WPCD()->classes['WPCD_DNS_Zone'] = WPCD_MB_Custom_Table::get( 'dns_zone' );
+		}
+		
+		if ( empty( WPCD()->classes['WPCD_DNS_Zone_Record'] ) ) {
+			WPCD()->classes['WPCD_DNS_Zone_Record'] = WPCD_MB_Custom_Table::get( 'dns_zone_record' );
+		}
+	}
+}
+
+
 add_action( 'init', 'wpcd_init_wpcd_custom_fields', -10, 1 );
 /**
  * Create a class var for WPCD_Custom_Fields and

@@ -542,10 +542,11 @@
 
 
 .wpcd-grid-table-rows {
-		/* All rows are in a grid - right now just one column but later we might adjust to make it two. */
+        padding-right: 40px;
+	/* All rows are in a grid - right now just one column but later we might adjust to make it two. */
         display: grid;
-		grid-template-columns: 1fr;
-		column-gap: 20px;			
+	grid-template-columns: 1fr;
+	column-gap: 20px;			
 }
 
 .wpcd-grid-table.table-hidden .wpcd-grid-table-columns,
@@ -553,12 +554,16 @@
         /* Nothing here */
 }
 
-.wpcd-grid-table-loader {
+.wpcd-grid-table-loader, .wpcd-loader-public {
         background: url(/wp-content/plugins/wp-cloud-deploy/assets/images/spinner.gif) no-repeat center center;
         width: 100%;
         height: 100px;
         margin-top: 50px;
         display: none;
+}
+
+.wpcd-loader-public {
+        display: block;
 }
 
 .wpcd-grid-table.table-hidden .wpcd-grid-table-loader {
@@ -825,7 +830,7 @@
 /* End make the title bigger */
 
 /* Make row action links buttons */
-.wpcd-grid-table .row-actions a {
+.wpcd-grid-table .row-actions a, .wpcd-button {
 	display: inline-block;
 	background-color: var(--wpcd-front-end-accent-background-color);
 	padding: 9px 17px 9px 17px;
@@ -837,8 +842,10 @@
 	margin-bottom: 20px;
 	min-width: 90px;
 	text-decoration: none;
+        cursor: pointer;
+        border: 0;
 }
-.wpcd-grid-table .row-actions a:hover {
+.wpcd-grid-table .row-actions a:hover, .wpcd-button:hover {
 	text-decoration: none;
 	background-color: var(--wpcd-front-end-primary-brand-color);
 }
@@ -1040,6 +1047,158 @@
 }
  
  
+/* custom table pages style */
+#wpcd_public_wrapper .notice {
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    border-left-width: 4px;
+    box-shadow: 0 1px 1px rgb(0 0 0 / 4%);
+    margin: 5px 0px;
+    padding: 1px 12px;
+}
+
+#wpcd_public_wrapper .notice p {
+    margin: 6px 0;
+}
+
+#wpcd_public_wrapper .notice-error, 
+#wpcd_public_wrapper div.error {
+    border-left-color: #d63638;
+}
+
+#wpcd_public_wrapper .notice-success, 
+#wpcd_public_wrapper div.updated {
+    border-left-color: #00a32a;
+}
+
+
+#mb_submit_box {
+        margin: 20px 0;
+}
+ 
+#mb_submit_box .wpcd-button {
+        margin-right: 0;
+}
+
+
+.child-items-mb {
+        margin-top: 50px;
+        border-top: #bdbdbd solid 1px;
+        padding-top: 40px;
+}
+
+
+.child-items-mb .wpcd-mb-title {
+        font-size: 18px;
+        font-weight: bold;
+        background: #e1e1e1;
+        padding: 10px 20px;
+}
+
+.child-items-mb .rwmb-meta-box {
+        padding: 20px;
+        border: #e1e1e1 solid 2px;
+}
+
+
+.child-items-mb .rwmb-meta-box .wpcd-grid-table-loader {
+        display: none;
+}
+
+.rwmb-input input[type=number], 
+.rwmb-input input[type=password], 
+.rwmb-input input[type=search], 
+.rwmb-input input[type=text] {
+    padding: 0 8px;
+    line-height: 2;
+    min-height: 30px;
+}
+
+.rwmb-input input[type=text],
+.rwmb-input input[type=number], 
+.rwmb-input input[type=password], 
+.rwmb-input input[type=search], 
+.rwmb-input select, 
+.rwmb-input textarea {
+    box-shadow: 0 0 0 transparent;
+    border-radius: 4px;
+    border: 1px solid #8c8f94;
+    background-color: #fff;
+    color: #2c3338;
+}
+
+.rwmb-input select {
+    font-size: 14px;
+    line-height: 2;
+    color: #2c3338;
+    border-color: #8c8f94;
+    box-shadow: none;
+    border-radius: 3px;
+    padding: 0 24px 0 8px;
+    min-height: 30px;
+    max-width: 25rem;
+    -webkit-appearance: none;
+    background: #fff url(data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M5%206l5%205%205-5%202%201-7%207-7-7%202-1z%22%20fill%3D%22%23555%22%2F%3E%3C%2Fsvg%3E) no-repeat right 5px top 55%;
+    background-size: 16px 16px;
+    cursor: pointer;
+    vertical-align: middle;
+}
+
+.rwmb-input textarea {
+    overflow: auto;
+    padding: 2px 6px;
+    line-height: 1.42857143;
+    resize: vertical;
+}
+
+
+.rwmb-input .select2-selection__choice {
+        margin-bottom: 6px;
+}
+
+.rwmb-input .rwmb-select-all-none {
+        font-size: 14px;
+}
+.wpcd-mbct-submit {
+        float: right;
+        margin-top: 30px;
+}
+
+
+.wpcd-mbct-submit input[type=submit]#wpcd_ct_submit {
+        display: inline-block;
+        width: auto;
+        margin-left: 50px;
+}
+
+.wpcd-ct-add-item-link {
+        display: none;
+}
+
+
+.wpcd_mb_inline_edit_form_window .rwmb-field .rwmb-input input {
+	box-sizing: border-box;
+}
+
+.wpcd_mb_inline_edit_form_window > h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 26px;
+    font-family: sans-serif;
+}
+
+.wpcd_mb_inline_edit_form_window .rwmb-field .rwmb-label label, 
+.wpcd_mb_inline_edit_form_window .rwmb-field .rwmb-input {
+	font-size : 14px;
+}
+
+
+.wpcd_mb_inline_edit_form_window .spinner.wpcd-loader-public {
+    float: right;
+    width: 40px;
+    height: 30px;
+    margin-top: 0;
+}
 /**
  * End custom css for the detail pages.
  */ 

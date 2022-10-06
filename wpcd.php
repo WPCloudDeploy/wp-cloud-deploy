@@ -209,6 +209,22 @@ class WPCD_Init {
 		require_once wpcd_path . 'includes/core/class-wpcd-posts-app.php';
 		WPCD_POSTS_APP_SERVER::activate( $network_wide );
 		WPCD_POSTS_APP::activate( $network_wide );
+		
+		require_once wpcd_path . 'includes/core/custom-table/api/class-wpcd-custom-table-api.php';
+		require_once wpcd_path . 'includes/core/custom-table/api/class-wpcd-ct-provider-api.php';
+		require_once wpcd_path . 'includes/core/custom-table/api/class-wpcd-ct-dns-provider-api.php';
+		require_once wpcd_path . 'includes/core/custom-table/api/class-wpcd-ct-dns-zone-api.php';
+		require_once wpcd_path . 'includes/core/custom-table/api/class-wpcd-ct-dns-zone-record-api.php';
+
+		require_once wpcd_path . 'includes/core/apps/wordpress-app/public/class-wordpress-app-public.php';
+		require_once wpcd_path . 'required_plugins/mb-custom-table/mb-custom-table.php';
+		require_once wpcd_path . 'includes/core/custom-table/class-wpcd-custom-table.php';
+		require_once wpcd_path . 'includes/core/custom-table/class-wpcd-provider.php';
+		require_once wpcd_path . 'includes/core/custom-table/class-wpcd-dns-provider.php';
+		require_once wpcd_path . 'includes/core/custom-table/class-wpcd-dns-zone.php';
+		require_once wpcd_path . 'includes/core/custom-table/class-wpcd-dns-zone-record.php';
+		
+		WPCD_MB_Custom_Table::Activate( $network_wide );
 
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/public/class-wordpress-app-public.php';
 		WPCD_WORDPRESS_APP_PUBLIC::activate( $network_wide );

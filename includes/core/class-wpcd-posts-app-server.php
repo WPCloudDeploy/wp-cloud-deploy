@@ -1690,7 +1690,7 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 		// No permissions check if we're running tasks via cron.
 		// We're not doing anything to delete servers via cron right now.
 		// But we might later so adding this check now since we have in the wpcd_app_delete_post() function.
-		if ( true === wp_doing_cron() ) {
+		if ( true === wp_doing_cron() || true === wpcd_is_doing_cron() ) {
 			return;
 		}
 

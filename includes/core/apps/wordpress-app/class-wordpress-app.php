@@ -3188,6 +3188,11 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	 * @return void
 	 */
 	public static function wpapp_schedule_events() {
+		// Schedule nothing if our 'better cron' constant is true.
+		if ( defined( 'DISABLE_WPCD_CRON' ) && DISABLE_WPCD_CRON == true ) {
+			return ;
+		}
+
 		// setup temporary script deletion.
 		wp_clear_scheduled_hook( 'wpcd_wordpress_file_watcher' );
 		wp_schedule_event( time(), 'every_minute', 'wpcd_wordpress_file_watcher' );

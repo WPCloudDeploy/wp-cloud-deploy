@@ -72,7 +72,7 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 		add_filter( 'parse_query', array( $this, 'wpcd_pending_logs_list_parse_query' ), 10, 1 );
 
 		// Action hook to clean up pending logs.
-		add_action( 'wpcd_clean_up_pending_logs', array( $this, 'wpcd_clean_up_pending_logs_callback' ) );
+		add_action( 'wpcd_clean_up_pending_logs', array( $this, 'wpcd_clean_up_pending_logs' ) );
 
 		// Action hook to fire on new site created on WP Multisite.
 		add_action( 'wp_initialize_site', array( $this, 'wpcd_clean_up_pending_logs_for_new_site' ), 10, 2 );
@@ -872,13 +872,28 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 		}
 	}
 
+	/**
+	 * Cleanup pending logs called from AJAX function.
+	 * 
+	 * Action Hook: wp_ajax_clean_up_pending_logs_action
+	 */
+	public function wpcd_clean_up_pending_logs_callback() {
+		$this->wpcd_clean_up_pending_logs();
+
+		$response = array(
+			'message' => __( 'Pending logs cleaned up successfully.', 'wpcd' ),
+		);
+		wp_send_json( $response, 200 );
+		exit();
+		
+	}
 
 	/**
 	 * Cron function code to clean up the pending logs.
 	 * Anything that has been running for too long
 	 * (around 2 hours) will be marked as failed.
 	 */
-	public function wpcd_clean_up_pending_logs_callback() {
+	public function wpcd_clean_up_pending_logs() {
 
 		// The function ran so update the transient to let the monitoring process know that it ran (even if no records were processed).
 		// We are using 180 minutes here instead of 15 minutes because this cron runs on a 60 minute schedule instead of a 1 min or 15 min schedule.
@@ -989,11 +1004,6 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 		$this->clean_up_old_log_entries( 'wpcd_notify_sent' );
 		$this->clean_up_old_log_entries( 'wpcd_ssh_log' );
 
-		$response = array(
-			'message' => __( 'Pending logs cleaned up successfully.', 'wpcd' ),
-		);
-		wp_send_json( $response, 200 );
-		exit();
 	}
 
 	/**
@@ -1030,7 +1040,10 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 		// Clear old crons.
 		wp_unschedule_hook( 'wpcd_clean_up_pending_logs' );
 
-		wp_schedule_event( time(), 'hourly', 'wpcd_clean_up_pending_logs' );
+		// Schedule cron.
+		if ( ! defined( 'DISABLE_WPCD_CRON' ) ||  ( defined( 'DISABLE_WPCD_CRON' ) && ! DISABLE_WPCD_CRON ) ) {
+			wp_schedule_event( time(), 'hourly', 'wpcd_clean_up_pending_logs' );
+		}
 
 	}
 
@@ -1042,7 +1055,11 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 	public static function wpcd_send_email_alert_for_long_pending_tasks_events() {
 		// Clear old crons.
 		wp_unschedule_hook( 'wpcd_email_alert_for_long_pending_tasks' );
-		wp_schedule_event( time(), 'every_fifteen_minute', 'wpcd_email_alert_for_long_pending_tasks' );
+		
+		// Schedule cron.
+		if ( ! defined( 'DISABLE_WPCD_CRON' ) ||  ( defined( 'DISABLE_WPCD_CRON' ) && ! DISABLE_WPCD_CRON ) ) {
+			wp_schedule_event( time(), 'every_fifteen_minute', 'wpcd_email_alert_for_long_pending_tasks' );
+		}
 	}
 
 	/**

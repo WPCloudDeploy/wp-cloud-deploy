@@ -174,6 +174,21 @@ function wpcd_set_option( $option_id, $option_value, $domain = 'wpcd_settings' )
 
 }
 
+/**
+ * Return whether or not WPCD is being called via it's better cron process.
+ *
+ * @since 5.0
+ *
+ * @return bool
+ */
+function wpcd_is_doing_cron() {
+
+	if ( defined( 'WPCD_DOING_CORE_CRON' ) && WPCD_DOING_CORE_CRON ) {
+		return true;
+	}
+
+	return false;
+}
 
 /**
  * Returns the timeout for long running commands.

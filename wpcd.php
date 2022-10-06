@@ -3,7 +3,7 @@
 Plugin Name: WPCloudDeploy
 Plugin URI: https://wpclouddeploy.com
 Description: Deploy and manage cloud servers and apps from inside the WordPress Admin dashboard.
-Version: 4.25.0
+Version: 4.26.0
 Requires at least: 5.4
 Requires PHP: 7.4
 Item Id: 1493
@@ -187,7 +187,7 @@ class WPCD_Init {
 		if ( defined( 'WPCD_LOAD_BASIC_SERVER_APP' ) && ( true === WPCD_LOAD_BASIC_SERVER_APP ) ) {
 			WPCD_BASIC_SERVER_APP::activate( $network_wide );
 		}
-		
+
 		if ( defined( 'WPCD_LOAD_STABLEDIFF_APP' ) && ( true === WPCD_LOAD_STABLEDIFF_APP ) ) {
 			WPCD_STABLEDIFF_APP::activate( $network_wide );
 		}
@@ -393,7 +393,7 @@ class WPCD_Init {
 		if ( is_admin() ) {
 			require_once wpcd_path . 'includes/core/functions-handle-admin-notices.php';
 		}
-		require_once wpcd_path . 'includes/core/class-better-wpcd-crons.php';
+		require_once wpcd_path . 'includes/core/class-wpcd-better-crons.php';
 
 		/**
 		* For the VPN App
@@ -419,14 +419,14 @@ class WPCD_Init {
 
 		/**
 		* For the STABLEDIFF App
-		*/		
+		*/
 		/* @TODO: Need to find a more dynamic way to load these by letting apps register themselves at the right time and having them load up their own files */
 		if ( defined( 'WPCD_LOAD_STABLEDIFF_APP' ) && ( true === WPCD_LOAD_STABLEDIFF_APP ) ) {
 			require_once wpcd_path . 'includes/core/apps/stable-diffusion/class-stablediff-app.php';
 			require_once wpcd_path . 'includes/core/apps/stable-diffusion/class-stablediff-app-settings.php';
 			require_once wpcd_path . 'includes/core/apps/stable-diffusion/class-stablediff-ssh.php';
 			require_once wpcd_path . 'includes/core/apps/stable-diffusion/class-stablediff-woocommerce.php';
-		}		
+		}
 
 		/**
 		* For the WP App
@@ -680,11 +680,10 @@ class WPCD_Init {
 			if ( defined( 'WPCD_LOAD_BASIC_SERVER_APP' ) && ( true === WPCD_LOAD_BASIC_SERVER_APP ) ) {
 				$wpcd_crons[] = 'do_deferred_actions_for_basic_server';
 			}
-			
+
 			if ( defined( 'WPCD_LOAD_STABLEDIFF_APP' ) && ( true === WPCD_LOAD_STABLEDIFF_APP ) ) {
 				$wpcd_crons[] = 'do_deferred_actions_for_stablediff';
 			}
-			
 
 			foreach ( $wpcd_crons as $cron ) {
 				$cron_transient = "wpcd_{$cron}_is_active";

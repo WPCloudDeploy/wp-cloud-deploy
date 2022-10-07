@@ -644,6 +644,12 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 			update_post_meta( $id, 'pending_task_start_date', time() );
 		}
 
+		// If $task_state is 'ready' then clean out some metavalues (in case they contain data).
+		if ( 'ready' === $task_state || 'not-ready' === $task_state ) {
+			delete_post_meta( $id, 'pending_task_long_running_warning_email_sent_count' );
+			delete_post_meta( $id, 'pending_task_long_running_warning_email_next_send_time' );
+		}
+
 		// If $task_state is "complete" then update the end date.
 		if ( 'complete' === $task_state ) {
 			update_post_meta( $id, 'pending_task_complete_date', time() );
@@ -989,8 +995,8 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 					}
 
 					// Add a user friendly notification record.
-					/* Translators: %s is pending log comment message. */
-					do_action( 'wpcd_log_notification', $parent_post_id, 'alert', sprintf( __( 'Stuck pending log cleaned up successfully.(%s)', 'wpcd' ), $pending_task_comment ), 'stuck', null );
+					/* Translators: %1$s is the task id; %2$s is pending log comment message. */
+					do_action( 'wpcd_log_notification', $parent_post_id, 'alert', sprintf( __( 'Stuck pending log cleaned up successfully for task id %1$s.(%2$s)', 'wpcd' ), $log_id, $pending_task_comment ), 'stuck', null );
 
 					$count++;
 				}
@@ -1264,7 +1270,7 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 				$skip = false;  // Skip this one?
 
 				// Remove anything that we've sent more than 3 times.
-				if ( $sent_count >= 2 ) {
+				if ( $sent_count > 2 ) {
 					$skip = true;
 				}
 
@@ -1284,7 +1290,11 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 		if ( ! empty( $pending_task_found ) ) {
 
 			// Starting text of email.
-			$email_body  = __( 'The following background tasks (aka pending task) have been started but are taking a long time to complete.  You should take a look and see if there is an issue that is preventing them from completing properly.', 'wpcd' ) . '<br /><br />';
+			$email_body  = __( 'The following background tasks (aka pending task) have been started but are taking a long time to complete - more than 15 minutes.  Most tasks take less time than that.', 'wpcd' ) . '<br /><br />';
+			$email_body  = __( 'Creating a new server, changing domains on large sites and backing up large sites are some of the tasks that might take longer than 15 minutes.', 'wpcd' ) . '<br /><br />';
+			$email_body  = __( 'You should take a look at the tasks listed below to see if there is a legitimate reason that they are taking longer to complete or if there is an issue that is preventing them from completing properly.', 'wpcd' ) . '<br /><br />';
+			$email_body .= __( 'You can start your investigation on the PENDING TASKS screen.  There you can use the ALL STATES dropdown on the filter bar to view all tasks that are in-process.', 'wpcd' ) . '<br /><br />';
+			$email_body .= __( 'Please note that a task that is taking too long to complete will prevent other tasks from running on the server.', 'wpcd' ) . '<br /><br />';
 			$email_body .= '<hr />';
 
 			// Add in details to email for each pending task affected.
@@ -1305,10 +1315,12 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 				$pending_task_associated_server_id = get_post_meta( $task_detail_id, 'pending_task_associated_server_id', true );
 
 				// Add message if this is the last email we'll send for this task - we'll only send 3 emails for each task.
+				// Note that this condition might never be met because the task will likely be marked as failed-timeout after 2 hours.
 				if ( 2 === $sent_count ) {
 					$email_body .= __( 'This is the last alert you will receive about this overdue task.', 'wpcd' ) . '<br /><br />';
 				}
 
+				$email_body .= wp_sprintf( '%s: %s', __( 'Task Id', 'wpcd' ), $task_detail_id ) . '<br /><br />';
 				$email_body .= wp_sprintf( '%s: %s', __( 'Pending Task Type', 'wpcd' ), $pending_task_type ) . '<br /><br />';
 				$email_body .= wp_sprintf( '%s: %s', __( 'Key', 'wpcd' ), $pending_task_key ) . '<br /><br />';
 				$email_body .= wp_sprintf( '%s: %s', __( 'State', 'wpcd' ), $pending_task_state ) . '<br /><br />';

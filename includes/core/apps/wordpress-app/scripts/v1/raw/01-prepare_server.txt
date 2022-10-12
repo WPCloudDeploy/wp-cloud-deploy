@@ -814,7 +814,7 @@ fastcgi_hide_header X-Powered-By;
 			sed -i "s/;opcache.file_update_protection=2/opcache.file_update_protection=60/g" /usr/local/lsws/lsphp${phpver}/etc/php/${lsphpver}/litespeed/php.ini
        		done 
 
-		echo "$(date): Installling OLS htaccess scan crontab file for Cron to scan every 3 minutes for .htaccess file changes and restart openlitespeed"
+		echo "$(date): Installing OLS htaccess scan crontab file for Cron to scan every 3 minutes for .htaccess file changes and restart openlitespeed"
 		cat >> /etc/cron.d/openlitespeed_htaccess_scan <<-EOL
 # Cron to scan every 3 minutes for .htaccess file changes and restart openlitespeed
 */3 * * * * root if ! find /var/www/*/html/ -maxdepth 2 -type f -newer /usr/local/lsws/admin/cgid -name '.htaccess' -exec false {} +; then systemctl restart lsws; fi

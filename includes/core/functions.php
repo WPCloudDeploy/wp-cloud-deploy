@@ -175,6 +175,34 @@ function wpcd_set_option( $option_id, $option_value, $domain = 'wpcd_settings' )
 }
 
 /**
+ * Get short product name that will be used for white labelling.
+ *
+ * The WPCD_SHORT_NAME constant for the product name can be defined in wp-config.php.
+ */
+function wpcd_get_short_product_name() {
+	$product_name = 'WPCloudDeploy';
+	if ( defined( 'WPCD_SHORT_NAME' ) ) {
+		$product_name = WPCD_SHORT_NAME;
+	}
+
+	return $product_name;
+}
+
+/**
+ * Get longer product name that will be used for white labelling.
+ *
+ * The WPCD_LONG_NAME constant for the product name can be defined in wp-config.php.
+ */
+function wpcd_get_long_product_name() {
+	$product_name = 'WPCloudDeploy';
+	if ( defined( 'WPCD_LONG_NAME' ) ) {
+		$product_name = WPCD_LONG_NAME;
+	}
+
+	return $product_name;
+}
+
+/**
  * Return whether or not WPCD is being called via it's better cron process.
  *
  * @since 5.0

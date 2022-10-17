@@ -2436,6 +2436,9 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		update_post_meta( $id, "wpcd_server_{$this->get_app_name()}_action_status", 'in-progress' );
 		WPCD_SERVER()->add_deferred_action_history( $id, $this->get_app_name() );
 
+		/* Give other addons and developers a chance to update the new app record now that we've added all our preliminary data to it. */
+		do_action( "wpcd_{$this->get_app_name()}_after_create_post", $app_post_id, $args, $additional );
+
 		return $additional;
 	}
 

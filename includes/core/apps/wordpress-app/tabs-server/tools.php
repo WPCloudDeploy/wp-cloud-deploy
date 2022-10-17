@@ -280,10 +280,12 @@ class WPCD_WORDPRESS_TABS_SERVER_TOOLS extends WPCD_WORDPRESS_TABS {
 		delete_post_meta( $id, 'wpcd_server_wordpress-app_action_status' );
 		delete_post_meta( $id, 'wpcd_temp_log_id' );
 		delete_post_meta( $id, 'wpcd_server_action_status' );
-
+		delete_post_meta( $id, "wpcd_server_command_mutex" ); 
+		
 		delete_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action_status" );  // Should really only exist on an app.
 		delete_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action" );  // Should really only exist on an app.
 		delete_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action_args" );  // Should really only exist on an app.
+		
 		delete_post_meta( $id, "wpcd_server_{$this->get_app_name()}_action_status" );  // Should really only exist on a server and it's a duplicate of the delete a few lines above.
 		delete_post_meta( $id, "wpcd_server_{$this->get_app_name()}_action" );  // Should really only exist on a server and it's a duplicate of the delete a few lines above.
 		delete_post_meta( $id, "wpcd_server_{$this->get_app_name()}_action_args" );  // Should really only exist on a server.

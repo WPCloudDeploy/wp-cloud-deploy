@@ -99,11 +99,15 @@ class WPCD_Admin_Setup_Wizard {
 	public function wpcd_ask_setup_wizard() {
 
 		if ( wpcd_is_admin() ) {
+			
+			/* Product name that will be shown at various locations in the wizard. */
+			$product_name = wpcd_get_short_product_name()
+
 			?>
 			<div class="updated wpcd-wizard-notice">
-				<h1 class="wizard-main-heading"><?php _e( 'WPCloudDeploy: First Time Install', 'wpcd' ); ?></h1>
-				<p class="wizard-first-line"><?php _e( 'Thank you for installing WPCloudDeploy. Please choose an option below to get started.', 'wpcd' ); ?></p>
-				<p class="wizard-normal wizard-second-line"><?php _e( 'If this is not the first time you are using WPCloudDeploy or you would like to manually configure your initial settings, then you should choose to skip this process. Otherwise proceed by clicking the button.', 'wpcd' ); ?></p>		
+				<h1 class="wizard-main-heading"><?php _e( sprintf( __( '%s: First Time Install', 'wpcd' ), $product_name ) ); ?></h1>
+				<p class="wizard-first-line"><?php _e( sprintf( __( 'Thank you for installing %s. Please choose an option below to get started.', 'wpcd' ), $product_name ) ); ?></p>
+				<p class="wizard-normal wizard-second-line"><?php _e( sprintf( __( 'If this is not the first time you are using %s or you would like to manually configure your initial settings, then you should choose to skip this process. Otherwise proceed by clicking the button.', 'wpcd' ), $product_name ) ); ?></p>
 				<p><span class="wpcd-button-wizard-primary"><?php _e( '<a href="' . admin_url( 'index.php?page=wpcd-setup' ) . '">Click here To Get Started Now</a>', 'wpcd' ); ?></span>		
 					<span class="wpcd-button-wizard-skip"><?php _e( '<a href="#" id="wpcd-skip-wizard">Or skip this process</a>', 'wpcd' ); ?>
 				</p>		
@@ -112,7 +116,7 @@ class WPCD_Admin_Setup_Wizard {
 		}
 
 	}
-
+	
 	/**
 	 * Load Scripts to be used in the setup wizard.
 	 *
@@ -200,20 +204,21 @@ class WPCD_Admin_Setup_Wizard {
 	 * Setup Wizard Header.
 	 */
 	public function setup_wizard_header() {
+		$product_name = wpcd_get_short_product_name();
 		?>
 		<!DOCTYPE html>
 		<html <?php language_attributes(); ?>>
 		<head>
 			<meta name="viewport" content="width=device-width" />
 			<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-			<title><?php esc_html_e( 'WPCloudDeploy &rsaquo; Setup Wizard', 'wpcd' ); ?></title>
+			<title><?php esc_html_e( sprintf( __( '%s &rsaquo; Setup Wizard', 'wpcd' ), $product_name ) ); ?></title>
 			<?php wp_print_scripts( 'wpcd-setup' ); ?>
 			<?php do_action( 'admin_print_styles' ); ?>
 			<?php do_action( 'admin_head' ); ?>
 		</head>
 		<body class="wpcd-setup wp-core-ui">
 			<div class="wpcd-setup-wizard">
-			<h1 id="wpcd-logo"><a href="https://wpclouddeploy.com/">WPCloudDeploy</a></h1>			
+			<h1 id="wpcd-logo"><a href="https://wpclouddeploy.com/"><?php esc_html_e( sprintf( __( '%s', 'wpcd' ), $product_name ) ); ?></a></h1>
 		<?php
 	}
 
@@ -300,9 +305,11 @@ class WPCD_Admin_Setup_Wizard {
 		);
 		*/
 
+		$product_name = wpcd_get_short_product_name();
+		
 		?>
 		<form method="post">
-			<p><b><?php esc_html_e( 'Welcome to WPCloudDeploy!', 'wpcd' ); ?> </b></p>	
+			<p><b><?php esc_html_e( sprintf( __( 'Welcome to %s!', 'wpcd' ), $product_name ) ); ?> </b></p>	
 			<p><?php esc_html_e( 'This setup wizard will help you get the basics configured and connected to your DigitalOcean account', 'wpcd' ); ?> </p>	
 			<p><b><?php esc_html_e( 'Encryption Key', 'wpcd' ); ?> </b></p>			
 			<?php
@@ -473,9 +480,10 @@ class WPCD_Admin_Setup_Wizard {
 	 * Lets Go page view for think you message and all.
 	 */
 	public function wpcd_setup_lets_go() {
+		$product_name = wpcd_get_short_product_name();
 		?>
 		<form method="post">
-			<p><b><?php esc_html_e( 'WPCloudDeploy is all set up and ready to go!', 'wpcd' ); ?></b></p>
+			<p><b><?php esc_html_e( sprintf( __( '%s is all set up and ready to go!', 'wpcd' ), $product_name ) ); ?></b></p>
 			<p><?php esc_html_e( 'You should now be able to create your first server at DigitalOcean.', 'wpcd' ); ?></p>
 			<p>
 			<?php

@@ -310,9 +310,13 @@ class WPCD_BASIC_SERVER_APP extends WPCD_APP {
 	 * @return void
 	 */
 	public static function basic_server_schedule_events() {
-		// setup deferred instance actions schedule.
+		// Clear existing cron.
 		wp_clear_scheduled_hook( 'wpcd_basic_server_deferred_actions' );
-		wp_schedule_event( time(), 'every_minute', 'wpcd_basic_server_deferred_actions' );
+		
+		// Schedule cron for setup deferred instance actions schedule.
+		if ( ! defined( 'DISABLE_WPCD_CRON' ) ||  ( defined( 'DISABLE_WPCD_CRON' ) && ! DISABLE_WPCD_CRON ) ) {		
+			wp_schedule_event( time(), 'every_minute', 'wpcd_basic_server_deferred_actions' );
+		}
 	}
 
 	/**

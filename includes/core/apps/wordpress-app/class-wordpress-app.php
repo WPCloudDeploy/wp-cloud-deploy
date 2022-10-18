@@ -1082,6 +1082,33 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	}
 
 	/**
+	 * Returns a boolean true/false if wpcli 2.7 is installed.
+	 *
+	 * @param int $server_id ID of server being interrogated...
+	 *
+	 * @return boolean
+	 */
+	public function is_wpcli27_installed( $server_id ) {
+
+		$initial_plugin_version = $this->get_server_meta_by_app_id( $server_id, 'wpcd_server_plugin_initial_version', true );  // This function is smart enough to know if the ID being passed is a server or app id and adjust accordingly.
+
+		if ( version_compare( $initial_plugin_version, '4.27.0' ) > -1 ) {
+			// Versions of the plugin after 4.14.2 automatically install wpcli 2.6.
+			return true;
+		} else {
+			// See if it was manually upgraded - which would leave a meta field value behind on the server CPT record.
+			$it_is_installed = (float) $this->get_server_meta_by_app_id( $server_id, 'wpcd_server_wpcli_upgrade', true );   // This function is smart enough to know if the ID being passed is a server or app id and adjust accordingly.
+			if ( $it_is_installed >= 2.7 ) {
+				return true;
+			} else {
+				return false;
+			}
+		}
+
+		return false;
+	}
+
+	/**
 	 * Returns a boolean true/false if the PHP Module INTL is supposed to be installed on the server.
 	 *
 	 * @param int $server_id ID of server being interrogated...
@@ -2409,6 +2436,9 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		update_post_meta( $id, "wpcd_server_{$this->get_app_name()}_action_status", 'in-progress' );
 		WPCD_SERVER()->add_deferred_action_history( $id, $this->get_app_name() );
 
+		/* Give other addons and developers a chance to update the new app record now that we've added all our preliminary data to it. */
+		do_action( "wpcd_{$this->get_app_name()}_after_create_post", $app_post_id, $args, $additional );
+
 		return $additional;
 	}
 
@@ -3188,6 +3218,11 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	 * @return void
 	 */
 	public static function wpapp_schedule_events() {
+		// Schedule nothing if our 'better cron' constant is true.
+		if ( defined( 'DISABLE_WPCD_CRON' ) && DISABLE_WPCD_CRON == true ) {
+			return;
+		}
+
 		// setup temporary script deletion.
 		wp_clear_scheduled_hook( 'wpcd_wordpress_file_watcher' );
 		wp_schedule_event( time(), 'every_minute', 'wpcd_wordpress_file_watcher' );

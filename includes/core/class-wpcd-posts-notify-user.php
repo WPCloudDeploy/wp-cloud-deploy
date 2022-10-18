@@ -992,8 +992,10 @@ class WPCD_NOTIFY_USER extends WPCD_Posts_Base {
 	 */
 	public static function wpcd_scan_notification_schedule_events() {
 		// setup scan notification event.
-		wp_clear_scheduled_hook( 'wpcd_scan_notifications_actions' );
-		wp_schedule_event( time(), 'every_minute', 'wpcd_scan_notifications_actions' );
+		if ( ! defined( 'DISABLE_WPCD_CRON' ) ||  ( defined( 'DISABLE_WPCD_CRON' ) && ! DISABLE_WPCD_CRON ) ) {
+			wp_clear_scheduled_hook( 'wpcd_scan_notifications_actions' );
+			wp_schedule_event( time(), 'every_minute', 'wpcd_scan_notifications_actions' );
+		}
 
 		/**
 		* Check if plugin active first time then create a page & add the shortcode into it.

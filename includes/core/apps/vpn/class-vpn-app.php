@@ -341,13 +341,21 @@ class WPCD_VPN_APP extends WPCD_APP {
 	 * @return void
 	 */
 	public static function vpn_schedule_events() {
-		// setup temporary script deletion.
+		// Clear existing cron.
 		wp_clear_scheduled_hook( 'wpcd_vpn_file_watcher' );
-		wp_schedule_event( time(), 'every_minute', 'wpcd_vpn_file_watcher' );
+		
+		// Schedule cron to setup temporary script deletion.
+		if ( ! defined( 'DISABLE_WPCD_CRON' ) ||  ( defined( 'DISABLE_WPCD_CRON' ) && ! DISABLE_WPCD_CRON ) ) {
+			wp_schedule_event( time(), 'every_minute', 'wpcd_vpn_file_watcher' );
+		}
 
-		// setup deferred instance actions schedule.
+		// Clear existing cron.
 		wp_clear_scheduled_hook( 'wpcd_vpn_deferred_actions' );
-		wp_schedule_event( time(), 'every_minute', 'wpcd_vpn_deferred_actions' );
+		
+		// Schedule cron to setup deferred instance actions schedule.
+		if ( ! defined( 'DISABLE_WPCD_CRON' ) ||  ( defined( 'DISABLE_WPCD_CRON' ) && ! DISABLE_WPCD_CRON ) ) {
+			wp_schedule_event( time(), 'every_minute', 'wpcd_vpn_deferred_actions' );
+		}
 	}
 
 	/**

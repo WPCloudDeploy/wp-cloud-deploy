@@ -23,7 +23,7 @@
             }
         });
 
-        // change regions when provider changes for bulk intall.
+        // change regions when provider changes for bulk installs (part of powertools).
         $('body').delegate('select[name="wpcd_bulk_installs_provider[]"]', 'change', function (e) {
 
             var bulk_install_provider = $(this);

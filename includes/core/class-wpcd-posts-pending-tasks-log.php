@@ -72,7 +72,7 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 		add_filter( 'parse_query', array( $this, 'wpcd_pending_logs_list_parse_query' ), 10, 1 );
 
 		// Action hook to clean up pending logs.
-		add_action( 'wpcd_clean_up_pending_logs', array( $this, 'wpcd_clean_up_pending_logs_callback' ) );
+		add_action( 'wpcd_clean_up_pending_logs', array( $this, 'wpcd_clean_up_pending_logs' ) );
 
 		// Action hook to fire on new site created on WP Multisite.
 		add_action( 'wp_initialize_site', array( $this, 'wpcd_clean_up_pending_logs_for_new_site' ), 10, 2 );
@@ -580,14 +580,14 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 	 * @param string $orderby  Field to order by.
 	 * @param string $order    Order by ASCENDING (ASC) or DESCENDING (DESC).
 	 */
-	public function get_tasks_by_parent_state_type( $parent, $state, $type, $orderby = 'ID', $order = 'ASC'  ) {
+	public function get_tasks_by_parent_state_type( $parent, $state, $type, $orderby = 'ID', $order = 'ASC' ) {
 
 		$args = array(
 			'post_type'      => 'wpcd_pending_log',
 			'post_status'    => 'private',
 			'posts_per_page' => -1,
 			'orderby'        => $orderby,
-			'order'          => $order,			
+			'order'          => $order,
 			'meta_query'     => array(
 				array(
 					'key'   => 'parent_post_id',
@@ -642,6 +642,12 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 		// Update start date if empty.
 		if ( empty( get_post_meta( $id, 'pending_task_start_date', true ) ) ) {
 			update_post_meta( $id, 'pending_task_start_date', time() );
+		}
+
+		// If $task_state is 'ready' then clean out some metavalues (in case they contain data).
+		if ( 'ready' === $task_state || 'not-ready' === $task_state ) {
+			delete_post_meta( $id, 'pending_task_long_running_warning_email_sent_count' );
+			delete_post_meta( $id, 'pending_task_long_running_warning_email_next_send_time' );
 		}
 
 		// If $task_state is "complete" then update the end date.
@@ -872,13 +878,28 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 		}
 	}
 
+	/**
+	 * Cleanup pending logs called from AJAX function.
+	 *
+	 * Action Hook: wp_ajax_clean_up_pending_logs_action
+	 */
+	public function wpcd_clean_up_pending_logs_callback() {
+		$this->wpcd_clean_up_pending_logs();
+
+		$response = array(
+			'message' => __( 'Pending logs cleaned up successfully.', 'wpcd' ),
+		);
+		wp_send_json( $response, 200 );
+		exit();
+
+	}
 
 	/**
 	 * Cron function code to clean up the pending logs.
 	 * Anything that has been running for too long
 	 * (around 2 hours) will be marked as failed.
 	 */
-	public function wpcd_clean_up_pending_logs_callback() {
+	public function wpcd_clean_up_pending_logs() {
 
 		// The function ran so update the transient to let the monitoring process know that it ran (even if no records were processed).
 		// We are using 180 minutes here instead of 15 minutes because this cron runs on a 60 minute schedule instead of a 1 min or 15 min schedule.
@@ -974,8 +995,8 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 					}
 
 					// Add a user friendly notification record.
-					/* Translators: %s is pending log comment message. */
-					do_action( 'wpcd_log_notification', $parent_post_id, 'alert', sprintf( __( 'Stuck pending log cleaned up successfully.(%s)', 'wpcd' ), $pending_task_comment ), 'stuck', null );
+					/* Translators: %1$s is the task id; %2$s is pending log comment message. */
+					do_action( 'wpcd_log_notification', $parent_post_id, 'alert', sprintf( __( 'Stuck pending log cleaned up successfully for task id %1$s.(%2$s)', 'wpcd' ), $log_id, $pending_task_comment ), 'stuck', null );
 
 					$count++;
 				}
@@ -989,11 +1010,6 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 		$this->clean_up_old_log_entries( 'wpcd_notify_sent' );
 		$this->clean_up_old_log_entries( 'wpcd_ssh_log' );
 
-		$response = array(
-			'message' => __( 'Pending logs cleaned up successfully.', 'wpcd' ),
-		);
-		wp_send_json( $response, 200 );
-		exit();
 	}
 
 	/**
@@ -1030,7 +1046,10 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 		// Clear old crons.
 		wp_unschedule_hook( 'wpcd_clean_up_pending_logs' );
 
-		wp_schedule_event( time(), 'hourly', 'wpcd_clean_up_pending_logs' );
+		// Schedule cron.
+		if ( ! defined( 'DISABLE_WPCD_CRON' ) || ( defined( 'DISABLE_WPCD_CRON' ) && ! DISABLE_WPCD_CRON ) ) {
+			wp_schedule_event( time(), 'hourly', 'wpcd_clean_up_pending_logs' );
+		}
 
 	}
 
@@ -1042,7 +1061,11 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 	public static function wpcd_send_email_alert_for_long_pending_tasks_events() {
 		// Clear old crons.
 		wp_unschedule_hook( 'wpcd_email_alert_for_long_pending_tasks' );
-		wp_schedule_event( time(), 'every_fifteen_minute', 'wpcd_email_alert_for_long_pending_tasks' );
+
+		// Schedule cron.
+		if ( ! defined( 'DISABLE_WPCD_CRON' ) || ( defined( 'DISABLE_WPCD_CRON' ) && ! DISABLE_WPCD_CRON ) ) {
+			wp_schedule_event( time(), 'every_fifteen_minute', 'wpcd_email_alert_for_long_pending_tasks' );
+		}
 	}
 
 	/**
@@ -1207,6 +1230,7 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 			return;
 		}
 
+		// We'll be gathering tasks that have been inprocess for at least 15 minutes.
 		$compare_time = time() - ( 15 * MINUTE_IN_SECONDS );
 
 		$pending_task_args = array(
@@ -1231,27 +1255,72 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 			),
 		);
 
-		$pending_task_found = get_posts( $pending_task_args );
+		// Get the initial set of tasks - we'll be doing additional filtering next.
+		$temp_tasks = get_posts( $pending_task_args );
 
+		// Loop through the array and remove any that do not need to be sent yet.
+		// We could have included these criteria in the query above but it would have made the query too complex - best to do it here in a loop for readability at the expense of a bit of efficiency.
+		$pending_task_found = array();  // New array of tasks that we will NOT be skipping.
+		if ( ! empty( $temp_tasks ) ) {
+			foreach ( $temp_tasks as $key => $task_detail_id ) {
+
+				$sent_count     = (int) get_post_meta( $task_detail_id, 'pending_task_long_running_warning_email_sent_count', true );
+				$next_send_time = (int) get_post_meta( $task_detail_id, 'pending_task_long_running_warning_email_next_send_time', true );
+
+				$skip = false;  // Skip this one?
+
+				// Remove anything that we've sent more than 3 times.
+				if ( $sent_count > 2 ) {
+					$skip = true;
+				}
+
+				// Remove anything that isn't ready to be sent.
+				if ( $next_send_time > time() ) {
+					$skip = true;
+				}
+
+				// If this task should not be skipped, put it in the new array.
+				if ( ! $skip ) {
+					$pending_task_found[] = $task_detail_id;
+				}
+			}
+		}
+
+		// Construct email to be sent if we have any tasks left over after filtering above.
 		if ( ! empty( $pending_task_found ) ) {
 
 			// Starting text of email.
-			$email_body = __( 'The following background tasks (aka pending task) have been started but are taking a long time to complete.  You should take a look and see if there is an issue that is preventing them from completing properly.', 'wpcd' ) . '<br /><br />';
+			$email_body  = __( 'The following background tasks (aka pending task) have been started but are taking a long time to complete - more than 15 minutes.  Most tasks take less time than that.', 'wpcd' ) . '<br /><br />';
+			$email_body  = __( 'Creating a new server, changing domains on large sites and backing up large sites are some of the tasks that might take longer than 15 minutes.', 'wpcd' ) . '<br /><br />';
+			$email_body  = __( 'You should take a look at the tasks listed below to see if there is a legitimate reason that they are taking longer to complete or if there is an issue that is preventing them from completing properly.', 'wpcd' ) . '<br /><br />';
+			$email_body .= __( 'You can start your investigation on the PENDING TASKS screen.  There you can use the ALL STATES dropdown on the filter bar to view all tasks that are in-process.', 'wpcd' ) . '<br /><br />';
+			$email_body .= __( 'Please note that a task that is taking too long to complete will prevent other tasks from running on the server.', 'wpcd' ) . '<br /><br />';
+			$email_body .= '<hr />';
 
 			// Add in details to email for each pending task affected.
-			foreach ( $pending_task_found as $task_details ) {
+			foreach ( $pending_task_found as $task_detail_id ) {
 
-				$pending_task_type                 = get_post_meta( $task_details, 'pending_task_type', true );
-				$pending_task_key                  = get_post_meta( $task_details, 'pending_task_key', true );
-				$pending_task_state                = get_post_meta( $task_details, 'pending_task_state', true );
-				$pending_task_attempts             = get_post_meta( $task_details, 'pending_task_attempts', true );
-				$pending_task_reference            = get_post_meta( $task_details, 'pending_task_reference', true );
-				$pending_task_comment              = get_post_meta( $task_details, 'pending_task_comment', true );
-				$pending_task_start_date           = get_post_meta( $task_details, 'pending_task_start_date', true );
-				$parent_post_id                    = get_post_meta( $task_details, 'parent_post_id', true );
-				$pending_task_parent_post_type     = get_post_meta( $task_details, 'pending_task_parent_post_type', true );
-				$pending_task_associated_server_id = get_post_meta( $task_details, 'pending_task_associated_server_id', true );
+				// How many times have an email been sent for this task? We'll need this later.
+				$sent_count = (int) get_post_meta( $task_detail_id, 'pending_task_long_running_warning_email_sent_count', true );
 
+				$pending_task_type                 = get_post_meta( $task_detail_id, 'pending_task_type', true );
+				$pending_task_key                  = get_post_meta( $task_detail_id, 'pending_task_key', true );
+				$pending_task_state                = get_post_meta( $task_detail_id, 'pending_task_state', true );
+				$pending_task_attempts             = get_post_meta( $task_detail_id, 'pending_task_attempts', true );
+				$pending_task_reference            = get_post_meta( $task_detail_id, 'pending_task_reference', true );
+				$pending_task_comment              = get_post_meta( $task_detail_id, 'pending_task_comment', true );
+				$pending_task_start_date           = get_post_meta( $task_detail_id, 'pending_task_start_date', true );
+				$parent_post_id                    = get_post_meta( $task_detail_id, 'parent_post_id', true );
+				$pending_task_parent_post_type     = get_post_meta( $task_detail_id, 'pending_task_parent_post_type', true );
+				$pending_task_associated_server_id = get_post_meta( $task_detail_id, 'pending_task_associated_server_id', true );
+
+				// Add message if this is the last email we'll send for this task - we'll only send 3 emails for each task.
+				// Note that this condition might never be met because the task will likely be marked as failed-timeout after 2 hours.
+				if ( 2 === $sent_count ) {
+					$email_body .= __( 'This is the last alert you will receive about this overdue task.', 'wpcd' ) . '<br /><br />';
+				}
+
+				$email_body .= wp_sprintf( '%s: %s', __( 'Task Id', 'wpcd' ), $task_detail_id ) . '<br /><br />';
 				$email_body .= wp_sprintf( '%s: %s', __( 'Pending Task Type', 'wpcd' ), $pending_task_type ) . '<br /><br />';
 				$email_body .= wp_sprintf( '%s: %s', __( 'Key', 'wpcd' ), $pending_task_key ) . '<br /><br />';
 				$email_body .= wp_sprintf( '%s: %s', __( 'State', 'wpcd' ), $pending_task_state ) . '<br /><br />';
@@ -1263,6 +1332,12 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 				$email_body .= wp_sprintf( '%s: %s', __( 'Parent Post Type', 'wpcd' ), $pending_task_parent_post_type ) . '<br /><br />';
 				$email_body .= wp_sprintf( '%s: %s', __( 'Associated Server ID', 'wpcd' ), $pending_task_associated_server_id ) . '<br /><br />';
 				$email_body .= '<hr />';
+
+				// Update the task detail record to mark warning email as being sent - we'll allow it to be sent up to three times.
+				update_post_meta( $task_detail_id, 'pending_task_long_running_warning_email_sent_count', $sent_count + 1 );
+
+				// Add the earliest time we'll allow the next email to be sent.  This would be 60 minutes between sends.
+				update_post_meta( $task_detail_id, 'pending_task_long_running_warning_email_next_send_time', time() + ( 60 * MINUTE_IN_SECONDS ) );
 
 			}
 

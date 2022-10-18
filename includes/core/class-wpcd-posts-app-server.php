@@ -566,10 +566,13 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 				if ( 'active' === $state ) {
 					$partial_class_name = 'remote_server_state_active';
 				}
+				if ( 'in-progress' === $state ) {
+					$partial_class_name = 'remote_server_state_in_progress';
+				}				
 
 				// Wrap the state in our usual spans and divs with the constructed class name.
 				if ( ! empty( $state ) ) {
-					$value2  = $this->wpcd_column_wrap_string_with_span_and_class( __( 'Remote State:', 'wpcd' ), $partial_class_name, 'left' );
+					$value2  = $this->wpcd_column_wrap_string_with_span_and_class( __( 'Remote State: ', 'wpcd' ), $partial_class_name, 'left' );
 					$value2 .= $this->wpcd_column_wrap_string_with_span_and_class( $remote_state_text, $partial_class_name, 'right' );
 					$value  .= $this->wpcd_column_wrap_string_with_div_and_class( $value2, $partial_class_name );
 				}
@@ -1689,9 +1692,9 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 
 		// No permissions check if we're running tasks via cron.
 		// We're not doing anything to delete servers via cron right now.
-		// But we might later so adding this check now since we have in the wpcd_app_delete_post() function.
-		if ( true === wp_doing_cron() ) {
-			return;
+		// But we might later so adding this check now since we have it in the wpcd_app_delete_post() function.
+		if ( true === wp_doing_cron() || true === wpcd_is_doing_cron() ) {
+			return true;
 		}
 
 		$success = true;

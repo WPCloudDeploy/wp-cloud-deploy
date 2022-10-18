@@ -218,7 +218,7 @@ class WPCD_WORDPRESS_TABS_SERVER_TOOLS extends WPCD_WORDPRESS_TABS {
 			'label'          => __( 'Set PHP Default Version', 'wpcd' ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
-				'desc' => __( 'The server level default PHP version should be PHP 7.4. This is the PHP version used to run all WP-CLI commands or other server level PHP scripts not running directly inside WordPress. If you set this to something other than the default 7.4 you could potentially break things - badly!', 'wpcd' ),
+				'desc' => __( 'This is the PHP version used to run all WP-CLI commands or other server level PHP scripts not running directly inside WordPress. This should be 7.4 or higher - lower versions will likely break things very badly. If your plugins/themes are not compatible with PHP 8.x then this should be set to 7.4.', 'wpcd' ),
 			),
 		);
 
@@ -280,10 +280,12 @@ class WPCD_WORDPRESS_TABS_SERVER_TOOLS extends WPCD_WORDPRESS_TABS {
 		delete_post_meta( $id, 'wpcd_server_wordpress-app_action_status' );
 		delete_post_meta( $id, 'wpcd_temp_log_id' );
 		delete_post_meta( $id, 'wpcd_server_action_status' );
-
+		delete_post_meta( $id, "wpcd_server_command_mutex" ); 
+		
 		delete_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action_status" );  // Should really only exist on an app.
 		delete_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action" );  // Should really only exist on an app.
 		delete_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action_args" );  // Should really only exist on an app.
+		
 		delete_post_meta( $id, "wpcd_server_{$this->get_app_name()}_action_status" );  // Should really only exist on a server and it's a duplicate of the delete a few lines above.
 		delete_post_meta( $id, "wpcd_server_{$this->get_app_name()}_action" );  // Should really only exist on a server and it's a duplicate of the delete a few lines above.
 		delete_post_meta( $id, "wpcd_server_{$this->get_app_name()}_action_args" );  // Should really only exist on a server.

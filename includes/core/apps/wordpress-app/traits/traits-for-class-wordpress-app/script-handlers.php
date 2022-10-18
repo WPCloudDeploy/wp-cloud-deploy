@@ -21,6 +21,12 @@ trait wpcd_wpapp_script_handlers {
 	 * @param string $action action.
 	 */
 	public function is_ssh_successful( $result, $command, $action = '' ) {
+
+		// If $result is not a string, return false since we can't do a proper compare to anything.
+		if ( ! is_string( $result ) ) {
+			return false;
+		}
+
 		switch ( $command ) {
 			case 'disable_remove_site.txt':
 				$return =

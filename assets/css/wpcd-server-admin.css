@@ -714,8 +714,8 @@ a.wpcd-stat-switch {
 }
 
 /* For when a server has an operation in progress... */
-
 .wpcd_server_actions_op_in_progress {
+	/* Alert under the server actions column */
 	padding: 2px 8px;
 	vertical-align: baseline;
 	border-radius: 3px;
@@ -728,6 +728,13 @@ a.wpcd-stat-switch {
 	margin: 2px;
 	margin-left: 0px;
 	width: 90%;
+}
+
+.wp-admin .wpcd-server-col-element-value-remote_server_state_in_progress {
+	/* Operation in progress text under the LOCAL STATUS column in the server list */
+	border: solid 1px red;
+	border-radius: 3px;
+	padding: 3px;
 }
 
 /* Provider name in the provider details column should be bold. Note that we add the wp-admin class qualifier so that we don't inadvertently apply the styles to the front-end. */

@@ -221,6 +221,7 @@ class WPCD_Settings {
 								'debug'          => __( 'Debug', 'wpcd' ),
 								'security'       => __( 'Security', 'wpcd' ),
 								'provider-cache' => __( 'Provider Cache', 'wpcd' ),
+								'better_cron'    => __( 'Better Core Crons', 'wpcd' ),
 								'other'          => __( 'Other', 'wpcd' ),
 							),
 							'select_all_none' => true,

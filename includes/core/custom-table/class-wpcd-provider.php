@@ -167,7 +167,7 @@ class WPCD_CT_Provider extends WPCD_MB_Custom_Table {
 					'name' => __( 'Name', 'wpcd' ),
 					'id'   => 'provider_name',
 					'type' => 'text',
-					//'required' => true,
+					'required' => true,
 					'desc' => __('Add provider name', 'wpcd' ),
 					'admin_columns' => [
 						'position' => 'after id',
@@ -281,22 +281,8 @@ class WPCD_CT_Provider extends WPCD_MB_Custom_Table {
 				array(
 					'name' => __( 'Tags', 'wpcd' ),
 					'id'   => 'tags',
-					
-					
-					'type' => 'select_advanced',
-					//'options'         => [],
-					'multiple'        => true,
-					'placeholder'     => __( 'Select allowed roles.', 'wpcd' ),
-					
-					'js_options' => array(
-						"allowClear" => true,
-						"dropdownAutoWidth" => true,
-						"placeholder" => "Select allowed roles.",
-						'tags'			=> true,
-						'tokenSeparators' =>  [',', ' '],
-						"width" => "style"
-					),
-					'sanitize_callback' => array( $this, 'sanitize_tags'),
+					'type' => 'text',
+					'placeholder'     => __( 'Add Tags.', 'wpcd' ),
 					'class'			=> '',
 					'desc' => __('', 'wpcd' ),
 				),
@@ -417,18 +403,6 @@ class WPCD_CT_Provider extends WPCD_MB_Custom_Table {
 		add_filter( "rwmb_api_secret_key_value", array( $this, 'encrypt' ), 10, 3 );
 		add_filter( "rwmb_ssh_private_key_value", array( $this, 'encrypt' ), 10, 3 );
 		add_filter( "rwmb_ssh_private_key_password_value", array( $this, 'encrypt' ), 10, 3 );
-	}
-	
-	/**
-	 * Sanitize tags field
-	 * 
-	 * @param array $value
-	 * @param object $field
-	 * 
-	 * @return array
-	 */
-	function sanitize_tags( $value, $field ) {
-		return is_array( $value ) ? $value : array();
 	}
 	
 	/**

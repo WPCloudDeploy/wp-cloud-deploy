@@ -72,6 +72,10 @@ add_action( 'init', 'wpcd_init_wpcd_custom_table_classes', -10, 1 );
  */
 function wpcd_init_wpcd_custom_table_classes() {
 	
+	if( !function_exists('rwmb_request') ) {
+		return;
+	}
+	
 	if ( function_exists( 'WPCD' ) ) {
 		if ( empty( WPCD()->classes['WPCD_PROVIDER_SETTINGS'] ) ) {
 			WPCD()->classes['WPCD_PROVIDER_SETTINGS'] = WPCD_MB_Custom_Table::get( 'provider' );

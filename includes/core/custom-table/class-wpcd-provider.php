@@ -333,6 +333,18 @@ class WPCD_CT_Provider extends WPCD_MB_Custom_Table {
 					'name' => __( 'Permissions', 'wpcd' )
 				),
 				array(
+					'name' => __( 'Owner', 'wpcd' ),
+					'id'   => 'owner',
+					'type' => 'user',
+					'field_type'  => 'select_advanced',
+					'placeholder' => 'Select allowed users',
+					'ajax'  => true,
+					'multiple'        => false,
+					'class'	=> '',
+					'desc' => __('', 'wpcd' )
+				) ,
+				
+				array(
 					'name' => __( 'Allowed Roles', 'wpcd' ),
 					'id'   => 'allowed_roles',
 					'type' => 'select_advanced',

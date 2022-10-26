@@ -23,7 +23,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Setup setttings screen
+ * Setup settings screen
  *
  * @package wpcd
  * @version 1.0.0 / wpcd
@@ -48,6 +48,15 @@ class WPCD_Settings {
 
 		// Action hook to clear provider cache.
 		add_action( 'wp_ajax_wpcd_provider_clear_cache', array( $this, 'wpcd_provider_clear_cache' ) );
+
+		// Action hook to automatically create ssh keys.
+		add_action( 'wp_ajax_wpcd_provider_auto_create_ssh_key', array( $this, 'wpcd_provider_auto_create_ssh_key' ) );
+
+		// Action hook to automatically create ssh keys.
+		add_action( 'wp_ajax_wpcd_provider_auto_create_ssh_key', array( $this, 'wpcd_provider_auto_create_ssh_key' ) );
+
+		// Action hook to test provider connection.
+		add_action( 'wp_ajax_wpcd_provider_test_provider_connection', array( $this, 'wpcd_provider_test_provider_connection' ) );
 
 		// Action hook to check for plugin updates. This is initiated via a button on the license tab on the settings screen.
 		add_action( 'wp_ajax_wpcd_check_for_updates', array( $this, 'wpcd_check_for_updates' ) );
@@ -118,7 +127,7 @@ class WPCD_Settings {
 				// Set some long text used for the introduction and welcome message.
 				$ssh_welcome_text = '';
 				if ( ! defined( 'WPCD_SKIP_WELCOME_MESSAGE' ) || ( defined( 'WPCD_SKIP_WELCOME_MESSAGE' ) && ! WPCD_SKIP_WELCOME_MESSAGE ) ) {
-					$ssh_welcome_text  = __( 'Hello - thanks for choosing WPCloud Deploy.  We make it easy for you to deploy new servers and websites from right here inside your WordPress Admin screen.', 'wpcd' );
+					$ssh_welcome_text  = __( 'Hello - thanks for choosing WPCloudDeploy.  We make it easy for you to deploy new servers and websites from right here inside your WordPress Admin screen.', 'wpcd' );
 					$ssh_welcome_text .= '<br />';
 					/* translators: %s: The link to the WPCD website. */
 					$ssh_welcome_text .= sprintf( __( 'Learn more on our site at <a href="%s">wpclouddeploy.com</a>.', 'wpcd' ), 'https://wpclouddeploy.com' );
@@ -212,6 +221,7 @@ class WPCD_Settings {
 								'debug'          => __( 'Debug', 'wpcd' ),
 								'security'       => __( 'Security', 'wpcd' ),
 								'provider-cache' => __( 'Provider Cache', 'wpcd' ),
+								'better_cron'    => __( 'Better Core Crons', 'wpcd' ),
 								'other'          => __( 'Other', 'wpcd' ),
 							),
 							'select_all_none' => true,
@@ -274,7 +284,7 @@ class WPCD_Settings {
 							'size' => 10,
 						),
 						array(
-							'name' => __( 'Auto Trim Pending Log', 'wpcd' ),
+							'name' => __( 'Auto Trim Pending Tasks', 'wpcd' ),
 							'id'   => 'auto_trim_pending_log_limit',
 							'type' => 'number',
 							'size' => 10,
@@ -393,7 +403,7 @@ class WPCD_Settings {
 						array(
 							'type' => 'heading',
 							'name' => 'Timeout for Long Running Commands',
-							'desc' => __( 'When running commands, they are terminated after 15 minutes if not complete. This option allows you to increase that timeout. It is useful when provisioning very slow VMs at certain providers.', 'wpcd' ),
+							'desc' => __( 'When running commands, they are terminated after 25 minutes if not complete. This option allows you to increase that timeout. It is useful when provisioning very slow VMs at certain providers.', 'wpcd' ),
 						),
 
 						array(
@@ -402,8 +412,8 @@ class WPCD_Settings {
 							'type'        => 'number',
 							'min'         => 15,
 							'max'         => 120,
-							'std'         => 15,
-							'placeholder' => 15,
+							'std'         => 25,
+							'placeholder' => 25,
 							'size'        => 10,
 						),
 					),
@@ -422,9 +432,12 @@ class WPCD_Settings {
 						),
 
 						array(
-							'name' => __( 'Backup', 'wpcd' ),
-							'id'   => 'backup-settings',
-							'type' => 'backup',
+							'name'       => __( 'Backup', 'wpcd' ),
+							'id'         => 'backup-settings',
+							'type'       => 'backup',
+							'attributes' => array(
+								'spellcheck' => 'false',
+							),
 						),
 					),
 				);
@@ -475,20 +488,27 @@ class WPCD_Settings {
 				);
 
 				$meta_boxes[] = array(
-					'id'             => 'wpcd-cron-warning-fields',
-					'title'          => __( 'Cron Warning Emails', 'wpcd' ),
+					'id'             => 'wpcd-email-warning-fields',
+					'title'          => __( 'Warning Emails', 'wpcd' ),
 					'settings_pages' => 'wpcd_settings',
 					'tab'            => 'misc',
 					'fields'         => array(
 						array(
 							'type' => 'heading',
-							'name' => __( 'Cron Warning Emails', 'wpcd' ),
-							'desc' => __( 'Control emails sent to Admin when Crons fail to run', 'wpcd' ),
+							'name' => __( 'Warning Emails', 'wpcd' ),
+							'desc' => __( 'Control emails sent to Admin when certain actions fail to run', 'wpcd' ),
 						),
 						array(
-							'name' => __( 'Do Not Send Cron Warning Emails?', 'wpcd' ),
-							'id'   => 'wpcd_do_not_send_cron_warning_emails',
-							'type' => 'checkbox',
+							'name'    => __( 'Do Not Send Cron Warning Emails?', 'wpcd' ),
+							'id'      => 'wpcd_do_not_send_cron_warning_emails',
+							'type'    => 'checkbox',
+							'tooltip' => __( 'Emails are sent when we detect that certain critical processes are not running as scheduled. This flag disables those emails. It is useful to disable these messages if the emails are constantly being sent but are false postitives.', 'wpcd' ),
+						),
+						array(
+							'name'    => __( 'Do Not Send Pending Log Warning Emails?', 'wpcd' ),
+							'id'      => 'wpcd_do_not_send_pending_log_warning_emails',
+							'type'    => 'checkbox',
+							'tooltip' => __( 'Emails are sent when we detect that there are pending tasks that have started but not completed in a reasonable time. This option disables those emails.', 'wpcd' ),
 						),
 					),
 				);
@@ -656,6 +676,13 @@ class WPCD_Settings {
 							'type'    => 'checkbox',
 							'name'    => __( 'Show the server IP column?', 'wpcd' ),
 							'tooltip' => __( 'The server IP is shown under the SERVER column to save space.  If you would like to sort the list by this field then you need to enable this option so that it is shown in its own column.', 'wpcd' ),
+						),
+
+						array(
+							'id'      => 'wpcd_show_app_list_health',
+							'type'    => 'checkbox',
+							'name'    => __( 'Show the app health column?', 'wpcd' ),
+							'tooltip' => __( 'The app health data is shown under the APP SUMMARY column to save space.  You can enable this option so that it is shown in its own column.', 'wpcd' ),
 						),
 
 						// Applist compound fields: Server Column.
@@ -846,31 +873,40 @@ class WPCD_Settings {
 							),
 
 							array(
-								'name' => __( 'Encryption Key', 'wpcd' ),
-								'id'   => 'wpcd_sync_enc_key',
-								'type' => 'text',
-								'size' => 60,
-								'desc' => __( 'This is the key that will be used to encrypt the data before sending it.', 'wpcd' ),
-								'tab'  => 'data_sync_send',
+								'name'       => __( 'Encryption Key', 'wpcd' ),
+								'id'         => 'wpcd_sync_enc_key',
+								'type'       => 'text',
+								'size'       => 60,
+								'desc'       => __( 'This is the key that will be used to encrypt the data before sending it.', 'wpcd' ),
+								'tab'        => 'data_sync_send',
+								'attributes' => array(
+									'spellcheck' => 'false',
+								),
 							),
 
 							array(
-								'name' => __( 'User ID', 'wpcd' ),
-								'id'   => 'wpcd_sync_user_id',
-								'type' => 'text',
-								'size' => 60,
-								'desc' => __( 'Your user name on the destination site - this can be any admin account on the destination.', 'wpcd' ),
-								'tab'  => 'data_sync_send',
+								'name'       => __( 'User ID', 'wpcd' ),
+								'id'         => 'wpcd_sync_user_id',
+								'type'       => 'text',
+								'size'       => 60,
+								'desc'       => __( 'Your user name on the destination site - this can be any admin account on the destination.', 'wpcd' ),
+								'tab'        => 'data_sync_send',
+								'attributes' => array(
+									'spellcheck' => 'false',
+								),
 							),
 
 							array(
-								'name'  => __( 'Password', 'wpcd' ),
-								'id'    => 'wpcd_sync_password',
-								'type'  => 'text',
-								'size'  => 60,
-								'desc'  => __( 'Your password for your admin account on the destination site.', 'wpcd' ),
-								'class' => 'wpcd_settings_pass_toggle',
-								'tab'   => 'data_sync_send',
+								'name'       => __( 'Password', 'wpcd' ),
+								'id'         => 'wpcd_sync_password',
+								'type'       => 'text',
+								'size'       => 60,
+								'desc'       => __( 'Your password for your admin account on the destination site.', 'wpcd' ),
+								'class'      => 'wpcd_settings_pass_toggle',
+								'tab'        => 'data_sync_send',
+								'attributes' => array(
+									'spellcheck' => 'false',
+								),
 							),
 
 							array(
@@ -1001,11 +1037,14 @@ class WPCD_Settings {
 									'desc' => __( 'The license for the core WPCD plugin', 'wpcd' ),
 								),
 								array(
-									'name' => __( 'License', 'wpcd' ),
-									'id'   => "wpcd_item_license_$core_item_id",
-									'type' => 'text',
-									'size' => 40,
-									'desc' => empty( wpcd_get_early_option( "wpcd_item_license_$core_item_id" ) ) ? __( 'Please enter your license key for the core plugin. Note: If you have an ALL ACCESS or BUSINESS bundle license please do not use those bundle keys; instead use the CORE plugin license key.', 'wpcd' ) : get_transient( "wpcd_license_notes_for_$core_item_id" ) . '<br />' . get_transient( "wpcd_license_updates_for_$core_item_id" ),
+									'name'       => __( 'License', 'wpcd' ),
+									'id'         => "wpcd_item_license_$core_item_id",
+									'type'       => 'text',
+									'size'       => 40,
+									'desc'       => empty( wpcd_get_early_option( "wpcd_item_license_$core_item_id" ) ) ? __( 'Please enter your license key for the core plugin. Note: If you have an ALL ACCESS or BUSINESS bundle license please do not use those bundle keys; instead use the CORE plugin license key.', 'wpcd' ) : get_transient( "wpcd_license_notes_for_$core_item_id" ) . '<br />' . get_transient( "wpcd_license_updates_for_$core_item_id" ),
+									'attributes' => array(
+										'spellcheck' => 'false',
+									),
 								),
 
 								array(
@@ -1290,7 +1329,39 @@ class WPCD_Settings {
 				);
 				array_unshift( $fields_part0, $wpcd_provider_top_warning );
 			}
-			/* End Add warning for providers that are in use */
+			/* End add warning for providers that are in use */
+
+			/**
+			 * Button to test provider connection.  This will be added into an array later below.
+			 */
+			if ( WPCD()->get_provider_api( $provider )->get_feature_flag( 'test_connection' ) && ! $this->is_api_key_empty( $provider ) ) {
+				$last_test_connection_status = $this->wpcd_get_last_test_connection_status( $provider );
+				if ( true === $last_test_connection_status ) {
+					$ssh_test_connection_heading_desc = __( 'The last attempt to test your connection to this provider was successful.', 'wpcd' );
+				} else {
+					$ssh_test_connection_heading_desc = __( 'The last test was unsuccessful or a test has never been run on this provider.', 'wpcd' );
+				}
+
+				$fields_test_provider_connection = array(
+					'id'         => "vpn_{$provider}_test_provider_connection",
+					'type'       => 'button',
+					'std'        => __( 'Test Connection', 'wpcd' ),
+					'desc'       => $ssh_test_connection_heading_desc,
+					'attributes' => array(
+						'class'         => 'wpcd-provider-test-provider-connection',
+						'data-action'   => 'wpcd_provider_test_provider_connection',
+						'data-nonce'    => wp_create_nonce( 'wpcd-test-provider-connection' ),
+						'data-provider' => $provider,
+					),
+					'tab'        => $tab_id,
+				);
+			} else {
+				$fields_test_provider_connection = array(
+					'type' => 'hidden',
+					'std'  => 'not used - empty because this provider does not support testing a provider connection.',
+					'tab'  => $tab_id,
+				);
+			}
 
 			/* First group of api fields */
 			$fields_part1 = array(
@@ -1304,6 +1375,9 @@ class WPCD_Settings {
 					'size'              => '60',
 					'tab'               => $tab_id,
 					'class'             => 'wpcd_settings_pass_toggle',
+					'attributes'        => array(
+						'spellcheck' => 'false',
+					),
 				),
 
 				array(
@@ -1314,10 +1388,14 @@ class WPCD_Settings {
 					'desc' => __( 'Your notes about this api key - optional', 'wpcd' ),
 					'tab'  => $tab_id,
 				),
+
+				$fields_test_provider_connection,
+
 				apply_filters(
 					"wpcd_cloud_provider_settings_after_api_{$provider}",
 					array(
-						'type' => 'divider',
+						'type' => 'hidden',
+						'std'  => 'not used - marker for filter after api key.',
 						'tab'  => $tab_id,
 					),
 					$tab_id
@@ -1343,14 +1421,19 @@ class WPCD_Settings {
 				);
 			}
 
+			$can_connect_to_provider = $this->wpcd_can_connect_to_provider( $provider );
+
 			/**
 			 * SSH Key fields.
 			 */
 			/* translators: %1: provider name. %2: provider name again. */
 			$ssh_keys_heading_desc = sprintf( __( 'For security, we only use public-private key pairs for server management. You must upload at least one public key to %1$s. Public keys that have been uploaded to %2$s\'s dashboard will show up in the drop-down below once your credentials above are configured and saved.<br /><br />You must click the SAVE SETTINGS at the bottom of this screen at least once after you enter your api key above in order for this list to populate. If the list continues to be blank, double-check that you have added at least one SSH key in your cloud provider\'s dashboard.', 'wpcd' ), $provider, $provider );
+			if ( WPCD()->get_provider_api( $provider )->get_feature_flag( 'ssh_create' ) ) {
+				$ssh_keys_heading_desc .= '<br /><br />' . __( 'Note: If you used the button above to automatically create keys and that operation was successful, you new keys should already be setup below. ', 'wpcd' );
+			}
 			$ssh_keys_heading_desc = apply_filters( "wpcd_cloud_provider_settings_ssh_keys_heading_desc_{$provider}", $ssh_keys_heading_desc );
 			$fields_part3          = array();
-			if ( ! $this->is_api_key_empty( $provider ) ) {
+			if ( ! $this->is_api_key_empty( $provider ) && $can_connect_to_provider ) {
 				$fields_part3 = array(
 					array(
 						'type' => 'heading',
@@ -1371,32 +1454,78 @@ class WPCD_Settings {
 					),
 				);
 
+				/**
+				 * Button to automatically create ssh keys.
+				 */
+				if ( WPCD()->get_provider_api( $provider )->get_feature_flag( 'ssh_create' ) && ! $this->is_api_key_empty( $provider ) ) {
+					$ssh_auto_create_keys_heading_desc  = __( 'SSH keys are critical for proper operation of this service.', 'wpcd' );
+					$ssh_auto_create_keys_heading_desc .= '<br />' . __( 'This provider can automatically create your SSH keys for you and submit them to your account.', 'wpcd' );
+					$ssh_auto_create_keys_heading_desc .= '<br />' . __( 'If you are not familiar with creating and managing keys or you would like a set of keys created for you, click the button below.', 'wpcd' );
+					$ssh_auto_create_keys_heading_desc .= '<br />' . __( 'However, it is important that you only do this if you have not already created servers with your own keys!', 'wpcd' );
+					$ssh_auto_create_keys_heading_desc .= '<br />' . __( 'Otherwise you could be locked out of your servers and your keys could be lost!', 'wpcd' );
+					$ssh_auto_create_keys_heading_desc .= '<br />' . __( 'If this operation is successful you should immediately make a copy of your private key which will be shown in the text boxes below. Store it in a safe place!', 'wpcd' );
+
+					$fields_auto_create_ssh_keys = array(
+						array(
+							'type' => 'heading',
+							'tab'  => $tab_id,
+							'name' => __( 'Automatically Create SSH Keys: STOP AND READ CAREFULLY!', 'wpcd' ),
+							'desc' => $ssh_auto_create_keys_heading_desc,
+						),
+
+						array(
+							'id'         => "vpn_{$provider}_auto_create_ssh_key",
+							'type'       => 'button',
+							'std'        => __( 'Create SSH Key-Pair', 'wpcd' ),
+							'attributes' => array(
+								'class'         => 'wpcd-provider-auto-create-ssh-key',
+								'data-action'   => 'wpcd_provider_auto_create_ssh_key',
+								'data-nonce'    => wp_create_nonce( 'wpcd-auto-create-ssh-key' ),
+								'data-provider' => $provider,
+							),
+							'tab'        => $tab_id,
+						),
+					);
+				} else {
+					$fields_auto_create_ssh_keys = array();
+				}
+
+				if ( ! empty( $fields_auto_create_ssh_keys ) ) {
+					$fields_part3 = array_merge( $fields_auto_create_ssh_keys, $fields_part3 );
+				}
+
 				$fields_part3 = apply_filters( "wpcd_cloud_provider_settings_after_part3_{$provider}", $fields_part3, $tab_id );
 			}
 
 			$fields_part4 = array();
-			if ( ! $this->is_api_key_empty( $provider ) ) {
+			if ( ! $this->is_api_key_empty( $provider ) && $can_connect_to_provider ) {
 				$private_keys_text_note = apply_filters( 'wpcd_cloud_provider_settings_important_private_key_notes', '<a href="https://wpclouddeploy.com/documentation/_notes/important-notes-about-private-ssh-keys/" target="_blank" >' . __( 'View important notes about private keys.', 'wpcd' ) . '</a>' );
 				$fields_part4           = array(
 					array(
-						'id'    => "vpn_{$provider}_sshkey",
-						'type'  => 'textarea',
-						'name'  => __( 'Private SSH Key', 'wpcd' ),
-						'rows'  => '10',
+						'id'         => "vpn_{$provider}_sshkey",
+						'type'       => 'textarea',
+						'name'       => __( 'Private SSH Key', 'wpcd' ),
+						'rows'       => '10',
 						/* Translators: 1. %s - A note about private keys */
-						'desc'  => apply_filters( 'wpcd_private_ssh_key_settings_desc', sprintf( __( 'Private key corresponding to the selected public key - it will be used to connect to the instance. The key will be encrypted when saved and decrypted when retrieved. Also, make sure that there are no spaces or extra lines entered at the end of the key-text.  %s', 'wpcd' ), $private_keys_text_note ) ),
-						'tab'   => $tab_id,
-						'class' => 'wpcd_settings_pass_toggle',
+						'desc'       => apply_filters( 'wpcd_private_ssh_key_settings_desc', sprintf( __( 'Private key corresponding to the selected public key - it will be used to connect to the instance. The key will be encrypted when saved and decrypted when retrieved. Also, make sure that there are no spaces or extra lines entered at the end of the key-text.  %s', 'wpcd' ), $private_keys_text_note ) ),
+						'tab'        => $tab_id,
+						'class'      => 'wpcd_settings_pass_toggle',
+						'attributes' => array(
+							'spellcheck' => 'false',
+						),
 					),
 
 					array(
-						'id'    => "vpn_{$provider}_sshkey_passwd",
-						'type'  => 'text',
-						'name'  => __( 'Private SSH Key Password', 'wpcd' ),
-						'size'  => '90',
-						'desc'  => sprintf( __( 'Password for the above private key. It will be encrypted on save and decrypted when retrieved.', 'wpcd' ), $name ) . '<br />' . __( 'If your private key does not have a password associated with it you can leave this blank.', 'wpcd' ) . '<br />' . __( 'Note: For keypairs generated on a MAC or on WSL, do NOT apply a password to your private key file!', 'wpcd' ),
-						'tab'   => $tab_id,
-						'class' => 'wpcd_settings_pass_toggle',
+						'id'         => "vpn_{$provider}_sshkey_passwd",
+						'type'       => 'text',
+						'name'       => __( 'Private SSH Key Password', 'wpcd' ),
+						'size'       => '90',
+						'desc'       => sprintf( __( 'Password for the above private key. It will be encrypted on save and decrypted when retrieved.', 'wpcd' ), $name ) . '<br />' . __( 'If your private key does not have a password associated with it you can leave this blank.', 'wpcd' ) . '<br />' . __( 'Note: For keypairs generated on a MAC or on WSL, do NOT apply a password to your private key file!', 'wpcd' ),
+						'tab'        => $tab_id,
+						'class'      => 'wpcd_settings_pass_toggle',
+						'attributes' => array(
+							'spellcheck' => 'false',
+						),
 					),
 
 					array(
@@ -1413,24 +1542,66 @@ class WPCD_Settings {
 
 			/* Sizes fields; Other optional Fields; */
 			$fields_part5 = array();
-			if ( ! $this->is_api_key_empty( $provider ) ) {
+			if ( ! $this->is_api_key_empty( $provider ) && $can_connect_to_provider ) {
+
+				// Custom images.
+				if ( WPCD()->get_provider_api( $provider )->get_feature_flag( 'custom_images' ) ) {
+					$fields_part5 = array_merge(
+						$fields_part5,
+						array(
+							array(
+								'type' => 'heading',
+								'tab'  => $tab_id,
+								'name' => __( 'Custom Snapshots & Images', 'wpcd' ),
+								'desc' => __( 'These snapshots can be used in place of the default OS images.  Please check our documentation for this provider to get more details on the limitations of using custom snapshots & custom images.', 'wpcd' ),
+							),
+							array(
+								'id'      => "vpn_{$provider}_ubuntu1804lts",
+								'type'    => 'text',
+								'name'    => __( 'Ubuntu 18.04', 'wpcd' ),
+								'desc'    => __( 'The custom snapshot, image or backup id to be used instead of the default Ubuntu 18.04 image.', 'wpcd' ),
+								'tooltip' => __( 'See our documentation for for more information about this item.', 'wpcd' ),
+								'tab'     => $tab_id,
+							),
+							array(
+								'id'      => "vpn_{$provider}_ubuntu2004lts",
+								'type'    => 'text',
+								'name'    => __( 'Ubuntu 20.04', 'wpcd' ),
+								'desc'    => __( 'The custom snapshot, image or backup id to be used instead of the default Ubuntu 20.04 image.', 'wpcd' ),
+								'tooltip' => __( 'See our documentation for for more information about this item.', 'wpcd' ),
+								'tab'     => $tab_id,
+							),
+							array(
+								'id'      => "vpn_{$provider}_ubuntu2204lts",
+								'type'    => 'text',
+								'name'    => __( 'Ubuntu 22.04', 'wpcd' ),
+								'desc'    => __( 'The custom snapshot, image or backup id to be used instead of the default Ubuntu 22.04 image.', 'wpcd' ),
+								'tooltip' => __( 'See our documentation for for more information about this item.', 'wpcd' ),
+								'tab'     => $tab_id,
+							),
+						),
+					);
+				}
 
 				// Backups?
 				if ( WPCD()->get_provider_api( $provider )->get_feature_flag( 'enable_backups_on_server_create' ) ) {
-					$fields_part5 = array(
+					$fields_part5 = array_merge(
+						$fields_part5,
 						array(
-							'id'   => "vpn_{$provider}_provider_backups",
-							'type' => 'heading',
-							'name' => __( 'Provider Backups', 'wpcd' ),
-							'tab'  => $tab_id,
-							'desc' => __( 'Set provider backup behavior if backups are supported.', 'wpcd' ),
-						),
-						array(
-							'id'      => "vpn_{$provider}_enable_provider_backups_on_server_create",
-							'type'    => 'checkbox',
-							'name'    => __( 'Enable Provider Backups', 'wpcd' ),
-							'tab'     => $tab_id,
-							'tooltip' => __( 'Enable automatic backups for every new server.', 'wpcd' ),
+							array(
+								'id'   => "vpn_{$provider}_provider_backups",
+								'type' => 'heading',
+								'name' => __( 'Provider Backups', 'wpcd' ),
+								'tab'  => $tab_id,
+								'desc' => __( 'Set provider backup behavior if backups are supported.', 'wpcd' ),
+							),
+							array(
+								'id'      => "vpn_{$provider}_enable_provider_backups_on_server_create",
+								'type'    => 'checkbox',
+								'name'    => __( 'Enable Provider Backups', 'wpcd' ),
+								'tab'     => $tab_id,
+								'tooltip' => __( 'Enable automatic backups for every new server.', 'wpcd' ),
+							),
 						),
 					);
 				}
@@ -1451,7 +1622,7 @@ class WPCD_Settings {
 								'id'      => "vpn_{$provider}_tags_on_server_create",
 								'type'    => 'text',
 								'name'    => __( 'Tag For New Servers', 'wpcd' ),
-								'desc'    => __( 'Note: Some providers require that you use tags that have already been defined while others allow you to set random/dynamic tgs.', 'wpcd' ),
+								'desc'    => __( 'Note: Some providers require that you use tags that have already been defined while others allow you to set random/dynamic tags.', 'wpcd' ),
 								'size'    => '30',
 								'tab'     => $tab_id,
 								'tooltip' => __( 'Apply this tag to every new server. If left blank, the tag will default to WPCD for providers that allow for dynamic/random tags.', 'wpcd' ),
@@ -1482,7 +1653,7 @@ class WPCD_Settings {
 			}
 
 			$fields_part6 = array();
-			if ( ! $this->is_api_key_empty( $provider ) ) {
+			if ( ! $this->is_api_key_empty( $provider ) && $can_connect_to_provider ) {
 
 				$fields_part6 = array(
 					array(
@@ -1505,7 +1676,7 @@ class WPCD_Settings {
 			}
 
 			$fields_part7 = array();
-			if ( ! $this->is_api_key_empty( $provider ) ) {
+			if ( ! $this->is_api_key_empty( $provider ) && $can_connect_to_provider ) {
 
 				// Get list of cached transients for this provider.
 				$cached_transient_list = WPCD()->get_provider_api( $provider )->get_cached_transient_list();
@@ -1748,7 +1919,7 @@ class WPCD_Settings {
 	public function enqueue_scripts( $hook ) {
 
 		// Enqueue the font-awesome pro kit.
-		wp_register_script( 'wpcd-fontawesome-pro', 'https://kit.fontawesome.com/4fa00a8874.js', array(), 5.0, true );
+		wp_register_script( 'wpcd-fontawesome-pro', 'https://kit.fontawesome.com/4fa00a8874.js', array(), 6.2, true );
 		wp_enqueue_script( 'wpcd-fontawesome-pro' );
 
 		// Enqueue some of our scripts.
@@ -1789,6 +1960,8 @@ class WPCD_Settings {
 
 	/**
 	 * Clear a provider's cache
+	 *
+	 * Action Hook: wp_ajax_wpcd_provider_clear_cache
 	 */
 	public function wpcd_provider_clear_cache() {
 
@@ -1805,7 +1978,7 @@ class WPCD_Settings {
 		}
 
 		// Extract the provider from the ajax request.
-		$provider = wp_kses( FILTER_INPUT( INPUT_POST, 'provider', FILTER_SANITIZE_STRING ), array() );
+		$provider = sanitize_text_field( FILTER_INPUT( INPUT_POST, 'provider', FILTER_DEFAULT ) );
 
 		// Call the clear cache function.
 		WPCD()->get_provider_api( $provider )->clear_cache();
@@ -1817,6 +1990,208 @@ class WPCD_Settings {
 
 		wp_send_json_success( $return );
 		wp_die();
+	}
+
+	/**
+	 * Automatically Create SSH Key at the provider.
+	 *
+	 * Action Hook: wp_ajax_wpcd_provider_auto_create_ssh_key
+	 */
+	public function wpcd_provider_auto_create_ssh_key() {
+
+		// nonce check.
+		check_ajax_referer( 'wpcd-auto-create-ssh-key', 'nonce' );
+
+		// Permissions check.
+		if ( ! wpcd_is_admin() ) {
+
+			$error_msg = array( 'msg' => __( 'You are not allowed to perform this action - only admins are permitted here.', 'wpcd' ) );
+			wp_send_json_error( $error_msg );
+			wp_die();
+
+		}
+
+		// Extract the provider from the ajax request.
+		$provider = sanitize_text_field( FILTER_INPUT( INPUT_POST, 'provider', FILTER_DEFAULT ) );
+
+		// Create key.
+		$key_pair                      = WPCD_WORDPRESS_APP()->ssh()->create_key_pair();
+		$attributes                    = array();
+		$attributes['public_key']      = $key_pair['public'];
+		$attributes['public_key_name'] = 'WPCD_AUTO_CREATE_' . wpcd_random_str( 10, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' );
+
+		// Call the ssh_create function.
+		$key_id = WPCD()->get_provider_api( $provider )->call( 'ssh_create', $attributes );
+
+		if ( is_array( $key_id ) && ( ! is_wp_error( $key_id ) ) && ( $key_id ) && ( ! empty( $key_id['ssh_key_id'] ) ) ) {
+
+			// Ok, we got this far. Save to our options array.
+			wpcd_set_option( "vpn_{$provider}_sshkey_id", $key_id['ssh_key_id'] );
+			wpcd_set_option( "vpn_{$provider}_sshkey", WPCD()->encrypt( $key_pair['private'] ) );
+			wpcd_set_option( "vpn_{$provider}_public_sshkey", $key_pair['public'] );
+			wpcd_set_option( "vpn_{$provider}_sshkeynotes", $attributes['public_key_name'] . ': ' . __( 'This key was automatically created.', 'wpcd' ) );
+
+			// Set success message.
+			$msg = __( 'The ssh key-pair has been created. This page will now refresh.', 'wpcd' );
+		} else {
+
+			// Failed.
+			$msg = __( 'The attempt to create an ssh key-pair was not successful.  Please try again and/or contact our support team. This page will now refresh.', 'wpcd' );
+
+		}
+
+		// Clear cache so that when the page refreshes we can get new data.
+		WPCD()->get_provider_api( $provider )->clear_cache();
+
+		$return = array( 'msg' => $msg );
+
+		wp_send_json_success( $return );
+		wp_die();
+	}
+
+	/**
+	 * Test connection to provider.
+	 *
+	 * Action Hook: wp_ajax_wpcd_provider_test_provider_connection
+	 *
+	 * Related functions: wpcd_can_connect_to_provider (below) and wpcd_get_last_test_connection_status (below)
+	 *
+	 * Changes to this might need to be reflected in our setup wizard code: /includes/core/class-wpcd-setup-wizard.
+	 */
+	public function wpcd_provider_test_provider_connection() {
+
+		// nonce check.
+		check_ajax_referer( 'wpcd-test-provider-connection', 'nonce' );
+
+		// Permissions check.
+		if ( ! wpcd_is_admin() ) {
+
+			$error_msg = array( 'msg' => __( 'You are not allowed to perform this action - only admins are permitted here.', 'wpcd' ) );
+			wp_send_json_error( $error_msg );
+			wp_die();
+
+		}
+
+		// Extract the provider from the ajax request.
+		$provider = sanitize_text_field( FILTER_INPUT( INPUT_POST, 'provider', FILTER_DEFAULT ) );
+
+		// Setup variables to be used by transient and then delete the existing one.
+		$apikey        = WPCD()->get_provider_api( $provider )->get_api_key();
+		$transient_key = 'wpcd_provider_connection_test_success_flag_' . $provider . hash( 'sha256', $apikey );
+		delete_transient( $transient_key );
+
+		// Call the test_connection function.
+		$attributes        = array();
+		$connection_status = WPCD()->get_provider_api( $provider )->call( 'test_connection', $attributes );
+
+		if ( true === $connection_status['test_status'] ) {
+
+			// Update transient.
+			set_transient( $transient_key, 'connection_successful', 86400 ); // Transient set to expire in 24 hours. Note we are not using a boolean for this transient for good reason.
+
+			// Set success message.
+			$msg = __( 'The connection was successful.', 'wpcd' );
+
+		} else {
+
+			// Failed.
+			$msg = __( 'The attempt to connect to your provider with the api keys provided was unsuccessful.  Please try again and/or contact our support team. This page will now refresh.', 'wpcd' );
+
+		}
+
+		// Clear cache so that when the page refreshes we can get new data.
+		WPCD()->get_provider_api( $provider )->clear_cache();
+
+		$return = array( 'msg' => $msg );
+
+		wp_send_json_success( $return );
+		wp_die();
+	}
+
+	/**
+	 * Can we connect to the provider?
+	 *
+	 * Related functions: wpcd_provider_test_provider_connection (above) and wpcd_get_last_test_connection_status (below)
+	 *
+	 * @param string $provider The provider slug.
+	 *
+	 * @return boolean.
+	 */
+	public function wpcd_can_connect_to_provider( $provider ) {
+
+		$return = false;
+
+		if ( WPCD()->get_provider_api( $provider )->get_feature_flag( 'test_connection' ) ) {
+
+			// See if transient is already set.
+			$apikey           = WPCD()->get_provider_api( $provider )->get_api_key();
+			$transient_key    = 'wpcd_provider_connection_test_success_flag_' . $provider . hash( 'sha256', $apikey );
+			$transient_status = get_transient( $transient_key );
+
+			if ( 'connection_successful' === $transient_status ) {
+				$return = true;
+			} else {
+				if ( ! $transient_status ) {
+					// Transient does not exist so check for connection and then update the transient if successful.
+					$attributes        = array();
+					$connection_status = WPCD()->get_provider_api( $provider )->call( 'test_connection', $attributes );
+
+					if ( ! is_wp_error( $connection_status ) && ! empty( $connection_status['test_status'] ) ) {
+						if ( true === (bool) $connection_status['test_status'] ) {
+							$return = true;
+							set_transient( $transient_key, 'connection_successful', 86400 ); // Transient set to expire in 24 hours. Note we are not using a boolean for this transient for good reason.
+						}
+					} else {
+						$return = false;
+					}
+
+					/**
+					 * Clear cache so that when the page refreshes we can get new data.
+					 * We need to be careful where we place this call otherwise the cache
+					 * can be inadvertently cleared for all providers everytime we load up
+					 * or refresh settings page
+					 */
+					WPCD()->get_provider_api( $provider )->clear_cache();
+
+				}
+			}
+		} else {
+			$return = true;  // If the provider does not have the ability to test a connection, always return true.
+		}
+
+		return $return;
+
+	}
+
+	/**
+	 * What was the result of the last attempt to connect to the provider?
+	 *
+	 * @param string $provider The provider slug.
+	 *
+	 * @return boolean.
+	 */
+	public function wpcd_get_last_test_connection_status( $provider ) {
+
+		$return = false;
+
+		if ( WPCD()->get_provider_api( $provider )->get_feature_flag( 'test_connection' ) ) {
+
+			// See if transient is already set.
+			$apikey           = WPCD()->get_provider_api( $provider )->get_api_key();
+			$transient_key    = 'wpcd_provider_connection_test_success_flag_' . $provider . hash( 'sha256', $apikey );
+			$transient_status = get_transient( $transient_key );
+
+			if ( 'connection_successful' === $transient_status ) {
+				$return = true;
+			} else {
+				$return = false;
+			}
+		} else {
+			$return = false;
+		}
+
+		return $return;
+
 	}
 
 	/**
@@ -1864,7 +2239,7 @@ class WPCD_Settings {
 	 * @param string $old old value of field.
 	 * @param int    $object_id the metabox object id.
 	 */
-	public function check_license( $not_used = null, $field, $new, $old, $object_id ) {
+	public function check_license( $not_used, $field, $new, $old, $object_id ) {
 		if ( true === is_admin() ) {
 
 			/* Is the field a license field for the core plugin? If so, check licenses for the core plugin. */
@@ -1916,7 +2291,7 @@ class WPCD_Settings {
 	 * @param string $old old value of field.
 	 * @param int    $object_id the metabox object id.
 	 */
-	public function handle_wisdom_opt_out( $not_used = null, $field, $new, $old, $object_id ) {
+	public function handle_wisdom_opt_out( $not_used, $field, $new, $old, $object_id ) {
 		if ( true === is_admin() ) {
 			/* Did the user enable the opt-out flag? */
 			if ( 'wpcd_wisdom_opt_out' === $field['id'] ) {
@@ -1961,11 +2336,14 @@ class WPCD_Settings {
 			if ( ! empty( $item ) ) {
 				foreach ( $item as $item_id => $item_name ) {
 					$fields[] = array(
-						'name' => "{$item_name['name']}",
-						'id'   => "wpcd_item_license_$item_id",
-						'type' => 'text',
-						'size' => 40,
-						'desc' => empty( wpcd_get_early_option( "wpcd_item_license_$item_id" ) ) ? __( 'Please enter your license key for this item.', 'wpcd' ) : get_transient( "wpcd_license_notes_for_$item_id" ) . '<br />' . get_transient( "wpcd_license_updates_for_$item_id" ),
+						'name'       => "{$item_name['name']}",
+						'id'         => "wpcd_item_license_$item_id",
+						'type'       => 'text',
+						'size'       => 40,
+						'desc'       => empty( wpcd_get_early_option( "wpcd_item_license_$item_id" ) ) ? __( 'Please enter your license key for this item.', 'wpcd' ) : get_transient( "wpcd_license_notes_for_$item_id" ) . '<br />' . get_transient( "wpcd_license_updates_for_$item_id" ),
+						'attributes' => array(
+							'spellcheck' => 'false',
+						),
 					);
 				}
 			}
@@ -2112,7 +2490,7 @@ class WPCD_Settings {
 					<label for="wpcd_encryption_key_v2">Encryption Key From Origin Site</label>
 				</div>
 				
-				<div class="rwmb-input"><input size="60" value="' . $wpcd_encryption_key_v2 . '" type="text" id="wpcd_encryption_key_v2" class="rwmb-text valid" name="wpcd_encryption_key_v2" aria-invalid="false"></div></div>
+				<div class="rwmb-input"><input size="60" value="' . $wpcd_encryption_key_v2 . '" type="text" id="wpcd_encryption_key_v2" class="rwmb-text valid" name="wpcd_encryption_key_v2" spellcheck="false" aria-invalid="false"></div></div>
 
 				<div class="rwmb-field rwmb-button-wrapper"><div class="rwmb-input"><button type="button" id="wpcd-encryption-key-save" class="rwmb-button button hide-if-no-js" data-action="wpcd_encryption_key_save" data-nonce="' . wp_create_nonce( 'wpcd-encryption-key-save' ) . '">Save</button></div></div>';
 
@@ -2202,6 +2580,16 @@ class WPCD_Settings {
 		$wpcd_settings['wordpress_app_medium_background_color']           = WPCD_MEDIUM_BG_COLOR;
 		$wpcd_settings['wordpress_app_light_background_color']            = WPCD_LIGHT_BG_COLOR;
 		$wpcd_settings['wordpress_app_alternate_accent_background_color'] = WPCD_ALTERNATE_ACCENT_BG_COLOR;
+
+		$wpcd_settings['wordpress_app_fe_primary_brand_color']               = WPCD_FE_PRIMARY_BRAND_COLOR;
+		$wpcd_settings['wordpress_app_fe_secondary_brand_color']             = WPCD_FE_SECONDARY_BRAND_COLOR;
+		$wpcd_settings['wordpress_app_fe_tertiary_brand_color']              = WPCD_FE_TERTIARY_BRAND_COLOR;
+		$wpcd_settings['wordpress_app_fe_accent_background_color']           = WPCD_FE_ACCENT_BG_COLOR;
+		$wpcd_settings['wordpress_app_fe_medium_background_color']           = WPCD_FE_MEDIUM_BG_COLOR;
+		$wpcd_settings['wordpress_app_fe_light_background_color']            = WPCD_FE_LIGHT_BG_COLOR;
+		$wpcd_settings['wordpress_app_fe_alternate_accent_background_color'] = WPCD_FE_ALTERNATE_ACCENT_BG_COLOR;
+		$wpcd_settings['wordpress_app_fe_positive_color']                    = WPCD_FE_POSITIVE_COLOR;
+		$wpcd_settings['wordpress_app_fe_negative_color']                    = WPCD_FE_NEGATIVE_COLOR;
 
 		// Update the settings options.
 		update_option( 'wpcd_settings', $wpcd_settings );

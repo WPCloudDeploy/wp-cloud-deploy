@@ -24,7 +24,7 @@ class CLOUD_PROVIDER_API_DigitalOcean_Parent extends CLOUD_PROVIDER_API {
 	 * If no other logic is provided to choose an image, this will
 	 * generally be the one choosen.
 	 */
-	const _IMAGE = 'ubuntu-18-04-x64';
+	const _IMAGE = 'ubuntu-20-04-x64';
 
 	/**
 	 * A text string with the cloud provider's api key.
@@ -51,6 +51,12 @@ class CLOUD_PROVIDER_API_DigitalOcean_Parent extends CLOUD_PROVIDER_API {
 		/* Set link to cloud provider's user dashboard */
 		$this->set_provider_dashboard_link( 'https://cloud.digitalocean.com/account/api/tokens' );
 
+		/* Set flag to indicate that this provider supports creating ssh keys */
+		$this->set_feature_flag( 'ssh_create', true );
+
+		/* Set flag to indicate that this provider supports testing connections to it. */
+		$this->set_feature_flag( 'test_connection', true );
+
 		/* Set flag that indicates we will support snapshots */
 		$this->set_feature_flag( 'snapshots', true );
 		$this->set_feature_flag( 'snapshot-delete', false );  // We can't support this in DigitalOcean because the create snapshot api or subsequent endpoints do not actually return the snapshot ID.
@@ -72,7 +78,7 @@ class CLOUD_PROVIDER_API_DigitalOcean_Parent extends CLOUD_PROVIDER_API {
 		$provider = $this->get_provider_slug();
 		add_filter( "wpcd_cloud_provider_settings_api_key_label_desc_{$provider}", array( $this, 'set_link_to_provider_dashboard' ) );
 
-		// Run cron to auto start server after resize
+		/* Run cron to auto start server after resize */
 		add_action( 'wpcd_' . $this->get_provider_slug() . '_auto_start_after_resize_cron', array( $this, 'doAutoStartServer' ), 10 );
 
 	}
@@ -108,6 +114,8 @@ class CLOUD_PROVIDER_API_DigitalOcean_Parent extends CLOUD_PROVIDER_API {
 					return 'ubuntu-18-04-x64';  // no break statement needed after this since we're returning out of the function.
 				case 'ubuntu2004lts':
 					return 'ubuntu-20-04-x64';  // no break statement needed after this since we're returning out of the function.
+				case 'ubuntu2204lts':
+					return 'ubuntu-22-04-x64';  // no break statement needed after this since we're returning out of the function.
 				default:
 					return self::_IMAGE;
 			}
@@ -177,6 +185,7 @@ class CLOUD_PROVIDER_API_DigitalOcean_Parent extends CLOUD_PROVIDER_API {
 		$run_cmd  = '';
 		switch ( $method ) {
 			case 'sizes':
+				$endpoint = 'sizes' . '?page=1&per_page=200';
 				break;
 			case 'keys':
 				$endpoint = 'account/keys';
@@ -303,6 +312,19 @@ runcmd:
 					"type": "resize", "size":"' . $attributes['new_size'] . '"
 				}';
 				break;
+			case 'ssh_create':
+				$endpoint       = 'account/keys';
+				$action         = 'POST';
+				$ssh_key_name   = $attributes['public_key_name'];
+				$new_public_key = $attributes['public_key'];
+				$body           = '{
+					"public_key": "' . $new_public_key . '", 
+					"name": "' . $ssh_key_name . '"
+				}';
+				break;
+			case 'test_connection':
+				$endpoint = 'regions'; // If we can get a set of regions we've probably got a good connection.
+				break;
 			default:
 				return new WP_Error( 'not supported' );
 		}
@@ -319,6 +341,33 @@ runcmd:
 				'body'    => $body,
 			)
 		);
+
+		/* Check for errors after execution and retry once more after sleeping if certain types of errors */
+		if ( is_wp_error( $response ) || ( ! in_array( intval( $response['response']['code'] ), array( 200, 201, 202, 204, 302, 301 ) ) ) ) {
+
+			if ( in_array( $method, array( 'details', 'status', 'test_connection' ), true ) ) {
+				// phpcs:ignore
+				do_action( 'wpcd_log_error', "$method with " . print_r( $attributes, true ) . ' gives error response - trying again. Response is = ' . print_r( $response, true ), 'error', __FILE__, __LINE__ ); //PHPcs warning normally issued because of print_r
+
+				// Wait 6 seconds.
+				sleep( 6 );
+
+				// Retry.
+				$response = wp_remote_request(
+					self::_URL . $endpoint,
+					array(
+						'method'  => $action,
+						'headers' => array(
+							'Content-Type'  => 'application/json',
+							'Authorization' => 'Bearer ' . $this->api_key,
+						),
+						'body'    => $body,
+					)
+				);
+
+			}
+		}
+		/* End retry if necessary. */
 
 		// phpcs:ignore
 		do_action( 'wpcd_log_error', "$method with " . print_r( $attributes, true ) . " with $body", 'debug', __FILE__, __LINE__ ); //PHPcs warning normally issued because of print_r
@@ -346,7 +395,8 @@ runcmd:
 		switch ( $method ) {
 			case 'sizes':
 				foreach ( $body->sizes as $size ) {
-					if ( 1 === (int) $size->available ) {
+					// Make sure size is available and that it's not one of the smaller sizes (512MB RAM) before adding it to the return array.
+					if ( 1 === (int) $size->available && ( false === strpos( $size->slug, '512mb' ) ) ) {
 						/* translators: %1$s is the digital ocean slug/plan description. Hopefully the remaining replacements are self-explanatory - they all refer to various aspects of the digital ocean plan. */
 						$return[ $size->slug ] = sprintf( __( '%1$s (%2$d CPUs, %3$d MB RAM, %4$d GB SSD, $%5$d per month USD, %6$d TB data transfer/month)', 'wpcd' ), $size->slug, $size->vcpus, $size->memory, $size->disk, $size->price_monthly, $size->transfer );
 					}
@@ -457,6 +507,16 @@ runcmd:
 				$return['name']   = $body->droplet->name;
 				$return['status'] = $body->droplet->status;
 				break;
+			case 'ssh_create':
+				$return['ssh_key_id'] = $body->ssh_key->id;
+				break;
+			case 'test_connection':
+				if ( ! empty( $body->regions ) ) {
+					$return['test_status'] = true;
+				} else {
+					$return['test_status'] = false;
+				}
+				break;
 			case 'action':
 				/* We are not using this endpoint right now. */
 				break;
@@ -479,12 +539,16 @@ runcmd:
 	 */
 	public function get_ipv4_from_body( $body ) {
 
-		if ( 'public' == $return['ip'] = $body->droplet->networks->v4[0]->type ) {
-			return $body->droplet->networks->v4[0]->ip_address;
+		if ( ! empty( $body->droplet->networks->v4[0] ) ) {
+			if ( 'public' == $return['ip'] = $body->droplet->networks->v4[0]->type ) {
+				return $body->droplet->networks->v4[0]->ip_address;
+			}
 		}
 
-		if ( 'public' == $return['ip'] = $body->droplet->networks->v4[1]->type ) {
-			return $body->droplet->networks->v4[1]->ip_address;
+		if ( ! empty( $body->droplet->networks->v4[1] ) ) {
+			if ( 'public' == $return['ip'] = $body->droplet->networks->v4[1]->type ) {
+				return $body->droplet->networks->v4[1]->ip_address;
+			}
 		}
 
 		return 'error-no-ip-found';

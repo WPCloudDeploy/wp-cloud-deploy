@@ -1,67 +1,70 @@
 #!/bin/bash
-if [[ "$EUID" -ne 0 ]]; then
+if [[ "$EUID" -ne 0 ]]
+then
 	echo "Sorry, you need to run this as root"
 	exit
 fi
 
 
-while [[ -z $action ]]; do
-    echo
-    echo "What do you want to do?"
-    echo
-    echo "   1) Setup Email Gateway"
-    echo "   2) Send Test Email"
+while [[ -z $action ]]
+do
+	echo
+	echo "What do you want to do?"
+	echo
+	echo "   1) Setup Email Gateway"
+	echo "   2) Send Test Email"
 	echo "   3) Remove Email Gateway"
-    read -p "Action: " action
-    until [[ -z "$action" || "$action" =~ ^[1-3]$ ]]; do
-    	echo "$action: invalid selection."
-    	read -p "Action: " action
-    done
+	read -p "Action: " action
+	until [[ -z "$action" || "$action" =~ ^[1-3]$ ]]
+	do
+		echo "$action: invalid selection."
+		read -p "Action: " action
+	done
 done
 
-if [[ $action == "setup_email" || $action == "1" ]]; then
 
-    if [[ -z $smtp_server ]]; then
-        clear
-        echo "This script will set up an outgoing email gateway for the server
+if [[ $action == "setup_email" || $action == "1" ]]
+then
+	if [[ -z $smtp_server ]]
+	then
+		clear
+		echo "This script will set up an outgoing email gateway for the server
+		Specify the SMTP server and port separated by a colon. The SMTP server needs to support TLS.
+		Example: smtp.sendgrid.net:587"
+		read -p "SMTP server: " smtp_server
+	fi
+	if [[ -z $smtp_user ]]
+	then
+		echo
+		echo "Specify the SMTP user name for authentication"
+		read -p "SMTP user: " smtp_user
+	fi
+	if [[ -z $smtp_pass ]]
+	then
+		echo
+		echo "Specify the SMTP password"
+		read -p "SMTP password: " smtp_pass
+	fi
+	if [[ -z $domain ]]
+	then
+		echo
+		echo "Specify the default domain where mail should come from
+		Example: myblog.com"
+		read -p "Domain: " domain
+	fi
+	if [[ -z $hostname1 ]]
+	then
+		echo
+		echo "Specify a FQDN used by this server
+		Some SMTP servers will require a working FQDN, so try to specify a valid domain name
+		Example: server1.myblog.com"
+		read -p "Hostname: " hostname1
+	fi
 
-Specify the SMTP server and port separated by a colon. The SMTP server needs to support TLS.
-Example: smtp.sendgrid.net:587"
-        read -p "SMTP server: " smtp_server
-    fi
+	apt-get update
+	apt-get install ssmtp -y
 
-    if [[ -z $smtp_user ]]; then
-        echo
-        echo "Specify the SMTP user name for authentication"
-        read -p "SMTP user: " smtp_user
-    fi
-
-    if [[ -z $smtp_pass ]]; then
-        echo
-        echo "Specify the SMTP password"
-        read -p "SMTP password: " smtp_pass
-    fi
-
-    if [[ -z $domain ]]; then
-        echo
-        echo "Specify the default domain where mail should come from
-Example: myblog.com"
-        read -p "Domain: " domain
-    fi
-
-    if [[ -z $hostname1 ]]; then
-        echo
-        echo "Specify a FQDN used by this server
-Some SMTP servers will require a working FQDN, so try to specify a valid domain name
-Example: server1.myblog.com"
-        read -p "Hostname: " hostname1
-    fi
-
-
-    apt-get update
-    apt-get install ssmtp -y
-
-    echo "mailhub=$smtp_server
+	echo "mailhub=$smtp_server
 rewriteDomain=$domain
 hostname=$hostname1
 FromLineOverride=YES
@@ -71,54 +74,53 @@ AuthUser=$smtp_user
 AuthPass=$smtp_pass
 AuthMethod=LOGIN" > /etc/ssmtp/ssmtp.conf
 
-    echo
-    echo "The email gateway has now been configured!"
-    exit
+	echo
+	echo "The email gateway has now been configured!"
+	exit
 fi
 
 
-if [[ $action == "test_email" || $action == "2" ]]; then
+if [[ $action == "test_email" || $action == "2" ]]
+then
+	if [[ -z $from ]]
+	then
+		echo
+		echo "Specify the origin email address
+		Example: noreply@myblog.com"
+		read -p "From: " from
+	fi
 
-    if [[ -z $from ]]; then
-        echo
-        echo "Specify the origin email address
-Example: noreply@myblog.com"
-        read -p "From: " from
-    fi
+	if [[ -z $to ]]
+	then
+		echo
+		echo "Specify the destination email address"
+		read -p "To: " to
+	fi
 
-    if [[ -z $to ]]; then
-        echo
-        echo "Specify the destination email address"
-        read -p "To: " to
-    fi
+	apt-get install mailutils -y
+	echo "This is a test email from your WordPress server email gateway.  If you received this then your email gateway is successfully configured and you are ready to send emails from your WordPress site without a dedicated email plugin!" | mail -a "From: $from" -s "Test" "$to"
 
-    apt-get install mailutils -y
-
-    echo "This is a test email from your WordPress server email gateway.  If you received this then your email gateway is successfully configured and you are ready to send emails from your WordPress site without a dedicated email plugin!" | mail -a "From: $from" -s "Test" "$to"
-
-    result=$?
-    if [ $result -eq 0 ]; then
-        echo "Test email has been sent. Check your inbox."
-    else
-        echo "Test email sending attempt has failed."
-    fi
-
-    exit
-
+	result=$?
+	if [ $result -eq 0 ]
+	then
+		echo "Test email has been sent. Check your inbox."
+	else
+		echo "Test email sending attempt has failed."
+	fi
+	exit
 fi
 
-if [[ $action == "remove_email_gateway" || $action == "3" ]]; then
 
+if [[ $action == "remove_email_gateway" || $action == "3" ]]
+then
 	apt-get remove mailutils -y
-    apt-get remove ssmtp -y
-
-    result=$?
-    if [ $result -eq 0 ]; then
-        echo "Email gateway successfully removed."
-    else
-        echo "Removal of email gateway failed."
-    fi
-	
-    exit
-
+	apt-get remove ssmtp -y
+	result=$?
+	if [ $result -eq 0 ]
+	then
+		echo "Email gateway successfully removed."
+	else
+		echo "Removal of email gateway failed."
+	fi
+	exit
 fi

@@ -6,9 +6,9 @@
 
 The plugin makes it easy to deploy servers at well-known providers such as DigitalOcean, AWS and more.  However, the core plugin only includes support for DigitalOcean.
 
-You can add additional support for EC2, LIGHTSAIL, LINODE, VULTR, UPCLOUD, HETZNER, EXOSCALE, GOOGLE, AZURE and ALIBABA by [purchasing a premium subscription](https://wpclouddeploy.com/pricing/). 
+**It is primarily used to install and manage WordPress servers and applications.** 
 
-**It is primarily used to install and manage WordPress servers and applications.** But it also includes sample apps for just basic servers (i.e., servers with no additional apps) and OpenVPN servers.
+![WPCloudDeploy Dashboard](https://wpclouddeploy.com/wp-content/uploads/2022/04/wpcd-v4-095.png)
 
 Its extensible model allow developers to add new apps in the future.
 
@@ -16,13 +16,27 @@ All management features are available inside of wp-admin on your WordPress site.
 
 [View a full list of WordPress-focused features](https://wpclouddeploy.com/features/)
 
-## Getting Started ##
+![WPCloudDeploy Dashboard on The Front End For Clients](https://wpclouddeploy.com/wp-content/uploads/2022/06/wpcd-front-end-04.png)
 
-Download the zip file from this site and install it like you would any other WordPress plugin.
+## Getting Started: The Easier Way ##
+
+You can get a rapid start by using the [pre-configured droplet at digital ocean.](https://marketplace.digitalocean.com/apps/wpclouddeploy)
+
+Just deploy the droplet, login with your ssh credentials and follow the instructions to setup your domain and other info.
+
+Then follow the [getting started documentation on the WPCloudDeploy site](https://wpclouddeploy.com/documentation/wpcloud-deploy/introduction-to-wpcloud-deploy/).
+
+These instructions will help you create ssh keys, api keys and connect to your account at DigitalOcean.
+
+## Getting Started: The Less Easier Way ##
+
+Alternatively, you can download the zip file from here and install it like you would any other WordPress plugin. You will need to tweak your webserver so check out [the pre-requisites](https://wpclouddeploy.com/documentation/wpcloud-deploy/requirements/) before going down this road.
 
 Then, to install WordPress servers and sites, follow the [getting started documentation on the WPCloudDeploy site](https://wpclouddeploy.com/documentation/wpcloud-deploy/introduction-to-wpcloud-deploy/)
 
-Also, please make sure you [sign up for our notifications](https://wpclouddeploy.com/mailpoet-group/basic-subscription-form/) so that you can be notified of project updates.
+## Notifications and Updates ##
+
+Please consider [signing up for our notifications](https://wpclouddeploy.com/mailpoet-group/basic-subscription-form/) so that you can be notified of project updates.
 
 ## Documentation ##
 
@@ -37,9 +51,10 @@ Full documentation is located on the WPCloudDeploy website.
 Features of the plugin include:
 
 * APP: WordPress - **EXTENSIVE** support for deploying and managing WordPress servers and sites from inside the WordPress admin dashboard. This is the primary app type that this plugin supports.  
-* APP: OpenVPN - includes front-end purchase and management.
 * Integrated DigitalOcean Cloud Provider.
-* Extensible server provider model supports EC2, LIGHTSAIL, LINODE, VULTR, UPCLOUD, HETZNER, EXOSCALE and other cloud providers via additional plugins.
+* Extensible server provider model supports EC2, LIGHTSAIL, LINODE, VULTR, UPCLOUD, HETZNER, EXOSCALE and other public and private cloud providers via additional plugins.
+* Extra App: OpenVPN - includes front-end purchase and management. This helps developers to see how multiple apps can potentially co-exist inside the framework.
+* Extra App: Basic Server - deploy simple servers with no additional apps pre-installed. This helps developers to see how multiple apps can potentially co-exist inside the framework.
 
 ## Roadmap ##
 
@@ -47,7 +62,7 @@ Features of the plugin include:
 
 ## Requirements ##
 * WordPress 5.6 or later
-* PHP 7.4 (8.x is not yet supported primarily because many server provider PHP API wrappers and some of our PHP dependencies do not support it (yet).)
+* PHP 7.4 or higher (For certain premium modules 8.x will throw warning errors.  This is because the server providers have not fully updated or debugged their PHP api wrappers for 8.x)
 
 Once the plugin is installed please view additional changes required to PHP and web server execution timeout values under the WPCLOUDDEPLOY->SETTINGS->GENERAL SETTINGS tab.
 You can also view all requirements at the bottom of our [getting started documentation](https://wpclouddeploy.com/documentation/wpcloud-deploy/introduction-to-wpcloud-deploy/) or in the [requirements documentation](https://wpclouddeploy.com/documentation/wpcloud-deploy/requirements/)
@@ -66,6 +81,7 @@ A premium version of this plugin is available on the WPCloudDeploy website.  You
 
 Premium features include:
 
+* Support for additional cloud providers: EC2, LIGHTSAIL, LINODE, VULTR, UPCLOUD, HETZNER, EXOSCALE, GOOGLE, AZURE and ALIBABA
 * WP Multisite support
 * REDIS support for WP
 * Bring your own server
@@ -75,6 +91,8 @@ Premium features include:
 * Server Sync
 * Support for additional cloud server providers: EC2, LIGHTSAIL, LINODE, VULTR, UPCLOUD, HETZNER, EXOSCALE, GOOGLE, AZURE and ALIBABA
 * Powertools which include features such as summary dashboards and charts, periodic server snapshots and more.
+
+[Purchase a premium subscription](https://wpclouddeploy.com/pricing/). 
 
 ## Creating Extensions ##
 
@@ -106,6 +124,34 @@ Note: Even though the entire git development history isn't available on github, 
 [Friendly Release Notes](https://wpclouddeploy.com/category/release-notes/)
 
 ## Change Log ##
+5.0.0
+------
+* New: WPAPP - Front-end UI and related shortcodes.
+* New: WPAPP - Support for OpenLiteSpeed.
+* New: WPAPP - Admin lock for sites.
+* New: WPAPP - Preliminary support for Ubuntu 22.04 LTS.
+* New: WPAPP - Auto-create SSH Key Pair for DigitalOcean and other selected providers.
+* New: WPAPP - Add a TEST button in the providers setting area to validate the apikey entered for DigitalOcean (and certain other selected providers) before allowing other fields to show.
+* New: WPAPP - File Manager per site.
+* New: WPAPP - Allow the admin to curate the list of WP versions shown to customers and other users who create sites.
+* New: WPAPP - Send email to wpcd site admin when a pending task has been running for more than 15 minutes.
+* New: WPAPP - Click-to-copy IP address to clipboard.  Same with PHPMyAdmin and FileManager Userid/password.
+* New: WPAPP - You can now backup to S3 compatible endpoints.  We've tested with DigitalOcean spaces and backblaze.
+* New: WPAPP - You can now easily set the WP database to one located on a remote server.
+* New: WPAPP - An optional, better way of triggering our WP cron processes.
+* Tweak: WPAPP - Remove extraneous text from certain tabs.
+* Tweak: WPAPP - When a manual backup is run we now automatically refresh the backup listing.
+* Tweak: WPAPP - Do not show the option to clear the page cache if it has not been installed.
+* Tweak: WPAPP - Option to not show each OS when creating a server (helps if you only want to support the most recent or a particular OS version.)
+* Tweak: WPAPP - Exclude servers with 512MB RAM from the server sizes list for the DigitalOcean provider.
+* Fix: WPAPP - Redirect rules were not being deleted in our database even when deleted on the site.
+* Fix: WPAPP - Attempt to detect when we were unable to get an SSL certificate during the domain change process and toggle the SSL meta to reflect that.
+* Fix: WPAPP - Server statistics tab would throw silent errors if statistics were never collected.
+* Fix: Show more options for DigitalOcean server sizes.
+* Dev: WPAPP - Filter for the valid list of WP versions - wpcd_allowed_wp_versions
+* Dev: WPAPP - Filter to allow other processes to add classes to individual rows on the front-end/public pages - wpcd_public_table_single_row
+* Dev: PHP 8.0/8.1 support for core - only applies to certain providers that have enabled PHP 8.x support for their PHP API wrappers.
+
 4.16.7
 ------
 * Hotfix: License check needs to handle the updated data type being returned from the EDD server.
@@ -114,7 +160,7 @@ Note: Even though the entire git development history isn't available on github, 
 ------
 * New: WPAPP - Add option to filter server list based on whether the server needs to be restarted.
 * Tweak: WPAPP - Hide certain backup fields when backups are enabled - applies to both the backup tab on servers and sites.
-* Fix: WPAPP - Copy to server would result in missing linux users on the target server in certain edge cases (another edge case).
+* Fix: WPAPP - Copy to server (aka site-sync) would result in missing Linux users on the target server in certain edge cases (yet another edge case).
 
 4.16.5
 ------
@@ -904,6 +950,17 @@ Skipped.
 * Select2 (assets/js)
 * magnific-popup (assets/js, assets/css)
 
+## Contributing
+ * [elindydotcom](https://github.com/elindydotcom): Project Manager
+ * [Bhargav Bhanderi](https://github.com/bhargavcreolestudios)
+ * [Muhammad Tahir Nazir](https://github.com/tahir1235)
+ * [wpjohnny](https://github.com/wpjohnny)
+ * [Michael Ramsey](https://github.com/meramsey)
+ * [Sidney Andrews](https://github.com/osidney)
+ * [Vlad Olaru](https://github.com/vladolaru)
+ * [Kevin Shenk](https://github.com/batonac)
+ 
+  
 ### Running the test suite
 
 1. Set up a localhost MySQL database with the credentials defined in `wp-tests-config.php`.

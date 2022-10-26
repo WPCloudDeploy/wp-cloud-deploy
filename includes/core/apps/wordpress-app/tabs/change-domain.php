@@ -81,13 +81,24 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 					);
 					wp_update_post( $post_data );
 
+					// Maybe update the SSL meta.			
+					$this->set_ssl_status( $id, 'off' ); // Assume off for now.
+					$success = $this->is_ssh_successful( $logs, 'manage_https.txt' );  // ***Very important Note: We didn't actually run the manage_https script.  We are just using the check logic for it to see if the same keyword output is in the clone site output since we are using the same keywords for both scripts.
+					if ( true == $success ) {
+						$this->set_ssl_status( $id, 'on' );
+					}
+					// This block not necessary, just a failsafe.
+					if ( strpos( $logs, 'All challenges have failed' ) !== false ) {
+						$this->set_ssl_status( $id, 'off' );
+					}
+
 					// Wrapup - let things hook in here - primarily the multisite and WC add-ons.
 					do_action( "wpcd_{$this->get_app_name()}_site_change_domain_completed", $id, $old_domain, $new_domain, $name );
 
 				}
 
-					// And delete the temporary meta.
-					delete_post_meta( $id, 'wpapp_domain_change_new_target_domain' );
+				// And delete the temporary meta.
+				delete_post_meta( $id, 'wpapp_domain_change_new_target_domain' );
 			} else {
 				// Add action hook to indicate failure...
 				$message = __( 'Change domain command failed - check the command logs for more information.', 'wpcd' );
@@ -142,6 +153,11 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 	 * @return boolean
 	 */
 	public function get_tab_security( $id ) {
+		// If admin has an admin lock in place and the user is not admin they cannot view the tab or perform actions on them.
+		if ( $this->get_admin_lock_status( $id ) && ! wpcd_is_admin() ) {
+			return false;
+		}
+		// If we got here then check team and other permissions.
 		return ( true === $this->wpcd_wpapp_site_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_site_tab( $id, $this->get_tab_slug() ) );
 	}
 
@@ -288,7 +304,7 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 
 		// Disable the ssl flag on the cpt - user can turn it on manually later.
 		// Note that it will be disabled even if there is an SSL certificate already issued.
-		update_post_meta( $id, 'wpapp_ssl_status', 'off' );
+		$this->set_ssl_status( $id, 'off' );
 
 		// If domain not set on the CPT , let user know.
 		if ( ! $set_cpt ) {
@@ -582,9 +598,12 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 			return array_merge( $fields, $this->get_disabled_header_field( 'change-domain' ) );
 		}
 
-		// Get HTTP2 status since we cannot change domain with HTTP2 turned on.
+		// What type of web server are we running?
+		$webserver_type = $this->get_web_server_type( $id );
+
+		// Get HTTP2 status since we cannot change domain with HTTP2 turned on for NGINX.
 		$http2_status = $this->http2_status( $id );
-		if ( 'on' === $http2_status ) {
+		if ( 'on' === $http2_status && 'nginx' === $webserver_type ) {
 			$desc = __( 'You cannot change your site domain at this time because HTTP2 is enabled. Please disable it before attempting this operation.', 'wpcd' );
 
 			$fields[] = array(
@@ -714,7 +733,7 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 			'name'       => __( 'Change Meta', 'wpcd' ),
 			'tab'        => 'change-domain',
 			'type'       => 'button',
-			'std'        => __( 'Change Record Only', 'wpcd' ),
+			'std'        => __( 'Change Record', 'wpcd' ),
 			'tooltip'    => __( 'Update the record in this plugin only. You might need to do this if a prior operation only partially succeeded or you changed the domain using another plugin such as UpdraftPlus.', 'wpcd' ),
 			'attributes' => array(
 				// the _action that will be called in ajax.
@@ -848,6 +867,7 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 
 		$fields[] = array(
 			'name' => __( 'Change Domain Documentation', 'wpcd' ),
+			'id'   => 'wpcd_change_domain_documentation',
 			'tab'  => 'change-domain',
 			'type' => 'heading',
 			'desc' => $desc,

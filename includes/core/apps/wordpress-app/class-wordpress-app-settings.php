@@ -258,6 +258,10 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'label' => 'Email Gateway',
 				'icon'  => 'dashicons-email-alt2',
 			),
+			'wordpress-app-front-end-fields'     => array(
+				'label' => 'Front-end Fields',
+				'icon'  => 'dashicons-editor-kitchensink',
+			),
 			'wordpress-app-rest-api'             => array(
 				'label' => 'Rest API',
 				'icon'  => 'dashicons-rest-api',
@@ -336,7 +340,8 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 		$rest_api_fields              = $this->rest_api_fields();
 		$white_label_fields           = $this->white_label_fields();
 		$custom_scripts               = $this->custom_script_fields();
-		$all_fields                   = array_merge( $general_fields, $server_fields, $site_fields, $backup_fields, $fields_and_links, $theme_and_plugin_updates, $email_notification_fields, $slack_notification_fields, $zapier_notification_fields, $button_color_settings_fields, $email_gateway_load_defaults, $cf_dns_fields, $rest_api_fields, $white_label_fields, $custom_scripts );
+		$front_end_fields             = $this->front_end_fields();
+		$all_fields                   = array_merge( $general_fields, $server_fields, $site_fields, $backup_fields, $fields_and_links, $theme_and_plugin_updates, $email_notification_fields, $slack_notification_fields, $zapier_notification_fields, $button_color_settings_fields, $email_gateway_load_defaults, $cf_dns_fields, $rest_api_fields, $white_label_fields, $custom_scripts, $front_end_fields );
 		return $all_fields;
 	}
 
@@ -393,6 +398,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			'tweaks'                   => __( 'Tweaks', 'wpcd' ),
 			'wp-site-users'            => __( 'WP Site Users', 'wpcd' ),
 			'wpconfig'                 => __( 'WPConfig', 'wpcd' ),
+			'file-manager'             => __( 'File Manager', 'wpcd' ),
 			'multisite'                => __( 'Multisite', 'wpcd' ),
 		);
 
@@ -545,6 +551,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			'svr_tools'       => __( 'Tools', 'wpcd' ),
 			'svr_tweaks'      => __( 'Tweaks', 'wpcd' ),
 			'firewall'        => __( 'Firewall', 'wpcd' ),
+			'ols_console'     => __( 'OpenLiteSpeed Web Console Manager', 'wpcd' ),
 			'server_upgrade'  => __( 'Upgrades', 'wpcd' ),
 			'server-users'    => __( 'Users', 'wpcd' ),
 			'serversync'      => __( 'Server Sync', 'wpcd' ),
@@ -942,8 +949,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 		$fields = array(
 			array(
 				'type' => 'heading',
-				'name' => __( 'Server Options', 'wpcd' ),
-				'desc' => __( 'Server options specific to the WordPress app.', 'wpcd' ),
+				'name' => __( 'Operating Systems', 'wpcd' ),
 				'tab'  => 'wordpress-app-general-wpadmin',
 			),
 			array(
@@ -954,6 +960,42 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tab'     => 'wordpress-app-general-wpadmin',
 				'std'     => 'ubuntu2004lts',
 				'options' => WPCD()->get_os_list(),
+			),
+			array(
+				'id'      => 'wordpress_app_disable_ubuntu_lts_1804',
+				'type'    => 'checkbox',
+				'name'    => __( 'Disable Ubuntu 18.04 LTS?', 'wpcd' ),
+				'tooltip' => __( 'Do not show the option to install Ubuntu 18.04 LTS servers.', 'wpcd' ),
+				'tab'     => 'wordpress-app-general-wpadmin',
+			),
+			array(
+				'id'      => 'wordpress_app_disable_ubuntu_lts_2004',
+				'type'    => 'checkbox',
+				'name'    => __( 'Disable Ubuntu 20.04 LTS?', 'wpcd' ),
+				'tooltip' => __( 'Do not show the option to install Ubuntu 20.04 LTS servers.', 'wpcd' ),
+				'tab'     => 'wordpress-app-general-wpadmin',
+			),
+			array(
+				'id'      => 'wordpress_app_disable_ubuntu_lts_2204',
+				'type'    => 'checkbox',
+				'name'    => __( 'Disable Ubuntu 22.04 LTS?', 'wpcd' ),
+				'tooltip' => __( 'Do not show the option to install Ubuntu 22.04 LTS servers.', 'wpcd' ),
+				'tab'     => 'wordpress-app-general-wpadmin',
+			),
+			array(
+				'type' => 'heading',
+				'name' => __( 'Server Options', 'wpcd' ),
+				'desc' => __( 'Server options specific to the WordPress app.', 'wpcd' ),
+				'tab'  => 'wordpress-app-general-wpadmin',
+			),
+			array(
+				'id'      => 'wordpress_app_default_webserver',
+				'type'    => 'select',
+				'name'    => __( 'Default Web Server', 'wpcd' ),
+				'tooltip' => __( 'Select the default Webserver to be used when deploying a new WordPress server!', 'wpcd' ),
+				'tab'     => 'wordpress-app-general-wpadmin',
+				'std'     => 'nginx',
+				'options' => WPCD()->get_webserver_list(),
 			),
 			array(
 				'id'      => 'wordpress_app_use_extended_server_name',
@@ -1056,6 +1098,22 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			),
 			array(
 				'type' => 'heading',
+				'name' => __( 'Overrides', 'wpcd' ),
+				'desc' => '',
+				'tab'  => 'wordpress-app-general-wpadmin',
+			),
+			array(
+				'id'                => 'wordpress_app_allowed_wp_versions',
+				'type'              => 'text',
+				'clone'             => true,
+				'size'              => 10,
+				'name'              => __( 'Allowed WP Versions', 'wpcd' ),
+				'tooltip'           => __( 'If you have your own list of WP versions you would like to see on the install screen enter it here. Otherwise we will use our own master list. One version per row. Do not use a 2-digit version - use \'latest\' instead.', 'wpcd' ),
+				'label_description' => __( 'One version per row.', 'wpcd' ),
+				'tab'               => 'wordpress-app-general-wpadmin',
+			),
+			array(
+				'type' => 'heading',
 				'name' => __( 'Misc', 'wpcd' ),
 				'desc' => '',
 				'tab'  => 'wordpress-app-general-wpadmin',
@@ -1068,7 +1126,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tab'     => 'wordpress-app-general-wpadmin',
 			),
 		);
-		return $fields;
+			return $fields;
 
 	}
 
@@ -1132,6 +1190,31 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tooltip' => __( 'Most new servers have a lot of updates that need to be run overnight. You can turn this on to force the updates to run asap.  Note that this will chew up CPU cycles and cause your server to be slow for a bit. If you need to use your servers immediately do not enable this.', 'wpcd' ),
 				'tab'     => 'wordpress-app-servers',
 			),
+			array(
+				'type' => 'heading',
+				'name' => __( 'Server Health Warnings: PHP', 'wpcd' ),
+				'desc' => __( 'We set a default server wide version for PHP under which wp-cli is run. You can get warnings on which versions are NOT allowed to be the default.', 'wpcd' ),
+				'tab'  => 'wordpress-app-servers',
+			),
+			array(
+				'id'              => 'wordpress_app_servers_default_php_warn_versions',
+				'type'            => 'checkbox_list',
+				'name'            => __( 'Show Warning In Health Column For These PHP Versions', 'wpcd' ),
+				'tooltip'         => __( 'If we detect that the default version of PHP for a server is set to any of the selected versions above, we will show a warning in the HEALTH column in the server list.', 'wpcd' ),
+				'options'         => array(
+					'5.6' => '5.6',
+					'7.1' => '7.1',
+					'7.2' => '7.2',
+					'7.3' => '7.3',
+					'7.4' => '7.4',
+					'8.0' => '8.0',
+					'8.1' => '8.1',
+					'8.2' => '8.2',
+				),
+				'std'             => ( array( '5.6', '7.1', '7.2', '7.3' ) ),
+				'select_all_none' => true,
+				'tab'             => 'wordpress-app-servers',
+			),
 
 		);
 
@@ -1158,10 +1241,65 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tab'     => 'wordpress-app-sites',
 			),
 			array(
-				'id'      => 'wordpress_app_sites_install_page_cache',
+				'id'      => 'wordpress_app_sites_disable_page_cache',
 				'type'    => 'checkbox',
-				'name'    => __( 'Install and Enable Page Cache?', 'wpcd' ),
-				'tooltip' => __( 'Install and enable the page cache on all new sites?', 'wpcd' ),
+				'name'    => __( 'Disable The Page Cache?', 'wpcd' ),
+				'tooltip' => __( 'We automatically install and enable a page cache on all new sites. Use this option to disable it.', 'wpcd' ),
+				'tab'     => 'wordpress-app-sites',
+			),
+			array(
+				'type' => 'heading',
+				'name' => __( 'Disk Quota', 'wpcd' ),
+				'desc' => __( 'Disk quotas for each site are evaluated once each day - they are not evaluated in real-time!  For real-time alerts on usage for the entire disk, use the HEALING option in the server tab.', 'wpcd' ),
+				'tab'  => 'wordpress-app-sites',
+			),
+			array(
+				'id'      => 'wordpress_app_sites_default_disk_quota',
+				'type'    => 'number',
+				'size'    => 10,
+				'name'    => __( 'Quota for Sites Without a Quota', 'wpcd' ),
+				'desc'    => __( 'Size in MB', 'wpcd' ),
+				'tooltip' => __( 'This is the global quota that will be used for any site that does not have an individual disk quota value applied to it.  If you want all sites to use the same value then set a value here but do NOT set a value on the option below.', 'wpcd' ),
+				'tab'     => 'wordpress-app-sites',
+			),
+			array(
+				'id'      => 'wordpress_app_sites_default_new_site_disk_quota',
+				'type'    => 'number',
+				'size'    => 10,
+				'name'    => __( 'Quota for New Sites', 'wpcd' ),
+				'desc'    => __( 'Size in MB', 'wpcd' ),
+				'tooltip' => __( 'This is the quota that will be added to each new site. This will override the global quota set above for all new sites.', 'wpcd' ),
+				'tab'     => 'wordpress-app-sites',
+			),
+			array(
+				'id'      => 'wordpress_app_sites_disk_quota_disable_site',
+				'type'    => 'checkbox',
+				'name'    => __( 'Disable Site When Quota Exceeded?', 'wpcd' ),
+				'tooltip' => __( 'Disabling a site will prevent visitors from viewing it.', 'wpcd' ),
+				'tab'     => 'wordpress-app-sites',
+			),
+			array(
+				'id'      => 'wordpress_app_sites_disk_quota_admin_lock_site',
+				'type'    => 'checkbox',
+				'name'    => __( 'Apply Admin Lock When Quota Exceeded?', 'wpcd' ),
+				'tooltip' => __( 'The admin lock will disable all tabs for the site. A the customer cannot manage it or reactivate it. Only an admin will be able to remove the lock.', 'wpcd' ),
+				'tab'     => 'wordpress-app-sites',
+			),
+
+			array(
+				'type' => 'heading',
+				'name' => __( 'Admin Lock', 'wpcd' ),
+				'desc' => '',
+				'tab'  => 'wordpress-app-sites',
+			),
+			array(
+				'id'      => 'wordpress_app_sites_default_admin_lock_msg',
+				'type'    => 'wysiwyg',
+				'options' => array(
+					'textarea_rows' => 8,
+				),
+				'name'    => __( 'Message To Display When Admin Lock Is Applied', 'wpcd' ),
+				'tooltip' => __( 'This message will display on the GENERAL tab of a site when an admin lock is applied.', 'wpcd' ),
 				'tab'     => 'wordpress-app-sites',
 			),
 			array(
@@ -1210,7 +1348,20 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tooltip' => __( 'Show a dropdown of WordPress installation log attempts under the Title column in the Server List', 'wpcd' ),
 				'tab'     => 'wordpress-app-fields-and-links',
 			),
-
+			array(
+				'id'      => 'wordpress_app_show_web_server_type_column_in_server_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Show Web Server Column', 'wpcd' ),
+				'tooltip' => __( 'Show the webserver type as a separate column in the servers list.  Usually it is shown underneath the INSTALL WORDPRESS button in the server actions column.', 'wpcd' ),
+				'tab'     => 'wordpress-app-fields-and-links',
+			),
+			array(
+				'id'      => 'wordpress_app_hide_web_server_element_in_server_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide Web Server Element', 'wpcd' ),
+				'tooltip' => __( 'Hide the webserver type from the server actions column.', 'wpcd' ),
+				'tab'     => 'wordpress-app-fields-and-links',
+			),
 			array(
 				'id'   => 'wordpress_fields_and_links_heading_02',
 				'type' => 'heading',
@@ -1225,7 +1376,27 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tooltip' => __( 'Show the staging column in the site list', 'wpcd' ),
 				'tab'     => 'wordpress-app-fields-and-links',
 			),
-
+			array(
+				'id'      => 'wordpress_app_show_web_server_type_column_in_site_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Show Web Server Column', 'wpcd' ),
+				'tooltip' => __( 'Show the webserver type as a separate column in the site list. Usually this data is shown in the server column', 'wpcd' ),
+				'tab'     => 'wordpress-app-fields-and-links',
+			),
+			array(
+				'id'      => 'wordpress_app_hide_web_server_element_in_site_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide Web Server Element', 'wpcd' ),
+				'tooltip' => __( 'Hide the webserver type from the server column.', 'wpcd' ),
+				'tab'     => 'wordpress-app-fields-and-links',
+			),
+			array(
+				'id'      => 'wordpress_app_hide_chicklet_area_in_site_detail',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide Chicklet Area', 'wpcd' ),
+				'tooltip' => __( 'Hides the three labels that show the web server type, SSL status and Cache status beneath the domain name in the site detail screen.', 'wpcd' ),
+				'tab'     => 'wordpress-app-fields-and-links',
+			),
 			array(
 				'id'   => 'wordpress_fields_and_links_heading_03',
 				'type' => 'heading',
@@ -1252,6 +1423,13 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'type'    => 'checkbox',
 				'name'    => __( 'Hide Initial WP Version in Site Summary Column', 'wpcd' ),
 				'tooltip' => __( 'Hide the initial WP version data in the site summary column from non-admins in the site list', 'wpcd' ),
+				'tab'     => 'wordpress-app-fields-and-links',
+			),
+			array(
+				'id'      => 'wordpress_app_hide_disk_quota_in_summary_column_in_site_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide Disk Quota information in Site Summary Column', 'wpcd' ),
+				'tooltip' => __( 'Hide disk quota information in the site summary column from non-admins in the site list', 'wpcd' ),
 				'tab'     => 'wordpress-app-fields-and-links',
 			),
 
@@ -1283,11 +1461,286 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tooltip' => __( 'Hide the additional statisics box on the WordPress Site statistics tab from non-admin users.', 'wpcd' ),
 				'tab'     => 'wordpress-app-fields-and-links',
 			),
+		);
+
+		return $fields;
+	}
+
+	/**
+	 * Array of fields used in the front-end fields tab.
+	 */
+	public function front_end_fields() {
+
+		$fields = array(
+			array(
+				'id'   => 'wordpress_front_end_fields_heading_01',
+				'type' => 'heading',
+				'name' => __( 'Servers - Show Cards', 'wpcd' ),
+				'desc' => __( 'Show fields in the server list and server screens when displaying data on the front-end.  These fields are usually HIDDEN by default.', 'wpcd' ),
+				'tab'  => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_show_description_in_server_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Show Description', 'wpcd' ),
+				'tooltip' => __( 'Show the description field/card in the server list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_show_server_group_in_server_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Show Server Group', 'wpcd' ),
+				'tooltip' => __( 'Show the server group field/card in the server list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_show_owner_in_server_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Show Owner', 'wpcd' ),
+				'tooltip' => __( 'Show the owner field/card in the server list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_show_teams_in_server_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Show Teams', 'wpcd' ),
+				'tooltip' => __( 'Show the teams list field/card in the server list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_show_web_server_type_column_in_server_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Show Web Server Type', 'wpcd' ),
+				'tooltip' => __( 'Show the web server field/card in the server list on the front-end. This column can usually be shown even if it is hidden in wp-admin.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_show_sync_status_in_server_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Show Server Sync Data', 'wpcd' ),
+				'tooltip' => __( 'Show the server sync field/card in the server list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+
+			array(
+				'id'   => 'wordpress_front_end_fields_heading_02',
+				'type' => 'heading',
+				'name' => __( 'Servers - Hide Cards', 'wpcd' ),
+				'desc' => __( 'Hide cards in the server list and related screens when displaying data on the front-end. These cards are usually shown by default.', 'wpcd' ),
+				'tab'  => 'wordpress-app-front-end-fields',
+			),
+
+			array(
+				'id'      => 'wordpress_app_fe_hide_title_in_server_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide Title', 'wpcd' ),
+				'tooltip' => __( 'Hide the title field/card in the server list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_hide_server_actions_in_server_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide Server Actions', 'wpcd' ),
+				'tooltip' => __( 'Hide the server actions field/card in the server list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_hide_provider_details_in_server_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide Provider Details', 'wpcd' ),
+				'tooltip' => __( 'Hide the provider details field/card in the server list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_hide_local_status_in_server_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide Local Status', 'wpcd' ),
+				'tooltip' => __( 'Hide the local status field/card in the server list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_hide_app_count_in_server_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide App Count', 'wpcd' ),
+				'tooltip' => __( 'Hide the app count field/card in the server list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_hide_web_server_type_element_in_server_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide Web Server Type (Element)', 'wpcd' ),
+				'tooltip' => __( 'Hide the web server field on the SERVER ACTIONS field/card in the server list on the front-end.  This element can usually be hidden even if it is visible in wp-admin.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_hide_health_in_server_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide Health', 'wpcd' ),
+				'tooltip' => __( 'Hide the health field/card in the server list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+
+			array(
+				'id'   => 'wordpress_front_end_fields_heading_03',
+				'type' => 'heading',
+				'name' => __( 'Sites - Show Cards', 'wpcd' ),
+				'desc' => __( 'Show cards in the app/site list and related screens when displaying data on the front-end. These cards are usually HIDDEN by default.', 'wpcd' ),
+				'tab'  => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_show_description_in_app_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Show Description', 'wpcd' ),
+				'tooltip' => __( 'Show the description field/card in the app list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_show_app_group_in_app_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Show App Group', 'wpcd' ),
+				'tooltip' => __( 'Show the application group field/card in the app list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_show_cache_in_app_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Show Cache', 'wpcd' ),
+				'tooltip' => __( 'Show the cache field/card in the app list on the front-end. This data is already shown in the APP FEATURES card but you can choose to also show it in a separate card.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_show_php_in_app_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Show PHP', 'wpcd' ),
+				'tooltip' => __( 'Show the php field/card in the app list on the front-end. This data is already shown in the APP FEATURES card but you can choose to also show it in a separate card.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_show_ssl_in_app_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Show SSL', 'wpcd' ),
+				'tooltip' => __( 'Show the SSL field/card in the app list on the front-end. This data is already shown in the APP FEATURES card but you can choose to also show it in a separate card.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_show_web_server_type_column_in_app_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Show Web Server Type', 'wpcd' ),
+				'tooltip' => __( 'Show the web server field/card in the app list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_show_owner_in_app_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Show Owner', 'wpcd' ),
+				'tooltip' => __( 'Show the owner list field/card in the app list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_show_teams_in_app_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Show Teams', 'wpcd' ),
+				'tooltip' => __( 'Show the teams list field/card in the app list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+
+			array(
+				'id'   => 'wordpress_front_end_fields_heading_04',
+				'type' => 'heading',
+				'name' => __( 'Sites - Hide Cards', 'wpcd' ),
+				'desc' => __( 'Hide cards in the app/site list and related screens when displaying data on the front-end. These cards are usually shown by default.', 'wpcd' ),
+				'tab'  => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_hide_app_title_in_app_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide Title', 'wpcd' ),
+				'tooltip' => __( 'Hide the title field/card in the app list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_hide_app_summary_in_app_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide App Summary', 'wpcd' ),
+				'tooltip' => __( 'Hide the app summary field/card in the app list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_hide_app_features_in_app_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide App Features', 'wpcd' ),
+				'tooltip' => __( 'Hide the app features field/card in the app list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_hide_app_health_in_app_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide App Health', 'wpcd' ),
+				'tooltip' => __( 'Hide the app health field/card in the app list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_hide_server_in_app_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide Server', 'wpcd' ),
+				'tooltip' => __( 'Hide the server field/card in the app list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_hide_staging_in_app_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide Staging', 'wpcd' ),
+				'tooltip' => __( 'Hide the staging field/card in the app list on the front-end.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_hide_web_server_type_element_in_app_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide Web Server Type (Element)', 'wpcd' ),
+				'tooltip' => __( 'Hide the web server field on the SERVER field/card in the app list on the front-end.  This element can usually be hidden even if it is visible in wp-admin.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'   => 'wordpress_front_end_fields_heading_general',
+				'type' => 'heading',
+				'name' => __( 'General', 'wpcd' ),
+				'desc' => __( 'Other Options.', 'wpcd' ),
+				'tab'  => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_show_filter_bar',
+				'type'    => 'checkbox',
+				'name'    => __( 'Show Filter Bar To Non-Admins', 'wpcd' ),
+				'tooltip' => __( 'Show the filter bar at the top of the server and site list to non-admin users. This is usually hidden from non-admins.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_hide_filter_bar_from_admin',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide Filter Bar From Admin', 'wpcd' ),
+				'tooltip' => __( 'HIDE the filter bar at the top of the server and site list from the admin. Usually this is shown to admins.', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'      => 'wordpress_app_fe_show_install_wp_button_top_of_list_page',
+				'type'    => 'checkbox',
+				'name'    => __( 'Show the Install WordPress Button', 'wpcd' ),
+				'tooltip' => __( 'Show the install WordPress button at the top of the list page?', 'wpcd' ),
+				'tab'     => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'   => 'wordpress_front_end_fields_heading_notes',
+				'type' => 'heading',
+				'name' => __( 'General', 'wpcd' ),
+				'desc' => __( 'Turning fields on/off on the front-end has a relationship with the visibility of the fields in wp-admin.  In most instances, fields that are not shown in wp-admin cannot be shown on the front-end even if enabled here - and vice-versa. If a toggle here does not work please double-check whether the field is visible or hidden in wp-admin.', 'wpcd' ),
+				'tab'  => 'wordpress-app-front-end-fields',
+			),
 
 		);
 
 		return $fields;
 	}
+
 
 	/**
 	 * Array of fields used to store the default s3 backup settings
@@ -1304,30 +1757,59 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tab'  => 'wordpress-app-backup',
 			),
 			array(
-				'id'      => 'wordpress_app_aws_access_key',
+				'id'         => 'wordpress_app_aws_access_key',
+				'type'       => 'text',
+				'name'       => __( 'AWS Access Key ID', 'wpcd' ),
+				'tooltip'    => __( 'AWS Access Key ID', 'wpcd' ),
+				'tab'        => 'wordpress-app-backup',
+				'std'        => wpcd_get_option( 'wordpress_app_aws_access_key' ),
+				'size'       => 60,
+				'attributes' => array(
+					'spellcheck' => 'false',
+				),
+			),
+			array(
+				'id'         => 'wordpress_app_aws_secret_key',
+				'type'       => 'text',
+				'name'       => __( 'AWS Secret Key', 'wpcd' ),
+				'tooltip'    => __( 'AWS Secret Key', 'wpcd' ),
+				'tab'        => 'wordpress-app-backup',
+				'size'       => 60,
+				'attributes' => array(
+					'spellcheck' => 'false',
+				),
+			),
+			array(
+				'id'      => 'wordpress_app_aws_default_region',
 				'type'    => 'text',
-				'name'    => __( 'AWS Access Key ID', 'wpcd' ),
-				'tooltip' => __( 'AWS Access Key ID', 'wpcd' ),
+				'name'    => __( 'Default Region', 'wpcd' ),
+				'tooltip' => __( 'The region where your default bucket is located. If this is incorrect and does not match your bucket location, backups will not be uploaded to AWS!', 'wpcd' ),
+				'desc'    => sprintf( __( '<a href="%s" target="_blank" >Valid Regions</a>', 'wpcd' ), 'https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html#concepts-available-regions' ),
 				'tab'     => 'wordpress-app-backup',
-				'std'     => wpcd_get_option( 'wordpress_app_aws_access_key' ),
 				'size'    => 60,
 			),
 			array(
-				'id'      => 'wordpress_app_aws_secret_key',
-				'type'    => 'text',
-				'name'    => __( 'AWS Secret Key', 'wpcd' ),
-				'tooltip' => __( 'AWS Secret Key', 'wpcd' ),
-				'tab'     => 'wordpress-app-backup',
-				'size'    => 60,
+				'id'         => 'wordpress_app_aws_bucket',
+				'type'       => 'text',
+				'name'       => __( 'AWS Bucket Name', 'wpcd' ),
+				'tooltip'    => __( 'AWS Bucket Name', 'wpcd' ),
+				'tab'        => 'wordpress-app-backup',
+				'std'        => wpcd_get_option( 'wordpress_app_aws_bucket' ),
+				'size'       => 60,
+				'attributes' => array(
+					'spellcheck' => 'false',
+				),
 			),
 			array(
-				'id'      => 'wordpress_app_aws_bucket',
-				'type'    => 'text',
-				'name'    => __( 'AWS Bucket Name', 'wpcd' ),
-				'tooltip' => __( 'AWS Bucket Name', 'wpcd' ),
-				'tab'     => 'wordpress-app-backup',
-				'std'     => wpcd_get_option( 'wordpress_app_aws_bucket' ),
-				'size'    => 60,
+				'id'                => 'wordpress_app_s3_endpoint',
+				'type'              => 'text',
+				'name'              => __( 'S3 Endpoint URL', 'wpcd' ),
+				'label_description' => __( 'Optional', 'wpcd' ),
+				'placeholder'       => __( 'https:/endpoint.com', 'wpcd' ),
+				'tooltip'           => __( 'Only set this if you want to use an alternative S3-compatible service. MUST start with "https://"!', 'wpcd' ),
+				'tab'               => 'wordpress-app-backup',
+				'std'               => wpcd_get_option( 'wordpress_app_s3_endpoint' ),
+				'size'              => 60,
 			),
 			array(
 				'id'   => 'wordpress_app_backup_warning',
@@ -1394,22 +1876,28 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tab'  => 'wordpress-app-plugin-theme-updates',
 			),
 			array(
-				'id'      => 'wordpress_app_hcti_api_user_id',
-				'type'    => 'text',
-				'name'    => __( 'API User Id', 'wpcd' ),
-				'tooltip' => __( 'htmlcsstoimage.com API User Id - this is not your htmlcsstoimage.com login or email address.', 'wpcd' ),
-				'tab'     => 'wordpress-app-plugin-theme-updates',
-				'std'     => wpcd_get_option( 'wordpress_app_hcti_api_user_id' ),
-				'size'    => 60,
+				'id'         => 'wordpress_app_hcti_api_user_id',
+				'type'       => 'text',
+				'name'       => __( 'API User Id', 'wpcd' ),
+				'tooltip'    => __( 'htmlcsstoimage.com API User Id - this is not your htmlcsstoimage.com login or email address.', 'wpcd' ),
+				'tab'        => 'wordpress-app-plugin-theme-updates',
+				'std'        => wpcd_get_option( 'wordpress_app_hcti_api_user_id' ),
+				'size'       => 60,
+				'attributes' => array(
+					'spellcheck' => 'false',
+				),
 			),
 			array(
-				'id'      => 'wordpress_app_hcti_api_key',
-				'type'    => 'text',
-				'name'    => __( 'API Key', 'wpcd' ),
-				'tooltip' => __( 'htmlcsstoimage.com API Key', 'wpcd' ),
-				'tab'     => 'wordpress-app-plugin-theme-updates',
-				'std'     => wpcd_get_option( 'wordpress_app_hcti_api_key' ),
-				'size'    => 60,
+				'id'         => 'wordpress_app_hcti_api_key',
+				'type'       => 'text',
+				'name'       => __( 'API Key', 'wpcd' ),
+				'tooltip'    => __( 'htmlcsstoimage.com API Key', 'wpcd' ),
+				'tab'        => 'wordpress-app-plugin-theme-updates',
+				'std'        => wpcd_get_option( 'wordpress_app_hcti_api_key' ),
+				'size'       => 60,
+				'attributes' => array(
+					'spellcheck' => 'false',
+				),
 			),
 			array(
 				'id'      => 'wordpress_app_tandc_updates_pixel_threshold',
@@ -1629,18 +2117,24 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tab'     => 'wordpress-app-email-gateway',
 			),
 			array(
-				'id'      => 'wpcd_email_gateway_smtp_user',
-				'type'    => 'text',
-				'name'    => __( 'User Name', 'wpcd' ),
-				'tooltip' => __( 'Your user id for connecting to the smtp server', 'wpcd' ),
-				'tab'     => 'wordpress-app-email-gateway',
+				'id'         => 'wpcd_email_gateway_smtp_user',
+				'type'       => 'text',
+				'name'       => __( 'User Name', 'wpcd' ),
+				'tooltip'    => __( 'Your user id for connecting to the smtp server', 'wpcd' ),
+				'attributes' => array(
+					'spellcheck' => 'false',
+				),
+				'tab'        => 'wordpress-app-email-gateway',
 			),
 			array(
-				'id'      => 'wpcd_email_gateway_smtp_password',
-				'type'    => 'text',
-				'name'    => __( 'Password', 'wpcd' ),
-				'tooltip' => __( 'Your password for connecting to the smtp server', 'wpcd' ),
-				'tab'     => 'wordpress-app-email-gateway',
+				'id'         => 'wpcd_email_gateway_smtp_password',
+				'type'       => 'text',
+				'name'       => __( 'Password', 'wpcd' ),
+				'tooltip'    => __( 'Your password for connecting to the smtp server', 'wpcd' ),
+				'attributes' => array(
+					'spellcheck' => 'false',
+				),
+				'tab'        => 'wordpress-app-email-gateway',
 			),
 			array(
 				'id'      => 'wpcd_email_gateway_smtp_domain',
@@ -1701,20 +2195,26 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tab'     => 'wordpress-app-dns-cloudflare',
 			),
 			array(
-				'id'   => 'wordpress_app_dns_cf_zone_id',
-				'type' => 'text',
-				'name' => __( 'Zone ID', 'wpcd' ),
-				'desc' => __( 'Your zone id can be found in the lower right of the CloudFlare overview page for your domain', 'wpcd' ),
-				'size' => 35,
-				'tab'  => 'wordpress-app-dns-cloudflare',
+				'id'         => 'wordpress_app_dns_cf_zone_id',
+				'type'       => 'text',
+				'name'       => __( 'Zone ID', 'wpcd' ),
+				'desc'       => __( 'Your zone id can be found in the lower right of the CloudFlare overview page for your domain', 'wpcd' ),
+				'size'       => 35,
+				'attributes' => array(
+					'spellcheck' => 'false',
+				),
+				'tab'        => 'wordpress-app-dns-cloudflare',
 			),
 			array(
-				'id'   => 'wordpress_app_dns_cf_token',
-				'type' => 'text',
-				'name' => __( 'API Security Token', 'wpcd' ),
-				'desc' => __( 'Generate a new token for your zone by using the GET YOUR API TOKEN link located in the lower right of the CloudFlare overview page for your domain.  This should use the EDIT ZONE DNS api token template.', 'wpcd' ),
-				'size' => 35,
-				'tab'  => 'wordpress-app-dns-cloudflare',
+				'id'         => 'wordpress_app_dns_cf_token',
+				'type'       => 'text',
+				'name'       => __( 'API Security Token', 'wpcd' ),
+				'desc'       => __( 'Generate a new token for your zone by using the GET YOUR API TOKEN link located in the lower right of the CloudFlare overview page for your domain.  This should use the EDIT ZONE DNS api token template.', 'wpcd' ),
+				'size'       => 35,
+				'attributes' => array(
+					'spellcheck' => 'false',
+				),
+				'tab'        => 'wordpress-app-dns-cloudflare',
 			),
 			array(
 				'id'      => 'wordpress_app_dns_cf_disable_proxy',
@@ -1819,59 +2319,59 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			'hidden'           => array( 'wordpress_app_noshow_logo', '=', '1' ),
 		);
 
-		// Brand Colors.
+		// Brand Colors - wp-admin.
 		$fields[] = array(
-			'name' => __( 'Brand Colors', 'wpcd' ),
+			'name' => __( 'Brand Colors- WP-Admin', 'wpcd' ),
 			'id'   => 'wordpress-app-brand-colors-heading',
 			'type' => 'heading',
 			'std'  => '',
-			'desc' => __( 'These settings are used to manage your brand colors.', 'wpcd' ),
+			'desc' => __( 'These settings are used to manage your brand colors in the wp-admin area.', 'wpcd' ),
 			'tab'  => 'wordpress-app-white-label',
 		);
 
 		/**
-		 * Overrides Brand Colors.
+		 * Overrides Brand Colors for wp-admin.
 		 */
 		// An array of ids and labels for color fields that overide brand colors.
 		$brand_colors = array(
 			'wordpress_app_primary_brand_color'     => array(
 				'label' => __( 'Primary Brand Color', 'wpcd' ),
 				'desc'  => '',
-				'std'   => '#E91E63',
+				'std'   => WPCD_PRIMARY_BRAND_COLOR,
 			),
 			'wordpress_app_secondary_brand_color'   => array(
 				'label' => __( 'Secondary Brand Color', 'wpcd' ),
 				'desc'  => '',
-				'std'   => '#FF5722',
+				'std'   => WPCD_SECONDARY_BRAND_COLOR,
 			),
 			'wordpress_app_tertiary_brand_color'    => array(
 				'label' => __( 'Tertiary Brand Color', 'wpcd' ),
 				'desc'  => '',
-				'std'   => '#03114A',
+				'std'   => WPCD_TERTIARY_BRAND_COLOR,
 			),
 			'wordpress_app_accent_background_color' => array(
 				'label' => __( 'Accent Background Color', 'wpcd' ),
 				'desc'  => '',
-				'std'   => '#3F4C5F',
+				'std'   => WPCD_ACCENT_BG_COLOR,
 			),
 			'wordpress_app_medium_background_color' => array(
 				'label' => __( 'Medium Background Color', 'wpcd' ),
 				'desc'  => '',
-				'std'   => '#FAFAFA',
+				'std'   => WPCD_MEDIUM_BG_COLOR,
 			),
 			'wordpress_app_light_background_color'  => array(
 				'label' => __( 'Light Background Color', 'wpcd' ),
 				'desc'  => '',
-				'std'   => '#FDFDFD',
+				'std'   => WPCD_LIGHT_BG_COLOR,
 			),
 			'wordpress_app_alternate_accent_background_color' => array(
 				'label' => __( 'Alternate Accent Background Color', 'wpcd' ),
 				'desc'  => '',
-				'std'   => '#CFD8DC',
+				'std'   => WPCD_ALTERNATE_ACCENT_BG_COLOR,
 			),
 		);
 
-		// Loop through the brand colors array and generate settings fields.
+		// Loop through the wp-admin brand colors array and generate settings fields.
 		foreach ( $brand_colors as $brand_key => $brand_value ) {
 			// First column is just the label with the tab name.
 			$fields[] = array(
@@ -1879,13 +2379,89 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'id'            => "{$brand_key}",
 				'type'          => 'color',
 				'alpha_channel' => true,
-				'desc'          => "{$brand_value['desc']}",
+				'tooltip'       => "{$brand_value['desc']}",
 				'tab'           => 'wordpress-app-white-label',
 				'std'           => "{$brand_value['std']}",
 			);
 		}
 
-		// RESET DEFAULTS BRAND COLORS.
+		// Brand Colors - front-end.
+		$fields[] = array(
+			'name' => __( 'Brand Colors - Front-End Lists', 'wpcd' ),
+			'id'   => 'wordpress-app-brand-colors-heading',
+			'type' => 'heading',
+			'std'  => '',
+			'desc' => __( 'These settings are used to manage your brand colors shown on the front-end of your site.', 'wpcd' ),
+			'tab'  => 'wordpress-app-white-label',
+		);
+
+		/**
+		 * Overrides Brand Colors the front-end.
+		 */
+		// An array of ids and labels for color fields that overide brand colors.
+		$brand_colors = array(
+			'wordpress_app_fe_primary_brand_color'     => array(
+				'label' => __( 'Primary Brand Color', 'wpcd' ),
+				'desc'  => __( 'Used for the background hover color on most buttons as well as color of larger text.', 'wpcd' ),
+				'std'   => WPCD_FE_PRIMARY_BRAND_COLOR,
+			),
+			'wordpress_app_fe_secondary_brand_color'   => array(
+				'label' => __( 'Secondary Brand Color', 'wpcd' ),
+				'desc'  => '',
+				'std'   => WPCD_FE_SECONDARY_BRAND_COLOR,
+			),
+			'wordpress_app_fe_tertiary_brand_color'    => array(
+				'label' => __( 'Tertiary Brand Color', 'wpcd' ),
+				'desc'  => '',
+				'std'   => WPCD_FE_TERTIARY_BRAND_COLOR,
+			),
+			'wordpress_app_fe_accent_background_color' => array(
+				'label' => __( 'Accent Background Color', 'wpcd' ),
+				'desc'  => __( 'Used for the background color on most buttons.', 'wpcd' ),
+				'std'   => WPCD_FE_ACCENT_BG_COLOR,
+			),
+			'wordpress_app_fe_medium_background_color' => array(
+				'label' => __( 'Medium Background Color', 'wpcd' ),
+				'desc'  => '',
+				'std'   => WPCD_FE_MEDIUM_BG_COLOR,
+			),
+			'wordpress_app_fe_light_background_color'  => array(
+				'label' => __( 'Light Background Color', 'wpcd' ),
+				'desc'  => __( 'Used for the background color on cards in the server and app list.', 'wpcd' ),
+				'std'   => WPCD_FE_LIGHT_BG_COLOR,
+			),
+			'wordpress_app_fe_alternate_accent_background_color' => array(
+				'label' => __( 'Alternate Accent Background Color', 'wpcd' ),
+				'desc'  => '',
+				'std'   => WPCD_FE_ALTERNATE_ACCENT_BG_COLOR,
+			),
+			'wordpress_app_fe_positive_color'          => array(
+				'label' => __( 'Positive Color', 'wpcd' ),
+				'desc'  => __( 'Accent color used to indicate something is turned on or a good thing has occured.', 'wpcd' ),
+				'std'   => WPCD_FE_POSITIVE_COLOR,
+			),
+			'wordpress_app_fe_negative_color'          => array(
+				'label' => __( 'Negative Color', 'wpcd' ),
+				'desc'  => __( 'Accent color used to indicate something is turned off or a bad thing has occured.', 'wpcd' ),
+				'std'   => WPCD_FE_NEGATIVE_COLOR,
+			),
+		);
+
+		// Loop through the front-end brand colors array and generate settings fields.
+		foreach ( $brand_colors as $brand_key => $brand_value ) {
+			// First column is just the label with the tab name.
+			$fields[] = array(
+				'name'          => "{$brand_value['label']}",
+				'id'            => "{$brand_key}",
+				'type'          => 'color',
+				'alpha_channel' => true,
+				'tooltip'       => "{$brand_value['desc']}",
+				'tab'           => 'wordpress-app-white-label',
+				'std'           => "{$brand_value['std']}",
+			);
+		}
+
+		// RESET DEFAULT BRAND COLORS.
 		$fields[] = array(
 			'name'       => '',
 			'type'       => 'button',
@@ -1895,9 +2471,25 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'data-action'      => 'wpcd_reset_defaults_brand_colors',
 				'data-nonce'       => wp_create_nonce( 'wpcd-reset-brand-colors' ),
 				'data-loading_msg' => __( 'Please wait...', 'wpcd' ),
-				'data-confirm'     => __( 'Are you sure you would like to reset the brand colors with defaults?', 'wpcd' ),
+				'data-confirm'     => __( 'Are you sure you would like to reset the brand colors with defaults?  This will reset both the front-end and back-end colors to the WPCD defaults.', 'wpcd' ),
 			),
 			'tab'        => 'wordpress-app-white-label',
+		);
+
+		// DISABLE FONTAWESOME.
+		$fields[] = array(
+			'name' => __( 'Front-end Icons', 'wpcd' ),
+			'id'   => 'wordpress-app-front-end-icons-heading',
+			'type' => 'heading',
+			'std'  => '',
+			'tab'  => 'wordpress-app-white-label',
+		);
+		$fields[] = array(
+			'name'    => 'Disable Tab Icons on the Front-end',
+			'id'      => 'wordpress_app_disable_front_end_icons',
+			'type'    => 'checkbox',
+			'tooltip' => __( 'This will prevent the Fontawesome icon files from loading. The css markup will still be present in the html but without the fontawesome css file the markup will not do anything.  You can use the same markup to apply your own icons if you prefer as long as no other plugin or theme loads the Fontawesome files.', 'wpcd' ),
+			'tab'     => 'wordpress-app-white-label',
 		);
 
 		/**
@@ -1923,7 +2515,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			),
 		);
 
-		// Header.
+		// Documentation Overrides Header.
 		$fields[] = array(
 			'name' => __( 'Documentation Link Overrides', 'wpcd' ),
 			'id'   => 'wordpress-app-doc-link-overides-heading',
@@ -1944,6 +2536,23 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tab'  => 'wordpress-app-white-label',
 			);
 		}
+
+		// Custom CSS.
+		$fields[] = array(
+			'name' => __( 'Custom CSS', 'wpcd' ),
+			'id'   => 'wordpress-app-custom-css-override-header',
+			'type' => 'heading',
+			'desc' => 'Custom CSS is loaded in-line on very WPCD page on both the front-end and back-end.',
+			'tab'  => 'wordpress-app-white-label',
+		);
+		$fields[] = array(
+			'name' => __( 'Custom CSS', 'wpcd' ),
+			'id'   => 'wordpress-app-custom-css-override',
+			'type' => 'textarea',
+			'desc' => '',
+			'rows' => 10,
+			'tab'  => 'wordpress-app-white-label',
+		);
 
 		return $fields;
 
@@ -2020,10 +2629,13 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			'tab'  => $subtab,
 		);
 		$fields[] = array(
-			'name' => __( 'Secrets Manager API Key', 'wpcd' ),
-			'id'   => "{$wpcd_id_prefix}_secrets_manager_api_key",
-			'type' => 'text',
-			'tab'  => $subtab,
+			'name'       => __( 'Secrets Manager API Key', 'wpcd' ),
+			'id'         => "{$wpcd_id_prefix}_secrets_manager_api_key",
+			'type'       => 'text',
+			'attributes' => array(
+				'spellcheck' => 'false',
+			),
+			'tab'        => $subtab,
 		);
 
 		return $fields;

@@ -1,262 +1,342 @@
 #!/bin/bash
-#if [[ "$EUID" -ne 0 ]]; then
+#if [[ "$EUID" -ne 0 ]]
+#then
 #	echo "Sorry, you need to run this as root"
 #	exit
 #fi
 
 # This script is meant to be used in the origin server
 
+## Get our common functions
+## IMPORTANT NOTE: This script should be in the same folder as the 9999-common-functions.sh file when being run.
+if [[ ! -f 9999-common-functions.sh ]]
+then
+	echo "The file 9999-common-functions.sh is missing"
+	exit 1
+fi
+source 9999-common-functions.sh
 
+### Check webserver type
+gf_check_webserver
 
 # install rsync if not already available
-if ! hash rsync 2>/dev/null; then
-    sudo apt-get update
-    sudo apt-get install -y rsync
+if ! hash rsync 2>/dev/null
+then
+	sudo apt-get update
+	sudo apt-get install -y rsync
 fi
 
-
-
-if [[ -z $destination_ip ]]; then
-    echo
-    echo "Please, specify the DESTINATION server IP address"
-    read -p "Destination server IP: " destination_ip
+# Get Desitnation IP.
+if [[ -z $destination_ip ]]
+then
+	echo
+	echo "Please, specify the DESTINATION server IP address"
+	read -p "Destination server IP: " destination_ip
 fi
 
-
-
-while [[ -z $action ]]; do
-    echo
-    echo "What do you want to do?"
-    echo
-    echo "   1) Setup authentication for a new remote server"
-    echo "   2) Sync a local site to a remote server"
-    echo "   3) Schedule a site Sync to remote server"
-    echo "   4) Unschedule a site Sync to remote server"
-    read -p "Action: " action
-    until [[ -z "$action" || "$action" =~ ^[1-4]$ ]]; do
-    	echo "$action: invalid selection."
-    	read -p "Action: " action
-    done
+# Menu
+while [[ -z $action ]]
+do
+	echo
+	echo "What do you want to do?"
+	echo
+	echo "   1) Setup authentication for a new remote server"
+	echo "   2) Sync a local site to a remote server"
+	echo "   3) Schedule a site Sync to remote server"
+	echo "   4) Unschedule a site Sync to remote server"
+	read -p "Action: " action
+	until [[ -z "$action" || "$action" =~ ^[1-4]$ ]]
+	do
+		echo "$action: invalid selection."
+		read -p "Action: " action
+	done
 done
 
-
+# Function to create file that does the actual syncing.
+# @TODO: We need to embed comments in this file that indicates what we're doing in it.
 function site_sync {
-    echo $'#!/bin/bash
-    domain=$1
-    destination_ip=$2
-    sshuser=$3
-    localuser=$4
+	echo $'#!/bin/bash
+domain=$1
+destination_ip=$2
+sshuser=$3
+localuser=$4
 
-    echo "Exporting users..."
-    user_name=$(echo $domain | cut -c1-32)
-    sudo grep -w "^$user_name" /etc/passwd > ~/passwd.prod-$domain
-    sudo grep -w "^$user_name" /etc/passwd | awk -F: '\''{print $1}'\'' | sudo grep -f - /etc/shadow > ~/shadow.prod-$domain
-    # sync user to destination
-    rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" ~/passwd.prod-$domain $sshuser@$destination_ip:~/passwd.prod-$domain < /dev/null
-    rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" ~/shadow.prod-$domain $sshuser@$destination_ip:~/shadow.prod-$domain < /dev/null
-    # set up users in the destination
+echo "Exporting users..."
+user_name=$(echo $domain | cut -c1-32)
+sudo grep -w "^$user_name" /etc/passwd > ~/passwd.prod-$domain
+sudo grep -w "^$user_name" /etc/passwd | awk -F: '\''{print $1}'\'' | sudo grep -f - /etc/shadow > ~/shadow.prod-$domain
+# sync user to destination
+rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" ~/passwd.prod-$domain $sshuser@$destination_ip:~/passwd.prod-$domain < /dev/null
+rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" ~/shadow.prod-$domain $sshuser@$destination_ip:~/shadow.prod-$domain < /dev/null
+# set up users in the destination
 	echo "Setting up users on destination server..."
-    ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo grep -wv "^$user_name" /etc/passwd > ~/passwd.new-$domain && sudo cat ~/passwd.prod-$domain >> ~/passwd.new-$domain && sudo cppw ~/passwd.new-$domain" < /dev/null
-    ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "echo "^$user_name" |sudo grep -wvf - /etc/shadow > ~/shadow.new-$domain && sudo cat ~/shadow.prod-$domain >> ~/shadow.new-$domain && sudo cppw -s ~/shadow.new-$domain" < /dev/null
 
-    # dump mysql stuff
-    echo "Exporting database. This could take a while..."
-    mysql_db=$(grep DB_NAME /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
-    mysql_user=$(grep DB_USER /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
-    mysql_pass=$(grep DB_PASSWORD /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
+ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo grep -wv "^$user_name" /etc/passwd > ~/passwd.new-$domain && sudo cat ~/passwd.prod-$domain >> ~/passwd.new-$domain && sudo cppw ~/passwd.new-$domain" < /dev/null
+ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "echo "^$user_name" |sudo grep -wvf - /etc/shadow > ~/shadow.new-$domain && sudo cat ~/shadow.prod-$domain >> ~/shadow.new-$domain && sudo cppw -s ~/shadow.new-$domain" < /dev/null
 
-    if [ -z $site_sync_new_db ] || [ $site_sync_new_db == "no" ]
-    then
-        sudo mysqldump --databases $mysql_db --add-drop-database > ~/database_backup-$domain.sql
+# dump mysql stuff
+echo "Exporting database. This could take a while..."
+mysql_db=$(grep DB_NAME /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
+mysql_user=$(grep DB_USER /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
+mysql_pass=$(grep DB_PASSWORD /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
+mysql_host=$(grep DB_HOST /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
+
+if [ -z $site_sync_new_db ] || [ $site_sync_new_db == "no" ]
+then
+	sudo mysqldump --routines --databases $mysql_db --add-drop-database > ~/database_backup-$domain.sql
 	mysql_new_db=$mysql_db
-        ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo mariadb -e '\''drop database $mysql_new_db'\''"
-    else
-        sudo mysqldump $mysql_db > ~/database_backup-$domain.sql
+	ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo mariadb -e '\''drop database $mysql_new_db'\''"
+else
+	sudo mysqldump --routines $mysql_db > ~/database_backup-$domain.sql
 	mysql_new_db=$(head /dev/urandom | tr -dc a-z | head -c 6)
-    fi
-    cat > ~/dbimport-$domain.sql <<QUERY
+fi
+cat > ~/dbimport-$domain.sql <<QUERY
 create database $mysql_new_db;
 GRANT ALL ON $mysql_new_db.* TO '\''$mysql_user'\''@'\''localhost'\'' IDENTIFIED BY '\''$mysql_pass'\'' WITH GRANT OPTION;
 FLUSH PRIVILEGES;
 QUERY
-    # sync sql files to destination
-	echo "Sending database to target server. This could take a while..."
-    rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" ~/dbimport-$domain.sql $sshuser@$destination_ip:~/dbimport-$domain.sql < /dev/null
-    rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" ~/database_backup-$domain.sql $sshuser@$destination_ip:~/database_backup-$domain.sql < /dev/null
-    # import in destination
-	echo "Importing database at target server. This could take a while..."
-    ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo mariadb < ~/dbimport-$domain.sql" < /dev/null
-    ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo mariadb $mysql_new_db < ~/database_backup-$domain.sql" < /dev/null
+# sync sql files to destination
+echo "Sending database to target server. This could take a while..."
+rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" ~/dbimport-$domain.sql $sshuser@$destination_ip:~/dbimport-$domain.sql < /dev/null
+rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" ~/database_backup-$domain.sql $sshuser@$destination_ip:~/database_backup-$domain.sql < /dev/null
+# import in destination
+echo "Importing database at target server. This could take a while..."
+ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo mariadb < ~/dbimport-$domain.sql" < /dev/null
+ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo mariadb $mysql_new_db < ~/database_backup-$domain.sql" < /dev/null
 
-    # sync files
-	echo "Pushing files to target server. This could take a while..."
-    sudo rsync -a --stats --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /var/www/$domain $sshuser@$destination_ip:/var/www < /dev/null
-    sudo ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo sed -i '\''s/$mysql_db/$mysql_new_db/g'\'' /var/www/$domain/html/wp-config.php"
-    sudo rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /etc/nginx/sites-enabled/*$domain $sshuser@$destination_ip:/etc/nginx/sites-enabled < /dev/null
-    sudo rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /etc/nginx/htpasswd/*$domain $sshuser@$destination_ip:/etc/nginx/htpasswd/ > /dev/null 2>&1 < /dev/null
-    php_version=$(ls /etc/php/*/fpm/pool.d/$domain.conf | cut -d '\''/'\'' -f 4)
-    sudo rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /etc/php/$php_version/fpm/pool.d/$domain.conf $sshuser@$destination_ip:/etc/php/$php_version/fpm/pool.d < /dev/null
-    ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo mkdir -p /etc/letsencrypt/" < /dev/null
-    sudo rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /etc/letsencrypt/live/$domain $sshuser@$destination_ip:/etc/letsencrypt/live > /dev/null 2>&1 < /dev/null
-    sudo rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /etc/letsencrypt/archive/$domain $sshuser@$destination_ip:/etc/letsencrypt/archive > /dev/null 2>&1 < /dev/null
-    sudo rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" --include="*.$domain/***" --exclude='\''*'\'' /etc/letsencrypt/live/ $sshuser@$destination_ip:/etc/letsencrypt/live/ > /dev/null 2>&1 < /dev/null
-    sudo rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" --include="*.$domain/***" --exclude='\''*'\'' /etc/letsencrypt/archive/ $sshuser@$destination_ip:/etc/letsencrypt/archive/ > /dev/null 2>&1 < /dev/null
-    sudo rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /etc/letsencrypt/options-ssl-nginx.conf $sshuser@$destination_ip:/etc/letsencrypt > /dev/null 2>&1 < /dev/null
-    sudo rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /etc/letsencrypt/ssl-dhparams.pem $sshuser@$destination_ip:/etc/letsencrypt > /dev/null 2>&1 < /dev/null
-    sudo rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /var/spool/cron/crontabs/$domain $sshuser@$destination_ip:/var/spool/cron/crontabs > /dev/null 2>&1 < /dev/null
+# sync files
+echo "Pushing files to target server. This could take a while..."
+sudo rsync -a --stats --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /var/www/$domain $sshuser@$destination_ip:/var/www < /dev/null
+sudo ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo sed -i '\''s/$mysql_db/$mysql_new_db/g'\'' /var/www/$domain/html/wp-config.php"
+sudo ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo sed -i '\''s/$mysql_host/localhost/g'\'' /var/www/$domain/html/wp-config.php"
+sudo rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /etc/nginx/sites-enabled/*$domain $sshuser@$destination_ip:/etc/nginx/sites-enabled > /dev/null 2>&1 < /dev/null
+sudo rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /etc/nginx/htpasswd/*$domain $sshuser@$destination_ip:/etc/nginx/htpasswd/ > /dev/null 2>&1 > /dev/null 2>&1 < /dev/null
+ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo mkdir -p /etc/letsencrypt/" < /dev/null
+sudo rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /etc/letsencrypt/live/$domain $sshuser@$destination_ip:/etc/letsencrypt/live > /dev/null 2>&1 < /dev/null
+sudo rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /etc/letsencrypt/archive/$domain $sshuser@$destination_ip:/etc/letsencrypt/archive > /dev/null 2>&1 < /dev/null
+sudo rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" --include="*.$domain/***" --exclude='\''*'\'' /etc/letsencrypt/live/ $sshuser@$destination_ip:/etc/letsencrypt/live/ > /dev/null 2>&1 < /dev/null
+sudo rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" --include="*.$domain/***" --exclude='\''*'\'' /etc/letsencrypt/archive/ $sshuser@$destination_ip:/etc/letsencrypt/archive/ > /dev/null 2>&1 < /dev/null
+sudo rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /etc/letsencrypt/options-ssl-nginx.conf $sshuser@$destination_ip:/etc/letsencrypt > /dev/null 2>&1 < /dev/null
+sudo rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /etc/letsencrypt/ssl-dhparams.pem $sshuser@$destination_ip:/etc/letsencrypt > /dev/null 2>&1 < /dev/null
+sudo rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /var/spool/cron/crontabs/$domain $sshuser@$destination_ip:/var/spool/cron/crontabs > /dev/null 2>&1 < /dev/null
 
-    # remove ipv6only=on from our synced site if already present in a different site
-    ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo grep -qr --exclude=*$domain ipv6only=on /etc/nginx/sites-enabled/ && sudo sed -i s/ipv6only=on//g /etc/nginx/sites-enabled/*$domain" < /dev/null
+if [ -e /usr/local/lsws/bin/lshttpd ]
+then
+	if /usr/local/lsws/bin/lshttpd -v | grep -q Open
+	then
+		vhost_conf='vhconf.conf'
+	fi
+	NEWKEY="  map                     $domain www.$domain, $domain"  
+	echo "
+virtualhost ${domain} {
+vhRoot                  /var/www/${domain}
+configFile              /usr/local/lsws/conf/vhosts/${domain}/${vhost_conf}
+allowSymbolLink         1
+enableScript            1
+restrained              1
+setUIDMode              2
+}" | sudo tee /tmp/$domain > /dev/null
 
-    # restart services
+	sudo rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /tmp/$domain $sshuser@$destination_ip:/tmp/$domain > /dev/null 2>&1 < /dev/null
+	ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "if ! sudo grep -qw \"virtualhost $domain \" /usr/local/lsws/conf/httpd_config.conf; then sudo sed -i \"/:80$/{N;s/$/\n$NEWKEY/}\" /usr/local/lsws/conf/httpd_config.conf ; fi"
+	ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "if ! sudo grep -qw \"virtualhost $domain \" /usr/local/lsws/conf/httpd_config.conf; then sudo sed -i \"/:443$/{N;s/$/\n$NEWKEY/}\" /usr/local/lsws/conf/httpd_config.conf ; fi"
+	ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "if ! sudo grep -qw \"virtualhost $domain \" /usr/local/lsws/conf/httpd_config.conf; then sudo cat /tmp/$domain |sudo tee -a /usr/local/lsws/conf/httpd_config.conf > /dev/null ; fi"
+	sudo rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /usr/local/lsws/conf/vhosts/$domain/ $sshuser@$destination_ip:/usr/local/lsws/conf/vhosts/$domain/ > /dev/null 2>&1 < /dev/null
+	ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo /usr/local/lsws/bin/lswsctrl stop >/dev/null 2>&1 ; sudo systemctl restart lsws"
+else
+	php_version=$(ls /etc/php/*/fpm/pool.d/$domain.conf | cut -d '\''/'\'' -f 4)
+	sudo rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /etc/php/$php_version/fpm/pool.d/$domain.conf $sshuser@$destination_ip:/etc/php/$php_version/fpm/pool.d < /dev/null
+	# remove ipv6only=on from our synced site if already present in a different site
+	ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo grep -qr --exclude=*$domain ipv6only=on /etc/nginx/sites-enabled/ && sudo sed -i s/ipv6only=on//g /etc/nginx/sites-enabled/*$domain" < /dev/null
+
+	# restart services
 	echo "Restarting services on target server..."
-    ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "[[ ! -f /etc/wpcd/php-versions-disabled/php5.6 ]] && sudo systemctl restart php5.6-fpm" < /dev/null
-    ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "[[ ! -f /etc/wpcd/php-versions-disabled/php7.1 ]] && sudo systemctl restart php7.1-fpm" < /dev/null
-    ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "[[ ! -f /etc/wpcd/php-versions-disabled/php7.2 ]] && sudo systemctl restart php7.2-fpm" < /dev/null
-    ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "[[ ! -f /etc/wpcd/php-versions-disabled/php7.3 ]] && sudo systemctl restart php7.3-fpm" < /dev/null
-    ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "[[ ! -f /etc/wpcd/php-versions-disabled/php7.4 ]] && sudo systemctl restart php7.4-fpm" < /dev/null
-    ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "[[ ! -f /etc/wpcd/php-versions-disabled/php8.0 ]] && sudo systemctl restart php8.0-fpm" < /dev/null
-    ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "[[ ! -f /etc/wpcd/php-versions-disabled/php8.1 ]] && sudo systemctl restart php8.1-fpm" < /dev/null
-    ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo systemctl restart nginx" < /dev/null
-    ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo systemctl restart cron" < /dev/null
+	ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "[[ ! -f /etc/wpcd/php-versions-disabled/5.6 ]] && sudo systemctl restart php5.6-fpm" < /dev/null
+	ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "[[ ! -f /etc/wpcd/php-versions-disabled/7.1 ]] && sudo systemctl restart php7.1-fpm" < /dev/null
+	ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "[[ ! -f /etc/wpcd/php-versions-disabled/7.2 ]] && sudo systemctl restart php7.2-fpm" < /dev/null
+	ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "[[ ! -f /etc/wpcd/php-versions-disabled/7.3 ]] && sudo systemctl restart php7.3-fpm" < /dev/null
+	ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "[[ ! -f /etc/wpcd/php-versions-disabled/7.4 ]] && sudo systemctl restart php7.4-fpm" < /dev/null
+	ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "[[ ! -f /etc/wpcd/php-versions-disabled/8.0 ]] && sudo systemctl restart php8.0-fpm" < /dev/null
+	ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "[[ ! -f /etc/wpcd/php-versions-disabled/8.1 ]] && sudo systemctl restart php8.1-fpm" < /dev/null
+	ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo systemctl restart nginx" < /dev/null
+fi
+ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo systemctl restart cron" < /dev/null
 
-    # sync sshd config
-    sudo sed -n "/Match User $user_name/,+2 p" /etc/ssh/sshd_config > ~/sshdcfg-$domain
-    rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" ~/sshdcfg-$domain $sshuser@$destination_ip:~/sshdcfg-$domain < /dev/null
-    ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo sed -i \"/Match User $user_name/,+2 d\" /etc/ssh/sshd_config && cat ~/sshdcfg-$domain |sudo tee -a /etc/ssh/sshd_config > /dev/null"  < /dev/null
-    ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo systemctl restart sshd" < /dev/null
-    
-    ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo rm -f ~/passwd.prod-$domain ~/passwd.new-$domain ~/shadow.prod-$domain ~/shadow.new-$domain ~/dbimport-$domain.sql ~/database_backup-$domain.sql ~/sshdcfg-$domain" < /dev/null
-    sudo rm -f ~/passwd.prod-$domain ~/shadow.prod-$domain ~/dbimport-$domain.sql ~/database_backup-$domain.sql ~/sshdcfg-$domain
+# sync sshd config
+sudo sed -n "/Match User $user_name/,+2 p" /etc/ssh/sshd_config > ~/sshdcfg-$domain
+rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" ~/sshdcfg-$domain $sshuser@$destination_ip:~/sshdcfg-$domain < /dev/null
+ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo sed -i \"/Match User $user_name/,+2 d\" /etc/ssh/sshd_config && cat ~/sshdcfg-$domain |sudo tee -a /etc/ssh/sshd_config > /dev/null"  < /dev/null
+ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo systemctl restart sshd" < /dev/null
 
-    echo "Site Sync Completed Successfully."' |sudo tee /usr/local/bin/sync-site.sh > /dev/null
+ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo rm -f ~/passwd.prod-$domain ~/passwd.new-$domain ~/shadow.prod-$domain ~/shadow.new-$domain ~/dbimport-$domain.sql ~/database_backup-$domain.sql ~/sshdcfg-$domain" < /dev/null
+sudo rm -f ~/passwd.prod-$domain ~/shadow.prod-$domain ~/dbimport-$domain.sql ~/database_backup-$domain.sql ~/sshdcfg-$domain
 
-    chmod +x /usr/local/bin/sync-site.sh
+echo "Site Sync Completed Successfully."' |sudo tee /usr/local/bin/sync-site.sh > /dev/null
+
+	sudo chmod +x /usr/local/bin/sync-site.sh
 }
 
-if [[ $action == "auth" || $action == "1" ]]; then
-#    if ssh -o ConnectTimeout=30 -o StrictHostKeyChecking=no -o PasswordAuthentication=no $sshuser@$destination_ip "echo" &>/dev/null; then
-#        echo "Authentication is already set up for $destination_ip"
-#        exit
-#    fi
+if [[ $action == "auth" || $action == "1" ]]
+then
+	#    if ssh -o ConnectTimeout=30 -o StrictHostKeyChecking=no -o PasswordAuthentication=no $sshuser@$destination_ip "echo" &>/dev/null
+	#then
+	#        echo "Authentication is already set up for $destination_ip"
+	#        exit
+	#    fi
 
-    # create ssh key pair if it doesn't exist. do nothing if it already exists
-    localuser=`sh -c 'echo ${SUDO_USER:-$USER}'`
-    homedir=`grep $localuser /etc/passwd|cut -d':' -f6`
-    cat /dev/zero | ssh-keygen -f "$homedir/.ssh/id_rsa" -q -N "" >/dev/null 2>&1
-    # make it available with nginx
-    sudo cp ~/.ssh/id_rsa.pub /var/www/html/97317319160494330146381820240308.pub 2>/dev/null
-    echo "Authentication has been set up in this origin server.
-Run 82-destination.sh in the destination server now."
-    exit
+	# create ssh key pair if it doesn't exist. do nothing if it already exists
+	localuser=`sh -c 'echo ${SUDO_USER:-$USER}'`
+	homedir=`grep $localuser /etc/passwd|cut -d':' -f6`
+	mkdir -p $homedir/.ssh > /dev/null 2>&1
+	cat /dev/zero | ssh-keygen -f "$homedir/.ssh/id_rsa" -q -N "" >/dev/null 2>&1
+	chown -R $localuser.$localuser "$homedir/.ssh"
+	# make it available with $webserver_type
+	if [ "$g_webserver_type" = "nginx" ]
+	then
+		sudo cp $homedir/.ssh/id_rsa.pub /var/www/html/97317319160494330146381820240308.pub 2>/dev/null
+	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+	then
+		sudo cp $homedir/.ssh/id_rsa.pub /usr/local/lsws/Example/html/97317319160494330146381820240308.pub 2>/dev/null
+	fi
+	echo "Authentication has been set up in this origin server.
+	Run 82-destination.sh in the destination server now."
+	exit
 fi
 
 
+if [[ $action == "site-sync" || $action == "site-sync-no-record" || $action == "2" ]]
+then
+	if [ -z $sshuser ]
+	then
+		read -p "SSH user to login on destination server: " sshuser
+	fi
 
-if [[ $action == "site-sync" || $action == "site-sync-no-record" || $action == "2" ]]; then
-    if [ -z $sshuser ]
-    then
-        read -p "SSH user to login on destination server: " sshuser
-    fi
+	localuser=`sh -c 'echo ${SUDO_USER:-$USER}'`
+	if ! ssh -o ConnectTimeout=30 -o StrictHostKeyChecking=no -o PasswordAuthentication=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "echo" &>/dev/null
+	then
+		echo "Authentication must be set up first for $destination_ip"
+		exit
+	fi
 
-    localuser=`sh -c 'echo ${SUDO_USER:-$USER}'`
-    if ! ssh -o ConnectTimeout=30 -o StrictHostKeyChecking=no -o PasswordAuthentication=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "echo" &>/dev/null; then
-        echo "Authentication must be set up first for $destination_ip"
-        exit
-    fi
+	remote_webserver_type=$(ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "if sudo test -f /usr/local/lsws/bin/lshttpd; then echo "ols"; else echo "nginx"; fi")
 
-    # if host was connectable, ask user what site does he want to copy
-    while [[ -z $domain ]]; do
-        clear
-        echo "Please, select which site you want to copy"
-        ls /var/www | grep -v html | nl
-        echo
-        read -p "Select site: " site_number
-        number_of_sites=$(ls /var/www | grep -v html | wc -l)
-        until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
-        	echo "$site_number: invalid selection."
-        	read -p "Select site: " site_number
-        done
-        domain=$(ls /var/www | grep -v html | sed -n "$site_number"p)
-    done
+	if ! [[ $g_webserver_type =~ $remote_webserver_type ]]
+	then
+		echo "Local Webserver type is $g_webserver_type But Remote Webserver is other than $g_webserver_type . 
+		Both server webserver type should be same"
+		exit 1
+	fi
+	# if host was connectable, ask user what site does he want to copy
+	while [[ -z $domain ]]
+	do
+		clear
+		echo "Please, select which site you want to copy"
+		gf_select_domain
+		domain=$(ls /var/www | grep -v html | sed -n "$site_number"p)
+	done
 
-    # error checking
-    if [[ ! -d /var/www/$domain ]]; then
-        echo "$domain files are not present. Aborting!"
-        exit
-    fi
-    if [[ ! -e /etc/nginx/sites-enabled/$domain ]]; then
-        echo "$domain NGINX configuration is not present. Aborting!"
-        exit
-    fi
+	# error checking
+	if [[ ! -d /var/www/$domain ]]
+	then
+		echo "$domain files are not present. Aborting!"
+		exit
+	fi
+	if [ "$g_webserver_type" = "nginx" ]
+	then
+		if [[ ! -e /etc/nginx/sites-enabled/$domain ]]
+		then
+			echo "$domain NGINX configuration is not present. Aborting!"
+			exit
+		fi
+	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+	then
+		if ! sudo test -d ${VHDIR}/$domain
+		then
+			echo "$domain OLS configuration is not present. Aborting!"
+			exit
+		fi
+	fi
+	# once a site is selected, start the copy process
+	# remove leftover. if we reached this point, the SSH authentication is now configured
+	sudo rm -f /var/www/html/97317319160494330146381820240308.pub /usr/local/lsws/Example/html/97317319160494330146381820240308.pub
 
-    # once a site is selected, start the copy process
-    # remove leftover. if we reached this point, the SSH authentication is now configured
-    sudo rm -f /var/www/html/97317319160494330146381820240308.pub
-
-    site_sync
-    bash /usr/local/bin/sync-site.sh $domain $destination_ip $sshuser $localuser
-
+	site_sync
+	sudo bash /usr/local/bin/sync-site.sh $domain $destination_ip $sshuser $localuser
 fi
 
-if [[ $action == "schedule-site-sync" || $action == "3" ]]; then
-    # if host was connectable, ask user what site does he want to copy
-    if [ -z $sshuser ]
-    then
-        read -p "SSH user to login on destination server: " sshuser
-    fi
+if [[ $action == "schedule-site-sync" || $action == "3" ]]
+then
+	# if host was connectable, ask user what site does he want to copy
+	if [ -z $sshuser ]
+	then
+		read -p "SSH user to login on destination server: " sshuser
+	fi
 
-    localuser=`sh -c 'echo ${SUDO_USER:-$USER}'`
-    while [[ -z $domain ]]; do
-        echo "Please select which site to schedule for copying to the target server"
-        ls /var/www | grep -v html | nl
-        echo
-        read -p "Select site: " site_number
-        number_of_sites=$(ls /var/www | grep -v html | wc -l)
-        until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
-                echo "$site_number: invalid selection."
-                read -p "Select site: " site_number
-        done
-        domain=$(ls /var/www | grep -v html | sed -n "$site_number"p)
-    done
+	localuser=`sh -c 'echo ${SUDO_USER:-$USER}'`
+	if ! ssh -o ConnectTimeout=30 -o StrictHostKeyChecking=no -o PasswordAuthentication=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "echo" &>/dev/null
+	then
+		echo "Authentication must be set up first for $destination_ip"
+		exit
+	fi
 
-    if [[ -z "$site_sync_callback_url" ]]
-    then
-        read -p "enter callback url to get syncing update:  " site_sync_callback_url
-    fi
+	remote_webserver_type=$(ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "if sudo test -f /usr/local/lsws/bin/lshttpd; then echo "ols"; else echo "nginx"; fi")
 
-    # once a site is selected, start the copy process
-    # remove leftover. if we reached this point, the SSH authentication is now configured
-    sudo rm -f /var/www/html/97317319160494330146381820240308.pub
+	if ! [[ $g_webserver_type =~ $remote_webserver_type ]]
+	then
+		echo "Local Webserver type is $g_webserver_type But Remote Webserver is other than $g_webserver_type . 
+		Both server webserver type should be same"
+		exit 1
+	fi
+	while [[ -z $domain ]]
+	do
+		echo "Please select which site to schedule for copying to the target server"
+		gf_select_domain
+		domain=$(ls /var/www | grep -v html | sed -n "$site_number"p)
+	done
+
+	if [[ -z "$site_sync_callback_url" ]]
+	then
+		read -p "enter callback url to get syncing update:  " site_sync_callback_url
+	fi
+
+	# once a site is selected, start the copy process
+	# remove leftover. if we reached this point, the SSH authentication is now configured
+	sudo rm -f /var/www/html/97317319160494330146381820240308.pub /usr/local/lsws/Example/html/97317319160494330146381820240308.pub
 
 	# Search for the entry in the site-sync configuration file to make sure it doesn't exist.  
 	# Note that this will throw an error if the wp-site-sync.conf file does not exist. 
 	# But we're hiding that error right now by sending it to null.
 	# @TODO: The right way to do this is to check to see if the file exists and, if not, touch it before grepping.
 	# If we do it that way we'd be able to output true grep errors without outputing the spurious file-not-exists error.
-    grep -q "$domain $destination_ip " /etc/wp-site-sync.conf >/dev/null 2>&1
-    if [ $? -ne 0 ]
-    then
+	grep -q "$domain $destination_ip " /etc/wp-site-sync.conf >/dev/null 2>&1
+	if [ $? -ne 0 ]
+	then
 		echo "Site not found in existing sync configuration schedule file - adding..."
-	    echo "$domain $destination_ip $sshuser $localuser $site_sync_callback_url" >> /etc/wp-site-sync.conf
-    fi
+		echo "$domain $destination_ip $sshuser $localuser $site_sync_callback_url" >> /etc/wp-site-sync.conf
+	fi
 
-    site_sync
-    echo $'#!/bin/bash
-while IFS=" " read -r domain destination_ip sshuser localuser site_sync_callback_url; do
-    date=`date +%d-%m-%y-%H`
-    exec >> /var/log/wp-sync-$date.log 2>&1
+	site_sync
+	echo $'#!/bin/bash
+while IFS=" " read -r domain destination_ip sshuser localuser site_sync_callback_url
+do
+date=`date +%d-%m-%y-%H`
+exec >> /var/log/wp-sync-$date.log 2>&1
 
-    curl -sS "$site_sync_callback_url?domain=$domain&destination_server=$destination_ip&syncstatus=start"
-    bash /usr/local/bin/sync-site.sh $domain $destination_ip $sshuser $localuser
+if [[ -d "/var/www/$domain" ]]
+then
+	if sudo test -d "/usr/local/lsws/conf/vhosts/$domain" || [[ -e "/etc/nginx/sites-enabled/$domain" ]]
+	then
+		curl -sS "$site_sync_callback_url?domain=$domain&destination_server=$destination_ip&syncstatus=start"
+		sudo bash /usr/local/bin/sync-site.sh $domain $destination_ip $sshuser $localuser < /dev/null
 
-    sleep 3
-    curl -sS "$site_sync_callback_url?domain=$domain&destination_server=$destination_ip&syncstatus=end" 
+		sleep 3
+		curl -sS "$site_sync_callback_url?domain=$domain&destination_server=$destination_ip&syncstatus=end" 
+	fi
+fi
 done < /etc/wp-site-sync.conf' |sudo tee /usr/local/bin/sync-website > /dev/null
 
-    sudo chmod +x /usr/local/bin/sync-website
-
-    crontab -l | grep -q 'sync-website' || (crontab -l 2>/dev/null; echo "0 4 * * * /usr/local/bin/sync-website > /dev/null 2>&1") | crontab -
+	sudo chmod +x /usr/local/bin/sync-website
+	crontab -l | grep -q 'sync-website' || (crontab -l 2>/dev/null; echo "0 4 * * * /usr/local/bin/sync-website > /dev/null 2>&1") | crontab -
 	
 	echo "Site sync has been scheduled."
 fi
@@ -266,16 +346,11 @@ then
 	number_of_sites=$(cat /etc/wp-site-sync.conf | wc -l)
 	if [ $number_of_sites -gt 0 ]
 	then
-		while [[ -z $domain ]]; do
+		while [[ -z $domain ]]
+		do
 			echo "Which site should we remove from syncing?"
 			ls /var/www | grep -v html | nl
-			echo
-			read -p "Select site: " site_number
-			number_of_sites=$(ls /var/www | grep -v html | wc -l)
-			until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
-				echo "$site_number: invalid selection."
-				read -p "Select site: " site_number
-			done
+			gf_select_domain
 			domain=$(ls /var/www | grep -v html | sed -n "$site_number"p)
 		done
 		grep -q "$domain $destination_ip " /etc/wp-site-sync.conf

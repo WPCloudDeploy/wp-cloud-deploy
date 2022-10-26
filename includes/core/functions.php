@@ -64,6 +64,9 @@ function wpcd_delete_child_posts( $post_type, $post_id ) {
 
 	$posts_to_delete = wpcd_get_child_posts( $post_type, $post_id );
 
+	// Delete all the posts based on custom meta value.
+	do_action( 'wpcd_get_child_posts_for_delete', $posts_to_delete, $post_type );
+
 	if ( ! empty( $posts_to_delete ) ) {
 		foreach ( $posts_to_delete as $post ) {
 			wp_delete_post( $post->ID, true ); // Note the TRUE parm - we're NOT sending to trash but deleting right away.
@@ -127,6 +130,7 @@ function wpcd_get_option( $option_id, $domain = 'wpcd_settings' ) {
 	}
 
 }
+
 /**
  * This is the same as the wpcd_get_option function above.  But it
  * goes directly to the WordPress options function instead.
@@ -145,13 +149,88 @@ function wpcd_get_early_option( $option_id, $domain = 'wpcd_settings' ) {
 }
 
 /**
+ * Directly write to our metabox option array.
+ *
+ * This function should almost never be used!
+ * We only use this in one place right now - when automatically create
+ * and setting ssh keys for a provider
+ *
+ * @param int    $option_id option_id.
+ * @param string $option_value The value to write to the option element in our options array.
+ * @param string $domain domain.
+ *
+ * @return bool
+ */
+function wpcd_set_option( $option_id, $option_value, $domain = 'wpcd_settings' ) {
+
+	// Retrieve our options array.
+	$options = get_option( $domain );
+
+	// Write to it.
+	$options[ $option_id ] = $option_value;
+
+	// Save it and return result of the wp option save operation.
+	return update_option( $domain, $options );
+
+}
+
+/**
+ * Get short product name that will be used for white labelling.
+ *
+ * The WPCD_SHORT_NAME constant for the product name can be defined in wp-config.php.
+ */
+function wpcd_get_short_product_name() {
+	$product_name = 'WPCloudDeploy';
+	if ( defined( 'WPCD_SHORT_NAME' ) ) {
+		$product_name = WPCD_SHORT_NAME;
+	}
+
+	return $product_name;
+}
+
+/**
+ * Get longer product name that will be used for white labelling.
+ *
+ * The WPCD_LONG_NAME constant for the product name can be defined in wp-config.php.
+ */
+function wpcd_get_long_product_name() {
+	$product_name = 'WPCloudDeploy';
+	if ( defined( 'WPCD_LONG_NAME' ) ) {
+		$product_name = WPCD_LONG_NAME;
+	}
+
+	return $product_name;
+}
+
+/**
+ * Return whether or not WPCD is being called via it's better cron process.
+ *
+ * @since 5.0
+ *
+ * @return bool
+ */
+function wpcd_is_doing_cron() {
+
+	if ( defined( 'WPCD_DOING_CORE_CRON' ) && WPCD_DOING_CORE_CRON ) {
+		return true;
+	}
+
+	return false;
+}
+
+/**
  * Returns the timeout for long running commands.
- * Defaults to 15 minutes if not already set.
+ * Defaults to 25 minutes if not already set.
+ *
+ * Default changed from 15 min to 25 min in WPCD 5.0.
  */
 function wpcd_get_long_running_command_timeout() {
 	$timeout = wpcd_get_option( 'long-command-timeout' );
 	if ( empty( $timeout ) ) {
-		$timeout = 15;  // default timeout is 15 minutes.
+		$timeout = 25;  // default timeout is 25 minutes.
+	}
+	if ( (int) $timeout < 25 ) {
+		$timeout = 25;
 	}
 	return $timeout;
 }
@@ -289,6 +368,8 @@ function wpcd_split_lines_into_array( $string ) {
  * The values are 'backup', 'test088.wpvix.com and 'test088.wpvix.com' respectively.
  * notice that there is no space between the key= and the value.
  *
+ * Note: Only the first occurrence will be replaced.
+ *
  * @param array  $pairs key-value array eg: array( 'wp_password=' => '(***private***)', 'aws_access_key_id=' => '(***private***)', 'aws_secret_access_key=' => '(***private***)'  ).
  * @param string $ihaystack The haystack to search for the key-value pairs.
  *
@@ -394,6 +475,36 @@ function wpcd_get_dir_list( $directory ) {
 	$dirlist           = array_values( $scanned_directory );
 
 	return $dirlist;
+}
+
+/**
+ * Given a number such as 7.4 or 74, return the
+ * OLS php service name such as lsphp74.
+ *
+ * @param string $version PHP version to handle.
+ *
+ * @return string
+ */
+function wpcd_convert_php_version_to_ols_service( $version ) {
+	// Strip periods.
+	$version = str_replace( '.', '', $version );
+	return 'lsphp' . $version;
+}
+
+/**
+ * Given an ols php service such as lsphp74, return 7.4
+ *
+ * @param string $phpservice OLS PHP Service name- eg: lsphp81.
+ *
+ * @return string.
+ */
+function wpcd_convert_ols_phpservice_to_php_version( $phpservice ) {
+
+	// Get last two characters of phpservice.
+	$version = mb_substr( $phpservice, -2 );
+	$version = mb_substr( $version, 0, 1 ) . '.' . mb_substr( $version, 1, 1 );  // Reminder: First character position is 0, not 1.
+	return $version;
+
 }
 
 /**
@@ -753,7 +864,7 @@ function wpcd_can_author_view_server_feature( $id, $feature_name, $user_id = 0 )
  *
  * There is a related function named wpcd_can_author_view_site_tab in /traits/traits-for-class-wordpress-app/tabs-security.php.
  * It handles similar security for site tabs.  Changes and fixes here should probably be considered for that function as well.
- * 
+ *
  * This is also very similar to the wpcd_can_author_view_server_feature function
  * above and changes made here might need to be made there as well.
  *
@@ -1330,6 +1441,208 @@ function wpcd_get_documentation_link( $link_option_key, $default_link ) {
 	} else {
 		return $default_link;
 	}
+}
+
+
+/**
+ * Check if wp_query is for front-end servers listing page
+ *
+ * @param object $query WordPress Query Object.
+ *
+ * @return boolean
+ */
+function wpcd_is_public_servers_list_query( $query ) {
+	return isset( $query->query['wpcd_app_server_front'] ) && $query->query['wpcd_app_server_front'];
+}
+
+/**
+ * Check if wp_query is for front-end apps listing page
+ *
+ * @param object $query WordPress Query Object.
+ *
+ * @return boolean
+ */
+function wpcd_is_public_apps_list_query( $query ) {
+	return isset( $query->query['wpcd_app_front'] ) && $query->query['wpcd_app_front'];
+}
+
+/**
+ * Check if a user can edit a server or app.
+ *
+ * @global object $post
+ *
+ * @param null|int $server_id The post id of the server.
+ * @param null|int $user_id The user id.
+ * @param string   $type Should be 'server' or 'app'.
+ *
+ * @return boolean
+ */
+function wpcd_user_can_edit_app_server( $server_id = null, $user_id = null, $type = 'server' ) {
+
+	if ( null === $server_id ) {
+		global $post;
+		$server_id = $post->ID;
+	}
+
+	if ( null === $user_id ) {
+		$user_id = get_current_user_id();
+	}
+
+	if ( ! $server_id || ! $user_id ) {
+		return false;
+	}
+
+	if ( wpcd_is_admin() ) {
+		return true;
+	}
+
+	$post_author = get_post( $server_id )->post_author;
+
+	return ! ( ! wpcd_user_can( $user_id, 'view_' . $type, $server_id ) && $post_author != $user_id );
+}
+
+/**
+ * Return server id from current page url for front-end or from query var on backend
+ *
+ * @global object $post
+ *
+ * @return string|int
+ */
+function wpcd_get_current_page_server_id() {
+
+	$id = '';
+	if ( is_admin() ) {
+		$id = filter_input( INPUT_GET, 'post', FILTER_VALIDATE_INT );
+	} else {
+		global $post;
+
+		$_server_name = isset( $_SERVER['SERVER_NAME'] ) ? $_SERVER['SERVER_NAME'] : parse_url( home_url( '/' ), PHP_URL_HOST );
+
+		if ( ! $post ) {
+			$id = url_to_postid( 'http://' . $_server_name . $_SERVER['REQUEST_URI'] );
+		} else {
+			$id = $post->ID;
+		}
+	}
+
+	return $id;
+}
+
+/**
+ * Takes a string and wraps it with a span and a class.
+ *
+ * For example, if we get a string such as "Domain:" we might
+ * return <span class="wpcd-column-label-domain">Domain:</span>.
+ *
+ * @param string $string The string to wrap.
+ * @param string $hint A portion of the class name eg: "Domain".
+ * @param string $prefix The classname prefix eg: 'column-label'.
+ *
+ * @return string
+ */
+function wpcd_wrap_string_with_span_and_class( $string, $hint, $prefix ) {
+
+	$class = "wpcd-{$prefix}-{$hint}";
+	return '<span class="' . $class . '">' . $string . '</span>';
+
+}
+
+/**
+ * Takes a string and wraps it with a div and a class.
+ *
+ * For example, if we get a string such as "Domain:" we might
+ * return <div class="wpcd-column-label-domain">Domain:</div>.
+ *
+ * @param string $string The string to wrap.
+ * @param string $hint A portion of the class name eg: "Domain".
+ * @param string $prefix The classname prefix eg: 'column-label'.
+ *
+ * @return string
+ */
+function wpcd_wrap_string_with_div_and_class( $string, $hint, $prefix ) {
+
+	$class = "wpcd-{$prefix}-{$hint}";
+	return '<div class="' . $class . '">' . $string . '</div>';
+
+}
+
+/**
+ * Return the post id when viewing a post and the
+ * id is not otherwise available.
+ *
+ * This is very useful when using the metabox filters
+ * to setup a metabox.
+ *
+ * @since 5.0
+ *
+ * @see: https://support.metabox.io/topic/get-post-metabox-data-inside-of-mb-block-default-value/
+ *
+ * @return int.
+ */
+function wpcd_get_post_id_from_global() {
+	$post_id = null;
+	if ( isset( $_GET['post'] ) ) {
+		$post_id = intval( $_GET['post'] );
+	} elseif ( isset( $_POST['post_ID'] ) ) {
+		$post_id = intval( $_POST['post_ID'] );
+	}
+	return $post_id;
+}
+
+/**
+ * Takes a text string such as an IP address and
+ * wraps it with special a div/span CSS.
+ * The div/span is used to trigger a JS function
+ * to copy the wrapped data to the clipboard.
+ *
+ * @since 5.0
+ *
+ * @param string $data_string The string to wrap.
+ * @param bool   $break True = wrap with a div False = wrap with a span.
+ *
+ * @return string
+ */
+function wpcd_wrap_clipboard_copy( $data_string, $break = true ) {
+
+	if ( true === $break ) {
+		$return = '<div class="wpcd-click-to-copy">';
+	} else {
+		$return = '<span class="wpcd-click-to-copy">';
+	}
+	$return .= '<span class="wpcd-click-to-copy-text">' . $data_string . '</span>';
+	$return .= '<span data-label="' . __( 'Copied', 'wpcd' ) . '" class="wpcd-click-to-copy-label wpcd-copy-hidden">' . __( 'Click to copy', 'wpcd' ) . '</span>';
+
+	if ( true === $break ) {
+		$return .= '</div>';
+	} else {
+		$return .= '</span>';
+	}
+
+	return $return;
+}
+
+/**
+ * Generate and return a unique uuid.
+ *
+ * @credit: https://www.uuidgenerator.net/dev-corner/php
+ *
+ * @since 5.0
+ */
+function wpcd_generate_uuid() {
+
+	// Generate 16 bytes (128 bits) of random data or use the data passed into the function.
+	$data = $data ?? random_bytes( 16 );
+	assert( strlen( $data ) == 16 );
+
+	// Set version to 0100.
+	$data[6] = chr( ord( $data[6] ) & 0x0f | 0x40 );
+
+	// Set bits 6-7 to 10.
+	$data[8] = chr( ord( $data[8] ) & 0x3f | 0x80 );
+
+	// Output the 36 character UUID.
+	return vsprintf( '%s%s-%s-%s-%s-%s%s%s', str_split( bin2hex( $data ), 4 ) );
+
 }
 
 /*

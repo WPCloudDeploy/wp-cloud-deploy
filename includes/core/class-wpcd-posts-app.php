@@ -147,6 +147,12 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 		// Filter hook to change the argument to exclude app terms - will be used to exclude certain items in the app group metabox.
 		add_action( 'get_terms_args', array( $this, 'wpcd_exclude_from_app_term_args' ), 1000, 2 );
 
+		// Include Styles & Scripts.
+		add_action( 'admin_enqueue_scripts', array( $this, 'wpcd_app_admin_enqueue_styles_and_scripts' ) );
+
+		// Action hook to load options for server & app owners filter.
+		add_action( 'wp_ajax_wpcd_load_server_app_owners_options', array( $this, 'wpcd_load_server_app_owners_options' ) );
+
 	}
 
 	/**
@@ -184,6 +190,51 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 
 		return $columns;
 	}
+
+	/**
+	 * Register styles and scripts in the admin area for app screens.
+	 *
+	 * @param string $hook hook.
+	 */
+	public function wpcd_app_admin_enqueue_styles_and_scripts( $hook ) {
+		$screen = get_current_screen();
+
+		if ( 'wpcd_app' === $screen->post_type ) {
+
+			wp_enqueue_style( 'wpcd-select2-css', wpcd_url . 'assets/css/select2.min.css', array(), wpcd_scripts_version );
+
+			wp_enqueue_script( 'wpcd-select2-js', wpcd_url . 'assets/js/select2.min.js', array( 'jquery' ), wpcd_scripts_version, true );
+
+			wp_enqueue_style( 'wpcd-app-admin-css', wpcd_url . 'assets/css/wpcd-app-admin.css', array(), wpcd_scripts_version );
+
+			wp_enqueue_script( 'wpcd-app-admin-js', wpcd_url . 'assets/js/wpcd-app-admin.js', array( 'jquery' ), wpcd_scripts_version, false );
+
+			wp_localize_script(
+				'wpcd-app-admin-js',
+				'app_owner_params',
+				apply_filters(
+					'wpcd_app_script_args',
+					array(
+						'i10n' => array(
+							'nonce'                    => wp_create_nonce( 'wpcd-server-app-owners-selection' ),
+							'action'                   => 'wpcd_load_server_app_owners_options',
+							'server_post_type'         => 'wpcd_app_server',
+							'server_field_key'         => 'wpcd_server_owner',
+							'server_first_option'      => __( 'All Server Owners', 'wpcd' ),
+							'app_post_type'            => 'wpcd_app',
+							'app_filter_key'           => 'wpcd_app_owner',
+							'app_first_option'         => __( 'All App Owners', 'wpcd' ),
+							'no_owners_found_msg'      => __( 'No owners found.', 'wpcd' ),
+							'search_owner_placeholder' => __( 'Search owner here', 'wpcd' ),
+						),
+					),
+					'wpcd-app-admin-js'
+				)
+			);
+
+		}
+	}
+
 
 	/**
 	 * Add contents to the APPs table columns
@@ -224,9 +275,20 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 					// Show the server title - with a link if the user is able to edit it otherwise without the link.
 					$user_id = get_current_user_id();
 					if ( wpcd_user_can( $user_id, 'view_server', $server_post_id ) || get_post( $server_post_id )->post_author === $user_id ) {
-						$value = sprintf( '<a href="%s">' . $server_title . '</a>', get_edit_post_link( $server_post_id ) );
+						$display_name = sprintf( '<a href="%s">' . $server_title . '</a>', ( is_admin() ? get_edit_post_link( $server_post_id ) : get_permalink( $server_post_id ) ) );
 					} else {
-						$value = $server_title;
+						$display_name = $server_title;
+					}
+
+					if ( is_admin() ) {
+						// Only need name in wp-admin area.
+						$value = $this->wpcd_column_wrap_string_with_span_and_class( $display_name, 'server_title', 'left' );
+						$value = $this->wpcd_column_wrap_string_with_div_and_class( $value, 'server_title' );
+					} else {
+						// Frontend need label and name.
+						$value2  = $this->wpcd_column_wrap_string_with_span_and_class( __( 'Name: ', 'wpcd' ), 'server_name', 'left' );
+						$value2 .= $this->wpcd_column_wrap_string_with_span_and_class( $display_name, 'server_name', 'right' );
+						$value  .= $this->wpcd_column_wrap_string_with_div_and_class( $value2, 'server_name' );
 					}
 				}
 
@@ -238,47 +300,84 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 				if ( true === (bool) wpcd_get_option( 'wpcd_hide_app_list_provider_in_server_column' ) && ( ! wpcd_is_admin() ) ) {
 					// do nothing, only admins are allowed to see this data.
 				} else {
-					$value  = empty( $value ) ? $value : $value . '<br />';
-					$value .= __( 'Provider: ', 'wpcd' ) . WPCD()->wpcd_get_cloud_provider_desc( $this->get_server_meta_value( $post_id, 'wpcd_server_provider' ) );
+					$value   = empty( $value ) ? $value : $value;
+					$value2  = $this->wpcd_column_wrap_string_with_span_and_class( __( 'Provider: ', 'wpcd' ), 'server_provider', 'left' );
+					$value2 .= $this->wpcd_column_wrap_string_with_span_and_class( WPCD()->wpcd_get_cloud_provider_desc( $this->get_server_meta_value( $post_id, 'wpcd_server_provider' ) ), 'server_provider', 'right' );
+					$value  .= $this->wpcd_column_wrap_string_with_div_and_class( $value2, 'server_provider' );
 				}
 
 				// server region.
 				if ( true === (bool) wpcd_get_option( 'wpcd_hide_app_list_region_in_server_column' ) && ( ! wpcd_is_admin() ) ) {
 					// do nothing, only admins are allowed to see this data.
 				} else {
-					$value  = empty( $value ) ? $value : $value . '<br />';
-					$value .= __( 'Region: ', 'wpcd' ) . $this->get_server_meta_value( $post_id, 'wpcd_server_region' );
+					$value2  = $this->wpcd_column_wrap_string_with_span_and_class( __( 'Region: ', 'wpcd' ), 'region', 'left' );
+					$value2 .= $this->wpcd_column_wrap_string_with_span_and_class( $this->get_server_meta_value( $post_id, 'wpcd_server_region' ), 'region', 'right' );
+					$value  .= $this->wpcd_column_wrap_string_with_div_and_class( $value2, 'server_region' );
 				}
 
 				// ipv4.
-				$value  = empty( $value ) ? $value : $value . '<br />';
-				$value .= __( 'ipv4: ', 'wpcd' ) . $this->get_server_meta_value( $post_id, 'wpcd_server_ipv4' );
+				if ( is_admin() ) {
+					$value2 = $this->wpcd_column_wrap_string_with_span_and_class( __( 'ipv4: ', 'wpcd' ), 'ipv4', 'left' );
+				} else {
+					$value2 = $this->wpcd_column_wrap_string_with_span_and_class( __( 'IPv4: ', 'wpcd' ), 'ipv4', 'left' );
+				}
+				$get_ipv4 = $this->wpcd_column_wrap_string_with_span_and_class( $this->get_server_meta_value( $post_id, 'wpcd_server_ipv4' ), 'ipv4', 'right' );
+				$value2  .= wpcd_wrap_clipboard_copy( $get_ipv4 );
+				$value   .= $this->wpcd_column_wrap_string_with_div_and_class( $value2, 'ipv4' );
 
 				// ipv6.
 				if ( wpcd_get_early_option( 'wpcd_show_ipv6' ) ) {
-					$ipv6   = $this->get_server_meta_value( $post_id, 'wpcd_server_ipv6' );
-					$value .= __( 'ipv6: ', 'wpcd' ) . $this->get_server_meta_value( $post_id, 'wpcd_server_ipv6' );
+					$ipv6 = $this->get_server_meta_value( $post_id, 'wpcd_server_ipv6' );
+					if ( is_admin() ) {
+						$value2 = $this->wpcd_column_wrap_string_with_span_and_class( __( 'ipv6: ', 'wpcd' ), 'ipv6', 'left' );
+					} else {
+						$value2 = $this->wpcd_column_wrap_string_with_span_and_class( __( 'IPv6: ', 'wpcd' ), 'ipv6', 'left' );
+					}
+					$get_ipv6 = $this->wpcd_column_wrap_string_with_span_and_class( $this->get_server_meta_value( $post_id, 'wpcd_server_ipv6' ), 'ipv6', 'right' );
+					$value2  .= wpcd_wrap_clipboard_copy( $get_ipv6 );
+					$value   .= $this->wpcd_column_wrap_string_with_div_and_class( $value2, 'ipv6' );
+				}
+
+				// Add hook here so that other apps can insert data.
+				$hooked_value = apply_filters( 'wpcd_app_admin_list_server_column_before_apps_link', '', $post_id );
+				if ( ! empty( $hooked_value ) ) {
+					$value .= $hooked_value;
 				}
 
 				// Show a link that takes you to a list of apps on the server.
 				if ( true === (bool) wpcd_get_option( 'wpcd_hide_app_list_appslink_in_server_column' ) && ( ! wpcd_is_admin() ) ) {
 					// do nothing, only admins are allowed to see this data.
 				} else {
-					$value  = empty( $value ) ? $value : $value . '<br />';
-					$url    = admin_url( 'edit.php?post_type=wpcd_app&server_id=' . (string) $server_post_id );
-					$value .= sprintf( '<a href="%s">%s</a>', $url, __( 'Apps on this server', 'wpcd' ) );
+					if ( is_admin() ) {
+						$url = admin_url( 'edit.php?post_type=wpcd_app&server_id=' . (string) $server_post_id );
+					} else {
+						$url = get_permalink( WPCD_WORDPRESS_APP_PUBLIC::get_apps_list_page_id() ) . '?server_id=' . (string) $server_post_id;
+					}
+					$value2 = sprintf( '<a href="%s">%s</a>', $url, __( 'Apps on this server', 'wpcd' ) );
+					$value2 = $this->wpcd_column_wrap_string_with_span_and_class( $value2, 'apps_on_server', 'left' );
+					$value .= $this->wpcd_column_wrap_string_with_div_and_class( $value2, 'apps_on_server' );
+				}
+
+				// Add hook here so that other apps can insert data.
+				$hooked_value = apply_filters( 'wpcd_app_admin_list_server_column_after_apps_link', '', $post_id );
+				if ( ! empty( $hooked_value ) ) {
+					$value .= $hooked_value;
 				}
 
 				break;
 
 			case 'wpcd_server_ipv4':
+				// Copy IP.
+				$copy_app_ipv4 = wpcd_wrap_clipboard_copy( $this->get_server_meta_value( $post_id, 'wpcd_server_ipv4' ) );
 				// Display the ip(v4) of the server.
-				$value = $this->get_server_meta_value( $post_id, 'wpcd_server_ipv4' );
+				$value = $copy_app_ipv4;
 				break;
 
 			case 'wpcd_server_ipv6':
+				// Copy IP.
+				$copy_app_ipv6 = wpcd_wrap_clipboard_copy( $this->get_server_meta_value( $post_id, 'wpcd_server_ipv6' ) );
 				// Display the ip(v6) of the server.
-				$value = $this->get_server_meta_value( $post_id, 'wpcd_server_ipv6' );
+				$value = $copy_app_ipv6;
 				break;
 
 			case 'wpcd_server_provider':
@@ -317,6 +416,17 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 
 				if ( empty( $value ) ) {
 					$value = 'no data for this app';
+				}
+
+				break;
+
+			case 'wpcd_app_health':
+				// Nothing here - instead individual app classes will use this filter to populate data about the app.
+				// This way the list can show data about different apps.
+				$value = apply_filters( 'wpcd_app_admin_list_app_health_column', $value, $post_id );
+
+				if ( empty( $value ) ) {
+					$value = 'No data for this app';
 				}
 
 				break;
@@ -393,15 +503,75 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 
 		unset( $defaults['date'] );
 
+		// Title.
+		$show_it = true;
+		if ( ! is_admin() && ( boolval( wpcd_get_option( 'wordpress_app_fe_hide_app_title_in_app_list' ) ) ) ) {
+			$show_it = false;
+		}
+		if ( ! $show_it ) {
+			unset( $defaults['title'] );
+		} else {
+			if ( ! is_admin() ) {
+				// Change the column title for the front-end.
+				$defaults['title'] = __( 'Site', 'wpcd' );
+			}
+		}
+
+		// App Type.
 		if ( boolval( wpcd_get_option( 'wpcd_show_app_list_app_type' ) ) ) {
 			$defaults['wpcd_app_type'] = __( 'App Type', 'wpcd' );
 		}
+
+		// Short Description.
 		if ( boolval( wpcd_get_option( 'wpcd_show_app_list_short_desc' ) ) ) {
-			$defaults['wpcd_app_short_desc'] = __( 'Description', 'wpcd' );
+			$show_it = true;
+			if ( ! is_admin() && ! ( boolval( wpcd_get_option( 'wordpress_app_fe_show_description_in_app_list' ) ) ) ) {
+				$show_it = false;
+			}
+			if ( $show_it ) {
+				$defaults['wpcd_app_short_desc'] = __( 'Description', 'wpcd' );
+			}
 		}
-		$defaults['wpcd_app_group']   = __( 'App Group', 'wpcd' );
-		$defaults['wpcd_app_summary'] = __( 'App Summary', 'wpcd' );
-		$defaults['wpcd_server']      = __( 'Server', 'wpcd' );
+
+		// App Group.
+		$show_it = true;
+		if ( ! is_admin() && ! ( boolval( wpcd_get_option( 'wordpress_app_fe_show_app_group_in_app_list' ) ) ) ) {
+			$show_it = false;
+		}
+		if ( $show_it ) {
+			$defaults['wpcd_app_group'] = __( 'App Group', 'wpcd' );
+		}
+
+		// App Summary.
+		$show_it = true;
+		if ( ! is_admin() && ( boolval( wpcd_get_option( 'wordpress_app_fe_hide_app_summary_in_app_list' ) ) ) ) {
+			$show_it = false;
+		}
+		if ( $show_it ) {
+			$defaults['wpcd_app_summary'] = __( 'App Summary', 'wpcd' );
+		}
+
+		// App Health.
+		$show_it = true;
+		if ( ! is_admin() && ( boolval( wpcd_get_option( 'wordpress_app_fe_hide_app_health_in_app_list' ) ) ) ) {
+			$show_it = false;
+		}
+		if ( $show_it ) {
+			if ( boolval( wpcd_get_option( 'wpcd_show_app_list_health' ) ) ) {
+				$defaults['wpcd_app_health'] = __( 'App Health', 'wpcd' );
+			}
+		}
+
+		// Server Data.
+		$show_it = true;
+		if ( ! is_admin() && ( boolval( wpcd_get_option( 'wordpress_app_fe_hide_server_in_app_list' ) ) ) ) {
+			$show_it = false;
+		}
+		if ( $show_it ) {
+			$defaults['wpcd_server'] = __( 'Server', 'wpcd' );
+		}
+
+		// IPv4 & IPv6.
 		if ( boolval( wpcd_get_option( 'wpcd_show_app_list_ipv4' ) ) ) {
 			$defaults['wpcd_server_ipv4'] = __( 'IPv4', 'wpcd' );
 			if ( boolval( wpcd_get_option( 'wpcd_show_ipv6' ) ) ) {
@@ -409,22 +579,52 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 				$defaults['wpcd_server_ipv6'] = __( 'IPv6', 'wpcd' );
 			}
 		}
+
+		// Provider.
 		if ( boolval( wpcd_get_option( 'wpcd_show_app_list_provider' ) ) ) {
 			$defaults['wpcd_server_provider'] = __( 'Provider', 'wpcd' );
 		}
+
+		// Region.
 		if ( boolval( wpcd_get_option( 'wpcd_show_app_list_region' ) ) ) {
 			$defaults['wpcd_server_region'] = __( 'Region', 'wpcd' );
 		}
+
+		// Owners.
 		if ( boolval( wpcd_get_option( 'wpcd_show_app_list_owner' ) ) ) {
-			if ( wpcd_is_admin() || ( ! wpcd_is_admin() && ! boolval( wpcd_get_option( 'wpcd_hide_app_list_owner_non_admins' ) ) ) ) {
+			$show_it = false;
+
+			if ( wpcd_is_admin() ) {
+				$show_it = true;
+			}
+
+			if ( ! wpcd_is_admin() && boolval( wpcd_get_option( 'wpcd_hide_app_list_owner_non_admins' ) ) ) {
+				$show_it = false;
+			}
+
+			if ( ! is_admin() && ! ( boolval( wpcd_get_option( 'wordpress_app_fe_show_owner_in_app_list' ) ) ) ) {
+				$show_it = false;
+			}
+
+			if ( $show_it ) {
 				$defaults['wpcd_owner'] = __( 'Owners', 'wpcd' );
 			}
 		}
+
+		// Date.
 		if ( boolval( wpcd_get_option( 'wpcd_show_app_list_date' ) ) ) {
 			$defaults['date'] = __( 'Date', 'wpcd' );
 		}
+
+		// Team.
 		if ( boolval( wpcd_get_option( 'wpcd_show_app_list_team' ) ) ) {
-			$defaults['wpcd_assigned_teams'] = __( 'Teams', 'wpcd' );
+			$show_it = true;
+			if ( ! is_admin() && ! ( boolval( wpcd_get_option( 'wordpress_app_fe_show_teams_in_app_list' ) ) ) ) {
+				$show_it = false;
+			}
+			if ( $show_it ) {
+				$defaults['wpcd_assigned_teams'] = __( 'Teams', 'wpcd' );
+			}
 		}
 
 		return $defaults;
@@ -494,7 +694,7 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 	 */
 	public function save_meta_values( $post_id, $post ) {
 		// Add nonce for security and authentication.
-		$nonce_name   = filter_input( INPUT_POST, 'app_meta', FILTER_SANITIZE_STRING );
+		$nonce_name   = sanitize_text_field( filter_input( INPUT_POST, 'app_meta', FILTER_UNSAFE_RAW ) );
 		$nonce_action = 'wpcd_app_nonce_meta_action';
 
 		// Check if nonce is valid.
@@ -522,8 +722,8 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 			return;
 		}
 
-		$app_post_title      = filter_input( INPUT_POST, 'app_post_title', FILTER_SANITIZE_STRING );
-		$wpcd_app_type       = filter_input( INPUT_POST, 'app_type', FILTER_SANITIZE_STRING );
+		$app_post_title      = sanitize_text_field( filter_input( INPUT_POST, 'app_post_title', FILTER_UNSAFE_RAW ) );
+		$wpcd_app_type       = sanitize_text_field( filter_input( INPUT_POST, 'app_type', FILTER_UNSAFE_RAW ) );
 		$wpcd_parent_post_id = filter_input( INPUT_POST, 'parent_post_id', FILTER_SANITIZE_NUMBER_INT );
 		$wpcd_app_owner      = filter_input( INPUT_POST, 'wpcd_app_owner', FILTER_SANITIZE_NUMBER_INT );
 
@@ -598,6 +798,18 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 	}
 
 	/**
+	 * Return prompt messages while deleting/restoring an app
+	 *
+	 * @return array
+	 */
+	public function wpcd_app_trash_prompt_messages() {
+		return array(
+			'delete'  => __( 'Are you sure? This will only delete the data from our database.  The application itself will remain on your server. To remove a WordPress app from the server, cancel this operation and use the REMOVE SITE option under the MISC tab.', 'wpcd' ),
+			'restore' => __( 'Please note: Restoring this item will not necessarily restore your app on the server. This item will likely become an orphaned/ghost item - i.e: it will not have a connection to any app or server.', 'wpcd' ),
+		);
+	}
+
+	/**
 	 * Confirmation prompt for all trash actions on app list/detail screen.
 	 *
 	 * Action hook: admin_footer-edit.php
@@ -606,9 +818,11 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 	 * @return true
 	 */
 	public function wpcd_app_trash_prompt() {
-		$screen = get_current_screen();
+
+		$messages = $this->wpcd_app_trash_prompt_messages();
+		$screen   = get_current_screen();
 		if ( in_array( $screen->id, array( 'edit-wpcd_app', 'wpcd_app' ), true ) ) {
-			$prompt_message = __( 'Are you sure? This will only delete the data from our database.  The application itself will remain on your server. To remove a WordPress app from the server, cancel this operation and use the REMOVE SITE option under the MISC tab.', 'wpcd' );
+			$prompt_message = isset( $messages['delete'] ) ? $messages['delete'] : '';
 			?>
 			<script type="text/javascript">
 				jQuery(document).ready(function($){
@@ -637,7 +851,7 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 		}
 
 		if ( 'edit-wpcd_app' === $screen->id ) {
-			$prompt_message = __( 'Please note: Restoring this item will not necessarily restore your app on the server. This item will likely become an orphaned/ghost item - i.e: it will not have a connection to any app or server.', 'wpcd' );
+			$prompt_message = isset( $messages['restore'] ) ? $messages['restore'] : '';
 			?>
 			<script type="text/javascript">
 				jQuery(document).ready(function($){
@@ -819,22 +1033,24 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 
 		$post_type = 'wpcd_app';
 
-		if ( is_admin() && 'edit.php' === $pagenow && $typenow === $post_type ) {
+		if ( ( is_admin() && 'edit.php' === $pagenow && $typenow === $post_type ) || WPCD_WORDPRESS_APP_PUBLIC::is_apps_list_page() ) {
 
 			$apps = $this->generate_meta_dropdown( $post_type, 'app_type', __( 'All App Types', 'wpcd' ) );
 			echo $apps;
 
-			$servers = $this->generate_server_dropdown( __( 'All Servers', 'wpcd' ) );
-			echo $servers;
+			if ( current_user_can( 'wpcd_manage_servers' ) ) {
+				$servers = $this->generate_server_dropdown( __( 'All Servers', 'wpcd' ) );
+				echo $servers;
 
-			$providers = $this->generate_meta_dropdown( 'wpcd_app_server', 'wpcd_server_provider', __( 'All Providers', 'wpcd' ) );
-			echo $providers;
+				$providers = $this->generate_meta_dropdown( 'wpcd_app_server', 'wpcd_server_provider', __( 'All Providers', 'wpcd' ) );
+				echo $providers;
 
-			$regions = $this->generate_meta_dropdown( 'wpcd_app_server', 'wpcd_server_region', __( 'All Regions', 'wpcd' ) );
-			echo $regions;
+				$regions = $this->generate_meta_dropdown( 'wpcd_app_server', 'wpcd_server_region', __( 'All Regions', 'wpcd' ) );
+				echo $regions;
 
-			$server_owners = $this->generate_owner_dropdown( 'wpcd_app_server', 'wpcd_server_owner', __( 'All Server Owners', 'wpcd' ) );
-			echo $server_owners;
+				$server_owners = $this->generate_owner_dropdown( 'wpcd_app_server', 'wpcd_server_owner', __( 'All Server Owners', 'wpcd' ) );
+				echo $server_owners;
+			}
 
 			$app_owners = $this->generate_owner_dropdown( $post_type, 'wpcd_app_owner', __( 'All App Owners', 'wpcd' ) );
 			echo $app_owners;
@@ -863,10 +1079,10 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 	public function wpcd_app_parse_query( $query ) {
 		global $pagenow;
 
-		if ( is_admin() && $query->is_main_query() && 'wpcd_app' === $query->query['post_type'] && 'edit.php' === $pagenow && ! wpcd_is_admin() ) {
+		if ( ( ( is_admin() && $query->is_main_query() && 'edit.php' === $pagenow ) || wpcd_is_public_apps_list_query( $query ) ) && 'wpcd_app' === $query->query['post_type'] && ! wpcd_is_admin() ) {
 
 			$qv          = &$query->query_vars;
-			$post_status = filter_input( INPUT_GET, 'post_status', FILTER_SANITIZE_STRING );
+			$post_status = sanitize_text_field( filter_input( INPUT_GET, 'post_status', FILTER_UNSAFE_RAW ) );
 			$post_status = ! empty( $post_status ) ? $post_status : 'private';
 			$post__in    = wpcd_get_posts_by_permission( 'view_app', 'wpcd_app', $post_status );
 
@@ -877,13 +1093,13 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 			}
 		}
 
-		$filter_action = filter_input( INPUT_GET, 'filter_action', FILTER_SANITIZE_STRING );
-		if ( is_admin() && $query->is_main_query() && 'wpcd_app' === $query->query['post_type'] && 'edit.php' === $pagenow && ! empty( $filter_action ) ) {
+		$filter_action = sanitize_text_field( filter_input( INPUT_GET, 'filter_action', FILTER_UNSAFE_RAW ) );
+		if ( ( ( is_admin() && $query->is_main_query() && 'edit.php' === $pagenow ) || wpcd_is_public_apps_list_query( $query ) ) && 'wpcd_app' === $query->query['post_type'] && 'Filter' === $filter_action ) {
 			$qv = &$query->query_vars;
 
 			// APP TYPE.
 			if ( isset( $_GET['app_type'] ) && ! empty( $_GET['app_type'] ) ) {
-				$app_type = filter_input( INPUT_GET, 'app_type', FILTER_SANITIZE_STRING );
+				$app_type = sanitize_text_field( filter_input( INPUT_GET, 'app_type', FILTER_UNSAFE_RAW ) );
 
 				$qv['meta_query'][] = array(
 					'field'   => 'app_type',
@@ -893,8 +1109,9 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 			}
 
 			// SERVER.
-			if ( isset( $_GET['wpcd_app_server'] ) && ! empty( $_GET['wpcd_app_server'] ) ) {
-				$wpcd_app_server = filter_input( INPUT_GET, 'wpcd_app_server', FILTER_SANITIZE_STRING );
+			$_wpcd_app_server = is_admin() ? 'wpcd_app_server_dd' : '_wpcd_app_server_dd';
+			if ( isset( $_GET[ $_wpcd_app_server ] ) && ! empty( $_GET[ $_wpcd_app_server ] ) ) {
+				$wpcd_app_server = sanitize_text_field( filter_input( INPUT_GET, $_wpcd_app_server, FILTER_UNSAFE_RAW ) );
 
 				$qv['meta_query'][] = array(
 					'field'   => 'parent_post_id',
@@ -905,7 +1122,7 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 
 			// SERVER PROVIDER.
 			if ( isset( $_GET['wpcd_server_provider'] ) && ! empty( $_GET['wpcd_server_provider'] ) ) {
-				$wpcd_server_provider = filter_input( INPUT_GET, 'wpcd_server_provider', FILTER_SANITIZE_STRING );
+				$wpcd_server_provider = sanitize_text_field( filter_input( INPUT_GET, 'wpcd_server_provider', FILTER_UNSAFE_RAW ) );
 
 				$parents = $this->get_app_server_ids( 'wpcd_server_provider', $wpcd_server_provider );
 
@@ -917,7 +1134,7 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 
 			// REGION.
 			if ( isset( $_GET['wpcd_server_region'] ) && ! empty( $_GET['wpcd_server_region'] ) ) {
-				$wpcd_server_region = filter_input( INPUT_GET, 'wpcd_server_region', FILTER_SANITIZE_STRING );
+				$wpcd_server_region = sanitize_text_field( filter_input( INPUT_GET, 'wpcd_server_region', FILTER_UNSAFE_RAW ) );
 
 				$parents = $this->get_app_server_ids( 'wpcd_server_region', $wpcd_server_region );
 
@@ -929,7 +1146,7 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 
 			// SERVER OWNER.
 			if ( isset( $_GET['wpcd_server_owner'] ) && ! empty( $_GET['wpcd_server_owner'] ) ) {
-				$wpcd_server_owner = filter_input( INPUT_GET, 'wpcd_server_owner', FILTER_SANITIZE_STRING );
+				$wpcd_server_owner = sanitize_text_field( filter_input( INPUT_GET, 'wpcd_server_owner', FILTER_UNSAFE_RAW ) );
 
 				$parents = get_posts(
 					array(
@@ -949,7 +1166,7 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 
 			// APP OWNER.
 			if ( isset( $_GET['wpcd_app_owner'] ) && ! empty( $_GET['wpcd_app_owner'] ) ) {
-				$wpcd_app_owner = filter_input( INPUT_GET, 'wpcd_app_owner', FILTER_SANITIZE_STRING );
+				$wpcd_app_owner = sanitize_text_field( filter_input( INPUT_GET, 'wpcd_app_owner', FILTER_UNSAFE_RAW ) );
 
 				$qv['author'] = $wpcd_app_owner;
 
@@ -957,7 +1174,7 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 
 			// IPv4.
 			if ( isset( $_GET['wpcd_server_ipv4'] ) && ! empty( $_GET['wpcd_server_ipv4'] ) ) {
-				$wpcd_server_ipv4 = filter_input( INPUT_GET, 'wpcd_server_ipv4', FILTER_SANITIZE_STRING );
+				$wpcd_server_ipv4 = sanitize_text_field( filter_input( INPUT_GET, 'wpcd_server_ipv4', FILTER_UNSAFE_RAW ) );
 
 				$parents = $this->get_app_server_ids( 'wpcd_server_ipv4', $wpcd_server_ipv4 );
 
@@ -969,7 +1186,7 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 
 			// IPv6.
 			if ( isset( $_GET['wpcd_server_ipv6'] ) && ! empty( $_GET['wpcd_server_ipv6'] ) ) {
-				$wpcd_server_ipv6 = filter_input( INPUT_GET, 'wpcd_server_ipv6', FILTER_SANITIZE_STRING );
+				$wpcd_server_ipv6 = sanitize_text_field( filter_input( INPUT_GET, 'wpcd_server_ipv6', FILTER_UNSAFE_RAW ) );
 
 				$parents = $this->get_app_server_ids( 'wpcd_server_ipv6', $wpcd_server_ipv6 );
 
@@ -995,7 +1212,7 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 			}
 		}
 
-		if ( is_admin() && $query->is_main_query() && 'wpcd_app' === $query->query['post_type'] && 'edit.php' === $pagenow && ! empty( $_GET['server_id'] ) && empty( $filter_action ) ) {
+		if ( ( ( is_admin() && $query->is_main_query() && 'edit.php' === $pagenow ) || wpcd_is_public_apps_list_query( $query ) ) && 'wpcd_app' === $query->query['post_type'] && ! empty( $_GET['server_id'] ) && empty( $filter_action ) ) {
 
 			$qv               = &$query->query_vars;
 			$qv['meta_query'] = array();
@@ -1011,8 +1228,8 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 
 		}
 
-		if ( is_admin() && $query->is_main_query() && 'wpcd_app' === $query->query['post_type'] && 'edit.php' === $pagenow && ! empty( $_GET['team_id'] ) && empty( $filter_action ) ) {
-
+		// if ( is_admin() && $query->is_main_query() && 'wpcd_app' === $query->query['post_type'] && 'edit.php' === $pagenow && ! empty( $_GET['team_id'] ) && empty( $filter_action ) ) {
+		if ( ( ( is_admin() && $query->is_main_query() && 'edit.php' === $pagenow ) || wpcd_is_public_apps_list_query( $query ) ) && 'wpcd_app' === $query->query['post_type'] && ! empty( $_GET['team_id'] ) && empty( $filter_action ) ) {
 			$qv               = &$query->query_vars;
 			$qv['meta_query'] = array();
 
@@ -1027,7 +1244,7 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 
 		}
 
-		if ( is_admin() && $query->is_main_query() && 'wpcd_app' === $query->query['post_type'] && 'edit.php' === $pagenow && ! empty( $_GET['wpcd_app_group'] ) && empty( $filter_action ) ) {
+		if ( ( ( is_admin() && $query->is_main_query() && 'edit.php' === $pagenow ) || wpcd_is_public_apps_list_query( $query ) ) && 'wpcd_app' === $query->query['post_type'] && ! empty( $_GET['wpcd_app_group'] ) && empty( $filter_action ) ) {
 
 			$qv = &$query->query_vars;
 
@@ -1124,7 +1341,7 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 			'priority' => 'low',
 			'fields'   => array(
 
-				// add a checkbox field.
+				// add a checkbox field to remove all delete links from the screen.
 				array(
 					'desc' => __( 'Check this box to remove all delete links from the screen - it will prevent this app from being accidentally deleted.', 'wpcd' ),
 					'id'   => 'wpcd_app_delete_protection',
@@ -1197,21 +1414,30 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 	 *
 	 * @return void
 	 */
-	public function wpcd_app_delete_post( $post_id ) {
+	public function wpcd_app_delete_post( $post_id, $return = false ) {
+
+		$success = true;
 
 		// No permissions check if we're running tasks via cron. eg: bulk deletes triggered via pending logs.
-		if ( true === wp_doing_cron() ) {
-			return;
+		if ( true === wp_doing_cron() || true === wpcd_is_doing_cron() ) {
+			return true;
 		}
 
 		if ( get_post_type( $post_id ) === 'wpcd_app' && ! wpcd_is_admin() ) {
 			$user_id     = (int) get_current_user_id();
 			$post_author = (int) get_post( $post_id )->post_author;
 			if ( ! wpcd_user_can( $user_id, 'delete_app_record', $post_id ) && $post_author !== $user_id ) {
-				wp_die( esc_html( __( 'You don\'t have permission to delete this post.', 'wpcd' ) ) );
+				$success = false;
 			}
 		}
 
+		if ( $return ) {
+			return $success;
+		}
+
+		if ( ! $success ) {
+			wp_die( esc_html( __( 'You don\'t have permission to delete this post.', 'wpcd' ) ) );
+		}
 	}
 
 	/**
@@ -1308,7 +1534,7 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 				'menu_icon'           => $menu_icon,
 				'public'              => true,
 				'exclude_from_search' => true,
-				'publicly_queryable'  => false,
+				'publicly_queryable'  => true,
 				'hierarchical'        => false,
 				'supports'            => array( '' ),
 				'rewrite'             => null,
@@ -1749,6 +1975,122 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 		}
 
 		return $args;
+	}
+
+	/**
+	 * Takes a string and wraps it with a span and a class related to the column name.
+	 *
+	 * For example, if we get a string such as "Domain:" we might
+	 * return <span class="wpcd-column-label-domain">Domain:</span>.
+	 *
+	 * Calls the global function wpcd_wrap_string_with_span_and_class
+	 * defined in the functions.php which does the actual wrapping.
+	 *
+	 * @param string $string The string to wrap.
+	 * @param string $column The column name.
+	 * @param string $align Valid values are 'left' and 'right'.
+	 *
+	 * @return string
+	 */
+	public function wpcd_column_wrap_string_with_span_and_class( $string, $column, $align ) {
+
+		if ( 'left' === $align ) {
+			return wpcd_wrap_string_with_span_and_class( $string, $column, 'app-col-element-label' );
+		} else {
+			return wpcd_wrap_string_with_span_and_class( $string, $column, 'app-col-element-value' );
+		}
+
+	}
+
+	/**
+	 * Takes a string and wraps it with a div.
+	 *
+	 * For example, if we get a string such as "Domain:" we might
+	 * return <div class="wpcd-column-label-domain">Domain:</div>.
+	 *
+	 * @param string $string The string to wrap.
+	 * @param string $column The column name.
+	 *
+	 * @return string
+	 */
+	public function wpcd_column_wrap_string_with_div_and_class( $string, $column ) {
+
+		return wpcd_wrap_string_with_div_and_class( $string, $column, 'app-col-element-wrap' );
+
+	}
+
+	/**
+	 * Load the options for server or app owner filter.
+	 *
+	 * Action hook: wp_ajax_wpcd_load_server_app_owners_options
+	 *
+	 * @return void
+	 */
+	public function wpcd_load_server_app_owners_options() {
+		// Nonce check.
+		check_ajax_referer( 'wpcd-server-app-owners-selection', 'nonce' );
+
+		// Permissions check by user to load sites which user has access to view.
+		$current_user_id = get_current_user_id();
+
+		$post_type         = sanitize_text_field( filter_input( INPUT_POST, 'post_type', FILTER_UNSAFE_RAW ) );
+		$field_key         = sanitize_text_field( filter_input( INPUT_POST, 'field_key', FILTER_UNSAFE_RAW ) );
+		$first_option      = sanitize_text_field( filter_input( INPUT_POST, 'first_option', FILTER_UNSAFE_RAW ) );
+		$search_term       = sanitize_text_field( filter_input( INPUT_POST, 'search_term', FILTER_UNSAFE_RAW ) );
+		$search_term       = trim( $search_term );
+		$owner_options_arr = array( '0' => __( $first_option, 'wpcd' ) );
+
+		if ( ! empty( $search_term ) ) {
+			global $wpdb;
+
+			$post_status = 'private';
+
+			if ( 'wpcd_app_server' === $post_type ) {
+				$permission = 'view_server';
+			} elseif ( 'wpcd_app' === $post_type ) {
+				$permission = 'view_app';
+			}
+
+			$posts = wpcd_get_posts_by_permission( $permission, $post_type, $post_status );
+
+			if ( ! $posts || empty( $posts ) ) {
+				return;
+			}
+
+			if ( count( $posts ) == 0 ) {
+				return '';
+			}
+
+			$posts_placeholder = implode( ', ', array_fill( 0, count( $posts ), '%d' ) );
+			$query_fields      = array_merge( array( $post_type, $post_status ), $posts );
+
+			$sql   = $wpdb->prepare( "SELECT DISTINCT post_author FROM {$wpdb->posts} WHERE post_type = %s AND post_status = %s  AND ID IN ( " . $posts_placeholder . ' ) ORDER BY post_author', $query_fields );
+			$posts = $wpdb->get_results( $sql );
+
+			if ( ! empty( $posts ) ) {
+				foreach ( $posts as $p ) {
+					if ( in_array( $p->post_author, $owners ) ) {
+						continue;
+					}
+					$owners[]         = $p->post_author;
+					$post_author_id   = $p->post_author;
+					$post_author_name = empty( $post_author_id ) ? __( 'No Author or Owner provided.', 'wpcd' ) : esc_html( get_user_by( 'ID', $post_author_id )->user_login );
+
+					// Match search term with owner name.
+					if ( strpos( $post_author_name, $search_term ) !== false ) {
+						$owner_options_arr[ $post_author_id ] = $post_author_name;
+					}
+				}
+			}
+		}
+
+		$result = array(
+			'items' => $owner_options_arr,
+		);
+
+		wp_send_json_success( $result );
+
+		exit;
 	}
 
 }

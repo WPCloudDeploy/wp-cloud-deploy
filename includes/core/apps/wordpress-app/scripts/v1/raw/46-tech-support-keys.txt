@@ -1,0 +1,77 @@
+#!/bin/bash
+if [[ "$EUID" -ne 0 ]]
+then
+	echo "Sorry, you need to run this as root"
+	exit
+fi
+
+## Get our common functions
+if [[ ! -f 9999-common-functions.sh ]]
+then
+	echo "The file 9999-common-functions.sh is missing"
+	exit 1
+fi
+source 9999-common-functions.sh
+
+# Not supported on OLS yet.
+if [ "$g_webserver_type" != "nginx" ]
+then
+    echo "These operations are only supported on NGINX."
+    exit 1
+fi
+
+while [[ -z $action ]]
+do
+	echo
+	echo "What do you want to do?"
+	echo
+	echo "   1) Generate Temp ssh keys"
+	read -p "Action: " action
+	until [[ -z "$action" || "$action" =~ ^[1-1]$ ]]
+	do
+		echo "$action: invalid selection."
+		read -p "Action: " action
+	done
+done
+
+### Make sure at command install
+apt-get install at -y 
+
+###################################### Generate new temporary ssh keys ##########
+function tech_keys
+{
+	if [ -z $key_removal_time ]
+	then
+		read -p "Number of minutes to keep temporary key pairs: " key_removal_time
+	fi
+	tempdate=$(date +"%Y-%m-%d"-"%Hh%Mm%Ss")
+	localuser=`sh -c 'echo ${SUDO_USER:-$USER}'`
+	homedir=`grep $localuser /etc/passwd|cut -d':' -f6`
+	free_size=`df -m|grep -w '/'|awk '{print $4}'`
+	df -h|grep '/tmp'
+	if [ $? -eq 0 ]
+	then
+		free_tmp_size=`df -m|grep -w '/tmp'|awk '{print $4}'`
+	else
+		free_tmp_size=$free_size
+	fi
+	if [ $free_size -gt 5 ] && [ $free_tmp_size -gt 5 ]
+	then
+		cat /dev/zero | ssh-keygen -f "$homedir/.ssh/id_rsa_tech-$tempdate" -q -N "" -C "$tempdate" >/dev/null 2>&1
+		clear
+		cat $homedir/.ssh/id_rsa_tech-$tempdate
+		cat $homedir/.ssh/id_rsa_tech-$tempdate.pub >> $homedir/.ssh/authorized_keys
+		echo "rm -rf $homedir/.ssh/id_rsa_tech-$tempdate* ; sed -i \"/.*$tempdate/d\" $homedir/.ssh/authorized_keys" |at now + $key_removal_time minutes > /dev/null 2>&1
+	else
+		echo "Server don't have enough disk in / or /tmp"
+	fi
+}
+
+###########################################################################################################################
+###########################################################################################################################
+
+############## Install Antivirus
+if [[ $action == "tech_keys" || $action == "1" ]]
+then
+	tech_keys
+fi

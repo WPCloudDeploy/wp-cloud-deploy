@@ -28,7 +28,7 @@ class WPCD_WORDPRESS_TABS extends WPCD_WORDPRESS_APP {
 	 * This function isn't used for all tabs, just for ones that are less complex.
 	 * Tabs such as the sFTP and Backup & Restore uses their own function.
 	 *
-	 * This uses a function called get_actions that is expected to be defined by the descendent class.
+	 * This uses a function called get_actions that is expected to be defined by the descendant class.
 	 * That function should return an array in a specific format - something like this:
 				['basic-auth-status'] = array(
 					'label' => __( 'Basic Authentication', 'wpcd' ),
@@ -57,7 +57,7 @@ class WPCD_WORDPRESS_TABS extends WPCD_WORDPRESS_APP {
 			return $fields;
 		}
 
-		$actions = $this->get_actions( $id );  // get_actions needs to be defined by the descendent class if this get_fields function ever gets called!
+		$actions = $this->get_actions( $id );  // get_actions needs to be defined by the descendant class if this get_fields function ever gets called!
 		foreach ( $actions as $slug => $attributes ) {
 			$raw_attributes = isset( $attributes['raw_attributes'] ) ? $attributes['raw_attributes'] : array();
 			$fields[]       = array_merge(
@@ -71,7 +71,7 @@ class WPCD_WORDPRESS_TABS extends WPCD_WORDPRESS_APP {
 						// the _action that will be called in ajax.
 						'data-wpcd-action'              => $slug,
 						// the id, not of much use.
-						'data-wpcd-id'                  => filter_input( INPUT_GET, 'post', FILTER_VALIDATE_INT ),
+						'data-wpcd-id'                  => wpcd_get_current_page_server_id(),
 						// fields that contribute data for this action. For example, if action is to set a password, this will contain the field ID references for the user id and password fields.
 						'data-wpcd-fields'              => isset( $raw_attributes['data-wpcd-fields'] ) ? $raw_attributes['data-wpcd-fields'] : '',
 						// the key of the field (the key goes in the request). For example, if action is to set a password, this will contain the field NAME references for the user id and password fields.
@@ -81,6 +81,8 @@ class WPCD_WORDPRESS_TABS extends WPCD_WORDPRESS_APP {
 						'data-show-log-console'         => isset( $raw_attributes['log_console'] ) ? $raw_attributes['log_console'] : '',
 						// Initial console message.
 						'data-initial-console-message'  => isset( $raw_attributes['console_message'] ) ? $raw_attributes['console_message'] : '',
+						// Spellcheck security issue.
+						'spellcheck'                    => isset( $raw_attributes['spellcheck'] ) ? $raw_attributes['spellcheck'] : 'true',
 					),
 					'class'      => isset( $raw_attributes['class'] ) ? 'wpcd_app_action ' . $raw_attributes['class'] : 'wpcd_app_action',
 					'save_field' => false,
@@ -128,9 +130,8 @@ class WPCD_WORDPRESS_TABS extends WPCD_WORDPRESS_APP {
 	}
 
 	/**
-	 * If a site is disabled then tabs can call_user_func
-	 * this function to show a standard "site is disabled
-	 * message.
+	 * If a site is disabled then tabs can this function
+	 * to show a standard "site is disabled message.
 	 *
 	 * @param string $tab    The tab id - if this is empty, assume that the tab id will be automatically filled in.
 	 *
@@ -154,6 +155,42 @@ class WPCD_WORDPRESS_TABS extends WPCD_WORDPRESS_APP {
 		} else {
 			$actions[ 'site-is-disabled-status-header-' . $random_str ] = array(
 				'name' => __( 'Site Is Disabled', 'wpcd' ),
+				'type' => 'heading',
+				'tab'  => $tab,
+				'desc' => $desc,
+			);
+		}
+
+		return $actions;
+
+	}
+
+	/**
+	 * If a site is on a server where the maximum sites
+	 * allowed have been exceeded, return his header.
+	 *
+	 * @param string $tab    The tab id - if this is empty, assume that the tab id will be automatically filled in.
+	 *
+	 * @return array
+	 */
+	public function get_max_sites_exceeded_header_field( $tab = '' ) {
+
+		$actions = array();
+
+		$desc       = __( 'This site is on a server where the maximum number of allowed sites have been met or exceeded. Please contact your admin or customer support for assistance.', 'wpcd' );
+		$random_str = wpcd_random_str( 20, '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ' );
+
+		if ( empty( $tab ) ) {
+			$actions[ 'function-not-available-status-header-' . $random_str ] = array(
+				'label'          => __( 'This Function is Not Available', 'wpcd' ),
+				'type'           => 'heading',
+				'raw_attributes' => array(
+					'desc' => $desc,
+				),
+			);
+		} else {
+			$actions[ 'function-not-available-status-header-' . $random_str ] = array(
+				'name' => __( 'This Function is Not Available', 'wpcd' ),
 				'type' => 'heading',
 				'tab'  => $tab,
 				'desc' => $desc,

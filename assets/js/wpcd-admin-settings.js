@@ -39,6 +39,30 @@
             }
         });
     }
+    
+    // To create public pages.
+    function initCreatePublicPages() {
+        $('body').on('click', '#wordpress_public_create_pages_button', function(e) {
+            e.preventDefault();
+
+            var action = $(this).data('action');
+            var nonce = $(this).data('nonce');
+
+            $.ajax({
+                url: ajaxurl,
+                method: 'POST',
+                data: {
+                    action: action,
+                    nonce: nonce
+                },
+                success: function(data) {
+                    alert(data.data.msg);
+                    location.reload();
+                }
+            });
+
+        });
+    }
 
     // for cleaning up apps - triggered from the SETTINGS->TOOLS->CLEAN UP APPS button.
     function initCleanUpApps() {
@@ -113,6 +137,58 @@
 
         });
     }
+	
+    // for automatically creating ssh keys.
+    function initAutoCreateSSHKeys() {
+        $('body').on('click', '.wpcd-provider-auto-create-ssh-key', function(e) {
+            e.preventDefault();
+
+            var action = $(this).data('action');
+            var nonce = $(this).data('nonce');
+            var provider = $(this).data('provider');
+
+            $.ajax({
+                url: ajaxurl,
+                method: 'POST',
+                data: {
+                    action: action,
+                    nonce: nonce,
+                    provider: provider
+                },
+                success: function(data) {
+                    alert(data.data.msg);
+                    location.reload();
+                }
+            });
+
+        });
+    }
+	
+    // For testing connections to a provider.
+    function initTestProviderConnection() {
+        $('body').on('click', '.wpcd-provider-test-provider-connection', function(e) {
+            e.preventDefault();
+
+            var action = $(this).data('action');
+            var nonce = $(this).data('nonce');
+            var provider = $(this).data('provider');
+
+            $.ajax({
+                url: ajaxurl,
+                method: 'POST',
+                data: {
+                    action: action,
+                    nonce: nonce,
+                    provider: provider
+                },
+                success: function(data) {
+                    alert(data.data.msg);
+                    location.reload();
+                }
+            });
+
+        });
+    }		
 
     // Checking for WPCD updates - triggered from the SETTINGS->LICENSE AND UPDATES->CHECK FOR UPDATES button
     // Validate licenses - triggered from the SETTINGS->LICENSE AND UPDATES->VALIDATE LICENSES button
@@ -176,12 +252,14 @@
         });
     }
 
-
     function init() {
+        initCreatePublicPages();
         initPasswordToggle();
         initCleanUpApps();
         initCleanUpServers();
         initClearProviderCache();
+		initAutoCreateSSHKeys();
+		initTestProviderConnection();
         initCheckUpdatesValidateLicenses();
         initResetDefaultsBrandColors();
     }

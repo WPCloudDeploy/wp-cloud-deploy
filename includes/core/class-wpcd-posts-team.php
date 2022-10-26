@@ -537,7 +537,7 @@ class WPCD_POSTS_TEAM {
 			$post__in        = array();
 
 			if ( $is_team_manager || current_user_can( 'wpcd_manage_teams' ) ) {
-				$post_status = filter_input( INPUT_GET, 'post_status', FILTER_SANITIZE_STRING );
+				$post_status = sanitize_text_field( filter_input( INPUT_GET, 'post_status', FILTER_UNSAFE_RAW ) );
 				$post_status = ! empty( $post_status ) ? $post_status : 'private';
 				$post__in    = wpcd_get_team_manager_posts( $user_id, $post_status );
 			}

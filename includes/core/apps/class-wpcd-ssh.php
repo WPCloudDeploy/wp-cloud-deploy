@@ -14,9 +14,8 @@ require wpcd_path . 'vendor/autoload.php';
 use phpseclib3\Net\SSH2;
 use phpseclib3\Net\SFTP;
 use phpseclib3\Crypt\RSA;
+use phpseclib3\Crypt\EC;
 use phpseclib3\Crypt\PublicKeyLoader;
-
-/* @TODO: All these functions right now seem to be related specifically to the VPN app - what are they doing up here in the parent class??? */
 
 /**
  * Parent class for all app specific SSH classes.
@@ -82,7 +81,7 @@ class WPCD_SSH {
 				// * client_header_timeout 600;
 				// * client_body_timeout 600;
 				//
-				// For proxied ngninx:
+				// For proxied nginx:
 				// * proxy_read_timeout 600s;
 				//
 				// For APACHE servers (which we don't use but mentioning here for completeness)
@@ -93,7 +92,7 @@ class WPCD_SSH {
 			}
 		}
 
-		/* Execute command - you have 3 mins before it times out. Anything greater than 3 mins should be handled with a callback.  Some proxy servers only give you 1 minute before it times out! */
+		/* Execute command - you have 3 mins before it times out. Anything greater than 3 mins should be handled with a callback.  Some proxy servers such as Cloudflare might only give you 1 minute before it times out! */
 		$ssh->setTimeout( $ssh_timeout );
 		$result = $ssh->exec( $command, $callback );
 		do_action( 'wpcd_log_error', "Executing command $command, getting result = $result", 'trace', __FILE__, __LINE__, null, false );
@@ -275,6 +274,23 @@ class WPCD_SSH {
 		$new_message .= '</div> <!-- error-message-wrap -->';
 
 		return $new_message;
+	}
+
+	/**
+	 * Create an ed25519 keypair and return both parts.
+	 */
+	public function create_key_pair() {
+
+		$private = EC::createKey( 'Ed25519' );
+		$public  = $private->getPublicKey();
+
+		$pair = array(
+			'public'  => $public->toString( 'OpenSSH' ),
+			'private' => $private->toString( 'OpenSSH' ),
+		);
+
+		return apply_filters( 'wpcd_create_ssh_key_pair', $pair );
+
 	}
 
 }

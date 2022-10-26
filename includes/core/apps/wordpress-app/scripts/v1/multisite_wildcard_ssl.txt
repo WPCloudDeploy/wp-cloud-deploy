@@ -1,5 +1,7 @@
 cd ~ &&
 sudo -E \rm -f ##SCRIPT_NAME## &&
+sudo -E wget --no-check-certificate -O ##SCRIPT_COMMON_NAME## ##SCRIPT_COMMON_URL## &&
+sudo -E dos2unix ##SCRIPT_COMMON_NAME## &&
 sudo -E wget --no-check-certificate -O ##SCRIPT_NAME## ##SCRIPT_URL## &&
 export action=##ACTION## domain=##DOMAIN## dns_provider=##DNS_PROVIDER## email=##EMAIL## dns_cloudflare_email=##DNS_CLOUDFLARE_EMAIL## dns_cloudflare_api_token=##DNS_CLOUDFLARE_API_TOKEN## dns_cloudflare_api_key=##DNS_CLOUDFLARE_API_KEY## &&
 sudo -E dos2unix ##SCRIPT_NAME## &&

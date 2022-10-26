@@ -43,13 +43,17 @@ if ( ! empty( $options['uninstall_on_delete'] ) ) {
 	/* This option was used to control whether our SSH console was hidden globally */
 	delete_option( 'wpcd_wpapp_ssh_console_hide' );
 
-	/* The option wpcd_last_upgrade_done holds the numberic version of the last update that was done via the upgrade scripts. */
+	/* The option wpcd_last_upgrade_done holds the numeric version of the last update that was done via the upgrade scripts. */
 	delete_option( 'wpcd_last_upgrade_done' );
 
 	/* Wisdom Options */
 	delete_option( 'wisdom_opt_out' );
 	delete_option( 'wisdom_wpcd_server_count' );
 	delete_option( 'wisdom_wpcd_app_count' );
+
+	/* Setup Wizard Options */
+	delete_option( 'wpcd_plugin_setup' );
+	delete_option( 'wpcd_skip_wizard_setup' );
 
 	/* Clear long-lived transients. */
 	delete_transient( 'wpcd_wisdom_custom_options_first_run_done' );

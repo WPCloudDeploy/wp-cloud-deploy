@@ -74,11 +74,14 @@ class WPCD_WORDPRESS_TABS_SERVER_MONITORIX extends WPCD_WORDPRESS_TABS {
 	 * @return array    $tabs The default value.
 	 */
 	public function get_tab( $tabs, $id ) {
-		if ( $this->get_tab_security( $id ) ) {
-			$tabs[ $this->get_tab_slug() ] = array(
-				'label' => __( 'Monitorix', 'wpcd' ),
-				'icon'  => 'far fa-traffic-light-stop',
-			);
+		// Monitorx is only valid for NGINX servers for now.
+		if ( 'nginx' === $this->get_web_server_type( $id ) ) {
+			if ( $this->get_tab_security( $id ) ) {
+				$tabs[ $this->get_tab_slug() ] = array(
+					'label' => __( 'Monitorix', 'wpcd' ),
+					'icon'  => 'far fa-traffic-light-stop',
+				);
+			}
 		}
 		return $tabs;
 	}
@@ -108,6 +111,11 @@ class WPCD_WORDPRESS_TABS_SERVER_MONITORIX extends WPCD_WORDPRESS_TABS {
 
 		// If user is not allowed to access the tab then don't paint the fields.
 		if ( ! $this->get_tab_security( $id ) ) {
+			return $fields;
+		}
+
+		// Monitorx is only valid for NGINX servers for now.
+		if ( ! ( 'nginx' === $this->get_web_server_type( $id ) ) ) {
 			return $fields;
 		}
 
@@ -239,6 +247,7 @@ class WPCD_WORDPRESS_TABS_SERVER_MONITORIX extends WPCD_WORDPRESS_TABS {
 					'size'           => 60,
 					// the key of the field (the key goes in the request).
 					'data-wpcd-name' => 'monitorix_auth_user',
+					'spellcheck'  => 'false',
 				),
 
 			);
@@ -251,6 +260,7 @@ class WPCD_WORDPRESS_TABS_SERVER_MONITORIX extends WPCD_WORDPRESS_TABS {
 					'size'           => 60,
 					// the key of the field (the key goes in the request).
 					'data-wpcd-name' => 'monitorix_auth_pass',
+					'spellcheck'  => 'false',
 				),
 			);
 			$actions['monitorix-install']       = array(
@@ -552,6 +562,7 @@ class WPCD_WORDPRESS_TABS_SERVER_MONITORIX extends WPCD_WORDPRESS_TABS {
 
 		// Bail if error.
 		if ( is_wp_error( $instance ) ) {
+			/* Translators: %s is the action id we're trying to execute. It is usually a string without spaces, not a number. */
 			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the server instance details for action %s', 'wpcd' ), $action ) );
 		}
 

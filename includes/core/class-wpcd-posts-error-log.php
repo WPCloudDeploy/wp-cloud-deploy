@@ -349,9 +349,6 @@ class WPCD_ERROR_LOG extends WPCD_POSTS_LOG {
 		}
 		/* End add log entry */
 
-		/* Clean up old log entries */
-		$this->clean_up_old_log_entries( 'wpcd_error_log' );
-
 		/* Finally, we return to the calling program the post id of the inserted record or false if none */
 		return $post_id;
 

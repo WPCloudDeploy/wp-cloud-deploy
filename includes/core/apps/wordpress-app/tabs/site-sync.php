@@ -123,7 +123,7 @@ class WPCD_WORDPRESS_TABS_SITE_SYNC extends WPCD_WORDPRESS_TABS {
 							foreach ( $apps as $app ) {
 								$app_id = $app->ID;
 								// Remove an action hook that will prevent wp_delete_post from returning because of a permission check.
-								// We need to do this because the AJAX user has an ID of zero and so has no permssions!.
+								// We need to do this because the AJAX user has an ID of zero and so has no permissions!.
 								// This will cause the before_delete_action hook to kill WP with the DIE statement.
 								// By now AJAX permissions have passed so can bypass that security check.
 								remove_action( 'before_delete_post', array( WPCD_POSTS_APP(), 'wpcd_app_delete_post' ), 10 );
@@ -294,6 +294,11 @@ class WPCD_WORDPRESS_TABS_SITE_SYNC extends WPCD_WORDPRESS_TABS {
 	 * @return boolean
 	 */
 	public function get_tab_security( $id ) {
+		// If admin has an admin lock in place and the user is not admin they cannot view the tab or perform actions on them.
+		if ( $this->get_admin_lock_status( $id ) && ! wpcd_is_admin() ) {
+			return false;
+		}
+		// If we got here then check team and other permissions.
 		return ( true === $this->wpcd_wpapp_site_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_site_tab( $id, $this->get_tab_slug() ) );
 	}
 
@@ -528,8 +533,13 @@ class WPCD_WORDPRESS_TABS_SITE_SYNC extends WPCD_WORDPRESS_TABS {
 		$result  = $this->execute_ssh( 'generic', $source_instance, array( 'commands' => $run_cmd ) );
 		$success = $this->is_ssh_successful( $result, 'site_sync_origin_setup.txt' );
 		if ( ! $success ) {
-			/* translators: %s is replaced with the result of the execute_ssh command. */
-			$msg = sprintf( __( 'Unable to configure the origin server. The origin server returned this in response to commands: %s', 'wpcd' ), $result );
+			if ( is_wp_error( $result) ) {
+				/* translators: %s is replaced with the result of the execute_ssh command. */
+				$msg = sprintf( __( 'Unable to configure the origin server. The origin server returned this in response to commands: %s', 'wpcd' ), $result->get_error_message() );
+			} else {
+				/* translators: %s is replaced with the result of the execute_ssh command. */
+				$msg = sprintf( __( 'Unable to configure the origin server. The origin server returned this in response to commands: %s', 'wpcd' ), $result );
+			}
 			do_action( 'wpcd_log_error', sprintf( '%s: %s', $msg, print_r( $args, true ) ), 'error', __FILE__, __LINE__, $source_instance, false );
 			do_action( "wpcd_{$this->get_app_name()}_site_sync_failed_early", $id, $action, $msg, $source_instance );
 			return new \WP_Error( $msg );
@@ -807,9 +817,13 @@ class WPCD_WORDPRESS_TABS_SITE_SYNC extends WPCD_WORDPRESS_TABS {
 			return array_merge( $fields, $this->get_disabled_header_field( 'site-sync' ) );
 		}
 
+		// What type of web server are we running?
+		$webserver_type = $this->get_web_server_type( $id );
+
 		// Get HTTP2 status since we cannot push a site with HTTP2 turned on.
+		// This restriction applies only to NGINX servers.
 		$http2_status = $this->http2_status( $id );
-		if ( 'on' === $http2_status ) {
+		if ( 'on' === $http2_status && 'nginx' === $webserver_type ) {
 			$desc = __( 'You cannot copy this site to a new server at this time because HTTP2 is enabled. Please disable it before attempting this operation.', 'wpcd' );
 
 			$fields[] = array(
@@ -839,6 +853,9 @@ class WPCD_WORDPRESS_TABS_SITE_SYNC extends WPCD_WORDPRESS_TABS {
 		$source_server    = $this->get_server_by_app_id( $id );
 		$source_server_id = $source_server->ID;
 
+		// What type of web server are we running?
+		$webserver_type = $this->get_web_server_type( $id );
+
 		// Now we need to construct an array of server posts that the user is allowed to see.
 		$post__in = wpcd_get_posts_by_permission( 'view_server', 'wpcd_app_server' );
 
@@ -847,6 +864,20 @@ class WPCD_WORDPRESS_TABS_SITE_SYNC extends WPCD_WORDPRESS_TABS {
 			$post__in,
 			function( $array_entry ) use ( $source_server_id ) {
 				if ( $source_server_id === (int) $array_entry ) {
+					return false;
+				} else {
+					return $array_entry;
+				}
+			}
+		);
+
+		// Remove from the array any server that does not match the webserver type where this site is running.
+		// Note the use of ArrayMap and passing in the $webserver_type to the annoymous function.
+		$post__in = array_filter(
+			$post__in,
+			function( $array_entry ) use ( $webserver_type ) {
+				$this_webserver_type = $this->get_web_server_type( (int) $array_entry );
+				if ( $this_webserver_type !== $webserver_type ) {
 					return false;
 				} else {
 					return $array_entry;

@@ -74,11 +74,14 @@ class WPCD_WORDPRESS_TABS_SERVER_GOACCESS extends WPCD_WORDPRESS_TABS {
 	 * @return array    $tabs The default value.
 	 */
 	public function get_tab( $tabs, $id ) {
-		if ( $this->get_tab_security( $id ) ) {
-			$tabs['goaccess'] = array(
-				'label' => __( 'Goaccess', 'wpcd' ),
-				'icon'  => 'fad fa-user-chart',
-			);
+		// GoAccess is only valid for NGINX servers for now.
+		if ( 'nginx' === $this->get_web_server_type( $id ) ) {
+			if ( $this->get_tab_security( $id ) ) {
+				$tabs['goaccess'] = array(
+					'label' => __( 'Goaccess', 'wpcd' ),
+					'icon'  => 'fad fa-user-chart',
+				);
+			}
 		}
 		return $tabs;
 	}
@@ -244,6 +247,7 @@ class WPCD_WORDPRESS_TABS_SERVER_GOACCESS extends WPCD_WORDPRESS_TABS {
 					'size'           => 60,
 					// the key of the field (the key goes in the request).
 					'data-wpcd-name' => 'goaccess_auth_user',
+					'spellcheck'  => 'false',
 				),
 
 			);
@@ -255,6 +259,7 @@ class WPCD_WORDPRESS_TABS_SERVER_GOACCESS extends WPCD_WORDPRESS_TABS {
 					'size'           => 60,
 					// the key of the field (the key goes in the request).
 					'data-wpcd-name' => 'goaccess_auth_pass',
+					'spellcheck'  => 'false',
 				),
 			);
 			$actions['goaccess-install']       = array(
@@ -497,6 +502,7 @@ class WPCD_WORDPRESS_TABS_SERVER_GOACCESS extends WPCD_WORDPRESS_TABS {
 
 		// Bail if error.
 		if ( is_wp_error( $instance ) ) {
+			/* Translators: %s is the action id we're trying to execute. It is usually a string without spaces, not a number. */
 			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the server instance details for action %s', 'wpcd' ), $action ) );
 		}
 

@@ -1,0 +1,211 @@
+#!/bin/bash
+if [[ "$EUID" -ne 0 ]]
+then
+	echo "Sorry, you need to run this as root"
+	exit
+fi
+
+## Get our common functions
+if [[ ! -f 9999-common-functions.sh ]]
+then
+	echo "The file 9999-common-functions.sh is missing"
+	exit 1
+fi
+source 9999-common-functions.sh
+
+function remote_dbaccess {
+        if [[ -z $remote_dbhost ]]
+        then
+                read -p "Remote Database ServerIP or Host Name: " remote_dbhost
+        fi
+		
+        if [[ -z $remote_dbport ]]
+        then
+                read -p "Remote Database Port: " remote_dbport
+        fi		
+
+        if [[ -z $remote_dbname ]]
+        then
+                read -p "Remote Database Name: " remote_dbname
+        fi
+
+        if [[ -z $remote_dbuser ]]
+        then
+                read -p "Remote Database UserName: " remote_dbuser
+        fi
+
+        if [[ -z $remote_dbpass ]]
+        then
+                read -p "Remote Database Password: " remote_dbpass
+        fi
+}
+
+
+function local_dbaccess {
+        if [[ -z $local_dbname ]]
+        then
+                read -p "Localhost Database Name: " local_dbname
+        fi
+
+        if [[ -z $local_dbuser ]]
+        then
+                read -p "Local Database UserName: " local_dbuser
+        fi
+
+        if [[ -z $local_dbpass ]]
+        then
+                read -p "Local Database Password: " local_dbpass
+        fi
+}
+
+
+while [[ -z $domain ]]
+do
+	echo
+	echo "Please, select which site you want to work with"
+	gf_select_domain_nginx_ols
+done
+
+gf_get_dbhost $domain
+gf_get_dbname $domain
+gf_get_dbuser $domain
+gf_get_dbpass $domain
+gf_get_dbport $domain
+
+while [[ -z $action ]]
+do
+	echo
+	echo "What do you want to do?"
+	echo
+	echo "   1) Switch to Remote Database"
+	echo "   2) Switch to local Database"
+	echo "   3) Copy database from local to Remote"
+	echo "   4) Copy database from Remote to local"
+	read -p "Action: " action
+	until [[ -z "$action" || "$action" =~ ^[0-4]+$ ]]
+	do
+		echo "$action: invalid selection."
+		read -p "Action: " action
+	done
+done
+
+if [[ $action == "switch_remote" || $action == "1" ]]
+then
+	# Get remote database information
+	remote_dbaccess
+	
+	if gf_check_db_connection "$remote_dbhost" "$remote_dbname" "$remote_dbuser" "$remote_dbpass" "$remote_dbport"; then
+		# database exists and is connectable
+		sed -i "/DB_HOST/ s|$g_mysql_host|$remote_dbhost:$remote_dbport|g" /var/www/"$domain"/html/wp-config.php
+		sed -i "/DB_NAME/ s|$g_mysql_name|$remote_dbname|g" /var/www/"$domain"/html/wp-config.php
+		sed -i "/DB_USER/ s|$g_mysql_user|$remote_dbuser|g" /var/www/"$domain"/html/wp-config.php
+		sed -i "/DB_PASSWORD/ s|$g_mysql_pass|$remote_dbpass|g" /var/www/"$domain"/html/wp-config.php
+	else
+		echo "Database could not be switched to Remote server for $domain due to an error."
+		exit 1
+	fi
+
+	echo "Database has been switched to Remote server for $domain"
+fi
+
+
+if [[ $action == "switch_local" || $action == "2" ]]
+then
+	if [ "$g_mysql_host_noport" == "localhost" ]
+	then
+		echo "Mysql host is already set to localhost"
+		exit
+	fi
+	
+	# Get local db information.
+	local_dbaccess
+	
+	if gf_check_db_connection "localhost" "$local_dbname" "$local_dbuser" "$local_dbpass"; then
+		# database exists and is connectable
+		sed -i "/DB_HOST/ s|$g_mysql_host|localhost|g" /var/www/"$domain"/html/wp-config.php
+		sed -i "/DB_NAME/ s|$g_mysql_name|$local_dbname|g" /var/www/"$domain"/html/wp-config.php
+		sed -i "/DB_USER/ s|$g_mysql_user|$local_dbuser|g" /var/www/"$domain"/html/wp-config.php
+		sed -i "/DB_PASSWORD/ s|$g_mysql_pass|$local_dbpass|g" /var/www/"$domain"/html/wp-config.php
+	else
+		echo "Database could not be switched to Localhost server for $domain due to an error."
+		exit 1
+	fi
+	echo "Database has been switched to Localhost server for $domain"
+fi
+
+
+if [[ $action == "copy_to_remote" || $action == "3" ]]
+then
+	if [ "$g_mysql_host_noport" != "localhost" ]
+	then
+		echo "Mysql host is not set to Localhost"
+		exit
+	fi
+	
+	# Get remote database information.
+	remote_dbaccess
+
+	if gf_check_db_connection "localhost" "$g_mysql_name" "$g_mysql_user" "$g_mysql_pass"; then
+		# database exists and is connectable lets now dump it
+		echo "Exporting local database..."
+		mysqldump --routines -h localhost -u "$g_mysql_user" -p"$g_mysql_pass" "$g_mysql_name" > /root/"$g_mysql_name".sql
+	else
+		echo "Local Database: $g_mysql_name could not be accessed with user: $g_mysql_user due to an error."
+		echo "Copy failed - please check your connection information and try again!"
+		exit 1
+	fi
+	
+	if gf_check_db_connection "$remote_dbhost" "$remote_dbname" "$remote_dbuser" "$remote_dbpass" "$remote_dbport"; then
+		echo "Attempting to drop remote database..."
+		mysql -h "$remote_dbhost" --port="$remote_dbport" -u "$remote_dbuser" -p"$remote_dbpass" -e "drop database $remote_dbname"
+		echo "Attempting to create new database on remote server..."
+		mysql -h "$remote_dbhost" --port="$remote_dbport" -u "$remote_dbuser" -p"$remote_dbpass" -e "create database $remote_dbname"
+		echo "Importing data into database..."
+		mysql -h "$remote_dbhost" --port="$remote_dbport" -u "$remote_dbuser" -p"$remote_dbpass" "$remote_dbname" < /root/"$g_mysql_name".sql
+		rm -f /root/"$g_mysql_name".sql
+	else
+		echo "Remote Database: $remote_dbname on IP: $remote_dbhost could not be accessed with user: $remote_dbuser due to an error."
+		echo "Copy failed - please check your connection information and try again!"
+		exit 1
+	fi
+
+	echo "Database has been copied to Remote server for $domain"
+fi
+
+
+if [[ $action == "copy_to_local" || $action == "4" ]]
+then
+	if [ "$g_mysql_host_noport" == "localhost" ]
+	then
+		echo "Mysql host is not set to Remote Host, so no such information available"
+		exit
+	fi
+	
+	# Get local db information.
+	local_dbaccess
+
+	if gf_check_db_connection "$g_mysql_host" "$g_mysql_name" "$g_mysql_user" "$g_mysql_pass"; then
+		echo "Exporting remote database..."
+		mysqldump --routines -h "$g_mysql_host_noport" -P "$g_mysql_dbport" -u "$g_mysql_user" -p"$g_mysql_pass" "$g_mysql_name" > /root/"$g_mysql_name".sql
+	else
+		echo "Remote Database could not be accessed due to an error."
+		echo "Copy failed - please check your connection information and try again!"
+		exit 1
+	fi
+
+	if gf_check_db_connection "localhost" "$local_dbname" "$local_dbuser" "$local_dbpass"; then
+		echo "Dropping local database..."
+		mysql -h localhost -u "$local_dbuser" -p"$local_dbpass" -e "drop database $local_dbname"
+		echo "Creating local database..."
+		mysql -h localhost -u "$local_dbuser" -p"$local_dbpass" -e "create database $local_dbname"
+		echo "Importing database..."
+		mysql -h localhost -u "$local_dbuser" -p"$local_dbpass" "$local_dbname" < /root/$g_mysql_name.sql
+		rm -f /root/"$g_mysql_name".sql
+	else
+		echo "Local Database could not be accessed for copying $domain due to an error."
+		echo "Copy failed - please check your connection information and try again!"
+		exit 1
+	fi
+
+	echo "Database has been copied to localhost server for $domain"
+fi

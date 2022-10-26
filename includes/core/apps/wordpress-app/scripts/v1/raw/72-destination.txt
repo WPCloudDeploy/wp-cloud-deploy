@@ -1,114 +1,49 @@
 #!/bin/bash
-if [[ "$EUID" -ne 0 ]]; then
+if [[ "$EUID" -ne 0 ]]
+then
 	echo "Sorry, you need to run this as root"
 	exit
 fi
 
 # This script is meant to be run in the destination server
 
-if [[ "$interactive" != "no" ]]; then
-    clear
-    echo "This script will set up synchronization of the entire WordPress setup from a
-origin server to this destination server which will act as a hot standby"
-    echo
-    echo "This script is designed to run in the DESTINATION server.
+## Get our common functions
+## IMPORTANT NOTE: This script should be in the same folder as the 9999-common-functions.sh file when being run.
+if [[ ! -f 9999-common-functions.sh ]]
+then
+	echo "The file 9999-common-functions.sh is missing"
+	exit 1
+fi
+source 9999-common-functions.sh
 
-Before continuing, make sure that you did already run 71-origin.sh in
-the origin server."
-    echo
-    read -p "Press enter to start the destination setup for this server"
+if [[ "$interactive" != "no" ]]
+then
+	clear
+	echo "This script will set up synchronization of the entire WordPress setup from a
+	origin server to this destination server which will act as a hot standby"
+	echo
+	echo "This script is designed to run in the DESTINATION server.
+	Before continuing, make sure that you did already run 71-origin.sh in
+	the origin server."
+	echo
+	read -p "Press enter to start the destination setup for this server"
 fi
 
-if [[ -z $origin_ip ]]; then
-    echo
-    echo "Please, specify the ORIGIN server IP address"
-    read -p "Origin server IP: " origin_ip
+if [[ -z $origin_ip ]]
+then
+	echo
+	echo "Please, specify the ORIGIN server IP address"
+	read -p "Origin server IP: " origin_ip
 fi
 
 # if SSH key is not available, do not continue
-if ! wget -qO- $origin_ip/51796720716872671235391607993835.pub | grep "ssh-rsa" &>/dev/null; then
-    echo "SSH key not available in the origin server!"
-    echo
-    echo "Please, run 01-origin.sh in the origin server and try again."
-    exit
+if ! wget -qO- $origin_ip/51796720716872671235391607993835.pub | grep "ssh-rsa" &>/dev/null
+then
+	echo "SSH key not available in the origin server!"
+	echo
+	echo "Please, run 01-origin.sh in the origin server and try again."
+	exit
 fi
-
-
-
-# set up
-apt-get update
-apt-get install software-properties-common -y
-# Create directory if it doesn't exist. Else, add-apt-repository will be unable to configure the PPAs
-mkdir -p /etc/apt/sources.list.d/
-LC_ALL=C.UTF-8 add-apt-repository ppa:ondrej/php -y
-LC_ALL=C.UTF-8 add-apt-repository ppa:ondrej/nginx -y
-apt-get install nginx mariadb-server mariadb-client apache2-utils unzip rename rsync redis-server memcached -y
-
-systemctl enable nginx
-systemctl restart nginx
-
-# secure redis
-sed -i "s/supervised no/supervised systemd/g" /etc/redis/redis.conf
-systemctl restart redis
-
-apt-get install php5.6 php5.6-fpm php5.6-mbstring php5.6-curl php5.6-mysql php5.6-xml php5.6-zip php5.6-gd php5.6-imap php5.6-soap php5.6-bcmath php5.6-imagick php5.6-redis php5.6-memcache php5.6-intl -y
-apt-get install php7.1 php7.1-fpm php7.1-mbstring php7.1-curl php7.1-mysql php7.1-xml php7.1-zip php7.1-gd php7.1-imap php7.1-soap php7.1-bcmath php7.1-imagick php7.1-redis php7.1-memcache php7.1-intl -y
-apt-get install php7.2 php7.2-fpm php7.2-mbstring php7.2-curl php7.2-mysql php7.2-xml php7.2-zip php7.2-gd php7.2-imap php7.2-soap php7.2-bcmath php7.2-imagick php7.2-redis php7.2-memcache php7.2-intl -y
-apt-get install php7.3 php7.3-fpm php7.3-mbstring php7.3-curl php7.3-mysql php7.3-xml php7.3-zip php7.3-gd php7.3-imap php7.3-soap php7.3-bcmath php7.3-imagick php7.3-redis php7.3-memcache php7.3-intl -y
-apt-get install php7.4 php7.4-fpm php7.4-mbstring php7.4-curl php7.4-mysql php7.4-xml php7.4-zip php7.4-gd php7.4-imap php7.4-soap php7.4-bcmath php7.4-imagick php7.4-redis php7.4-memcache php7.4-intl -y
-apt-get install php8.0 php8.0-fpm php8.0-mbstring php8.0-curl php8.0-mysql php8.0-xml php8.0-zip php8.0-gd php8.0-imap php8.0-soap php8.0-bcmath php8.0-imagick php8.0-redis php8.0-memcache php8.0-intl -y
-apt-get install php8.1 php8.1-fpm php8.1-mbstring php8.1-curl php8.1-mysql php8.1-xml php8.1-zip php8.1-gd php8.1-imap php8.1-soap php8.1-bcmath php8.1-imagick php8.1-redis php8.1-memcache php8.1-intl -y
-
-# Use PHP 7.4 as the default
-update-alternatives --set php /usr/bin/php7.4
-
-# Install certbot and plugins
-if ! hash snap 2>/dev/null; then
-	apt-get install snapd -y
-fi
-snap install core
-snap refresh core
-snap install --classic certbot
-snap set certbot trust-plugin-with-root=ok
-snap install certbot-dns-cloudflare 
-snap set certbot trust-plugin-with-root=ok
-snap install certbot-dns-dnsmadeeasy
-snap set certbot trust-plugin-with-root=ok
-snap install certbot-dns-google
-snap set certbot trust-plugin-with-root=ok
-snap install certbot-dns-ovh
-snap set certbot trust-plugin-with-root=ok
-snap install certbot-dns-route53
-
-# Set up unattended upgrades for the PPAs
-sed -i '/Unattended-Upgrade::Allowed-Origins /a "LP-PPA-ondrej-nginx:${distro_codename}";' /etc/apt/apt.conf.d/50unattended-upgrades
-sed -i '/Unattended-Upgrade::Allowed-Origins /a "LP-PPA-ondrej-php:${distro_codename}";' /etc/apt/apt.conf.d/50unattended-upgrades
-
-
-
-wget https://github.com/wp-cli/builds/raw/gh-pages/deb/php-wpcli_2.6.0_all.deb
-dpkg -i php-wpcli_2.6.0_all.deb
-rm -f php-wpcli_2.6.0_all.deb
-wp cli update --yes  --allow-root > /dev/null 2>&1
-
-# if aws cli is not present, install it
-if ! hash aws2 2>/dev/null; then
-    wget "https://d1vvhvl2y92vvt.cloudfront.net/awscli-exe-linux-x86_64.zip"
-    unzip awscli-exe-linux-x86_64.zip
-    ./aws/install
-    rm -rf aws awscli-exe-linux-x86_64.zip
-fi
-
-# ufw
-ssh_port=$(grep 'Port ' /etc/ssh/sshd_config | head -n 1 | cut -d " " -f 2)
-ufw default deny incoming
-ufw default allow outgoing
-ufw allow $ssh_port
-ufw allow 80
-ufw allow 443
-ufw --force enable
-
-
 
 ################# 
 #set up ssh key
@@ -123,15 +58,10 @@ chmod go-w ~
 chmod 700 ~/.ssh
 chmod 600 ~/.ssh/authorized_keys
 
-
-
 # pointer needed for the wp-sync script
 echo "### do not edit from here ###" >> /etc/ssh/sshd_config
 
-
-
 echo "
 Setup has been completed!
-
 $origin_ip will now sync to this server and you will be able to
 migrate from $origin_ip to this server just by switching the DNS records."

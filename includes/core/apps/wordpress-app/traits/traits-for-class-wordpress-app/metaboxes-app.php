@@ -27,7 +27,7 @@ trait wpcd_wpapp_metaboxes_app {
 	public function add_meta_boxes( $meta_boxes ) {
 
 		/* Get the ID for the post */
-		$id = filter_input( INPUT_GET, 'post', FILTER_VALIDATE_INT );
+		$id = wpcd_get_current_page_server_id();
 
 		/* If empty id, not a post so return */
 		if ( empty( $id ) ) {
@@ -73,6 +73,25 @@ trait wpcd_wpapp_metaboxes_app {
 			if ( empty( $tab['icon'] ) ) {
 				$cnt++;
 				$tabs[ $key ]['icon'] = wpcd_get_some_fa_classes()[ $cnt ];
+			}
+		}
+
+		/* Make sure each field has a css class name */
+		foreach ( $fields as $key => $field ) {
+			if ( ! empty( $field['class'] ) ) {
+				// There's a class already defined so just add another one.
+				if ( ! empty( $field['id'] ) ) {
+					$fields[$key]['class'] .= ' ' . $field['id'] . '_wrap';
+				} else {
+					// make up something here since we don't have a field id.
+				}
+			} else {
+				// There's no class defined so just create one.
+				if ( ! empty( $field['id'] ) ) {
+					$fields[$key]['class'] = ' ' . $field['id'] . '_wrap';
+				} else {
+					// make up something here since we don't have a field id.
+				}
 			}
 		}
 
@@ -189,7 +208,7 @@ trait wpcd_wpapp_metaboxes_app {
 		}
 
 		// Add nonce for security and authentication.
-		$nonce_name   = filter_input( INPUT_POST, 'wpapp_meta', FILTER_SANITIZE_STRING );
+		$nonce_name   = sanitize_text_field( filter_input( INPUT_POST, 'wpapp_meta', FILTER_UNSAFE_RAW ) );
 		$nonce_action = 'wpcd_wp_app_nonce_meta_action';
 
 		// Check if nonce is valid.
@@ -218,12 +237,12 @@ trait wpcd_wpapp_metaboxes_app {
 		}
 
 		/* Get new values */
-		$wpcd_wpapp_domain             = filter_input( INPUT_POST, 'wpcd_wpapp_domain', FILTER_SANITIZE_STRING );
-		$wpcd_wpapp_userid             = filter_input( INPUT_POST, 'wpcd_wpapp_userid', FILTER_SANITIZE_STRING );
+		$wpcd_wpapp_domain             = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_wpapp_domain', FILTER_UNSAFE_RAW ) );
+		$wpcd_wpapp_userid             = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_wpapp_userid', FILTER_UNSAFE_RAW ) );
 		$wpcd_wpapp_email              = filter_input( INPUT_POST, 'wpcd_wpapp_email', FILTER_SANITIZE_EMAIL );
 		$wpcd_wpapp_password           = filter_input( INPUT_POST, 'wpcd_wpapp_password' );  // cannot sanitize passwords unfortunately.
-		$wpcd_wpapp_initial_version    = filter_input( INPUT_POST, 'wpcd_wpapp_initial_version', FILTER_SANITIZE_STRING );
-		$wpcd_wpapp_staging_domain     = filter_input( INPUT_POST, 'wpcd_wpapp_staging_domain', FILTER_SANITIZE_STRING );
+		$wpcd_wpapp_initial_version    = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_wpapp_initial_version', FILTER_UNSAFE_RAW ) );
+		$wpcd_wpapp_staging_domain     = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_wpapp_staging_domain', FILTER_UNSAFE_RAW ) );
 		$wpcd_wpapp_staging_domain_id  = filter_input( INPUT_POST, 'wpcd_wpapp_staging_domain_id', FILTER_SANITIZE_NUMBER_INT );
 		$wpcd_wpapp_wc_order_id        = filter_input( INPUT_POST, 'wpcd_wpapp_wc_order_id', FILTER_SANITIZE_NUMBER_INT );
 		$wpcd_wpapp_wc_subscription_id = filter_input( INPUT_POST, 'wpcd_wpapp_wc_subscription_id', FILTER_SANITIZE_NUMBER_INT );
@@ -240,5 +259,87 @@ trait wpcd_wpapp_metaboxes_app {
 		update_post_meta( $post_id, 'wpapp_wc_subscription_id', $wpcd_wpapp_wc_subscription_id );
 
 	}
+
+	/**
+	 * To add custom metabox on app details screen.
+	 * Multiple metaboxes created for:
+	 * 1. Disk limits
+	 * 2. (comming soon)
+	 *
+	 * Filter hook: rwmb_meta_boxes
+	 *
+	 * @param  array $metaboxes metaboxes.
+	 *
+	 * @return array
+	 */
+	public function add_meta_boxes_misc( $metaboxes ) {
+
+		// Only visible to admins.
+		if ( ! wpcd_is_admin() ) {
+			return $metaboxes;
+		}
+
+		// What's the post id we're looking at?
+		$post_id = wpcd_get_post_id_from_global();
+
+		// Don't have a valid post_id?  Return!
+		if ( ! $post_id ) {
+			return $metaboxes;
+		}
+
+		// How much diskspace is allowed?
+		$allowed_disk = $this->get_site_disk_quota( $post_id );
+
+		// What is the default global quota?
+		$default_global_quota = (int) wpcd_get_early_option( 'wordpress_app_sites_default_disk_quota' );
+
+		// How much space are we currently using?
+		$current_disk_usage = $this->get_total_disk_used( $post_id );
+
+		// Register a metabox to hold disk limits (and possibly other limits in the future).
+		$metaboxes[] = array(
+			'id'       => 'wpcd_app_quotas',
+			'title'    => __( 'Quotas and Limits', 'wpcd' ),
+			'pages'    => array( 'wpcd_app' ), // displays on wpcd_app post type only.
+			'context'  => 'side',
+			'priority' => 'low',
+			'fields'   => array(
+
+				// Field to hold the max diskspace allowed.
+				array(
+					'name'    => __( 'Disk Quota (MB)', 'wpcd' ),
+					'id'      => 'wpcd_app_disk_space_quota',
+					'type'    => 'number',
+					'std'     => 0,
+					/* Translators: %d is the global disk quota that applies to sites if a site does not have a separate quota value applied. */
+					'tooltip' => $default_global_quota > 0 ? sprintf( __( 'A global quota of %dMB applies to all sites if this value is zero or empty.', 'wpcd' ), $default_global_quota ) : '',
+				),
+
+				// Field to hold current usage.
+				// @TODO: doesn't work because we can't get the $allowed_disk var properly above.
+				array(
+					'name'       => __( 'In Use', 'wpcd' ),
+					'id'         => 'wpcd_app_current_disk_used',
+					'type'       => 'slider',
+					'std'        => $current_disk_usage,
+					'desc'       => ( $current_disk_usage > $allowed_disk && $allowed_disk > 0 ) ? __( 'This site has exceeded its assigned disk quota.', 'wpcd' ) : '',
+					'js_options' => array(
+						'min'      => 0,
+						'max'      => $allowed_disk,
+						'disabled' => true,
+					),
+					'suffix'     => __( ' MB', 'wpcd' ),
+					'save_field' => false,
+					'readonly'   => true,
+					'disabled'   => true,
+				),
+
+			),
+		);
+
+		return $metaboxes;
+
+	}
+
 
 }

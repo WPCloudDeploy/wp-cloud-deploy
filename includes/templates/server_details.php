@@ -102,6 +102,10 @@ wp_nonce_field( 'wpcd_server_nonce_meta_action', 'vpn_meta' );
 	<input type="text" name="wpcd_server_server-type" id="wpcd_server_server-type" value="<?php echo esc_html( $wpcd_server_server_type ); ?>" />
 </div>
 <div class="wpcd_server_meta_field">
+	<label for="wpcd_server_webserver_type"><?php echo esc_html( __( 'Web Server Type', 'wpcd' ) ); ?></label>
+	<input type="text" name="wpcd_server_webserver_type" id="wpcd_server_webserver_type" value="<?php echo esc_html( $wpcd_server_webserver_type ); ?>" />
+</div>
+<div class="wpcd_server_meta_field">
 	<label for="wpcd_server_wc_order_id"><?php echo esc_html( __( 'Woocommerce Order ID', 'wpcd' ) ); ?></label>
 	<input type="text" name="wpcd_server_wc_order_id" id="wpcd_server_wc_order_id" value="<?php echo esc_html( $wpcd_server_wc_order_id ); ?>" />
 </div>
@@ -120,6 +124,10 @@ wp_nonce_field( 'wpcd_server_nonce_meta_action', 'vpn_meta' );
 <div class="wpcd_server_meta_field">
 	<label for="wpcd_server_action_status"><?php echo esc_html( __( 'Action Status', 'wpcd' ) ); ?></label>
 	<input type="text" name="wpcd_server_action_status" id="wpcd_server_action_status" value="<?php echo esc_html( $wpcd_server_action_status ); ?>" />
+</div>
+<div class="wpcd_server_meta_field">
+	<label for="wpcd_server_action"><?php echo esc_html( __( 'Action', 'wpcd' ) ); ?></label>
+	<input type="text" name="wpcd_server_action" id="wpcd_server_action" value="<?php echo esc_html( $wpcd_server_action ); ?>" />
 </div>
 <div class="wpcd_server_meta_field">
 	<label for="wpcd_server_command_mutex"><?php echo esc_html( __( 'Command Mutex', 'wpcd' ) ); ?></label>

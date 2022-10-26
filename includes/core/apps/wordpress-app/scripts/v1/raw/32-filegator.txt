@@ -6,6 +6,21 @@ if [[ "$EUID" -ne 0 ]]; then
     exit
 fi
 
+## Get our common functions
+if [[ ! -f 9999-common-functions.sh ]]
+then
+	echo "The file 9999-common-functions.sh is missing"
+	exit 1
+fi
+source 9999-common-functions.sh
+
+# Not supported on OLS yet.
+if [ "$g_webserver_type" != "nginx" ]
+then
+    echo "Filegator is only supported on NGINX."
+    exit 1
+fi
+
 processing_dependencies() {
     # for ROOT installation, fix 'permission denied' for user 'www-data' on /var/www/.composer
     www_data_home=$(eval echo ~www-data)
@@ -60,6 +75,11 @@ processing_dependencies() {
 
 
 ## Get our common functions
+if [[ ! -f 9999-common-functions.sh ]]
+then
+	echo "The file 9999-common-functions.sh is missing"
+	exit 1
+fi
 source 9999-common-functions.sh
 
 # check free RAM

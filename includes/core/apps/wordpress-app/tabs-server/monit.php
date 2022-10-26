@@ -132,7 +132,7 @@ class WPCD_WORDPRESS_TABS_SERVER_MONIT extends WPCD_WORDPRESS_TABS {
 		}
 
 		/* Now verify that the user can perform actions on this screen, assuming that they can view the server */
-		$valid_actions = array( 'monit-email-alerts-load-defaults', 'install_monit', 'monit-toggle-ssl', 'monit-remove', 'monit-upgrade', 'monit-metas-add', 'monit-metas-remove', 'monit-toggle-nginx', 'monit-toggle-mysql', 'monit-toggle-memcached', 'monit-toggle-redis', 'monit-toggle-php', 'monit-toggle-filesys', 'monit-toggle-all-on', 'monit-toggle-all-off', 'monit-update-email', 'monit-toggle-status' );
+		$valid_actions = array( 'monit-email-alerts-load-defaults', 'install_monit', 'monit-toggle-ssl', 'monit-remove', 'monit-upgrade', 'monit-metas-add', 'monit-metas-remove', 'monit-toggle-webserver', 'monit-toggle-mysql', 'monit-toggle-memcached', 'monit-toggle-redis', 'monit-toggle-php', 'monit-toggle-filesys', 'monit-toggle-all-on', 'monit-toggle-all-off', 'monit-update-email', 'monit-toggle-status' );
 		if ( in_array( $action, $valid_actions, true ) ) {
 			if ( ! $this->get_tab_security( $id ) ) {
 				return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
@@ -167,7 +167,7 @@ class WPCD_WORDPRESS_TABS_SERVER_MONIT extends WPCD_WORDPRESS_TABS {
 				case 'monit-metas-remove':
 					$result = $this->manage_monit( $id, $action );
 					break;
-				case 'monit-toggle-nginx':
+				case 'monit-toggle-webserver':
 				case 'monit-toggle-mysql':
 				case 'monit-toggle-memcached':
 				case 'monit-toggle-redis':
@@ -214,6 +214,9 @@ class WPCD_WORDPRESS_TABS_SERVER_MONIT extends WPCD_WORDPRESS_TABS {
 		// Set up metabox items.
 		$actions = array();
 
+		// What type of web server are we running?
+		$webserver_type = $this->get_web_server_type( $id );
+
 		// is monit installed?
 		$monit_status = get_post_meta( $id, 'wpcd_wpapp_monit_installed', true );
 
@@ -250,6 +253,7 @@ class WPCD_WORDPRESS_TABS_SERVER_MONIT extends WPCD_WORDPRESS_TABS {
 					'size'           => 60,
 					// the key of the field (the key goes in the request).
 					'data-wpcd-name' => 'monit_auth_user',
+					'spellcheck'     => 'false',
 				),
 
 			);
@@ -263,6 +267,7 @@ class WPCD_WORDPRESS_TABS_SERVER_MONIT extends WPCD_WORDPRESS_TABS {
 					'size'           => 60,
 					// the key of the field (the key goes in the request).
 					'data-wpcd-name' => 'monit_auth_pass',
+					'spellcheck'     => 'false',
 				),
 			);
 
@@ -458,35 +463,35 @@ class WPCD_WORDPRESS_TABS_SERVER_MONIT extends WPCD_WORDPRESS_TABS {
 			);
 
 			/**
-			 * Monit Nginx Options
+			 * Monit Webserver Options
 			 */
 
-			// Start with what's the current Nginx status?
-			$monit_nginx = get_post_meta( $id, 'wpcd_wpapp_monit_nginx', true );
-			if ( empty( $monit_nginx ) ) {
-				$monit_nginx = 'on';
+			// Start with what's the current Webserver status?
+			$monit_webserver = get_post_meta( $id, 'wpcd_wpapp_monit_webserver', true );
+			if ( empty( $monit_webserver ) ) {
+				$monit_webserver = 'on';
 			}
 
-			// Set confirmation prompt based on current nginx status.
+			// Set confirmation prompt based on current webserver status.
 			$confirmation_prompt = '';
-			if ( 'on' === $monit_nginx ) {
-				$confirmation_prompt = __( 'Are you sure you would like to disable Nginx monitoring?', 'wpcd' );
+			if ( 'on' === $monit_webserver ) {
+				$confirmation_prompt = __( 'Are you sure you would like to disable Webserver monitoring?', 'wpcd' );
 			} else {
-				$confirmation_prompt = __( 'Are you sure you would like to enable Nginx monitoring?', 'wpcd' );
+				$confirmation_prompt = __( 'Are you sure you would like to enable Webserver monitoring?', 'wpcd' );
 			}
 
-			$actions['monit-toggle-nginx'] = array(
-				'label'          => __( 'Nginx Status', 'wpcd' ),
+			$actions['monit-toggle-webserver'] = array(
+				'label'          => __( 'Webserver Status', 'wpcd' ),
 				'raw_attributes' => array(
 					'on_label'            => __( 'Enabled', 'wpcd' ),
 					'off_label'           => __( 'Disabled', 'wpcd' ),
-					'std'                 => $monit_nginx === 'on',
-					'desc'                => __( 'Enable or disable Nginx monitoring.', 'wpcd' ),
+					'std'                 => $monit_webserver === 'on',
+					'desc'                => __( 'Enable or disable Webserver monitoring.', 'wpcd' ),
 					'confirmation_prompt' => $confirmation_prompt,
 				),
 				'type'           => 'switch',
 			);
-			/* End Monit Nginx Options */
+			/* End Monit Webserver Options */
 
 			/**
 			 * Monit Mariadb/Mysql Options.
@@ -584,31 +589,33 @@ class WPCD_WORDPRESS_TABS_SERVER_MONIT extends WPCD_WORDPRESS_TABS {
 			/**
 			 * Monit PHP Options
 			 */
-			// Start with What's the current PHP status?
-			$monit_php = get_post_meta( $id, 'wpcd_wpapp_monit_php', true );
-			if ( empty( $monit_php ) ) {
-				$monit_php = 'on';
-			}
+			if ( 'nginx' === $webserver_type ) {
+				// Start with What's the current PHP status?
+				$monit_php = get_post_meta( $id, 'wpcd_wpapp_monit_php', true );
+				if ( empty( $monit_php ) ) {
+					$monit_php = 'on';
+				}
 
-			// Set confirmation prompt based on current php status.
-			$confirmation_prompt = '';
-			if ( 'on' === $monit_php ) {
-				$confirmation_prompt = __( 'Are you sure you would like to disable PHP monitoring?', 'wpcd' );
-			} else {
-				$confirmation_prompt = __( 'Are you sure you would like to enable PHP monitoring?', 'wpcd' );
-			}
+				// Set confirmation prompt based on current php status.
+				$confirmation_prompt = '';
+				if ( 'on' === $monit_php ) {
+					$confirmation_prompt = __( 'Are you sure you would like to disable PHP monitoring?', 'wpcd' );
+				} else {
+					$confirmation_prompt = __( 'Are you sure you would like to enable PHP monitoring?', 'wpcd' );
+				}
 
-			$actions['monit-toggle-php'] = array(
-				'label'          => __( 'PHP Status', 'wpcd' ),
-				'raw_attributes' => array(
-					'on_label'            => __( 'Enabled', 'wpcd' ),
-					'off_label'           => __( 'Disabled', 'wpcd' ),
-					'std'                 => $monit_php === 'on',
-					'desc'                => __( 'Enable or disable PHP monitoring.', 'wpcd' ),
-					'confirmation_prompt' => $confirmation_prompt,
-				),
-				'type'           => 'switch',
-			);
+				$actions['monit-toggle-php'] = array(
+					'label'          => __( 'PHP Status', 'wpcd' ),
+					'raw_attributes' => array(
+						'on_label'            => __( 'Enabled', 'wpcd' ),
+						'off_label'           => __( 'Disabled', 'wpcd' ),
+						'std'                 => $monit_php === 'on',
+						'desc'                => __( 'Enable or disable PHP monitoring.', 'wpcd' ),
+						'confirmation_prompt' => $confirmation_prompt,
+					),
+					'type'           => 'switch',
+				);
+			}
 			/* End Monit PHP Options */
 
 			/**
@@ -824,6 +831,7 @@ class WPCD_WORDPRESS_TABS_SERVER_MONIT extends WPCD_WORDPRESS_TABS {
 				'columns'        => 4,
 				// the key of the field (the key goes in the request).
 				'data-wpcd-name' => 'monit_smtp_user',
+				'spellcheck'     => 'false',
 			),
 		);
 		$actions['monit-smtp-password'] = array(
@@ -836,6 +844,7 @@ class WPCD_WORDPRESS_TABS_SERVER_MONIT extends WPCD_WORDPRESS_TABS {
 				'columns'        => 4,
 				// the key of the field (the key goes in the request).
 				'data-wpcd-name' => 'monit_smtp_pass',
+				'spellcheck'     => 'false',
 			),
 		);
 		$actions['monit-alert-email']   = array(
@@ -847,6 +856,7 @@ class WPCD_WORDPRESS_TABS_SERVER_MONIT extends WPCD_WORDPRESS_TABS {
 				'columns'        => 4,
 				// the key of the field (the key goes in the request).
 				'data-wpcd-name' => 'monit_alert_email',
+				'spellcheck'     => 'false',
 			),
 		);
 
@@ -881,6 +891,7 @@ class WPCD_WORDPRESS_TABS_SERVER_MONIT extends WPCD_WORDPRESS_TABS {
 
 		// Bail if error.
 		if ( is_wp_error( $instance ) ) {
+			/* Translators: %s is the action id we're trying to execute. It is usually a string without spaces, not a number. */
 			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the server instance details for action %s', 'wpcd' ), $action ) );
 		}
 
@@ -950,13 +961,13 @@ class WPCD_WORDPRESS_TABS_SERVER_MONIT extends WPCD_WORDPRESS_TABS {
 				// nothing needs to be done here.
 				break;
 
-			case 'monit-toggle-nginx':
-				// Action needs to set based on current status of NGINX in the database.
-				$monit_nginx = get_post_meta( $id, 'wpcd_wpapp_monit_nginx', true );
-				if ( empty( $monit_nginx ) || 'on' === $monit_nginx ) {
-					$action = 'disable_nginx_monit';
+			case 'monit-toggle-webserver':
+				// Action needs to set based on current status of Webserver in the database.
+				$monit_webserver = get_post_meta( $id, 'wpcd_wpapp_monit_webserver', true );
+				if ( empty( $monit_webserver ) || 'on' === $monit_webserver ) {
+					$action = 'disable_webserver_monit';
 				} else {
-					$action = 'enable_nginx_monit';
+					$action = 'enable_webserver_monit';
 				}
 				break;
 
@@ -1121,18 +1132,18 @@ class WPCD_WORDPRESS_TABS_SERVER_MONIT extends WPCD_WORDPRESS_TABS {
 					);
 					break;
 
-				case 'enable_nginx_monit':
-					update_post_meta( $id, 'wpcd_wpapp_monit_nginx', 'on' );
+				case 'enable_webserver_monit':
+					update_post_meta( $id, 'wpcd_wpapp_monit_webserver', 'on' );
 					$success = array(
-						'msg'     => __( 'NGINX monitoring has been enabled for Monit.', 'wpcd' ),
+						'msg'     => __( 'Webserver monitoring has been enabled for Monit.', 'wpcd' ),
 						'refresh' => 'yes',
 					);
 					break;
 
-				case 'disable_nginx_monit':
-					update_post_meta( $id, 'wpcd_wpapp_monit_nginx', 'off' );
+				case 'disable_webserver_monit':
+					update_post_meta( $id, 'wpcd_wpapp_monit_webserver', 'off' );
 					$success = array(
-						'msg'     => __( 'NGINX monitoring has been disabled for Monit.', 'wpcd' ),
+						'msg'     => __( 'Webserver monitoring has been disabled for Monit.', 'wpcd' ),
 						'refresh' => 'yes',
 					);
 					break;
@@ -1218,7 +1229,7 @@ class WPCD_WORDPRESS_TABS_SERVER_MONIT extends WPCD_WORDPRESS_TABS {
 					break;
 
 				case 'enable_all_monit':
-					update_post_meta( $id, 'wpcd_wpapp_monit_nginx', 'on' );
+					update_post_meta( $id, 'wpcd_wpapp_monit_webserver', 'on' );
 					update_post_meta( $id, 'wpcd_wpapp_monit_mysql', 'on' );
 					update_post_meta( $id, 'wpcd_wpapp_monit_php', 'on' );
 					update_post_meta( $id, 'wpcd_wpapp_monit_filesys', 'on' );
@@ -1229,7 +1240,7 @@ class WPCD_WORDPRESS_TABS_SERVER_MONIT extends WPCD_WORDPRESS_TABS {
 					break;
 
 				case 'disable_all_monit':
-					update_post_meta( $id, 'wpcd_wpapp_monit_nginx', 'off' );
+					update_post_meta( $id, 'wpcd_wpapp_monit_webserver', 'off' );
 					update_post_meta( $id, 'wpcd_wpapp_monit_mysql', 'off' );
 					update_post_meta( $id, 'wpcd_wpapp_monit_memcached', 'off' );
 					update_post_meta( $id, 'wpcd_wpapp_monit_redis', 'off' );
@@ -1315,7 +1326,7 @@ class WPCD_WORDPRESS_TABS_SERVER_MONIT extends WPCD_WORDPRESS_TABS {
 		delete_post_meta( $id, 'wpcd_wpapp_monit_status' );
 		delete_post_meta( $id, 'wpcd_wpapp_monit_domain' );
 		delete_post_meta( $id, 'wpcd_wpapp_monit_ssl' );
-		delete_post_meta( $id, 'wpcd_wpapp_monit_nginx' );
+		delete_post_meta( $id, 'wpcd_wpapp_monit_webserver' );
 		delete_post_meta( $id, 'wpcd_wpapp_monit_mysql' );
 		delete_post_meta( $id, 'wpcd_wpapp_monit_memcached' );
 		delete_post_meta( $id, 'wpcd_wpapp_monit_redis' );

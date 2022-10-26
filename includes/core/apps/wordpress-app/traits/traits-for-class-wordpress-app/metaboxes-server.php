@@ -50,7 +50,7 @@ trait wpcd_wpapp_metaboxes_server {
 	public function add_meta_boxes_server( $meta_boxes ) {
 
 		/* Get the ID for the post */
-		$id = filter_input( INPUT_GET, 'post', FILTER_VALIDATE_INT );
+		$id = wpcd_get_current_page_server_id();
 
 		/* If empty id, not a post so return */
 		if ( empty( $id ) ) {
@@ -117,6 +117,53 @@ trait wpcd_wpapp_metaboxes_server {
 		);
 
 		return $meta_boxes;
+	}
+
+	/**
+	 * To add custom metabox on server details screen.
+	 * Multiple metaboxes created for:
+	 * 1. Site limits
+	 * 2. (comming soon)
+	 *
+	 * Filter hook: rwmb_meta_boxes
+	 *
+	 * @param  array $metaboxes metaboxes.
+	 *
+	 * @return array
+	 */
+	public function register_server_metaboxes_misc( $metaboxes ) {
+
+		// Only visible to admins.
+		if ( ! wpcd_is_admin() ) {
+			return $metaboxes;
+		}
+
+		// What's the post id we're looking at?
+		$post_id = filter_input( INPUT_GET, 'post', FILTER_VALIDATE_INT );
+
+		// Register a metabox to hold site limits (and possibly other limits in the future).
+		$metaboxes[] = array(
+			'id'       => 'wpcd_server_site_quota',
+			'title'    => __( 'Quotas and Limits', 'wpcd' ),
+			'pages'    => array( 'wpcd_app_server' ), // displays on wpcd_app post type only.
+			'context'  => 'side',
+			'priority' => 'low',
+			'fields'   => array(
+
+				// Field to hold the max sites allowed on the server.
+				array(
+					'name'    => __( 'Max Sites', 'wpcd' ),
+					'id'      => 'wpcd_server_max_sites',
+					'type'    => 'number',
+					'std'     => 0,
+					'tooltip' => __( 'This is the maximum number of sites a customer will be allowed to place on this server. Admins will not be limited by this number.', 'wpcd' ),
+				),
+
+			),
+		);
+
+		return $metaboxes;
+
 	}
 
 }

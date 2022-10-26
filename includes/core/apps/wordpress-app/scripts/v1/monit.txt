@@ -1,5 +1,7 @@
 cd ~ &&
 sudo -E \rm -f ##SCRIPT_NAME## &&
+sudo -E wget --no-check-certificate -O ##SCRIPT_COMMON_NAME## ##SCRIPT_COMMON_URL## &&
+sudo -E dos2unix ##SCRIPT_COMMON_NAME## &&
 sudo -E wget --no-check-certificate -O ##SCRIPT_NAME## ##SCRIPT_URL## &&
 export action=##ACTION## domain=##DOMAIN## email=##MONIT_SSL_EMAIL## monit_user=##USER## monit_password=##PASSWORD## email_notifications="y" monit_smtp_server=##MONIT_SMTP_SERVER## monit_smtp_port=##MONIT_SMTP_PORT## monit_smtp_user=##MONIT_SMTP_USER## monit_smtp_pass=##MONIT_SMTP_PASS## monit_alert_email=##MONIT_ALERT_EMAIL## monit_mmonit_server=##MONIT_MMONIT_SERVER## callback_url=##CALLBACK_URL## &&
 sudo -E dos2unix ##SCRIPT_NAME## &&

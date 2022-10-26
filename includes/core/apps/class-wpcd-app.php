@@ -368,7 +368,7 @@ class WPCD_APP extends WPCD_Base {
 	 * @return array|boolean Server post or false or error message
 	 */
 	public function get_server_by_app_id( $app_id ) {
-		
+
 		return WPCD()->get_server_by_app_id( $app_id );
 
 	}
@@ -401,7 +401,7 @@ class WPCD_APP extends WPCD_Base {
 	 *
 	 * @param int $app_id  The app_id to get the app_type for.
 	 *
-	 * @return sring|boolean
+	 * @return string|boolean
 	 */
 	public function get_app_type( $app_id ) {
 
@@ -421,7 +421,7 @@ class WPCD_APP extends WPCD_Base {
 	 */
 	public function get_server_type( $server_id ) {
 
-		// Get the app post.
+		// Get the server post.
 		$server_type = get_post_meta( $server_id, 'wpcd_server_initial_app_name', true );
 
 		return $server_type;
@@ -492,15 +492,15 @@ class WPCD_APP extends WPCD_Base {
 		$ip   = '';
 		$ipv4 = $this->get_ipv4_address( $app_id );
 		if ( ! empty( $ipv4 ) ) {
-			$ip = $ipv4;
+			$ip = wpcd_wrap_clipboard_copy( $ipv4, false );
 		}
 		if ( wpcd_get_early_option( 'wpcd_show_ipv6' ) ) {
 			$ipv6 = $this->get_ipv6_address( $app_id );
 			if ( ! empty( $ipv6 ) ) {
 				if ( ! empty( $ip ) ) {
-					$ip .= '<br />' . $ipv6;
+					$ip .= '<br />' . wpcd_wrap_clipboard_copy( $ipv6, false );
 				} else {
-					$ip = $ipv6;
+					$ip = wpcd_wrap_clipboard_copy( $ipv6 );
 				}
 			}
 		}
@@ -926,6 +926,9 @@ class WPCD_APP extends WPCD_Base {
 	/**
 	 * The endpoint called when a command's status is relayed to us.
 	 *
+	 * This function is defined as a callable by our 
+	 * register_rest_endpoint() function.
+	 *
 	 * @param WP_REST_Request $params params.
 	 */
 	public function perform_command( WP_REST_Request $params ) {
@@ -942,7 +945,7 @@ class WPCD_APP extends WPCD_Base {
 			return new WP_REST_Response( array( 'error' => new WP_Error( __( 'Invalid name: %s', 'wpcd' ) ) ) );
 		}
 		// if status is not in a limited set.
-		if ( ! $status || ! in_array( $status, apply_filters( 'wpcd_command_statuses', array( 'started', 'completed', 'errored' ), $name ), true ) ) {
+		if ( ! $status || ! in_array( $status, apply_filters( 'wpcd_command_statuses', array( 'started', 'completed', 'errored', 'in-progress', 'misc', 'progress-report' ), $name ), true ) ) {
 			return new WP_REST_Response( array( 'error' => new WP_Error( sprintf( __( 'Invalid status: %s', 'wpcd' ), $status ) ) ) );
 		}
 		if ( ! $command_id ) {
@@ -971,6 +974,9 @@ class WPCD_APP extends WPCD_Base {
 
 	/**
 	 * Mark the command with the status.
+	 *
+	 * Note: This is called from a number of functions
+	 * including the generic perform_command() function.
 	 *
 	 * @param int    $id id.
 	 * @param string $name name.
@@ -1401,7 +1407,7 @@ class WPCD_APP extends WPCD_Base {
 	 */
 	public function save_meta_values_for_background_task_details( $post_id, $post ) {
 		// Add nonce for security and authentication.
-		$nonce_name   = filter_input( INPUT_POST, 'app_meta', FILTER_SANITIZE_STRING );
+		$nonce_name   = sanitize_text_field( filter_input( INPUT_POST, 'app_meta', FILTER_UNSAFE_RAW ) );
 		$nonce_action = 'wpcd_app_nonce_meta_action';
 
 		// Check if nonce is valid.
@@ -1429,10 +1435,10 @@ class WPCD_APP extends WPCD_Base {
 			return;
 		}
 
-		$wpcd_app_action_status = filter_input( INPUT_POST, 'wpcd_app_action_status', FILTER_SANITIZE_STRING );
-		$wpcd_app_action        = filter_input( INPUT_POST, 'wpcd_app_action', FILTER_SANITIZE_STRING );
-		$wpcd_app_action_args   = filter_input( INPUT_POST, 'wpcd_app_action_args', FILTER_SANITIZE_STRING );
-		$wpcd_app_command_mutex = filter_input( INPUT_POST, 'wpcd_app_command_mutex', FILTER_SANITIZE_STRING );
+		$wpcd_app_action_status = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_app_action_status', FILTER_UNSAFE_RAW ) );
+		$wpcd_app_action        = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_app_action', FILTER_UNSAFE_RAW ) );
+		$wpcd_app_action_args   = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_app_action_args', FILTER_UNSAFE_RAW ) );
+		$wpcd_app_command_mutex = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_app_command_mutex', FILTER_UNSAFE_RAW ) );
 		$wpcd_temp_log_id       = filter_input( INPUT_POST, 'wpcd_temp_log_id', FILTER_SANITIZE_NUMBER_INT );
 
 		// save action arguments as array.

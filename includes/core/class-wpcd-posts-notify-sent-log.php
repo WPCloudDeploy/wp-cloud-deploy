@@ -270,7 +270,7 @@ class WPCD_NOTIFY_SENT extends WPCD_POSTS_LOG {
 	 * @param string  $sent_to notification sent to email/slack/zapier.
 	 * @param int     $post_id The ID of an existing log, if it exists.
 	 */
-	public function add_user_notify_sent_log_entry( $parent_post_id, $notification_type = 'notice', $message, $notification_reference = '', $success, $sent_to = null, $post_id = null ) {
+	public function add_user_notify_sent_log_entry( $parent_post_id, $notification_type, $message, $notification_reference, $success, $sent_to = null, $post_id = null ) {
 
 		// Author is current user or system.
 		$author_id = get_current_user();
@@ -313,10 +313,6 @@ class WPCD_NOTIFY_SENT extends WPCD_POSTS_LOG {
 				update_post_meta( $post_id, 'notify_sent_to_platform', '-' );
 			}
 		}
-
-		// @TODO: This should not be called here every single time the logs are updated. This should have a cron job or something else.
-		/* Clean up old log entries */
-		$this->clean_up_old_log_entries( 'wpcd_notify_sent' );
 
 		return $post_id;
 
@@ -560,6 +556,7 @@ class WPCD_NOTIFY_SENT extends WPCD_POSTS_LOG {
 				$this->add_user_notify_sent_log_entry( $alert_id, $notify_type, sprintf( __( 'Email notification sent successfully for notification_id : %d', 'wpcd' ), $notify_log_id ), $notify_ref, '1', $sent_to, null );
 			}
 		} else {
+			$sent_to = $user_email;
 			$this->add_user_notify_sent_log_entry( $alert_id, $notify_type, sprintf( __( 'Could not send email notification due to empty email subject or body field for notification_id : %d', 'wpcd' ), $notify_log_id ), $notify_ref, '0', $sent_to, null );
 		}
 	}

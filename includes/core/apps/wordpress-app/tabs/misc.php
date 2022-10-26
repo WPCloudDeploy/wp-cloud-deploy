@@ -23,6 +23,9 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 		add_filter( "wpcd_app_{$this->get_app_name()}_get_tabs", array( $this, 'get_tab_fields' ), 10, 2 );
 		add_filter( "wpcd_app_{$this->get_app_name()}_tab_action", array( $this, 'tab_action' ), 10, 3 );
 
+		// Allow the disable site action to be triggered via an action hook.  Will primarily be used by the woocommerce add-on and REST API.
+		add_action( 'wpcd_wordpress-app_do_toggle_site_status', array( $this, 'toggle_site_status_action' ), 10, 3 );
+
 		// Add bulk action option to the site list to bulk delete sites.
 		add_filter( 'bulk_actions-edit-wpcd_app', array( $this, 'wpcd_add_new_bulk_actions_site' ) );
 
@@ -77,6 +80,11 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 	 * @return boolean
 	 */
 	public function get_tab_security( $id ) {
+		// If admin has an admin lock in place and the user is not admin they cannot view the tab or perform actions on them.
+		if ( $this->get_admin_lock_status( $id ) && ! wpcd_is_admin() ) {
+			return false;
+		}
+		// If we got here then check team and other permissions.
 		return ( true === $this->wpcd_wpapp_site_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_site_tab( $id, $this->get_tab_slug() ) );
 	}
 
@@ -119,7 +127,7 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 		}
 
 		/* Now verify that the user can perform actions on this screen, assuming that they can view the server */
-		$valid_actions = array( 'remove', 'remove_full', 'site-status', 'basic-auth-status', 'wplogin-basic-auth-status', 'https-redirect-misc' );
+		$valid_actions = array( 'remove', 'remove_full', 'site-status', 'admin-lock-status', 'basic-auth-status', 'wplogin-basic-auth-status', 'https-redirect-misc' );
 		if ( in_array( $action, $valid_actions, true ) ) {
 			if ( ! $this->get_tab_security( $id ) ) {
 				/* Translators: %1: String representing action; %2: Filename where code is being executed; %3: Post id for site or server; %4: WordPress User id */
@@ -148,15 +156,15 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 					break;
 				case 'site-status':
 					// enable/disable site.
-					$current_status = $this->site_status( $id );
-					if ( empty( $current_status ) ) {
-						$current_status = 'on';
-					}
-					$result = $this->toggle_site_status( $id, 'on' === $current_status ? 'disable' : 'enable' );
-					if ( ! is_wp_error( $result ) ) {
-						update_post_meta( $id, 'wpapp_site_status', 'on' === $current_status ? 'off' : 'on' );
-						$result = array( 'refresh' => 'yes' );
-					}
+					$this->toggle_site_status_action( $id, $action );
+					break;
+				case 'admin-lock-status':
+					// toggle admin lock.
+					$current_status = $this->get_admin_lock_status( $id );
+					// we don't have to perform any server operations, just update a meta.
+					$new_status = true === $current_status ? 'off' : 'on';
+					$this->set_admin_lock_status( $id, $new_status );
+					$result = array( 'refresh' => 'yes' );
 					break;
 				case 'basic-auth-status':
 					// enable/disable basic authentication.
@@ -220,6 +228,8 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 			$this->get_basic_auth_action_fields( $id ),
 			$this->get_wp_login_basic_auth_action_fields( $id ),
 			$this->get_site_status_action_fields( $id ),
+			$this->get_admin_lock_action_fields( $id ),
+			$this->get_delete_site_action_fields( $id ),
 			$this->get_https_action_fields( $id )
 		);
 
@@ -273,6 +283,79 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 				);
 				break;
 		}
+
+		return $actions;
+
+	}
+
+	/**
+	 * Gets the fields for the admin lock section to be shown in the MISC tab.
+	 *
+	 * @param int $id the post id of the app cpt record.
+	 *
+	 * @return array Array of actions with key as the action slug and value complying with the structure necessary by metabox.io fields.
+	 */
+	private function get_admin_lock_action_fields( $id ) {
+
+		// This section can only be see by an admin.
+		if ( ! wpcd_is_admin() ) {
+			return array();
+		}
+
+		$actions = array();
+
+		$actions['site-admin-lock-header'] = array(
+			'label'          => __( 'Admin Lock', 'wpcd' ),
+			'type'           => 'heading',
+			'raw_attributes' => array(
+				'desc' => __( 'Lock all tabs on this site so that only admins can perform actions on them.', 'wpcd' ),
+			),
+		);
+
+		/* What is the current status of the site? */
+		$status = $this->get_admin_lock_status( $id );
+
+		/* Set the confirmation prompt based on the the current status of the site */
+		$confirmation_prompt = '';
+		if ( true === $status ) {
+			$confirmation_prompt = __( 'Are you sure you would like to disable the admin lock for this site?', 'wpcd' );
+		} else {
+			$confirmation_prompt = __( 'Are you sure you would like to enable the admin lock for this site?', 'wpcd' );
+		}
+
+		// Option to activate or deactivate site.
+		switch ( $status ) {
+			case true:
+			case false:
+				$actions['admin-lock-status'] = array(
+					'label'          => '',
+					'std'            => 'on' === $status,
+					'raw_attributes' => array(
+						'on_label'            => __( 'Enabled', 'wpcd' ),
+						'off_label'           => __( 'Disabled', 'wpcd' ),
+						'std'                 => true === $status,
+						'desc'                => true === $status ? __( 'Click to enable tabs for non-admins', 'wpcd' ) : __( 'Click to disable tabs for non-admins', 'wpcd' ),
+						'confirmation_prompt' => $confirmation_prompt,
+					),
+					'type'           => 'switch',
+				);
+				break;
+		}
+
+		return $actions;
+
+	}
+
+	/**
+	 * Gets the fields for the site deletion section to be shown in the MISC tab.
+	 *
+	 * @param int $id the post id of the app cpt record.
+	 *
+	 * @return array Array of actions with key as the action slug and value complying with the structure necessary by metabox.io fields.
+	 */
+	private function get_delete_site_action_fields( $id ) {
+
+		$actions = array();
 
 		// Option to delete site.
 		$actions['remove-site-header'] = array(
@@ -623,6 +706,54 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 		}
 
 		return $actions;
+
+	}
+
+	/**
+	 * Helper function to set some meta values before and after toggling site status.
+	 *
+	 * Can be called directly or by an action hook.
+	 *
+	 * Action hook: wpcd_wordpress-app_do_toggle_site_status (Optional).
+	 *
+	 * @param int    $id     The postID of the app cpt.
+	 * @param string $action The action to be performed  - always 'site-status'.
+	 * @param string $new_status The new status to force the site into.  If empty it will toggle the existing status.
+	 *
+	 * @return string|WP_Error
+	 */
+	public function toggle_site_status_action( $id, $action, $new_status = '' ) {
+
+		$result = '';
+
+		if ( empty( $new_status)) {
+			// The parameter $new_status is empty so we'll just toggle the existings status.
+			$current_status = $this->site_status( $id );
+			if ( empty( $current_status ) ) {
+				$current_status = 'on';
+			}
+		} else {
+			// The parameter $new_status is not empty so we'll force the $current_status var to the opposite of it and then toggle.
+			switch ( $new_status ) {
+				case 'on':
+					$current_status = 'off';
+					break;
+				case 'off':
+					$current_status = 'on';
+					break;
+				default:
+					$current_status = 'on';
+					break;
+			}
+		}
+
+		$result = $this->toggle_site_status( $id, 'on' === $current_status ? 'disable' : 'enable' );
+		if ( ! is_wp_error( $result ) ) {
+			update_post_meta( $id, 'wpapp_site_status', 'on' === $current_status ? 'off' : 'on' );
+			$result = array( 'refresh' => 'yes' );
+		}
+
+		return $result;  // Will not matter in an action hook.
 
 	}
 

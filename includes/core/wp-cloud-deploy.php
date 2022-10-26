@@ -129,6 +129,8 @@ class WP_CLOUD_DEPLOY {
 		// Capture wisdom data weekly instead of monthly.
 		add_filter( 'wisdom_filter_schedule_wpcd', array( $this, 'set_wisdom_schedule' ), 10, 1 );
 
+		// Action hook to fire on new site created on WP Multisite.
+		add_action( 'wp_initialize_site', array( $this, 'wpcd_wisdom_custom_options_events' ), 10, 2 );
 	}
 
 	/**
@@ -545,6 +547,10 @@ class WP_CLOUD_DEPLOY {
 	 *
 	 * Action hook: admin_enqueue_scripts
 	 *
+	 * Note: Even though this is loaded on an admin hook, the PUBLIC class
+	 * will manually call this function to get these scripts loaded up on the
+	 * frontend as well!
+	 *
 	 * @param string $hook hook.
 	 */
 	public function wpcd_admin_scripts( $hook ) {
@@ -552,44 +558,11 @@ class WP_CLOUD_DEPLOY {
 		// What screen are we on?
 		$screen = get_current_screen();
 
-		// Get brand color settings.
-		$primary_brand_color = wpcd_get_option( 'wordpress_app_primary_brand_color' );
-		$primary_brand_color = empty( $primary_brand_color ) ? WPCD_PRIMARY_BRAND_COLOR : $primary_brand_color;
+		/* Inject brand colors into global style sheet. */
+		$this->wpcd_inject_brand_color_styles();
 
-		$secondary_brand_color = wpcd_get_option( 'wordpress_app_secondary_brand_color' );
-		$secondary_brand_color = empty( $secondary_brand_color ) ? WPCD_SECONDARY_BRAND_COLOR : $secondary_brand_color;
-
-		$tertiary_brand_color = wpcd_get_option( 'wordpress_app_tertiary_brand_color' );
-		$tertiary_brand_color = empty( $tertiary_brand_color ) ? WPCD_TERTIARY_BRAND_COLOR : $tertiary_brand_color;
-
-		$accent_bg_color = wpcd_get_option( 'wordpress_app_accent_background_color' );
-		$accent_bg_color = empty( $accent_bg_color ) ? WPCD_ACCENT_BG_COLOR : $accent_bg_color;
-
-		$medium_bg_color = wpcd_get_option( 'wordpress_app_medium_background_color' );
-		$medium_bg_color = empty( $medium_bg_color ) ? WPCD_MEDIUM_BG_COLOR : $medium_bg_color;
-
-		$light_bg_color = wpcd_get_option( 'wordpress_app_light_background_color' );
-		$light_bg_color = empty( $light_bg_color ) ? WPCD_LIGHT_BG_COLOR : $light_bg_color;
-
-		$alternate_accent_bg_color = wpcd_get_option( 'wordpress_app_alternate_accent_background_color' );
-		$alternate_accent_bg_color = empty( $alternate_accent_bg_color ) ? WPCD_ALTERNATE_ACCENT_BG_COLOR : $alternate_accent_bg_color;
-
-		/* Global style sheet. */
-		wp_enqueue_style( 'wpcd-global-css', wpcd_url . 'assets/css/wpcd-global.css', array(), wpcd_scripts_version );
-
-		/* Define brand colors */
-		$global_css = ":root {
-			--wpcd-primary-brand-color: {$primary_brand_color};
-			--wpcd-secondary-brand-color: {$secondary_brand_color};
-			--wpcd-tertiary-brand-color: {$tertiary_brand_color};
-			--wpcd-accent-background-color: {$accent_bg_color};
-			--wpcd-medium-background-color: {$medium_bg_color};
-			--wpcd-light-background-color: {$light_bg_color};
-			--wpcd-alternate-accent-background-color: {$alternate_accent_bg_color};
-		}";
-
-		/* Add some global css. */
-		wp_add_inline_style( 'wpcd-global-css', $global_css );
+		/* Inject custom css. */
+		$this->wpcd_inject_custom_css();
 
 		/* Cloud Providers Screen - Uses the settings screen style sheet for now. */
 		if ( is_object( $screen ) && in_array( $screen->post_type, array( 'wpcd_cloud_provider' ) ) ) {
@@ -612,6 +585,112 @@ class WP_CLOUD_DEPLOY {
 
 	}
 
+	/**
+	 * Add the wp-admin and front-end brand color styles
+	 * as inline styles to the global style sheet.
+	 *
+	 * Called from function wpcd_admin_scripts which is hooked into action admin_enqueue_scripts
+	 */
+	public function wpcd_inject_brand_color_styles() {
+
+		// Get brand color settings for the wp-admin area.
+		$primary_brand_color = wpcd_get_option( 'wordpress_app_primary_brand_color' );
+		$primary_brand_color = empty( $primary_brand_color ) ? WPCD_PRIMARY_BRAND_COLOR : $primary_brand_color;
+
+		$secondary_brand_color = wpcd_get_option( 'wordpress_app_secondary_brand_color' );
+		$secondary_brand_color = empty( $secondary_brand_color ) ? WPCD_SECONDARY_BRAND_COLOR : $secondary_brand_color;
+
+		$tertiary_brand_color = wpcd_get_option( 'wordpress_app_tertiary_brand_color' );
+		$tertiary_brand_color = empty( $tertiary_brand_color ) ? WPCD_TERTIARY_BRAND_COLOR : $tertiary_brand_color;
+
+		$accent_bg_color = wpcd_get_option( 'wordpress_app_accent_background_color' );
+		$accent_bg_color = empty( $accent_bg_color ) ? WPCD_ACCENT_BG_COLOR : $accent_bg_color;
+
+		$medium_bg_color = wpcd_get_option( 'wordpress_app_medium_background_color' );
+		$medium_bg_color = empty( $medium_bg_color ) ? WPCD_MEDIUM_BG_COLOR : $medium_bg_color;
+
+		$light_bg_color = wpcd_get_option( 'wordpress_app_light_background_color' );
+		$light_bg_color = empty( $light_bg_color ) ? WPCD_LIGHT_BG_COLOR : $light_bg_color;
+
+		$alternate_accent_bg_color = wpcd_get_option( 'wordpress_app_alternate_accent_background_color' );
+		$alternate_accent_bg_color = empty( $alternate_accent_bg_color ) ? WPCD_ALTERNATE_ACCENT_BG_COLOR : $alternate_accent_bg_color;
+
+		// Get brand color settings for the front-end.
+		$primary_brand_color_fe = wpcd_get_option( 'wordpress_app_fe_primary_brand_color' );
+		$primary_brand_color_fe = empty( $primary_brand_color_fe ) ? WPCD_FE_PRIMARY_BRAND_COLOR : $primary_brand_color_fe;
+
+		$secondary_brand_color_fe = wpcd_get_option( 'wordpress_app_fe_secondary_brand_color' );
+		$secondary_brand_color_fe = empty( $secondary_brand_color_fe ) ? WPCD_FE_SECONDARY_BRAND_COLOR : $secondary_brand_color_fe;
+
+		$tertiary_brand_color_fe = wpcd_get_option( 'wordpress_app_fe_tertiary_brand_color' );
+		$tertiary_brand_color_fe = empty( $tertiary_brand_color_fe ) ? WPCD_FE_TERTIARY_BRAND_COLOR : $tertiary_brand_color_fe;
+
+		$accent_bg_color_fe = wpcd_get_option( 'wordpress_app_fe_accent_background_color' );
+		$accent_bg_color_fe = empty( $accent_bg_color_fe ) ? WPCD_FE_ACCENT_BG_COLOR : $accent_bg_color_fe;
+
+		$medium_bg_color_fe = wpcd_get_option( 'wordpress_app_fe_medium_background_color' );
+		$medium_bg_color_fe = empty( $medium_bg_color_fe ) ? WPCD_FE_MEDIUM_BG_COLOR : $medium_bg_color_fe;
+
+		$light_bg_color_fe = wpcd_get_option( 'wordpress_app_fe_light_background_color' );
+		$light_bg_color_fe = empty( $light_bg_color_fe ) ? WPCD_FE_LIGHT_BG_COLOR : $light_bg_color_fe;
+
+		$alternate_accent_bg_color_fe = wpcd_get_option( 'wordpress_app_fe_alternate_accent_background_color' );
+		$alternate_accent_bg_color_fe = empty( $alternate_accent_bg_color_fe ) ? WPCD_FE_ALTERNATE_ACCENT_BG_COLOR : $alternate_accent_bg_color_fe;
+
+		$postive_color_fe = wpcd_get_option( 'wordpress_app_fe_positive_color' );
+		$postive_color_fe = empty( $postive_color_fe ) ? WPCD_FE_POSITIVE_COLOR : $postive_color_fe;
+
+		$negative_color_fe = wpcd_get_option( 'wordpress_app_fe_negative_color' );
+		$negative_color_fe = empty( $negative_color_fe ) ? WPCD_FE_NEGATIVE_COLOR : $negative_color_fe;
+
+		/* Global style sheet. */
+		wp_enqueue_style( 'wpcd-global-css', wpcd_url . 'assets/css/wpcd-global.css', array(), wpcd_scripts_version );
+
+		/* Define brand colors */
+		$global_css = ":root {
+			--wpcd-primary-brand-color: {$primary_brand_color};
+			--wpcd-secondary-brand-color: {$secondary_brand_color};
+			--wpcd-tertiary-brand-color: {$tertiary_brand_color};
+			--wpcd-accent-background-color: {$accent_bg_color};
+			--wpcd-medium-background-color: {$medium_bg_color};
+			--wpcd-light-background-color: {$light_bg_color};
+			--wpcd-alternate-accent-background-color: {$alternate_accent_bg_color};
+
+			--wpcd-front-end-primary-brand-color: {$primary_brand_color_fe};
+			--wpcd-front-end-secondary-brand-color: {$secondary_brand_color_fe};
+			--wpcd-front-end-tertiary-brand-color: {$tertiary_brand_color_fe};
+			--wpcd-front-end-accent-background-color: {$accent_bg_color_fe};
+			--wpcd-front-end-medium-background-color: {$medium_bg_color_fe};
+			--wpcd-front-end-light-background-color: {$light_bg_color_fe};
+			--wpcd-front-end-alternate-accent-background-color: {$alternate_accent_bg_color_fe};
+			--wpcd-front-end-positive-color: {$postive_color_fe};			
+			--wpcd-front-end-negative-color: {$negative_color_fe};			
+		}";
+
+		/* Add some global css. */
+		wp_add_inline_style( 'wpcd-global-css', $global_css );
+
+	}
+
+	/**
+	 * Add custom css defined in settings
+	 * as inline styles to the global style sheet.
+	 *
+	 * Called from function wpcd_admin_scripts which is hooked into action admin_enqueue_scripts
+	 */
+	public function wpcd_inject_custom_css() {
+
+		/* Global style sheet. */
+		wp_enqueue_style( 'wpcd-global-css', wpcd_url . 'assets/css/wpcd-global.css', array(), wpcd_scripts_version );
+
+		$global_css = wpcd_get_early_option( 'wordpress-app-custom-css-override' );
+
+		/* Add to global css. */
+		if ( ! empty( $global_css ) ) {
+			wp_add_inline_style( 'wpcd-global-css', $global_css );
+		}
+	}
+
 
 	/**
 	 * Get the list of operating systems that we can install on a server.
@@ -623,8 +702,22 @@ class WP_CLOUD_DEPLOY {
 	public static function get_os_list() {
 		$oslist = array(
 			'ubuntu2004lts' => __( 'Ubuntu 20.04 LTS', 'wpcd' ),
-			'ubuntu1804lts' => __( 'Ubuntu 18.04 LTS', 'wpcd' ),
+			'ubuntu2204lts' => __( 'Ubuntu 22.04 LTS', 'wpcd' ),
+			'ubuntu1804lts' => __( 'Ubuntu 18.04 LTS (Deprecated, EOL April 2023)', 'wpcd' ),
 		);
+
+		// Remove some entries based on settings.
+		if ( (bool) wpcd_get_option( 'wordpress_app_disable_ubuntu_lts_1804' ) ) {
+			unset( $oslist['ubuntu1804lts'] );
+		}
+		if ( (bool) wpcd_get_option( 'wordpress_app_disable_ubuntu_lts_2004' ) ) {
+			unset( $oslist['ubuntu2004lts'] );
+		}
+		if ( (bool) wpcd_get_option( 'wordpress_app_disable_ubuntu_lts_2204' ) ) {
+			unset( $oslist['ubuntu2204lts'] );
+		}
+
+		// Return filtered array.
 		return apply_filters( 'wpcd_os_list', $oslist );
 	}
 
@@ -637,12 +730,13 @@ class WP_CLOUD_DEPLOY {
 	 */
 	public static function get_webserver_list() {
 		$webserver_list = array(
-			'nginx'          => __( 'NGINX', 'wpcd' ),
-			'ols'            => __( 'Open Litespeed', 'wpcd' ),
-			'ols-enterprise' => __( 'Litespeed Enterprise', 'wpcd' ),
+			'nginx' => __( 'NGINX', 'wpcd' ),
+			'ols'   => __( 'OpenLiteSpeed (Beta)', 'wpcd' ),
+			// 'ols-enterprise' => __( 'LiteSpeed Enterprise (Beta)', 'wpcd' ),
 		);
 		return apply_filters( 'wpcd_webserver_list', $webserver_list );
 	}
+
 
 	/**
 	 * Get the operating system name (full name) initially installed on a server
@@ -664,6 +758,10 @@ class WP_CLOUD_DEPLOY {
 
 			case 'ubuntu2004lts':
 				$return = __( 'Ubuntu 20.04 LTS', 'wpcd' );
+				break;
+
+			case 'ubuntu2204lts':
+				$return = __( 'Ubuntu 22.04 LTS', 'wpcd' );
 				break;
 		}
 
@@ -870,6 +968,8 @@ class WP_CLOUD_DEPLOY {
 				'aws_secret_access_key='     => '(***private***)',
 				'--admin_password='          => '(***private***)',
 				'pass='                      => '(***private***)',
+				'remote_dbpass='             => '(***private***)',
+				'local_dbpass='              => '(***private***)',
 				'dns_cloudflare_api_token'   => '(***private***)',
 				'dns_cloudflare_api_key'     => '(***private***)',
 				'secret_key_manager_api_key' => '(***private***)',
@@ -1231,6 +1331,33 @@ class WP_CLOUD_DEPLOY {
 			return true;
 		} else {
 			return false;
+		}
+
+	}
+
+	/**
+	 * To schedule events for newly created site on WP Multisite.
+	 *
+	 * Action hook: wp_initialize_site
+	 *
+	 * @param  object $new_site new site.
+	 * @param  array  $args args.
+	 * @return void
+	 */
+	public function wpcd_wisdom_custom_options_events( $new_site, $args ) {
+
+		$plugin_name = wpcd_plugin;
+
+		// To check the plugin is active network-wide.
+		if ( is_plugin_active_for_network( $plugin_name ) ) {
+
+			$blog_id = $new_site->blog_id;
+
+			switch_to_blog( $blog_id );
+			if ( ! wp_next_scheduled( 'wpcd_wisdom_custom_options' ) ) {
+				wp_schedule_event( time(), 'twicedaily', 'wpcd_wisdom_custom_options' );
+			}
+			restore_current_blog();
 		}
 
 	}

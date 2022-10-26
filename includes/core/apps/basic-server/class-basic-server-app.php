@@ -64,6 +64,14 @@ class WPCD_BASIC_SERVER_APP extends WPCD_APP {
 		// setup WordPress hooks.
 		$this->hooks();
 
+		/* Make sure that we show the server sizes on the provider settings screen - by default they are turned off in settings. */
+		add_filter(
+			'wpcd_show_server_sizes_in_settings',
+			function() {
+				return true;
+			}
+		);
+
 		// Global for backwards compatibility.
 		$GLOBALS['wpcd_app_basic_server'] = $this;
 
@@ -302,9 +310,13 @@ class WPCD_BASIC_SERVER_APP extends WPCD_APP {
 	 * @return void
 	 */
 	public static function basic_server_schedule_events() {
-		// setup deferred instance actions schedule.
+		// Clear existing cron.
 		wp_clear_scheduled_hook( 'wpcd_basic_server_deferred_actions' );
-		wp_schedule_event( time(), 'every_minute', 'wpcd_basic_server_deferred_actions' );
+		
+		// Schedule cron for setup deferred instance actions schedule.
+		if ( ! defined( 'DISABLE_WPCD_CRON' ) ||  ( defined( 'DISABLE_WPCD_CRON' ) && ! DISABLE_WPCD_CRON ) ) {		
+			wp_schedule_event( time(), 'every_minute', 'wpcd_basic_server_deferred_actions' );
+		}
 	}
 
 	/**
@@ -561,7 +573,13 @@ class WPCD_BASIC_SERVER_APP extends WPCD_APP {
 	 */
 	public function do_instance_action( $server_post_id, $action, $additional = array() ) {
 
+		// Bail if the post type is not a server.
 		if ( get_post_type( $server_post_id ) !== 'wpcd_app_server' || empty( $action ) ) {
+			return;
+		}
+
+		// Bail if the server type is not a basic server.
+		if ( 'basic-server' !== $this->get_server_type( $server_post_id ) ) {
 			return;
 		}
 
@@ -1344,7 +1362,7 @@ class WPCD_BASIC_SERVER_APP extends WPCD_APP {
 		}
 
 		// Add nonce for security and authentication.
-		$nonce_name   = filter_input( INPUT_POST, 'basic_server_meta', FILTER_SANITIZE_STRING );
+		$nonce_name   = sanitize_text_field( filter_input( INPUT_POST, 'basic_server_meta', FILTER_UNSAFE_RAW ) );
 		$nonce_action = 'wpcd_basic_server_app_nonce_meta_action';
 
 		// Check if nonce is valid.
@@ -1373,7 +1391,7 @@ class WPCD_BASIC_SERVER_APP extends WPCD_APP {
 		}
 
 		/* Get new values */
-		$wpcd_basic_server_app_scripts_version = filter_input( INPUT_POST, 'wpcd_basic_serverscripts_version', FILTER_SANITIZE_STRING );
+		$wpcd_basic_server_app_scripts_version = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_basic_serverscripts_version', FILTER_UNSAFE_RAW ) );
 
 		/* Add new values to database */
 		update_post_meta( $post_id, 'basic_server_scripts_version', $wpcd_basic_server_app_scripts_version );

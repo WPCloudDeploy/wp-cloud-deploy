@@ -1,0 +1,91 @@
+#!/bin/bash
+
+# This file is not yet complete.  
+# We need better options for automatically repairing the database.
+# wp cli 'repair' command only works on the older ISAM tables.
+# So, this file cannot be used right now.
+
+# How about these ones I used to use alot on cPanel/CyberPanel?
+# Repair Check and optimize all Databases as root in detached screen session 
+# touch /root/mysql_check_repair_optimize.txt ; screen -dmS repair_optimize_mysql bash -c 'mysqlcheck -u root --auto-repair --all-databases | tee /root/mysql_check_repair_optimize.txt && mysqlcheck -o -u root --all-databases | tee -a /root/mysql_check_repair_optimize.txt; exec sh' ; tail -f /root/mysql_check_repair_optimize.txt
+
+# Repair/Check/Optimize database
+# database_name="DatabaseName_not_provided_in_form"; sudo mysqlcheck -u root --auto-repair ${database_name} && sudo mysqlcheck -o -u root ${database_name} ;
+
+if [[ "$EUID" -ne 0 ]]
+then
+	echo "Sorry, you need to run this as root"
+	exit
+fi
+
+## Get our common functions
+if [[ ! -f 9999-common-functions.sh ]]
+then
+	echo "The file 9999-common-functions.sh is missing"
+	exit 1
+fi
+source 9999-common-functions.sh
+
+while [[ -z $domain ]]
+do
+	clear
+	echo "Please, select which domain whose database you wish to repair..."
+	gf_select_domain
+	domain=$(ls /var/www | grep -v html | sed -n "$site_number"p)
+done
+
+while [[ -z $action ]]
+do
+	echo
+	echo "Choose your action?"
+	echo
+	echo "   1) Repair Full Database (MyISAM Engine Only)"
+	echo "   2) For Future Use"
+	echo "   3) For Future Use"
+	read -p "Action: " action
+	until [[ -z "$action" || "$action" =~ ^[1-3]$ ]]
+	do
+		echo "$action: invalid selection."
+		read -p "Action: " action
+	done
+done
+
+#get the database name
+gf_get_dbhost $domain
+gf_get_dbname $domain
+gf_get_dbuser $domain
+gf_get_dbpass $domain
+gf_get_dbprefix $domain
+gf_get_dbport $domain
+
+#backup database
+echo "Backing up database..."
+date=$(date +"%Y-%m-%d"-"%Hh%Mm%Ss")
+mkdir -p /root/.wp-backup/$domain/
+mysqldump --routines -h $g_mysql_host_noport -P $g_mysql_dbport -u $g_mysql_user -p"$g_mysql_pass" $g_mysql_name | gzip -9 > /root/.wp-backup/$domain/"$domain"_"$date"_db.gz
+if [ $? -ne 0 ]  
+then
+	echo "Database backup failed! Database repair aborted!"
+	exit
+fi
+echo "Database backed up to /root/.wp-backup/$domain/"$domain"_"$date"_db.gz"
+
+if [[ $action == "db_repair_full_wp_cli_isam" || $action == "1" ]]
+then
+
+	#run repair using wp-cli
+	echo "Repairing..."
+	cd /var/www/$domain/html/
+	su - $domain -c "wp --skip-plugins db repair"
+
+	# reset cache
+	su - $domain -c "wp cache flush"
+	su - $domain -c "wp cache-enabler clear 2>/dev/null"
+
+fi
+
+echo "Restarting $g_webserver_type..."
+gf_restart_webserver
+
+echo
+echo "Database repair complete."

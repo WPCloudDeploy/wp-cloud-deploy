@@ -88,6 +88,11 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 	 * @return boolean
 	 */
 	public function get_tab_security( $id ) {
+		// If admin has an admin lock in place and the user is not admin they cannot view the tab or perform actions on them.
+		if ( $this->get_admin_lock_status( $id ) && ! wpcd_is_admin() ) {
+			return false;
+		}
+		// If we got here then check team and other permissions.
 		return ( true === $this->wpcd_wpapp_site_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_site_tab( $id, $this->get_tab_slug() ) );
 	}
 
@@ -166,7 +171,7 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 		$domain = $this->get_domain_name( $id );
 
 		// Figure out the action to used based on the current status in our database.
-		$pc_status = get_post_meta( $id, 'wpapp_nginx_pagecache_status', true );
+		$pc_status = $this->get_page_cache_status( $id );
 		if ( empty( $pc_status ) ) {
 			$pc_status = 'off';
 		}
@@ -197,17 +202,17 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 
 		// Now that we know we're successful, lets update a meta indicating the status of page cache on the site.
 		if ( 'enable_page_cache' === $action ) {
-			update_post_meta( $id, 'wpapp_nginx_pagecache_status', 'on' );
+			$this->set_page_cache_status( $id, 'on' );
 		} elseif ( 'disable_page_cache' === $action ) {
-			update_post_meta( $id, 'wpapp_nginx_pagecache_status', 'off' );
+			$this->set_page_cache_status( $id, 'off' );
 		}
 
 		// Success message and force refresh.
 		if ( ! is_wp_error( $result ) ) {
 			if ( 'enable_page_cache' === $action ) {
-				$success_msg = __( 'NGINX pagecache has been enabled for this site.', 'wpcd' );
+				$success_msg = __( 'The page cache has been enabled for this site.', 'wpcd' );
 			} else {
-				$success_msg = __( 'NGINX pagecache has been disabled for this site.', 'wpcd' );
+				$success_msg = __( 'The page cache has been disabled for this site.', 'wpcd' );
 			}
 			$result = array(
 				'msg'     => $success_msg,
@@ -238,9 +243,14 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
 		}
 
+		// What type of web server are we running?
+		$webserver_type      = $this->get_web_server_type( $id );
+		$webserver_type_name = $this->get_web_server_description_by_id( $id );		
+
 		// Get the domain we're working on.
 		$domain = $this->get_domain_name( $id );
 
+		// Action expected by bash scripts.
 		$action = 'clear_page_cache';
 
 		// Get the full command to be executed by ssh.
@@ -267,7 +277,7 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 
 		// Success message and force refresh.
 		if ( ! is_wp_error( $result ) ) {
-			$success_msg = __( 'NGINX pagecache has been cleared for this site.', 'wpcd' );
+			$success_msg = sprintf( __( 'The %s pagecache has been cleared for this site.', 'wpcd' ), $webserver_type_name );
 			$result      = array(
 				'msg'     => $success_msg,
 				'refresh' => 'yes',
@@ -410,20 +420,23 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 			return array_merge( $fields, $this->get_disabled_header_field( 'cache' ) );
 		}
 
+		// What type of web server are we running?
+		$webserver_type      = $this->get_web_server_type( $id );
+		$webserver_type_name = $this->get_web_server_description_by_id( $id );
+
 		// Pick up server id for this app - we'll need it later.
 		$server_id             = $this->get_server_by_app_id( $id );
 		$server_edit_post_link = get_edit_post_link( $server_id );
 
-		/* PAGE CACHE with CACHE ENABLER PLUGIN */
+		/* PAGE CACHE */
 		$fields[] = array(
 			'name' => __( 'Page Cache', 'wpcd' ),
 			'tab'  => 'cache',
 			'type' => 'heading',
-			'desc' => __( 'Enable or disable the NGINX page cache.<br />', 'wpcd' ),
 		);
 
 		// What is the status of the page cache?
-		$pc_status = get_post_meta( $id, 'wpapp_nginx_pagecache_status', true );
+		$pc_status = $this->get_page_cache_status( $id );
 		if ( empty( $pc_status ) ) {
 			$pc_status = 'off';
 		}
@@ -431,9 +444,9 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 		/* Set the confirmation prompt based on the the current status of this flag */
 		$confirmation_prompt = '';
 		if ( 'on' === $pc_status ) {
-			$confirmation_prompt = __( 'Are you sure you would like to disable the NGINX page cache for this site?', 'wpcd' );
+			$confirmation_prompt = sprintf( __( 'Are you sure you would like to disable the %s page cache for this site?', 'wpcd' ), $webserver_type_name );
 		} else {
-			$confirmation_prompt = __( 'Are you sure you would like to enable NGINX page cache for this site?', 'wpcd' );
+			$confirmation_prompt = sprintf( __( 'Are you sure you would like to enable %s page cache for this site?', 'wpcd' ), $webserver_type_name );
 		}
 
 		$fields[] = array(
@@ -460,37 +473,37 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 		/**
 		 * Clear the page cache
 		 */
-		$fields[] = array(
-			'name' => __( 'Clear Page Cache', 'wpcd' ),
-			'tab'  => 'cache',
-			'type' => 'heading',
-			'desc' => __( 'Clear the NGINX based page cache for this site', 'wpcd' ),
-		);
-		$fields[] = array(
-			'id'         => 'clear-pagecache',
-			'name'       => '',
-			'tab'        => 'cache',
-			'type'       => 'button',
-			'std'        => __( 'Clear', 'wpcd' ),
-			'desc'       => '',
-			'attributes' => array(
-				// the _action that will be called in ajax.
-				'data-wpcd-action'              => 'site-clear-pagecache',
-				// the id.
-				'data-wpcd-id'                  => $id,
-				// make sure we give the user a confirmation prompt.
-				'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like to clear the NGINX page cache for this site?', 'wpcd' ),
-			),
-			'class'      => 'wpcd_app_action',
-			'save_field' => false,
-		);
+		if ( 'on' === $pc_status ) {
+			$fields[] = array(
+				'name' => __( 'Clear Page Cache', 'wpcd' ),
+				'tab'  => 'cache',
+				'type' => 'heading',
+			);
+			$fields[] = array(
+				'id'         => 'clear-pagecache',
+				'name'       => '',
+				'tab'        => 'cache',
+				'type'       => 'button',
+				'std'        => __( 'Clear', 'wpcd' ),
+				'desc'       => '',
+				'attributes' => array(
+					// the _action that will be called in ajax.
+					'data-wpcd-action'              => 'site-clear-pagecache',
+					// the id.
+					'data-wpcd-id'                  => $id,
+					// make sure we give the user a confirmation prompt.
+					'data-wpcd-confirmation-prompt' => sprintf( __( 'Are you sure you would like to clear the %s page cache for this site?', 'wpcd' ), $webserver_type_name ),
+				),
+				'class'      => 'wpcd_app_action',
+				'save_field' => false,
+			);
+		}
 
 		/* MEMCACHED */
 		$fields[] = array(
 			'name' => __( 'Memcached', 'wpcd' ),
 			'tab'  => 'cache',
 			'type' => 'heading',
-			'desc' => __( 'Enable or disable Memcached on your site.<br />', 'wpcd' ),
 		);
 
 		if ( 'installed' === $this->get_server_installed_service_status( $id, 'memcached' ) ) {

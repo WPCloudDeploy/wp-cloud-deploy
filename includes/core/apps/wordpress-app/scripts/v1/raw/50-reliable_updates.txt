@@ -7,25 +7,25 @@ then
 fi
 
 ## Get our common functions
+if [[ ! -f 9999-common-functions.sh ]]
+then
+	echo "The file 9999-common-functions.sh is missing"
+	exit 1
+fi
 source 9999-common-functions.sh
 
-while [[ -z $domain ]]; do
+while [[ -z $domain ]]
+do
 	clear
 	echo "Please select domain in which want to run updates"
-	ls /var/www | grep -v html | nl
-	echo
-	read -p "Select site: " site_number
-	number_of_sites=$(ls /var/www | grep -v html | wc -l)
-	until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
-		echo "$site_number: invalid selection."
-		read -p "Select site: " site_number
-	done
+	gf_select_user
 	domain=$(ls /var/www | grep -v html | sed -n "$site_number"p)
 done
 
 user_name=$(echo $domain | cut -c1-32)
 
-while [[ -z $action ]]; do
+while [[ -z $action ]]
+do
 	echo
 	echo "What to update?"
 	echo "   1) All themes"
@@ -37,23 +37,26 @@ while [[ -z $action ]]; do
 	echo "   7) All Plugins and All Themes Only"
 	echo "   8) Exclude Some Plugins"
 	echo "   9) Exclude Some Themes"
-        read -p "Action: " action
-        until [[ -z "$action" || "$action" =~ ^[1-9]$ ]]; do
-                echo "$action: invalid selection."
-                read -p "Action: " action
-        done
+	read -p "Action: " action
+	until [[ -z "$action" || "$action" =~ ^[1-9]$ ]]
+	do
+		echo "$action: invalid selection."
+		read -p "Action: " action
+	done
 done
 
-while [[ -z $update_type ]]; do
-        echo
-        echo "Type of Updates?"
-        echo "   1) Update in Place with Rollback Option"
-        echo "   2) Update in Place without Rollback Option"
-		read -p "Action: "  update_type
-        until [[ -z "$update_type" || "$update_type" =~ ^[1-2]$ ]]; do
-                echo "$update_type: invalid selection."
-                read -p "Action: " update_type
-        done
+while [[ -z $update_type ]]
+	do
+	echo
+	echo "Type of Updates?"
+	echo "   1) Update in Place with Rollback Option"
+	echo "   2) Update in Place without Rollback Option"
+	read -p "Action: "  update_type
+	until [[ -z "$update_type" || "$update_type" =~ ^[1-2]$ ]]
+	do
+		echo "$update_type: invalid selection."
+		read -p "Action: " update_type
+	done
 done
 
 if [[ -z $api_userid ]]
@@ -106,13 +109,13 @@ if [[ -z "$status_callback_url" ]]
 then
 	read -p "enter callback url to get updates:  " status_callback_url
 fi
+
 if [[ -z "$status_callback_url" ]]
 then
 	curl -sS "$status_callback_url?update=starting"
 fi
 
-function update_allthemes
-{
+function update_allthemes() {
 	if [[ ! -z $excluded_themes ]]
 	then
 		update_exclude_themes
@@ -122,8 +125,7 @@ function update_allthemes
 	fi
 }
 
-function update_allplugins
-{
+function update_allplugins() {
 	if [[ ! -z $excluded_plugins ]]
 	then
 		update_exclude_plugins
@@ -133,28 +135,24 @@ function update_allplugins
 	fi
 }
 
-function update_wordpress
-{
+function update_wordpress() {
 	echo "Updating WordPress..."
 	su - $user_name -c "wp core update"
 }
 
-function update_somethemes
-{
+function update_somethemes() {
 	echo "Updating specified themes..."
 	themes=`echo $list_of_themes|tr ',' ' '`
 	su - $user_name -c "wp theme update $themes"
 }
 
-function update_someplugins
-{
+function update_someplugins() {
 	echo "Updating specified plugins..."
 	plugins=`echo $list_of_plugins|tr ',' ' '`
 	su - $user_name -c "wp plugin update $plugins"
 }
 
-function update_exclude_plugins
-{
+function update_exclude_plugins() {
 	echo ""
 	echo "Updating All Plugins except specified exclusions..."
 	local pluginlist=`su - $user_name -c "wp plugin list --format=csv|cut -d',' -f1|grep -v name" |tr '\n' ','`
@@ -171,8 +169,7 @@ function update_exclude_plugins
 	done
 }
 
-function update_exclude_themes
-{
+function update_exclude_themes() {
 	echo ""
 	echo "Updating All themes except specified exclusions..."
 	local themelist=`su - $user_name -c "wp theme list --format=csv|cut -d',' -f1|grep -v name" |tr '\n' ','`v
@@ -196,7 +193,6 @@ function update_exclude_themes
 #####################################################################
 function update_check
 {
-
 	#no mattter what, lets reset caches...
 	g_flush_cache $user_name $domain
 	
@@ -221,7 +217,7 @@ function update_check
 		if [[ $pixel_difference -ge $threshold ]]
 		then
 			echo "Comparison failed - restoring from backup..."
-			backup=$(find ~/.wp-backup -type f -name "$domain*fs.tar.gz" | cut -d "/" -f 4-5 | cut -d "_" -f 1-2 | sort -nr | sed -n 1p)
+			backup=$(find /root/.wp-backup -type f -name "$domain*fs.tar.gz" | cut -d "/" -f 4-5 | cut -d "_" -f 1-2 | sort -nr | sed -n 1p)
 			if [ -z $backup ]
 			then
 				echo "Restore Skipped because no backup found"
@@ -250,7 +246,6 @@ function update_check
 		echo "Skipping a comparison of before and after images because the image snapshot service credentials have not been provided."
 		echo "Updates are complete."
 	fi
-
 }
 
 ############## Backup Existing site code and database #######

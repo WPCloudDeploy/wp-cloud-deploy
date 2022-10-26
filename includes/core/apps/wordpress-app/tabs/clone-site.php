@@ -102,16 +102,17 @@ class WPCD_WORDPRESS_TABS_CLONE_SITE extends WPCD_WORDPRESS_TABS {
 							// @TODO: Only the first team is copied.  If the site has more than one team, only the first one is copied over.
 							update_post_meta( $new_app_post_id, 'wpcd_assigned_teams', get_post_meta( $id, 'wpcd_assigned_teams', true ) );
 
-							// Was SSL enabled for the cloned site?  If so, flip the SSL metavalues...
+							// Was SSL enabled for the cloned site?  If so, flip the SSL metavalues.
+							$this->set_ssl_status( $id, 'off' ); // Assume off for now.
 							$success = $this->is_ssh_successful( $logs, 'manage_https.txt' );  // ***Very important Note: We didn't actually run the manage_https script.  We are just using the check logic for it to see if the same keyword output is in the clone site output since we are using the same keywords for both scripts.
 							if ( true == $success ) {
-								update_post_meta( $new_app_post_id, 'wpapp_ssl_status', 'on' );
+								$this->set_ssl_status( $new_app_post_id, 'on' );
 							}
 
-							// Was nginx page caching enabled on the original site?  If so, the caching plugin was copied as well so add the meta here for that.
-							$nginx_page_cache_status = get_post_meta( $id, 'wpapp_nginx_pagecache_status', true );
-							if ( ! empty( $nginx_page_cache_status ) ) {
-								update_post_meta( $new_app_post_id, 'wpapp_nginx_pagecache_status', $nginx_page_cache_status );
+							// Was page caching enabled on the original site?  If so, the caching plugin was copied as well so add the meta here for that.
+							$page_cache_status = $this->get_page_cache_status( $id );
+							if ( ! empty( $page_cache_status ) ) {
+								$this->set_page_cache_status( $new_app_post_id, $page_cache_status );
 							}
 
 							// Was memcached enabled on the original site?  If so, the caching plugin was copied as well so add the meta here for that.
@@ -194,6 +195,11 @@ class WPCD_WORDPRESS_TABS_CLONE_SITE extends WPCD_WORDPRESS_TABS {
 	 * @return boolean
 	 */
 	public function get_tab_security( $id ) {
+		// If admin has an admin lock in place and the user is not admin they cannot view the tab or perform actions on them.
+		if ( $this->get_admin_lock_status( $id ) && ! wpcd_is_admin() ) {
+			return false;
+		}
+		// If we got here then check team and other permissions.
 		return ( true === $this->wpcd_wpapp_site_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_site_tab( $id, $this->get_tab_slug() ) );
 	}
 
@@ -299,6 +305,14 @@ class WPCD_WORDPRESS_TABS_CLONE_SITE extends WPCD_WORDPRESS_TABS {
 			return new \WP_Error( $message );
 		}
 
+		// Allow developers to validate the new domain and bailout if necessary.
+		if ( ! apply_filters( 'wpcd_wpapp_validate_domain_on_clone', true, $args['new_domain'] ) ) {
+			/* translators: %s is replaced with the internal action name. */
+			$message = sprintf( __( 'The new domain has failed validation.  Please try again: %s', 'wpcd' ), $action );
+			do_action( "wpcd_{$this->get_app_name()}_clone_site_failed", $id, $action, $message, $args );
+			return new \WP_Error( $message );
+		}
+
 		// sanitize the fields to allow them to be used safely on the bash command line.
 		$args['new_domain'] = escapeshellarg( sanitize_text_field( $args['new_domain'] ) );
 
@@ -392,6 +406,11 @@ class WPCD_WORDPRESS_TABS_CLONE_SITE extends WPCD_WORDPRESS_TABS {
 			return array_merge( $fields, $this->get_disabled_header_field( 'clone-site' ) );
 		}
 
+		// If the number of sites allowed on the server have been exceeded, return.
+		if ( $this->get_has_server_exceeded_sites_allowed( $id ) && ! wpcd_is_admin() ) {
+			return array_merge( $fields, $this->get_max_sites_exceeded_header_field( 'clone-site' ) );
+		}
+
 		// Allow a third party to show a different set of fields instead.
 		// This can be useful if a custom plugin determines that clone operations are not allowed.
 		// For example, the WC SITES SUBSCRIPTION add-on uses this to disable cloning when the number of sites a user is allowed is exceeded.
@@ -401,9 +420,12 @@ class WPCD_WORDPRESS_TABS_CLONE_SITE extends WPCD_WORDPRESS_TABS {
 			return array_merge( $fields, $over_ride_fields );
 		}
 
+		/* What type of web server are we running? */
+		$webserver_type = $this->get_web_server_type( $id );
+
 		// Get HTTP2 status since we cannot clone a site with HTTP2 turned on.
 		$http2_status = $this->http2_status( $id );
-		if ( 'on' === $http2_status ) {
+		if ( 'on' === $http2_status && 'nginx' === $webserver_type ) {
 			$desc = __( 'You cannot clone this site at this time because HTTP2 is enabled. Please disable it before attempting this operation.', 'wpcd' );
 
 			$fields[] = array(
@@ -449,7 +471,6 @@ class WPCD_WORDPRESS_TABS_CLONE_SITE extends WPCD_WORDPRESS_TABS {
 			'tab'        => 'clone-site',
 			'type'       => 'button',
 			'std'        => __( 'Clone Site', 'wpcd' ),
-			'desc'       => __( 'Make a copy of this site to the new domain', 'wpcd' ),
 			'attributes' => array(
 				// the _action that will be called in ajax.
 				'data-wpcd-action'              => 'clone-site',

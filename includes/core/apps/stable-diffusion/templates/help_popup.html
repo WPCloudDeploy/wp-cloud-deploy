@@ -1,0 +1,52 @@
+<div id="wpcd-stablediff-instructions-popup-content-wrap" class="wpcd-stablediff-instructions-popup-content-wrap">
+	<div style="text-align: center;">
+		<h1>Instructions and FAQS</h1>
+	</div>
+	<div>
+		<h2>How do I use my server?</h2>
+		<p>Navigate to your servers page.
+			In the REQUEST IMAGES panel enter an image description.
+			Then, click the green REQUEST IMAGES button.
+			It will take between one or two minutes to generate your image (if it's the first in the queue.)
+		</p>
+		<p>You can access your server(s) by clicking the button below.
+		</p>
+		<p><a class="button wpcd-stablediff-server-page-button" href=$SERVERPAGE>Your Servers</a></p>
+	</div>
+	<div id="wpcd-stablediff-instructions-popup-content-grid" class="wpcd-stablediff-instructions-popup-content-grid">
+		<div class="wpcd-stablediff-instructions-grid-item">
+			<h4><i class="fa-duotone fa-handshake-angle"></i> How To Retrieve Your Images</i></h4>
+			<p>After requesting an image, the request is placed into a queue. If it's the first one, it will take 1 - 2 minutes. 
+				Refresh your page then and links to the generated images will appear at the bottom of the REQUEST IMAGES panel.
+				Thumbnails of the most recent generated images will also appear in the GRID panels.
+			</p>
+		</div>
+
+		<div class="wpcd-stablediff-instructions-grid-item">
+			<h4><i class="fa-duotone fa-rectangle-vertical-history"></i> Requesting Multiple Images</h4>
+			<p>You can make as many requests for images as you like - it's your server afterall.
+				But, images are generated one at a time. 
+				Your requests are placed into a queue and processed first-in-first-out.
+				You can see the number of requests pending at the top of the server panel.
+			</p>
+		</div>
+		<div class="wpcd-stablediff-instructions-grid-item">
+			<h4><i class="fa-duotone fa-link-slash"></i> Image Link Expiration</h4>
+			<p>Links to all images expire approximately 7 days after you generate them.
+				In certain situations we might be able to recover images after 7 days if you send us  the original link.
+				Please open a support ticket to make this request.
+			</p>
+		</div>
+		<div class="wpcd-stablediff-instructions-grid-item wpcd-stablediff-instructions-grid-item-help">
+			<h4><i class="fa-duotone fa-question"></i> Help</h4>
+			<p>You can access all our help documents starting <a href="$HELPPAGE">here.</a> This includes instructions for
+				any device type not listed above</p>
+			<p>You can also open up a support ticket any time <a href="$NEWTICKET">here</a> or <a
+					href="$MYTICKETS"> View your open tickets </a></p>
+		</div>
+		<div class="wpcd-stablediff-instructions-grid-item wpcd-stablediff-instructions-grid-item-about-server">
+			<h5><i class="fas fa-globe-asia"></i> About your Stable Diffusion Server</h5>
+			Name: $NAME<br> Provider: $PROVIDER<br> IP: $IP<br> Size: $SIZE<br>
+		</div>
+	</div>
+</div>

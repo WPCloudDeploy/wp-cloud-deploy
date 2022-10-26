@@ -65,6 +65,11 @@ class WPCD_WORDPRESS_TABS_7G_FIREWALL extends WPCD_WORDPRESS_TABS {
 	 * @return boolean
 	 */
 	public function get_tab_security( $id ) {
+		// If admin has an admin lock in place and the user is not admin they cannot view the tab or perform actions on them.
+		if ( $this->get_admin_lock_status( $id ) && ! wpcd_is_admin() ) {
+			return false;
+		}
+		// If we got here then check team and other permissions.
 		return ( true === $this->wpcd_wpapp_site_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_site_tab( $id, $this->get_tab_slug() ) );
 	}
 
@@ -196,6 +201,23 @@ class WPCD_WORDPRESS_TABS_7G_FIREWALL extends WPCD_WORDPRESS_TABS {
 		// Bail if site is not enabled.
 		if ( ! $this->is_site_enabled( $id ) ) {
 			return array_merge( $fields, $this->get_disabled_header_field( '7g_waf' ) );
+		}
+
+		// Get Webserver Type.
+		$webserver_type = $this->get_web_server_type( $id );
+
+		// Set heading description based on web server type.
+		switch ( $webserver_type ) {
+			case 'ols':
+			case 'ols-enterprise':
+				$heading_desc = __( '6G Web Application Firewall / Powered by the Litespeed Web Server Engine', 'wpcd' );
+				break;
+
+			case 'nginx':
+			default:
+				$heading_desc = __( '6G Web Application Firewall / Powered by the Nginx Web Server Engine', 'wpcd' );
+				break;
+
 		}
 
 		// Basic checks passed, ok to proceed.

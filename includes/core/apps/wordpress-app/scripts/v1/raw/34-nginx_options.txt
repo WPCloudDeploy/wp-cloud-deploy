@@ -7,7 +7,19 @@ if [[ "$EUID" -ne 0 ]]; then
 fi
 
 ## Get our common functions
+if [[ ! -f 9999-common-functions.sh ]]
+then
+	echo "The file 9999-common-functions.sh is missing"
+	exit 1
+fi
 source 9999-common-functions.sh
+
+# Not supported on OLS.
+if [ "$g_webserver_type" != "nginx" ]
+then
+    echo "These operations are only supported on NGINX."
+    exit 1
+fi
 
 set_user_name() {
     if [[ -z "${user_name}" ]]; then
@@ -1210,7 +1222,8 @@ do_disable_cache_include() {
 }
 
 ## Enable browser cache using 'include'
-if [[ "${action}" == 'enable_cache_include' || "${action}" == "$((i++))" ]]; then
+## Action enable_cache_include deprecated - use enable_browser_cache instead
+if [[ "${action}" == 'enable_cache_include' || "${action}" == 'enable_browser_cache'  || "${action}" == "$((i++))" ]]; then
     select_domain_mu
     if is_cache_include_on; then
         echo -e "${BLUE}browser cache (include) is already enabled for '${domain}'${NC}" # SKIP
@@ -1228,7 +1241,8 @@ fi
 ## End Enable browser cache using 'include'
 
 ## Disable broswer cache using 'include'
-if [[ "${action}" == 'disable_cache_include' || "${action}" == "$((i++))" ]]; then
+## Action disable_cache_include deprecated - use disable_browser_cache instead
+if [[ "${action}" == 'disable_cache_include' || "${action}" == 'disable_browser_cache' || "${action}" == "$((i++))" ]]; then
     select_domain_mu
     if is_cache_include_on; then
         do_disable_cache_include

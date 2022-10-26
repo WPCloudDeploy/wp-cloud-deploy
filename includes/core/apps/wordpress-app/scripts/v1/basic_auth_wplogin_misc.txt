@@ -1,5 +1,7 @@
 cd ~ &&
 sudo -E \rm -f ##SCRIPT_NAME## &&
+sudo -E wget --no-check-certificate -O ##SCRIPT_COMMON_NAME## ##SCRIPT_COMMON_URL## &&
+sudo -E dos2unix ##SCRIPT_COMMON_NAME## &&
 sudo -E wget --no-check-certificate -O ##SCRIPT_NAME## ##SCRIPT_URL## &&
 export action=##ACTION## domain=##DOMAIN## user=##WPLOGIN_BASIC_AUTH_USER## pass=##WPLOGIN_BASIC_AUTH_PASS##  &&
 sudo -E dos2unix ##SCRIPT_NAME## &&

@@ -189,7 +189,7 @@ trait wpcd_metaboxes_for_taxonomies_for_servers_and_apps {
 		$html          = '';
 		$html         .= sprintf( '<select name="%s" id="filter-by-%s">', $field_key, $field_key );
 		$html         .= sprintf( '<option value="">%s</option>', $first_option );
-		$get_field_key = filter_input( INPUT_GET, $field_key, FILTER_SANITIZE_STRING );
+		$get_field_key = sanitize_text_field( filter_input( INPUT_GET, $field_key, FILTER_UNSAFE_RAW ) );
 		foreach ( $result as $row ) {
 			if ( empty( $row->meta_value ) ) {
 				continue;
@@ -237,7 +237,7 @@ trait wpcd_metaboxes_for_taxonomies_for_servers_and_apps {
 		$html          = '';
 		$html         .= sprintf( '<select name="%s" id="filter-by-%s">', $taxonomy, $taxonomy );
 		$html         .= sprintf( '<option value="">%s</option>', $first_option );
-		$get_field_key = filter_input( INPUT_GET, $taxonomy, FILTER_SANITIZE_STRING );
+		$get_field_key = sanitize_text_field( filter_input( INPUT_GET, $taxonomy, FILTER_UNSAFE_RAW ) );
 		foreach ( $terms as $term ) {
 			$term_id   = $term->term_id;
 			$term_name = $term->name;
@@ -278,10 +278,11 @@ trait wpcd_metaboxes_for_taxonomies_for_servers_and_apps {
 			return '';
 		}
 
+		$name = is_admin() ? 'wpcd_app_server_dd' : '_wpcd_app_server_dd';
 		$html          = '';
-		$html         .= sprintf( '<select name="%s" id="filter-by-%s">', $post_type, $post_type );
+		$html         .= sprintf( '<select name="%s" id="filter-by-%s">', $name, $post_type );
 		$html         .= sprintf( '<option value="">%s</option>', $first_option );
-		$get_field_key = filter_input( INPUT_GET, $post_type, FILTER_SANITIZE_STRING );
+		$get_field_key = sanitize_text_field( filter_input( INPUT_GET, $name, FILTER_UNSAFE_RAW ) );
 
 		foreach ( $posts as $p ) {
 			$post_id    = $p->ID;
@@ -331,14 +332,17 @@ trait wpcd_metaboxes_for_taxonomies_for_servers_and_apps {
 		$sql   = $wpdb->prepare( "SELECT DISTINCT post_author FROM {$wpdb->posts} WHERE post_type = %s AND post_status = %s  AND ID IN ( " . $posts_placeholder . ' ) ORDER BY post_author', $query_fields );
 		$posts = $wpdb->get_results( $sql );
 
+		$select_class = '';
 		if ( count( $posts ) == 0 ) {
 			return '';
+		} else if ( count( $posts ) > 25 ) {
+			$select_class = 'wpcd_search_owner_filter custom-select custom-select-sm';
 		}
 
 		$html          = '';
-		$html         .= sprintf( '<select name="%s" id="filter-by-%s">', $field_key, $field_key );
+		$html         .= sprintf( '<select class="%s" name="%s" id="filter-by-%s">', $select_class, $field_key, $field_key );
 		$html         .= sprintf( '<option value="">%s</option>', $first_option );
-		$get_field_key = filter_input( INPUT_GET, $field_key, FILTER_SANITIZE_STRING );
+		$get_field_key = sanitize_text_field( filter_input( INPUT_GET, $field_key, FILTER_UNSAFE_RAW ) );
 		$owners        = array();
 
 		foreach ( $posts as $p ) {
@@ -347,7 +351,7 @@ trait wpcd_metaboxes_for_taxonomies_for_servers_and_apps {
 			}
 			$owners[]         = $p->post_author;
 			$post_author_id   = $p->post_author;
-			$post_author_name = empty( $post_author_id ) ? __( 'No Author or Owner provided.', 'wpcd') : esc_html( get_user_by( 'ID', $post_author_id )->user_login );
+			$post_author_name = empty( $post_author_id ) ? __( 'No Author or Owner provided.', 'wpcd' ) : esc_html( get_user_by( 'ID', $post_author_id )->user_login );
 			$selected         = selected( $get_field_key, $post_author_id, false );
 			$html            .= sprintf( '<option value="%d" %s>%s</option>', $post_author_id, $selected, $post_author_name );
 		}
@@ -429,9 +433,9 @@ trait wpcd_metaboxes_for_taxonomies_for_servers_and_apps {
 	 *
 	 * @return array
 	 */
-	public function wpcd_app_manipulate_views( $post_type, $views, $permission ) {
+	public function wpcd_app_manipulate_views( $post_type, $views, $permission, $is_public_view = false ) {
 
-		if ( ! is_admin() && ! in_array( $post_type, array( 'wpcd_app_server', 'wpcd_app' ) ) ) {
+		if ( ! ( is_admin() || $is_public_view ) && ! in_array( $post_type, array( 'wpcd_app_server', 'wpcd_app' ) ) ) {
 			return $views;
 		}
 

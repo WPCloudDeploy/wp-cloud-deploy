@@ -322,17 +322,17 @@ class WPCD_EMAIL_NOTIFICATIONS {
 	 * Function for showing the metabox fields.
 	 */
 	public function display_email_notifications_metaboxes() {
-		
+
 		// Get the post id from the $_POST global var.
 		$post_id   = filter_input( INPUT_GET, 'post', FILTER_SANITIZE_NUMBER_INT );
-		
+
 		// Check to see if this should be displayed.  The id of the permission is 'email_metabox'.
 		if ( ! wpcd_can_author_view_server_feature( $post_id, 'email_metabox' ) ) {
 			return false;
 		}
 		if ( ! wpcd_can_author_view_site_feature( $post_id, 'email_metabox' ) ) {
 			return false;
-		}		
+		}
 
 		// Register meta boxes and fields for email notifications.
 		add_filter(
@@ -841,11 +841,11 @@ class WPCD_EMAIL_NOTIFICATIONS {
 		// Permission check - user access.
 		$this->wpcd_email_user_check_server_app_permission( $author_id, $post_id );
 
-		$wpcd_email_addresses_first_name = filter_input( INPUT_POST, 'wpcd_email_addresses_first_name', FILTER_SANITIZE_STRING );
-		$wpcd_email_addresses_last_name  = filter_input( INPUT_POST, 'wpcd_email_addresses_last_name', FILTER_SANITIZE_STRING );
-		$wpcd_email_addresses_company    = filter_input( INPUT_POST, 'wpcd_email_addresses_company', FILTER_SANITIZE_STRING );
-		$wpcd_email_addresses_email_id   = filter_input( INPUT_POST, 'wpcd_email_addresses_email_id', FILTER_SANITIZE_STRING );
-		$wpcd_email_addresses_notes      = filter_input( INPUT_POST, 'wpcd_email_addresses_notes', FILTER_SANITIZE_STRING );
+		$wpcd_email_addresses_first_name = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_email_addresses_first_name', FILTER_UNSAFE_RAW ) );
+		$wpcd_email_addresses_last_name  = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_email_addresses_last_name', FILTER_UNSAFE_RAW ) );
+		$wpcd_email_addresses_company    = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_email_addresses_company', FILTER_UNSAFE_RAW ) );
+		$wpcd_email_addresses_email_id   = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_email_addresses_email_id', FILTER_UNSAFE_RAW ) );
+		$wpcd_email_addresses_notes      = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_email_addresses_notes', FILTER_UNSAFE_RAW ) );
 
 		$post_title = $wpcd_email_addresses_first_name . ' ' . $wpcd_email_addresses_last_name;
 
@@ -973,14 +973,14 @@ class WPCD_EMAIL_NOTIFICATIONS {
 			$this->wpcd_email_user_check_server_app_permission( get_current_user_id(), $post_id );
 		}
 
-		$wpcd_compose_email_send_to_server_emails = filter_input( INPUT_POST, 'wpcd_compose_email_send_to_server_emails', FILTER_SANITIZE_STRING );
-		$wpcd_compose_email_other_emails          = filter_input( INPUT_POST, 'wpcd_compose_email_other_emails', FILTER_SANITIZE_STRING );
-		$wpcd_compose_email_from_name             = filter_input( INPUT_POST, 'wpcd_compose_email_from_name', FILTER_SANITIZE_STRING );
-		$wpcd_compose_email_reply_to              = filter_input( INPUT_POST, 'wpcd_compose_email_reply_to', FILTER_SANITIZE_STRING );
-		$wpcd_compose_email_subject               = filter_input( INPUT_POST, 'wpcd_compose_email_subject', FILTER_SANITIZE_STRING );
-		$wpcd_compose_email_body                  = filter_input( INPUT_POST, 'wpcd_compose_email_body', FILTER_UNSAFE_RAW );
+		$wpcd_compose_email_send_to_server_emails = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_compose_email_send_to_server_emails', FILTER_UNSAFE_RAW ) );
+		$wpcd_compose_email_other_emails          = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_compose_email_other_emails', FILTER_UNSAFE_RAW ) );
+		$wpcd_compose_email_from_name             = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_compose_email_from_name', FILTER_UNSAFE_RAW ) );
+		$wpcd_compose_email_reply_to              = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_compose_email_reply_to', FILTER_UNSAFE_RAW ) );
+		$wpcd_compose_email_subject               = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_compose_email_subject', FILTER_UNSAFE_RAW ) );
+		$wpcd_compose_email_body                  = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_compose_email_body', FILTER_UNSAFE_RAW ) );
 		$wpcd_compose_email_schedule              = filter_input( INPUT_POST, 'wpcd_compose_email_schedule', FILTER_SANITIZE_NUMBER_INT );
-		$wpcd_compose_email_schedule_datetime     = filter_input( INPUT_POST, 'wpcd_compose_email_schedule_datetime', FILTER_SANITIZE_STRING );
+		$wpcd_compose_email_schedule_datetime     = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_compose_email_schedule_datetime', FILTER_UNSAFE_RAW ) );
 
 		$wpcd_compose_email_body = wpautop( $wpcd_compose_email_body );
 
@@ -1064,12 +1064,12 @@ class WPCD_EMAIL_NOTIFICATIONS {
 			$this->wpcd_email_user_check_server_app_permission( get_current_user_id(), $post_id );
 		}
 
-		$wpcd_compose_email_send_to_server_emails = filter_input( INPUT_POST, 'wpcd_compose_email_send_to_server_emails', FILTER_SANITIZE_STRING );
-		$wpcd_compose_email_other_emails          = filter_input( INPUT_POST, 'wpcd_compose_email_other_emails', FILTER_SANITIZE_STRING );
-		$wpcd_compose_email_from_name             = filter_input( INPUT_POST, 'wpcd_compose_email_from_name', FILTER_SANITIZE_STRING );
-		$wpcd_compose_email_reply_to              = filter_input( INPUT_POST, 'wpcd_compose_email_reply_to', FILTER_SANITIZE_STRING );
-		$wpcd_compose_email_subject               = filter_input( INPUT_POST, 'wpcd_compose_email_subject', FILTER_SANITIZE_STRING );
-		$wpcd_compose_email_body                  = filter_input( INPUT_POST, 'wpcd_compose_email_body', FILTER_UNSAFE_RAW );
+		$wpcd_compose_email_send_to_server_emails = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_compose_email_send_to_server_emails', FILTER_UNSAFE_RAW ) );
+		$wpcd_compose_email_other_emails          = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_compose_email_other_emails', FILTER_UNSAFE_RAW ) );
+		$wpcd_compose_email_from_name             = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_compose_email_from_name', FILTER_UNSAFE_RAW ) );
+		$wpcd_compose_email_reply_to              = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_compose_email_reply_to', FILTER_UNSAFE_RAW ) );
+		$wpcd_compose_email_subject               = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_compose_email_subject', FILTER_UNSAFE_RAW ) );
+		$wpcd_compose_email_body                  = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_compose_email_body', FILTER_UNSAFE_RAW ) );
 
 		$wpcd_compose_email_body = wpautop( $wpcd_compose_email_body );
 

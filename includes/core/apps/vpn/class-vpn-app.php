@@ -109,6 +109,14 @@ class WPCD_VPN_APP extends WPCD_APP {
 		// Action hook to fire on new site created on WP Multisite.
 		add_action( 'wp_initialize_site', array( $this, 'vpn_schedule_events_for_new_site' ), 10, 2 );
 
+		/* Make sure that we show the server sizes on the provider settings screen - by default they are turned off in settings. */
+		add_filter(
+			'wpcd_show_server_sizes_in_settings',
+			function() {
+				return true;
+			}
+		);
+
 	}
 
 	/**
@@ -159,7 +167,7 @@ class WPCD_VPN_APP extends WPCD_APP {
 		$result = $this->do_instance_action( sanitize_text_field( $_POST['vpn_id'] ), sanitize_text_field( $_POST['vpn_app_id'] ), sanitize_text_field( $_POST['vpn_action'] ), $additional );
 		if ( is_wp_error( $result ) ) {
 			wp_send_json_error( array( 'msg' => $result->get_error_code() ) );
-		} else if ( empty( $result ) ) {
+		} elseif ( empty( $result ) ) {
 			wp_send_json_error();
 		}
 
@@ -333,13 +341,21 @@ class WPCD_VPN_APP extends WPCD_APP {
 	 * @return void
 	 */
 	public static function vpn_schedule_events() {
-		// setup temporary script deletion.
+		// Clear existing cron.
 		wp_clear_scheduled_hook( 'wpcd_vpn_file_watcher' );
-		wp_schedule_event( time(), 'every_minute', 'wpcd_vpn_file_watcher' );
+		
+		// Schedule cron to setup temporary script deletion.
+		if ( ! defined( 'DISABLE_WPCD_CRON' ) ||  ( defined( 'DISABLE_WPCD_CRON' ) && ! DISABLE_WPCD_CRON ) ) {
+			wp_schedule_event( time(), 'every_minute', 'wpcd_vpn_file_watcher' );
+		}
 
-		// setup deferred instance actions schedule.
+		// Clear existing cron.
 		wp_clear_scheduled_hook( 'wpcd_vpn_deferred_actions' );
-		wp_schedule_event( time(), 'every_minute', 'wpcd_vpn_deferred_actions' );
+		
+		// Schedule cron to setup deferred instance actions schedule.
+		if ( ! defined( 'DISABLE_WPCD_CRON' ) ||  ( defined( 'DISABLE_WPCD_CRON' ) && ! DISABLE_WPCD_CRON ) ) {
+			wp_schedule_event( time(), 'every_minute', 'wpcd_vpn_deferred_actions' );
+		}
 	}
 
 	/**
@@ -668,7 +684,7 @@ class WPCD_VPN_APP extends WPCD_APP {
 			array( '$NAME', '$PROVIDER', '$IP', '$PROTOCOL', '$SIZE', '$USERS', '$URL' ),
 			array(
 				get_post_meta( $server_post->ID, 'wpcd_server_name', true ),
-				$this->get_providers()[$provider],
+				$this->get_providers()[ $provider ],
 				$details['ip'],
 				$protocol,
 				$size,
@@ -719,7 +735,13 @@ class WPCD_VPN_APP extends WPCD_APP {
 	 */
 	public function do_instance_action( $server_post_id, $app_post_id, $action, $additional = array() ) {
 
+		// Bail if the post type is not a server.
 		if ( get_post_type( $server_post_id ) !== 'wpcd_app_server' || empty( $action ) ) {
+			return;
+		}
+
+		// Bail if the server type is not a vpn server.
+		if ( 'vpn' !== $this->get_server_type( $server_post_id ) ) {
 			return;
 		}
 
@@ -1026,14 +1048,14 @@ class WPCD_VPN_APP extends WPCD_APP {
 							$foot_break = true;
 							break;
 						case 'connected':
-							$buttons   .= '<div class="wpcd-vpn-action-head">' . __( "What's connected?", 'wpcd' ) . '</div>'; // Add in the section title text.
+							$buttons   .= '<div class="wpcd-vpn-action-head">' . __( "What's Connected?", 'wpcd' ) . '</div>'; // Add in the section title text.
 							$buttons   .= '<select class="wpcd-vpn-additional wpcd-vpn-connected wpcd-vpn-select" name="name"></select>';
 							$buttons   .= '<button style="display: none;" class="wpcd-vpn-action-type wpcd-vpn-action-disconnect" data-action="disconnect" data-id="' . $server_post->ID . '">' . __( 'Disconnect', 'wpcd' ) . '</button>';
 							$help_tip   = __( 'View connected users - only applies if you contact us to turn on logging for your instance', 'wpcd' );
 							$foot_break = true;
 							break;
 						case 'add-user':
-							$buttons .= '<div class="wpcd-vpn-action-head">' . __( 'Add and remove users', 'wpcd' ) . '</div>'; // Add in the section title text.
+							$buttons .= '<div class="wpcd-vpn-action-head">' . __( 'Add & Remove users', 'wpcd' ) . '</div>'; // Add in the section title text.
 							$buttons .= '<input type="text" name="name" id="wpcd-vpn-input-text-add-user-name" class="wpcd-vpn-additional wpcd-vpn-input-text">';
 							$help_tip = __( 'Type a name with no spaces into the field above and click the ADD USER button. After a few seconds you will be prompted to download the user configuration file. Or you can use the DOWNLOAD CONFIGURATION FILE button to get it later.', 'wpcd' );
 							break;
@@ -1050,7 +1072,7 @@ class WPCD_VPN_APP extends WPCD_APP {
 							$foot_break = true;
 							break;
 						case 'download-file':
-							$buttons .= '<div class="wpcd-vpn-action-head">' . __( 'Configure your devices', 'wpcd' ) . '</div>'; // Add in the section title text.
+							$buttons .= '<div class="wpcd-vpn-action-head">' . __( 'Configure Your Devices', 'wpcd' ) . '</div>'; // Add in the section title text.
 							$clients  = wpcd_maybe_unserialize( get_post_meta( $app_post->ID, 'vpn_clients', true ) );
 							if ( $clients ) {
 								$buttons .= '<select class="wpcd-vpn-additional wpcd-vpn-client-list wpcd-vpn-download-file wpcd-vpn-select" name="name">';
@@ -1117,7 +1139,15 @@ class WPCD_VPN_APP extends WPCD_APP {
 				$total = array();
 			}
 
+			// Get subscription id from server cpt.
 			$subscription = wpcd_maybe_unserialize( get_post_meta( $server_post->ID, 'wpcd_server_wc_subscription', true ) );
+
+			// Make $subscription var an array for use later.
+			if ( ! is_array( $subscription ) ) {
+				$subscription_array = array( $subscription );
+			} else {
+				$subscription_array = $subscription;
+			}
 
 			/* These strings are the class names for the icons from our custom icomoon font file */
 			$provider_icon = '<div class="icon-spvpnprovider"><span class="path1"></span><span class="path2"></span></div>';
@@ -1133,12 +1163,12 @@ class WPCD_VPN_APP extends WPCD_APP {
 					<div class="wpcd-vpn-instance-name">' . get_post_meta( $server_post->ID, 'wpcd_server_name', true ) . '</div>
 
 					<div class="wpcd-vpn-instance-atts">' .
-						'<div class="wpcd-vpn-instance-atts-provider-wrap">' . $provider_icon . '<div class="wpcd-vpn-instance-atts-provider-label">' . __( 'Provider', 'wpcd' )        . ': ' . '</div>' . $this->get_providers()[$provider] . '</div>
-						<div class="wpcd-vpn-instance-atts-region-wrap">'    . $region_icon   . '<div class="wpcd-vpn-instance-atts-region-label">'   . __( 'Region', 'wpcd' )          . ': ' . '</div>' . $display_region . '</div>
-						<div class="wpcd-vpn-instance-atts-size-wrap">'      . $size_icon     . '<div class="wpcd-vpn-instance-atts-size-label">'     . __( 'Size', 'wpcd' )            . ': ' . '</div>' . WPCD()->classes['wpcd_app_vpn_wc']::$sizes[ strval( $size ) ] . '</div>
-						<div class="wpcd-vpn-instance-atts-proto-wrap">'     . $protocol_icon . '<div class="wpcd-vpn-instance-atts-proto-label">'    . __( 'Protocol', 'wpcd' )        . ': ' . '</div>' . $protocol . '</div>
-						<div class="wpcd-vpn-instance-atts-users-wrap">'     . $users_icon    . '<div class="wpcd-vpn-instance-atts-users-label">'    . __( 'Users / Allowed', 'wpcd' ) . ': ' . '</div>' . sprintf( '%d / %d', count( $total ), $max ) . '</div>
-						<div class="wpcd-vpn-instance-atts-subid-wrap">'     . $subid_icon    . '<div class="wpcd-vpn-instance-atts-sub-label">'      . __( 'Subscription ID', 'wpcd' ) . ': ' . '</div>' . implode( ', ', $subscription ) . '</div>' ;
+						'<div class="wpcd-vpn-instance-atts-provider-wrap">' . $provider_icon . '<div class="wpcd-vpn-instance-atts-provider-label">' . __( 'Provider', 'wpcd' ) . ': ' . '</div>' . $this->get_providers()[ $provider ] . '</div>
+						<div class="wpcd-vpn-instance-atts-region-wrap">' . $region_icon . '<div class="wpcd-vpn-instance-atts-region-label">' . __( 'Region', 'wpcd' ) . ': ' . '</div>' . $display_region . '</div>
+						<div class="wpcd-vpn-instance-atts-size-wrap">' . $size_icon . '<div class="wpcd-vpn-instance-atts-size-label">' . __( 'Size', 'wpcd' ) . ': ' . '</div>' . WPCD()->classes['wpcd_app_vpn_wc']::$sizes[ strval( $size ) ] . '</div>
+						<div class="wpcd-vpn-instance-atts-proto-wrap">' . $protocol_icon . '<div class="wpcd-vpn-instance-atts-proto-label">' . __( 'Protocol', 'wpcd' ) . ': ' . '</div>' . $protocol . '</div>
+						<div class="wpcd-vpn-instance-atts-users-wrap">' . $users_icon . '<div class="wpcd-vpn-instance-atts-users-label">' . __( 'Users / Allowed', 'wpcd' ) . ': ' . '</div>' . sprintf( '%d / %d', count( $total ), $max ) . '</div>
+						<div class="wpcd-vpn-instance-atts-subid-wrap">' . $subid_icon . '<div class="wpcd-vpn-instance-atts-sub-label">' . __( 'Subscription ID', 'wpcd' ) . ': ' . '</div>' . implode( ', ', $subscription_array ) . '</div>';
 
 			$output .= '</div>';
 			$output  = $this->add_promo_link( 1, $output );
@@ -1693,7 +1723,7 @@ class WPCD_VPN_APP extends WPCD_APP {
 		}
 
 		// Add nonce for security and authentication.
-		$nonce_name   = filter_input( INPUT_POST, 'vpn_meta', FILTER_SANITIZE_STRING );
+		$nonce_name   = sanitize_text_field( filter_input( INPUT_POST, 'vpn_meta', FILTER_UNSAFE_RAW ) );
 		$nonce_action = 'wpcd_vpn_app_nonce_meta_action';
 
 		// Check if nonce is valid.
@@ -1722,11 +1752,11 @@ class WPCD_VPN_APP extends WPCD_APP {
 		}
 
 		/* Get new values */
-		$wpcd_vpn_app_dns             = filter_input( INPUT_POST, 'wpcd_vpn_dns', FILTER_SANITIZE_STRING );
-		$wpcd_vpn_app_protocol        = filter_input( INPUT_POST, 'wpcd_vpn_protocol', FILTER_SANITIZE_STRING );
-		$wpcd_vpn_app_port            = filter_input( INPUT_POST, 'wpcd_vpn_port', FILTER_SANITIZE_STRING );
-		$wpcd_vpn_app_clients         = filter_input( INPUT_POST, 'wpcd_vpn_clients', FILTER_SANITIZE_STRING );
-		$wpcd_vpn_app_scripts_version = filter_input( INPUT_POST, 'wpcd_vpn_scripts_version', FILTER_SANITIZE_STRING );
+		$wpcd_vpn_app_dns             = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_vpn_dns', FILTER_UNSAFE_RAW ) );
+		$wpcd_vpn_app_protocol        = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_vpn_protocol', FILTER_UNSAFE_RAW ) );
+		$wpcd_vpn_app_port            = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_vpn_port', FILTER_UNSAFE_RAW ) );
+		$wpcd_vpn_app_clients         = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_vpn_clients', FILTER_UNSAFE_RAW ) );
+		$wpcd_vpn_app_scripts_version = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_vpn_scripts_version', FILTER_UNSAFE_RAW ) );
 		$wpcd_vpn_app_max_clients     = filter_input( INPUT_POST, 'wpcd_vpn_max_clients', FILTER_SANITIZE_NUMBER_INT );
 
 		/* Add new values to database */

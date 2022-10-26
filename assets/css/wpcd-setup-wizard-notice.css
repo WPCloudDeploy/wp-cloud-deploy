@@ -1,0 +1,67 @@
+/* This file contains the styling for the wizard notice that appears at the top of the admin screen when WPCD is first installed. */
+.wrap .wpcd-wizard-notice {
+    background-color: #46b450;
+	border-color: #46b450;
+    color: #F6EBF9;
+    border-left: 0;
+    border-radius: 3px;
+	padding-bottom: 15px;
+}
+.wpcd-wizard-notice .wizard-main-heading {
+	color: #F6EBF9;
+	font-weight:700;
+}
+
+.wpcd-wizard-notice p{
+	font-size: 14px;
+	font-weight: 500;
+}
+
+.wpcd-wizard-notice p.wizard-normal {
+	font-weight: normal;
+}
+
+.wpcd-wizard-notice .wizard-normal a {
+	font-weight: normal;
+	color: #F6EBF9;
+}
+
+.wpcd-wizard-notice .wizard-first-line {
+	margin-top: 0px;
+}
+
+.wpcd-wizard-notice .wizard-second-line {
+	margin-top: 0px;
+	padding-top: 0px;
+	padding-bottom: 8px;
+}
+
+#menu-dashboard .wp-submenu.wp-submenu-wrap li a[href="as-setup"]{
+	display: none;
+}
+
+.wpcd-wizard-notice .wpcd-button-wizard-primary {
+	/* Style the CLICK HERE button at the top of the admin screen that starts the wizard */
+	border: 1px;
+	border: solid:;
+	border-color: #E91E63;
+	background-color: #E91E63;
+	padding: 10px;
+	margin-top: 20px;
+	vertical-align: middle;
+	border-radius: 3px;
+}
+.wpcd-wizard-notice .wpcd-button-wizard-primary a {
+	color: white;
+	text-decoration: none;
+	vertical-align: middle;
+}
+.wpcd-wizard-notice .wpcd-button-wizard-primary:hover {
+	background-color: #03114A;
+	border-color: white;
+}
+
+.wpcd-wizard-notice .wpcd-button-wizard-skip a {
+	color: #F6EBF9;
+	margin-left: 10px;
+}

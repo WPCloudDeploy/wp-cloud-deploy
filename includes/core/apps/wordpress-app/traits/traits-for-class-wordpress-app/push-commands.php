@@ -42,7 +42,7 @@ trait wpcd_wpapp_push_commands {
 		$server_status_items = array();
 
 		// get restart status item.
-		$server_status_items['restart'] = filter_input( INPUT_GET, 'restart', FILTER_SANITIZE_STRING );
+		$server_status_items['restart'] = sanitize_text_field( filter_input( INPUT_GET, 'restart', FILTER_UNSAFE_RAW ) );
 		if ( ! in_array( $server_status_items['restart'], array( 'yes', 'no' ) ) ) {
 			$server_status_items['restart'] = 'unknown';
 		}
@@ -63,37 +63,37 @@ trait wpcd_wpapp_push_commands {
 		$server_status_items['cpu_since_reboot']        = filter_input( INPUT_GET, 'cpu_since_reboot', FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION );
 
 		// get largest database name.
-		$server_status_items['largest_database'] = wp_kses( filter_input( INPUT_GET, 'Largest_DB_Name', FILTER_SANITIZE_STRING ), array() );
+		$server_status_items['largest_database'] = wp_kses( filter_input( INPUT_GET, 'Largest_DB_Name', FILTER_UNSAFE_RAW ), array() );
 
 		// get list of packages to be updated - it's a comma-delimited string.
-		$package_list                            = filter_input( INPUT_GET, 'list_of_packages', FILTER_SANITIZE_STRING );
+		$package_list                            = sanitize_text_field( filter_input( INPUT_GET, 'list_of_packages', FILTER_UNSAFE_RAW ) );
 		$package_list                            = wp_kses( $package_list, array() ); // no html allowed - just in case we get a string from someone we don't expect.
 		$package_list                            = explode( ',', $package_list );
 		$server_status_items['list_of_packages'] = $package_list;
 
 		// get list of unattended packages to be updated or that requires attention - it's a comma-delimited string.
-		$unattended_package_list                        = filter_input( INPUT_GET, 'unattended_package_list', FILTER_SANITIZE_STRING );
+		$unattended_package_list                        = sanitize_text_field( filter_input( INPUT_GET, 'unattended_package_list', FILTER_UNSAFE_RAW ) );
 		$unattended_package_list                        = wp_kses( $unattended_package_list, array() ); // no html allowed - just in case we get a string from someone we don't expect.
 		$unattended_package_list                        = explode( ',', $unattended_package_list );
 		$server_status_items['unattended_package_list'] = $unattended_package_list;
 
 		// get list of websites and diskspace used by each one.
-		$website_diskspace                        = wp_kses( filter_input( INPUT_GET, 'website_disk', FILTER_SANITIZE_STRING ), array() );
+		$website_diskspace                        = wp_kses( filter_input( INPUT_GET, 'website_disk', FILTER_UNSAFE_RAW ), array() );
 		$website_diskspace                        = explode( ',', $website_diskspace );
 		$server_status_items['website_diskspace'] = $website_diskspace;
 
 		// server time zone.
-		$server_time_zone                        = filter_input( INPUT_GET, 'Timezone', FILTER_SANITIZE_STRING );
+		$server_time_zone                        = sanitize_text_field( filter_input( INPUT_GET, 'Timezone', FILTER_UNSAFE_RAW ) );
 		$server_time_zone                        = wp_kses( $server_time_zone, array() ); // no html allowed - just in case we get a string from someone we don't expect.
 		$server_status_items['server_time_zone'] = $server_time_zone;
 
 		// default php version (will store only the first two digits eg: 7.4 or 8.1).
-		$server_default_php_version                 = filter_input( INPUT_GET, 'phpversion', FILTER_SANITIZE_STRING );
+		$server_default_php_version                 = sanitize_text_field( filter_input( INPUT_GET, 'phpversion', FILTER_UNSAFE_RAW ) );
 		$server_default_php_version                 = wp_kses( $server_default_php_version, array() ); // no html allowed - just in case we get a string from someone we don't expect.
 		$server_status_items['default_php_version'] = $server_default_php_version;
 
 		// default php full version (will store all three sections of the version - eg: 7.4.26).
-		$server_default_php_version_full                 = filter_input( INPUT_GET, 'phpfullversion', FILTER_SANITIZE_STRING );
+		$server_default_php_version_full                 = sanitize_text_field( filter_input( INPUT_GET, 'phpfullversion', FILTER_UNSAFE_RAW ) );
 		$server_default_php_version_full                 = wp_kses( $server_default_php_version_full, array() ); // no html allowed - just in case we get a string from someone we don't expect.
 		$server_status_items['default_php_version_full'] = $server_default_php_version_full;
 
@@ -133,9 +133,9 @@ trait wpcd_wpapp_push_commands {
 			if ( 'yes' === $server_status_items['restart'] ) {
 				do_action( 'wpcd_log_notification', $id, 'alert', __( 'This server needs to be restarted for security updates to take effect.', 'wpcd' ), 'updates', null );
 			}
-			if ( '7.4' !== $server_status_items['default_php_version'] ) {
+			if ( ! in_array( $server_status_items['default_php_version'], array( '7.4', '8.0', '8.1' ) ) ) {
 				/* Translators: %s is the incorrect PHP version. */
-				do_action( 'wpcd_log_notification', $id, 'alert', sprintf( __( 'The default PHP version on this server is incorrect - it should be 7.4 but is currently set to %s.', 'wpcd' ), $server_status_items['default_php_version'] ), 'server-config', null );
+				do_action( 'wpcd_log_notification', $id, 'alert', sprintf( __( 'The default PHP version on this server is incorrect - it should be 7.4, 8.0 or 8.1 but is currently set to %s.', 'wpcd' ), $server_status_items['default_php_version'] ), 'server-config', null );
 			}
 			if ( empty( $server_status_items['default_php_version'] ) ) {
 				/* Translators: %s is the incorrect PHP version. */
@@ -182,17 +182,20 @@ trait wpcd_wpapp_push_commands {
 		// Create an array to hold items taken from the $_request object.
 		$sites_status_items = array();
 
-		// get domain name.
-		$sites_status_items['domain']           = filter_input( INPUT_GET, 'domain', FILTER_SANITIZE_STRING );
-		$sites_status_items['public_ip']        = filter_input( INPUT_GET, 'publicip', FILTER_SANITIZE_STRING );
-		$sites_status_items['wp_update_needed'] = filter_input( INPUT_GET, 'wpupdate', FILTER_SANITIZE_STRING );
+		// Get domain name.
+		$sites_status_items['domain']           = wp_kses( filter_input( INPUT_GET, 'domain', FILTER_UNSAFE_RAW ), array() );
+		$sites_status_items['public_ip']        = wp_kses( filter_input( INPUT_GET, 'publicip', FILTER_UNSAFE_RAW ), array() );
+		$sites_status_items['wp_update_needed'] = wp_kses( filter_input( INPUT_GET, 'wpupdate', FILTER_UNSAFE_RAW ), array() );
 
-		// get numeric elements.
+		// Get numeric elements.
 		$sites_status_items['domain_file_size']     = filter_input( INPUT_GET, 'domain_file_usage', FILTER_SANITIZE_NUMBER_INT );
 		$sites_status_items['domain_db_size']       = filter_input( INPUT_GET, 'domain_db_size', FILTER_SANITIZE_NUMBER_INT );
 		$sites_status_items['domain_backup_size']   = filter_input( INPUT_GET, 'domain_backup_size', FILTER_SANITIZE_NUMBER_INT );
 		$sites_status_items['plugin_updates_count'] = filter_input( INPUT_GET, 'pluginupdate', FILTER_SANITIZE_NUMBER_INT );
 		$sites_status_items['theme_updates_count']  = filter_input( INPUT_GET, 'themeupdate', FILTER_SANITIZE_NUMBER_INT );
+
+		// Get WP Version.
+		$sites_status_items['wp_version'] = wp_kses( filter_input( INPUT_GET, 'wpversion', FILTER_UNSAFE_RAW ), array() );
 
 		// Finally, add the time reported to the array.
 		$sites_status_items['reporting_time']       = time();
@@ -203,6 +206,11 @@ trait wpcd_wpapp_push_commands {
 
 		// Stamp the site/app record with the array.
 		if ( 'wpcd_app' === get_post_type( $app_id ) ) {
+
+			// update wp version meta.
+			if ( ! empty( $sites_status_items['wp_version'] ) ) {
+				update_post_meta( $app_id, 'wpapp_current_version', $sites_status_items['wp_version'] );
+			}
 
 			// update the meta that holds the current data..
 			update_post_meta( $app_id, 'wpcd_site_status_push', $sites_status_items );
@@ -244,6 +252,9 @@ trait wpcd_wpapp_push_commands {
 			// update the meta that holds the sites needs update check.
 			update_post_meta( $app_id, 'wpcd_site_needs_updates', $update_needed );
 
+			// Check site quotas.
+			$this->check_site_quotas( $app_id );
+
 			// Let other plugins react to the new good data with an action hook.
 			do_action( "wpcd_{$this->get_app_name()}_command_{$name}_{$status}_processed_good", $sites_status_items, $app_id, $id );
 
@@ -258,6 +269,49 @@ trait wpcd_wpapp_push_commands {
 
 		// Let other plugins react to the new data (regardless of it's good or bad) with an action hook.
 		do_action( "wpcd_{$this->get_app_name()}_command_{$name}_{$status}_processed", $sites_status_items, $app_id, $id );
+
+	}
+
+
+	/**
+	 * Checks the limits defined for the site against the newly received data.
+	 *
+	 * Currently only checks disk space limits since that is all that we can do right now.
+	 * There's no way to measure bandwidth or cpu usage.
+	 *
+	 * @param int $app_id The post id of the app we're working with.
+	 *
+	 * @return void.
+	 */
+	public function check_site_quotas( $app_id ) {
+
+		// How much diskspace is allowed?
+		$disk_space_quota = $this->get_site_disk_quota( $app_id );
+
+		// How much disk space was used?
+		$used_disk = $this->get_total_disk_used( $app_id );
+
+		// if disk limit is exceeded add notification and maybe disable and lock site.
+		if ( $used_disk > $disk_space_quota && $disk_space_quota > 0 ) {
+			/* translators: %s is replaced with the number of plugin updates pending for the site. */
+			do_action( 'wpcd_log_notification', $app_id, 'alert', sprintf( __( 'This site has exceeded its disk quota: Allowed quota: %1$d MB, Currently used: %2$d MB.', 'wpcd' ), $disk_space_quota, $used_disk ), 'quotas', null );
+
+			// Maybe disable the site. But only do it if the site has not already in that state.
+			if ( boolval( wpcd_get_option( 'wordpress_app_sites_disk_quota_disable_site' ) ) ) {
+				if ( 'on' === $this->site_status( $app_id ) ) {
+					do_action( 'wpcd_wordpress-app_do_toggle_site_status', $app_id, 'site-status', 'off' );
+					do_action( 'wpcd_log_notification', $app_id, 'alert', __( 'This site is being disabled because the disk quota has been exceeded.', 'wpcd' ), 'quotas', null );
+				}
+			}
+
+			// Maybe apply an admin lock to the site. But only do it if the site has not already in that state.
+			if ( boolval( wpcd_get_option( 'wordpress_app_sites_disk_quota_admin_lock_site' ) ) ) {
+				if ( ! $this->get_admin_lock_status( $app_id ) ) {
+					WPCD_WORDPRESS_APP()->set_admin_lock_status( $app_id, 'on' );
+					do_action( 'wpcd_log_notification', $app_id, 'alert', __( 'This site has had it\'s admin lock applied because the disk quota has been exceeded.', 'wpcd' ), 'quotas', null );
+				}
+			}
+		}
 
 	}
 
@@ -361,7 +415,7 @@ trait wpcd_wpapp_push_commands {
 		$server_restart_items = array();
 
 		// Get event from request object...
-		$server_restart_items['event'] = wp_kses( filter_input( INPUT_GET, 'event', FILTER_SANITIZE_STRING ), array() );
+		$server_restart_items['event'] = wp_kses( filter_input( INPUT_GET, 'event', FILTER_UNSAFE_RAW ), array() );
 
 		// Add the time reported to the array.
 		$server_restart_items['reporting_time'] = time();
@@ -438,7 +492,7 @@ trait wpcd_wpapp_push_commands {
 		$monit_log_items = array();
 
 		// Get string items from the request object.
-		$monit_log_items['monit_status'] = wp_kses( filter_input( INPUT_GET, 'monit_status', FILTER_SANITIZE_STRING ), array() );
+		$monit_log_items['monit_status'] = wp_kses( filter_input( INPUT_GET, 'monit_status', FILTER_UNSAFE_RAW ), array() );
 
 		// Add the time reported to the array.
 		$monit_log_items['reporting_time']       = time();
@@ -509,7 +563,7 @@ trait wpcd_wpapp_push_commands {
 		$backup_items = array();
 
 		// Get domain from request object...
-		$backup_items['domain'] = wp_kses( filter_input( INPUT_GET, 'domain', FILTER_SANITIZE_STRING ), array() );
+		$backup_items['domain'] = wp_kses( filter_input( INPUT_GET, 'domain', FILTER_UNSAFE_RAW ), array() );
 
 		// Get the post id from the domain...
 		if ( ! empty( $backup_items['domain'] ) ) {
@@ -567,7 +621,7 @@ trait wpcd_wpapp_push_commands {
 		$backup_items = array();
 
 		// Get domain from request object...
-		$backup_items['domain'] = wp_kses( filter_input( INPUT_GET, 'domain', FILTER_SANITIZE_STRING ), array() );
+		$backup_items['domain'] = wp_kses( filter_input( INPUT_GET, 'domain', FILTER_UNSAFE_RAW ), array() );
 
 		// Get the post id from the domain...
 		if ( ! empty( $backup_items['domain'] ) ) {
@@ -625,7 +679,7 @@ trait wpcd_wpapp_push_commands {
 		$backup_items = array();
 
 		// Get domain from request object...
-		$backup_items['backup'] = wp_kses( filter_input( INPUT_GET, 'backup', FILTER_SANITIZE_STRING ), array() );
+		$backup_items['backup'] = wp_kses( filter_input( INPUT_GET, 'backup', FILTER_UNSAFE_RAW ), array() );
 
 		// Add the time reported to the array.
 		$backup_items['reporting_time'] = time();
@@ -690,7 +744,7 @@ trait wpcd_wpapp_push_commands {
 		$sync_items = array();
 
 		// Get domain from request object...
-		$sync_items['status'] = wp_kses( filter_input( INPUT_GET, 'syncstatus', FILTER_SANITIZE_STRING ), array() );
+		$sync_items['status'] = wp_kses( filter_input( INPUT_GET, 'syncstatus', FILTER_UNSAFE_RAW ), array() );
 
 		// Add the time reported to the array.
 		$sync_items['reporting_time'] = time();

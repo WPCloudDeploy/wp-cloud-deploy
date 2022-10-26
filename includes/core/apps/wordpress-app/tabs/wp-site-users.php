@@ -74,8 +74,13 @@ class WPCD_WORDPRESS_TABS_WP_SITE_USERS extends WPCD_WORDPRESS_TABS {
 	 * @return boolean
 	 */
 	public function get_tab_security( $id ) {
+		// If admin has an admin lock in place and the user is not admin they cannot view the tab or perform actions on them.
+		if ( $this->get_admin_lock_status( $id ) && ! wpcd_is_admin() ) {
+			return false;
+		}
+		// If we got here then check team and other permissions.
 		return ( true === $this->wpcd_wpapp_site_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_site_tab( $id, $this->get_tab_slug() ) );
-	}	
+	}
 
 	/**
 	 * Gets the fields to be shown in the WP SITE USERS tab.
@@ -92,7 +97,7 @@ class WPCD_WORDPRESS_TABS_WP_SITE_USERS extends WPCD_WORDPRESS_TABS {
 		// If user is not allowed to access the tab then don't paint the fields.
 		if ( ! $this->get_tab_security( $id ) ) {
 			return $fields;
-		}		
+		}
 
 		return $this->get_fields_for_tab( $fields, $id, $this->get_tab_slug() );
 
@@ -185,6 +190,7 @@ class WPCD_WORDPRESS_TABS_WP_SITE_USERS extends WPCD_WORDPRESS_TABS {
 			'raw_attributes' => array(
 				'desc'           => __( 'Enter the user name of the new administrator', 'wpcd' ),
 				'data-wpcd-name' => 'add_admin_user_name',
+				'spellcheck'     => 'false',
 			),
 			'type'           => 'text',
 		);
@@ -194,6 +200,7 @@ class WPCD_WORDPRESS_TABS_WP_SITE_USERS extends WPCD_WORDPRESS_TABS {
 			'raw_attributes' => array(
 				'desc'           => __( 'Enter the password for the new administrator', 'wpcd' ),
 				'data-wpcd-name' => 'add_admin_pw',
+				'spellcheck'     => 'false',
 			),
 			'type'           => 'text',
 		);
@@ -204,6 +211,7 @@ class WPCD_WORDPRESS_TABS_WP_SITE_USERS extends WPCD_WORDPRESS_TABS {
 				'desc'           => __( 'Enter the email address for the new administrator', 'wpcd' ),
 				'data-wpcd-name' => 'add_admin_email',
 				'size'           => 90,
+				'spellcheck'     => 'false',
 			),
 			'type'           => 'text',
 		);
@@ -233,6 +241,7 @@ class WPCD_WORDPRESS_TABS_WP_SITE_USERS extends WPCD_WORDPRESS_TABS {
 			'raw_attributes' => array(
 				'desc'           => __( 'Enter the user name, user id or email address for the user whose credentials will be changed.', 'wpcd' ),
 				'data-wpcd-name' => 'wps_user',
+				'spellcheck'     => 'false',
 			),
 			'type'           => 'text',
 		);
@@ -243,6 +252,7 @@ class WPCD_WORDPRESS_TABS_WP_SITE_USERS extends WPCD_WORDPRESS_TABS {
 				'desc'           => __( 'Enter the new email address for this user', 'wpcd' ),
 				'data-wpcd-name' => 'wps_new_email',
 				'size'           => 90,
+				'spellcheck'     => 'false',
 			),
 			'type'           => 'text',
 		);
@@ -253,6 +263,7 @@ class WPCD_WORDPRESS_TABS_WP_SITE_USERS extends WPCD_WORDPRESS_TABS {
 				'desc'           => __( 'Enter the new password for this user', 'wpcd' ),
 				'data-wpcd-name' => 'wps_new_password',
 				'size'           => 90,
+				'spellcheck'     => 'false',
 			),
 			'type'           => 'text',
 		);
@@ -282,6 +293,7 @@ class WPCD_WORDPRESS_TABS_WP_SITE_USERS extends WPCD_WORDPRESS_TABS {
 			'raw_attributes' => array(
 				'desc'           => __( 'Enter the user name for the new user', 'wpcd' ),
 				'data-wpcd-name' => 'wps_user',
+				'spellcheck'     => 'false',
 			),
 			'type'           => 'text',
 		);
@@ -291,6 +303,7 @@ class WPCD_WORDPRESS_TABS_WP_SITE_USERS extends WPCD_WORDPRESS_TABS {
 			'raw_attributes' => array(
 				'desc'           => __( 'Enter the password for the new', 'wpcd' ),
 				'data-wpcd-name' => 'wps_password',
+				'spellcheck'     => 'false',
 			),
 			'type'           => 'text',
 		);
@@ -300,6 +313,7 @@ class WPCD_WORDPRESS_TABS_WP_SITE_USERS extends WPCD_WORDPRESS_TABS {
 			'raw_attributes' => array(
 				'desc'           => __( 'Enter the email address for the new user', 'wpcd' ),
 				'data-wpcd-name' => 'wps_email',
+				'spellcheck'     => 'false',
 				'size'           => 90,
 			),
 			'type'           => 'text',

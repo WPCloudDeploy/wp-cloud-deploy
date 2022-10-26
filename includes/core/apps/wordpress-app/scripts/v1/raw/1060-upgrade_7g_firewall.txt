@@ -1,7 +1,24 @@
 #!/bin/bash
 # This script will upgrade the 7G firewall to V 1.5.
 
+## Get our common functions
+if [[ ! -f 9999-common-functions.sh ]]
+then
+	echo "The file 9999-common-functions.sh is missing"
+	exit 1
+fi
+source 9999-common-functions.sh
+
+# Not supported on OLS yet.
+if [ "$g_webserver_type" != "nginx" ]
+then
+    echo "This upgrade operation is only supported on NGINX."
+    exit 1
+fi
+
 echo $(date): "Upgrading 7G firewall to V1.5..."
+
+mv /etc/nginx/common/7g.conf /etc/nginx/common/7g.conf.old
 
 cat > /etc/nginx/common/7g.conf << 'EOF'
 # 7G FIREWALL - NGINX v1.5

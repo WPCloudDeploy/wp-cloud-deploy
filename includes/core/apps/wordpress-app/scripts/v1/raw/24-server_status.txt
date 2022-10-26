@@ -9,8 +9,7 @@ fi
 #################################################################
 # Remove crons.
 #################################################################
-function remove_status_cron() 
-{
+function remove_status_cron () {
 	(crontab -l 2>/dev/null | sed '/wp-status/d' ) | crontab -
 	(crontab -l 2>/dev/null | sed '/wp-site-status/d' ) | crontab -
 	rm -f /usr/local/bin/wp-status
@@ -19,7 +18,8 @@ function remove_status_cron()
 }
 
 clear
-while [[ -z $action ]]; do
+while [[ -z $action ]]
+do
 	echo
 	echo "What do you want to do?"
 	echo "   1) Install Server status Cron"
@@ -28,7 +28,8 @@ while [[ -z $action ]]; do
 	echo "   4) Schedule Server status Cron To Execute Immediately"
 	echo
 	read -p "Action: " action
-	until [[ -z "$action" || "$action" =~ ^[1-4]$ ]]; do
+	until [[ -z "$action" || "$action" =~ ^[1-4]$ ]]
+do
 		echo "$action: invalid selection."
 		read -p "Action: " action
 	done
@@ -47,8 +48,11 @@ then
 		read -p "enter callback url to get sites status:  " callback_sites_status
 	fi	
 
-	# make sure bc is installed
-	apt-get install bc -y
+	# make sure bc and at is installed
+	apt-get install bc at -y
+	
+	# make sure update-notifier is installed (weirdly some images don't have this...).
+	sudo apt-get install -y update-notifier-common
 	
 	# remove crons if they exist...
 	remove_status_cron
@@ -167,6 +171,7 @@ for domain in `ls /var/www | grep -v html`
 do
 user_name=$(echo $domain | cut -c1-32)
 publicip=`curl ifconfig.me`
+wpversion=`su - $user_name -c "wp core version"|cut -d" " -f2`
 pluginupdate=`su - $user_name -c "wp plugin list --status=active --update=available"|grep -v name|wc -l`
 themeupdate=`su - $user_name -c "wp theme list --status=active --update=available"|grep -v name|wc -l`
 su - $user_name -c "wp core check-update"|grep latest
@@ -181,9 +186,9 @@ mysqldb=$(grep DB_NAME /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|c
 domain_file_size=`du -sm /var/www/$domain|awk '\''{print $1}'\''`
 domain_db_size=`du -sm /var/lib/mysql/$mysqldb|awk '\''{print $1}'\''`
 
-if [ -d ~/.wp-backup/$domain ]
+if [ -d /root/.wp-backup/$domain ]
 then
-	domain_backup_size=`du -sm ~/.wp-backup/$domain|awk '\''{print $1}'\''`
+	domain_backup_size=`du -sm /root/.wp-backup/$domain|awk '\''{print $1}'\''`
 else
 	domain_backup_size=0
 fi
@@ -192,13 +197,14 @@ echo "$domain"			>> /var/log/wp-site-status.log
 echo "$(date)"			>> /var/log/wp-site-status.log
 echo "Domain Name               	:       $domain"       >> /var/log/wp-site-status.log
 echo "Server Public Ip               	:       $publicip"       >> /var/log/wp-site-status.log
+echo "WP Version			:	$wpversion"	>> /var/log/wp-site-status.log
 echo "Number of Plugins require updates	:       $pluginupdate"       >> /var/log/wp-site-status.log
 echo "Number of Themes require updates 	:       $themeupdate"       >> /var/log/wp-site-status.log
 echo "Wp updates if required 		:       $wpupdate"       >> /var/log/wp-site-status.log
 echo "Domain file size 			:       $domain_file_size"       >> /var/log/wp-site-status.log
 echo "Domain DB size 			:       $domain_db_size"       >> /var/log/wp-site-status.log
 echo "Domain Backup size 		:       $domain_backup_size"       >> /var/log/wp-site-status.log
-curl -sS "$callback_server_status?domain=$domain&publicip=$publicip&pluginupdate=$pluginupdate&themeupdate=$themeupdate&wpupdate=$wpupdate&domain_file_usage=$domain_file_size&domain_db_size=$domain_db_size&domain_backup_size=$domain_backup_size"
+curl -sS "$callback_server_status?domain=$domain&publicip=$publicip&wpversion=$wpversion&pluginupdate=$pluginupdate&themeupdate=$themeupdate&wpupdate=$wpupdate&domain_file_usage=$domain_file_size&domain_db_size=$domain_db_size&domain_backup_size=$domain_backup_size"
 sleep 3
 done' > /usr/local/bin/wp-site-status
 

@@ -1,0 +1,40 @@
+# cd ~ && sudo -E apt-get update -y && sudo -E apt-get install -y dos2unix && sudo -E apt-get install -y vnstat && sudo -E wget -O ~/stablediff-script.sh ##URL-SCRIPT##  && sudo -E wget -O ~/stablediff-script-params.sh ##URL-SCRIPT-PARAMS## && sudo -E dos2unix ~/stablediff-script.sh ~/stablediff-script-params.sh && sudo -E chmod 500 ~/stablediff-script.sh ~/stablediff-script-params.sh && sudo -E bash ~/stablediff-script.sh && sudo -E rm -f ~/stablediff-script-params.sh
+
+# cd ~ && 
+# sudo -E apt-get update -y 
+# && sudo -E apt-get install -y dos2unix 
+# && sudo -E apt-get install -y vnstat 
+# && sudo -E wget -O ~/stablediff-script.sh ##URL-SCRIPT##  
+# && sudo -E wget -O ~/stablediff-script-params.sh ##URL-SCRIPT-PARAMS## 
+# && sudo -E dos2unix ~/stablediff-script.sh ~/stablediff-script-params.sh 
+# && sudo -E chmod 500 ~/stablediff-script.sh ~/stablediff-script-params.sh 
+# && sudo -E bash ~/stablediff-script.sh && sudo -E rm -f ~/stablediff-script-params.sh
+
+
+echo "done" && {
+    cd ~ ; 
+	} && {	
+	sudo -E echo $(date): "Updating repositories to get latest files. This will take a while..." ;
+	} && {
+	sudo -E apt-get update -yqm > /dev/null 2>&1 || { echo "Error updating repositories. Please delete this server and restart the process." ; } ;
+	} && {
+	sudo -E echo $(date): "Installing dos2unix. This will take a while..." ;
+	} && {
+	sudo -E apt-get install -y dos2unix > /dev/null 2>&1 || { echo "Error installing dos2unix. Please delete this server and restart the process."; } ;
+	} && { 
+	sudo -E echo $(date): "Installing AT command..." ;
+	} && { 
+	sudo -E apt-get install -y at > /dev/null 2>&1 || { echo "Error installing AT command. Please delete this server and restart the process."; } ; 
+	} && {
+	sudo -E wget --no-check-certificate -O stablediff-script.sh ##URL-SCRIPT##  &&
+	sudo -E dos2unix stablediff-script.sh &&
+    sudo -E wget --no-check-certificate -O stablediff-script-params.sh ##URL-SCRIPT-PARAMS##  &&
+    export interactive=no &&
+	export WPCD_USER=ubuntu && # need to make this an env var later.
+    sudo -E dos2unix stablediff-script-params.sh &&
+	sudo -E chmod 500 stablediff-script.sh stablediff-script-params.sh &&
+	sudo -E chown $WPCD_USER:$WPCD_USER *.sh &&
+	echo 'bash ~/stablediff-script.sh >> stablediff-install-status.log 2>&1' | at now +1 minutes && # Note: notice that there is no SUDO here - this is because some python components don't like bash.  So where sudo is needed it's done inside the script itself.
+	at -l &&
+	at -l >> stablediff-install-status.log
+}

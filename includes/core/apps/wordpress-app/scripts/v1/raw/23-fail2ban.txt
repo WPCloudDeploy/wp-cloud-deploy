@@ -5,7 +5,16 @@ then
 	exit
 fi
 
-while [[ -z $action ]]; do
+## Get our common functions
+if [[ ! -f 9999-common-functions.sh ]]
+then
+	echo "The file 9999-common-functions.sh is missing"
+	exit 1
+fi
+source 9999-common-functions.sh
+
+while [[ -z $action ]]
+do
 	echo
 	echo "What do you want to do?"
 	echo
@@ -24,7 +33,8 @@ while [[ -z $action ]]; do
 	echo "   13) Install Wp Fail2ban Plugin"	
 	echo "   14) Remove Wp Fail2ban Plugin"	
 	read -p "Action: " action
-	until [[ -z "$action" || "$action" =~ ^[0-9]+$ ]]; do
+	until [[ -z "$action" || "$action" =~ ^[0-9]+$ ]]
+	do
 		echo "$action: invalid selection."
 		read -p "Action: " action
 	done
@@ -104,10 +114,11 @@ endscript
 create 640 root adm
 }
 EOL
-fi
+	fi
 
-echo "Fail2ban installation complete."
+	echo "Fail2ban installation complete."
 }
+
 
 ###################################### Fail2ban Remove Function ##########
 function fail2ban_remove
@@ -273,7 +284,7 @@ function fail2ban_remove_protocol
 	protocol=`fail2ban-client status|grep list|cut -d':' -f2|awk '{ gsub(/^[ \t]+|[ \t]+$/, ""); print }'`
 	if [ -z $protocol_delete ]
 	then
-	        read -p "Remove Protocol/Services. Enabled[$protocol]: " protocol_delete
+		read -p "Remove Protocol/Services. Enabled[$protocol]: " protocol_delete
 	fi
 	if [ ! -z $protocol_delete ]
 	then
@@ -296,7 +307,7 @@ function fail2ban_update_protocol
 	protocol=`fail2ban-client status|grep list|cut -d':' -f2|awk '{ gsub(/^[ \t]+|[ \t]+$/, ""); print }'`
 	if [ -z $protocol_update ]
 	then
-	       	read -p "Modify Existing Protocol/Services from Fail2ban. Enabled[$protocol]: " protocol_update
+		read -p "Modify Existing Protocol/Services from Fail2ban. Enabled[$protocol]: " protocol_update
 	fi
 	echo $protocol|sed "s/ //g"|tr ',' '\n'|grep -x "$protocol_update" > /dev/null
 	if [ $? -eq 0 ]
@@ -305,7 +316,6 @@ function fail2ban_update_protocol
 		bantime=`sed -n "/\[$protocol_update\]/,/\[/{=;p;}"  /etc/fail2ban/jail.local|sed '{N;s/\n/ /}'|grep bantime|grep -v '#'|cut -d'=' -f2`
 		findtime=`sed -n "/\[$protocol_update\]/,/\[/{=;p;}"  /etc/fail2ban/jail.local|sed '{N;s/\n/ /}'|grep findtime|grep -v '#'|cut -d'=' -f2`
 		maxretry=`sed -n "/\[$protocol_update\]/,/\[/{=;p;}"  /etc/fail2ban/jail.local|sed '{N;s/\n/ /}'|grep maxretry|grep -v '#'|cut -d'=' -f2`
-
 		proto_bantime=`fail2ban-client get $protocol_update bantime`
 		if [ -z $bantime_new ]
 		then
@@ -347,7 +357,7 @@ function fail2ban_update_protocol
 		proto_maxretry=`fail2ban-client get $protocol_update maxretry`
 		if [ -z $maxretry_new ]
 		then
-		        read -p "Default max retry[$proto_maxretry]: " maxretry_new
+			read -p "Default max retry[$proto_maxretry]: " maxretry_new
 		fi
 		if [ ! -z $maxretry_new ]
 		then
@@ -479,7 +489,8 @@ function fail2ban_wp_install
 		ls /var/www | grep -v html | nl
 		read -p "Select site: " site_number
 		number_of_sites=$(ls /var/www | grep -v html | wc -l)
-		until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
+		until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]
+		do
 			echo "$site_number: invalid selection."
 			read -p "Select site: " site_number
 	        done
@@ -508,7 +519,8 @@ function fail2ban_wp_remove
 		ls /var/www | grep -v html | nl
 		read -p "Select site: " site_number
 		number_of_sites=$(ls /var/www | grep -v html | wc -l)
-		until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]; do
+		until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]
+		do
 			echo "$site_number: invalid selection."
 			read -p "Select site: " site_number
 	        done
@@ -607,4 +619,3 @@ if [[ $action == "fail2ban_wp_remove" || $action == "14" ]]
 then
 	fail2ban_wp_remove
 fi
-

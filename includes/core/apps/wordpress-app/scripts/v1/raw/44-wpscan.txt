@@ -1,0 +1,284 @@
+#!/bin/bash
+if [[ "$EUID" -ne 0 ]]
+then
+	echo "Sorry, you need to run this as root"
+	exit
+fi
+
+## Get our common functions
+if [[ ! -f 9999-common-functions.sh ]]
+then
+	echo "The file 9999-common-functions.sh is missing"
+	exit 1
+fi
+source 9999-common-functions.sh
+
+# Not supported on OLS yet.
+if [ "$g_webserver_type" != "nginx" ]
+then
+    echo "WPScan is only supported on NGINX."
+    exit 1
+fi
+
+while [[ -z $action ]]
+do
+	echo
+	echo "What do you want to do?"
+	echo
+	echo "   1) Install Wpscan"
+	echo "   2) Run Scan Now"
+	echo "   3) Update Vulnerability Data and Scan Now"
+	echo "   4) Remove Wpscan"
+	echo "   5) Install Cron Process"
+	echo "   6) Add Url to Cron Process"
+	echo "   7) Disable Url from Cron Process"
+	echo "   8) List Url Included in Cron Process"
+	echo "   9) Remove Cron Process"
+	read -p "Action: " action
+	until [[ -z "$action" || "$action" =~ ^[1-9]$ ]]
+	do
+		echo "$action: invalid selection."
+		read -p "Action: " action
+	done
+done
+
+###################################### Wpscan Install Function ##########
+function wpscan_install
+{
+	if [ -z $emailid ]
+	then
+		read -p "Enter Notification email id for scanning result: " emailid
+	fi
+
+	if [[ -z "$callback_server_scan" ]]
+	then
+		read -p "enter callback url to get scanning result:  " callback_server_scan
+	fi
+	if hash wpscann 2>/dev/null
+	then
+		echo
+		echo "wpscan is already installed!"
+	else
+		echo "installing wpscan on server........."
+		apt-get update > /dev/null 2>&1
+		apt-get install ruby build-essential libcurl4-openssl-dev libxml2 libxml2-dev libxslt1-dev ruby-dev libgmp-dev zlib1g-dev -y > /dev/null 2>&1
+		gem install wpscan > /dev/null 2>&1
+		wpscan --update > /dev/null 2>&1
+		mkdir -p /var/log/wpscan
+		echo "#mail=$emailid" >> /usr/local/bin/wpscan
+		echo "#callback=$callback_server_scan" >> /usr/local/bin/wpscan
+		echo "wpscan has been installed"
+	fi
+}
+
+###################################### Wpscan Run Scan Now ##########
+function wpscan_scan
+{
+	if [[ -z "$api_token" ]]
+	then
+		read -p "Enter Api Token to get detail vulnerabilities:  " api_token
+	fi
+
+	if [[ -z "$website_url" ]]
+	then
+		read -p "enter website url which need to scan:  " website_url
+	fi
+	if hash wpscan 2>/dev/null
+	then
+		date=`date +%H-%M_%d-%m-%Y`
+		echo "cli_options:
+api_token: $api_token" > ~/.wpscan/scan.yml
+		wpscan --update
+		gem update wpscan
+		wpscan -o /var/log/wpscan/wpscan-$date.log --url $website_url --ignore-main-redirect
+		email=`grep mail /usr/local/bin/wpscan|cut -d'=' -f2`
+		mail -s "Scan Report" $email < /var/log/wpscan/wpscan-$date.log
+		echo "Scanning has been completed"
+	else
+		echo "Wpscan not installed yet on system"
+	fi
+}
+
+###################################### Wpscan Update Vulnerability ##########
+function wpscan_update_vulnerability
+{
+	if hash wpscan 2>/dev/null
+	then
+		if [[ -z "$website_url" ]]
+		then
+			read -p "enter website url which need to scan:  " website_url
+		fi
+		date=`date +%H-%M_%d-%m-%Y`
+		wpscan --update > /dev/null 2>&1
+		gem update wpscan > /dev/null 2>&1
+		wpscan -o /var/log/wpscan/wpscan-$date.log --url $website_url --ignore-main-redirect
+		email=`grep mail /usr/local/bin/wpscan|cut -d'=' -f2`
+		mail -s "Scan Report" $email < /var/log/wpscan/wpscan-$date.log
+		echo "Wpscan Vulnerability has been updated"
+	else
+		echo "Wpscan are not installed on system"
+	fi
+}
+
+###################################### Wpscan Remove Function ##########
+function wpscan_remove
+{
+	gem uninstall wpscan
+	rm -rf /usr/local/bin/wpscan /usr/local/bin/wpscan-cron
+	echo "Wpscan has been Removed"
+}
+
+###################################### Wpscan Enable Cron ##########
+function wpscan_enable_cron
+{
+	if hash wpscan 2>/dev/null
+	then
+		crontab -l | grep -q 'wpscan' > /dev/null
+		if [ $? -ne 0 ]
+		then
+			if [[ -z "$website_url" ]]
+			then
+					read -p "enter website url which need to scan:  " website_url
+			fi
+			echo 'date=`date +%H-%M_%d-%m-%Y`' > /usr/local/bin/wpscan-cron
+			echo "email=`grep mail /usr/local/bin/wpscan|cut -d'=' -f2`" >> /usr/local/bin/wpscan-cron
+			echo "wpscan --update" >> /usr/local/bin/wpscan-cron
+			echo "gem update wpscan" >> /usr/local/bin/wpscan-cron
+			echo "wpscan --url $website_url --ignore-main-redirect >> /var/log/wpscan/wpscan-"'$date'".log" >> /usr/local/bin/wpscan-cron
+			echo "mail -s "'"Scan Report"'" "'$email'" < /var/log/wpscan/wpscan-"'$date'".log" >> /usr/local/bin/wpscan-cron
+			chmod +x /usr/local/bin/wpscan-cron
+			crontab -l | grep -q 'wpscan' || (crontab -l 2>/dev/null; echo "0 2 * * * /usr/local/bin/wpscan-cron > /dev/null 2>&1") | crontab -
+			echo "Cron has been enabled"
+		else
+			echo "Cron already installed"
+		fi
+	else
+		echo "Wpscan not installed"
+	fi
+}
+
+###################################### Add url to Wpscan Cron ##########
+function wpscan_add_url
+{
+	if hash wpscan 2>/dev/null
+	then
+		if [[ -z "$website_url_add" ]]
+		then
+			read -p "enter website url which need to scan:  " website_url_add
+		fi
+		grep -w "url $website_url_add" /usr/local/bin/wpscan-cron > /dev/null
+		if [ $? -eq 0 ]
+		then
+			echo "Url already added for scanning"
+		else
+			addurl="wpscan --url $website_url_add --ignore-main-redirect >> /var/log/wpscan/wpscan-"'$date'".log"
+			sed -i "/mail.*/ i $addurl" /usr/local/bin/wpscan-cron
+			echo "Url has been added to cron"
+		fi
+	else
+		echo "Wpscan not installed"
+	fi
+}
+
+###################################### Remove Url from wpscan Cron ##########
+function wpscan_remove_url
+{
+	if hash wpscan 2>/dev/null
+	then
+		if [[ -z "$website_url_remove" ]]
+		then
+			read -p "enter website url which need to remove from Cron:  " website_url_remove
+		fi
+		grep "url $website_url_remove" /usr/local/bin/wpscan-cron > /dev/null
+		if [ $? -eq 0 ]
+		then
+			sed -i "/url $website_url_remove.*/d" /usr/local/bin/wpscan-cron
+			echo "Url has been removed from cron"
+		else
+			echo "Url is not in cron scan list"
+		fi
+	else
+		echo "Wpscan not installed"
+	fi
+}
+
+###################################### List Wpscan Url Scan List ##########
+function wpscan_list_url
+{
+	if hash wpscan 2>/dev/null
+	then
+		grep url /usr/local/bin/wpscan-cron|cut -d' ' -f3
+	else
+		echo "Wpscan not installed"
+	fi
+}
+
+###################################### Remove Wpscan Cron ##########
+function wpscan_remove_cron
+{
+	if hash wpscan 2>/dev/null
+	then
+		(crontab -l 2>/dev/null | sed '/wpscan/d' ) | crontab -
+		rm /usr/local/bin/wpscan-cron
+		echo "Wpscan Cron has been removed"
+	else
+		echo "Wpscan not installed"
+	fi
+}
+
+###########################################################################################################################
+###########################################################################################################################
+
+############## Install Wpscan
+if [[ $action == "wpscan_install" || $action == "1" ]]
+then
+	wpscan_install
+fi
+
+############## Run Scan Now
+if [[ $action == "wpscan_scan" || $action == "2" ]]
+then
+	wpscan_scan
+fi
+
+####### Update Vulnerability and Scan
+if [[ $action == "wpscan_update_vulnerability" || $action == "3" ]]
+then
+	wpscan_update_vulnerability
+fi
+
+############ Uninstall Wpscan
+if [[ $action == "wpscan_remove" || $action == "4" ]]
+then
+	wpscan_remove
+fi
+
+############## Install Cron Proecess
+if [[ $action == "wpscan_enable_cron" || $action == "5" ]]
+then
+	wpscan_enable_cron
+fi
+
+############## Add Url to Cron Process
+if [[ $action == "wpscan_add_url" || $action == "6" ]]
+then
+	wpscan_add_url
+fi
+
+############## Remove url from Cron Process
+if [[ $action == "wpscan_remove_url" || $action == "7" ]]
+then
+	wpscan_remove_url
+fi
+
+############## List Url Cron Process
+if [[ $action == "wpscan_list_url" || $action == "8" ]]
+then
+	wpscan_list_url
+fi
+
+############## Remove Cron Process
+if [[ $action == "wpscan_remove_cron" || $action == "9" ]]
+then
+	wpscan_remove_cron
+fi

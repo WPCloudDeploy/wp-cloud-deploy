@@ -3,7 +3,7 @@
 Plugin Name: WPCloudDeploy
 Plugin URI: https://wpclouddeploy.com
 Description: Deploy and manage cloud servers and apps from inside the WordPress Admin dashboard.
-Version: 4.16.7
+Version: 4.27.0
 Requires at least: 5.4
 Requires PHP: 7.4
 Item Id: 1493
@@ -55,7 +55,7 @@ class WPCD_Init {
 			define( 'WPCD_REST_VERSION', '1' );
 			define( 'WPCD_DB_VERSION', '1' );
 
-			// Define the default brand colors.
+			// Define the default brand colors for wp-admin.
 			define( 'WPCD_PRIMARY_BRAND_COLOR', '#E91E63' );
 			define( 'WPCD_SECONDARY_BRAND_COLOR', '#FF5722' );
 			define( 'WPCD_TERTIARY_BRAND_COLOR', '#03114A' );
@@ -63,6 +63,17 @@ class WPCD_Init {
 			define( 'WPCD_MEDIUM_BG_COLOR', '#FAFAFA' );
 			define( 'WPCD_LIGHT_BG_COLOR', '#FDFDFD' );
 			define( 'WPCD_ALTERNATE_ACCENT_BG_COLOR', '#CFD8DC' );
+
+			// Define the default brand colors for front-end.
+			define( 'WPCD_FE_PRIMARY_BRAND_COLOR', '#E91E63' );
+			define( 'WPCD_FE_SECONDARY_BRAND_COLOR', '#281d67' );
+			define( 'WPCD_FE_TERTIARY_BRAND_COLOR', '#03114A' );
+			define( 'WPCD_FE_ACCENT_BG_COLOR', '#0d091a' );
+			define( 'WPCD_FE_MEDIUM_BG_COLOR', '#FAFAFA' );
+			define( 'WPCD_FE_LIGHT_BG_COLOR', '#FDFDFD' );
+			define( 'WPCD_FE_ALTERNATE_ACCENT_BG_COLOR', '#CFD8DC' );
+			define( 'WPCD_FE_POSITIVE_COLOR', '#008000' );
+			define( 'WPCD_FE_NEGATIVE_COLOR', '#8B0000' );
 
 			// Define a variable that can be used for versioning scripts - required to force multisite to use different version numbers for each site.
 			if ( is_multisite() ) {
@@ -110,7 +121,7 @@ class WPCD_Init {
 		add_action( 'plugins_loaded', array( $this, 'load_plugin_textdomain' ) );
 
 		/* Send email to admin if critical crons aren't running. */
-		add_action( 'init', array( $this, 'send_email_for_absent_crons' ), 20 );
+		add_action( 'shutdown', array( $this, 'send_email_for_absent_crons' ), 20 );
 
 	}
 
@@ -164,6 +175,10 @@ class WPCD_Init {
 			require_once wpcd_path . 'includes/core/apps/basic-server/class-basic-server-app.php';
 		}
 
+		if ( defined( 'WPCD_LOAD_STABLEDIFF_APP' ) && ( true === WPCD_LOAD_STABLEDIFF_APP ) ) {
+			require_once wpcd_path . 'includes/core/apps/stable-diffusion/class-stablediff-app.php';
+		}
+
 		// @TODO: Have to make these static till autoloading is implemented
 		// @TODO: This is also poor because N crons will be registered for N providers even if only one provider is actually active and has credentials
 		if ( defined( 'WPCD_LOAD_VPN_APP' ) && ( true === WPCD_LOAD_VPN_APP ) ) {
@@ -171,6 +186,10 @@ class WPCD_Init {
 		}
 		if ( defined( 'WPCD_LOAD_BASIC_SERVER_APP' ) && ( true === WPCD_LOAD_BASIC_SERVER_APP ) ) {
 			WPCD_BASIC_SERVER_APP::activate( $network_wide );
+		}
+
+		if ( defined( 'WPCD_LOAD_STABLEDIFF_APP' ) && ( true === WPCD_LOAD_STABLEDIFF_APP ) ) {
+			WPCD_STABLEDIFF_APP::activate( $network_wide );
 		}
 
 		$this->wpcd_load_wpapp_traits();
@@ -191,6 +210,9 @@ class WPCD_Init {
 		WPCD_POSTS_APP_SERVER::activate( $network_wide );
 		WPCD_POSTS_APP::activate( $network_wide );
 
+		require_once wpcd_path . 'includes/core/apps/wordpress-app/public/class-wordpress-app-public.php';
+		WPCD_WORDPRESS_APP_PUBLIC::activate( $network_wide );
+
 		require_once wpcd_path . 'includes/core/class-wpcd-posts-notify-user.php';
 		WPCD_NOTIFY_USER::activate( $network_wide );
 
@@ -208,8 +230,20 @@ class WPCD_Init {
 		WPCD_PENDING_TASKS_LOG::activate( $network_wide );
 
 		// Set cron for set some options that the Wisdom plugin will pick up.
-		if ( ! wp_next_scheduled( 'wpcd_wisdom_custom_options' ) ) {
-			wp_schedule_event( time(), 'twicedaily', 'wpcd_wisdom_custom_options' );
+		if ( is_multisite() && $network_wide ) {
+			// Get all blogs in the network.
+			$blog_ids = get_sites( array( 'fields' => 'ids' ) );
+			foreach ( $blog_ids as $blog_id ) {
+				switch_to_blog( $blog_id );
+				if ( ! wp_next_scheduled( 'wpcd_wisdom_custom_options' ) ) {
+					wp_schedule_event( time(), 'twicedaily', 'wpcd_wisdom_custom_options' );
+				}
+				restore_current_blog();
+			}
+		} else {
+			if ( ! wp_next_scheduled( 'wpcd_wisdom_custom_options' ) ) {
+				wp_schedule_event( time(), 'twicedaily', 'wpcd_wisdom_custom_options' );
+			}
 		}
 
 		flush_rewrite_rules();
@@ -231,6 +265,10 @@ class WPCD_Init {
 			require_once wpcd_path . 'includes/core/apps/basic-server/class-basic-server-app.php';
 		}
 
+		if ( defined( 'WPCD_LOAD_STABLEDIFF_APP' ) && ( true === WPCD_LOAD_STABLEDIFF_APP ) ) {
+			require_once wpcd_path . 'includes/core/apps/stable-diffusion/class-stablediff-app.php';
+		}
+
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/class-wordpress-app.php';
 
 		if ( defined( 'WPCD_LOAD_VPN_APP' ) && ( true === WPCD_LOAD_VPN_APP ) ) {
@@ -239,6 +277,10 @@ class WPCD_Init {
 
 		if ( defined( 'WPCD_LOAD_BASIC_SERVER_APP' ) && ( true === WPCD_LOAD_BASIC_SERVER_APP ) ) {
 			WPCD_BASIC_SERVER_APP::deactivate( $network_wide );
+		}
+
+		if ( defined( 'WPCD_LOAD_STABLEDIFF_APP' ) && ( true === WPCD_LOAD_STABLEDIFF_APP ) ) {
+			WPCD_STABLEDIFF_APP::deactivate( $network_wide );
 		}
 
 		WPCD_WORDPRESS_APP::deactivate( $network_wide );
@@ -259,7 +301,17 @@ class WPCD_Init {
 		WPCD_PENDING_TASKS_LOG::deactivate( $network_wide );
 
 		// Clear old cron.
-		wp_unschedule_hook( 'wpcd_wisdom_custom_options' );
+		if ( is_multisite() && $network_wide ) {
+			// Get all blogs in the network.
+			$blog_ids = get_sites( array( 'fields' => 'ids' ) );
+			foreach ( $blog_ids as $blog_id ) {
+				switch_to_blog( $blog_id );
+				wp_unschedule_hook( 'wpcd_wisdom_custom_options' );
+				restore_current_blog();
+			}
+		} else {
+			wp_unschedule_hook( 'wpcd_wisdom_custom_options' );
+		}
 
 		// Clear long-lived transients.
 		delete_transient( 'wpcd_wisdom_custom_options_first_run_done' );
@@ -276,16 +328,14 @@ class WPCD_Init {
 
 		/* Include the SETTINGS PAGE and other related metabox.io extension files */
 		require_once wpcd_path . 'required_plugins/mb-settings-page/mb-settings-page.php';
-
-		if ( is_admin() ) {
-			require_once wpcd_path . '/required_plugins/mb-admin-columns/mb-admin-columns.php';
-			require_once wpcd_path . '/required_plugins/meta-box-tabs/meta-box-tabs.php';
-			require_once wpcd_path . '/required_plugins/meta-box-tooltip/meta-box-tooltip.php';
-			require_once wpcd_path . '/required_plugins/mb-term-meta/mb-term-meta.php';
-			require_once wpcd_path . '/required_plugins/meta-box-columns/meta-box-columns.php';
-			require_once wpcd_path . '/required_plugins/meta-box-group/meta-box-group.php';
-			require_once wpcd_path . '/required_plugins/mb-user-meta/mb-user-meta.php';
-		}
+		require_once wpcd_path . '/required_plugins/mb-admin-columns/mb-admin-columns.php';
+		require_once wpcd_path . '/required_plugins/meta-box-tabs/meta-box-tabs.php';
+		require_once wpcd_path . '/required_plugins/meta-box-tooltip/meta-box-tooltip.php';
+		require_once wpcd_path . '/required_plugins/mb-term-meta/mb-term-meta.php';
+		require_once wpcd_path . '/required_plugins/meta-box-columns/meta-box-columns.php';
+		require_once wpcd_path . '/required_plugins/meta-box-group/meta-box-group.php';
+		require_once wpcd_path . '/required_plugins/mb-user-meta/mb-user-meta.php';
+		require_once wpcd_path . '/required_plugins/mb-custom-table/mb-custom-table.php';
 
 		/* Load up some licensing files. */
 		if ( true === is_admin() ) {
@@ -343,6 +393,7 @@ class WPCD_Init {
 		if ( is_admin() ) {
 			require_once wpcd_path . 'includes/core/functions-handle-admin-notices.php';
 		}
+		require_once wpcd_path . 'includes/core/class-wpcd-better-crons.php';
 
 		/**
 		* For the VPN App
@@ -367,6 +418,17 @@ class WPCD_Init {
 		}
 
 		/**
+		* For the STABLEDIFF App
+		*/
+		/* @TODO: Need to find a more dynamic way to load these by letting apps register themselves at the right time and having them load up their own files */
+		if ( defined( 'WPCD_LOAD_STABLEDIFF_APP' ) && ( true === WPCD_LOAD_STABLEDIFF_APP ) ) {
+			require_once wpcd_path . 'includes/core/apps/stable-diffusion/class-stablediff-app.php';
+			require_once wpcd_path . 'includes/core/apps/stable-diffusion/class-stablediff-app-settings.php';
+			require_once wpcd_path . 'includes/core/apps/stable-diffusion/class-stablediff-ssh.php';
+			require_once wpcd_path . 'includes/core/apps/stable-diffusion/class-stablediff-woocommerce.php';
+		}
+
+		/**
 		* For the WP App
 		*/
 		/* @TODO: Need to find a more dynamic way to load these by letting apps register themselves at the right time and having them load up their own files */
@@ -375,6 +437,7 @@ class WPCD_Init {
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/class-wordpress-app-settings.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/class-wordpress-ssh.php';
 
+		require_once wpcd_path . 'includes/core/apps/wordpress-app/public/class-wordpress-app-public.php';
 		require_once wpcd_path . 'includes/core/wp-cloud-deploy.php';
 		require_once wpcd_path . 'includes/core/class-wpcd-server.php';
 		require_once wpcd_path . 'includes/core/functions-classes.php';
@@ -389,6 +452,16 @@ class WPCD_Init {
 		 * that calls the constructor function directly?
 		 */
 		$wpcd_throwaaway_var = new WP_CLOUD_DEPLOY();
+
+		/**
+		 * Finally, maybe ask for setup using Setup wizard.
+		 * Proceed only if both options 'wpcd_plugin_setup' & 'wpcd_skip_wizard_setup' = false
+		 * 'wpas_plugin_setup' will be added at the end of wizard steps
+		 * 'wpas_skip_wizard_setup' will be set to true if user choose to skip wizrd from admin notice
+		 */
+		if ( ! get_option( 'wpcd_plugin_setup', false ) && ! get_option( 'wpcd_skip_wizard_setup', false ) ) {
+			require_once wpcd_path . 'includes/core/class-wpcd-setup-wizard.php';
+		}
 
 	}
 
@@ -411,12 +484,14 @@ class WPCD_Init {
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/metaboxes-app.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/metaboxes-server.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/commands-and-logs.php';
+		require_once wpcd_path . 'includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/script-handlers.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/after-prepare-server.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/push-commands.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/admin-columns.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/backup.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/woocommerce_support.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/upgrade.php';
+		require_once wpcd_path . 'includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/unused.php';
 	}
 
 	/**
@@ -433,11 +508,32 @@ class WPCD_Init {
 			return;
 		}
 
+		$screen     = get_current_screen();
+		$post_types = array( 'wpcd_app_server', 'wpcd_app', 'wpcd_team', 'wpcd_permission_type', 'wpcd_command_log', 'wpcd_ssh_log', 'wpcd_error_log', 'wpcd_pending_log' );
+
+		$php_version    = phpversion();
+		$php_version_id = str_replace( '.', '0', $php_version );
+
+		// Checks to see if "php version check" transient is set or not. If not set then show an admin notice.
+		if ( ! get_transient( 'wpcd_php_version_check' ) && is_object( $screen ) && in_array( $screen->post_type, $post_types, true ) ) {
+			// Here 70400 is a php version 7.4.0.
+			if ( (int) $php_version_id < 70400 ) {
+				$class = 'notice notice-error is-dismissible wpcd-php-version-check';
+				/* translators: %s php version */
+				$message = sprintf( __( '<strong>WPCloudDeploy plugin requires a PHP version greater or equal to "7.4.0". You are running %s.</strong>', 'wpcd' ), $php_version );
+				printf( '<div data-dismissible="notice-php-warning" class="%2$s"><p>%3$s</p></div>', wp_create_nonce( 'wpcd-admin-dismissible-notice' ), $class, $message );
+			}
+		}
+
+		// Are we running on localhost?  Of so throw error.
 		if ( in_array( isset( $_SERVER['SERVER_ADDR'] ) ? $_SERVER['SERVER_ADDR'] : '', array( '127.0.0.1', '::1' ), true ) ) {
 			if ( ! wpcd_get_early_option( 'hide-local-host-warning' ) ) {
-				$class   = 'notice notice-error';
-				$message = __( '<strong>You cannot run the WPCloudDeploy plugin on a localhost server or a server that cannot be reached from the internet.</strong>', 'wpcd' );
-				printf( '<div class="%1$s"><p>%2$s</p></div>', $class, $message );
+				// Checks to see if "localhost check" transient is set or not. If not set then show an admin notice.
+				if ( ! get_transient( 'wpcd_localhost_check' ) && is_object( $screen ) && in_array( $screen->post_type, $post_types, true ) ) {
+					$class   = 'notice notice-error is-dismissible wpcd-localhost-check';
+					$message = __( '<strong>You cannot run the WPCloudDeploy plugin on a localhost server or a server that cannot be reached from the internet.</strong>', 'wpcd' );
+					printf( '<div data-dismissible="notice-localhost-warning" class="%2$s"><p>%3$s</p></div>', wp_create_nonce( 'wpcd-admin-dismissible-notice' ), $class, $message );
+				}
 			}
 		}
 
@@ -463,9 +559,6 @@ class WPCD_Init {
 			$message = __( 'Warning: WPCloudDeploy cannot use the WordPress default permalink. Please change the permalinks option to something other than <em>plain.</em> This can be done under the WordPress <strong>SETTINGS->Permalinks</strong> menu option.', 'wpcd' );
 			printf( '<div class="%1$s"><p>%2$s</p></div>', $class, $message );
 		}
-
-		$screen     = get_current_screen();
-		$post_types = array( 'wpcd_app_server', 'wpcd_app', 'wpcd_team', 'wpcd_permission_type', 'wpcd_command_log', 'wpcd_ssh_log', 'wpcd_error_log', 'wpcd_pending_log' );
 
 		// Checks to see if "text files are readable" transient is set or not. If not set then show an admin notice.
 		if ( ! get_transient( 'wpcd_readable_check' ) && is_object( $screen ) && in_array( $screen->post_type, $post_types, true ) ) {
@@ -518,6 +611,8 @@ class WPCD_Init {
 			$body[] = __( '<strong>WPCD: Warning</strong> - certain critical CRONS are not running on your site.  Below are the ones that appear to be missing:', 'wpcd' );
 			$body[] = '';
 			$body[] = $str_crons;
+			$body[] = '';
+			$body[] = __( 'It is possible that this is a minor hiccup or false positive and the cron(s) are still running. You can use the free WP CRONTROL plugin to examine running crons to see if the crons are still present and active.', 'wpcd' );
 			$body[] = '';
 			$body[] = __( 'Before contacting support, please try to disable and renable the plugin to reactivate crons. Additionally, please verify that your WP CRON is firing every 1 minute - either from enough frequent site traffic or, better yet, from a native LINUX cron process.', 'wpcd' );
 			$body[] = '';
@@ -574,7 +669,7 @@ class WPCD_Init {
 		$not_loaded_crons = array();
 
 		if ( ! get_transient( 'wpcd_cron_check' ) ) {
-			$wpcd_crons = array( 'do_deferred_actions_for_server', 'do_deferred_actions_for_app', 'wordpress_file_watcher_delete_temp_files', 'scan_new_notifications_to_send', 'clean_up_pending_logs' );
+			$wpcd_crons = array( 'send_email_alert_for_long_pending_tasks', 'do_deferred_actions_for_server', 'do_deferred_actions_for_app', 'wordpress_file_watcher_delete_temp_files', 'scan_new_notifications_to_send', 'clean_up_pending_logs' );
 			$wpcd_crons = apply_filters( 'wpcd_crons_needing_active_check', $wpcd_crons );
 
 			if ( defined( 'WPCD_LOAD_VPN_APP' ) && ( true === WPCD_LOAD_VPN_APP ) ) {
@@ -584,6 +679,10 @@ class WPCD_Init {
 
 			if ( defined( 'WPCD_LOAD_BASIC_SERVER_APP' ) && ( true === WPCD_LOAD_BASIC_SERVER_APP ) ) {
 				$wpcd_crons[] = 'do_deferred_actions_for_basic_server';
+			}
+
+			if ( defined( 'WPCD_LOAD_STABLEDIFF_APP' ) && ( true === WPCD_LOAD_STABLEDIFF_APP ) ) {
+				$wpcd_crons[] = 'do_deferred_actions_for_stablediff';
 			}
 
 			foreach ( $wpcd_crons as $cron ) {
@@ -758,6 +857,7 @@ class WPCD_Init {
 				set_transient( 'wpcd_wisdom_custom_options_first_run_done', 1, ( 60 * 24 * 7 ) * MINUTE_IN_SECONDS );
 			}
 		}
+
 	}
 
 }
@@ -774,6 +874,9 @@ if ( ! class_exists( 'Plugin_Usage_Tracker' ) ) {
 	require_once dirname( __FILE__ ) . '/vendor/wisdom_plugin/class-plugin-usage-tracker.php';
 }
 if ( ! function_exists( 'wpcd_start_plugin_tracking' ) ) {
+	/**
+	 * Start statistics tracking using the Wisdom Plugin.
+	 */
 	function wpcd_start_plugin_tracking() {
 		$wisdom = new Plugin_Usage_Tracker(
 			__FILE__,
@@ -789,7 +892,7 @@ if ( ! function_exists( 'wpcd_start_plugin_tracking' ) ) {
 	// The initial calculation only happens if the admin area has been accessed at least once after the plugin was activated.
 	// (See the admin_init() function in the main plugin class above.)
 	// After that the calculations occur on a cron hook.
-	// (See the function set_wisdom_custom_options() in file includes/core/wp-cloud-deploy.php)
+	// (See the function set_wisdom_custom_options() in file includes/core/wp-cloud-deploy.php).
 	if ( true === (bool) get_transient( 'wpcd_wisdom_custom_options_first_run_done' ) ) {
 		wpcd_start_plugin_tracking();
 	}

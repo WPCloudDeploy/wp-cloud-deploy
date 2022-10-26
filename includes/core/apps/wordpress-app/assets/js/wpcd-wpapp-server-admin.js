@@ -71,10 +71,15 @@
             if ($clicked.val() === '') {
                 return;
             }
+            var prependTo = null;
+            if( typeof wpcd_wpapp_params != 'undefined' && wpcd_wpapp_params.is_public ) {
+                prependTo = $('#wpcd_public_wrapper');
+            }
 
             $('a.wpcd_action_show_old_logs').magnificPopup({
                 type: 'ajax',
                 modal: true,
+                prependTo : prependTo,
                 callbacks: {
                     ajaxContentAdded: function () {
                         $('.wpcd-log-console').html(params.i10n.loading);
@@ -127,7 +132,12 @@
         $('body').on('click', '.wpcd-log-close-button, .wpcd-log-close-button a, a.wpcd-log-close-button', function (e) {
             e.preventDefault();
             $.magnificPopup.close();
-            location.reload();
+            //location.reload();
+            if( wpcd_wpapp_params.is_public ) {
+                    window.location.href = wpcd_wpapp_params.servers_list_page_url;
+            } else {
+                    location.reload();
+            }
         });
 
         // clicking the install button.
@@ -162,6 +172,7 @@
                 $('.wpcd-install-server').attr('disabled', 'disabled');
                 $('.wpcd-create-popup-fields-wrap').hide(600);
                 $('.wpcd-create-popup-console-wrap').css('float', 'none');
+                $('.wpcd-create-popup-console-wrap').closest('.wpcd-install-popup-container').addClass('wpcd-install-app-container-show-log-console');
 
                 // set a variable that will count how many times we ask for logs and get nothing back...
                 let log_request_count = 0;
@@ -232,9 +243,15 @@
     function initInstallApp() {
         clearInterval(interval);
 
+        var prependTo = null;
+        if( typeof wpcd_wpapp_params != 'undefined' && wpcd_wpapp_params.is_public ) {
+                prependTo = $('#wpcd_public_wrapper');
+        }
+        
         $('a.wpcd_action_install_app, button.wpcd_action_install_app').magnificPopup({
             type: 'ajax',
             modal: true,
+            prependTo : prependTo,
             callbacks: {
                 ajaxContentAdded: function () {
                     $('#wpcd-wp-version').select2({
@@ -352,7 +369,12 @@
         $('body').on('click', '.wpcd-log-close-button, .wpcd-log-close-button a, a.wpcd-log-close-button', function (e) {
             e.preventDefault();
             $.magnificPopup.close();
-            location.reload();
+            //location.reload();
+            if( wpcd_wpapp_params.is_public ) {
+                    window.location.href = wpcd_wpapp_params.servers_list_page_url;
+            } else {
+                    location.reload();
+            }
         });
 
         // clicking the install button.
@@ -374,6 +396,7 @@
                 $('.wpcd-install-app').attr('disabled', 'disabled');
                 $('.wpcd-create-popup-fields-wrap').hide(600);
                 $('.wpcd-create-popup-console-wrap').css('float', 'none');
+                $('.wpcd-create-popup-console-wrap').closest('.wpcd-install-popup-container').addClass('wpcd-install-app-container-show-log-console');
 
                 $.ajax({
                     url: ajaxurl,

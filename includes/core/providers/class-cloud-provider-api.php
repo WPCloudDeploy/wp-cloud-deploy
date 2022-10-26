@@ -153,7 +153,10 @@ class CLOUD_PROVIDER_API {
 		$feature_flags['backups']                              = false;  // Does the provider support creating backups?
 		$feature_flags['enable_dynamic_tags_on_server_create'] = false;  // Does the provider support enabling random tag(s) when a server is initially created?
 		$feature_flags['dynamic_tags']                         = false;  // Does the provider support creating random tags?
+		$feature_flags['custom_images']                        = false;  // Does the provider support creating servers from custom images instead of just standard images?
 		$feature_flags['resize']                               = false;  // Does the provider support resizing operations?
+		$feature_flags['ssh_create']                           = false;  // Does the provider support creating ssh keys?
+		$feature_flags['test_connection']                      = false;  // Does the provider support testing a connection to it?
 
 		$this->set_cache_key_prefix();
 
@@ -421,6 +424,34 @@ class CLOUD_PROVIDER_API {
 
 		return $return;
 
+	}
+
+	/**
+	 * Return the region description given a region code.
+	 *
+	 * Descendent classes should override this function.
+	 * But if they don't we'll just return what's passed in.
+	 *
+	 * @param string $region Region code.
+	 *
+	 * @return string.
+	 */
+	public function get_region_description( $region ) {
+		return $region;
+	}
+
+	/**
+	 * Return the size description given a size code.
+	 *
+	 * Descendant classes should override this function.
+	 * But if they don't we'll just return what's passed in.
+	 *
+	 * @param string $size Size code.
+	 *
+	 * @return string.
+	 */
+	public function get_size_description( $size ) {
+		return $size;
 	}
 
 	/**

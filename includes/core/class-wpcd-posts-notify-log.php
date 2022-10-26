@@ -190,7 +190,7 @@ class WPCD_NOTIFY_LOG extends WPCD_POSTS_LOG {
 		$html          = '';
 		$html         .= sprintf( '<select name="%s" id="filter-by-%s">', $field_key, $field_key );
 		$html         .= sprintf( '<option value="">%s</option>', $first_option );
-		$get_field_key = filter_input( INPUT_GET, $field_key, FILTER_SANITIZE_STRING );
+		$get_field_key = sanitize_text_field( filter_input( INPUT_GET, $field_key, FILTER_UNSAFE_RAW ) );
 		foreach ( $result as $row ) {
 			if ( empty( $row->meta_value ) ) {
 				continue;
@@ -213,13 +213,13 @@ class WPCD_NOTIFY_LOG extends WPCD_POSTS_LOG {
 	public function wpcd_notification_list_parse_query( $query ) {
 		global $pagenow;
 
-		$filter_action = filter_input( INPUT_GET, 'filter_action', FILTER_SANITIZE_STRING );
+		$filter_action = sanitize_text_field( filter_input( INPUT_GET, 'filter_action', FILTER_UNSAFE_RAW ) );
 		if ( is_admin() && $query->is_main_query() && 'wpcd_notify_log' === $query->query['post_type'] && 'edit.php' === $pagenow && ! empty( $filter_action ) ) {
 			$qv = &$query->query_vars;
 
 			// NOTIFICATION TYPE.
 			if ( isset( $_GET['notification_type'] ) && ! empty( $_GET['notification_type'] ) ) {
-				$notification_type = filter_input( INPUT_GET, 'notification_type', FILTER_SANITIZE_STRING );
+				$notification_type = sanitize_text_field( filter_input( INPUT_GET, 'notification_type', FILTER_UNSAFE_RAW ) );
 
 				$qv['meta_query'][] = array(
 					'field'   => 'notification_type',
@@ -230,7 +230,7 @@ class WPCD_NOTIFY_LOG extends WPCD_POSTS_LOG {
 
 			// NOTIFICATION REFERENCE.
 			if ( isset( $_GET['notification_reference'] ) && ! empty( $_GET['notification_reference'] ) ) {
-				$notification_reference = filter_input( INPUT_GET, 'notification_reference', FILTER_SANITIZE_STRING );
+				$notification_reference = sanitize_text_field( filter_input( INPUT_GET, 'notification_reference', FILTER_UNSAFE_RAW ) );
 
 				$qv['meta_query'][] = array(
 					'field'   => 'notification_reference',
@@ -406,7 +406,7 @@ class WPCD_NOTIFY_LOG extends WPCD_POSTS_LOG {
 	 * @param string $notification_reference any additional or third party reference.
 	 * @param int    $post_id The ID of an existing log, if it exists.
 	 */
-	public function add_notify_log_entry( $parent_post_id, $notification_type = 'notice', $message, $notification_reference = '', $post_id = null ) {
+	public function add_notify_log_entry( $parent_post_id, $notification_type, $message, $notification_reference = '', $post_id = null ) {
 
 		// Author is current user or system.
 		$author_id = get_current_user();
@@ -460,10 +460,6 @@ class WPCD_NOTIFY_LOG extends WPCD_POSTS_LOG {
 				set_transient( $transient_key, $post_id, 120 );
 			}
 		}
-
-		// @TODO: This should not be called here every single time the logs are updated. This should have a cron job or something else.
-		/* Clean up old log entries */
-		$this->clean_up_old_log_entries( 'wpcd_notify_log' );
 
 		return $post_id;
 

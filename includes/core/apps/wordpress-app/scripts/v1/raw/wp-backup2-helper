@@ -1,20 +1,36 @@
 #!/bin/bash
 
-
-
 # If the script isn't running from /usr/local/bin, we assume that the user did run it manually by mistake
-if ! dirname $0 | grep -qs "/usr/local/bin"; then
-    echo "This is a helper script not meant to be used standalone"
-    echo "Run wp-backup2.sh to set it up"
-    exit
+if ! dirname $0 | grep -qs "/usr/local/bin"
+then
+	echo "This is a helper script not meant to be used standalone"
+	echo "Run wp-backup2.sh to set it up"
+	exit
 fi
-
-
 
 hour=$(date +%H)
 day=$(date +%A)
 day_month=$(date +%d)
 date=$(date +"%Y-%m-%d"-"%Hh%Mm%Ss")
+
+function check_webserver() {
+        if [ -e /usr/local/lsws/bin/lshttpd ]
+        then
+                if /usr/local/lsws/bin/lshttpd -v | grep -q Open
+                then
+                        webserver_type='ols'
+                elif /usr/local/lsws/bin/lshttpd -v | grep -q Enterprise
+                then
+                        webserver_type='ols-enterprise'
+                fi
+        else
+                webserver_type='nginx'
+        fi
+}
+
+# What's the local server type?
+check_webserver
+
 
 backup_files_complete () {
 	incremental_id=$(head /dev/urandom | tr -dc a-z | head -c 6)
@@ -23,8 +39,10 @@ backup_files_complete () {
 	tar --exclude-from <(printf '%s\n' "$exclusions") -g /etc/wp-backup2/$job_id/incremental_$incremental_id -czf ~/.wp-backup2/$domain/"$domain"_"$date"_fs_$incremental_id.tar.gz $domain/*
 }
 
+
 backup_files_incremental () {
-	if ls /etc/wp-backup2/$job_id/incremental_* 1> /dev/null 2>&1; then
+	if ls /etc/wp-backup2/$job_id/incremental_* 1> /dev/null 2>&1
+	then
 		incremental_id=$(ls /etc/wp-backup2/$job_id/incremental_* | cut -d _ -f 2)
 	else
 		incremental_id=$(head /dev/urandom | tr -dc a-z | head -c 6)
@@ -32,111 +50,137 @@ backup_files_incremental () {
 	tar --exclude-from <(printf '%s\n' "$exclusions") -g /etc/wp-backup2/$job_id/incremental_$incremental_id -czf ~/.wp-backup2/$domain/"$domain"_"$date"_fs_$incremental_id.tar.gz $domain/*
 }
 
-backup_files () {
-    cd /var/www
 
-	if [[ $backup_plan == "complete" ]]; then
+backup_files () {
+	cd /var/www
+
+	if [[ $backup_plan == "complete" ]]
+	then
 		# If $backup_plan == "complete" we just perform a normal complete backup
 		tar --exclude-from <(printf '%s\n' "$exclusions") -czf ~/.wp-backup2/$domain/"$domain"_"$date"_fs.tar.gz $domain/*
-
-	# Else, $backup_plan == "incremental" from now on
-	elif [[ $backup_frequency == "hourly" ]]; then
+		# Else, $backup_plan == "incremental" from now on
+	elif [[ $backup_frequency == "hourly" ]]
+	then
 		# 4 AM is the hour when complete backups will be performed for hourly incremental configurations
-		if [[ $hour = "4" ]]; then
+		if [[ $hour = "4" ]]
+		then
 			backup_files_complete
-		# Else, it is not 4 AM and we perform an incremental backup
+			# Else, it is not 4 AM and we perform an incremental backup
 		else
 			# If this is the first backup run for this $job_id, an $incremental_id will exist and we need to generate one
 			backup_files_incremental
 		fi
-
-	elif [[ $backup_frequency == "daily" ]]; then
-		if [[ $day == "Sunday" ]]; then
+	elif [[ $backup_frequency == "daily" ]]
+	then
+		if [[ $day == "Sunday" ]]
+		then
 			backup_files_complete
 		else
 			backup_files_incremental
 		fi
-
-	elif [[ $backup_frequency == "weekly" ]]; then
+	elif [[ $backup_frequency == "weekly" ]]
+	then
 		# If $day_month -le "7", we are in the first week of the month
-		if [[ $day_month -le "7" ]]; then
+		if [[ $day_month -le "7" ]]
+		then
 			backup_files_complete
 		else
 			backup_files_incremental
 		fi
-
 	fi
-
 }
 
-backup_nginx () {
-    cd /etc/nginx
-	tar -czf ~/.wp-backup2/$domain/"$domain"_"$date"_nginx.tar.gz $(ls sites-enabled/$domain sites-enabled/"$domain"_* htpasswd/$domain htpasswd/"$domain"_* 2>/dev/null)
+
+backup_webserver () {
+	if [ "$webserver_type" = "nginx" ]
+	then
+		cd /etc/nginx
+		tar -czf ~/.wp-backup2/$domain/"$domain"_"$date"_nginx.tar.gz $(ls sites-enabled/$domain sites-enabled/"$domain"_* htpasswd/$domain htpasswd/"$domain"_* 2>/dev/null)
+	elif [ "$webserver_type" = "ols" ]  || [ "$webserver_type" = "ols-enterprise" ]
+	then
+		echo "Backing up OLS configuration..."
+		cd /usr/local/lsws/conf/
+		tar -czf ~/.wp-backup/$domain/"$domain"_"$date"_ols.tar.gz $(ls vhosts/${domain}/* 2>/dev/null)
+	fi
 }
+
 
 backup_database () {
-    mysql_db=$(grep DB_NAME /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
-    mysqldump $mysql_db | gzip -9 > ~/.wp-backup2/$domain/"$domain"_"$date"_db.gz
+	mysql_db=$(grep DB_NAME /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
+	mysqldump --routines $mysql_db | gzip -9 > ~/.wp-backup2/$domain/"$domain"_"$date"_db.gz
 }
+
 
 set_exclusions () {
 	excluded_by_size=$(find /var/www/$domain/html -size +$exclude_size 2>/dev/null)
 	excluded_by_path=$(
-		IFS=","
-		for file in $exclude_files
-		do
-			file=$(echo $file | sed "s/^\///" | sed "s/\/$//")
-			find /var/www/$domain/html/$file -maxdepth 0
-		done
+	IFS=","
+	for file in $exclude_files
+	do
+		file=$(echo $file | sed "s/^\///" | sed "s/\/$//")
+		find /var/www/$domain/html/$file -maxdepth 0
+	done
 	)
+
 	# $excluded_by_path_env is a comma-separated list of paths optionally passed via an environment variable
 	excluded_by_path_env=$(
-		IFS=","
-		for file in $excluded_by_path_env
-		do
-			file=$(echo $file | sed "s/^\///" | sed "s/\/$//")
-			find /var/www/$domain/html/$file -maxdepth 0
-		done
+	IFS=","
+	for file in $excluded_by_path_env
+	do
+		file=$(echo $file | sed "s/^\///" | sed "s/\/$//")
+		find /var/www/$domain/html/$file -maxdepth 0
+	done
 	)
 	# Form full exclusions list
 	# The sed is required because tar does not accept an absolute path
 	exclusions=$(printf '%s\n' "$excluded_by_size" "$excluded_by_path" "$excluded_by_path_env" | sed "s/\/var\/www\///")
 }
 
+
 remote_upload () {
 	IFS=","
 	for remote in $remotes
 	do
-		if [[ $backup_type == "full" ]]; then
+		if [[ $backup_type == "full" ]]
+		then
 			rclone copy ~/.wp-backup2/$domain/ --include "/$domain"_"$date"_"fs*" $remote/$domain
-			rclone copy ~/.wp-backup2/$domain/"$domain"_"$date"_nginx.tar.gz $remote/$domain
+			rclone copy ~/.wp-backup2/$domain/"$domain"_"$date"_"$webserver_type".tar.gz $remote/$domain
 			rclone copy ~/.wp-backup2/$domain/"$domain"_"$date"_db.gz $remote/$domain && echo "$(date) $domain backup successful" >> /var/log/wp-backup2.log || echo "$(date) $domain backup failed" >> /var/log/wp-backup2.log
-		elif [[ $backup_type == "files" ]]; then
+		elif [[ $backup_type == "files" ]]
+		then
 			rclone copy ~/.wp-backup2/$domain/ --include "/$domain"_"$date"_"fs*" $remote/$domain && echo "$(date) $domain backup successful" >> /var/log/wp-backup2.log || echo "$(date) $domain backup failed" >> /var/log/wp-backup2.log
-		elif [[ $backup_type == "database" ]]; then
+		elif [[ $backup_type == "database" ]]
+		then
 			rclone copy ~/.wp-backup2/$domain/"$domain"_"$date"_db.gz $remote/$domain && echo "$(date) $domain backup successful" >> /var/log/wp-backup2.log || echo "$(date) $domain backup failed" >> /var/log/wp-backup2.log
-		elif [[ $backup_type == "nginx" ]]; then
-			rclone copy ~/.wp-backup2/$domain/"$domain"_"$date"_nginx.tar.gz $remote/$domain && echo "$(date) $domain backup successful" >> /var/log/wp-backup2.log || echo "$(date) $domain backup failed" >> /var/log/wp-backup2.log
+		elif [[ $backup_type == "webserver" ]]
+		then
+			rclone copy ~/.wp-backup2/$domain/"$domain"_"$date"_"${webserver_type}".tar.gz $remote/$domain && echo "$(date) $domain backup successful" >> /var/log/wp-backup2.log || echo "$(date) $domain backup failed" >> /var/log/wp-backup2.log
 		fi
 	done
 }
 
-perform_backup () {
 
-	if [[ $site == "*" ]]; then
-		ls /var/www | grep -v html | while read domain; do
+perform_backup () {
+	if [[ $site == "*" ]]
+	then
+		ls /var/www | grep -v html | while read domain
+		do
 			mkdir -p ~/.wp-backup2/$domain/
 			set_exclusions
-			if [[ $backup_type == "full" ]]; then
+			if [[ $backup_type == "full" ]]
+			then
 				backup_files
-				backup_nginx
+				backup_webserver
 				backup_database
-			elif [[ $backup_type == "files" ]]; then
+			elif [[ $backup_type == "files" ]]
+			then
 				backup_files
-			elif [[ $backup_type == "database" ]]; then
+			elif [[ $backup_type == "database" ]]
+			then
 				backup_database
-			elif [[ $backup_type == "nginx" ]]; then
-				backup_nginx
+			elif [[ $backup_type == "webserver" ]]
+			then
+				backup_webserver
 			fi
 			remote_upload
 		done
@@ -144,25 +188,29 @@ perform_backup () {
 		domain="$site"
 		mkdir -p ~/.wp-backup2/$domain/
 		set_exclusions
-		
-		if [[ $backup_type == "full" ]]; then
+		if [[ $backup_type == "full" ]]
+		then
 			backup_files
-			backup_nginx
+			backup_webserver
 			backup_database
-		elif [[ $backup_type == "files" ]]; then
+		elif [[ $backup_type == "files" ]]
+		then
 			backup_files
-		elif [[ $backup_type == "database" ]]; then
+		elif [[ $backup_type == "database" ]]
+		then
 			backup_database
-		elif [[ $backup_type == "nginx" ]]; then
-			backup_nginx
+		elif [[ $backup_type == "webserver" ]]
+		then
+			backup_webserver
 		fi
 		remote_upload
 	fi
-
 }
 
+
 prune_old_backups () {
-	if [[ $site == "*" ]]; then
+	if [[ $site == "*" ]]
+	then
 		find ~/.wp-backup2/ -type f -mtime +$prune_older_than -exec rm -f {} \;
 	else
 		find ~/.wp-backup2/$site/ -type f -mtime +$prune_older_than -exec rm -f {} \;
@@ -170,11 +218,9 @@ prune_old_backups () {
 }
 
 
-
 ls /etc/wp-backup2/ 2>/dev/null |
 while read -r job_id
 do
-
 	site=$(cat /etc/wp-backup2/$job_id/site)
 	backup_type=$(cat /etc/wp-backup2/$job_id/type)
 	backup_plan=$(cat /etc/wp-backup2/$job_id/plan)
@@ -185,19 +231,23 @@ do
 	prune_older_than=$(cat /etc/wp-backup2/$job_id/prune)
 
 	# Perform backup at the scheduled times (for example, a weekly backup will only be executed on Sundays)
-	if [[ $backup_frequency == "hourly" ]]; then
+	if [[ $backup_frequency == "hourly" ]]
+	then
 		perform_backup
-	elif [[ $backup_frequency == "daily" && $hour = "4" ]]; then
+	elif [[ $backup_frequency == "daily" && $hour = "4" ]]
+	then
 		perform_backup
-	elif [[ $backup_frequency == "weekly" && $day = "Sunday" ]]; then
+	elif [[ $backup_frequency == "weekly" && $day = "Sunday" ]]
+	then
 		perform_backup
-	elif [[ $backup_frequency == "monthly" && $day_month = "15" ]]; then
+	elif [[ $backup_frequency == "monthly" && $day_month = "15" ]]
+	then
 		perform_backup
 	fi
 
 	# Prune backups
-	if [[ -n $prune_older_than ]]; then
+	if [[ -n $prune_older_than ]]
+	then
 		prune_old_backups
 	fi
-
 done

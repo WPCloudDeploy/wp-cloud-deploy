@@ -22,6 +22,10 @@ class WPCD_WORDPRESS_TABS_CRONS extends WPCD_WORDPRESS_TABS {
 		add_filter( "wpcd_app_{$this->get_app_name()}_get_tabnames", array( $this, 'get_tab' ), 10, 2 );
 		add_filter( "wpcd_app_{$this->get_app_name()}_get_tabs", array( $this, 'get_tab_fields' ), 10, 2 );
 		add_filter( "wpcd_app_{$this->get_app_name()}_tab_action", array( $this, 'tab_action' ), 10, 3 );
+
+		// Allow the cron action to be triggered via an action hook.  Will primarily be used by the woocommerce add-on and REST API.
+		add_action( 'wpcd_wordpress-app_do_manage_cron_status', array( $this, 'manage_cron_status_action' ), 10, 3 );
+
 	}
 
 	/**
@@ -64,6 +68,11 @@ class WPCD_WORDPRESS_TABS_CRONS extends WPCD_WORDPRESS_TABS {
 	 * @return boolean
 	 */
 	public function get_tab_security( $id ) {
+		// If admin has an admin lock in place and the user is not admin they cannot view the tab or perform actions on them.
+		if ( $this->get_admin_lock_status( $id ) && ! wpcd_is_admin() ) {
+			return false;
+		}
+		// If we got here then check team and other permissions.
 		return ( true === $this->wpcd_wpapp_site_user_can( $this->get_view_tab_team_permission_slug(), $id ) && true === $this->wpcd_can_author_view_site_tab( $id, $this->get_tab_slug() ) );
 	}
 
@@ -177,7 +186,7 @@ class WPCD_WORDPRESS_TABS_CRONS extends WPCD_WORDPRESS_TABS {
 		/* Get the cron interval that is currently set */
 		$current_cron_interval = get_post_meta( $id, 'wpapp_wp_linux_cron_interval', true );
 		if ( empty( $current_cron_interval ) ) {
-			$current_cron_interval = '1m';
+			$current_cron_interval = '15m';
 		}
 
 		$actions['wp-linux-cron-header'] = array(
@@ -234,24 +243,50 @@ class WPCD_WORDPRESS_TABS_CRONS extends WPCD_WORDPRESS_TABS {
 
 	}
 
+	/**
+	 * Turn on/off the WP linux cron triggered via an action hook.
+	 *
+	 * Action Hook: wpcd_wordpress-app_do_manage_cron_status
+	 *
+	 * @param int    $id     The postID of the app cpt.
+	 * @param string $action The action to be performed 'disable_system_cron' or 'enable_system_cron'  (this matches the string required in the bash scripts).
+	 * @param string $interval Interval of cron if we're enabling it.
+	 */
+	public function manage_cron_status_action( $id, $action, $interval = '15m' ) {
+
+		$args['wp_linux_cron_interval'] = $interval;
+
+		$result = $this->toggle_wp_linux_cron_status( $id, $action, $args );
+		if ( ! is_wp_error( $result ) ) {
+			update_post_meta( $id, 'wpapp_wp_linux_cron_status', $action === 'enable_system_cron' ? 'on' : 'off' );
+			$result = array( 'refresh' => 'yes' );
+		}
+
+	}
+
 
 	/**
 	 * Turn on/off the WP linux cron.
 	 *
-	 * @param int    $id     The postID of the app cpt.
-	 * @param string $action The action to be performed 'enable' or 'disable'  (this matches the string required in the bash scripts).
+	 * @param int    $id      The postID of the app cpt.
+	 * @param string $action  The action to be performed 'enable' or 'disable'  (this matches the string required in the bash scripts).
+	 * @param array  $in_args Alternative source of arguments.
 	 *
 	 * @return boolean|WP_Error    success/failure
 	 */
-	private function toggle_wp_linux_cron_status( $id, $action ) {
+	private function toggle_wp_linux_cron_status( $id, $action, $in_args = array() ) {
 		$instance = $this->get_app_instance_details( $id );
 
 		if ( is_wp_error( $instance ) ) {
 			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
 		}
 
-		// Get data from the POST request.
-		$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
+		if ( empty( $in_args ) ) {
+			// Get data from the POST request.
+			$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
+		} else {
+			$args = $in_args;
+		}
 
 		// Special sanitization for the interval...
 		$new_cron_interval = '1h';

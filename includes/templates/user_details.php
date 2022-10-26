@@ -13,7 +13,7 @@ if ( empty( $server_posts ) && empty( $app_posts ) ) {
 
 if ( ! empty( $server_posts ) || ! empty( $app_posts ) ) {
 	?>
-	<h2><?php echo esc_html( __( 'List of Servers or Apps that the user can view', 'wpcd' ) ); ?></h2>
+	<h2><?php echo esc_html( __( 'List of Servers and Apps that this user can view', 'wpcd' ) ); ?></h2>
 	<?php
 }
 

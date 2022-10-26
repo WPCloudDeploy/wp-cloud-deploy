@@ -60,12 +60,12 @@ class WPCD_SYNC {
 	public function check_for_settings_values_changed( $object_id ) {
 		if ( true === is_admin() && 'wpcd_settings' === $object_id ) {
 
-			$wpcd_sync_target_site    = filter_input( INPUT_POST, 'wpcd_sync_target_site', FILTER_SANITIZE_STRING );
-			$wpcd_sync_enc_key        = filter_input( INPUT_POST, 'wpcd_sync_enc_key', FILTER_SANITIZE_STRING );
-			$wpcd_sync_user_id        = filter_input( INPUT_POST, 'wpcd_sync_user_id', FILTER_SANITIZE_STRING );
-			$wpcd_sync_password       = filter_input( INPUT_POST, 'wpcd_sync_password', FILTER_SANITIZE_STRING );
+			$wpcd_sync_target_site    = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_sync_target_site', FILTER_UNSAFE_RAW ) );
+			$wpcd_sync_enc_key        = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_sync_enc_key', FILTER_UNSAFE_RAW ) );
+			$wpcd_sync_user_id        = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_sync_user_id', FILTER_UNSAFE_RAW ) );
+			$wpcd_sync_password       = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_sync_password', FILTER_UNSAFE_RAW ) );
 			$wpcd_sync_auto_export    = filter_input( INPUT_POST, 'wpcd_sync_auto_export', FILTER_SANITIZE_NUMBER_INT );
-			$wpcd_sync_set_cron       = filter_input( INPUT_POST, 'wpcd_sync_set_cron', FILTER_SANITIZE_STRING );
+			$wpcd_sync_set_cron       = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_sync_set_cron', FILTER_UNSAFE_RAW ) );
 			$wpcd_export_all_settings = filter_input( INPUT_POST, 'wpcd_export_all_settings', FILTER_SANITIZE_NUMBER_INT );
 			$ajax                     = 0;
 
@@ -153,8 +153,8 @@ class WPCD_SYNC {
 
 		global $wpdb;
 
-		$file_name  = filter_input( INPUT_POST, 'file_name', FILTER_SANITIZE_STRING );
-		$restore_id = filter_input( INPUT_POST, 'restore_id', FILTER_SANITIZE_STRING );
+		$file_name  = sanitize_text_field( filter_input( INPUT_POST, 'file_name', FILTER_UNSAFE_RAW ) );
+		$restore_id = sanitize_text_field( filter_input( INPUT_POST, 'restore_id', FILTER_UNSAFE_RAW ) );
 
 		$user_id = get_current_user_id();
 
@@ -204,10 +204,10 @@ class WPCD_SYNC {
 
 		global $wpdb;
 
-		$file_name       = filter_input( INPUT_POST, 'file_name', FILTER_SANITIZE_STRING );
-		$restore_id      = filter_input( INPUT_POST, 'restore_id', FILTER_SANITIZE_STRING );
+		$file_name       = sanitize_text_field( filter_input( INPUT_POST, 'file_name', FILTER_UNSAFE_RAW ) );
+		$restore_id      = sanitize_text_field( filter_input( INPUT_POST, 'restore_id', FILTER_UNSAFE_RAW ) );
 		$delete_existing = filter_input( INPUT_POST, 'delete_existing', FILTER_VALIDATE_BOOLEAN );
-		$key             = filter_input( INPUT_POST, 'decryption_key_to_restore', FILTER_SANITIZE_STRING );
+		$key             = sanitize_text_field( filter_input( INPUT_POST, 'decryption_key_to_restore', FILTER_UNSAFE_RAW ) );
 
 		$user_id = get_current_user_id();
 
@@ -316,51 +316,59 @@ class WPCD_SYNC {
 						if ( $wpcd_permission_rule ) {
 							$new_wpcd_permission_rule = array();
 							foreach ( $wpcd_permission_rule as $rule ) {
-								$rule['wpcd_team_member'] = $new_user_ids[ $rule['wpcd_team_member'] ];
-
-								$server_permissions = $rule['wpcd_server_permissions'];
-
-								if ( $server_permissions ) {
-									foreach ( $server_permissions as $key => $server_permission ) {
-
-										// Get the ID of permission post by permission name.
-										$posts = get_posts(
-											array(
-												'post_type' => 'wpcd_permission_type',
-												'post_status' => 'private',
-												'meta_key' => 'wpcd_permission_name',
-												'meta_value' => $server_permission,
-												'fields'   => 'ids',
-												'posts_per_page' => 1,
-											)
-										);
-
-										$server_permissions[ $key ] = $posts ? $posts[0] : '';
-									}
-									// update the server permission ids on Target Site.
-									$rule['wpcd_server_permissions'] = $server_permissions;
+								if ( isset( $rule['wpcd_team_member'] ) ) {
+									$rule['wpcd_team_member'] = $new_user_ids[ $rule['wpcd_team_member'] ];
+								} else {
+									$rule['wpcd_team_member'] = 0;
 								}
 
-								$app_permissions = $rule['wpcd_app_permissions'];
-								if ( $app_permissions ) {
-									foreach ( $app_permissions as $key => $app_permission ) {
+								if ( isset( $rule['wpcd_server_permissions'] ) ) {
+									$server_permissions = $rule['wpcd_server_permissions'];
 
-										// Get the ID of permission post by permission name.
-										$posts = get_posts(
-											array(
-												'post_type' => 'wpcd_permission_type',
-												'post_status' => 'private',
-												'meta_key' => 'wpcd_permission_name',
-												'meta_value' => $app_permission,
-												'fields'   => 'ids',
-												'posts_per_page' => 1,
-											)
-										);
+									if ( $server_permissions ) {
+										foreach ( $server_permissions as $key => $server_permission ) {
 
-										// update the app permission ids on Target Site.
-										$app_permissions[ $key ] = $posts ? $posts[0] : '';
+											// Get the ID of permission post by permission name.
+											$posts = get_posts(
+												array(
+													'post_type' => 'wpcd_permission_type',
+													'post_status' => 'private',
+													'meta_key' => 'wpcd_permission_name',
+													'meta_value' => $server_permission,
+													'fields'   => 'ids',
+													'posts_per_page' => 1,
+												)
+											);
+
+											$server_permissions[ $key ] = $posts ? $posts[0] : '';
+										}
+										// update the server permission ids on Target Site.
+										$rule['wpcd_server_permissions'] = $server_permissions;
 									}
-									$rule['wpcd_app_permissions'] = $app_permissions;
+								}
+
+								if ( isset( $rule['wpcd_app_permissions'] ) ) {
+									$app_permissions = $rule['wpcd_app_permissions'];
+									if ( $app_permissions ) {
+										foreach ( $app_permissions as $key => $app_permission ) {
+
+											// Get the ID of permission post by permission name.
+											$posts = get_posts(
+												array(
+													'post_type' => 'wpcd_permission_type',
+													'post_status' => 'private',
+													'meta_key' => 'wpcd_permission_name',
+													'meta_value' => $app_permission,
+													'fields'   => 'ids',
+													'posts_per_page' => 1,
+												)
+											);
+
+											// update the app permission ids on Target Site.
+											$app_permissions[ $key ] = $posts ? $posts[0] : '';
+										}
+										$rule['wpcd_app_permissions'] = $app_permissions;
+									}
 								}
 
 								// Assign the updated rule to a new array.
@@ -381,185 +389,189 @@ class WPCD_SYNC {
 			$parent_post_ids = array();
 
 			// Server posts to be imported.
-			foreach ( $server_posts as $server_post ) {
-				$post_data = array();
+			if ( ! empty( $server_posts ) ) {
+				foreach ( $server_posts as $server_post ) {
+					$post_data = array();
 
-				$args = array(
-					'name'        => $server_post['post_title'],
-					'post_type'   => $server_post['post_type'],
-					'post_status' => $server_post['post_status'],
-					'numberposts' => 1,
-				);
+					$args = array(
+						'name'        => $server_post['post_title'],
+						'post_type'   => $server_post['post_type'],
+						'post_status' => $server_post['post_status'],
+						'numberposts' => 1,
+					);
 
-				$posts = get_posts( $args );
+					$posts = get_posts( $args );
 
-				// If the same post exists.
-				if ( count( $posts ) ) {
-					// If delete_existing is true then it will delete the existing server post.
-					if ( $delete_existing ) {
-						$post_id = $posts[0]->ID;
-						// This will delete the post forcefully and not fire certain hooks.
-						wp_delete_post( $post_id, true );
-					} else {
-						continue;
-					}
-				}
-
-				$user_email = $server_post['user_info']['user_email'];
-				$user       = get_user_by( 'email', $user_email );
-
-				if ( $user ) {
-					$post_author = $user->ID;
-				} else {
-					$user_name       = $server_post['user_info']['user_login'];
-					$random_password = wp_generate_password();
-					$post_author     = wp_create_user( $user_name, $random_password, $user_email );
-
-					// If user is created, assign a role to the user.
-					if ( ! is_wp_error( $post_author ) ) {
-						$user_roles = $server_post['user_info']['user_roles'];
-						foreach ( $user_roles as $role ) {
-							$user = new WP_User( $post_author );
-							$user->add_role( $role );
+					// If the same post exists.
+					if ( count( $posts ) ) {
+						// If delete_existing is true then it will delete the existing server post.
+						if ( $delete_existing ) {
+							$post_id = $posts[0]->ID;
+							// This will delete the post forcefully and not fire certain hooks.
+							wp_delete_post( $post_id, true );
+						} else {
+							continue;
 						}
 					}
-				}
 
-				// check if $post_author doesnt result in WP Error.
-				if ( is_wp_error( $post_author ) ) {
-					$post_author = get_current_user_id();
-				}
+					$user_email = $server_post['user_info']['user_email'];
+					$user       = get_user_by( 'email', $user_email );
 
-				$post_data['post_title']  = $server_post['post_title'];
-				$post_data['post_type']   = $server_post['post_type'];
-				$post_data['post_status'] = $server_post['post_status'];
-				$post_data['post_author'] = $post_author;
+					if ( $user ) {
+						$post_author = $user->ID;
+					} else {
+						$user_name       = $server_post['user_info']['user_login'];
+						$random_password = wp_generate_password();
+						$post_author     = wp_create_user( $user_name, $random_password, $user_email );
 
-				// insert the server post.
-				$post_id = wp_insert_post( $post_data );
-
-				// if the server post inserted, add the meta related to it.
-				if ( ( ! empty( $post_id ) ) && ( ! is_wp_error( $post_id ) ) ) {
-					foreach ( $server_post['post_meta'] as $key => $value ) {
-
-						if ( 'wpcd_assigned_teams' === $key ) {
-							$wpcd_assigned_teams = $value;
-
-							if ( $wpcd_assigned_teams ) {
-								foreach ( $wpcd_assigned_teams as $team_id ) {
-									add_post_meta( $post_id, 'wpcd_assigned_teams', $new_team_ids[ $team_id ], false );
-								}
-								continue;
+						// If user is created, assign a role to the user.
+						if ( ! is_wp_error( $post_author ) ) {
+							$user_roles = $server_post['user_info']['user_roles'];
+							foreach ( $user_roles as $role ) {
+								$user = new WP_User( $post_author );
+								$user->add_role( $role );
 							}
 						}
+					}
 
-						if ( 'wpcd_server_post_id' === $key ) {
-							$parent_post_ids[ $value ] = $post_id;
-							$value                     = $post_id;
+					// check if $post_author doesnt result in WP Error.
+					if ( is_wp_error( $post_author ) ) {
+						$post_author = get_current_user_id();
+					}
+
+					$post_data['post_title']  = $server_post['post_title'];
+					$post_data['post_type']   = $server_post['post_type'];
+					$post_data['post_status'] = $server_post['post_status'];
+					$post_data['post_author'] = $post_author;
+
+					// insert the server post.
+					$post_id = wp_insert_post( $post_data );
+
+					// if the server post inserted, add the meta related to it.
+					if ( ( ! empty( $post_id ) ) && ( ! is_wp_error( $post_id ) ) ) {
+						foreach ( $server_post['post_meta'] as $key => $value ) {
+
+							if ( 'wpcd_assigned_teams' === $key ) {
+								$wpcd_assigned_teams = $value;
+
+								if ( $wpcd_assigned_teams ) {
+									foreach ( $wpcd_assigned_teams as $team_id ) {
+										add_post_meta( $post_id, 'wpcd_assigned_teams', $new_team_ids[ $team_id ], false );
+									}
+									continue;
+								}
+							}
+
+							if ( 'wpcd_server_post_id' === $key ) {
+								$parent_post_ids[ $value ] = $post_id;
+								$value                     = $post_id;
+							}
+
+							// meta keys that contains serialized value.
+							$values_to_unserialize_keys = array(
+								'wpcd_server_actions',
+								'wpcd_server_last_deferred_action_source',
+								'wpcd_server_status_push',
+								'wpcd_server_status_push_history',
+							);
+
+							if ( in_array( $key, $values_to_unserialize_keys ) ) {
+								$value = unserialize( $value );
+							}
+
+							update_post_meta( $post_id, $key, $value );
 						}
-
-						// meta keys that contains serialized value.
-						$values_to_unserialize_keys = array(
-							'wpcd_server_actions',
-							'wpcd_server_last_deferred_action_source',
-							'wpcd_server_status_push',
-							'wpcd_server_status_push_history',
-						);
-
-						if ( in_array( $key, $values_to_unserialize_keys ) ) {
-							$value = unserialize( $value );
-						}
-
-						update_post_meta( $post_id, $key, $value );
 					}
 				}
 			}
 
 			// App posts to be imported.
-			foreach ( $app_posts as $app_post ) {
-				$post_data = array();
+			if ( ! empty( $app_posts ) ) {
+				foreach ( $app_posts as $app_post ) {
+					$post_data = array();
 
-				$args = array(
-					'name'        => $app_post['post_title'],
-					'post_type'   => $app_post['post_type'],
-					'post_status' => $app_post['post_status'],
-					'numberposts' => 1,
-				);
+					$args = array(
+						'name'        => $app_post['post_title'],
+						'post_type'   => $app_post['post_type'],
+						'post_status' => $app_post['post_status'],
+						'numberposts' => 1,
+					);
 
-				$posts = get_posts( $args );
+					$posts = get_posts( $args );
 
-				// If the same post exists.
-				if ( count( $posts ) ) {
-					// If delete_existing is true then it will delete the existing app post.
-					if ( $delete_existing ) {
-						$post_id = $posts[0]->ID;
-						// This will delete the post forcefully and not fire certain hooks.
-						wp_delete_post( $post_id, true );
-					} else {
-						continue;
-					}
-				}
-
-				$user_email = $app_post['user_info']['user_email'];
-				$user       = get_user_by( 'email', $user_email );
-
-				if ( $user ) {
-					$post_author = $user->ID;
-				} else {
-					$user_name       = $app_post['user_info']['user_login'];
-					$random_password = wp_generate_password();
-					$post_author     = wp_create_user( $user_name, $random_password, $user_email );
-
-					// If user is created, assign a role to the user.
-					if ( ! is_wp_error( $post_author ) ) {
-						$user_roles = $app_post['user_info']['user_roles'];
-						foreach ( $user_roles as $role ) {
-							$user = new WP_User( $post_author );
-							$user->add_role( $role );
+					// If the same post exists.
+					if ( count( $posts ) ) {
+						// If delete_existing is true then it will delete the existing app post.
+						if ( $delete_existing ) {
+							$post_id = $posts[0]->ID;
+							// This will delete the post forcefully and not fire certain hooks.
+							wp_delete_post( $post_id, true );
+						} else {
+							continue;
 						}
 					}
-				}
 
-				// check if $post_author doesnt result in WP Error.
-				if ( is_wp_error( $post_author ) ) {
-					$post_author = get_current_user_id();
-				}
+					$user_email = $app_post['user_info']['user_email'];
+					$user       = get_user_by( 'email', $user_email );
 
-				$post_data['post_title']  = $app_post['post_title'];
-				$post_data['post_type']   = $app_post['post_type'];
-				$post_data['post_status'] = $app_post['post_status'];
-				$post_data['post_author'] = $post_author;
+					if ( $user ) {
+						$post_author = $user->ID;
+					} else {
+						$user_name       = $app_post['user_info']['user_login'];
+						$random_password = wp_generate_password();
+						$post_author     = wp_create_user( $user_name, $random_password, $user_email );
 
-				// insert the server post.
-				$post_id = wp_insert_post( $post_data );
-
-				// if the server post inserted, add the meta related to it.
-				if ( ( ! empty( $post_id ) ) && ( ! is_wp_error( $post_id ) ) ) {
-					foreach ( $app_post['post_meta'] as $key => $value ) {
-
-						if ( 'wpcd_assigned_teams' === $key ) {
-							$wpcd_assigned_teams = $value;
-
-							if ( $wpcd_assigned_teams ) {
-								foreach ( $wpcd_assigned_teams as $team_id ) {
-									add_post_meta( $post_id, 'wpcd_assigned_teams', $new_team_ids[ $team_id ], false );
-								}
-								continue;
+						// If user is created, assign a role to the user.
+						if ( ! is_wp_error( $post_author ) ) {
+							$user_roles = $app_post['user_info']['user_roles'];
+							foreach ( $user_roles as $role ) {
+								$user = new WP_User( $post_author );
+								$user->add_role( $role );
 							}
 						}
+					}
 
-						if ( 'parent_post_id' == $key ) {
-							$value = $parent_post_ids[ $value ];
+					// check if $post_author doesnt result in WP Error.
+					if ( is_wp_error( $post_author ) ) {
+						$post_author = get_current_user_id();
+					}
+
+					$post_data['post_title']  = $app_post['post_title'];
+					$post_data['post_type']   = $app_post['post_type'];
+					$post_data['post_status'] = $app_post['post_status'];
+					$post_data['post_author'] = $post_author;
+
+					// insert the server post.
+					$post_id = wp_insert_post( $post_data );
+
+					// if the server post inserted, add the meta related to it.
+					if ( ( ! empty( $post_id ) ) && ( ! is_wp_error( $post_id ) ) ) {
+						foreach ( $app_post['post_meta'] as $key => $value ) {
+
+							if ( 'wpcd_assigned_teams' === $key ) {
+								$wpcd_assigned_teams = $value;
+
+								if ( $wpcd_assigned_teams ) {
+									foreach ( $wpcd_assigned_teams as $team_id ) {
+										add_post_meta( $post_id, 'wpcd_assigned_teams', $new_team_ids[ $team_id ], false );
+									}
+									continue;
+								}
+							}
+
+							if ( 'parent_post_id' == $key ) {
+								$value = $parent_post_ids[ $value ];
+							}
+
+							// meta keys that contains serialized value.
+							$values_to_unserialize_keys = array( 'wpcd_app_action_args' );
+
+							if ( in_array( $key, $values_to_unserialize_keys ) ) {
+								$value = unserialize( $value );
+							}
+
+							update_post_meta( $post_id, $key, $value );
 						}
-
-						// meta keys that contains serialized value.
-						$values_to_unserialize_keys = array( 'wpcd_app_action_args' );
-
-						if ( in_array( $key, $values_to_unserialize_keys ) ) {
-							$value = unserialize( $value );
-						}
-
-						update_post_meta( $post_id, $key, $value );
 					}
 				}
 			}
@@ -775,10 +787,10 @@ class WPCD_SYNC {
 
 		}
 
-		$wpcd_sync_target_site    = filter_input( INPUT_POST, 'wpcd_sync_target_site', FILTER_SANITIZE_STRING );
-		$wpcd_sync_enc_key        = filter_input( INPUT_POST, 'wpcd_sync_enc_key', FILTER_SANITIZE_STRING );
-		$wpcd_sync_user_id        = filter_input( INPUT_POST, 'wpcd_sync_user_id', FILTER_SANITIZE_STRING );
-		$wpcd_sync_password       = filter_input( INPUT_POST, 'wpcd_sync_password', FILTER_SANITIZE_STRING );
+		$wpcd_sync_target_site    = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_sync_target_site', FILTER_UNSAFE_RAW ) );
+		$wpcd_sync_enc_key        = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_sync_enc_key', FILTER_UNSAFE_RAW ) );
+		$wpcd_sync_user_id        = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_sync_user_id', FILTER_UNSAFE_RAW ) );
+		$wpcd_sync_password       = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_sync_password', FILTER_UNSAFE_RAW ) );
 		$wpcd_export_all_settings = filter_input( INPUT_POST, 'wpcd_export_all_settings', FILTER_SANITIZE_NUMBER_INT );
 
 		$wpcd_sync_target_site = WPCD()->encrypt( $wpcd_sync_target_site );
@@ -919,44 +931,50 @@ class WPCD_SYNC {
 					if ( $wpcd_permission_rule ) {
 						$new_wpcd_permission_rule = array();
 						foreach ( $wpcd_permission_rule as $rule ) {
-							$server_permissions = $rule['wpcd_server_permissions'];
 
-							if ( $server_permissions ) {
-								foreach ( $server_permissions as $key => $server_permission ) {
-									$server_permissions[ $key ] = get_post_meta( $server_permission, 'wpcd_permission_name', true );
+							if ( isset( $rule['wpcd_server_permissions'] ) ) {
+								$server_permissions = $rule['wpcd_server_permissions'];
+
+								if ( $server_permissions ) {
+									foreach ( $server_permissions as $key => $server_permission ) {
+										$server_permissions[ $key ] = get_post_meta( $server_permission, 'wpcd_permission_name', true );
+									}
+									$rule['wpcd_server_permissions'] = $server_permissions;
 								}
-								$rule['wpcd_server_permissions'] = $server_permissions;
 							}
 
-							$app_permissions = $rule['wpcd_app_permissions'];
-							if ( $app_permissions ) {
-								foreach ( $app_permissions as $key => $app_permission ) {
-									$app_permissions[ $key ] = get_post_meta( $app_permission, 'wpcd_permission_name', true );
+							if ( isset( $rule['wpcd_app_permissions'] ) ) {
+								$app_permissions = $rule['wpcd_app_permissions'];
+								if ( $app_permissions ) {
+									foreach ( $app_permissions as $key => $app_permission ) {
+										$app_permissions[ $key ] = get_post_meta( $app_permission, 'wpcd_permission_name', true );
+									}
+									$rule['wpcd_app_permissions'] = $app_permissions;
 								}
-								$rule['wpcd_app_permissions'] = $app_permissions;
+								$new_wpcd_permission_rule[] = $rule;
 							}
-							$new_wpcd_permission_rule[] = $rule;
+
+							$team_member = 0;
+							if ( isset( $rule['wpcd_team_member'] ) ) {
+								$team_member = $rule['wpcd_team_member'];
+							}
+
+							// Get user by ID.
+							$user = new WP_User( $team_member );
+
+							// if user id exists then continue.
+							if ( array_key_exists( $team_member, $exported_users ) ) {
+								continue;
+							}
+
+							// user data to be exported.
+							$exported_users[ $team_member ]['user_id']    = $team_member;
+							$exported_users[ $team_member ]['user_login'] = $user->data->user_login;
+							$exported_users[ $team_member ]['user_email'] = $user->data->user_email;
+							$exported_users[ $team_member ]['user_roles'] = $user->roles;
 						}
 
 						$team_posts[ $team->ID ]['post_meta']['wpcd_permission_rule'] = $new_wpcd_permission_rule;
-					}
-
-					foreach ( $wpcd_permission_rule as $rule ) {
-						$team_member = $rule['wpcd_team_member'];
-
-						// Get user by ID.
-						$user = new WP_User( $team_member );
-
-						// if user id exists then continue.
-						if ( array_key_exists( $team_member, $exported_users ) ) {
-							continue;
-						}
-
-						// user data to be exported.
-						$exported_users[ $team_member ]['user_id']    = $team_member;
-						$exported_users[ $team_member ]['user_login'] = $user->data->user_login;
-						$exported_users[ $team_member ]['user_email'] = $user->data->user_email;
-						$exported_users[ $team_member ]['user_roles'] = $user->roles;
 					}
 				}
 
@@ -1064,7 +1082,7 @@ class WPCD_SYNC {
 
 		}
 
-		$wpcd_encryption_key_v2 = filter_input( INPUT_POST, 'wpcd_encryption_key_v2', FILTER_SANITIZE_STRING );
+		$wpcd_encryption_key_v2 = sanitize_text_field( filter_input( INPUT_POST, 'wpcd_encryption_key_v2', FILTER_UNSAFE_RAW ) );
 
 		update_option( 'wpcd_encryption_key_v2', $wpcd_encryption_key_v2 );
 

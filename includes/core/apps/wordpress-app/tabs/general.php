@@ -132,12 +132,18 @@ class WPCD_WORDPRESS_TABS_GENERAL extends WPCD_WORDPRESS_TABS {
 	 */
 	public function get_actions( $id ) {
 
+		// If admin has an admin lock in place and the user is not admin they should see a locked notice instead of the general fields.
+		if ( $this->get_admin_lock_status( $id ) && ! wpcd_is_admin() ) {
+			return $this->get_general_fields_admin_locked( $id );
+		}
+
 		return $this->get_general_fields( $id );
 
 	}
 
 	/**
-	 * Gets the fields GENERAL tab.
+	 * Gets the fields for the GENERAL tab if the site is not locked by the admin.
+	 * If the site is locked by the admin, there's a different function to return fields (below this one).
 	 *
 	 * @param int $id the post id of the app cpt record.
 	 *
@@ -172,7 +178,7 @@ class WPCD_WORDPRESS_TABS_GENERAL extends WPCD_WORDPRESS_TABS {
 
 			// SSL Status.
 			$config_desc .= '<br />';
-			if ( 'on' === get_post_meta( $id, 'wpapp_ssl_status', true ) ) {
+			if ( true === $this->get_site_local_ssl_status( $id ) ) {
 				$ssl          = true;
 				$config_desc .= $ok_span . __( 'Your site seems to be secured with SSL.', 'wpcd' );
 			} else {
@@ -225,6 +231,42 @@ class WPCD_WORDPRESS_TABS_GENERAL extends WPCD_WORDPRESS_TABS {
 			),
 			'type'           => 'custom_html',
 		);
+
+		return $actions;
+
+	}
+
+	/**
+	 * Gets the fields for the GENERAL tab if the site is locked by the admin.
+	 *
+	 * @param int $id the post id of the app cpt record.
+	 *
+	 * @return array Array of actions with key as the action slug and value complying with the structure necessary by metabox.io fields.
+	 */
+	private function get_general_fields_admin_locked( $id ) {
+
+		$actions = array();
+
+		// What message should we display to the user?
+		$user_msg = wpcd_get_early_option( 'wordpress_app_sites_default_admin_lock_msg' );
+
+		$actions['general-welcome-header'] = array(
+			'label'          => __( 'This site is locked.', 'wpcd' ),
+			'type'           => 'heading',
+			'raw_attributes' => array(
+				'desc' => empty( $user_msg ) ? __( 'This is has been locked by the administrator. Please contact support.', 'wpcd' ) : '',
+			),
+		);
+
+		if ( ! empty( $user_msg ) ) {
+			$actions['general-admin-locked-user-msg'] = array(
+				'type'           => 'custom_html',
+				'raw_attributes' => array(
+					'std'  => $user_msg,
+					'desc' => '',
+				),
+			);
+		}
 
 		return $actions;
 

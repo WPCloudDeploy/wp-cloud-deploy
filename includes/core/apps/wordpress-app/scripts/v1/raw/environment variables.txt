@@ -1,0 +1,976 @@
+This file describes the environment variables which are used during script execution, if they are set.
+If they aren't set, interactive input is requested.
+
+-----------------------------------
+01-prepare_server.sh
+-----------------------------------
+$interactive = if value is set to "no", the script will automatically start setup without confirmation
+$webserver_type = 'nginx', 'ols', 'ols-enterprise'.
+$name = Name of the server (optional)
+$post_id = Post ID of the server (optional)
+$post_processing_script_server = A url to a script to execute at the end of 01-prepare_server.sh (optional)
+$secret_key_manager_api_key = A value that can be used by the post processing scripts to access a key manager (optional)
+
+
+-----------------------------------
+02-install_wordpress_site.sh
+-----------------------------------
+$domain = domain name for the site (example: myblog.com)
+$wp_user = name for the WordPress administrative user (example: admin)
+$wp_password = password for the WordPress administrative user
+$wp_email = email address for the WordPress administrative user (example: admin@example.com)
+$wp_version = WordPress to install (examples: latest, nightly, 4.0, 5.3.2)
+$wp_locale = WordPress locale to configure (examples: en_US, es_ES)
+
+
+-----------------------------------
+03-disable-remove-site.sh
+-----------------------------------
+$domain = domain name of the site to be disabled/enabled/removed
+$action = "disable", "enable", "remove" (to remove a site but keep the backups) or "remove_full" (to remove a site and its local backups)
+
+
+-----------------------------------
+04-manage_https.sh
+-----------------------------------
+$domain = domain name for which you want to enable or disable Let's Encrypt
+$action = "enable", "disable", "enable_http2", "disable_http2"
+
+For $action = "enable", the following additional variable is needed:
+$email = email for administrative notifications about the certificate
+
+
+-----------------------------------
+05-change_domain.sh
+-----------------------------------
+$old_domain = old domain of the site which you wish to retire
+$new_domain = new domain where you want the site moved to
+$action = "domain_only" to only change the domain, "replace_domain" to search and replace post content or "dry_run" to show what would be replaced.
+
+
+-----------------------------------
+06-add_remove_sftp
+-----------------------------------
+$action = "add" or "remove" to add or remove users, "set_key" or "remove_key" to set or remove public keys, "change_password" or "remove_password" to set or remove passwords.
+
+For $action = "add", the following variables are needed:
+$domain = domain name of the site for the user to have access via SFTP (example: myblog.com)
+$user = user name for SFTP login
+$pass = password for SFTP login
+
+For $action = "remove", the following variable is needed:
+$user = SFTP user name which you wish to delete
+
+For $action = "set_key", the following variables are needed:
+$user = SFTP user name to configure the public key for
+$public_key = path to the public key file (example: /root/my_public_key.pub)
+
+For $action = "remove_key", the following variable is needed:
+$user = SFTP user name to remove the public key for
+
+For $action = "change_password", the following variables are needed:
+$user = user name to change the password for
+$pass = new password for the user
+
+For $action = "remove_password", the following variable is needed:
+$user = user name to remove the password for
+
+
+-----------------------------------
+07-phpmyadmin.sh
+-----------------------------------
+$domain = domain of the website which you want to work with (example: myblog.com)
+	Note: prior version of this parameter used $site. It was changed to $domain when we added OLS functionality.
+$action = "install", "update", "change_auth" or "remove" to install phpMyAdmin, update to the latest version, change the login credentials or remove phpMyAdmin respectively.
+
+For $action = "change_auth", the following variables are needed:
+$mysql_user = new user name
+$mysql_password = new password
+
+$action = "enable_phpmyadmin_whitelist", "disable_phpmyadmin_whitelist", "add_whitelisted_ip" or "remove_whitelisted_ip" to enable or disable the phpMyAdmin IP whitelist and to add or remove whitelisted IP addresses.
+
+For $action = "add_whitelisted_ip" or "remove_whitelisted_ip", the following variable is needed:
+$ip = IP address to add or remove
+
+
+-----------------------------------
+08-backup.sh
+-----------------------------------
+If it's our first time, the AWS S3 credentials will need to be configured.
+This can be done running the script interactively or setting the following variables:
+$aws_access_key_id = AWS Access Key ID
+$aws_secret_access_key = AWS Secret Access Key
+$aws_region = default region
+If it is not our first time but all three variables are set, the AWS credentials will be overwritten with the new values.
+
+For $action = "backup", the following variables are needed:
+$domain = domain of the website to create a backup from (example: myblog.com)
+$aws_bucket_name = AWS S3 bucket name where you want to save the backup
+optional: $callback_domain - the domain to report the start and end of the backups. We had to hardcode the callback url so only need the domain.
+optional: $s3_endpoint - set if using an alternative s3-compatible service to AWS. If this parameter is set, the $callback_domain must also be set!
+
+
+For $action = "restore", the following variables are needed:
+$site = domain of the website to restore (example: myblog.com)
+$overwrite = set it to "yes" if the site already exists and you still want to restore it. This is a safety measure.
+$backup = backup name in the following format: myblog.com/myblog.com_2020-01-15-19h26m44s
+To obtain a list of available backups in the right format, run the following command:
+find /root/.wp-backup/ -type f -name "*fs.tar.gz" | cut -d "/" -f 2-3 | cut -d "_" -f 1-2
+It will list available backups in the correct format to set them in the $backup variable.
+
+For $action = "schedule", the following variables are needed:
+$domain = domain of the website to schedule a backup from (example: myblog.com)
+$bucket = AWS S3 bucket name where you want to save the backup
+$days = number of days the backup for this domain should be retained (or 0 days if you don't wish to limit retention days)
+Additionally, the following variables can be filled when setting up the first scheduled backup with callback URLs to get notifications on start and completion of the cron jobs: $callback_start_backup $callback_finished_backup
+optional: $s3_sync_delete_parm can be set to 'delete' to automatically delete remote backups when pruning local backups.
+optional: $s3_endpoint - the s3 compatible endpoint if AWS isn't being used.  If this parameter is set, the $callback_domain must also be set!
+
+For $action = "unschedule", the following variable is needed:
+$job = Scheduled job in the following format: DOMAIN S3_BUCKET RETENTION_DAYS
+To obtain a list of scheduled jobs in the right format, run the following command:
+cat /etc/wp-backup.conf
+
+For $action = "change_aws_credentials", the following variables are needed:
+$aws_access_key_id = AWS Access Key ID
+$aws_secret_access_key = AWS Secret Access Key
+
+For $action = "list_backups", the following variable is needed:
+$site = domain name of the website to list the backups for (example: myblog.com)
+
+For $action = "schedule_full", the following variables are needed:
+$bucket = AWS S3 bucket name where you want to save the backup
+$days = number of days the backup should be retained (or 0 days if you don't wish to limit retention days)
+optional: $s3_sync_delete_parm can be set to 'delete' to automatically delete remote backups when pruning local backups.
+optional: $callback_domain - the domain to report the start and end of the backups. We had to hardcode the callback url so only need the domain.  If this parameter is set, then the s3_sync_delete_parm must be set as well.
+optional: $s3_endpoint - the s3 compatible endpoint if AWS isn't being used.  If this parameter is set, the $callback_domain must also be set!
+
+For $action = "unschedule_full" no additional variables are needed.
+
+For $action = "prune_site_backups", the following variables are needed:
+$site = domain of the website to restore (example: myblog.com)
+$days = number of backup days which should be retained
+
+For $action = "prune_all_backups", the following variables are needed:
+$days = number of backup days which should be retained
+
+For $action = "delete_site_backups", the following variables are needed:
+$site = domain of the website to restore (example: myblog.com)
+$confirmation = set it to "yes" to avoid interactive danger message
+
+For $action = "delete_all_backups", the following variables are needed:
+$confirmation = set it to "yes" to avoid interactive danger message
+
+$action = "show_orphaned_backups" will list local backups stored for sites which are no longer configured in NGINX
+
+$action = "remove_orphaned_backups" will remove local backups stored for sites which are no longer configured in NGINX
+
+For $action = "restore_webserver_config", the following variables are needed:
+$site = domain of the website to restore (example: myblog.com)
+$backup = backup name in the following format: myblog.com/myblog.com_2020-01-15-19h26m44s
+To obtain a list of available backups in the right format, run the following command:
+find /root/.wp-backup/ -type f -name "*nginx.tar.gz" | cut -d "/" -f 2-3 | cut -d "_" -f 1-2
+It will list available backups in the correct format to set them in the $backup variable.
+
+For $action = "restore_nginx" - this action is deprecated.  Use the "restore_webserver_config" action described just above instead.
+
+For $action = "restore_wpconfig", the following variables are needed:
+$site = domain of the website to restore (example: myblog.com)
+$backup = backup name in the following format: myblog.com/myblog.com_2020-01-15-19h26m44s
+To obtain a list of available backups in the right format, run the following command:
+find /root/.wp-backup/ -type f -name "*fs.tar.gz" | cut -d "/" -f 2-3 | cut -d "_" -f 1-2
+It will list available backups in the correct format to set them in the $backup variable.
+
+
+
+-----------------------------------
+09-clone_site.sh
+-----------------------------------
+$old_domain = domain of the existing site which you wish to clone
+$new_domain = new domain where you want the site cloned to
+
+
+-----------------------------------
+10-misc.sh
+-----------------------------------
+$domain = domain name of the site you wish to manage (for subsites in a multisite installation, the following format should be used instead: myblog.com_subsite.myblog.com). This variable needs to be set for any of the following actions:
+
+For $action = "enable_auth", the following variables are needed:
+- $user = username for basic authentication
+- $pass = password for basic authentication
+
+Set $action = "disable_auth" to disable basic authentication for a previously enabled $domain
+
+For $action = "change_php_version", set the following variable:
+- $new_php_version = PHP version number to change $domain to (example: 5.6)
+
+Set $action = "reset_permissions" to reset WordPress folder permissions to the default needed for WordPress to work properly.
+
+For $action = "add_header" or "remove_header", set the following variable:
+- $header = HTTP header to be added or removed (example: Access-Control-Allow-Origin https://mysite.com)
+
+For $action = "add_php_param" and $action = "remove_php_param", set the following variable:
+- $php_param = PHP value to be added or removed (example: upload_max_filesize=200M)
+
+For $action = "show_disk_usage" no additional variables need to be set.
+
+For $action = "enable_system_cron", the following variable needs to be set:
+- $schedule = "1m", "5m", "15m" or "1h" for 1 minute, 5 minutes, 15 minutes or 1 hour cron schedule.
+
+For $action = "disable_system_cron" no additional variables need to be set.
+
+For $action = "enable_https_redir" no additional variables need to be set.
+
+For $action = "disable_https_redir" no additional variables need to be set.
+
+For $action = "add_cron_job" or "delete_cron_job", set the following variable:
+- $cron_job = cron job in crontab format to be added or removed (example: 0 * * * * touch /var/www/$domain/html/testfile)
+
+For $action = "enable_debug" or "disable_debug" no additional variables need to be set.
+
+For $action = "change_upload_limits", set the following variable:
+- $upload_limit = numeric upload limit in megabytes (example: 500)
+
+For $action = "add_admin", the following variables are needed:
+- $wp_user = WordPress administrative username to add (example: admin2)
+- $wp_password = password for the user
+- $wp_email = email address of the user
+
+For $action = "restart_php" no additional variables need to be set.
+
+For $action = "restart_nginx" no additional variables need to be set.
+For $action = "restart_web_server" no additional variables need to be set.
+
+For $action = "restart_mariadb" no additional variables need to be set.
+
+For $action = "restart_redis" no additional variables need to be set.
+
+For $action = "restart_memcached" no additional variables need to be set.
+
+The following options don't need $domain to be set:
+
+For $action = "enable_php_mod" or "disable_php_mod", set the following variable:
+- $module = PHP module to be enabled or disabled (example: zip)
+
+$action = "list_cron": lists cron jobs for all the users.
+
+For $action = "enable_passauth_ssh", set the following variables:
+- $ssh_user - usually "root" or "ubuntu"
+
+For $action = "disable_passauth_ssh", set the following variables:
+- $ssh_user - usually "root" or "ubuntu"
+
+For $action = "db_table_list" no additional variables need to be set beyond the $domain var.
+
+-----------------------------------
+11-manage_site_users.sh
+-----------------------------------
+$action = "site_user_set_key" or "site_user_remove_key" to set or remove public keys, "site_user_change_password" or "site_user_remove_password" to set or remove passwords.
+
+For $action = "site_user_set_key", the following variables are needed:
+$user = SFTP user name to configure the public key for
+$public_key = path to the public key file (example: /root/my_public_key.pub)
+
+For $action = "site_user_remove_key", the following variable is needed:
+$user = SFTP user name to remove the public key for
+
+For $action = "site_user_change_password", the following variables are needed:
+$user = user name to change the password for
+$pass = new password for the user
+
+For $action = "site_user_remove_password", the following variable is needed:
+$user = user name to remove the password for
+
+
+-----------------------------------
+12-redis.sh
+-----------------------------------
+$action = "install_redis", "remove_redis", "enable" or "disable" for installing Redis, removing Redis, enabling or disabling it for a site respectively. Or "redis_clear" to clear the Redis cache and "redis_restart" to restart the Redis server.
+
+For $action = "enable" or "disable", the following variable is needed:
+$domain = domain name for which you wish to enable or disable Redis caching
+
+
+-----------------------------------
+13-multisite.sh
+-----------------------------------
+$domain = domain name to be managed
+$action = "multisite" to enable domain-based WordPress Multisite.
+
+For $action = "ms_register_site" or "ms_deregister_site", the following variable are needed:
+$domain = domain name to be managed
+$subdomain = subdomain to be added or removed from the configuration
+
+For $action = "ms_enable_https" or "ms_disable_https", the following variables are needed:
+$subdomain = subdomain to enable HTTPS for
+$email = email address for Let's Encrypt registration
+
+$action = "ms_enable_subdir" to enable subdirectory-based WordPress Multisite.
+
+$action = "multisite_wildcard" to enable domain-based WordPress Multisite with a wildcard NGINX configuration
+
+For $action == "ms_enable_https_wildcard", the following variables are needed:
+$email = email address for Let's Encrypt registration
+$dns_provider = "cloudflare", "amazon", "google", "godaddy" or "ovh"
+For Cloudflare, the following variables are needed: $dns_cloudflare_email $dns_cloudflare_api_key (on Ubuntu 18.04) or $dns_cloudflare_api_token (on Ubuntu 20.04+)
+For Amazon Route 53, the following variables are needed: $aws_access_key_id $aws_secret_access_key
+For Google, the $gcp_credentials_json variable needs to be set with the path to a GCPcredentials file. More info here: https://certbot-dns-google.readthedocs.io/en/stable/
+For DNS Made Easy, the following variables are needed: $dnsmadeeasy_key $dnsmadeeasy_secret
+For OVH, the following variables are needed: $dns_ovh_endpoint $dns_ovh_application_key $dns_ovh_application_secret $dns_ovh_consumer_key
+
+Sites need to be configured with the "multisite_wildcard" option in order to use Let's Encrypt wildcard certificates.
+
+For managing HTTPS in master sites or subdir-based multisite, 04-manage_https.sh should be used.
+
+-----------------------------------
+14-mail.sh
+-----------------------------------
+$action = "setup_email", "test_email" or "remove_email_gateway"
+
+For $action = "setup_email", the following variables are needed:
+$smtp_server = SMTP server and port separated by a colon (example: smtp.sendgrid.net:587). The SMTP server must support TLS connections.
+$smtp_user = user name for SMTP authentication
+$smtp_pass = password for SMTP authentication
+$domain = default domain where mail should come from
+$hostname1 = FQDN for the server. Please note that some SMTP servers will require this to be a working domain name (example: server1.myblog.com)
+
+For $action = "test_email", the following variables are needed:
+$from = email address to send the test email from
+$to = email address to send the test email to
+
+
+-----------------------------------
+15-6g_firewall.sh
+-----------------------------------
+$domain = domain name to be managed (example: myblog.com)
+$action = one of the following values to enable or disable rulesets (they are self explanatory): "enable_all_6g", "disable_all_6g", "enable_user_agent_6g", "disable_user_agent_6g", "enable_referrer_6g", "disable_referrer_6g", "enable_query_string_6g", "disable_query_string_6g", "enable_request_string_6g", "disable_request_string_6g", "enable_request_method_6g", "disable_request_method_6g"
+
+
+-----------------------------------
+16-memcached.sh
+-----------------------------------
+$action = "install_memcached", "remove_memcached", "enable" or "disable" for installing Memcached, removing Memcached, enabling or disabling it for a site respectively. Or "memcached_clear" to clear the Memcached cache and "memcached_restart" to restart the Memcached server.
+
+For $action = "enable" or "disable", the following variable is needed:
+$domain = domain name for which you wish to enable or disable Memcached caching
+
+
+-----------------------------------
+17-plugin_tweaks.sh
+-----------------------------------
+$domain = domain name to be managed (example: myblog.com). For subsites in a multisite installation, the following format should be used instead: myblog.com_subsite.myblog.com.
+
+Set $action = "enable_edd" to enable the Easy Digital Downloads NGINX directives.
+Set $action = "disable_edd" to disable the Easy Digital Downloads NGINX directives.
+
+
+-----------------------------------
+18-wp_cache.sh
+-----------------------------------
+$domain = domain name to be managed (example: myblog.com)
+
+$action = "enable_page_cache" or "disable_page_cache" for enabling or disabling WordPress Cache for a site. 
+$action = "clear_page_cache" to clear the WordPress Cache.
+
+
+-----------------------------------
+19-logs.sh
+-----------------------------------
+$action = "individual_backups", "full_backups" or "wp_sync", to print logs from the scheduled tasks.
+
+
+-----------------------------------
+20-monit.sh
+-----------------------------------
+For $action "install_monit", the following variables are needed:
+$monit_user = Monit login user name
+$monit_password = Monit login password
+$email_notifications = "y" or "n" to enable or not email notifications
+$callback_url (optional)
+
+If $email_notifications is set to "y", the following additional variables are needed:
+$monit_smtp_server = SMTP server which Monit should use for email notifications (example: smtp.sendgrid.net)
+$monit_smtp_port = SMTP server port
+$monit_smtp_user = SMTP user name
+$monit_smtp_pass = SMTP password
+$monit_alert_email = email address where alerts should be sent
+
+Once Monit is installed, the following $action can be performed to enable or disable specifc monitoring units:
+enable_nginx_monit
+disable_nginx_monit
+enable_mysql_monit
+disable_mysql_monit
+enable_redis_monit
+disable_redis_monit
+enable_memcached_monit
+disable_memcached_monit
+enable_php_monit
+disable_php_monit
+enable_filesystem_monit
+disable_filesystem_monit
+enable_all_monit
+disable_all_monit
+
+Once monit is installed, the following $actions can be performed
+disable_monit_ssl
+enable_monit_ssl
+add_callback
+remove_callback
+remove_monit
+activate_monit
+deactivate_monit
+
+The "update_email" $action can be performed to update the email alert details. The following values are needed:
+$monit_smtp_server = SMTP server which Monit should use for email notifications (example: smtp.sendgrid.net)
+$monit_smtp_port = SMTP server port
+$monit_smtp_user = SMTP user name
+$monit_smtp_pass = SMTP password
+$monit_alert_email = email address where alerts should be sent
+
+Once Monit is installed, the following $action can be performed to enable or disable HTTPS:
+enable_monit_ssl - requires the $email variable to be set for the Let's Encrypt certificate
+disable_monit_ssl 
+
+-----------------------------------
+21-monitorix.sh
+-----------------------------------
+For $action "install_monitorix", the following variables are required:
+$domain = domain name for Monitorix (example: monitorixmyblog.com)
+$user = user name for basic http authentication
+$pass = password for basic http authentication
+
+Once Monitorix is installed, the following $action can be performed:
+
+remove_monitorix
+upgrade_monitorix
+enable_memcached_monitorix
+disable_memcached_monitorix
+enable_nginx_monitorix
+disable_nginx_monitorix
+enable_mysql_monitorix
+disable_mysql_monitorix
+enable_monitorix_ssl
+disable_monitorix_ssl
+
+For $action = enable_monit_ssl, the $email variable also needs to be set for the Let's Encrypt certificate
+
+-----------------------------------
+22-enable_disable_php_functions.sh
+-----------------------------------
+$domain = domain name of the site
+$action = "enable" or "disable"
+$functions_list comma-separated list of functions. Example: "getmypid,ignore_user_abort,shell_exec" or "getmypid"
+
+-----------------------------------
+23-fail2ban.sh
+-----------------------------------
+$action: fail2ban_install, fail2ban_remove, fail2ban_purge, fail2ban_parameter, fail2ban_add_protocol, fail2ban_remove_protocol, fail2ban_update_protocol, fail2ban_force_update, fail2ban_unban, fail2ban_ban, fail2ban_wp_install, fail2ban_wp_remove
+For 'fail2ban_parameter'
+	$bantime_new: new default ban time
+	$findtime_new: new default find time
+	$maxretry_new: new retry time
+	$ignoreip_new: new ignore ips  or 'n/a' if you don't want to add to the ignoreip entry.
+For 'fail2ban_add_protocol' 
+	$protocol_new: new protocol to enable in fail2ban
+for 'fail2ban_remove_protocol'
+	$protocol_delete: protocol to remove/disable from fail2ban
+for 'fail2ban_update_protocol'
+	$protocol_update: protocol to update
+	$bantime_new: new default ban time
+	$findtime_new: new default find time
+	$maxretry_new: new retry time
+for 'fail2ban_unban'
+	$unbanip: ip to unban
+for 'fail2ban_ban'
+	$banip: ip to ban
+for 'fail2ban_wp_install'
+	$domain: domain of site to install the fail2ban plugin
+for 'fail2ban_wp_remove'
+	$domain: domain of site from which to remove the fail2ban plugin
+
+-----------------------------------
+24-server_status.sh
+-----------------------------------
+$action:  'install_status_cron', 'remove_status_cron', 'run_status_cron'
+$callback_server_status - the url that data can be sent to.
+
+-----------------------------------
+25-copy_site_to_existing_site.sh
+-----------------------------------
+$action:  'copy_to_existing_site_copy_full', 'copy_to_existing_site_copy_partial', 'copy_to_existing_site_copy_files_only', 'copy_to_existing_site_copy_db', 'copy_to_existing_site_copy_partial_db'
+All actions require the following vars:
+	$source_domain
+	$target_domain
+	
+For 'copy_to_existing_site_copy_partial':
+	$wpconfig
+	$wpexcludefolder
+	$wpexcludefile
+	$wpexcludedbtable
+	$wpincludedbtable
+
+for 'copy_to_existing_site_copy_partial_db'
+	$wpexcludedbtable
+	$wpincludedbtable
+
+-----------------------------------
+26-lmd_clamav.sh
+-----------------------------------
+$action: 'antivirus_install', 'antivirus_remove', 'antivirus_update', 'antivirus_scan', 'antivirus_enable_cron', 'antivirus_disable_cron', 'antivirus_purge', 'antivirus_restart', 'antivirus_scan_background', 'antivirus_update_email'
+$emailid: the email address that scan reports will be sent to.
+$callback_server_scan - the url that data can be sent to after a scan is complete.
+
+-----------------------------------
+27-goaccess.sh
+-----------------------------------
+$action: goaccess_install, goaccess_remove, goaccess_disable, goaccess_enable, goaccess_update, goaccess_ssl_enable, goaccess_ssl_disable, goaccess_auth_add, goaccess_auth_remove, goaccess_auth_change, goaccess_whitelist, goaccess_whitelist_remove
+$domain: domain name to use when installing goaccess
+$user: user name for authentication
+$pass: password for authentication
+$email: email address to use when activating ssl.
+
+-----------------------------------
+28-restart-callback.sh
+-----------------------------------
+$action: 'install_callback_notify', 'remove_callback_notify', 'run_callback_notify'
+$callback_notify: the url that data can be sent to.
+
+-----------------------------------
+29-server_update.sh
+-----------------------------------
+This script returns a count of updates or runs updates immediately or in the background (via a one-time cron process_
+
+$action: count_updates, list_updates, run_updates, run_updates_cron, run_security_updates_cron
+
+For $action = run_updates:
+	$callback_server_status: the callback to report the status of the updates as it completes.
+
+For $action = run_updates_cron:
+	$callback_server_status: the callback to report the status of the updates as it completes.
+	
+For $action = run_security_updates_cron:
+	$callback_server_status: the callback to report the status of the security updates as it completes.	
+
+-----------------------------------
+30-wp_site_things.sh
+-----------------------------------
+$action:  wp_site_add_user, wp_site_delete_user, wp_site_delete_users_with_role, wp_site_change_user_email, wp_site_change_credentials, wp_site_update_option, wp_site_update_wpconfig_option
+
+For all actions:
+	$domain - site/domain to work with
+
+For $action = wp_site_add_user
+	$wps_user - user name for new user
+	$wps_email - email address for new user
+	$wps_role - role for new user
+	
+For $action = wp_site_delete_user
+	$wps_user - email address, user id or user name for user to delete
+	$wps_reassign_posts - which user should get the old users posts.
+	
+For $action = wp_site_delete_users_with_role
+	####this doesn't work right now.
+	$wps_role - role for users - we'll delete all users with this role.
+	$wps_reassign_posts - which user should get the old users posts.
+	
+For $action = wp_site_change_user_email
+	$wps_user - email address, user id or user name for user to delete
+	$wps_email - new email address
+	
+For $action = wp_site_change_credentials
+	$wps_user - email address, user id or user name for user to delete
+	$wps_new_email - new email address to assign to user
+	$wps_nwe_password - new password for user
+	
+For $action = wp_site_update_option
+	$wps_option - option name
+	$wps_new_option_value - new option value
+
+For $action = wp_site_update_wpconfig_option
+	$wps_wpconfig_option - wp-config.php option name
+	$wps_new_wpconfig_option_value - wp-config.php new option value
+	$wps_wpconfig_option_is_raw - whether the option should be added to the wp-config.php as-is without any quotes or other filters applied.  Valid values are 'yes' or 'no'.
+
+	
+-----------------------------------
+31-search_and_replace_db.sh
+-----------------------------------
+$domain - the domain whose database we are searching...
+$search_term - the term we are searching for - must be a single word - no phrases or special chars since wp-cli cannot handle this!
+$replace_term - the term we are replacing found items with - must be a single word - no phrases or special chars since wp-cli cannot handle this!
+
+-----------------------------------
+32-filegator.sh
+-----------------------------------
+$action
+ - list_installed: prints list of installed FileGator (for domain)
+  - domain
+ - remove_installed: removes installed FileGator (for domain)
+  - domain
+  - fg_folder: folder name to remove
+ - install: installs FileGator (for domain)
+  - domain
+  - fg_folder: name of folder where FileGator will be installed
+	- fg_version: the version string of FileGator (e.g. latest, 7.4.2)
+ - disable_guest: disable guest (not-athenticated access) (for domain)
+  - domain
+	- fg_folder
+ - enable_guest_read: enable non-athenticated access for reading and downloading (for domain)
+  - domain
+	- fg_folder
+ - enable_guest_all: enable non-athenticated access for all operations (for domain)
+  - domain
+	- fg_folder
+ - list_users: prints list of users of installed FileGator (for domain)
+  - domain
+	- fg_folder
+ - add_user: adds new user to installed FileGator (for domain)
+  - domain
+	- fg_folder
+	- fg_user
+	- fg_password
+ - remove_user: remove user from installed FileGator (for domain)
+  - domain
+	- fg_folder
+  - fg_user
+ - rename_user: change usename of user (for domain)
+  - domain
+	- fg_folder
+	- fg_user
+	- fg_user_new
+ - password_user: change user's password (for domain)
+  - domain
+	- fg_folder
+	- fg_user
+	- fg_password
+ - promote_user: promote user to admin (for domain)
+  - domain
+	- fg_folder
+	- fg_user
+ - demote_user: revoke admin privileges for user (for domain)
+  - domain
+	- fg_folder
+	- fg_user
+ - enable_ip: Enable IP restriction (for domain)
+  - domain
+	- fg_folder
+	- fg_ips: the IP addresses string splitted by comma (e.g. 10.0.0.1,192.168.1.2)
+ - disable_ip: Disable IP restriction (for domain)
+  - domain
+	- fg_folder
+ - set_storage_local, set the storage adapter to \League\Flysystem\Adapter\Local
+  - domain
+	- fg_folder
+  - fg_storage_path
+ - set_storage_ftp, set the storage adapter to \League\Flysystem\Adapter\Ftp
+  - domain
+	- fg_folder
+  - fg_storage_host
+	- fg_storage_username
+	- fg_storage_password
+	- fg_storage_port
+	- fg_storage_timeout
+ - set_storage_sftp, set the storage adapter to \League\Flysystem\Sftp\SftpAdapter
+  - domain
+	- fg_folder
+  - fg_storage_host
+	- fg_storage_username
+	- fg_storage_password
+	- fg_storage_port
+	- fg_storage_timeout
+	- fg_storage_path
+ - set_storage_dropbox, set the storage adapter to Spatie\FlysystemDropbox\DropboxAdapter
+  - domain
+	- fg_folder
+  - fg_storage_token
+ - set_storage_amazon, set the storage adapter to \League\Flysystem\AwsS3v3\AwsS3Adapter
+  - domain
+	- fg_folder
+  - fg_storage_key
+	- fg_storage_secret
+	- fg_storage_region
+	- fg_sotrage_version
+	- fg_bucket
+ - set_storage_digitalocean, set the storage adapter to \League\Flysystem\AwsS3v3\AwsS3Adapter
+  - domain
+	- fg_folder
+  - fg_storage_key
+	- fg_storage_secret
+	- fg_storage_region
+	- fg_sotrage_version
+	- fg_bucket
+	- fg_endpoint
+ - set_storage_azure, set the storage adapter to \League\Flysystem\AwsS3v3\AwsS3Adapter
+  - domain
+	- fg_folder
+  - fg_storage_account_name
+	- fg_storage_account_key
+	- fg_storage_container_name
+ - set_storage_replicate_dropbox, set the storage adapter to League\Flysystem\Replicate\ReplicateAdapter
+  - domain
+	- fg_folder
+  - fg_storage_token
+	- fg_storage_path
+ - set_frontend_app_name
+  - domain
+	- fg_folder
+  - fg_frontend_app_name
+ - set_frontend_language
+  - domain
+	- fg_folder
+  - fg_frontend_language
+ - set_frontend_logo
+  - domain
+	- fg_folder
+  - fg_frontend_logo
+ - set_frontend_upload_max_size
+  - domain
+	- fg_folder
+  - fg_frontend_upload_max_size
+ - set_frontend_upload_chunk_size
+  - domain
+	- fg_folder
+  - fg_frontend_upload_chunk_size
+ - set_frontend_upload_simultaneous
+  - domain
+	- fg_folder
+  - fg_frontend_upload_simultaneous
+ - set_frontend_default_archive_name
+  - domain
+	- fg_folder
+  - fg_frontend_default_archive_name
+ - set_frontend_editable
+  - domain
+	- fg_folder
+  - fg_frontend_editable
+ - set_frontend_date_format
+  - domain
+	- fg_folder
+  - fg_frontend_date_format
+ - set_frontend_guest_redirection
+  - domain
+	- fg_folder
+  - fg_frontend_guest_redirection
+ - set_frontend_filter_entries
+  - domain
+	- fg_folder
+  - fg_frontend_filter_entries
+ - upgrade_dependencies
+  - domain
+	- fg_folder
+ - upgrade
+  - domain
+	- fg_folder
+  - fg_version
+ - list_root_domains
+ - add_root_domain
+  - domain
+ - remove_root_domain
+  - domain
+
+
+-----------------------------------
+33-server-redirect.sh
+-----------------------------------
+$action: redirect_add_rule_to_site, redirect_remove_rule_from_site, redirect_remove_all_rules_from_site, redirect_list_site_rules
+
+For all actions:
+	$domain: The domain where the action will apply
+
+For $action = redirect_add_rule_to_site:
+	$redirection_number: 1 = regular redirect, 2 = permanent redirect
+	$source_url: original URL
+	$destination_url: destination URL
+	$key_code: a random string that will go in a comment on the redirection line (optional)
+
+For $action = redirect_remove_rule_from_site_by_rule_number:
+	$rule_number: The line number that corresponds to the rule to be removed.
+	
+For $action = redirect_remove_rule_from_site_by_key_code:
+	$key_code: The existing random keycode on the line of the redirect to be removed.
+
+-----------------------------------
+34-nginx-options.sh
+-----------------------------------
+enable_gzip: Enable 'gzip' for all sites
+disable_gzip: Disable 'gzip' for all sites
+enable_http2: Enable 'http2'
+disable_http2: Disable 'http2'
+enable_cache: Enable browser 'cache'
+disable_cache: Disable browser 'cache'
+default_cache: Remove browser 'cache' settings
+add_cache_types: Add browser cache type(s)
+ - cache_types: wanted types split by comma (e. g. jpeg,bmp,svg)
+del_cache_types: Remove browser cache type(s)
+ - cache_types: wanted types split by comma (e. g. jpeg,bmp,svg)
+enable_xmlrpc: Enable XMLRPC
+disable_xmlrpc: Disable XMLRPC
+enable_restapi: Enable REST API
+disable_restapi: Disable REST API
+enable_xfo_sameorigin: Enable X-Frame-Options "SAMEORIGIN" header
+enable_xfo_deny: Enable X-Frame-Options "DENY" header
+disable_xfo: Disable X-Frame-Options "SAMEORIGIN" header
+enable_default_csp: Enable default CSP (Content-Security-Policy)
+enable_custom_csp: Enable custom CSP (Content-Security-Policy)
+ - custom_csp: A custom CSP string (e.g. connect-src 'self'; img-src 'self')
+disable_csp: Disable CSP (Content-Security-Policy)
+enable_brotli: Enable Brotli
+disable_brotli: Enable Brotli
+enable_hsts: Enable HSTS
+disable_hsts: Disable HSTS
+enable_xss: Enable XSS
+disable_xss: Disable XSS
+enable_cto: Enable X-Content-Type-Options nosniff
+disable_cto: Disable X-Content-Type-Options nosniff
+enable_rp: Enable Referrer-Policy
+disable_rp: Disable Referrer-Policy
+enable_default_pp: Enable Permissions-Policy
+enable_custom_pp: Enable Permissions-Policy
+ - custom_pp
+disable_pp: Disable Permissions-Policy
+enable_gzip_domain: enable gzip for the selected domain
+disable_gzip_domain: disable gzip for the selected domain
+enable_cache_include: enable browser cache using 'include'
+disable_cache_include: disable browser cache using 'include'
+add_graphics_cache_types: Add browser cache type(s) for graphics files (all sites)
+ - cache_types: wanted types split by comma (e. g. jpeg,bmp,svg)
+del_graphics_cache_types: Remove browser cache type(s) for graphics files (all sites)
+ - cache_types: wanted types split by comma (e. g. jpeg,bmp,svg)
+add_script_cache_types: Add browser cache type(s) for styles and scripts files (all sites)
+ - cache_types: wanted types split by comma (e. g. css, js, scsss)
+del_script_cache_types: Remove browser cache type(s) for styles and scripts files (all sites)
+ - cache_types: wanted types split by comma (e. g. css, js, scsss)
+
+TWEAKS VARIABLES:
+action:
+ - set_worker_processes: sets the 'worker_processes' directive (all sites)
+  - worker_processes: an integer (from 1 to $(nproc)) or 'auto' 
+ - disable_worker_processes: removes the 'worker_processes' directive (all sites)
+ - set_worker_connections: sets the 'worker_connections' directive (all sites)
+  - woker_connections: an integer
+ - disable_worker_connections: removes the 'worker_connections' directive (all sites)
+ - set_client_max_body_size: sets the 'client_max_body_size' directive (all sites)
+  - client_max_body_size: a string (size)
+ - disable_client_max_body_size: removes the 'client_max_body_size' directive (all sites)
+ - set_send_timeout: sets the 'send_timeout' directive (all sites)
+  - send_timeout: an integer (seconds)
+ - disable_send_timeout: removes the 'send_timeout' directive (all sites)
+ - set_timezone: sets the timezone (TZ env variable) (all sites)
+  - timezone: a string (timezone like Asia/Krasnoyarsk)
+ - disable_timezone: removes TZ env variable (all sites) (OS timezone will be used)
+ - set_php_timezone: sets the date.timezone param in php pool
+  - timezone: a string (timezone like Asia/Krasnoyarsk)
+ - disable_php_timezone: removes date.timezone param from php pool
+
+-----------------------------------
+35-crowdsec.sh
+-----------------------------------
+(to be updated)
+
+-----------------------------------
+36-schedule-server-reboot.sh
+-----------------------------------
+$reboot_date - date to reboot server in yyyy-mm-dd format
+$reboot_time - time to reboot server in hh:mm format
+
+-----------------------------------
+37-backup-configuration.sh
+-----------------------------------
+$action: conf_backup_enable, conf_backup_disable, conf_backup_remove
+
+$conf_backup_enable:
+	- $callback_backup - callback URL for reporting status of backup
+
+-----------------------------------
+38-server_php_version.sh
+-----------------------------------
+$server_php_version - the version of php that should be activated for the server.
+
+-----------------------------------
+39-php_workers.sh
+-----------------------------------
+$domain - the domain
+$action:
+ - change_php_workers: change the PHP workers for a site
+  - pm: value for the 'pm' directive in a pool.d conf file
+	- pm_max_children: value for the 'pm.max_children' directive in a pool.d conf file
+	- pm_start_servers: value for the 'pm.start_servers' directive in a pool.d conf file
+	- pm_min_spare_servers: value for the 'pm.min_spare_servers' directive in a pool.d conf file
+	- pm_max_spare_servers: value for the 'pm.max_spare_servers' directive in a pool.d conf file
+
+-----------------------------------
+40-7g_firewall.sh
+-----------------------------------
+$domain = domain name to be managed (example: myblog.com)
+$action = one of the following values to enable or disable rulesets (they are self explanatory): "enable_all_7g", "disable_all_7g", "enable_user_agent_7g", "disable_user_agent_7g", "enable_referrer_7g", "disable_referrer_7g", "enable_query_string_7g", "disable_query_string_7g", "enable_request_string_7g", "disable_request_string_7g", "enable_request_method_7g", "disable_request_method_7g"
+
+-----------------------------------
+41  -- wp-backup2.sh --
+-----------------------------------
+See the readme.txt file in the wp-backup2 folder.
+
+-----------------------------------
+42  -- 42-allowed-and-denied-plugins.sh --
+-----------------------------------
+(Coming soon).
+
+-----------------------------------
+43-netdata.sh
+-----------------------------------
+$action:
+ - netdata_install: $domain, $user, $pass, $email $claim_token $claim_rooms_token
+ - netdata_remove
+ - netdata_update
+ - netdata_ssl_enable
+ - netdata_ssl_disable
+ - netdata_auth_add
+ - netdata_auth_remove
+ - netdata_auth_change
+ - netdata_enable_registry
+ - netdata_set_registry
+
+-----------------------------------
+44  -- 44-wpscan.sh --
+-----------------------------------
+(Coming soon).
+
+-----------------------------------
+45  -- 45-awstats.sh --
+-----------------------------------
+(Coming soon).
+
+-----------------------------------
+46  -- 46-tech-support-keys.sh --
+-----------------------------------
+(Coming soon).
+
+-----------------------------------
+47  -- 47-repair_db.sh --
+-----------------------------------
+(Coming soon).
+
+-----------------------------------
+50-reliable_updates.sh
+-----------------------------------
+$domain = domain name where plugins and themes are to be updated
+$action: "update_allthemes", "update_allplugins", "update_wordpress", "update_everything", "some_themes", "some_plugins", "update_themes_and_plugins", "update_exclude_plugins", "update_exclude_themes"
+$update_type: "1" or "2"
+	"1": Update in place with rollback option
+	"2": Update in place without rollback option
+
+$api_userid: User id for the https://htmlcsstoimage.com account.
+$api_key: Apikey for https://htmlcsstoimage.com
+$threshold: The maximum variance allowed for images before the update is considered failed.
+$status_callback_url: URL for updating the WPCD plugin about status of this script.
+
+For "some_themes"
+	- $list_of_themes - a comma separated value of theme slugs to update
+
+For "some_plugins"
+	- $list_of_plugins - a comma separated value of theme slugs to update
+
+for "update_exclude_plugins"
+	- $excluded_plugins - a comma separated list of plugins to exclude from updates
+	
+for "update_exclude_themes"
+	- $excluded_themes - a comma separated list of themes to exclude from updates

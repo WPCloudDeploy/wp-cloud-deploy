@@ -1,0 +1,414 @@
+#!/bin/bash
+if [[ "$EUID" -ne 0 ]]
+then
+	echo "Sorry, you need to run this as root"
+	exit
+fi
+
+## Get our common functions
+if [[ ! -f 9999-common-functions.sh ]]
+then
+	echo "The file 9999-common-functions.sh is missing"
+	exit 1
+fi
+source 9999-common-functions.sh
+
+OLS_AWSTATS='### Awstats config start
+context /cgi-bin/ {
+type                    cgi
+location                /var/www/html/cgi-bin
+
+rewrite  {
+}
+addDefaultCharset       off
+}
+
+rewrite  {
+enable                  1
+autoLoadHtaccess        1
+logLevel                0
+}
+### Awstats config end'
+
+AWSTATS_VAR=$(printf '%s\n' "$OLS_AWSTATS" | sed 's/\\/&&/g;s/^[[:blank:]]/\\&/;s/$/\\/')
+
+
+OLS_PASS_PROTECT_ROOT='### Enabling Password Protection config start
+context / {
+allowBrowse             1
+note             Password Protect document root for domain
+realm                   Default
+accessControl  {
+allow                 *
+}
+rewrite  {
+}
+addDefaultCharset       off
+phpIniOverride  {
+}
+}
+### Enabling Password Protection config end'
+
+preprocessed_VAR=$(printf '%s\n' "$OLS_PASS_PROTECT_ROOT" | sed 's/\\/&&/g;s/^[[:blank:]]/\\&/;s/$/\\/')
+
+while [[ -z $action ]]
+do
+	echo
+	echo "What do you want to do?"
+	echo
+	echo "   1) Install Awstats"
+	echo "   2) Remove Awstats"
+	echo "   3) Upgrade Awstats"
+	echo "   4) Enable Https"
+	echo "   5) Disable Https"
+	echo "   6) Change Authentication Credentials"
+	read -p "Action: " action
+	until [[ -z "$action" || "$action" =~ ^[1-9]$ ]]
+	do
+		echo "$action: invalid selection."
+		read -p "Action: " action
+	done
+done
+
+###################################### Awstats Install Function ##########
+function awstats_install
+{
+	if hash awstats 2>/dev/null
+	then
+		echo
+		echo "awstats is already installed!"
+		exit
+	fi
+
+	if [[ -z $domain ]]
+	then
+		clear
+		echo "Which domain name do you want for Awstats?
+		Specify just the domain name without www or http://
+		Example: awstats.mydomain.com"
+		read -p "Domain: " domain
+	fi
+
+	if [[ -z $user ]]
+	then
+		echo
+		echo "Specify a user name to protect access to Awstats
+		Example: admin"
+		read -p "User name: " user
+	fi
+
+	if [[ -z $pass ]]
+	then
+		echo
+		echo "Specify a password"
+		read -p "Password: " pass
+	fi
+
+	echo "installing Awstats on server........."
+	apt-get install awstats -y > /dev/null 2>&1
+
+	if [ "$g_webserver_type" = "nginx" ]
+	then
+		echo $'<?php
+	$descriptorspec = array(
+		0 => array("pipe", "r"),  // stdin is a pipe that the child will read from
+		1 => array("pipe", "w"),  // stdout is a pipe that the child will write to
+		2 => array("pipe", "w")   // stderr is a file to write to
+	);
+
+	$newenv = $_SERVER;
+	$newenv["SCRIPT_FILENAME"] = $_SERVER["X_SCRIPT_FILENAME"];
+	$newenv["SCRIPT_NAME"] = $_SERVER["X_SCRIPT_NAME"];
+
+	if (is_executable($_SERVER["X_SCRIPT_FILENAME"])) {
+		$process = proc_open($_SERVER["X_SCRIPT_FILENAME"], $descriptorspec, $pipes, NULL, $newenv);
+		if (is_resource($process)) {
+			fclose($pipes[0]);
+			$head = fgets($pipes[1]);
+			while (strcmp($head, "\\n")) {
+				header($head);
+				$head = fgets($pipes[1]);
+			}
+			fpassthru($pipes[1]);
+			fclose($pipes[1]);
+			fclose($pipes[2]);
+			$return_value = proc_close($process);
+		} else {
+			header("Status: 500 Internal Server Error");
+			echo("Internal Server Error");
+		}
+	} else {
+	header("Status: 404 Page Not Found");
+	echo("Page Not Found");
+	}
+?>' > /etc/nginx/cgi-bin.php
+
+		echo "server {
+	listen 80;
+	listen [::]:80;
+	server_name $domain www.$domain;
+
+	auth_basic_user_file /etc/nginx/htpasswd/$domain;
+	auth_basic \"Protected\";
+		
+	root /var/www/$domain/html;
+	access_log off;
+	log_not_found off;
+	location ^~ /icon {
+		alias /usr/share/awstats/icon/;
+	}
+	location ~ ^/([a-z0-9-_\.]+)$ {
+		return 301 "'$scheme'"://$domain/cgi-bin/awstats.pl?config="'$1'";
+	}
+	location ~ ^/cgi-bin/.*\\.(cgi|pl|py|rb) {
+		if ("'$args'" ~ \"config=([a-z0-9-_\.]+)\") {
+			set "'$domain $1'";
+		}
+		gzip off;
+		include         fastcgi_params;
+		fastcgi_pass    unix:/run/php/php-fpm-$domain.sock;
+		fastcgi_index   cgi-bin.php;
+		fastcgi_param   SCRIPT_FILENAME    /etc/nginx/cgi-bin.php;
+		fastcgi_param   SCRIPT_NAME        /cgi-bin/cgi-bin.php;
+		fastcgi_param   X_SCRIPT_FILENAME  /usr/lib"'$fastcgi_script_name'";
+		fastcgi_param   X_SCRIPT_NAME      "'$fastcgi_script_name'";
+		fastcgi_param   REMOTE_USER        "'$remote_user'";
+	}
+}" > /etc/nginx/sites-enabled/awstats.conf
+
+		useradd -d "/var/www/$domain/html" -g "www-data" -M -s "/bin/bash" $domain
+		gf_add_php_conf $domain $domain 7.4
+
+		# create authentication file
+		mkdir -p /etc/nginx/htpasswd /var/www/$domain/html
+		htpasswd -b -c /etc/nginx/htpasswd/$domain $user $pass
+	
+		cp /etc/awstats/awstats.conf /etc/awstats/awstats.conf.local
+		sed -i "/.*awstats.conf.local.*/d" /etc/awstats/awstats.conf.local
+		sed -i "s/apache2/nginx/g" /etc/awstats/awstats.conf.local
+		sed -i 's/SiteDomain=.*/SiteDomain="$domain"/g' /etc/awstats/awstats.conf.local
+		for domain1 in `ls /var/www|grep -v html`
+		do
+			echo "DNSLookup = 0
+			LogFormat = 1
+			# Path to you nginx vhost log file
+			LogFile="/var/log/nginx/access.log"
+
+			# Domain of your vhost
+			SiteDomain="$domain1"
+
+			# Directory where to store the awstats data
+			DirData="/var/lib/awstats/"
+
+			# Other alias, basically other domain/subdomain that's the same as the domain above
+			HostAliases="www.$domain1"" > /etc/awstats/awstats.$domain1.conf
+		done
+	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+	then
+		mkdir -p /var/www/$domain/html /var/www/html/awstats-icon
+		useradd -d "/var/www/$domain/html" -g "www-data" -M -s "/bin/bash" $domain
+		gf_add_ols_conf $domain
+		sed -i -e "/### Insert context configs below this line/a\\
+		${preprocessed_VAR%?}"  ${VHDIR}/$domain/$g_vhost_conf
+		htpasswd -b ${VHDIR}/$domain/htpasswd $user $pass
+		chown -R lsadm:lsadm ${VHDIR}/$domain/
+		
+		ln -sf /usr/lib/cgi-bin /var/www/$domain/html/cgi-bin
+		ln -sf /usr/share/awstats/icon/* /var/www/html/awstats-icon
+
+		sed -i -e "/### Insert context configs below this line/a\\
+		${AWSTATS_VAR%?}"  ${VHDIR}/$domain/$g_vhost_conf
+
+		chmod -R 755 /var/lib/awstats
+		echo "$domain" > ${VHDIR}/$domain/awstats.txt
+		cp /etc/awstats/awstats.conf /etc/awstats/awstats.conf.local
+		sed -i "/.*awstats.conf.local.*/d" /etc/awstats/awstats.conf.local
+		sed -i "s/SiteDomain=.*/SiteDomain=\"$domain\"/g" /etc/awstats/awstats.conf.local
+		sed -i "s%/var/log/apache2/access.log%/usr/local/lsws/logs/access.log%g" /etc/awstats/awstats.conf.local
+		for domain1 in `ls /var/www|grep -v html`
+		do
+			echo "DNSLookup = 0
+			LogFormat = 1
+			# Path to you nginx vhost log file
+			LogFile="/usr/local/lsws/logs/access.log"
+
+			# Domain of your vhost
+			SiteDomain="$domain1"
+
+			# Directory where to store the awstats data
+			DirData="/var/lib/awstats/"
+
+			# Other alias, basically other domain/subdomain that's the same as the domain above
+			HostAliases="www.$domain1"" > /etc/awstats/awstats.$domain1.conf
+		done
+	fi
+	gf_restart_webserver
+	echo "Awstats has been installed,Can access from http://$domain/"
+}
+
+###################################### Awstats Remove Function ##########
+function awstats_remove
+{
+	if ! hash awstats 2>/dev/null
+	then
+		echo
+		echo "awstats is Not installed yet!"
+		exit
+	fi
+	awstats_ssl_disable
+	if [ "$g_webserver_type" = "nginx" ]
+	then
+		domain=`grep -m 1 server_name /etc/nginx/sites-enabled/awstats.conf |awk '{print $2}'`
+		rm -f /etc/nginx/sites-enabled/awstats.conf > /dev/null 2>&1
+	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+	then
+		domain=`cat ${VHDIR}/*/awstats.txt`
+		if [ -d "/etc/letsencrypt/live/$domain" ]
+		then
+			certbot delete --cert-name $domain --noninteractive
+		fi
+		rm -rf ${VHDIR}/$domain ${LSDIR}/conf/vhosts-disabled/$domain
+		sed -i -re "/virtualhost ${domain} \{/{:a;N;/\}/!ba};/vhRoot                  \/var\/www\/$domain/d" ${WEBCF}
+		sed -i "/[ ]*map[ ]*${domain} www.${domain}, ${domain}/d" ${WEBCF}
+	fi
+	rm -rf /var/www/$domain > /dev/null 2>&1
+	apt-get remove awstats -y  > /dev/null
+	gf_restart_webserver
+	echo 
+	echo "awstats has been removed"
+}
+
+###################################### Awstats Update Function ##########
+function awstats_update
+{
+	if ! hash awstats 2>/dev/null
+	then
+		echo
+		echo "awstats is Not installed yet!"
+		exit
+	fi
+	apt-get install awstats -y > /dev/null
+	echo "Awstats is on latest Version now"
+}
+
+###################################### Awstats Enable SSL  Function ##########
+function awstats_ssl_enable
+{
+	if ! hash awstats 2>/dev/null
+	then
+		echo
+		echo "awstats is Not installed yet!"
+		exit
+	fi
+	if [ "$g_webserver_type" = "nginx" ]
+	then
+		domain=`grep -m 1 server_name /etc/nginx/sites-enabled/awstats.conf |awk '{print $2}'`
+		gf_enable_certbot_nginx_site $domain awstats.conf
+		# The function gf_enable_certbot_nginx_site used issues a message whether or not the certificate has been issued so no need to handle here.
+		# Only need to handle here if you have additional code that needs to be executed after the certificate has been issued - which is not the case here.		
+	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+	then
+		domain=`cat ${VHDIR}/*/awstats.txt`
+		gf_enable_certbot_ols_site $domain
+		# The function gf_enable_certbot_ols_site used above issues a message whether or not the certificate has been issued so no need to handle here.
+		# Only need to handle here if you have additional code that needs to be executed after the certificate has been issued - which is not the case here.		
+	fi
+}
+
+###################################### Awstats Disable SSL  Function ##########
+function awstats_ssl_disable
+{
+	if ! hash awstats 2>/dev/null
+	then
+		echo
+		echo "awstats is Not installed yet!"
+		exit
+	fi
+
+	if [ "$g_webserver_type" = "nginx" ]
+	then
+		domain=`grep -m 1 server_name /etc/nginx/sites-enabled/awstats.conf |awk '{print $2}'`
+		gf_disable_certbot_nginx_site $domain awstats.conf
+	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+	then
+		domain=`cat ${VHDIR}/*/awstats.txt`
+		gf_disable_certbot_ols_site $domain
+	fi
+}
+
+###################################### Awstats Change Basic Auth##########
+function awstats_auth_change
+{
+	if ! hash awstats 2>/dev/null
+	then
+		echo
+		echo "awstats is Not installed yet!"
+		exit
+	fi
+
+	if [[ -z $user ]]
+	then
+		echo
+		echo "Specify a user name to protect access to Awstats"
+		read -p "User name: " user
+	fi
+
+	if [[ -z $pass ]]
+	then
+		echo
+		echo "Specify a password"
+		read -p "Password: " pass
+	fi
+	if [ "$g_webserver_type" = "nginx" ]
+	then
+		domain=`grep -m 1 server_name /etc/nginx/sites-enabled/awstats.conf |awk '{print $2}'`
+		rm -f /etc/nginx/htpasswd/$domain > /dev/null
+		htpasswd -b -c /etc/nginx/htpasswd/$domain $user $pass
+	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+	then
+		domain=`cat ${VHDIR}/*/awstats.txt`
+		echo "" > ${VHDIR}/$domain/htpasswd
+		htpasswd -b ${VHDIR}/$domain/htpasswd $user $pass
+		chown -R lsadm:lsadm ${VHDIR}/$domain/
+	fi
+	gf_restart_webserver
+	echo "Auth has been updated"
+}
+
+########################################################################################################3
+########################################################################################################3
+############## Install Awstats 
+if [[ $action == "awstats_install" || $action == "1" ]]
+then
+	awstats_install
+fi
+
+############ Uninstall Awstats
+if [[ $action == "awstats_remove" || $action == "2" ]]
+then
+	awstats_remove
+fi
+
+##############  Update Awstats
+if [[ $action == "awstats_update" || $action == "3" ]]
+then
+	awstats_update
+fi
+
+############## Enable SSL
+if [[ $action == "awstats_ssl_enable" || $action == "4" ]]
+then
+	awstats_ssl_enable
+fi
+
+############## Update services/protocol
+if [[ $action == "awstats_ssl_disable" || $action == "5" ]]
+then
+	awstats_ssl_disable
+fi
+
+########## Modify Basic Auth password
+if [[ $action == "awstats_auth_change" || $action == "6" ]]
+then
+	awstats_auth_change
+fi

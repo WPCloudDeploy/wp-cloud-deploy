@@ -181,6 +181,7 @@ wpupdate=yes
 else
 wpupdate=no
 fi
+wpdebug=`su - $user_name -c "wp --skip-themes --skip-plugins config get WP_DEBUG"`
 
 mysqldb=$(grep DB_NAME /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
 domain_file_size=`du -sm /var/www/$domain|awk '\''{print $1}'\''`
@@ -204,7 +205,8 @@ echo "Wp updates if required 		:       $wpupdate"       >> /var/log/wp-site-stat
 echo "Domain file size 			:       $domain_file_size"       >> /var/log/wp-site-status.log
 echo "Domain DB size 			:       $domain_db_size"       >> /var/log/wp-site-status.log
 echo "Domain Backup size 		:       $domain_backup_size"       >> /var/log/wp-site-status.log
-curl -sS "$callback_server_status?domain=$domain&publicip=$publicip&wpversion=$wpversion&pluginupdate=$pluginupdate&themeupdate=$themeupdate&wpupdate=$wpupdate&domain_file_usage=$domain_file_size&domain_db_size=$domain_db_size&domain_backup_size=$domain_backup_size"
+echo "WP Debug Flag 			:       $wpdebug"       >> /var/log/wp-site-status.log
+curl -sS "$callback_server_status?domain=$domain&publicip=$publicip&wpversion=$wpversion&pluginupdate=$pluginupdate&themeupdate=$themeupdate&wpupdate=$wpupdate&domain_file_usage=$domain_file_size&domain_db_size=$domain_db_size&domain_backup_size=$domain_backup_size&wpdebug=$wpdebug"
 sleep 3
 done' > /usr/local/bin/wp-site-status
 

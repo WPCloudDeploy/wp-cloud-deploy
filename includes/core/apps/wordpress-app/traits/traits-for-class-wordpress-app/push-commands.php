@@ -197,6 +197,9 @@ trait wpcd_wpapp_push_commands {
 		// Get WP Version.
 		$sites_status_items['wp_version'] = wp_kses( filter_input( INPUT_GET, 'wpversion', FILTER_UNSAFE_RAW ), array() );
 
+		// WP_DEBUG flag.
+		$sites_status_items['wp_debug'] = filter_input( INPUT_GET, 'wpdebug', FILTER_SANITIZE_NUMBER_INT );
+
 		// Finally, add the time reported to the array.
 		$sites_status_items['reporting_time']       = time();
 		$sites_status_items['reporting_time_human'] = date( 'Y-m-d H:i:s', time() );
@@ -210,6 +213,13 @@ trait wpcd_wpapp_push_commands {
 			// update wp version meta.
 			if ( ! empty( $sites_status_items['wp_version'] ) ) {
 				update_post_meta( $app_id, 'wpapp_current_version', $sites_status_items['wp_version'] );
+			}
+
+			// update wpdebug meta.
+			if ( ! empty( $sites_status_items['wp_debug'] ) ) {
+				update_post_meta( $app_id, 'wpapp_wp_debug', (int) $sites_status_items['wp_debug'] );
+			} else {
+				update_post_meta( $app_id, 'wpapp_wp_debug', 0 );
 			}
 
 			// update the meta that holds the current data..

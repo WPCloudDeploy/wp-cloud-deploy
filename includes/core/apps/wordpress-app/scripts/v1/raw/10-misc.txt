@@ -843,7 +843,20 @@ then
 	su - $user_name -c "wp --skip-plugins config set WP_DEBUG_DISPLAY false --raw"
 	su - $user_name -c "wp --skip-plugins config set WP_DEBUG_LOG true --raw"
 	su - $user_name -c "touch /var/www/$domain/html/wp-content/debug.log"
-	chmod g+w /var/www/$domain/html/wp-content/debug.log	
+	chmod g+w /var/www/$domain/html/wp-content/debug.log
+	
+	# Handle some OLS specific stuff.
+	if [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+	then
+		# Swap php error_log path
+		domain_conf="${VHDIR}/${domain}/vhconf.conf"
+		# Swaps to wp-content/debug.log 
+		# php_admin_value error_log wp-content/debug.log
+		sed -i "s|php_admin_value error_log .*|php_admin_value error_log wp-content/debug.log|" "${domain_conf}"
+		# restart ols/lsws and kill lsphp procresses so php changes are changed.
+		gf_restart_webserver "true"
+	fi
+	
 	echo
 	echo "WordPress debug flags enabled for $domain"
 	exit
@@ -856,6 +869,18 @@ then
 	user_name=$(echo $domain | cut -c1-32)
 	cd /var/www/$domain/html/
 	su - $user_name -c "wp --skip-plugins config set WP_DEBUG false --raw"
+	
+	# Handle some OLS specific stuff.
+	if [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+	then	
+		domain_conf="${VHDIR}/${domain}/vhconf.conf"
+		# Reverts back to default: logs/php_error_log
+		# php_admin_value error_log logs/php_error_log
+		sed -i "s|php_admin_value error_log .*|php_admin_value error_log logs/php_error_log|" "${domain_conf}"
+		# restart ols/lsws and kill lsphp procresses so php changes are changed.
+		gf_restart_webserver "true"
+	fi
+	
 	echo
 	echo "WordPress debug flags disabled for $domain"
 	exit

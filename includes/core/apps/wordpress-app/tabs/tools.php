@@ -117,7 +117,7 @@ class WPCD_WORDPRESS_TABS_TOOLS extends WPCD_WORDPRESS_TABS {
 		}
 
 		/* Now verify that the user can perform actions on this screen, assuming that they can view the server */
-		$valid_actions = array( 'tools-clear-background-processes', 'tools-enable-debug-log', 'tools-disable-debug-log', 'tools-edd-nginx-add', 'tools-update-restricted-php-functions', 'tools-reset-site-file-permissions', 'tools-wp-site-option' );
+		$valid_actions = array( 'tools-clear-background-processes', 'tools-wpdebug-status', 'tools-edd-nginx-add', 'tools-update-restricted-php-functions', 'tools-reset-site-file-permissions', 'tools-wp-site-option' );
 		if ( in_array( $action, $valid_actions, true ) ) {
 			if ( ! $this->get_tab_security( $id ) ) {
 				return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
@@ -132,6 +132,9 @@ class WPCD_WORDPRESS_TABS_TOOLS extends WPCD_WORDPRESS_TABS {
 					if ( ! is_wp_error( $result ) ) {
 						$result = array( 'refresh' => 'yes' );
 					}
+					break;
+				case 'tools-wpdebug-status':
+					$result = $this->toggle_wpdebug_status( $id, $action );
 					break;
 				case 'tools-enable-debug-log':
 					$action = 'enable_debug';
@@ -205,31 +208,50 @@ class WPCD_WORDPRESS_TABS_TOOLS extends WPCD_WORDPRESS_TABS {
 		// Basic checks passed, ok to proceed.
 		$actions = array();
 
+		// Set header description.
+		$header_debug_desc  = __( 'Enable or disable the WordPress Debug log file.  This file is stored in the wp-content folder. Once enabled you can retrieve it with your sFTP client.', 'wpcd' );
+		$header_debug_desc .= '<br />' . __( 'Note that if you toggle the WP_DEBUG flag directly in wp-config.php, the status shown here might not be accurate.', 'wpcd' );
+
 		/* DEBUG LOG */
 		$actions['tools-debug-log-header'] = array(
 			'label'          => __( 'Manage Debug Logs', 'wpcd' ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
-				'desc' => __( 'Enable or disable the WordPress Debug log file.  This file is stored in the wp-content folder. Once enabled you can retrieve it with your sFTP client.', 'wpcd' ),
+				'desc' => $header_debug_desc,
 			),
 		);
 
-		$actions['tools-enable-debug-log'] = array(
-			'label'          => '',
-			'raw_attributes' => array(
-				'std'  => __( 'Enable It', 'wpcd' ),
-				'desc' => __( 'Turn on the WordPress debug log. Messages will go directly to the debug.log file located in the wp-content folder.  Nothing will be shown on the screen.', 'wpcd' ),
-			),
-			'type'           => 'button',
-		);
+		// Get the current debug log flag value.
+		if ( true === $this->get_site_local_wpdebug_flag( $id ) ) {
+			$debug_status = 'on';
+		} else {
+			$debug_status = 'off';
+		}
 
-		$actions['tools-disable-debug-log'] = array(
+		/* Set the confirmation prompt based on the the current status of this flag */
+		$confirmation_prompt = '';
+		if ( 'on' === $debug_status ) {
+			$confirmation_prompt = __( 'Are you sure you would like to disable the WordPress debug log?', 'wpcd' );
+		} else {
+			$confirmation_prompt = __( 'Are you sure you would like to enable the WordPress debug log?', 'wpcd' );
+		}
+
+		if ( 'on' !== $debug_status ) {
+			$debug_desc = __( 'Click to enable the WordPress debug log. <br />Messages will go directly to the debug.log file located in the wp-content folder.  Nothing will be shown on the screen.', 'wpcd' );
+		} else {
+			$debug_desc = __( 'Click to disable the WordPress debug log', 'wpcd' );
+		}
+
+		$actions['tools-wpdebug-status'] = array(
 			'label'          => '',
 			'raw_attributes' => array(
-				'std'  => __( 'Disable It', 'wpcd' ),
-				'desc' => __( 'Turn off the WordPress debug log. The existing file will remain behind in the wp-content folder. You should erase it as soon as possible since it may contain sensitive information.', 'wpcd' ),
+				'on_label'            => __( 'Enabled', 'wpcd' ),
+				'off_label'           => __( 'Disabled', 'wpcd' ),
+				'std'                 => 'on' === $debug_status,
+				'desc'                => $debug_desc,
+				'confirmation_prompt' => $confirmation_prompt,
 			),
-			'type'           => 'button',
+			'type'           => 'switch',
 		);
 
 		/* RESET SITE PERMISSIONS */
@@ -406,12 +428,19 @@ class WPCD_WORDPRESS_TABS_TOOLS extends WPCD_WORDPRESS_TABS {
 	 *
 	 * @return boolean|WP_Error    success/failure
 	 */
-	private function enable_disable_wp_debug( $id, $action ) {
+	private function toggle_wpdebug_status( $id, $action ) {
 
 		$instance = $this->get_app_instance_details( $id );
 
 		if ( is_wp_error( $instance ) ) {
 			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
+		}
+
+		// Figure out if we're disabling or enabling the flag.
+		if ( true === $this->get_site_local_wpdebug_flag( $id ) ) {
+			$action = 'disable_debug';
+		} else {
+			$action = 'enable_debug';
 		}
 
 		// Get the full command to be executed by ssh.
@@ -437,6 +466,14 @@ class WPCD_WORDPRESS_TABS_TOOLS extends WPCD_WORDPRESS_TABS {
 		if ( ! $success ) {
 			return new \WP_Error( sprintf( __( 'Unable to %1$s site: %2$s', 'wpcd' ), $action, $result ) );
 		} else {
+
+			// Update metas.
+			if ( true === $this->get_site_local_wpdebug_flag( $id ) ) {
+				$this->set_site_local_wpdebug_flag( $id, false );
+			} else {
+				$this->set_site_local_wpdebug_flag( $id, true );
+			}
+
 			$success = array(
 				'msg'     => __( 'The WordPress debug flags have been toggled.', 'wpcd' ),
 				'refresh' => 'yes',
@@ -446,6 +483,7 @@ class WPCD_WORDPRESS_TABS_TOOLS extends WPCD_WORDPRESS_TABS {
 		return $success;
 
 	}
+
 
 	/**
 	 * Add/Remove the NGINX rules for EDD.

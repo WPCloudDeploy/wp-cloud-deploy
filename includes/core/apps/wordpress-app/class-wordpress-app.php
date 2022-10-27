@@ -855,6 +855,41 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 	}
 
+	/**
+	 * Sets the status of debug metas.
+	 *
+	 * @param int         $app_id is the post id of the app record we're working with.
+	 * @param bool|string $debug_status Should be 'on' or 'off'.
+	 *
+	 * @return void
+	 */
+	public function set_site_local_wpdebug_flag( $app_id, $debug_status ) {
+
+		if ( true === $debug_status || 'on' === $debug_status ) {
+			update_post_meta( $app_id, 'wpapp_wp_debug', 1 );
+		} else {
+			update_post_meta( $app_id, 'wpapp_wp_debug', 0 );
+		}
+
+	}
+
+	/**
+	 * Get the status of the wp_debug flag stored in the metadata for a site.
+	 *
+	 * @param string $app_id is the post id of the app record we're asking about.
+	 *
+	 * @return boolean
+	 */
+	public function get_site_local_wpdebug_flag( $app_id ) {
+
+		if ( 1 === (int) get_post_meta( $app_id, 'wpapp_wp_debug', true ) ) {
+			return true;
+		} else {
+			return false;
+		}
+
+	}
+
 
 	/**
 	 * Get a formatted link to wp_admin area

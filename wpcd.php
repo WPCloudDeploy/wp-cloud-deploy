@@ -11,6 +11,7 @@ Author: WPCloudDeploy
 Author URI: https://wpclouddeploy.com
 Domain Path: /languages
 GitHub Plugin URI: WPCloudDeploy/wp-cloud-deploy
+Primary Branch: main
  */
 require_once ABSPATH . 'wp-admin/includes/plugin.php';
 

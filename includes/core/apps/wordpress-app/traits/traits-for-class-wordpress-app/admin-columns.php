@@ -314,7 +314,7 @@ trait wpcd_wpapp_admin_column_data {
 
 		/* If no data, add a notification to that effect. */
 		if ( empty( $new_column_data ) ) {
-			$new_column_data = __( 'No data for this app.', 'wpcd' );
+			$new_column_data = __( 'There are no health alerts for this app.', 'wpcd' );
 		}
 
 		/* Add data if it's not already in the column */
@@ -366,6 +366,17 @@ trait wpcd_wpapp_admin_column_data {
 				}
 			}
 		}
+
+		// Debug flag.
+		$debug_flag = __( 'Disabled', 'wpcd' );
+		if ( true === $this->get_site_local_wpdebug_flag( $post_id ) ) {
+			$debug_flag = __( 'Enabled', 'wpcd' );
+		}
+		$value            = __( 'WP_DEBUG: ', 'wpcd' );
+		$value            = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $value, 'debugflag', 'left' );
+		$value           .= WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $debug_flag, 'debugflag', 'right' );
+		$value            = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_div_and_class( $value, 'debugflag' );
+		$new_column_data .= $value;
 
 		return $new_column_data;
 	}

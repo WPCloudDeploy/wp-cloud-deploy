@@ -1265,7 +1265,7 @@ function gf_add_ols_conf() {
 	  # Headers go below this line
 		X-XSS-Protection "1; mode=block" always;
 		X-Frame-Options "SAMEORIGIN";
-		Referrer-Policy no-referrer, strict-origin-when-cross-origin;
+		Referrer-Policy no-referrer, strict-origin-when-cross-origin
 		Strict-Transport-Security: max-age=31536000; includeSubDomains; preload	  
 	  # Headers go above this line
 	  END_extraHeaders

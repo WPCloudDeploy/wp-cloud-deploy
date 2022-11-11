@@ -875,7 +875,7 @@ is_rp() {
 }
 
 enable_rp(){
-    sed -i "${domain_conf}" -re '/Headers go below this line/a Referrer-Policy no-referrer, strict-origin-when-cross-origin;'
+    sed -i "${domain_conf}" -re '/Headers go below this line/a Referrer-Policy no-referrer, strict-origin-when-cross-origin'
 }
 
 

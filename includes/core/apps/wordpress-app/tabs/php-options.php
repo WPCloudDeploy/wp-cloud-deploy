@@ -22,6 +22,10 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 		add_filter( "wpcd_app_{$this->get_app_name()}_get_tabnames", array( $this, 'get_tab' ), 10, 2 );
 		add_filter( "wpcd_app_{$this->get_app_name()}_get_tabs", array( $this, 'get_tab_fields' ), 10, 2 );
 		add_filter( "wpcd_app_{$this->get_app_name()}_tab_action", array( $this, 'tab_action' ), 10, 3 );
+
+		// Allow the change_php_version action to be triggered via an action hook.
+		add_action( 'wpcd_wordpress-app_do_change_php_version', array( $this, 'change_php_version_action' ), 10, 3 );
+
 	}
 
 	/**
@@ -332,7 +336,8 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 			'label'          => '',
 			'raw_attributes' => array(
 				'std'                 => __( 'Change PHP Version', 'wpcd' ),
-				'confirmation_prompt' => $confirmation_prompt,              // fields that contribute data for this action.
+				'confirmation_prompt' => $confirmation_prompt,
+				// fields that contribute data for this action.
 				'data-wpcd-fields'    => json_encode( array( '#wpcd_app_action_change-php-version-new-version' ) ),
 			),
 			'type'           => 'button',
@@ -656,23 +661,72 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 
 	}
 
+	/**
+	 * Helper function to change the PHP version.
+	 *
+	 * Can be called directly or by an action hook.
+	 *
+	 * Action hook: wpcd_wordpress-app_do_change_php_version  (Optional).
+	 *
+	 * @param int    $id     The postID of the app cpt.
+	 * @param string $php_version The new php version - eg: 7.4, 8.1 etc.
+	 *
+	 * @return string|WP_Error
+	 */
+	public function change_php_version_action( $id, $php_version ) {
+
+		/* What type of web server are we running? */
+		$webserver_type = $this->get_web_server_type( $id );
+
+		/* What is the current php version on the site? */
+		$current_version = $this->get_php_version_for_app( $id );
+
+		/* If we're already at the current version, do nothing. */
+		if ( $current_version === $php_version ) {
+			return true;
+		}
+
+		// For OLS, the service name is the PHP version for bash.
+		$php_select_options = array();
+		switch ( $webserver_type ) {
+			case 'ols':
+			case 'ols-enterprise':
+				$php_version = wpcd_convert_php_version_to_ols_service( $php_version );
+				break;
+		}
+
+		// Array to pass into function call.
+		$args['new_php_version'] = $php_version;
+
+		$return = $this->change_php_version( $id, 'change_php_version', $args );
+
+		return $return;
+
+	}
+
 
 	/**
 	 * Switch PHP Version.
 	 *
 	 * @param int    $id     The postID of the app cpt.
 	 * @param string $action The action to be performed (this matches the string required in the bash scripts).
+	 * @param array  $in_args Alternative source of arguments passed via action hook or direct function call instead of pulling from $_POST.
 	 *
 	 * @return boolean|WP_Error    success/failure
 	 */
-	private function change_php_version( $id, $action ) {
+	private function change_php_version( $id, $action, $in_args = array() ) {
 		$instance = $this->get_app_instance_details( $id );
 
 		if ( is_wp_error( $instance ) ) {
 			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
 		}
 
-		$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
+		if ( empty( $in_args ) ) {
+			// Get data from the POST request.
+			$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
+		} else {
+			$args = $in_args;
+		}
 
 		// What type of web server are we running?
 		$webserver_type = $this->get_web_server_type( $id );

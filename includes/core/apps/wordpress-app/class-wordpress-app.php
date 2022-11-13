@@ -2829,6 +2829,9 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		// Do the DNS thing.
 		$this->handle_temp_dns_for_new_site( $server_id, $app_id );
 
+		// Switch PHP version.
+		$this->handle_switch_php_version( $app_id, $instance );
+
 		// Install page_cache.
 		$this->handle_page_cache_for_new_site( $app_id, $instance );
 
@@ -2864,6 +2867,36 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		}
 
 		return $dns_success;
+
+	}
+
+	/**
+	 * Switch PHP version if necessary after a new site has been installed.
+	 *
+	 * Called from function wpcd_wpapp_install_complete
+	 *
+	 * @param int   $app_id        post id of app.
+	 * @param array $instance      Array passed by calling function containing details of the server and site.
+	 */
+	public function handle_switch_php_version( $app_id, $instance ) {
+
+		// What's the default new php version?
+		$new_php_default_version = wpcd_get_option( 'wordpress_app_sites_set_php_version' );
+
+		// if empty new default php version, bail.
+		if ( empty( $new_php_default_version ) ) {
+			return true;
+		}
+
+		// Bail if the new default php version is the wpcd app default.
+		if ( (string) $this->get_wpapp_default_php_version() === (string) $new_php_default_version ) {
+			return true;
+		}
+
+		// Call the action hook that will switch the php versions.
+		do_action( 'wpcd_wordpress-app_do_change_php_version', $app_id, $new_php_default_version );
+
+		return true;
 
 	}
 

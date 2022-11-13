@@ -317,7 +317,7 @@ class WPCD_Admin_Setup_Wizard {
 		?>
 		<form method="post">
 			<p><b><?php esc_html_e( sprintf( __( 'Welcome to %s!', 'wpcd' ), $product_name ) ); ?> </b></p>	
-			<p><?php esc_html_e( 'This setup wizard will help you get the basics configured and connected to your DigitalOcean account', 'wpcd' ); ?> </p>	
+			<p><?php esc_html_e( 'This setup wizard will help you get the basics configured and connected to your Cloud Server account', 'wpcd' ); ?> </p>	
 			<p><b><?php esc_html_e( 'Encryption Key', 'wpcd' ); ?> </b></p>			
 			<?php
 			// See if wpcd encryption key is defined.
@@ -377,6 +377,9 @@ class WPCD_Admin_Setup_Wizard {
 		}
 		if ( class_exists( 'CLOUD_PROVIDER_API_Hetzner' ) ) {
 			$providers['hetzner'] = __( 'Hetzner', 'wpcd' );
+		}
+		if ( class_exists( 'CLOUD_PROVIDER_API_Upcloud' ) ) {
+			$providers['upcloud'] = __( 'UpCloud', 'wpcd' );
 		}
 
 		?>
@@ -450,9 +453,12 @@ class WPCD_Admin_Setup_Wizard {
 		<form method="post">
 			<?php $this->wpcd_api_token_instructions( $provider ); ?>
 
-			<b><label for="api-token"><?php esc_html_e( 'Enter Your API Key or Token:', 'wpcd' ); ?></label></b>
-			<input type="text" name="api-token" size="100" />
-			<br /><br />
+			<?php // Ask for the api key only if the provider is not upcloud - UPCLOUD only needs a user id and password. ?>
+			<?php if ( 'upcloud' !== $provider ) { ?>
+				<b><label for="api-token"><?php esc_html_e( 'Enter Your API Key or Token:', 'wpcd' ); ?></label></b>
+				<input type="text" name="api-token" size="100" />
+				<br /><br />
+			<?php } ?>
 
 			<?php $this->wpcd_get_other_provider_fields( $provider ); ?>
 
@@ -533,6 +539,12 @@ class WPCD_Admin_Setup_Wizard {
 				<?php
 				break;
 
+			case 'upcloud':
+				?>
+				<p><b><?php esc_html_e( 'Connect To Your UpCloud Account', 'wpcd' ); ?> </b></p>
+				<?php
+				break;
+
 			case 'vultr-v2':
 			case 'vultr-v2-baremetal':
 				?>
@@ -551,7 +563,7 @@ class WPCD_Admin_Setup_Wizard {
 	/**
 	 * Get any other provider fields that might be needed.
 	 * For example, LINODE needs a user name.
-	 * 
+	 *
 	 * @param string $provider The provider slug.
 	 */
 	public function wpcd_get_other_provider_fields( $provider ) {
@@ -573,6 +585,17 @@ class WPCD_Admin_Setup_Wizard {
 				// Nothing needed.
 				break;
 
+			case 'upcloud':
+				?>
+				<b><label for="user-name"><?php esc_html_e( 'Enter Your Upcloud User Name:', 'wpcd' ); ?></label></b>
+				<input type="text" name="user-name" size="100" />
+				<br /><br />				
+				<b><label for="user-name"><?php esc_html_e( 'Enter Your Upcloud Password:', 'wpcd' ); ?></label></b>
+				<input type="text" name="user-password" size="100" />
+				<br /><br />								
+				<?php
+				break;
+
 			case 'vultr-v2':
 			case 'vultr-v2-baremetal':
 				// Nothing needed.
@@ -584,7 +607,7 @@ class WPCD_Admin_Setup_Wizard {
 
 	/**
 	 * Save other provider fields.  For example Linode needs to get and save the user name.
-	 * 
+	 *
 	 * @param string $provider The provider slug.
 	 */
 	public function wpcd_save_other_provider_fields( $provider ) {
@@ -609,6 +632,33 @@ class WPCD_Admin_Setup_Wizard {
 
 				break;
 
+			case 'upcloud':
+				// Extract the user name from the _POST global var.
+				$user_name = sanitize_text_field( FILTER_INPUT( INPUT_POST, 'user-name', FILTER_DEFAULT ) );
+
+				// Empty key?  Stay on the current step.
+				if ( empty( $user_name ) ) {
+					wp_safe_redirect( esc_url_raw( add_query_arg( array( 'error_msg' => __( 'Please provide your UpCloud user name.', 'wpcd' ) ), $this->get_this_step_link() ) ) );
+					exit;
+				}
+
+				// Otherwise, save it.
+				wpcd_set_option( "vpn_{$provider}_user_name", WPCD()->encrypt( $user_name ) );
+
+				// Extract the password from the _POST global var.
+				$password = sanitize_text_field( FILTER_INPUT( INPUT_POST, 'user-password', FILTER_DEFAULT ) );
+
+				// Empty password?  Stay on the current step.
+				if ( empty( $password ) ) {
+					wp_safe_redirect( esc_url_raw( add_query_arg( array( 'error_msg' => __( 'Please provide your UpCloud Password.', 'wpcd' ) ), $this->get_this_step_link() ) ) );
+					exit;
+				}
+
+				// Otherwise, save it.
+				wpcd_set_option( "vpn_{$provider}_user_password", WPCD()->encrypt( $password ) );
+
+				break;
+
 			case 'hetzner':
 				break;
 
@@ -629,17 +679,22 @@ class WPCD_Admin_Setup_Wizard {
 	public function wpcd_connect_to_provider_save() {
 		check_admin_referer( 'wpcd-setup-connect-to-provider' );
 
+		// Get previously selected provider.
+		$provider = $this->wpcd_get_selected_provider();
+
 		// Extract the token from the _POST global var.
 		$api_key = sanitize_text_field( FILTER_INPUT( INPUT_POST, 'api-token', FILTER_DEFAULT ) );
+
+		// If the provider is upcloud, this value is going to be blank so set it to something random.
+		if ( 'upcloud' === $provider ) {
+			$api_key = 'no_value_needed';
+		}
 
 		// Empty key?  Stay on the current step.
 		if ( empty( $api_key ) ) {
 			wp_safe_redirect( esc_url_raw( add_query_arg( array( 'error_msg' => __( 'Please provide the API Key/Token.', 'wpcd' ) ), $this->get_this_step_link() ) ) );
 			exit;
 		}
-
-		// Get previously selected provider.
-		$provider = $this->wpcd_get_selected_provider();
 
 		// If no provider, exit - the error message would have been displayed by the call to wpcd_get_selected_provider().
 		if ( empty( $provider ) ) {

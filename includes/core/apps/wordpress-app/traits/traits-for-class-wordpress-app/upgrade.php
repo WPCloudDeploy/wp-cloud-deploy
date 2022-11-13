@@ -367,7 +367,7 @@ trait wpcd_wpapp_upgrade_functions {
 			);
 		}
 
-			$posts = get_posts( $args );
+		$posts = get_posts( $args );
 		foreach ( $posts as $post ) {
 
 			/* Check version numbers on server - only versions lower than 461 need to be upgraded */
@@ -441,6 +441,65 @@ trait wpcd_wpapp_upgrade_functions {
 		}
 
 		return $column_data;
+
+	}
+
+	/**
+	 * Run any automatic upgrades that need to be run.
+	 *
+	 * Action Hook: admin_init
+	 */
+	public function wpapp_admin_init_app_silent_auto_upgrade() {
+		// 5.1 auto upgrades.
+		$this->wpcd_510_silent_auto_upgrade();
+
+		// Call future silent auto upgrade functions here.
+	}
+
+	/**
+	 * Run upgrades for WPCD 5.1.
+	 *
+	 * For this upgrade, we'll be doing the following:
+	 *   1. Make sure that all app records have a php version on them.
+	 */
+	public function wpcd_510_silent_auto_upgrade() {
+
+		// Check a system-wide option variable to see the last update that was done.
+		if ( (int) get_option( 'wpcd_last_silent_auto_upgrade_done' ) >= 510 ) {
+			return false;  // no upgrade needed for version 5.1.0.
+		}
+
+		/* Get list of app records. */
+		$args = array(
+			'post_type'      => 'wpcd_app',
+			'post_status'    => 'private',
+			'posts_per_page' => 99999,
+			'fields'         => 'ids',
+			'meta_query'     => array(
+				'relation' => 'AND',
+				array(
+					'key'     => 'app_type',
+					'value'   => 'wordpress-app',
+					'compare' => '=',
+				),
+			),
+		);
+
+		// Grab app records.
+		$posts = get_posts( $args );
+
+		// Loop through and stamp.
+		foreach ( $posts as $key => $id ) {
+
+			$php_version = wpcd_maybe_unserialize( get_post_meta( $id, 'wpapp_php_version', true ) );
+			if ( empty( $php_version ) ) {
+				$this->set_php_version_for_app( $id, $this->get_php_version_for_app( $id ) );
+			}
+		}
+
+		if ( (int) get_option( 'wpcd_last_upgrade_done' ) < 510 ) {
+			update_option( 'wpcd_last_silent_auto_upgrade_done', 510 );
+		}
 
 	}
 

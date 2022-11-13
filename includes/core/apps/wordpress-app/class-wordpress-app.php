@@ -238,7 +238,10 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		add_action( 'wp_initialize_site', array( $this, 'wpapp_schedule_events_for_new_site' ), 10, 2 );
 
 		// Action hook to set transient if directory is readable and .txt files are accessible.
-		add_action( 'admin_init', array( $this, 'wpapp_admin_init' ) );
+		add_action( 'admin_init', array( $this, 'wpapp_admin_init_is_readable' ) );
+
+		// Admin hook that will handle any automatic upgrades or database changes.
+		add_action( 'admin_init', array( $this, 'wpapp_admin_init_app_silent_auto_upgrade' ) );  // This function is in the upgrade.php trait file.
 
 		// Action hook to handle ajax request to set transient if user closed the readable notice check.
 		add_action( 'wp_ajax_set_readable_check', array( $this, 'set_readable_check' ) );
@@ -3426,7 +3429,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	/**
 	 * Checks whether the specified directory is readable and .txt files can be accessible
 	 */
-	public function wpapp_admin_init() {
+	public function wpapp_admin_init_is_readable() {
 		if ( ! get_transient( 'wpcd_readable_check' ) ) {
 			$dir = wpcd_path . 'includes/core/apps/wordpress-app/scripts/v1/raw/';
 			$url = wpcd_url . 'includes/core/apps/wordpress-app/scripts/v1/raw/01-prepare_server.txt';
@@ -3499,7 +3502,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			wp_send_json_error( array( 'msg' => __( 'You are not authorized to perform this action - do readable check again.', 'wpcd' ) ) );
 		}
 
-		$this->wpapp_admin_init();
+		$this->wpapp_admin_init_is_readable();
 
 		if ( get_transient( 'wpcd_readable_check' ) ) {
 			$return = array(

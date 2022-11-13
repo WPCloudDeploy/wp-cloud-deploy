@@ -47,6 +47,9 @@ if ( ! empty( $options['uninstall_on_delete'] ) ) {
 	delete_option( 'wpcd_last_upgrade_done' );
 	delete_option( 'wpcd_last_silent_auto_upgrade_done' );
 
+	/* Options used in setup wizard */
+	delete_option( 'wpcd_setup_wizard_selected_provider' );
+
 	/* Wisdom Options */
 	delete_option( 'wisdom_opt_out' );
 	delete_option( 'wisdom_wpcd_server_count' );

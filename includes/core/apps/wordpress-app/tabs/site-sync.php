@@ -151,6 +151,9 @@ class WPCD_WORDPRESS_TABS_SITE_SYNC extends WPCD_WORDPRESS_TABS {
 							// @TODO: Only the first team is copied.  If the site has more than one team, only the first one is copied over.
 							update_post_meta( $new_app_post_id, 'wpcd_assigned_teams', get_post_meta( $id, 'wpcd_assigned_teams', true ) );
 
+							// Update the PHP version to match the original version.
+							$this->set_php_version_for_app( $new_app_post_id, $this->get_php_version_for_app( $id ) );
+
 							// Finally, lets add a meta to indicate that this was a copy.
 							update_post_meta( $new_app_post_id, 'wpapp_site_synced_from_app', $id );
 

@@ -938,8 +938,9 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 					'type'           => 'button',
 				);
 
-				if ( 'php74' === $services_key ) {
-					// Do not allow php 7.4 to be deactivated since it's the default for the server.
+				$default_php_server_version = 'php' . $this->get_default_php_version_no_period( $id );
+				if ( $default_php_server_version  === $services_key ) {
+					// Do not allow php 7.4 or the the default version to be deactivated since it's the default for the server.
 					$actions[ "php-server-deactivate-$services_key" ] = array(
 						'label'          => '',
 						'raw_attributes' => array(

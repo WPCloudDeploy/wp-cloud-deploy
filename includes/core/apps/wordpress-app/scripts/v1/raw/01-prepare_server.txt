@@ -173,9 +173,9 @@ then
 		fi
 	done
 
-	# Use PHP 7.4 as the default
-	echo $(date): "Making PHP 7.4 the default PHP version"
-	update-alternatives --set php /usr/bin/php7.4 > /dev/null 2>&1
+	# Use PHP 8.1 as the default
+	echo $(date): "Making PHP 8.1 the default PHP version"
+	update-alternatives --set php /usr/bin/php8.1 > /dev/null 2>&1
 fi
 
 if [ "$webserver_type" = "ols" ]  || [ "$webserver_type" = "ols-enterprise" ]
@@ -183,11 +183,11 @@ then
 	# Adding and installing MARIADB.
 	echo "$(date): Installing OpenLiteSpeed/OLS Enterprise stack - this will take a while!"
 
-	# OLS/LSPHP installation here specifying lsphp74
+	# OLS/LSPHP installation here specifying lsphp81
 	# https://openlitespeed.org/kb/1-click-install/#Where_is_OLS_installed_to
 	# Silent with Suppress all except errors
 	# https://explainshell.com/explain?cmd=curl+-S+-s+-k+https%3A%2F%2Fraw.githubusercontent.com%2Flitespeedtech%2Fols1clk%2Fmaster%2Fols1clk.sh
-	bash <(curl --show-error --silent -k https://raw.githubusercontent.com/litespeedtech/ols1clk/master/ols1clk.sh ) --quiet --lsphp 74 > /dev/null 2>&1
+	bash <(curl --show-error --silent -k https://raw.githubusercontent.com/litespeedtech/ols1clk/master/ols1clk.sh ) --quiet --lsphp 81 > /dev/null 2>&1
 	if [ $? -ne 0 ] 
 	then
 		echo "Failed!  Quitting process"
@@ -247,19 +247,19 @@ then
 		exit 1
 	fi
 
-	# Use PHP 7.4 as the default
-	echo "$(date): Making PHP 7.4 the default PHP version"
+	# Use PHP 8.1 as the default
+	echo "$(date): Making PHP 8.1 the default PHP version"
 	rm -f /usr/bin/php > /dev/null 2>&1
 	rm -f /usr/bin/phar > /dev/null 2>&1
 	rm -f /usr/bin/phar.phar > /dev/null 2>&1
 	rm -f /usr/bin/pecl > /dev/null 2>&1
 	rm -f /usr/lib/pear > /dev/null 2>&1
 	# https://stackoverflow.com/questions/55513672/how-to-add-a-path-to-update-alternatives-config-php
-	update-alternatives --install /usr/bin/php php /usr/local/lsws/lsphp74/bin/php 111 > /dev/null 2>&1
-	update-alternatives --install /usr/bin/phar phar /usr/local/lsws/lsphp74/bin/phar7.4.phar 111 > /dev/null 2>&1
-	update-alternatives --install /usr/bin/phar.phar phar.phar /usr/local/lsws/lsphp74/bin/phar7.4.phar 111 > /dev/null 2>&1
-	update-alternatives --install /usr/bin/pecl pecl /usr/local/lsws/lsphp74/bin/pecl 111 > /dev/null 2>&1
-	update-alternatives --install /usr/lib/pear pear /usr/local/lsws/lsphp74/bin/pear 111 > /dev/null 2>&1
+	update-alternatives --install /usr/bin/php php /usr/local/lsws/lsphp81/bin/php 111 > /dev/null 2>&1
+	update-alternatives --install /usr/bin/phar phar /usr/local/lsws/lsphp81/bin/phar8.1.phar 111 > /dev/null 2>&1
+	update-alternatives --install /usr/bin/phar.phar phar.phar /usr/local/lsws/lsphp81/bin/phar7.4.phar 111 > /dev/null 2>&1
+	update-alternatives --install /usr/bin/pecl pecl /usr/local/lsws/lsphp81/bin/pecl 111 > /dev/null 2>&1
+	update-alternatives --install /usr/lib/pear pear /usr/local/lsws/lsphp81/bin/pear 111 > /dev/null 2>&1
 fi
 
 
@@ -949,7 +949,7 @@ then
 	phpversion=(5.6 7.1 7.2 7.3)
 	for ver in "${phpversion[@]}"
 	do
-		# Disable php versions except php7.4 and greater.
+		# Disable php versions earlier than php7.4 and greater.
 		systemctl stop php$ver-fpm > /dev/null 2>&1
 		systemctl disable php$ver-fpm > /dev/null 2>&1
 
@@ -958,8 +958,8 @@ then
 	done
 
 	# restart nginx
-	systemctl enable php7.4-fpm
-	systemctl restart php7.4-fpm
+	systemctl enable php8.1-fpm
+	systemctl restart php8.1-fpm
 	systemctl enable nginx
 	systemctl restart nginx
 elif [ "$webserver_type" = "ols" ]  || [ "$webserver_type" = "ols-enterprise" ]

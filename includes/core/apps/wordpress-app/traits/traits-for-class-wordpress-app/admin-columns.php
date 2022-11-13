@@ -1006,10 +1006,7 @@ trait wpcd_wpapp_admin_column_data {
 	public function get_formatted_php_version_for_display( $post_id ) {
 		if ( 'wordpress-app' === $this->get_app_name() ) {
 			// add the php version.
-			$php_version = wpcd_maybe_unserialize( get_post_meta( $post_id, 'wpapp_php_version', true ) );
-			if ( empty( $php_version ) ) {
-				$php_version = '7.4';
-			}
+			$php_version = $this->get_php_version_for_app( $post_id );
 
 			// Create a variable that can be used as part of a css class name - periods are not allowed in class names.
 			$php_version_class = str_replace( '.', '_', $php_version );

@@ -127,10 +127,6 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 					break;
 				case 'change-php-version':
 					// change the php version.
-					$php_version = get_post_meta( $id, 'wpapp_php_version', true );
-					if ( empty( $php_version ) ) {
-						$php_version = '7.4';
-					}
 					$result = $this->change_php_version( $id, 'change_php_version' );
 					if ( ! is_wp_error( $result ) ) {
 						$result = array( 'refresh' => 'yes' );
@@ -281,11 +277,8 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 		/* What type of web server are we running? */
 		$webserver_type = $this->get_web_server_type( $id );
 
-		/* What is the current php version site? */
-		$current_version = get_post_meta( $id, 'wpapp_php_version', true );
-		if ( empty( $current_version ) ) {
-			$current_version = '7.4';
-		}
+		/* What is the current php version on the site? */
+		$current_version = $this->get_php_version_for_app( $id );
 
 		/* Set the text of the confirmation prompt */
 		$confirmation_prompt = '';
@@ -729,7 +722,7 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 		}
 
 		// Record the new version on the app record.
-		update_post_meta( $id, 'wpapp_php_version', $new_php_version );
+		$this->set_php_version_for_app( $id, $new_php_version );
 
 		return $success;
 	}

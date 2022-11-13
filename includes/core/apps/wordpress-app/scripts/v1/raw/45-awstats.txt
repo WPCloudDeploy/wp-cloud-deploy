@@ -177,7 +177,7 @@ function awstats_install
 }" > /etc/nginx/sites-enabled/awstats.conf
 
 		useradd -d "/var/www/$domain/html" -g "www-data" -M -s "/bin/bash" $domain
-		gf_add_php_conf $domain $domain 7.4
+		gf_add_php_conf $domain $domain 8.1
 
 		# create authentication file
 		mkdir -p /etc/nginx/htpasswd /var/www/$domain/html

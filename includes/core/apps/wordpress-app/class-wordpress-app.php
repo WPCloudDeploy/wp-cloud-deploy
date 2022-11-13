@@ -1425,6 +1425,94 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	}
 
 	/**
+	 * Return the PHP version that is the default for this version of the app.
+	 */
+	public function get_wpapp_default_php_version() {
+		return '8.1';
+	}
+
+	/**
+	 * Returns the default PHP version for a server.
+	 *
+	 * Versions of WPCD earlier than 4.30 used 7.4.
+	 * Versions after that uses 8.1.
+	 *
+	 * @param int $server_id The post id of the server (or app).
+	 *
+	 * @return string
+	 */
+	public function get_default_php_version_for_server( $server_id ) {
+
+		$initial_plugin_version = $this->get_server_meta_by_app_id( $server_id, 'wpcd_server_plugin_initial_version', true );  // This function is smart enough to know if the ID being passed is a server or app id and adjust accordingly.
+		if ( version_compare( $initial_plugin_version, '4.30.0' ) > -1 ) {
+			// Versions of the plugin after 4.30.0 automatically uses PHP 8.1.
+			return '8.1';
+		} else {
+			// Earlier versions used PHP 7.4.
+			return '7.4';
+		}
+
+	}
+
+	/**
+	 * Returns the default PHP version for a server without the period in it.
+	 * Eg: 74 instead of 7.4
+	 *
+	 * @param int $server_id The post id of the server (or app).
+	 *
+	 * @return string
+	 */
+	public function get_default_php_version_no_period( $server_id ) {
+		$version = $this->get_default_php_version_for_server( $server_id );
+		$version = str_replace( '.', '', $version, );
+		return $version;
+	}
+
+	/**
+	 * Get PHP version for app.
+	 *
+	 * @param int $app_id post id of app.
+	 *
+	 * @return string
+	 */
+	public function get_php_version_for_app( $app_id ) {
+
+		// Check to see if the version is stampled on the record.
+		$php_version = wpcd_maybe_unserialize( get_post_meta( $app_id, 'wpapp_php_version', true ) );
+
+		// If not, then do some tortured logic to guess at it.
+		if ( empty( $php_version ) ) {
+			// What is the PLUGIN WPCD initial version?
+			$initial_plugin_version_on_app = get_post_meta( $app_id, 'wpcd_app_plugin_initial_version', true );
+			if ( empty( $initial_plugin_version_on_app ) ) {
+				// Just get the wpcd default plugin version since we don't have anything else to use.
+				$php_version = '7.4';  // Must be an old version of WPCD since all records should include the wpcd version.
+			} else {
+				if ( version_compare( $initial_plugin_version_on_app, '4.30.0' ) > -1 ) {
+					// Versions of the plugin after 4.30.0 automatically uses PHP 8.1.
+					return '8.1';
+				} else {
+					// Earlier versions used PHP 7.4.
+					return '7.4';
+				}
+			}
+		}
+
+		return $php_version;
+
+	}
+
+	/**
+	 * Set the PHP version for app.
+	 *
+	 * @param int    $app_id post id of app.
+	 * @param string $php_version new php version (7.4, 8.1 etc.).
+	 */
+	public function set_php_version_for_app( $app_id, $php_version ) {
+		update_post_meta( $app_id, 'wpapp_php_version', $php_version );
+	}
+
+	/**
 	 * Get an array of PHP versions that are valid and active on the server.
 	 *
 	 * @param int|string $id The post id of the site.
@@ -3367,7 +3455,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		/* Nonce check */
 		check_ajax_referer( 'wpcd-admin', 'nonce' );
 
-		/* Permision check - unsure that this is needed since the action is not destructive and might cause issues if the user sees the message and can't dismiss it because they're not an admin. */
+		/* Permission check - unsure that this is needed since the action is not destructive and might cause issues if the user sees the message and can't dismiss it because they're not an admin. */
 		if ( ! wpcd_is_admin() ) {
 			wp_send_json_error( array( 'msg' => __( 'You are not authorized to perform this action - dismiss readable check.', 'wpcd' ) ) );
 		}
@@ -3403,7 +3491,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		/* Nonce check */
 		check_ajax_referer( 'wpcd-admin', 'nonce' );
 
-		/* Permision check - unsure that this is needed since the action is not destructive and might cause issues if the user sees the message and can't dismiss it because they're not an admin. */
+		/* Permission check - unsure that this is needed since the action is not destructive and might cause issues if the user sees the message and can't dismiss it because they're not an admin. */
 		if ( ! wpcd_is_admin() ) {
 			wp_send_json_error( array( 'msg' => __( 'You are not authorized to perform this action - do readable check again.', 'wpcd' ) ) );
 		}
@@ -3528,7 +3616,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			if ( isset( $_GET['wpapp_php_version'] ) && ! empty( $_GET['wpapp_php_version'] ) ) {
 				$wpapp_php_version = sanitize_text_field( filter_input( INPUT_GET, 'wpapp_php_version', FILTER_UNSAFE_RAW ) );
 
-				if ( $wpapp_php_version === '7.4' ) {
+				if ( $wpapp_php_version === $this->get_wpapp_default_php_version() ) {
 
 					$qv['meta_query'][] = array(
 						'relation' => 'OR',
@@ -3661,7 +3749,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 			$wpapp_php_version = sanitize_text_field( filter_input( INPUT_GET, 'wpapp_php_version', FILTER_UNSAFE_RAW ) );
 
-			if ( $wpapp_php_version == '7.4' ) {
+			if ( $wpapp_php_version === $this->get_wpapp_default_php_version() ) {
 				$qv['meta_query'][] = array(
 					'relation' => 'OR',
 					array(
@@ -3751,7 +3839,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		/* Nonce check */
 		check_ajax_referer( 'wpcd-admin', 'nonce' );
 
-		/* Permision check - unsure that this is needed since the action is not destructive and might cause issues if the user sees the message and can't dismiss it because they're not an admin. */
+		/* Permission check - unsure that this is needed since the action is not destructive and might cause issues if the user sees the message and can't dismiss it because they're not an admin. */
 		if ( ! wpcd_is_admin() ) {
 			wp_send_json_error( array( 'msg' => __( 'You are not authorized to perform this action - dismiss cron check.', 'wpcd' ) ) );
 		}
@@ -3773,7 +3861,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		/* Nonce check */
 		check_ajax_referer( 'wpcd-admin', 'nonce' );
 
-		/* Permision check - unsure that this is needed since the action is not destructive and might cause issues if the user sees the message and can't dismiss it because they're not an admin. */
+		/* Permission check - unsure that this is needed since the action is not destructive and might cause issues if the user sees the message and can't dismiss it because they're not an admin. */
 		if ( ! wpcd_is_admin() ) {
 			wp_send_json_error( array( 'msg' => __( 'You are not authorized to perform this action - dismiss php version check.', 'wpcd' ) ) );
 		}
@@ -3795,7 +3883,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		/* Nonce check */
 		check_ajax_referer( 'wpcd-admin', 'nonce' );
 
-		/* Permision check - unsure that this is needed since the action is not destructive and might cause issues if the user sees the message and can't dismiss it because they're not an admin. */
+		/* Permission check - unsure that this is needed since the action is not destructive and might cause issues if the user sees the message and can't dismiss it because they're not an admin. */
 		if ( ! wpcd_is_admin() ) {
 			wp_send_json_error( array( 'msg' => __( 'You are not authorized to perform this action - dismiss localhost check.', 'wpcd' ) ) );
 		}

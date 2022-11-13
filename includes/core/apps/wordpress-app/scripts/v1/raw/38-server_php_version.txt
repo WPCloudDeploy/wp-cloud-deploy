@@ -35,7 +35,7 @@ function update_lsphp_default_version(){
 	local phpver
 	local lsphpver
 	local default_phpver
-	default_phpver='7.4'
+	default_phpver='8.1'
 	lsphpver="${1:-$default_phpver}" # 7.0,7.1,7.2,7.3,7.4,8.0,8.1,etc
 	phpver=$(echo $lsphpver | sed 's|\.||g')  # 70,71,72,73,74,80,81,etc
 
@@ -45,7 +45,7 @@ function update_lsphp_default_version(){
 	clear_php_alternatives
 	
 	if [ "$phpver" = "70" ]  || [ "$phpver" = "71" ]|| [ "$phpver" = "72" ]|| [ "$phpver" = "73" ]; then
-		# phpver is 72,73 use un versioned phar.phar
+		# phpver is 72,73 use un-versioned phar.phar
 		sudo update-alternatives --install /usr/bin/php php /usr/local/lsws/lsphp${phpver}/bin/php 111
 		sudo update-alternatives --install /usr/bin/phar phar /usr/local/lsws/lsphp${phpver}/bin/phar 111
 		sudo update-alternatives --install /usr/bin/phar.phar phar.phar /usr/local/lsws/lsphp${phpver}/bin/phar.phar 111

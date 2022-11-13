@@ -211,7 +211,7 @@ class WPCD_WORDPRESS_TABS_SERVER_TOOLS extends WPCD_WORDPRESS_TABS {
 
 		$default_php_version = get_post_meta( $id, 'wpcd_default_php_version', true );
 		if ( empty( $default_php_version ) ) {
-			$default_php_version = '7.4';
+			$default_php_version = $this->get_default_php_version_for_server( $id );
 		}
 
 		$actions['reset-server-default-php-version-header'] = array(

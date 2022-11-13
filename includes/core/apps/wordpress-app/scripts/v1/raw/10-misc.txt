@@ -737,19 +737,21 @@ then
 	if [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
 		while [[ -z $module ]]
-		do
-			ls /usr/local/lsws/lsphp74/etc/php/7.4/mods-disabled | sed 's/.ini//' | nl
+		do	
+			default_lsphpver=$(grep -sEo 'lsphp[0-9]{2}' $WEBCF|head -n1| sed 's|lsphp||'); # 74
+			default_php_version=$(echo $default_lsphpver | sed 's/^\(.\{1\}\)/\1./')  # 7.0,7.1,7.2,7.3,7.4,8.0,8.1,etc
+			ls /usr/local/lsws/lsphp${default_lsphpver}/etc/php/${default_php_version}/mods-disabled | sed 's/.ini//' | nl
 			echo
 			read -p "Select module: " site_number
-			number_of_sites=$(ls /usr/local/lsws/lsphp74/etc/php/7.4/mods-disabled | sed 's/.ini//' |wc -l)
+			number_of_sites=$(ls /usr/local/lsws/lsphp${default_lsphpver}/etc/php/${default_php_version}/mods-disabled | sed 's/.ini//' |wc -l)
 			until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]
 			do
 				echo "$site_number: invalid selection."
 				read -p "Select module: " site_number
 			done
-			module=$(ls /usr/local/lsws/lsphp74/etc/php/7.4/mods-disabled | sed 's/.ini//' | sed -n "$site_number"p)
+			module=$(ls /usr/local/lsws/lsphp${default_lsphpver}/etc/php/${default_php_version}/mods-disabled | sed 's/.ini//' | sed -n "$site_number"p)
 		done
-		mv /usr/local/lsws/lsphp74/etc/php/7.4/mods-disabled/$module.ini /usr/local/lsws/lsphp74/etc/php/7.4/mods-available/
+		mv /usr/local/lsws/lsphp${default_lsphpver}/etc/php/${default_php_version}/mods-disabled/$module.ini /usr/local/lsws/lsphp${default_lsphpver}/etc/php/7.4/mods-available/
 	elif [ "$g_webserver_type" = "nginx" ]
 	then
 		while [[ -z $module ]]
@@ -779,21 +781,23 @@ then
 	echo "Select which module should be disabled"
 	if [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
-		mkdir -p /usr/local/lsws/lsphp74/etc/php/7.4/mods-disabled
+		default_lsphpver=$(grep -sEo 'lsphp[0-9]{2}' $WEBCF|head -n1| sed 's|lsphp||'); # 74
+		default_php_version=$(echo $default_lsphpver | sed 's/^\(.\{1\}\)/\1./')  # 7.0,7.1,7.2,7.3,7.4,8.0,8.1,etc
+		mkdir -p /usr/local/lsws/lsphp${default_lsphpver}/etc/php/${default_php_version}/mods-disabled
 		while [[ -z $module ]]
 		do
-			ls /usr/local/lsws/lsphp74/etc/php/7.4/mods-available | sed 's/.ini//' | nl
+			ls /usr/local/lsws/lsphp${default_lsphpver}/etc/php/${default_php_version}/mods-available | sed 's/.ini//' | nl
 			echo
 			read -p "Select module: " site_number
-			number_of_sites=$(ls /usr/local/lsws/lsphp74/etc/php/7.4/mods-available | sed 's/.ini//' |wc -l)
+			number_of_sites=$(ls /usr/local/lsws/lsphp${default_lsphpver}/etc/php/7.4/mods-available | sed 's/.ini//' |wc -l)
 			until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]
 			do
 				echo "$site_number: invalid selection."
 				read -p "Select module: " site_number
 			done
-			module=$(ls /usr/local/lsws/lsphp74/etc/php/7.4/mods-available | sed 's/.ini//' | sed -n "$site_number"p)
+			module=$(ls /usr/local/lsws/lsphp${default_lsphpver}/etc/php/${default_php_version}/mods-available | sed 's/.ini//' | sed -n "$site_number"p)
 		done
-		mv /usr/local/lsws/lsphp74/etc/php/7.4/mods-available/$module.ini /usr/local/lsws/lsphp74/etc/php/7.4/mods-disabled/
+		mv /usr/local/lsws/lsphp${default_lsphpver}/etc/php/${default_php_version}/mods-available/$module.ini /usr/local/lsws/lsphp${default_lsphpver}/etc/php/${default_php_version}/mods-disabled/
 	elif [ "$g_webserver_type" = "nginx" ]
 	then
 		while [[ -z $module ]]

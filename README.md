@@ -128,7 +128,9 @@ Note: Even though the entire git development history isn't available on github, 
 ------
 * New: WPAPP - Global option to set PHP version for all new sites.
 * New: WPAPP - Default PHP version for new sites is now 8.1.
+* New: WPAPP - Add option to filter by server type in the server list.
 * Improved: WPAPP - Onboarding wizard now supports additional premium providers - Linode, Vultr, Hetzner, UpCloud
+* Fix: WPAPP - Make sure PHP 8.1 show up as an option when filtering the app list.
 
 5.0.0
 ------

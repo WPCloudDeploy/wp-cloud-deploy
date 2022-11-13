@@ -3583,6 +3583,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				'7.1' => '7.1',
 				'5.6' => '5.6',
 				'8.0' => '8.0',
+				'8.1' => '8.1',
 			);
 			$php_version         = $this->generate_meta_dropdown( 'wpapp_php_version', __( 'PHP Version', 'wpcd' ), $php_version_options );
 			echo $php_version;

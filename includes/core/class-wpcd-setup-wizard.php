@@ -381,8 +381,10 @@ class WPCD_Admin_Setup_Wizard {
 
 		?>
 		<form method="post">
-			<p><b><?php esc_html_e( 'Please Select Your Provider', 'wpcd' ); ?> </b></p>
-			<label for="selected-provider"><?php esc_html_e( 'Choose one from the list:', 'wpcd' ); ?></label>
+			<p><b><?php esc_html_e( 'Please Select Your Cloud Server Provider', 'wpcd' ); ?> </b></p>
+			<p><?php esc_html_e( 'If you do not see your Cloud Server provider in the list below, please make sure you have uploaded and/or activated the provider plugin.', 'wpcd' ); ?> </p>
+			<p><?php esc_html_e( 'Providers other than Digital Ocean may require a premium purchase.', 'wpcd' ); ?> </p>
+			<label for="selected-provider"><?php esc_html_e( 'Choose a provider:', 'wpcd' ); ?></label>
 			<select style="min-width: 200px;" type="text" name="selected-provider">
 			<?php
 			foreach ( $providers as $provider => $name ) {
@@ -521,10 +523,25 @@ class WPCD_Admin_Setup_Wizard {
 				break;
 
 			case 'hetzner':
+				?>
+				<p><b><?php esc_html_e( 'Connect To Your Hetzner Account', 'wpcd' ); ?> </b></p>
+				<p><?php esc_html_e( 'Get your API token from your Hetzner console and enter it below.', 'wpcd' ); ?> </p>
+				<p><?php esc_html_e( 'You can get the api token by navigating to: https://console.hetzner.cloud/projects/<<YOURPROJECTID>>/security/tokens.', 'wpcd' ); ?></p>
+				<p><?php esc_html_e( '(Replace the <<YOURPROJECT>> placeholder in the URL above with your Hetzner project id.).', 'wpcd' ); ?></p>
+				<p><?php esc_html_e( 'There you can click the GENERATE API TOKEN button and follow the instructions.', 'wpcd' ); ?></p>
+				<p><?php esc_html_e( 'Please make sure that you assign both READ & WRITE permissions!', 'wpcd' ); ?></p>			
+				<?php
 				break;
 
 			case 'vultr-v2':
 			case 'vultr-v2-baremetal':
+				?>
+				<p><b><?php esc_html_e( 'Connect To Your Vultr Account', 'wpcd' ); ?> </b></p>
+				<p><?php esc_html_e( 'Get your API token from your VULTR console and enter it below.', 'wpcd' ); ?> </p>
+				<p><?php esc_html_e( 'You can get the api token by navigating to: https://my.vultr.com/settings/#settingsapi.', 'wpcd' ); ?></p>
+				<p><?php esc_html_e( 'Be sure to modify the ACCESS CONTROL section to allow your WPCD Server IP.  Otherwise, creating Vultr servers will fail.', 'wpcd' ); ?></p>
+				<p><?php esc_html_e( 'The easiest thing to do is to allow ANY IPv4 and ANY IPv6. You can tighten them down later.', 'wpcd' ); ?></p>			
+				<?php
 				break;
 
 		}
@@ -534,6 +551,8 @@ class WPCD_Admin_Setup_Wizard {
 	/**
 	 * Get any other provider fields that might be needed.
 	 * For example, LINODE needs a user name.
+	 * 
+	 * @param string $provider The provider slug.
 	 */
 	public function wpcd_get_other_provider_fields( $provider ) {
 
@@ -551,8 +570,9 @@ class WPCD_Admin_Setup_Wizard {
 				break;
 
 			case 'hetzner':
+				// Nothing needed.
 				break;
-	
+
 			case 'vultr-v2':
 			case 'vultr-v2-baremetal':
 				// Nothing needed.
@@ -564,6 +584,8 @@ class WPCD_Admin_Setup_Wizard {
 
 	/**
 	 * Save other provider fields.  For example Linode needs to get and save the user name.
+	 * 
+	 * @param string $provider The provider slug.
 	 */
 	public function wpcd_save_other_provider_fields( $provider ) {
 
@@ -589,7 +611,7 @@ class WPCD_Admin_Setup_Wizard {
 
 			case 'hetzner':
 				break;
-	
+
 			case 'vultr-v2':
 			case 'vultr-v2-baremetal':
 				// Nothing needed.
@@ -644,7 +666,7 @@ class WPCD_Admin_Setup_Wizard {
 			exit;
 		} else {
 			// Stay on this step.
-			wp_safe_redirect( esc_url_raw( add_query_arg( array( 'error_msg' => __( 'We were unable to connect to your server provider with this API key/token. Please try a different one.', 'wpcd' ) ), $this->get_this_step_link() ) ) );
+			wp_safe_redirect( esc_url_raw( add_query_arg( array( 'error_msg' => __( 'We were unable to connect to your server provider with this API key/token. Please re-enter it or try a different one.', 'wpcd' ) ), $this->get_this_step_link() ) ) );
 			exit;
 		}
 

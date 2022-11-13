@@ -2757,6 +2757,9 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				}
 			}
 
+			/* Stamp the PHP version on the app record. */
+			$this->set_php_version_for_app( $app_post_id, $this->get_wpapp_default_php_version() );
+
 			/* Add the password field to the CPT separately because it needs to be encrypted */
 			update_post_meta( $app_post_id, 'wpapp_password', $this::encrypt( $args['wp_password'] ) );
 

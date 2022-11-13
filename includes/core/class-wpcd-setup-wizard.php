@@ -61,7 +61,7 @@ class WPCD_Admin_Setup_Wizard {
 	 */
 	public function maybe_ask_setup_wizard() {
 
-		$test_mode = true;
+		$test_mode = false;
 
 		/**
 		 * Proceed only if both options 'wpcd_plugin_setup' & 'wpcd_skip_wizard_setup' = false

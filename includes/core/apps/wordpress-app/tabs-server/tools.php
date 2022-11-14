@@ -514,6 +514,9 @@ class WPCD_WORDPRESS_TABS_SERVER_TOOLS extends WPCD_WORDPRESS_TABS {
 		// Check for success.
 		if ( ! $success ) {
 			return new \WP_Error( sprintf( __( 'Unable to %1$s for site: %2$s', 'wpcd' ), $action, $result ) );
+		} else {
+			// Return the data as an error so it can be shown in a dialog box.
+			return new \WP_Error( __( 'The global list of PHP restricted functions has been updated for all PHP versions on your OLS server.', 'wpcd' ) );
 		}
 
 	}

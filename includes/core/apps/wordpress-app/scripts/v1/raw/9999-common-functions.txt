@@ -49,7 +49,7 @@ LSDIR='/usr/local/lsws'
 WEBCF="${LSDIR}/conf/httpd_config.conf"
 VHDIR="${LSDIR}/conf/vhosts"
 BOTCRON='/etc/cron.d/certbot'
-PHPVER=lsphp74
+PHPVER=lsphp81
 
 #####################################################################
 # Function to calculate required free space for a backup.
@@ -996,7 +996,7 @@ function gf_add_ols_main_conf() {
 	  persistConn             1
 	  respBuffer              0
 	  autoStart               1
-	  path                    lsphp74/bin/lsphp
+	  path                    lsphp81/bin/lsphp
 	  backlog                 100
 	  instances               1
 	  priority                0

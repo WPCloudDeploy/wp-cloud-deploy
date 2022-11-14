@@ -257,7 +257,7 @@ then
 	# https://stackoverflow.com/questions/55513672/how-to-add-a-path-to-update-alternatives-config-php
 	update-alternatives --install /usr/bin/php php /usr/local/lsws/lsphp81/bin/php 111 > /dev/null 2>&1
 	update-alternatives --install /usr/bin/phar phar /usr/local/lsws/lsphp81/bin/phar8.1.phar 111 > /dev/null 2>&1
-	update-alternatives --install /usr/bin/phar.phar phar.phar /usr/local/lsws/lsphp81/bin/phar7.4.phar 111 > /dev/null 2>&1
+	update-alternatives --install /usr/bin/phar.phar phar.phar /usr/local/lsws/lsphp81/bin/phar8.1.phar 111 > /dev/null 2>&1
 	update-alternatives --install /usr/bin/pecl pecl /usr/local/lsws/lsphp81/bin/pecl 111 > /dev/null 2>&1
 	update-alternatives --install /usr/lib/pear pear /usr/local/lsws/lsphp81/bin/pear 111 > /dev/null 2>&1
 fi

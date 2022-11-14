@@ -678,7 +678,7 @@ class WPCD_WORDPRESS_TABS_TWEAKS extends WPCD_WORDPRESS_TABS {
 	 * @return boolean success/failure/other
 	 */
 	private function tweaks_toggle_a_thing( $id, $action ) {
-		
+
 		// What type of web server are we running?
 		$webserver_type      = $this->get_web_server_type( $id );
 		$webserver_type_name = $this->get_web_server_description_by_id( $id );
@@ -694,7 +694,7 @@ class WPCD_WORDPRESS_TABS_TWEAKS extends WPCD_WORDPRESS_TABS {
 				$bridge_file = 'nginx_options.txt';
 				break;
 
-		}		
+		}
 
 		// Action name that we'll be sending to the server.
 		$server_action = '';

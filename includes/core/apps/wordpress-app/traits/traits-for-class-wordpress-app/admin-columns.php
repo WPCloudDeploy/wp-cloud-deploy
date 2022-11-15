@@ -597,9 +597,7 @@ trait wpcd_wpapp_admin_column_data {
 				$value            = $value . $labels_count_arr;
 
 				// Display warning if the server is running aptget.
-				$transient_name = $post_id . 'wpcd_server_aptget_status';
-				$running_status = get_transient( $transient_name );
-				if ( 'running' === $running_status ) {
+				if ( $this->wpcd_is_aptget_running( $post_id ) ) {
 					$value = '<div class="wpcd_server_actions_aptget_in_progress">' . __( 'It appears that background updates are being run on this server. Actions you perform while this is occuring might fail.', 'wpcd' ) . '</div>';
 				}
 
@@ -654,7 +652,7 @@ trait wpcd_wpapp_admin_column_data {
 					if ( empty( $server_status_callback_status ) ) {
 						$health_msg        = __( 'Callbacks are not installed.', 'wpcd' );
 						$health_msg       .= '<br /><br />' . __( 'We usually auto-install them after a server has been deployed.', 'wpcd' );
-						$health_msg       .= '<br /><br />' . __( 'Please wait 30 mins and if you still see this message, install them from the CALLBACKS tab.', 'wpcd' );
+						$health_msg       .= '<br /><br />' . __( 'If you just installed this server, please wait 30 mins and if you still see this message, install them from the CALLBACKS tab.', 'wpcd' );
 						$health            = "<div class='wpcd_waiting_for_data_column'>" . $health_msg . '</div>';
 						$callback_tab_link = ( is_admin() ? get_edit_post_link( $post_id ) : get_permalink( $post_id ) ) . '#~~callbacks';
 						$health           .= "<div class='wpcd_go_to_callbacks_tab_column'>" . "<a href='" . $callback_tab_link . "'>" . __( 'Go To Callbacks Tab', 'wpcd' ) . '</a>' . '</div>';

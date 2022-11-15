@@ -3958,6 +3958,11 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			}
 		}
 
+		// Is aptget running?
+		if ( $this->wpcd_is_aptget_running( $server_id ) ) {
+			return false;
+		}
+
 		// Ok, so far the server is still available for commands.  Lets check the app records.
 		$args = array(
 			'post_type'      => 'wpcd_app',
@@ -3983,6 +3988,30 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 		return $is_available;
 	}
+
+	/**
+	 * Checks a special transient to see if aptget is running on the server.
+	 *
+	 * @param int $server_id The post id of the server.
+	 *
+	 * @return boolean
+	 */
+	public function wpcd_is_aptget_running( $server_id ) {
+
+		$is_running = false;
+
+		$transient_name = $server_id . 'wpcd_server_aptget_status';
+		$running_status = get_transient( $transient_name );
+		if ( 'running' === $running_status ) {
+			$is_running = true;
+		}
+
+		return $is_running;
+
+	}
+
+
+
 
 	/**
 	 * Return the REST API controller instance for a given name (base path)

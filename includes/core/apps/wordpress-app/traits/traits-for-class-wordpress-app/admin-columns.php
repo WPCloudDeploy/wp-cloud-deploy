@@ -596,6 +596,13 @@ trait wpcd_wpapp_admin_column_data {
 				$labels_count_arr = implode( ' ', $labels_count_arr );
 				$value            = $value . $labels_count_arr;
 
+				// Display warning if the server is running aptget.
+				$transient_name = $post_id . 'wpcd_server_aptget_status';
+				$running_status = get_transient( $transient_name );
+				if ( 'running' === $running_status ) {
+					$value = '<div class="wpcd_server_actions_aptget_in_progress">' . __( 'It appears that background updates are being run on this server. Actions you perform while this is occuring might fail.', 'wpcd' ) . '</div>';
+				}
+
 				break;
 
 			case 'wpcd_server_health':

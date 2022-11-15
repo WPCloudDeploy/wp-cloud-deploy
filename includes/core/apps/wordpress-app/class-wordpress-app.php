@@ -135,6 +135,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		// Push commands and callbacks from servers.
 		add_action( "wpcd_{$this->get_app_name()}_command_server_status_completed", array( &$this, 'push_command_server_status_completed' ), 10, 4 );  // When a server sends us it's daily status report, part 1 - see bash script #24.
 		add_action( "wpcd_{$this->get_app_name()}_command_sites_status_completed", array( &$this, 'push_command_sites_status_completed' ), 10, 4 );  // When a server sends us it's daily status report, part 2 - see bash script #24.
+		add_action( "wpcd_{$this->get_app_name()}_command_aptget_status_completed", array( &$this, 'push_command_aptget_status_completed' ), 10, 4 );  // When a server sends us information that apt-get is running - see bash script #24.
 		add_action( "wpcd_{$this->get_app_name()}_command_maldet_scan_completed", array( &$this, 'push_command_maldet_scan_completed' ), 10, 4 );  // When a server sends us a report of maldet scan results - see bash script #26.
 		add_action( "wpcd_{$this->get_app_name()}_command_server_restart_completed", array( &$this, 'push_command_server_restart_completed' ), 10, 4 );  // When a server sends us a report of restart or shutdown.
 		add_action( "wpcd_{$this->get_app_name()}_command_monit_log_completed", array( &$this, 'push_command_monit_log_completed' ), 10, 4 );  // When a server sends us a monit alert or report.

@@ -730,6 +730,23 @@ a.wpcd-stat-switch {
 	width: 90%;
 }
 
+/* For when background updates might be in progress... */
+.wpcd_server_actions_aptget_in_progress {
+	/* Alert under the server actions column */
+	padding: 2px 8px;
+	vertical-align: baseline;
+	border-radius: 3px;
+	border-color: orange !important;
+	/* Not sure why important is needed for this one but oh well. */
+	background-color: orange;
+	color: white;
+	border: solid;
+	border-width: 2px;
+	margin: 2px;
+	margin-left: 0px;
+	width: 90%;
+}
+
 .wp-admin .wpcd-server-col-element-value-remote_server_state_in_progress {
 	/* Operation in progress text under the LOCAL STATUS column in the server list */
 	border: solid 1px red;

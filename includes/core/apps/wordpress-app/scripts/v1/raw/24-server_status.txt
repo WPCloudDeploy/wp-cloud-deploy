@@ -12,9 +12,11 @@ fi
 function remove_status_cron () {
 	(crontab -l 2>/dev/null | sed '/wp-status/d' ) | crontab -
 	(crontab -l 2>/dev/null | sed '/wp-site-status/d' ) | crontab -
+	(crontab -l 2>/dev/null | sed '/wp-aptget-status/d' ) | crontab -
 	rm -f /usr/local/bin/wp-status
 	rm -f /etc/apt/apt.conf.d/100update-wpstatus
 	rm -f /usr/local/bin/wp-site-status
+	rm -f /usr/local/bin/wp-aptget-status
 }
 
 clear
@@ -47,6 +49,11 @@ then
 	then
 		read -p "enter callback url to get sites status:  " callback_sites_status
 	fi	
+	
+	if [[ -z "$callback_aptget_status" ]]
+	then
+		read -p "enter callback url to get aptget status:  " callback_aptget_status
+	fi
 
 	# make sure bc and at is installed
 	apt-get install bc at -y
@@ -214,6 +221,29 @@ done' > /usr/local/bin/wp-site-status
 
 	# if the crontab entry doesn't exist, create it
 	crontab -l | grep -q 'wp-site-status' || (crontab -l 2>/dev/null; echo "0 22 * * * /usr/local/bin/wp-site-status > /dev/null 2>&1") | crontab - > /dev/null
+	
+	###############################################
+	# set up the helper script for aptget status
+	###############################################
+	echo $'#!/bin/bash
+callback_aptget_status='$callback_aptget_status'
+date=$(date +"%Y-%m-%d"-"%Hh%Mm%Ss")
+command=$(ps -C apt | grep apt)
+
+if [[ -n $command ]]; then
+
+    # will execute if the system is being upgraded
+    # to be more precise, it will execute if the process apt is running
+    
+    curl -sS "$callback_aptget_status?aptget_status=running"
+fi
+sleep 3' > /usr/local/bin/wp-aptget-status
+
+	chmod +x /usr/local/bin/wp-aptget-status
+
+	# if the crontab entry doesn't exist, create it
+	crontab -l | grep -q 'wp-aptget-status' || (crontab -l 2>/dev/null; echo "* * * * * /usr/local/bin/wp-aptget-status > /dev/null 2>&1") | crontab - > /dev/null
+
 	echo
 	echo "Server status job configured!"
 	exit

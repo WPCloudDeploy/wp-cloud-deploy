@@ -456,6 +456,12 @@
 	margin: 20px 0;
 }
 
+/* Format the background updates alert in the SERVER ACTIONS column */
+#wpcd_public_wrapper .wpcd_server_actions_aptget_in_progress {
+	/* Just needs a bit of margin. */
+	margin: 20px 0;
+}
+
 /* Format site image - from Powerpack */
 #wpcd_public_wrapper .wpcd_site_home_page_image.column-wpcd_site_home_page_image a img {
 	min-width: 100%;

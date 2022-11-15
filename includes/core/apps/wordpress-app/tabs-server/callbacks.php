@@ -282,7 +282,7 @@ class WPCD_WORDPRESS_TABS_SERVER_CALLBACKS extends WPCD_WORDPRESS_TABS {
 				'label'          => '',
 				'raw_attributes' => array(
 					'std'                 => __( 'Run Now', 'wpcd' ),
-					'desc'                => '', 
+					'desc'                => '',
 					// make sure we give the user a confirmation prompt.
 					'confirmation_prompt' => __( 'Are you sure you would like to run these callbacks immediately?', 'wpcd' ),
 					'columns'             => 3,
@@ -295,7 +295,7 @@ class WPCD_WORDPRESS_TABS_SERVER_CALLBACKS extends WPCD_WORDPRESS_TABS {
 				'label'          => '',
 				'raw_attributes' => array(
 					'std'                 => __( 'Remove', 'wpcd' ),
-					'desc'                => '', 
+					'desc'                => '',
 					// make sure we give the user a confirmation prompt.
 					'confirmation_prompt' => __( 'Are you sure you would like to remove this callback?', 'wpcd' ),
 					'columns'             => 3,
@@ -308,7 +308,7 @@ class WPCD_WORDPRESS_TABS_SERVER_CALLBACKS extends WPCD_WORDPRESS_TABS {
 				'label'          => '',
 				'raw_attributes' => array(
 					'std'                 => __( 'Clear History', 'wpcd' ),
-					'desc'                => '', 
+					'desc'                => '',
 					// make sure we give the user a confirmation prompt.
 					'confirmation_prompt' => __( 'Are you sure you would like to clear the history of this callback?', 'wpcd' ),
 					'columns'             => 3,
@@ -377,6 +377,10 @@ class WPCD_WORDPRESS_TABS_SERVER_CALLBACKS extends WPCD_WORDPRESS_TABS {
 
 				$command_name                  = 'sites_status';
 				$args['callback_sites_status'] = $this->get_command_url( $id, $command_name, 'completed' );
+
+				$command_name                   = 'aptget_status';
+				$args['callback_aptget_status'] = $this->get_command_url( $id, $command_name, 'completed' );
+
 				break;
 
 			case 'remove_status_cron':

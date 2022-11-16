@@ -465,12 +465,17 @@ class WPCD_WORDPRESS_TABS_CLONE_SITE extends WPCD_WORDPRESS_TABS {
 			'placeholder' => __( 'Domain without www or http - eg: mydomain.com', 'wpcd' ),
 		);
 
+		$clone_desc = '';
+		if ( 'yes' === $this->is_remote_db( $id ) ) {
+			$clone_desc .= '<b>' . __( 'Warning: This site appears to be using a remote database server.  The server on which this site resides should have a local database server since the database server will be switched to localhost when cloning this site.', 'wpcd' ) . '</b>';
+		}
 		$fields[] = array(
 			'id'         => 'wpcd_app_clone_site',
 			'name'       => '',
 			'tab'        => 'clone-site',
 			'type'       => 'button',
 			'std'        => __( 'Clone Site', 'wpcd' ),
+			'desc'       => $clone_desc,
 			'attributes' => array(
 				// the _action that will be called in ajax.
 				'data-wpcd-action'              => 'clone-site',

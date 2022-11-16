@@ -652,7 +652,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	public static function get_wp_versions() {
 
 		// @SEE: https://wordpress.org/download/releases/
-		$versions          = array( 'latest', '6.0.3', '5.9.5', '5.8.6', '5.7.8', '5.6.10', '5.5.11', '5.4.12', '5.3.14', '5.2.17', '5.1.15', '5.0.18', '4.9.22', '4.8.21', '4.7.25' );
+		$versions          = array( 'latest', '6.1.1', '6.0.3', '5.9.5', '5.8.6', '5.7.8', '5.6.10', '5.5.11', '5.4.12', '5.3.14', '5.2.17', '5.1.15', '5.0.18', '4.9.22', '4.8.21', '4.7.25' );
 		$override_versions = wpcd_get_option( 'wordpress_app_allowed_wp_versions' );
 
 		if ( ! empty( $override_versions ) ) {
@@ -1853,6 +1853,47 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				break;
 
 		}
+
+	}
+
+	/**
+	 * Is the site using a remote database?
+	 *
+	 * @param int $app_id is the post id of the app record we're working with.
+	 *
+	 * @return string 'yes', 'no'.
+	 */
+	public function is_remote_db( $app_id ) {
+
+		$is_remote_database = (string) get_post_meta( $app_id, 'wpapp_is_remote_database', true );
+
+		if ( empty( $is_remote_database ) ) {
+			$is_remote_database = 'no';
+		}
+
+		return $is_remote_database;
+
+	}
+
+	/**
+	 * Mark the site as having a remote db.
+	 *
+	 * @param int $app_id is the post id of the app record we're working with.
+	 */
+	public function enable_remote_db_flag( $app_id ) {
+
+		update_post_meta( $app_id, 'wpapp_is_remote_database', 'yes' );
+
+	}
+
+	/**
+	 * Mark the site as having a local db.
+	 *
+	 * @param int $app_id is the post id of the app record we're working with.
+	 */
+	public function disable_remote_db_flag( $app_id ) {
+
+		update_post_meta( $app_id, 'wpapp_is_remote_database', 'no' );
 
 	}
 

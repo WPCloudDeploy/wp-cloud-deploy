@@ -1100,6 +1100,13 @@ trait wpcd_wpapp_admin_column_data {
 			}
 		}
 
+		/* Show if the site has a remote database */
+		if ( 'wpcd_app' === get_post_type( $post ) && 'wordpress-app' == $this->get_app_type( $post->ID ) ) {
+			if ( 'yes' === $this->is_remote_db( $post->ID ) ) {
+				$states['wpcd-wpapp-remote-db'] = __( 'RemoteDB', 'wpcd' );
+			}
+		}
+
 		/* Show the server type on the server list screen */
 		if ( 'wpcd_app_server' === get_post_type( $post ) && 'wordpress-app' == $this->get_server_type( $post->ID ) && boolval( wpcd_get_option( 'wordpress_app_show_label_in_lists' ) ) ) {
 			$states['wpcd-server-type'] = 'WordPress';  // Unfortunately we don't have a server type description function we can call right now so hardcoding the value here.

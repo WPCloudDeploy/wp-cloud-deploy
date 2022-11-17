@@ -38,12 +38,15 @@ class WPCD_WORDPRESS_TABS_SERVER_CALLBACKS extends WPCD_WORDPRESS_TABS {
 		/* Pending Logs Background Task: Trigger installation of callbacks on a server */
 		add_action( 'wpcd_pending_log_install_a_callback', array( $this, 'pending_log_install_a_callback' ), 10, 3 );
 
+		/* Pending Logs Background Task: Trigger removal of callbacks from a server */
+		add_action( 'wpcd_pending_log_remove_a_callback', array( $this, 'pending_log_remove_a_callback' ), 10, 3 );
+
 		/* Handle callback success and tag the pending log record as successful */
-		add_action( 'wpcd_server_wordpress-app_server_status_callback_action_successful', array( $this, 'handle_server_status_callback_install_success' ), 10, 3 );
+		add_action( 'wpcd_server_wordpress-app_server_status_callback_action_successful', array( $this, 'handle_server_status_callback_install_remove_success' ), 10, 3 );
 
 		/* Handle callback failures and tag the pending log record as failed */
-		add_action( 'wpcd_server_wordpress-app_server_status_callback_second_action_failed', array( $this, 'handle_server_status_callback_install_failed' ), 10, 3 );
-		add_action( 'wpcd_server_wordpress-app_server_status_callback_first_action_failed', array( $this, 'handle_server_status_callback_install_failed' ), 10, 3 );
+		add_action( 'wpcd_server_wordpress-app_server_status_callback_second_action_failed', array( $this, 'handle_server_status_callback_install_remove_failed' ), 10, 3 );
+		add_action( 'wpcd_server_wordpress-app_server_status_callback_first_action_failed', array( $this, 'handle_server_status_callback_install_remove_failed' ), 10, 3 );
 
 		/* Pending Logs Background Task: Run callback for the first time on a server after they're installed */
 		add_action( 'run_server_callbacks', array( $this, 'run_server_callbacks' ), 10, 3 );  // Deprecated - should be removed in wpcd 4.17 after updating the WC add-ons which use it.
@@ -282,7 +285,7 @@ class WPCD_WORDPRESS_TABS_SERVER_CALLBACKS extends WPCD_WORDPRESS_TABS {
 				'label'          => '',
 				'raw_attributes' => array(
 					'std'                 => __( 'Run Now', 'wpcd' ),
-					'desc'                => '', 
+					'desc'                => '',
 					// make sure we give the user a confirmation prompt.
 					'confirmation_prompt' => __( 'Are you sure you would like to run these callbacks immediately?', 'wpcd' ),
 					'columns'             => 3,
@@ -295,7 +298,7 @@ class WPCD_WORDPRESS_TABS_SERVER_CALLBACKS extends WPCD_WORDPRESS_TABS {
 				'label'          => '',
 				'raw_attributes' => array(
 					'std'                 => __( 'Remove', 'wpcd' ),
-					'desc'                => '', 
+					'desc'                => '',
 					// make sure we give the user a confirmation prompt.
 					'confirmation_prompt' => __( 'Are you sure you would like to remove this callback?', 'wpcd' ),
 					'columns'             => 3,
@@ -308,7 +311,7 @@ class WPCD_WORDPRESS_TABS_SERVER_CALLBACKS extends WPCD_WORDPRESS_TABS {
 				'label'          => '',
 				'raw_attributes' => array(
 					'std'                 => __( 'Clear History', 'wpcd' ),
-					'desc'                => '', 
+					'desc'                => '',
 					// make sure we give the user a confirmation prompt.
 					'confirmation_prompt' => __( 'Are you sure you would like to clear the history of this callback?', 'wpcd' ),
 					'columns'             => 3,
@@ -377,6 +380,10 @@ class WPCD_WORDPRESS_TABS_SERVER_CALLBACKS extends WPCD_WORDPRESS_TABS {
 
 				$command_name                  = 'sites_status';
 				$args['callback_sites_status'] = $this->get_command_url( $id, $command_name, 'completed' );
+
+				$command_name                   = 'aptget_status';
+				$args['callback_aptget_status'] = $this->get_command_url( $id, $command_name, 'completed' );
+
 				break;
 
 			case 'remove_status_cron':
@@ -693,6 +700,7 @@ class WPCD_WORDPRESS_TABS_SERVER_CALLBACKS extends WPCD_WORDPRESS_TABS {
 
 		if ( wpcd_is_admin() ) {
 			$bulk_array['wpcd_install_callbacks'] = __( 'Install Callbacks', 'wpcd' );
+			$bulk_array['wpcd_remove_callbacks']  = __( 'Remove Callbacks', 'wpcd' );
 			return $bulk_array;
 		}
 
@@ -724,15 +732,28 @@ class WPCD_WORDPRESS_TABS_SERVER_CALLBACKS extends WPCD_WORDPRESS_TABS {
 			if ( ! empty( $post_ids ) ) {
 				foreach ( $post_ids as $server_id ) {
 					$args['action_hook'] = 'wpcd_pending_log_install_a_callback';
-					WPCD_POSTS_PENDING_TASKS_LOG()->add_pending_task_log_entry( $server_id, 'install-server-callback', $server_id, $args, 'ready', $server_id, __( 'Install Callbacks From Bulk Operation', 'wpcd' ) );
+					WPCD_POSTS_PENDING_TASKS_LOG()->add_pending_task_log_entry( $server_id, 'install-server-callback', $server_id, $args, 'ready', $server_id, __( 'Install Callbacks Triggered From Bulk Operation', 'wpcd' ) );
 				}
 
 				// Add message to be displayed in admin header.
 				wpcd_global_add_admin_notice( __( 'Server callbacks have been scheduled for installation. You can view the progress in the PENDING TASKS screen.', 'wpcd' ), 'success' );
 
 			}
+		}
 
-			// @todo: show confirmation message in a dialog box or at the top of the admin screen as a dismissible notice.
+		// Schedule removal of callbacks.
+		if ( 'wpcd_remove_callbacks' === $action ) {
+
+			if ( ! empty( $post_ids ) ) {
+				foreach ( $post_ids as $server_id ) {
+					$args['action_hook'] = 'wpcd_pending_log_remove_a_callback';
+					WPCD_POSTS_PENDING_TASKS_LOG()->add_pending_task_log_entry( $server_id, 'remove-server-callback', $server_id, $args, 'ready', $server_id, __( 'Remove Callbacks Triggered From Bulk Operation', 'wpcd' ) );
+				}
+
+				// Add message to be displayed in admin header.
+				wpcd_global_add_admin_notice( __( 'Server callbacks have been scheduled for removal. You can view the progress in the PENDING TASKS screen.', 'wpcd' ), 'success' );
+
+			}
 		}
 
 		return $redirect_url;
@@ -760,6 +781,27 @@ class WPCD_WORDPRESS_TABS_SERVER_CALLBACKS extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
+	 * Remove server callback for a single server - triggered via pending logs background process.
+	 *
+	 * Called from an action hook from the pending logs background process - WPCD_POSTS_PENDING_TASKS_LOG()->do_tasks()
+	 *
+	 * Action Hook: wpcd_pending_log_remove_a_callback
+	 *
+	 * @param int   $task_id    Id of pending task that is firing this thing...
+	 * @param int   $server_id  Id of server on which to install the new website.
+	 * @param array $args       All the data needed to install the WP site on the server.
+	 */
+	public function pending_log_remove_a_callback( $task_id, $server_id, $args ) {
+
+		// Grab our data array from pending tasks record...
+		$data = WPCD_POSTS_PENDING_TASKS_LOG()->get_data_by_id( $task_id );
+
+		/* Remove callbacks rom the designated server */
+		do_action( 'wpcd_wordpress-manage_server_status_callback', $server_id, 'remove_status_cron' );
+
+	}
+
+	/**
 	 * Handle callback install successful
 	 *
 	 * Action Hook: wpcd_server_{$this->get_app_name()}_server_status_callback_action_successful || wpcd_server_wordpress-app_server_status_callback_action_successful
@@ -768,8 +810,13 @@ class WPCD_WORDPRESS_TABS_SERVER_CALLBACKS extends WPCD_WORDPRESS_TABS {
 	 * @param string  $action               What action were we running.
 	 * @param mixed[] $success_msg_array    An array that was passed through from the installation function (manage_server_status_callback above).
 	 */
-	public function handle_server_status_callback_install_success( $server_id, $action, $success_msg_array ) {
-		$this->handle_server_status_callback_install_success_or_failure( $server_id, $action, $success_msg_array, 'success' );
+	public function handle_server_status_callback_install_remove_success( $server_id, $action, $success_msg_array ) {
+		if ( 'install_status_cron' === $action ) {
+			$this->handle_server_status_callback_install_success_or_failure( $server_id, $action, $success_msg_array, 'success' );
+		}
+		if ( 'remove_status_cron' === $action ) {
+			$this->handle_server_status_callback_remove_success_or_failure( $server_id, $action, $success_msg_array, 'success' );
+		}
 	}
 
 	/**
@@ -782,8 +829,13 @@ class WPCD_WORDPRESS_TABS_SERVER_CALLBACKS extends WPCD_WORDPRESS_TABS {
 	 * @param string  $action               What action were we running.
 	 * @param mixed[] $success_msg_array    An array that was passed through from the installation function (manage_server_status_callback above).
 	 */
-	public function handle_server_status_callback_install_failed( $server_id, $action, $success_msg_array ) {
-		$this->handle_server_status_callback_install_success_or_failure( $server_id, $action, $success_msg_array, 'failed' );
+	public function handle_server_status_callback_install_remove_failed( $server_id, $action, $success_msg_array ) {
+		if ( 'install_status_cron' === $action ) {
+			$this->handle_server_status_callback_install_success_or_failure( $server_id, $action, $success_msg_array, 'failed' );
+		}
+		if ( 'remove_status_cron' === $action ) {
+			$this->handle_server_status_callback_remove_success_or_failure( $server_id, $action, $success_msg_array, 'failed' );
+		}
 	}
 
 	/**
@@ -838,6 +890,59 @@ class WPCD_WORDPRESS_TABS_SERVER_CALLBACKS extends WPCD_WORDPRESS_TABS {
 					$instance['action_hook'] = 'wpcd_pending_log_run_server_callbacks';
 					WPCD_POSTS_PENDING_TASKS_LOG()->add_pending_task_log_entry( $server_id, 'run-server-callbacks', $server_id, $instance, 'ready', $server_id, __( 'Run Callbacks For The First Time', 'wpcd' ) );
 
+				}
+			}
+		}
+
+	}
+
+	/**
+	 * Handle server status callback removal successful or failed when being processed from pending logs / via action hooks.
+	 *
+	 * @param int     $server_id            Id of server.
+	 * @param string  $action               What action were we running.
+	 * @param mixed[] $success_msg_array    An array that was passed through from the installation function (manage_server_status_callback above).
+	 * @param boolean $success              Was the callback installation a sucesss or failure.
+	 */
+	public function handle_server_status_callback_remove_success_or_failure( $server_id, $action, $success_msg_array, $success ) {
+
+		$server_post = get_post( $server_id );
+
+		// Bail if not a post object.
+		if ( ! $server_post || is_wp_error( $server_post ) ) {
+			return;
+		}
+
+		// Bail if not a WordPress app...
+		if ( 'wordpress-app' !== WPCD_WORDPRESS_APP()->get_server_type( $server_id ) ) {
+			return;
+		}
+
+		// This only matters if we were installing the callbacks.  If not, then bail.
+		if ( 'remove_status_cron' !== $action ) {
+			return;
+		}
+
+		// Get server instance array.
+		$instance = WPCD_WORDPRESS_APP()->get_instance_details( $server_id );
+
+		if ( 'wpcd_app_server' === get_post_type( $server_id ) ) {
+
+				// Now check the pending tasks table for a record where the key=$server_id and type='install-server-callbacks' and state='in-process'
+				// We are depending on the fact that there should only be one process running on a server a time and in this case it should be in-process.
+				$posts = WPCD_POSTS_PENDING_TASKS_LOG()->get_tasks_by_key_state_type( $server_id, 'in-process', 'remove-server-callback' );
+
+			if ( $posts ) {
+
+				// Grab our data array from pending tasks record...
+				$task_id = $posts[0]->ID;
+				$data    = WPCD_POSTS_PENDING_TASKS_LOG()->get_data_by_id( $task_id );
+
+				// And mark it as successful or failed.
+				if ( 'failed' === $success ) {
+					WPCD_POSTS_PENDING_TASKS_LOG()->update_task_by_id( $task_id, $data, 'failed' );
+				} else {
+					WPCD_POSTS_PENDING_TASKS_LOG()->update_task_by_id( $task_id, $data, 'complete' );
 				}
 			}
 		}

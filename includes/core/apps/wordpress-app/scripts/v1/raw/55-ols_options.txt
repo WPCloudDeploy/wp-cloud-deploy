@@ -145,6 +145,7 @@ while [[ -z $action ]]; do
     echo "   $((i++))) Remove 'maxReqBodySize' directive (all sites)"       # client_max_body_size
     echo "   $((i++))) Set 'connTimeout' directive (all sites)"            # connTimeout
     echo "   $((i++))) Remove 'connTimeout' directive (all sites)"         # connTimeout
+    echo "   $((i++))) Update PHP Global Restricted Functions For all PHP Versions"
     # echo "   $((i++))) Set timezone for OLS (all sites)"
     # echo "   $((i++))) Remove timezone for OLS (use OS timezone settings) (all sites)"
     # echo "   $((i++))) Set timezone for PHP (domain)"
@@ -1260,6 +1261,24 @@ if [[ "${action}" == 'disable_conn_timeout' || "${action}" == "$((i++))" ]]; the
     exit_script
 fi
 ## End Disable 'conn_timeout' directive # old send_timeout
+
+## Update PHP Global Restricted Functions For all PHP Versions
+if [[ "${action}" == 'update_global_php_restricted_functions' || "${action}" == "$((i++))" ]]; then
+	for phpver in $(ls -1 /usr/local/lsws/ |grep lsphp | sed 's/lsphp//g') 
+	do
+		echo "Handling LSPHP $phpver" ; # Disable useless echo but leave for debugging
+		lsphpver=$(echo $phpver | sed 's/^\(.\{1\}\)/\1./');		
+
+		# Unlike NGINX, we have to allow global proc_open and proc_close for proper OLS operations. 
+		# So those are not included in the global restricted functions list.
+		sed -i "s/^disable_functions.*/disable_functions = dl, exec, fpassthru, getmypid, getmyuid, highlight_file, link, opcache_get_configuration, passthru, pcntl_exec, pcntl_get_last_error, pcntl_setpriority, pcntl_strerror, pcntl_wifcontinued, phpinfo, popen, posix_ctermid, posix_getcwd, posix_getegid, posix_geteuid, posix_getgid, posix_getgrgid, posix_getgrnam, posix_getgroups, posix_getlogin, posix_getpgid, posix_getpgrp, posix_getpid, posix_getppid, posix_getpwnam, posix_getpwuid, posix_getrlimit, posix_getsid, posix_getuid, posix_isatty, posix_kill, posix_mkfifo, posix_setegid, posix_seteuid, posix_setgid, posix_setpgid, posix_setsid, posix_setuid, posix_times, posix_ttyname, posix_uname, proc_get_status, proc_nice, proc_terminate, shell_exec, show_source, source, system, virtual/g" /usr/local/lsws/lsphp${phpver}/etc/php/${lsphpver}/litespeed/php.ini
+		
+	done
+	echo -e "${GREEN} ${SUCCESSFUL} All PHP Versions Updated To The Latest Restricted Functions List${NC}"
+	exit_script	
+fi
+## End Update PHP Global Restricted Functions For all PHP Versions
+
 
 # https://openlitespeed.org/kb/default-php-settings-for-openlitespeed/#The_default_phpini_locations
 

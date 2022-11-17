@@ -1248,6 +1248,18 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tab'     => 'wordpress-app-sites',
 			),
 			array(
+				'id'      => 'wordpress_app_sites_set_php_version',
+				'type'    => 'select',
+				'name'    => __( 'Switch PHP Version For New Sites?', 'wpcd' ),
+				'tooltip' => __( 'After a site is installed, switch the PHP version to the one specified here.', 'wpcd' ),
+				'options' => array(
+					'8.1' => '8.1',					
+					'8.0' => '8.0',
+					'7.4' => '7.4',
+				),
+				'tab'     => 'wordpress-app-sites',
+			),
+			array(
 				'type' => 'heading',
 				'name' => __( 'Disk Quota', 'wpcd' ),
 				'desc' => __( 'Disk quotas for each site are evaluated once each day - they are not evaluated in real-time!  For real-time alerts on usage for the entire disk, use the HEALING option in the server tab.', 'wpcd' ),

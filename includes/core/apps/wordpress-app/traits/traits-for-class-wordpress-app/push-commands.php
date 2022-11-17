@@ -282,6 +282,84 @@ trait wpcd_wpapp_push_commands {
 
 	}
 
+	/**
+	 * Handles server status pushes from bash script #24 - aptget status.
+	 *
+	 * Action Hook: wpcd_command_{$this->get_app_name()}_command_aptget_status_completed || wpcd_{$this->get_app_name()}_command_{$name}_{$status}
+	 *
+	 * @param int    $id server post id.
+	 * @param int    $command_id an id that is given to the bash script at the time it's first run. Doesn't do anything for us in this context so it's not used here.
+	 * @param string $name name.
+	 * @param string $status status.
+	 *
+	 * @return void.
+	 */
+	public function push_command_aptget_status_completed( $id, $command_id, $name, $status ) {
+
+		// Set variable to status, in this case it is always "completed" - will be used in action hooks later.
+		$status = 'completed';
+
+		// set variable to name, in this case it is always "aptget_status" - will be used in action hooks later.
+		$name = 'aptget_status';
+
+		// Create an array to hold items taken from the $_request object.
+		$aptget_status_items = array();
+
+		// get restart status item.
+		$aptget_status_items['aptget_status'] = sanitize_text_field( filter_input( INPUT_GET, 'aptget_status', FILTER_UNSAFE_RAW ) );
+		if ( ! in_array( $aptget_status_items['aptget_status'], array( 'running' ) ) ) {
+			$aptget_status_items['aptget_status'] = 'unknown';
+		}
+
+		// Finally, add the time reported to the array.
+		$aptget_status_items['reporting_time']       = time();
+		$aptget_status_items['reporting_time_human'] = date( 'Y-m-d H:i:s', time() );
+
+		// Stamp the server record with the array.
+		if ( 'wpcd_app_server' === get_post_type( $id ) ) {
+
+			// update the meta that holds the current data..
+			update_post_meta( $id, 'wpcd_server_aptget_status_push', $aptget_status_items );
+
+			// add to history meta as well.
+			$history = wpcd_maybe_unserialize( get_post_meta( $id, 'wpcd_server_aptget_status_push_history', true ) );
+			if ( empty( $history ) ) {
+				$history = array();
+			}
+
+			$history[ ' ' . (string) time() ] = $aptget_status_items; // we have to force the time element to be a string by putting a space in front of it otherwise manipulating the array as a key-value pair is a big problem if we want to purge just part of the array later.
+
+			if ( count( $history ) >= 10 ) {
+				// take the last element off to prevent history from getting too big.
+				$removed = array_shift( $history );
+			}
+
+			update_post_meta( $id, 'wpcd_server_aptget_status_push_history', $history );
+
+			// Now, set transient with server id that tags this server as having aptget running.
+			// Transient should expire after 3 minutes.
+			if ( 'running' === $aptget_status_items['aptget_status'] ) {
+				$transient_name = $id . 'wpcd_server_aptget_status';
+				set_transient( $transient_name, 'running', 180 );
+			}
+
+			// Let other plugins react to the new good data with an action hook.
+			do_action( "wpcd_{$this->get_app_name()}_command_{$name}_{$status}_processed_good", $aptget_status_items, $id );
+
+		} else {
+
+			do_action( 'wpcd_log_error', 'Data received for server that does not exist - received server id ' . (string) $id . '<br /> The first 5000 characters of the received data is shown below after being sanitized with WP_KSES:<br /> ' . substr( wp_kses( print_r( $_REQUEST, true ), array() ), 0, 5000 ), 'security', __FILE__, __LINE__ );
+
+			// Let other plugins react to the new bad data with an action hook.
+			do_action( "wpcd_{$this->get_app_name()}_command_{$name}_{$status}_processed_bad", $aptget_status_items, $id );
+
+		}
+
+		// Let other plugins react to the new data (regardless of it's good or bad) with an action hook.
+		do_action( "wpcd_{$this->get_app_name()}_command_{$name}_{$status}_processed", $aptget_status_items, $id );
+
+	}
+
 
 	/**
 	 * Checks the limits defined for the site against the newly received data.

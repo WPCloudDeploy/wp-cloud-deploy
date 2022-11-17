@@ -59,6 +59,10 @@ class WPCD_WORDPRESS_TABS_STAGING extends WPCD_WORDPRESS_TABS {
 			$success = $this->is_ssh_successful( $logs, 'clone_site.txt' );
 
 			if ( true == $success ) {
+
+				// Get Webserver Type.
+				$webserver_type = $this->get_web_server_type( $id );
+
 				// get new domain from temporary meta.
 				$new_domain = get_post_meta( $id, 'wpapp_domain_clone_site_target_domain', true );
 
@@ -122,6 +126,19 @@ class WPCD_WORDPRESS_TABS_STAGING extends WPCD_WORDPRESS_TABS {
 							$redis_status = get_post_meta( $id, 'wpapp_redis_status', true );
 							if ( ! empty( $redis_status ) ) {
 								update_post_meta( $new_app_post_id, 'wpapp_redis_status', $redis_status );
+							}
+
+							// Update the PHP version to match the original version.
+							switch ( $webserver_type ) {
+								case 'ols':
+								case 'ols-enterprise':
+									$this->set_php_version_for_app( $new_app_post_id, $this->get_wpapp_default_php_version() );
+									break;
+
+								case 'nginx':
+								default:
+									$this->set_php_version_for_app( $new_app_post_id, $this->get_php_version_for_app( $id ) );
+									break;
 							}
 
 							// Make sure we tag the new site as a staging site.

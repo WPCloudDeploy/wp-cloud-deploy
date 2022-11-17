@@ -154,6 +154,12 @@ class WPCD_WORDPRESS_TABS_SITE_SYNC extends WPCD_WORDPRESS_TABS {
 							// Update the PHP version to match the original version.
 							$this->set_php_version_for_app( $new_app_post_id, $this->get_php_version_for_app( $id ) );
 
+							// Update the wp-login auth status.
+							$this->set_wplogin_http_auth_status( $new_app_post_id, $this->get_wplogin_http_auth_status( $id ) );
+
+							// Update the http auth status for the full site.
+							$this->set_site_http_auth_status( $new_app_post_id, $this->get_site_http_auth_status( $id ) );
+
 							// Finally, lets add a meta to indicate that this was a copy.
 							update_post_meta( $new_app_post_id, 'wpapp_site_synced_from_app', $id );
 

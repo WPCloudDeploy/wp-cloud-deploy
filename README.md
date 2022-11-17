@@ -133,6 +133,7 @@ Note: Even though the entire git development history isn't available on github, 
 * New: WPAPP - Bulk option to remove callbacks from server.  This should help when you need to reinstall callbacks on a lot of servers.
 * Improved: WPAPP - Onboarding wizard now supports additional premium providers - Linode, Vultr, Hetzner, UpCloud
 * Fix: WPAPP - Make sure PHP 8.1 show up as an option when filtering the app list.
+* Fix: WPAPP - Make sure some metas about the status of the http_auth gets copied when pushing sites to new servers.
 * Fix: WPAPP - Partially bandaid an OLS core security issue by forcing the list of restricted PHP functions globally for all PHP versions on an OLS server.
 
 5.0.0

@@ -1897,6 +1897,68 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 	}
 
+	/**
+	 * Set the wp-login page http auth status
+	 *
+	 * @param int    $app_id is the post id of the app record we're working with.
+	 * @param string $status Should be 'no' or 'yes'.
+	 */
+	public function set_wplogin_http_auth_status( $app_id, $status ) {
+
+		update_post_meta( $app_id, 'wpapp_wplogin_basic_auth_status', $status );
+
+	}
+
+	/**
+	 * Is the site wp-login page protected with http auth?
+	 *
+	 * @param int $app_id is the post id of the app record we're working with.
+	 *
+	 * @return string 'yes', 'no'.
+	 */
+	public function get_wplogin_http_auth_status( $app_id ) {
+
+		$wplogin_basic_auth_status = get_post_meta( $app_id, 'wpapp_wplogin_basic_auth_status', true );
+
+		if ( empty( $wplogin_basic_auth_status ) ) {
+			$wplogin_basic_auth_status = 'off';
+		}
+
+		return $wplogin_basic_auth_status;
+
+	}
+
+	/**
+	 * Set the http auth status for the site.
+	 *
+	 * @param int    $app_id is the post id of the app record we're working with.
+	 * @param string $status Should be 'no' or 'yes'.
+	 */
+	public function set_site_http_auth_status( $app_id, $status ) {
+
+		update_post_meta( $app_id, 'wpapp_basic_auth_status', $status );
+
+	}
+
+	/**
+	 * Is the site protected by http auth?
+	 *
+	 * @param int $app_id is the post id of the app record we're working with.
+	 *
+	 * @return string 'yes', 'no'.
+	 */
+	public function get_site_http_auth_status( $app_id ) {
+
+		$basic_auth_status = get_post_meta( $app_id, 'wpapp_basic_auth_status', true );
+
+		if ( empty( $basic_auth_status ) ) {
+			$basic_auth_status = 'off';
+		}
+
+		return $basic_auth_status;
+
+	}	
+
 
 	/**
 	 * Return a requested provider object

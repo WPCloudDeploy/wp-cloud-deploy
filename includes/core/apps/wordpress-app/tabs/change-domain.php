@@ -81,7 +81,7 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 					);
 					wp_update_post( $post_data );
 
-					// Maybe update the SSL meta.			
+					// Maybe update the SSL meta.
 					$this->set_ssl_status( $id, 'off' ); // Assume off for now.
 					$success = $this->is_ssh_successful( $logs, 'manage_https.txt' );  // ***Very important Note: We didn't actually run the manage_https script.  We are just using the check logic for it to see if the same keyword output is in the clone site output since we are using the same keywords for both scripts.
 					if ( true == $success ) {

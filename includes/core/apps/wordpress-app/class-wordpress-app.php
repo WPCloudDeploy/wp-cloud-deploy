@@ -2966,7 +2966,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		// Attempt to issue SSL..
 		if ( true === (bool) $dns_success ) {
 			if ( wpcd_get_option( 'wordpress_app_auto_issue_ssl' ) ) {
-				do_action( 'wpcd_wordpress-app_do_toggle_ssl_status', $app_id, 'ssl-status' );
+				do_action( 'wpcd_wordpress-app_do_toggle_ssl_status_on', $app_id, 'ssl-status' );
 			}
 		}
 

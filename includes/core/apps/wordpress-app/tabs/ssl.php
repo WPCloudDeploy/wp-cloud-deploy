@@ -24,7 +24,8 @@ class WPCD_WORDPRESS_TABS_SSL extends WPCD_WORDPRESS_TABS {
 		add_filter( "wpcd_app_{$this->get_app_name()}_tab_action", array( $this, 'tab_action' ), 10, 3 );
 
 		// Allow the toggle_ssl_status action to be triggered via an action hook.  Will primarily be used by the woocommerce add-on and REST API.
-		add_action( 'wpcd_wordpress-app_do_toggle_ssl_status', array( $this, 'toggle_ssl_status_action' ), 10, 2 );
+		add_action( 'wpcd_wordpress-app_do_toggle_ssl_status', array( $this, 'toggle_ssl_status_action' ), 10, 2 );  // Toggle SSL state based on what's there now.
+		add_action( 'wpcd_wordpress-app_do_toggle_ssl_status_on', array( $this, 'toggle_ssl_status_on_action' ), 10, 2 );  // Force SSL 'on' regardless of current state.
 
 	}
 
@@ -292,6 +293,34 @@ class WPCD_WORDPRESS_TABS_SSL extends WPCD_WORDPRESS_TABS {
 		}
 
 		return $actions;
+	}
+
+	/**
+	 * Attempt to turn SSL on (regardless of the current SSL stats)
+	 *
+	 * Can be called directly or by an action hook.
+	 *
+	 * Action hook: wpcd_wordpress-app_do_toggle_ssl_status_on  (Optional).
+	 *
+	 * @param int    $id     The postID of the app cpt.
+	 * @param string $action The action to be performed  - 'ssl-status' or 'ssl-http2-status'.  This is ignored in this function.
+	 *
+	 * @return string|WP_Error
+	 */
+	public function toggle_ssl_status_on_action( $id, $action ) {
+
+		$result = $this->toggle_ssl_status( $id, 'enable' );
+
+		if ( ! is_wp_error( $result ) ) {
+
+			// Update metas.
+			$this->set_ssl_status( $id, 'on' );
+
+			$result = array( 'refresh' => 'yes' );
+		}
+
+		return $result;  // Will not matter in an action hook.
+
 	}
 
 	/**

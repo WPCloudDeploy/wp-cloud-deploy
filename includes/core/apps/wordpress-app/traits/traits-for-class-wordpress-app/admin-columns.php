@@ -692,7 +692,7 @@ trait wpcd_wpapp_admin_column_data {
 		if ( is_admin() && true === $show_label_in_wpadmin ) {
 			$show_full = true;
 		}
-		
+
 		if ( ! is_admin() ) {
 			$show_full = true; // Always show the full string on the frontend.
 		}

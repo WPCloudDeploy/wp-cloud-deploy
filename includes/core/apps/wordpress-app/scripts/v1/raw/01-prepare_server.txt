@@ -233,7 +233,7 @@ then
 	# Install all possible lsphp-dev and pear and packages
 	# We need to do these in pieces otherwise our front-end UI will not like it if it takes too long to report updates.
 	echo "$(date): Installing pear and other related ols packages part 1 of 2"
-	apt-get install -y lsphp?? lsphp??-common lsphp??-dev lsphp??-pear lsphp??-mysql   > /dev/null 2>&1
+	apt-get install -y lsphp?? lsphp??-common lsphp??-dev lsphp??-pear lsphp??-mysql > /dev/null 2>&1
 	if [ $? -ne 0 ]
 	then
 		echo "Failed!  Quitting process"
@@ -837,16 +837,24 @@ EOL
 			/usr/local/lsws/"${version}"/bin/pecl channel-update pecl.php.net > /dev/null 2>&1
 		done
 
-		echo "$(date): Install timezonedb pecl extension needed for Litespeed/OLS and update timezone to UTC by default"
-		Extension='timezonedb';
+		echo "$(date): Update timezone to UTC by default"
 		for phpver in $(ls -1 /usr/local/lsws/ |grep lsphp | sed 's/lsphp//g')
 		do
 			php_ini="/usr/local/lsws/lsphp${phpver}/etc/php/$(echo $phpver | sed 's/^\(.\{1\}\)/\1./')/litespeed/php.ini"
+			# Extension='timezonedb';
 			# Subshell should do what we want by capturing it all and also combining both streams into dev null
-			(printf '\n' |/usr/local/lsws/lsphp${phpver}/bin/pecl install ${Extension} >/dev/null 2>&1) >/dev/null 2>&1
-			# We really don't need to check error conditions on timezonedb I think ive seen cases where it throws weird exit codes
-			# or where it might not exist yet when php81 came out the timezonedb extension wasn't out for a few weeks which isn't a big deal but shouldn't cause fatal error.
-			echo "extension=${Extension}.so" >> ${php_ini}
+			# (printf '\n' |/usr/local/lsws/lsphp${phpver}/bin/pecl install ${Extension} >/dev/null 2>&1) >/dev/null 2>&1
+			
+			# We really don't need to check error conditions on timezonedb. I think I've seen cases where it throws weird exit codes.
+			# Or where it might not exist yet when php81/92 came out, the timezonedb extension wasn't out for a few weeks which isn't a big deal but shouldn't cause fatal error.
+			# Only add timezonedb extension if binary is actually installed.
+			# if find /usr/local/lsws/lsphp${phpver}/lib/php/ -type f -iname "timezonedb.so" >/dev/null 2>&1 ; then
+			# 	echo ".....Installing timezondb into php.ini for PHP $phpver..."
+			# 	echo "extension=${Extension}.so" >> ${php_ini}
+			# else
+			# 	echo ".....TimezoneDB extension not found for PHP $phpver - the module will not be installed."
+			# fi
+			
 			sed -i -e 's|^;date.timezone.*|date.timezone = "UTC"|g' /usr/local/lsws/lsphp${phpver}/etc/php/$(echo $phpver | sed 's/^\(.\{1\}\)/\1./')/litespeed/php.ini;
 			php_utc_result=$(/usr/local/lsws/lsphp${phpver}/bin/php -i 2>&1 | grep -Ei 'date.timezone')
 			if ! echo "$php_utc_result"| grep UTC >/dev/null 2>&1

@@ -106,10 +106,26 @@ then
 		gf_select_sftp_user
 		user=$(grep ':33::/var/www' /etc/passwd | grep '/bin/false' | cut -d ':' -f 1 | sed -n "$site_number"p)
 	done
+	
 	# killall needed if user is logged in
 	killall -u $user
 	userdel $user
 	sed -i "/^Match User $user$/,+8 d" /etc/ssh/sshd_config
+	
+	# what domain does the user belong to?
+	if [[ -z $domain ]]; then
+		# Notice the colon ":" after the $user var.  If this is not there and the etc/passwd file contains two users,
+		# 'John' and 'John2' the domain returned will be duplicated in the returned string eg: 'domain.com domain.com' 
+		# instead of just 'domain.com'.
+		domain=$(grep ':33::/var/www' /etc/passwd | grep '/bin/false' | grep $user: | cut -d '/' -f 4)
+	fi
+	
+	# check to see if the user has a public key set. If so, delete it.
+	if [[ -e /var/www/$domain/.ssh_$user/authorized_keys ]]
+	then
+		rm /var/www/$domain/.ssh_$user/authorized_keys
+		rmdir -rf /var/www/$domain/.ssh_$user  #might not always delete the folder but at least we make the attempt.
+	fi	
 
 	systemctl restart sshd.service
 	echo
@@ -136,8 +152,23 @@ then
 		Example: /root/my_public_key.pub"
 		read -p "Public key: " public_key
 	done
-
-	domain=$(grep ':33::/var/www' /etc/passwd | grep '/bin/false' | grep $user | cut -d '/' -f 4)
+	
+	if [[ -z $domain ]]
+	then
+		echo
+		echo "Specify the domain to which the user belongs - without the http/https prefix"
+		read -p "domain: " domain
+	fi
+	
+	# if we don't have a domain for some reason, look it up.
+	if [[ -z $domain ]]; then
+		# Notice the colon ":" after the $user var.  If this is not there and the etc/passwd file contains two users,
+		# 'John' and 'John2' the domain returned will be duplicated in the returned string eg: 'domain.com domain.com' 
+		# instead of just 'domain.com'.
+		domain=$(grep ':33::/var/www' /etc/passwd | grep '/bin/false' | grep $user: | cut -d '/' -f 4)
+	fi
+	
+	# Write to the file.
 	cat $public_key > /var/www/$domain/.ssh_$user/authorized_keys
 
 	echo
@@ -156,7 +187,22 @@ then
 		user=$(grep ':33::/var/www' /etc/passwd | grep '/bin/false' | cut -d ':' -f 1 | sed -n "$site_number"p)
 	done
 
-	domain=$(grep ':33::/var/www' /etc/passwd | grep '/bin/false' | grep $user | cut -d '/' -f 4)
+	if [[ -z $domain ]]
+	then
+		echo
+		echo "Specify the domain to which the user belongs - without the http/https prefix"
+		read -p "domain: " domain
+	fi
+	
+	# if we don't have a domain for some reason, look it up.
+	if [[ -z $domain ]]; then
+		# Notice the colon ":" after the $user var.  If this is not there and the etc/passwd file contains two users,
+		# 'John' and 'John2' the domain returned will be duplicated in the returned string eg: 'domain.com domain.com' 
+		# instead of just 'domain.com'.
+		domain=$(grep ':33::/var/www' /etc/passwd | grep '/bin/false' | grep $user: | cut -d '/' -f 4)
+	fi
+	
+	# remove the file.
 	rm /var/www/$domain/.ssh_$user/authorized_keys
 
 	echo
@@ -195,7 +241,7 @@ then
 fi
 
 
-	# remove password
+# remove password
 if [[ $action == "remove_password" || $action == "6" ]]
 then
 	while [[ -z $user ]]
@@ -205,8 +251,22 @@ then
 		user=$(grep ':33::/var/www' /etc/passwd | grep '/bin/false' | cut -d ':' -f 1 | sed -n "$site_number"p)
 	done
 
-	domain=$(grep ':33::/var/www' /etc/passwd | grep '/bin/false' | grep $user | cut -d '/' -f 4)
+	if [[ -z $domain ]]
+	then
+		echo
+		echo "Specify the domain to which the user belongs - without the http/https prefix"
+		read -p "domain: " domain
+	fi
+	
+	# if we don't have a domain for some reason, look it up.
+	if [[ -z $domain ]]; then
+		# Notice the colon ":" after the $user var.  If this is not there and the etc/passwd file contains two users,
+		# 'John' and 'John2' the domain returned will be duplicated in the returned string eg: 'domain.com domain.com' 
+		# instead of just 'domain.com'.
+		domain=$(grep ':33::/var/www' /etc/passwd | grep '/bin/false' | grep $user: | cut -d '/' -f 4)
+	fi
 
+	# check to see if the user has a public key set.
 	if [[ ! -e /var/www/$domain/.ssh_$user/authorized_keys ]]
 	then
 		echo

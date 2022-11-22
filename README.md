@@ -124,6 +124,14 @@ Note: Even though the entire git development history isn't available on github, 
 [Friendly Release Notes](https://wpclouddeploy.com/category/release-notes/)
 
 ## Change Log ##
+5.1.1
+------
+* Fix: WPAPP - Edge case issue with SSL when copying template sites and the template site has an SSL and the target domain allows an SSL to be generated.
+* Fix: WPAPP - An issue with sFTP users - when two users have similar names (eg: john and john2), certain operations did not work because grep found multiple domain entries in the passwd file.
+* Fix: WPAPP - We now delete the orphaned authorized keys file for a user when we delete the user.
+* Tweak: WPAPP  - Relabel the default PHP version item in the servers TOOL tabs to use the term 'CLI' which more accurately reflects the meaning of the setting & Operation.
+* Tweak: WPAPP - Do not load timezonedb.so into php.ini since certain components necessary for it are not consistently available in the ols repos.
+
 5.1.0
 ------
 * New: WPAPP - Global option to set PHP version for all new sites.

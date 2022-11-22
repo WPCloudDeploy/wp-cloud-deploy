@@ -210,7 +210,7 @@ class WPCD_WORDPRESS_TABS_SERVER_TOOLS extends WPCD_WORDPRESS_TABS {
 		/**
 		 * Set server php default version
 		 */
-		$confirmation_prompt = __( 'Are you sure you would like to set update the default php version for this server?', 'wpcd' );
+		$confirmation_prompt = __( 'Are you sure you would like to change the PHP CLI version for this server?', 'wpcd' );
 
 		$default_php_version = get_post_meta( $id, 'wpcd_default_php_version', true );
 		if ( empty( $default_php_version ) ) {
@@ -218,7 +218,7 @@ class WPCD_WORDPRESS_TABS_SERVER_TOOLS extends WPCD_WORDPRESS_TABS {
 		}
 
 		$actions['reset-server-default-php-version-header'] = array(
-			'label'          => __( 'Set PHP Default Version', 'wpcd' ),
+			'label'          => __( 'Set Server PHP CLI Version', 'wpcd' ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
 				'desc' => __( 'This is the PHP version used to run all WP-CLI commands or other server level PHP scripts not running directly inside WordPress. This should be 7.4 or higher - lower versions will likely break things very badly. If your plugins/themes are not compatible with PHP 8.x then this should be set to 7.4.', 'wpcd' ),
@@ -226,7 +226,7 @@ class WPCD_WORDPRESS_TABS_SERVER_TOOLS extends WPCD_WORDPRESS_TABS {
 		);
 
 		$actions['reset-server-default-php-version-select'] = array(
-			'label'          => __( 'New Server Default PHP Version', 'wpcd' ),
+			'label'          => __( 'New Server PHP CLI Version', 'wpcd' ),
 			'type'           => 'select',
 			'raw_attributes' => array(
 				'options'        => array(
@@ -247,7 +247,7 @@ class WPCD_WORDPRESS_TABS_SERVER_TOOLS extends WPCD_WORDPRESS_TABS {
 		$actions['reset-server-default-php-version'] = array(
 			'label'          => '',
 			'raw_attributes' => array(
-				'std'                 => __( 'Reset Default PHP Version', 'wpcd' ),
+				'std'                 => __( 'Reset Server PHP CLI Version', 'wpcd' ),
 				'confirmation_prompt' => $confirmation_prompt,
 				'desc'                => '',
 				// fields that contribute data for this action.

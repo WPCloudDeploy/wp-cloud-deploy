@@ -1209,7 +1209,7 @@ trait wpcd_wpapp_admin_column_data {
 						if ( in_array( $server_status_items['default_php_version'], $bad_php_versions, true ) ) {
 
 							/* Translators: %s is the incorrect PHP version. */
-							$return .= sprintf( __( 'The default PHP server version is incorrect. It is currently set to %s.', 'wpcd' ), $server_status_items['default_php_version'] );
+							$return .= sprintf( __( 'The PHP server CLI version is incorrect. It is currently set to %s.', 'wpcd' ), $server_status_items['default_php_version'] );
 
 							$class = 'wpcd_incorrect_php_default_version';
 

@@ -705,8 +705,13 @@ class WPCD_Init {
 		} else {
 			// Transient is set.  But the time remaining can sometimes be negative. While we're not sure why that happens, if it is, delete it!
 			$time_left = (int) wpcd_get_transient_remaining_time_in_mins( 'wpcd_cron_check' );
-			if ( $time_left < 0 ) {
-				delete_transient( 'wpcd_cron_check' );
+
+			if ( false === $time_left ) {
+				// looks like an object cache is in use so we can't get the time left data.  Therefore do nothing.
+			} else {
+				if ( $time_left < 0 ) {
+					delete_transient( 'wpcd_cron_check' );
+				}
 			}
 		}
 

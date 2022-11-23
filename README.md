@@ -127,6 +127,7 @@ Note: Even though the entire git development history isn't available on github, 
 5.2.0
 ------
 * Tweak: WPAPP - Attempt to detect duplicate simultaneous runs of apt-get and send back warning for error log.
+* Tweak: WPAPP - Better handling of calculations related to transient expiration when an object cache is in use.
 
 5.1.1
 ------

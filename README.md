@@ -124,6 +124,10 @@ Note: Even though the entire git development history isn't available on github, 
 [Friendly Release Notes](https://wpclouddeploy.com/category/release-notes/)
 
 ## Change Log ##
+5.2.0
+------
+* Tweak: WPAPP - Attempt to detect duplicate simultaneous runs of apt-get and send back warning for error log.
+
 5.1.1
 ------
 * Fix: WPAPP - Edge case issue with SSL when copying template sites and the template site has an SSL and the target domain allows an SSL to be generated.

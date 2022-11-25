@@ -437,8 +437,12 @@ then
 		sed -i "/fastcgi_param PHP_VALUE/a $php_param;" /etc/nginx/sites-enabled/$domain
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
+		# Update the vhost configuration file. The parameter may or may not work. (This is an OLS quirk where only certain items work in this file.)
 		sed -i "/$(echo $php_param | cut -d "=" -f 1)/d" ${VHDIR}/$domain/$g_vhost_conf
 		sed -i -e "/### Insert common phpIni/a\\php_admin_value ${php_param}"  ${VHDIR}/$domain/$g_vhost_conf
+		# Also remove & add to the php.ini file in case the vhost configuration file doesn't work.
+		sed -i "/$(echo $php_param | cut -d "=" -f 1)/d" /var/www/$domain/.phpini/php.ini
+		echo "$php_param" >> /var/www/$domain/.phpini/php.ini
 	fi
 	echo
 	echo "Successfully changed PHP value $php_param for $domain"
@@ -489,7 +493,10 @@ then
 		fi
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
+		# Remove from vhost config.
 		sed -i "/$(echo $php_param | cut -d "=" -f 1)/d" ${VHDIR}/$domain/$g_vhost_conf
+		# And from php.ini.
+		sed -i "/$(echo $php_param | cut -d "=" -f 1)/d" /var/www/$domain/.phpini/php.ini
 	fi
 	gf_restart_webserver
 	echo

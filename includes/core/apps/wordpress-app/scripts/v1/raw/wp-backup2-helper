@@ -36,7 +36,14 @@ backup_files_complete () {
 	incremental_id=$(head /dev/urandom | tr -dc a-z | head -c 6)
 	# Remove the previous incremental backup log since we are performing a complete backup round
 	rm -f /etc/wp-backup2/$job_id/incremental_*
-	tar --exclude-from <(printf '%s\n' "$exclusions") -g /etc/wp-backup2/$job_id/incremental_$incremental_id -czf ~/.wp-backup2/$domain/"$domain"_"$date"_fs_$incremental_id.tar.gz $domain/*
+
+	if [ "$webserver_type" = "nginx" ]
+	then
+		tar --exclude-from <(printf '%s\n' "$exclusions") -g /etc/wp-backup2/$job_id/incremental_$incremental_id -czf ~/.wp-backup2/$domain/"$domain"_"$date"_fs_$incremental_id.tar.gz $domain/*
+	elif [ "$webserver_type" = "ols" ]  || [ "$webserver_type" = "ols-enterprise" ]
+	then
+		tar --exclude-from <(printf '%s\n' "$exclusions") -g /etc/wp-backup2/$job_id/incremental_$incremental_id -czf ~/.wp-backup2/$domain/"$domain"_"$date"_fs_$incremental_id.tar.gz $domain/* $domain/.phpini/*	
+	fi		
 }
 
 
@@ -47,7 +54,14 @@ backup_files_incremental () {
 	else
 		incremental_id=$(head /dev/urandom | tr -dc a-z | head -c 6)
 	fi
-	tar --exclude-from <(printf '%s\n' "$exclusions") -g /etc/wp-backup2/$job_id/incremental_$incremental_id -czf ~/.wp-backup2/$domain/"$domain"_"$date"_fs_$incremental_id.tar.gz $domain/*
+
+	if [ "$webserver_type" = "nginx" ]
+	then
+		tar --exclude-from <(printf '%s\n' "$exclusions") -g /etc/wp-backup2/$job_id/incremental_$incremental_id -czf ~/.wp-backup2/$domain/"$domain"_"$date"_fs_$incremental_id.tar.gz $domain/*
+	elif [ "$webserver_type" = "ols" ]  || [ "$webserver_type" = "ols-enterprise" ]
+	then
+		tar --exclude-from <(printf '%s\n' "$exclusions") -g /etc/wp-backup2/$job_id/incremental_$incremental_id -czf ~/.wp-backup2/$domain/"$domain"_"$date"_fs_$incremental_id.tar.gz $domain/* $domain/.phpini/*	
+	fi	
 }
 
 
@@ -57,7 +71,14 @@ backup_files () {
 	if [[ $backup_plan == "complete" ]]
 	then
 		# If $backup_plan == "complete" we just perform a normal complete backup
-		tar --exclude-from <(printf '%s\n' "$exclusions") -czf ~/.wp-backup2/$domain/"$domain"_"$date"_fs.tar.gz $domain/*
+		if [ "$webserver_type" = "nginx" ]
+		then
+			tar --exclude-from <(printf '%s\n' "$exclusions") -czf ~/.wp-backup2/$domain/"$domain"_"$date"_fs.tar.gz $domain/*
+		elif [ "$webserver_type" = "ols" ]  || [ "$webserver_type" = "ols-enterprise" ]
+		then
+			tar --exclude-from <(printf '%s\n' "$exclusions") -czf ~/.wp-backup2/$domain/"$domain"_"$date"_fs.tar.gz $domain/* $domain/.phpini/*
+		fi		
+
 		# Else, $backup_plan == "incremental" from now on
 	elif [[ $backup_frequency == "hourly" ]]
 	then

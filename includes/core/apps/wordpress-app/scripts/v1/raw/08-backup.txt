@@ -115,7 +115,6 @@ do
 	done
 done
 
-
 if [[ $action == "backup" || $action == "1" ]]
 then
 	while [[ -z $domain ]]
@@ -140,7 +139,13 @@ then
 	echo "=>backing up files..."
 	date=$(date +"%Y-%m-%d"-"%Hh%Mm%Ss")
 	cd /var/www
-	tar -czf /root/.wp-backup/$domain/"$domain"_"$date"_fs.tar.gz $domain/*
+	if [ "$g_webserver_type" = "nginx" ]
+	then
+		tar -czf /root/.wp-backup/$domain/"$domain"_"$date"_fs.tar.gz $domain/*
+	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+	then
+		tar -czf /root/.wp-backup/$domain/"$domain"_"$date"_fs.tar.gz $domain/* $domain/.phpini/*
+	fi
 
 	if [ "$g_webserver_type" = "nginx" ]
 	then
@@ -442,7 +447,14 @@ do
 	# backup /var/www
 	date=$(date +"%Y-%m-%d"-"%Hh%Mm%Ss")
 	cd /var/www
-	tar -czf /root/.wp-backup/$domain/"$domain"_"$date"_fs.tar.gz $domain/*
+
+	if [ "$webserver_type" = "nginx" ]
+	then	
+		tar -czf /root/.wp-backup/$domain/"$domain"_"$date"_fs.tar.gz $domain/*
+	elif [ "$webserver_type" = "ols" ]  || [ "$webserver_type" = "ols-enterprise" ]
+	then
+		tar -czf /root/.wp-backup/$domain/"$domain"_"$date"_fs.tar.gz $domain/* $domain/.phpini/*
+	fi
 	if [ "$webserver_type" = "nginx" ]
 	then
 		# backup nginx config and htpasswd
@@ -456,7 +468,7 @@ do
 	fi
 
 	# backup database
-	mysql_db=$(grep DB_NAME /var/www/$line/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
+	mysql_db=$(grep DB_NAME /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
 	mysql_user=$(grep DB_USER /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
 	mysql_pass=$(grep DB_PASSWORD /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
 	mysql_host=$(grep DB_HOST /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
@@ -609,7 +621,15 @@ do
 	# backup /var/www
 	date=$(date +"%Y-%m-%d"-"%Hh%Mm%Ss")
 	cd /var/www
-	tar -czf /root/.wp-backup/$line/"$line"_"$date"_fs.tar.gz $line/*
+
+	if [ "$webserver_type" = "nginx" ]
+	then	
+		tar -czf /root/.wp-backup/$line/"$line"_"$date"_fs.tar.gz $line/*
+	elif [ "$webserver_type" = "ols" ]  || [ "$webserver_type" = "ols-enterprise" ]
+	then
+		tar -czf /root/.wp-backup/$line/"$line"_"$date"_fs.tar.gz $line/* $line/.phpini/*	
+	fi
+
 	if [ "$webserver_type" = "nginx" ]
 	then
 		# backup nginx config and htpasswd
@@ -624,9 +644,9 @@ do
 
 	# backup database
 	mysql_db=$(grep DB_NAME /var/www/$line/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
-	mysql_user=$(grep DB_USER /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
-	mysql_pass=$(grep DB_PASSWORD /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
-	mysql_host=$(grep DB_HOST /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
+	mysql_user=$(grep DB_USER /var/www/$line/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
+	mysql_pass=$(grep DB_PASSWORD /var/www/$line/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
+	mysql_host=$(grep DB_HOST /var/www/$line/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
 	mysql_host_noport=$(echo $mysql_host|cut -d: -f1)
 	mysql_dbport=$(echo $mysql_host|awk -F: '{print $2}')
 	if [ -z $mysql_dbport ]

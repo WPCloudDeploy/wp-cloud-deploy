@@ -383,6 +383,13 @@ else
 			sed -i "s/;opcache.validate_permission=0/opcache.validate_permission=1/g" /etc/php/$ver/fpm/php.ini
 			sed -i "s/;opcache.file_update_protection=2/opcache.file_update_protection=60/g" /etc/php/$ver/fpm/php.ini
 
+			# PHP 8.1 needs a set of default functions added to its global php.ini file because its set to blank for some reason.
+			# We're going to use the same list as 7.4.
+			if [ "$ver" = "8.1" ]
+			then
+				sed -i "s/^disable_functions.*/disable_functions = pcntl_alarm,pcntl_fork,pcntl_waitpid,pcntl_wait,pcntl_wifexited,pcntl_wifstopped,pcntl_wifsignaled,pcntl_wifcontinued,pcntl_wexitstatus,pcntl_wtermsig,pcntl_wstopsig,pcntl_signal,pcntl_signal_get_handler,pcntl_signal_dispatch,pcntl_get_last_error,pcntl_strerror,pcntl_sigprocmask,pcntl_sigwaitinfo,pcntl_sigtimedwait,pcntl_exec,pcntl_getpriority,pcntl_setpriority,pcntl_async_signals,pcntl_unshare,/g" /etc/php/$ver/fpm/php.ini
+			fi			
+
 			# Restarting php
 			echo $(date): "Restarting PHP processes..."
 			systemctl restart php$ver-fpm > /dev/null 2>&1
@@ -812,11 +819,18 @@ fastcgi_hide_header X-Powered-By;
 			sed -i "s/;opcache.validate_root=0/opcache.validate_root=1/g" /usr/local/lsws/lsphp${phpver}/etc/php/${lsphpver}/litespeed/php.ini
 			sed -i "s/;opcache.validate_permission=0/opcache.validate_permission=1/g" /usr/local/lsws/lsphp${phpver}/etc/php/${lsphpver}/litespeed/php.ini
 			sed -i "s/;opcache.file_update_protection=2/opcache.file_update_protection=60/g" /usr/local/lsws/lsphp${phpver}/etc/php/${lsphpver}/litespeed/php.ini
-			
+
+			# PHP 8.1 needs a set of default functions added to its global php.ini file because its set to blank for some reason.
+			# We're going to use the same list as 7.4.
+			if [ "$phpver" = "81" ]
+			then
+				sed -i "s/^disable_functions.*/disable_functions = pcntl_alarm,pcntl_fork,pcntl_waitpid,pcntl_wait,pcntl_wifexited,pcntl_wifstopped,pcntl_wifsignaled,pcntl_wifcontinued,pcntl_wexitstatus,pcntl_wtermsig,pcntl_wstopsig,pcntl_signal,pcntl_signal_get_handler,pcntl_signal_dispatch,pcntl_get_last_error,pcntl_strerror,pcntl_sigprocmask,pcntl_sigwaitinfo,pcntl_sigtimedwait,pcntl_exec,pcntl_getpriority,pcntl_setpriority,pcntl_async_signals,pcntl_unshare,/g" /usr/local/lsws/lsphp${phpver}/etc/php/${lsphpver}/litespeed/php.ini
+			fi
+
 			# Added 11-13-2022 due to vhost phpIniOverride stopped working in latest OLS version.
 			# Unlike NGINX, we have to allow proc_open and proc_close for OLS to run properly when installing a new site later.
 			# So those are not included in the global restricted functions list.
-			sed -i "s/^disable_functions.*/disable_functions = dl, exec, fpassthru, getmypid, getmyuid, highlight_file, link, opcache_get_configuration, passthru, pcntl_exec, pcntl_get_last_error, pcntl_setpriority, pcntl_strerror, pcntl_wifcontinued, phpinfo, popen, posix_ctermid, posix_getcwd, posix_getegid, posix_geteuid, posix_getgid, posix_getgrgid, posix_getgrnam, posix_getgroups, posix_getlogin, posix_getpgid, posix_getpgrp, posix_getpid, posix_getppid, posix_getpwnam, posix_getpwuid, posix_getrlimit, posix_getsid, posix_getuid, posix_isatty, posix_kill, posix_mkfifo, posix_setegid, posix_seteuid, posix_setgid, posix_setpgid, posix_setsid, posix_setuid, posix_times, posix_ttyname, posix_uname, proc_get_status, proc_nice, proc_terminate, shell_exec, show_source, source, system, virtual/g" /usr/local/lsws/lsphp${phpver}/etc/php/${lsphpver}/litespeed/php.ini
+			# sed -i "s/^disable_functions.*/disable_functions = dl, exec, fpassthru, getmypid, getmyuid, highlight_file, link, opcache_get_configuration, passthru, pcntl_exec, pcntl_get_last_error, pcntl_setpriority, pcntl_strerror, pcntl_wifcontinued, phpinfo, popen, posix_ctermid, posix_getcwd, posix_getegid, posix_geteuid, posix_getgid, posix_getgrgid, posix_getgrnam, posix_getgroups, posix_getlogin, posix_getpgid, posix_getpgrp, posix_getpid, posix_getppid, posix_getpwnam, posix_getpwuid, posix_getrlimit, posix_getsid, posix_getuid, posix_isatty, posix_kill, posix_mkfifo, posix_setegid, posix_seteuid, posix_setgid, posix_setpgid, posix_setsid, posix_setuid, posix_times, posix_ttyname, posix_uname, proc_get_status, proc_nice, proc_terminate, shell_exec, show_source, source, system, virtual/g" /usr/local/lsws/lsphp${phpver}/etc/php/${lsphpver}/litespeed/php.ini
 			
 		done
 

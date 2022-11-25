@@ -3,7 +3,7 @@
 Plugin Name: WPCloudDeploy
 Plugin URI: https://wpclouddeploy.com
 Description: Deploy and manage cloud servers and apps from inside the WordPress Admin dashboard.
-Version: 5.1.2
+Version: 5.1.3
 Requires at least: 5.4
 Requires PHP: 7.4
 Item Id: 1493
@@ -616,7 +616,7 @@ class WPCD_Init {
 			$body[] = '';
 			$body[] = __( 'It is possible that this is a minor hiccup or false positive and the cron(s) are still running. You can use the free WP CRONTROL plugin to examine running crons to see if the crons are still present and active.', 'wpcd' );
 			$body[] = '';
-			$body[] = __( 'Before contacting support, please try to disable and renable the plugin to reactivate crons. Additionally, please verify that your WP CRON is firing every 1 minute - either from enough frequent site traffic or, better yet, from a native LINUX cron process.', 'wpcd' );
+			$body[] = __( 'Before contacting support, please try to disable and renable the plugin to reactivate crons. Additionally, please verify that your WP CRON is firing every 1 minute - either from enough frequent site traffic, a native LINUX cron process or better yet, the use of the WPCD BETTER CRONS method.', 'wpcd' );
 			$body[] = '';
 			$body[] = __( '--------', 'wpcd' );
 			$body[] = '';

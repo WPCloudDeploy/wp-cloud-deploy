@@ -128,6 +128,9 @@ Note: Even though the entire git development history isn't available on github, 
 ------
 * Tweak: WPAPP - Attempt to detect duplicate simultaneous runs of apt-get and send back warning for error log.
 * Tweak: WPAPP - Better handling of calculations related to transient expiration when an object cache is in use.
+* Tweak: WPAPP - A better way to manage PHP.INI while still locking down the domain folder (requires upgrading existing OLS servers and sites)
+* Fix: WPAPP - Database backups might sometimes leave the .sql file blank.
+* Other: This update requires changes to all existing OLS servers and sites.  Please see the technical upgrade guide.
 
 5.1.1
 ------

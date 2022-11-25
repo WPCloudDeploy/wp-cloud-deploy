@@ -254,8 +254,8 @@ then
 		if [ $g_mysql_host_noport == "localhost" ]
 		then
 			mysql <<QUERY
-DROP DATABASE $mysql_db;
-DELETE from mysql.user where user='$mysql_user';
+DROP DATABASE $g_mysql_name;
+DELETE from mysql.user where user='$g_mysql_user';
 FLUSH PRIVILEGES;
 QUERY
 		else
@@ -335,14 +335,14 @@ QUERY
 	rm -f wp-content/object-cache.php
 	if [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
-		su - $user_name -c "wp litespeed-option set object false 2>/dev/null"
+		su - $user_name -c "wp litespeed-option set object false > /dev/null 2>&1"
 		su - $user_name -c "wp cache flush 2>/dev/null"		
 	fi
 
+	# reset object cache (multiple flushes might be overkill.)
+	su - $user_name -c "wp cache flush 2>/dev/null"
 	su - $user_name -c "wp plugin uninstall --deactivate redis-cache 2>/dev/null"
-
-	# reset object cache
-	su - $user_name -c "wp cache flush"
+	su - $user_name -c "wp cache flush 2>/dev/null"
 
 	# Attempt to issue SSL certificates.
 	if [ "$g_webserver_type" = "nginx" ]
@@ -473,7 +473,7 @@ do
 	mysql_pass=$(grep DB_PASSWORD /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
 	mysql_host=$(grep DB_HOST /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
 	mysql_host_noport=$(echo $mysql_host|cut -d: -f1)
-	mysql_dbport=$(echo $mysql_host|awk -F: '{print $2}')
+	mysql_dbport=$(echo $mysql_host|awk -F: '\''{print $2}'\'')
 	if [ -z $mysql_dbport ]
 	then
 		mysql_dbport=3306
@@ -648,7 +648,7 @@ do
 	mysql_pass=$(grep DB_PASSWORD /var/www/$line/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
 	mysql_host=$(grep DB_HOST /var/www/$line/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
 	mysql_host_noport=$(echo $mysql_host|cut -d: -f1)
-	mysql_dbport=$(echo $mysql_host|awk -F: '{print $2}')
+	mysql_dbport=$(echo $mysql_host|awk -F: '\''{print $2}'\'')
 	if [ -z $mysql_dbport ]
 	then
 		mysql_dbport=3306

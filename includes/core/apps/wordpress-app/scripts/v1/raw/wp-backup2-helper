@@ -128,7 +128,17 @@ backup_webserver () {
 
 backup_database () {
 	mysql_db=$(grep DB_NAME /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
-	mysqldump --routines $mysql_db | gzip -9 > ~/.wp-backup2/$domain/"$domain"_"$date"_db.gz
+	mysql_user=$(grep DB_USER /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
+	mysql_pass=$(grep DB_PASSWORD /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
+	mysql_host=$(grep DB_HOST /var/www/$domain/html/wp-config.php | tr -d "[:space:]"|cut -d "," -f2|cut -d")" -f1|tail -c +2 | head -c -2)
+	mysql_host_noport=$(echo $mysql_host|cut -d: -f1)
+	mysql_dbport=$(echo $mysql_host|awk -F: '{print $2}')
+	if [ -z $mysql_dbport ]
+	then
+		mysql_dbport=3306
+	fi
+	mysqldump --routines -h ${mysql_host_noport} -P ${mysql_dbport} -u ${mysql_user} -p${mysql_pass} ${mysql_db} | gzip -9 > /root/.wp-backup2/$domain/"$domain"_"$date"_db.gz
+
 }
 
 

@@ -332,7 +332,19 @@ class WPCD_WORDPRESS_TABS_FILE_MANAGER extends WPCD_WORDPRESS_TABS {
 			return $fields;
 		}
 
-		// Manage fields base on installed file manager.
+		// Bail if PHP is 8.0 or 8.1.
+		$php_version = (string) $this->get_php_version_for_app( $id );
+		if ( in_array( $php_version, array( '8.0', '8.1' ), true ) ) {
+			$fields[] = array(
+				'name' => __( 'File Manager [Disabled]', 'wpcd' ),
+				'tab'  => 'file-manager',
+				'type' => 'heading',
+				'desc' => __( 'Unfortunately file manager does not yet work on PHP 8.x. You can temporarily switch to PHP 7.4 though and try again. You can also follow the File Manager project progress on github at https://github.com/prasathmani/tinyfilemanager', 'wpcd' ),
+			);
+			return $fields;
+		}
+
+		// Is filemanager already installed? We'll show/hide fields based on this status.
 		$file_manager_status = $this->is_file_manager_installed( $id );
 
 		// What is the status of File Manager?
@@ -370,7 +382,7 @@ class WPCD_WORDPRESS_TABS_FILE_MANAGER extends WPCD_WORDPRESS_TABS {
 			);
 			return $fields;
 		}
-		// End Bail if certain 6G or 7G firewall items are enabled.		
+		// End Bail if certain 6G or 7G firewall items are enabled.
 
 		if ( 'off' === $file_manager_status ) {
 			$desc  = __( 'The File Manager is not installed.', 'wpcd' );

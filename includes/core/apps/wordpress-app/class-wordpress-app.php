@@ -1481,7 +1481,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	 */
 	public function get_php_version_for_app( $app_id ) {
 
-		// Check to see if the version is stampled on the record.
+		// Check to see if the version is stamped on the record.
 		$php_version = wpcd_maybe_unserialize( get_post_meta( $app_id, 'wpapp_php_version', true ) );
 
 		// If not, then do some tortured logic to guess at it.

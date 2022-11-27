@@ -489,7 +489,7 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 			'label'          => __( '[Danger Zone] Add Or Update a PHP Option', 'wpcd' ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
-				'desc' => __( 'Use this to set a custom value for a PHP.ini value. Custom values are placed in the NGINX configuration files and apply only to this site. Please make sure that you set a VALID value for the option - we do not validate your input before sending it on to the server! ', 'wpcd' ),
+				'desc' => __( 'Use this to set a custom value for a PHP.ini value. Custom values are placed in the web server vhost configuration files and apply only to this site. Please make sure that you set a VALID value for the option - we do not validate your input before sending it on to the server! ', 'wpcd' ),
 			),
 		);
 

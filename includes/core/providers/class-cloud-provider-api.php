@@ -577,18 +577,30 @@ class CLOUD_PROVIDER_API {
 			$cache_key = $this->get_provider_slug() . $this->get_cache_key_prefix() . hash( 'sha256', $this->get_secret_key() ) . $method;
 
 			if ( get_transient( $cache_key ) ) {
-				$time_to_expire = wpcd_get_transient_remaining_time_in_mins( $cache_key );
-				/* translators: %1$s is replaced with the cachekey; %2$d is replaced with the amount of time remaining till the cachekey expires. */
-				$translist[] = sprintf( __( ' %1$s will expire in %2$d minutes.', 'wpcd' ), $cache_key, $time_to_expire );
+				if ( true === (bool) wp_using_ext_object_cache() ) {
+					// With an object cache in use, we can't get the number of minutes remaining.
+					/* translators: %1$s is replaced with the cachekey; %2$d is replaced with the amount of time remaining till the cachekey expires. */
+					$translist[] = sprintf( __( ' WordPress is using an external object cache so we cannot estimate the number of minutes remaining before transient %1s expires.', 'wpcd' ), $cache_key );
+				} else {
+					$time_to_expire = wpcd_get_transient_remaining_time_in_mins( $cache_key );
+					/* translators: %1$s is replaced with the cachekey; %2$d is replaced with the amount of time remaining till the cachekey expires. */
+					$translist[] = sprintf( __( ' %1$s will expire in %2$d minutes.', 'wpcd' ), $cache_key, $time_to_expire );
+				}
 			}
 		}
 		foreach ( $methods as $method ) {
 			$cache_key = $this->get_provider_slug() . $this->get_cache_key_prefix() . hash( 'sha256', $this->get_api_key() ) . $method;
 
 			if ( get_transient( $cache_key ) ) {
-				$time_to_expire = wpcd_get_transient_remaining_time_in_mins( $cache_key );
-				/* translators: %1$s is replaced with the cachekey; %2$d is replaced with the amount of time remaining till the cachekey expires. */
-				$translist[] = sprintf( __( ' %1$s will expire in %2$d minutes.', 'wpcd' ), $cache_key, $time_to_expire );
+				if ( true === (bool) wp_using_ext_object_cache() ) {
+					// With an object cache in use, we can't get the number of minutes remaining.
+					/* translators: %1$s is replaced with the cachekey; %2$d is replaced with the amount of time remaining till the cachekey expires. */
+					$translist[] = sprintf( __( ' WordPress is using an external object cache so we cannot estimate the number of minutes remaining before transient %1s expires.', 'wpcd' ), $cache_key );
+				} else {
+					$time_to_expire = wpcd_get_transient_remaining_time_in_mins( $cache_key );
+					/* translators: %1$s is replaced with the cachekey; %2$d is replaced with the amount of time remaining till the cachekey expires. */
+					$translist[] = sprintf( __( ' %1$s will expire in %2$d minutes.', 'wpcd' ), $cache_key, $time_to_expire );
+				}
 			}
 		}
 

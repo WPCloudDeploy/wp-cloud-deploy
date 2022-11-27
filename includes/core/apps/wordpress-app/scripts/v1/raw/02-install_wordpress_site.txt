@@ -100,6 +100,7 @@ then
 	gf_add_ols_conf "$domain"
 fi
 
+# Install WordPress using wp-cli
 cd "${wphome}"
 su - "$user_name" -c "wp --skip-plugins --no-color core download --version=$wp_version --locale=$wp_locale"
 su - "$user_name" -c "wp --skip-plugins --no-color config create --dbname=$mysql_db --dbuser=$mysql_user --dbpass=$mysql_pass --dbprefix="$mysql_dbprefix"_"

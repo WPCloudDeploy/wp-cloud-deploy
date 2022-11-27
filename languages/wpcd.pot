@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 "Project-Id-Version: WP Cloud Deploy\n"
-"POT-Creation-Date: 2022-11-21 22:42-0600\n"
+"POT-Creation-Date: 2022-11-27 08:07-0600\n"
 "PO-Revision-Date: 2020-08-14 19:38-0500\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1369,7 +1369,7 @@ msgstr ""
 
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:401
 #: includes/core/apps/wordpress-app/tabs/file-manager.php:140
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:383
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:395
 msgid "File Manager"
 msgstr ""
 
@@ -4633,7 +4633,7 @@ msgstr ""
 #: includes/core/apps/wordpress-app/tabs-server/callbacks.php:254
 #: includes/core/apps/wordpress-app/tabs-server/ols_console.php:247
 #: includes/core/apps/wordpress-app/tabs-server/services.php:1049
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:428
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:440
 #: includes/core/apps/wordpress-app/templates/install-app-popup.php:170
 msgid "Install"
 msgstr ""
@@ -5361,7 +5361,7 @@ msgstr ""
 #: includes/core/apps/wordpress-app/tabs-server/goaccess.php:316
 #: includes/core/apps/wordpress-app/tabs-server/monit.php:375
 #: includes/core/apps/wordpress-app/tabs-server/monitorix.php:317
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:469
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:481
 #: includes/core/apps/wordpress-app/tabs/phpmyadmin.php:1151
 msgid "Password: "
 msgstr ""
@@ -6511,7 +6511,7 @@ msgid "The OpenLiteSpeed Webserver Manager console is not installed."
 msgstr ""
 
 #: includes/core/apps/wordpress-app/tabs-server/ols_console.php:167
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:377
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:389
 msgid ""
 "To install it please enter a username & password, then click the INSTALL "
 "button."
@@ -6563,14 +6563,14 @@ msgid "URL:"
 msgstr ""
 
 #: includes/core/apps/wordpress-app/tabs-server/ols_console.php:319
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:394
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:494
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:406
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:506
 msgid "User Name:"
 msgstr ""
 
 #: includes/core/apps/wordpress-app/tabs-server/ols_console.php:327
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:409
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:508
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:421
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:520
 msgid "Password:"
 msgstr ""
 
@@ -10018,40 +10018,48 @@ msgstr ""
 msgid "Username & Password require for update details"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:348
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:357
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:339
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:360
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:369
 msgid "File Manager [Disabled]"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:351
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:342
+msgid ""
+"Unfortunately file manager does not yet work on PHP 8.x. You can temporarily "
+"switch to PHP 7.4 though and try again. You can also follow the File Manager "
+"project progress on github at https://github.com/prasathmani/tinyfilemanager"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:363
 msgid ""
 "You must disable the 6G firewall QUERY STRING rules before File Manager can "
 "be used."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:360
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:369
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:372
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:381
 msgid ""
 "You must disable the 7G firewall QUERY STRING and REQUEST STRING rules "
 "before File Manager can be used."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:366
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:378
 #: includes/core/apps/wordpress-app/tabs/phpmyadmin.php:1057
 #: includes/core/apps/wordpress-app/tabs/phpmyadmin.php:1066
 #: includes/core/apps/wordpress-app/tabs/phpmyadmin.php:1075
 msgid "Database Management With PHPMyAdmin [Disabled]"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:376
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:388
 msgid "The File Manager is not installed."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:438
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:450
 msgid "Are you sure you would like to install the File Manager?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:442
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:454
 msgid ""
 "Preparing to install File Manager.<br /> Please DO NOT EXIT this screen "
 "until you see a popup message indicating that the operation has completed or "
@@ -10060,34 +10068,34 @@ msgid ""
 "complete the entire log can be viewed in the COMMAND LOG screen."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:463
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:475
 msgid "Launch File Manager"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:465
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:477
 msgid "User Name: "
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:486
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:498
 msgid "File Manager- Change Credentials"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:489
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:501
 msgid "Set a new username and password for the file manager"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:526
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:538
 #: includes/core/apps/wordpress-app/tabs/php-options.php:644
 #: includes/core/apps/wordpress-app/tabs/theme-and-plugin-updates.php:398
 #: includes/templates/notify_user_form_popup.php:232
 msgid "Update"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:536
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:548
 msgid "Are you sure you would like to update details?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:540
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:552
 msgid ""
 "Preparing to update File Manager.<br /> Please DO NOT EXIT this screen until "
 "you see a popup message indicating that the operation has completed or has "
@@ -10096,23 +10104,23 @@ msgid ""
 "the entire log can be viewed in the COMMAND LOG screen."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:548
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:560
 msgid "Upgrade File Manager"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:551
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:563
 msgid "Update the File Manager to the latest version."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:560
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:572
 msgid "Update File Manager"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:568
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:580
 msgid "Are you sure you would like to upgrade the File Manager?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:571
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:583
 msgid ""
 "Preparing to upgrade File Manager.<br /> Please DO NOT EXIT this screen "
 "until you see a popup message indicating that the operation has completed or "
@@ -10121,16 +10129,16 @@ msgid ""
 "complete the entire log can be viewed in the COMMAND LOG screen."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:578
 #: includes/core/apps/wordpress-app/tabs/file-manager.php:590
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:602
 msgid "Remove File Manager"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:598
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:610
 msgid "Are you sure you would like to remove the File Manager from this site?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:601
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:613
 msgid ""
 "Preparing to remove File Manager.<br /> Please DO NOT EXIT this screen until "
 "you see a popup message indicating that the operation has completed or has "
@@ -10606,9 +10614,9 @@ msgstr ""
 #: includes/core/apps/wordpress-app/tabs/php-options.php:492
 msgid ""
 "Use this to set a custom value for a PHP.ini value. Custom values are placed "
-"in the NGINX configuration files and apply only to this site. Please make "
-"sure that you set a VALID value for the option - we do not validate your "
-"input before sending it on to the server! "
+"in the web server vhost configuration files and apply only to this site. "
+"Please make sure that you set a VALID value for the option - we do not "
+"validate your input before sending it on to the server! "
 msgstr ""
 
 #: includes/core/apps/wordpress-app/tabs/php-options.php:499
@@ -13434,109 +13442,115 @@ msgid ""
 "this server. Admins will not be limited by this number."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/push-commands.php:134
+#: includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/push-commands.php:45
+msgid ""
+"An update request was made while another instance of APT was alrady "
+"running.  The request was ignored."
+msgstr ""
+
+#: includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/push-commands.php:142
 msgid "This server needs to be restarted for security updates to take effect."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/push-commands.php:138
+#: includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/push-commands.php:146
 #, php-format
 msgid ""
 "The default PHP version on this server is incorrect - it should be 7.4, 8.0 "
 "or 8.1 but is currently set to %s."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/push-commands.php:142
+#: includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/push-commands.php:150
 msgid ""
 "The default PHP version on this server is being reported as an empty string "
 "- it is likely that you need to update the callbacks on it."
 msgstr ""
 
 #. translators: %s is replaced with the number of plugin updates pending for the site.
-#: includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/push-commands.php:250
+#: includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/push-commands.php:258
 #, php-format
 msgid "This site has %s plugin updates pending."
 msgstr ""
 
 #. translators: %s is replaced with the number of theme updates pending for the site.
-#: includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/push-commands.php:255
+#: includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/push-commands.php:263
 #, php-format
 msgid "This site has %s theme updates pending."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/push-commands.php:259
+#: includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/push-commands.php:267
 msgid "This site has a core WordPress update pending."
 msgstr ""
 
 #. translators: %s is replaced with the number of plugin updates pending for the site.
-#: includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/push-commands.php:385
+#: includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/push-commands.php:393
 #, php-format
 msgid ""
 "This site has exceeded its disk quota: Allowed quota: %1$d MB, Currently "
 "used: %2$d MB."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/push-commands.php:391
+#: includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/push-commands.php:399
 msgid "This site is being disabled because the disk quota has been exceeded."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/push-commands.php:399
+#: includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/push-commands.php:407
 msgid ""
 "This site has had it's admin lock applied because the disk quota has been "
 "exceeded."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/push-commands.php:460
+#: includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/push-commands.php:468
 msgid "Last malware scan detected one or more malicious items."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/push-commands.php:462
+#: includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/push-commands.php:470
 msgid "Last malware scan detected no malicious items."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/push-commands.php:524
+#: includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/push-commands.php:532
 #: includes/core/class-wpcd-posts-notify-user.php:734
 msgid "The server is shutting down."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/push-commands.php:530
+#: includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/push-commands.php:538
 msgid "The server started up."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/push-commands.php:669
+#: includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/push-commands.php:677
 #, php-format
 msgid "An attempt to backup domain %s has started."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/push-commands.php:727
+#: includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/push-commands.php:735
 #, php-format
 msgid "The attempt to backup domain %s has ended."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/push-commands.php:781
+#: includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/push-commands.php:789
 msgid "Configuration backup has started."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/push-commands.php:785
+#: includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/push-commands.php:793
 msgid "Configuration backup has completed successfully."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/push-commands.php:789
+#: includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/push-commands.php:797
 msgid "Configuration backup has failed."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/push-commands.php:846
+#: includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/push-commands.php:854
 msgid "A sitesync has started."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/push-commands.php:850
+#: includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/push-commands.php:858
 msgid "A sitesync has ended."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/push-commands.php:854
+#: includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/push-commands.php:862
 msgid "A sitesync has failed."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/push-commands.php:890
+#: includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/push-commands.php:898
 msgid "The test rest api call has succeeded."
 msgstr ""
 
@@ -18720,11 +18734,11 @@ msgstr ""
 msgid "Wrong Nonce"
 msgstr ""
 
-#: includes/core/functions.php:1613
+#: includes/core/functions.php:1620
 msgid "Copied"
 msgstr ""
 
-#: includes/core/functions.php:1613
+#: includes/core/functions.php:1620
 msgid "Click to copy"
 msgstr ""
 
@@ -18755,8 +18769,17 @@ msgid "unknown/"
 msgstr ""
 
 #. translators: %1$s is replaced with the cachekey; %2$d is replaced with the amount of time remaining till the cachekey expires.
-#: includes/core/providers/class-cloud-provider-api.php:582
-#: includes/core/providers/class-cloud-provider-api.php:591
+#: includes/core/providers/class-cloud-provider-api.php:583
+#: includes/core/providers/class-cloud-provider-api.php:598
+#, php-format
+msgid ""
+" WordPress is using an external object cache so we cannot estimate the "
+"number of minutes remaining before transient %1s expires."
+msgstr ""
+
+#. translators: %1$s is replaced with the cachekey; %2$d is replaced with the amount of time remaining till the cachekey expires.
+#: includes/core/providers/class-cloud-provider-api.php:587
+#: includes/core/providers/class-cloud-provider-api.php:602
 #, php-format
 msgid " %1$s will expire in %2$d minutes."
 msgstr ""
@@ -19773,8 +19796,8 @@ msgstr ""
 msgid ""
 "Before contacting support, please try to disable and renable the plugin to "
 "reactivate crons. Additionally, please verify that your WP CRON is firing "
-"every 1 minute - either from enough frequent site traffic or, better yet, "
-"from a native LINUX cron process."
+"every 1 minute - either from enough frequent site traffic, a native LINUX "
+"cron process or better yet, the use of the WPCD BETTER CRONS method."
 msgstr ""
 
 #: wpcd.php:621
@@ -19795,7 +19818,7 @@ msgstr ""
 msgid "- Your WP Management Dashboard BOT."
 msgstr ""
 
-#: wpcd.php:776
+#: wpcd.php:781
 msgid ""
 "View friendly release notes to learn about any breaking changes that might "
 "affect you."

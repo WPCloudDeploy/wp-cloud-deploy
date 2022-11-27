@@ -51,6 +51,11 @@ VHDIR="${LSDIR}/conf/vhosts"
 BOTCRON='/etc/cron.d/certbot'
 PHPVER=lsphp81
 
+## Misc Variables.
+## @TODO: Need to update the NGINX routines and any other related functions with this global var instead of the hard-coded list.
+GS_DISABLED_PHP_FUNCTIONS_LIST="dl, exec, fpassthru, getmypid, getmyuid, highlight_file, link, opcache_get_configuration, passthru, pcntl_exec, pcntl_get_last_error, pcntl_setpriority, pcntl_strerror, pcntl_wifcontinued, phpinfo, popen, posix_ctermid, posix_getcwd, posix_getegid, posix_geteuid, posix_getgid, posix_getgrgid, posix_getgrnam, posix_getgroups, posix_getlogin, posix_getpgid, posix_getpgrp, posix_getpid, posix_getppid, posix_getpwnam, posix_getpwuid, posix_getrlimit, posix_getsid, posix_getuid, posix_isatty, posix_kill, posix_mkfifo, posix_setegid, posix_seteuid, posix_setgid, posix_setpgid, posix_setsid, posix_setuid, posix_times, posix_ttyname, posix_uname, proc_close, proc_get_status, proc_nice, proc_open, proc_terminate, shell_exec, show_source, source, system, virtual"
+
+
 #####################################################################
 # Function to calculate required free space for a backup.
 # If not enough space is available, the script will exit.
@@ -1176,6 +1181,8 @@ function gf_add_ols_conf() {
 	php_admin_flag log_errors On
 	php_admin_value error_log logs/php_error_log
 	php_admin_value open_basedir "/var/www/${olsdomain}/html:/tmp/"
+	### We're adding disable_functions here but it does NOT work as intended with OLS lsphp.  
+	### Instead we also add them to the $VH_ROOT/.phpini/php.ini file and depend on the PHP_INI_SCAN_DIR directive to read that file.
 	php_admin_value disable_functions "dl, exec, fpassthru, getmypid, getmyuid, highlight_file, link, opcache_get_configuration, passthru, pcntl_exec, pcntl_get_last_error, pcntl_setpriority, pcntl_strerror, pcntl_wifcontinued, phpinfo, popen, posix_ctermid, posix_getcwd, posix_getegid, posix_geteuid, posix_getgid, posix_getgrgid, posix_getgrnam, posix_getgroups, posix_getlogin, posix_getpgid, posix_getpgrp, posix_getpid, posix_getppid, posix_getpwnam, posix_getpwuid, posix_getrlimit, posix_getsid, posix_getuid, posix_isatty, posix_kill, posix_mkfifo, posix_setegid, posix_seteuid, posix_setgid, posix_setpgid, posix_setsid, posix_setuid, posix_times, posix_ttyname, posix_uname, proc_close, proc_get_status, proc_nice, proc_open, proc_terminate, shell_exec, show_source, source, system, virtual"
 	php_admin_flag allow_url_fopen Off
 	php_admin_value session.use_strict_mode 1
@@ -1208,7 +1215,7 @@ function gf_add_ols_conf() {
 	  maxConns                35
 	  env                     PHP_LSAPI_MAX_REQUESTS=5000
 	  env                     PHP_LSAPI_CHILDREN=35
-	  env                     PHP_INI_SCAN_DIR=:\$VH_ROOT/html
+	  env                     PHP_INI_SCAN_DIR=:\$VH_ROOT/.phpini
 	  initTimeout             600
 	  retryTimeout            0
 	  persistConn             1
@@ -1313,6 +1320,7 @@ function gf_add_ols_conf() {
 
 	gf_add_domain_ols_httpd_conf ${olsdomain}
 	gf_ols_htaccess ${olsdomain}
+	gf_ols_phpini ${olsdomain}
 }
 
 
@@ -1426,6 +1434,19 @@ function gf_ols_htaccess
 	RewriteRule . /index.php [L]
 	# END WordPress
 	EOL
+}
+
+#####################################################################
+### php.ini default for ols site
+#####################################################################
+function gf_ols_phpini
+{
+	local olsdomain
+	olsdomain=$1
+	PHPINIHM="/var/www/${olsdomain}/.phpini"
+	mkdir "${PHPINIHM}"
+	touch "${PHPINIHM}/php.ini"
+	echo "disable_functions = ${GS_DISABLED_PHP_FUNCTIONS_LIST}" >> "${PHPINIHM}/php.ini"
 }
 
 #####################################################################

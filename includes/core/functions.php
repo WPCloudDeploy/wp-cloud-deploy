@@ -1330,9 +1330,16 @@ if ( ! function_exists( 'wpcd_is_woocommerce_activated' ) ) {
  * Get number of minutes left for transient to expire
  *
  * @param string $key key.
+ *
+ * @return int | false
  */
 function wpcd_get_transient_remaining_time_in_mins( $key ) {
-	return round( ( ( (int) get_option( "_transient_timeout_$key", 0 ) - time() ) / 60 ), 0 );
+	if ( true === (bool) wp_using_ext_object_cache() ) {
+		// External object cache in use - we cannot get expiration data so return false.
+		return false;
+	} else {
+		return round( ( ( (int) get_option( "_transient_timeout_$key", 0 ) - time() ) / 60 ), 0 );
+	}
 }
 
 /**

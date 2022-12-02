@@ -114,11 +114,11 @@
         // Click to copy functionality.
         $('body').on('click', '.wpcd-click-to-copy', function(e) {
             e.preventDefault();
-
-            console.log(e);
+            /* Get parent link & target */
+            var has_parent_link = $(this).find('a').attr('href');
+            var has_link_target = $(this).find('a').attr('target');
             /* Get the IP field */
             var copyText = $(this).find('.wpcd-click-to-copy-text');
-
             /* Copy the IP inside the IP field */
             var IP = copyText.text().trim();
 
@@ -134,7 +134,16 @@
             $(this).find('.wpcd-click-to-copy-label').addClass('wpcd-copy-hidden');
             $copiedElement.fadeIn(100);
             $copiedElement.fadeOut(2000);
-            setTimeout(function() { $($copiedElement).remove() }, 3000);
+            setTimeout(function() { 
+                $($copiedElement).remove()
+                if (typeof has_parent_link !== 'undefined' && has_parent_link !== false) {
+                    if (typeof has_link_target !== 'undefined' && has_link_target !== false) {
+                        window.open(has_parent_link);
+                    }else{
+                        window.location.href = has_parent_link;
+                    }
+                }
+            }, 2000);
         });
 
         // Show copy text on mouse hover.

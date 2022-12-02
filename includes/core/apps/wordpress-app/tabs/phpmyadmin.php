@@ -1142,7 +1142,6 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 				$phpmyadmin_url = 'http://' . $this->get_domain_name( $id ) . '/' . 'phpMyAdmin';
 			}
 
-			$launch              = sprintf( '<a href="%s" target="_blank">', $phpmyadmin_url ) . __( 'Launch PHPMyAdmin', 'wpcd' ) . '</a>';
 			$phpmyadmin_details  = '<div class="wpcd_tool_details">';
 			$phpmyadmin_details .= __( 'User Id: ', 'wpcd' ) . wpcd_wrap_clipboard_copy( $phpmyadmin_user_id );
 			$phpmyadmin_details .= '</div>';
@@ -1159,10 +1158,12 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 			}
 
 			$fields[] = array(
-				'tab'   => 'database',
-				'type'  => 'custom_html',
-				'std'   => $launch,
-				'class' => 'button',
+				'tab'        => 'database',
+				'type'       => 'button',
+				'std'        => __( 'Launch PHPMyAdmin', 'wpcd' ),
+				'attributes' => array(
+					'onclick' => "window.open('" . $phpmyadmin_url . "')",
+				),
 			);
 			$fields[] = array(
 				'tab'  => 'database',

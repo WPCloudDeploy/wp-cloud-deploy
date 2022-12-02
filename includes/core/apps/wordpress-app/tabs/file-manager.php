@@ -472,7 +472,6 @@ class WPCD_WORDPRESS_TABS_FILE_MANAGER extends WPCD_WORDPRESS_TABS {
 				$file_manager_url = 'http://' . $this->get_domain_name( $id ) . '/' . 'filemanager';
 			}
 
-			$launch                = sprintf( '<a href="%s" target="_blank">', $file_manager_url ) . __( 'Launch File Manager', 'wpcd' ) . '</a>';
 			$file_manager_details  = '<div class="wpcd_tool_details">';
 			$file_manager_details .= __( 'User Name: ', 'wpcd' ) . wpcd_wrap_clipboard_copy( esc_html( $file_manager_user_id ) );
 			$file_manager_details .= '</div>';
@@ -482,11 +481,14 @@ class WPCD_WORDPRESS_TABS_FILE_MANAGER extends WPCD_WORDPRESS_TABS {
 			$file_manager_details .= '</div>';
 
 			$fields[] = array(
-				'tab'   => 'file-manager',
-				'type'  => 'custom_html',
-				'std'   => $launch,
-				'class' => 'button',
+				'tab'        => 'file-manager',
+				'type'       => 'button',
+				'std'        => __( 'Launch File Manager', 'wpcd' ),
+				'attributes' => array(
+					'onclick' => "window.open('" . $file_manager_url . "')",
+				),
 			);
+
 			$fields[] = array(
 				'tab'  => 'file-manager',
 				'type' => 'custom_html',

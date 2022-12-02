@@ -150,7 +150,7 @@ trait wpcd_wpapp_admin_column_data {
 			$value  = __( 'Domain: ', 'wpcd' );
 			$data   = get_post_meta( $post_id, 'wpapp_domain', true );
 			$value  = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $value, 'page_cache', 'left' );
-			$value .= WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $data, 'domain', 'right' );
+			$value .= WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( wpcd_wrap_clipboard_copy( $data ), 'domain', 'right' );
 			$value  = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_div_and_class( $value, 'domain' );
 
 			$new_column_data = $new_column_data . $value;
@@ -161,7 +161,7 @@ trait wpcd_wpapp_admin_column_data {
 			$value  = __( 'User: ', 'wpcd' );
 			$data   = get_post_meta( $post_id, 'wpapp_user', true );
 			$value  = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $value, 'wp_login_user', 'left' );
-			$value .= WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $data, 'wp_login_user', 'right' );
+			$value .= WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( wpcd_wrap_clipboard_copy( $data, false ), 'wp_login_user', 'right' );
 			$value  = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_div_and_class( $value, 'wp_login_user' );
 
 			$new_column_data = $new_column_data . $value;

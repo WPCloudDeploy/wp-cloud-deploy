@@ -1609,7 +1609,7 @@ function wpcd_get_post_id_from_global() {
  *
  * @return string
  */
-function wpcd_wrap_clipboard_copy( $data_string, $break = true ) {
+function wpcd_wrap_clipboard_copy( $data_string, $break = true, $br_tag = false ) {
 
 	if ( true === $break ) {
 		$return = '<div class="wpcd-click-to-copy">';
@@ -1617,6 +1617,9 @@ function wpcd_wrap_clipboard_copy( $data_string, $break = true ) {
 		$return = '<span class="wpcd-click-to-copy">';
 	}
 	$return .= '<span class="wpcd-click-to-copy-text">' . $data_string . '</span>';
+	if ( true === $br_tag ) {
+		$return .= '<br/>';
+	}
 	$return .= '<span data-label="' . __( 'Copied', 'wpcd' ) . '" class="wpcd-click-to-copy-label wpcd-copy-hidden">' . __( 'Click to copy', 'wpcd' ) . '</span>';
 
 	if ( true === $break ) {

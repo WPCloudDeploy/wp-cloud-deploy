@@ -492,7 +492,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		$fields[] = array(
 			'name'    => __( 'Domain', 'wpcd' ),
 			'type'    => 'custom_html',
-			'std'     => $this->get_domain_name( $app_id ) . $other_data,
+			'std'     => wpcd_wrap_clipboard_copy( $this->get_domain_name( $app_id ) ) . $other_data,
 			'columns' => 'left' === $this->get_tab_style() ? 4 : 4,
 			'class'   => 'left' === $this->get_tab_style() ? 'wpcd_site_details_top_row wpcd_site_details_top_row_domain wpcd_site_details_top_row_domain_left' : 'wpcd_site_details_top_row wpcd_site_details_top_row_domain',
 		);
@@ -1957,7 +1957,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 		return $basic_auth_status;
 
-	}	
+	}
 
 
 	/**

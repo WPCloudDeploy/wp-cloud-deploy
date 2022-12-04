@@ -126,9 +126,9 @@ Note: Even though the entire git development history isn't available on github, 
 ## Change Log ##
 5.2.1
 ------
-* Improved: Can now click to copy the domain name just like you can ip addresses.
-* Improved: can now click to copy the user name and password for file manager and phpmyadmin.
-* Tweak: The link to open the file manager and phpmyadmin tools are now real buttons instead of just links.  This makes it easier to style to match the other buttons, especially on the front end.
+* Improved: WPAPP - Can now click to copy the domain name just like you can ip addresses.
+* Improved: WPAPP - Can now click to copy the user name and password for file manager and phpmyadmin.
+* Tweak: WPAPP - The link to open the file manager and phpmyadmin tools are now real buttons instead of just links.  This makes it easier to style to match the other buttons, especially on the front end.
 * Fix: WPAPP - When restoring just a nginx web server configuration, do not delete ssl certificates.
 * Fix: WPAPP - Check that the $domain var in the bash scripts have a value before attempting to use it for deletes.
 * Fix: WPAPP - A harmless JS error as thrown when a server was viewed on the front-end without the STATISTICS having run at least once.

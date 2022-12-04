@@ -169,7 +169,7 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 				case 'basic-auth-status':
 					// enable/disable basic authentication.
 					$current_status = $this->get_site_http_auth_status( $id );
-					$result = $this->toggle_basic_auth( $id, 'on' === $current_status ? 'disable_auth' : 'enable_auth' );
+					$result         = $this->toggle_basic_auth( $id, 'on' === $current_status ? 'disable_auth' : 'enable_auth' );
 					if ( ! is_wp_error( $result ) ) {
 						$new_status = 'on' === $current_status ? 'off' : 'on';
 						$this->set_site_http_auth_status( $id, $new_status );
@@ -424,10 +424,10 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 		$actions = array();
 
 		/* What is the current basic authentication status of the site? */
-		$basic_auth_status = $this->get_site_http_auth_status( $id ); 
+		$basic_auth_status = $this->get_site_http_auth_status( $id );
 
-		/* What is the current basic authentication status of the wplogin page? */	
-		$wplogin_basic_auth_status = $this->get_wplogin_http_auth_status( $id ); 
+		/* What is the current basic authentication status of the wplogin page? */
+		$wplogin_basic_auth_status = $this->get_wplogin_http_auth_status( $id );
 
 		/* If basic authentication is enabled for the login page, we can't enable it for the whole site. */
 		if ( 'on' === $wplogin_basic_auth_status ) {
@@ -515,10 +515,10 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 		$actions = array();
 
 		/* What is the current basic authentication status of the wplogin page? */
-		$wplogin_basic_auth_status = $this->get_wplogin_http_auth_status( $id ); 
+		$wplogin_basic_auth_status = $this->get_wplogin_http_auth_status( $id );
 
 		/* What is the current basic authentication status of the site? */
-		$basic_auth_status = $this->get_site_http_auth_status( $id ); 
+		$basic_auth_status = $this->get_site_http_auth_status( $id );
 
 		/* If basic authentication is turned on for the whole site, disable this option and return right away. */
 		if ( 'on' === $basic_auth_status ) {
@@ -625,7 +625,7 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 			'label'          => __( 'User Id', 'wpcd' ),
 			'type'           => 'custom_html',
 			'raw_attributes' => array(
-				'std' => $uid,
+				'std' => wpcd_wrap_clipboard_copy( $uid ),
 			),
 		);
 
@@ -633,7 +633,7 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 			'label'          => __( 'Password', 'wpcd' ),
 			'type'           => 'custom_html',
 			'raw_attributes' => array(
-				'std' => $pw,
+				'std' => wpcd_wrap_clipboard_copy( $pw ),
 			),
 		);
 
@@ -713,7 +713,7 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 
 		$result = '';
 
-		if ( empty( $new_status)) {
+		if ( empty( $new_status ) ) {
 			// The parameter $new_status is empty so we'll just toggle the existings status.
 			$current_status = $this->site_status( $id );
 			if ( empty( $current_status ) ) {

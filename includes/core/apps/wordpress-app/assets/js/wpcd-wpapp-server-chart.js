@@ -21,23 +21,44 @@
 
     function init() {
 
-        initActions();
+        var chart_column_labels = wpcd_server_stat_data.disk_stat.chart_column_labels;
+        var chart_column_1K_blocks = wpcd_server_stat_data.disk_stat.chart_column_1K_blocks;
+        var chart_column_Used = wpcd_server_stat_data.disk_stat.chart_column_Used;
+        var chart_column_Available = wpcd_server_stat_data.disk_stat.chart_column_Available;
 
-        createDiskStatChart();
+        initActions();
+        
+        if (typeof chart_column_labels !== 'undefined'
+            && typeof chart_column_1K_blocks !== 'undefined'
+            && typeof chart_column_Used !== 'undefined'
+            && typeof chart_column_Available !== 'undefined'){
+
+            createDiskStatChart();
+        }
 
         // VNSTAT chart for Current Day
-        var curr_day_vnstat_data = JSON.parse(wpcd_server_stat_data.vnstat.curr_day_vnstat_data);
-        createVnstatChart('wpcd-vnstat-data-day-canvas', wpcd_server_stat_data.vnstat.chart_labels.chart_curr_day_title, curr_day_vnstat_data);
-
+        if (typeof wpcd_server_stat_data.vnstat.curr_day_vnstat_data !== 'undefined'){
+            var curr_day_vnstat_data = JSON.parse(wpcd_server_stat_data.vnstat.curr_day_vnstat_data);
+            createVnstatChart('wpcd-vnstat-data-day-canvas', wpcd_server_stat_data.vnstat.chart_labels.chart_curr_day_title, curr_day_vnstat_data);
+        }
         // VNSTAT chart for Current month
-        var curr_month_vnstat_data = JSON.parse(wpcd_server_stat_data.vnstat.curr_month_vnstat_data);
-        createVnstatChart('wpcd-vnstat-data-month-canvas', wpcd_server_stat_data.vnstat.chart_labels.chart_curr_month_title, curr_month_vnstat_data);
-
+        if (typeof wpcd_server_stat_data.vnstat.curr_month_vnstat_data !== 'undefined') {
+            var curr_month_vnstat_data = JSON.parse(wpcd_server_stat_data.vnstat.curr_month_vnstat_data);
+            createVnstatChart('wpcd-vnstat-data-month-canvas', wpcd_server_stat_data.vnstat.chart_labels.chart_curr_month_title, curr_month_vnstat_data);
+        }
         // VNSTAT chart for All Time
-        var all_time_vnstat_data = JSON.parse(wpcd_server_stat_data.vnstat.all_time_vnstat_data);
-        createVnstatChart('wpcd-vnstat-data-all-canvas', wpcd_server_stat_data.vnstat.chart_labels.chart_all_time_title, all_time_vnstat_data);
+        if (typeof wpcd_server_stat_data.vnstat.all_time_vnstat_data !== 'undefined') {
+            var all_time_vnstat_data = JSON.parse(wpcd_server_stat_data.vnstat.all_time_vnstat_data);
+            createVnstatChart('wpcd-vnstat-data-all-canvas', wpcd_server_stat_data.vnstat.chart_labels.chart_all_time_title, all_time_vnstat_data);
+        }
 
-        createVmstatChart();
+        if (typeof chart_column_labels !== 'undefined'
+            && typeof chart_column_1K_blocks !== 'undefined'
+            && typeof chart_column_Used !== 'undefined'
+            && typeof chart_column_Available !== 'undefined') {
+
+            createVmstatChart();
+        }
     }
 
     function initActions() {

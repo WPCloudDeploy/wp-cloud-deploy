@@ -89,7 +89,17 @@ then
 	cp phpMyAdmin-$phpmyadmin_version-all-languages/config.sample.inc.php phpMyAdmin-$phpmyadmin_version-all-languages/config.inc.php
 	sed -i '/blowfish_secret/d' phpMyAdmin-$phpmyadmin_version-all-languages/config.inc.php
 	echo "\$cfg['blowfish_secret'] = '$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 32)';" >> phpMyAdmin-$phpmyadmin_version-all-languages/config.inc.php
-	rm -rf /var/www/$domain/html/phpMyAdmin
+	
+	# Before attempting to remove the site from the www folder, make sure we have a value in the $domain var.
+	# This prevents us from accidentally deleting the entire www folder when attempting to delete the domain folder.
+	if [[ -z $domain ]]
+	then
+		echo "Unable to fully remove the phpMyAdmin domain: $domain."
+		exit 1
+	else 
+		rm -rf /var/www/$domain/html/phpMyAdmin
+	fi	
+
 	mkdir -p /var/www/$domain/html/phpMyAdmin
 	mv phpMyAdmin-$phpmyadmin_version-all-languages/* /var/www/$domain/html/phpMyAdmin
 	rm -rf phpMyAdmin-$phpmyadmin_version-all-languages.tar.gz phpMyAdmin-$phpmyadmin_version-all-languages
@@ -171,7 +181,17 @@ fi
 
 if [[ $action == "remove_phpmyadmin" || $action == "4" ]]
 then
-	rm -rf /var/www/$domain/html/phpMyAdmin
+
+	# Before attempting to remove the site from the www folder, make sure we have a value in the $domain var.
+	# This prevents us from accidentally deleting the entire www folder when attempting to delete the domain folder.
+	if [[ -z $domain ]]
+	then
+		echo "Unable to fully remove the phpMyAdmin domain: $domain."
+		exit 1
+	else 
+		rm -rf /var/www/$domain/html/phpMyAdmin
+	fi	
+
 	echo
 	echo "phpMyAdmin has been removed for $domain"
 fi

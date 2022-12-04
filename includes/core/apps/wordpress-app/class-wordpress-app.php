@@ -492,7 +492,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		$fields[] = array(
 			'name'    => __( 'Domain', 'wpcd' ),
 			'type'    => 'custom_html',
-			'std'     => $this->get_domain_name( $app_id ) . $other_data,
+			'std'     => wpcd_wrap_clipboard_copy( $this->get_domain_name( $app_id ) ) . $other_data,
 			'columns' => 'left' === $this->get_tab_style() ? 4 : 4,
 			'class'   => 'left' === $this->get_tab_style() ? 'wpcd_site_details_top_row wpcd_site_details_top_row_domain wpcd_site_details_top_row_domain_left' : 'wpcd_site_details_top_row wpcd_site_details_top_row_domain',
 		);
@@ -1957,7 +1957,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 		return $basic_auth_status;
 
-	}	
+	}
 
 
 	/**
@@ -3215,13 +3215,13 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		$welcome_message .= __( 'Generate an API key in your server providers\' dashboard.', 'wpcd' );
 		$welcome_message .= '</li>';
 		$welcome_message .= '<li>';
-		$welcome_message .= __( 'Add your cloud server provider API key and other credentials to the WPCLOUD DEPLOY->SETTINGS screen - under the CLOUD PROVIDERS tab / menu.', 'wpcd' );
+		$welcome_message .= __( 'Add your cloud server provider API key and other credentials to the WPCLOUDDEPLOY → SETTINGS → CLOUD PROVIDERS tab.', 'wpcd' );
 		$welcome_message .= '</li>';
 		$welcome_message .= '<li>';
-		$welcome_message .= __( 'Click on the ALL CLOUD SERVERS menu option and use the DEPLOY A NEW WordPress SERVER button to deploy a server.', 'wpcd' );
+		$welcome_message .= __( 'Click on the ALL CLOUD SERVERS menu option and use the DEPLOY A NEW WORDPRESS SERVER button to deploy a server.', 'wpcd' );
 		$welcome_message .= '</li>';
 		$welcome_message .= '<li>';
-		$welcome_message .= __( 'After the server is deployed, go back to the ALL CLOUD SERVERS menu option and click the INSTALL WordPress button in the server list.', 'wpcd' );
+		$welcome_message .= __( 'After the server is deployed, go back to the CLOUD SERVERS menu option and click the INSTALL WORDPRESS button in the server list.', 'wpcd' );
 		$welcome_message .= '</li>';
 		$welcome_message .= '</ol>';
 		$welcome_message .= '<br />';

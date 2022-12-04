@@ -356,9 +356,17 @@ function netdata_remove
 	elif [ "$g_webserver_type" = "ols-enterprise" ] ; then
 		echo 'Not implemented for ols-enterprise'
 	fi
-	
-	rm -rf /var/www/$domain/html > /dev/null 2>&1
-        mysql <<QUERY
+
+	# Before attempting to remove the site from the www folder, make sure we have a value in the $domain var.
+	# This prevents us from accidentally deleting the entire www folder in the delete statement below.
+	if [[ -z $domain ]]
+	then
+		echo "Unable to proceed because the domain name is blank."
+		exit 1
+	else
+		rm -rf /var/www/$domain/html > /dev/null 2>&1
+	fi
+    mysql <<QUERY
         delete from mysql.user where user='netdata';
         flush privileges;
 QUERY

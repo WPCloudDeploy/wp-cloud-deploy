@@ -124,6 +124,11 @@ Note: Even though the entire git development history isn't available on github, 
 [Friendly Release Notes](https://wpclouddeploy.com/category/release-notes/)
 
 ## Change Log ##
+5.2.1
+------
+* Fix: WPAPP - When restoring just a nginx web server configuration, do not delete ssl certificates.
+* Fix: WPAPP - Check that the $domain var in the bash scripts have a value before attempting to use it for deletes.
+
 5.2.0
 ------
 * Tweak: WPAPP - Attempt to detect duplicate simultaneous runs of apt-get and send back warning for error log.

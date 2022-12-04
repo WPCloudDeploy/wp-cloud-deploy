@@ -413,7 +413,16 @@ then
 	then
 		# Cleanup stage
 		echo "Cleaning files..."
-		rm -rf /var/www/$domain
+		
+		# Before attempting to remove the site from the www folder, make sure we have a value in the $domain var.
+		# This prevents us from accidentally deleting the entire www folder in the delete statement below.
+		if [[ -z $domain ]]
+		then
+			echo "Unable to proceed because the domain name is blank."
+			exit 1
+		else
+			rm -rf /var/www/$domain
+		fi		
 
 		# Restoration stage
 		echo "Restoring files..."	
@@ -558,10 +567,10 @@ then
 		fi
 
 		# Cleanup stage
-                gf_get_dbhost $domain
-                gf_get_dbuser $domain
-                gf_get_dbpass $domain
-                gf_get_dbname $domain
+		gf_get_dbhost $domain
+		gf_get_dbuser $domain
+		gf_get_dbpass $domain
+		gf_get_dbname $domain
 		gf_get_dbport $domain
 		echo "Dropping database (if exists) $g_mysql_name ..."
 		if [ $g_mysql_host_noport == "localhost" ]

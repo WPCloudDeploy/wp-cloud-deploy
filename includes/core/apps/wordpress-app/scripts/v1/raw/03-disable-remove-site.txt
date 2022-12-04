@@ -155,7 +155,17 @@ QUERY
 	sed -i "/Match User $user_name/,+2 d" /etc/ssh/sshd_config
 	systemctl restart sshd
 	userdel $user_name
-	rm -rf /var/www/$domain
+	
+	# Before attempting to remove the site from the www folder, make sure we have a value in the $domain var.
+	# This prevents us from accidentally deleting the entire www folder when attempting to delete the domain folder.
+	if [[ -z $domain ]]
+	then
+		echo "Unable to remove domain files because domain variable is blank. The site is likely unstable at this point and likely needs to be recovered or removed manually."
+		exit 1
+	else 
+		rm -rf /var/www/$domain
+	fi
+	
 
 	sed -i "/$domain/d" /etc/wp-backup.conf 2> /dev/null
 	sed -i "/$domain/d" /etc/wp-backup.conf > /dev/null 2>&1

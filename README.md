@@ -124,6 +124,10 @@ Note: Even though the entire git development history isn't available on github, 
 [Friendly Release Notes](https://wpclouddeploy.com/category/release-notes/)
 
 ## Change Log ##
+5.2.2
+------
+* Fix: WPAPP - Remove click to copy function from the APPS column in the server list.  It was confusing if someone just wants to click the link to navigate to the app detail screen.
+
 5.2.1
 ------
 * Improved: WPAPP - Can now click to copy the domain name just like you can ip addresses.

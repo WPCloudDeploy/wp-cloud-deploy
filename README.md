@@ -126,7 +126,9 @@ Note: Even though the entire git development history isn't available on github, 
 ## Change Log ##
 5.2.2
 ------
+* New: WPAPP - Option to flip just the SSL meta flag on the SSL tab for a site.
 * Fix: WPAPP - Remove click to copy function from the APPS column in the server list.  It was confusing if someone just wants to click the link to navigate to the app detail screen.
+* Fix: WPAPP - Cloning a site would flip the SSL meta to 'off' on the origin site.  This qualifies as a DUH!
 
 5.2.1
 ------

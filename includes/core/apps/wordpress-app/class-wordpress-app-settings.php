@@ -283,6 +283,18 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 		*/
 		);
 
+		/* Add in the GIT array if GIT is enabled. */
+		if ( true === wpcd_is_git_enabled() ) {
+			$git_tab = array(
+				'wordpress-app-git' => array(
+					'label' => 'Git',
+					'icon'  => 'dashicons-share',
+				),
+			);
+
+			$tabs = array_merge( $tabs, $git_tab );
+		}
+
 		return apply_filters( 'wpcd_wordpress-app_settings_tabs', $tabs );
 	}
 
@@ -341,7 +353,8 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 		$white_label_fields           = $this->white_label_fields();
 		$custom_scripts               = $this->custom_script_fields();
 		$front_end_fields             = $this->front_end_fields();
-		$all_fields                   = array_merge( $general_fields, $server_fields, $site_fields, $backup_fields, $fields_and_links, $theme_and_plugin_updates, $email_notification_fields, $slack_notification_fields, $zapier_notification_fields, $button_color_settings_fields, $email_gateway_load_defaults, $cf_dns_fields, $rest_api_fields, $white_label_fields, $custom_scripts, $front_end_fields );
+		$git_fields                   = $this->git_fields();
+		$all_fields                   = array_merge( $general_fields, $server_fields, $site_fields, $backup_fields, $fields_and_links, $theme_and_plugin_updates, $email_notification_fields, $slack_notification_fields, $zapier_notification_fields, $button_color_settings_fields, $email_gateway_load_defaults, $cf_dns_fields, $rest_api_fields, $white_label_fields, $custom_scripts, $front_end_fields, $git_fields );
 		return $all_fields;
 	}
 
@@ -936,6 +949,108 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'name' => __( 'After provisioning commands', 'wpcd' ),
 				'desc' => __( '<b>For future use - not yet active</b> Run these commands after the server has been provisioned.', 'wpcd' ),
 				'tab'  => 'wordpress-app-scripts',
+			),
+		);
+
+		return $fields;
+
+	}
+
+	/**
+	 * Return array portion of field settings for use in the git fields tab.
+	 */
+	public function git_fields() {
+
+		$fields = array(
+			array(
+				'type' => 'heading',
+				'name' => __( 'Global Git Defaults', 'wpcd' ),
+				'desc' => __( 'These defaults are used if no similiar values are defined on a server or site.', 'wpcd' ),
+				'tab'  => 'wordpress-app-git',
+			),
+			array(
+				'id'   => 'wordpress_app_git_email_address',
+				'type' => 'email',
+				'name' => __( 'Email Address', 'wpcd' ),
+				'desc' => __( 'Email address used by your git provider.', 'wpcd' ),
+				'tab'  => 'wordpress-app-git',
+			),
+			array(
+				'id'          => 'wordpress_app_git_display_name',
+				'type'        => 'text',
+				'name'        => __( 'Display Name', 'wpcd' ),
+				'placeholder' => __( 'The display name used for your user account at your git provider.', 'wpcd' ),
+				'desc'        => __( 'eg: john smith', 'wpcd' ),
+				'tab'         => 'wordpress-app-git',
+			),
+			array(
+				'id'          => 'wordpress_app_git_user_name',
+				'type'        => 'text',
+				'name'        => __( 'User Name', 'wpcd' ),
+				'placeholder' => __( 'Your user name for your account at your git provider.', 'wpcd' ),
+				'desc'        => __( 'eg: janesmith (no spaces or special chars).', 'wpcd' ),
+				'tab'         => 'wordpress-app-git',
+			),
+			array(
+				'id'      => 'wordpress_app_git_token',
+				'type'    => 'text',
+				'name'    => __( 'API Token', 'wpcd' ),
+				'desc'    => __( 'API Token for your git account at your git provider.', 'wpcd' ),
+				'tooltip' => __( 'API tokens must provide read-write priveldges for your repos. Generate one on github under the settings area of your account.', 'wpcd' ),
+				'tab'     => 'wordpress-app-git',
+			),
+			array(
+				'id'   => 'wordpress_app_git_branch',
+				'type' => 'text',
+				'name' => __( 'Branch', 'wpcd' ),
+				'desc' => __( 'The default branch for your repos - eg: main or master.', 'wpcd' ),
+				'tab'  => 'wordpress-app-git',
+			),
+			array(
+				'id'      => 'wordpress_app_git_pre_processing_script_link',
+				'type'    => 'url',
+				'name'    => __( 'Pre-Processing Script Link', 'wpcd' ),
+				'desc'    => __( 'Link to bash script that will execute before initializing a site with git.', 'wpcd' ),
+				'tooltip' => __( 'A raw gist is a good place to locate this file as long as it does not have any private data.', 'wpcd' ),
+				'tab'     => 'wordpress-app-git',
+			),
+			array(
+				'id'      => 'wordpress_app_git_post_processing_script_link',
+				'type'    => 'url',
+				'name'    => __( 'Post-Processing Script Link', 'wpcd' ),
+				'desc'    => __( 'Link to bash script that will execute after initializing a site with git.', 'wpcd' ),
+				'tooltip' => __( 'A raw gist is a good place to locate this file as long as it does not have any private data.', 'wpcd' ),
+				'tab'     => 'wordpress-app-git',
+			),
+			array(
+				'id'      => 'wordpress_app_git_ignore_link',
+				'type'    => 'url',
+				'name'    => __( 'Default GitIgnore File Link', 'wpcd' ),
+				'desc'    => __( 'Link to a text file containing git ignore contents.', 'wpcd' ),
+				'tooltip' => __( 'A raw gist is a good place to locate this file.', 'wpcd' ),
+				'tab'     => 'wordpress-app-git',
+			),
+			array(
+				'id'   => 'wordpress_app_git_ignore_folders',
+				'type' => 'text',
+				'name' => __( 'Ignore Folders', 'wpcd' ),
+				'desc' => __( 'A comma-separated list of folders to add to git ignore.', 'wpcd' ),
+				'tab'  => 'wordpress-app-git',
+			),
+			array(
+				'id'      => 'wordpress_app_git_ignore_files',
+				'type'    => 'text',
+				'name'    => __( 'Ignore Files', 'wpcd' ),
+				'desc'    => __( 'A comma-separated list of files to add to git ignore.', 'wpcd' ),
+				'tooltip' => __( 'This list is in addition to our default list of gitignore files - see our documentation for our default list.', 'wpcd' ),
+				'tab'     => 'wordpress-app-git',
+			),
+			array(
+				'id'   => 'wordpress_app_git_footer_note',
+				'type' => 'custom_html',
+				'name' => '',
+				'std'  => __( 'Note: Only GITHUB is supported as a git provider at this time.', 'wpcd' ),
+				'tab'  => 'wordpress-app-git',
 			),
 		);
 

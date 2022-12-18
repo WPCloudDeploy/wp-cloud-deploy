@@ -155,8 +155,14 @@ class WPCD_WORDPRESS_TABS_SERVER_GIT_CONTROL extends WPCD_WORDPRESS_TABS {
 			return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
 		}
 
-		// Skipping security action check that would allow us to show the user a nice message if it failed.
-		// If user is not permitted to do something and actually somehow ends up here, it will fall through the SWITCH statement below and silently fail.
+		/* Now verify that the user can perform actions on this screen, assuming that they can view the server */
+		$valid_actions = array( 'git-server-control-install', 'git-server-control-update', 'git-server-control-save-defaults', 'git-server-control-clear-defaults' );
+		if ( in_array( $action, $valid_actions, true ) ) {
+			if ( ! $this->get_tab_security( $id ) ) {
+				/* Translators: %1s is replaced with an internal action name; %2$s is replaced with the file name; %3$s is replaced with the post id being acted on. %4$s is the user id running this action. */
+				return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
+			}
+		}
 
 		if ( $this->get_tab_security( $id ) ) {
 			switch ( $action ) {
@@ -167,6 +173,12 @@ class WPCD_WORDPRESS_TABS_SERVER_GIT_CONTROL extends WPCD_WORDPRESS_TABS {
 				case 'git-server-control-update':
 					$action = 'git_update';
 					$result = $this->git_upgrade_server( $id, $action );
+					break;
+				case 'git-server-control-save-defaults':
+					$result = $this->git_save_default_fields( $id, $action );
+					break;
+				case 'git-server-control-clear-defaults':
+					$result = $this->git_clear_default_fields( $id, $action );
 					break;
 			}
 		}
@@ -198,15 +210,181 @@ class WPCD_WORDPRESS_TABS_SERVER_GIT_CONTROL extends WPCD_WORDPRESS_TABS {
 		// Is git installed on the server?
 		$git_server_status = $this->get_git_status( $id );
 
+		// Set up metabox items.
+		$actions = array();
+
+		// Show git fields that will be used as defaults for all sites on this server.
+		if ( true === $git_server_status ) {
+
+			// Get existing defaults saved.
+			$git_defaults = $this->get_git_defaults( $id );
+
+			$actions['git-server-control-default-fields-header'] = array(
+				'label'          => __( 'Git Defaults For Sites on This Server', 'wpcd' ),
+				'type'           => 'heading',
+				'raw_attributes' => array(
+					'desc' => __( 'These defaults are used if no similiar values are defined on a site. If nothing is defined here, values from the global settings are used for sites on this server.', 'wpcd' ),
+				),
+			);
+
+			$actions['git-server-control-default-fields-email']                  = array(
+				'label'          => __( 'Email Address', 'wpcd' ),
+				'raw_attributes' => array(
+					'std'            => $git_defaults['git_user_email'],
+					'desc'           => __( 'Email address used by your git provider.', 'wpcd' ),
+					'columns'        => 6,
+					// the key of the field (the key goes in the request).
+					'data-wpcd-name' => 'git_user_email',
+				),
+				'type'           => 'email',
+			);
+			$actions['git-server-control-default-fields-display-name']           = array(
+				'label'          => __( 'Display Name', 'wpcd' ),
+				'raw_attributes' => array(
+					'std'            => $git_defaults['git_display_name'],
+					'placeholder'    => __( 'The display name used for your user account at your git provider.', 'wpcd' ),
+					'desc'           => __( 'eg: john smith', 'wpcd' ),
+					'columns'        => 6,
+					// the key of the field (the key goes in the request).
+					'data-wpcd-name' => 'git_display_name',
+				),
+				'type'           => 'text',
+			);
+			$actions['git-server-control-default-fields-user-name']              = array(
+				'label'          => __( 'User Name', 'wpcd' ),
+				'raw_attributes' => array(
+					'std'            => $git_defaults['git_user_name'],
+					'placeholder'    => __( 'The user name used for your account at your git provider.', 'wpcd' ),
+					'desc'           => __( 'eg: janesmith', 'wpcd' ),
+					'columns'        => 6,
+					// the key of the field (the key goes in the request).
+					'data-wpcd-name' => 'git_user_name',
+				),
+				'type'           => 'text',
+			);
+			$actions['git-server-control-default-fields-token']                  = array(
+				'label'          => __( 'API Token', 'wpcd' ),
+				'raw_attributes' => array(
+					'std'            => $this->decrypt( $git_defaults['git_token'] ),
+					'desc'           => __( 'API Token for your git account at your git provider.', 'wpcd' ),
+					'tooltip'        => __( 'API tokens must provide read-write privileges for your repos. Generate one on github under the settings area of your account.', 'wpcd' ),
+					'columns'        => 6,
+					// the key of the field (the key goes in the request).
+					'data-wpcd-name' => 'git_token',
+					'spellcheck'     => 'false',
+				),
+				'type'           => 'text',
+			);
+			$actions['git-server-control-default-fields-branch']                 = array(
+				'label'          => __( 'Branch', 'wpcd' ),
+				'raw_attributes' => array(
+					'std'            => $git_defaults['git_branch'],
+					'desc'           => __( 'The default branch for your repos - eg: main or master.', 'wpcd' ),
+					'columns'        => 6,
+					// the key of the field (the key goes in the request).
+					'data-wpcd-name' => 'git_branch',
+				),
+				'type'           => 'text',
+			);
+			$actions['git-server-control-default-fields-git-ignore-link']        = array(
+				'label'          => __( 'GitIgnore File Link', 'wpcd' ),
+				'raw_attributes' => array(
+					'std'            => $git_defaults['git_ignore_url'],
+					'desc'           => __( 'Link to a text file containing git ignore contents.', 'wpcd' ),
+					'tooltip'        => __( 'A raw gist is a good place to locate this file.', 'wpcd' ),
+					'columns'        => 6,
+					// the key of the field (the key goes in the request).
+					'data-wpcd-name' => 'git_ignore_url',
+				),
+				'type'           => 'url',
+			);
+			$actions['git-server-control-default-fields-pre-process-file-link']  = array(
+				'label'          => __( 'Pre-Processing Script Link', 'wpcd' ),
+				'raw_attributes' => array(
+					'std'            => $git_defaults['git_pre_processing_script_link'],
+					'desc'           => __( 'Link to bash script that will execute before initializing a site with git.', 'wpcd' ),
+					'tooltip'        => __( 'A raw gist is a good place to locate this file as long as it does not have any private data.', 'wpcd' ),
+					'columns'        => 6,
+					// the key of the field (the key goes in the request).
+					'data-wpcd-name' => 'git_pre_processing_script_link',
+				),
+				'type'           => 'url',
+			);
+			$actions['git-server-control-default-fields-post-process-file-link'] = array(
+				'label'          => __( 'Post-Processing Script Link', 'wpcd' ),
+				'raw_attributes' => array(
+					'std'            => $git_defaults['git_post_processing_script_link'],
+					'desc'           => __( 'Link to bash script that will execute after initializing a site with git.', 'wpcd' ),
+					'tooltip'        => __( 'A raw gist is a good place to locate this file as long as it does not have any private data.', 'wpcd' ),
+					'columns'        => 6,
+					// the key of the field (the key goes in the request).
+					'data-wpcd-name' => 'git_post_processing_script_link',
+				),
+				'type'           => 'url',
+			);
+			$actions['git-server-control-default-fields-git-ignore-folders']     = array(
+				'label'          => __( 'Ignore Folders', 'wpcd' ),
+				'raw_attributes' => array(
+					'std'            => $git_defaults['git_exclude_folders'],
+					'desc'           => __( 'A comma-separated list of folders to add to git ignore.', 'wpcd' ),
+					'columns'        => 6,
+					// the key of the field (the key goes in the request).
+					'data-wpcd-name' => 'git_exclude_folders',
+				),
+				'type'           => 'text',
+			);
+			$actions['git-server-control-default-fields-git-ignore-files']       = array(
+				'label'          => __( 'Ignore Files', 'wpcd' ),
+				'raw_attributes' => array(
+					'std'            => $git_defaults['git_exclude_files'],
+					'desc'           => __( 'A comma-separated list of files to add to git ignore.', 'wpcd' ),
+					'columns'        => 6,
+					// the key of the field (the key goes in the request).
+					'data-wpcd-name' => 'git_exclude_files',
+				),
+				'type'           => 'text',
+			);
+
+			$actions['git-server-control-save-defaults'] = array(
+				'label'          => '',
+				'raw_attributes' => array(
+					'std'              => __( 'Save Server Defaults', 'wpcd' ),
+					'columns'          => 6,
+					'data-wpcd-fields' => wp_json_encode(
+						array(
+							'#wpcd_app_action_git-server-control-default-fields-email',
+							'#wpcd_app_action_git-server-control-default-fields-display-name',
+							'#wpcd_app_action_git-server-control-default-fields-user-name',
+							'#wpcd_app_action_git-server-control-default-fields-token',
+							'#wpcd_app_action_git-server-control-default-fields-branch',
+							'#wpcd_app_action_git-server-control-default-fields-git-ignore-link',
+							'#wpcd_app_action_git-server-control-default-fields-pre-process-file-link',
+							'#wpcd_app_action_git-server-control-default-fields-post-process-file-link',
+							'#wpcd_app_action_git-server-control-default-fields-git-ignore-folders',
+							'#wpcd_app_action_git-server-control-default-fields-git-ignore-files',
+						)
+					),
+				),
+				'type'           => 'button',
+			);
+
+			$actions['git-server-control-clear-defaults'] = array(
+				'label'          => '',
+				'raw_attributes' => array(
+					'std'     => __( 'Clear Defaults', 'wpcd' ),
+					'columns' => 6,
+				),
+				'type'           => 'button',
+			);
+
+		}
+
 		// Set header message based on whether git is installed or not.
 		if ( true === $git_server_status ) {
 			$header_msg = __( 'Git is installed on this server. If you wish you can upgrade it using the options below', 'wpcd' );
 		} else {
 			$header_msg = __( 'Git is not installed on this server.', 'wpcd' );
 		}
-
-		// Set up metabox items.
-		$actions = array();
 
 		$actions['git-server-control-header'] = array(
 			'label'          => __( 'Git', 'wpcd' ),
@@ -215,11 +393,13 @@ class WPCD_WORDPRESS_TABS_SERVER_GIT_CONTROL extends WPCD_WORDPRESS_TABS {
 				'desc' => $header_msg,
 			),
 		);
+
+		// Show install or update buttons.
 		if ( true === $git_server_status ) {
 			$actions['git-server-control-update'] = array(
 				'label'          => '',
 				'raw_attributes' => array(
-					'std' => __( 'Update Git To Latest Version', 'wpcd' ),
+					'std'                 => __( 'Update Git To Latest Version', 'wpcd' ),
 					'confirmation_prompt' => __( 'Are you sure you would like to upgrade to the latest version of Git on this server?', 'wpcd' ),
 					// show log console?
 					'log_console'         => true,
@@ -232,7 +412,7 @@ class WPCD_WORDPRESS_TABS_SERVER_GIT_CONTROL extends WPCD_WORDPRESS_TABS {
 			$actions['git-server-control-install'] = array(
 				'label'          => '',
 				'raw_attributes' => array(
-					'std' => __( 'Install Git', 'wpcd' ),
+					'std'                 => __( 'Install Git', 'wpcd' ),
 					'confirmation_prompt' => __( 'Are you sure you would like to install the Git on this server?', 'wpcd' ),
 					// show log console?
 					'log_console'         => true,
@@ -351,6 +531,114 @@ class WPCD_WORDPRESS_TABS_SERVER_GIT_CONTROL extends WPCD_WORDPRESS_TABS {
 		$return = $this->run_async_command_type_2( $id, $command, $run_cmd, $instance, $action );
 
 		return $return;
+	}
+
+	/**
+	 * Save GIT defaults.
+	 *
+	 * @param int    $id         The postID of the server cpt.
+	 * @param string $action     The action to be performed (not used in this instance).
+	 *
+	 * @return boolean  success/failure/other
+	 */
+	public function git_save_default_fields( $id, $action ) {
+
+		// Sanitize incoming fields.
+		$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
+
+		// An array of field names that we'll be storing.
+		$field_names = $this->get_git_default_field_names();
+
+		$defaults = array();
+		foreach ( $field_names as $field_name ) {
+			if ( ! empty( $args[ $field_name ] ) ) {
+				if ( 'git_token' === $field_name ) {
+					$defaults[ $field_name ] = $this->encrypt( $args[ $field_name ] );
+				} else {
+					$defaults[ $field_name ] = $args[ $field_name ];
+				}
+			} else {
+				$defaults[ $field_name ] = '';
+			}
+		}
+
+		// Write git server defaults to the database.
+		update_post_meta( $id, 'wpcd_wpapp_git_defaults', $defaults );
+
+		$success = array(
+			'msg'     => __( 'Defaults have been saved.', 'wpcd' ),
+			'refresh' => 'yes',
+		);
+
+		return $success;
+
+	}
+
+	/**
+	 * Clear git defaults from database.
+	 *
+	 * @param int    $id         The postID of the server cpt.
+	 * @param string $action     The action to be performed (not used in this instance).
+	 *
+	 * @return boolean  success/failure/other
+	 */
+	public function git_clear_default_fields( $id, $action ) {
+
+		// An array of field names that we'll be storing.
+		$field_names = $this->get_git_default_field_names();
+
+		// Write git server defaults to the database.
+		update_post_meta( $id, 'wpcd_wpapp_git_defaults', $defaults );
+
+		$success = array(
+			'msg'     => __( 'Defaults have been cleard.', 'wpcd' ),
+			'refresh' => 'yes',
+		);
+
+		return $success;
+
+	}
+
+	/**
+	 * Return an array of field names that will be used
+	 * as the keys into an array to store corresponding
+	 * values.
+	 * These keys/field names match the ones expected
+	 * by the GIT bash scripts.
+	 */
+	public function get_git_default_field_names() {
+		$field_names = array(
+			'git_user_email',
+			'git_display_name',
+			'git_user_name',
+			'git_token',
+			'git_branch',
+			'git_ignore_url',
+			'git_pre_processing_script_link',
+			'git_post_processing_script_link',
+			'git_exclude_folders',
+			'git_exclude_files',
+		);
+		return $field_names;
+	}
+
+	/**
+	 * Read the git defaults from the database and return.
+	 *
+	 * @param int $id post id of server we're working with.
+	 *
+	 * @return array
+	 */
+	public function get_git_defaults( $id ) {
+
+		$defaults = wpcd_maybe_unserialize( get_post_meta( $id, 'wpcd_wpapp_git_defaults', true ) );
+
+		if ( empty( $defaults ) ) {
+			$defaults = $this->get_git_default_field_names();
+		}
+
+		return $defaults;
+
 	}
 
 

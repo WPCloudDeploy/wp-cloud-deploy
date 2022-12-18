@@ -635,6 +635,12 @@ trait wpcd_wpapp_script_handlers {
 				$return =
 				( strpos( $result, 'Server level PHP version has been updated to' ) !== false );
 				break;
+			case 'git_control_server.txt':
+				$return =
+				( strpos( $result, 'Git has been installed' ) !== false )
+				||
+				( strpos( $result, 'Git has been updated' ) !== false );
+				break;
 
 			/**************************************************************
 			* The items below this are SERVER SYNC items, not APP items   *
@@ -1443,8 +1449,21 @@ trait wpcd_wpapp_script_handlers {
 					$additional
 				);
 				break;
+			case 'git_control_server.txt':
+				$command_name = $additional['command'];
+				$new_array    = array_merge(
+					array(
+						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/58-git_control.txt',
+						'SCRIPT_NAME' => '58-git_control.sh',
+						'SCRIPT_LOGS'  => "{$this->get_app_name()}_{$command_name}",
+						'CALLBACK_URL' => $this->get_command_url( $instance['server_id'], $command_name, 'completed' ),
+					),
+					$common_array,
+					$additional
+				);
+				break;
 
-			/**************************************************************
+				/**************************************************************
 			* The items below this are SERVER SYNC items, not APP items   *
 			*/
 			case 'server_sync_origin_setup.txt':

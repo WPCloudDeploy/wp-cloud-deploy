@@ -380,6 +380,10 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs-server/resize.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs-server/ols_console.php';
 
+		if ( true === wpcd_is_git_enabled() ) {
+			require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs-server/git_control.php';
+		}
+
 		/**
 		 * Need to add new tabs or add data to existing tabs from an add-on?
 		 * Then this action hook MUST be used! Otherwise, weird
@@ -1987,6 +1991,46 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		return update_post_meta( $app_id, 'wpapp_domain', $new_domain );
 	}
 
+	/**
+	 * Get whether git is enabled for a server or site.
+	 *
+	 * @param int $post_id The post id of the server or site record.
+	 *
+	 * @return boolean
+	 */
+	public function get_git_status( $post_id ) {
+
+		if ( 'wpcd_app_server' == get_post_type( $post_id ) ) {
+			return (bool) get_post_meta( $post_id, 'wpcd_wpapp_git_status', true );
+		}
+
+		if ( 'wpcd_app' == get_post_type( $post_id ) ) {
+			return (bool) get_post_meta( $post_id, 'wpapp_git_status', true );
+		}
+
+		return false;
+	}
+
+	/**
+	 * Set the meta that contains the git status for the server or site.
+	 *
+	 * @param int      $post_id The post id of the server or site record.
+	 * @param int|bool $git_status The git status 1/true 0/false.
+	 *
+	 * @return int|bool|string
+	 */
+	public function set_git_status( $post_id, $git_status ) {
+
+		if ( 'wpcd_app_server' == get_post_type( $post_id ) ) {
+			return (bool) update_post_meta( $post_id, 'wpcd_wpapp_git_status', (int) $git_status );
+		}
+
+		if ( 'wpcd_app' == get_post_type( $post_id ) ) {
+			return (bool) update_post_meta( $post_id, 'wpapp_git_status', (int) $git_status );
+		}
+
+	}
+
 
 	/**
 	 * Add additional parameters to the localized script sent to the APPS cpt screen.
@@ -3218,10 +3262,10 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		$welcome_message .= __( 'Add your cloud server provider API key and other credentials to the WPCLOUDDEPLOY → SETTINGS → CLOUD PROVIDERS tab.', 'wpcd' );
 		$welcome_message .= '</li>';
 		$welcome_message .= '<li>';
-		$welcome_message .= __( 'Click on the ALL CLOUD SERVERS menu option and use the DEPLOY A NEW WORDPRESS SERVER button to deploy a server.', 'wpcd' );
+		$welcome_message .= __( 'Click on the ALL CLOUD SERVERS menu option and use the DEPLOY A NEW WordPress SERVER button to deploy a server.', 'wpcd' );
 		$welcome_message .= '</li>';
 		$welcome_message .= '<li>';
-		$welcome_message .= __( 'After the server is deployed, go back to the CLOUD SERVERS menu option and click the INSTALL WORDPRESS button in the server list.', 'wpcd' );
+		$welcome_message .= __( 'After the server is deployed, go back to the CLOUD SERVERS menu option and click the INSTALL WordPress button in the server list.', 'wpcd' );
 		$welcome_message .= '</li>';
 		$welcome_message .= '</ol>';
 		$welcome_message .= '<br />';

@@ -191,7 +191,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			'id'             => 'wordpress-app-security',
 			'title'          => __( 'General WordPress App Security', 'wpcd' ),
 			'settings_pages' => 'wpcd_settings',
-			'tab'            => 'app-wordpress-app-security',  // this is the top level tab on the setttings screen, not to be confused with the tabs inside a metabox as we're defining below!
+			'tab'            => 'app-wordpress-app-security',  // this is the top level tab on the settings screen, not to be confused with the tabs inside a metabox as we're defining below!
 		// List of tabs in the metabox, in one of the following formats:
 		// 1) key => label.
 		// 2) key => array( 'label' => Tab label, 'icon' => Tab icon ).
@@ -400,6 +400,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			'wpconfig'                 => __( 'WPConfig', 'wpcd' ),
 			'file-manager'             => __( 'File Manager', 'wpcd' ),
 			'multisite'                => __( 'Multisite', 'wpcd' ),
+			'git-app-control'          => __( 'Git', 'wpcd' ),
 		);
 
 		// Let developers hook into the array here.
@@ -535,27 +536,28 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 
 		// The server tabs we'll be collecting security exceptions for. This must be unique across all items in the APP:WordPress - SECURITY tab!
 		$tabs = array(
-			'server_backup'   => __( 'Backup', 'wpcd' ),
-			'callbacks'       => __( 'Callbacks', 'wpcd' ),
-			'fail2ban'        => __( 'Fail2ban', 'wpcd' ),
-			'goaccess'        => __( 'Goaccess', 'wpcd' ),
-			'server-logs'     => __( 'Server Logs', 'wpcd' ),
-			'monit-healing'   => __( 'Healing', 'wpcd' ),
-			'monitorix'       => __( 'Monitorix', 'wpcd' ),
-			'svr_power'       => __( 'Power', 'wpcd' ),
-			'services'        => __( 'Services', 'wpcd' ),
-			'sites_on_server' => __( 'Sites', 'wpcd' ),
-			'ssh_console'     => __( 'SSH Console', 'wpcd' ),
-			'server-ssh-keys' => __( 'SSH Keys', 'wpcd' ),
-			'svr_statistics'  => __( 'Statistics', 'wpcd' ),
-			'svr_tools'       => __( 'Tools', 'wpcd' ),
-			'svr_tweaks'      => __( 'Tweaks', 'wpcd' ),
-			'firewall'        => __( 'Firewall', 'wpcd' ),
-			'ols_console'     => __( 'OpenLiteSpeed Web Console Manager', 'wpcd' ),
-			'server_upgrade'  => __( 'Upgrades', 'wpcd' ),
-			'server-users'    => __( 'Users', 'wpcd' ),
-			'serversync'      => __( 'Server Sync', 'wpcd' ),
-			'resize'          => __( 'Resize Server', 'wpcd' ),
+			'server_backup'      => __( 'Backup', 'wpcd' ),
+			'callbacks'          => __( 'Callbacks', 'wpcd' ),
+			'fail2ban'           => __( 'Fail2ban', 'wpcd' ),
+			'goaccess'           => __( 'Goaccess', 'wpcd' ),
+			'server-logs'        => __( 'Server Logs', 'wpcd' ),
+			'monit-healing'      => __( 'Healing', 'wpcd' ),
+			'monitorix'          => __( 'Monitorix', 'wpcd' ),
+			'svr_power'          => __( 'Power', 'wpcd' ),
+			'services'           => __( 'Services', 'wpcd' ),
+			'sites_on_server'    => __( 'Sites', 'wpcd' ),
+			'ssh_console'        => __( 'SSH Console', 'wpcd' ),
+			'server-ssh-keys'    => __( 'SSH Keys', 'wpcd' ),
+			'svr_statistics'     => __( 'Statistics', 'wpcd' ),
+			'svr_tools'          => __( 'Tools', 'wpcd' ),
+			'svr_tweaks'         => __( 'Tweaks', 'wpcd' ),
+			'firewall'           => __( 'Firewall', 'wpcd' ),
+			'ols_console'        => __( 'OpenLiteSpeed Web Console Manager', 'wpcd' ),
+			'server_upgrade'     => __( 'Upgrades', 'wpcd' ),
+			'server-users'       => __( 'Users', 'wpcd' ),
+			'serversync'         => __( 'Server Sync', 'wpcd' ),
+			'resize'             => __( 'Resize Server', 'wpcd' ),
+			'git-server-control' => __( 'Git', 'wpcd' ),
 		);
 
 		// Let developers hook into the array here.
@@ -1253,7 +1255,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'name'    => __( 'Switch PHP Version For New Sites?', 'wpcd' ),
 				'tooltip' => __( 'After a site is installed, switch the PHP version to the one specified here.', 'wpcd' ),
 				'options' => array(
-					'8.1' => '8.1',					
+					'8.1' => '8.1',
 					'8.0' => '8.0',
 					'7.4' => '7.4',
 				),

@@ -235,6 +235,7 @@ lf_git_install() {
 	sudo add-apt-repository ppa:git-core/ppa -y
 	sudo apt-get update
 	sudo apt-get -y install git
+	echo ""
 	echo "Git has been installed."
 	exit
 
@@ -247,6 +248,7 @@ lf_git_install() {
 lf_git_update() {
 	sudo apt-get update
 	sudo apt-get -y install git
+	echo ""
 	echo "Git has been updated."
 	exit
 }
@@ -451,7 +453,7 @@ fi
 # Update git to latest version
 if [[ $action == "git_update" || $action == "2" ]]
 then
-	lf_git_install
+	lf_git_update
 fi
 
 if [[ $action == "git_init" || $action == "3" ]]

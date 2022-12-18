@@ -124,6 +124,10 @@ Note: Even though the entire git development history isn't available on github, 
 [Friendly Release Notes](https://wpclouddeploy.com/category/release-notes/)
 
 ## Change Log ##
+5.3.0
+------
+* Fix: Missing variable value when installing memcached. Harmless - just threw a php warning.
+
 5.2.2
 ------
 * New: WPAPP - Option to flip just the SSL meta flag on the SSL tab for a site.
@@ -137,7 +141,7 @@ Note: Even though the entire git development history isn't available on github, 
 * Tweak: WPAPP - The link to open the file manager and phpmyadmin tools are now real buttons instead of just links.  This makes it easier to style to match the other buttons, especially on the front end.
 * Fix: WPAPP - When restoring just a nginx web server configuration, do not delete ssl certificates.
 * Fix: WPAPP - Check that the $domain var in the bash scripts have a value before attempting to use it for deletes.
-* Fix: WPAPP - A harmless JS error as thrown when a server was viewed on the front-end without the STATISTICS having run at least once.
+* Fix: WPAPP - A harmless JS error was being thrown when a server was viewed on the front-end without the STATISTICS having run at least once.
 
 
 5.2.0
@@ -154,7 +158,7 @@ Note: Even though the entire git development history isn't available on github, 
 * Fix: WPAPP - Edge case issue with SSL when copying template sites and the template site has an SSL and the target domain allows an SSL to be generated.
 * Fix: WPAPP - An issue with sFTP users - when two users have similar names (eg: john and john2), certain operations did not work because grep found multiple domain entries in the passwd file.
 * Fix: WPAPP - We now delete the orphaned authorized keys file for a user when we delete the user.
-* Tweak: WPAPP  - Relabel the default PHP version item in the servers TOOL tabs to use the term 'CLI' which more accurately reflects the meaning of the setting & Operation.
+* Tweak: WPAPP  - Relabel the default PHP version item in the servers TOOL tabs to use the term 'CLI' which more accurately reflects the meaning of the setting & operation.
 * Tweak: WPAPP - Do not load timezonedb.so into php.ini since certain components necessary for it are not consistently available in the ols repos.
 
 5.1.0

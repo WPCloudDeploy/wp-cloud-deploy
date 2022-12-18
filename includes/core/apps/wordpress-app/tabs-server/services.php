@@ -1193,6 +1193,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		}
 
 		// Setup unique command name.
+		$domain                = 'wpcd-dummy.com';
 		$command               = sprintf( '%s---%s---%d', $action, $domain, time() );
 		$instance['command']   = $command;
 		$instance['app_id']    = $id;   // @todo - this is not really the app id - need to test to see if the process will work without this array element.

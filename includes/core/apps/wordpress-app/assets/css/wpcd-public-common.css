@@ -996,8 +996,8 @@
 	min-width: 20px;	
 }
 #wpcd_public_wrapper .wpcd_site_details_top_row .wpcd_site_details_top_row_element_wrapper  .wpcd_site_details_top_row_element_wstype {
-	color: var(--wpcd-primary-brand-color);
-	border-color: var(--wpcd-primary-brand-color);	
+	color: var(--wpcd-front-end-primary-brand-color);
+	border-color: var(--wpcd-front-end-primary-brand-color);	
 }
 #wpcd_public_wrapper .wpcd_site_details_top_row .wpcd_site_details_top_row_element_wrapper  .wpcd_site_details_top_row_element_ssl_on {
 	color: green;
@@ -1040,9 +1040,13 @@
 	margin-right: 5px;
 	min-width: 20px;
 }
-#wpcd_public_wrapper .wpcd_server_wordpress-app_tab_top_of_server_details .wpcd_server_details_top_row .wpcd_site_details_top_row_element_wstype {
-	color: var(--wpcd-primary-brand-color);
-	border-color: var(--wpcd-primary-brand-color);	
+#wpcd_public_wrapper .wpcd_server_wordpress-app_tab_top_of_server_details .wpcd_server_details_top_row .wpcd_server_details_top_row_element_wstype {
+	color: var(--wpcd-front-end-primary-brand-color);
+	border-color: var(--wpcd-front-end-secondary-brand-color);	
+}
+#wpcd_public_wrapper .wpcd_server_wordpress-app_tab_top_of_server_details .wpcd_server_details_top_row .wpcd_server_details_top_row_element_git_status {
+	border-color: green;	
+	color: var(--wpcd-front-end-light-background-color);
 }
  
  

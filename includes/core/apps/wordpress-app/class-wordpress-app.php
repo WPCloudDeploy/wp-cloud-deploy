@@ -572,8 +572,14 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		$webserver_type      = $this->get_web_server_type( $id );
 		$webserver_type_name = $this->get_web_server_description_by_id( $id );
 
+		// Is git installed?
+		$git_status = $this->get_git_status( $id );
+
 		$other_data  = '<div class="wpcd_site_details_top_row_element_wrapper">';
-		$other_data .= '<span class="wpcd_medium_chicklet wpcd_site_details_top_row_element_wstype">' . $webserver_type_name . '</span>';
+		$other_data .= '<span class="wpcd_medium_chicklet wpcd_server_details_top_row_element_wstype">' . $webserver_type_name . '</span>';
+		if ( true === $git_status ) {
+			$other_data .= '<span class="wpcd_medium_chicklet wpcd_server_details_top_row_element_git_status">' . __( 'Git On', 'wpcd' ) . '</span>';
+		}
 		$other_data .= '</div>';
 
 		$copy_ip = wpcd_wrap_clipboard_copy( WPCD_SERVER()->get_ipv4_address( $id ) );

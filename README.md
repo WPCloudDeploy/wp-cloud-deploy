@@ -127,6 +127,7 @@ Note: Even though the entire git development history isn't available on github, 
 5.3.0
 ------
 * Fix: Missing variable value when installing memcached. Harmless - just threw a php warning.
+* Dev: Use global function to reset site permissions (refactor).
 
 5.2.2
 ------

@@ -271,26 +271,17 @@ fi
 if [[ $action == "reset_permissions" || $action == "4" ]]
 then
 	select_domain
-	user_name=$(echo $domain | cut -c1-32)
-	if [ "$g_webserver_type" = "nginx" ]
+
+	# reset file permissions
+	gf_reset_file_permissions_for_domain $domain
+
+	if [ $? -ne 0 ]
 	then
-		chown -R root:root /var/www/$domain/
-		chown -R www-data:www-data /var/www/$domain/html/
-		chmod -R g+w /var/www/$domain/html
-		chmod -R g+s /var/www/$domain/html
-		find /var/www/$domain/html -type f -exec chmod 664 {} +
-		find /var/www/$domain/html -type d -exec chmod 2775 {} +	
-	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
-	then	
-		chown -R root:root /var/www/"$domain"/
-		chown -R "${user_name}":www-data /var/www/"$domain"/html/
-		chown -R "${user_name}":www-data /var/www/"$domain"/html/logs/
-		# Hidden files test support: https://serverfault.com/a/156481
-		chown -R "${user_name}":www-data /var/www/"$domain"/html/.[^.]*
-		chmod -R g+ws "/var/www/$domain/html"
-		find /var/www/$domain/html -type f -exec chmod 664 {} +
-		find /var/www/$domain/html -type d -exec chmod 2775 {} +
-	fi		
+		msg="Could not reset site permissions for domain $domain."
+		echo $msg
+		exit 1
+	fi	
+
 	echo
 	echo "Permissions have been reset for $domain"
 	exit

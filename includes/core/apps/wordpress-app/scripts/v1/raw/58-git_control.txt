@@ -1,0 +1,1291 @@
+#!/bin/bash
+if [[ "$EUID" -ne 0 ]]
+then
+	echo "Sorry, you need to run this as root"
+	exit
+fi
+
+## Get our common functions
+if [[ ! -f 9999-common-functions.sh ]]
+then
+	echo "The file 9999-common-functions.sh is missing"
+	exit 1
+fi
+source 9999-common-functions.sh
+
+
+########################################################
+# Send callback failed.
+#
+# @param $1 callback url
+# @param $2 message to send.
+########################################################
+lf_send_callback_failed() {
+
+	# setup local variables from parameters passed in.
+	local git_callback_url
+	local msg
+	git_callback_url=$1
+	msg="$2"
+
+	# @note msg will contain spaces so might need to encode it somehow for curl.
+
+	echo "In function to send callback to host with failure msg for: $git_callback_url $msg"
+}
+
+########################################################
+# Common function to get domain we want to work with.
+#
+# returns $domain
+########################################################
+lf_select_domain () {
+	while [[ -z $domain ]]
+	do
+		clear
+		echo "Please, select which site you want to work with"
+		gf_select_domain
+		domain=$(ls /var/www | grep -v html | sed -n "$site_number"p)
+	done
+}
+
+########################################################
+# Given a domain, navigate to it's var/www folder.
+#
+# If unable to navigate there, exit completely.
+#
+# @param $1 domain
+########################################################
+lf_navigate_to_domain_folder() {
+
+	# setup local variables from parameters passed in.
+	local domain
+	domain=$1
+
+	# move into the domain folder
+	cd /var/www/$domain/html
+	if [ $? -ne 0 ]	
+	then
+		msg="Unable to navigate to /var/www/$domain/html."
+		echo $msg
+		exit 1
+	fi		
+}
+
+########################################################
+# This is the start of a series of functions to collect
+# Data from the user.
+#
+# returns $domain
+########################################################
+lf_get_git_branch() {
+	while [[ -z $git_branch ]]
+	do
+		read -p "What branch are we working with? " git_branch
+	done
+	echo "Branch is: $git_branch"
+}
+
+lf_get_new_git_branch() {
+	while [[ -z $git_new_branch ]]
+	do
+		read -p "What is the name of the new branch?? " git_new_branch
+	done
+	echo "New branch is: $git_new_branch"
+}
+
+lf_get_git_user_email() {
+	while [[ -z $git_user_email ]]
+	do
+		read -p "What is the email address for the git user account? " git_user_email
+	done
+	echo "Email is: $git_user_email"
+}
+
+lf_get_git_display_name() {
+	while [[ -z $git_display_name ]]
+	do
+		read -p "What is the display name for the git user account? Example John Smith: " git_display_name
+	done
+	echo "Display Name is: $git_display_name"
+}
+
+lf_get_git_username() {
+	while [[ -z $git_user_name ]]
+	do
+		read -p "What is the user name for the git user account? Example jsmith: " git_user_name
+	done
+	echo "User Name is: $git_user_name"
+}
+
+lf_get_git_remote_url() {
+	while [[ -z $git_remote_url ]]
+	do
+		read -p "What is the remote url for the repository? Example https://github.com/jsmith/myrepo: " git_remote_url
+	done
+	echo "Repo is: $git_remote_url"
+}
+
+lf_get_git_token() {
+	while [[ -z $git_token ]]
+	do
+		read -p "What is the security token for the repo/account: " git_token
+	done
+	echo "Repo token is: $git_token"
+}
+
+lf_get_git_ignore_url() {
+	while [[ -z $git_ignore_url ]]
+	do
+		read -p "Enter the URL where the default git_ignore file is located: " git_ignore_url
+	done
+	echo "Git Ignore URL is: $git_ignore_url"
+}
+
+lf_get_commit_message() {
+	while [[ -z $git_commit_msg ]]
+	do
+		read -p "Enter a commit message - it will be used if there are any uncommitted changes: " git_commit_msg
+	done
+	echo "Git Commit Message Is: $git_commit_msg"
+}
+
+lf_get_git_pre_processing_script_link() {
+	if [[ -z $git_pre_processing_script_link ]]; then
+		read -p "[optional] Enter the URL where the pre-processing link is located: " git_pre_processing_script_link
+		echo "Pre-processing Script URL is: $git_pre_processing_script_link"
+	fi
+}
+
+lf_get_git_post_processing_script_link () {
+	if [[ -z $git_post_processing_script_link ]]; then
+		read -p "[optional] Enter the URL where the post-processing link is located: " git_post_processing_script_link
+		echo "Post-processing Script URL is: $git_post_processing_script_link"
+	fi
+}
+
+lf_get_exclude_folders() {
+	if [[ -z $git_exclude_folders ]]; then
+		read -p "[optional] Exclude folders for gitignore (comma separated list): " git_exclude_folders
+		echo "Folders Excluded Are: $git_exclude_folders"
+	fi
+}
+
+lf_get_exclude_files() {
+	if [[ -z $git_exclude_files ]]; then
+		read -p "[optional] Exclude files for gitignore (comma separated list): " git_exclude_files
+		echo "Files Excluded Are: $git_exclude_files"
+	fi
+}
+
+lf_get_callback_url() {
+	if [[ -z $git_callback_url ]]; then
+		read -p "[optional] Enter the Callback URL: " git_callback_url
+		echo "Callback URL is: $git_callback_url"
+	fi
+}
+
+lf_get_tag() {
+	while [[ -z $git_tag ]]
+	do
+		read -p "Enter a tag: " git_tag
+	done
+	echo "Git Tag Is: $git_tag"
+}
+
+########################################################
+# Function to detect whether git is already installed.
+#
+# returns $iv_get_available: 1 or 0
+########################################################
+lf_is_git_installed() {
+
+	git --version 2>&1 >/dev/null
+
+	GIT_IS_AVAILABLE=$?
+
+	# Really need a way to check version and make sure it's 2.39 or later.
+
+	# Set variable
+	if [ $GIT_IS_AVAILABLE -eq 0 ]; then
+		iv_git_available=1
+	else
+		iv_git_available=0
+	fi
+}
+
+########################################################
+# Function to install git on the server.
+#
+# @Todo: Check version installed and only upgrade
+# if not the version we need.
+########################################################
+lf_git_install() {
+
+	# run function to check if git is installed.
+	lf_is_git_installed
+
+	# check output variable from above function.
+	if [ $iv_git_available -eq 0 ]; then
+		echo "Git is not installed - installing..."
+	else
+		echo "Git is already installed. Updating to latest version..."
+	fi
+
+	# add git maintainer repo.
+	sudo add-apt-repository ppa:git-core/ppa -y
+	sudo apt-get update
+	sudo apt-get -y install git
+	echo "Git has been installed."
+	exit
+
+}
+
+
+########################################################
+# Function to update git to latest version.
+########################################################
+lf_git_update() {
+	sudo apt-get update
+	sudo apt-get -y install git
+	echo "Git has been updated."
+	exit
+}
+
+########################################################
+# Function to create gitignore
+#
+# Assumes we are already in the $domain/html folder.
+#
+# @param $1 The url to the default git_ignore file.
+# @param $2 exclude folders list
+# @param $3 exclue files list
+########################################################
+lf_create_git_ignore() {
+
+	# setup local variables from parameters passed in.
+	local git_ignore_url
+	local git_exclude_folders
+	local git_exclude_files
+	git_ignore_url=$1
+	git_exclude_folders=$2
+	git_exclude_files=$3
+
+	# Get the default gitignore file.
+	echo "Downloading default gitignore file..."
+	wget --quiet --no-check-certificate -O .gitignore $git_ignore_url
+	dos2unix .gitignore
+
+	# Add in the things we definitely want in there.
+	echo "#################################"  >> .gitignore
+	echo "# WPCD Defaults"  >> .gitignore
+	echo "#################################"  >> .gitignore
+	echo "wp-config.php" >> .gitignore
+	echo "logs/" >> .gitignore	
+	echo "filemanager/" >> .gitignore
+	echo "phpmyadmin/" >> .gitignore
+	echo "wp-content/debug.log" >> .gitignore
+	echo "wp-content/downloads" >> .gitignore
+	echo "wp-content/updraft" >> .gitignore
+	echo "*.log" >> .gitignore
+	echo "*.env" >> .gitignore
+	echo "*.env.*" >> .gitignore
+
+	# Keepers
+	echo "!.env.example" >> .gitignore
+
+	# User defined files and folders
+	echo "#################################"  >> .gitignore
+	echo "# WPCD User Provided"  >> .gitignore
+	echo "#################################"  >> .gitignore
+	# Break folders using comma as separator
+	array=()
+	while IFS= read -r line; do
+		array+=("$line")
+	done < <(tr ',' '\n' <<< "$git_exclude_folders")
+
+	for item in "${array[@]}"; do
+		echo "$item"  >> .gitignore
+	done
+
+	# Break files using comma as separator
+	array=()
+	while IFS= read -r line; do
+		array+=("$line")
+	done < <(tr ',' '\n' <<< "$git_exclude_files")
+
+	for item in "${array[@]}"; do
+		echo "$item"  >> .gitignore
+	done
+}
+
+########################################################
+# Function to remove git files from a domain.
+#
+# @param $1 The domain.
+########################################################
+lf_remote_git_from_domain() {
+
+	# setup local variables from parameters passed in.
+	local domain
+	domain=$1
+
+	echo "Removing existing git files if any..."
+	if [[ -z $domain ]]
+	then
+		msg="We are about to delete a folder but the domain variable is blank. Operation aborted."
+		echo $msg
+		lf_send_callback_failed $git_callback_url $msg
+		return 1  #return error.
+	else
+		rm -rf /var/www/$domain/.wpcd_git
+		rm -rf /var/www/$domain/html/.git
+		rm -rf /var/www/$domain/html/.gitignore
+		# @todo - perhaps remove domain from credential helper and global safe-domain file?
+	fi
+}
+
+########################################################
+# Function to pull tag from remote and create version
+# folder.
+#
+# @param $1 The domain.
+# @param #2 The tag
+########################################################
+lf_git_pull_tag() {
+
+	# setup local variables from parameters passed in.
+	local domain
+	local git_tag
+	domain=$1
+	git_tag=$2
+
+	# move into the domain folder
+	lf_navigate_to_domain_folder $domain
+
+	# Create folder where tagged files will go.
+	mkdir -p /var/www/$domain/versions/$git_tag
+	if [ $? -ne 0 ]
+	then
+		msg="Could not create folder /var/www/$domain/versions/$git_tag"
+		echo $msg
+		exit 1
+	fi
+
+	# Pull tag in case it's not local yet
+	git pull origin $git_tag
+	if [ $? -ne 0 ]
+	then
+		msg="Could not pull tag $git_tag from remote."
+		echo $msg
+		exit 1
+	fi
+
+	# Add tagged files to that folder as .zip.
+	echo "Creating temporary zip of tagged files..."
+	git archive --format=zip --output=/var/www/$domain/versions/$git_tag/$git_tag.zip $git_tag
+	if [ $? -ne 0 ]
+	then
+		msg="Could not create zip file in folder /var/www/$domain/versions/$git_tag/ for tag $git_tag."
+		echo $msg
+		exit
+	fi
+
+	# Unzip files so they're ready for use later.
+	echo "Copying files into the versions folder (/var/www/$domain/versions/$git_tag)"
+	unzip -q -o /var/www/$domain/versions/$git_tag/$git_tag.zip -d /var/www/$domain/versions/$git_tag
+	if [ $? -ne 0 ]
+	then
+		msg="Could not unzip tagged files for $git_tag."
+		echo $msg
+		exit
+	fi
+
+	# Remove zip file.
+	rm -f /var/www/$domain/versions/$git_tag/$git_tag.zip	
+
+}
+
+########################################################
+# Get action to perform
+########################################################
+while [[ -z $action ]]
+do
+	echo "What do you want to do?"
+	echo "   1) Install git on the server"
+	echo "   2) Update git to latest version"
+	echo "   3) Initialize git on a domain"
+	echo "   4) Remove git from a domain"
+	echo "   5) Sync with remote/origin (pull & push)"
+	echo "   6) Switch branch & checkout"
+	echo "   7) Add new branch and checkout"
+	echo "   8) Commit and push to remote/origin"
+	echo "   9) Add tag to current branch"
+	echo "   10) Pull tag and create version"
+	echo "   11) Remove a version folder"
+	echo "   12) Remove all version folders for a site"
+	echo "   13) Display all version folders for a site"
+	echo "   14) Display current branch"
+	echo "   15) Apply version to domain with overwrite"
+	echo "   16) Setup or change git credentials for a site"
+	echo "   17) Clone remote repo to a domain (bare)"
+	echo
+	read -p "Action: " action
+	until [[ -z "$action" || "$action" =~ ^[1-9]|2[0-9]|3[0-9]$ ]]
+	do
+		echo "$action: invalid selection."
+		read -p "Action: " action
+	done
+done
+
+########################################################
+# Below are blocks where the action choosen above
+# is performed.
+########################################################
+
+# Install git on server
+if [[ $action == "git_install" || $action == "1" ]]
+then
+	lf_git_install
+fi
+
+# Update git to latest version
+if [[ $action == "git_update" || $action == "2" ]]
+then
+	lf_git_install
+fi
+
+if [[ $action == "git_init" || $action == "3" ]]
+then
+	# Start with a blank screen
+	clear
+
+	# Get domain - output will be in $domain.
+	lf_select_domain							# Sets Global $domain
+
+	lf_get_git_branch							# Sets Global $git_branch
+	lf_get_git_user_email						# Sets Global $git_user_email
+	lf_get_git_display_name						# Sets Global $git_display_name
+	lf_get_git_username							# Sets Global $git_user_name
+	lf_get_git_remote_url						# Sets Global $git_remote_url
+	lf_get_git_token							# Sets Global $git_token
+	lf_get_git_ignore_url						# Sets Global $git_ignore_url
+	lf_get_git_pre_processing_script_link		# Sets Global $git_pre_processing_script_link
+	lf_get_git_post_processing_script_link		# Sets Global $git_post_processing_script_link
+	lf_get_exclude_folders						# Sets Global $git_exclude_folders
+	lf_get_exclude_files						# Sets Global $git_exclude_files
+	lf_get_callback_url							# Sets Global $git_callback_url
+
+	# Remove any existing git working folders.
+	lf_remote_git_from_domain $domain
+	if [ $? -ne 0 ]
+	then
+		echo "Unable to remove git from $domain. Aborting..."
+		exit 1
+	fi
+
+	# Make a git working folder outside of the folder where files are usually located.
+	# We will NOT be backing up this folder.
+	mkdir -p /var/www/$domain/.wpcd_git
+	if [ $? -ne 0 ]
+	then
+		msg="Could not create folder $domain/.wpcd_git"
+		echo $msg
+		lf_send_callback_failed $git_callback_url "$msg"
+		exit 1
+	fi
+
+	# Move into git working folder.
+	cd /var/www/$domain/.wpcd_git
+
+	# Initialize git and check for error.
+	git init -b $git_branch --separate-git-dir . ../html/
+	if [ $? -ne 0 ]
+	then
+		msg="Could not initialize repo."
+		echo $msg
+		lf_send_callback_failed $git_callback_url "$msg"
+		exit 1
+	fi
+
+	# Run pre-processing script if provided and check for error.
+	if [[ -n "$git_pre_processing_script_link" ]]
+	then
+		tmpfile=$(mktemp)
+		echo "Running pre-processing script as temp file: $tmpfile"
+		wget --quiet --no-check-certificate -O $tmpfile $git_pre_processing_script_link
+		dos2unix $tmpfile
+		bash $tmpfile
+	fi
+
+	# Since $domain and .wpcd_git are owned by different users (root vs limited user), need to mark $domain as safe.
+	echo "Adding global safe.directory variable for domain $domain..."
+	git config --global --add safe.directory /var/www/$domain/html
+	if [ $? -ne 0 ]	
+	then
+		msg="Unable to mark $domain as safe using git config --global -add safe.directory."
+		echo $msg
+		lf_send_callback_failed $git_callback_url "$msg"
+		exit 1
+	fi
+
+	# To make things simple for our configuration, we want to automatically setup remotes to track local branches when we commit.
+	echo "Adding global config option to automatically setup remote branch from new local branches..."
+	git config --global --add --bool push.autoSetupRemote true
+	if [ $? -ne 0 ]	
+	then
+		msg="Unable to add global git option push.autoSetupRemote."
+		echo $msg
+		lf_send_callback_failed $git_callback_url "$msg"
+		exit 1
+	fi
+
+	# start setup git user
+	echo "Setting up local user names for git - $git_user_email & $git_display_name..."
+	git config user.name $git_user_name
+	if [ $? -ne 0 ]	
+	then
+		msg="Unable to setup git user display name."
+		echo $msg
+		lf_send_callback_failed $git_callback_url "$msg"
+		exit 1
+	fi
+	git config user.email $git_user_email
+	if [ $? -ne 0 ]	
+	then
+		msg="Unable to setup git user email address."
+		echo $msg
+		lf_send_callback_failed $git_callback_url "$msg"
+		exit 1
+	fi
+	git config user.password $git_token
+	if [ $? -ne 0 ]	
+	then
+		msg="Unable to setup git password/token."
+		echo $msg
+		lf_send_callback_failed $git_callback_url "$msg"
+		exit 1
+	fi
+	# end start setup git user
+
+	# move into the domain folder
+	lf_navigate_to_domain_folder $domain
+
+	# Setup git-ignore.
+	lf_create_git_ignore $git_ignore_url $git_exclude_folders $git_exclude_files
+
+	# add all files to repo
+	git add . > /dev/null
+	if [ $? -ne 0 ]	
+	then
+		msg="Unable to add files to new local repo."
+		echo $msg
+		lf_send_callback_failed $git_callback_url "$msg"
+		exit 1
+	fi
+
+	# commit them
+	git commit -m "Initial Commit From Server" > /dev/null
+	if [ $? -ne 0 ]	
+	then
+		msg="Unable to cleanly commit files to local repo."
+		echo $msg
+		lf_send_callback_failed $git_callback_url "$msg"
+		exit 1
+	fi
+
+	# Add the origin
+	echo "Adding origin $git_remote_url"
+	git remote add origin $git_remote_url
+	if [ $? -ne 0 ]	
+	then
+		msg="Unable to add remote origin."
+		echo $msg
+		lf_send_callback_failed $git_callback_url "$msg"
+		exit 1
+	fi
+
+	# start setup credential helper and store credentials in root folder.
+	echo "Setting up git credential helper for user root..."
+	git config --global credential.helper 'store --file /root/.git-credentials'
+	if [ $? -ne 0 ]	
+	then
+		msg="Unable to setup git credential helper."
+		echo $msg
+		lf_send_callback_failed $git_callback_url "$msg"
+		exit 1
+	fi
+
+	git config --global credential.github.com.useHttpPath true 
+	if [ $? -ne 0 ]	
+	then
+		msg="Unable to setup git credential helper - param useHttpPath"
+		echo $msg
+		lf_send_callback_failed $git_callback_url "$msg"
+		exit 1
+	fi
+
+	git config --global credential.bitbucket.com.useHttpPath true
+	if [ $? -ne 0 ]	
+	then
+		msg="Unable to setup git credential helper - param useHttpPath"
+		echo $msg
+		lf_send_callback_failed $git_callback_url "$msg"
+		exit 1
+	fi
+	# end setup credential helper and store credentials in root folder.
+
+	# strip out https and http out of the url here
+	repo_url_without_https=$(echo $git_remote_url |sed 's/https\?:\/\///')
+	echo "Repo url without http prefix is $repo_url_without_https"
+
+	# write the credentials out to the helper store.
+	# note the .git on the end!
+	echo "https://$git_user_name:$git_token@$repo_url_without_https" >> /root/.git-credentials
+	if [ $? -ne 0 ]	
+	then
+		msg="Unable to write to /root/.git_credentials."
+		echo $msg
+		lf_send_callback_failed $git_callback_url "$msg"
+		exit 1
+	fi
+
+	# Prepare repo for merge.
+	git config pull.rebase false
+	if [ $? -ne 0 ]	
+	then
+		msg="Unable to setup repo for merge pull."
+		echo $msg
+		lf_send_callback_failed $git_callback_url "$msg"
+		exit 1
+	fi
+
+	# Pull from repo
+	# Note - this might pause here because it opens an editor.
+	echo "Pulling files from remote..."
+	git pull --allow-unrelated-histories --no-edit --commit origin $git_branch
+	if [ $? -ne 0 ]	
+	then
+		msg="Unable to pull and merge cleanly - $origin branch: $git_branch."
+		echo $msg
+		lf_send_callback_failed $git_callback_url "$msg"
+		exit 1
+	fi
+
+	# push changes
+	echo "Pushing to remote..."
+	git push --set-upstream origin $git_branch
+	if [ $? -ne 0 ]	
+	then
+		msg="Unable to push files to origin cleanly."
+		echo $msg
+		lf_send_callback_failed $git_callback_url "$msg"
+		exit 1
+	fi
+
+	# Now make sure we're tracking a branch
+	git checkout $git_branch
+	if [ $? -ne 0 ]	
+	then
+		msg="Unable to checkout branch $git_branch."
+		echo $msg
+		lf_send_callback_failed $git_callback_url "$msg"
+		exit 1
+	fi
+
+	# Handle post-processing script
+	if [[ -n "$git_post_processing_script_link" ]]
+	then
+		tmpfile=$(mktemp)
+		echo "Running post-processing script as temp file: $tmpfile"
+		wget --quiet --no-check-certificate -O $tmpfile $git_post_processing_script_link
+		dos2unix $tmpfile
+		bash $tmpfile
+	fi
+
+	# Show completion message
+	echo "Git Init Complete For Domain $domain"
+	exit
+fi
+
+# Remove git from a domain
+if [[ $action == "git_domain_remove" || $action == "4" ]]
+then
+	# Get domain - output will be in the $domain global var.
+	lf_select_domain
+
+	# Remove any existing git working folders.
+	lf_remote_git_from_domain $domain
+	if [ $? -ne 0 ]
+	then
+		echo "Unable to remove git."
+		exit 1
+	fi
+
+	# Success
+	echo "Git has been removed from $domain"
+	exit
+fi
+
+# Git Sync (pull/push)
+if [[ $action == "git_sync" || $action == "5" ]]
+then
+	# Get domain - output will be in the $domain global var.
+	lf_select_domain
+
+	# Get commit message - output will be in the $git_commit_msg global var.
+	lf_get_commit_message
+
+	# move into the domain folder
+	lf_navigate_to_domain_folder $domain
+
+	git add .
+	if [ $? -ne 0 ]	
+	then
+		msg="Unable to add files to local repo."
+		echo $msg
+		exit 1
+	fi	
+
+	# commit any changes.
+	# Note we're not checking errors here since if there are no commits 
+	# we'll get a non-zero error code which is not an error in this instance.
+	# @TODO: Will this handle a message with spaces?
+	git commit -m "$git_commit_msg"
+
+	# Pull from repo
+	echo "Pulling files from remote..."
+	git pull origin
+	if [ $? -ne 0 ]	
+	then
+		msg="Unable to pull from remote"
+		echo $msg
+		exit 1
+	fi
+
+	# push changes
+	echo "Pushing to remote..."
+	git push origin
+	if [ $? -ne 0 ]	
+	then
+		msg="Unable to push files to origin cleanly."
+		echo $msg
+		exit 1
+	fi
+
+	echo "Git sync succeeded."
+	exit
+fi
+
+# Git switch branch and checkout
+if [[ $action == "git_checkout" || $action == "6" ]]
+then
+	# Get domain - output will be in the $domain global var.
+	lf_select_domain
+
+	# Get branch - output will be in the $git_branch global var.
+	lf_get_git_branch
+
+	# move into the domain folder
+	cd /var/www/$domain/html
+	lf_navigate_to_domain_folder $domain
+
+	# Fetch from origin first.
+	git fetch origin
+	if [ $? -ne 0 ]	
+	then
+		msg="Unable to fetch from origin."
+		echo $msg
+		exit 1
+	fi
+
+	# Checkout from remote repo
+	echo "Checking out $git_branch from remote repo..."
+	git checkout $git_branch
+	if [ $? -ne 0 ]	
+	then
+		msg="Unable to checkout $git_branch from remote repo."
+		echo $msg
+		exit 1
+	fi
+
+	echo "Git branch switch and checkout succeeded."
+	exit
+fi
+
+# Git new branch and checkout
+if [[ $action == "git_new_branch" || $action == "7" ]]
+then
+	# Get domain - output will be in the $domain global var.
+	lf_select_domain
+
+	# Get branch - output will be in the $git_branch global var.
+	echo "Specify the source branch name"
+	lf_get_git_branch
+
+	# Get new branch - output will be in the $git_new_branch global var
+	lf_get_new_git_branch
+
+	# move into the domain folder
+	lf_navigate_to_domain_folder $domain
+
+	# Fetch from origin first.
+	git fetch origin
+	if [ $? -ne 0 ]	
+	then
+		msg="Unable to fetch from origin."
+		echo $msg
+		exit 1
+	fi
+
+	# Checkout source from remote repo
+	echo "Checking out $git_branch from remote repo..."
+	git checkout $git_branch
+	if [ $? -ne 0 ]	
+	then
+		msg="Unable to checkout $git_branch from remote repo."
+		echo $msg
+		exit 1
+	fi
+
+	# create new branch
+	echo "Creating new branch $git_new_branch from $git_branch..."
+	git checkout -b $git_new_branch
+	if [ $? -ne 0 ]	
+	then
+		msg="Unable to create $git_new_branch."
+		echo $msg
+		exit 1
+	fi
+	
+
+	echo "Git create new branch and checkout succeeded."
+	exit
+fi
+
+# Git commit and push
+if [[ $action == "git_commit_and_push" || $action == "8" ]]
+then
+	# Get domain - output will be in the $domain global var.
+	lf_select_domain
+
+	# Get commit message - output will be in the $git_commit_msg global var.
+	lf_get_commit_message	
+
+	# move into the domain folder
+	lf_navigate_to_domain_folder $domain
+
+	git add .
+	if [ $? -ne 0 ]	
+	then
+		msg="Unable to add files to local repo."
+		echo $msg
+		exit 1
+	fi
+
+	# commit any changes.
+	# Note we're not checking errors here since if there are no commits 
+	# we'll get a non-zero error code which is not an error in this instance.
+	# @TODO: Will this handle a message with spaces?
+	git commit -m "$git_commit_msg"
+
+	# push changes
+	echo "Pushing to remote..."
+	git push origin
+	if [ $? -ne 0 ]	
+	then
+		msg="Unable to push files to origin cleanly."
+		echo $msg
+		exit 1
+	fi
+
+	echo "Git commit and push succeeded."
+	exit
+fi
+
+# Apply tag to current branch
+if [[ $action == "git_tag" || $action == "9" ]]
+then
+	# Get domain - output will be in the $domain global var.
+	lf_select_domain
+
+	# Get tag - output will be in the $git_tag var.
+	lf_get_tag
+
+	# move into the domain folder
+	lf_navigate_to_domain_folder $domain
+
+	# Create tag
+	echo "Creating tag $git_tag..."
+	git tag -a $git_tag -m "Tag $git_tag created from WPCD."
+	if [ $? -ne 0 ]	
+	then
+		msg="Unable to create tag $git_tag."
+		echo $msg
+		exit 1
+	fi
+
+	# Push to remote
+	echo "Pushing tag to remote..."
+	git push origin $git_tag
+	if [ $? -ne 0 ]	
+	then
+		msg="Unable to push tag $git_tag to remote. The tag is stored on the local remote. We will move on and not consider this operation a failure."
+		echo $msg
+	fi
+
+	# Create folder where tagged files will go.
+	mkdir -p /var/www/$domain/versions/$git_tag
+	if [ $? -ne 0 ]
+	then
+		msg="Could not create folder /var/www/$domain/versions/$git_tag"
+		echo $msg
+		exit 1
+	fi
+
+	# Add tagged files to that folder as .zip.
+	echo "Creating temporary zip of tagged files..."
+	git archive --format=zip --output=/var/www/$domain/versions/$git_tag/$git_tag.zip $git_tag
+	if [ $? -ne 0 ]
+	then
+		msg="Could not create zip file in folder /var/www/$domain/versions/$git_tag/ for tag $git_tag."
+		echo $msg
+		exit
+	fi
+
+	# Unzip files so they're ready for use later.
+	echo "Copying files into the versions folder (/var/www/$domain/versions/$git_tag)"
+	unzip -q -o /var/www/$domain/versions/$git_tag/$git_tag.zip -d /var/www/$domain/versions/$git_tag
+	if [ $? -ne 0 ]
+	then
+		msg="Could not unzip tagged files for $git_tag."
+		echo $msg
+		exit
+	fi
+
+	# Remove zip file.
+	rm -f /var/www/$domain/versions/$git_tag/$git_tag.zip
+
+	echo "Git tag and push succeeded."
+	exit
+fi
+
+# Pull tag and create version
+if [[ $action == "git_pull_tag" || $action == "10" ]]
+then
+	# Get domain - output will be in the $domain global var.
+	lf_select_domain
+
+	# Get tag - output will be in the $git_tag var.
+	lf_get_tag
+
+	# Do it.
+	lf_git_pull_tag $domain $git_tag
+
+	echo "Git pull tag succeeded."
+	exit
+fi
+
+# Remove a version folder
+if [[ $action == "git_remove_version_folder" || $action == "11" ]]
+then
+	# Get domain - output will be in the $domain global var.
+	lf_select_domain
+
+	# Get tag - output will be in the $git_tag var.
+	lf_get_tag
+
+	if [[ -z $domain ]]
+	then
+		msg="We are about to delete a folder but the domain variable is blank. Operation aborted."
+		echo $msg
+		exit 1
+	else
+		rm -rf /var/www/$domain/versions/$git_tag
+	fi
+
+	echo "Version folder has been removed for $git_tag"
+fi
+
+# Remove all version folders
+if [[ $action == "git_remove_all_version_folders" || $action == "12" ]]
+then
+	# Get domain - output will be in the $domain global var.
+	lf_select_domain
+
+	if [[ -z $domain ]]
+	then
+		msg="We are about to delete one or more folders but the domain variable is blank. Operation aborted."
+		echo $msg
+		exit 1
+	else
+		rm -rf /var/www/$domain/versions/
+	fi
+
+	echo "All version folders have been removed for $domain"
+fi
+
+# Display all version folders for a site/domain
+if [[ $action == "git_display_domain_version_folders" || $action == "13" ]]
+then
+	# Get domain - output will be in the $domain global var.
+	lf_select_domain
+
+	# Navigate to the versions folder
+	cd /var/www/$domain/versions/
+	if [ $? -ne 0 ]
+	then
+		msg="Unable to navigate to the domain version folder or the version folder does not yet exist for the domain $domain."
+		echo $msg
+		exit
+	fi
+
+	# Get list of folders
+	subfolders=($(find . -mindepth 1 -maxdepth 1 -type d))
+
+	for folder in "${subfolders[@]}"; do
+		echo $folder
+	done	
+fi
+
+# Display current branch
+if [[ $action == "git_get_current_branch" || $action == "14" ]]
+then
+	# Get domain - output will be in the $domain global var.
+	lf_select_domain
+
+	# move into the domain folder
+	lf_navigate_to_domain_folder $domain
+
+	current_branch=$(git rev-parse --abbrev-ref HEAD)
+
+	if [[ -z $current_branch ]]; then
+		$msg="No current branch!"
+		echo $msg
+		exit 1
+	else
+		echo $current_branch
+	fi
+fi
+
+# Apply version to domain by overwriting domain files directly.
+# Note that this is not a bi-directional sync so files that are in 
+# the target domain but not in the tag will remain in the target domain folder.
+if [[ $action == "git_apply_version_with_overwrite" || $action == "15" ]]
+then
+	# Get domain - output will be in the $domain global var.
+	lf_select_domain
+
+	# Get tag - output will be in the $git_tag var.
+	lf_get_tag
+
+	# Calculate user name - we'll need it later.
+	user_name=$(echo $domain | cut -c1-32)
+
+	# Get pre and post-processing links - output will be in global vars $git_pre_processing_script_link & $git_post_processing_script_link respectively
+	lf_get_git_pre_processing_script_link
+	lf_get_git_post_processing_script_link
+
+	# Make sure we have a version of the specified tag in a versions folder
+	# @TODO: In a future version of this script we will pass a param to allow this step to be skipped.
+	lf_git_pull_tag $domain $git_tag
+
+	# @todo: Add wp .maintenance file here to domain.
+
+	# rsync the files
+	echo "Copying files to domain $domain..."
+	rsync -au --quiet --stats /var/www/$domain/versions/$git_tag/ /var/www/$domain/html/
+
+	# Special handling for the plugins, mu_plugins & themes folder
+	# Yes, we know, this duplicates some of the work in the rsync line above.
+	# Better this way for clarity than to write something fancy no one can understand later.
+	echo "Removing non-matching files from the plugins folder for $domain..."
+	rsync -au --quiet --delete --stats /var/www/$domain/versions/$git_tag/wp-content/plugins/ /var/www/$domain/html/wp-content/plugins/
+	echo "Removing non-matching files from the mu-plugins folder for $domain..."
+	rsync -au --quiet --delete --stats /var/www/$domain/versions/$git_tag/wp-content/mu-plugins/ /var/www/$domain/html/wp-content/mu-plugins/
+	echo "Removing non-matching files from the themes folder for $domain..."
+	rsync -au --quiet --delete --stats /var/www/$domain/versions/$git_tag/wp-content/themes/ /var/www/$domain/html/wp-content/themes/
+
+	# reset file permissions
+	gf_reset_file_permissions_for_domain $domain
+
+	# @todo: Remove wp .maintenance file here from domain.
+
+	# flush caches
+	echo "Flushing caches..."
+	g_flush_cache $user_name $domain
+
+	echo "Git switch version succeeded."
+	exit
+fi
+
+# Set up git credentials for a site but do not sync or clone.
+# Useful if site credentials change.
+# Note that a lot of this logic is also in option 1.
+# So if things change there or here check the other one.
+if [[ $action == "git_site_credentials" || $action == "16" ]]
+then
+	# Get domain - output will be in the $domain global var.
+	lf_select_domain
+
+	# Get credentials and other vars
+	lf_get_git_user_email						# Sets Global $git_user_email
+	lf_get_git_display_name						# Sets Global $git_display_name
+	lf_get_git_username							# Sets Global $git_user_name
+	lf_get_git_remote_url						# Sets Global $git_remote_url
+	lf_get_git_token							# Sets Global $git_token
+
+	# Since $domain and .wpcd_git are owned by different users (root vs limited user), need to mark $domain as safe.
+	echo "Adding global safe.directory variable for domain $domain..."
+	git config --global --add safe.directory /var/www/$domain/html
+	if [ $? -ne 0 ]	
+	then
+		msg="Unable to mark $domain as safe using git config --global -add safe.directory."
+		echo $msg
+		exit 1
+	fi
+
+	# start setup git user
+	echo "Setting up local user names for git - $git_user_email & $git_display_name..."
+	git config user.name $git_display_name
+	if [ $? -ne 0 ]	
+	then
+		msg="Unable to setup git user display name."
+		echo $msg
+		exit 1
+	fi
+	git config user.email $git_user_email
+	if [ $? -ne 0 ]	
+	then
+		msg="Unable to setup git user email address."
+		echo $msg
+		exit 1
+	fi
+	git config user.password $git_token
+	if [ $? -ne 0 ]	
+	then
+		msg="Unable to setup git password/token."
+		echo $msg
+		exit 1
+	fi
+	# end start setup git user
+
+	# start setup credential helper and store credentials in root folder.
+	echo "Setting up git credential helper for user root..."
+	git config --global credential.helper 'store --file /root/.git-credentials'
+	if [ $? -ne 0 ]	
+	then
+		msg="Unable to setup git credential helper."
+		echo $msg
+		exit 1
+	fi
+
+	git config --global credential.github.com.useHttpPath true 
+	if [ $? -ne 0 ]	
+	then
+		msg="Unable to setup git credential helper - param useHttpPath"
+		echo $msg
+		exit 1
+	fi
+
+	git config --global credential.bitbucket.com.useHttpPath true
+	if [ $? -ne 0 ]	
+	then
+		msg="Unable to setup git credential helper - param useHttpPath"
+		echo $msg
+		exit 1
+	fi
+	# end setup credential helper and store credentials in root folder.
+
+	# strip out https and http out of the url here
+	repo_url_without_https=$(echo $git_remote_url |sed 's/https\?:\/\///')
+	echo "Repo url without http prefix is $repo_url_without_https"
+
+	# write the credentials out to the helper store.
+	# note the .git on the end!
+	echo "https://$git_user_name:$git_token@$repo_url_without_https" >> /root/.git-credentials
+	if [ $? -ne 0 ]	
+	then
+		msg="Unable to write to /root/.git_credentials."
+		echo $msg
+		exit 1
+	fi	
+
+	echo "Git credentials successfully set up for domain $domain."
+	exit
+fi
+
+# Clone a repo to a site but don't setup git for it or 
+# sync to it.
+# Assumes git credentials have been setup already.
+if [[ $action == "git_clone_to_site" || $action == "17" ]]
+then
+	# Get domain - output will be in the $domain global var.
+	lf_select_domain
+
+	# Get remote url - output will be in the $git_remote_url global var.
+	lf_get_git_remote_url
+
+	# Get branch - output will be in the $git_branch global var.
+	lf_get_git_branch
+
+	# Calculate user name - we'll need it later.
+	user_name=$(echo $domain | cut -c1-32)
+
+	# Remove any existing folders
+	if [[ -z $domain ]]
+	then
+		msg="We are about to delete a folder but the domain variable is blank. Operation aborted."
+		echo $msg
+		exit 1
+	else
+		rm -rf /var/www/$domain/git-clones/$git_branch
+	fi
+
+	# Create a clones folder where the cloned files will be located
+	mkdir -p /var/www/$domain/git-clones/$git_branch
+	if [ $? -ne 0 ]
+	then
+		msg="Could not create folder /var/www/$domain/git-clones/$git_branch"
+		echo $msg
+		exit 1
+	fi
+
+	# Clone
+	git clone $git_remote_url /var/www/$domain/git-clones/$git_branch
+	if [ $? -ne 0 ]
+	then
+		msg="Could not create clone from $git_remote_url for domain $domain."
+		echo $msg
+		exit 1
+	fi
+
+	# Add wp .maintenance file here to domain.
+	gf_set_maintenance_mode_for_site $domain
+
+	# rsync the files
+	echo "Copying files to domain $domain..."
+	rsync -au --quiet --stats /var/www/$domain/git-clones/$git_branch/ /var/www/$domain/html/
+
+	# Special handling for the plugins, mu_plugins & themes folder
+	# Yes, we know, this duplicates some of the work in the rsync line above.
+	# Better this way for clarity than to write something fancy no one can understand later.
+	echo "Removing non-matching files from the plugins folder for $domain..."
+	rsync -au --quiet --delete --stats /var/www/$domain/git-clones/$git_branch/wp-content/plugins/ /var/www/$domain/html/wp-content/plugins/
+	echo "Removing non-matching files from the mu-plugins folder for $domain..."
+	rsync -au --quiet --delete --stats /var/www/$domain/git-clones/$git_branch/wp-content/mu-plugins/ /var/www/$domain/html/wp-content/mu-plugins/
+	echo "Removing non-matching files from the themes folder for $domain..."
+	rsync -au --quiet --delete --stats /var/www/$domain/git-clones/$git_branch/wp-content/themes/ /var/www/$domain/html/wp-content/themes/
+
+	# reset file permissions
+	gf_reset_file_permissions_for_domain $domain
+
+	# Remove wp .maintenance file here from domain.
+	gf_remove_maintenance_mode_for_site $domain
+
+	# flush caches
+	echo "Flushing caches..."
+	g_flush_cache $user_name $domain
+
+	echo "Git clone successful"
+	exit
+fi

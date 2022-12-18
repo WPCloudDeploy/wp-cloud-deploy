@@ -70,7 +70,7 @@ select_domain () {
 }
 
 
-# for options where changes are applied to the NGINX configuration
+# for options where changes are applied to the NGINX/OLS configuration
 select_domain_mu () {
 	while [[ -z $domain ]]
 	do

@@ -316,55 +316,14 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 		}
 
 		/**
-		 * Option to reset metas.
+		 * Option to reset metas and remove git from site.
 		 */
 		if ( true === $git_site_status ) {
-			$fields[] = array(
-				'id'   => 'git-site-control-misc-header',
-				'name' => __( 'Misc', 'wpcd' ),
-				'type' => 'heading',
-				'tab'  => $this->get_tab_slug(),
-			);
-			$fields[] = array(
-				'id'         => 'git-site-control-remove-git',
-				'name'       => '',
-				'std'        => __( 'Remove Git', 'wpcd' ),
-				'desc'       => __( 'Remove git from this site.', 'wpcd' ),
-				'tooltip'    => __( 'This will attempt to remove git files from the site. WPCD will no longer track this site as being git enabled.', 'wpcd' ),
-				'columns'    => 6,
-				'attributes' => array(
-					// the _action that will be called in ajax.
-					'data-wpcd-action'              => 'git-site-control-remove-git',
-					'data-wpcd-id'                  => $id,
-					// make sure we give the user a confirmation prompt.
-					'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like to remove git from this site? This action is not reversible!', 'wpcd' ),
-				),
-				'type'       => 'button',
-				'tab'        => $this->get_tab_slug(),
-				'class'      => 'wpcd_app_action',
-				'save_field' => false,
-			);
-			$fields[] = array(
-				'id'         => 'git-site-control-reset-metas-action',
-				'name'       => '',
-				'std'        => __( 'Reset metas', 'wpcd' ),
-				'desc'       => __( 'Remove git related metas from this site.', 'wpcd' ),
-				'tooltip'    => __( 'This will NOT remove git from the site on the server!', 'wpcd' ),
-				'columns'    => 6,
-				'attributes' => array(
-					// the _action that will be called in ajax.
-					'data-wpcd-action'              => 'git-site-control-remove-metas',
-					'data-wpcd-id'                  => $id,
-					// make sure we give the user a confirmation prompt.
-					'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like to reset the git related metas for this site? This action is not reversible!', 'wpcd' ),
-				),
-				'type'       => 'button',
-				'tab'        => $this->get_tab_slug(),
-				'class'      => 'wpcd_app_action',
-				'save_field' => false,
-			);
-
+			$fields = array_merge( $fields, $this->get_fields_for_git_misc( $id ) );
 		}
+
+		// Show settings.
+		$fields = array_merge( $fields, $this->get_fields_for_git_display_settings( $id ) );
 
 		return $fields;
 
@@ -818,7 +777,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
-	 * Gets the fields to be shown in the new branch& checkout
+	 * Gets the fields to be shown in the new branch & checkout
 	 * sections of the tab.
 	 *
 	 * @param int $id id.
@@ -870,7 +829,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 		$actions[] = array(
 			'id'         => 'git-site-control-create-branch-fields-action',
 			'name'       => '',
-			'std'        => __( 'Checkout Branch', 'wpcd' ),
+			'std'        => __( 'Create & Checkout New Branch', 'wpcd' ),
 			'attributes' => array(
 				// the _action that will be called in ajax.
 				'data-wpcd-action'              => 'git-site-control-create-new-branch',
@@ -891,6 +850,284 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 			'save_field' => false,
 		);
 
+		return $actions;
+
+	}
+
+	/**
+	 * Gets the fields that display in the misc section.
+	 *
+	 * @param int $id id.
+	 *
+	 * @return array Array of actions, complying with the structure necessary by metabox.io fields.
+	 */
+	public function get_fields_for_git_misc( $id ) {
+
+		$fields[] = array(
+			'id'   => 'git-site-control-misc-header',
+			'name' => __( 'Misc', 'wpcd' ),
+			'type' => 'heading',
+			'tab'  => $this->get_tab_slug(),
+		);
+		$fields[] = array(
+			'id'         => 'git-site-control-remove-git',
+			'name'       => '',
+			'std'        => __( 'Remove Git', 'wpcd' ),
+			'desc'       => __( 'Remove git from this site.', 'wpcd' ),
+			'tooltip'    => __( 'This will attempt to remove git files from the site. WPCD will no longer track this site as being git enabled.', 'wpcd' ),
+			'columns'    => 6,
+			'attributes' => array(
+				// the _action that will be called in ajax.
+				'data-wpcd-action'              => 'git-site-control-remove-git',
+				'data-wpcd-id'                  => $id,
+				// make sure we give the user a confirmation prompt.
+				'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like to remove git from this site? This action is not reversible!', 'wpcd' ),
+			),
+			'type'       => 'button',
+			'tab'        => $this->get_tab_slug(),
+			'class'      => 'wpcd_app_action',
+			'save_field' => false,
+		);
+		$fields[] = array(
+			'id'         => 'git-site-control-reset-metas-action',
+			'name'       => '',
+			'std'        => __( 'Reset metas', 'wpcd' ),
+			'desc'       => __( 'Remove git related metas from this site.', 'wpcd' ),
+			'tooltip'    => __( 'This will NOT remove git from the site on the server!', 'wpcd' ),
+			'columns'    => 6,
+			'attributes' => array(
+				// the _action that will be called in ajax.
+				'data-wpcd-action'              => 'git-site-control-remove-metas',
+				'data-wpcd-id'                  => $id,
+				// make sure we give the user a confirmation prompt.
+				'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like to reset the git related metas for this site? This action is not reversible!', 'wpcd' ),
+			),
+			'type'       => 'button',
+			'tab'        => $this->get_tab_slug(),
+			'class'      => 'wpcd_app_action',
+			'save_field' => false,
+		);
+
+		return $fields;
+
+	}
+
+	/**
+	 * Gets the fields that display the current settings.
+	 *
+	 * @param int $id id.
+	 *
+	 * @return array Array of actions, complying with the structure necessary by metabox.io fields.
+	 */
+	public function get_fields_for_git_display_settings( $id ) {
+
+		// Get existing settings.
+		$git_settings = $this->get_git_settings( $id );
+
+		$header_msg = __( 'These are the values used when this site was linked with your git repo.', 'wpcd' );
+
+		$return      = '<div class="wpcd_git_initial_settings_data">';
+			$return .= '<div class="wpcd_git_initial_settings_data_inner_wrap">';
+
+				$return     .= '<div class="wpcd_git_initial_settings_data_label_item">';
+					$return .= __( 'Remote Repo:', 'wpcd' );
+				$return     .= '</div>';
+
+				$return     .= '<div class="wpcd_git_initial_settings_data_value_item">';
+					$return .= esc_html( $git_settings['git_remote_url'] );
+				$return     .= '</div>';
+
+				$return     .= '<div class="wpcd_git_initial_settings_data_label_item">';
+					$return .= __( 'Initial Branch:', 'wpcd' );
+				$return     .= '</div>';
+
+				$return     .= '<div class="wpcd_git_initial_settings_data_value_item">';
+					$return .= esc_html( $git_settings['git_branch'] );
+				$return     .= '</div>';
+
+				$return     .= '<div class="wpcd_git_initial_settings_data_label_item">';
+					$return .= __( 'User Display Name:', 'wpcd' );
+				$return     .= '</div>';
+
+				$return     .= '<div class="wpcd_git_initial_settings_data_value_item">';
+					$return .= $git_settings['git_display_name'];
+				$return     .= '</div>';
+
+				$return     .= '<div class="wpcd_git_initial_settings_data_label_item">';
+					$return .= __( 'User Name:', 'wpcd' );
+				$return     .= '</div>';
+
+				$return     .= '<div class="wpcd_git_initial_settings_data_value_item">';
+					$return .= esc_html( $git_settings['git_user_name'] );
+				$return     .= '</div>';
+
+				$return     .= '<div class="wpcd_git_initial_settings_data_label_item">';
+					$return .= __( 'Pre-Processing Script Link:', 'wpcd' );
+				$return     .= '</div>';
+
+				$return     .= '<div class="wpcd_git_initial_settings_data_value_item">';
+					$return .= esc_html( $git_settings['git_pre_processing_script_link'] );
+				$return     .= '</div>';
+
+				$return     .= '<div class="wpcd_git_initial_settings_data_label_item">';
+					$return .= __( 'Post-Processing Script Link:', 'wpcd' );
+				$return     .= '</div>';
+
+				$return     .= '<div class="wpcd_git_initial_settings_data_value_item">';
+					$return .= esc_html( $git_settings['git_post_processing_script_link'] );
+				$return     .= '</div>';
+
+				$return     .= '<div class="wpcd_git_initial_settings_data_label_item">';
+					$return .= __( 'Ignore Folders:', 'wpcd' );
+				$return     .= '</div>';
+
+				$return     .= '<div class="wpcd_git_initial_settings_data_value_item">';
+					$return .= esc_html( $git_settings['git_exclude_folders'] );
+				$return     .= '</div>';
+
+				$return     .= '<div class="wpcd_git_initial_settings_data_label_item">';
+					$return .= __( 'Ignore Files:', 'wpcd' );
+				$return     .= '</div>';
+
+				$return     .= '<div class="wpcd_git_initial_settings_data_value_item">';
+					$return .= esc_html( $git_settings['git_exclude_files'] );
+				$return     .= '</div>';
+
+				$return     .= '<div class="wpcd_git_initial_settings_data_label_item">';
+					$return .= __( 'Git Ignore Link:', 'wpcd' );
+				$return     .= '</div>';
+
+				$return     .= '<div class="wpcd_git_initial_settings_data_value_item">';
+					$return .= esc_html( $git_settings['git_ignore_url'] );
+				$return     .= '</div>';
+
+			$return .= '</div>';
+		$return     .= '</div>';
+
+		$actions[] = array(
+			'id'   => 'git-site-control-view-settings-header',
+			'name' => __( 'Git Initial Settings', 'wpcd' ),
+			'desc' => $header_msg,
+			'type' => 'heading',
+			'tab'  => $this->get_tab_slug(),
+		);
+
+		$actions[] = array(
+			'id'         => 'git-site-control-div-start',
+			'name'       => '',
+			'std'        => $return,
+			'type'       => 'custom_html',
+			'tab'        => $this->get_tab_slug(),
+			'save_field' => false,
+		);
+
+		/*
+		$actions[] = array(
+			'id'         => 'git-site-control-div-start',
+			'name'       => '',
+			'std'        => '<div class="wpcd_git_display_settings">',
+			'type'       => 'custom_html',
+			'tab'        => $this->get_tab_slug(),
+			'save_field' => false,
+		);
+
+		$actions[] = array(
+			'id'         => 'git-site-control-view-repo-name',
+			'name'       => __( 'Remote Repo', 'wpcd' ),
+			'std'        => $git_settings['git_remote_url'],
+			'type'       => 'custom_html',
+			'tab'        => $this->get_tab_slug(),
+			'save_field' => false,
+		);
+
+		$actions[] = array(
+			'id'         => 'git-site-control-view-branch-name',
+			'name'       => __( 'Initial Branch', 'wpcd' ),
+			'std'        => $git_settings['git_branch'] . '<br /><br />',
+			'type'       => 'custom_html',
+			'tab'        => $this->get_tab_slug(),
+			'save_field' => false,
+		);
+
+		$actions[] = array(
+			'id'         => 'git-site-control-view-display-name',
+			'name'       => __( 'User Display Name', 'wpcd' ),
+			'std'        => $git_settings['git_display_name'],
+			'columns'    => 4,
+			'type'       => 'custom_html',
+			'tab'        => $this->get_tab_slug(),
+			'save_field' => false,
+		);
+
+		$actions[] = array(
+			'id'         => 'git-site-control-view-user-name',
+			'name'       => __( 'User Name', 'wpcd' ),
+			'std'        => $git_settings['git_user_name'],
+			'columns'    => 4,
+			'type'       => 'custom_html',
+			'tab'        => $this->get_tab_slug(),
+			'save_field' => false,
+		);
+
+		$actions[] = array(
+			'id'         => 'git-site-control-view-pre-script',
+			'name'       => __( 'Pre-Processing Script', 'wpcd' ),
+			'std'        => $git_settings['git_pre_processing_script_link'],
+			'columns'    => 4,
+			'type'       => 'custom_html',
+			'tab'        => $this->get_tab_slug(),
+			'save_field' => false,
+		);
+
+		$actions[] = array(
+			'id'         => 'git-site-control-view-post-script',
+			'name'       => __( 'Post-Processing Script', 'wpcd' ),
+			'std'        => $git_settings['git_post_processing_script_link'],
+			'columns'    => 4,
+			'type'       => 'custom_html',
+			'tab'        => $this->get_tab_slug(),
+			'save_field' => false,
+		);
+
+		$actions[] = array(
+			'id'         => 'git-site-control-view-ignore-folders',
+			'name'       => __( 'Ignore Folders', 'wpcd' ),
+			'std'        => $git_settings['git_exclude_folders'],
+			'columns'    => 4,
+			'type'       => 'custom_html',
+			'tab'        => $this->get_tab_slug(),
+			'save_field' => false,
+		);
+
+		$actions[] = array(
+			'id'         => 'git-site-control-view-ignore-files',
+			'name'       => __( 'Ignore Files', 'wpcd' ),
+			'std'        => $git_settings['git_exclude_files'],
+			'columns'    => 4,
+			'type'       => 'custom_html',
+			'tab'        => $this->get_tab_slug(),
+			'save_field' => false,
+		);
+
+		$actions[] = array(
+			'id'         => 'git-site-control-view-git-ignore',
+			'name'       => __( 'Git Ignore', 'wpcd' ),
+			'std'        => $git_settings['git_ignore_url'],
+			'columns'    => 4,
+			'type'       => 'custom_html',
+			'tab'        => $this->get_tab_slug(),
+			'save_field' => false,
+		);
+
+		$actions[] = array(
+			'id'         => 'git-site-control-div-end',
+			'name'       => '',
+			'std'        => '</div>',
+			'type'       => 'custom_html',
+			'tab'        => $this->get_tab_slug(),
+			'save_field' => false,
+		);
+		*/
 		return $actions;
 
 	}

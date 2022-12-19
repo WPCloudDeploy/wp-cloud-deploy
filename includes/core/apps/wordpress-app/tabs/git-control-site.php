@@ -60,6 +60,30 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 
 			if ( true === $success ) {
 				$this->set_git_status( $id, true );
+
+				$msg = __( 'Git was initialized for this site.', 'wpcd' );
+				$this->git_add_to_site_log( $id, $msg );
+			} else {
+				$msg = __( 'An attempt to initialize git for this site failed.', 'wpcd' );
+				$this->git_add_to_site_log( $id, $msg );
+			}
+		}
+
+		// if the command is to clone a site without it being initialized log the attempt.
+		if ( 'git_clone_to_site' === $command_array[0] ) {
+
+			// Lets pull the logs.
+			$logs = $this->get_app_command_logs( $id, $name );
+
+			// Is the command successful?
+			$success = (bool) $this->is_ssh_successful( $logs, 'git_control_site_command.txt' );
+
+			if ( true === $success ) {
+				$msg = __( 'Repo was cloned to this site without initializing git.', 'wpcd' );
+				$this->git_add_to_site_log( $id, $msg );
+			} else {
+				$msg = __( 'An attempt to clone a repo to this site failed.', 'wpcd' );
+				$this->git_add_to_site_log( $id, $msg );
 			}
 		}
 
@@ -143,6 +167,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 			'git-site-control-switch-branch',
 			'git-site-control-clone-only',
 			'git-site-control-credentials-only',
+			'git-site-control-remove-metas',
 		);
 		if ( in_array( $action, $valid_actions, true ) ) {
 			if ( ! $this->get_tab_security( $id ) ) {
@@ -164,6 +189,9 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 				case 'git-site-control-credentials-only':
 					$bash_action = 'git_site_credentials';
 					$result      = $this->git_site_init_credentials( $bash_action, $id );
+					break;
+				case 'git-site-control-remove-metas':
+					$result = $this->remove_metas( $action, $id );
 					break;
 				case 'restore-from-backup':
 				case 'restore-from-backup-webserver-config-only':
@@ -620,7 +648,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 	 */
 	public function get_git_settings( $id ) {
 
-		$settings = wpcd_maybe_unserialize( get_post_meta( $id, 'wpcd_wpapp_git_settings', true ) );
+		$settings = wpcd_maybe_unserialize( get_post_meta( $id, 'wpcd_app_git_settings', true ) );
 
 		if ( empty( $settings ) ) {
 			$fields = $this->get_git_default_field_names();
@@ -762,7 +790,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 		// Note that we will create a new array just for saving so that we can encrypt the token without affecting later processing that needs an unencrypted token.
 		$git_settings_for_saving              = $git_settings;
 		$git_settings_for_saving['git_token'] = $this->encrypt( $git_settings_for_saving['git_token'] );
-		update_post_meta( $id, 'wpcd_wpapp_git_settings', $git_settings_for_saving );
+		update_post_meta( $id, 'wpcd_app_git_settings', $git_settings_for_saving );
 
 		// Certain settings should not be blank.  Loop through those and error out if they're blank.
 		$non_blank_fields = array(
@@ -860,7 +888,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 		// Note that we will create a new array just for saving so that we can encrypt the token without affecting later processing that needs an unencrypted token.
 		$git_settings_for_saving              = $git_settings;
 		$git_settings_for_saving['git_token'] = $this->encrypt( $git_settings_for_saving['git_token'] );
-		update_post_meta( $id, 'wpcd_wpapp_git_settings', $git_settings_for_saving );
+		update_post_meta( $id, 'wpcd_app_git_settings', $git_settings_for_saving );
 
 		// Certain settings should not be blank.  Loop through those and error out if they're blank.
 		$non_blank_fields = array(
@@ -958,7 +986,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 		// Note that we will create a new array just for saving so that we can encrypt the token without affecting later processing that needs an unencrypted token.
 		$git_settings_for_saving              = $git_settings;
 		$git_settings_for_saving['git_token'] = $this->encrypt( $git_settings_for_saving['git_token'] );
-		update_post_meta( $id, 'wpcd_wpapp_git_settings', $git_settings_for_saving );
+		update_post_meta( $id, 'wpcd_app_git_settings', $git_settings_for_saving );
 
 		// Certain settings should not be blank.  Loop through those and error out if they're blank.
 		$non_blank_fields = array(
@@ -1000,11 +1028,75 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 		$result  = $this->execute_ssh( 'generic', $instance, array( 'commands' => $run_cmd ) );
 		$success = $this->is_ssh_successful( $result, 'git_control_site.txt' );
 		if ( ! $success ) {
+			// Log the attempt.
+			$this->git_add_to_site_log( $id, __( 'Attempt to setup credentials for the site was not successful.', 'wpcd' ) );
 			return new \WP_Error( sprintf( __( 'Unable to %1$s site: %2$s', 'wpcd' ), $action, $result ) );
+		} else {
+			// Action successful - log it.
+			$this->git_add_to_site_log( $id, __( 'Credentials were setup for this site without initializing git.', 'wpcd' ) );
 		}
 
 		return $success;
 
+	}
+
+	/**
+	 * Add a message to the git log array for the site.
+	 *
+	 * @param int    $id Post id of site we're working with.
+	 * @param string $msg Message to write to log.
+	 */
+	public function git_add_to_site_log( $id, $msg ) {
+
+		// Get current logs.
+		$logs = wpcd_maybe_unserialize( get_post_meta( $id, 'wpcd_app_git_history', true ) );
+
+		// Make sure we have something in the logs array otherwise create a blank one.
+		if ( empty( $logs ) ) {
+			$logs = array();
+		}
+		if ( ! is_array( $logs ) ) {
+			$logs = array();
+		}
+
+		// Add to array.
+		$key          = wpcd_generate_uuid();
+		$logs[ $key ] = array(
+			'reporting_time'           => time(),
+			'reporting_time_human'     => date( 'Y-m-d H:i:s', time() ),
+			'reporting_time_human_utc' => gmdate( 'Y-m-d H:i:s' ),
+			'msg'                      => $msg,
+		);
+
+		// Push back to database.
+		return update_post_meta( $id, 'wpcd_app_git_history', $logs );
+
+	}
+
+	/**
+	 * Remove git related metas.
+	 *
+	 * @param string $action The action to be performed (this matches the string required in the bash scripts if bash scripts are used - in this case 'git_site_credentials').
+	 * @param int    $id id.
+	 *
+	 * @return boolean;
+	 */
+	public function remove_metas( $action, $id ) {
+
+		// Legacy metas used during development.
+		delete_post_meta( $id, 'wpcd_wpapp_git_settings' );
+		delete_post_meta( $id, 'wpcd_wpapp_git_history' );
+
+		// Production metas.
+		delete_post_meta( $id, 'wpcd_app_git_settings' );
+
+		// Remove the status meta.
+		$this->set_git_status( $id, false );
+
+		// Log the action.
+		$this->git_add_to_site_log( $id, __( 'Metas deleted.', 'wpcd' ) );
+
+		return true;
 	}
 
 	/**

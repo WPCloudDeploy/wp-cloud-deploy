@@ -168,6 +168,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 			'git-site-control-clone-only',
 			'git-site-control-credentials-only',
 			'git-site-control-remove-metas',
+			'git-site-control-remove-git',
 		);
 		if ( in_array( $action, $valid_actions, true ) ) {
 			if ( ! $this->get_tab_security( $id ) ) {
@@ -192,6 +193,10 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 					break;
 				case 'git-site-control-remove-metas':
 					$result = $this->remove_metas( $action, $id );
+					break;
+				case 'git-site-control-remove-git':
+					$bash_action = 'git_domain_remove';
+					$result      = $this->git_actions( $bash_action, $id );
 					break;
 				case 'restore-from-backup':
 				case 'restore-from-backup-webserver-config-only':
@@ -280,7 +285,15 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 				$fields = array_merge( $fields, $this->get_fields_for_init( $id ) );
 
 			} else {
-				// Git has been initialized for this site - show the data it's using and allow admin to change the credentials used.
+				// Git has been initialized for this site.
+				$header_msg = __( 'Git is active on this site.', 'wpcd' );
+				$fields[]   = array(
+					'id'   => 'git-site-control-header',
+					'name' => __( 'Git', 'wpcd' ),
+					'desc' => $header_msg,
+					'type' => 'heading',
+					'tab'  => $this->get_tab_slug(),
+				);
 			}
 		}
 
@@ -293,6 +306,25 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 				'name' => __( 'Misc', 'wpcd' ),
 				'type' => 'heading',
 				'tab'  => $this->get_tab_slug(),
+			);
+			$fields[] = array(
+				'id'         => 'git-site-control-remove-git',
+				'name'       => '',
+				'std'        => __( 'Remove Git', 'wpcd' ),
+				'desc'       => __( 'Remove git from this site.', 'wpcd' ),
+				'tooltip'    => __( 'This will attempt to remove git files from the site. WPCD will no longer track this site as being git enabled.', 'wpcd' ),
+				'columns'    => 6,
+				'attributes' => array(
+					// the _action that will be called in ajax.
+					'data-wpcd-action'              => 'git-site-control-remove-git',
+					'data-wpcd-id'                  => $id,
+					// make sure we give the user a confirmation prompt.
+					'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like to remove git from this site? This action is not reversible!', 'wpcd' ),
+				),
+				'type'       => 'button',
+				'tab'        => $this->get_tab_slug(),
+				'class'      => 'wpcd_app_action',
+				'save_field' => false,
 			);
 			$fields[] = array(
 				'id'         => 'git-site-control-reset-metas-action',
@@ -791,6 +823,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 		$git_settings_for_saving              = $git_settings;
 		$git_settings_for_saving['git_token'] = $this->encrypt( $git_settings_for_saving['git_token'] );
 		update_post_meta( $id, 'wpcd_app_git_settings', $git_settings_for_saving );
+		$this->set_git_branch( $id, $git_settings['git_branch'] );
 
 		// Certain settings should not be blank.  Loop through those and error out if they're blank.
 		$non_blank_fields = array(
@@ -1041,6 +1074,93 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
+	 * Perform various git actions on the site.
+	 * These are short-running actions.
+	 *
+	 * @param string $action The action to be performed (this matches the string required in the bash scripts if bash scripts are used).
+	 * @param int    $id id.
+	 */
+	public function git_actions( $action, $id ) {
+
+		$instance = $this->get_app_instance_details( $id );
+
+		if ( is_wp_error( $instance ) ) {
+			/* Translators: %s is the action name. */
+			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
+		}
+
+		$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
+
+		// Initialize vars to be used later.
+		$run_cmd = '';
+
+		// Get the domain we're working on.
+		$domain = get_post_meta( $id, 'wpapp_domain', true );
+		if ( empty( $domain ) ) {
+			/* Translators: %s is the action name. */
+			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the domain for action %s', 'wpcd' ), $action ) );
+		}
+
+		// sanitize the fields to allow them to be used safely on the bash command line.
+		$original_args = $args;
+		$args          = array_map(
+			function( $item ) {
+				return escapeshellarg( $item );
+			},
+			$args
+		);
+
+		switch ( $action ) {
+			case 'git_domain_remove':
+				// Get the full command to be executed by ssh.
+				$run_cmd = $this->turn_script_into_command(
+					$instance,
+					'git_control_site.txt',
+					array_merge(
+						$args,
+						array(
+							'action' => $action,
+							'domain' => $domain,
+						)
+					)
+				);
+				break;
+		}
+
+		// log.
+		do_action( 'wpcd_log_error', sprintf( 'attempting to run command for %s = %s ', print_r( $instance, true ), $run_cmd ), 'trace', __FILE__, __LINE__, $instance, false );
+
+		// execute and evaluate results.
+		$result  = $this->execute_ssh( 'generic', $instance, array( 'commands' => $run_cmd ) );
+		$success = $this->is_ssh_successful( $result, 'git_control_site.txt' );
+		if ( ! $success ) {
+			// Log the attempt.
+			switch ( $action ) {
+				case 'git_domain_remove':
+					$this->git_add_to_site_log( $id, __( 'Attempt to remove git for the site was not successful.', 'wpcd' ) );
+					break;
+			}
+			/* Translators: %1s is the action name; %2s is a long result string or array. */
+			return new \WP_Error( sprintf( __( 'Unable to %1$s site: %2$s', 'wpcd' ), $action, $result ) );
+		} else {
+			// Action successful - log it and do some other actions (depending on the action string.)
+			switch ( $action ) {
+				case 'git_domain_remove':
+					// Log it.
+					$this->git_add_to_site_log( $id, __( 'Git was removed from this site.', 'wpcd' ) );
+					// Remove git meta.
+					$this->set_git_status( $id, false );
+					break;
+			}
+		}
+
+		return $success;
+
+	}
+
+
+
+	/**
 	 * Add a message to the git log array for the site.
 	 *
 	 * @param int    $id Post id of site we're working with.
@@ -1089,6 +1209,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 
 		// Production metas.
 		delete_post_meta( $id, 'wpcd_app_git_settings' );
+		delete_post_meta( $id, 'wpapp_git_branch' );
 
 		// Remove the status meta.
 		$this->set_git_status( $id, false );

@@ -478,11 +478,28 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			$page_cache_class_name = 'wpcd_site_details_top_row_element_page_cache_off';
 		}
 
+		// Git.
+		$git_status               = $this->get_git_status( $app_id );
+		$git_status_display_value = '';
+		if ( true === $git_status ) {
+			$git_status_display_value = __( 'On', 'wpcd' );
+			$git_status_class_name    = 'wpcd_site_details_top_row_element_git_status';
+
+			$git_branch_display_value = $this->get_git_branch( $app_id );
+			$git_branch_class_name    = 'wpcd_site_details_top_row_element_git_branch';  // Not used - for now we're using the $git_status_class_name for both git status and branch name.
+		}
+
 		// Wrap the page cache and ssl status into a set of spans that will go underneath the domain name.
 		$other_data  = '<div class="wpcd_site_details_top_row_element_wrapper">';
 		$other_data .= '<span class="wpcd_medium_chicklet wpcd_site_details_top_row_element_wstype">' . $webserver_type_name . '</span>';
 		$other_data .= '<span class=" wpcd_medium_chicklet ' . $ssl_class_name . '">' . sprintf( __( 'SSL: %s', 'wpcd' ), $ssl_status_display_value ) . '</span>';
 		$other_data .= '<span class=" wpcd_medium_chicklet ' . $page_cache_class_name . '">' . sprintf( __( 'Cache: %s', 'wpcd' ), $page_cache_display_value ) . '</span>';
+		if ( ! empty( $git_status ) ) {
+			$other_data .= '<span class=" wpcd_medium_chicklet ' . $git_status_class_name . '">' . sprintf( __( 'Git: %s', 'wpcd' ), $git_status_display_value ) . '</span>';
+		}
+		if ( ! empty( $git_branch_display_value ) ) {
+			$other_data .= '<span class=" wpcd_medium_chicklet ' . $git_status_class_name . '">' . sprintf( __( 'Branch: %s', 'wpcd' ), $git_branch_display_value ) . '</span>';
+		}
 		$other_data .= '</div>';
 
 		// Copy IP.
@@ -2038,6 +2055,31 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		if ( 'wpcd_app' == get_post_type( $post_id ) ) {
 			return update_post_meta( $post_id, 'wpapp_git_status', (int) $git_status );
 		}
+
+	}
+
+	/**
+	 * Get the branch name that we think the site is on.
+	 *
+	 * @param int $app_id The post id of the server or site record.
+	 *
+	 * @return string
+	 */
+	public function get_git_branch( $app_id ) {
+
+		return (string) get_post_meta( $app_id, 'wpapp_git_branch', true );
+
+	}
+
+	/**
+	 * Set the branch name that we think the site is on.
+	 *
+	 * @param int    $app_id The post id of the server or site record.
+	 * @param string $branch The branch name to set.
+	 */
+	public function set_git_branch( $app_id, $branch ) {
+
+		return update_post_meta( $app_id, 'wpapp_git_branch', $branch );
 
 	}
 

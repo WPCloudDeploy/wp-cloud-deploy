@@ -1099,7 +1099,7 @@ class WP_CLOUD_DEPLOY {
 			$provider_type = get_post_meta( $post[0]->ID, 'wpcd_cloud_provider_type', true );
 			$inactive      = boolval( get_post_meta( $post[0]->ID, 'wpcd_cloud_provider_inactive', true ) );
 
-			// $args is used to tell pass the newly instantiated class some data into its constructor.
+			// $args is used to pass the newly instantiated class some data into its constructor.
 			$args = array(
 				'provider_name'           => $post[0]->post_title,
 				'provider_slug'           => get_post_meta( $post[0]->ID, 'wpcd_cloud_provider_slug', true ),
@@ -1107,7 +1107,7 @@ class WP_CLOUD_DEPLOY {
 				'provider_dashboard_link' => get_post_meta( $post[0]->ID, 'wpcd_cloud_provider_dashboard_link', true ),
 			);
 
-			// see if we can find a class with the provider type - logic is very very similar to that of the get_provider_api function.
+			// See if we can find a class with the provider type - logic is very very similar to that of the get_provider_api function.
 			/* Search through folders looking for a provider class file */
 			foreach ( $provider_paths as $provider_path ) {
 				$provider_file = $provider_path . 'class-' . $provider_type . '.php';
@@ -1218,7 +1218,7 @@ class WP_CLOUD_DEPLOY {
 	 * Return the array of ACTIVE providers
 	 *
 	 * An active provider is one whose credentials have been entered.
-	 * Later we might be more strict with the definition
+	 * Later we might be more strict with the definition.
 	 */
 	public function get_active_cloud_providers() {
 

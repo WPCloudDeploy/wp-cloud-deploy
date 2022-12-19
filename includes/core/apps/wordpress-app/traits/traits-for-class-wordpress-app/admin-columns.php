@@ -44,6 +44,16 @@ trait wpcd_wpapp_admin_column_data {
 
 		$new_actions = array();
 
+		// Add link for delete server records.
+		$wpcd_server_delete_protection = get_post_meta( $id, 'wpcd_server_delete_protection', true );
+
+		if ( 'private' === get_post_status( $id ) && wpcd_is_admin() && empty( $wpcd_server_delete_protection ) ) {
+			$new_actions['wpcd_delete_server_record'] = sprintf(
+				'<a class="wpcd_action_delete_server_record" data-wpcd-id="%d" href="">%s</a>',
+				$id,
+				esc_html( __( 'Delete Record', 'wpcd' ) )
+			);
+		}
 		// Show old-logs drop-down in the server list.
 		if ( wpcd_get_option( 'wordpress_app_show_logs_dropdown_in_server_list' ) ) {
 			// add the show logs button if a command is currently executing.

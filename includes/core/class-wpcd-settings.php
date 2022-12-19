@@ -1952,10 +1952,25 @@ class WPCD_Settings {
 			)
 		);
 
-		// JS fix for Metabox.io issue where the user ends up on tab #1 after a page refreshes.  This JS keeps the user on the tab they were on after a page refresh.
-		wp_register_script( 'wpcd-mbio-tabs-fix.', wpcd_url . 'assets/js/wpcd-mbio-tabs-fix.js', array( 'jquery', 'rwmb-tabs' ), wpcd_scripts_version, true );
-		wp_enqueue_script( 'wpcd-mbio-tabs-fix.' );
+		$wpcd_screen          = get_current_screen();
+		$wpcd_check_post_type = array(
+			'wpcd_app_server',
+			'wpcd_app',
+			'wpcd_cloud_provider',
+			'wpcd_notify_user',
+			'wpcd_team',
+			'wpcd_permission_type',
+			'wpcd_server_batch',
+			'wpcd_app_batch',
+			'wpcd_snapshots',
+			'wpcd_bp_master',
+		);
 
+		if ( in_array( $wpcd_screen->base, array( 'post', 'upload' ), true ) && in_array( $wpcd_screen->post_type, $wpcd_check_post_type, true ) ) {
+			// JS fix for Metabox.io issue where the user ends up on tab #1 after a page refreshes.  This JS keeps the user on the tab they were on after a page refresh.
+			wp_register_script( 'wpcd-mbio-tabs-fix.', wpcd_url . 'assets/js/wpcd-mbio-tabs-fix.js', array( 'jquery', 'rwmb-tabs' ), wpcd_scripts_version, true );
+			wp_enqueue_script( 'wpcd-mbio-tabs-fix.' );
+		}
 	}
 
 	/**

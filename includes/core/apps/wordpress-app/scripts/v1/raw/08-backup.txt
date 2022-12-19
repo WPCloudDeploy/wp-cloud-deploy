@@ -263,7 +263,17 @@ QUERY
 		fi
 
 		echo "removing existing files..."
-		rm -rf /var/www/$domain
+		
+		# Before attempting to remove the site from the www folder, make sure we have a value in the $domain var.
+		# This prevents us from accidentally deleting the entire www folder when attempting to delete the domain folder.
+		if [[ -z $domain ]]
+		then
+			echo "Unable to proceed because the domain name is blank."
+			exit 1
+		else 
+			rm -rf /var/www/$domain
+		fi			
+
 		if [ "$g_webserver_type" = "nginx" ]
 		then
 			gf_remove_nginx_site "$domain"
@@ -955,12 +965,19 @@ then
 	done
 	domain=$(echo $backup | cut -d "/" -f 1)
 	
-	if [ "$g_webserver_type" = "nginx" ]
+	# Before attempting to remove the existing files make sure we have a value in the $domain var.
+	if [[ -z $domain ]]
 	then
-		gf_remove_nginx_site "$domain"
-	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
-	then
-		gf_remove_ols_site "$domain"
+		echo "Unable to proceed because the domain name is blank."
+		exit 1
+	else 
+		if [ "$g_webserver_type" = "nginx" ]
+		then
+			gf_remove_nginx_site "$domain" "skip_certbot"
+		elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+		then
+			gf_remove_ols_site "$domain"  "skip_certbot"
+		fi
 	fi
 
 	# restore configuration file.
@@ -1012,8 +1029,15 @@ then
 	done
 	domain=$(echo $backup | cut -d "/" -f 1)
 
-	echo "removing existing files..."
-	rm -rf /var/www/$domain/html/wp-config.php
+	# Before attempting to remove the file from the www folder, make sure we have a value in the $domain var.
+	if [[ -z $domain ]]
+	then
+		echo "Unable to fully remove wp-config.php because the domain name is blank."
+		exit 1
+	else 
+		echo "removing existing files..."	
+		rm -rf /var/www/$domain/html/wp-config.php
+	fi
 
 	# restore files
 	cd $domain

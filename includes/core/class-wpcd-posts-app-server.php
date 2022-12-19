@@ -643,12 +643,12 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 							$url        = is_admin() ? admin_url( 'post.php?post=' . $app_id . '&action=edit' ) : get_permalink( $app_id );
 							$app_link   = sprintf( $break_char . '<a href="%s" target="_blank">%s</a>', esc_url( $url ), get_the_title( $app_id ) );
 							$app_link   = $this->wpcd_column_wrap_string_with_span_and_class( $app_link, 'server_app_link', 'left' );
-							$app_links .= wpcd_wrap_clipboard_copy( $app_link, false );
+							$app_links .= $app_link;
 
 						} else {
 							$app_link   = sprintf( $break_char . '%s ', get_the_title( $app_id ) );
 							$app_link   = $this->wpcd_column_wrap_string_with_span_and_class( $app_link, 'server_app_link', 'left' );
-							$app_links .= wpcd_wrap_clipboard_copy( $app_link, false );
+							$app_links .= $app_link;
 						}
 					}
 

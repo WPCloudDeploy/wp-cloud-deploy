@@ -22,14 +22,14 @@ do
 	old_domain=$(ls /var/www | grep -v html | sed -n "$site_number"p)
 done
 
-if [[ -z $new_domain ]]
-then
+while [[ -z $new_domain ]]
+do
 	echo
 	echo "Enter the destination domain name
 	Specify just the domain name without www or http://
 	Example: my-new-domain.com"
 	read -p "Domain: " new_domain
-fi
+done
 
 old_user_name=$(echo $old_domain | cut -c1-32)
 new_user_name=$(echo $new_domain | cut -c1-32)
@@ -249,7 +249,16 @@ fi
 chmod -R g+w /var/www/$new_domain/html
 gf_restart_webserver
 
-rm -rf /var/www/$new_domain/.ssh_$old_user_name/
+# Before attempting to remove the files from the www folder, make sure we have a value in the $domain var.
+# At this point we should have it since it was validated earlier.  This is just a prophylactic check.
+if [[ -z $new_domain ]]
+then
+	echo "Unable to proceed because the new domain name is blank. Operation has only partially succeeded and sites are probably in an unstable state."
+	exit 1
+else 
+	rm -rf /var/www/$new_domain/.ssh_$old_user_name/
+fi
+
 mkdir -p /var/www/$new_domain/.ssh_$new_user_name/
 echo "Match User $new_user_name
 PasswordAuthentication yes

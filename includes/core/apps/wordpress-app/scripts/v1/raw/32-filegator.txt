@@ -2790,7 +2790,17 @@ if [[ "${action}" == 'remove_root_domain' || "${action}" == "$((i++))" ]]; then
     fi
     NGINX_RELOAD=1
     # remove site
-    rm -rf /var/www/${domain}
+	# Before attempting to remove the site from the www folder, make sure we have a value in the $domain var.
+	# This prevents us from accidentally deleting the entire www folder in the delete statement below.
+	if [[ -z $domain ]]
+	then
+		echo "Unable to fully remove site because the value of the domain variable is blank."
+		exit 1
+	else
+		rm -rf /var/www/${domain}
+	fi
+
+	# check if removal was a success.
     if [[ -d "/var/www/${domain}" ]]; then
         echo -e "${RED}Error: could not remove '${domain_conf}' in '${domain}'${NC}" >&2 # ERROR
         exit 1

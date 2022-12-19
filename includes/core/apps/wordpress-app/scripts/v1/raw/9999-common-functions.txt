@@ -741,6 +741,10 @@ QUERY
 
 ###################################################################
 #### Add php fpm conf for domain with specific username
+####
+#### @param $1: Domain
+#### @param $2: User name (usually the first 32 chars of the domain name)
+#### @param $3: PHP Version (usually 8.1)
 ###################################################################
 function gf_add_php_conf() {
 	local php_domain
@@ -1326,6 +1330,8 @@ function gf_add_ols_conf() {
 
 ###################################################################
 #### Add domain to httpd conf for ols
+####
+#### @param $1 domain
 ###################################################################
 function gf_add_domain_ols_httpd_conf() {
 	local olsdomain
@@ -1532,13 +1538,20 @@ function gf_6g_ols_disable {
 ### Remove an NGINX Site.
 ###
 ### @param $1 Domain
+### @param $2 Skip_Certbot  (optional - if set, do not delete certificates)
 #####################################################################
 function gf_remove_nginx_site() {
 	local domain
 	domain=$1
-	if grep -qs "listen 443" /etc/nginx/sites-enabled/$domain
+	skip_certbot=$2
+
+	# Maybe delete ssl certificates
+	if [[ -z $skip_certbot ]]
 	then
-		certbot delete --cert-name $domain --noninteractive
+		if grep -qs "listen 443" /etc/nginx/sites-enabled/$domain
+		then
+			certbot delete --cert-name $domain --noninteractive
+		fi
 	fi
 
 	rm -f /etc/nginx/sites-*/$domain*
@@ -1559,17 +1572,26 @@ function gf_remove_nginx_site() {
 ### Remove an ols Site.
 ###
 ### @param $1 Domain
+### @param $2 Skip_Certbot  (optional - if set, do not delete certificates)
 #####################################################################
 function gf_remove_ols_site() {
 	local domain
 	local vhost_conf_name
 	domain=$1
+	skip_certbot=$2
+	
 	default_vhost_conf_name="$domain"
     vhost_conf_name="${2:-$default_vhost_conf_name}"
-	if [ -d "/etc/letsencrypt/live/$domain" ]
-	then
-		certbot delete --cert-name $domain --noninteractive
+	
+	# Maybe delete ssl certificates
+	if [[ -z $skip_certbot ]]
+	then	
+		if [ -d "/etc/letsencrypt/live/$domain" ]
+		then
+			certbot delete --cert-name $domain --noninteractive
+		fi
 	fi
+	
 	rm -rf ${VHDIR}/$vhost_conf_name
 	rm -rf ${LSDIR}/conf/vhosts-disabled/$vhost_conf_name
 	gf_remove_domain_ols_httpd_conf "$domain"
@@ -1594,11 +1616,17 @@ function gf_restore_ols_site() {
 #####################################################################
 ### Restore an nginx Site.
 ###
+### We are assuming that we are in the /root/wp-backups/$domain/temp folder
+### when this function is called!!!!
+### @see 08-backup.sh around line 306 & 992 as well as 
+### 41-wp-backup2.sh around line 490.
+###
 ### @param $1 Domain
 #####################################################################
 function gf_restore_nginx_site() {
 	local domain
 	domain=$1
+	user_name="$(echo $domain | cut -c1-32)"
 	mv sites-enabled/*$domain /etc/nginx/sites-enabled/
 	mv htpasswd/*$domain /etc/nginx/htpasswd/ 2>/dev/null
 

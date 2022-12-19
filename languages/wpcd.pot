@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 "Project-Id-Version: WP Cloud Deploy\n"
-"POT-Creation-Date: 2022-11-27 08:07-0600\n"
+"POT-Creation-Date: 2022-12-04 06:46-0600\n"
 "PO-Revision-Date: 2020-08-14 19:38-0500\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3562,20 +3562,20 @@ msgstr ""
 
 #: includes/core/apps/wordpress-app/class-wordpress-app.php:3218
 msgid ""
-"Add your cloud server provider API key and other credentials to the WPCLOUD "
-"DEPLOY->SETTINGS screen - under the CLOUD PROVIDERS tab / menu."
+"Add your cloud server provider API key and other credentials to the "
+"WPCLOUDDEPLOY → SETTINGS → CLOUD PROVIDERS tab."
 msgstr ""
 
 #: includes/core/apps/wordpress-app/class-wordpress-app.php:3221
 msgid ""
 "Click on the ALL CLOUD SERVERS menu option and use the DEPLOY A NEW "
-"WordPress SERVER button to deploy a server."
+"WORDPRESS SERVER button to deploy a server."
 msgstr ""
 
 #: includes/core/apps/wordpress-app/class-wordpress-app.php:3224
 msgid ""
-"After the server is deployed, go back to the ALL CLOUD SERVERS menu option "
-"and click the INSTALL WordPress button in the server list."
+"After the server is deployed, go back to the CLOUD SERVERS menu option and "
+"click the INSTALL WORDPRESS button in the server list."
 msgstr ""
 
 #: includes/core/apps/wordpress-app/class-wordpress-app.php:3229
@@ -5354,15 +5354,15 @@ msgstr ""
 #: includes/core/apps/wordpress-app/tabs-server/goaccess.php:316
 #: includes/core/apps/wordpress-app/tabs-server/monit.php:375
 #: includes/core/apps/wordpress-app/tabs-server/monitorix.php:317
-#: includes/core/apps/wordpress-app/tabs/phpmyadmin.php:1147
+#: includes/core/apps/wordpress-app/tabs/phpmyadmin.php:1146
 msgid "User Id: "
 msgstr ""
 
 #: includes/core/apps/wordpress-app/tabs-server/goaccess.php:316
 #: includes/core/apps/wordpress-app/tabs-server/monit.php:375
 #: includes/core/apps/wordpress-app/tabs-server/monitorix.php:317
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:481
-#: includes/core/apps/wordpress-app/tabs/phpmyadmin.php:1151
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:480
+#: includes/core/apps/wordpress-app/tabs/phpmyadmin.php:1150
 msgid "Password: "
 msgstr ""
 
@@ -6564,13 +6564,13 @@ msgstr ""
 
 #: includes/core/apps/wordpress-app/tabs-server/ols_console.php:319
 #: includes/core/apps/wordpress-app/tabs/file-manager.php:406
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:506
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:508
 msgid "User Name:"
 msgstr ""
 
 #: includes/core/apps/wordpress-app/tabs-server/ols_console.php:327
 #: includes/core/apps/wordpress-app/tabs/file-manager.php:421
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:520
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:522
 msgid "Password:"
 msgstr ""
 
@@ -10068,34 +10068,34 @@ msgid ""
 "complete the entire log can be viewed in the COMMAND LOG screen."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:475
-msgid "Launch File Manager"
-msgstr ""
-
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:477
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:476
 msgid "User Name: "
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:498
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:486
+msgid "Launch File Manager"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:500
 msgid "File Manager- Change Credentials"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:501
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:503
 msgid "Set a new username and password for the file manager"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:538
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:540
 #: includes/core/apps/wordpress-app/tabs/php-options.php:644
 #: includes/core/apps/wordpress-app/tabs/theme-and-plugin-updates.php:398
 #: includes/templates/notify_user_form_popup.php:232
 msgid "Update"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:548
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:550
 msgid "Are you sure you would like to update details?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:552
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:554
 msgid ""
 "Preparing to update File Manager.<br /> Please DO NOT EXIT this screen until "
 "you see a popup message indicating that the operation has completed or has "
@@ -10104,23 +10104,23 @@ msgid ""
 "the entire log can be viewed in the COMMAND LOG screen."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:560
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:562
 msgid "Upgrade File Manager"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:563
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:565
 msgid "Update the File Manager to the latest version."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:572
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:574
 msgid "Update File Manager"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:580
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:582
 msgid "Are you sure you would like to upgrade the File Manager?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:583
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:585
 msgid ""
 "Preparing to upgrade File Manager.<br /> Please DO NOT EXIT this screen "
 "until you see a popup message indicating that the operation has completed or "
@@ -10129,16 +10129,16 @@ msgid ""
 "complete the entire log can be viewed in the COMMAND LOG screen."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:590
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:602
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:592
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:604
 msgid "Remove File Manager"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:610
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:612
 msgid "Are you sure you would like to remove the File Manager from this site?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/file-manager.php:613
+#: includes/core/apps/wordpress-app/tabs/file-manager.php:615
 msgid ""
 "Preparing to remove File Manager.<br /> Please DO NOT EXIT this screen until "
 "you see a popup message indicating that the operation has completed or has "
@@ -10969,11 +10969,7 @@ msgid ""
 "the entire log can be viewed in the COMMAND LOG screen."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/phpmyadmin.php:1145
-msgid "Launch PHPMyAdmin"
-msgstr ""
-
-#: includes/core/apps/wordpress-app/tabs/phpmyadmin.php:1158
+#: includes/core/apps/wordpress-app/tabs/phpmyadmin.php:1157
 msgid ""
 "Admin Note: If you have switched between local and remote databases AFTER "
 "installing PHPMyAdmin, it is critical that you uninstall and reinstall it so "
@@ -10982,30 +10978,34 @@ msgid ""
 "database! "
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/phpmyadmin.php:1175
+#: includes/core/apps/wordpress-app/tabs/phpmyadmin.php:1163
+msgid "Launch PHPMyAdmin"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/tabs/phpmyadmin.php:1176
 msgid "Database Tools - Update and Remove"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/phpmyadmin.php:1178
+#: includes/core/apps/wordpress-app/tabs/phpmyadmin.php:1179
 msgid "Update and/or remove PHPMyAdmin"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/phpmyadmin.php:1187
+#: includes/core/apps/wordpress-app/tabs/phpmyadmin.php:1188
 msgid "Update PHPMyAdmin"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/phpmyadmin.php:1188
+#: includes/core/apps/wordpress-app/tabs/phpmyadmin.php:1189
 msgid "Update the PHPMyAdmin tool to the latest version."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/phpmyadmin.php:1195
+#: includes/core/apps/wordpress-app/tabs/phpmyadmin.php:1196
 msgid ""
 "Are you sure you would like to update the PHPMyAdmin tool? This is a risky "
 "operation and should only be done if there are security issues that need to "
 "be addressed!"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/phpmyadmin.php:1198
+#: includes/core/apps/wordpress-app/tabs/phpmyadmin.php:1199
 msgid ""
 "Preparing to update PHPMyAdmin.<br /> Please DO NOT EXIT this screen until "
 "you see a popup message indicating that the operation has completed or has "
@@ -11014,19 +11014,19 @@ msgid ""
 "the entire log can be viewed in the COMMAND LOG screen."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/phpmyadmin.php:1210
+#: includes/core/apps/wordpress-app/tabs/phpmyadmin.php:1211
 msgid "Remove PHPMyAdmin"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/phpmyadmin.php:1211
+#: includes/core/apps/wordpress-app/tabs/phpmyadmin.php:1212
 msgid "Remove the PHPMyAdmin tool from this site."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/phpmyadmin.php:1218
+#: includes/core/apps/wordpress-app/tabs/phpmyadmin.php:1219
 msgid "Are you sure you would like to remove the PHPAdmin tool from this site?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/phpmyadmin.php:1221
+#: includes/core/apps/wordpress-app/tabs/phpmyadmin.php:1222
 msgid ""
 "Preparing to remove PHPMyAdmin.<br /> Please DO NOT EXIT this screen until "
 "you see a popup message indicating that the operation has completed or has "
@@ -18734,11 +18734,11 @@ msgstr ""
 msgid "Wrong Nonce"
 msgstr ""
 
-#: includes/core/functions.php:1620
+#: includes/core/functions.php:1623
 msgid "Copied"
 msgstr ""
 
-#: includes/core/functions.php:1620
+#: includes/core/functions.php:1623
 msgid "Click to copy"
 msgstr ""
 

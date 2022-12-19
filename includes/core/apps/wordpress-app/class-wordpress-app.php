@@ -3234,13 +3234,13 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		$welcome_message .= __( 'Generate an API key in your server providers\' dashboard.', 'wpcd' );
 		$welcome_message .= '</li>';
 		$welcome_message .= '<li>';
-		$welcome_message .= __( 'Add your cloud server provider API key and other credentials to the WPCLOUD DEPLOY->SETTINGS screen - under the CLOUD PROVIDERS tab / menu.', 'wpcd' );
+		$welcome_message .= __( 'Add your cloud server provider API key and other credentials to the WPCLOUDDEPLOY → SETTINGS → CLOUD PROVIDERS tab.', 'wpcd' );
 		$welcome_message .= '</li>';
 		$welcome_message .= '<li>';
-		$welcome_message .= __( 'Click on the ALL CLOUD SERVERS menu option and use the DEPLOY A NEW WordPress SERVER button to deploy a server.', 'wpcd' );
+		$welcome_message .= __( 'Click on the ALL CLOUD SERVERS menu option and use the DEPLOY A NEW WORDPRESS SERVER button to deploy a server.', 'wpcd' );
 		$welcome_message .= '</li>';
 		$welcome_message .= '<li>';
-		$welcome_message .= __( 'After the server is deployed, go back to the ALL CLOUD SERVERS menu option and click the INSTALL WordPress button in the server list.', 'wpcd' );
+		$welcome_message .= __( 'After the server is deployed, go back to the CLOUD SERVERS menu option and click the INSTALL WORDPRESS button in the server list.', 'wpcd' );
 		$welcome_message .= '</li>';
 		$welcome_message .= '</ol>';
 		$welcome_message .= '<br />';

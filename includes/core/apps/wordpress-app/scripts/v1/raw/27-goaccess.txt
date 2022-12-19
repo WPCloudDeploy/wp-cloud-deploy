@@ -295,9 +295,20 @@ function goaccess_remove
 	apt-get remove goaccess -y  > /dev/null 2>&1
 	if [ $? -ne 0 ]
 	then
-		echo "Failed to uninstall. Please check if apt-get command lock by some other service"
+		echo "Failed to uninstall. Please check to see if the apt-get command is locked by another service"
 		exit
 	fi
+	
+	# Before attempting to remove the site from the www folder, make sure we have a value in the $domain var.
+	# This prevents us from accidentally deleting the entire www folder in the delete statement below.
+	if [[ -z $domain ]]
+	then
+		echo "Unable to fully remove goaccess because the value of the domain variable is blank."
+		rm -f /etc/systemd/system/goaccess.service > /dev/null 2>&1
+		gf_restart_webserver
+		exit
+	fi
+	
 	rm -f /etc/systemd/system/goaccess.service > /dev/null 2>&1
 	rm -rf /var/www/$domain > /dev/null 2>&1
 	gf_restart_webserver

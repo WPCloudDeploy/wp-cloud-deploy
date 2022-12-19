@@ -170,6 +170,8 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 			'git-site-control-remove-metas',
 			'git-site-control-remove-git',
 			'git-site-control-sync-fields-sync',
+			'git-site-control-sync-fields-commit-and-push',
+			'git-site-control-checkout-branch',
 		);
 		if ( in_array( $action, $valid_actions, true ) ) {
 			if ( ! $this->get_tab_security( $id ) ) {
@@ -201,6 +203,14 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 					break;
 				case 'git-site-control-sync-fields-sync':
 					$bash_action = 'git_sync';
+					$result      = $this->git_actions( $bash_action, $id );
+					break;
+				case 'git-site-control-sync-fields-commit-and-push':
+					$bash_action = 'git_commit_and_push';
+					$result      = $this->git_actions( $bash_action, $id );
+					break;
+				case 'git-site-control-checkout-branch':
+					$bash_action = 'git_checkout';
 					$result      = $this->git_actions( $bash_action, $id );
 					break;
 				case 'restore-from-backup':
@@ -302,7 +312,9 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 					'tab'  => $this->get_tab_slug(),
 				);
 
+				// Get additional fields for each section.
 				$fields = array_merge( $fields, $this->get_fields_for_git_sync( $id ) );
+				$fields = array_merge( $fields, $this->get_fields_for_git_checkout( $id ) );
 
 			}
 		}
@@ -682,7 +694,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 			'id'         => 'git-site-control-sync-fields-commit-message',
 			'name'       => __( 'Commit Message', 'wpcd' ),
 			'tooltip'    => __( 'Enter a commit message to be used if changes need to be committed first before pulling and pushing from the remote repo.', 'wpcd' ),
-			'columns'    => 8,
+			'columns'    => 6,
 			'attributes' => array(
 				// the key of the field (the key goes in the request).
 				'data-wpcd-name' => 'git_commit_msg',
@@ -694,9 +706,10 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 
 		$actions[] = array(
 			'id'         => 'git-site-control-sync-fields-sync-action',
-			'name'       => 'Sync',
+			'name'       => __( 'Sync', 'wpcd' ),
+			'tooltip'    => __( 'This action will 1. Commit local changes. 2. Pull and merge from remote repo and 3. Push changes back to remote repo.', 'wpcd' ),
 			'std'        => __( 'Sync With Remote Repo', 'wpcd' ),
-			'columns'    => 4,
+			'columns'    => 3,
 			'attributes' => array(
 				// the _action that will be called in ajax.
 				'data-wpcd-action'              => 'git-site-control-sync-fields-sync',
@@ -716,7 +729,96 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 			'save_field' => false,
 		);
 
+		$actions[] = array(
+			'id'         => 'git-site-control-sync-fields-commit-action',
+			'name'       => __( 'Commit', 'wpcd' ),
+			'tooltip'    => __( 'This action will 1. Commit local changes. & 2. Push changes back to remote repo.', 'wpcd' ),
+			'std'        => __( 'Commit & Push', 'wpcd' ),
+			'columns'    => 3,
+			'attributes' => array(
+				// the _action that will be called in ajax.
+				'data-wpcd-action'              => 'git-site-control-sync-fields-commit-and-push',
+				// fields that contribute data for this action.
+				'data-wpcd-fields'              => wp_json_encode(
+					array(
+						'#git-site-control-sync-fields-commit-message',
+					)
+				),
+				'data-wpcd-id'                  => $id,
+				// make sure we give the user a confirmation prompt.
+				'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like to commit your current site changes and push them to your remote repo?  This action is not reversible!', 'wpcd' ),
+			),
+			'type'       => 'button',
+			'tab'        => $this->get_tab_slug(),
+			'class'      => 'wpcd_app_action',
+			'save_field' => false,
+		);
+
 		return $actions;
+	}
+
+	/**
+	 * Gets the fields to be shown in the git checkout
+	 * sections of the tab.
+	 *
+	 * @param int $id id.
+	 *
+	 * @return array Array of actions, complying with the structure necessary by metabox.io fields.
+	 */
+	public function get_fields_for_git_checkout( $id ) {
+
+		// Get existing settings.
+		$git_settings = $this->get_git_settings( $id );
+
+		$header_msg  = __( 'Checkout a different branch.', 'wpcd' );
+		$header_msg .= '<br />';
+		$header_msg .= sprintf( __( 'The current branch is %s.', 'wpcd' ), $this->get_git_branch( $id ) );
+		$actions[]   = array(
+			'id'   => 'git-site-control-checkout-fields-header',
+			'name' => __( 'Git Checkout Branch', 'wpcd' ),
+			'desc' => $header_msg,
+			'type' => 'heading',
+			'tab'  => $this->get_tab_slug(),
+		);
+
+		$actions[] = array(
+			'id'         => 'git-site-control-checkout-branch',
+			'name'       => __( 'Branch', 'wpcd' ),
+			'desc'       => __( 'Enter the branch to be checked out, eg: dev or main', 'wpcd' ),
+			'attributes' => array(
+				// the key of the field (the key goes in the request).
+				'data-wpcd-name' => 'git_branch',
+			),
+			'type'       => 'text',
+			'tab'        => $this->get_tab_slug(),
+			'save_field' => false,
+		);
+
+		$actions[] = array(
+			'id'         => 'git-site-control-checkout-fields-action',
+			'name'       => '',
+			'std'        => __( 'Checkout Branch', 'wpcd' ),
+			'attributes' => array(
+				// the _action that will be called in ajax.
+				'data-wpcd-action'              => 'git-site-control-checkout-branch',
+				// fields that contribute data for this action.
+				'data-wpcd-fields'              => wp_json_encode(
+					array(
+						'#git-site-control-checkout-branch',
+					)
+				),
+				'data-wpcd-id'                  => $id,
+				// make sure we give the user a confirmation prompt.
+				'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like to checkout this branch? Changes from the remote repo will be merged with the local site files.', 'wpcd' ),
+			),
+			'type'       => 'button',
+			'tab'        => $this->get_tab_slug(),
+			'class'      => 'wpcd_app_action',
+			'save_field' => false,
+		);
+
+		return $actions;
+
 	}
 
 	/**
@@ -1182,11 +1284,19 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 				// None needed.
 				break;
 			case 'git_sync':
+			case 'git_commit_and_push':
 				if ( empty( $args['git_commit_msg'] ) ) {
 					/* Translators: %s is the action name. */
 					return new \WP_Error( sprintf( __( 'Unable to execute this request because the commit message is empty. (action %s)', 'wpcd' ), $action ) );
 				}
 				break;
+			case 'git_checkout':
+				if ( empty( $args['git_branch'] ) ) {
+					/* Translators: %s is the action name. */
+					return new \WP_Error( sprintf( __( 'Unable to execute this request because you did not supply a branch to be checked out. (action %s)', 'wpcd' ), $action ) );
+				}
+				break;
+
 		}
 
 		// sanitize the fields to allow them to be used safely on the bash command line.
@@ -1201,6 +1311,8 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 		switch ( $action ) {
 			case 'git_domain_remove':
 			case 'git_sync':
+			case 'git_commit_and_push':
+			case 'git_checkout':
 				// Get the full command to be executed by ssh.
 				$run_cmd = $this->turn_script_into_command(
 					$instance,
@@ -1231,6 +1343,12 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 				case 'git_sync':
 					$this->git_add_to_site_log( $id, __( 'Attempt to sync site with remote repo was not successful.', 'wpcd' ) );
 					break;
+				case 'git_commit_and_push':
+					$this->git_add_to_site_log( $id, __( 'Attempt to commit and push to remote repo was not successful.', 'wpcd' ) );
+					break;
+				case 'git_checkout':
+					$this->git_add_to_site_log( $id, __( 'Attempt to checkout a branch was not successful.', 'wpcd' ) );
+					break;
 			}
 			/* Translators: %1s is the action name; %2s is a long result string or array. */
 			return new \WP_Error( sprintf( __( 'Unable to %1$s site: %2$s', 'wpcd' ), $action, $result ) );
@@ -1246,6 +1364,18 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 				case 'git_sync':
 					// Log it.
 					$this->git_add_to_site_log( $id, __( 'Site was synced with remote repo.', 'wpcd' ) );
+					break;
+				case 'git_commit_and_push':
+					// Log it.
+					$this->git_add_to_site_log( $id, __( 'Site changes were committed and pushed to remote repo.', 'wpcd' ) );
+					break;
+				case 'git_checkout':
+					// Log it.
+					/* Translators: %s is the git branch that was checked out */
+					$this->git_add_to_site_log( $id, sprintf( __( 'Branch %s was checked out.', 'wpcd' ), $args['git_branch'] ) );
+
+					// And update the current branch.
+					$this->set_git_branch( $id, $original_args['git_branch'] );
 					break;
 			}
 		}

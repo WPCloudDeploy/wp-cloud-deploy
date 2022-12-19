@@ -172,6 +172,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 			'git-site-control-sync-fields-sync',
 			'git-site-control-sync-fields-commit-and-push',
 			'git-site-control-checkout-branch',
+			'git-site-control-create-new-branch',
 		);
 		if ( in_array( $action, $valid_actions, true ) ) {
 			if ( ! $this->get_tab_security( $id ) ) {
@@ -213,17 +214,11 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 					$bash_action = 'git_checkout';
 					$result      = $this->git_actions( $bash_action, $id );
 					break;
-				case 'restore-from-backup':
-				case 'restore-from-backup-webserver-config-only':
-				case 'restore-from-backup-wpconfig-only':
-					$result = $this->backup_actions( $action, $id );
+				case 'git-site-control-create-new-branch':
+					$bash_action = 'git_new_branch';
+					$result      = $this->git_actions( $bash_action, $id );
 					break;
-				case 'delete-all-local-site-backups':
-					$result = $this->backup_actions( $action, $id );
-					break;
-				case 'prune-local-site-backups':
-					$result = $this->backup_actions( $action, $id );
-					break;
+
 			}
 			// Many actions need to refresh the page so that new data can be loaded or so that the data entered into data entry fields cleared out.
 			// But we don't want to force a refresh after long running commands. Otherwise the user will not be able to see the results of those commands in the 'terminal'.
@@ -315,6 +310,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 				// Get additional fields for each section.
 				$fields = array_merge( $fields, $this->get_fields_for_git_sync( $id ) );
 				$fields = array_merge( $fields, $this->get_fields_for_git_checkout( $id ) );
+				$fields = array_merge( $fields, $this->get_fields_for_git_new_branch( $id ) );
 
 			}
 		}
@@ -784,7 +780,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 		$actions[] = array(
 			'id'         => 'git-site-control-checkout-branch',
 			'name'       => __( 'Branch', 'wpcd' ),
-			'desc'       => __( 'Enter the branch to be checked out, eg: dev or main', 'wpcd' ),
+			'desc'       => __( 'Enter the branch to be checked out, eg: dev or main.', 'wpcd' ),
 			'attributes' => array(
 				// the key of the field (the key goes in the request).
 				'data-wpcd-name' => 'git_branch',
@@ -805,6 +801,84 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 				'data-wpcd-fields'              => wp_json_encode(
 					array(
 						'#git-site-control-checkout-branch',
+					)
+				),
+				'data-wpcd-id'                  => $id,
+				// make sure we give the user a confirmation prompt.
+				'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like to checkout this branch? Changes from the remote repo will be merged with the local site files.', 'wpcd' ),
+			),
+			'type'       => 'button',
+			'tab'        => $this->get_tab_slug(),
+			'class'      => 'wpcd_app_action',
+			'save_field' => false,
+		);
+
+		return $actions;
+
+	}
+
+	/**
+	 * Gets the fields to be shown in the new branch& checkout
+	 * sections of the tab.
+	 *
+	 * @param int $id id.
+	 *
+	 * @return array Array of actions, complying with the structure necessary by metabox.io fields.
+	 */
+	public function get_fields_for_git_new_branch( $id ) {
+
+		// Get existing settings.
+		$git_settings = $this->get_git_settings( $id );
+
+		$header_msg  = __( 'Create New Branch and Checkout.', 'wpcd' );
+		$header_msg .= '<br />';
+		$header_msg .= sprintf( __( 'The current branch is %s.', 'wpcd' ), $this->get_git_branch( $id ) );
+		$actions[]   = array(
+			'id'   => 'git-site-control-checkout-fields-header',
+			'name' => __( 'Git Create Branch', 'wpcd' ),
+			'desc' => $header_msg,
+			'type' => 'heading',
+			'tab'  => $this->get_tab_slug(),
+		);
+
+		$actions[] = array(
+			'id'         => 'git-site-control-create-branch-source-branch',
+			'name'       => __( 'Source Branch', 'wpcd' ),
+			'desc'       => __( 'Enter the branch we\'ll be using as the source of the new branch.', 'wpcd' ),
+			'attributes' => array(
+				// the key of the field (the key goes in the request).
+				'data-wpcd-name' => 'git_branch',
+			),
+			'type'       => 'text',
+			'tab'        => $this->get_tab_slug(),
+			'save_field' => false,
+		);
+
+		$actions[] = array(
+			'id'         => 'git-site-control-create-branch-new-branch',
+			'name'       => __( 'New Branch', 'wpcd' ),
+			'desc'       => __( 'Enter the name of the new branch.', 'wpcd' ),
+			'attributes' => array(
+				// the key of the field (the key goes in the request).
+				'data-wpcd-name' => 'git_new_branch',
+			),
+			'type'       => 'text',
+			'tab'        => $this->get_tab_slug(),
+			'save_field' => false,
+		);
+
+		$actions[] = array(
+			'id'         => 'git-site-control-create-branch-fields-action',
+			'name'       => '',
+			'std'        => __( 'Checkout Branch', 'wpcd' ),
+			'attributes' => array(
+				// the _action that will be called in ajax.
+				'data-wpcd-action'              => 'git-site-control-create-new-branch',
+				// fields that contribute data for this action.
+				'data-wpcd-fields'              => wp_json_encode(
+					array(
+						'#git-site-control-create-branch-source-branch',
+						'#git-site-control-create-branch-new-branch',
 					)
 				),
 				'data-wpcd-id'                  => $id,
@@ -1296,6 +1370,19 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 					return new \WP_Error( sprintf( __( 'Unable to execute this request because you did not supply a branch to be checked out. (action %s)', 'wpcd' ), $action ) );
 				}
 				break;
+			case 'git_new_branch':
+				if ( empty( $args['git_branch'] ) ) {
+					/* Translators: %s is the action name. */
+					return new \WP_Error( sprintf( __( 'Unable to execute this request because you did not supply a source branch. (action %s)', 'wpcd' ), $action ) );
+				}
+				if ( empty( $args['git_new_branch'] ) ) {
+					/* Translators: %s is the action name. */
+					return new \WP_Error( sprintf( __( 'Unable to execute this request because you did not supply a name for the new branch. (action %s)', 'wpcd' ), $action ) );
+				}
+
+				// Make sure we have a good branch name.
+				$args['git_new_branch'] = sanitize_title( $args['git_new_branch'] );
+				break;
 
 		}
 
@@ -1313,6 +1400,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 			case 'git_sync':
 			case 'git_commit_and_push':
 			case 'git_checkout':
+			case 'git_new_branch':
 				// Get the full command to be executed by ssh.
 				$run_cmd = $this->turn_script_into_command(
 					$instance,
@@ -1349,7 +1437,11 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 				case 'git_checkout':
 					$this->git_add_to_site_log( $id, __( 'Attempt to checkout a branch was not successful.', 'wpcd' ) );
 					break;
+				case 'git_new_branch':
+					$this->git_add_to_site_log( $id, __( 'Attempt to create a new branch was not successful.', 'wpcd' ) );
+					break;
 			}
+
 			/* Translators: %1s is the action name; %2s is a long result string or array. */
 			return new \WP_Error( sprintf( __( 'Unable to %1$s site: %2$s', 'wpcd' ), $action, $result ) );
 		} else {
@@ -1371,11 +1463,19 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 					break;
 				case 'git_checkout':
 					// Log it.
-					/* Translators: %s is the git branch that was checked out */
-					$this->git_add_to_site_log( $id, sprintf( __( 'Branch %s was checked out.', 'wpcd' ), $args['git_branch'] ) );
+					/* Translators: %s is the git branch that was checked out. */
+					$this->git_add_to_site_log( $id, sprintf( __( 'Branch %s was checked out.', 'wpcd' ), $original_args['git_branch'] ) );
 
 					// And update the current branch.
 					$this->set_git_branch( $id, $original_args['git_branch'] );
+					break;
+				case 'git_new_branch':
+					// Log it.
+					/* Translators: %s is the git branch that was created. */
+					$this->git_add_to_site_log( $id, sprintf( __( 'Branch %s was created and checked out.', 'wpcd' ), $original_args['git_new_branch'] ) );
+
+					// And update the current branch.
+					$this->set_git_branch( $id, $original_args['git_new_branch'] );
 					break;
 			}
 		}

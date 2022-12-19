@@ -118,6 +118,32 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 			delete_post_meta( $id, 'temp_git_tag_desc' );
 		}
 
+		// If the command is to create a tag, lets log it and store the tag history.
+		if ( 'git_pull_tag' === $command_array[0] ) {
+
+			// Lets pull the logs.
+			$logs = $this->get_app_command_logs( $id, $name );
+
+			// Is the command successful?
+			$success = (bool) $this->is_ssh_successful( $logs, 'git_control_site_command.txt' );
+
+			if ( true === $success ) {
+
+				// Get tag we're pulling.
+				$new_tag      = get_post_meta( $id, 'temp_git_tag', true );
+
+				/* Translators: %s is a git tag name. */
+				$msg = sprintf( __( 'Tag/Version %s was pulled.', 'wpcd' ), $new_tag );
+				$this->git_add_to_site_log( $id, $msg );
+			} else {
+				$msg = __( 'An attempt to pull a new tag/version was not successful.', 'wpcd' );
+				$this->git_add_to_site_log( $id, $msg );
+			}
+
+			// Remove temporary metas.
+			delete_post_meta( $id, 'temp_git_tag' );
+		}		
+
 		// remove the 'temporary' meta so that another attempt will run if necessary.
 		delete_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action_status" );
 		delete_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action" );
@@ -204,6 +230,8 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 			'git-site-control-sync-fields-commit-and-push',
 			'git-site-control-checkout-branch',
 			'git-site-control-create-new-branch',
+			'git-site-control-create-tag',
+			'git-site-control-pull-tag',
 		);
 		if ( in_array( $action, $valid_actions, true ) ) {
 			if ( ! $this->get_tab_security( $id ) ) {
@@ -253,11 +281,15 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 					$bash_action = 'git_tag';
 					$result      = $this->git_create_tag( $bash_action, $id );
 					break;
+				case 'git-site-control-pull-tag':
+					$bash_action = 'git_pull_tag';
+					$result      = $this->git_pull_tag( $bash_action, $id );
+					break;
 
 			}
 			// Many actions need to refresh the page so that new data can be loaded or so that the data entered into data entry fields cleared out.
 			// But we don't want to force a refresh after long running commands. Otherwise the user will not be able to see the results of those commands in the 'terminal'.
-			if ( ! in_array( $action, array( 'git-site-control-init-site', 'git-site-control-clone-only', 'git-site-control-create-tag' ), true ) && ! is_wp_error( $result ) ) {
+			if ( ! in_array( $action, array( 'git-site-control-init-site', 'git-site-control-clone-only', 'git-site-control-create-tag', 'git-site-control-pull-tag' ), true ) && ! is_wp_error( $result ) ) {
 				$result = array( 'refresh' => 'yes' );
 			}
 		}
@@ -352,6 +384,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 				$fields = array_merge( $fields, $this->get_fields_for_git_checkout( $id ) );
 				$fields = array_merge( $fields, $this->get_fields_for_git_new_branch( $id ) );
 				$fields = array_merge( $fields, $this->get_fields_for_git_create_tag( $id ) );
+				$fields = array_merge( $fields, $this->get_fields_for_git_pull_tag( $id ) );
 
 			}
 		}
@@ -985,6 +1018,75 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
+	 * Gets the fields to be shown in the pull tag
+	 * sections of the tab.
+	 *
+	 * @param int $id id.
+	 *
+	 * @return array Array of actions, complying with the structure necessary by metabox.io fields.
+	 */
+	public function get_fields_for_git_pull_tag( $id ) {
+
+		// Get existing settings.
+		$git_settings = $this->get_git_settings( $id );
+
+		$header_msg  = __( 'Pull Tag.', 'wpcd' );
+		$header_msg .= '<br />';
+		/* Translators: %s is the name of the current git branch in use. */
+		$header_msg .= sprintf( __( 'The current branch is %s.', 'wpcd' ), $this->get_git_branch( $id ) );
+		$actions[]   = array(
+			'id'   => 'git-site-control-pull-tag-header',
+			'name' => __( 'Pull Existing Tag (Version) From Repo', 'wpcd' ),
+			'desc' => $header_msg,
+			'type' => 'heading',
+			'tab'  => $this->get_tab_slug(),
+		);
+
+		$actions[] = array(
+			'id'         => 'git-site-control-pull-tag-name',
+			'name'       => __( 'Tag To Pull', 'wpcd' ),
+			'desc'       => __( 'Enter the name for the tag to pull eg: v1.1.2.  No spaces or special chars.', 'wpcd' ),
+			'attributes' => array(
+				// the key of the field (the key goes in the request).
+				'data-wpcd-name' => 'git_tag',
+			),
+			'type'       => 'text',
+			'tab'        => $this->get_tab_slug(),
+			'save_field' => false,
+		);
+
+		$actions[] = array(
+			'id'         => 'git-site-control-pull-tag-action',
+			'name'       => '',
+			'std'        => __( 'Pull Tag / Version', 'wpcd' ),
+			'attributes' => array(
+				// the _action that will be called in ajax.
+				'data-wpcd-action'              => 'git-site-control-pull-tag',
+				// fields that contribute data for this action.
+				'data-wpcd-fields'              => wp_json_encode(
+					array(
+						'#git-site-control-pull-tag-name',
+					)
+				),
+				'data-wpcd-id'                  => $id,
+				// make sure we give the user a confirmation prompt.
+				'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like to pull this tag or version from the remote repo?', 'wpcd' ),
+				'data-show-log-console'         => true,
+				// Initial console message.
+				'data-initial-console-message'  => __( 'Preparing to pull tag/version from remote repo...<br /> Please DO NOT EXIT this screen until you see a popup message indicating that the backup has completed or has errored.<br />This terminal should refresh every 60-90 seconds with updated progress information from the server. <br /> After the backup is complete the entire log can be viewed in the COMMAND LOG screen.', 'wpcd' ),
+			),
+			'type'       => 'button',
+			'tab'        => $this->get_tab_slug(),
+			'class'      => 'wpcd_app_action',
+			'save_field' => false,
+		);
+
+		return $actions;
+
+	}
+
+
+	/**
 	 * Gets the fields that display in the misc section.
 	 *
 	 * @param int $id id.
@@ -1569,6 +1671,83 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
+	 * Pull a new tag / version from the remote repo.
+	 *
+	 * @param string $action The action to be performed (this matches the string required in the bash scripts if bash scripts are used - in this case 'git_pull_tag').
+	 * @param int    $id id.
+	 */
+	public function git_pull_tag( $action, $id ) {
+
+		$instance = $this->get_app_instance_details( $id );
+
+		if ( is_wp_error( $instance ) ) {
+			/* Translators: %s is the action name. */
+			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
+		}
+
+		$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
+
+		// Make sure we have a tag name before doing anything else.
+		if ( empty( $args['git_tag'] ) ) {
+			return new \WP_Error( __( 'The tag name should not be blank.', 'wpcd' ) );
+		}
+
+		// Make sure the sanitized tag name and the provided tag name are the same.
+		$sanitized_tag = sanitize_title( $args['git_tag'] );
+		if ( $sanitized_tag !== $args['git_tag'] ) {
+			/* Translators: %s is the suggested tag name. */
+			return new \WP_Error( sprintf( __( 'The tag provided is invalid. Maybe it should be %s', 'wpcd' ), $sanitized_tag ) );
+		}
+
+		// Sanitize the fields to allow them to be used safely on the bash command line.
+		$original_args = $args;
+		$args          = array_map(
+			function( $item ) {
+				return escapeshellarg( $item );
+			},
+			$args
+		);
+
+		// Store the tag into a temporary meta so we can use it after the command completes.
+		update_post_meta( $id, 'temp_git_tag', $original_args['git_tag'] );
+
+		// At this point, we have everything we need so initialize some vars we'll use later.
+		$run_cmd = '';
+
+		// Get the domain we're working on.
+		$domain = get_post_meta( $id, 'wpapp_domain', true );
+
+		// Setup unique command name.
+		$command             = sprintf( '%s---%s---%d', $action, $domain, time() );
+		$instance['command'] = $command;
+		$instance['app_id']  = $id;
+
+		// Configure the run cmd.
+		$run_cmd = $this->turn_script_into_command(
+			$instance,
+			'git_control_site_command.txt',
+			array_merge(
+				$args,
+				array(
+					'command' => $command,
+					'action'  => $action,
+					'domain'  => $domain,
+				)
+			)
+		);
+
+		/**
+		 * Run the constructed command
+		 * Check out the write up about the different aysnc methods we use
+		 * here: https://wpclouddeploy.com/documentation/wpcloud-deploy-dev-notes/ssh-execution-models/
+		 */
+		$return = $this->run_async_command_type_2( $id, $command, $run_cmd, $instance, $action );
+
+		return $return;
+
+	}	
+
+	/**
 	 * Setup credentials for the site without initializing it.
 	 *
 	 * @param string $action The action to be performed (this matches the string required in the bash scripts if bash scripts are used - in this case 'git_site_credentials').
@@ -1897,12 +2076,10 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 		}
 
 		// Add to array.
-		$key          = wpcd_generate_uuid();
-		$tags[ $key ] = array(
+		$tags[ $new_tag ] = array(
 			'reporting_time'           => time(),
 			'reporting_time_human'     => date( 'Y-m-d H:i:s', time() ),
 			'reporting_time_human_utc' => gmdate( 'Y-m-d H:i:s' ),
-			'tag'                      => $new_tag,
 			'desc'                     => $new_tag_desc,
 		);
 

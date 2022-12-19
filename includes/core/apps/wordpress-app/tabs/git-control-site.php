@@ -924,7 +924,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 		// Get existing settings.
 		$git_settings = $this->get_git_settings( $id );
 
-		$header_msg = __( 'These are the values used when this site was linked with your git repo.', 'wpcd' );
+		$header_msg = __( 'These were the values used when this site was linked with your git repo.', 'wpcd' );
 
 		$return      = '<div class="wpcd_git_initial_settings_data">';
 			$return .= '<div class="wpcd_git_initial_settings_data_inner_wrap">';
@@ -1013,7 +1013,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 		);
 
 		$actions[] = array(
-			'id'         => 'git-site-control-div-start',
+			'id'         => 'git-site-control-view-settings',
 			'name'       => '',
 			'std'        => $return,
 			'type'       => 'custom_html',
@@ -1021,113 +1021,6 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 			'save_field' => false,
 		);
 
-		/*
-		$actions[] = array(
-			'id'         => 'git-site-control-div-start',
-			'name'       => '',
-			'std'        => '<div class="wpcd_git_display_settings">',
-			'type'       => 'custom_html',
-			'tab'        => $this->get_tab_slug(),
-			'save_field' => false,
-		);
-
-		$actions[] = array(
-			'id'         => 'git-site-control-view-repo-name',
-			'name'       => __( 'Remote Repo', 'wpcd' ),
-			'std'        => $git_settings['git_remote_url'],
-			'type'       => 'custom_html',
-			'tab'        => $this->get_tab_slug(),
-			'save_field' => false,
-		);
-
-		$actions[] = array(
-			'id'         => 'git-site-control-view-branch-name',
-			'name'       => __( 'Initial Branch', 'wpcd' ),
-			'std'        => $git_settings['git_branch'] . '<br /><br />',
-			'type'       => 'custom_html',
-			'tab'        => $this->get_tab_slug(),
-			'save_field' => false,
-		);
-
-		$actions[] = array(
-			'id'         => 'git-site-control-view-display-name',
-			'name'       => __( 'User Display Name', 'wpcd' ),
-			'std'        => $git_settings['git_display_name'],
-			'columns'    => 4,
-			'type'       => 'custom_html',
-			'tab'        => $this->get_tab_slug(),
-			'save_field' => false,
-		);
-
-		$actions[] = array(
-			'id'         => 'git-site-control-view-user-name',
-			'name'       => __( 'User Name', 'wpcd' ),
-			'std'        => $git_settings['git_user_name'],
-			'columns'    => 4,
-			'type'       => 'custom_html',
-			'tab'        => $this->get_tab_slug(),
-			'save_field' => false,
-		);
-
-		$actions[] = array(
-			'id'         => 'git-site-control-view-pre-script',
-			'name'       => __( 'Pre-Processing Script', 'wpcd' ),
-			'std'        => $git_settings['git_pre_processing_script_link'],
-			'columns'    => 4,
-			'type'       => 'custom_html',
-			'tab'        => $this->get_tab_slug(),
-			'save_field' => false,
-		);
-
-		$actions[] = array(
-			'id'         => 'git-site-control-view-post-script',
-			'name'       => __( 'Post-Processing Script', 'wpcd' ),
-			'std'        => $git_settings['git_post_processing_script_link'],
-			'columns'    => 4,
-			'type'       => 'custom_html',
-			'tab'        => $this->get_tab_slug(),
-			'save_field' => false,
-		);
-
-		$actions[] = array(
-			'id'         => 'git-site-control-view-ignore-folders',
-			'name'       => __( 'Ignore Folders', 'wpcd' ),
-			'std'        => $git_settings['git_exclude_folders'],
-			'columns'    => 4,
-			'type'       => 'custom_html',
-			'tab'        => $this->get_tab_slug(),
-			'save_field' => false,
-		);
-
-		$actions[] = array(
-			'id'         => 'git-site-control-view-ignore-files',
-			'name'       => __( 'Ignore Files', 'wpcd' ),
-			'std'        => $git_settings['git_exclude_files'],
-			'columns'    => 4,
-			'type'       => 'custom_html',
-			'tab'        => $this->get_tab_slug(),
-			'save_field' => false,
-		);
-
-		$actions[] = array(
-			'id'         => 'git-site-control-view-git-ignore',
-			'name'       => __( 'Git Ignore', 'wpcd' ),
-			'std'        => $git_settings['git_ignore_url'],
-			'columns'    => 4,
-			'type'       => 'custom_html',
-			'tab'        => $this->get_tab_slug(),
-			'save_field' => false,
-		);
-
-		$actions[] = array(
-			'id'         => 'git-site-control-div-end',
-			'name'       => '',
-			'std'        => '</div>',
-			'type'       => 'custom_html',
-			'tab'        => $this->get_tab_slug(),
-			'save_field' => false,
-		);
-		*/
 		return $actions;
 
 	}

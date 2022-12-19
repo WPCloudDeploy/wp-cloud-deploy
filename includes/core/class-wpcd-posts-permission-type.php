@@ -687,6 +687,12 @@ class WPCD_POSTS_PERMISSION_TYPE {
 				'wpcd_permission_category' => 'wpapp',
 				'wpcd_permission_group'    => 4,
 			),
+			'view_wpapp_site_git_control_tab'      => array(
+				'post_title'               => __( 'View GIT Tab On WP Site Screen', 'wpcd' ),
+				'wpcd_object_type'         => 2,
+				'wpcd_permission_category' => 'wpapp',
+				'wpcd_permission_group'    => 4,
+			),			
 			'view_wpapp_site_multisite_tab'         => array(
 				'post_title'               => __( 'View File Manager Tab On WP Site Screen', 'wpcd' ),
 				'wpcd_object_type'         => 2,

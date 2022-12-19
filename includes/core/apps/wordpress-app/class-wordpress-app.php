@@ -294,7 +294,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	}
 
 	/**
-	 * Include the files corresponding to the tabs.
+	 * Include the files corresponding to the tabs for a site
 	 */
 	private function include_tabs() {
 
@@ -324,6 +324,10 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/wpconfig-options.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/redirect-rules.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/file-manager.php';
+
+		if ( true === wpcd_is_git_enabled() ) {
+			require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/git-control-site.php';
+		}
 
 		if ( defined( 'WPCD_SHOW_SITE_USERS_TAB' ) && WPCD_SHOW_SITE_USERS_TAB ) {
 			require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/site-system-users.php';
@@ -2028,11 +2032,11 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	public function set_git_status( $post_id, $git_status ) {
 
 		if ( 'wpcd_app_server' == get_post_type( $post_id ) ) {
-			return (bool) update_post_meta( $post_id, 'wpcd_wpapp_git_status', (int) $git_status );
+			return update_post_meta( $post_id, 'wpcd_wpapp_git_status', (int) $git_status );
 		}
 
 		if ( 'wpcd_app' == get_post_type( $post_id ) ) {
-			return (bool) update_post_meta( $post_id, 'wpapp_git_status', (int) $git_status );
+			return update_post_meta( $post_id, 'wpapp_git_status', (int) $git_status );
 		}
 
 	}

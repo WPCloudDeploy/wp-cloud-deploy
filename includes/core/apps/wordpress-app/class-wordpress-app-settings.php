@@ -413,7 +413,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			'wpconfig'                 => __( 'WPConfig', 'wpcd' ),
 			'file-manager'             => __( 'File Manager', 'wpcd' ),
 			'multisite'                => __( 'Multisite', 'wpcd' ),
-			'git-app-control'          => __( 'Git', 'wpcd' ),
+			'git-site-control'         => __( 'Git', 'wpcd' ),
 		);
 
 		// Let developers hook into the array here.

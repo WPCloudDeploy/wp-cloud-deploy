@@ -605,6 +605,10 @@ class WPCD_WORDPRESS_TABS_SERVER_GIT_CONTROL extends WPCD_WORDPRESS_TABS {
 	 * values.
 	 * These keys/field names match the ones expected
 	 * by the GIT bash scripts.
+	 *
+	 * Note: This same function is duplicated in the
+	 * site git tab. Changes here might be needed
+	 * there.
 	 */
 	public function get_git_default_field_names() {
 		$field_names = array(
@@ -634,7 +638,12 @@ class WPCD_WORDPRESS_TABS_SERVER_GIT_CONTROL extends WPCD_WORDPRESS_TABS {
 		$defaults = wpcd_maybe_unserialize( get_post_meta( $id, 'wpcd_wpapp_git_defaults', true ) );
 
 		if ( empty( $defaults ) ) {
-			$defaults = $this->get_git_default_field_names();
+			$fields   = $this->get_git_default_field_names();
+			// Loop through field names to create key-value array since that format is what's usually stored in the database.
+			$defaults = array();
+			foreach ( $fields as $fld ) {
+				$defaults[ $fld ] = '';
+			}
 		}
 
 		return $defaults;

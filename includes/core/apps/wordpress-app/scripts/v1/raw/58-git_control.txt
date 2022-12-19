@@ -30,7 +30,7 @@ lf_send_callback_failed() {
 
 	# @note msg will contain spaces so might need to encode it somehow for curl.
 
-	echo "In function to send callback to host with failure msg for: $git_callback_url $msg"
+	# echo "In function to send callback to host with failure msg for: $git_callback_url $msg"
 }
 
 ########################################################
@@ -130,14 +130,14 @@ lf_get_git_token() {
 	do
 		read -p "What is the security token for the repo/account: " git_token
 	done
-	echo "Repo token is: $git_token"
+	echo "Repo token is: ***secret - not shown***"
 }
 
 lf_get_git_ignore_url() {
-	while [[ -z $git_ignore_url ]]
-	do
+	# gitignore default url is allowed to be blank.
+	if [[ -z $git_ignore_url ]]; then
 		read -p "Enter the URL where the default git_ignore file is located: " git_ignore_url
-	done
+	fi
 	echo "Git Ignore URL is: $git_ignore_url"
 }
 
@@ -235,7 +235,7 @@ lf_git_install() {
 	sudo add-apt-repository ppa:git-core/ppa -y
 	sudo apt-get update
 	sudo apt-get -y install git
-	echo ""
+	echo
 	echo "Git has been installed."
 	exit
 
@@ -248,7 +248,7 @@ lf_git_install() {
 lf_git_update() {
 	sudo apt-get update
 	sudo apt-get -y install git
-	echo ""
+	echo
 	echo "Git has been updated."
 	exit
 }
@@ -273,9 +273,11 @@ lf_create_git_ignore() {
 	git_exclude_files=$3
 
 	# Get the default gitignore file.
-	echo "Downloading default gitignore file..."
-	wget --quiet --no-check-certificate -O .gitignore $git_ignore_url
-	dos2unix .gitignore
+	if [[ -n $git_ignore_url ]]; then	
+		echo "Downloading default gitignore file..."
+		wget --quiet --no-check-certificate -O .gitignore $git_ignore_url
+		dos2unix .gitignore
+	fi
 
 	# Add in the things we definitely want in there.
 	echo "#################################"  >> .gitignore
@@ -335,6 +337,7 @@ lf_remote_git_from_domain() {
 	if [[ -z $domain ]]
 	then
 		msg="We are about to delete a folder but the domain variable is blank. Operation aborted."
+		echo
 		echo $msg
 		lf_send_callback_failed $git_callback_url $msg
 		return 1  #return error.
@@ -368,6 +371,7 @@ lf_git_pull_tag() {
 	mkdir -p /var/www/$domain/versions/$git_tag
 	if [ $? -ne 0 ]
 	then
+		echo
 		msg="Could not create folder /var/www/$domain/versions/$git_tag"
 		echo $msg
 		exit 1
@@ -378,6 +382,7 @@ lf_git_pull_tag() {
 	if [ $? -ne 0 ]
 	then
 		msg="Could not pull tag $git_tag from remote."
+		echo
 		echo $msg
 		exit 1
 	fi
@@ -388,6 +393,7 @@ lf_git_pull_tag() {
 	if [ $? -ne 0 ]
 	then
 		msg="Could not create zip file in folder /var/www/$domain/versions/$git_tag/ for tag $git_tag."
+		echo
 		echo $msg
 		exit
 	fi
@@ -398,6 +404,7 @@ lf_git_pull_tag() {
 	if [ $? -ne 0 ]
 	then
 		msg="Could not unzip tagged files for $git_tag."
+		echo
 		echo $msg
 		exit
 	fi
@@ -481,6 +488,7 @@ then
 	lf_remote_git_from_domain $domain
 	if [ $? -ne 0 ]
 	then
+		echo
 		echo "Unable to remove git from $domain. Aborting..."
 		exit 1
 	fi
@@ -491,6 +499,7 @@ then
 	if [ $? -ne 0 ]
 	then
 		msg="Could not create folder $domain/.wpcd_git"
+		echo
 		echo $msg
 		lf_send_callback_failed $git_callback_url "$msg"
 		exit 1
@@ -504,6 +513,7 @@ then
 	if [ $? -ne 0 ]
 	then
 		msg="Could not initialize repo."
+		echo
 		echo $msg
 		lf_send_callback_failed $git_callback_url "$msg"
 		exit 1
@@ -513,6 +523,7 @@ then
 	if [[ -n "$git_pre_processing_script_link" ]]
 	then
 		tmpfile=$(mktemp)
+		echo
 		echo "Running pre-processing script as temp file: $tmpfile"
 		wget --quiet --no-check-certificate -O $tmpfile $git_pre_processing_script_link
 		dos2unix $tmpfile
@@ -525,6 +536,7 @@ then
 	if [ $? -ne 0 ]	
 	then
 		msg="Unable to mark $domain as safe using git config --global -add safe.directory."
+		echo
 		echo $msg
 		lf_send_callback_failed $git_callback_url "$msg"
 		exit 1
@@ -536,6 +548,7 @@ then
 	if [ $? -ne 0 ]	
 	then
 		msg="Unable to add global git option push.autoSetupRemote."
+		echo
 		echo $msg
 		lf_send_callback_failed $git_callback_url "$msg"
 		exit 1
@@ -547,6 +560,7 @@ then
 	if [ $? -ne 0 ]	
 	then
 		msg="Unable to setup git user display name."
+		echo
 		echo $msg
 		lf_send_callback_failed $git_callback_url "$msg"
 		exit 1
@@ -555,6 +569,7 @@ then
 	if [ $? -ne 0 ]	
 	then
 		msg="Unable to setup git user email address."
+		echo
 		echo $msg
 		lf_send_callback_failed $git_callback_url "$msg"
 		exit 1
@@ -563,6 +578,7 @@ then
 	if [ $? -ne 0 ]	
 	then
 		msg="Unable to setup git password/token."
+		echo
 		echo $msg
 		lf_send_callback_failed $git_callback_url "$msg"
 		exit 1
@@ -580,6 +596,7 @@ then
 	if [ $? -ne 0 ]	
 	then
 		msg="Unable to add files to new local repo."
+		echo
 		echo $msg
 		lf_send_callback_failed $git_callback_url "$msg"
 		exit 1
@@ -590,6 +607,7 @@ then
 	if [ $? -ne 0 ]	
 	then
 		msg="Unable to cleanly commit files to local repo."
+		echo
 		echo $msg
 		lf_send_callback_failed $git_callback_url "$msg"
 		exit 1
@@ -601,6 +619,7 @@ then
 	if [ $? -ne 0 ]	
 	then
 		msg="Unable to add remote origin."
+		echo
 		echo $msg
 		lf_send_callback_failed $git_callback_url "$msg"
 		exit 1
@@ -612,6 +631,7 @@ then
 	if [ $? -ne 0 ]	
 	then
 		msg="Unable to setup git credential helper."
+		echo
 		echo $msg
 		lf_send_callback_failed $git_callback_url "$msg"
 		exit 1
@@ -621,6 +641,7 @@ then
 	if [ $? -ne 0 ]	
 	then
 		msg="Unable to setup git credential helper - param useHttpPath"
+		echo
 		echo $msg
 		lf_send_callback_failed $git_callback_url "$msg"
 		exit 1
@@ -630,6 +651,7 @@ then
 	if [ $? -ne 0 ]	
 	then
 		msg="Unable to setup git credential helper - param useHttpPath"
+		echo
 		echo $msg
 		lf_send_callback_failed $git_callback_url "$msg"
 		exit 1
@@ -646,6 +668,7 @@ then
 	if [ $? -ne 0 ]	
 	then
 		msg="Unable to write to /root/.git_credentials."
+		echo
 		echo $msg
 		lf_send_callback_failed $git_callback_url "$msg"
 		exit 1
@@ -656,6 +679,7 @@ then
 	if [ $? -ne 0 ]	
 	then
 		msg="Unable to setup repo for merge pull."
+		echo
 		echo $msg
 		lf_send_callback_failed $git_callback_url "$msg"
 		exit 1
@@ -667,7 +691,8 @@ then
 	git pull --allow-unrelated-histories --no-edit --commit origin $git_branch
 	if [ $? -ne 0 ]	
 	then
-		msg="Unable to pull and merge cleanly - $origin branch: $git_branch."
+		msg="Unable to pull and merge cleanly - $origin branch: $git_branch.  Consider copying files from the repo directly into this site so that it contains the same files as the repo. This will allow a clean merge when initializing the site for use with git."
+		echo
 		echo $msg
 		lf_send_callback_failed $git_callback_url "$msg"
 		exit 1
@@ -679,6 +704,7 @@ then
 	if [ $? -ne 0 ]	
 	then
 		msg="Unable to push files to origin cleanly."
+		echo
 		echo $msg
 		lf_send_callback_failed $git_callback_url "$msg"
 		exit 1
@@ -689,6 +715,7 @@ then
 	if [ $? -ne 0 ]	
 	then
 		msg="Unable to checkout branch $git_branch."
+		echo
 		echo $msg
 		lf_send_callback_failed $git_callback_url "$msg"
 		exit 1
@@ -698,6 +725,7 @@ then
 	if [[ -n "$git_post_processing_script_link" ]]
 	then
 		tmpfile=$(mktemp)
+		echo
 		echo "Running post-processing script as temp file: $tmpfile"
 		wget --quiet --no-check-certificate -O $tmpfile $git_post_processing_script_link
 		dos2unix $tmpfile
@@ -705,6 +733,7 @@ then
 	fi
 
 	# Show completion message
+	echo
 	echo "Git Init Complete For Domain $domain"
 	exit
 fi
@@ -719,11 +748,13 @@ then
 	lf_remote_git_from_domain $domain
 	if [ $? -ne 0 ]
 	then
+		echo
 		echo "Unable to remove git."
 		exit 1
 	fi
 
 	# Success
+	echo
 	echo "Git has been removed from $domain"
 	exit
 fi
@@ -744,6 +775,7 @@ then
 	if [ $? -ne 0 ]	
 	then
 		msg="Unable to add files to local repo."
+		echo
 		echo $msg
 		exit 1
 	fi	
@@ -760,6 +792,7 @@ then
 	if [ $? -ne 0 ]	
 	then
 		msg="Unable to pull from remote"
+		echo
 		echo $msg
 		exit 1
 	fi
@@ -770,6 +803,7 @@ then
 	if [ $? -ne 0 ]	
 	then
 		msg="Unable to push files to origin cleanly."
+		echo
 		echo $msg
 		exit 1
 	fi
@@ -796,6 +830,7 @@ then
 	if [ $? -ne 0 ]	
 	then
 		msg="Unable to fetch from origin."
+		echo
 		echo $msg
 		exit 1
 	fi
@@ -806,10 +841,12 @@ then
 	if [ $? -ne 0 ]	
 	then
 		msg="Unable to checkout $git_branch from remote repo."
+		echo
 		echo $msg
 		exit 1
 	fi
 
+	echo
 	echo "Git branch switch and checkout succeeded."
 	exit
 fi
@@ -835,6 +872,7 @@ then
 	if [ $? -ne 0 ]	
 	then
 		msg="Unable to fetch from origin."
+		echo
 		echo $msg
 		exit 1
 	fi
@@ -845,6 +883,7 @@ then
 	if [ $? -ne 0 ]	
 	then
 		msg="Unable to checkout $git_branch from remote repo."
+		echo
 		echo $msg
 		exit 1
 	fi
@@ -855,11 +894,12 @@ then
 	if [ $? -ne 0 ]	
 	then
 		msg="Unable to create $git_new_branch."
+		echo
 		echo $msg
 		exit 1
 	fi
 	
-
+	echo
 	echo "Git create new branch and checkout succeeded."
 	exit
 fi
@@ -880,6 +920,7 @@ then
 	if [ $? -ne 0 ]	
 	then
 		msg="Unable to add files to local repo."
+		echo
 		echo $msg
 		exit 1
 	fi
@@ -896,10 +937,12 @@ then
 	if [ $? -ne 0 ]	
 	then
 		msg="Unable to push files to origin cleanly."
+		echo
 		echo $msg
 		exit 1
 	fi
 
+	echo
 	echo "Git commit and push succeeded."
 	exit
 fi
@@ -922,6 +965,7 @@ then
 	if [ $? -ne 0 ]	
 	then
 		msg="Unable to create tag $git_tag."
+		echo
 		echo $msg
 		exit 1
 	fi
@@ -932,6 +976,7 @@ then
 	if [ $? -ne 0 ]	
 	then
 		msg="Unable to push tag $git_tag to remote. The tag is stored on the local remote. We will move on and not consider this operation a failure."
+		echo
 		echo $msg
 	fi
 
@@ -940,6 +985,7 @@ then
 	if [ $? -ne 0 ]
 	then
 		msg="Could not create folder /var/www/$domain/versions/$git_tag"
+		echo
 		echo $msg
 		exit 1
 	fi
@@ -950,6 +996,7 @@ then
 	if [ $? -ne 0 ]
 	then
 		msg="Could not create zip file in folder /var/www/$domain/versions/$git_tag/ for tag $git_tag."
+		echo
 		echo $msg
 		exit
 	fi
@@ -960,6 +1007,7 @@ then
 	if [ $? -ne 0 ]
 	then
 		msg="Could not unzip tagged files for $git_tag."
+		echo
 		echo $msg
 		exit
 	fi
@@ -967,6 +1015,7 @@ then
 	# Remove zip file.
 	rm -f /var/www/$domain/versions/$git_tag/$git_tag.zip
 
+	echo
 	echo "Git tag and push succeeded."
 	exit
 fi
@@ -983,6 +1032,7 @@ then
 	# Do it.
 	lf_git_pull_tag $domain $git_tag
 
+	echo
 	echo "Git pull tag succeeded."
 	exit
 fi
@@ -999,12 +1049,14 @@ then
 	if [[ -z $domain ]]
 	then
 		msg="We are about to delete a folder but the domain variable is blank. Operation aborted."
+		echo
 		echo $msg
 		exit 1
 	else
 		rm -rf /var/www/$domain/versions/$git_tag
 	fi
 
+	echo
 	echo "Version folder has been removed for $git_tag"
 fi
 
@@ -1017,12 +1069,14 @@ then
 	if [[ -z $domain ]]
 	then
 		msg="We are about to delete one or more folders but the domain variable is blank. Operation aborted."
+		echo
 		echo $msg
 		exit 1
 	else
 		rm -rf /var/www/$domain/versions/
 	fi
 
+	echo
 	echo "All version folders have been removed for $domain"
 fi
 
@@ -1037,6 +1091,7 @@ then
 	if [ $? -ne 0 ]
 	then
 		msg="Unable to navigate to the domain version folder or the version folder does not yet exist for the domain $domain."
+		echo
 		echo $msg
 		exit
 	fi
@@ -1062,6 +1117,7 @@ then
 
 	if [[ -z $current_branch ]]; then
 		$msg="No current branch!"
+		echo
 		echo $msg
 		exit 1
 	else
@@ -1113,9 +1169,11 @@ then
 	# @todo: Remove wp .maintenance file here from domain.
 
 	# flush caches
+	echo
 	echo "Flushing caches..."
 	g_flush_cache $user_name $domain
 
+	echo
 	echo "Git switch version succeeded."
 	exit
 fi
@@ -1142,6 +1200,7 @@ then
 	if [ $? -ne 0 ]	
 	then
 		msg="Unable to mark $domain as safe using git config --global -add safe.directory."
+		echo
 		echo $msg
 		exit 1
 	fi
@@ -1152,6 +1211,7 @@ then
 	if [ $? -ne 0 ]	
 	then
 		msg="Unable to setup git user display name."
+		echo
 		echo $msg
 		exit 1
 	fi
@@ -1159,6 +1219,7 @@ then
 	if [ $? -ne 0 ]	
 	then
 		msg="Unable to setup git user email address."
+		echo
 		echo $msg
 		exit 1
 	fi
@@ -1166,6 +1227,7 @@ then
 	if [ $? -ne 0 ]	
 	then
 		msg="Unable to setup git password/token."
+		echo
 		echo $msg
 		exit 1
 	fi
@@ -1177,6 +1239,7 @@ then
 	if [ $? -ne 0 ]	
 	then
 		msg="Unable to setup git credential helper."
+		echo
 		echo $msg
 		exit 1
 	fi
@@ -1185,6 +1248,7 @@ then
 	if [ $? -ne 0 ]	
 	then
 		msg="Unable to setup git credential helper - param useHttpPath"
+		echo
 		echo $msg
 		exit 1
 	fi
@@ -1193,6 +1257,7 @@ then
 	if [ $? -ne 0 ]	
 	then
 		msg="Unable to setup git credential helper - param useHttpPath"
+		echo
 		echo $msg
 		exit 1
 	fi
@@ -1208,10 +1273,12 @@ then
 	if [ $? -ne 0 ]	
 	then
 		msg="Unable to write to /root/.git_credentials."
+		echo
 		echo $msg
 		exit 1
 	fi	
 
+	echo
 	echo "Git credentials successfully set up for domain $domain."
 	exit
 fi
@@ -1237,6 +1304,7 @@ then
 	if [[ -z $domain ]]
 	then
 		msg="We are about to delete a folder but the domain variable is blank. Operation aborted."
+		echo
 		echo $msg
 		exit 1
 	else
@@ -1248,6 +1316,7 @@ then
 	if [ $? -ne 0 ]
 	then
 		msg="Could not create folder /var/www/$domain/git-clones/$git_branch"
+		echo
 		echo $msg
 		exit 1
 	fi
@@ -1257,6 +1326,7 @@ then
 	if [ $? -ne 0 ]
 	then
 		msg="Could not create clone from $git_remote_url for domain $domain."
+		echo
 		echo $msg
 		exit 1
 	fi
@@ -1285,9 +1355,11 @@ then
 	gf_remove_maintenance_mode_for_site $domain
 
 	# flush caches
+	echo
 	echo "Flushing caches..."
 	g_flush_cache $user_name $domain
 
+	echo
 	echo "Git clone successful"
 	exit
 fi

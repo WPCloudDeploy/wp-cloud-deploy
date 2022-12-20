@@ -394,14 +394,14 @@ lf_git_pull_tag() {
 	echo "Tag is located on branch $tag_branch"	
 
 	# Pull tag in case it's not local yet
-	git pull origin $git_tag
-	if [ $? -ne 0 ]
-	then
-		msg="Could not pull tag $git_tag from remote."
-		echo
-		echo $msg
-		exit
-	fi
+#	git pull origin $git_tag
+#	if [ $? -ne 0 ]
+#	then
+#		msg="Could not pull tag $git_tag from remote."
+#		echo
+#		echo $msg
+#		exit
+#	fi
 
 	# Lets checkout the tag.
 #	local current_branch
@@ -1061,7 +1061,8 @@ then
 	lf_git_pull_tag $domain $git_tag
 
 	echo
-	echo "Git pull tag succeeded."
+	echo "Git pull tag succeeded. Your site files have not changed."
+	echo "Use the APPLY VERSION action to sync your site files with a version/tag."
 	exit
 fi
 

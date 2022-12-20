@@ -58,9 +58,9 @@
 
 .wpcd-popup .wpcd-log-console {
 	/* Style the actual command output area to look like a linux terminal */
-	background-color: black;
+	background-color: var(--wpcd-terminal-background-color);
 	padding: 2em;
-	color: white;
+	color: var(--wpcd-terminal-foreground-color);
 	overflow: scroll;
 	max-height: 300px;
 }

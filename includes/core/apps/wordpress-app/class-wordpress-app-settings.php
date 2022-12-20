@@ -2463,32 +2463,32 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 		 */
 		// An array of ids and labels for color fields that overide brand colors.
 		$brand_colors = array(
-			'wordpress_app_primary_brand_color'     => array(
+			'wordpress_app_primary_brand_color'       => array(
 				'label' => __( 'Primary Brand Color', 'wpcd' ),
 				'desc'  => '',
 				'std'   => WPCD_PRIMARY_BRAND_COLOR,
 			),
-			'wordpress_app_secondary_brand_color'   => array(
+			'wordpress_app_secondary_brand_color'     => array(
 				'label' => __( 'Secondary Brand Color', 'wpcd' ),
 				'desc'  => '',
 				'std'   => WPCD_SECONDARY_BRAND_COLOR,
 			),
-			'wordpress_app_tertiary_brand_color'    => array(
+			'wordpress_app_tertiary_brand_color'      => array(
 				'label' => __( 'Tertiary Brand Color', 'wpcd' ),
 				'desc'  => '',
 				'std'   => WPCD_TERTIARY_BRAND_COLOR,
 			),
-			'wordpress_app_accent_background_color' => array(
+			'wordpress_app_accent_background_color'   => array(
 				'label' => __( 'Accent Background Color', 'wpcd' ),
 				'desc'  => '',
 				'std'   => WPCD_ACCENT_BG_COLOR,
 			),
-			'wordpress_app_medium_background_color' => array(
+			'wordpress_app_medium_background_color'   => array(
 				'label' => __( 'Medium Background Color', 'wpcd' ),
 				'desc'  => '',
 				'std'   => WPCD_MEDIUM_BG_COLOR,
 			),
-			'wordpress_app_light_background_color'  => array(
+			'wordpress_app_light_background_color'    => array(
 				'label' => __( 'Light Background Color', 'wpcd' ),
 				'desc'  => '',
 				'std'   => WPCD_LIGHT_BG_COLOR,
@@ -2497,6 +2497,24 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'label' => __( 'Alternate Accent Background Color', 'wpcd' ),
 				'desc'  => '',
 				'std'   => WPCD_ALTERNATE_ACCENT_BG_COLOR,
+			),
+			'wordpress_app_positive_color'            => array(
+				'label' => __( 'Positive Color', 'wpcd' ),
+				'desc'  => __( 'Accent color used to indicate something is turned on or a good thing has occurred.', 'wpcd' ),
+				'std'   => WPCD_POSITIVE_COLOR,
+			),
+			'wordpress_app_negative_color'            => array(
+				'label' => __( 'Negative Color', 'wpcd' ),
+				'desc'  => __( 'Accent color used to indicate something is turned off or a bad thing has occurred.', 'wpcd' ),
+				'std'   => WPCD_NEGATIVE_COLOR,
+			),
+			'wordpress_app_terminal_background_color' => array(
+				'label' => __( 'Background Color for Terminal', 'wpcd' ),
+				'std'   => WPCD_TERMINAL_BG_COLOR,
+			),
+			'wordpress_app_terminal_foreground_color' => array(
+				'label' => __( 'Foreground Color for Terminal', 'wpcd' ),
+				'std'   => WPCD_TERMINAL_FG_COLOR,
 			),
 		);
 
@@ -2566,12 +2584,12 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			),
 			'wordpress_app_fe_positive_color'          => array(
 				'label' => __( 'Positive Color', 'wpcd' ),
-				'desc'  => __( 'Accent color used to indicate something is turned on or a good thing has occured.', 'wpcd' ),
+				'desc'  => __( 'Accent color used to indicate something is turned on or a good thing has occurred.', 'wpcd' ),
 				'std'   => WPCD_FE_POSITIVE_COLOR,
 			),
 			'wordpress_app_fe_negative_color'          => array(
 				'label' => __( 'Negative Color', 'wpcd' ),
-				'desc'  => __( 'Accent color used to indicate something is turned off or a bad thing has occured.', 'wpcd' ),
+				'desc'  => __( 'Accent color used to indicate something is turned off or a bad thing has occurred.', 'wpcd' ),
 				'std'   => WPCD_FE_NEGATIVE_COLOR,
 			),
 		);

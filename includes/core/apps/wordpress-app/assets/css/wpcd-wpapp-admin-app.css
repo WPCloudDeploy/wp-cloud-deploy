@@ -207,6 +207,31 @@
 	text-align: center;
 }
 
+/* Format the current branch shown at the top of each section of the GIT tab for a site. */
+.wpcd_git_site_branch_wrap {
+	margin-top: 1.5em;
+}
+.wpcd_git_site_branch {
+	border: solid 1px;
+	border-radius: 3px;
+	padding: 5px;
+	border-color: var(--wpcd-positive-color);
+	color: var(--wpcd-positive-color);
+	
+}
+
+.wpcd_git_site_repo_wrap {
+	margin-top: 1em;
+}
+.wpcd_git_site_repo {
+	border: solid 1px;
+	border-radius: 3px;
+	padding: 5px;
+	border-color: var(--wpcd-primary-brand-color);
+	color: var(--wpcd-primary-brand-color);;
+	
+}
+
 /* the spinner - start */
 .locker,
 .locker-loader {

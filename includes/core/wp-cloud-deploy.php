@@ -615,6 +615,18 @@ class WP_CLOUD_DEPLOY {
 		$alternate_accent_bg_color = wpcd_get_option( 'wordpress_app_alternate_accent_background_color' );
 		$alternate_accent_bg_color = empty( $alternate_accent_bg_color ) ? WPCD_ALTERNATE_ACCENT_BG_COLOR : $alternate_accent_bg_color;
 
+		$positive_color = wpcd_get_option( 'wordpress_app_positive_color' );
+		$positive_color = empty( $positive_color ) ? WPCD_POSITIVE_COLOR : $positive_color;
+
+		$negative_color = wpcd_get_option( 'wordpress_app_negative_color' );
+		$negative_color = empty( $negative_color ) ? WPCD_NEGATIVE_COLOR : $negative_color;
+
+		$terminal_bg_color = wpcd_get_option( 'wordpress_app_terminal_background_color' );
+		$terminal_bg_color = empty( $terminal_bg_color ) ? WPCD_TERMINAL_BG_COLOR : $terminal_bg_color;
+
+		$terminal_fg_color = wpcd_get_option( 'wordpress_app_terminal_foreground_color' );
+		$terminal_fg_color = empty( $terminal_fg_color ) ? WPCD_TERMINAL_FG_COLOR : $terminal_fg_color;
+
 		// Get brand color settings for the front-end.
 		$primary_brand_color_fe = wpcd_get_option( 'wordpress_app_fe_primary_brand_color' );
 		$primary_brand_color_fe = empty( $primary_brand_color_fe ) ? WPCD_FE_PRIMARY_BRAND_COLOR : $primary_brand_color_fe;
@@ -637,8 +649,8 @@ class WP_CLOUD_DEPLOY {
 		$alternate_accent_bg_color_fe = wpcd_get_option( 'wordpress_app_fe_alternate_accent_background_color' );
 		$alternate_accent_bg_color_fe = empty( $alternate_accent_bg_color_fe ) ? WPCD_FE_ALTERNATE_ACCENT_BG_COLOR : $alternate_accent_bg_color_fe;
 
-		$postive_color_fe = wpcd_get_option( 'wordpress_app_fe_positive_color' );
-		$postive_color_fe = empty( $postive_color_fe ) ? WPCD_FE_POSITIVE_COLOR : $postive_color_fe;
+		$positive_color_fe = wpcd_get_option( 'wordpress_app_fe_positive_color' );
+		$positive_color_fe = empty( $positive_color_fe ) ? WPCD_FE_POSITIVE_COLOR : $positive_color_fe;
 
 		$negative_color_fe = wpcd_get_option( 'wordpress_app_fe_negative_color' );
 		$negative_color_fe = empty( $negative_color_fe ) ? WPCD_FE_NEGATIVE_COLOR : $negative_color_fe;
@@ -655,6 +667,10 @@ class WP_CLOUD_DEPLOY {
 			--wpcd-medium-background-color: {$medium_bg_color};
 			--wpcd-light-background-color: {$light_bg_color};
 			--wpcd-alternate-accent-background-color: {$alternate_accent_bg_color};
+			--wpcd-positive-color: {$positive_color};			
+			--wpcd-negative-color: {$negative_color};			
+			--wpcd-terminal-background-color: {$terminal_bg_color};			
+			--wpcd-terminal-foreground-color: {$terminal_fg_color};						
 
 			--wpcd-front-end-primary-brand-color: {$primary_brand_color_fe};
 			--wpcd-front-end-secondary-brand-color: {$secondary_brand_color_fe};
@@ -663,8 +679,8 @@ class WP_CLOUD_DEPLOY {
 			--wpcd-front-end-medium-background-color: {$medium_bg_color_fe};
 			--wpcd-front-end-light-background-color: {$light_bg_color_fe};
 			--wpcd-front-end-alternate-accent-background-color: {$alternate_accent_bg_color_fe};
-			--wpcd-front-end-positive-color: {$postive_color_fe};			
-			--wpcd-front-end-negative-color: {$negative_color_fe};			
+			--wpcd-front-end-positive-color: {$positive_color_fe};
+			--wpcd-front-end-negative-color: {$negative_color_fe};
 		}";
 
 		/* Add some global css. */

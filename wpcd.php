@@ -65,6 +65,10 @@ class WPCD_Init {
 			define( 'WPCD_MEDIUM_BG_COLOR', '#FAFAFA' );
 			define( 'WPCD_LIGHT_BG_COLOR', '#FDFDFD' );
 			define( 'WPCD_ALTERNATE_ACCENT_BG_COLOR', '#CFD8DC' );
+			define( 'WPCD_POSITIVE_COLOR', '#008000' );
+			define( 'WPCD_NEGATIVE_COLOR', '#8B0000' );
+			define( 'WPCD_TERMINAL_BG_COLOR', '#000000' );
+			define( 'WPCD_TERMINAL_FG_COLOR', '#ffffff' );
 
 			// Define the default brand colors for front-end.
 			define( 'WPCD_FE_PRIMARY_BRAND_COLOR', '#E91E63' );

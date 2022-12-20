@@ -417,11 +417,8 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 				// Git has been initialized for this site.
 				$header_msg  = __( 'Git is active on this site.', 'wpcd' );
 				$header_msg .= '<br />';
-				/* Translators: %s is the url to a remote repo on github */
-				$header_msg .= sprintf( __( 'The remote repo is %s.', 'wpcd' ), $this->get_remote_repo_url( $id ) );
-				$header_msg .= '<br />';
-				/* Translators: %s is the name of a git branch */
-				$header_msg .= sprintf( __( 'The current branch is %s.', 'wpcd' ), $this->get_git_branch( $id ) );
+				$header_msg .= $this->get_formatted_git_remote_repo_for_display( $id );
+				$header_msg .= $this->get_formatted_git_branch_for_display( $id );
 
 				$fields[] = array(
 					'id'   => 'git-site-control-header',
@@ -763,8 +760,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 
 		$header_msg  = __( 'Sync your current branch with your remote repo.', 'wpcd' );
 		$header_msg .= '<br />';
-		/* Translators: %s is the name of the current git branch in use. */
-		$header_msg .= sprintf( __( 'The current branch is %s.', 'wpcd' ), $this->get_git_branch( $id ) );
+		$header_msg .= $this->get_formatted_git_branch_for_display( $id );
 		$actions[]   = array(
 			'id'   => 'git-site-control-sync-fields-header',
 			'name' => __( 'Git Sync', 'wpcd' ),
@@ -855,8 +851,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 
 		$header_msg  = __( 'Checkout a different branch or tag (version). Site files will be changed!', 'wpcd' );
 		$header_msg .= '<br />';
-		/* Translators: %s is the name of the current git branch in use. */
-		$header_msg .= sprintf( __( 'The current branch is %s.', 'wpcd' ), $this->get_git_branch( $id ) );
+		$header_msg .= $this->get_formatted_git_branch_for_display( $id );
 		$actions[]   = array(
 			'id'   => 'git-site-control-checkout-fields-header',
 			'name' => __( 'Git Checkout Branch or tag (Version)', 'wpcd' ),
@@ -921,8 +916,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 
 		$header_msg  = __( 'Create new branch and checkout.', 'wpcd' );
 		$header_msg .= '<br />';
-		/* Translators: %s is the name of the current git branch in use. */
-		$header_msg .= sprintf( __( 'The current branch is %s.', 'wpcd' ), $this->get_git_branch( $id ) );
+		$header_msg .= $this->get_formatted_git_branch_for_display( $id );
 		$actions[]   = array(
 			'id'   => 'git-site-control-checkout-fields-header',
 			'name' => __( 'Git Create Branch', 'wpcd' ),
@@ -1004,8 +998,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 		$header_msg .= '<br />';
 		$header_msg .= __( 'A new version folder will be created for this tag.', 'wpcd' );
 		$header_msg .= '<br />';
-		/* Translators: %s is the name of the current git branch in use. */
-		$header_msg .= sprintf( __( 'The current branch is %s.', 'wpcd' ), $this->get_git_branch( $id ) );
+		$header_msg .= $this->get_formatted_git_branch_for_display( $id );
 		$actions[]   = array(
 			'id'   => 'git-site-control-create-tag-header',
 			'name' => __( 'Create New Tag (Version)', 'wpcd' ),
@@ -1089,8 +1082,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 		// Left column header.
 		$header_msg  = __( 'Fetch Tag and create a version folder without overwriting existing site files.', 'wpcd' );
 		$header_msg .= '<br />';
-		/* Translators: %s is the name of the current git branch in use. */
-		$header_msg .= sprintf( __( 'The current branch is %s.', 'wpcd' ), $this->get_git_branch( $id ) );
+		$header_msg .= $this->get_formatted_git_branch_for_display( $id );
 		$actions[]   = array(
 			'id'      => 'git-site-control-pull-tag-header',
 			'name'    => __( 'Fetch Existing Tag (Version) From Repo', 'wpcd' ),
@@ -1105,8 +1097,6 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 		$header_msg .= '<br />';
 		$header_msg .= __( 'Note that this tag will write files to your CURRENT branch. So if you are using an older tag or a tag from a different branch you will want to be very very careful!', 'wpcd' );
 		$header_msg .= '<br />';
-		/* Translators: %s is the name of the current git branch in use. */
-		$header_msg .= sprintf( __( 'The current branch is %s.', 'wpcd' ), $this->get_git_branch( $id ) );
 		$actions[]   = array(
 			'id'      => 'git-site-control-fetch-and-apply-tag-header',
 			'name'    => __( 'Fetch And Apply Tag (Version)', 'wpcd' ),
@@ -2325,6 +2315,32 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 
 		return $tags;
 
+	}
+
+	/**
+	 * Get a branch formatted with divs and spans for display in a header.
+	 *
+	 * @param int $id Post id of site we're working with.
+	 */
+	public function get_formatted_git_branch_for_display( $id ) {
+		/* Translators: %s is the current git branch for the site. */
+		$branch = sprintf( __( 'Current Branch: %s', 'wpcd' ), $this->get_git_branch( $id ) );
+		$branch = '<div class="wpcd_git_site_branch_wrap"><span class="wpcd_git_site_branch">' . $branch . '</span></div>';
+		return $branch;
+	}
+
+	/**
+	 * Get the repo url formatted with divs and spans for display in a header.
+	 *
+	 * @param int $id Post id of site we're working with.
+	 */
+	public function get_formatted_git_remote_repo_for_display( $id ) {
+
+		/* Translators: %s is the current git repo url associated with this site. */
+		$repo = sprintf( __( 'Repo: %s', 'wpcd' ), $this->get_remote_repo_url( $id ) );
+		$repo = '<div class="wpcd_git_site_repo_wrap"><span class="wpcd_git_site_repo">' . $repo . '</span></div>';
+
+		return $repo;
 	}
 
 	/**

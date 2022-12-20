@@ -2580,6 +2580,11 @@ class WPCD_Settings {
 		$wpcd_settings['wordpress_app_medium_background_color']           = WPCD_MEDIUM_BG_COLOR;
 		$wpcd_settings['wordpress_app_light_background_color']            = WPCD_LIGHT_BG_COLOR;
 		$wpcd_settings['wordpress_app_alternate_accent_background_color'] = WPCD_ALTERNATE_ACCENT_BG_COLOR;
+		$wpcd_settings['wordpress_app_positive_color']                    = WPCD_POSITIVE_COLOR;
+		$wpcd_settings['wordpress_app_negative_color']                    = WPCD_NEGATIVE_COLOR;
+
+		$wpcd_settings['wordpress_app_terminal_background_color'] = WPCD_TERMINAL_BG_COLOR;
+		$wpcd_settings['wordpress_app_terminal_foreground_color'] = WPCD_TERMINAL_FG_COLOR;
 
 		$wpcd_settings['wordpress_app_fe_primary_brand_color']               = WPCD_FE_PRIMARY_BRAND_COLOR;
 		$wpcd_settings['wordpress_app_fe_secondary_brand_color']             = WPCD_FE_SECONDARY_BRAND_COLOR;

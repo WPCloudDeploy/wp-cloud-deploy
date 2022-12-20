@@ -271,6 +271,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 			'git-site-control-pull-tag',
 			'git-site-control-fetch-and-apply-tag',
 			'git-site-control-delete-all-tag-folders',
+			'git-site-control-push-to-deploy-action',
 			'git-site-control-push-to-deploy-reset-keys',
 		);
 		if ( in_array( $action, $valid_actions, true ) ) {
@@ -333,8 +334,11 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 					$bash_action = 'git_remove_all_version_folders';
 					$result      = $this->git_actions( $bash_action, $id );
 					break;
+				case 'git-site-control-push-to-deploy-action':
+					$result = $this->push_to_deploy_save_actions( $action, $id );
+					break;
 				case 'git-site-control-push-to-deploy-reset-keys':
-					$result = $this->reset_push_to_deploy_keys( $bash_action, $id );
+					$result = $this->reset_push_to_deploy_keys( $action, $id );
 					break;
 
 			}
@@ -444,7 +448,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 				$fields = array_merge( $fields, $this->get_fields_for_git_create_tag( $id ) );
 				$fields = array_merge( $fields, $this->get_fields_for_git_fetch_tag( $id ) );
 				$fields = array_merge( $fields, $this->get_fields_for_git_tag_list( $id ) );
-				$fields = array_merge( $fields, $this->get_fields_for_git_push_to_deploy_handle_actions( $id ) );				
+				$fields = array_merge( $fields, $this->get_fields_for_git_push_to_deploy_handle_actions( $id ) );
 				$fields = array_merge( $fields, $this->get_fields_for_git_push_to_deploy_keys( $id ) );
 
 			}
@@ -1309,6 +1313,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 			'id'         => 'git-site-control-push-to-deploy-actions-branches',
 			'name'       => __( 'Which branches should trigger a deploy?', 'wpcd' ),
 			'desc'       => __( 'Enter branches separated by commas.', 'wpcd' ),
+			'std'        => get_post_meta( $id, 'wpcd_app_git_push_to_deploy_action_branches', true ),
 			'columns'    => 6,
 			'attributes' => array(
 				// the key of the field (the key goes in the request).
@@ -1322,7 +1327,8 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 		$actions[] = array(
 			'id'         => 'git-site-control-push-to-deploy-actions-types',
 			'name'       => __( 'What should we do?', 'wpcd' ),
-			'desc'       => __( 'Enter a few words about this tag.', 'wpcd' ),
+			'desc'       => __( 'What should we do when our push-to-deploy webhook is triggered for this site?', 'wpcd' ),
+			'std'        => get_post_meta( $id, 'wpcd_app_git_push_to_deploy_action_type', true ),
 			'columns'    => 6,
 			'attributes' => array(
 				// the key of the field (the key goes in the request).
@@ -2367,84 +2373,39 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
-	 * Handles wehbook notifications from github.
+	 * Save the push-to-deploy-actions options.
 	 *
-	 * Action Hook: wpcd_command_{$this->get_app_name()}_command_git_push_to_deploy_completed || wpcd_{$this->get_app_name()}_command_{$name}_{$status}
-	 *
-	 * @param int    $id server post id.
-	 * @param int    $command_id an id that is given to the bash script at the time it's first run. Doesn't do anything for us in this context so it's not used here.
-	 * @param string $name name.
-	 * @param string $status status.
-	 *
-	 * @return void.
+	 * @param string $action The action to be performed (this matches the string required in the bash scripts if bash scripts are used - not used in this function).
+	 * @param int    $id id.
 	 */
-	public function handle_push_to_deploy_notification( $id, $command_id, $name, $status ) {
+	public function push_to_deploy_save_actions( $action, $id ) {
 
-		error_log( 'here in webhook callback.  What do we do now?' );
+		$instance = $this->get_app_instance_details( $id );
+
+		if ( is_wp_error( $instance ) ) {
+			/* Translators: %s is the action name. */
+			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
+		}
+
+		$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
+
+		// Make sure we have at least one branch.
+		if ( empty( $args['git_push_to_deploy_action_branches'] ) ) {
+			/* Translators: %s is the action name. */
+			return new \WP_Error( sprintf( __( 'Unable to execute this request because no branch was specified.  At least one branch must be specified. (action %s)', 'wpcd' ), $action ) );
+		}
+
+		// Make sure the action to be performed is valid.
+		if ( ! in_array( $args['git_push_to_deploy_action_type'], array( 'fetch', 'checkout' ), true ) ) {
+			/* Translators: %s is the action name. */
+			return new \WP_Error( sprintf( __( 'Unable to execute this request because the push-to-deploy action is not valid - it should be fetch or checkout. (action %s)', 'wpcd' ), $action ) );
+		}
+
+		// Save to metas.
+		update_post_meta( $id, 'wpcd_app_git_push_to_deploy_action_branches', $args['git_push_to_deploy_action_branches'] );
+		update_post_meta( $id, 'wpcd_app_git_push_to_deploy_action_type', $args['git_push_to_deploy_action_type'] );
 
 		return true;
-
-		// Set variable to status, in this case it is always "completed" - will be used in action hooks later.
-		$status = 'completed';
-
-		// set variable to name, in this case it is always "aptget_status" - will be used in action hooks later.
-		$name = 'aptget_status';
-
-		// Create an array to hold items taken from the $_request object.
-		$aptget_status_items = array();
-
-		// get restart status item.
-		$aptget_status_items['aptget_status'] = sanitize_text_field( filter_input( INPUT_GET, 'aptget_status', FILTER_UNSAFE_RAW ) );
-		if ( ! in_array( $aptget_status_items['aptget_status'], array( 'running' ) ) ) {
-			$aptget_status_items['aptget_status'] = 'unknown';
-		}
-
-		// Finally, add the time reported to the array.
-		$aptget_status_items['reporting_time']       = time();
-		$aptget_status_items['reporting_time_human'] = date( 'Y-m-d H:i:s', time() );
-
-		// Stamp the server record with the array.
-		if ( 'wpcd_app_server' === get_post_type( $id ) ) {
-
-			// update the meta that holds the current data..
-			update_post_meta( $id, 'wpcd_server_aptget_status_push', $aptget_status_items );
-
-			// add to history meta as well.
-			$history = wpcd_maybe_unserialize( get_post_meta( $id, 'wpcd_server_aptget_status_push_history', true ) );
-			if ( empty( $history ) ) {
-				$history = array();
-			}
-
-			$history[ ' ' . (string) time() ] = $aptget_status_items; // we have to force the time element to be a string by putting a space in front of it otherwise manipulating the array as a key-value pair is a big problem if we want to purge just part of the array later.
-
-			if ( count( $history ) >= 10 ) {
-				// take the last element off to prevent history from getting too big.
-				$removed = array_shift( $history );
-			}
-
-			update_post_meta( $id, 'wpcd_server_aptget_status_push_history', $history );
-
-			// Now, set transient with server id that tags this server as having aptget running.
-			// Transient should expire after 3 minutes.
-			if ( 'running' === $aptget_status_items['aptget_status'] ) {
-				$transient_name = $id . 'wpcd_server_aptget_status';
-				set_transient( $transient_name, 'running', 180 );
-			}
-
-			// Let other plugins react to the new good data with an action hook.
-			do_action( "wpcd_{$this->get_app_name()}_command_{$name}_{$status}_processed_good", $aptget_status_items, $id );
-
-		} else {
-
-			do_action( 'wpcd_log_error', 'Data received for server that does not exist - received server id ' . (string) $id . '<br /> The first 5000 characters of the received data is shown below after being sanitized with WP_KSES:<br /> ' . substr( wp_kses( print_r( $_REQUEST, true ), array() ), 0, 5000 ), 'security', __FILE__, __LINE__ );
-
-			// Let other plugins react to the new bad data with an action hook.
-			do_action( "wpcd_{$this->get_app_name()}_command_{$name}_{$status}_processed_bad", $aptget_status_items, $id );
-
-		}
-
-		// Let other plugins react to the new data (regardless of it's good or bad) with an action hook.
-		do_action( "wpcd_{$this->get_app_name()}_command_{$name}_{$status}_processed", $aptget_status_items, $id );
 
 	}
 
@@ -2610,6 +2571,8 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 		delete_post_meta( $id, 'wpcd_app_git_tag_history' );
 		delete_post_meta( $id, 'wpcd_app_git_push_to_deploy_webhook_url' );
 		delete_post_meta( $id, 'wpcd_app_git_push_to_deploy_secret_key' );
+		delete_post_meta( $id, 'wpcd_app_git_push_to_deploy_action_branches' );
+		delete_post_meta( $id, 'wpcd_app_git_push_to_deploy_action_type' );
 
 		// Remove the status meta.
 		$this->set_git_status( $id, false );

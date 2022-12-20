@@ -437,6 +437,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 				$fields = array_merge( $fields, $this->get_fields_for_git_new_branch( $id ) );
 				$fields = array_merge( $fields, $this->get_fields_for_git_create_tag( $id ) );
 				$fields = array_merge( $fields, $this->get_fields_for_git_fetch_tag( $id ) );
+				$fields = array_merge( $fields, $this->get_fields_for_git_tag_list( $id ) );
 
 			}
 		}
@@ -868,7 +869,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 			'id'         => 'git-site-control-checkout-branch',
 			'name'       => __( 'Branch or Tag', 'wpcd' ),
 			'desc'       => __( 'Enter the branch or tag to be checked out, eg: dev or main.', 'wpcd' ),
-			'tooltip'    => __( 'If you choose a TAG to checkout, chances are that your HEAD will be left in a DETACHED state. If you do not know what this means, do not checkout a tag or version.', 'wpcd'),
+			'tooltip'    => __( 'If you choose a TAG to checkout, chances are that your HEAD will be left in a DETACHED state. If you do not know what this means, do not checkout a tag or version.', 'wpcd' ),
 			'attributes' => array(
 				// the key of the field (the key goes in the request).
 				'data-wpcd-name' => 'git_branch',
@@ -1002,7 +1003,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 		$header_msg  = __( 'Create new tag or version.', 'wpcd' );
 		$header_msg .= '<br />';
 		$header_msg .= __( 'A new version folder will be created for this tag.', 'wpcd' );
-		$header_msg .= '<br />';		
+		$header_msg .= '<br />';
 		/* Translators: %s is the name of the current git branch in use. */
 		$header_msg .= sprintf( __( 'The current branch is %s.', 'wpcd' ), $this->get_git_branch( $id ) );
 		$actions[]   = array(
@@ -1398,6 +1399,57 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
+	 * Get fields that displays the list of current tags we know about.
+	 *
+	 * @param int $id id.
+	 *
+	 * @return array Array of actions, complying with the structure necessary by metabox.io fields.
+	 */
+	public function get_fields_for_git_tag_list( $id ) {
+
+		$header_msg = __( 'These are the tags/versions that we are aware of. If you have created tags on the remote repo but not fetched them on this screen we will not be aware of them.', 'wpcd' );
+
+		$return      = '<div class="wpcd_git_tag_list">';
+			$return .= '<div class="wpcd_git_tag_list_inner_wrap">';
+
+		$tags = $this->get_git_tag_history( $id );
+
+		foreach ( $tags as $tag => $tag_array ) {
+
+			$return     .= '<div class="wpcd_git_tag_value">';
+				$return .= $tag;
+			$return     .= '</div>';
+
+			$return     .= '<div class="wpcd_git_tag_label_desc">';
+				$return .= $tag_array['desc'];
+			$return     .= '</div>';
+
+		}
+			$return .= '</div>';
+		$return     .= '</div>';
+
+		$actions[] = array(
+			'id'   => 'git-site-control-list-tags',
+			'name' => __( 'Current Tags', 'wpcd' ),
+			'desc' => $header_msg,
+			'type' => 'heading',
+			'tab'  => $this->get_tab_slug(),
+		);
+
+		$actions[] = array(
+			'id'         => 'git-site-control-view-settings',
+			'name'       => '',
+			'std'        => $return,
+			'type'       => 'custom_html',
+			'tab'        => $this->get_tab_slug(),
+			'save_field' => false,
+		);
+
+		return $actions;
+
+	}
+
+	/**
 	 * Return an array of field names that will be used
 	 * as the keys into an array to store corresponding
 	 * values.
@@ -1750,7 +1802,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 		}
 
 		// Make sure the sanitized tag name and the provided tag name are the same.
-		$sanitized_tag = sanitize_title( $args['git_tag'] );
+		$sanitized_tag = $this->sanitize_tag( $args['git_tag'] );
 		if ( $sanitized_tag !== $args['git_tag'] ) {
 			/* Translators: %s is the suggested tag name. */
 			return new \WP_Error( sprintf( __( 'The tag provided is invalid. Maybe it should be %s', 'wpcd' ), $sanitized_tag ) );
@@ -1837,7 +1889,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 		}
 
 		// Make sure the sanitized tag name and the provided tag name are the same.
-		$sanitized_tag = sanitize_title( $args['git_tag'] );
+		$sanitized_tag = $this->sanitize_tag( $args['git_tag'] );
 		if ( $sanitized_tag !== $args['git_tag'] ) {
 			/* Translators: %s is the suggested tag name. */
 			return new \WP_Error( sprintf( __( 'The tag provided is invalid. Maybe it should be %s', 'wpcd' ), $sanitized_tag ) );
@@ -2231,7 +2283,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 		}
 
 		// Add to array.
-		if ( ! empty( $tags[ $new_tag ] ) ) {
+		if ( empty( $tags[ $new_tag ] ) ) {
 			// Tag does not yet exist in the array so add it.
 			$tags[ $new_tag ] = array(
 				'reporting_time'           => time(),
@@ -2248,6 +2300,30 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 
 		// Push back to database.
 		return update_post_meta( $id, 'wpcd_app_git_tag_history', $tags );
+
+	}
+
+	/**
+	 * Return the git tag history meta value.
+	 *
+	 * @param int $id Post id of site we're working with.
+	 *
+	 * @return array.
+	 */
+	public function get_git_tag_history( $id ) {
+
+		// Get current tag list.
+		$tags = wpcd_maybe_unserialize( get_post_meta( $id, 'wpcd_app_git_tag_history', true ) );
+
+		// Make sure we have something in the logs array otherwise create a blank one.
+		if ( empty( $tags ) ) {
+			$tags = array();
+		}
+		if ( ! is_array( $tags ) ) {
+			$tags = array();
+		}
+
+		return $tags;
 
 	}
 
@@ -2278,6 +2354,14 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 		$this->git_add_to_site_log( $id, __( 'Metas deleted.', 'wpcd' ) );
 
 		return true;
+	}
+
+	/**
+	 * Takes a string and removes everything except alphanumeric
+	 * characters, dashes and periods.
+	 */
+	public function sanitize_tag( $tag ) {
+		return wpcd_clean_alpha_numeric_dashes_periods_underscores( $tag );
 	}
 
 	/**

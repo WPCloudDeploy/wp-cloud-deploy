@@ -339,7 +339,7 @@ class WPCD_WORDPRESS_TABS_FILE_MANAGER extends WPCD_WORDPRESS_TABS {
 				'name' => __( 'File Manager [Disabled]', 'wpcd' ),
 				'tab'  => 'file-manager',
 				'type' => 'heading',
-				'desc' => __( 'Unfortunately file manager does not yet work on PHP 8.x. You can temporarily switch to PHP 7.4 though and try again. You can also follow the File Manager project progress on github at https://github.com/prasathmani/tinyfilemanager', 'wpcd' ),
+				'desc' => __( 'Unfortunately file manager does not yet work on PHP 8.x. You can temporarily switch to PHP 7.4 though and try again. You can also follow the File Manager project progress on GitHub at https://github.com/prasathmani/tinyfilemanager', 'wpcd' ),
 			);
 			return $fields;
 		}

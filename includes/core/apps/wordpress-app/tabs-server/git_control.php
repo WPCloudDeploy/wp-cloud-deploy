@@ -267,7 +267,7 @@ class WPCD_WORDPRESS_TABS_SERVER_GIT_CONTROL extends WPCD_WORDPRESS_TABS {
 				'raw_attributes' => array(
 					'std'            => $this->decrypt( $git_defaults['git_token'] ),
 					'desc'           => __( 'API Token for your git account at your git provider.', 'wpcd' ),
-					'tooltip'        => __( 'API tokens must provide read-write privileges for your repos. Generate one on github under the settings area of your account.', 'wpcd' ),
+					'tooltip'        => __( 'API tokens must provide read-write privileges for your repos. Generate one on GitHub under the settings area of your account.', 'wpcd' ),
 					'columns'        => 6,
 					// the key of the field (the key goes in the request).
 					'data-wpcd-name' => 'git_token',
@@ -638,7 +638,7 @@ class WPCD_WORDPRESS_TABS_SERVER_GIT_CONTROL extends WPCD_WORDPRESS_TABS {
 		$defaults = wpcd_maybe_unserialize( get_post_meta( $id, 'wpcd_wpapp_git_defaults', true ) );
 
 		if ( empty( $defaults ) ) {
-			$fields   = $this->get_git_default_field_names();
+			$fields = $this->get_git_default_field_names();
 			// Loop through field names to create key-value array since that format is what's usually stored in the database.
 			$defaults = array();
 			foreach ( $fields as $fld ) {

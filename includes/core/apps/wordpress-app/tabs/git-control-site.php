@@ -27,6 +27,11 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 		// Command completed hook.
 		add_action( "wpcd_command_{$this->get_app_name()}_completed", array( $this, 'command_completed' ), 10, 2 );
 
+		/**
+		 * Hooks and filters to handle GitHub Webhooks
+		 */
+		add_action( 'rest_api_init', array( $this, 'register_github_webhook_endpoint' ) );
+
 	}
 
 	/**
@@ -266,6 +271,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 			'git-site-control-pull-tag',
 			'git-site-control-fetch-and-apply-tag',
 			'git-site-control-delete-all-tag-folders',
+			'git-site-control-push-to-deploy-reset-keys',
 		);
 		if ( in_array( $action, $valid_actions, true ) ) {
 			if ( ! $this->get_tab_security( $id ) ) {
@@ -326,6 +332,9 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 				case 'git-site-control-delete-all-tag-folders':
 					$bash_action = 'git_remove_all_version_folders';
 					$result      = $this->git_actions( $bash_action, $id );
+					break;
+				case 'git-site-control-push-to-deploy-reset-keys':
+					$result = $this->reset_push_to_deploy_keys( $bash_action, $id );
 					break;
 
 			}
@@ -435,6 +444,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 				$fields = array_merge( $fields, $this->get_fields_for_git_create_tag( $id ) );
 				$fields = array_merge( $fields, $this->get_fields_for_git_fetch_tag( $id ) );
 				$fields = array_merge( $fields, $this->get_fields_for_git_tag_list( $id ) );
+				$fields = array_merge( $fields, $this->get_fields_for_git_push_to_deploy_keys( $id ) );
 
 			}
 		}
@@ -470,7 +480,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 				'id'         => 'git-site-control-init-fields-remote-repo',
 				'name'       => __( 'Remote Repo URL', 'wpcd' ),
 				'std'        => $git_settings['git_remote_url'],
-				'desc'       => __( 'URL to your git repository on Github.', 'wpcd' ),
+				'desc'       => __( 'URL to your git repository on GitHub.', 'wpcd' ),
 				'columns'    => 12,
 				'attributes' => array(
 					// the key of the field (the key goes in the request).
@@ -530,7 +540,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 				'name'       => __( 'API Token', 'wpcd' ),
 				'std'        => $this->decrypt( $git_settings['git_token'] ),
 				'desc'       => __( 'API Token for your git account at your git provider.', 'wpcd' ),
-				'tooltip'    => __( 'API tokens must provide read-write privileges for your repos. Generate one on Github under the settings area of your account.', 'wpcd' ),
+				'tooltip'    => __( 'API tokens must provide read-write privileges for your repos. Generate one on GitHub under the settings area of your account.', 'wpcd' ),
 				'columns'    => 6,
 				'attributes' => array(
 					// the key of the field (the key goes in the request).
@@ -758,7 +768,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 		// Get existing settings.
 		$git_settings = $this->get_git_settings( $id );
 
-		$header_msg  = __( 'Sync your current branch with your remote repo.', 'wpcd' );
+		$header_msg  = __( 'Sync your current branch with your remote repo. This can change the files on your site.', 'wpcd' );
 		$header_msg .= '<br />';
 		$header_msg .= $this->get_formatted_git_branch_for_display( $id );
 		$actions[]   = array(
@@ -849,7 +859,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 		// Get existing settings.
 		$git_settings = $this->get_git_settings( $id );
 
-		$header_msg  = __( 'Checkout a different branch or tag (version). Site files will be changed!', 'wpcd' );
+		$header_msg  = __( 'Checkout a different branch or tag (version). This can change the files on your site.', 'wpcd' );
 		$header_msg .= '<br />';
 		$header_msg .= $this->get_formatted_git_branch_for_display( $id );
 		$actions[]   = array(
@@ -1276,9 +1286,81 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
+	 * Gets the fields required for push-to-deploy
+	 *
+	 * @param int $id The post id of the site we're working with.
+	 *
+	 * @return array Array of actions, complying with the structure necessary by metabox.io fields.
+	 */
+	public function get_fields_for_git_push_to_deploy_keys( $id ) {
+
+		$header_msg = __( 'Add these values in the webooks area of your git provider (GitHub).', 'wpcd' );
+
+		$return      = '<div class="wpcd_git_push_to_deploy_data">';
+			$return .= '<div class="wpcd_git_push_to_deploy_inner_wrap">';
+
+			$return     .= '<div class="wpcd_git_push_to_deploy_data_label_item">';
+				$return .= __( 'Webhook URL:', 'wpcd' );
+			$return     .= '</div>';
+
+			$return     .= '<div class="wpcd_git_push_to_deploy_data_value_item">';
+				$return .= wpcd_wrap_clipboard_copy( get_post_meta( $id, 'wpcd_app_git_push_to_deploy_webhook_url', true ), false, false );
+			$return     .= '</div>';
+
+			$return     .= '<div class="wpcd_git_push_to_deploy_data_label_item">';
+				$return .= __( 'Webhook Secret:', 'wpcd' );
+			$return     .= '</div>';
+
+			$return     .= '<div class="wpcd_git_push_to_deploy_data_value_item">';
+				$return .= wpcd_wrap_clipboard_copy( $this->decrypt( get_post_meta( $id, 'wpcd_app_git_push_to_deploy_secret_key', true ) ), false, false );
+			$return     .= '</div>';
+
+			$return .= '</div>';
+		$return     .= '</div>';
+
+		$actions[] = array(
+			'id'   => 'git-site-control-push-to-deploy-header',
+			'name' => __( 'Push-To-Deploy Keys', 'wpcd' ),
+			'desc' => $header_msg,
+			'type' => 'heading',
+			'tab'  => $this->get_tab_slug(),
+		);
+
+		$actions[] = array(
+			'id'         => 'git-site-control-push-to-deploy-keys',
+			'name'       => '',
+			'std'        => $return,
+			'type'       => 'custom_html',
+			'tab'        => $this->get_tab_slug(),
+			'save_field' => false,
+		);
+
+		$actions[] = array(
+			'id'         => 'git-site-control-push-to-deploy-reset-keys-action',
+			'name'       => '',
+			'std'        => __( 'Reset Keys', 'wpcd' ),
+			'columns'    => 6,
+			'attributes' => array(
+				// the _action that will be called in ajax.
+				'data-wpcd-action'              => 'git-site-control-push-to-deploy-reset-keys',
+				'data-wpcd-id'                  => $id,
+				// make sure we give the user a confirmation prompt.
+				'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like to reset the URL & Secret key for your webhook? You will have to update this everywhere it\'s used.', 'wpcd' ),
+			),
+			'type'       => 'button',
+			'tab'        => $this->get_tab_slug(),
+			'class'      => 'wpcd_app_action',
+			'save_field' => false,
+		);
+
+		return $actions;
+
+	}
+
+	/**
 	 * Gets the fields that display the current settings.
 	 *
-	 * @param int $id id.
+	 * @param int $id The post id of the site we're working with.
 	 *
 	 * @return array Array of actions, complying with the structure necessary by metabox.io fields.
 	 */
@@ -1391,7 +1473,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 	/**
 	 * Get fields that displays the list of current tags we know about.
 	 *
-	 * @param int $id id.
+	 * @param int $id The post id of the site we're working with.
 	 *
 	 * @return array Array of actions, complying with the structure necessary by metabox.io fields.
 	 */
@@ -1619,6 +1701,9 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 		$git_settings_for_saving['git_token'] = $this->encrypt( $git_settings_for_saving['git_token'] );
 		update_post_meta( $id, 'wpcd_app_git_settings', $git_settings_for_saving );
 		$this->set_git_branch( $id, $git_settings['git_branch'] );
+
+		// Create a push-to-deploy url and save it. It doesn't matter if the git init is succesful, this is a reusable value.
+		$this->generate_push_to_deploy_keys( $id );
 
 		// Certain settings should not be blank.  Loop through those and error out if they're blank.
 		$non_blank_fields = array(
@@ -2204,6 +2289,89 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
+	 * Handles wehbook notifications from github.
+	 *
+	 * Action Hook: wpcd_command_{$this->get_app_name()}_command_git_push_to_deploy_completed || wpcd_{$this->get_app_name()}_command_{$name}_{$status}
+	 *
+	 * @param int    $id server post id.
+	 * @param int    $command_id an id that is given to the bash script at the time it's first run. Doesn't do anything for us in this context so it's not used here.
+	 * @param string $name name.
+	 * @param string $status status.
+	 *
+	 * @return void.
+	 */
+	public function handle_push_to_deploy_notification( $id, $command_id, $name, $status ) {
+
+		error_log( 'here in webhook callback.  What do we do now?' );
+
+		return true;
+
+		// Set variable to status, in this case it is always "completed" - will be used in action hooks later.
+		$status = 'completed';
+
+		// set variable to name, in this case it is always "aptget_status" - will be used in action hooks later.
+		$name = 'aptget_status';
+
+		// Create an array to hold items taken from the $_request object.
+		$aptget_status_items = array();
+
+		// get restart status item.
+		$aptget_status_items['aptget_status'] = sanitize_text_field( filter_input( INPUT_GET, 'aptget_status', FILTER_UNSAFE_RAW ) );
+		if ( ! in_array( $aptget_status_items['aptget_status'], array( 'running' ) ) ) {
+			$aptget_status_items['aptget_status'] = 'unknown';
+		}
+
+		// Finally, add the time reported to the array.
+		$aptget_status_items['reporting_time']       = time();
+		$aptget_status_items['reporting_time_human'] = date( 'Y-m-d H:i:s', time() );
+
+		// Stamp the server record with the array.
+		if ( 'wpcd_app_server' === get_post_type( $id ) ) {
+
+			// update the meta that holds the current data..
+			update_post_meta( $id, 'wpcd_server_aptget_status_push', $aptget_status_items );
+
+			// add to history meta as well.
+			$history = wpcd_maybe_unserialize( get_post_meta( $id, 'wpcd_server_aptget_status_push_history', true ) );
+			if ( empty( $history ) ) {
+				$history = array();
+			}
+
+			$history[ ' ' . (string) time() ] = $aptget_status_items; // we have to force the time element to be a string by putting a space in front of it otherwise manipulating the array as a key-value pair is a big problem if we want to purge just part of the array later.
+
+			if ( count( $history ) >= 10 ) {
+				// take the last element off to prevent history from getting too big.
+				$removed = array_shift( $history );
+			}
+
+			update_post_meta( $id, 'wpcd_server_aptget_status_push_history', $history );
+
+			// Now, set transient with server id that tags this server as having aptget running.
+			// Transient should expire after 3 minutes.
+			if ( 'running' === $aptget_status_items['aptget_status'] ) {
+				$transient_name = $id . 'wpcd_server_aptget_status';
+				set_transient( $transient_name, 'running', 180 );
+			}
+
+			// Let other plugins react to the new good data with an action hook.
+			do_action( "wpcd_{$this->get_app_name()}_command_{$name}_{$status}_processed_good", $aptget_status_items, $id );
+
+		} else {
+
+			do_action( 'wpcd_log_error', 'Data received for server that does not exist - received server id ' . (string) $id . '<br /> The first 5000 characters of the received data is shown below after being sanitized with WP_KSES:<br /> ' . substr( wp_kses( print_r( $_REQUEST, true ), array() ), 0, 5000 ), 'security', __FILE__, __LINE__ );
+
+			// Let other plugins react to the new bad data with an action hook.
+			do_action( "wpcd_{$this->get_app_name()}_command_{$name}_{$status}_processed_bad", $aptget_status_items, $id );
+
+		}
+
+		// Let other plugins react to the new data (regardless of it's good or bad) with an action hook.
+		do_action( "wpcd_{$this->get_app_name()}_command_{$name}_{$status}_processed", $aptget_status_items, $id );
+
+	}
+
+
+	/**
 	 * Get the remote repo url.
 	 *
 	 * @param int $id The post id of the site we're interrogating.
@@ -2346,7 +2514,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 	/**
 	 * Remove git related metas.
 	 *
-	 * @param string $action The action to be performed (this matches the string required in the bash scripts if bash scripts are used - in this case 'git_site_credentials').
+	 * @param string $action The action to be performed (this matches the string required in the bash scripts if bash scripts are used - in this case it's not used').
 	 * @param int    $id id.
 	 *
 	 * @return boolean;
@@ -2362,6 +2530,8 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 		delete_post_meta( $id, 'wpcd_app_git_settings' );
 		delete_post_meta( $id, 'wpapp_git_branch' );
 		delete_post_meta( $id, 'wpcd_app_git_tag_history' );
+		delete_post_meta( $id, 'wpcd_app_git_push_to_deploy_webhook_url' );
+		delete_post_meta( $id, 'wpcd_app_git_push_to_deploy_secret_key' );
 
 		// Remove the status meta.
 		$this->set_git_status( $id, false );
@@ -2375,9 +2545,116 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 	/**
 	 * Takes a string and removes everything except alphanumeric
 	 * characters, dashes and periods.
+	 *
+	 * @param string $tag The tag to clean.
 	 */
 	public function sanitize_tag( $tag ) {
 		return wpcd_clean_alpha_numeric_dashes_periods_underscores( $tag );
+	}
+
+
+	/**
+	 * Register an endpoint to handle the webhook from GitHub.
+	 */
+	public function register_github_webhook_endpoint() {
+		register_rest_route(
+			$this->get_app_name() . '/v' . WPCD_REST_VERSION,
+			'/handle-git-webhook/(?P<randomid>\d+)/(?P<id>\d+)/',
+			array(
+				'methods'             => array( 'GET', 'POST' ),
+				'callback'            => array( $this, 'handle_git_push_to_deploy_notification' ),
+				'permission_callback' => '__return_true',
+			)
+		);
+	}
+
+	/**
+	 * Handle the data pushed to us from GitHub.
+	 *
+	 * @param WP_REST_Request $data Data given to us by WP from the GitHub post rest api call.
+	 */
+	public function handle_git_push_to_deploy_notification( WP_REST_Request $data ) {
+
+		// Get the secret from the X-Hub-Signature header.
+		$signature = $_SERVER['HTTP_X_HUB_SIGNATURE'];
+
+		// Extract the signature from the header value.
+		list($algorithm, $signature) = explode( '=', $signature, 2 );
+
+		// Check that the algorithm is SHA1 (GitHub uses this by default).
+		if ( 'sha1' !== $algorithm ) {
+			// Unsupported algorithm.
+			return 'unsupported algorithm';  // Note: no translation here in case the sender needs a fixed error message code/string.
+		}
+
+		// Get the request body.
+		$payload = file_get_contents( 'php://input' );
+
+		// Compute the HMAC signature of the payload using the secret as the key.
+		$id                 = filter_var( sanitize_text_field( $data['id'] ), FILTER_VALIDATE_INT );
+		$secret             = $this->decrypt( get_post_meta( $id, 'wpcd_app_git_push_to_deploy_secret_key', true ) );
+		$computed_signature = hash_hmac( $algorithm, $payload, $secret );
+
+		// Compare the computed signature with the signature from the header.
+		if ( ! hash_equals( $signature, $computed_signature ) ) {
+			// Signatures don't match, reject the payload.
+			return 'incorrect signature';  // Note: no translation here in case the sender needs a fixed error message code/string.
+		}
+
+		$decoded_payload = json_decode($payload, true); // true means return an array.
+		error_log(print_r($decoded_payload,true));
+
+		// error_log( $payload );
+		// error_log( print_r( $payload, true ) );
+
+		return true;
+	}
+
+	/**
+	 * Generate a git push-to-deploy call-back url.
+	 *
+	 * @param string $id Post id of site we're working with.
+	 *
+	 * @return string.
+	 */
+	public function generate_push_to_deploy_url( $id ) {
+
+		$url = '';
+
+		$randomid = wpcd_random_str( 32, '0123456789' );
+
+		$url = apply_filters( 'wpcd_git_push_to_deploy_url', rest_url( "{$this->get_app_name()}/v" . wpcd_rest_version . "/handle-git-webhook/$randomid/$id" ), $id );
+
+		return $url;
+	}
+
+	/**
+	 * Reset the push-to-deploy keys
+	 *
+	 * @param string $action The action to be performed (this matches the string required in the bash scripts if bash scripts are used - in this case it's not used').
+	 * @param int    $id The post id of the site we're working with.
+	 *
+	 * @return boolean;
+	 */
+	public function reset_push_to_deploy_keys( $action, $id ) {
+
+		$this->generate_push_to_deploy_keys( $id );
+
+		return true;
+	}
+
+	/**
+	 * Generate and save push-to-deploy keys.
+	 *
+	 * @param int $id The post id of the site we're working with.
+	 */
+	public function generate_push_to_deploy_keys( $id ) {
+
+		$push_to_deploy_webhook_url = $this->generate_push_to_deploy_url( $id );
+		$push_to_deploy_secret_key  = wpcd_random_str();
+		update_post_meta( $id, 'wpcd_app_git_push_to_deploy_webhook_url', $push_to_deploy_webhook_url );
+		update_post_meta( $id, 'wpcd_app_git_push_to_deploy_secret_key', $this->encrypt( $push_to_deploy_secret_key ) );
+
 	}
 
 	/**

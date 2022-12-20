@@ -2765,7 +2765,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 		// Secrets Manager API Key.
 		$secrets_mgr_desc  = __( 'You can enter an api key for a secrets manager here.  It will then be available in your environment for use within your custom scripts.  An example of a secrets manager is doppler.com but you can use any manager that only uses a singlet token.', 'wpcd' );
 		$secrets_mgr_desc .= '<br />';
-		$secrets_mgr_desc .= __( 'With a secrets manager you can safely pull in other api keys such as private github keys needed to access private resources.', 'wpcd' );
+		$secrets_mgr_desc .= __( 'With a secrets manager you can safely pull in other api keys such as private GitHub keys needed to access private resources.', 'wpcd' );
 
 		$fields[] = array(
 			'name' => __( 'Secrets Manager API Key', 'wpcd' ),

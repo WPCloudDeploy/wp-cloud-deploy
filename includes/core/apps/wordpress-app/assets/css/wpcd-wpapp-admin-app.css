@@ -207,6 +207,31 @@
 	text-align: center;
 }
 
+/* Format the push to deploy webhook and secret keys area on the GIT tab for a site. */
+.wpcd_git_push_to_deploy_data {
+	/* Put a box around the data section */
+	border: 1px solid #FFF3CD;
+	padding: 1em;
+	border-radius: 4px;
+	background-color: #FFF3CD;
+}
+.wpcd_git_push_to_deploy_data .wpcd_git_push_to_deploy_inner_wrap {
+	display: grid;
+	x-grid-template-areas: "i i ";
+	grid-template-areas: "i ";
+	/*1 row, 2 columns */
+	x-grid-template-columns: 1fr 2fr 1fr 2fr;
+	grid-template-columns: 1fr 2fr;
+	/* Each row has four columns  */
+	grid-column-gap: 10px;
+	grid-row-gap: 1em;
+	margin-bottom: 1em;
+	font-size: 1em;
+}
+.wpcd_git_push_to_deploy_data .wpcd_git_push_to_deploy_data_label_item {
+	font-weight: bold;
+}
+
 /* Format the current branch shown at the top of each section of the GIT tab for a site. */
 .wpcd_git_site_branch_wrap {
 	margin-top: 1.5em;
@@ -220,6 +245,7 @@
 	
 }
 
+/* Format the current repo shown at the top of each section of the GIT tab for a site. */
 .wpcd_git_site_repo_wrap {
 	margin-top: 1em;
 }

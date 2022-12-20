@@ -118,7 +118,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 			delete_post_meta( $id, 'temp_git_tag_desc' );
 		}
 
-		// If the command is to create a tag, lets log it and store the tag history.
+		// If the command is to pull an existing tag, lets log it and store the tag history.
 		if ( 'git_pull_tag' === $command_array[0] ) {
 
 			// Lets pull the logs.
@@ -130,7 +130,10 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 			if ( true === $success ) {
 
 				// Get tag we're pulling.
-				$new_tag      = get_post_meta( $id, 'temp_git_tag', true );
+				$new_tag = get_post_meta( $id, 'temp_git_tag', true );
+
+				// Add to tag history.
+				$this->git_add_tag_history( $id, $new_tag, __( 'Tag pull request - tag was not present on local machine.' ) );
 
 				/* Translators: %s is a git tag name. */
 				$msg = sprintf( __( 'Tag/Version %s was pulled.', 'wpcd' ), $new_tag );
@@ -142,7 +145,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 
 			// Remove temporary metas.
 			delete_post_meta( $id, 'temp_git_tag' );
-		}		
+		}
 
 		// remove the 'temporary' meta so that another attempt will run if necessary.
 		delete_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action_status" );
@@ -232,6 +235,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 			'git-site-control-create-new-branch',
 			'git-site-control-create-tag',
 			'git-site-control-pull-tag',
+			'git-site-control-delete-all-tag-folders',
 		);
 		if ( in_array( $action, $valid_actions, true ) ) {
 			if ( ! $this->get_tab_security( $id ) ) {
@@ -284,6 +288,10 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 				case 'git-site-control-pull-tag':
 					$bash_action = 'git_pull_tag';
 					$result      = $this->git_pull_tag( $bash_action, $id );
+					break;
+				case 'git-site-control-delete-all-tag-folders':
+					$bash_action = 'git_remove_all_version_folders';
+					$result      = $this->git_actions( $bash_action, $id );
 					break;
 
 			}
@@ -1102,7 +1110,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 			'tab'  => $this->get_tab_slug(),
 		);
 		$fields[] = array(
-			'id'         => 'git-site-control-remove-git',
+			'id'         => 'git-site-control-remove-git-action',
 			'name'       => '',
 			'std'        => __( 'Remove Git', 'wpcd' ),
 			'desc'       => __( 'Remove git from this site.', 'wpcd' ),
@@ -1133,6 +1141,26 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 				'data-wpcd-id'                  => $id,
 				// make sure we give the user a confirmation prompt.
 				'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like to reset the git related metas for this site? This action is not reversible!', 'wpcd' ),
+			),
+			'type'       => 'button',
+			'tab'        => $this->get_tab_slug(),
+			'class'      => 'wpcd_app_action',
+			'save_field' => false,
+		);
+
+		$fields[] = array(
+			'id'         => 'git-site-control-delete-all-tag-folders-action',
+			'name'       => '',
+			'std'        => __( 'Delete All Tag Folders', 'wpcd' ),
+			'desc'       => __( 'Remove all Tag folders', 'wpcd' ),
+			'tooltip'    => __( 'Whenever you create or pull a tag, we create a new folder for it. This will delete all those folders.', 'wpcd' ),
+			'columns'    => 6,
+			'attributes' => array(
+				// the _action that will be called in ajax.
+				'data-wpcd-action'              => 'git-site-control-delete-all-tag-folders',
+				'data-wpcd-id'                  => $id,
+				// make sure we give the user a confirmation prompt.
+				'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like to delete all the tag /version folders for this site? This action is not reversible unless you repull your tags from the remote repo.', 'wpcd' ),
 			),
 			'type'       => 'button',
 			'tab'        => $this->get_tab_slug(),
@@ -1745,7 +1773,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 
 		return $return;
 
-	}	
+	}
 
 	/**
 	 * Setup credentials for the site without initializing it.
@@ -1905,6 +1933,9 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 				// Make sure we have a good branch name.
 				$args['git_new_branch'] = sanitize_title( $args['git_new_branch'] );
 				break;
+			case 'git_remove_all_version_folders':
+				// Nothing needed here.
+				break;
 
 		}
 
@@ -1923,6 +1954,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 			case 'git_commit_and_push':
 			case 'git_checkout':
 			case 'git_new_branch':
+			case 'git_remove_all_version_folders':
 				// Get the full command to be executed by ssh.
 				$run_cmd = $this->turn_script_into_command(
 					$instance,
@@ -1962,6 +1994,9 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 				case 'git_new_branch':
 					$this->git_add_to_site_log( $id, __( 'Attempt to create a new branch was not successful.', 'wpcd' ) );
 					break;
+				case 'git_remove_all_version_folders':
+					$this->git_add_to_site_log( $id, __( 'Attempt to all tag/version folders was not successful.', 'wpcd' ) );
+					break;
 			}
 
 			/* Translators: %1s is the action name; %2s is a long result string or array. */
@@ -1998,6 +2033,10 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 
 					// And update the current branch.
 					$this->set_git_branch( $id, $original_args['git_new_branch'] );
+					break;
+				case 'git_remove_all_version_folders':
+					// Log it.
+					$this->git_add_to_site_log( $id, __( 'All tag/version folders were deleted from this site.', 'wpcd' ) );
 					break;
 			}
 		}
@@ -2076,12 +2115,20 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 		}
 
 		// Add to array.
-		$tags[ $new_tag ] = array(
-			'reporting_time'           => time(),
-			'reporting_time_human'     => date( 'Y-m-d H:i:s', time() ),
-			'reporting_time_human_utc' => gmdate( 'Y-m-d H:i:s' ),
-			'desc'                     => $new_tag_desc,
-		);
+		if ( ! empty( $tags[ $new_tag ] ) ) {
+			// Tag does not yet exist in the array so add it.
+			$tags[ $new_tag ] = array(
+				'reporting_time'           => time(),
+				'reporting_time_human'     => date( 'Y-m-d H:i:s', time() ),
+				'reporting_time_human_utc' => gmdate( 'Y-m-d H:i:s' ),
+				'desc'                     => $new_tag_desc,
+			);
+		} else {
+			// Perhaps update the time here? Or add other history?
+			$tags[ $new_tag ]['last_pull_reporting_time']           = time();
+			$tags[ $new_tag ]['last_pull_reporting_time_human']     = date( 'Y-m-d H:i:s', time() );
+			$tags[ $new_tag ]['last_pull_reporting_time_human_utc'] = gmdate( 'Y-m-d H:i:s' );
+		}
 
 		// Push back to database.
 		return update_post_meta( $id, 'wpcd_app_git_tag_history', $tags );

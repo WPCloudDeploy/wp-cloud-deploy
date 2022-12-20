@@ -377,6 +377,22 @@ lf_git_pull_tag() {
 		exit
 	fi
 
+	# Fetch all tags in case the requested tag isn't known.
+	git fetch --all --tags	
+	if [ $? -ne 0 ]
+	then
+		msg="Could not refresh all tags from remote to local."
+		echo
+		echo $msg
+		exit
+	fi
+
+	# Find out which branch a tag is located on.
+	# We're not using this info in here but good to have for the logs.
+	local tag_branch
+	tag_branch=$(git branch -a --contains $git_tag)
+	echo "Tag is located on branch $tag_branch"	
+
 	# Pull tag in case it's not local yet
 	git pull origin $git_tag
 	if [ $? -ne 0 ]
@@ -386,6 +402,18 @@ lf_git_pull_tag() {
 		echo $msg
 		exit
 	fi
+
+	# Lets checkout the tag.
+#	local current_branch
+#	current_branch=$(git rev-parse --abbrev-ref HEAD)
+#	git checkout $git_tag
+#	if [ $? -ne 0 ]
+#	then
+#		msg="Could not checkout tag $git_tag"
+#		echo
+#		echo $msg
+#		exit
+#	fi		
 
 	# Add tagged files to that folder as .zip.
 	echo "Creating temporary zip of tagged files..."

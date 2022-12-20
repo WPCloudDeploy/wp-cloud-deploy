@@ -444,6 +444,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 				$fields = array_merge( $fields, $this->get_fields_for_git_create_tag( $id ) );
 				$fields = array_merge( $fields, $this->get_fields_for_git_fetch_tag( $id ) );
 				$fields = array_merge( $fields, $this->get_fields_for_git_tag_list( $id ) );
+				$fields = array_merge( $fields, $this->get_fields_for_git_push_to_deploy_handle_actions( $id ) );				
 				$fields = array_merge( $fields, $this->get_fields_for_git_push_to_deploy_keys( $id ) );
 
 			}
@@ -1286,7 +1287,84 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
-	 * Gets the fields required for push-to-deploy
+	 * Gets the fields required for how to handle push-to-deploy.
+	 *
+	 * @param int $id The post id of the site we're working with.
+	 *
+	 * @return array Array of actions, complying with the structure necessary by metabox.io fields.
+	 */
+	public function get_fields_for_git_push_to_deploy_handle_actions( $id ) {
+
+		$header_msg = __( 'What should we do when we get a webhook notice from your git provider (GitHub)?', 'wpcd' );
+
+		$actions[] = array(
+			'id'   => 'git-site-control-push-to-deploy-actions-header',
+			'name' => __( 'Push-To-Deploy Actions', 'wpcd' ),
+			'desc' => $header_msg,
+			'type' => 'heading',
+			'tab'  => $this->get_tab_slug(),
+		);
+
+		$actions[] = array(
+			'id'         => 'git-site-control-push-to-deploy-actions-branches',
+			'name'       => __( 'Which branches should trigger a deploy?', 'wpcd' ),
+			'desc'       => __( 'Enter branches separated by commas.', 'wpcd' ),
+			'columns'    => 6,
+			'attributes' => array(
+				// the key of the field (the key goes in the request).
+				'data-wpcd-name' => 'git_push_to_deploy_action_branches',
+			),
+			'type'       => 'text',
+			'tab'        => $this->get_tab_slug(),
+			'save_field' => false,
+		);
+
+		$actions[] = array(
+			'id'         => 'git-site-control-push-to-deploy-actions-types',
+			'name'       => __( 'What should we do?', 'wpcd' ),
+			'desc'       => __( 'Enter a few words about this tag.', 'wpcd' ),
+			'columns'    => 6,
+			'attributes' => array(
+				// the key of the field (the key goes in the request).
+				'data-wpcd-name' => 'git_push_to_deploy_action_type',
+			),
+			'type'       => 'select',
+			'options'    => array(
+				'fetch'    => __( 'Copy Changes To Site (Will not pull or merge if this site has an integrated git repo)', 'wpcd' ),
+				'checkout' => __( 'Checkout (Will checkout files to the local repo for the site and sync the site files to it)', 'wpcd' ),
+			),
+			'tab'        => $this->get_tab_slug(),
+			'save_field' => false,
+		);
+
+		$actions[] = array(
+			'id'         => 'git-site-control-push-to-deploy-action',
+			'name'       => '',
+			'std'        => __( 'Save Actions', 'wpcd' ),
+			'attributes' => array(
+				// the _action that will be called in ajax.
+				'data-wpcd-action' => 'git-site-control-push-to-deploy-action',
+				// fields that contribute data for this action.
+				'data-wpcd-fields' => wp_json_encode(
+					array(
+						'#git-site-control-push-to-deploy-actions-branches',
+						'#git-site-control-push-to-deploy-actions-types',
+					)
+				),
+				'data-wpcd-id'     => $id,
+			),
+			'type'       => 'button',
+			'tab'        => $this->get_tab_slug(),
+			'class'      => 'wpcd_app_action',
+			'save_field' => false,
+		);
+
+		return $actions;
+
+	}
+
+	/**
+	 * Gets the fields required to integrate push-to-deploy (webhook and webhook secret.)
 	 *
 	 * @param int $id The post id of the site we're working with.
 	 *
@@ -2601,8 +2679,8 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 			return 'incorrect signature';  // Note: no translation here in case the sender needs a fixed error message code/string.
 		}
 
-		$decoded_payload = json_decode($payload, true); // true means return an array.
-		error_log(print_r($decoded_payload,true));
+		$decoded_payload = json_decode( $payload, true ); // true means return an array.
+		error_log( print_r( $decoded_payload, true ) );
 
 		// error_log( $payload );
 		// error_log( print_r( $payload, true ) );

@@ -119,7 +119,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 		}
 
 		// If the command is to pull an existing tag, lets log it and store the tag history.
-		if ( 'git_pull_tag' === $command_array[0] ) {
+		if ( 'git_fetch_tag' === $command_array[0] ) {
 
 			// Lets pull the logs.
 			$logs = $this->get_app_command_logs( $id, $name );
@@ -140,6 +140,35 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 				$this->git_add_to_site_log( $id, $msg );
 			} else {
 				$msg = __( 'An attempt to pull a new tag/version was not successful.', 'wpcd' );
+				$this->git_add_to_site_log( $id, $msg );
+			}
+
+			// Remove temporary metas.
+			delete_post_meta( $id, 'temp_git_tag' );
+		}
+
+		// If the command is to pull and apply an existing tag, lets log it and store the tag history.
+		if ( 'git_fetch_apply_version_with_overwrite' === $command_array[0] ) {
+
+			// Lets pull the logs.
+			$logs = $this->get_app_command_logs( $id, $name );
+
+			// Is the command successful?
+			$success = (bool) $this->is_ssh_successful( $logs, 'git_control_site_command.txt' );
+
+			if ( true === $success ) {
+
+				// Get tag we're pulling.
+				$new_tag = get_post_meta( $id, 'temp_git_tag', true );
+
+				// Add to tag history.
+				$this->git_add_tag_history( $id, $new_tag, __( 'Tag pull request - tag was not present on local machine.' ) );
+
+				/* Translators: %s is a git tag name. */
+				$msg = sprintf( __( 'Tag/Version %s was pulled and applied to the site files.', 'wpcd' ), $new_tag );
+				$this->git_add_to_site_log( $id, $msg );
+			} else {
+				$msg = __( 'An attempt to pull and apply a new tag/version was not successful.', 'wpcd' );
 				$this->git_add_to_site_log( $id, $msg );
 			}
 
@@ -235,6 +264,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 			'git-site-control-create-new-branch',
 			'git-site-control-create-tag',
 			'git-site-control-pull-tag',
+			'git-site-control-fetch-and-apply-tag',
 			'git-site-control-delete-all-tag-folders',
 		);
 		if ( in_array( $action, $valid_actions, true ) ) {
@@ -286,8 +316,12 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 					$result      = $this->git_create_tag( $bash_action, $id );
 					break;
 				case 'git-site-control-pull-tag':
-					$bash_action = 'git_pull_tag';
-					$result      = $this->git_pull_tag( $bash_action, $id );
+					$bash_action = 'git_fetch_tag';
+					$result      = $this->git_fetch_tag( $bash_action, $id );
+					break;
+				case 'git-site-control-fetch-and-apply-tag':
+					$bash_action = 'git_fetch_apply_version_with_overwrite';
+					$result      = $this->git_fetch_tag( $bash_action, $id );
 					break;
 				case 'git-site-control-delete-all-tag-folders':
 					$bash_action = 'git_remove_all_version_folders';
@@ -297,7 +331,17 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 			}
 			// Many actions need to refresh the page so that new data can be loaded or so that the data entered into data entry fields cleared out.
 			// But we don't want to force a refresh after long running commands. Otherwise the user will not be able to see the results of those commands in the 'terminal'.
-			if ( ! in_array( $action, array( 'git-site-control-init-site', 'git-site-control-clone-only', 'git-site-control-create-tag', 'git-site-control-pull-tag' ), true ) && ! is_wp_error( $result ) ) {
+			if ( ! in_array(
+				$action,
+				array(
+					'git-site-control-init-site',
+					'git-site-control-clone-only',
+					'git-site-control-create-tag',
+					'git-site-control-pull-tag',
+					'git-site-control-fetch-and-apply-tag',
+				),
+				true
+			) && ! is_wp_error( $result ) ) {
 				$result = array( 'refresh' => 'yes' );
 			}
 		}
@@ -392,7 +436,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 				$fields = array_merge( $fields, $this->get_fields_for_git_checkout( $id ) );
 				$fields = array_merge( $fields, $this->get_fields_for_git_new_branch( $id ) );
 				$fields = array_merge( $fields, $this->get_fields_for_git_create_tag( $id ) );
-				$fields = array_merge( $fields, $this->get_fields_for_git_pull_tag( $id ) );
+				$fields = array_merge( $fields, $this->get_fields_for_git_fetch_tag( $id ) );
 
 			}
 		}
@@ -808,13 +852,13 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 		// Get existing settings.
 		$git_settings = $this->get_git_settings( $id );
 
-		$header_msg  = __( 'Checkout a different branch.', 'wpcd' );
+		$header_msg  = __( 'Checkout a different branch or tag (version). Site files will be changed!', 'wpcd' );
 		$header_msg .= '<br />';
 		/* Translators: %s is the name of the current git branch in use. */
 		$header_msg .= sprintf( __( 'The current branch is %s.', 'wpcd' ), $this->get_git_branch( $id ) );
 		$actions[]   = array(
 			'id'   => 'git-site-control-checkout-fields-header',
-			'name' => __( 'Git Checkout Branch', 'wpcd' ),
+			'name' => __( 'Git Checkout Branch or tag (Version)', 'wpcd' ),
 			'desc' => $header_msg,
 			'type' => 'heading',
 			'tab'  => $this->get_tab_slug(),
@@ -822,8 +866,9 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 
 		$actions[] = array(
 			'id'         => 'git-site-control-checkout-branch',
-			'name'       => __( 'Branch', 'wpcd' ),
-			'desc'       => __( 'Enter the branch to be checked out, eg: dev or main.', 'wpcd' ),
+			'name'       => __( 'Branch or Tag', 'wpcd' ),
+			'desc'       => __( 'Enter the branch or tag to be checked out, eg: dev or main.', 'wpcd' ),
+			'tooltip'    => __( 'If you choose a TAG to checkout, chances are that your HEAD will be left in a DETACHED state. If you do not know what this means, do not checkout a tag or version.', 'wpcd'),
 			'attributes' => array(
 				// the key of the field (the key goes in the request).
 				'data-wpcd-name' => 'git_branch',
@@ -836,7 +881,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 		$actions[] = array(
 			'id'         => 'git-site-control-checkout-fields-action',
 			'name'       => '',
-			'std'        => __( 'Checkout Branch', 'wpcd' ),
+			'std'        => __( 'Checkout', 'wpcd' ),
 			'attributes' => array(
 				// the _action that will be called in ajax.
 				'data-wpcd-action'              => 'git-site-control-checkout-branch',
@@ -848,7 +893,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 				),
 				'data-wpcd-id'                  => $id,
 				// make sure we give the user a confirmation prompt.
-				'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like to checkout this branch? Changes from the remote repo will be merged with the local site files.', 'wpcd' ),
+				'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like to checkout this branch or tag? Changes from the remote repo will be merged with the local site files. If you chose a TAG to checkout, chances are that your HEAD will be left in a DETACHED state. If you do not know what this means, do not check out a tag or version.', 'wpcd' ),
 			),
 			'type'       => 'button',
 			'tab'        => $this->get_tab_slug(),
@@ -954,8 +999,10 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 		// Get existing settings.
 		$git_settings = $this->get_git_settings( $id );
 
-		$header_msg  = __( 'Create Tag.', 'wpcd' );
+		$header_msg  = __( 'Create new tag or version.', 'wpcd' );
 		$header_msg .= '<br />';
+		$header_msg .= __( 'A new version folder will be created for this tag.', 'wpcd' );
+		$header_msg .= '<br />';		
 		/* Translators: %s is the name of the current git branch in use. */
 		$header_msg .= sprintf( __( 'The current branch is %s.', 'wpcd' ), $this->get_git_branch( $id ) );
 		$actions[]   = array(
@@ -1033,27 +1080,47 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 	 *
 	 * @return array Array of actions, complying with the structure necessary by metabox.io fields.
 	 */
-	public function get_fields_for_git_pull_tag( $id ) {
+	public function get_fields_for_git_fetch_tag( $id ) {
 
 		// Get existing settings.
 		$git_settings = $this->get_git_settings( $id );
 
-		$header_msg  = __( 'Pull Tag.', 'wpcd' );
+		// Left column header.
+		$header_msg  = __( 'Fetch Tag and create a version folder without overwriting existing site files.', 'wpcd' );
 		$header_msg .= '<br />';
 		/* Translators: %s is the name of the current git branch in use. */
 		$header_msg .= sprintf( __( 'The current branch is %s.', 'wpcd' ), $this->get_git_branch( $id ) );
 		$actions[]   = array(
-			'id'   => 'git-site-control-pull-tag-header',
-			'name' => __( 'Pull Existing Tag (Version) From Repo', 'wpcd' ),
-			'desc' => $header_msg,
-			'type' => 'heading',
-			'tab'  => $this->get_tab_slug(),
+			'id'      => 'git-site-control-pull-tag-header',
+			'name'    => __( 'Fetch Existing Tag (Version) From Repo', 'wpcd' ),
+			'desc'    => $header_msg,
+			'columns' => 6,
+			'type'    => 'heading',
+			'tab'     => $this->get_tab_slug(),
 		);
 
+		// Right column header.
+		$header_msg  = __( 'Fetch Tag and apply to site - site files WILL be changed!', 'wpcd' );
+		$header_msg .= '<br />';
+		$header_msg .= __( 'Note that this tag will write files to your CURRENT branch. So if you are using an older tag or a tag from a different branch you will want to be very very careful!', 'wpcd' );
+		$header_msg .= '<br />';
+		/* Translators: %s is the name of the current git branch in use. */
+		$header_msg .= sprintf( __( 'The current branch is %s.', 'wpcd' ), $this->get_git_branch( $id ) );
+		$actions[]   = array(
+			'id'      => 'git-site-control-fetch-and-apply-tag-header',
+			'name'    => __( 'Fetch And Apply Tag (Version)', 'wpcd' ),
+			'desc'    => $header_msg,
+			'columns' => 6,
+			'type'    => 'heading',
+			'tab'     => $this->get_tab_slug(),
+		);
+
+		// field in left column.
 		$actions[] = array(
 			'id'         => 'git-site-control-pull-tag-name',
-			'name'       => __( 'Tag To Pull', 'wpcd' ),
-			'desc'       => __( 'Enter the name for the tag to pull eg: v1.1.2.  No spaces or special chars.', 'wpcd' ),
+			'name'       => __( 'Tag To Fetch', 'wpcd' ),
+			'desc'       => __( 'Enter the name for the tag to fetch eg: v1.1.2.  No spaces or special chars.', 'wpcd' ),
+			'columns'    => 6,
 			'attributes' => array(
 				// the key of the field (the key goes in the request).
 				'data-wpcd-name' => 'git_tag',
@@ -1063,10 +1130,27 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 			'save_field' => false,
 		);
 
+		// field in right column.
+		$actions[] = array(
+			'id'         => 'git-site-control-fetch-and-apply-tag-name',
+			'name'       => __( 'Tag To Fetch', 'wpcd' ),
+			'desc'       => __( 'Enter the name for the tag to fetch eg: v1.1.2.  No spaces or special chars.', 'wpcd' ),
+			'columns'    => 6,
+			'attributes' => array(
+				// the key of the field (the key goes in the request).
+				'data-wpcd-name' => 'git_tag',
+			),
+			'type'       => 'text',
+			'tab'        => $this->get_tab_slug(),
+			'save_field' => false,
+		);
+
+		// Button in left column.
 		$actions[] = array(
 			'id'         => 'git-site-control-pull-tag-action',
 			'name'       => '',
-			'std'        => __( 'Pull Tag / Version', 'wpcd' ),
+			'std'        => __( 'Fetch Tag / Version', 'wpcd' ),
+			'columns'    => 6,
 			'attributes' => array(
 				// the _action that will be called in ajax.
 				'data-wpcd-action'              => 'git-site-control-pull-tag',
@@ -1078,10 +1162,38 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 				),
 				'data-wpcd-id'                  => $id,
 				// make sure we give the user a confirmation prompt.
-				'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like to pull this tag or version from the remote repo?', 'wpcd' ),
+				'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like to fetch this tag or version from the remote repo?', 'wpcd' ),
 				'data-show-log-console'         => true,
 				// Initial console message.
 				'data-initial-console-message'  => __( 'Preparing to pull tag/version from remote repo...<br /> Please DO NOT EXIT this screen until you see a popup message indicating that the backup has completed or has errored.<br />This terminal should refresh every 60-90 seconds with updated progress information from the server. <br /> After the backup is complete the entire log can be viewed in the COMMAND LOG screen.', 'wpcd' ),
+			),
+			'type'       => 'button',
+			'tab'        => $this->get_tab_slug(),
+			'class'      => 'wpcd_app_action',
+			'save_field' => false,
+		);
+
+		// Button in right column.
+		$actions[] = array(
+			'id'         => 'git-site-control-fetch-and-apply-tag-action',
+			'name'       => '',
+			'std'        => __( 'Fetch & Apply', 'wpcd' ),
+			'columns'    => 6,
+			'attributes' => array(
+				// the _action that will be called in ajax.
+				'data-wpcd-action'              => 'git-site-control-fetch-and-apply-tag',
+				// fields that contribute data for this action.
+				'data-wpcd-fields'              => wp_json_encode(
+					array(
+						'#git-site-control-fetch-and-apply-tag-name',
+					)
+				),
+				'data-wpcd-id'                  => $id,
+				// make sure we give the user a confirmation prompt.
+				'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like to apply this tag / version to your files? Your site files will be overwritten!', 'wpcd' ),
+				'data-show-log-console'         => true,
+				// Initial console message.
+				'data-initial-console-message'  => __( 'Preparing to pull tag/version from remote repo and overwrite site files...<br /> Please DO NOT EXIT this screen until you see a popup message indicating that the backup has completed or has errored.<br />This terminal should refresh every 60-90 seconds with updated progress information from the server. <br /> After the backup is complete the entire log can be viewed in the COMMAND LOG screen.', 'wpcd' ),
 			),
 			'type'       => 'button',
 			'tab'        => $this->get_tab_slug(),
@@ -1701,10 +1813,14 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 	/**
 	 * Pull a new tag / version from the remote repo.
 	 *
-	 * @param string $action The action to be performed (this matches the string required in the bash scripts if bash scripts are used - in this case 'git_pull_tag').
+	 * This function handles TWO different actions:
+	 * - git_fetch_tag
+	 * - git_fetch_apply_version_with_overwrite
+	 *
+	 * @param string $action The action to be performed (this matches the string required in the bash scripts if bash scripts are used - in this case 'git_fetch_tag' or 'git_fetch_apply_version_with_overwrite' ).
 	 * @param int    $id id.
 	 */
-	public function git_pull_tag( $action, $id ) {
+	public function git_fetch_tag( $action, $id ) {
 
 		$instance = $this->get_app_instance_details( $id );
 

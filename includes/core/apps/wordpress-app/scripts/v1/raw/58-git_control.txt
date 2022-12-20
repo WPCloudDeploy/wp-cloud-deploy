@@ -350,19 +350,22 @@ lf_remove_git_from_domain() {
 }
 
 ########################################################
-# Function to pull tag from remote and create version
+# Function to fetch tag from remote and create version
 # folder.
 #
 # @param $1 The domain.
 # @param #2 The tag
+# @param #3 (optional) value should be 'pull' - this will let us PULL & Checkout files and sync instead of fetching only.
 ########################################################
-lf_git_pull_tag() {
+lf_git_fetch_or_pull_tag() {
 
 	# setup local variables from parameters passed in.
 	local domain
 	local git_tag
+	local do_pull
 	domain=$1
 	git_tag=$2
+	do_pull=$3
 
 	# move into the domain folder
 	lf_navigate_to_domain_folder $domain
@@ -393,27 +396,30 @@ lf_git_pull_tag() {
 	tag_branch=$(git branch -a --contains $git_tag)
 	echo "Tag is located on branch $tag_branch"	
 
-	# Pull tag in case it's not local yet
-#	git pull origin $git_tag
-#	if [ $? -ne 0 ]
-#	then
-#		msg="Could not pull tag $git_tag from remote."
-#		echo
-#		echo $msg
-#		exit
-#	fi
+	if [ "pull" == "do_pull" ]
+	then
+		git pull origin $git_tag
+		if [ $? -ne 0 ]
+		then
+			msg="Could not pull tag $git_tag from remote."
+			echo
+			echo $msg
+			exit
+		fi
 
-	# Lets checkout the tag.
-#	local current_branch
-#	current_branch=$(git rev-parse --abbrev-ref HEAD)
-#	git checkout $git_tag
-#	if [ $? -ne 0 ]
-#	then
-#		msg="Could not checkout tag $git_tag"
-#		echo
-#		echo $msg
-#		exit
-#	fi		
+		# Lets checkout the tag.
+		local current_branch
+		current_branch=$(git rev-parse --abbrev-ref HEAD)
+		echo "Current branch is $current_branch - we are checking out tag $git_tag"
+		git checkout $git_tag
+		if [ $? -ne 0 ]
+		then
+			msg="Could not checkout tag $git_tag"
+			echo
+			echo $msg
+			exit
+		fi
+	fi		
 
 	# Add tagged files to that folder as .zip.
 	echo "Creating temporary zip of tagged files..."
@@ -462,9 +468,10 @@ do
 	echo "   12) Remove all version folders for a site"
 	echo "   13) Display all version folders for a site"
 	echo "   14) Display current branch"
-	echo "   15) Apply version to domain with overwrite"
-	echo "   16) Setup or change git credentials for a site"
-	echo "   17) Clone remote repo to a domain (bare)"
+	echo "   15) Apply version to domain with overwrite (Fetch)"
+	echo "   16) Pull & Apply version to domain with overwrite (Syncs site and repo with tag)"
+	echo "   17) Setup or change git credentials for a site"
+	echo "   18) Clone remote repo to a domain (bare)"
 	echo
 	read -p "Action: " action
 	until [[ -z "$action" || "$action" =~ ^[1-9]|2[0-9]|3[0-9]$ ]]
@@ -1049,7 +1056,7 @@ then
 fi
 
 # Pull tag and create version
-if [[ $action == "git_pull_tag" || $action == "10" ]]
+if [[ $action == "git_fetch_tag" || $action == "10" ]]
 then
 	# Get domain - output will be in the $domain global var.
 	lf_select_domain
@@ -1058,11 +1065,11 @@ then
 	lf_get_tag
 
 	# Do it.
-	lf_git_pull_tag $domain $git_tag
+	lf_git_fetch_or_pull_tag $domain $git_tag
 
 	echo
 	echo "Git pull tag succeeded. Your site files have not changed."
-	echo "Use the APPLY VERSION action to sync your site files with a version/tag."
+	echo "Use the CHECKOUT action to sync your site files with a version/tag."
 	exit
 fi
 
@@ -1155,9 +1162,17 @@ then
 fi
 
 # Apply version to domain by overwriting domain files directly.
-# Note that this is not a bi-directional sync so files that are in 
-# the target domain but not in the tag will remain in the target domain folder.
-if [[ $action == "git_apply_version_with_overwrite" || $action == "15" ]]
+# Important note: We're not switching the branch. So if the 
+# tag is older or for a different branch, things can get really 
+# weird.
+# 
+# To apply a version and sync the git branch with it
+# use the get_pull_apply_version_with_overwrite action.
+#
+# Also Note that this is not a bi-directional sync so files that are in 
+# the target domain but not in the tag will remain in the target domain folder
+# (Except for plugins and themes)
+if [[ $action == "git_fetch_apply_version_with_overwrite" || $action == "15" ]]
 then
 	# Get domain - output will be in the $domain global var.
 	lf_select_domain
@@ -1174,9 +1189,10 @@ then
 
 	# Make sure we have a version of the specified tag in a versions folder
 	# @TODO: In a future version of this script we will pass a param to allow this step to be skipped.
-	lf_git_pull_tag $domain $git_tag
+	lf_git_fetch_or_pull_tag $domain $git_tag
 
-	# @todo: Add wp .maintenance file here to domain.
+	# Add wp .maintenance file here to domain.
+	gf_set_maintenance_mode_for_site $domain
 
 	# rsync the files
 	echo "Copying files to domain $domain..."
@@ -1195,7 +1211,56 @@ then
 	# reset file permissions
 	gf_reset_file_permissions_for_domain $domain
 
-	# @todo: Remove wp .maintenance file here from domain.
+	# Remove wp .maintenance file here from domain.
+	gf_remove_maintenance_mode_for_site $domain
+
+	# flush caches
+	echo
+	echo "Flushing caches..."
+	g_flush_cache $user_name $domain
+
+	echo
+	echo "Git switch version succeeded."
+	exit
+fi
+
+# Apply version to domain by overwriting domain files directly.
+#
+# ***This is not currently used or fully tested.***
+#
+# Also Note that this is not a bi-directional sync so files that are in 
+# the target domain but not in the tag will remain in the target domain folder
+# (Except for plugins and themes)
+if [[ $action == "git_pull_checkout_and_apply_version_with_overwrite" || $action == "16" ]]
+then
+	# Get domain - output will be in the $domain global var.
+	lf_select_domain
+
+	# Get tag - output will be in the $git_tag var.
+	lf_get_tag
+
+	# Calculate user name - we'll need it later.
+	user_name=$(echo $domain | cut -c1-32)
+
+	# Get pre and post-processing links - output will be in global vars $git_pre_processing_script_link & $git_post_processing_script_link respectively
+	lf_get_git_pre_processing_script_link
+	lf_get_git_post_processing_script_link
+
+	# Add wp .maintenance file here to domain.
+	gf_set_maintenance_mode_for_site $domain
+
+	# Pull and checkout the tag.
+	# @TODO: In a future version of this script we will pass a param to allow this step to be skipped.
+	lf_git_fetch_or_pull_tag $domain $git_tag 'pull'
+
+	# Notice the lack of RSYNC here.
+	# PULLING & Checking out automatically syncs the files to the repo.
+
+	# reset file permissions
+	gf_reset_file_permissions_for_domain $domain
+
+	# Remove wp .maintenance file here from domain.
+	gf_remove_maintenance_mode_for_site $domain
 
 	# flush caches
 	echo
@@ -1211,7 +1276,7 @@ fi
 # Useful if site credentials change.
 # Note that a lot of this logic is also in option 1.
 # So if things change there or here check the other one.
-if [[ $action == "git_site_credentials" || $action == "16" ]]
+if [[ $action == "git_site_credentials" || $action == "17" ]]
 then
 	# Get domain - output will be in the $domain global var.
 	lf_select_domain
@@ -1315,7 +1380,7 @@ fi
 # Clone a repo to a site but don't setup git for it or 
 # sync to it.
 # Assumes git credentials have been setup already.
-if [[ $action == "git_clone_to_site" || $action == "17" ]]
+if [[ $action == "git_clone_to_site" || $action == "18" ]]
 then
 	# Get domain - output will be in the $domain global var.
 	lf_select_domain

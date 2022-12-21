@@ -1678,7 +1678,11 @@ function wpcd_generate_uuid() {
  * Return whether GIT is enabled for WPCD.
  */
 function wpcd_is_git_enabled() {
-	return true;
+	if ( class_exists( 'WPCD_GitControl_Init' ) ) {
+		return true;
+	} else {
+		return false;
+	}
 }
 
 /*

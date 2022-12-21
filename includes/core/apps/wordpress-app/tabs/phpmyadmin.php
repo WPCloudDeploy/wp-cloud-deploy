@@ -338,7 +338,7 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 		}
 
 		/**
-		 * Run the constructed commmand
+		 * Run the constructed command
 		 * Check out the write up about the different aysnc methods we use
 		 * here: https://wpclouddeploy.com/documentation/wpcloud-deploy-dev-notes/ssh-execution-models/
 		 */
@@ -504,7 +504,7 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 		}
 
 		/**
-		 * Run the constructed commmand
+		 * Run the constructed command
 		 * Check out the write up about the different aysnc methods we use
 		 * here: https://wpclouddeploy.com/documentation/wpcloud-deploy-dev-notes/ssh-execution-models/
 		 */

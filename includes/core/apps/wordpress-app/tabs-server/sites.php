@@ -195,7 +195,7 @@ class WPCD_WORDPRESS_TABS_SITES extends WPCD_WORDPRESS_TABS {
 				$actions[ 'site-title-label_' . $app_id ] = array(
 					'label'          => '',
 					'raw_attributes' => array(
-						'std'     => wpcd_wrap_clipboard_copy( $site_title, false, true ),
+						'std'     => $site_title,
 						'columns' => 3,
 					),
 					'type'           => 'custom_html',

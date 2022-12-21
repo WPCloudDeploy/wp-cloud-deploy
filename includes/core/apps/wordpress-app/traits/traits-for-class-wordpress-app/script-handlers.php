@@ -336,6 +336,35 @@ trait wpcd_wpapp_script_handlers {
 				$return =
 				( strpos( $result, 'Updated WPConfig Option Value' ) !== false );
 				break;
+			case 'git_control_site_command.txt':
+			case 'git_control_site.txt':
+				$return =
+				( strpos( $result, 'Git Init Complete For Domain' ) !== false )
+				||
+				( strpos( $result, 'Git has been removed from' ) !== false )
+				||
+				( strpos( $result, 'Git sync succeeded' ) !== false )
+				||
+				( strpos( $result, 'Git branch switch and checkout succeeded' ) !== false )
+				||
+				( strpos( $result, 'Git create new branch and checkout succeeded' ) !== false )
+				||
+				( strpos( $result, 'Git commit and push succeeded' ) !== false )
+				||
+				( strpos( $result, 'Git tag and push succeeded' ) !== false )
+				||
+				( strpos( $result, 'Git pull tag succeeded' ) !== false )
+				||
+				( strpos( $result, 'Version folder has been removed for' ) !== false )
+				||
+				( strpos( $result, 'All version folders have been removed for' ) !== false )
+				||
+				( strpos( $result, 'Git switch version succeeded' ) !== false )
+				||
+				( strpos( $result, 'Git credentials successfully set up for domain' ) !== false )
+				||
+				( strpos( $result, 'Git clone successful' ) !== false );
+				break;
 
 			/**************************************************************
 			* The items below this are SERVER items, not APP items        *
@@ -634,6 +663,12 @@ trait wpcd_wpapp_script_handlers {
 			case 'server_php_version.txt':
 				$return =
 				( strpos( $result, 'Server level PHP version has been updated to' ) !== false );
+				break;
+			case 'git_control_server.txt':
+				$return =
+				( strpos( $result, 'Git has been installed' ) !== false )
+				||
+				( strpos( $result, 'Git has been updated' ) !== false );
 				break;
 
 			/**************************************************************
@@ -1155,6 +1190,29 @@ trait wpcd_wpapp_script_handlers {
 					$additional
 				);
 				break;
+			case 'git_control_site_command.txt':
+				$command_name = $additional['command'];
+				$new_array    = array_merge(
+					array(
+						'SCRIPT_URL'   => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/58-git_control.txt',
+						'SCRIPT_NAME'  => '58-git_control.sh',
+						'SCRIPT_LOGS'  => "{$this->get_app_name()}_{$command_name}",
+						'CALLBACK_URL' => $this->get_command_url( $instance['app_id'], $command_name, 'completed' ),
+					),
+					$common_array,
+					$additional
+				);
+				break;
+			case 'git_control_site.txt':
+				$new_array = array_merge(
+					array(
+						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/58-git_control.txt',
+						'SCRIPT_NAME' => '58-git_control.sh',
+					),
+					$common_array,
+					$additional
+				);
+				break;
 
 			/*********************************************************
 			* The items below this are SERVER items, not APP items   *
@@ -1443,8 +1501,21 @@ trait wpcd_wpapp_script_handlers {
 					$additional
 				);
 				break;
+			case 'git_control_server.txt':
+				$command_name = $additional['command'];
+				$new_array    = array_merge(
+					array(
+						'SCRIPT_URL'   => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/58-git_control.txt',
+						'SCRIPT_NAME'  => '58-git_control.sh',
+						'SCRIPT_LOGS'  => "{$this->get_app_name()}_{$command_name}",
+						'CALLBACK_URL' => $this->get_command_url( $instance['server_id'], $command_name, 'completed' ),
+					),
+					$common_array,
+					$additional
+				);
+				break;
 
-			/**************************************************************
+				/**************************************************************
 			* The items below this are SERVER SYNC items, not APP items   *
 			*/
 			case 'server_sync_origin_setup.txt':

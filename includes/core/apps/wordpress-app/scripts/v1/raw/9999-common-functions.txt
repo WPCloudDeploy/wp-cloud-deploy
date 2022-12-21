@@ -168,6 +168,17 @@ function g_flush_cache()
 			su - $user_name -c "wp rocket clean --confirm"
 		fi
 	fi
+
+	# flush object caches as well
+	if [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+	then
+		su - $user_name -c "wp litespeed-option set object false > /dev/null 2>&1"
+		su - $user_name -c "wp cache flush 2>/dev/null"
+	fi
+
+	# reset object cache again should hit nginx here (multiple flushes for if ols is active might be overkill but no harm done.)
+	su - $user_name -c "wp cache flush 2>/dev/null"	
+
 }
 
 #####################################################################
@@ -1631,6 +1642,100 @@ function gf_restore_nginx_site() {
 	mv htpasswd/*$domain /etc/nginx/htpasswd/ 2>/dev/null
 
 	gf_add_php_conf $domain $user_name 8.1
+}
+
+#####################################################################
+### Reset file permissions for a site
+###
+### @param $1 Domain
+#####################################################################
+function gf_reset_file_permissions_for_domain() {
+
+	# setup local variables from parameters passed in.
+	local domain
+	domain=$1
+
+	# Get user name from domain (first 32 chars only)
+	local user_name	
+	user_name=$(echo $domain | cut -c1-32)
+
+	if [[ -z $domain ]]
+	then
+		msg="The domain variable is blank - unable to change permissions."
+		echo $msg
+		exit 1
+	else
+		if [ "$g_webserver_type" = "nginx" ]
+		then
+			chown -R root:root /var/www/$domain/
+			chown -R www-data:www-data /var/www/$domain/html/
+			chmod -R g+w /var/www/$domain/html
+			chmod -R g+s /var/www/$domain/html
+			find /var/www/$domain/html -type f -exec chmod 664 {} +
+			find /var/www/$domain/html -type d -exec chmod 2775 {} +
+		elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+		then
+			chown -R root:root /var/www/"$domain"/
+			chown -R "${user_name}":www-data /var/www/"$domain"/html/
+			chown -R "${user_name}":www-data /var/www/"$domain"/html/logs/
+			# Hidden files test support: https://serverfault.com/a/156481
+			chown -R "${user_name}":www-data /var/www/"$domain"/html/.[^.]*
+			chmod -R g+ws "/var/www/$domain/html"
+			find /var/www/$domain/html -type f -exec chmod 664 {} +
+			find /var/www/$domain/html -type d -exec chmod 2775 {} +
+		fi
+	fi
+}
+
+#####################################################################
+### Add a .maintenance file to a site.
+###
+### @param $1 Domain
+#####################################################################
+function gf_set_maintenance_mode_for_site() {
+
+	# setup local variables from parameters passed in.
+	local domain
+	domain=$1
+
+	# Get user name from domain (first 32 chars only)
+	local user_name	
+	user_name=$(echo $domain | cut -c1-32)
+
+	if [[ -z $domain ]]
+	then
+		msg="We are about to create a .maintenance file but the domain variable is blank. Operation aborted."
+		echo $msg
+		return 1
+	else
+		su - "$user_name" -c "wp --skip-plugins --no-color maintenance-mode activate"
+	fi
+
+}
+
+#####################################################################
+### Remove the .maintenance file to a site.
+###
+### @param $1 Domain
+#####################################################################
+function gf_remove_maintenance_mode_for_site() {
+
+	# setup local variables from parameters passed in.
+	local domain
+	domain=$1
+
+	# Get user name from domain (first 32 chars only)
+	local user_name	
+	user_name=$(echo $domain | cut -c1-32)	
+
+	if [[ -z $domain ]]
+	then
+		msg="We are about to delete a file but the domain variable is blank. Operation aborted."
+		echo $msg
+		return 1
+	else
+		su - "$user_name" -c "wp --skip-plugins --no-color maintenance-mode deactivate"
+	fi
 }
 
 #####################################################################

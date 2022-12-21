@@ -3,7 +3,7 @@
 Plugin Name: WPCloudDeploy
 Plugin URI: https://wpclouddeploy.com
 Description: Deploy and manage cloud servers and apps from inside the WordPress Admin dashboard.
-Version: 5.2.2
+Version: 5.2.5
 Requires at least: 5.4
 Requires PHP: 7.4
 Item Id: 1493
@@ -65,6 +65,10 @@ class WPCD_Init {
 			define( 'WPCD_MEDIUM_BG_COLOR', '#FAFAFA' );
 			define( 'WPCD_LIGHT_BG_COLOR', '#FDFDFD' );
 			define( 'WPCD_ALTERNATE_ACCENT_BG_COLOR', '#CFD8DC' );
+			define( 'WPCD_POSITIVE_COLOR', '#008000' );
+			define( 'WPCD_NEGATIVE_COLOR', '#8B0000' );
+			define( 'WPCD_TERMINAL_BG_COLOR', '#000000' );
+			define( 'WPCD_TERMINAL_FG_COLOR', '#ffffff' );
 
 			// Define the default brand colors for front-end.
 			define( 'WPCD_FE_PRIMARY_BRAND_COLOR', '#E91E63' );
@@ -458,8 +462,8 @@ class WPCD_Init {
 		/**
 		 * Finally, maybe ask for setup using Setup wizard.
 		 * Proceed only if both options 'wpcd_plugin_setup' & 'wpcd_skip_wizard_setup' = false
-		 * 'wpas_plugin_setup' will be added at the end of wizard steps
-		 * 'wpas_skip_wizard_setup' will be set to true if user choose to skip wizrd from admin notice
+		 * 'wpcd_plugin_setup' will be added at the end of wizard steps
+		 * 'wpcd_skip_wizard_setup' will be set to true if user choose to skip wizrd from admin notice
 		 */
 		if ( ! get_option( 'wpcd_plugin_setup', false ) && ! get_option( 'wpcd_skip_wizard_setup', false ) ) {
 			require_once wpcd_path . 'includes/core/class-wpcd-setup-wizard.php';

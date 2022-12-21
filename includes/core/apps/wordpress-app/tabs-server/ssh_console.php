@@ -392,7 +392,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SSH_CONSOLE extends WPCD_WORDPRESS_TABS {
 
 		// Make sure we handle errors from the executed command.
 		if ( is_wp_error( $result ) ) {
-			return new \WP_Error( sprintf( __( 'Unable to execute this request because an error occured: %s', 'wpcd' ), $result->get_error_message() ) );
+			return new \WP_Error( sprintf( __( 'Unable to execute this request because an error occurred: %s', 'wpcd' ), $result->get_error_message() ) );
 		} else {
 			// Construct an appropriate return message.
 			// Right now '$result' is just a string.
@@ -465,7 +465,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SSH_CONSOLE extends WPCD_WORDPRESS_TABS {
 
 		// Make sure we handle errors from the executed command.
 		if ( is_wp_error( $result ) ) {
-			return new \WP_Error( sprintf( __( 'Unable to execute this request because an error occured: %s', 'wpcd' ), $result->get_error_message() ) );
+			return new \WP_Error( sprintf( __( 'Unable to execute this request because an error occurred: %s', 'wpcd' ), $result->get_error_message() ) );
 		} else {
 			// Construct an appropriate return message.
 			// Right now '$result' is just a string.

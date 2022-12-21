@@ -192,9 +192,9 @@ trait wpcd_wpapp_after_prepare_server {
 
 		if ( 'wpcd_app_server' === get_post_type( $server_id ) ) {
 
-				// Now check the pending tasks table for a record where the key=$server_id and type='core-install-server-backups' and state='in-process'
-				// We are depending on the fact that there should only be one process running on a server a time and in this case it should be in-process.
-				$posts = WPCD_POSTS_PENDING_TASKS_LOG()->get_tasks_by_key_state_type( $server_id, 'in-process', $task_type );
+			// Now check the pending tasks table for a record where the key=$server_id and type='core-install-server-backups' and state='in-process'
+			// We are depending on the fact that there should only be one process running on a server a time and in this case it should be in-process.
+			$posts = WPCD_POSTS_PENDING_TASKS_LOG()->get_tasks_by_key_state_type( $server_id, 'in-process', $task_type );
 
 			if ( $posts ) {
 

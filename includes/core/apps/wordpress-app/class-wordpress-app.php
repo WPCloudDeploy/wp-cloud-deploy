@@ -294,7 +294,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	}
 
 	/**
-	 * Include the files corresponding to the tabs.
+	 * Include the files corresponding to the tabs for a site
 	 */
 	private function include_tabs() {
 
@@ -324,6 +324,10 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/wpconfig-options.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/redirect-rules.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/file-manager.php';
+
+		if ( true === wpcd_is_git_enabled() ) {
+			require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/git-control-site.php';
+		}
 
 		if ( defined( 'WPCD_SHOW_SITE_USERS_TAB' ) && WPCD_SHOW_SITE_USERS_TAB ) {
 			require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/site-system-users.php';
@@ -379,6 +383,10 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs-server/goaccess.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs-server/resize.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs-server/ols_console.php';
+
+		if ( true === wpcd_is_git_enabled() ) {
+			require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs-server/git_control.php';
+		}
 
 		/**
 		 * Need to add new tabs or add data to existing tabs from an add-on?
@@ -470,11 +478,28 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			$page_cache_class_name = 'wpcd_site_details_top_row_element_page_cache_off';
 		}
 
+		// Git.
+		$git_status               = $this->get_git_status( $app_id );
+		$git_status_display_value = '';
+		if ( true === $git_status ) {
+			$git_status_display_value = __( 'On', 'wpcd' );
+			$git_status_class_name    = 'wpcd_site_details_top_row_element_git_status';
+
+			$git_branch_display_value = $this->get_git_branch( $app_id );
+			$git_branch_class_name    = 'wpcd_site_details_top_row_element_git_branch';  // Not used - for now we're using the $git_status_class_name for both git status and branch name.
+		}
+
 		// Wrap the page cache and ssl status into a set of spans that will go underneath the domain name.
 		$other_data  = '<div class="wpcd_site_details_top_row_element_wrapper">';
 		$other_data .= '<span class="wpcd_medium_chicklet wpcd_site_details_top_row_element_wstype">' . $webserver_type_name . '</span>';
 		$other_data .= '<span class=" wpcd_medium_chicklet ' . $ssl_class_name . '">' . sprintf( __( 'SSL: %s', 'wpcd' ), $ssl_status_display_value ) . '</span>';
 		$other_data .= '<span class=" wpcd_medium_chicklet ' . $page_cache_class_name . '">' . sprintf( __( 'Cache: %s', 'wpcd' ), $page_cache_display_value ) . '</span>';
+		if ( ! empty( $git_status ) ) {
+			$other_data .= '<span class=" wpcd_medium_chicklet ' . $git_status_class_name . '">' . sprintf( __( 'Git: %s', 'wpcd' ), $git_status_display_value ) . '</span>';
+		}
+		if ( ! empty( $git_branch_display_value ) ) {
+			$other_data .= '<span class=" wpcd_medium_chicklet ' . $git_status_class_name . '">' . sprintf( __( 'Branch: %s', 'wpcd' ), $git_branch_display_value ) . '</span>';
+		}
 		$other_data .= '</div>';
 
 		// Copy IP.
@@ -568,8 +593,14 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		$webserver_type      = $this->get_web_server_type( $id );
 		$webserver_type_name = $this->get_web_server_description_by_id( $id );
 
+		// Is git installed?
+		$git_status = $this->get_git_status( $id );
+
 		$other_data  = '<div class="wpcd_site_details_top_row_element_wrapper">';
-		$other_data .= '<span class="wpcd_medium_chicklet wpcd_site_details_top_row_element_wstype">' . $webserver_type_name . '</span>';
+		$other_data .= '<span class="wpcd_medium_chicklet wpcd_server_details_top_row_element_wstype">' . $webserver_type_name . '</span>';
+		if ( true === $git_status ) {
+			$other_data .= '<span class="wpcd_medium_chicklet wpcd_server_details_top_row_element_git_status">' . __( 'Git On', 'wpcd' ) . '</span>';
+		}
 		$other_data .= '</div>';
 
 		$copy_ip = wpcd_wrap_clipboard_copy( WPCD_SERVER()->get_ipv4_address( $id ) );
@@ -1987,6 +2018,71 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		return update_post_meta( $app_id, 'wpapp_domain', $new_domain );
 	}
 
+	/**
+	 * Get whether git is enabled for a server or site.
+	 *
+	 * @param int $post_id The post id of the server or site record.
+	 *
+	 * @return boolean
+	 */
+	public function get_git_status( $post_id ) {
+
+		if ( 'wpcd_app_server' == get_post_type( $post_id ) ) {
+			return (bool) get_post_meta( $post_id, 'wpcd_wpapp_git_status', true );
+		}
+
+		if ( 'wpcd_app' == get_post_type( $post_id ) ) {
+			return (bool) get_post_meta( $post_id, 'wpapp_git_status', true );
+		}
+
+		return false;
+	}
+
+	/**
+	 * Set the meta that contains the git status for the server or site.
+	 *
+	 * @param int      $post_id The post id of the server or site record.
+	 * @param int|bool $git_status The git status 1/true 0/false.
+	 *
+	 * @return int|bool|string
+	 */
+	public function set_git_status( $post_id, $git_status ) {
+
+		if ( 'wpcd_app_server' == get_post_type( $post_id ) ) {
+			return update_post_meta( $post_id, 'wpcd_wpapp_git_status', (int) $git_status );
+		}
+
+		if ( 'wpcd_app' == get_post_type( $post_id ) ) {
+			return update_post_meta( $post_id, 'wpapp_git_status', (int) $git_status );
+		}
+
+	}
+
+	/**
+	 * Get the branch name that we think the site is on.
+	 *
+	 * @param int $app_id The post id of the server or site record.
+	 *
+	 * @return string
+	 */
+	public function get_git_branch( $app_id ) {
+
+		return (string) get_post_meta( $app_id, 'wpapp_git_branch', true );
+
+	}
+
+	/**
+	 * Set the branch name that we think the site is on.
+	 *
+	 * @param int    $app_id The post id of the server or site record.
+	 * @param string $branch The branch name to set.
+	 */
+	public function set_git_branch( $app_id, $branch ) {
+
+		return update_post_meta( $app_id, 'wpapp_git_branch', $branch );
+
+	}
+
 
 	/**
 	 * Add additional parameters to the localized script sent to the APPS cpt screen.
@@ -3218,10 +3314,10 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		$welcome_message .= __( 'Add your cloud server provider API key and other credentials to the WPCLOUDDEPLOY → SETTINGS → CLOUD PROVIDERS tab.', 'wpcd' );
 		$welcome_message .= '</li>';
 		$welcome_message .= '<li>';
-		$welcome_message .= __( 'Click on the ALL CLOUD SERVERS menu option and use the DEPLOY A NEW WORDPRESS SERVER button to deploy a server.', 'wpcd' );
+		$welcome_message .= __( 'Click on the ALL CLOUD SERVERS menu option and use the DEPLOY A NEW WordPress SERVER button to deploy a server.', 'wpcd' );
 		$welcome_message .= '</li>';
 		$welcome_message .= '<li>';
-		$welcome_message .= __( 'After the server is deployed, go back to the CLOUD SERVERS menu option and click the INSTALL WORDPRESS button in the server list.', 'wpcd' );
+		$welcome_message .= __( 'After the server is deployed, go back to the CLOUD SERVERS menu option and click the INSTALL WordPress button in the server list.', 'wpcd' );
 		$welcome_message .= '</li>';
 		$welcome_message .= '</ol>';
 		$welcome_message .= '<br />';
@@ -3438,6 +3534,9 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		$post_types = array( 'wpcd_app_server', 'wpcd_app', 'wpcd_team', 'wpcd_permission_type', 'wpcd_command_log', 'wpcd_ssh_log', 'wpcd_error_log', 'wpcd_pending_log' );
 
 		if ( ( is_object( $screen ) && in_array( $screen->post_type, $post_types ) ) || WPCD_WORDPRESS_APP_PUBLIC::is_public_page() ) {
+			
+			wp_enqueue_style( 'wpcd-wpapp-admin-app-css', wpcd_url . 'includes/core/apps/wordpress-app/assets/css/wpcd-wpapp-admin-app.css', array(), wpcd_scripts_version );
+			
 			wp_enqueue_script( 'wpcd-admin-common', wpcd_url . 'includes/core/apps/wordpress-app/assets/js/wpcd-admin-common.js', array( 'jquery' ), wpcd_scripts_version, true );
 			wp_localize_script(
 				'wpcd-admin-common',

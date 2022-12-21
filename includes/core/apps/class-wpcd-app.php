@@ -762,7 +762,7 @@ class WPCD_APP extends WPCD_Base {
 	 */
 	public function register_rest_endpoint() {
 		register_rest_route(
-			$this->get_app_name() . '/v' . wpcd_rest_version,
+			$this->get_app_name() . '/v' . WPCD_REST_VERSION,
 			'/command/(?P<id>\d+)/(?P<name>.+)/(?P<status>.+)/(?P<cmdid>\d+)/',
 			array(
 				'methods'             => array( 'GET' ),
@@ -782,7 +782,7 @@ class WPCD_APP extends WPCD_Base {
 	 */
 	protected function get_command_url( $id, $name, $status, $attributes = array() ) {
 		$time = time();
-		return apply_filters( 'wpcd_rest_url', rest_url( "{$this->get_app_name()}/v" . wpcd_rest_version . "/command/$id/$name/$status/$time/" ), $id, $name, $status, $attributes );
+		return apply_filters( 'wpcd_rest_url', rest_url( "{$this->get_app_name()}/v" . WPCD_REST_VERSION . "/command/$id/$name/$status/$time/" ), $id, $name, $status, $attributes );
 	}
 
 	/**

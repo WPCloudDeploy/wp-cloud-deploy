@@ -1239,6 +1239,25 @@ function wpcd_clean_alpha_numeric_dashes( $instr ) {
 }
 
 /**
+ * Takes a string and removes everything except alphanumeric
+ * characters, dashes, periods and underscores.
+ *
+ * @param  string $instr String to clean.
+ *
+ * @return string
+ */
+function wpcd_clean_alpha_numeric_dashes_periods_underscores( $instr ) {
+
+	if ( empty( $instr ) ) {
+		return '';
+	}
+
+	$instr = preg_replace( '/[^A-Za-z0-9-._]/', '', $instr );
+
+	return $instr;
+}
+
+/**
  * Get the list of users that are in the assigned teams
  *
  * @param int $post_id Post ID of server or app type post.
@@ -1653,6 +1672,17 @@ function wpcd_generate_uuid() {
 	// Output the 36 character UUID.
 	return vsprintf( '%s%s-%s-%s-%s-%s%s%s', str_split( bin2hex( $data ), 4 ) );
 
+}
+
+/**
+ * Return whether GIT is enabled for WPCD.
+ */
+function wpcd_is_git_enabled() {
+	if ( class_exists( 'WPCD_GitControl_Init' ) ) {
+		return true;
+	} else {
+		return false;
+	}
 }
 
 /*

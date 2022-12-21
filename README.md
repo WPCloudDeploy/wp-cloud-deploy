@@ -127,6 +127,7 @@ Note: Even though the entire git development history isn't available on github, 
 5.3.0
 ------
 * New: Option to change the background and foreground color of the 'terminal'.
+* New: Foundation for git support added.
 * Fix: Missing variable value when installing memcached. Harmless - just threw a php warning.
 * Dev: Use global function to reset site permissions (refactor).
 

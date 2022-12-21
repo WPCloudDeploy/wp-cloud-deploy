@@ -217,12 +217,10 @@
 }
 .wpcd_git_push_to_deploy_data .wpcd_git_push_to_deploy_inner_wrap {
 	display: grid;
-	x-grid-template-areas: "i i ";
 	grid-template-areas: "i ";
-	/*1 row, 2 columns */
-	x-grid-template-columns: 1fr 2fr 1fr 2fr;
+	/*1 row, 1 column */
 	grid-template-columns: 1fr 2fr;
-	/* Each row has four columns  */
+	/* Each row has two columns  */
 	grid-column-gap: 10px;
 	grid-row-gap: 1em;
 	margin-bottom: 1em;
@@ -230,6 +228,31 @@
 }
 .wpcd_git_push_to_deploy_data .wpcd_git_push_to_deploy_data_label_item {
 	font-weight: bold;
+}
+
+/* Format the git history section on the GIT tab for a site. */
+.wpcd_git_logs_list {
+	/* Put a box around the data section */
+	border: 1px solid #FFF3CD;
+	padding: 1em;
+	border-radius: 4px;
+	background-color: #FFF3CD;
+}
+.wpcd_git_logs_list .wpcd_git_logs_list_inner_wrap {
+	display: grid;
+	grid-template-areas: "i ";
+	/*1 row, 1 columns */
+	grid-template-columns: 1fr 3fr;
+	/* Each row has two columns  */
+	grid-column-gap: 10px;
+	grid-row-gap: 1em;
+	margin-bottom: 1em;
+	font-size: 1em;
+}
+.wpcd_git_logs_list .wpcd_git_log_value,
+.wpcd_git_logs_list .wpcd_git_log_label {
+	x-font-weight: bold;
+	font-size: smaller;
 }
 
 /* Format the current branch shown at the top of each section of the GIT tab for a site. */

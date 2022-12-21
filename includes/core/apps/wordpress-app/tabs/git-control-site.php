@@ -564,6 +564,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 				$fields = array_merge( $fields, $this->get_fields_for_git_tag_list( $id ) );
 				$fields = array_merge( $fields, $this->get_fields_for_git_push_to_deploy_handle_actions( $id ) );
 				$fields = array_merge( $fields, $this->get_fields_for_git_push_to_deploy_keys( $id ) );
+				$fields = array_merge( $fields, $this->get_fields_for_git_history( $id ) );
 
 			}
 		}
@@ -1687,7 +1688,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 
 		$tags = $this->get_git_tag_history( $id );
 
-		foreach ( $tags as $tag => $tag_array ) {
+		foreach ( array_reverse( $tags ) as $tag => $tag_array ) {
 
 			$return .= '<div class="wpcd_git_tag_value">';
 			$return .= $tag;
@@ -1710,7 +1711,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 		);
 
 		$actions[] = array(
-			'id'         => 'git-site-control-view-settings',
+			'id'         => 'git-site-control-view-tags',
 			'name'       => '',
 			'std'        => $return,
 			'type'       => 'custom_html',
@@ -1721,6 +1722,57 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 		return $actions;
 
 	}
+
+	/**
+	 * Get fields that displays the git history log.
+	 *
+	 * @param int $id The post id of the site we're working with.
+	 *
+	 * @return array Array of actions, complying with the structure necessary by metabox.io fields.
+	 */
+	public function get_fields_for_git_history( $id ) {
+
+		$header_msg = __( 'Git History Log.', 'wpcd' );
+
+		$return  = '<div class="wpcd_git_logs_list">';
+		$return .= '<div class="wpcd_git_logs_list_inner_wrap">';
+
+		$logs = $this->get_git_log_history( $id );
+
+		foreach ( array_reverse( $logs ) as $log => $log_array ) {
+
+			$return .= '<div class="wpcd_git_log_label">';
+			$return .= $log_array['reporting_time_human_utc'];
+			$return .= '</div>';
+
+			$return .= '<div class="wpcd_git_log_value">';
+			$return .= ! empty( $log_array['msg'] ) ? $log_array['msg'] : __( 'Empty log entry', 'wpcd' );
+			$return .= '</div>';
+
+		}
+		$return .= '</div>';
+		$return .= '</div>';
+
+		$actions[] = array(
+			'id'   => 'git-site-control-logs',
+			'name' => __( 'History', 'wpcd' ),
+			'desc' => $header_msg,
+			'type' => 'heading',
+			'tab'  => $this->get_tab_slug(),
+		);
+
+		$actions[] = array(
+			'id'         => 'git-site-control-view-logs',
+			'name'       => '',
+			'std'        => $return,
+			'type'       => 'custom_html',
+			'tab'        => $this->get_tab_slug(),
+			'save_field' => false,
+		);
+
+		return $actions;
+
+	}	
 
 	/**
 	 * Return an array of field names that will be used
@@ -2648,6 +2700,28 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
+	 * Return the git log meta value.
+	 *
+	 * @param int $id Post id of site we're working with.
+	 *
+	 * @return array.
+	 */
+	public function get_git_log_history( $id ) {
+		// Get current tag list.
+		$logs = wpcd_maybe_unserialize( get_post_meta( $id, 'wpcd_app_git_history', true ) );
+
+		// Make sure we have something in the logs array otherwise create a blank one.
+		if ( empty( $logs ) ) {
+			$logs = array();
+		}
+		if ( ! is_array( $logs ) ) {
+			$logs = array();
+		}
+
+		return $logs;
+	}
+
+	/**
 	 * Add to an array of git tags created.
 	 *
 	 * @param int    $id Post id of site we're working with.
@@ -2659,7 +2733,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 		// Get current tag list.
 		$tags = wpcd_maybe_unserialize( get_post_meta( $id, 'wpcd_app_git_tag_history', true ) );
 
-		// Make sure we have something in the logs array otherwise create a blank one.
+		// Make sure we have something in the tags array otherwise create a blank one.
 		if ( empty( $tags ) ) {
 			$tags = array();
 		}

@@ -1676,6 +1676,8 @@ function wpcd_generate_uuid() {
 
 /**
  * Return whether GIT is enabled for WPCD.
+ *
+ * @since 5.3
  */
 function wpcd_is_git_enabled() {
 	if ( class_exists( 'WPCD_GitControl_Init' ) ) {
@@ -1683,6 +1685,15 @@ function wpcd_is_git_enabled() {
 	} else {
 		return false;
 	}
+}
+
+/**
+ * Return whether Multi-Tenant is enabled for WPCD.
+ *
+ * @since 5.3
+ */
+function wpcd_is_mt_enabled() {
+	return true;
 }
 
 /*

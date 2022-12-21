@@ -38,6 +38,12 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 		// Allow the git clone to site action to be triggered via an action hook.
 		add_action( 'wpcd_git_clone_to_site', array( $this, 'git_clone_to_site' ), 10, 3 );
 
+		// Git check action triggered from pending log.
+		add_action( 'wpcd_pending_log_git_checkout', array( $this, 'wpcd_pending_log_git_checkout' ), 10, 3 );
+
+		// Allow the git checkout action to be triggered via an action hook.
+		add_action( 'wpcd_git_checkout', array( $this, 'git_checkout_branch' ), 10, 3 );
+
 	}
 
 	/**
@@ -130,6 +136,67 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 			if ( ! empty( $task_id ) ) {
 				delete_post_meta( $id, 'wpapp_pending_log_git_clone_to_site' );
 			}
+		}
+
+		// if the command is to checkout a site without it being initialized, handle pending tasks (if any) and log the attempt.
+		if ( 'git_checkout' === $command_array[0] ) {
+
+			// Lets pull the logs.
+			$logs = $this->get_app_command_logs( $id, $name );
+
+			// Is the command successful?
+			$success = (bool) $this->is_ssh_successful( $logs, 'git_control_site_command.txt' );
+
+			// Maybe this was triggered by a pending log task.  If so, grab the meta so we can update the task record later.
+			$task_id = get_post_meta( $id, 'wpapp_pending_log_git_checkout', true );
+
+			if ( true === $success ) {
+
+				// Get the new branch.
+				$new_branch = get_post_meta( $id, 'temp_git_branch', true );
+
+				// Update it on the site record.
+				$this->set_git_branch( $id, $new_branch );
+
+				// If this was triggered by a pending log task update the task as complete.
+				if ( ! empty( $task_id ) ) {
+
+					// Grab our data array from pending tasks record...
+					$data = WPCD_POSTS_PENDING_TASKS_LOG()->get_data_by_id( $task_id );
+
+					// Mark the task as complete.
+					WPCD_POSTS_PENDING_TASKS_LOG()->update_task_by_id( $task_id, $data, 'complete' );
+
+				}
+
+				// Log the attempt.
+				$msg = __( 'Git checkout complete.', 'wpcd' );
+				$this->git_add_to_site_log( $id, $msg );
+			} else {
+
+				// If this was triggered by a pending log task update the task as failed.
+				if ( ! empty( $task_id ) ) {
+
+					// Grab our data array from pending tasks record...
+					$data = WPCD_POSTS_PENDING_TASKS_LOG()->get_data_by_id( $task_id );
+
+					// Mark the task as complete.
+					WPCD_POSTS_PENDING_TASKS_LOG()->update_task_by_id( $task_id, $data, 'failed' );
+
+				}
+
+				// Log the failure.
+				$msg = __( 'An attempt to checkout a branch failed.', 'wpcd' );
+				$this->git_add_to_site_log( $id, $msg );
+			}
+
+			// Delete the pending task post meta if it exists.
+			if ( ! empty( $task_id ) ) {
+				delete_post_meta( $id, 'wpapp_pending_log_git_checkout' );
+			}
+
+			// Remove temporary metas.
+			delete_post_meta( $id, 'temp_git_branch' );
 		}
 
 		// If the command is to create a tag, lets log it and store the tag history.
@@ -352,7 +419,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 					break;
 				case 'git-site-control-checkout-branch':
 					$bash_action = 'git_checkout';
-					$result      = $this->git_actions( $bash_action, $id );
+					$result      = $this->git_checkout_branch( $bash_action, $id );
 					break;
 				case 'git-site-control-create-new-branch':
 					$bash_action = 'git_new_branch';
@@ -388,6 +455,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 				$action,
 				array(
 					'git-site-control-init-site',
+					'git-site-control-checkout-branch',
 					'git-site-control-clone-only',
 					'git-site-control-create-tag',
 					'git-site-control-pull-tag',
@@ -951,6 +1019,9 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 				'data-wpcd-id'                  => $id,
 				// make sure we give the user a confirmation prompt.
 				'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like to checkout this branch or tag? Changes from the remote repo will be merged with the local site files. If you chose a TAG to checkout, chances are that your HEAD will be left in a DETACHED state. If you do not know what this means, do not check out a tag or version.', 'wpcd' ),
+				'data-show-log-console'         => true,
+				// Initial console message.
+				'data-initial-console-message'  => __( 'Preparing to checkout a branch or tag...<br /> Please DO NOT EXIT this screen until you see a popup message indicating that the backup has completed or has errored.<br />This terminal should refresh every 60-90 seconds with updated progress information from the server. <br /> After the backup is complete the entire log can be viewed in the COMMAND LOG screen.', 'wpcd' ),
 			),
 			'type'       => 'button',
 			'tab'        => $this->get_tab_slug(),
@@ -1993,6 +2064,84 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
+	 * Checkout a branch or tag.
+	 *
+	 * Action Hook: wpcd_git_checkout (optional)
+	 *
+	 * @param string $action The action to be performed (this matches the string required in the bash scripts if bash scripts are used - in this case 'git_clone_to_site').
+	 * @param int    $id id.
+	 * @param array  $in_args Arguments that can be used instead of the data in $_POST['params'].
+	 */
+	public function git_checkout_branch( $action, $id, $in_args = array() ) {
+
+		$instance = $this->get_app_instance_details( $id );
+
+		if ( is_wp_error( $instance ) ) {
+			/* Translators: %s is the action name. */
+			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
+		}
+
+		if ( ! empty( $in_args ) ) {
+			// Incoming args has data so use that instead of pulling from $_POST.
+			$args = $in_args;
+		} else {
+			$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
+		}
+
+		// Make sure we have a branch name before doing anything else.
+		if ( empty( $args['git_branch'] ) ) {
+			return new \WP_Error( __( 'The branch or tag should not be blank.', 'wpcd' ) );
+		}
+
+		// sanitize the fields to allow them to be used safely on the bash command line.
+		$original_args = $args;
+		$args          = array_map(
+			function( $item ) {
+				return escapeshellarg( $item );
+			},
+			$args
+		);
+
+		// At this point, we have everything we need so initialize some vars we'll use later.
+		$run_cmd = '';
+
+		// Store the branch into a temporary meta so we can use it after the command completes.
+		update_post_meta( $id, 'temp_git_branch', $original_args['git_branch'] );
+
+		// Get the domain we're working on.
+		$domain = get_post_meta( $id, 'wpapp_domain', true );
+
+		// Setup unique command name.
+		$command             = sprintf( '%s---%s---%d', $action, $domain, time() );
+		$instance['command'] = $command;
+		$instance['app_id']  = $id;
+
+		// Configure the run cmd.
+		$run_cmd = $this->turn_script_into_command(
+			$instance,
+			'git_control_site_command.txt',
+			array_merge(
+				$args,
+				array(
+					'command' => $command,
+					'action'  => $action,
+					'domain'  => $domain,
+				)
+			)
+		);
+
+		/**
+		 * Run the constructed command
+		 * Check out the write up about the different aysnc methods we use
+		 * here: https://wpclouddeploy.com/documentation/wpcloud-deploy-dev-notes/ssh-execution-models/
+		 */
+		$return = $this->run_async_command_type_2( $id, $command, $run_cmd, $instance, $action );
+
+		return $return;
+
+	}
+
+	/**
 	 * Create a new tag / version
 	 *
 	 * @param string $action The action to be performed (this matches the string required in the bash scripts if bash scripts are used - in this case 'git_tag').
@@ -2299,12 +2448,6 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 					return new \WP_Error( sprintf( __( 'Unable to execute this request because the commit message is empty. (action %s)', 'wpcd' ), $action ) );
 				}
 				break;
-			case 'git_checkout':
-				if ( empty( $args['git_branch'] ) ) {
-					/* Translators: %s is the action name. */
-					return new \WP_Error( sprintf( __( 'Unable to execute this request because you did not supply a branch to be checked out. (action %s)', 'wpcd' ), $action ) );
-				}
-				break;
 			case 'git_new_branch':
 				if ( empty( $args['git_branch'] ) ) {
 					/* Translators: %s is the action name. */
@@ -2337,7 +2480,6 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 			case 'git_domain_remove':
 			case 'git_sync':
 			case 'git_commit_and_push':
-			case 'git_checkout':
 			case 'git_new_branch':
 			case 'git_remove_all_version_folders':
 				// Get the full command to be executed by ssh.
@@ -2373,9 +2515,6 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 				case 'git_commit_and_push':
 					$this->git_add_to_site_log( $id, __( 'Attempt to commit and push to remote repo was not successful.', 'wpcd' ) );
 					break;
-				case 'git_checkout':
-					$this->git_add_to_site_log( $id, __( 'Attempt to checkout a branch was not successful.', 'wpcd' ) );
-					break;
 				case 'git_new_branch':
 					$this->git_add_to_site_log( $id, __( 'Attempt to create a new branch was not successful.', 'wpcd' ) );
 					break;
@@ -2402,14 +2541,6 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 				case 'git_commit_and_push':
 					// Log it.
 					$this->git_add_to_site_log( $id, __( 'Site changes were committed and pushed to remote repo.', 'wpcd' ) );
-					break;
-				case 'git_checkout':
-					// Log it.
-					/* Translators: %s is the git branch that was checked out. */
-					$this->git_add_to_site_log( $id, sprintf( __( 'Branch %s was checked out.', 'wpcd' ), $original_args['git_branch'] ) );
-
-					// And update the current branch.
-					$this->set_git_branch( $id, $original_args['git_branch'] );
 					break;
 				case 'git_new_branch':
 					// Log it.
@@ -2705,7 +2836,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 		// Which branch is it?
 		$ref = $decoded_payload['ref'];
 		if ( empty( $ref ) ) {
-			do_action( 'wpcd_log_error', sprintf( 'Git push-to-deploy webhook cannot he handled because we could not determine a branch. App Id: %s', $id ), 'error', __FILE__, __LINE__, $instance, false );
+			do_action( 'wpcd_log_error', sprintf( 'Git push-to-deploy webhook cannot be handled because we could not determine a branch. App Id: %s', $id ), 'error', __FILE__, __LINE__, $instance, false );
 			return false;
 		}
 
@@ -2713,12 +2844,12 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 		$parts  = explode( '/', $ref );
 		$branch = end( $parts );
 		if ( empty( $branch ) ) {
-			do_action( 'wpcd_log_error', sprintf( 'Git push-to-deploy webhook cannot he handled because we could not determine a branch. App Id: %s', $id ), 'error', __FILE__, __LINE__, $instance, false );
+			do_action( 'wpcd_log_error', sprintf( 'Git push-to-deploy webhook cannot be handled because we could not determine a branch. App Id: %s', $id ), 'error', __FILE__, __LINE__, $instance, false );
 			return false;
 		}
 
 		// What branches should trigger action on our part?
-		$trigger_branches = explode( '/', wpcd_maybe_unserialize( get_post_meta( $id, 'wpcd_app_git_push_to_deploy_action_branches', true ) ) );
+		$trigger_branches = explode( ',', wpcd_maybe_unserialize( get_post_meta( $id, 'wpcd_app_git_push_to_deploy_action_branches', true ) ) );
 
 		// If the current push is not for one of the branches, do nothing.
 		if ( ! in_array( $branch, $trigger_branches, true ) ) {
@@ -2741,6 +2872,13 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 				WPCD_POSTS_PENDING_TASKS_LOG()->add_pending_task_log_entry( $id, 'git-clone-to-site', $id, $args, 'ready', $id, __( 'Git site clone triggered from incoming webhook', 'wpcd' ) );
 				break;
 			case 'checkout':
+				// Setup array to be passed to pending logs.
+				$args['domain']      = get_post_meta( $id, 'wpapp_domain', true );
+				$args['git_branch']  = $branch;
+				$args['action_hook'] = 'wpcd_pending_log_git_checkout';
+				$args['action']      = 'git_checkout';
+				WPCD_POSTS_PENDING_TASKS_LOG()->add_pending_task_log_entry( $id, 'git-checkout', $id, $args, 'ready', $id, __( 'Git checkout triggered from incoming webhook', 'wpcd' ) );
+				break;
 				break;
 		}
 
@@ -2795,6 +2933,50 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 		 *   - domain
 		 */
 		do_action( 'wpcd_git_clone_to_site', 'git_clone_to_site', $id, $data );
+	}
+
+	/**
+	 * Checkout a branch.
+	 *
+	 * Called from an action hook from the pending logs background process - WPCD_POSTS_PENDING_TASKS_LOG()->do_tasks()
+	 *
+	 * Action Hook: wpcd_pending_log_git_checkout
+	 *
+	 * @param int   $task_id    Id of pending task that is firing this thing...
+	 * @param int   $id         Id of site involved in this action.
+	 * @param array $args       All the data needed to handle this action.
+	 */
+	public function wpcd_pending_log_git_checkout( $task_id, $id, $args ) {
+
+		// Get data from pending-log.
+		// Expecting the following array structure.
+		/*
+		Array (
+			'domain' => 'sjx3te5gftpe.vnxv.com',
+			'git_branch' => 'dev01',
+			'action_hook' => 'wpcd_pending_log_git_checkout',
+			'action' => 'git_ccheckout',
+			'pending_tasks_id' => 225681,
+			'pending_task_associated_server_id' => '215746',
+			'pending_task_parent_post_type' => 'wpcd_app',
+		)
+		*/
+		$data = WPCD_POSTS_PENDING_TASKS_LOG()->get_data_by_id( $task_id );
+
+		// Set task to in-process.
+		$task_status = 'in-process';
+		WPCD_POSTS_PENDING_TASKS_LOG()->update_task_by_id( $task_id, $data, $task_status );
+
+		// Stamp the site with the task id.  We'll use it when the command completes.
+		update_post_meta( $id, 'wpapp_pending_log_git_checkout', $task_id );
+
+		/**
+		 * Fire action hook to call the git checkout action for the site on the server.
+		 * We're passing the $data array directly since it has the two elements the action hook expects:
+		 *   - git_branch
+		 *   - domain
+		 */
+		do_action( 'wpcd_git_checkout', 'git_checkout', $id, $data );
 	}
 
 	/**

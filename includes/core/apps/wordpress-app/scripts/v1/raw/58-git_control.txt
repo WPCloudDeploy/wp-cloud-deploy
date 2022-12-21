@@ -881,6 +881,17 @@ then
 		exit
 	fi
 
+	# Pull from repo
+	echo "Pulling files from remote..."
+	git pull origin
+	if [ $? -ne 0 ]	
+	then
+		msg="Unable to pull from remote"
+		echo
+		echo $msg
+		exit
+	fi	
+
 	echo
 	echo "Git branch switch and checkout succeeded."
 	exit

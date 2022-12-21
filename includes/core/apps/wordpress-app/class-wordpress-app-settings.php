@@ -2510,10 +2510,12 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			),
 			'wordpress_app_terminal_background_color' => array(
 				'label' => __( 'Background Color for Terminal', 'wpcd' ),
+				'desc'  => __( 'Background color for our terminal display.', 'wpcd' ),
 				'std'   => WPCD_TERMINAL_BG_COLOR,
 			),
 			'wordpress_app_terminal_foreground_color' => array(
 				'label' => __( 'Foreground Color for Terminal', 'wpcd' ),
+				'desc'  => __( 'Color of the text used in our terminal display.', 'wpcd' ),
 				'std'   => WPCD_TERMINAL_FG_COLOR,
 			),
 		);

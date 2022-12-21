@@ -462,8 +462,8 @@ class WPCD_Init {
 		/**
 		 * Finally, maybe ask for setup using Setup wizard.
 		 * Proceed only if both options 'wpcd_plugin_setup' & 'wpcd_skip_wizard_setup' = false
-		 * 'wpas_plugin_setup' will be added at the end of wizard steps
-		 * 'wpas_skip_wizard_setup' will be set to true if user choose to skip wizrd from admin notice
+		 * 'wpcd_plugin_setup' will be added at the end of wizard steps
+		 * 'wpcd_skip_wizard_setup' will be set to true if user choose to skip wizrd from admin notice
 		 */
 		if ( ! get_option( 'wpcd_plugin_setup', false ) && ! get_option( 'wpcd_skip_wizard_setup', false ) ) {
 			require_once wpcd_path . 'includes/core/class-wpcd-setup-wizard.php';

@@ -821,9 +821,20 @@ then
 	# @TODO: Will this handle a message with spaces?
 	git commit -m "$git_commit_msg"
 
+	# Fetch from origin so we know things.
+	git fetch origin
+	if [ $? -ne 0 ]	
+	then
+		msg="Unable to fetch from origin."
+		echo
+		echo $msg
+		exit
+	fi	
+
 	# Pull from repo
 	echo "Pulling files from remote..."
-	git pull origin
+	current_branch=$(git rev-parse --abbrev-ref HEAD)
+	git pull origin $current_branch
 	if [ $? -ne 0 ]	
 	then
 		msg="Unable to pull from remote"

@@ -1732,7 +1732,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 	 */
 	public function get_fields_for_git_history( $id ) {
 
-		$header_msg = __( 'Git History Log.', 'wpcd' );
+		$header_msg = __( 'Git History Log. Only the latest 25 items are shown.', 'wpcd' );
 
 		$return  = '<div class="wpcd_git_logs_list">';
 		$return .= '<div class="wpcd_git_logs_list_inner_wrap">';
@@ -1772,7 +1772,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 
 		return $actions;
 
-	}	
+	}
 
 	/**
 	 * Return an array of field names that will be used
@@ -2693,6 +2693,12 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 			'reporting_time_human_utc' => gmdate( 'Y-m-d H:i:s' ),
 			'msg'                      => $msg,
 		);
+
+		// Keep only 25 items.
+		$keep = 25;
+		if ( count( $logs ) > $keep ) {
+			array_splice( $logs, 0, count( $logs ) - $keep );
+		}
 
 		// Push back to database.
 		return update_post_meta( $id, 'wpcd_app_git_history', $logs );

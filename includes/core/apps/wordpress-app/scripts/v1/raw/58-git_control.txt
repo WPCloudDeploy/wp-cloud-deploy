@@ -1310,6 +1310,39 @@ then
 	lf_get_git_remote_url						# Sets Global $git_remote_url
 	lf_get_git_token							# Sets Global $git_token
 
+	# Make a git working folder outside of the folder where files are usually located.
+	# We will NOT be backing up this folder.
+	mkdir -p /var/www/$domain/.wpcd_git
+	if [ $? -ne 0 ]
+	then
+		msg="Could not create folder $domain/.wpcd_git"
+		echo
+		echo $msg
+		lf_send_callback_failed $git_callback_url "$msg"
+		exit
+	fi
+
+	# Move into git working folder.
+	cd /var/www/$domain/.wpcd_git
+
+	# Initialize git and check for error.
+	# Note that we're not specifying a branch here like we do with the init option.
+	# We don't really care about branches - we just want to initialize git enough
+	# to get to the point where we can save the credentials to the credential
+	# store. 
+	# It can't do that without a git folder being active though.  So we do
+	# a git init that will be overwritten if we ever run our full
+	# git init action (menu option #1).
+	git init --separate-git-dir . ../html/
+	if [ $? -ne 0 ]
+	then
+		msg="Could not initialize repo."
+		echo
+		echo $msg
+		lf_send_callback_failed $git_callback_url "$msg"
+		exit
+	fi	
+
 	# Since $domain and .wpcd_git are owned by different users (root vs limited user), need to mark $domain as safe.
 	echo "Adding global safe.directory variable for domain $domain..."
 	git config --global --add safe.directory /var/www/$domain/html

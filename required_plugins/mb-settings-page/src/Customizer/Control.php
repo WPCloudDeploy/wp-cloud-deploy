@@ -15,9 +15,9 @@ class Control extends \WP_Customize_Control {
 	public function enqueue() {
 		$this->meta_box->enqueue();
 
-		wp_enqueue_style( 'mbsp-customizer', MBSP_URL . 'assets/customizer.css' );
+		wp_enqueue_style( 'mbsp-customizer', MBSP_URL . 'assets/customizer.css', [], '2.1.5' );
 
 		wp_register_script( 'mb-jquery-serialize-object', MBSP_URL . 'assets/jquery.serialize-object.js', ['jquery'], '2.5.0', true );
-		wp_enqueue_script( 'mbsp-customizer', MBSP_URL . 'assets/customizer.js', ['customize-controls', 'mb-jquery-serialize-object', 'rwmb', 'underscore'], '', true );
+		wp_enqueue_script( 'mbsp-customizer', MBSP_URL . 'assets/customizer.js', ['customize-controls', 'mb-jquery-serialize-object', 'rwmb', 'underscore'], '2.1.5', true );
 	}
 }

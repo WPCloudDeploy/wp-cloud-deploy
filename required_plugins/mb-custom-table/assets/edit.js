@@ -1,2 +1,5 @@
 // Confirm when delete.
-document.querySelector( '#mbct-delete' ).addEventListener( 'click', e => !confirm( Mbct.confirm ) && e.preventDefault() );
+let mbctDelete = document.querySelector( '#mbct-delete' );
+if ( mbctDelete ) {
+	mbctDelete.addEventListener( 'click', e => !confirm( Mbct.confirm ) && e.preventDefault() );
+}

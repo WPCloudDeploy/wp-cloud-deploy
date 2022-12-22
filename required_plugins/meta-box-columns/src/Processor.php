@@ -67,7 +67,7 @@ class Processor {
 	 * Fetch and store column data from meta box.
 	 */
 	protected function parse_columns() {
-		if ( empty( $this->meta_box['columns'] ) ) {
+		if ( empty( $this->meta_box['columns'] ) || ! is_array( $this->meta_box['columns'] ) ) {
 			return;
 		}
 		foreach ( $this->meta_box['columns'] as $key => $column ) {

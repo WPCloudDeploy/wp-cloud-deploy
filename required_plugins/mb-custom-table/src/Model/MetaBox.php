@@ -54,10 +54,9 @@ class MetaBox extends \RW_Meta_Box {
 		}
 
 		// Get the correct inserted ID when add new model.
-		global $wpdb;
 		$object_id = rwmb_request()->filter_get( 'model-id', FILTER_SANITIZE_NUMBER_INT );
-		if ( 'add' === rwmb_request()->get( 'model-action' ) && $wpdb->insert_id ) {
-			$object_id = $wpdb->insert_id;
+		if ( 'add' === rwmb_request()->get( 'model-action' ) ) {
+			$object_id = -1; // A fake ID to store data in the cache.
 		}
 		$this->save_post( $object_id );
 	}

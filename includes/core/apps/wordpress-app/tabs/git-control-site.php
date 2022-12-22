@@ -557,7 +557,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 				);
 
 				// Get additional fields for each section.
-				if ( true === (bool) wpcd_get_option( 'wordpress_app_git_enable_advanced' ) ) {
+				if ( true === (bool) wpcd_get_early_option( 'wordpress_app_git_enable_advanced' ) ) {
 					$fields = array_merge( $fields, $this->get_fields_for_git_sync( $id ) );
 					$fields = array_merge( $fields, $this->get_fields_for_git_checkout( $id ) );
 					$fields = array_merge( $fields, $this->get_fields_for_git_new_branch( $id ) );
@@ -675,7 +675,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 			'save_field' => false,
 		);
 
-		if ( true === (bool) wpcd_get_option( 'wordpress_app_git_enable_advanced' ) ) {
+		if ( true === (bool) wpcd_get_early_option( 'wordpress_app_git_enable_advanced' ) ) {
 			$actions[] = array(
 				'id'         => 'git-site-control-init-fields-branch',
 				'name'       => __( 'Branch', 'wpcd' ),
@@ -765,7 +765,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 			);
 		}
 
-		if ( true === (bool) wpcd_get_option( 'wordpress_app_git_enable_advanced' ) ) {
+		if ( true === (bool) wpcd_get_early_option( 'wordpress_app_git_enable_advanced' ) ) {
 			$actions[] = array(
 				'id'         => 'git-site-control-init-fields-init-action',
 				'name'       => '',
@@ -1618,7 +1618,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 				$return .= esc_html( $git_settings['git_user_name'] );
 			$return     .= '</div>';
 
-		if ( true === (bool) wpcd_get_option( 'wordpress_app_git_enable_advanced' ) ) {
+		if ( true === (bool) wpcd_get_early_option( 'wordpress_app_git_enable_advanced' ) ) {
 
 			$return     .= '<div class="wpcd_git_initial_settings_data_label_item">';
 				$return .= __( 'Pre-Processing Script Link:', 'wpcd' );

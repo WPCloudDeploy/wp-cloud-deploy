@@ -233,6 +233,7 @@
 		}
 
 		$input.attr( 'id', id );
+		$input.closest( '.rwmb-field' ).find( 'label' ).attr( 'for', id );
 	};
 
 	/**

@@ -54,8 +54,8 @@ class RWMB_Group_Field extends RWMB_Field {
 
 		// Use helper function to get correct URL to current folder, which can be used in themes/plugins.
 		list( , $url ) = RWMB_Loader::get_path( dirname( __FILE__ ) );
-		wp_enqueue_style( 'rwmb-group', $url . 'group.css', '', '1.3.11' );
-		wp_enqueue_script( 'rwmb-group', $url . 'group.js', array( 'jquery', 'underscore' ), '1.3.11', true );
+		wp_enqueue_style( 'rwmb-group', $url . 'group.css', '', '1.3.14' );
+		wp_enqueue_script( 'rwmb-group', $url . 'group.js', array( 'jquery', 'underscore' ), '1.3.14', true );
 		wp_localize_script(
 			'rwmb-group',
 			'RWMB_Group',
@@ -143,7 +143,8 @@ class RWMB_Group_Field extends RWMB_Field {
 		echo '</div>';
 
 		// Collapse/expand icon.
-		echo '<button aria-expanded="true" class="rwmb-group-toggle-handle button-link"><span class="rwmb-group-toggle-indicator" aria-hidden="true"></span></button>';
+		$default_state = ( isset( $field['default_state'] ) && $field['default_state'] == 'expanded' ) ? 'true' : 'false';
+		echo '<button aria-expanded="' . esc_attr( $default_state ) . '" class="rwmb-group-toggle-handle button-link"><span class="rwmb-group-toggle-indicator" aria-hidden="true"></span></button>';
 	}
 
 	private static function normalize_group_title( $group_title ) {
@@ -221,17 +222,6 @@ class RWMB_Group_Field extends RWMB_Field {
 			}
 		}
 
-		return $meta;
-	}
-
-	/**
-	 * Escape meta for field output. Just do nothing for group.
-	 *
-	 * @param array $meta Meta value.
-	 *
-	 * @return array
-	 */
-	public static function esc_meta( $meta ) {
 		return $meta;
 	}
 

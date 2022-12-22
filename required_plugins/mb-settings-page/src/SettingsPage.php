@@ -66,9 +66,13 @@ class SettingsPage {
 		if ( $this->tabs ) {
 			$class .= " rwmb-settings-tabs-{$this->tab_style}";
 		}
+
+		// Allows developers to add elements to the title like a button or an icon. The output should not be escaped.
+		$page_title = get_admin_page_title();
+		$page_title = apply_filters( 'mbsp_page_title', $page_title, $this->args );
 		?>
 		<div class="<?= esc_attr( $class ) ?>">
-			<h1><?= esc_html( get_admin_page_title() ) ?></h1>
+			<h1><?= $page_title ?></h1>
 
 			<div class="rwmb-settings-wrap">
 				<?php $this->output_tab_nav() ?>
@@ -139,7 +143,7 @@ class SettingsPage {
 	}
 
 	public function enqueue() {
-		wp_enqueue_style( 'mb-settings-page', MBSP_URL . 'assets/settings.css', '', '1.3' );
+		wp_enqueue_style( 'mb-settings-page', MBSP_URL . 'assets/settings.css', '', '2.1.5' );
 
 		// For meta boxes.
 		wp_enqueue_script( 'common' );
@@ -147,7 +151,7 @@ class SettingsPage {
 		wp_enqueue_script( 'postbox' );
 
 		// Enqueue settings page script and style.
-		wp_enqueue_script( 'mb-settings-page', MBSP_URL . 'assets/settings.js', array( 'jquery' ), '1.1.2', true );
+		wp_enqueue_script( 'mb-settings-page', MBSP_URL . 'assets/settings.js', array( 'jquery' ), '2.1.5', true );
 		wp_localize_script( 'mb-settings-page', 'MBSettingsPage', array(
 			'pageHook' => $this->page_hook,
 			'tabs'     => array_keys( $this->tabs ),

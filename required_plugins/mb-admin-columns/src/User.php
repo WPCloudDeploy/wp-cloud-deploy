@@ -24,7 +24,7 @@ class User extends Base {
 
 		// Sorting by meta value works unexpectedly.
 		// @codingStandardsIgnoreLine
-		// add_action( 'pre_user_query', array( $this, 'sort' ) );
+		add_action( 'pre_get_users', array( $this, 'sort' ) );
 	}
 
 	/**

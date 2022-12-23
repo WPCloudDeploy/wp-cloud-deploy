@@ -221,7 +221,7 @@ class WPCD_WORDPRESS_TABS_SITES extends WPCD_WORDPRESS_TABS {
 					$ssl_status = 'on';
 				} else {
 					$ssl_status = 'off';
-				}				
+				}
 
 				$actions[ 'site-ssl-label_' . $app_id ] = array(
 					'label'          => '',

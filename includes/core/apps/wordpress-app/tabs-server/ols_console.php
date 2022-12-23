@@ -320,7 +320,7 @@ class WPCD_WORDPRESS_TABS_SERVER_OLS_CONSOLE extends WPCD_WORDPRESS_TABS {
 				$return     .= '</div>';
 
 				$return     .= '<div class="wpcd_push_data_value_item wpcd_server_status_push_data_value_item">';
-					$return .= esc_html( $ols_console_username );
+					$return .= wpcd_wrap_clipboard_copy( esc_html( $ols_console_username ) );
 				$return     .= '</div>';
 
 				$return     .= '<div class="wpcd_push_data_label_item wpcd_server_status_push_data_label_item">';
@@ -328,7 +328,7 @@ class WPCD_WORDPRESS_TABS_SERVER_OLS_CONSOLE extends WPCD_WORDPRESS_TABS {
 				$return     .= '</div>';
 
 				$return     .= '<div class="wpcd_push_data_value_item wpcd_server_status_push_data_value_item">';
-					$return .= WPCD()->decrypt( $ols_console_pass );
+					$return .= wpcd_wrap_clipboard_copy( WPCD()->decrypt( $ols_console_pass ) );
 				$return     .= '</div>';
 
 			$return .= '</div>';

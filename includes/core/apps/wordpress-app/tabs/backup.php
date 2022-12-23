@@ -114,10 +114,11 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 			// Was the command successful?
 			$success = (bool) $this->is_ssh_successful( $logs, 'backup_restore.txt' );
 
-			// If it was, then update the metas for memcached and redis.
+			// If it was, then update the metas for memcached and redis as well as the php version number.
 			if ( true === $success ) {
 				update_post_meta( $id, 'wpapp_memcached_status', 'off' );
 				update_post_meta( $id, 'wpapp_redis_status', 'off' );
+				$this->set_php_version_for_app( $id, $this->get_wpapp_default_php_version() );  // All restores are done into the wpapp default php version.
 			}
 		}
 
@@ -300,6 +301,11 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 				break;
 
 			case 'restore-from-backup':
+				// Make sure that PHP 8.1 is installed since all restores go into that version of php.
+				if ( ! $this->is_php_81_installed( $id ) ) {
+					return new \WP_Error( __( 'PHP 8.1 must be installed for all restore actions.  It looks like this app is located on an older server that does not have PHP 8.1 installed on it.', 'wpcd' ) );
+				}
+				// Fallthrough is intentional!
 			case 'restore-from-backup-webserver-config-only':
 			case 'restore-from-backup-wpconfig-only':
 				// Make sure we have a backup to restore.
@@ -385,7 +391,7 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 		}
 
 		/**
-		 * Run the constructed commmand
+		 * Run the constructed command
 		 * Check out the write up about the different aysnc methods we use
 		 * here: https://wpclouddeploy.com/documentation/wpcloud-deploy-dev-notes/ssh-execution-models/
 		 */

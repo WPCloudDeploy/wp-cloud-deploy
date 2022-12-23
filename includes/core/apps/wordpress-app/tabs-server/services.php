@@ -938,8 +938,9 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 					'type'           => 'button',
 				);
 
-				if ( 'php74' === $services_key ) {
-					// Do not allow php 7.4 to be deactivated since it's the default for the server.
+				$default_php_server_version = 'php' . $this->get_default_php_version_no_period( $id );
+				if ( $default_php_server_version  === $services_key ) {
+					// Do not allow php 7.4 or the the default version to be deactivated since it's the default for the server.
 					$actions[ "php-server-deactivate-$services_key" ] = array(
 						'label'          => '',
 						'raw_attributes' => array(
@@ -1192,6 +1193,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		}
 
 		// Setup unique command name.
+		$domain                = 'wpcd-dummy.com';
 		$command               = sprintf( '%s---%s---%d', $action, $domain, time() );
 		$instance['command']   = $command;
 		$instance['app_id']    = $id;   // @todo - this is not really the app id - need to test to see if the process will work without this array element.
@@ -1215,7 +1217,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		}
 
 		/**
-		 * Run the constructed commmand
+		 * Run the constructed command
 		 * Check out the write up about the different aysnc methods we use
 		 * here: https://wpclouddeploy.com/documentation/wpcloud-deploy-dev-notes/ssh-execution-models/
 		 */
@@ -1433,7 +1435,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			// Make sure we handle errors.
 			if ( is_wp_error( $result ) ) {
 				/* translators: %s is replaced with an error message. */
-				return new \WP_Error( sprintf( __( 'Unable to execute this request because an error occured: %s', 'wpcd' ), $result->get_error_message() ) );
+				return new \WP_Error( sprintf( __( 'Unable to execute this request because an error occurred: %s', 'wpcd' ), $result->get_error_message() ) );
 			} else {
 				// Construct an appropriate return message.
 				// Right now '$result' is just a string.
@@ -1696,7 +1698,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		// Make sure we handle errors.
 		if ( is_wp_error( $result ) ) {
 			/* translators: %s is replaced with an error message. */
-			return new \WP_Error( sprintf( __( 'Unable to execute this request because an error occured: %s', 'wpcd' ), $result->get_error_message() ) );
+			return new \WP_Error( sprintf( __( 'Unable to execute this request because an error occurred: %s', 'wpcd' ), $result->get_error_message() ) );
 		} else {
 			// Force refresh of services so that the UFW meta can be updated (and its not a bad thing to get the other services status as well.)
 			// We're just not going to examine the status being returned.  If it works, great.  If it doesn't, deal with it as a separate issue when the user clicks the refresh services button explicitly.

@@ -191,7 +191,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			'id'             => 'wordpress-app-security',
 			'title'          => __( 'General WordPress App Security', 'wpcd' ),
 			'settings_pages' => 'wpcd_settings',
-			'tab'            => 'app-wordpress-app-security',  // this is the top level tab on the setttings screen, not to be confused with the tabs inside a metabox as we're defining below!
+			'tab'            => 'app-wordpress-app-security',  // this is the top level tab on the settings screen, not to be confused with the tabs inside a metabox as we're defining below!
 		// List of tabs in the metabox, in one of the following formats:
 		// 1) key => label.
 		// 2) key => array( 'label' => Tab label, 'icon' => Tab icon ).
@@ -283,6 +283,18 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 		*/
 		);
 
+		/* Add in the GIT array if GIT is enabled. */
+		if ( true === wpcd_is_git_enabled() ) {
+			$git_tab = array(
+				'wordpress-app-git' => array(
+					'label' => 'Git',
+					'icon'  => 'dashicons-share',
+				),
+			);
+
+			$tabs = array_merge( $tabs, $git_tab );
+		}
+
 		return apply_filters( 'wpcd_wordpress-app_settings_tabs', $tabs );
 	}
 
@@ -341,7 +353,8 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 		$white_label_fields           = $this->white_label_fields();
 		$custom_scripts               = $this->custom_script_fields();
 		$front_end_fields             = $this->front_end_fields();
-		$all_fields                   = array_merge( $general_fields, $server_fields, $site_fields, $backup_fields, $fields_and_links, $theme_and_plugin_updates, $email_notification_fields, $slack_notification_fields, $zapier_notification_fields, $button_color_settings_fields, $email_gateway_load_defaults, $cf_dns_fields, $rest_api_fields, $white_label_fields, $custom_scripts, $front_end_fields );
+		$git_fields                   = $this->git_fields();
+		$all_fields                   = array_merge( $general_fields, $server_fields, $site_fields, $backup_fields, $fields_and_links, $theme_and_plugin_updates, $email_notification_fields, $slack_notification_fields, $zapier_notification_fields, $button_color_settings_fields, $email_gateway_load_defaults, $cf_dns_fields, $rest_api_fields, $white_label_fields, $custom_scripts, $front_end_fields, $git_fields );
 		return $all_fields;
 	}
 
@@ -400,6 +413,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			'wpconfig'                 => __( 'WPConfig', 'wpcd' ),
 			'file-manager'             => __( 'File Manager', 'wpcd' ),
 			'multisite'                => __( 'Multisite', 'wpcd' ),
+			'git-site-control'         => __( 'Git', 'wpcd' ),
 		);
 
 		// Let developers hook into the array here.
@@ -535,27 +549,28 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 
 		// The server tabs we'll be collecting security exceptions for. This must be unique across all items in the APP:WordPress - SECURITY tab!
 		$tabs = array(
-			'server_backup'   => __( 'Backup', 'wpcd' ),
-			'callbacks'       => __( 'Callbacks', 'wpcd' ),
-			'fail2ban'        => __( 'Fail2ban', 'wpcd' ),
-			'goaccess'        => __( 'Goaccess', 'wpcd' ),
-			'server-logs'     => __( 'Server Logs', 'wpcd' ),
-			'monit-healing'   => __( 'Healing', 'wpcd' ),
-			'monitorix'       => __( 'Monitorix', 'wpcd' ),
-			'svr_power'       => __( 'Power', 'wpcd' ),
-			'services'        => __( 'Services', 'wpcd' ),
-			'sites_on_server' => __( 'Sites', 'wpcd' ),
-			'ssh_console'     => __( 'SSH Console', 'wpcd' ),
-			'server-ssh-keys' => __( 'SSH Keys', 'wpcd' ),
-			'svr_statistics'  => __( 'Statistics', 'wpcd' ),
-			'svr_tools'       => __( 'Tools', 'wpcd' ),
-			'svr_tweaks'      => __( 'Tweaks', 'wpcd' ),
-			'firewall'        => __( 'Firewall', 'wpcd' ),
-			'ols_console'     => __( 'OpenLiteSpeed Web Console Manager', 'wpcd' ),
-			'server_upgrade'  => __( 'Upgrades', 'wpcd' ),
-			'server-users'    => __( 'Users', 'wpcd' ),
-			'serversync'      => __( 'Server Sync', 'wpcd' ),
-			'resize'          => __( 'Resize Server', 'wpcd' ),
+			'server_backup'      => __( 'Backup', 'wpcd' ),
+			'callbacks'          => __( 'Callbacks', 'wpcd' ),
+			'fail2ban'           => __( 'Fail2ban', 'wpcd' ),
+			'goaccess'           => __( 'Goaccess', 'wpcd' ),
+			'server-logs'        => __( 'Server Logs', 'wpcd' ),
+			'monit-healing'      => __( 'Healing', 'wpcd' ),
+			'monitorix'          => __( 'Monitorix', 'wpcd' ),
+			'svr_power'          => __( 'Power', 'wpcd' ),
+			'services'           => __( 'Services', 'wpcd' ),
+			'sites_on_server'    => __( 'Sites', 'wpcd' ),
+			'ssh_console'        => __( 'SSH Console', 'wpcd' ),
+			'server-ssh-keys'    => __( 'SSH Keys', 'wpcd' ),
+			'svr_statistics'     => __( 'Statistics', 'wpcd' ),
+			'svr_tools'          => __( 'Tools', 'wpcd' ),
+			'svr_tweaks'         => __( 'Tweaks', 'wpcd' ),
+			'firewall'           => __( 'Firewall', 'wpcd' ),
+			'ols_console'        => __( 'OpenLiteSpeed Web Console Manager', 'wpcd' ),
+			'server_upgrade'     => __( 'Upgrades', 'wpcd' ),
+			'server-users'       => __( 'Users', 'wpcd' ),
+			'serversync'         => __( 'Server Sync', 'wpcd' ),
+			'resize'             => __( 'Resize Server', 'wpcd' ),
+			'git-server-control' => __( 'Git', 'wpcd' ),
 		);
 
 		// Let developers hook into the array here.
@@ -942,6 +957,108 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 	}
 
 	/**
+	 * Return array portion of field settings for use in the git fields tab.
+	 */
+	public function git_fields() {
+
+		$fields = array(
+			array(
+				'type' => 'heading',
+				'name' => __( 'Global Git Defaults', 'wpcd' ),
+				'desc' => __( 'These defaults are used if no similiar values are defined on a server or site.', 'wpcd' ),
+				'tab'  => 'wordpress-app-git',
+			),
+			array(
+				'id'   => 'wordpress_app_git_email_address',
+				'type' => 'email',
+				'name' => __( 'Email Address', 'wpcd' ),
+				'desc' => __( 'Email address used by your git provider.', 'wpcd' ),
+				'tab'  => 'wordpress-app-git',
+			),
+			array(
+				'id'          => 'wordpress_app_git_display_name',
+				'type'        => 'text',
+				'name'        => __( 'Display Name', 'wpcd' ),
+				'placeholder' => __( 'The display name used for your user account at your git provider.', 'wpcd' ),
+				'desc'        => __( 'eg: john smith', 'wpcd' ),
+				'tab'         => 'wordpress-app-git',
+			),
+			array(
+				'id'          => 'wordpress_app_git_user_name',
+				'type'        => 'text',
+				'name'        => __( 'User Name', 'wpcd' ),
+				'placeholder' => __( 'Your user name for your account at your git provider.', 'wpcd' ),
+				'desc'        => __( 'eg: janesmith (no spaces or special chars).', 'wpcd' ),
+				'tab'         => 'wordpress-app-git',
+			),
+			array(
+				'id'      => 'wordpress_app_git_token',
+				'type'    => 'text',
+				'name'    => __( 'API Token', 'wpcd' ),
+				'desc'    => __( 'API Token for your git account at your git provider.', 'wpcd' ),
+				'tooltip' => __( 'API tokens must provide read-write priveldges for your repos. Generate one on github under the settings area of your account.', 'wpcd' ),
+				'tab'     => 'wordpress-app-git',
+			),
+			array(
+				'id'   => 'wordpress_app_git_branch',
+				'type' => 'text',
+				'name' => __( 'Branch', 'wpcd' ),
+				'desc' => __( 'The default branch for your repos - eg: main or master.', 'wpcd' ),
+				'tab'  => 'wordpress-app-git',
+			),
+			array(
+				'id'      => 'wordpress_app_git_pre_processing_script_link',
+				'type'    => 'url',
+				'name'    => __( 'Pre-Processing Script Link', 'wpcd' ),
+				'desc'    => __( 'Link to bash script that will execute before initializing a site with git.', 'wpcd' ),
+				'tooltip' => __( 'A raw gist is a good place to locate this file as long as it does not have any private data.', 'wpcd' ),
+				'tab'     => 'wordpress-app-git',
+			),
+			array(
+				'id'      => 'wordpress_app_git_post_processing_script_link',
+				'type'    => 'url',
+				'name'    => __( 'Post-Processing Script Link', 'wpcd' ),
+				'desc'    => __( 'Link to bash script that will execute after initializing a site with git.', 'wpcd' ),
+				'tooltip' => __( 'A raw gist is a good place to locate this file as long as it does not have any private data.', 'wpcd' ),
+				'tab'     => 'wordpress-app-git',
+			),
+			array(
+				'id'      => 'wordpress_app_git_ignore_link',
+				'type'    => 'url',
+				'name'    => __( 'Default GitIgnore File Link', 'wpcd' ),
+				'desc'    => __( 'Link to a text file containing git ignore contents.', 'wpcd' ),
+				'tooltip' => __( 'A raw gist is a good place to locate this file.', 'wpcd' ),
+				'tab'     => 'wordpress-app-git',
+			),
+			array(
+				'id'   => 'wordpress_app_git_ignore_folders',
+				'type' => 'text',
+				'name' => __( 'Ignore Folders', 'wpcd' ),
+				'desc' => __( 'A comma-separated list of folders to add to git ignore.', 'wpcd' ),
+				'tab'  => 'wordpress-app-git',
+			),
+			array(
+				'id'      => 'wordpress_app_git_ignore_files',
+				'type'    => 'text',
+				'name'    => __( 'Ignore Files', 'wpcd' ),
+				'desc'    => __( 'A comma-separated list of files to add to git ignore.', 'wpcd' ),
+				'tooltip' => __( 'This list is in addition to our default list of gitignore files - see our documentation for our default list.', 'wpcd' ),
+				'tab'     => 'wordpress-app-git',
+			),
+			array(
+				'id'   => 'wordpress_app_git_footer_note',
+				'type' => 'custom_html',
+				'name' => '',
+				'std'  => __( 'Note: Only GITHUB is supported as a git provider at this time.', 'wpcd' ),
+				'tab'  => 'wordpress-app-git',
+			),
+		);
+
+		return $fields;
+
+	}
+
+	/**
 	 * Return array portion of field settings for use in the general fields tab.
 	 */
 	public function general_fields() {
@@ -1245,6 +1362,18 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'type'    => 'checkbox',
 				'name'    => __( 'Disable The Page Cache?', 'wpcd' ),
 				'tooltip' => __( 'We automatically install and enable a page cache on all new sites. Use this option to disable it.', 'wpcd' ),
+				'tab'     => 'wordpress-app-sites',
+			),
+			array(
+				'id'      => 'wordpress_app_sites_set_php_version',
+				'type'    => 'select',
+				'name'    => __( 'Switch PHP Version For New Sites?', 'wpcd' ),
+				'tooltip' => __( 'After a site is installed, switch the PHP version to the one specified here.', 'wpcd' ),
+				'options' => array(
+					'8.1' => '8.1',
+					'8.0' => '8.0',
+					'7.4' => '7.4',
+				),
 				'tab'     => 'wordpress-app-sites',
 			),
 			array(
@@ -2334,32 +2463,32 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 		 */
 		// An array of ids and labels for color fields that overide brand colors.
 		$brand_colors = array(
-			'wordpress_app_primary_brand_color'     => array(
+			'wordpress_app_primary_brand_color'       => array(
 				'label' => __( 'Primary Brand Color', 'wpcd' ),
 				'desc'  => '',
 				'std'   => WPCD_PRIMARY_BRAND_COLOR,
 			),
-			'wordpress_app_secondary_brand_color'   => array(
+			'wordpress_app_secondary_brand_color'     => array(
 				'label' => __( 'Secondary Brand Color', 'wpcd' ),
 				'desc'  => '',
 				'std'   => WPCD_SECONDARY_BRAND_COLOR,
 			),
-			'wordpress_app_tertiary_brand_color'    => array(
+			'wordpress_app_tertiary_brand_color'      => array(
 				'label' => __( 'Tertiary Brand Color', 'wpcd' ),
 				'desc'  => '',
 				'std'   => WPCD_TERTIARY_BRAND_COLOR,
 			),
-			'wordpress_app_accent_background_color' => array(
+			'wordpress_app_accent_background_color'   => array(
 				'label' => __( 'Accent Background Color', 'wpcd' ),
 				'desc'  => '',
 				'std'   => WPCD_ACCENT_BG_COLOR,
 			),
-			'wordpress_app_medium_background_color' => array(
+			'wordpress_app_medium_background_color'   => array(
 				'label' => __( 'Medium Background Color', 'wpcd' ),
 				'desc'  => '',
 				'std'   => WPCD_MEDIUM_BG_COLOR,
 			),
-			'wordpress_app_light_background_color'  => array(
+			'wordpress_app_light_background_color'    => array(
 				'label' => __( 'Light Background Color', 'wpcd' ),
 				'desc'  => '',
 				'std'   => WPCD_LIGHT_BG_COLOR,
@@ -2368,6 +2497,26 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'label' => __( 'Alternate Accent Background Color', 'wpcd' ),
 				'desc'  => '',
 				'std'   => WPCD_ALTERNATE_ACCENT_BG_COLOR,
+			),
+			'wordpress_app_positive_color'            => array(
+				'label' => __( 'Positive Color', 'wpcd' ),
+				'desc'  => __( 'Accent color used to indicate something is turned on or a good thing has occurred.', 'wpcd' ),
+				'std'   => WPCD_POSITIVE_COLOR,
+			),
+			'wordpress_app_negative_color'            => array(
+				'label' => __( 'Negative Color', 'wpcd' ),
+				'desc'  => __( 'Accent color used to indicate something is turned off or a bad thing has occurred.', 'wpcd' ),
+				'std'   => WPCD_NEGATIVE_COLOR,
+			),
+			'wordpress_app_terminal_background_color' => array(
+				'label' => __( 'Background Color for Terminal', 'wpcd' ),
+				'desc'  => __( 'Background color for our terminal display.', 'wpcd' ),
+				'std'   => WPCD_TERMINAL_BG_COLOR,
+			),
+			'wordpress_app_terminal_foreground_color' => array(
+				'label' => __( 'Foreground Color for Terminal', 'wpcd' ),
+				'desc'  => __( 'Color of the text used in our terminal display.', 'wpcd' ),
+				'std'   => WPCD_TERMINAL_FG_COLOR,
 			),
 		);
 
@@ -2437,12 +2586,12 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			),
 			'wordpress_app_fe_positive_color'          => array(
 				'label' => __( 'Positive Color', 'wpcd' ),
-				'desc'  => __( 'Accent color used to indicate something is turned on or a good thing has occured.', 'wpcd' ),
+				'desc'  => __( 'Accent color used to indicate something is turned on or a good thing has occurred.', 'wpcd' ),
 				'std'   => WPCD_FE_POSITIVE_COLOR,
 			),
 			'wordpress_app_fe_negative_color'          => array(
 				'label' => __( 'Negative Color', 'wpcd' ),
-				'desc'  => __( 'Accent color used to indicate something is turned off or a bad thing has occured.', 'wpcd' ),
+				'desc'  => __( 'Accent color used to indicate something is turned off or a bad thing has occurred.', 'wpcd' ),
 				'std'   => WPCD_FE_NEGATIVE_COLOR,
 			),
 		);
@@ -2618,7 +2767,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 		// Secrets Manager API Key.
 		$secrets_mgr_desc  = __( 'You can enter an api key for a secrets manager here.  It will then be available in your environment for use within your custom scripts.  An example of a secrets manager is doppler.com but you can use any manager that only uses a singlet token.', 'wpcd' );
 		$secrets_mgr_desc .= '<br />';
-		$secrets_mgr_desc .= __( 'With a secrets manager you can safely pull in other api keys such as private github keys needed to access private resources.', 'wpcd' );
+		$secrets_mgr_desc .= __( 'With a secrets manager you can safely pull in other api keys such as private GitHub keys needed to access private resources.', 'wpcd' );
 
 		$fields[] = array(
 			'name' => __( 'Secrets Manager API Key', 'wpcd' ),

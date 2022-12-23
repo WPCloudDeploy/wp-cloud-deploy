@@ -32,6 +32,8 @@
 		}
 		$tabs.removeClass( 'nav-tab-active' ).filter( '[href="' + tab + '"]' ).addClass( 'nav-tab-active' );
 		$boxes.hide().filter( ( index, element ) => element.dataset.tab === tab ).show();
+
+		rwmb.$document.trigger( 'mb_init_editors' );
 	}
 
 	$( function() {

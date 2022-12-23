@@ -154,15 +154,15 @@
 /* Style the actual command output area to look like a linux terminal */
 
 .wpcd-popup .wpcd-log-console {
-	background-color: black;
+	background-color:  var(--wpcd-terminal-background-color);
 	padding: 2em;
-	color: white;
+	color: var(--wpcd-terminal-foreground-color);
 	overflow: scroll;
 	min-height: 300px;
 	max-height: 45vh;
 	margin-left: 1%;
 	margin-right: 1%;
-	border: solid 1px black;
+	border: solid 1px var(--wpcd-terminal-background-color);
 	border-radius: 5px;
 }
 
@@ -409,9 +409,13 @@ div[id^='wpcd_server_wordpress-app'] {
 	margin-right: 5px;
 	min-width: 20px;
 }
-.wpcd_server_wordpress-app_tab_top_of_server_details .wpcd_server_details_top_row .wpcd_site_details_top_row_element_wstype {
+.wpcd_server_wordpress-app_tab_top_of_server_details .wpcd_server_details_top_row .wpcd_server_details_top_row_element_wstype {
 	color: var(--wpcd-primary-brand-color);
 	border-color: var(--wpcd-primary-brand-color);	
+}
+.wpcd_server_wordpress-app_tab_top_of_server_details .wpcd_server_details_top_row .wpcd_server_details_top_row_element_git_status {
+	border-color: green;	
+	color: var(--wpcd-light-background-color);
 }
 
 
@@ -588,7 +592,6 @@ button.wpcd_action_install_app.button:hover {
 }
 
 /* Used on the SERVER STATISTICS tab */
-
 .wpcd-stat-switch-wrapper {
 	text-align: right;
 }
@@ -722,6 +725,23 @@ a.wpcd-stat-switch {
 	border-color: red !important;
 	/* Not sure why important is needed for this one but oh well. */
 	background-color: red;
+	color: white;
+	border: solid;
+	border-width: 2px;
+	margin: 2px;
+	margin-left: 0px;
+	width: 90%;
+}
+
+/* For when background updates might be in progress... */
+.wpcd_server_actions_aptget_in_progress {
+	/* Alert under the server actions column */
+	padding: 2px 8px;
+	vertical-align: baseline;
+	border-radius: 3px;
+	border-color: orange !important;
+	/* Not sure why important is needed for this one but oh well. */
+	background-color: orange;
 	color: white;
 	border: solid;
 	border-width: 2px;

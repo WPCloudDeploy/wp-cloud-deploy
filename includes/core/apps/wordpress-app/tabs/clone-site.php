@@ -62,6 +62,10 @@ class WPCD_WORDPRESS_TABS_CLONE_SITE extends WPCD_WORDPRESS_TABS {
 			$success = $this->is_ssh_successful( $logs, 'clone_site.txt' );
 
 			if ( true == $success ) {
+
+				// Get Webserver Type.
+				$webserver_type = $this->get_web_server_type( $id );
+
 				// get new domain from temporary meta.
 				$new_domain = get_post_meta( $id, 'wpapp_domain_clone_site_target_domain', true );
 
@@ -103,7 +107,7 @@ class WPCD_WORDPRESS_TABS_CLONE_SITE extends WPCD_WORDPRESS_TABS {
 							update_post_meta( $new_app_post_id, 'wpcd_assigned_teams', get_post_meta( $id, 'wpcd_assigned_teams', true ) );
 
 							// Was SSL enabled for the cloned site?  If so, flip the SSL metavalues.
-							$this->set_ssl_status( $id, 'off' ); // Assume off for now.
+							$this->set_ssl_status( $new_app_post_id, 'off' ); // Assume off for now.
 							$success = $this->is_ssh_successful( $logs, 'manage_https.txt' );  // ***Very important Note: We didn't actually run the manage_https script.  We are just using the check logic for it to see if the same keyword output is in the clone site output since we are using the same keywords for both scripts.
 							if ( true == $success ) {
 								$this->set_ssl_status( $new_app_post_id, 'on' );
@@ -125,6 +129,19 @@ class WPCD_WORDPRESS_TABS_CLONE_SITE extends WPCD_WORDPRESS_TABS {
 							$redis_status = get_post_meta( $id, 'wpapp_redis_status', true );
 							if ( ! empty( $redis_status ) ) {
 								update_post_meta( $new_app_post_id, 'wpapp_redis_status', $redis_status );
+							}
+
+							// Update the PHP version to match the original version.
+							switch ( $webserver_type ) {
+								case 'ols':
+								case 'ols-enterprise':
+									$this->set_php_version_for_app( $new_app_post_id, $this->get_wpapp_default_php_version() );
+									break;
+
+								case 'nginx':
+								default:
+									$this->set_php_version_for_app( $new_app_post_id, $this->get_php_version_for_app( $id ) );
+									break;
 							}
 
 							// Lets add a meta to indicate that this was a clone.
@@ -465,12 +482,17 @@ class WPCD_WORDPRESS_TABS_CLONE_SITE extends WPCD_WORDPRESS_TABS {
 			'placeholder' => __( 'Domain without www or http - eg: mydomain.com', 'wpcd' ),
 		);
 
+		$clone_desc = '';
+		if ( 'yes' === $this->is_remote_db( $id ) ) {
+			$clone_desc .= '<b>' . __( 'Warning: This site appears to be using a remote database server.  The server on which this site resides should have a local database server since the database server will be switched to localhost when cloning this site.', 'wpcd' ) . '</b>';
+		}
 		$fields[] = array(
 			'id'         => 'wpcd_app_clone_site',
 			'name'       => '',
 			'tab'        => 'clone-site',
 			'type'       => 'button',
 			'std'        => __( 'Clone Site', 'wpcd' ),
+			'desc'       => $clone_desc,
 			'attributes' => array(
 				// the _action that will be called in ajax.
 				'data-wpcd-action'              => 'clone-site',

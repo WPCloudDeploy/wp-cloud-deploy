@@ -150,7 +150,7 @@ trait wpcd_wpapp_admin_column_data {
 			$value  = __( 'Domain: ', 'wpcd' );
 			$data   = get_post_meta( $post_id, 'wpapp_domain', true );
 			$value  = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $value, 'page_cache', 'left' );
-			$value .= WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $data, 'domain', 'right' );
+			$value .= WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( wpcd_wrap_clipboard_copy( $data ), 'domain', 'right' );
 			$value  = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_div_and_class( $value, 'domain' );
 
 			$new_column_data = $new_column_data . $value;
@@ -161,7 +161,7 @@ trait wpcd_wpapp_admin_column_data {
 			$value  = __( 'User: ', 'wpcd' );
 			$data   = get_post_meta( $post_id, 'wpapp_user', true );
 			$value  = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $value, 'wp_login_user', 'left' );
-			$value .= WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $data, 'wp_login_user', 'right' );
+			$value .= WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( wpcd_wrap_clipboard_copy( $data, false ), 'wp_login_user', 'right' );
 			$value  = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_div_and_class( $value, 'wp_login_user' );
 
 			$new_column_data = $new_column_data . $value;
@@ -314,7 +314,7 @@ trait wpcd_wpapp_admin_column_data {
 
 		/* If no data, add a notification to that effect. */
 		if ( empty( $new_column_data ) ) {
-			$new_column_data = __( 'No data for this app.', 'wpcd' );
+			$new_column_data = __( 'There are no health alerts for this app.', 'wpcd' );
 		}
 
 		/* Add data if it's not already in the column */
@@ -366,6 +366,17 @@ trait wpcd_wpapp_admin_column_data {
 				}
 			}
 		}
+
+		// Debug flag.
+		$debug_flag = __( 'Disabled', 'wpcd' );
+		if ( true === $this->get_site_local_wpdebug_flag( $post_id ) ) {
+			$debug_flag = __( 'Enabled', 'wpcd' );
+		}
+		$value            = __( 'WP_DEBUG: ', 'wpcd' );
+		$value            = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $value, 'debugflag', 'left' );
+		$value           .= WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $debug_flag, 'debugflag', 'right' );
+		$value            = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_div_and_class( $value, 'debugflag' );
+		$new_column_data .= $value;
 
 		return $new_column_data;
 	}
@@ -585,6 +596,11 @@ trait wpcd_wpapp_admin_column_data {
 				$labels_count_arr = implode( ' ', $labels_count_arr );
 				$value            = $value . $labels_count_arr;
 
+				// Display warning if the server is running aptget.
+				if ( $this->wpcd_is_aptget_running( $post_id ) ) {
+					$value = '<div class="wpcd_server_actions_aptget_in_progress">' . __( 'It appears that background updates are being run on this server. Actions you perform while this is occuring might fail.', 'wpcd' ) . '</div>';
+				}
+
 				break;
 
 			case 'wpcd_server_health':
@@ -636,7 +652,7 @@ trait wpcd_wpapp_admin_column_data {
 					if ( empty( $server_status_callback_status ) ) {
 						$health_msg        = __( 'Callbacks are not installed.', 'wpcd' );
 						$health_msg       .= '<br /><br />' . __( 'We usually auto-install them after a server has been deployed.', 'wpcd' );
-						$health_msg       .= '<br /><br />' . __( 'Please wait 30 mins and if you still see this message, install them from the CALLBACKS tab.', 'wpcd' );
+						$health_msg       .= '<br /><br />' . __( 'If you just installed this server, please wait 30 mins and if you still see this message, install them from the CALLBACKS tab.', 'wpcd' );
 						$health            = "<div class='wpcd_waiting_for_data_column'>" . $health_msg . '</div>';
 						$callback_tab_link = ( is_admin() ? get_edit_post_link( $post_id ) : get_permalink( $post_id ) ) . '#~~callbacks';
 						$health           .= "<div class='wpcd_go_to_callbacks_tab_column'>" . "<a href='" . $callback_tab_link . "'>" . __( 'Go To Callbacks Tab', 'wpcd' ) . '</a>' . '</div>';
@@ -674,8 +690,9 @@ trait wpcd_wpapp_admin_column_data {
 		// Show full string with label?
 		$show_full = false;
 		if ( is_admin() && true === $show_label_in_wpadmin ) {
-			$show_full = - true;
+			$show_full = true;
 		}
+
 		if ( ! is_admin() ) {
 			$show_full = true; // Always show the full string on the frontend.
 		}
@@ -995,10 +1012,7 @@ trait wpcd_wpapp_admin_column_data {
 	public function get_formatted_php_version_for_display( $post_id ) {
 		if ( 'wordpress-app' === $this->get_app_name() ) {
 			// add the php version.
-			$php_version = wpcd_maybe_unserialize( get_post_meta( $post_id, 'wpapp_php_version', true ) );
-			if ( empty( $php_version ) ) {
-				$php_version = '7.4';
-			}
+			$php_version = $this->get_php_version_for_app( $post_id );
 
 			// Create a variable that can be used as part of a css class name - periods are not allowed in class names.
 			$php_version_class = str_replace( '.', '_', $php_version );
@@ -1084,6 +1098,13 @@ trait wpcd_wpapp_admin_column_data {
 		if ( 'wpcd_app' === get_post_type( $post ) && 'wordpress-app' == $this->get_app_type( $post->ID ) ) {
 			if ( true === $this->is_staging_site( $post->ID ) ) {
 				$states['wpcd-wpapp-status'] = __( 'Staging', 'wpcd' );
+			}
+		}
+
+		/* Show if the site has a remote database */
+		if ( 'wpcd_app' === get_post_type( $post ) && 'wordpress-app' == $this->get_app_type( $post->ID ) ) {
+			if ( 'yes' === $this->is_remote_db( $post->ID ) ) {
+				$states['wpcd-wpapp-remote-db'] = __( 'RemoteDB', 'wpcd' );
 			}
 		}
 
@@ -1188,7 +1209,7 @@ trait wpcd_wpapp_admin_column_data {
 						if ( in_array( $server_status_items['default_php_version'], $bad_php_versions, true ) ) {
 
 							/* Translators: %s is the incorrect PHP version. */
-							$return .= sprintf( __( 'The default PHP server version is incorrect. It is currently set to %s.', 'wpcd' ), $server_status_items['default_php_version'] );
+							$return .= sprintf( __( 'The PHP server CLI version is incorrect. It is currently set to %s.', 'wpcd' ), $server_status_items['default_php_version'] );
 
 							$class = 'wpcd_incorrect_php_default_version';
 

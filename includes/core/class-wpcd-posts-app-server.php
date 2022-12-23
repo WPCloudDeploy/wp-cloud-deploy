@@ -568,7 +568,7 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 				}
 				if ( 'in-progress' === $state ) {
 					$partial_class_name = 'remote_server_state_in_progress';
-				}				
+				}
 
 				// Wrap the state in our usual spans and divs with the constructed class name.
 				if ( ! empty( $state ) ) {
@@ -1375,8 +1375,11 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 			$server_owners = $this->generate_owner_dropdown( $post_type, 'wpcd_server_owner', __( 'Server Owners', 'wpcd' ) );
 			echo $server_owners;
 
-			$restart_needed = $this->generate_meta_dropdown( $post_type, 'wpcd_server_restart_needed', __( 'Restarted Needed', 'wpcd' ) );
+			$restart_needed = $this->generate_meta_dropdown( $post_type, 'wpcd_server_restart_needed', __( 'Restart Needed', 'wpcd' ) );
 			echo $restart_needed;
+
+			$web_server_type = $this->generate_meta_dropdown( $post_type, 'wpcd_server_webserver_type', __( 'Web Server', 'wpcd' ) );
+			echo $web_server_type;
 		}
 	}
 
@@ -1505,9 +1508,27 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 					'compare' => '=',
 				);
 
-				// Make sure the field exists otherwise all servers will be returned.  Serves with older callbacks will not have this value and for some reason WP queries will treat empty values as matching the filter.
+				// Make sure the field exists otherwise all servers will be returned.  Servers with older callbacks will not have this value and for some reason WP queries will treat empty values as matching the filter.
 				$qv['meta_query'][] = array(
 					'key'     => 'wpcd_server_restart_needed',
+					'compare' => 'EXISTS',
+				);
+			}
+
+			// WEB SERVER TYPE.
+			if ( isset( $_GET['wpcd_server_webserver_type'] ) && ! empty( $_GET['wpcd_server_webserver_type'] ) ) {
+				$web_server_type = sanitize_text_field( filter_input( INPUT_GET, 'wpcd_server_webserver_type', FILTER_UNSAFE_RAW ) );
+
+				$qv['meta_query'][] = array(
+					'field'   => 'wpcd_server_webserver_type',
+					'value'   => $web_server_type,
+					'compare' => '=',
+				);
+
+				// Make sure the field exists otherwise all servers will be returned.  Older servers might not have this value and for some reason WP queries will treat empty values as matching the filter.
+				// THe side effect of this is that if the wpcd_server_webserver_type meta does not exist, the record will not be returned in any query.
+				$qv['meta_query'][] = array(
+					'key'     => 'wpcd_server_webserver_type',
 					'compare' => 'EXISTS',
 				);
 			}

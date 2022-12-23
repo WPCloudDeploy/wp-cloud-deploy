@@ -198,7 +198,7 @@ trait wpcd_metaboxes_for_taxonomies_for_servers_and_apps {
 
 			$label = $meta_value;
 
-			// Special handlng for the wpcd_server_provider field / dropdown.
+			// Special handling for the wpcd_server_provider field / dropdown.
 			// Need to show alternate provider text from settings if that's set.
 			if ( 'wpcd_server_provider' === $field_key ) {
 				$label = wpcd_get_early_option( "vpn_{$meta_value}_alt_desc" );

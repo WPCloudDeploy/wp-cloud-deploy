@@ -177,7 +177,7 @@ function awstats_install
 }" > /etc/nginx/sites-enabled/awstats.conf
 
 		useradd -d "/var/www/$domain/html" -g "www-data" -M -s "/bin/bash" $domain
-		gf_add_php_conf $domain $domain 7.4
+		gf_add_php_conf $domain $domain 8.1
 
 		# create authentication file
 		mkdir -p /etc/nginx/htpasswd /var/www/$domain/html
@@ -271,7 +271,16 @@ function awstats_remove
 		sed -i -re "/virtualhost ${domain} \{/{:a;N;/\}/!ba};/vhRoot                  \/var\/www\/$domain/d" ${WEBCF}
 		sed -i "/[ ]*map[ ]*${domain} www.${domain}, ${domain}/d" ${WEBCF}
 	fi
-	rm -rf /var/www/$domain > /dev/null 2>&1
+	
+	# Before attempting to remove the site from the www folder, make sure we have a value in the $domain var.
+	# This prevents us from accidentally deleting the entire www folder in the delete statement below.
+	if [[ -z $domain ]]
+	then
+		echo "Unable to fully remove awstats because the value of the domain variable is blank. Will attempt to continue the remainder of the operation..."
+	else
+		rm -rf /var/www/$domain > /dev/null 2>&1
+	fi
+
 	apt-get remove awstats -y  > /dev/null
 	gf_restart_webserver
 	echo 

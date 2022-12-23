@@ -135,6 +135,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		// Push commands and callbacks from servers.
 		add_action( "wpcd_{$this->get_app_name()}_command_server_status_completed", array( &$this, 'push_command_server_status_completed' ), 10, 4 );  // When a server sends us it's daily status report, part 1 - see bash script #24.
 		add_action( "wpcd_{$this->get_app_name()}_command_sites_status_completed", array( &$this, 'push_command_sites_status_completed' ), 10, 4 );  // When a server sends us it's daily status report, part 2 - see bash script #24.
+		add_action( "wpcd_{$this->get_app_name()}_command_aptget_status_completed", array( &$this, 'push_command_aptget_status_completed' ), 10, 4 );  // When a server sends us information that apt-get is running - see bash script #24.
 		add_action( "wpcd_{$this->get_app_name()}_command_maldet_scan_completed", array( &$this, 'push_command_maldet_scan_completed' ), 10, 4 );  // When a server sends us a report of maldet scan results - see bash script #26.
 		add_action( "wpcd_{$this->get_app_name()}_command_server_restart_completed", array( &$this, 'push_command_server_restart_completed' ), 10, 4 );  // When a server sends us a report of restart or shutdown.
 		add_action( "wpcd_{$this->get_app_name()}_command_monit_log_completed", array( &$this, 'push_command_monit_log_completed' ), 10, 4 );  // When a server sends us a monit alert or report.
@@ -238,7 +239,10 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		add_action( 'wp_initialize_site', array( $this, 'wpapp_schedule_events_for_new_site' ), 10, 2 );
 
 		// Action hook to set transient if directory is readable and .txt files are accessible.
-		add_action( 'admin_init', array( $this, 'wpapp_admin_init' ) );
+		add_action( 'admin_init', array( $this, 'wpapp_admin_init_is_readable' ) );
+
+		// Admin hook that will handle any automatic upgrades or database changes.
+		add_action( 'admin_init', array( $this, 'wpapp_admin_init_app_silent_auto_upgrade' ) );  // This function is in the upgrade.php trait file.
 
 		// Action hook to handle ajax request to set transient if user closed the readable notice check.
 		add_action( 'wp_ajax_set_readable_check', array( $this, 'set_readable_check' ) );
@@ -290,7 +294,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	}
 
 	/**
-	 * Include the files corresponding to the tabs.
+	 * Include the files corresponding to the tabs for a site
 	 */
 	private function include_tabs() {
 
@@ -320,6 +324,10 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/wpconfig-options.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/redirect-rules.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/file-manager.php';
+
+		if ( true === wpcd_is_git_enabled() ) {
+			require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/git-control-site.php';
+		}
 
 		if ( defined( 'WPCD_SHOW_SITE_USERS_TAB' ) && WPCD_SHOW_SITE_USERS_TAB ) {
 			require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/site-system-users.php';
@@ -375,6 +383,10 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs-server/goaccess.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs-server/resize.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs-server/ols_console.php';
+
+		if ( true === wpcd_is_git_enabled() ) {
+			require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs-server/git_control.php';
+		}
 
 		/**
 		 * Need to add new tabs or add data to existing tabs from an add-on?
@@ -466,11 +478,28 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			$page_cache_class_name = 'wpcd_site_details_top_row_element_page_cache_off';
 		}
 
+		// Git.
+		$git_status               = $this->get_git_status( $app_id );
+		$git_status_display_value = '';
+		if ( true === $git_status ) {
+			$git_status_display_value = __( 'On', 'wpcd' );
+			$git_status_class_name    = 'wpcd_site_details_top_row_element_git_status';
+
+			$git_branch_display_value = $this->get_git_branch( $app_id );
+			$git_branch_class_name    = 'wpcd_site_details_top_row_element_git_branch';  // Not used - for now we're using the $git_status_class_name for both git status and branch name.
+		}
+
 		// Wrap the page cache and ssl status into a set of spans that will go underneath the domain name.
 		$other_data  = '<div class="wpcd_site_details_top_row_element_wrapper">';
 		$other_data .= '<span class="wpcd_medium_chicklet wpcd_site_details_top_row_element_wstype">' . $webserver_type_name . '</span>';
 		$other_data .= '<span class=" wpcd_medium_chicklet ' . $ssl_class_name . '">' . sprintf( __( 'SSL: %s', 'wpcd' ), $ssl_status_display_value ) . '</span>';
 		$other_data .= '<span class=" wpcd_medium_chicklet ' . $page_cache_class_name . '">' . sprintf( __( 'Cache: %s', 'wpcd' ), $page_cache_display_value ) . '</span>';
+		if ( ! empty( $git_status ) ) {
+			$other_data .= '<span class=" wpcd_medium_chicklet ' . $git_status_class_name . '">' . sprintf( __( 'Git: %s', 'wpcd' ), $git_status_display_value ) . '</span>';
+		}
+		if ( ! empty( $git_branch_display_value ) ) {
+			$other_data .= '<span class=" wpcd_medium_chicklet ' . $git_status_class_name . '">' . sprintf( __( 'Branch: %s', 'wpcd' ), $git_branch_display_value ) . '</span>';
+		}
 		$other_data .= '</div>';
 
 		// Copy IP.
@@ -488,7 +517,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		$fields[] = array(
 			'name'    => __( 'Domain', 'wpcd' ),
 			'type'    => 'custom_html',
-			'std'     => $this->get_domain_name( $app_id ) . $other_data,
+			'std'     => wpcd_wrap_clipboard_copy( $this->get_domain_name( $app_id ) ) . $other_data,
 			'columns' => 'left' === $this->get_tab_style() ? 4 : 4,
 			'class'   => 'left' === $this->get_tab_style() ? 'wpcd_site_details_top_row wpcd_site_details_top_row_domain wpcd_site_details_top_row_domain_left' : 'wpcd_site_details_top_row wpcd_site_details_top_row_domain',
 		);
@@ -564,8 +593,14 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		$webserver_type      = $this->get_web_server_type( $id );
 		$webserver_type_name = $this->get_web_server_description_by_id( $id );
 
+		// Is git installed?
+		$git_status = $this->get_git_status( $id );
+
 		$other_data  = '<div class="wpcd_site_details_top_row_element_wrapper">';
-		$other_data .= '<span class="wpcd_medium_chicklet wpcd_site_details_top_row_element_wstype">' . $webserver_type_name . '</span>';
+		$other_data .= '<span class="wpcd_medium_chicklet wpcd_server_details_top_row_element_wstype">' . $webserver_type_name . '</span>';
+		if ( true === $git_status ) {
+			$other_data .= '<span class="wpcd_medium_chicklet wpcd_server_details_top_row_element_git_status">' . __( 'Git On', 'wpcd' ) . '</span>';
+		}
 		$other_data .= '</div>';
 
 		$copy_ip = wpcd_wrap_clipboard_copy( WPCD_SERVER()->get_ipv4_address( $id ) );
@@ -648,7 +683,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	public static function get_wp_versions() {
 
 		// @SEE: https://wordpress.org/download/releases/
-		$versions          = array( 'latest', '6.0.2', '5.9.4', '5.8.5', '5.7.7', '5.6.9', '5.5.10', '5.4.11', '5.3.13', '5.2.16', '5.1.14', '5.0.17', '4.9.21', '4.8.20', '4.7.24' );
+		$versions          = array( 'latest', '6.1.1', '6.0.3', '5.9.5', '5.8.6', '5.7.8', '5.6.10', '5.5.11', '5.4.12', '5.3.14', '5.2.17', '5.1.15', '5.0.18', '4.9.22', '4.8.21', '4.7.25' );
 		$override_versions = wpcd_get_option( 'wordpress_app_allowed_wp_versions' );
 
 		if ( ! empty( $override_versions ) ) {
@@ -848,6 +883,41 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	public function get_site_local_ssl_status( $app_id ) {
 
 		if ( 'on' === get_post_meta( $app_id, 'wpapp_ssl_status', true ) ) {
+			return true;
+		} else {
+			return false;
+		}
+
+	}
+
+	/**
+	 * Sets the status of debug metas.
+	 *
+	 * @param int         $app_id is the post id of the app record we're working with.
+	 * @param bool|string $debug_status Should be 'on' or 'off'.
+	 *
+	 * @return void
+	 */
+	public function set_site_local_wpdebug_flag( $app_id, $debug_status ) {
+
+		if ( true === $debug_status || 'on' === $debug_status ) {
+			update_post_meta( $app_id, 'wpapp_wp_debug', 1 );
+		} else {
+			update_post_meta( $app_id, 'wpapp_wp_debug', 0 );
+		}
+
+	}
+
+	/**
+	 * Get the status of the wp_debug flag stored in the metadata for a site.
+	 *
+	 * @param string $app_id is the post id of the app record we're asking about.
+	 *
+	 * @return boolean
+	 */
+	public function get_site_local_wpdebug_flag( $app_id ) {
+
+		if ( 1 === (int) get_post_meta( $app_id, 'wpapp_wp_debug', true ) ) {
 			return true;
 		} else {
 			return false;
@@ -1390,6 +1460,94 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	}
 
 	/**
+	 * Return the PHP version that is the default for this version of the app.
+	 */
+	public function get_wpapp_default_php_version() {
+		return '8.1';
+	}
+
+	/**
+	 * Returns the default PHP version for a server.
+	 *
+	 * Versions of WPCD earlier than 4.30 used 7.4.
+	 * Versions after that uses 8.1.
+	 *
+	 * @param int $server_id The post id of the server (or app).
+	 *
+	 * @return string
+	 */
+	public function get_default_php_version_for_server( $server_id ) {
+
+		$initial_plugin_version = $this->get_server_meta_by_app_id( $server_id, 'wpcd_server_plugin_initial_version', true );  // This function is smart enough to know if the ID being passed is a server or app id and adjust accordingly.
+		if ( version_compare( $initial_plugin_version, '4.30.0' ) > -1 ) {
+			// Versions of the plugin after 4.30.0 automatically uses PHP 8.1.
+			return '8.1';
+		} else {
+			// Earlier versions used PHP 7.4.
+			return '7.4';
+		}
+
+	}
+
+	/**
+	 * Returns the default PHP version for a server without the period in it.
+	 * Eg: 74 instead of 7.4
+	 *
+	 * @param int $server_id The post id of the server (or app).
+	 *
+	 * @return string
+	 */
+	public function get_default_php_version_no_period( $server_id ) {
+		$version = $this->get_default_php_version_for_server( $server_id );
+		$version = str_replace( '.', '', $version, );
+		return $version;
+	}
+
+	/**
+	 * Get PHP version for app.
+	 *
+	 * @param int $app_id post id of app.
+	 *
+	 * @return string
+	 */
+	public function get_php_version_for_app( $app_id ) {
+
+		// Check to see if the version is stamped on the record.
+		$php_version = wpcd_maybe_unserialize( get_post_meta( $app_id, 'wpapp_php_version', true ) );
+
+		// If not, then do some tortured logic to guess at it.
+		if ( empty( $php_version ) ) {
+			// What is the PLUGIN WPCD initial version?
+			$initial_plugin_version_on_app = get_post_meta( $app_id, 'wpcd_app_plugin_initial_version', true );
+			if ( empty( $initial_plugin_version_on_app ) ) {
+				// Just get the wpcd default plugin version since we don't have anything else to use.
+				$php_version = '7.4';  // Must be an old version of WPCD since all records should include the wpcd version.
+			} else {
+				if ( version_compare( $initial_plugin_version_on_app, '4.30.0' ) > -1 ) {
+					// Versions of the plugin after 4.30.0 automatically uses PHP 8.1.
+					return '8.1';
+				} else {
+					// Earlier versions used PHP 7.4.
+					return '7.4';
+				}
+			}
+		}
+
+		return $php_version;
+
+	}
+
+	/**
+	 * Set the PHP version for app.
+	 *
+	 * @param int    $app_id post id of app.
+	 * @param string $php_version new php version (7.4, 8.1 etc.).
+	 */
+	public function set_php_version_for_app( $app_id, $php_version ) {
+		update_post_meta( $app_id, 'wpapp_php_version', $php_version );
+	}
+
+	/**
 	 * Get an array of PHP versions that are valid and active on the server.
 	 *
 	 * @param int|string $id The post id of the site.
@@ -1729,6 +1887,109 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 	}
 
+	/**
+	 * Is the site using a remote database?
+	 *
+	 * @param int $app_id is the post id of the app record we're working with.
+	 *
+	 * @return string 'yes', 'no'.
+	 */
+	public function is_remote_db( $app_id ) {
+
+		$is_remote_database = (string) get_post_meta( $app_id, 'wpapp_is_remote_database', true );
+
+		if ( empty( $is_remote_database ) ) {
+			$is_remote_database = 'no';
+		}
+
+		return $is_remote_database;
+
+	}
+
+	/**
+	 * Mark the site as having a remote db.
+	 *
+	 * @param int $app_id is the post id of the app record we're working with.
+	 */
+	public function enable_remote_db_flag( $app_id ) {
+
+		update_post_meta( $app_id, 'wpapp_is_remote_database', 'yes' );
+
+	}
+
+	/**
+	 * Mark the site as having a local db.
+	 *
+	 * @param int $app_id is the post id of the app record we're working with.
+	 */
+	public function disable_remote_db_flag( $app_id ) {
+
+		update_post_meta( $app_id, 'wpapp_is_remote_database', 'no' );
+
+	}
+
+	/**
+	 * Set the wp-login page http auth status
+	 *
+	 * @param int    $app_id is the post id of the app record we're working with.
+	 * @param string $status Should be 'no' or 'yes'.
+	 */
+	public function set_wplogin_http_auth_status( $app_id, $status ) {
+
+		update_post_meta( $app_id, 'wpapp_wplogin_basic_auth_status', $status );
+
+	}
+
+	/**
+	 * Is the site wp-login page protected with http auth?
+	 *
+	 * @param int $app_id is the post id of the app record we're working with.
+	 *
+	 * @return string 'yes', 'no'.
+	 */
+	public function get_wplogin_http_auth_status( $app_id ) {
+
+		$wplogin_basic_auth_status = get_post_meta( $app_id, 'wpapp_wplogin_basic_auth_status', true );
+
+		if ( empty( $wplogin_basic_auth_status ) ) {
+			$wplogin_basic_auth_status = 'off';
+		}
+
+		return $wplogin_basic_auth_status;
+
+	}
+
+	/**
+	 * Set the http auth status for the site.
+	 *
+	 * @param int    $app_id is the post id of the app record we're working with.
+	 * @param string $status Should be 'no' or 'yes'.
+	 */
+	public function set_site_http_auth_status( $app_id, $status ) {
+
+		update_post_meta( $app_id, 'wpapp_basic_auth_status', $status );
+
+	}
+
+	/**
+	 * Is the site protected by http auth?
+	 *
+	 * @param int $app_id is the post id of the app record we're working with.
+	 *
+	 * @return string 'yes', 'no'.
+	 */
+	public function get_site_http_auth_status( $app_id ) {
+
+		$basic_auth_status = get_post_meta( $app_id, 'wpapp_basic_auth_status', true );
+
+		if ( empty( $basic_auth_status ) ) {
+			$basic_auth_status = 'off';
+		}
+
+		return $basic_auth_status;
+
+	}
+
 
 	/**
 	 * Return a requested provider object
@@ -1755,6 +2016,71 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	 */
 	public function set_domain_name( $app_id, $new_domain ) {
 		return update_post_meta( $app_id, 'wpapp_domain', $new_domain );
+	}
+
+	/**
+	 * Get whether git is enabled for a server or site.
+	 *
+	 * @param int $post_id The post id of the server or site record.
+	 *
+	 * @return boolean
+	 */
+	public function get_git_status( $post_id ) {
+
+		if ( 'wpcd_app_server' == get_post_type( $post_id ) ) {
+			return (bool) get_post_meta( $post_id, 'wpcd_wpapp_git_status', true );
+		}
+
+		if ( 'wpcd_app' == get_post_type( $post_id ) ) {
+			return (bool) get_post_meta( $post_id, 'wpapp_git_status', true );
+		}
+
+		return false;
+	}
+
+	/**
+	 * Set the meta that contains the git status for the server or site.
+	 *
+	 * @param int      $post_id The post id of the server or site record.
+	 * @param int|bool $git_status The git status 1/true 0/false.
+	 *
+	 * @return int|bool|string
+	 */
+	public function set_git_status( $post_id, $git_status ) {
+
+		if ( 'wpcd_app_server' == get_post_type( $post_id ) ) {
+			return update_post_meta( $post_id, 'wpcd_wpapp_git_status', (int) $git_status );
+		}
+
+		if ( 'wpcd_app' == get_post_type( $post_id ) ) {
+			return update_post_meta( $post_id, 'wpapp_git_status', (int) $git_status );
+		}
+
+	}
+
+	/**
+	 * Get the branch name that we think the site is on.
+	 *
+	 * @param int $app_id The post id of the server or site record.
+	 *
+	 * @return string
+	 */
+	public function get_git_branch( $app_id ) {
+
+		return (string) get_post_meta( $app_id, 'wpapp_git_branch', true );
+
+	}
+
+	/**
+	 * Set the branch name that we think the site is on.
+	 *
+	 * @param int    $app_id The post id of the server or site record.
+	 * @param string $branch The branch name to set.
+	 */
+	public function set_git_branch( $app_id, $branch ) {
+
+		return update_post_meta( $app_id, 'wpapp_git_branch', $branch );
+
 	}
 
 
@@ -2634,6 +2960,9 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				}
 			}
 
+			/* Stamp the PHP version on the app record. */
+			$this->set_php_version_for_app( $app_post_id, $this->get_wpapp_default_php_version() );
+
 			/* Add the password field to the CPT separately because it needs to be encrypted */
 			update_post_meta( $app_post_id, 'wpapp_password', $this::encrypt( $args['wp_password'] ) );
 
@@ -2700,6 +3029,9 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		// Do the DNS thing.
 		$this->handle_temp_dns_for_new_site( $server_id, $app_id );
 
+		// Switch PHP version.
+		$this->handle_switch_php_version( $app_id, $instance );
+
 		// Install page_cache.
 		$this->handle_page_cache_for_new_site( $app_id, $instance );
 
@@ -2730,11 +3062,41 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		// Attempt to issue SSL..
 		if ( true === (bool) $dns_success ) {
 			if ( wpcd_get_option( 'wordpress_app_auto_issue_ssl' ) ) {
-				do_action( 'wpcd_wordpress-app_do_toggle_ssl_status', $app_id, 'ssl-status' );
+				do_action( 'wpcd_wordpress-app_do_toggle_ssl_status_on', $app_id, 'ssl-status' );
 			}
 		}
 
 		return $dns_success;
+
+	}
+
+	/**
+	 * Switch PHP version if necessary after a new site has been installed.
+	 *
+	 * Called from function wpcd_wpapp_install_complete
+	 *
+	 * @param int   $app_id        post id of app.
+	 * @param array $instance      Array passed by calling function containing details of the server and site.
+	 */
+	public function handle_switch_php_version( $app_id, $instance ) {
+
+		// What's the default new php version?
+		$new_php_default_version = wpcd_get_option( 'wordpress_app_sites_set_php_version' );
+
+		// if empty new default php version, bail.
+		if ( empty( $new_php_default_version ) ) {
+			return true;
+		}
+
+		// Bail if the new default php version is the wpcd app default.
+		if ( (string) $this->get_wpapp_default_php_version() === (string) $new_php_default_version ) {
+			return true;
+		}
+
+		// Call the action hook that will switch the php versions.
+		do_action( 'wpcd_wordpress-app_do_change_php_version', $app_id, $new_php_default_version );
+
+		return true;
 
 	}
 
@@ -2949,13 +3311,13 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		$welcome_message .= __( 'Generate an API key in your server providers\' dashboard.', 'wpcd' );
 		$welcome_message .= '</li>';
 		$welcome_message .= '<li>';
-		$welcome_message .= __( 'Add your cloud server provider API key and other credentials to the WPCLOUD DEPLOY->SETTINGS screen - under the CLOUD PROVIDERS tab / menu.', 'wpcd' );
+		$welcome_message .= __( 'Add your cloud server provider API key and other credentials to the WPCLOUDDEPLOY → SETTINGS → CLOUD PROVIDERS tab.', 'wpcd' );
 		$welcome_message .= '</li>';
 		$welcome_message .= '<li>';
 		$welcome_message .= __( 'Click on the ALL CLOUD SERVERS menu option and use the DEPLOY A NEW WordPress SERVER button to deploy a server.', 'wpcd' );
 		$welcome_message .= '</li>';
 		$welcome_message .= '<li>';
-		$welcome_message .= __( 'After the server is deployed, go back to the ALL CLOUD SERVERS menu option and click the INSTALL WordPress button in the server list.', 'wpcd' );
+		$welcome_message .= __( 'After the server is deployed, go back to the CLOUD SERVERS menu option and click the INSTALL WordPress button in the server list.', 'wpcd' );
 		$welcome_message .= '</li>';
 		$welcome_message .= '</ol>';
 		$welcome_message .= '<br />';
@@ -3172,6 +3534,9 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		$post_types = array( 'wpcd_app_server', 'wpcd_app', 'wpcd_team', 'wpcd_permission_type', 'wpcd_command_log', 'wpcd_ssh_log', 'wpcd_error_log', 'wpcd_pending_log' );
 
 		if ( ( is_object( $screen ) && in_array( $screen->post_type, $post_types ) ) || WPCD_WORDPRESS_APP_PUBLIC::is_public_page() ) {
+			
+			wp_enqueue_style( 'wpcd-wpapp-admin-app-css', wpcd_url . 'includes/core/apps/wordpress-app/assets/css/wpcd-wpapp-admin-app.css', array(), wpcd_scripts_version );
+			
 			wp_enqueue_script( 'wpcd-admin-common', wpcd_url . 'includes/core/apps/wordpress-app/assets/js/wpcd-admin-common.js', array( 'jquery' ), wpcd_scripts_version, true );
 			wp_localize_script(
 				'wpcd-admin-common',
@@ -3300,7 +3665,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	/**
 	 * Checks whether the specified directory is readable and .txt files can be accessible
 	 */
-	public function wpapp_admin_init() {
+	public function wpapp_admin_init_is_readable() {
 		if ( ! get_transient( 'wpcd_readable_check' ) ) {
 			$dir = wpcd_path . 'includes/core/apps/wordpress-app/scripts/v1/raw/';
 			$url = wpcd_url . 'includes/core/apps/wordpress-app/scripts/v1/raw/01-prepare_server.txt';
@@ -3332,7 +3697,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		/* Nonce check */
 		check_ajax_referer( 'wpcd-admin', 'nonce' );
 
-		/* Permision check - unsure that this is needed since the action is not destructive and might cause issues if the user sees the message and can't dismiss it because they're not an admin. */
+		/* Permission check - unsure that this is needed since the action is not destructive and might cause issues if the user sees the message and can't dismiss it because they're not an admin. */
 		if ( ! wpcd_is_admin() ) {
 			wp_send_json_error( array( 'msg' => __( 'You are not authorized to perform this action - dismiss readable check.', 'wpcd' ) ) );
 		}
@@ -3368,12 +3733,12 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		/* Nonce check */
 		check_ajax_referer( 'wpcd-admin', 'nonce' );
 
-		/* Permision check - unsure that this is needed since the action is not destructive and might cause issues if the user sees the message and can't dismiss it because they're not an admin. */
+		/* Permission check - unsure that this is needed since the action is not destructive and might cause issues if the user sees the message and can't dismiss it because they're not an admin. */
 		if ( ! wpcd_is_admin() ) {
 			wp_send_json_error( array( 'msg' => __( 'You are not authorized to perform this action - do readable check again.', 'wpcd' ) ) );
 		}
 
-		$this->wpapp_admin_init();
+		$this->wpapp_admin_init_is_readable();
 
 		if ( get_transient( 'wpcd_readable_check' ) ) {
 			$return = array(
@@ -3421,6 +3786,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				'7.1' => '7.1',
 				'5.6' => '5.6',
 				'8.0' => '8.0',
+				'8.1' => '8.1',
 			);
 			$php_version         = $this->generate_meta_dropdown( 'wpapp_php_version', __( 'PHP Version', 'wpcd' ), $php_version_options );
 			echo $php_version;
@@ -3493,7 +3859,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			if ( isset( $_GET['wpapp_php_version'] ) && ! empty( $_GET['wpapp_php_version'] ) ) {
 				$wpapp_php_version = sanitize_text_field( filter_input( INPUT_GET, 'wpapp_php_version', FILTER_UNSAFE_RAW ) );
 
-				if ( $wpapp_php_version === '7.4' ) {
+				if ( $wpapp_php_version === $this->get_wpapp_default_php_version() ) {
 
 					$qv['meta_query'][] = array(
 						'relation' => 'OR',
@@ -3626,7 +3992,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 			$wpapp_php_version = sanitize_text_field( filter_input( INPUT_GET, 'wpapp_php_version', FILTER_UNSAFE_RAW ) );
 
-			if ( $wpapp_php_version == '7.4' ) {
+			if ( $wpapp_php_version === $this->get_wpapp_default_php_version() ) {
 				$qv['meta_query'][] = array(
 					'relation' => 'OR',
 					array(
@@ -3716,7 +4082,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		/* Nonce check */
 		check_ajax_referer( 'wpcd-admin', 'nonce' );
 
-		/* Permision check - unsure that this is needed since the action is not destructive and might cause issues if the user sees the message and can't dismiss it because they're not an admin. */
+		/* Permission check - unsure that this is needed since the action is not destructive and might cause issues if the user sees the message and can't dismiss it because they're not an admin. */
 		if ( ! wpcd_is_admin() ) {
 			wp_send_json_error( array( 'msg' => __( 'You are not authorized to perform this action - dismiss cron check.', 'wpcd' ) ) );
 		}
@@ -3738,7 +4104,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		/* Nonce check */
 		check_ajax_referer( 'wpcd-admin', 'nonce' );
 
-		/* Permision check - unsure that this is needed since the action is not destructive and might cause issues if the user sees the message and can't dismiss it because they're not an admin. */
+		/* Permission check - unsure that this is needed since the action is not destructive and might cause issues if the user sees the message and can't dismiss it because they're not an admin. */
 		if ( ! wpcd_is_admin() ) {
 			wp_send_json_error( array( 'msg' => __( 'You are not authorized to perform this action - dismiss php version check.', 'wpcd' ) ) );
 		}
@@ -3760,7 +4126,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		/* Nonce check */
 		check_ajax_referer( 'wpcd-admin', 'nonce' );
 
-		/* Permision check - unsure that this is needed since the action is not destructive and might cause issues if the user sees the message and can't dismiss it because they're not an admin. */
+		/* Permission check - unsure that this is needed since the action is not destructive and might cause issues if the user sees the message and can't dismiss it because they're not an admin. */
 		if ( ! wpcd_is_admin() ) {
 			wp_send_json_error( array( 'msg' => __( 'You are not authorized to perform this action - dismiss localhost check.', 'wpcd' ) ) );
 		}
@@ -3794,6 +4160,11 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			}
 		}
 
+		// Is aptget running?
+		if ( $this->wpcd_is_aptget_running( $server_id ) ) {
+			return false;
+		}
+
 		// Ok, so far the server is still available for commands.  Lets check the app records.
 		$args = array(
 			'post_type'      => 'wpcd_app',
@@ -3819,6 +4190,30 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 		return $is_available;
 	}
+
+	/**
+	 * Checks a special transient to see if aptget is running on the server.
+	 *
+	 * @param int $server_id The post id of the server.
+	 *
+	 * @return boolean
+	 */
+	public function wpcd_is_aptget_running( $server_id ) {
+
+		$is_running = false;
+
+		$transient_name = $server_id . 'wpcd_server_aptget_status';
+		$running_status = get_transient( $transient_name );
+		if ( 'running' === $running_status ) {
+			$is_running = true;
+		}
+
+		return $is_running;
+
+	}
+
+
+
 
 	/**
 	 * Return the REST API controller instance for a given name (base path)

@@ -173,9 +173,9 @@ then
 		fi
 	done
 
-	# Use PHP 7.4 as the default
-	echo $(date): "Making PHP 7.4 the default PHP version"
-	update-alternatives --set php /usr/bin/php7.4 > /dev/null 2>&1
+	# Use PHP 8.1 as the default
+	echo $(date): "Making PHP 8.1 the default PHP version"
+	update-alternatives --set php /usr/bin/php8.1 > /dev/null 2>&1
 fi
 
 if [ "$webserver_type" = "ols" ]  || [ "$webserver_type" = "ols-enterprise" ]
@@ -183,11 +183,11 @@ then
 	# Adding and installing MARIADB.
 	echo "$(date): Installing OpenLiteSpeed/OLS Enterprise stack - this will take a while!"
 
-	# OLS/LSPHP installation here specifying lsphp74
+	# OLS/LSPHP installation here specifying lsphp81
 	# https://openlitespeed.org/kb/1-click-install/#Where_is_OLS_installed_to
 	# Silent with Suppress all except errors
 	# https://explainshell.com/explain?cmd=curl+-S+-s+-k+https%3A%2F%2Fraw.githubusercontent.com%2Flitespeedtech%2Fols1clk%2Fmaster%2Fols1clk.sh
-	bash <(curl --show-error --silent -k https://raw.githubusercontent.com/litespeedtech/ols1clk/master/ols1clk.sh ) --quiet --lsphp 74 > /dev/null 2>&1
+	bash <(curl --show-error --silent -k https://raw.githubusercontent.com/litespeedtech/ols1clk/master/ols1clk.sh ) --quiet --lsphp 81 > /dev/null 2>&1
 	if [ $? -ne 0 ] 
 	then
 		echo "Failed!  Quitting process"
@@ -233,7 +233,7 @@ then
 	# Install all possible lsphp-dev and pear and packages
 	# We need to do these in pieces otherwise our front-end UI will not like it if it takes too long to report updates.
 	echo "$(date): Installing pear and other related ols packages part 1 of 2"
-	apt-get install -y lsphp?? lsphp??-common lsphp??-dev lsphp??-pear lsphp??-mysql   > /dev/null 2>&1
+	apt-get install -y lsphp?? lsphp??-common lsphp??-dev lsphp??-pear lsphp??-mysql > /dev/null 2>&1
 	if [ $? -ne 0 ]
 	then
 		echo "Failed!  Quitting process"
@@ -247,19 +247,19 @@ then
 		exit 1
 	fi
 
-	# Use PHP 7.4 as the default
-	echo "$(date): Making PHP 7.4 the default PHP version"
+	# Use PHP 8.1 as the default
+	echo "$(date): Making PHP 8.1 the default PHP version"
 	rm -f /usr/bin/php > /dev/null 2>&1
 	rm -f /usr/bin/phar > /dev/null 2>&1
 	rm -f /usr/bin/phar.phar > /dev/null 2>&1
 	rm -f /usr/bin/pecl > /dev/null 2>&1
 	rm -f /usr/lib/pear > /dev/null 2>&1
 	# https://stackoverflow.com/questions/55513672/how-to-add-a-path-to-update-alternatives-config-php
-	update-alternatives --install /usr/bin/php php /usr/local/lsws/lsphp74/bin/php 111 > /dev/null 2>&1
-	update-alternatives --install /usr/bin/phar phar /usr/local/lsws/lsphp74/bin/phar7.4.phar 111 > /dev/null 2>&1
-	update-alternatives --install /usr/bin/phar.phar phar.phar /usr/local/lsws/lsphp74/bin/phar7.4.phar 111 > /dev/null 2>&1
-	update-alternatives --install /usr/bin/pecl pecl /usr/local/lsws/lsphp74/bin/pecl 111 > /dev/null 2>&1
-	update-alternatives --install /usr/lib/pear pear /usr/local/lsws/lsphp74/bin/pear 111 > /dev/null 2>&1
+	update-alternatives --install /usr/bin/php php /usr/local/lsws/lsphp81/bin/php 111 > /dev/null 2>&1
+	update-alternatives --install /usr/bin/phar phar /usr/local/lsws/lsphp81/bin/phar8.1.phar 111 > /dev/null 2>&1
+	update-alternatives --install /usr/bin/phar.phar phar.phar /usr/local/lsws/lsphp81/bin/phar8.1.phar 111 > /dev/null 2>&1
+	update-alternatives --install /usr/bin/pecl pecl /usr/local/lsws/lsphp81/bin/pecl 111 > /dev/null 2>&1
+	update-alternatives --install /usr/lib/pear pear /usr/local/lsws/lsphp81/bin/pear 111 > /dev/null 2>&1
 fi
 
 
@@ -382,6 +382,13 @@ else
 			sed -i "s/;opcache.validate_root=0/opcache.validate_root=1/g" /etc/php/$ver/fpm/php.ini
 			sed -i "s/;opcache.validate_permission=0/opcache.validate_permission=1/g" /etc/php/$ver/fpm/php.ini
 			sed -i "s/;opcache.file_update_protection=2/opcache.file_update_protection=60/g" /etc/php/$ver/fpm/php.ini
+
+			# PHP 8.1 needs a set of default functions added to its global php.ini file because its set to blank for some reason.
+			# We're going to use the same list as 7.4.
+			if [ "$ver" = "8.1" ]
+			then
+				sed -i "s/^disable_functions.*/disable_functions = pcntl_alarm,pcntl_fork,pcntl_waitpid,pcntl_wait,pcntl_wifexited,pcntl_wifstopped,pcntl_wifsignaled,pcntl_wifcontinued,pcntl_wexitstatus,pcntl_wtermsig,pcntl_wstopsig,pcntl_signal,pcntl_signal_get_handler,pcntl_signal_dispatch,pcntl_get_last_error,pcntl_strerror,pcntl_sigprocmask,pcntl_sigwaitinfo,pcntl_sigtimedwait,pcntl_exec,pcntl_getpriority,pcntl_setpriority,pcntl_async_signals,pcntl_unshare,/g" /etc/php/$ver/fpm/php.ini
+			fi			
 
 			# Restarting php
 			echo $(date): "Restarting PHP processes..."
@@ -812,7 +819,20 @@ fastcgi_hide_header X-Powered-By;
 			sed -i "s/;opcache.validate_root=0/opcache.validate_root=1/g" /usr/local/lsws/lsphp${phpver}/etc/php/${lsphpver}/litespeed/php.ini
 			sed -i "s/;opcache.validate_permission=0/opcache.validate_permission=1/g" /usr/local/lsws/lsphp${phpver}/etc/php/${lsphpver}/litespeed/php.ini
 			sed -i "s/;opcache.file_update_protection=2/opcache.file_update_protection=60/g" /usr/local/lsws/lsphp${phpver}/etc/php/${lsphpver}/litespeed/php.ini
-       		done 
+
+			# PHP 8.1 needs a set of default functions added to its global php.ini file because its set to blank for some reason.
+			# We're going to use the same list as 7.4.
+			if [ "$phpver" = "81" ]
+			then
+				sed -i "s/^disable_functions.*/disable_functions = pcntl_alarm,pcntl_fork,pcntl_waitpid,pcntl_wait,pcntl_wifexited,pcntl_wifstopped,pcntl_wifsignaled,pcntl_wifcontinued,pcntl_wexitstatus,pcntl_wtermsig,pcntl_wstopsig,pcntl_signal,pcntl_signal_get_handler,pcntl_signal_dispatch,pcntl_get_last_error,pcntl_strerror,pcntl_sigprocmask,pcntl_sigwaitinfo,pcntl_sigtimedwait,pcntl_exec,pcntl_getpriority,pcntl_setpriority,pcntl_async_signals,pcntl_unshare,/g" /usr/local/lsws/lsphp${phpver}/etc/php/${lsphpver}/litespeed/php.ini
+			fi
+
+			# Added 11-13-2022 due to vhost phpIniOverride stopped working in latest OLS version.
+			# Unlike NGINX, we have to allow proc_open and proc_close for OLS to run properly when installing a new site later.
+			# So those are not included in the global restricted functions list.
+			# sed -i "s/^disable_functions.*/disable_functions = dl, exec, fpassthru, getmypid, getmyuid, highlight_file, link, opcache_get_configuration, passthru, pcntl_exec, pcntl_get_last_error, pcntl_setpriority, pcntl_strerror, pcntl_wifcontinued, phpinfo, popen, posix_ctermid, posix_getcwd, posix_getegid, posix_geteuid, posix_getgid, posix_getgrgid, posix_getgrnam, posix_getgroups, posix_getlogin, posix_getpgid, posix_getpgrp, posix_getpid, posix_getppid, posix_getpwnam, posix_getpwuid, posix_getrlimit, posix_getsid, posix_getuid, posix_isatty, posix_kill, posix_mkfifo, posix_setegid, posix_seteuid, posix_setgid, posix_setpgid, posix_setsid, posix_setuid, posix_times, posix_ttyname, posix_uname, proc_get_status, proc_nice, proc_terminate, shell_exec, show_source, source, system, virtual/g" /usr/local/lsws/lsphp${phpver}/etc/php/${lsphpver}/litespeed/php.ini
+			
+		done
 
 		echo "$(date): Installing OLS htaccess scan crontab file for Cron to scan every 3 minutes for .htaccess file changes and restart openlitespeed"
 		cat >> /etc/cron.d/openlitespeed_htaccess_scan <<-EOL
@@ -831,16 +851,24 @@ EOL
 			/usr/local/lsws/"${version}"/bin/pecl channel-update pecl.php.net > /dev/null 2>&1
 		done
 
-		echo "$(date): Install timezonedb pecl extension needed for Litespeed/OLS and update timezone to UTC by default"
-		Extension='timezonedb';
+		echo "$(date): Update timezone to UTC by default"
 		for phpver in $(ls -1 /usr/local/lsws/ |grep lsphp | sed 's/lsphp//g')
 		do
 			php_ini="/usr/local/lsws/lsphp${phpver}/etc/php/$(echo $phpver | sed 's/^\(.\{1\}\)/\1./')/litespeed/php.ini"
+			# Extension='timezonedb';
 			# Subshell should do what we want by capturing it all and also combining both streams into dev null
-			(printf '\n' |/usr/local/lsws/lsphp${phpver}/bin/pecl install ${Extension} >/dev/null 2>&1) >/dev/null 2>&1
-			# We really don't need to check error conditions on timezonedb I think ive seen cases where it throws weird exit codes
-			# or where it might not exist yet when php81 came out the timezonedb extension wasn't out for a few weeks which isn't a big deal but shouldn't cause fatal error.
-			echo "extension=${Extension}.so" >> ${php_ini}
+			# (printf '\n' |/usr/local/lsws/lsphp${phpver}/bin/pecl install ${Extension} >/dev/null 2>&1) >/dev/null 2>&1
+			
+			# We really don't need to check error conditions on timezonedb. I think I've seen cases where it throws weird exit codes.
+			# Or where it might not exist yet when php81/92 came out, the timezonedb extension wasn't out for a few weeks which isn't a big deal but shouldn't cause fatal error.
+			# Only add timezonedb extension if binary is actually installed.
+			# if find /usr/local/lsws/lsphp${phpver}/lib/php/ -type f -iname "timezonedb.so" >/dev/null 2>&1 ; then
+			# 	echo ".....Installing timezondb into php.ini for PHP $phpver..."
+			# 	echo "extension=${Extension}.so" >> ${php_ini}
+			# else
+			# 	echo ".....TimezoneDB extension not found for PHP $phpver - the module will not be installed."
+			# fi
+			
 			sed -i -e 's|^;date.timezone.*|date.timezone = "UTC"|g' /usr/local/lsws/lsphp${phpver}/etc/php/$(echo $phpver | sed 's/^\(.\{1\}\)/\1./')/litespeed/php.ini;
 			php_utc_result=$(/usr/local/lsws/lsphp${phpver}/bin/php -i 2>&1 | grep -Ei 'date.timezone')
 			if ! echo "$php_utc_result"| grep UTC >/dev/null 2>&1
@@ -868,13 +896,19 @@ wp cli update --yes --allow-root  > /dev/null 2>&1
 
 
 # if aws cli is not present, install it
-if ! hash aws2 2>/dev/null
-then
+if ! hash aws2 2>/dev/null; then
 	echo $(date): "Getting and installing AWS CLI..."
-	wget "https://d1vvhvl2y92vvt.cloudfront.net/awscli-exe-linux-x86_64.zip"  > /dev/null 2>&1
-	unzip awscli-exe-linux-x86_64.zip  > /dev/null 2>&1
+	# detect if we are on an ARM or x86_64 system
+	if [ "$(uname -m)" = "aarch64" ]; then
+		# ARM
+		curl "https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip" -o "awscliv2.zip"  > /dev/null 2>&1
+	else
+		# x86_64
+		curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"  > /dev/null 2>&1
+	fi
+	unzip awscliv2.zip  > /dev/null 2>&1
 	./aws/install  > /dev/null 2>&1
-	rm -rf aws awscli-exe-linux-x86_64.zip  > /dev/null 2>&1
+	rm -rf aws awscliv2.zip  > /dev/null 2>&1
 fi
 
 # Make sure update-notifier is installed - weirdly some vms/containers don't have this installed.
@@ -943,7 +977,7 @@ then
 	phpversion=(5.6 7.1 7.2 7.3)
 	for ver in "${phpversion[@]}"
 	do
-		# Disable php versions except php7.4 and greater.
+		# Disable php versions earlier than php7.4 and greater.
 		systemctl stop php$ver-fpm > /dev/null 2>&1
 		systemctl disable php$ver-fpm > /dev/null 2>&1
 
@@ -952,8 +986,8 @@ then
 	done
 
 	# restart nginx
-	systemctl enable php7.4-fpm
-	systemctl restart php7.4-fpm
+	systemctl enable php8.1-fpm
+	systemctl restart php8.1-fpm
 	systemctl enable nginx
 	systemctl restart nginx
 elif [ "$webserver_type" = "ols" ]  || [ "$webserver_type" = "ols-enterprise" ]

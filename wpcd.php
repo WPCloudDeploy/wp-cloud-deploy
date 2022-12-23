@@ -3,13 +3,15 @@
 Plugin Name: WPCloudDeploy
 Plugin URI: https://wpclouddeploy.com
 Description: Deploy and manage cloud servers and apps from inside the WordPress Admin dashboard.
-Version: 4.27.0
+Version: 5.2.5
 Requires at least: 5.4
 Requires PHP: 7.4
 Item Id: 1493
 Author: WPCloudDeploy
 Author URI: https://wpclouddeploy.com
 Domain Path: /languages
+GitHub Plugin URI: WPCloudDeploy/wp-cloud-deploy
+Primary Branch: main
  */
 require_once ABSPATH . 'wp-admin/includes/plugin.php';
 
@@ -63,6 +65,10 @@ class WPCD_Init {
 			define( 'WPCD_MEDIUM_BG_COLOR', '#FAFAFA' );
 			define( 'WPCD_LIGHT_BG_COLOR', '#FDFDFD' );
 			define( 'WPCD_ALTERNATE_ACCENT_BG_COLOR', '#CFD8DC' );
+			define( 'WPCD_POSITIVE_COLOR', '#008000' );
+			define( 'WPCD_NEGATIVE_COLOR', '#8B0000' );
+			define( 'WPCD_TERMINAL_BG_COLOR', '#000000' );
+			define( 'WPCD_TERMINAL_FG_COLOR', '#ffffff' );
 
 			// Define the default brand colors for front-end.
 			define( 'WPCD_FE_PRIMARY_BRAND_COLOR', '#E91E63' );
@@ -472,8 +478,8 @@ class WPCD_Init {
 		/**
 		 * Finally, maybe ask for setup using Setup wizard.
 		 * Proceed only if both options 'wpcd_plugin_setup' & 'wpcd_skip_wizard_setup' = false
-		 * 'wpas_plugin_setup' will be added at the end of wizard steps
-		 * 'wpas_skip_wizard_setup' will be set to true if user choose to skip wizrd from admin notice
+		 * 'wpcd_plugin_setup' will be added at the end of wizard steps
+		 * 'wpcd_skip_wizard_setup' will be set to true if user choose to skip wizrd from admin notice
 		 */
 		if ( ! get_option( 'wpcd_plugin_setup', false ) && ! get_option( 'wpcd_skip_wizard_setup', false ) ) {
 			require_once wpcd_path . 'includes/core/class-wpcd-setup-wizard.php';
@@ -630,7 +636,7 @@ class WPCD_Init {
 			$body[] = '';
 			$body[] = __( 'It is possible that this is a minor hiccup or false positive and the cron(s) are still running. You can use the free WP CRONTROL plugin to examine running crons to see if the crons are still present and active.', 'wpcd' );
 			$body[] = '';
-			$body[] = __( 'Before contacting support, please try to disable and renable the plugin to reactivate crons. Additionally, please verify that your WP CRON is firing every 1 minute - either from enough frequent site traffic or, better yet, from a native LINUX cron process.', 'wpcd' );
+			$body[] = __( 'Before contacting support, please try to disable and renable the plugin to reactivate crons. Additionally, please verify that your WP CRON is firing every 1 minute - either from enough frequent site traffic, a native LINUX cron process or better yet, the use of the WPCD BETTER CRONS method.', 'wpcd' );
 			$body[] = '';
 			$body[] = __( '--------', 'wpcd' );
 			$body[] = '';
@@ -719,8 +725,13 @@ class WPCD_Init {
 		} else {
 			// Transient is set.  But the time remaining can sometimes be negative. While we're not sure why that happens, if it is, delete it!
 			$time_left = (int) wpcd_get_transient_remaining_time_in_mins( 'wpcd_cron_check' );
-			if ( $time_left < 0 ) {
-				delete_transient( 'wpcd_cron_check' );
+
+			if ( false === $time_left ) {
+				// looks like an object cache is in use so we can't get the time left data.  Therefore do nothing.
+			} else {
+				if ( $time_left < 0 ) {
+					delete_transient( 'wpcd_cron_check' );
+				}
 			}
 		}
 

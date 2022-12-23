@@ -55,13 +55,24 @@ then
 	else
 		restart=no
 	fi
-	total_updates=$(/usr/lib/update-notifier/apt-check 2>&1 | cut -d ";" -f 1)
-	list_of_packages=$(apt list --upgradable  2>/dev/null|grep -v ^Listing|cut -d"/" -f1|tr "\n" ",")
 	
-	apt-get --with-new-pkgs upgrade -y
-	if [[ -n "$callback_server_status" ]]
+	lsof /var/lib/dpkg/lock >/dev/null 2>&1	
+	if [ $? == 1 ]
 	then
-		curl -sS "$callback_server_status?restart=$restart&total_updates=$total_updates&list_of_packages=$list_of_packages"
+		total_updates=$(/usr/lib/update-notifier/apt-check 2>&1 | cut -d ";" -f 1)
+		list_of_packages=$(apt list --upgradable  2>/dev/null|grep -v ^Listing|cut -d"/" -f1|tr "\n" ",")
+
+		apt-get --with-new-pkgs upgrade -y
+		if [[ -n "$callback_server_status" ]]
+		then
+			curl -sS "$callback_server_status?restart=$restart&total_updates=$total_updates&list_of_packages=$list_of_packages"
+		fi
+	else
+		echo "APT is already running (dpkg lock in use)."
+		if [[ -n "$callback_server_status" ]]
+		then
+			curl -sS "$callback_server_status?apt_already_running_warning=yes"
+		fi
 	fi
 fi
 
@@ -74,24 +85,34 @@ then
 		read -p "enter callback url to get server status:  " callback_server_status
 	fi
 	echo $'#!/bin/bash
-callback_server_status='$callback_server_status'
+	callback_server_status='$callback_server_status'
 
-sudo apt-get --with-new-pkgs upgrade -y
+	lsof /var/lib/dpkg/lock >/dev/null 2>&1
+	if [ $? == 1 ]
+	then
+		sudo apt-get --with-new-pkgs upgrade -y
 
-total_updates=$(/usr/lib/update-notifier/apt-check 2>&1 | cut -d ";" -f 1)
-list_of_packages=$(apt list --upgradable  2>/dev/null|grep -v ^Listing|cut -d"/" -f1|tr "\n" ",")
+		total_updates=$(/usr/lib/update-notifier/apt-check 2>&1 | cut -d ";" -f 1)
+		list_of_packages=$(apt list --upgradable  2>/dev/null|grep -v ^Listing|cut -d"/" -f1|tr "\n" ",")
 
-if [ -f /var/run/reboot-required ]
-then
-	restart=yes
-else
-	restart=no
-fi
+		if [ -f /var/run/reboot-required ]
+		then
+			restart=yes
+		else
+			restart=no
+		fi
 
-if [[ -n "$callback_server_status" ]]
-then
-	curl -sS "$callback_server_status?restart=$restart&total_updates=$total_updates&list_of_packages=$list_of_packages"
-fi'  > /usr/local/bin/server-status
+		if [[ -n "$callback_server_status" ]]
+		then
+			curl -sS "$callback_server_status?restart=$restart&total_updates=$total_updates&list_of_packages=$list_of_packages"
+		fi
+	else
+		echo "APT is already running (dpkg lock in use)."
+		if [[ -n "$callback_server_status" ]]
+		then
+			curl -sS "$callback_server_status?apt_already_running_warning=yes"
+		fi
+	fi'  > /usr/local/bin/server-status
 
 	chmod +x /usr/local/bin/server-status
 	echo "bash /usr/local/bin/server-status" |at now + 1 minutes
@@ -108,24 +129,34 @@ then
 		read -p "enter callback url to get server status:  " callback_server_status
 	fi
 	echo $'#!/bin/bash
-callback_server_status='$callback_server_status'
+	callback_server_status='$callback_server_status'
 
-sudo unattended-upgrade
+	lsof /var/lib/dpkg/lock >/dev/null 2>&1
+	if [ $? == 1 ]
+	then
+		sudo unattended-upgrade
 
-total_updates=$(/usr/lib/update-notifier/apt-check 2>&1 | cut -d ";" -f 2)
-list_of_packages=$(apt list --upgradable  2>/dev/null|grep "\-security"|grep -v ^Listing|cut -d"/" -f1|tr "\n" ",")
+		total_updates=$(/usr/lib/update-notifier/apt-check 2>&1 | cut -d ";" -f 2)
+		list_of_packages=$(apt list --upgradable  2>/dev/null|grep "\-security"|grep -v ^Listing|cut -d"/" -f1|tr "\n" ",")
 
-if [ -f /var/run/reboot-required ]
-then
-	restart=yes
-else
-	restart=no
-fi
+		if [ -f /var/run/reboot-required ]
+		then
+			restart=yes
+		else
+			restart=no
+		fi
 
-if [[ -n "$callback_server_status" ]]
-then
-	curl -sS "$callback_server_status?restart=$restart&total_updates=$total_updates&list_of_packages=$list_of_packages"
-fi'  > /usr/local/bin/server-status
+		if [[ -n "$callback_server_status" ]]
+		then
+			curl -sS "$callback_server_status?restart=$restart&total_updates=$total_updates&list_of_packages=$list_of_packages"
+		fi
+	else
+		echo "APT is already running (dpkg lock in use)."
+		if [[ -n "$callback_server_status" ]]
+		then
+			curl -sS "$callback_server_status?apt_already_running_warning=yes"
+		fi		
+	fi'  > /usr/local/bin/server-status
 
 	chmod +x /usr/local/bin/server-status
 	echo "bash /usr/local/bin/server-status" |at now + 1 minutes

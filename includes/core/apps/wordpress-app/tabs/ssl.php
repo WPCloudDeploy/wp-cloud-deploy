@@ -24,7 +24,8 @@ class WPCD_WORDPRESS_TABS_SSL extends WPCD_WORDPRESS_TABS {
 		add_filter( "wpcd_app_{$this->get_app_name()}_tab_action", array( $this, 'tab_action' ), 10, 3 );
 
 		// Allow the toggle_ssl_status action to be triggered via an action hook.  Will primarily be used by the woocommerce add-on and REST API.
-		add_action( 'wpcd_wordpress-app_do_toggle_ssl_status', array( $this, 'toggle_ssl_status_action' ), 10, 2 );
+		add_action( 'wpcd_wordpress-app_do_toggle_ssl_status', array( $this, 'toggle_ssl_status_action' ), 10, 2 );  // Toggle SSL state based on what's there now.
+		add_action( 'wpcd_wordpress-app_do_toggle_ssl_status_on', array( $this, 'toggle_ssl_status_on_action' ), 10, 2 );  // Force SSL 'on' regardless of current state.
 
 	}
 
@@ -114,7 +115,7 @@ class WPCD_WORDPRESS_TABS_SSL extends WPCD_WORDPRESS_TABS {
 		}
 
 		/* Now verify that the user can perform actions on this screen, assuming that they can view the server */
-		$valid_actions = array( 'ssl-status', 'ssl-http2-status' );
+		$valid_actions = array( 'ssl-status', 'ssl-http2-status', 'ssl-flip-meta-status' );
 		if ( in_array( $action, $valid_actions, true ) ) {
 			if ( ! $this->get_tab_security( $id ) ) {
 				return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
@@ -122,8 +123,14 @@ class WPCD_WORDPRESS_TABS_SSL extends WPCD_WORDPRESS_TABS {
 		}
 
 		if ( $this->get_tab_security( $id ) ) {
-			if ( in_array( $action, $valid_actions, true ) ) {
-				$result = $this->toggle_ssl_status_action( $id, $action );
+			switch ( $action ) {
+				case 'ssl-status':
+				case 'sll-http2-status':
+					$result = $this->toggle_ssl_status_action( $id, $action );
+					break;
+				case 'ssl-flip-meta-status':
+					$result = $this->toggle_ssl_meta_status( $id, $action );
+					break;
 			}
 		}
 
@@ -291,7 +298,61 @@ class WPCD_WORDPRESS_TABS_SSL extends WPCD_WORDPRESS_TABS {
 			}
 		}
 
+		/* Advanced action to flip metas only */
+		$confirmation_prompt_meta = '';
+		if ( 'on' === $status ) {
+			$confirmation_prompt_meta = __( 'Are you sure you would like to flip the SSL flag to show SSL is disabled? This will not execute any code to disable SSL if it is actually enabled on the server.', 'wpcd' );
+		} else {
+			$confirmation_prompt_meta = __( 'Are you sure you would like to flip the SSL flag to show SSL is enabled?  This will not execute any code to request a new SSL certificate.', 'wpcd' );
+		}
+
+		$actions['ssl-status-meta-only-header'] = array(
+			'name'           => '',
+			'label'          => __( 'Advanced - Flip SSL Status Flag', 'wpcd' ),
+			'type'           => 'heading',
+			'raw_attributes' => array(
+				'desc' => __( 'Flip the SSL status flag (aka the SSL meta value). No code will be executed on the server to disable or enable SSL. Only the status shown on this dashboard will be flipped.', 'wpcd' ),
+			),
+		);
+
+		$actions['ssl-flip-meta-status'] = array(
+			'label'          => '',
+			'raw_attributes' => array(
+				'std'                 => __( 'Flip SSL Status Flag', 'wpcd' ),
+				'confirmation_prompt' => $confirmation_prompt_meta,
+			),
+			'type'           => 'button',
+		);
+
 		return $actions;
+	}
+
+	/**
+	 * Attempt to turn SSL on (regardless of the current SSL stats)
+	 *
+	 * Can be called directly or by an action hook.
+	 *
+	 * Action hook: wpcd_wordpress-app_do_toggle_ssl_status_on  (Optional).
+	 *
+	 * @param int    $id     The postID of the app cpt.
+	 * @param string $action The action to be performed  - 'ssl-status' or 'ssl-http2-status'.  This is ignored in this function.
+	 *
+	 * @return string|WP_Error
+	 */
+	public function toggle_ssl_status_on_action( $id, $action ) {
+
+		$result = $this->toggle_ssl_status( $id, 'enable' );
+
+		if ( ! is_wp_error( $result ) ) {
+
+			// Update metas.
+			$this->set_ssl_status( $id, 'on' );
+
+			$result = array( 'refresh' => 'yes' );
+		}
+
+		return $result;  // Will not matter in an action hook.
+
 	}
 
 	/**
@@ -399,6 +460,34 @@ class WPCD_WORDPRESS_TABS_SSL extends WPCD_WORDPRESS_TABS {
 			return new \WP_Error( sprintf( __( 'Unable to %1$s site: %2$s', 'wpcd' ), $action, $result ) );
 		}
 		return $success;
+	}
+
+	/**
+	 * Toggle just the SSL meta.
+	 *
+	 * @param int    $id     The postID of the app cpt.
+	 * @param string $action The action to be performed  - 'ssl-flip-meta-status'.
+	 *
+	 * @return string|WP_Error
+	 */
+	public function toggle_ssl_meta_status( $id, $action ) {
+
+		if ( true === $this->get_site_local_ssl_status( $id ) ) {
+			$current_status = 'on';
+		} else {
+			$current_status = 'off';
+		}
+
+		// What's the new status?
+		$new_ssl_status = 'on' === $current_status ? 'off' : 'on';
+
+		// Update metas.
+		$this->set_ssl_status( $id, $new_ssl_status );
+
+		$result = array( 'refresh' => 'yes' );
+
+		return $result;  // Will not matter in an action hook.
+
 	}
 
 }

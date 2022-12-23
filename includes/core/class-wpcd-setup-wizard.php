@@ -61,12 +61,14 @@ class WPCD_Admin_Setup_Wizard {
 	 */
 	public function maybe_ask_setup_wizard() {
 
+		$test_mode = false;
+
 		/**
 		 * Proceed only if both options 'wpcd_plugin_setup' & 'wpcd_skip_wizard_setup' = false
 		 * 'wpas_plugin_setup' will be added at the end of wizard steps
 		 * 'wpas_skip_wizard_setup' will be set to true if user choose to skip wizrd from admin notice
 		 */
-		if ( ! get_option( 'wpcd_plugin_setup', false ) && ! get_option( 'wpcd_skip_wizard_setup', false ) ) {
+		if ( ( ! get_option( 'wpcd_plugin_setup', false ) && ! get_option( 'wpcd_skip_wizard_setup', false ) ) || ( true === $test_mode ) ) {
 
 			/**
 			 * If we already have at least one server setup, do not show wizard prompt.
@@ -99,7 +101,7 @@ class WPCD_Admin_Setup_Wizard {
 	public function wpcd_ask_setup_wizard() {
 
 		if ( wpcd_is_admin() ) {
-			
+
 			/* Product name that will be shown at various locations in the wizard. */
 			$product_name = wpcd_get_short_product_name()
 
@@ -116,7 +118,7 @@ class WPCD_Admin_Setup_Wizard {
 		}
 
 	}
-	
+
 	/**
 	 * Load Scripts to be used in the setup wizard.
 	 *
@@ -160,6 +162,11 @@ class WPCD_Admin_Setup_Wizard {
 				'name'    => __( 'General', 'wpcd' ),
 				'view'    => array( $this, 'wpcd_general_setup' ),
 				'handler' => array( $this, 'wpcd_general_setup_save' ),
+			),
+			'select_provier'      => array(
+				'name'    => __( 'Select Your Server Provider', 'wpcd' ),
+				'view'    => array( $this, 'wpcd_select_provider' ),
+				'handler' => array( $this, 'wpcd_select_provider_save' ),
 			),
 			'connect_to_provider' => array(
 				'name'    => __( 'Connect To Provider', 'wpcd' ),
@@ -306,11 +313,11 @@ class WPCD_Admin_Setup_Wizard {
 		*/
 
 		$product_name = wpcd_get_short_product_name();
-		
+
 		?>
 		<form method="post">
 			<p><b><?php esc_html_e( sprintf( __( 'Welcome to %s!', 'wpcd' ), $product_name ) ); ?> </b></p>	
-			<p><?php esc_html_e( 'This setup wizard will help you get the basics configured and connected to your DigitalOcean account', 'wpcd' ); ?> </p>	
+			<p><?php esc_html_e( 'This setup wizard will help you get the basics configured and connected to your Cloud Server account', 'wpcd' ); ?> </p>	
 			<p><b><?php esc_html_e( 'Encryption Key', 'wpcd' ); ?> </b></p>			
 			<?php
 			// See if wpcd encryption key is defined.
@@ -353,19 +360,108 @@ class WPCD_Admin_Setup_Wizard {
 	}
 
 	/**
+	 * Select Provider setup view.
+	 */
+	public function wpcd_select_provider() {
+
+		// Generate list of providers.
+		$providers['digital-ocean'] = __( 'Digital Ocean', 'wpcd' );
+		if ( class_exists( 'CLOUD_PROVIDER_API_Linode' ) ) {
+			$providers['linode'] = __( 'Linode', 'wpcd' );
+		}
+		if ( class_exists( 'CLOUD_PROVIDER_API_VultrV2' ) ) {
+			$providers['vultr-v2'] = __( 'Vultr', 'wpcd' );
+		}
+		if ( class_exists( 'CLOUD_PROVIDER_API_VultrV2Baremetal' ) ) {
+			$providers['vultr-v2-baremetal'] = __( 'Vultr Baremetal', 'wpcd' );
+		}
+		if ( class_exists( 'CLOUD_PROVIDER_API_Hetzner' ) ) {
+			$providers['hetzner'] = __( 'Hetzner', 'wpcd' );
+		}
+		if ( class_exists( 'CLOUD_PROVIDER_API_Upcloud' ) ) {
+			$providers['upcloud'] = __( 'UpCloud', 'wpcd' );
+		}
+
+		?>
+		<form method="post">
+			<p><b><?php esc_html_e( 'Please Select Your Cloud Server Provider', 'wpcd' ); ?> </b></p>
+			<p><?php esc_html_e( 'If you do not see your Cloud Server provider in the list below, please make sure you have uploaded and/or activated the provider plugin.', 'wpcd' ); ?> </p>
+			<p><?php esc_html_e( 'Providers other than Digital Ocean may require a premium purchase.', 'wpcd' ); ?> </p>
+			<label for="selected-provider"><?php esc_html_e( 'Choose a provider:', 'wpcd' ); ?></label>
+			<select style="min-width: 200px;" type="text" name="selected-provider">
+			<?php
+			foreach ( $providers as $provider => $name ) {
+				echo '<option value="' . $provider . '">' . $name . '</option>';
+			}
+			?>
+			</select>
+			<br /><br />
+			<?php
+			echo '<input type="submit" name="save_step" value="Continue">';
+			// Extract error message from url - this could be set by the save function for this step.
+			if ( $this->get_error_message_from_url() ) {
+				$error_msg = $this->get_error_message_from_url();
+				?>
+				<p style="color:red;"><?php esc_html_e( $error_msg ); ?></p>
+				<?php
+			}
+
+			wp_nonce_field( 'wpcd-select-provider' );
+			?>
+		</form>
+		<?php
+	}
+
+	/**
+	 * Save Selected Provider.
+	 */
+	public function wpcd_select_provider_save() {
+		check_admin_referer( 'wpcd-select-provider' );
+
+		// Extract the token from the _POST global var.
+		$selected_provider = sanitize_text_field( FILTER_INPUT( INPUT_POST, 'selected-provider', FILTER_DEFAULT ) );
+
+		// Empty key?  Stay on the current step.
+		if ( empty( $selected_provider ) ) {
+			wp_safe_redirect( esc_url_raw( add_query_arg( array( 'error_msg' => __( 'Please select a provider.', 'wpcd' ) ), $this->get_this_step_link() ) ) );
+			exit;
+		}
+
+		// Otherwise, save the selected provider in a transient for later use.
+		update_option( 'wpcd_setup_wizard_selected_provider', $selected_provider );
+
+		// Go to next step.
+		wp_safe_redirect( esc_url_raw( $this->get_next_step_link() ) );
+		exit;
+
+	}
+
+	/**
 	 * Connect To Provider setup view.
 	 */
 	public function wpcd_connect_to_provider() {
+
+		// Get provider from saved option.
+		$provider = $this->wpcd_get_selected_provider();
+
+		// If no provider, exit - the error message would have been displayed by the call to wpcd_get_selected_provider().
+		if ( empty( $provider ) ) {
+			exit;
+		}
+
 		?>
 		<form method="post">
-			<p><b><?php esc_html_e( 'Connect To Your DigitalOcean Account', 'wpcd' ); ?> </b></p>
-			<p><?php esc_html_e( 'Create an API TOKEN at DigitalOcean and enter it below.', 'wpcd' ); ?> </p>
-			<p><?php esc_html_e( 'You can create a token by navigating to: https://cloud.digitalocean.com/account/api.', 'wpcd' ); ?></p>
-			<p><?php esc_html_e( 'There you can click the GENERATE NEW TOKEN button and follow the instructions.', 'wpcd' ); ?></p>
-			<p><?php esc_html_e( 'Please make sure that you assign WRITE permissions and that you select a long-running expiration date.', 'wpcd' ); ?></p>
-			<b><label for="digital-ocean-api-token"><?php esc_html_e( 'Enter Your DigitalOcean API Key:', 'wpcd' ); ?></label></b>
-			<input type="text" name="digital-ocean-api-token" size="100" />
-			<br /><br />
+			<?php $this->wpcd_api_token_instructions( $provider ); ?>
+
+			<?php // Ask for the api key only if the provider is not upcloud - UPCLOUD only needs a user id and password. ?>
+			<?php if ( 'upcloud' !== $provider ) { ?>
+				<b><label for="api-token"><?php esc_html_e( 'Enter Your API Key or Token:', 'wpcd' ); ?></label></b>
+				<input type="text" name="api-token" size="100" />
+				<br /><br />
+			<?php } ?>
+
+			<?php $this->wpcd_get_other_provider_fields( $provider ); ?>
+
 			<?php
 			echo '<input type="submit" name="save_step" value="Continue">';
 			// Extract error message from url - this could be set by the save function for this step.
@@ -383,6 +479,199 @@ class WPCD_Admin_Setup_Wizard {
 	}
 
 	/**
+	 * Return the provider that was selected by the user and stored in options.
+	 *
+	 * Echo an error to the screen if there's a problem.
+	 */
+	public function wpcd_get_selected_provider() {
+
+		// Get provider from saved option.
+		$provider = get_option( 'wpcd_setup_wizard_selected_provider' );
+
+		// If not provider, throw error and exit.
+		if ( empty( $provider ) ) {
+			$error_msg = __( 'We are unable to read the provider from the database. Please exit this wizard and contact our technical support team.', 'wpcd' );
+			?>
+			<p style="color:red;"><?php esc_html_e( $error_msg ); ?></p>
+			<?php
+		}
+
+		return $provider;
+
+	}
+
+	/**
+	 * Echo instructions for getting api tokens to the screen.
+	 *
+	 * @param string $provider The provider slug.
+	 */
+	public function wpcd_api_token_instructions( $provider ) {
+
+		switch ( $provider ) {
+			case 'digital-ocean':
+				?>
+				<p><b><?php esc_html_e( 'Connect To Your Digital Ocean Account', 'wpcd' ); ?> </b></p>
+				<p><?php esc_html_e( 'Create an API TOKEN at Digital Ocean and enter it below.', 'wpcd' ); ?> </p>
+				<p><?php esc_html_e( 'You can create a token by navigating to: https://cloud.digitalocean.com/account/api.', 'wpcd' ); ?></p>
+				<p><?php esc_html_e( 'There you can click the GENERATE NEW TOKEN button and follow the instructions.', 'wpcd' ); ?></p>
+				<p><?php esc_html_e( 'Please make sure that you assign WRITE permissions and that you select a long-running expiration date.', 'wpcd' ); ?></p>			
+				<?php
+				break;
+
+			case 'linode':
+				?>
+				<p><b><?php esc_html_e( 'Connect To Your Linode Account', 'wpcd' ); ?> </b></p>
+				<p><?php esc_html_e( 'Create an API TOKEN at LINODE and enter it below.', 'wpcd' ); ?> </p>
+				<p><?php esc_html_e( 'You can create a token by navigating to: https://https://cloud.linode.com/profile/tokens.', 'wpcd' ); ?></p>
+				<p><?php esc_html_e( 'There you can click the CREATE A PERSONAL ACCESS TOKEN button and follow the instructions.', 'wpcd' ); ?></p>
+				<p><?php esc_html_e( 'Please make sure that you assign all READ/WRITE permissions and select a long-running expiration date.', 'wpcd' ); ?></p>			
+				<?php
+				break;
+
+			case 'hetzner':
+				?>
+				<p><b><?php esc_html_e( 'Connect To Your Hetzner Account', 'wpcd' ); ?> </b></p>
+				<p><?php esc_html_e( 'Get your API token from your Hetzner console and enter it below.', 'wpcd' ); ?> </p>
+				<p><?php esc_html_e( 'You can get the api token by navigating to: https://console.hetzner.cloud/projects/<<YOURPROJECTID>>/security/tokens.', 'wpcd' ); ?></p>
+				<p><?php esc_html_e( '(Replace the <<YOURPROJECT>> placeholder in the URL above with your Hetzner project id.).', 'wpcd' ); ?></p>
+				<p><?php esc_html_e( 'There you can click the GENERATE API TOKEN button and follow the instructions.', 'wpcd' ); ?></p>
+				<p><?php esc_html_e( 'Please make sure that you assign both READ & WRITE permissions!', 'wpcd' ); ?></p>			
+				<?php
+				break;
+
+			case 'upcloud':
+				?>
+				<p><b><?php esc_html_e( 'Connect To Your UpCloud Account', 'wpcd' ); ?> </b></p>
+				<?php
+				break;
+
+			case 'vultr-v2':
+			case 'vultr-v2-baremetal':
+				?>
+				<p><b><?php esc_html_e( 'Connect To Your Vultr Account', 'wpcd' ); ?> </b></p>
+				<p><?php esc_html_e( 'Get your API token from your VULTR console and enter it below.', 'wpcd' ); ?> </p>
+				<p><?php esc_html_e( 'You can get the api token by navigating to: https://my.vultr.com/settings/#settingsapi.', 'wpcd' ); ?></p>
+				<p><?php esc_html_e( 'Be sure to modify the ACCESS CONTROL section to allow your WPCD Server IP.  Otherwise, creating Vultr servers will fail.', 'wpcd' ); ?></p>
+				<p><?php esc_html_e( 'The easiest thing to do is to allow ANY IPv4 and ANY IPv6. You can tighten them down later.', 'wpcd' ); ?></p>			
+				<?php
+				break;
+
+		}
+
+	}
+
+	/**
+	 * Get any other provider fields that might be needed.
+	 * For example, LINODE needs a user name.
+	 *
+	 * @param string $provider The provider slug.
+	 */
+	public function wpcd_get_other_provider_fields( $provider ) {
+
+		switch ( $provider ) {
+			case 'digital-ocean':
+				// Nothing needed.
+				break;
+
+			case 'linode':
+				?>
+				<b><label for="user-name"><?php esc_html_e( 'Enter Your Linode User Name:', 'wpcd' ); ?></label></b>
+				<input type="text" name="user-name" size="100" />
+				<br /><br />				
+				<?php
+				break;
+
+			case 'hetzner':
+				// Nothing needed.
+				break;
+
+			case 'upcloud':
+				?>
+				<b><label for="user-name"><?php esc_html_e( 'Enter Your Upcloud User Name:', 'wpcd' ); ?></label></b>
+				<input type="text" name="user-name" size="100" />
+				<br /><br />				
+				<b><label for="user-name"><?php esc_html_e( 'Enter Your Upcloud Password:', 'wpcd' ); ?></label></b>
+				<input type="text" name="user-password" size="100" />
+				<br /><br />								
+				<?php
+				break;
+
+			case 'vultr-v2':
+			case 'vultr-v2-baremetal':
+				// Nothing needed.
+				break;
+
+		}
+
+	}
+
+	/**
+	 * Save other provider fields.  For example Linode needs to get and save the user name.
+	 *
+	 * @param string $provider The provider slug.
+	 */
+	public function wpcd_save_other_provider_fields( $provider ) {
+
+		switch ( $provider ) {
+			case 'digital-ocean':
+				// Nothing needed.
+				break;
+
+			case 'linode':
+				// Extract the user name from the _POST global var.
+				$user_name = sanitize_text_field( FILTER_INPUT( INPUT_POST, 'user-name', FILTER_DEFAULT ) );
+
+				// Empty key?  Stay on the current step.
+				if ( empty( $user_name ) ) {
+					wp_safe_redirect( esc_url_raw( add_query_arg( array( 'error_msg' => __( 'Please provide the Linode user name.', 'wpcd' ) ), $this->get_this_step_link() ) ) );
+					exit;
+				}
+
+				// Otherwise, save it.
+				wpcd_set_option( "vpn_{$provider}_user_name", WPCD()->encrypt( $user_name ) );
+
+				break;
+
+			case 'upcloud':
+				// Extract the user name from the _POST global var.
+				$user_name = sanitize_text_field( FILTER_INPUT( INPUT_POST, 'user-name', FILTER_DEFAULT ) );
+
+				// Empty key?  Stay on the current step.
+				if ( empty( $user_name ) ) {
+					wp_safe_redirect( esc_url_raw( add_query_arg( array( 'error_msg' => __( 'Please provide your UpCloud user name.', 'wpcd' ) ), $this->get_this_step_link() ) ) );
+					exit;
+				}
+
+				// Otherwise, save it.
+				wpcd_set_option( "vpn_{$provider}_user_name", WPCD()->encrypt( $user_name ) );
+
+				// Extract the password from the _POST global var.
+				$password = sanitize_text_field( FILTER_INPUT( INPUT_POST, 'user-password', FILTER_DEFAULT ) );
+
+				// Empty password?  Stay on the current step.
+				if ( empty( $password ) ) {
+					wp_safe_redirect( esc_url_raw( add_query_arg( array( 'error_msg' => __( 'Please provide your UpCloud Password.', 'wpcd' ) ), $this->get_this_step_link() ) ) );
+					exit;
+				}
+
+				// Otherwise, save it.
+				wpcd_set_option( "vpn_{$provider}_user_password", WPCD()->encrypt( $password ) );
+
+				break;
+
+			case 'hetzner':
+				break;
+
+			case 'vultr-v2':
+			case 'vultr-v2-baremetal':
+				// Nothing needed.
+				break;
+
+		}
+
+	}
+
+	/**
 	 * Connect To Provider setup on save.
 	 *
 	 * @NOTE: Portions of this code is a duplicate of what's in the wpcd_provider_test_provider_connection() function in file includes/core/class-wpcd-settings.php.
@@ -390,18 +679,33 @@ class WPCD_Admin_Setup_Wizard {
 	public function wpcd_connect_to_provider_save() {
 		check_admin_referer( 'wpcd-setup-connect-to-provider' );
 
+		// Get previously selected provider.
+		$provider = $this->wpcd_get_selected_provider();
+
 		// Extract the token from the _POST global var.
-		$api_key = sanitize_text_field( FILTER_INPUT( INPUT_POST, 'digital-ocean-api-token', FILTER_DEFAULT ) );
+		$api_key = sanitize_text_field( FILTER_INPUT( INPUT_POST, 'api-token', FILTER_DEFAULT ) );
+
+		// If the provider is upcloud, this value is going to be blank so set it to something random.
+		if ( 'upcloud' === $provider ) {
+			$api_key = 'no_value_needed';
+		}
 
 		// Empty key?  Stay on the current step.
 		if ( empty( $api_key ) ) {
-			wp_safe_redirect( esc_url_raw( add_query_arg( array( 'error_msg' => __( 'Please provide the DigitalOcean API Key/Token.', 'wpcd' ) ), $this->get_this_step_link() ) ) );
+			wp_safe_redirect( esc_url_raw( add_query_arg( array( 'error_msg' => __( 'Please provide the API Key/Token.', 'wpcd' ) ), $this->get_this_step_link() ) ) );
 			exit;
 		}
 
-		// Otherwise, update the digital ocean option.
-		$provider = 'digital-ocean';
+		// If no provider, exit - the error message would have been displayed by the call to wpcd_get_selected_provider().
+		if ( empty( $provider ) ) {
+			exit;
+		}
+
+		// Save api key/token.
 		wpcd_set_option( "vpn_{$provider}_apikey", WPCD()->encrypt( $api_key ) );
+
+		// Get and save any other fields that are unique to the provider.
+		$this->wpcd_save_other_provider_fields( $provider );
 
 		// Now test connection.
 		// This code is a duplicate of what's in the wpcd_provider_test_provider_connection() function in file includes/core/class-wpcd-settings.php.
@@ -417,7 +721,7 @@ class WPCD_Admin_Setup_Wizard {
 			exit;
 		} else {
 			// Stay on this step.
-			wp_safe_redirect( esc_url_raw( add_query_arg( array( 'error_msg' => __( 'We were unable to connect to DigitalOcean with this API key/token. Please try a different one.', 'wpcd' ) ), $this->get_this_step_link() ) ) );
+			wp_safe_redirect( esc_url_raw( add_query_arg( array( 'error_msg' => __( 'We were unable to connect to your server provider with this API key/token. Please re-enter it or try a different one.', 'wpcd' ) ), $this->get_this_step_link() ) ) );
 			exit;
 		}
 
@@ -431,7 +735,7 @@ class WPCD_Admin_Setup_Wizard {
 		<form method="post">
 			<p><b><?php esc_html_e( 'Create SSH Keys', 'wpcd' ); ?> </b></p>
 			<p><?php esc_html_e( 'We use SSH keys, not passwords, to connect to your server.', 'wpcd' ); ?></p>
-			<p><?php esc_html_e( 'We will create a new ssh key-pair for you and submit the public portion to your DigitalOcean account.', 'wpcd' ); ?></p>
+			<p><?php esc_html_e( 'We will create a new ssh key-pair for you and submit the public portion to your server provider\'s account.', 'wpcd' ); ?></p>
 			<p><?php esc_html_e( 'Click the CONTINUE button below to do this now.', 'wpcd' ); ?></p>
 			<p><?php esc_html_e( 'If you prefer to use your own keys, you can cancel this assistant using the NOT RIGHT NOW button and enter your own keys in the SETTINGS area.', 'wpcd' ); ?></p>
 			<input type="submit" name="save_step" value="Continue">
@@ -448,8 +752,15 @@ class WPCD_Admin_Setup_Wizard {
 	public function wpcd_create_ssh_keys_save() {
 		check_admin_referer( 'wpcd-ssh-keys' );
 
+		// Get previously selected provider.
+		$provider = $this->wpcd_get_selected_provider();
+
+		// If no provider, exit - the error message would have been displayed by the call to wpcd_get_selected_provider().
+		if ( empty( $provider ) ) {
+			exit;
+		}
+
 		// Create key.
-		$provider                      = 'digital-ocean';
 		$key_pair                      = WPCD_WORDPRESS_APP()->ssh()->create_key_pair();
 		$attributes                    = array();
 		$attributes['public_key']      = $key_pair['public'];
@@ -484,7 +795,7 @@ class WPCD_Admin_Setup_Wizard {
 		?>
 		<form method="post">
 			<p><b><?php esc_html_e( sprintf( __( '%s is all set up and ready to go!', 'wpcd' ), $product_name ) ); ?></b></p>
-			<p><?php esc_html_e( 'You should now be able to create your first server at DigitalOcean.', 'wpcd' ); ?></p>
+			<p><?php esc_html_e( 'You should now be able to create your first server at your provider.', 'wpcd' ); ?></p>
 			<p>
 			<?php
 			echo sprintf( __( 'You can go to the server list to create your first server or <b><u><a %s>View The Documentation</a></b></u>.', 'wpcd' ), 'href="https://wpclouddeploy.com/doc-landing/" target="_blank" ' );

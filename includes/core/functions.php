@@ -1239,6 +1239,25 @@ function wpcd_clean_alpha_numeric_dashes( $instr ) {
 }
 
 /**
+ * Takes a string and removes everything except alphanumeric
+ * characters, dashes, periods and underscores.
+ *
+ * @param  string $instr String to clean.
+ *
+ * @return string
+ */
+function wpcd_clean_alpha_numeric_dashes_periods_underscores( $instr ) {
+
+	if ( empty( $instr ) ) {
+		return '';
+	}
+
+	$instr = preg_replace( '/[^A-Za-z0-9-._]/', '', $instr );
+
+	return $instr;
+}
+
+/**
  * Get the list of users that are in the assigned teams
  *
  * @param int $post_id Post ID of server or app type post.
@@ -1330,9 +1349,16 @@ if ( ! function_exists( 'wpcd_is_woocommerce_activated' ) ) {
  * Get number of minutes left for transient to expire
  *
  * @param string $key key.
+ *
+ * @return int | false
  */
 function wpcd_get_transient_remaining_time_in_mins( $key ) {
-	return round( ( ( (int) get_option( "_transient_timeout_$key", 0 ) - time() ) / 60 ), 0 );
+	if ( true === (bool) wp_using_ext_object_cache() ) {
+		// External object cache in use - we cannot get expiration data so return false.
+		return false;
+	} else {
+		return round( ( ( (int) get_option( "_transient_timeout_$key", 0 ) - time() ) / 60 ), 0 );
+	}
 }
 
 /**
@@ -1602,7 +1628,7 @@ function wpcd_get_post_id_from_global() {
  *
  * @return string
  */
-function wpcd_wrap_clipboard_copy( $data_string, $break = true ) {
+function wpcd_wrap_clipboard_copy( $data_string, $break = true, $br_tag = false ) {
 
 	if ( true === $break ) {
 		$return = '<div class="wpcd-click-to-copy">';
@@ -1610,6 +1636,9 @@ function wpcd_wrap_clipboard_copy( $data_string, $break = true ) {
 		$return = '<span class="wpcd-click-to-copy">';
 	}
 	$return .= '<span class="wpcd-click-to-copy-text">' . $data_string . '</span>';
+	if ( true === $br_tag ) {
+		$return .= '<br/>';
+	}
 	$return .= '<span data-label="' . __( 'Copied', 'wpcd' ) . '" class="wpcd-click-to-copy-label wpcd-copy-hidden">' . __( 'Click to copy', 'wpcd' ) . '</span>';
 
 	if ( true === $break ) {
@@ -1643,6 +1672,17 @@ function wpcd_generate_uuid() {
 	// Output the 36 character UUID.
 	return vsprintf( '%s%s-%s-%s-%s-%s%s%s', str_split( bin2hex( $data ), 4 ) );
 
+}
+
+/**
+ * Return whether GIT is enabled for WPCD.
+ */
+function wpcd_is_git_enabled() {
+	if ( class_exists( 'WPCD_GitControl_Init' ) ) {
+		return true;
+	} else {
+		return false;
+	}
 }
 
 /*

@@ -92,7 +92,7 @@ chmod -R g+ws "$wphome"
 if [ "$g_webserver_type" = "nginx" ]
 then
 	echo "The webserver is Nginx....";
-	gf_add_php_conf "$domain" "$user_name" 7.4
+	gf_add_php_conf "$domain" "$user_name" 8.1
 	gf_add_nginx_conf "$domain" "$domain" "$domain"
 elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 then
@@ -100,17 +100,18 @@ then
 	gf_add_ols_conf "$domain"
 fi
 
+# Install WordPress using wp-cli
 cd "${wphome}"
-su - "$user_name" -c "wp --skip-plugins core download --version=$wp_version --locale=$wp_locale"
-su - "$user_name" -c "wp --skip-plugins config create --dbname=$mysql_db --dbuser=$mysql_user --dbpass=$mysql_pass --dbprefix="$mysql_dbprefix"_"
+su - "$user_name" -c "wp --skip-plugins --no-color core download --version=$wp_version --locale=$wp_locale"
+su - "$user_name" -c "wp --skip-plugins --no-color config create --dbname=$mysql_db --dbuser=$mysql_user --dbpass=$mysql_pass --dbprefix="$mysql_dbprefix"_"
 
 if hash sendmail 2>/dev/null
 then
-	su - "$user_name" -c "wp --skip-plugins core install --url=$domain --title=$domain --admin_user=$wp_user --admin_password=$wp_password --admin_email=$wp_email"
+	su - "$user_name" -c "wp --skip-plugins --no-color core install --url=$domain --title=$domain --admin_user=$wp_user --admin_password=$wp_password --admin_email=$wp_email"
 else
 	# don't try to send the welcome email if sendmail is not available
 	echo "Sendmail was not detected. No email will be sent to the admin when this installation is complete"
-	su - "$user_name" -c "wp --skip-plugins core install --url=$domain --title=$domain --admin_user=$wp_user --admin_password=$wp_password --admin_email=$wp_email --skip-email"
+	su - "$user_name" -c "wp --skip-plugins --no-color core install --url=$domain --title=$domain --admin_user=$wp_user --admin_password=$wp_password --admin_email=$wp_email --skip-email"
 fi
 
 # needed to work around wp-cli issues with passwords containing some special characters
@@ -128,13 +129,13 @@ UPDATE ${mysql_dbprefix}_users SET user_pass='$wp_password_hashed' WHERE user_lo
 QUERY
 
 # needed so wordpress doesn't freak out and denies direct access
-su - "$user_name" -c "wp --skip-plugins config set FS_METHOD direct"
-su - "$user_name" -c "wp --skip-plugins config set WP_AUTO_UPDATE_CORE minor"
-su - "$user_name" -c "wp --skip-plugins config set WP_MEMORY_LIMIT 128M"
-su - "$user_name" -c "wp --skip-plugins config set WP_MAX_MEMORY_LIMIT 128M"
-su - "$user_name" -c "wp --skip-plugins config set CONCATENATE_SCRIPTS false --raw"
-su - "$user_name" -c "wp --skip-plugins config set DISALLOW_FILE_EDIT true --raw"
-su - "$user_name" -c "wp --skip-plugins option update permalink_structure '/%postname%'"
+su - "$user_name" -c "wp --skip-plugins --no-color config set FS_METHOD direct"
+su - "$user_name" -c "wp --skip-plugins --no-color config set WP_AUTO_UPDATE_CORE minor"
+su - "$user_name" -c "wp --skip-plugins --no-color config set WP_MEMORY_LIMIT 128M"
+su - "$user_name" -c "wp --skip-plugins --no-color config set WP_MAX_MEMORY_LIMIT 128M"
+su - "$user_name" -c "wp --skip-plugins --no-color config set CONCATENATE_SCRIPTS false --raw"
+su - "$user_name" -c "wp --skip-plugins --no-color config set DISALLOW_FILE_EDIT true --raw"
+su - "$user_name" -c "wp --skip-plugins --no-color option update permalink_structure '/%postname%'"
 
 # permissions for the log file
 su - "$user_name" -c "touch $wphome/wp-content/debug.log"
@@ -145,11 +146,11 @@ chmod -R g+ws "$wphome"
 # Install page cache
 if [ "$g_webserver_type" = "nginx" ]
 then
-	su - "$user_name" -c "wp  plugin install --activate cache-enabler"
-	su - "$user_name" -c "wp --skip-plugins config set WP_CACHE true"
+	su - "$user_name" -c "wp  --no-color plugin install --activate cache-enabler"
+	su - "$user_name" -c "wp --skip-plugins --no-color config set WP_CACHE true"
 elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 then
-	su - "$user_name" -c "wp --skip-plugins plugin install litespeed-cache && wp --skip-plugins plugin activate litespeed-cache && wp litespeed-online init"
+	su - "$user_name" -c "wp --skip-plugins --no-color plugin install litespeed-cache && wp --skip-plugins --no-color plugin activate litespeed-cache && wp --no-color litespeed-online init"
 fi
 
 # Restart Webserver
@@ -238,14 +239,14 @@ then
 			rsync -az /tmp/"$tempdate"/ /var/www/"$domain"/html/wp-content/themes/
 			if [ "$activation" == "yes" ]
 			then
-				su - "$user_name" -c "wp theme activate $repo"
+				su - "$user_name" -c "wp --no-color theme activate $repo"
 			fi
 		elif [ "$destination" == "plugin" ]
 		then
 			rsync -az /tmp/"$tempdate"/ /var/www/"$domain"/html/wp-content/plugins/
 			if [ "$activation" == "yes" ]
 			then
-				su - "$user_name" -c "wp plugin activate $repo"
+				su - "$user_name" -c "wp --no-color plugin activate $repo"
 			fi
 		else
 			rsync -az /tmp/"$tempdate"/ "/var/www/$domain/html/$destination/"

@@ -70,7 +70,7 @@ select_domain () {
 }
 
 
-# for options where changes are applied to the NGINX configuration
+# for options where changes are applied to the NGINX/OLS configuration
 select_domain_mu () {
 	while [[ -z $domain ]]
 	do
@@ -271,26 +271,17 @@ fi
 if [[ $action == "reset_permissions" || $action == "4" ]]
 then
 	select_domain
-	user_name=$(echo $domain | cut -c1-32)
-	if [ "$g_webserver_type" = "nginx" ]
+
+	# reset file permissions
+	gf_reset_file_permissions_for_domain $domain
+
+	if [ $? -ne 0 ]
 	then
-		chown -R root:root /var/www/$domain/
-		chown -R www-data:www-data /var/www/$domain/html/
-		chmod -R g+w /var/www/$domain/html
-		chmod -R g+s /var/www/$domain/html
-		find /var/www/$domain/html -type f -exec chmod 664 {} +
-		find /var/www/$domain/html -type d -exec chmod 2775 {} +	
-	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
-	then	
-		chown -R root:root /var/www/"$domain"/
-		chown -R "${user_name}":www-data /var/www/"$domain"/html/
-		chown -R "${user_name}":www-data /var/www/"$domain"/html/logs/
-		# Hidden files test support: https://serverfault.com/a/156481
-		chown -R "${user_name}":www-data /var/www/"$domain"/html/.[^.]*
-		chmod -R g+ws "/var/www/$domain/html"
-		find /var/www/$domain/html -type f -exec chmod 664 {} +
-		find /var/www/$domain/html -type d -exec chmod 2775 {} +
-	fi		
+		msg="Could not reset site permissions for domain $domain."
+		echo $msg
+		exit 1
+	fi	
+
 	echo
 	echo "Permissions have been reset for $domain"
 	exit
@@ -437,8 +428,12 @@ then
 		sed -i "/fastcgi_param PHP_VALUE/a $php_param;" /etc/nginx/sites-enabled/$domain
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
+		# Update the vhost configuration file. The parameter may or may not work. (This is an OLS quirk where only certain items work in this file.)
 		sed -i "/$(echo $php_param | cut -d "=" -f 1)/d" ${VHDIR}/$domain/$g_vhost_conf
 		sed -i -e "/### Insert common phpIni/a\\php_admin_value ${php_param}"  ${VHDIR}/$domain/$g_vhost_conf
+		# Also remove & add to the php.ini file in case the vhost configuration file doesn't work.
+		sed -i "/$(echo $php_param | cut -d "=" -f 1)/d" /var/www/$domain/.phpini/php.ini
+		echo "$php_param" >> /var/www/$domain/.phpini/php.ini
 	fi
 	echo
 	echo "Successfully changed PHP value $php_param for $domain"
@@ -489,7 +484,10 @@ then
 		fi
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
+		# Remove from vhost config.
 		sed -i "/$(echo $php_param | cut -d "=" -f 1)/d" ${VHDIR}/$domain/$g_vhost_conf
+		# And from php.ini.
+		sed -i "/$(echo $php_param | cut -d "=" -f 1)/d" /var/www/$domain/.phpini/php.ini
 	fi
 	gf_restart_webserver
 	echo
@@ -737,19 +735,21 @@ then
 	if [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
 		while [[ -z $module ]]
-		do
-			ls /usr/local/lsws/lsphp74/etc/php/7.4/mods-disabled | sed 's/.ini//' | nl
+		do	
+			default_lsphpver=$(grep -sEo 'lsphp[0-9]{2}' $WEBCF|head -n1| sed 's|lsphp||'); # 74
+			default_php_version=$(echo $default_lsphpver | sed 's/^\(.\{1\}\)/\1./')  # 7.0,7.1,7.2,7.3,7.4,8.0,8.1,etc
+			ls /usr/local/lsws/lsphp${default_lsphpver}/etc/php/${default_php_version}/mods-disabled | sed 's/.ini//' | nl
 			echo
 			read -p "Select module: " site_number
-			number_of_sites=$(ls /usr/local/lsws/lsphp74/etc/php/7.4/mods-disabled | sed 's/.ini//' |wc -l)
+			number_of_sites=$(ls /usr/local/lsws/lsphp${default_lsphpver}/etc/php/${default_php_version}/mods-disabled | sed 's/.ini//' |wc -l)
 			until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]
 			do
 				echo "$site_number: invalid selection."
 				read -p "Select module: " site_number
 			done
-			module=$(ls /usr/local/lsws/lsphp74/etc/php/7.4/mods-disabled | sed 's/.ini//' | sed -n "$site_number"p)
+			module=$(ls /usr/local/lsws/lsphp${default_lsphpver}/etc/php/${default_php_version}/mods-disabled | sed 's/.ini//' | sed -n "$site_number"p)
 		done
-		mv /usr/local/lsws/lsphp74/etc/php/7.4/mods-disabled/$module.ini /usr/local/lsws/lsphp74/etc/php/7.4/mods-available/
+		mv /usr/local/lsws/lsphp${default_lsphpver}/etc/php/${default_php_version}/mods-disabled/$module.ini /usr/local/lsws/lsphp${default_lsphpver}/etc/php/7.4/mods-available/
 	elif [ "$g_webserver_type" = "nginx" ]
 	then
 		while [[ -z $module ]]
@@ -779,21 +779,23 @@ then
 	echo "Select which module should be disabled"
 	if [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
-		mkdir -p /usr/local/lsws/lsphp74/etc/php/7.4/mods-disabled
+		default_lsphpver=$(grep -sEo 'lsphp[0-9]{2}' $WEBCF|head -n1| sed 's|lsphp||'); # 74
+		default_php_version=$(echo $default_lsphpver | sed 's/^\(.\{1\}\)/\1./')  # 7.0,7.1,7.2,7.3,7.4,8.0,8.1,etc
+		mkdir -p /usr/local/lsws/lsphp${default_lsphpver}/etc/php/${default_php_version}/mods-disabled
 		while [[ -z $module ]]
 		do
-			ls /usr/local/lsws/lsphp74/etc/php/7.4/mods-available | sed 's/.ini//' | nl
+			ls /usr/local/lsws/lsphp${default_lsphpver}/etc/php/${default_php_version}/mods-available | sed 's/.ini//' | nl
 			echo
 			read -p "Select module: " site_number
-			number_of_sites=$(ls /usr/local/lsws/lsphp74/etc/php/7.4/mods-available | sed 's/.ini//' |wc -l)
+			number_of_sites=$(ls /usr/local/lsws/lsphp${default_lsphpver}/etc/php/7.4/mods-available | sed 's/.ini//' |wc -l)
 			until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]
 			do
 				echo "$site_number: invalid selection."
 				read -p "Select module: " site_number
 			done
-			module=$(ls /usr/local/lsws/lsphp74/etc/php/7.4/mods-available | sed 's/.ini//' | sed -n "$site_number"p)
+			module=$(ls /usr/local/lsws/lsphp${default_lsphpver}/etc/php/${default_php_version}/mods-available | sed 's/.ini//' | sed -n "$site_number"p)
 		done
-		mv /usr/local/lsws/lsphp74/etc/php/7.4/mods-available/$module.ini /usr/local/lsws/lsphp74/etc/php/7.4/mods-disabled/
+		mv /usr/local/lsws/lsphp${default_lsphpver}/etc/php/${default_php_version}/mods-available/$module.ini /usr/local/lsws/lsphp${default_lsphpver}/etc/php/${default_php_version}/mods-disabled/
 	elif [ "$g_webserver_type" = "nginx" ]
 	then
 		while [[ -z $module ]]
@@ -843,7 +845,20 @@ then
 	su - $user_name -c "wp --skip-plugins config set WP_DEBUG_DISPLAY false --raw"
 	su - $user_name -c "wp --skip-plugins config set WP_DEBUG_LOG true --raw"
 	su - $user_name -c "touch /var/www/$domain/html/wp-content/debug.log"
-	chmod g+w /var/www/$domain/html/wp-content/debug.log	
+	chmod g+w /var/www/$domain/html/wp-content/debug.log
+	
+	# Handle some OLS specific stuff.
+	if [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+	then
+		# Swap php error_log path
+		domain_conf="${VHDIR}/${domain}/vhconf.conf"
+		# Swaps to wp-content/debug.log 
+		# php_admin_value error_log wp-content/debug.log
+		sed -i "s|php_admin_value error_log .*|php_admin_value error_log wp-content/debug.log|" "${domain_conf}"
+		# restart ols/lsws and kill lsphp procresses so php changes are changed.
+		gf_restart_webserver "true"
+	fi
+	
 	echo
 	echo "WordPress debug flags enabled for $domain"
 	exit
@@ -856,6 +871,18 @@ then
 	user_name=$(echo $domain | cut -c1-32)
 	cd /var/www/$domain/html/
 	su - $user_name -c "wp --skip-plugins config set WP_DEBUG false --raw"
+	
+	# Handle some OLS specific stuff.
+	if [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+	then	
+		domain_conf="${VHDIR}/${domain}/vhconf.conf"
+		# Reverts back to default: logs/php_error_log
+		# php_admin_value error_log logs/php_error_log
+		sed -i "s|php_admin_value error_log .*|php_admin_value error_log logs/php_error_log|" "${domain_conf}"
+		# restart ols/lsws and kill lsphp procresses so php changes are changed.
+		gf_restart_webserver "true"
+	fi
+	
 	echo
 	echo "WordPress debug flags disabled for $domain"
 	exit

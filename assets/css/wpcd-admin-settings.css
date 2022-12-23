@@ -136,23 +136,11 @@ be added here.
 Start styling for for the DEPLOY YOUR FIRST WORDPRESS SITE section. Make the background white and add some padding with a little animation to draw attention to it.
 @TODO: This section should probably be extracted to it's own wpcd-wpapp-admin-settings.css file since it's specific to the WordPress app
 **/
-
-@keyframes wpcd_deploy_your_first_wordpress_site_background {
-    from {
-        background-color: gray;
-    }
-    to {
-        background-color: white;
-    }
-}
-
 .rwmb-settings-no-boxes #wpcd_deploy_your_first_wordpress_site .rwmb-heading-wrapper {
     background-color: white;
     padding: 2em;
     border: solid 1px white;
     border-radius: 20px;
-    animation-name: wpcd_deploy_your_first_wordpress_site_background;
-    animation-duration: 1.5s;
 }
 
 .rwmb-settings-no-boxes #wpcd_deploy_your_first_wordpress_site .rwmb-heading-wrapper #wpcd_deploy_your_first_wordpress_site_heading {

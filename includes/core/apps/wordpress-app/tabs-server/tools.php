@@ -111,7 +111,7 @@ class WPCD_WORDPRESS_TABS_SERVER_TOOLS extends WPCD_WORDPRESS_TABS {
 		}
 
 		/* Now verify that the user can perform actions on this screen, assuming that they can view the server */
-		$valid_actions = array( 'server-cleanup-metas', 'server-cleanup-rest-api-test', 'reset-server-default-php-version' );
+		$valid_actions = array( 'server-cleanup-metas', 'server-cleanup-rest-api-test', 'reset-server-default-php-version', 'reset-server-php-global-restricted-functions-list' );
 		if ( in_array( $action, $valid_actions, true ) ) {
 			if ( ! $this->get_tab_security( $id ) ) {
 				/* Translators: %1s is replaced with an internal action name; %2$s is replaced with the file name; %3$s is replaced with the post id being acted on. %4$s is the user id running this action. */
@@ -129,6 +129,9 @@ class WPCD_WORDPRESS_TABS_SERVER_TOOLS extends WPCD_WORDPRESS_TABS {
 					break;
 				case 'reset-server-default-php-version':
 					$result = $this->reset_php_default_version( $id, $action );
+					break;
+				case 'reset-server-php-global-restricted-functions-list':
+					$result = $this->reset_global_php_restricted_functions_list( $id, $action );
 					break;
 			}
 		}
@@ -207,15 +210,15 @@ class WPCD_WORDPRESS_TABS_SERVER_TOOLS extends WPCD_WORDPRESS_TABS {
 		/**
 		 * Set server php default version
 		 */
-		$confirmation_prompt = __( 'Are you sure you would like to set update the default php version for this server?', 'wpcd' );
+		$confirmation_prompt = __( 'Are you sure you would like to change the PHP CLI version for this server?', 'wpcd' );
 
 		$default_php_version = get_post_meta( $id, 'wpcd_default_php_version', true );
 		if ( empty( $default_php_version ) ) {
-			$default_php_version = '7.4';
+			$default_php_version = $this->get_default_php_version_for_server( $id );
 		}
 
 		$actions['reset-server-default-php-version-header'] = array(
-			'label'          => __( 'Set PHP Default Version', 'wpcd' ),
+			'label'          => __( 'Set Server PHP CLI Version', 'wpcd' ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
 				'desc' => __( 'This is the PHP version used to run all WP-CLI commands or other server level PHP scripts not running directly inside WordPress. This should be 7.4 or higher - lower versions will likely break things very badly. If your plugins/themes are not compatible with PHP 8.x then this should be set to 7.4.', 'wpcd' ),
@@ -223,7 +226,7 @@ class WPCD_WORDPRESS_TABS_SERVER_TOOLS extends WPCD_WORDPRESS_TABS {
 		);
 
 		$actions['reset-server-default-php-version-select'] = array(
-			'label'          => __( 'New Server Default PHP Version', 'wpcd' ),
+			'label'          => __( 'New Server PHP CLI Version', 'wpcd' ),
 			'type'           => 'select',
 			'raw_attributes' => array(
 				'options'        => array(
@@ -244,7 +247,7 @@ class WPCD_WORDPRESS_TABS_SERVER_TOOLS extends WPCD_WORDPRESS_TABS {
 		$actions['reset-server-default-php-version'] = array(
 			'label'          => '',
 			'raw_attributes' => array(
-				'std'                 => __( 'Reset Default PHP Version', 'wpcd' ),
+				'std'                 => __( 'Reset Server PHP CLI Version', 'wpcd' ),
 				'confirmation_prompt' => $confirmation_prompt,
 				'desc'                => '',
 				// fields that contribute data for this action.
@@ -252,6 +255,35 @@ class WPCD_WORDPRESS_TABS_SERVER_TOOLS extends WPCD_WORDPRESS_TABS {
 			),
 			'type'           => 'button',
 		);
+
+		/**
+		 * Update PHP Global Restricted Functions For all PHP Versions
+		 *
+		 * Applies only to OLS Servers and can only be run by admins.
+		 */
+		if ( ( 'ols' === $this->get_web_server_type( $id ) ) && wpcd_is_admin() ) {
+
+			$confirmation_prompt = __( 'Are you sure you would like to reset the list of restricted functions? This action applies to all sites and all PHP versions on your OLS server.', 'wpcd' );
+
+			$actions['reset-server-php-global-restricted-functions-list-header'] = array(
+				'label'          => __( 'PHP Global Restricted Functions List', 'wpcd' ),
+				'type'           => 'heading',
+				'raw_attributes' => array(
+					'desc' => __( 'To maintain security on a shared WP Server, certain PHP functions cannot be allowed to run in plugins and themes. Use this to make sure the latest list gets applied to all sites for all PHP versions running on your OLS server.', 'wpcd' ),
+				),
+			);
+
+			$actions['reset-server-php-global-restricted-functions-list'] = array(
+				'label'          => '',
+				'raw_attributes' => array(
+					'std'                 => __( 'Reset', 'wpcd' ),
+					'confirmation_prompt' => $confirmation_prompt,
+					'desc'                => '',
+				),
+				'type'           => 'button',
+			);
+
+		}
 
 		return $actions;
 
@@ -280,12 +312,12 @@ class WPCD_WORDPRESS_TABS_SERVER_TOOLS extends WPCD_WORDPRESS_TABS {
 		delete_post_meta( $id, 'wpcd_server_wordpress-app_action_status' );
 		delete_post_meta( $id, 'wpcd_temp_log_id' );
 		delete_post_meta( $id, 'wpcd_server_action_status' );
-		delete_post_meta( $id, "wpcd_server_command_mutex" ); 
-		
+		delete_post_meta( $id, 'wpcd_server_command_mutex' );
+
 		delete_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action_status" );  // Should really only exist on an app.
 		delete_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action" );  // Should really only exist on an app.
 		delete_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action_args" );  // Should really only exist on an app.
-		
+
 		delete_post_meta( $id, "wpcd_server_{$this->get_app_name()}_action_status" );  // Should really only exist on a server and it's a duplicate of the delete a few lines above.
 		delete_post_meta( $id, "wpcd_server_{$this->get_app_name()}_action" );  // Should really only exist on a server and it's a duplicate of the delete a few lines above.
 		delete_post_meta( $id, "wpcd_server_{$this->get_app_name()}_action_args" );  // Should really only exist on a server.
@@ -410,6 +442,81 @@ class WPCD_WORDPRESS_TABS_SERVER_TOOLS extends WPCD_WORDPRESS_TABS {
 			}
 
 			return new \WP_Error( $preamble1 . $result . $preamble2 . $result2 . $preamble3 . $result3 );
+		}
+
+	}
+
+	/**
+	 * Reset the global PHP restricted functions list.
+	 * Applies to all versions of php on the OLS server.
+	 *
+	 * @param int    $id     The postID of the app cpt.
+	 * @param string $action The action to be performed.
+	 *
+	 * @return boolean|WP_Error    success/failure
+	 */
+	public function reset_global_php_restricted_functions_list( $id, $action ) {
+
+		// Bail if not an admin.
+		if ( ! wpcd_is_admin() && ! wp_doing_cron() && ! wpcd_is_doing_cron() ) {
+			return new \WP_Error( __( 'This action can only be performed by an admin - possible security issue.', 'wpcd' ) );
+		}
+
+		// What type of web server are we running?
+		$webserver_type      = $this->get_web_server_type( $id );
+		$webserver_type_name = $this->get_web_server_description_by_id( $id );
+
+		switch ( $webserver_type ) {
+			case 'ols':
+			case 'ols-enterprise':
+				$bridge_file = 'ols_options.txt';
+				break;
+
+			case 'nginx':
+			default:
+				// NGINX is not being used yet.  Including here in case we do add it in the future.
+				$bridge_file = 'nginx_options.txt';
+				break;
+
+		}
+
+		// Bail if not an OLS server.
+		if ( 'ols' !== $webserver_type ) {
+			return new \WP_Error( __( 'This action can only be performed by on an OpenLiteSpeed Server.', 'wpcd' ) );
+		}
+
+		// Action to pass to bash script.
+		$action = 'update_global_php_restricted_functions';
+
+		// Get the instance details.
+		$instance = $this->get_server_instance_details( $id );
+
+		if ( is_wp_error( $instance ) ) {
+			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
+		}
+
+		// Get the full command to be executed by ssh.
+		$run_cmd = $this->turn_script_into_command(
+			$instance,
+			$bridge_file,
+			array(
+				'action' => $action,
+				'domain' => '',
+			)
+		);
+
+		do_action( 'wpcd_log_error', sprintf( 'attempting to run command for %s = %s ', print_r( $instance, true ), $run_cmd ), 'trace', __FILE__, __LINE__, $instance, false );
+
+		// Run the command.
+		$result  = $this->execute_ssh( 'generic', $instance, array( 'commands' => $run_cmd ) );
+		$success = $this->is_ssh_successful( $result, $bridge_file );
+
+		// Check for success.
+		if ( ! $success ) {
+			return new \WP_Error( sprintf( __( 'Unable to %1$s for site: %2$s', 'wpcd' ), $action, $result ) );
+		} else {
+			// Return the data as an error so it can be shown in a dialog box.
+			return new \WP_Error( __( 'The global list of PHP restricted functions has been updated for all PHP versions on your OLS server.', 'wpcd' ) );
 		}
 
 	}

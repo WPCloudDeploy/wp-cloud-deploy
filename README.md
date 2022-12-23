@@ -124,6 +124,58 @@ Note: Even though the entire git development history isn't available on github, 
 [Friendly Release Notes](https://wpclouddeploy.com/category/release-notes/)
 
 ## Change Log ##
+5.3.0
+------
+* New: Option to change the background and foreground color of the 'terminal'.
+* New: Foundation for git support added.
+* Fix: Missing variable value when installing memcached. Harmless - just threw a php warning.
+* Dev: Use global function to reset site permissions (refactor).
+
+5.2.2
+------
+* New: WPAPP - Option to flip just the SSL meta flag on the SSL tab for a site.
+* Fix: WPAPP - Remove click to copy function from the APPS column in the server list.  It was confusing if someone just wants to click the link to navigate to the app detail screen.
+* Fix: WPAPP - Cloning a site would flip the SSL meta to 'off' on the origin site.  This qualifies as a DUH!
+
+5.2.1
+------
+* Improved: WPAPP - Can now click to copy the domain name just like you can ip addresses.
+* Improved: WPAPP - Can now click to copy the user name and password for file manager and phpmyadmin.
+* Tweak: WPAPP - The link to open the file manager and phpmyadmin tools are now real buttons instead of just links.  This makes it easier to style to match the other buttons, especially on the front end.
+* Fix: WPAPP - When restoring just a nginx web server configuration, do not delete ssl certificates.
+* Fix: WPAPP - Check that the $domain var in the bash scripts have a value before attempting to use it for deletes.
+* Fix: WPAPP - A harmless JS error was being thrown when a server was viewed on the front-end without the STATISTICS having run at least once.
+
+
+5.2.0
+------
+* Tweak: WPAPP - Attempt to detect duplicate simultaneous runs of apt-get and send back warning for error log.
+* Tweak: WPAPP - Better handling of calculations related to transient expiration when an object cache is in use.
+* Tweak: WPAPP - A better way to manage PHP.INI on OLS servers while still locking down the domain folder (requires upgrading existing OLS servers and sites)
+* Tweak: WPAPP - Disable tiny file manager on PHP 8.1 since it is not yet fully compatible with 8.x.
+* Fix: WPAPP - Database backups might sometimes leave the .sql file blank.
+* Other: This update requires changes to all existing OLS servers and sites.  Please see the technical upgrade guide.
+
+5.1.1
+------
+* Fix: WPAPP - Edge case issue with SSL when copying template sites and the template site has an SSL and the target domain allows an SSL to be generated.
+* Fix: WPAPP - An issue with sFTP users - when two users have similar names (eg: john and john2), certain operations did not work because grep found multiple domain entries in the passwd file.
+* Fix: WPAPP - We now delete the orphaned authorized keys file for a user when we delete the user.
+* Tweak: WPAPP  - Relabel the default PHP version item in the servers TOOL tabs to use the term 'CLI' which more accurately reflects the meaning of the setting & operation.
+* Tweak: WPAPP - Do not load timezonedb.so into php.ini since certain components necessary for it are not consistently available in the ols repos.
+
+5.1.0
+------
+* New: WPAPP - Global option to set PHP version for all new sites.
+* New: WPAPP - Default PHP version for new sites is now 8.1.
+* New: WPAPP - Add option to filter by server type in the server list.
+* New: WPAPP - Callbacks now send the status of aptget to WPCD. We'll show this in the SERVER STATUS column.
+* New: WPAPP - Bulk option to remove callbacks from server.  This should help when you need to reinstall callbacks on a lot of servers.
+* Improved: WPAPP - Onboarding wizard now supports additional premium providers - Linode, Vultr, Hetzner, UpCloud
+* Fix: WPAPP - Make sure PHP 8.1 show up as an option when filtering the app list.
+* Fix: WPAPP - Make sure some metas about the status of the http_auth gets copied when pushing sites to new servers.
+* Fix: WPAPP - Partially bandaid an OLS core security issue by forcing the list of restricted PHP functions globally for all PHP versions on an OLS server.
+
 5.0.0
 ------
 * New: WPAPP - Front-end UI and related shortcodes.
@@ -151,6 +203,7 @@ Note: Even though the entire git development history isn't available on github, 
 * Dev: WPAPP - Filter for the valid list of WP versions - wpcd_allowed_wp_versions
 * Dev: WPAPP - Filter to allow other processes to add classes to individual rows on the front-end/public pages - wpcd_public_table_single_row
 * Dev: PHP 8.0/8.1 support for core - only applies to certain providers that have enabled PHP 8.x support for their PHP API wrappers.
+* Dev: Add support for using the https://github.com/afragen/git-updater plugin to update WPCD core from the github main branch.
 
 4.16.7
 ------

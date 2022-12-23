@@ -151,6 +151,15 @@ class WPCD_WORDPRESS_TABS_SITE_SYNC extends WPCD_WORDPRESS_TABS {
 							// @TODO: Only the first team is copied.  If the site has more than one team, only the first one is copied over.
 							update_post_meta( $new_app_post_id, 'wpcd_assigned_teams', get_post_meta( $id, 'wpcd_assigned_teams', true ) );
 
+							// Update the PHP version to match the original version.
+							$this->set_php_version_for_app( $new_app_post_id, $this->get_php_version_for_app( $id ) );
+
+							// Update the wp-login auth status.
+							$this->set_wplogin_http_auth_status( $new_app_post_id, $this->get_wplogin_http_auth_status( $id ) );
+
+							// Update the http auth status for the full site.
+							$this->set_site_http_auth_status( $new_app_post_id, $this->get_site_http_auth_status( $id ) );
+
 							// Finally, lets add a meta to indicate that this was a copy.
 							update_post_meta( $new_app_post_id, 'wpapp_site_synced_from_app', $id );
 
@@ -533,7 +542,7 @@ class WPCD_WORDPRESS_TABS_SITE_SYNC extends WPCD_WORDPRESS_TABS {
 		$result  = $this->execute_ssh( 'generic', $source_instance, array( 'commands' => $run_cmd ) );
 		$success = $this->is_ssh_successful( $result, 'site_sync_origin_setup.txt' );
 		if ( ! $success ) {
-			if ( is_wp_error( $result) ) {
+			if ( is_wp_error( $result ) ) {
 				/* translators: %s is replaced with the result of the execute_ssh command. */
 				$msg = sprintf( __( 'Unable to configure the origin server. The origin server returned this in response to commands: %s', 'wpcd' ), $result->get_error_message() );
 			} else {
@@ -921,8 +930,12 @@ class WPCD_WORDPRESS_TABS_SITE_SYNC extends WPCD_WORDPRESS_TABS {
 			'name' => __( 'Copy Now', 'wpcd' ),
 			'tab'  => 'site-sync',
 			'type' => 'heading',
-			'desc' => __( 'Immediately copy this site to the destination server selected above.', 'wpcd' ),
 		);
+
+		$copy_desc = __( 'Immediately copy this site to the destination server selected above.', 'wpcd' );
+		if ( 'yes' === $this->is_remote_db( $id ) ) {
+			$copy_desc .= '<br />' . '<b>' . __( 'Warning: This site appears to be using a remote database server.  Your target server should have a local database server since the database server will be switched to localhost to avoid database naming conflicts.', 'wpcd' ) . '</b>';
+		}
 
 		$fields[] = array(
 			'id'         => 'wpcd_app_site_sync',
@@ -930,7 +943,7 @@ class WPCD_WORDPRESS_TABS_SITE_SYNC extends WPCD_WORDPRESS_TABS {
 			'tab'        => 'site-sync',
 			'type'       => 'button',
 			'std'        => __( 'Start Copy', 'wpcd' ),
-			'desc'       => '',
+			'desc'       => $copy_desc,
 			'attributes' => array(
 				// the _action that will be called in ajax.
 				'data-wpcd-action'              => 'site-sync',

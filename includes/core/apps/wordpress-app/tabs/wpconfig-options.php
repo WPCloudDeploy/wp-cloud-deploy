@@ -394,7 +394,7 @@ class WPCD_WORDPRESS_TABS_WPCONFIG extends WPCD_WORDPRESS_TABS {
 			),
 			'wp-empty-trash-days'    => array(
 				'label' => 'EMPTY_TRASH_DAYS',
-				'desc'  => __( 'controls the number of days before WordPress permanently deletes posts, pages, attachments, and comments, from the trash bin. The default is 30 days.', 'wpcd' ),
+				'desc'  => __( 'Controls the number of days before WordPress permanently deletes posts, pages, attachments, and comments, from the trash bin. The default is 30 days.', 'wpcd' ),
 				'type'  => 'number',
 			),
 			'wp-environment-type'    => array(

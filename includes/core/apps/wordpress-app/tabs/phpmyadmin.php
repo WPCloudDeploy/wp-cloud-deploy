@@ -125,7 +125,7 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 			if ( true == $success ) {
 
 				// Indicate that we are connecting to a remote database.
-				update_post_meta( $id, 'wpapp_is_remote_database', 'yes' );
+				$this->enable_remote_db_flag( $id );
 
 				update_post_meta( $id, 'wpapp_db_host', get_post_meta( $id, 'wpapp_temp_db_host', true ) );
 				update_post_meta( $id, 'wpapp_db_port', get_post_meta( $id, 'wpapp_temp_db_port', true ) );
@@ -147,7 +147,7 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 
 			if ( true === $success ) {
 
-				update_post_meta( $id, 'wpapp_is_remote_database', 'no' );
+				$this->disable_remote_db_flag( $id );
 
 				update_post_meta( $id, 'wpapp_db_host', get_post_meta( $id, 'wpapp_temp_db_host', true ) );
 				update_post_meta( $id, 'wpapp_db_port', get_post_meta( $id, 'wpapp_temp_db_port', true ) );
@@ -338,7 +338,7 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 		}
 
 		/**
-		 * Run the constructed commmand
+		 * Run the constructed command
 		 * Check out the write up about the different aysnc methods we use
 		 * here: https://wpclouddeploy.com/documentation/wpcloud-deploy-dev-notes/ssh-execution-models/
 		 */
@@ -504,7 +504,7 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 		}
 
 		/**
-		 * Run the constructed commmand
+		 * Run the constructed command
 		 * Check out the write up about the different aysnc methods we use
 		 * here: https://wpclouddeploy.com/documentation/wpcloud-deploy-dev-notes/ssh-execution-models/
 		 */
@@ -599,7 +599,7 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 	public function get_local_remote_db_fields( array $fields, $id ) {
 
 		// Remote Database Options.
-		$is_remote_database = get_post_meta( $id, 'wpapp_is_remote_database', true );
+		$is_remote_database = $this->is_remote_db( $id );
 
 		// Current database settings.
 		$current_db_host           = get_post_meta( $id, 'wpapp_db_host', true );
@@ -609,14 +609,8 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 		$current_db_pass           = get_post_meta( $id, 'wpapp_db_pass', true );
 		$current_db_pass_decrypted = self::decrypt( $current_db_pass );
 
-		// Set default remote flag if it's empty.
-		if ( empty( $is_remote_database ) ) {
-
-			$is_remote_database = 'no';
-		}
-
 		// Set some text for the header depending on whether we have a local or remote database in use.
-		if ( $is_remote_database === 'yes' ) {
+		if ( 'yes' === $is_remote_database ) {
 			$section_heading              = __( 'Remote Database - Switch To Local Database [Beta]', 'wpcd' );
 			$running_database_server_name = __( 'This site is currently using a remote database. To switch to a local database please enter the local database information and click the SWITCH button.', 'wpcd' );
 		} else {
@@ -1148,7 +1142,6 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 				$phpmyadmin_url = 'http://' . $this->get_domain_name( $id ) . '/' . 'phpMyAdmin';
 			}
 
-			$launch              = sprintf( '<a href="%s" target="_blank">', $phpmyadmin_url ) . __( 'Launch PHPMyAdmin', 'wpcd' ) . '</a>';
 			$phpmyadmin_details  = '<div class="wpcd_tool_details">';
 			$phpmyadmin_details .= __( 'User Id: ', 'wpcd' ) . wpcd_wrap_clipboard_copy( $phpmyadmin_user_id );
 			$phpmyadmin_details .= '</div>';
@@ -1165,10 +1158,12 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 			}
 
 			$fields[] = array(
-				'tab'   => 'database',
-				'type'  => 'custom_html',
-				'std'   => $launch,
-				'class' => 'button',
+				'tab'        => 'database',
+				'type'       => 'button',
+				'std'        => __( 'Launch PHPMyAdmin', 'wpcd' ),
+				'attributes' => array(
+					'onclick' => "window.open('" . $phpmyadmin_url . "')",
+				),
 			);
 			$fields[] = array(
 				'tab'  => 'database',

@@ -301,7 +301,7 @@ class WPCD_WORDPRESS_TABS_FILE_MANAGER extends WPCD_WORDPRESS_TABS {
 		}
 
 		/**
-		 * Run the constructed commmand
+		 * Run the constructed command
 		 * Check out the write up about the different aysnc methods we use
 		 * here: https://wpclouddeploy.com/documentation/wpcloud-deploy-dev-notes/ssh-execution-models/
 		 */
@@ -332,7 +332,19 @@ class WPCD_WORDPRESS_TABS_FILE_MANAGER extends WPCD_WORDPRESS_TABS {
 			return $fields;
 		}
 
-		// Manage fields base on installed file manager.
+		// Bail if PHP is 8.0 or 8.1.
+		$php_version = (string) $this->get_php_version_for_app( $id );
+		if ( in_array( $php_version, array( '8.0', '8.1' ), true ) ) {
+			$fields[] = array(
+				'name' => __( 'File Manager [Disabled]', 'wpcd' ),
+				'tab'  => 'file-manager',
+				'type' => 'heading',
+				'desc' => __( 'Unfortunately file manager does not yet work on PHP 8.x. You can temporarily switch to PHP 7.4 though and try again. You can also follow the File Manager project progress on GitHub at https://github.com/prasathmani/tinyfilemanager', 'wpcd' ),
+			);
+			return $fields;
+		}
+
+		// Is filemanager already installed? We'll show/hide fields based on this status.
 		$file_manager_status = $this->is_file_manager_installed( $id );
 
 		// What is the status of File Manager?
@@ -370,7 +382,7 @@ class WPCD_WORDPRESS_TABS_FILE_MANAGER extends WPCD_WORDPRESS_TABS {
 			);
 			return $fields;
 		}
-		// End Bail if certain 6G or 7G firewall items are enabled.		
+		// End Bail if certain 6G or 7G firewall items are enabled.
 
 		if ( 'off' === $file_manager_status ) {
 			$desc  = __( 'The File Manager is not installed.', 'wpcd' );
@@ -460,7 +472,6 @@ class WPCD_WORDPRESS_TABS_FILE_MANAGER extends WPCD_WORDPRESS_TABS {
 				$file_manager_url = 'http://' . $this->get_domain_name( $id ) . '/' . 'filemanager';
 			}
 
-			$launch                = sprintf( '<a href="%s" target="_blank">', $file_manager_url ) . __( 'Launch File Manager', 'wpcd' ) . '</a>';
 			$file_manager_details  = '<div class="wpcd_tool_details">';
 			$file_manager_details .= __( 'User Name: ', 'wpcd' ) . wpcd_wrap_clipboard_copy( esc_html( $file_manager_user_id ) );
 			$file_manager_details .= '</div>';
@@ -470,11 +481,14 @@ class WPCD_WORDPRESS_TABS_FILE_MANAGER extends WPCD_WORDPRESS_TABS {
 			$file_manager_details .= '</div>';
 
 			$fields[] = array(
-				'tab'   => 'file-manager',
-				'type'  => 'custom_html',
-				'std'   => $launch,
-				'class' => 'button',
+				'tab'        => 'file-manager',
+				'type'       => 'button',
+				'std'        => __( 'Launch File Manager', 'wpcd' ),
+				'attributes' => array(
+					'onclick' => "window.open('" . $file_manager_url . "')",
+				),
 			);
+
 			$fields[] = array(
 				'tab'  => 'file-manager',
 				'type' => 'custom_html',

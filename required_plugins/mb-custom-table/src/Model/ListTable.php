@@ -108,7 +108,7 @@ class ListTable extends \WP_List_Table {
 		}
 
 		$actions = [
-			'edit' => sprintf(
+			'edit'   => sprintf(
 				'<a href="%s">' . esc_html__( 'Edit', 'mb-custom-table' ) . '</a>',
 				add_query_arg( [
 					'model-action' => 'edit',
@@ -119,10 +119,10 @@ class ListTable extends \WP_List_Table {
 				'<a href="#" data-id="%d">' . esc_html__( 'Delete', 'mb-custom-table' ) . '</a>',
 				$item['ID'],
 				$this->model->name
-			)
+			),
 		];
 
-		$actions = apply_filters( "mbct_{$this->model->name}_row_actions", $actions );
+		$actions = apply_filters( "mbct_{$this->model->name}_row_actions", $actions, $item, $column_name );
 
 		return $this->row_actions( $actions );
 	}
@@ -132,6 +132,6 @@ class ListTable extends \WP_List_Table {
 			'bulk-delete' => __( 'Delete', 'mb-custom-table' ),
 		];
 
-		return $actions;
+		return apply_filters( "mbct_{$this->model->name}_bulk_actions", $actions );
 	}
 }

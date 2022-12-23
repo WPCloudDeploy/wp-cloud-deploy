@@ -9,24 +9,59 @@
 
 require_once 'class-ct-admin.php';
 
+/**
+ * Custom table base class
+ */
 abstract class WPCD_MB_Custom_Table {
 	
-	
+	/**
+	 * Model slug
+	 * 
+	 * @var string
+	 */
 	public $model_name = '';
-	public $table_name = '';
 	
-	public $is_child_model = false;
-	
+	/**
+	 * View Type is public or admin
+	 * 
+	 * @var string 
+	 */
 	public $view_type = '';
 	
+	/**
+	 * Instance on custom table model class
+	 * 
+	 * @var \MetaBox\CustomTable\Model 
+	 */
 	public $model;
 	
+	/**
+	 * Instance of WPCD_CT_Admin class to handle admin view
+	 * 
+	 * @var WPCD_CT_Admin 
+	 */
 	public $admin;
 	
+	/**
+	 * Instance of custom table api class
+	 * 
+	 * @var Object 
+	 */
 	public $api;
 	
+	/**
+	 * name of meta table name for custom table
+	 */
 	const META_TABLE_NAME = 'wpcd_ct_model_meta';
 	
+	
+	/**
+	 * Return instance of custom table object by model name
+	 * 
+	 * @param string $model_name
+	 * 
+	 * @return object|null
+	 */
 	public static function get( $model_name ) {
 		
 		$class_name_prefix = 'WPCD_CT_';
@@ -39,12 +74,9 @@ abstract class WPCD_MB_Custom_Table {
 		return null;
 	}
 	
-	
-	
-	
-	
-	
-
+	/**
+	 * Constructor.
+	 */
 	public function __construct() {
 		
 		$this->api = WPCD_Custom_Table_API::get( $this->get_model_name() );
@@ -63,10 +95,7 @@ abstract class WPCD_MB_Custom_Table {
 		add_action("wp_ajax_wpcd_{$this->get_model_name()}_save_inline_edit", array( $this, 'save_inline_edit') );
 		add_action("wp_ajax_wpcd_{$this->get_model_name()}_save_inline_add", array( $this, 'save_inline_edit') );
 		
-		
-		//add_action("wp_ajax_wpcd_ct_{$this->get_model_name()}_items_table_view", array( $this, 'ajax_child_items_table') );
 		add_action("wp_ajax_wpcd_ct_{$this->get_model_name()}_delete_item", array( $this, 'ajax_handle_delete_item' ) );
-		
 		add_filter( "mbct_{$this->get_model_name()}_row_actions", array( $this, 'table_row_actions'), 20, 2 );
 		
 		
@@ -83,7 +112,13 @@ abstract class WPCD_MB_Custom_Table {
 	}
 	
 	
-	
+	/**
+	 * Fires on activation of plugin.
+	 *
+	 * @param  boolean $network_wide    True if plugin is activated network-wide.
+	 *
+	 * @return void
+	 */
 	public static function Activate( $network_wide ) {
 		if ( is_multisite() && $network_wide ) {
 			// Get all blogs in the network.
@@ -98,7 +133,11 @@ abstract class WPCD_MB_Custom_Table {
 		}
 	}
 	
-	
+	/**
+	 * Create tables on Activation of the plugin.
+	 *
+	 * @return void
+	 */
 	public static function do_activate() {
 		
 		$provider = WPCD_MB_Custom_Table::get( 'provider' );
@@ -120,15 +159,28 @@ abstract class WPCD_MB_Custom_Table {
 			'meta_value'		=> 'varchar(250) DEFAULT NULL'
 		);
 		
-		
 		MetaBox\CustomTable\API::create( $provider->get_meta_table_name(), $meta_table_columns, [], true );
 	}
 
+	/**
+	 * Return name of meta table for custom tables
+	 * 
+	 * @return string
+	 */
 	public function get_meta_table_name() {
 		return $this->api->get_meta_table_name();
 	}
 	
-	
+	/**
+	 * Return content for owner and parent columns
+	 * 
+	 * @param string $output
+	 * @param string $column
+	 * @param array $item
+	 * @param string $model
+	 * 
+	 * @return string
+	 */
 	function column_output( $output, $column, $item, $model ) {
 		
 		if( $column == 'owner' ) {
@@ -140,14 +192,26 @@ abstract class WPCD_MB_Custom_Table {
 		return $output;
 	}
 	
+	/**
+	 * Add nonce field in ajax forms
+	 * 
+	 * @param object $metabox
+	 */
 	function inline_edit_metabox_add_nonce_field( $metabox ) {
 		printf('<input type="hidden" name="nonce" value="%s" />', $this->get_nonce( $this->action() ) );
 	}
 	
+	/**
+	 * Check if form is submitted and try to save
+	 * 
+	 * @global string $wpcd_ct_validation_error
+	 * @global string $wpcd_ct_current_main_page_model
+	 * 
+	 * @return void
+	 */
 	public function maybe_save_meta_boxes() {
 		global $wpcd_ct_validation_error, $wpcd_ct_current_main_page_model;
 		// Save.
-		
 		
 		if ( ! ( isset( $_POST['wpcd_ct_submit'] ) && $this->is_custom_table_page() ) ) {
 			return;
@@ -171,14 +235,21 @@ abstract class WPCD_MB_Custom_Table {
 	}
 	
 	
+	/**
+	 * Save custom table form data
+	 * 
+	 * @global object $wpdb
+	 * 
+	 * @param object $model
+	 * 
+	 * @return void
+	 */
 	public function do_save_model( $model ) {
 		
 		if ( empty( $_POST['submit'] ) ) {
 			return;
 		}
 		
-		
-
 		// Get the correct inserted ID when add new model.
 		global $wpdb;
 		
@@ -186,18 +257,13 @@ abstract class WPCD_MB_Custom_Table {
 
 		$this->add_encrypt_filters();
 		
-		rwmb_get_registry('meta_box')->get( $this->form_meta_box_id() )->save_post( $object_id );
-		
-		
+		$save_object_id = empty($object_id) ? 'eoid_'. wp_generate_password(6, false) : $object_id;	
+		rwmb_get_registry('meta_box')->get( $this->form_meta_box_id() )->save_post( $save_object_id );
 		
 		$this->remove_encrypt_filters();
 		
-		
 		$allowed_roles = filter_input( INPUT_POST, 'allowed_roles', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY );
 		$allowed_users = filter_input( INPUT_POST, 'allowed_users', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY );
-		
-		
-		
 		$allowed_roles = !is_array( $allowed_roles ) ? array() : $allowed_roles;
 		$allowed_users = !is_array( $allowed_users ) ? array() : $allowed_users;
 		
@@ -207,28 +273,22 @@ abstract class WPCD_MB_Custom_Table {
 			$object_id = $wpdb->insert_id;
 			$message   = 'added';
 			
-			
 			if( !wpcd_is_admin() ) {
-				
 				$current_user_id = get_current_user_id();
-				
 				if( !in_array( $current_user_id, $allowed_users ) ) {
 					$allowed_users[] = $current_user_id;
 				}
 			}
-			
 		}
 		
 		$this->api->update_meta_values( $object_id, 'allowed_roles', $allowed_roles );
 		$this->api->update_meta_values( $object_id, 'allowed_users', $allowed_users );
-		
 		$owner = rwmb_request()->filter_post( 'owner', FILTER_SANITIZE_NUMBER_INT );
 		
 		if( 'add' === $this->action() && $object_id && !$owner ) {
 			$this->api->update_owner( $object_id );
 		}
 		
-
 		$url = add_query_arg( [
 			'model-action'  => 'edit',
 			'model-id'      => $object_id,
@@ -238,23 +298,23 @@ abstract class WPCD_MB_Custom_Table {
 		die();
 	}
 	
-	
+	/**
+	 * Add filters to encrypt data before saving
+	 */
 	function add_encrypt_filters() {}
 	
+	/**
+	 * Remove filters to encrypt data before saving
+	 */
 	function remove_encrypt_filters() {}
 	
-	public function get_by_id( $id ) {
-		global $wpdb;
-		
-		$q = 'SELECT * FROM ' . $this->api->get_table_name() . ' WHERE ID=%d';
-		$row = $wpdb->get_row( $wpdb->prepare( $q, $id ) );
-		
-		return $row;
-	}
-	
-	
-	
-	
+	/**
+	 * Check if page exists
+	 * 
+	 * @param boolean $force_check
+	 * 
+	 * @return boolean
+	 */
 	public function page_exists( $force_check = false ) {
 
 		$page_id = $this->get_page_id();
@@ -266,46 +326,61 @@ abstract class WPCD_MB_Custom_Table {
 				$page_id = false;
 			}
 		}
-
 		return $page_id;
 	}
 	
-	
+	/**
+	 * Return option name that store front-end page id
+	 * 
+	 * @return string
+	 */
 	public function get_page_id_option_name() {
 		return "wpcd_ct_{$this->get_model_name()}_page_id";
 	}
 	
+	/**
+	 * Return front-end page id
+	 * 
+	 * @return int
+	 */
 	public function get_page_id() {
 		return get_option( $this->get_page_id_option_name() );
 	}
 	
+	/**
+	 * Return admin listing page url
+	 * 
+	 * @return string
+	 */
 	public function admin_listing_page_url() {
 		return add_query_arg( array('post_type' => 'wpcd_app_server', 'page' => "model-{$this->get_model_name()}"), get_admin_url(null, 'edit.php') );
 	}
 	
+	/**
+	 * Return public listing page url
+	 * 
+	 * @return string
+	 */
 	public function public_listing_page_url() {
 		
 		$page_id =  $this->get_page_id();
 		return get_permalink( $page_id );
 	}
 	
-	
+	/**
+	 * Return table row action
+	 * 
+	 * @param array $actions
+	 * @param array $item
+	 * 
+	 * @return array
+	 */
 	public function table_row_actions( $actions, $item = array() ) {
 		
 		if( $this->is_custom_table_page() ) {
 			
 			unset($actions['delete']);
-			if( $this->is_child_model ) {
-				$actions['edit'] = sprintf(
-					'<a href="%s" class="mp_edit_inline">' . esc_html__( 'Edit', 'mb-custom-table' ) . '</a>',
-					add_query_arg( [
-						'action' =>  "wpcd_{$this->model->name}_inline_edit",
-						'model-id'     => $item['ID'],
-					], admin_url( "admin-ajax.php" ) )
-				);
-				
-			} else {
-				
+			if( $this->is_child_model ) {				
 				$actions['edit'] = sprintf(
 					'<a href="%s">' . esc_html__( 'Edit', 'mb-custom-table' ) . '</a>',
 					add_query_arg( [
@@ -324,18 +399,16 @@ abstract class WPCD_MB_Custom_Table {
 				);
 		}
 		
-		
 		return $actions;
 	}
 	
-	
-	
-	
-	public function public_page_id() {
-		return get_option( 'wpcd_public_servers_list_page_id');
-	}
-	
-	
+	/**
+	 * Check if its a public custom table page
+	 * 
+	 * @staticvar boolean $is_public_page
+	 * 
+	 * @return boolean
+	 */
 	public function is_public_custom_table_page() {
 		
 		static $is_public_page = null;
@@ -350,13 +423,23 @@ abstract class WPCD_MB_Custom_Table {
 		return $is_public_page;
 	}
 	
+	/**
+	 * Check if its a admin custom table page
+	 * 
+	 * @return boolean
+	 */
 	public function is_admin_custom_table_page() {
 		$is_custom_table_page = rwmb_request()->get( 'page' ) == 'model-'.$this->get_model_name();
-		
 		return $is_custom_table_page;
 	}
 	
-	
+	/**
+	 * Return current public page id
+	 * 
+	 * @global int $wpcd_current_public_page_id
+	 * 
+	 * @return int
+	 */
 	public function get_current_public_page_id() {
 		global $wpcd_current_public_page_id;
 		
@@ -370,7 +453,6 @@ abstract class WPCD_MB_Custom_Table {
 		
 		$id = '';
 		
-		
 		$_server_name = isset( $_SERVER['SERVER_NAME'] ) ? $_SERVER['SERVER_NAME'] : parse_url( home_url( '/' ), PHP_URL_HOST );
 		$id = url_to_postid( 'http://' . $_server_name . $_SERVER['REQUEST_URI'] );
 		
@@ -378,9 +460,12 @@ abstract class WPCD_MB_Custom_Table {
 		return $wpcd_current_public_page_id;
 	}
 	
-	
+	/**
+	 * Is it custom page page public or admin
+	 * 
+	 * @return boolean
+	 */
 	public function is_custom_table_page() {
-		
 		if( is_admin() ) {
 			return $this->is_admin_custom_table_page();
 		} else {
@@ -390,23 +475,42 @@ abstract class WPCD_MB_Custom_Table {
 		}
 	}
 	
-	
+	/**
+	 * Is it item edit screen
+	 * 
+	 * @return boolean
+	 */
 	public function is_item_edit_screen() {
 		$action = rwmb_request()->get( 'model-action' );
 		return ( $action === 'edit' );
 	}
 	
+	/**
+	 * Is it item add screen
+	 * 
+	 * @return boolean
+	 */
 	public function is_item_add_screen() {
 		$action = rwmb_request()->get( 'model-action' );
 		return ( $action === 'add' );
 	}
 	
+	/**
+	 * Is it item add/edit screen
+	 * 
+	 * @return boolean
+	 */
 	public function is_item_add_edit_screen() {
-		
 		return ( $this->is_item_add_screen() || $this->is_item_edit_screen() );
 	}
 	
-	
+	/**
+	 * Return content for child items table on admin-end
+	 * 
+	 * @param int $model_id
+	 * 
+	 * @return string
+	 */
 	public function display_child_items_table( $model_id ) {
 		ob_start();
 		
@@ -421,9 +525,14 @@ abstract class WPCD_MB_Custom_Table {
 		return ob_get_clean();
 	}
 	
-	
+	/**
+	 * Return content for child items table on front-end
+	 * 
+	 * @param int $model_id
+	 * 
+	 * @return string
+	 */
 	public function display_public_child_items_table( $model_id ) {
-		
 		ob_start();
 		
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/public/custom-table/class-wpcd-public-ct-childs-list-table.php';
@@ -439,7 +548,9 @@ abstract class WPCD_MB_Custom_Table {
 		return ob_get_clean();
 	}
 	
-	
+	/**
+	 * Display front-end table
+	 */
 	public function display_public_table() {
 		
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/public/custom-table/class-ct-public-list-table.php';
@@ -453,7 +564,9 @@ abstract class WPCD_MB_Custom_Table {
 			
 	}
 	
-	
+	/**
+	 * Display front-end edit screen
+	 */
 	function display_public_edit_screen() {
 		
 		$action = rwmb_request()->get( 'model-action' );
@@ -466,6 +579,11 @@ abstract class WPCD_MB_Custom_Table {
 		}
 	}
 	
+	/**
+	 * Return content for submit box
+	 * 
+	 * @return string
+	 */
 	public function submit_box() {
 
 		$delete_url = wp_nonce_url( add_query_arg( 'model-action', 'delete' ), 'delete' );
@@ -498,17 +616,25 @@ abstract class WPCD_MB_Custom_Table {
 	}
 	
 	
-	
+	/**
+	 * Trigger save data via ajax
+	 */
 	function save_inline_edit() {
 		add_action( 'mbct_model_edit_load', array( $this, 'ajax_save_meta_box' ), 1 );
 		do_action('mbct_model_edit_load');
 		die();
 	}
 	
-	
+	/**
+	 * Call after custom table data saved via ajax
+	 * 
+	 * @param int $item_id
+	 */
 	function after_save_metabox( $item_id ) {}
 	
-
+	/**
+	 * Save custom table form via ajax
+	 */
 	function ajax_save_meta_box() {
 
 		$object_id = rwmb_request()->filter_post( 'model-id', FILTER_SANITIZE_NUMBER_INT );
@@ -522,8 +648,9 @@ abstract class WPCD_MB_Custom_Table {
 		
 		if( $validate_result['success'] ) {
 			rwmb_request()->set_get_data( array('page' => "model-{$this->get_model_name()}") );
-			$metabox->save_post( $object_id );
 			
+			$save_object_id = empty($object_id) ? 'eoid_'. wp_generate_password(6, false) : $object_id;	
+			$metabox->save_post( $save_object_id );
 			$this->after_save_metabox( $object_id );
 		}
 		
@@ -531,42 +658,52 @@ abstract class WPCD_MB_Custom_Table {
 		die();
 	}
 	
+	/**
+	 * Print data validation error message
+	 * 
+	 * @global string $wpcd_ct_validation_error
+	 */
 	public function validation_error_notice() {
 		global $wpcd_ct_validation_error;
 		
 		$class = 'notice notice-error';
 		$message = $wpcd_ct_validation_error;
-
 		printf( '<div class="%1$s"><p>%2$s</p></div>', esc_attr( $class ), esc_html( $message ) ); 
 	}
 	
-	
+	/**
+	 * Return current view admin or public
+	 * 
+	 * @staticvar string $view
+	 * 
+	 * @return string
+	 */
 	public function get_view() {
 		static $view;
 		
 		if( !$view ) {
-			
 			$view = (is_admin() ? 'admin' : 'public');
-			
 			if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
-				
 				$view = filter_input( INPUT_POST, 'view', FILTER_SANITIZE_STRING );
-				
 				if( empty( $view ) ) {
 					$view = filter_input( INPUT_GET, 'view', FILTER_SANITIZE_STRING );
 				}
 			}
 		}
-		
 		return $view;
 	}
 	
-	
+	/**
+	 * Return current action
+	 * 
+	 * @staticvar string $action
+	 * 
+	 * @return string
+	 */
 	public function action() {
 		static $action;
 		
 		if( !$action ) {
-			
 			$action = '';
 			if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
 				$_action = filter_input( INPUT_POST, 'action', FILTER_SANITIZE_STRING );
@@ -574,11 +711,8 @@ abstract class WPCD_MB_Custom_Table {
 				if( empty( $_action ) ) {
 					$_action = filter_input( INPUT_GET, 'action', FILTER_SANITIZE_STRING );
 				}
-				
 				$_action_parts = explode( '_', $_action );
-				
 				$action =  end( $_action_parts );
-				
 			} else {
 				$action = rwmb_request()->get( 'model-action' );
 			}
@@ -587,15 +721,32 @@ abstract class WPCD_MB_Custom_Table {
 		return $action;
 	}
 	
+	/**
+	 * Return model display name
+	 * 
+	 * @return string
+	 */
 	function get_model_display_name() {
 		return strtolower( $this->model->labels['singular_name'] );
 	}
 	
+	/**
+	 * Default permission error message for an action
+	 * 
+	 * @param string $action
+	 * 
+	 * @return string
+	 */
 	function default_permission_error( $action ) {
 		$default_error = sprintf( 'You are not allowed to %s %s.', $action, $this->get_model_display_name() );
 		return $default_error;
 	}
 	
+	/**
+	 * Print window with error message
+	 * 
+	 * @param string $message
+	 */
 	public function print_error_window( $message ) {
 		?>
 		<div id="mb_ct_<?php echo $this->get_model_name();?>_edit_form" class="wpcd_mb_inline_edit_form_window">
@@ -603,20 +754,20 @@ abstract class WPCD_MB_Custom_Table {
 			<div><?php echo $message; ?></div>
 			
 			<div class="rwmb-field rwmb-buttons-wrapper wpcd_ct_buttons_row">
-					<div class="rwmb-label">
-							<button type="button" class="mfp-close-window-button">Cancel</button>
-						
-					</div>
-					<div class="rwmb-input">
-						<button type="button" class="mfp-close"></button>
-						
-					</div>
+				<div class="rwmb-label">
+					<button type="button" class="mfp-close-window-button">Cancel</button>
 				</div>
+				<div class="rwmb-input">
+					<button type="button" class="mfp-close"></button>
+				</div>
+			</div>
 		</div>
-
 		<?php
 	}
 	
+	/**
+	 * Return content for ajax add/edit form
+	 */
 	function inline_edit_form() {
 
 		$model_id = filter_input( INPUT_GET, 'model-id', FILTER_SANITIZE_NUMBER_INT );
@@ -627,7 +778,6 @@ abstract class WPCD_MB_Custom_Table {
 		$view = filter_input( INPUT_GET, 'view', FILTER_SANITIZE_STRING );
 		$permission = $this->add_edit_form_permissions( $type, $parent_id, $model_id );
 		
-		
 		if( !$permission['has_access'] ) {
 			$this->print_error_window( $permission['message'] );
 			die();
@@ -636,18 +786,15 @@ abstract class WPCD_MB_Custom_Table {
 			die();
 		}
 		
-		
 		$metabox_id = $this->inline_edit_metabox();
 
 		$metabox = rwmb_get_registry( 'meta_box' )->get( $metabox_id );
 		$metabox->set_object_id( $model_id );
 		
-		
 		ob_start();
 
 		$action = "wpcd_{$this->get_model_name()}_save_inline_{$type}";
 		$title = ( $type == 'edit' ) ? 'Edit' : 'Add' . ' ' . $this->model->labels['singular_name'];
-		
 		
 		?>
 
@@ -683,9 +830,13 @@ abstract class WPCD_MB_Custom_Table {
 		die();
 	}
 	
-	
-	
-	
+	/**
+	 * Return url of listing page
+	 * 
+	 * @param string $view
+	 * 
+	 * @return string
+	 */
 	function get_listing_page_url( $view = 'public' ) {
 			
 		if( $view == 'admin' ){
@@ -697,32 +848,78 @@ abstract class WPCD_MB_Custom_Table {
 	}
 	
 	
+	/**
+	 * Verify nonce field
+	 * 
+	 * @param string $action
+	 * 
+	 * @return boolean
+	 */
 	public function verify_nonce( $action ) {
 		
 		$nonce = filter_input( INPUT_POST, 'nonce', FILTER_SANITIZE_STRING );
 		return wp_verify_nonce( $nonce, $this->nonce_action( $action ) );
 	}
 	
+	/**
+	 * Get nonce action
+	 * 
+	 * @param string $action
+	 * 
+	 * @return string
+	 */
 	public function nonce_action( $action ) {
 		
 		$nonce_action = $action . '_' . $this->get_model_name();
 		return $nonce_action;
 	}
 	
+	/**
+	 * Create nonce for an action
+	 * 
+	 * @param string $action
+	 * 
+	 * @return string
+	 */
 	public function get_nonce( $action ) {
 		return wp_create_nonce( $this->nonce_action( $action ) );
 	}
 	
+	/**
+	 * Get nonce for a view
+	 * 
+	 * @param string $type
+	 * @param string $action
+	 * 
+	 * @return string
+	 */
 	function get_view_nonce( $type, $action ) {
 		return wp_create_nonce( "{$type}_{$action}" );
 	}
 	
+	/**
+	 * Verify nonce for a view
+	 * 
+	 * @param string $type
+	 * @param string $action
+	 * @param string $nonce
+	 * 
+	 * @return boolean
+	 */
 	public function verify_view_nonce( $type, $action, $nonce ) {
-		
 		return wp_verify_nonce( $nonce, "{$type}_{$action}" );
 	}
 	
-	
+	/**
+	 * Check permission for an action ie(add/edit/delete)
+	 * 
+	 * @param string $action
+	 * @param int $item_id
+	 * @param int $user_id
+	 * @param string $view
+	 * 
+	 * @return boolean
+	 */
 	function check_action_permission( $action, $item_id = 0, $user_id = null, $view = 'admin' ) {
 		
 		$has_access = false;
@@ -744,9 +941,12 @@ abstract class WPCD_MB_Custom_Table {
 		return $has_access;
 	}
 	
-	
+	/**
+	 * Check if user can view main page of a custom table
+	 * 
+	 * @return array
+	 */
 	public function check_main_page_permission() {
-		
 		$object_id = rwmb_request()->filter_get( 'model-id', FILTER_SANITIZE_NUMBER_INT );
 		
 		$action = $this->action();
@@ -758,15 +958,11 @@ abstract class WPCD_MB_Custom_Table {
 		if( !get_current_user_id() ) {
 			return array( 'has_access' => $has_access, 'message' => 'You don\'t have access to this page.' );
 		}
-		
-		
 		$has_access = $this->check_action_permission( $action, $object_id, null, $this->get_view() );
-		
 		
 		if( !$has_access ) {
 			
 			$listing_url = remove_query_arg( array( 'model-id', 'model-action', 'model-message' ) );
-			
 			$back_link = sprintf( '<a href="%s">%s</a>', $listing_url, 'Back to ' . $this->model->labels['name'] );
 			$message = sprintf( '<div class="notice notice-error"><p>%s %s</p></div>', $this->default_permission_error( $action ), $back_link ); 
 		}
@@ -776,11 +972,20 @@ abstract class WPCD_MB_Custom_Table {
 		return $result;
 	}
 	
-	
+	/**
+	 * Return Table name
+	 * 
+	 * @return type
+	 */
 	public function get_table_name() {
 		return $this->api->get_table_name();
 	}
 	
+	/**
+	 * Return model name
+	 * 
+	 * @return string
+	 */
 	public function get_model_name() {
 		return $this->model_name;
 	}
@@ -811,9 +1016,11 @@ abstract class WPCD_MB_Custom_Table {
 		return WPCD()->decrypt( $meta );
 	}
 
-
-	
-	
+	/**
+	 * Return allowed roles from settings
+	 * 
+	 * @return array
+	 */
 	function get_setting_add_allowed_roles() {
 		
 		$setting = '';
@@ -836,30 +1043,28 @@ abstract class WPCD_MB_Custom_Table {
 		return $roles;
 	}
 	
-	
+	/**
+	 * Check if user can add new item
+	 * 
+	 * @param int $user_id
+	 * 
+	 * @return boolean
+	 */
 	public function user_can_add( $user_id = null ) {
 		
 		if( true === wpcd_is_admin() ) {
 			return true;
 		}
-		
-		
-		
 		if( null === $user_id ) {
 			$user_id = get_current_user_id();
 		}
-		
-		
-		
 		if( !$user_id ) {
 			return;
 		}
 		
 		$allowed_roles = $this->get_setting_add_allowed_roles();
 		
-		
 		foreach( $allowed_roles  as $role ) {
-			
 			if( wpcd_user_has_role( $user_id, $role ) ) {
 				return true;
 			}
@@ -869,7 +1074,14 @@ abstract class WPCD_MB_Custom_Table {
 	}
 	
 	
-	
+	/**
+	 * Check if user can edit an item
+	 * 
+	 * @param int $item_id
+	 * @param int $user_id
+	 * 
+	 * @return boolean
+	 */
 	public function user_can_edit( $item_id, $user_id = 0 ) {
 		
 		if( !$item_id ) {
@@ -881,7 +1093,6 @@ abstract class WPCD_MB_Custom_Table {
 		if( !$item ) {
 			return false;
 		}
-		
 		if( true === wpcd_is_admin() ) {
 			return true;
 		}
@@ -905,16 +1116,29 @@ abstract class WPCD_MB_Custom_Table {
 				return true;
 			}
 		}
-		
 		return false;
 	}
 	
-	
+	/**
+	 * Check if user can delete item
+	 * 
+	 * @param int $item_id
+	 * 
+	 * @return boolean
+	 */
 	public function user_can_delete( $item_id ) {
-		
 		return $this->user_can_edit( $item_id );
 	}
 	
+	/**
+	 * Return allowed users field values
+	 * 
+	 * @param array $new
+	 * @param array $field
+	 * @param array $old
+	 * 
+	 * @return array
+	 */
 	function field_allowed_users( $new, $field, $old ) {
 		
 		$object_id = rwmb_request()->get('model-id');
@@ -931,11 +1155,17 @@ abstract class WPCD_MB_Custom_Table {
 		}
 		
 		return $new;
-		
 	}
 	
-	
-	
+	/**
+	 * Return allowed roles field values
+	 * 
+	 * @param array $new
+	 * @param array $field
+	 * @param array $old
+	 * 
+	 * @return array
+	 */
 	function field_allowed_roles( $new, $field, $old ) {
 		
 		$object_id = rwmb_request()->get('model-id');
@@ -954,14 +1184,16 @@ abstract class WPCD_MB_Custom_Table {
 		return $new;
 	}
 	
-	
-	
+	/**
+	 * Return table items
+	 * 
+	 * @param array $args
+	 * @param int $user_id
+	 * 
+	 * @return array
+	 */
 	function get_items( $args = array(), $user_id = null ) {
-		
 		return $this->api->get_items_by_permission( $args, $user_id );
-		
 	}
-	
-	
 	
 }

@@ -164,7 +164,7 @@ class Storage {
 		$id = isset( $row['ID'] ) ? $row['ID'] : null;
 		do_action( 'mbct_before_add', $id, $this->table, $row );
 		$output = $wpdb->insert( $this->table, $row );
-		do_action( 'mbct_after_add', $id, $this->table, $row );
+		do_action( 'mbct_after_add', $wpdb->insert_id, $this->table, $row );
 		return $output;
 	}
 

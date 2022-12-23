@@ -53,6 +53,32 @@ class WPCD_CT_Childs_List_Table extends WPCD_CT_List_Table {
 		return apply_filters( "mbct_{$this->model->name}_columns", $columns );
 	}
 	
+	
+	public function item_link( $item ) {
+		
+		$custom_table = WPCD_MB_Custom_Table::get($this->model->name);
+		$view = $custom_table->get_view();
+		
+		return add_query_arg( [
+					'action' =>  "wpcd_{$this->model->name}_inline_edit",
+					'model-id'     => apply_filters("wpcd_ct_{$this->model->name}_child_table_item_id", $item['ID'], $item ),
+					'parent-id'		=> isset( $item['parent_id'] ) ?  $item['parent_id'] : '',
+					'nonce'			=> $custom_table->get_view_nonce( $view, "edit_{$this->model->name}" ),
+					'view'			=> $view,
+				], admin_url( "admin-ajax.php" ) );
+		
+	}
+	/**
+	 * ID column content
+	 * 
+	 * @param array $item
+	 * 
+	 * @return string
+	 */
+	public function column_id( $item ) {
+		return sprintf( '<a href="%s" class="mp_edit_inline">#%d</a>', $this->item_link( $item ) , $item['ID'] );
+	}
+	
 	/**
 	 * Prepare table items
 	 */
@@ -157,18 +183,10 @@ class WPCD_CT_Childs_List_Table extends WPCD_CT_List_Table {
 		
 		$custom_table = WPCD_MB_Custom_Table::get($this->model->name);
 		
-		$view = $custom_table->get_view();
-		
 		$actions = [
 			'wpcd-ct-edit' => sprintf(
 				'<a href="%s" class="wpcd-ct-edit-child-item mp_edit_inline">' . esc_html__( 'Edit', 'mb-custom-table' ) . '</a>',
-				add_query_arg( [
-					'action' =>  "wpcd_{$this->model->name}_inline_edit",
-					'model-id'     => apply_filters("wpcd_ct_{$this->model->name}_child_table_item_id", $item['ID'], $item ),
-					'parent-id'		=> isset( $item['parent_id'] ) ?  $item['parent_id'] : '',
-					'nonce'			=> $custom_table->get_view_nonce( $view, "edit_{$this->model->name}" ),
-					'view'			=> $view,
-				], admin_url( "admin-ajax.php" ) )
+				$this->item_link( $item )
 			),
 			'wpcd-ct-delete' => sprintf(
 				'<a href="#" data-id="%d" data-model="%s" data-nonce="%s" class="wpcd-ct-delete-child-item">' . esc_html__( 'Delete', 'mb-custom-table' ) . '</a>',

@@ -2897,6 +2897,8 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 	 */
 	public function handle_git_push_to_deploy_notification( WP_REST_Request $data ) {
 
+		// @TODO: Ignore the event if it's not a 'push'.
+
 		// Get the secret from the X-Hub-Signature header.
 		$signature = sanitize_text_field( $_SERVER['HTTP_X_HUB_SIGNATURE'] );
 
@@ -2946,7 +2948,6 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 
 		// If the current push is not for one of the branches, do nothing.
 		if ( ! in_array( $branch, $trigger_branches, true ) ) {
-
 			do_action( 'wpcd_log_error', sprintf( 'Git push-to-deploy webhook cannot be handled because the pushed branch %s do not match any of the defined action branches for this site. App Id: %s', $branch, $id ), 'error', __FILE__, __LINE__, $instance, false );
 			return false;
 		}

@@ -1739,6 +1739,23 @@ function gf_remove_maintenance_mode_for_site() {
 }
 
 #####################################################################
+### Get user name for domain
+###
+### @param $1 Domain
+###
+### @return g_domain_user_name
+#####################################################################
+function gf_get_domain_user_name() {
+
+	# setup local variables from parameters passed in.
+	local domain
+	domain=$1
+
+	g_domain_user_name=$(echo $domain | cut -c1-32)
+
+}
+
+#####################################################################
 ### Get database host for domain
 #####################################################################
 function gf_get_dbhost() {
@@ -1899,12 +1916,12 @@ function gf_set_domain_metadata(){
 ###############################################################################################
 ### Return Metadata
 ###
-### Eg Usage: gf_get_wpcd_metadata -t metatype -d domain-name -k key -f default-value 
+### Eg Usage: gf_get_metadata -t metatype -d domain-name -k key -f default-value 
 ###
-### $1: Metadata Type - can be one of two values 'sites' or 'server'
-### $2: Metadata key - the key to be read from the meta file.
-### $3: Default value - the default value to use if no data is found for the requested key.
-### $3: Domain - Only required if $1 is 'sites'
+### Metadata Type - can be one of three values 'domain' 'sites' or 'server'
+### Metadata key - the key to be read from the meta file.
+### Default value - the default value to use if no data is found for the requested key.
+### Domain - Only required if requesting data of type 'domain'
 ###
 ### @return: wpcd_metavalue is global variable in which requested metadata will be placed.
 ###############################################################################################

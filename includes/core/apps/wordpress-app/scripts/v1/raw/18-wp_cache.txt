@@ -46,11 +46,13 @@ then
 	if [ "$g_webserver_type" = "nginx" ]
 	then
 		su - $user_name -c "wp plugin install --activate cache-enabler"
-		su - $user_name -c "wp --skip-plugins config set WP_CACHE true"
+		# Line below removed because WP_CACHE constant relates to the wp object cache, not the page cache.
+		# su - $user_name -c "wp --skip-plugins config set WP_CACHE true"
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
 		su - $user_name -c "wp --skip-plugins plugin install litespeed-cache && wp --skip-plugins plugin activate litespeed-cache && wp litespeed-online init"
-		su - $user_name -c "wp --skip-plugins config set WP_CACHE true"
+		# Line below removed because WP_CACHE constant relates to the wp object cache, not the page cache.
+		# su - $user_name -c "wp --skip-plugins config set WP_CACHE true"
 	fi
 	gf_restart_webserver
 	echo
@@ -65,11 +67,15 @@ then
 	then
 		su - $user_name -c "wp plugin deactivate cache-enabler"
 		su - $user_name -c "wp plugin uninstall cache-enabler"
-		su - $user_name -c "wp --skip-plugins config set WP_CACHE false"
+		# Line below removed because WP_CACHE constant relates to the wp object cache, not the page cache.
+		# su - $user_name -c "wp --skip-plugins config set WP_CACHE false"
+		#
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
 		su - $user_name -c "wp --skip-plugins plugin deactivate litespeed-cache && wp --skip-plugins plugin uninstall litespeed-cache"
-		su - $user_name -c "wp --skip-plugins config set WP_CACHE false"
+		# Line below removed beecause WP_CACHE constant relates to the wp object cache, not the page cache.
+		# su - $user_name -c "wp --skip-plugins config set WP_CACHE false"
+		#
 	fi
 	gf_restart_webserver
 	echo

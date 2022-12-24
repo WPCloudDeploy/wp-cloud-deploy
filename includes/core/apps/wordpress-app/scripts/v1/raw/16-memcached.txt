@@ -102,6 +102,7 @@ then
 		# Install the WP object cache plugin for memcached
 		su - $user_name -c "wget https://github.com/Automattic/wp-memcached/raw/master/object-cache.php -O /var/www/$domain/html/wp-content/object-cache.php"
 		chmod -R g+w /var/www/$domain/html/wp-content/object-cache.php
+		su - $user_name -c "wp --skip-plugins config set WP_CACHE true"
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
 		su - $user_name -c "wp plugin list|grep -q litespeed-cache"
@@ -115,6 +116,7 @@ then
 		else
 			su - "$user_name" -c "wp --skip-plugins plugin install litespeed-cache && wp --skip-plugins plugin activate litespeed-cache && wp litespeed-online init"
 		fi
+		su - $user_name -c "wp --skip-plugins config set WP_CACHE true"
 		su - "$user_name" -c "wp litespeed-option set object true && wp litespeed-option set object-port 11211 && wp litespeed-option set object-host 127.0.0.1 && wp litespeed-option set object-kind 0 && wp cache flush"
 	fi
 

@@ -84,11 +84,18 @@ then
 	exit
 fi
 
+# Clean up some stuff just in case this domain was installed on this server and not removed cleanly.
+rm -rf /etc/wpcd/$domain  # Remove metas.
+
+# Make site folder
 mkdir -p "${wphome}/logs"
+
+# Set permissions for new site folder.
 useradd -d "${wphome}" -g www-data -M -s "/bin/bash" "${user_name}"
 chown -R "${user_name}":www-data "${wphome}"
 chmod -R g+ws "$wphome"
 
+# Add virtual host files for webserver.
 if [ "$g_webserver_type" = "nginx" ]
 then
 	echo "The webserver is Nginx....";
@@ -137,6 +144,9 @@ su - "$user_name" -c "wp --skip-plugins --no-color config set CONCATENATE_SCRIPT
 su - "$user_name" -c "wp --skip-plugins --no-color config set DISALLOW_FILE_EDIT true --raw"
 su - "$user_name" -c "wp --skip-plugins --no-color option update permalink_structure '/%postname%'"
 
+# Turn on internal wp object cache
+su - "$user_name" -c "wp --skip-plugins --no-color config set WP_CACHE true"
+
 # permissions for the log file
 su - "$user_name" -c "touch $wphome/wp-content/debug.log"
 
@@ -147,7 +157,6 @@ chmod -R g+ws "$wphome"
 if [ "$g_webserver_type" = "nginx" ]
 then
 	su - "$user_name" -c "wp  --no-color plugin install --activate cache-enabler"
-	su - "$user_name" -c "wp --skip-plugins --no-color config set WP_CACHE true"
 elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 then
 	su - "$user_name" -c "wp --skip-plugins --no-color plugin install litespeed-cache && wp --skip-plugins --no-color plugin activate litespeed-cache && wp --no-color litespeed-online init"

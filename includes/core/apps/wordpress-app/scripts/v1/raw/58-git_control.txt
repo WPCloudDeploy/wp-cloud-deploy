@@ -966,7 +966,6 @@ then
 	# commit any changes.
 	# Note we're not checking errors here since if there are no commits 
 	# we'll get a non-zero error code which is not an error in this instance.
-	# @TODO: Will this handle a message with spaces?
 	git commit -m "$git_commit_msg"
 
 	# Fetch from origin so we know things.
@@ -1133,7 +1132,6 @@ then
 	# commit any changes.
 	# Note we're not checking errors here since if there are no commits 
 	# we'll get a non-zero error code which is not an error in this instance.
-	# @TODO: Will this handle a message with spaces?
 	git commit -m "$git_commit_msg"
 
 	# push changes
@@ -2279,13 +2277,20 @@ then
 		exit
 	fi
 
-	# Start move-backup of existing folders
-	lf_mt_backup_existing_folders_before_site_conversion $domain $mt_template_domain $git_tag
 
-	# link files and folders from template version into domain
-	# @TODO: Check to see if versions folder has a custom copy script file.
-	# If so, use that instead of this one.
-	lf_mt_site_conversion_link_existing_files $domain $mt_template_domain $git_tag
+	# Start backing up existing files and moving files from versioned folder into the site.
+	if [ -f "$mt_version_folder/wpcd_mt_alternative_backup_move_link_files.sh" ]; then
+		# admin has provided an alternative script that will handle moving files around.
+		echo "Alternative backup, move and link files scripts found for multi-tenant site..."
+		dos2unix $mt_version_folder/wpcd_mt_alternative_backup_move_link_files.sh
+		source $mt_version_folder/wpcd_mt_alternative_backup_move_link_files.sh
+	else
+		# Start move-backup of existing folders
+		lf_mt_backup_existing_folders_before_site_conversion $domain $mt_template_domain $git_tag
+
+		# link files and folders from template version into domain
+		lf_mt_site_conversion_link_existing_files $domain $mt_template_domain $git_tag	
+	fi
 
 	# return back to where we were which should be, ~
 	cd ~
@@ -2324,7 +2329,7 @@ then
 	# Prevent WP from attempting to upgrade things.
 	echo "Setting wp-config.php constants to prevent auto-upgrading things..."
 	su - "$user_name" -c "wp --skip-plugins --no-color config set WP_AUTO_UPDATE_CORE false --raw"
-	su - "$user_name" -c "wp --skip-plugins --no-color config set DISALLOW_FILE_EDIT false --raw"
+	su - "$user_name" -c "wp --skip-plugins --no-color config set DISALLOW_FILE_EDIT true --raw"
 
 	# @TODO: Did the version folder have a custom site wp-config.php file?
 	# If so, include it in the site wp-config.php file
@@ -2337,15 +2342,27 @@ then
 	if [ "$is_meta" = "1" ]
 	then
 		# This site was already an MT site. Run upgrade post-processing script if it exists.
-		# xxx-upgrade.sh
 		echo "This is is an existing Multi-Tenant site - checking for upgrade script..."
+		if [ -f "$mt_version_folder/wpcd_mt_upgrade_site_post_upgrade_script.sh" ]; then 
+			echo "Post-upgrade script found for existing multi-tenant site..."
+			dos2unix $mt_version_folder/wpcd_mt_upgrade_site_post_upgrade_script.sh
+			source $mt_version_folder/wpcd_mt_upgrade_site_post_upgrade_script.sh
+		fi
+
+		# Set meta values to note the latest version.
+		gf_set_domain_metadata "MT_TAG_VERSION" $git_tag $domain
 	else
 		# New MT site, run conversion post-processing script.
-		# xxx-convert.sh
 		echo "This is is a new Multi-Tenant site - checking for new install post-processing script..."
+		if [ -f "$mt_version_folder/wpcd_mt_new_site_post_install_script.sh" ]; then 
+			echo "Post-install script found for new multi-tenant site..."
+			dos2unix $mt_version_folder/wpcd_mt_new_site_post_install_script.sh
+			source $mt_version_folder/wpcd_mt_new_site_post_install_script.sh
+		fi
 
 		# Set meta to note that this site is an MT site.
 		gf_set_domain_metadata "IS_MT" '1' $domain
+		gf_set_domain_metadata "MT_TAG_VERSION" $git_tag $domain
 	fi
 
 	# restart the web server.

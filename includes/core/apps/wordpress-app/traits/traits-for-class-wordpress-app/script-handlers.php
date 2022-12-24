@@ -355,6 +355,8 @@ trait wpcd_wpapp_script_handlers {
 				||
 				( strpos( $result, 'Git pull tag succeeded' ) !== false )
 				||
+				( strpos( $result, 'Git fetch tag succeeded' ) !== false )
+				||
 				( strpos( $result, 'Version folder has been removed for' ) !== false )
 				||
 				( strpos( $result, 'All version folders have been removed for' ) !== false )
@@ -363,7 +365,11 @@ trait wpcd_wpapp_script_handlers {
 				||
 				( strpos( $result, 'Git credentials successfully set up for domain' ) !== false )
 				||
-				( strpos( $result, 'Git clone successful' ) !== false );
+				( strpos( $result, 'Git clone successful' ) !== false )
+				||
+				( strpos( $result, 'Multi-tenant: Fetch version succeeded' ) !== false )
+				||
+				( strpos( $result, 'Multi-tenant: Site conversion succeeded' ) !== false );
 				break;
 
 			/**************************************************************

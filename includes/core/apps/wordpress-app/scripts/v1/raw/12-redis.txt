@@ -103,7 +103,6 @@ then
 	then
 		su - $user_name -c "wp plugin install --activate redis-cache"
 		su - $user_name -c "cd /var/www/$domain/html/wp-content/; ln -s ./plugins/redis-cache/includes/object-cache.php ./object-cache.php"
-		su - $user_name -c "wp --skip-plugins config set WP_CACHE true"
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
         then
 		su - $user_name -c "wp plugin list|grep -q litespeed-cache"

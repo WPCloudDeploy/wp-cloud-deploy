@@ -144,7 +144,7 @@ su - "$user_name" -c "wp --skip-plugins --no-color config set CONCATENATE_SCRIPT
 su - "$user_name" -c "wp --skip-plugins --no-color config set DISALLOW_FILE_EDIT true --raw"
 su - "$user_name" -c "wp --skip-plugins --no-color option update permalink_structure '/%postname%'"
 
-# Turn on internal wp object cache
+# Turn on the cache constant.
 su - "$user_name" -c "wp --skip-plugins --no-color config set WP_CACHE true"
 
 # permissions for the log file

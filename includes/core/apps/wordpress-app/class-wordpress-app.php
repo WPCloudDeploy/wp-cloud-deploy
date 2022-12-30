@@ -27,6 +27,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	use wpcd_wpapp_upgrade_functions;
 	use wpcd_wpapp_woocommerce_support;
 	use wpcd_wpapp_unused_functions;
+	use wpcd_wpapp_multi_tenant_app;
 
 	/**
 	 * Holds a reference to this class
@@ -2008,7 +2009,6 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 	}
 
-
 	/**
 	 * Set the domain name used for a wp app instance.
 	 * This can be used when the user changes their domain.
@@ -2031,11 +2031,11 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	 */
 	public function get_git_status( $post_id ) {
 
-		if ( 'wpcd_app_server' == get_post_type( $post_id ) ) {
+		if ( 'wpcd_app_server' === (string) get_post_type( $post_id ) ) {
 			return (bool) get_post_meta( $post_id, 'wpcd_wpapp_git_status', true );
 		}
 
-		if ( 'wpcd_app' == get_post_type( $post_id ) ) {
+		if ( 'wpcd_app' === (string) get_post_type( $post_id ) ) {
 			return (bool) get_post_meta( $post_id, 'wpapp_git_status', true );
 		}
 

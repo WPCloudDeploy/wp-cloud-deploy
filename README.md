@@ -128,6 +128,8 @@ Note: Even though the entire git development history isn't available on github, 
 ------
 * New: Option to change the background and foreground color of the 'terminal'.
 * New: Foundation for git support added.
+* New: Foundation for Multi-Tenant added.
+* Tweak: Better styling for post-states when viewing the server and site lists.
 * Fix: Missing variable value when installing memcached. Harmless - just threw a php warning.
 * Dev: Use global function to reset site permissions (refactor).
 

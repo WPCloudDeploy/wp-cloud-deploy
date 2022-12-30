@@ -167,7 +167,7 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 
 			} else {
 				// Add action hook to indicate failure...
-				$message = __( 'Clone Site command failed - check the command logs for more information.', 'wpcd' );
+				$message = __( 'Multi-tenant: Create new version failed - check the command logs for more information.', 'wpcd' );
 				do_action( "wpcd_{$this->get_app_name()}_mt_new_version_clone_site_failed", $id, $command_array[0], $message, array() );  // Keeping 4 parameters for the action hook to maintain consistency even though we have nothing for the last parameter.
 			}
 		}
@@ -246,7 +246,7 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 		}
 
 		/* Now verify that the user can perform actions on this screen, assuming that they can view the server */
-		$valid_actions = array( 'mt-create-version', 'mt-set-product-name' );
+		$valid_actions = array( 'mt-create-version', 'mt-set-product-name', 'mt-set-template-flag' );
 		if ( in_array( $action, $valid_actions, true ) ) {
 			if ( ! $this->get_tab_security( $id ) ) {
 				/* translators: %1s is replaced with an internal action name; %2$s is replaced with the file name; %3$s is replaced with the post id being acted on. %4$s is the user id running this action. */
@@ -285,6 +285,9 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 					break;
 				case 'mt-set-product-name':
 					$result = $this->mt_set_product_name( $action, $id );
+					break;
+				case 'mt-set-template-flag':
+					$result = $this->mt_set_template_flag( $action, $id );
 					break;
 			}
 		}
@@ -440,7 +443,7 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 	 *
 	 * @return boolean|object Can return wp_error, true/false
 	 */
-	private function mt_set_product_name( $action, $id, $in_args = array() ) {
+	public function mt_set_product_name( $action, $id, $in_args = array() ) {
 
 		if ( empty( $in_args ) ) {
 			// Get data from the POST request.
@@ -465,6 +468,35 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
+	 * Multitenant - set template flag
+	 *
+	 * @param string $action The action key to send to the bash script.
+	 * @param int    $id the id of the app post being handled.
+	 * @param array  $in_args Alternative source of arguments passed via action hook or direct function call instead of pulling from $_POST.
+	 *
+	 * @return boolean|object Can return wp_error, true/false
+	 */
+	public function mt_set_template_flag( $action, $id, $in_args = array() ) {
+
+		// We're not going to examine the incoming args - we're just going to flip the stored meta value for the flag.
+		// i.e.: if the stored meta is false, we'll flip to true and vice-versa.
+		$current_flag = $this->wpcd_is_template_site( $id );
+
+		if ( ! empty( $current_flag ) ) {
+			$new_flag = false;
+		} else {
+			$new_flag = true;
+		}
+
+		// Set the flag.
+		$this->wpcd_set_template_flag( $id, $new_flag );
+
+		$result = array( 'refresh' => 'yes' );
+
+		return $result;
+	}
+
+	/**
 	 * Trigger the create version function from an action hook.
 	 *
 	 * Action Hook: wpcd_{$this->get_app_name()}_do_mt_create_version | wpcd_wordpress-app_do_mt_create_version
@@ -481,6 +513,7 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 	 *
 	 * @param array $fields fields.
 	 * @param int   $id id.
+	 *
 	 * @return array Array of actions, complying with the structure necessary by metabox.io fields.
 	 */
 	public function get_fields( array $fields, $id ) {
@@ -518,20 +551,6 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 			return $fields;
 		}
 
-		// Is the site a template site?
-		if ( true !== wpcd_is_template_site( $id ) ) {
-			$desc = __( 'This is not a template site - multi-tenant operations cannot be performed on this site.', 'wpcd' );
-
-			$fields[] = array(
-				'name' => __( 'Multi-tenant', 'wpcd' ),
-				'tab'  => $this->get_tab_slug(),
-				'type' => 'heading',
-				'desc' => $desc,
-			);
-
-			return $fields;
-		}
-
 		// Is the site a GIT site?
 		if ( true !== $this->get_git_status( $id ) ) {
 
@@ -548,11 +567,28 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 
 		}
 
-		$create_new_version_fields = $this->get_create_new_version_fields( $id );
-		$versions                  = $this->get_fields_for_version_list( $id );
-		$product_name              = $this->get_product_name_fields( $id );
+		// Is the site a template site?
+		if ( true !== $this->wpcd_is_template_site( $id ) ) {
+			$desc = __( 'This is not a template site - multi-tenant operations cannot be performed on this site.', 'wpcd' );
 
-		$fields = array_merge( $fields, $create_new_version_fields, $versions, $product_name );
+			$fields[] = array(
+				'name' => __( 'Multi-tenant', 'wpcd' ),
+				'tab'  => $this->get_tab_slug(),
+				'type' => 'heading',
+				'desc' => $desc,
+			);
+
+			$template_flag_fields = $this->get_template_flag_fields( $id );
+
+			return array_merge( $fields, $template_flag_fields );
+		}
+
+		$create_new_version_fields = $this->get_create_new_version_fields( $id );
+		$version_fields            = $this->get_fields_for_version_list( $id );
+		$product_name_fields       = $this->get_product_name_fields( $id );
+		$template_flag_fields      = $this->get_template_flag_fields( $id );
+
+		$fields = array_merge( $fields, $create_new_version_fields, $version_fields, $product_name_fields, $template_flag_fields );
 
 		return $fields;
 
@@ -562,6 +598,7 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 	 * Gets the fields to be shown on the 'create new version' section.
 	 *
 	 * @param int $id id.
+	 *
 	 * @return array Array of actions, complying with the structure necessary by metabox.io fields.
 	 */
 	public function get_create_new_version_fields( $id ) {
@@ -664,6 +701,7 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 	 * Gets the fields to be shown in the 'product name' section of the tab.
 	 *
 	 * @param int $id id.
+	 *
 	 * @return array Array of actions, complying with the structure necessary by metabox.io fields.
 	 */
 	public function get_product_name_fields( $id ) {
@@ -717,6 +755,73 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 			'save_field' => false,
 		);
 
+		return $fields;
+
+	}
+
+	/**
+	 * Gets the fields to be shown in the 'Template Flag' section of the tab.
+	 *
+	 * @param int $id id.
+	 *
+	 * @return array Array of actions, complying with the structure necessary by metabox.io fields.
+	 */
+	public function get_template_flag_fields( $id ) {
+
+		// Header description.
+		$desc = '';
+
+		$current_template_flag = $this->wpcd_is_template_site( $id );
+
+		$fields[] = array(
+			'name' => __( 'Template Flag', 'wpcd' ),
+			'tab'  => $this->get_tab_slug(),
+			'type' => 'heading',
+			'desc' => $desc,
+		);
+		$fields[] = array(
+			'name'       => __( 'Is This Site A Template?', 'wpcd' ),
+			'id'         => 'wpcd_app_mt_template_flag',
+			'tab'        => $this->get_tab_slug(),
+			'type'       => 'switch',
+			'on_label'   => __( 'Enabled', 'wpcd' ),
+			'off_label'  => __( 'Disabled', 'wpcd' ),
+			'attributes' => array(
+				// the _action that will be called in ajax.
+				'data-wpcd-action'              => 'mt-set-template-flag',
+				// the id.
+				'data-wpcd-id'                  => $id,
+				// the key of the field (the key goes in the request).
+				'data-wpcd-name'                => 'mt_template_flag',
+				// make sure we give the user a confirmation prompt.
+				'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like to update the template status for this site?', 'wpcd' ),
+			),
+			'std'        => $current_template_flag,
+			'class'      => 'wpcd_app_action',
+			'save_field' => false,
+		);
+
+		/*
+		$fields[] = array(
+			'id'         => 'wpcd_app_mt_template_flag_action',
+			'name'       => '',
+			'tab'        => $this->get_tab_slug(),
+			'type'       => 'button',
+			'std'        => __( 'Save', 'wpcd' ),
+			'attributes' => array(
+				// the _action that will be called in ajax.
+				'data-wpcd-action'              => 'mt-set-template-flag',
+				// the id.
+				'data-wpcd-id'                  => $id,
+				// fields that contribute data for this action.
+				'data-wpcd-fields'              => wp_json_encode( array( '#wpcd_app_mt_template_flag' ) ),
+				// make sure we give the user a confirmation prompt.
+				'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like to update the template status for this site?', 'wpcd' ),
+			),
+			'class'      => 'wpcd_app_action',
+			'save_field' => false,
+		);
+		*/
 		return $fields;
 
 	}

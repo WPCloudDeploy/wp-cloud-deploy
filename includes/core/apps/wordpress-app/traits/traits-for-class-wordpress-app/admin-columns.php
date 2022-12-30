@@ -1117,7 +1117,7 @@ trait wpcd_wpapp_admin_column_data {
 
 		/* Show of the site is a template site */
 		if ( 'wpcd_app' === get_post_type( $post ) && 'wordpress-app' == $this->get_app_type( $post->ID ) ) {
-			if ( true === wpcd_is_template_site( $post->ID ) ) {
+			if ( true === $this->wpcd_is_template_site( $post->ID ) ) {
 				$states['wpcd-wpapp-template-status'] = __( 'Template', 'wpcd' );
 			}
 		}

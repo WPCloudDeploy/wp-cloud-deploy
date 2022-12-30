@@ -41,4 +41,35 @@ trait wpcd_wpapp_multi_tenant_app {
 		}
 	}
 
+	/**
+	 * Gets the default version (production version) for a template site.
+	 *
+	 * @since 5.3
+	 *
+	 * @param int $app_id The post id of the site we're working with.
+	 *
+	 * @return string
+	 */
+	public function get_mt_default_version( $app_id ) {
+
+		return get_post_meta( $app_id, 'wpcd_app_mt_default_version', true );
+
+	}
+
+	/**
+	 * Sets the default version (production version) for a template site.
+	 *
+	 * @since 5.3
+	 *
+	 * @param int    $app_id The post id of the site we're working with.
+	 * @param string $version The version to set as the default.
+	 *
+	 * @return string
+	 */
+	public function set_mt_default_version( $app_id, $version ) {
+
+		return update_post_meta( $app_id, 'wpcd_app_mt_default_version', $version );
+
+	}
+
 }

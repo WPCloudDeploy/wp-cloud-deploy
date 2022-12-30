@@ -246,7 +246,7 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 		}
 
 		/* Now verify that the user can perform actions on this screen, assuming that they can view the server */
-		$valid_actions = array( 'mt-create-version', 'mt-set-product-name', 'mt-set-template-flag' );
+		$valid_actions = array( 'mt-create-version', 'mt-set-product-name', 'mt-set-template-flag', 'mt-set-default-version' );
 		if ( in_array( $action, $valid_actions, true ) ) {
 			if ( ! $this->get_tab_security( $id ) ) {
 				/* translators: %1s is replaced with an internal action name; %2$s is replaced with the file name; %3$s is replaced with the post id being acted on. %4$s is the user id running this action. */
@@ -288,6 +288,9 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 					break;
 				case 'mt-set-template-flag':
 					$result = $this->mt_set_template_flag( $action, $id );
+					break;
+				case 'mt-set-default-version':
+					$result = $this->mt_set_default_version( $action, $id );
 					break;
 			}
 		}
@@ -497,6 +500,39 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
+	 * Multitenant - set default version meta.
+	 *
+	 * @param string $action The action key to send to the bash script.
+	 * @param int    $id the id of the app post being handled.
+	 * @param array  $in_args Alternative source of arguments passed via action hook or direct function call instead of pulling from $_POST.
+	 *
+	 * @return boolean|object Can return wp_error, true/false
+	 */
+	public function mt_set_default_version( $action, $id, $in_args = array() ) {
+
+		if ( empty( $in_args ) ) {
+			// Get data from the POST request.
+			$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
+		} else {
+			$args = $in_args;
+		}
+
+		// Bail if default version is empty.
+		$new_default_version = sanitize_text_field( $args['mt_default_version'] );
+		if ( empty( $new_default_version ) ) {
+			$message = __( 'The default version must be provided.', 'wpcd' );
+			return new \WP_Error( $message );
+		}
+
+		// Set the version.
+		$this->set_mt_default_version( $id, $new_default_version );
+
+		$result = array( 'refresh' => 'yes' );
+
+		return $result;
+	}
+
+	/**
 	 * Trigger the create version function from an action hook.
 	 *
 	 * Action Hook: wpcd_{$this->get_app_name()}_do_mt_create_version | wpcd_wordpress-app_do_mt_create_version
@@ -584,11 +620,12 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 		}
 
 		$create_new_version_fields = $this->get_create_new_version_fields( $id );
+		$production_version_fields = $this->get_production_version_fields( $id );
 		$version_fields            = $this->get_fields_for_version_list( $id );
 		$product_name_fields       = $this->get_product_name_fields( $id );
 		$template_flag_fields      = $this->get_template_flag_fields( $id );
 
-		$fields = array_merge( $fields, $create_new_version_fields, $version_fields, $product_name_fields, $template_flag_fields );
+		$fields = array_merge( $fields, $create_new_version_fields, $production_version_fields, $version_fields, $product_name_fields, $template_flag_fields );
 
 		return $fields;
 
@@ -760,6 +797,65 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
+	 * Gets the fields to be shown in the 'set production' section of the tab.
+	 *
+	 * @param int $id id.
+	 *
+	 * @return array Array of actions, complying with the structure necessary by metabox.io fields.
+	 */
+	public function get_production_version_fields( $id ) {
+
+		// Header description.
+		$desc = __( 'Which version should be the default for new sites?', 'wpcd' );
+
+		$current_default_version = $this->get_mt_default_version( $id );
+
+		$fields[] = array(
+			'name' => __( 'Production Version', 'wpcd' ),
+			'tab'  => $this->get_tab_slug(),
+			'type' => 'heading',
+			'desc' => $desc,
+		);
+		$fields[] = array(
+			'name'       => __( 'Choose Default Version', 'wpcd' ),
+			'id'         => 'wpcd_app_mt_default_version',
+			'tab'        => $this->get_tab_slug(),
+			'type'       => 'select',
+			'options'    => $this->get_mt_versions( $id ),
+			'save_field' => false,
+			'attributes' => array(
+				// the key of the field (the key goes in the request).
+				'data-wpcd-name' => 'mt_default_version',
+			),
+			'std'        => $current_default_version,
+			'required'   => true,
+		);
+
+		$fields[] = array(
+			'id'         => 'wpcd_app_mt_default_version_action',
+			'name'       => '',
+			'tab'        => $this->get_tab_slug(),
+			'type'       => 'button',
+			'std'        => __( 'Set Default Version', 'wpcd' ),
+			'attributes' => array(
+				// the _action that will be called in ajax.
+				'data-wpcd-action'              => 'mt-set-default-version',
+				// the id.
+				'data-wpcd-id'                  => $id,
+				// fields that contribute data for this action.
+				'data-wpcd-fields'              => wp_json_encode( array( '#wpcd_app_mt_default_version' ) ),
+				// make sure we give the user a confirmation prompt.
+				'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like to reset the default version for this template product?', 'wpcd' ),
+			),
+			'class'      => 'wpcd_app_action',
+			'save_field' => false,
+		);
+
+		return $fields;
+
+	}
+
+	/**
 	 * Gets the fields to be shown in the 'Template Flag' section of the tab.
 	 *
 	 * @param int $id id.
@@ -801,27 +897,6 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 			'save_field' => false,
 		);
 
-		/*
-		$fields[] = array(
-			'id'         => 'wpcd_app_mt_template_flag_action',
-			'name'       => '',
-			'tab'        => $this->get_tab_slug(),
-			'type'       => 'button',
-			'std'        => __( 'Save', 'wpcd' ),
-			'attributes' => array(
-				// the _action that will be called in ajax.
-				'data-wpcd-action'              => 'mt-set-template-flag',
-				// the id.
-				'data-wpcd-id'                  => $id,
-				// fields that contribute data for this action.
-				'data-wpcd-fields'              => wp_json_encode( array( '#wpcd_app_mt_template_flag' ) ),
-				// make sure we give the user a confirmation prompt.
-				'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like to update the template status for this site?', 'wpcd' ),
-			),
-			'class'      => 'wpcd_app_action',
-			'save_field' => false,
-		);
-		*/
 		return $fields;
 
 	}
@@ -930,6 +1005,29 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 
 		// Push back to database.
 		return update_post_meta( $id, 'wpcd_app_mt_version_history', $tags );
+
+	}
+
+	/**
+	 * Return the list of MT versions for this site as a 2D array.
+	 *
+	 * @param int $id Post id of site we're working with.
+	 *
+	 * @return array.
+	 */
+	public function get_mt_versions( $id ) {
+
+		$versions = $this->get_mt_version_history( $id );
+
+		$return_versions = array();
+
+		foreach ( array_reverse( $versions ) as $version => $version_array ) {
+
+			$return_versions[ $version ] = ! empty( $version_array['desc'] ) ? $version . ' - ' . $version_array['desc'] : $version . ' - ' . __( 'No description available', 'wpcd' );
+
+		}
+
+		return $return_versions;
 
 	}
 

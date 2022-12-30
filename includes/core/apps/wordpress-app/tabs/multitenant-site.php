@@ -246,7 +246,7 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 		}
 
 		/* Now verify that the user can perform actions on this screen, assuming that they can view the server */
-		$valid_actions = array( 'mt-create-version' );
+		$valid_actions = array( 'mt-create-version', 'mt-set-product-name' );
 		if ( in_array( $action, $valid_actions, true ) ) {
 			if ( ! $this->get_tab_security( $id ) ) {
 				/* translators: %1s is replaced with an internal action name; %2$s is replaced with the file name; %3$s is replaced with the post id being acted on. %4$s is the user id running this action. */
@@ -282,6 +282,9 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 			switch ( $action ) {
 				case 'mt-create-version':
 					$result = $this->mt_create_version( $action, $id );
+					break;
+				case 'mt-set-product-name':
+					$result = $this->mt_set_product_name( $action, $id );
 					break;
 			}
 		}
@@ -429,6 +432,39 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
+	 * Multitenant - set product name
+	 *
+	 * @param string $action The action key to send to the bash script.
+	 * @param int    $id the id of the app post being handled.
+	 * @param array  $in_args Alternative source of arguments passed via action hook or direct function call instead of pulling from $_POST.
+	 *
+	 * @return boolean|object Can return wp_error, true/false
+	 */
+	private function mt_set_product_name( $action, $id, $in_args = array() ) {
+
+		if ( empty( $in_args ) ) {
+			// Get data from the POST request.
+			$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
+		} else {
+			$args = $in_args;
+		}
+
+		// Bail if product name is empty.
+		$new_product_name = sanitize_text_field( $args['mt_product_name'] );
+		if ( empty( $new_product_name ) ) {
+			$message = __( 'The product name must be provided.', 'wpcd' );
+			return new \WP_Error( $message );
+		}
+
+		// Set the product name.
+		$this->set_product_name( $id, $new_product_name );
+
+		$result = array( 'refresh' => 'yes' );
+
+		return $result;
+	}
+
+	/**
 	 * Trigger the create version function from an action hook.
 	 *
 	 * Action Hook: wpcd_{$this->get_app_name()}_do_mt_create_version | wpcd_wordpress-app_do_mt_create_version
@@ -514,8 +550,9 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 
 		$create_new_version_fields = $this->get_create_new_version_fields( $id );
 		$versions                  = $this->get_fields_for_version_list( $id );
+		$product_name              = $this->get_product_name_fields( $id );
 
-		$fields = array_merge( $fields, $create_new_version_fields, $versions );
+		$fields = array_merge( $fields, $create_new_version_fields, $versions, $product_name );
 
 		return $fields;
 
@@ -532,7 +569,7 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 		/* What type of web server are we running? */
 		$webserver_type = $this->get_web_server_type( $id );
 
-		// We got here so ok to show fields related to creating a new version of this site.
+		// Header description.
 		$desc  = __( 'Create a new version of this product template.', 'wpcd' );
 		$desc .= '<br />';
 		$desc .= __( 'After a new version is created you can then push it to one or more existing tenants, set it as the default for new WooCommerce sales or create new WooCommerce products.', 'wpcd' );
@@ -601,7 +638,6 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 			'tab'        => $this->get_tab_slug(),
 			'type'       => 'button',
 			'std'        => __( 'Create New Version', 'wpcd' ),
-			'desc'       => $clone_desc,
 			'attributes' => array(
 				// the _action that will be called in ajax.
 				'data-wpcd-action'              => 'mt-create-version',
@@ -615,6 +651,67 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 				'data-show-log-console'         => true,
 				// Initial console message.
 				'data-initial-console-message'  => __( 'Preparing to create a new version of this template product on the specified domain...<br /> Please DO NOT EXIT this screen until you see a popup message indicating that the operation has completed or has errored.<br />This terminal should refresh every 60-90 seconds with updated progress information from the server. <br /> After the operation is complete the entire log can be viewed in the COMMAND LOG screen.', 'wpcd' ),
+			),
+			'class'      => 'wpcd_app_action',
+			'save_field' => false,
+		);
+
+		return $fields;
+
+	}
+
+	/**
+	 * Gets the fields to be shown in the 'product name' section of the tab.
+	 *
+	 * @param int $id id.
+	 * @return array Array of actions, complying with the structure necessary by metabox.io fields.
+	 */
+	public function get_product_name_fields( $id ) {
+
+		// Header description.
+		$desc  = __( 'Set a product name for this template.', 'wpcd' );
+		$desc .= '<br />';
+		$desc .= __( 'The product name will be shown in places like WooCommerce and makes it easier to remember what a template site does.', 'wpcd' );
+
+		$current_product_name = $this->get_product_name( $id );
+
+		$fields[] = array(
+			'name' => __( 'Product Name', 'wpcd' ),
+			'tab'  => $this->get_tab_slug(),
+			'type' => 'heading',
+			'desc' => $desc,
+		);
+		$fields[] = array(
+			'name'       => __( 'Product Name', 'wpcd' ),
+			'id'         => 'wpcd_app_mt_product_name',
+			'tab'        => $this->get_tab_slug(),
+			'type'       => 'text',
+			'save_field' => false,
+			'attributes' => array(
+				'maxlength'      => '32',
+				// the key of the field (the key goes in the request).
+				'data-wpcd-name' => 'mt_product_name',
+			),
+			'std'        => $current_product_name,
+			'required'   => true,
+			'tooltip'    => __( 'The product name set here is a synonym for the template domain and can be used to reference this template in WooCommerce products and other locations.', 'wpcd ' ),
+		);
+
+		$fields[] = array(
+			'id'         => 'wpcd_app_mt_product_name_action',
+			'name'       => '',
+			'tab'        => $this->get_tab_slug(),
+			'type'       => 'button',
+			'std'        => __( 'Set Product Name', 'wpcd' ),
+			'attributes' => array(
+				// the _action that will be called in ajax.
+				'data-wpcd-action'              => 'mt-set-product-name',
+				// the id.
+				'data-wpcd-id'                  => $id,
+				// fields that contribute data for this action.
+				'data-wpcd-fields'              => wp_json_encode( array( '#wpcd_app_mt_product_name' ) ),
+				// make sure we give the user a confirmation prompt.
+				'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like to set a new product name for this template product?', 'wpcd' ),
 			),
 			'class'      => 'wpcd_app_action',
 			'save_field' => false,
@@ -754,6 +851,28 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 		return $versions;
 
 	}
+
+	/**
+	 * Returns the wpcd product name set for the template site.
+	 *
+	 * @param int $id The post id of the site we're working with.
+	 *
+	 * @return string
+	 */
+	public function get_product_name( $id ) {
+		return get_post_meta( $id, 'wpcd_app_mt_template_product_name', true );
+	}
+
+	/**
+	 * Sets the wpcd product name for the template site.
+	 *
+	 * @param int    $id The post id of the site we're working with.
+	 * @param string $name The new product name to set for the site.
+	 */
+	public function set_product_name( $id, $name ) {
+		update_post_meta( $id, 'wpcd_app_mt_template_product_name', $name );
+	}
+
 
 }
 

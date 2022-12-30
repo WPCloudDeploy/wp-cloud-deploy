@@ -147,8 +147,10 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 							// Lets add a meta to indicate that this was a clone.
 							update_post_meta( $new_app_post_id, 'wpapp_cloned_from', $this->get_domain_name( $id ) );
 
-							// Explicitly NOT adding other metas related to multi-tenant here.
-							// We can't add these until the 2nd part of the operation completes - git pull tag.
+							// Add metas related to Multi-tenant.
+							$mt_version      = get_post_meta( $id, 'wpapp_temp_mt_new_version', true );
+							$mt_version_desc = get_post_meta( $id, 'wpapp_temp_mt_new_version_desc', true );
+							$this->mt_add_mt_version_history( $id, $mt_version, $mt_version_desc, $new_domain );
 
 							// Wrapup - let things hook in here - primarily the multisite add-on and the REST API.
 							do_action( "wpcd_{$this->get_app_name()}_site_clone_new_post_completed", $new_app_post_id, $id, $name );
@@ -158,11 +160,10 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 					}
 				}
 
-				// Explicitly NOT deleting the temporary metas here (unlike standard staging and cloning operations).
-				// This is because we have a 2nd operation that will trigger immediately after this.
-				// delete_post_meta( $id, 'wpapp_temp_mt_new_version_target_domain' );
-				// delete_post_meta( $id, 'wpapp_temp_mt_new_version' );
-				// delete_post_meta( $id, 'wpapp_temp_mt_new_version_desc' );
+				// And delete the temporary metas.
+				delete_post_meta( $id, 'wpapp_temp_mt_new_version_target_domain' );
+				delete_post_meta( $id, 'wpapp_temp_mt_new_version' );
+				delete_post_meta( $id, 'wpapp_temp_mt_new_version_desc' );
 
 			} else {
 				// Add action hook to indicate failure...
@@ -328,7 +329,8 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 			do_action( "wpcd_{$this->get_app_name()}_mt_new_version_clone_site_failed", $id, $action, $message, $args );
 			return new \WP_Error( $message );
 		} else {
-			$mt_new_version = $args['mt_new_version'];
+			$args['mt_new_version'] = $this->sanitize_tag( $args['mt_new_version'] ); // Make sure we get the git tag into the correct format.
+			$mt_new_version         = $args['mt_new_version'];
 		}
 
 		// Bail if description is empty.
@@ -365,7 +367,10 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 		$args['mt_new_version']      = escapeshellarg( sanitize_text_field( $args['mt_new_version'] ) );
 		$args['mt_new_version_desc'] = escapeshellarg( sanitize_text_field( $args['mt_new_version_desc'] ) );
 
-		// Get the domain we're working on.
+		// Certain elements in the $args array need to be added or changed to match the values expected by the bash scripts.
+		$args['git_tag'] = $args['mt_new_version'];
+
+		// Get the domain we're working on (this is the template domain).
 		$domain = $this->get_domain_name( $id );
 
 		/**
@@ -385,6 +390,8 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 		$instance['app_id']  = $id;
 
 		// construct the run command.
+		// NOTE: The control file for this operation, mt_clone_site.txt is going to run THREE operations in sequence.
+		// This means that this control file will look a little different from the others.
 		$run_cmd = $this->turn_script_into_command(
 			$instance,
 			'mt_clone_site.txt',
@@ -505,9 +512,10 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 
 		}
 
-		$create_new_version_fields = $this->get_create_new_version_fields( $fields, $id );
+		$create_new_version_fields = $this->get_create_new_version_fields( $id );
+		$versions                  = $this->get_fields_for_version_list( $id );
 
-		$fields = $create_new_version_fields;
+		$fields = array_merge( $fields, $create_new_version_fields, $versions );
 
 		return $fields;
 
@@ -516,17 +524,16 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 	/**
 	 * Gets the fields to be shown on the 'create new version' section.
 	 *
-	 * @param array $fields fields.
-	 * @param int   $id id.
+	 * @param int $id id.
 	 * @return array Array of actions, complying with the structure necessary by metabox.io fields.
 	 */
-	public function get_create_new_version_fields( array $fields, $id ) {
+	public function get_create_new_version_fields( $id ) {
 
 		/* What type of web server are we running? */
 		$webserver_type = $this->get_web_server_type( $id );
 
 		// We got here so ok to show fields related to creating a new version of this site.
-		$desc .= __( 'Create a new version of this product template.', 'wpcd' );
+		$desc  = __( 'Create a new version of this product template.', 'wpcd' );
 		$desc .= '<br />';
 		$desc .= __( 'After a new version is created you can then push it to one or more existing tenants, set it as the default for new WooCommerce sales or create new WooCommerce products.', 'wpcd' );
 
@@ -614,6 +621,137 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 		);
 
 		return $fields;
+
+	}
+
+	/**
+	 * Get fields that displays the list of current versions (tags) we know about.
+	 *
+	 * @param int $id The post id of the site we're working with.
+	 *
+	 * @return array Array of actions, complying with the structure necessary by metabox.io fields.
+	 */
+	public function get_fields_for_version_list( $id ) {
+
+		$header_msg = __( 'These are the versions for this product template.', 'wpcd' );
+
+		$return  = '<div class="wpcd_mt_version_list">';
+		$return .= '<div class="wpcd_mt_version_list_inner_wrap">';
+
+		$tags = $this->get_mt_version_history( $id );
+
+		foreach ( array_reverse( $tags ) as $tag => $tag_array ) {
+
+			$domain      = ! empty( $tag_array['domain'] ) ? $tag_array['domain'] : __( 'Error! No Associated Domain!', 'wpcd' );
+			$desc        = ! empty( $tag_array['desc'] ) ? $tag_array['desc'] : __( 'No description available', 'wpcd' );
+			$create_date = ! empty( $tag_array['reporting_time_human_utc'] ) ? $tag_array['reporting_time_human_utc'] : __( '1901-01-01 (unknown)', 'wpcd' );
+
+			$return .= '<div class="wpcd_mt_version_value">';
+			$return .= '<span class="wpcd_mt_version_value_inline">' . $tag . '</span>';
+			$return .= '<br />' . $domain;
+			$return .= '<br />' . $desc;
+			$return .= '<br />' . $create_date . ' ' . __( 'UTC', 'wpcd' );
+			$return .= '</div>';
+
+		}
+		$return .= '</div>';
+		$return .= '</div>';
+
+		$actions[] = array(
+			'id'   => 'wpcd_app_mt_list_tags',
+			'name' => __( 'Existing Versions', 'wpcd' ),
+			'desc' => $header_msg,
+			'type' => 'heading',
+			'tab'  => $this->get_tab_slug(),
+		);
+
+		$actions[] = array(
+			'id'         => 'wpcd_app_mt_view_tags',
+			'name'       => '',
+			'std'        => $return,
+			'type'       => 'custom_html',
+			'tab'        => $this->get_tab_slug(),
+			'save_field' => false,
+		);
+
+		return $actions;
+
+	}
+
+	/**
+	 * Takes a string and removes everything except alphanumeric
+	 * characters, dashes and periods.
+	 *
+	 * @param string $tag The tag to clean.
+	 */
+	public function sanitize_tag( $tag ) {
+		return wpcd_clean_alpha_numeric_dashes_periods_underscores( $tag );
+	}
+
+	/**
+	 * Add to an array of versions (tags) created.
+	 *
+	 * @param int    $id Post id of site we're working with.
+	 * @param string $new_tag The new tag (version) created or added.
+	 * @param string $new_tag_desc Description of the new tag (version).
+	 * @param string $domain The domain on which this new version was created.
+	 */
+	public function mt_add_mt_version_history( $id, $new_tag, $new_tag_desc, $domain ) {
+
+		// Get current tag list.
+		$tags = wpcd_maybe_unserialize( get_post_meta( $id, 'wpcd_app_mt_version_history', true ) );
+
+		// Make sure we have something in the tags array otherwise create a blank one.
+		if ( empty( $tags ) ) {
+			$tags = array();
+		}
+		if ( ! is_array( $tags ) ) {
+			$tags = array();
+		}
+
+		// Add to array.
+		if ( empty( $tags[ $new_tag ] ) ) {
+			// Tag does not yet exist in the array so add it.
+			$tags[ $new_tag ] = array(
+				'reporting_time'           => time(),
+				'reporting_time_human'     => date( 'Y-m-d H:i:s', time() ),
+				'reporting_time_human_utc' => gmdate( 'Y-m-d H:i:s' ),
+				'desc'                     => $new_tag_desc,
+				'domain'                   => $domain,
+			);
+		} else {
+			// Perhaps update the time here? Or add other history?  We really shouldn't get here though.
+			$tags[ $new_tag ]['last_pull_reporting_time']           = time();
+			$tags[ $new_tag ]['last_pull_reporting_time_human']     = date( 'Y-m-d H:i:s', time() );
+			$tags[ $new_tag ]['last_pull_reporting_time_human_utc'] = gmdate( 'Y-m-d H:i:s' );
+		}
+
+		// Push back to database.
+		return update_post_meta( $id, 'wpcd_app_mt_version_history', $tags );
+
+	}
+
+	/**
+	 * Return the mt version history meta value.
+	 *
+	 * @param int $id Post id of site we're working with.
+	 *
+	 * @return array.
+	 */
+	public function get_mt_version_history( $id ) {
+
+		// Get current tag list.
+		$versions = wpcd_maybe_unserialize( get_post_meta( $id, 'wpcd_app_mt_version_history', true ) );
+
+		// Make sure we have something in the logs array otherwise create a blank one.
+		if ( empty( $versions ) ) {
+			$versions = array();
+		}
+		if ( ! is_array( $versions ) ) {
+			$versions = array();
+		}
+
+		return $versions;
 
 	}
 

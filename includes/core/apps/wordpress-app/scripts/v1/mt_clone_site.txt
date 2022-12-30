@@ -5,7 +5,30 @@ echo "done" && {
     sudo -E wget --no-check-certificate -O ##SCRIPT_NAME## ##SCRIPT_URL## &&
 	export action=##ACTION## domain=##DOMAIN## old_domain=##DOMAIN## new_domain=##NEW_DOMAIN## &&
     sudo -E dos2unix ##SCRIPT_NAME## &&
+	  sudo -E echo "*****************************************************************************************" >> ##SCRIPT_LOGS##.log.intermed 2>&1 &&
+	  sudo -E echo "Operation 1 of 3: Site Clone..." >> ##SCRIPT_LOGS##.log.intermed 2>&1 &&
+	  sudo -E echo "*****************************************************************************************" >> ##SCRIPT_LOGS##.log.intermed 2>&1 &&	
     sudo -E bash ##SCRIPT_NAME## >> ##SCRIPT_LOGS##.log.intermed 2>&1 &&
+	  sudo -E echo >> ##SCRIPT_LOGS##.log.intermed 2>&1 &&
+	  sudo -E echo "*****************************************************************************************" >> ##SCRIPT_LOGS##.log.intermed 2>&1 &&
+	  sudo -E echo "Operation 2 of 3: Create git tag on local and remote repositories" >> ##SCRIPT_LOGS##.log.intermed 2>&1 &&
+	  sudo -E echo "*****************************************************************************************" >> ##SCRIPT_LOGS##.log.intermed 2>&1 &&
+	export action=git_tag domain=##DOMAIN## git_tag=##GIT_TAG## &&
+	sudo -E wget --no-check-certificate -O ##SCRIPT_NAME2## ##SCRIPT_URL2## &&
+	sudo -E dos2unix ##SCRIPT_NAME2## &&
+	sudo -E bash ##SCRIPT_NAME2## >> ##SCRIPT_LOGS##.log.intermed 2>&1 &&
+	export action=mt_git_fetch_tag domain=##DOMAIN## git_tag=##GIT_TAG## &&
+	  sudo -E echo >> ##SCRIPT_LOGS##.log.intermed 2>&1 &&
+	  sudo -E echo "*****************************************************************************************" >> ##SCRIPT_LOGS##.log.intermed 2>&1 &&
+	  sudo -E echo "Operation 3 of 3: Pulling down as new product template version $git_tag" >> ##SCRIPT_LOGS##.log.intermed 2>&1 &&
+	  sudo -E echo "*****************************************************************************************" >> ##SCRIPT_LOGS##.log.intermed 2>&1 &&
+	sudo -E bash ##SCRIPT_NAME2## >> ##SCRIPT_LOGS##.log.intermed 2>&1 &&
+		sudo -E pwd >> ##SCRIPT_LOGS##.log.intermed 2>&1 &&	
+		sudo -E echo >> ##SCRIPT_LOGS##.log.intermed 2>&1 &&		
+	  sudo -E echo "*****************************************************************************************" >> ##SCRIPT_LOGS##.log.intermed 2>&1 &&
+	  sudo -E echo "Please review the results of all three operations above." >> ##SCRIPT_LOGS##.log.intermed 2>&1 &&
+	  sudo -E echo "You can only rely on this version IF and only IF all three operations above succeeded." >> ##SCRIPT_LOGS##.log.intermed 2>&1 &&
+	  sudo -E echo "*****************************************************************************************" >> ##SCRIPT_LOGS##.log.intermed 2>&1 &&
     sudo -E mv ##SCRIPT_LOGS##.log.intermed ##SCRIPT_LOGS##.log.done &&
     sudo -E wget -q ##CALLBACK_URL##;
 } > /dev/null 2>&1 &

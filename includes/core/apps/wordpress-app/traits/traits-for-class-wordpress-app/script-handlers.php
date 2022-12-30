@@ -372,7 +372,7 @@ trait wpcd_wpapp_script_handlers {
 				( strpos( $result, 'Multi-tenant: Site conversion succeeded' ) !== false );
 				break;
 			case 'mt_clone_site.txt':
-				$return = ( strpos( $result, 'has been cloned' ) !== false );
+				$return = ( strpos( $result, 'has been cloned' ) !== false && strpos( $result, 'Git tag and push succeeded' ) !== false  && strpos( $result, 'Multi-tenant: Fetch version succeeded' ) !== false );
 				break;
 
 			/**************************************************************
@@ -1228,6 +1228,8 @@ trait wpcd_wpapp_script_handlers {
 					array(
 						'SCRIPT_URL'   => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/09-clone_site.txt',
 						'SCRIPT_NAME'  => '09-clone_site.sh',
+						'SCRIPT_URL2'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/58-git_control.txt',
+						'SCRIPT_NAME2' => '58-git_control.sh',
 						'SCRIPT_LOGS'  => "{$this->get_app_name()}_{$command_name}",
 						'CALLBACK_URL' => $this->get_command_url( $instance['app_id'], $command_name, 'completed' ),
 					),

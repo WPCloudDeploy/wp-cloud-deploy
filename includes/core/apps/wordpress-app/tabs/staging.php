@@ -49,7 +49,7 @@ class WPCD_WORDPRESS_TABS_STAGING extends WPCD_WORDPRESS_TABS {
 		// [2] => 911.
 		$command_array = explode( '---', $name );
 
-		// if the command is to replace the domain name and the domain was changed we need to update the domain records...
+		// if the command is to create a staging site, we need to do a few things...
 		if ( 'create-staging-site' === $command_array[0] ) {
 
 			// Lets pull the logs.
@@ -307,7 +307,7 @@ class WPCD_WORDPRESS_TABS_STAGING extends WPCD_WORDPRESS_TABS {
 		$domain = $this->get_domain_name( $id );
 
 		/**
-		 * We've gotten this far, so lets try to configure the DNS to point to the server.
+		 * We've gotten this far, so lets try to configure the DNS for the new domain to point to the server.
 		 */
 		// 1. What's the server post id?
 		$server_id = $this->get_server_id_by_app_id( $id );

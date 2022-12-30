@@ -505,6 +505,12 @@ class WPCD_POSTS_PERMISSION_TYPE {
 				'wpcd_permission_category' => 'wpapp',
 				'wpcd_permission_group'    => 2,
 			),
+			'view_wpapp_site_multitenant_site_tab'      => array(
+				'post_title'               => __( 'View MULTI-TENANT Tab On WP Server Screen', 'wpcd' ),
+				'wpcd_object_type'         => 1,
+				'wpcd_permission_category' => 'wpapp',
+				'wpcd_permission_group'    => 2,
+			),
 
 			'view_app'                              => array(
 				'post_title'               => __( 'View App', 'wpcd' ),
@@ -689,6 +695,12 @@ class WPCD_POSTS_PERMISSION_TYPE {
 			),
 			'view_wpapp_site_git_control_tab'      => array(
 				'post_title'               => __( 'View GIT Tab On WP Site Screen', 'wpcd' ),
+				'wpcd_object_type'         => 2,
+				'wpcd_permission_category' => 'wpapp',
+				'wpcd_permission_group'    => 4,
+			),
+			'view_wpapp_site_multitenant_site_tab'      => array(
+				'post_title'               => __( 'View MULTI-TENANT Tab On WP Site Screen', 'wpcd' ),
 				'wpcd_object_type'         => 2,
 				'wpcd_permission_category' => 'wpapp',
 				'wpcd_permission_group'    => 4,

@@ -1,0 +1,11 @@
+echo "done" && {
+    cd ~ && 
+	sudo -E wget --no-check-certificate -O ##SCRIPT_COMMON_NAME## ##SCRIPT_COMMON_URL## &&
+	sudo -E dos2unix ##SCRIPT_COMMON_NAME## &&	
+    sudo -E wget --no-check-certificate -O ##SCRIPT_NAME## ##SCRIPT_URL## &&
+	export action=##ACTION## domain=##DOMAIN## old_domain=##DOMAIN## new_domain=##NEW_DOMAIN## &&
+    sudo -E dos2unix ##SCRIPT_NAME## &&
+    sudo -E bash ##SCRIPT_NAME## >> ##SCRIPT_LOGS##.log.intermed 2>&1 &&
+    sudo -E mv ##SCRIPT_LOGS##.log.intermed ##SCRIPT_LOGS##.log.done &&
+    sudo -E wget -q ##CALLBACK_URL##;
+} > /dev/null 2>&1 &

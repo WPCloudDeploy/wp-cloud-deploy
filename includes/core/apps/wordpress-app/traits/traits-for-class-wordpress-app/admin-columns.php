@@ -1108,6 +1108,20 @@ trait wpcd_wpapp_admin_column_data {
 			}
 		}
 
+		/* Show of the site is a GIT site */
+		if ( 'wpcd_app' === get_post_type( $post ) && 'wordpress-app' == $this->get_app_type( $post->ID ) ) {
+			if ( true === $this->get_git_status( $post->ID ) ) {
+				$states['wpcd-wpapp-git-status'] = __( 'Git Enabled', 'wpcd' );
+			}
+		}
+
+		/* Show of the site is a template site */
+		if ( 'wpcd_app' === get_post_type( $post ) && 'wordpress-app' == $this->get_app_type( $post->ID ) ) {
+			if ( true === wpcd_is_template_site( $post->ID ) ) {
+				$states['wpcd-wpapp-template-status'] = __( 'Template', 'wpcd' );
+			}
+		}
+
 		/* Show the server type on the server list screen */
 		if ( 'wpcd_app_server' === get_post_type( $post ) && 'wordpress-app' == $this->get_server_type( $post->ID ) && boolval( wpcd_get_option( 'wordpress_app_show_label_in_lists' ) ) ) {
 			$states['wpcd-server-type'] = 'WordPress';  // Unfortunately we don't have a server type description function we can call right now so hardcoding the value here.

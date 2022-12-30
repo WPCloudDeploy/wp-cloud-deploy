@@ -414,6 +414,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			'file-manager'             => __( 'File Manager', 'wpcd' ),
 			'multisite'                => __( 'Multisite', 'wpcd' ),
 			'git-site-control'         => __( 'Git', 'wpcd' ),
+			'Multitenant-site'         => __( 'Multi-tenant', 'wpcd' ),
 		);
 
 		// Let developers hook into the array here.
@@ -571,6 +572,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			'serversync'         => __( 'Server Sync', 'wpcd' ),
 			'resize'             => __( 'Resize Server', 'wpcd' ),
 			'git-server-control' => __( 'Git', 'wpcd' ),
+			'Multitenant-server' => __( 'Multi-tenant', 'wpcd' ),
 		);
 
 		// Let developers hook into the array here.

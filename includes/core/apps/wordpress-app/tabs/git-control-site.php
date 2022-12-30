@@ -502,7 +502,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 			return $fields;
 		}
 
-		// Is git initialized on this server?
+		// Is git initialized on this site?
 		$git_site_status = $this->get_git_status( $id );
 
 		/**

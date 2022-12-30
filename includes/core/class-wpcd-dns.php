@@ -52,7 +52,7 @@ class WPCD_DNS extends WPCD_Base {
 	 * @return string
 	 */
 	public function get_active_root_domain() {
-		return apply_filters( 'wpcd_wpapp_active_root_domain', wpcd_get_option( 'wordpress_app_dns_cf_temp_domain' ) );
+		return apply_filters( 'wpcd_wpapp_active_root_domain', wpcd_get_early_option( 'wordpress_app_dns_cf_temp_domain' ) );
 	}
 
 	/**

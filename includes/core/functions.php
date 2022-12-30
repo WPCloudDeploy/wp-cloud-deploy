@@ -1346,6 +1346,20 @@ if ( ! function_exists( 'wpcd_is_woocommerce_activated' ) ) {
 }
 
 /**
+ * Return whether a site is a template site or not.
+ *
+ * @since 5.3
+ *
+ * @param int $app_id The post id of the site we're working with.
+ *
+ * @return boolean
+ */
+function wpcd_is_template_site( $app_id ) {
+	$is_template_site = (bool) get_post_meta( $app_id, 'wpcd_is_template_site', true );
+	return $is_template_site;
+}
+
+/**
  * Get number of minutes left for transient to expire
  *
  * @param string $key key.

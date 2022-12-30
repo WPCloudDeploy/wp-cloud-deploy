@@ -513,10 +513,9 @@ lf_git_fetch_or_pull_tag() {
 				cp "$target_folder/$core_file" "$target_folder/wp/$core_file"
 				if [ $? -ne 0 ]
 				then
-					msg="Unable to copy file from: $target_folder/$core_file to $target_folder/wp/$core_file"
+					msg="Unable to copy file from: $target_folder/$core_file to $target_folder/wp/$core_file.  This might cause a fatal error later but moving on to the next file anyway..."
 					echo
 					echo $msg
-					exit
 				fi
 			else
 				msg="Core WP file not found in version folder ($core_file) - moving on."

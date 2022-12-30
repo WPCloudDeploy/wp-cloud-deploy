@@ -329,6 +329,10 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/git-control-site.php';
 		}
 
+		if ( true === wpcd_is_mt_enabled() ) {
+			require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/multitenant-site.php';
+		}
+
 		if ( defined( 'WPCD_SHOW_SITE_USERS_TAB' ) && WPCD_SHOW_SITE_USERS_TAB ) {
 			require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/site-system-users.php';
 		}

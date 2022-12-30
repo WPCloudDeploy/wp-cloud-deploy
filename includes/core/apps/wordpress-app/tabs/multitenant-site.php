@@ -205,7 +205,7 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 	public function get_tab( $tabs, $id ) {
 		if ( $this->get_tab_security( $id ) ) {
 			$tabs[ $this->get_tab_slug() ] = array(
-				'label' => __( 'Multitenant', 'wpcd' ),
+				'label' => __( 'Multi-tenant', 'wpcd' ),
 				'icon'  => 'fa-duotone fa-rectangle-history-circle-user',
 			);
 		}

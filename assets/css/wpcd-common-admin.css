@@ -37,9 +37,7 @@ span.wpcd-app-server-app-group {
 }
 
 /******************************************************************************************/
-
 /* Style the UPGRADE NEEDED alert on the server & app listing screen                      */
-
 /******************************************************************************************/
 .wpcd_upgrade_needed_warning {
     display: inline-block;
@@ -54,4 +52,20 @@ span.wpcd-app-server-app-group {
     border-width: 2px;
     margin: 2px;
     margin-left: 0px;
+}
+
+/******************************************************************************************/
+/* Style the post states                                                                  */
+/******************************************************************************************/
+.post-type-wpcd_app_server .post-state,
+.post-type-wpcd_app .post-state {
+	background-color: var(--wpcd-accent-background-color);
+	font-size: 12px;
+	display: inline-block;
+	font-weight: 400;
+	margin: -1px 10px 5px 0px;
+	padding: 1px 5px;
+	vertical-align: top;
+	border-radius: 2px;
+	color: white;
 }

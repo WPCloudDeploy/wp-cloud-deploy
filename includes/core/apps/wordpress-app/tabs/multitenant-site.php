@@ -151,6 +151,9 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 							$mt_version      = get_post_meta( $id, 'wpapp_temp_mt_new_version', true );
 							$mt_version_desc = get_post_meta( $id, 'wpapp_temp_mt_new_version_desc', true );
 							$this->mt_add_mt_version_history( $id, $mt_version, $mt_version_desc, $new_domain );
+							$this->set_mt_version( $new_app_post_id, $mt_version );
+							$this->set_mt_parent( $new_app_post_id, $id );
+							$this->set_mt_site_type( $new_app_post_id, 'mt_version' );
 
 							// Wrapup - let things hook in here - primarily the multisite add-on and the REST API.
 							do_action( "wpcd_{$this->get_app_name()}_site_clone_new_post_completed", $new_app_post_id, $id, $name );

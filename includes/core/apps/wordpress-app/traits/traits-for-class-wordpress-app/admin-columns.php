@@ -1076,59 +1076,74 @@ trait wpcd_wpapp_admin_column_data {
 	public function display_post_states( $states, $post ) {
 
 		/* Show the app type and site status on the application list */
-		if ( 'wpcd_app' === get_post_type( $post ) && 'wordpress-app' == $this->get_app_type( $post->ID ) && boolval( wpcd_get_option( 'wordpress_app_show_label_in_lists' ) ) ) {
+		if ( 'wpcd_app' === get_post_type( $post ) && 'wordpress-app' === $this->get_app_type( $post->ID ) && boolval( wpcd_get_option( 'wordpress_app_show_label_in_lists' ) ) ) {
 			$states['wpcd-app-desc'] = $this->get_app_description();
 		}
 
 		/* Show whether the site is enabled or disabled */
-		if ( 'wpcd_app' === get_post_type( $post ) && 'wordpress-app' == $this->get_app_type( $post->ID ) ) {
+		if ( 'wpcd_app' === get_post_type( $post ) && 'wordpress-app' === $this->get_app_type( $post->ID ) ) {
 			if ( 'off' === $this->site_status( $post->ID ) ) {
 				$states['wpcd-wpapp-status'] = __( 'Disabled', 'wpcd' );
 			}
 		}
 
 		/* Show whether the site is admin locked */
-		if ( 'wpcd_app' === get_post_type( $post ) && 'wordpress-app' == $this->get_app_type( $post->ID ) ) {
+		if ( 'wpcd_app' === get_post_type( $post ) && 'wordpress-app' === $this->get_app_type( $post->ID ) ) {
 			if ( $this->get_admin_lock_status( $post->ID ) ) {
 				$states['wpcd-wpapp-admin-locked'] = __( 'Admin Locked', 'wpcd' );
 			}
 		}
 
 		/* Show whether the site is a staging site */
-		if ( 'wpcd_app' === get_post_type( $post ) && 'wordpress-app' == $this->get_app_type( $post->ID ) ) {
+		if ( 'wpcd_app' === get_post_type( $post ) && 'wordpress-app' === $this->get_app_type( $post->ID ) ) {
 			if ( true === $this->is_staging_site( $post->ID ) ) {
 				$states['wpcd-wpapp-status'] = __( 'Staging', 'wpcd' );
 			}
 		}
 
 		/* Show if the site has a remote database */
-		if ( 'wpcd_app' === get_post_type( $post ) && 'wordpress-app' == $this->get_app_type( $post->ID ) ) {
+		if ( 'wpcd_app' === get_post_type( $post ) && 'wordpress-app' === $this->get_app_type( $post->ID ) ) {
 			if ( 'yes' === $this->is_remote_db( $post->ID ) ) {
 				$states['wpcd-wpapp-remote-db'] = __( 'RemoteDB', 'wpcd' );
 			}
 		}
 
-		/* Show of the site is a GIT site */
-		if ( 'wpcd_app' === get_post_type( $post ) && 'wordpress-app' == $this->get_app_type( $post->ID ) ) {
+		/* Show if the site is a GIT site */
+		if ( 'wpcd_app' === get_post_type( $post ) && 'wordpress-app' === $this->get_app_type( $post->ID ) ) {
 			if ( true === $this->get_git_status( $post->ID ) ) {
-				$states['wpcd-wpapp-git-status'] = __( 'Git Enabled', 'wpcd' );
+				$states['wpcd-wpapp-git-status'] = '<span class="wpcd_post_state_git_enabled">' . __( 'Git Enabled', 'wpcd' ) . '</span>';
 			}
 		}
 
-		/* Show of the site is a template site */
-		if ( 'wpcd_app' === get_post_type( $post ) && 'wordpress-app' == $this->get_app_type( $post->ID ) ) {
-			if ( true === $this->wpcd_is_template_site( $post->ID ) ) {
-				$states['wpcd-wpapp-template-status'] = __( 'Template', 'wpcd' );
+		/* Show if the site is a template site */
+		if ( 'wpcd_app' === get_post_type( $post ) && 'wordpress-app' === $this->get_app_type( $post->ID ) ) {
+			// If multi-tenant is not enabled then we'll allow this to go through.
+			// If multi-tenant is enabled, it will be handled later below instead.
+			if ( ! wpcd_is_mt_enabled() ) {
+				if ( true === $this->wpcd_is_template_site( $post->ID ) ) {
+					$states['wpcd-wpapp-template-status'] = __( 'Template', 'wpcd' );
+				}
+			}
+		}
+
+		/* Show multi-tenant related site type. */
+		if ( 'wpcd_app' === get_post_type( $post ) && 'wordpress-app' === $this->get_app_type( $post->ID ) ) {
+			if ( true === wpcd_is_mt_enabled() ) {
+				$mt_site_type = $this->get_mt_site_type( $post->ID );
+				if ( 'standard' !== $mt_site_type ) {
+					$css_class                         = 'wpcd_post_state_' . $mt_site_type;
+					$states['wpcd-wpapp-mt-site-type'] = '<span class="' . $css_class . '">' . $mt_site_type . '</span>';
+				}
 			}
 		}
 
 		/* Show the server type on the server list screen */
-		if ( 'wpcd_app_server' === get_post_type( $post ) && 'wordpress-app' == $this->get_server_type( $post->ID ) && boolval( wpcd_get_option( 'wordpress_app_show_label_in_lists' ) ) ) {
+		if ( 'wpcd_app_server' === get_post_type( $post ) && 'wordpress-app' === $this->get_server_type( $post->ID ) && boolval( wpcd_get_option( 'wordpress_app_show_label_in_lists' ) ) ) {
 			$states['wpcd-server-type'] = 'WordPress';  // Unfortunately we don't have a server type description function we can call right now so hardcoding the value here.
 		}
 
 		/* Show if the server has a local/custom ssh login */
-		if ( 'wpcd_app_server' === get_post_type( $post ) && 'wordpress-app' == $this->get_server_type( $post->ID ) && ! empty( WPCD()->decrypt( get_post_meta( $post->ID, 'wpcd_server_ssh_private_key', true ) ) ) ) {
+		if ( 'wpcd_app_server' === get_post_type( $post ) && 'wordpress-app' === $this->get_server_type( $post->ID ) && ! empty( WPCD()->decrypt( get_post_meta( $post->ID, 'wpcd_server_ssh_private_key', true ) ) ) ) {
 			$states['wpcd-server-custom-ssh-login'] = __( 'SSH Override', 'wpcd' );
 		}
 

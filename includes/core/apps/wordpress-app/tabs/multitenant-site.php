@@ -301,7 +301,7 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 		}
 
 		/* Now verify that the user can perform actions on this screen, assuming that they can view the server */
-		$valid_actions = array( 'mt-create-version', 'mt-set-product-name', 'mt-set-template-flag', 'mt-set-default-version', 'mt-convert-site' );
+		$valid_actions = array( 'mt-create-version', 'mt-set-product-name', 'mt-set-template-flag', 'mt-set-default-version', 'mt-convert-site', 'mt-push-versions-to-server' );
 		if ( in_array( $action, $valid_actions, true ) ) {
 			if ( ! $this->get_tab_security( $id ) ) {
 				/* translators: %1s is replaced with an internal action name; %2$s is replaced with the file name; %3$s is replaced with the post id being acted on. %4$s is the user id running this action. */
@@ -349,6 +349,9 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 					break;
 				case 'mt-convert-site':
 					$result = $this->mt_convert_site( $action, $id );
+					break;
+				case 'mt-push-versions-to-server':
+					$result = $this->mt_push_versions_to_server( $action, $id );
 					break;
 			}
 		}
@@ -589,7 +592,7 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 		if ( empty( $run_cmd ) || is_wp_error( $run_cmd ) ) {
 			/* translators: %s is replaced with the internal action name. */
 			$message = sprintf( __( 'Something went wrong - we are unable to construct a proper command for this action - %s', 'wpcd' ), $action );
-			do_action( "wpcd_{$this->get_app_name()}_mt_new_version_clone_site_failed", $id, $action, $message, $args );
+			do_action( "wpcd_{$this->get_app_name()}_mt_site_conversion_failed", $id, $action, $message, $args );
 			return new \WP_Error( $message );
 		}
 
@@ -603,6 +606,271 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 		 * here: https://wpclouddeploy.com/documentation/wpcloud-deploy-dev-notes/ssh-execution-models/
 		 */
 		$return = $this->run_async_command_type_2( $id, $command, $run_cmd, $instance, $action );
+
+		return $return;
+
+	}
+
+	/**
+	 * Multitenant - push all versions for the template site to a remote server.
+	 *
+	 * Note: A lot of this code is replicated in the site_sync tab.
+	 * Significant changes here probably should be made there as well.
+	 *
+	 * @param string $action The action key to send to the bash script.
+	 * @param int    $id the id of the app post being handled.
+	 * @param array  $in_args Alternative source of arguments passed via action hook or direct function call instead of pulling from $_POST.
+	 *
+	 * @return boolean|object Can return wp_error, true/false
+	 */
+	private function mt_push_versions_to_server( $action, $id, $in_args = array() ) {
+
+		// Save the $action value.
+		$original_action = $action;
+
+		if ( empty( $in_args ) ) {
+			// Get data from the POST request.
+			$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
+		} else {
+			$args = $in_args;
+		}
+
+		// Make sure we get a destination server.
+		if ( empty( $args['site_sync_destination'] ) ) {
+			$message = __( 'A destination server is required.', 'wpcd' );
+			do_action( "wpcd_{$this->get_app_name()}_mt_push_version_to_server_failed", $id, $action, $message, $args );
+			return new \WP_Error( $message );
+		}
+
+		// Get the instance details.
+		$instance = $this->get_app_instance_details( $id );
+
+		// Bail if error.
+		if ( is_wp_error( $instance ) ) {
+			/* translators: %s is replaced with the internal action name. */
+			$message = sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action );
+			do_action( "wpcd_{$this->get_app_name()}_mt_push_version_to_server_failed", $id, $action, $message, $args );
+			return new \WP_Error( $message );
+		}
+
+		// Get server post corresponding to the passed in app id...
+		$source_server_post = $this->get_server_by_app_id( $id );
+
+		// Set some source and destination vars to try to make things clearer for future readers of this script.
+		$source_app_id  = $id;
+		$source_id      = $source_server_post->ID;
+		$destination_id = (int) $args['site_sync_destination'];
+
+		/**
+		 * Check permissions on source and destination servers if a security override check is NOT in place.
+		 * The security override check is passed via another program that has done the security checks.
+		 * For example, the security override will be passed by the WC addon that sells WP sites.
+		 */
+		if ( ! isset( $in_args['sec_source_dest_check_override'] ) ) {
+			// Bail if the destination server is not something the user is authorized to use!
+			if ( ! in_array( $destination_id, wpcd_get_posts_by_permission( 'view_server', 'wpcd_app_server' ) ) ) {
+				$msg = __( 'Sorry but you are not allowed to copy sites to the specified target server.', 'wpcd' );
+				do_action( 'wpcd_log_error', sprintf( '%s: %s', $msg, print_r( $args, true ) ), 'trace', __FILE__, __LINE__, $args, false );  // Note that we are passing $args instead of a $instance var because we do not have a $instance var yet.
+				do_action( "wpcd_{$this->get_app_name()}_mt_push_version_to_server_failed", $id, $action, $msg, $args );
+				return new \WP_Error( $msg );
+			}
+
+			// Bail if the source server is not something the user is authorized to use!
+			if ( ! in_array( $source_id, wpcd_get_posts_by_permission( 'view_server', 'wpcd_app_server' ) ) ) {
+				$msg = __( 'Sorry but you are not allowed to copy sites from the specified source server.', 'wpcd' );
+				do_action( 'wpcd_log_error', sprintf( '%s: %s', $msg, print_r( $args, true ) ), 'trace', __FILE__, __LINE__, $args, false );  // Note that we are passing $args instead of a $instance var because we do not have a $instance var yet.
+				do_action( "wpcd_{$this->get_app_name()}_mt_push_version_to_server_failed", $id, $action, $msg, $args );
+				return new \WP_Error( $msg );
+			}
+		}
+
+		// Bail if the source and destination servers are the same!
+		if ( $destination_id === $source_id ) {
+			$msg = __( 'Sorry but it looks like you are trying to copy the site to the same server where it currently resides. If you would like to do that, use the CLONE SITE tab instead.', 'wpcd' );
+			do_action( 'wpcd_log_error', sprintf( '%s: %s', $msg, print_r( $args, true ) ), 'trace', __FILE__, __LINE__, $args, false );  // Note that we are passing $args instead of a $instance var because we do not have a $instance var yet.
+			do_action( "wpcd_{$this->get_app_name()}_mt_push_version_to_server_failed", $id, $action, $msg, $args );
+			return new \WP_Error( $msg );
+		}
+
+		// Get the domain we're working on (this is the template domain).
+		$domain = $this->get_domain_name( $id );
+
+		// Bail if no domain...
+		if ( empty( $domain ) ) {
+			$msg = __( 'Sorry but we were unable to obtain the domain name for this app.', 'wpcd' );
+			do_action( 'wpcd_log_error', sprintf( '%s: %s', $msg, print_r( $args, true ) ), 'trace', __FILE__, __LINE__, $args, false );  // Note that we are passing $args instead of a $instance var because we do not have a $instance var yet.
+			do_action( "wpcd_{$this->get_app_name()}_mt_push_version_to_server_failed", $id, $action, $msg, $args );
+			return new \WP_Error( $msg );
+		} else {
+			// we have a good domain so stick it in the arg array.
+			$domain         = sanitize_text_field( $domain );  // shouldn't be necessary but doing it anyway.
+			$domain         = wpcd_clean_domain( $domain );   // shouldn't be necessary but doing it anyway.
+			$args['domain'] = $domain;
+		}
+
+		// Get data about the destination server.
+		$destination_instance = $this->get_server_instance_details( $destination_id );
+
+		// Get some data about the source server.
+		$source_instance = $this->get_server_instance_details( $source_id );
+
+		// Bail if error for source server.
+		if ( is_wp_error( $source_instance ) ) {
+			/* translators: %s is replaced with the internal action name. */
+			$msg = sprintf( __( 'Unable to execute this request because we cannot get the source server instance details for action %s', 'wpcd' ), $action );
+			do_action( 'wpcd_log_error', sprintf( '%s: %s', $msg, print_r( $args, true ) ), 'trace', __FILE__, __LINE__, $source_instance, false );
+			do_action( "wpcd_{$this->get_app_name()}_mt_push_version_to_server_failed", $id, $action, $msg, $source_instance );
+			return new \WP_Error( $msg );
+		}
+
+		// Bail if error for destination server.
+		if ( is_wp_error( $destination_instance ) ) {
+			/* translators: %s is replaced with the internal action name. */
+			$msg = sprintf( __( 'Unable to execute this request because we cannot get the destination server instance details for action %s', 'wpcd' ), $action );
+			do_action( 'wpcd_log_error', sprintf( '%s: %s', $msg, print_r( $args, true ) ), 'trace', __FILE__, __LINE__, $destination_instance, false );
+			do_action( "wpcd_{$this->get_app_name()}_mt_push_version_to_server_failed", $id, $action, $msg, $destination_instance );
+			return new \WP_Error( $msg );
+		}
+
+		// Extract some data from the source and destination instances and check to make sure they are valid.
+		$ipv4_source      = $source_instance['ipv4'];
+		$ipv4_destination = $destination_instance['ipv4'];
+		if ( empty( $ipv4_source ) || empty( $ipv4_destination ) ) {
+			/* translators: %s is replaced with the internal action name. */
+			$msg = sprintf( __( 'Oops - either the source or destination server is missing an ipv4 address - action %s', 'wpcd' ), $action );
+			do_action( 'wpcd_log_error', sprintf( '%s: %s', $msg, print_r( $args, true ) ), 'trace', __FILE__, __LINE__, $source_instance, false );
+			do_action( "wpcd_{$this->get_app_name()}_mt_push_version_to_server_failed", $id, $action, $msg, $source_instance );
+			return new \WP_Error( $msg );
+		}
+
+		// Lets get the login user for the source server.
+		$source_ssh_user = WPCD_SERVER()->get_root_user_name( $source_id );
+		if ( empty( $source_ssh_user ) ) {
+			/* translators: %s is replaced with the internal action name. */
+			$msg = sprintf( __( 'Oops - unable to get the login user name for the source server - action %s', 'wpcd' ), $action );
+			do_action( 'wpcd_log_error', sprintf( '%s: %s', $msg, print_r( $args, true ) ), 'trace', __FILE__, __LINE__, $source_instance, false );
+			do_action( "wpcd_{$this->get_app_name()}_mt_push_version_to_server_failed", $id, $action, $msg, $source_instance );
+			return new \WP_Error( $msg );
+		}
+
+		// Lets get the login user for the destination server.
+		$destination_ssh_user = WPCD_SERVER()->get_root_user_name( $destination_id );
+		if ( empty( $destination_ssh_user ) ) {
+			/* translators: %s is replaced with the internal action name. */
+			$msg = sprintf( __( 'Oops - unable to get the login user name for the destination server - action %s', 'wpcd' ), $action );
+			do_action( 'wpcd_log_error', sprintf( '%s: %s', $msg, print_r( $args, true ) ), 'trace', __FILE__, __LINE__, $destination_instance, false );
+			do_action( "wpcd_{$this->get_app_name()}_mt_push_version_to_server_failed", $id, $action, $msg, $destination_instance );
+			return new \WP_Error( $msg );
+		}
+
+		// Ok, we got this far, basic checks have passed.  Sanitize some of the data we'll be passing to scripts and update the ARGS array since we'll be passing that to the command function...
+		$args['interactive']    = 'no';
+		$args['origin_ip']      = escapeshellarg( $ipv4_source );
+		$args['destination_ip'] = escapeshellarg( $ipv4_destination );
+		$args['sshuser']        = escapeshellarg( $destination_ssh_user );
+
+		// construct the command to set up the origin/source server.
+		$action  = 'auth';
+		$run_cmd = $this->turn_script_into_command( $source_instance, 'site_sync_origin_setup.txt', array_merge( $args, array( 'action' => $action ) ) );
+		do_action( 'wpcd_log_error', sprintf( 'attempting to run command for %s = %s ', print_r( $source_instance, true ), $run_cmd ), 'trace', __FILE__, __LINE__, $source_instance, false );
+
+		// run the command on the origin/source server and evaluate the results.
+		$result  = $this->execute_ssh( 'generic', $source_instance, array( 'commands' => $run_cmd ) );
+		$success = $this->is_ssh_successful( $result, 'site_sync_origin_setup.txt' );
+		if ( ! $success ) {
+			if ( is_wp_error( $result ) ) {
+				/* translators: %s is replaced with the result of the execute_ssh command. */
+				$msg = sprintf( __( 'Unable to configure the origin server. The origin server returned this in response to commands: %s', 'wpcd' ), $result->get_error_message() );
+			} else {
+				/* translators: %s is replaced with the result of the execute_ssh command. */
+				$msg = sprintf( __( 'Unable to configure the origin server. The origin server returned this in response to commands: %s', 'wpcd' ), $result );
+			}
+			do_action( 'wpcd_log_error', sprintf( '%s: %s', $msg, print_r( $args, true ) ), 'error', __FILE__, __LINE__, $source_instance, false );
+			do_action( "wpcd_{$this->get_app_name()}_mt_push_version_to_server_failed", $id, $action, $msg, $source_instance );
+			return new \WP_Error( $msg );
+		}
+
+		// construct the command to set up the destination server.
+		$action  = '';  // no action needs to be passed to the script since it only does one thing.
+		$run_cmd = $this->turn_script_into_command( $destination_instance, 'site_sync_destination_setup.txt', array_merge( $args, array( 'action' => $action ) ) );
+		do_action( 'wpcd_log_error', sprintf( 'attempting to run command for %s = %s ', print_r( $destination_instance, true ), $run_cmd ), 'trace', __FILE__, __LINE__, $destination_instance, false );
+
+		// run the command to setup the destination server and evaluate the results.
+		$result  = $this->execute_ssh( 'generic', $destination_instance, array( 'commands' => $run_cmd ) );
+		$success = $this->is_ssh_successful( $result, 'site_sync_destination_setup.txt' );
+		if ( ! $success ) {
+			/* translators: %s is replaced with the result of the execute_ssh command. */
+			$msg = sprintf( __( 'Unable to configure the destination server. The destination server returned this in response to commands: %s', 'wpcd' ), $result );
+			do_action( 'wpcd_log_error', sprintf( '%s: %s', $msg, print_r( $args, true ) ), 'error', __FILE__, __LINE__, $destination_instance, false );
+			do_action( "wpcd_{$this->get_app_name()}_mt_push_version_to_server_failed", $id, $action, $msg, $destination_instance );
+			return new \WP_Error( $msg );
+		} else {
+			// Command successful - update some metas on the app record to make sure that we have data to use later.
+			update_post_meta( $source_app_id, 'wpcd_wpapp_site_sync_destination_ipv4_temp', $ipv4_destination );
+			update_post_meta( $source_app_id, 'wpcd_wpapp_site_sync_destination_id_temp', $destination_id );
+			update_post_meta( $source_app_id, 'wpcd_wpapp_site_sync_domain_temp', $domain );
+		}
+
+		/**
+		 * At this point, both origin and destination servers are configured.
+		 */
+
+		// Reset the action var to the original passed in value.
+		$action      = $original_action;
+		$bash_action = 'site-sync-mt-version';
+
+		// Add the template domain to the args array.
+		$args['mt_template_domain'] = $domain;
+
+		// Setup unique command name.
+		if ( empty( $action ) ) {
+			$msg = __( 'The $action variable is empty - returning false from site-sync routine.', 'wpcd' );
+			do_action( 'wpcd_log_error', sprintf( '%s: %s', $msg, print_r( $args, true ) ), 'trace', __FILE__, __LINE__, $source_instance, false );
+			do_action( "wpcd_{$this->get_app_name()}_mt_push_version_to_server_failed", $id, $action, $msg, $source_instance );
+			return false;
+		}
+
+		$command                    = sprintf( '%s---%s---%d', $action, $domain, time() );
+		$source_instance['command'] = $command;
+		$source_instance['app_id']  = $id;
+
+		// construct the run command.
+		$run_cmd = $this->turn_script_into_command(
+			$source_instance,
+			'site_sync.txt',
+			array_merge(
+				$args,
+				array(
+					'command' => $command,
+					'action'  => $bash_action,
+					'domain'  => $domain,
+				)
+			)
+		);
+
+		// double-check just in case of errors.
+		if ( empty( $run_cmd ) || is_wp_error( $run_cmd ) ) {
+			/* translators: %s is replaced with the internal action name. */
+			$msg = sprintf( __( 'Something went wrong - we are unable to construct a proper command for this action - %s', 'wpcd' ), $action );
+			do_action( 'wpcd_log_error', sprintf( "$msg: %s", print_r( $args, true ) ), 'trace', __FILE__, __LINE__, $source_instance, false );
+			do_action( "wpcd_{$this->get_app_name()}_mt_push_version_to_server_failed", $id, $action, $msg, $source_instance );
+			return new \WP_Error( $msg );
+		}
+
+		// We might need to add an item to the PENDING TASKS LOG.
+		if ( isset( $in_args['pending_tasks_type'] ) ) {
+			WPCD_POSTS_PENDING_TASKS_LOG()->add_pending_task_log_entry( $destination_id, $in_args['pending_tasks_type'], $command, $args, 'not-ready', $id, __( 'Waiting For Product Template Versions Copy To Complete.', 'wpcd' ) );
+		}
+
+		// Stamp some data we'll need later (in the command_completed function) onto the app records.
+		update_post_meta( $id, 'wpapp_temp_mt_versions_push_server_destination_id', $destination_id );
+
+		/**
+		 * Run the constructed command
+		 * Check out the write up about the different aysnc methods we use
+		 * here: https://wpclouddeploy.com/documentation/wpcloud-deploy-dev-notes/ssh-execution-models/
+		 */
+		$return = $this->run_async_command_type_2( $id, $command, $run_cmd, $source_instance, $action );
 
 		return $return;
 
@@ -807,11 +1075,12 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 
 		// Fields shown to template sites.
 		if ( true === $this->wpcd_is_template_site( $id ) ) {
-			$create_new_version_fields = $this->get_create_new_version_fields( $id );
-			$production_version_fields = $this->get_production_version_fields( $id );
-			$version_fields            = $this->get_fields_for_version_list( $id );
-			$product_name_fields       = $this->get_product_name_fields( $id );
-			$fields                    = array_merge( $fields, $create_new_version_fields, $production_version_fields, $version_fields, $product_name_fields );
+			$create_new_version_fields      = $this->get_create_new_version_fields( $id );
+			$production_version_fields      = $this->get_production_version_fields( $id );
+			$version_fields                 = $this->get_fields_for_version_list( $id );
+			$product_name_fields            = $this->get_product_name_fields( $id );
+			$push_versions_to_server_fields = $this->get_push_versions_to_server_fields( $id );
+			$fields                         = array_merge( $fields, $create_new_version_fields, $production_version_fields, $version_fields, $push_versions_to_server_fields, $product_name_fields );
 		}
 
 		// Fields shown to template sites and standard sites.
@@ -962,7 +1231,10 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 			),
 			'std'        => $current_product_name,
 			'required'   => true,
-			'tooltip'    => __( 'The product name set here is a synonym for the template domain and can be used to reference this template in WooCommerce products and other locations.', 'wpcd ' ),
+			'tooltip'    => array(
+				'content'  => __( 'The product name set here is a synonym for the template domain and can be used to reference this template in WooCommerce products and other locations.', 'wpcd ' ),
+				'position' => 'right',
+			),
 		);
 
 		$fields[] = array(
@@ -1157,6 +1429,132 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 
 		return $actions;
 
+	}
+
+	/**
+	 * Gets the fields to be shown in the 'push versions to server' section of the tab.
+	 *
+	 * @param int $id id.
+	 *
+	 * @return array Array of actions, complying with the structure necessary by metabox.io fields.
+	 */
+	public function get_push_versions_to_server_fields( $id ) {
+
+		// Header description.
+		$desc = __( 'Push all versions to a server', 'wpcd' );
+
+		$destination_servers = $this->get_list_of_destination_servers( $id );
+
+		$fields[] = array(
+			'name' => __( 'Push Versions To Remote Server', 'wpcd' ),
+			'tab'  => $this->get_tab_slug(),
+			'type' => 'heading',
+			'desc' => $desc,
+		);
+		$fields[] = array(
+			'name'       => __( 'Choose Server', 'wpcd' ),
+			'id'         => 'wpcd_app_mt_destination_server',
+			'tab'        => $this->get_tab_slug(),
+			'type'       => 'post',
+			'post_type'  => 'wpcd_app_server',
+			'query_args' => array(
+				/* @TODO: need to restrict this list to only server posts of type wp server and drop existing destination and source servers */
+				'post_status'    => 'private',
+				'posts_per_page' => -1,
+				'orderby'        => 'title',
+				'order'          => 'ASC',
+				'post__in'       => empty( $destination_servers ) ? array( -1 ) : $destination_servers,
+			),
+			'save_field' => false,
+			'attributes' => array(
+				// the key of the field (the key goes in the request).
+				'data-wpcd-name' => 'site_sync_destination',
+			),
+			'std'        => $current_default_version,
+			'required'   => true,
+			'tooltip'    => array(
+				'content'  => __( 'All versions of this product template will be pushed to the selected server. Please make sure that server has enough space to accomodate all the files!', 'wpcd' ),
+				'position' => 'right',
+			),
+		);
+
+		$fields[] = array(
+			'id'         => 'wpcd_app_mt_push_to_server_action',
+			'name'       => '',
+			'tab'        => $this->get_tab_slug(),
+			'type'       => 'button',
+			'std'        => __( 'Push all versions to the specified server', 'wpcd' ),
+			'attributes' => array(
+				// the _action that will be called in ajax.
+				'data-wpcd-action'              => 'mt-push-versions-to-server',
+				// the id.
+				'data-wpcd-id'                  => $id,
+				// fields that contribute data for this action.
+				'data-wpcd-fields'              => wp_json_encode( array( '#wpcd_app_mt_destination_server' ) ),
+				// make sure we give the user a confirmation prompt.
+				'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like to all versions of this product template to the selected remote server?', 'wpcd' ),
+				// show log console?
+				'data-show-log-console'         => true,
+				// Initial console message.
+				'data-initial-console-message'  => __( 'Preparing to push all versions of this product template to the specified remote server...<br /> Please DO NOT EXIT this screen until you see a popup message indicating that the operation has completed or has errored.<br />This terminal should refresh every 60-90 seconds with updated progress information from the server. <br /> After the operation is complete the entire log can be viewed in the COMMAND LOG screen.', 'wpcd' ),
+			),
+			'class'      => 'wpcd_app_action',
+			'save_field' => false,
+		);
+
+		return $fields;
+
+	}
+
+	/**
+	 * Gets a list of appropriate destination servers.
+	 *
+	 * @TODO: This logic is duplicated in the site-sync.php file/tab
+	 * in the get_fields() function.  We should consolidate and
+	 * make a central function.
+	 *
+	 * @param int $id The id of the current site we're working with.
+	 *
+	 * @return array Array of servers.
+	 */
+	public function get_list_of_destination_servers( $id ) {
+
+		$source_server    = $this->get_server_by_app_id( $id );
+		$source_server_id = $source_server->ID;
+
+		// What type of web server are we running?
+		$webserver_type = $this->get_web_server_type( $id );
+
+		// Now we need to construct an array of server posts that the user is allowed to see.
+		$post__in = wpcd_get_posts_by_permission( 'view_server', 'wpcd_app_server' );
+
+		// Remove the current ID if it's the server posts array. Note the use of ArrayMap and passing in the $source_server_id to the annonymous function.
+		$post__in = array_filter(
+			$post__in,
+			function( $array_entry ) use ( $source_server_id ) {
+				if ( $source_server_id === (int) $array_entry ) {
+					return false;
+				} else {
+					return $array_entry;
+				}
+			}
+		);
+
+		// Remove from the array any server that does not match the webserver type where this site is running.
+		// Note the use of ArrayMap and passing in the $webserver_type to the annoymous function.
+		$post__in = array_filter(
+			$post__in,
+			function( $array_entry ) use ( $webserver_type ) {
+				$this_webserver_type = $this->get_web_server_type( (int) $array_entry );
+				if ( $this_webserver_type !== $webserver_type ) {
+					return false;
+				} else {
+					return $array_entry;
+				}
+			}
+		);
+
+		return $post__in;
 	}
 
 	/**

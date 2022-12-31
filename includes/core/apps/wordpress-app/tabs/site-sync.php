@@ -387,6 +387,9 @@ class WPCD_WORDPRESS_TABS_SITE_SYNC extends WPCD_WORDPRESS_TABS {
 	/**
 	 * Copy site to a new server.
 	 *
+     * Note: A lot of this code is replicated in the multitenant tab.
+     * Significant changes here probably should be made there as well.	 
+	 *
 	 * This is initiated from the site screen on the source server.
 	 *
 	 * @param string $action The action key to send to the bash script.
@@ -803,6 +806,11 @@ class WPCD_WORDPRESS_TABS_SITE_SYNC extends WPCD_WORDPRESS_TABS {
 
 	/**
 	 * Gets the fields to be shown.
+	 *
+     * @TODO: The logic to get an appropriate list of servers 
+	 * is duplicated in the multitenant-site.php file/tab in the 
+	 * get_list_of_destination_servers() function.  We should consolidate and 
+     * make a central function.
 	 *
 	 * @param array $fields fields.
 	 * @param int   $id id.

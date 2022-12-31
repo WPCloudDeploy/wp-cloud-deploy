@@ -434,7 +434,7 @@ then
 
 	# send files.
 	echo "Pushing files to target server. This could take a while..."
-	sudo rsync -a --stats --rsync-path '''sudo -i rsync''' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" $mt_version_folder $sshuser@$destination_ip:/var/wpcd-mt-versions/$mt_template_domain < /dev/null
+	sudo rsync -a --stats --rsync-path '''sudo -i mkdir -p /var/wpcd-mt-versions/$mt_template_domain && rsync''' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" $mt_version_folder $sshuser@$destination_ip:/var/wpcd-mt-versions/$mt_template_domain < /dev/null
 	if [ $? -ne 0 ]
 	then
 		echo

@@ -1142,6 +1142,12 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 			$fields                 = array_merge( $fields, $site_conversion_fields );
 		}
 
+		// Fields shown to other types (for now).
+		if ( in_array( $site_type, array( 'mt_version', 'mt_version_clone', 'mt_template_clone' ), true ) ) {
+			$selected_site_type_fields = $this->get_selected_site_type_fields( $id );
+			$fields                    = array_merge( $fields, $selected_site_type_fields );
+		}
+
 		return $fields;
 
 	}
@@ -1642,7 +1648,7 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 			$desc .= '<br />';
 			$desc .= __( 'This means that it is possible your database will be out of sync with the product template after this operation - unless the template includes a custom plugin or script to update the database as well.', 'wpcd' );
 
-			$name = __( 'Upgrade or Downgrade', 'wpcd' );
+			$name        = __( 'Upgrade or Downgrade', 'wpcd' );
 			$button_text = __( 'Apply New Version', 'wpcd' );
 		} else {
 			// Header description for site that has not been converted yet.
@@ -1654,7 +1660,7 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 			$desc .= '<br />';
 			$desc .= __( 'Then you can apply the conversion function located here.', 'wpcd' );
 
-			$name = __( 'Convert Site To A Tenant', 'wpcd' );
+			$name        = __( 'Convert Site To A Tenant', 'wpcd' );
 			$button_text = __( 'Convert', 'wpcd' );
 		}
 
@@ -1748,6 +1754,41 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 
 		return $fields;
 
+	}
+
+	/**
+	 * Gets the fields to be shown for certain site types.
+	 *  - mt_version
+	 *
+	 * @param int $id id.
+	 *
+	 * @return array Array of actions, complying with the structure necessary by metabox.io fields.
+	 */
+	public function get_selected_site_type_fields( $id ) {
+
+		// What type of site is this?  (See the get_mt_site_type function the multi-tenant-app.php traits file for a list of valid types).
+		$site_type = $this->get_mt_site_type( $id );
+
+		if ( 'mt_version' === $site_type ) {
+			$desc = __( 'There are no options available for sites that are versions of a product template..', 'wpcd' );
+		}
+
+		if ( 'mt_version_clone' === $site_type ) {
+			$desc = __( 'There are no options available for sites that are clones of a version of a product template.', 'wpcd' );
+		}
+
+		if ( 'mt_template_clone' === $site_type ) {
+			$desc = __( 'There are no options available for sites that are clones of a template.', 'wpcd' );
+		}
+
+			$fields[] = array(
+				'name' => __( 'Multi-tenant', 'wpcd' ),
+				'tab'  => $this->get_tab_slug(),
+				'type' => 'heading',
+				'desc' => $desc,
+			);
+
+			return $fields;
 	}
 
 	/**

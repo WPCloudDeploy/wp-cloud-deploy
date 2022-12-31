@@ -23,8 +23,7 @@ echo "done" && {
 	  sudo -E echo "Operation 3 of 3: Pulling down as new product template version $git_tag" >> ##SCRIPT_LOGS##.log.intermed 2>&1 &&
 	  sudo -E echo "*****************************************************************************************" >> ##SCRIPT_LOGS##.log.intermed 2>&1 &&
 	sudo -E bash ##SCRIPT_NAME2## >> ##SCRIPT_LOGS##.log.intermed 2>&1 &&
-		sudo -E pwd >> ##SCRIPT_LOGS##.log.intermed 2>&1 &&	
-		sudo -E echo >> ##SCRIPT_LOGS##.log.intermed 2>&1 &&		
+	  sudo -E echo >> ##SCRIPT_LOGS##.log.intermed 2>&1 &&		
 	  sudo -E echo "*****************************************************************************************" >> ##SCRIPT_LOGS##.log.intermed 2>&1 &&
 	  sudo -E echo "Please review the results of all three operations above." >> ##SCRIPT_LOGS##.log.intermed 2>&1 &&
 	  sudo -E echo "You can only rely on this version IF and only IF all three operations above succeeded." >> ##SCRIPT_LOGS##.log.intermed 2>&1 &&

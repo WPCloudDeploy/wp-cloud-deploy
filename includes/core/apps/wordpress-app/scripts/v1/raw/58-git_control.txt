@@ -199,18 +199,20 @@ lf_mt_get_template_domain() {
 #	done
 #	echo "The Multi-tenant template site for this operation is: $mt_template_domain"
 
-	echo
-	ls /var/wpcd-mt-versions | grep -v html | nl
-	read -p "Select versioned template domain on this server: " site_number
-	number_of_sites=$(ls /var/wpcd-mt-versions | grep -v html | wc -l)
-	until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]
+	while [[ -z $mt_template_domain ]]
 	do
-			echo "$site_number: invalid selection."
-			read -p "Select site: " site_number
+		echo
+		ls /var/wpcd-mt-versions | grep -v html | nl
+		read -p "Select versioned template domain on this server: " site_number
+		number_of_sites=$(ls /var/wpcd-mt-versions | grep -v html | wc -l)
+		until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]
+		do
+				echo "$site_number: invalid selection."
+				read -p "Select site: " site_number
+		done
+
+		mt_template_domain=$(ls /var/wpcd-mt-versions | grep -v html | sed -n "$site_number"p)
 	done
-
-	mt_template_domain=$(ls /var/wpcd-mt-versions | grep -v html | sed -n "$site_number"p)
-
 	echo "Versioned template you have chosen is: $mt_template_domain"
 }
 
@@ -1177,7 +1179,7 @@ then
 	git push origin $git_tag
 	if [ $? -ne 0 ]	
 	then
-		msg="Unable to push tag $git_tag to remote. The tag is stored on the local remote. We will move on and not consider this operation a failure."
+		msg="Unable to push tag $git_tag to remote. The tag is stored on the local machine. We will move on and not consider this operation a failure."
 		echo
 		echo $msg
 	fi
@@ -2224,7 +2226,7 @@ lf_mt_site_conversion_link_existing_files() {
 
 
 # Pull tag and create muti-tenant version.
-# This is different from optin 10 (get_fetch_tag) in that 
+# This is different from option 10 (get_fetch_tag) in that 
 # the files go into a different folder.
 if [[ $action == "mt_git_fetch_tag" || $action == "21" ]]
 then

@@ -61,7 +61,7 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 			// Is the command successful?
 			$success = $this->is_ssh_successful( $logs, 'mt_clone_site.txt' );
 
-			if ( true == $success ) {
+			if ( true === $success ) {
 
 				// Get Webserver Type.
 				$webserver_type = $this->get_web_server_type( $id );
@@ -175,6 +175,58 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 			}
 		}
 
+		// if the command is to convert an existing site we need to update some metas and delete some temporary ones among other things.
+		if ( 'mt-convert-site' === $command_array[0] ) {
+
+			// Lets pull the logs.
+			$logs = $this->get_app_command_logs( $id, $name );
+
+			// Is the command successful?
+			$success = $this->is_ssh_successful( $logs, 'mt_convert_site.txt' );
+
+			if ( true === $success ) {
+
+				// Get Webserver Type.
+				$webserver_type = $this->get_web_server_type( $id );
+
+				// get data out of the temporary metas.
+				$template_site_id = get_post_meta( $id, 'wpapp_temp_mt_template_id', true );
+				$mt_version       = get_post_meta( $id, 'wpapp_temp_mt_version', true );
+
+				if ( $template_site_id && $mt_version ) {
+
+					/* get the app-post */
+					$app_post = get_post( $id );
+
+					if ( $app_post ) {
+
+						// Update meta records.
+						$this->set_mt_version( $id, $mt_version );
+						$this->set_mt_parent( $id, $template_site_id );
+						$this->set_mt_site_type( $id, 'mt_tenant' );
+
+						// Maybe update the template site with a count of the tenants related to it?
+
+						// Wrapup - let things hook in here - primarily the multisite add-on and the REST API.
+						do_action( "wpcd_{$this->get_app_name()}_mt_site_conversion_completed", $new_app_post_id, $id, $name );
+
+					}
+				} else {
+					$message = __( 'Multi-tenant: Site conversion failed - check the command logs for more information.', 'wpcd' );
+					do_action( "wpcd_{$this->get_app_name()}_mt_site_conversion_failed", $id, $command_array[0], $message, array() );  // Keeping 4 parameters for the action hook to maintain consistency even though we have nothing for the last parameter.
+				}
+
+				// And delete the temporary metas.
+				delete_post_meta( $id, 'wpapp_temp_mt_template_id' );
+				delete_post_meta( $id, 'wpapp_temp_mt_version' );
+
+			} else {
+				// Add action hook to indicate failure...
+				$message = __( 'Multi-tenant: Site conversion failed - check the command logs for more information.', 'wpcd' );
+				do_action( "wpcd_{$this->get_app_name()}_mt_site_conversion_failed", $id, $command_array[0], $message, array() );  // Keeping 4 parameters for the action hook to maintain consistency even though we have nothing for the last parameter.
+			}
+		}
+
 		// remove the 'temporary' meta so that another attempt will run if necessary.
 		delete_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action_status" );
 		delete_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action" );
@@ -249,7 +301,7 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 		}
 
 		/* Now verify that the user can perform actions on this screen, assuming that they can view the server */
-		$valid_actions = array( 'mt-create-version', 'mt-set-product-name', 'mt-set-template-flag', 'mt-set-default-version' );
+		$valid_actions = array( 'mt-create-version', 'mt-set-product-name', 'mt-set-template-flag', 'mt-set-default-version', 'mt-convert-site' );
 		if ( in_array( $action, $valid_actions, true ) ) {
 			if ( ! $this->get_tab_security( $id ) ) {
 				/* translators: %1s is replaced with an internal action name; %2$s is replaced with the file name; %3$s is replaced with the post id being acted on. %4$s is the user id running this action. */
@@ -294,6 +346,9 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 					break;
 				case 'mt-set-default-version':
 					$result = $this->mt_set_default_version( $action, $id );
+					break;
+				case 'mt-convert-site':
+					$result = $this->mt_convert_site( $action, $id );
 					break;
 			}
 		}
@@ -438,6 +493,119 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 		$return = $this->run_async_command_type_2( $id, $command, $run_cmd, $instance, $action );
 
 		return $return;
+	}
+
+	/**
+	 * Multitenant - convert a standard site to a multi-tenant site.
+	 *
+	 * @param string $action The action key to send to the bash script.
+	 * @param int    $id the id of the app post being handled.
+	 * @param array  $in_args Alternative source of arguments passed via action hook or direct function call instead of pulling from $_POST.
+	 *
+	 * @return boolean|object Can return wp_error, true/false
+	 */
+	private function mt_convert_site( $action, $id, $in_args = array() ) {
+
+		if ( empty( $in_args ) ) {
+			// Get data from the POST request.
+			$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
+		} else {
+			$args = $in_args;
+		}
+
+		// Make sure we get a template site.
+		if ( empty( $args['mt_product_template'] ) ) {
+			$message = __( 'The product template should be provided.', 'wpcd' );
+			do_action( "wpcd_{$this->get_app_name()}_mt_site_conversion_failed", $id, $action, $message, $args );
+			return new \WP_Error( $message );
+		}
+
+		// Make sure we get a version.
+		$git_tag = $this->sanitize_tag( $args['mt_version'] ); // Make sure we get the git tag into the correct format.
+		if ( empty( $git_tag ) ) {
+			$message = __( 'The version should be provided.', 'wpcd' );
+			do_action( "wpcd_{$this->get_app_name()}_mt_site_conversion_failed", $id, $action, $message, $args );
+			return new \WP_Error( $message );
+		} else {
+			$args['mt_version'] = $git_tag;
+		}
+
+		// Get the instance details.
+		$instance = $this->get_app_instance_details( $id );
+
+		// Bail if error.
+		if ( is_wp_error( $instance ) ) {
+			/* translators: %s is replaced with the internal action name. */
+			$message = sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action );
+			do_action( "wpcd_{$this->get_app_name()}_mt_site_conversion_failed", $id, $action, $message, $args );
+			return new \WP_Error( $message );
+		}
+
+		// Get the domain we're working on (this is the template domain).
+		$domain = $this->get_domain_name( $id );
+
+		// What's the template domain name?
+		$template_domain_id = $args['mt_product_template'];
+		$template_domain    = $this->get_domain_name( $template_domain_id );
+
+		if ( empty( $template_domain_id ) ) {
+			$message = __( 'We were unable to get a domain for the product template.', 'wpcd' );
+			do_action( "wpcd_{$this->get_app_name()}_mt_site_conversion_failed", $id, $action, $message, $args );
+			return new \WP_Error( $message );
+		}
+
+		// Stuff the domain name in the $args array.  It's needed by the bash scripts.
+		$args['domain']             = $domain;
+		$args['mt_template_domain'] = $template_domain;
+
+		// Certain elements in the $args array need to be added or changed to match the values expected by the bash scripts.
+		$args['git_tag'] = escapeshellarg( $args['mt_version'] );
+
+		// Setup unique command name.
+		$command             = sprintf( '%s---%s---%d', $action, $domain, time() );
+		$instance['command'] = $command;
+		$instance['app_id']  = $id;
+
+		// Set up var to hold value of bash action - which is different from the incoming action string.
+		$bash_action = 'mt_convert_site';
+
+		// construct the run command.
+		// NOTE: The control file for this operation, mt_clone_site.txt is going to run THREE operations in sequence.
+		// This means that this control file will look a little different from the others.
+		$run_cmd = $this->turn_script_into_command(
+			$instance,
+			'mt_convert_site.txt',
+			array_merge(
+				$args,
+				array(
+					'command' => $command,
+					'action'  => $bash_action,
+					'domain'  => $domain,
+				)
+			)
+		);
+
+		// double-check just in case of errors.
+		if ( empty( $run_cmd ) || is_wp_error( $run_cmd ) ) {
+			/* translators: %s is replaced with the internal action name. */
+			$message = sprintf( __( 'Something went wrong - we are unable to construct a proper command for this action - %s', 'wpcd' ), $action );
+			do_action( "wpcd_{$this->get_app_name()}_mt_new_version_clone_site_failed", $id, $action, $message, $args );
+			return new \WP_Error( $message );
+		}
+
+		// Stamp some data we'll need later (in the command_completed function) onto the app records.
+		update_post_meta( $id, 'wpapp_temp_mt_template_id', $template_domain_id );
+		update_post_meta( $id, 'wpapp_temp_mt_version', $git_tag );
+
+		/**
+		 * Run the constructed command
+		 * Check out the write up about the different aysnc methods we use
+		 * here: https://wpclouddeploy.com/documentation/wpcloud-deploy-dev-notes/ssh-execution-models/
+		 */
+		$return = $this->run_async_command_type_2( $id, $command, $run_cmd, $instance, $action );
+
+		return $return;
+
 	}
 
 	/**
@@ -590,10 +758,13 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 			return $fields;
 		}
 
-		// Is the site a GIT site?
+		// If GIT is not installed on the server, get out - nothing can be done.
+		// However, going to allow for now since certain operations don't require git.
+		/*
+		$server_id = $this->get_server_id_by_app_id( $id );
 		if ( true !== $this->get_git_status( $id ) ) {
 
-			$desc = __( 'Git is not enabled for this template - multi-tenant operations cannot be performed on this site.', 'wpcd' );
+			$desc = __( 'Git is not enabled on the server where this site is located. Multi-tenant operations cannot be performed on this site.', 'wpcd' );
 
 			$fields[] = array(
 				'name' => __( 'Multi-tenant', 'wpcd' ),
@@ -605,30 +776,49 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 			return $fields;
 
 		}
+		*/
 
-		// Is the site a template site?
-		if ( true !== $this->wpcd_is_template_site( $id ) ) {
-			$desc = __( 'This is not a template site - multi-tenant operations cannot be performed on this site.', 'wpcd' );
+		// What type of site is this?  (See the get_mt_site_type function the multi-tenant-app.php traits file for a list of valid types).
+		$site_type = $this->get_mt_site_type( $id );
 
-			$fields[] = array(
-				'name' => __( 'Multi-tenant', 'wpcd' ),
-				'tab'  => $this->get_tab_slug(),
-				'type' => 'heading',
-				'desc' => $desc,
-			);
+		// Is the site a GIT site?
+		if ( 'template' === $site_type ) {
+			if ( true !== $this->get_git_status( $id ) ) {
 
-			$template_flag_fields = $this->get_template_flag_fields( $id );
+				$desc = __( 'Git is not enabled for this template - multi-tenant operations cannot be performed on this site.', 'wpcd' );
 
-			return array_merge( $fields, $template_flag_fields );
+				$fields[] = array(
+					'name' => __( 'Multi-tenant', 'wpcd' ),
+					'tab'  => $this->get_tab_slug(),
+					'type' => 'heading',
+					'desc' => $desc,
+				);
+
+				return $fields;
+
+			}
 		}
 
-		$create_new_version_fields = $this->get_create_new_version_fields( $id );
-		$production_version_fields = $this->get_production_version_fields( $id );
-		$version_fields            = $this->get_fields_for_version_list( $id );
-		$product_name_fields       = $this->get_product_name_fields( $id );
-		$template_flag_fields      = $this->get_template_flag_fields( $id );
+		// Fields shown to standard sites.
+		if ( 'standard' === $site_type ) {
+			$site_conversion_fields = $this->get_site_conversion_fields( $id );
+			$fields                 = array_merge( $fields, $site_conversion_fields );
+		}
 
-		$fields = array_merge( $fields, $create_new_version_fields, $production_version_fields, $version_fields, $product_name_fields, $template_flag_fields );
+		// Fields shown to template sites.
+		if ( true === $this->wpcd_is_template_site( $id ) ) {
+			$create_new_version_fields = $this->get_create_new_version_fields( $id );
+			$production_version_fields = $this->get_production_version_fields( $id );
+			$version_fields            = $this->get_fields_for_version_list( $id );
+			$product_name_fields       = $this->get_product_name_fields( $id );
+			$fields                    = array_merge( $fields, $create_new_version_fields, $production_version_fields, $version_fields, $product_name_fields );
+		}
+
+		// Fields shown to template sites and standard sites.
+		if ( in_array( $site_type, array( 'standard', 'template' ), true ) ) {
+			$template_flag_fields = $this->get_template_flag_fields( $id );
+			$fields               = array_merge( $fields, $template_flag_fields );
+		}
 
 		return $fields;
 
@@ -868,18 +1058,29 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 	public function get_template_flag_fields( $id ) {
 
 		// Header description.
-		$desc = '';
+		$header_desc = '';
 
+		// Is the site already a template site?
 		$current_template_flag = $this->wpcd_is_template_site( $id );
 
+		// Change the name of the toggle depending on whether the site is already a template site.
+		if ( true === $current_template_flag ) {
+			$name = __( 'This site is a product template - click to remove the template designation', 'wpcd' );
+		} else {
+			$name = __( 'Make This Site A Product Template', 'wpcd' );
+		}
+
+		// The header field.
 		$fields[] = array(
 			'name' => __( 'Template Flag', 'wpcd' ),
 			'tab'  => $this->get_tab_slug(),
 			'type' => 'heading',
-			'desc' => $desc,
+			'desc' => $header_desc,
 		);
+
+		// The toggle field.
 		$fields[] = array(
-			'name'       => __( 'Is This Site A Template?', 'wpcd' ),
+			'name'       => $name,
 			'id'         => 'wpcd_app_mt_template_flag',
 			'tab'        => $this->get_tab_slug(),
 			'type'       => 'switch',
@@ -955,6 +1156,110 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 		);
 
 		return $actions;
+
+	}
+
+	/**
+	 * Gets the fields to be shown in the 'convert a site' section of the tab.
+	 *
+	 * @param int $id id.
+	 *
+	 * @return array Array of actions, complying with the structure necessary by metabox.io fields.
+	 */
+	public function get_site_conversion_fields( $id ) {
+
+		// Header description.
+		$desc = __( 'What template and version should we apply to this site?', 'wpcd' );
+
+		$current_version = $this->get_mt_version( $id );
+		$curent_parent   = $this->get_mt_parent( $id );
+
+		$fields[] = array(
+			'name' => __( 'Convert Site To A Tenant', 'wpcd' ),
+			'tab'  => $this->get_tab_slug(),
+			'type' => 'heading',
+			'desc' => $desc,
+		);
+
+		$fields[] = array(
+			'name'        => __( 'Choose Product Template', 'wpcd' ),
+			'id'          => 'wpcd_app_mt_product_template',
+			'tab'         => $this->get_tab_slug(),
+			'type'        => 'post',
+			'post_type'   => 'wpcd_app',
+			'query_args'  => array(
+				'post_status'    => 'private',
+				'posts_per_page' => -1,
+				'meta_key'       => 'wpcd_is_template_site',
+				'meta_value'     => '1',
+			),
+			'save_field'  => false,
+			'attributes'  => array(
+				// the key of the field (the key goes in the request).
+				'data-wpcd-name' => 'mt_product_template',
+			),
+			'std'         => $curent_parent,
+			'required'    => true,
+			'placeholder' => __( 'Choose a product template...', 'wpcd' ),
+		);
+
+		/*
+		$fields[] = array(
+			'name'       => __( 'Choose Version', 'wpcd' ),
+			'id'         => 'wpcd_app_mt_version',
+			'tab'        => $this->get_tab_slug(),
+			'type'       => 'select',
+			'options'    => $this->get_mt_versions( $id ),
+			'save_field' => false,
+			'attributes' => array(
+				// the key of the field (the key goes in the request).
+				'data-wpcd-name' => 'mt_version',
+			),
+			'std'        => $current_version,
+			'required'   => true,
+		);
+		*/
+
+		$fields[] = array(
+			'name'       => __( 'Enter Version', 'wpcd' ),
+			'id'         => 'wpcd_app_mt_version',
+			'tab'        => $this->get_tab_slug(),
+			'type'       => 'text',
+			'save_field' => false,
+			'attributes' => array(
+				// the key of the field (the key goes in the request).
+				'data-wpcd-name' => 'mt_version',
+			),
+			'std'        => $current_version,
+			'required'   => true,
+		);
+
+		$fields[] = array(
+			'id'         => 'wpcd_app_mt_default_version_action',
+			'name'       => '',
+			'tab'        => $this->get_tab_slug(),
+			'type'       => 'button',
+			'std'        => __( 'Convert', 'wpcd' ),
+			'desc'       => __( 'Add this site as a tenant for the above selected product.', 'wpcd' ),
+			'attributes' => array(
+				// the _action that will be called in ajax.
+				'data-wpcd-action'              => 'mt-convert-site',
+				// the id.
+				'data-wpcd-id'                  => $id,
+				// fields that contribute data for this action.
+				'data-wpcd-fields'              => wp_json_encode( array( '#wpcd_app_mt_product_template', '#wpcd_app_mt_version' ) ),
+				// make sure we give the user a confirmation prompt.
+				'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like to add this site as a tenant for the selected product template?', 'wpcd' ),
+				// show log console?
+				'data-show-log-console'         => true,
+				// Initial console message.
+				'data-initial-console-message'  => __( 'Preparing to convert this site to a tenant...<br /> Please DO NOT EXIT this screen until you see a popup message indicating that the operation has completed or has errored.<br />This terminal should refresh every 60-90 seconds with updated progress information from the server. <br /> After the operation is complete the entire log can be viewed in the COMMAND LOG screen.', 'wpcd' ),
+			),
+			'class'      => 'wpcd_app_action',
+			'save_field' => false,
+		);
+
+		return $fields;
 
 	}
 

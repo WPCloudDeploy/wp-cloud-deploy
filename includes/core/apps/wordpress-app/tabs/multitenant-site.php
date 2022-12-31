@@ -150,7 +150,7 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 							// Add metas related to Multi-tenant.
 							$mt_version      = get_post_meta( $id, 'wpapp_temp_mt_new_version', true );
 							$mt_version_desc = get_post_meta( $id, 'wpapp_temp_mt_new_version_desc', true );
-							$this->mt_add_mt_version_history( $id, $mt_version, $mt_version_desc, $new_domain );
+							$this->mt_add_mt_version_history( $id, $mt_version, $mt_version_desc, $new_domain, $new_app_post_id );
 							$this->set_mt_version( $new_app_post_id, $mt_version );
 							$this->set_mt_parent( $new_app_post_id, $id );
 							$this->set_mt_site_type( $new_app_post_id, 'mt_version' );
@@ -227,12 +227,59 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 			}
 		}
 
+		// if the command is to push versions to a destination server, we just need to update the versions array.
+		if ( 'mt-push-versions-to-server' === $command_array[0] ) {
+
+			// Lets pull the logs.
+			$logs = $this->get_app_command_logs( $id, $name );
+
+			// Is the command successful?
+			$success = $this->is_ssh_successful( $logs, 'site_sync.txt' );
+
+			if ( true === $success ) {
+
+				// Get Webserver Type.
+				$webserver_type = $this->get_web_server_type( $id );
+
+				// get data out of the temporary metas.
+				$destination_server_id = get_post_meta( $id, 'wpapp_temp_mt_versions_push_server_destination_id', true );
+
+				if ( $destination_server_id ) {
+
+					/* get the app-post */
+					$app_post = get_post( $id );
+
+					if ( $app_post ) {
+
+						// Update meta records - add the destination server to the tags/version array.
+						$this->mt_add_destination_server_id_to_versions( $id, $destination_server_id );
+
+						// Wrapup - let things hook in here - primarily the multisite add-on and the REST API.
+						do_action( "wpcd_{$this->get_app_name()}_mt_push_versions_to_server_complete", $id, $destination_server_id, $name );
+
+					}
+				} else {
+					$message = __( 'Multi-tenant: Push versions to remote server failed- check the command logs for more information.', 'wpcd' );
+					do_action( "wpcd_{$this->get_app_name()}_mt_push_versions_to_server_failed", $id, $command_array[0], $message, array() );  // Keeping 4 parameters for the action hook to maintain consistency even though we have nothing for the last parameter.
+				}
+
+				// And delete the temporary metas.
+				delete_post_meta( $id, 'wpapp_temp_mt_versions_push_server_destination_id' );
+
+			} else {
+				// Add action hook to indicate failure...
+				$message = __( 'Multi-tenant: Push versions to remote server failed - check the command logs for more information.', 'wpcd' );
+				do_action( "wpcd_{$this->get_app_name()}_mt_push_versions_to_server_failed", $id, $command_array[0], $message, array() );  // Keeping 4 parameters for the action hook to maintain consistency even though we have nothing for the last parameter.
+			}
+		}
+
 		// remove the 'temporary' meta so that another attempt will run if necessary.
 		delete_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action_status" );
 		delete_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action" );
 		delete_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action_args" );
 
 	}
+
 
 	/**
 	 * Returns a string that can be used as the unique name for this tab.
@@ -1395,15 +1442,30 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 
 		foreach ( array_reverse( $tags ) as $tag => $tag_array ) {
 
-			$domain      = ! empty( $tag_array['domain'] ) ? $tag_array['domain'] : __( 'Error! No Associated Domain!', 'wpcd' );
-			$desc        = ! empty( $tag_array['desc'] ) ? $tag_array['desc'] : __( 'No description available', 'wpcd' );
-			$create_date = ! empty( $tag_array['reporting_time_human_utc'] ) ? $tag_array['reporting_time_human_utc'] : __( '1901-01-01 (unknown)', 'wpcd' );
+			$domain         = ! empty( $tag_array['domain'] ) ? $tag_array['domain'] : __( 'Error! No Associated Domain!', 'wpcd' );
+			$domain_post_id = ! empty( $tag_array['app_id'] ) ? $tag_array['app_id'] : '';
+			$desc           = ! empty( $tag_array['desc'] ) ? $tag_array['desc'] : __( 'No description available', 'wpcd' );
+			$create_date    = ! empty( $tag_array['reporting_time_human_utc'] ) ? $tag_array['reporting_time_human_utc'] : __( '1901-01-01 (unknown)', 'wpcd' );
 
 			$return .= '<div class="wpcd_mt_version_value">';
 			$return .= '<span class="wpcd_mt_version_value_inline">' . $tag . '</span>';
 			$return .= '<br />' . $domain;
+			if ( ! empty( $domain_post_id ) ) {
+				$editlink = ( is_admin() ? get_edit_post_link( $domain_post_id ) : get_permalink( $domain_post_id ) );
+				$return  .= ' ' . sprintf( '<a href=%s>' . __( 'Edit', 'wpcd' ) . '</a>', $editlink );
+			}
 			$return .= '<br />' . $desc;
 			$return .= '<br />' . $create_date . ' ' . __( 'UTC', 'wpcd' );
+
+			if ( ! empty( $tag_array['destination_servers'] ) ) {
+				$return .= '<br />' . __( 'Copies also located on servers:', 'wpcd' );
+				foreach ( $tag_array['destination_servers'] as $destination_server_id ) {
+					$server_name = WPCD_SERVER()->get_server_name( $destination_server_id );
+					$editlink    = ( is_admin() ? get_edit_post_link( $destination_server_id ) : get_permalink( $destination_server_id ) );
+					$return     .= '<br />' . sprintf( '<a href=%s>' . $server_name . '</a>', $editlink );
+				}
+			}
+
 			$return .= '</div>';
 
 		}
@@ -1470,7 +1532,6 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 				// the key of the field (the key goes in the request).
 				'data-wpcd-name' => 'site_sync_destination',
 			),
-			'std'        => $current_default_version,
 			'required'   => true,
 			'tooltip'    => array(
 				'content'  => __( 'All versions of this product template will be pushed to the selected server. Please make sure that server has enough space to accomodate all the files!', 'wpcd' ),
@@ -1492,7 +1553,7 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 				// fields that contribute data for this action.
 				'data-wpcd-fields'              => wp_json_encode( array( '#wpcd_app_mt_destination_server' ) ),
 				// make sure we give the user a confirmation prompt.
-				'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like to all versions of this product template to the selected remote server?', 'wpcd' ),
+				'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like to push all versions of this product template to the selected remote server?', 'wpcd' ),
 				// show log console?
 				'data-show-log-console'         => true,
 				// Initial console message.
@@ -1678,8 +1739,9 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 	 * @param string $new_tag The new tag (version) created or added.
 	 * @param string $new_tag_desc Description of the new tag (version).
 	 * @param string $domain The domain on which this new version was created.
+	 * @param int    $domain_id The post id of the domain ($domain above).
 	 */
-	public function mt_add_mt_version_history( $id, $new_tag, $new_tag_desc, $domain ) {
+	public function mt_add_mt_version_history( $id, $new_tag, $new_tag_desc, $domain, $domain_id ) {
 
 		// Get current tag list.
 		$tags = wpcd_maybe_unserialize( get_post_meta( $id, 'wpcd_app_mt_version_history', true ) );
@@ -1701,6 +1763,7 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 				'reporting_time_human_utc' => gmdate( 'Y-m-d H:i:s' ),
 				'desc'                     => $new_tag_desc,
 				'domain'                   => $domain,
+				'app_id'                   => $domain_id,
 			);
 		} else {
 			// Perhaps update the time here? Or add other history?  We really shouldn't get here though.
@@ -1711,6 +1774,40 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 
 		// Push back to database.
 		return update_post_meta( $id, 'wpcd_app_mt_version_history', $tags );
+
+	}
+
+	/**
+	 * Add a destination server id to the array of versions (tags).
+	 *
+	 * @param int $app_id Post id of site we're working with.
+	 * @param int $destination_server_id Post ID of the destination server.
+	 */
+	public function mt_add_destination_server_id_to_versions( $app_id, $destination_server_id ) {
+
+		// Get current tag list.
+		$tags = wpcd_maybe_unserialize( get_post_meta( $app_id, 'wpcd_app_mt_version_history', true ) );
+
+		// Make sure we have something in the tags array otherwise create a blank one.
+		if ( empty( $tags ) ) {
+			$tags = array();
+		}
+		if ( ! is_array( $tags ) ) {
+			$tags = array();
+		}
+
+		// Loop through each tag/version and add the destination_server_id value to an array of ids.
+		foreach ( $tags as $tag => $tag_details ) {
+			if ( ! empty( $tags[ $tag ]['destination_servers'] ) ) {
+				// Add to existing array.
+				$tags[ $tag ]['destination_servers'] = array_merge( $tags[ $tag ]['destination_servers'], array( $destination_server_id ) );
+			} else {
+				$tags[ $tag ]['destination_servers'] = array( $destination_server_id );
+			}
+		}
+
+		// Push back to database.
+		return update_post_meta( $app_id, 'wpcd_app_mt_version_history', $tags );
 
 	}
 

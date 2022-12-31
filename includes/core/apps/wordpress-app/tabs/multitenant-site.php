@@ -1136,6 +1136,12 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 			$fields               = array_merge( $fields, $template_flag_fields );
 		}
 
+		// Fields shown to tenants .
+		if ( in_array( $site_type, array( 'mt_tenant' ), true ) ) {
+			$site_conversion_fields = $this->get_site_conversion_fields( $id );
+			$fields                 = array_merge( $fields, $site_conversion_fields );
+		}
+
 		return $fields;
 
 	}
@@ -1627,14 +1633,36 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 	 */
 	public function get_site_conversion_fields( $id ) {
 
-		// Header description.
-		$desc = __( 'What template and version should we apply to this site?', 'wpcd' );
+		// What type of site is this?  (See the get_mt_site_type function the multi-tenant-app.php traits file for a list of valid types).
+		$site_type = $this->get_mt_site_type( $id );
+
+		if ( 'mt_tenant' === $site_type ) {
+			// Header description for site that has already been converted.
+			$desc  = __( 'This operation will not impact your database - it will only apply the files from the product template to this site.', 'wpcd' );
+			$desc .= '<br />';
+			$desc .= __( 'This means that it is possible your database will be out of sync with the product template after this operation - unless the template includes a custom plugin or script to update the database as well.', 'wpcd' );
+
+			$name = __( 'Upgrade or Downgrade', 'wpcd' );
+			$button_text = __( 'Apply New Version', 'wpcd' );
+		} else {
+			// Header description for site that has not been converted yet.
+			$desc  = __( 'This operation will not impact your database - it will only apply the files from the product template to this site.', 'wpcd' );
+			$desc .= '<br />';
+			$desc .= __( 'This means that it is possible your database will be out of sync with the product template after this operation - unless the template includes a custom plugin or script to update the database as well.', 'wpcd' );
+			$desc .= '<br />';
+			$desc .= __( 'If you would like the conversion to impact the database, use the COPY TO EXISTING SITE function first to copy the database and files to this site.', 'wpcd' );
+			$desc .= '<br />';
+			$desc .= __( 'Then you can apply the conversion function located here.', 'wpcd' );
+
+			$name = __( 'Convert Site To A Tenant', 'wpcd' );
+			$button_text = __( 'Convert', 'wpcd' );
+		}
 
 		$current_version = $this->get_mt_version( $id );
 		$curent_parent   = $this->get_mt_parent( $id );
 
 		$fields[] = array(
-			'name' => __( 'Convert Site To A Tenant', 'wpcd' ),
+			'name' => $name,
 			'tab'  => $this->get_tab_slug(),
 			'type' => 'heading',
 			'desc' => $desc,
@@ -1698,8 +1726,8 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 			'name'       => '',
 			'tab'        => $this->get_tab_slug(),
 			'type'       => 'button',
-			'std'        => __( 'Convert', 'wpcd' ),
-			'desc'       => __( 'Add this site as a tenant for the above selected product.', 'wpcd' ),
+			'std'        => $button_text,
+			'desc'       => __( 'Add this site as a tenant for the above selected product template.', 'wpcd' ),
 			'attributes' => array(
 				// the _action that will be called in ajax.
 				'data-wpcd-action'              => 'mt-convert-site',

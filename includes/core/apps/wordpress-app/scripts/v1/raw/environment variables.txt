@@ -188,7 +188,8 @@ It will list available backups in the correct format to set them in the $backup 
 -----------------------------------
 $old_domain = domain of the existing site which you wish to clone
 $new_domain = new domain where you want the site cloned to
-
+$mt_template_domain = The template site name if cloning a tenant site.
+$mt_version = The template version if cloning a template site.
 
 -----------------------------------
 10-misc.sh
@@ -1029,7 +1030,7 @@ for "change_auth_tinyfilemanager"
 $action: "git_install", "git_update", "git_init", "git_sync", "git_domain_remove", "git_checkout", "git_new_branch", "git_commit_and_push", "git_tag", 
 		 "git_get_current_branch", "git_fetch_tag", "git_remove_version_folder", "git_remove_all_version_folders", "git_display_domain_version_folders",
 		 "git_fetch_apply_version_with_overwrite", "git_pull_apply_version_with_overwrite", "git_site_credentials", "git_clone_to_site",
-		 "mt_git_fetch_tag"
+		 "mt_git_fetch_tag", "mt_convert_site"
 
 For "git_init"
 	- $domain - domain we're working with
@@ -1114,4 +1115,9 @@ for "git_clone_to_site"
 	
 for "mt_git_fetch_tag"
 	- $domain - domain we're working with
-	- $git_tag - Tag (eg: v2.1)	
+	- $git_tag - Tag (eg: v2.1)
+	
+for "mt_convert_site"
+	- $domain - domain we're working with
+	- $git_tag - Tag (eg: v2.1)
+	- $mt_template_domain - The template domain to which the site (tenant) will be attached.

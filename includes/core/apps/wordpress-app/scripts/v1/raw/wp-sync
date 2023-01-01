@@ -103,7 +103,7 @@ ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" root@$dest "mariadb
 ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" root@$dest "rm -f /root/databases_backup.sql /root/user_privileges_final.sql"
 
 # sync files.
-rsync -a --delete -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /var/www root@$dest:/var && echo "$(date) Site sync completed" >> /var/log/wp-sync.log || echo "$(date) Site sync failed" >> /var/log/wp-sync.log
+rsync -aLK --delete -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /var/www root@$dest:/var && echo "$(date) Site sync completed" >> /var/log/wp-sync.log || echo "$(date) Site sync failed" >> /var/log/wp-sync.log
 rsync -a --delete -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /etc/nginx root@$dest:/etc > /dev/null 2>&1
 rsync -a --delete -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /etc/php root@$dest:/etc  > /dev/null 2>&1
 rsync -a --delete -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /usr/local/lsws root@$dest:/usr/local/ > /dev/null 2>&1

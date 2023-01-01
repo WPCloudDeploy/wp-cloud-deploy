@@ -1192,7 +1192,6 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 			'placeholder' => __( 'Domain without www or http - e.g: mydomain.com.', 'wpcd' ),
 			'desc'        => __( 'Each new version gets its own subdomain, e.g: v112.yourdomain.com.', 'wpcd' ),
 			'std'         => $default_domain,
-			'required'    => true,
 		);
 		$fields[] = array(
 			'name'        => __( 'New version', 'wpcd' ),
@@ -1207,7 +1206,6 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 			),
 			'size'        => 45,
 			'placeholder' => __( 'v1.2.3', 'wpcd' ),
-			'required'    => true,
 		);
 		$fields[] = array(
 			'name'        => __( 'New version Description', 'wpcd' ),
@@ -1220,7 +1218,6 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 				'data-wpcd-name' => 'mt_new_version_desc',
 			),
 			'placeholder' => __( 'Enter a short description for this new version (e.g: Added kadence theme to template)', 'wpcd' ),
-			'required'    => true,
 		);
 
 		$clone_desc = '';
@@ -1289,7 +1286,6 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 				'data-wpcd-name' => 'mt_product_name',
 			),
 			'std'        => $current_product_name,
-			'required'   => true,
 			'tooltip'    => array(
 				'content'  => __( 'The product name set here is a synonym for the template domain and can be used to reference this template in WooCommerce products and other locations.', 'wpcd ' ),
 				'position' => 'right',
@@ -1352,7 +1348,6 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 				'data-wpcd-name' => 'mt_default_version',
 			),
 			'std'        => $current_default_version,
-			'required'   => true,
 		);
 
 		$fields[] = array(
@@ -1544,7 +1539,6 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 				// the key of the field (the key goes in the request).
 				'data-wpcd-name' => 'site_sync_destination',
 			),
-			'required'   => true,
 			'tooltip'    => array(
 				'content'  => __( 'All versions of this product template will be pushed to the selected server. Please make sure that server has enough space to accomodate all the files!', 'wpcd' ),
 				'position' => 'right',
@@ -1692,7 +1686,6 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 				'data-wpcd-name' => 'mt_product_template',
 			),
 			'std'         => $curent_parent,
-			'required'    => true,
 			'placeholder' => __( 'Choose a product template...', 'wpcd' ),
 		);
 
@@ -1709,7 +1702,6 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 				'data-wpcd-name' => 'mt_version',
 			),
 			'std'        => $current_version,
-			'required'   => true,
 		);
 		*/
 
@@ -1724,7 +1716,6 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 				'data-wpcd-name' => 'mt_version',
 			),
 			'std'        => $current_version,
-			'required'   => true,
 		);
 
 		$fields[] = array(

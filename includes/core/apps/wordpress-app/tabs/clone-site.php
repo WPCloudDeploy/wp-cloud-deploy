@@ -26,7 +26,7 @@ class WPCD_WORDPRESS_TABS_CLONE_SITE extends WPCD_WORDPRESS_TABS {
 
 		add_action( "wpcd_command_{$this->get_app_name()}_completed", array( $this, 'command_completed' ), 10, 2 );
 
-		// Allow the clone action to be triggered via an action hook.  Will primarily be used by the REST API.
+		// Allow the clone action to be triggered via an action hook.  Will primarily be used by the REST API and WOOCOMMERCE.
 		add_action( "wpcd_{$this->get_app_name()}_do_clone_site", array( $this, 'do_clone_site_action' ), 10, 2 ); // Hook: wpcd_wordpress-app_do_clone_site.
 
 	}

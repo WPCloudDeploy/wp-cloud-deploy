@@ -1052,7 +1052,7 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 
 		// Bail if site is not enabled.
 		if ( ! $this->is_site_enabled( $id ) ) {
-			return array_merge( $fields, $this->get_disabled_header_field( 'clone-site' ) );
+			return array_merge( $fields, $this->get_disabled_header_field( $this->get_tab_slug() ) );
 		}
 
 		/* What type of web server are we running? */

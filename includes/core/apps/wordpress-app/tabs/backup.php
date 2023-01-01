@@ -229,7 +229,7 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 			}
 			// Most actions need to refresh the page so that new data can be loaded or so that the data entered into data entry fields cleared out.
 			// But we don't want to force a refresh after the manual backup or restore.  Otherwise that will clear the screen.
-			if ( ! in_array( $action, array( 'backup-run-manual', 'restore-from-backup' ), true ) && ! is_wp_error( $result ) ) {
+			if ( in_array( $action, $valid_actions ) && ! in_array( $action, array( 'backup-run-manual', 'restore-from-backup' ), true ) && ! is_wp_error( $result ) ) {
 				$result = array( 'refresh' => 'yes' );
 			}
 		}

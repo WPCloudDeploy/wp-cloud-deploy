@@ -451,7 +451,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 			}
 			// Many actions need to refresh the page so that new data can be loaded or so that the data entered into data entry fields cleared out.
 			// But we don't want to force a refresh after long running commands. Otherwise the user will not be able to see the results of those commands in the 'terminal'.
-			if ( ! in_array(
+			if ( in_array( $action, $valid_actions ) && ! in_array(
 				$action,
 				array(
 					'git-site-control-init-site',
@@ -490,7 +490,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 
 		// Bail if site is not enabled.
 		if ( ! $this->is_site_enabled( $id ) ) {
-			return array_merge( $fields, $this->get_disabled_header_field( 'git-site-control' ) );
+			return array_merge( $fields, $this->get_disabled_header_field( $this->get_tab_slug() ) );
 		}
 
 		// Is git installed on the server where this site is located?
@@ -689,7 +689,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 				'type'       => 'text',
 				'tab'        => $this->get_tab_slug(),
 				'save_field' => false,
-			);			
+			);
 			$actions[] = array(
 				'id'         => 'git-site-control-init-fields-git-ignore-link',
 				'name'       => __( 'GitIgnore File Link', 'wpcd' ),
@@ -1590,9 +1590,13 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 				$return .= __( 'Remote Repo:', 'wpcd' );
 			$return     .= '</div>';
 
-			$return     .= '<div class="wpcd_git_initial_settings_data_value_item">';
-				$return .= esc_html( $git_settings['git_remote_url'] );
-			$return     .= '</div>';
+			$return .= '<div class="wpcd_git_initial_settings_data_value_item">';
+				// phpcs:disable
+				if ( ! empty( $git_settings['git_remote_url'] ) ) {
+			$return .= esc_html( $git_settings['git_remote_url'] );
+				}
+				// phpcs:enable
+			$return .= '</div>';
 
 			$return     .= '<div class="wpcd_git_initial_settings_data_label_item">';
 				$return .= __( 'Initial Branch:', 'wpcd' );

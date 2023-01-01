@@ -148,6 +148,19 @@ class WPCD_WORDPRESS_TABS_STAGING extends WPCD_WORDPRESS_TABS {
 							update_post_meta( $id, 'wpapp_staging_domain', $new_domain );
 							update_post_meta( $id, 'wpapp_staging_domain_id', $new_app_post_id );
 
+							/**
+							 * If multi-tenant is active, check to see if the original site was a multi-tenant site
+							 * and if so, stamp the new site with the same tags.
+							 * For now, the only site type that is affected is a tenant site ('mt_tenant').
+							 * Versioned sites, version clones, template sites, template clones etc. are not stamped
+							 * and will be treated as regular sites after a clone.
+							 */
+							if ( in_array( $this->get_mt_site_type( $id ), array( 'mt_tenant' ), true ) ) {
+								$this->set_mt_version( $new_app_post_id, $this->get_mt_version( $id ) );
+								$this->set_mt_parent( $new_app_post_id, $this->get_mt_parent( $id ) );
+								$this->set_mt_site_type( $new_app_post_id, $this->get_mt_site_type( $id ) );
+							}
+
 							// Finally, lets add a meta to indicate that this was a clone.
 							update_post_meta( $new_app_post_id, 'wpapp_cloned_from', $this->get_domain_name( $id ) );
 							update_post_meta( $new_app_post_id, 'wpapp_cloned_from_id', $id );
@@ -305,6 +318,25 @@ class WPCD_WORDPRESS_TABS_STAGING extends WPCD_WORDPRESS_TABS {
 
 		// Get the domain we're working on.
 		$domain = $this->get_domain_name( $id );
+
+		/**
+		 * If multi-tenant is active, check to see if the original site is a multi-tenant site
+		 * and if so, pass that info to the bash script so that things like the
+		 * openbasedirective can be updated.
+		 * For now, the only site type that is affected is a tenant site ('mt_tenant').
+		 * Versioned sites, version clones, template sites, template clones etc. are not stamped
+		 * and will be treated as regular sites after a clone.
+		 */
+		if ( in_array( $this->get_mt_site_type( $id ), array( 'mt_tenant' ), true ) ) {
+			$mt_version                 = $this->get_mt_version( $id );
+			$mt_parent_domain_post_id   = $this->get_mt_parent( $id );
+			$mt_template_domain         = $this->get_domain_name( $mt_parent_domain_post_id );
+			$args['mt_template_domain'] = $mt_template_domain;
+			$args['mt_version']         = $mt_version;
+		} else {
+			$args['mt_template_domain'] = '';
+			$args['mt_version']         = '';
+		}
 
 		/**
 		 * We've gotten this far, so lets try to configure the DNS for the new domain to point to the server.

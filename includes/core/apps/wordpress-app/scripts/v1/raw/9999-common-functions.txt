@@ -1955,3 +1955,47 @@ function gf_get_metadata(){
 		wpcd_metavalue=$defaultvalue
 	fi
 }
+
+###############################################################################################
+### Set the openbase directive for php for a tenant in a multi-tenant site.
+###
+### $1 = template domain
+### $2 = template version (git tag)
+### $3 = tenant domain
+###############################################################################################
+function gf_mt_set_openbasedir(){
+
+	local mt_template_domain
+	local git_tag
+	local domain
+	mt_template_domain=$1
+	git_tag=$2
+	domain=$3
+
+	# Figure out the MT version folder.
+	mt_version_folder="/var/wpcd-mt-versions/$mt_template_domain/versions/$git_tag"
+
+	if [ "$g_webserver_type" = "nginx" ]
+	then	
+		phpversion=(5.6 7.1 7.2 7.3 7.4 8.0 8.1)
+		for ver in "${phpversion[@]}"
+		do	
+			if [ -f /etc/php/$ver/fpm/pool.d/$domain.conf ]; then
+				echo "Updating open_basedir in /etc/php/$ver/fpm/pool.d/$domain.conf to allow reading from the multi-tenant version folder."
+				# delete openbase directive.
+				sed -i '/open_basedir/d' /etc/php/$ver/fpm/pool.d/$domain.conf
+				# add the new one back in.
+				echo "php_admin_value[open_basedir] = \"/var/www/$domain/html/:/tmp/:$mt_version_folder/\"" >> /etc/php/$ver/fpm/pool.d/$domain.conf
+				# restart fpm
+				sudo systemctl restart php$ver-fpm
+			fi
+		done
+	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+	then
+		echo "ols-is not supported - this operation probably broke your ols site."
+		# search and replace needs to be done in this file: ${VHDIR}/${$domain}/$g_vhost_conf 
+		# search for php_admin_value open_basedir "/var/www/$domain/html:/tmp/"
+		# replace with php_admin_value open_basedir "/var/www/$domain/html:/tmp/:$mt_version_folder/"
+	fi
+
+}

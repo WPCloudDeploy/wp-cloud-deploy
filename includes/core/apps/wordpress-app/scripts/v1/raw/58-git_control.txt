@@ -2304,14 +2304,15 @@ then
 	chmod -R g+r "$mt_version_folder"
 
 	# Modify the php openbase directive to allow multi-tenant folder to be accessed.
-	# delete openbase directive.
+	# @todo: replace this block with a call to gf_mt_set_openbasedir()
 	if [ "$g_webserver_type" = "nginx" ]
 	then	
 		phpversion=(5.6 7.1 7.2 7.3 7.4 8.0 8.1)
 		for ver in "${phpversion[@]}"
 		do	
 			if [ -f /etc/php/$ver/fpm/pool.d/$domain.conf ]; then
-				echo "Updating open_basedir in /etc/php/$ver/fpm/pool.d/$domain.conf to allowing reading from the multi-tenant version folder."
+				echo "Updating open_basedir in /etc/php/$ver/fpm/pool.d/$domain.conf to allow reading from the multi-tenant version folder."
+				# delete openbase directive.
 				sed -i '/open_basedir/d' /etc/php/$ver/fpm/pool.d/$domain.conf
 				# add the new one back in.
 				echo "php_admin_value[open_basedir] = \"/var/www/$domain/html/:/tmp/:$mt_version_folder/\"" >> /etc/php/$ver/fpm/pool.d/$domain.conf

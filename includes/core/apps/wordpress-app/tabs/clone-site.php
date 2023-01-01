@@ -461,6 +461,8 @@ class WPCD_WORDPRESS_TABS_CLONE_SITE extends WPCD_WORDPRESS_TABS {
 		$desc .= __( 'If you would like new SSL certificates to be issued as part of this operation please make sure you point your DNS for the new site to this server\'s IP address BEFORE you start the clone operation. ', 'wpcd' );
 		$desc .= __( 'Otherwise you will need to request new certificates on the SSL tab after the operation is complete and you have updated your DNS.', 'wpcd' );
 
+		$default_domain = WPCD_DNS()->get_full_temp_domain();
+
 		$fields[] = array(
 			'name' => __( 'Clone Site', 'wpcd' ),
 			'tab'  => 'clone-site',
@@ -480,6 +482,7 @@ class WPCD_WORDPRESS_TABS_CLONE_SITE extends WPCD_WORDPRESS_TABS {
 			),
 			'size'        => 90,
 			'placeholder' => __( 'Domain without www or http - e.g: mydomain.com', 'wpcd' ),
+			'std'		  => $default_domain,
 		);
 
 		$clone_desc = '';

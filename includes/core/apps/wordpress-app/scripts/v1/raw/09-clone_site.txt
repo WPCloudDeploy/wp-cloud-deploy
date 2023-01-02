@@ -284,5 +284,12 @@ PasswordAuthentication yes
 AuthorizedKeysFile /var/www/$new_domain/.ssh_$new_user_name/authorized_keys" >> /etc/ssh/sshd_config
 systemctl restart sshd
 
+# Handle post-processing scripts.
+if [ -f "/var/www/$new_domain/html/wpcd_clone_site_after_clone_script.sh" ]; then 
+	echo "Post processing script detected for this site-clone operation..."
+	dos2unix /var/www/$new_domain/html/wpcd_clone_site_after_clone_script.sh
+	source /var/www/$new_domain/html/wpcd_clone_site_after_clone_script.sh
+fi
+
 echo
 echo "$old_domain has been cloned to $new_domain"

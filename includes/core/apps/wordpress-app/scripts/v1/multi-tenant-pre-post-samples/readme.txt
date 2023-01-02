@@ -32,3 +32,9 @@ So maybe take a look at what the existing functions are doing first before proce
 An example of  couple of things you can use this for.
 1. Instead of symlinking individual plugins and themes you can choose to symlink the entire plugins and thems folder once (each)
 2. Instead of symlinking at all you can just copy the plugins and themes folders so that each site has their own.
+
+------------------------------------------
+Core scripts
+------------------------------------------
+Core WPCD already has some scripts that can be used in certain operations.
+See the full description in our docs: https://wpclouddeploy.com/documentation/wpcloud-deploy-admin/using-post-processing-custom-bash-scripts/

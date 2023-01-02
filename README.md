@@ -132,6 +132,7 @@ Note: Even though the entire git development history isn't available on github, 
 * Tweak: Better styling for post-states when viewing the server and site lists.
 * Fix: Missing variable value when installing memcached. Harmless - just threw a php warning.
 * Dev: Use global function to reset site permissions (refactor).
+* Dev: Add option for executing local post-processing scripts after a site is cloned.
 
 5.2.2
 ------

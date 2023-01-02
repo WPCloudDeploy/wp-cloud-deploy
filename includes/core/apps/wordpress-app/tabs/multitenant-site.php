@@ -1713,8 +1713,10 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 		$return  = '<div class="wpcd_mt_version_list">';
 		$return .= '<div class="wpcd_mt_version_list_inner_wrap">';
 
+		// Get the history array.
 		$tags = $this->get_mt_version_history( $id );
 
+		// Loop through it and format it for display.
 		foreach ( array_reverse( $tags ) as $tag => $tag_array ) {
 
 			$domain         = ! empty( $tag_array['domain'] ) ? $tag_array['domain'] : __( 'Error! No Associated Domain!', 'wpcd' );
@@ -1737,7 +1739,7 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 				foreach ( $tag_array['destination_servers'] as $destination_server_id ) {
 					$server_name = WPCD_SERVER()->get_server_name( $destination_server_id );
 					$editlink    = ( is_admin() ? get_edit_post_link( $destination_server_id ) : get_permalink( $destination_server_id ) );
-					$return     .= '<br />' . sprintf( '<a href=%s>' . $server_name . '</a>', $editlink );
+					$return     .= '<br />' . '<span class="wpcd_mt_destination_server">' . sprintf( '<a href=%s>' . $server_name . '</a>' . '</span>', $editlink );
 				}
 			}
 

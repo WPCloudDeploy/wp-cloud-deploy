@@ -316,6 +316,22 @@
 }
 .wpcd_mt_version_list .wpcd_mt_version_other_value {
 }
+.wpcd_mt_version_list .wpcd_mt_destination_server {
+	/* The servers list under each version .*/
+	background-color: var(--wpcd-accent-background-color);
+	font-size: 12px;
+	display: inline-block;
+	font-weight: 400;
+	margin: -1px 10px 5px 0px;
+	padding: 1px 5px;
+	vertical-align: top;
+	border-radius: 2px;
+	color: white;	
+}
+.wpcd_mt_version_list .wpcd_mt_destination_server a {
+	color: white;
+	text-decoration: none;
+}
 
 /* the spinner - start */
 .locker,

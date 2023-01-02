@@ -32,6 +32,9 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 		// Allow the site conversion action to be triggered via an action hook.
 		add_action( "wpcd_{$this->get_app_name()}_do_mt_apply_version", array( $this, 'do_mt_apply_version' ), 10, 2 ); // Hook: wpcd_wordpress-app_do_mt_apply_version.
 
+		// If the site conversion / apply version action failed early, handle it if it's a pending log background process.
+		add_action( "wpcd_{$this->get_app_name()}_mt_site_conversion_failed_early", array( $this, 'handle_mt_site_conversion_failed_early' ), 10, 4 ); // Hook: wpcd_wordpress-app_mt_site_conversion_failed_early.
+
 	}
 
 	/**
@@ -606,7 +609,7 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 		// Make sure we get a template site.
 		if ( empty( $args['mt_product_template'] ) ) {
 			$message = __( 'The product template should be provided.', 'wpcd' );
-			do_action( "wpcd_{$this->get_app_name()}_mt_site_conversion_failed", $id, $action, $message, $args );
+			do_action( "wpcd_{$this->get_app_name()}_mt_site_conversion_failed_early", $id, $action, $message, $args );
 			return new \WP_Error( $message );
 		}
 
@@ -614,7 +617,7 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 		$git_tag = $this->sanitize_tag( $args['mt_version'] ); // Make sure we get the git tag into the correct format.
 		if ( empty( $git_tag ) ) {
 			$message = __( 'The version should be provided.', 'wpcd' );
-			do_action( "wpcd_{$this->get_app_name()}_mt_site_conversion_failed", $id, $action, $message, $args );
+			do_action( "wpcd_{$this->get_app_name()}_mt_site_conversion_failed_early", $id, $action, $message, $args );
 			return new \WP_Error( $message );
 		} else {
 			$args['mt_version'] = $git_tag;
@@ -627,7 +630,7 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 		if ( is_wp_error( $instance ) ) {
 			/* translators: %s is replaced with the internal action name. */
 			$message = sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action );
-			do_action( "wpcd_{$this->get_app_name()}_mt_site_conversion_failed", $id, $action, $message, $args );
+			do_action( "wpcd_{$this->get_app_name()}_mt_site_conversion_failed_early", $id, $action, $message, $args );
 			return new \WP_Error( $message );
 		}
 
@@ -640,7 +643,7 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 
 		if ( empty( $template_domain_id ) ) {
 			$message = __( 'We were unable to get a domain for the product template.', 'wpcd' );
-			do_action( "wpcd_{$this->get_app_name()}_mt_site_conversion_failed", $id, $action, $message, $args );
+			do_action( "wpcd_{$this->get_app_name()}_mt_site_conversion_failed_early", $id, $action, $message, $args );
 			return new \WP_Error( $message );
 		}
 
@@ -679,7 +682,7 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 		if ( empty( $run_cmd ) || is_wp_error( $run_cmd ) ) {
 			/* translators: %s is replaced with the internal action name. */
 			$message = sprintf( __( 'Something went wrong - we are unable to construct a proper command for this action - %s', 'wpcd' ), $action );
-			do_action( "wpcd_{$this->get_app_name()}_mt_site_conversion_failed", $id, $action, $message, $args );
+			do_action( "wpcd_{$this->get_app_name()}_mt_site_conversion_failed_early", $id, $action, $message, $args );
 			return new \WP_Error( $message );
 		}
 
@@ -1246,6 +1249,52 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 	 */
 	public function do_mt_apply_version( $id, $args ) {
 		$this->mt_convert_site( 'mt-convert-site', $id, $args );
+	}
+
+	/**
+	 * Handle the situation where a site conversion / apply version has failed
+	 * before the bash script can be called.
+	 *
+	 * Primarily, we'll be updating the pending log record as failed.
+	 *
+	 * Action Hook: wpcd_{$this->get_app_name()}_mt_site_conversion_failed_early | wpcd_wordpress-app_mt_site_conversion_failed_early
+	 *
+	 * @param int    $id     Post ID of the site.
+	 * @param int    $action String indicating the action name.
+	 * @param string $message Failure message if any.
+	 * @param array  $args       All args that were passed in to the mt-convert-site action.  Sometimes this can be an empty array.
+	 */
+	public function handle_mt_site_conversion_failed_early( $id, $action, $message, $args ) {
+
+		$site_post = get_post( $id );
+
+		// Bail if not a post object.
+		if ( ! $site_post || is_wp_error( $site_post ) ) {
+			return;
+		}
+
+		// Bail if not a WordPress app...
+		if ( 'wordpress-app' !== WPCD_WORDPRESS_APP()->get_app_type( $id ) ) {
+			return;
+		}
+
+		// This only matters if we doing a site conversion or upgrade.  If not, then bail.
+		if ( 'mt-convert-site' !== $action ) {
+			return;
+		}
+
+		if ( 'wpcd_app' === get_post_type( $id ) ) {
+
+			// Was this action triggered by a pending task?
+			$task_id = get_post_meta( $id, 'wpapp_pending_log_mt_apply_version', true );
+
+			// If this was triggered by a pending log task update the task as failed.
+			if ( ! empty( $task_id ) ) {
+				// Mark the task as failed.
+				WPCD_POSTS_PENDING_TASKS_LOG()->update_task_by_id( $task_id, false, 'failed', false, false, false, $message );
+			}
+		}
+
 	}
 
 	/**

@@ -3814,19 +3814,40 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			$site_needs_updates = $this->generate_meta_dropdown( 'wpapp_sites_needs_updates', __( 'Site Needs Updates', 'wpcd' ), $updates_options );
 			echo $site_needs_updates;
 
-			/**
-			 * Filters specific to WooCommerce
-			 */
-			if ( true === wpcd_is_wc_module_enabled() || true === wpcd_is_mt_enabled() ) {
+			/* Stuff only the admin should see. */
+			if ( wpcd_is_admin() ) {
+				/**
+				 * Filters specific to WooCommerce
+				 */
+				if ( true === wpcd_is_wc_module_enabled() || true === wpcd_is_mt_enabled() ) {
 
-				// TEMPLATE FLAGS.
-				$template_flag_options = array(
-					'1' => __( 'Yes', 'wpcd' ),
-					'0' => __( 'No', 'wpcd' ),
-				);
-				$is_template           = $this->generate_meta_dropdown( 'wpapp_is_template', __( 'Template', 'wpcd' ), $template_flag_options );
-				echo $is_template;
+					// TEMPLATE FLAGS.
+					$template_flag_options = array(
+						'1' => __( 'Yes', 'wpcd' ),
+						'0' => __( 'No', 'wpcd' ),
+					);
+					$is_template           = $this->generate_meta_dropdown( 'wpapp_is_template', __( 'Template', 'wpcd' ), $template_flag_options );
+					echo $is_template;
 
+				}
+
+				/**
+				 * Filters specific to Multi-tenant
+				 */
+				if ( true === wpcd_is_mt_enabled() ) {
+
+					// MT SITE TYPE.
+					$mt_site_type = WPCD_POSTS_APP()->generate_meta_dropdown( 'wpcd_app', 'wpcd_app_mt_site_type', __( 'MT Site Type', 'wpcd' ) );
+					echo $mt_site_type;
+
+					// MT VERSION.
+					$mt_site_type = WPCD_POSTS_APP()->generate_meta_dropdown( 'wpcd_app', 'wpcd_app_mt_version', __( 'MT Version', 'wpcd' ) );
+					echo $mt_site_type;
+
+					// MT PARENT ID.
+					$mt_parent_id = WPCD_POSTS_APP()->generate_meta_dropdown( 'wpcd_app', 'wpcd_app_mt_parent', __( 'MT Parent Template', 'wpcd' ) );
+					echo $mt_parent_id;
+				}
 			}
 		}
 	}
@@ -4023,6 +4044,51 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 						'key'     => 'wpcd_is_template_site',
 						'value'   => $wpapp_template_flag,
 						'compare' => '=',
+					);
+				}
+			}
+
+			// MT Site Type.
+			if ( isset( $_GET['wpcd_app_mt_site_type'] ) && ! empty( $_GET['wpcd_app_mt_site_type'] ) ) {
+				$wpapp_mt_site_type = sanitize_text_field( filter_input( INPUT_GET, 'wpcd_app_mt_site_type', FILTER_UNSAFE_RAW ) );
+
+				if ( ! empty( $wpapp_mt_site_type ) ) {
+					$qv['meta_query'][] = array(
+						array(
+							'key'     => 'wpcd_app_mt_site_type',
+							'value'   => $wpapp_mt_site_type,
+							'compare' => '=',
+						),
+					);
+				}
+			}
+
+			// MT Version.
+			if ( isset( $_GET['wpcd_app_mt_version'] ) && ! empty( $_GET['wpcd_app_mt_version'] ) ) {
+				$wpcd_app_mt_version = sanitize_text_field( filter_input( INPUT_GET, 'wpcd_app_mt_version', FILTER_UNSAFE_RAW ) );
+
+				if ( ! empty( $wpcd_app_mt_version ) ) {
+					$qv['meta_query'][] = array(
+						array(
+							'key'     => 'wpcd_app_mt_version',
+							'value'   => $wpcd_app_mt_version,
+							'compare' => '=',
+						),
+					);
+				}
+			}
+
+			// MT Parent.
+			if ( isset( $_GET['wpcd_app_mt_parent'] ) && ! empty( $_GET['wpcd_app_mt_parent'] ) ) {
+				$wpcd_app_mt_parent = sanitize_text_field( filter_input( INPUT_GET, 'wpcd_app_mt_parent', FILTER_UNSAFE_RAW ) );
+
+				if ( ! empty( $wpcd_app_mt_parent ) ) {
+					$qv['meta_query'][] = array(
+						array(
+							'key'     => 'wpcd_app_mt_parent',
+							'value'   => $wpcd_app_mt_parent,
+							'compare' => '=',
+						),
 					);
 				}
 			}

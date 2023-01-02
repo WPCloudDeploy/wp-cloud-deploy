@@ -1137,6 +1137,17 @@ trait wpcd_wpapp_admin_column_data {
 			}
 		}
 
+		/* Show multi-tenant related version. */
+		if ( 'wpcd_app' === get_post_type( $post ) && 'wordpress-app' === $this->get_app_type( $post->ID ) ) {
+			if ( true === wpcd_is_mt_enabled() ) {
+				$mt_version = $this->get_mt_version( $post->ID );
+				if ( ! empty( $mt_version ) ) {
+					$css_class                            = 'wpcd_post_state wpcd_mt_site_version';
+					$states['wpcd-wpapp-mt-site-version'] = '<span class="' . $css_class . '">' . $mt_version . '</span>';
+				}
+			}
+		}
+
 		/* Show the server type on the server list screen */
 		if ( 'wpcd_app_server' === get_post_type( $post ) && 'wordpress-app' === $this->get_server_type( $post->ID ) && boolval( wpcd_get_option( 'wordpress_app_show_label_in_lists' ) ) ) {
 			$states['wpcd-server-type'] = 'WordPress';  // Unfortunately we don't have a server type description function we can call right now so hardcoding the value here.

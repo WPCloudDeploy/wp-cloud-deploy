@@ -207,6 +207,23 @@ trait wpcd_metaboxes_for_taxonomies_for_servers_and_apps {
 				}
 			}
 
+			/*
+			 * Special handling for mt parent id field (wpcd_app_mt_parent).
+			 * @TODO: This logic is unique to the WordPress APP so should not be
+			 * here.  But duplicating this entire function just for this field
+			 * also seems just as icky.
+			 */
+			if ( 'wpcd_app' === $post_type && 'wpcd_app_mt_parent' === $field_key ) {
+				$label        = WPCD_WORDPRESS_APP()->get_domain_name( $meta_value );
+				$product_name = get_post_meta( $meta_value, 'wpcd_app_mt_template_product_name', true );
+				if ( ! empty( $product_name ) ) {
+					$label = $product_name . ' / ' . $label;
+				}
+				if ( empty( $label ) ) {
+					$label = $meta_value;
+				}
+			}
+
 			$selected = selected( $get_field_key, $meta_value, false );
 			$html    .= sprintf( '<option value="%s" %s>%s</option>', $meta_value, $selected, $label );
 		}
@@ -278,7 +295,7 @@ trait wpcd_metaboxes_for_taxonomies_for_servers_and_apps {
 			return '';
 		}
 
-		$name = is_admin() ? 'wpcd_app_server_dd' : '_wpcd_app_server_dd';
+		$name          = is_admin() ? 'wpcd_app_server_dd' : '_wpcd_app_server_dd';
 		$html          = '';
 		$html         .= sprintf( '<select name="%s" id="filter-by-%s">', $name, $post_type );
 		$html         .= sprintf( '<option value="">%s</option>', $first_option );
@@ -335,7 +352,7 @@ trait wpcd_metaboxes_for_taxonomies_for_servers_and_apps {
 		$select_class = '';
 		if ( count( $posts ) == 0 ) {
 			return '';
-		} else if ( count( $posts ) > 25 ) {
+		} elseif ( count( $posts ) > 25 ) {
 			$select_class = 'wpcd_search_owner_filter custom-select custom-select-sm';
 		}
 

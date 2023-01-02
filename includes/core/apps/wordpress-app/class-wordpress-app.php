@@ -3538,9 +3538,9 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		$post_types = array( 'wpcd_app_server', 'wpcd_app', 'wpcd_team', 'wpcd_permission_type', 'wpcd_command_log', 'wpcd_ssh_log', 'wpcd_error_log', 'wpcd_pending_log' );
 
 		if ( ( is_object( $screen ) && in_array( $screen->post_type, $post_types ) ) || WPCD_WORDPRESS_APP_PUBLIC::is_public_page() ) {
-			
+
 			wp_enqueue_style( 'wpcd-wpapp-admin-app-css', wpcd_url . 'includes/core/apps/wordpress-app/assets/css/wpcd-wpapp-admin-app.css', array(), wpcd_scripts_version );
-			
+
 			wp_enqueue_script( 'wpcd-admin-common', wpcd_url . 'includes/core/apps/wordpress-app/assets/js/wpcd-admin-common.js', array( 'jquery' ), wpcd_scripts_version, true );
 			wp_localize_script(
 				'wpcd-admin-common',
@@ -3814,6 +3814,20 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			$site_needs_updates = $this->generate_meta_dropdown( 'wpapp_sites_needs_updates', __( 'Site Needs Updates', 'wpcd' ), $updates_options );
 			echo $site_needs_updates;
 
+			/**
+			 * Filters specific to WooCommerce
+			 */
+			if ( true === wpcd_is_wc_module_enabled() || true === wpcd_is_mt_enabled() ) {
+
+				// TEMPLATE FLAGS.
+				$template_flag_options = array(
+					'1' => __( 'Yes', 'wpcd' ),
+					'0' => __( 'No', 'wpcd' ),
+				);
+				$is_template           = $this->generate_meta_dropdown( 'wpapp_is_template', __( 'Template', 'wpcd' ), $template_flag_options );
+				echo $is_template;
+
+			}
 		}
 	}
 
@@ -3983,6 +3997,31 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 					$qv['meta_query'][] = array(
 						'key'     => 'wpcd_site_needs_updates',
 						'value'   => $wpapp_sites_needs_updates,
+						'compare' => '=',
+					);
+				}
+			}
+
+			// Template Flag.
+			// @todo: This logic does not handle empty metas.
+			if ( isset( $_GET['wpapp_is_template'] ) && ! empty( $_GET['wpapp_is_template'] ) ) {
+				$wpapp_template_flag = sanitize_text_field( filter_input( INPUT_GET, 'wpapp_is_template', FILTER_UNSAFE_RAW ) );
+
+				if ( $wpapp_template_flag === '1' ) {
+
+					$qv['meta_query'][] = array(
+						'relation' => 'OR',
+						array(
+							'key'     => 'wpcd_is_template_site',
+							'value'   => $wpapp_template_flag,
+							'compare' => '=',
+						),
+					);
+
+				} else {
+					$qv['meta_query'][] = array(
+						'key'     => 'wpcd_is_template_site',
+						'value'   => $wpapp_template_flag,
 						'compare' => '=',
 					);
 				}

@@ -1199,7 +1199,7 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 			}
 
 			// Save last batch id.
-			$this->set_mt_last_upgrade_tenant_batch_id( $id, $batch );
+			$this->set_mt_last_upgrade_tenant_batch_id( $id, $batch, count( $posts ) );
 
 		}
 
@@ -1970,6 +1970,58 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 			'columns'    => 6,
 		);
 
+		// Get the results of the last operation for display.
+		$batch_data = $this->get_mt_last_upgrade_tenant_batch_data( $id );
+		if ( ! empty( $batch_data ) ) {
+			// Format the thing for display.
+
+			$return  = '<div class="wpcd_mt_upgrade_tenant_results_list">';
+			$return .= '<div class="wpcd_mt_upgrade_tenant_results_list_header">' . __( 'Results From Last Upgrade Request', 'wpcd' ) . '</div>';
+			$return .= '<div class="wpcd_mt_upgrade_tenant_results_list_inner_wrap">';
+
+			// Loop through it and format it for display.
+			foreach ( $batch_data as $batch_key => $batch_details ) {
+
+				$total_sites = (int) $batch_details['total_sites'];
+				$succeeded   = (int) $batch_details['succeeded'];
+				$failed      = (int) $batch_details['failed'];
+				$remaining   = $total_sites - $succeeded - $failed;
+
+				$return .= '<div class="wpcd_mt_upgrade_tenant_results_list_value">';
+				/* Translators: %s is the count of a number of sites. */
+				$return .= sprintf( __( 'Total Sites: %s', 'wpcd' ), $total_sites );
+				$return .= '</div>';
+
+				$return .= '<div class="wpcd_mt_upgrade_tenant_results_list_value">';
+				/* Translators: %s is the count of sites where the operation succeeded. */
+				$return .= sprintf( __( 'Succeeded: %s', 'wpcd' ), $succeeded );
+				$return .= '</div>';
+
+				$return .= '<div class="wpcd_mt_upgrade_tenant_results_list_value">';
+				/* Translators: %s is the count of sites where the operation failed. */
+				$return .= sprintf( __( 'Failed: %s', 'wpcd' ), $failed );
+				$return .= '</div>';
+
+				$return .= '<div class="wpcd_mt_upgrade_tenant_results_list_value">';
+				/* Translators: %s is the count of sites where the operation has not started or is in process. */
+				$return .= sprintf( __( 'Remaining: %s', 'wpcd' ), $remaining );
+				$return .= '</div>';
+
+			}
+			$return .= '</div>';
+			$return .= '</div>';
+
+			$fields[] = array(
+				'id'         => 'wpcd_app_mt_view_upgrade_tenant_results_list',
+				'name'       => '',
+				'std'        => $return,
+				'type'       => 'custom_html',
+				'tab'        => $this->get_tab_slug(),
+				'save_field' => false,
+			);
+
+		}
+
 		return $fields;
 
 	}
@@ -2352,25 +2404,60 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 	 *
 	 * @param int    $id The post id of the template site.
 	 * @param string $batch The batch uuid.
+	 * @param int    $qty The number of records/apps associated with the batch.
 	 */
-	public function set_mt_last_upgrade_tenant_batch_id( $id, $batch ) {
-		return update_post_meta( $id, 'wpcd_app_mt_last_upgrade_tenant_batch_id', $batch );
+	public function set_mt_last_upgrade_tenant_batch_id( $id, $batch, $qty ) {
+
+		/**
+		 * While we only have one value for now, we'll initialize the array so that it is
+		 * ready for data when we get the success and failed totals.
+		 */
+		$batch_arr[ $batch ] = array(
+			'total_sites' => $qty,
+			'succeeded'   => 0,
+			'failed'      => 0,
+		);
+
+		return update_post_meta( $id, 'wpcd_app_mt_last_upgrade_tenant_batch_id', $batch_arr );
 	}
 
 	/**
 	 * When upgrading tenants we set a batch id for the group of tenants
 	 * selected for an upgrade.  This function gets the last batch
-	 * id used.
+	 * id used along with it's associated progress data.
 	 *
 	 * @param int $id The post id of the template site.
 	 *
 	 * @return string
 	 */
-	public function get_mt_last_upgrade_tenant_batch_id( $id ) {
-		return get_post_meta( $id, 'wpcd_app_mt_last_upgrade_tenant_batch_id', true );
+	public function get_mt_last_upgrade_tenant_batch_data( $id ) {
+
+		$batch_arr = get_post_meta( $id, 'wpcd_app_mt_last_upgrade_tenant_batch_id', true );
+
+		// If we don't have an array, something is wrong.
+		if ( ! is_array( $batch_arr ) ) {
+			return false;
+		}
+
+		// if the succeeded and failed totals add up to the total_sites there's no need to try to get data from pending logs.
+		// We only need to go through this once and return after the first loop since this array should only have one element.
+		foreach ( $batch_arr as $batch_key => $batch_details ) {
+			if ( (int) $batch_details['total_sites'] === (int) $batch_details['succeeded'] + (int) $batch_details['failed'] ) {
+				return $batch_arr;
+			} else {
+				// Get data from the pending tasks table to see how many are complete.
+				$succeeded                            = count( WPCD_POSTS_PENDING_TASKS_LOG()->get_tasks_by_state_reference( 'complete', $batch_key ) );
+				$failed                               = count( WPCD_POSTS_PENDING_TASKS_LOG()->get_tasks_by_state_reference( 'failed', $batch_key ) );
+				$batch_arr[ $batch_key ]['succeeded'] = $succeeded;
+				$batch_arr[ $batch_key ]['failed']    = $failed;
+				update_post_meta( $id, 'wpcd_app_mt_last_upgrade_tenant_batch_id', $batch_arr );
+				return $batch_arr;
+			}
+		}
+
+		return false;
 
 	}
-
 
 }
 

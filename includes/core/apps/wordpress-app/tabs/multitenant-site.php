@@ -26,8 +26,11 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 
 		add_action( "wpcd_command_{$this->get_app_name()}_completed", array( $this, 'command_completed' ), 10, 2 );
 
-		// Allow the clone action to be triggered via an action hook.  Will primarily be used by the REST API.
-		add_action( "wpcd_{$this->get_app_name()}_do_mt_create_version", array( $this, 'do_mt_create_version_action' ), 10, 2 ); // Hook: wpcd_wordpress-app_do_mt_create_version.
+		/* Pending Logs Background Task: Trigger MT conversion / Apply Version process. */
+		add_action( 'wpcd_pending_log_mt_apply_version', array( $this, 'wpcd_pending_log_mt_apply_version' ), 10, 3 );
+
+		// Allow the site conversion action to be triggered via an action hook.
+		add_action( "wpcd_{$this->get_app_name()}_do_mt_apply_version", array( $this, 'do_mt_apply_version' ), 10, 2 ); // Hook: wpcd_wordpress-app_do_mt_apply_version.
 
 	}
 
@@ -162,20 +165,20 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 						}
 					}
 				}
-
-				// And delete the temporary metas.
-				delete_post_meta( $id, 'wpapp_temp_mt_new_version_target_domain' );
-				delete_post_meta( $id, 'wpapp_temp_mt_new_version' );
-				delete_post_meta( $id, 'wpapp_temp_mt_new_version_desc' );
-
 			} else {
 				// Add action hook to indicate failure...
 				$message = __( 'Multi-tenant: Create new version failed - check the command logs for more information.', 'wpcd' );
 				do_action( "wpcd_{$this->get_app_name()}_mt_new_version_clone_site_failed", $id, $command_array[0], $message, array() );  // Keeping 4 parameters for the action hook to maintain consistency even though we have nothing for the last parameter.
 			}
+
+			// Delete the temporary metas specific to this operation.
+			delete_post_meta( $id, 'wpapp_temp_mt_new_version_target_domain' );
+			delete_post_meta( $id, 'wpapp_temp_mt_new_version' );
+			delete_post_meta( $id, 'wpapp_temp_mt_new_version_desc' );
 		}
 
-		// if the command is to convert an existing site we need to update some metas and delete some temporary ones among other things.
+		// if the command is to convert or upgrade an existing site we need to update some metas and delete some temporary ones among other things.
+		// if ( in_array( $command_array[0], array( 'mt-convert-site', 'mt-upgrade-all-tenants', 'mt-upgrade-tenants-selected-versions', 'mt-upgrade-tenants-selected-app-group' ), true ) ) {
 		if ( 'mt-convert-site' === $command_array[0] ) {
 
 			// Lets pull the logs.
@@ -183,6 +186,9 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 
 			// Is the command successful?
 			$success = $this->is_ssh_successful( $logs, 'mt_convert_site.txt' );
+
+			// Was this triggered by a pending task?
+			$task_id = get_post_meta( $id, 'wpapp_pending_log_mt_apply_version', true );
 
 			if ( true === $success ) {
 
@@ -205,26 +211,45 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 						$this->set_mt_parent( $id, $template_site_id );
 						$this->set_mt_site_type( $id, 'mt_tenant' );
 
+						// If this was triggered by a pending log task update the task as complete.
+						if ( ! empty( $task_id ) ) {
+							// Mark the task as complete.
+							WPCD_POSTS_PENDING_TASKS_LOG()->update_task_state_by_id( $task_id, 'complete' ); // We don't have to to pass in any updated data so we can use update_task_state_by_id() instead of update_task_by_id().
+						}
+
 						// Maybe update the template site with a count of the tenants related to it?
 
 						// Wrapup - let things hook in here - primarily the multisite add-on and the REST API.
-						do_action( "wpcd_{$this->get_app_name()}_mt_site_conversion_completed", $new_app_post_id, $id, $name );
+						do_action( "wpcd_{$this->get_app_name()}_mt_site_conversion_completed", $id, $name );
 
 					}
 				} else {
+					// If this was triggered by a pending log task update the task as failed.
+					if ( ! empty( $task_id ) ) {
+						// Mark the task as complete.
+						WPCD_POSTS_PENDING_TASKS_LOG()->update_task_state_by_id( $task_id, 'failed' ); // We don't have to to pass in any updated data so we can use update_task_state_by_id() instead of update_task_by_id().
+					}
 					$message = __( 'Multi-tenant: Site conversion failed - check the command logs for more information.', 'wpcd' );
 					do_action( "wpcd_{$this->get_app_name()}_mt_site_conversion_failed", $id, $command_array[0], $message, array() );  // Keeping 4 parameters for the action hook to maintain consistency even though we have nothing for the last parameter.
 				}
-
-				// And delete the temporary metas.
-				delete_post_meta( $id, 'wpapp_temp_mt_template_id' );
-				delete_post_meta( $id, 'wpapp_temp_mt_version' );
-
 			} else {
+				// Failed.
+
+				// If this was triggered by a pending log task update the task as failed.
+				if ( ! empty( $task_id ) ) {
+					// Mark the task as complete.
+					WPCD_POSTS_PENDING_TASKS_LOG()->update_task_state_by_id( $task_id, 'failed' ); // We don't have to to pass in any updated data so we can use update_task_state_by_id() instead of update_task_by_id().
+				}
+
 				// Add action hook to indicate failure...
 				$message = __( 'Multi-tenant: Site conversion failed - check the command logs for more information.', 'wpcd' );
 				do_action( "wpcd_{$this->get_app_name()}_mt_site_conversion_failed", $id, $command_array[0], $message, array() );  // Keeping 4 parameters for the action hook to maintain consistency even though we have nothing for the last parameter.
 			}
+
+			// Delete the temporary metas specific to this operation.
+			delete_post_meta( $id, 'wpapp_temp_mt_template_id' );
+			delete_post_meta( $id, 'wpapp_temp_mt_version' );
+			delete_post_meta( $id, 'wpapp_pending_log_mt_apply_version' );
 		}
 
 		// if the command is to push versions to a destination server, we just need to update the versions array.
@@ -273,7 +298,7 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 			}
 		}
 
-		// remove the 'temporary' meta so that another attempt will run if necessary.
+		// Remove the general 'temporary' meta so that another attempt will run if necessary.
 		delete_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action_status" );
 		delete_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action" );
 		delete_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action_args" );
@@ -348,7 +373,17 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 		}
 
 		/* Now verify that the user can perform actions on this screen, assuming that they can view the server */
-		$valid_actions = array( 'mt-create-version', 'mt-set-product-name', 'mt-set-template-flag', 'mt-set-default-version', 'mt-convert-site', 'mt-push-versions-to-server' );
+		$valid_actions = array(
+			'mt-create-version',
+			'mt-set-product-name',
+			'mt-set-template-flag',
+			'mt-set-default-version',
+			'mt-convert-site',
+			'mt-push-versions-to-server',
+			'mt-upgrade-all-tenants',
+			'mt-upgrade-tenants-selected-versions',
+			'mt-upgrade-tenants-selected-app-group',
+		);
 		if ( in_array( $action, $valid_actions, true ) ) {
 			if ( ! $this->get_tab_security( $id ) ) {
 				/* translators: %1s is replaced with an internal action name; %2$s is replaced with the file name; %3$s is replaced with the post id being acted on. %4$s is the user id running this action. */
@@ -399,6 +434,11 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 					break;
 				case 'mt-push-versions-to-server':
 					$result = $this->mt_push_versions_to_server( $action, $id );
+					break;
+				case 'mt-upgrade-all-tenants':
+				case 'mt-upgrade-tenants-selected-versions':
+				case 'mt-upgrade-tenants-selected-app-group':
+					$result = $this->mt_upgrade_tenants( $action, $id );
 					break;
 			}
 		}
@@ -905,6 +945,7 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 		}
 
 		// We might need to add an item to the PENDING TASKS LOG.
+		// @TODO: Right now there is no use-case for this so this is all speculative.
 		if ( isset( $in_args['pending_tasks_type'] ) ) {
 			WPCD_POSTS_PENDING_TASKS_LOG()->add_pending_task_log_entry( $destination_id, $in_args['pending_tasks_type'], $command, $args, 'not-ready', $id, __( 'Waiting For Product Template Versions Copy To Complete.', 'wpcd' ) );
 		}
@@ -1019,15 +1060,192 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
-	 * Trigger the create version function from an action hook.
+	 * Multitenant - Upgrade Tenants
 	 *
-	 * Action Hook: wpcd_{$this->get_app_name()}_do_mt_create_version | wpcd_wordpress-app_do_mt_create_version
+	 * @param string $action The action key to send to the bash script.
+	 * @param int    $id the id of the app post being handled.
+	 * @param array  $in_args Alternative source of arguments passed via action hook or direct function call instead of pulling from $_POST.
+	 *
+	 * @return boolean|object Can return wp_error, true/false
+	 */
+	public function mt_upgrade_tenants( $action, $id, $in_args = array() ) {
+
+		if ( empty( $in_args ) ) {
+			// Get data from the POST request.
+			$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
+		} else {
+			$args = $in_args;
+		}
+
+		// Bail if target version is empty.
+		$mt_target_version = sanitize_text_field( $args['mt_version'] );
+		if ( empty( $mt_target_version ) ) {
+			$message = __( 'The version that tenants should be upgrade to is required.', 'wpcd' );
+			return new \WP_Error( $message );
+		}
+
+		// Depending on the upgrade action, certain fields are required.
+		// Make sure they're available.
+		switch ( $action ) {
+			case 'mt-upgrade-all-tenants':
+				// No validation required here.
+				break;
+			case 'mt-upgrade-tenants-selected-versions':
+				$mt_existing_version = sanitize_text_field( $args['mt_existing_version'] );
+				if ( empty( $mt_existing_version ) ) {
+					$message = __( 'The version that tenants should be upgrade FROM is required.', 'wpcd' );
+					return new \WP_Error( $message );
+				}
+				break;
+			case 'mt-upgrade-tenants-selected-app-group':
+				$mt_app_group = sanitize_text_field( $args['mt_app_group'] );
+				if ( empty( $mt_app_group ) ) {
+					$message = __( 'The APP GROUP is required for this tenant upgrade request.', 'wpcd' );
+					return new \WP_Error( $message );
+				}
+				break;
+		}
+
+		// Depending on the action we need a different set of args to wp_query.
+		switch ( $action ) {
+			case 'mt-upgrade-all-tenants':
+				$query_args = array(
+					'post_type'   => 'wpcd_app',
+					'post_status' => 'private',
+					'numberposts' => -1,
+					'meta_query'  => array(
+						'relation' => 'AND',
+						array(
+							'key'   => 'wpcd_app_mt_parent',
+							'value' => $id,
+						),
+						array(
+							'key'   => 'wpcd_app_mt_site_type',
+							'value' => 'mt_tenant',
+						),
+					),
+				);
+				break;
+			case 'mt-upgrade-tenants-selected-versions':
+				$query_args = array(
+					'post_type'   => 'wpcd_app',
+					'post_status' => 'private',
+					'numberposts' => -1,
+					'meta_query'  => array(
+						'relation' => 'AND',
+						array(
+							'key'   => 'wpcd_app_mt_parent',
+							'value' => $id,
+						),
+						array(
+							'key'   => 'wpcd_app_mt_site_type',
+							'value' => 'mt_tenant',
+						),
+						array(
+							'key'   => 'wpcd_app_mt_version',
+							'value' => $args['mt_existing_version'],
+						),
+
+					),
+				);
+				break;
+			case 'mt-upgrade-tenants-selected-app-group':
+				$query_args = array(
+					'post_type'   => 'wpcd_app',
+					'post_status' => 'private',
+					'numberposts' => -1,
+					'meta_query'  => array(
+						'relation' => 'AND',
+						array(
+							'key'   => 'wpcd_app_mt_parent',
+							'value' => $id,
+						),
+						array(
+							'key'   => 'wpcd_app_mt_site_type',
+							'value' => 'mt_tenant',
+						),
+					),
+					'tax_query'   => array(
+						array(
+							'taxonomy' => 'wpcd_app_group',
+							'field'    => 'term_id',
+							'terms'    => array( $args['mt_app_group'] ),
+						),
+					),
+				);
+
+				break;
+		}
+
+		// Get posts.
+		$posts = get_posts( $query_args );
+
+		// Loop through posts and add to pending tasks.
+		if ( $posts ) {
+
+			// Id for this batch.
+			$batch = wpcd_generate_uuid();
+
+			// Loop through posts and add to pending tasks.
+			foreach ( $posts as $post ) {
+				$args_for_pending_tasks['mt_version']          = $args['mt_version']; // required by the bash script.
+				$args_for_pending_tasks['mt_product_template'] = $id; // required by the bash script.
+				$args_for_pending_tasks['action_hook']         = 'wpcd_pending_log_mt_apply_version';
+				$task_key                                      = $this->get_domain_name( $post->ID );
+				WPCD_POSTS_PENDING_TASKS_LOG()->add_pending_task_log_entry( $post->ID, 'mt-upgrade-tenant', $task_key, $args_for_pending_tasks, 'ready', $batch, __( 'Apply New Version To Tenant.', 'wpcd' ) );
+			}
+
+			// Save last batch id.
+			$this->set_mt_last_upgrade_tenant_batch_id( $id, $batch );
+
+		}
+
+		/* Translators: %s is the count of posts/tenants scheduled to get a new version. */
+		$result = new \WP_Error( sprintf( __( '%s tenants have been scheduled to get this new version.', 'wpcd' ), count( $posts ) ) );
+
+		return $result;
+	}
+
+
+
+	/**
+	 * Convert a site or apply a version - triggered via a pending logs background process.
+	 *
+	 * Called from an action hook from the pending logs background process - WPCD_POSTS_PENDING_TASKS_LOG()->do_tasks()
+	 *
+	 * Action Hook: wpcd_pending_log_mt_apply_version
+	 *
+	 * @param int   $task_id    Id of pending task that is firing this thing...
+	 * @param int   $site_id    Id of site on which this action apply.
+	 * @param array $args       All the data needed for this action.
+	 */
+	public function wpcd_pending_log_mt_apply_version( $task_id, $site_id, $args ) {
+
+		// Grab our data array from pending tasks record...
+		$data = WPCD_POSTS_PENDING_TASKS_LOG()->get_data_by_id( $task_id );
+
+		// Add a postmeta to the site we can use later.
+		update_post_meta( $site_id, 'wpapp_pending_log_mt_apply_version', $task_id );
+
+		do_action( 'wpcd_wordpress-app_do_mt_apply_version', $site_id, $args );
+
+	}
+
+	/**
+	 * Trigger site conversion from an action hook.
+	 *
+	 * Note that applying a version is the same as converting an existing site.
+	 * The difference is that conversion is supposed to be done on a site that
+	 * is not already a tenant while "apply" is going to re-run the process
+	 * on a site that is already a tenant - usually to upgrade to a new version.
+	 *
+	 * Action Hook: wpcd_{$this->get_app_name()}_do_mt_apply_version | wpcd_wordpress-app_do_mt_apply_version
 	 *
 	 * @param string $id ID of app where domain change has to take place.
 	 * @param array  $args array arguments that the change domain function needs.
 	 */
-	public function do_mt_create_version_action( $id, $args ) {
-		$this->mt_create_version( 'mt-create-version', $id, $args );
+	public function do_mt_apply_version( $id, $args ) {
+		$this->mt_convert_site( 'mt-convert-site', $id, $args );
 	}
 
 	/**
@@ -1127,7 +1345,8 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 			$version_fields                 = $this->get_fields_for_version_list( $id );
 			$product_name_fields            = $this->get_product_name_fields( $id );
 			$push_versions_to_server_fields = $this->get_push_versions_to_server_fields( $id );
-			$fields                         = array_merge( $fields, $create_new_version_fields, $production_version_fields, $version_fields, $push_versions_to_server_fields, $product_name_fields );
+			$upgrade_tenant_fields          = $this->get_upgrade_tenant_fields( $id );
+			$fields                         = array_merge( $fields, $create_new_version_fields, $production_version_fields, $version_fields, $push_versions_to_server_fields, $upgrade_tenant_fields, $product_name_fields );
 		}
 
 		// Fields shown to template sites and standard sites.
@@ -1574,6 +1793,137 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
+	 * Gets the fields to be shown in the 'upgrade tenants' section of the tab.
+	 *
+	 * @param int $id id.
+	 *
+	 * @return array Array of actions, complying with the structure necessary by metabox.io fields.
+	 */
+	public function get_upgrade_tenant_fields( $id ) {
+
+		// Header description.
+		$desc = '';
+
+		$current_default_version = $this->get_mt_default_version( $id );
+
+		$fields[] = array(
+			'name' => __( 'Upgrade Tenants', 'wpcd' ),
+			'tab'  => $this->get_tab_slug(),
+			'type' => 'heading',
+			'desc' => $desc,
+		);
+		$fields[] = array(
+			'name'       => __( 'Upgrade Tenants To This Version', 'wpcd' ),
+			'id'         => 'wpcd_app_mt_version',
+			'tab'        => $this->get_tab_slug(),
+			'type'       => 'select',
+			'options'    => $this->get_mt_versions( $id ),
+			'save_field' => false,
+			'attributes' => array(
+				// the key of the field (the key goes in the request).
+				'data-wpcd-name' => 'mt_version',
+			),
+			'std'        => $current_default_version,
+		);
+
+		$fields[] = array(
+			'id'         => 'wpcd_app_mt_upgrade_all_tenants',
+			'name'       => '',
+			'tab'        => $this->get_tab_slug(),
+			'type'       => 'button',
+			'std'        => __( 'Upgrade All Tenants', 'wpcd' ),
+			'attributes' => array(
+				// the _action that will be called in ajax.
+				'data-wpcd-action'              => 'mt-upgrade-all-tenants',
+				// the id.
+				'data-wpcd-id'                  => $id,
+				// fields that contribute data for this action.
+				'data-wpcd-fields'              => wp_json_encode( array( '#wpcd_app_mt_version' ) ),
+				// make sure we give the user a confirmation prompt.
+				'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like to upgrade all tenants to the selected version?', 'wpcd' ),
+			),
+			'class'      => 'wpcd_app_action',
+			'save_field' => false,
+		);
+
+		$fields[] = array(
+			'name'       => __( 'Upgrade Only Tenants Who Have This Version', 'wpcd' ),
+			'id'         => 'wpcd_app_mt_existing_version',
+			'tab'        => $this->get_tab_slug(),
+			'type'       => 'select',
+			'options'    => $this->get_mt_versions( $id ),
+			'save_field' => false,
+			'attributes' => array(
+				// the key of the field (the key goes in the request).
+				'data-wpcd-name' => 'mt_existing_version',
+			),
+			'std'        => $current_default_version,
+			'columns'    => 6,
+		);
+
+		$fields[] = array(
+			'name'       => __( 'Upgrade Only Tenants With This App Group', 'wpcd' ),
+			'id'         => 'wpcd_app_mt_app_group',
+			'tab'        => $this->get_tab_slug(),
+			'type'       => 'taxonomy',
+			'field_type' => 'select',
+			'taxonomy'   => 'wpcd_app_group',
+			'save_field' => false,
+			'attributes' => array(
+				// the key of the field (the key goes in the request).
+				'data-wpcd-name' => 'mt_app_group',
+			),
+			'std'        => $current_default_version,
+			'columns'    => 6,
+		);
+
+		$fields[] = array(
+			'id'         => 'wpcd_app_mt_upgrade_tenants_with_selected_versions',
+			'name'       => '',
+			'tab'        => $this->get_tab_slug(),
+			'type'       => 'button',
+			'std'        => __( 'Upgrade', 'wpcd' ),
+			'attributes' => array(
+				// the _action that will be called in ajax.
+				'data-wpcd-action'              => 'mt-upgrade-tenants-selected-versions',
+				// the id.
+				'data-wpcd-id'                  => $id,
+				// fields that contribute data for this action.
+				'data-wpcd-fields'              => wp_json_encode( array( '#wpcd_app_mt_existing_version', '#wpcd_app_mt_version' ) ),
+				// make sure we give the user a confirmation prompt.
+				'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like to upgrade some tenants to the selected version?', 'wpcd' ),
+			),
+			'class'      => 'wpcd_app_action',
+			'save_field' => false,
+			'columns'    => 6,
+		);
+
+		$fields[] = array(
+			'id'         => 'wpcd_app_mt_upgrade_tenants_with_selected_app_group',
+			'name'       => '',
+			'tab'        => $this->get_tab_slug(),
+			'type'       => 'button',
+			'std'        => __( 'Upgrade', 'wpcd' ),
+			'attributes' => array(
+				// the _action that will be called in ajax.
+				'data-wpcd-action'              => 'mt-upgrade-tenants-selected-app-group',
+				// the id.
+				'data-wpcd-id'                  => $id,
+				// fields that contribute data for this action.
+				'data-wpcd-fields'              => wp_json_encode( array( '#wpcd_app_mt_app_group', '#wpcd_app_mt_version' ) ),
+				// make sure we give the user a confirmation prompt.
+				'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like to upgrade tenants with this APP GROUP to the selected version?', 'wpcd' ),
+			),
+			'class'      => 'wpcd_app_action',
+			'save_field' => false,
+			'columns'    => 6,
+		);
+
+		return $fields;
+
+	}
+
+	/**
 	 * Gets a list of appropriate destination servers.
 	 *
 	 * @TODO: This logic is duplicated in the site-sync.php file/tab
@@ -1644,6 +1994,7 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 
 			$name        = __( 'Upgrade or Downgrade', 'wpcd' );
 			$button_text = __( 'Apply New Version', 'wpcd' );
+			$button_desc = '';
 		} else {
 			// Header description for site that has not been converted yet.
 			$desc  = __( 'This operation will not impact your database - it will only apply the files from the product template to this site.', 'wpcd' );
@@ -1656,6 +2007,7 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 
 			$name        = __( 'Convert Site To A Tenant', 'wpcd' );
 			$button_text = __( 'Convert', 'wpcd' );
+			$button_desc = __( 'Add this site as a tenant for the above selected product template.', 'wpcd' );
 		}
 
 		$current_version = $this->get_mt_version( $id );
@@ -1724,7 +2076,7 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 			'tab'        => $this->get_tab_slug(),
 			'type'       => 'button',
 			'std'        => $button_text,
-			'desc'       => __( 'Add this site as a tenant for the above selected product template.', 'wpcd' ),
+			'desc'       => $button_desc,
 			'attributes' => array(
 				// the _action that will be called in ajax.
 				'data-wpcd-action'              => 'mt-convert-site',
@@ -1937,6 +2289,35 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 	 */
 	public function set_product_name( $id, $name ) {
 		update_post_meta( $id, 'wpcd_app_mt_template_product_name', $name );
+	}
+
+	/**
+	 * When upgrading tenants we set a batch id for the group of tenants
+	 * selected for an upgrade.  This function updates the template
+	 * site with that batch.
+	 *
+	 * For now, it just keeps track of the last batch used.  Later we'll
+	 * probably keep track of all batches.
+	 *
+	 * @param int    $id The post id of the template site.
+	 * @param string $batch The batch uuid.
+	 */
+	public function set_mt_last_upgrade_tenant_batch_id( $id, $batch ) {
+		return update_post_meta( $id, 'wpcd_app_mt_last_upgrade_tenant_batch_id', $batch );
+	}
+
+	/**
+	 * When upgrading tenants we set a batch id for the group of tenants
+	 * selected for an upgrade.  This function gets the last batch
+	 * id used.
+	 *
+	 * @param int $id The post id of the template site.
+	 *
+	 * @return string
+	 */
+	public function get_mt_last_upgrade_tenant_batch_id( $id ) {
+		return get_post_meta( $id, 'wpcd_app_mt_last_upgrade_tenant_batch_id', true );
+
 	}
 
 

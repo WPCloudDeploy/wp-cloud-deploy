@@ -148,18 +148,8 @@ class WPCD_WORDPRESS_TABS_STAGING extends WPCD_WORDPRESS_TABS {
 							update_post_meta( $id, 'wpapp_staging_domain', $new_domain );
 							update_post_meta( $id, 'wpapp_staging_domain_id', $new_app_post_id );
 
-							/**
-							 * If multi-tenant is active, check to see if the original site was a multi-tenant site
-							 * and if so, stamp the new site with the same tags.
-							 * For now, the only site type that is affected is a tenant site ('mt_tenant').
-							 * Versioned sites, version clones, template sites, template clones etc. are not stamped
-							 * and will be treated as regular sites after a clone.
-							 */
-							if ( in_array( $this->get_mt_site_type( $id ), array( 'mt_tenant' ), true ) ) {
-								$this->set_mt_version( $new_app_post_id, $this->get_mt_version( $id ) );
-								$this->set_mt_parent( $new_app_post_id, $this->get_mt_parent( $id ) );
-								$this->set_mt_site_type( $new_app_post_id, $this->get_mt_site_type( $id ) );
-							}
+							// Copy multi-tenant related metas.
+							$this->clone_mt_metas( $id, $new_app_post_id );  // Function located in traits file multi-tenant-app.php.
 
 							// Finally, lets add a meta to indicate that this was a clone.
 							update_post_meta( $new_app_post_id, 'wpapp_cloned_from', $this->get_domain_name( $id ) );

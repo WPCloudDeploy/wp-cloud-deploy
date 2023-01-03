@@ -160,6 +160,9 @@ class WPCD_WORDPRESS_TABS_SITE_SYNC extends WPCD_WORDPRESS_TABS {
 							// Update the http auth status for the full site.
 							$this->set_site_http_auth_status( $new_app_post_id, $this->get_site_http_auth_status( $id ) );
 
+							// Copy multi-tenant related metas.
+							$this->clone_mt_metas( $id, $new_app_post_id );  // Function located in traits file multi-tenant-app.php.
+
 							// Finally, lets add a meta to indicate that this was a copy.
 							update_post_meta( $new_app_post_id, 'wpapp_site_synced_from_app', $id );
 
@@ -387,8 +390,8 @@ class WPCD_WORDPRESS_TABS_SITE_SYNC extends WPCD_WORDPRESS_TABS {
 	/**
 	 * Copy site to a new server.
 	 *
-     * Note: A lot of this code is replicated in the multitenant tab.
-     * Significant changes here probably should be made there as well.	 
+	 * Note: A lot of this code is replicated in the multitenant tab.
+	 * Significant changes here probably should be made there as well.
 	 *
 	 * This is initiated from the site screen on the source server.
 	 *
@@ -807,10 +810,10 @@ class WPCD_WORDPRESS_TABS_SITE_SYNC extends WPCD_WORDPRESS_TABS {
 	/**
 	 * Gets the fields to be shown.
 	 *
-     * @TODO: The logic to get an appropriate list of servers 
-	 * is duplicated in the multitenant-site.php file/tab in the 
-	 * get_list_of_destination_servers() function.  We should consolidate and 
-     * make a central function.
+	 * @TODO: The logic to get an appropriate list of servers
+	 * is duplicated in the multitenant-site.php file/tab in the
+	 * get_list_of_destination_servers() function.  We should consolidate and
+	 * make a central function.
 	 *
 	 * @param array $fields fields.
 	 * @param int   $id id.

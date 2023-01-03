@@ -39,6 +39,14 @@ trait wpcd_wpapp_multi_tenant_app {
 		} else {
 			update_post_meta( $app_id, 'wpcd_is_template_site', false );
 		}
+		
+		// If setting to false, we need to check the MT site type.
+		// If it's mt_template_clone, we have to remove that as well.
+		if ( false === $flag ) {
+			if ( 'mt_template_clone' === $this->get_mt_site_type( $app_id ) ) {
+				$this->set_mt_site_type( $app_id, '' );
+			}
+		}
 	}
 
 	/**
@@ -200,6 +208,47 @@ trait wpcd_wpapp_multi_tenant_app {
 
 		return $return;
 
+	}
+
+	/**
+	 * Clone MT related metas.
+	 *
+	 * This is called during cloning, staging and site-sync operations.
+	 *
+	 * @param int $id Source Site Post Id.
+	 * @param int $target_id Cloned site post id.
+	 */
+	public function clone_mt_metas( $id, $target_id ) {
+
+		// Template flag.
+		$is_template = $this->wpcd_is_template_site( $id );
+		$this->wpcd_set_template_flag( $target_id, $is_template );
+
+		// MT Version.
+		$mt_version = $this->get_mt_version( $id );
+		if ( ! empty( $mt_version ) ) {
+			$this->set_mt_version( $target_id, $mt_version );
+		}
+
+		// MT Site type.
+		$mt_site_type = $this->get_mt_site_type( $id );
+		if ( 'mt_tenant' === $mt_site_type ) {
+			$this->set_mt_site_type( $target_id, $mt_site_type );
+		}
+
+		if ( 'mt_version' === $mt_site_type ) {
+			$this->set_mt_site_type( $target_id, 'mt_version_clone' );
+		}
+
+		if ( 'template' === $mt_site_type ) {
+			$this->set_mt_site_type( $target_id, 'mt_template_clone' );
+		}
+
+		// MT Parent id.
+		$mt_parent_id = $this->get_mt_parent( $id );
+		if ( ! empty( $mt_parent_id ) ) {
+			$this->set_mt_parent( $target_id, $mt_parent_id );
+		}
 	}
 
 }

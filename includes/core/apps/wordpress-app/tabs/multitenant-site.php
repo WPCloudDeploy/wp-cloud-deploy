@@ -161,6 +161,10 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 							$this->set_mt_parent( $new_app_post_id, $id );
 							$this->set_mt_site_type( $new_app_post_id, 'mt_version' );
 
+							// Remove any TEMPLATE flags from the new site.
+							// The standard SITE CLONE operation resets this flag so we have to remove it here.
+							$this->wpcd_set_template_flag( $new_app_post_id, false );
+
 							// Wrapup - let things hook in here - primarily the multisite add-on and the REST API.
 							do_action( "wpcd_{$this->get_app_name()}_site_clone_new_post_completed", $new_app_post_id, $id, $name );
 							do_action( "wpcd_{$this->get_app_name()}_site_mt_new_version_new_post_completed", $new_app_post_id, $id, $name );
@@ -2171,6 +2175,10 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 				'data-wpcd-name' => 'mt_version',
 			),
 			'std'        => $current_version,
+			'tooltip'    => array(
+				'position' => 'right',
+				'content'  => __( 'Please ensure that the version folder exists on the server where this site resides. Otherwise the conversion will fail.', 'wpcd' ),
+			),
 		);
 
 		$fields[] = array(

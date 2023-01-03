@@ -602,7 +602,7 @@ class WPCD_WORDPRESS_TABS_GIT_CONTROL_SITE extends WPCD_WORDPRESS_TABS {
 		$actions[] = array(
 			'id'         => 'git-site-control-init-fields-remote-repo',
 			'name'       => __( 'Remote Repo URL', 'wpcd' ),
-			'std'        => $git_settings['git_remote_url'],
+			'std'        => ! empty( $git_settings['git_remote_url'] ) ? $git_settings['git_remote_url'] : '',
 			'desc'       => __( 'URL to your git repository on GitHub.', 'wpcd' ),
 			'columns'    => 12,
 			'attributes' => array(

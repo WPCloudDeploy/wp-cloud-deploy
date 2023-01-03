@@ -392,6 +392,7 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 			'mt-upgrade-tenants-selected-app-group',
 			'mt-clear-site-type',
 			'mt-reset-site-type',
+			'mt-break-parent-link',
 		);
 		if ( in_array( $action, $valid_actions, true ) ) {
 			if ( ! $this->get_tab_security( $id ) ) {
@@ -452,6 +453,9 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 				case 'mt-clear-site-type':
 				case 'mt-reset-site-type':
 					$result = $this->mt_clear_or_reset_site_type( $action, $id );
+					break;
+				case 'mt-break-parent-link':
+					$result = $this->mt_break_parent_link( $action, $id );
 					break;
 			}
 		}
@@ -980,7 +984,7 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 	/**
 	 * Multitenant - set product name
 	 *
-	 * @param string $action The action key to send to the bash script.
+	 * @param string $action The action key to send to the bash script (not used in this function).
 	 * @param int    $id the id of the app post being handled.
 	 * @param array  $in_args Alternative source of arguments passed via action hook or direct function call instead of pulling from $_POST.
 	 *
@@ -1042,7 +1046,7 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 	/**
 	 * Multitenant - clear or reset site type.
 	 *
-	 * @param string $action The action key to send to the bash script.
+	 * @param string $action The action key to send to the bash script (not used in this function).
 	 * @param int    $id the id of the app post being handled.
 	 * @param array  $in_args Alternative source of arguments passed via action hook or direct function call instead of pulling from $_POST.
 	 *
@@ -1083,10 +1087,38 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 		return $result;
 	}
 
+
+	/**
+	 * Multitenant - Removes the MT parent link value so that the site is no longer part of the chain of child sites for the parent.
+	 *
+	 * @param string $action The action key to send to the bash script (not used in this function).
+	 * @param int    $id the id of the app post being handled.
+	 * @param array  $in_args Alternative source of arguments passed via action hook or direct function call instead of pulling from $_POST.
+	 *
+	 * @return boolean|object Can return wp_error, true/false
+	 */
+	public function mt_break_parent_link( $action, $id, $in_args = array() ) {
+
+		if ( empty( $in_args ) ) {
+			// Get data from the POST request.
+			$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
+		} else {
+			$args = $in_args;
+		}
+
+		// Remove the parent and the version.
+		$this->set_mt_parent( $id, '' );
+		$this->set_mt_version( $id, '' );
+
+		$result = array( 'refresh' => 'yes' );
+
+		return $result;
+	}
+
 	/**
 	 * Multitenant - set default version meta.
 	 *
-	 * @param string $action The action key to send to the bash script.
+	 * @param string $action The action key to send to the bash script (not used in this function).
 	 * @param int    $id the id of the app post being handled.
 	 * @param array  $in_args Alternative source of arguments passed via action hook or direct function call instead of pulling from $_POST.
 	 *
@@ -2293,19 +2325,10 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 		);
 
 		$fields[] = array(
-			'name'    => __( 'Change Site Type', 'wpcd' ),
-			'tab'     => $this->get_tab_slug(),
-			'type'    => 'heading',
-			'desc'    => '',
-			'columns' => 6,
-		);
-
-		$fields[] = array(
-			'name'    => __( 'Clear Site Type', 'wpcd' ),
-			'tab'     => $this->get_tab_slug(),
-			'type'    => 'heading',
-			'desc'    => '',
-			'columns' => 6,
+			'name' => __( 'Change Site Type', 'wpcd' ),
+			'tab'  => $this->get_tab_slug(),
+			'type' => 'heading',
+			'desc' => '',
 		);
 
 		$fields[] = array(
@@ -2330,11 +2353,69 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 		);
 
 		$fields[] = array(
+			'id'         => 'wpcd_app_mt_reset_site_type_action',
+			'name'       => __( 'Change Site Type', 'wpcd' ),
+			'tab'        => $this->get_tab_slug(),
+			'type'       => 'button',
+			'std'        => __( 'Update', 'wpcd' ),
+			'attributes' => array(
+				// the _action that will be called in ajax.
+				'data-wpcd-action'              => 'mt-reset-site-type',
+				// the id.
+				'data-wpcd-id'                  => $id,
+				// fields that contribute data for this action.
+				'data-wpcd-fields'              => wp_json_encode( array( '#wpcd_app_mt_new_site_type' ) ),
+				// make sure we give the user a confirmation prompt.
+				'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like to change / reset the site type?', 'wpcd' ),
+			),
+			'class'      => 'wpcd_app_action',
+			'save_field' => false,
+			'columns'    => 6,
+		);
+
+		$fields[] = array(
+			'name'    => __( 'Clear Site Type', 'wpcd' ),
+			'tab'     => $this->get_tab_slug(),
+			'type'    => 'heading',
+			'desc'    => __( ' The most common reason for using this is to remove the "mt_template_clone" or "mt_version_clone" type designator.', 'wpcd' ),
+			'columns' => 6,
+		);
+
+		// Get some data needed to show in the description of the break parent link action.
+		// MT Parent Domain & ID.
+		$mt_parent_id     = WPCD_WORDPRESS_APP()->get_mt_parent( $id );
+		$mt_parent_domain = WPCD_WORDPRESS_APP()->get_domain_name( $mt_parent_id );
+
+		// What server is the parent domain on?
+		$mt_parent_domain_server = '';
+		if ( ! empty( $mt_parent_id ) ) {
+			$mt_parent_domain_server = WPCD_WORDPRESS_APP()->get_server_name( $mt_parent_id );
+		}
+
+		// Description for break parent link header.
+		$desc = __( 'If this site is associated with a parent - e.g.: when a template or version is cloned - you can break the link to the parent so that the site can start its own chain.', 'wpcd' );
+		if ( ! empty( $mt_parent_domain ) && ! empty( $mt_parent_domain_server ) ) {
+			$desc .= '<br />';
+			/* Translators: %1$s is the name of the parent domain if site is an MT version site; %2$s is the server it resides on. */
+			$desc .= sprintf( __( 'The parent for this site is %1$s on server %2$s', 'wpcd' ), '<b>' . $mt_parent_domain . '</b>', '<b>' . $mt_parent_domain_server . '</b>' );
+		} else {
+			$desc .= '<br />';
+			$desc .= __( 'There is no parent associated with this site. Using this function will clean up any stray parent-related metas that might exist.', 'wpcd' );
+		}
+		$fields[] = array(
+			'name'    => __( 'Break Parent Link', 'wpcd' ),
+			'tab'     => $this->get_tab_slug(),
+			'type'    => 'heading',
+			'desc'    => $desc,
+			'columns' => 6,
+		);
+
+		$fields[] = array(
 			'id'         => 'wpcd_app_mt_clear_site_type_action',
 			'name'       => '',
 			'tab'        => $this->get_tab_slug(),
 			'type'       => 'button',
-			'desc'       => __( ' The most common reason for using this is to remove the "mt_template_clone" type designator.', 'wpcd' ),
+			'desc'       => '',
 			'std'        => __( 'Clear Site Type', 'wpcd' ),
 			'attributes' => array(
 				// the _action that will be called in ajax.
@@ -2350,20 +2431,18 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 		);
 
 		$fields[] = array(
-			'id'         => 'wpcd_app_mt_reset_site_type_action',
+			'id'         => 'wpcd_app_mt_break_parent_link_action',
 			'name'       => '',
 			'tab'        => $this->get_tab_slug(),
 			'type'       => 'button',
-			'std'        => __( 'Reset Site Type', 'wpcd' ),
+			'std'        => __( 'Break Link', 'wpcd' ),
 			'attributes' => array(
 				// the _action that will be called in ajax.
-				'data-wpcd-action'              => 'mt-reset-site-type',
+				'data-wpcd-action'              => 'mt-break-parent-link',
 				// the id.
 				'data-wpcd-id'                  => $id,
-				// fields that contribute data for this action.
-				'data-wpcd-fields'              => wp_json_encode( array( '#wpcd_app_mt_new_site_type' ) ),
 				// make sure we give the user a confirmation prompt.
-				'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like to change / reset the site type?', 'wpcd' ),
+				'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like to break the link to the parent?  This cannot be reversed!', 'wpcd' ),
 			),
 			'class'      => 'wpcd_app_action',
 			'save_field' => false,

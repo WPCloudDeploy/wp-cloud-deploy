@@ -2547,27 +2547,6 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
-	 * Returns the wpcd product name set for the template site.
-	 *
-	 * @param int $id The post id of the site we're working with.
-	 *
-	 * @return string
-	 */
-	public function get_product_name( $id ) {
-		return get_post_meta( $id, 'wpcd_app_mt_template_product_name', true );
-	}
-
-	/**
-	 * Sets the wpcd product name for the template site.
-	 *
-	 * @param int    $id The post id of the site we're working with.
-	 * @param string $name The new product name to set for the site.
-	 */
-	public function set_product_name( $id, $name ) {
-		update_post_meta( $id, 'wpcd_app_mt_template_product_name', $name );
-	}
-
-	/**
 	 * When upgrading tenants we set a batch id for the group of tenants
 	 * selected for an upgrade.  This function updates the template
 	 * site with that batch.

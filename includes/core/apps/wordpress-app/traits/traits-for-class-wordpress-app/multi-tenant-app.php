@@ -50,6 +50,27 @@ trait wpcd_wpapp_multi_tenant_app {
 	}
 
 	/**
+	 * Returns the wpcd product name set for a template site.
+	 *
+	 * @param int $id The post id of the site we're working with.
+	 *
+	 * @return string
+	 */
+	public function get_product_name( $id ) {
+		return get_post_meta( $id, 'wpcd_app_mt_template_product_name', true );
+	}
+
+	/**
+	 * Sets the wpcd product name for a template site.
+	 *
+	 * @param int    $id The post id of the site we're working with.
+	 * @param string $name The new product name to set for the site.
+	 */
+	public function set_product_name( $id, $name ) {
+		update_post_meta( $id, 'wpcd_app_mt_template_product_name', $name );
+	}
+
+	/**
 	 * Gets the default version (production version) for a template site.
 	 *
 	 * @since 5.3
@@ -224,30 +245,41 @@ trait wpcd_wpapp_multi_tenant_app {
 		$is_template = $this->wpcd_is_template_site( $id );
 		$this->wpcd_set_template_flag( $target_id, $is_template );
 
-		// MT Version.
-		$mt_version = $this->get_mt_version( $id );
-		if ( ! empty( $mt_version ) ) {
-			$this->set_mt_version( $target_id, $mt_version );
-		}
+		if ( true === wpcd_is_mt_enabled() ) {
+			// MT Version.
+			$mt_version = $this->get_mt_version( $id );
+			if ( ! empty( $mt_version ) ) {
+				$this->set_mt_version( $target_id, $mt_version );
+			}
 
-		// MT Site type.
-		$mt_site_type = $this->get_mt_site_type( $id );
-		if ( 'mt_tenant' === $mt_site_type ) {
-			$this->set_mt_site_type( $target_id, $mt_site_type );
-		}
+			// MT Site type.
+			$mt_site_type = $this->get_mt_site_type( $id );
+			if ( 'mt_tenant' === $mt_site_type ) {
+				$this->set_mt_site_type( $target_id, $mt_site_type );
+			}
 
-		if ( 'mt_version' === $mt_site_type ) {
-			$this->set_mt_site_type( $target_id, 'mt_version_clone' );
-		}
+			if ( 'mt_version' === $mt_site_type ) {
+				$this->set_mt_site_type( $target_id, 'mt_version_clone' );
+			}
 
-		if ( 'template' === $mt_site_type ) {
-			$this->set_mt_site_type( $target_id, 'mt_template_clone' );
-		}
+			if ( 'template' === $mt_site_type ) {
+				$this->set_mt_site_type( $target_id, 'mt_template_clone' );
+			}
 
-		// MT Parent id.
-		$mt_parent_id = $this->get_mt_parent( $id );
-		if ( ! empty( $mt_parent_id ) ) {
-			$this->set_mt_parent( $target_id, $mt_parent_id );
+			// MT Parent id.
+			$mt_parent_id = $this->get_mt_parent( $id );
+			if ( ! empty( $mt_parent_id ) ) {
+				$this->set_mt_parent( $target_id, $mt_parent_id );
+			} else {
+				// The site being cloned doesn't have a parent id.
+				// So maybe our new site's parent is the original site.
+				// This applies if the original site is a template site or a version site.
+				// If the original site is a mt_template_clone or mt_version_clone site then
+				// we should already have a parent id and this section would not be invoked.
+				if ( in_array( $mt_site_type, array( 'mt_version', 'template' ), true ) ) {
+					$this->set_mt_parent( $target_id, $id );
+				}
+			}
 		}
 	}
 

@@ -390,6 +390,8 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 			'mt-upgrade-all-tenants',
 			'mt-upgrade-tenants-selected-versions',
 			'mt-upgrade-tenants-selected-app-group',
+			'mt-clear-site-type',
+			'mt-reset-site-type',
 		);
 		if ( in_array( $action, $valid_actions, true ) ) {
 			if ( ! $this->get_tab_security( $id ) ) {
@@ -446,6 +448,10 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 				case 'mt-upgrade-tenants-selected-versions':
 				case 'mt-upgrade-tenants-selected-app-group':
 					$result = $this->mt_upgrade_tenants( $action, $id );
+					break;
+				case 'mt-clear-site-type':
+				case 'mt-reset-site-type':
+					$result = $this->mt_clear_or_reset_site_type( $action, $id );
 					break;
 			}
 		}
@@ -1034,6 +1040,50 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
+	 * Multitenant - clear or reset site type.
+	 *
+	 * @param string $action The action key to send to the bash script.
+	 * @param int    $id the id of the app post being handled.
+	 * @param array  $in_args Alternative source of arguments passed via action hook or direct function call instead of pulling from $_POST.
+	 *
+	 * @return boolean|object Can return wp_error, true/false
+	 */
+	public function mt_clear_or_reset_site_type( $action, $id, $in_args = array() ) {
+
+		if ( empty( $in_args ) ) {
+			// Get data from the POST request.
+			$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
+		} else {
+			$args = $in_args;
+		}
+
+		// If a site type is provided, make sure it is a valid one.
+		if ( ! empty( $args['mt_new_site_type'] ) ) {
+			if ( ! in_array( $args['mt_new_site_type'], array( 'mt_tenant,', 'mt_version', 'mt_version_clone', 'mt_template_clone' ), true ) ) {
+				$message = __( 'Invalid new site type..', 'wpcd' );
+				return new \WP_Error( $message );
+			}
+		}
+
+		// Take unique steps for certain actions.
+		switch ( $action ) {
+			case 'mt-reset-site-type':
+				// Nothing needed here.
+				break;
+			case 'mt-clear-site-type':
+				$args['mt_new_site_type'] = '';
+				break;
+		}
+
+		// Set the site type.
+		$this->set_mt_site_type( $id, $args['mt_new_site_type'] );
+
+		$result = array( 'refresh' => 'yes' );
+
+		return $result;
+	}
+
+	/**
 	 * Multitenant - set default version meta.
 	 *
 	 * @param string $action The action key to send to the bash script.
@@ -1371,7 +1421,7 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 		if ( 'template' === $site_type ) {
 			if ( true !== $this->get_git_status( $id ) ) {
 
-				$desc = __( 'Git is not enabled for this template - multi-tenant operations cannot be performed on this site.', 'wpcd' );
+				$desc = __( 'Git is not enabled for this template - multi-tenant operations cannot be performed on this site. However, you can still use certain clean-up tools below.', 'wpcd' );
 
 				$fields[] = array(
 					'name' => __( 'Multi-tenant', 'wpcd' ),
@@ -1379,6 +1429,9 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 					'type' => 'heading',
 					'desc' => $desc,
 				);
+
+				$tools_fields = $this->get_tools_fields( $id );
+				$fields       = array_merge( $fields, $tools_fields );
 
 				return $fields;
 
@@ -1416,8 +1469,14 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 
 		// Fields shown to other types (for now).
 		if ( in_array( $site_type, array( 'mt_version', 'mt_version_clone', 'mt_template_clone' ), true ) ) {
-			$selected_site_type_fields = $this->get_selected_site_type_fields( $id );
-			$fields                    = array_merge( $fields, $selected_site_type_fields );
+			// $selected_site_type_fields = $this->get_selected_site_type_fields( $id );
+			// $fields                    = array_merge( $fields, $selected_site_type_fields );
+		}
+
+		// Other fields.
+		if ( in_array( $site_type, array( 'mt_tenant', 'mt_version', 'mt_version_clone', 'mt_template_clone' ), true ) ) {
+			$tools_fields = $this->get_tools_fields( $id );
+			$fields       = array_merge( $fields, $tools_fields );
 		}
 
 		return $fields;
@@ -2210,6 +2269,112 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 
 	}
 
+		/**
+		 * Gets the fields to be shown in the 'tools' section of the tab.
+		 *
+		 * @param int $id id.
+		 *
+		 * @return array Array of actions, complying with the structure necessary by metabox.io fields.
+		 */
+	public function get_tools_fields( $id ) {
+
+		// Header description.
+		$desc = __( 'Many of the tools below have ramifications and side-effects. Please check with our support team if you are unsure about using any of them.', 'wpcd' );
+
+		// Get some existing defaults.
+		$current_default_version = $this->get_mt_default_version( $id );
+		$current_site_type       = $this->get_mt_site_type( $id );
+
+		$fields[] = array(
+			'name' => __( 'Tools', 'wpcd' ),
+			'tab'  => $this->get_tab_slug(),
+			'type' => 'heading',
+			'desc' => $desc,
+		);
+
+		$fields[] = array(
+			'name'    => __( 'Change Site Type', 'wpcd' ),
+			'tab'     => $this->get_tab_slug(),
+			'type'    => 'heading',
+			'desc'    => '',
+			'columns' => 6,
+		);
+
+		$fields[] = array(
+			'name'    => __( 'Clear Site Type', 'wpcd' ),
+			'tab'     => $this->get_tab_slug(),
+			'type'    => 'heading',
+			'desc'    => '',
+			'columns' => 6,
+		);
+
+		$fields[] = array(
+			'name'       => __( 'Select New Site Type', 'wpcd' ),
+			'id'         => 'wpcd_app_mt_new_site_type',
+			'tab'        => $this->get_tab_slug(),
+			'type'       => 'select',
+			'options'    => array(
+				''                  => '',
+				'mt_tenant'         => 'mt_tenant',
+				'mt_version'        => 'mt_version',
+				'mt_template_clone' => 'mt_template_clone',
+				'mt_version_clone'  => 'mt_version_clone',
+			),
+			'save_field' => false,
+			'attributes' => array(
+				// the key of the field (the key goes in the request).
+				'data-wpcd-name' => 'mt_new_site_type',
+			),
+			'std'        => $current_site_type,
+			'columns'    => 6,
+		);
+
+		$fields[] = array(
+			'id'         => 'wpcd_app_mt_clear_site_type_action',
+			'name'       => '',
+			'tab'        => $this->get_tab_slug(),
+			'type'       => 'button',
+			'desc'       => __( ' The most common reason for using this is to remove the "mt_template_clone" type designator.', 'wpcd' ),
+			'std'        => __( 'Clear Site Type', 'wpcd' ),
+			'attributes' => array(
+				// the _action that will be called in ajax.
+				'data-wpcd-action'              => 'mt-clear-site-type',
+				// the id.
+				'data-wpcd-id'                  => $id,
+				// make sure we give the user a confirmation prompt.
+				'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like to clear the site type for this site?', 'wpcd' ),
+			),
+			'class'      => 'wpcd_app_action',
+			'save_field' => false,
+			'columns'    => 6,
+		);
+
+		$fields[] = array(
+			'id'         => 'wpcd_app_mt_reset_site_type_action',
+			'name'       => '',
+			'tab'        => $this->get_tab_slug(),
+			'type'       => 'button',
+			'std'        => __( 'Reset Site Type', 'wpcd' ),
+			'attributes' => array(
+				// the _action that will be called in ajax.
+				'data-wpcd-action'              => 'mt-reset-site-type',
+				// the id.
+				'data-wpcd-id'                  => $id,
+				// fields that contribute data for this action.
+				'data-wpcd-fields'              => wp_json_encode( array( '#wpcd_app_mt_new_site_type' ) ),
+				// make sure we give the user a confirmation prompt.
+				'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like to change / reset the site type?', 'wpcd' ),
+			),
+			'class'      => 'wpcd_app_action',
+			'save_field' => false,
+			'columns'    => 6,
+		);
+
+		return $fields;
+
+	}
+
+
 	/**
 	 * Gets the fields to be shown for certain site types.
 	 *  - mt_version
@@ -2235,14 +2400,14 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 			$desc = __( 'There are no options available for sites that are clones of a template.', 'wpcd' );
 		}
 
-			$fields[] = array(
-				'name' => __( 'Multi-tenant', 'wpcd' ),
-				'tab'  => $this->get_tab_slug(),
-				'type' => 'heading',
-				'desc' => $desc,
-			);
+		$fields[] = array(
+			'name' => __( 'Multi-tenant', 'wpcd' ),
+			'tab'  => $this->get_tab_slug(),
+			'type' => 'heading',
+			'desc' => $desc,
+		);
 
-			return $fields;
+		return $fields;
 	}
 
 	/**

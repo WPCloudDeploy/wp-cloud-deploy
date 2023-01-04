@@ -333,6 +333,8 @@ $smtp_user = user name for SMTP authentication
 $smtp_pass = password for SMTP authentication
 $domain = default domain where mail should come from
 $hostname1 = FQDN for the server. Please note that some SMTP servers will require this to be a working domain name (example: server1.myblog.com)
+$usetls = Use TLS. Warning! Turning this off has security implications!
+$usestarttls = Use STARTTLS. Warning! Turning this off has security implications!
 
 For $action = "test_email", the following variables are needed:
 $from = email address to send the test email from

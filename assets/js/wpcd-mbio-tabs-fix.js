@@ -24,6 +24,7 @@
                 var sub_tab = hash_parts[1];
 
                 if (!sub_tab) {
+                        tabs_switched = true;
                         return;
                 }
 

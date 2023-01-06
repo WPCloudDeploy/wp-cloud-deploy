@@ -39,7 +39,7 @@ trait wpcd_wpapp_multi_tenant_app {
 		} else {
 			update_post_meta( $app_id, 'wpcd_is_template_site', false );
 		}
-		
+
 		// If setting to false, we need to check the MT site type.
 		// If it's mt_template_clone, we have to remove that as well.
 		if ( false === $flag ) {
@@ -228,6 +228,108 @@ trait wpcd_wpapp_multi_tenant_app {
 		}
 
 		return $return;
+
+	}
+
+
+	/**
+	 * Return the mt version history meta value.
+	 *
+	 * Note: The functions to add and update the verions array
+	 * for a site is still in the multi-tenant tab file since
+	 * they are not used anywhere else - yet.
+	 *
+	 * @param int $id Post id of site we're working with.
+	 *
+	 * @return array.
+	 */
+	public function get_mt_version_history( $id ) {
+
+		// Get current tag list.
+		$versions = wpcd_maybe_unserialize( get_post_meta( $id, 'wpcd_app_mt_version_history', true ) );
+
+		// Make sure we have something in the logs array otherwise create a blank one.
+		if ( empty( $versions ) ) {
+			$versions = array();
+		}
+		if ( ! is_array( $versions ) ) {
+			$versions = array();
+		}
+
+		return $versions;
+
+	}
+
+	/**
+	 * Return a list of posts that are version sites with a
+	 * particular version.
+	 *
+	 * There should only be one site but we'll return everything
+	 * we get.
+	 *
+	 * @param string $mt_version The MT version we're inquiring about.
+	 *
+	 * @return array|object
+	 */
+	public function get_mt_version_sites_by_version( $mt_version ) {
+
+		$query_args = array(
+			'post_type'   => 'wpcd_app',
+			'post_status' => 'private',
+			'numberposts' => -1,
+			'meta_query'  => array(
+				'relation' => 'AND',
+				array(
+					'key'   => 'wpcd_app_mt_site_type',
+					'value' => 'mt_version',
+				),
+				array(
+					'key'   => 'wpcd_app_mt_version',
+					'value' => $mt_version,
+				),
+			),
+		);
+
+		return get_posts( $query_args );
+
+	}
+
+	/**
+	 * Return a list of posts that are version clone sites with a
+	 * particular version and located on a specified server.
+	 *
+	 * There should only be one site but we'll return everything
+	 * we get.
+	 *
+	 * @param string $mt_version The MT version we're inquiring about.
+	 * @param int    $server_id The server ID that the version_clone should reside on.
+	 *
+	 * @return array|object
+	 */
+	public function get_mt_version_clone_sites_by_version_and_server_id( $mt_version, $server_id ) {
+
+		$query_args = array(
+			'post_type'   => 'wpcd_app',
+			'post_status' => 'private',
+			'numberposts' => -1,
+			'meta_query'  => array(
+				'relation' => 'AND',
+				array(
+					'key'   => 'wpcd_app_mt_site_type',
+					'value' => 'mt_version_clone',
+				),
+				array(
+					'key'   => 'wpcd_app_mt_version',
+					'value' => $mt_version,
+				),
+				array(
+					'key'   => 'parent_post_id',
+					'value' => $server_id,
+				),
+			),
+		);
+
+		return get_posts( $query_args );
 
 	}
 

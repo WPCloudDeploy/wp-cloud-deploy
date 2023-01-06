@@ -2552,10 +2552,10 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 	 */
 	public function mt_add_destination_server_id_to_versions( $app_id, $destination_server_id ) {
 
-		// Get current tag list.
+		// Get current version (tag) list.
 		$tags = wpcd_maybe_unserialize( get_post_meta( $app_id, 'wpcd_app_mt_version_history', true ) );
 
-		// Make sure we have something in the tags array otherwise create a blank one.
+		// Make sure we have something in the versions (tags) array otherwise create a blank one.
 		if ( empty( $tags ) ) {
 			$tags = array();
 		}
@@ -2598,30 +2598,6 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 		}
 
 		return $return_versions;
-
-	}
-
-	/**
-	 * Return the mt version history meta value.
-	 *
-	 * @param int $id Post id of site we're working with.
-	 *
-	 * @return array.
-	 */
-	public function get_mt_version_history( $id ) {
-
-		// Get current tag list.
-		$versions = wpcd_maybe_unserialize( get_post_meta( $id, 'wpcd_app_mt_version_history', true ) );
-
-		// Make sure we have something in the logs array otherwise create a blank one.
-		if ( empty( $versions ) ) {
-			$versions = array();
-		}
-		if ( ! is_array( $versions ) ) {
-			$versions = array();
-		}
-
-		return $versions;
 
 	}
 

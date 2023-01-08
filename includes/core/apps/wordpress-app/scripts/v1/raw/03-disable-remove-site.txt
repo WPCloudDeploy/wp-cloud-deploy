@@ -166,7 +166,9 @@ QUERY
 		rm -rf /var/www/$domain
 	fi
 	
-
+	# Remove the meta file for this domain.
+	rm -rf /etc/wpcd/$domain
+	
 	sed -i "/$domain/d" /etc/wp-backup.conf 2> /dev/null
 	sed -i "/$domain/d" /etc/wp-backup.conf > /dev/null 2>&1
 	sed -i "/$domain/d" /usr/local/bin/wpcron.txt > /dev/null 2>&1

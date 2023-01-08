@@ -1,5 +1,17 @@
 #!/bin/bash
 
+######################################################
+# Script notes:
+#   If you are cloning a tenant site this script
+#   will not work in interactive mode because it 
+#   does not ask for the tenant data required
+#   to update the php openbasdirective for the
+#   new site.
+#   To clone such a site you must set the 
+#   environment variables.
+######################################################
+
+
 if [[ "$EUID" -ne 0 ]]
 then
 	echo "Sorry, you need to run this as root"
@@ -129,6 +141,13 @@ then
 elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 then
 	gf_add_ols_conf $new_domain
+fi
+
+# Setup openbasedir if the old site was a tenant
+# Note that interactively running this script will not ask for these vars.
+if [[ -n "$mt_template_domain" ]]
+then
+	gf_mt_set_openbasedir $mt_template_domain $mt_version $new_domain
 fi
 
 chown -R $new_user_name:www-data /var/www/$new_domain/html/
@@ -264,6 +283,13 @@ echo "Match User $new_user_name
 PasswordAuthentication yes
 AuthorizedKeysFile /var/www/$new_domain/.ssh_$new_user_name/authorized_keys" >> /etc/ssh/sshd_config
 systemctl restart sshd
+
+# Handle post-processing scripts.
+if [ -f "/var/www/$new_domain/html/wpcd_clone_site_after_clone_script.sh" ]; then 
+	echo "Post processing script detected for this site-clone operation..."
+	dos2unix /var/www/$new_domain/html/wpcd_clone_site_after_clone_script.sh
+	source /var/www/$new_domain/html/wpcd_clone_site_after_clone_script.sh
+fi
 
 echo
 echo "$old_domain has been cloned to $new_domain"

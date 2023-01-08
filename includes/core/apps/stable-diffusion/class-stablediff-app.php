@@ -672,7 +672,7 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 		$additional['callback_url'] = $this->get_command_url( $server_post_id, $command_name, 'progress-report' );
 
 		// Create task record here so we can get an id to add to the $additional array.
-		$task_id = WPCD_POSTS_PENDING_TASKS_LOG()->add_pending_task_log_entry( $server_post_id, 'stablediff_request_image', $server_post_id, array_merge( $instance, $additional ), 'not-ready', $server_post_id, __( 'Waiting To Request Stable Diffusion Images', 'wpcd' ) );
+		$task_id = WPCD_POSTS_PENDING_TASKS_LOG()->add_pending_task_log_entry( $server_post_id, 'stablediff_request_image', $server_post_id, array_merge( $instance, $additional ), 'not-ready', $server_post_id, __( 'Request Stable Diffusion Images', 'wpcd' ) );
 
 		// Add/update a meta on the server record that points to this latest request (needed for the ui, nothing operational).
 		update_post_meta( $server_post_id, 'wpcd_stablediff_last_requested_image_task_id', $task_id );

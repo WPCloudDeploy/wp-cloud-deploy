@@ -246,6 +246,8 @@ trait wpcd_wpapp_script_handlers {
 				$return =
 				( strpos( $result, 'Site Sync Completed Successfully' ) !== false )
 				||
+				( strpos( $result, 'MT Site Sync Completed Successfully' ) !== false )
+				||				
 				( strpos( $result, 'Site sync has been scheduled' ) !== false );
 				break;
 			case 'site_sync_unschedule.txt':
@@ -355,6 +357,8 @@ trait wpcd_wpapp_script_handlers {
 				||
 				( strpos( $result, 'Git pull tag succeeded' ) !== false )
 				||
+				( strpos( $result, 'Git fetch tag succeeded' ) !== false )
+				||
 				( strpos( $result, 'Version folder has been removed for' ) !== false )
 				||
 				( strpos( $result, 'All version folders have been removed for' ) !== false )
@@ -363,7 +367,17 @@ trait wpcd_wpapp_script_handlers {
 				||
 				( strpos( $result, 'Git credentials successfully set up for domain' ) !== false )
 				||
-				( strpos( $result, 'Git clone successful' ) !== false );
+				( strpos( $result, 'Git clone successful' ) !== false )
+				||
+				( strpos( $result, 'Multi-tenant: Fetch version succeeded' ) !== false )
+				||
+				( strpos( $result, 'Multi-tenant: Site conversion succeeded' ) !== false );
+				break;
+			case 'mt_clone_site.txt':
+				$return = ( strpos( $result, 'has been cloned' ) !== false && strpos( $result, 'Git tag and push succeeded' ) !== false && strpos( $result, 'Multi-tenant: Fetch version succeeded' ) !== false );
+				break;
+			case 'mt_convert_site.txt':
+				$return = ( strpos( $result, 'Multi-tenant: Site conversion succeeded for' ) !== false );
 				break;
 
 			/**************************************************************
@@ -1208,6 +1222,34 @@ trait wpcd_wpapp_script_handlers {
 					array(
 						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/58-git_control.txt',
 						'SCRIPT_NAME' => '58-git_control.sh',
+					),
+					$common_array,
+					$additional
+				);
+				break;
+			case 'mt_clone_site.txt':
+				$command_name = $additional['command'];
+				$new_array    = array_merge(
+					array(
+						'SCRIPT_URL'   => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/09-clone_site.txt',
+						'SCRIPT_NAME'  => '09-clone_site.sh',
+						'SCRIPT_URL2'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/58-git_control.txt',
+						'SCRIPT_NAME2' => '58-git_control.sh',
+						'SCRIPT_LOGS'  => "{$this->get_app_name()}_{$command_name}",
+						'CALLBACK_URL' => $this->get_command_url( $instance['app_id'], $command_name, 'completed' ),
+					),
+					$common_array,
+					$additional
+				);
+				break;
+			case 'mt_convert_site.txt':
+				$command_name = $additional['command'];
+				$new_array    = array_merge(
+					array(
+						'SCRIPT_URL'   => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/58-git_control.txt',
+						'SCRIPT_NAME'  => '58-git_control.sh',
+						'SCRIPT_LOGS'  => "{$this->get_app_name()}_{$command_name}",
+						'CALLBACK_URL' => $this->get_command_url( $instance['app_id'], $command_name, 'completed' ),
 					),
 					$common_array,
 					$additional

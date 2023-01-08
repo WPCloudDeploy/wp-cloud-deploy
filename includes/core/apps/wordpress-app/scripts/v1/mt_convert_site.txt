@@ -3,7 +3,7 @@ echo "done" && {
 	sudo -E wget --no-check-certificate -O ##SCRIPT_COMMON_NAME## ##SCRIPT_COMMON_URL## &&
 	sudo -E dos2unix ##SCRIPT_COMMON_NAME## &&	
     sudo -E wget --no-check-certificate -O ##SCRIPT_NAME## ##SCRIPT_URL## &&
-	export action=##ACTION## domain=##DOMAIN## old_domain=##DOMAIN## new_domain=##NEW_DOMAIN## mt_template_domain=##MT_TEMPLATE_DOMAIN## mt_version=##MT_VERSION## &&
+	export action=##ACTION## domain=##DOMAIN## git_tag=##GIT_TAG## mt_template_domain=##MT_TEMPLATE_DOMAIN## &&
     sudo -E dos2unix ##SCRIPT_NAME## &&
     sudo -E bash ##SCRIPT_NAME## >> ##SCRIPT_LOGS##.log.intermed 2>&1 &&
     sudo -E mv ##SCRIPT_LOGS##.log.intermed ##SCRIPT_LOGS##.log.done &&

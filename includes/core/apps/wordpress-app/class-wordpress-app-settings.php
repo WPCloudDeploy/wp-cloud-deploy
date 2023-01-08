@@ -414,6 +414,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			'file-manager'             => __( 'File Manager', 'wpcd' ),
 			'multisite'                => __( 'Multisite', 'wpcd' ),
 			'git-site-control'         => __( 'Git', 'wpcd' ),
+			'Multitenant-site'         => __( 'Multi-tenant', 'wpcd' ),
 		);
 
 		// Let developers hook into the array here.
@@ -571,6 +572,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			'serversync'         => __( 'Server Sync', 'wpcd' ),
 			'resize'             => __( 'Resize Server', 'wpcd' ),
 			'git-server-control' => __( 'Git', 'wpcd' ),
+			'Multitenant-server' => __( 'Multi-tenant', 'wpcd' ),
 		);
 
 		// Let developers hook into the array here.
@@ -964,6 +966,19 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 		$fields = array(
 			array(
 				'type' => 'heading',
+				'name' => __( 'Advanced Git Actions', 'wpcd' ),
+				'desc' => __( 'Enable Advanced Git Actions.  If you do not check this box only push-to-deploy options will be available.', 'wpcd' ),
+				'tab'  => 'wordpress-app-git',
+			),
+			array(
+				'id'      => 'wordpress_app_git_enable_advanced',
+				'type'    => 'checkbox',
+				'name'    => __( 'Enable', 'wpcd' ),
+				'tooltip' => __( 'Show advanced Git Actions such as sync, init etc.', 'wpcd' ),
+				'tab'     => 'wordpress-app-git',
+			),
+			array(
+				'type' => 'heading',
 				'name' => __( 'Global Git Defaults', 'wpcd' ),
 				'desc' => __( 'These defaults are used if no similiar values are defined on a server or site.', 'wpcd' ),
 				'tab'  => 'wordpress-app-git',
@@ -1054,7 +1069,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			),
 		);
 
-		return $fields;
+			return $fields;
 
 	}
 

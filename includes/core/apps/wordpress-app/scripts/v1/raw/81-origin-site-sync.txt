@@ -44,8 +44,9 @@ do
 	echo "   2) Sync a local site to a remote server"
 	echo "   3) Schedule a site Sync to remote server"
 	echo "   4) Unschedule a site Sync to remote server"
+	echo "   5) Sync a multi-tenant version to a remote server"
 	read -p "Action: " action
-	until [[ -z "$action" || "$action" =~ ^[1-4]$ ]]
+	until [[ -z "$action" || "$action" =~ ^[1-5]$ ]]
 	do
 		echo "$action: invalid selection."
 		read -p "Action: " action
@@ -106,7 +107,7 @@ ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destinati
 
 # sync files
 echo "Pushing files to target server. This could take a while..."
-sudo rsync -a --stats --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /var/www/$domain $sshuser@$destination_ip:/var/www < /dev/null
+sudo rsync -aLK --stats --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /var/www/$domain $sshuser@$destination_ip:/var/www < /dev/null
 sudo ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo sed -i '\''s/$mysql_db/$mysql_new_db/g'\'' /var/www/$domain/html/wp-config.php"
 sudo ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo sed -i '\''s/$mysql_host/localhost/g'\'' /var/www/$domain/html/wp-config.php"
 sudo rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /etc/nginx/sites-enabled/*$domain $sshuser@$destination_ip:/etc/nginx/sites-enabled > /dev/null 2>&1 < /dev/null
@@ -372,4 +373,74 @@ then
 		exit
 	fi
 	echo "Schedule Site Sync For This Site Disabled"
+fi
+
+
+if [[ $action == "site-sync-mt-version" || $action == "5" ]]
+then
+	if [ -z $sshuser ]
+	then
+		read -p "SSH user to login on destination server: " sshuser
+	fi
+
+	localuser=`sh -c 'echo ${SUDO_USER:-$USER}'`
+	if ! ssh -o ConnectTimeout=30 -o StrictHostKeyChecking=no -o PasswordAuthentication=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "echo" &>/dev/null
+	then
+		echo "Authentication must be set up first for $destination_ip"
+		exit
+	fi
+
+	remote_webserver_type=$(ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "if sudo test -f /usr/local/lsws/bin/lshttpd; then echo "ols"; else echo "nginx"; fi")
+
+	if ! [[ $g_webserver_type =~ $remote_webserver_type ]]
+	then
+		echo "Local Webserver type is $g_webserver_type But Remote Webserver is other than $g_webserver_type . 
+		Both server webserver type should be same"
+		exit 1
+	fi
+
+	# if host was connectable, ask user what site does he want to copy
+	while [[ -z $mt_template_domain ]]
+	do
+		echo
+		ls /var/wpcd-mt-versions | grep -v html | nl
+		read -p "Select versioned template domain on this server: " site_number
+		number_of_sites=$(ls /var/wpcd-mt-versions | grep -v html | wc -l)
+		until [[ "$site_number" =~ ^[0-9]+$ && "$site_number" -le "$number_of_sites" ]]
+		do
+				echo "$site_number: invalid selection."
+				read -p "Select site: " site_number
+		done
+
+		mt_template_domain=$(ls /var/wpcd-mt-versions | grep -v html | sed -n "$site_number"p)
+	done	
+
+	# Figure out the MT version folder - we'll be sending all versions.
+	# Later, if we want to send just one version , we'll need to request 
+	# the git_tag and check for the existence of  
+	# "/var/wpcd-mt-versions/$mt_template_domain/versions/$git_tag" instead.
+	mt_version_folder="/var/wpcd-mt-versions/$mt_template_domain/"	
+
+	# error checking
+	if [[ ! -d $mt_version_folder ]]
+	then
+		echo "$mt_version_folder is not present. Aborting!"
+		exit
+	fi
+
+	# remove leftover. if we reached this point, the SSH authentication is now configured
+	sudo rm -f /var/www/html/97317319160494330146381820240308.pub /usr/local/lsws/Example/html/97317319160494330146381820240308.pub
+
+	# send files.
+	echo "Pushing files to target server. This could take a while..."
+	sudo rsync -aLK --stats --rsync-path '''sudo -i mkdir -p /var/wpcd-mt-versions/$mt_template_domain && rsync''' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" $mt_version_folder $sshuser@$destination_ip:/var/wpcd-mt-versions/$mt_template_domain < /dev/null
+	if [ $? -ne 0 ]
+	then
+		echo
+		echo "MT site sync did not complete successfully."
+	else
+		echo
+		echo "MT Site Sync Completed Successfully."
+	fi
+
 fi

@@ -1675,10 +1675,45 @@ function wpcd_generate_uuid() {
 }
 
 /**
+ * Return whether our woocommerce module is enabled or not.
+ *
+ * @since 5.3
+ *
+ * @return bool
+ */
+function wpcd_is_wc_module_enabled() {
+	if ( class_exists( 'WPCD_WooCommerce_Init' ) ) {
+		return true;
+	} else {
+		return false;
+	}
+
+}
+
+/**
  * Return whether GIT is enabled for WPCD.
+ *
+ * @since 5.3
+ *
+ * @return bool
  */
 function wpcd_is_git_enabled() {
 	if ( class_exists( 'WPCD_GitControl_Init' ) ) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
+/**
+ * Return whether Multi-Tenant is enabled for WPCD.
+ *
+ * @since 5.3
+ *
+ * @return bool
+ */
+function wpcd_is_mt_enabled() {
+	if ( class_exists( 'WPCD_Multitenant_Init' ) ) {
 		return true;
 	} else {
 		return false;

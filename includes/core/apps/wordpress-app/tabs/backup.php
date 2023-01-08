@@ -197,7 +197,7 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 		}
 
 		/* Now verify that the user can perform actions on this screen, assuming that they can view the server */
-		$valid_actions = array( 'backup-run-manual', 'backup-run-schedule', 'restore-from-backup', 'restore-from-backup-webserver-config-only', 'restore-from-backup-wpconfig-only', 'delete-all-local-site-backups', 'prune-local-site-backups' );
+		$valid_actions = array( 'backup-run-manual', 'backup-run-schedule', 'restore-from-backup', 'restore-from-backup-webserver-config-only', 'restore-from-backup-wpconfig-only', 'delete-all-local-site-backups', 'prune-local-site-backups', 'refresh-backup-list' );
 		if ( in_array( $action, $valid_actions, true ) ) {
 			if ( ! $this->get_tab_security( $id ) ) {
 				return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
@@ -229,7 +229,7 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 			}
 			// Most actions need to refresh the page so that new data can be loaded or so that the data entered into data entry fields cleared out.
 			// But we don't want to force a refresh after the manual backup or restore.  Otherwise that will clear the screen.
-			if ( ! in_array( $action, array( 'backup-run-manual', 'restore-from-backup' ), true ) && ! is_wp_error( $result ) ) {
+			if ( in_array( $action, $valid_actions ) && ! in_array( $action, array( 'backup-run-manual', 'restore-from-backup', 'prune-local-site-backups' ), true ) && ! is_wp_error( $result ) ) {
 				$result = array( 'refresh' => 'yes' );
 			}
 		}

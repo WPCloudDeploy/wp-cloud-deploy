@@ -1713,7 +1713,11 @@ function wpcd_is_git_enabled() {
  * @return bool
  */
 function wpcd_is_mt_enabled() {
-	return true;
+	if ( class_exists( 'WPCD_Multitenant_Init' ) ) {
+		return true;
+	} else {
+		return false;
+	}
 }
 
 /*

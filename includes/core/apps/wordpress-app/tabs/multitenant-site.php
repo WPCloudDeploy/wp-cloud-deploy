@@ -1330,8 +1330,8 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 	 *
 	 * Action Hook: wpcd_{$this->get_app_name()}_do_mt_apply_version | wpcd_wordpress-app_do_mt_apply_version
 	 *
-	 * @param string $id ID of app where domain change has to take place.
-	 * @param array  $args array arguments that the change domain function needs.
+	 * @param string $id ID of app where apply version has to take occur.
+	 * @param array  $args array arguments that the apply function needs.
 	 */
 	public function do_mt_apply_version( $id, $args ) {
 		$this->mt_convert_site( 'mt-convert-site', $id, $args );
@@ -1348,7 +1348,7 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 	 * @param int    $id     Post ID of the site.
 	 * @param int    $action String indicating the action name.
 	 * @param string $message Failure message if any.
-	 * @param array  $args       All args that were passed in to the mt-convert-site action.  Sometimes this can be an empty array.
+	 * @param array  $args    All args that were passed in to the mt-convert-site action.  Sometimes this can be an empty array.
 	 */
 	public function handle_mt_site_conversion_failed_early( $id, $action, $message, $args ) {
 

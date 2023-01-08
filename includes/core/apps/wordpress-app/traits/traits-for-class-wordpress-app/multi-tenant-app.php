@@ -261,7 +261,7 @@ trait wpcd_wpapp_multi_tenant_app {
 	}
 
 	/**
-	 * Return a list of posts that are version sites with a
+	 * Return a list of app posts that are mt version sites with a
 	 * particular version.
 	 *
 	 * There should only be one site but we'll return everything
@@ -295,7 +295,7 @@ trait wpcd_wpapp_multi_tenant_app {
 	}
 
 	/**
-	 * Return a list of posts that are version clone sites with a
+	 * Return a list of app posts that are mt version clone sites with a
 	 * particular version and located on a specified server.
 	 *
 	 * There should only be one site but we'll return everything

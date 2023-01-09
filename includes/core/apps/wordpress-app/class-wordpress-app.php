@@ -2560,9 +2560,9 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				}
 				break;
 
-			/* Delete server records */
+			/* Delete server record only. */
 			case 'delete-server-record':
-				/* Which server are we installing on?*/
+				/* Which server are we deleting? */
 				$delete_server_id      = sanitize_text_field( wp_unslash( $_POST['server_id'] ) );
 				$deleted_server_record = wp_delete_post( $delete_server_id );
 
@@ -2574,11 +2574,12 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 					);
 				} else {
 					$result = array(
-						'status' => __( 'Failed! something went wrong during delete server record', 'wpcd' ),
+						'status' => __( 'Failed! We encountered an error while attempting to delete the server record.', 'wpcd' ),
 						'done'   => false,
 					);
 				}
 				break;
+
 			/* Every other request is sent here - which is most of them  */
 			default:
 				$additional = array();

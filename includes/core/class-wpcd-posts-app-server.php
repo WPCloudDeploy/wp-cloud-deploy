@@ -213,9 +213,11 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 			apply_filters(
 				'wpcd_server_script_args',
 				array(
-					'nonce'                => wp_create_nonce( 'wpcd-server' ),
-					'i10n'                 => $this->get_js_terms(),
-					'bulk_actions_confirm' => __( 'Are you sure you want to perform this bulk action?', 'wpcd' ),
+					'nonce'                       => wp_create_nonce( 'wpcd-server' ),
+					'i10n'                        => $this->get_js_terms(),
+					'_action'                     => 'delete-server-record',
+					'bulk_actions_confirm'        => __( 'Are you sure you want to perform this bulk action?', 'wpcd' ),
+					'delete_server_record_prompt' => __( 'Are you sure you would like to delete this server record? This action is NOT reversible!', 'wpcd' ),
 				),
 				'wpcd-wpapp-server-admin'
 			)

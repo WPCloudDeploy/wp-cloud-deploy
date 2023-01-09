@@ -9,6 +9,7 @@
         'use strict';
 
         var processing = false;
+        var tabs_switched = false;
 
         // Get main and sub tab ids from url hash and auto select once page loaded
         function switchTab() {
@@ -23,6 +24,7 @@
                 var sub_tab = hash_parts[1];
 
                 if (!sub_tab) {
+                        tabs_switched = true;
                         return;
                 }
 
@@ -35,17 +37,21 @@
                 $('.rwmb-tab-nav li[data-panel="' + sub_tab + '"] a').trigger('click');
 
                 processing = false;
+                tabs_switched = true;
         }
 
         $(function () {
 
-                setTimeout(switchTab, 200);
-
+                setTimeout(switchTab, 500);
+                
                 // Append sub tab id in url hash, so we can auto select after page reload
                 $('.rwmb-tab-nav').on('click', 'a', function () {
 
+                        if( !tabs_switched ) {
+                                return;
+                        }
+                        
                         var panel = $(this).closest('li').data('panel');
-
                         var hash_parts = window.location.hash.split('~~');
                         var main_tab = hash_parts[0];
 

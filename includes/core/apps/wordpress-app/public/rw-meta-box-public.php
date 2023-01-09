@@ -3,18 +3,10 @@
 /**
  * Custom metabox class for public view
  */
+
+require_once wpcd_path . 'includes/core/apps/wordpress-app/public/traits/meta-box-public.php';
 class RW_Meta_Box_Public extends RW_Meta_Box {
 
-	/**
-	 * Enqueue some scripts.
-	 */
-	protected function global_hooks() {
-		// Enqueue common styles and scripts.
-		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue' ) );
-
-		// Add additional actions for fields.
-		foreach ( $this->fields as $field ) {
-			RWMB_Field::call( $field, 'add_actions' );
-		}
-	}
+	use Meta_Box_Public;
+	
 }

@@ -2562,10 +2562,31 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 			/* Delete server records */
 			case 'delete-server-record':
-				/* Which server are we installing on?*/
-				$delete_server_id      = sanitize_text_field( wp_unslash( $_POST['server_id'] ) );
+				// No permissions check if we're running tasks via cron.
+				// We're not doing anything to delete servers via cron right now.
+				// But we might later so adding this check now since we have it in the wpcd_app_delete_post() function.
+				if ( true === wp_doing_cron() || true === wpcd_is_doing_cron() ) {
+					$result = array(
+						'status' => __( 'You can not delete server right now because background process is running.', 'wpcd' ),
+						'done'   => false,
+					);
+					break;
+				}
+				// Which server are we installing on?.
+				$delete_server_id = sanitize_text_field( wp_unslash( $_POST['server_id'] ) );
+				$user_id          = (int) get_current_user_id();
+				$post_author      = (int) get_post( $id )->post_author;
+				// We're not doing anything if current user dont't have permission for delete server.
+				// We're not doing anything if current user id not match with created server author id.
+				if ( ! wpcd_user_can( $user_id, 'delete_server', $delete_server_id ) && $post_author !== $user_id ) {
+					$result = array(
+						'status' => __( "Sorry! you don't have permission for delete server.", 'wpcd' ),
+						'done'   => false,
+					);
+					break;
+				}
+				// Delete server process.
 				$deleted_server_record = wp_delete_post( $delete_server_id );
-
 				if ( $deleted_server_record ) {
 					wpcd_delete_child_posts( 'wpcd_app', $delete_server_id );
 					$result = array(

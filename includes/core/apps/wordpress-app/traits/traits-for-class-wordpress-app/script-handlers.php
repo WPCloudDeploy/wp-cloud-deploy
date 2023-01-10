@@ -230,7 +230,9 @@ trait wpcd_wpapp_script_handlers {
 				$return =
 				( strpos( $result, 'Wildcard HTTPS has been configured for' ) !== false )
 				||
-				( strpos( $result, 'HTTPS disabled for' ) !== false );
+				( strpos( $result, 'HTTPS disabled for' ) !== false )
+				||
+				( strpos( $result, 'SSL is already disabled for' ) !== false );
 				break;
 			case 'site_sync_origin_setup.txt':
 				$return =

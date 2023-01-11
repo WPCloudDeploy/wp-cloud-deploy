@@ -2560,12 +2560,39 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				}
 				break;
 
-			/* Delete server record only. */
+			/* Delete server records */
 			case 'delete-server-record':
-				/* Which server are we deleting? */
-				$delete_server_id      = sanitize_text_field( wp_unslash( $_POST['server_id'] ) );
+				// If for some reason this is called via CRON, do nothing and return.
+				// We're not doing anything to delete servers via cron right now.
+				// But we might later so adding this check now since we have it in the wpcd_app_delete_post() function.
+				if ( true === wp_doing_cron() || true === wpcd_is_doing_cron() ) {
+					$result = array(
+						'status' => __( 'You cannot delete a server record inside of a CRON process.', 'wpcd' ),
+						'done'   => false,
+					);
+					break;
+				}
+				// Which server record are we deleting?.
+				$delete_server_id = sanitize_text_field( wp_unslash( $_POST['server_id'] ) );
+				$user_id          = (int) get_current_user_id();
+				$post_author      = (int) get_post( $id )->post_author;
+				/**
+				 * We're not deleting anything if the current user does not have permission to delete the server record
+				 * or if the current user id does not match the server author id.
+				 * Note: Changes to this permission logic might also need to be done in function
+				 * wpcd_app_server_delete_post() located in file class-wpcd-posts-app-server.php.
+				 */
+				if ( ! wpcd_is_admin() ) {
+					if ( ! wpcd_user_can( $user_id, 'delete_server', $delete_server_id ) && $post_author !== $user_id ) {
+						$result = array(
+							'status' => __( "Sorry! you don't have permission to delete a server record.", 'wpcd' ),
+							'done'   => false,
+						);
+						break;
+					}
+				}
+				// If we got here, ok to delete the server record and related child posts.
 				$deleted_server_record = wp_delete_post( $delete_server_id );
-
 				if ( $deleted_server_record ) {
 					wpcd_delete_child_posts( 'wpcd_app', $delete_server_id );
 					$result = array(
@@ -2574,12 +2601,11 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 					);
 				} else {
 					$result = array(
-						'status' => __( 'Failed! We encountered an error while attempting to delete the server record.', 'wpcd' ),
+						'status' => __( 'Failed! something went wrong during delete server record', 'wpcd' ),
 						'done'   => false,
 					);
 				}
 				break;
-
 			/* Every other request is sent here - which is most of them  */
 			default:
 				$additional = array();

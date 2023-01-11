@@ -1705,6 +1705,9 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 
 	/**
 	 * Restricts user to delete a post if he/she doesn't have delete_server permission
+	 * Note: Changes to this permission logic might also need to be done in function
+	 * ajax_server() located in file class-wordpres-app.php in the 'delete-server-record'
+	 * section of the SWITCH-CASE control structure.
 	 *
 	 * @param int  $post_id post id.
 	 * @param bool $return true=return a value and break, false=do not return a value.

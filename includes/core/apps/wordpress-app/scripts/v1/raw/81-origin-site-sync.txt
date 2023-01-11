@@ -172,6 +172,11 @@ ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destinati
 ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo rm -f ~/passwd.prod-$domain ~/passwd.new-$domain ~/shadow.prod-$domain ~/shadow.new-$domain ~/dbimport-$domain.sql ~/database_backup-$domain.sql ~/sshdcfg-$domain" < /dev/null
 sudo rm -f ~/passwd.prod-$domain ~/shadow.prod-$domain ~/dbimport-$domain.sql ~/database_backup-$domain.sql ~/sshdcfg-$domain
 
+if [ -e "/var/wpcd-mt-versions/$domain" ]
+then
+	ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo mkdir -p /var/wpcd-mt-versions/$domain" < /dev/null
+	rsync -aLK --stats --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /var/wpcd-mt-versions/$domain $sshuser@$destination_ip:/var/wpcd-mt-versions/$domain < /dev/null
+fi
 echo "Site Sync Completed Successfully."' |sudo tee /usr/local/bin/sync-site.sh > /dev/null
 
 	sudo chmod +x /usr/local/bin/sync-site.sh
@@ -398,7 +403,6 @@ then
 		Both server webserver type should be same"
 		exit 1
 	fi
-
 	# if host was connectable, ask user what site does he want to copy
 	while [[ -z $mt_template_domain ]]
 	do
@@ -433,7 +437,8 @@ then
 
 	# send files.
 	echo "Pushing files to target server. This could take a while..."
-	sudo rsync -aLK --stats --rsync-path '''sudo -i mkdir -p /var/wpcd-mt-versions/$mt_template_domain && rsync''' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" $mt_version_folder $sshuser@$destination_ip:/var/wpcd-mt-versions/$mt_template_domain < /dev/null
+	ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo mkdir -p /var/wpcd-mt-versions/$mt_template_domain" < /dev/null
+	rsync -aLK --stats --rsync-path 'sudo -i rsync' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" $mt_version_folder $sshuser@$destination_ip:/var/wpcd-mt-versions/$mt_template_domain < /dev/null
 	if [ $? -ne 0 ]
 	then
 		echo

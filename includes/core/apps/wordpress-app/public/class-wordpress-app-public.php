@@ -71,7 +71,7 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 	 */
 	private function public_hooks() {
 		
-		remove_action( 'init', 'mb_custom_table_load', 5 );
+		// remove_action( 'init', 'mb_custom_table_load', 5 );
 		add_action( 'init', array( $this, 'mb_custom_table_load' ), 5 );
 
 		// Make sure WordPress loads up our css and js scripts on frontend.

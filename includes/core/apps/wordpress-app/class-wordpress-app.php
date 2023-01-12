@@ -494,16 +494,30 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			$git_branch_class_name    = 'wpcd_site_details_top_row_element_git_branch';  // Not used - for now we're using the $git_status_class_name for both git status and branch name.
 		}
 
+		// Site Type.
+		$site_type               = $this->get_mt_site_type( $app_id );
+		$site_type_display_value = '';
+		if ( 'standard' !== $site_type && ! empty( $site_type ) ) {
+			$site_type_display_value = $site_type;
+			$site_type_class_name    = 'wpcd_site_details_top_row_element_site_type';
+		}
+
 		// Wrap the page cache and ssl status into a set of spans that will go underneath the domain name.
 		$other_data  = '<div class="wpcd_site_details_top_row_element_wrapper">';
 		$other_data .= '<span class="wpcd_medium_chicklet wpcd_site_details_top_row_element_wstype">' . $webserver_type_name . '</span>';
 		$other_data .= '<span class=" wpcd_medium_chicklet ' . $ssl_class_name . '">' . sprintf( __( 'SSL: %s', 'wpcd' ), $ssl_status_display_value ) . '</span>';
 		$other_data .= '<span class=" wpcd_medium_chicklet ' . $page_cache_class_name . '">' . sprintf( __( 'Cache: %s', 'wpcd' ), $page_cache_display_value ) . '</span>';
 		if ( ! empty( $git_status ) ) {
+			/* Translators: %s is the git status (on or off). */
 			$other_data .= '<span class=" wpcd_medium_chicklet ' . $git_status_class_name . '">' . sprintf( __( 'Git: %s', 'wpcd' ), $git_status_display_value ) . '</span>';
 		}
 		if ( ! empty( $git_branch_display_value ) ) {
+			/* Translators: %s is the git branch name. */
 			$other_data .= '<span class=" wpcd_medium_chicklet ' . $git_status_class_name . '">' . sprintf( __( 'Branch: %s', 'wpcd' ), $git_branch_display_value ) . '</span>';
+		}
+		if ( ! empty( $site_type_display_value ) ) {
+			/* Translators: %s is the multi-tenant site type. */
+			$other_data .= '<span class=" wpcd_medium_chicklet ' . $site_type_class_name . '">' . sprintf( __( '%s', 'wpcd' ), $site_type_display_value ) . '</span>';
 		}
 		$other_data .= '</div>';
 

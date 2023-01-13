@@ -389,15 +389,15 @@ abstract class WPCD_MB_Custom_Table {
 		if( $this->is_custom_table_page() ) {
 			
 			unset($actions['delete']);
-			if( $this->is_child_model ) {				
-				$actions['edit'] = sprintf(
-					'<a href="%s">' . esc_html__( 'Edit', 'mb-custom-table' ) . '</a>',
-					add_query_arg( [
-						'model-action' => 'edit',
-						'model-id'     => $item['ID'],
-					], $this->get_listing_page_url( $this->get_view() ) )
-				);
-			}
+			
+			$actions['edit'] = sprintf(
+				'<a href="%s">' . esc_html__( 'Edit', 'mb-custom-table' ) . '</a>',
+				add_query_arg( [
+					'model-action' => 'edit',
+					'model-id'     => $item['ID'],
+				], $this->get_listing_page_url( $this->get_view() ) )
+			);
+			
 
 			$actions['wpcd-ct-delete'] = sprintf(
 					'<a href="#" data-id="%d" data-model="%s" data-nonce="%s" data-view="%s" class="wpcd-ct-delete-item">' . esc_html__( 'Delete', 'mb-custom-table' ) . '</a>',

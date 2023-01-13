@@ -318,8 +318,8 @@ class WPCD_CT_DNS_Provider extends WPCD_MB_Custom_Table {
 	public function validate_data() {
 		
 		$provider_id  = filter_input( INPUT_GET, 'model-id',	  FILTER_SANITIZE_NUMBER_INT );
-		$dns_name	  = filter_input( INPUT_POST, 'dns_name',	  FILTER_SANITIZE_STRING );
-		$dns_provider = filter_input( INPUT_POST, 'dns_provider', FILTER_SANITIZE_STRING );
+		$dns_name	  = sanitize_text_field( filter_input( INPUT_POST, 'dns_name',	  FILTER_UNSAFE_RAW ) );
+		$dns_provider = sanitize_text_field( filter_input( INPUT_POST, 'dns_provider', FILTER_UNSAFE_RAW ) );
 		
 		
 		$error = '';
@@ -352,7 +352,7 @@ class WPCD_CT_DNS_Provider extends WPCD_MB_Custom_Table {
 		
 		$model_id = filter_input( INPUT_POST, 'id', FILTER_SANITIZE_NUMBER_INT );
 		
-		$view  = filter_input( INPUT_POST, 'view', FILTER_SANITIZE_STRING );
+		$view  = sanitize_text_field( filter_input( INPUT_POST, 'view', FILTER_UNSAFE_RAW ) );
 		$view = $view ? $view : 'public';
 		
 		$error = "";

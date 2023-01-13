@@ -693,10 +693,11 @@ abstract class WPCD_MB_Custom_Table {
 		if( !$view ) {
 			$view = (is_admin() ? 'admin' : 'public');
 			if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
-				$view = filter_input( INPUT_POST, 'view', FILTER_SANITIZE_STRING );
+				$view = filter_input( INPUT_POST, 'view', FILTER_UNSAFE_RAW );
 				if( empty( $view ) ) {
-					$view = filter_input( INPUT_GET, 'view', FILTER_SANITIZE_STRING );
+					$view = filter_input( INPUT_GET, 'view', FILTER_UNSAFE_RAW );
 				}
+				$view = sanitize_text_field( $view );
 			}
 		}
 		return $view;
@@ -715,11 +716,12 @@ abstract class WPCD_MB_Custom_Table {
 		if( !$action ) {
 			$action = '';
 			if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
-				$_action = filter_input( INPUT_POST, 'action', FILTER_SANITIZE_STRING );
+				$_action = filter_input( INPUT_POST, 'action', FILTER_UNSAFE_RAW );
 				
 				if( empty( $_action ) ) {
-					$_action = filter_input( INPUT_GET, 'action', FILTER_SANITIZE_STRING );
+					$_action = filter_input( INPUT_GET, 'action', FILTER_UNSAFE_RAW );
 				}
+				$_action = sanitize_text_field( $_action );
 				$_action_parts = explode( '_', $_action );
 				$action =  end( $_action_parts );
 			} else {
@@ -780,11 +782,11 @@ abstract class WPCD_MB_Custom_Table {
 	function inline_edit_form() {
 
 		$model_id = filter_input( INPUT_GET, 'model-id', FILTER_SANITIZE_NUMBER_INT );
-		$action_param = filter_input( INPUT_GET, 'action', FILTER_SANITIZE_STRING );
+		$action_param = sanitize_text_field( filter_input( INPUT_GET, 'action', FILTER_UNSAFE_RAW ) );
 		$type =  end( explode( '_', $action_param ) );
 		$parent_id = filter_input( INPUT_GET, 'parent-id', FILTER_SANITIZE_NUMBER_INT );
-		$nonce = filter_input( INPUT_GET, 'nonce', FILTER_SANITIZE_STRING );
-		$view = filter_input( INPUT_GET, 'view', FILTER_SANITIZE_STRING );
+		$nonce = sanitize_text_field( filter_input( INPUT_GET, 'nonce', FILTER_UNSAFE_RAW ) );
+		$view = sanitize_text_field( filter_input( INPUT_GET, 'view', FILTER_UNSAFE_RAW ) );
 		$permission = $this->add_edit_form_permissions( $type, $parent_id, $model_id );
 		
 		if( !$permission['has_access'] ) {
@@ -866,7 +868,7 @@ abstract class WPCD_MB_Custom_Table {
 	 */
 	public function verify_nonce( $action ) {
 		
-		$nonce = filter_input( INPUT_POST, 'nonce', FILTER_SANITIZE_STRING );
+		$nonce = sanitize_text_field( filter_input( INPUT_POST, 'nonce', FILTER_UNSAFE_RAW ) );
 		return wp_verify_nonce( $nonce, $this->nonce_action( $action ) );
 	}
 	

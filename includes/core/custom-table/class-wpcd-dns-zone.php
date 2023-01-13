@@ -242,7 +242,7 @@ class WPCD_CT_DNS_Zone extends WPCD_MB_Custom_Table {
 		
 		$provider_id	= filter_input( INPUT_POST, 'parent_id', FILTER_SANITIZE_NUMBER_INT );
 		$zone_id		= filter_input( INPUT_POST, 'model-id',  FILTER_SANITIZE_NUMBER_INT );
-		$domain			= filter_input( INPUT_POST, 'domain',  FILTER_SANITIZE_STRING );
+		$domain			= sanitize_text_field( filter_input( INPUT_POST, 'domain',  FILTER_UNSAFE_RAW ) );
 		
 		$error = '';
 		$result = array( 'success' => true, 'error' => '' );
@@ -391,7 +391,6 @@ class WPCD_CT_DNS_Zone extends WPCD_MB_Custom_Table {
 	public function ajax_handle_delete_item() {
 		
 		$zone_id = filter_input( INPUT_POST, 'id', FILTER_SANITIZE_NUMBER_INT );
-		//$view_type = filter_input( INPUT_POST, 'view', FILTER_SANITIZE_STRING );
 			
 		$action = 'delete';
 		$permissions = $this->add_edit_form_permissions( $action, null, $zone_id );

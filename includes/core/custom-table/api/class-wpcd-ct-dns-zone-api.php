@@ -3,8 +3,6 @@
 
 class WPCD_CT_DNS_Zone_API extends WPCD_Custom_Table_API {
 	
-	
-	
 	public $model_name = 'dns_zone';
 	public $table_name = 'dns_zones';
 	
@@ -64,13 +62,16 @@ class WPCD_CT_DNS_Zone_API extends WPCD_Custom_Table_API {
 		return $name;
 	}
 	
-	public function permission_inner_join( $user_id = null ) {
+	public function permission_query_join( $user_id = null ) {
+		global $wpdb;
 		
 		$dns_provider_api = WPCD_Custom_Table_API::get('dns_provider');
 		$meta_table = $this->get_meta_table_name();
-		$q = ' INNER JOIN '.$meta_table.' m ON m.item_id = t1.parent_id ';
-
-		return $q . $dns_provider_api->permission_inner_join_clause( $user_id ) ;
+		
+		$q .= ' INNER JOIN wp_wpcd_ct_dns_providers p ON p.ID = t1.parent_id 
+			    LEFT JOIN '.$meta_table.' m ON m.item_id = t1.parent_id AND m.model = %s';
+		
+		return $wpdb->prepare( $q, $dns_provider_api->get_model_name() );
 	}
 	
 	
@@ -83,16 +84,18 @@ class WPCD_CT_DNS_Zone_API extends WPCD_Custom_Table_API {
 		$should_add = $this->should_add_permission_query( $user_id );
 		
 		$joins = '';
+		$where = '';
 		
 		if( 3 === $should_add ) {
 			return array();
 		} elseif ( 2 == $should_add ) {
-			$joins = $this->permission_inner_join( $user_id );
+			$joins = $this->permission_query_join( $user_id );
+			$where = 'WHERE ' . $this->permission_where_clause( $user_id );
 		}
 		
 		$group_by =   ' GROUP BY t1.ID';
 		
-		return $wpdb->get_results( $q . $joins . $group_by, 'ARRAY_A' );
+		return $wpdb->get_results( $q . $joins . $where . $group_by, 'ARRAY_A' );
 		
 	}
 	
@@ -101,23 +104,21 @@ class WPCD_CT_DNS_Zone_API extends WPCD_Custom_Table_API {
 		global $wpdb;
 		
 		$args = $this->prepare_listing_args( $args );
-		
 		$table = $this->get_table_name();
-		
 		$q = 'SELECT t1.* FROM '.$table.' t1';
-		
-		
 		$should_add = $this->should_add_permission_query( $user_id );
 		
 		$joins = '';
+		$where = '';
 		
 		if( 3 === $should_add ) {
 			return array();
 		} elseif ( 2 == $should_add ) {
-			$joins = $this->permission_inner_join( $user_id );
+			$joins = $this->permission_query_join( $user_id );
+			$where = ' AND (' . $this->permission_where_clause( $user_id, true ) . ')';
 		}
 		
-		$where =  $wpdb->prepare( ' WHERE t1.parent_id = %d GROUP BY t1.ID', $parent_id );
+		$where =  $wpdb->prepare( ' WHERE t1.parent_id = %d ', $parent_id ) . $where . ' GROUP BY t1.ID';
 		$limit = $this->prepare_query_limit( $args['limit'], $args['page'] );
 		
 		return $this->get_listing_results( compact( 'q' , 'joins' , 'where' , 'limit' ), $args );

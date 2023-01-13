@@ -206,13 +206,9 @@ abstract class WPCD_Custom_Table_API {
 		return $should_add;
 	}
 	
-
-	
-	
-	function permission_inner_join_clause( $user_id = null ) {
+	function permission_where_clause( $user_id = null, $by_parent = false ) {
 		global $wpdb;
-
-
+		
 		if( null === $user_id ) {
 			$user_id = get_current_user_id();
 		}
@@ -220,23 +216,23 @@ abstract class WPCD_Custom_Table_API {
 		$user_meta = get_userdata( $user_id );
 		$user_roles = $user_meta->roles;
 
-		$q = 'AND m.model = %s AND 
+		$q = ( $by_parent ? 'p' : 't1' ) . '.owner = %d OR 
 				( 
 					( m.meta_key=\'allowed_roles\' AND m.meta_value IN(\''. implode("','", $user_roles ).'\') ) OR 
-					( m.meta_key=\'allowed_users\' AND m.meta_value = %d )  
-				) 
-				';
+					( m.meta_key=\'allowed_users\' AND m.meta_value = %d )
+				)';
 
 
-		return $wpdb->prepare( $q, $this->get_model_name(), $user_id );
+		return $wpdb->prepare( $q, $user_id, $user_id );
 	}
 	
 	
-	public function permission_inner_join( $user_id = null ) {
-		
+	public function permission_query_join( $user_id = null ) {
+		global $wpdb;
 		$meta_table = $this->get_meta_table_name();
-		$q = ' INNER JOIN '.$meta_table.' m ON m.item_id = t1.ID ';
-		return $q .  $this->permission_inner_join_clause( $user_id ) ;
+		$q = ' LEFT JOIN '.$meta_table.' m ON m.item_id = t1.ID AND m.model = %s';
+		
+		return $wpdb->prepare( $q, $this->get_model_name() );
 	}
 	
 	
@@ -248,8 +244,6 @@ abstract class WPCD_Custom_Table_API {
 		
 		$q = 'SELECT t1.* FROM '.$table.' t1';
 		
-		
-		
 		$should_add = $this->should_add_permission_query( $user_id );
 		
 		
@@ -259,7 +253,8 @@ abstract class WPCD_Custom_Table_API {
 		if( 3 === $should_add ) {
 			return array();
 		} elseif ( 2 == $should_add ) {
-			$joins = $this->permission_inner_join( $user_id );
+			$joins = $this->permission_query_join( $user_id );
+			$where .= ' WHERE ' . $this->permission_where_clause( $user_id );
 		}
 		
 		$where .= ' GROUP BY t1.ID';

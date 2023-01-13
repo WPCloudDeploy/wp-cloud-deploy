@@ -257,8 +257,17 @@ abstract class WPCD_MB_Custom_Table {
 
 		$this->add_encrypt_filters();
 		
-		$save_object_id = empty($object_id) ? 'eoid_'. wp_generate_password(6, false) : $object_id;	
+		$save_object_id = empty($object_id) ? 'eoid_'. wp_generate_password(6, false) : $object_id;
+		$meta_boxes_count = count( $this->metaboxes(array()) );
+		
 		rwmb_get_registry('meta_box')->get( $this->form_meta_box_id() )->save_post( $save_object_id );
+		
+		if( $meta_boxes_count > 1 ) {
+			for( $i = 1; $i < $meta_boxes_count; $i++ ) {
+				do_action( 'rwmb_after_save_post', $save_object_id );
+			}
+		}
+		
 		
 		$this->remove_encrypt_filters();
 		
@@ -1101,6 +1110,12 @@ abstract class WPCD_MB_Custom_Table {
 		
 		if( !$user_id ) {
 			return false;
+		}
+		
+		$owner = ( is_object( $item ) && property_exists( $item, 'owner' ) ) ? $item->owner : null;
+		
+		if( $owner == $user_id ) {
+			return true;
 		}
 		
 		$allowed_users = $this->api->get_meta_values( $item_id, 'allowed_users' );

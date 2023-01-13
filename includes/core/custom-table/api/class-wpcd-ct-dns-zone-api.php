@@ -1,9 +1,22 @@
 <?php
 
-
+/**
+ * Class DNS Zone API
+ */
 class WPCD_CT_DNS_Zone_API extends WPCD_Custom_Table_API {
 	
+	/**
+	 * Model Name
+	 * 
+	 * @var string
+	 */
 	public $model_name = 'dns_zone';
+	
+	/**
+	 * Table Name
+	 * 
+	 * @var string 
+	 */
 	public $table_name = 'dns_zones';
 	
 	/**
@@ -17,18 +30,20 @@ class WPCD_CT_DNS_Zone_API extends WPCD_Custom_Table_API {
 	 * Return instance of self.
 	 */
 	public static function instance() {
-		
 		$class = get_called_class();
-		
-		
-		
 		if ( is_null( self::$instance ) ) {
 			self::$instance = new $class();
 		}
 		return self::$instance;
 	}
 	
-	
+	/**
+	 * Return default DNS Zone
+	 * 
+	 * @global object $wpdb
+	 * 
+	 * @return array
+	 */
 	function get_default() {
 		global $wpdb;
 		
@@ -38,7 +53,13 @@ class WPCD_CT_DNS_Zone_API extends WPCD_Custom_Table_API {
 		return $results;
 	}
 	
-	
+	/**
+	 * Clear default zone mark
+	 * 
+	 * @global object $wpdb
+	 * 
+	 * @param int $item_id
+	 */
 	function maybe_mark_default( $item_id ) {
 		$zone = $this->get_by_id( $item_id );
 
@@ -49,11 +70,15 @@ class WPCD_CT_DNS_Zone_API extends WPCD_Custom_Table_API {
 		}
 	}
 	
-	
+	/**
+	 * Return domain name
+	 * 
+	 * @param int $item_id
+	 * 
+	 * @return string
+	 */
 	public function get_item_display_name( $item_id ) {
-		
 		$item = $this->get_by_id( $item_id );
-		
 		$name = '';
 		if( $item ) {
 			$name = $item->domain;
@@ -62,6 +87,15 @@ class WPCD_CT_DNS_Zone_API extends WPCD_Custom_Table_API {
 		return $name;
 	}
 	
+	/**
+	 * Return joins query to get items with permission
+	 * 
+	 * @global object $wpdb
+	 * 
+	 * @param int|null $user_id
+	 * 
+	 * @return string
+	 */
 	public function permission_query_join( $user_id = null ) {
 		global $wpdb;
 		
@@ -74,7 +108,17 @@ class WPCD_CT_DNS_Zone_API extends WPCD_Custom_Table_API {
 		return $wpdb->prepare( $q, $dns_provider_api->get_model_name() );
 	}
 	
-	
+	/**
+	 * Get all dns zones with user permission
+	 * 
+	 * @global object $wpdb
+	 * 
+	 * @param array $args
+	 * 
+	 * @param int|null $user_id
+	 * 
+	 * @return array
+	 */
 	public function get_items_by_permission( $args = array(), $user_id = null ) {
 		global $wpdb;
 		
@@ -96,10 +140,19 @@ class WPCD_CT_DNS_Zone_API extends WPCD_Custom_Table_API {
 		$group_by =   ' GROUP BY t1.ID';
 		
 		return $wpdb->get_results( $q . $joins . $where . $group_by, 'ARRAY_A' );
-		
 	}
 	
-	
+	/**
+	 * Get dns zone by dns provider with user permission
+	 * 
+	 * @global object $wpdb
+	 * 
+	 * @param int $parent_id
+	 * @param array $args
+	 * @param int|null $user_id
+	 * 
+	 * @return array
+	 */
 	public function get_child_items_by_permission( $parent_id, $args = array(), $user_id = null ) {
 		global $wpdb;
 		
@@ -117,7 +170,6 @@ class WPCD_CT_DNS_Zone_API extends WPCD_Custom_Table_API {
 			$joins = $this->permission_query_join( $user_id );
 			$where = ' AND (' . $this->permission_where_clause( $user_id, true ) . ')';
 		}
-		
 		$where =  $wpdb->prepare( ' WHERE t1.parent_id = %d ', $parent_id ) . $where . ' GROUP BY t1.ID';
 		$limit = $this->prepare_query_limit( $args['limit'], $args['page'] );
 		

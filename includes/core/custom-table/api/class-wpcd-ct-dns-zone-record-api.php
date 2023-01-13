@@ -1,9 +1,22 @@
 <?php
 
+/**
+ * Class DNS Record API
+ */
 class WPCD_CT_DNS_Zone_Record_API extends WPCD_Custom_Table_API {
 	
-	
+	/**
+	 * Model Name
+	 * 
+	 * @var string
+	 */
 	public $model_name = 'dns_zone_record';
+	
+	/**
+	 * Table Name
+	 * 
+	 * @var string 
+	 */
 	public $table_name = 'dns_zone_records';
 	
 	/**
@@ -26,7 +39,15 @@ class WPCD_CT_DNS_Zone_Record_API extends WPCD_Custom_Table_API {
 		return self::$instance;
 	}
 	
-	
+	/**
+	 * Return joins query to get items with permission
+	 * 
+	 * @global object $wpdb
+	 * 
+	 * @param int|null $user_id
+	 * 
+	 * @return string
+	 */
 	public function permission_query_join( $user_id = null, $item_id = '' ) {
 		global $wpdb;
 		
@@ -40,7 +61,17 @@ class WPCD_CT_DNS_Zone_Record_API extends WPCD_Custom_Table_API {
 	}
 	
 
-	
+	/**
+	 * Get dns zone records by dns zone with user permission
+	 * 
+	 * @global object $wpdb
+	 * 
+	 * @param int $parent_id
+	 * @param array $args
+	 * @param int|null $user_id
+	 * 
+	 * @return array
+	 */
 	public function get_child_items_by_permission( $parent_id, $args = array(), $user_id = null ) {
 		global $wpdb;
 		
@@ -52,7 +83,6 @@ class WPCD_CT_DNS_Zone_Record_API extends WPCD_Custom_Table_API {
 		
 		$table = $this->get_table_name();
 		$q = 'SELECT t1.* FROM '.$table.' t1';
-		
 		
 		$should_add = $this->should_add_permission_query( $user_id );
 		

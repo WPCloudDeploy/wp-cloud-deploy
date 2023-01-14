@@ -58,9 +58,35 @@ class WPCD_CT_List_Table extends \MetaBox\CustomTable\Model\ListTable {
 			'per_page'    => $per_page,
 		] );
 	}
-
-
 	
+	/**
+	 * Return item page link
+	 * 
+	 * @param array $item
+	 * 
+	 * @return string
+	 */
+	public function item_link( $item ) {
+		$custom_table = WPCD_MB_Custom_Table::get( $this->model->name );
+		return 
+		add_query_arg( [
+			'model-action' => 'edit',
+			'model-id'     => $item['ID'],
+		], $custom_table->get_listing_page_url( $custom_table->get_view() ) );
+		
+	}
+	
+	/**
+	 * Return ID column content
+	 * 
+	 * @param array $item
+	 * 
+	 * @return string
+	 */
+	public function column_id( $item ) {
+		return sprintf( '<a href="%s">#%d</a>', $this->item_link( $item ) , $item['ID'] );
+	}
+
 	/**
 	 * Extra controls to be displayed between bulk actions and pagination.
 	 * 

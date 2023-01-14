@@ -257,8 +257,17 @@ abstract class WPCD_MB_Custom_Table {
 
 		$this->add_encrypt_filters();
 		
-		$save_object_id = empty($object_id) ? 'eoid_'. wp_generate_password(6, false) : $object_id;	
+		$save_object_id = empty($object_id) ? 'eoid_'. wp_generate_password(6, false) : $object_id;
+		$meta_boxes_count = count( $this->metaboxes(array()) );
+		
 		rwmb_get_registry('meta_box')->get( $this->form_meta_box_id() )->save_post( $save_object_id );
+		
+		if( $meta_boxes_count > 1 ) {
+			for( $i = 1; $i < $meta_boxes_count; $i++ ) {
+				do_action( 'rwmb_after_save_post', $save_object_id );
+			}
+		}
+		
 		
 		$this->remove_encrypt_filters();
 		
@@ -380,15 +389,15 @@ abstract class WPCD_MB_Custom_Table {
 		if( $this->is_custom_table_page() ) {
 			
 			unset($actions['delete']);
-			if( $this->is_child_model ) {				
-				$actions['edit'] = sprintf(
-					'<a href="%s">' . esc_html__( 'Edit', 'mb-custom-table' ) . '</a>',
-					add_query_arg( [
-						'model-action' => 'edit',
-						'model-id'     => $item['ID'],
-					], $this->get_listing_page_url( $this->get_view() ) )
-				);
-			}
+			
+			$actions['edit'] = sprintf(
+				'<a href="%s">' . esc_html__( 'Edit', 'mb-custom-table' ) . '</a>',
+				add_query_arg( [
+					'model-action' => 'edit',
+					'model-id'     => $item['ID'],
+				], $this->get_listing_page_url( $this->get_view() ) )
+			);
+			
 
 			$actions['wpcd-ct-delete'] = sprintf(
 					'<a href="#" data-id="%d" data-model="%s" data-nonce="%s" data-view="%s" class="wpcd-ct-delete-item">' . esc_html__( 'Delete', 'mb-custom-table' ) . '</a>',
@@ -684,10 +693,11 @@ abstract class WPCD_MB_Custom_Table {
 		if( !$view ) {
 			$view = (is_admin() ? 'admin' : 'public');
 			if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
-				$view = filter_input( INPUT_POST, 'view', FILTER_SANITIZE_STRING );
+				$view = filter_input( INPUT_POST, 'view', FILTER_UNSAFE_RAW );
 				if( empty( $view ) ) {
-					$view = filter_input( INPUT_GET, 'view', FILTER_SANITIZE_STRING );
+					$view = filter_input( INPUT_GET, 'view', FILTER_UNSAFE_RAW );
 				}
+				$view = sanitize_text_field( $view );
 			}
 		}
 		return $view;
@@ -706,11 +716,12 @@ abstract class WPCD_MB_Custom_Table {
 		if( !$action ) {
 			$action = '';
 			if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
-				$_action = filter_input( INPUT_POST, 'action', FILTER_SANITIZE_STRING );
+				$_action = filter_input( INPUT_POST, 'action', FILTER_UNSAFE_RAW );
 				
 				if( empty( $_action ) ) {
-					$_action = filter_input( INPUT_GET, 'action', FILTER_SANITIZE_STRING );
+					$_action = filter_input( INPUT_GET, 'action', FILTER_UNSAFE_RAW );
 				}
+				$_action = sanitize_text_field( $_action );
 				$_action_parts = explode( '_', $_action );
 				$action =  end( $_action_parts );
 			} else {
@@ -771,11 +782,11 @@ abstract class WPCD_MB_Custom_Table {
 	function inline_edit_form() {
 
 		$model_id = filter_input( INPUT_GET, 'model-id', FILTER_SANITIZE_NUMBER_INT );
-		$action_param = filter_input( INPUT_GET, 'action', FILTER_SANITIZE_STRING );
+		$action_param = sanitize_text_field( filter_input( INPUT_GET, 'action', FILTER_UNSAFE_RAW ) );
 		$type =  end( explode( '_', $action_param ) );
 		$parent_id = filter_input( INPUT_GET, 'parent-id', FILTER_SANITIZE_NUMBER_INT );
-		$nonce = filter_input( INPUT_GET, 'nonce', FILTER_SANITIZE_STRING );
-		$view = filter_input( INPUT_GET, 'view', FILTER_SANITIZE_STRING );
+		$nonce = sanitize_text_field( filter_input( INPUT_GET, 'nonce', FILTER_UNSAFE_RAW ) );
+		$view = sanitize_text_field( filter_input( INPUT_GET, 'view', FILTER_UNSAFE_RAW ) );
 		$permission = $this->add_edit_form_permissions( $type, $parent_id, $model_id );
 		
 		if( !$permission['has_access'] ) {
@@ -857,7 +868,7 @@ abstract class WPCD_MB_Custom_Table {
 	 */
 	public function verify_nonce( $action ) {
 		
-		$nonce = filter_input( INPUT_POST, 'nonce', FILTER_SANITIZE_STRING );
+		$nonce = sanitize_text_field( filter_input( INPUT_POST, 'nonce', FILTER_UNSAFE_RAW ) );
 		return wp_verify_nonce( $nonce, $this->nonce_action( $action ) );
 	}
 	
@@ -1101,6 +1112,12 @@ abstract class WPCD_MB_Custom_Table {
 		
 		if( !$user_id ) {
 			return false;
+		}
+		
+		$owner = ( is_object( $item ) && property_exists( $item, 'owner' ) ) ? $item->owner : null;
+		
+		if( $owner == $user_id ) {
+			return true;
 		}
 		
 		$allowed_users = $this->api->get_meta_values( $item_id, 'allowed_users' );

@@ -111,10 +111,13 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 		require_once 'custom-table/loader.php';
 			
 		$path = dirname((new ReflectionFunction("mb_custom_table_load"))->getFileName());
-		define( 'MBCT_DIR', $path );
-		list( , $url ) = RWMB_Loader::get_path( $path );
-		define( 'MBCT_URL', $url );
-
+		
+		if( !defined( 'MBCT_DIR' ) ) {
+			define( 'MBCT_DIR', $path );
+			list( , $url ) = RWMB_Loader::get_path( $path );
+			define( 'MBCT_URL', $url );
+		}
+		
 		new WPCD_CT_Public_Loader;
 	}
 	

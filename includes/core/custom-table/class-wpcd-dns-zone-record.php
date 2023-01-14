@@ -366,10 +366,10 @@ class WPCD_CT_DNS_Zone_Record extends WPCD_MB_Custom_Table {
 		$zone_id		= filter_input( INPUT_POST, 'parent_id',  FILTER_SANITIZE_NUMBER_INT );
 		$zone_record_id	= filter_input( INPUT_POST, 'model-id', FILTER_SANITIZE_NUMBER_INT );
 		
-		$type	  = filter_input( INPUT_POST, 'type',		FILTER_SANITIZE_STRING );
-		$name	  = filter_input( INPUT_POST, 'name',		FILTER_SANITIZE_STRING );
-		$content  = filter_input( INPUT_POST, 'content',	FILTER_SANITIZE_STRING );
-		$ttl	  = filter_input( INPUT_POST, 'ttl',		FILTER_SANITIZE_STRING );
+		$type	  = sanitize_text_field( filter_input( INPUT_POST, 'type',		FILTER_UNSAFE_RAW ) );
+		$name	  = sanitize_text_field( filter_input( INPUT_POST, 'name',		FILTER_UNSAFE_RAW ) );
+		$content  = sanitize_text_field( filter_input( INPUT_POST, 'content',	FILTER_UNSAFE_RAW ) );
+		$ttl	  = sanitize_text_field( filter_input( INPUT_POST, 'ttl',		FILTER_UNSAFE_RAW ) );
 		
 		$error = '';
 		

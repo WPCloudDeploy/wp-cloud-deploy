@@ -2567,7 +2567,7 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 		foreach ( $tags as $tag => $tag_details ) {
 			if ( ! empty( $tags[ $tag ]['destination_servers'] ) ) {
 				// Add to existing array.
-				$tags[ $tag ]['destination_servers'] = array_merge( $tags[ $tag ]['destination_servers'], array( $destination_server_id ) );
+				$tags[ $tag ]['destination_servers'] = array_unique( array_merge( $tags[ $tag ]['destination_servers'], array( $destination_server_id ) ) );
 			} else {
 				$tags[ $tag ]['destination_servers'] = array( $destination_server_id );
 			}

@@ -384,7 +384,7 @@ class WPCD_CT_Provider extends WPCD_MB_Custom_Table {
 		
 		$model_id = filter_input( INPUT_POST, 'id', FILTER_SANITIZE_NUMBER_INT );
 		
-		$view  = filter_input( INPUT_POST, 'view', FILTER_SANITIZE_STRING );
+		$view  = sanitize_text_field( filter_input( INPUT_POST, 'view', FILTER_UNSAFE_RAW ) );
 		$view = $view ? $view : 'public';
 		
 		$error = "";
@@ -433,8 +433,8 @@ class WPCD_CT_Provider extends WPCD_MB_Custom_Table {
 	 */
 	public function validate_data() {
 		$provider_id	= filter_input( INPUT_GET,  'model-id',		 FILTER_SANITIZE_NUMBER_INT );
-		$name			= filter_input( INPUT_POST, 'provider_name', FILTER_SANITIZE_STRING );
-		$base_provider  = filter_input( INPUT_POST, 'base_provider', FILTER_SANITIZE_STRING );
+		$name			= sanitize_text_field( filter_input( INPUT_POST, 'provider_name', FILTER_UNSAFE_RAW ) );
+		$base_provider  = sanitize_text_field( filter_input( INPUT_POST, 'base_provider', FILTER_UNSAFE_RAW ) );
 		
 		$error = '';
 		

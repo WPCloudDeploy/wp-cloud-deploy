@@ -1,9 +1,22 @@
 <?php
 
-
+/**
+ * Class Provider API
+ */
 class WPCD_CT_Provider_API extends WPCD_Custom_Table_API {
 	
+	/**
+	 * Model Name
+	 * 
+	 * @var string
+	 */
 	public $model_name = 'provider';
+	
+	/**
+	 * Table Name
+	 * 
+	 * @var string 
+	 */
 	public $table_name = 'providers';
 	
 	
@@ -20,9 +33,6 @@ class WPCD_CT_Provider_API extends WPCD_Custom_Table_API {
 	public static function instance() {
 		
 		$class = get_called_class();
-		
-		
-		
 		if ( is_null( self::$instance ) ) {
 			self::$instance = new $class();
 		}

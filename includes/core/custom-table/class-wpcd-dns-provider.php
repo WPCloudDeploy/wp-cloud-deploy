@@ -122,13 +122,8 @@ class WPCD_CT_DNS_Provider extends WPCD_MB_Custom_Table {
 	 */
 	public function metaboxes( $meta_boxes ) {
 		
-		$meta_boxes[] = array(
-			'id'				=> $this->form_meta_box_id(),
-			'title'				=> __( 'DNS Provider', 'wpcd' ),
-			'models'			=> [ $this->get_model_name() ],
-			'storage_type'		=> 'custom_table',
-			'table'				=> $this->get_table_name(),
-			'fields'			=> array(
+		
+		$fields = array(
 				
 				array(
 					'id'   => 'nonce',
@@ -201,7 +196,12 @@ class WPCD_CT_DNS_Provider extends WPCD_MB_Custom_Table {
 					'multiple'        => false,
 					'class'	=> '',
 					'desc' => __('', 'wpcd' )
-				) ,
+				)
+			);
+		
+		
+		if( wpcd_is_admin() ) {
+			$fields = array_merge( $fields, array(
 				array(
 					'name' => __( 'Allowed Roles', 'wpcd' ),
 					'id'   => 'allowed_roles',
@@ -225,7 +225,16 @@ class WPCD_CT_DNS_Provider extends WPCD_MB_Custom_Table {
 					'desc' => __('', 'wpcd' ),
 					'save_field'      => false
 				)
-			)
+			));
+		}
+		
+		$meta_boxes[] = array(
+			'id'				=> $this->form_meta_box_id(),
+			'title'				=> __( 'DNS Provider', 'wpcd' ),
+			'models'			=> [ $this->get_model_name() ],
+			'storage_type'		=> 'custom_table',
+			'table'				=> $this->get_table_name(),
+			'fields'			=> $fields
 		);
 		
 		if( !is_admin() ) {

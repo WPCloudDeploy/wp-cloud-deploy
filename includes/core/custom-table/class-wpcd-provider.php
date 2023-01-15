@@ -146,13 +146,8 @@ class WPCD_CT_Provider extends WPCD_MB_Custom_Table {
 
 		$base_provider_options = WPCD_POSTS_CLOUD_PROVIDER()->get_provider_types();
 
-		$meta_boxes[] = array(
-			'id'             => $this->form_meta_box_id(),
-			'title'          => __( 'General', 'wpcd' ),
-			'models'       => [ $this->get_model_name() ],
-			'storage_type' => 'custom_table',
-			'table'        => $this->get_table_name(),
-			'fields'         => array(
+		
+		$fields = array(
 				array(
 					'id'   => 'nonce',
 					'type' => 'hidden',
@@ -342,8 +337,11 @@ class WPCD_CT_Provider extends WPCD_MB_Custom_Table {
 					'multiple'        => false,
 					'class'	=> '',
 					'desc' => __('', 'wpcd' )
-				) ,
-				
+				)
+		);
+		
+		if( wpcd_is_admin() ) {
+			$fields = array_merge( $fields, array(
 				array(
 					'name' => __( 'Allowed Roles', 'wpcd' ),
 					'id'   => 'allowed_roles',
@@ -368,10 +366,15 @@ class WPCD_CT_Provider extends WPCD_MB_Custom_Table {
 					'class'	=> '',
 					'desc' => __('', 'wpcd' )
 				)
-
-
-
-			),
+			));
+		}
+		$meta_boxes[] = array(
+			'id'             => $this->form_meta_box_id(),
+			'title'          => __( 'General', 'wpcd' ),
+			'models'       => [ $this->get_model_name() ],
+			'storage_type' => 'custom_table',
+			'table'        => $this->get_table_name(),
+			'fields'         => $fields,
 		);
 		
 		return $meta_boxes;

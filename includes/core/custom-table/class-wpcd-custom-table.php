@@ -290,8 +290,12 @@ abstract class WPCD_MB_Custom_Table {
 			}
 		}
 		
-		$this->api->update_meta_values( $object_id, 'allowed_roles', $allowed_roles );
-		$this->api->update_meta_values( $object_id, 'allowed_users', $allowed_users );
+		if( wpcd_is_admin() ) {
+			$this->api->update_meta_values( $object_id, 'allowed_roles', $allowed_roles );
+			$this->api->update_meta_values( $object_id, 'allowed_users', $allowed_users );
+		}
+		
+		
 		$owner = rwmb_request()->filter_post( 'owner', FILTER_SANITIZE_NUMBER_INT );
 		
 		if( 'add' === $this->action() && $object_id && !$owner ) {

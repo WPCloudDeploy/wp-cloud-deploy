@@ -1152,6 +1152,30 @@ abstract class WPCD_MB_Custom_Table {
 	}
 	
 	/**
+	 * Return user display name for non wpcd_is_admin() users to display in owner field
+	 * 
+	 * @return string
+	 */
+	function field_owner_std() {
+		$std = '';
+		$object_id = rwmb_request()->get('model-id');
+		
+		if( !$object_id ) {
+			return $std;
+		}
+		
+		$item = $this->api->get_by_id( $object_id );
+		if( $item && is_object( $item ) && property_exists( $item, 'owner' ) ) {
+			$owner_id = $item->owner;
+			$owner = get_user_by( 'id', $owner_id );
+			if( $owner ) {
+				$std = $owner->display_name ? $owner->display_name : __( '(No title)', 'wpcd' );
+			}
+		}
+		return $std;
+	}
+	
+	/**
 	 * Return allowed users field values
 	 * 
 	 * @param array $new

@@ -186,7 +186,12 @@ class WPCD_CT_DNS_Provider extends WPCD_MB_Custom_Table {
 					'type' => 'heading',
 					'name' => __( 'Permissions', 'wpcd' )
 				),
-				array(
+			);
+		
+		
+		
+		if( wpcd_is_admin() ) {
+			$owner_field = array(
 					'name' => __( 'Owner', 'wpcd' ),
 					'id'   => 'owner',
 					'type' => 'user',
@@ -196,9 +201,22 @@ class WPCD_CT_DNS_Provider extends WPCD_MB_Custom_Table {
 					'multiple'        => false,
 					'class'	=> '',
 					'desc' => __('', 'wpcd' )
-				)
-			);
+				);
+		} else {
+			
+			$owner_field = array(
+					'name' => __( 'Owner', 'wpcd' ),
+					'id'   => 'owner',
+					'readonly' => true,
+					'save_field' => false,
+					'std' => $this->field_owner_std(),
+					'type' => 'text',
+					'class'	=> '',
+					'desc' => __('', 'wpcd' )
+				);
+		}
 		
+		$fields[] = $owner_field;
 		
 		if( wpcd_is_admin() ) {
 			$fields = array_merge( $fields, array(

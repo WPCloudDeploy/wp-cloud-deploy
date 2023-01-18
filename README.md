@@ -124,6 +124,10 @@ Note: Even though the entire git development history isn't available on github, 
 [Friendly Release Notes](https://wpclouddeploy.com/category/release-notes/)
 
 ## Change Log ##
+5.2.3
+------
+* Hot Fix: WPAPP - Issue with PHP 8.1 and OLS when installing sites - PHP execution via piped strings will cause a segmentation fault.
+
 5.2.2
 ------
 * New: WPAPP - Option to flip just the SSL meta flag on the SSL tab for a site.

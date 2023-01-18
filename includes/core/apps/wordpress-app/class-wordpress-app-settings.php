@@ -2280,6 +2280,28 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tab'     => 'wordpress-app-email-gateway',
 			),
 			array(
+				'id'      => 'wpcd_email_gateway_smtp_usetls',
+				'type'    => 'select',
+				'options' => [
+					'YES' => 'Yes',
+					'NO' => 'No',
+				],
+				'name'    => __( 'Use TLS', 'wpcd' ),
+				'tooltip' => __( 'Use TLS to connect to the SMTP server. Warning! Turning this off has Security implications!', 'wpcd' ),
+				'tab'     => 'wordpress-app-email-gateway',
+			),
+			array(
+				'id'      => 'wpcd_email_gateway_smtp_usestarttls',
+				'type'    => 'select',
+				'options' => [
+					'YES' => 'Yes',
+					'NO' => 'No',
+				],
+				'name'    => __( 'Use STARTTLS', 'wpcd' ),
+				'tooltip' => __( 'Use STARTTLS to connect to the SMTP server. Warning! Turning this off has Security implications!', 'wpcd' ),
+				'tab'     => 'wordpress-app-email-gateway',
+			),
+			array(
 				'id'      => 'wpcd_email_gateway_smtp_note',
 				'type'    => 'textarea',
 				'name'    => __( 'Brief Note', 'wpcd' ),

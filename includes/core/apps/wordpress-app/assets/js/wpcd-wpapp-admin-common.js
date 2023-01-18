@@ -185,6 +185,8 @@
                             $('#' + app_action_prefix + '-smtp-domain').val(data.data.result.email_fields.domain);
                             $('#' + app_action_prefix + '-smtp-note').val(data.data.result.email_fields.note);
                             $('#' + app_action_prefix + '-smtp-hostname').val(data.data.result.email_fields.hostname1);
+                            $('#' + app_action_prefix + '-smtp-usetls').val(data.data.result.email_fields.usetls);
+                            $('#' + app_action_prefix + '-smtp-usestarttls').val(data.data.result.email_fields.usestarttls);
                         }
 
                         if (app_action_prefix === 'wpcd_app_action_monit') {

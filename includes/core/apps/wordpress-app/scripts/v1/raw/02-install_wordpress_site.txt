@@ -130,6 +130,24 @@ require_once( '$wphome/wp-load.php' );
 echo \$hash_password;
 ?>" | php)
 
+# Redo the password hash to fix a 'segmentation fault' error that occurs with OLS and PHP 8.1
+# We can probably remove this entire block once either OLS or PHP fixes the issue.
+# Or maybe we can just make this the default method for getting the hash and remove the 
+# codeblock above.
+if [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+then
+	pwtmpfile=$(mktemp)
+	echo "<?php
+	require_once( '$wphome/wp-load.php' );
+	\$password = '$wp_password';
+	\$hash_password = wp_hash_password(\$password);
+	echo \$hash_password;
+	?>"	> $pwtmpfile
+	wp_password_hashed=$(php $pwtmpfile)
+	rm $pwtmpfile
+fi
+# End redo password hash for OLS.
+
 mysql <<QUERY
 USE $mysql_db;
 UPDATE ${mysql_dbprefix}_users SET user_pass='$wp_password_hashed' WHERE user_login='$wp_user';

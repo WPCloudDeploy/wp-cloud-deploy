@@ -49,7 +49,7 @@ class WPCD_WORDPRESS_TABS_STAGING extends WPCD_WORDPRESS_TABS {
 		// [2] => 911.
 		$command_array = explode( '---', $name );
 
-		// if the command is to replace the domain name and the domain was changed we need to update the domain records...
+		// if the command is to create a staging site, we need to do a few things...
 		if ( 'create-staging-site' === $command_array[0] ) {
 
 			// Lets pull the logs.
@@ -147,6 +147,9 @@ class WPCD_WORDPRESS_TABS_STAGING extends WPCD_WORDPRESS_TABS {
 							// And tag the original site with the domain and id of the staging site.
 							update_post_meta( $id, 'wpapp_staging_domain', $new_domain );
 							update_post_meta( $id, 'wpapp_staging_domain_id', $new_app_post_id );
+
+							// Copy multi-tenant related metas.
+							$this->clone_mt_metas( $id, $new_app_post_id );  // Function located in traits file multi-tenant-app.php.
 
 							// Finally, lets add a meta to indicate that this was a clone.
 							update_post_meta( $new_app_post_id, 'wpapp_cloned_from', $this->get_domain_name( $id ) );
@@ -307,7 +310,26 @@ class WPCD_WORDPRESS_TABS_STAGING extends WPCD_WORDPRESS_TABS {
 		$domain = $this->get_domain_name( $id );
 
 		/**
-		 * We've gotten this far, so lets try to configure the DNS to point to the server.
+		 * If multi-tenant is active, check to see if the original site is a multi-tenant site
+		 * and if so, pass that info to the bash script so that things like the
+		 * openbasedirective can be updated.
+		 * For now, the only site type that is affected is a tenant site ('mt_tenant').
+		 * Versioned sites, version clones, template sites, template clones etc. are not stamped
+		 * and will be treated as regular sites after a clone.
+		 */
+		if ( in_array( $this->get_mt_site_type( $id ), array( 'mt_tenant' ), true ) ) {
+			$mt_version                 = $this->get_mt_version( $id );
+			$mt_parent_domain_post_id   = $this->get_mt_parent( $id );
+			$mt_template_domain         = $this->get_domain_name( $mt_parent_domain_post_id );
+			$args['mt_template_domain'] = $mt_template_domain;
+			$args['mt_version']         = $mt_version;
+		} else {
+			$args['mt_template_domain'] = '';
+			$args['mt_version']         = '';
+		}
+
+		/**
+		 * We've gotten this far, so lets try to configure the DNS for the new domain to point to the server.
 		 */
 		// 1. What's the server post id?
 		$server_id = $this->get_server_id_by_app_id( $id );

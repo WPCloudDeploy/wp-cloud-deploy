@@ -59,13 +59,13 @@ trait wpcd_wpapp_after_prepare_server {
 			// Setup task to install backup scripts.
 			if ( wpcd_get_option( 'wordpress_app_servers_activate_backups' ) ) {
 				$instance['action_hook'] = 'wpcd_core_after_server_prepare_install_server_backups';
-				WPCD_POSTS_PENDING_TASKS_LOG()->add_pending_task_log_entry( $server_id, 'core-install-server-backups', $server_id, $instance, 'ready', $server_id, __( 'Waiting To Install Backup Scripts For New Server', 'wpcd' ) );
+				WPCD_POSTS_PENDING_TASKS_LOG()->add_pending_task_log_entry( $server_id, 'core-install-server-backups', $server_id, $instance, 'ready', $server_id, __( 'Install Backup Scripts For New Server', 'wpcd' ) );
 			}
 
 			// Setup task to install backup of server configuration scripts.
 			if ( wpcd_get_option( 'wordpress_app_servers_activate_config_backups' ) ) {
 				$instance['action_hook'] = 'wpcd_core_after_server_prepare_install_server_configuration_backups';
-				WPCD_POSTS_PENDING_TASKS_LOG()->add_pending_task_log_entry( $server_id, 'core-install-server-config-backups', $server_id, $instance, 'ready', $server_id, __( 'Waiting To Install Backup Scripts For New Server', 'wpcd' ) );
+				WPCD_POSTS_PENDING_TASKS_LOG()->add_pending_task_log_entry( $server_id, 'core-install-server-config-backups', $server_id, $instance, 'ready', $server_id, __( 'Install Backup Scripts For New Server', 'wpcd' ) );
 			}
 
 			// Setup task to refresh services.
@@ -73,7 +73,7 @@ trait wpcd_wpapp_after_prepare_server {
 			// That hook function will also automatically update the pending task record because it doesn't care about the return status.
 			if ( wpcd_get_option( 'wordpress_app_servers_refresh_services' ) ) {
 				$instance['action_hook'] = 'wpcd_wordpress-app_server_refresh_services';
-				WPCD_POSTS_PENDING_TASKS_LOG()->add_pending_task_log_entry( $server_id, 'core-install-refresh-services-status', $server_id, $instance, 'ready', $server_id, __( 'Waiting To Refresh Services Status For New Server', 'wpcd' ) );
+				WPCD_POSTS_PENDING_TASKS_LOG()->add_pending_task_log_entry( $server_id, 'core-install-refresh-services-status', $server_id, $instance, 'ready', $server_id, __( 'Refresh Services Status For New Server', 'wpcd' ) );
 			}
 
 			// Setup task to run all linux updates.
@@ -82,7 +82,7 @@ trait wpcd_wpapp_after_prepare_server {
 			// Notice that the task type does not start with 'core-install-'.
 			if ( wpcd_get_option( 'wordpress_app_servers_run_all_linux_updates' ) ) {
 				$instance['action_hook'] = 'pending_log_apply_all_linux_updates';
-				WPCD_POSTS_PENDING_TASKS_LOG()->add_pending_task_log_entry( $server_id, 'apply-all-linux-updates', $server_id, $instance, 'ready', $server_id, __( 'Waiting To Schedule All Linux Updates.', 'wpcd' ) );
+				WPCD_POSTS_PENDING_TASKS_LOG()->add_pending_task_log_entry( $server_id, 'apply-all-linux-updates', $server_id, $instance, 'ready', $server_id, __( 'Schedule All Linux Updates.', 'wpcd' ) );
 			}
 
 			// Setup task to create server call-backs.
@@ -91,7 +91,7 @@ trait wpcd_wpapp_after_prepare_server {
 			// Notice that the task type does not start with 'core-install-'.
 			if ( wpcd_get_option( 'wordpress_app_servers_activate_callbacks' ) ) {
 				$instance['action_hook'] = 'wpcd_pending_log_install_a_callback';
-				WPCD_POSTS_PENDING_TASKS_LOG()->add_pending_task_log_entry( $server_id, 'install-server-callback', $server_id, $instance, 'ready', $server_id, __( 'Waiting To Install Callbacks For New Server', 'wpcd' ) );
+				WPCD_POSTS_PENDING_TASKS_LOG()->add_pending_task_log_entry( $server_id, 'install-server-callback', $server_id, $instance, 'ready', $server_id, __( 'Install Callbacks For New Server', 'wpcd' ) );
 			}
 		}
 

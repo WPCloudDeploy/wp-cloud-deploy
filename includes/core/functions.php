@@ -1675,7 +1675,27 @@ function wpcd_generate_uuid() {
 }
 
 /**
+ * Return whether our woocommerce module is enabled or not.
+ *
+ * @since 5.3
+ *
+ * @return bool
+ */
+function wpcd_is_wc_module_enabled() {
+	if ( class_exists( 'WPCD_WooCommerce_Init' ) ) {
+		return true;
+	} else {
+		return false;
+	}
+
+}
+
+/**
  * Return whether GIT is enabled for WPCD.
+ *
+ * @since 5.3
+ *
+ * @return bool
  */
 function wpcd_is_git_enabled() {
 	if ( class_exists( 'WPCD_GitControl_Init' ) ) {
@@ -1683,6 +1703,128 @@ function wpcd_is_git_enabled() {
 	} else {
 		return false;
 	}
+}
+
+/**
+ * Return whether Multi-Tenant is enabled for WPCD.
+ *
+ * @since 5.3
+ *
+ * @return bool
+ */
+function wpcd_is_mt_enabled() {
+	if ( class_exists( 'WPCD_Multitenant_Init' ) ) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
+/**
+ * Check if user has a role
+ *
+ * @param int    $user_id The wp user id to check.
+ * @param string $role_name The wp role to check.
+ *
+ * @return boolean
+ */
+function wpcd_user_has_role( $user_id, $role_name ) {
+	$user_meta  = get_userdata( $user_id );
+	$user_roles = $user_meta->roles;
+	return in_array( $role_name, $user_roles );
+}
+
+
+/**
+ * Get all server providers based on user permission
+ *
+ * @param int|null $user_id The WP User id we need to get server providers for.
+ *
+ * @return array
+ */
+function wpcd_get_all_providers_by_permission( $user_id = null ) {
+	$provider = WPCD_Custom_Table_API::get( 'provider' );
+	$result   = $provider->get_items_by_permission( array(), $user_id );
+	return isset( $result['items'] ) ? $result['items'] : array();
+}
+
+/**
+ * Get all dns provider based on user permission
+ *
+ * @param int|null $user_id The WP User id we need to get dns providers for.
+ *
+ * @return array
+ */
+function wpcd_get_all_dns_providers_by_permission( $user_id = null ) {
+	$dns_provider = WPCD_Custom_Table_API::get( 'dns_provider' );
+	$result       = $dns_provider->get_items_by_permission( array(), $user_id );
+	return isset( $result['items'] ) ? $result['items'] : array();
+}
+
+/**
+ * Get all dns zones based on user permission
+ *
+ * @param int|null $user_id The wp user id.
+ *
+ * @return array
+ */
+function wpcd_get_all_user_dns_zones( $user_id = null ) {
+	$dns_zone = WPCD_Custom_Table_API::get( 'dns_zone' );
+	$result   = $dns_zone->get_items_by_permission( array(), $user_id );
+	return $result;
+}
+
+/**
+ * Get all dns zone records based on zone id
+ *
+ * @param int $zone_id The zone id.
+ *
+ * @return array
+ */
+function wpcd_get_zone_records_by_zone_id( $zone_id ) {
+
+	$results = array();
+	if ( $zone_id ) {
+
+		$zone_record = WPCD_Custom_Table_API::get( 'dns_zone_record' );
+		$results     = $zone_record->get_items_by_parent_id( $zone_id, ARRAY_A );
+	}
+	return ( is_array( $results ) ) ? $results : array();
+}
+
+/**
+ * Return default dns zone
+ *
+ * @return array
+ */
+function wpcd_get_default_dns_zone() {
+
+	$dns_zone = WPCD_Custom_Table_API::get( 'dns_zone' );
+	$result   = $dns_zone->get_default();
+
+	return $result;
+
+}
+
+/**
+ * Get dns provider based on zone id
+ *
+ * @param int $zone_id The zone id we're inquiring about.
+ *
+ * @return array
+ */
+function wpcd_get_dns_provider_by_zone_id( $zone_id = null ) {
+
+	$dns_provider_item = array();
+	$dns_zone          = WPCD_Custom_Table_API::get( 'dns_zone' );
+	$zone              = $dns_zone->get_by_id( $zone_id );
+
+	if ( $zone && $zone->parent_id ) {
+		$dns_provider      = WPCD_Custom_Table_API::get( 'dns_provider' );
+		$dns_provider_item = (array) $dns_provider->get_by_id( $zone->parent_id );
+	}
+
+	return $dns_provider_item;
 }
 
 /*

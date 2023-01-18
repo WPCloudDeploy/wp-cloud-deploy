@@ -281,6 +281,88 @@
 	
 }
 
+/* Format the VERSION (git) tag list display area on the MULTI-TENANT tab for a site. */
+.wpcd_mt_version_list {
+	/* Put a box around the section */
+	border: 1px solid #6EE7B7;
+	padding: 1em;
+	border-radius: 4px;
+	background-color: #6EE7B7;
+	min-height: 100px;
+}
+.wpcd_mt_version_list .wpcd_mt_version_list_inner_wrap {
+	display: grid;
+	grid-template-areas: "i i ";
+	/*1 row, 1 columns */
+	grid-template-columns: 2fr 2fr 2fr 2fr;
+	/* Each row has four columns */
+	grid-column-gap: 10px;
+	grid-row-gap: 1em;
+	margin-bottom: 1em;
+	font-size: 1em;
+}
+.wpcd_mt_version_list .wpcd_mt_version_value {
+
+	background-color: #059669;
+	padding: 5px;
+	border-radius: 3px;
+	color: white;
+	text-align: center;
+}
+.wpcd_mt_version_list .wpcd_mt_version_value_inline {
+	font-weight: bold;
+}
+.wpcd_mt_version_list .wpcd_mt_version_label_desc {
+}
+.wpcd_mt_version_list .wpcd_mt_version_other_value {
+}
+.wpcd_mt_version_list .wpcd_mt_destination_server {
+	/* The servers list under each version .*/
+	background-color: var(--wpcd-accent-background-color);
+	font-size: 12px;
+	display: inline-block;
+	font-weight: 400;
+	margin: -1px 10px 5px 0px;
+	padding: 1px 5px;
+	vertical-align: top;
+	border-radius: 2px;
+	color: white;	
+}
+.wpcd_mt_version_list .wpcd_mt_destination_server a {
+	color: white;
+	text-decoration: none;
+}
+
+/* Format the UPGRADE TENANT RESULST list display area on the MULTI-TENANT tab for a site. */
+.wpcd_mt_upgrade_tenant_results_list {
+	/* Put a box around the section */
+	border: 1px solid #CBD5E1;
+	padding: 1em;
+	border-radius: 4px;
+	background-color: #CBD5E1;
+}
+.wpcd_mt_upgrade_tenant_results_list .wpcd_mt_upgrade_tenant_results_list_inner_wrap {
+	display: grid;
+	grid-template-areas: "i i ";
+	/*1 row, 1 columns */
+	grid-template-columns: 2fr 2fr 2fr 2fr;
+	/* Each row has four columns */
+	grid-column-gap: 10px;
+	grid-row-gap: 1em;
+	margin-bottom: 1em;
+	font-size: 1em;
+}
+.wpcd_mt_upgrade_tenant_results_list .wpcd_mt_upgrade_tenant_results_list_value {
+	font-size: 14px;
+	color: black;
+	font-weight: bold;
+}
+.wpcd_mt_upgrade_tenant_results_list .wpcd_mt_upgrade_tenant_results_list_header {
+	font-size: larger;
+	font-weight: bold;
+	margin-bottom: 10px;
+}
+
 /* the spinner - start */
 .locker,
 .locker-loader {

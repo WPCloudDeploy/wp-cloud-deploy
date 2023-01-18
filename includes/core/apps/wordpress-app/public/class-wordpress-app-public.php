@@ -70,6 +70,9 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 	 * Register hooks for front-end
 	 */
 	private function public_hooks() {
+		
+		// remove_action( 'init', 'mb_custom_table_load', 5 );
+		add_action( 'init', array( $this, 'mb_custom_table_load' ), 5 );
 
 		// Make sure WordPress loads up our css and js scripts on frontend.
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ), 10, 1 );
@@ -96,6 +99,28 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 		add_action( 'wpcd_wordpress-app_create_popup_after_console_wrap', array( $this, 'wpcd_wordpress_create_popup_after_console_wrap' ), 100, 0 );
 	}
 
+	
+	
+	/**
+	 * Init custom loader for custom table public view
+	 * 
+	 * @return type
+	 */
+	function mb_custom_table_load() {
+		
+		require_once 'custom-table/loader.php';
+			
+		$path = dirname((new ReflectionFunction("mb_custom_table_load"))->getFileName());
+		
+		if( !defined( 'MBCT_DIR' ) ) {
+			define( 'MBCT_DIR', $path );
+			list( , $url ) = RWMB_Loader::get_path( $path );
+			define( 'MBCT_URL', $url );
+		}
+		
+		new WPCD_CT_Public_Loader;
+	}
+	
 	/**
 	 * Add div after console view to clear css float
 	 */
@@ -150,6 +175,28 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 				'desc'       => __( 'Page id to display deploy server form.', 'wpcd' ),
 				'tab'        => 'wordpress-app-front-end-fields',
 				'std'        => self::get_server_deploy_page_id(),
+				'save_field' => false,
+				'attributes' => array( 'readonly' => 'readonly' ),
+			),
+			
+			array(
+				'id'         => 'wordpress_public_providers_page',
+				'type'       => 'text',
+				'name'       => __( 'Providers Page', 'wpcd' ),
+				'desc'       => __( 'Page id to display providers.', 'wpcd' ),
+				'tab'        => 'wordpress-app-front-end-fields',
+				'std'        => self::get_providers_page_id(),
+				'save_field' => false,
+				'attributes' => array( 'readonly' => 'readonly' ),
+			),
+			
+			array(
+				'id'         => 'wordpress_public_dns_providers_page',
+				'type'       => 'text',
+				'name'       => __( 'DNS Providers Page', 'wpcd' ),
+				'desc'       => __( 'Page id to display dns providers.', 'wpcd' ),
+				'tab'        => 'wordpress-app-front-end-fields',
+				'std'        => self::get_dns_providers_page_id(),
 				'save_field' => false,
 				'attributes' => array( 'readonly' => 'readonly' ),
 			),
@@ -805,7 +852,9 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 		if ( ! $post ) {
 			return;
 		}
-		return self::is_server_edit_page() || self::is_servers_list_page() || self::is_apps_list_page() || self::is_app_edit_page() || $post->ID == self::get_server_deploy_page_id();
+		
+		$is_public_page = self::is_server_edit_page() || self::is_servers_list_page() || self::is_apps_list_page() || self::is_app_edit_page() || $post->ID == self::get_server_deploy_page_id();
+		return apply_filters( 'wpcd_is_public_page', $is_public_page );
 	}
 
 	/**
@@ -835,6 +884,27 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 		return get_option( 'wpcd_public_deploy_server_page_id' );
 	}
 
+	/**
+	 * Return providers page id
+	 *
+	 * @return int
+	 */
+	public static function get_providers_page_id() {
+		$provider = WPCD_MB_Custom_Table::get('provider');
+		return $provider->get_page_id();
+	}
+	
+	
+	/**
+	 * Return dns providers deploy page id
+	 *
+	 * @return int
+	 */
+	public static function get_dns_providers_page_id() {
+		$dns_provider = WPCD_MB_Custom_Table::get('dns_provider');
+		return $dns_provider->get_page_id();
+	}
+	
 	/**
 	 * Check if a public page exists
 	 *
@@ -973,6 +1043,11 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 
 			update_option( 'wpcd_public_deploy_server_page_id', $page_id );
 		}
+		
+		WPCD_MB_Custom_Table::get('provider');
+		WPCD_MB_Custom_Table::get('dns_provider');
+		
+		do_action( 'wpcd_after_public_pages_created' );
 	}
 
 }

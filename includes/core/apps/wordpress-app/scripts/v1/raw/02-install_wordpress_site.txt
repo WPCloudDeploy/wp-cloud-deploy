@@ -84,11 +84,18 @@ then
 	exit
 fi
 
+# Clean up some stuff just in case this domain was installed on this server and not removed cleanly.
+rm -rf /etc/wpcd/$domain  # Remove metas.
+
+# Make site folder
 mkdir -p "${wphome}/logs"
+
+# Set permissions for new site folder.
 useradd -d "${wphome}" -g www-data -M -s "/bin/bash" "${user_name}"
 chown -R "${user_name}":www-data "${wphome}"
 chmod -R g+ws "$wphome"
 
+# Add virtual host files for webserver.
 if [ "$g_webserver_type" = "nginx" ]
 then
 	echo "The webserver is Nginx....";
@@ -123,6 +130,24 @@ require_once( '$wphome/wp-load.php' );
 echo \$hash_password;
 ?>" | php)
 
+# Redo the password hash to fix a 'segmentation fault' error that occurs with OLS and PHP 8.1
+# We can probably remove this entire block once either OLS or PHP fixes the issue.
+# Or maybe we can just make this the default method for getting the hash and remove the 
+# codeblock above.
+if [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+then
+	pwtmpfile=$(mktemp)
+	echo "<?php
+	require_once( '$wphome/wp-load.php' );
+	\$password = '$wp_password';
+	\$hash_password = wp_hash_password(\$password);
+	echo \$hash_password;
+	?>"	> $pwtmpfile
+	wp_password_hashed=$(php $pwtmpfile)
+	rm $pwtmpfile
+fi
+# End redo password hash for OLS.
+
 mysql <<QUERY
 USE $mysql_db;
 UPDATE ${mysql_dbprefix}_users SET user_pass='$wp_password_hashed' WHERE user_login='$wp_user';
@@ -137,6 +162,9 @@ su - "$user_name" -c "wp --skip-plugins --no-color config set CONCATENATE_SCRIPT
 su - "$user_name" -c "wp --skip-plugins --no-color config set DISALLOW_FILE_EDIT true --raw"
 su - "$user_name" -c "wp --skip-plugins --no-color option update permalink_structure '/%postname%'"
 
+# Turn on the cache constant.
+su - "$user_name" -c "wp --skip-plugins --no-color config set WP_CACHE true"
+
 # permissions for the log file
 su - "$user_name" -c "touch $wphome/wp-content/debug.log"
 
@@ -147,7 +175,6 @@ chmod -R g+ws "$wphome"
 if [ "$g_webserver_type" = "nginx" ]
 then
 	su - "$user_name" -c "wp  --no-color plugin install --activate cache-enabler"
-	su - "$user_name" -c "wp --skip-plugins --no-color config set WP_CACHE true"
 elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 then
 	su - "$user_name" -c "wp --skip-plugins --no-color plugin install litespeed-cache && wp --skip-plugins --no-color plugin activate litespeed-cache && wp --no-color litespeed-online init"

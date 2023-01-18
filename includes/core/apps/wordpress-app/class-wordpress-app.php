@@ -27,6 +27,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	use wpcd_wpapp_upgrade_functions;
 	use wpcd_wpapp_woocommerce_support;
 	use wpcd_wpapp_unused_functions;
+	use wpcd_wpapp_multi_tenant_app;
 
 	/**
 	 * Holds a reference to this class
@@ -329,6 +330,10 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/git-control-site.php';
 		}
 
+		if ( true === wpcd_is_mt_enabled() ) {
+			require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/multitenant-site.php';
+		}
+
 		if ( defined( 'WPCD_SHOW_SITE_USERS_TAB' ) && WPCD_SHOW_SITE_USERS_TAB ) {
 			require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/site-system-users.php';
 		}
@@ -489,16 +494,30 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			$git_branch_class_name    = 'wpcd_site_details_top_row_element_git_branch';  // Not used - for now we're using the $git_status_class_name for both git status and branch name.
 		}
 
+		// Site Type.
+		$site_type               = $this->get_mt_site_type( $app_id );
+		$site_type_display_value = '';
+		if ( 'standard' !== $site_type && ! empty( $site_type ) ) {
+			$site_type_display_value = $site_type;
+			$site_type_class_name    = 'wpcd_site_details_top_row_element_site_type';
+		}
+
 		// Wrap the page cache and ssl status into a set of spans that will go underneath the domain name.
 		$other_data  = '<div class="wpcd_site_details_top_row_element_wrapper">';
 		$other_data .= '<span class="wpcd_medium_chicklet wpcd_site_details_top_row_element_wstype">' . $webserver_type_name . '</span>';
 		$other_data .= '<span class=" wpcd_medium_chicklet ' . $ssl_class_name . '">' . sprintf( __( 'SSL: %s', 'wpcd' ), $ssl_status_display_value ) . '</span>';
 		$other_data .= '<span class=" wpcd_medium_chicklet ' . $page_cache_class_name . '">' . sprintf( __( 'Cache: %s', 'wpcd' ), $page_cache_display_value ) . '</span>';
 		if ( ! empty( $git_status ) ) {
+			/* Translators: %s is the git status (on or off). */
 			$other_data .= '<span class=" wpcd_medium_chicklet ' . $git_status_class_name . '">' . sprintf( __( 'Git: %s', 'wpcd' ), $git_status_display_value ) . '</span>';
 		}
 		if ( ! empty( $git_branch_display_value ) ) {
+			/* Translators: %s is the git branch name. */
 			$other_data .= '<span class=" wpcd_medium_chicklet ' . $git_status_class_name . '">' . sprintf( __( 'Branch: %s', 'wpcd' ), $git_branch_display_value ) . '</span>';
+		}
+		if ( ! empty( $site_type_display_value ) ) {
+			/* Translators: %s is the multi-tenant site type. */
+			$other_data .= '<span class=" wpcd_medium_chicklet ' . $site_type_class_name . '">' . sprintf( __( '%s', 'wpcd' ), $site_type_display_value ) . '</span>';
 		}
 		$other_data .= '</div>';
 
@@ -2004,7 +2023,6 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 	}
 
-
 	/**
 	 * Set the domain name used for a wp app instance.
 	 * This can be used when the user changes their domain.
@@ -2027,11 +2045,11 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	 */
 	public function get_git_status( $post_id ) {
 
-		if ( 'wpcd_app_server' == get_post_type( $post_id ) ) {
+		if ( 'wpcd_app_server' === (string) get_post_type( $post_id ) ) {
 			return (bool) get_post_meta( $post_id, 'wpcd_wpapp_git_status', true );
 		}
 
-		if ( 'wpcd_app' == get_post_type( $post_id ) ) {
+		if ( 'wpcd_app' === (string) get_post_type( $post_id ) ) {
 			return (bool) get_post_meta( $post_id, 'wpapp_git_status', true );
 		}
 
@@ -2556,6 +2574,52 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				}
 				break;
 
+			/* Delete server records */
+			case 'delete-server-record':
+				// If for some reason this is called via CRON, do nothing and return.
+				// We're not doing anything to delete servers via cron right now.
+				// But we might later so adding this check now since we have it in the wpcd_app_delete_post() function.
+				if ( true === wp_doing_cron() || true === wpcd_is_doing_cron() ) {
+					$result = array(
+						'status' => __( 'You cannot delete a server record inside of a CRON process.', 'wpcd' ),
+						'done'   => false,
+					);
+					break;
+				}
+				// Which server record are we deleting?.
+				$delete_server_id = sanitize_text_field( wp_unslash( $_POST['server_id'] ) );
+				$user_id          = (int) get_current_user_id();
+				$post_author      = (int) get_post( $id )->post_author;
+				/**
+				 * We're not deleting anything if the current user does not have permission to delete the server record
+				 * or if the current user id does not match the server author id.
+				 * Note: Changes to this permission logic might also need to be done in function
+				 * wpcd_app_server_delete_post() located in file class-wpcd-posts-app-server.php.
+				 */
+				if ( ! wpcd_is_admin() ) {
+					if ( ! wpcd_user_can( $user_id, 'delete_server', $delete_server_id ) && $post_author !== $user_id ) {
+						$result = array(
+							'status' => __( "Sorry! you don't have permission to delete a server record.", 'wpcd' ),
+							'done'   => false,
+						);
+						break;
+					}
+				}
+				// If we got here, ok to delete the server record and related child posts.
+				$deleted_server_record = wp_delete_post( $delete_server_id );
+				if ( $deleted_server_record ) {
+					wpcd_delete_child_posts( 'wpcd_app', $delete_server_id );
+					$result = array(
+						'status' => __( 'Server record successfully deleted.', 'wpcd' ),
+						'done'   => true,
+					);
+				} else {
+					$result = array(
+						'status' => __( 'Failed! something went wrong during delete server record', 'wpcd' ),
+						'done'   => false,
+					);
+				}
+				break;
 			/* Every other request is sent here - which is most of them  */
 			default:
 				$additional = array();
@@ -3112,7 +3176,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 		if ( wpcd_get_option( 'wordpress_app_sites_disable_page_cache' ) ) {
 			$instance['action_hook'] = 'wpcd_pending_log_toggle_page_cache';
-			WPCD_POSTS_PENDING_TASKS_LOG()->add_pending_task_log_entry( $app_id, 'disable-page-cache', $app_id, $instance, 'ready', $app_id, __( 'Waiting To Install Page Cache For New Site', 'wpcd' ) );
+			WPCD_POSTS_PENDING_TASKS_LOG()->add_pending_task_log_entry( $app_id, 'disable-page-cache', $app_id, $instance, 'ready', $app_id, __( 'Install Page Cache For New Site', 'wpcd' ) );
 		}
 
 	}
@@ -3534,9 +3598,9 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		$post_types = array( 'wpcd_app_server', 'wpcd_app', 'wpcd_team', 'wpcd_permission_type', 'wpcd_command_log', 'wpcd_ssh_log', 'wpcd_error_log', 'wpcd_pending_log' );
 
 		if ( ( is_object( $screen ) && in_array( $screen->post_type, $post_types ) ) || WPCD_WORDPRESS_APP_PUBLIC::is_public_page() ) {
-			
+
 			wp_enqueue_style( 'wpcd-wpapp-admin-app-css', wpcd_url . 'includes/core/apps/wordpress-app/assets/css/wpcd-wpapp-admin-app.css', array(), wpcd_scripts_version );
-			
+
 			wp_enqueue_script( 'wpcd-admin-common', wpcd_url . 'includes/core/apps/wordpress-app/assets/js/wpcd-admin-common.js', array( 'jquery' ), wpcd_scripts_version, true );
 			wp_localize_script(
 				'wpcd-admin-common',
@@ -3810,6 +3874,41 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			$site_needs_updates = $this->generate_meta_dropdown( 'wpapp_sites_needs_updates', __( 'Site Needs Updates', 'wpcd' ), $updates_options );
 			echo $site_needs_updates;
 
+			/* Stuff only the admin should see. */
+			if ( wpcd_is_admin() ) {
+				/**
+				 * Filters specific to WooCommerce
+				 */
+				if ( true === wpcd_is_wc_module_enabled() || true === wpcd_is_mt_enabled() ) {
+
+					// TEMPLATE FLAGS.
+					$template_flag_options = array(
+						'1' => __( 'Yes', 'wpcd' ),
+						'0' => __( 'No', 'wpcd' ),
+					);
+					$is_template           = $this->generate_meta_dropdown( 'wpapp_is_template', __( 'Template', 'wpcd' ), $template_flag_options );
+					echo $is_template;
+
+				}
+
+				/**
+				 * Filters specific to Multi-tenant
+				 */
+				if ( true === wpcd_is_mt_enabled() ) {
+
+					// MT SITE TYPE.
+					$mt_site_type = WPCD_POSTS_APP()->generate_meta_dropdown( 'wpcd_app', 'wpcd_app_mt_site_type', __( 'MT Site Type', 'wpcd' ) );
+					echo $mt_site_type;
+
+					// MT VERSION.
+					$mt_site_type = WPCD_POSTS_APP()->generate_meta_dropdown( 'wpcd_app', 'wpcd_app_mt_version', __( 'MT Version', 'wpcd' ) );
+					echo $mt_site_type;
+
+					// MT PARENT ID.
+					$mt_parent_id = WPCD_POSTS_APP()->generate_meta_dropdown( 'wpcd_app', 'wpcd_app_mt_parent', __( 'MT Parent Template', 'wpcd' ) );
+					echo $mt_parent_id;
+				}
+			}
 		}
 	}
 
@@ -3980,6 +4079,76 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 						'key'     => 'wpcd_site_needs_updates',
 						'value'   => $wpapp_sites_needs_updates,
 						'compare' => '=',
+					);
+				}
+			}
+
+			// Template Flag.
+			// @todo: This logic does not handle empty metas.
+			if ( isset( $_GET['wpapp_is_template'] ) && ! empty( $_GET['wpapp_is_template'] ) ) {
+				$wpapp_template_flag = sanitize_text_field( filter_input( INPUT_GET, 'wpapp_is_template', FILTER_UNSAFE_RAW ) );
+
+				if ( $wpapp_template_flag === '1' ) {
+
+					$qv['meta_query'][] = array(
+						'relation' => 'OR',
+						array(
+							'key'     => 'wpcd_is_template_site',
+							'value'   => $wpapp_template_flag,
+							'compare' => '=',
+						),
+					);
+
+				} else {
+					$qv['meta_query'][] = array(
+						'key'     => 'wpcd_is_template_site',
+						'value'   => $wpapp_template_flag,
+						'compare' => '=',
+					);
+				}
+			}
+
+			// MT Site Type.
+			if ( isset( $_GET['wpcd_app_mt_site_type'] ) && ! empty( $_GET['wpcd_app_mt_site_type'] ) ) {
+				$wpapp_mt_site_type = sanitize_text_field( filter_input( INPUT_GET, 'wpcd_app_mt_site_type', FILTER_UNSAFE_RAW ) );
+
+				if ( ! empty( $wpapp_mt_site_type ) ) {
+					$qv['meta_query'][] = array(
+						array(
+							'key'     => 'wpcd_app_mt_site_type',
+							'value'   => $wpapp_mt_site_type,
+							'compare' => '=',
+						),
+					);
+				}
+			}
+
+			// MT Version.
+			if ( isset( $_GET['wpcd_app_mt_version'] ) && ! empty( $_GET['wpcd_app_mt_version'] ) ) {
+				$wpcd_app_mt_version = sanitize_text_field( filter_input( INPUT_GET, 'wpcd_app_mt_version', FILTER_UNSAFE_RAW ) );
+
+				if ( ! empty( $wpcd_app_mt_version ) ) {
+					$qv['meta_query'][] = array(
+						array(
+							'key'     => 'wpcd_app_mt_version',
+							'value'   => $wpcd_app_mt_version,
+							'compare' => '=',
+						),
+					);
+				}
+			}
+
+			// MT Parent.
+			if ( isset( $_GET['wpcd_app_mt_parent'] ) && ! empty( $_GET['wpcd_app_mt_parent'] ) ) {
+				$wpcd_app_mt_parent = sanitize_text_field( filter_input( INPUT_GET, 'wpcd_app_mt_parent', FILTER_UNSAFE_RAW ) );
+
+				if ( ! empty( $wpcd_app_mt_parent ) ) {
+					$qv['meta_query'][] = array(
+						array(
+							'key'     => 'wpcd_app_mt_parent',
+							'value'   => $wpcd_app_mt_parent,
+							'compare' => '=',
+						),
 					);
 				}
 			}

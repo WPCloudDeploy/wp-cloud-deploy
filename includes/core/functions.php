@@ -1721,6 +1721,18 @@ function wpcd_is_mt_enabled() {
 }
 
 /**
+ * Returns TRUE if the custom tables for providers and DNS are enabled.
+ */
+function wpcd_is_custom_dns_provider_tables_enabled() {
+
+	if ( defined( 'WPCD_CUSTOM_DNS_PROVIDER_TABLES' ) && true === WPCD_CUSTOM_DNS_PROVIDER_TABLES ) {
+		return true;
+	}
+
+	return false;
+}
+
+/**
  * Check if user has a role
  *
  * @param int    $user_id The wp user id to check.

@@ -634,6 +634,8 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			$smtp_pass      = self::decrypt( $gateway_data['smtp_pass'] );
 			$smtp_domain    = $gateway_data['domain'];
 			$smtp_hostname1 = $gateway_data['hostname1'];
+			$smtp_usetls	= $gateway_data['usetls'];
+			$smtp_usestarttls	= $gateway_data['usestarttls'];
 			$smtp_note      = $gateway_data['note'];
 
 			$smtp_gateway_button_txt = __( 'Reinstall Email Gateway', 'wpcd' );
@@ -646,6 +648,8 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			$smtp_pass      = '';
 			$smtp_domain    = '';
 			$smtp_hostname1 = '';
+			$smtp_usetls	= 'YES';
+			$smtp_usestarttls = 'YES';
 			$smtp_note      = '';
 
 			$smtp_gateway_button_txt = __( 'Install Email Gateway', 'wpcd' );
@@ -701,7 +705,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			'raw_attributes' => array(
 				'std'            => $smtp_domain,
 				'desc'           => __( 'The default domain for sending messages', 'wpcd' ),
-				'columns'        => 4,
+				'columns'        => 3,
 				// the key of the field (the key goes in the request).
 				'data-wpcd-name' => 'domain',
 			),
@@ -712,9 +716,40 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			'raw_attributes' => array(
 				'std'            => $smtp_hostname1,
 				'desc'           => __( 'FQDN for the server. Some SMTP servers will require this to be a working domain name (example: server1.myblog.com)', 'wpcd' ),
-				'columns'        => 4,
+				'columns'        => 3,
 				// the key of the field (the key goes in the request).
 				'data-wpcd-name' => 'hostname1',
+			),
+		);
+		$actions['email-gateway-smtp-usetls'] = array(
+			'label'          => __( 'Use TLS', 'wpcd' ),
+			'type'           => 'select',
+			'raw_attributes' => array(
+				'options'         => [
+					'YES' => 'Yes',
+					'NO' => 'No',
+				],
+				'std'            => $smtp_usetls,
+				'desc'           => __( 'Use TLS. Warning! Turning this off has security implications!', 'wpcd' ),
+				'columns'        => 3,
+				// the key of the field (the key goes in the request).
+				'data-wpcd-name' => 'usetls',
+			),
+		);
+		$actions['email-gateway-smtp-usestarttls'] = array(
+			'label'          => __( 'Use STARTTLS', 'wpcd' ),
+			'type'           => 'select',
+			'raw_attributes' => array(
+				'options'         => [
+					'YES' => 'Yes',
+					'NO' => 'No',
+
+				],
+				'std'            => $smtp_usestarttls,
+				'desc'           => __( 'Use STARTTLS. Warning! Turning this off has security implications!', 'wpcd' ),
+				'columns'        => 3,
+				// the key of the field (the key goes in the request).
+				'data-wpcd-name' => 'usestarttls',
 			),
 		);
 		$actions['email-gateway-smtp-note']     = array(
@@ -735,7 +770,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 				'columns'             => 3,
 				// make sure we give the user a confirmation prompt.
 				'confirmation_prompt' => __( 'Are you sure you would like to install or update the email gateway service?', 'wpcd' ),
-				'data-wpcd-fields'    => wp_json_encode( array( '#wpcd_app_action_email-gateway-smtp-server', '#wpcd_app_action_email-gateway-smtp-user', '#wpcd_app_action_email-gateway-smtp-password', '#wpcd_app_action_email-gateway-smtp-domain', '#wpcd_app_action_email-gateway-smtp-hostname', '#wpcd_app_action_email-gateway-smtp-note' ) ),
+				'data-wpcd-fields'    => wp_json_encode( array( '#wpcd_app_action_email-gateway-smtp-server', '#wpcd_app_action_email-gateway-smtp-user', '#wpcd_app_action_email-gateway-smtp-password', '#wpcd_app_action_email-gateway-smtp-domain', '#wpcd_app_action_email-gateway-smtp-hostname', '#wpcd_app_action_email-gateway-smtp-usetls', '#wpcd_app_action_email-gateway-smtp-usestarttls', '#wpcd_app_action_email-gateway-smtp-note' ) ),
 			),
 			'type'           => 'button',
 		);
@@ -1924,6 +1959,8 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		$smtp_password = wpcd_get_early_option( 'wpcd_email_gateway_smtp_password' );
 		$smtp_domain   = wpcd_get_early_option( 'wpcd_email_gateway_smtp_domain' );
 		$smtp_hostname = wpcd_get_early_option( 'wpcd_email_gateway_smtp_hostname' );
+		$smtp_usetls = wpcd_get_early_option( 'wpcd_email_gateway_smtp_usetls' );
+		$smtp_usestarttls = wpcd_get_early_option( 'wpcd_email_gateway_smtp_usestarttls' );
 		$smtp_note     = wpcd_get_early_option( 'wpcd_email_gateway_smtp_note' );
 
 		$args                = array();
@@ -1932,6 +1969,8 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		$args['smtp_pass']   = (string) $smtp_password;
 		$args['domain']      = (string) $smtp_domain;
 		$args['hostname1']   = (string) $smtp_hostname;
+		$args['usetls']      = (string) $smtp_usetls;
+		$args['usestarttls'] = (string) $smtp_usestarttls;
 		$args['note']        = (string) $smtp_note;
 
 		$success = array(

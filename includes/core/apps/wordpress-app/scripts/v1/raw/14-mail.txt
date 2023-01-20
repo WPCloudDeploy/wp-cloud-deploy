@@ -60,6 +60,32 @@ then
 		Example: server1.myblog.com"
 		read -p "Hostname: " hostname1
 	fi
+	if [[ -z $usetls ]]
+	then
+		echo
+		echo "Do you want to use TLS? (y/n)"
+		read -p "Use TLS: " usetls
+		# translate y/n to YES/NO
+		if [[ $usetls == "y" ]]
+		then
+			usetls=YES
+		else
+			usetls=NO
+		fi
+	fi
+	if [[ -z $usestarttls ]]
+	then
+		echo
+		echo "Do you want to use STARTTLS? (y/n)"
+		read -p "Use STARTTLS: " usestarttls
+		# translate y/n to YES/NO
+		if [[ $usestarttls == "y" ]]
+		then
+			usestarttls=YES
+		else
+			usestarttls=NO
+		fi
+	fi
 
 	apt-get update
 	apt-get install ssmtp -y
@@ -68,8 +94,8 @@ then
 rewriteDomain=$domain
 hostname=$hostname1
 FromLineOverride=YES
-UseTLS=YES
-UseSTARTTLS=YES
+UseTLS=$usetls
+UseSTARTTLS=$usestarttls
 AuthUser=$smtp_user
 AuthPass=$smtp_pass
 AuthMethod=LOGIN" > /etc/ssmtp/ssmtp.conf

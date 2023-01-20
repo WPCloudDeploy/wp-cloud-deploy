@@ -133,7 +133,7 @@ Note: Even though the entire git development history isn't available on github, 
 * New: Option to delete server record without deleting the server at the provider.
 * Tweak: WPAPP - Add options for TLS and STARTTLS for the email gateway - this allows the user to disable TLS/STARTTLS (Thanks @batonac)
 * Tweak: Better styling for post-states when viewing the server and site lists.
-* Fix: Missing variable value when installing memcached. Harmless - just threw a php warning.
+* Fix: WPAPP - Missing variable value when installing memcached. Harmless - just threw a php warning.
 * Fix: WPAPP - Remove nginx related sections in the fail2ban tab when the web server is an OLS server.
 * Fix: WPAPP - Handle an SSH message related to Multisite wildcard ssl - when ssl was already disabled we weren't flipping the appropriate metas.
 * Dev: WPAPP - Use global function to reset site permissions (refactor).

@@ -474,7 +474,8 @@ class WPCD_WORDPRESS_TABS_SERVER_FAIL2BAN extends WPCD_WORDPRESS_TABS {
 						'label'          => '',
 						'raw_attributes' => array(
 							'std'                 => __( 'Change', 'wpcd' ),
-							'desc'                => __( 'Click the button to change the data for this protocol.', 'wpcd' ), // make sure we give the user a confirmation prompt.
+							'desc'                => __( 'Click the button to change the data for this protocol.', 'wpcd' ),
+							// make sure we give the user a confirmation prompt.
 							'confirmation_prompt' => sprintf( __( 'Are you sure you would like to change the parameters for the %s protocol on the Fail2Ban service?', 'wpcd' ), $protocol ),
 							'data-wpcd-fields'    => json_encode( array( "#wpcd_app_action_fail2ban-new-$protocol", "#wpcd_app_action_fail2ban-new-ban-time-$protocol", "#wpcd_app_action_fail2ban-new-find-time-$protocol", "#wpcd_app_action_fail2ban-new-max-retry-$protocol" ) ),
 							'columns'             => 4,
@@ -488,7 +489,8 @@ class WPCD_WORDPRESS_TABS_SERVER_FAIL2BAN extends WPCD_WORDPRESS_TABS {
 							'label'          => '',
 							'raw_attributes' => array(
 								'std'                 => __( 'Remove Protocol', 'wpcd' ),
-								'desc'                => __( 'Click the button to disable this protocol in fail2ban.', 'wpcd' ), // make sure we give the user a confirmation prompt.
+								'desc'                => __( 'Click the button to disable this protocol in fail2ban.', 'wpcd' ),
+								// make sure we give the user a confirmation prompt.
 								'confirmation_prompt' => sprintf( __( 'Are you sure you would like to disable the %s protocol on the Fail2Ban service?', 'wpcd' ), $protocol ),
 								'data-wpcd-fields'    => json_encode( array( "#wpcd_app_action_fail2ban-new-$protocol" ) ),
 								'columns'             => 4,
@@ -500,7 +502,8 @@ class WPCD_WORDPRESS_TABS_SERVER_FAIL2BAN extends WPCD_WORDPRESS_TABS {
 							'label'          => '',
 							'raw_attributes' => array(
 								'std'                 => __( 'Remove Metas', 'wpcd' ),
-								'desc'                => __( 'Click the button to remove metas. No changes will be made to the server.', 'wpcd' ), // make sure we give the user a confirmation prompt.
+								'desc'                => __( 'Click the button to remove metas. No changes will be made to the server.', 'wpcd' ),
+								// make sure we give the user a confirmation prompt.
 								'confirmation_prompt' => sprintf( __( 'Are you sure you would like to remove metas for the %s protocol?', 'wpcd' ), $protocol ),
 								'data-wpcd-fields'    => json_encode( array( "#wpcd_app_action_fail2ban-new-$protocol" ) ),
 								'columns'             => 4,

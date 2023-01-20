@@ -2323,9 +2323,7 @@ then
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
 		echo "ols-is not supported - this operation probably broke your ols site."
-		# search and replace needs to be done in this file: ${VHDIR}/${$domain}/$g_vhost_conf 
-		# search for php_admin_value open_basedir "/var/www/$domain/html:/tmp/"
-		# replace with php_admin_value open_basedir "/var/www/$domain/html:/tmp/:$mt_version_folder/"
+		sed -i "s%php_admin_value open_basedir.*%php_admin_value open_basedir \"/var/www/$domain/html:/tmp/:$mt_version_folder\"%g" ${VHDIR}/${domain}/$g_vhost_conf
 	fi
 
 	# Prevent WP from attempting to upgrade things.

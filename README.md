@@ -126,17 +126,18 @@ Note: Even though the entire git development history isn't available on github, 
 ## Change Log ##
 5.3.0
 ------
-* New: Option to change the background and foreground color of the 'terminal'.
-* New: Foundation for git support added.
+* New: WPAPP - Option to change the background and foreground color of the 'terminal'.
+* New: WPAPP - Foundation for git support added.
 * New: Foundation for Multi-Tenant added.
 * New: Foundation set for moving providers and dns data into custom tables.
 * New: Option to delete server record without deleting the server at the provider.
-* Tweak: Add options for TLS and STARTTLS for the email gateway - this allows the user to disable TLS/STARTTLS (Thanks @batonac)
+* Tweak: WPAPP - Add options for TLS and STARTTLS for the email gateway - this allows the user to disable TLS/STARTTLS (Thanks @batonac)
 * Tweak: Better styling for post-states when viewing the server and site lists.
 * Fix: Missing variable value when installing memcached. Harmless - just threw a php warning.
-* Fix: Handle an SSH message related to Multisite wildcard ssl - when ssl was already disabled we werent' flipping the appropriate metas.
-* Dev: Use global function to reset site permissions (refactor).
-* Dev: Add option for executing local post-processing scripts after a site is cloned.
+* Fix: WPAPP - Remove nginx related sections in the fail2ban tab when the web server is an OLS server.
+* Fix: WPAPP - Handle an SSH message related to Multisite wildcard ssl - when ssl was already disabled we weren't flipping the appropriate metas.
+* Dev: WPAPP - Use global function to reset site permissions (refactor).
+* Dev: WPAPP - Add option for executing local post-processing scripts after a site is cloned.
 
 5.2.3
 ------

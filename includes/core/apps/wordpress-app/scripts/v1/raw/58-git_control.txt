@@ -2322,7 +2322,6 @@ then
 		done
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
-		echo "ols-is not supported - this operation probably broke your ols site."
 		sed -i "s%php_admin_value open_basedir.*%php_admin_value open_basedir \"/var/www/$domain/html:/tmp/:$mt_version_folder\"%g" ${VHDIR}/${domain}/$g_vhost_conf
 	fi
 

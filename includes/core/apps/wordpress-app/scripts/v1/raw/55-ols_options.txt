@@ -236,13 +236,23 @@ has_cache_settings="### marker BROWSER CACHE"
 
 is_cache_settings() {
     get_domain_htaccess_path "$domain"
-    cat "${domain_htaccess}" | grep -qP "${has_cache_settings}"
+    if grep -qP "${has_cache_settings}" "${domain_htaccess}"; then
+        return $(true)
+    else
+        return $(false)
+    fi
+    
 }
 
 is_cache_on() {
     # This is kinda pointless is_cache_settings will only ever has that block if its enabled. otherwise its deleted entirely 
     # there isn't a bool besides in wp settings
-    cat "${domain_htaccess}" | grep -qP "${has_cache_settings}"
+    if grep -qP "${has_cache_settings}" "${domain_htaccess}"; then
+        return $(true)
+    else
+        return $(false)
+    fi
+    
 }
 # https://docs.litespeedtech.com/lscache/lscwp/cache/#how-to-set-it-up
 # https://docs.litespeedtech.com/lscache/lscwp/cache/#browser-tab
@@ -340,7 +350,7 @@ if [[ "${action}" == 'disable_browser_cache' || "${action}" == "$((i++))" ]]; th
         fi
     else
         disable_browser_cache
-        if is_cache_settings; then
+        if ! is_cache_settings; then
             echo -e "${GREEN} ${SUCCESSFUL} cache disabled for '${domain}'${NC}" # ACTION
             OLS_RELOAD=1
         else

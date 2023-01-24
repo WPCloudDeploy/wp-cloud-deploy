@@ -128,11 +128,12 @@ Note: Even though the entire git development history isn't available on github, 
 ------
 * New: WPAPP - Option to change the background and foreground color of the 'terminal'.
 * New: WPAPP - Foundation for git support added.
-* New: Foundation for Multi-Tenant added.
+* New: WPAPP - Foundation for Multi-Tenant added.
 * New: Foundation set for moving providers and dns data into custom tables.
-* New: Option to delete server record without deleting the server at the provider.
+* New: WPAPP - Option to delete server record without deleting the server at the provider.
 * Tweak: WPAPP - Add options for TLS and STARTTLS for the email gateway - this allows the user to disable TLS/STARTTLS (Thanks @batonac)
 * Tweak: Better styling for post-states when viewing the server and site lists.
+* Fix: WPAPP - Disabling/Enabling browser cache tweak was not working for OLS.
 * Fix: WPAPP - Missing variable value when installing memcached. Harmless - just threw a php warning.
 * Fix: WPAPP - Remove nginx related sections in the fail2ban tab when the web server is an OLS server.
 * Fix: WPAPP - Handle an SSH message related to Multisite wildcard ssl - when ssl was already disabled we weren't flipping the appropriate metas.

@@ -835,7 +835,7 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 		if ( ! empty( $bucket ) ) {
 			update_post_meta( $server_id, 'wpapp_auto_backup_bucket_all_sites', $bucket );
 		}
-		if ( ! empty( $retention_days ) ) {
+		if ( ! empty( $retention_days ) && 'schedule_full' === $action ) {
 			update_post_meta( $server_id, 'wpapp_auto_backup_retention_days_all_sites', $retention_days );
 		}
 

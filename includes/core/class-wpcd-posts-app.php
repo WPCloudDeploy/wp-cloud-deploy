@@ -2067,6 +2067,8 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 			$sql   = $wpdb->prepare( "SELECT DISTINCT post_author FROM {$wpdb->posts} WHERE post_type = %s AND post_status = %s  AND ID IN ( " . $posts_placeholder . ' ) ORDER BY post_author', $query_fields );
 			$posts = $wpdb->get_results( $sql );
 
+			$owners = array(); // Setup initial blank array of owners.
+
 			if ( ! empty( $posts ) ) {
 				foreach ( $posts as $p ) {
 					if ( in_array( $p->post_author, $owners ) ) {

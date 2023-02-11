@@ -134,6 +134,7 @@ Note: Even though the entire git development history isn't available on github, 
 * Tweak: WPAPP - Add options for TLS and STARTTLS for the email gateway - this allows the user to disable TLS/STARTTLS (Thanks @batonac)
 * Tweak: Better styling for post-states when viewing the server and site lists.
 * Tweak: WPAPP - When disabling AUTOMATIC BACKUPS on a server, keep the original specified retention days value in the UI instead of showing the default value of 7.
+* Fix: A 500 error / hard php error was thrown when using the SELECT2 filter for owners in the app screen (the select2 filter only shows if the number of users is greater than 25)
 * Fix: WPAPP - Disabling/Enabling browser cache tweak was not working for OLS.
 * Fix: WPAPP - Missing variable value when installing memcached. Harmless - just threw a php warning.
 * Fix: WPAPP - Remove nginx related sections in the fail2ban tab when the web server is an OLS server.

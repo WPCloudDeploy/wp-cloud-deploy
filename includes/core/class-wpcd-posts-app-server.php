@@ -1413,7 +1413,7 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 			}
 		}
 
-		if ( ( ( is_admin() && $query->is_main_query() && $pagenow === 'edit.php' ) || wpcd_is_public_servers_list_query( $query ) ) && $query->query['post_type'] === 'wpcd_app_server' && $filter_action == 'Filter' ) {
+		if ( ( ( is_admin() && $query->is_main_query() && $pagenow === 'edit.php' ) || wpcd_is_public_servers_list_query( $query ) ) && $query->query['post_type'] === 'wpcd_app_server' && __( 'Filter', 'wpcd' ) === $filter_action ) {
 			$qv = &$query->query_vars;
 
 			// SERVER PROVIDER.

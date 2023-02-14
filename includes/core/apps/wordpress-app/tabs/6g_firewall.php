@@ -48,6 +48,12 @@ class WPCD_WORDPRESS_TABS_6G_FIREWALL extends WPCD_WORDPRESS_TABS {
 	 * @return array    $tabs The default value.
 	 */
 	public function get_tab( $tabs, $id ) {
+
+		// Do not show tab for wpcd versions 5.2.6 or later.
+		if ( $this->is_526_or_later( $id ) ) {
+			return $tabs;
+		}
+
 		if ( $this->get_tab_security( $id ) ) {
 			$tabs[ $this->get_tab_slug() ] = array(
 				'label' => __( '6G WAF', 'wpcd' ),
@@ -189,6 +195,11 @@ class WPCD_WORDPRESS_TABS_6G_FIREWALL extends WPCD_WORDPRESS_TABS {
 
 		if ( ! $id ) {
 			// id not found!
+			return $fields;
+		}
+
+		// Do not show tab or fields for tab for wpcd versions 5.2.6 or later.
+		if ( $this->is_526_or_later( $id ) ) {
 			return $fields;
 		}
 

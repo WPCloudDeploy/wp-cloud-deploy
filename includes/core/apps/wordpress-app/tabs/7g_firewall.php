@@ -431,13 +431,15 @@ class WPCD_WORDPRESS_TABS_7G_FIREWALL extends WPCD_WORDPRESS_TABS {
 				'save_field' => false,
 			);
 
-			/* Important Notes */
-			$fields[] = array(
-				'name' => __( 'Important Notes', 'wpcd' ),
-				'tab'  => '7g_waf',
-				'type' => 'heading',
-				'desc' => __( 'There is no need to activate both the 7G and 6G firewalls. The 7G firewall is an updated version of the 6G firewall.  We are including both because some sites still use the 6G firewall. And the 6G firewall has had more time in the real world.  New sites should start with the 7G firewall and then downgrade to 6G if there are issues.', 'wpcd' ),
-			);
+			/* Important Notes - only applies on versions of WPCD earlier than 5.2.6. */
+			if ( ! $this->is_526_or_later( $id ) ) {
+				$fields[] = array(
+					'name' => __( 'Important Notes', 'wpcd' ),
+					'tab'  => '7g_waf',
+					'type' => 'heading',
+					'desc' => __( 'There is no need to activate both the 7G and 6G firewalls. The 7G firewall is an updated version of the 6G firewall.  We are including both because some sites still use the 6G firewall. And the 6G firewall has had more time in the real world.  New sites should start with the 7G firewall and then downgrade to 6G if there are issues.', 'wpcd' ),
+				);
+			}
 
 			/* About WAFs */
 			$desc  = __( 'A WAF is a web application firewall and operates at a higher level than your standard firewall.  It generally has more "smarts" since it sees data the way a web-browser would see the data.', 'wpcd' );

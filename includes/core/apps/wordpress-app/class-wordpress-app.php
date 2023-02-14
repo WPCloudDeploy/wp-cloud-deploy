@@ -988,7 +988,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	/**
 	 * Returns a boolean true/false if PHP 80 is supposed to be installed.
 	 *
-	 * @param int $server_id ID of server being interrogated...
+	 * @param int $server_id ID of server being interrogated.
 	 *
 	 * @return boolean
 	 */
@@ -1007,7 +1007,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	/**
 	 * Returns a boolean true/false if PHP 81 is supposed to be installed.
 	 *
-	 * @param int $server_id ID of server being interrogated...
+	 * @param int $server_id ID of server being interrogated.
 	 *
 	 * @return boolean
 	 */
@@ -1036,7 +1036,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	 * Version 4.16 and later of WPCD deactivated earlier versions of PHP
 	 * by default.  Only if the user explicitly activated it was it enabled.
 	 *
-	 * @param int    $server_id ID of server being interrogated...
+	 * @param int    $server_id ID of server being interrogated.
 	 * @param string $php_version PHP version - eg: php56, php71, php72, php73, php74, php81, php82 etc.
 	 *
 	 * @return boolean
@@ -1094,7 +1094,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	 *
 	 * ***This is no longer needed - see the is_7g16_installed() function below instead.
 	 *
-	 * @param int $server_id ID of server being interrogated...
+	 * @param int $server_id ID of server being interrogated.
 	 *
 	 * @return boolean
 	 */
@@ -1121,7 +1121,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	/**
 	 * Returns a boolean true/false if the 7G V 1.6 Firewall Rules is installed.
 	 *
-	 * @param int $server_id ID of server being interrogated...
+	 * @param int $server_id ID of server being interrogated.
 	 *
 	 * @return boolean
 	 */
@@ -1148,7 +1148,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	/**
 	 * Returns a boolean true/false if wpcli 2.5 is installed.
 	 *
-	 * @param int $server_id ID of server being interrogated...
+	 * @param int $server_id ID of server being interrogated.
 	 *
 	 * @return boolean
 	 */
@@ -1175,7 +1175,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	/**
 	 * Returns a boolean true/false if wpcli 2.6 is installed.
 	 *
-	 * @param int $server_id ID of server being interrogated...
+	 * @param int $server_id ID of server being interrogated.
 	 *
 	 * @return boolean
 	 */
@@ -1202,7 +1202,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	/**
 	 * Returns a boolean true/false if wpcli 2.7 is installed.
 	 *
-	 * @param int $server_id ID of server being interrogated...
+	 * @param int $server_id ID of server being interrogated.
 	 *
 	 * @return boolean
 	 */
@@ -1229,7 +1229,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	/**
 	 * Returns a boolean true/false if the PHP Module INTL is supposed to be installed on the server.
 	 *
-	 * @param int $server_id ID of server being interrogated...
+	 * @param int $server_id ID of server being interrogated.
 	 *
 	 * @return boolean
 	 */
@@ -1252,7 +1252,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	/**
 	 * Returns a boolean true/false if the server is a 4.6.0 or later server or was upgraded to that version.
 	 *
-	 * @param int $server_id ID of server being interrogated...
+	 * @param int $server_id ID of server being interrogated.
 	 *
 	 * @return boolean
 	 */
@@ -1267,6 +1267,30 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		$last_upgrade_done = $this->get_server_meta_by_app_id( $server_id, 'wpcd_last_upgrade_done', true );  // This function is smart enough to know if the ID being passed is a server or app id and adjust accordingly.
 
 		if ( (int) $last_upgrade_done >= 460 ) {
+			return true;
+		}
+
+		return false;
+
+	}
+
+	/**
+	 * Returns a boolean true/false if the server is a 5.2.6 or later server.
+	 *
+	 * Unlike the is_460_or_later() function above, this one does not check to
+	 * the server upgrade meta. Right now the processes that use this particular
+	 * version check function does care about the upgrade meta.  We only want
+	 * To check the original installed version.
+	 *
+	 * @param int $server_id ID of server being interrogated.
+	 *
+	 * @return boolean
+	 */
+	public function is_526_or_later( $server_id ) {
+
+		$initial_plugin_version = $this->get_server_meta_by_app_id( $server_id, 'wpcd_server_plugin_initial_version', true );  // This function is smart enough to know if the ID being passed is a server or app id and adjust accordingly.
+
+		if ( version_compare( $initial_plugin_version, '5.2.6' ) > -1 ) {
 			return true;
 		}
 

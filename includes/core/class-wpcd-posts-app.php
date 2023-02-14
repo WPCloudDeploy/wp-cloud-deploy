@@ -1094,7 +1094,7 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 		}
 
 		$filter_action = sanitize_text_field( filter_input( INPUT_GET, 'filter_action', FILTER_UNSAFE_RAW ) );
-		if ( ( ( is_admin() && $query->is_main_query() && 'edit.php' === $pagenow ) || wpcd_is_public_apps_list_query( $query ) ) && 'wpcd_app' === $query->query['post_type'] && __( 'Filter', 'wpcd' ) === $filter_action ) {
+		if ( ( ( is_admin() && $query->is_main_query() && 'edit.php' === $pagenow ) || wpcd_is_public_apps_list_query( $query ) ) && 'wpcd_app' === $query->query['post_type'] && ( ! empty( $filter_action ) ) ) {
 			$qv = &$query->query_vars;
 
 			// APP TYPE.

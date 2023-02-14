@@ -1092,6 +1092,8 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	/**
 	 * Returns a boolean true/false if the 7G V 1.5 Firewall Rules is installed.
 	 *
+	 * ***This is no longer needed - see the is_7g16_installed() function below instead.
+	 *
 	 * @param int $server_id ID of server being interrogated...
 	 *
 	 * @return boolean
@@ -1107,6 +1109,33 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			// See if it was manually upgraded - which would leave a meta field value behind on the server CPT record.
 			$it_is_installed = (float) $this->get_server_meta_by_app_id( $server_id, 'wpcd_server_7g_upgrade', true );   // This function is smart enough to know if the ID being passed is a server or app id and adjust accordingly.
 			if ( $it_is_installed >= 1.5 ) {
+				return true;
+			} else {
+				return false;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Returns a boolean true/false if the 7G V 1.6 Firewall Rules is installed.
+	 *
+	 * @param int $server_id ID of server being interrogated...
+	 *
+	 * @return boolean
+	 */
+	public function is_7g16_installed( $server_id ) {
+
+		$initial_plugin_version = $this->get_server_meta_by_app_id( $server_id, 'wpcd_server_plugin_initial_version', true );  // This function is smart enough to know if the ID being passed is a server or app id and adjust accordingly.
+
+		if ( version_compare( $initial_plugin_version, '5.2.6' ) > -1 ) {
+			// Versions of the plugin after 5.2.6 automatically install 7g V 1.6.
+			return true;
+		} else {
+			// See if it was manually upgraded - which would leave a meta field value behind on the server CPT record.
+			$it_is_installed = (float) $this->get_server_meta_by_app_id( $server_id, 'wpcd_server_7g_upgrade', true );   // This function is smart enough to know if the ID being passed is a server or app id and adjust accordingly.
+			if ( $it_is_installed >= 1.6 ) {
 				return true;
 			} else {
 				return false;

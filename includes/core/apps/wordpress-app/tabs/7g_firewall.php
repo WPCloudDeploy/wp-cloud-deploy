@@ -210,12 +210,12 @@ class WPCD_WORDPRESS_TABS_7G_FIREWALL extends WPCD_WORDPRESS_TABS {
 		switch ( $webserver_type ) {
 			case 'ols':
 			case 'ols-enterprise':
-				$heading_desc = __( '6G Web Application Firewall / Powered by the Litespeed Web Server Engine', 'wpcd' );
+				$heading_name = __( '6G Web Application Firewall / Powered by the Litespeed Web Server Engine', 'wpcd' );
 				break;
 
 			case 'nginx':
 			default:
-				$heading_desc = __( '6G Web Application Firewall / Powered by the Nginx Web Server Engine', 'wpcd' );
+				$heading_name = __( '6G Web Application Firewall / Powered by the Nginx Web Server Engine', 'wpcd' );
 				break;
 
 		}
@@ -225,7 +225,7 @@ class WPCD_WORDPRESS_TABS_7G_FIREWALL extends WPCD_WORDPRESS_TABS {
 		$desc .= '<br />';
 
 		$fields[] = array(
-			'name' => __( '7G Web Application Firewall / Powered by the Nginx Web Server Engine', 'wpcd' ),
+			'name' => $heading_name,
 			'tab'  => '7g_waf',
 			'type' => 'heading',
 			'desc' => $desc,

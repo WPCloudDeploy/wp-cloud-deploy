@@ -214,13 +214,15 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
-	 * Gets the fields to shown in the UPGRADE tab in the server details screen.
+	 * Gets the fields to show in the UPGRADE tab in the server details screen.
 	 *
 	 * @param int $id the post id of the app cpt record.
 	 *
 	 * @return array Array of actions with key as the action slug and value complying with the structure necessary by metabox.io fields.
 	 */
 	private function get_upgrade_fields( $id ) {
+
+		$webserver_type = $this->get_web_server_type( $id );
 
 		$upgrade_check = $this->wpapp_upgrade_must_run_check( $id );
 
@@ -241,14 +243,14 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 				$actions = $this->get_upgrade_fields_default( $id );
 		}
 
-		// 7G Firewall Upgrade Options.
-		if ( ! $this->is_7g15_installed( $id ) ) {
+		// 7G Firewall Upgrade Options.  Only applies to NGINX
+		if ( ! $this->is_7g16_installed( $id ) && 'nginx' === $webserver_type ) {
 			$upgrade_7g_fields = $this->get_upgrade_fields_7g( $id );
 			$actions           = array_merge( $actions, $upgrade_7g_fields );
 		}
 
-		// PHP 8.1 install options.
-		if ( ! $this->is_php_81_installed( $id ) ) {
+		// PHP 8.1 install options.  Only applies to NGINX since all OLS servers will have it installed already.
+		if ( ! $this->is_php_81_installed( $id ) && 'nginx' === $webserver_type ) {
 			$upgrade_php_81_fields = $this->get_upgrade_fields_php81( $id );
 			$actions               = array_merge( $actions, $upgrade_php_81_fields );
 		}
@@ -259,8 +261,8 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 			$actions              = array_merge( $actions, $upgrade_wpcli_fields );
 		}
 
-		// PHP INTL module install options.
-		if ( ! $this->is_php_intl_module_installed( $id ) ) {
+		// PHP INTL module install options.  Only applies to NGINX since all OLS servers should have it installed already.
+		if ( ! $this->is_php_intl_module_installed( $id ) && 'nginx' === $webserver_type ) {
 			$upgrade_php_intl_fields = $this->get_upgrade_fields_php_intl( $id );
 			$actions                 = array_merge( $actions, $upgrade_php_intl_fields );
 		}
@@ -274,7 +276,7 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
-	 * Gets the fields to shown in the UPGRADE tab in the server details screen.
+	 * Gets the fields to show in the UPGRADE tab in the server details screen.
 	 * These fields are for LINUX level upgrades.
 	 *
 	 * @param int $id the post id of the app cpt record.
@@ -361,7 +363,7 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
-	 * Gets the fields to shown in the UPGRADE tab in the server details screen
+	 * Gets the fields to show in the UPGRADE tab in the server details screen
 	 * when upgrading to version 2.9.0;
 	 *
 	 * @param int $id the post id of the app cpt record.
@@ -413,7 +415,7 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
-	 * Gets the fields to shown in the UPGRADE tab in the server details screen
+	 * Gets the fields to show in the UPGRADE tab in the server details screen
 	 * when upgrading to version 4.6.0;
 	 *
 	 * @param int $id the post id of the app cpt record.
@@ -488,7 +490,7 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
-	 * Gets the fields to shown in the UPGRADE tab in the server details screen
+	 * Gets the fields to show in the UPGRADE tab in the server details screen
 	 * when upgrading to version 4.6.1;
 	 *
 	 * Version 4.6.1 upgrades are the SNAP modules for Lets Encrypt.
@@ -561,7 +563,7 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
-	 * Gets the fields to shown in the UPGRADE tab in the server details screen
+	 * Gets the fields to show in the UPGRADE tab in the server details screen
 	 * when upgrading to version 4.6.2;
 	 *
 	 * Version 4.6.2 upgrades is the 7G firewall files.
@@ -632,7 +634,7 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
-	 * Gets the fields to shown in the UPGRADE tab in the server details screen
+	 * Gets the fields to show in the UPGRADE tab in the server details screen
 	 * if PHP 8.1 needs to be installed.
 	 *
 	 * @param int $id the post id of the app cpt record.
@@ -696,7 +698,7 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 		// Set up metabox items.
 		$actions = array();
 
-		$upg_desc  = __( 'Use this button to install the latest version of the 7G Firewall rules (V1.5).', 'wpcd' );
+		$upg_desc  = __( 'Use this button to install the latest version of the 7G Firewall rules (V1.6).', 'wpcd' );
 		$upg_desc .= '<br />';
 		$upg_desc .= __( 'This will OVERWRITE any customizations you have made to the default 7G rules file.', 'wpcd' );
 
@@ -788,7 +790,7 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
-	 * Gets the fields to shown in the UPGRADE tab in the server details screen
+	 * Gets the fields to show in the UPGRADE tab in the server details screen
 	 * if the PHP INTL module needs to be installed.
 	 *
 	 * @param int $id the post id of the app cpt record.
@@ -829,7 +831,7 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
-	 * Gets the fields to shown in the UPGRADE tab in the server details screen
+	 * Gets the fields to show in the UPGRADE tab in the server details screen
 	 * when there are no upgrades to be done.
 	 *
 	 * @param int $id the post id of the app cpt record.
@@ -1204,6 +1206,15 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
 		}
 
+		// Get Webserver Type.
+		$webserver_type = $this->get_web_server_type( $id );
+
+		// Bail if not an NGINX server.
+		if ( 'nginx' !== $webserver_type ) {
+			// We really shouldn't get here - if we do it likely means someone has bypassed a bunch of security checks.
+			return new \WP_Error( __( 'This action cannot be run on a server running OLS.  It can only be run on server running NGINX.', 'wpcd' ) );
+		}
+
 		// Get the full command to be executed by ssh.
 		$run_cmd = $this->turn_script_into_command(
 			$instance,
@@ -1228,10 +1239,10 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 
 		// evaluate results.
 		if ( strpos( $result, 'journalctl -xe' ) !== false ) {
-			// Looks like there was a problem with restarting the NGINX - So update completion meta and return message.
-			update_post_meta( $id, 'wpcd_server_7g_upgrade', 1.5 );
+			// Looks like there was a problem with restarting the webserver - So update completion meta and return message.
+			update_post_meta( $id, 'wpcd_server_7g_upgrade', 1.6 );
 			/* translators: %s is replaced with the text of the result of the operation. */
-			return new \WP_Error( sprintf( __( 'There was a problem restarting the nginx server after the upgrade - here is the full output of the upgrade process: %s', 'wpcd' ), $result ) );
+			return new \WP_Error( sprintf( __( 'There was a problem restarting the web server after the upgrade - here is the full output of the upgrade process: %s', 'wpcd' ), $result ) );
 		}
 
 		// If we're here, we know that the nginx server restarted ok so let's do standard success checks.
@@ -1241,7 +1252,7 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 			return new \WP_Error( sprintf( __( 'Unable to perform action %1$s for server: %2$s', 'wpcd' ), $action, $result ) );
 		} else {
 			// update server field to tag server as being upgraded.
-			update_post_meta( $id, 'wpcd_server_7g_upgrade', 1.5 );
+			update_post_meta( $id, 'wpcd_server_7g_upgrade', 1.6 );
 
 			// Let user know command is complete and force a page rfresh.
 			$result = array(

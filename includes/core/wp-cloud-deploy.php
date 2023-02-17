@@ -719,18 +719,19 @@ class WP_CLOUD_DEPLOY {
 		$oslist = array(
 			'ubuntu2004lts' => __( 'Ubuntu 20.04 LTS', 'wpcd' ),
 			'ubuntu2204lts' => __( 'Ubuntu 22.04 LTS', 'wpcd' ),
-			'ubuntu1804lts' => __( 'Ubuntu 18.04 LTS (Deprecated, EOL April 2023)', 'wpcd' ),
 		);
 
 		// Remove some entries based on settings.
-		if ( (bool) wpcd_get_option( 'wordpress_app_disable_ubuntu_lts_1804' ) ) {
-			unset( $oslist['ubuntu1804lts'] );
-		}
 		if ( (bool) wpcd_get_option( 'wordpress_app_disable_ubuntu_lts_2004' ) ) {
 			unset( $oslist['ubuntu2004lts'] );
 		}
 		if ( (bool) wpcd_get_option( 'wordpress_app_disable_ubuntu_lts_2204' ) ) {
 			unset( $oslist['ubuntu2204lts'] );
+		}
+
+		// Add in some optional entries if necessary.
+		if ( (bool) wpcd_get_option( 'wordpress_app_enable_ubuntu_lts_1804' ) ) {
+			$oslist['ubuntu1804lts'] =  __( 'Ubuntu 18.04 LTS (Deprecated, EOL April 2023)', 'wpcd' );
 		}
 
 		// Return filtered array.

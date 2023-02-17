@@ -1094,13 +1094,6 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'options' => WPCD()->get_os_list(),
 			),
 			array(
-				'id'      => 'wordpress_app_disable_ubuntu_lts_1804',
-				'type'    => 'checkbox',
-				'name'    => __( 'Disable Ubuntu 18.04 LTS?', 'wpcd' ),
-				'tooltip' => __( 'Do not show the option to install Ubuntu 18.04 LTS servers.', 'wpcd' ),
-				'tab'     => 'wordpress-app-general-wpadmin',
-			),
-			array(
 				'id'      => 'wordpress_app_disable_ubuntu_lts_2004',
 				'type'    => 'checkbox',
 				'name'    => __( 'Disable Ubuntu 20.04 LTS?', 'wpcd' ),
@@ -1112,6 +1105,13 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'type'    => 'checkbox',
 				'name'    => __( 'Disable Ubuntu 22.04 LTS?', 'wpcd' ),
 				'tooltip' => __( 'Do not show the option to install Ubuntu 22.04 LTS servers.', 'wpcd' ),
+				'tab'     => 'wordpress-app-general-wpadmin',
+			),
+			array(
+				'id'      => 'wordpress_app_enable_ubuntu_lts_1804',
+				'type'    => 'checkbox',
+				'name'    => __( 'Enable Ubuntu 18.04 LTS?', 'wpcd' ),
+				'tooltip' => __( 'Show the option to install Ubuntu 18.04 LTS servers.', 'wpcd' ),
 				'tab'     => 'wordpress-app-general-wpadmin',
 			),
 			array(

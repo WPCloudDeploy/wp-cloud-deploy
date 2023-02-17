@@ -134,6 +134,8 @@ Note: Even though the entire git development history isn't available on github, 
 * Tweak: Better styling for post-states when viewing the server and site lists.
 * Tweak: WPAPP - When disabling AUTOMATIC BACKUPS on a server, keep the original specified retention days value in the UI instead of showing the default value of 7.
 * Tweak: WPAPP - Disable 6G Firewall tab on new servers.  6G Firewall is now deprecated.
+* Tweak: WPAPP - Ubuntu 18.04 no longer shown as an option for new servers.
+* Tweak: WPAPP - Use the latest version of the 7G firewall (v1.6).
 * Fix: A 500 error / hard php error was thrown when using the SELECT2 filter for owners in the app screen (the select2 filter only shows if the number of users is greater than 25.)
 * Fix: Certain Filters in the server and site list not working when the language was set to something other than English.
 * Fix: WPAPP - Disabling/Enabling browser cache tweak was not working for OLS.
@@ -141,7 +143,7 @@ Note: Even though the entire git development history isn't available on github, 
 * Fix: WPAPP - Missing variable value when installing memcached. Harmless - just threw a php warning.
 * Fix: WPAPP - Remove nginx related sections in the fail2ban tab when the web server is an OLS server.
 * Fix: WPAPP - Handle an SSH message related to Multisite wildcard ssl - when ssl was already disabled we weren't flipping the appropriate metas.
-* Dev: Foundation set for moving providers and dns data into custom tables.
+* Dev: Preliminary foundation set for moving providers and dns data into custom tables.
 * Dev: WPAPP - Use global function to reset site permissions (refactor).
 * Dev: WPAPP - Add option for executing local post-processing scripts after a site is cloned.
 

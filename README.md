@@ -137,6 +137,7 @@ Note: Even though the entire git development history isn't available on github, 
 * Fix: A 500 error / hard php error was thrown when using the SELECT2 filter for owners in the app screen (the select2 filter only shows if the number of users is greater than 25.)
 * Fix: Certain Filters in the server and site list not working when the language was set to something other than English.
 * Fix: WPAPP - Disabling/Enabling browser cache tweak was not working for OLS.
+* Fix: WPAPP - OLS Auto-restart cron when .htaccess file changes not working as intended.
 * Fix: WPAPP - Missing variable value when installing memcached. Harmless - just threw a php warning.
 * Fix: WPAPP - Remove nginx related sections in the fail2ban tab when the web server is an OLS server.
 * Fix: WPAPP - Handle an SSH message related to Multisite wildcard ssl - when ssl was already disabled we weren't flipping the appropriate metas.

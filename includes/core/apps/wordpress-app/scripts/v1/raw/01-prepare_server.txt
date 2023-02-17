@@ -835,10 +835,10 @@ fastcgi_hide_header X-Powered-By;
 			
 		done
 
-		echo "$(date): Installing OLS htaccess scan crontab file for Cron to scan every 3 minutes for .htaccess file changes and restart openlitespeed"
+		echo "$(date): Installing Cron to scan every 3 minutes for .htaccess file changes and restart openlitespeed"
 		cat >> /etc/cron.d/openlitespeed_htaccess_scan <<-EOL
 # Cron to scan every 3 minutes for .htaccess file changes and restart openlitespeed
-*/3 * * * * root if ! find /var/www/*/html/ -maxdepth 2 -type f -newer /usr/local/lsws/admin/cgid -name '.htaccess' -exec false {} +; then systemctl restart lsws; fi
+*/3 * * * * root if ! find /var/www/*/html/ -maxdepth 2 -type f -newer /usr/local/lsws/cgid -name '.htaccess' -exec false {} +; then systemctl restart lsws; fi
 EOL
 		chmod +x /etc/cron.d/openlitespeed_htaccess_scan > /dev/null 2>&1
 		
@@ -913,7 +913,7 @@ if ! hash aws2 2>/dev/null; then
 fi
 
 # Make sure update-notifier is installed - weirdly some vms/containers don't have this installed.
-echo $(date): "Installing update-notifier - this can take a while sometimes..."
+echo $(date): "Installing update-notifier..."
 apt-get install -y update-notifier-common > /dev/null 2>&1
 
 # ufw

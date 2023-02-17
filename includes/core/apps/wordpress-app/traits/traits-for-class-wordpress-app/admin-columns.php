@@ -1345,6 +1345,12 @@ trait wpcd_wpapp_admin_column_data {
 						$return = "<div class='$class'>" . $return . '</div>';
 
 					}
+					if ( isset( $server_status_items['apt_check_error'] ) && $server_status_items['apt_check_error'] > 0 ) {
+						// We have an error with apt so can't get totals for security updates.
+						$class       = 'wpcd_sec_updates_wrap';
+						$check_error = "<div class='$class'>" . __( 'Updates Check Error Notice: Please run all updates manually!', 'wpcd' ) . '</div>';
+						$return     .= $check_error;
+					}
 					break;
 
 				case 'malware_status':

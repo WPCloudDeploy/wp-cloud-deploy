@@ -69,6 +69,7 @@ trait wpcd_wpapp_push_commands {
 		$server_status_items['up_time']                 = filter_input( INPUT_GET, 'uptime', FILTER_SANITIZE_NUMBER_INT );
 		$server_status_items['cpu_now']                 = filter_input( INPUT_GET, 'cpu_now', FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION );
 		$server_status_items['cpu_since_reboot']        = filter_input( INPUT_GET, 'cpu_since_reboot', FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION );
+		$server_status_items['apt_check_error']         = filter_input( INPUT_GET, 'Apt_Check_Error', FILTER_SANITIZE_NUMBER_INT );
 
 		// get largest database name.
 		$server_status_items['largest_database'] = wp_kses( filter_input( INPUT_GET, 'Largest_DB_Name', FILTER_UNSAFE_RAW ), array(), array() );

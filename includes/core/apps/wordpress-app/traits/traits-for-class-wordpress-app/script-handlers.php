@@ -453,6 +453,7 @@ trait wpcd_wpapp_script_handlers {
 			case 'run_upgrades_460.txt':
 			case 'run_upgrades_461.txt':
 			case 'run_upgrades_462.txt':
+			case 'run_upgrades_530.txt':
 				$return =
 				( strpos( $result, 'upgrade completed' ) !== false )
 				||
@@ -1415,6 +1416,16 @@ trait wpcd_wpapp_script_handlers {
 					$additional
 				);
 				break;
+			case 'run_upgrades_530.txt':
+				$new_array = array_merge(
+					array(
+						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/1090-upgrade_530_ols_server_fix.txt',
+						'SCRIPT_NAME' => '1090-upgrade_530_ols_server_fix.sh',
+					),
+					$common_array,
+					$additional
+				);
+				break;				
 			case 'run_upgrade_install_php_81.txt':
 				$new_array = array_merge(
 					array(

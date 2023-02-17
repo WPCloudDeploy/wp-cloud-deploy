@@ -174,6 +174,13 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 					$result = $this->upgrade_462_meta_only( $id, $action );
 					break;
 
+				case 'server-upgrade-530':
+					$result = $this->upgrade_530( $id, $action );
+					break;
+				case 'server-upgrade-530-meta':
+					$result = $this->upgrade_530_meta_only( $id, $action );
+					break;
+
 				case 'server-upgrade-php81':
 					$result = $this->install_php81( $id, $action );
 					break;
@@ -239,6 +246,11 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 			case 462:
 				$actions = $this->get_upgrade_fields_462( $id );
 				break;
+			case 530:
+				if ( in_array( $webserver_type, array( 'ols', 'ols-enterprise' ), true ) ) {
+					$actions = $this->get_upgrade_fields_530( $id );
+					break;
+				}
 			default:
 				$actions = $this->get_upgrade_fields_default( $id );
 		}
@@ -619,6 +631,75 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 		);
 
 		$actions['server-upgrade-462-meta'] = array(
+			'label'          => '',
+			'raw_attributes' => array(
+				'std'                 => __( 'Do Not Upgrade', 'wpcd' ),
+				'desc'                => __( 'Tag server as upgraded without running the upgrade process.  NOT RECOMMENDED - this will likely break functions! Choose this option only when directed by our technical support staff.', 'wpcd' ),
+				// make sure we give the user a confirmation prompt.
+				'confirmation_prompt' => __( 'Are you sure you would like to tag this server as being upgraded without running the upgrade script?', 'wpcd' ),
+			),
+			'type'           => 'button',
+		);
+
+		return $actions;
+
+	}
+
+	/**
+	 * Gets the fields to show in the UPGRADE tab in the server details screen
+	 * when upgrading to version 5.3.0;
+	 *
+	 * Version 5.3.0 fixes an OLS cron .htaccess auto-restart issue.
+	 *
+	 * @param int $id the post id of the app cpt record.
+	 *
+	 * @return array Array of actions with key as the action slug and value complying with the structure necessary by metabox.io fields.
+	 */
+	private function get_upgrade_fields_530( $id ) {
+
+		// Set up metabox items.
+		$actions = array();
+
+		$upg_desc  = __( 'This server needs an upgrade to fix an issue with OLS automatically restarting every three minutes.', 'wpcd' );
+		$upg_desc .= '<br />';
+		$upg_desc .= '<br />';
+		$upg_desc .= __( 'After you have backed up your server, please click the UPGRADE button below to proceed with the upgrade.', 'wpcd' );
+
+		$actions['server-upgrade-header'] = array(
+			'label'          => __( 'Upgrade Server', 'wpcd' ),
+			'type'           => 'heading',
+			'raw_attributes' => array(
+				'desc' => $upg_desc,
+			),
+		);
+
+		$actions['server-upgrade-530'] = array(
+			'label'          => '',
+			'raw_attributes' => array(
+				'std'                 => __( 'Upgrade This Server', 'wpcd' ),
+				// make sure we give the user a confirmation prompt.
+				'confirmation_prompt' => __( 'Are you sure you would like to upgrade this server?', 'wpcd' ),
+			),
+			'type'           => 'button',
+		);
+
+		$actions['server-upgrade-notes'] = array(
+			'label'          => '',
+			'type'           => 'custom_html',
+			'raw_attributes' => array(
+				'std' => sprintf( '<a href="%s">' . __( 'Learn more in the upgrade documentation', 'wpcd' ) . '</a>', 'https://wpclouddeploy.com/documentation/more/technical-upgrade-notes-for-v-5-3-0/' ),
+			),
+		);
+
+		$actions['server-upgrade-header-skip'] = array(
+			'label'          => __( 'Skip Upgrade', 'wpcd' ),
+			'type'           => 'heading',
+			'raw_attributes' => array(
+				'desc' => __( 'Danger Zone!', 'wpcd' ),
+			),
+		);
+
+		$actions['server-upgrade-530-meta'] = array(
 			'label'          => '',
 			'raw_attributes' => array(
 				'std'                 => __( 'Do Not Upgrade', 'wpcd' ),
@@ -1121,6 +1202,69 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
+	 * Run upgrade script for a server to upgrade to V 530.
+	 *
+	 * @param int    $id         The postID of the server cpt.
+	 * @param string $action     The action to be performed (this matches the string required in the bash scripts if bash scripts are used ).
+	 *
+	 * @return boolean success/failure/other
+	 */
+	public function upgrade_530( $id, $action ) {
+
+		// Get data about the server.
+		$instance = $this->get_server_instance_details( $id );
+
+		if ( is_wp_error( $instance ) ) {
+			/* translators: %s is replaced with the internal action name. */
+			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
+		}
+
+		// Get the full command to be executed by ssh.
+		$run_cmd = $this->turn_script_into_command(
+			$instance,
+			'run_upgrades_530.txt',
+			array(
+				'action'      => $action,
+				'interactive' => 'no',
+			)
+		);
+
+		// log.
+		// phpcs:ignore
+		do_action( 'wpcd_log_error', sprintf( 'attempting to run command for %s = %s ', print_r( $instance, true ), $run_cmd ), 'trace', __FILE__, __LINE__, $instance, false ); //PHPcs warning normally issued because of print_r
+
+		// execute.
+		$result = $this->execute_ssh( 'generic', $instance, array( 'commands' => $run_cmd ) );
+
+		// evaluate results.
+		if ( strpos( $result, 'journalctl -xe' ) !== false ) {
+			// Looks like there was a problem with restarting the NGINX - So update completion meta and return message.
+			update_post_meta( $id, 'wpcd_last_upgrade_done', 530 );
+			/* translators: %s is replaced with the text of the result of the operation. */
+			return new \WP_Error( sprintf( __( 'There was a problem restarting the nginx server after the upgrade - here is the full output of the upgrade process: %s', 'wpcd' ), $result ) );
+		}
+
+		// If we're here, we know that the nginx server restarted ok so let's do standard success checks.
+		$success = $this->is_ssh_successful( $result, 'run_upgrades_530.txt' );
+		if ( ! $success ) {
+			/* translators: %1$s is replaced with the internal action name; %2$s is replaced with the result of the call, usually an error message. */
+			return new \WP_Error( sprintf( __( 'Unable to perform action %1$s for server: %2$s', 'wpcd' ), $action, $result ) );
+		} else {
+			// update server field to tag server as being upgraded.
+			update_post_meta( $id, 'wpcd_last_upgrade_done', 530 );
+
+			// Let user know command is complete and force a page rfresh.
+			$result = array(
+				'msg'     => __( 'Upgrade completed - this page will now refresh', 'wpcd' ),
+				'refresh' => 'yes',
+			);
+		}
+
+		return $result;
+
+	}
+
+	/**
 	 * Run install script for PHP 8.1
 	 *
 	 * @param int    $id         The postID of the server cpt.
@@ -1484,6 +1628,30 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 		return $result;
 
 	}
+
+	/**
+	 * Tag a server as being upgraded to V 530.
+	 *
+	 * @param int    $id         The postID of the server cpt.
+	 * @param string $action     The action to be performed (this matches the string required in the bash scripts if bash scripts are used ).
+	 *
+	 * @return boolean success/failure/other
+	 */
+	public function upgrade_530_meta_only( $id, $action ) {
+
+		// update server field to tag server as being upgraded.
+		update_post_meta( $id, 'wpcd_last_upgrade_done', 530 );
+
+		// Let user know command is complete and force a page rfresh.
+		$result = array(
+			'msg'     => __( 'Upgrade completed to V 5.3.0 - this page will now refresh', 'wpcd' ),
+			'refresh' => 'yes',
+		);
+
+		return $result;
+
+	}
+
 
 	/**
 	 * Remove the upgrade meta from the server.

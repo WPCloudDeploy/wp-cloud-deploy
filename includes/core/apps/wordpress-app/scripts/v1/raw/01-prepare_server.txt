@@ -161,7 +161,7 @@ then
 	# Adding and installing PHP stack
 	# @TODO: We should probably make a loop and loop through all these packages one by one as well. 
 	echo $(date): "Installing PHP versions - this will take a while too!"
-	phpversion=(5.6 7.1 7.2 7.3 7.4 8.0 8.1)
+	phpversion=(5.6 7.1 7.2 7.3 7.4 8.0 8.1 8.2)
 	for ver in "${phpversion[@]}"
 	do
 		echo $(date): ".....PHP $ver"
@@ -364,7 +364,7 @@ else
 	then
 		# Update php.ini file to increase filesize uploads allowed in WordPress
 		echo $(date): "Adding required entries in php.ini to allow for larger file uploads in WordPress..."
-		phpversion=(5.6 7.1 7.2 7.3 7.4 8.0 8.1)
+		phpversion=(5.6 7.1 7.2 7.3 7.4 8.0 8.1 8.2)
 		for ver in "${phpversion[@]}"
 		do
 			sed -i "s/upload_max_filesize = 2M/upload_max_filesize = 25M/g" /etc/php/$ver/fpm/php.ini
@@ -383,12 +383,13 @@ else
 			sed -i "s/;opcache.validate_permission=0/opcache.validate_permission=1/g" /etc/php/$ver/fpm/php.ini
 			sed -i "s/;opcache.file_update_protection=2/opcache.file_update_protection=60/g" /etc/php/$ver/fpm/php.ini
 
-			# PHP 8.1 needs a set of default functions added to its global php.ini file because its set to blank for some reason.
+			# PHP 8.1 & 8.2 needs a set of default functions added to its global php.ini file because its set to blank for some reason.
 			# We're going to use the same list as 7.4.
-			if [ "$ver" = "8.1" ]
-			then
-				sed -i "s/^disable_functions.*/disable_functions = pcntl_alarm,pcntl_fork,pcntl_waitpid,pcntl_wait,pcntl_wifexited,pcntl_wifstopped,pcntl_wifsignaled,pcntl_wifcontinued,pcntl_wexitstatus,pcntl_wtermsig,pcntl_wstopsig,pcntl_signal,pcntl_signal_get_handler,pcntl_signal_dispatch,pcntl_get_last_error,pcntl_strerror,pcntl_sigprocmask,pcntl_sigwaitinfo,pcntl_sigtimedwait,pcntl_exec,pcntl_getpriority,pcntl_setpriority,pcntl_async_signals,pcntl_unshare,/g" /etc/php/$ver/fpm/php.ini
-			fi			
+			phpspecialversion=(8.1 8.2)
+			for phpspecialver in "${phpspecialversion[@]}"
+			do
+				sed -i "s/^disable_functions.*/disable_functions = pcntl_alarm,pcntl_fork,pcntl_waitpid,pcntl_wait,pcntl_wifexited,pcntl_wifstopped,pcntl_wifsignaled,pcntl_wifcontinued,pcntl_wexitstatus,pcntl_wtermsig,pcntl_wstopsig,pcntl_signal,pcntl_signal_get_handler,pcntl_signal_dispatch,pcntl_get_last_error,pcntl_strerror,pcntl_sigprocmask,pcntl_sigwaitinfo,pcntl_sigtimedwait,pcntl_exec,pcntl_getpriority,pcntl_setpriority,pcntl_async_signals,pcntl_unshare,/g" /etc/php/$phpspecialver/fpm/php.ini
+			done
 
 			# Restarting php
 			echo $(date): "Restarting PHP processes..."
@@ -800,7 +801,7 @@ fastcgi_hide_header X-Powered-By;
 		for phpver in $(ls -1 /usr/local/lsws/ |grep lsphp | sed 's/lsphp//g') 
 		do
 			# echo "LSPHP $phpver" ; # Disable useless echo but leave for debugging
-			lsphpver=$(echo $phpver | sed 's/^\(.\{1\}\)/\1./');
+			lsphpver=$(echo $phpver | sed 's/^\(.\{1\}\)/\1./');   # remove periods so that 8.1 becomes 81 and 8.2 becomes 82 etc.
 			sed -i -e "s|^;session.save_path.*|session.save_path = '/var/lib/lsphp/session/lsphp${phpver}'|g" -e "s|^session.save_path.*|session.save_path = '/var/lib/lsphp/session/lsphp${phpver}'|g" /usr/local/lsws/lsphp${phpver}/etc/php/${lsphpver}/litespeed/php.ini ;
 			# /usr/local/lsws/lsphp${phpver}/bin/php -i |grep -Ei 'session.save_path' && echo "" # Disable useless echo but leave for debugging
 	
@@ -821,12 +822,14 @@ fastcgi_hide_header X-Powered-By;
 			sed -i "s/;opcache.validate_permission=0/opcache.validate_permission=1/g" /usr/local/lsws/lsphp${phpver}/etc/php/${lsphpver}/litespeed/php.ini
 			sed -i "s/;opcache.file_update_protection=2/opcache.file_update_protection=60/g" /usr/local/lsws/lsphp${phpver}/etc/php/${lsphpver}/litespeed/php.ini
 
-			# PHP 8.1 needs a set of default functions added to its global php.ini file because its set to blank for some reason.
+			# PHP 8.1 and 8.2 needs a set of default functions added to its global php.ini file because its set to blank for some reason.
 			# We're going to use the same list as 7.4.
-			if [ "$phpver" = "81" ]
-			then
-				sed -i "s/^disable_functions.*/disable_functions = pcntl_alarm,pcntl_fork,pcntl_waitpid,pcntl_wait,pcntl_wifexited,pcntl_wifstopped,pcntl_wifsignaled,pcntl_wifcontinued,pcntl_wexitstatus,pcntl_wtermsig,pcntl_wstopsig,pcntl_signal,pcntl_signal_get_handler,pcntl_signal_dispatch,pcntl_get_last_error,pcntl_strerror,pcntl_sigprocmask,pcntl_sigwaitinfo,pcntl_sigtimedwait,pcntl_exec,pcntl_getpriority,pcntl_setpriority,pcntl_async_signals,pcntl_unshare,/g" /usr/local/lsws/lsphp${phpver}/etc/php/${lsphpver}/litespeed/php.ini
-			fi
+			phpspecialversion=(8.1 8.2)
+			for phpspecialver in "${phpspecialversion[@]}"
+			do
+				lsphpspecialver=$(echo $phpspecialver | sed 's/^\(.\{1\}\)/\1./');  # remove periods so that 8.1 becomes 81 and 8.2 becomes 82 etc.
+				sed -i "s/^disable_functions.*/disable_functions = pcntl_alarm,pcntl_fork,pcntl_waitpid,pcntl_wait,pcntl_wifexited,pcntl_wifstopped,pcntl_wifsignaled,pcntl_wifcontinued,pcntl_wexitstatus,pcntl_wtermsig,pcntl_wstopsig,pcntl_signal,pcntl_signal_get_handler,pcntl_signal_dispatch,pcntl_get_last_error,pcntl_strerror,pcntl_sigprocmask,pcntl_sigwaitinfo,pcntl_sigtimedwait,pcntl_exec,pcntl_getpriority,pcntl_setpriority,pcntl_async_signals,pcntl_unshare,/g" /usr/local/lsws/lsphp${phpspecialver}/etc/php/${lsphpspecialver}/litespeed/php.ini
+			done
 
 			# Added 11-13-2022 due to vhost phpIniOverride stopped working in latest OLS version.
 			# Unlike NGINX, we have to allow proc_open and proc_close for OLS to run properly when installing a new site later.
@@ -861,7 +864,7 @@ EOL
 			# (printf '\n' |/usr/local/lsws/lsphp${phpver}/bin/pecl install ${Extension} >/dev/null 2>&1) >/dev/null 2>&1
 			
 			# We really don't need to check error conditions on timezonedb. I think I've seen cases where it throws weird exit codes.
-			# Or where it might not exist yet when php81/92 came out, the timezonedb extension wasn't out for a few weeks which isn't a big deal but shouldn't cause fatal error.
+			# Or where it might not exist yet when php81/82 came out, the timezonedb extension wasn't out for a few weeks which isn't a big deal but shouldn't cause fatal error.
 			# Only add timezonedb extension if binary is actually installed.
 			# if find /usr/local/lsws/lsphp${phpver}/lib/php/ -type f -iname "timezonedb.so" >/dev/null 2>&1 ; then
 			# 	echo ".....Installing timezondb into php.ini for PHP $phpver..."

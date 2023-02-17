@@ -36,8 +36,8 @@ function update_lsphp_default_version(){
 	local lsphpver
 	local default_phpver
 	default_phpver='8.1'
-	lsphpver="${1:-$default_phpver}" # 7.0,7.1,7.2,7.3,7.4,8.0,8.1,etc
-	phpver=$(echo $lsphpver | sed 's|\.||g')  # 70,71,72,73,74,80,81,etc
+	lsphpver="${1:-$default_phpver}" # 7.0,7.1,7.2,7.3,7.4,8.0,8.1,8.2 etc
+	phpver=$(echo $lsphpver | sed 's|\.||g')  # 70,71,72,73,74,80,81,82 etc
 
 	echo "Changing php default version to phpver: ${phpver} lsphpver: ${lsphpver}"
 	
@@ -52,7 +52,7 @@ function update_lsphp_default_version(){
 		sudo update-alternatives --install /usr/bin/pecl pecl /usr/local/lsws/lsphp${phpver}/bin/pecl 111
 		sudo update-alternatives --install /usr/lib/pear pear /usr/local/lsws/lsphp${phpver}/bin/pear 111
 
-	elif [ "$phpver" = "74" ] || [ "$phpver" = "80" ]  || [ "$phpver" = "81" ]|| [ "$phpver" = "82" ]|| [ "$phpver" = "83" ]; then
+	elif [ "$phpver" = "74" ] || [ "$phpver" = "80" ]  || [ "$phpver" = "81" ] || [ "$phpver" = "82" ] || [ "$phpver" = "90" ]; then
 		# for 74,80,81,etc with versioned phar: phar${lsphpver}.phar
 		sudo update-alternatives --install /usr/bin/php php /usr/local/lsws/lsphp${phpver}/bin/php 111
 		sudo update-alternatives --install /usr/bin/phar phar /usr/local/lsws/lsphp${phpver}/bin/phar${lsphpver}.phar 111

@@ -148,13 +148,16 @@ then
 fi
 # End redo password hash for OLS.
 
+# Stick the password hash into the database.
 mysql <<QUERY
 USE $mysql_db;
 UPDATE ${mysql_dbprefix}_users SET user_pass='$wp_password_hashed' WHERE user_login='$wp_user';
 QUERY
 
-# needed so wordpress doesn't freak out and denies direct access
+# Needed so wordpress doesn't freak out and denies direct access
 su - "$user_name" -c "wp --skip-plugins --no-color config set FS_METHOD direct"
+
+# Add other important wp-config.php items.
 su - "$user_name" -c "wp --skip-plugins --no-color config set WP_AUTO_UPDATE_CORE minor"
 su - "$user_name" -c "wp --skip-plugins --no-color config set WP_MEMORY_LIMIT 128M"
 su - "$user_name" -c "wp --skip-plugins --no-color config set WP_MAX_MEMORY_LIMIT 128M"

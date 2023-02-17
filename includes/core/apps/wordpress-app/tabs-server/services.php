@@ -258,6 +258,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 				case 'php-server-restart-php74':
 				case 'php-server-restart-php80':
 				case 'php-server-restart-php81':
+				case 'php-server-restart-php82':
 					$result = $this->do_php_restart( $id, $action );
 					break;
 				case 'php-server-activate-php56':
@@ -268,6 +269,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 				case 'php-server-activate-php74':
 				case 'php-server-activate-php80':
 				case 'php-server-activate-php81':
+				case 'php-server-activate-php82':
 						$result = $this->do_php_activation_toggle( $id, $action );
 					break;
 				case 'php-server-deactivate-php56':
@@ -278,6 +280,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 				case 'php-server-deactivate-php74':
 				case 'php-server-deactivate-php80':
 				case 'php-server-deactivate-php81':
+				case 'php-server-deactivate-php82':
 						$result = $this->do_php_activation_toggle( $id, $action );
 					break;
 			}
@@ -881,6 +884,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		$php74_status   = $default_status;
 		$php80_status   = $default_status;
 		$php81_status   = $default_status;
+		$php82_status   = $default_status;
 
 		// retrieve php service status from server meta.
 		$services_status     = wpcd_maybe_unserialize( get_post_meta( $id, 'wpcd_wpapp_services_php_status', true ) );
@@ -898,6 +902,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			'php74' => $default_status,
 			'php80' => $default_status,
 			'php81' => $default_status,
+			'php82' => $default_status,
 		);
 
 		// Unset php80 and 81 elements as necessary.
@@ -906,6 +911,10 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		}
 		if ( ! $this->is_php_81_installed( $id ) ) {
 			unset( $php_services_status['php81'] );
+		}
+
+		if ( ! $this->is_php_82_installed( $id ) ) {
+			unset( $php_services_status['php82'] );
 		}
 
 		// Loop through the $services_status array and update the $php_services_status array for any entries present in $services_status array.
@@ -1401,6 +1410,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			'php74' => 'sudo service php7.4-fpm status',
 			'php80' => 'sudo service php8.0-fpm status',
 			'php81' => 'sudo service php8.1-fpm status',
+			'php82' => 'sudo service php8.2-fpm status',
 		);
 
 		// Loop through the array and get the status of each php service.
@@ -1460,6 +1470,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			'php-server-restart-php74' => 'sudo service php7.4-fpm restart',
 			'php-server-restart-php80' => 'sudo service php8.0-fpm restart',
 			'php-server-restart-php81' => 'sudo service php8.1-fpm restart',
+			'php-server-restart-php82' => 'sudo service php8.2-fpm restart',
 		);
 
 		if ( isset( $php_services[ $action ] ) ) {
@@ -1552,6 +1563,11 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 				$php_version = 8.1;
 				$php_key     = 'php81';
 				break;
+			case 'php-server-activate-php82':
+				$action      = 'php_version_enable';
+				$php_version = 8.2;
+				$php_key     = 'php82';
+				break;
 
 			case 'php-server-deactivate-php56':
 				$action      = 'php_version_disable';
@@ -1592,6 +1608,11 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 				$action      = 'php_version_disable';
 				$php_version = 8.1;
 				$php_key     = 'php81';
+				break;
+			case 'php-server-deactivate-php82':
+				$action      = 'php_version_disable';
+				$php_version = 8.2;
+				$php_key     = 'php82';
 				break;
 		}
 
@@ -1822,6 +1843,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			'php-server-restart-php74' => 'php74',
 			'php-server-restart-php80' => 'php80',
 			'php-server-restart-php81' => 'php81',
+			'php-server-restart-php82' => 'php82',
 		);
 
 		if ( isset( $php_services[ $service ] ) ) {

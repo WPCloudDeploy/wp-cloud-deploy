@@ -118,7 +118,7 @@ rsync -a --delete -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa
 if [ "$webserver_type" = "nginx" ]
 then
 	# restart services
-	phpversion=(5.6 7.1 7.2 7.3 7.4 8.0 8.1)
+	phpversion=(5.6 7.1 7.2 7.3 7.4 8.0 8.1 8.2)
 	for ver in "${phpversion[@]}"
 	do
 		ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" root@$dest "[[ ! -f /etc/wpcd/php-versions-disabled/$ver ]] && systemctl restart php$ver-fpm" && echo "$(date) PHP $ver restart completed" >> /var/log/wp-sync.log || echo "$(date) PHP $ver restart failed" >> /var/log/wp-sync.log

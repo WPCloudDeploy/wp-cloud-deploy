@@ -68,7 +68,11 @@ processing_dependencies() {
     apt list --installed 2>&1 | grep -q php8.1-zip
     if [[ $? -ne 0 ]]; then
         apt install -y php8.1-zip > /dev/null 2>&1
-    fi	
+    fi
+    apt list --installed 2>&1 | grep -q php8.2-zip
+    if [[ $? -ne 0 ]]; then
+        apt install -y php8.2-zip > /dev/null 2>&1
+    fi	    
 }
 
 

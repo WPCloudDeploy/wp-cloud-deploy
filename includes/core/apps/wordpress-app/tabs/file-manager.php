@@ -332,9 +332,9 @@ class WPCD_WORDPRESS_TABS_FILE_MANAGER extends WPCD_WORDPRESS_TABS {
 			return $fields;
 		}
 
-		// Bail if PHP is 8.0 or 8.1.
+		// Bail if PHP is 8.0, 8.1, 8.3
 		$php_version = (string) $this->get_php_version_for_app( $id );
-		if ( in_array( $php_version, array( '8.0', '8.1' ), true ) ) {
+		if ( in_array( $php_version, array( '8.0', '8.1', '8.2' ), true ) ) {
 			$fields[] = array(
 				'name' => __( 'File Manager [Disabled]', 'wpcd' ),
 				'tab'  => 'file-manager',

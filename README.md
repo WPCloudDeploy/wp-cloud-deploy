@@ -145,6 +145,7 @@ Note: Even though the entire git development history isn't available on github, 
 * Fix: WPAPP - Remove nginx related sections in the fail2ban tab when the web server is an OLS server.
 * Fix: WPAPP - Handle an SSH message related to Multisite wildcard ssl - when ssl was already disabled we weren't flipping the appropriate metas.
 * Fix: WPAPP - Special code to handle update count issue with DigitalOcean servers.
+* Fix: WPAPP - Partial workaround for ubuntu update notifier bug - see https://bugs.launchpad.net/ubuntu/+source/update-notifier/+bug/2007311
 * Dev: Preliminary foundation set for moving providers and dns data into custom tables.
 * Dev: WPAPP - Use global function to reset site permissions (refactor).
 * Dev: WPAPP - Add option for executing local post-processing scripts after a site is cloned.

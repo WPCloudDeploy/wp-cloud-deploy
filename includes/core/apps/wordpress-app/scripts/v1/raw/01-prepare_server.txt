@@ -159,7 +159,6 @@ then
 	fi
 
 	# Adding and installing PHP stack
-	# @TODO: We should probably make a loop and loop through all these packages one by one as well. 
 	echo $(date): "Installing PHP versions - this will take a while too!"
 	phpversion=(5.6 7.1 7.2 7.3 7.4 8.0 8.1 8.2)
 	for ver in "${phpversion[@]}"
@@ -918,6 +917,11 @@ fi
 # Make sure update-notifier is installed - weirdly some vms/containers don't have this installed.
 echo $(date): "Installing update-notifier..."
 apt-get install -y update-notifier-common > /dev/null 2>&1
+
+# Running a specific update to resolve an issue that showed up on Feb 14th 2023.
+# @see: https://bugs.launchpad.net/ubuntu/+source/update-notifier/+bug/2007311
+echo $(date): "Updating libxmlb2..."
+apt-get install -y libxmlb2 > /dev/null 2>&1
 
 # ufw
 echo $(date): "Configuring firewall..."

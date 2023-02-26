@@ -322,7 +322,12 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 					$value2 = $this->wpcd_column_wrap_string_with_span_and_class( __( 'IPv4: ', 'wpcd' ), 'ipv4', 'left' );
 				}
 				$get_ipv4 = $this->wpcd_column_wrap_string_with_span_and_class( $this->get_server_meta_value( $post_id, 'wpcd_server_ipv4' ), 'ipv4', 'right' );
-				$value2  .= wpcd_wrap_clipboard_copy( $get_ipv4 );
+				if ( is_admin() ) {
+					$value2  .= wpcd_wrap_clipboard_copy( $get_ipv4 );
+				}
+				else {
+					$value2  .= wpcd_wrap_clipboard_copy( $get_ipv4, false );
+				}
 				$value   .= $this->wpcd_column_wrap_string_with_div_and_class( $value2, 'ipv4' );
 
 				// ipv6.
@@ -334,7 +339,11 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 						$value2 = $this->wpcd_column_wrap_string_with_span_and_class( __( 'IPv6: ', 'wpcd' ), 'ipv6', 'left' );
 					}
 					$get_ipv6 = $this->wpcd_column_wrap_string_with_span_and_class( $this->get_server_meta_value( $post_id, 'wpcd_server_ipv6' ), 'ipv6', 'right' );
-					$value2  .= wpcd_wrap_clipboard_copy( $get_ipv6 );
+					if ( is_admin() ) {
+						$value2  .= wpcd_wrap_clipboard_copy( $get_ipv6 );
+					} else {
+						$value2  .= wpcd_wrap_clipboard_copy( $get_ipv6, false );
+					}
 					$value   .= $this->wpcd_column_wrap_string_with_div_and_class( $value2, 'ipv6' );
 				}
 

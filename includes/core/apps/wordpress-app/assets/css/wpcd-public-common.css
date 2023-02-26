@@ -762,6 +762,12 @@
 }
 /* End style the local status column on the server list */
 
+/* Style the webserver type in the server list */
+.wpcd-grid-table .wpcd-server-col-element-value-web_server_desc {
+	text-transform: uppercase;
+}
+/* End style the webserver type in the server list */
+
 /* Style the ADMIN LOGIN and VIEW SITE links in the app list. */
 .wpcd-grid-table .wpcd-app-col-element-label-wp_admin_link a,
 .wpcd-grid-table .wpcd-app-col-element-label-public_admin_link a,

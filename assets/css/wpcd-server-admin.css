@@ -775,7 +775,7 @@ a.wpcd-stat-switch {
 /* Web server type in the SERVER ACTIONS menu should be a transparent box.  Note that we add the wp-admin class qualifier so that we don't inadvertently apply the styles to the front-end. */
 .wp-admin .wpcd-server-col-element-wrap-web_server_desc {
 	display: block;
-	font-weight: bold;
+	font-weight: 400;
 	font-size: smaller;
 	text-transform: uppercase;
 }

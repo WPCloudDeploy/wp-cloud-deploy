@@ -598,9 +598,9 @@ trait wpcd_wpapp_admin_column_data {
 					// We're in wp-admin area but not allowed to show this element.
 					$show_web_server_type = false;
 				}
-				if ( $show_web_server_type && $this->get_app_name() === $this->get_server_type( $post_id ) ) {
-					// Show it.
-					$value .= $this->get_formatted_web_server_type_for_display( $post_id, true );
+				if ( $show_web_server_type && $this->get_app_name() === $this->get_server_type( $post_id )  && ! wpcd_get_option( 'wordpress_app_show_web_server_type_column_in_server_list' ) ) {
+					// Show it. Notice that it's only being shown here if the option to show it in a separate column is not enabled.
+					$value .= $this->get_formatted_web_server_type_for_display( $post_id, false );
 				}
 
 				// Add custom links below the install WordPress button.

@@ -90,8 +90,6 @@
         border-radius: 3px;
         line-height: 28px;
         padding: 0 10px;
-        xx-border: 1px solid #2271b1;
-        xx-color: #2271b1;
 		color: white;
 }
 #wpcd_public_wrapper .wpcd-popup .wpcd-log-close-button a {
@@ -611,7 +609,6 @@
 		margin-top: 40px;
 		margin-bottom: 40px;		
 		background-color: var(--wpcd-front-end-alternate-accent-background-color);
-        xx-box-shadow: 0 1px 3px 0 rgb(0 0 0 / 10%), 0 1px 2px 0 rgb(0 0 0 / 6%);
         border-radius: 6px;
 		padding: 20px;
 }

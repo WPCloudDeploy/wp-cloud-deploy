@@ -696,7 +696,7 @@
 }
 /* End style in-line value */
 
-/* Style the "apps on this server" and "Update Remote State" links - make them buttons. */
+/* Style the "apps on this server in the app list" and "Update Remote State on the server list" links - make them buttons. */
 .wpcd-grid-table .wpcd-app-col-element-label-apps_on_server a,
 .wpcd-grid-table .wpcd-server-col-element-label-update_remote_state_link a {
 	display: inline-block;
@@ -714,7 +714,22 @@
 	text-decoration: none;
 	background-color: var(--wpcd-front-end-primary-brand-color);
 }
-/* End Style the "apps on this server link" */
+/* End Style the "apps on this server in the app list"... */
+
+/* Style the app count link on the server list. */
+.wpcd-grid-table span.wpcd-server-col-element-value-server_app_count {
+	display: inline-block;
+	border: 1px solid;
+	border-color: var(--wpcd-front-end-primary-brand-color);
+	border-radius: 3px;
+	padding: 3px 10px;
+	text-align: center;
+	color: var(--wpcd-front-end-primary-brand-color);
+}
+.wpcd-grid-table span.wpcd-server-col-element-value-server_app_count:hover {
+	font-weight: bold;
+}
+/* End style the app count link on the server list. */
 
 /* Style the app links on the server list. */
 .wpcd-grid-table .wpcd-server-col-element-label-server_app_link {
@@ -722,15 +737,14 @@
 	font-size: 15px;
 	font-weight: normal;
 	color: #5560C2;
-	background-color: #F3F3F3;
-	padding: 9px 17px;
-	border-radius: 3px;
-	width: 100%;
 	margin-bottom: 10px;
 }
 .wpcd-grid-table .wpcd-server-col-element-label-server_app_link a {
 	color: #5560C2;
 	font-weight: normal;
+}
+.wpcd-grid-table .wpcd-server-col-element-label-server_app_link a:hover {
+	font-weight: bold;
 }
 /* End style the app links on the server list. */
 

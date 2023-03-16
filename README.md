@@ -139,6 +139,7 @@ Note: Even though the entire git development history isn't available on github, 
 * Tweak: WPAPP - Use the latest version of the 7G firewall (v1.6).
 * Fix: A 500 error / hard php error was thrown when using the SELECT2 filter for owners in the app screen (the select2 filter only shows if the number of users is greater than 25.)
 * Fix: Certain Filters in the server and site list not working when the language was set to something other than English.
+* Fix: WPAPP - HTTP2 could not be enabled.
 * Fix: WPAPP - Disabling/Enabling browser cache tweak was not working for OLS.
 * Fix: WPAPP - OLS Auto-restart cron when .htaccess file changes not working as intended.
 * Fix: WPAPP - Missing variable value when installing memcached. Harmless - just threw a php warning.

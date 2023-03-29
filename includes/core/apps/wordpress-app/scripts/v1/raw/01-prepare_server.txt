@@ -656,16 +656,16 @@ set $custom_subdir '';
 # two variables with and without a slash need to be defined to satisfy following situations:
 # https://myblog.com/hello-world
 # https://myblog.com/hello-world/
-set $cache_enabler_uri '${custom_subdir}/wp-content/cache/cache-enabler/${http_host}${cache_uri}index.html';
-set $cache_enabler_uri2 '${custom_subdir}/wp-content/cache/cache-enabler/${http_host}${cache_uri}/index.html';
+set $cache_enabler_uri '${custom_subdir}/wp-content/cache/cache-enabler/${http_host}${cache_uri}${scheme}-index.html';
+set $cache_enabler_uri2 '${custom_subdir}/wp-content/cache/cache-enabler/${http_host}${cache_uri}/${scheme}-index.html';
 
 # webp html files
 # two variables with and without a slash need to be defined to satisfy following situations:
 # https://myblog.com/hello-world
 # https://myblog.com/hello-world/
 if ($http_accept ~* "image/webp") {
-set $cache_enabler_uri '${custom_subdir}/wp-content/cache/cache-enabler/${http_host}${cache_uri}index-webp.html';
-set $cache_enabler_uri2 '${custom_subdir}/wp-content/cache/cache-enabler/${http_host}${cache_uri}/index-webp.html';
+set $cache_enabler_uri '${custom_subdir}/wp-content/cache/cache-enabler/${http_host}${cache_uri}${scheme}-index-webp.html';
+set $cache_enabler_uri2 '${custom_subdir}/wp-content/cache/cache-enabler/${http_host}${cache_uri}/${scheme}-index-webp.html';
 }
 EOF
 

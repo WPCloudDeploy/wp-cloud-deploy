@@ -149,6 +149,21 @@ then
 		gf_disable_certbot_ols_site "$domain"
 		gf_disable_https_redirect_ols_htaccess "$domain"
 	fi
+	
+	# Forcibly delete any existing certbot folders.
+	# But, do prophylactic check to make sure we still have a $domain var before we attempt to use it to delete some folders.
+	if [[ -z $domain ]]
+	then
+		echo "Unable to proceed because the new domain name is blank. Operation has only partially succeeded and sites are probably in an unstable state."
+		exit 1
+	else
+		rm -rf /etc/letsencrypt/live/$domain
+		rm -rf /etc/letsencrypt/live/$domain-0*
+		rm -rf /etc/letsencrypt/archive/$domain
+		rm -rf /etc/letsencrypt/archive/$domain-0*
+		rm -rf /etc/letsencrypt/renewal/$domain
+		rm -rf /etc/letsencrypt/renewal/$domain-0*
+	fi
 
 	cd /var/www/$domain/html/
 	su - "$user_name" -c "wp --skip-plugins option update home http://$domain"

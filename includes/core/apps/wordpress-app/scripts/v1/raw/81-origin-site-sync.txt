@@ -112,18 +112,35 @@ sudo ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$dest
 sudo ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo sed -i '\''s/$mysql_host/localhost/g'\'' /var/www/$domain/html/wp-config.php"
 sudo rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /etc/nginx/sites-enabled/*$domain $sshuser@$destination_ip:/etc/nginx/sites-enabled > /dev/null 2>&1 < /dev/null
 sudo rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /etc/nginx/htpasswd/*$domain $sshuser@$destination_ip:/etc/nginx/htpasswd/ > /dev/null 2>&1 > /dev/null 2>&1 < /dev/null
+
 ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo mkdir -p /etc/letsencrypt/" < /dev/null
 sudo rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /etc/letsencrypt/live/$domain $sshuser@$destination_ip:/etc/letsencrypt/live > /dev/null 2>&1 < /dev/null
 sudo rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /etc/letsencrypt/archive/$domain $sshuser@$destination_ip:/etc/letsencrypt/archive > /dev/null 2>&1 < /dev/null
+sudo rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /etc/letsencrypt/renewal/$domain $sshuser@$destination_ip:/etc/letsencrypt/renewal > /dev/null 2>&1 < /dev/null
+
+# copy duplicated letsencrypt folders ending with 000x
+sudo rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /etc/letsencrypt/live/$domain-0* $sshuser@$destination_ip:/etc/letsencrypt/live > /dev/null 2>&1 < /dev/null
+sudo rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /etc/letsencrypt/archive/$domain-0* $sshuser@$destination_ip:/etc/letsencrypt/archive > /dev/null 2>&1 < /dev/null
+sudo rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /etc/letsencrypt/renewal/$domain-0* $sshuser@$destination_ip:/etc/letsencrypt/renewal > /dev/null 2>&1 < /dev/null
+
 sudo rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" --include="*.$domain/***" --exclude='\''*'\'' /etc/letsencrypt/live/ $sshuser@$destination_ip:/etc/letsencrypt/live/ > /dev/null 2>&1 < /dev/null
 sudo rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" --include="*.$domain/***" --exclude='\''*'\'' /etc/letsencrypt/archive/ $sshuser@$destination_ip:/etc/letsencrypt/archive/ > /dev/null 2>&1 < /dev/null
+sudo rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" --include="*.$domain/***" --exclude='\''*'\'' /etc/letsencrypt/renewal/ $sshuser@$destination_ip:/etc/letsencrypt/renewal/ > /dev/null 2>&1 < /dev/null
+
+# more handling of duplicated letsencrypt folders ending with 000x
+sudo rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" --include="*.$domain-0*/***" --exclude='\''*'\'' /etc/letsencrypt/live/ $sshuser@$destination_ip:/etc/letsencrypt/live/ > /dev/null 2>&1 < /dev/null
+sudo rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" --include="*.$domain-0*/***" --exclude='\''*'\'' /etc/letsencrypt/archive/ $sshuser@$destination_ip:/etc/letsencrypt/archive/ > /dev/null 2>&1 < /dev/null
+sudo rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" --include="*.$domain-0*/***" --exclude='\''*'\'' /etc/letsencrypt/renewal/ $sshuser@$destination_ip:/etc/letsencrypt/renewal/ > /dev/null 2>&1 < /dev/null
+
+
 sudo rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /etc/letsencrypt/options-ssl-nginx.conf $sshuser@$destination_ip:/etc/letsencrypt > /dev/null 2>&1 < /dev/null
 sudo rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /etc/letsencrypt/ssl-dhparams.pem $sshuser@$destination_ip:/etc/letsencrypt > /dev/null 2>&1 < /dev/null
+
 sudo rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /var/spool/cron/crontabs/$domain $sshuser@$destination_ip:/var/spool/cron/crontabs > /dev/null 2>&1 < /dev/null
 
 if [ -e /usr/local/lsws/bin/lshttpd ]
 then
-	if /usr/local/lsws/bin/lshttpd -v | grep -q Open
+	if /usr/local/lsws/bin/lshttpd -v | grep -q Op
 	then
 		vhost_conf='vhconf.conf'
 	fi

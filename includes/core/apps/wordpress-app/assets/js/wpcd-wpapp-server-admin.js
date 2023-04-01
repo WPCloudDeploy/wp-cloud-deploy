@@ -615,7 +615,7 @@
     }
 
 
-    // Checks the field value contains some special charactors or not
+    // Checks the field value contains some special characters or not
     function check_field_value_chars(specialChars, field_value) {
         for (i = 0; i < specialChars.length; i++) {
             if (field_value.indexOf(specialChars[i]) > -1) {

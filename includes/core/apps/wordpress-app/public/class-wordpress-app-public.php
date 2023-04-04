@@ -750,7 +750,7 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 
 					<?php
 					// Filter: wpcd_wordpress-app_show_deploy_server_front_end_button.
-                    $app_name = WPCD_WORDPRESS_APP()->get_app_name();
+					$app_name = WPCD_WORDPRESS_APP()->get_app_name();
 					if ( apply_filters( "wpcd_{$app_name}_show_deploy_server_front_end_button", current_user_can( 'wpcd_provision_servers' ) ) ) {
 						printf( '<a class="button deploy_button" href="%s">%s</a>', get_permalink( self::get_server_deploy_page_id() ), __( 'Deploy A New WordPress Server', 'wpcd' ) );
 					}

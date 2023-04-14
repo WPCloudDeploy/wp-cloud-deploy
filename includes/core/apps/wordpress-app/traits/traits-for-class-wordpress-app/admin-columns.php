@@ -541,6 +541,9 @@ trait wpcd_wpapp_admin_column_data {
 					break;
 				}
 
+				// Allow devs to hook in.
+				$value = apply_filters( "wpcd_{$this->get_app_name()}_server_actions_column_before_install_button", $value, $post_id );
+
 				// Adds an 'install WordPress' button to the server actions column.
 				if ( apply_filters( 'wpcd_wpapp_show_install_wp_button', true, $post_id ) ) {
 
@@ -587,7 +590,10 @@ trait wpcd_wpapp_admin_column_data {
 					}
 				}
 				// End adds 'install WordPress' button to the server actions column.
-				$value = apply_filters( 'wpcd_wpapp_server_actions', $value, $post_id );
+
+				// Allow devs to hook in.
+				$value = apply_filters( "wpcd_{$this->get_app_name()}_server_actions_column_before_web_server_type", $value, $post_id );
+
 				// Add web server type beneath the button or notice.
 				$show_web_server_type = true;
 				if ( ! is_admin() && ( boolval( wpcd_get_option( 'wordpress_app_fe_hide_web_server_type_element_in_server_list' ) ) ) ) {
@@ -598,23 +604,35 @@ trait wpcd_wpapp_admin_column_data {
 					// We're in wp-admin area but not allowed to show this element.
 					$show_web_server_type = false;
 				}
-				if ( $show_web_server_type && $this->get_app_name() === $this->get_server_type( $post_id )  && ! wpcd_get_option( 'wordpress_app_show_web_server_type_column_in_server_list' ) ) {
+				if ( $show_web_server_type && $this->get_app_name() === $this->get_server_type( $post_id ) && ! wpcd_get_option( 'wordpress_app_show_web_server_type_column_in_server_list' ) ) {
 					// Show it. Notice that it's only being shown here if the option to show it in a separate column is not enabled.
 					$value .= $this->get_formatted_web_server_type_for_display( $post_id, false );
 				}
 
+				// Allow devs to hook in.
+				$value = apply_filters( "wpcd_{$this->get_app_name()}_server_actions_column_before_custom_links", $value, $post_id );
+
 				// Add custom links below the install WordPress button.
 				$value = $value . '<div class = "wpcd_server_actions_custom_links_wrap">' . $this->get_formatted_custom_links( $post_id ) . '</div>';
+
+				// Allow devs to hook in.
+				$value = apply_filters( "wpcd_{$this->get_app_name()}_server_actions_column_before_notes_and_labels", $value, $post_id );
 
 				// Display the count of notes and admin notes.
 				$labels_count_arr = $this->get_notes_count_string( $post_id );
 				$labels_count_arr = implode( ' ', $labels_count_arr );
 				$value            = $value . $labels_count_arr;
 
+				// Allow devs to hook in.
+				$value = apply_filters( "wpcd_{$this->get_app_name()}_server_actions_column_before_aptget_warning", $value, $post_id );
+
 				// Display warning if the server is running aptget.
 				if ( $this->wpcd_is_aptget_running( $post_id ) ) {
 					$value = '<div class="wpcd_server_actions_aptget_in_progress">' . __( 'It appears that background updates are being run on this server. Certain actions you perform while this is occurring might fail.', 'wpcd' ) . '</div>';
 				}
+
+				// Allow devs to hook in.
+				$value = apply_filters( "wpcd_{$this->get_app_name()}_server_actions_column", $value, $post_id );
 
 				break;
 

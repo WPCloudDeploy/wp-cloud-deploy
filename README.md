@@ -152,6 +152,7 @@ Note: Even though the entire git development history isn't available on github, 
 * Dev: Preliminary foundation set for moving providers and dns data into custom tables.
 * Dev: WPAPP - Use global function to reset site permissions (refactor).
 * Dev: WPAPP - Add option for executing local post-processing scripts after a site is cloned.
+* Dev: WPAPP - New filters available when displaying info in the server actions column.
 
 5.2.3
 ------

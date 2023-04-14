@@ -587,7 +587,7 @@ trait wpcd_wpapp_admin_column_data {
 					}
 				}
 				// End adds 'install WordPress' button to the server actions column.
-
+				$value = apply_filters( 'wpcd_wpapp_server_actions', $value, $post_id );
 				// Add web server type beneath the button or notice.
 				$show_web_server_type = true;
 				if ( ! is_admin() && ( boolval( wpcd_get_option( 'wordpress_app_fe_hide_web_server_type_element_in_server_list' ) ) ) ) {

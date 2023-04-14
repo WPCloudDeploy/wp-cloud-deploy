@@ -800,7 +800,7 @@ fastcgi_hide_header X-Powered-By;
 		for phpver in $(ls -1 /usr/local/lsws/ |grep lsphp | sed 's/lsphp//g') 
 		do
 			# echo "LSPHP $phpver" ; # Disable useless echo but leave for debugging
-			lsphpver=$(echo $phpver | sed 's/^\(.\{1\}\)/\1./');   # remove periods so that 8.1 becomes 81 and 8.2 becomes 82 etc.
+			lsphpver=$(echo $phpver | sed 's/^\(.\{1\}\)/\1./');   # Split php version number and add a period so that 74 becomes 7.3, 80 becomes 8.0, 81 becomes 8.1 etc.
 			sed -i -e "s|^;session.save_path.*|session.save_path = '/var/lib/lsphp/session/lsphp${phpver}'|g" -e "s|^session.save_path.*|session.save_path = '/var/lib/lsphp/session/lsphp${phpver}'|g" /usr/local/lsws/lsphp${phpver}/etc/php/${lsphpver}/litespeed/php.ini ;
 			# /usr/local/lsws/lsphp${phpver}/bin/php -i |grep -Ei 'session.save_path' && echo "" # Disable useless echo but leave for debugging
 	
@@ -823,12 +823,10 @@ fastcgi_hide_header X-Powered-By;
 
 			# PHP 8.1 and 8.2 needs a set of default functions added to its global php.ini file because its set to blank for some reason.
 			# We're going to use the same list as 7.4.
-			phpspecialversion=(8.1 8.2)
-			for phpspecialver in "${phpspecialversion[@]}"
-			do
-				lsphpspecialver=$(echo $phpspecialver | sed 's/^\(.\{1\}\)/\1./');  # remove periods so that 8.1 becomes 81 and 8.2 becomes 82 etc.
-				sed -i "s/^disable_functions.*/disable_functions = pcntl_alarm,pcntl_fork,pcntl_waitpid,pcntl_wait,pcntl_wifexited,pcntl_wifstopped,pcntl_wifsignaled,pcntl_wifcontinued,pcntl_wexitstatus,pcntl_wtermsig,pcntl_wstopsig,pcntl_signal,pcntl_signal_get_handler,pcntl_signal_dispatch,pcntl_get_last_error,pcntl_strerror,pcntl_sigprocmask,pcntl_sigwaitinfo,pcntl_sigtimedwait,pcntl_exec,pcntl_getpriority,pcntl_setpriority,pcntl_async_signals,pcntl_unshare,/g" /usr/local/lsws/lsphp${phpspecialver}/etc/php/${lsphpspecialver}/litespeed/php.ini
-			done
+			if [ $lsphpver = "8.1" ] || [ $lsphpver = "8.2" ]; then
+				echo "$(date): Setting global list of restricted php functions for PHP $lsphpver"
+				sed -i "s/^disable_functions.*/disable_functions = pcntl_alarm,pcntl_fork,pcntl_waitpid,pcntl_wait,pcntl_wifexited,pcntl_wifstopped,pcntl_wifsignaled,pcntl_wifcontinued,pcntl_wexitstatus,pcntl_wtermsig,pcntl_wstopsig,pcntl_signal,pcntl_signal_get_handler,pcntl_signal_dispatch,pcntl_get_last_error,pcntl_strerror,pcntl_sigprocmask,pcntl_sigwaitinfo,pcntl_sigtimedwait,pcntl_exec,pcntl_getpriority,pcntl_setpriority,pcntl_async_signals,pcntl_unshare,/g" /usr/local/lsws/lsphp${phpver}/etc/php/${lsphpver}/litespeed/php.ini
+			fi
 
 			# Added 11-13-2022 due to vhost phpIniOverride stopped working in latest OLS version.
 			# Unlike NGINX, we have to allow proc_open and proc_close for OLS to run properly when installing a new site later.

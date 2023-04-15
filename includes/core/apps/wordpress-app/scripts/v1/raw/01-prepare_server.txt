@@ -382,16 +382,15 @@ else
 			sed -i "s/;opcache.validate_permission=0/opcache.validate_permission=1/g" /etc/php/$ver/fpm/php.ini
 			sed -i "s/;opcache.file_update_protection=2/opcache.file_update_protection=60/g" /etc/php/$ver/fpm/php.ini
 
-			# PHP 8.1 & 8.2 needs a set of default functions added to its global php.ini file because its set to blank for some reason.
+			# PHP 8.1 and 8.2 needs a set of default functions added to its global php.ini file because its set to blank for some reason.
 			# We're going to use the same list as 7.4.
-			phpspecialversion=(8.1 8.2)
-			for phpspecialver in "${phpspecialversion[@]}"
-			do
-				sed -i "s/^disable_functions.*/disable_functions = pcntl_alarm,pcntl_fork,pcntl_waitpid,pcntl_wait,pcntl_wifexited,pcntl_wifstopped,pcntl_wifsignaled,pcntl_wifcontinued,pcntl_wexitstatus,pcntl_wtermsig,pcntl_wstopsig,pcntl_signal,pcntl_signal_get_handler,pcntl_signal_dispatch,pcntl_get_last_error,pcntl_strerror,pcntl_sigprocmask,pcntl_sigwaitinfo,pcntl_sigtimedwait,pcntl_exec,pcntl_getpriority,pcntl_setpriority,pcntl_async_signals,pcntl_unshare,/g" /etc/php/$phpspecialver/fpm/php.ini
-			done
+			if [ $ver = "8.1" ] || [ $ver = "8.2" ]; then
+				echo "$(date): Setting global list of restricted php functions for PHP $ver"
+				sed -i "s/^disable_functions.*/disable_functions = pcntl_alarm,pcntl_fork,pcntl_waitpid,pcntl_wait,pcntl_wifexited,pcntl_wifstopped,pcntl_wifsignaled,pcntl_wifcontinued,pcntl_wexitstatus,pcntl_wtermsig,pcntl_wstopsig,pcntl_signal,pcntl_signal_get_handler,pcntl_signal_dispatch,pcntl_get_last_error,pcntl_strerror,pcntl_sigprocmask,pcntl_sigwaitinfo,pcntl_sigtimedwait,pcntl_exec,pcntl_getpriority,pcntl_setpriority,pcntl_async_signals,pcntl_unshare,/g" /etc/php/$ver/fpm/php.ini
+			fi
 
 			# Restarting php
-			echo $(date): "Restarting PHP processes..."
+			echo $(date): "Restarting PHP process for PHP $ver."
 			systemctl restart php$ver-fpm > /dev/null 2>&1
 		done
 
@@ -983,7 +982,7 @@ then
 	phpversion=(5.6 7.1 7.2 7.3)
 	for ver in "${phpversion[@]}"
 	do
-		# Disable php versions earlier than php7.4 and greater.
+		# Disable php versions earlier than php7.4.
 		systemctl stop php$ver-fpm > /dev/null 2>&1
 		systemctl disable php$ver-fpm > /dev/null 2>&1
 

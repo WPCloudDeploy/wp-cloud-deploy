@@ -308,6 +308,8 @@ class WPCD_WORDPRESS_TABS_SERVER_TOOLS extends WPCD_WORDPRESS_TABS {
 		delete_post_meta( $id, 'wpcd_temp_log_id' );
 		delete_post_meta( $id, 'wpcd_server_action_status' );
 		delete_post_meta( $id, 'wpcd_server_command_mutex' );
+		
+		update_post_meta( $id, 'wpcd_server_current_state', 'active' );
 
 		delete_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action_status" );  // Should really only exist on an app.
 		delete_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action" );  // Should really only exist on an app.

@@ -149,6 +149,7 @@ Note: Even though the entire git development history isn't available on github, 
 * Fix: WPAPP - Partial workaround for ubuntu update notifier bug - see https://bugs.launchpad.net/ubuntu/+source/update-notifier/+bug/2007311
 * Fix: WPAPP - The file name conventions used by the CACHE ENABLER plugin for nginx was changed - update bash scripts to match. (Thanks @msalaj for pointing this out).
 * Fix: WPAPP - Better handling for duplicate letsencrypt folders that end with -00xx.
+* Fix: WPAPP - When multisite SSL is on, the status was not shown properly in the site list.
 * Dev: Preliminary foundation set for moving providers and dns data into custom tables.
 * Dev: WPAPP - Use global function to reset site permissions (refactor).
 * Dev: WPAPP - Add option for executing local post-processing scripts after a site is cloned.

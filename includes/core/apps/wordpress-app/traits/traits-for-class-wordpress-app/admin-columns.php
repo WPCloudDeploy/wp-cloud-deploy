@@ -950,6 +950,10 @@ trait wpcd_wpapp_admin_column_data {
 			// add the ssl status.
 			if ( true === $this->get_site_local_ssl_status( $post_id ) ) {
 				$ssl_status = 'on';
+
+				if ( true === $this->get_site_local_wildcard_ssl_status( $post_id ) ) {
+					$ssl_status = 'on [*]';
+				}
 			} else {
 				$ssl_status = 'off';
 			}

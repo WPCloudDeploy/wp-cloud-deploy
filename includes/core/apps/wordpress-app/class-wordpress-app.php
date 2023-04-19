@@ -901,13 +901,44 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	 */
 	public function get_site_local_ssl_status( $app_id ) {
 
+		$value = false;
+
+		// Check standard ssl metas.
 		if ( 'on' === get_post_meta( $app_id, 'wpapp_ssl_status', true ) ) {
-			return true;
+			$value = true;
 		} else {
-			return false;
+			$value = false;
 		}
 
+		// Check wildcard ssl metas.
+		if ( false === $value ) {
+			if ( 'on' === get_post_meta( $app_id, 'wpapp_multisite_wildcard_ssl_status', true ) ) {
+				$value = true;
+			}
+		}
+
+		return $value;
+
 	}
+
+	/**
+	 * Get the status of WILDCARD ssl stored in the metadata for a site.
+	 *
+	 * @param string $app_id is the post id of the app record we're asking about.
+	 *
+	 * @return boolean
+	 */
+	public function get_site_local_wildcard_ssl_status( $app_id ) {
+
+		$value = false;
+
+		if ( 'on' === get_post_meta( $app_id, 'wpapp_multisite_wildcard_ssl_status', true ) ) {
+			$value = true;
+		}
+
+		return $value;
+
+	}	
 
 	/**
 	 * Sets the status of debug metas.

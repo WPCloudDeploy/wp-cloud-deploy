@@ -602,7 +602,7 @@ trait wpcd_wpapp_upgrade_functions {
 	 *
 	 * @return boolean
 	 */
-	private function is_cache_enabler_nginx_upgrade_needed( $server_id ) {
+	public function is_cache_enabler_nginx_upgrade_needed( $server_id ) {
 
 		$initial_plugin_version = $this->get_server_meta_by_app_id( $server_id, 'wpcd_server_plugin_initial_version', true );  // This function is smart enough to know if the ID being passed is a server or app id and adjust accordingly.
 

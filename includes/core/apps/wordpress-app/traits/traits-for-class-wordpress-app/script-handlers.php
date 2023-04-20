@@ -249,7 +249,7 @@ trait wpcd_wpapp_script_handlers {
 				( strpos( $result, 'Site Sync Completed Successfully' ) !== false )
 				||
 				( strpos( $result, 'MT Site Sync Completed Successfully' ) !== false )
-				||				
+				||
 				( strpos( $result, 'Site sync has been scheduled' ) !== false );
 				break;
 			case 'site_sync_unschedule.txt':
@@ -464,6 +464,9 @@ trait wpcd_wpapp_script_handlers {
 			case 'run_upgrade_install_php_81.txt':
 				$return = ( strpos( $result, 'PHP 8.1 has been installed' ) !== false );
 				break;
+			case 'run_upgrade_install_php_82.txt':
+				$return = ( strpos( $result, 'PHP 8.2 has been installed' ) !== false );
+				break;
 			case 'run_upgrade_7g.txt':
 				$return = ( strpos( $result, 'The 7G Firewall has been upgraded' ) !== false );
 				break;
@@ -475,7 +478,7 @@ trait wpcd_wpapp_script_handlers {
 				break;
 			case 'run_upgrade_cache_enabler_nginx_config.txt':
 				$return = ( strpos( $result, 'Cache Enabler NGINX Config Has Been Upgraded' ) !== false );
-				break;				
+				break;
 			case 'server_status_callback.txt':
 				$return =
 				( strpos( $result, 'Server status job configured' ) !== false )
@@ -1428,12 +1431,22 @@ trait wpcd_wpapp_script_handlers {
 					$common_array,
 					$additional
 				);
-				break;				
+				break;
 			case 'run_upgrade_install_php_81.txt':
 				$new_array = array_merge(
 					array(
 						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/1050-upgrade_install_php_81.txt',
 						'SCRIPT_NAME' => '1050-upgrade_install_php_81.sh',
+					),
+					$common_array,
+					$additional
+				);
+				break;
+			case 'run_upgrade_install_php_82.txt':
+				$new_array = array_merge(
+					array(
+						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/1110-upgrade_install_php_82.txt',
+						'SCRIPT_NAME' => '1110-upgrade_install_php_82.sh',
 					),
 					$common_array,
 					$additional
@@ -1472,8 +1485,8 @@ trait wpcd_wpapp_script_handlers {
 			case 'run_upgrade_cache_enabler_nginx_config.txt':
 				$new_array = array_merge(
 					array(
-						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/1090-upgrade_cache_enabler.txt',
-						'SCRIPT_NAME' => '1090-upgrade_cache_enabler.sh',
+						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/1100-upgrade_cache_enabler.txt',
+						'SCRIPT_NAME' => '1100-upgrade_cache_enabler.sh',
 					),
 					$common_array,
 					$additional

@@ -938,7 +938,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 		return $value;
 
-	}	
+	}
 
 	/**
 	 * Sets the status of debug metas.
@@ -1153,7 +1153,28 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	}
 
 	/**
-	 * Returns a boolean true/false if the 7G V 1.5 Firewall Rules is installed.
+	 * Returns a boolean true/false if the 6G firewall Rules are installed.
+	 *
+	 * @param int $server_id ID of server being interrogated.
+	 *
+	 * @return boolean
+	 */
+	public function is_6g_installed( $server_id ) {
+
+		// Check first to see if they were removed.
+		$was_6g_removed = (bool) $this->get_server_meta_by_app_id( $server_id, 'wpcd_6g_removed', true );   // This function is smart enough to know if the ID being passed is a server or app id and adjust accordingly.
+
+		if ( true === $was_6g_removed ) {
+			return false;
+		}
+
+		// So far, all versions of the plugin include the 6g files. Later we will no longer be installing it at all.
+		// At that time we'll have to add back in our usual logic (see 7g functions below) to check plugin versions before return true/false.
+		return true;
+	}
+
+	/**
+	 * Returns a boolean true/false if the 7G V 1.5 Firewall Rules are installed.
 	 *
 	 * ***This is no longer needed - see the is_7g16_installed() function below instead.
 	 *
@@ -1182,7 +1203,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	}
 
 	/**
-	 * Returns a boolean true/false if the 7G V 1.6 Firewall Rules is installed.
+	 * Returns a boolean true/false if the 7G V 1.6 Firewall Rules are installed.
 	 *
 	 * @param int $server_id ID of server being interrogated.
 	 *

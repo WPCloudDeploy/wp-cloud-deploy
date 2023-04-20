@@ -54,6 +54,11 @@ class WPCD_WORDPRESS_TABS_6G_FIREWALL extends WPCD_WORDPRESS_TABS {
 			return $tabs;
 		}
 
+		// Maybe the 6G rules were removed.
+		if ( ! $this->is_6g_installed( $id ) ) {
+			return $tabs;
+		}
+
 		if ( $this->get_tab_security( $id ) ) {
 			$tabs[ $this->get_tab_slug() ] = array(
 				'label' => __( '6G WAF', 'wpcd' ),

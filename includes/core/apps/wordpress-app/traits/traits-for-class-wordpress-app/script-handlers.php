@@ -470,6 +470,9 @@ trait wpcd_wpapp_script_handlers {
 			case 'run_upgrade_7g.txt':
 				$return = ( strpos( $result, 'The 7G Firewall has been upgraded' ) !== false );
 				break;
+			case 'run_remove_6g.txt':
+				$return = ( strpos( $result, 'The 6G Firewall has been removed' ) !== false );
+				break;
 			case 'run_upgrade_wpcli.txt':
 				$return = ( strpos( $result, 'WPCLI has been upgraded' ) !== false );
 				break;
@@ -1457,6 +1460,16 @@ trait wpcd_wpapp_script_handlers {
 					array(
 						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/1060-upgrade_7g_firewall.txt',
 						'SCRIPT_NAME' => '1060-upgrade_7g_firewall.sh',
+					),
+					$common_array,
+					$additional
+				);
+				break;
+			case 'run_remove_6g.txt':
+				$new_array = array_merge(
+					array(
+						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/1120-remove_6g_firewall.txt',
+						'SCRIPT_NAME' => '1120-remove_6g_firewall.sh',
 					),
 					$common_array,
 					$additional

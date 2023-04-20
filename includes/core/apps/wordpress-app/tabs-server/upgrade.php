@@ -193,6 +193,10 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 					$result = $this->upgrade_7g( $id, $action );
 					break;
 
+				case 'server-remove-6g':
+					$result = $this->remove_6g( $id, $action );
+					break;
+
 				case 'server-upgrade-wpcli':
 					$result = $this->upgrade_wpcli( $id, $action );
 					break;
@@ -265,10 +269,16 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 				$actions = $this->get_upgrade_fields_default( $id );
 		}
 
-		// 7G Firewall Upgrade Options.  Only applies to NGINX
+		// 7G Firewall Upgrade Options.  Only applies to NGINX.
 		if ( ! $this->is_7g16_installed( $id ) && 'nginx' === $webserver_type ) {
 			$upgrade_7g_fields = $this->get_upgrade_fields_7g( $id );
 			$actions           = array_merge( $actions, $upgrade_7g_fields );
+		}
+
+		// Remove 6G Firewall.  Only applies to NGINX.
+		if ( $this->is_6g_installed( $id ) && 'nginx' === $webserver_type ) {
+			$remove_6g_fields = $this->get_remove6g_fields( $id );
+			$actions          = array_merge( $actions, $remove_6g_fields );
 		}
 
 		// PHP 8.1 install options.  Only applies to NGINX since all OLS servers will have it installed already.
@@ -871,6 +881,60 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 				'std'                 => __( 'Upgrade 7G Rules', 'wpcd' ),
 				// make sure we give the user a confirmation prompt.
 				'confirmation_prompt' => __( 'Are you sure you would like to upgrade the 7G Firewall rules on this server? It will overwrite any changes you might have made to the default rules file.', 'wpcd' ),
+			),
+			'type'           => 'button',
+		);
+
+		/*
+		$actions['server-upgrade-7g-meta'] = array(
+		'label'          => '',
+		'raw_attributes' => array(
+			'std'                 => __( 'Remove 7G Upgrade Option', 'wpcd' ),
+			'desc'                => __( 'Tag server as having 7G upgraded.', 'wpcd' ),
+			// make sure we give the user a confirmation prompt.
+			'confirmation_prompt' => __( 'Are you sure you would like to tag this server as being upgraded without running the upgrade script?', 'wpcd' ),
+		),
+		'type'           => 'button',
+		);
+		*/
+
+		return $actions;
+
+	}
+
+	/**
+	 * Gets the fields to show in the UPGRADE tab in the server details screen
+	 * if the 6G firewall needs to be removed.
+	 *
+	 * @param int $id the post id of the app cpt record.
+	 *
+	 * @return array Array of actions with key as the action slug and value complying with the structure necessary by metabox.io fields.
+	 */
+	private function get_remove6g_fields( $id ) {
+
+		// Set up metabox items.
+		$actions = array();
+
+		$upg_desc  = __( 'Use this button to REMOVE the 6G Firewall rules from the server.', 'wpcd' );
+		$upg_desc .= '<br />';
+		$upg_desc .= __( 'If you are not using these rules they can make certain operations more efficient if they are removed.', 'wpcd' );
+		$upg_desc .= '<br />';
+		$upg_desc .= __( 'Note that the 6G firewall rules are DEPRECATED and future versions of WPCD will not even install them.  If you are not currently using 6G you should remove these rules now.', 'wpcd' );
+
+		$actions['server-remove-6g-header'] = array(
+			'label'          => __( 'Remove 6G Firewall Rules', 'wpcd' ),
+			'type'           => 'heading',
+			'raw_attributes' => array(
+				'desc' => $upg_desc,
+			),
+		);
+
+		$actions['server-remove-6g'] = array(
+			'label'          => '',
+			'raw_attributes' => array(
+				'std'                 => __( 'Remove 6G Rules', 'wpcd' ),
+				// make sure we give the user a confirmation prompt.
+				'confirmation_prompt' => __( 'Are you sure you would like to Remove the 6G Firewall rules on this server? It will overwrite any changes you might have made to the default rules file.', 'wpcd' ),
 			),
 			'type'           => 'button',
 		);
@@ -1509,6 +1573,83 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 			// Let user know command is complete and force a page rfresh.
 			$result = array(
 				'msg'     => __( 'PHP 8.2 install has been completed - this page will now refresh', 'wpcd' ),
+				'refresh' => 'yes',
+			);
+		}
+
+		return $result;
+
+	}
+
+	/**
+	 * Run upgrade script for 6G firewall rules
+	 *
+	 * @param int    $id         The postID of the server cpt.
+	 * @param string $action     The action to be performed (this matches the string required in the bash scripts if bash scripts are used ).
+	 *
+	 * @return boolean success/failure/other
+	 */
+	public function remove_6g( $id, $action ) {
+
+		// Get data about the server.
+		$instance = $this->get_server_instance_details( $id );
+
+		if ( is_wp_error( $instance ) ) {
+			/* translators: %s is replaced with the internal action name. */
+			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
+		}
+
+		// Get Webserver Type.
+		$webserver_type = $this->get_web_server_type( $id );
+
+		// Bail if not an NGINX server.
+		if ( 'nginx' !== $webserver_type ) {
+			// We really shouldn't get here - if we do it likely means someone has bypassed a bunch of security checks.
+			return new \WP_Error( __( 'This action cannot be run on a server running OLS.  It can only be run on server running NGINX.', 'wpcd' ) );
+		}
+
+		// Get the full command to be executed by ssh.
+		$run_cmd = $this->turn_script_into_command(
+			$instance,
+			'run_remove_6g.txt',
+			array(
+				'action'      => $action,
+				'interactive' => 'no',
+			)
+		);
+
+		// log.
+		// phpcs:ignore
+		do_action( 'wpcd_log_error', sprintf( 'attempting to run command for %s = %s ', print_r( $instance, true ), $run_cmd ), 'trace', __FILE__, __LINE__, $instance, false ); //PHPcs warning normally issued because of print_r
+
+		// execute.
+		$result = $this->execute_ssh( 'generic', $instance, array( 'commands' => $run_cmd ) );
+
+		// Make sure we don't have a wp_error object being returned...
+		if ( is_wp_error( $result ) ) {
+			return new \WP_Error( __( 'There was a problem removing the 6G firewall rules - please check the server logs for more information.', 'wpcd' ) );
+		}
+
+		// evaluate results.
+		if ( strpos( $result, 'journalctl -xe' ) !== false ) {
+			// Looks like there was a problem with restarting the webserver - So update completion meta and return message.
+			update_post_meta( $id, 'wpcd_6g_removed', true );
+			/* translators: %s is replaced with the text of the result of the operation. */
+			return new \WP_Error( sprintf( __( 'There was a problem restarting the web server after this operation - here is the full output of the upgrade process: %s', 'wpcd' ), $result ) );
+		}
+
+		// If we're here, we know that the nginx server restarted ok so let's do standard success checks.
+		$success = $this->is_ssh_successful( $result, 'run_remove_6g.txt' );
+		if ( ! $success ) {
+			/* translators: %1$s is replaced with the internal action name; %2$s is replaced with the result of the call, usually an error message. */
+			return new \WP_Error( sprintf( __( 'Unable to perform action %1$s for server: %2$s', 'wpcd' ), $action, $result ) );
+		} else {
+			// update server field to tag server as being upgraded.
+			update_post_meta( $id, 'wpcd_6g_removed', true );
+
+			// Let user know command is complete and force a page rfresh.
+			$result = array(
+				'msg'     => __( 'The 6G firewall rules have been removed - this page will now refresh', 'wpcd' ),
 				'refresh' => 'yes',
 			);
 		}

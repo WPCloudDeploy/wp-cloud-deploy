@@ -4,15 +4,15 @@
 
 ![WPCloudDeploy Dashboard](https://wpclouddeploy.com/wp-content/uploads/2021/10/server-list-without-slate-theme-01.png)
 
-The plugin makes it easy to deploy servers at well-known providers such as DigitalOcean, AWS and more.  However, the core plugin only includes support for DigitalOcean.
+The plugin makes it easy to deploy servers at well-known providers such as DigitalOcean, Linode, Vultr, AWS, Google Cloud and more.
 
-**It is primarily used to install and manage WordPress servers and applications.** 
+**It is primarily used to install and manage WordPress servers and sites.** 
 
 ![WPCloudDeploy Dashboard](https://wpclouddeploy.com/wp-content/uploads/2022/04/wpcd-v4-095.png)
 
 Its extensible model allow developers to add new apps in the future.
 
-All management features are available inside of wp-admin on your WordPress site.  Apart from the server providers, you do not need a 3rd party SaaS service to manage your servers and apps.
+All management features are available inside of wp-admin on your WordPress site.  Apart from your cloud server provider(s), you do not need a 3rd party SaaS service to manage your servers and sites.
 
 [View a full list of WordPress-focused features](https://wpclouddeploy.com/features/)
 
@@ -20,7 +20,7 @@ All management features are available inside of wp-admin on your WordPress site.
 
 ## Getting Started: The Easier Way ##
 
-You can get a rapid start by using the [pre-configured droplet at digital ocean.](https://marketplace.digitalocean.com/apps/wpclouddeploy)
+The easiest way to get started is to use the [pre-configured droplet at digital ocean.](https://marketplace.digitalocean.com/apps/wpclouddeploy)
 
 Just deploy the droplet, login with your ssh credentials and follow the instructions to setup your domain and other info.
 
@@ -52,7 +52,7 @@ Features of the plugin include:
 
 * APP: WordPress - **EXTENSIVE** support for deploying and managing WordPress servers and sites from inside the WordPress admin dashboard. This is the primary app type that this plugin supports.  
 * Integrated DigitalOcean Cloud Provider.
-* Extensible server provider model supports EC2, LIGHTSAIL, LINODE, VULTR, UPCLOUD, HETZNER, EXOSCALE and other public and private cloud providers via additional plugins.
+* Extensible server provider model supports EC2, LIGHTSAIL, LINODE, VULTR, UPCLOUD, HETZNER, EXOSCALE, AZURE, GOOGLE CLOUD and other public and private cloud providers via additional plugins.
 * Extra App: OpenVPN - includes front-end purchase and management. This helps developers to see how multiple apps can potentially co-exist inside the framework.
 * Extra App: Basic Server - deploy simple servers with no additional apps pre-installed. This helps developers to see how multiple apps can potentially co-exist inside the framework.
 
@@ -61,10 +61,10 @@ Features of the plugin include:
 [View the official roadmap on Trello](https://trello.com/b/pYl53rvM/wpcloud-deploy-public-roadmap)
 
 ## Requirements ##
-* WordPress 5.6 or later
-* PHP 7.4 or higher (For certain premium modules 8.x will throw warning errors.  This is because the server providers have not fully updated or debugged their PHP api wrappers for 8.x)
+* WordPress 5.8 or later
+* PHP 7.4, [8.0 or 8.1](https://wpclouddeploy.com/documentation/more/php-8-0-8-1-notes/)
 
-Once the plugin is installed please view additional changes required to PHP and web server execution timeout values under the WPCLOUDDEPLOY->SETTINGS->GENERAL SETTINGS tab.
+Once the plugin is installed please view additional changes required to PHP and web server execution timeout values under the WPCLOUDDEPLOY → SETTINGS → GENERAL SETTINGS tab.
 You can also view all requirements at the bottom of our [getting started documentation](https://wpclouddeploy.com/documentation/wpcloud-deploy/introduction-to-wpcloud-deploy/) or in the [requirements documentation](https://wpclouddeploy.com/documentation/wpcloud-deploy/requirements/)
 
 ## How To Contribute ##
@@ -77,7 +77,7 @@ If you'd like to contribute to translations, you can do so in our public [POEDIT
 
 ## Premium Versions ##
 
-A premium version of this plugin is available on the WPCloudDeploy website.  You can view the additional features offered on the [pricing page.](https://wpclouddeploy.com/pricing/)
+A premium version of this plugin is available on the [WPCloudDeploy website](https://wpclouddeploy.com).  You can view the additional features offered on the [pricing page.](https://wpclouddeploy.com/pricing/)
 
 Premium features include:
 
@@ -89,8 +89,7 @@ Premium features include:
 * Sell WP Site subscriptions with WOOCOMMERCE
 * Virtual Providers (support multiple accounts on each cloud server provider)
 * Server Sync
-* Support for additional cloud server providers: EC2, LIGHTSAIL, LINODE, VULTR, UPCLOUD, HETZNER, EXOSCALE, GOOGLE, AZURE and ALIBABA
-* Powertools which include features such as summary dashboards and charts, periodic server snapshots and more.
+* Powertools which include features such as summary statistics dashboards and charts, periodic server snapshots, automatic homepage images and much more.
 
 [Purchase a premium subscription](https://wpclouddeploy.com/pricing/). 
 

@@ -197,6 +197,10 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 					$result = $this->install_php_intl( $id, $action );
 					break;
 
+				case 'server-upgrade-cache-enabler-nginx-config':
+					$result = $this->upgrade_cache_enabler_nginx_config( $id, $action );
+					break;
+
 				case 'server-upgrade-delete-meta':
 					$result = $this->remove_upgrade_meta( $id, $action );
 					break;
@@ -251,6 +255,7 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 					$actions = $this->get_upgrade_fields_530( $id );
 					break;
 				}
+				break;
 			default:
 				$actions = $this->get_upgrade_fields_default( $id );
 		}
@@ -277,6 +282,12 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 		if ( ! $this->is_php_intl_module_installed( $id ) && 'nginx' === $webserver_type ) {
 			$upgrade_php_intl_fields = $this->get_upgrade_fields_php_intl( $id );
 			$actions                 = array_merge( $actions, $upgrade_php_intl_fields );
+		}
+
+		// Cache Enabler Upgrade Options - Only applies to NGINX.
+		if ( $this->is_cache_enabler_nginx_upgrade_needed( $id ) && 'nginx' === $webserver_type ) {
+			$upgrade_cache_enabler_fields = $this->get_upgrade_fields_cache_enabler_nginx_config( $id );
+			$actions                      = array_merge( $actions, $upgrade_cache_enabler_fields );
 		}
 
 		// Linux Updates.
@@ -913,6 +924,49 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 
 	/**
 	 * Gets the fields to show in the UPGRADE tab in the server details screen
+	 * if the cache_enabler nginx code needs an update.
+	 *
+	 * @param int $id the post id of the app cpt record.
+	 *
+	 * @return array Array of actions with key as the action slug and value complying with the structure necessary by metabox.io fields.
+	 */
+	private function get_upgrade_fields_cache_enabler_nginx_config( $id ) {
+
+		// Set up metabox items.
+		$actions = array();
+
+		$upg_desc  = __( 'Use this button to upgrade the nginx configuration for the cache plugin (Cache Enabler).', 'wpcd' );
+		$upg_desc .= '<br />';
+		$upg_desc .= __( 'This is needed because the plugin authors changed the cache file name formats.', 'wpcd' );
+		$upg_desc .= '<br />';
+		$upg_desc .= __( 'If you depend on this plugin for caching then upgrading the script will likely result in faster load times for cached pages.', 'wpcd' );
+		$upg_desc .= '<br /><b>';
+		$upg_desc .= __( 'Note that this will overwrite your existing NGINX config for cache-enabler - any custom changes you made will be lost!', 'wpcd' );
+		$upg_desc .= '</b>';
+
+		$actions['server-upgrade-header-cache-enabler-nginx-config'] = array(
+			'label'          => __( 'Upgrade Cache Enabler Config', 'wpcd' ),
+			'type'           => 'heading',
+			'raw_attributes' => array(
+				'desc' => $upg_desc,
+			),
+		);
+
+		$actions['server-upgrade-cache-enabler-nginx-config'] = array(
+			'label'          => '',
+			'raw_attributes' => array(
+				'std'                 => __( 'Upgrade Cache Enabler NGINX Configuration', 'wpcd' ),
+				// make sure we give the user a confirmation prompt.
+				'confirmation_prompt' => __( 'Are you sure you would like to upgrade the cache enabler NGINX configuration on this server?', 'wpcd' ),
+			),
+			'type'           => 'button',
+		);
+
+		return $actions;
+	}
+
+	/**
+	 * Gets the fields to show in the UPGRADE tab in the server details screen
 	 * when there are no upgrades to be done.
 	 *
 	 * @param int $id the post id of the app cpt record.
@@ -924,7 +978,7 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 		// Set up metabox items.
 		$actions = array();
 
-		$upg_desc  = __( 'There are no configuration updates required for this server.', 'wpcd' );
+		$upg_desc  = __( 'There are no urgent or mandatory configuration updates required for this server.', 'wpcd' );
 		$upg_desc .= '<br />';
 
 		$actions['server-upgrade-header'] = array(
@@ -1536,6 +1590,74 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 		return $result;
 
 	}
+
+	/**
+	 * Run upgrade script for cache enabler nginx configuration
+	 *
+	 * @param int    $id         The postID of the server cpt.
+	 * @param string $action     The action to be performed (this matches the string required in the bash scripts if bash scripts are used ).
+	 *
+	 * @return boolean success/failure/other
+	 */
+	public function upgrade_cache_enabler_nginx_config( $id, $action ) {
+
+		// Get data about the server.
+		$instance = $this->get_server_instance_details( $id );
+
+		if ( is_wp_error( $instance ) ) {
+			/* translators: %s is replaced with the internal action name. */
+			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
+		}
+
+		// Get the full command to be executed by ssh.
+		$run_cmd = $this->turn_script_into_command(
+			$instance,
+			'run_upgrade_cache_enabler_nginx_config.txt',
+			array(
+				'action'      => $action,
+				'interactive' => 'no',
+			)
+		);
+
+		// log.
+		// phpcs:ignore
+		do_action( 'wpcd_log_error', sprintf( 'attempting to run command for %s = %s ', print_r( $instance, true ), $run_cmd ), 'trace', __FILE__, __LINE__, $instance, false ); //PHPcs warning normally issued because of print_r
+
+		// execute.
+		$result = $this->execute_ssh( 'generic', $instance, array( 'commands' => $run_cmd ) );
+
+		// Make sure we don't have a wp_error object being returned...
+		if ( is_wp_error( $result ) ) {
+			return new \WP_Error( __( 'There was a problem installing the PHP INTL module - please check the server logs for more information.', 'wpcd' ) );
+		}
+
+		// evaluate results.
+		if ( strpos( $result, 'journalctl -xe' ) !== false ) {
+			// Looks like there was a problem with restarting the NGINX - So update completion meta and return message.
+			update_post_meta( $id, 'wpcd_cache_enabler_nginx_upgrade', 5.11 );
+			/* translators: %s is replaced with the text of the result of the operation. */
+			return new \WP_Error( sprintf( __( 'There was a problem restarting the nginx server after the install - here is the full output of the upgrade process: %s', 'wpcd' ), $result ) );
+		}
+
+		// If we're here, we know that the nginx server restarted ok so let's do standard success checks.
+		$success = $this->is_ssh_successful( $result, 'run_upgrade_cache_enabler_nginx_config.txt' );
+		if ( ! $success ) {
+			/* translators: %1$s is replaced with the internal action name; %2$s is replaced with the result of the call, usually an error message. */
+			return new \WP_Error( sprintf( __( 'Unable to perform action %1$s for server: %2$s', 'wpcd' ), $action, $result ) );
+		} else {
+			// update server field to tag server as being upgraded.
+			update_post_meta( $id, 'wpcd_cache_enabler_nginx_upgrade', 5.11 );
+
+			// Let user know command is complete and force a page rfresh.
+			$result = array(
+				'msg'     => __( 'The NGINX configuration for cache enabler has been upgraded  - this page will now refresh', 'wpcd' ),
+				'refresh' => 'yes',
+			);
+		}
+
+		return $result;
+
+	}	
 
 	/**
 	 * Tag a server as being upgraded to V 290.

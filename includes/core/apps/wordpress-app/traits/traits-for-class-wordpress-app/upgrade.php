@@ -494,9 +494,15 @@ trait wpcd_wpapp_upgrade_functions {
 	 */
 	public function app_server_admin_list_upgrade_status( $column_data, $post_id ) {
 
+		$webserver_type = $this->get_web_server_type( $post_id );
+
 		if ( 'wordpress-app' === WPCD_WORDPRESS_APP()->get_server_type( $post_id ) ) {
 			if ( $this->wpapp_upgrade_must_run_check( $post_id ) ) {
 				$output      = '<span class="wpcd_upgrade_needed_warning">' . __( 'A server upgrade is needed. Please see the upgrades tab.', 'wpcd' ) . '</span>';
+				$column_data = $column_data . $output;
+			}
+			if ( $this->is_cache_enabler_nginx_upgrade_needed( $post_id ) && 'nginx' === $webserver_type ) {
+				$output      = '<span class="wpcd_upgrade_needed_warning">' . __( 'A server upgrade is needed to optimize the NGINX cache. Please see the upgrades tab.', 'wpcd' ) . '</span>';
 				$column_data = $column_data . $output;
 			}
 		}
@@ -586,6 +592,34 @@ trait wpcd_wpapp_upgrade_functions {
 		if ( (int) get_option( 'wpcd_last_upgrade_done' ) < 510 ) {
 			update_option( 'wpcd_last_silent_auto_upgrade_done', 510 );
 		}
+
+	}
+
+	/**
+	 * Returns a boolean true/false if we need to install a new version of the cache_enabler script.
+	 *
+	 * @param int $server_id ID of server being interrogated.
+	 *
+	 * @return boolean
+	 */
+	private function is_cache_enabler_nginx_upgrade_needed( $server_id ) {
+
+		$initial_plugin_version = $this->get_server_meta_by_app_id( $server_id, 'wpcd_server_plugin_initial_version', true );  // This function is smart enough to know if the ID being passed is a server or app id and adjust accordingly.
+
+		if ( version_compare( $initial_plugin_version, '5.2.9' ) > -1 ) {
+			// Versions of the plugin after 5.2.9 already has the latest version of cache_enabler.
+			return false;
+		} else {
+			// See if it was manually upgraded - which would leave a meta field value behind on the server CPT record.
+			$it_is_installed = (float) $this->get_server_meta_by_app_id( $server_id, 'wpcd_cache_enabler_nginx_upgrade', true );   // This function is smart enough to know if the ID being passed is a server or app id and adjust accordingly.
+			if ( $it_is_installed >= 5.11 ) {  // Increase this number to 5.12, 5.13 etc if we need to upgrade again in the future - this is not a version number. It just needs to increase.
+				return false;
+			} else {
+				return true;
+			}
+		}
+
+		return false;
 
 	}
 

@@ -473,6 +473,9 @@ trait wpcd_wpapp_script_handlers {
 			case 'run_upgrade_install_php_intl.txt':
 				$return = ( strpos( $result, 'PHP intl module has been installed' ) !== false );
 				break;
+			case 'run_upgrade_cache_enabler_nginx_config.txt':
+				$return = ( strpos( $result, 'Cache Enabler NGINX Config Has Been Upgraded' ) !== false );
+				break;				
 			case 'server_status_callback.txt':
 				$return =
 				( strpos( $result, 'Server status job configured' ) !== false )
@@ -1461,6 +1464,16 @@ trait wpcd_wpapp_script_handlers {
 					array(
 						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/1080-upgrade_install_php_intl_module.txt',
 						'SCRIPT_NAME' => '1080-upgrade_install_php_intl_module.sh',
+					),
+					$common_array,
+					$additional
+				);
+				break;
+			case 'run_upgrade_cache_enabler_nginx_config.txt':
+				$new_array = array_merge(
+					array(
+						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/1090-upgrade_cache_enabler.txt',
+						'SCRIPT_NAME' => '1090-upgrade_cache_enabler.sh',
 					),
 					$common_array,
 					$additional

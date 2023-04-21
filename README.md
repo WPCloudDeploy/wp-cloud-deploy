@@ -64,7 +64,8 @@ Features of the plugin include:
 * WordPress 5.8 or later
 * PHP 7.4, [8.0 or 8.1](https://wpclouddeploy.com/documentation/more/php-8-0-8-1-notes/)
 
-Once the plugin is installed please view additional changes required to PHP and web server execution timeout values under the WPCLOUDDEPLOY → SETTINGS → GENERAL SETTINGS tab.
+Once the plugin is installed please view additional changes required to PHP and web server execution timeout values under the WPCLOUDDEPLOY → SETTINGS → GENERAL SETTINGS tab. 
+
 You can also view all requirements at the bottom of our [getting started documentation](https://wpclouddeploy.com/documentation/wpcloud-deploy/introduction-to-wpcloud-deploy/) or in the [requirements documentation](https://wpclouddeploy.com/documentation/wpcloud-deploy/requirements/)
 
 ## How To Contribute ##
@@ -74,6 +75,8 @@ Have a change you would like to see incorporated?  Then create a PR (pull reques
 Have some time to help test new versions?  Download a zip of the **dev** branch and test - changes that need testing are usually listed in the CHANGE LOG section of this readme file below (under the most recent version number.)
 
 If you'd like to contribute to translations, you can do so in our public [POEDITOR project](https://poeditor.com/join/project?hash=A5I1lpqRes).
+
+You can also assist by working on items in the [issues list](https://github.com/WPCloudDeploy/wp-cloud-deploy/issues).
 
 ## Premium Versions ##
 

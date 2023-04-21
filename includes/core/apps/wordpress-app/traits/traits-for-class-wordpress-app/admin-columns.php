@@ -1279,7 +1279,7 @@ trait wpcd_wpapp_admin_column_data {
 						// What versions of PHP should we warn for?
 						$bad_php_versions = wpcd_get_option( 'wordpress_app_servers_default_php_warn_versions' );
 						if ( empty( $bad_php_versions ) ) {
-							$bad_php_versions = array( '5.6', '7.1', '7.2', '7.3' );
+							$bad_php_versions = array( '5.6', '7.1', '7.2', '7.3', '8.2' );
 						}
 
 						// Set warning message if the current PHP version is in the array of ones we should warn for.

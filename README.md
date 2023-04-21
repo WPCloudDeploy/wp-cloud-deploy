@@ -153,6 +153,7 @@ Note: Even though the entire git development history isn't available on github, 
 * Fix: WPAPP - Better handling for duplicate letsencrypt folders that end with -00xx.
 * Fix: WPAPP - When multisite SSL is on, the status was not shown properly in the site list.
 * Dev: Preliminary foundation set for moving providers and dns data into custom tables.
+* Dev: Update to latest version of phpseclib.
 * Dev: WPAPP - Use global function to reset site permissions (refactor).
 * Dev: WPAPP - Add option for executing local post-processing scripts after a site is cloned.
 * Dev: WPAPP - New filters available when displaying info in the server actions column.
@@ -1042,6 +1043,7 @@ Skipped.
  * [Sidney Andrews](https://github.com/osidney)
  * [Vlad Olaru](https://github.com/vladolaru)
  * [Kevin Shenk](https://github.com/batonac)
+ * [Michael Salaj](https://github.com/msalaj)
  
   
 ### Running the test suite

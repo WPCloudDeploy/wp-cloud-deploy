@@ -461,7 +461,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		$mc_desc  = __( 'Memcached is an OBJECT cache service that can help speed up duplicated database queries.  Once the service is installed here, you can activate it for each site that needs it.', 'wpcd' );
 		$mc_desc .= '<br />';
 		/* translators: %s is a string "Memcached and Redis Object Caches" and is handled separately. */
-		$mc_desc .= sprintf( __( 'Learn more about %s', 'wpcd' ), '<a href="https://medium.com/@Alibaba_Cloud/redis-vs-memcached-in-memory-data-storage-systems-3395279b0941">' . __( 'Memcached and Redis Object Caches', 'wpcd' ) . '</a>' );
+		$mc_desc .= sprintf( __( 'Learn more about %s', 'wpcd' ), '<a href="https://scalegrid.io/blog/redis-vs-memcached-2021-comparison/">' . __( 'Memcached and Redis Object Caches', 'wpcd' ) . '</a>' );
 
 		$actions['memcached-status-header'] = array(
 			'label'          => __( 'Memcached', 'wpcd' ),

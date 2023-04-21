@@ -566,7 +566,7 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 
 			// Construct a nice message showing more resources and a link to the server page.
 			$server_edit_link    = '<a href=' . '"' . $server_edit_post_link . '"' . '>' . __( 'server', 'wpcd' ) . '</a>';
-			$memcached_read_url  = 'https://medium.com/@Alibaba_Cloud/redis-vs-memcached-in-memory-data-storage-systems-3395279b0941';
+			$memcached_read_url  = 'https://scalegrid.io/blog/redis-vs-memcached-2021-comparison/';
 			$memcached_read_url  = wpcd_get_documentation_link( 'wordpress-app-doc-link-memcached-info', apply_filters( 'wpcd_documentation_links', $memcached_read_url ) );
 			$memcached_read_link = '<a href="' . $memcached_read_url . '">' . __( 'Memcached and Redis Object Caches', 'wpcd' ) . '</a>';
 			/* Translators: %1$s is a readmore link for memcached. %2$s is a link to the server where memcached is installed. */

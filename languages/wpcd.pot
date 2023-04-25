@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 "Project-Id-Version: WP Cloud Deploy\n"
-"POT-Creation-Date: 2023-04-20 15:51-0500\n"
+"POT-Creation-Date: 2023-04-25 14:05-0500\n"
 "PO-Revision-Date: 2020-08-14 19:38-0500\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -682,7 +682,7 @@ msgid "URL to Your Stable Diffusion Account Page"
 msgstr ""
 
 #: includes/core/apps/stable-diffusion/class-stablediff-app-settings.php:357
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1900
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1905
 #: includes/core/apps/wordpress-app/tabs-server/backup.php:160
 msgid "AWS S3 Credentials"
 msgstr ""
@@ -696,26 +696,26 @@ msgstr ""
 
 #: includes/core/apps/stable-diffusion/class-stablediff-app-settings.php:364
 #: includes/core/apps/stable-diffusion/class-stablediff-app-settings.php:365
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1907
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1908
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1912
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1913
 #: includes/core/apps/wordpress-app/tabs-server/backup.php:167
 msgid "AWS Access Key ID"
 msgstr ""
 
 #: includes/core/apps/stable-diffusion/class-stablediff-app-settings.php:376
 #: includes/core/apps/stable-diffusion/class-stablediff-app-settings.php:377
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1919
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1920
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1924
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1925
 msgid "AWS Secret Key"
 msgstr ""
 
 #: includes/core/apps/stable-diffusion/class-stablediff-app-settings.php:387
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1930
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1935
 msgid "Default Region"
 msgstr ""
 
 #: includes/core/apps/stable-diffusion/class-stablediff-app-settings.php:389
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1932
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1937
 #: includes/core/apps/wordpress-app/tabs-server/backup.php:220
 #, php-format
 msgid "<a href=\"%s\" target=\"_blank\" >Valid Regions</a>"
@@ -723,8 +723,8 @@ msgstr ""
 
 #: includes/core/apps/stable-diffusion/class-stablediff-app-settings.php:396
 #: includes/core/apps/stable-diffusion/class-stablediff-app-settings.php:397
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1939
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1940
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1944
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1945
 #: includes/core/apps/wordpress-app/tabs-server/backup.php:201
 #: includes/core/apps/wordpress-app/tabs-server/backup.php:315
 #: includes/core/apps/wordpress-app/tabs/backup.php:438
@@ -1262,8 +1262,6 @@ msgid "Crons"
 msgstr ""
 
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:398
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1851
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1879
 #: includes/core/apps/wordpress-app/tabs-server/general.php:38
 #: includes/core/apps/wordpress-app/tabs/general.php:53
 #: includes/core/class-wpcd-settings.php:142
@@ -1345,7 +1343,7 @@ msgid "Statistics"
 msgstr ""
 
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:409
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2688
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2693
 #: includes/core/apps/wordpress-app/tabs/theme-and-plugin-updates.php:117
 #: includes/core/class-wpcd-posts-notify-user.php:939
 msgid "Site Updates"
@@ -1760,7 +1758,7 @@ msgid "eg: john smith"
 msgstr ""
 
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1004
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2267
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2272
 #: includes/core/apps/wordpress-app/tabs-server/git_control.php:254
 #: includes/core/apps/wordpress-app/tabs-server/goaccess.php:243
 #: includes/core/apps/wordpress-app/tabs-server/goaccess.php:401
@@ -2793,49 +2791,56 @@ msgid ""
 "admin."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1852
-#: includes/core/apps/wordpress-app/public/class-wordpress-app-public.php:152
-msgid "Other Options."
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1851
+msgid ""
+"Note: Using the options above to turn fields and cards on/off on the front-"
+"end has a relationship with the visibility of the fields in wp-admin.  In "
+"most instances, fields that are not shown in wp-admin cannot be shown on the "
+"front-end even if enabled here - and vice-versa. If a toggle here does not "
+"work please double-check whether the field is visible or hidden in wp-admin."
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1857
+msgid "Filter Bar"
 msgstr ""
 
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1858
+msgid "Show/Hide Filter Bar."
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1864
 msgid "Show Filter Bar To Non-Admins"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1859
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1865
 msgid ""
 "Show the filter bar at the top of the server and site list to non-admin "
 "users. This is usually hidden from non-admins."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1865
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1871
 msgid "Hide Filter Bar From Admin"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1866
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1872
 msgid ""
 "HIDE the filter bar at the top of the server and site list from the admin. "
 "Usually this is shown to admins."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1872
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1878
+msgid "Install WP Button"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1884
 msgid "Show the Install WordPress Button"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1873
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1885
 msgid "Show the install WordPress button at the top of the list page?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1880
-msgid ""
-"Turning fields on/off on the front-end has a relationship with the "
-"visibility of the fields in wp-admin.  In most instances, fields that are "
-"not shown in wp-admin cannot be shown on the front-end even if enabled here "
-"- and vice-versa. If a toggle here does not work please double-check whether "
-"the field is visible or hidden in wp-admin."
-msgstr ""
-
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1901
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1906
 msgid ""
 "Sites can be backed up to AWS S3.  These are the AWS credentials that will "
 "be used for all sites when backing up and restoring data.  If you need to, "
@@ -2843,35 +2848,35 @@ msgid ""
 "CLOUD SERVERS screens."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1931
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1936
 msgid ""
 "The region where your default bucket is located. If this is incorrect and "
 "does not match your bucket location, backups will not be uploaded to AWS!"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1951
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1956
 #: includes/core/apps/wordpress-app/tabs-server/backup.php:230
 msgid "S3 Endpoint URL"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1952
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1957
 #: includes/core/apps/wordpress-app/tabs-server/backup.php:234
 msgid "Optional"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1953
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1958
 #: includes/core/apps/wordpress-app/tabs-server/backup.php:235
 msgid "https:/endpoint.com"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1954
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1959
 #: includes/core/apps/wordpress-app/tabs-server/backup.php:236
 msgid ""
 "Only set this if you want to use an alternative S3-compatible service. MUST "
 "start with \"https://\"!"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1962
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1967
 msgid ""
 "Warning! If you are using our SELL SERVERS WITH WOOCOMMERCE premium option, "
 "do NOT set these defaults. Otherwise all servers, including your customer "
@@ -2882,11 +2887,11 @@ msgid ""
 "questions."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1970
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1975
 msgid "Simplify Backup Options on Sites"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1971
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1976
 msgid ""
 "For sites, you can remove certain fields to simplify the screen for your "
 "users. If you do this, then the value of those fields will default to either "
@@ -2894,47 +2899,47 @@ msgid ""
 "be able to see these fields."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1977
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1982
 msgid "Hide the AWS S3 bucket name"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1978
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1983
 msgid ""
 "Hide the AWS S3 bucket name field on the backup tab on the sites screen."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1984
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1989
 msgid "Hide Retention Days"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1985
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1990
 msgid "Hide the RETENTION DAYS field on the backup tab on the sites screen."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1991
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1996
 msgid "Hide Delete Remote Backups"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1992
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1997
 msgid ""
 "Hide the DELETE REMOTE BACKUPS option field on the backup tab on the sites "
 "screen."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1999
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2004
 msgid "Hide Prune Backups Section"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2000
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2005
 msgid ""
 "Hide the entire PRUNE BACKUPS section on the backup tab on the sites screen."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2019
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2024
 msgid "Image Compare Service API"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2020
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2025
 msgid ""
 "We use the https://htmlcsstoimage.com/ service to create and compare images "
 "taken of the site before and after the update. This helps us to determine if "
@@ -2944,143 +2949,143 @@ msgid ""
 "section."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2026
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2031
 msgid "API User Id"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2027
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2032
 msgid ""
 "htmlcsstoimage.com API User Id - this is not your htmlcsstoimage.com login "
 "or email address."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2038
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2043
 #: includes/core/class-wpcd-settings.php:1419
 msgid "API Key"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2039
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2044
 msgid "htmlcsstoimage.com API Key"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2050
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2055
 msgid "Max Pixel Variance"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2051
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2056
 msgid ""
 "What is maximum number of pixels that are allowed to be different between "
 "before and after images? If the pixel variance exceeds this value the "
 "updates will be rolled back. "
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2062
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2067
 msgid "Excluded Plugins"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2063
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2068
 msgid "Never update these plugins"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2069
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2074
 msgid "Exclude These Plugins From Updates"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2070
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2075
 msgid ""
 "Enter the list of plugins separated by commas - eg: akismet,awesome-"
 "suppport, woocommerce"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2071
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2076
 msgid ""
 "The name is usually the FOLDER in which the plugin is installed - you will "
 "not find this at the top of the main plugin file. "
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2078
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2083
 msgid "Excluded Themes"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2079
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2084
 msgid "Never update these Themes"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2085
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2090
 msgid "Exclude These Themes From Updates"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2086
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2091
 msgid ""
 "Enter the list of themes separated by commas - eg: ocean,beaver-builder,divi"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2087
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2092
 msgid ""
 "The name is usually the FOLDER in which the theme is installed - you will "
 "not find this at the top of the main theme css file. "
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2106
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2111
 msgid "Email Notification for user"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2107
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2112
 msgid ""
 "This message is sent to a user when the user has configured a notification "
 "profile and a notification event matches the profile."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2113
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2118
 #: includes/core/class-wpcd-email-notifications.php:432
 #: includes/core/class-wpcd-email-notifications.php:604
 #: includes/core/class-wpcd-email-notifications.php:1774
 msgid "Subject"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2120
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2125
 #: includes/core/class-wpcd-email-notifications.php:442
 #: includes/core/class-wpcd-email-notifications.php:613
 #: includes/core/class-wpcd-email-notifications.php:1775
 msgid "Body"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2121
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2151
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2126
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2156
 msgid ""
 "Valid substitutions are: ##USERNAME##, ##FIRST_NAME##, ##LAST_NAME##, "
 "##TYPE##, ##MESSAGE##, ##REFERENCE##, ##SERVERNAME## ##DOMAIN##, ##DATE##, "
 "##TIME##, ##SERVERID##, ##SITEID##, ##IPV4##, ##PROVIDER##."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2143
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2148
 msgid "Slack Notification for user"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2144
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2149
 msgid ""
 "This message is pushed to a slack channel when the user has configured a "
 "notification profile and a notification event matches the profile."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2150
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2180
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2155
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2185
 #: includes/core/class-wpcd-posts-notify-log.php:339
 #: includes/core/class-wpcd-posts-notify-sent-log.php:210
 msgid "Message"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2173
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2178
 msgid "Zapier Notification for user"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2174
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2179
 msgid ""
 "This message is sent to Zapier when the user has configured a notification "
 "profile and a notification event matches the profile."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2181
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2186
 msgid ""
 "Valid substitutions are: ##USERNAME##, ##USERID##, ##USEREMAIL##, "
 "##FIRST_NAME##, ##LAST_NAME##, ##TYPE##, ##MESSAGE##, ##REFERENCE##, "
@@ -3088,44 +3093,44 @@ msgid ""
 "##DATE##, ##TIME##."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2203
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2208
 msgid "Colors for the user notification shortcode"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2204
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2209
 msgid ""
 "These settings are used to manage the color of the buttons shown when the "
 "user notification shortcode is used."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2248
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2253
 msgid ""
 "Set default values you can use when setting up server level email gateways."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2253
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2258
 msgid "EMAIL GATEWAY"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2260
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2265
 #: includes/core/apps/wordpress-app/tabs-server/services.php:671
 msgid "SMTP Server & Port"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2261
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2266
 #: includes/core/apps/wordpress-app/tabs-server/services.php:675
 msgid ""
 "Enter the url/address for your outgoing email server - usually in the form "
 "of a subdomain.domain.com:port - eg: <i>smtp.ionos.com:587</i>."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2268
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2273
 #: includes/core/apps/wordpress-app/tabs-server/monit.php:830
 #: includes/core/apps/wordpress-app/tabs-server/services.php:686
 msgid "Your user id for connecting to the smtp server"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2277
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2282
 #: includes/core/apps/wordpress-app/tabs-server/goaccess.php:255
 #: includes/core/apps/wordpress-app/tabs-server/goaccess.php:412
 #: includes/core/apps/wordpress-app/tabs-server/monit.php:262
@@ -3145,177 +3150,177 @@ msgstr ""
 msgid "Password"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2278
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2283
 #: includes/core/apps/wordpress-app/tabs-server/monit.php:842
 #: includes/core/apps/wordpress-app/tabs-server/services.php:698
 msgid "Your password for connecting to the smtp server"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2287
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2292
 #: includes/core/apps/wordpress-app/tabs-server/services.php:706
 msgid "From Domain"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2288
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2293
 #: includes/core/apps/wordpress-app/tabs-server/services.php:710
 msgid "The default domain for sending messages"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2294
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2299
 #: includes/core/apps/wordpress-app/tabs-server/services.php:717
 msgid "FQDN Hostname"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2295
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2300
 msgid ""
 "FQDN for the server. Some SMTP servers will require this to be a working "
 "domain name (example: server1.myblog.com)"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2305
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2310
 #: includes/core/apps/wordpress-app/tabs-server/services.php:729
 msgid "Use TLS"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2306
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2311
 msgid ""
 "Use TLS to connect to the SMTP server. Warning! Turning this off has "
 "Security implications!"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2316
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2321
 #: includes/core/apps/wordpress-app/tabs-server/services.php:744
 msgid "Use STARTTLS"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2317
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2322
 msgid ""
 "Use STARTTLS to connect to the SMTP server. Warning! Turning this off has "
 "Security implications!"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2323
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2328
 #: includes/core/apps/wordpress-app/tabs-server/services.php:760
 msgid "Brief Note"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2324
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2329
 #: includes/core/apps/wordpress-app/tabs-server/services.php:764
 msgid ""
 "Just a note in case you need a reminder about the details of this email "
 "gateway setup."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2341
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2346
 msgid "Automatic DNS via CloudFlare"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2342
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2347
 msgid ""
 "When a site is provisioned it can be automatically assigned a subdomain "
 "based on the domain specified below. If this domain is setup in cloudflare, "
 "we can automatically point the IP address to the newly created subdomain."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2348
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2353
 msgid "Temporary Domain"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2349
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2354
 msgid ""
 "The domain under which a new site's temporary sub-domain will be created."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2350
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2355
 msgid "This needs to be a short domain - max 19 chars."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2360
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2365
 msgid "Enable Cloudflare Auto DNS"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2361
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2366
 msgid ""
 "Turn this on so that when a new site is being created, the newly created "
 "subdomain can be automatically added to your CloudFlare configuration."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2367
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2372
 msgid "Zone ID"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2368
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2373
 msgid ""
 "Your zone id can be found in the lower right of the CloudFlare overview page "
 "for your domain"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2378
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2383
 msgid "API Security Token"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2379
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2384
 msgid ""
 "Generate a new token for your zone by using the GET YOUR API TOKEN link "
 "located in the lower right of the CloudFlare overview page for your domain.  "
 "This should use the EDIT ZONE DNS api token template."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2389
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2394
 msgid "Disable Cloudflare Proxy"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2390
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2395
 msgid ""
 "All new subdomains added to CloudFlare will automatically be proxied (orange "
 "flag turned on.) Check this box to turn off this behavior."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2396
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2401
 msgid "Auto Delete DNS Entry"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2397
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2402
 msgid ""
 "Should we attempt to delete the DNS entry for the domain at cloudflare when "
 "a site is deleted?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2403
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2408
 msgid "Automatically Issue SSL"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2404
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2409
 msgid ""
 "If DNS was automatically updated after a new site is provisioned, attempt to "
 "get an SSL certificate from LETSENCRYPT?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2410
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2415
 msgid "Add AAAA Record for IPv6?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2411
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2416
 msgid "Add an AAAA DNS entry if the server has an IPv6 address?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2426
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2431
 msgid "REST API [Beta]"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2427
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2432
 msgid "Activate the REST API"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2433
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2438
 msgid "Enable the REST API"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2449
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2454
 msgid "Overview"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2453
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2458
 msgid ""
 "We have provided the most popular white label options here.  But, when you "
 "want to go further you still have the vast open sea of WP style hooks and "
@@ -3323,134 +3328,134 @@ msgid ""
 "WPCD dashboard."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2459
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2464
 msgid "Logo"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2463
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2468
 msgid ""
 "Use your own logo on the server and site creation screen.  You can also "
 "completely remove the logo with an entry in wp-config - check out the docs "
 "on our website for more information about that option."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2472
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2477
 msgid "Remove the WPCD logo from popups and other locations."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2491
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2496
 msgid "Brand Colors- WP-Admin"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2495
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2500
 msgid ""
 "These settings are used to manage your brand colors in the wp-admin area."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2505
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2591
-msgid "Primary Brand Color"
-msgstr ""
-
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2510
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2596
-msgid "Secondary Brand Color"
+msgid "Primary Brand Color"
 msgstr ""
 
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2515
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2601
-msgid "Tertiary Brand Color"
+msgid "Secondary Brand Color"
 msgstr ""
 
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2520
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2606
-msgid "Accent Background Color"
+msgid "Tertiary Brand Color"
 msgstr ""
 
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2525
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2611
-msgid "Medium Background Color"
+msgid "Accent Background Color"
 msgstr ""
 
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2530
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2616
-msgid "Light Background Color"
+msgid "Medium Background Color"
 msgstr ""
 
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2535
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2621
-msgid "Alternate Accent Background Color"
+msgid "Light Background Color"
 msgstr ""
 
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2540
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2626
-msgid "Positive Color"
-msgstr ""
-
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2541
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2627
-msgid ""
-"Accent color used to indicate something is turned on or a good thing has "
-"occurred."
+msgid "Alternate Accent Background Color"
 msgstr ""
 
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2545
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2631
-msgid "Negative Color"
+msgid "Positive Color"
 msgstr ""
 
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2546
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2632
 msgid ""
-"Accent color used to indicate something is turned off or a bad thing has "
+"Accent color used to indicate something is turned on or a good thing has "
 "occurred."
 msgstr ""
 
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2550
-msgid "Background Color for Terminal"
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2636
+msgid "Negative Color"
 msgstr ""
 
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2551
-msgid "Background color for our terminal display."
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2637
+msgid ""
+"Accent color used to indicate something is turned off or a bad thing has "
+"occurred."
 msgstr ""
 
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2555
-msgid "Foreground Color for Terminal"
+msgid "Background Color for Terminal"
 msgstr ""
 
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2556
+msgid "Background color for our terminal display."
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2560
+msgid "Foreground Color for Terminal"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2561
 msgid "Color of the text used in our terminal display."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2577
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2582
 msgid "Brand Colors - Front-End Lists"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2581
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2586
 msgid ""
 "These settings are used to manage your brand colors shown on the front-end "
 "of your site."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2592
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2597
 msgid ""
 "Used for the background hover color on most buttons as well as color of "
 "larger text."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2607
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2612
 msgid "Used for the background color on most buttons."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2617
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2622
 msgid "Used for the background color on cards in the server and app list."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2655
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2660
 msgid "Reset Defaults"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2660
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2665
 #: includes/core/class-wpcd-posts-log.php:167
 #: includes/core/class-wpcd-posts-notify-user.php:468
 #: includes/core/class-wpcd-settings.php:1144
@@ -3460,17 +3465,17 @@ msgstr ""
 msgid "Please wait..."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2661
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2666
 msgid ""
 "Are you sure you would like to reset the brand colors with defaults?  This "
 "will reset both the front-end and back-end colors to the WPCD defaults."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2668
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2673
 msgid "Front-end Icons"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2678
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2683
 msgid ""
 "This will prevent the Fontawesome icon files from loading. The css markup "
 "will still be present in the html but without the fontawesome css file the "
@@ -3479,84 +3484,84 @@ msgid ""
 "Fontawesome files."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2689
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2694
 msgid "The documentation link in the SITE UPDATES tab."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2692
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2697
 msgid "Change Domains"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2693
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2698
 msgid "The documentation link in the CHANGE DOMAIN tab."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2696
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2701
 msgid "Cache Information"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2697
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2702
 msgid ""
 "The documentation link for more information about caching on the CACHE tab."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2700
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2705
 msgid "Memcached Information"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2701
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2706
 msgid ""
 "The documentation link for more information about Memcached on the CACHE tab."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2707
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2712
 msgid "Documentation Link Overrides"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2711
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2716
 msgid ""
 "Point users to your own documentation instead of the standard WPCloudDeploy "
 "documentation."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2729
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2736
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2734
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2741
 msgid "Custom CSS"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2758
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2763
 msgid "After Server Provisioning"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2759
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2764
 msgid ""
 "The custom script you would like to run AFTER we successfully complete "
 "installing our core stack."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2762
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2767
 msgid "After Site Provisioning"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2763
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2768
 msgid ""
 "The custom script you would like to run AFTER we successfully complete "
 "installing our a new WordPress site. Note that if you are using our "
 "WooCommerce functions, this runs before any template sites are copied over."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2778
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2783
 msgid "Custom Bash Scripts"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2782
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2787
 msgid ""
 "Setup the location of BASH custom scripts that are run after certain "
 "processes are complete. Using these scripts are easier that writing custom "
 "add-ons - but only if you have no need to update data/metas on the WPCD site."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2806
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2811
 msgid ""
 "You can enter an api key for a secrets manager here.  It will then be "
 "available in your environment for use within your custom scripts.  An "
@@ -3564,14 +3569,14 @@ msgid ""
 "only uses a singlet token."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2808
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2813
 msgid ""
 "With a secrets manager you can safely pull in other api keys such as private "
 "GitHub keys needed to access private resources."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2811
-#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2819
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2816
+#: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2824
 msgid "Secrets Manager API Key"
 msgstr ""
 
@@ -4162,7 +4167,7 @@ msgstr ""
 msgid "It looks as if the requested file does not exist or is empty."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/public/class-public-list-table.php:329
+#: includes/core/apps/wordpress-app/public/class-public-list-table.php:332
 #, php-format
 msgctxt "posts"
 msgid "Mine <span class=\"count\">(%s)</span>"
@@ -4170,7 +4175,7 @@ msgid_plural "Mine <span class=\"count\">(%s)</span>"
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/core/apps/wordpress-app/public/class-public-list-table.php:350
+#: includes/core/apps/wordpress-app/public/class-public-list-table.php:353
 #, php-format
 msgctxt "posts"
 msgid "All <span class=\"count\">(%s)</span>"
@@ -4178,11 +4183,11 @@ msgid_plural "All <span class=\"count\">(%s)</span>"
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/core/apps/wordpress-app/public/class-public-list-table.php:451
+#: includes/core/apps/wordpress-app/public/class-public-list-table.php:454
 msgid "Filter"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/public/class-public-list-table.php:458
+#: includes/core/apps/wordpress-app/public/class-public-list-table.php:461
 msgid "Empty Trash"
 msgstr ""
 
@@ -4249,6 +4254,10 @@ msgstr ""
 
 #: includes/core/apps/wordpress-app/public/class-wordpress-app-public.php:151
 msgid "Public Pages"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/public/class-wordpress-app-public.php:152
+msgid "Other Options."
 msgstr ""
 
 #: includes/core/apps/wordpress-app/public/class-wordpress-app-public.php:158
@@ -4408,11 +4417,11 @@ msgstr ""
 msgid "ID"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/public/traits/grid_table.php:79
+#: includes/core/apps/wordpress-app/public/traits/grid_table.php:85
 msgid "Select All"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/public/traits/grid_table.php:338
+#: includes/core/apps/wordpress-app/public/traits/grid_table.php:343
 msgid "Show more details"
 msgstr ""
 

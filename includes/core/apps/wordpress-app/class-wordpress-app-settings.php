@@ -1846,10 +1846,16 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tab'     => 'wordpress-app-front-end-fields',
 			),
 			array(
-				'id'   => 'wordpress_front_end_fields_heading_general',
+				'id'   => 'wordpress_front_end_fields_heading_notes',
 				'type' => 'heading',
-				'name' => __( 'General', 'wpcd' ),
-				'desc' => __( 'Other Options.', 'wpcd' ),
+				'desc' => __( 'Note: Using the options above to turn fields and cards on/off on the front-end has a relationship with the visibility of the fields in wp-admin.  In most instances, fields that are not shown in wp-admin cannot be shown on the front-end even if enabled here - and vice-versa. If a toggle here does not work please double-check whether the field is visible or hidden in wp-admin.', 'wpcd' ),
+				'tab'  => 'wordpress-app-front-end-fields',
+			),
+			array(
+				'id'   => 'wordpress_front_end_fields_heading_filter_bar',
+				'type' => 'heading',
+				'name' => __( 'Filter Bar', 'wpcd' ),
+				'desc' => __( 'Show/Hide Filter Bar.', 'wpcd' ),
 				'tab'  => 'wordpress-app-front-end-fields',
 			),
 			array(
@@ -1867,18 +1873,17 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tab'     => 'wordpress-app-front-end-fields',
 			),
 			array(
+				'id'   => 'wordpress_front_end_fields_install_wp_button',
+				'type' => 'heading',
+				'name' => __( 'Install WP Button', 'wpcd' ),
+				'tab'  => 'wordpress-app-front-end-fields',
+			),
+			array(
 				'id'      => 'wordpress_app_fe_show_install_wp_button_top_of_list_page',
 				'type'    => 'checkbox',
 				'name'    => __( 'Show the Install WordPress Button', 'wpcd' ),
 				'tooltip' => __( 'Show the install WordPress button at the top of the list page?', 'wpcd' ),
 				'tab'     => 'wordpress-app-front-end-fields',
-			),
-			array(
-				'id'   => 'wordpress_front_end_fields_heading_notes',
-				'type' => 'heading',
-				'name' => __( 'General', 'wpcd' ),
-				'desc' => __( 'Turning fields on/off on the front-end has a relationship with the visibility of the fields in wp-admin.  In most instances, fields that are not shown in wp-admin cannot be shown on the front-end even if enabled here - and vice-versa. If a toggle here does not work please double-check whether the field is visible or hidden in wp-admin.', 'wpcd' ),
-				'tab'  => 'wordpress-app-front-end-fields',
 			),
 
 		);
@@ -2298,10 +2303,10 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			array(
 				'id'      => 'wpcd_email_gateway_smtp_usetls',
 				'type'    => 'select',
-				'options' => [
+				'options' => array(
 					'YES' => 'Yes',
-					'NO' => 'No',
-				],
+					'NO'  => 'No',
+				),
 				'name'    => __( 'Use TLS', 'wpcd' ),
 				'tooltip' => __( 'Use TLS to connect to the SMTP server. Warning! Turning this off has Security implications!', 'wpcd' ),
 				'tab'     => 'wordpress-app-email-gateway',
@@ -2309,10 +2314,10 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			array(
 				'id'      => 'wpcd_email_gateway_smtp_usestarttls',
 				'type'    => 'select',
-				'options' => [
+				'options' => array(
 					'YES' => 'Yes',
-					'NO' => 'No',
-				],
+					'NO'  => 'No',
+				),
 				'name'    => __( 'Use STARTTLS', 'wpcd' ),
 				'tooltip' => __( 'Use STARTTLS to connect to the SMTP server. Warning! Turning this off has Security implications!', 'wpcd' ),
 				'tab'     => 'wordpress-app-email-gateway',

@@ -1,7 +1,7 @@
 <?php
 
 trait wpcd_grid_table {
-		
+
 	/**
 	 * Displays the table.
 	 *
@@ -10,7 +10,13 @@ trait wpcd_grid_table {
 	public function display() {
 		$singular = $this->_args['singular'];
 
-		if ( ! boolval( wpcd_get_option( 'wordpress_app_fe_hide_filter_bar' ) ) ) {
+		// Should we show the filter bar and filter view buttons from the admin?
+		if ( wpcd_is_admin() && ! boolval( wpcd_get_option( 'wordpress_app_fe_hide_filter_bar_from_admin' ) ) ) {
+			$this->display_tablenav( 'top' );
+		}
+
+		// Show the show bar to non-admin users?
+		if ( ! wpcd_is_admin() && boolval( wpcd_get_option( 'wordpress_app_fe_show_filter_bar' ) ) ) {
 			$this->display_tablenav( 'top' );
 		}
 
@@ -19,7 +25,7 @@ trait wpcd_grid_table {
 		 * can dynamically add/remove some css classes to help with responsive
 		 * behavior.
 		 * Usually, the $max_width var is set by calling the $this->grid_responsive_width()
-		 * function.  But because we're not interest in a table display at all,
+		 * function.  But because we're not interested in a table display at all,
 		 * we're going to hardcode this value to a ridiculously high number.
 		 * If in the future we want a true grid table, just set the value to the
 		 * $this->grid_responsive_width() function.
@@ -47,14 +53,14 @@ trait wpcd_grid_table {
 
 		$this->print_style();
 	}
-	
-	
+
+
 	/**
 	 * Prints column headers, accounting for hidden and sortable columns.
 	 *
 	 * @since 3.1.0
 	 *
-	 * @param bool $with_id Whether to set the ID attribute or not
+	 * @param bool $with_id Whether to set the ID attribute or not.
 	 */
 	public function print_column_headers( $with_id = true ) {
 		list( $columns, $hidden, $sortable, $primary ) = $this->get_column_info();
@@ -136,8 +142,8 @@ trait wpcd_grid_table {
 			echo "<$tag $scope $id $class>$column_display_name</$tag>";
 		}
 	}
-	
-	
+
+
 	/**
 	 * Generates the tbody element for the list table.
 	 *
@@ -154,15 +160,19 @@ trait wpcd_grid_table {
 			echo '</div>';
 		}
 	}
-	
-	
+
+	/**
+	 * Paint a single row.
+	 *
+	 * @param array $item Array of columns to paint for the row.
+	 */
 	public function single_row( $item ) {
 		echo '<div class="wpcd-grid-table-row">';
 		$this->single_row_columns( $item );
 		echo '</div>';
 	}
-	
-	
+
+
 	/**
 	 * Generates the columns for a single row of the table.
 	 *
@@ -175,13 +185,8 @@ trait wpcd_grid_table {
 
 		$global_post = $post;
 		$post        = $item;
-		
-	
 
 		list( $columns, $hidden, $sortable, $primary ) = $this->get_column_info();
-		
-		
-		//print_r( $columns );
 
 		foreach ( $columns as $column_name => $column_display_name ) {
 
@@ -221,7 +226,7 @@ trait wpcd_grid_table {
 				} else {
 					echo $this->column_default( $item, $column_name );
 				}
-				if( $column_name === $this->getPrimaryColumn() ) {
+				if ( $column_name === $this->getPrimaryColumn() ) {
 					echo $this->handle_row_actions( $item, $column_name, $primary );
 					do_action( "wpcd_public_{$this->post_type}_table_after_row_actions" );
 				}
@@ -233,13 +238,13 @@ trait wpcd_grid_table {
 
 		$post = $global_post;
 	}
-	
+
 	/**
 	 * Return width for responsive view
 	 *
 	 * @return int
 	 */
-	function grid_responsive_width() {
+	public function grid_responsive_width() {
 
 		$responsive_width = 0;
 
@@ -263,14 +268,14 @@ trait wpcd_grid_table {
 
 		$template_columns = implode( ' ', $this->grid_template_columns() );
 		?>
-		
+
 		<style>
-			
+
 			.wpcd-grid-table-columns, .wpcd-grid-table-rows .wpcd-grid-table-row {
 					grid-template-columns : <?php echo $template_columns; ?>
 			}	
 		</style>
-		
+
 		<?php
 	}
 
@@ -297,8 +302,8 @@ trait wpcd_grid_table {
 
 		return apply_filters( $this->post_type . '_grid_template_columns', $grid_template );
 	}
-	
-	
+
+
 	/**
 	 * Generates the required HTML for a list of row action links.
 	 *

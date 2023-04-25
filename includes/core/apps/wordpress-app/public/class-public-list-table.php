@@ -18,7 +18,7 @@ class WPCD_Public_List_Table extends WP_List_Table {
 
 	use wpcd_grid_table;
 	use table_pagination;
-	
+
 	/**
 	 * Post type
 	 *
@@ -256,7 +256,10 @@ class WPCD_Public_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * Print table views
+	 * Print table views.
+	 *
+	 * Table views are the COUNT at the top of the filter bar.
+	 * eg: ALL, MINE, PRIVATE etc.
 	 *
 	 * @return void
 	 */

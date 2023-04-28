@@ -152,6 +152,7 @@ Note: Even though the entire git development history isn't available on github, 
 * Fix: WPAPP - The file name conventions used by the CACHE ENABLER plugin for nginx was changed - update bash scripts to match. (Thanks @msalaj for pointing this out).
 * Fix: WPAPP - Better handling for duplicate letsencrypt folders that end with -00xx.
 * Fix: WPAPP - When multisite SSL is on, the status was not shown properly in the site list.
+* Fix: WPAPP - The VIEW APPS link on the front-end was redirecting to the wp-admin area instead of the front-end page.
 * Dev: Preliminary foundation set for moving providers and dns data into custom tables.
 * Dev: Update to latest version of phpseclib.
 * Dev: WPAPP - Use global function to reset site permissions (refactor).

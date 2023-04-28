@@ -545,7 +545,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			'type'    => 'custom_html',
 			'std'     => $copy_app_ip,
 			'columns' => 'left' === $this->get_tab_style() ? 2 : 2,
-			'class'   => 'wpcd_site_details_top_row',
+			'class'   => 'wpcd_site_details_top_row wpcd_site_details_top_row_ip',
 		);
 		$fields[] = array(
 			'name'    => __( 'Admin', 'wpcd' ),
@@ -553,7 +553,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			'type'    => 'button',
 			'std'     => $this->get_formatted_wpadmin_link( $app_id ),
 			'columns' => 'left' === $this->get_tab_style() ? 2 : 2,
-			'class'   => 'wpcd_site_details_top_row',
+			'class'   => 'wpcd_site_details_top_row wpcd_site_details_top_row_admin_login',
 		);
 		$fields[] = array(
 			'name'    => __( 'Front-end', 'wpcd' ),
@@ -561,11 +561,17 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			'type'    => 'button',
 			'std'     => $this->get_formatted_site_link( $app_id ),
 			'columns' => 'left' === $this->get_tab_style() ? 2 : 2,
-			'class'   => 'wpcd_site_details_top_row',
+			'class'   => 'wpcd_site_details_top_row wpcd_site_details_top_row_front_end',
 		);
 
 		$server_post_id = get_post_meta( $app_id, 'parent_post_id', true );
-		$url            = admin_url( 'edit.php?post_type=wpcd_app&server_id=' . (string) $server_post_id );
+		if ( is_admin() ) {
+			// We're viewing in the wp-admin area.
+			$url = admin_url( 'edit.php?post_type=wpcd_app&server_id=' . (string) $server_post_id );
+		} else {
+			// We're viewing on the front-end.
+			$url = get_permalink( (int) $server_post_id );
+		}
 		$apps_on_server = sprintf( '<a href="%s" target="_blank">%s</a>', $url, __( 'View Apps', 'wpcd' ) );
 
 		$fields[] = array(
@@ -574,7 +580,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			'type'    => 'button',
 			'std'     => $apps_on_server,
 			'columns' => 'left' === $this->get_tab_style() ? 2 : 2,
-			'class'   => 'wpcd_site_details_top_row',
+			'class'   => 'wpcd_site_details_top_row wpcd_site_details_top_row_apps_on_server',
 		);
 
 		// Does the server for this app need an upgrade?

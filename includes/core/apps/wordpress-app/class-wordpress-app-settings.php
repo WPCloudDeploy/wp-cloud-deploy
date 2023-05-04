@@ -1170,6 +1170,13 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tab'     => 'wordpress-app-general-wpadmin',
 			),
 			array(
+				'id'      => 'wordpress_app_enable_server_delete_record',
+				'type'    => 'checkbox',
+				'name'    => __( 'Show The DELETE RECORD Link', 'wpcd' ),
+				'tooltip' => __( 'Show the DELETE RECORD link in the server list.', 'wpcd' ),
+				'tab'     => 'wordpress-app-general-wpadmin',
+			),
+			array(
 				'type' => 'heading',
 				'name' => __( 'App Options', 'wpcd' ),
 				'desc' => __( 'Options specific to the WordPress app.', 'wpcd' ),

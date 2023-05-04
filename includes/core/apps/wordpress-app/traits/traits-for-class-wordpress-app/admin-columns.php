@@ -45,13 +45,15 @@ trait wpcd_wpapp_admin_column_data {
 		$new_actions = array();
 
 		// Add link for delete server records.
-		$wpcd_server_delete_protection = get_post_meta( $id, 'wpcd_server_delete_protection', true );
-		if ( 'private' === get_post_status( $id ) && wpcd_is_admin() && empty( $wpcd_server_delete_protection ) ) {
+		$wpcd_server_delete_protection       = get_post_meta( $id, 'wpcd_server_delete_protection', true );
+		$wpcd_show_delete_server_record_link = wpcd_get_option( 'wordpress_app_enable_server_delete_record' );
+		if ( 'private' === get_post_status( $id ) && wpcd_is_admin() && empty( $wpcd_server_delete_protection ) && $wpcd_show_delete_server_record_link ) {
 			/**
-			 * We will only get in here if all of the following three conditions are met:
+			 * We will only get in here if all of the following four conditions are met:
 			 *  1: server type is private and
 			 *  2. current user is admin and
 			 *  3. server does not have delete protection enabled.
+			 *  4. the delete server record link option is enabled in settings.
 			 */
 			$new_actions['wpcd_delete_server_record'] = sprintf(
 				'<a class="wpcd_action_delete_server_record" data-wpcd-id="%d" href="">%s</a>',

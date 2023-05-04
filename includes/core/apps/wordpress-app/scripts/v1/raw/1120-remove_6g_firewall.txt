@@ -19,7 +19,7 @@ fi
 echo $(date): "Removing 6G Configuration..."
 
 # Remove any old backup files if they exist.
-backupfile="/etc/nginx/common/6g.conf /etc/nginx/common/6g.conf.old"
+backupfile="/etc/nginx/common/6g.conf.old"
 if [[ -f "$backupfile" ]] ; then
     rm "$backupfile"
 fi

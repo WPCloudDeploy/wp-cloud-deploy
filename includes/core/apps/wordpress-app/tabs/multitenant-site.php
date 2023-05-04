@@ -1953,7 +1953,7 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 		$current_default_version = $this->get_mt_default_version( $id );
 
 		$fields[] = array(
-			'name' => __( 'Upgrade Tenants', 'wpcd' ),
+			'name' => __( 'Upgrade All Tenants', 'wpcd' ),
 			'tab'  => $this->get_tab_slug(),
 			'type' => 'heading',
 			'desc' => $desc,
@@ -1971,7 +1971,6 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 			),
 			'std'        => $current_default_version,
 		);
-
 		$fields[] = array(
 			'id'         => 'wpcd_app_mt_upgrade_all_tenants',
 			'name'       => '',
@@ -1992,6 +1991,12 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 			'save_field' => false,
 		);
 
+		$fields[] = array(
+			'name' => __( 'Upgrade A Subset of Tenants', 'wpcd' ),
+			'tab'  => $this->get_tab_slug(),
+			'type' => 'heading',
+			'desc' => $desc,
+		);
 		$fields[] = array(
 			'name'       => __( 'Upgrade Only Tenants Who Have This Version', 'wpcd' ),
 			'id'         => 'wpcd_app_mt_existing_version',

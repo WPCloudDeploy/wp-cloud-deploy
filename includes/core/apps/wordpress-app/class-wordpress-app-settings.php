@@ -478,8 +478,8 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 						'name'      => '',
 						'id'        => "{$wpcd_id_prefix}_{$context_tab_short_id}_{$owner_key}_{$tab_key}",
 						'type'      => 'switch',
-						'on_label'  => __( 'Hide Tab', 'wpcd' ),
-						'off_label' => __( 'Show Tab', 'wpcd' ),
+						'on_label'  => __( 'Tab Hidden', 'wpcd' ),
+						'off_label' => __( 'Tab Visible', 'wpcd' ),
 						'tab'       => $context_tab,
 						'columns'   => 4,
 					);
@@ -625,8 +625,8 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 						'name'      => '',
 						'id'        => "{$wpcd_id_prefix}_{$context_tab_short_id}_{$owner_key}_{$tab_key}",
 						'type'      => 'switch',
-						'on_label'  => __( 'Hide Tab', 'wpcd' ),
-						'off_label' => __( 'Show Tab', 'wpcd' ),
+						'on_label'  => __( 'Tab Hidden', 'wpcd' ),
+						'off_label' => __( 'Tab Visible', 'wpcd' ),
 						'tab'       => $context_tab,
 						'columns'   => 6,
 					);
@@ -759,8 +759,8 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 						'name'      => '',
 						'id'        => "{$wpcd_id_prefix}_{$context_tab_short_id}_{$owner_key}_{$feature_key}",
 						'type'      => 'switch',
-						'on_label'  => __( 'Hide', 'wpcd' ),
-						'off_label' => __( 'Show', 'wpcd' ),
+						'on_label'  => __( 'Hidden', 'wpcd' ),
+						'off_label' => __( 'Visible', 'wpcd' ),
 						'tab'       => $context_tab,
 						'columns'   => 3,
 					);
@@ -885,8 +885,8 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 						'name'      => '',
 						'id'        => "{$wpcd_id_prefix}_{$context_tab_short_id}_{$owner_key}_{$feature_key}",
 						'type'      => 'switch',
-						'on_label'  => __( 'Hide', 'wpcd' ),
-						'off_label' => __( 'Show', 'wpcd' ),
+						'on_label'  => __( 'Hidden', 'wpcd' ),
+						'off_label' => __( 'Visible', 'wpcd' ),
 						'tab'       => $context_tab,
 						'columns'   => 6,
 					);

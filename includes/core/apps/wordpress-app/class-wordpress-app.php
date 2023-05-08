@@ -533,6 +533,14 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			$other_data = '';
 		}
 
+		// Certain columns need to be expanded or contracted based on whether other columns are allowed to be shown or hidden.
+		$view_admin_site_columns       = 2;
+		$hide_view_apps_on_server_link = false;
+		if ( true === (bool) wpcd_get_early_option( 'wordpress_app_hide_view_apps_on_server_link' ) && ! wpcd_is_admin() ) {
+			$view_admin_site_columns       = 3;
+			$hide_view_apps_on_server_link = true;
+		}
+
 		$fields[] = array(
 			'name'    => __( 'Domain', 'wpcd' ),
 			'type'    => 'custom_html',
@@ -552,7 +560,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			'id'      => 'wpcd_app_action_site-detail-header-view-admin',
 			'type'    => 'button',
 			'std'     => $this->get_formatted_wpadmin_link( $app_id ),
-			'columns' => 'left' === $this->get_tab_style() ? 2 : 2,
+			'columns' => 'left' === $this->get_tab_style() ? $view_admin_site_columns : $view_admin_site_columns,
 			'class'   => 'wpcd_site_details_top_row wpcd_site_details_top_row_admin_login',
 		);
 		$fields[] = array(
@@ -560,28 +568,30 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			'id'      => 'wpcd_app_action_site-detail-header-view-site',
 			'type'    => 'button',
 			'std'     => $this->get_formatted_site_link( $app_id ),
-			'columns' => 'left' === $this->get_tab_style() ? 2 : 2,
+			'columns' => 'left' === $this->get_tab_style() ? $view_admin_site_columns : $view_admin_site_columns,
 			'class'   => 'wpcd_site_details_top_row wpcd_site_details_top_row_front_end',
 		);
 
-		$server_post_id = get_post_meta( $app_id, 'parent_post_id', true );
-		if ( is_admin() ) {
-			// We're viewing in the wp-admin area.
-			$url = admin_url( 'edit.php?post_type=wpcd_app&server_id=' . (string) $server_post_id );
-		} else {
-			// We're viewing on the front-end.
-			$url = get_permalink( (int) $server_post_id );
-		}
-		$apps_on_server = sprintf( '<a href="%s" target="_blank">%s</a>', $url, __( 'View Apps', 'wpcd' ) );
+		if ( false === $hide_view_apps_on_server_link ) {
+			$server_post_id = get_post_meta( $app_id, 'parent_post_id', true );
+			if ( is_admin() ) {
+				// We're viewing in the wp-admin area.
+				$url = admin_url( 'edit.php?post_type=wpcd_app&server_id=' . (string) $server_post_id );
+			} else {
+				// We're viewing on the front-end.
+				$url = get_permalink( (int) $server_post_id );
+			}
+			$apps_on_server = sprintf( '<a href="%s" target="_blank">%s</a>', $url, __( 'View Apps', 'wpcd' ) );
 
-		$fields[] = array(
-			'name'    => __( 'Apps on Server', 'wpcd' ),
-			'id'      => 'wpcd_app_action_site-detail-header-view-apps',
-			'type'    => 'button',
-			'std'     => $apps_on_server,
-			'columns' => 'left' === $this->get_tab_style() ? 2 : 2,
-			'class'   => 'wpcd_site_details_top_row wpcd_site_details_top_row_apps_on_server',
-		);
+			$fields[] = array(
+				'name'    => __( 'Apps on Server', 'wpcd' ),
+				'id'      => 'wpcd_app_action_site-detail-header-view-apps',
+				'type'    => 'button',
+				'std'     => $apps_on_server,
+				'columns' => 'left' === $this->get_tab_style() ? 2 : 2,
+				'class'   => 'wpcd_site_details_top_row wpcd_site_details_top_row_apps_on_server',
+			);
+		}
 
 		// Does the server for this app need an upgrade?
 		$upgrade_needed = $this->app_admin_list_upgrade_status( '', $app_id );  // This function is located in traits/traits-for-class-wordpress-app/upgrade.php.

@@ -1620,6 +1620,13 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tooltip' => __( 'Hide the additional statisics box on the WordPress Site statistics tab from non-admin users.', 'wpcd' ),
 				'tab'     => 'wordpress-app-fields-and-links',
 			),
+			array(
+				'id'      => 'wordpress_app_hide_view_apps_on_server_link',
+				'type'    => 'checkbox',
+				'name'    => __( 'Hide View Apps On Server link From Non-Admin Users', 'wpcd' ),
+				'tooltip' => __( 'If a user is not an admin, hide the VIEW APPS ON SERVER link at the top of the site details page.', 'wpcd' ),
+				'tab'     => 'wordpress-app-fields-and-links',
+			),
 		);
 
 		return $fields;

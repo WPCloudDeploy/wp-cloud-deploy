@@ -156,6 +156,7 @@ Note: Even though the entire git development history isn't available on github, 
 * Fix: WPAPP - Better handling for duplicate letsencrypt folders that end with -00xx.
 * Fix: WPAPP - When multisite SSL is on, the status was not shown properly in the site list.
 * Fix: WPAPP - The VIEW APPS link on the front-end was redirecting to the wp-admin area instead of the front-end page.
+* Fix: WPAPP - An invalid variable name warning was thrown during the quick domain change operation.
 * Dev: Preliminary foundation set for moving providers and dns data into custom tables.
 * Dev: Update to latest version of phpseclib.
 * Dev: WPAPP - Use global function to reset site permissions (refactor).

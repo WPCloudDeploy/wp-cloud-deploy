@@ -270,7 +270,6 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 			array_merge(
 				$args,
 				array(
-					'command' => $command,
 					'action'  => $action,
 					'domain'  => $domain,
 				)
@@ -429,7 +428,6 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 
 	/**
 	 * Change the domain - Live Run
-	 * No real search and replace will be done.
 	 *
 	 * @param string $action The action key to send to the bash script.
 	 * @param int    $id the id of the app post being handled.

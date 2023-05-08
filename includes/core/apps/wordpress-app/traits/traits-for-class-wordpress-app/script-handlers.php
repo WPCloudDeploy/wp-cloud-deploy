@@ -893,6 +893,15 @@ trait wpcd_wpapp_script_handlers {
 				);
 				break;
 			case 'change_domain_quick.txt':
+				$new_array = array_merge(
+					array(
+						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/05-change_domain.txt',
+						'SCRIPT_NAME' => '05-change_domain.sh',
+					),
+					$common_array,
+					$additional
+				);
+				break;
 			case 'change_domain_full.txt':
 				$command_name = $additional['command'];
 				$new_array    = array_merge(

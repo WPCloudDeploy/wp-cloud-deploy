@@ -142,6 +142,7 @@ Note: Even though the entire git development history isn't available on github, 
 * Tweak: WPAPP - Ubuntu 18.04 no longer shown as an option for new servers.
 * Tweak: WPAPP - Use the latest version of the 7G firewall (v1.6).
 * Tweak: WPAPP - Use different verbiage on the APP: WORDPRESS SECURITY settings tab to make it easier to understand the meaning of the two different states of the toggle switches.
+* Tweak: WPAPP - Hide credential fields when basic authentication is enabled for the site or the wp-login page (site misc tab.)
 * Fix: A 500 error / hard php error was thrown when using the SELECT2 filter for owners in the app screen (the select2 filter only shows if the number of users is greater than 25.)
 * Fix: Certain Filters in the server and site list not working when the language was set to something other than English.
 * Fix: WPAPP - HTTP2 could not be enabled.

@@ -457,29 +457,31 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 			),
 		);
 
-		$actions['basic-auth-user'] = array(
-			'label'          => __( 'User', 'wpcd' ),
-			'desc'           => __( 'User name to use when basic authentication is turned on', 'wpcd' ),
-			'type'           => 'text',
-			'raw_attributes' => array(
-				'disabled'       => 'off' === $basic_auth_status ? false : true,
-				'size'           => 60,
-				// the key of the field (the key goes in the request).
-				'data-wpcd-name' => 'basic_auth_user',
-			),
-		);
+		if ( 'off' === $basic_auth_status ) {
+			$actions['basic-auth-user'] = array(
+				'label'          => __( 'User', 'wpcd' ),
+				'desc'           => __( 'User name to use when basic authentication is turned on', 'wpcd' ),
+				'type'           => 'text',
+				'raw_attributes' => array(
+					'disabled'       => 'off' === $basic_auth_status ? false : true,
+					'size'           => 60,
+					// the key of the field (the key goes in the request).
+					'data-wpcd-name' => 'basic_auth_user',
+				),
+			);
 
-		$actions['basic-auth-pw'] = array(
-			'label'          => __( 'Password', 'wpcd' ),
-			'desc'           => __( 'Password to use when basic authentication is turned on', 'wpcd' ),
-			'type'           => 'text',
-			'raw_attributes' => array(
-				'disabled'       => 'off' === $basic_auth_status ? false : true,
-				'size'           => 60,
-				// the key of the field (the key goes in the request).
-				'data-wpcd-name' => 'basic_auth_pass',
-			),
-		);
+			$actions['basic-auth-pw'] = array(
+				'label'          => __( 'Password', 'wpcd' ),
+				'desc'           => __( 'Password to use when basic authentication is turned on', 'wpcd' ),
+				'type'           => 'text',
+				'raw_attributes' => array(
+					'disabled'       => 'off' === $basic_auth_status ? false : true,
+					'size'           => 60,
+					// the key of the field (the key goes in the request).
+					'data-wpcd-name' => 'basic_auth_pass',
+				),
+			);
+		}
 
 		switch ( $basic_auth_status ) {
 			case 'on':
@@ -490,9 +492,9 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 						'on_label'            => __( 'Enabled', 'wpcd' ),
 						'off_label'           => __( 'Disabled', 'wpcd' ),
 						'std'                 => 'on' === $basic_auth_status,
-						'desc'                => __( 'Add or remove password protection on your site', 'wpcd' ),
+						'desc'                => 'off' === $basic_auth_status ? __( 'Click to enable password protection on your site', 'wpcd' ) : __( 'Click to remove password protection from your site', 'wpcd' ),
 						'confirmation_prompt' => $confirmation_prompt,                      // fields that contribute data for this action.
-						'data-wpcd-fields'    => wp_json_encode( array( '#wpcd_app_action_basic-auth-user', '#wpcd_app_action_basic-auth-pw' ) ),
+						'data-wpcd-fields'    => 'off' === $basic_auth_status ? wp_json_encode( array( '#wpcd_app_action_basic-auth-user', '#wpcd_app_action_basic-auth-pw' ) ) : '',
 					),
 					'type'           => 'switch',
 				);
@@ -552,30 +554,32 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 			),
 		);
 
-		$actions['wplogin-basic-auth-user'] = array(
-			'label'          => __( 'User', 'wpcd' ),
-			'desc'           => __( 'User name to use when basic authentication is turned on', 'wpcd' ),
-			'type'           => 'text',
-			'raw_attributes' => array(
-				'disabled'       => 'off' === $wplogin_basic_auth_status ? false : true,
-				'size'           => 60,
-				// the key of the field (the key goes in the request).
-				'data-wpcd-name' => 'wplogin_basic_auth_user',
-			),
+		if ( 'off' === $wplogin_basic_auth_status ) {
+			$actions['wplogin-basic-auth-user'] = array(
+				'label'          => __( 'User', 'wpcd' ),
+				'desc'           => __( 'User name to use when basic authentication is turned on', 'wpcd' ),
+				'type'           => 'text',
+				'raw_attributes' => array(
+					'disabled'       => 'off' === $wplogin_basic_auth_status ? false : true,
+					'size'           => 60,
+					// the key of the field (the key goes in the request).
+					'data-wpcd-name' => 'wplogin_basic_auth_user',
+				),
 
-		);
+			);
 
-		$actions['wplogin-basic-auth-pw'] = array(
-			'label'          => __( 'Password', 'wpcd' ),
-			'desc'           => __( 'Password to use when basic authentication is turned on', 'wpcd' ),
-			'type'           => 'text',
-			'raw_attributes' => array(
-				'disabled'       => 'off' === $wplogin_basic_auth_status ? false : true,
-				'size'           => 60,
-				// the key of the field (the key goes in the request).
-				'data-wpcd-name' => 'wplogin_basic_auth_pass',
-			),
-		);
+			$actions['wplogin-basic-auth-pw'] = array(
+				'label'          => __( 'Password', 'wpcd' ),
+				'desc'           => __( 'Password to use when basic authentication is turned on', 'wpcd' ),
+				'type'           => 'text',
+				'raw_attributes' => array(
+					'disabled'       => 'off' === $wplogin_basic_auth_status ? false : true,
+					'size'           => 60,
+					// the key of the field (the key goes in the request).
+					'data-wpcd-name' => 'wplogin_basic_auth_pass',
+				),
+			);
+		}
 
 		switch ( $wplogin_basic_auth_status ) {
 			case 'on':
@@ -586,9 +590,9 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 						'on_label'            => __( 'Enabled', 'wpcd' ),
 						'off_label'           => __( 'Disabled', 'wpcd' ),
 						'std'                 => 'on' === $wplogin_basic_auth_status,
-						'desc'                => __( 'Add or remove password protection for the wp-login page', 'wpcd' ),
+						'desc'                => 'off' === $wplogin_basic_auth_status ? __( 'Click to add password protection to the wp-login page', 'wpcd' ) : __( 'Click to remove password protection from the wp-login page', 'wpcd' ),
 						'confirmation_prompt' => $confirmation_prompt,                      // fields that contribute data for this action.
-						'data-wpcd-fields'    => wp_json_encode( array( '#wpcd_app_action_wplogin-basic-auth-user', '#wpcd_app_action_wplogin-basic-auth-pw' ) ),
+						'data-wpcd-fields'    => 'off' === $wplogin_basic_auth_status ? wp_json_encode( array( '#wpcd_app_action_wplogin-basic-auth-user', '#wpcd_app_action_wplogin-basic-auth-pw' ) ) : '',
 					),
 					'type'           => 'switch',
 				);

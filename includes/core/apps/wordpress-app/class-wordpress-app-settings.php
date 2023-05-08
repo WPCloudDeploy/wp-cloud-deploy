@@ -414,7 +414,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			'file-manager'             => __( 'File Manager', 'wpcd' ),
 			'multisite'                => __( 'Multisite', 'wpcd' ),
 			'git-site-control'         => __( 'Git', 'wpcd' ),
-			'Multitenant-site'         => __( 'Multi-tenant', 'wpcd' ),
+			'multitenant-site'         => __( 'Multi-tenant', 'wpcd' ),
 		);
 
 		// Let developers hook into the array here.
@@ -1604,6 +1604,13 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'type'    => 'checkbox',
 				'name'    => __( 'Hide Explanatory Text on the WordPress Site Change Domain Tab', 'wpcd' ),
 				'tooltip' => __( 'Hide the very long explanations on the WordPress Site Change Domain tab.', 'wpcd' ),
+				'tab'     => 'wordpress-app-fields-and-links',
+			),
+			array(
+				'id'      => 'wordpress_app_simplify_change_domain_for_non_admin',
+				'type'    => 'checkbox',
+				'name'    => __( 'Show Simplified Change Domain Options For Non-Admin Users', 'wpcd' ),
+				'tooltip' => __( 'If a user is not an admin, remove almost everything from the CHANGE DOMAIN tab, except the options to run a full-live change domain operation.', 'wpcd' ),
 				'tab'     => 'wordpress-app-fields-and-links',
 			),
 			array(

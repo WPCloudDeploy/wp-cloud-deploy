@@ -133,6 +133,7 @@ Note: Even though the entire git development history isn't available on github, 
 * New: WPAPP - Foundation for Multi-Tenant added.
 * New: WPAPP - Option to delete server record without deleting the server at the provider.
 * New: WPAPP - Preliminary support for PHP 8.2.
+* New: WPAPP - Add option to radically simplify the CHANGE DOMAIN tab when the user is not an admin.
 * Tweak: WPAPP - Add options for TLS and STARTTLS for the email gateway - this allows the user to disable TLS/STARTTLS (Thanks @batonac)
 * Tweak: Better styling for post-states when viewing the server and site lists.
 * Tweak: WPAPP - When disabling AUTOMATIC BACKUPS on a server, keep the original specified retention days value in the UI instead of showing the default value of 7.

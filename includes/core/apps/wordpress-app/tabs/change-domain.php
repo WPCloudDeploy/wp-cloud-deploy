@@ -717,11 +717,11 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 
 		$fields[] = array(
 			'id'         => 'wpcd_app_change_domain_live_run',
-			'name'       => __( 'Full Live', 'wpcd' ),
+			'name'       => $show_simplified_options_only ? '' : __( 'Full Live', 'wpcd' ),
 			'tab'        => 'change-domain',
 			'type'       => 'button',
-			'std'        => __( 'Full - Live', 'wpcd' ),
-			'tooltip'    => __( 'Change all references from the old domain to the new domain across the entire database. This is the real deal - do a backup because you cannot undo this action once it has started!', 'wpcd' ),
+			'std'        => $show_simplified_options_only ? __( 'Change Domain', 'wpcd' ) : __( 'Full - Live', 'wpcd' ),
+			'tooltip'    => $show_simplified_options_only ? '' : __( 'Change all references from the old domain to the new domain across the entire database. This is the real deal - do a backup because you cannot undo this action once it has started!', 'wpcd' ),
 			'attributes' => array(
 				// the _action that will be called in ajax.
 				'data-wpcd-action'              => 'change-domain-full-live-run',
@@ -738,7 +738,7 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 			),
 			'class'      => 'wpcd_app_action',
 			'save_field' => false,
-			'columns'    => 2,
+			'columns'    => $show_simplified_options_only ? 12 : 2,
 		);
 
 		if ( ! $show_simplified_options_only ) {

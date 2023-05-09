@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 "Project-Id-Version: WP Cloud Deploy\n"
-"POT-Creation-Date: 2023-05-08 03:33-0500\n"
+"POT-Creation-Date: 2023-05-08 19:54-0500\n"
 "PO-Revision-Date: 2020-08-14 19:38-0500\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1237,9 +1237,9 @@ msgstr ""
 
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:394
 #: includes/core/apps/wordpress-app/tabs/change-domain.php:141
-#: includes/core/apps/wordpress-app/tabs/change-domain.php:610
-#: includes/core/apps/wordpress-app/tabs/change-domain.php:637
-#: includes/core/apps/wordpress-app/tabs/change-domain.php:723
+#: includes/core/apps/wordpress-app/tabs/change-domain.php:608
+#: includes/core/apps/wordpress-app/tabs/change-domain.php:635
+#: includes/core/apps/wordpress-app/tabs/change-domain.php:721
 msgid "Change Domain"
 msgstr ""
 
@@ -3167,9 +3167,9 @@ msgstr ""
 #: includes/core/apps/wordpress-app/tabs-server/monitorix.php:256
 #: includes/core/apps/wordpress-app/tabs-server/ols_console.php:233
 #: includes/core/apps/wordpress-app/tabs-server/services.php:694
-#: includes/core/apps/wordpress-app/tabs/misc.php:473
-#: includes/core/apps/wordpress-app/tabs/misc.php:569
-#: includes/core/apps/wordpress-app/tabs/misc.php:633
+#: includes/core/apps/wordpress-app/tabs/misc.php:474
+#: includes/core/apps/wordpress-app/tabs/misc.php:572
+#: includes/core/apps/wordpress-app/tabs/misc.php:637
 #: includes/core/apps/wordpress-app/tabs/sftp.php:180
 #: includes/core/apps/wordpress-app/tabs/sftp.php:287
 #: includes/core/apps/wordpress-app/tabs/site-system-users.php:228
@@ -4028,9 +4028,9 @@ msgstr ""
 #: includes/core/apps/wordpress-app/tabs/crons.php:228
 #: includes/core/apps/wordpress-app/tabs/misc.php:275
 #: includes/core/apps/wordpress-app/tabs/misc.php:333
-#: includes/core/apps/wordpress-app/tabs/misc.php:490
-#: includes/core/apps/wordpress-app/tabs/misc.php:586
-#: includes/core/apps/wordpress-app/tabs/misc.php:684
+#: includes/core/apps/wordpress-app/tabs/misc.php:492
+#: includes/core/apps/wordpress-app/tabs/misc.php:590
+#: includes/core/apps/wordpress-app/tabs/misc.php:688
 #: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1776
 #: includes/core/apps/wordpress-app/tabs/ssl.php:216
 #: includes/core/apps/wordpress-app/tabs/ssl.php:290
@@ -4089,9 +4089,9 @@ msgstr ""
 #: includes/core/apps/wordpress-app/tabs/crons.php:229
 #: includes/core/apps/wordpress-app/tabs/misc.php:276
 #: includes/core/apps/wordpress-app/tabs/misc.php:334
-#: includes/core/apps/wordpress-app/tabs/misc.php:491
-#: includes/core/apps/wordpress-app/tabs/misc.php:587
-#: includes/core/apps/wordpress-app/tabs/misc.php:685
+#: includes/core/apps/wordpress-app/tabs/misc.php:493
+#: includes/core/apps/wordpress-app/tabs/misc.php:591
+#: includes/core/apps/wordpress-app/tabs/misc.php:689
 #: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1777
 #: includes/core/apps/wordpress-app/tabs/ssl.php:217
 #: includes/core/apps/wordpress-app/tabs/ssl.php:291
@@ -4889,8 +4889,8 @@ msgstr ""
 #: includes/core/apps/wordpress-app/tabs/cache.php:243
 #: includes/core/apps/wordpress-app/tabs/cache.php:307
 #: includes/core/apps/wordpress-app/tabs/change-domain.php:255
-#: includes/core/apps/wordpress-app/tabs/change-domain.php:359
-#: includes/core/apps/wordpress-app/tabs/change-domain.php:530
+#: includes/core/apps/wordpress-app/tabs/change-domain.php:358
+#: includes/core/apps/wordpress-app/tabs/change-domain.php:528
 #: includes/core/apps/wordpress-app/tabs/clone-site.php:325
 #: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:188
 #: includes/core/apps/wordpress-app/tabs/crons.php:281
@@ -4905,11 +4905,11 @@ msgstr ""
 #: includes/core/apps/wordpress-app/tabs/git-control-site.php:2645
 #: includes/core/apps/wordpress-app/tabs/logs.php:228
 #: includes/core/apps/wordpress-app/tabs/logs.php:249
-#: includes/core/apps/wordpress-app/tabs/misc.php:761
-#: includes/core/apps/wordpress-app/tabs/misc.php:887
-#: includes/core/apps/wordpress-app/tabs/misc.php:950
-#: includes/core/apps/wordpress-app/tabs/misc.php:1019
-#: includes/core/apps/wordpress-app/tabs/misc.php:1088
+#: includes/core/apps/wordpress-app/tabs/misc.php:765
+#: includes/core/apps/wordpress-app/tabs/misc.php:891
+#: includes/core/apps/wordpress-app/tabs/misc.php:954
+#: includes/core/apps/wordpress-app/tabs/misc.php:1023
+#: includes/core/apps/wordpress-app/tabs/misc.php:1092
 #: includes/core/apps/wordpress-app/tabs/multitenant-site.php:525
 #: includes/core/apps/wordpress-app/tabs/multitenant-site.php:646
 #: includes/core/apps/wordpress-app/tabs/multitenant-site.php:755
@@ -4967,11 +4967,11 @@ msgstr ""
 #: includes/core/apps/wordpress-app/tabs/crons.php:321
 #: includes/core/apps/wordpress-app/tabs/git-control-site.php:2466
 #: includes/core/apps/wordpress-app/tabs/git-control-site.php:2596
-#: includes/core/apps/wordpress-app/tabs/misc.php:786
-#: includes/core/apps/wordpress-app/tabs/misc.php:915
-#: includes/core/apps/wordpress-app/tabs/misc.php:998
-#: includes/core/apps/wordpress-app/tabs/misc.php:1067
-#: includes/core/apps/wordpress-app/tabs/misc.php:1114
+#: includes/core/apps/wordpress-app/tabs/misc.php:790
+#: includes/core/apps/wordpress-app/tabs/misc.php:919
+#: includes/core/apps/wordpress-app/tabs/misc.php:1002
+#: includes/core/apps/wordpress-app/tabs/misc.php:1071
+#: includes/core/apps/wordpress-app/tabs/misc.php:1118
 #: includes/core/apps/wordpress-app/tabs/php-options.php:766
 #: includes/core/apps/wordpress-app/tabs/php-options.php:855
 #: includes/core/apps/wordpress-app/tabs/php-options.php:904
@@ -5229,7 +5229,7 @@ msgstr ""
 #: includes/core/apps/wordpress-app/tabs-server/callbacks.php:723
 #: includes/core/apps/wordpress-app/tabs-server/power.php:659
 #: includes/core/apps/wordpress-app/tabs-server/upgrade.php:2188
-#: includes/core/apps/wordpress-app/tabs/misc.php:1166
+#: includes/core/apps/wordpress-app/tabs/misc.php:1170
 #: includes/core/apps/wordpress-app/tabs/theme-and-plugin-updates.php:552
 msgid "You attempted to run a function that requires admin privileges."
 msgstr ""
@@ -5807,8 +5807,8 @@ msgstr ""
 #: includes/core/apps/wordpress-app/tabs-server/git_control.php:470
 #: includes/core/apps/wordpress-app/tabs-server/git_control.php:523
 #: includes/core/apps/wordpress-app/tabs-server/services.php:1261
-#: includes/core/apps/wordpress-app/tabs/change-domain.php:391
-#: includes/core/apps/wordpress-app/tabs/change-domain.php:562
+#: includes/core/apps/wordpress-app/tabs/change-domain.php:390
+#: includes/core/apps/wordpress-app/tabs/change-domain.php:560
 #: includes/core/apps/wordpress-app/tabs/clone-site.php:396
 #: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:235
 #: includes/core/apps/wordpress-app/tabs/file-manager.php:300
@@ -7478,6 +7478,7 @@ msgstr ""
 #: includes/core/apps/wordpress-app/tabs-server/services.php:391
 #: includes/core/apps/wordpress-app/tabs-server/services.php:502
 #: includes/core/apps/wordpress-app/tabs-server/services.php:578
+#: includes/core/apps/wordpress-app/tabs-server/services.php:598
 msgid "Status"
 msgstr ""
 
@@ -7491,7 +7492,7 @@ msgstr ""
 #: includes/core/apps/wordpress-app/tabs-server/services.php:530
 #: includes/core/apps/wordpress-app/tabs-server/services.php:610
 #: includes/core/apps/wordpress-app/tabs-server/sshkeys.php:239
-#: includes/core/apps/wordpress-app/tabs/change-domain.php:777
+#: includes/core/apps/wordpress-app/tabs/change-domain.php:775
 #: includes/core/class-wpcd-email-notifications.php:721
 #: includes/core/class-wpcd-email-notifications.php:767
 #: includes/core/class-wpcd-settings.php:1433
@@ -7626,10 +7627,6 @@ msgstr ""
 #: includes/core/apps/wordpress-app/tabs-server/services.php:560
 #: includes/core/apps/wordpress-app/tabs-server/services.php:571
 msgid "UFW Firewall"
-msgstr ""
-
-#: includes/core/apps/wordpress-app/tabs-server/services.php:598
-msgid "Toggle Status"
 msgstr ""
 
 #: includes/core/apps/wordpress-app/tabs-server/services.php:613
@@ -9553,7 +9550,7 @@ msgstr ""
 #: includes/core/apps/wordpress-app/tabs/cache.php:200
 #: includes/core/apps/wordpress-app/tabs/cache.php:275
 #: includes/core/apps/wordpress-app/tabs/cache.php:332
-#: includes/core/apps/wordpress-app/tabs/change-domain.php:287
+#: includes/core/apps/wordpress-app/tabs/change-domain.php:286
 #, php-format
 msgid "Unable to perform action %1$s for site: %2$s"
 msgstr ""
@@ -10161,119 +10158,119 @@ msgid ""
 msgstr ""
 
 #: includes/core/apps/wordpress-app/tabs/change-domain.php:239
-#: includes/core/apps/wordpress-app/tabs/change-domain.php:343
-#: includes/core/apps/wordpress-app/tabs/change-domain.php:471
+#: includes/core/apps/wordpress-app/tabs/change-domain.php:342
+#: includes/core/apps/wordpress-app/tabs/change-domain.php:469
 #: includes/core/apps/wordpress-app/tabs/clone-site.php:310
 msgid "The new domain must be provided"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/change-domain.php:311
+#: includes/core/apps/wordpress-app/tabs/change-domain.php:310
 msgid ""
 "The domain was changed on the site but we were unable to change it on our "
 "WordPress META records. Please contact the WPCloud Deploy Tech Support team "
 "to assist you with updating your meta records."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/change-domain.php:316
+#: includes/core/apps/wordpress-app/tabs/change-domain.php:315
 msgid ""
 "It seems not all actions were successful. We were unable to automatically "
 "issue an SSL certificate for the new domain."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/change-domain.php:404
+#: includes/core/apps/wordpress-app/tabs/change-domain.php:403
 msgid "Change Domain On Cloned Template Site To Complete"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/change-domain.php:496
+#: includes/core/apps/wordpress-app/tabs/change-domain.php:494
 msgid "Domain name on this record has been updated to the new domain."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/change-domain.php:514
+#: includes/core/apps/wordpress-app/tabs/change-domain.php:512
 msgid "The search term must be provided"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/change-domain.php:520
+#: includes/core/apps/wordpress-app/tabs/change-domain.php:518
 msgid "The replacement term must be provided"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/change-domain.php:607
+#: includes/core/apps/wordpress-app/tabs/change-domain.php:605
 msgid ""
 "You cannot change your site domain at this time because HTTP2 is enabled. "
 "Please disable it before attempting this operation."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/change-domain.php:629
+#: includes/core/apps/wordpress-app/tabs/change-domain.php:627
 msgid ""
 "Change your site domain.  This is a destructive operation so you should take "
 "a backup before proceeding.<br />"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/change-domain.php:631
+#: includes/core/apps/wordpress-app/tabs/change-domain.php:629
 msgid ""
 "If you would like new SSL certificates to be issued as part of this "
 "operation please make sure you point your DNS for the new domain to to this "
 "server's IP address BEFORE you start this operation. "
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/change-domain.php:632
+#: includes/core/apps/wordpress-app/tabs/change-domain.php:630
 #: includes/core/apps/wordpress-app/tabs/clone-site.php:486
 msgid ""
 "Otherwise you will need to request new certificates on the SSL tab after the "
 "operation is complete and you have updated your DNS."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/change-domain.php:634
+#: includes/core/apps/wordpress-app/tabs/change-domain.php:632
 msgid ""
 "Note that we will only attempt to automatically issue an SSL certificate if "
 "the current domain already has an SSL certificate installed."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/change-domain.php:643
+#: includes/core/apps/wordpress-app/tabs/change-domain.php:641
 #: includes/core/apps/wordpress-app/tabs/clone-site.php:497
 msgid "New Domain"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/change-domain.php:654
+#: includes/core/apps/wordpress-app/tabs/change-domain.php:652
 msgid "Enter your new domain without the \"http\" or \"www\" prefix"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/change-domain.php:669
-#: includes/core/apps/wordpress-app/tabs/change-domain.php:672
+#: includes/core/apps/wordpress-app/tabs/change-domain.php:667
+#: includes/core/apps/wordpress-app/tabs/change-domain.php:670
 msgid "Quick Change"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/change-domain.php:673
+#: includes/core/apps/wordpress-app/tabs/change-domain.php:671
 msgid ""
 "Change just the domain name in the WordPress settings screen.  All other "
 "references to the old domain will remain in your content and other items in "
 "the database."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/change-domain.php:682
+#: includes/core/apps/wordpress-app/tabs/change-domain.php:680
 msgid ""
 "Are you sure you would like to change the domain? Protect your data - make a "
 "backup before you start this operation!"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/change-domain.php:693
-#: includes/core/apps/wordpress-app/tabs/change-domain.php:696
+#: includes/core/apps/wordpress-app/tabs/change-domain.php:691
+#: includes/core/apps/wordpress-app/tabs/change-domain.php:694
 msgid "Full - Dry Run"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/change-domain.php:697
+#: includes/core/apps/wordpress-app/tabs/change-domain.php:695
 msgid ""
 "Change all references from the old domain to the new domain across the "
 "entire database. This does a dry run so you can get an idea of what will be "
 "changed."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/change-domain.php:706
+#: includes/core/apps/wordpress-app/tabs/change-domain.php:704
 msgid ""
 "Are you sure you would like to do a dry-run of a full database domain "
 "change? This might take a while!"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/change-domain.php:710
+#: includes/core/apps/wordpress-app/tabs/change-domain.php:708
 msgid ""
 "Preparing to start a dry-run of a full database domain change operation..."
 "<br /> Please DO NOT EXIT this screen until you see a popup message "
@@ -10283,28 +10280,28 @@ msgid ""
 "entire log can be viewed in the COMMAND LOG screen."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/change-domain.php:720
+#: includes/core/apps/wordpress-app/tabs/change-domain.php:718
 msgid "Full Live"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/change-domain.php:723
+#: includes/core/apps/wordpress-app/tabs/change-domain.php:721
 msgid "Full - Live"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/change-domain.php:724
+#: includes/core/apps/wordpress-app/tabs/change-domain.php:722
 msgid ""
 "Change all references from the old domain to the new domain across the "
 "entire database. This is the real deal - do a backup because you cannot undo "
 "this action once it has started!"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/change-domain.php:733
+#: includes/core/apps/wordpress-app/tabs/change-domain.php:731
 msgid ""
 "Are you sure you would like to perform a full database domain change? This "
 "might take a while!"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/change-domain.php:737
+#: includes/core/apps/wordpress-app/tabs/change-domain.php:735
 msgid ""
 "Preparing to start a full database domain change operation. We hope that you "
 "took a full backup before starting this operation!<br /> Please DO NOT EXIT "
@@ -10314,118 +10311,118 @@ msgid ""
 "operation is complete the entire log can be viewed in the COMMAND LOG screen."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/change-domain.php:747
+#: includes/core/apps/wordpress-app/tabs/change-domain.php:745
 msgid "Change Meta"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/change-domain.php:750
+#: includes/core/apps/wordpress-app/tabs/change-domain.php:748
 msgid "Change Record"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/change-domain.php:751
+#: includes/core/apps/wordpress-app/tabs/change-domain.php:749
 msgid ""
 "Update the record in this plugin only. You might need to do this if a prior "
 "operation only partially succeeded or you changed the domain using another "
 "plugin such as UpdraftPlus."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/change-domain.php:760
+#: includes/core/apps/wordpress-app/tabs/change-domain.php:758
 msgid ""
 "Are you sure you would like to only update the local record with this domain "
 "name?  If done incorrectly this can cause future domain operations to fail!"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/change-domain.php:769
+#: includes/core/apps/wordpress-app/tabs/change-domain.php:767
 msgid ""
 "Quick Change: Change just the domain name in the WordPress settings screen.  "
 "All other references to the old domain will remain in your content and other "
 "items in the database."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/change-domain.php:771
+#: includes/core/apps/wordpress-app/tabs/change-domain.php:769
 msgid ""
 "Full - Dry Run: Change all references from the old domain to the new domain "
 "across the entire database. This does a dry run so you can get an idea of "
 "what will be changed."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/change-domain.php:773
+#: includes/core/apps/wordpress-app/tabs/change-domain.php:771
 msgid ""
 "Full - Live Run: Change all references from the old domain to the new domain "
 "across the entire database. This is the real deal - do a backup because you "
 "cannot undo this action once it has started!"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/change-domain.php:785
+#: includes/core/apps/wordpress-app/tabs/change-domain.php:783
 msgid ""
 "After you have finished changing the domain name, you must remove any sFTP "
 "users and re-add them on the sFTP tab. Existing users are no longer valid "
 "for the new domain."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/change-domain.php:787
+#: includes/core/apps/wordpress-app/tabs/change-domain.php:785
 msgid ""
 "You should also update your permalinks under the WordPress SETTINGS-"
 ">PERMALINKS screen - just go there and click the update button; WordPress "
 "will reset the permalinks for your site."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/change-domain.php:791
+#: includes/core/apps/wordpress-app/tabs/change-domain.php:789
 msgid "Reminders"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/change-domain.php:806
+#: includes/core/apps/wordpress-app/tabs/change-domain.php:804
 msgid ""
 "Generic search and replace.  This is a destructive operation so you should "
 "take a backup before proceeding."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/change-domain.php:808
+#: includes/core/apps/wordpress-app/tabs/change-domain.php:806
 msgid "Search for a word in your database and replace it with another word."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/change-domain.php:810
+#: includes/core/apps/wordpress-app/tabs/change-domain.php:808
 msgid "You can search for old domains or links and such and then replace them."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/change-domain.php:812
+#: includes/core/apps/wordpress-app/tabs/change-domain.php:810
 msgid ""
 "However, NO SPECIAL CHARACTERS or SPACES are allowed in your search or "
 "replace terms!"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/change-domain.php:819
-#: includes/core/apps/wordpress-app/tabs/change-domain.php:854
+#: includes/core/apps/wordpress-app/tabs/change-domain.php:817
+#: includes/core/apps/wordpress-app/tabs/change-domain.php:852
 msgid "Search & Replace"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/change-domain.php:827
+#: includes/core/apps/wordpress-app/tabs/change-domain.php:825
 msgid "What are you searching for?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/change-domain.php:837
+#: includes/core/apps/wordpress-app/tabs/change-domain.php:835
 msgid "Enter your new search term - no special characters allowed"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/change-domain.php:840
+#: includes/core/apps/wordpress-app/tabs/change-domain.php:838
 msgid "What are you replacing them with?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/change-domain.php:850
+#: includes/core/apps/wordpress-app/tabs/change-domain.php:848
 msgid "Enter your new replacement term - no special characters allowed"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/change-domain.php:857
+#: includes/core/apps/wordpress-app/tabs/change-domain.php:855
 msgid "Run Search & Replace"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/change-domain.php:866
+#: includes/core/apps/wordpress-app/tabs/change-domain.php:864
 msgid ""
 "If you make a mistake there is no UNDO! Are you sure you would like to run "
 "this search & replace? "
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/change-domain.php:870
+#: includes/core/apps/wordpress-app/tabs/change-domain.php:868
 msgid ""
 "Preparing to start a full database search & replace operation. We hope that "
 "you took a full backup before starting this operation!<br /> Please DO NOT "
@@ -10435,11 +10432,11 @@ msgid ""
 "operation is complete the entire log can be viewed in the COMMAND LOG screen."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/change-domain.php:881
+#: includes/core/apps/wordpress-app/tabs/change-domain.php:879
 msgid "View the docs"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/change-domain.php:884
+#: includes/core/apps/wordpress-app/tabs/change-domain.php:882
 msgid "Change Domain Documentation"
 msgstr ""
 
@@ -11844,112 +11841,120 @@ msgid ""
 "know and turn it back on."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/misc.php:461
-#: includes/core/apps/wordpress-app/tabs/misc.php:556
+#: includes/core/apps/wordpress-app/tabs/misc.php:462
+#: includes/core/apps/wordpress-app/tabs/misc.php:559
 #: includes/core/class-wpcd-posts-notify-user.php:742
 msgid "User"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/misc.php:462
-#: includes/core/apps/wordpress-app/tabs/misc.php:557
+#: includes/core/apps/wordpress-app/tabs/misc.php:463
+#: includes/core/apps/wordpress-app/tabs/misc.php:560
 msgid "User name to use when basic authentication is turned on"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/misc.php:474
-#: includes/core/apps/wordpress-app/tabs/misc.php:570
+#: includes/core/apps/wordpress-app/tabs/misc.php:475
+#: includes/core/apps/wordpress-app/tabs/misc.php:573
 msgid "Password to use when basic authentication is turned on"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/misc.php:493
-msgid "Add or remove password protection on your site"
+#: includes/core/apps/wordpress-app/tabs/misc.php:495
+msgid "Click to enable password protection on your site"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/misc.php:526
-#: includes/core/apps/wordpress-app/tabs/misc.php:548
+#: includes/core/apps/wordpress-app/tabs/misc.php:495
+msgid "Click to remove password protection from your site"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/tabs/misc.php:528
+#: includes/core/apps/wordpress-app/tabs/misc.php:550
 msgid "Password Protect WPLOGIN With HTTP Basic Authentication"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/misc.php:529
+#: includes/core/apps/wordpress-app/tabs/misc.php:531
 msgid ""
 "All pages on this site are already fully password protected with a site-wide "
 "HTTP Authentication directive."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/misc.php:538
+#: includes/core/apps/wordpress-app/tabs/misc.php:540
 msgid ""
 "Are you sure you would like to disable password protection for the wp-login "
 "page for this site?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/misc.php:540
+#: includes/core/apps/wordpress-app/tabs/misc.php:542
 msgid ""
 "Are you sure you would like to enable password protection for the wp-login "
 "page for this site?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/misc.php:543
+#: includes/core/apps/wordpress-app/tabs/misc.php:545
 msgid ""
 "This action places an http password popup in front of your WPLOGIN page.  "
 "This is useful because it stops bad login attempts at the webserver, before "
 "it hits WordPress."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/misc.php:544
+#: includes/core/apps/wordpress-app/tabs/misc.php:546
 msgid ""
 "If this is already turned on and you have forgotten your password, turn it "
 "off, fill in the user and password fields with data you know and turn it "
 "back on."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/misc.php:545
+#: includes/core/apps/wordpress-app/tabs/misc.php:547
 msgid ""
 "Important Note: Turn this off before COPYING, CLONING, STAGING or MOVING the "
 "site!"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/misc.php:589
-msgid "Add or remove password protection for the wp-login page"
+#: includes/core/apps/wordpress-app/tabs/misc.php:593
+msgid "Click to add password protection to the wp-login page"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/misc.php:617
+#: includes/core/apps/wordpress-app/tabs/misc.php:593
+msgid "Click to remove password protection from the wp-login page"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/tabs/misc.php:621
 msgid "Initial WordPress Credentials"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/misc.php:620
+#: includes/core/apps/wordpress-app/tabs/misc.php:624
 msgid ""
 "Here are the credentials that were initially set up for this site. You can "
 "use them to log into the site for the first time.  We strongly recommend "
 "that you change them after you login."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/misc.php:625
+#: includes/core/apps/wordpress-app/tabs/misc.php:629
 msgid "User Id"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/misc.php:656
+#: includes/core/apps/wordpress-app/tabs/misc.php:660
 msgid "Enable/Disable https"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/misc.php:659
+#: includes/core/apps/wordpress-app/tabs/misc.php:663
 msgid ""
 "Under normal circumstances you should not need to use this option. Instead, "
 "use the actions on the SSL tab. <br /> But, if for some reason you need to "
 "manually force https or disable https you can use this option."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/misc.php:672
+#: includes/core/apps/wordpress-app/tabs/misc.php:676
 msgid "Are you sure you would like to disable https redirect?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/misc.php:674
+#: includes/core/apps/wordpress-app/tabs/misc.php:678
 msgid "Are you sure you would like to enable https?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/misc.php:681
+#: includes/core/apps/wordpress-app/tabs/misc.php:685
 msgid "Redirect Site to HTTPS"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/misc.php:687
+#: includes/core/apps/wordpress-app/tabs/misc.php:691
 msgid ""
 "Enable or disable https redirect. This option does NOT automatically issue "
 "or revoke SSL certificates! <br />It will, however, reinstall an existing "
@@ -11957,44 +11962,44 @@ msgid ""
 "create SSL certificates use the actions available on the SSL tab instead."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/misc.php:958
-#: includes/core/apps/wordpress-app/tabs/misc.php:1027
+#: includes/core/apps/wordpress-app/tabs/misc.php:962
+#: includes/core/apps/wordpress-app/tabs/misc.php:1031
 msgid ""
 "The user cannot be blank if you would like to turn on basic authentication "
 "for this site."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/misc.php:961
-#: includes/core/apps/wordpress-app/tabs/misc.php:1030
+#: includes/core/apps/wordpress-app/tabs/misc.php:965
+#: includes/core/apps/wordpress-app/tabs/misc.php:1034
 msgid ""
 "The password cannot be blank if you would like to turn on basic "
 "authentication for this site."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/misc.php:1134
+#: includes/core/apps/wordpress-app/tabs/misc.php:1138
 msgid "Delete Sites From Server"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/misc.php:1135
+#: includes/core/apps/wordpress-app/tabs/misc.php:1139
 msgid "Delete Sites and Backups From Server"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/misc.php:1184
+#: includes/core/apps/wordpress-app/tabs/misc.php:1188
 msgid "Bulk Action: Waiting to delete site."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/misc.php:1190
+#: includes/core/apps/wordpress-app/tabs/misc.php:1194
 msgid "Bulk Action: Waiting to delete site and associated backups."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/misc.php:1200
+#: includes/core/apps/wordpress-app/tabs/misc.php:1204
 #, php-format
 msgid ""
 "%s site has been scheduled for deletion. You can view the progress in the "
 "PENDING TASKS screen."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/misc.php:1203
+#: includes/core/apps/wordpress-app/tabs/misc.php:1207
 #, php-format
 msgid ""
 "%s sites have been scheduled for deletion. You can view the progress in the "

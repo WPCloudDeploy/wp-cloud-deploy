@@ -95,8 +95,8 @@ div[id^='wpcd_wordpress-app'] {
 
 /* And we want some styling on that extra metabox ! */
 #wpcd_wordpress-app_tab_top_of_site_details {
-	background-color: var(--wpcd-medium-background-color);
-	border: solid 1px #CFD8DC;
+	color: white;
+	background-color: var(--wpcd-accent-background-color);
 	word-wrap: break-word;
 }
 
@@ -109,6 +109,21 @@ div[id^='wpcd_wordpress-app'] {
 	/* Don't allow long domain names to wrap to wrap */
 	overflow-x: clip; 
 	text-overflow: ellipsis;
+}
+
+/* Buttons in the top of site area */
+#wpcd_wordpress-app_tab_top_of_site_details .rwmb-input .button,
+#wpcd_wordpress-app_tab_top_of_site_details .rwmb-input .button a {
+	text-decoration: none;
+	background-color: var(--wpcd-primary-brand-color);
+	border-color: var(--wpcd-primary-brand-color);
+	border-radius: 3px;
+	color: white;
+}
+#wpcd_wordpress-app_tab_top_of_site_details .rwmb-input .button:hover,
+#wpcd_wordpress-app_tab_top_of_site_details .rwmb-input .button a:hover {
+	text-decoration: none;
+	border-color: white;
 }
 
 /** 

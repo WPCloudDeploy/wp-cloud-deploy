@@ -5,8 +5,6 @@
 
 
 /* Restyle the metabox.io buttons on the server and app detail screens. */
-#wpcd_wordpress-app_tab_top_of_site_details .rwmb-input .button,
-#wpcd_wordpress-app_tab_top_of_site_details .rwmb-input .button a,
 #wpcd_wordpress-app_tab2 .rwmb-input .button,
 #wpcd_wordpress-app_tab2 .rwmb-input .button a,
 #wpcd_server_wordpress-app_tab_top_of_server_details .rwmb-input .button,
@@ -15,13 +13,12 @@
 #wpcd_server_wordpress-app_tab3 .rwmb-input .button a {
 	text-decoration: none;
 	background-color: var(--wpcd-accent-background-color);
+	border-color: var(--wpcd-accent-background-color);
 	border-radius: 3px;
 	color: white;
 }
-#wpcd_wordpress-app_tab_top_of_site_details .rwmb-input .button:hover,
-#wpcd_wordpress-app_tab_top_of_site_details .rwmb-input .button a:hover,
 #wpcd_wordpress-app_tab2 .rwmb-input .button:hover,
-#wpcd_wordpress-app_tab2 .rwmb-input .button a:hover 
+#wpcd_wordpress-app_tab2 .rwmb-input .button a:hover, 
 #wpcd_server_wordpress-app_tab_top_of_server_details .rwmb-input .button:hover,
 #wpcd_server_wordpress-app_tab_top_of_server_details .rwmb-input .button a:hover,
 #wpcd_server_wordpress-app_tab3 .rwmb-input .button:hover,

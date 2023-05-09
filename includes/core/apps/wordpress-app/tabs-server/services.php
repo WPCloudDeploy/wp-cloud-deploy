@@ -595,7 +595,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		$ufw_toggle_state = $this->get_ufw_state( $id );
 
 		$actions['ufw-state-toggle'] = array(
-			'label'          => __( 'Toggle Status', 'wpcd' ),
+			'label'          => __( 'Status', 'wpcd' ),
 			'raw_attributes' => array(
 				'on_label'  => __( 'Enabled', 'wpcd' ),
 				'off_label' => __( 'Disabled', 'wpcd' ),

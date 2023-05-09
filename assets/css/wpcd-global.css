@@ -28,6 +28,12 @@
 	border-color: var(--wpcd-primary-brand-color);	
 }
 
+/* Restyle metabox TOGGLE switches - note that we're doing this for the entire wp-admin area - not just wpcd sections. */
+.wp-admin .rwmb-input .rwmb-switch:checked + .rwmb-switch-status .rwmb-switch-slider {
+	/* Color when switch is enabled. */
+	background-color: var(--wpcd-front-end-positive-color);
+}
+
 /* Force all tooltips in metabox.io to be darker. */
 .mb-tooltip {
     opacity: 0.65 !important;

@@ -285,9 +285,23 @@ div[id^='wpcd_server_wordpress-app'] {
 	background-color: var(--wpcd-accent-background-color);
 }
 
-#wpcd_server_wordpress-app_tab_top_of_server_details a {
-	/* links in this top metabox need a different color to make it stand out. */
-	color: var(--wpcd-alternate-accent-background-color);
+#wpcd_server_wordpress-app_tab_top_of_server_details .wpcd_server_details_top_row_app_count {
+	/* Center links in this top metabox need a different color to make it stand out. */
+	text-align: center;
+}
+#wpcd_server_wordpress-app_tab_top_of_server_details .wpcd_server_details_top_row_app_count a {
+	/* Links to the number of apps in this top metabox need some styling to stand out. */
+	display: inline-block;
+	color: white;
+	border: solid 1px var(--wpcd-secondary-brand-color);
+	border-radius: 50%;
+	padding: 6px 12px;
+	margin-top: 2px;
+	text-decoration: none;
+}
+#wpcd_server_wordpress-app_tab_top_of_server_details .wpcd_server_details_top_row_app_count a:hover {
+	background-color: var(--wpcd-secondary-brand-color);
+	text-decoration: underline;
 }
 
 /* Add some padding around each tab and make the font a little bigger.*/
@@ -355,7 +369,6 @@ div[id^='wpcd_server_wordpress-app'] {
 	margin-top: 1em !important;
 	word-wrap: break-word;
 }
-
 .wpcd_server_details_top_row .rwmb-label {
 	/* smaller fonts for the labels */
 	font-size: 0.75em !important;
@@ -364,17 +377,19 @@ div[id^='wpcd_server_wordpress-app'] {
 
 
 /** 
- * Make the data under the domain name on the server detail screen smaller and format as tiny chicklet boxes.
+ * Make the data under the server name on the server detail screen smaller and format as tiny chicklet boxes.
  */
 .wpcd_server_wordpress-app_tab_top_of_server_details .wpcd_server_details_top_row .wpcd_medium_chicklet {
 	/* Applies to all medium sized chicklets - duplicated in wpcd-app.css */
+	display: inline-block;
 	font-size: 10px;
 	font-weight: normal;
 	padding: 5px;
 	border-radius:3px;
 	border: solid 1px;
 	margin-right: 5px;
-	min-width: 20px;
+	margin-top: 8px;
+	min-width: 20px;	
 }
 .wpcd_server_wordpress-app_tab_top_of_server_details .wpcd_server_details_top_row .wpcd_server_details_top_row_element_wstype {
 	color: var(--wpcd-primary-brand-color);

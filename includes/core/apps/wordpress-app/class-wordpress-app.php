@@ -648,7 +648,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			'type'    => 'custom_html',
 			'std'     => get_post_meta( $id, 'wpcd_server_name', true ) . $other_data,
 			'columns' => 3,
-			'class'   => 'wpcd_server_details_top_row',
+			'class'   => 'wpcd_server_details_top_row wpcd_server_details_top_row_server_name',
 		);
 
 		$fields['general-welcome-top-col_2'] = array(
@@ -656,7 +656,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			'type'    => 'custom_html',
 			'std'     => $copy_ip,
 			'columns' => 3,
-			'class'   => 'wpcd_server_details_top_row',
+			'class'   => 'wpcd_server_details_top_row wpcd_server_details_top_row_ip',
 		);
 
 		$fields['general-welcome-top-col_3'] = array(
@@ -664,7 +664,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			'type'    => 'custom_html',
 			'std'     => WPCD()->wpcd_get_cloud_provider_desc( get_post_meta( $id, 'wpcd_server_provider', true ) ),
 			'columns' => 2,
-			'class'   => 'wpcd_server_details_top_row',
+			'class'   => 'wpcd_server_details_top_row wpcd_server_details_top_row_provider',
 		);
 
 		$fields['general-welcome-top-col_4'] = array(
@@ -672,7 +672,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			'type'    => 'custom_html',
 			'std'     => get_post_meta( $id, 'wpcd_server_region', true ),
 			'columns' => 2,
-			'class'   => 'wpcd_server_details_top_row',
+			'class'   => 'wpcd_server_details_top_row wpcd_server_details_top_row_region',
 		);
 
 		if ( is_admin() ) {
@@ -686,7 +686,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			'type'    => 'custom_html',
 			'std'     => sprintf( '<a href="%s" target="_blank">%d</a>', esc_url( $apps_url ), WPCD_SERVER()->get_app_count( $id ) ),
 			'columns' => 2,
-			'class'   => 'wpcd_server_details_top_row',
+			'class'   => 'wpcd_server_details_top_row wpcd_server_details_top_row_app_count',
 		);
 
 		// Does this server need an upgrade?

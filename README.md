@@ -149,6 +149,7 @@ Note: Even though the entire git development history isn't available on github, 
 * Fix: WPAPP - HTTP2 could not be enabled.
 * Fix: WPAPP - Disabling/Enabling browser cache tweak was not working for OLS.
 * Fix: WPAPP - OLS Auto-restart cron when .htaccess file changes not working as intended.
+* Fix: WPAPP - Site Sync did not correctly set the status of the HTTP AUTH and 6g/7G metas if they were enabled on the source site.
 * Fix: WPAPP - Missing variable value when installing memcached. Harmless - just threw a php warning.
 * Fix: WPAPP - Remove nginx related sections in the fail2ban tab when the web server is an OLS server.
 * Fix: WPAPP - Handle an SSH message related to Multisite wildcard ssl - when ssl was already disabled we weren't flipping the appropriate metas.

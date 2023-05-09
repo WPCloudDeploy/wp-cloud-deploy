@@ -131,6 +131,12 @@ class WPCD_WORDPRESS_TABS_CLONE_SITE extends WPCD_WORDPRESS_TABS {
 								update_post_meta( $new_app_post_id, 'wpapp_redis_status', $redis_status );
 							}
 
+							/*
+							 *** Note: 6G/7G Flags and http auth status flags are not copied here.
+							 * This is because the clone bash script creates new vhost configuration files instead
+							 * of copying from the original site.
+							 */
+
 							// Update the PHP version to match the original version.
 							switch ( $webserver_type ) {
 								case 'ols':

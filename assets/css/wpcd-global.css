@@ -4,8 +4,34 @@
 /* Note: As of WPCD 4.13 Brand colors have been removed from this file and added as dynamic php vars to wp-cloud-deploy.php. */
 
 
-/* Force all tooltips in metabox.io to be darker. */
+/* Restyle the metabox.io buttons on the server and app detail screens. */
+#wpcd_wordpress-app_tab_top_of_site_details .rwmb-input .button,
+#wpcd_wordpress-app_tab_top_of_site_details .rwmb-input .button a,
+#wpcd_wordpress-app_tab2 .rwmb-input .button,
+#wpcd_wordpress-app_tab2 .rwmb-input .button a,
+#wpcd_server_wordpress-app_tab_top_of_server_details .rwmb-input .button,
+#wpcd_server_wordpress-app_tab_top_of_server_details .rwmb-input .button a,
+#wpcd_server_wordpress-app_tab3 .rwmb-input .button,
+#wpcd_server_wordpress-app_tab3 .rwmb-input .button a {
+	text-decoration: none;
+	background-color: var(--wpcd-accent-background-color);
+	border-radius: 3px;
+	color: white;
+}
+#wpcd_wordpress-app_tab_top_of_site_details .rwmb-input .button:hover,
+#wpcd_wordpress-app_tab_top_of_site_details .rwmb-input .button a:hover,
+#wpcd_wordpress-app_tab2 .rwmb-input .button:hover,
+#wpcd_wordpress-app_tab2 .rwmb-input .button a:hover 
+#wpcd_server_wordpress-app_tab_top_of_server_details .rwmb-input .button:hover,
+#wpcd_server_wordpress-app_tab_top_of_server_details .rwmb-input .button a:hover,
+#wpcd_server_wordpress-app_tab3 .rwmb-input .button:hover,
+#wpcd_server_wordpress-app_tab3 .rwmb-input .button a:hover {
+	text-decoration: none;
+	background-color: var(--wpcd-primary-brand-color);
+	border-color: var(--wpcd-primary-brand-color);	
+}
 
+/* Force all tooltips in metabox.io to be darker. */
 .mb-tooltip {
     opacity: 0.65 !important;
 }
@@ -17,7 +43,6 @@
 
 
 /* Custom click to copy css*/
-
 .wpcd-click-to-copy-label {
     color: #9696e7;
     margin-left: 5px;

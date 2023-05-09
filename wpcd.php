@@ -129,6 +129,8 @@ class WPCD_Init {
 		/* Send email to admin if critical crons aren't running. */
 		add_action( 'shutdown', array( $this, 'send_email_for_absent_crons' ), 20 );
 
+		/* Show version number in admin footer */
+		add_filter( 'admin_footer_text', array( $this, 'admin_footer_text' ), 10, 1 );
 	}
 
 	/**
@@ -809,6 +811,47 @@ class WPCD_Init {
 				);
 			}
 		}
+	}
+
+	/**
+	 * Add our version number and message to the admin footer area.
+	 *
+	 * @since 5.3.0
+	 *
+	 * Filter Hook: admin_footer_text
+	 *
+	 * @param string $msg The existing message.
+	 *
+	 * @return string
+	 */
+	public function admin_footer_text( $msg ) {
+
+		// Bail if we're not far enough into the initialization process to get the screen id.
+		if ( ! function_exists( 'get_current_screen' ) ) {
+			return $msg;
+		}
+
+		// Message to show defaults to the original incoming message string.
+		$return = $msg;
+
+		$screen = get_current_screen();
+
+		/* @TODO: The list of post types and taxonomies used below should be a global function that is filtered and called by add-ons to add their own CPT to the arrays. */
+		if ( ( is_object( $screen ) && ( in_array( $screen->post_type, array( 'wpcd_app', 'wpcd_app_server', 'wpcd_cloud_provider', 'wpcd_ssh_log', 'wpcd_team', 'wpcd_command_log', 'wpcd_pending_log', 'wpcd_error_log', 'wpcd_schedules', 'wpcd_snapshots', 'wpcd_permission_type' ), true ) || in_array( $screen->taxonomy, array( 'wpcd_app_group', 'wpcd_app_server_group', 'wpcd_reporting_group' ), true )  ) ) ) {
+
+			if ( defined( 'WPCD_LONG_NAME' ) && ! empty( WPCD_LONG_NAME ) ) {
+				$product_name = WPCD_LONG_NAME;
+			} else {
+				$product_name = 'WPCloudDeploy';
+			}
+
+			/* Translators: %1$s is the WPCD Product Name; %2$s is the WPCD product version. */
+			$return = sprintf( __( 'Powered by %1$s %2$s.', 'wpcd' ), $product_name, WPCD_VERSION ) . '<br />' . $return;
+
+		}
+
+		return $return;
+
 	}
 
 

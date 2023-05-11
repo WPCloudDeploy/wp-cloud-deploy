@@ -46,6 +46,9 @@ if ( ! empty( $options['uninstall_on_delete'] ) ) {
 	/* The option wpcd_last_upgrade_done holds the numeric version of the last update that was done via the upgrade scripts. */
 	delete_option( 'wpcd_last_upgrade_done' );
 	delete_option( 'wpcd_last_silent_auto_upgrade_done' );
+	
+	/* Incompatible addon version checks */
+	delete_option( 'wpcd_addons_compatible_last_version_checked' );
 
 	/* Options used in setup wizard */
 	delete_option( 'wpcd_setup_wizard_selected_provider' );

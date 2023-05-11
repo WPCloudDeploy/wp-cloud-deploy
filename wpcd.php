@@ -978,7 +978,7 @@ class WPCD_Init {
 		$add_ons['wpcd-power-tools/wpcd-power-tools.php']                       = '2.1.0';
 		$add_ons['wpcd-redis/wpcd-redis.php']                                   = '1.3.1';
 		$add_ons['wpcd-server-sync/wpcd-server-sync.php']                       = '1.5.0';
-		$add_ons['wpcd-upcloud-provider/wpcd-upcloud-provider.php']             = '2.3.1';
+		$add_ons['wpcd-upcloud-provider/wpcd-upcloud-provider.php']             = '2.3.0';
 		$add_ons['wpcd-virtual-cloud-provider/wpcd-virtual-cloud-provider.php'] = '1.1.1';
 		$add_ons['wpcd-vultr-provider/wpcd-vultr-provider.php']                 = '2.3.1';
 		$add_ons['wpcd-wc-sell-servers/wpcd-wc-sell-servers.php']               = '9999.9999.9999';

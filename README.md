@@ -162,6 +162,7 @@ Note: Even though the entire git development history isn't available on github, 
 * Fix: WPAPP - An invalid variable name warning was thrown during the quick domain change operation.
 * Dev: Preliminary foundation set for moving providers and dns data into custom tables.
 * Dev: Update to latest version of phpseclib.
+* Dev: Check for incompatible add-ons and deactivate self, prevent activation or throw warnings.
 * Dev: WPAPP - Use global function to reset site permissions (refactor).
 * Dev: WPAPP - Add option for executing local post-processing scripts after a site is cloned.
 * Dev: WPAPP - New filters available when displaying info in the server actions column.

@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 "Project-Id-Version: WP Cloud Deploy\n"
-"POT-Creation-Date: 2023-05-08 19:54-0500\n"
+"POT-Creation-Date: 2023-05-10 23:34-0500\n"
 "PO-Revision-Date: 2020-08-14 19:38-0500\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1244,10 +1244,10 @@ msgid "Change Domain"
 msgstr ""
 
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:395
-#: includes/core/apps/wordpress-app/tabs/clone-site.php:205
-#: includes/core/apps/wordpress-app/tabs/clone-site.php:473
-#: includes/core/apps/wordpress-app/tabs/clone-site.php:491
-#: includes/core/apps/wordpress-app/tabs/clone-site.php:521
+#: includes/core/apps/wordpress-app/tabs/clone-site.php:211
+#: includes/core/apps/wordpress-app/tabs/clone-site.php:479
+#: includes/core/apps/wordpress-app/tabs/clone-site.php:497
+#: includes/core/apps/wordpress-app/tabs/clone-site.php:527
 msgid "Clone Site"
 msgstr ""
 
@@ -1313,7 +1313,7 @@ msgid "sFTP"
 msgstr ""
 
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:405
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:294
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:341
 msgid "Copy To Server"
 msgstr ""
 
@@ -1326,10 +1326,10 @@ msgid "SSL"
 msgstr ""
 
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:407
-#: includes/core/apps/wordpress-app/tabs/staging.php:203
-#: includes/core/apps/wordpress-app/tabs/staging.php:562
-#: includes/core/apps/wordpress-app/tabs/staging.php:588
-#: includes/core/apps/wordpress-app/tabs/staging.php:635
+#: includes/core/apps/wordpress-app/tabs/staging.php:209
+#: includes/core/apps/wordpress-app/tabs/staging.php:568
+#: includes/core/apps/wordpress-app/tabs/staging.php:594
+#: includes/core/apps/wordpress-app/tabs/staging.php:641
 #: includes/core/apps/wordpress-app/tabs/wpconfig-options.php:407
 #: includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/admin-columns.php:780
 #: includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/admin-columns.php:1139
@@ -1353,7 +1353,7 @@ msgstr ""
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:410
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:566
 #: includes/core/apps/wordpress-app/tabs-server/tools.php:57
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2326
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2332
 #: includes/core/apps/wordpress-app/tabs/tools.php:59
 #: includes/core/class-wpcd-settings.php:771
 #: includes/core/class-wpcd-settings.php:1229
@@ -1400,10 +1400,10 @@ msgstr ""
 
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:417
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:575
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:342
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1420
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1459
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2488
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:348
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1426
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1465
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2494
 msgid "Multi-tenant"
 msgstr ""
 
@@ -4031,7 +4031,7 @@ msgstr ""
 #: includes/core/apps/wordpress-app/tabs/misc.php:492
 #: includes/core/apps/wordpress-app/tabs/misc.php:590
 #: includes/core/apps/wordpress-app/tabs/misc.php:688
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1776
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1782
 #: includes/core/apps/wordpress-app/tabs/ssl.php:216
 #: includes/core/apps/wordpress-app/tabs/ssl.php:290
 #: includes/core/apps/wordpress-app/tabs/tools.php:248
@@ -4092,7 +4092,7 @@ msgstr ""
 #: includes/core/apps/wordpress-app/tabs/misc.php:493
 #: includes/core/apps/wordpress-app/tabs/misc.php:591
 #: includes/core/apps/wordpress-app/tabs/misc.php:689
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1777
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1783
 #: includes/core/apps/wordpress-app/tabs/ssl.php:217
 #: includes/core/apps/wordpress-app/tabs/ssl.php:291
 #: includes/core/apps/wordpress-app/tabs/tools.php:249
@@ -4518,9 +4518,9 @@ msgstr ""
 #: includes/core/apps/wordpress-app/tabs/cache.php:120
 #: includes/core/apps/wordpress-app/tabs/change-domain.php:177
 #: includes/core/apps/wordpress-app/tabs/change-domain.php:184
-#: includes/core/apps/wordpress-app/tabs/clone-site.php:242
-#: includes/core/apps/wordpress-app/tabs/clone-site.php:250
-#: includes/core/apps/wordpress-app/tabs/clone-site.php:270
+#: includes/core/apps/wordpress-app/tabs/clone-site.php:248
+#: includes/core/apps/wordpress-app/tabs/clone-site.php:256
+#: includes/core/apps/wordpress-app/tabs/clone-site.php:276
 #: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:113
 #: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:120
 #: includes/core/apps/wordpress-app/tabs/crons.php:113
@@ -4534,9 +4534,9 @@ msgstr ""
 #: includes/core/apps/wordpress-app/tabs/logs.php:102
 #: includes/core/apps/wordpress-app/tabs/misc.php:126
 #: includes/core/apps/wordpress-app/tabs/misc.php:134
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:379
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:400
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:420
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:385
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:406
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:426
 #: includes/core/apps/wordpress-app/tabs/php-options.php:113
 #: includes/core/apps/wordpress-app/tabs/php-options.php:120
 #: includes/core/apps/wordpress-app/tabs/phpmyadmin.php:257
@@ -4545,16 +4545,16 @@ msgstr ""
 #: includes/core/apps/wordpress-app/tabs/redirect-rules.php:116
 #: includes/core/apps/wordpress-app/tabs/sftp.php:94
 #: includes/core/apps/wordpress-app/tabs/sftp.php:101
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:331
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:338
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:378
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:385
 #: includes/core/apps/wordpress-app/tabs/site-system-users.php:102
 #: includes/core/apps/wordpress-app/tabs/site-system-users.php:107
 #: includes/core/apps/wordpress-app/tabs/site-system-users.php:112
 #: includes/core/apps/wordpress-app/tabs/site-system-users.php:121
 #: includes/core/apps/wordpress-app/tabs/ssl.php:114
 #: includes/core/apps/wordpress-app/tabs/ssl.php:121
-#: includes/core/apps/wordpress-app/tabs/staging.php:239
-#: includes/core/apps/wordpress-app/tabs/staging.php:246
+#: includes/core/apps/wordpress-app/tabs/staging.php:245
+#: includes/core/apps/wordpress-app/tabs/staging.php:252
 #: includes/core/apps/wordpress-app/tabs/statistics.php:109
 #: includes/core/apps/wordpress-app/tabs/statistics.php:116
 #: includes/core/apps/wordpress-app/tabs/theme-and-plugin-updates.php:154
@@ -4891,7 +4891,7 @@ msgstr ""
 #: includes/core/apps/wordpress-app/tabs/change-domain.php:255
 #: includes/core/apps/wordpress-app/tabs/change-domain.php:358
 #: includes/core/apps/wordpress-app/tabs/change-domain.php:528
-#: includes/core/apps/wordpress-app/tabs/clone-site.php:325
+#: includes/core/apps/wordpress-app/tabs/clone-site.php:331
 #: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:188
 #: includes/core/apps/wordpress-app/tabs/crons.php:281
 #: includes/core/apps/wordpress-app/tabs/file-manager.php:224
@@ -4910,9 +4910,9 @@ msgstr ""
 #: includes/core/apps/wordpress-app/tabs/misc.php:954
 #: includes/core/apps/wordpress-app/tabs/misc.php:1023
 #: includes/core/apps/wordpress-app/tabs/misc.php:1092
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:525
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:646
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:755
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:531
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:652
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:761
 #: includes/core/apps/wordpress-app/tabs/php-options.php:721
 #: includes/core/apps/wordpress-app/tabs/php-options.php:796
 #: includes/core/apps/wordpress-app/tabs/php-options.php:881
@@ -4923,8 +4923,8 @@ msgstr ""
 #: includes/core/apps/wordpress-app/tabs/sftp.php:526
 #: includes/core/apps/wordpress-app/tabs/site-system-users.php:339
 #: includes/core/apps/wordpress-app/tabs/ssl.php:426
-#: includes/core/apps/wordpress-app/tabs/staging.php:303
-#: includes/core/apps/wordpress-app/tabs/staging.php:426
+#: includes/core/apps/wordpress-app/tabs/staging.php:309
+#: includes/core/apps/wordpress-app/tabs/staging.php:432
 #: includes/core/apps/wordpress-app/tabs/statistics.php:273
 #: includes/core/apps/wordpress-app/tabs/statistics.php:319
 #: includes/core/apps/wordpress-app/tabs/tabs.php:111
@@ -4978,7 +4978,7 @@ msgstr ""
 #: includes/core/apps/wordpress-app/tabs/php-options.php:968
 #: includes/core/apps/wordpress-app/tabs/redirect-rules.php:404
 #: includes/core/apps/wordpress-app/tabs/sftp.php:686
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:779
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:826
 #: includes/core/apps/wordpress-app/tabs/site-system-users.php:463
 #: includes/core/apps/wordpress-app/tabs/ssl.php:460
 #: includes/core/apps/wordpress-app/tabs/tools.php:467
@@ -5809,17 +5809,17 @@ msgstr ""
 #: includes/core/apps/wordpress-app/tabs-server/services.php:1261
 #: includes/core/apps/wordpress-app/tabs/change-domain.php:390
 #: includes/core/apps/wordpress-app/tabs/change-domain.php:560
-#: includes/core/apps/wordpress-app/tabs/clone-site.php:396
+#: includes/core/apps/wordpress-app/tabs/clone-site.php:402
 #: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:235
 #: includes/core/apps/wordpress-app/tabs/file-manager.php:300
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:585
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:698
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:958
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:591
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:704
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:964
 #: includes/core/apps/wordpress-app/tabs/phpmyadmin.php:337
 #: includes/core/apps/wordpress-app/tabs/phpmyadmin.php:503
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:629
-#: includes/core/apps/wordpress-app/tabs/staging.php:363
-#: includes/core/apps/wordpress-app/tabs/staging.php:467
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:676
+#: includes/core/apps/wordpress-app/tabs/staging.php:369
+#: includes/core/apps/wordpress-app/tabs/staging.php:473
 #: includes/core/apps/wordpress-app/tabs/theme-and-plugin-updates.php:298
 #, php-format
 msgid ""
@@ -7570,7 +7570,7 @@ msgstr ""
 
 #: includes/core/apps/wordpress-app/tabs-server/services.php:520
 #: includes/core/apps/wordpress-app/tabs/cache.php:487
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:1044
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:1091
 #: includes/core/apps/wordpress-app/tabs/tools.php:339
 msgid "Clear"
 msgstr ""
@@ -9628,7 +9628,7 @@ msgstr ""
 
 #: includes/core/apps/wordpress-app/tabs/6g_firewall.php:452
 #: includes/core/apps/wordpress-app/tabs/7g_firewall.php:437
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:1097
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:1144
 msgid "Important Notes"
 msgstr ""
 
@@ -10160,7 +10160,7 @@ msgstr ""
 #: includes/core/apps/wordpress-app/tabs/change-domain.php:239
 #: includes/core/apps/wordpress-app/tabs/change-domain.php:342
 #: includes/core/apps/wordpress-app/tabs/change-domain.php:469
-#: includes/core/apps/wordpress-app/tabs/clone-site.php:310
+#: includes/core/apps/wordpress-app/tabs/clone-site.php:316
 msgid "The new domain must be provided"
 msgstr ""
 
@@ -10213,7 +10213,7 @@ msgid ""
 msgstr ""
 
 #: includes/core/apps/wordpress-app/tabs/change-domain.php:630
-#: includes/core/apps/wordpress-app/tabs/clone-site.php:486
+#: includes/core/apps/wordpress-app/tabs/clone-site.php:492
 msgid ""
 "Otherwise you will need to request new certificates on the SSL tab after the "
 "operation is complete and you have updated your DNS."
@@ -10226,7 +10226,7 @@ msgid ""
 msgstr ""
 
 #: includes/core/apps/wordpress-app/tabs/change-domain.php:641
-#: includes/core/apps/wordpress-app/tabs/clone-site.php:497
+#: includes/core/apps/wordpress-app/tabs/clone-site.php:503
 msgid "New Domain"
 msgstr ""
 
@@ -10440,52 +10440,52 @@ msgstr ""
 msgid "Change Domain Documentation"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/clone-site.php:167
+#: includes/core/apps/wordpress-app/tabs/clone-site.php:173
 msgid ""
 "Clone Site command failed - check the command logs for more information."
 msgstr ""
 
 #. translators: %s is replaced with the internal action name.
-#: includes/core/apps/wordpress-app/tabs/clone-site.php:333
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:533
+#: includes/core/apps/wordpress-app/tabs/clone-site.php:339
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:539
 #, php-format
 msgid "The new domain has failed validation.  Please try again: %s"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/clone-site.php:470
-#: includes/core/apps/wordpress-app/tabs/staging.php:559
+#: includes/core/apps/wordpress-app/tabs/clone-site.php:476
+#: includes/core/apps/wordpress-app/tabs/staging.php:565
 msgid ""
 "You cannot clone this site at this time because HTTP2 is enabled. Please "
 "disable it before attempting this operation."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/clone-site.php:483
+#: includes/core/apps/wordpress-app/tabs/clone-site.php:489
 msgid "Make a copy of this site to a new domain name."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/clone-site.php:485
+#: includes/core/apps/wordpress-app/tabs/clone-site.php:491
 msgid ""
 "If you would like new SSL certificates to be issued as part of this "
 "operation please make sure you point your DNS for the new site to this "
 "server's IP address BEFORE you start the clone operation. "
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/clone-site.php:508
+#: includes/core/apps/wordpress-app/tabs/clone-site.php:514
 msgid "Domain without www or http - e.g: mydomain.com"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/clone-site.php:514
+#: includes/core/apps/wordpress-app/tabs/clone-site.php:520
 msgid ""
 "Warning: This site appears to be using a remote database server.  The server "
 "on which this site resides should have a local database server since the "
 "database server will be switched to localhost when cloning this site."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/clone-site.php:531
+#: includes/core/apps/wordpress-app/tabs/clone-site.php:537
 msgid "Are you sure you would like to copy this site to a new domain?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/clone-site.php:535
+#: includes/core/apps/wordpress-app/tabs/clone-site.php:541
 msgid ""
 "Preparing to clone this site to a new site at the specified domain...<br /> "
 "Please DO NOT EXIT this screen until you see a popup message indicating that "
@@ -10496,7 +10496,7 @@ msgid ""
 msgstr ""
 
 #: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:170
-#: includes/core/apps/wordpress-app/tabs/staging.php:413
+#: includes/core/apps/wordpress-app/tabs/staging.php:419
 msgid "The target domain must be provided"
 msgstr ""
 
@@ -10805,7 +10805,7 @@ msgid "Set a new username and password for the file manager"
 msgstr ""
 
 #: includes/core/apps/wordpress-app/tabs/file-manager.php:540
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2365
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2371
 #: includes/core/apps/wordpress-app/tabs/php-options.php:644
 #: includes/core/apps/wordpress-app/tabs/theme-and-plugin-updates.php:398
 #: includes/templates/notify_user_form_popup.php:232
@@ -11525,8 +11525,8 @@ msgid ""
 msgstr ""
 
 #: includes/core/apps/wordpress-app/tabs/git-control-site.php:1715
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1819
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2601
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1825
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2607
 msgid "No description available"
 msgstr ""
 
@@ -12006,90 +12006,90 @@ msgid ""
 "PENDING TASKS screen."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:177
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:183
 msgid ""
 "Multi-tenant: Create new version failed - check the command logs for more "
 "information."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:239
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:252
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:245
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:258
 msgid ""
 "Multi-tenant: Site conversion failed - check the command logs for more "
 "information."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:294
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:300
 msgid ""
 "Multi-tenant: Push versions to remote server failed- check the command logs "
 "for more information."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:303
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:309
 msgid ""
 "Multi-tenant: Push versions to remote server failed - check the command logs "
 "for more information."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:490
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:496
 msgid "The domain for the new version must be provided"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:502
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:508
 msgid "The new version must be provided"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:512
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:518
 msgid "A description for the new version must be provided"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:625
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:631
 msgid "The product template should be provided."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:633
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:639
 msgid "The version should be provided."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:659
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:665
 msgid "We were unable to get a domain for the product template."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:744
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:750
 msgid "A destination server is required."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:776
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:440
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:782
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:487
 msgid ""
 "Sorry but you are not allowed to copy sites to the specified target server."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:784
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:448
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:696
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:790
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:495
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:743
 msgid ""
 "Sorry but you are not allowed to copy sites from the specified source server."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:793
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:457
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:799
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:504
 msgid ""
 "Sorry but it looks like you are trying to copy the site to the same server "
 "where it currently resides. If you would like to do that, use the CLONE SITE "
 "tab instead."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:804
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:468
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:707
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:810
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:515
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:754
 msgid "Sorry but we were unable to obtain the domain name for this app."
 msgstr ""
 
 #. translators: %s is replaced with the internal action name.
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:824
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:488
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:726
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:830
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:535
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:773
 #, php-format
 msgid ""
 "Unable to execute this request because we cannot get the source server "
@@ -12097,9 +12097,9 @@ msgid ""
 msgstr ""
 
 #. translators: %s is replaced with the internal action name.
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:833
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:497
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:734
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:839
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:544
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:781
 #, php-format
 msgid ""
 "Unable to execute this request because we cannot get the destination server "
@@ -12107,9 +12107,9 @@ msgid ""
 msgstr ""
 
 #. translators: %s is replaced with the internal action name.
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:844
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:508
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:744
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:850
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:555
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:791
 #, php-format
 msgid ""
 "Oops - either the source or destination server is missing an ipv4 address - "
@@ -12117,16 +12117,16 @@ msgid ""
 msgstr ""
 
 #. translators: %s is replaced with the internal action name.
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:854
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:518
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:860
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:565
 #, php-format
 msgid ""
 "Oops - unable to get the login user name for the source server - action %s"
 msgstr ""
 
 #. translators: %s is replaced with the internal action name.
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:864
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:528
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:870
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:575
 #, php-format
 msgid ""
 "Oops - unable to get the login user name for the destination server - action "
@@ -12134,10 +12134,10 @@ msgid ""
 msgstr ""
 
 #. translators: %s is replaced with the result of the execute_ssh command.
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:887
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:890
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:553
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:556
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:893
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:896
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:600
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:603
 #, php-format
 msgid ""
 "Unable to configure the origin server. The origin server returned this in "
@@ -12145,116 +12145,116 @@ msgid ""
 msgstr ""
 
 #. translators: %s is replaced with the result of the execute_ssh command.
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:907
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:573
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:913
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:620
 #, php-format
 msgid ""
 "Unable to configure the destination server. The destination server returned "
 "this in response to commands: %s"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:931
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:596
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:937
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:643
 msgid "The $action variable is empty - returning false from site-sync routine."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:967
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:973
 msgid "Waiting For Product Template Versions Copy To Complete."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1005
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1011
 msgid "The product name must be provided."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1067
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1073
 msgid "Invalid new site type.."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1139
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1145
 msgid "The default version must be provided."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1172
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1178
 msgid "The version that tenants should be upgrade to is required."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1185
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1191
 msgid "The version that tenants should be upgrade FROM is required."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1192
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1198
 msgid "The APP GROUP is required for this tenant upgrade request."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1284
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1290
 msgid "Apply New Version To Tenant."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1293
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1299
 #, php-format
 msgid "%s tenants have been scheduled to get this new version."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1417
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1423
 msgid ""
 "You cannot create a new version of this site at this time because HTTP2 is "
 "enabled. Please disable it before attempting this operation."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1456
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1462
 msgid ""
 "Git is not enabled for this template - multi-tenant operations cannot be "
 "performed on this site. However, you can still use certain clean-up tools "
 "below."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1531
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1537
 msgid "Create a new version of this product template."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1533
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1539
 msgid ""
 "After a new version is created you can then push it to one or more existing "
 "tenants, set it as the default for new WooCommerce sales or create new "
 "WooCommerce products."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1538
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1595
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1544
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1601
 msgid "Create New Version"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1544
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1550
 msgid "Domain For This Version"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1555
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1561
 msgid "Domain without www or http - e.g: mydomain.com."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1556
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1562
 msgid "Each new version gets its own subdomain, e.g: v112.yourdomain.com."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1560
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1566
 msgid "New version"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1571
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1577
 msgid "v1.2.3"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1574
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1580
 msgid "New version Description"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1583
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1589
 msgid ""
 "Enter a short description for this new version (e.g: Added kadence theme to "
 "template)"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1588
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1594
 msgid ""
 "Warning: This site appears to be using a remote database server.  The server "
 "on which this site resides should have a local database server since the "
@@ -12262,12 +12262,12 @@ msgid ""
 "this product template."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1604
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1610
 msgid ""
 "Are you sure you would like to create a new version of this template product?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1608
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1614
 msgid ""
 "Preparing to create a new version of this template product on the specified "
 "domain...<br /> Please DO NOT EXIT this screen until you see a popup message "
@@ -12277,90 +12277,90 @@ msgid ""
 "entire log can be viewed in the COMMAND LOG screen."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1628
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1634
 msgid "Set a product name for this template."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1630
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1636
 msgid ""
 "The product name will be shown in places like WooCommerce and makes it "
 "easier to remember what a template site does."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1635
 #: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1641
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1647
 msgid "Product Name"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1653
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1659
 msgid ""
 "The product name set here is a synonym for the template domain and can be "
 "used to reference this template in WooCommerce products and other locations."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1663
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1669
 msgid "Set Product Name"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1672
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1678
 msgid ""
 "Are you sure you would like to set a new product name for this template "
 "product?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1692
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1698
 msgid "Which version should be the default for new sites?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1697
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1703
 msgid "Production Version"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1703
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1709
 msgid "Choose Default Version"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1721
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1727
 msgid "Set Default Version"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1730
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1736
 msgid ""
 "Are you sure you would like to reset the default version for this template "
 "product?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1757
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1763
 msgid ""
 "This site is a product template - click to remove the template designation"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1759
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1765
 msgid "Make This Site A Product Template"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1764
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1770
 msgid "Template Flag"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1786
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1792
 msgid ""
 "Are you sure you would like to update the template status for this site?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1806
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1812
 msgid "These are the versions for this product template."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1817
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1823
 msgid "Error! No Associated Domain!"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1820
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1826
 msgid "1901-01-01 (unknown)"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1827
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1833
 #: includes/core/custom-table/class-wpcd-ct-childs-list-table.php:188
 #: includes/core/custom-table/class-wpcd-custom-table.php:398
 #: includes/templates/notify_user_alert_list.php:43
@@ -12368,47 +12368,47 @@ msgstr ""
 msgid "Edit"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1830
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1836
 msgid "UTC"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1833
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1839
 msgid "Copies also located on servers:"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1849
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1855
 msgid "Existing Versions"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1878
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1884
 msgid "Push all versions to a server"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1883
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1889
 msgid "Push Versions To Remote Server"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1889
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1895
 msgid "Choose Server"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1908
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1914
 msgid ""
 "All versions of this product template will be pushed to the selected server. "
 "Please make sure that server has enough space to accomodate all the files!"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1918
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1924
 msgid "Push all versions to the specified server"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1927
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1933
 msgid ""
 "Are you sure you would like to push all versions of this product template to "
 "the selected remote server?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1931
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1937
 msgid ""
 "Preparing to push all versions of this product template to the specified "
 "remote server...<br /> Please DO NOT EXIT this screen until you see a popup "
@@ -12418,142 +12418,142 @@ msgid ""
 "entire log can be viewed in the COMMAND LOG screen."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1956
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1979
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1962
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1985
 msgid "Upgrade All Tenants"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1962
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1968
 msgid "Upgrade Tenants To This Version"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1988
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1994
 msgid ""
 "Are you sure you would like to upgrade all tenants to the selected version?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1995
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2001
 msgid "Upgrade A Subset of Tenants"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2001
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2007
 msgid "Upgrade Only Tenants Who Have This Version"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2016
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2022
 msgid "Upgrade Only Tenants With This App Group"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2036
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2057
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2042
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2063
 msgid "Upgrade"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2045
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2051
 msgid ""
 "Are you sure you would like to upgrade some tenants to the selected version?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2066
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2072
 msgid ""
 "Are you sure you would like to upgrade tenants with this APP GROUP to the "
 "selected version?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2079
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2085
 msgid "Results From Last Upgrade Request"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2092
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2098
 #, php-format
 msgid "Total Sites: %s"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2097
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2103
 #, php-format
 msgid "Succeeded: %s"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2102
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2108
 #, php-format
 msgid "Failed: %s"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2107
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2113
 #, php-format
 msgid "Remaining: %s"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2194
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2203
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2200
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2209
 msgid ""
 "This operation will not impact your database - it will only apply the files "
 "from the product template to this site."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2196
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2205
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2202
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2211
 msgid ""
 "This means that it is possible your database will be out of sync with the "
 "product template after this operation - unless the template includes a "
 "custom plugin or script to update the database as well."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2198
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2204
 msgid "Upgrade or Downgrade"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2199
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2205
 msgid "Apply New Version"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2207
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2213
 msgid ""
 "If you would like the conversion to impact the database, use the COPY TO "
 "EXISTING SITE function first to copy the database and files to this site."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2209
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2215
 msgid "Then you can apply the conversion function located here."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2211
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2217
 msgid "Convert Site To A Tenant"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2212
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2218
 msgid "Convert"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2213
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2219
 msgid "Add this site as a tenant for the above selected product template."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2227
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2233
 msgid "Choose Product Template"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2244
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2250
 msgid "Choose a product template..."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2264
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2270
 msgid "Enter Version"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2276
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2282
 msgid ""
 "Please ensure that the version folder exists on the server where this site "
 "resides. Otherwise the conversion will fail."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2295
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2301
 msgid ""
 "Are you sure you would like to add this site as a tenant for the selected "
 "product template?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2299
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2305
 msgid ""
 "Preparing to convert this site to a tenant...<br /> Please DO NOT EXIT this "
 "screen until you see a popup message indicating that the operation has "
@@ -12562,85 +12562,85 @@ msgid ""
 "operation is complete the entire log can be viewed in the COMMAND LOG screen."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2319
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2325
 msgid ""
 "Many of the tools below have ramifications and side-effects. Please check "
 "with our support team if you are unsure about using any of them."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2333
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2362
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2339
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2368
 msgid "Change Site Type"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2340
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2346
 msgid "Select New Site Type"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2374
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2380
 msgid "Are you sure you would like to change / reset the site type?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2382
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2424
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2388
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2430
 msgid "Clear Site Type"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2385
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2391
 msgid ""
 " The most common reason for using this is to remove the \"mt_template_clone"
 "\" or \"mt_version_clone\" type designator."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2401
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2407
 msgid ""
 "If this site is associated with a parent - e.g.: when a template or version "
 "is cloned - you can break the link to the parent so that the site can start "
 "its own chain."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2405
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2411
 #, php-format
 msgid "The parent for this site is %1$s on server %2$s"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2408
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2414
 msgid ""
 "There is no parent associated with this site. Using this function will clean "
 "up any stray parent-related metas that might exist."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2411
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2417
 msgid "Break Parent Link"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2431
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2437
 msgid "Are you sure you would like to clear the site type for this site?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2443
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2449
 msgid "Break Link"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2450
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2456
 msgid ""
 "Are you sure you would like to break the link to the parent?  This cannot be "
 "reversed!"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2476
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2482
 msgid ""
 "There are no options available for sites that are versions of a product "
 "template.."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2480
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2486
 msgid ""
 "There are no options available for sites that are clones of a version of a "
 "product template."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2484
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2490
 msgid "There are no options available for sites that are clones of a template."
 msgstr ""
 
@@ -13387,89 +13387,89 @@ msgstr ""
 msgid "Schedule delete of sFTP user because site is being deleted."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:426
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:683
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:473
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:730
 msgid "Sorry but we were unable to obtain an id for the destination server."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:637
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:684
 msgid "Waiting For Site Copy To Complete"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:807
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:854
 msgid "Scheduled Site Sync Metas have been cleared."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:847
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:894
 msgid ""
 "You cannot copy this site to a new server at this time because HTTP2 is "
 "enabled. Please disable it before attempting this operation."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:850
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:867
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:897
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:914
 msgid "Site Sync"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:860
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:907
 msgid ""
 "Copy this site to another server. If the domain already exists on the target "
 "server it will be overwritten."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:862
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:909
 msgid ""
 "You should make sure that your destination server has any optional "
 "components installed. For example,if you enabled REDIS or MEMCACHED on here, "
 "your destination should have that installed."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:864
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:911
 msgid ""
 "***Please see important notes at the bottom of this page if this is the "
 "first time you are using this function!***"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:909
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:956
 msgid "Select Destination Server"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:912
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:959
 msgid "Where would you like to send a copy of this site?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:920
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:967
 msgid "Target server"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:922
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:969
 msgid "Select your destination server"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:941
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:988
 msgid "Copy Now"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:946
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:993
 msgid "Immediately copy this site to the destination server selected above."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:948
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:995
 msgid ""
 "Warning: This site appears to be using a remote database server.  Your "
 "target server should have a local database server since the database server "
 "will be switched to localhost to avoid database naming conflicts."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:956
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:1003
 msgid "Start Copy"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:966
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:1013
 msgid "Are you sure you would like to copy this site to the specified server?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:970
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:1017
 msgid ""
 "Preparing to copy this site to the specified server...<br /> Please DO NOT "
 "EXIT this screen until you see a popup message indicating that the operation "
@@ -13478,61 +13478,61 @@ msgid ""
 "operation is complete the entire log can be viewed in the COMMAND LOG screen."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:978
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:1025
 msgid "Daily Sync - NOTE: Limited Release/Fast-Ring Feature"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:981
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:1028
 msgid "Sync this site to the server selected above once per day."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:993
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:1040
 #, php-format
 msgid ""
 "This site has already been set up for daily syncing with another server: %s"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:1001
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:1048
 msgid "Stop Scheduled Sync"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:1004
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:1051
 msgid "Stop daily syncing to the destination server."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:1008
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:1055
 msgid "Are you sure you would like to stop the daily sync for this site?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:1013
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:1060
 msgid "Stop Syncing"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:1032
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:1079
 msgid "Clear Metas"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:1035
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:1082
 msgid ""
 "Clear metas and reset plugin state. Any scheduled syncs for this site will "
 "still exist on the server but the plugin will not be aware of it"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:1039
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:1086
 msgid "Are you sure you would like to clear and reset the metas?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:1068
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:1115
 msgid "Schedule"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:1078
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:1125
 msgid ""
 "Are you sure you would like to schedule this site every day to sync to the "
 "specified server?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:1082
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:1129
 msgid ""
 "Preparing to schedule copying this site to the specified server...<br /> "
 "Please DO NOT EXIT this screen until you see a popup message indicating that "
@@ -13542,18 +13542,18 @@ msgid ""
 "in the COMMAND LOG screen."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:1091
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:1138
 msgid "Please keep these two notes in mind before using this function:"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:1093
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:1140
 msgid ""
 "1. Root access is usually required on both servers.  Therefore this function "
 "might not work on some server providers such as AWS EC2, AWS Lightsail, "
 "Azure & Google Cloud!"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/site-sync.php:1095
+#: includes/core/apps/wordpress-app/tabs/site-sync.php:1142
 msgid "2. The private ssh key must NOT be protected by a password."
 msgstr ""
 
@@ -13698,29 +13698,29 @@ msgstr ""
 msgid "Please disable HTTP2 before attempting to change your SSL status"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/staging.php:293
+#: includes/core/apps/wordpress-app/tabs/staging.php:299
 msgid "We were unable to obtain a staging domain name."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/staging.php:576
+#: includes/core/apps/wordpress-app/tabs/staging.php:582
 msgid "Push this site to live."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/staging.php:584
+#: includes/core/apps/wordpress-app/tabs/staging.php:590
 #, php-format
 msgid "The live domain associated with this staging site is: %s."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/staging.php:599
+#: includes/core/apps/wordpress-app/tabs/staging.php:605
 msgid "Push To Live"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/staging.php:609
+#: includes/core/apps/wordpress-app/tabs/staging.php:615
 msgid "Are you sure you would like to overwrite your live site?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/staging.php:613
-#: includes/core/apps/wordpress-app/tabs/staging.php:664
+#: includes/core/apps/wordpress-app/tabs/staging.php:619
+#: includes/core/apps/wordpress-app/tabs/staging.php:670
 msgid ""
 "Preparing to push this site to staging...<br /> Please DO NOT EXIT this "
 "screen until you see a popup message indicating that the operation has "
@@ -13729,39 +13729,39 @@ msgid ""
 "operation is complete the entire log can be viewed in the COMMAND LOG screen."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/staging.php:621
+#: includes/core/apps/wordpress-app/tabs/staging.php:627
 msgid "Make a copy of this site for development, testing and trouble-shooting."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/staging.php:629
+#: includes/core/apps/wordpress-app/tabs/staging.php:635
 #, php-format
 msgid "A companion staging site already exists at: %s."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/staging.php:631
+#: includes/core/apps/wordpress-app/tabs/staging.php:637
 msgid "If you create a new staging site, the old one will be deleted."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/staging.php:643
+#: includes/core/apps/wordpress-app/tabs/staging.php:649
 msgid ""
 "Warning: This site appears to be using a remote database server.  The server "
 "on which this site resides should have a local database server since the "
 "database server will be switched to localhost for staging operations."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/staging.php:650
+#: includes/core/apps/wordpress-app/tabs/staging.php:656
 msgid "Create a New Staging Site"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/staging.php:650
+#: includes/core/apps/wordpress-app/tabs/staging.php:656
 msgid "Create Staging Site"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/staging.php:660
+#: includes/core/apps/wordpress-app/tabs/staging.php:666
 msgid "Are you sure you would like to overwrite your existing staging site?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/staging.php:660
+#: includes/core/apps/wordpress-app/tabs/staging.php:666
 msgid "Are you sure you would like to create a new staging site?"
 msgstr ""
 
@@ -22000,34 +22000,34 @@ msgstr ""
 msgid "Just Deactivate"
 msgstr ""
 
-#: wpcd.php:145
+#: wpcd.php:156
 msgid "Every minute"
 msgstr ""
 
-#: wpcd.php:151
+#: wpcd.php:162
 msgid "Every 2 minutes"
 msgstr ""
 
-#: wpcd.php:157
+#: wpcd.php:168
 msgid "Every 15 minutes"
 msgstr ""
 
 #. translators: %s php version
-#: wpcd.php:549
+#: wpcd.php:564
 #, php-format
 msgid ""
 "<strong>WPCloudDeploy plugin requires a PHP version greater or equal to "
 "\"7.4.0\". You are running %s.</strong>"
 msgstr ""
 
-#: wpcd.php:560
+#: wpcd.php:575
 msgid ""
 "<strong>You cannot run the WPCloudDeploy plugin on a localhost server or a "
 "server that cannot be reached from the internet.</strong>"
 msgstr ""
 
 #. translators: %s read more
-#: wpcd.php:569
+#: wpcd.php:584
 #, php-format
 msgid ""
 "<strong>WPCD_ENCRYPTION_KEY</strong> is not defined in wp-config.php. We "
@@ -22037,12 +22037,12 @@ msgid ""
 "your database. %s"
 msgstr ""
 
-#: wpcd.php:569 wpcd.php:576
+#: wpcd.php:584 wpcd.php:591
 msgid "Read More"
 msgstr ""
 
 #. translators: %s read more
-#: wpcd.php:576
+#: wpcd.php:591
 #, php-format
 msgid ""
 "<strong>WPCD_ENCRYPTION_KEY</strong> is defined in wp-config.php but is "
@@ -22050,7 +22050,7 @@ msgid ""
 "STRONGLY recommend that you set a new encryption key. %s"
 msgstr ""
 
-#: wpcd.php:585
+#: wpcd.php:600
 msgid ""
 "Warning: WPCloudDeploy cannot use the WordPress default permalink. Please "
 "change the permalinks option to something other than <em>plain.</em> This "
@@ -22058,7 +22058,7 @@ msgid ""
 "option."
 msgstr ""
 
-#: wpcd.php:592
+#: wpcd.php:607
 msgid ""
 "<strong>WPCD: Warning</strong> - The <em>includes/core/apps/wordpress-app/"
 "scripts/v1/raw/ </em> folder on your WordPress server does not allow text "
@@ -22073,34 +22073,34 @@ msgid ""
 "check-again\">Check Again</a>"
 msgstr ""
 
-#: wpcd.php:603
+#: wpcd.php:618
 msgid "<strong>WPCD: Warning</strong> - "
 msgstr ""
 
 #. translators: %s: Site title.
-#: wpcd.php:631
+#: wpcd.php:646
 #, php-format
 msgid "[%s] - One or more critical crons are not running..."
 msgstr ""
 
-#: wpcd.php:635
+#: wpcd.php:650
 msgid "Hello Admin,"
 msgstr ""
 
-#: wpcd.php:637
+#: wpcd.php:652
 msgid ""
 "<strong>WPCD: Warning</strong> - certain critical CRONS are not running on "
 "your site.  Below are the ones that appear to be missing:"
 msgstr ""
 
-#: wpcd.php:641
+#: wpcd.php:656
 msgid ""
 "It is possible that this is a minor hiccup or false positive and the cron(s) "
 "are still running. You can use the free WP CRONTROL plugin to examine "
 "running crons to see if the crons are still present and active."
 msgstr ""
 
-#: wpcd.php:643
+#: wpcd.php:658
 msgid ""
 "Before contacting support, please try to disable and renable the plugin to "
 "reactivate crons. Additionally, please verify that your WP CRON is firing "
@@ -22108,28 +22108,49 @@ msgid ""
 "cron process or better yet, the use of the WPCD BETTER CRONS method."
 msgstr ""
 
-#: wpcd.php:645
+#: wpcd.php:660
 msgid "--------"
 msgstr ""
 
-#: wpcd.php:647
+#: wpcd.php:662
 msgid ""
 "If you do not want to receive these emails you can turn them off in the "
 "settings area under the MISC tab."
 msgstr ""
 
-#: wpcd.php:649
+#: wpcd.php:664
 msgid "Thanks,"
 msgstr ""
 
-#: wpcd.php:651
+#: wpcd.php:666
 msgid "- Your WP Management Dashboard BOT."
 msgstr ""
 
-#: wpcd.php:805
+#: wpcd.php:820
 msgid ""
 "View friendly release notes to learn about any breaking changes that might "
 "affect you."
+msgstr ""
+
+#: wpcd.php:862
+#, php-format
+msgid "Powered by %1$s %2$s."
+msgstr ""
+
+#: wpcd.php:1018
+msgid ""
+"WPCD Cannot remain activated because the following add-ons are not "
+"compatible with this version."
+msgstr ""
+
+#: wpcd.php:1028
+msgid ""
+"These addons are incompatible with WPCloudDeploy. WPCloudDeploy has been "
+"deactivated."
+msgstr ""
+
+#: wpcd.php:1108
+msgid "<strong>These addons are incompatible with WPCD.</strong>"
 msgstr ""
 
 #. Plugin Name of the plugin/theme

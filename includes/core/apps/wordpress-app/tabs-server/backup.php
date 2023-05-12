@@ -175,7 +175,6 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 				'spellcheck'     => 'false',
 			),
 			'std'        => get_post_meta( $id, 'wpcd_wpapp_backup_aws_key', true ),
-			'size'       => 60,
 		);
 
 		$pass = get_post_meta( $id, 'wpcd_wpapp_backup_aws_secret', true );
@@ -209,7 +208,6 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 				'spellcheck'     => 'false',
 			),
 			'std'        => get_post_meta( $id, 'wpcd_wpapp_backup_aws_bucket', true ),
-			'size'       => 90,
 		);
 		$fields[] = array(
 			'name'       => __( 'AWS Region', 'wpcd' ),
@@ -240,7 +238,6 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 				'data-wpcd-name' => 's3_endpoint',
 			),
 			'std'               => get_post_meta( $id, 'wpcd_wpapp_backup_s3_endpoint', true ),
-			'size'              => 90,
 		);
 		$fields[] = array(
 			'id'         => 'wpcd_app_action_change_cred',
@@ -319,7 +316,6 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 					'data-wpcd-name' => 'auto_backup_bucket_name_all_sites',
 					'spellcheck'     => 'false',
 				),
-				'size'       => 90,
 				'save_field' => false,
 			);
 			$fields[] = array(
@@ -334,7 +330,7 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 					// the key of the field (the key goes in the request).
 					'data-wpcd-name' => 'auto_backup_retention_days_all_sites',
 				),
-				'size'       => 90,
+				'size'       => 10,
 				'save_field' => false,
 			);
 			$fields[] = array(
@@ -427,7 +423,7 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 				// the key of the field (the key goes in the request).
 				'data-wpcd-name' => 'manual_prune_server_backup_retention_days',
 			),
-			'size'       => 90,
+			'size'       => 10,
 			'save_field' => false,
 		);
 

@@ -447,7 +447,6 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 				'data-wpcd-name' => 'aws_bucket_manual_backup',
 			),
 			'std'        => '',
-			'size'       => 90,
 		);
 
 		$fields[] = array(
@@ -516,7 +515,6 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 					// the key of the field (the key goes in the request).
 					'data-wpcd-name' => 'auto_backup_bucket_name',
 				),
-				'size'       => 90,
 				'save_field' => false,
 			);
 
@@ -533,7 +531,7 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 					// the key of the field (the key goes in the request).
 					'data-wpcd-name' => 'auto_backup_retention_days',
 				),
-				'size'       => 90,
+				'size'       => 10,
 				'save_field' => false,
 			);
 
@@ -765,7 +763,7 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 					// the key of the field (the key goes in the request).
 					'data-wpcd-name' => 'manual_prune_backup_retention_days',
 				),
-				'size'       => 90,
+				'size'       => 10,
 				'save_field' => false,
 			);
 

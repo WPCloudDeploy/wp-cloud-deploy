@@ -648,7 +648,6 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 				// the key of the field (the key goes in the request).
 				'data-wpcd-name' => 'new_domain',
 			),
-			'size'        => 90,
 			'placeholder' => __( 'Enter your new domain without the "http" or "www" prefix', 'wpcd' ),
 		);
 
@@ -681,7 +680,7 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 				),
 				'class'      => 'wpcd_app_action',
 				'save_field' => false,
-				'columns'    => 2,
+				'columns'    => 3,
 			);
 		}
 
@@ -709,7 +708,7 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 				),
 				'class'      => 'wpcd_app_action',
 				'save_field' => false,
-				'columns'    => 2,
+				'columns'    => 3,
 			);
 		}
 
@@ -736,7 +735,7 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 			),
 			'class'      => 'wpcd_app_action',
 			'save_field' => false,
-			'columns'    => $show_simplified_options_only ? 12 : 2,
+			'columns'    => $show_simplified_options_only ? 12 : 3,
 		);
 
 		if ( ! $show_simplified_options_only ) {
@@ -759,7 +758,7 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 				),
 				'class'      => 'wpcd_app_action',
 				'save_field' => false,
-				'columns'    => 2,
+				'columns'    => 3,
 			);
 		}
 
@@ -831,7 +830,6 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 					// the key of the field (the key goes in the request).
 					'data-wpcd-name' => 'search_term',
 				),
-				'size'        => 90,
 				'placeholder' => __( 'Enter your new search term - no special characters allowed', 'wpcd' ),
 			);
 			$fields[] = array(
@@ -844,7 +842,6 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 					// the key of the field (the key goes in the request).
 					'data-wpcd-name' => 'replace_term',
 				),
-				'size'        => 90,
 				'placeholder' => __( 'Enter your new replacement term - no special characters allowed', 'wpcd' ),
 			);
 			$fields[] = array(

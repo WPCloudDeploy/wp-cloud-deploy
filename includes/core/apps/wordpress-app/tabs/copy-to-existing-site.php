@@ -296,7 +296,6 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 				// the key of the field (the key goes in the request).
 				'data-wpcd-name' => 'target_domain',
 			),
-			'size'        => 90,
 			'placeholder' => __( 'Domain without www or http - eg: mydomain.com', 'wpcd' ),
 		);
 
@@ -406,7 +405,6 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 				// the key of the field (the key goes in the request).
 				'data-wpcd-name' => 'wpexcludefolder',
 			),
-			'size'        => 90,
 			'placeholder' => __( 'Enter excluded folders separated by commas.', 'wpcd' ),
 		);
 		$fields[] = array(
@@ -421,7 +419,6 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 				// the key of the field (the key goes in the request).
 				'data-wpcd-name' => 'wpexcludefile',
 			),
-			'size'        => 90,
 			'placeholder' => __( 'Enter excluded files separated by commas.', 'wpcd' ),
 		);
 		$fields[] = array(
@@ -470,7 +467,6 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 				// the key of the field (the key goes in the request).
 				'data-wpcd-name' => 'wpexcludedbtable',
 			),
-			'size'        => 90,
 			'placeholder' => __( 'Enter excluded tables separated by commas.', 'wpcd' ),
 		);
 		$fields[] = array(
@@ -485,7 +481,6 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 				// the key of the field (the key goes in the request).
 				'data-wpcd-name' => 'wpincludedbtable',
 			),
-			'size'        => 90,
 			'placeholder' => __( 'Enter tables to copy separated by commas - only these will be copied.', 'wpcd' ),
 		);
 		$fields[] = array(

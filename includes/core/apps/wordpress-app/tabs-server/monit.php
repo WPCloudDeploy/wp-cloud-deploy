@@ -240,7 +240,6 @@ class WPCD_WORDPRESS_TABS_SERVER_MONIT extends WPCD_WORDPRESS_TABS {
 				'raw_attributes' => array(
 					'std'            => '',
 					'desc'           => sprintf( __( 'Monit needs to be accessed via a domain or subdomain that points to the server - <b>%1$s</b> on ip <b>%2$s</b>.', 'wpcd' ), $this->get_server_name( $id ), $this->get_ipv4_address( $id ) ),
-					'size'           => 120,
 					// the key of the field (the key goes in the request).
 					'data-wpcd-name' => 'monit_domain',
 				),
@@ -305,7 +304,6 @@ class WPCD_WORDPRESS_TABS_SERVER_MONIT extends WPCD_WORDPRESS_TABS {
 				'raw_attributes' => array(
 					'std'            => '',
 					'desc'           => __( 'Enter your M/Monit server URL in this format: https://userid:password@domainname_or_ip:port/collector.  Warning: An incorrect format will prevent Monit from starting on this server!', 'wpcd' ),
-					'size'           => 120,
 					// the key of the field (the key goes in the request).
 					'data-wpcd-name' => 'monit_mmonit_server',
 				),

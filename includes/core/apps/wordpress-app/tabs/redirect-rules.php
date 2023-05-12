@@ -177,7 +177,6 @@ class WPCD_WORDPRESS_TABS_REDIRECT_RULES extends WPCD_WORDPRESS_TABS {
 			'raw_attributes' => array(
 				'placeholder'    => __( 'Enter a FULL url here including the http:// or https://', 'wpcd' ),
 				'desc'           => __( 'Do not use regex or special characters!', 'wpcd' ),
-				'size'           => 90,
 				// the key of the field (the key goes in the request).
 				'data-wpcd-name' => 'source_url',
 			),
@@ -189,7 +188,6 @@ class WPCD_WORDPRESS_TABS_REDIRECT_RULES extends WPCD_WORDPRESS_TABS {
 			'raw_attributes' => array(
 				'placeholder'    => __( 'Enter a FULL url here including the http:// or https://', 'wpcd' ),
 				'desc'           => __( 'Do not use regex or special characters!', 'wpcd' ),
-				'size'           => 90,
 				// the key of the field (the key goes in the request).
 				'data-wpcd-name' => 'destination_url',
 			),

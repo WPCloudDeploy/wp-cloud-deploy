@@ -234,7 +234,6 @@ class WPCD_WORDPRESS_TABS_SERVER_MONITORIX extends WPCD_WORDPRESS_TABS {
 				'raw_attributes' => array(
 					'std'            => '',
 					'desc'           => sprintf( __( 'Monitorix needs to be accessed via a domain or subdomain that points to the server - <b>%1$s</b> on ip <b>%2$s</b>.', 'wpcd' ), $this->get_server_name( $id ), $this->get_ipv4_address( $id ) ),
-					'size'           => 120,
 					// the key of the field (the key goes in the request).
 					'data-wpcd-name' => 'monitorix_domain',
 				),

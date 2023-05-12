@@ -144,6 +144,7 @@ Note: Even though the entire git development history isn't available on github, 
 * Tweak: WPAPP - Use different verbiage on the APP: WORDPRESS SECURITY settings tab to make it easier to understand the meaning of the two different states of the toggle switches.
 * Tweak: WPAPP - Hide credential fields when basic authentication is enabled for the site or the wp-login page (site misc tab.)
 * Tweak: WPAPP - Make buttons in the wp-admin area for the server and site detail screen match the default front-end styles.
+* Tweak: WPAPP - Remove size constraint from certain input fields on tabs to enable more fluid responsive behavior.
 * Fix: A 500 error / hard php error was thrown when using the SELECT2 filter for owners in the app screen (the select2 filter only shows if the number of users is greater than 25.)
 * Fix: Certain Filters in the server and site list not working when the language was set to something other than English.
 * Fix: WPAPP - HTTP2 could not be enabled.
@@ -153,7 +154,7 @@ Note: Even though the entire git development history isn't available on github, 
 * Fix: WPAPP - Missing variable value when installing memcached. Harmless - just threw a php warning.
 * Fix: WPAPP - Remove nginx related sections in the fail2ban tab when the web server is an OLS server.
 * Fix: WPAPP - Handle an SSH message related to Multisite wildcard ssl - when ssl was already disabled we weren't flipping the appropriate metas.
-* Fix: WPAPP - Special code to handle update count issue with DigitalOcean servers.
+* Fix: WPAPP - Added special code to report on an update count issue that popped up with recent Ubuntu updates (first noticed with DigitalOcean servers).
 * Fix: WPAPP - Partial workaround for ubuntu update notifier bug - see https://bugs.launchpad.net/ubuntu/+source/update-notifier/+bug/2007311
 * Fix: WPAPP - The file name conventions used by the CACHE ENABLER plugin for nginx was changed - update bash scripts to match. (Thanks @msalaj for pointing this out).
 * Fix: WPAPP - Better handling for duplicate letsencrypt folders that end with -00xx.

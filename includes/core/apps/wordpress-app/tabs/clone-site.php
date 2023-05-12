@@ -510,7 +510,6 @@ class WPCD_WORDPRESS_TABS_CLONE_SITE extends WPCD_WORDPRESS_TABS {
 				// the key of the field (the key goes in the request).
 				'data-wpcd-name' => 'new_domain',
 			),
-			'size'        => 90,
 			'placeholder' => __( 'Domain without www or http - e.g: mydomain.com', 'wpcd' ),
 			'std'         => $default_domain,
 		);

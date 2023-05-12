@@ -210,7 +210,6 @@ class WPCD_WORDPRESS_TABS_WP_SITE_USERS extends WPCD_WORDPRESS_TABS {
 			'raw_attributes' => array(
 				'desc'           => __( 'Enter the email address for the new administrator', 'wpcd' ),
 				'data-wpcd-name' => 'add_admin_email',
-				'size'           => 90,
 				'spellcheck'     => 'false',
 			),
 			'type'           => 'text',
@@ -251,7 +250,6 @@ class WPCD_WORDPRESS_TABS_WP_SITE_USERS extends WPCD_WORDPRESS_TABS {
 			'raw_attributes' => array(
 				'desc'           => __( 'Enter the new email address for this user', 'wpcd' ),
 				'data-wpcd-name' => 'wps_new_email',
-				'size'           => 90,
 				'spellcheck'     => 'false',
 			),
 			'type'           => 'text',
@@ -262,7 +260,6 @@ class WPCD_WORDPRESS_TABS_WP_SITE_USERS extends WPCD_WORDPRESS_TABS {
 			'raw_attributes' => array(
 				'desc'           => __( 'Enter the new password for this user', 'wpcd' ),
 				'data-wpcd-name' => 'wps_new_password',
-				'size'           => 90,
 				'spellcheck'     => 'false',
 			),
 			'type'           => 'text',
@@ -314,7 +311,6 @@ class WPCD_WORDPRESS_TABS_WP_SITE_USERS extends WPCD_WORDPRESS_TABS {
 				'desc'           => __( 'Enter the email address for the new user', 'wpcd' ),
 				'data-wpcd-name' => 'wps_email',
 				'spellcheck'     => 'false',
-				'size'           => 90,
 			),
 			'type'           => 'text',
 		);
@@ -324,7 +320,6 @@ class WPCD_WORDPRESS_TABS_WP_SITE_USERS extends WPCD_WORDPRESS_TABS {
 			'raw_attributes' => array(
 				'desc'           => __( 'Enter the new user\'s role', 'wpcd' ),
 				'data-wpcd-name' => 'wps_role',
-				'size'           => 90,
 			),
 			'type'           => 'text',
 		);

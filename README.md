@@ -4,15 +4,15 @@
 
 ![WPCloudDeploy Dashboard](https://wpclouddeploy.com/wp-content/uploads/2021/10/server-list-without-slate-theme-01.png)
 
-The plugin makes it easy to deploy servers at well-known providers such as DigitalOcean, AWS and more.  However, the core plugin only includes support for DigitalOcean.
+The plugin makes it easy to deploy servers at well-known providers such as DigitalOcean, Linode, Vultr, AWS, Google Cloud and more.
 
-**It is primarily used to install and manage WordPress servers and applications.** 
+**It is primarily used to install and manage WordPress servers and sites.** 
 
 ![WPCloudDeploy Dashboard](https://wpclouddeploy.com/wp-content/uploads/2022/04/wpcd-v4-095.png)
 
 Its extensible model allow developers to add new apps in the future.
 
-All management features are available inside of wp-admin on your WordPress site.  Apart from the server providers, you do not need a 3rd party SaaS service to manage your servers and apps.
+All management features are available inside of wp-admin on your WordPress site.  Apart from your cloud server provider(s), you do not need a 3rd party SaaS service to manage your servers and sites.
 
 [View a full list of WordPress-focused features](https://wpclouddeploy.com/features/)
 
@@ -20,7 +20,7 @@ All management features are available inside of wp-admin on your WordPress site.
 
 ## Getting Started: The Easier Way ##
 
-You can get a rapid start by using the [pre-configured droplet at digital ocean.](https://marketplace.digitalocean.com/apps/wpclouddeploy)
+The easiest way to get started is to use the [pre-configured droplet at digital ocean.](https://marketplace.digitalocean.com/apps/wpclouddeploy)
 
 Just deploy the droplet, login with your ssh credentials and follow the instructions to setup your domain and other info.
 
@@ -52,7 +52,7 @@ Features of the plugin include:
 
 * APP: WordPress - **EXTENSIVE** support for deploying and managing WordPress servers and sites from inside the WordPress admin dashboard. This is the primary app type that this plugin supports.  
 * Integrated DigitalOcean Cloud Provider.
-* Extensible server provider model supports EC2, LIGHTSAIL, LINODE, VULTR, UPCLOUD, HETZNER, EXOSCALE and other public and private cloud providers via additional plugins.
+* Extensible server provider model supports EC2, LIGHTSAIL, LINODE, VULTR, UPCLOUD, HETZNER, EXOSCALE, AZURE, GOOGLE CLOUD and other public and private cloud providers via additional plugins.
 * Extra App: OpenVPN - includes front-end purchase and management. This helps developers to see how multiple apps can potentially co-exist inside the framework.
 * Extra App: Basic Server - deploy simple servers with no additional apps pre-installed. This helps developers to see how multiple apps can potentially co-exist inside the framework.
 
@@ -61,10 +61,11 @@ Features of the plugin include:
 [View the official roadmap on Trello](https://trello.com/b/pYl53rvM/wpcloud-deploy-public-roadmap)
 
 ## Requirements ##
-* WordPress 5.6 or later
-* PHP 7.4 or higher (For certain premium modules 8.x will throw warning errors.  This is because the server providers have not fully updated or debugged their PHP api wrappers for 8.x)
+* WordPress 5.8 or later
+* PHP 7.4, [8.0 or 8.1](https://wpclouddeploy.com/documentation/more/php-8-0-8-1-notes/)
 
-Once the plugin is installed please view additional changes required to PHP and web server execution timeout values under the WPCLOUDDEPLOY->SETTINGS->GENERAL SETTINGS tab.
+Once the plugin is installed please view additional changes required to PHP and web server execution timeout values under the WPCLOUDDEPLOY → SETTINGS → GENERAL SETTINGS tab. 
+
 You can also view all requirements at the bottom of our [getting started documentation](https://wpclouddeploy.com/documentation/wpcloud-deploy/introduction-to-wpcloud-deploy/) or in the [requirements documentation](https://wpclouddeploy.com/documentation/wpcloud-deploy/requirements/)
 
 ## How To Contribute ##
@@ -75,9 +76,11 @@ Have some time to help test new versions?  Download a zip of the **dev** branch 
 
 If you'd like to contribute to translations, you can do so in our public [POEDITOR project](https://poeditor.com/join/project?hash=A5I1lpqRes).
 
+You can also assist by working on items in the [issues list](https://github.com/WPCloudDeploy/wp-cloud-deploy/issues).
+
 ## Premium Versions ##
 
-A premium version of this plugin is available on the WPCloudDeploy website.  You can view the additional features offered on the [pricing page.](https://wpclouddeploy.com/pricing/)
+A premium version of this plugin is available on the [WPCloudDeploy website](https://wpclouddeploy.com).  You can view the additional features offered on the [pricing page.](https://wpclouddeploy.com/pricing/)
 
 Premium features include:
 
@@ -89,8 +92,7 @@ Premium features include:
 * Sell WP Site subscriptions with WOOCOMMERCE
 * Virtual Providers (support multiple accounts on each cloud server provider)
 * Server Sync
-* Support for additional cloud server providers: EC2, LIGHTSAIL, LINODE, VULTR, UPCLOUD, HETZNER, EXOSCALE, GOOGLE, AZURE and ALIBABA
-* Powertools which include features such as summary dashboards and charts, periodic server snapshots and more.
+* Powertools which include features such as summary statistics dashboards and charts, periodic server snapshots, automatic homepage images and much more.
 
 [Purchase a premium subscription](https://wpclouddeploy.com/pricing/). 
 
@@ -124,6 +126,48 @@ Note: Even though the entire git development history isn't available on github, 
 [Friendly Release Notes](https://wpclouddeploy.com/category/release-notes/)
 
 ## Change Log ##
+5.3.0
+------
+* New: WPAPP - Option to change the background and foreground color of the 'terminal'.
+* New: WPAPP - Foundation for git support added.
+* New: WPAPP - Foundation for Multi-Tenant added.
+* New: WPAPP - Option to delete server record without deleting the server at the provider.
+* New: WPAPP - Preliminary support for PHP 8.2.
+* New: WPAPP - Add option to radically simplify the CHANGE DOMAIN tab when the user is not an admin.
+* New: WPAPP - Add option to remove the VIEW APPS ON SERVER link on the site detail screen when the user is not an admin.
+* Tweak: WPAPP - Add options for TLS and STARTTLS for the email gateway - this allows the user to disable TLS/STARTTLS (Thanks @batonac)
+* Tweak: Better styling for post-states when viewing the server and site lists.
+* Tweak: WPAPP - When disabling AUTOMATIC BACKUPS on a server, keep the original specified retention days value in the UI instead of showing the default value of 7.
+* Tweak: WPAPP - Disable 6G Firewall tab on new servers.  6G Firewall is now deprecated.
+* Tweak: WPAPP - Ubuntu 18.04 no longer shown as an option for new servers.
+* Tweak: WPAPP - Use the latest version of the 7G firewall (v1.6).
+* Tweak: WPAPP - Use different verbiage on the APP: WORDPRESS SECURITY settings tab to make it easier to understand the meaning of the two different states of the toggle switches.
+* Tweak: WPAPP - Hide credential fields when basic authentication is enabled for the site or the wp-login page (site misc tab.)
+* Tweak: WPAPP - Make buttons in the wp-admin area for the server and site detail screen match the default front-end styles.
+* Tweak: WPAPP - Remove size constraint from certain input fields on tabs to enable more fluid responsive behavior.
+* Fix: A 500 error / hard php error was thrown when using the SELECT2 filter for owners in the app screen (the select2 filter only shows if the number of users is greater than 25.)
+* Fix: Certain Filters in the server and site list not working when the language was set to something other than English.
+* Fix: WPAPP - HTTP2 could not be enabled.
+* Fix: WPAPP - Disabling/Enabling browser cache tweak was not working for OLS.
+* Fix: WPAPP - OLS Auto-restart cron when .htaccess file changes not working as intended.
+* Fix: WPAPP - Site Sync did not correctly set the status of the HTTP AUTH and 6g/7G metas if they were enabled on the source site.
+* Fix: WPAPP - Missing variable value when installing memcached. Harmless - just threw a php warning.
+* Fix: WPAPP - Remove nginx related sections in the fail2ban tab when the web server is an OLS server.
+* Fix: WPAPP - Handle an SSH message related to Multisite wildcard ssl - when ssl was already disabled we weren't flipping the appropriate metas.
+* Fix: WPAPP - Added special code to report on an update count issue that popped up with recent Ubuntu updates (first noticed with DigitalOcean servers).
+* Fix: WPAPP - Partial workaround for ubuntu update notifier bug - see https://bugs.launchpad.net/ubuntu/+source/update-notifier/+bug/2007311
+* Fix: WPAPP - The file name conventions used by the CACHE ENABLER plugin for nginx was changed - update bash scripts to match. (Thanks @msalaj for pointing this out).
+* Fix: WPAPP - Better handling for duplicate letsencrypt folders that end with -00xx.
+* Fix: WPAPP - When multisite SSL is on, the status was not shown properly in the site list.
+* Fix: WPAPP - The VIEW APPS link on the front-end was redirecting to the wp-admin area instead of the front-end page.
+* Fix: WPAPP - An invalid variable name warning was thrown during the quick domain change operation.
+* Dev: Preliminary foundation set for moving providers and dns data into custom tables.
+* Dev: Update to latest version of phpseclib.
+* Dev: Check for incompatible add-ons and deactivate self, prevent activation or throw warnings.
+* Dev: WPAPP - Use global function to reset site permissions (refactor).
+* Dev: WPAPP - Add option for executing local post-processing scripts after a site is cloned.
+* Dev: WPAPP - New filters available when displaying info in the server actions column.
+
 5.2.3
 ------
 * Hot Fix: WPAPP - Issue with PHP 8.1 and OLS when installing sites - PHP execution via piped strings will cause a segmentation fault.
@@ -141,7 +185,7 @@ Note: Even though the entire git development history isn't available on github, 
 * Tweak: WPAPP - The link to open the file manager and phpmyadmin tools are now real buttons instead of just links.  This makes it easier to style to match the other buttons, especially on the front end.
 * Fix: WPAPP - When restoring just a nginx web server configuration, do not delete ssl certificates.
 * Fix: WPAPP - Check that the $domain var in the bash scripts have a value before attempting to use it for deletes.
-* Fix: WPAPP - A harmless JS error as thrown when a server was viewed on the front-end without the STATISTICS having run at least once.
+* Fix: WPAPP - A harmless JS error was being thrown when a server was viewed on the front-end without the STATISTICS having run at least once.
 
 
 5.2.0
@@ -158,7 +202,7 @@ Note: Even though the entire git development history isn't available on github, 
 * Fix: WPAPP - Edge case issue with SSL when copying template sites and the template site has an SSL and the target domain allows an SSL to be generated.
 * Fix: WPAPP - An issue with sFTP users - when two users have similar names (eg: john and john2), certain operations did not work because grep found multiple domain entries in the passwd file.
 * Fix: WPAPP - We now delete the orphaned authorized keys file for a user when we delete the user.
-* Tweak: WPAPP  - Relabel the default PHP version item in the servers TOOL tabs to use the term 'CLI' which more accurately reflects the meaning of the setting & Operation.
+* Tweak: WPAPP  - Relabel the default PHP version item in the servers TOOL tabs to use the term 'CLI' which more accurately reflects the meaning of the setting & operation.
 * Tweak: WPAPP - Do not load timezonedb.so into php.ini since certain components necessary for it are not consistently available in the ols repos.
 
 5.1.0
@@ -1009,6 +1053,7 @@ Skipped.
  * [Sidney Andrews](https://github.com/osidney)
  * [Vlad Olaru](https://github.com/vladolaru)
  * [Kevin Shenk](https://github.com/batonac)
+ * [Michael Salaj](https://github.com/msalaj)
  
   
 ### Running the test suite

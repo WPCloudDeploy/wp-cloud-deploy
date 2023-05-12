@@ -1,0 +1,39 @@
+#!/bin/bash
+# This script will remove the 6G firewall entries but leave an almost empty config file behind.
+
+## Get our common functions
+if [[ ! -f 9999-common-functions.sh ]]
+then
+	echo "The file 9999-common-functions.sh is missing"
+	exit 1
+fi
+source 9999-common-functions.sh
+
+# Not supported on OLS yet.
+if [ "$g_webserver_type" != "nginx" ]
+then
+    echo "This upgrade operation is only supported on NGINX."
+    exit 1
+fi
+
+echo $(date): "Removing 6G Configuration..."
+
+# Remove any old backup files if they exist.
+backupfile="/etc/nginx/common/6g.conf.old"
+if [[ -f "$backupfile" ]] ; then
+    rm "$backupfile"
+fi
+
+# Backup current file.
+mv /etc/nginx/common/6g.conf $backupfile
+
+# Create new file.
+cat > /etc/nginx/common/6g.conf << 'EOF'
+# 6G Config has been removed.
+# This file is effectively empty.
+
+EOF
+
+service nginx restart
+
+echo "The 6G Firewall has been removed."

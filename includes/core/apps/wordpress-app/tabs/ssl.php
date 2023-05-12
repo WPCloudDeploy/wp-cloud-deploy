@@ -125,7 +125,7 @@ class WPCD_WORDPRESS_TABS_SSL extends WPCD_WORDPRESS_TABS {
 		if ( $this->get_tab_security( $id ) ) {
 			switch ( $action ) {
 				case 'ssl-status':
-				case 'sll-http2-status':
+				case 'ssl-http2-status':
 					$result = $this->toggle_ssl_status_action( $id, $action );
 					break;
 				case 'ssl-flip-meta-status':

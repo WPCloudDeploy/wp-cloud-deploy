@@ -70,7 +70,7 @@ select_domain () {
 }
 
 
-# for options where changes are applied to the NGINX configuration
+# for options where changes are applied to the NGINX/OLS configuration
 select_domain_mu () {
 	while [[ -z $domain ]]
 	do
@@ -271,26 +271,17 @@ fi
 if [[ $action == "reset_permissions" || $action == "4" ]]
 then
 	select_domain
-	user_name=$(echo $domain | cut -c1-32)
-	if [ "$g_webserver_type" = "nginx" ]
+
+	# reset file permissions
+	gf_reset_file_permissions_for_domain $domain
+
+	if [ $? -ne 0 ]
 	then
-		chown -R root:root /var/www/$domain/
-		chown -R www-data:www-data /var/www/$domain/html/
-		chmod -R g+w /var/www/$domain/html
-		chmod -R g+s /var/www/$domain/html
-		find /var/www/$domain/html -type f -exec chmod 664 {} +
-		find /var/www/$domain/html -type d -exec chmod 2775 {} +	
-	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
-	then	
-		chown -R root:root /var/www/"$domain"/
-		chown -R "${user_name}":www-data /var/www/"$domain"/html/
-		chown -R "${user_name}":www-data /var/www/"$domain"/html/logs/
-		# Hidden files test support: https://serverfault.com/a/156481
-		chown -R "${user_name}":www-data /var/www/"$domain"/html/.[^.]*
-		chmod -R g+ws "/var/www/$domain/html"
-		find /var/www/$domain/html -type f -exec chmod 664 {} +
-		find /var/www/$domain/html -type d -exec chmod 2775 {} +
-	fi		
+		msg="Could not reset site permissions for domain $domain."
+		echo $msg
+		exit 1
+	fi	
+
 	echo
 	echo "Permissions have been reset for $domain"
 	exit
@@ -746,7 +737,7 @@ then
 		while [[ -z $module ]]
 		do	
 			default_lsphpver=$(grep -sEo 'lsphp[0-9]{2}' $WEBCF|head -n1| sed 's|lsphp||'); # 74
-			default_php_version=$(echo $default_lsphpver | sed 's/^\(.\{1\}\)/\1./')  # 7.0,7.1,7.2,7.3,7.4,8.0,8.1,etc
+			default_php_version=$(echo $default_lsphpver | sed 's/^\(.\{1\}\)/\1./')  # 7.0,7.1,7.2,7.3,7.4,8.0,8.1,8.2 etc
 			ls /usr/local/lsws/lsphp${default_lsphpver}/etc/php/${default_php_version}/mods-disabled | sed 's/.ini//' | nl
 			echo
 			read -p "Select module: " site_number
@@ -789,7 +780,7 @@ then
 	if [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
 		default_lsphpver=$(grep -sEo 'lsphp[0-9]{2}' $WEBCF|head -n1| sed 's|lsphp||'); # 74
-		default_php_version=$(echo $default_lsphpver | sed 's/^\(.\{1\}\)/\1./')  # 7.0,7.1,7.2,7.3,7.4,8.0,8.1,etc
+		default_php_version=$(echo $default_lsphpver | sed 's/^\(.\{1\}\)/\1./')  # 7.0,7.1,7.2,7.3,7.4,8.0,8.1,8.2 etc
 		mkdir -p /usr/local/lsws/lsphp${default_lsphpver}/etc/php/${default_php_version}/mods-disabled
 		while [[ -z $module ]]
 		do

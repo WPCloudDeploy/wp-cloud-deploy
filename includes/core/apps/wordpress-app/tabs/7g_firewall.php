@@ -210,12 +210,12 @@ class WPCD_WORDPRESS_TABS_7G_FIREWALL extends WPCD_WORDPRESS_TABS {
 		switch ( $webserver_type ) {
 			case 'ols':
 			case 'ols-enterprise':
-				$heading_desc = __( '6G Web Application Firewall / Powered by the Litespeed Web Server Engine', 'wpcd' );
+				$heading_name = __( '7G Web Application Firewall / Powered by the Litespeed Web Server Engine', 'wpcd' );
 				break;
 
 			case 'nginx':
 			default:
-				$heading_desc = __( '6G Web Application Firewall / Powered by the Nginx Web Server Engine', 'wpcd' );
+				$heading_name = __( '7G Web Application Firewall / Powered by the Nginx Web Server Engine', 'wpcd' );
 				break;
 
 		}
@@ -225,7 +225,7 @@ class WPCD_WORDPRESS_TABS_7G_FIREWALL extends WPCD_WORDPRESS_TABS {
 		$desc .= '<br />';
 
 		$fields[] = array(
-			'name' => __( '7G Web Application Firewall / Powered by the Nginx Web Server Engine', 'wpcd' ),
+			'name' => $heading_name,
 			'tab'  => '7g_waf',
 			'type' => 'heading',
 			'desc' => $desc,
@@ -237,237 +237,239 @@ class WPCD_WORDPRESS_TABS_7G_FIREWALL extends WPCD_WORDPRESS_TABS {
 			// What is the status of the 7G ALL RULES group?
 			$status = $this->get_7g_status( $id, '7g_all' );
 
-			/* Set the confirmation prompt based on the the current status of this flag */
-			$confirmation_prompt = '';
+		/* Set the confirmation prompt based on the the current status of this flag */
+		$confirmation_prompt = '';
 		if ( 'on' === $status ) {
 			$confirmation_prompt = __( 'Are you sure you would like to turn off this 7G WAF option for this site?', 'wpcd' );
 		} else {
 			$confirmation_prompt = __( 'Are you sure you would like to turn on this 7G WAF option for this site?', 'wpcd' );
 		}
 
-			$fields[] = array(
-				'id'         => '7g-all-toggle',
-				'name'       => __( 'Toggle ALL 7G Rules', 'wpcd' ),
-				'tab'        => '7g_waf',
-				'type'       => 'switch',
-				'on_label'   => __( 'Enabled', 'wpcd' ),
-				'off_label'  => __( 'Disabled', 'wpcd' ),
-				'std'        => $status === 'on',
-				'attributes' => array(
-					// the _action that will be called in ajax.
-					'data-wpcd-action'              => '7g_all',
-					// the id.
-					'data-wpcd-id'                  => $id,
-					// make sure we give the user a confirmation prompt.
-					'data-wpcd-confirmation-prompt' => $confirmation_prompt,
-				),
-				'class'      => 'wpcd_app_action',
-				'save_field' => false,
-			);
+		$fields[] = array(
+			'id'         => '7g-all-toggle',
+			'name'       => __( 'Toggle ALL 7G Rules', 'wpcd' ),
+			'tab'        => '7g_waf',
+			'type'       => 'switch',
+			'on_label'   => __( 'Enabled', 'wpcd' ),
+			'off_label'  => __( 'Disabled', 'wpcd' ),
+			'std'        => $status === 'on',
+			'attributes' => array(
+				// the _action that will be called in ajax.
+				'data-wpcd-action'              => '7g_all',
+				// the id.
+				'data-wpcd-id'                  => $id,
+				// make sure we give the user a confirmation prompt.
+				'data-wpcd-confirmation-prompt' => $confirmation_prompt,
+			),
+			'class'      => 'wpcd_app_action',
+			'save_field' => false,
+		);
 
-			$fields[] = array(
-				'name' => __( 'Toggle Individual Components', 'wpcd' ),
-				'type' => 'heading',
-				'tab'  => '7g_waf',
-			);
+		$fields[] = array(
+			'name' => __( 'Toggle Individual Components', 'wpcd' ),
+			'type' => 'heading',
+			'tab'  => '7g_waf',
+		);
 
-			/* FIELDS FOR ENABLING/DISABLING 7G USER AGENT RULES */
+		/* FIELDS FOR ENABLING/DISABLING 7G USER AGENT RULES */
 
-			// What is the status for this group?
-			$status = $this->get_7g_status( $id, '7g_user_agent' );
+		// What is the status for this group?
+		$status = $this->get_7g_status( $id, '7g_user_agent' );
 
-			/* Set the confirmation prompt based on the the current status of this flag */
-			$confirmation_prompt = '';
-			if ( 'on' === $status ) {
-				$confirmation_prompt = __( 'Are you sure you would like to turn off this 7G WAF option for this site?', 'wpcd' );
-			} else {
-				$confirmation_prompt = __( 'Are you sure you would like to turn on this 7G WAF option for this site?', 'wpcd' );
-			}
-			$fields[] = array(
-				'id'         => '7g-toggle-user-agent',
-				'name'       => __( 'User Agent Rules', 'wpcd' ),
-				'tab'        => '7g_waf',
-				'type'       => 'switch',
-				'on_label'   => __( 'Enabled', 'wpcd' ),
-				'off_label'  => __( 'Disabled', 'wpcd' ),
-				'std'        => $status === 'on',
-				'attributes' => array(
-					// the _action that will be called in ajax.
-					'data-wpcd-action'              => '7g_user_agent',
-					// the id.
-					'data-wpcd-id'                  => $id,
-					// make sure we give the user a confirmation prompt.
-					'data-wpcd-confirmation-prompt' => $confirmation_prompt,
-				),
-				'class'      => 'wpcd_app_action',
-				'save_field' => false,
-			);
+		/* Set the confirmation prompt based on the the current status of this flag */
+		$confirmation_prompt = '';
+		if ( 'on' === $status ) {
+			$confirmation_prompt = __( 'Are you sure you would like to turn off this 7G WAF option for this site?', 'wpcd' );
+		} else {
+			$confirmation_prompt = __( 'Are you sure you would like to turn on this 7G WAF option for this site?', 'wpcd' );
+		}
+		$fields[] = array(
+			'id'         => '7g-toggle-user-agent',
+			'name'       => __( 'User Agent Rules', 'wpcd' ),
+			'tab'        => '7g_waf',
+			'type'       => 'switch',
+			'on_label'   => __( 'Enabled', 'wpcd' ),
+			'off_label'  => __( 'Disabled', 'wpcd' ),
+			'std'        => $status === 'on',
+			'attributes' => array(
+				// the _action that will be called in ajax.
+				'data-wpcd-action'              => '7g_user_agent',
+				// the id.
+				'data-wpcd-id'                  => $id,
+				// make sure we give the user a confirmation prompt.
+				'data-wpcd-confirmation-prompt' => $confirmation_prompt,
+			),
+			'class'      => 'wpcd_app_action',
+			'save_field' => false,
+		);
 
-			/* FIELDS FOR ENABLING/DISABLING 7G REFERRER RULES */
+		/* FIELDS FOR ENABLING/DISABLING 7G REFERRER RULES */
 
-			// What is the status for this group?
-			$status = $this->get_7g_status( $id, '7g_referrer' );
+		// What is the status for this group?
+		$status = $this->get_7g_status( $id, '7g_referrer' );
 
-			/* Set the confirmation prompt based on the the current status of this flag */
-			$confirmation_prompt = '';
-			if ( 'on' === $status ) {
-				$confirmation_prompt = __( 'Are you sure you would like to turn off this 7G WAF option for this site?', 'wpcd' );
-			} else {
-				$confirmation_prompt = __( 'Are you sure you would like to turn on this 7G WAF option for this site?', 'wpcd' );
-			}
-			$fields[] = array(
-				'id'         => '7g-all-toggle-referrer',
-				'name'       => __( 'Referrer Rules', 'wpcd' ),
-				'tab'        => '7g_waf',
-				'type'       => 'switch',
-				'on_label'   => __( 'Enabled', 'wpcd' ),
-				'off_label'  => __( 'Disabled', 'wpcd' ),
-				'std'        => $status === 'on',
-				'attributes' => array(
-					// the _action that will be called in ajax.
-					'data-wpcd-action'              => '7g_referrer',
-					// the id.
-					'data-wpcd-id'                  => $id,
-					// make sure we give the user a confirmation prompt.
-					'data-wpcd-confirmation-prompt' => $confirmation_prompt,
-				),
-				'class'      => 'wpcd_app_action',
-				'save_field' => false,
-			);
+		/* Set the confirmation prompt based on the the current status of this flag */
+		$confirmation_prompt = '';
+		if ( 'on' === $status ) {
+			$confirmation_prompt = __( 'Are you sure you would like to turn off this 7G WAF option for this site?', 'wpcd' );
+		} else {
+			$confirmation_prompt = __( 'Are you sure you would like to turn on this 7G WAF option for this site?', 'wpcd' );
+		}
+		$fields[] = array(
+			'id'         => '7g-all-toggle-referrer',
+			'name'       => __( 'Referrer Rules', 'wpcd' ),
+			'tab'        => '7g_waf',
+			'type'       => 'switch',
+			'on_label'   => __( 'Enabled', 'wpcd' ),
+			'off_label'  => __( 'Disabled', 'wpcd' ),
+			'std'        => $status === 'on',
+			'attributes' => array(
+				// the _action that will be called in ajax.
+				'data-wpcd-action'              => '7g_referrer',
+				// the id.
+				'data-wpcd-id'                  => $id,
+				// make sure we give the user a confirmation prompt.
+				'data-wpcd-confirmation-prompt' => $confirmation_prompt,
+			),
+			'class'      => 'wpcd_app_action',
+			'save_field' => false,
+		);
 
-			/* FIELDS FOR ENABLING/DISABLING 7G QUERY STRING RULES */
+		/* FIELDS FOR ENABLING/DISABLING 7G QUERY STRING RULES */
 
-			// What is the status for this group?
-			$status = $this->get_7g_status( $id, '7g_query_string' );
+		// What is the status for this group?
+		$status = $this->get_7g_status( $id, '7g_query_string' );
 
-			/* Set the confirmation prompt based on the the current status of this flag */
-			$confirmation_prompt = '';
-			if ( 'on' === $status ) {
-				$confirmation_prompt = __( 'Are you sure you would like to turn off this 7G WAF option for this site?', 'wpcd' );
-			} else {
-				$confirmation_prompt = __( 'Are you sure you would like to turn on this 7G WAF option for this site?', 'wpcd' );
-			}
-			$fields[] = array(
-				'id'         => '7g-all-toggle-query-strings',
-				'name'       => __( 'Query String Rules', 'wpcd' ),
-				'tab'        => '7g_waf',
-				'type'       => 'switch',
-				'on_label'   => __( 'Enabled', 'wpcd' ),
-				'off_label'  => __( 'Disabled', 'wpcd' ),
-				'std'        => $status === 'on',
-				'attributes' => array(
-					// the _action that will be called in ajax.
-					'data-wpcd-action'              => '7g_query_string',
-					// the id.
-					'data-wpcd-id'                  => $id,
-					// make sure we give the user a confirmation prompt.
-					'data-wpcd-confirmation-prompt' => $confirmation_prompt,
-				),
-				'class'      => 'wpcd_app_action',
-				'save_field' => false,
-			);
+		/* Set the confirmation prompt based on the the current status of this flag */
+		$confirmation_prompt = '';
+		if ( 'on' === $status ) {
+			$confirmation_prompt = __( 'Are you sure you would like to turn off this 7G WAF option for this site?', 'wpcd' );
+		} else {
+			$confirmation_prompt = __( 'Are you sure you would like to turn on this 7G WAF option for this site?', 'wpcd' );
+		}
+		$fields[] = array(
+			'id'         => '7g-all-toggle-query-strings',
+			'name'       => __( 'Query String Rules', 'wpcd' ),
+			'tab'        => '7g_waf',
+			'type'       => 'switch',
+			'on_label'   => __( 'Enabled', 'wpcd' ),
+			'off_label'  => __( 'Disabled', 'wpcd' ),
+			'std'        => $status === 'on',
+			'attributes' => array(
+				// the _action that will be called in ajax.
+				'data-wpcd-action'              => '7g_query_string',
+				// the id.
+				'data-wpcd-id'                  => $id,
+				// make sure we give the user a confirmation prompt.
+				'data-wpcd-confirmation-prompt' => $confirmation_prompt,
+			),
+			'class'      => 'wpcd_app_action',
+			'save_field' => false,
+		);
 
-			/* FIELDS FOR ENABLING/DISABLING 7G REQUEST STRING RULES */
+		/* FIELDS FOR ENABLING/DISABLING 7G REQUEST STRING RULES */
 
-			// What is the status for this group?
-			$status = $this->get_7g_status( $id, '7g_request_string' );
+		// What is the status for this group?
+		$status = $this->get_7g_status( $id, '7g_request_string' );
 
-			/* Set the confirmation prompt based on the the current status of this flag */
-			$confirmation_prompt = '';
-			if ( 'on' === $status ) {
-				$confirmation_prompt = __( 'Are you sure you would like to turn off this 7G WAF option for this site?', 'wpcd' );
-			} else {
-				$confirmation_prompt = __( 'Are you sure you would like to turn on this 7G WAF option for this site?', 'wpcd' );
-			}
-			$fields[] = array(
-				'id'         => '7g-all-toggle-request-string',
-				'name'       => __( 'Request String Rules', 'wpcd' ),
-				'tab'        => '7g_waf',
-				'type'       => 'switch',
-				'on_label'   => __( 'Enabled', 'wpcd' ),
-				'off_label'  => __( 'Disabled', 'wpcd' ),
-				'std'        => $status === 'on',
-				'attributes' => array(
-					// the _action that will be called in ajax.
-					'data-wpcd-action'              => '7g_request_string',
-					// the id.
-					'data-wpcd-id'                  => $id,
-					// make sure we give the user a confirmation prompt.
-					'data-wpcd-confirmation-prompt' => $confirmation_prompt,
-				),
-				'class'      => 'wpcd_app_action',
-				'save_field' => false,
-			);
+		/* Set the confirmation prompt based on the the current status of this flag */
+		$confirmation_prompt = '';
+		if ( 'on' === $status ) {
+			$confirmation_prompt = __( 'Are you sure you would like to turn off this 7G WAF option for this site?', 'wpcd' );
+		} else {
+			$confirmation_prompt = __( 'Are you sure you would like to turn on this 7G WAF option for this site?', 'wpcd' );
+		}
+		$fields[] = array(
+			'id'         => '7g-all-toggle-request-string',
+			'name'       => __( 'Request String Rules', 'wpcd' ),
+			'tab'        => '7g_waf',
+			'type'       => 'switch',
+			'on_label'   => __( 'Enabled', 'wpcd' ),
+			'off_label'  => __( 'Disabled', 'wpcd' ),
+			'std'        => $status === 'on',
+			'attributes' => array(
+				// the _action that will be called in ajax.
+				'data-wpcd-action'              => '7g_request_string',
+				// the id.
+				'data-wpcd-id'                  => $id,
+				// make sure we give the user a confirmation prompt.
+				'data-wpcd-confirmation-prompt' => $confirmation_prompt,
+			),
+			'class'      => 'wpcd_app_action',
+			'save_field' => false,
+		);
 
-			/* FIELDS FOR ENABLING/DISABLING 7G REQUEST METHOD RULES */
+		/* FIELDS FOR ENABLING/DISABLING 7G REQUEST METHOD RULES */
 
-			// What is the status for this group?
-			$status = $this->get_7g_status( $id, '7g_request_method' );
+		// What is the status for this group?
+		$status = $this->get_7g_status( $id, '7g_request_method' );
 
-			/* Set the confirmation prompt based on the the current status of this flag */
-			$confirmation_prompt = '';
-			if ( 'on' === $status ) {
-				$confirmation_prompt = __( 'Are you sure you would like to turn off this 7G WAF option for this site?', 'wpcd' );
-			} else {
-				$confirmation_prompt = __( 'Are you sure you would like to turn on this 7G WAF option for this site?', 'wpcd' );
-			}
-			$fields[] = array(
-				'id'         => '7g-all-toggle-request-method',
-				'name'       => __( 'Request Method Rules', 'wpcd' ),
-				'tab'        => '7g_waf',
-				'type'       => 'switch',
-				'on_label'   => __( 'Enabled', 'wpcd' ),
-				'off_label'  => __( 'Disabled', 'wpcd' ),
-				'std'        => $status === 'on',
-				'attributes' => array(
-					// the _action that will be called in ajax.
-					'data-wpcd-action'              => '7g_request_method',
-					// the id.
-					'data-wpcd-id'                  => $id,
-					// make sure we give the user a confirmation prompt.
-					'data-wpcd-confirmation-prompt' => $confirmation_prompt,
-				),
-				'class'      => 'wpcd_app_action',
-				'save_field' => false,
-			);
+		/* Set the confirmation prompt based on the the current status of this flag */
+		$confirmation_prompt = '';
+		if ( 'on' === $status ) {
+			$confirmation_prompt = __( 'Are you sure you would like to turn off this 7G WAF option for this site?', 'wpcd' );
+		} else {
+			$confirmation_prompt = __( 'Are you sure you would like to turn on this 7G WAF option for this site?', 'wpcd' );
+		}
+		$fields[] = array(
+			'id'         => '7g-all-toggle-request-method',
+			'name'       => __( 'Request Method Rules', 'wpcd' ),
+			'tab'        => '7g_waf',
+			'type'       => 'switch',
+			'on_label'   => __( 'Enabled', 'wpcd' ),
+			'off_label'  => __( 'Disabled', 'wpcd' ),
+			'std'        => $status === 'on',
+			'attributes' => array(
+				// the _action that will be called in ajax.
+				'data-wpcd-action'              => '7g_request_method',
+				// the id.
+				'data-wpcd-id'                  => $id,
+				// make sure we give the user a confirmation prompt.
+				'data-wpcd-confirmation-prompt' => $confirmation_prompt,
+			),
+			'class'      => 'wpcd_app_action',
+			'save_field' => false,
+		);
 
-			/* Important Notes */
+		/* Important Notes - only applies on versions of WPCD earlier than 5.2.6. */
+		if ( ! $this->is_526_or_later( $id ) ) {
 			$fields[] = array(
 				'name' => __( 'Important Notes', 'wpcd' ),
 				'tab'  => '7g_waf',
 				'type' => 'heading',
 				'desc' => __( 'There is no need to activate both the 7G and 6G firewalls. The 7G firewall is an updated version of the 6G firewall.  We are including both because some sites still use the 6G firewall. And the 6G firewall has had more time in the real world.  New sites should start with the 7G firewall and then downgrade to 6G if there are issues.', 'wpcd' ),
 			);
+		}
 
-			/* About WAFs */
-			$desc  = __( 'A WAF is a web application firewall and operates at a higher level than your standard firewall.  It generally has more "smarts" since it sees data the way a web-browser would see the data.', 'wpcd' );
-			$desc .= '<br />';
-			$desc .= __( 'Once traffic has passed through a regular firewall, the 7G firewall takes a look at the content and applies web-specific rules to it to see if the traffic should be allowed.', 'wpcd' );
-			$desc .= '<br />';
-			$desc .= __( 'In this case the firewall is actually a set of very specific NGINX server rules.  Thus, the rules are applied before any traffic even hits your WordPress installation which helps with performance.', 'wpcd' );
-			$desc .= '<br />';
-			$desc .= __( 'The WAF filters out known bad bots and common web application attacks.', 'wpcd' );
-			$desc .= '<br />';
-			$desc .= __( 'However, it is possible that certain types of good traffic could get caught up in the net which is why we allow you to turn on the rules selectively.', 'wpcd' );
-			$desc .= '<br />';
-			$desc .= __( 'Note: If you are using a proxy such as CloudFlare then you probably do not need to turn these on since CloudFlare likely applies a superset of these rules to filter traffic before it hits your site.', 'wpcd' );
+		/* About WAFs */
+		$desc  = __( 'A WAF is a web application firewall and operates at a higher level than your standard firewall.  It generally has more "smarts" since it sees data the way a web-browser would see the data.', 'wpcd' );
+		$desc .= '<br />';
+		$desc .= __( 'Once traffic has passed through a regular firewall, the 7G firewall takes a look at the content and applies web-specific rules to it to see if the traffic should be allowed.', 'wpcd' );
+		$desc .= '<br />';
+		$desc .= __( 'In this case the firewall is actually a set of very specific NGINX server rules.  Thus, the rules are applied before any traffic even hits your WordPress installation which helps with performance.', 'wpcd' );
+		$desc .= '<br />';
+		$desc .= __( 'The WAF filters out known bad bots and common web application attacks.', 'wpcd' );
+		$desc .= '<br />';
+		$desc .= __( 'However, it is possible that certain types of good traffic could get caught up in the net which is why we allow you to turn on the rules selectively.', 'wpcd' );
+		$desc .= '<br />';
+		$desc .= __( 'Note: If you are using a proxy such as CloudFlare then you probably do not need to turn these on since CloudFlare likely applies a superset of these rules to filter traffic before it hits your site.', 'wpcd' );
 
-			$fields[] = array(
-				'name' => __( 'About Web Application Firewalls', 'wpcd' ),
-				'tab'  => '7g_waf',
-				'type' => 'heading',
-				'desc' => $desc,
-			);
+		$fields[] = array(
+			'name' => __( 'About Web Application Firewalls', 'wpcd' ),
+			'tab'  => '7g_waf',
+			'type' => 'heading',
+			'desc' => $desc,
+		);
 
-			/* Credits */
-			$fields[] = array(
-				'name' => __( 'Credits', 'wpcd' ),
-				'tab'  => '7g_waf',
-				'type' => 'heading',
-				'desc' => __( 'The 6G and 7G firewalls are published by the kind folks over at Perishable Press.', 'wpcd' ),
-			);
+		/* Credits */
+		$fields[] = array(
+			'name' => __( 'Credits', 'wpcd' ),
+			'tab'  => '7g_waf',
+			'type' => 'heading',
+			'desc' => __( 'The 6G and 7G firewalls are published by the kind folks over at Perishable Press.', 'wpcd' ),
+		);
 
-			return $fields;
+		return $fields;
 
 	}
 

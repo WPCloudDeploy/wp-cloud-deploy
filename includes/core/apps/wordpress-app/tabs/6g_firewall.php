@@ -48,6 +48,17 @@ class WPCD_WORDPRESS_TABS_6G_FIREWALL extends WPCD_WORDPRESS_TABS {
 	 * @return array    $tabs The default value.
 	 */
 	public function get_tab( $tabs, $id ) {
+
+		// Do not show tab for wpcd versions 5.2.6 or later.
+		if ( $this->is_526_or_later( $id ) ) {
+			return $tabs;
+		}
+
+		// Maybe the 6G rules were removed.
+		if ( ! $this->is_6g_installed( $id ) ) {
+			return $tabs;
+		}
+
 		if ( $this->get_tab_security( $id ) ) {
 			$tabs[ $this->get_tab_slug() ] = array(
 				'label' => __( '6G WAF', 'wpcd' ),
@@ -192,6 +203,11 @@ class WPCD_WORDPRESS_TABS_6G_FIREWALL extends WPCD_WORDPRESS_TABS {
 			return $fields;
 		}
 
+		// Do not show tab or fields for tab for wpcd versions 5.2.6 or later.
+		if ( $this->is_526_or_later( $id ) ) {
+			return $fields;
+		}
+
 		// If user is not allowed to access the tab then don't paint the fields.
 		if ( ! $this->get_tab_security( $id ) ) {
 			return $fields;
@@ -209,12 +225,12 @@ class WPCD_WORDPRESS_TABS_6G_FIREWALL extends WPCD_WORDPRESS_TABS {
 		switch ( $webserver_type ) {
 			case 'ols':
 			case 'ols-enterprise':
-				$heading_desc = __( '6G Web Application Firewall / Powered by the Litespeed Web Server Engine', 'wpcd' );
+				$heading_name = __( '6G Web Application Firewall / Powered by the Litespeed Web Server Engine', 'wpcd' );
 				break;
 
 			case 'nginx':
 			default:
-				$heading_desc = __( '6G Web Application Firewall / Powered by the Nginx Web Server Engine', 'wpcd' );
+				$heading_name = __( '6G Web Application Firewall / Powered by the Nginx Web Server Engine', 'wpcd' );
 				break;
 
 		}
@@ -224,7 +240,7 @@ class WPCD_WORDPRESS_TABS_6G_FIREWALL extends WPCD_WORDPRESS_TABS {
 		$desc .= '<br />';
 
 		$fields[] = array(
-			'name' => $heading_desc,
+			'name' => $heading_name,
 			'tab'  => '6g_waf',
 			'type' => 'heading',
 			'desc' => $desc,

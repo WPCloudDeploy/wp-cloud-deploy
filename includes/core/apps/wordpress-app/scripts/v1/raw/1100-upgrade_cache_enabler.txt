@@ -1,0 +1,53 @@
+#!/bin/bash
+# This script will upgrade the cache enabler nginx configuration
+
+echo $(date): "Upgrading cache enabler nginx config to the latest stable version..."
+
+cat > /etc/nginx/common/cache_enabler.conf << 'EOF'
+# This file defines variables needed for the Cache Enabler WordPress plugin by KeyCDN
+# It just defines variables and doesn't do much by itself.
+# It's meant to be included in the site configuration
+
+set $cache_uri $request_uri;
+
+# bypass cache if POST requests or URLs with a query string
+if ($request_method = POST) {
+set $cache_uri 'nullcache';
+}
+if ($query_string != "") {
+set $cache_uri 'nullcache';
+}
+
+# bypass cache if URLs containing the following strings
+if ($request_uri ~* "(/wp-admin/|/xmlrpc.php|/wp-(app|cron|login|register|mail).php|wp-.*.php|/feed/|index.php|wp-comments-popup.php|wp-links-opml.php|wp-locations.php|sitemap(index)?.xml|[a-z0-9-]+-sitemap([0-9]+)?.xml)") {
+set $cache_uri 'nullcache';
+}
+
+# bypass cache if the cookies containing the following strings
+if ($http_cookie ~* "comment_author|wordpress_[a-f0-9]+|wp-postpass|wordpress_logged_in") {
+set $cache_uri 'nullcache';
+}
+
+# custom sub directory e.g. /blog
+set $custom_subdir '';
+
+# default html files
+# two variables with and without a slash need to be defined to satisfy following situations:
+# https://myblog.com/hello-world
+# https://myblog.com/hello-world/
+set $cache_enabler_uri '${custom_subdir}/wp-content/cache/cache-enabler/${http_host}${cache_uri}${scheme}-index.html';
+set $cache_enabler_uri2 '${custom_subdir}/wp-content/cache/cache-enabler/${http_host}${cache_uri}/${scheme}-index.html';
+
+# webp html files
+# two variables with and without a slash need to be defined to satisfy following situations:
+# https://myblog.com/hello-world
+# https://myblog.com/hello-world/
+if ($http_accept ~* "image/webp") {
+set $cache_enabler_uri '${custom_subdir}/wp-content/cache/cache-enabler/${http_host}${cache_uri}${scheme}-index-webp.html';
+set $cache_enabler_uri2 '${custom_subdir}/wp-content/cache/cache-enabler/${http_host}${cache_uri}/${scheme}-index-webp.html';
+}
+EOF
+
+systemctl restart nginx
+
+echo "Cache Enabler NGINX Config Has Been Upgraded."

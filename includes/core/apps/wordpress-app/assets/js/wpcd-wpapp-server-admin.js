@@ -103,6 +103,54 @@
             e.preventDefault();
         });
 
+        // Delete server records action.
+        $('body').on('click', '.wpcd_action_delete_server_record', function (e) {
+
+            e.preventDefault();
+
+            if (confirm(params.delete_server_record_prompt)) {
+                // Setup form data as necessary
+                var id = $(this).attr('data-wpcd-id');
+                var formData = new FormData();
+                formData.append('action', params.action);
+                formData.append('_action', params._action);
+                formData.append('nonce', params.nonce);
+                formData.append('server_id', id);
+                formData.append('params', '');
+
+                var is_public = $('#wpcd_public_wrapper').length == 1;
+
+                // Used for the 'spinner'
+                var $lock = is_public ? $('body') : $(this).parents('#wpbody-content');
+                $lock.lock();
+
+                $.ajax({
+                    url: ajaxurl,
+                    method: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function (data) {
+                        if (!data.data.result.done) {
+                           // throw an alert when an unforseen error occurs.
+                           alert(data.data.result.status);
+                           location.reload();
+                        } else if (data.data.result.done) {
+                            alert(data.data.result.status); 
+                            location.reload();
+                        }
+                    },
+                    complete: function () {
+                        // An action that threw up the spinner lock screen is complete so unlock it.
+                        $lock.unlock();
+                    },
+                    error: function (event, xhr, settings, thrownError) {
+                        alert('AJAX Error - something went wrong but we cannot tell you what it was.  Its a bummer and illogical I know.  Most likely its a 504 gateway timeout error.  Increase the time your server allows for a script to run to maybe 300 seconds. In the meantime you can check the SSH LOG or COMMAND LOG screens to see if more data was logged there.');
+                    }
+                });
+            }
+        });
+
         /**
          * Setup script used for installing a new WordPress app.
          */
@@ -567,7 +615,7 @@
     }
 
 
-    // Checks the field value contains some special charactors or not
+    // Checks the field value contains some special characters or not
     function check_field_value_chars(specialChars, field_value) {
         for (i = 0; i < specialChars.length; i++) {
             if (field_value.indexOf(specialChars[i]) > -1) {

@@ -174,12 +174,27 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 					$result = $this->upgrade_462_meta_only( $id, $action );
 					break;
 
+				case 'server-upgrade-530':
+					$result = $this->upgrade_530( $id, $action );
+					break;
+				case 'server-upgrade-530-meta':
+					$result = $this->upgrade_530_meta_only( $id, $action );
+					break;
+
 				case 'server-upgrade-php81':
 					$result = $this->install_php81( $id, $action );
 					break;
 
+				case 'server-upgrade-php82':
+					$result = $this->install_php82( $id, $action );
+					break;
+
 				case 'server-upgrade-7g':
 					$result = $this->upgrade_7g( $id, $action );
+					break;
+
+				case 'server-remove-6g':
+					$result = $this->remove_6g( $id, $action );
 					break;
 
 				case 'server-upgrade-wpcli':
@@ -188,6 +203,10 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 
 				case 'server-install-phpintl':
 					$result = $this->install_php_intl( $id, $action );
+					break;
+
+				case 'server-upgrade-cache-enabler-nginx-config':
+					$result = $this->upgrade_cache_enabler_nginx_config( $id, $action );
 					break;
 
 				case 'server-upgrade-delete-meta':
@@ -214,13 +233,16 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
-	 * Gets the fields to shown in the UPGRADE tab in the server details screen.
+	 * Gets the fields to show in the UPGRADE tab in the server details screen.
 	 *
 	 * @param int $id the post id of the app cpt record.
 	 *
 	 * @return array Array of actions with key as the action slug and value complying with the structure necessary by metabox.io fields.
 	 */
 	private function get_upgrade_fields( $id ) {
+
+		$webserver_type = $this->get_web_server_type( $id );
+		$os             = WPCD_SERVER()->get_server_os( $id );
 
 		$upgrade_check = $this->wpapp_upgrade_must_run_check( $id );
 
@@ -237,20 +259,38 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 			case 462:
 				$actions = $this->get_upgrade_fields_462( $id );
 				break;
+			case 530:
+				if ( in_array( $webserver_type, array( 'ols', 'ols-enterprise' ), true ) ) {
+					$actions = $this->get_upgrade_fields_530( $id );
+					break;
+				}
+				break;
 			default:
 				$actions = $this->get_upgrade_fields_default( $id );
 		}
 
-		// 7G Firewall Upgrade Options.
-		if ( ! $this->is_7g15_installed( $id ) ) {
+		// 7G Firewall Upgrade Options.  Only applies to NGINX.
+		if ( ! $this->is_7g16_installed( $id ) && 'nginx' === $webserver_type ) {
 			$upgrade_7g_fields = $this->get_upgrade_fields_7g( $id );
 			$actions           = array_merge( $actions, $upgrade_7g_fields );
 		}
 
-		// PHP 8.1 install options.
-		if ( ! $this->is_php_81_installed( $id ) ) {
+		// Remove 6G Firewall.  Only applies to NGINX.
+		if ( $this->is_6g_installed( $id ) && 'nginx' === $webserver_type ) {
+			$remove_6g_fields = $this->get_remove6g_fields( $id );
+			$actions          = array_merge( $actions, $remove_6g_fields );
+		}
+
+		// PHP 8.1 install options.  Only applies to NGINX since all OLS servers will have it installed already.
+		if ( ! $this->is_php_81_installed( $id ) && 'nginx' === $webserver_type ) {
 			$upgrade_php_81_fields = $this->get_upgrade_fields_php81( $id );
 			$actions               = array_merge( $actions, $upgrade_php_81_fields );
+		}
+
+		// PHP 8.2.
+		if ( ! $this->is_php_82_installed( $id ) && 'ubuntu1804lts' !== $os ) {
+			$upgrade_php_82_fields = $this->get_upgrade_fields_php82( $id );
+			$actions               = array_merge( $actions, $upgrade_php_82_fields );
 		}
 
 		// WP-CLI Upgrade Options.
@@ -259,10 +299,16 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 			$actions              = array_merge( $actions, $upgrade_wpcli_fields );
 		}
 
-		// PHP INTL module install options.
-		if ( ! $this->is_php_intl_module_installed( $id ) ) {
+		// PHP INTL module install options.  Only applies to NGINX since all OLS servers should have it installed already.
+		if ( ! $this->is_php_intl_module_installed( $id ) && 'nginx' === $webserver_type ) {
 			$upgrade_php_intl_fields = $this->get_upgrade_fields_php_intl( $id );
 			$actions                 = array_merge( $actions, $upgrade_php_intl_fields );
+		}
+
+		// Cache Enabler Upgrade Options - Only applies to NGINX.
+		if ( $this->is_cache_enabler_nginx_upgrade_needed( $id ) && 'nginx' === $webserver_type ) {
+			$upgrade_cache_enabler_fields = $this->get_upgrade_fields_cache_enabler_nginx_config( $id );
+			$actions                      = array_merge( $actions, $upgrade_cache_enabler_fields );
 		}
 
 		// Linux Updates.
@@ -274,7 +320,7 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
-	 * Gets the fields to shown in the UPGRADE tab in the server details screen.
+	 * Gets the fields to show in the UPGRADE tab in the server details screen.
 	 * These fields are for LINUX level upgrades.
 	 *
 	 * @param int $id the post id of the app cpt record.
@@ -361,7 +407,7 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
-	 * Gets the fields to shown in the UPGRADE tab in the server details screen
+	 * Gets the fields to show in the UPGRADE tab in the server details screen
 	 * when upgrading to version 2.9.0;
 	 *
 	 * @param int $id the post id of the app cpt record.
@@ -413,7 +459,7 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
-	 * Gets the fields to shown in the UPGRADE tab in the server details screen
+	 * Gets the fields to show in the UPGRADE tab in the server details screen
 	 * when upgrading to version 4.6.0;
 	 *
 	 * @param int $id the post id of the app cpt record.
@@ -488,7 +534,7 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
-	 * Gets the fields to shown in the UPGRADE tab in the server details screen
+	 * Gets the fields to show in the UPGRADE tab in the server details screen
 	 * when upgrading to version 4.6.1;
 	 *
 	 * Version 4.6.1 upgrades are the SNAP modules for Lets Encrypt.
@@ -561,7 +607,7 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
-	 * Gets the fields to shown in the UPGRADE tab in the server details screen
+	 * Gets the fields to show in the UPGRADE tab in the server details screen
 	 * when upgrading to version 4.6.2;
 	 *
 	 * Version 4.6.2 upgrades is the 7G firewall files.
@@ -632,7 +678,76 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
-	 * Gets the fields to shown in the UPGRADE tab in the server details screen
+	 * Gets the fields to show in the UPGRADE tab in the server details screen
+	 * when upgrading to version 5.3.0;
+	 *
+	 * Version 5.3.0 fixes an OLS cron .htaccess auto-restart issue.
+	 *
+	 * @param int $id the post id of the app cpt record.
+	 *
+	 * @return array Array of actions with key as the action slug and value complying with the structure necessary by metabox.io fields.
+	 */
+	private function get_upgrade_fields_530( $id ) {
+
+		// Set up metabox items.
+		$actions = array();
+
+		$upg_desc  = __( 'This server needs an upgrade to fix an issue with OLS automatically restarting every three minutes.', 'wpcd' );
+		$upg_desc .= '<br />';
+		$upg_desc .= '<br />';
+		$upg_desc .= __( 'After you have backed up your server, please click the UPGRADE button below to proceed with the upgrade.', 'wpcd' );
+
+		$actions['server-upgrade-header'] = array(
+			'label'          => __( 'Upgrade Server', 'wpcd' ),
+			'type'           => 'heading',
+			'raw_attributes' => array(
+				'desc' => $upg_desc,
+			),
+		);
+
+		$actions['server-upgrade-530'] = array(
+			'label'          => '',
+			'raw_attributes' => array(
+				'std'                 => __( 'Upgrade This Server', 'wpcd' ),
+				// make sure we give the user a confirmation prompt.
+				'confirmation_prompt' => __( 'Are you sure you would like to upgrade this server?', 'wpcd' ),
+			),
+			'type'           => 'button',
+		);
+
+		$actions['server-upgrade-notes'] = array(
+			'label'          => '',
+			'type'           => 'custom_html',
+			'raw_attributes' => array(
+				'std' => sprintf( '<a href="%s">' . __( 'Learn more in the upgrade documentation', 'wpcd' ) . '</a>', 'https://wpclouddeploy.com/documentation/more/technical-upgrade-notes-for-v-5-3-0/' ),
+			),
+		);
+
+		$actions['server-upgrade-header-skip'] = array(
+			'label'          => __( 'Skip Upgrade', 'wpcd' ),
+			'type'           => 'heading',
+			'raw_attributes' => array(
+				'desc' => __( 'Danger Zone!', 'wpcd' ),
+			),
+		);
+
+		$actions['server-upgrade-530-meta'] = array(
+			'label'          => '',
+			'raw_attributes' => array(
+				'std'                 => __( 'Do Not Upgrade', 'wpcd' ),
+				'desc'                => __( 'Tag server as upgraded without running the upgrade process.  NOT RECOMMENDED - this will likely break functions! Choose this option only when directed by our technical support staff.', 'wpcd' ),
+				// make sure we give the user a confirmation prompt.
+				'confirmation_prompt' => __( 'Are you sure you would like to tag this server as being upgraded without running the upgrade script?', 'wpcd' ),
+			),
+			'type'           => 'button',
+		);
+
+		return $actions;
+
+	}
+
+	/**
+	 * Gets the fields to show in the UPGRADE tab in the server details screen
 	 * if PHP 8.1 needs to be installed.
 	 *
 	 * @param int $id the post id of the app cpt record.
@@ -685,6 +800,58 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 
 	/**
 	 * Gets the fields to show in the UPGRADE tab in the server details screen
+	 * if PHP 8.2 needs to be installed.
+	 *
+	 * @param int $id the post id of the app cpt record.
+	 *
+	 * @return array Array of actions with key as the action slug and value complying with the structure necessary by metabox.io fields.
+	 */
+	private function get_upgrade_fields_php82( $id ) {
+
+		// Set up metabox items.
+		$actions = array();
+
+		$upg_desc  = __( 'Use this button to install PHP 8.2 if it was released after your server was created. WPCD V 5.3 and later automatically installs PHP 8.2 on new servers. But older servers will not have it.', 'wpcd' );
+		$upg_desc .= '<br />';
+		$upg_desc .= __( 'Before running this, you should check to see if your server needs to be restarted because of prior upgrades.  If so, please restart your server before using this option to install PHP 8.2', 'wpcd' );
+
+		$actions['server-upgrade-header-php82'] = array(
+			'label'          => __( 'Install PHP 8.2', 'wpcd' ),
+			'type'           => 'heading',
+			'raw_attributes' => array(
+				'desc' => $upg_desc,
+			),
+		);
+
+		$actions['server-upgrade-php82'] = array(
+			'label'          => '',
+			'raw_attributes' => array(
+				'std'                 => __( 'Install PHP 8.2 on this server', 'wpcd' ),
+				// make sure we give the user a confirmation prompt.
+				'confirmation_prompt' => __( 'Are you sure you would like to install PHP 8.2 on this server?', 'wpcd' ),
+			),
+			'type'           => 'button',
+		);
+
+		/*
+		$actions['server-upgrade-php81-meta'] = array(
+		'label'          => '',
+		'raw_attributes' => array(
+			'std'                 => __( 'Remove PHP 8.2 Install Option', 'wpcd' ),
+			'desc'                => __( 'Tag server as having PHP 8.2 installed.', 'wpcd' ),
+			// make sure we give the user a confirmation prompt.
+			'confirmation_prompt' => __( 'Are you sure you would like to tag this server as being upgraded without running the upgrade script?', 'wpcd' ),
+		),
+		'type'           => 'button',
+		);
+		*/
+
+		return $actions;
+
+	}
+
+	/**
+	 * Gets the fields to show in the UPGRADE tab in the server details screen
 	 * if the 7G firewall needs to be upgraded.
 	 *
 	 * @param int $id the post id of the app cpt record.
@@ -696,7 +863,7 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 		// Set up metabox items.
 		$actions = array();
 
-		$upg_desc  = __( 'Use this button to install the latest version of the 7G Firewall rules (V1.5).', 'wpcd' );
+		$upg_desc  = __( 'Use this button to install the latest version of the 7G Firewall rules (V1.6).', 'wpcd' );
 		$upg_desc .= '<br />';
 		$upg_desc .= __( 'This will OVERWRITE any customizations you have made to the default 7G rules file.', 'wpcd' );
 
@@ -714,6 +881,60 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 				'std'                 => __( 'Upgrade 7G Rules', 'wpcd' ),
 				// make sure we give the user a confirmation prompt.
 				'confirmation_prompt' => __( 'Are you sure you would like to upgrade the 7G Firewall rules on this server? It will overwrite any changes you might have made to the default rules file.', 'wpcd' ),
+			),
+			'type'           => 'button',
+		);
+
+		/*
+		$actions['server-upgrade-7g-meta'] = array(
+		'label'          => '',
+		'raw_attributes' => array(
+			'std'                 => __( 'Remove 7G Upgrade Option', 'wpcd' ),
+			'desc'                => __( 'Tag server as having 7G upgraded.', 'wpcd' ),
+			// make sure we give the user a confirmation prompt.
+			'confirmation_prompt' => __( 'Are you sure you would like to tag this server as being upgraded without running the upgrade script?', 'wpcd' ),
+		),
+		'type'           => 'button',
+		);
+		*/
+
+		return $actions;
+
+	}
+
+	/**
+	 * Gets the fields to show in the UPGRADE tab in the server details screen
+	 * if the 6G firewall needs to be removed.
+	 *
+	 * @param int $id the post id of the app cpt record.
+	 *
+	 * @return array Array of actions with key as the action slug and value complying with the structure necessary by metabox.io fields.
+	 */
+	private function get_remove6g_fields( $id ) {
+
+		// Set up metabox items.
+		$actions = array();
+
+		$upg_desc  = __( 'Use this button to REMOVE the 6G Firewall rules from the server.', 'wpcd' );
+		$upg_desc .= '<br />';
+		$upg_desc .= __( 'If you are not using these rules they can make certain operations more efficient if they are removed.', 'wpcd' );
+		$upg_desc .= '<br />';
+		$upg_desc .= __( 'Note that the 6G firewall rules are DEPRECATED and future versions of WPCD will not even install them.  If you are not currently using 6G you should remove these rules now.', 'wpcd' );
+
+		$actions['server-remove-6g-header'] = array(
+			'label'          => __( 'Remove 6G Firewall Rules', 'wpcd' ),
+			'type'           => 'heading',
+			'raw_attributes' => array(
+				'desc' => $upg_desc,
+			),
+		);
+
+		$actions['server-remove-6g'] = array(
+			'label'          => '',
+			'raw_attributes' => array(
+				'std'                 => __( 'Remove 6G Rules', 'wpcd' ),
+				// make sure we give the user a confirmation prompt.
+				'confirmation_prompt' => __( 'Are you sure you would like to Remove the 6G Firewall rules on this server? It will overwrite any changes you might have made to the default rules file.', 'wpcd' ),
 			),
 			'type'           => 'button',
 		);
@@ -788,7 +1009,7 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
-	 * Gets the fields to shown in the UPGRADE tab in the server details screen
+	 * Gets the fields to show in the UPGRADE tab in the server details screen
 	 * if the PHP INTL module needs to be installed.
 	 *
 	 * @param int $id the post id of the app cpt record.
@@ -829,7 +1050,50 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
-	 * Gets the fields to shown in the UPGRADE tab in the server details screen
+	 * Gets the fields to show in the UPGRADE tab in the server details screen
+	 * if the cache_enabler nginx code needs an update.
+	 *
+	 * @param int $id the post id of the app cpt record.
+	 *
+	 * @return array Array of actions with key as the action slug and value complying with the structure necessary by metabox.io fields.
+	 */
+	private function get_upgrade_fields_cache_enabler_nginx_config( $id ) {
+
+		// Set up metabox items.
+		$actions = array();
+
+		$upg_desc  = __( 'Use this button to upgrade the nginx configuration for the cache plugin (Cache Enabler).', 'wpcd' );
+		$upg_desc .= '<br />';
+		$upg_desc .= __( 'This is needed because the plugin authors changed the cache file name formats.', 'wpcd' );
+		$upg_desc .= '<br />';
+		$upg_desc .= __( 'If you depend on this plugin for caching then upgrading the script will likely result in faster load times for cached pages.', 'wpcd' );
+		$upg_desc .= '<br /><b>';
+		$upg_desc .= __( 'Note that this will overwrite your existing NGINX config for cache-enabler - any custom changes you made will be lost!', 'wpcd' );
+		$upg_desc .= '</b>';
+
+		$actions['server-upgrade-header-cache-enabler-nginx-config'] = array(
+			'label'          => __( 'Upgrade Cache Enabler Config', 'wpcd' ),
+			'type'           => 'heading',
+			'raw_attributes' => array(
+				'desc' => $upg_desc,
+			),
+		);
+
+		$actions['server-upgrade-cache-enabler-nginx-config'] = array(
+			'label'          => '',
+			'raw_attributes' => array(
+				'std'                 => __( 'Upgrade Cache Enabler NGINX Configuration', 'wpcd' ),
+				// make sure we give the user a confirmation prompt.
+				'confirmation_prompt' => __( 'Are you sure you would like to upgrade the cache enabler NGINX configuration on this server?', 'wpcd' ),
+			),
+			'type'           => 'button',
+		);
+
+		return $actions;
+	}
+
+	/**
+	 * Gets the fields to show in the UPGRADE tab in the server details screen
 	 * when there are no upgrades to be done.
 	 *
 	 * @param int $id the post id of the app cpt record.
@@ -841,7 +1105,7 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 		// Set up metabox items.
 		$actions = array();
 
-		$upg_desc  = __( 'There are no configuration updates required for this server.', 'wpcd' );
+		$upg_desc  = __( 'There are no urgent or mandatory configuration updates required for this server.', 'wpcd' );
 		$upg_desc .= '<br />';
 
 		$actions['server-upgrade-header'] = array(
@@ -1119,6 +1383,69 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
+	 * Run upgrade script for a server to upgrade to V 530.
+	 *
+	 * @param int    $id         The postID of the server cpt.
+	 * @param string $action     The action to be performed (this matches the string required in the bash scripts if bash scripts are used ).
+	 *
+	 * @return boolean success/failure/other
+	 */
+	public function upgrade_530( $id, $action ) {
+
+		// Get data about the server.
+		$instance = $this->get_server_instance_details( $id );
+
+		if ( is_wp_error( $instance ) ) {
+			/* translators: %s is replaced with the internal action name. */
+			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
+		}
+
+		// Get the full command to be executed by ssh.
+		$run_cmd = $this->turn_script_into_command(
+			$instance,
+			'run_upgrades_530.txt',
+			array(
+				'action'      => $action,
+				'interactive' => 'no',
+			)
+		);
+
+		// log.
+		// phpcs:ignore
+		do_action( 'wpcd_log_error', sprintf( 'attempting to run command for %s = %s ', print_r( $instance, true ), $run_cmd ), 'trace', __FILE__, __LINE__, $instance, false ); //PHPcs warning normally issued because of print_r
+
+		// execute.
+		$result = $this->execute_ssh( 'generic', $instance, array( 'commands' => $run_cmd ) );
+
+		// evaluate results.
+		if ( strpos( $result, 'journalctl -xe' ) !== false ) {
+			// Looks like there was a problem with restarting the NGINX - So update completion meta and return message.
+			update_post_meta( $id, 'wpcd_last_upgrade_done', 530 );
+			/* translators: %s is replaced with the text of the result of the operation. */
+			return new \WP_Error( sprintf( __( 'There was a problem restarting the nginx server after the upgrade - here is the full output of the upgrade process: %s', 'wpcd' ), $result ) );
+		}
+
+		// If we're here, we know that the nginx server restarted ok so let's do standard success checks.
+		$success = $this->is_ssh_successful( $result, 'run_upgrades_530.txt' );
+		if ( ! $success ) {
+			/* translators: %1$s is replaced with the internal action name; %2$s is replaced with the result of the call, usually an error message. */
+			return new \WP_Error( sprintf( __( 'Unable to perform action %1$s for server: %2$s', 'wpcd' ), $action, $result ) );
+		} else {
+			// update server field to tag server as being upgraded.
+			update_post_meta( $id, 'wpcd_last_upgrade_done', 530 );
+
+			// Let user know command is complete and force a page rfresh.
+			$result = array(
+				'msg'     => __( 'Upgrade completed - this page will now refresh', 'wpcd' ),
+				'refresh' => 'yes',
+			);
+		}
+
+		return $result;
+
+	}
+
+	/**
 	 * Run install script for PHP 8.1
 	 *
 	 * @param int    $id         The postID of the server cpt.
@@ -1187,6 +1514,151 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
+	 * Run install script for PHP 8.2
+	 *
+	 * @param int    $id         The postID of the server cpt.
+	 * @param string $action     The action to be performed (this matches the string required in the bash scripts if bash scripts are used ).
+	 *
+	 * @return boolean success/failure/other
+	 */
+	public function install_php82( $id, $action ) {
+
+		// Get data about the server.
+		$instance = $this->get_server_instance_details( $id );
+
+		if ( is_wp_error( $instance ) ) {
+			/* translators: %s is replaced with the internal action name. */
+			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
+		}
+
+		// Get the full command to be executed by ssh.
+		$run_cmd = $this->turn_script_into_command(
+			$instance,
+			'run_upgrade_install_php_82.txt',
+			array(
+				'action'      => $action,
+				'interactive' => 'no',
+			)
+		);
+
+		// log.
+		// phpcs:ignore
+		do_action( 'wpcd_log_error', sprintf( 'attempting to run command for %s = %s ', print_r( $instance, true ), $run_cmd ), 'trace', __FILE__, __LINE__, $instance, false ); //PHPcs warning normally issued because of print_r
+
+		// execute.
+		$result = $this->execute_ssh( 'generic', $instance, array( 'commands' => $run_cmd ) );
+
+		// Make sure we don't have a wp_error object being returned...
+		if ( is_wp_error( $result ) ) {
+			return new \WP_Error( __( 'There was a problem installing PHP 8.2- please check the server logs for more information.', 'wpcd' ) );
+		}
+
+		// evaluate results.
+		if ( strpos( $result, 'journalctl -xe' ) !== false ) {
+			// Looks like there was a problem with restarting the NGINX - So update completion meta and return message.
+			update_post_meta( $id, 'wpcd_server_php82_installed', 1 );
+			/* translators: %s is replaced with the text of the result of the operation. */
+			return new \WP_Error( sprintf( __( 'There was a problem restarting the nginx server after the upgrade - here is the full output of the upgrade process: %s', 'wpcd' ), $result ) );
+		}
+
+		// If we're here, we know that the nginx server restarted ok so let's do standard success checks.
+		$success = $this->is_ssh_successful( $result, 'run_upgrade_install_php_82.txt' );
+		if ( ! $success ) {
+			/* translators: %1$s is replaced with the internal action name; %2$s is replaced with the result of the call, usually an error message. */
+			return new \WP_Error( sprintf( __( 'Unable to perform action %1$s for server: %2$s', 'wpcd' ), $action, $result ) );
+		} else {
+			// update server field to tag server as being upgraded.
+			update_post_meta( $id, 'wpcd_server_php82_installed', 1 );
+
+			// Let user know command is complete and force a page rfresh.
+			$result = array(
+				'msg'     => __( 'PHP 8.2 install has been completed - this page will now refresh', 'wpcd' ),
+				'refresh' => 'yes',
+			);
+		}
+
+		return $result;
+
+	}
+
+	/**
+	 * Run upgrade script for 6G firewall rules
+	 *
+	 * @param int    $id         The postID of the server cpt.
+	 * @param string $action     The action to be performed (this matches the string required in the bash scripts if bash scripts are used ).
+	 *
+	 * @return boolean success/failure/other
+	 */
+	public function remove_6g( $id, $action ) {
+
+		// Get data about the server.
+		$instance = $this->get_server_instance_details( $id );
+
+		if ( is_wp_error( $instance ) ) {
+			/* translators: %s is replaced with the internal action name. */
+			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
+		}
+
+		// Get Webserver Type.
+		$webserver_type = $this->get_web_server_type( $id );
+
+		// Bail if not an NGINX server.
+		if ( 'nginx' !== $webserver_type ) {
+			// We really shouldn't get here - if we do it likely means someone has bypassed a bunch of security checks.
+			return new \WP_Error( __( 'This action cannot be run on a server running OLS.  It can only be run on server running NGINX.', 'wpcd' ) );
+		}
+
+		// Get the full command to be executed by ssh.
+		$run_cmd = $this->turn_script_into_command(
+			$instance,
+			'run_remove_6g.txt',
+			array(
+				'action'      => $action,
+				'interactive' => 'no',
+			)
+		);
+
+		// log.
+		// phpcs:ignore
+		do_action( 'wpcd_log_error', sprintf( 'attempting to run command for %s = %s ', print_r( $instance, true ), $run_cmd ), 'trace', __FILE__, __LINE__, $instance, false ); //PHPcs warning normally issued because of print_r
+
+		// execute.
+		$result = $this->execute_ssh( 'generic', $instance, array( 'commands' => $run_cmd ) );
+
+		// Make sure we don't have a wp_error object being returned...
+		if ( is_wp_error( $result ) ) {
+			return new \WP_Error( __( 'There was a problem removing the 6G firewall rules - please check the server logs for more information.', 'wpcd' ) );
+		}
+
+		// evaluate results.
+		if ( strpos( $result, 'journalctl -xe' ) !== false ) {
+			// Looks like there was a problem with restarting the webserver - So update completion meta and return message.
+			update_post_meta( $id, 'wpcd_6g_removed', true );
+			/* translators: %s is replaced with the text of the result of the operation. */
+			return new \WP_Error( sprintf( __( 'There was a problem restarting the web server after this operation - here is the full output of the upgrade process: %s', 'wpcd' ), $result ) );
+		}
+
+		// If we're here, we know that the nginx server restarted ok so let's do standard success checks.
+		$success = $this->is_ssh_successful( $result, 'run_remove_6g.txt' );
+		if ( ! $success ) {
+			/* translators: %1$s is replaced with the internal action name; %2$s is replaced with the result of the call, usually an error message. */
+			return new \WP_Error( sprintf( __( 'Unable to perform action %1$s for server: %2$s', 'wpcd' ), $action, $result ) );
+		} else {
+			// update server field to tag server as being upgraded.
+			update_post_meta( $id, 'wpcd_6g_removed', true );
+
+			// Let user know command is complete and force a page rfresh.
+			$result = array(
+				'msg'     => __( 'The 6G firewall rules have been removed - this page will now refresh', 'wpcd' ),
+				'refresh' => 'yes',
+			);
+		}
+
+		return $result;
+
+	}
+
+	/**
 	 * Run upgrade script for 7G firewall rules
 	 *
 	 * @param int    $id         The postID of the server cpt.
@@ -1202,6 +1674,15 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 		if ( is_wp_error( $instance ) ) {
 			/* translators: %s is replaced with the internal action name. */
 			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
+		}
+
+		// Get Webserver Type.
+		$webserver_type = $this->get_web_server_type( $id );
+
+		// Bail if not an NGINX server.
+		if ( 'nginx' !== $webserver_type ) {
+			// We really shouldn't get here - if we do it likely means someone has bypassed a bunch of security checks.
+			return new \WP_Error( __( 'This action cannot be run on a server running OLS.  It can only be run on server running NGINX.', 'wpcd' ) );
 		}
 
 		// Get the full command to be executed by ssh.
@@ -1228,10 +1709,10 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 
 		// evaluate results.
 		if ( strpos( $result, 'journalctl -xe' ) !== false ) {
-			// Looks like there was a problem with restarting the NGINX - So update completion meta and return message.
-			update_post_meta( $id, 'wpcd_server_7g_upgrade', 1.5 );
+			// Looks like there was a problem with restarting the webserver - So update completion meta and return message.
+			update_post_meta( $id, 'wpcd_server_7g_upgrade', 1.6 );
 			/* translators: %s is replaced with the text of the result of the operation. */
-			return new \WP_Error( sprintf( __( 'There was a problem restarting the nginx server after the upgrade - here is the full output of the upgrade process: %s', 'wpcd' ), $result ) );
+			return new \WP_Error( sprintf( __( 'There was a problem restarting the web server after the upgrade - here is the full output of the upgrade process: %s', 'wpcd' ), $result ) );
 		}
 
 		// If we're here, we know that the nginx server restarted ok so let's do standard success checks.
@@ -1241,7 +1722,7 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 			return new \WP_Error( sprintf( __( 'Unable to perform action %1$s for server: %2$s', 'wpcd' ), $action, $result ) );
 		} else {
 			// update server field to tag server as being upgraded.
-			update_post_meta( $id, 'wpcd_server_7g_upgrade', 1.5 );
+			update_post_meta( $id, 'wpcd_server_7g_upgrade', 1.6 );
 
 			// Let user know command is complete and force a page rfresh.
 			$result = array(
@@ -1383,6 +1864,74 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
+	 * Run upgrade script for cache enabler nginx configuration
+	 *
+	 * @param int    $id         The postID of the server cpt.
+	 * @param string $action     The action to be performed (this matches the string required in the bash scripts if bash scripts are used ).
+	 *
+	 * @return boolean success/failure/other
+	 */
+	public function upgrade_cache_enabler_nginx_config( $id, $action ) {
+
+		// Get data about the server.
+		$instance = $this->get_server_instance_details( $id );
+
+		if ( is_wp_error( $instance ) ) {
+			/* translators: %s is replaced with the internal action name. */
+			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
+		}
+
+		// Get the full command to be executed by ssh.
+		$run_cmd = $this->turn_script_into_command(
+			$instance,
+			'run_upgrade_cache_enabler_nginx_config.txt',
+			array(
+				'action'      => $action,
+				'interactive' => 'no',
+			)
+		);
+
+		// log.
+		// phpcs:ignore
+		do_action( 'wpcd_log_error', sprintf( 'attempting to run command for %s = %s ', print_r( $instance, true ), $run_cmd ), 'trace', __FILE__, __LINE__, $instance, false ); //PHPcs warning normally issued because of print_r
+
+		// execute.
+		$result = $this->execute_ssh( 'generic', $instance, array( 'commands' => $run_cmd ) );
+
+		// Make sure we don't have a wp_error object being returned...
+		if ( is_wp_error( $result ) ) {
+			return new \WP_Error( __( 'There was a problem installing the PHP INTL module - please check the server logs for more information.', 'wpcd' ) );
+		}
+
+		// evaluate results.
+		if ( strpos( $result, 'journalctl -xe' ) !== false ) {
+			// Looks like there was a problem with restarting the NGINX - So update completion meta and return message.
+			update_post_meta( $id, 'wpcd_cache_enabler_nginx_upgrade', 5.11 );
+			/* translators: %s is replaced with the text of the result of the operation. */
+			return new \WP_Error( sprintf( __( 'There was a problem restarting the nginx server after the install - here is the full output of the upgrade process: %s', 'wpcd' ), $result ) );
+		}
+
+		// If we're here, we know that the nginx server restarted ok so let's do standard success checks.
+		$success = $this->is_ssh_successful( $result, 'run_upgrade_cache_enabler_nginx_config.txt' );
+		if ( ! $success ) {
+			/* translators: %1$s is replaced with the internal action name; %2$s is replaced with the result of the call, usually an error message. */
+			return new \WP_Error( sprintf( __( 'Unable to perform action %1$s for server: %2$s', 'wpcd' ), $action, $result ) );
+		} else {
+			// update server field to tag server as being upgraded.
+			update_post_meta( $id, 'wpcd_cache_enabler_nginx_upgrade', 5.11 );
+
+			// Let user know command is complete and force a page rfresh.
+			$result = array(
+				'msg'     => __( 'The NGINX configuration for cache enabler has been upgraded  - this page will now refresh', 'wpcd' ),
+				'refresh' => 'yes',
+			);
+		}
+
+		return $result;
+
+	}
+
+	/**
 	 * Tag a server as being upgraded to V 290.
 	 *
 	 * @param int    $id         The postID of the server cpt.
@@ -1473,6 +2022,30 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 		return $result;
 
 	}
+
+	/**
+	 * Tag a server as being upgraded to V 530.
+	 *
+	 * @param int    $id         The postID of the server cpt.
+	 * @param string $action     The action to be performed (this matches the string required in the bash scripts if bash scripts are used ).
+	 *
+	 * @return boolean success/failure/other
+	 */
+	public function upgrade_530_meta_only( $id, $action ) {
+
+		// update server field to tag server as being upgraded.
+		update_post_meta( $id, 'wpcd_last_upgrade_done', 530 );
+
+		// Let user know command is complete and force a page rfresh.
+		$result = array(
+			'msg'     => __( 'Upgrade completed to V 5.3.0 - this page will now refresh', 'wpcd' ),
+			'refresh' => 'yes',
+		);
+
+		return $result;
+
+	}
+
 
 	/**
 	 * Remove the upgrade meta from the server.

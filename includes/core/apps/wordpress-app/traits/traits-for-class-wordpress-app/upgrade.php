@@ -72,20 +72,15 @@ trait wpcd_wpapp_upgrade_functions {
 			return 461;
 		}
 
+		// Check to see if 5.3.0 upgrades were run.
+		if ( $this->wpapp_upgrade_must_run_check_530( $post_id ) ) {
+			return 530;
+		}
+
 		// Check to see if 7g firewall upgrades need to be run.
 		if ( $this->wpapp_upgrade_must_run_check_462( $post_id ) ) {
 			return 462;
 		}
-
-		// Check to see if 3.0.0 upgrades were run.
-		// This is stub code so you can see the pattern
-		// when you're look at this later. ha!
-
-		/*
-		if ( $this->wpapp_upgrade_must_run_check_300( $post_id ) )  {
-			return 300 ;
-		}
-		*/
 
 		// If you got here, just return false - no update neede.
 		return false;
@@ -138,7 +133,7 @@ trait wpcd_wpapp_upgrade_functions {
 			);
 		}
 
-			$posts = get_posts( $args );
+		$posts = get_posts( $args );
 		foreach ( $posts as $post ) {
 
 			/* Check version numbers on server - only versions lower than 460 need to be upgraded */
@@ -213,7 +208,7 @@ trait wpcd_wpapp_upgrade_functions {
 			);
 		}
 
-			$posts = get_posts( $args );
+		$posts = get_posts( $args );
 		foreach ( $posts as $post ) {
 
 			/* Check version numbers on server - only versions lower than 460 need to be upgraded */
@@ -223,7 +218,7 @@ trait wpcd_wpapp_upgrade_functions {
 			}
 
 			/* If we got here, we need to check to see if the server needs to be upgraded */
-			$last_upgrade_done = get_post_meta( $post->ID, 'wpcd_last_upgrade_done', true );
+			$last_upgrade_done = (int) get_post_meta( $post->ID, 'wpcd_last_upgrade_done', true );
 			if ( ( $last_upgrade_done < 460 ) && ( 'wordpress-app' == get_post_meta( $post->ID, 'wpcd_server_server-type', true ) ) ) {
 				// At least one server still needs to be updated.
 				return true;
@@ -290,7 +285,7 @@ trait wpcd_wpapp_upgrade_functions {
 			);
 		}
 
-			$posts = get_posts( $args );
+		$posts = get_posts( $args );
 		foreach ( $posts as $post ) {
 
 			/* Check version numbers on server - only versions lower than 461 need to be upgraded */
@@ -300,7 +295,7 @@ trait wpcd_wpapp_upgrade_functions {
 			}
 
 			/* If we got here, we need to check to see if the server needs to be upgraded */
-			$last_upgrade_done = get_post_meta( $post->ID, 'wpcd_last_upgrade_done', true );
+			$last_upgrade_done = (int) get_post_meta( $post->ID, 'wpcd_last_upgrade_done', true );
 			if ( ( $last_upgrade_done < 461 ) && ( 'wordpress-app' === get_post_meta( $post->ID, 'wpcd_server_server-type', true ) ) ) {
 				// At least one server still needs to be updated.
 				return true;
@@ -377,7 +372,7 @@ trait wpcd_wpapp_upgrade_functions {
 			}
 
 			/* If we got here, we need to check to see if the server needs to be upgraded */
-			$last_upgrade_done = get_post_meta( $post->ID, 'wpcd_last_upgrade_done', true );
+			$last_upgrade_done = (int) get_post_meta( $post->ID, 'wpcd_last_upgrade_done', true );
 			if ( ( $last_upgrade_done < 462 ) && ( 'wordpress-app' === get_post_meta( $post->ID, 'wpcd_server_server-type', true ) ) ) {
 				// At least one server still needs to be updated.
 				return true;
@@ -397,6 +392,97 @@ trait wpcd_wpapp_upgrade_functions {
 	}
 
 	/**
+	 * Check to see if we need to run the upgrade to fix
+	 * the issue with OLS restarting after every three mins.
+	 *
+	 * This function takes a post id in cases where
+	 * we're just checking if an individual server or
+	 * app needs an upgrade.
+	 * If no id is passed, then we're doing a global check
+	 * on all servers.
+	 * If the global check was done and everything is kosher
+	 * then a global option value will be added that can be
+	 * checked at the top of this function.
+	 *
+	 * @param int $post_id Optional post id that points to a WPCD server post.
+	 */
+	public function wpapp_upgrade_must_run_check_530( $post_id = 0 ) {
+
+		// Check a system-wide option variable to see the last update that was done.
+		if ( (int) get_option( 'wpcd_last_upgrade_done' ) >= 526 ) {
+			return false;  // no upgrade needed for version 5.3.0.
+		}
+
+		// if we have a post id, then we're asking for a check on just one server.
+		if ( $post_id > 0 ) {
+
+			$webserver_type = $this->get_web_server_type( $post_id );
+
+			/* Only webservers of type OLS needs an upgrade for this version. */
+			if ( ! in_array( $webserver_type, array( 'ols', 'ols-enterprise' ), true ) ) {
+				return false;
+			}
+
+			/* Check version numbers on server - only versions lower than 5.2.3 need to be upgraded.  NOTE: V 5.2.6 is the beta version of 5.3.0*/
+			$updated_plugin_version = $this->get_server_meta_by_app_id( $post_id, 'wpcd_server_plugin_updated_version', true );
+			if ( version_compare( $updated_plugin_version, '5.2.6' ) >= 0 ) {
+				return false;
+			}
+
+			/* If we got here, we need to check to see if the server needs to be upgraded */
+			$last_upgrade_done = (int) get_post_meta( $post_id, 'wpcd_last_upgrade_done', true );
+			if ( $last_upgrade_done < 526 ) {
+				return 526;
+			} else {
+				return false;
+			}
+		} else {
+			// If we got here then we're doing a system-wide upgrade check.
+			// So we need to start checking to see if ANY individual servers still need to be upgraded.
+			$args = array(
+				'post_type'      => 'wpcd_app_server',
+				'post_status'    => 'private',
+				'posts_per_page' => 99999,
+			);
+		}
+
+		$posts = get_posts( $args );
+		foreach ( $posts as $post ) {
+
+			$webserver_type = $this->get_web_server_type( $post->ID );
+
+			/* Only webservers of type OLS needs an upgrade for this version. */
+			if ( ! in_array( $webserver_type, array( 'ols', 'ols-enterprise' ), true ) ) {
+				continue;
+			}
+
+			/* Check version numbers on server - only versions lower than 5.2.3 need to be upgraded.  NOTE: V 5.2.6 is the beta version of 5.3.0*/
+			$updated_plugin_version = $this->get_server_meta_by_app_id( $post->ID, 'wpcd_server_plugin_updated_version', true );
+			if ( version_compare( $updated_plugin_version, '5.2.6' ) >= 0 ) {
+				continue;
+			}
+
+			/* If we got here, we need to check to see if the server needs to be upgraded */
+			$last_upgrade_done = get_post_meta( $post->ID, 'wpcd_last_upgrade_done', true );
+			if ( ( $last_upgrade_done < 526 ) && ( 'wordpress-app' === get_post_meta( $post->ID, 'wpcd_server_server-type', true ) ) ) {
+				// At least one server still needs to be updated.
+				return true;
+			}
+		}
+
+		// If we get this far, all the servers were updated.
+		// Or maybe it's a new install and there are no servers yet.
+		// Either way set a system option so that future checks are faster.
+		if ( (int) get_option( 'wpcd_last_upgrade_done' ) < 526 ) {
+			update_option( 'wpcd_last_upgrade_done', 526 );
+		}
+
+		// Still here?
+		return false;
+
+	}
+
+	/**
 	 * Show the upgrade status in the LOCAL STATUS column in the server list.
 	 *
 	 * Filter Hook: wpcd_app_server_admin_list_local_status_column
@@ -408,9 +494,15 @@ trait wpcd_wpapp_upgrade_functions {
 	 */
 	public function app_server_admin_list_upgrade_status( $column_data, $post_id ) {
 
+		$webserver_type = $this->get_web_server_type( $post_id );
+
 		if ( 'wordpress-app' === WPCD_WORDPRESS_APP()->get_server_type( $post_id ) ) {
 			if ( $this->wpapp_upgrade_must_run_check( $post_id ) ) {
 				$output      = '<span class="wpcd_upgrade_needed_warning">' . __( 'A server upgrade is needed. Please see the upgrades tab.', 'wpcd' ) . '</span>';
+				$column_data = $column_data . $output;
+			}
+			if ( $this->is_cache_enabler_nginx_upgrade_needed( $post_id ) && 'nginx' === $webserver_type ) {
+				$output      = '<span class="wpcd_upgrade_needed_warning">' . __( 'A server upgrade is needed to optimize the NGINX cache. Please see the upgrades tab.', 'wpcd' ) . '</span>';
 				$column_data = $column_data . $output;
 			}
 		}
@@ -500,6 +592,34 @@ trait wpcd_wpapp_upgrade_functions {
 		if ( (int) get_option( 'wpcd_last_upgrade_done' ) < 510 ) {
 			update_option( 'wpcd_last_silent_auto_upgrade_done', 510 );
 		}
+
+	}
+
+	/**
+	 * Returns a boolean true/false if we need to install a new version of the cache_enabler script.
+	 *
+	 * @param int $server_id ID of server being interrogated.
+	 *
+	 * @return boolean
+	 */
+	public function is_cache_enabler_nginx_upgrade_needed( $server_id ) {
+
+		$initial_plugin_version = $this->get_server_meta_by_app_id( $server_id, 'wpcd_server_plugin_initial_version', true );  // This function is smart enough to know if the ID being passed is a server or app id and adjust accordingly.
+
+		if ( version_compare( $initial_plugin_version, '5.2.9' ) > -1 ) {
+			// Versions of the plugin after 5.2.9 already has the latest version of cache_enabler.
+			return false;
+		} else {
+			// See if it was manually upgraded - which would leave a meta field value behind on the server CPT record.
+			$it_is_installed = (float) $this->get_server_meta_by_app_id( $server_id, 'wpcd_cache_enabler_nginx_upgrade', true );   // This function is smart enough to know if the ID being passed is a server or app id and adjust accordingly.
+			if ( $it_is_installed >= 5.11 ) {  // Increase this number to 5.12, 5.13 etc if we need to upgrade again in the future - this is not a version number. It just needs to increase.
+				return false;
+			} else {
+				return true;
+			}
+		}
+
+		return false;
 
 	}
 

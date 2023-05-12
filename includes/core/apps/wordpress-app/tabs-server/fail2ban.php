@@ -251,6 +251,9 @@ class WPCD_WORDPRESS_TABS_SERVER_FAIL2BAN extends WPCD_WORDPRESS_TABS {
 	 */
 	private function get_fail2ban_fields( $id ) {
 
+		// Get Webserver Type.
+		$webserver_type = $this->get_web_server_type( $id );
+
 		// Set up metabox items.
 		$actions = array();
 
@@ -407,102 +410,107 @@ class WPCD_WORDPRESS_TABS_SERVER_FAIL2BAN extends WPCD_WORDPRESS_TABS {
 			$protocols = wpcd_maybe_unserialize( get_post_meta( $id, 'wpcd_wpapp_fail2ban_protocols', true ) );
 
 			/* Fail2Ban Individual Protocols */
-			foreach ( $protocols as $protocol => $protocol_parms ) {
+			if ( $protocols ) {
+				foreach ( $protocols as $protocol => $protocol_parms ) {
 
-				$protocol_ban_time  = $protocol_parms['ban_time'];
-				$protocol_find_time = $protocol_parms['find_time'];
-				$protocol_max_retry = $protocol_parms['max_retry'];
+					$protocol_ban_time  = $protocol_parms['ban_time'];
+					$protocol_find_time = $protocol_parms['find_time'];
+					$protocol_max_retry = $protocol_parms['max_retry'];
 
-				$actions[ "fail2ban-header-$protocol" ] = array(
-					'label'          => $protocol,
-					'type'           => 'heading',
-					'raw_attributes' => array(
-						'desc' => sprintf( __( '%s Jail Settings', 'wpcd' ), strtoupper( $protocol ) ),
-					),
-				);
+					$actions[ "fail2ban-header-$protocol" ] = array(
+						'label'          => $protocol,
+						'type'           => 'heading',
+						'raw_attributes' => array(
+							'desc' => sprintf( __( '%s Jail Settings', 'wpcd' ), strtoupper( $protocol ) ),
+						),
+					);
 
-				$actions[ "fail2ban-new-ban-time-$protocol" ]  = array(
-					'label'          => __( 'Ban Time', 'wpcd' ),
-					'type'           => 'number',
-					'raw_attributes' => array(
-						'desc'           => __( 'Duration (in seconds) for an IP to be banned.', 'wpcd' ),
-						'std'            => $protocol_ban_time,
-						// the key of the field (the key goes in the request).
-						'data-wpcd-name' => 'bantime_new',
-						'columns'        => 6,
-					),
-				);
-				$actions[ "fail2ban-new-find-time-$protocol" ] = array(
-					'label'          => __( 'Find Time', 'wpcd' ),
-					'type'           => 'number',
-					'raw_attributes' => array(
-						'desc'           => __( 'The MAX RETRY counter is set to zero if no match is found within this time period.', 'wpcd' ),
-						'std'            => $protocol_find_time,
-						// the key of the field (the key goes in the request).
-						'data-wpcd-name' => 'findtime_new',
-						'columns'        => 6,
-					),
-				);
-				$actions[ "fail2ban-new-max-retry-$protocol" ] = array(
-					'label'          => __( 'Max Retry', 'wpcd' ),
-					'type'           => 'number',
-					'raw_attributes' => array(
-						'desc'           => __( 'Number of matches which triggers ban action on the IP.', 'wpcd' ),
-						'std'            => $protocol_max_retry,
-						// the key of the field (the key goes in the request).
-						'data-wpcd-name' => 'maxretry_new',
-						'columns'        => 6,
-					),
-				);
-				$actions[ "fail2ban-new-$protocol" ]           = array(
-					'label'          => __( 'Protocol', 'wpcd' ),
-					'type'           => 'text',
-					'raw_attributes' => array(
-						'desc'           => __( 'DO NOT CHANGE!', 'wpcd' ),
-						'std'            => $protocol,
-						// the key of the field (the key goes in the request).
-						'data-wpcd-name' => 'protocol_update',
-						'columns'        => 6,
-					),
-				);
+					$actions[ "fail2ban-new-ban-time-$protocol" ]  = array(
+						'label'          => __( 'Ban Time', 'wpcd' ),
+						'type'           => 'number',
+						'raw_attributes' => array(
+							'desc'           => __( 'Duration (in seconds) for an IP to be banned.', 'wpcd' ),
+							'std'            => $protocol_ban_time,
+							// the key of the field (the key goes in the request).
+							'data-wpcd-name' => 'bantime_new',
+							'columns'        => 6,
+						),
+					);
+					$actions[ "fail2ban-new-find-time-$protocol" ] = array(
+						'label'          => __( 'Find Time', 'wpcd' ),
+						'type'           => 'number',
+						'raw_attributes' => array(
+							'desc'           => __( 'The MAX RETRY counter is set to zero if no match is found within this time period.', 'wpcd' ),
+							'std'            => $protocol_find_time,
+							// the key of the field (the key goes in the request).
+							'data-wpcd-name' => 'findtime_new',
+							'columns'        => 6,
+						),
+					);
+					$actions[ "fail2ban-new-max-retry-$protocol" ] = array(
+						'label'          => __( 'Max Retry', 'wpcd' ),
+						'type'           => 'number',
+						'raw_attributes' => array(
+							'desc'           => __( 'Number of matches which triggers ban action on the IP.', 'wpcd' ),
+							'std'            => $protocol_max_retry,
+							// the key of the field (the key goes in the request).
+							'data-wpcd-name' => 'maxretry_new',
+							'columns'        => 6,
+						),
+					);
+					$actions[ "fail2ban-new-$protocol" ]           = array(
+						'label'          => __( 'Protocol', 'wpcd' ),
+						'type'           => 'text',
+						'raw_attributes' => array(
+							'desc'           => __( 'DO NOT CHANGE!', 'wpcd' ),
+							'std'            => $protocol,
+							// the key of the field (the key goes in the request).
+							'data-wpcd-name' => 'protocol_update',
+							'columns'        => 6,
+						),
+					);
 
-				$actions[ "fail2ban-change-protocol-$protocol" ] = array(
-					'label'          => '',
-					'raw_attributes' => array(
-						'std'                 => __( 'Change', 'wpcd' ),
-						'desc'                => __( 'Click the button to change the data for this protocol.', 'wpcd' ), // make sure we give the user a confirmation prompt.
-						'confirmation_prompt' => sprintf( __( 'Are you sure you would like to change the parameters for the %s protocol on the Fail2Ban service?', 'wpcd' ), $protocol ),
-						'data-wpcd-fields'    => json_encode( array( "#wpcd_app_action_fail2ban-new-$protocol", "#wpcd_app_action_fail2ban-new-ban-time-$protocol", "#wpcd_app_action_fail2ban-new-find-time-$protocol", "#wpcd_app_action_fail2ban-new-max-retry-$protocol" ) ),
-						'columns'             => 4,
-					),
-					'type'           => 'button',
-				);
-
-				// Show remove and delete meta buttons if protocol is not sshd or nginx.
-				if ( ! in_array( $protocol, array_keys( $this->get_default_protocols() ) ) ) {
-					$actions[ "fail2ban-remove-protocol-$protocol" ] = array(
+					$actions[ "fail2ban-change-protocol-$protocol" ] = array(
 						'label'          => '',
 						'raw_attributes' => array(
-							'std'                 => __( 'Remove Protocol', 'wpcd' ),
-							'desc'                => __( 'Click the button to disable this protocol in fail2ban.', 'wpcd' ), // make sure we give the user a confirmation prompt.
-							'confirmation_prompt' => sprintf( __( 'Are you sure you would like to disable the %s protocol on the Fail2Ban service?', 'wpcd' ), $protocol ),
-							'data-wpcd-fields'    => json_encode( array( "#wpcd_app_action_fail2ban-new-$protocol" ) ),
+							'std'                 => __( 'Change', 'wpcd' ),
+							'desc'                => __( 'Click the button to change the data for this protocol.', 'wpcd' ),
+							// make sure we give the user a confirmation prompt.
+							'confirmation_prompt' => sprintf( __( 'Are you sure you would like to change the parameters for the %s protocol on the Fail2Ban service?', 'wpcd' ), $protocol ),
+							'data-wpcd-fields'    => json_encode( array( "#wpcd_app_action_fail2ban-new-$protocol", "#wpcd_app_action_fail2ban-new-ban-time-$protocol", "#wpcd_app_action_fail2ban-new-find-time-$protocol", "#wpcd_app_action_fail2ban-new-max-retry-$protocol" ) ),
 							'columns'             => 4,
 						),
 						'type'           => 'button',
 					);
 
-					$actions[ "fail2ban-remove-protocol-meta-$protocol" ] = array(
-						'label'          => '',
-						'raw_attributes' => array(
-							'std'                 => __( 'Remove Metas', 'wpcd' ),
-							'desc'                => __( 'Click the button to remove metas. No changes will be made to the server.', 'wpcd' ), // make sure we give the user a confirmation prompt.
-							'confirmation_prompt' => sprintf( __( 'Are you sure you would like to remove metas for the %s protocol?', 'wpcd' ), $protocol ),
-							'data-wpcd-fields'    => json_encode( array( "#wpcd_app_action_fail2ban-new-$protocol" ) ),
-							'columns'             => 4,
-						),
-						'type'           => 'button',
-					);
+					// Show remove and delete meta buttons if protocol is not sshd or nginx.
+					if ( ! in_array( $protocol, array_keys( $this->get_default_protocols( $id ) ) ) ) {
+						$actions[ "fail2ban-remove-protocol-$protocol" ] = array(
+							'label'          => '',
+							'raw_attributes' => array(
+								'std'                 => __( 'Remove Protocol', 'wpcd' ),
+								'desc'                => __( 'Click the button to disable this protocol in fail2ban.', 'wpcd' ),
+								// make sure we give the user a confirmation prompt.
+								'confirmation_prompt' => sprintf( __( 'Are you sure you would like to disable the %s protocol on the Fail2Ban service?', 'wpcd' ), $protocol ),
+								'data-wpcd-fields'    => json_encode( array( "#wpcd_app_action_fail2ban-new-$protocol" ) ),
+								'columns'             => 4,
+							),
+							'type'           => 'button',
+						);
+
+						$actions[ "fail2ban-remove-protocol-meta-$protocol" ] = array(
+							'label'          => '',
+							'raw_attributes' => array(
+								'std'                 => __( 'Remove Metas', 'wpcd' ),
+								'desc'                => __( 'Click the button to remove metas. No changes will be made to the server.', 'wpcd' ),
+								// make sure we give the user a confirmation prompt.
+								'confirmation_prompt' => sprintf( __( 'Are you sure you would like to remove metas for the %s protocol?', 'wpcd' ), $protocol ),
+								'data-wpcd-fields'    => json_encode( array( "#wpcd_app_action_fail2ban-new-$protocol" ) ),
+								'columns'             => 4,
+							),
+							'type'           => 'button',
+						);
+					}
 				}
 			}
 			/* End Fail2Ban Individual Protocols */
@@ -922,8 +930,19 @@ class WPCD_WORDPRESS_TABS_SERVER_FAIL2BAN extends WPCD_WORDPRESS_TABS {
 
 	/**
 	 * Return a list of default protocols that are installed when we install fail2ban.
+	 *
+	 * @param int $id Post id of server.
 	 */
-	public function get_default_protocols() {
+	public function get_default_protocols( $id ) {
+
+		// Get Webserver Type.
+		$webserver_type = $this->get_web_server_type( $id );
+
+		// The only protocols we know about are related to NGINX.
+		// If not NGINX just return nothing.
+		if ( 'nginx' !== $webserver_type ) {
+			return false;
+		}
 
 		return array(
 			'sshd'            => array(
@@ -956,7 +975,7 @@ class WPCD_WORDPRESS_TABS_SERVER_FAIL2BAN extends WPCD_WORDPRESS_TABS {
 	 * @param int $id     Server/post id to update.
 	 */
 	public function update_default_protocol_metas( $id ) {
-		$protocols = $this->get_default_protocols();
+		$protocols = $this->get_default_protocols( $id );
 		update_post_meta( $id, 'wpcd_wpapp_fail2ban_installed', 'yes' );
 		update_post_meta( $id, 'wpcd_wpapp_fail2ban_ban_time', '600' );
 		update_post_meta( $id, 'wpcd_wpapp_fail2ban_find_time', '600' );

@@ -230,7 +230,9 @@ trait wpcd_wpapp_script_handlers {
 				$return =
 				( strpos( $result, 'Wildcard HTTPS has been configured for' ) !== false )
 				||
-				( strpos( $result, 'HTTPS disabled for' ) !== false );
+				( strpos( $result, 'HTTPS disabled for' ) !== false )
+				||
+				( strpos( $result, 'SSL is already disabled for' ) !== false );
 				break;
 			case 'site_sync_origin_setup.txt':
 				$return =
@@ -245,6 +247,8 @@ trait wpcd_wpapp_script_handlers {
 			case 'site_sync.txt':
 				$return =
 				( strpos( $result, 'Site Sync Completed Successfully' ) !== false )
+				||
+				( strpos( $result, 'MT Site Sync Completed Successfully' ) !== false )
 				||
 				( strpos( $result, 'Site sync has been scheduled' ) !== false );
 				break;
@@ -336,6 +340,47 @@ trait wpcd_wpapp_script_handlers {
 				$return =
 				( strpos( $result, 'Updated WPConfig Option Value' ) !== false );
 				break;
+			case 'git_control_site_command.txt':
+			case 'git_control_site.txt':
+				$return =
+				( strpos( $result, 'Git Init Complete For Domain' ) !== false )
+				||
+				( strpos( $result, 'Git has been removed from' ) !== false )
+				||
+				( strpos( $result, 'Git sync succeeded' ) !== false )
+				||
+				( strpos( $result, 'Git branch switch and checkout succeeded' ) !== false )
+				||
+				( strpos( $result, 'Git create new branch and checkout succeeded' ) !== false )
+				||
+				( strpos( $result, 'Git commit and push succeeded' ) !== false )
+				||
+				( strpos( $result, 'Git tag and push succeeded' ) !== false )
+				||
+				( strpos( $result, 'Git pull tag succeeded' ) !== false )
+				||
+				( strpos( $result, 'Git fetch tag succeeded' ) !== false )
+				||
+				( strpos( $result, 'Version folder has been removed for' ) !== false )
+				||
+				( strpos( $result, 'All version folders have been removed for' ) !== false )
+				||
+				( strpos( $result, 'Git switch version succeeded' ) !== false )
+				||
+				( strpos( $result, 'Git credentials successfully set up for domain' ) !== false )
+				||
+				( strpos( $result, 'Git clone successful' ) !== false )
+				||
+				( strpos( $result, 'Multi-tenant: Fetch version succeeded' ) !== false )
+				||
+				( strpos( $result, 'Multi-tenant: Site conversion succeeded' ) !== false );
+				break;
+			case 'mt_clone_site.txt':
+				$return = ( strpos( $result, 'has been cloned' ) !== false && strpos( $result, 'Git tag and push succeeded' ) !== false && strpos( $result, 'Multi-tenant: Fetch version succeeded' ) !== false );
+				break;
+			case 'mt_convert_site.txt':
+				$return = ( strpos( $result, 'Multi-tenant: Site conversion succeeded for' ) !== false );
+				break;
 
 			/**************************************************************
 			* The items below this are SERVER items, not APP items        *
@@ -408,6 +453,7 @@ trait wpcd_wpapp_script_handlers {
 			case 'run_upgrades_460.txt':
 			case 'run_upgrades_461.txt':
 			case 'run_upgrades_462.txt':
+			case 'run_upgrades_530.txt':
 				$return =
 				( strpos( $result, 'upgrade completed' ) !== false )
 				||
@@ -418,14 +464,23 @@ trait wpcd_wpapp_script_handlers {
 			case 'run_upgrade_install_php_81.txt':
 				$return = ( strpos( $result, 'PHP 8.1 has been installed' ) !== false );
 				break;
+			case 'run_upgrade_install_php_82.txt':
+				$return = ( strpos( $result, 'PHP 8.2 has been installed' ) !== false );
+				break;
 			case 'run_upgrade_7g.txt':
 				$return = ( strpos( $result, 'The 7G Firewall has been upgraded' ) !== false );
+				break;
+			case 'run_remove_6g.txt':
+				$return = ( strpos( $result, 'The 6G Firewall has been removed' ) !== false );
 				break;
 			case 'run_upgrade_wpcli.txt':
 				$return = ( strpos( $result, 'WPCLI has been upgraded' ) !== false );
 				break;
 			case 'run_upgrade_install_php_intl.txt':
 				$return = ( strpos( $result, 'PHP intl module has been installed' ) !== false );
+				break;
+			case 'run_upgrade_cache_enabler_nginx_config.txt':
+				$return = ( strpos( $result, 'Cache Enabler NGINX Config Has Been Upgraded' ) !== false );
 				break;
 			case 'server_status_callback.txt':
 				$return =
@@ -635,6 +690,12 @@ trait wpcd_wpapp_script_handlers {
 				$return =
 				( strpos( $result, 'Server level PHP version has been updated to' ) !== false );
 				break;
+			case 'git_control_server.txt':
+				$return =
+				( strpos( $result, 'Git has been installed' ) !== false )
+				||
+				( strpos( $result, 'Git has been updated' ) !== false );
+				break;
 
 			/**************************************************************
 			* The items below this are SERVER SYNC items, not APP items   *
@@ -832,6 +893,15 @@ trait wpcd_wpapp_script_handlers {
 				);
 				break;
 			case 'change_domain_quick.txt':
+				$new_array = array_merge(
+					array(
+						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/05-change_domain.txt',
+						'SCRIPT_NAME' => '05-change_domain.sh',
+					),
+					$common_array,
+					$additional
+				);
+				break;
 			case 'change_domain_full.txt':
 				$command_name = $additional['command'];
 				$new_array    = array_merge(
@@ -1155,6 +1225,57 @@ trait wpcd_wpapp_script_handlers {
 					$additional
 				);
 				break;
+			case 'git_control_site_command.txt':
+				$command_name = $additional['command'];
+				$new_array    = array_merge(
+					array(
+						'SCRIPT_URL'   => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/58-git_control.txt',
+						'SCRIPT_NAME'  => '58-git_control.sh',
+						'SCRIPT_LOGS'  => "{$this->get_app_name()}_{$command_name}",
+						'CALLBACK_URL' => $this->get_command_url( $instance['app_id'], $command_name, 'completed' ),
+					),
+					$common_array,
+					$additional
+				);
+				break;
+			case 'git_control_site.txt':
+				$new_array = array_merge(
+					array(
+						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/58-git_control.txt',
+						'SCRIPT_NAME' => '58-git_control.sh',
+					),
+					$common_array,
+					$additional
+				);
+				break;
+			case 'mt_clone_site.txt':
+				$command_name = $additional['command'];
+				$new_array    = array_merge(
+					array(
+						'SCRIPT_URL'   => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/09-clone_site.txt',
+						'SCRIPT_NAME'  => '09-clone_site.sh',
+						'SCRIPT_URL2'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/58-git_control.txt',
+						'SCRIPT_NAME2' => '58-git_control.sh',
+						'SCRIPT_LOGS'  => "{$this->get_app_name()}_{$command_name}",
+						'CALLBACK_URL' => $this->get_command_url( $instance['app_id'], $command_name, 'completed' ),
+					),
+					$common_array,
+					$additional
+				);
+				break;
+			case 'mt_convert_site.txt':
+				$command_name = $additional['command'];
+				$new_array    = array_merge(
+					array(
+						'SCRIPT_URL'   => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/58-git_control.txt',
+						'SCRIPT_NAME'  => '58-git_control.sh',
+						'SCRIPT_LOGS'  => "{$this->get_app_name()}_{$command_name}",
+						'CALLBACK_URL' => $this->get_command_url( $instance['app_id'], $command_name, 'completed' ),
+					),
+					$common_array,
+					$additional
+				);
+				break;
 
 			/*********************************************************
 			* The items below this are SERVER items, not APP items   *
@@ -1313,6 +1434,16 @@ trait wpcd_wpapp_script_handlers {
 					$additional
 				);
 				break;
+			case 'run_upgrades_530.txt':
+				$new_array = array_merge(
+					array(
+						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/1090-upgrade_530_ols_server_fix.txt',
+						'SCRIPT_NAME' => '1090-upgrade_530_ols_server_fix.sh',
+					),
+					$common_array,
+					$additional
+				);
+				break;
 			case 'run_upgrade_install_php_81.txt':
 				$new_array = array_merge(
 					array(
@@ -1323,11 +1454,31 @@ trait wpcd_wpapp_script_handlers {
 					$additional
 				);
 				break;
+			case 'run_upgrade_install_php_82.txt':
+				$new_array = array_merge(
+					array(
+						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/1110-upgrade_install_php_82.txt',
+						'SCRIPT_NAME' => '1110-upgrade_install_php_82.sh',
+					),
+					$common_array,
+					$additional
+				);
+				break;
 			case 'run_upgrade_7g.txt':
 				$new_array = array_merge(
 					array(
 						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/1060-upgrade_7g_firewall.txt',
 						'SCRIPT_NAME' => '1060-upgrade_7g_firewall.sh',
+					),
+					$common_array,
+					$additional
+				);
+				break;
+			case 'run_remove_6g.txt':
+				$new_array = array_merge(
+					array(
+						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/1120-remove_6g_firewall.txt',
+						'SCRIPT_NAME' => '1120-remove_6g_firewall.sh',
 					),
 					$common_array,
 					$additional
@@ -1348,6 +1499,16 @@ trait wpcd_wpapp_script_handlers {
 					array(
 						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/1080-upgrade_install_php_intl_module.txt',
 						'SCRIPT_NAME' => '1080-upgrade_install_php_intl_module.sh',
+					),
+					$common_array,
+					$additional
+				);
+				break;
+			case 'run_upgrade_cache_enabler_nginx_config.txt':
+				$new_array = array_merge(
+					array(
+						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/1100-upgrade_cache_enabler.txt',
+						'SCRIPT_NAME' => '1100-upgrade_cache_enabler.sh',
 					),
 					$common_array,
 					$additional
@@ -1443,8 +1604,21 @@ trait wpcd_wpapp_script_handlers {
 					$additional
 				);
 				break;
+			case 'git_control_server.txt':
+				$command_name = $additional['command'];
+				$new_array    = array_merge(
+					array(
+						'SCRIPT_URL'   => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/58-git_control.txt',
+						'SCRIPT_NAME'  => '58-git_control.sh',
+						'SCRIPT_LOGS'  => "{$this->get_app_name()}_{$command_name}",
+						'CALLBACK_URL' => $this->get_command_url( $instance['server_id'], $command_name, 'completed' ),
+					),
+					$common_array,
+					$additional
+				);
+				break;
 
-			/**************************************************************
+				/**************************************************************
 			* The items below this are SERVER SYNC items, not APP items   *
 			*/
 			case 'server_sync_origin_setup.txt':

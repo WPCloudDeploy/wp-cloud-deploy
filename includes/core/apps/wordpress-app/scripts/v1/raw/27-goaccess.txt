@@ -281,7 +281,7 @@ function goaccess_remove
 	goaccess_ssl_disable
 	if [ "$g_webserver_type" = "nginx" ]
 	then
-		domain=`grep -m 1 server_name /etc/nginx/sites-enabled/goaccess.conf 2>&1 > /dev/null|awk '{print $2}'`
+		domain=`grep -m 1 server_name /etc/nginx/sites-enabled/goaccess.conf |awk '{print $2}'`
 		rm -f /etc/nginx/sites-enabled/goaccess.conf > /dev/null 2>&1
 	elif [ "$g_webserver_type" = "ols" ]
 	then

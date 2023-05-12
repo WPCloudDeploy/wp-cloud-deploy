@@ -1,0 +1,31 @@
+#!/bin/bash
+if [[ "$EUID" -ne 0 ]]; then
+	echo "Sorry, you need to run this as root"
+	exit
+fi
+
+## Get our common functions
+if [[ ! -f 9999-common-functions.sh ]]
+then
+	echo "The file 9999-common-functions.sh is missing"
+	exit 1
+fi
+source 9999-common-functions.sh
+
+# Not supported on NGINX since all updates only apply to OLS for this upgrade script.
+if [ "$g_webserver_type" = "nginx" ]
+then
+    echo "This upgrade operation is only supported on OLS type servers."
+    exit 1
+fi
+
+if [[ "$interactive" != "no" ]]; then
+    clear
+    echo "This script will fix an issue with OLS automatically restarting every three minutes."
+    echo
+    read -p "Press enter to start"
+fi
+
+sed -i 's|/usr/local/lsws/admin/cgid|/usr/local/lsws/cgid|' /etc/cron.d/openlitespeed_htaccess_scan
+
+echo "Upgrade Completed!"

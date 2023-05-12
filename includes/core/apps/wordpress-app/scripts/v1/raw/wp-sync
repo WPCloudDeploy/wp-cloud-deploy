@@ -103,7 +103,7 @@ ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" root@$dest "mariadb
 ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" root@$dest "rm -f /root/databases_backup.sql /root/user_privileges_final.sql"
 
 # sync files.
-rsync -a --delete -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /var/www root@$dest:/var && echo "$(date) Site sync completed" >> /var/log/wp-sync.log || echo "$(date) Site sync failed" >> /var/log/wp-sync.log
+rsync -aLK --delete -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /var/www root@$dest:/var && echo "$(date) Site sync completed" >> /var/log/wp-sync.log || echo "$(date) Site sync failed" >> /var/log/wp-sync.log
 rsync -a --delete -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /etc/nginx root@$dest:/etc > /dev/null 2>&1
 rsync -a --delete -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /etc/php root@$dest:/etc  > /dev/null 2>&1
 rsync -a --delete -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /usr/local/lsws root@$dest:/usr/local/ > /dev/null 2>&1
@@ -118,7 +118,7 @@ rsync -a --delete -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa
 if [ "$webserver_type" = "nginx" ]
 then
 	# restart services
-	phpversion=(5.6 7.1 7.2 7.3 7.4 8.0 8.1)
+	phpversion=(5.6 7.1 7.2 7.3 7.4 8.0 8.1 8.2)
 	for ver in "${phpversion[@]}"
 	do
 		ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" root@$dest "[[ ! -f /etc/wpcd/php-versions-disabled/$ver ]] && systemctl restart php$ver-fpm" && echo "$(date) PHP $ver restart completed" >> /var/log/wp-sync.log || echo "$(date) PHP $ver restart failed" >> /var/log/wp-sync.log

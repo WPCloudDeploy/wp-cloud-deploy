@@ -231,7 +231,7 @@ class WP_CLOUD_DEPLOY {
 				'edit-tags.php?taxonomy=wpcd_app_server_group&amp;post_type=wpcd_app_server' => 20,
 				'edit.php?post_type=wpcd_app'            => 30,
 				'edit-tags.php?taxonomy=wpcd_app_group&post_type=wpcd_app' => 40,
-				'edit.php?s&post_status=all&post_type=wpcd_app&app_type=wordpress-app&filter_action=' . __( 'Filter', 'wpcd' ) => 50,
+				'edit.php?s&post_status=all&post_type=wpcd_app&app_type=wordpress-app&filter_action=' . 'Filter' => 50,
 				'edit.php?post_type=wpcd_cloud_provider' => 60,
 				'edit.php?post_type=wpcd_team'           => 70,
 				'edit.php?post_type=wpcd_ssh_log'        => 80,
@@ -284,7 +284,7 @@ class WP_CLOUD_DEPLOY {
 			( defined( 'WPCD_WPAPP_MENU_NAME' ) ? WPCD_WPAPP_MENU_NAME : __( 'WordPress Sites', 'wpcd' ) ),
 			( defined( 'WPCD_WPAPP_MENU_NAME' ) ? WPCD_WPAPP_MENU_NAME : __( 'WordPress Sites', 'wpcd' ) ),
 			'wpcd_manage_apps',
-			'edit.php?s&post_status=all&post_type=wpcd_app&app_type=wordpress-app&filter_action=' . __( 'Filter', 'wpcd' ),
+			'edit.php?s&post_status=all&post_type=wpcd_app&app_type=wordpress-app&filter_action=' . 'Filter',
 			'',
 			3
 		);
@@ -374,7 +374,7 @@ class WP_CLOUD_DEPLOY {
 				&& 'wordpress-app' === $_GET['app_type'] ) {
 
 				// Set as the current submenu item the WordPress Sites filter menu item.
-				$submenu_file = 'edit.php?s&post_status=all&post_type=wpcd_app&app_type=wordpress-app&filter_action=' . __( 'Filter', 'wpcd' );
+				$submenu_file = 'edit.php?s&post_status=all&post_type=wpcd_app&app_type=wordpress-app&filter_action=' . 'Filter';
 			}
 		}
 
@@ -615,6 +615,18 @@ class WP_CLOUD_DEPLOY {
 		$alternate_accent_bg_color = wpcd_get_option( 'wordpress_app_alternate_accent_background_color' );
 		$alternate_accent_bg_color = empty( $alternate_accent_bg_color ) ? WPCD_ALTERNATE_ACCENT_BG_COLOR : $alternate_accent_bg_color;
 
+		$positive_color = wpcd_get_option( 'wordpress_app_positive_color' );
+		$positive_color = empty( $positive_color ) ? WPCD_POSITIVE_COLOR : $positive_color;
+
+		$negative_color = wpcd_get_option( 'wordpress_app_negative_color' );
+		$negative_color = empty( $negative_color ) ? WPCD_NEGATIVE_COLOR : $negative_color;
+
+		$terminal_bg_color = wpcd_get_option( 'wordpress_app_terminal_background_color' );
+		$terminal_bg_color = empty( $terminal_bg_color ) ? WPCD_TERMINAL_BG_COLOR : $terminal_bg_color;
+
+		$terminal_fg_color = wpcd_get_option( 'wordpress_app_terminal_foreground_color' );
+		$terminal_fg_color = empty( $terminal_fg_color ) ? WPCD_TERMINAL_FG_COLOR : $terminal_fg_color;
+
 		// Get brand color settings for the front-end.
 		$primary_brand_color_fe = wpcd_get_option( 'wordpress_app_fe_primary_brand_color' );
 		$primary_brand_color_fe = empty( $primary_brand_color_fe ) ? WPCD_FE_PRIMARY_BRAND_COLOR : $primary_brand_color_fe;
@@ -637,8 +649,8 @@ class WP_CLOUD_DEPLOY {
 		$alternate_accent_bg_color_fe = wpcd_get_option( 'wordpress_app_fe_alternate_accent_background_color' );
 		$alternate_accent_bg_color_fe = empty( $alternate_accent_bg_color_fe ) ? WPCD_FE_ALTERNATE_ACCENT_BG_COLOR : $alternate_accent_bg_color_fe;
 
-		$postive_color_fe = wpcd_get_option( 'wordpress_app_fe_positive_color' );
-		$postive_color_fe = empty( $postive_color_fe ) ? WPCD_FE_POSITIVE_COLOR : $postive_color_fe;
+		$positive_color_fe = wpcd_get_option( 'wordpress_app_fe_positive_color' );
+		$positive_color_fe = empty( $positive_color_fe ) ? WPCD_FE_POSITIVE_COLOR : $positive_color_fe;
 
 		$negative_color_fe = wpcd_get_option( 'wordpress_app_fe_negative_color' );
 		$negative_color_fe = empty( $negative_color_fe ) ? WPCD_FE_NEGATIVE_COLOR : $negative_color_fe;
@@ -655,6 +667,10 @@ class WP_CLOUD_DEPLOY {
 			--wpcd-medium-background-color: {$medium_bg_color};
 			--wpcd-light-background-color: {$light_bg_color};
 			--wpcd-alternate-accent-background-color: {$alternate_accent_bg_color};
+			--wpcd-positive-color: {$positive_color};			
+			--wpcd-negative-color: {$negative_color};			
+			--wpcd-terminal-background-color: {$terminal_bg_color};			
+			--wpcd-terminal-foreground-color: {$terminal_fg_color};						
 
 			--wpcd-front-end-primary-brand-color: {$primary_brand_color_fe};
 			--wpcd-front-end-secondary-brand-color: {$secondary_brand_color_fe};
@@ -663,8 +679,8 @@ class WP_CLOUD_DEPLOY {
 			--wpcd-front-end-medium-background-color: {$medium_bg_color_fe};
 			--wpcd-front-end-light-background-color: {$light_bg_color_fe};
 			--wpcd-front-end-alternate-accent-background-color: {$alternate_accent_bg_color_fe};
-			--wpcd-front-end-positive-color: {$postive_color_fe};			
-			--wpcd-front-end-negative-color: {$negative_color_fe};			
+			--wpcd-front-end-positive-color: {$positive_color_fe};
+			--wpcd-front-end-negative-color: {$negative_color_fe};
 		}";
 
 		/* Add some global css. */
@@ -703,18 +719,19 @@ class WP_CLOUD_DEPLOY {
 		$oslist = array(
 			'ubuntu2004lts' => __( 'Ubuntu 20.04 LTS', 'wpcd' ),
 			'ubuntu2204lts' => __( 'Ubuntu 22.04 LTS', 'wpcd' ),
-			'ubuntu1804lts' => __( 'Ubuntu 18.04 LTS (Deprecated, EOL April 2023)', 'wpcd' ),
 		);
 
 		// Remove some entries based on settings.
-		if ( (bool) wpcd_get_option( 'wordpress_app_disable_ubuntu_lts_1804' ) ) {
-			unset( $oslist['ubuntu1804lts'] );
-		}
 		if ( (bool) wpcd_get_option( 'wordpress_app_disable_ubuntu_lts_2004' ) ) {
 			unset( $oslist['ubuntu2004lts'] );
 		}
 		if ( (bool) wpcd_get_option( 'wordpress_app_disable_ubuntu_lts_2204' ) ) {
 			unset( $oslist['ubuntu2204lts'] );
+		}
+
+		// Add in some optional entries if necessary.
+		if ( (bool) wpcd_get_option( 'wordpress_app_enable_ubuntu_lts_1804' ) ) {
+			$oslist['ubuntu1804lts'] =  __( 'Ubuntu 18.04 LTS (Deprecated, EOL April 2023)', 'wpcd' );
 		}
 
 		// Return filtered array.
@@ -973,6 +990,7 @@ class WP_CLOUD_DEPLOY {
 				'dns_cloudflare_api_token'   => '(***private***)',
 				'dns_cloudflare_api_key'     => '(***private***)',
 				'secret_key_manager_api_key' => '(***private***)',
+				'git_token'                  => '(***private***)',
 				"Updated the constant 'DB_PASSWORD' in the 'wp-config.php' file with the value " => '(***private***)' . PHP_EOL,
 
 			)
@@ -1098,7 +1116,7 @@ class WP_CLOUD_DEPLOY {
 			$provider_type = get_post_meta( $post[0]->ID, 'wpcd_cloud_provider_type', true );
 			$inactive      = boolval( get_post_meta( $post[0]->ID, 'wpcd_cloud_provider_inactive', true ) );
 
-			// $args is used to tell pass the newly instantiated class some data into its constructor.
+			// $args is used to pass the newly instantiated class some data into its constructor.
 			$args = array(
 				'provider_name'           => $post[0]->post_title,
 				'provider_slug'           => get_post_meta( $post[0]->ID, 'wpcd_cloud_provider_slug', true ),
@@ -1106,7 +1124,7 @@ class WP_CLOUD_DEPLOY {
 				'provider_dashboard_link' => get_post_meta( $post[0]->ID, 'wpcd_cloud_provider_dashboard_link', true ),
 			);
 
-			// see if we can find a class with the provider type - logic is very very similar to that of the get_provider_api function.
+			// See if we can find a class with the provider type - logic is very very similar to that of the get_provider_api function.
 			/* Search through folders looking for a provider class file */
 			foreach ( $provider_paths as $provider_path ) {
 				$provider_file = $provider_path . 'class-' . $provider_type . '.php';
@@ -1217,7 +1235,7 @@ class WP_CLOUD_DEPLOY {
 	 * Return the array of ACTIVE providers
 	 *
 	 * An active provider is one whose credentials have been entered.
-	 * Later we might be more strict with the definition
+	 * Later we might be more strict with the definition.
 	 */
 	public function get_active_cloud_providers() {
 

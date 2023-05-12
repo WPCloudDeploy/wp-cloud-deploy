@@ -188,7 +188,8 @@ It will list available backups in the correct format to set them in the $backup 
 -----------------------------------
 $old_domain = domain of the existing site which you wish to clone
 $new_domain = new domain where you want the site cloned to
-
+$mt_template_domain = The template site name if cloning a tenant site.
+$mt_version = The template version if cloning a template site.
 
 -----------------------------------
 10-misc.sh
@@ -333,6 +334,8 @@ $smtp_user = user name for SMTP authentication
 $smtp_pass = password for SMTP authentication
 $domain = default domain where mail should come from
 $hostname1 = FQDN for the server. Please note that some SMTP servers will require this to be a working domain name (example: server1.myblog.com)
+$usetls = Use TLS. Warning! Turning this off has security implications!
+$usestarttls = Use STARTTLS. Warning! Turning this off has security implications!
 
 For $action = "test_email", the following variables are needed:
 $from = email address to send the test email from
@@ -974,3 +977,149 @@ for "update_exclude_plugins"
 	
 for "update_exclude_themes"
 	- $excluded_themes - a comma separated list of themes to exclude from updates
+
+-----------------------------------
+51-(reserved for future use)
+-----------------------------------
+
+-----------------------------------
+52-(reserved for future use)
+-----------------------------------
+
+-----------------------------------
+53-database-operation.sh
+-----------------------------------
+(coming soon)
+
+-----------------------------------
+54-(reserved for future use)
+-----------------------------------
+
+-----------------------------------
+55-ols_options.sh
+-----------------------------------
+(coming soon)
+
+-----------------------------------
+56-ols_manage_admin_console
+-----------------------------------
+(coming soon)
+
+-----------------------------------
+56-tinyfilemanager
+-----------------------------------
+$action: "install_tinyfilemanager", "remove_tinyfilemanager", "upgrade_tinyfilemanager", "change_auth_tinyfilemanager"
+
+for "install_tinyfilemanager"
+	- $domain - domain where tiny file manager is to be installed.  Must be an existing wp site.
+	- $user
+	- $pass
+	
+for "remove_tinyfilemanager"
+	- $domain - domain where tiny file manager is installed
+	
+for "upgrade_tinyfilemanager"
+	- $domain - domain where tiny file manager is installed
+	
+for "change_auth_tinyfilemanager"
+	- $domain - domain where tiny file manager is installed
+	- $user
+	- $pass
+
+-----------------------------------
+58-git_control.sh
+-----------------------------------
+$action: "git_install", "git_update", "git_init", "git_sync", "git_domain_remove", "git_checkout", "git_new_branch", "git_commit_and_push", "git_tag", 
+		 "git_get_current_branch", "git_fetch_tag", "git_remove_version_folder", "git_remove_all_version_folders", "git_display_domain_version_folders",
+		 "git_fetch_apply_version_with_overwrite", "git_pull_apply_version_with_overwrite", "git_site_credentials", "git_clone_to_site",
+		 "mt_git_fetch_tag", "mt_convert_site"
+
+For "git_init"
+	- $domain - domain we're working with
+	- $git_branch - branch from remote repo to merge with this domain files
+	- $git_user_email - git user email address
+	- $git_display_name - git display name (eg: john smith)
+	- $git_user_name - git user name for authenticating with githuh/bitbucket etc.
+	- $git_remote_url - url for git remote
+	- $git_token - git authentication token
+	- $git_ignore_url - url where baseline .gitignore file is located
+	- $git_pre_processing_script_link - url to a bash script that will run before initializing the repo
+	- $git_post_processing_script_link - url to a bash script that will run after initializing the repo
+	- $git_exclude_folders - comma separated list of folders to add to .gitnore file
+	- $git_exclude_files - comma separated list of files to add to .gitnore file
+	- $git_callback_url - callback url to send status of operation
+
+For "git_domain_remove"
+	- $domain - domain we're working with
+
+for "git_sync"
+	- $domain - domain we're working with
+	- $git_commit_msg - message for commits
+	
+for "git_checkout"
+	- $domain - domain we're working with
+	- $git_branch
+
+for "git_new_branch"
+	- $domain - domain we're working with
+	- $git_branch
+	- $git_new_branch
+	
+for "git_commit_and_push"
+	- $domain - domain we're working with
+	- $git_commit_msg - message for commits
+	
+for "git_tag"
+	- $domain - domain we're working with
+	- $git_tag - Tag (eg: v2.1)
+	
+for "git_get_current_branch"
+	- $domain - domain we're working with
+
+for "git_fetch_tag"
+	- $domain - domain we're working with
+	- $git_tag - Tag (eg: v2.1)
+
+for "git_remove_version_folder"
+	- $domain - domain we're working with
+	- $git_tag - Tag (eg: v2.1)
+	
+for "git_remove_all_version_folders"
+	- $domain - domain we're working with
+
+for "git_display_domain_version_folders"
+	- $domain - domain we're working with
+	
+for "git_fetch_apply_version_with_overwrite"
+	- $domain - domain we're working with
+	- $git_pre_processing_script_link - url to a bash script that will run before this action (not yet implemented)
+	- $git_post_processing_script_link - url to a bash script that will run after this action (not yet implemented)
+	- $git_tag - Tag (eg: v2.1)
+
+for "git_pull_apply_version_with_overwrite"
+	- $domain - domain we're working with
+	- $git_pre_processing_script_link - url to a bash script that will run before this action (not yet implemented)
+	- $git_post_processing_script_link - url to a bash script that will run after this action (not yet implemented)
+	- $git_tag - Tag (eg: v2.1)
+	
+for "git_site_credentials"
+	- $domain - domain we're working with
+	- $git_user_email - git user email address
+	- $git_display_name - git display name (eg: john smith)
+	- $git_user_name - git user name for authenticating with githuh/bitbucket etc.
+	- $git_remote_url - url for git remote
+	- $git_token - git authentication token
+	
+for "git_clone_to_site"
+	- $domain - domain we're working with	
+	- $git_remote_url - url for git remote
+	- $git_branch - branch to clone
+	
+for "mt_git_fetch_tag"
+	- $domain - domain we're working with
+	- $git_tag - Tag (eg: v2.1)
+	
+for "mt_convert_site"
+	- $domain - domain we're working with
+	- $git_tag - Tag (eg: v2.1)
+	- $mt_template_domain - The template domain to which the site (tenant) will be attached.

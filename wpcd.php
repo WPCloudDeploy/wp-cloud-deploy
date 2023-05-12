@@ -3,8 +3,8 @@
 Plugin Name: WPCloudDeploy
 Plugin URI: https://wpclouddeploy.com
 Description: Deploy and manage cloud servers and apps from inside the WordPress Admin dashboard.
-Version: 5.2.3
-Requires at least: 5.4
+Version: 5.3.0
+Requires at least: 5.8
 Requires PHP: 7.4
 Item Id: 1493
 Author: WPCloudDeploy
@@ -61,10 +61,14 @@ class WPCD_Init {
 			define( 'WPCD_PRIMARY_BRAND_COLOR', '#E91E63' );
 			define( 'WPCD_SECONDARY_BRAND_COLOR', '#FF5722' );
 			define( 'WPCD_TERTIARY_BRAND_COLOR', '#03114A' );
-			define( 'WPCD_ACCENT_BG_COLOR', '#3F4C5F' );
+			define( 'WPCD_ACCENT_BG_COLOR', '#0d091a' );
 			define( 'WPCD_MEDIUM_BG_COLOR', '#FAFAFA' );
 			define( 'WPCD_LIGHT_BG_COLOR', '#FDFDFD' );
 			define( 'WPCD_ALTERNATE_ACCENT_BG_COLOR', '#CFD8DC' );
+			define( 'WPCD_POSITIVE_COLOR', '#008000' );
+			define( 'WPCD_NEGATIVE_COLOR', '#8B0000' );
+			define( 'WPCD_TERMINAL_BG_COLOR', '#000000' );
+			define( 'WPCD_TERMINAL_FG_COLOR', '#ffffff' );
 
 			// Define the default brand colors for front-end.
 			define( 'WPCD_FE_PRIMARY_BRAND_COLOR', '#E91E63' );
@@ -97,11 +101,20 @@ class WPCD_Init {
 			}
 		}
 
+		/* Check for incompatible add-ons */
+		if ( is_admin() && ! $this->check_all_addons_compatible() ) {
+			// You will likely not get here because if the check shows add-ons are incompatible we will deactivate ourselves.
+			return false;
+		}
+
 		/* Use init hook to load up required files */
 		add_action( 'init', array( $this, 'required_files' ), -20 );
 
 		/* Use admin_init hook to run things that should only be run when the admin is logged in. */
 		add_action( 'admin_init', array( $this, 'admin_init' ) );
+
+		/* Add hook into option changes so we can detect when a plugin has been activated. */
+		add_action( 'updated_option', array( $this, 'wpcd_updated_option' ), 10, 3 );
 
 		/* Create a custom schedule for 1 minute */
 		add_filter( 'cron_schedules', array( $this, 'custom_cron_schedule' ) );
@@ -125,6 +138,8 @@ class WPCD_Init {
 		/* Send email to admin if critical crons aren't running. */
 		add_action( 'shutdown', array( $this, 'send_email_for_absent_crons' ), 20 );
 
+		/* Show version number in admin footer */
+		add_filter( 'admin_footer_text', array( $this, 'admin_footer_text' ), 10, 1 );
 	}
 
 	/**
@@ -162,6 +177,10 @@ class WPCD_Init {
 	 * @param String $network_wide network_wide.
 	 */
 	public function activate( $network_wide ) {
+
+		// If all add-ons are not compatible, deactivate ourselves.
+		$this->check_all_addons_compatible();
+
 		require_once wpcd_path . 'includes/core/class-wpcd-base.php';
 		require_once wpcd_path . 'includes/core/class-wpcd-posts-base.php';
 		require_once wpcd_path . 'includes/core/apps/class-wpcd-app.php';
@@ -211,6 +230,25 @@ class WPCD_Init {
 		require_once wpcd_path . 'includes/core/class-wpcd-posts-app.php';
 		WPCD_POSTS_APP_SERVER::activate( $network_wide );
 		WPCD_POSTS_APP::activate( $network_wide );
+
+		/* Custom tables for DNS and PROVIDERS */
+		if ( true === wpcd_is_custom_dns_provider_tables_enabled() ) {
+			require_once wpcd_path . 'includes/core/custom-table/api/class-wpcd-custom-table-api.php';
+			require_once wpcd_path . 'includes/core/custom-table/api/class-wpcd-ct-provider-api.php';
+			require_once wpcd_path . 'includes/core/custom-table/api/class-wpcd-ct-dns-provider-api.php';
+			require_once wpcd_path . 'includes/core/custom-table/api/class-wpcd-ct-dns-zone-api.php';
+			require_once wpcd_path . 'includes/core/custom-table/api/class-wpcd-ct-dns-zone-record-api.php';
+
+			require_once wpcd_path . 'includes/core/apps/wordpress-app/public/class-wordpress-app-public.php';
+			require_once wpcd_path . 'required_plugins/mb-custom-table/mb-custom-table.php';
+			require_once wpcd_path . 'includes/core/custom-table/class-wpcd-custom-table.php';
+			require_once wpcd_path . 'includes/core/custom-table/class-wpcd-provider.php';
+			require_once wpcd_path . 'includes/core/custom-table/class-wpcd-dns-provider.php';
+			require_once wpcd_path . 'includes/core/custom-table/class-wpcd-dns-zone.php';
+			require_once wpcd_path . 'includes/core/custom-table/class-wpcd-dns-zone-record.php';
+
+			WPCD_MB_Custom_Table::Activate( $network_wide );
+		}
 
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/public/class-wordpress-app-public.php';
 		WPCD_WORDPRESS_APP_PUBLIC::activate( $network_wide );
@@ -458,8 +496,8 @@ class WPCD_Init {
 		/**
 		 * Finally, maybe ask for setup using Setup wizard.
 		 * Proceed only if both options 'wpcd_plugin_setup' & 'wpcd_skip_wizard_setup' = false
-		 * 'wpas_plugin_setup' will be added at the end of wizard steps
-		 * 'wpas_skip_wizard_setup' will be set to true if user choose to skip wizrd from admin notice
+		 * 'wpcd_plugin_setup' will be added at the end of wizard steps
+		 * 'wpcd_skip_wizard_setup' will be set to true if user choose to skip wizrd from admin notice
 		 */
 		if ( ! get_option( 'wpcd_plugin_setup', false ) && ! get_option( 'wpcd_skip_wizard_setup', false ) ) {
 			require_once wpcd_path . 'includes/core/class-wpcd-setup-wizard.php';
@@ -492,6 +530,7 @@ class WPCD_Init {
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/admin-columns.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/backup.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/woocommerce_support.php';
+		require_once wpcd_path . 'includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/multi-tenant-app.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/upgrade.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/unused.php';
 	}
@@ -787,6 +826,47 @@ class WPCD_Init {
 		}
 	}
 
+	/**
+	 * Add our version number and message to the admin footer area.
+	 *
+	 * @since 5.3.0
+	 *
+	 * Filter Hook: admin_footer_text
+	 *
+	 * @param string $msg The existing message.
+	 *
+	 * @return string
+	 */
+	public function admin_footer_text( $msg ) {
+
+		// Bail if we're not far enough into the initialization process to get the screen id.
+		if ( ! function_exists( 'get_current_screen' ) ) {
+			return $msg;
+		}
+
+		// Message to show defaults to the original incoming message string.
+		$return = $msg;
+
+		$screen = get_current_screen();
+
+		/* @TODO: The list of post types and taxonomies used below should be a global function that is filtered and called by add-ons to add their own CPT to the arrays. */
+		if ( ( is_object( $screen ) && ( in_array( $screen->post_type, array( 'wpcd_app', 'wpcd_app_server', 'wpcd_cloud_provider', 'wpcd_ssh_log', 'wpcd_team', 'wpcd_command_log', 'wpcd_pending_log', 'wpcd_error_log', 'wpcd_schedules', 'wpcd_snapshots', 'wpcd_permission_type', 'wpcd_notify_log', 'wpcd_notify_user', 'wpcd_notify_sent' ), true ) || in_array( $screen->taxonomy, array( 'wpcd_app_group', 'wpcd_app_server_group', 'wpcd_reporting_group' ), true ) ) ) ) {
+
+			if ( defined( 'WPCD_LONG_NAME' ) && ! empty( WPCD_LONG_NAME ) ) {
+				$product_name = WPCD_LONG_NAME;
+			} else {
+				$product_name = 'WPCloudDeploy';
+			}
+
+			/* Translators: %1$s is the WPCD Product Name; %2$s is the WPCD product version. */
+			$return = sprintf( __( 'Powered by %1$s %2$s.', 'wpcd' ), $product_name, WPCD_VERSION ) . '<br />' . $return;
+
+		}
+
+		return $return;
+
+	}
+
 
 	/**
 	 * Load the plugin text domain for translation.
@@ -826,7 +906,7 @@ class WPCD_Init {
 	/**
 	 * Activation hook
 	 *
-	 * ** Not currently called or used. Saving for later.
+	 * *** This function not used yet.
 	 */
 	public function activation_hook() {
 		// first install.
@@ -863,6 +943,171 @@ class WPCD_Init {
 				$wisdom->schedule_tracking(); // Setup the wisdom cron. Normally this is done automatically by the wisdom code upon plugin activation but we end up bypassing it because we delay things a bit so we can setup custom vars.  So have to set it up manually.
 				set_transient( 'wpcd_wisdom_custom_options_first_run_done', 1, ( 60 * 24 * 7 ) * MINUTE_IN_SECONDS );
 			}
+		}
+
+	}
+
+	/**
+	 * Check to see if all installed plugins are compatible with this version of WPCD.
+	 *
+	 * @return boolean
+	 */
+	public function are_all_addons_compatible() {
+
+		// Might require this file since we're calling this function early.
+		if ( ! function_exists( 'get_plugin_data' ) ) {
+			require_once ABSPATH . '/wp-admin/includes/plugin.php';
+		}
+
+		// Default return value to true.
+		$return = true;
+
+		/* Array of our add-ons and their minimum compatible version */
+		$add_ons['wpcd-alibaba-provider/wpcd-alibaba-provider.php']             = '1.3.0';
+		$add_ons['wpcd-aws-ec2-provider/wpcd-aws-ec2-provider.php']             = '1.9.0';
+		$add_ons['wpcd-aws-lightsail-provider/wpcd-aws-lightsail-provider.php'] = '1.6.0';
+		$add_ons['wpcd-azure-provider/wpcd-azure-provider.php']                 = '1.4.0';
+		$add_ons['wpcd-custom-server-provider/wpcd-custom-server-provider.php'] = '1.1.0';
+		$add_ons['wpcd-exoscale-provider/wpcd-exoscale-provider.php']           = '1.3.1';
+		$add_ons['wpcd-git-control/wpcd-git-control.php']                       = '1.0.0';
+		$add_ons['wpcd-google-provider/wpcd-google-provider.php']               = '1.3.0';
+		$add_ons['wpcd-hetzner-provider/wpcd-hetzner-provider.php']             = '1.4.1';
+		$add_ons['wpcd-linode-provider/wpcd-linode-provider']                   = '1.4.0';
+		$add_ons['wpcd-multisite/wpcd-multisite.php']                           = '1.6.0';
+		$add_ons['wpcd-multi-tenant/wpcd-multi-tenant.php']                     = '1.0.0';
+		$add_ons['wpcd-power-tools/wpcd-power-tools.php']                       = '2.1.0';
+		$add_ons['wpcd-redis/wpcd-redis.php']                                   = '1.3.1';
+		$add_ons['wpcd-server-sync/wpcd-server-sync.php']                       = '1.5.0';
+		$add_ons['wpcd-upcloud-provider/wpcd-upcloud-provider.php']             = '2.3.0';
+		$add_ons['wpcd-virtual-cloud-provider/wpcd-virtual-cloud-provider.php'] = '1.1.1';
+		$add_ons['wpcd-vultr-provider/wpcd-vultr-provider.php']                 = '2.3.1';
+		$add_ons['wpcd-wc-sell-servers/wpcd-wc-sell-servers.php']               = '9999.9999.9999';
+		$add_ons['wpcd-wc-sell-sites/wpcd-wc-sell-sites.php']                   = '9999.9999.9999';
+		$add_ons['wpcd-woocommerce/wpcd-woocommerce.php']                       = '3.2.0';
+
+		// Initialize list of incompatible add_ons.
+		$incompatible_add_ons = array();
+
+		// Get the full list of activated plugins.
+		$active_plugins = get_option( 'active_plugins' );
+
+		// Output list of our activated plugins that need to be version checked.
+		foreach ( $active_plugins as $active_plugin ) {
+
+			// Is it one of ours?
+			if ( true === array_key_exists( $active_plugin, $add_ons ) ) {
+				// it's one of ours so get version data.
+				$plugin_data = get_plugin_data( WP_PLUGIN_DIR . '/' . $active_plugin );
+				$version     = $plugin_data['Version'];
+
+				// Compare version.
+				if ( -1 === version_compare( $version, $add_ons[ $active_plugin ] ) ) {
+					$incompatible_add_ons[] = $active_plugin;
+				}
+			}
+		}
+
+		// Write incompatible versions array to option.
+		update_option( 'wpcd_incompatible_addons', $incompatible_add_ons );
+
+		// Set return value and deactivate plugin if we have incompatible addons.
+		if ( ! empty( $incompatible_add_ons ) ) {
+			$return = false;
+
+			// Write an error out to the error log so the admin can see why things aren't being activated.
+			error_log( __( 'WPCD Cannot remain activated because the following add-ons are not compatible with this version.', 'wpcd' ) );
+			error_log( print_r( $incompatible_add_ons, true ) );
+
+			// Deactivate the plugin.
+			if ( is_admin() ) {
+				// Immediately deactivate self.
+				$this->wpcd_plugin_force_deactivate();
+
+				// Show Message and Die.
+				$incompatible_addons = get_option( 'wpcd_incompatible_addons', $incompatible_add_ons );
+				$message             = __( 'These addons are incompatible with WPCloudDeploy. WPCloudDeploy has been deactivated.', 'wpcd' );
+				foreach ( $incompatible_addons as $incompatible_addon ) {
+					$message .= '<br />' . $incompatible_addon;
+				}
+				wp_die( $message );
+
+			}
+		}
+
+		return $return;
+	}
+
+	/**
+	 * Deactivate self. Usually when an incompatible plugin is present.
+	 *
+	 * Action Hook: admin_init
+	 */
+	public function wpcd_plugin_force_deactivate() {
+
+		deactivate_plugins( plugin_basename( __FILE__ ) );
+
+	}
+
+	/**
+	 * If a plugin has been activated check to make sure it's not one that we can't handle.
+	 *
+	 * Action Hook: updated_option
+	 *
+	 * @param string $option_name Name of option being updated.
+	 * @param mixed  $old_value Original option value.
+	 * @param mixed  $value New option value.
+	 */
+	public function wpcd_updated_option( $option_name, $old_value, $value ) {
+
+		if ( ! is_admin() ) {
+			return;
+		}
+
+		if ( 'active_plugins' === $option_name ) {
+			$this->are_all_addons_compatible();
+		}
+
+	}
+
+	/**
+	 * Check to see if all add-ons are compatible.
+	 * Runs from the constructor or activation.
+	 * Makes sure the check runs only once per version.
+	 */
+	public function check_all_addons_compatible() {
+		// If this check has already been done just return true.
+		$check_version = get_option( 'wpcd_addons_compatible_last_version_checked' );
+
+		if ( version_compare( $check_version, WPCD_VERSION ) === 0 ) {
+			return true;
+		}
+
+		// If we get here, we have to run the compatiblity check at least once.
+		if ( $this->are_all_addons_compatible() ) {
+			update_option( 'wpcd_addons_compatible_last_version_checked', WPCD_VERSION );
+		}
+
+	}
+
+
+	/**
+	 * Show admin notice when an incompatible plugin is present.
+	 * Should run just before we deactivate self.
+	 *
+	 * Action Hook: admin_notices
+	 *
+	 * *** This function not used because we deactivate the plugin before the admin_notices hook can be called.
+	 * *** Keeping it around in case we find a use for it later.
+	 */
+	public function wpcd_plugin_deactivate_admin_notice() {
+
+		$incompatible_addons = get_option( 'wpcd_incompatible_addons', $incompatible_add_ons );
+		if ( ! empty( $incompatible_addons ) ) {
+			// Incompatible add-ons are active.
+			$class    = 'notice notice-error wpcd-incompatible-addons';
+			$message  = __( '<strong>These addons are incompatible with WPCD.</strong>', 'wpcd' );
+			$message .= print_r( $incompatible_addons, true );
+			printf( '<div data-dismissible="notice-incompatible-addons-notice" class="%2$s"><p>%3$s</p></div>', wp_create_nonce( 'wpcd-admin-incompatible-addons-notice' ), $class, $message );
 		}
 
 	}

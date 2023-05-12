@@ -151,14 +151,64 @@ class WPCD_WORDPRESS_TABS_SITE_SYNC extends WPCD_WORDPRESS_TABS {
 							// @TODO: Only the first team is copied.  If the site has more than one team, only the first one is copied over.
 							update_post_meta( $new_app_post_id, 'wpcd_assigned_teams', get_post_meta( $id, 'wpcd_assigned_teams', true ) );
 
+							// Was SSL enabled for the cloned site?  If so, flip the SSL metavalues.
+							$this->set_ssl_status( $new_app_post_id, 'off' ); // Assume off for now.
+							$success = $this->is_ssh_successful( $logs, 'manage_https.txt' );  // ***Very important Note: We didn't actually run the manage_https script.  We are just using the check logic for it to see if the same keyword output is in the clone site output since we are using the same keywords for both scripts.
+							if ( true == $success ) {
+								$this->set_ssl_status( $new_app_post_id, 'on' );
+							}
+
+							// Was page caching enabled on the original site?  If so, the caching plugin was copied as well so add the meta here for that.
+							$page_cache_status = $this->get_page_cache_status( $id );
+							if ( ! empty( $page_cache_status ) ) {
+								$this->set_page_cache_status( $new_app_post_id, $page_cache_status );
+							}
+
+							// Was memcached enabled on the original site?  If so, the caching plugin was copied as well so add the meta here for that.
+							$memcached_status = get_post_meta( $id, 'wpapp_memcached_status', true );
+							if ( ! empty( $memcached_status ) ) {
+								update_post_meta( $new_app_post_id, 'wpapp_memcached_status', $memcached_status );
+							}
+
+							// Was redis enabled on the original site?  If so, the caching plugin was copied as well so add the meta here for that.
+							$redis_status = get_post_meta( $id, 'wpapp_redis_status', true );
+							if ( ! empty( $redis_status ) ) {
+								update_post_meta( $new_app_post_id, 'wpapp_redis_status', $redis_status );
+							}
+
+							// Was 6G enabled on the original site?  If so, make sure we copy the metas here as well.
+							$status_6g = wpcd_maybe_unserialize( get_post_meta( $id, 'wpapp_6g_status', true ) );
+							if ( ! empty( $status_6g ) ) {
+								update_post_meta( $new_app_post_id, 'wpapp_6g_status', $status_6g );
+							}
+
+							// Was 7G enabled on the original site?  If so, make sure we copy the metas here as well.
+							$status_7g = wpcd_maybe_unserialize( get_post_meta( $id, 'wpapp_7g_status', true ) );
+							if ( ! empty( $status_7g ) ) {
+								update_post_meta( $new_app_post_id, 'wpapp_7g_status', $status_7g );
+							}
+
 							// Update the PHP version to match the original version.
-							$this->set_php_version_for_app( $new_app_post_id, $this->get_php_version_for_app( $id ) );
+							switch ( $webserver_type ) {
+								case 'ols':
+								case 'ols-enterprise':
+									$this->set_php_version_for_app( $new_app_post_id, $this->get_wpapp_default_php_version() );
+									break;
+
+								case 'nginx':
+								default:
+									$this->set_php_version_for_app( $new_app_post_id, $this->get_php_version_for_app( $id ) );
+									break;
+							}
 
 							// Update the wp-login auth status.
 							$this->set_wplogin_http_auth_status( $new_app_post_id, $this->get_wplogin_http_auth_status( $id ) );
 
 							// Update the http auth status for the full site.
 							$this->set_site_http_auth_status( $new_app_post_id, $this->get_site_http_auth_status( $id ) );
+
+							// Copy multi-tenant related metas.
+							$this->clone_mt_metas( $id, $new_app_post_id );  // Function located in traits file multi-tenant-app.php.
 
 							// Finally, lets add a meta to indicate that this was a copy.
 							update_post_meta( $new_app_post_id, 'wpapp_site_synced_from_app', $id );
@@ -386,6 +436,9 @@ class WPCD_WORDPRESS_TABS_SITE_SYNC extends WPCD_WORDPRESS_TABS {
 
 	/**
 	 * Copy site to a new server.
+	 *
+	 * Note: A lot of this code is replicated in the multitenant tab.
+	 * Significant changes here probably should be made there as well.
 	 *
 	 * This is initiated from the site screen on the source server.
 	 *
@@ -803,6 +856,11 @@ class WPCD_WORDPRESS_TABS_SITE_SYNC extends WPCD_WORDPRESS_TABS {
 
 	/**
 	 * Gets the fields to be shown.
+	 *
+	 * @TODO: The logic to get an appropriate list of servers
+	 * is duplicated in the multitenant-site.php file/tab in the
+	 * get_list_of_destination_servers() function.  We should consolidate and
+	 * make a central function.
 	 *
 	 * @param array $fields fields.
 	 * @param int   $id id.

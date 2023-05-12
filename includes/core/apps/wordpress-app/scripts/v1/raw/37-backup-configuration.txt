@@ -53,12 +53,13 @@ then
 	mkdir -p $backuptmp/etc
 	mkdir -p $backuptmp/lsws/conf/
 	rsync -az /usr/local/lsws/conf/ $backuptmp/lsws/conf/ 2>/dev/null
-	mkdir -p $backuptmp/lsws/lsphp{72,73,74,80,81}/etc/php/{7.2,7.3,7.4,8.0,8.1}/litespeed/ 2>/dev/null
+	mkdir -p $backuptmp/lsws/lsphp{72,73,74,80,81,82}/etc/php/{7.2,7.3,7.4,8.0,8.1,8.2}/litespeed/ 2>/dev/null
 	rsync -az /usr/local/lsws/lsphp72/etc/php/7.2/litespeed/php.ini $backuptmp/lsws/lsphp72/etc/php/7.2/litespeed/php.ini 2>/dev/null
 	rsync -az /usr/local/lsws/lsphp73/etc/php/7.3/litespeed/php.ini $backuptmp/lsws/lsphp73/etc/php/7.3/litespeed/php.ini 2>/dev/null
 	rsync -az /usr/local/lsws/lsphp74/etc/php/7.4/litespeed/php.ini $backuptmp/lsws/lsphp74/etc/php/7.4/litespeed/php.ini 2>/dev/null
 	rsync -az /usr/local/lsws/lsphp80/etc/php/8.0/litespeed/php.ini $backuptmp/lsws/lsphp80/etc/php/8.0/litespeed/php.ini 2>/dev/null
 	rsync -az /usr/local/lsws/lsphp81/etc/php/8.1/litespeed/php.ini $backuptmp/lsws/lsphp81/etc/php/8.1/litespeed/php.ini 2>/dev/null
+	rsync -az /usr/local/lsws/lsphp82/etc/php/8.2/litespeed/php.ini $backuptmp/lsws/lsphp82/etc/php/8.2/litespeed/php.ini 2>/dev/null
 	rsync -az /etc/nginx/ $backuptmp/nginx/ 2>/dev/null
 	rsync -az /etc/php/ $backuptmp/php/ 2>/dev/null
 	rsync -az /etc/letsencrypt/live/ $backuptmp/letsencrypt/ 2>/dev/null

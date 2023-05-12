@@ -41,6 +41,13 @@ then
 		echo "Redis is already installed!"
 		exit
 	fi
+	
+	apt-get update > /dev/null 2>&1
+	if [ $? -ne 0 ]  
+	then
+		echo "apt-get update failed!  Quitting redis installation process"
+		exit
+	fi	
 	apt-get install redis-server -y 
 
 	# Was redis installed?  If the redis.conf file does not exist there's a good chance it wasn't installed properly or not at all.
@@ -109,6 +116,7 @@ then
 		else
 			su - "$user_name" -c "wp --skip-plugins plugin install litespeed-cache && wp --skip-plugins plugin activate litespeed-cache && wp litespeed-online init"
 		fi
+		su - $user_name -c "wp --skip-plugins config set WP_CACHE true"		
 		su - "$user_name" -c "wp litespeed-option set object true && wp litespeed-option set object-port 6379 && wp litespeed-option set object-host 127.0.0.1 && wp litespeed-option set object-kind 1 && wp cache flush"
 	fi
 	echo

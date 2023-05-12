@@ -106,7 +106,6 @@
     margin: 2px;
 }
 
-
 /* Format the Syncing Destination Server on the apps list screen */
 .wpcd_destination_site_sync_server {
     display: inline-block;
@@ -138,7 +137,6 @@
 	width: 25%;
 }
 */
-
 .post-type-wpcd_app th#wpcd_wpapp_php,
 .post-type-wpcd_app th#wpcd_wpapp_ssl {
     width: 8%;
@@ -157,6 +155,213 @@
     margin-bottom: 10px;
 }
 
+/* Format the GIT initial settings display area at the bottom of the GIT tab for a site. */
+.wpcd_git_initial_settings_data {
+	/* Put a box around the data section */
+	border: 1px solid #FFF3CD;
+	padding: 1em;
+	border-radius: 4px;
+	background-color: #FFF3CD;
+}
+.wpcd_git_initial_settings_data .wpcd_git_initial_settings_data_inner_wrap {
+	display: grid;
+	grid-template-areas: "i i ";
+	/*1 row, 2 columns */
+	grid-template-columns: 1fr 2fr 1fr 2fr;
+	/* Each row has four columns  */
+	grid-column-gap: 10px;
+	grid-row-gap: 1em;
+	margin-bottom: 1em;
+	font-size: 1em;
+}
+.wpcd_git_initial_settings_data .wpcd_git_initial_settings_data_label_item {
+	font-weight: bold;
+}
+
+/* Format the GIT tag list display area on the GIT tab for a site. */
+.wpcd_git_tag_list {
+	/* Put a box around the data section */
+	border: 1px solid #EFF6FF;
+	padding: 1em;
+	border-radius: 4px;
+	background-color: #EFF6FF;
+	min-height: 100px;
+}
+.wpcd_git_tag_list .wpcd_git_tag_list_inner_wrap {
+	display: grid;
+	grid-template-areas: "i i ";
+	/*1 row, 2 columns */
+	grid-template-columns: 1fr 2fr 1fr 2fr;
+	/* Each row has four columns  */
+	grid-column-gap: 10px;
+	grid-row-gap: 1em;
+	margin-bottom: 1em;
+	font-size: 1em;
+}
+.wpcd_git_tag_list .wpcd_git_tag_value {
+
+	background-color: #38BDF8;
+	padding: 5px;
+	border-radius: 3px;
+	color: white;
+	text-align: center;
+}
+
+/* Format the push to deploy webhook and secret keys area on the GIT tab for a site. */
+.wpcd_git_push_to_deploy_data {
+	/* Put a box around the data section */
+	border: 1px solid #FFF3CD;
+	padding: 1em;
+	border-radius: 4px;
+	background-color: #FFF3CD;
+}
+.wpcd_git_push_to_deploy_data .wpcd_git_push_to_deploy_inner_wrap {
+	display: grid;
+	grid-template-areas: "i ";
+	/*1 row, 1 column */
+	grid-template-columns: 1fr 2fr;
+	/* Each row has two columns  */
+	grid-column-gap: 10px;
+	grid-row-gap: 1em;
+	margin-bottom: 1em;
+	font-size: 1em;
+}
+.wpcd_git_push_to_deploy_data .wpcd_git_push_to_deploy_data_label_item {
+	font-weight: bold;
+}
+
+/* Format the git history section on the GIT tab for a site. */
+.wpcd_git_logs_list {
+	/* Put a box around the data section */
+	border: 1px solid #FFF3CD;
+	padding: 1em;
+	border-radius: 4px;
+	background-color: #FFF3CD;
+}
+.wpcd_git_logs_list .wpcd_git_logs_list_inner_wrap {
+	display: grid;
+	grid-template-areas: "i ";
+	/*1 row, 1 columns */
+	grid-template-columns: 1fr 3fr;
+	/* Each row has two columns  */
+	grid-column-gap: 10px;
+	grid-row-gap: 1em;
+	margin-bottom: 1em;
+	font-size: 1em;
+}
+.wpcd_git_logs_list .wpcd_git_log_value,
+.wpcd_git_logs_list .wpcd_git_log_label {
+	x-font-weight: bold;
+	font-size: smaller;
+}
+
+/* Format the current branch shown at the top of each section of the GIT tab for a site. */
+.wpcd_git_site_branch_wrap {
+	margin-top: 1.5em;
+}
+.wpcd_git_site_branch {
+	border: solid 1px;
+	border-radius: 3px;
+	padding: 5px;
+	border-color: var(--wpcd-positive-color);
+	color: var(--wpcd-positive-color);
+	
+}
+
+/* Format the current repo shown at the top of each section of the GIT tab for a site. */
+.wpcd_git_site_repo_wrap {
+	margin-top: 1em;
+}
+.wpcd_git_site_repo {
+	border: solid 1px;
+	border-radius: 3px;
+	padding: 5px;
+	border-color: var(--wpcd-primary-brand-color);
+	color: var(--wpcd-primary-brand-color);;
+	
+}
+
+/* Format the VERSION (git) tag list display area on the MULTI-TENANT tab for a site. */
+.wpcd_mt_version_list {
+	/* Put a box around the section */
+	border: 1px solid #6EE7B7;
+	padding: 1em;
+	border-radius: 4px;
+	background-color: #6EE7B7;
+	min-height: 100px;
+}
+.wpcd_mt_version_list .wpcd_mt_version_list_inner_wrap {
+	display: grid;
+	grid-template-areas: "i i ";
+	/*1 row, 1 columns */
+	grid-template-columns: 2fr 2fr 2fr 2fr;
+	/* Each row has four columns */
+	grid-column-gap: 10px;
+	grid-row-gap: 1em;
+	margin-bottom: 1em;
+	font-size: 1em;
+}
+.wpcd_mt_version_list .wpcd_mt_version_value {
+
+	background-color: #059669;
+	padding: 5px;
+	border-radius: 3px;
+	color: white;
+	text-align: center;
+}
+.wpcd_mt_version_list .wpcd_mt_version_value_inline {
+	font-weight: bold;
+}
+.wpcd_mt_version_list .wpcd_mt_version_label_desc {
+}
+.wpcd_mt_version_list .wpcd_mt_version_other_value {
+}
+.wpcd_mt_version_list .wpcd_mt_destination_server {
+	/* The servers list under each version .*/
+	background-color: var(--wpcd-accent-background-color);
+	font-size: 12px;
+	display: inline-block;
+	font-weight: 400;
+	margin: -1px 10px 5px 0px;
+	padding: 1px 5px;
+	vertical-align: top;
+	border-radius: 2px;
+	color: white;	
+}
+.wpcd_mt_version_list .wpcd_mt_destination_server a {
+	color: white;
+	text-decoration: none;
+}
+
+/* Format the UPGRADE TENANT RESULST list display area on the MULTI-TENANT tab for a site. */
+.wpcd_mt_upgrade_tenant_results_list {
+	/* Put a box around the section */
+	border: 1px solid #CBD5E1;
+	padding: 1em;
+	border-radius: 4px;
+	background-color: #CBD5E1;
+}
+.wpcd_mt_upgrade_tenant_results_list .wpcd_mt_upgrade_tenant_results_list_inner_wrap {
+	display: grid;
+	grid-template-areas: "i i ";
+	/*1 row, 1 columns */
+	grid-template-columns: 2fr 2fr 2fr 2fr;
+	/* Each row has four columns */
+	grid-column-gap: 10px;
+	grid-row-gap: 1em;
+	margin-bottom: 1em;
+	font-size: 1em;
+}
+.wpcd_mt_upgrade_tenant_results_list .wpcd_mt_upgrade_tenant_results_list_value {
+	font-size: 14px;
+	color: black;
+	font-weight: bold;
+}
+.wpcd_mt_upgrade_tenant_results_list .wpcd_mt_upgrade_tenant_results_list_header {
+	font-size: larger;
+	font-weight: bold;
+	margin-bottom: 10px;
+}
 
 /* the spinner - start */
 .locker,

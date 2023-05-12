@@ -17,6 +17,8 @@
 		$tabs.removeClass( 'rwmb-tab-active' ).filter( '[data-panel="' + tab + '"]' ).addClass( 'rwmb-tab-active' );
 		$panels.hide().filter( '.rwmb-tab-panel-' + tab ).show();
 
+		rwmb.$document.trigger( 'mb_init_editors' );
+
 		// Refresh maps, make sure they're fully loaded, when it's in hidden div (tab).
 		$( window ).trigger( 'rwmb_map_refresh' );
 	}
@@ -40,12 +42,12 @@
 			var $input = $( e.target ).find( inputSelectors ),
 				$panel = $input.closest( '.rwmb-tab-panel' );
 			if ( $panel.length ) {
-				showTab( $input, $panel.data( 'panel' ) );
+				showTab( $input.closest( '.rwmb-tabs' ).find( 'li[data-panel="' + $panel.data( 'panel' ) + '"] a' )[ 0 ] );
 			}
 		} );
 	}
 
-	$( function() {
+	$( document ).on( 'mb_ready', function () {
 		switchTab();
 		tweakForConditionalLogic();
 		showValidateErrorFields();

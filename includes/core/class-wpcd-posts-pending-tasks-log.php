@@ -571,6 +571,37 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 	}
 
 	/**
+	 * Return a list of task posts, searching for a state
+	 * and reference.
+	 *
+	 * @param string $state  Match the 'pending_task_state' meta.
+	 * @param string $reference   Match the 'pending_task_reference' meta.
+	 */
+	public function get_tasks_by_state_reference( $state, $reference ) {
+
+		$args = array(
+			'post_type'      => 'wpcd_pending_log',
+			'post_status'    => 'private',
+			'posts_per_page' => -1,
+			'meta_query'     => array(
+				array(
+					'key'   => 'pending_task_state',
+					'value' => $state,
+				),
+				array(
+					'key'   => 'pending_task_reference',
+					'value' => $reference,
+				),
+			),
+		);
+
+		$task_posts = get_posts( $args );
+
+		return $task_posts;
+
+	}
+
+	/**
 	 * Return a list of task posts, searching for a combination of
 	 * parent, state and type.
 	 *
@@ -680,6 +711,18 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 		// Increment the attempted count.
 		update_post_meta( $id, 'pending_task_attempts', ( ( (int) get_post_meta( $id, 'pending_task_attempts', true ) ) + 1 ) );
 
+	}
+
+	/**
+	 * A simplified version update_task_by_id that only updates the state.
+	 *
+	 * @param int    $id The id of the task record.
+	 * @param string $task_state The state of the task when we're adding it.  Could be 'not-ready', 'ready'.  Later other states might be 'in-process', 'completed', 'errored'.
+	 */
+	public function update_task_state_by_id( $id, $state ) {
+		if ( ! empty( $id ) && ! empty( $state ) ) {
+			$this->update_task_by_id( $id, false, $state );
+		}
 	}
 
 	/**

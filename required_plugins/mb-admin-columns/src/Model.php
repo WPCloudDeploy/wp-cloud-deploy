@@ -15,10 +15,10 @@ class Model extends Base {
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue' ] );
 
 		if ( $this->searchable_field_ids ) {
-			add_filter( "mbct_{$this->object_type}_query_where", [ $this, 'search' ] );
+			add_filter( "mbct_{$this->object_type}_query_where", [ $this, 'search' ], 0 );
 		}
 
-		add_filter( "mbct_{$this->object_type}_query_order", [ $this, 'sort' ] );
+		add_filter( "mbct_{$this->object_type}_query_order", [ $this, 'sort' ], 0 );
 	}
 
 	/**
@@ -30,7 +30,8 @@ class Model extends Base {
 	 * @param object $model  Model object.
 	 */
 	public function show( $output, $column, $item, $model ) {
-		if ( false === ( $field = $this->find_field( $column ) ) ) {
+		$field = $this->find_field( $column );
+		if ( false === $field ) {
 			return $output;
 		}
 
@@ -57,8 +58,8 @@ class Model extends Base {
 		);
 	}
 
-	public function sort() {
-		if ( empty( $_REQUEST['orderby'] ) ) {
+	public function sort( $order ) {
+		if ( $order || empty( $_REQUEST['orderby'] ) ) {
 			return '';
 		}
 		$order  = 'ORDER BY ' . esc_sql( $_REQUEST['orderby'] );
@@ -66,17 +67,19 @@ class Model extends Base {
 		return $order;
 	}
 
-	public function search() {
-		$s = filter_input( INPUT_GET, 's', FILTER_SANITIZE_STRING );
+	public function search( $where ) {
+		$s = (string) filter_input( INPUT_GET, 's' );
 		if ( ! $s ) {
 			return '';
 		}
 
-		$where = [];
+		$conditions = [];
 		foreach ( $this->searchable_field_ids as $field_id ) {
-			$where[] = "{$field_id} LIKE N'%" . esc_sql( $s ) . "%'";
+			$conditions[] = "({$field_id} LIKE N'%" . esc_sql( $s ) . "%')";
 		}
+		$conditions = $conditions ? '(' . implode( ' OR ', $conditions ) . ')' : '';
 
-		return $where ? 'WHERE ' . implode( ' OR ', $where ) : '';
+		$where = $where ? "$where AND $conditions" : "WHERE $conditions";
+		return $where;
 	}
 }

@@ -8,8 +8,8 @@ class Loader {
 		add_filter( 'rwmb_get_storage', [ $this, 'get_storage' ], 10, 3 );
 		add_action( 'rwmb_after_save_post', [ $this, 'update_object_data' ] );
 		add_action( 'delete_post', [ $this, 'delete_object_data' ] );
-		add_action( 'delete_term', [ $this, 'delete_object_data' ] );
 		add_action( 'deleted_user', [ $this, 'delete_object_data' ] );
+		add_action( 'delete_term', [ $this, 'delete_term_data' ], 10, 3 );
 	}
 
 	/**
@@ -28,43 +28,74 @@ class Loader {
 
 	public function get_storage( $storage, $object_type, $meta_box ) {
 		if ( $meta_box && $this->uses_custom_table( $meta_box ) ) {
-			$storage = new Storage;
+			$storage        = new Storage;
 			$storage->table = $meta_box->table;
 		}
 
 		return $storage;
 	}
 
+	/**
+	 * This function is called each time a meta box saves data.
+	 * To avoid updating multiple times, we need to run only when the last meta box saves data.
+	 */
 	public function update_object_data( $object_id ) {
-		global $wpdb;
+		static $processed = [];
+		static $count     = 0;
 
 		$object_type = $this->get_saved_object_type();
 		$meta_boxes  = $this->get_meta_boxes_for( $object_type, $object_id );
 
+		// Remove un-validated meta box (like not included in the front end), which don't trigger `rwmb_after_save_post` hook.
+		$meta_boxes = array_filter( $meta_boxes, [ $this, 'validate' ] );
+
+		// Only update data when the last meta box saves data.
+		$count++;
+		if ( $count < count( $meta_boxes ) ) {
+			return;
+		}
+
 		foreach ( $meta_boxes as $meta_box ) {
+			// Avoid updating data multiple times if many meta boxes use the same table.
+			$table = $meta_box->table;
+			if ( ! $table || in_array( $table, $processed, true ) ) {
+				continue;
+			}
+			$processed[] = $table;
+
 			$storage = $meta_box->get_storage();
-			$row     = Cache::get( $object_id, $meta_box->table );
+			$row     = Cache::get( $object_id, $table );
 			$row     = array_map( [ $this, 'maybe_serialize' ], $row );
 
-			$has_data = $this->has_data( $row );
-			if ( ! $has_data ) {
+			// Delete.
+			if ( ! $this->has_data( $row ) ) {
 				$storage->delete_row( $object_id );
 				continue;
 			}
 
+			// Update.
 			if ( $storage->row_exists( $object_id ) ) {
 				$storage->update_row( $object_id, $row );
 				continue;
 			}
 
+			// Add.
 			if ( $object_type === 'model' ) {
-				$storage->insert_row( $row );
-				$object_id = $wpdb->insert_id; // Ensure next meta box update the data of the same inserted object.
+				unset( $row['ID'] );
 			} else {
 				$row['ID'] = $object_id; // Must set to connect to existing WP objects.
-				$storage->insert_row( $row );
 			}
+			$storage->insert_row( $row );
 		}
+	}
+
+	/**
+	 * Validate if a meta box is submitted properly.
+	 * Used to check if a meta box is not included on the front end.
+	 */
+	private function validate( $meta_box ) {
+		$nonce = rwmb_request()->filter_post( "nonce_{$meta_box->id}" );
+		return wp_verify_nonce( $nonce, "rwmb-save-{$meta_box->id}" );
 	}
 
 	/**
@@ -79,20 +110,44 @@ class Loader {
 		$meta_boxes  = $this->get_meta_boxes_for( $object_type, $object_id );
 
 		foreach ( $meta_boxes as $meta_box ) {
+			if ( ! $this->uses_custom_table( $meta_box ) ) {
+				continue;
+			}
 			$storage = $meta_box->get_storage();
 			$storage->delete( $object_id ); // Delete from cache.
 			$storage->delete_row( $object_id ); // Delete from DB.
 		}
 	}
 
-	private function uses_custom_table( $meta_box ) {
+	public function delete_term_data( int $object_id, int $tt_id, string $taxonomy ) {
+		$meta_boxes = rwmb_get_registry( 'meta_box' )->get_by( [
+			'object_type' => 'term',
+		] );
+
+		foreach ( $meta_boxes as $meta_box ) {
+			if ( ! in_array( $taxonomy, $meta_box->taxonomies, true ) ) {
+				continue;
+			}
+			if ( ! $this->uses_custom_table( $meta_box ) ) {
+				continue;
+			}
+			$storage = $meta_box->get_storage();
+			$storage->delete( $object_id ); // Delete from cache.
+			$storage->delete_row( $object_id ); // Delete from DB.
+		}
+	}
+
+	private function uses_custom_table( $meta_box ) : bool {
 		return 'custom_table' === $meta_box->storage_type && $meta_box->table;
 	}
 
-	private function get_meta_boxes_for( $object_type, $object_id ) {
+	/**
+	 * Get meta boxes for the specific object by type and ID.
+	 * This includes meta boxes that don't use custom tables.
+	 */
+	private function get_meta_boxes_for( $object_type, $object_id ) : array {
 		$meta_boxes = rwmb_get_registry( 'meta_box' )->get_by( [
-			'storage_type' => 'custom_table',
-			'object_type'  => $object_type,
+			'object_type' => $object_type,
 		] );
 		if ( 'user' === $object_type ) {
 			return $meta_boxes;
@@ -104,7 +159,7 @@ class Loader {
 		return $meta_boxes;
 	}
 
-	private function get_saved_object_type() {
+	private function get_saved_object_type() : string {
 		global $wp_current_filter;
 
 		foreach ( $wp_current_filter as $hook ) {
@@ -124,7 +179,7 @@ class Loader {
 		return 'post';
 	}
 
-	private function get_deleted_object_type() {
+	private function get_deleted_object_type() : string {
 		return str_replace( array( 'delete_', 'deleted_' ), '', current_filter() );
 	}
 
@@ -135,6 +190,10 @@ class Loader {
 		$prop = null;
 		switch ( $object_type ) {
 			case 'post':
+				// Custom Gutenberg blocks are always available for posts.
+				if ( $meta_box->type === 'block' ) {
+					return;
+				}
 				$type = get_post_type( $object_id );
 				if ( 'revision' === $type ) {
 					return;
@@ -142,7 +201,6 @@ class Loader {
 				$prop = 'post_types';
 				break;
 			case 'term':
-				$type = $object_id;
 				$term = get_term( $object_id );
 				$type = is_object( $term ) ? $term->taxonomy : null;
 				$prop = 'taxonomies';
@@ -160,7 +218,7 @@ class Loader {
 		}
 	}
 
-	private function has_data( $row ) {
+	private function has_data( $row ) : bool {
 		if ( ! $row ) {
 			return false;
 		}
@@ -168,7 +226,7 @@ class Loader {
 		unset( $row['ID'] );
 
 		foreach ( $row as $value ) {
-			if ( ! in_array( $value, ['', null, []] ) ) {
+			if ( ! in_array( $value, [ '', null, [] ], true ) ) {
 				return true;
 			}
 		}

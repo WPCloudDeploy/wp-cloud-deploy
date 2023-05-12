@@ -84,11 +84,18 @@ then
 	exit
 fi
 
+# Clean up some stuff just in case this domain was installed on this server and not removed cleanly.
+rm -rf /etc/wpcd/$domain  # Remove metas.
+
+# Make site folder
 mkdir -p "${wphome}/logs"
+
+# Set permissions for new site folder.
 useradd -d "${wphome}" -g www-data -M -s "/bin/bash" "${user_name}"
 chown -R "${user_name}":www-data "${wphome}"
 chmod -R g+ws "$wphome"
 
+# Add virtual host files for webserver.
 if [ "$g_webserver_type" = "nginx" ]
 then
 	echo "The webserver is Nginx....";
@@ -141,19 +148,25 @@ then
 fi
 # End redo password hash for OLS.
 
+# Stick the password hash into the database.
 mysql <<QUERY
 USE $mysql_db;
 UPDATE ${mysql_dbprefix}_users SET user_pass='$wp_password_hashed' WHERE user_login='$wp_user';
 QUERY
 
-# needed so wordpress doesn't freak out and denies direct access
+# Needed so wordpress doesn't freak out and denies direct access
 su - "$user_name" -c "wp --skip-plugins --no-color config set FS_METHOD direct"
+
+# Add other important wp-config.php items.
 su - "$user_name" -c "wp --skip-plugins --no-color config set WP_AUTO_UPDATE_CORE minor"
 su - "$user_name" -c "wp --skip-plugins --no-color config set WP_MEMORY_LIMIT 128M"
 su - "$user_name" -c "wp --skip-plugins --no-color config set WP_MAX_MEMORY_LIMIT 128M"
 su - "$user_name" -c "wp --skip-plugins --no-color config set CONCATENATE_SCRIPTS false --raw"
 su - "$user_name" -c "wp --skip-plugins --no-color config set DISALLOW_FILE_EDIT true --raw"
 su - "$user_name" -c "wp --skip-plugins --no-color option update permalink_structure '/%postname%'"
+
+# Turn on the cache constant.
+su - "$user_name" -c "wp --skip-plugins --no-color config set WP_CACHE true"
 
 # permissions for the log file
 su - "$user_name" -c "touch $wphome/wp-content/debug.log"
@@ -165,7 +178,6 @@ chmod -R g+ws "$wphome"
 if [ "$g_webserver_type" = "nginx" ]
 then
 	su - "$user_name" -c "wp  --no-color plugin install --activate cache-enabler"
-	su - "$user_name" -c "wp --skip-plugins --no-color config set WP_CACHE true"
 elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 then
 	su - "$user_name" -c "wp --skip-plugins --no-color plugin install litespeed-cache && wp --skip-plugins --no-color plugin activate litespeed-cache && wp --no-color litespeed-online init"

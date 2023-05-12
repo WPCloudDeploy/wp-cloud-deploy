@@ -17,6 +17,13 @@ class Loader {
 			return;
 		}
 
+		// Sort setting page array by "parent".
+		usort( $settings_pages, function ( $a, $b ) {
+            $a['parent'] = isset( $a['parent'] ) ? $a['parent'] : '';
+            $b['parent'] = isset( $b['parent'] ) ? $b['parent'] : '';            
+			return strlen( $a['parent'] ) - strlen( $b['parent'] );
+		} );
+
 		array_walk( $settings_pages, [Factory::class, 'make'] );
 	}
 

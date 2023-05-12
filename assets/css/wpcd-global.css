@@ -4,8 +4,37 @@
 /* Note: As of WPCD 4.13 Brand colors have been removed from this file and added as dynamic php vars to wp-cloud-deploy.php. */
 
 
-/* Force all tooltips in metabox.io to be darker. */
+/* Restyle the metabox.io buttons on the server and app detail screens. */
+#wpcd_wordpress-app_tab2 .rwmb-input .button,
+#wpcd_wordpress-app_tab2 .rwmb-input .button a,
+#wpcd_server_wordpress-app_tab_top_of_server_details .rwmb-input .button,
+#wpcd_server_wordpress-app_tab_top_of_server_details .rwmb-input .button a,
+#wpcd_server_wordpress-app_tab3 .rwmb-input .button,
+#wpcd_server_wordpress-app_tab3 .rwmb-input .button a {
+	text-decoration: none;
+	background-color: var(--wpcd-accent-background-color);
+	border-color: var(--wpcd-accent-background-color);
+	border-radius: 3px;
+	color: white;
+}
+#wpcd_wordpress-app_tab2 .rwmb-input .button:hover,
+#wpcd_wordpress-app_tab2 .rwmb-input .button a:hover, 
+#wpcd_server_wordpress-app_tab_top_of_server_details .rwmb-input .button:hover,
+#wpcd_server_wordpress-app_tab_top_of_server_details .rwmb-input .button a:hover,
+#wpcd_server_wordpress-app_tab3 .rwmb-input .button:hover,
+#wpcd_server_wordpress-app_tab3 .rwmb-input .button a:hover {
+	text-decoration: none;
+	background-color: var(--wpcd-primary-brand-color);
+	border-color: var(--wpcd-primary-brand-color);	
+}
 
+/* Restyle metabox TOGGLE switches - note that we're doing this for the entire wp-admin area - not just wpcd sections. */
+.wp-admin .rwmb-input .rwmb-switch:checked + .rwmb-switch-status .rwmb-switch-slider {
+	/* Color when switch is enabled. */
+	background-color: var(--wpcd-front-end-positive-color);
+}
+
+/* Force all tooltips in metabox.io to be darker. */
 .mb-tooltip {
     opacity: 0.65 !important;
 }
@@ -17,7 +46,6 @@
 
 
 /* Custom click to copy css*/
-
 .wpcd-click-to-copy-label {
     color: #9696e7;
     margin-left: 5px;
@@ -93,4 +121,56 @@
 }
 
 
+/* Custom table styles */
+.wpcd_mb_inline_edit_form_window {
+        background: #FFF;
+        padding: 20px;
+        margin-left: 160px;
+        max-width: 800px;
+        margin: auto;
+}
+
+.wpcd_mb_inline_edit_form_window .mfp-close {
+        display: none;
+}
+
+.wpcd_mb_inline_edit_form_window .notice-error {
+    padding: 10px;
+    margin: 20px 0;
+}
+
+.wpcd_loading_lock_wrapper {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background: #b1b1b1;
+        opacity: 0;
+        opacity: .3;
+        left: 0;
+        top: -6px;
+        bottom: 0;
+}
+
+
+.wpcd_ct_buttons_row {
+        margin-top: 20px;
+}
+
+.wpcd_ct_items_table_view_container tr.active {
+        background: #e9efff;
+}
+
+.wpcd_ct_items_table_view_container tr.active td {
+        border: #d4dfff solid 1px;
+        border-left: 0;
+        border-right: 0;
+}
+
+.wpcd_ct_items_table_view_container .spinner {
+        float: none;
+}
+
+.wpcd-ct-add-item-link {
+        display: none;
+}
 /* End Custom click to copy css*/

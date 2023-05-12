@@ -152,7 +152,6 @@
                 $(this).children(".wpcd-click-to-copy-label").removeClass("wpcd-copy-hidden");
             },
             function() {
-
                 $(this).children(".wpcd-click-to-copy-label").addClass('wpcd-copy-hidden');
             }
         );

@@ -50,6 +50,58 @@ function wpcd_init_wpcd_settings() {
 }
 
 
+/**
+ * Maybe setup classes for custom tables for DNS and PROVIDERS.
+ */
+if ( true === wpcd_is_custom_dns_provider_tables_enabled() ) {
+	require_once 'custom-table/api/class-wpcd-custom-table-api.php';
+	require_once 'custom-table/api/class-wpcd-ct-provider-api.php';
+	require_once 'custom-table/api/class-wpcd-ct-dns-provider-api.php';
+	require_once 'custom-table/api/class-wpcd-ct-dns-zone-api.php';
+	require_once 'custom-table/api/class-wpcd-ct-dns-zone-record-api.php';
+
+	require_once 'custom-table/class-wpcd-ct-list-table.php';
+	require_once 'custom-table/class-wpcd-ct-childs-list-table.php';
+	require_once 'custom-table/class-wpcd-custom-table.php';
+	require_once 'custom-table/class-wpcd-provider.php';
+	require_once 'custom-table/class-wpcd-dns-provider.php';
+	require_once 'custom-table/class-wpcd-dns-zone.php';
+	require_once 'custom-table/class-wpcd-dns-zone-record.php';
+
+
+	add_action( 'init', 'wpcd_init_wpcd_custom_table_classes', -10, 1 );
+
+
+	/**
+	 * Init custom table classes
+	 */
+	function wpcd_init_wpcd_custom_table_classes() {
+
+		if ( ! function_exists( 'rwmb_request' ) ) {
+			return;
+		}
+
+		if ( function_exists( 'WPCD' ) ) {
+			if ( empty( WPCD()->classes['WPCD_PROVIDER_SETTINGS'] ) ) {
+				WPCD()->classes['WPCD_PROVIDER_SETTINGS'] = WPCD_MB_Custom_Table::get( 'provider' );
+			}
+
+			if ( empty( WPCD()->classes['WPCD_DNS_PROVIDER_SETTINGS'] ) ) {
+				WPCD()->classes['WPCD_DNS_PROVIDER_SETTINGS'] = WPCD_MB_Custom_Table::get( 'dns_provider' );
+			}
+
+			if ( empty( WPCD()->classes['WPCD_DNS_Zone'] ) ) {
+				WPCD()->classes['WPCD_DNS_Zone'] = WPCD_MB_Custom_Table::get( 'dns_zone' );
+			}
+
+			if ( empty( WPCD()->classes['WPCD_DNS_Zone_Record'] ) ) {
+				WPCD()->classes['WPCD_DNS_Zone_Record'] = WPCD_MB_Custom_Table::get( 'dns_zone_record' );
+			}
+		}
+	}
+}
+
+
 add_action( 'init', 'wpcd_init_wpcd_custom_fields', -10, 1 );
 /**
  * Create a class var for WPCD_Custom_Fields and
@@ -496,7 +548,7 @@ add_action( 'init', 'wpcd_init_wordpress_app_public', -10, 1 );
  * add it to the WPCD array of classes for management
  *
  * The WPCD_WORDPRESS_APP_PUBLIC class is used to handle all things
- * related to just front-end views/actions for servers and wordpress apps.
+ * related to just front-end views/actions for servers and WordPress apps.
  */
 function wpcd_init_wordpress_app_public() {
 	if ( function_exists( 'WPCD' ) ) {

@@ -192,16 +192,15 @@ class WPCD_WOOCOMMERCE {
 	 */
 	public function is_cart_subscription_switch() {
 
-		$return = false;
-		if ( ! is_null( WC()->cart ) ) {
+		$has_subscriptions_switch = false;
+		if ( ! empty( WC()->cart ) ) {
 			foreach ( WC()->cart->get_cart() as $cart_item_key => $cart_item ) {
-				if ( ! empty( $cart_item['subscription_switch'] ) ) {
-					$return = true;
+				if ( wcs_get_cart_item_switch_type( $cart_item ) ) {
+					$has_subscriptions_switch = true;
 				}
 			}
 		}
-
-		return $return;
+		return $has_subscriptions_switch;
 
 	}
 

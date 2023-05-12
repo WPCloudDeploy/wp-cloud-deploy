@@ -1,5 +1,4 @@
 /* the spinner - start */
-
 .locker, .locker-loader {
 	position: absolute;
 	top: 0;
@@ -20,15 +19,11 @@
 	z-index: 1001;
 	background: url(/wp-content/plugins/wp-cloud-deploy/assets/images/spinner.gif) no-repeat center center;
 }
-
 /* the spinner - end */
 
 /******************************************************************************************/
-
 /* Style popup                                                                            */
-
 /******************************************************************************************/
-
 .wpcd-popup {
 	/* This is the main content area */
 	width: 75%;
@@ -58,21 +53,19 @@
 
 .wpcd-popup .wpcd-log-console {
 	/* Style the actual command output area to look like a linux terminal */
-	background-color: black;
+	background-color: var(--wpcd-terminal-background-color);
 	padding: 2em;
-	color: white;
+	color: var(--wpcd-terminal-foreground-color);
 	overflow: scroll;
 	max-height: 300px;
 }
 
 /* Make scrollbars in terminal almost invisible */
-
 .wpcd-popup .wpcd-log-console::-webkit-scrollbar {
 	width: 5px;
 }
 
 /* style the close button */
-
 .wpcd-popup .wpcd-log-close-button {
 	margin: 1em;
 	background-color: transparent;
@@ -83,13 +76,10 @@
 }
 
 /******************************************************************************************/
-
 /* Style Metabox.io Tabs in the wp-app screen                                             */
-
 /******************************************************************************************/
 
 /* Set a min height to the tab container */
-
 div[id^='wpcd_wordpress-app'] {
 	min-height: 300px !important;
 	padding-left: 1em !important;
@@ -97,7 +87,6 @@ div[id^='wpcd_wordpress-app'] {
 }
 
 /* If we're painting tabs vertically we have an extra metabox at the top of the screen - we don't want this to be too big */
-
 #wpcd_wordpress-app_tab_top_of_site_details {
 	min-height: 10px !important;
 	margin-top: 0px !important;
@@ -105,10 +94,9 @@ div[id^='wpcd_wordpress-app'] {
 }
 
 /* And we want some styling on that extra metabox ! */
-
 #wpcd_wordpress-app_tab_top_of_site_details {
-	background-color: var(--wpcd-medium-background-color);
-	border: solid 1px #CFD8DC;
+	color: white;
+	background-color: var(--wpcd-accent-background-color);
 	word-wrap: break-word;
 }
 
@@ -121,6 +109,21 @@ div[id^='wpcd_wordpress-app'] {
 	/* Don't allow long domain names to wrap to wrap */
 	overflow-x: clip; 
 	text-overflow: ellipsis;
+}
+
+/* Buttons in the top of site area */
+#wpcd_wordpress-app_tab_top_of_site_details .rwmb-input .button,
+#wpcd_wordpress-app_tab_top_of_site_details .rwmb-input .button a {
+	text-decoration: none;
+	background-color: var(--wpcd-primary-brand-color);
+	border-color: var(--wpcd-primary-brand-color);
+	border-radius: 3px;
+	color: white;
+}
+#wpcd_wordpress-app_tab_top_of_site_details .rwmb-input .button:hover,
+#wpcd_wordpress-app_tab_top_of_site_details .rwmb-input .button a:hover {
+	text-decoration: none;
+	border-color: white;
 }
 
 /** 
@@ -158,6 +161,14 @@ div[id^='wpcd_wordpress-app'] {
 	color: gray;
 	border-color: gray;	
 }
+.wpcd_site_details_top_row .wpcd_site_details_top_row_element_wrapper .wpcd_site_details_top_row_element_git_status {
+	color: green;
+	border-color: green;	
+}
+.wpcd_site_details_top_row .wpcd_site_details_top_row_element_wrapper .wpcd_site_details_top_row_element_site_type {
+	color: black;
+	border-color: black;	
+}
 /* End make the data under the domain name when we're using left menus smaller and in chiclet boxes...*/
 
 @media only screen and (max-width: 1600px) {
@@ -175,7 +186,6 @@ div[id^='wpcd_wordpress-app'] {
 }
 
 /* Tab metabox on the app detail screen - make title uppercase */
-
 #wpcd_wordpress-app_tab2 h2.hndle.ui-sortable-handle {
 	text-transform: uppercase;
 }
@@ -188,7 +198,6 @@ div[id^='wpcd_wordpress-app'] {
 }
 
 /* Certain text elements in the tab metabox on the app detail screen - change their colors to make more visible */
-
 #wpcd_wordpress-app_tab2 h2.hndle.ui-sortable-handle .wpcd_metabox_title_value {
 	color: var(--wpcd-secondary-brand-color);
 	/* pinkish but not wpcd colors */
@@ -201,7 +210,6 @@ div[id^='wpcd_wordpress-app'] {
 }
 
 /* Add some padding around each tab and make the font a little bigger.*/
-
 .wpcd-wpapp-actions .rwmb-tab-nav li[class^='rwmb-tab-'] a {
 	padding-left: 1.25em !important;
 	padding-right: 1.25em !important;
@@ -219,7 +227,6 @@ div[id^='wpcd_wordpress-app'] {
 }
 
 /* Remove some excess space below the tab navigation row for horizontal tabs*/
-
 .wpcd-wpapp-actions .rwmb-tab-nav {
 	margin-bottom: 0.01px !important;
 }
@@ -230,7 +237,6 @@ div[id^='wpcd_wordpress-app'] {
 }
 
 /* Background color and text for tabs - vertical */
-
 .wpcd-wpapp-actions .rwmb-tabs-left .rwmb-tab-nav {
 	background-color: var(--wpcd-accent-background-color);
 }
@@ -252,20 +258,17 @@ div[id^='wpcd_wordpress-app'] {
 }
 
 /* Hover color for vertical tabs */
-
 .wpcd-wpapp-actions .rwmb-tabs-left .rwmb-tab-nav a:hover {
 	color: var(--wpcd-primary-brand-color);
 	transition: all 1s cubic-bezier(0.000, 0.000, 0.230, 1);
 }
 
 /* Font awesome pro icons need a little it more margin... */
-
 .wpcd-wpapp-actions .rwmb-tab-nav i {
 	margin-right: .6em;
 }
 
 /* The first row at the top of the site detail screen needs some extra love - bigger fonts for values. */
-
 .wpcd_site_details_top_row {
 	font-size: 1.4em !important;
 	font-weight: bold !important;
@@ -289,7 +292,6 @@ div[id^='wpcd_wordpress-app'] {
 }
 
 /* Add some padding to the content area of the tab */
-
 .wpcd-wpapp-actions .rwmb-tab-panel {
 	padding-left: 2em !important;
 	padding-right: 2em !important;
@@ -297,7 +299,6 @@ div[id^='wpcd_wordpress-app'] {
 }
 
 /* Font for section headings need to be a little larger */
-
 .wpcd-wpapp-actions h4 {
 	font-size: 1.2em !important;
 	margin-top: 1.2em !important;
@@ -307,7 +308,6 @@ div[id^='wpcd_wordpress-app'] {
 /* End style Metabox.io Tabs in the wp-app screen */
 
 /* the password toggle icon */
-
 .wpcd_app_pass_toggle_icon {
 	vertical-align: middle;
 	width: 30px;

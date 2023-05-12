@@ -26,8 +26,8 @@ class WPCD_WORDPRESS_TABS_CLONE_SITE extends WPCD_WORDPRESS_TABS {
 
 		add_action( "wpcd_command_{$this->get_app_name()}_completed", array( $this, 'command_completed' ), 10, 2 );
 
-		// Allow the clone action to be triggered via an action hook.  Will primarily be used by the REST API.
-		add_action( "wpcd_{$this->get_app_name()}_do_clone_site", array( $this, 'do_clone_site_action' ), 10, 2 ); // Hook: wpcd_wordpress-app_do_clone_site
+		// Allow the clone action to be triggered via an action hook.  Will primarily be used by the REST API and WOOCOMMERCE.
+		add_action( "wpcd_{$this->get_app_name()}_do_clone_site", array( $this, 'do_clone_site_action' ), 10, 2 ); // Hook: wpcd_wordpress-app_do_clone_site.
 
 	}
 
@@ -52,7 +52,7 @@ class WPCD_WORDPRESS_TABS_CLONE_SITE extends WPCD_WORDPRESS_TABS {
 		// [2] => 911.
 		$command_array = explode( '---', $name );
 
-		// if the command is to replace the domain name and the domain was changed we need to update the domain records...
+		// if the command is to clone a site we need to do a few things...
 		if ( 'clone-site' === $command_array[0] ) {
 
 			// Lets pull the logs.
@@ -131,6 +131,12 @@ class WPCD_WORDPRESS_TABS_CLONE_SITE extends WPCD_WORDPRESS_TABS {
 								update_post_meta( $new_app_post_id, 'wpapp_redis_status', $redis_status );
 							}
 
+							/*
+							 *** Note: 6G/7G Flags and http auth status flags are not copied here.
+							 * This is because the clone bash script creates new vhost configuration files instead
+							 * of copying from the original site.
+							 */
+
 							// Update the PHP version to match the original version.
 							switch ( $webserver_type ) {
 								case 'ols':
@@ -143,6 +149,11 @@ class WPCD_WORDPRESS_TABS_CLONE_SITE extends WPCD_WORDPRESS_TABS {
 									$this->set_php_version_for_app( $new_app_post_id, $this->get_php_version_for_app( $id ) );
 									break;
 							}
+
+							/**
+							 * Handle multi-tenant metas (which includes the standard TEMPLATE flag.)
+							 */
+							$this->clone_mt_metas( $id, $new_app_post_id );  // Function located in traits file multi-tenant-app.php.
 
 							// Lets add a meta to indicate that this was a clone.
 							update_post_meta( $new_app_post_id, 'wpapp_cloned_from', $this->get_domain_name( $id ) );
@@ -337,7 +348,26 @@ class WPCD_WORDPRESS_TABS_CLONE_SITE extends WPCD_WORDPRESS_TABS {
 		$domain = $this->get_domain_name( $id );
 
 		/**
-		 * We've gotten this far, so lets try to configure the DNS to point to the server.
+		 * If multi-tenant is active, check to see if the original site is a multi-tenant site
+		 * and if so, pass that info to the bash script so that things like the
+		 * openbasedirective can be updated.
+		 * For now, the only site type that is affected is a tenant site ('mt_tenant').
+		 * Versioned sites, version clones, template sites, template clones etc. are not stamped
+		 * and will be treated as regular sites after a clone.
+		 */
+		if ( in_array( $this->get_mt_site_type( $id ), array( 'mt_tenant' ), true ) ) {
+			$mt_version                 = $this->get_mt_version( $id );
+			$mt_parent_domain_post_id   = $this->get_mt_parent( $id );
+			$mt_template_domain         = $this->get_domain_name( $mt_parent_domain_post_id );
+			$args['mt_template_domain'] = $mt_template_domain;
+			$args['mt_version']         = $mt_version;
+		} else {
+			$args['mt_template_domain'] = '';
+			$args['mt_version']         = '';
+		}
+
+		/**
+		 * We've gotten this far, so lets try to configure the DNS for the new domain to point to the server.
 		 */
 		// 1. What's the server post id?
 		$server_id = $this->get_server_id_by_app_id( $id );
@@ -430,7 +460,7 @@ class WPCD_WORDPRESS_TABS_CLONE_SITE extends WPCD_WORDPRESS_TABS {
 
 		// Allow a third party to show a different set of fields instead.
 		// This can be useful if a custom plugin determines that clone operations are not allowed.
-		// For example, the WC SITES SUBSCRIPTION add-on uses this to disable cloning when the number of sites a user is allowed is exceeded.
+		// For example, the WOOCOMMERCE add-on uses this to disable cloning when the number of sites a user is allowed is exceeded.
 		// Full filter name: wpcd_app_wordpress-app_clone-site_get_fields.
 		$over_ride_fields = apply_filters( "wpcd_app_{$this->get_app_name()}_clone-site_get_fields", array(), $fields, $id );
 		if ( ! empty( $over_ride_fields ) ) {
@@ -461,6 +491,8 @@ class WPCD_WORDPRESS_TABS_CLONE_SITE extends WPCD_WORDPRESS_TABS {
 		$desc .= __( 'If you would like new SSL certificates to be issued as part of this operation please make sure you point your DNS for the new site to this server\'s IP address BEFORE you start the clone operation. ', 'wpcd' );
 		$desc .= __( 'Otherwise you will need to request new certificates on the SSL tab after the operation is complete and you have updated your DNS.', 'wpcd' );
 
+		$default_domain = WPCD_DNS()->get_full_temp_domain();
+
 		$fields[] = array(
 			'name' => __( 'Clone Site', 'wpcd' ),
 			'tab'  => 'clone-site',
@@ -478,8 +510,8 @@ class WPCD_WORDPRESS_TABS_CLONE_SITE extends WPCD_WORDPRESS_TABS {
 				// the key of the field (the key goes in the request).
 				'data-wpcd-name' => 'new_domain',
 			),
-			'size'        => 90,
-			'placeholder' => __( 'Domain without www or http - eg: mydomain.com', 'wpcd' ),
+			'placeholder' => __( 'Domain without www or http - e.g: mydomain.com', 'wpcd' ),
+			'std'         => $default_domain,
 		);
 
 		$clone_desc = '';
@@ -510,22 +542,6 @@ class WPCD_WORDPRESS_TABS_CLONE_SITE extends WPCD_WORDPRESS_TABS {
 			'class'      => 'wpcd_app_action',
 			'save_field' => false,
 		);
-
-		/*
-		// Add a note about how the cloning process works.
-		$note = __( 'Quick Change: Change just the domain name in the WordPress settings screen.  All other references to the old domain will remain in your content and other items in the database.', 'wpcd');
-		$note .= '<br />';
-		$note .= __( 'Full - Dry Run: Change all references from the old domain to the new domain across the entire database. This does a dry run so you can get an idea of what will be changed.', 'wpcd');
-		$note .= '<br />';
-		$note .= __( 'Full - Live Run: Change all references from the old domain to the new domain across the entire database. This is the real deal - do a backup because you cannot undo this action once it has started!', 'wpcd');
-
-		$fields[] = array(
-				'name'	=> __( 'Notes', 'wpcd' ),
-				'tab'	=> 'change-domain',
-				'type'	=> 'heading',
-				'desc'	=> $note,
-		);
-		*/
 
 		return $fields;
 

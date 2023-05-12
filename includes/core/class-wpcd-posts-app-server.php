@@ -213,9 +213,11 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 			apply_filters(
 				'wpcd_server_script_args',
 				array(
-					'nonce'                => wp_create_nonce( 'wpcd-server' ),
-					'i10n'                 => $this->get_js_terms(),
-					'bulk_actions_confirm' => __( 'Are you sure you want to perform this bulk action?', 'wpcd' ),
+					'nonce'                       => wp_create_nonce( 'wpcd-server' ),
+					'i10n'                        => $this->get_js_terms(),
+					'_action'                     => 'delete-server-record',
+					'bulk_actions_confirm'        => __( 'Are you sure you want to perform this bulk action?', 'wpcd' ),
+					'delete_server_record_prompt' => __( 'Are you sure you would like to delete this server record? This action is NOT reversible!', 'wpcd' ),
 				),
 				'wpcd-wpapp-server-admin'
 			)
@@ -1411,7 +1413,7 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 			}
 		}
 
-		if ( ( ( is_admin() && $query->is_main_query() && $pagenow === 'edit.php' ) || wpcd_is_public_servers_list_query( $query ) ) && $query->query['post_type'] === 'wpcd_app_server' && $filter_action == 'Filter' ) {
+		if ( ( ( is_admin() && $query->is_main_query() && $pagenow === 'edit.php' ) || wpcd_is_public_servers_list_query( $query ) ) && $query->query['post_type'] === 'wpcd_app_server' && ( ! empty( $filter_action ) ) ) {
 			$qv = &$query->query_vars;
 
 			// SERVER PROVIDER.
@@ -1703,6 +1705,9 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 
 	/**
 	 * Restricts user to delete a post if he/she doesn't have delete_server permission
+	 * Note: Changes to this permission logic might also need to be done in function
+	 * ajax_server() located in file class-wordpres-app.php in the 'delete-server-record'
+	 * section of the SWITCH-CASE control structure.
 	 *
 	 * @param int  $post_id post id.
 	 * @param bool $return true=return a value and break, false=do not return a value.

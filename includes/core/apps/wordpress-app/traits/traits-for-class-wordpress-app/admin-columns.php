@@ -44,6 +44,23 @@ trait wpcd_wpapp_admin_column_data {
 
 		$new_actions = array();
 
+		// Add link for delete server records.
+		$wpcd_server_delete_protection       = get_post_meta( $id, 'wpcd_server_delete_protection', true );
+		$wpcd_show_delete_server_record_link = wpcd_get_option( 'wordpress_app_enable_server_delete_record' );
+		if ( 'private' === get_post_status( $id ) && wpcd_is_admin() && empty( $wpcd_server_delete_protection ) && $wpcd_show_delete_server_record_link ) {
+			/**
+			 * We will only get in here if all of the following four conditions are met:
+			 *  1: server type is private and
+			 *  2. current user is admin and
+			 *  3. server does not have delete protection enabled.
+			 *  4. the delete server record link option is enabled in settings.
+			 */
+			$new_actions['wpcd_delete_server_record'] = sprintf(
+				'<a class="wpcd_action_delete_server_record" data-wpcd-id="%d" href="">%s</a>',
+				$id,
+				esc_html( __( 'Delete Record', 'wpcd' ) )
+			);
+		}
 		// Show old-logs drop-down in the server list.
 		if ( wpcd_get_option( 'wordpress_app_show_logs_dropdown_in_server_list' ) ) {
 			// add the show logs button if a command is currently executing.
@@ -526,6 +543,9 @@ trait wpcd_wpapp_admin_column_data {
 					break;
 				}
 
+				// Allow devs to hook in.
+				$value = apply_filters( "wpcd_{$this->get_app_name()}_server_actions_column_before_install_button", $value, $post_id );
+
 				// Adds an 'install WordPress' button to the server actions column.
 				if ( apply_filters( 'wpcd_wpapp_show_install_wp_button', true, $post_id ) ) {
 
@@ -573,6 +593,9 @@ trait wpcd_wpapp_admin_column_data {
 				}
 				// End adds 'install WordPress' button to the server actions column.
 
+				// Allow devs to hook in.
+				$value = apply_filters( "wpcd_{$this->get_app_name()}_server_actions_column_before_web_server_type", $value, $post_id );
+
 				// Add web server type beneath the button or notice.
 				$show_web_server_type = true;
 				if ( ! is_admin() && ( boolval( wpcd_get_option( 'wordpress_app_fe_hide_web_server_type_element_in_server_list' ) ) ) ) {
@@ -583,23 +606,35 @@ trait wpcd_wpapp_admin_column_data {
 					// We're in wp-admin area but not allowed to show this element.
 					$show_web_server_type = false;
 				}
-				if ( $show_web_server_type && $this->get_app_name() === $this->get_server_type( $post_id ) ) {
-					// Show it.
-					$value .= $this->get_formatted_web_server_type_for_display( $post_id, true );
+				if ( $show_web_server_type && $this->get_app_name() === $this->get_server_type( $post_id ) && ! wpcd_get_option( 'wordpress_app_show_web_server_type_column_in_server_list' ) ) {
+					// Show it. Notice that it's only being shown here if the option to show it in a separate column is not enabled.
+					$value .= $this->get_formatted_web_server_type_for_display( $post_id, false );
 				}
+
+				// Allow devs to hook in.
+				$value = apply_filters( "wpcd_{$this->get_app_name()}_server_actions_column_before_custom_links", $value, $post_id );
 
 				// Add custom links below the install WordPress button.
 				$value = $value . '<div class = "wpcd_server_actions_custom_links_wrap">' . $this->get_formatted_custom_links( $post_id ) . '</div>';
+
+				// Allow devs to hook in.
+				$value = apply_filters( "wpcd_{$this->get_app_name()}_server_actions_column_before_notes_and_labels", $value, $post_id );
 
 				// Display the count of notes and admin notes.
 				$labels_count_arr = $this->get_notes_count_string( $post_id );
 				$labels_count_arr = implode( ' ', $labels_count_arr );
 				$value            = $value . $labels_count_arr;
 
+				// Allow devs to hook in.
+				$value = apply_filters( "wpcd_{$this->get_app_name()}_server_actions_column_before_aptget_warning", $value, $post_id );
+
 				// Display warning if the server is running aptget.
 				if ( $this->wpcd_is_aptget_running( $post_id ) ) {
-					$value = '<div class="wpcd_server_actions_aptget_in_progress">' . __( 'It appears that background updates are being run on this server. Actions you perform while this is occuring might fail.', 'wpcd' ) . '</div>';
+					$value = '<div class="wpcd_server_actions_aptget_in_progress">' . __( 'It appears that background updates are being run on this server. Certain actions you perform while this is occurring might fail.', 'wpcd' ) . '</div>';
 				}
+
+				// Allow devs to hook in.
+				$value = apply_filters( "wpcd_{$this->get_app_name()}_server_actions_column", $value, $post_id );
 
 				break;
 
@@ -917,6 +952,10 @@ trait wpcd_wpapp_admin_column_data {
 			// add the ssl status.
 			if ( true === $this->get_site_local_ssl_status( $post_id ) ) {
 				$ssl_status = 'on';
+
+				if ( true === $this->get_site_local_wildcard_ssl_status( $post_id ) ) {
+					$ssl_status = 'on [*]';
+				}
 			} else {
 				$ssl_status = 'off';
 			}
@@ -1076,45 +1115,85 @@ trait wpcd_wpapp_admin_column_data {
 	public function display_post_states( $states, $post ) {
 
 		/* Show the app type and site status on the application list */
-		if ( 'wpcd_app' === get_post_type( $post ) && 'wordpress-app' == $this->get_app_type( $post->ID ) && boolval( wpcd_get_option( 'wordpress_app_show_label_in_lists' ) ) ) {
+		if ( 'wpcd_app' === get_post_type( $post ) && 'wordpress-app' === $this->get_app_type( $post->ID ) && boolval( wpcd_get_option( 'wordpress_app_show_label_in_lists' ) ) ) {
 			$states['wpcd-app-desc'] = $this->get_app_description();
 		}
 
 		/* Show whether the site is enabled or disabled */
-		if ( 'wpcd_app' === get_post_type( $post ) && 'wordpress-app' == $this->get_app_type( $post->ID ) ) {
+		if ( 'wpcd_app' === get_post_type( $post ) && 'wordpress-app' === $this->get_app_type( $post->ID ) ) {
 			if ( 'off' === $this->site_status( $post->ID ) ) {
 				$states['wpcd-wpapp-status'] = __( 'Disabled', 'wpcd' );
 			}
 		}
 
 		/* Show whether the site is admin locked */
-		if ( 'wpcd_app' === get_post_type( $post ) && 'wordpress-app' == $this->get_app_type( $post->ID ) ) {
+		if ( 'wpcd_app' === get_post_type( $post ) && 'wordpress-app' === $this->get_app_type( $post->ID ) ) {
 			if ( $this->get_admin_lock_status( $post->ID ) ) {
 				$states['wpcd-wpapp-admin-locked'] = __( 'Admin Locked', 'wpcd' );
 			}
 		}
 
 		/* Show whether the site is a staging site */
-		if ( 'wpcd_app' === get_post_type( $post ) && 'wordpress-app' == $this->get_app_type( $post->ID ) ) {
+		if ( 'wpcd_app' === get_post_type( $post ) && 'wordpress-app' === $this->get_app_type( $post->ID ) ) {
 			if ( true === $this->is_staging_site( $post->ID ) ) {
 				$states['wpcd-wpapp-status'] = __( 'Staging', 'wpcd' );
 			}
 		}
 
 		/* Show if the site has a remote database */
-		if ( 'wpcd_app' === get_post_type( $post ) && 'wordpress-app' == $this->get_app_type( $post->ID ) ) {
+		if ( 'wpcd_app' === get_post_type( $post ) && 'wordpress-app' === $this->get_app_type( $post->ID ) ) {
 			if ( 'yes' === $this->is_remote_db( $post->ID ) ) {
 				$states['wpcd-wpapp-remote-db'] = __( 'RemoteDB', 'wpcd' );
 			}
 		}
 
+		/* Show if the site is a GIT site */
+		if ( 'wpcd_app' === get_post_type( $post ) && 'wordpress-app' === $this->get_app_type( $post->ID ) ) {
+			if ( true === $this->get_git_status( $post->ID ) ) {
+				$states['wpcd-wpapp-git-status'] = '<span class="wpcd_post_state_git_enabled">' . __( 'Git Enabled', 'wpcd' ) . '</span>';
+			}
+		}
+
+		/* Show if the site is a template site */
+		if ( 'wpcd_app' === get_post_type( $post ) && 'wordpress-app' === $this->get_app_type( $post->ID ) ) {
+			// If multi-tenant is not enabled then we'll allow this to go through.
+			// If multi-tenant is enabled, it will be handled later below instead.
+			if ( ! wpcd_is_mt_enabled() ) {
+				if ( true === $this->wpcd_is_template_site( $post->ID ) ) {
+					$states['wpcd-wpapp-template-status'] = __( 'Template', 'wpcd' );
+				}
+			}
+		}
+
+		/* Show multi-tenant related site type. */
+		if ( 'wpcd_app' === get_post_type( $post ) && 'wordpress-app' === $this->get_app_type( $post->ID ) ) {
+			if ( true === wpcd_is_mt_enabled() ) {
+				$mt_site_type = $this->get_mt_site_type( $post->ID );
+				if ( 'standard' !== $mt_site_type ) {
+					$css_class                         = 'wpcd_post_state_' . $mt_site_type;
+					$states['wpcd-wpapp-mt-site-type'] = '<span class="' . $css_class . '">' . $mt_site_type . '</span>';
+				}
+			}
+		}
+
+		/* Show multi-tenant related version. */
+		if ( 'wpcd_app' === get_post_type( $post ) && 'wordpress-app' === $this->get_app_type( $post->ID ) ) {
+			if ( true === wpcd_is_mt_enabled() ) {
+				$mt_version = $this->get_mt_version( $post->ID );
+				if ( ! empty( $mt_version ) ) {
+					$css_class                            = 'wpcd_post_state wpcd_mt_site_version';
+					$states['wpcd-wpapp-mt-site-version'] = '<span class="' . $css_class . '">' . $mt_version . '</span>';
+				}
+			}
+		}
+
 		/* Show the server type on the server list screen */
-		if ( 'wpcd_app_server' === get_post_type( $post ) && 'wordpress-app' == $this->get_server_type( $post->ID ) && boolval( wpcd_get_option( 'wordpress_app_show_label_in_lists' ) ) ) {
+		if ( 'wpcd_app_server' === get_post_type( $post ) && 'wordpress-app' === $this->get_server_type( $post->ID ) && boolval( wpcd_get_option( 'wordpress_app_show_label_in_lists' ) ) ) {
 			$states['wpcd-server-type'] = 'WordPress';  // Unfortunately we don't have a server type description function we can call right now so hardcoding the value here.
 		}
 
 		/* Show if the server has a local/custom ssh login */
-		if ( 'wpcd_app_server' === get_post_type( $post ) && 'wordpress-app' == $this->get_server_type( $post->ID ) && ! empty( WPCD()->decrypt( get_post_meta( $post->ID, 'wpcd_server_ssh_private_key', true ) ) ) ) {
+		if ( 'wpcd_app_server' === get_post_type( $post ) && 'wordpress-app' === $this->get_server_type( $post->ID ) && ! empty( WPCD()->decrypt( get_post_meta( $post->ID, 'wpcd_server_ssh_private_key', true ) ) ) ) {
 			$states['wpcd-server-custom-ssh-login'] = __( 'SSH Override', 'wpcd' );
 		}
 
@@ -1202,7 +1281,7 @@ trait wpcd_wpapp_admin_column_data {
 						// What versions of PHP should we warn for?
 						$bad_php_versions = wpcd_get_option( 'wordpress_app_servers_default_php_warn_versions' );
 						if ( empty( $bad_php_versions ) ) {
-							$bad_php_versions = array( '5.6', '7.1', '7.2', '7.3' );
+							$bad_php_versions = array( '5.6', '7.1', '7.2', '7.3', '8.2' );
 						}
 
 						// Set warning message if the current PHP version is in the array of ones we should warn for.
@@ -1289,6 +1368,12 @@ trait wpcd_wpapp_admin_column_data {
 
 						$return = "<div class='$class'>" . $return . '</div>';
 
+					}
+					if ( isset( $server_status_items['apt_check_error'] ) && $server_status_items['apt_check_error'] > 0 ) {
+						// We have an error with apt so can't get totals for security updates.
+						$class       = 'wpcd_sec_updates_wrap';
+						$check_error = "<div class='$class'>" . __( 'Updates Check Error Notice: Please run all updates manually!', 'wpcd' ) . '</div>';
+						$return     .= $check_error;
 					}
 					break;
 

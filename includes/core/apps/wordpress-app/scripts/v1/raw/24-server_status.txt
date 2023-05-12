@@ -89,6 +89,19 @@ total_updates=$(/usr/lib/update-notifier/apt-check 2>&1 | cut -d ";" -f 1)
 security_updates=$(/usr/lib/update-notifier/apt-check 2>&1 | cut -d ";" -f 2)
 list_of_packages=$(apt list --upgradable  2>/dev/null|grep -v ^Listing|cut -d"/" -f1|tr "\n" ",")
 
+apt_check_error=0
+if ! [[ $total_updates =~ ^[0-9]+$ ]]
+then
+	total_updates=0
+	apt_check_error=1
+fi
+
+if ! [[ $security_updates =~ ^[0-9]+$ ]]
+then
+	security_updates=0
+	apt_check_error=1
+fi
+
 ######  Total CPU Usage from boot up by adding all variables #######
 ###### Grep first line which has overall cpu usage from /proc/stat , add all parameter value to get total cpu ###
 cpu_total=`grep '\''cpu '\'' /proc/stat |awk '\''{print ($2+$3+$4+$5+$6+$7+$8+$9)}'\''`
@@ -144,17 +157,18 @@ echo "Largest Mysql Database Size			:	$Largest_DB_Size M"  >> /var/log/wp-server
 echo "Server Timezone					:	$Timezone"  >> /var/log/wp-server-status.log
 echo "Php Default CLI Version (Full)				:	$php_full_version"  >> /var/log/wp-server-status.log
 echo "Php Default CLI Version		:	$php_version"  >> /var/log/wp-server-status.log
+echo "Apt Check Error		:	$apt_check_error"  >> /var/log/wp-server-status.log
 ' > /usr/local/bin/wp-status
 
 	if [[ -n "$callback_server_status" ]]
 	then
-		echo 'get_count=`echo "restart=$restart&total_updates=$total_updates&security_updates=$security_updates&unattended_package_num=$unattended_package_num&list_of_packages=$list_of_packages&unattended_package_list=$unattended_package_list&uptime=$uptime&cpu_overall=$cpu_since_reboot&cpu_since_reboot=$cpu_now&free_disk=$free_disk&free_disk_percentage=$free_disk_percentage&website_disk=$website_disk&Total_mem=$Total_mem&Used_mem=$Used_mem&Used_mem_percentage=$Used_mem_percentage&Database_size=$Database_size&Largest_DB_Name=$Largest_DB_Name&Largest_DB_Size=$Largest_DB_Size&Timezone=$Timezone&phpfullversion=$php_full_version&phpversion=$php_version" |wc -c`
+		echo 'get_count=`echo "restart=$restart&total_updates=$total_updates&security_updates=$security_updates&unattended_package_num=$unattended_package_num&list_of_packages=$list_of_packages&unattended_package_list=$unattended_package_list&uptime=$uptime&cpu_overall=$cpu_since_reboot&cpu_since_reboot=$cpu_now&free_disk=$free_disk&free_disk_percentage=$free_disk_percentage&website_disk=$website_disk&Total_mem=$Total_mem&Used_mem=$Used_mem&Used_mem_percentage=$Used_mem_percentage&Database_size=$Database_size&Largest_DB_Name=$Largest_DB_Name&Largest_DB_Size=$Largest_DB_Size&Timezone=$Timezone&phpfullversion=$php_full_version&phpversion=$php_version&Apt_Check_Error=$apt_check_error" |wc -c`
 		### When callback url contains greater than 200 Chracter as string then ignore unattended and all packages list from url ##
 		if [[ $get_count -lt 2000 ]]
 		then
-		curl -sS "$callback_server_status?restart=$restart&total_updates=$total_updates&security_updates=$security_updates&unattended_package_num=$unattended_package_num&list_of_packages=$list_of_packages&unattended_package_list=$unattended_package_list&uptime=$uptime&cpu_since_reboot=$cpu_since_reboot&cpu_now=$cpu_now&free_disk=$free_disk&free_disk_percentage=$free_disk_percentage&website_disk=$website_disk&Total_mem=$Total_mem&Used_mem=$Used_mem&Used_mem_percentage=$Used_mem_percentage&Database_size=$Database_size&Largest_DB_Name=$Largest_DB_Name&Largest_DB_Size=$Largest_DB_Size&Timezone=$Timezone&phpfullversion=$php_full_version&phpversion=$php_version"
+		curl -sS "$callback_server_status?restart=$restart&total_updates=$total_updates&security_updates=$security_updates&unattended_package_num=$unattended_package_num&list_of_packages=$list_of_packages&unattended_package_list=$unattended_package_list&uptime=$uptime&cpu_since_reboot=$cpu_since_reboot&cpu_now=$cpu_now&free_disk=$free_disk&free_disk_percentage=$free_disk_percentage&website_disk=$website_disk&Total_mem=$Total_mem&Used_mem=$Used_mem&Used_mem_percentage=$Used_mem_percentage&Database_size=$Database_size&Largest_DB_Name=$Largest_DB_Name&Largest_DB_Size=$Largest_DB_Size&Timezone=$Timezone&phpfullversion=$php_full_version&phpversion=$php_version&Apt_Check_Error=$apt_check_error"
 	else
-		curl -sS "$callback_server_status?restart=$restart&total_updates=$total_updates&security_updates=$security_updates&unattended_package_num=$unattended_package_num&uptime=$uptime&cpu_since_reboot=$cpu_since_reboot&cpu_now=$cpu_now&free_disk=$free_disk&free_disk_percentage=$free_disk_percentage&website_disk=$website_disk&Total_mem=$Total_mem&Used_mem=$Used_mem&Used_mem_percentage=$Used_mem_percentage&Database_size=$Database_size&Largest_DB_Name=$Largest_DB_Name&Largest_DB_Size=$Largest_DB_Size&Timezone=$Timezone&phpfullversion=$php_full_version&phpversion=$php_version"
+		curl -sS "$callback_server_status?restart=$restart&total_updates=$total_updates&security_updates=$security_updates&unattended_package_num=$unattended_package_num&uptime=$uptime&cpu_since_reboot=$cpu_since_reboot&cpu_now=$cpu_now&free_disk=$free_disk&free_disk_percentage=$free_disk_percentage&website_disk=$website_disk&Total_mem=$Total_mem&Used_mem=$Used_mem&Used_mem_percentage=$Used_mem_percentage&Database_size=$Database_size&Largest_DB_Name=$Largest_DB_Name&Largest_DB_Size=$Largest_DB_Size&Timezone=$Timezone&phpfullversion=$php_full_version&phpversion=$php_version&Apt_Check_Error=$apt_check_error"
 		fi'	>> /usr/local/bin/wp-status
 	fi
 

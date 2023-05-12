@@ -258,6 +258,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 				case 'php-server-restart-php74':
 				case 'php-server-restart-php80':
 				case 'php-server-restart-php81':
+				case 'php-server-restart-php82':
 					$result = $this->do_php_restart( $id, $action );
 					break;
 				case 'php-server-activate-php56':
@@ -268,6 +269,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 				case 'php-server-activate-php74':
 				case 'php-server-activate-php80':
 				case 'php-server-activate-php81':
+				case 'php-server-activate-php82':
 						$result = $this->do_php_activation_toggle( $id, $action );
 					break;
 				case 'php-server-deactivate-php56':
@@ -278,6 +280,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 				case 'php-server-deactivate-php74':
 				case 'php-server-deactivate-php80':
 				case 'php-server-deactivate-php81':
+				case 'php-server-deactivate-php82':
 						$result = $this->do_php_activation_toggle( $id, $action );
 					break;
 			}
@@ -458,7 +461,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		$mc_desc  = __( 'Memcached is an OBJECT cache service that can help speed up duplicated database queries.  Once the service is installed here, you can activate it for each site that needs it.', 'wpcd' );
 		$mc_desc .= '<br />';
 		/* translators: %s is a string "Memcached and Redis Object Caches" and is handled separately. */
-		$mc_desc .= sprintf( __( 'Learn more about %s', 'wpcd' ), '<a href="https://medium.com/@Alibaba_Cloud/redis-vs-memcached-in-memory-data-storage-systems-3395279b0941">' . __( 'Memcached and Redis Object Caches', 'wpcd' ) . '</a>' );
+		$mc_desc .= sprintf( __( 'Learn more about %s', 'wpcd' ), '<a href="https://scalegrid.io/blog/redis-vs-memcached-2021-comparison/">' . __( 'Memcached and Redis Object Caches', 'wpcd' ) . '</a>' );
 
 		$actions['memcached-status-header'] = array(
 			'label'          => __( 'Memcached', 'wpcd' ),
@@ -592,7 +595,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		$ufw_toggle_state = $this->get_ufw_state( $id );
 
 		$actions['ufw-state-toggle'] = array(
-			'label'          => __( 'Toggle Status', 'wpcd' ),
+			'label'          => __( 'Status', 'wpcd' ),
 			'raw_attributes' => array(
 				'on_label'  => __( 'Enabled', 'wpcd' ),
 				'off_label' => __( 'Disabled', 'wpcd' ),
@@ -629,24 +632,28 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		// get any existing email gateway data stored.
 		$gateway_data = wpcd_maybe_unserialize( get_post_meta( $id, 'wpcd_wpapp_email_gateway', true ) );
 		if ( ! empty( $gateway_data ) ) {
-			$smtp_server    = $gateway_data['smtp_server'];
-			$smtp_user      = $gateway_data['smtp_user'];
-			$smtp_pass      = self::decrypt( $gateway_data['smtp_pass'] );
-			$smtp_domain    = $gateway_data['domain'];
-			$smtp_hostname1 = $gateway_data['hostname1'];
-			$smtp_note      = $gateway_data['note'];
+			$smtp_server      = $gateway_data['smtp_server'];
+			$smtp_user        = $gateway_data['smtp_user'];
+			$smtp_pass        = self::decrypt( $gateway_data['smtp_pass'] );
+			$smtp_domain      = $gateway_data['domain'];
+			$smtp_hostname1   = $gateway_data['hostname1'];
+			$smtp_usetls      = $gateway_data['usetls'];
+			$smtp_usestarttls = $gateway_data['usestarttls'];
+			$smtp_note        = $gateway_data['note'];
 
 			$smtp_gateway_button_txt = __( 'Reinstall Email Gateway', 'wpcd' );
 			$eg_desc                .= '<br /><br />';
 			$eg_desc                .= __( 'The email gateway has already been installed. You can reinstall it with new parameters by clicking the reinstall button below.', 'wpcd' );
 
 		} else {
-			$smtp_server    = '';
-			$smtp_user      = '';
-			$smtp_pass      = '';
-			$smtp_domain    = '';
-			$smtp_hostname1 = '';
-			$smtp_note      = '';
+			$smtp_server      = '';
+			$smtp_user        = '';
+			$smtp_pass        = '';
+			$smtp_domain      = '';
+			$smtp_hostname1   = '';
+			$smtp_usetls      = 'YES';
+			$smtp_usestarttls = 'YES';
+			$smtp_note        = '';
 
 			$smtp_gateway_button_txt = __( 'Install Email Gateway', 'wpcd' );
 		}
@@ -666,7 +673,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			'raw_attributes' => array(
 				'std'            => $smtp_server,
 				'desc'           => __( 'Enter the url/address for your outgoing email server - usually in the form of a subdomain.domain.com:port - eg: <i>smtp.ionos.com:587</i>.', 'wpcd' ),
-				'columns'        => 4,
+				'xcolumns'        => 4,
 				// the key of the field (the key goes in the request).
 				'data-wpcd-name' => 'smtp_server',
 			),
@@ -677,7 +684,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			'raw_attributes' => array(
 				'std'            => $smtp_user,
 				'desc'           => __( 'Your user id for connecting to the smtp server', 'wpcd' ),
-				'columns'        => 4,
+				'columns'        => 6,
 				// the key of the field (the key goes in the request).
 				'data-wpcd-name' => 'smtp_user',
 				'spellcheck'     => 'false',
@@ -689,7 +696,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			'raw_attributes' => array(
 				'std'            => $smtp_pass,
 				'desc'           => __( 'Your password for connecting to the smtp server', 'wpcd' ),
-				'columns'        => 4,
+				'columns'        => 6,
 				// the key of the field (the key goes in the request).
 				'data-wpcd-name' => 'smtp_pass',
 				'spellcheck'     => 'false',
@@ -701,7 +708,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			'raw_attributes' => array(
 				'std'            => $smtp_domain,
 				'desc'           => __( 'The default domain for sending messages', 'wpcd' ),
-				'columns'        => 4,
+				'columns'        => 6,
 				// the key of the field (the key goes in the request).
 				'data-wpcd-name' => 'domain',
 			),
@@ -711,13 +718,45 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			'type'           => 'text',
 			'raw_attributes' => array(
 				'std'            => $smtp_hostname1,
-				'desc'           => __( 'FQDN for the server. Some SMTP servers will require this to be a working domain name (example: server1.myblog.com)', 'wpcd' ),
-				'columns'        => 4,
+				'desc'           => __( 'FQDN for the server.', 'wpcd' ),
+				'tooltip'        => __( 'Some SMTP servers will require this to be a working domain name (example: server1.myblog.com)', 'wpcd' ),
+				'columns'        => 6,
 				// the key of the field (the key goes in the request).
 				'data-wpcd-name' => 'hostname1',
 			),
 		);
-		$actions['email-gateway-smtp-note']     = array(
+		$actions['email-gateway-smtp-usetls']   = array(
+			'label'          => __( 'Use TLS', 'wpcd' ),
+			'type'           => 'select',
+			'raw_attributes' => array(
+				'options'        => array(
+					'YES' => 'Yes',
+					'NO'  => 'No',
+				),
+				'std'            => $smtp_usetls,
+				'desc'           => __( 'Warning! Turning this off has security implications!', 'wpcd' ),
+				'columns'        => 4,
+				// the key of the field (the key goes in the request).
+				'data-wpcd-name' => 'usetls',
+			),
+		);
+		$actions['email-gateway-smtp-usestarttls'] = array(
+			'label'          => __( 'Use STARTTLS', 'wpcd' ),
+			'type'           => 'select',
+			'raw_attributes' => array(
+				'options'        => array(
+					'YES' => 'Yes',
+					'NO'  => 'No',
+
+				),
+				'std'            => $smtp_usestarttls,
+				'desc'           => __( 'Warning! Turning this off has security implications!', 'wpcd' ),
+				'columns'        => 4,
+				// the key of the field (the key goes in the request).
+				'data-wpcd-name' => 'usestarttls',
+			),
+		);
+		$actions['email-gateway-smtp-note']    = array(
 			'label'          => __( 'Brief Note', 'wpcd' ),
 			'type'           => 'textarea',
 			'raw_attributes' => array(
@@ -728,14 +767,14 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 				'data-wpcd-name' => 'note',
 			),
 		);
-		$actions['email-gateway-smtp-install']  = array(
+		$actions['email-gateway-smtp-install'] = array(
 			'label'          => '',
 			'raw_attributes' => array(
 				'std'                 => $smtp_gateway_button_txt,
 				'columns'             => 3,
 				// make sure we give the user a confirmation prompt.
 				'confirmation_prompt' => __( 'Are you sure you would like to install or update the email gateway service?', 'wpcd' ),
-				'data-wpcd-fields'    => wp_json_encode( array( '#wpcd_app_action_email-gateway-smtp-server', '#wpcd_app_action_email-gateway-smtp-user', '#wpcd_app_action_email-gateway-smtp-password', '#wpcd_app_action_email-gateway-smtp-domain', '#wpcd_app_action_email-gateway-smtp-hostname', '#wpcd_app_action_email-gateway-smtp-note' ) ),
+				'data-wpcd-fields'    => wp_json_encode( array( '#wpcd_app_action_email-gateway-smtp-server', '#wpcd_app_action_email-gateway-smtp-user', '#wpcd_app_action_email-gateway-smtp-password', '#wpcd_app_action_email-gateway-smtp-domain', '#wpcd_app_action_email-gateway-smtp-hostname', '#wpcd_app_action_email-gateway-smtp-usetls', '#wpcd_app_action_email-gateway-smtp-usestarttls', '#wpcd_app_action_email-gateway-smtp-note' ) ),
 			),
 			'type'           => 'button',
 		);
@@ -845,6 +884,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		$php74_status   = $default_status;
 		$php80_status   = $default_status;
 		$php81_status   = $default_status;
+		$php82_status   = $default_status;
 
 		// retrieve php service status from server meta.
 		$services_status     = wpcd_maybe_unserialize( get_post_meta( $id, 'wpcd_wpapp_services_php_status', true ) );
@@ -862,6 +902,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			'php74' => $default_status,
 			'php80' => $default_status,
 			'php81' => $default_status,
+			'php82' => $default_status,
 		);
 
 		// Unset php80 and 81 elements as necessary.
@@ -870,6 +911,10 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		}
 		if ( ! $this->is_php_81_installed( $id ) ) {
 			unset( $php_services_status['php81'] );
+		}
+
+		if ( ! $this->is_php_82_installed( $id ) ) {
+			unset( $php_services_status['php82'] );
 		}
 
 		// Loop through the $services_status array and update the $php_services_status array for any entries present in $services_status array.
@@ -939,7 +984,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 				);
 
 				$default_php_server_version = 'php' . $this->get_default_php_version_no_period( $id );
-				if ( $default_php_server_version  === $services_key ) {
+				if ( $default_php_server_version === $services_key ) {
 					// Do not allow php 7.4 or the the default version to be deactivated since it's the default for the server.
 					$actions[ "php-server-deactivate-$services_key" ] = array(
 						'label'          => '',
@@ -1193,6 +1238,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		}
 
 		// Setup unique command name.
+		$domain                = 'wpcd-dummy.com';
 		$command               = sprintf( '%s---%s---%d', $action, $domain, time() );
 		$instance['command']   = $command;
 		$instance['app_id']    = $id;   // @todo - this is not really the app id - need to test to see if the process will work without this array element.
@@ -1216,7 +1262,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		}
 
 		/**
-		 * Run the constructed commmand
+		 * Run the constructed command
 		 * Check out the write up about the different aysnc methods we use
 		 * here: https://wpclouddeploy.com/documentation/wpcloud-deploy-dev-notes/ssh-execution-models/
 		 */
@@ -1364,6 +1410,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			'php74' => 'sudo service php7.4-fpm status',
 			'php80' => 'sudo service php8.0-fpm status',
 			'php81' => 'sudo service php8.1-fpm status',
+			'php82' => 'sudo service php8.2-fpm status',
 		);
 
 		// Loop through the array and get the status of each php service.
@@ -1423,6 +1470,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			'php-server-restart-php74' => 'sudo service php7.4-fpm restart',
 			'php-server-restart-php80' => 'sudo service php8.0-fpm restart',
 			'php-server-restart-php81' => 'sudo service php8.1-fpm restart',
+			'php-server-restart-php82' => 'sudo service php8.2-fpm restart',
 		);
 
 		if ( isset( $php_services[ $action ] ) ) {
@@ -1434,7 +1482,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			// Make sure we handle errors.
 			if ( is_wp_error( $result ) ) {
 				/* translators: %s is replaced with an error message. */
-				return new \WP_Error( sprintf( __( 'Unable to execute this request because an error occured: %s', 'wpcd' ), $result->get_error_message() ) );
+				return new \WP_Error( sprintf( __( 'Unable to execute this request because an error occurred: %s', 'wpcd' ), $result->get_error_message() ) );
 			} else {
 				// Construct an appropriate return message.
 				// Right now '$result' is just a string.
@@ -1515,6 +1563,11 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 				$php_version = 8.1;
 				$php_key     = 'php81';
 				break;
+			case 'php-server-activate-php82':
+				$action      = 'php_version_enable';
+				$php_version = 8.2;
+				$php_key     = 'php82';
+				break;
 
 			case 'php-server-deactivate-php56':
 				$action      = 'php_version_disable';
@@ -1555,6 +1608,11 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 				$action      = 'php_version_disable';
 				$php_version = 8.1;
 				$php_key     = 'php81';
+				break;
+			case 'php-server-deactivate-php82':
+				$action      = 'php_version_disable';
+				$php_version = 8.2;
+				$php_key     = 'php82';
 				break;
 		}
 
@@ -1697,7 +1755,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		// Make sure we handle errors.
 		if ( is_wp_error( $result ) ) {
 			/* translators: %s is replaced with an error message. */
-			return new \WP_Error( sprintf( __( 'Unable to execute this request because an error occured: %s', 'wpcd' ), $result->get_error_message() ) );
+			return new \WP_Error( sprintf( __( 'Unable to execute this request because an error occurred: %s', 'wpcd' ), $result->get_error_message() ) );
 		} else {
 			// Force refresh of services so that the UFW meta can be updated (and its not a bad thing to get the other services status as well.)
 			// We're just not going to examine the status being returned.  If it works, great.  If it doesn't, deal with it as a separate issue when the user clicks the refresh services button explicitly.
@@ -1785,6 +1843,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			'php-server-restart-php74' => 'php74',
 			'php-server-restart-php80' => 'php80',
 			'php-server-restart-php81' => 'php81',
+			'php-server-restart-php82' => 'php82',
 		);
 
 		if ( isset( $php_services[ $service ] ) ) {
@@ -1918,12 +1977,14 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			return new \WP_Error( __( 'You are not allowed to perform this action - only admins are permitted here.', 'wpcd' ) );
 		}
 
-		$smtp_server   = wpcd_get_early_option( 'wpcd_email_gateway_smtp_server' );
-		$smtp_user     = wpcd_get_early_option( 'wpcd_email_gateway_smtp_user' );
-		$smtp_password = wpcd_get_early_option( 'wpcd_email_gateway_smtp_password' );
-		$smtp_domain   = wpcd_get_early_option( 'wpcd_email_gateway_smtp_domain' );
-		$smtp_hostname = wpcd_get_early_option( 'wpcd_email_gateway_smtp_hostname' );
-		$smtp_note     = wpcd_get_early_option( 'wpcd_email_gateway_smtp_note' );
+		$smtp_server      = wpcd_get_early_option( 'wpcd_email_gateway_smtp_server' );
+		$smtp_user        = wpcd_get_early_option( 'wpcd_email_gateway_smtp_user' );
+		$smtp_password    = wpcd_get_early_option( 'wpcd_email_gateway_smtp_password' );
+		$smtp_domain      = wpcd_get_early_option( 'wpcd_email_gateway_smtp_domain' );
+		$smtp_hostname    = wpcd_get_early_option( 'wpcd_email_gateway_smtp_hostname' );
+		$smtp_usetls      = wpcd_get_early_option( 'wpcd_email_gateway_smtp_usetls' );
+		$smtp_usestarttls = wpcd_get_early_option( 'wpcd_email_gateway_smtp_usestarttls' );
+		$smtp_note        = wpcd_get_early_option( 'wpcd_email_gateway_smtp_note' );
 
 		$args                = array();
 		$args['smtp_server'] = (string) $smtp_server;
@@ -1931,6 +1992,8 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		$args['smtp_pass']   = (string) $smtp_password;
 		$args['domain']      = (string) $smtp_domain;
 		$args['hostname1']   = (string) $smtp_hostname;
+		$args['usetls']      = (string) $smtp_usetls;
+		$args['usestarttls'] = (string) $smtp_usestarttls;
 		$args['note']        = (string) $smtp_note;
 
 		$success = array(

@@ -332,7 +332,6 @@ include /etc/monit/conf-enabled/*" > /etc/monit/monitrc
 			group nginx
 			include /etc/monit/templates/rootbin
 		EOF
-		
 	elif [ "$g_webserver_type" = "ols" ]; then
 		# Config below works for OLS to monitor service
 		cat > /etc/monit/conf-available/ols <<- EOF
@@ -356,28 +355,67 @@ include /etc/monit/conf-enabled/*" > /etc/monit/monitrc
 		EOF
 	fi
 
-echo ' check process mysqld with pidfile /var/run/mysqld/mysqld.pid
-   group database
-   group mysql
-   start program = "/bin/systemctl start mariadb"
-   stop  program = "/bin/systemctl stop mariadb"
-   if cpu > '$Alert_cpu'% for 2 cycles then alert
-   if cpu > '$Restart_cpu'% for 5 cycles then restart
-   if mem > '$Restart_memory' MB for 3 cycles then restart
-   if failed host localhost port 3306 protocol mysql with timeout 15 seconds for 3 times within 4 cycles then restart
-   if failed unixsocket /var/run/mysqld/mysqld.sock protocol mysql for 3 times within 4 cycles then restart
-   if 5 restarts with 5 cycles then timeout
-   depend mysql_bin
-   depend mysql_rc
+	# Add mysql checks - the only difference between ols and nginx is just the mysql_rc process which isn't present on ols servers.
+	if [ "$g_webserver_type" = "nginx" ] ; then
+		echo ' check process mysqld with pidfile /var/run/mysqld/mysqld.pid
+		group database
+		group mysql
+		start program = "/bin/systemctl start mariadb"
+		stop  program = "/bin/systemctl stop mariadb"
+		if cpu > '$Alert_cpu'% for 2 cycles then alert
+		if cpu > '$Restart_cpu'% for 5 cycles then restart
+		if mem > '$Restart_memory' MB for 3 cycles then restart
+		if failed host localhost port 3306 protocol mysql with timeout 15 seconds for 3 times within 4 cycles then restart
+		if failed unixsocket /var/run/mysqld/mysqld.sock protocol mysql for 3 times within 4 cycles then restart
+		if 5 restarts with 5 cycles then timeout
+		depend mysql_bin
+		depend mysql_rc
 
- check file mysql_bin with path /usr/sbin/mysqld
-   group mysql
-   include /etc/monit/templates/rootbin
+		check file mysql_bin with path /usr/sbin/mysqld
+		group mysql
+		include /etc/monit/templates/rootbin
 
- check file mysql_rc with path /etc/init.d/mysql
-   group mysql
-   include /etc/monit/templates/rootbin
-   ' > /etc/monit/conf-available/mysql
+		check file mysql_rc with path /etc/init.d/mysql
+		group mysql
+		include /etc/monit/templates/rootbin
+		' > /etc/monit/conf-available/mysql
+	elif [ "$g_webserver_type" = "ols" ]; then
+		echo ' check process mysqld with pidfile /var/run/mysqld/mysqld.pid
+		group database
+		group mysql
+		start program = "/bin/systemctl start mariadb"
+		stop  program = "/bin/systemctl stop mariadb"
+		if cpu > '$Alert_cpu'% for 2 cycles then alert
+		if cpu > '$Restart_cpu'% for 5 cycles then restart
+		if mem > '$Restart_memory' MB for 3 cycles then restart
+		if failed host localhost port 3306 protocol mysql with timeout 15 seconds for 3 times within 4 cycles then restart
+		if failed unixsocket /var/run/mysqld/mysqld.sock protocol mysql for 3 times within 4 cycles then restart
+		if 5 restarts with 5 cycles then timeout
+		depend mysql_bin
+
+		check file mysql_bin with path /usr/sbin/mysqld
+		group mysql
+		include /etc/monit/templates/rootbin
+		' > /etc/monit/conf-available/mysql
+	elif [ "$g_webserver_type" = "ols-enterprise" ]; then
+		echo ' check process mysqld with pidfile /var/run/mysqld/mysqld.pid
+		group database
+		group mysql
+		start program = "/bin/systemctl start mariadb"
+		stop  program = "/bin/systemctl stop mariadb"
+		if cpu > '$Alert_cpu'% for 2 cycles then alert
+		if cpu > '$Restart_cpu'% for 5 cycles then restart
+		if mem > '$Restart_memory' MB for 3 cycles then restart
+		if failed host localhost port 3306 protocol mysql with timeout 15 seconds for 3 times within 4 cycles then restart
+		if failed unixsocket /var/run/mysqld/mysqld.sock protocol mysql for 3 times within 4 cycles then restart
+		if 5 restarts with 5 cycles then timeout
+		depend mysql_bin
+
+		check file mysql_bin with path /usr/sbin/mysqld
+		group mysql
+		include /etc/monit/templates/rootbin
+		' > /etc/monit/conf-available/mysql
+	fi	
 
 echo 'check process redis-server with pidfile "/var/run/redis/redis-server.pid"
     start program = "/bin/systemctl start redis"
@@ -407,7 +445,6 @@ if [ "$g_webserver_type" = "nginx" ] ; then
     if totalmem > '$Restart_memory' MB then alert
 ' > /etc/monit/conf-available/php82
 
-if [ "$g_webserver_type" = "nginx" ] ; then
 	echo 'check process php81-fpm with pidfile /var/run/php/php8.1-fpm.pid
     start program = "/bin/systemctl start php8.1-fpm"
     stop program  = "/bin/systemctl stop php8.1-fpm"

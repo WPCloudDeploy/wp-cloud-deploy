@@ -126,6 +126,10 @@ Note: Even though the entire git development history isn't available on github, 
 [Friendly Release Notes](https://wpclouddeploy.com/category/release-notes/)
 
 ## Change Log ##
+5.3.1
+------
+* Fix: WPAPP - Monit running on OLS servers would always disable MYSQL because of a bad file check.
+
 5.3.0
 ------
 * New: WPAPP - Option to change the background and foreground color of the 'terminal'.

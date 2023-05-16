@@ -131,6 +131,7 @@ Note: Even though the entire git development history isn't available on github, 
 * New: WPAPP: Add option to capture low disk space condition when callbacks are run and optionally send alert to admin.
 * Tweak: WPAPP - Update default list of WP versions.
 * Fix: WPAPP - Monit running on OLS servers would always disable MYSQL because of a bad file check.
+* Fix: WPAPP - Creating or updating a user notification profile in wp-admin instead of the front-end did not correctly display the title when an object cache is in use.
 
 5.3.0
 ------

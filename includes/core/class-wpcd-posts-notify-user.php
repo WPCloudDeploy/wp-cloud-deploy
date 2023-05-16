@@ -993,7 +993,7 @@ class WPCD_NOTIFY_USER extends WPCD_Posts_Base {
 	 */
 	public static function wpcd_scan_notification_schedule_events() {
 		// setup scan notification event.
-		if ( ! defined( 'DISABLE_WPCD_CRON' ) ||  ( defined( 'DISABLE_WPCD_CRON' ) && ! DISABLE_WPCD_CRON ) ) {
+		if ( ! defined( 'DISABLE_WPCD_CRON' ) || ( defined( 'DISABLE_WPCD_CRON' ) && ! DISABLE_WPCD_CRON ) ) {
 			wp_clear_scheduled_hook( 'wpcd_scan_notifications_actions' );
 			wp_schedule_event( time(), 'every_minute', 'wpcd_scan_notifications_actions' );
 		}
@@ -1122,6 +1122,14 @@ class WPCD_NOTIFY_USER extends WPCD_Posts_Base {
 			return;
 		}
 
+		// If invalid post id then exit.
+		if ( (int) $post_id <= 0 ) {
+			return;
+		}
+
+		// Make sure that the post id is indeed a numeric to prevent sql injections since we'll be doing some direct database calls later.
+		$post_id = (int) $post_id;
+
 		// Get current user details.
 		$author_id  = get_current_user_id();
 		$usermeta   = get_user_by( 'id', $author_id );
@@ -1137,10 +1145,22 @@ class WPCD_NOTIFY_USER extends WPCD_Posts_Base {
 			$update_profile_name = $profile_name;
 		}
 
-		// Update default post title.
-		$post_query = 'UPDATE ' . $wpdb->prefix . 'posts SET post_title="' . $update_profile_name . '" WHERE ID=' . $post_id;
-		$wpdb->query( $post_query );
-
+		/**
+		 * Update default post title.
+		 *
+		 * We cannot use wp_update_post otherwise we will end up in a recursive update loop because this function is called from
+		 * an action hook and using wp_update_post will call the action hook again and again.
+		 *
+		 * So we do a direct database update.
+		 *
+		 * Note that another option is to remove the action hook before calling wp_update_post.  But then we'll need to
+		 * track everywhere we might have added a hook to update this post type.  While it should only be one location
+		 * there's no guarantee that will always be the case.  So for now we'll do the direct DB update and incur
+		 * the cost of the cache flush.
+		 */
+		$post_query = 'UPDATE ' . $wpdb->prefix . 'posts SET post_title="%s" WHERE ID=%d';
+		$wpdb->query( $wpdb->prepare( $post_query, array( $update_profile_name, $post_id ) ) );
+		wp_cache_delete( $post_id, 'posts' );  // Since we're directly updating the database we need to flush the post from the object cache.
 	}
 
 

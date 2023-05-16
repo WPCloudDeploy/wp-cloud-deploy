@@ -238,6 +238,10 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'label' => 'DNS: Cloudflare',
 				'icon'  => 'dashicons-cloud',
 			),
+			'wordpress-app-alert-config'         => array(
+				'label' => 'Alerts & Notices',
+				'icon'  => 'dashicons-bell',
+			),
 			'wordpress-app-email-notify'         => array(
 				'label' => 'Email Notifications',
 				'icon'  => 'dashicons-email',
@@ -343,6 +347,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 		$backup_fields                = $this->backup_fields();
 		$fields_and_links             = $this->fields_and_links();
 		$theme_and_plugin_updates     = $this->theme_and_plugin_updates();
+		$alert_config                 = $this->alert_config();
 		$email_notification_fields    = $this->email_notification_fields();
 		$slack_notification_fields    = $this->slack_notification_fields();
 		$zapier_notification_fields   = $this->zapier_notification_fields();
@@ -354,7 +359,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 		$custom_scripts               = $this->custom_script_fields();
 		$front_end_fields             = $this->front_end_fields();
 		$git_fields                   = $this->git_fields();
-		$all_fields                   = array_merge( $general_fields, $server_fields, $site_fields, $backup_fields, $fields_and_links, $theme_and_plugin_updates, $email_notification_fields, $slack_notification_fields, $zapier_notification_fields, $button_color_settings_fields, $email_gateway_load_defaults, $cf_dns_fields, $rest_api_fields, $white_label_fields, $custom_scripts, $front_end_fields, $git_fields );
+		$all_fields                   = array_merge( $general_fields, $server_fields, $site_fields, $backup_fields, $fields_and_links, $theme_and_plugin_updates, $alert_config, $email_notification_fields, $slack_notification_fields, $zapier_notification_fields, $button_color_settings_fields, $email_gateway_load_defaults, $cf_dns_fields, $rest_api_fields, $white_label_fields, $custom_scripts, $front_end_fields, $git_fields );
 		return $all_fields;
 	}
 
@@ -2114,6 +2119,45 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tab'     => 'wordpress-app-plugin-theme-updates',
 			),
 
+		);
+
+		return $fields;
+
+	}
+
+	/**
+	 * Thresholds to trigger certain alerts / notifications.
+	 */
+	public function alert_config() {
+
+		$fields = array(
+			array(
+				'id'   => 'wordpress_app_alert_config_heading',
+				'type' => 'heading',
+				'name' => __( 'Thresholds For Certain Notifications', 'wpcd' ),
+				'tab'  => 'wordpress-app-alert-config',
+			),
+			array(
+				'id'      => 'wordpress_app_low_diskspace_notification_threshold',
+				'type'    => 'number',
+				'name'    => __( 'Low Disk Space %', 'wpcd' ),
+				'desc'    => __( 'If diskspace falls below this limit, a record will be written to the notification log.', 'wpcd' ),
+				'tab'     => 'wordpress-app-alert-config',
+				'size'    => 60,
+				'std'     => 15,
+				'min'     => 0,
+				'max'     => 100,
+				'tooltip' => array(
+					'content'  => __( 'Default is 15%.  Note that diskspace limits are only evaluated once every day when callbacks are run on the server.  It is not a real-time alert.', 'wpcd ' ),
+					'position' => 'right',
+				),
+			),
+			array(
+				'id'   => 'wordpress_app_alert_footer_notice',
+				'type' => 'custom_html',
+				'std' => __( 'Note: You can configure the format and contents of your notifications in the EMAIL / SLACK / ZAPIER NOTIFICATIONS tabs below. Setup your personalized alert profiles in SERVER ALERTS → NOTIFICATIONS.', 'wpcd' ),
+				'tab'  => 'wordpress-app-alert-config',
+			),
 		);
 
 		return $fields;

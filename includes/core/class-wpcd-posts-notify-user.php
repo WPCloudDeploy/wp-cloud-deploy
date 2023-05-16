@@ -941,6 +941,7 @@ class WPCD_NOTIFY_USER extends WPCD_Posts_Base {
 			'server-config'        => __( 'Server Configuration', 'wpcd', ),
 			'stuck'                => __( 'Pending log records stuck', 'wpcd', ),
 			'quotas'               => __( 'Site or server quotas exceeded', 'wpcd', ),
+			'disk-space'           => __( 'Disk Space Available', 'wpcd', ),
 			'periodic-site-images' => __( 'Periodic Site Images (Powertools)', 'wpcd', ),
 			'other'                => __( 'Other', 'wpcd', ),
 		);

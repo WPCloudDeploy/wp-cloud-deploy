@@ -128,6 +128,8 @@ Note: Even though the entire git development history isn't available on github, 
 ## Change Log ##
 5.3.1
 ------
+* New: WPAPP: Add option to capture low disk space condition when callbacks are run and optionally send alert to admin.
+* Tweak: WPAPP - Update default list of WP versions.
 * Fix: WPAPP - Monit running on OLS servers would always disable MYSQL because of a bad file check.
 
 5.3.0

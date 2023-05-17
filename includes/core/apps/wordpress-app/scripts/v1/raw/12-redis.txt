@@ -116,7 +116,7 @@ then
 		else
 			su - "$user_name" -c "wp --skip-plugins plugin install litespeed-cache && wp --skip-plugins plugin activate litespeed-cache && wp litespeed-online init"
 		fi
-		su - $user_name -c "wp --skip-plugins config set WP_CACHE true"		
+		su - $user_name -c "wp --skip-plugins config set WP_CACHE true --raw"		
 		su - "$user_name" -c "wp litespeed-option set object true && wp litespeed-option set object-port 6379 && wp litespeed-option set object-host 127.0.0.1 && wp litespeed-option set object-kind 1 && wp cache flush"
 	fi
 	echo

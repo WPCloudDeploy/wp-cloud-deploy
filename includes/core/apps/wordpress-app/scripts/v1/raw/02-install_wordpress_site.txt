@@ -166,7 +166,7 @@ su - "$user_name" -c "wp --skip-plugins --no-color config set DISALLOW_FILE_EDIT
 su - "$user_name" -c "wp --skip-plugins --no-color option update permalink_structure '/%postname%'"
 
 # Turn on the cache constant.
-su - "$user_name" -c "wp --skip-plugins --no-color config set WP_CACHE true"
+su - "$user_name" -c "wp --skip-plugins --no-color config set WP_CACHE true --raw"
 
 # permissions for the log file
 su - "$user_name" -c "touch $wphome/wp-content/debug.log"

@@ -126,6 +126,10 @@ Note: Even though the entire git development history isn't available on github, 
 [Friendly Release Notes](https://wpclouddeploy.com/category/release-notes/)
 
 ## Change Log ##
+5.3.2
+------
+* Fix: WPAPP - Spelling error on the low disk space notification message.
+
 5.3.1
 ------
 * New: WPAPP: Add option to capture low disk space condition when callbacks are run and optionally send alert to admin.

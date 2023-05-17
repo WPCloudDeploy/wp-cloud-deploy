@@ -155,7 +155,7 @@ trait wpcd_wpapp_push_commands {
 			$disk_space_limit_alert = empty( $disk_space_limit_alert ) ? 15 : $disk_space_limit_alert;
 			if ( (int) $server_status_items['free_disk_space_percent'] < $disk_space_limit_alert ) {
 				/* Translators: %s is the incorrect PHP version. */
-				do_action( 'wpcd_log_notification', $id, 'alert', __( 'Your are running out of disk space on this server.', 'wpcd' ), 'disk-space', null );
+				do_action( 'wpcd_log_notification', $id, 'alert', __( 'You are running out of disk space on this server.', 'wpcd' ), 'disk-space', null );
 			}
 
 			// Let other plugins react to the new good data with an action hook.

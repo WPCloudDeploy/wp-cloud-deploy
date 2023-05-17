@@ -269,7 +269,7 @@ class WPCD_Init {
 		require_once wpcd_path . 'includes/core/class-wpcd-posts-pending-tasks-log.php';
 		WPCD_PENDING_TASKS_LOG::activate( $network_wide );
 
-		// Set cron for set some options that the Wisdom plugin will pick up.
+		// Set cron for some options that the Wisdom plugin will pick up.
 		if ( is_multisite() && $network_wide ) {
 			// Get all blogs in the network.
 			$blog_ids = get_sites( array( 'fields' => 'ids' ) );

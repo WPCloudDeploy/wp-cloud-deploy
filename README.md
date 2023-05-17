@@ -128,6 +128,7 @@ Note: Even though the entire git development history isn't available on github, 
 ## Change Log ##
 5.3.2
 ------
+* Tweak: WPAPP - Add text on server upgrade tab to indicate that installing php 8.2 is optional.
 * Fix: WPAPP - Spelling error on the low disk space notification message.
 
 5.3.1

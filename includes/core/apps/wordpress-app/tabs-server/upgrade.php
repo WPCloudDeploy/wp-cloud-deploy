@@ -816,7 +816,7 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 		$upg_desc .= __( 'Before running this, you should check to see if your server needs to be restarted because of prior upgrades.  If so, please restart your server before using this option to install PHP 8.2', 'wpcd' );
 
 		$actions['server-upgrade-header-php82'] = array(
-			'label'          => __( 'Install PHP 8.2', 'wpcd' ),
+			'label'          => __( '(Optional) Install PHP 8.2', 'wpcd' ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
 				'desc' => $upg_desc,

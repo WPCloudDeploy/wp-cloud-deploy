@@ -3,7 +3,7 @@
 Plugin Name: WPCloudDeploy
 Plugin URI: https://wpclouddeploy.com
 Description: Deploy and manage cloud servers and apps from inside the WordPress Admin dashboard.
-Version: 5.3.1
+Version: 5.3.2
 Requires at least: 5.8
 Requires PHP: 7.4
 Item Id: 1493
@@ -269,7 +269,7 @@ class WPCD_Init {
 		require_once wpcd_path . 'includes/core/class-wpcd-posts-pending-tasks-log.php';
 		WPCD_PENDING_TASKS_LOG::activate( $network_wide );
 
-		// Set cron for set some options that the Wisdom plugin will pick up.
+		// Set cron for some options that the Wisdom plugin will pick up.
 		if ( is_multisite() && $network_wide ) {
 			// Get all blogs in the network.
 			$blog_ids = get_sites( array( 'fields' => 'ids' ) );
@@ -497,7 +497,7 @@ class WPCD_Init {
 		 * Finally, maybe ask for setup using Setup wizard.
 		 * Proceed only if both options 'wpcd_plugin_setup' & 'wpcd_skip_wizard_setup' = false
 		 * 'wpcd_plugin_setup' will be added at the end of wizard steps
-		 * 'wpcd_skip_wizard_setup' will be set to true if user choose to skip wizrd from admin notice
+		 * 'wpcd_skip_wizard_setup' will be set to true if user chose to skip wizard from admin notice
 		 */
 		if ( ! get_option( 'wpcd_plugin_setup', false ) && ! get_option( 'wpcd_skip_wizard_setup', false ) ) {
 			require_once wpcd_path . 'includes/core/class-wpcd-setup-wizard.php';

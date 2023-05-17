@@ -126,6 +126,12 @@ Note: Even though the entire git development history isn't available on github, 
 [Friendly Release Notes](https://wpclouddeploy.com/category/release-notes/)
 
 ## Change Log ##
+5.3.2
+------
+* Tweak: WPAPP - Add text on server upgrade tab to indicate that installing php 8.2 is optional.
+* Fix: WPAPP - WP_CACHE constant needs to be set with the --raw option when using wp-cli.
+* Fix: WPAPP - Spelling error on the low disk space notification message.
+
 5.3.1
 ------
 * New: WPAPP: Add option to capture low disk space condition when callbacks are run and optionally send alert to admin.

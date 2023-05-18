@@ -3524,22 +3524,40 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	public function welcome_message_settings( $meta_boxes ) {
 
 		$welcome_message  = '';
-		$welcome_message .= '<b>' . __( 'Here are the basic steps needed to build your first server and deploy your first WordPress site:', 'wpcd' ) . '</b>';
+		$welcome_message .= '<b>' . __( 'Here are the basic steps needed to build your first server and deploy your first WordPress server & site:', 'wpcd' ) . '</b>';
 		$welcome_message .= '<br />';
+
 		$welcome_message .= '<ol>';
 		$welcome_message .= '<li>';
-		$welcome_message .= __( 'Double-check that your current web server where this plugin is deployed has the appropriate timeouts as listed at the bottom of this screen. You will not be able to build your first server unless your web server timeouts are increased.', 'wpcd' );
-		$welcome_message .= '</li>';
-		$welcome_message .= '<li>';
-		$welcome_message .= __( 'Make sure you have created and uploaded an SSH key pair to your server providers\' dashboard.', 'wpcd' );
+		$welcome_message .= __( 'Double-check that your current web server where this plugin is installed has the appropriate timeouts as listed at the bottom of this screen. You will not be able to build your first server unless your web server timeouts are increased.', 'wpcd' );
 		$welcome_message .= '</li>';
 		$welcome_message .= '<li>';
 		$welcome_message .= __( 'Generate an API key in your server providers\' dashboard.', 'wpcd' );
 		$welcome_message .= '</li>';
 		$welcome_message .= '<li>';
-		$welcome_message .= __( 'Add your cloud server provider API key and other credentials to the WPCLOUDDEPLOY → SETTINGS → CLOUD PROVIDERS tab.', 'wpcd' );
+		$welcome_message .= __( 'If you see the startup wizard notice at the top of this screen and your server provider is one of DigitalOcean, Linode, Vultr, UpCloud or Hetzner - use it to automatically connect to your server provider and setup your SSH keys.', 'wpcd' );
+		$welcome_message .= '</li>';
+		$welcome_message .= '</ol>';
+
+		$welcome_message .= '';
+		$welcome_message .= '<b>' . __( 'If you cannot use the wizard or do not see the wizard notice:', 'wpcd' ) . '</b>';
+		$welcome_message .= '<br />';
+
+		$welcome_message .= '<ol>';
+		$welcome_message .= '<li>';
+		$welcome_message .= __( 'Make sure you have created and uploaded an SSH key pair to your server providers\' dashboard.', 'wpcd' );
 		$welcome_message .= '</li>';
 		$welcome_message .= '<li>';
+		$welcome_message .= __( 'Add your cloud server provider API key and other credentials to the WPCLOUDDEPLOY → SETTINGS → CLOUD PROVIDERS tab.', 'wpcd' );
+		$welcome_message .= '</li>';
+		$welcome_message .= '</ol>';
+
+		$welcome_message .= '';
+		$welcome_message .= '<b>' . __( 'Now you can deploy your first WordPress server & site:', 'wpcd' ) . '</b>';
+		$welcome_message .= '<br />';
+
+		$welcome_message .= '<ol>';
+		$welcome_message .= '<li>';				
 		$welcome_message .= __( 'Click on the ALL CLOUD SERVERS menu option and use the DEPLOY A NEW WordPress SERVER button to deploy a server.', 'wpcd' );
 		$welcome_message .= '</li>';
 		$welcome_message .= '<li>';

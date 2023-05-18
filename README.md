@@ -126,6 +126,10 @@ Note: Even though the entire git development history isn't available on github, 
 [Friendly Release Notes](https://wpclouddeploy.com/category/release-notes/)
 
 ## Change Log ##
+5.3.3
+------
+* Fix: If an OS version isn't stamped on a server record, it should return as Ubuntu 20.04 now instead of 18.04 if the server install was done using WPCD 5.0 or greater.
+
 5.3.2
 ------
 * Tweak: WPAPP - Add text on server upgrade tab to indicate that installing php 8.2 is optional.

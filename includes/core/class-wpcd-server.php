@@ -432,7 +432,15 @@ class WPCD_Server extends WPCD_Base {
 	public function get_server_os( $post_id ) {
 		$os = get_post_meta( $post_id, 'wpcd_server_initial_os', true );
 		if ( empty( $os ) ) {
-			$os = 'ubuntu1804lts';
+			// What's the version of the wpcd plugin that was used for this server?  
+			$initial_plugin_version = get_post_meta( $post_id, 'wpcd_server_plugin_initial_version', true );
+			if ( version_compare( $initial_plugin_version, '4.99.99' ) > -1 ) {
+				// Versions greater than or equal to 5.0 has 20.04 as the default.
+				$os = 'ubuntu2004lts';
+			} else {
+				// Earlier versions probably used 18.04.
+				$os = 'ubuntu1804lts';
+			}
 		}
 		return $os;
 	}

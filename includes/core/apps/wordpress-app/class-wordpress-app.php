@@ -3557,7 +3557,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		$welcome_message .= '<br />';
 
 		$welcome_message .= '<ol>';
-		$welcome_message .= '<li>';				
+		$welcome_message .= '<li>';
 		$welcome_message .= __( 'Click on the ALL CLOUD SERVERS menu option and use the DEPLOY A NEW WordPress SERVER button to deploy a server.', 'wpcd' );
 		$welcome_message .= '</li>';
 		$welcome_message .= '<li>';

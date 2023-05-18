@@ -938,34 +938,43 @@ class WPCD_WORDPRESS_TABS_SERVER_FAIL2BAN extends WPCD_WORDPRESS_TABS {
 		// Get Webserver Type.
 		$webserver_type = $this->get_web_server_type( $id );
 
-		// The only protocols we know about are related to NGINX.
-		// If not NGINX just return nothing.
-		if ( 'nginx' !== $webserver_type ) {
-			return false;
-		}
+		switch ( $webserver_type ) {
+			case 'ols':
+			case 'ols-enterprise':
+				return array(
+					'sshd' => array(
+						'ban_time'  => 600,
+						'find_time' => 600,
+						'max_retry' => 3,
+					),
+				);
+				break;
 
-		return array(
-			'sshd'            => array(
-				'ban_time'  => 600,
-				'find_time' => 600,
-				'max_retry' => 3,
-			),
-			'nginx-http-auth' => array(
-				'ban_time'  => 600,
-				'find_time' => 600,
-				'max_retry' => 3,
-			),
-			'nginx-limit-req' => array(
-				'ban_time'  => 600,
-				'find_time' => 600,
-				'max_retry' => 3,
-			),
-			'nginx-botsearch' => array(
-				'ban_time'  => 600,
-				'find_time' => 600,
-				'max_retry' => 3,
-			),
-		);
+			case 'nginx':
+				return array(
+					'sshd'            => array(
+						'ban_time'  => 600,
+						'find_time' => 600,
+						'max_retry' => 3,
+					),
+					'nginx-http-auth' => array(
+						'ban_time'  => 600,
+						'find_time' => 600,
+						'max_retry' => 3,
+					),
+					'nginx-limit-req' => array(
+						'ban_time'  => 600,
+						'find_time' => 600,
+						'max_retry' => 3,
+					),
+					'nginx-botsearch' => array(
+						'ban_time'  => 600,
+						'find_time' => 600,
+						'max_retry' => 3,
+					),
+				);
+				break;
+		}
 
 	}
 

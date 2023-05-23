@@ -128,6 +128,7 @@ Note: Even though the entire git development history isn't available on github, 
 ## Change Log ##
 5.3.3
 ------
+* Tweak: WPAPP - Remove tiny file manager php version restriction. It now seems compatible with php 8.0 and 8.1
 * Fix: If an OS version isn't stamped on a server record, it should return as Ubuntu 20.04 now instead of 18.04 (if the server install was done using WPCD 5.0 or greater).
 * Fix: WPAPP - Make sure that SSHD shows up as a default protocol when fail2ban is installed on OLS servers.
 

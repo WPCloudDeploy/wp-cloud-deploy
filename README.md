@@ -131,6 +131,8 @@ Note: Even though the entire git development history isn't available on github, 
 * Tweak: WPAPP - Remove tiny file manager php version restriction. It now seems compatible with php 8.0 and 8.1
 * Fix: If an OS version isn't stamped on a server record, it should return as Ubuntu 20.04 now instead of 18.04 (if the server install was done using WPCD 5.0 or greater).
 * Fix: WPAPP - Make sure that SSHD shows up as a default protocol when fail2ban is installed on OLS servers.
+* Fix: WPAPP - The WPCD_APP_MENU_NAME constant was not being respected.
+* Fix: WPAPP - If a user's role has the wpcd_manage_apps capability but not the wpcd_manage_servers capability the top level menu label in wp-admin should respect the WPCD_MENU_NAME constant instead of hard-coding a "WPCloudDeploy" label.
 
 5.3.2
 ------

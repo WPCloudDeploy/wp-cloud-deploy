@@ -52,6 +52,12 @@ class CLOUD_PROVIDER_API_CustomServer_Parent extends CLOUD_PROVIDER_API {
 	 */
 	private $custom_ipv4;
 
+	/**
+	 * A text string IPV6 address for the custom server.
+	 *
+	 * @var $custom_ipv6 custom_ipv6.
+	 */
+	private $custom_ipv6;
 
 	/**
 	 * Constructor.

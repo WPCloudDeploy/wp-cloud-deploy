@@ -323,12 +323,11 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 				}
 				$get_ipv4 = $this->wpcd_column_wrap_string_with_span_and_class( $this->get_server_meta_value( $post_id, 'wpcd_server_ipv4' ), 'ipv4', 'right' );
 				if ( is_admin() ) {
-					$value2  .= wpcd_wrap_clipboard_copy( $get_ipv4 );
+					$value2 .= wpcd_wrap_clipboard_copy( $get_ipv4 );
+				} else {
+					$value2 .= wpcd_wrap_clipboard_copy( $get_ipv4, false );
 				}
-				else {
-					$value2  .= wpcd_wrap_clipboard_copy( $get_ipv4, false );
-				}
-				$value   .= $this->wpcd_column_wrap_string_with_div_and_class( $value2, 'ipv4' );
+				$value .= $this->wpcd_column_wrap_string_with_div_and_class( $value2, 'ipv4' );
 
 				// ipv6.
 				if ( wpcd_get_early_option( 'wpcd_show_ipv6' ) ) {
@@ -340,11 +339,11 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 					}
 					$get_ipv6 = $this->wpcd_column_wrap_string_with_span_and_class( $this->get_server_meta_value( $post_id, 'wpcd_server_ipv6' ), 'ipv6', 'right' );
 					if ( is_admin() ) {
-						$value2  .= wpcd_wrap_clipboard_copy( $get_ipv6 );
+						$value2 .= wpcd_wrap_clipboard_copy( $get_ipv6 );
 					} else {
-						$value2  .= wpcd_wrap_clipboard_copy( $get_ipv6, false );
+						$value2 .= wpcd_wrap_clipboard_copy( $get_ipv6, false );
 					}
-					$value   .= $this->wpcd_column_wrap_string_with_div_and_class( $value2, 'ipv6' );
+					$value .= $this->wpcd_column_wrap_string_with_div_and_class( $value2, 'ipv6' );
 				}
 
 				// Add hook here so that other apps can insert data.
@@ -1510,7 +1509,7 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 			$menu_name    = _x( 'APPs', 'Admin Menu text', 'wpcd' );
 			$menu_icon    = '';
 		}
-		
+
 		$all_apps_label = defined( 'WPCD_APP_MENU_NAME' ) ? WPCD_APP_MENU_NAME : _x( 'All Apps', 'Admin Menu text', 'wpcd' );
 
 		$create_posts = 'do_not_allow';

@@ -1099,7 +1099,7 @@ class WPCD_WORDPRESS_TABS_TWEAKS extends WPCD_WORDPRESS_TABS {
 		}
 
 		// Update metas...
-			update_post_meta( $id, 'wpcd_wpapp_file_upload_size', $upload_limit );
+		update_post_meta( $id, 'wpcd_wpapp_file_upload_size', $upload_limit );
 
 		// Return the data as an error so it can be shown in a dialog box.
 		return new \WP_Error( __( 'The maximum allowed file upload size has been updated.', 'wpcd' ) );

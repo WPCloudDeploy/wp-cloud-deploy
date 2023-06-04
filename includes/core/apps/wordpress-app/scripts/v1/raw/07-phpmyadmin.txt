@@ -49,14 +49,14 @@ user_name=$(echo $domain | cut -c1-32)
 
 if [[ $action == "install_phpmyadmin" || $action == "1" ]]
 then
-	wget https://files.phpmyadmin.net/phpMyAdmin/5.2.0/phpMyAdmin-5.2.0-all-languages.tar.gz
-	tar xzf phpMyAdmin-5.2.0-all-languages.tar.gz
-	cp phpMyAdmin-5.2.0-all-languages/config.sample.inc.php phpMyAdmin-5.2.0-all-languages/config.inc.php
-	sed -i '/blowfish_secret/d' phpMyAdmin-5.2.0-all-languages/config.inc.php
-	echo "\$cfg['blowfish_secret'] = '$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 32)';" >> phpMyAdmin-5.2.0-all-languages/config.inc.php
+	wget https://files.phpmyadmin.net/phpMyAdmin/5.2.1/phpMyAdmin-5.2.1-all-languages.tar.gz
+	tar xzf phpMyAdmin-5.2.1-all-languages.tar.gz
+	cp phpMyAdmin-5.2.1-all-languages/config.sample.inc.php phpMyAdmin-5.2.1-all-languages/config.inc.php
+	sed -i '/blowfish_secret/d' phpMyAdmin-5.2.1-all-languages/config.inc.php
+	echo "\$cfg['blowfish_secret'] = '$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 32)';" >> phpMyAdmin-5.2.1-all-languages/config.inc.php
 	mkdir -p /var/www/$domain/html/phpMyAdmin
-	mv phpMyAdmin-5.2.0-all-languages/* /var/www/$domain/html/phpMyAdmin
-	rm -rf phpMyAdmin-5.2.0-all-languages.tar.gz phpMyAdmin-5.2.0-all-languages
+	mv phpMyAdmin-5.2.1-all-languages/* /var/www/$domain/html/phpMyAdmin
+	rm -rf phpMyAdmin-5.2.1-all-languages.tar.gz phpMyAdmin-5.2.1-all-languages
 	mkdir /var/www/$domain/html/phpMyAdmin/tmp
 	chmod 775 /var/www/$domain/html/phpMyAdmin/tmp
 	chown -R $user_name:www-data /var/www/$domain/html/phpMyAdmin

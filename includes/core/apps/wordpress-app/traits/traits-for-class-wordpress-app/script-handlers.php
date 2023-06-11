@@ -112,7 +112,10 @@ trait wpcd_wpapp_script_handlers {
 				( strpos( $result, 'SSH password auth has been disabled for user' ) !== false );
 				break;
 			case 'change_php_version_misc.txt':
-				$return = strpos( $result, 'PHP version changed to' ) !== false;
+				$return = 
+				( strpos( $result, 'PHP version changed to' ) !== false )
+				||
+				( strpos( $result, 'PHP version remains at' ) !== false );
 				break;
 			case 'change_php_option_misc.txt':
 				$return = strpos( $result, 'Successfully changed PHP value' ) !== false;

@@ -248,6 +248,16 @@ then
 		fi
 	fi
 
+	# Don't do anything if the new and old versions are the same.
+	# This is important because we'll be deleting the configuration
+	# files from the original version. If they're the same then 
+	# we'll be rendering the site unusable.
+	if [ "$new_php_version" = "$current_php_version" ]
+	then	
+		echo "PHP version remains at $new_php_version for $domain"
+		exit
+	fi
+
 	# get user name.
 	user_name=$(echo $domain | cut -c1-32)
 

@@ -131,6 +131,7 @@ Note: Even though the entire git development history isn't available on github, 
 * New: WPAPP - Add new wp-config.php option - WPCD_HIDE_WPAPP_MENU.
 * Tweak: WPAPP - Remove tiny file manager php version restriction. It now seems compatible with php 8.0 and 8.1.
 * Tweak: WPAPP - Update to install the latest version of phpmyadmin (5.2.1).
+* Tweak: WPAPP - Forcibly set the PHP version after a site sync to make sure origin and target sites have the same PHP versions.
 * Fix: If an OS version isn't stamped on a server record, it should return as Ubuntu 20.04 now instead of 18.04 (if the server install was done using WPCD 5.0 or greater).
 * Fix: A PHP 8.2 deprecation warning about dynamic class instance var.
 * Fix: WPAPP - Make sure that SSHD shows up as a default protocol when fail2ban is installed on OLS servers.

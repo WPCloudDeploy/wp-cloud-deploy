@@ -76,6 +76,9 @@ class WPCD_WORDPRESS_TABS_SITE_SYNC extends WPCD_WORDPRESS_TABS {
 				 * Need to create a new app record that points to the new server.
 				 */
 
+				// What type of web server are we running?
+				$webserver_type = $this->get_web_server_type( $id );
+
 				// get new domain from temporary meta.
 				$domain = get_post_meta( $id, 'wpcd_wpapp_site_sync_domain_temp', true );
 
@@ -189,15 +192,21 @@ class WPCD_WORDPRESS_TABS_SITE_SYNC extends WPCD_WORDPRESS_TABS {
 							}
 
 							// Update the PHP version to match the original version.
+							// To do this we'll first stuff a dummy version into the site record.
+							// If we don't then the action to force php change might never run because current and new might be set to the same values (however inaccurate they might be).
+							// If we don't use a dummy version and stuff a blank instead, certain functions [such as get_php_version_for_app()] will see empty and return the '8.1' php default.
+							$this->set_php_version_for_app( $new_app_post_id, '999' );
 							switch ( $webserver_type ) {
 								case 'ols':
 								case 'ols-enterprise':
-									$this->set_php_version_for_app( $new_app_post_id, $this->get_wpapp_default_php_version() );
+									do_action( 'wpcd_wordpress-app_do_change_php_version', $new_app_post_id, $this->get_wpapp_default_php_version() );
+									// $this->set_php_version_for_app( $new_app_post_id, $this->get_wpapp_default_php_version() );
 									break;
 
 								case 'nginx':
 								default:
-									$this->set_php_version_for_app( $new_app_post_id, $this->get_php_version_for_app( $id ) );
+									do_action( 'wpcd_wordpress-app_do_change_php_version', $new_app_post_id, $this->get_php_version_for_app( $id ) );
+									// $this->set_php_version_for_app( $new_app_post_id, $this->get_php_version_for_app( $id ) );
 									break;
 							}
 

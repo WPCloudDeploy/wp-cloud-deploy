@@ -136,6 +136,7 @@ Note: Even though the entire git development history isn't available on github, 
 * Fix: WPAPP - Make sure that SSHD shows up as a default protocol when fail2ban is installed on OLS servers.
 * Fix: WPAPP - The WPCD_APP_MENU_NAME constant was not being respected.
 * Fix: WPAPP - If a user's role has the wpcd_manage_apps capability but not the wpcd_manage_servers capability the top level menu label in wp-admin should respect the WPCD_MENU_NAME constant instead of hard-coding a "WPCloudDeploy" label.
+* Fix: WPAPP - Changing a PHP version for a tenant (MT) did not update the openbasedir to allow the site access to the linked plugins and themes.
 
 5.3.2
 ------

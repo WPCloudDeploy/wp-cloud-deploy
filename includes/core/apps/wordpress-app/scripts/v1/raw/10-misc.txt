@@ -248,15 +248,53 @@ then
 		fi
 	fi
 
+	# get user name.
 	user_name=$(echo $domain | cut -c1-32)
+
+	# Handle base on type of webserver.
 	if [ "$g_webserver_type" = "nginx" ]
 	then
-		rm -f /etc/php/$current_php_version/fpm/pool.d/$domain.conf
-		if [[ ! -f /etc/wpcd/php-versions-disabled/$current_php_version ]]
+		# Check meta to see if this site was an MT site before - returns value in global $wpcd_metavalue
+		gf_get_metadata -t 'domain' -d $domain -k 'IS_MT' -f '0', 
+		is_meta=$wpcd_metavalue
+
+		# Handle things differently if we're working with a multi-tenant site.
+		if [ "$is_meta" = "1" ]
 		then
-			systemctl restart php$current_php_version-fpm
+			# MT Site 
+			# 1. copy original pool file to new php version
+			cp -f /etc/php/$current_php_version/fpm/pool.d/$domain.conf /etc/php/$new_php_version/fpm/pool.d 
+
+			# 2. Remove from original php version
+			rm -f /etc/php/$current_php_version/fpm/pool.d/$domain.conf
+
+			# 3. Restart old php version.
+			if [[ ! -f /etc/wpcd/php-versions-disabled/$current_php_version ]]
+			then
+				systemctl restart php$current_php_version-fpm
+			fi
+
+			# 4. restart new php version.
+			if [[ ! -f /etc/wpcd/php-versions-disabled/$new_php_version ]]
+			then
+				systemctl restart php$new_php_version-fpm
+			fi			
+		else
+			# Standard site
+
+			# 1. Remove from original php version
+			rm -f /etc/php/$current_php_version/fpm/pool.d/$domain.conf
+
+			# 2. Restart old php version.
+			if [[ ! -f /etc/wpcd/php-versions-disabled/$current_php_version ]]
+			then
+				systemctl restart php$current_php_version-fpm
+			fi
+
+			# 3. Add new php version - clean file.
+			gf_add_php_conf $domain $user_name $new_php_version
 		fi
-		gf_add_php_conf $domain $user_name $new_php_version
+
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
 		sed -i "s/$current_php_version/$new_php_version/g" ${VHDIR}/$domain/$g_vhost_conf > /dev/null 2>&1

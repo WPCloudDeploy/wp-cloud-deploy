@@ -25,7 +25,7 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 	}
 
 	/**
-	 * POSTS_APP constructor.
+	 * WPCD_PENDING_TASKS_LOG constructor.
 	 */
 	public function __construct() {
 		parent::__construct();
@@ -749,7 +749,7 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 	 * This function checks to see if commands can be run
 	 * on the server.
 	 *
-	 * It does this by checking a to see if there is a task that
+	 * It does this by checking to see if there is a task that
 	 * is 'in-process' on the server and where the start_time
 	 * is less than an hour ago.
 	 *

@@ -502,7 +502,7 @@ trait wpcd_wpapp_upgrade_functions {
 				$column_data = $column_data . $output;
 			}
 			if ( $this->is_cache_enabler_nginx_upgrade_needed( $post_id ) && 'nginx' === $webserver_type ) {
-				$output      = '<span class="wpcd_upgrade_needed_warning">' . __( 'A server upgrade is needed to optimize the NGINX cache. Please see the upgrades tab.', 'wpcd' ) . '</span>';
+				$output      = '<span class="wpcd_upgrade_needed_warning">' . __( 'A server upgrade is needed to optimize the NGINX cache. Please see the UPGRADE CACHE section on the upgrades tab.', 'wpcd' ) . '</span>';
 				$column_data = $column_data . $output;
 			}
 		}
@@ -620,6 +620,84 @@ trait wpcd_wpapp_upgrade_functions {
 		}
 
 		return false;
+
+	}
+
+	/**
+	 * Add data to an option that keeps track of wpcd app updates.
+	 *
+	 * @param int    $id Post id of server being upgraded.
+	 * @param string $history_key_type A key to be used to indicate the history being added.
+	 * @param string $desc Description of history element being added.
+	 */
+	public function update_history( $id, $history_key_type, $desc ) {
+
+		// Get history array.
+		$history = $this->get_update_history( $id );
+
+		// Add to array.
+		$history[] = array(
+			'type' => $history_key_type,
+			'time' => time(),
+			'desc' => $desc,
+		);
+
+		// Write it back to post meta.
+		update_post_meta( $id, 'wpcd_server_update_history', $history );
+
+	}
+
+	/**
+	 * Returns an array with update history items.
+	 *
+	 * @param int $id Post id of server being handled..
+	 */
+	public function get_update_history( $id ) {
+
+		$history = wpcd_maybe_unserialize( get_post_meta( $id, 'wpcd_server_update_history', true ) );
+
+		// Make sure we have a value and that it's an array.
+		if ( empty( $history ) || ! is_array( $history ) ) {
+			$history = array();
+		}
+
+		return $history;
+
+	}
+
+	/**
+	 * Returns an HTML formatted string with update history.
+	 *
+	 * @param int $id Post id of server being handled..
+	 */
+	public function get_formatted_update_history( $id ) {
+
+		$history = $this->get_update_history( $id );
+
+		// Return right away if we have no history.
+		if ( empty( $history ) ) {
+			return '';
+		}
+
+		// Initialize return value.
+		$return = '';
+
+		foreach ( $history as $key => $value ) {
+
+			$return .= '<div class="wpcd_update_history_item">';
+			$return .= '<div class="wpcd_update_history_item_datetime">';
+			$return .= gmdate( 'Y/m/d g:i A', $value['time'] );
+			$return .= '</div>';
+			$return .= '<div class="wpcd_update_history_desc">';
+			$return .= $value['desc'];
+			$return .= '</div>';
+			$return .= '</div>';
+
+		}
+
+		$return = '<div class="wpcd_update_history_wrap">' . $return . '</div>';
+
+		return $return;
 
 	}
 

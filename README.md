@@ -129,6 +129,8 @@ Note: Even though the entire git development history isn't available on github, 
 5.3.3
 ------
 * New: WPAPP - Add new wp-config.php option - WPCD_HIDE_WPAPP_MENU.
+* New: WPAPP - Add option to upgrade WPCLI to v2.8.
+* New: WPAPP - Start showing history of updates on the server UPGRADE tab.
 * Tweak: WPAPP - Remove tiny file manager php version restriction. It now seems compatible with php 8.0 and 8.1.
 * Tweak: WPAPP - Update to install the latest version of phpmyadmin (5.2.1).
 * Tweak: WPAPP - Forcibly set the PHP version after a site sync to make sure origin and target sites have the same PHP versions.

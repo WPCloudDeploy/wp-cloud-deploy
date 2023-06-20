@@ -131,6 +131,7 @@ Note: Even though the entire git development history isn't available on github, 
 * New: WPAPP - Add new wp-config.php option - WPCD_HIDE_WPAPP_MENU.
 * New: WPAPP - Add option to upgrade WPCLI to v2.8.
 * New: WPAPP - Start showing history of updates on the server UPGRADE tab.
+* New: WPAPP - Add option to run certbot -renew on the server.
 * Tweak: WPAPP - Remove tiny file manager php version restriction. It now seems compatible with php 8.0 and 8.1.
 * Tweak: WPAPP - Update to install the latest version of phpmyadmin (5.2.1).
 * Tweak: WPAPP - Forcibly set the PHP version after a site sync to make sure origin and target sites have the same PHP versions.

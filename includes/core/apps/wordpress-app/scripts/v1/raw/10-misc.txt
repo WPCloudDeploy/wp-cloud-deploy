@@ -120,6 +120,7 @@ do
 	echo "   34) Remove HTTP Auth for WP Login"	
 	echo "   35) Disable Php Version"
 	echo "   36) Enable Php Version"
+	echo "   37) Renew Certificates"
 	echo
 	read -p "Action: " action
 	until [[ -z "$action" || "$action" =~ ^[1-9]|2[0-9]|3[0-9]$ ]]
@@ -1339,4 +1340,12 @@ then
 		fi
 		exit
 	fi
+fi
+
+if [[ $action == "renew_all_certificates" || $action == "37" ]]
+then
+	echo "Attempting to renew all certificates eligible for renewals..."
+	sudo certbot renew
+	echo "Certificate renewal attempt completed.  Please examine output above to see if further action is needed."
+	exit
 fi

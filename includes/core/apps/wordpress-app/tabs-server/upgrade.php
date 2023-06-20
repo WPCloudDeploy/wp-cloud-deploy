@@ -1536,8 +1536,9 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 
 		// evaluate results.
 		if ( strpos( $result, 'journalctl -xe' ) !== false ) {
-			// Looks like there was a problem with restarting the NGINX - So update completion meta and return message.
+			// Looks like there was a problem with restarting the NGINX - So update completion meta, add to history and return message.
 			update_post_meta( $id, 'wpcd_server_php81_installed', 1 );
+			$this->update_history( $id, $upgrade_history_key_type, $upgrade_description );
 			/* translators: %s is replaced with the text of the result of the operation. */
 			return new \WP_Error( sprintf( __( 'There was a problem restarting the nginx server after the upgrade - here is the full output of the upgrade process: %s', 'wpcd' ), $result ) );
 		}
@@ -1611,7 +1612,8 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 
 		// evaluate results.
 		if ( strpos( $result, 'journalctl -xe' ) !== false ) {
-			// Looks like there was a problem with restarting the NGINX - So update completion meta and return message.
+			// Looks like there was a problem with restarting the NGINX - So update completion meta, add to history and return message.
+			$this->update_history( $id, $upgrade_history_key_type, $upgrade_description );
 			update_post_meta( $id, 'wpcd_server_php82_installed', 1 );
 			/* translators: %s is replaced with the text of the result of the operation. */
 			return new \WP_Error( sprintf( __( 'There was a problem restarting the nginx server after the upgrade - here is the full output of the upgrade process: %s', 'wpcd' ), $result ) );
@@ -1695,8 +1697,9 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 
 		// evaluate results.
 		if ( strpos( $result, 'journalctl -xe' ) !== false ) {
-			// Looks like there was a problem with restarting the webserver - So update completion meta and return message.
+			// Looks like there was a problem with restarting the webserver - So update completion meta, add to history and return message.
 			update_post_meta( $id, 'wpcd_6g_removed', true );
+			$this->update_history( $id, $upgrade_history_key_type, $upgrade_description );
 			/* translators: %s is replaced with the text of the result of the operation. */
 			return new \WP_Error( sprintf( __( 'There was a problem restarting the web server after this operation - here is the full output of the upgrade process: %s', 'wpcd' ), $result ) );
 		}

@@ -718,7 +718,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	public static function get_wp_versions() {
 
 		// @SEE: https://wordpress.org/download/releases/
-		$versions          = array( 'latest', '6.2.1', '6.1.2', '6.0.4', '5.9.6', '5.8.7', '5.7.9', '5.6.11', '5.5.12', '5.4.13', '5.3.15', '5.2.18', '5.1.16', '5.0.19', '4.9.23', '4.8.22', '4.7.26' );
+		$versions          = array( 'latest', '6.2.2', '6.1.3', '6.0.5', '5.9.7', '5.8.7', '5.7.9', '5.6.11', '5.5.12', '5.4.13', '5.3.15', '5.2.18', '5.1.16', '5.0.19', '4.9.23', '4.8.22', '4.7.26' );
 		$override_versions = wpcd_get_option( 'wordpress_app_allowed_wp_versions' );
 
 		if ( ! empty( $override_versions ) ) {
@@ -1311,12 +1311,39 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		$initial_plugin_version = $this->get_server_meta_by_app_id( $server_id, 'wpcd_server_plugin_initial_version', true );  // This function is smart enough to know if the ID being passed is a server or app id and adjust accordingly.
 
 		if ( version_compare( $initial_plugin_version, '4.27.0' ) > -1 ) {
-			// Versions of the plugin after 4.14.2 automatically install wpcli 2.6.
+			// Versions of the plugin after 4.14.2 automatically install wpcli 2.7.
 			return true;
 		} else {
 			// See if it was manually upgraded - which would leave a meta field value behind on the server CPT record.
 			$it_is_installed = (float) $this->get_server_meta_by_app_id( $server_id, 'wpcd_server_wpcli_upgrade', true );   // This function is smart enough to know if the ID being passed is a server or app id and adjust accordingly.
 			if ( $it_is_installed >= 2.7 ) {
+				return true;
+			} else {
+				return false;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Returns a boolean true/false if wpcli 2.8 is installed.
+	 *
+	 * @param int $server_id ID of server being interrogated.
+	 *
+	 * @return boolean
+	 */
+	public function is_wpcli28_installed( $server_id ) {
+
+		$initial_plugin_version = $this->get_server_meta_by_app_id( $server_id, 'wpcd_server_plugin_initial_version', true );  // This function is smart enough to know if the ID being passed is a server or app id and adjust accordingly.
+
+		if ( version_compare( $initial_plugin_version, '5.3.2' ) > -1 ) {
+			// Versions of the plugin after 5.3.2 automatically install wpcli 2.7.
+			return true;
+		} else {
+			// See if it was manually upgraded - which would leave a meta field value behind on the server CPT record.
+			$it_is_installed = (float) $this->get_server_meta_by_app_id( $server_id, 'wpcd_server_wpcli_upgrade', true );   // This function is smart enough to know if the ID being passed is a server or app id and adjust accordingly.
+			if ( $it_is_installed >= 2.8 ) {
 				return true;
 			} else {
 				return false;
@@ -3524,21 +3551,39 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	public function welcome_message_settings( $meta_boxes ) {
 
 		$welcome_message  = '';
-		$welcome_message .= '<b>' . __( 'Here are the basic steps needed to build your first server and deploy your first WordPress site:', 'wpcd' ) . '</b>';
+		$welcome_message .= '<b>' . __( 'Here are the basic steps needed to build your first server and deploy your first WordPress server & site:', 'wpcd' ) . '</b>';
 		$welcome_message .= '<br />';
+
 		$welcome_message .= '<ol>';
 		$welcome_message .= '<li>';
-		$welcome_message .= __( 'Double-check that your current web server where this plugin is deployed has the appropriate timeouts as listed at the bottom of this screen. You will not be able to build your first server unless your web server timeouts are increased.', 'wpcd' );
-		$welcome_message .= '</li>';
-		$welcome_message .= '<li>';
-		$welcome_message .= __( 'Make sure you have created and uploaded an SSH key pair to your server providers\' dashboard.', 'wpcd' );
+		$welcome_message .= __( 'Double-check that your current web server where this plugin is installed has the appropriate timeouts as listed at the bottom of this screen. You will not be able to build your first server unless your web server timeouts are increased.', 'wpcd' );
 		$welcome_message .= '</li>';
 		$welcome_message .= '<li>';
 		$welcome_message .= __( 'Generate an API key in your server providers\' dashboard.', 'wpcd' );
 		$welcome_message .= '</li>';
 		$welcome_message .= '<li>';
+		$welcome_message .= __( 'If you see the startup wizard notice at the top of this screen and your server provider is one of DigitalOcean, Linode, Vultr, UpCloud or Hetzner - use it to automatically connect to your server provider and setup your SSH keys.', 'wpcd' );
+		$welcome_message .= '</li>';
+		$welcome_message .= '</ol>';
+
+		$welcome_message .= '';
+		$welcome_message .= '<b>' . __( 'If you cannot use the wizard or do not see the wizard notice:', 'wpcd' ) . '</b>';
+		$welcome_message .= '<br />';
+
+		$welcome_message .= '<ol>';
+		$welcome_message .= '<li>';
+		$welcome_message .= __( 'Make sure you have created and uploaded an SSH key pair to your server providers\' dashboard.', 'wpcd' );
+		$welcome_message .= '</li>';
+		$welcome_message .= '<li>';
 		$welcome_message .= __( 'Add your cloud server provider API key and other credentials to the WPCLOUDDEPLOY → SETTINGS → CLOUD PROVIDERS tab.', 'wpcd' );
 		$welcome_message .= '</li>';
+		$welcome_message .= '</ol>';
+
+		$welcome_message .= '';
+		$welcome_message .= '<b>' . __( 'Now you can deploy your first WordPress server & site:', 'wpcd' ) . '</b>';
+		$welcome_message .= '<br />';
+
+		$welcome_message .= '<ol>';
 		$welcome_message .= '<li>';
 		$welcome_message .= __( 'Click on the ALL CLOUD SERVERS menu option and use the DEPLOY A NEW WordPress SERVER button to deploy a server.', 'wpcd' );
 		$welcome_message .= '</li>';

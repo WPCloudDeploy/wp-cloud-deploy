@@ -112,7 +112,10 @@ trait wpcd_wpapp_script_handlers {
 				( strpos( $result, 'SSH password auth has been disabled for user' ) !== false );
 				break;
 			case 'change_php_version_misc.txt':
-				$return = strpos( $result, 'PHP version changed to' ) !== false;
+				$return = 
+				( strpos( $result, 'PHP version changed to' ) !== false )
+				||
+				( strpos( $result, 'PHP version remains at' ) !== false );
 				break;
 			case 'change_php_option_misc.txt':
 				$return = strpos( $result, 'Successfully changed PHP value' ) !== false;
@@ -380,6 +383,9 @@ trait wpcd_wpapp_script_handlers {
 				break;
 			case 'mt_convert_site.txt':
 				$return = ( strpos( $result, 'Multi-tenant: Site conversion succeeded for' ) !== false );
+				break;
+			case 'renew_all_certificates.txt':
+				$return = ( strpos( $result, 'Certificate renewal attempt completed' ) !== false );
 				break;
 
 			/**************************************************************
@@ -883,6 +889,7 @@ trait wpcd_wpapp_script_handlers {
 			case 'restart_php_service.txt':
 			case 'toggle_password_auth_misc.txt':
 			case 'toggle_php_active_misc.txt':
+			case 'renew_all_certificates.txt':
 				$new_array = array_merge(
 					array(
 						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/10-misc.txt',

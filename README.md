@@ -126,6 +126,23 @@ Note: Even though the entire git development history isn't available on github, 
 [Friendly Release Notes](https://wpclouddeploy.com/category/release-notes/)
 
 ## Change Log ##
+5.3.3
+------
+* New: WPAPP - Add new wp-config.php option - WPCD_HIDE_WPAPP_MENU.
+* New: WPAPP - Add option to upgrade WPCLI to v2.8.
+* New: WPAPP - Start showing history of updates on the server UPGRADE tab.
+* New: WPAPP - Add option to run certbot -renew on the server.
+* Tweak: WPAPP - Remove tiny file manager php version restriction. It now seems compatible with php 8.0 and 8.1.
+* Tweak: WPAPP - Update to install the latest version of phpmyadmin (5.2.1).
+* Tweak: WPAPP - Forcibly set the PHP version after a site sync to make sure origin and target sites have the same PHP versions.
+* Tweak: WPAPP - Automatically call the REFRESH SERVICES action when using the RESTART button for webserver, database and ufw.
+* Fix: If an OS version isn't stamped on a server record, it should return as Ubuntu 20.04 now instead of 18.04 (if the server install was done using WPCD 5.0 or greater).
+* Fix: A PHP 8.2 deprecation warning about dynamic class instance var.
+* Fix: WPAPP - Make sure that SSHD shows up as a default protocol when fail2ban is installed on OLS servers.
+* Fix: WPAPP - The WPCD_APP_MENU_NAME constant was not being respected.
+* Fix: WPAPP - If a user's role has the wpcd_manage_apps capability but not the wpcd_manage_servers capability the top level menu label in wp-admin should respect the WPCD_MENU_NAME constant instead of hard-coding a "WPCloudDeploy" label.
+* Fix: WPAPP - Changing a PHP version for a tenant (MT) did not update the openbasedir to allow the site access to the linked plugins and themes.
+
 5.3.2
 ------
 * Tweak: WPAPP - Add text on server upgrade tab to indicate that installing php 8.2 is optional.

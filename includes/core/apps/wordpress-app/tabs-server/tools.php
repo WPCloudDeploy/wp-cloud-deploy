@@ -111,7 +111,7 @@ class WPCD_WORDPRESS_TABS_SERVER_TOOLS extends WPCD_WORDPRESS_TABS {
 		}
 
 		/* Now verify that the user can perform actions on this screen, assuming that they can view the server */
-		$valid_actions = array( 'server-cleanup-metas', 'server-cleanup-rest-api-test', 'reset-server-default-php-version', 'reset-server-php-global-restricted-functions-list' );
+		$valid_actions = array( 'server-cleanup-metas', 'server-cleanup-rest-api-test', 'server-renew-all-ssl-certificates', 'reset-server-default-php-version', 'reset-server-php-global-restricted-functions-list' );
 		if ( in_array( $action, $valid_actions, true ) ) {
 			if ( ! $this->get_tab_security( $id ) ) {
 				/* Translators: %1s is replaced with an internal action name; %2$s is replaced with the file name; %3$s is replaced with the post id being acted on. %4$s is the user id running this action. */
@@ -126,6 +126,9 @@ class WPCD_WORDPRESS_TABS_SERVER_TOOLS extends WPCD_WORDPRESS_TABS {
 					break;
 				case 'server-cleanup-rest-api-test':
 					$result = $this->test_rest_api( $id, $action );
+					break;
+				case 'server-renew-all-ssl-certificates':
+					$result = $this->renew_all_ssl_certificates( $id, $action );
 					break;
 				case 'reset-server-default-php-version':
 					$result = $this->reset_php_default_version( $id, $action );
@@ -203,6 +206,27 @@ class WPCD_WORDPRESS_TABS_SERVER_TOOLS extends WPCD_WORDPRESS_TABS {
 			'raw_attributes' => array(
 				'std'  => __( 'Test Now', 'wpcd' ),
 				'desc' => '',
+			),
+			'type'           => 'button',
+		);
+
+		/**
+		 * Renew all ssl certificates on the server that are up for renewal.
+		 */
+		$confirmation_prompt                                 = __( 'Are you sure you would like to attempt to renew all SSL certificates on this server?', 'wpcd' );
+		$actions['server-renew-all-ssl-certificates-header'] = array(
+			'label'          => __( 'Renew All SSL Certificates', 'wpcd' ),
+			'type'           => 'heading',
+			'raw_attributes' => array(
+				'desc' => __( 'Attempt to renew all SSL certificates that are up for renewal on this server.', 'wpcd' ),
+			),
+		);
+		$actions['server-renew-all-ssl-certificates']        = array(
+			'label'          => '',
+			'raw_attributes' => array(
+				'std'                 => __( 'Renew All Now', 'wpcd' ),
+				'desc'                => '',
+				'confirmation_prompt' => $confirmation_prompt,
 			),
 			'type'           => 'button',
 		);
@@ -308,7 +332,7 @@ class WPCD_WORDPRESS_TABS_SERVER_TOOLS extends WPCD_WORDPRESS_TABS {
 		delete_post_meta( $id, 'wpcd_temp_log_id' );
 		delete_post_meta( $id, 'wpcd_server_action_status' );
 		delete_post_meta( $id, 'wpcd_server_command_mutex' );
-		
+
 		update_post_meta( $id, 'wpcd_server_current_state', 'active' );
 
 		delete_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action_status" );  // Should really only exist on an app.
@@ -518,6 +542,57 @@ class WPCD_WORDPRESS_TABS_SERVER_TOOLS extends WPCD_WORDPRESS_TABS {
 
 	}
 
+	/**
+	 * Renew all SSL certificates.
+	 * Only attempts to renew those certificates up for renewal.
+	 *
+	 * @param int    $id     The postID of the app cpt.
+	 * @param string $action The action to be performed.
+	 *
+	 * @return boolean|WP_Error    success/failure
+	 */
+	public function renew_all_ssl_certificates( $id, $action ) {
+
+		// Bail if not an admin.
+		if ( ! wpcd_is_admin() && ! wp_doing_cron() && ! wpcd_is_doing_cron() ) {
+			return new \WP_Error( __( 'This action can only be performed by an admin - possible security issue.', 'wpcd' ) );
+		}
+
+		// Action to pass to bash script.
+		$action = 'renew_all_certificates';
+
+		// Get the instance details.
+		$instance = $this->get_server_instance_details( $id );
+
+		if ( is_wp_error( $instance ) ) {
+			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
+		}
+
+		// Get the full command to be executed by ssh.
+		$bridge_file = 'renew_all_certificates.txt';
+		$run_cmd     = $this->turn_script_into_command(
+			$instance,
+			$bridge_file,
+			array(
+				'action' => $action,
+			)
+		);
+
+		do_action( 'wpcd_log_error', sprintf( 'attempting to run command for %s = %s ', print_r( $instance, true ), $run_cmd ), 'trace', __FILE__, __LINE__, $instance, false );
+
+		// Run the command.
+		$result  = $this->execute_ssh( 'generic', $instance, array( 'commands' => $run_cmd ) );
+		$success = $this->is_ssh_successful( $result, $bridge_file );
+
+		// Check for success.
+		if ( ! $success ) {
+			return new \WP_Error( sprintf( __( 'Unable to %1$s for site: %2$s', 'wpcd' ), $action, $result ) );
+		} else {
+			// Return the data as an error so it can be shown in a dialog box.
+			return new \WP_Error( __( 'An attempt was issued for all SSL certificates that are valid candidates for renewal. Please see the SSH LOGS screen for the result of this operation.', 'wpcd' ) );
+		}
+
+	}
 
 }
 

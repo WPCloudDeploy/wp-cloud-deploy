@@ -294,7 +294,7 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 		}
 
 		// WP-CLI Upgrade Options.
-		if ( ! $this->is_wpcli27_installed( $id ) ) {
+		if ( ! $this->is_wpcli28_installed( $id ) ) {
 			$upgrade_wpcli_fields = $this->get_upgrade_fields_wpcli( $id );
 			$actions              = array_merge( $actions, $upgrade_wpcli_fields );
 		}
@@ -314,6 +314,12 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 		// Linux Updates.
 		$upgrade_linux_fields = $this->get_upgrade_fields_linux( $id );
 		$actions              = array_merge( $actions, $upgrade_linux_fields );
+
+		// Get Upgrade History Fields.
+		$upgrade_history_fields = $this->get_upgrade_history_fields( $id );
+		if ( ! empty( $upgrade_history_fields ) ) {
+			$actions = array_merge( $actions, $upgrade_history_fields );
+		}
 
 		return $actions;
 
@@ -969,7 +975,7 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 		// Set up metabox items.
 		$actions = array();
 
-		$upg_desc  = __( 'Use this button to upgrade WP-CLI to v2.7.', 'wpcd' );
+		$upg_desc  = __( 'Use this button to upgrade WP-CLI to v2.8.', 'wpcd' );
 		$upg_desc .= '<br />';
 		$upg_desc .= __( 'If your server already has the latest version this will have no effect.', 'wpcd' );
 
@@ -1132,6 +1138,45 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 
 		return $actions;
 
+	}
+
+	/**
+	 * Gets the history data to show in the UPGRADE tab in the server details screen.
+	 *
+	 * @param int $id the post id of the app cpt record.
+	 *
+	 * @return array|boolean Array with history.
+	 */
+	private function get_upgrade_history_fields( $id ) {
+
+		$history_string = $this->get_formatted_update_history( $id );
+
+		if ( empty( $history_string ) ) {
+			return false;
+		}
+
+		// Set up metabox items.
+		$actions = array();
+
+		$history_desc = __( 'History log of certain updates. This log commences with updates from WPCD v5.3.3. Upgrade requests prior to this version were not logged here.', 'wpcd' );
+
+		$actions['server-upgrade-header-history'] = array(
+			'label'          => __( 'Upgrade History', 'wpcd' ),
+			'type'           => 'heading',
+			'raw_attributes' => array(
+				'desc' => $history_desc,
+			),
+		);
+
+		$actions['server-upgrade-history-details'] = array(
+			'label'          => '',
+			'raw_attributes' => array(
+				'std' => $history_string,
+			),
+			'type'           => 'custom_html',
+		);
+
+		return $actions;
 	}
 
 	/**
@@ -1455,6 +1500,10 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 	 */
 	public function install_php81( $id, $action ) {
 
+		// Upgrade History Type.
+		$upgrade_history_key_type = 'install-php81';
+		$upgrade_description      = __( 'Installed PHP 8.1', 'wpcd' );
+
 		// Get data about the server.
 		$instance = $this->get_server_instance_details( $id );
 
@@ -1487,8 +1536,9 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 
 		// evaluate results.
 		if ( strpos( $result, 'journalctl -xe' ) !== false ) {
-			// Looks like there was a problem with restarting the NGINX - So update completion meta and return message.
+			// Looks like there was a problem with restarting the NGINX - So update completion meta, add to history and return message.
 			update_post_meta( $id, 'wpcd_server_php81_installed', 1 );
+			$this->update_history( $id, $upgrade_history_key_type, $upgrade_description );
 			/* translators: %s is replaced with the text of the result of the operation. */
 			return new \WP_Error( sprintf( __( 'There was a problem restarting the nginx server after the upgrade - here is the full output of the upgrade process: %s', 'wpcd' ), $result ) );
 		}
@@ -1507,6 +1557,9 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 				'msg'     => __( 'PHP 8.1 install has been completed - this page will now refresh', 'wpcd' ),
 				'refresh' => 'yes',
 			);
+
+			// Add to update history.
+			$this->update_history( $id, $upgrade_history_key_type, $upgrade_description );
 		}
 
 		return $result;
@@ -1522,6 +1575,10 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 	 * @return boolean success/failure/other
 	 */
 	public function install_php82( $id, $action ) {
+
+		// Upgrade History Type.
+		$upgrade_history_key_type = 'install-php82';
+		$upgrade_description      = __( 'Installed PHP 8.2', 'wpcd' );
 
 		// Get data about the server.
 		$instance = $this->get_server_instance_details( $id );
@@ -1555,7 +1612,8 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 
 		// evaluate results.
 		if ( strpos( $result, 'journalctl -xe' ) !== false ) {
-			// Looks like there was a problem with restarting the NGINX - So update completion meta and return message.
+			// Looks like there was a problem with restarting the NGINX - So update completion meta, add to history and return message.
+			$this->update_history( $id, $upgrade_history_key_type, $upgrade_description );
 			update_post_meta( $id, 'wpcd_server_php82_installed', 1 );
 			/* translators: %s is replaced with the text of the result of the operation. */
 			return new \WP_Error( sprintf( __( 'There was a problem restarting the nginx server after the upgrade - here is the full output of the upgrade process: %s', 'wpcd' ), $result ) );
@@ -1575,6 +1633,9 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 				'msg'     => __( 'PHP 8.2 install has been completed - this page will now refresh', 'wpcd' ),
 				'refresh' => 'yes',
 			);
+
+			// Add to update history.
+			$this->update_history( $id, $upgrade_history_key_type, $upgrade_description );
 		}
 
 		return $result;
@@ -1590,6 +1651,10 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 	 * @return boolean success/failure/other
 	 */
 	public function remove_6g( $id, $action ) {
+
+		// Upgrade History Type.
+		$upgrade_history_key_type = 'remove-firewall6g';
+		$upgrade_description      = __( 'Removed 6G Firewall', 'wpcd' );
 
 		// Get data about the server.
 		$instance = $this->get_server_instance_details( $id );
@@ -1632,8 +1697,9 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 
 		// evaluate results.
 		if ( strpos( $result, 'journalctl -xe' ) !== false ) {
-			// Looks like there was a problem with restarting the webserver - So update completion meta and return message.
+			// Looks like there was a problem with restarting the webserver - So update completion meta, add to history and return message.
 			update_post_meta( $id, 'wpcd_6g_removed', true );
+			$this->update_history( $id, $upgrade_history_key_type, $upgrade_description );
 			/* translators: %s is replaced with the text of the result of the operation. */
 			return new \WP_Error( sprintf( __( 'There was a problem restarting the web server after this operation - here is the full output of the upgrade process: %s', 'wpcd' ), $result ) );
 		}
@@ -1652,6 +1718,9 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 				'msg'     => __( 'The 6G firewall rules have been removed - this page will now refresh', 'wpcd' ),
 				'refresh' => 'yes',
 			);
+
+			// Add to update history.
+			$this->update_history( $id, $upgrade_history_key_type, $upgrade_description );
 		}
 
 		return $result;
@@ -1667,6 +1736,10 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 	 * @return boolean success/failure/other
 	 */
 	public function upgrade_7g( $id, $action ) {
+
+		// Upgrade History Type.
+		$upgrade_history_key_type = 'firewall7g-1.6';
+		$upgrade_description      = __( 'Updated 7G Firewall to v1.6', 'wpcd' );
 
 		// Get data about the server.
 		$instance = $this->get_server_instance_details( $id );
@@ -1729,6 +1802,9 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 				'msg'     => __( 'The upgrade to 7G has been completed - this page will now refresh', 'wpcd' ),
 				'refresh' => 'yes',
 			);
+
+			// Add to update history.
+			$this->update_history( $id, $upgrade_history_key_type, $upgrade_description );
 		}
 
 		return $result;
@@ -1744,6 +1820,10 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 	 * @return boolean success/failure/other
 	 */
 	public function upgrade_wpcli( $id, $action ) {
+
+		// Upgrade History Type.
+		$upgrade_history_key_type = 'wpcli-2.8';
+		$upgrade_description      = __( 'Updated WPCLI to v2.8', 'wpcd' );
 
 		// Get data about the server.
 		$instance = $this->get_server_instance_details( $id );
@@ -1782,13 +1862,16 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 			return new \WP_Error( sprintf( __( 'Unable to perform action %1$s for server: %2$s', 'wpcd' ), $action, $result ) );
 		} else {
 			// update server field to tag server as being upgraded.
-			update_post_meta( $id, 'wpcd_server_wpcli_upgrade', 2.7 );
+			update_post_meta( $id, 'wpcd_server_wpcli_upgrade', 2.8 );
 
-			// Let user know command is complete and force a page rfresh.
+			// Let user know command is complete and force a page refresh.
 			$result = array(
 				'msg'     => __( 'The WPCLI upgrade has been completed - this page will now refresh', 'wpcd' ),
 				'refresh' => 'yes',
 			);
+
+			// Add to update history.
+			$this->update_history( $id, $upgrade_history_key_type, $upgrade_description );
 		}
 
 		return $result;
@@ -1804,6 +1887,10 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 	 * @return boolean success/failure/other
 	 */
 	public function install_php_intl( $id, $action ) {
+
+		// Upgrade History Type.
+		$upgrade_history_key_type = 'phpintl';
+		$upgrade_description      = __( 'Installed PHP INTL Module', 'wpcd' );
 
 		// Get data about the server.
 		$instance = $this->get_server_instance_details( $id );
@@ -1857,6 +1944,9 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 				'msg'     => __( 'The PHP INTL module install has been completed - this page will now refresh', 'wpcd' ),
 				'refresh' => 'yes',
 			);
+
+			// Add to update history.
+			$this->update_history( $id, $upgrade_history_key_type, $upgrade_description );
 		}
 
 		return $result;
@@ -1872,6 +1962,10 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 	 * @return boolean success/failure/other
 	 */
 	public function upgrade_cache_enabler_nginx_config( $id, $action ) {
+
+		// Upgrade History Type.
+		$upgrade_history_key_type = 'nginx-cache-enabler';
+		$upgrade_description      = __( 'Upgraded NGINX Cache Enabler Configuration', 'wpcd' );
 
 		// Get data about the server.
 		$instance = $this->get_server_instance_details( $id );
@@ -1925,6 +2019,9 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 				'msg'     => __( 'The NGINX configuration for cache enabler has been upgraded  - this page will now refresh', 'wpcd' ),
 				'refresh' => 'yes',
 			);
+
+			// Add to update history.
+			$this->update_history( $id, $upgrade_history_key_type, $upgrade_description );
 		}
 
 		return $result;
@@ -2083,6 +2180,11 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 	 */
 	public function upgrade_linux_all( $id, $action ) {
 
+		// Upgrade History Type.
+		$upgrade_history_key_type = 'request-linux-update-' . $action;
+		/* Translators: %s is the type of updates requested. It is a code/key, not a word. */
+		$upgrade_description = sprintf( __( 'Requested Linux Updates of Type: %s', 'wpcd' ), $action );
+
 		// Get data about the server.
 		$instance = $this->get_server_instance_details( $id );
 
@@ -2148,6 +2250,9 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 				'msg'     => __( 'We have scheduled your LINUX server updates to run via CRON which should begin shortly.', 'wpcd' ),
 				'refresh' => 'yes',
 			);
+
+			// Add to update history.
+			$this->update_history( $id, $upgrade_history_key_type, $upgrade_description );
 		}
 
 		return $success;

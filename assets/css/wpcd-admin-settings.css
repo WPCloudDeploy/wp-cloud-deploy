@@ -140,7 +140,12 @@ Start styling for for the DEPLOY YOUR FIRST WORDPRESS SITE section. Make the bac
     background-color: white;
     padding: 2em;
     border: solid 1px white;
-    border-radius: 20px;
+    border-radius: 8px;
+	max-width: 800px;
+	margin-left: 2em;
+	margin-top: 1em !important;
+	margin-bottom: 1em !important;
+	/* Important needed for margins because metabox has !important in their own stylesheets so we have no choice but to use it to override their defaults. */
 }
 
 .rwmb-settings-no-boxes #wpcd_deploy_your_first_wordpress_site .rwmb-heading-wrapper #wpcd_deploy_your_first_wordpress_site_heading {

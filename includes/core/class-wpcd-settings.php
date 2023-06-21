@@ -100,16 +100,22 @@ class WPCD_Settings {
 
 				// Set some long text used for the timeout description.
 				$ssh_timeout_desc  = __( 'If you are experiencing unusual behavior when running commands, such as server deployment hanging or not completing, it might be due to one or more timeout settings on the WordPress server where this plugin is running.', 'wpcd' );
-				$ssh_timeout_desc .= __( '<br />PHP scripts have a timeout associated with them that is set in your PHP.INI file.  Your webserver has a timeout too. The length of time that an SSH command has to run is limited by these two factors.', 'wpcd' );
-				$ssh_timeout_desc .= __( '<br />The load on your target WordPress server and type of command being executed are the main factors in determining how long it will take a command to run. You want to give it as long as possible before timing out.', 'wpcd' );
-				$ssh_timeout_desc .= __( '<br />We therefore recommend that you increase the timeouts used on this server to 180 seconds or more. ', 'wpcd' );
+				$ssh_timeout_desc .= '<br />';
+				$ssh_timeout_desc .= '<br />';
+				$ssh_timeout_desc .= __( 'PHP scripts have a timeout associated with them that is set in your PHP.INI file.  Your webserver has a timeout too. The length of time that an SSH command has to run is limited by these two factors.', 'wpcd' );
+				$ssh_timeout_desc .= '<br />';
+				$ssh_timeout_desc .= __( 'The load on your target WordPress server and type of command being executed are the main factors in determining how long it will take a command to run. You want to give it as long as possible before timing out.', 'wpcd' );
+				$ssh_timeout_desc .= '<br />';
+				$ssh_timeout_desc .= '<br />';
+				$ssh_timeout_desc .= __( 'We therefore recommend that you increase the timeouts used on this server to 180 seconds or more. ', 'wpcd' );
 				$ssh_timeout_desc .= '<br />';
 				if ( (int) ini_get( 'max_execution_time' ) >= 180 ) {
 					/* translators: %s: The max excution time limit for php. */
-					$ssh_timeout_desc .= sprintf( __( '<br />It looks like your <b>php_max_execution_time</b> in your php.ini file is already set to 180 seconds or more. It is currently set to:  %s.  So, no change to this is necessary at this time.', 'wpcd' ), (string) ini_get( 'max_execution_time' ) );
+					$ssh_timeout_desc = sprintf( __( 'It looks like your <b>php_max_execution_time</b> in your php.ini file is already set to 180 seconds or more. It is currently set to:  %s.  So, no change to this is necessary at this time.', 'wpcd' ), (string) ini_get( 'max_execution_time' ) );
 				} else {
+					$ssh_timeout_desc .= '<br />';
 					/* translators: %s: The max excution time limit for php. */
-					$ssh_timeout_desc .= sprintf( __( '<br />Set your <b>php_max_execution_time</b> in your php.ini file to 180 seconds or more. It is currently set to: %s', 'wpcd' ), (string) ini_get( 'max_execution_time' ) );
+					$ssh_timeout_desc .= sprintf( __( 'Set your <b>php_max_execution_time</b> in your php.ini file to 180 seconds or more. It is currently set to only: %s', 'wpcd' ), (string) ini_get( 'max_execution_time' ) );
 				}
 
 				$webserver_timeout_desc  = __( 'Webservers also have timeouts.  Unfortunately we are unable to read their current values.  So please check the items below and change them as necessary.', 'wpcd' );
@@ -117,10 +123,16 @@ class WPCD_Settings {
 				$webserver_timeout_desc .= '<br />';
 				$webserver_timeout_desc .= __( '<br /><b>FOR NGINX:</b>', 'wpcd' );
 				$webserver_timeout_desc .= __( '<br />&nbsp;&nbsp;&nbsp;&nbsp;Set your <b>fastcgi_read_timeout</b>, <b>client_header_timeout</b> and <b>client_body_timeout</b> values in your nginx configuration file to 600 seconds or more. ', 'wpcd' );
-				$webserver_timeout_desc .= __( '<br /><b>FOR NGINX used as a proxy in front of an APACHE server:</b>', 'wpcd' );
-				$webserver_timeout_desc .= __( '<br />&nbsp;&nbsp;&nbsp;&nbsp;Set your <b>proxy_read_timeout</b> value in your nginx configuration file to 600 seconds or more. ', 'wpcd' );
-				$webserver_timeout_desc .= __( '<br /><b>FOR APACHE Servers:</b>', 'wpcd' );
-				$webserver_timeout_desc .= __( '<br />&nbsp;&nbsp;&nbsp;&nbsp;Set your <b>TimeOut</b> value in your .htaccess file to 600 seconds or more. ', 'wpcd' );
+				$webserver_timeout_desc .= '<br />';
+				$webserver_timeout_desc .= '<br />';
+				$webserver_timeout_desc .= __( '<b>FOR NGINX used as a proxy in front of an APACHE server:</b>', 'wpcd' );
+				$webserver_timeout_desc .= '<br />';
+				$webserver_timeout_desc .= __( '&nbsp;&nbsp;&nbsp;&nbsp;Set your <b>proxy_read_timeout</b> value in your nginx configuration file to 600 seconds or more. ', 'wpcd' );
+				$webserver_timeout_desc .= '<br />';
+				$webserver_timeout_desc .= '<br />';
+				$webserver_timeout_desc .= __( '<b>FOR APACHE Servers:</b>', 'wpcd' );
+				$webserver_timeout_desc .= '<br />';
+				$webserver_timeout_desc .= __( '&nbsp;&nbsp;&nbsp;&nbsp;Set your <b>TimeOut</b> value in your .htaccess file to 600 seconds or more. ', 'wpcd' );
 				$webserver_timeout_desc .= '<br />';
 				$webserver_timeout_desc .= __( '<br />After these settings are complete, you can set the SSH TIMEOUT value below to something higher such as 300. ', 'wpcd' );
 
@@ -187,6 +199,7 @@ class WPCD_Settings {
 								'min'         => 30,
 								'std'         => 30,
 								'placeholder' => 30,
+								'size'        => 30,
 								'desc'        => __( 'The default value is 30 seconds which is the default value set when PHP is installed.', 'wpcd' ),
 							),
 						),

@@ -138,6 +138,8 @@ class WPCD_WORDPRESS_TABS_CLONE_SITE extends WPCD_WORDPRESS_TABS {
 							 */
 
 							// Update the PHP version to match the original version.
+							// This only changes the metas. In the future we might want to run the script to change the PHP version.
+							// In that case, look to the site-sync tab for how that should be done. It's a bit tricky.
 							switch ( $webserver_type ) {
 								case 'ols':
 								case 'ols-enterprise':

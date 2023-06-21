@@ -279,15 +279,17 @@ class WP_CLOUD_DEPLOY {
 			$parent_page = 'edit.php?post_type=wpcd_app_server';
 		}
 
-		add_submenu_page(
-			$parent_page,
-			( defined( 'WPCD_WPAPP_MENU_NAME' ) ? WPCD_WPAPP_MENU_NAME : __( 'WordPress Sites', 'wpcd' ) ),
-			( defined( 'WPCD_WPAPP_MENU_NAME' ) ? WPCD_WPAPP_MENU_NAME : __( 'WordPress Sites', 'wpcd' ) ),
-			'wpcd_manage_apps',
-			'edit.php?s&post_status=all&post_type=wpcd_app&app_type=wordpress-app&filter_action=' . 'Filter',
-			'',
-			3
-		);
+		if ( ( ! defined( 'WPCD_HIDE_WPAPP_MENU' ) ) || ( defined( 'WPCD_HIDE_WPAPP_MENU' ) && ! WPCD_HIDE_WPAPP_MENU ) ) {
+			add_submenu_page(
+				$parent_page,
+				( defined( 'WPCD_WPAPP_MENU_NAME' ) ? WPCD_WPAPP_MENU_NAME : __( 'WordPress Sites', 'wpcd' ) ),
+				( defined( 'WPCD_WPAPP_MENU_NAME' ) ? WPCD_WPAPP_MENU_NAME : __( 'WordPress Sites', 'wpcd' ) ),
+				'wpcd_manage_apps',
+				'edit.php?s&post_status=all&post_type=wpcd_app&app_type=wordpress-app&filter_action=' . 'Filter',
+				'',
+				3
+			);
+		}
 
 		add_submenu_page(
 			'edit.php?post_type=wpcd_app_server',
@@ -311,7 +313,7 @@ class WP_CLOUD_DEPLOY {
 			);
 		}
 
-		// Submenu entries will be populated by each log CPT via their 'show_in_menu' config entry.
+		// Sub-menu entries will be populated by each log CPT via their 'show_in_menu' config entry.
 		add_menu_page(
 			__( 'Server Alerts', 'wpcd' ),
 			__( 'Server Alerts', 'wpcd' ),
@@ -731,7 +733,7 @@ class WP_CLOUD_DEPLOY {
 
 		// Add in some optional entries if necessary.
 		if ( (bool) wpcd_get_option( 'wordpress_app_enable_ubuntu_lts_1804' ) ) {
-			$oslist['ubuntu1804lts'] =  __( 'Ubuntu 18.04 LTS (Deprecated, EOL April 2023)', 'wpcd' );
+			$oslist['ubuntu1804lts'] = __( 'Ubuntu 18.04 LTS (Deprecated, EOL April 2023)', 'wpcd' );
 		}
 
 		// Return filtered array.

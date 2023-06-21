@@ -26,7 +26,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 
 		add_action( "wpcd_command_{$this->get_app_name()}_completed", array( $this, 'command_completed' ), 10, 2 );
 
-		/* Pending Logs Background Task: Trigger refresh services. Hook: wpcd_wordpress-app_server_refesh_services. */
+		/* Pending Logs Background Task: Trigger refresh services. Hook: wpcd_wordpress-app_server_refresh_services. */
 		add_action( "wpcd_{$this->get_app_name()}_server_refresh_services", array( $this, 'pending_log_refresh_services_status' ), 10, 3 );
 
 	}
@@ -173,10 +173,12 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 					$result = $this->restart_webserver( $id, $action );
 					break;
 				case 'db-server-restart':
-					$result = $this->submit_generic_server_command( $id, $action, 'sudo service mariadb restart && echo "' . __( 'The MariaDB database Service has restarted', 'wpcd' ) . '"' );
+					// $result = $this->submit_generic_server_command( $id, $action, 'sudo service mariadb restart && echo "' . __( 'The MariaDB database Service has restarted', 'wpcd' ) . '"' );
+					$result = $this->restart_database_server( $id, $action );
 					break;
 				case 'ufw-restart':
-					$result = $this->submit_generic_server_command( $id, $action, 'sudo service ufw restart && echo "' . __( 'The UFW firewall Service has festarted', 'wpcd' ) . '"' );
+					// $result = $this->submit_generic_server_command( $id, $action, 'sudo service ufw restart && echo "' . __( 'The UFW firewall Service has restarted', 'wpcd' ) . '"' );
+					$result = $this->restart_ufw( $id, $action );
 					break;
 				case 'ufw-state-toggle':
 					$result = $this->do_ufw_toggle( $id, $action );
@@ -673,7 +675,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			'raw_attributes' => array(
 				'std'            => $smtp_server,
 				'desc'           => __( 'Enter the url/address for your outgoing email server - usually in the form of a subdomain.domain.com:port - eg: <i>smtp.ionos.com:587</i>.', 'wpcd' ),
-				'xcolumns'        => 4,
+				'xcolumns'       => 4,
 				// the key of the field (the key goes in the request).
 				'data-wpcd-name' => 'smtp_server',
 			),
@@ -1345,7 +1347,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 
 		// get memcached status.
 		if ( 'yes' === get_post_meta( $id, 'wpcd_wpapp_memcached_installed', true ) ) {
-			$command    = 'sudo service mariadb status';
+			$command    = 'sudo service memcached status';
 			$raw_status = $this->submit_generic_server_command( $id, $action, $command, true );
 			if ( is_wp_error( $raw_status ) ) {
 				$services_status['memcached'] = __( 'still unknown - last status request errored', 'wpcd' );
@@ -2406,7 +2408,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
-	 * Restart the approrpriate webserver
+	 * Restart the appropriate webserver
 	 *
 	 * @param int    $id         The postID of the server cpt.
 	 * @param string $action     The action to be performed (this matches the string required in the bash scripts if bash scripts are used ).
@@ -2448,6 +2450,47 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 				break;
 		}
 
+		// Refresh services.
+		do_action( 'wpcd_wordpress-app_server_refresh_services', '', $id, array() );
+
+		return $result;
+
+	}
+
+	/**
+	 * Restart the mariadb server.
+	 *
+	 * @param int    $id         The postID of the server cpt.
+	 * @param string $action     The action to be performed (this matches the string required in the bash scripts if bash scripts are used ).
+	 *
+	 * @return boolean success/failure/other
+	 */
+	public function restart_database_server( $id, $action ) {
+
+		$result = $this->submit_generic_server_command( $id, $action, 'sudo service mariadb restart && echo "' . __( 'The MariaDB database Service has restarted', 'wpcd' ) . '"' );
+
+		// Refresh services.
+		do_action( 'wpcd_wordpress-app_server_refresh_services', '', $id, array() );
+
+		return $result;
+
+	}
+
+	/**
+	 * Restart the uncomplicated firewall.
+	 *
+	 * @param int    $id         The postID of the server cpt.
+	 * @param string $action     The action to be performed (this matches the string required in the bash scripts if bash scripts are used ).
+	 *
+	 * @return boolean success/failure/other
+	 */
+	public function restart_ufw( $id, $action ) {
+
+		$result = $this->submit_generic_server_command( $id, $action, 'sudo service ufw restart && echo "' . __( 'The UFW firewall Service has restarted', 'wpcd' ) . '"' );
+
+		// Refresh services.
+		do_action( 'wpcd_wordpress-app_server_refresh_services', '', $id, array() );
+
 		return $result;
 
 	}
@@ -2455,9 +2498,12 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 	/**
 	 * Refresh Services - triggered via pending logs background process.
 	 *
+	 * Can also be triggered from other places directly by passing in blanks for the
+	 * $task_id and $args parameters.
+	 *
 	 * Called from an action hook from the pending logs background process - WPCD_POSTS_PENDING_TASKS_LOG()->do_tasks()
 	 *
-	 * Action Hook: "wpcd_{$this->get_app_name()}_server_refresh_services | wpcd_wordpress-app_server_refesh_services.
+	 * Action Hook: "wpcd_{$this->get_app_name()}_server_refresh_services | wpcd_wordpress-app_server_refresh_services.
 	 *
 	 * @param int   $task_id    Id of pending task that is firing this thing...
 	 * @param int   $server_id  Id of server on which to install the new website.
@@ -2466,7 +2512,9 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 	public function pending_log_refresh_services_status( $task_id, $server_id, $args ) {
 
 		// Grab our data array from pending tasks record...
-		$data = WPCD_POSTS_PENDING_TASKS_LOG()->get_data_by_id( $task_id );
+		if ( $task_id ) {
+			$data = WPCD_POSTS_PENDING_TASKS_LOG()->get_data_by_id( $task_id );
+		}
 
 		/* Refresh Services */
 		$action = 'services_status_update';
@@ -2474,7 +2522,9 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		$result = $this->refresh_services_status_php( $server_id, $action );
 
 		/* Mark pending log record as complete - there's no real return status so can do it here right away. */
-		WPCD_POSTS_PENDING_TASKS_LOG()->update_task_by_id( $task_id, $data, 'complete' );
+		if ( $task_id ) {
+			WPCD_POSTS_PENDING_TASKS_LOG()->update_task_by_id( $task_id, $data, 'complete' );
+		}
 
 	}
 

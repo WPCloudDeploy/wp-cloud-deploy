@@ -126,6 +126,10 @@ Note: Even though the entire git development history isn't available on github, 
 [Friendly Release Notes](https://wpclouddeploy.com/category/release-notes/)
 
 ## Change Log ##
+5.3.4
+------
+* Fix: WPCD Capabilities are not always added on initial plugin activation on new sites. This resolves an issue where the admin sometimes needed to deactivate and reactivate to get the full suite of permissions installed.
+
 5.3.3
 ------
 * New: WPAPP - Add new wp-config.php option - WPCD_HIDE_WPAPP_MENU.

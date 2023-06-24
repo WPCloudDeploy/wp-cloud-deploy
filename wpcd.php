@@ -3,7 +3,7 @@
 Plugin Name: WPCloudDeploy
 Plugin URI: https://wpclouddeploy.com
 Description: Deploy and manage cloud servers and apps from inside the WordPress Admin dashboard.
-Version: 5.3.3
+Version: 5.3.4
 Requires at least: 5.8
 Requires PHP: 7.4
 Item Id: 1493
@@ -200,8 +200,8 @@ class WPCD_Init {
 			require_once wpcd_path . 'includes/core/apps/stable-diffusion/class-stablediff-app.php';
 		}
 
-		// @TODO: Have to make these static till autoloading is implemented
-		// @TODO: This is also poor because N crons will be registered for N providers even if only one provider is actually active and has credentials
+		// @TODO: Have to make these static till autoloading is implemented.
+		// @TODO: This is also poor because N crons will be registered for N providers even if only one provider is actually active and has credentials.
 		if ( defined( 'WPCD_LOAD_VPN_APP' ) && ( true === WPCD_LOAD_VPN_APP ) ) {
 			WPCD_VPN_APP::activate( $network_wide );
 		}
@@ -1039,8 +1039,6 @@ class WPCD_Init {
 
 	/**
 	 * Deactivate self. Usually when an incompatible plugin is present.
-	 *
-	 * Action Hook: admin_init
 	 */
 	public function wpcd_plugin_force_deactivate() {
 
@@ -1072,7 +1070,7 @@ class WPCD_Init {
 	/**
 	 * Check to see if all add-ons are compatible.
 	 * Runs from the constructor or activation.
-	 * Makes sure the check runs only once per version.
+	 * We must make sure the check runs only once per version.
 	 */
 	public function check_all_addons_compatible() {
 		// If this check has already been done just return true.
@@ -1085,8 +1083,10 @@ class WPCD_Init {
 		// If we get here, we have to run the compatiblity check at least once.
 		if ( $this->are_all_addons_compatible() ) {
 			update_option( 'wpcd_addons_compatible_last_version_checked', WPCD_VERSION );
+			return true;
 		}
 
+		return true;
 	}
 
 

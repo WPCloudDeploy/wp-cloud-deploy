@@ -130,6 +130,7 @@ Note: Even though the entire git development history isn't available on github, 
 ------
 * Fix: Stay on the same settings tab after saving settings.
 * Fix: WPAPP - Make sure that the configuration files in the /etc/letsencrypt/renewal folder gets pushed when copying a site to a different server.
+* Fix: WPAPP - Better validation of the domain field when installing WordPress.
 
 5.3.4
 ------

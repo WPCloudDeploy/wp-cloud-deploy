@@ -316,7 +316,8 @@
 
                         var error = false;
                         var specialChars = ";|'\"\\<>`&()";
-                        var other_specialChars = "'\";\\|<>`@$&()/";
+                        var other_specialChars = "'\";\\|<>`@$&#^%!()/";
+						var domain_IllegalChars = "'\";\\|<>`@$&_#^%!()/";
                         $('form#wpcd-install input').each(function () {
 
                             // validate domain field - make sure it has at least one period in it.
@@ -333,8 +334,8 @@
                                     $(this).css('margin-bottom', '');
                                 }
 
-                                // Make sure that field doesn't contain illegal chars
-                                var check_domain = check_field_value_chars(other_specialChars, domain);
+                                // Make sure that domain field doesn't contain illegal chars
+                                var check_domain = check_field_value_chars(domain_IllegalChars, domain);
                                 if (check_domain == false) {
                                     error = false;
                                     $(".wp_domain_error_msg").hide();
@@ -343,7 +344,7 @@
                                     error = true;
                                 }
                             } else if ($(this).val() != '' && $(this).attr('name') == 'wp_password') {
-                                // Make sure that field doesn't contain illegal chars
+                                // Make sure that the password field doesn't contain illegal chars
                                 var wp_password = $(this).val();
                                 var check_password = check_field_value_chars(specialChars, wp_password);
 
@@ -355,7 +356,7 @@
                                     error = true;
                                 }
                             } else if ($(this).val() != '' && $(this).attr('name') == 'wp_user') {
-                                // Make sure that field doesn't contain illegal chars
+                                // Make sure that the user field doesn't contain illegal chars
                                 var wp_user = $(this).val();
                                 var check_username = check_field_value_chars(other_specialChars, wp_user);
 
@@ -379,7 +380,7 @@
                                     error = true;
                                 }
 
-                                // Make sure that field doesn't contain illegal chars
+                                // Make sure that email field doesn't contain illegal chars
                                 var check_email = check_field_value_chars(specialChars, wp_email);
                                 if (check_email == false) {
                                     error = false;

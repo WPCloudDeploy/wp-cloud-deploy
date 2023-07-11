@@ -2030,7 +2030,7 @@ class WPCD_Settings {
 			'wpcd_bp_master',
 		);
 
-		if ( in_array( $wpcd_screen->base, array( 'post', 'upload' ), true ) && in_array( $wpcd_screen->post_type, $wpcd_check_post_type, true ) ) {
+		if ( in_array( $wpcd_screen->base, array( 'post', 'upload', 'wpcd_app_server_page_wpcd_settings' ), true ) && in_array( $wpcd_screen->post_type, $wpcd_check_post_type, true ) ) {
 			// JS fix for Metabox.io issue where the user ends up on tab #1 after a page refreshes.  This JS keeps the user on the tab they were on after a page refresh.
 			wp_register_script( 'wpcd-mbio-tabs-fix.', wpcd_url . 'assets/js/wpcd-mbio-tabs-fix.js', array( 'jquery', 'rwmb-tabs' ), wpcd_scripts_version, true );
 			wp_enqueue_script( 'wpcd-mbio-tabs-fix.' );

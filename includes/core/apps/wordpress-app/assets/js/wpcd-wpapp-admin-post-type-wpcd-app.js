@@ -76,7 +76,7 @@
 
         });
 
-        // Confirm alert display when perfoming a bulk action on the site list screen.
+        // Confirm alert display when performing a bulk action on the site list screen.
         // This code is mostly a duplicate of that in wpcd-wpapp-server-admin.js.
         // If it changes here it might need to be changed there as well.
         $('#doaction').click(function() {

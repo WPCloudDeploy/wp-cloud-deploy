@@ -126,6 +126,12 @@ Note: Even though the entire git development history isn't available on github, 
 [Friendly Release Notes](https://wpclouddeploy.com/category/release-notes/)
 
 ## Change Log ##
+5.3.5
+------
+* Fix: Stay on the same settings tab after saving settings.
+* Fix: WPAPP - Make sure that the configuration files in the /etc/letsencrypt/renewal folder gets pushed when copying a site to a different server.
+* Fix: WPAPP - Better validation of the domain field when installing WordPress.
+
 5.3.4
 ------
 * Fix: WPCD Capabilities are not always added on initial plugin activation on new sites. This resolves an issue where the admin sometimes needed to deactivate and reactivate to get the full suite of permissions installed.

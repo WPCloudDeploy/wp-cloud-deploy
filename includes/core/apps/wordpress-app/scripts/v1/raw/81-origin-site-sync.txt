@@ -116,8 +116,8 @@ sudo rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyCheckin
 ssh -o StrictHostKeyChecking=no -i "~$localuser/.ssh/id_rsa" $sshuser@$destination_ip "sudo mkdir -p /etc/letsencrypt/" < /dev/null
 sudo rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /etc/letsencrypt/live/$domain $sshuser@$destination_ip:/etc/letsencrypt/live > /dev/null 2>&1 < /dev/null
 sudo rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /etc/letsencrypt/archive/$domain $sshuser@$destination_ip:/etc/letsencrypt/archive > /dev/null 2>&1 < /dev/null
-sudo rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /etc/letsencrypt/renewal/$domain $sshuser@$destination_ip:/etc/letsencrypt/renewal > /dev/null 2>&1 < /dev/null
-sudo rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /etc/letsencrypt/renewal/$domain* $sshuser@$destination_ip:/etc/letsencrypt/renewal > /dev/null 2>&1 < /dev/null
+sudo rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /etc/letsencrypt/renewal/$domain* $sshuser@$destination_ip:/etc/letsencrypt/renewal/ > /dev/null 2>&1 < /dev/null
+sudo rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /etc/letsencrypt/renewal/$domain $sshuser@$destination_ip:/etc/letsencrypt/renewal/$domain > /dev/null 2>&1 < /dev/null
 
 # copy duplicated letsencrypt folders ending with 000x
 sudo rsync -a --rsync-path '\''sudo -i rsync'\'' -e "ssh -o StrictHostKeyChecking=no -i ~$localuser/.ssh/id_rsa" /etc/letsencrypt/live/$domain-0* $sshuser@$destination_ip:/etc/letsencrypt/live > /dev/null 2>&1 < /dev/null

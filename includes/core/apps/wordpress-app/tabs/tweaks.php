@@ -140,11 +140,13 @@ class WPCD_WORDPRESS_TABS_TWEAKS extends WPCD_WORDPRESS_TABS {
 					if ( ! is_wp_error( $result ) ) {
 						$result = array( 'refresh' => 'yes' );
 					}
+					break;
 				case 'tweaks-change-file-upload-size-action':
 					$result = $this->tweaks_change_upload_file_size( $id, $action );
 					if ( ! is_wp_error( $result ) ) {
 						$result = array( 'refresh' => 'yes' );
 					}
+					break;
 			}
 		}
 		return $result;

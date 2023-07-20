@@ -129,6 +129,7 @@ Note: Even though the entire git development history isn't available on github, 
 5.3.7
 ------
 * Fix: WPAPP - An error message was always being thrown when fail2ban is activated for a site.
+* Other: Update translation terms.
 
 5.3.6
 ------

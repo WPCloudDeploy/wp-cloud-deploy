@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 "Project-Id-Version: WP Cloud Deploy\n"
-"POT-Creation-Date: 2023-06-19 20:21-0500\n"
+"POT-Creation-Date: 2023-07-20 11:05-0500\n"
 "PO-Revision-Date: 2020-08-14 19:38-0500\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1482,7 +1482,7 @@ msgstr ""
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:560
 #: includes/core/apps/wordpress-app/tabs-server/fail2ban.php:78
 #: includes/core/apps/wordpress-app/tabs-server/fail2ban.php:267
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:566
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:568
 msgid "Fail2ban"
 msgstr ""
 
@@ -1516,7 +1516,7 @@ msgstr ""
 
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:566
 #: includes/core/apps/wordpress-app/tabs-server/services.php:106
-#: includes/core/apps/wordpress-app/tabs-server/services.php:346
+#: includes/core/apps/wordpress-app/tabs-server/services.php:348
 msgid "Services"
 msgstr ""
 
@@ -1767,7 +1767,7 @@ msgstr ""
 #: includes/core/apps/wordpress-app/tabs-server/monit.php:824
 #: includes/core/apps/wordpress-app/tabs-server/monitorix.php:242
 #: includes/core/apps/wordpress-app/tabs-server/ols_console.php:221
-#: includes/core/apps/wordpress-app/tabs-server/services.php:682
+#: includes/core/apps/wordpress-app/tabs-server/services.php:684
 #: includes/core/apps/wordpress-app/tabs/git-control-site.php:648
 #: includes/core/apps/wordpress-app/tabs/git-control-site.php:1982
 #: includes/core/apps/wordpress-app/tabs/git-control-site.php:2088
@@ -3169,12 +3169,12 @@ msgid "EMAIL GATEWAY"
 msgstr ""
 
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2330
-#: includes/core/apps/wordpress-app/tabs-server/services.php:671
+#: includes/core/apps/wordpress-app/tabs-server/services.php:673
 msgid "SMTP Server & Port"
 msgstr ""
 
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2331
-#: includes/core/apps/wordpress-app/tabs-server/services.php:675
+#: includes/core/apps/wordpress-app/tabs-server/services.php:677
 msgid ""
 "Enter the url/address for your outgoing email server - usually in the form "
 "of a subdomain.domain.com:port - eg: <i>smtp.ionos.com:587</i>."
@@ -3182,7 +3182,7 @@ msgstr ""
 
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2338
 #: includes/core/apps/wordpress-app/tabs-server/monit.php:828
-#: includes/core/apps/wordpress-app/tabs-server/services.php:686
+#: includes/core/apps/wordpress-app/tabs-server/services.php:688
 msgid "Your user id for connecting to the smtp server"
 msgstr ""
 
@@ -3193,7 +3193,7 @@ msgstr ""
 #: includes/core/apps/wordpress-app/tabs-server/monit.php:836
 #: includes/core/apps/wordpress-app/tabs-server/monitorix.php:255
 #: includes/core/apps/wordpress-app/tabs-server/ols_console.php:233
-#: includes/core/apps/wordpress-app/tabs-server/services.php:694
+#: includes/core/apps/wordpress-app/tabs-server/services.php:696
 #: includes/core/apps/wordpress-app/tabs/misc.php:474
 #: includes/core/apps/wordpress-app/tabs/misc.php:572
 #: includes/core/apps/wordpress-app/tabs/misc.php:637
@@ -3208,22 +3208,22 @@ msgstr ""
 
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2348
 #: includes/core/apps/wordpress-app/tabs-server/monit.php:840
-#: includes/core/apps/wordpress-app/tabs-server/services.php:698
+#: includes/core/apps/wordpress-app/tabs-server/services.php:700
 msgid "Your password for connecting to the smtp server"
 msgstr ""
 
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2357
-#: includes/core/apps/wordpress-app/tabs-server/services.php:706
+#: includes/core/apps/wordpress-app/tabs-server/services.php:708
 msgid "From Domain"
 msgstr ""
 
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2358
-#: includes/core/apps/wordpress-app/tabs-server/services.php:710
+#: includes/core/apps/wordpress-app/tabs-server/services.php:712
 msgid "The default domain for sending messages"
 msgstr ""
 
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2364
-#: includes/core/apps/wordpress-app/tabs-server/services.php:717
+#: includes/core/apps/wordpress-app/tabs-server/services.php:719
 msgid "FQDN Hostname"
 msgstr ""
 
@@ -3234,7 +3234,7 @@ msgid ""
 msgstr ""
 
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2375
-#: includes/core/apps/wordpress-app/tabs-server/services.php:729
+#: includes/core/apps/wordpress-app/tabs-server/services.php:731
 msgid "Use TLS"
 msgstr ""
 
@@ -3245,7 +3245,7 @@ msgid ""
 msgstr ""
 
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2386
-#: includes/core/apps/wordpress-app/tabs-server/services.php:744
+#: includes/core/apps/wordpress-app/tabs-server/services.php:746
 msgid "Use STARTTLS"
 msgstr ""
 
@@ -3256,12 +3256,12 @@ msgid ""
 msgstr ""
 
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2393
-#: includes/core/apps/wordpress-app/tabs-server/services.php:760
+#: includes/core/apps/wordpress-app/tabs-server/services.php:762
 msgid "Brief Note"
 msgstr ""
 
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2394
-#: includes/core/apps/wordpress-app/tabs-server/services.php:764
+#: includes/core/apps/wordpress-app/tabs-server/services.php:766
 msgid ""
 "Just a note in case you need a reminder about the details of this email "
 "gateway setup."
@@ -4050,7 +4050,7 @@ msgstr ""
 #: includes/core/apps/wordpress-app/tabs-server/monitorix.php:390
 #: includes/core/apps/wordpress-app/tabs-server/monitorix.php:420
 #: includes/core/apps/wordpress-app/tabs-server/monitorix.php:450
-#: includes/core/apps/wordpress-app/tabs-server/services.php:600
+#: includes/core/apps/wordpress-app/tabs-server/services.php:602
 #: includes/core/apps/wordpress-app/tabs-server/tweaks.php:171
 #: includes/core/apps/wordpress-app/tabs/6g_firewall.php:268
 #: includes/core/apps/wordpress-app/tabs/6g_firewall.php:306
@@ -4078,17 +4078,17 @@ msgstr ""
 #: includes/core/apps/wordpress-app/tabs/ssl.php:216
 #: includes/core/apps/wordpress-app/tabs/ssl.php:290
 #: includes/core/apps/wordpress-app/tabs/tools.php:248
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:273
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:294
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:315
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:337
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:358
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:380
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:402
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:424
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:483
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:505
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:568
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:275
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:296
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:317
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:339
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:360
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:382
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:404
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:426
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:485
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:507
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:570
 #: includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/admin-columns.php:390
 msgid "Enabled"
 msgstr ""
@@ -4111,7 +4111,7 @@ msgstr ""
 #: includes/core/apps/wordpress-app/tabs-server/monitorix.php:391
 #: includes/core/apps/wordpress-app/tabs-server/monitorix.php:421
 #: includes/core/apps/wordpress-app/tabs-server/monitorix.php:451
-#: includes/core/apps/wordpress-app/tabs-server/services.php:601
+#: includes/core/apps/wordpress-app/tabs-server/services.php:603
 #: includes/core/apps/wordpress-app/tabs-server/tweaks.php:172
 #: includes/core/apps/wordpress-app/tabs/6g_firewall.php:269
 #: includes/core/apps/wordpress-app/tabs/6g_firewall.php:307
@@ -4139,17 +4139,17 @@ msgstr ""
 #: includes/core/apps/wordpress-app/tabs/ssl.php:217
 #: includes/core/apps/wordpress-app/tabs/ssl.php:291
 #: includes/core/apps/wordpress-app/tabs/tools.php:249
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:274
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:295
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:316
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:338
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:359
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:381
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:403
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:425
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:484
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:506
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:569
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:276
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:297
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:318
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:340
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:361
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:383
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:405
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:427
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:486
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:508
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:571
 #: includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/admin-columns.php:388
 #: includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/admin-columns.php:1125
 msgid "Disabled"
@@ -4904,8 +4904,8 @@ msgstr ""
 #: includes/core/apps/wordpress-app/tabs-server/power.php:560
 #: includes/core/apps/wordpress-app/tabs-server/power.php:601
 #: includes/core/apps/wordpress-app/tabs-server/resize.php:265
-#: includes/core/apps/wordpress-app/tabs-server/services.php:1521
-#: includes/core/apps/wordpress-app/tabs-server/services.php:1686
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1523
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1688
 #: includes/core/apps/wordpress-app/tabs-server/sshkeys.php:298
 #: includes/core/apps/wordpress-app/tabs-server/statistics.php:388
 #: includes/core/apps/wordpress-app/tabs-server/tools.php:327
@@ -4978,9 +4978,9 @@ msgstr ""
 #: includes/core/apps/wordpress-app/tabs/tools.php:557
 #: includes/core/apps/wordpress-app/tabs/tools.php:637
 #: includes/core/apps/wordpress-app/tabs/tools.php:696
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:836
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:1001
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:1059
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:838
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:1003
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:1061
 #: includes/core/apps/wordpress-app/tabs/wp-site-users.php:366
 #: includes/core/apps/wordpress-app/tabs/wp-site-users.php:464
 #: includes/core/apps/wordpress-app/tabs/wp-site-users.php:570
@@ -5096,7 +5096,7 @@ msgstr ""
 
 #: includes/core/apps/wordpress-app/tabs-server/callbacks.php:254
 #: includes/core/apps/wordpress-app/tabs-server/ols_console.php:247
-#: includes/core/apps/wordpress-app/tabs-server/services.php:1094
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1096
 #: includes/core/apps/wordpress-app/tabs/file-manager.php:428
 #: includes/core/apps/wordpress-app/templates/install-app-popup.php:170
 msgid "Install"
@@ -5135,7 +5135,7 @@ msgid "Are you sure you would like to remove this callback?"
 msgstr ""
 
 #: includes/core/apps/wordpress-app/tabs-server/callbacks.php:313
-#: includes/core/apps/wordpress-app/tabs-server/services.php:1184
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1186
 msgid "Clear History"
 msgstr ""
 
@@ -5173,11 +5173,11 @@ msgstr ""
 #: includes/core/apps/wordpress-app/tabs-server/monitorix.php:565
 #: includes/core/apps/wordpress-app/tabs-server/ols_console.php:356
 #: includes/core/apps/wordpress-app/tabs-server/power.php:467
-#: includes/core/apps/wordpress-app/tabs-server/services.php:1237
-#: includes/core/apps/wordpress-app/tabs-server/services.php:1891
-#: includes/core/apps/wordpress-app/tabs-server/services.php:2026
-#: includes/core/apps/wordpress-app/tabs-server/services.php:2104
-#: includes/core/apps/wordpress-app/tabs-server/services.php:2175
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1239
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1893
+#: includes/core/apps/wordpress-app/tabs-server/services.php:2028
+#: includes/core/apps/wordpress-app/tabs-server/services.php:2106
+#: includes/core/apps/wordpress-app/tabs-server/services.php:2177
 #: includes/core/apps/wordpress-app/tabs-server/upgrade.php:2194
 #: includes/core/apps/wordpress-app/tabs-server/users.php:412
 #, php-format
@@ -5201,9 +5201,9 @@ msgstr ""
 #: includes/core/apps/wordpress-app/tabs-server/monitorix.php:687
 #: includes/core/apps/wordpress-app/tabs-server/ols_console.php:428
 #: includes/core/apps/wordpress-app/tabs-server/power.php:498
-#: includes/core/apps/wordpress-app/tabs-server/services.php:1948
-#: includes/core/apps/wordpress-app/tabs-server/services.php:2252
-#: includes/core/apps/wordpress-app/tabs-server/services.php:2257
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1950
+#: includes/core/apps/wordpress-app/tabs-server/services.php:2254
+#: includes/core/apps/wordpress-app/tabs-server/services.php:2259
 #: includes/core/apps/wordpress-app/tabs-server/upgrade.php:2237
 #: includes/core/apps/wordpress-app/tabs-server/users.php:461
 #, php-format
@@ -5228,12 +5228,12 @@ msgid ""
 msgstr ""
 
 #: includes/core/apps/wordpress-app/tabs-server/callbacks.php:611
-#: includes/core/apps/wordpress-app/tabs-server/services.php:2340
+#: includes/core/apps/wordpress-app/tabs-server/services.php:2342
 msgid "No data has been received yet."
 msgstr ""
 
 #: includes/core/apps/wordpress-app/tabs-server/callbacks.php:625
-#: includes/core/apps/wordpress-app/tabs-server/services.php:2354
+#: includes/core/apps/wordpress-app/tabs-server/services.php:2356
 #: includes/core/providers/class-custom-server-parent.php:572
 msgid "unknown"
 msgstr ""
@@ -5241,7 +5241,7 @@ msgstr ""
 #. translators: %s is replaced with date of the report.
 #. translators: %s is a date string.
 #: includes/core/apps/wordpress-app/tabs-server/callbacks.php:649
-#: includes/core/apps/wordpress-app/tabs-server/services.php:2372
+#: includes/core/apps/wordpress-app/tabs-server/services.php:2374
 #, php-format
 msgid "Data current as of: %s "
 msgstr ""
@@ -5433,7 +5433,7 @@ msgstr ""
 #: includes/core/apps/wordpress-app/tabs-server/fail2ban.php:476
 #: includes/core/apps/wordpress-app/tabs-server/fail2ban.php:564
 #: includes/core/apps/wordpress-app/tabs-server/goaccess.php:424
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:631
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:633
 #: includes/core/apps/wordpress-app/tabs/wpconfig-options.php:237
 #: includes/core/apps/wordpress-app/tabs/wpconfig-options.php:329
 msgid "Change"
@@ -5850,7 +5850,7 @@ msgstr ""
 #. translators: %s is replaced with the internal action name.
 #: includes/core/apps/wordpress-app/tabs-server/git_control.php:470
 #: includes/core/apps/wordpress-app/tabs-server/git_control.php:523
-#: includes/core/apps/wordpress-app/tabs-server/services.php:1261
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1263
 #: includes/core/apps/wordpress-app/tabs/change-domain.php:390
 #: includes/core/apps/wordpress-app/tabs/change-domain.php:560
 #: includes/core/apps/wordpress-app/tabs/clone-site.php:404
@@ -6675,12 +6675,12 @@ msgid "The email address where alerts will be sent."
 msgstr ""
 
 #: includes/core/apps/wordpress-app/tabs-server/monit.php:865
-#: includes/core/apps/wordpress-app/tabs-server/services.php:786
+#: includes/core/apps/wordpress-app/tabs-server/services.php:788
 msgid "Load Defaults"
 msgstr ""
 
 #: includes/core/apps/wordpress-app/tabs-server/monit.php:867
-#: includes/core/apps/wordpress-app/tabs-server/services.php:788
+#: includes/core/apps/wordpress-app/tabs-server/services.php:790
 msgid ""
 "Are you sure you would like to populate these fields with your global "
 "defaults from settings?"
@@ -6836,7 +6836,7 @@ msgstr ""
 
 #. translators: %s is replaced with the internal action name.
 #: includes/core/apps/wordpress-app/tabs-server/monit.php:1351
-#: includes/core/apps/wordpress-app/tabs-server/services.php:1977
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1979
 #: includes/core/class-wpcd-posts-app-server.php:2163
 #: includes/core/class-wpcd-posts-app.php:1863
 #: includes/core/class-wpcd-posts-cloud-provider.php:275
@@ -7197,11 +7197,11 @@ msgid ""
 msgstr ""
 
 #: includes/core/apps/wordpress-app/tabs-server/power.php:201
-#: includes/core/apps/wordpress-app/tabs-server/services.php:402
-#: includes/core/apps/wordpress-app/tabs-server/services.php:442
-#: includes/core/apps/wordpress-app/tabs-server/services.php:513
-#: includes/core/apps/wordpress-app/tabs-server/services.php:589
-#: includes/core/apps/wordpress-app/tabs-server/services.php:980
+#: includes/core/apps/wordpress-app/tabs-server/services.php:404
+#: includes/core/apps/wordpress-app/tabs-server/services.php:444
+#: includes/core/apps/wordpress-app/tabs-server/services.php:515
+#: includes/core/apps/wordpress-app/tabs-server/services.php:591
+#: includes/core/apps/wordpress-app/tabs-server/services.php:982
 #: includes/core/apps/wordpress-app/tabs/php-options.php:260
 msgid "Restart"
 msgstr ""
@@ -7479,62 +7479,54 @@ msgid ""
 "operation and restart the server when it is complete."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:176
-msgid "The MariaDB database Service has restarted"
-msgstr ""
-
-#: includes/core/apps/wordpress-app/tabs-server/services.php:179
-msgid "The UFW firewall Service has festarted"
-msgstr ""
-
-#: includes/core/apps/wordpress-app/tabs-server/services.php:314
-#: includes/core/apps/wordpress-app/tabs-server/services.php:878
+#: includes/core/apps/wordpress-app/tabs-server/services.php:316
+#: includes/core/apps/wordpress-app/tabs-server/services.php:880
 msgid "Installed - Click REFRESH SERVICES to get running status."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:324
+#: includes/core/apps/wordpress-app/tabs-server/services.php:326
 msgid "The status of services has never been checked on this screen."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:349
+#: includes/core/apps/wordpress-app/tabs-server/services.php:351
 msgid "Control the Core Services that allow your application(s) to run."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:356
+#: includes/core/apps/wordpress-app/tabs-server/services.php:358
 msgid "Refresh Services Status"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:370
+#: includes/core/apps/wordpress-app/tabs-server/services.php:372
 msgid "Core Services Status"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:381
-#: includes/core/apps/wordpress-app/tabs-server/services.php:493
-#: includes/core/apps/wordpress-app/tabs-server/services.php:569
+#: includes/core/apps/wordpress-app/tabs-server/services.php:383
+#: includes/core/apps/wordpress-app/tabs-server/services.php:495
+#: includes/core/apps/wordpress-app/tabs-server/services.php:571
 msgid "Service"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:384
+#: includes/core/apps/wordpress-app/tabs-server/services.php:386
 #, php-format
 msgid "%s Web Server"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:391
-#: includes/core/apps/wordpress-app/tabs-server/services.php:502
-#: includes/core/apps/wordpress-app/tabs-server/services.php:578
-#: includes/core/apps/wordpress-app/tabs-server/services.php:598
+#: includes/core/apps/wordpress-app/tabs-server/services.php:393
+#: includes/core/apps/wordpress-app/tabs-server/services.php:504
+#: includes/core/apps/wordpress-app/tabs-server/services.php:580
+#: includes/core/apps/wordpress-app/tabs-server/services.php:600
 msgid "Status"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:400
-#: includes/core/apps/wordpress-app/tabs-server/services.php:511
-#: includes/core/apps/wordpress-app/tabs-server/services.php:587
+#: includes/core/apps/wordpress-app/tabs-server/services.php:402
+#: includes/core/apps/wordpress-app/tabs-server/services.php:513
+#: includes/core/apps/wordpress-app/tabs-server/services.php:589
 msgid "Actions"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:410
-#: includes/core/apps/wordpress-app/tabs-server/services.php:530
-#: includes/core/apps/wordpress-app/tabs-server/services.php:610
+#: includes/core/apps/wordpress-app/tabs-server/services.php:412
+#: includes/core/apps/wordpress-app/tabs-server/services.php:532
+#: includes/core/apps/wordpress-app/tabs-server/services.php:612
 #: includes/core/apps/wordpress-app/tabs-server/sshkeys.php:239
 #: includes/core/apps/wordpress-app/tabs/change-domain.php:774
 #: includes/core/class-wpcd-email-notifications.php:721
@@ -7545,23 +7537,23 @@ msgstr ""
 msgid "Notes"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:413
+#: includes/core/apps/wordpress-app/tabs-server/services.php:415
 msgid ""
 "This is your web server.  If you restart it all sites will be temporarily "
 "disabled until the restart is complete."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:424
+#: includes/core/apps/wordpress-app/tabs-server/services.php:426
 msgid "MariaDB"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:453
+#: includes/core/apps/wordpress-app/tabs-server/services.php:455
 msgid ""
 "This is your database server.  If you restart it all sites will be "
 "temporarily disabled until the restart is complete."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:461
+#: includes/core/apps/wordpress-app/tabs-server/services.php:463
 msgid ""
 "Memcached is an OBJECT cache service that can help speed up duplicated "
 "database queries.  Once the service is installed here, you can activate it "
@@ -7569,36 +7561,36 @@ msgid ""
 msgstr ""
 
 #. translators: %s is a string "Memcached and Redis Object Caches" and is handled separately.
-#: includes/core/apps/wordpress-app/tabs-server/services.php:464
+#: includes/core/apps/wordpress-app/tabs-server/services.php:466
 #, php-format
 msgid "Learn more about %s"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:464
+#: includes/core/apps/wordpress-app/tabs-server/services.php:466
 #: includes/core/apps/wordpress-app/tabs/cache.php:571
 msgid "Memcached and Redis Object Caches"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:467
+#: includes/core/apps/wordpress-app/tabs-server/services.php:469
 #: includes/core/apps/wordpress-app/tabs/cache.php:504
 msgid "Memcached"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:479
+#: includes/core/apps/wordpress-app/tabs-server/services.php:481
 msgid "Install MemCached"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:480
+#: includes/core/apps/wordpress-app/tabs-server/services.php:482
 msgid ""
 "It appears that MemCached is not installed on this server.  Click the button "
 "to start the installation process."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:481
+#: includes/core/apps/wordpress-app/tabs-server/services.php:483
 msgid "Are you sure you would like to install the MemCached service?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:485
+#: includes/core/apps/wordpress-app/tabs-server/services.php:487
 msgid ""
 "Preparing to install the MemCached service!<br /> Please DO NOT EXIT this "
 "screen until you see a popup message indicating that the installation has "
@@ -7608,40 +7600,40 @@ msgid ""
 "screen."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:495
+#: includes/core/apps/wordpress-app/tabs-server/services.php:497
 msgid "MemCached"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:520
+#: includes/core/apps/wordpress-app/tabs-server/services.php:522
 #: includes/core/apps/wordpress-app/tabs/cache.php:487
 #: includes/core/apps/wordpress-app/tabs/site-sync.php:1100
 #: includes/core/apps/wordpress-app/tabs/tools.php:339
 msgid "Clear"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:522
+#: includes/core/apps/wordpress-app/tabs-server/services.php:524
 msgid "Clear Cache"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:533
+#: includes/core/apps/wordpress-app/tabs-server/services.php:535
 msgid "Clearing the cache clears it for all sites on this server."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:541
+#: includes/core/apps/wordpress-app/tabs-server/services.php:543
 msgid "Remove MemCached"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:543
+#: includes/core/apps/wordpress-app/tabs-server/services.php:545
 msgid "Un-Install MemCached"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:544
+#: includes/core/apps/wordpress-app/tabs-server/services.php:546
 msgid ""
 "Please make sure none of your sites have MemCached enabled before removing "
 "it from the server!"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:552
+#: includes/core/apps/wordpress-app/tabs-server/services.php:554
 #: includes/core/apps/wordpress-app/tabs-server/ufw_firewall.php:157
 msgid ""
 "UFW is a Linux based firewall - also known as the UNCOMPLICATED FIREWALL. It "
@@ -7650,7 +7642,7 @@ msgid ""
 msgstr ""
 
 #. translators: %s is a URL.
-#: includes/core/apps/wordpress-app/tabs-server/services.php:555
+#: includes/core/apps/wordpress-app/tabs-server/services.php:557
 #, php-format
 msgid ""
 "Technically, UFW is not a firewall - its just a nice front-end to the core "
@@ -7659,276 +7651,276 @@ msgid ""
 "about %s"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:555
+#: includes/core/apps/wordpress-app/tabs-server/services.php:557
 #: includes/core/apps/wordpress-app/tabs-server/ufw_firewall.php:159
 msgid "UFW"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:557
+#: includes/core/apps/wordpress-app/tabs-server/services.php:559
 msgid "You can manage ports on the FIREWALL tab."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:560
-#: includes/core/apps/wordpress-app/tabs-server/services.php:571
+#: includes/core/apps/wordpress-app/tabs-server/services.php:562
+#: includes/core/apps/wordpress-app/tabs-server/services.php:573
 msgid "UFW Firewall"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:613
+#: includes/core/apps/wordpress-app/tabs-server/services.php:615
 msgid ""
 "Ports for HTTP,HTTPS and SSH are opened by default. Open additional ports on "
 "the FIREWALL tab."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:624
+#: includes/core/apps/wordpress-app/tabs-server/services.php:626
 msgid ""
 "Most cloud servers restrict the user of their servers for sending emails.  "
 "Therefore to send general emails you can configure an email gateway to send "
 "emails using your own SMTP server."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:626
+#: includes/core/apps/wordpress-app/tabs-server/services.php:628
 msgid ""
 "This is completely optional.  The biggest benefit of configuring this is "
 "that you do not have to install an email gateway plugin on each of your "
 "sites."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:628
+#: includes/core/apps/wordpress-app/tabs-server/services.php:630
 msgid ""
 "Another benefit is that you can get password reset emails and notifications "
 "from newly installed sites on the server."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:630
+#: includes/core/apps/wordpress-app/tabs-server/services.php:632
 msgid ""
 "The disadvantage is that all your emails will be sent from a single server "
 "and account for all sites which could affect deliverability if all your "
 "sites are not part of the same root domain."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:644
+#: includes/core/apps/wordpress-app/tabs-server/services.php:646
 msgid "Reinstall Email Gateway"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:646
+#: includes/core/apps/wordpress-app/tabs-server/services.php:648
 msgid ""
 "The email gateway has already been installed. You can reinstall it with new "
 "parameters by clicking the reinstall button below."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:658
+#: includes/core/apps/wordpress-app/tabs-server/services.php:660
 msgid "Install Email Gateway"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:663
+#: includes/core/apps/wordpress-app/tabs-server/services.php:665
 msgid "Email Gateway"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:721
+#: includes/core/apps/wordpress-app/tabs-server/services.php:723
 msgid "FQDN for the server."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:722
+#: includes/core/apps/wordpress-app/tabs-server/services.php:724
 msgid ""
 "Some SMTP servers will require this to be a working domain name (example: "
 "server1.myblog.com)"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:737
-#: includes/core/apps/wordpress-app/tabs-server/services.php:753
+#: includes/core/apps/wordpress-app/tabs-server/services.php:739
+#: includes/core/apps/wordpress-app/tabs-server/services.php:755
 msgid "Warning! Turning this off has security implications!"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:776
+#: includes/core/apps/wordpress-app/tabs-server/services.php:778
 msgid ""
 "Are you sure you would like to install or update the email gateway service?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:797
+#: includes/core/apps/wordpress-app/tabs-server/services.php:799
 msgid "Email Gateway: Send Test Email"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:804
+#: includes/core/apps/wordpress-app/tabs-server/services.php:806
 msgid "Test From Email"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:807
+#: includes/core/apps/wordpress-app/tabs-server/services.php:809
 msgid ""
 "Send test email from this address when you click the test email button below."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:815
+#: includes/core/apps/wordpress-app/tabs-server/services.php:817
 msgid "Test To Email"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:818
+#: includes/core/apps/wordpress-app/tabs-server/services.php:820
 msgid ""
 "Send test email to this address when you click the test email button below."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:828
+#: includes/core/apps/wordpress-app/tabs-server/services.php:830
 msgid "Send Test Email"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:838
+#: includes/core/apps/wordpress-app/tabs-server/services.php:840
 msgid "Email Gateway: Remove"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:841
+#: includes/core/apps/wordpress-app/tabs-server/services.php:843
 msgid ""
 "Check to see if the EMAIL GATEWAY is installed on the server and, if so, "
 "remove it."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:847
+#: includes/core/apps/wordpress-app/tabs-server/services.php:849
 msgid "Remove Email Gatweay"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:875
+#: includes/core/apps/wordpress-app/tabs-server/services.php:877
 msgid "PHP Services."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:893
+#: includes/core/apps/wordpress-app/tabs-server/services.php:895
 msgid "The status of php services has never been checked on this screen."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:930
+#: includes/core/apps/wordpress-app/tabs-server/services.php:932
 msgid "PHP Processes"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:940
+#: includes/core/apps/wordpress-app/tabs-server/services.php:942
 msgid "Refresh PHP Services Status"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:992
-#: includes/core/apps/wordpress-app/tabs-server/services.php:1013
+#: includes/core/apps/wordpress-app/tabs-server/services.php:994
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1015
 msgid "n/a"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:1002
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1004
 msgid "Deactivate"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:1021
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1023
 msgid "Activate"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:1046
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1048
 msgid "Malware scanning using LMD and CLAMAV."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:1054
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1056
 msgid ""
 "Malware scanning is already activated. Use the options below to manage it."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:1060
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1062
 msgid "Install Malware Virus Scanner"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:1063
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1065
 msgid "Malware scanning is not activated for this server. "
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:1064
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1066
 msgid ""
 "If your server has 1 GB or more of memory it can likely run the scanner. "
 "Though, of course, the more memory the better. You can use the form below to "
 "get started."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:1069
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1071
 msgid "Malware & Virus Scanner"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:1080
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1082
 msgid "Notification Email"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:1083
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1085
 msgid "Who should receive the results of scans?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:1096
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1098
 msgid "Are you sure you would like to install the Malware Scanner?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:1115
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1117
 msgid "Restart Services"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:1117
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1119
 msgid ""
 "Are you sure you would like to restart the Malware Scanner services/daemons?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:1126
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1128
 msgid "Remove Scanner"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:1128
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1130
 msgid "Are you sure you would like to remove the Malware Scanner?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:1137
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1139
 msgid "Update Software"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:1139
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1141
 msgid "Are you sure you would like to update the Malware Scanner software?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:1148
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1150
 msgid "Disable Cron"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:1150
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1152
 msgid "Are you sure you would like to DISABLE the Cron job?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:1159
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1161
 msgid "Enable Cron"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:1161
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1163
 msgid "Are you sure you would like to ENABLE the Cron job?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:1170
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1172
 #: includes/core/class-wpcd-posts-log.php:148
 msgid "Purge"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:1172
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1174
 msgid ""
 "Are you sure that you would like Maldet to purge the historical scan data "
 "from the server?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:1174
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1176
 msgid ""
 "This option causes Maldet to clear logs, quarantine queue, session and "
 "temporary data on the server"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:1186
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1188
 msgid "Delete malware scan history?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:1195
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1197
 msgid "Clear All Metas"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:1197
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1199
 msgid ""
 "Are you sure you would like to clear all Malware metas including history?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:1205
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1207
 msgid "About The Scanner"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:1206
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1208
 msgid ""
 "The scanner will run once per day and send an email of the scan results.  "
 "Note that most cloud providers will only send email if the email gateway "
@@ -7936,55 +7928,55 @@ msgid ""
 "emails from being sent directly from their servers."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:1309
-#: includes/core/apps/wordpress-app/tabs-server/services.php:1322
-#: includes/core/apps/wordpress-app/tabs-server/services.php:1335
-#: includes/core/apps/wordpress-app/tabs-server/services.php:1351
-#: includes/core/apps/wordpress-app/tabs-server/services.php:1421
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1311
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1324
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1337
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1353
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1423
 msgid "still unknown - last status request errored"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:1360
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1362
 msgid ""
 "MemCached does not appear to be installed as of the last time the services "
 "status was refreshed. Did you recently install it?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:1372
-#: includes/core/apps/wordpress-app/tabs-server/services.php:1446
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1374
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1448
 msgid "Request completed - this page will now refresh"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:1395
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1397
 msgid ""
 "This request cannot be completed because the webserver is not an NGINX "
 "webserver - this page will now refresh"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:1436
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1438
 msgid "deactivated"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:1477
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1479
 msgid "The requested PHP service has been restarted."
 msgstr ""
 
 #. translators: %s is replaced with an error message.
-#: includes/core/apps/wordpress-app/tabs-server/services.php:1485
-#: includes/core/apps/wordpress-app/tabs-server/services.php:1758
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1487
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1760
 #: includes/core/apps/wordpress-app/tabs-server/ssh_console.php:395
 #: includes/core/apps/wordpress-app/tabs-server/ssh_console.php:468
 #, php-format
 msgid "Unable to execute this request because an error occurred: %s"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:1497
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1499
 msgid "Unknown command..."
 msgstr ""
 
 #. translators: %1$s is replaced with the internal action name; %2$s is replaced with the result of the call, usually an error message.
-#: includes/core/apps/wordpress-app/tabs-server/services.php:1638
-#: includes/core/apps/wordpress-app/tabs-server/services.php:1712
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1640
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1714
 #: includes/core/apps/wordpress-app/tabs-server/upgrade.php:1222
 #: includes/core/apps/wordpress-app/tabs-server/upgrade.php:1288
 #: includes/core/apps/wordpress-app/tabs-server/upgrade.php:1351
@@ -8001,164 +7993,172 @@ msgstr ""
 msgid "Unable to perform action %1$s for server: %2$s"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:1647
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1649
 msgid "Action failed"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:1652
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1654
 msgid "PHP Service Enabled!"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:1657
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1659
 msgid "PHP Service Disabled!"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:1715
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1717
 msgid "The cache has been cleared!"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:1717
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1719
 msgid "The MemCached server has been restarted!"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:1721
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1723
 msgid "The MemCached server has been removed!"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:1742
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1744
 msgid "The UFW service should be stopped now."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:1748
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1750
 msgid "The UFW service should be started now."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:1898
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1900
 msgid "Unable to setup email gateway - no smtp server was provided."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:1901
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1903
 msgid "Unable to setup email gateway - no user name was provided."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:1904
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1906
 msgid "Unable to setup email gateway - no password for the user was provided."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:1907
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1909
 msgid "Unable to setup email gateway - no sending domain was provided."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:1951
+#: includes/core/apps/wordpress-app/tabs-server/services.php:1953
 msgid "The email gateway has been installed. You should send a test email now."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:2000
+#: includes/core/apps/wordpress-app/tabs-server/services.php:2002
 msgid "Defaults have been loaded successfully."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:2033
+#: includes/core/apps/wordpress-app/tabs-server/services.php:2035
 msgid "Unable to send a test email - no target email address was entered."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:2036
+#: includes/core/apps/wordpress-app/tabs-server/services.php:2038
 msgid "Unable to send a test email - no origin email address was entered."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:2076
+#: includes/core/apps/wordpress-app/tabs-server/services.php:2078
 msgid ""
 "Unfortunately we were unable to successfully send the test email message. "
 "You can check the SSH logs for more information as to the reason for the "
 "failure."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:2079
+#: includes/core/apps/wordpress-app/tabs-server/services.php:2081
 msgid "Test email has been sent."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:2146
+#: includes/core/apps/wordpress-app/tabs-server/services.php:2148
 msgid ""
 "Unfortunately we were unable to remove the email gateway. You can check the "
 "SSH logs for more information as to the reason for the failure."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:2149
+#: includes/core/apps/wordpress-app/tabs-server/services.php:2151
 msgid "The email gatewway has been removed."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:2185
+#: includes/core/apps/wordpress-app/tabs-server/services.php:2187
 msgid "Unable to complete setup - no notification email address was provided."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:2200
+#: includes/core/apps/wordpress-app/tabs-server/services.php:2202
 msgid "History has been cleared."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:2212
+#: includes/core/apps/wordpress-app/tabs-server/services.php:2214
 msgid "All metas have been cleared."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:2248
+#: includes/core/apps/wordpress-app/tabs-server/services.php:2250
 msgid ""
 "Unable to install Malware & Antivirus scanning software - 1 minimum of GB of "
 "RAM is needed on the server. Unfortunately, this server seems to have less "
 "than that."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:2270
+#: includes/core/apps/wordpress-app/tabs-server/services.php:2272
 msgid ""
 "Malware & Antivirus scanning has been installed. This screen will refresh "
 "and you can navigate back to this tab to see new options."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:2277
+#: includes/core/apps/wordpress-app/tabs-server/services.php:2279
 msgid "Malware & Antivirus software daemons have been restarted."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:2286
+#: includes/core/apps/wordpress-app/tabs-server/services.php:2288
 msgid ""
 "Malware & Antivirus scanning software have been removed from the server."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:2293
+#: includes/core/apps/wordpress-app/tabs-server/services.php:2295
 msgid "Malware & Antivirus software has been updated to the latest versions."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:2300
+#: includes/core/apps/wordpress-app/tabs-server/services.php:2302
 msgid ""
 "Cron scheduler has been disabled - scanning will no longer be run "
 "automatically."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:2307
+#: includes/core/apps/wordpress-app/tabs-server/services.php:2309
 msgid ""
 "Cron scheduler has been enabled - scanning process will be executed once per "
 "day."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:2314
+#: includes/core/apps/wordpress-app/tabs-server/services.php:2316
 msgid "Antivirus data has been purged from the server."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:2377
+#: includes/core/apps/wordpress-app/tabs-server/services.php:2379
 msgid "Total Files Scanned:"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:2386
+#: includes/core/apps/wordpress-app/tabs-server/services.php:2388
 msgid "Total Malware Items Found:"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:2395
+#: includes/core/apps/wordpress-app/tabs-server/services.php:2397
 msgid "Total Malware Items Cleaned:"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:2417
+#: includes/core/apps/wordpress-app/tabs-server/services.php:2419
 msgid "Action Failed."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:2436
+#: includes/core/apps/wordpress-app/tabs-server/services.php:2438
 #, php-format
 msgid "The %s webserver service has restarted."
+msgstr ""
+
+#: includes/core/apps/wordpress-app/tabs-server/services.php:2470
+msgid "The MariaDB database Service has restarted"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/tabs-server/services.php:2489
+msgid "The UFW firewall Service has restarted"
 msgstr ""
 
 #: includes/core/apps/wordpress-app/tabs-server/sites.php:117
@@ -8684,9 +8684,9 @@ msgstr ""
 #: includes/core/apps/wordpress-app/tabs-server/tools.php:537
 #: includes/core/apps/wordpress-app/tabs-server/tools.php:589
 #: includes/core/apps/wordpress-app/tabs-server/tweaks.php:277
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:861
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:1026
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:1098
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:863
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:1028
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:1100
 #, php-format
 msgid "Unable to %1$s for site: %2$s"
 msgstr ""
@@ -8704,7 +8704,7 @@ msgid ""
 msgstr ""
 
 #: includes/core/apps/wordpress-app/tabs-server/tweaks.php:152
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:218
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:220
 msgid "Performance Tweaks"
 msgstr ""
 
@@ -8721,7 +8721,7 @@ msgid "Are you sure you would like to enable GZIP for this server?"
 msgstr ""
 
 #: includes/core/apps/wordpress-app/tabs-server/tweaks.php:169
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:481
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:483
 msgid "Gzip"
 msgstr ""
 
@@ -14309,145 +14309,145 @@ msgstr ""
 msgid "The site option was updated."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:195
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:197
 msgid "Security Tweaks"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:198
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:200
 msgid "Tweaks that could help improve the security of your site."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:221
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:223
 msgid "Tweaks that could help improve the performance of your site."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:242
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:244
 msgid "Feature Not Available"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:245
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:247
 msgid ""
 "You must upgrade your server to WPCD 4.6.0 or later before the features on "
 "this tab will be available. You can do that under the server UPGRADE tab for "
 "the server on which this site is located."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:268
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:270
 msgid "Are you sure you would like to disable XMLRPC for this site?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:268
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:270
 msgid "Are you sure you would like to enable XMLRPC for this site?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:271
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:273
 msgid "XMLRPC"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:277
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:279
 msgid "Enable or Disable XMLRPC for this site."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:289
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:291
 msgid ""
 "Are you sure you would like to disable X-FRAME-OPTIONS: SAME ORIGIN for this "
 "site?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:289
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:291
 msgid ""
 "Are you sure you would like to enable X-FRAME-OPTIONS: SAME ORIGIN for this "
 "site?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:292
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:294
 msgid "X-Frame-Options: SAMEORIGIN"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:298
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:300
 msgid "Enable or Disable X-FRAME-OPTIONS: SAME ORIGIN for this site."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:310
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:312
 msgid ""
 "Are you sure you would like to disable the default Content Security Policy "
 "for this site?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:310
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:312
 msgid ""
 "Are you sure you would like to enable the default Content Security Policy "
 "for this site?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:313
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:315
 msgid "Default Content Security Policy"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:319
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:321
 msgid "Enable or Disable the default Content Security Policy for this site."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:321
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:323
 #, php-format
 msgid "The default content security policy is: %s"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:332
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:334
 msgid ""
 "Are you sure you would like to disable X-FRAME-OPTIONS: DENY for this site?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:332
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:334
 msgid ""
 "Are you sure you would like to enable X-FRAME-OPTIONS: DENY for this site?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:335
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:337
 msgid "X-Frame-Options: DENY"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:341
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:343
 msgid "Enable or Disable X-FRAME-OPTIONS - DENY for this site."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:353
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:355
 msgid "Are you sure you would like to disable HSTS for this site?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:353
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:355
 msgid "Are you sure you would like to enable HSTS for this site?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:356
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:358
 msgid "HSTS"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:362
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:364
 msgid "Enable or Disable HSTS for this site."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:363
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:365
 msgid "HSTS = HTTP Strict Transport Security"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:375
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:377
 msgid "Are you sure you would like to disable XSS protection for this site?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:375
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:377
 msgid "Are you sure you would like to enable XSS protection for this site?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:378
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:380
 msgid "XSS"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:384
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:386
 msgid "Enable or Disable XSS protection for this site."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:385
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:387
 msgid ""
 "XSS = Cross Site Scripting. Protection is enabled via the X-XSS-Protection "
 "header.  It is useful for older browsers or if you have not enabled the "
@@ -14455,200 +14455,200 @@ msgid ""
 "protection."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:397
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:399
 msgid ""
 "Are you sure you would like to disable the default REFERRER Policy "
 "protection for this site?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:397
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:399
 msgid ""
 "Are you sure you would like to enable the default REFERRER Policy protection "
 "for this site?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:400
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:402
 msgid "Default Referrer Policy"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:406
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:408
 msgid "Enable or Disable the default Referrer Policy protection for this site."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:407
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:409
 msgid ""
 "Adds the REFERRER POLICY \"no-referrer, strict-origin-when-cross-origin\" "
 "header when enabled."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:419
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:421
 msgid ""
 "Are you sure you would like to disable the default PERMISSIONS POLICY "
 "protection for this site?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:419
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:421
 msgid ""
 "Are you sure you would like to enable the default PERMISSIONS POLICY "
 "protection for this site?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:422
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:424
 msgid "Default Permissions Policy"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:428
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:430
 msgid ""
 "Enable or Disable the default Permissions Policy protection for this site."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:429
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:431
 #, php-format
 msgid "The default Permissions policy is: %s"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:441
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:443
 msgid "Are you sure you would like to disable the WP REST API for this site?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:441
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:443
 msgid "Are you sure you would like to enable the WP REST API for this site?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:444
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:446
 msgid "Rest API"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:446
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:448
 msgid "Blocked"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:447
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:449
 msgid "Not Blocked"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:450
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:452
 msgid ""
 "Enable or Disable the REST API for this site. Turning off the RESTAPI can "
 "break some things so test your site fully after turning on this option!"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:451
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:453
 msgid ""
 "We will be installing a 3rd party plugin named DISABLE-JSON-API to enable "
 "this feature.  Therefore this is not a fully supported function in WPCD!"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:478
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:480
 msgid "Are you sure you would like to disable GZIP for this site?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:478
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:480
 msgid "Are you sure you would like to enable GZIP for this site?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:487
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:489
 msgid "Enable or Disable Gzip for this site."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:488
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:490
 msgid ""
 "When enabled, the list of file types that are compressed is located in the /"
 "etc/nginx/common/gzip.conf file on your server."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:500
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:502
 msgid ""
 "Are you sure you would like to disable caching of static resources such as "
 "images, scripts & styles in browsers?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:500
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:502
 msgid ""
 "Are you sure you would like to enable caching of static resources such as "
 "images, scripts & styles in browsers?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:503
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:505
 msgid "Browser Cache"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:509
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:511
 msgid ""
 "Enable or Disable caching static resources such as images, js scripts and "
 "css stylesheets in the user browser."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:510
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:512
 msgid ""
 "When enabled, the list of file types that are cached in the browser is "
 "located in the /etc/nginx/common/browsercache.conf file on your server."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:542
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:553
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:544
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:555
 msgid "Fail2Ban"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:545
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:547
 msgid ""
 "Fail2ban is not installed on the server so no options are available for it "
 "at this time for this site."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:556
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:558
 msgid "Add or remove the Fail2ban WP plugin for this site."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:563
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:565
 msgid ""
 "Are you sure you would like to remove the fail2ban plugin for this site?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:563
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:565
 msgid ""
 "Are you sure you would like to install the fail2ban plugin for this site?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:572
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:574
 msgid "Enable or Disable the Fail2ban plugin for this site."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:606
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:608
 msgid "File Upload Size"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:609
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:611
 msgid ""
 "Change the maximum allowed size for file uploads in PHP and NGINX "
 "configuration files."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:614
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:616
 msgid "Size (MB)"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:616
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:618
 msgid "New Upload Size"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:626
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:628
 msgid ""
 "Are you sure you would like to change the maximum upload size for this site?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:971
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:1038
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:973
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:1040
 msgid "The status for the selected item has been toggled."
 msgstr ""
 
 #. translators: %s is replaced with the internal action name.
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:1067
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:1069
 #, php-format
 msgid "The upload file size must not be blank for action %s"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/tweaks.php:1105
+#: includes/core/apps/wordpress-app/tabs/tweaks.php:1107
 msgid "The maximum allowed file upload size has been updated."
 msgstr ""
 

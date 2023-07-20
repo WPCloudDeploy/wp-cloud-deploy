@@ -126,6 +126,11 @@ Note: Even though the entire git development history isn't available on github, 
 [Friendly Release Notes](https://wpclouddeploy.com/category/release-notes/)
 
 ## Change Log ##
+5.3.7
+------
+* Fix: WPAPP - An error message was always being thrown when fail2ban is activated for a site.
+* Other: Update translation terms.
+
 5.3.6
 ------
 * Fix: WPAPP - The letsencrypt renewals folder was not being created on a new server where no site had yet requested an SSL certificate and site-sync pushed a site to that new server.

@@ -128,6 +128,7 @@ Note: Even though the entire git development history isn't available on github, 
 ## Change Log ##
 5.3.7
 ------
+* New: WPAPP - Add navigation icons next to the app links on the server list (apps column).
 * Tweak: WPAPP - Minor UI tweaks to the POWER tab for servers - schedule soft restart fields are in two columns instead of one which helps a bit to reduce space usage.
 
 5.3.7

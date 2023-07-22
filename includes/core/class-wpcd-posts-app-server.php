@@ -640,8 +640,17 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 						}
 
 						if ( wpcd_is_admin() || wpcd_user_can( get_current_user_id(), 'view_app', $app_id ) || (int) get_post_field( 'post_author', $app_id ) === get_current_user_id() ) {
+							
+							// Icons to navigate to front-end or wp-admin:
+							$app_link = '';
+							if ( 'wordpress-app' === (string) get_post_meta( $post_id, 'wpcd_server_server-type', true ) ) {
+								$app_link = WPCD_WORDPRESS_APP()->get_formatted_wpadmin_link( $app_id, true );
+								$app_link .= ' ' . WPCD_WORDPRESS_APP()->get_formatted_site_link( $app_id, '', true );
+							}							
+							
+							// Add in the site url label and link to management tabs.
 							$url        = is_admin() ? admin_url( 'post.php?post=' . $app_id . '&action=edit' ) : get_permalink( $app_id );
-							$app_link   = sprintf( $break_char . '<a href="%s" target="_blank">%s</a>', esc_url( $url ), get_the_title( $app_id ) );
+							$app_link   = sprintf( $break_char . $app_link . ' ' . '<a href="%s" target="_blank">%s</a>', esc_url( $url ), get_the_title( $app_id ) );
 							$app_link   = $this->wpcd_column_wrap_string_with_span_and_class( $app_link, 'server_app_link', 'left' );
 							$app_links .= $app_link;
 

@@ -128,6 +128,10 @@ Note: Even though the entire git development history isn't available on github, 
 ## Change Log ##
 5.3.7
 ------
+* Tweak: WPAPP - Minor UI tweaks to the POWER tab for servers - schedule soft restart fields are in two columns instead of one which helps a bit to reduce space usage.
+
+5.3.7
+------
 * Fix: WPAPP - An error message was always being thrown when fail2ban is activated for a site.
 * Other: Update translation terms.
 

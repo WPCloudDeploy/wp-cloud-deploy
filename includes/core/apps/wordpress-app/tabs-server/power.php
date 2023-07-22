@@ -248,6 +248,7 @@ class WPCD_WORDPRESS_TABS_SERVER_POWER extends WPCD_WORDPRESS_TABS {
 				'inline'         => false,
 				// the key of the field (the key goes in the request).
 				'data-wpcd-name' => 'reboot_date',
+				'columns'        => 4,
 			),
 			'type'           => 'date',
 		);
@@ -263,6 +264,7 @@ class WPCD_WORDPRESS_TABS_SERVER_POWER extends WPCD_WORDPRESS_TABS {
 				'inline'         => false,
 				// the key of the field (the key goes in the request).
 				'data-wpcd-name' => 'reboot_time',
+				'columns'        => 4,
 			),
 			'type'           => 'time',
 		);
@@ -281,8 +283,7 @@ class WPCD_WORDPRESS_TABS_SERVER_POWER extends WPCD_WORDPRESS_TABS {
 		 * After reboot instructions.
 		 */
 		$instructions  = __( 'If CALLBACKS are installed, the server status should update automatically.', 'wpcd' );
-		$instructions .= '<br />' . __( 'If callbacks are not installed you can check the status of the reboot by going to the ALL CLOUD SERVERS list and clicking on the UPDATE REMOTE STATE link for the server.', 'wpcd' );
-		$instructions .= '<br />' . __( 'The server will be unavailable for further operations until you click that link to update the server status.', 'wpcd' );
+		$instructions .= '<br />' . __( 'If callbacks are not installed you can check the status of the reboot by going to the ALL CLOUD SERVERS list and clicking on the UPDATE REMOTE STATE link for the server.  In this case the server will not be available for further operations until you click that link to update the server status.', 'wpcd' );
 
 		$actions['server-reboot-instructions'] = array(
 			'label'          => __( 'After-reboot Instructions', 'wpcd' ),

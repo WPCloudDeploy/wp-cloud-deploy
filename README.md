@@ -126,8 +126,9 @@ Note: Even though the entire git development history isn't available on github, 
 [Friendly Release Notes](https://wpclouddeploy.com/category/release-notes/)
 
 ## Change Log ##
-5.3.7
+5.3.8
 ------
+* New: WPAPP - Add setting to control the number of apps listed in the APPS column in the server list.
 * New: WPAPP - Add navigation icons next to the app links on the server list (apps column).
 * Tweak: WPAPP - Minor UI tweaks to the POWER tab for servers - schedule soft restart fields are in two columns instead of one which helps a bit to reduce space usage.
 

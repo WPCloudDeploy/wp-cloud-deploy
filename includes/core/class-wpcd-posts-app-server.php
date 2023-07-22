@@ -611,58 +611,71 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 				$value                       = sprintf( '%s <a href="%s" target="_blank">%s</a>', $app_count_label, esc_url( $url ), $app_count_value_for_display );
 				$value                       = $this->wpcd_column_wrap_string_with_div_and_class( $value, 'server_app_count' );
 
-				// Now get and show up to 4 sites underneath the post count.
-				$args = array(
-					'post_type'      => 'wpcd_app',
-					'post_status'    => 'private',
-					'posts_per_page' => 4,
-					'fields'         => 'ids',
-					'meta_query'     => array(
-						array(
-							'key'   => 'parent_post_id',
-							'value' => $post_id,
+				// Display sites underneath the post count.
+				$num_apps = wpcd_get_option( 'wordpress_app_app_limit_server_list' );
+				if ( '' === (string) $num_apps ) {
+					// Empty string means admin has not entered a value in settings so default it to four.
+					// Important: Do NOT use empty() in the above conditional that triggered this block otherwise '0' will evaluate to empty which is NOT what we want here.
+					$num_apps = 4;
+				} else {
+					$num_apps = (int) $num_apps;
+				}
+
+				if ( $num_apps > 0 ) {
+
+					// Get sites.
+					$args = array(
+						'post_type'      => 'wpcd_app',
+						'post_status'    => 'private',
+						'posts_per_page' => $num_apps,
+						'fields'         => 'ids',
+						'meta_query'     => array(
+							array(
+								'key'   => 'parent_post_id',
+								'value' => $post_id,
+							),
 						),
-					),
-				);
+					);
 
-				$server_app_ids = get_posts( $args );
+					$server_app_ids = get_posts( $args );
 
-				if ( ! empty( $server_app_ids ) ) {
+					if ( ! empty( $server_app_ids ) ) {
 
-					$app_links = '';
-					foreach ( $server_app_ids as $app_id ) {
+						$app_links = '';
+						foreach ( $server_app_ids as $app_id ) {
 
-						// This defines the break between lines.  Front-end will not have it.  Backend will.
-						if ( is_admin() ) {
-							$break_char = '<br />';
-						} else {
-							$break_char = '';
+							// This defines the break between lines.  Front-end will not have it.  Backend will.
+							if ( is_admin() ) {
+								$break_char = '<br />';
+							} else {
+								$break_char = '';
+							}
+
+							if ( wpcd_is_admin() || wpcd_user_can( get_current_user_id(), 'view_app', $app_id ) || (int) get_post_field( 'post_author', $app_id ) === get_current_user_id() ) {
+
+								// Icons to navigate to front-end or wp-admin.
+								$app_link = '';
+								if ( 'wordpress-app' === (string) get_post_meta( $post_id, 'wpcd_server_server-type', true ) ) {
+									$app_link  = WPCD_WORDPRESS_APP()->get_formatted_wpadmin_link( $app_id, true );
+									$app_link .= ' ' . WPCD_WORDPRESS_APP()->get_formatted_site_link( $app_id, '', true );
+								}
+
+								// Add in the site url label and link to management tabs.
+								$url        = is_admin() ? admin_url( 'post.php?post=' . $app_id . '&action=edit' ) : get_permalink( $app_id );
+								$app_link   = sprintf( $break_char . $app_link . ' ' . '<a href="%s" target="_blank">%s</a>', esc_url( $url ), get_the_title( $app_id ) );
+								$app_link   = $this->wpcd_column_wrap_string_with_span_and_class( $app_link, 'server_app_link', 'left' );
+								$app_links .= $app_link;
+
+							} else {
+								$app_link   = sprintf( $break_char . '%s ', get_the_title( $app_id ) );
+								$app_link   = $this->wpcd_column_wrap_string_with_span_and_class( $app_link, 'server_app_link', 'left' );
+								$app_links .= $app_link;
+							}
 						}
 
-						if ( wpcd_is_admin() || wpcd_user_can( get_current_user_id(), 'view_app', $app_id ) || (int) get_post_field( 'post_author', $app_id ) === get_current_user_id() ) {
-							
-							// Icons to navigate to front-end or wp-admin:
-							$app_link = '';
-							if ( 'wordpress-app' === (string) get_post_meta( $post_id, 'wpcd_server_server-type', true ) ) {
-								$app_link = WPCD_WORDPRESS_APP()->get_formatted_wpadmin_link( $app_id, true );
-								$app_link .= ' ' . WPCD_WORDPRESS_APP()->get_formatted_site_link( $app_id, '', true );
-							}							
-							
-							// Add in the site url label and link to management tabs.
-							$url        = is_admin() ? admin_url( 'post.php?post=' . $app_id . '&action=edit' ) : get_permalink( $app_id );
-							$app_link   = sprintf( $break_char . $app_link . ' ' . '<a href="%s" target="_blank">%s</a>', esc_url( $url ), get_the_title( $app_id ) );
-							$app_link   = $this->wpcd_column_wrap_string_with_span_and_class( $app_link, 'server_app_link', 'left' );
-							$app_links .= $app_link;
+						$value .= $this->wpcd_column_wrap_string_with_div_and_class( $app_links, 'server_app_links' );
 
-						} else {
-							$app_link   = sprintf( $break_char . '%s ', get_the_title( $app_id ) );
-							$app_link   = $this->wpcd_column_wrap_string_with_span_and_class( $app_link, 'server_app_link', 'left' );
-							$app_links .= $app_link;
-						}
 					}
-
-					$value .= $this->wpcd_column_wrap_string_with_div_and_class( $app_links, 'server_app_links' );
-
 				}
 
 				break;

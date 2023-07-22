@@ -188,7 +188,7 @@ class WPCD_WORDPRESS_TABS_SERVER_POWER extends WPCD_WORDPRESS_TABS {
 		$confirmation_prompt = __( 'Are you sure you would like to restart this server?', 'wpcd' );
 
 		$actions['server-reboot-soft-header'] = array(
-			'label'          => __( 'Soft Restart', 'wpcd' ),
+			'label'          => '<i class="fa-duotone fa-plug-circle-check"></i> ' . __( 'Soft Restart', 'wpcd' ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
 				'desc' => __( 'Send a reboot command to the server - this will be the equivalent of typing "reboot" on the command line.', 'wpcd' ),
@@ -209,7 +209,7 @@ class WPCD_WORDPRESS_TABS_SERVER_POWER extends WPCD_WORDPRESS_TABS {
 		 * Provider Restart / Hard Reboot.
 		 */
 		$actions['server-reboot-hard-provider-header'] = array(
-			'label'          => __( 'Hard Provider API Restart', 'wpcd' ),
+			'label'          => '<i class="fa-duotone fa-plug-circle-bolt"></i> ' . __( 'Hard Provider API Restart', 'wpcd' ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
 				'desc' => __( 'Use the server provider api to attempt to restart the server.  This is usually the equivalent of pulling the power plug while the server is running. So use only as a last resort.', 'wpcd' ),
@@ -230,7 +230,7 @@ class WPCD_WORDPRESS_TABS_SERVER_POWER extends WPCD_WORDPRESS_TABS {
 		 */
 
 		$actions['server-reboot-schedule-soft-header'] = array(
-			'label'          => __( 'Schedule A Soft Restart', 'wpcd' ),
+			'label'          => '<i class="fa-duotone fa-power-off"></i> ' . __( 'Schedule A Soft Restart', 'wpcd' ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
 				'desc' => __( 'You can schedule a soft restart at a future time using these options. The date and time specified is in the timezone of the server - usually UTC.', 'wpcd' ),
@@ -301,7 +301,7 @@ class WPCD_WORDPRESS_TABS_SERVER_POWER extends WPCD_WORDPRESS_TABS {
 		$confirmation_prompt = __( 'Are you sure you would like to turn off this server?', 'wpcd' );
 
 		$actions['server-shutdown-soft-header'] = array(
-			'label'          => __( 'Graceful Powerdown', 'wpcd' ),
+			'label'          => '<i class="fa-duotone fa-power-off"></i> ' . __( 'Graceful Powerdown', 'wpcd' ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
 				'desc' => __( 'Send a shutdown command to the server - this will be the equivalent of typing "shutdown" on the command line.', 'wpcd' ),
@@ -326,7 +326,7 @@ class WPCD_WORDPRESS_TABS_SERVER_POWER extends WPCD_WORDPRESS_TABS {
 		$confirmation_prompt = __( 'Are you sure you would like to turn off this server? In some cases it will be like pulling the powercord while the server is turned on which could result in loss of data!', 'wpcd' );
 
 		$actions['server-shutdown-hard-header'] = array(
-			'label'          => __( 'Hard Powerdown', 'wpcd' ),
+			'label'          => '<i class="fa-duotone fa-plug-circle-xmark"></i> ' . __( 'Hard Powerdown', 'wpcd' ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
 				'desc' => __( 'Send a shutdown command to the server using the providers API - in some cases this will be the equivalent of ripping the powercord out of the socket.', 'wpcd' ),
@@ -350,7 +350,7 @@ class WPCD_WORDPRESS_TABS_SERVER_POWER extends WPCD_WORDPRESS_TABS {
 		$confirmation_prompt = __( 'Are you sure you would like to turn on this server?', 'wpcd' );
 
 		$actions['server-turn-on-header'] = array(
-			'label'          => __( 'Power On', 'wpcd' ),
+			'label'          => '<i class="fa-duotone fa-plug-circle-plus"></i> ' . __( 'Power On', 'wpcd' ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
 				'desc' => __( 'Turn on the server.', 'wpcd' ),

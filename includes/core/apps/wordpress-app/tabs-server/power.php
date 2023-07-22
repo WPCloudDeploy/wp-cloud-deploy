@@ -230,7 +230,7 @@ class WPCD_WORDPRESS_TABS_SERVER_POWER extends WPCD_WORDPRESS_TABS {
 		 */
 
 		$actions['server-reboot-schedule-soft-header'] = array(
-			'label'          => '<i class="fa-duotone fa-power-off"></i> ' . __( 'Schedule A Soft Restart', 'wpcd' ),
+			'label'          => '<i class="fa-duotone fa-calendar-days"></i> ' . __( 'Schedule A Soft Restart', 'wpcd' ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
 				'desc' => __( 'You can schedule a soft restart at a future time using these options. The date and time specified is in the timezone of the server - usually UTC.', 'wpcd' ),
@@ -277,20 +277,6 @@ class WPCD_WORDPRESS_TABS_SERVER_POWER extends WPCD_WORDPRESS_TABS {
 				'data-wpcd-fields'    => wp_json_encode( array( '#wpcd_app_action_server-schedule-reboot-soft-date', '#wpcd_app_action_server-schedule-reboot-soft-time' ) ),
 			),
 			'type'           => 'button',
-		);
-
-		/**
-		 * After reboot instructions.
-		 */
-		$instructions  = __( 'If CALLBACKS are installed, the server status should update automatically.', 'wpcd' );
-		$instructions .= '<br />' . __( 'If callbacks are not installed you can check the status of the reboot by going to the ALL CLOUD SERVERS list and clicking on the UPDATE REMOTE STATE link for the server.  In this case the server will not be available for further operations until you click that link to update the server status.', 'wpcd' );
-
-		$actions['server-reboot-instructions'] = array(
-			'label'          => __( 'After-reboot Instructions', 'wpcd' ),
-			'raw_attributes' => array(
-				'std' => $instructions,
-			),
-			'type'           => 'custom_html',
 		);
 
 		/**
@@ -365,6 +351,20 @@ class WPCD_WORDPRESS_TABS_SERVER_POWER extends WPCD_WORDPRESS_TABS {
 				'desc'                => __( 'If this does not work you might need to log into the server provider\'s console to use the power options there.', 'wpcd' ),
 			),
 			'type'           => 'button',
+		);
+
+		/**
+		 * After reboot instructions.
+		 */
+		$instructions  = __( 'After a power-on or reboot event, the server status should update automatically if CALLBACKS have been installed on the server.', 'wpcd' );
+		$instructions .= '<br />' . __( 'If callbacks are not installed you can check the status of the reboot by going to the ALL CLOUD SERVERS list and clicking on the UPDATE REMOTE STATE link for the server.  In this case the server will not be available for further operations until you click that link to update the server status.', 'wpcd' );
+
+		$actions['server-reboot-notes-header'] = array(
+			'label'          => '<i class="fa-duotone fa-note"></i> ' . __( 'After-restart Instructions', 'wpcd' ),
+			'type'           => 'heading',
+			'raw_attributes' => array(
+				'desc' => $instructions,
+			),
 		);
 
 		return $actions;

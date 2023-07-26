@@ -671,6 +671,17 @@
 }
 /* End server and app groups */
 
+/* Format custom link labels shown on the server and app cpt list screens */
+.wpcd_custom_link a {
+    display: inline-block;
+    padding: 2px 8px;
+    color: #fff;
+    vertical-align: baseline;
+    background-color: #039BE5;
+    border-radius: 3px;
+    margin-top: 3px;
+}
+
 /* Style in-line values such as "region: xxx" and "ipv4: xxx */
 .wpcd-grid-table [class^="wpcd-app-col-element-wrap-"],
 .wpcd-grid-table [class*=" wpcd-app-col-element-wrap-"],

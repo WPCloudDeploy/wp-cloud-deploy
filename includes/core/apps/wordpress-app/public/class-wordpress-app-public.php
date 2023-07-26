@@ -501,14 +501,15 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 
 		if ( self::is_server_edit_page() || self::is_app_edit_page() ) {
 			wp_enqueue_script( 'wpcd-mbio-tabs-fix.', wpcd_url . 'assets/js/wpcd-mbio-tabs-fix.js', array( 'jquery', 'rwmb-tabs' ), wpcd_scripts_version, true );
-
-			// Enqueue the font-awesome pro kit.
-			if ( ! boolval( wpcd_get_early_option( 'wordpress_app_disable_front_end_icons' ) ) ) {
-				wp_register_script( 'wpcd-fontawesome-pro', 'https://kit.fontawesome.com/4fa00a8874.js', array(), 6.2, true );
-				wp_enqueue_script( 'wpcd-fontawesome-pro' );
-			}
 		}
+		
+		// Enqueue the font-awesome pro kit.
+		if ( ! boolval( wpcd_get_early_option( 'wordpress_app_disable_front_end_icons' ) ) ) {
+			wp_register_script( 'wpcd-fontawesome-pro', 'https://kit.fontawesome.com/4fa00a8874.js', array(), 6.2, true );
+			wp_enqueue_script( 'wpcd-fontawesome-pro' );
+		}			
 
+		// Load CSS that applies to all public pages.
 		wp_enqueue_style( 'wpcd-public-common', wpcd_url . 'includes/core/apps/wordpress-app/assets/css/wpcd-public-common.css', wpcd_scripts_version, true );
 	}
 

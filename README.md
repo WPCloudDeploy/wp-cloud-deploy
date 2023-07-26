@@ -132,6 +132,7 @@ Note: Even though the entire git development history isn't available on github, 
 * New: WPAPP - Add navigation icons next to the app links on the server list (apps column).
 * Tweak: WPAPP - Minor UI tweaks to the POWER tab for servers - schedule soft restart fields are in two columns instead of one which helps a bit to reduce space usage.
 * Fix: WPAPP - Format the custom links on the front-end.
+* Fix: WPAPP - Remove the "private" prefix from the domain names in the APP LIST column in the server list on the front-end.
 
 5.3.7
 ------

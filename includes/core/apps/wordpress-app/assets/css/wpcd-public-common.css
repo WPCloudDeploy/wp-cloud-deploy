@@ -681,6 +681,9 @@
     border-radius: 3px;
     margin-top: 3px;
 }
+.wpcd_custom_link a:hover {
+	background-color: var(--wpcd-front-end-primary-brand-color);
+}
 
 /* Style in-line values such as "region: xxx" and "ipv4: xxx */
 .wpcd-grid-table [class^="wpcd-app-col-element-wrap-"],

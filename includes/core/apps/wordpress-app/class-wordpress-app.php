@@ -996,10 +996,11 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	 * Get a formatted link to wp_admin area
 	 *
 	 * @param string $app_id is the post id of the app record we're asking about.
+	 * @param bool   $icon Whether to style with just an icon instead of text.
 	 *
 	 * @return string
 	 */
-	public function get_formatted_wpadmin_link( $app_id ) {
+	public function get_formatted_wpadmin_link( $app_id, $icon = false ) {
 
 		// get ssl status first.
 		$ssl = $this->get_site_local_ssl_status( $app_id );
@@ -1013,7 +1014,11 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			$url_wpadmin = 'http://' . $domain . '/wp-admin';
 		}
 
-		return sprintf( '<a href = "%s" target="_blank">' . __( 'Admin Login', 'wpcd' ) . '</a>', $url_wpadmin );
+		if ( true === $icon ) {
+			return sprintf( '<a href = "%s" target="_blank">' . '<i class="fa-duotone fa-user-unlock"></i>' . '</a>', $url_wpadmin );
+		} else {
+			return sprintf( '<a href = "%s" target="_blank">' . __( 'Admin Login', 'wpcd' ) . '</a>', $url_wpadmin );
+		}
 
 	}
 
@@ -2031,10 +2036,11 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	 *
 	 * @param int    $app_id is the post id of the app record we're asking about.
 	 * @param string $label Label for link (optional).
+	 * @param bool   $icon Whether to style with just an icon instead of text (optional).
 	 *
 	 * @return string
 	 */
-	public function get_formatted_site_link( $app_id, $label = '' ) {
+	public function get_formatted_site_link( $app_id, $label = '', $icon = false ) {
 
 		// get ssl status first.
 		$ssl = $this->get_site_local_ssl_status( $app_id );
@@ -2052,8 +2058,11 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		} else {
 			$url_site = 'http://' . $domain;
 		}
-
-		return sprintf( '<a href = "%s" target="_blank">' . $label . '</a>', $url_site );
+		if ( true === $icon ) {
+			return sprintf( '<a href = "%s" target="_blank">' . '<i class="fa-duotone fa-sidebar"></i>' . '</a>', $url_site );
+		} else {
+			return sprintf( '<a href = "%s" target="_blank">' . $label . '</a>', $url_site );
+		}
 
 	}
 

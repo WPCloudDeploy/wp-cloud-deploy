@@ -1182,6 +1182,16 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tab'     => 'wordpress-app-general-wpadmin',
 			),
 			array(
+				'id'      => 'wordpress_app_app_limit_server_list',
+				'type'    => 'number',
+				'name'    => __( 'App Limit In Server List', 'wpcd' ),
+				'tooltip' => __( 'How many apps or sites should we list in the APPS column on the server list screen?', 'wpcd' ),
+				'min'     => 0,
+				'std'     => 4,
+				'size'    => 10,
+				'tab'     => 'wordpress-app-general-wpadmin',
+			),
+			array(
 				'type' => 'heading',
 				'name' => __( 'App Options', 'wpcd' ),
 				'desc' => __( 'Options specific to the WordPress app.', 'wpcd' ),
@@ -2155,7 +2165,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			array(
 				'id'   => 'wordpress_app_alert_footer_notice',
 				'type' => 'custom_html',
-				'std' => __( 'Note: You can configure the format and contents of your notifications in the EMAIL / SLACK / ZAPIER NOTIFICATIONS tabs below. Setup your personalized alert profiles in SERVER ALERTS → NOTIFICATIONS.', 'wpcd' ),
+				'std'  => __( 'Note: You can configure the format and contents of your notifications in the EMAIL / SLACK / ZAPIER NOTIFICATIONS tabs below. Setup your personalized alert profiles in SERVER ALERTS → NOTIFICATIONS.', 'wpcd' ),
 				'tab'  => 'wordpress-app-alert-config',
 			),
 		);

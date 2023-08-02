@@ -78,6 +78,27 @@ function wpcd_delete_child_posts( $post_type, $post_id ) {
 }
 
 /**
+ * Get the title of a post.
+ *
+ * We're using this in place of the WordPress get_the_title function
+ * because the WordPress get_the_title() function adds prefixes
+ * such as "private" etc. which we do not want in the title.
+ *
+ * @param int $post The id of the post.
+ *
+ * @return string
+ */
+function wpcd_get_the_title( $post = 0 ) {
+
+	$post = get_post( $post );
+
+	$post_title = isset( $post->post_title ) ? $post->post_title : '';
+
+	return $post_title;
+
+}
+
+/**
  * Our own function for unserializeing a field...
  *
  * @param array $data data.

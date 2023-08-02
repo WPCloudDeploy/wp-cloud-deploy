@@ -188,7 +188,7 @@ class WPCD_WORDPRESS_TABS_SERVER_POWER extends WPCD_WORDPRESS_TABS {
 		$confirmation_prompt = __( 'Are you sure you would like to restart this server?', 'wpcd' );
 
 		$actions['server-reboot-soft-header'] = array(
-			'label'          => __( 'Soft Restart', 'wpcd' ),
+			'label'          => '<i class="fa-duotone fa-plug-circle-check"></i> ' . __( 'Soft Restart', 'wpcd' ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
 				'desc' => __( 'Send a reboot command to the server - this will be the equivalent of typing "reboot" on the command line.', 'wpcd' ),
@@ -209,7 +209,7 @@ class WPCD_WORDPRESS_TABS_SERVER_POWER extends WPCD_WORDPRESS_TABS {
 		 * Provider Restart / Hard Reboot.
 		 */
 		$actions['server-reboot-hard-provider-header'] = array(
-			'label'          => __( 'Hard Provider API Restart', 'wpcd' ),
+			'label'          => '<i class="fa-duotone fa-plug-circle-bolt"></i> ' . __( 'Hard Provider API Restart', 'wpcd' ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
 				'desc' => __( 'Use the server provider api to attempt to restart the server.  This is usually the equivalent of pulling the power plug while the server is running. So use only as a last resort.', 'wpcd' ),
@@ -230,7 +230,7 @@ class WPCD_WORDPRESS_TABS_SERVER_POWER extends WPCD_WORDPRESS_TABS {
 		 */
 
 		$actions['server-reboot-schedule-soft-header'] = array(
-			'label'          => __( 'Schedule A Soft Restart', 'wpcd' ),
+			'label'          => '<i class="fa-duotone fa-calendar-days"></i> ' . __( 'Schedule A Soft Restart', 'wpcd' ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
 				'desc' => __( 'You can schedule a soft restart at a future time using these options. The date and time specified is in the timezone of the server - usually UTC.', 'wpcd' ),
@@ -248,6 +248,7 @@ class WPCD_WORDPRESS_TABS_SERVER_POWER extends WPCD_WORDPRESS_TABS {
 				'inline'         => false,
 				// the key of the field (the key goes in the request).
 				'data-wpcd-name' => 'reboot_date',
+				'columns'        => 4,
 			),
 			'type'           => 'date',
 		);
@@ -263,6 +264,7 @@ class WPCD_WORDPRESS_TABS_SERVER_POWER extends WPCD_WORDPRESS_TABS {
 				'inline'         => false,
 				// the key of the field (the key goes in the request).
 				'data-wpcd-name' => 'reboot_time',
+				'columns'        => 4,
 			),
 			'type'           => 'time',
 		);
@@ -278,21 +280,6 @@ class WPCD_WORDPRESS_TABS_SERVER_POWER extends WPCD_WORDPRESS_TABS {
 		);
 
 		/**
-		 * After reboot instructions.
-		 */
-		$instructions  = __( 'If CALLBACKS are installed, the server status should update automatically.', 'wpcd' );
-		$instructions .= '<br />' . __( 'If callbacks are not installed you can check the status of the reboot by going to the ALL CLOUD SERVERS list and clicking on the UPDATE REMOTE STATE link for the server.', 'wpcd' );
-		$instructions .= '<br />' . __( 'The server will be unavailable for further operations until you click that link to update the server status.', 'wpcd' );
-
-		$actions['server-reboot-instructions'] = array(
-			'label'          => __( 'After-reboot Instructions', 'wpcd' ),
-			'raw_attributes' => array(
-				'std' => $instructions,
-			),
-			'type'           => 'custom_html',
-		);
-
-		/**
 		 * Graceful Poweroff
 		 */
 
@@ -300,7 +287,7 @@ class WPCD_WORDPRESS_TABS_SERVER_POWER extends WPCD_WORDPRESS_TABS {
 		$confirmation_prompt = __( 'Are you sure you would like to turn off this server?', 'wpcd' );
 
 		$actions['server-shutdown-soft-header'] = array(
-			'label'          => __( 'Graceful Powerdown', 'wpcd' ),
+			'label'          => '<i class="fa-duotone fa-power-off"></i> ' . __( 'Graceful Powerdown', 'wpcd' ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
 				'desc' => __( 'Send a shutdown command to the server - this will be the equivalent of typing "shutdown" on the command line.', 'wpcd' ),
@@ -325,7 +312,7 @@ class WPCD_WORDPRESS_TABS_SERVER_POWER extends WPCD_WORDPRESS_TABS {
 		$confirmation_prompt = __( 'Are you sure you would like to turn off this server? In some cases it will be like pulling the powercord while the server is turned on which could result in loss of data!', 'wpcd' );
 
 		$actions['server-shutdown-hard-header'] = array(
-			'label'          => __( 'Hard Powerdown', 'wpcd' ),
+			'label'          => '<i class="fa-duotone fa-plug-circle-xmark"></i> ' . __( 'Hard Powerdown', 'wpcd' ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
 				'desc' => __( 'Send a shutdown command to the server using the providers API - in some cases this will be the equivalent of ripping the powercord out of the socket.', 'wpcd' ),
@@ -349,7 +336,7 @@ class WPCD_WORDPRESS_TABS_SERVER_POWER extends WPCD_WORDPRESS_TABS {
 		$confirmation_prompt = __( 'Are you sure you would like to turn on this server?', 'wpcd' );
 
 		$actions['server-turn-on-header'] = array(
-			'label'          => __( 'Power On', 'wpcd' ),
+			'label'          => '<i class="fa-duotone fa-plug-circle-plus"></i> ' . __( 'Power On', 'wpcd' ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
 				'desc' => __( 'Turn on the server.', 'wpcd' ),
@@ -364,6 +351,20 @@ class WPCD_WORDPRESS_TABS_SERVER_POWER extends WPCD_WORDPRESS_TABS {
 				'desc'                => __( 'If this does not work you might need to log into the server provider\'s console to use the power options there.', 'wpcd' ),
 			),
 			'type'           => 'button',
+		);
+
+		/**
+		 * After reboot instructions.
+		 */
+		$instructions  = __( 'After a power-on or reboot event, the server status should update automatically if CALLBACKS have been installed on the server.', 'wpcd' );
+		$instructions .= '<br />' . __( 'If callbacks are not installed you can check the status of the reboot by going to the ALL CLOUD SERVERS list and clicking on the UPDATE REMOTE STATE link for the server.  In this case the server will not be available for further operations until you click that link to update the server status.', 'wpcd' );
+
+		$actions['server-reboot-notes-header'] = array(
+			'label'          => '<i class="fa-duotone fa-note"></i> ' . __( 'After-restart Instructions', 'wpcd' ),
+			'type'           => 'heading',
+			'raw_attributes' => array(
+				'desc' => $instructions,
+			),
 		);
 
 		return $actions;

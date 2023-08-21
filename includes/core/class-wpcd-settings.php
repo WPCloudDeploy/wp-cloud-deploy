@@ -1728,7 +1728,7 @@ class WPCD_Settings {
 						'id'   => "vpn_{$provider}_alt_desc",
 						'type' => 'text',
 						'name' => __( 'Alternative Name', 'wpcd' ),
-						'desc' => __( 'Use this as the providers display name', 'wpcd' ),
+						'desc' => __( 'Use this as the display name for the provider.', 'wpcd' ),
 						'tab'  => $tab_id,
 					),
 
@@ -1746,7 +1746,7 @@ class WPCD_Settings {
 						'id'   => "vpn_{$provider}_cache_instructions",
 						'type' => 'heading',
 						'name' => 'Cache',
-						'desc' => __( 'If keys, sizes and other information in the drop-down selects above is not up-to-date, you can clear the cache which will force a refresh from your cloud provider. The cache is usually cleared every 24 hours.', 'wpcd' ),
+						'desc' => __( 'If keys, sizes and other information in the drop-down selects above are not up-to-date, you can clear the cache which will force a refresh from your cloud provider. The cache is usually cleared every 24 hours.', 'wpcd' ),
 						'tab'  => $tab_id,
 					),
 

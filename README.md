@@ -126,6 +126,10 @@ Note: Even though the entire git development history isn't available on github, 
 [Friendly Release Notes](https://wpclouddeploy.com/category/release-notes/)
 
 ## Change Log ##
+5.3.9
+------
+* Tweak: WPAPP - PHP 7.4 is now shown with an orange border (caution) in the apps list (since 7.4 no longer receives security updates).
+
 5.3.8
 ------
 * New: WPAPP - Add setting to control the number of apps listed in the APPS column in the server list.

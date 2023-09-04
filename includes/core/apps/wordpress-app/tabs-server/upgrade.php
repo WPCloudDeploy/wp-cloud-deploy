@@ -1158,7 +1158,7 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 		// Set up metabox items.
 		$actions = array();
 
-		$history_desc = __( 'History log of certain updates. This log commences with updates from WPCD v5.3.3. Upgrade requests prior to this version were not logged here.', 'wpcd' );
+		$history_desc = __( 'History log of certain updates. This log commences with updates from WPCD v5.3.3. Update requests prior to v5.3.3 have not been logged.', 'wpcd' );
 
 		$actions['server-upgrade-header-history'] = array(
 			'label'          => __( 'Upgrade History', 'wpcd' ),

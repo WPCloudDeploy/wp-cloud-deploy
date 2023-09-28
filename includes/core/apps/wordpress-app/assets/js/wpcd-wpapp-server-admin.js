@@ -608,6 +608,10 @@
             return true;
         }
 
+        if (value == 'nightly') {
+            return true;
+        }
+
         if (/^\d{1,2}\.\d{1,2}\.\d{0,2}$/.test(value)) {
             return true;
         } else {

@@ -725,6 +725,11 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			$versions = $override_versions;
 		}
 
+		// Possibly add in the 'nightly' version option.
+		if ( wpcd_get_option( 'wordpress_app_versions_show_nightly' ) ) {
+			$versions = array_merge( $versions, array( 'nightly' ) );
+		}
+
 		return apply_filters( 'wpcd_allowed_wp_versions', $versions );
 
 	}

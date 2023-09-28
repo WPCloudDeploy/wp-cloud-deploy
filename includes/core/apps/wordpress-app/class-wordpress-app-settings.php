@@ -1267,6 +1267,13 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tab'               => 'wordpress-app-general-wpadmin',
 			),
 			array(
+				'id'      => 'wordpress_app_versions_show_nightly',
+				'type'    => 'checkbox',
+				'name'    => __( 'Show \'Nightly\' as a version option?', 'wpcd' ),
+				'tooltip' => __( 'Allow the user to specify the nightly development version of WordPress.', 'wpcd' ),
+				'tab'     => 'wordpress-app-general-wpadmin',
+			),
+			array(
 				'type' => 'heading',
 				'name' => __( 'Misc', 'wpcd' ),
 				'desc' => '',

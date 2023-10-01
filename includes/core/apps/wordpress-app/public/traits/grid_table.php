@@ -225,11 +225,27 @@ trait wpcd_grid_table {
 					echo call_user_func( array( $this, 'column_' . $column_name ), $item );
 				} else {
 					echo $this->column_default( $item, $column_name );
+					// Dynamic Action hook: eg: wpcd_public_wpcd_app_server_table_after_row_actions_date.
+					// Dynamic Action hook: eg: wpcd_public_wpcd_app_table_after_row_actions_date.
+					do_action( "wpcd_public_{$this->post_type}_table_after_row_actions_{$column_name}", $item, $column_name );
+
+					// Action hook: wpcd_public_wpcd_app_server_table_after_row_actions.
+					// Action hook: wpcd_public_wpcd_app_table_after_row_actions.
+					do_action( "wpcd_public_{$this->post_type}_table_after_row_actions", $item, $column_name, $primary );
 				}
 				if ( $column_name === $this->getPrimaryColumn() ) {
 					echo $this->handle_row_actions( $item, $column_name, $primary );
-					do_action( "wpcd_public_{$this->post_type}_table_after_row_actions" );
+					// Action hook: wpcd_public_wpcd_app_server_table_after_row_actions.
+					// Action hook: wpcd_public_wpcd_app_table_after_row_actions.
+					do_action( "wpcd_public_{$this->post_type}_table_after_row_actions", $item, $column_name, $primary );
 				}
+
+				if ( $column_name === 'title' ) {
+					// Action hook: wpcd_public_wpcd_app_server_table_after_row_actions_for_title.
+					// Action hook: wpcd_public_wpcd_app_table_after_row_actions_for_title.
+					do_action( "wpcd_public_{$this->post_type}_table_after_row_actions_for_{$column_name}", $item, $column_name, $primary );
+				}
+
 				echo '</div>';
 			}
 

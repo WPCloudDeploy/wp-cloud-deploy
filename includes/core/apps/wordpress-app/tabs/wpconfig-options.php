@@ -22,6 +22,9 @@ class WPCD_WORDPRESS_TABS_WPCONFIG extends WPCD_WORDPRESS_TABS {
 		add_filter( "wpcd_app_{$this->get_app_name()}_get_tabnames", array( $this, 'get_tab' ), 10, 2 );
 		add_filter( "wpcd_app_{$this->get_app_name()}_get_tabs", array( $this, 'get_tab_fields' ), 10, 2 );
 		add_filter( "wpcd_app_{$this->get_app_name()}_tab_action", array( $this, 'tab_action' ), 10, 3 );
+
+		// Allow the wp_site_update_wpconfig_option action to be triggered via an action hook.
+		add_action( 'wpcd_wordpress-app_do_update_wpconfig_option', array( $this, 'update_wpconfig_action' ), 10, 4 );
 	}
 
 	/**
@@ -716,6 +719,36 @@ class WPCD_WORDPRESS_TABS_WPCONFIG extends WPCD_WORDPRESS_TABS {
 		}
 
 		return $success;
+
+	}
+
+	/**
+	 * Helper function to add/update a wp-config.php item.
+	 *
+	 * Can be called directly or by an action hook.
+	 *
+	 * Action hook: wpcd_wordpress-app_do_update_wpconfig_option  (Optional).
+	 *
+	 * @param int             $id     The postID of the app cpt.
+	 * @param string          $constant The constant in wp-config.php to add/update (eg: WPCD_ENCRYPTION_KEY).
+	 * @param string|int|bool $value The value to assign to the constant (eg: "abc", "0", 0, true, false).
+	 * @param string          $raw Whether the value should be inserted as raw (see wp-cli docs) - 'no' or 'yes' are the only valid values.
+	 *
+	 * @return string|WP_Error
+	 */
+	public function update_wpconfig_action( $id, $constant, $value, $raw = 'no' ) {
+
+		/* What type of web server are we running? */
+		$webserver_type = $this->get_web_server_type( $id );
+
+		// Array to pass into function call.
+		$args['wps_wpconfig_option']           = $constant;
+		$args['wps_new_wpconfig_option_value'] = $value;
+		$args['wps_wpconfig_option_is_raw']    = $raw;
+
+		$return = $this->update_any_wp_config_option( $id, 'wp_site_update_wpconfig_option', $args );
+
+		return $return;
 
 	}
 

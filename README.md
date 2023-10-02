@@ -132,6 +132,7 @@ Note: Even though the entire git development history isn't available on github, 
 * Tweak: WPAPP - PHP 7.4 is now shown with an orange border (caution) in the apps list (since 7.4 no longer receives security updates).
 * Tweak: WPAPP - Users with the wpcd_manage_all capability should be able to run the setup wizard the first time.
 * Fix: WPAPP - Setup wizard needs to clear cache after auto-creating keys.
+* Fix: WPAPP - Server owners could not see the DELETE option when not an admin.
 * Dev: WPAPP - Add action hook and associated helper function for the 'wp_site_update_wpconfig_option' bash action.
 * Dev: WPAPP - Add action hook and associated helper function for the 'add_php_param' bash action.
 * Dev: WPAPP - Restore some action hooks that were inadvertently removed in 5.3.0.

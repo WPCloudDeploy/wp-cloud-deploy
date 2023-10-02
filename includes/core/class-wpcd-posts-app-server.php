@@ -1996,7 +1996,7 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 		$user_id                       = get_current_user_id();
 		$wpcd_server_delete_protection = get_post_meta( $post->ID, 'wpcd_server_delete_protection', true );
 
-		if ( 'wpcd_app_server' === $post->post_type && ! wpcd_user_can( $user_id, 'delete_server', $post->ID ) && $post->post_author !== $user_id ) {
+		if ( 'wpcd_app_server' === $post->post_type && ! wpcd_user_can( $user_id, 'delete_server', $post->ID ) && (int) $post->post_author !== (int) $user_id ) {
 			unset( $actions['trash'] );
 			unset( $actions['delete'] );
 		}

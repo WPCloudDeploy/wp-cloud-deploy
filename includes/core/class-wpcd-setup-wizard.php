@@ -51,7 +51,13 @@ class WPCD_Admin_Setup_Wizard {
 	 * Add admin menus/screens.
 	 */
 	public function admin_menus() {
-		add_dashboard_page( '', '', 'manage_options', 'wpcd-setup', '' );
+		if ( wpcd_is_admin() ) {
+			add_dashboard_page( '', '', 'manage_options', 'wpcd-setup', '' );
+		}
+
+		if ( wpcd_is_manager() ) {
+			add_dashboard_page( '', '', 'wpcd_manage_all', 'wpcd-setup', '' );
+		}
 	}
 
 	/**
@@ -100,7 +106,7 @@ class WPCD_Admin_Setup_Wizard {
 	 */
 	public function wpcd_ask_setup_wizard() {
 
-		if ( wpcd_is_admin() ) {
+		if ( wpcd_is_admin() || wpcd_is_manager() ) {
 
 			/* Product name that will be shown at various locations in the wizard. */
 			$product_name = wpcd_get_short_product_name()
@@ -776,6 +782,9 @@ class WPCD_Admin_Setup_Wizard {
 			wpcd_set_option( "vpn_{$provider}_sshkey", WPCD()->encrypt( $key_pair['private'] ) );
 			wpcd_set_option( "vpn_{$provider}_public_sshkey", $key_pair['public'] );
 			wpcd_set_option( "vpn_{$provider}_sshkeynotes", $attributes['public_key_name'] . ': ' . __( 'This key was automatically created.', 'wpcd' ) );
+
+			// Clear caches so the settings screen will have a new list of ssh keys.
+			WPCD()->get_provider_api( $provider )->clear_cache();
 
 			wp_safe_redirect( esc_url_raw( $this->get_next_step_link() ) );
 			exit;

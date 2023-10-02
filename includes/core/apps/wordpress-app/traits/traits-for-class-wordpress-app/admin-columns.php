@@ -630,7 +630,14 @@ trait wpcd_wpapp_admin_column_data {
 
 				// Display warning if the server is running aptget.
 				if ( $this->wpcd_is_aptget_running( $post_id ) ) {
-					$value = '<div class="wpcd_server_actions_aptget_in_progress">' . __( 'It appears that background updates are being run on this server. Certain actions you perform while this is occurring might fail.', 'wpcd' ) . '</div>';
+					$apt_get_warning_value = '<div class="wpcd_server_actions_aptget_in_progress">' . __( 'It appears that background updates are being run on this server. Certain actions you perform while this is occurring might fail.', 'wpcd' ) . '</div>';
+					if ( empty( wpcd_get_option( 'wordpress_app_show_install_button_with_apt_get_running' ) ) ) {
+						// Show only the warning and do not display the install wp button.
+						$value = $apt_get_warning_value;
+					} else {
+						// show both the warning and the install wp button.
+						$value .= $apt_get_warning_value;
+					}
 				}
 
 				// Allow devs to hook in.

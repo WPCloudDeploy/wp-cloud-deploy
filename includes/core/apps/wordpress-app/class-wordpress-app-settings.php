@@ -1489,6 +1489,13 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tooltip' => __( 'If checked, sFTP users will remain behind as regular Linux users on the Linux server after a site is deleted.  You will not be able to reuse these user names on new sites', 'wpcd' ),
 				'tab'     => 'wordpress-app-sites',
 			),
+			array(
+				'id'      => 'wordpress_app_show_install_button_with_apt_get_running',
+				'type'    => 'checkbox',
+				'name'    => __( 'Show The INSTALL WORDPRESS button When background updates are running.', 'wpcd' ),
+				'tooltip' => __( 'If checked, the INSTALL WORDPRESS button will show up even if Linux updates are being run in the background.', 'wpcd' ),
+				'tab'     => 'wordpress-app-sites',
+			),
 		);
 
 		return $fields;

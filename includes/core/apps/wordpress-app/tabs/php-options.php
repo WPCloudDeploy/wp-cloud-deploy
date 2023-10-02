@@ -24,7 +24,10 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 		add_filter( "wpcd_app_{$this->get_app_name()}_tab_action", array( $this, 'tab_action' ), 10, 3 );
 
 		// Allow the change_php_version action to be triggered via an action hook.
-		add_action( 'wpcd_wordpress-app_do_change_php_version', array( $this, 'change_php_version_action' ), 10, 3 );
+		add_action( 'wpcd_wordpress-app_do_change_php_version', array( $this, 'change_php_version_action' ), 10, 2 );
+
+		// Allow the advanced add_php_param (change_php_options) action to be triggered via an action hook.
+		add_action( 'wpcd_wordpress-app_do_change_php_options', array( $this, 'change_php_options_action' ), 10, 3 );
 
 	}
 
@@ -782,22 +785,52 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
+	 * Helper function to change php options
+	 *
+	 * Can be called directly or by an action hook.
+	 *
+	 * Action hook: wpcd_wordpress-app_do_change_php_options  (Optional).
+	 *
+	 * @param int    $id     The postID of the app cpt.
+	 * @param string $php_param The php option/parameter to set - eg: max_execution_time.
+	 * @param string $php_value The option value.
+	 *
+	 * @return string|WP_Error
+	 */
+	public function change_php_options_action( $id, $php_param, $php_value ) {
+
+		// Array to pass into function call.
+		$args['php_advanced_option_to_set'] = $php_param;
+		$args['php_advanced_option_value']  = $php_value;
+
+		$return = $this->change_php_options( $id, 'add_php_param', $args );
+
+		return $return;
+
+	}
+
+	/**
 	 * Change PHP Options.
 	 *
 	 * @param int    $id     The postID of the app cpt.
 	 * @param string $action The action to be performed (this matches the string required in the bash scripts).
+	 * @param array  $in_args Alternative source of arguments passed via action hook or direct function call instead of pulling from $_POST.
 	 *
 	 * @return boolean|WP_Error    success/failure
 	 */
-	private function change_php_options( $id, $action ) {
+	private function change_php_options( $id, $action, $in_args = array() ) {
 		$instance = $this->get_app_instance_details( $id );
 
 		if ( is_wp_error( $instance ) ) {
 			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
 		}
 
-		// Get the field values from the front-end.
-		$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
+		if ( empty( $in_args ) ) {
+			// Get data from the POST request.
+			$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
+		} else {
+			$args = $in_args;
+		}
 
 		// Are we changing a 'common' option or an 'advanced' option?
 		if ( ! empty( $args['php_common_option_value'] ) ) {
@@ -806,7 +839,7 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 			$php_option_value = sanitize_text_field( $args['php_common_option_value'] );
 
 			// Make sure the "common" option is in a known good list.
-			if ( ! in_array( $php_option, $this->get_common_php_options_keys() ) ) {
+			if ( ! in_array( $php_option, $this->get_common_php_options_keys(), true ) ) {
 				return new \WP_Error( __( 'Whoa...looks like you are trying to hack the system - this is most definitely not allowed!', 'wpcd' ) );
 			}
 

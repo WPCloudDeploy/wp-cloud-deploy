@@ -131,6 +131,7 @@ Note: Even though the entire git development history isn't available on github, 
 * New: WPAPP - Option to download 'nightly' WordPress builds.
 * Tweak: WPAPP - PHP 7.4 is now shown with an orange border (caution) in the apps list (since 7.4 no longer receives security updates).
 * Dev: WPAPP - Add action hook and associated helper function for the 'wp_site_update_wpconfig_option' bash action.
+* Dev: WPAPP - Add action hook and associated helper function for the 'add_php_param' bash action.
 * Dev: WPAPP - Restore some action hooks that were inadvertently removed in 5.3.0.
 
 5.3.8

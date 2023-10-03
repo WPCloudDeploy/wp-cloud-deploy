@@ -134,8 +134,10 @@ Note: Even though the entire git development history isn't available on github, 
 * Tweak: WPAPP - Add option to still show the INSTALL WORDPRESS button when the background updates running warning appears.
 * Fix: WPAPP - Setup wizard needs to clear cache after auto-creating keys.
 * Fix: WPAPP - Server owners could not see the DELETE option when not an admin.
+* Fix: WPAPP - (security) blank out password in logs if admin adds or changes from inside wpcd.
 * Dev: WPAPP - Add action hook and associated helper function for the 'wp_site_update_wpconfig_option' bash action.
 * Dev: WPAPP - Add action hook and associated helper function for the 'add_php_param' bash action.
+* Dev: WPAPP - Add action hook and associated helper function for the 'change_php_workers' bash action.
 * Dev: WPAPP - Restore some action hooks that were inadvertently removed in 5.3.0.
 
 5.3.8

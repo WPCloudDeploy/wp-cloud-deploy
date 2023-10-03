@@ -983,6 +983,7 @@ class WP_CLOUD_DEPLOY {
 			'wpcd_get_pw_terms_to_clean',
 			array(
 				'wp_password='               => '(***private***)',
+				'wps_new_password='          => '(***private***)',
 				'aws_access_key_id='         => '(***private***)',
 				'aws_secret_access_key='     => '(***private***)',
 				'--admin_password='          => '(***private***)',

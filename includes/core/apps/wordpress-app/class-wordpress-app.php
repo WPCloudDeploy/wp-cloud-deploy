@@ -735,6 +735,21 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	}
 
 	/**
+	 * Return a default OS version based on whether settings has one or not.
+	 *
+	 * @since 5.3.9
+	 *
+	 * @return string.
+	 */
+	public static function get_default_os() {
+		$default_os = wpcd_get_option( 'wordpress_app_default_os' );
+		if ( empty( $default_os ) ) {
+			$default_os = 'ubuntu2204lts';
+		}
+		return apply_filters( 'wpcd_default_os', $default_os );
+	}
+
+	/**
 	 * Returns the default webserver type.
 	 *
 	 * @since 5.0.0

@@ -118,7 +118,7 @@ class WPCD_REST_API_Controller_Servers extends WPCD_REST_API_Controller_Base {
 
 		// setup server attributes array needed to create the server.
 		$attributes = array(
-			'initial_os'       => wpcd_get_option( 'wordpress_app_default_os' ),
+			'initial_os'       => WPCD_WORDPRESS_APP()->get_default_os(),
 			'initial_app_name' => WPCD_WORDPRESS_APP()->get_app_name(),
 			'server-type'      => 'wordpress-app',
 			'scripts_version'  => wpcd_get_option( 'wordpress_app_script_version' ),

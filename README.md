@@ -129,10 +129,11 @@ Note: Even though the entire git development history isn't available on github, 
 5.3.9
 ------
 * New: WPAPP - Option to download 'nightly' WordPress builds.
+* Tweak: WPAPP - Make Ubuntu 22.04 the default OS for new servers and the default in settings if no other default version is specified.
 * Tweak: WPAPP - PHP 7.4 is now shown with an orange border (caution) in the apps list (since 7.4 no longer receives security updates).
 * Tweak: WPAPP - Users with the wpcd_manage_all capability should be able to run the setup wizard the first time.
 * Tweak: WPAPP - Add option to still show the INSTALL WORDPRESS button when the background updates running warning appears.
-* Fix: WPAPP - Setup wizard needs to clear cache after auto-creating keys.
+* Fix: WPAPP - Setup wizard needs to clear cache after auto-creating ssh keys.
 * Fix: WPAPP - Server owners could not see the DELETE option when not an admin.
 * Fix: WPAPP - (security) blank out password in logs if admin adds or changes from inside wpcd.
 * Dev: WPAPP - Add action hook and associated helper function for the 'wp_site_update_wpconfig_option' bash action.

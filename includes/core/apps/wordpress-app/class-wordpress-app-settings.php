@@ -1095,7 +1095,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'name'    => __( 'Default OS', 'wpcd' ),
 				'tooltip' => __( 'Select the default OS to be used when deploying a new WordPress server!', 'wpcd' ),
 				'tab'     => 'wordpress-app-general-wpadmin',
-				'std'     => 'ubuntu2004lts',
+				'std'     => 'ubuntu2204lts',
 				'options' => WPCD()->get_os_list(),
 			),
 			array(

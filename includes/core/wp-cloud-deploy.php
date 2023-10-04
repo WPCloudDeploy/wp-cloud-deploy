@@ -719,8 +719,8 @@ class WP_CLOUD_DEPLOY {
 	 */
 	public static function get_os_list() {
 		$oslist = array(
+			'ubuntu2204lts' => __( 'Ubuntu 22.04 LTS', 'wpcd' ),			
 			'ubuntu2004lts' => __( 'Ubuntu 20.04 LTS', 'wpcd' ),
-			'ubuntu2204lts' => __( 'Ubuntu 22.04 LTS', 'wpcd' ),
 		);
 
 		// Remove some entries based on settings.

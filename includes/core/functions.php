@@ -1664,6 +1664,7 @@ function wpcd_get_post_id_from_global() {
  *
  * @param string $data_string The string to wrap.
  * @param bool   $break True = wrap with a div False = wrap with a span.
+ * @param bool   $br_tag Whether to add in a break (<br/>) tag or not.
  *
  * @return string
  */

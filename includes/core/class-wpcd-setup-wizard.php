@@ -528,7 +528,7 @@ class WPCD_Admin_Setup_Wizard {
 				?>
 				<p><b><?php esc_html_e( 'Connect To Your Linode Account', 'wpcd' ); ?> </b></p>
 				<p><?php esc_html_e( 'Create an API TOKEN at LINODE and enter it below.', 'wpcd' ); ?> </p>
-				<p><?php esc_html_e( 'You can create a token by navigating to: https://https://cloud.linode.com/profile/tokens.', 'wpcd' ); ?></p>
+				<p><?php esc_html_e( 'You can create a token by navigating to: https://cloud.linode.com/profile/tokens.', 'wpcd' ); ?></p>
 				<p><?php esc_html_e( 'There you can click the CREATE A PERSONAL ACCESS TOKEN button and follow the instructions.', 'wpcd' ); ?></p>
 				<p><?php esc_html_e( 'Please make sure that you assign all READ/WRITE permissions and select a long-running expiration date.', 'wpcd' ); ?></p>			
 				<?php

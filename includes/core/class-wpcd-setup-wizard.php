@@ -727,7 +727,7 @@ class WPCD_Admin_Setup_Wizard {
 			exit;
 		} else {
 			// Stay on this step.
-			wp_safe_redirect( esc_url_raw( add_query_arg( array( 'error_msg' => __( 'We were unable to connect to your server provider with this API key/token. Please re-enter it or try a different one.', 'wpcd' ) ), $this->get_this_step_link() ) ) );
+			wp_safe_redirect( esc_url_raw( add_query_arg( array( 'error_msg' => __( 'We were unable to connect to your server provider with this API key/token. Did you accidentally enter an extra space or character? Please re-enter it or try a different one.', 'wpcd' ) ), $this->get_this_step_link() ) ) );
 			exit;
 		}
 
@@ -807,7 +807,7 @@ class WPCD_Admin_Setup_Wizard {
 			<p><?php esc_html_e( 'You should now be able to create your first server at your provider.', 'wpcd' ); ?></p>
 			<p>
 			<?php
-			echo sprintf( __( 'You can go to the server list to create your first server or <b><u><a %s>View The Documentation</a></b></u>.', 'wpcd' ), 'href="https://wpclouddeploy.com/doc-landing/" target="_blank" ' );
+			echo sprintf( __( 'You can go to the server list and use the DEPLOY A NEW WORDPRESS SERVER button at the top of the screen to create your first server.  Or <b><u><a %s>View The Documentation</a></b></u>.', 'wpcd' ), 'href="https://wpclouddeploy.com/doc-landing/" target="_blank" ' );
 			?>
 			</p>
 			<input type="submit" name="save_step" value="Create First Server">

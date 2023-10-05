@@ -272,14 +272,8 @@ trait wpcd_wpapp_admin_column_data {
 			// Do nothing.
 		} else {
 			// Do not show if site is disabled and only if the logged user is an admin.
-			if ( wpcd_is_admin() && ( 'off' !== $this->site_status( $post_id ) )  ) {
-				$value           = sprintf(
-					'<a class="wpcd_action_passwordless_login" data-wpcd-id="%d" data-wpcd-domain="%s" href="">%s</a>',
-					$post_id,
-					get_post_meta( $post_id, 'wpapp_domain', true ),
-					esc_html( __( 'One-click Login', 'wpcd' ) )
-				);
-				$value           = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $value, 'wp_passwordless_login_link', 'left' );
+			if ( wpcd_is_admin() && ( 'off' !== $this->site_status( $post_id ) ) && ( ! wpcd_get_option( 'wordpress_app_disable_passwordless_login' ) ) ) {
+				$value           = $this->get_passwordless_login_link_for_display( $post_id, __( 'One-click Login', 'wpcd' ) );
 				$value           = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_div_and_class( $value, 'wp_passwordless_login_link' );
 				$new_column_data = $new_column_data . $value;
 			}

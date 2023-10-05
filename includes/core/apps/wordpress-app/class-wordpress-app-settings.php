@@ -1490,9 +1490,15 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tab'     => 'wordpress-app-sites',
 			),
 			array(
+				'id'      => 'wordpress_app_disable_passwordless_login',
+				'type'    => 'checkbox',
+				'name'    => __( 'Disable the One-click Login Buttons..', 'wpcd' ),
+				'tab'     => 'wordpress-app-sites',
+			),
+			array(
 				'id'      => 'wordpress_app_show_install_button_with_apt_get_running',
 				'type'    => 'checkbox',
-				'name'    => __( 'Show The INSTALL WORDPRESS button When background updates are running.', 'wpcd' ),
+				'name'    => __( 'Show The INSTALL WORDPRESS Button When Background Updates are Running.', 'wpcd' ),
 				'tooltip' => __( 'If checked, the INSTALL WORDPRESS button will show up even if Linux updates are being run in the background.', 'wpcd' ),
 				'tab'     => 'wordpress-app-sites',
 			),

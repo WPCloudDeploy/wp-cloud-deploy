@@ -505,8 +505,16 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			$site_type_class_name    = 'wpcd_site_details_top_row_element_site_type';
 		}
 
-		// Wrap the page cache and ssl status into a set of spans that will go underneath the domain name.
-		$other_data  = '<div class="wpcd_site_details_top_row_element_wrapper">';
+		/**
+		 * Wrap the page cache, ssl status and other elements into a set of spans that will go underneath the domain name.
+		 */
+		$other_data = '<div class="wpcd_site_details_top_row_element_wrapper">';
+
+		if ( wpcd_is_admin() && ( ! wpcd_get_early_option( 'wordpress_app_disable_passwordless_login' ) ) ) {
+			$passwordless_login_link = $this->get_passwordless_login_link_for_display( $app_id, __( 'Login', 'wpcd' ) );
+			$other_data             .= '<span class="wpcd_medium_chicklet wpcd_site_details_top_row_element_passwordless_login">' . $passwordless_login_link . '</span>';
+		}
+
 		$other_data .= '<span class="wpcd_medium_chicklet wpcd_site_details_top_row_element_wstype">' . $webserver_type_name . '</span>';
 		$other_data .= '<span class=" wpcd_medium_chicklet ' . $ssl_class_name . '">' . sprintf( __( 'SSL: %s', 'wpcd' ), $ssl_status_display_value ) . '</span>';
 		$other_data .= '<span class=" wpcd_medium_chicklet ' . $page_cache_class_name . '">' . sprintf( __( 'Cache: %s', 'wpcd' ), $page_cache_display_value ) . '</span>';
@@ -523,6 +531,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			$other_data .= '<span class=" wpcd_medium_chicklet ' . $site_type_class_name . '">' . sprintf( __( '%s', 'wpcd' ), $site_type_display_value ) . '</span>';
 		}
 		$other_data .= '</div>';
+		/* End Wrap page cache, ssl status and other elements */
 
 		// Copy IP.
 		$copy_app_ip = wpcd_wrap_clipboard_copy( $this->get_ipv4_address( $app_id ) );
@@ -3806,9 +3815,9 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			}
 		}
 
-		if ( in_array( $hook, array( 'edit.php' ) ) ) {
+		if ( in_array( $hook, array( 'edit.php' ) ) || in_array( $hook, array( 'post.php' ) ) ) {
 			$screen = get_current_screen();
-			if ( ( is_object( $screen ) && in_array( $screen->post_type, array( 'wpcd_app' ) ) ) || WPCD_WORDPRESS_APP_PUBLIC::is_apps_list_page() ) {
+			if ( ( is_object( $screen ) && in_array( $screen->post_type, array( 'wpcd_app' ) ) ) || WPCD_WORDPRESS_APP_PUBLIC::is_apps_list_page() || WPCD_WORDPRESS_APP_PUBLIC::is_app_edit_page() ) {
 				wp_enqueue_style( 'wpcd-wpapp-admin-app-css', wpcd_url . 'includes/core/apps/wordpress-app/assets/css/wpcd-wpapp-admin-app.css', array(), wpcd_scripts_version );
 
 				wp_enqueue_script( 'wpcd-wpapp-admin-post-type-wpcd-app', wpcd_url . 'includes/core/apps/wordpress-app/assets/js/wpcd-wpapp-admin-post-type-wpcd-app.js', array( 'jquery' ), wpcd_scripts_version, true );
@@ -4059,8 +4068,28 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		wp_die();
 	}
 
+
 	/**
-	 * Trigger passwordless login
+	 * Get the link to be shown for a passwordless login.
+	 * This is used in multiple places hence extracted into this function.
+	 *
+	 * @param int    $app_id The app_id for the site that needs this link.
+	 * @param string $label The label to use for the link.
+	 */
+	public function get_passwordless_login_link_for_display( $app_id, $label ) {
+		return sprintf(
+			'<a class="wpcd_action_passwordless_login" data-wpcd-id="%d" data-wpcd-domain="%s" href="">%s</a>',
+			$app_id,
+			$this->get_domain_name( $app_id ),
+			esc_html( $label ),
+		);
+	}
+
+
+	/**
+	 * Handle passwordless login ajax request.
+	 *
+	 * Action Hook: wp_ajax_passwordless_login
 	 */
 	public function passwordless_login() {
 

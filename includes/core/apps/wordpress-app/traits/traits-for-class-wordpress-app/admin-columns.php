@@ -166,7 +166,7 @@ trait wpcd_wpapp_admin_column_data {
 		} else {
 			$value  = __( 'Domain: ', 'wpcd' );
 			$data   = get_post_meta( $post_id, 'wpapp_domain', true );
-			$value  = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $value, 'page_cache', 'left' );
+			$value  = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $value, 'domain', 'left' );
 			$value .= WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( wpcd_wrap_clipboard_copy( $data ), 'domain', 'right' );
 			$value  = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_div_and_class( $value, 'domain' );
 
@@ -264,7 +264,24 @@ trait wpcd_wpapp_admin_column_data {
 			$new_column_data = $new_column_data . $value;
 		}
 
-		// Display any custom links - only displayedin the wp-admin area.
+		// Display a passwordless login link.
+		if ( true === (bool) wpcd_get_option( 'wordpress_app_hide_passwordless_login_summary_column_in_site_list' ) && ( ! wpcd_is_admin() ) ) {
+			// Do nothing.
+		} else {
+			if ( wpcd_is_admin() ) {
+				$value           = sprintf(
+					'<a class="wpcd_action_passwordless_login" data-wpcd-id="%d" data-wpcd-domain="%s" href="">%s</a>',
+					$post_id,
+					get_post_meta( $post_id, 'wpapp_domain', true ),
+					esc_html( __( 'One-click Login', 'wpcd' ) )
+				);
+				$value           = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $value, 'wp_passwordless_login_link', 'left' );
+				$value           = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_div_and_class( $value, 'wp_passwordless_login_link' );
+				$new_column_data = $new_column_data . $value;
+			}
+		}
+
+		// Display any custom links - only displayed in the wp-admin area.
 		if ( is_admin() ) {
 			$new_column_data = $new_column_data . $this->get_formatted_custom_links( $post_id );
 		}

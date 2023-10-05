@@ -3,6 +3,10 @@
  * It currently handles the following actions:
  * - Adds an INSTALL WORDPRESS button to the top of the apps listStyleType
  * - Calls an AJAX action to remove a WordPress site using a link on the apps list.
+ * - Passwordless login.
+ * 
+ * Note that the php code sets the parameters object with a name of 'params3' but when 
+ * it's passed into this main function, it's renamed as just 'params'.
  */
 
 /* global ajaxurl */
@@ -21,6 +25,57 @@
             $('.wp-heading-inline').append($('<a href="' + params.install_wpapp_url + '" class="wpcd-wp-install page-title-action" target="_blank">' + params.i10n.install_wpapp + '</a>'));
         }
 
+        // Passwordless login (one-click login)
+        $('body').on('click', '.wpcd_action_passwordless_login', function(e) {
+
+            e.preventDefault();
+
+            // What app are we working with?  It's in the link attribute 'data-wpcd-id'.
+            var id = $(this).attr('data-wpcd-id');
+            var wpcd_domain = $(this).attr('data-wpcd-domain');
+
+            // Setup form data as necessary
+            var formData = new FormData();
+            formData.append('action', params.passwordless_login_action);
+            formData.append('_action', params.passwordless_login_action);
+            formData.append('nonce', params.nonce);
+            formData.append('id', id);
+            formData.append('domain', wpcd_domain);
+            formData.append('params', '');
+
+            // Are we on the front it?  Need this flag to help determine how to "lock" the screen with the spinner.
+            var is_public = $('#wpcd_public_wrapper').length == 1;
+
+            // Used for the 'spinner'
+            var $lock = is_public ? $('body') : $(this).parents('#wpbody-content');
+            $lock.lock();
+
+            $.ajax({
+                url: ajaxurl,
+                method: 'POST',
+                data: formData,
+                enctype: 'multipart/form-data',
+                contentType:false,
+                processData:false,                
+                success: function(data) {
+                    // Expects one element back from the wp: redirect_to: url to one-time url on target site.
+                    if ( data.success ) {
+                        target_url = data.data.redirect_to;
+                        console.log(target_url);
+                        window.open( target_url, "_blank" );
+                    }
+                },
+                complete: function() {
+                    // An action that threw up the spinner lock screen is complete so unlock it.
+                    $lock.unlock();
+                },
+                error: function(event, xhr, settings, thrownError) {
+                    alert('AJAX Error - something went wrong but we cannot tell you what it was.  Its a bummer and illogical I know.  Most likely its a 504 gateway timeout error.  Increase the time your server allows for a script to run to maybe 300 seconds. In the meantime you can check the SSH LOG or COMMAND LOG screens to see if more data was logged there.');
+                }
+            });
+        });
+        // End passwordless login.
+
         // Remove A WordPress Site.
         $('body').on('click', '.wpcd_action_remove_site', function(e) {
 
@@ -37,6 +92,7 @@
                 formData.append('id', id);
                 formData.append('params', '');
                 
+                // Are we on the front it?  Need this flag to help determine how to "lock" the screen with the spinner.
                 var is_public = $('#wpcd_public_wrapper').length == 1;
                 
                 // Used for the 'spinner'

@@ -251,6 +251,9 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		// Action hook to handle ajax request to set transient if user clicked the "check again" option in the "readable check" notice.
 		add_action( 'wp_ajax_readable_check_again', array( $this, 'readable_check_again' ) );
 
+		// Action hook to handle ajax request to execute passwordless login.
+		add_action( 'wp_ajax_passwordless_login', array( $this, 'passwordless_login' ) );
+
 		// Action hook to extend admin filter options.
 		add_action( 'restrict_manage_posts', array( $this, 'wpapp_wpcd_app_table_filtering' ) );
 
@@ -3815,14 +3818,15 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 					apply_filters(
 						'wpcd_app_script_args',
 						array(
-							'nonce'                => wp_create_nonce( 'wpcd-app' ),
-							'_action'              => 'remove',
-							'i10n'                 => array(
+							'nonce'                     => wp_create_nonce( 'wpcd-app' ),
+							'_action'                   => 'remove',
+							'passwordless_login_action' => 'passwordless_login',
+							'i10n'                      => array(
 								'remove_site_prompt' => __( 'Are you sure you would like to delete this site and data? This action is NOT reversible!', 'wpcd' ),
 								'install_wpapp'      => __( 'Install WordPress', 'wpcd' ),
 							),
-							'install_wpapp_url'    => admin_url( 'edit.php?post_type=wpcd_app_server' ),
-							'bulk_actions_confirm' => __( 'Are you sure you want to perform this bulk action?', 'wpcd' ),
+							'install_wpapp_url'         => admin_url( 'edit.php?post_type=wpcd_app_server' ),
+							'bulk_actions_confirm'      => __( 'Are you sure you want to perform this bulk action?', 'wpcd' ),
 						),
 						'wpcd-wpapp-admin-post-type-wpcd-app'
 					)
@@ -4050,6 +4054,77 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				'message' => __( 'Readable check failed!', 'wpcd' ),
 			);
 			wp_send_json_error( $return );
+		}
+
+		wp_die();
+	}
+
+	/**
+	 * Trigger passwordless login
+	 */
+	public function passwordless_login() {
+
+		/* Nonce check */
+		check_ajax_referer( 'wpcd-app', 'nonce' );
+
+		/* Permission check - unsure that this is needed since the action is not destructive and might cause issues if the user sees the message and can't dismiss it because they're not an admin. */
+		if ( ! wpcd_is_admin() ) {
+			wp_send_json_error( array( 'msg' => __( 'You are not authorized to perform this action.', 'wpcd' ) ) );
+		}
+
+		/**
+		 * From here on out, we're going to use the style of processing that we use in tabs.
+		 * But because we're not in a tab we have to change some things around!
+		 */
+
+		// Grab data out of $POST.
+		$id     = (int) $_POST['id'];
+		$domain = sanitize_text_field( $_POST['domain'] );
+
+		// Get app/server details.
+		$instance = $this->get_app_instance_details( $id );
+
+		// Set action var.
+		$action = 'wp_site_get_passwordless_link';
+
+		// Bail if no app/server details.
+		if ( is_wp_error( $instance ) ) {
+			/* Translators: %s is the action name. */
+			$message = sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action );
+			return new \WP_Error( $message );
+		}
+
+		// Create args array.
+		$args['domain'] = escapeshellarg( $domain );
+
+		// Get the full command to be executed by ssh.
+		$run_cmd = $this->turn_script_into_command(
+			$instance,
+			'passwordless_login.txt',
+			array_merge(
+				$args,
+				array(
+					'action' => $action,
+				)
+			)
+		);
+
+		do_action( 'wpcd_log_error', sprintf( 'attempting to run command for %s = %s ', print_r( $instance, true ), $run_cmd ), 'trace', __FILE__, __LINE__, $instance, false );
+
+		$result  = $this->execute_ssh( 'generic', $instance, array( 'commands' => $run_cmd ) );
+		$success = $this->is_ssh_successful( $result, 'passwordless_login.txt' );
+
+		if ( ! $success ) {
+			/* Translators: %1$s is the action; %2$s is the result of the ssh call. */
+			$message = sprintf( __( 'Unable to %1$s site: %2$s', 'wpcd' ), $action, $result );
+			return new \WP_Error( $message );
+		} else {
+			// grab the very last line in the results that should contain the url.
+			list($url_array[]) = array_slice( explode( PHP_EOL, trim( $result ) ), -1, 1 );
+			$return            = array(
+				'redirect_to' => $url_array[0],
+			);
+			wp_send_json_success( $return );
 		}
 
 		wp_die();

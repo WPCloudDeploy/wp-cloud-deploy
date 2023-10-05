@@ -251,6 +251,9 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		// Action hook to handle ajax request to set transient if user clicked the "check again" option in the "readable check" notice.
 		add_action( 'wp_ajax_readable_check_again', array( $this, 'readable_check_again' ) );
 
+		// Action hook to handle ajax request to execute passwordless login.
+		add_action( 'wp_ajax_passwordless_login', array( $this, 'passwordless_login' ) );
+
 		// Action hook to extend admin filter options.
 		add_action( 'restrict_manage_posts', array( $this, 'wpapp_wpcd_app_table_filtering' ) );
 
@@ -502,8 +505,16 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			$site_type_class_name    = 'wpcd_site_details_top_row_element_site_type';
 		}
 
-		// Wrap the page cache and ssl status into a set of spans that will go underneath the domain name.
-		$other_data  = '<div class="wpcd_site_details_top_row_element_wrapper">';
+		/**
+		 * Wrap the page cache, ssl status and other elements into a set of spans that will go underneath the domain name.
+		 */
+		$other_data = '<div class="wpcd_site_details_top_row_element_wrapper">';
+
+		if ( wpcd_is_admin() && ( ! wpcd_get_early_option( 'wordpress_app_disable_passwordless_login' ) ) ) {
+			$passwordless_login_link = $this->get_passwordless_login_link_for_display( $app_id, __( 'Login', 'wpcd' ) );
+			$other_data             .= '<span class="wpcd_medium_chicklet wpcd_site_details_top_row_element_passwordless_login">' . $passwordless_login_link . '</span>';
+		}
+
 		$other_data .= '<span class="wpcd_medium_chicklet wpcd_site_details_top_row_element_wstype">' . $webserver_type_name . '</span>';
 		$other_data .= '<span class=" wpcd_medium_chicklet ' . $ssl_class_name . '">' . sprintf( __( 'SSL: %s', 'wpcd' ), $ssl_status_display_value ) . '</span>';
 		$other_data .= '<span class=" wpcd_medium_chicklet ' . $page_cache_class_name . '">' . sprintf( __( 'Cache: %s', 'wpcd' ), $page_cache_display_value ) . '</span>';
@@ -520,6 +531,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			$other_data .= '<span class=" wpcd_medium_chicklet ' . $site_type_class_name . '">' . sprintf( __( '%s', 'wpcd' ), $site_type_display_value ) . '</span>';
 		}
 		$other_data .= '</div>';
+		/* End Wrap page cache, ssl status and other elements */
 
 		// Copy IP.
 		$copy_app_ip = wpcd_wrap_clipboard_copy( $this->get_ipv4_address( $app_id ) );
@@ -3803,9 +3815,9 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			}
 		}
 
-		if ( in_array( $hook, array( 'edit.php' ) ) ) {
+		if ( in_array( $hook, array( 'edit.php' ) ) || in_array( $hook, array( 'post.php' ) ) ) {
 			$screen = get_current_screen();
-			if ( ( is_object( $screen ) && in_array( $screen->post_type, array( 'wpcd_app' ) ) ) || WPCD_WORDPRESS_APP_PUBLIC::is_apps_list_page() ) {
+			if ( ( is_object( $screen ) && in_array( $screen->post_type, array( 'wpcd_app' ) ) ) || WPCD_WORDPRESS_APP_PUBLIC::is_apps_list_page() || WPCD_WORDPRESS_APP_PUBLIC::is_app_edit_page() ) {
 				wp_enqueue_style( 'wpcd-wpapp-admin-app-css', wpcd_url . 'includes/core/apps/wordpress-app/assets/css/wpcd-wpapp-admin-app.css', array(), wpcd_scripts_version );
 
 				wp_enqueue_script( 'wpcd-wpapp-admin-post-type-wpcd-app', wpcd_url . 'includes/core/apps/wordpress-app/assets/js/wpcd-wpapp-admin-post-type-wpcd-app.js', array( 'jquery' ), wpcd_scripts_version, true );
@@ -3815,14 +3827,15 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 					apply_filters(
 						'wpcd_app_script_args',
 						array(
-							'nonce'                => wp_create_nonce( 'wpcd-app' ),
-							'_action'              => 'remove',
-							'i10n'                 => array(
+							'nonce'                     => wp_create_nonce( 'wpcd-app' ),
+							'_action'                   => 'remove',
+							'passwordless_login_action' => 'passwordless_login',
+							'i10n'                      => array(
 								'remove_site_prompt' => __( 'Are you sure you would like to delete this site and data? This action is NOT reversible!', 'wpcd' ),
 								'install_wpapp'      => __( 'Install WordPress', 'wpcd' ),
 							),
-							'install_wpapp_url'    => admin_url( 'edit.php?post_type=wpcd_app_server' ),
-							'bulk_actions_confirm' => __( 'Are you sure you want to perform this bulk action?', 'wpcd' ),
+							'install_wpapp_url'         => admin_url( 'edit.php?post_type=wpcd_app_server' ),
+							'bulk_actions_confirm'      => __( 'Are you sure you want to perform this bulk action?', 'wpcd' ),
 						),
 						'wpcd-wpapp-admin-post-type-wpcd-app'
 					)
@@ -4050,6 +4063,97 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				'message' => __( 'Readable check failed!', 'wpcd' ),
 			);
 			wp_send_json_error( $return );
+		}
+
+		wp_die();
+	}
+
+
+	/**
+	 * Get the link to be shown for a passwordless login.
+	 * This is used in multiple places hence extracted into this function.
+	 *
+	 * @param int    $app_id The app_id for the site that needs this link.
+	 * @param string $label The label to use for the link.
+	 */
+	public function get_passwordless_login_link_for_display( $app_id, $label ) {
+		return sprintf(
+			'<a class="wpcd_action_passwordless_login" data-wpcd-id="%d" data-wpcd-domain="%s" href="">%s</a>',
+			$app_id,
+			$this->get_domain_name( $app_id ),
+			esc_html( $label ),
+		);
+	}
+
+
+	/**
+	 * Handle passwordless login ajax request.
+	 *
+	 * Action Hook: wp_ajax_passwordless_login
+	 */
+	public function passwordless_login() {
+
+		/* Nonce check */
+		check_ajax_referer( 'wpcd-app', 'nonce' );
+
+		/* Permission check - unsure that this is needed since the action is not destructive and might cause issues if the user sees the message and can't dismiss it because they're not an admin. */
+		if ( ! wpcd_is_admin() ) {
+			wp_send_json_error( array( 'msg' => __( 'You are not authorized to perform this action.', 'wpcd' ) ) );
+		}
+
+		/**
+		 * From here on out, we're going to use the style of processing that we use in tabs.
+		 * But because we're not in a tab we have to change some things around!
+		 */
+
+		// Grab data out of $POST.
+		$id     = (int) $_POST['id'];
+		$domain = sanitize_text_field( $_POST['domain'] );
+
+		// Get app/server details.
+		$instance = $this->get_app_instance_details( $id );
+
+		// Set action var.
+		$action = 'wp_site_get_passwordless_link';
+
+		// Bail if no app/server details.
+		if ( is_wp_error( $instance ) ) {
+			/* Translators: %s is the action name. */
+			$message = sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action );
+			return new \WP_Error( $message );
+		}
+
+		// Create args array.
+		$args['domain'] = escapeshellarg( $domain );
+
+		// Get the full command to be executed by ssh.
+		$run_cmd = $this->turn_script_into_command(
+			$instance,
+			'passwordless_login.txt',
+			array_merge(
+				$args,
+				array(
+					'action' => $action,
+				)
+			)
+		);
+
+		do_action( 'wpcd_log_error', sprintf( 'attempting to run command for %s = %s ', print_r( $instance, true ), $run_cmd ), 'trace', __FILE__, __LINE__, $instance, false );
+
+		$result  = $this->execute_ssh( 'generic', $instance, array( 'commands' => $run_cmd ) );
+		$success = $this->is_ssh_successful( $result, 'passwordless_login.txt' );
+
+		if ( ! $success ) {
+			/* Translators: %1$s is the action; %2$s is the result of the ssh call. */
+			$message = sprintf( __( 'Unable to %1$s site: %2$s', 'wpcd' ), $action, $result );
+			return new \WP_Error( $message );
+		} else {
+			// grab the very last line in the results that should contain the url.
+			list($url_array[]) = array_slice( explode( PHP_EOL, trim( $result ) ), -1, 1 );
+			$return            = array(
+				'redirect_to' => $url_array[0],
+			);
+			wp_send_json_success( $return );
 		}
 
 		wp_die();

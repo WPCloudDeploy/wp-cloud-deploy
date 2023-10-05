@@ -91,6 +91,27 @@
 	box-shadow: 1px 1px 30px 0 rgba(0,0,0,.3); 
 }
 
+/* Format the ONE CLICK Login link on the apps list screen - make sure it's only when we're in the admin area though. */
+.wp-list-table .wpcd-app-col-element-wrap-wp_passwordless_login_link,
+.wpcd_wordpress-app_tab2 .wpcd-app-col-element-wrap-wp_passwordless_login_link {
+    display: inline-block;
+    padding: 2px 8px;
+	background-color: #4F46E5;
+    vertical-align: baseline;
+    border-radius: 3px;
+    border-color: #4F46E5 !important;
+    /* Not sure why important is needed for this one but oh well. */
+    border: solid;
+    border-width: 2px;
+    margin: 2px;	
+}
+.wp-list-table .wpcd-app-col-element-wrap-wp_passwordless_login_link a {
+	color: white;
+}
+.wp-list-table .wpcd-app-col-element-wrap-wp_passwordless_login_link:hover {
+	box-shadow: 1px 1px 30px 0 rgba(0,0,0,.3); 
+}
+
 
 /* Format the PLUGIN AND THEME updates on the apps list screen */
 .wpcd_site_update_needed {

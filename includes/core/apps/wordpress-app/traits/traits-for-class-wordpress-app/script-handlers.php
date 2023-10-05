@@ -343,6 +343,14 @@ trait wpcd_wpapp_script_handlers {
 				$return =
 				( strpos( $result, 'Updated WPConfig Option Value' ) !== false );
 				break;
+			case 'passwordless_login.txt':
+				// for this one we just want to make sure that the last line has a string that starts with http:
+				list($url_array[]) = array_slice(explode(PHP_EOL, trim( $result )), -1, 1);
+				$return =
+				( strpos( $url_array[0], 'http://' ) !== false )
+				||
+				( strpos( $url_array[0], 'https://' ) !== false );
+				break;				
 			case 'git_control_site_command.txt':
 			case 'git_control_site.txt':
 				$return =
@@ -1223,6 +1231,7 @@ trait wpcd_wpapp_script_handlers {
 			case 'change_wp_credentials.txt':
 			case 'add_wp_user.txt':
 			case 'update_wp_config_option.txt':
+			case 'passwordless_login.txt';
 				$new_array = array_merge(
 					array(
 						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/30-wp_site_things.txt',

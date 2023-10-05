@@ -240,6 +240,8 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 	/**
 	 * Change redirect to public apps listing page.
 	 *
+	 * Filter Hook: wpcd_app_script_args
+	 *
 	 * @param array  $args Current args.
 	 * @param string $script Current script.
 	 *

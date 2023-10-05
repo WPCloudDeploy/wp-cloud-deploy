@@ -51,7 +51,7 @@
                     contentType: false,
                     success: function(data) {
                         if (!data.success) {
-                            // throw an alert when an unforseen error occurs.
+                            // throw an alert when an unforeseen error occurs.
                             alert(data.data.msg);
                             // And refresh the page so that any temporary state changes that the user might see are gone (eg: from switches and checkboxes)
                             location.reload();
@@ -80,7 +80,6 @@
         // This code is mostly a duplicate of that in wpcd-wpapp-server-admin.js.
         // If it changes here it might need to be changed there as well.
         $('#doaction').click(function() {
-            console.log('here...');
             var selected_action = $("#bulk-action-selector-top option:selected").val();
             var valid_actions = ['wpcd_sites_update_themes_and_plugins', 'wpcd_sites_update_allthemes', 'wpcd_sites_update_allplugins', 'wpcd_sites_update_wordpress', 'wpcd_sites_update_everything'];
             if (valid_actions.indexOf(selected_action) >= 0) {

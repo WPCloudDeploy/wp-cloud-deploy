@@ -983,7 +983,7 @@ class WPCD_Init {
 		$add_ons['wpcd-vultr-provider/wpcd-vultr-provider.php']                 = '2.3.1';
 		$add_ons['wpcd-wc-sell-servers/wpcd-wc-sell-servers.php']               = '9999.9999.9999';
 		$add_ons['wpcd-wc-sell-sites/wpcd-wc-sell-sites.php']                   = '9999.9999.9999';
-		$add_ons['wpcd-woocommerce/wpcd-woocommerce.php']                       = '3.2.0';
+		$add_ons['wpcd-woocommerce/wpcd-woocommerce.php']                       = '3.2.3';
 
 		// Initialize list of incompatible add_ons.
 		$incompatible_add_ons = array();

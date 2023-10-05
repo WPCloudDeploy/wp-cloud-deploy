@@ -134,6 +134,7 @@ Note: Even though the entire git development history isn't available on github, 
 * Tweak: WPAPP - Users with the wpcd_manage_all capability should be able to run the setup wizard the first time.
 * Tweak: WPAPP - Add option to still show the INSTALL WORDPRESS button when the background updates running warning appears.
 * Fix: WPAPP - Setup wizard needs to clear cache after auto-creating ssh keys.
+* Fix: WPAPP - Update Setup wizard to point to the correct url for linode api tokens.
 * Fix: WPAPP - Server owners could not see the DELETE option when not an admin.
 * Fix: WPAPP - (security) blank out password in logs if admin adds or changes from inside wpcd.
 * Dev: WPAPP - Add action hook and associated helper function for the 'wp_site_update_wpconfig_option' bash action.

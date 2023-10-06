@@ -130,10 +130,11 @@ Note: Even though the entire git development history isn't available on github, 
 ------
 * New: WPAPP - Option to download 'nightly' WordPress builds.
 * New: WPAPP - Passwordless login link now available if you're an admin.
+* Tweak: WPAPP - Drop support for tls 1.0 and 1.1 - explicitly set the list of accepted protocols on new nginx servers.
 * Tweak: WPAPP - Make Ubuntu 22.04 the default OS for new servers and the default in settings if no other default version is specified.
 * Tweak: WPAPP - PHP 7.4 is now shown with an orange border (caution) in the apps list (since 7.4 no longer receives security updates).
 * Tweak: WPAPP - Users with the wpcd_manage_all capability should be able to run the setup wizard the first time.
-* Tweak: WPAPP - Add option to still show the INSTALL WORDPRESS button when the background updates running warning appears.
+* Tweak: WPAPP - Add settings option to still show the INSTALL WORDPRESS button when the background updates running warning appears.
 * Tweak: WPAPP - Login links for front-end and wp-admin will not show if site is disabled.
 * Fix: WPAPP - Setup wizard needs to clear cache after auto-creating ssh keys.
 * Fix: WPAPP - Update Setup wizard to point to the correct url for linode api tokens.

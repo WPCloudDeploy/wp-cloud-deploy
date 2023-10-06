@@ -1490,10 +1490,10 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tab'     => 'wordpress-app-sites',
 			),
 			array(
-				'id'      => 'wordpress_app_disable_passwordless_login',
-				'type'    => 'checkbox',
-				'name'    => __( 'Disable the One-click Login Buttons..', 'wpcd' ),
-				'tab'     => 'wordpress-app-sites',
+				'id'   => 'wordpress_app_disable_passwordless_login',
+				'type' => 'checkbox',
+				'name' => __( 'Disable the One-click Login Buttons.', 'wpcd' ),
+				'tab'  => 'wordpress-app-sites',
 			),
 			array(
 				'id'      => 'wordpress_app_show_install_button_with_apt_get_running',

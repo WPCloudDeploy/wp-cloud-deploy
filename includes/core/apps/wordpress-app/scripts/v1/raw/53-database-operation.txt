@@ -9,7 +9,7 @@ fi
 if [[ ! -f 9999-common-functions.sh ]]
 then
 	echo "The file 9999-common-functions.sh is missing"
-	exit 1
+	exit
 fi
 source 9999-common-functions.sh
 
@@ -102,7 +102,7 @@ then
 		sed -i "/DB_PASSWORD/ s|$g_mysql_pass|$remote_dbpass|g" /var/www/"$domain"/html/wp-config.php
 	else
 		echo "Database could not be switched to Remote server for $domain due to an error."
-		exit 1
+		exit
 	fi
 
 	echo "Database has been switched to Remote server for $domain"
@@ -128,7 +128,7 @@ then
 		sed -i "/DB_PASSWORD/ s|$g_mysql_pass|$local_dbpass|g" /var/www/"$domain"/html/wp-config.php
 	else
 		echo "Database could not be switched to Localhost server for $domain due to an error."
-		exit 1
+		exit
 	fi
 	echo "Database has been switched to Localhost server for $domain"
 fi
@@ -152,7 +152,7 @@ then
 	else
 		echo "Local Database: $g_mysql_name could not be accessed with user: $g_mysql_user due to an error."
 		echo "Copy failed - please check your connection information and try again!"
-		exit 1
+		exit
 	fi
 	
 	if gf_check_db_connection "$remote_dbhost" "$remote_dbname" "$remote_dbuser" "$remote_dbpass" "$remote_dbport"; then
@@ -166,7 +166,7 @@ then
 	else
 		echo "Remote Database: $remote_dbname on IP: $remote_dbhost could not be accessed with user: $remote_dbuser due to an error."
 		echo "Copy failed - please check your connection information and try again!"
-		exit 1
+		exit
 	fi
 
 	echo "Database has been copied to Remote server for $domain"
@@ -190,7 +190,7 @@ then
 	else
 		echo "Remote Database could not be accessed due to an error."
 		echo "Copy failed - please check your connection information and try again!"
-		exit 1
+		exit
 	fi
 
 	if gf_check_db_connection "localhost" "$local_dbname" "$local_dbuser" "$local_dbpass"; then
@@ -204,7 +204,7 @@ then
 	else
 		echo "Local Database could not be accessed for copying $domain due to an error."
 		echo "Copy failed - please check your connection information and try again!"
-		exit 1
+		exit
 	fi
 
 	echo "Database has been copied to localhost server for $domain"

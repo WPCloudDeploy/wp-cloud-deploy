@@ -67,9 +67,8 @@ if [ "$g_webserver_type" = "nginx" ]; then
 
 	# Restarting php
 	echo $(date): "Restarting PHP processes..."
-	if [ ! -f /etc/wpcd/php-versions-disabled/php${phpver} ] ; then
-		systemctl restart php${phpver}-fpm > /dev/null 2>&1
-	fi
+	rm /etc/wpcd/php-versions-disabled/$phpver
+	systemctl restart php${phpver}-fpm > /dev/null 2>&1
 
 # OLS Wrapper
 elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]; then	

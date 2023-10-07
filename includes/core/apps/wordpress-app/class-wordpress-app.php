@@ -1079,12 +1079,10 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	 */
 	public function is_old_php_version_installed( $server_id, $php_version ) {
 
-		/*
 		// "old" versions are 5.6, 7.0, 7.1. 7.2, 7.3.
-		if ( ! in_array( $php_version, array( '56', '70', '71', '72', '73') ) ) {
+		if ( ! in_array( $php_version, array( '56', '70', '71', '72', '73' ) ) ) {
 			return false;
 		}
-		*/
 
 		$initial_plugin_version = $this->get_server_meta_by_app_id( $server_id, 'wpcd_server_plugin_initial_version', true );  // This function is smart enough to know if the ID being passed is a server or app id and adjust accordingly.
 
@@ -1240,6 +1238,26 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		}
 
 		return $return;
+	}
+
+
+	/**
+	 * Set the state of a php version after it's been activated/deactivated.
+	 *
+	 * @param int    $server_id ID of server being interrogated.
+	 * @param string $php_version PHP version - eg: php56, php71, php72 etc.
+	 * @param string $php_activation_state - 'enabled', 'disabled'.
+	 */
+	public function set_php_activation_state( $server_id, $php_version, $php_activation_state ) {
+
+		$current_php_activation_state = wpcd_maybe_unserialize( get_post_meta( $server_id, 'wpcd_wpapp_php_activation_state', true ) );
+		if ( empty( $current_php_activation_state ) ) {
+			$current_php_activation_state = array();
+		}
+
+		$current_php_activation_state[ $php_version ] = $php_activation_state;
+		update_post_meta( $server_id, 'wpcd_wpapp_php_activation_state', $current_php_activation_state );
+
 	}
 
 	/**

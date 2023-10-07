@@ -917,7 +917,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 
 		// Add in old php versions (5.6, 7.1, 7.2, 7.3) as necessary.
 		if ( $this->is_old_php_version_installed( $id, '56' ) ) {
-			$php_services['php56'] = $default_status;
+			$php_services_status['php56'] = $default_status;
 		}
 
 		if ( $this->is_old_php_version_installed( $id, '71' ) ) {
@@ -1664,23 +1664,15 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			/* translators: %1$s is replaced with the internal action name; %2$s is replaced with the result of the call, usually an error message. */
 			return new \WP_Error( sprintf( __( 'Unable to perform action %1$s for server: %2$s', 'wpcd' ), $action, $result ) );
 		} else {
-			// Get current php states from metas.
-			$current_php_activation_state = wpcd_maybe_unserialize( get_post_meta( $id, 'wpcd_wpapp_php_activation_state', true ) );
-			if ( empty( $current_php_activation_state ) ) {
-				$current_php_activation_state = array();
-			}
-
 			// Enable or disable based on action.
 			$return_msg = __( 'Action failed', 'wpcd' );  // default message - we should never really be in a state where this is shown and retured to the end user because one of the actions below should overwrite it!
 			switch ( $action ) {
 				case 'php_version_enable':
-					$current_php_activation_state[ $php_key ] = 'enabled';
-					update_post_meta( $id, 'wpcd_wpapp_php_activation_state', $current_php_activation_state );
+					$this->set_php_activation_state( $id, $php_key, 'enabled' );
 					$return_msg = __( 'PHP Service Enabled!', 'wpcd' );
 					break;
 				case 'php_version_disable':
-					$current_php_activation_state[ $php_key ] = 'disabled';
-					update_post_meta( $id, 'wpcd_wpapp_php_activation_state', $current_php_activation_state );
+				$this->set_php_activation_state( $id, $php_key, 'disabled' );
 					$return_msg = __( 'PHP Service Disabled!', 'wpcd' );
 					break;
 			}

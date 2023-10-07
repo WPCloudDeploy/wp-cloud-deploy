@@ -906,7 +906,7 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 				),
 				// the key of the field (the key goes in the request).
 				'data-wpcd-name' => 'phpver',
-				'columns' => 4,				
+				'columns'        => 4,
 			),
 		);
 
@@ -1797,16 +1797,19 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 		switch ( $phpver ) {
 			case '5.6':
 				$meta_to_update = 'wpcd_server_php56_installed';
+				$phpkey         = 'php56';
 				break;
 			case '7.1':
 				$meta_to_update = 'wpcd_server_php70_installed';
+				$phpkey         = 'php71';
 				break;
 			case '7.2':
 				$meta_to_update = 'wpcd_server_php72_installed';
+				$phpkey         = 'php72';
 				break;
-
 			case '7.3':
 				$meta_to_update = 'wpcd_server_php73_installed';
+				$phpkey         = 'php73';
 				break;
 		}
 
@@ -1814,7 +1817,13 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 		if ( strpos( $result, 'journalctl -xe' ) !== false ) {
 			// Looks like there was a problem with restarting the NGINX - So update completion meta, add to history and return message.
 			$this->update_history( $id, $upgrade_history_key_type, $upgrade_description );
+
+			// Update meta to show that the version has been installed and activated on the server.
+			$this->set_php_activation_state( $id, $phpkey, 'enabled' );
+
+			// update server field to tag server as being updated with this new php version.
 			update_post_meta( $id, $meta_to_update, 1 );
+
 			/* translators: %s is replaced with the text of the result of the operation. */
 			return new \WP_Error( sprintf( __( 'There was a problem restarting the nginx server after the upgrade - here is the full output of the upgrade process: %s', 'wpcd' ), $result ) );
 		}
@@ -1825,7 +1834,10 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 			/* translators: %1$s is replaced with the internal action name; %2$s is replaced with the result of the call, usually an error message. */
 			return new \WP_Error( sprintf( __( 'Unable to perform action %1$s for server: %2$s', 'wpcd' ), $action, $result ) );
 		} else {
-			// update server field to tag server as being upgraded.
+			// Update meta to show that the version has been installed and activated on the server.
+			$this->set_php_activation_state( $id, $phpkey, 'enabled' );
+
+			// update server field to tag server as being updated with this new php version.
 			update_post_meta( $id, $meta_to_update, 1 );
 
 			// Let user know command is complete and force a page rfresh.

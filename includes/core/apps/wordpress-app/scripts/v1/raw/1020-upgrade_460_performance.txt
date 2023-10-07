@@ -6,6 +6,15 @@ if [[ "$EUID" -ne 0 ]]; then
 	exit
 fi
 
+##############################################
+## No Longer Supported
+##############################################
+echo "#####################################################################################################"
+echo "This upgrade routine is no longer supported."
+echo "If you find that you have to run this for some reason, please contact our technical support folks!"
+exit
+echo "#####################################################################################################"
+
 ## Get our common functions
 if [[ ! -f 9999-common-functions.sh ]]
 then

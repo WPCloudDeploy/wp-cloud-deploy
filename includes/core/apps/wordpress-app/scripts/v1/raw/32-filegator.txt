@@ -41,26 +41,6 @@ processing_dependencies() {
     if [[ $? -ne 0 ]]; then
         apt install -y git > /dev/null 2>&1
     fi
-    apt list --installed 2>&1 | grep -q php5.6-zip
-    if [[ $? -ne 0 ]]; then
-        apt install -y php5.6-zip > /dev/null 2>&1
-    fi
-    apt list --installed 2>&1 | grep -q php7.1-zip
-    if [[ $? -ne 0 ]]; then
-        apt install -y php7.1-zip > /dev/null 2>&1
-    fi
-    apt list --installed 2>&1 | grep -q php7.2-zip 
-    if [[ $? -ne 0 ]]; then
-        apt install -y php7.2-zip > /dev/null 2>&1
-    fi
-    apt list --installed 2>&1 | grep -q php7.3-zip
-    if [[ $? -ne 0 ]]; then
-        apt install -y php7.4-zip > /dev/null 2>&1
-    fi
-    apt list --installed 2>&1 | grep -q php7.4-zip
-    if [[ $? -ne 0 ]]; then
-        apt install -y php7.4-zip > /dev/null 2>&1
-    fi
     apt list --installed 2>&1 | grep -q php8.0-zip
     if [[ $? -ne 0 ]]; then
         apt install -y php8.0-zip > /dev/null 2>&1

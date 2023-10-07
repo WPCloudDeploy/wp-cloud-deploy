@@ -1070,6 +1070,43 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	}
 
 	/**
+	 * Returns a boolean true/false if PHP 5.5/7.0/7.1/7.2/7.3 is supposed to be installed.
+	 *
+	 * @param int    $server_id ID of server being interrogated.
+	 * @param string $php_version PHP version being inquired about - eg: 56,70,71,72,73.
+	 *
+	 * @return boolean
+	 */
+	public function is_old_php_version_installed( $server_id, $php_version ) {
+
+		/*
+		// "old" versions are 5.6, 7.0, 7.1. 7.2, 7.3.
+		if ( ! in_array( $php_version, array( '56', '70', '71', '72', '73') ) ) {
+			return false;
+		}
+		*/
+
+		$initial_plugin_version = $this->get_server_meta_by_app_id( $server_id, 'wpcd_server_plugin_initial_version', true );  // This function is smart enough to know if the ID being passed is a server or app id and adjust accordingly.
+
+		if ( version_compare( $initial_plugin_version, '5.3.9' ) === -1 ) {
+			// Versions of the plugin before 5.3.9 automatically install PHP 5.6/7.0./7.2/7.2/7.3.
+			return true;
+		} else {
+			// See if it was manually installed via an upgrade process - which would leave a meta field value behind on the server CPT record.
+			$meta_name    = '';
+			$meta_name    = sprintf( 'wpcd_server_php%s_installed', $php_version );
+			$is_installed = (bool) $this->get_server_meta_by_app_id( $server_id, $meta_name, true );   // This function is smart enough to know if the ID being passed is a server or app id and adjust accordingly.
+			if ( true === $is_installed ) {
+				return true;
+			} else {
+				return false;
+			}
+		}
+
+		return false;
+	}
+
+	/**
 	 * Returns a boolean true/false if PHP 80 is supposed to be installed.
 	 *
 	 * @param int $server_id ID of server being interrogated.

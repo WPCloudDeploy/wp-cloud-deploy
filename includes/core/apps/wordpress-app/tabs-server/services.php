@@ -897,10 +897,6 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 
 		// Create an indexed array to hold the php services status.
 		$php_services_status = array(
-			'php56' => $default_status,
-			'php71' => $default_status,
-			'php72' => $default_status,
-			'php73' => $default_status,
 			'php74' => $default_status,
 			'php80' => $default_status,
 			'php81' => $default_status,
@@ -917,6 +913,23 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 
 		if ( ! $this->is_php_82_installed( $id ) ) {
 			unset( $php_services_status['php82'] );
+		}
+
+		// Add in old php versions (5.6, 7.1, 7.2, 7.3) as necessary.
+		if ( $this->is_old_php_version_installed( $id, '56' ) ) {
+			$php_services['php56'] = $default_status;
+		}
+
+		if ( $this->is_old_php_version_installed( $id, '71' ) ) {
+			$php_services_status['php71'] = $default_status;
+		}
+
+		if ( $this->is_old_php_version_installed( $id, '72' ) ) {
+			$php_services_status['php72'] = $default_status;
+		}
+
+		if ( $this->is_old_php_version_installed( $id, '73' ) ) {
+			$php_services_status['php73'] = $default_status;
 		}
 
 		// Loop through the $services_status array and update the $php_services_status array for any entries present in $services_status array.
@@ -1405,15 +1418,27 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 
 		// Array of PHP service commands.
 		$php_services = array(
-			'php56' => 'sudo service php5.6-fpm status',
-			'php71' => 'sudo service php7.1-fpm status',
-			'php72' => 'sudo service php7.2-fpm status',
-			'php73' => 'sudo service php7.3-fpm status',
 			'php74' => 'sudo service php7.4-fpm status',
 			'php80' => 'sudo service php8.0-fpm status',
 			'php81' => 'sudo service php8.1-fpm status',
 			'php82' => 'sudo service php8.2-fpm status',
 		);
+
+		if ( $this->is_old_php_version_installed( $id, '56' ) ) {
+			$php_services['php56'] = 'sudo service php5.6-fpm status';
+		}
+
+		if ( $this->is_old_php_version_installed( $id, '71' ) ) {
+			$php_services['php71'] = 'sudo service php7.1-fpm status';
+		}
+
+		if ( $this->is_old_php_version_installed( $id, '72' ) ) {
+			$php_services['php72'] = 'sudo service php7.2-fpm status';
+		}
+
+		if ( $this->is_old_php_version_installed( $id, '73' ) ) {
+			$php_services['php73'] = 'sudo service php7.3-fpm status';
+		}
 
 		// Loop through the array and get the status of each php service.
 		foreach ( $php_services as $service_key => $service_command ) {

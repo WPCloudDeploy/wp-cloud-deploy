@@ -245,10 +245,6 @@ function netdata_install
 QUERY
 
 if [ "$g_webserver_type" = "nginx" ] ; then
-	sed -i "s%.*pm.status_path.*%pm.status_path=/status56%g" /etc/php/5.6/fpm/pool.d/www.conf
-	sed -i "s%.*pm.status_path.*%pm.status_path=/status71%g" /etc/php/7.1/fpm/pool.d/www.conf
-	sed -i "s%.*pm.status_path.*%pm.status_path=/status72%g" /etc/php/7.2/fpm/pool.d/www.conf
-	sed -i "s%.*pm.status_path.*%pm.status_path=/status73%g" /etc/php/7.3/fpm/pool.d/www.conf
 	sed -i "s%.*pm.status_path.*%pm.status_path=/status74%g" /etc/php/7.4/fpm/pool.d/www.conf
 	sed -i "s%.*pm.status_path.*%pm.status_path=/status80%g" /etc/php/8.0/fpm/pool.d/www.conf
 	sed -i "s%.*pm.status_path.*%pm.status_path=/status80%g" /etc/php/8.1/fpm/pool.d/www.conf
@@ -263,30 +259,6 @@ if [ "$g_webserver_type" = "nginx" ] ; then
 			systemctl restart php$version-fpm > /dev/null 2>&1
 		fi
 	done
-
-	grep status56 /etc/nginx/sites-enabled/default
-	if [ $? -ne 0 ]
-	then
-		sed -i '/server_name _;/a location = /status56 { \n fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name; \n fastcgi_index index.php; \n include fastcgi_params; \n fastcgi_pass   unix:/run/php/php5.6-fpm.sock; \n }' /etc/nginx/sites-enabled/default
-	fi
-
-	grep status71 /etc/nginx/sites-enabled/default
-	if [ $? -ne 0 ]
-	then
-		sed -i '/server_name _;/a location = /status71 { \n fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name; \n fastcgi_index index.php; \n include fastcgi_params; \n fastcgi_pass   unix:/run/php/php7.1-fpm.sock; \n }' /etc/nginx/sites-enabled/default
-	fi
-
-	grep status72 /etc/nginx/sites-enabled/default
-	if [ $? -ne 0 ]
-	then
-		sed -i '/server_name _;/a location = /status72 { \n fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name; \n fastcgi_index index.php; \n include fastcgi_params; \n fastcgi_pass   unix:/run/php/php7.2-fpm.sock; \n }' /etc/nginx/sites-enabled/default
-	fi
-
-	grep status73 /etc/nginx/sites-enabled/default
-	if [ $? -ne 0 ]
-	then
-		sed -i '/server_name _;/a location = /status73 { \n fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name; \n fastcgi_index index.php; \n include fastcgi_params; \n fastcgi_pass   unix:/run/php/php7.3-fpm.sock; \n }' /etc/nginx/sites-enabled/default
-	fi
 
 	grep status74 /etc/nginx/sites-enabled/default
 	if [ $? -ne 0 ]
@@ -314,14 +286,6 @@ if [ "$g_webserver_type" = "nginx" ] ; then
 
 	echo "
 	jobs:
-	- name: php56
-		url: http://localhost/status56?full&json
-	- name: php71
-		url: http://localhost/status71?full&json
-	- name: php72
-		url: http://localhost/status72?full&json
-	- name: php73
-		url: http://localhost/status73?full&json
 	- name: php74
 		url: http://localhost/status74?full&json
 	- name: php80

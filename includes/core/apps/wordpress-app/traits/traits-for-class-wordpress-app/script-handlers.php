@@ -112,7 +112,7 @@ trait wpcd_wpapp_script_handlers {
 				( strpos( $result, 'SSH password auth has been disabled for user' ) !== false );
 				break;
 			case 'change_php_version_misc.txt':
-				$return = 
+				$return =
 				( strpos( $result, 'PHP version changed to' ) !== false )
 				||
 				( strpos( $result, 'PHP version remains at' ) !== false );
@@ -345,12 +345,12 @@ trait wpcd_wpapp_script_handlers {
 				break;
 			case 'passwordless_login.txt':
 				// for this one we just want to make sure that the last line has a string that starts with http:
-				list($url_array[]) = array_slice(explode(PHP_EOL, trim( $result )), -1, 1);
-				$return =
+				list($url_array[]) = array_slice( explode( PHP_EOL, trim( $result ) ), -1, 1 );
+				$return            =
 				( strpos( $url_array[0], 'http://' ) !== false )
 				||
 				( strpos( $url_array[0], 'https://' ) !== false );
-				break;				
+				break;
 			case 'git_control_site_command.txt':
 			case 'git_control_site.txt':
 				$return =
@@ -480,6 +480,9 @@ trait wpcd_wpapp_script_handlers {
 				break;
 			case 'run_upgrade_install_php_82.txt':
 				$return = ( strpos( $result, 'PHP 8.2 has been installed' ) !== false );
+				break;
+			case 'run_upgrade_install_old_php_version.txt':
+				$return = ( strpos( $result, 'has been installed' ) !== false );
 				break;
 			case 'run_upgrade_7g.txt':
 				$return = ( strpos( $result, 'The 7G Firewall has been upgraded' ) !== false );
@@ -1475,6 +1478,16 @@ trait wpcd_wpapp_script_handlers {
 					array(
 						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/1110-upgrade_install_php_82.txt',
 						'SCRIPT_NAME' => '1110-upgrade_install_php_82.sh',
+					),
+					$common_array,
+					$additional
+				);
+				break;
+			case 'run_upgrade_install_old_php_version.txt':
+				$new_array = array_merge(
+					array(
+						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/1130-upgrade_install_php.txt',
+						'SCRIPT_NAME' => '1130-upgrade_install_php.sh',
 					),
 					$common_array,
 					$additional

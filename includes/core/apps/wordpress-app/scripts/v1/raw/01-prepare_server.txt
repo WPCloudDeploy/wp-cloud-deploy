@@ -160,7 +160,7 @@ then
 
 	# Adding and installing PHP stack
 	echo $(date): "Installing PHP versions - this will take a while too!"
-	phpversion=(5.6 7.1 7.2 7.3 7.4 8.0 8.1 8.2)
+	phpversion=(7.4 8.0 8.1 8.2)
 	for ver in "${phpversion[@]}"
 	do
 		echo $(date): ".....PHP $ver"
@@ -363,7 +363,7 @@ else
 	then
 		# Update php.ini file to increase filesize uploads allowed in WordPress
 		echo $(date): "Adding required entries in php.ini to allow for larger file uploads in WordPress..."
-		phpversion=(5.6 7.1 7.2 7.3 7.4 8.0 8.1 8.2)
+		phpversion=(7.4 8.0 8.1 8.2)
 		for ver in "${phpversion[@]}"
 		do
 			sed -i "s/upload_max_filesize = 2M/upload_max_filesize = 25M/g" /etc/php/$ver/fpm/php.ini

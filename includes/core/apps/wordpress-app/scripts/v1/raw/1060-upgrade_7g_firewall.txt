@@ -1,5 +1,5 @@
 #!/bin/bash
-# This script will upgrade the 7G firewall to V 1.5.
+# This script will upgrade the 7G firewall to V 1.6.
 
 ## Get our common functions
 if [[ ! -f 9999-common-functions.sh ]]

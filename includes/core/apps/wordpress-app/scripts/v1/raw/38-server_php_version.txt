@@ -52,7 +52,7 @@ function update_lsphp_default_version(){
 		sudo update-alternatives --install /usr/bin/pecl pecl /usr/local/lsws/lsphp${phpver}/bin/pecl 111
 		sudo update-alternatives --install /usr/lib/pear pear /usr/local/lsws/lsphp${phpver}/bin/pear 111
 
-	elif [ "$phpver" = "74" ] || [ "$phpver" = "80" ]  || [ "$phpver" = "81" ] || [ "$phpver" = "82" ] || [ "$phpver" = "90" ]; then
+	elif [ "$phpver" = "74" ] || [ "$phpver" = "80" ]  || [ "$phpver" = "81" ] || [ "$phpver" = "82" ] || [ "$phpver" = "83" ] || [ "$phpver" = "90" ]; then
 		# for 74,80,81,etc with versioned phar: phar${lsphpver}.phar
 		sudo update-alternatives --install /usr/bin/php php /usr/local/lsws/lsphp${phpver}/bin/php 111
 		sudo update-alternatives --install /usr/bin/phar phar /usr/local/lsws/lsphp${phpver}/bin/phar${lsphpver}.phar 111

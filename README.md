@@ -130,6 +130,7 @@ Note: Even though the entire git development history isn't available on github, 
 ------
 * New: WPAPP - Option to download 'nightly' WordPress builds.
 * New: WPAPP - Passwordless login link now available if you're an admin.
+* New: WPAPP - Site Packages.
 * Tweak: WPAPP - Drop support for PHP 5.6/7.0./7.1/7.2/7.3 on NGINX.  These versions will no longer be installed by default on new servers. 
 * Tweak: WPAPP - Drop support for tls 1.0 and 1.1 - explicitly set the list of accepted protocols on new nginx servers.
 * Tweak: WPAPP - Make Ubuntu 22.04 the default OS for new servers and the default in settings if no other default version is specified.

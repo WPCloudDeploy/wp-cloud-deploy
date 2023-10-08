@@ -357,4 +357,26 @@ class WPCD_POSTS_Site_Package extends WPCD_Posts_Base {
 		return $metaboxes;
 	}
 
+	/**
+	 * Return an array of postids=>title of all published site package records.
+	 */
+	public function get_site_packages() {
+
+		// Get list of product packages into an array to prepare it for display.
+		$wpcd_site_packages = get_posts(
+			array(
+				'post_type'   => 'wpcd_site_package',
+				'post_status' => 'publish',
+				'numberposts' => -1,
+			)
+		);
+		$wpcd_site_package_list = array( 0 => __( 'None', 'wpcd' ) );
+		foreach ( $wpcd_site_packages as $key => $value ) {
+			$wpcd_site_package_list[ $value->ID ] = $value->post_title;
+		}
+
+		return $wpcd_site_package_list;
+
+	}
+
 }

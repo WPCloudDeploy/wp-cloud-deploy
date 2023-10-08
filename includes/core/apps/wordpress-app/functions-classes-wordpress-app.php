@@ -21,3 +21,7 @@ function wpcd_init_site_package() {
 		}
 	}
 }
+
+function WPCD_SITE_PACKAGE() {
+	return WPCD()->classes['WPCD_SITE_PACKAGE'];
+}

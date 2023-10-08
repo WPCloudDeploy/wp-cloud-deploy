@@ -235,7 +235,7 @@ trait wpcd_wpapp_multi_tenant_app {
 	/**
 	 * Return the mt version history meta value.
 	 *
-	 * Note: The functions to add and update the verions array
+	 * Note: The functions to add and update the versions array
 	 * for a site is still in the multi-tenant tab file since
 	 * they are not used anywhere else - yet.
 	 *

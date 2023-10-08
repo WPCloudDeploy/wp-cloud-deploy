@@ -3012,6 +3012,12 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			}
 		}
 
+		// Set site package id if one is passed in.
+		$wp_site_package = 0;
+		if ( ! empty( $args['wp_site_package'] ) ) {
+			$wp_site_package = $args['wp_site_package'];
+		}
+
 		// Get other fields needed to provision the site.
 		$wp_user     = sanitize_user( sanitize_text_field( $args['wp_user'] ) );
 		$wp_password = $args['wp_password'];  // Note that we are NOT sanitizing the password field.  We'll escape every non-alpha-numeric character later before passing to bash.
@@ -3053,6 +3059,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			'wp_email'             => escapeshellarg( $wp_email ),
 			'wp_version'           => escapeshellarg( $wp_version ),
 			'wp_locale'            => escapeshellarg( $wp_locale ),
+			'wp_site_package'      => escapeshellarg( $wp_site_package ),
 		);
 
 		// Add custom fields into the $additional array - these fields are from the app-popup in wp-admin...
@@ -3287,7 +3294,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			 * Note that we are passing in the $args variable to the anonymous function by REFERENCE via a USE parm.
 			 * In the VPN app we were using $instance but not sure that is needed here * its not passed into this function right now anyway.
 			*/
-			$appfields = array( 'domain', 'user', 'email', 'version', 'original_domain' );
+			$appfields = array( 'domain', 'user', 'email', 'version', 'original_domain', 'site_package' );
 			$appfields = apply_filters( "wpcd_{$this->get_app_name()}_add_wp_app_post_fields", $appfields );
 			$x         = array_map(
 				function( $f ) use ( &$args, $app_post_id ) {
@@ -3383,6 +3390,261 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 		// Install page_cache.
 		$this->handle_page_cache_for_new_site( $app_id, $instance );
+
+		// Handle site package rules.
+		$this->handle_site_package_rules( $app_id );
+
+	}
+
+	/**
+	 * Execute the site package rules for a site after install is complete.
+	 *
+	 * Warning: This only gets called automatically on new sites right now.
+	 * It does not get called when sites are cloned.
+	 * However, our WOOCOMMERCE module will manually force a to this for
+	 * products that use template sites.
+	 *
+	 * @param int  $app_id The post id of the app record.
+	 * @param int  $in_site_package_id Apply this site package to the site instead of reading it from post meta.
+	 * @param bool $is_subscription_switch Whether this is being called from a woocommerce subscription switch.
+	 */
+	public function handle_site_package_rules( $app_id, $in_site_package_id = 0, $is_subscription_switch = false ) {
+
+		if ( empty( $in_site_package_id ) ) {
+			// Get the site package from the app record.
+			$site_package_id = get_post_meta( $app_id, 'wpapp_site_package', true );
+		} else {
+			// Get the site package id from incoming args.
+			$site_package_id = $in_site_package_id;
+		}
+
+		// Bail if no package id.
+		if ( empty( $site_package_id ) ) {
+			return;
+		}
+
+		// Get the server id from the app_id.
+		$server_id = $this->get_server_id_by_app_id( $app_id );
+
+		// Bail if no server id.
+		if ( empty( $server_id ) ) {
+			return;
+		}
+
+		// Get the post record.
+		$app_post = get_post( $app_id );
+
+		// Bail if not a post object.
+		if ( ! $app_post || is_wp_error( $app_post ) ) {
+			return;
+		}
+
+		// Bail if not a WordPress app...
+		if ( 'wordpress-app' <> $this->get_app_type( $app_id ) ) {
+			return;
+		}
+
+		// Get the domain.
+		$domain = $this->get_domain_name( $app_id, );
+
+		// Bail if we have no domain.
+		if ( empty( $domain ) ) {
+			return;
+		}
+
+		// Get the class instance that will allow us to send dynamic commands to the server via ssh.
+		$ssh = new WPCD_WORDPRESS_TABS();
+
+		// Push custom wp-config.php data.
+		$keypairs = get_post_meta( $site_package_id, 'wpcd_wp_config_custom_data', true );
+		if ( ! empty( $keypairs ) ) {
+			foreach ( $keypairs as $keypair ) {
+				do_action( 'wpcd_wordpress-app_do_update_wpconfig_option', $app_id, $keypair[0], $keypair[1], 'no' );
+			}
+		}
+
+		/**
+		 * Bash scripts example output (in one long script - line breaks here for readability.):
+		 * export DOMAIN=test004.wpcd.cloud &&
+		 * sudo -E wget --no-check-certificate -O wpcd_package_script_subscription_switch.sh "https://gist.githubusercontent.com/elindydotcom/4c9f96ac48199284227c0ad687aedf75/raw/5295a17b832d8bb3748e0970ba0857063fd63247/wpcd_subscription_switch_sample_script" > /dev/null 2>&1
+		 * && sudo -E dos2unix wpcd_package_script_subscription_switch.sh > /dev/null 2>&1 &&
+		 * echo "Executing Product Package Subscription Switch Bash Custom Script..." &&
+		 * sudo -E bash ./wpcd_package_script_subscription_switch.sh
+		 */
+
+		if ( false === $is_subscription_switch ) {
+			// Prepare export vars for bash scripts.
+			$exportvars = 'export DOMAIN=%s';
+			$exportvars = sprintf( $exportvars, $domain );
+
+			// Call bash script for new sites.
+			$script = get_post_meta( $site_package_id, 'wpcd_bash_scripts_new_sites_before', true );
+			if ( ! empty( $script ) ) {
+				$command  = $exportvars . ' && ';
+				$command .= 'sudo -E wget --no-check-certificate -O wpcd_site_package_script_new_subscription_before.sh "%s" > /dev/null 2>&1 ';
+				$command  = sprintf( $command, $script );  // add the script name to the string.
+				$command .= ' && sudo -E dos2unix wpcd_site_package_script_new_subscription_before.sh > /dev/null 2>&1';
+				$command .= ' && echo "Executing Product Package New Site Bash Custom Script..." ';
+				$command .= ' && sudo -E bash ./wpcd_site_package_script_new_subscription_before.sh';
+
+				$action     = 'bash_new_site_package_before';
+				$raw_status = $ssh->submit_generic_server_command( $server_id, $action, $command, true );
+			}
+		}
+
+		if ( true === $is_subscription_switch ) {
+			// Prepare export vars for bash scripts.
+			$exportvars = 'export DOMAIN=%s';
+			$exportvars = sprintf( $exportvars, $domain );
+
+			// Call bash script for new sites.
+			$script = get_post_meta( $site_package_id, 'wpcd_bash_scripts_subscription_switch_before', true );
+			if ( ! empty( $script ) ) {
+				$command  = $exportvars . ' && ';
+				$command .= 'sudo -E wget --no-check-certificate -O wpcd_package_script_subscription_switch_before.sh "%s" > /dev/null 2>&1 ';
+				$command  = sprintf( $command, $script );  // add the script name to the string.
+				$command .= ' && sudo -E dos2unix wpcd_package_script_subscription_switch_before.sh > /dev/null 2>&1';
+				$command .= ' && echo "Executing Product Package New Site Bash Custom Script..." ';
+				$command .= ' && sudo -E bash ./wpcd_package_script_subscription_switch_before.sh';
+
+				$action     = 'bash_new_site_package_before';
+				$raw_status = $ssh->submit_generic_server_command( $server_id, $action, $command, true );
+			}
+		}		
+
+		// PHP Work Values.
+		$php_pm_max_children = get_post_meta( $site_package_id, 'wpcd_php_pm_max_children', true );
+		if ( ! empty( $php_pm_max_children ) ) {
+			// get rest of php worker values.
+			$php_pm                   = get_post_meta( $site_package_id, 'wpcd_php_pm', true );
+			$php_pm_max_children      = get_post_meta( $site_package_id, 'wpcd_php_pm_max_children', true );
+			$php_pm_start_servers     = get_post_meta( $site_package_id, 'wpcd_php_pm_start_servers', true );
+			$php_pm_min_spare_servers = get_post_meta( $site_package_id, 'wpcd_php_pm_min_spare_servers', true );
+			$php_pm_max_spare_servers = get_post_meta( $site_package_id, 'wpcd_php_pm_max_spare_servers', true );
+
+			// stick them all into an array.
+			$php_pm_args['pm']                   = $php_pm;
+			$php_pm_args['pm_max_children']      = $php_pm_max_children;
+			$php_pm_args['pm_start_servers']     = $php_pm_start_servers;
+			$php_pm_args['pm_min_spare_servers'] = $php_pm_min_spare_servers;
+			$php_pm_args['pm_max_spare_servers'] = $php_pm_max_spare_servers;
+
+			// Fire action hook.
+			do_action( 'wpcd_wordpress-app_do_change_php_workers', $app_id, $php_pm_args );
+		}
+
+		// Get the list of plugins to deactivate.
+		$plugins_to_deactivate = get_post_meta( $site_package_id, 'wpcd_plugins_to_deactivate', true );
+		$plugins_to_deactivate = trim( preg_replace( '/\s+/', ' ', $plugins_to_deactivate ) );
+
+		// Deactivate plugins. This should not be necessary for new sites but might be called from WC in a subscription switch.
+		// So, for its better for sequencing to do it here and deactivate plugins before attempting to activate anything else.
+		if ( ! empty( $plugins_to_deactivate ) ) {
+			$command    = sprintf( 'sudo su - "%s" -c "wp --no-color plugin deactivate %s" ', $domain, $plugins_to_deactivate );
+			$action     = 'deactivate_plugins';
+			$raw_status = $ssh->submit_generic_server_command( $server_id, $action, $command, true );
+		}
+
+		// Get the list of repo plugins to install and activate.
+		$plugins_to_install_activate = get_post_meta( $site_package_id, 'wpcd_plugins_to_install_from_repo', true );
+		$plugins_to_install_activate = trim( preg_replace( '/\s+/', ' ', $plugins_to_install_activate ) );
+
+		// Install and activate repo plugins.
+		if ( ! empty( $plugins_to_install_activate ) ) {
+			$command    = sprintf( 'sudo su - "%s" -c "wp --no-color plugin install %s --activate" ', $domain, $plugins_to_install_activate );
+			$action     = 'activate_plugins_from_repo';
+			$raw_status = $ssh->submit_generic_server_command( $server_id, $action, $command, true );
+		}
+
+		// Get the list of custom url plugins to install and activate.
+		$plugins_to_install_activate = get_post_meta( $site_package_id, 'wpcd_plugins_to_install_from_url', true );
+		$plugins_to_install_activate = trim( preg_replace( '/\s+/', ' ', $plugins_to_install_activate ) );
+
+		// Install and activate external/custom url plugins.
+		if ( ! empty( $plugins_to_install_activate ) ) {
+			$command    = sprintf( 'sudo su - "%s" -c "wp --no-color plugin install %s --activate" ', $domain, $plugins_to_install_activate );
+			$action     = 'activate_plugins_external';
+			$raw_status = $ssh->submit_generic_server_command( $server_id, $action, $command, true );
+		}
+
+		// Get the list of pre-installed plugins to activate.
+		// This will really only apply if WC is in use with template sites.
+		$plugins_to_activate = get_post_meta( $site_package_id, 'wpcd_plugins_to_activate', true );
+		$plugins_to_activate = trim( preg_replace( '/\s+/', ' ', $plugins_to_activate ) );
+
+		// Activate plugins.
+		if ( ! empty( $plugins_to_activate ) ) {
+			$command    = sprintf( 'sudo su - "%s" -c "wp --no-color plugin activate %s" ', $domain, $plugins_to_activate );
+			$action     = 'activate_plugins';
+			$raw_status = $ssh->submit_generic_server_command( $id, $action, $command, true );
+		}
+
+		// Get the list of repo themes to install.
+		$themes_to_install = get_post_meta( $site_package_id, 'wpcd_themes_to_install_from_repo', true );
+		$themes_to_install = trim( preg_replace( '/\s+/', ' ', $themes_to_install ) );
+
+		// Install repo themes.
+		if ( ! empty( $themes_to_install ) ) {
+			$command    = sprintf( 'sudo su - "%s" -c "wp --no-color theme install %s " ', $domain, $themes_to_install );
+			$action     = 'install_themes_from_repo';
+			$raw_status = $ssh->submit_generic_server_command( $server_id, $action, $command, true );
+		}
+
+		// Get the list of external themes to install.
+		$themes_to_install = get_post_meta( $site_package_id, 'wpcd_themes_to_install_from_url', true );
+		$themes_to_install = trim( preg_replace( '/\s+/', ' ', $themes_to_install ) );
+
+		// Install external themes.
+		if ( ! empty( $themes_to_install ) ) {
+			$command    = sprintf( 'sudo su - "%s" -c "wp --no-color theme install %s " ', $domain, $themes_to_install );
+			$action     = 'install_themes_external';
+			$raw_status = $ssh->submit_generic_server_command( $server_id, $action, $command, true );
+		}
+
+		// Activate theme.
+		$theme_to_activate = get_post_meta( $site_package_id, 'wpcd_theme_to_activate', true );
+		if ( ! empty( $theme_to_activate ) ) {
+			$command    = sprintf( 'sudo su - "%s" -c "wp --no-color theme activate %s" ', $domain, $theme_to_activate );
+			$action     = 'activate_plugins';
+			$raw_status = $ssh->submit_generic_server_command( $server_id, $action, $command, true );
+		}
+
+		// Search and replace here - future use.
+
+		// Crons here - future use.
+
+		/**
+		 * Bash scripts example output (in one long script - line breaks here for readability.):
+		 * export DOMAIN=test004.wpcd.cloud &&
+		 * sudo -E wget --no-check-certificate -O wpcd_package_script_subscription_switch.sh "https://gist.githubusercontent.com/elindydotcom/4c9f96ac48199284227c0ad687aedf75/raw/5295a17b832d8bb3748e0970ba0857063fd63247/wpcd_subscription_switch_sample_script" > /dev/null 2>&1
+		 * && sudo -E dos2unix wpcd_package_script_subscription_switch.sh > /dev/null 2>&1 &&
+		 * echo "Executing Product Package Subscription Switch Bash Custom Script..." &&
+		 * sudo -E bash ./wpcd_package_script_subscription_switch.sh
+		 */
+
+		if ( false === $is_subscription_switch ) {
+			// Prepare export vars for bash scripts.
+			$exportvars = 'export DOMAIN=%s';
+			$exportvars = sprintf( $exportvars, $domain );
+
+			// Call bash script for new sites.
+			$script = get_post_meta( $site_package_id, 'wpcd_bash_scripts_new_sites_after', true );
+			if ( ! empty( $script ) ) {
+				$command  = $exportvars . ' && ';
+				$command .= 'sudo -E wget --no-check-certificate -O wpcd_site_package_script_new_subscription_after.sh "%s" > /dev/null 2>&1 ';
+				$command  = sprintf( $command, $script );  // add the script name to the string.
+				$command .= ' && sudo -E dos2unix wpcd_site_package_script_new_subscription_after.sh > /dev/null 2>&1';
+				$command .= ' && echo "Executing Product Package New Site Bash Custom Script..." ';
+				$command .= ' && sudo -E bash ./wpcd_site_package_script_new_subscription_after.sh';
+
+				$action     = 'bash_new_site_package_after';
+				$raw_status = $ssh->submit_generic_server_command( $server_id, $action, $command, true );
+			}
+		}
+
+		// If we get here then it means that we have completed the core site package rules.
+		// So flag the record as such.
+		update_post_meta( $app_id, 'wpapp_site_package_core_rules_complete', true );
 
 	}
 

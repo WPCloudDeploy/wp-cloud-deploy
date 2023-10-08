@@ -476,6 +476,8 @@ class WPCD_Init {
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/class-wordpress-app.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/class-wordpress-app-settings.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/class-wordpress-ssh.php';
+		require_once wpcd_path . 'includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php';
+		require_once wpcd_path . 'includes/core/apps/wordpress-app/functions-classes-wordpress-app.php';
 
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/public/class-wordpress-app-public.php';
 		require_once wpcd_path . 'includes/core/wp-cloud-deploy.php';

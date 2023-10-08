@@ -1,6 +1,6 @@
 <?php
 /**
- * This file contains functions that spin up classes or declare globally accesible functions.
+ * This file contains functions that spin up classes or declare globally accessible functions.
  *
  * @package wpcd
  */

@@ -130,20 +130,21 @@ Note: Even though the entire git development history isn't available on github, 
 ------
 * New: WPAPP - Option to download 'nightly' WordPress builds.
 * New: WPAPP - Passwordless login link now available if you're an admin.
+* New: WPAPP - Site Packages.
 * Tweak: WPAPP - Drop support for PHP 5.6/7.0./7.1/7.2/7.3 on NGINX.  These versions will no longer be installed by default on new servers. 
 * Tweak: WPAPP - Drop support for tls 1.0 and 1.1 - explicitly set the list of accepted protocols on new nginx servers.
 * Tweak: WPAPP - Make Ubuntu 22.04 the default OS for new servers and the default in settings if no other default version is specified.
 * Tweak: WPAPP - PHP 7.4 is now shown with an orange border (caution) in the apps list (since 7.4 no longer receives security updates).
-* Tweak: WPAPP - Users with the wpcd_manage_all capability should be able to run the setup wizard the first time.
+* Tweak: WPAPP - Users with the wpcd_manage_all capability should be able to run the setup wizard the first time even if they're not WordPress admins..
 * Tweak: WPAPP - Add settings option to still show the INSTALL WORDPRESS button when the background updates running warning appears.
 * Tweak: WPAPP - Login links for front-end and wp-admin will not show if site is disabled.
-* Fix: WPAPP - Setup wizard needs to clear cache after auto-creating ssh keys.
-* Fix: WPAPP - Update Setup wizard to point to the correct url for linode api tokens.
+* Fix: WPAPP - Setup wizard needed to clear cache after auto-creating ssh keys.
+* Fix: WPAPP - Update the setup wizard to point to the correct url for linode api tokens.
 * Fix: WPAPP - Server owners could not see the DELETE option when not an admin.
-* Fix: WPAPP - (security) blank out password in logs if admin adds or changes from inside wpcd.
-* Dev: WPAPP - Add action hook and associated helper function for the 'wp_site_update_wpconfig_option' bash action.
-* Dev: WPAPP - Add action hook and associated helper function for the 'add_php_param' bash action.
-* Dev: WPAPP - Add action hook and associated helper function for the 'change_php_workers' bash action.
+* Fix: WPAPP - (security) blank out a password in logs if admin adds or changes from inside wpcd.
+* Dev: WPAPP - Add an action hook and associated helper function for the 'wp_site_update_wpconfig_option' bash action.
+* Dev: WPAPP - Add an action hook and associated helper function for the 'add_php_param' bash action.
+* Dev: WPAPP - Add an action hook and associated helper function for the 'change_php_workers' bash action.
 * Dev: WPAPP - Restore some action hooks that were inadvertently removed in 5.3.0.
 
 5.3.8

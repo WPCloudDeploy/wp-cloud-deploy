@@ -145,7 +145,24 @@
 						<input type="email" name="wp_email" placeholder="<?php echo esc_attr( __( 'Email', 'wpcd' ) ); ?>" >
 						<div class='wp_field_error wp_check_email_error_msg'><?php echo esc_html( __( 'Please enter a valid email address.', 'wpcd' ) ); ?></div>
 						<div class='wp_field_error wp_email_error_msg'><?php echo esc_html( __( 'The following characters are invalid in email field:  \' " ; \ | < > & ( ) ` and spaces, carriage returns, linefeeds.', 'wpcd' ) ); ?></div>
-					</div>				
+					</div>
+
+					<div class="wpcd-create-popup-label-wrap"><label class="wpcd-create-popup-label" for="wp_site_package"> <?php echo esc_html( __( 'Site Package', 'wpcd' ) ); ?>  </label></div>
+					<div class="wpcd-create-popup-input-wrap wpcd-create-popup-input-site-package-select-wrap">
+					<?php
+						$site_packages = WPCD_SITE_PACKAGE()->get_site_packages();
+					?>
+						<select name="wp_site_package" id="wpcd-site-package" style="width: 150px;">
+						<?php
+						foreach ( $site_packages as $site_package_key => $site_package ) {
+							?>
+									<option value="<?php echo esc_attr( $site_package_key ); ?>"><?php echo esc_html( $site_package ); ?></option>
+								<?php
+						}
+						?>
+						</select>
+					</div>
+
 					<!-- <input type="text" name="wp_version" placeholder="<?php echo esc_attr( __( 'Version', 'wpcd' ) ); ?>" value="latest"> -->
 					<div class="wpcd-create-popup-label-wrap"><label class="wpcd-create-popup-label" for="wp_version"> <?php echo esc_html( __( 'WordPress Version', 'wpcd' ) ); ?>  </label></div>
 					<div class="wpcd-create-popup-input-wrap wpcd-create-popup-input-wp-version-select2-wrap">

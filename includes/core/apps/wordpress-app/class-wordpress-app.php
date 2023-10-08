@@ -3399,12 +3399,23 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	/**
 	 * Execute the site package rules for a site after install is complete.
 	 *
+	 * Warning: This only gets called automatically on new sites right now.
+	 * It does not get called when sites are cloned.
+	 * However, our WOOCOMMERCE module will manually force a to this for
+	 * products that use template sites.
+	 *
 	 * @param int $app_id The post id of the app record.
+	 * @param int $in_site_package_id Apply this site package to the site instead of reading it from post meta.
 	 */
-	public function handle_site_package_rules( $app_id ) {
+	public function handle_site_package_rules( $app_id, $in_site_package_id = 0 ) {
 
-		// Get the site package from the app record.
-		$site_package_id = get_post_meta( $app_id, 'wpapp_site_package', true );
+		if ( empty( $in_site_package_id ) ) {
+			// Get the site package from the app record.
+			$site_package_id = get_post_meta( $app_id, 'wpapp_site_package', true );
+		} else {
+			// Get the site package id from incoming args.
+			$site_package_id = $in_site_package_id;
+		}
 
 		// Bail if no package id.
 		if ( empty( $site_package_id ) ) {
@@ -3470,6 +3481,18 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 			// Fire action hook.
 			do_action( 'wpcd_wordpress-app_do_change_php_workers', $app_id, $php_pm_args );
+		}
+
+		// Get the list of plugins to deactivate.
+		$plugins_to_deactivate = get_post_meta( $site_package_id, 'wpcd_plugins_to_deactivate', true );
+		$plugins_to_deactivate = trim( preg_replace( '/\s+/', ' ', $plugins_to_deactivate ) );
+
+		// Deactivate plugins. This should not be necessary for new sites but might be called from WC in a subscription switch.
+		// So, for its better for sequencing to do it here and deactivate plugins before attempting to activate anything else.
+		if ( ! empty( $plugins_to_deactivate ) ) {
+			$command    = sprintf( 'sudo su - "%s" -c "wp --no-color plugin deactivate %s" ', $domain, $plugins_to_deactivate );
+			$action     = 'deactivate_plugins';
+			$raw_status = $ssh->submit_generic_server_command( $server_id, $action, $command, true );
 		}
 
 		// Get the list of repo plugins to install and activate.
@@ -3538,7 +3561,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		 */
 
 		// Prepare export vars for bash scripts.
-		$exportvars = 'DOMAIN=%s';
+		$exportvars = 'export DOMAIN=%s';
 		$exportvars = sprintf( $exportvars, $domain );
 
 		// Call bash script for new sites.
@@ -3554,6 +3577,10 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			$action     = 'new_site_package';
 			$raw_status = $ssh->submit_generic_server_command( $server_id, $action, $command, true );
 		}
+
+		// If we get here then it means that we have completed the core site package rules.
+		// So flag the record as such.
+		update_post_meta( $app_id, 'wpapp_site_package_core_rules_complete', true );
 
 	}
 

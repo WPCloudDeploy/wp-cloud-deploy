@@ -170,8 +170,7 @@ class WPCD_WORDPRESS_TABS_GENERAL extends WPCD_WORDPRESS_TABS {
 
 		/* Set up an HTML string with the current domain configuration */
 		$config_desc = '';
-		$site_status = $this->site_status( $id );
-		if ( 'on' === $site_status || empty( $site_status ) ) {
+		if ( true === $this->is_site_enabled( $id ) ) {
 
 			// Basic status - we're here so site is enabled.
 			$config_desc .= $ok_span . __( 'Your site seems to be ready!', 'wpcd' );

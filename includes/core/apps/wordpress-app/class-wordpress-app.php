@@ -621,6 +621,27 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			);
 		}
 
+		// Does a warning need to be shown because SITE PACKAGES are likely still running?
+		if ( true === $this->wpcd_is_site_package_running( $app_id ) ) {
+			$message  = '<b><small>' . __( 'WPCD: It appears we are still setting up this site for you.', 'wpcd' );
+			$message .= '<br />';
+			$message .= __( 'Certain actions for site packages are still running.', 'wpcd' );
+			$message .= '<br />';
+			$message .= __( 'The site should be available shortly!', 'wpcd' ) . '</b></small>';
+
+			$fields[] = array(
+				'type' => 'divider',
+			);
+
+			$fields[] = array(
+				'name'  => __( 'Not-Ready Notice', 'wpcd' ),
+				'type'  => 'custom_html',
+				'std'   => $message,
+				'class' => 'wpcd_site_details_top_row',
+			);
+
+		}
+
 		return $fields;
 	}
 
@@ -1562,12 +1583,24 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	 */
 	public function is_site_enabled( $app_id ) {
 
+		// Assume true.
+		$return = true;
+
+		// If meta shows site is disabled then return false.
 		if ( 'off' === $this->site_status( $app_id ) ) {
-			return false;
-		} else {
-			return true;
+			$return = false;
 		}
 
+		// If other indicators show site is unavailable return false.
+		// This part should probably be extracted into it's own function and added to the is_site_available() query in all the tabs.
+		// But for now it's more expdient to commingle them.
+		if ( true === $return ) {
+			if ( false === $this->is_site_available_for_commands( true, $app_id ) ) {
+				$return = false;
+			}
+		}
+
+		return $return;
 	}
 
 	/**
@@ -3452,6 +3485,10 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			return;
 		}
 
+		// Set transient to indicate to others that something is still happening.
+		$transient_name = $app_id . 'wpcd_site_package_running';
+		set_transient( $transient_name, 'running', 120 );
+
 		// Get the class instance that will allow us to send dynamic commands to the server via ssh.
 		$ssh = new WPCD_WORDPRESS_TABS();
 
@@ -3674,6 +3711,10 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		// If we get here then it means that we have completed the core site package rules.
 		// So flag the record as such.
 		update_post_meta( $app_id, 'wpapp_site_package_core_rules_complete', true );
+
+		// Clear 'in-process transient.
+		$transient_name = $app_id . 'wpcd_site_package_running';
+		delete_transient( $transient_name );
 
 	}
 
@@ -5068,8 +5109,47 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 	}
 
+	/**
+	 * This function checks to see if commands can be run
+	 * on the site.
+	 *
+	 * Filter Hook: wpcd_is_site_available_for_commands [hook not used anywhere - for future use - this function is called directly for now.]
+	 *
+	 * @param boolean $is_available   Current boolean that indicates whether the server is available.
+	 * @param int     $app_id App id to check.
+	 *
+	 * @return boolean
+	 */
+	public function is_site_available_for_commands( $is_available, $app_id ) {
 
+		if ( true === $is_available ) {
+			if ( true === $this->wpcd_is_site_package_running( $app_id ) ) {
+				return false;
+			}
+		}
 
+		return $is_available;
+	}
+
+	/**
+	 * Checks a special transient to see if site package might be running for an app/site.
+	 *
+	 * @param int $app_id The post id of the app/site.
+	 *
+	 * @return boolean
+	 */
+	public function wpcd_is_site_package_running( $app_id ) {
+
+		$is_running = false;
+
+		$transient_name = $app_id . 'wpcd_site_package_running';
+		$running_status = get_transient( $transient_name );
+		if ( 'running' === $running_status ) {
+			$is_running = true;
+		}
+
+		return $is_running;
+	}
 
 	/**
 	 * Return the REST API controller instance for a given name (base path)

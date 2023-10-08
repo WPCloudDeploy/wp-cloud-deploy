@@ -651,13 +651,23 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 								$break_char = '';
 							}
 
+							// If the site is available, show links.
+
 							if ( wpcd_is_admin() || wpcd_user_can( get_current_user_id(), 'view_app', $app_id ) || (int) get_post_field( 'post_author', $app_id ) === get_current_user_id() ) {
 
-								// Icons to navigate to front-end or wp-admin.
+								// Initialize string.
 								$app_link = '';
-								if ( 'wordpress-app' === (string) get_post_meta( $post_id, 'wpcd_server_server-type', true ) ) {
-									$app_link  = WPCD_WORDPRESS_APP()->get_formatted_wpadmin_link( $app_id, true );
-									$app_link .= ' ' . WPCD_WORDPRESS_APP()->get_formatted_site_link( $app_id, '', true );
+
+								// Icons to navigate to front-end or wp-admin.  But only if the site is available.
+								if ( true === WPCD_WORDPRESS_APP()->is_site_available_for_commands( true, $app_id ) ) {
+									if ( 'wordpress-app' === (string) get_post_meta( $post_id, 'wpcd_server_server-type', true ) ) {
+										$app_link  = WPCD_WORDPRESS_APP()->get_formatted_wpadmin_link( $app_id, true );
+										$app_link .= ' ' . WPCD_WORDPRESS_APP()->get_formatted_site_link( $app_id, '', true );
+									}
+								} else {
+									// No icon - just a note that say 'pending'
+									// Translators: %s is just a label with the word 'Pending' or similar.
+									$app_link = sprintf( '[%s]', __('Pending', 'wpcd') );
 								}
 
 								// Add in the site url label and link to management tabs.

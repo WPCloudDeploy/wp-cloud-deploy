@@ -138,6 +138,7 @@ Note: Even though the entire git development history isn't available on github, 
 * Tweak: WPAPP - Users with the wpcd_manage_all capability should be able to run the setup wizard the first time even if they're not WordPress admins..
 * Tweak: WPAPP - Add settings option to still show the INSTALL WORDPRESS button when the background updates running warning appears.
 * Tweak: WPAPP - Login links for front-end and wp-admin will not show if site is disabled.
+* Tweak: WPAPP - Add 'max_input_vars' to 'common options' section of the PHP tab for sites.
 * Fix: WPAPP - Setup wizard needed to clear cache after auto-creating ssh keys.
 * Fix: WPAPP - Update the setup wizard to point to the correct url for linode api tokens.
 * Fix: WPAPP - Server owners could not see the DELETE option when not an admin.

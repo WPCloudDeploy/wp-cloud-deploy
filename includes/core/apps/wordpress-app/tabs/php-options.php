@@ -463,6 +463,7 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 			'memory_limit'        => 'memory_limit: requires a numeric value in megabytes, eg 10M would be 10 megabtyes',
 			'max_execution_time'  => 'max_execution_time: requires a numeric value in seconds, eg 30 would be 30 seconds',
 			'max_input_time'      => 'max_input_time: requires a numeric value in seconds, eg 60 would be 60 seconds',
+			'max_input_vars'      => 'max_input_vars: requires a numeric value.',
 		);
 	}
 
@@ -472,7 +473,7 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 	 * Will be used to validate when user chooses action.
 	 */
 	private function get_common_php_options_keys() {
-		return array( 'upload_max_filesize', 'post_max_size', 'memory_limit', 'max_execution_time', 'max_input_time' );
+		return array( 'upload_max_filesize', 'post_max_size', 'memory_limit', 'max_execution_time', 'max_input_time', 'max_input_vars' );
 	}
 
 	/**

@@ -321,6 +321,48 @@ class WPCD_POSTS_Site_Package extends WPCD_Posts_Base {
 			),
 		);
 
+		/* Fields for misc php settings. */
+		$fields_php_misc = array(
+			array(
+				'name'       => __( 'PHP Version', 'wpcd' ),
+				'id'         => $prefix . 'new_php_version',
+				'type'       => 'select',
+				'options'    => array(
+					'0'   => __( 'No Change', 'wpcd' ),
+					'8.1' => '8.1',
+					'8.0' => '8.0',
+					'7.4' => '7.4',
+					'8.2' => '8.2',
+				),
+				'save_field' => true,
+				'columns'    => 3,
+			),
+			array(
+				'name'       => __( 'PHP Memory Limit (Megabytes)', 'wpcd' ),
+				'id'         => $prefix . 'php_memory_limit',
+				'type'       => 'number',
+				'save_field' => true,
+				'columns'    => 3,
+				'tooltip'    => __( 'Set to zero or empty for no change.', 'wpcd' ),
+			),
+			array(
+				'name'       => __( 'PHP Max Execution Time (Seconds)', 'wpcd' ),
+				'id'         => $prefix . 'php_max_execution_time',
+				'type'       => 'number',
+				'save_field' => true,
+				'columns'    => 3,
+				'tooltip'    => __( 'Set to zero or empty for no change.', 'wpcd' ),
+			),
+			array(
+				'name'       => __( 'PHP Max Input Vars', 'wpcd' ),
+				'id'         => $prefix . 'php_max_input_vars',
+				'type'       => 'number',
+				'save_field' => true,
+				'columns'    => 3,
+				'tooltip'    => __( 'Set to zero or empty for no change.', 'wpcd' ),
+			),			
+		);
+
 		/* Add the fields defined above to various metaboxes. */
 		if ( class_exists( 'WPCD_WooCommerce_Init' ) ) {
 			$metaboxes[] = array(
@@ -380,6 +422,14 @@ class WPCD_POSTS_Site_Package extends WPCD_Posts_Base {
 			'post_types' => array( 'wpcd_site_package' ),
 			'priority'   => 'default',
 			'fields'     => $fields_php_workers,
+		);
+
+		$metaboxes[] = array(
+			'id'         => $prefix . 'site_package_php_misc',
+			'title'      => __( 'Misc PHP Settings (NGINX)', 'wpcd' ),
+			'post_types' => array( 'wpcd_site_package' ),
+			'priority'   => 'default',
+			'fields'     => $fields_php_misc,
 		);
 
 		$metaboxes[] = array(

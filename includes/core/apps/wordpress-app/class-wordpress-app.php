@@ -3510,7 +3510,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				$action     = 'bash_new_site_package_before';
 				$raw_status = $ssh->submit_generic_server_command( $server_id, $action, $command, true );
 			}
-		}		
+		}
 
 		// PHP Work Values.
 		$php_pm_max_children = get_post_meta( $site_package_id, 'wpcd_php_pm_max_children', true );
@@ -3531,6 +3531,35 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 			// Fire action hook.
 			do_action( 'wpcd_wordpress-app_do_change_php_workers', $app_id, $php_pm_args );
+		}
+
+		// Switch PHP version.
+		$new_php_version = get_post_meta( $site_package_id, 'wpcd_new_php_version', true );
+		if ( ! empty( $new_php_version ) ) {
+			// What is the version on the current site?
+			$current_php_version = $this->get_php_version_for_app( $app_id );
+			if ( (string) $new_php_version !== (string) $current_php_version ) {
+				// Call the action hook that will switch the php versions.
+				do_action( 'wpcd_wordpress-app_do_change_php_version', $app_id, $new_php_version );
+			}
+		}
+
+		// PHP Memory Limit.
+		$new_memory_limit = get_post_meta( $site_package_id, 'wpcd_php_memory_limit', true );
+		if ( ! empty( $new_memory_limit ) ) {
+			do_action( 'wpcd_wordpress-app_do_change_php_options', $app_id, 'memory_limit', $new_memory_limit . 'M' );
+		}
+
+		// Max Execution Time.
+		$new_execution_time = get_post_meta( $site_package_id, 'wpcd_php_max_execution_time', true );
+		if ( ! empty( $new_execution_time ) ) {
+			do_action( 'wpcd_wordpress-app_do_change_php_options', $app_id, 'max_execution_time', $new_execution_time );
+		}
+
+		// Max Execution Time.
+		$new_input_vars = get_post_meta( $site_package_id, 'wpcd_php_max_input_vars', true );
+		if ( ! empty( $new_input_vars ) ) {
+			do_action( 'wpcd_wordpress-app_do_change_php_options', $app_id, 'max_input_vars', $new_input_vars );
 		}
 
 		// Get the list of plugins to deactivate.
@@ -3687,7 +3716,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	 * Called from function wpcd_wpapp_install_complete
 	 *
 	 * @param int   $app_id        post id of app.
-	 * @param array $instance      Array passed by calling function containing details of the server and site.
+	 * @param array $instance      Array passed by calling function containing details of the server and site. It's not used here yet and could be empty.
 	 */
 	public function handle_switch_php_version( $app_id, $instance ) {
 

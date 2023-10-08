@@ -140,7 +140,7 @@ class WPCD_POSTS_Site_Package extends WPCD_Posts_Base {
 				'id'         => $prefix . 'theme_to_activate',
 				'type'       => 'text',
 				'save_field' => true,
-				'desc'       => __( 'Activate this theme - it must already be present on the site.', 'wpcd' ),
+				'desc'       => __( 'Activate this theme - it must already be present on the site or scheduled for install in the INSTALL THEMES metabox below.', 'wpcd' ),
 				'columns'    => 6,
 			),
 		);
@@ -224,24 +224,52 @@ class WPCD_POSTS_Site_Package extends WPCD_Posts_Base {
 		/* Fields for custom bash scripts. */
 		$fields_bash_scripts = array(
 			array(
-				'name'       => __( 'Bash Script for New Sites', 'wpcd' ),
-				'id'         => $prefix . 'bash_scripts_new_sites',
+				'name'       => __( 'Bash Script for New Sites (Before)', 'wpcd' ),
+				'id'         => $prefix . 'bash_scripts_new_sites_before',
 				'type'       => 'text',
 				'save_field' => true,
-				'desc'       => __( 'Run this script when a site is first provisioned.', 'wpcd' ),
-				'tooltip'    => __( 'We will inject certain vars into the environment before the script is executed.  See docs for the full list.', 'wpcd' ),
+				'desc'       => __( 'Run this script when a site is first provisioned - BEFORE configuration updates and plugin/theme activation/deactivation.', 'wpcd' ),
+				'tooltip'    => __( 'We will inject certain vars into the environment before the script is executed.  See docs for the full list. This script will NOT run for staging sites, clones or sites that are copied to a new server', 'wpcd' ),
+				'columns'    => 6,
+			),
+			array(
+				'name'       => __( 'Bash Script for New Sites (After)', 'wpcd' ),
+				'id'         => $prefix . 'bash_scripts_new_sites_after',
+				'type'       => 'text',
+				'save_field' => true,
+				'desc'       => __( 'Run this script when a site is first provisioned - AFTER configuration updates and plugin/theme activation/deactivation.', 'wpcd' ),
+				'tooltip'    => __( 'We will inject certain vars into the environment before the script is executed.  See docs for the full list. This script will NOT run for staging sites, clones or sites that are copied to a new server', 'wpcd' ),
 				'columns'    => 6,
 			),
 		);
+
 		if ( class_exists( 'WPCD_WooCommerce_Init' ) ) {
 			$fields_bash_scripts = array_merge(
-				$fields_bash_scripts, array(
+				$fields_bash_scripts,
+				array(
 					array(
-						'name'       => __( 'Bash Script for Subscription Switches', 'wpcd' ),
-						'id'         => $prefix . 'bash_scripts_subscription_switch',
+						'name'       => __( 'Bash Script for Subscription Switches (Before)', 'wpcd' ),
+						'id'         => $prefix . 'bash_scripts_subscription_switch_before',
 						'type'       => 'text',
 						'save_field' => true,
-						'desc'       => __( 'Run this script when an order is placed to upgrade or downgrade.', 'wpcd' ),
+						'desc'       => __( 'Run this script when an order is placed to upgrade or downgrade. It will run BEFORE configuration updates and plugin/theme activation/deactivation.', 'wpcd' ),
+						'tooltip'    => __( 'We will inject certain vars into the environment before the script is executed.  See docs for the full list.', 'wpcd' ),
+						'columns'    => 6,
+					),
+				),
+			);
+		}
+
+		if ( class_exists( 'WPCD_WooCommerce_Init' ) ) {
+			$fields_bash_scripts = array_merge(
+				$fields_bash_scripts,
+				array(
+					array(
+						'name'       => __( 'Bash Script for Subscription Switches (After)', 'wpcd' ),
+						'id'         => $prefix . 'bash_scripts_subscription_switch_after',
+						'type'       => 'text',
+						'save_field' => true,
+						'desc'       => __( 'Run this script when an order is placed to upgrade or downgrade. It will run AFTER configuration updates and plugin/theme activation/deactivation.', 'wpcd' ),
 						'tooltip'    => __( 'We will inject certain vars into the environment before the script is executed.  See docs for the full list.', 'wpcd' ),
 						'columns'    => 6,
 					),
@@ -301,6 +329,14 @@ class WPCD_POSTS_Site_Package extends WPCD_Posts_Base {
 				'post_types' => array( 'wpcd_site_package' ),
 				'priority'   => 'default',
 				'fields'     => array_merge( $fields_activate, $fields_theme_activate ),
+			);
+		} else {
+			$metaboxes[] = array(
+				'id'         => $prefix . 'site_package_activate_theme',
+				'title'      => __( 'Activate This Theme if it\'s Installed', 'wpcd' ),
+				'post_types' => array( 'wpcd_site_package' ),
+				'priority'   => 'default',
+				'fields'     => $fields_theme_activate,
 			);
 		}
 
@@ -363,7 +399,7 @@ class WPCD_POSTS_Site_Package extends WPCD_Posts_Base {
 	public function get_site_packages() {
 
 		// Get list of product packages into an array to prepare it for display.
-		$wpcd_site_packages = get_posts(
+		$wpcd_site_packages     = get_posts(
 			array(
 				'post_type'   => 'wpcd_site_package',
 				'post_status' => 'publish',

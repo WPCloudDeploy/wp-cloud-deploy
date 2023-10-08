@@ -3404,10 +3404,11 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	 * However, our WOOCOMMERCE module will manually force a to this for
 	 * products that use template sites.
 	 *
-	 * @param int $app_id The post id of the app record.
-	 * @param int $in_site_package_id Apply this site package to the site instead of reading it from post meta.
+	 * @param int  $app_id The post id of the app record.
+	 * @param int  $in_site_package_id Apply this site package to the site instead of reading it from post meta.
+	 * @param bool $is_subscription_switch Whether this is being called from a woocommerce subscription switch.
 	 */
-	public function handle_site_package_rules( $app_id, $in_site_package_id = 0 ) {
+	public function handle_site_package_rules( $app_id, $in_site_package_id = 0, $is_subscription_switch = false ) {
 
 		if ( empty( $in_site_package_id ) ) {
 			// Get the site package from the app record.
@@ -3461,6 +3462,55 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				do_action( 'wpcd_wordpress-app_do_update_wpconfig_option', $app_id, $keypair[0], $keypair[1], 'no' );
 			}
 		}
+
+		/**
+		 * Bash scripts example output (in one long script - line breaks here for readability.):
+		 * export DOMAIN=test004.wpcd.cloud &&
+		 * sudo -E wget --no-check-certificate -O wpcd_package_script_subscription_switch.sh "https://gist.githubusercontent.com/elindydotcom/4c9f96ac48199284227c0ad687aedf75/raw/5295a17b832d8bb3748e0970ba0857063fd63247/wpcd_subscription_switch_sample_script" > /dev/null 2>&1
+		 * && sudo -E dos2unix wpcd_package_script_subscription_switch.sh > /dev/null 2>&1 &&
+		 * echo "Executing Product Package Subscription Switch Bash Custom Script..." &&
+		 * sudo -E bash ./wpcd_package_script_subscription_switch.sh
+		 */
+
+		if ( false === $is_subscription_switch ) {
+			// Prepare export vars for bash scripts.
+			$exportvars = 'export DOMAIN=%s';
+			$exportvars = sprintf( $exportvars, $domain );
+
+			// Call bash script for new sites.
+			$script = get_post_meta( $site_package_id, 'wpcd_bash_scripts_new_sites_before', true );
+			if ( ! empty( $script ) ) {
+				$command  = $exportvars . ' && ';
+				$command .= 'sudo -E wget --no-check-certificate -O wpcd_site_package_script_new_subscription_before.sh "%s" > /dev/null 2>&1 ';
+				$command  = sprintf( $command, $script );  // add the script name to the string.
+				$command .= ' && sudo -E dos2unix wpcd_site_package_script_new_subscription_before.sh > /dev/null 2>&1';
+				$command .= ' && echo "Executing Product Package New Site Bash Custom Script..." ';
+				$command .= ' && sudo -E bash ./wpcd_site_package_script_new_subscription_before.sh';
+
+				$action     = 'bash_new_site_package_before';
+				$raw_status = $ssh->submit_generic_server_command( $server_id, $action, $command, true );
+			}
+		}
+
+		if ( true === $is_subscription_switch ) {
+			// Prepare export vars for bash scripts.
+			$exportvars = 'export DOMAIN=%s';
+			$exportvars = sprintf( $exportvars, $domain );
+
+			// Call bash script for new sites.
+			$script = get_post_meta( $site_package_id, 'wpcd_bash_scripts_subscription_switch_before', true );
+			if ( ! empty( $script ) ) {
+				$command  = $exportvars . ' && ';
+				$command .= 'sudo -E wget --no-check-certificate -O wpcd_package_script_subscription_switch_before.sh "%s" > /dev/null 2>&1 ';
+				$command  = sprintf( $command, $script );  // add the script name to the string.
+				$command .= ' && sudo -E dos2unix wpcd_package_script_subscription_switch_before.sh > /dev/null 2>&1';
+				$command .= ' && echo "Executing Product Package New Site Bash Custom Script..." ';
+				$command .= ' && sudo -E bash ./wpcd_package_script_subscription_switch_before.sh';
+
+				$action     = 'bash_new_site_package_before';
+				$raw_status = $ssh->submit_generic_server_command( $server_id, $action, $command, true );
+			}
+		}		
 
 		// PHP Work Values.
 		$php_pm_max_children = get_post_meta( $site_package_id, 'wpcd_php_pm_max_children', true );
@@ -3517,6 +3567,18 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			$raw_status = $ssh->submit_generic_server_command( $server_id, $action, $command, true );
 		}
 
+		// Get the list of pre-installed plugins to activate.
+		// This will really only apply if WC is in use with template sites.
+		$plugins_to_activate = get_post_meta( $site_package_id, 'wpcd_plugins_to_activate', true );
+		$plugins_to_activate = trim( preg_replace( '/\s+/', ' ', $plugins_to_activate ) );
+
+		// Activate plugins.
+		if ( ! empty( $plugins_to_activate ) ) {
+			$command    = sprintf( 'sudo su - "%s" -c "wp --no-color plugin activate %s" ', $domain, $plugins_to_activate );
+			$action     = 'activate_plugins';
+			$raw_status = $ssh->submit_generic_server_command( $id, $action, $command, true );
+		}
+
 		// Get the list of repo themes to install.
 		$themes_to_install = get_post_meta( $site_package_id, 'wpcd_themes_to_install_from_repo', true );
 		$themes_to_install = trim( preg_replace( '/\s+/', ' ', $themes_to_install ) );
@@ -3553,29 +3615,31 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 		/**
 		 * Bash scripts example output (in one long script - line breaks here for readability.):
-		 * export WC_PRODUCT_ID=94404 WC_PRODUCT_CATEGORIES=36 DOMAIN=test004.wpcd.cloud &&
+		 * export DOMAIN=test004.wpcd.cloud &&
 		 * sudo -E wget --no-check-certificate -O wpcd_package_script_subscription_switch.sh "https://gist.githubusercontent.com/elindydotcom/4c9f96ac48199284227c0ad687aedf75/raw/5295a17b832d8bb3748e0970ba0857063fd63247/wpcd_subscription_switch_sample_script" > /dev/null 2>&1
 		 * && sudo -E dos2unix wpcd_package_script_subscription_switch.sh > /dev/null 2>&1 &&
 		 * echo "Executing Product Package Subscription Switch Bash Custom Script..." &&
 		 * sudo -E bash ./wpcd_package_script_subscription_switch.sh
 		 */
 
-		// Prepare export vars for bash scripts.
-		$exportvars = 'export DOMAIN=%s';
-		$exportvars = sprintf( $exportvars, $domain );
+		if ( false === $is_subscription_switch ) {
+			// Prepare export vars for bash scripts.
+			$exportvars = 'export DOMAIN=%s';
+			$exportvars = sprintf( $exportvars, $domain );
 
-		// Call bash script for new sites.
-		$script = get_post_meta( $site_package_id, 'wpcd_bash_scripts_new_sites', true );
-		if ( ! empty( $script ) ) {
-			$command  = $exportvars . ' && ';
-			$command .= 'sudo -E wget --no-check-certificate -O wpcd_site_package_script_new_subscription.sh "%s" > /dev/null 2>&1 ';
-			$command  = sprintf( $command, $script );  // add the script name to the string.
-			$command .= ' && sudo -E dos2unix wpcd_site_package_script_new_subscription.sh > /dev/null 2>&1';
-			$command .= ' && echo "Executing Product Package New Site Bash Custom Script..." ';
-			$command .= ' && sudo -E bash ./wpcd_site_package_script_new_subscription.sh';
+			// Call bash script for new sites.
+			$script = get_post_meta( $site_package_id, 'wpcd_bash_scripts_new_sites_after', true );
+			if ( ! empty( $script ) ) {
+				$command  = $exportvars . ' && ';
+				$command .= 'sudo -E wget --no-check-certificate -O wpcd_site_package_script_new_subscription_after.sh "%s" > /dev/null 2>&1 ';
+				$command  = sprintf( $command, $script );  // add the script name to the string.
+				$command .= ' && sudo -E dos2unix wpcd_site_package_script_new_subscription_after.sh > /dev/null 2>&1';
+				$command .= ' && echo "Executing Product Package New Site Bash Custom Script..." ';
+				$command .= ' && sudo -E bash ./wpcd_site_package_script_new_subscription_after.sh';
 
-			$action     = 'new_site_package';
-			$raw_status = $ssh->submit_generic_server_command( $server_id, $action, $command, true );
+				$action     = 'bash_new_site_package_after';
+				$raw_status = $ssh->submit_generic_server_command( $server_id, $action, $command, true );
+			}
 		}
 
 		// If we get here then it means that we have completed the core site package rules.

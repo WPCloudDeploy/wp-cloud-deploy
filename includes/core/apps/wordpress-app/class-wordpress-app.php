@@ -3012,6 +3012,12 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			}
 		}
 
+		// Set site package id if one is passed in.
+		$wp_site_package = 0;
+		if ( ! empty( $args['wp_site_package'] ) ) {
+			$wp_site_package = $args['wp_site_package'];
+		}
+
 		// Get other fields needed to provision the site.
 		$wp_user     = sanitize_user( sanitize_text_field( $args['wp_user'] ) );
 		$wp_password = $args['wp_password'];  // Note that we are NOT sanitizing the password field.  We'll escape every non-alpha-numeric character later before passing to bash.
@@ -3053,6 +3059,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			'wp_email'             => escapeshellarg( $wp_email ),
 			'wp_version'           => escapeshellarg( $wp_version ),
 			'wp_locale'            => escapeshellarg( $wp_locale ),
+			'wp_site_package'      => escapeshellarg( $wp_site_package ),
 		);
 
 		// Add custom fields into the $additional array - these fields are from the app-popup in wp-admin...
@@ -3287,7 +3294,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			 * Note that we are passing in the $args variable to the anonymous function by REFERENCE via a USE parm.
 			 * In the VPN app we were using $instance but not sure that is needed here * its not passed into this function right now anyway.
 			*/
-			$appfields = array( 'domain', 'user', 'email', 'version', 'original_domain' );
+			$appfields = array( 'domain', 'user', 'email', 'version', 'original_domain', 'site_package' );
 			$appfields = apply_filters( "wpcd_{$this->get_app_name()}_add_wp_app_post_fields", $appfields );
 			$x         = array_map(
 				function( $f ) use ( &$args, $app_post_id ) {

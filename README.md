@@ -143,6 +143,7 @@ Note: Even though the entire git development history isn't available on github, 
 * Fix: WPAPP - Update the setup wizard to point to the correct url for linode api tokens.
 * Fix: WPAPP - Server owners could not see the DELETE option when not an admin.
 * Fix: WPAPP - (security) blank out a password in logs if admin adds or changes from inside wpcd.
+* Fix: WPAPP - Tweak the message shown in the MISC tab when delete protection is turned on.  It now differs slightly based on whether it's shown in wp-admin or the front-end.
 * Dev: WPAPP - Add an action hook and associated helper function for the 'wp_site_update_wpconfig_option' bash action.
 * Dev: WPAPP - Add an action hook and associated helper function for the 'add_php_param' bash action.
 * Dev: WPAPP - Add an action hook and associated helper function for the 'change_php_workers' bash action.

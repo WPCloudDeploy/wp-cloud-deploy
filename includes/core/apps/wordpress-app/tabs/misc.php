@@ -366,12 +366,19 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 		);
 
 		if ( wpcd_is_app_delete_protected( $id ) ) {
-
 			// Show message indicating that user cannot delete site.
+
+			if ( is_admin() ) {
+				// Message that is shown in wp-admin needs to be different than the front-end.
+				$no_del_msg = '<h4>' . __( '***You cannot remove this site because deletion protection is turned on. If you would really like to delete this site you can turn off deletion protection in the APP DELETE PROTECTION metabox on the right. ***', 'wpcd' ) . '</h4>';
+			} else {
+				$no_del_msg = '<h4>' . __( '***You cannot remove this site because deletion protection is turned on. If you would really like to delete this site please ask your system admin to turn off deletion protection in the APP DELETE PROTECTION metabox. ***', 'wpcd' ) . '</h4>';
+			}
+
 			$actions['remove'] = array(
 				'type'           => 'custom_html',
 				'raw_attributes' => array(
-					'std' => '<h4>' . __( '***You cannot remove this site because deletion protection is turned on. If you would really like to delete this site you can turn off deletion protection in the APP DELETE PROTECTION metabox on the right. ***', 'wpcd' ) . '</h4>',
+					'std' => $no_del_msg,
 				),
 			);
 		} elseif ( ! wpcd_can_current_user_delete_app( $id ) ) {

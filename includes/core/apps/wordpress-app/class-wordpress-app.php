@@ -3642,7 +3642,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		if ( ! empty( $plugins_to_activate ) ) {
 			$command    = sprintf( 'sudo su - "%s" -c "wp --no-color plugin activate %s" ', $domain, $plugins_to_activate );
 			$action     = 'activate_plugins';
-			$raw_status = $ssh->submit_generic_server_command( $id, $action, $command, true );
+			$raw_status = $ssh->submit_generic_server_command( $server_id, $action, $command, true );
 		}
 
 		// Get the list of repo themes to install.

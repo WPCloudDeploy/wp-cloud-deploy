@@ -2011,7 +2011,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'type'              => 'text',
 				'name'              => __( 'S3 Endpoint URL', 'wpcd' ),
 				'label_description' => __( 'Optional', 'wpcd' ),
-				'placeholder'       => __( 'https:/endpoint.com', 'wpcd' ),
+				'placeholder'       => __( 'https://endpoint.com', 'wpcd' ),
 				'tooltip'           => __( 'Only set this if you want to use an alternative S3-compatible service. MUST start with "https://"!', 'wpcd' ),
 				'tab'               => 'wordpress-app-backup',
 				'std'               => wpcd_get_option( 'wordpress_app_s3_endpoint' ),

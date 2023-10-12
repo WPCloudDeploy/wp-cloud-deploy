@@ -33,7 +33,7 @@ echo "done" && {
 	sudo -E bash ##SCRIPT_NAME2## >> ##SCRIPT_LOGS##.log.intermed 2>&1 &&
 	  sudo -E echo >> ##SCRIPT_LOGS##.log.intermed 2>&1 &&		
 	  sudo -E echo "*****************************************************************************************" >> ##SCRIPT_LOGS##.log.intermed 2>&1 &&
-	  sudo -E echo "Please review the results of all three operations above." >> ##SCRIPT_LOGS##.log.intermed 2>&1 &&
+	  sudo -E echo "Please review the results of all four operations above." >> ##SCRIPT_LOGS##.log.intermed 2>&1 &&
 	  sudo -E echo "You can only rely on this version IF and only IF all four operations above succeeded." >> ##SCRIPT_LOGS##.log.intermed 2>&1 &&
 	  sudo -E echo "*****************************************************************************************" >> ##SCRIPT_LOGS##.log.intermed 2>&1 &&
       sudo -E mv ##SCRIPT_LOGS##.log.intermed ##SCRIPT_LOGS##.log.done &&

@@ -126,7 +126,7 @@ Note: Even though the entire git development history isn't available on github, 
 [Friendly Release Notes](https://wpclouddeploy.com/category/release-notes/)
 
 ## Change Log ##
-5.3.9
+5.4.0
 ------
 * New: WPAPP - Option to download 'nightly' WordPress builds.
 * New: WPAPP - Passwordless login link now available if you're an admin.

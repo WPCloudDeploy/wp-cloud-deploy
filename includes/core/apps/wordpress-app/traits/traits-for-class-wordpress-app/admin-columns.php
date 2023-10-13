@@ -166,7 +166,7 @@ trait wpcd_wpapp_admin_column_data {
 		} else {
 			$value  = __( 'Domain: ', 'wpcd' );
 			$data   = get_post_meta( $post_id, 'wpapp_domain', true );
-			$value  = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $value, 'page_cache', 'left' );
+			$value  = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $value, 'domain', 'left' );
 			$value .= WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( wpcd_wrap_clipboard_copy( $data ), 'domain', 'right' );
 			$value  = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_div_and_class( $value, 'domain' );
 
@@ -244,27 +244,42 @@ trait wpcd_wpapp_admin_column_data {
 			$new_column_data = $new_column_data . $labels_count_arr . '<br />';
 		}
 
-		// Display the wp-admin login link.
-		$value = $this->get_formatted_wpadmin_link( $post_id );
-		$value = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $value, 'wp_admin_link', 'left' );
+		// wp-admin login and front-end links - but only if site isn't disabled.
+		if ( 'off' !== $this->site_status( $post_id ) ) {
+			// Display the wp-admin login link.
+			$value = $this->get_formatted_wpadmin_link( $post_id );
+			$value = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $value, 'wp_admin_link', 'left' );
 
-		// Display a link to the site home page.
-		$value2 = $this->get_formatted_site_link( $post_id );
-		$value2 = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $value2, 'homepage_link', 'right' );
+			// Display a link to the site home page.
+			$value2 = $this->get_formatted_site_link( $post_id );
+			$value2 = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $value2, 'homepage_link', 'right' );
 
-		if ( is_admin() ) {
-			// Stack site links when displayed in the wp-admin area.
-			$value           = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_div_and_class( $value, 'wp_admin_link' );
-			$new_column_data = $new_column_data . $value;
-			$value2          = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_div_and_class( $value2, 'homepage_link' );
-			$new_column_data = $new_column_data . $value2;
-		} else {
-			// Set links side-by-side shown on the front-end.
-			$value           = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_div_and_class( $value . $value2, 'site_links' );
-			$new_column_data = $new_column_data . $value;
+			if ( is_admin() ) {
+				// Stack site links when displayed in the wp-admin area.
+				$value           = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_div_and_class( $value, 'wp_admin_link' );
+				$new_column_data = $new_column_data . $value;
+				$value2          = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_div_and_class( $value2, 'homepage_link' );
+				$new_column_data = $new_column_data . $value2;
+			} else {
+				// Set links side-by-side shown on the front-end.
+				$value           = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_div_and_class( $value . $value2, 'site_links' );
+				$new_column_data = $new_column_data . $value;
+			}
 		}
 
-		// Display any custom links - only displayedin the wp-admin area.
+		// Display a passwordless login link.
+		if ( true === (bool) wpcd_get_option( 'wordpress_app_hide_passwordless_login_summary_column_in_site_list' ) && ( ! wpcd_is_admin() ) ) {
+			// Do nothing.
+		} else {
+			// Do not show if site is disabled and only if the logged user is an admin.
+			if ( wpcd_is_admin() && ( 'off' !== $this->site_status( $post_id ) ) && ( ! wpcd_get_option( 'wordpress_app_disable_passwordless_login' ) ) ) {
+				$value           = $this->get_passwordless_login_link_for_display( $post_id, __( 'One-click Login', 'wpcd' ) );
+				$value           = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_div_and_class( $value, 'wp_passwordless_login_link' );
+				$new_column_data = $new_column_data . $value;
+			}
+		}
+
+		// Display any custom links - only displayed in the wp-admin area.
 		if ( is_admin() ) {
 			$new_column_data = $new_column_data . $this->get_formatted_custom_links( $post_id );
 		}
@@ -630,7 +645,14 @@ trait wpcd_wpapp_admin_column_data {
 
 				// Display warning if the server is running aptget.
 				if ( $this->wpcd_is_aptget_running( $post_id ) ) {
-					$value = '<div class="wpcd_server_actions_aptget_in_progress">' . __( 'It appears that background updates are being run on this server. Certain actions you perform while this is occurring might fail.', 'wpcd' ) . '</div>';
+					$apt_get_warning_value = '<div class="wpcd_server_actions_aptget_in_progress">' . __( 'It appears that background updates are being run on this server. Certain actions you perform while this is occurring might fail.', 'wpcd' ) . '</div>';
+					if ( empty( wpcd_get_option( 'wordpress_app_show_install_button_with_apt_get_running' ) ) ) {
+						// Show only the warning and do not display the install wp button.
+						$value = $apt_get_warning_value;
+					} else {
+						// show both the warning and the install wp button.
+						$value .= $apt_get_warning_value;
+					}
 				}
 
 				// Allow devs to hook in.

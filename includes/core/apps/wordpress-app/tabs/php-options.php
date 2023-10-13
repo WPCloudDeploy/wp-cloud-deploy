@@ -24,7 +24,13 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 		add_filter( "wpcd_app_{$this->get_app_name()}_tab_action", array( $this, 'tab_action' ), 10, 3 );
 
 		// Allow the change_php_version action to be triggered via an action hook.
-		add_action( 'wpcd_wordpress-app_do_change_php_version', array( $this, 'change_php_version_action' ), 10, 3 );
+		add_action( 'wpcd_wordpress-app_do_change_php_version', array( $this, 'change_php_version_action' ), 10, 2 );
+
+		// Allow the advanced add_php_param (change_php_options) action to be triggered via an action hook.
+		add_action( 'wpcd_wordpress-app_do_change_php_options', array( $this, 'change_php_options_action' ), 10, 3 );
+
+		// Allow php worker changes via action hook (change_php_workers).
+		add_action( 'wpcd_wordpress-app_do_change_php_workers', array( $this, 'change_php_workers_action' ), 10, 2 );
 
 	}
 
@@ -457,6 +463,7 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 			'memory_limit'        => 'memory_limit: requires a numeric value in megabytes, eg 10M would be 10 megabtyes',
 			'max_execution_time'  => 'max_execution_time: requires a numeric value in seconds, eg 30 would be 30 seconds',
 			'max_input_time'      => 'max_input_time: requires a numeric value in seconds, eg 60 would be 60 seconds',
+			'max_input_vars'      => 'max_input_vars: requires a numeric value.',
 		);
 	}
 
@@ -466,7 +473,7 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 	 * Will be used to validate when user chooses action.
 	 */
 	private function get_common_php_options_keys() {
-		return array( 'upload_max_filesize', 'post_max_size', 'memory_limit', 'max_execution_time', 'max_input_time' );
+		return array( 'upload_max_filesize', 'post_max_size', 'memory_limit', 'max_execution_time', 'max_input_time', 'max_input_vars' );
 	}
 
 	/**
@@ -782,22 +789,52 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
+	 * Helper function to change php options
+	 *
+	 * Can be called directly or by an action hook.
+	 *
+	 * Action hook: wpcd_wordpress-app_do_change_php_options  (Optional).
+	 *
+	 * @param int    $id     The postID of the app cpt.
+	 * @param string $php_param The php option/parameter to set - eg: max_execution_time.
+	 * @param string $php_value The option value.
+	 *
+	 * @return string|WP_Error
+	 */
+	public function change_php_options_action( $id, $php_param, $php_value ) {
+
+		// Array to pass into function call.
+		$args['php_advanced_option_to_set'] = $php_param;
+		$args['php_advanced_option_value']  = $php_value;
+
+		$return = $this->change_php_options( $id, 'add_php_param', $args );
+
+		return $return;
+
+	}
+
+	/**
 	 * Change PHP Options.
 	 *
 	 * @param int    $id     The postID of the app cpt.
 	 * @param string $action The action to be performed (this matches the string required in the bash scripts).
+	 * @param array  $in_args Alternative source of arguments passed via action hook or direct function call instead of pulling from $_POST.
 	 *
 	 * @return boolean|WP_Error    success/failure
 	 */
-	private function change_php_options( $id, $action ) {
+	private function change_php_options( $id, $action, $in_args = array() ) {
 		$instance = $this->get_app_instance_details( $id );
 
 		if ( is_wp_error( $instance ) ) {
 			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
 		}
 
-		// Get the field values from the front-end.
-		$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
+		if ( empty( $in_args ) ) {
+			// Get data from the POST request.
+			$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
+		} else {
+			$args = $in_args;
+		}
 
 		// Are we changing a 'common' option or an 'advanced' option?
 		if ( ! empty( $args['php_common_option_value'] ) ) {
@@ -806,7 +843,7 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 			$php_option_value = sanitize_text_field( $args['php_common_option_value'] );
 
 			// Make sure the "common" option is in a known good list.
-			if ( ! in_array( $php_option, $this->get_common_php_options_keys() ) ) {
+			if ( ! in_array( $php_option, $this->get_common_php_options_keys(), true ) ) {
 				return new \WP_Error( __( 'Whoa...looks like you are trying to hack the system - this is most definitely not allowed!', 'wpcd' ) );
 			}
 
@@ -909,22 +946,47 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
+	 * Helper function to change php workers
+	 *
+	 * Can be called directly or by an action hook.
+	 *
+	 * Action hook: wpcd_wordpress-app_do_change_php_workers (Optional).
+	 *
+	 * @param int   $id     The postID of the app cpt.
+	 * @param array $php_worker_values - this array must contain the following keys: pm,pm_max_children,pm_start_servers,pm_min_spare_servers,pm_max_spare_servers.
+	 *
+	 * @return string|WP_Error
+	 */
+	public function change_php_workers_action( $id, $php_worker_values ) {
+
+		$return = $this->change_php_workers( $id, 'change_php_workers', $php_worker_values );
+
+		return $return;
+
+	}
+
+	/**
 	 * Change PHP Workers.
 	 *
 	 * @param int    $id     The postID of the app cpt.
 	 * @param string $action The action to be performed (this matches the string required in the bash scripts).
+	 * @param array  $in_args Alternative source of arguments passed via action hook or direct function call instead of pulling from $_POST.
 	 *
 	 * @return boolean|WP_Error    success/failure
 	 */
-	private function change_php_workers( $id, $action ) {
+	private function change_php_workers( $id, $action, $in_args ) {
 		$instance = $this->get_app_instance_details( $id );
 
 		if ( is_wp_error( $instance ) ) {
 			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
 		}
 
-		// Get the field values from the front-end.
-		$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
+		if ( empty( $in_args ) ) {
+			// Get data from the POST request.
+			$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
+		} else {
+			$args = $in_args;
+		}
 
 		// Create a new array with the unescaped fields for storage in the database.
 		$pm                         = array();

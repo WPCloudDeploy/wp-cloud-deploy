@@ -87,10 +87,7 @@
 						<div class="wpcd-create-popup-input-wrap">
 							<select name="os" class="wpcd_app_os">
 							<?php
-							$default_os = wpcd_get_option( 'wordpress_app_default_os' );
-							if ( empty( $default_os ) ) {
-								$default_os = 'ubuntu2004lts';
-							}
+							$default_os = WPCD_WORDPRESS_APP()->get_default_os();
 							foreach ( $oslist as $os => $osname ) {
 								$is_selected_os = '';
 								if ( $os == $default_os ) {

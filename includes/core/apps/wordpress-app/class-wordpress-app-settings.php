@@ -1095,7 +1095,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'name'    => __( 'Default OS', 'wpcd' ),
 				'tooltip' => __( 'Select the default OS to be used when deploying a new WordPress server!', 'wpcd' ),
 				'tab'     => 'wordpress-app-general-wpadmin',
-				'std'     => 'ubuntu2004lts',
+				'std'     => 'ubuntu2204lts',
 				'options' => WPCD()->get_os_list(),
 			),
 			array(
@@ -1265,6 +1265,13 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tooltip'           => __( 'If you have your own list of WP versions you would like to see on the install screen enter it here. Otherwise we will use our own master list. One version per row. Do not use a 2-digit version - use \'latest\' instead.', 'wpcd' ),
 				'label_description' => __( 'One version per row.', 'wpcd' ),
 				'tab'               => 'wordpress-app-general-wpadmin',
+			),
+			array(
+				'id'      => 'wordpress_app_versions_show_nightly',
+				'type'    => 'checkbox',
+				'name'    => __( 'Show \'Nightly\' as a version option?', 'wpcd' ),
+				'tooltip' => __( 'Allow the user to specify the nightly development version of WordPress.', 'wpcd' ),
+				'tab'     => 'wordpress-app-general-wpadmin',
 			),
 			array(
 				'type' => 'heading',
@@ -1480,6 +1487,19 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'type'    => 'checkbox',
 				'name'    => __( 'Do not delete sFTP users when a site is removed.', 'wpcd' ),
 				'tooltip' => __( 'If checked, sFTP users will remain behind as regular Linux users on the Linux server after a site is deleted.  You will not be able to reuse these user names on new sites', 'wpcd' ),
+				'tab'     => 'wordpress-app-sites',
+			),
+			array(
+				'id'   => 'wordpress_app_disable_passwordless_login',
+				'type' => 'checkbox',
+				'name' => __( 'Disable the One-click Login Buttons.', 'wpcd' ),
+				'tab'  => 'wordpress-app-sites',
+			),
+			array(
+				'id'      => 'wordpress_app_show_install_button_with_apt_get_running',
+				'type'    => 'checkbox',
+				'name'    => __( 'Show The INSTALL WORDPRESS Button When Background Updates are Running.', 'wpcd' ),
+				'tooltip' => __( 'If checked, the INSTALL WORDPRESS button will show up even if Linux updates are being run in the background.', 'wpcd' ),
 				'tab'     => 'wordpress-app-sites',
 			),
 		);
@@ -1991,7 +2011,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'type'              => 'text',
 				'name'              => __( 'S3 Endpoint URL', 'wpcd' ),
 				'label_description' => __( 'Optional', 'wpcd' ),
-				'placeholder'       => __( 'https:/endpoint.com', 'wpcd' ),
+				'placeholder'       => __( 'https://endpoint.com', 'wpcd' ),
 				'tooltip'           => __( 'Only set this if you want to use an alternative S3-compatible service. MUST start with "https://"!', 'wpcd' ),
 				'tab'               => 'wordpress-app-backup',
 				'std'               => wpcd_get_option( 'wordpress_app_s3_endpoint' ),

@@ -1,0 +1,80 @@
+#!/bin/bash
+# This script will install PHP ${phpver}
+
+echo $(date): "Refreshing repositories..."
+apt-get update > /dev/null 2>&1
+if [ $? -ne 0 ]  
+then
+	echo "Failed!  Quitting process"
+	exit
+fi
+
+## Get our common functions
+if [[ ! -f 9999-common-functions.sh ]]
+then
+	echo "The file 9999-common-functions.sh is missing"
+	exit
+fi
+source 9999-common-functions.sh
+
+# Not supported on OLS.
+if [ "$g_webserver_type" != "nginx" ]
+then
+    echo "This upgrade operation is only supported on NGINX."
+    exit
+fi
+
+# Get the version of PHP that should be installed on the server.
+if [[ -z $phpver ]]; then
+	echo
+	echo "Specify PHP version You Would Like Installed"
+	read -p "PHP Version: " phpver
+fi
+
+echo $(date): "Installing PHP ${phpver}...."
+export DEBIAN_FRONTEND=noninteractive
+# Add Vhost config based on webserver_type
+if [ "$g_webserver_type" = "nginx" ]; then
+	apt-get install -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"  php${phpver} php${phpver}-fpm php${phpver}-mbstring php${phpver}-curl php${phpver}-mysql php${phpver}-xml php${phpver}-zip php${phpver}-gd php${phpver}-imap php${phpver}-soap php${phpver}-bcmath php${phpver}-imagick -y
+	if [ $? -ne 0 ]  
+	then
+		echo "Failed!  Quitting process"
+		exit 1
+	fi
+
+	# Update php.ini file to increase filesize uploads allowed in WordPress
+	echo $(date): "Adding required entries in php.ini to allow for larger file uploads in WordPress..."
+	sed -i "s/upload_max_filesize = 2M/upload_max_filesize = 25M/g" /etc/php/${phpver}/fpm/php.ini
+	sed -i "s/post_max_size = 8M/post_max_size = 25M/g" /etc/php/${phpver}/fpm/php.ini
+
+	# Update php.ini to enable and configure opcache
+	echo $(date): "Updating OPCACHE parameters in php.ini..."
+	sed -i "s/;opcache.enable=1/opcache.enable=1/g" /etc/php/${phpver}/fpm/php.ini
+	sed -i "s/;opcache.enable_cli=0/opcache.enable_cli=1/g" /etc/php/${phpver}/fpm/php.ini
+	sed -i "s/;opcache.interned_strings_buffer=8/opcache.interned_strings_buffer=8/g" /etc/php/${phpver}/fpm/php.ini
+	sed -i "s/;opcache.max_accelerated_files=10000/opcache.max_accelerated_files=100000/g" /etc/php/${phpver}/fpm/php.ini
+	sed -i "s/;opcache.memory_consumption=128/opcache.memory_consumption=128/g" /etc/php/${phpver}/fpm/php.ini
+	sed -i "s/;opcache.save_comments=1/opcache.save_comments=1/g" /etc/php/${phpver}/fpm/php.ini
+	sed -i "s/;opcache.revalidate_freq=2/opcache.revalidate_freq=1/g" /etc/php/${phpver}/fpm/php.ini
+	sed -i "s/;opcache.use_cwd=1/opcache.use_cwd=1/g" /etc/php/${phpver}/fpm/php.ini
+	sed -i "s/;opcache.validate_root=0/opcache.validate_root=1/g" /etc/php/${phpver}/fpm/php.ini
+	sed -i "s/;opcache.validate_permission=0/opcache.validate_permission=1/g" /etc/php/${phpver}/fpm/php.ini
+	sed -i "s/;opcache.file_update_protection=2/opcache.file_update_protection=60/g" /etc/php/${phpver}/fpm/php.ini
+
+	# PHP ${phpver} needs a set of default functions added to its global php.ini file because its set to blank for some reason.
+	# We're going to use the same list as 7.4.
+	sed -i "s/^disable_functions.*/disable_functions = pcntl_alarm,pcntl_fork,pcntl_waitpid,pcntl_wait,pcntl_wifexited,pcntl_wifstopped,pcntl_wifsignaled,pcntl_wifcontinued,pcntl_wexitstatus,pcntl_wtermsig,pcntl_wstopsig,pcntl_signal,pcntl_signal_get_handler,pcntl_signal_dispatch,pcntl_get_last_error,pcntl_strerror,pcntl_sigprocmask,pcntl_sigwaitinfo,pcntl_sigtimedwait,pcntl_exec,pcntl_getpriority,pcntl_setpriority,pcntl_async_signals,pcntl_unshare,/g" /etc/php/${phpver}/fpm/php.ini
+
+	# Restarting php
+	echo $(date): "Restarting PHP processes..."
+	rm /etc/wpcd/php-versions-disabled/$phpver
+	systemctl restart php${phpver}-fpm > /dev/null 2>&1
+
+# OLS Wrapper
+elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]; then	
+    echo "This upgrade operation is only supported on NGINX."
+    exit
+fi
+
+gf_restart_webserver "true"
+echo "PHP ${phpver} has been installed."

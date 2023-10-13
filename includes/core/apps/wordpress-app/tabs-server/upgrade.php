@@ -189,6 +189,10 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 					$result = $this->install_php82( $id, $action );
 					break;
 
+				case 'server-upgrade-old-php-versions':
+					$result = $this->install_old_php_version( $id, $action );
+					break;
+
 				case 'server-upgrade-7g':
 					$result = $this->upgrade_7g( $id, $action );
 					break;
@@ -243,6 +247,8 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 
 		$webserver_type = $this->get_web_server_type( $id );
 		$os             = WPCD_SERVER()->get_server_os( $id );
+
+		$initial_plugin_version = $this->get_server_meta_by_app_id( $id, 'wpcd_server_plugin_initial_version', true );  // This function is smart enough to know if the ID being passed is a server or app id and adjust accordingly.
 
 		$upgrade_check = $this->wpapp_upgrade_must_run_check( $id );
 
@@ -314,6 +320,12 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 		// Linux Updates.
 		$upgrade_linux_fields = $this->get_upgrade_fields_linux( $id );
 		$actions              = array_merge( $actions, $upgrade_linux_fields );
+
+		// Old PHP Versions.  Only applies to NGINX.
+		if ( version_compare( $initial_plugin_version, '5.3.9' ) >= 0 && 'nginx' === $webserver_type ) {
+			$upgrade_old_php_version_fields = $this->get_upgrade_fields_old_php_versions( $id );
+			$actions                        = array_merge( $actions, $upgrade_old_php_version_fields );
+		}
 
 		// Get Upgrade History Fields.
 		$upgrade_history_fields = $this->get_upgrade_history_fields( $id );
@@ -856,6 +868,76 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 
 	}
 
+
+	/**
+	 * Gets the fields to show in the UPGRADE tab in the server details screen
+	 * to allow older PHP versions to be installed.
+	 *
+	 * @param int $id the post id of the app cpt record.
+	 *
+	 * @return array Array of actions with key as the action slug and value complying with the structure necessary by metabox.io fields.
+	 */
+	private function get_upgrade_fields_old_php_versions( $id ) {
+
+		// Set up metabox items.
+		$actions = array();
+
+		$upg_desc  = __( 'Use this button to install an older / unsupported version of PHP.', 'wpcd' );
+		$upg_desc .= '<br />';
+		$upg_desc .= __( 'Please note that not all WPCD functions will be available for older PHP versions. But it will allow you to install a WordPress site that requires an older PHP version.', 'wpcd' );
+
+		$actions['server-upgrade-header-older-php-versions'] = array(
+			'label'          => __( '(Optional) Install Older PHP Versions', 'wpcd' ),
+			'type'           => 'heading',
+			'raw_attributes' => array(
+				'desc' => $upg_desc,
+			),
+		);
+
+		$actions['server-upgrade-php-versions-list'] = array(
+			'label'          => __( 'Select PHP Version To Install', 'wpcd' ),
+			'type'           => 'select',
+			'raw_attributes' => array(
+				'options'        => array(
+					'5.6' => __( 'PHP 5.6', 'wpcd' ),
+					'7.1' => __( 'PHP 7.1', 'wpcd' ),
+					'7.2' => __( 'PHP 7.2', 'wpcd' ),
+					'7.3' => __( 'PHP 7.3', 'wpcd' ),
+				),
+				// the key of the field (the key goes in the request).
+				'data-wpcd-name' => 'phpver',
+				'columns'        => 4,
+			),
+		);
+
+		$actions['server-upgrade-old-php-versions'] = array(
+			'label'          => '',
+			'raw_attributes' => array(
+				'std'                 => __( 'Install', 'wpcd' ),
+				// make sure we give the user a confirmation prompt.
+				'confirmation_prompt' => __( 'Are you sure you would like to install this version of PHP on this server?', 'wpcd' ),
+				'data-wpcd-fields'    => wp_json_encode( array( '#wpcd_app_action_server-upgrade-php-versions-list' ) ),
+			),
+			'type'           => 'button',
+		);
+
+		/*
+		$actions['server-upgrade-php81-meta'] = array(
+		'label'          => '',
+		'raw_attributes' => array(
+			'std'                 => __( 'Remove PHP 8.2 Install Option', 'wpcd' ),
+			'desc'                => __( 'Tag server as having PHP 8.2 installed.', 'wpcd' ),
+			// make sure we give the user a confirmation prompt.
+			'confirmation_prompt' => __( 'Are you sure you would like to tag this server as being upgraded without running the upgrade script?', 'wpcd' ),
+		),
+		'type'           => 'button',
+		);
+		*/
+
+		return $actions;
+
+	}
+
 	/**
 	 * Gets the fields to show in the UPGRADE tab in the server details screen
 	 * if the 7G firewall needs to be upgraded.
@@ -1158,7 +1240,7 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 		// Set up metabox items.
 		$actions = array();
 
-		$history_desc = __( 'History log of certain updates. This log commences with updates from WPCD v5.3.3. Upgrade requests prior to this version were not logged here.', 'wpcd' );
+		$history_desc = __( 'History log of certain updates. This log commences with updates from WPCD v5.3.3. Update requests prior to v5.3.3 have not been logged.', 'wpcd' );
 
 		$actions['server-upgrade-header-history'] = array(
 			'label'          => __( 'Upgrade History', 'wpcd' ),
@@ -1631,6 +1713,136 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 			// Let user know command is complete and force a page rfresh.
 			$result = array(
 				'msg'     => __( 'PHP 8.2 install has been completed - this page will now refresh', 'wpcd' ),
+				'refresh' => 'yes',
+			);
+
+			// Add to update history.
+			$this->update_history( $id, $upgrade_history_key_type, $upgrade_description );
+		}
+
+		return $result;
+
+	}
+
+	/**
+	 * Run install script for PHP 5.6/7.0/7.1/7.2/7.3/
+	 *
+	 * @param int    $id         The postID of the server cpt.
+	 * @param string $action     The action to be performed (this matches the string required in the bash scripts if bash scripts are used ).
+	 *
+	 * @return boolean success/failure/other
+	 */
+	public function install_old_php_version( $id, $action ) {
+
+		// Get data from the POST request.
+		$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
+
+		// Bail if certain things are empty...
+		if ( empty( $args['phpver'] ) ) {
+			$message = __( 'A PHP version must be provided.', 'wpcd' );
+			return new \WP_Error( $message );
+		} else {
+			$phpver = strtolower( sanitize_text_field( $args['phpver'] ) );
+		}
+
+		// Make sure the requested version is one we'll support.
+		if ( ! in_array( $phpver, array( '5.6', '7.1', '7.2', '7.3' ) ) ) {
+			/* Translators: %s is a php version eg: 7.1, 7.2 etc. */
+			$message = sprintf( __( 'An invalid PHP version was provided: %s.', 'wpcd' ), $phpver );
+			return new \WP_Error( $message );
+		}
+
+		// Update $args with sanitized data.
+		$args['phpver'] = escapeshellarg( $phpver );
+
+		// Upgrade History Type.
+		$upgrade_history_key_type = 'install-php' . $phpver;
+		/* Translators: %s is a php version eg: 7.1, 7.2 etc. */
+		$upgrade_description = sprintf( __( 'Installed PHP %s', 'wpcd' ), $phpver );
+
+		// Get data about the server.
+		$instance = $this->get_server_instance_details( $id );
+
+		if ( is_wp_error( $instance ) ) {
+			/* translators: %s is replaced with the internal action name. */
+			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
+		}
+
+		// Get the full command to be executed by ssh.
+		$run_cmd = $this->turn_script_into_command(
+			$instance,
+			'run_upgrade_install_old_php_version.txt',
+			array_merge(
+				$args,
+				array(
+					'action'      => $action,
+					'interactive' => 'no',
+				)
+			)
+		);
+
+		// log.
+		// phpcs:ignore
+		do_action( 'wpcd_log_error', sprintf( 'attempting to run command for %s = %s ', print_r( $instance, true ), $run_cmd ), 'trace', __FILE__, __LINE__, $instance, false ); //PHPcs warning normally issued because of print_r
+
+		// execute.
+		$result = $this->execute_ssh( 'generic', $instance, array( 'commands' => $run_cmd ) );
+
+		// Make sure we don't have a wp_error object being returned...
+		if ( is_wp_error( $result ) ) {
+			return new \WP_Error( __( 'There was a problem installing this PHP version - please check the server logs for more information.', 'wpcd' ) );
+		}
+
+		// Meta to update if we're successful.
+		switch ( $phpver ) {
+			case '5.6':
+				$meta_to_update = 'wpcd_server_php56_installed';
+				$phpkey         = 'php56';
+				break;
+			case '7.1':
+				$meta_to_update = 'wpcd_server_php70_installed';
+				$phpkey         = 'php71';
+				break;
+			case '7.2':
+				$meta_to_update = 'wpcd_server_php72_installed';
+				$phpkey         = 'php72';
+				break;
+			case '7.3':
+				$meta_to_update = 'wpcd_server_php73_installed';
+				$phpkey         = 'php73';
+				break;
+		}
+
+		// evaluate results.
+		if ( strpos( $result, 'journalctl -xe' ) !== false ) {
+			// Looks like there was a problem with restarting the NGINX - So update completion meta, add to history and return message.
+			$this->update_history( $id, $upgrade_history_key_type, $upgrade_description );
+
+			// Update meta to show that the version has been installed and activated on the server.
+			$this->set_php_activation_state( $id, $phpkey, 'enabled' );
+
+			// update server field to tag server as being updated with this new php version.
+			update_post_meta( $id, $meta_to_update, 1 );
+
+			/* translators: %s is replaced with the text of the result of the operation. */
+			return new \WP_Error( sprintf( __( 'There was a problem restarting the nginx server after the upgrade - here is the full output of the upgrade process: %s', 'wpcd' ), $result ) );
+		}
+
+		// If we're here, we know that the nginx server restarted ok so let's do standard success checks.
+		$success = $this->is_ssh_successful( $result, 'run_upgrade_install_old_php_version.txt' );
+		if ( ! $success ) {
+			/* translators: %1$s is replaced with the internal action name; %2$s is replaced with the result of the call, usually an error message. */
+			return new \WP_Error( sprintf( __( 'Unable to perform action %1$s for server: %2$s', 'wpcd' ), $action, $result ) );
+		} else {
+			// Update meta to show that the version has been installed and activated on the server.
+			$this->set_php_activation_state( $id, $phpkey, 'enabled' );
+
+			// update server field to tag server as being updated with this new php version.
+			update_post_meta( $id, $meta_to_update, 1 );
+
+			// Let user know command is complete and force a page rfresh.
+			$result = array(
+				'msg'     => sprintf( __( 'PHP %s install has been completed - this page will now refresh', 'wpcd' ), $phpver ),
 				'refresh' => 'yes',
 			);
 

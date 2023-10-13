@@ -719,8 +719,8 @@ class WP_CLOUD_DEPLOY {
 	 */
 	public static function get_os_list() {
 		$oslist = array(
+			'ubuntu2204lts' => __( 'Ubuntu 22.04 LTS', 'wpcd' ),			
 			'ubuntu2004lts' => __( 'Ubuntu 20.04 LTS', 'wpcd' ),
-			'ubuntu2204lts' => __( 'Ubuntu 22.04 LTS', 'wpcd' ),
 		);
 
 		// Remove some entries based on settings.
@@ -983,6 +983,7 @@ class WP_CLOUD_DEPLOY {
 			'wpcd_get_pw_terms_to_clean',
 			array(
 				'wp_password='               => '(***private***)',
+				'wps_new_password='          => '(***private***)',
 				'aws_access_key_id='         => '(***private***)',
 				'aws_secret_access_key='     => '(***private***)',
 				'--admin_password='          => '(***private***)',

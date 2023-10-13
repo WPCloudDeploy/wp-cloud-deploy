@@ -1176,6 +1176,24 @@ function wpcd_is_admin( $user_id = 0 ) {
 }
 
 /**
+ * Checks that the current user can manage wpcd
+ *
+ * @param  integer $user_id user id.
+ * @return boolean
+ */
+function wpcd_is_manager( $user_id = 0 ) {
+
+	if ( empty( $user_id ) ) {
+		$user_id = get_current_user_id();
+	}
+
+	if ( user_can( $user_id, 'wpcd_manage_all' ) ) {
+		return true;
+	}
+	return false;
+}
+
+/**
  * Helper function to determine if the current user can delete an app.
  *
  * @param int $post_id the id of the app post.
@@ -1646,6 +1664,7 @@ function wpcd_get_post_id_from_global() {
  *
  * @param string $data_string The string to wrap.
  * @param bool   $break True = wrap with a div False = wrap with a span.
+ * @param bool   $br_tag Whether to add in a break (<br/>) tag or not.
  *
  * @return string
  */

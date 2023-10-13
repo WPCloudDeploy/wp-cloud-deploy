@@ -230,7 +230,7 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 			'tab'               => 'server_backup',
 			'type'              => 'text',
 			'label_description' => __( 'Optional', 'wpcd' ),
-			'placeholder'       => __( 'https:/endpoint.com', 'wpcd' ),
+			'placeholder'       => __( 'https://endpoint.com', 'wpcd' ),
 			'tooltip'           => __( 'Only set this if you want to use an alternative S3-compatible service. MUST start with "https://"!', 'wpcd' ),
 			'save_field'        => false,
 			'attributes'        => array(

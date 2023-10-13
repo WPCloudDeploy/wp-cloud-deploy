@@ -251,6 +251,9 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		// Action hook to handle ajax request to set transient if user clicked the "check again" option in the "readable check" notice.
 		add_action( 'wp_ajax_readable_check_again', array( $this, 'readable_check_again' ) );
 
+		// Action hook to handle ajax request to execute passwordless login.
+		add_action( 'wp_ajax_passwordless_login', array( $this, 'passwordless_login' ) );
+
 		// Action hook to extend admin filter options.
 		add_action( 'restrict_manage_posts', array( $this, 'wpapp_wpcd_app_table_filtering' ) );
 
@@ -502,8 +505,16 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			$site_type_class_name    = 'wpcd_site_details_top_row_element_site_type';
 		}
 
-		// Wrap the page cache and ssl status into a set of spans that will go underneath the domain name.
-		$other_data  = '<div class="wpcd_site_details_top_row_element_wrapper">';
+		/**
+		 * Wrap the page cache, ssl status and other elements into a set of spans that will go underneath the domain name.
+		 */
+		$other_data = '<div class="wpcd_site_details_top_row_element_wrapper">';
+
+		if ( wpcd_is_admin() && ( ! wpcd_get_early_option( 'wordpress_app_disable_passwordless_login' ) ) ) {
+			$passwordless_login_link = $this->get_passwordless_login_link_for_display( $app_id, __( 'Login', 'wpcd' ) );
+			$other_data             .= '<span class="wpcd_medium_chicklet wpcd_site_details_top_row_element_passwordless_login">' . $passwordless_login_link . '</span>';
+		}
+
 		$other_data .= '<span class="wpcd_medium_chicklet wpcd_site_details_top_row_element_wstype">' . $webserver_type_name . '</span>';
 		$other_data .= '<span class=" wpcd_medium_chicklet ' . $ssl_class_name . '">' . sprintf( __( 'SSL: %s', 'wpcd' ), $ssl_status_display_value ) . '</span>';
 		$other_data .= '<span class=" wpcd_medium_chicklet ' . $page_cache_class_name . '">' . sprintf( __( 'Cache: %s', 'wpcd' ), $page_cache_display_value ) . '</span>';
@@ -520,6 +531,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			$other_data .= '<span class=" wpcd_medium_chicklet ' . $site_type_class_name . '">' . sprintf( __( '%s', 'wpcd' ), $site_type_display_value ) . '</span>';
 		}
 		$other_data .= '</div>';
+		/* End Wrap page cache, ssl status and other elements */
 
 		// Copy IP.
 		$copy_app_ip = wpcd_wrap_clipboard_copy( $this->get_ipv4_address( $app_id ) );
@@ -607,6 +619,27 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				'std'   => $upgrade_needed,
 				'class' => 'wpcd_site_details_top_row',
 			);
+		}
+
+		// Does a warning need to be shown because SITE PACKAGES are likely still running?
+		if ( true === $this->wpcd_is_site_package_running( $app_id ) ) {
+			$message  = '<b><small>' . __( 'WPCD: It appears we are still setting up this site for you.', 'wpcd' );
+			$message .= '<br />';
+			$message .= __( 'Certain actions for site packages are still running.', 'wpcd' );
+			$message .= '<br />';
+			$message .= __( 'The site should be available shortly!', 'wpcd' ) . '</b></small>';
+
+			$fields[] = array(
+				'type' => 'divider',
+			);
+
+			$fields[] = array(
+				'name'  => __( 'Not-Ready Notice', 'wpcd' ),
+				'type'  => 'custom_html',
+				'std'   => $message,
+				'class' => 'wpcd_site_details_top_row',
+			);
+
 		}
 
 		return $fields;
@@ -718,15 +751,35 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	public static function get_wp_versions() {
 
 		// @SEE: https://wordpress.org/download/releases/
-		$versions          = array( 'latest', '6.2.2', '6.1.3', '6.0.5', '5.9.7', '5.8.7', '5.7.9', '5.6.11', '5.5.12', '5.4.13', '5.3.15', '5.2.18', '5.1.16', '5.0.19', '4.9.23', '4.8.22', '4.7.26' );
+		$versions          = array( 'latest', '6.3.2', '6.2.3', '6.1.4', '6.0.6', '5.9.8', '5.8.8', '5.7.10', '5.6.12', '5.5.13', '5.4.14', '5.3.16', '5.2.19', '5.1.17', '5.0.20', '4.9.24', '4.8.23', '4.7.27' );
 		$override_versions = wpcd_get_option( 'wordpress_app_allowed_wp_versions' );
 
 		if ( ! empty( $override_versions ) ) {
 			$versions = $override_versions;
 		}
 
+		// Possibly add in the 'nightly' version option.
+		if ( wpcd_get_option( 'wordpress_app_versions_show_nightly' ) ) {
+			$versions = array_merge( $versions, array( 'nightly' ) );
+		}
+
 		return apply_filters( 'wpcd_allowed_wp_versions', $versions );
 
+	}
+
+	/**
+	 * Return a default OS version based on whether settings has one or not.
+	 *
+	 * @since 5.3.9
+	 *
+	 * @return string.
+	 */
+	public static function get_default_os() {
+		$default_os = wpcd_get_option( 'wordpress_app_default_os' );
+		if ( empty( $default_os ) ) {
+			$default_os = 'ubuntu2204lts';
+		}
+		return apply_filters( 'wpcd_default_os', $default_os );
 	}
 
 	/**
@@ -1038,6 +1091,41 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	}
 
 	/**
+	 * Returns a boolean true/false if PHP 5.5/7.0/7.1/7.2/7.3 is supposed to be installed.
+	 *
+	 * @param int    $server_id ID of server being interrogated.
+	 * @param string $php_version PHP version being inquired about - eg: 56,70,71,72,73.
+	 *
+	 * @return boolean
+	 */
+	public function is_old_php_version_installed( $server_id, $php_version ) {
+
+		// "old" versions are 5.6, 7.0, 7.1. 7.2, 7.3.
+		if ( ! in_array( $php_version, array( '56', '70', '71', '72', '73' ) ) ) {
+			return false;
+		}
+
+		$initial_plugin_version = $this->get_server_meta_by_app_id( $server_id, 'wpcd_server_plugin_initial_version', true );  // This function is smart enough to know if the ID being passed is a server or app id and adjust accordingly.
+
+		if ( version_compare( $initial_plugin_version, '5.3.9' ) === -1 ) {
+			// Versions of the plugin before 5.3.9 automatically install PHP 5.6/7.0./7.2/7.2/7.3.
+			return true;
+		} else {
+			// See if it was manually installed via an upgrade process - which would leave a meta field value behind on the server CPT record.
+			$meta_name    = '';
+			$meta_name    = sprintf( 'wpcd_server_php%s_installed', $php_version );
+			$is_installed = (bool) $this->get_server_meta_by_app_id( $server_id, $meta_name, true );   // This function is smart enough to know if the ID being passed is a server or app id and adjust accordingly.
+			if ( true === $is_installed ) {
+				return true;
+			} else {
+				return false;
+			}
+		}
+
+		return false;
+	}
+
+	/**
 	 * Returns a boolean true/false if PHP 80 is supposed to be installed.
 	 *
 	 * @param int $server_id ID of server being interrogated.
@@ -1171,6 +1259,26 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		}
 
 		return $return;
+	}
+
+
+	/**
+	 * Set the state of a php version after it's been activated/deactivated.
+	 *
+	 * @param int    $server_id ID of server being interrogated.
+	 * @param string $php_version PHP version - eg: php56, php71, php72 etc.
+	 * @param string $php_activation_state - 'enabled', 'disabled'.
+	 */
+	public function set_php_activation_state( $server_id, $php_version, $php_activation_state ) {
+
+		$current_php_activation_state = wpcd_maybe_unserialize( get_post_meta( $server_id, 'wpcd_wpapp_php_activation_state', true ) );
+		if ( empty( $current_php_activation_state ) ) {
+			$current_php_activation_state = array();
+		}
+
+		$current_php_activation_state[ $php_version ] = $php_activation_state;
+		update_post_meta( $server_id, 'wpcd_wpapp_php_activation_state', $current_php_activation_state );
+
 	}
 
 	/**
@@ -1475,12 +1583,24 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	 */
 	public function is_site_enabled( $app_id ) {
 
+		// Assume true.
+		$return = true;
+
+		// If meta shows site is disabled then return false.
 		if ( 'off' === $this->site_status( $app_id ) ) {
-			return false;
-		} else {
-			return true;
+			$return = false;
 		}
 
+		// If other indicators show site is unavailable return false.
+		// This part should probably be extracted into it's own function and added to the is_site_available() query in all the tabs.
+		// But for now it's more expdient to commingle them.
+		if ( true === $return ) {
+			if ( false === $this->is_site_available_for_commands( true, $app_id ) ) {
+				$return = false;
+			}
+		}
+
+		return $return;
 	}
 
 	/**
@@ -2925,6 +3045,12 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			}
 		}
 
+		// Set site package id if one is passed in.
+		$wp_site_package = 0;
+		if ( ! empty( $args['wp_site_package'] ) ) {
+			$wp_site_package = $args['wp_site_package'];
+		}
+
 		// Get other fields needed to provision the site.
 		$wp_user     = sanitize_user( sanitize_text_field( $args['wp_user'] ) );
 		$wp_password = $args['wp_password'];  // Note that we are NOT sanitizing the password field.  We'll escape every non-alpha-numeric character later before passing to bash.
@@ -2966,6 +3092,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			'wp_email'             => escapeshellarg( $wp_email ),
 			'wp_version'           => escapeshellarg( $wp_version ),
 			'wp_locale'            => escapeshellarg( $wp_locale ),
+			'wp_site_package'      => escapeshellarg( $wp_site_package ),
 		);
 
 		// Add custom fields into the $additional array - these fields are from the app-popup in wp-admin...
@@ -3200,7 +3327,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			 * Note that we are passing in the $args variable to the anonymous function by REFERENCE via a USE parm.
 			 * In the VPN app we were using $instance but not sure that is needed here * its not passed into this function right now anyway.
 			*/
-			$appfields = array( 'domain', 'user', 'email', 'version', 'original_domain' );
+			$appfields = array( 'domain', 'user', 'email', 'version', 'original_domain', 'site_package' );
 			$appfields = apply_filters( "wpcd_{$this->get_app_name()}_add_wp_app_post_fields", $appfields );
 			$x         = array_map(
 				function( $f ) use ( &$args, $app_post_id ) {
@@ -3297,6 +3424,298 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		// Install page_cache.
 		$this->handle_page_cache_for_new_site( $app_id, $instance );
 
+		// Handle site package rules.
+		$this->handle_site_package_rules( $app_id );
+
+	}
+
+	/**
+	 * Execute the site package rules for a site after install is complete.
+	 *
+	 * Warning: This only gets called automatically on new sites right now.
+	 * It does not get called when sites are cloned.
+	 * However, our WOOCOMMERCE module will manually force a to this for
+	 * products that use template sites.
+	 *
+	 * @param int  $app_id The post id of the app record.
+	 * @param int  $in_site_package_id Apply this site package to the site instead of reading it from post meta.
+	 * @param bool $is_subscription_switch Whether this is being called from a woocommerce subscription switch.
+	 */
+	public function handle_site_package_rules( $app_id, $in_site_package_id = 0, $is_subscription_switch = false ) {
+
+		if ( empty( $in_site_package_id ) ) {
+			// Get the site package from the app record.
+			$site_package_id = get_post_meta( $app_id, 'wpapp_site_package', true );
+		} else {
+			// Get the site package id from incoming args.
+			$site_package_id = $in_site_package_id;
+		}
+
+		// Bail if no package id.
+		if ( empty( $site_package_id ) ) {
+			return;
+		}
+
+		// Get the server id from the app_id.
+		$server_id = $this->get_server_id_by_app_id( $app_id );
+
+		// Bail if no server id.
+		if ( empty( $server_id ) ) {
+			return;
+		}
+
+		// Get the post record.
+		$app_post = get_post( $app_id );
+
+		// Bail if not a post object.
+		if ( ! $app_post || is_wp_error( $app_post ) ) {
+			return;
+		}
+
+		// Bail if not a WordPress app...
+		if ( 'wordpress-app' <> $this->get_app_type( $app_id ) ) {
+			return;
+		}
+
+		// Get the domain.
+		$domain = $this->get_domain_name( $app_id, );
+
+		// Bail if we have no domain.
+		if ( empty( $domain ) ) {
+			return;
+		}
+
+		// Set transient to indicate to others that something is still happening.
+		$transient_name = $app_id . 'wpcd_site_package_running';
+		set_transient( $transient_name, 'running', 120 );
+
+		// Get the class instance that will allow us to send dynamic commands to the server via ssh.
+		$ssh = new WPCD_WORDPRESS_TABS();
+
+		// Push custom wp-config.php data.
+		$keypairs = get_post_meta( $site_package_id, 'wpcd_wp_config_custom_data', true );
+		if ( ! empty( $keypairs ) ) {
+			foreach ( $keypairs as $keypair ) {
+				do_action( 'wpcd_wordpress-app_do_update_wpconfig_option', $app_id, $keypair[0], $keypair[1], 'no' );
+			}
+		}
+
+		/**
+		 * Bash scripts example output (in one long script - line breaks here for readability.):
+		 * export DOMAIN=test004.wpcd.cloud &&
+		 * sudo -E wget --no-check-certificate -O wpcd_package_script_subscription_switch.sh "https://gist.githubusercontent.com/elindydotcom/4c9f96ac48199284227c0ad687aedf75/raw/5295a17b832d8bb3748e0970ba0857063fd63247/wpcd_subscription_switch_sample_script" > /dev/null 2>&1
+		 * && sudo -E dos2unix wpcd_package_script_subscription_switch.sh > /dev/null 2>&1 &&
+		 * echo "Executing Product Package Subscription Switch Bash Custom Script..." &&
+		 * sudo -E bash ./wpcd_package_script_subscription_switch.sh
+		 */
+
+		if ( false === $is_subscription_switch ) {
+			// Prepare export vars for bash scripts.
+			$exportvars = 'export DOMAIN=%s';
+			$exportvars = sprintf( $exportvars, $domain );
+
+			// Call bash script for new sites.
+			$script = get_post_meta( $site_package_id, 'wpcd_bash_scripts_new_sites_before', true );
+			if ( ! empty( $script ) ) {
+				$command  = $exportvars . ' && ';
+				$command .= 'sudo -E wget --no-check-certificate -O wpcd_site_package_script_new_subscription_before.sh "%s" > /dev/null 2>&1 ';
+				$command  = sprintf( $command, $script );  // add the script name to the string.
+				$command .= ' && sudo -E dos2unix wpcd_site_package_script_new_subscription_before.sh > /dev/null 2>&1';
+				$command .= ' && echo "Executing Product Package New Site Bash Custom Script..." ';
+				$command .= ' && sudo -E bash ./wpcd_site_package_script_new_subscription_before.sh';
+
+				$action     = 'bash_new_site_package_before';
+				$raw_status = $ssh->submit_generic_server_command( $server_id, $action, $command, true );
+			}
+		}
+
+		if ( true === $is_subscription_switch ) {
+			// Prepare export vars for bash scripts.
+			$exportvars = 'export DOMAIN=%s';
+			$exportvars = sprintf( $exportvars, $domain );
+
+			// Call bash script for new sites.
+			$script = get_post_meta( $site_package_id, 'wpcd_bash_scripts_subscription_switch_before', true );
+			if ( ! empty( $script ) ) {
+				$command  = $exportvars . ' && ';
+				$command .= 'sudo -E wget --no-check-certificate -O wpcd_package_script_subscription_switch_before.sh "%s" > /dev/null 2>&1 ';
+				$command  = sprintf( $command, $script );  // add the script name to the string.
+				$command .= ' && sudo -E dos2unix wpcd_package_script_subscription_switch_before.sh > /dev/null 2>&1';
+				$command .= ' && echo "Executing Product Package New Site Bash Custom Script..." ';
+				$command .= ' && sudo -E bash ./wpcd_package_script_subscription_switch_before.sh';
+
+				$action     = 'bash_new_site_package_before';
+				$raw_status = $ssh->submit_generic_server_command( $server_id, $action, $command, true );
+			}
+		}
+
+		// PHP Work Values.
+		$php_pm_max_children = get_post_meta( $site_package_id, 'wpcd_php_pm_max_children', true );
+		if ( ! empty( $php_pm_max_children ) ) {
+			// get rest of php worker values.
+			$php_pm                   = get_post_meta( $site_package_id, 'wpcd_php_pm', true );
+			$php_pm_max_children      = get_post_meta( $site_package_id, 'wpcd_php_pm_max_children', true );
+			$php_pm_start_servers     = get_post_meta( $site_package_id, 'wpcd_php_pm_start_servers', true );
+			$php_pm_min_spare_servers = get_post_meta( $site_package_id, 'wpcd_php_pm_min_spare_servers', true );
+			$php_pm_max_spare_servers = get_post_meta( $site_package_id, 'wpcd_php_pm_max_spare_servers', true );
+
+			// stick them all into an array.
+			$php_pm_args['pm']                   = $php_pm;
+			$php_pm_args['pm_max_children']      = $php_pm_max_children;
+			$php_pm_args['pm_start_servers']     = $php_pm_start_servers;
+			$php_pm_args['pm_min_spare_servers'] = $php_pm_min_spare_servers;
+			$php_pm_args['pm_max_spare_servers'] = $php_pm_max_spare_servers;
+
+			// Fire action hook.
+			do_action( 'wpcd_wordpress-app_do_change_php_workers', $app_id, $php_pm_args );
+		}
+
+		// Switch PHP version.
+		$new_php_version = get_post_meta( $site_package_id, 'wpcd_new_php_version', true );
+		if ( ! empty( $new_php_version ) ) {
+			// What is the version on the current site?
+			$current_php_version = $this->get_php_version_for_app( $app_id );
+			if ( (string) $new_php_version !== (string) $current_php_version ) {
+				// Call the action hook that will switch the php versions.
+				do_action( 'wpcd_wordpress-app_do_change_php_version', $app_id, $new_php_version );
+			}
+		}
+
+		// PHP Memory Limit.
+		$new_memory_limit = get_post_meta( $site_package_id, 'wpcd_php_memory_limit', true );
+		if ( ! empty( $new_memory_limit ) ) {
+			do_action( 'wpcd_wordpress-app_do_change_php_options', $app_id, 'memory_limit', $new_memory_limit . 'M' );
+		}
+
+		// Max Execution Time.
+		$new_execution_time = get_post_meta( $site_package_id, 'wpcd_php_max_execution_time', true );
+		if ( ! empty( $new_execution_time ) ) {
+			do_action( 'wpcd_wordpress-app_do_change_php_options', $app_id, 'max_execution_time', $new_execution_time );
+		}
+
+		// Max Execution Time.
+		$new_input_vars = get_post_meta( $site_package_id, 'wpcd_php_max_input_vars', true );
+		if ( ! empty( $new_input_vars ) ) {
+			do_action( 'wpcd_wordpress-app_do_change_php_options', $app_id, 'max_input_vars', $new_input_vars );
+		}
+
+		// Get the list of plugins to deactivate.
+		$plugins_to_deactivate = get_post_meta( $site_package_id, 'wpcd_plugins_to_deactivate', true );
+		$plugins_to_deactivate = trim( preg_replace( '/\s+/', ' ', $plugins_to_deactivate ) );
+
+		// Deactivate plugins. This should not be necessary for new sites but might be called from WC in a subscription switch.
+		// So, for its better for sequencing to do it here and deactivate plugins before attempting to activate anything else.
+		if ( ! empty( $plugins_to_deactivate ) ) {
+			$command    = sprintf( 'sudo su - "%s" -c "wp --no-color plugin deactivate %s" ', $domain, $plugins_to_deactivate );
+			$action     = 'deactivate_plugins';
+			$raw_status = $ssh->submit_generic_server_command( $server_id, $action, $command, true );
+		}
+
+		// Get the list of repo plugins to install and activate.
+		$plugins_to_install_activate = get_post_meta( $site_package_id, 'wpcd_plugins_to_install_from_repo', true );
+		$plugins_to_install_activate = trim( preg_replace( '/\s+/', ' ', $plugins_to_install_activate ) );
+
+		// Install and activate repo plugins.
+		if ( ! empty( $plugins_to_install_activate ) ) {
+			$command    = sprintf( 'sudo su - "%s" -c "wp --no-color plugin install %s --activate" ', $domain, $plugins_to_install_activate );
+			$action     = 'activate_plugins_from_repo';
+			$raw_status = $ssh->submit_generic_server_command( $server_id, $action, $command, true );
+		}
+
+		// Get the list of custom url plugins to install and activate.
+		$plugins_to_install_activate = get_post_meta( $site_package_id, 'wpcd_plugins_to_install_from_url', true );
+		$plugins_to_install_activate = trim( preg_replace( '/\s+/', ' ', $plugins_to_install_activate ) );
+
+		// Install and activate external/custom url plugins.
+		if ( ! empty( $plugins_to_install_activate ) ) {
+			$command    = sprintf( 'sudo su - "%s" -c "wp --no-color plugin install %s --activate" ', $domain, $plugins_to_install_activate );
+			$action     = 'activate_plugins_external';
+			$raw_status = $ssh->submit_generic_server_command( $server_id, $action, $command, true );
+		}
+
+		// Get the list of pre-installed plugins to activate.
+		// This will really only apply if WC is in use with template sites.
+		$plugins_to_activate = get_post_meta( $site_package_id, 'wpcd_plugins_to_activate', true );
+		$plugins_to_activate = trim( preg_replace( '/\s+/', ' ', $plugins_to_activate ) );
+
+		// Activate plugins.
+		if ( ! empty( $plugins_to_activate ) ) {
+			$command    = sprintf( 'sudo su - "%s" -c "wp --no-color plugin activate %s" ', $domain, $plugins_to_activate );
+			$action     = 'activate_plugins';
+			$raw_status = $ssh->submit_generic_server_command( $server_id, $action, $command, true );
+		}
+
+		// Get the list of repo themes to install.
+		$themes_to_install = get_post_meta( $site_package_id, 'wpcd_themes_to_install_from_repo', true );
+		$themes_to_install = trim( preg_replace( '/\s+/', ' ', $themes_to_install ) );
+
+		// Install repo themes.
+		if ( ! empty( $themes_to_install ) ) {
+			$command    = sprintf( 'sudo su - "%s" -c "wp --no-color theme install %s " ', $domain, $themes_to_install );
+			$action     = 'install_themes_from_repo';
+			$raw_status = $ssh->submit_generic_server_command( $server_id, $action, $command, true );
+		}
+
+		// Get the list of external themes to install.
+		$themes_to_install = get_post_meta( $site_package_id, 'wpcd_themes_to_install_from_url', true );
+		$themes_to_install = trim( preg_replace( '/\s+/', ' ', $themes_to_install ) );
+
+		// Install external themes.
+		if ( ! empty( $themes_to_install ) ) {
+			$command    = sprintf( 'sudo su - "%s" -c "wp --no-color theme install %s " ', $domain, $themes_to_install );
+			$action     = 'install_themes_external';
+			$raw_status = $ssh->submit_generic_server_command( $server_id, $action, $command, true );
+		}
+
+		// Activate theme.
+		$theme_to_activate = get_post_meta( $site_package_id, 'wpcd_theme_to_activate', true );
+		if ( ! empty( $theme_to_activate ) ) {
+			$command    = sprintf( 'sudo su - "%s" -c "wp --no-color theme activate %s" ', $domain, $theme_to_activate );
+			$action     = 'activate_plugins';
+			$raw_status = $ssh->submit_generic_server_command( $server_id, $action, $command, true );
+		}
+
+		// Search and replace here - future use.
+
+		// Crons here - future use.
+
+		/**
+		 * Bash scripts example output (in one long script - line breaks here for readability.):
+		 * export DOMAIN=test004.wpcd.cloud &&
+		 * sudo -E wget --no-check-certificate -O wpcd_package_script_subscription_switch.sh "https://gist.githubusercontent.com/elindydotcom/4c9f96ac48199284227c0ad687aedf75/raw/5295a17b832d8bb3748e0970ba0857063fd63247/wpcd_subscription_switch_sample_script" > /dev/null 2>&1
+		 * && sudo -E dos2unix wpcd_package_script_subscription_switch.sh > /dev/null 2>&1 &&
+		 * echo "Executing Product Package Subscription Switch Bash Custom Script..." &&
+		 * sudo -E bash ./wpcd_package_script_subscription_switch.sh
+		 */
+
+		if ( false === $is_subscription_switch ) {
+			// Prepare export vars for bash scripts.
+			$exportvars = 'export DOMAIN=%s';
+			$exportvars = sprintf( $exportvars, $domain );
+
+			// Call bash script for new sites.
+			$script = get_post_meta( $site_package_id, 'wpcd_bash_scripts_new_sites_after', true );
+			if ( ! empty( $script ) ) {
+				$command  = $exportvars . ' && ';
+				$command .= 'sudo -E wget --no-check-certificate -O wpcd_site_package_script_new_subscription_after.sh "%s" > /dev/null 2>&1 ';
+				$command  = sprintf( $command, $script );  // add the script name to the string.
+				$command .= ' && sudo -E dos2unix wpcd_site_package_script_new_subscription_after.sh > /dev/null 2>&1';
+				$command .= ' && echo "Executing Product Package New Site Bash Custom Script..." ';
+				$command .= ' && sudo -E bash ./wpcd_site_package_script_new_subscription_after.sh';
+
+				$action     = 'bash_new_site_package_after';
+				$raw_status = $ssh->submit_generic_server_command( $server_id, $action, $command, true );
+			}
+		}
+
+		// If we get here then it means that we have completed the core site package rules.
+		// So flag the record as such.
+		update_post_meta( $app_id, 'wpapp_site_package_core_rules_complete', true );
+
+		// Clear 'in-process transient.
+		$transient_name = $app_id . 'wpcd_site_package_running';
+		delete_transient( $transient_name );
+
 	}
 
 	/**
@@ -3338,7 +3757,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	 * Called from function wpcd_wpapp_install_complete
 	 *
 	 * @param int   $app_id        post id of app.
-	 * @param array $instance      Array passed by calling function containing details of the server and site.
+	 * @param array $instance      Array passed by calling function containing details of the server and site. It's not used here yet and could be empty.
 	 */
 	public function handle_switch_php_version( $app_id, $instance ) {
 
@@ -3783,9 +4202,9 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			}
 		}
 
-		if ( in_array( $hook, array( 'edit.php' ) ) ) {
+		if ( in_array( $hook, array( 'edit.php' ) ) || in_array( $hook, array( 'post.php' ) ) ) {
 			$screen = get_current_screen();
-			if ( ( is_object( $screen ) && in_array( $screen->post_type, array( 'wpcd_app' ) ) ) || WPCD_WORDPRESS_APP_PUBLIC::is_apps_list_page() ) {
+			if ( ( is_object( $screen ) && in_array( $screen->post_type, array( 'wpcd_app' ) ) ) || WPCD_WORDPRESS_APP_PUBLIC::is_apps_list_page() || WPCD_WORDPRESS_APP_PUBLIC::is_app_edit_page() ) {
 				wp_enqueue_style( 'wpcd-wpapp-admin-app-css', wpcd_url . 'includes/core/apps/wordpress-app/assets/css/wpcd-wpapp-admin-app.css', array(), wpcd_scripts_version );
 
 				wp_enqueue_script( 'wpcd-wpapp-admin-post-type-wpcd-app', wpcd_url . 'includes/core/apps/wordpress-app/assets/js/wpcd-wpapp-admin-post-type-wpcd-app.js', array( 'jquery' ), wpcd_scripts_version, true );
@@ -3795,14 +4214,15 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 					apply_filters(
 						'wpcd_app_script_args',
 						array(
-							'nonce'                => wp_create_nonce( 'wpcd-app' ),
-							'_action'              => 'remove',
-							'i10n'                 => array(
+							'nonce'                     => wp_create_nonce( 'wpcd-app' ),
+							'_action'                   => 'remove',
+							'passwordless_login_action' => 'passwordless_login',
+							'i10n'                      => array(
 								'remove_site_prompt' => __( 'Are you sure you would like to delete this site and data? This action is NOT reversible!', 'wpcd' ),
 								'install_wpapp'      => __( 'Install WordPress', 'wpcd' ),
 							),
-							'install_wpapp_url'    => admin_url( 'edit.php?post_type=wpcd_app_server' ),
-							'bulk_actions_confirm' => __( 'Are you sure you want to perform this bulk action?', 'wpcd' ),
+							'install_wpapp_url'         => admin_url( 'edit.php?post_type=wpcd_app_server' ),
+							'bulk_actions_confirm'      => __( 'Are you sure you want to perform this bulk action?', 'wpcd' ),
 						),
 						'wpcd-wpapp-admin-post-type-wpcd-app'
 					)
@@ -4030,6 +4450,97 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				'message' => __( 'Readable check failed!', 'wpcd' ),
 			);
 			wp_send_json_error( $return );
+		}
+
+		wp_die();
+	}
+
+
+	/**
+	 * Get the link to be shown for a passwordless login.
+	 * This is used in multiple places hence extracted into this function.
+	 *
+	 * @param int    $app_id The app_id for the site that needs this link.
+	 * @param string $label The label to use for the link.
+	 */
+	public function get_passwordless_login_link_for_display( $app_id, $label ) {
+		return sprintf(
+			'<a class="wpcd_action_passwordless_login" data-wpcd-id="%d" data-wpcd-domain="%s" href="">%s</a>',
+			$app_id,
+			$this->get_domain_name( $app_id ),
+			esc_html( $label ),
+		);
+	}
+
+
+	/**
+	 * Handle passwordless login ajax request.
+	 *
+	 * Action Hook: wp_ajax_passwordless_login
+	 */
+	public function passwordless_login() {
+
+		/* Nonce check */
+		check_ajax_referer( 'wpcd-app', 'nonce' );
+
+		/* Permission check - unsure that this is needed since the action is not destructive and might cause issues if the user sees the message and can't dismiss it because they're not an admin. */
+		if ( ! wpcd_is_admin() ) {
+			wp_send_json_error( array( 'msg' => __( 'You are not authorized to perform this action.', 'wpcd' ) ) );
+		}
+
+		/**
+		 * From here on out, we're going to use the style of processing that we use in tabs.
+		 * But because we're not in a tab we have to change some things around!
+		 */
+
+		// Grab data out of $POST.
+		$id     = (int) $_POST['id'];
+		$domain = sanitize_text_field( $_POST['domain'] );
+
+		// Get app/server details.
+		$instance = $this->get_app_instance_details( $id );
+
+		// Set action var.
+		$action = 'wp_site_get_passwordless_link';
+
+		// Bail if no app/server details.
+		if ( is_wp_error( $instance ) ) {
+			/* Translators: %s is the action name. */
+			$message = sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action );
+			return new \WP_Error( $message );
+		}
+
+		// Create args array.
+		$args['domain'] = escapeshellarg( $domain );
+
+		// Get the full command to be executed by ssh.
+		$run_cmd = $this->turn_script_into_command(
+			$instance,
+			'passwordless_login.txt',
+			array_merge(
+				$args,
+				array(
+					'action' => $action,
+				)
+			)
+		);
+
+		do_action( 'wpcd_log_error', sprintf( 'attempting to run command for %s = %s ', print_r( $instance, true ), $run_cmd ), 'trace', __FILE__, __LINE__, $instance, false );
+
+		$result  = $this->execute_ssh( 'generic', $instance, array( 'commands' => $run_cmd ) );
+		$success = $this->is_ssh_successful( $result, 'passwordless_login.txt' );
+
+		if ( ! $success ) {
+			/* Translators: %1$s is the action; %2$s is the result of the ssh call. */
+			$message = sprintf( __( 'Unable to %1$s site: %2$s', 'wpcd' ), $action, $result );
+			return new \WP_Error( $message );
+		} else {
+			// grab the very last line in the results that should contain the url.
+			list($url_array[]) = array_slice( explode( PHP_EOL, trim( $result ) ), -1, 1 );
+			$return            = array(
+				'redirect_to' => $url_array[0],
+			);
+			wp_send_json_success( $return );
 		}
 
 		wp_die();
@@ -4598,8 +5109,47 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 	}
 
+	/**
+	 * This function checks to see if commands can be run
+	 * on the site.
+	 *
+	 * Filter Hook: wpcd_is_site_available_for_commands [hook not used anywhere - for future use - this function is called directly for now.]
+	 *
+	 * @param boolean $is_available   Current boolean that indicates whether the server is available.
+	 * @param int     $app_id App id to check.
+	 *
+	 * @return boolean
+	 */
+	public function is_site_available_for_commands( $is_available, $app_id ) {
 
+		if ( true === $is_available ) {
+			if ( true === $this->wpcd_is_site_package_running( $app_id ) ) {
+				return false;
+			}
+		}
 
+		return $is_available;
+	}
+
+	/**
+	 * Checks a special transient to see if site package might be running for an app/site.
+	 *
+	 * @param int $app_id The post id of the app/site.
+	 *
+	 * @return boolean
+	 */
+	public function wpcd_is_site_package_running( $app_id ) {
+
+		$is_running = false;
+
+		$transient_name = $app_id . 'wpcd_site_package_running';
+		$running_status = get_transient( $transient_name );
+		if ( 'running' === $running_status ) {
+			$is_running = true;
+		}
+
+		return $is_running;
+	}
 
 	/**
 	 * Return the REST API controller instance for a given name (base path)

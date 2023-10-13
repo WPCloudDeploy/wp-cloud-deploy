@@ -51,7 +51,13 @@ class WPCD_Admin_Setup_Wizard {
 	 * Add admin menus/screens.
 	 */
 	public function admin_menus() {
-		add_dashboard_page( '', '', 'manage_options', 'wpcd-setup', '' );
+		if ( wpcd_is_admin() ) {
+			add_dashboard_page( '', '', 'manage_options', 'wpcd-setup', '' );
+		}
+
+		if ( wpcd_is_manager() ) {
+			add_dashboard_page( '', '', 'wpcd_manage_all', 'wpcd-setup', '' );
+		}
 	}
 
 	/**
@@ -100,7 +106,7 @@ class WPCD_Admin_Setup_Wizard {
 	 */
 	public function wpcd_ask_setup_wizard() {
 
-		if ( wpcd_is_admin() ) {
+		if ( wpcd_is_admin() || wpcd_is_manager() ) {
 
 			/* Product name that will be shown at various locations in the wizard. */
 			$product_name = wpcd_get_short_product_name()
@@ -522,7 +528,7 @@ class WPCD_Admin_Setup_Wizard {
 				?>
 				<p><b><?php esc_html_e( 'Connect To Your Linode Account', 'wpcd' ); ?> </b></p>
 				<p><?php esc_html_e( 'Create an API TOKEN at LINODE and enter it below.', 'wpcd' ); ?> </p>
-				<p><?php esc_html_e( 'You can create a token by navigating to: https://https://cloud.linode.com/profile/tokens.', 'wpcd' ); ?></p>
+				<p><?php esc_html_e( 'You can create a token by navigating to: https://cloud.linode.com/profile/tokens.', 'wpcd' ); ?></p>
 				<p><?php esc_html_e( 'There you can click the CREATE A PERSONAL ACCESS TOKEN button and follow the instructions.', 'wpcd' ); ?></p>
 				<p><?php esc_html_e( 'Please make sure that you assign all READ/WRITE permissions and select a long-running expiration date.', 'wpcd' ); ?></p>			
 				<?php
@@ -721,7 +727,7 @@ class WPCD_Admin_Setup_Wizard {
 			exit;
 		} else {
 			// Stay on this step.
-			wp_safe_redirect( esc_url_raw( add_query_arg( array( 'error_msg' => __( 'We were unable to connect to your server provider with this API key/token. Please re-enter it or try a different one.', 'wpcd' ) ), $this->get_this_step_link() ) ) );
+			wp_safe_redirect( esc_url_raw( add_query_arg( array( 'error_msg' => __( 'We were unable to connect to your server provider with this API key/token. Did you accidentally enter an extra space or character? Please re-enter it or try a different one.', 'wpcd' ) ), $this->get_this_step_link() ) ) );
 			exit;
 		}
 
@@ -777,6 +783,9 @@ class WPCD_Admin_Setup_Wizard {
 			wpcd_set_option( "vpn_{$provider}_public_sshkey", $key_pair['public'] );
 			wpcd_set_option( "vpn_{$provider}_sshkeynotes", $attributes['public_key_name'] . ': ' . __( 'This key was automatically created.', 'wpcd' ) );
 
+			// Clear caches so the settings screen will have a new list of ssh keys.
+			WPCD()->get_provider_api( $provider )->clear_cache();
+
 			wp_safe_redirect( esc_url_raw( $this->get_next_step_link() ) );
 			exit;
 
@@ -798,7 +807,7 @@ class WPCD_Admin_Setup_Wizard {
 			<p><?php esc_html_e( 'You should now be able to create your first server at your provider.', 'wpcd' ); ?></p>
 			<p>
 			<?php
-			echo sprintf( __( 'You can go to the server list to create your first server or <b><u><a %s>View The Documentation</a></b></u>.', 'wpcd' ), 'href="https://wpclouddeploy.com/doc-landing/" target="_blank" ' );
+			echo sprintf( __( 'You can go to the server list and use the DEPLOY A NEW WORDPRESS SERVER button at the top of the screen to create your first server.  Or <b><u><a %s>View The Documentation</a></b></u>.', 'wpcd' ), 'href="https://wpclouddeploy.com/doc-landing/" target="_blank" ' );
 			?>
 			</p>
 			<input type="submit" name="save_step" value="Create First Server">

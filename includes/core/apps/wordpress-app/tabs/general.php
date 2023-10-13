@@ -170,8 +170,7 @@ class WPCD_WORDPRESS_TABS_GENERAL extends WPCD_WORDPRESS_TABS {
 
 		/* Set up an HTML string with the current domain configuration */
 		$config_desc = '';
-		$site_status = $this->site_status( $id );
-		if ( 'on' === $site_status || empty( $site_status ) ) {
+		if ( true === $this->is_site_enabled( $id ) ) {
 
 			// Basic status - we're here so site is enabled.
 			$config_desc .= $ok_span . __( 'Your site seems to be ready!', 'wpcd' );
@@ -205,6 +204,15 @@ class WPCD_WORDPRESS_TABS_GENERAL extends WPCD_WORDPRESS_TABS {
 			// Credentials.
 			$config_desc .= '<br />';
 			$config_desc .= $credentials_span . __( 'Looking for your credentials to log into wp-admin for the first time?  Click on the MISC tab.', 'wpcd' );
+
+			// Passwordless Login.
+			/** Removing for now.
+			if ( wpcd_is_admin() && ( ! wpcd_get_early_option( 'wordpress_app_disable_passwordless_login' ) ) ) {
+				$passwordless_login_link = $this->get_passwordless_login_link_for_display( $id, __( 'Login', 'wpcd' ) );
+				$passwordless_login_link = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_div_and_class( $passwordless_login_link, 'wp_passwordless_login_link' );
+				$config_desc            .= '<br />' . '<br />' . $passwordless_login_link;
+			}
+			*/
 
 			// Create wp-admin and front-end site links.
 			// *** Disabled in V 2.10.0.

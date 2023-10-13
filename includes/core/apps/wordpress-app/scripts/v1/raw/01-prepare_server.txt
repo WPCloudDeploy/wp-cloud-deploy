@@ -160,7 +160,7 @@ then
 
 	# Adding and installing PHP stack
 	echo $(date): "Installing PHP versions - this will take a while too!"
-	phpversion=(5.6 7.1 7.2 7.3 7.4 8.0 8.1 8.2)
+	phpversion=(7.4 8.0 8.1 8.2)
 	for ver in "${phpversion[@]}"
 	do
 		echo $(date): ".....PHP $ver"
@@ -363,7 +363,7 @@ else
 	then
 		# Update php.ini file to increase filesize uploads allowed in WordPress
 		echo $(date): "Adding required entries in php.ini to allow for larger file uploads in WordPress..."
-		phpversion=(5.6 7.1 7.2 7.3 7.4 8.0 8.1 8.2)
+		phpversion=(7.4 8.0 8.1 8.2)
 		for ver in "${phpversion[@]}"
 		do
 			sed -i "s/upload_max_filesize = 2M/upload_max_filesize = 25M/g" /etc/php/$ver/fpm/php.ini
@@ -394,7 +394,10 @@ else
 			systemctl restart php$ver-fpm > /dev/null 2>&1
 		done
 
-		# Configure NGINX to accept extra-long domain names (the seven back-slashes are to insert spaces before the actual line is inserted )
+		# Drop support for tls 1.0 and 1.1 - explicitly set the list of accepted protocols (the seven back-slashes are to insert spaces before the actual line is inserted.)
+		sed -i "s/ssl_protocols.*/\ \n \ \ \ \ \ \ \ # Removed TSL 1.0 and 1.1 from default list of protocols \n \ \ \ \ \ \ \ ssl_protocols TLSv1.2 TLSv1.3;/g" /etc/nginx/nginx.conf
+
+		# Configure NGINX to accept extra-long domain names (the seven back-slashes are to insert spaces before the actual line is inserted.)
 		sed -i '/^http {/a \ \n \ \ \ \ \ \ \ # Accept extra-long domain names \n \ \ \ \ \ \ \ server_names_hash_bucket_size 128;' /etc/nginx/nginx.conf
 
 		# Configure nginx worker_cpu_affinity, worker_rlimit_nofile, pcre_jit, multi_accept, worker_connections, accept_mutex, epoll
@@ -625,7 +628,7 @@ EOF
 		# create /etc/nginx/common/cache_enabler.conf which contains needed configuration for the Cache Enabler plugin
 		cat > /etc/nginx/common/cache_enabler.conf << 'EOF'
 # This file defines variables needed for the Cache Enabler WordPress plugin by KeyCDN
-# It just defines variables and doesn't do much by iteslf.
+# It just defines variables and doesn't do much by itself.
 # It's meant to be included in the site configuration
 
 set $cache_uri $request_uri;

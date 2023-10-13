@@ -469,37 +469,6 @@ if [ "$g_webserver_type" = "nginx" ] ; then
     if totalmem > '$Restart_memory' MB then alert
 ' > /etc/monit/conf-available/php74
 
-	echo 'check process php73-fpm with pidfile /var/run/php/php7.3-fpm.pid
-    start program = "/bin/systemctl start php7.3-fpm"
-    stop program  = "/bin/systemctl stop php7.3-fpm"
-    if cpu is greater than '$Alert_cpu'% for 3 cycles then alert
-    if cpu is greater than '$Restart_cpu'% for 5 cycles then restart
-    if totalmem > '$Restart_memory' MB then alert
-' > /etc/monit/conf-available/php73
-
-	echo 'check process php72-fpm with pidfile /var/run/php/php7.2-fpm.pid
-    start program = "/bin/systemctl start php7.2-fpm"
-    stop program  = "/bin/systemctl stop php7.2-fpm"
-    if cpu is greater than '$Alert_cpu'% for 3 cycles then alert
-    if cpu is greater than '$Restart_cpu'% for 5 cycles then restart
-    if totalmem > '$Restart_memory' MB then alert
-' > /etc/monit/conf-available/php72
-
-	echo 'check process php71-fpm with pidfile /var/run/php/php7.1-fpm.pid
-    start program = "/bin/systemctl start php7.1-fpm"
-    stop program  = "/bin/systemctl stop php7.1-fpm"
-    if cpu is greater than '$Alert_cpu'% for 3 cycles then alert
-    if cpu is greater than '$Restart_cpu'% for 5 cycles then restart
-    if totalmem > '$Restart_memory' MB then alert
-' > /etc/monit/conf-available/php71
-
-	echo 'check process php56-fpm with pidfile /var/run/php/php5.6-fpm.pid
-    start program = "/bin/systemctl start php5.6-fpm"
-    stop program  = "/bin/systemctl stop php5.6-fpm"
-    if cpu is greater than '$Alert_cpu'% for 3 cycles then alert
-    if cpu is greater than '$Restart_cpu'% for 5 cycles then restart
-    if totalmem > '$Restart_memory' MB then alert
-' > /etc/monit/conf-available/php56
 fi
 
 echo 'CHECK FILESYSTEM system PATH /
@@ -527,18 +496,6 @@ echo 'check system '$domain'
 		fi
 		if [[ ! -f /etc/wpcd/php-versions-disabled/php7.4 ]]; then
 			ln -s /etc/monit/conf-available/php74 /etc/monit/conf-enabled/php74
-		fi
-		if [[ ! -f /etc/wpcd/php-versions-disabled/php7.3 ]]; then
-			ln -s /etc/monit/conf-available/php73 /etc/monit/conf-enabled/php73
-		fi
-		if [[ ! -f /etc/wpcd/php-versions-disabled/php7.2 ]]; then	
-			ln -s /etc/monit/conf-available/php72 /etc/monit/conf-enabled/php72
-		fi
-		if [[ ! -f /etc/wpcd/php-versions-disabled/php7.1 ]]; then	
-			ln -s /etc/monit/conf-available/php71 /etc/monit/conf-enabled/php71
-		fi
-		if [[ ! -f /etc/wpcd/php-versions-disabled/php5.6 ]]; then	
-			ln -s /etc/monit/conf-available/php56 /etc/monit/conf-enabled/php56
 		fi
 	fi
 	
@@ -660,18 +617,6 @@ if [[ $action == "enable_php_monit" || $action == "10" ]]; then
 		if [[ ! -f /etc/wpcd/php-versions-disabled/php7.4 ]]; then
 			ln -s /etc/monit/conf-available/php74 /etc/monit/conf-enabled/php74
 		fi
-		if [[ ! -f /etc/wpcd/php-versions-disabled/php7.3 ]]; then
-			ln -s /etc/monit/conf-available/php73 /etc/monit/conf-enabled/php73
-		fi
-		if [[ ! -f /etc/wpcd/php-versions-disabled/php7.2 ]]; then	
-			ln -s /etc/monit/conf-available/php72 /etc/monit/conf-enabled/php72
-		fi
-		if [[ ! -f /etc/wpcd/php-versions-disabled/php7.1 ]]; then	
-			ln -s /etc/monit/conf-available/php71 /etc/monit/conf-enabled/php71
-		fi
-		if [[ ! -f /etc/wpcd/php-versions-disabled/php5.6 ]]; then	
-			ln -s /etc/monit/conf-available/php56 /etc/monit/conf-enabled/php56
-		fi
 	fi
 
 	systemctl restart monit
@@ -688,7 +633,7 @@ if [[ $action == "disable_php_monit" || $action == "11" ]]; then
 		rm -f /etc/monit/conf-enabled/php81
 		rm -f /etc/monit/conf-enabled/php80
 		rm -f /etc/monit/conf-enabled/php74
-		rm -f /etc/monit/conf-enabled/php73
+		rm -f /etc/monit/conf-enabled/php73 
 		rm -f /etc/monit/conf-enabled/php72
 		rm -f /etc/monit/conf-enabled/php71
 		rm -f /etc/monit/conf-enabled/php56
@@ -785,18 +730,6 @@ if [[ $action == "enable_all_monit" || $action == "15" ]]; then
 		if [[ ! -f /etc/wpcd/php-versions-disabled/php7.4 ]]; then
 			ln -s /etc/monit/conf-available/php74 /etc/monit/conf-enabled/php74
 		fi
-		if [[ ! -f /etc/wpcd/php-versions-disabled/php7.3 ]]; then
-			ln -s /etc/monit/conf-available/php73 /etc/monit/conf-enabled/php73
-		fi
-		if [[ ! -f /etc/wpcd/php-versions-disabled/php7.2 ]]; then	
-			ln -s /etc/monit/conf-available/php72 /etc/monit/conf-enabled/php72
-		fi
-		if [[ ! -f /etc/wpcd/php-versions-disabled/php7.1 ]]; then	
-			ln -s /etc/monit/conf-available/php71 /etc/monit/conf-enabled/php71
-		fi
-		if [[ ! -f /etc/wpcd/php-versions-disabled/php5.6 ]]; then	
-			ln -s /etc/monit/conf-available/php56 /etc/monit/conf-enabled/php56
-		fi
 	fi
 
 	ln -s /etc/monit/conf-available/filesystem /etc/monit/conf-enabled/filesystem
@@ -821,10 +754,6 @@ if [[ $action == "disable_all_monit" || $action == "16" ]]; then
 		rm -f /etc/monit/conf-enabled/php81
 		rm -f /etc/monit/conf-enabled/php80
 		rm -f /etc/monit/conf-enabled/php74
-		rm -f /etc/monit/conf-enabled/php73
-		rm -f /etc/monit/conf-enabled/php72
-		rm -f /etc/monit/conf-enabled/php71
-		rm -f /etc/monit/conf-enabled/php56
 	fi
 	
 	systemctl restart monit

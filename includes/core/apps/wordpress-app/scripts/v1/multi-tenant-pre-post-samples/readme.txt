@@ -8,7 +8,7 @@ When your site is used to create a customer site, these scripts will be run as d
 wpcd_mt_new_site_post_install_script.sh
 ------------------------------------------
 This is run when a site is converted to a multi-tenant site.
-Then generally happens during the woo-commerce purchase process, when the admin creates a site or when an existing site is forcibly attached to a version.
+This generally happens during the woo-commerce purchase process, when the admin creates a site or when an existing site is forcibly attached to a version.
 
 ------------------------------------------
 wpcd_mt_upgrade_site_post_upgrade_script.sh
@@ -27,7 +27,7 @@ These two functions are run during a new site or when switching an existing site
 They are located in 58-git_control.txt
 But, you can replace these function calls by adding the lf_mt_site_conversion_link_existing_files.sh script to your template root folder.
 If you do this, you are completely responsible for how files get moved from the template version to your customer site(s)!
-So maybe take a look at what the existing functions are doing first before proceed.
+So maybe take a look at what the existing functions are doing first before proceeding.
 
 An example of  couple of things you can use this for.
 1. Instead of symlinking individual plugins and themes you can choose to symlink the entire plugins and thems folder once (each)

@@ -3,7 +3,7 @@
 Plugin Name: WPCloudDeploy
 Plugin URI: https://wpclouddeploy.com
 Description: Deploy and manage cloud servers and apps from inside the WordPress Admin dashboard.
-Version: 5.3.8
+Version: 5.4.0
 Requires at least: 5.8
 Requires PHP: 7.4
 Item Id: 1493
@@ -476,6 +476,8 @@ class WPCD_Init {
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/class-wordpress-app.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/class-wordpress-app-settings.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/class-wordpress-ssh.php';
+		require_once wpcd_path . 'includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php';
+		require_once wpcd_path . 'includes/core/apps/wordpress-app/functions-classes-wordpress-app.php';
 
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/public/class-wordpress-app-public.php';
 		require_once wpcd_path . 'includes/core/wp-cloud-deploy.php';
@@ -983,7 +985,7 @@ class WPCD_Init {
 		$add_ons['wpcd-vultr-provider/wpcd-vultr-provider.php']                 = '2.3.1';
 		$add_ons['wpcd-wc-sell-servers/wpcd-wc-sell-servers.php']               = '9999.9999.9999';
 		$add_ons['wpcd-wc-sell-sites/wpcd-wc-sell-sites.php']                   = '9999.9999.9999';
-		$add_ons['wpcd-woocommerce/wpcd-woocommerce.php']                       = '3.2.0';
+		$add_ons['wpcd-woocommerce/wpcd-woocommerce.php']                       = '3.2.3';
 
 		// Initialize list of incompatible add_ons.
 		$incompatible_add_ons = array();

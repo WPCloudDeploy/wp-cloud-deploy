@@ -43,6 +43,7 @@ while [[ -z $action ]]; do
 	echo "   5) Change all credentials - email and password"
 	echo "   6) Update a site option"
 	echo "   7) Update wp-config.php option for a site"
+    echo "   8) Get secure passwordless login link for a site"
     echo
     read -p "Action: " action
     until [[ -z "$action" || "$action" =~ ^[1-9]$ ]]; do
@@ -56,6 +57,8 @@ done
 if [[ $action == "wp_site_add_user" || $action == "1" ]]; then
 
     select_domain
+
+    # @TODO: Replace this with gf_get_domain_user_name
     user_name=$(echo $domain | cut -c1-32)
 
     if [[ -z $wps_user ]]; then
@@ -95,6 +98,8 @@ fi
 if [[ $action == "wp_site_delete_user" || $action == "2" ]]; then
 
     select_domain
+
+    # @TODO: Replace this with gf_get_domain_user_name
     user_name=$(echo $domain | cut -c1-32)
 
     if [[ -z $wps_user ]]; then
@@ -121,6 +126,8 @@ fi
 if [[ $action == "wp_site_delete_users_with_role" || $action == "3" ]]; then
 ####: This doesn't work because getting the list of users with roles fails...
     select_domain
+
+    # @TODO: Replace this with gf_get_domain_user_name
     user_name=$(echo $domain | cut -c1-32)
 
     if [[ -z $wps_role ]]; then
@@ -147,6 +154,8 @@ fi
 if [[ $action == "wp_site_change_user_email" || $action == "4" ]]; then
 
     select_domain
+
+    # @TODO: Replace this with gf_get_domain_user_name
     user_name=$(echo $domain | cut -c1-32)
 
     if [[ -z $wps_user ]]; then
@@ -173,6 +182,8 @@ fi
 if [[ $action == "wp_site_change_credentials" || $action == "5" ]]; then
 
     select_domain
+
+    # @TODO: Replace this with gf_get_domain_user_name
     user_name=$(echo $domain | cut -c1-32)
 
     if [[ -z $wps_user ]]; then
@@ -205,6 +216,8 @@ fi
 if [[ $action == "wp_site_update_option" || $action == "6" ]]; then
 
     select_domain
+
+    # @TODO: Replace this with gf_get_domain_user_name
     user_name=$(echo $domain | cut -c1-32)
 
     if [[ -z $wps_option ]]; then
@@ -230,6 +243,8 @@ fi
 if [[ $action == "wp_site_update_wpconfig_option" || $action == "7" ]]; then
 
     select_domain
+
+    # @TODO: Replace this with gf_get_domain_user_name
     user_name=$(echo $domain | cut -c1-32)
 
     if [[ -z $wps_wpconfig_option ]]; then
@@ -261,5 +276,34 @@ if [[ $action == "wp_site_update_wpconfig_option" || $action == "7" ]]; then
 
     echo
     echo "Updated WPConfig Option Value $wps_wpconfig_option in domain $domain"
+    exit
+fi
+
+if [[ $action == "wp_site_get_passwordless_link" || $action == "8" ]]; then
+
+    select_domain
+
+    # Get the domain user name - output will be held in $g_domain_user_name
+    gf_get_domain_user_name $domain
+    user_name=$g_domain_user_name
+
+    # Install wp-cli package that will support this.
+    su - $user_name -c "wp package install aaemnnosttv/wp-cli-login-command"
+
+    # Install supporting plugin to the site.
+    su - $user_name -c "wp login install --activate --yes"
+
+    # Get list of users into variable.
+    adminusers=$(su - $user_name -c "wp user list --role=administrator --field=ID --no-color --format=csv")
+
+    # Get the first user in the list.
+    # @see: https://stackoverflow.com/questions/43167317/how-to-get-the-first-element-of-a-string-split-with-space
+    admin_user=(${adminusers[@]})
+
+    # Get passwordless link
+    link=$(su - $user_name -c "wp login create $admin_user --url-only --expires=180")
+
+    echo
+    echo $link
     exit
 fi

@@ -363,6 +363,17 @@ class WPCD_POSTS_Site_Package extends WPCD_Posts_Base {
 			),
 		);
 
+		/* Fields for special plugin & theme handling. */
+		$fields_plugin_theme_misc = array(
+			array(
+				'name'       => __( 'Delete Contents of UpDraft Folder', 'wpcd' ),
+				'id'         => $prefix . 'site_package_delete_updraft',
+				'type'       => 'checkbox',
+				'save_field' => true,
+				'columns'    => 3,
+			),
+		);
+
 		/* Note field. */
 		$fields_note = array(
 			array(
@@ -443,6 +454,14 @@ class WPCD_POSTS_Site_Package extends WPCD_Posts_Base {
 			'post_types' => array( 'wpcd_site_package' ),
 			'priority'   => 'default',
 			'fields'     => $fields_php_misc,
+		);
+
+		$metaboxes[] = array(
+			'id'         => $prefix . 'mb_site_package_special_plugin_theme_handling',
+			'title'      => __( 'Misc', 'wpcd' ),
+			'post_types' => array( 'wpcd_site_package' ),
+			'priority'   => 'default',
+			'fields'     => $fields_plugin_theme_misc,
 		);
 
 		if ( $this->can_user_execute_bash_scripts() ) {

@@ -3690,9 +3690,21 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			$raw_status = $ssh->submit_generic_server_command( $server_id, $action, $command, true );
 		}
 
+		// Delete updraft folder.  Only handle on new sites since existing sites might have installed updraft and want to keep their local backups around while switching subscriptions.
+		if ( false === $is_subscription_switch ) {
+			$delete_updraft = get_post_meta( $site_package_id, 'wpcd_site_package_delete_updraft', true );
+			if ( true === (bool) $delete_updraft ) {
+				$command    = sprintf( 'sudo rm /var/www/%s/html/wp-content/updraft/*.zip && sudo rm /var/www/%s/html/wp-content/updraft/*.txt && sudo rm /var/www/%s/html/wp-content/updraft/*.gz && echo "Updraft Folder Contents Deleted." ', $domain, $domain, $domain );
+				$action     = 'delete_updraft_folder_contents';
+				$raw_status = $ssh->submit_generic_server_command( $server_id, $action, $command, true );
+			}
+		}
+
 		// Search and replace here - future use.
 
 		// Crons here - future use.
+
+		// Plugin & Theme updates here - future use.
 
 		/**
 		 * Bash scripts example output (in one long script - line breaks here for readability.):

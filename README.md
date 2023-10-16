@@ -132,6 +132,7 @@ Note: Even though the entire git development history isn't available on github, 
 * Enh: WPAPP - Add notes field to site packages screen.
 * Enh: WPAPP - Add options to disable pre/post processing bash scripts via a wp-config.php value.
 * Enh: WPAPP - Add ability to push boolean values as raw into wp-config when using site and product packages.
+* Enh: WPAPP - Add option in site packages screen to remove updraft backups - useful when products are based on template sites and updraft was being used to backup the template.
 
 5.4.0
 ------

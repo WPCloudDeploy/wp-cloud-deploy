@@ -4,8 +4,12 @@
 
 /******************************************************************************************/
 
-/* Add some padding around each tab and make the font a little bigger.*/
+/* Left tabs on settings overlays on top of tooltips so send it to the back. */
+.rwmb-tabs-left .rwmb-tab-nav {
+	z-index: -100 !important;
+}
 
+/* Add some padding around each tab and make the font a little bigger.*/
 .rwmb-tab-nav li[class^='rwmb-tab-'] a, .rwmb-tab-nav .rwmb-tab-ssl a {
     padding-left: 1.25em !important;
     padding-right: 1.25em !important;
@@ -15,14 +19,12 @@
 }
 
 /* Body of tabs - add padding */
-
 .rwmb-settings-no-boxes .rwmb-tab-panel {
     padding-left: 2em;
     padding-right: 2em;
 }
 
 /* Made label width wider inside tabs and give more vertical spacing betweent them. */
-
 .rwmb-settings-no-boxes .rwmb-tab-panel .rwmb-label {
     width: 30%;
     margin-bottom: 2em;
@@ -35,7 +37,6 @@
 }
 
 /* Background color and text for tabs - vertical */
-
 .rwmb-settings-no-boxes .rwmb-tabs-left .rwmb-tab-nav {
     background-color: var(--wpcd-accent-background-color);
 }
@@ -57,7 +58,6 @@
 }
 
 /* Hover color for vertical tabs */
-
 .rwmb-settings-no-boxes .rwmb-tabs-left .rwmb-tab-nav a:hover {
     color: var(--wpcd-primary-brand-color);
     transition: all 1s cubic-bezier(0.000, 0.000, 0.230, 1);
@@ -73,7 +73,6 @@ On all the admin settings tabs, close up some excessive spaces.
 Additional headers added to that tab will neeed to
 be added here.
 */
-
 .rwmb-settings-no-boxes #general .rwmb-heading-wrapper, 
 .rwmb-settings-no-boxes #wpcd_deploy_your_first_wordpress_site .rwmb-heading-wrapper,
 /* @TODO: This one should probably be extracted to it's own wpcd-wpapp-admin-settings.css file since it's specific to the WordPress app */
@@ -156,7 +155,6 @@ Start styling for for the DEPLOY YOUR FIRST WORDPRESS SITE section. Make the bac
 /*
 In the DEPLOY YOUR FIRST WORDPRESS SITE section, make the fonts bigger and space out the lines a bit more.
 */
-
 .rwmb-settings-no-boxes #wpcd_deploy_your_first_wordpress_site .rwmb-heading-wrapper #wpcd_deploy_your_first_wordpress_site_heading-description {
     font-size: 1.2em;
     font-style: inherit;
@@ -166,18 +164,15 @@ In the DEPLOY YOUR FIRST WORDPRESS SITE section, make the fonts bigger and space
 /*
 In the DEPLOY YOUR FIRST WORDPRESS SITE section, adjust list elements.
 */
-
 .rwmb-settings-no-boxes #wpcd_deploy_your_first_wordpress_site .rwmb-heading-wrapper li {
     font-size: 1.0em;
     line-height: 1.6em;
 }
-
 /** End styling for the DEPLOY YOUR FIRST WORDPRESS SITE section **/
 
 /* 
  re-style headers that rwmb has effectively unstyled.
 */
-
 .rwmb-input h1 {
     font-size: 24px !important;
     margin-left: 0px !important;
@@ -195,7 +190,6 @@ In the DEPLOY YOUR FIRST WORDPRESS SITE section, adjust list elements.
 /**
  * Text shown when an API key is not setup.
  */
-
 .rwmb-settings-no-boxes .wpcd_settings_key_not_available_instructions {
     color: var(--wpcd-primary-brand-color);
     font-size: 1.2 em;
@@ -205,21 +199,17 @@ In the DEPLOY YOUR FIRST WORDPRESS SITE section, adjust list elements.
 /**
  * WP 5.5 has added additional 'handlebars' to move metaboxes around.  We need to remove these.
  */
-
 .rwmb-settings-no-boxes .postbox-header {
     display: none;
 }
-
 /* End style Metabox.io Tabs in the main settings screen */
 
 /* If any error messages are present on the settings screen, make sure they are in RED */
-
 .wpcd_settings_err_msg {
     color: red;
 }
 
 /* the password toggle icon */
-
 .wpcd_settings_pass_toggle_icon {
     vertical-align: middle;
     width: 30px;
@@ -230,7 +220,6 @@ In the DEPLOY YOUR FIRST WORDPRESS SITE section, adjust list elements.
 /**
  * Text shown when Provider is in use.
  */
-
 .rwmb-settings-no-boxes .rwmb-tab-panel .wpcd_settings_provider_in_use_warning .rwmb-input {
     width: 100%;
 }
@@ -241,7 +230,6 @@ In the DEPLOY YOUR FIRST WORDPRESS SITE section, adjust list elements.
 }
 
 /* Received Files listing on the Sync Tab. */
-
 .wpcd-received-files-list-item {
     margin-bottom: 15px;
 }
@@ -268,7 +256,6 @@ In the DEPLOY YOUR FIRST WORDPRESS SITE section, adjust list elements.
  */
 
 /* The Modal (background) */
-
 .modal {
     display: none;
     /* Hidden by default */
@@ -287,7 +274,6 @@ In the DEPLOY YOUR FIRST WORDPRESS SITE section, adjust list elements.
 }
 
 /* Modal Content */
-
 .modal-content {
     background-color: #fefefe;
     margin: auto;
@@ -296,7 +282,6 @@ In the DEPLOY YOUR FIRST WORDPRESS SITE section, adjust list elements.
 }
 
 /* The Close Button */
-
 .close {
     color: #aaaaaa;
     float: right;
@@ -311,7 +296,6 @@ In the DEPLOY YOUR FIRST WORDPRESS SITE section, adjust list elements.
 }
 
 /* Over background */
-
 .cover-popup-bg-sec {
     position: fixed;
     top: 0;
@@ -335,7 +319,6 @@ input#decryption_key_to_restore {
 }
 
 /* display waiting message css */
-
 span.display_waiting_message {
     vertical-align: middle;
     margin-left: 10px;
@@ -344,7 +327,6 @@ span.display_waiting_message {
 /** 
  * Faq and help page
  */
-
 .wpcd_settings_help_text_wrapper {
     line-height: 2.5em;
 }
@@ -422,7 +404,6 @@ span.display_waiting_message {
 }
 
 /* Provider toggle switch */
-
 .wpcd_provider_active_switch {
     position: relative;
     display: inline-block;
@@ -475,7 +456,6 @@ input:checked+.wpcd_provider_active_slider:before {
 }
 
 /* Rounded sliders */
-
 .wpcd_provider_active_slider.round {
     border-radius: 34px;
 }
@@ -487,7 +467,6 @@ input:checked+.wpcd_provider_active_slider:before {
 /**/
 
 /* Provider status - css */
-
 .all_provider_list_table {
     pointer-events: none;
     background-color: white;

@@ -445,7 +445,7 @@ class WPCD_POSTS_Site_Package extends WPCD_Posts_Base {
 			'fields'     => $fields_php_misc,
 		);
 
-		if ( ! defined( 'WPCD_SITE_PACKAGES_NO_BASH' ) || ( defined( 'WPCD_SITE_PACKAGES_NO_BASH' ) && false === (bool) WPCD_SITE_PACKAGES_NO_BASH ) ) {
+		if ( $this->can_user_execute_bash_scripts() ) {
 			// Site is allowed to execute bash scripts for site packages.
 			$metaboxes[] = array(
 				'id'         => $prefix . 'mb_site_package_bash_scripts',
@@ -489,6 +489,22 @@ class WPCD_POSTS_Site_Package extends WPCD_Posts_Base {
 
 	}
 
+	/**
+	 * Return whether or not bash scripts can be run in site packages.
+	 *
+	 * You will not run to run them if WPCD is installed in a shared sites
+	 * environment (saas).
+	 *
+	 * @param int $user_id User id running site packages - not used yet.
+	 */
+	public function can_user_execute_bash_scripts( $user_id = 0 ) {
 
+		if ( ! defined( 'WPCD_SITE_PACKAGES_NO_BASH' ) || ( defined( 'WPCD_SITE_PACKAGES_NO_BASH' ) && false === (bool) WPCD_SITE_PACKAGES_NO_BASH ) ) {
+			return true;
+		}
+
+		return false;
+
+	}
 
 }

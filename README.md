@@ -129,6 +129,8 @@ Note: Even though the entire git development history isn't available on github, 
 5.4.1
 ------
 * Enh: WPAPP - For bash script 37 - Backup the entire letsencrypt folder instead of just the live folder.
+* Enh: WPAPP - Add notes field to site packages screen.
+* Enh: WPAPP - Add option to disable bash scripts via wp-config.php value.
 
 5.4.0
 ------

@@ -32,10 +32,10 @@
 	 * @param state  Force group to have a state.
 	 */
 	group.toggle.updateState = function( $group, state ) {
-		var $input = $group.find( '.rwmb-group-state' ).last().find( 'input' );
+		var $input = $group.children( '.rwmb-group-state' ).last().find( 'input' );
 		if ( ! $input.length && ! state ) {
 			return;
-		}
+        }
 		if ( state ) {
 			$input.val( state );
 		} else {
@@ -72,17 +72,37 @@
 				return;
 			}
 
-			var selectors = 'input[name*="[' + field + ']"], textarea[name*="[' + field + ']"], select[name*="[' + field + ']"], button[name*="[' + field + ']"]',
+			const selectors = 'input[name*="[' + field + ']"], textarea[name*="[' + field + ']"], select[name*="[' + field + ']"], button[name*="[' + field + ']"]',
 				$field = $group.find( selectors );
-
 			if ( ! $field.length ) {
 				return;
 			}
 
-			var fieldValue = $field.val() || '';
+			let fieldValue = $field.val() || '';
+
+			// Select: get the option label instead of value.
 			if ( $field.is( 'select' ) && fieldValue ) {
 				fieldValue = $field.find( 'option:selected' ).text();
 			}
+
+			// Radio: get the checked option label instead of value.
+			if ( $field.is( 'input' ) && 'radio' === $field.attr( 'type' ) ) {
+				fieldValue = $field.filter( ':checked' ).parent().text();
+			}
+
+			// Checkbox: get the checked option label instead of value.
+			if ( $field.hasClass( 'rwmb-checkbox' ) ) {
+				fieldValue = $field.prop( 'checked' ) ? i18n.yes : i18n.no;
+			}
+
+			// Switch: show field's custom on/off labels and fallback to the default ones.
+			if ( $field.hasClass( 'rwmb-switch' ) ) {
+				fieldValue = $field.parent().find( '.rwmb-switch-off' ).text() || i18n.off;
+				if ( $field.prop( 'checked' ) ) {
+					fieldValue = $field.parent().find( '.rwmb-switch-on' ).text() || i18n.on;
+				}
+			}
+
 			content = content.replace( '{' + field + '}', fieldValue );
 
 			// Update title when field's value is changed.

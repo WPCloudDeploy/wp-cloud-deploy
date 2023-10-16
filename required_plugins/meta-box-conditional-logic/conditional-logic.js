@@ -159,10 +159,20 @@
 				action = typeof conditions[ 'hidden' ] !== 'undefined' ? 'hidden' : 'visible',
 				logic = conditions[ action ],
 				logicApply = isLogicCorrect( logic, $this ),
-				$element = $this.parent();
+				$element = $this.parent(),
+				$group = $element.closest( '.postbox' ),
+				$group_visible = $group.attr( 'data-visible' );
 
-			if ( !$element.hasClass( 'rwmb-field' ) && $element.closest( '.postbox' ).length ) {
-				$element = $element.closest( '.postbox' );
+			if ( $group.length ) {
+				if ( !$element.hasClass( 'rwmb-field' ) ) {
+					$element = $group;
+				} else {
+					// Check if group field is hidden then all the fields inside are forced hidden too.
+					if ( typeof $group_visible !== undefined && $group_visible !== false && $group_visible === 'hidden' ) {
+						logicApply = true;
+						action = 'hidden';
+					}
+				}
 			}
 
 			toggle( $element, logicApply, action );
@@ -224,7 +234,7 @@
 
 			// console.log( 'Selector', logic[0], dependentFieldSelector );
 
-			if ( !isGutenbergElement( logic[ 0 ] ) && !dependentFieldSelector ) {
+			if ( !isGutenbergElement( logic[ 0 ] ) && !dependentFieldSelector && !compare( logic[ 0 ], ')', 'contains' ) ) {
 				return;
 			}
 
@@ -442,6 +452,12 @@
 			};
 		if ( func.hasOwnProperty( toggleType ) ) {
 			$element[ func[ toggleType ] ]();
+
+			// Show the wrapper column.
+			const $column = $element.closest( '.rwmb-column' );
+			if ( $column.length > 0 ) {
+				$column[ func[ toggleType ] ]();
+			}
 		} else {
 			$element.css( 'visibility', 'visible' );
 		}
@@ -473,6 +489,12 @@
 			};
 		if ( func.hasOwnProperty( toggleType ) ) {
 			$element[ func[ toggleType ] ]();
+
+			// Hide the wrapper column if all fields are hidden.
+			const $column = $element.closest( '.rwmb-column' );
+			if ( shouldHideColumn( $column ) ) {
+				$column[ func[ toggleType ] ]();
+			}
 		} else {
 			$element.css( 'visibility', 'hidden' );
 		}
@@ -488,6 +510,25 @@
 			}
 			$this.trigger( 'cl_hide' );
 		} );
+	}
+
+	function shouldHideColumn( $column ) {
+		if ( $column.length === 0 ) {
+			return false;
+		}
+
+		let $hide = true;
+
+		// Check if any field inside is visible.
+		if ( $column.children().length > 1 ) {
+			$column.children().each( function() {
+				if ( $( this ).is( ':visible' ) ) {
+					$hide = false;
+				}
+			} );
+		}
+
+		return $hide;
 	}
 
 	function getToggleType( $element ) {
@@ -587,6 +628,10 @@
 
 	// Export the runConditionalLogic to global scope to use in other scripts.
 	rwmb.runConditionalLogic = runConditionalLogic;
+
+	$( window ).on( 'load', function() {
+		init();
+	} );
 
 	// Run when page finishes loading to improve performance.
 	// https://github.com/wpmetabox/meta-box/issues/1195.

@@ -3,7 +3,7 @@
  * Plugin Name: MB Admin Columns
  * Plugin URI:  https://metabox.io/plugins/mb-admin-columns/
  * Description: Show custom fields in the post list table.
- * Version:     1.6.3
+ * Version:     1.7.1
  * Author:      MetaBox.io
  * Author URI:  https://metabox.io
  * License:     GPL2+
@@ -30,7 +30,7 @@ if ( ! function_exists( 'mb_admin_columns_load' ) ) {
 			return;
 		}
 
-		$loader = new MBAC\Loader;
+		$loader = new MBAC\Loader();
 		$loader->posts();
 		$loader->taxonomies();
 		$loader->users();

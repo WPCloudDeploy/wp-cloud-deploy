@@ -4,12 +4,12 @@ namespace MBAC;
 class User extends Base {
 	public function init() {
 		$priority = 20;
-		add_filter( 'manage_users_columns', array( $this, 'columns' ), $priority );
-		add_filter( 'manage_users_custom_column', array( $this, 'show' ), $priority, 3 );
-		add_filter( 'manage_users_sortable_columns', array( $this, 'sortable_columns' ), $priority );
+		add_filter( 'manage_users_columns', [ $this, 'columns' ], $priority );
+		add_filter( 'manage_users_custom_column', [ $this, 'show' ], $priority, 3 );
+		add_filter( 'manage_users_sortable_columns', [ $this, 'sortable_columns' ], $priority );
 
 		// Other actions need to run only in Management page.
-		add_action( 'load-users.php', array( $this, 'execute' ) );
+		add_action( 'load-users.php', [ $this, 'execute' ] );
 	}
 
 	/**
@@ -20,7 +20,7 @@ class User extends Base {
 			return;
 		}
 
-		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue' ) );
+		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue' ] );
 
 		// Sorting by meta value works unexpectedly.
 		// @codingStandardsIgnoreLine
@@ -41,12 +41,24 @@ class User extends Base {
 			return $output;
 		}
 
-		$config = array(
+		$config = [
 			'before' => '',
 			'after'  => '',
-		);
+			'link'   => false,
+		];
 		if ( is_array( $field['admin_columns'] ) ) {
 			$config = wp_parse_args( $field['admin_columns'], $config );
+		}
+
+		$value = rwmb_the_value( $field['id'], [ 'object_type' => 'user' ], $user_id, false );
+		if ( $config['link'] === 'view' ) {
+			$link  = get_author_posts_url( $user_id );
+			$value = '<a href="' . esc_url( $link ) . '">' . $value . '</a>';
+		}
+
+		if ( $config['link'] === 'edit' ) {
+			$link  = get_edit_user_link( $user_id );
+			$value = '<a href="' . esc_url( $link ) . '">' . $value . '</a>';
 		}
 
 		return sprintf(
@@ -54,7 +66,7 @@ class User extends Base {
 			$field['type'],
 			$field['id'],
 			$config['before'],
-			rwmb_the_value( $field['id'], array( 'object_type' => 'user' ), $user_id, false ),
+			$value,
 			$config['after']
 		);
 	}
@@ -71,7 +83,7 @@ class User extends Base {
 			return;
 		}
 
-		$query->set( 'orderby', in_array( $field['type'], array( 'number', 'slider', 'range' ), true ) ? 'meta_value_num' : 'meta_value' );
+		$query->set( 'orderby', in_array( $field['type'], [ 'number', 'slider', 'range' ], true ) ? 'meta_value_num' : 'meta_value' );
 		$query->set( 'meta_key', $field_id );
 	}
 

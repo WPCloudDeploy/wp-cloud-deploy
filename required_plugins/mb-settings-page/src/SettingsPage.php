@@ -12,10 +12,23 @@ class SettingsPage {
 	}
 
 	protected function register_hooks() {
-		add_action( 'admin_menu', array( $this, 'register_admin_menu' ) );
+		// Change priority to 11 to make sure all custom menus are generated.
+		add_action( 'admin_menu', [ $this, 'register_admin_menu' ], 11 );
+
+		// Font Awesome.
+		if ( $this->has_font_awesome() ) {
+			add_action( 'admin_init', [ $this, 'enqueue_font_awesome' ] );
+			add_action( 'admin_menu', [ $this, 'filter_class_font_awesome' ] );
+			add_action( 'adminmenu', [ $this, 'remove_filter_class_font_awesome' ] );
+		}
 	}
 
 	public function register_admin_menu() {
+		$icon_url = $this->icon_url;
+		if ( $this->has_font_awesome() ) {
+			$icon_url = 'dashicons-' . $icon_url;
+		}
+
 		// Add top level menu.
 		if ( ! $this->parent ) {
 			$this->page_hook = add_menu_page(
@@ -23,8 +36,8 @@ class SettingsPage {
 				$this->menu_title,
 				$this->capability,
 				$this->id,
-				array( $this, 'show' ),
-				$this->icon_url,
+				[ $this, 'show' ],
+				$icon_url,
 				$this->position
 			);
 
@@ -36,7 +49,7 @@ class SettingsPage {
 					$this->submenu_title,
 					$this->capability,
 					$this->id,
-					array( $this, 'show' )
+					[ $this, 'show' ]
 				);
 			}
 		} // Add sub-menu.
@@ -47,21 +60,21 @@ class SettingsPage {
 				$this->menu_title,
 				$this->capability,
 				$this->id,
-				array( $this, 'show' )
+				[ $this, 'show' ]
 			);
 		}
 
 		// Enqueue scripts and styles.
-		add_action( "admin_print_styles-{$this->page_hook}", array( $this, 'enqueue' ) );
+		add_action( "admin_print_styles-{$this->page_hook}", [ $this, 'enqueue' ] );
 
 		// Load action.
-		add_action( "load-{$this->page_hook}", array( $this, 'load' ) );
-		add_action( "load-{$this->page_hook}", array( $this, 'add_help_tabs' ) );
-		add_action( "load-{$this->page_hook}", array( $this, 'add_admin_notice_hook' ) );
+		add_action( "load-{$this->page_hook}", [ $this, 'load' ] );
+		add_action( "load-{$this->page_hook}", [ $this, 'add_help_tabs' ] );
+		add_action( "load-{$this->page_hook}", [ $this, 'add_admin_notice_hook' ] );
 	}
 
 	public function show() {
-		$class = trim( "wrap {$this->class}" );
+		$class  = trim( "wrap {$this->class}" );
 		$class .= " rwmb-settings-{$this->style}";
 		if ( $this->tabs ) {
 			$class .= " rwmb-settings-tabs-{$this->tab_style}";
@@ -73,6 +86,8 @@ class SettingsPage {
 		?>
 		<div class="<?= esc_attr( $class ) ?>">
 			<h1><?= $page_title ?></h1>
+
+			<?php do_action( 'mb_settings_page_after_title' ) ?>
 
 			<div class="rwmb-settings-wrap">
 				<?php $this->output_tab_nav() ?>
@@ -116,7 +131,7 @@ class SettingsPage {
 		echo '<h2 class="nav-tab-wrapper">';
 		foreach ( $this->tabs as $id => $tab ) {
 			if ( is_string( $tab ) ) {
-				$tab = ['label' => $tab];
+				$tab = [ 'label' => $tab ];
 			}
 			$tab = wp_parse_args( $tab, [
 				'icon'  => '',
@@ -151,11 +166,46 @@ class SettingsPage {
 		wp_enqueue_script( 'postbox' );
 
 		// Enqueue settings page script and style.
-		wp_enqueue_script( 'mb-settings-page', MBSP_URL . 'assets/settings.js', array( 'jquery' ), '2.1.5', true );
-		wp_localize_script( 'mb-settings-page', 'MBSettingsPage', array(
+		wp_enqueue_script( 'mb-settings-page', MBSP_URL . 'assets/settings.js', [ 'jquery' ], '2.1.5', true );
+		wp_localize_script( 'mb-settings-page', 'MBSettingsPage', [
 			'pageHook' => $this->page_hook,
 			'tabs'     => array_keys( $this->tabs ),
-		) );
+		] );
+	}
+
+	public function has_font_awesome( $icon_url = '' ) {
+		$icon_url = $icon_url ?: $this->icon_url;
+		$strpos   = [ 'fa', 'fas', 'fa-solid', 'fab', 'fa-brand', 'far', 'fa-regular' ];
+		foreach ( $strpos as $value ) {
+			if ( strpos( $icon_url, $value ) !== false ) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public function enqueue_font_awesome() {
+		wp_enqueue_style( 'font-awesome', 'https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.1/css/all.min.css', '', ' 6.2.1' );
+		wp_add_inline_style(
+			'font-awesome',
+			'.fa:before, fas, .fa-solid:before, .fab:before, .fa-brand:before, .far:before, .fa-regular:before {
+				font-size: 16px;
+				font-family: inherit;
+				font-weight: inherit;
+			}'
+		);
+	}
+
+	public function filter_class_font_awesome() {
+		add_filter( 'sanitize_html_class', [ $this, 'sanitize_html_class_font_awesome' ], 10, 2 );
+	}
+
+	public function remove_filter_class_font_awesome() {
+		remove_filter( 'sanitize_html_class', [ $this, 'sanitize_html_class_font_awesome' ] );
+	}
+
+	public function sanitize_html_class_font_awesome( $sanitized, $class ) {
+		return $this->has_font_awesome( $class ) ? str_replace( 'dashicons-', '', $class ) : $sanitized;
 	}
 
 	public function load() {

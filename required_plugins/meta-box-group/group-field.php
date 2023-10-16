@@ -18,7 +18,7 @@ class RWMB_Group_Field extends RWMB_Field {
 	 *
 	 * @var array
 	 */
-	protected static $meta_queue = array();
+	protected static $meta_queue = [];
 
 	/**
 	 * Add hooks for sub-fields.
@@ -42,7 +42,7 @@ class RWMB_Group_Field extends RWMB_Field {
 		// Load clone script conditionally.
 		foreach ( $fields as $field ) {
 			if ( $field['clone'] ) {
-				wp_enqueue_script( 'rwmb-clone', RWMB_JS_URL . 'clone.js', array( 'jquery-ui-sortable' ), RWMB_VER, true );
+				wp_enqueue_script( 'rwmb-clone', RWMB_JS_URL . 'clone.js', [ 'jquery-ui-sortable' ], RWMB_VER, true );
 				break;
 			}
 		}
@@ -53,16 +53,16 @@ class RWMB_Group_Field extends RWMB_Field {
 		}
 
 		// Use helper function to get correct URL to current folder, which can be used in themes/plugins.
-		list( , $url ) = RWMB_Loader::get_path( dirname( __FILE__ ) );
-		wp_enqueue_style( 'rwmb-group', $url . 'group.css', '', '1.3.14' );
-		wp_enqueue_script( 'rwmb-group', $url . 'group.js', array( 'jquery', 'underscore' ), '1.3.14', true );
-		wp_localize_script(
-			'rwmb-group',
-			'RWMB_Group',
-			array(
-				'confirmRemove' => __( 'Are you sure you want to remove this group?', 'meta-box-group' ),
-			)
-		);
+		list( , $url ) = RWMB_Loader::get_path( __DIR__ );
+		wp_enqueue_style( 'rwmb-group', $url . 'group.css', [], filemtime( __DIR__ . '/group.css' ) );
+		wp_enqueue_script( 'rwmb-group', $url . 'group.js', [ 'jquery', 'underscore' ], filemtime( __DIR__ . '/group.js' ), true );
+		wp_localize_script( 'rwmb-group', 'RWMB_Group', [
+			'confirmRemove' => __( 'Are you sure you want to remove this group?', 'meta-box-group' ),
+			'on'            => __( 'On', 'meta-box-group' ),
+			'off'           => __( 'Off', 'meta-box-group' ),
+			'yes'           => __( 'Yes', 'meta-box-group' ),
+			'no'            => __( 'No', 'meta-box-group' ),
+		] );
 	}
 
 	/**
@@ -80,7 +80,7 @@ class RWMB_Group_Field extends RWMB_Field {
 
 		// Add filter to child field meta value, make sure it's added only once.
 		if ( empty( self::$meta_queue ) ) {
-			add_filter( 'rwmb_raw_meta', array( __CLASS__, 'child_field_meta' ), 10, 3 );
+			add_filter( 'rwmb_raw_meta', [ __CLASS__, 'child_field_meta' ], 10, 3 );
 		}
 
 		// Add group value to the queue.
@@ -93,7 +93,7 @@ class RWMB_Group_Field extends RWMB_Field {
 
 			self::child_field_clone_default( $field, $child_field );
 
-			if ( in_array( $child_field['type'], array( 'file', 'image' ) ) ) {
+			if ( in_array( $child_field['type'], [ 'file', 'image' ], true ) ) {
 				$child_field['input_name'] = '_file_' . uniqid();
 				$child_field['index_name'] = self::child_field_name( $field['field_name'], $child_field['index_name'] );
 			}
@@ -106,7 +106,7 @@ class RWMB_Group_Field extends RWMB_Field {
 
 		// Remove filter to child field meta value and reset class's parent field's meta.
 		if ( empty( self::$meta_queue ) ) {
-			remove_filter( 'rwmb_raw_meta', array( __CLASS__, 'child_field_meta' ) );
+			remove_filter( 'rwmb_raw_meta', [ __CLASS__, 'child_field_meta' ] );
 		}
 
 		return ob_get_clean();
@@ -123,17 +123,17 @@ class RWMB_Group_Field extends RWMB_Field {
 		}
 
 		// Group title.
-		$title_attributes = array(
+		$title_attributes = [
 			'class'        => 'rwmb-group-title',
 			'data-options' => $field['group_title'],
-		);
+		];
 
-		$title = self::normalize_group_title( $field['group_title'] );
-		$title_attributes['data-options'] = array(
+		$title                            = self::normalize_group_title( $field['group_title'] );
+		$title_attributes['data-options'] = [
 			'type'    => 'text',
 			'content' => $title,
 			'fields'  => self::get_child_field_ids( $field ),
-		);
+		];
 
 		echo '<div class="rwmb-group-title-wrapper">';
 		echo '<h4 ', self::render_attributes( $title_attributes ), '>', $title, '</h4>';
@@ -143,7 +143,7 @@ class RWMB_Group_Field extends RWMB_Field {
 		echo '</div>';
 
 		// Collapse/expand icon.
-		$default_state = ( isset( $field['default_state'] ) && $field['default_state'] == 'expanded' ) ? 'true' : 'false';
+		$default_state = ( isset( $field['default_state'] ) && $field['default_state'] === 'expanded' ) ? 'true' : 'false';
 		echo '<button aria-expanded="' . esc_attr( $default_state ) . '" class="rwmb-group-toggle-handle button-link"><span class="rwmb-group-toggle-indicator" aria-hidden="true"></span></button>';
 	}
 
@@ -179,7 +179,7 @@ class RWMB_Group_Field extends RWMB_Field {
 
 		// Fix value for date time timestamp.
 		if (
-			in_array( $child_field['type'], ['date', 'datetime', 'time'], true )
+			in_array( $child_field['type'], [ 'date', 'datetime', 'time' ], true )
 			&& ! empty( $child_field['timestamp'] )
 			&& isset( $meta['timestamp'] )
 		) {
@@ -207,14 +207,14 @@ class RWMB_Group_Field extends RWMB_Field {
 
 		// Make sure returned value is an array.
 		if ( empty( $meta ) ) {
-			$meta = array();
+			$meta = [];
 		}
 
 		// If cloneable, make sure each sub-value is an array.
 		if ( $field['clone'] ) {
 			// Make sure there's at least 1 sub-value.
 			if ( empty( $meta ) ) {
-				$meta[0] = array();
+				$meta[0] = [];
 			}
 
 			foreach ( $meta as $k => $v ) {
@@ -237,10 +237,10 @@ class RWMB_Group_Field extends RWMB_Field {
 	 */
 	public static function value( $new, $old, $post_id, $field ) {
 		if ( empty( $field['fields'] ) || ! is_array( $field['fields'] ) ) {
-			return array();
+			return [];
 		}
 		if ( ! $new || ! is_array( $new ) ) {
-			$new = array();
+			$new = [];
 		}
 		$new = self::get_sub_values( $field['fields'], $new, $post_id );
 
@@ -257,21 +257,21 @@ class RWMB_Group_Field extends RWMB_Field {
 	 */
 	protected static function get_sub_values( $fields, $new, $post_id ) {
 		$fields = array_filter( $fields, function( $field ) {
-			return in_array( $field['type'], array( 'file', 'image', 'group' ) );
+			return in_array( $field['type'], [ 'file', 'image', 'group' ], true );
 		} );
 
 		foreach ( $fields as $field ) {
-			$value = isset( $new[ $field['id'] ] ) ? $new[ $field['id'] ] : array();
+			$value = isset( $new[ $field['id'] ] ) ? $new[ $field['id'] ] : [];
 
 			if ( 'group' === $field['type'] ) {
-				$value               = $field['clone'] ? RWMB_Clone::value( $value, array(), $post_id, $field ) : self::get_sub_values( $field['fields'], $value, $post_id );
+				$value               = $field['clone'] ? RWMB_Clone::value( $value, [], $post_id, $field ) : self::get_sub_values( $field['fields'], $value, $post_id );
 				$new[ $field['id'] ] = $value;
 				continue;
 			}
 
 			// File uploads.
 			if ( $field['clone'] ) {
-				$value = RWMB_File_Field::clone_value( $value, array(), $post_id, $field, $new );
+				$value = RWMB_File_Field::clone_value( $value, [], $post_id, $field, $new );
 			} else {
 				$index          = isset( $new[ "_index_{$field['id']}" ] ) ? $new[ "_index_{$field['id']}" ] : null;
 				$field['index'] = $index;
@@ -294,16 +294,16 @@ class RWMB_Group_Field extends RWMB_Field {
 	 * @return array
 	 */
 	public static function sanitize( $new, $old, $post_id, $field ) {
-		$sanitized = array();
+		$sanitized = [];
 		if ( ! $new || ! is_array( $new ) ) {
 			return $sanitized;
 		}
 
 		foreach ( $new as $key => $value ) {
 			if ( is_array( $value ) && ! empty( $value ) ) {
-				$value = self::sanitize( $value, '', '', array() );
+				$value = self::sanitize( $value, '', '', [] );
 			}
-			if ( '' !== $value && array() !== $value ) {
+			if ( '' !== $value && [] !== $value ) {
 				if ( is_int( $key ) ) {
 					$sanitized[] = $value;
 				} else {
@@ -336,15 +336,15 @@ class RWMB_Group_Field extends RWMB_Field {
 		// Add a new hidden field to save the collapse/expand state.
 		if ( $field['save_state'] ) {
 			$field['fields'][] = RWMB_Input_Field::normalize(
-				array(
+				[
 					'type'       => 'hidden',
 					'id'         => '_state',
 					'std'        => $field['default_state'],
 					'class'      => 'rwmb-group-state',
-					'attributes' => array(
+					'attributes' => [
 						'data-current' => $field['default_state'],
-					),
-				)
+					],
+				]
 			);
 		}
 		if ( ! $field['clone'] ) {
@@ -397,23 +397,23 @@ class RWMB_Group_Field extends RWMB_Field {
 	 * @return string
 	 */
 	protected static function child_field_std( $parent, $child, $meta ) {
-	    // Respect 'std' value set in child field.
-	    if ( ! empty( $child['std'] ) ) {
-	        return $child['std'];
-	    }
+		// Respect 'std' value set in child field.
+		if ( ! empty( $child['std'] ) ) {
+			return $child['std'];
+		}
 
-	    // $meta contains $parent['std'] or clone's std.
-	    $std = isset( $meta[ $child['id'] ] ) ? $meta[ $child['id'] ] : '';
-	    return $std;
+		// $meta contains $parent['std'] or clone's std.
+		$std = isset( $meta[ $child['id'] ] ) ? $meta[ $child['id'] ] : '';
+		return $std;
 	}
 
 	protected static function get_child_field_ids( $field ) {
-		$ids = array();
+		$ids = [];
 		foreach ( $field['fields'] as $sub_field ) {
 			if ( ! isset( $sub_field['id'] ) ) {
 				continue;
 			}
-			$sub_ids = isset( $sub_field['fields'] ) ? self::get_child_field_ids( $sub_field ) : array( $sub_field['id'] );
+			$sub_ids = isset( $sub_field['fields'] ) ? self::get_child_field_ids( $sub_field ) : [ $sub_field['id'] ];
 			$ids     = array_merge( $ids, $sub_ids );
 		}
 		return $ids;

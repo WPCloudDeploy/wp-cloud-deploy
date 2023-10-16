@@ -1,5 +1,6 @@
 <?php
 namespace MBAC;
+use MetaBox\Support\Arr;
 
 class Post extends Base {
 	private $field;
@@ -54,15 +55,28 @@ class Post extends Base {
 		$config = [
 			'before' => '',
 			'after'  => '',
+			'link'   => false,
 		];
 		if ( is_array( $field['admin_columns'] ) ) {
 			$config = wp_parse_args( $field['admin_columns'], $config );
 		}
+
+		$value = rwmb_the_value( $field['id'], '', $post_id, false );
+		if ( $config['link'] === 'view' ) {
+			$link  = get_permalink( $post_id );
+			$value = '<a href="' . esc_url( $link ) . '">' . $value . '</a>';
+		}
+
+		if ( $config['link'] === 'edit' ) {
+			$link  = get_edit_post_link( $post_id );
+			$value = '<a href="' . esc_url( $link ) . '">' . $value . '</a>';
+		}
+
 		printf(
 			'<div class="mb-admin-columns mb-admin-columns-%s" id="mb-admin-columns-%s">%s</div>',
 			esc_attr( $field['type'] ),
 			esc_attr( $field['id'] ),
-			$config['before'] . rwmb_the_value( $field['id'], '', $post_id, false ) . $config['after']
+			$config['before'] . $value . $config['after']
 		);
 	}
 
@@ -82,8 +96,12 @@ class Post extends Base {
 			return;
 		}
 
+		if ( Arr::get( $field, 'admin_columns.sort' ) === 'numeric' ) {
+			$field['type'] = 'number';
+		}
+
 		if ( $this->table ) {
-			$this->sort_by_custom_table( $orderby );
+			$this->sort_by_custom_table( $orderby, $field );
 		} elseif ( isset( $field['query_args'] ) && array_key_exists( 'taxonomy', $field['query_args'] ) ) {
 			$this->sort_by_taxonomy( $field );
 		} else {
@@ -123,7 +141,7 @@ SQL;
 		}, 10, 2 );
 	}
 
-	private function sort_by_custom_table( $orderby ) {
+	private function sort_by_custom_table( $orderby, $field ) {
 		$order = (string) filter_input( INPUT_GET, 'order' );
 
 		add_filter( 'posts_join', function( $join, $query ) {
@@ -132,9 +150,12 @@ SQL;
 			return $join;
 		}, 10, 2 );
 
-		add_filter( 'posts_orderby', function() use ( $orderby, $order ) {
-			global $wpdb;
-			$orderby = "{$this->table}.{$orderby} {$order}";
+		add_filter( 'posts_orderby', function() use ( $orderby, $order, $field ) {
+			if ( in_array( $field['type'], [ 'number', 'slider', 'range' ], true ) ) {
+				$orderby = "{$this->table}.{$orderby}+0 {$order}";
+			} else {
+				$orderby = "{$this->table}.{$orderby} {$order}";
+			}
 			return $orderby;
 		}, 10, 2 );
 	}

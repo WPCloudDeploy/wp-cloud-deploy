@@ -3,7 +3,7 @@
  * Plugin Name: MB Custom Table
  * Plugin URI:  https://metabox.io/plugins/mb-custom-table/
  * Description: Save custom fields data to custom table instead of the default meta tables.
- * Version:     2.1.4
+ * Version:     2.1.7
  * Author:      MetaBox.io
  * Author URI:  https://metabox.io
  * License:     GPL2+

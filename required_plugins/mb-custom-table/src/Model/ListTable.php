@@ -37,6 +37,8 @@ class ListTable extends \WP_List_Table {
 		$offset = ' OFFSET ' . ( $page - 1 ) * $per_page;
 		$sql    = "SELECT * FROM $this->table $where $order $limit $offset";
 
+		$sql = apply_filters( "mbct_{$this->model->name}_prepare_items", $sql );
+
 		$this->items = $wpdb->get_results( $sql, 'ARRAY_A' );
 	}
 

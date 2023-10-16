@@ -2,7 +2,7 @@
 namespace MetaBox\CustomTable;
 
 class Cache {
-	public static function get( $object_id, $table ) : array {
+	public static function get( $object_id, $table ): array {
 		global $wpdb;
 
 		if ( ! $object_id ) {
@@ -38,7 +38,11 @@ class Cache {
 		wp_cache_set( $object_id, $row, self::get_cache_group( $table ) );
 	}
 
-	private static function get_cache_group( string $table ) : string {
+	public static function delete( $object_id, $table ) {
+		wp_cache_delete( $object_id, self::get_cache_group( $table ) );
+	}
+
+	private static function get_cache_group( string $table ): string {
 		return "rwmb_{$table}_table_data";
 	}
 }

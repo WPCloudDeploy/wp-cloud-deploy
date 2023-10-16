@@ -3514,6 +3514,30 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			}
 		}
 
+		// Add custom site metas.
+		$keypairs = get_post_meta( $site_package_id, 'wpcd_site_package_site_meta', true );
+		if ( ! empty( $keypairs ) ) {
+			foreach ( $keypairs as $keypair ) {
+				update_post_meta( $app_id, $keypair[0], $keypair[1] );
+			}
+		}
+
+		// Add or update wp options to tenant site.
+		$keypairs = get_post_meta( $site_package_id, 'wpcd_site_package_tenant_wp_option', true );
+		if ( ! empty( $keypairs ) ) {
+			foreach ( $keypairs as $keypair ) {
+				// Add option.  If it exists already, this might error.
+				$command    = sprintf( 'sudo su - "%s" -c "wp --no-color option add %s %s" ', $domain, $keypair[0], $keypair[1] );
+				$action     = 'add_custom_wp_option';
+				$raw_status = $ssh->submit_generic_server_command( $server_id, $action, $command, true );
+
+				// Update the option in case it already exists.
+				$command    = sprintf( 'sudo su - "%s" -c "wp --no-color option update %s %s" ', $domain, $keypair[0], $keypair[1] );
+				$action     = 'update_custom_wp_option';
+				$raw_status = $ssh->submit_generic_server_command( $server_id, $action, $command, true );
+			}
+		}
+
 		/**
 		 * Bash scripts example output (in one long script - line breaks here for readability.):
 		 * export DOMAIN=test004.wpcd.cloud &&

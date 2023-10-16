@@ -221,6 +221,32 @@ class WPCD_POSTS_Site_Package extends WPCD_Posts_Base {
 			),
 		);
 
+		/* Fields to push to site meta */
+		$fields_site_metas = array(
+			array(
+				'name'       => __( 'Add To Site Meta', 'wpcd' ),
+				'id'         => $prefix . 'site_package_site_meta',
+				'type'       => 'key_value',
+				'rows'       => 10,
+				'save_field' => true,
+				'desc'       => __( 'These key-value pairs will be added to the metas on the custom post type for the site (i.e.: the site record).', 'wpcd' ),
+				'tooltip'    => __( 'Use these to add things you might need on the site custom post type record.  In many cases the same things you are adding to wp-config are likely the same items you want to push to the site metas.', 'wpcd' ),
+			),
+		);
+
+		/* Fields to push to options on tenant site */
+		$fields_tenant_wp_options = array(
+			array(
+				'name'       => __( 'Add Option', 'wpcd' ),
+				'id'         => $prefix . 'site_package_tenant_wp_option',
+				'type'       => 'key_value',
+				'rows'       => 10,
+				'save_field' => true,
+				'desc'       => __( 'These key-value pairs will be added to the WordPress options on the new site.', 'wpcd' ),
+				'tooltip'    => __( 'Use these to add or update options on the new site - many plugins and themes use options to store their data so you might be able to overwrite them with your custom values if you know their option formats.', 'wpcd' ),
+			),
+		);
+
 		/* Fields for custom bash scripts. */
 		$fields_bash_scripts = array(
 			array(
@@ -434,10 +460,26 @@ class WPCD_POSTS_Site_Package extends WPCD_Posts_Base {
 
 		$metaboxes[] = array(
 			'id'         => $prefix . 'mb_site_package_custom_wpconfig_entries',
-			'title'      => __( 'Custom WPCONFIG Entries', 'wpcd' ),
+			'title'      => __( 'WP-CONFIG Entries', 'wpcd' ),
 			'post_types' => array( 'wpcd_site_package' ),
 			'priority'   => 'default',
 			'fields'     => $fields_wp_config_custom_data,
+		);
+
+		$metaboxes[] = array(
+			'id'         => $prefix . 'mb_site_package_site_metas',
+			'title'      => __( 'Site Metas', 'wpcd' ),
+			'post_types' => array( 'wpcd_site_package' ),
+			'priority'   => 'default',
+			'fields'     => $fields_site_metas,
+		);
+
+		$metaboxes[] = array(
+			'id'         => $prefix . 'mb_site_package_tenant_wp_options',
+			'title'      => __( 'WP Options', 'wpcd' ),
+			'post_types' => array( 'wpcd_site_package' ),
+			'priority'   => 'default',
+			'fields'     => $fields_tenant_wp_options,
 		);
 
 		$metaboxes[] = array(
@@ -458,7 +500,7 @@ class WPCD_POSTS_Site_Package extends WPCD_Posts_Base {
 
 		$metaboxes[] = array(
 			'id'         => $prefix . 'mb_site_package_special_plugin_theme_handling',
-			'title'      => __( 'Misc', 'wpcd' ),
+			'title'      => __( 'Other Misc', 'wpcd' ),
 			'post_types' => array( 'wpcd_site_package' ),
 			'priority'   => 'default',
 			'fields'     => $fields_plugin_theme_misc,

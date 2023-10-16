@@ -133,6 +133,8 @@ Note: Even though the entire git development history isn't available on github, 
 * Enh: WPAPP - Add options to disable pre/post processing bash scripts via a wp-config.php value.
 * Enh: WPAPP - Add ability to push boolean values as raw into wp-config when using site and product packages.
 * Enh: WPAPP - Add option in site packages screen to remove updraft backups - useful when products are based on template sites and updraft was being used to backup the template.
+* Enh: WPAPP - Add option in site packages to push wp options to tenant site.
+* Enh: WPAPP - Add option in site packages to add custom meta options on new site cpt records.
 * Fix: Left bar on settings screen would hide tooltips if the tooltips was too close to it.
 
 5.4.0

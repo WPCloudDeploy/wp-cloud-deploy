@@ -3112,8 +3112,11 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		}
 
 		// Get any post-processing bash script urls from settings. Note that this will not end up in the site's postmeta.
-		$post_process_script                       = wpcd_get_option( 'wpcd_wpapp_custom_script_after_site_create' );
-		$additional['post_processing_script_site'] = $post_process_script;
+		$additional['post_processing_script_site'] = '';
+		if ( $this->wpcd_can_user_execute_bash_scripts() ) {
+			$post_process_script                       = wpcd_get_option( 'wpcd_wpapp_custom_script_after_site_create' );
+			$additional['post_processing_script_site'] = $post_process_script;
+		}
 
 		// Get the secret key manager api key from settings. Note that this will not end up in the site's postmeta.
 		$secret_key_manager_api_key               = wpcd_get_option( 'wpcd_wpapp_custom_script_secrets_manager_api_key' );
@@ -3496,7 +3499,18 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		$keypairs = get_post_meta( $site_package_id, 'wpcd_wp_config_custom_data', true );
 		if ( ! empty( $keypairs ) ) {
 			foreach ( $keypairs as $keypair ) {
-				do_action( 'wpcd_wordpress-app_do_update_wpconfig_option', $app_id, $keypair[0], $keypair[1], 'no' );
+				switch ( $keypair[1] ) {
+					case 'true':
+						// Value is 'true' so need to pass boolean with 'raw' parameter to wp-cli.
+						do_action( 'wpcd_wordpress-app_do_update_wpconfig_option', $app_id, $keypair[0], true, 'yes' );
+						break;
+					case 'false':
+						// Value is 'false' so need to pass boolean with 'raw' parameter to wp-cli.
+						do_action( 'wpcd_wordpress-app_do_update_wpconfig_option', $app_id, $keypair[0], false, 'yes' );
+						break;
+					default:
+						do_action( 'wpcd_wordpress-app_do_update_wpconfig_option', $app_id, $keypair[0], $keypair[1], 'no' );
+				}
 			}
 		}
 
@@ -3872,8 +3886,11 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 		// Get any post-processing bash script urls from settings.
 		// This one will end up getting added to the servers' post meta but should be deleted afterwards in the wpcd_wpapp_core_prepare_server_completed() function located in traits/after-prepare-server.php.
-		$post_process_script                         = wpcd_get_option( 'wpcd_wpapp_custom_script_after_server_create' );
-		$attributes['post_processing_script_server'] = $post_process_script;
+		$attributes['post_processing_script_server'] = '';
+		if ( $this->wpcd_can_user_execute_bash_scripts() ) {
+			$post_process_script                         = wpcd_get_option( 'wpcd_wpapp_custom_script_after_server_create' );
+			$attributes['post_processing_script_server'] = $post_process_script;
+		}
 
 		// Get the secret key manager api key from settings.
 		// This one will end up getting added to the servers' post meta but should be deleted afterwards in the wpcd_wpapp_core_prepare_server_completed() function located in traits/after-prepare-server.php.
@@ -5150,6 +5167,24 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		}
 
 		return $is_running;
+	}
+
+	/**
+	 * Return whether or not bash scripts can be run in site packages.
+	 *
+	 * You might not want to run them if WPCD is installed in a shared sites
+	 * environment (saas).
+	 *
+	 * @param int $user_id User id running site packages - not used yet.
+	 */
+	public function wpcd_can_user_execute_bash_scripts( $user_id = 0 ) {
+
+		if ( ! defined( 'WPCD_CUSTOM_SCRIPTS_NO_BASH' ) || ( defined( 'WPCD_CUSTOM_SCRIPTS_NO_BASH' ) && false === (bool) WPCD_CUSTOM_SCRIPTS_NO_BASH ) ) {
+			return true;
+		}
+
+		return false;
+
 	}
 
 	/**

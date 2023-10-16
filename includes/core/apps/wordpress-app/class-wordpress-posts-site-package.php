@@ -492,7 +492,7 @@ class WPCD_POSTS_Site_Package extends WPCD_Posts_Base {
 	/**
 	 * Return whether or not bash scripts can be run in site packages.
 	 *
-	 * You will not run to run them if WPCD is installed in a shared sites
+	 * You might not want to run them if WPCD is installed in a shared sites
 	 * environment (saas).
 	 *
 	 * @param int $user_id User id running site packages - not used yet.

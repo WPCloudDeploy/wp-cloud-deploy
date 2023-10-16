@@ -360,13 +360,26 @@ class WPCD_POSTS_Site_Package extends WPCD_Posts_Base {
 				'save_field' => true,
 				'columns'    => 3,
 				'tooltip'    => __( 'Set to zero or empty for no change.', 'wpcd' ),
-			),			
+			),
+		);
+
+		/* Note field. */
+		$fields_note = array(
+			array(
+				'name'       => __( 'Notes', 'wpcd' ),
+				'id'         => $prefix . 'site_package_notes',
+				'type'       => 'textarea',
+				'rows'       => 10,
+				'save_field' => true,
+				'desc'       => __( 'Your notes about this site package.', 'wpcd' ),
+				'columns'    => 6,
+			),
 		);
 
 		/* Add the fields defined above to various metaboxes. */
 		if ( class_exists( 'WPCD_WooCommerce_Init' ) ) {
 			$metaboxes[] = array(
-				'id'         => $prefix . 'site_package_activate_template_plugins',
+				'id'         => $prefix . 'mb_site_package_activate_template_plugins',
 				'title'      => __( 'Activate Themes & Plugins Already Installed (Usually From Template Site)', 'wpcd' ),
 				'post_types' => array( 'wpcd_site_package' ),
 				'priority'   => 'default',
@@ -374,7 +387,7 @@ class WPCD_POSTS_Site_Package extends WPCD_Posts_Base {
 			);
 		} else {
 			$metaboxes[] = array(
-				'id'         => $prefix . 'site_package_activate_theme',
+				'id'         => $prefix . 'mb_site_package_activate_theme',
 				'title'      => __( 'Activate This Theme if it\'s Installed', 'wpcd' ),
 				'post_types' => array( 'wpcd_site_package' ),
 				'priority'   => 'default',
@@ -383,7 +396,7 @@ class WPCD_POSTS_Site_Package extends WPCD_Posts_Base {
 		}
 
 		$metaboxes[] = array(
-			'id'         => $prefix . 'site_package_install_plugins',
+			'id'         => $prefix . 'mb_site_package_install_plugins',
 			'title'      => __( 'Install and Activate Plugins', 'wpcd' ),
 			'post_types' => array( 'wpcd_site_package' ),
 			'priority'   => 'default',
@@ -392,7 +405,7 @@ class WPCD_POSTS_Site_Package extends WPCD_Posts_Base {
 
 		if ( class_exists( 'WPCD_WooCommerce_Init' ) ) {
 			$metaboxes[] = array(
-				'id'         => $prefix . 'site_package_deactivate_plugins',
+				'id'         => $prefix . 'mb_site_package_deactivate_plugins',
 				'title'      => __( 'Deactivate Plugins', 'wpcd' ),
 				'post_types' => array( 'wpcd_site_package' ),
 				'priority'   => 'default',
@@ -401,7 +414,7 @@ class WPCD_POSTS_Site_Package extends WPCD_Posts_Base {
 		}
 
 		$metaboxes[] = array(
-			'id'         => $prefix . 'site_package_install_themes',
+			'id'         => $prefix . 'mb_site_package_install_themes',
 			'title'      => __( 'Install Themes', 'wpcd' ),
 			'post_types' => array( 'wpcd_site_package' ),
 			'priority'   => 'default',
@@ -409,7 +422,7 @@ class WPCD_POSTS_Site_Package extends WPCD_Posts_Base {
 		);
 
 		$metaboxes[] = array(
-			'id'         => $prefix . 'site_package_custom_wpconfig_entries',
+			'id'         => $prefix . 'mb_site_package_custom_wpconfig_entries',
 			'title'      => __( 'Custom WPCONFIG Entries', 'wpcd' ),
 			'post_types' => array( 'wpcd_site_package' ),
 			'priority'   => 'default',
@@ -417,7 +430,7 @@ class WPCD_POSTS_Site_Package extends WPCD_Posts_Base {
 		);
 
 		$metaboxes[] = array(
-			'id'         => $prefix . 'site_package_php_workers',
+			'id'         => $prefix . 'mb_site_package_php_workers',
 			'title'      => __( 'PHP Workers', 'wpcd' ),
 			'post_types' => array( 'wpcd_site_package' ),
 			'priority'   => 'default',
@@ -425,19 +438,30 @@ class WPCD_POSTS_Site_Package extends WPCD_Posts_Base {
 		);
 
 		$metaboxes[] = array(
-			'id'         => $prefix . 'site_package_php_misc',
+			'id'         => $prefix . 'mb_site_package_php_misc',
 			'title'      => __( 'Misc PHP Settings (NGINX)', 'wpcd' ),
 			'post_types' => array( 'wpcd_site_package' ),
 			'priority'   => 'default',
 			'fields'     => $fields_php_misc,
 		);
 
+		if ( ! defined( 'WPCD_SITE_PACKAGES_NO_BASH' ) || ( defined( 'WPCD_SITE_PACKAGES_NO_BASH' ) && false === (bool) WPCD_SITE_PACKAGES_NO_BASH ) ) {
+			// Site is allowed to execute bash scripts for site packages.
+			$metaboxes[] = array(
+				'id'         => $prefix . 'mb_site_package_bash_scripts',
+				'title'      => __( 'Bash Scripts', 'wpcd' ),
+				'post_types' => array( 'wpcd_site_package' ),
+				'priority'   => 'default',
+				'fields'     => $fields_bash_scripts,
+			);
+		}
+
 		$metaboxes[] = array(
-			'id'         => $prefix . 'site_package_bash_scripts',
-			'title'      => __( 'Bash Scripts', 'wpcd' ),
+			'id'         => $prefix . 'mb_site_package_notes',
+			'title'      => __( 'Notes', 'wpcd' ),
 			'post_types' => array( 'wpcd_site_package' ),
 			'priority'   => 'default',
-			'fields'     => $fields_bash_scripts,
+			'fields'     => $fields_note,
 		);
 
 		return $metaboxes;
@@ -464,5 +488,7 @@ class WPCD_POSTS_Site_Package extends WPCD_Posts_Base {
 		return $wpcd_site_package_list;
 
 	}
+
+
 
 }

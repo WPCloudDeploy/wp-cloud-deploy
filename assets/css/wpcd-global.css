@@ -44,6 +44,10 @@
     color: var(--wpcd-primary-brand-color);
 }
 
+/* Left tabs on settings overlays on top of tooltips so send it to the back a bit. */
+.rwmb-tabs-left .rwmb-tab-nav {
+	z-index: 1 !important;
+}
 
 /* Custom click to copy css*/
 .wpcd-click-to-copy-label {

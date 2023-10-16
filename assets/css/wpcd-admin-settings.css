@@ -4,11 +4,6 @@
 
 /******************************************************************************************/
 
-/* Left tabs on settings overlays on top of tooltips so send it to the back. */
-.rwmb-tabs-left .rwmb-tab-nav {
-	z-index: -100 !important;
-}
-
 /* Add some padding around each tab and make the font a little bigger.*/
 .rwmb-tab-nav li[class^='rwmb-tab-'] a, .rwmb-tab-nav .rwmb-tab-ssl a {
     padding-left: 1.25em !important;

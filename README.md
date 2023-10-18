@@ -136,6 +136,7 @@ Note: Even though the entire git development history isn't available on github, 
 * Enh: WPAPP - Add option in site packages to push wp options to tenant site.
 * Enh: WPAPP - Add option in site packages to add custom meta options on new site cpt records.
 * Tweak: WPAPP - Show a warning when setting up a user notification and the global notification template is blank.
+* Tweak: WPAPP - Bash script 24 - send certain output to null.
 * Fix: Left bar on settings screen would hide tooltips if the tooltips was too close to it.
 
 5.4.0

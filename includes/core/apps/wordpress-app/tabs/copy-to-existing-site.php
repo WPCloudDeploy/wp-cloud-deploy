@@ -114,7 +114,7 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 		}
 
 		/* Now verify that the user can perform actions on this screen, assuming that they can view the server */
-		$valid_actions = array( 'copy-site-full', 'copy-site-partial', 'copy-site-files-only', 'copy-site-db-only', 'copy-site-partial-db-only', 'copy-site-save-site-settings' );
+		$valid_actions = array( 'copy-site-full', 'copy-site-partial', 'copy-site-files-only', 'copy-site-db-only', 'copy-site-partial-db-only', 'copy-site-save-site-settings', 'copy-site-execute-update-plan', 'copy-site-execute-update-plan-dry-run' );
 		if ( in_array( $action, $valid_actions, true ) ) {
 			if ( ! $this->get_tab_security( $id ) ) {
 				return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
@@ -145,7 +145,13 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 					break;
 				case 'copy-site-save-site-settings':
 					$result = $this->save_site_settings( $action, $id );
-
+					break;
+				case 'copy-site-execute-update-plan':
+					$result = $this->execute_update_plan( $action, $id );
+					break;
+				case 'copy-site-execute-update-plan-dry-run':
+					$result = $this->execute_update_plan_dry_run( $action, $id );
+					break;
 			}
 		}
 		return $result;
@@ -243,6 +249,37 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 		$return = $this->run_async_command_type_2( $id, $command, $run_cmd, $instance, $action );
 
 		return $return;
+	}
+
+	/**
+	 * Do a dry-run of an update plan to show the servers and sites that
+	 * will be affected.
+	 *
+	 * @param string $action The action key to send to the bash script.
+	 * @param int    $id the id of the app post being handled.
+	 *
+	 * @return boolean|object Can return wp_error, true/false
+	 */
+	public function execute_update_plan_dry_run( $action, $id ) {
+
+		// Get data from the POST request.
+		$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
+
+		// Bail if certain things are empty...
+		if ( empty( $args['site_update_plan'] ) ) {
+			return new \WP_Error( __( 'You must provide a site update plan.', 'wpcd' ) );
+		} else {
+			$update_plan_id = $args['site_update_plan'];
+		}
+
+		$servers_and_sites = WPCD_APP_UPDATE_PLAN()->get_server_and_sites( $update_plan_id );
+
+		set_transient( 'wpcd_execute_update_plan_dry_run', $servers_and_sites, 60 );  // We'll rad this transient when the screen refreshs.
+
+		$result = array( 'refresh' => 'yes' );
+
+		return $result;
+
 	}
 
 	/**
@@ -537,6 +574,126 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 			'save_field' => false,
 		);
 
+		/**
+		 * Bulk Push Themes & Plugins using an app/site update plan.
+		 */
+		if ( class_exists( 'WPCD_WooCommerce_Init' ) ) {
+			$fields[] = array(
+				'name' => '',
+				'tab'  => 'copy-to-existing-site',
+				'type' => 'custom_html',
+				'std'  => '<hr/>',
+			);
+
+			$fields[] = array(
+				'name' => __( 'Execute Update Plan', 'wpcd' ),
+				'tab'  => 'copy-to-existing-site',
+				'type' => 'heading',
+				'desc' => __( 'Execute an update plan on multiple sites. You generally use this in a SaaS project where you have individual sites deployed and you need to update plugins and themes on those sites to match your template.', 'wpcd' ),
+			);
+
+			$fields[] = array(
+				'name'       => __( 'Select and update plan', 'wpcd' ),
+				'id'         => 'wpcd_app_copy_to_site_update_plan',
+				'tab'        => 'copy-to-existing-site',
+				'type'       => 'post',
+				'post_type'  => 'wpcd_app_update_plan',
+				'query_args' => array(
+					'posts_per_page' => - 1,
+				),
+				'field_type' => 'select_advanced',
+				'desc'       => '',
+				'save_field' => false,
+				'attributes' => array(
+					// the key of the field (the key goes in the request).
+					'data-wpcd-name' => 'site_update_plan',
+				),
+				'columns'    => 4,
+			);
+
+			$fields[] = array(
+				'id'         => 'wpcd_app_copy_to_site_execute_update_plan',
+				'name'       => __( 'Execute Plan', 'wpcd' ),
+				'tab'        => 'copy-to-existing-site',
+				'type'       => 'button',
+				'std'        => __( 'Execute', 'wpcd' ),
+				'desc'       => '',
+				'attributes' => array(
+					// the _action that will be called in ajax.
+					'data-wpcd-action'              => 'copy-site-execute-update-plan',
+					// the id.
+					'data-wpcd-id'                  => $id,
+					// fields that contribute data for this action.
+					'data-wpcd-fields'              => wp_json_encode( array( '#wpcd_app_copy_to_site_update_plan' ) ),
+					// make sure we give the user a confirmation prompt.
+					'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like to execute this update plan?', 'wpcd' ),
+					// show log console?
+					'data-show-log-console'         => false,
+				),
+				'class'      => 'wpcd_app_action',
+				'save_field' => false,
+				'columns'    => 4,
+			);
+
+			$fields[] = array(
+				'id'         => 'wpcd_app_copy_to_site_execute_update_plan_dry_run',
+				'name'       => __( 'Dry Run', 'wpcd' ),
+				'tab'        => 'copy-to-existing-site',
+				'type'       => 'button',
+				'std'        => __( 'Execute Plan - Dry Run', 'wpcd' ),
+				'desc'       => '',
+				'tooltip'    => __( 'This will list out all the servers and sites that will be affected by this action.', 'wpcd' ),
+				'attributes' => array(
+					// the _action that will be called in ajax.
+					'data-wpcd-action'              => 'copy-site-execute-update-plan-dry-run',
+					// the id.
+					'data-wpcd-id'                  => $id,
+					// fields that contribute data for this action.
+					'data-wpcd-fields'              => wp_json_encode( array( '#wpcd_app_copy_to_site_update_plan' ) ),
+					// make sure we give the user a confirmation prompt.
+					'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like to execute a dry-run this update plan?', 'wpcd' ),
+					// show log console?
+					'data-show-log-console'         => false,
+				),
+				'class'      => 'wpcd_app_action',
+				'save_field' => false,
+				'columns'    => 4,
+			);
+
+			// Maybe show results of dry run that is held in a transient.
+			$last_dry_run_results = get_transient( 'wpcd_execute_update_plan_dry_run' );
+			if ( ! empty( $last_dry_run_results ) ) {
+				// Get dry run results for sites and servers.
+				$sites   = $this->get_update_plan_dry_run_sites_as_string( $last_dry_run_results );
+				$servers = $this->get_update_plan_dry_run_servers_as_string( $last_dry_run_results );
+
+				// Setup fields to show data from transient.
+				$fields[] = array(
+					'name' => __( 'Dry Run Results', 'wpcd' ),
+					'tab'  => 'copy-to-existing-site',
+					'type' => 'heading',
+					'desc' => __( 'Sites and servers that would be affected based on last dry run request.', 'wpcd' ),
+				);
+
+				$fields[] = array(
+					'name'    => __( 'Affected Servers', 'wpcd' ),
+					'tab'     => 'copy-to-existing-site',
+					'type'    => 'custom_html',
+					'std'     => $servers,
+					'columns' => 6,
+				);
+
+				$fields[] = array(
+					'name'    => __( 'Affected Sites', 'wpcd' ),
+					'tab'     => 'copy-to-existing-site',
+					'type'    => 'custom_html',
+					'std'     => $sites,
+					'columns' => 6,
+				);
+
+			}
+		}
+
 		return $fields;
 
 	}
@@ -582,6 +739,64 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 
 		$args = maybe_unserialize( get_post_meta( $id, 'wpcd_wpapp_copy_to_site_settings' ) );
 		return $args;
+
+	}
+
+	/**
+	 * Take the results of an update plan and return the list of sites as a string
+	 * delimted by html breaks.
+	 *
+	 * Incomming array format will be as follows:
+	 * array(
+	 *      servers => array ( 'server_title' => server_id, 'server_title' => server_id ),
+	 *      sites   => array ( 'domain' => site_id, 'domain' => site_id ),
+	 * )
+	 *
+	 * @param array $dry_run Array with elements formatted as described above.
+	 */
+	public function get_update_plan_dry_run_sites_as_string( $dry_run ) {
+
+		// Extract the sites array.
+		$sites = $dry_run['sites'];
+
+		// Setup blank return string.
+		$return = '';
+
+		// Loop through and create string.
+		foreach ( $sites as $domain => $site_id ) {
+			$return .= empty( $return ) ? $domain : '<br />' . $domain;
+		}
+
+		return $return;
+
+	}
+
+	/**
+	 * Take the results of an update plan and return the list of servers as a string
+	 * delimted by html breaks.
+	 *
+	 * Incomming array format will be as follows:
+	 * array(
+	 *      servers => array ( 'server_title' => server_id, 'server_title' => server_id ),
+	 *      sites   => array ( 'domain' => site_id, 'domain' => site_id ),
+	 * )
+	 *
+	 * @param array $dry_run Array with elements formatted as described above.
+	 */
+	public function get_update_plan_dry_run_servers_as_string( $dry_run ) {
+
+		// Extract the sites array.
+		$sites = $dry_run['servers'];
+
+		// Setup blank return string.
+		$return = '';
+
+		// Loop through and create string.
+		foreach ( $sites as $server_name => $server_id ) {
+			$return .= empty( $return ) ? $server_name : '<br />' . $server_name;
+		}
+
+		return $return;
 
 	}
 

@@ -177,6 +177,7 @@ class WPCD_POSTS_App_Update_Plan extends WPCD_Posts_Base {
 				'name'       => __( 'Copy All Plugins?', 'wpcd' ),
 				'id'         => 'wpcd_app_update_plan_copy_all_plugins',
 				'type'       => 'checkbox',
+				'std'        => true,
 				'save_field' => true,
 				'desc'       => __( 'Copy all plugins from template site to target sites?', 'wpcd' ),
 				'columns'    => 6,
@@ -185,6 +186,7 @@ class WPCD_POSTS_App_Update_Plan extends WPCD_Posts_Base {
 				'name'       => __( 'Copy All Themes?', 'wpcd' ),
 				'id'         => 'wpcd_app_update_plan_copy_all_themes',
 				'type'       => 'checkbox',
+				'std'        => true,
 				'save_field' => true,
 				'desc'       => __( 'Copy all themes from template site to target sites?', 'wpcd' ),
 				'columns'    => 6,
@@ -203,6 +205,7 @@ class WPCD_POSTS_App_Update_Plan extends WPCD_Posts_Base {
 					'posts_per_page' => - 1,
 				),
 				'field_type' => 'select_advanced',
+				'multiple'   => true,
 				'save_field' => true,
 				'desc'       => __( 'Apply this update plan to all sites on these servers.', 'wpcd' ),
 				'columns'    => 4,
@@ -210,9 +213,10 @@ class WPCD_POSTS_App_Update_Plan extends WPCD_Posts_Base {
 			array(
 				'name'       => __( 'Server Groups to Update', 'wpcd' ),
 				'id'         => 'wpcd_app_update_plan_servers_by_tag',
-				'type'       => 'taxonomy',
+				'type'       => 'taxonomy_advanced',
 				'taxonomy'   => 'wpcd_app_server_group',
 				'field_type' => 'select_advanced',
+				'multiple'   => true,
 				'save_field' => true,
 				'desc'       => __( 'Apply this update plan to all sites on servers with these groups.', 'wpcd' ),
 				'columns'    => 4,
@@ -220,18 +224,19 @@ class WPCD_POSTS_App_Update_Plan extends WPCD_Posts_Base {
 			array(
 				'name'       => __( 'Site Groups to Update', 'wpcd' ),
 				'id'         => 'wpcd_app_update_plan_sites_by_tag',
-				'type'       => 'taxonomy',
+				'type'       => 'taxonomy_advanced',
 				'taxonomy'   => 'wpcd_app_group',
 				'field_type' => 'select_advanced',
+				'multiple'   => true,
 				'save_field' => true,
-				'desc'       => __( 'Apply this update plan to all sites on with these tags.', 'wpcd' ),
+				'desc'       => __( 'Apply this update plan to all sites with these tags.', 'wpcd' ),
 				'columns'    => 4,
 			),
 			array(
 				'name' => __( 'Note', 'wpcd' ),
 				'id'   => 'wpcd_app_update_plan_server_selection_note',
 				'type' => 'custom_html',
-				'std'  => '<p>' . __( 'Sites will be combined from all three items above - servers + server groups + site groups into a single master list of sites to update', 'wpcd' ) . '</p>',
+				'std'  => __( 'Sites will be combined from all three items above - servers + server groups + site groups into a single master list of sites to update.', 'wpcd' ),
 			),
 
 		);
@@ -329,6 +334,160 @@ class WPCD_POSTS_App_Update_Plan extends WPCD_Posts_Base {
 		}
 
 		return $wpcd_plan_list;
+
+	}
+
+	/**
+	 * Return an array with servers and sites.
+	 *
+	 * Array format will be as follows:
+	 * array(
+	 *      servers => array ( 'server_title' => server_id, 'server_title' => server_id ),
+	 *      sites   => array ( 'domain' => site_id, 'domain' => site_id ),
+	 * )
+	 *
+	 * @param int $plan_id The plan id we're working with.
+	 */
+	public function get_server_and_sites( $plan_id ) {
+
+		if ( empty( $plan_id ) ) {
+			return array();
+		}
+
+		// Get server and site requirements from plan record.
+		// Note that the last parameter for the server_Ids get_post_meta is FALSE so that we can return an array of values.
+		// Metabox stores multiple values in a POST multi-select field as multiple rows in the database with the same post_meta key!
+		$server_ids    = get_post_meta( $plan_id, 'wpcd_app_update_plan_servers', false );
+		$server_groups = get_post_meta( $plan_id, 'wpcd_app_update_plan_servers_by_tag', true ); // taxomomy_advanced fields stores multiple values in a single comma delimited row so this will return a comma delimited string.
+		$site_groups   = get_post_meta( $plan_id, 'wpcd_app_update_plan_sites_by_tag', true ); // taxomomy_advanced fields stores multiple values in a single comma delimited row so this will return a comma delimited string.
+
+		// Explode the taxonomy fields since they're comma separated strings.
+		$server_groups = ! empty( $server_groups ) ? explode( ',', $server_groups ) : $server_groups;
+		$site_groups   = ! empty( $site_groups ) ? explode( ',', $site_groups ) : $site_groups;
+
+		// These vars will hold the key-value pairs for servers and sites that we'll return.
+		$servers = array();
+		$sites   = array();
+
+		// Loop through the $server_ids and populate the $servers array.
+		foreach ( $server_ids as $key => $server_id ) {
+			$server_title = wpcd_get_the_title( $server_id );
+			if ( ! empty( $server_title ) ) {
+				$servers[ $server_title ] = $server_id;
+
+				// Now get the sites on each server.
+				$these_sites = WPCD_SERVER()->get_apps_by_server_id( $server_id );
+
+				// Populate the sites array since for this item we're applying changes to all sites on these servers.
+				foreach ( $these_sites as $this_site ) {
+					$domain = WPCD_WORDPRESS_APP()->get_domain_name( $this_site->ID );
+					if ( ! empty( $domain ) ) {
+						$sites[ $domain ] = $this_site->ID;
+					}
+				}
+			}
+		}
+
+		// Get the list of servers from server groups.
+		if ( ! empty( $server_groups ) ) {
+			foreach ( $server_groups as $key => $server_group ) {
+
+				// Bail if id is empty.
+				if ( empty( $server_group ) ) {
+					continue;
+				}
+
+				// Construct args array for get_posts function.
+				$args = array(
+					'posts_per_page' => -1,
+					'post_type'      => 'wpcd_app_server',
+					'post_status'    => 'private',
+					'tax_query'      => array(
+						array(
+							'taxonomy' => 'wpcd_app_server_group',
+							'field'    => 'term_id',
+							'terms'    => $server_group,
+						),
+					),
+				);
+
+				// Get the servers.
+				$these_servers = get_posts( $args );
+
+				// Add each server to the final array of servers
+				foreach ( $these_servers as $key => $this_server ) {
+
+					// Add server to the final array of servers.
+					if ( ! empty( $this_server->post_title ) ) {
+						$servers[ $this_server->post_title ] = $this_server->ID;
+					}
+
+					// Now get the sites on this server.
+					$these_sites = WPCD_SERVER()->get_apps_by_server_id( $this_server->ID );
+
+					// Populate the sites array since for this item we're applying changes to all sites on these servers.
+					foreach ( $these_sites as $this_site ) {
+						$domain = WPCD_WORDPRESS_APP()->get_domain_name( $this_site->ID );
+						if ( ! empty( $domain ) ) {
+							$sites[ $domain ] = $this_site->ID;
+						}
+					}
+				}
+			}
+		}
+
+		// Get the list of sites from site groups.
+		if ( ! empty( $site_groups ) ) {
+			foreach ( $site_groups as $key => $site_group ) {
+
+				// Bail if id is empty.
+				if ( empty( $site_group ) ) {
+					continue;
+				}
+
+				// Construct args array for get_posts function.
+				$args = array(
+					'posts_per_page' => -1,
+					'post_type'      => 'wpcd_app',
+					'post_status'    => 'private',
+					'tax_query'      => array(
+						array(
+							'taxonomy' => 'wpcd_app_group',
+							'field'    => 'term_id',
+							'terms'    => $site_group,
+						),
+					),
+				);
+
+				// Get the sites.
+				$these_sites = get_posts( $args );
+
+				// Add each site to the final array of sites.
+				foreach ( $these_sites as $key => $this_site ) {
+					// Add it to the $sites array.
+					$domain = WPCD_WORDPRESS_APP()->get_domain_name( $this_site->ID );
+					if ( ! empty( $domain ) ) {
+						$sites[ $domain ] = $this_site->ID;
+					}
+					// Get the parent id - which is the server, from the site record.  We want to make sure the server is added to the $servers array.
+					$parent_id = WPCD_WORDPRESS_APP()->get_server_id_by_app_id( $this_site->ID );
+					if ( ! empty( $parent_id ) ) {
+						// Get the server title.
+						$this_server_title = WPCD_WORDPRESS_APP()->get_server_name( $parent_id );
+						if ( ! empty( $this_server_title ) ) {
+							// Add to the site server to the final array of servers.
+							$servers[ $this_server_title ] = $parent_id;
+						}
+					}
+				}
+			}
+		}
+
+		// Return consolidated array of servers and sites.
+		return array(
+			'servers' => $servers,
+			'sites'   => $sites,
+		);
 
 	}
 

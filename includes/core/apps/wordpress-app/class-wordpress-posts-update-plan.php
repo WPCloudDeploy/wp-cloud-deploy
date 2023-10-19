@@ -344,7 +344,15 @@ class WPCD_POSTS_App_Update_Plan extends WPCD_Posts_Base {
 	 * array(
 	 *      servers => array ( 'server_title' => server_id, 'server_title' => server_id ),
 	 *      sites   => array ( 'domain' => site_id, 'domain' => site_id ),
+	 *       mapped_server_to_sites = array( server_id[site_id] => domain ),
 	 * )
+	 *
+	 * Dev Note: Yes, this function is very inefficient.
+	 * But it's clearer!
+	 * Even if you have 1000 servers and 5000 sites, the number of times
+	 * in which this gets executed is so small that the tradeoff of
+	 * code clarity to efficient code is worth it.  If you disagree
+	 * feel free to rewrite it.
 	 *
 	 * @param int $plan_id The plan id we're working with.
 	 */
@@ -414,7 +422,7 @@ class WPCD_POSTS_App_Update_Plan extends WPCD_Posts_Base {
 				// Get the servers.
 				$these_servers = get_posts( $args );
 
-				// Add each server to the final array of servers
+				// Add each server to the final array of servers.
 				foreach ( $these_servers as $key => $this_server ) {
 
 					// Add server to the final array of servers.
@@ -483,11 +491,26 @@ class WPCD_POSTS_App_Update_Plan extends WPCD_Posts_Base {
 			}
 		}
 
+		// At this point, we have a list of servers and a list of sites which calling functions will need.
+		// But now we need to create a MAP that indicates which servers belong to which sites.
+		// So we loop through the sites once again.
+		$mapped_servers_to_sites = array();
+		foreach ( $sites as $domain => $site_id ) {
+			$server_id = WPCD_WORDPRESS_APP()->get_server_id_by_app_id( $site_id );
+			if ( ! empty( $server_id ) ) {
+				$mapped_servers_to_sites[ $server_id ][ $site_id ] = $domain;
+			}
+		}
+
 		// Return consolidated array of servers and sites.
-		return array(
-			'servers' => $servers,
-			'sites'   => $sites,
+		$return = array(
+			'servers'                => $servers,
+			'sites'                  => $sites,
+			'mapped_server_to_sites' => $mapped_servers_to_sites,
 		);
+
+		// Return/exit.
+		return $return;
 
 	}
 

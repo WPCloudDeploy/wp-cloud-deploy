@@ -664,8 +664,9 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 			$last_dry_run_results = get_transient( 'wpcd_execute_update_plan_dry_run' );
 			if ( ! empty( $last_dry_run_results ) ) {
 				// Get dry run results for sites and servers.
-				$sites   = $this->get_update_plan_dry_run_sites_as_string( $last_dry_run_results );
-				$servers = $this->get_update_plan_dry_run_servers_as_string( $last_dry_run_results );
+				$sites                    = $this->get_update_plan_dry_run_sites_as_string( $last_dry_run_results );
+				$servers                  = $this->get_update_plan_dry_run_servers_as_string( $last_dry_run_results );
+				$mapped_servers_and_sites = $this->get_update_plan_dry_run_mapped_servers_and_sites_as_string( $last_dry_run_results );
 
 				// Setup fields to show data from transient.
 				$fields[] = array(
@@ -689,6 +690,13 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 					'type'    => 'custom_html',
 					'std'     => $sites,
 					'columns' => 6,
+				);
+
+				$fields[] = array(
+					'name' => __( 'Affected Servers & Sites ', 'wpcd' ),
+					'tab'  => 'copy-to-existing-site',
+					'type' => 'custom_html',
+					'std'  => $mapped_servers_and_sites,
 				);
 
 			}
@@ -750,6 +758,7 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 	 * array(
 	 *      servers => array ( 'server_title' => server_id, 'server_title' => server_id ),
 	 *      sites   => array ( 'domain' => site_id, 'domain' => site_id ),
+	 *      mapped_server_to_sites = array( server_id[site_id] => domain ),
 	 * )
 	 *
 	 * @param array $dry_run Array with elements formatted as described above.
@@ -779,6 +788,7 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 	 * array(
 	 *      servers => array ( 'server_title' => server_id, 'server_title' => server_id ),
 	 *      sites   => array ( 'domain' => site_id, 'domain' => site_id ),
+	 *      mapped_server_to_sites = array( server_id[site_id] => domain ),
 	 * )
 	 *
 	 * @param array $dry_run Array with elements formatted as described above.
@@ -794,6 +804,41 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 		// Loop through and create string.
 		foreach ( $sites as $server_name => $server_id ) {
 			$return .= empty( $return ) ? $server_name : '<br />' . $server_name;
+		}
+
+		return $return;
+
+	}
+
+	/**
+	 * Take the results of an update plan and return the list of mapped servers
+	 * and sites as a string delimted by html breaks.
+	 *
+	 * Incomming array format will be as follows:
+	 * array(
+	 *      servers => array ( 'server_title' => server_id, 'server_title' => server_id ),
+	 *      sites   => array ( 'domain' => site_id, 'domain' => site_id ),
+	 *      mapped_server_to_sites = array( server_id[site_id] => domain ),
+	 * )
+	 *
+	 * @param array $dry_run Array with elements formatted as described above.
+	 */
+	public function get_update_plan_dry_run_mapped_servers_and_sites_as_string( $dry_run ) {
+
+		// Extract the sites array.
+		$maps = $dry_run['mapped_server_to_sites'];
+
+		// Setup blank return string.
+		$return = '';
+
+		// Loop through and create string.
+		foreach ( $maps as $server_id => $sites ) {
+			$server_name = WPCD_WORDPRESS_APP()->get_server_name( $server_id );
+			$return     .= empty( $return ) ? '<b>' . $server_name . '</b>' : '<br />' . '<b>' . $server_name . '</b>';
+			foreach ( $sites as $site_id => $domain ) {
+				$return .= '<br />' . $domain;
+			}
+			$return .= '<br />';
 		}
 
 		return $return;

@@ -25,6 +25,15 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 
 		add_action( "wpcd_command_{$this->get_app_name()}_completed", array( $this, 'command_completed' ), 10, 2 );
 
+		/* Execute update plan:  Push template site to server */
+		add_action( 'execute_update_plan_push_template_to_server', array( $this, 'execute_update_plan_push_template_to_server' ), 10, 3 );
+
+		/* Execute update plan: When a site sync (push template site to server) is complete it's time to change the domain and do some other stuff. */
+		add_action( 'wpcd_wordpress-app_site_sync_new_post_completed', array( $this, 'site_sync_complete' ), 100, 3 ); // Priority set to run after almost everything else.
+
+		/* Execute update plan: When a domain change is complete from a template site, update the site records to contain all the other data it need. */
+		add_action( 'wpcd_wordpress-app_site_change_domain_completed', array( $this, 'execute_update_plan_site_change_domain_complete' ), 10, 4 );
+
 	}
 
 	/**
@@ -163,13 +172,19 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 	 *
 	 * @param string $action The action key to send to the bash script.
 	 * @param int    $id the id of the app post being handled.
+	 * @param array  $in_args Alternative source of arguments passed via action hook or direct function call instead of pulling from $_POST.
 	 *
 	 * @return boolean|object Can return wp_error, true/false
 	 */
-	private function copy_to_existing_site( $action, $id ) {
+	private function copy_to_existing_site( $action, $id, $in_args = array() ) {
 
-		// Get data from the POST request.
-		$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
+		// Get data from POST request or from incoming args array.
+		if ( empty( $in_args ) ) {
+			// Get data from the POST request.
+			$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
+		} else {
+			$args = $in_args;
+		}
 
 		// Bail if certain things are empty...
 		if ( empty( $args['target_domain'] ) ) {
@@ -275,6 +290,72 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 		$servers_and_sites = WPCD_APP_UPDATE_PLAN()->get_server_and_sites( $update_plan_id );
 
 		set_transient( 'wpcd_execute_update_plan_dry_run', $servers_and_sites, 60 );  // We'll rad this transient when the screen refreshs.
+
+		$result = array( 'refresh' => 'yes' );
+
+		return $result;
+
+	}
+
+	/**
+	 * Execute an update plan.
+	 *
+	 * @param string $action The action key to send to the bash script.
+	 * @param int    $id the id of the app post being handled.
+	 *
+	 * @return boolean|object Can return wp_error, true/false
+	 */
+	public function execute_update_plan( $action, $id ) {
+
+		// Get data from the POST request.
+		$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
+
+		// Bail if certain things are empty...
+		if ( empty( $args['site_update_plan'] ) ) {
+			return new \WP_Error( __( 'You must provide a site update plan.', 'wpcd' ) );
+		} else {
+			$update_plan_id = $args['site_update_plan'];
+		}
+
+		// What's this domain?
+		$template_domain = WPCD_WORDPRESS_APP()->get_domain_name( $id );
+		if ( empty( $template_domain ) ) {
+			return new \WP_Error( __( 'We were unable to determine the domain for this template site - which is unsual.', 'wpcd' ) );
+		}
+
+		// What server is this application on?
+		$server_id = WPCD_WORDPRESS_APP()->get_server_id_by_app_id( $id );
+
+		/**
+		 * Array format returned from this function call will be as follows:
+		 * array(
+		 *      servers => array ( 'server_title' => server_id, 'server_title' => server_id ),
+		 *      sites   => array ( 'domain' => site_id, 'domain' => site_id ),
+		 *      mapped_server_to_sites = array( server_id[site_id] => domain ),
+		 * )
+		 */
+		$servers_and_sites = WPCD_APP_UPDATE_PLAN()->get_server_and_sites( $update_plan_id );
+		$maps              = $servers_and_sites['mapped_server_to_sites'];
+
+		foreach ( $maps as $target_server_id => $sites ) {
+				// Add some stuff to the $args array.
+				$args['wp_template_app_id']             = $id;                      // Add the source of the template to the array.
+				$args['author']                         = get_current_user_id();    // Who is going to own this site?  We'll need this later after the template is copied and domain changed.
+				$args['site_sync_destination']          = $target_server_id;        // Which server will we be copying the template site to?
+				$args['sec_source_dest_check_override'] = 1;                        // Disable some server level security checks in the site-sync program.
+				$args['update_plan_id']                 = $update_plan_id;
+				$args['update_plan_sites']              = $sites;
+
+				// Setup task that will store data to pass to the next task in sequence.
+				// The site-sync core function will see this and create a task in the pending tasks log for us to be able to link back to this even later.
+				$args['pending_tasks_type'] = 'execute-update-plan-get-data-after-push-template-to-server'; 
+
+				/* Setup pending task to push the template to the target server. */
+				$args['action_hook']     = 'execute_update_plan_push_template_to_server';
+				$new_pending_task_status = 'ready';
+				WPCD_POSTS_PENDING_TASKS_LOG()->add_pending_task_log_entry( $server_id, 'execute-update-plan-push-template-to-server', $template_domain, $args, $new_pending_task_status, $target_server_id, sprintf( __( 'Executing update plan - push template to server: %s', 'wpcd' ), WPCD_SERVER()->get_server_name( $target_server_id ) ) );
+
+		}
 
 		$result = array( 'refresh' => 'yes' );
 
@@ -845,6 +926,250 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 
 	}
 
+	/**
+	 * Push a template site to a target server..
+	 *
+	 * Called from an action hook from the pending logs background process - WPCD_POSTS_PENDING_TASKS_LOG()->do_tasks()
+	 *
+	 * Action Hook: execute_update_plan_push_template_to_server
+	 *
+	 * @param int   $task_id    Id of pending task that is firing this thing...
+	 * @param int   $server_id  Id of server on which to install the new website.
+	 * @param array $args       All the data needed to install the WP site on the server.
+	 */
+	public function execute_update_plan_push_template_to_server( $task_id, $server_id, $args ) {
+		/* Now fire the action located in the includes/core/apps/wordpress-app/tabs/site-sync.php file to copy the template site. */
+		do_action( 'wpcd_wordpress-app_do_site_sync', $args['wp_template_app_id'], $args );
+	}
+
+	/**
+	 * When a site sync is complete we need to change the domain if:
+	 * 1. It was because of a update plan execution.
+	 * 2. n/a
+	 *
+	 * Action Hook: wpcd_{$this->get_app_name()}_site_sync_new_post_completed || wpcd_wordpress-app_site_sync_new_post_completed
+	 *
+	 * @param int    $new_app_post_id    The post id of the new app record.
+	 * @param int    $id                 ID of the template site (source site being synced to a destination server).
+	 * @param string $name               The command name.
+	 */
+	public function site_sync_complete( $new_app_post_id, $id, $name ) {
+
+		// The name will have a format as such: command---domain---number.  For example: dry_run---cf1110.wpvix.com---905
+		// Lets tear it into pieces and put into an array.  The resulting array should look like this with exactly three elements.
+		// [0] => dry_run
+		// [1] => cf1110.wpvix.com
+		// [2] => 911
+		$command_array = explode( '---', $name );
+
+		// if the command is to copy a site to a new server then we need to do some things.
+		if ( 'site-sync' == $command_array[0] ) {
+
+			// Lets pull the logs.
+			$logs = WPCD_WORDPRESS_APP()->get_app_command_logs( $id, $name );
+
+			// Was the command successful?
+			$success = WPCD_WORDPRESS_APP()->is_ssh_successful( $logs, 'site_sync.txt' );
+
+			if ( $success === true ) {
+
+				// What server is this application on?
+				$server_id = WPCD_WORDPRESS_APP()->get_server_id_by_app_id( $id );
+
+				// Get domain name of the original site.
+				$original_domain = WPCD_WORDPRESS_APP()->get_domain_name( $id );
+
+				// Now check the pending tasks table for a record where the key=$name and type='execute-update-plan-after-push-template-to-server' and state='not-ready'.
+				// This allows us to pull data saved by the site-sync process for use here.
+				$posts = WPCD_POSTS_PENDING_TASKS_LOG()->get_tasks_by_key_state_type( $name, 'not-ready', 'execute-update-plan-get-data-after-push-template-to-server' );
+
+				/**
+				 * Start process of changing domain on the copied template site. We're assuming $posts has one and only one item in it!
+				 * If we got a record in here we have satisfied the criteria we outlined at the top of this function in order to proceed.
+				 */
+				if ( $posts ) {
+
+					// Grab our data array from pending tasks record.
+					$data = WPCD_POSTS_PENDING_TASKS_LOG()->get_data_by_id( $posts[0]->ID );
+
+					// Set the new domain.
+					$new_domain = WPCD_DNS()->get_full_temp_domain( 6 );
+					if ( empty( $new_domain ) ) {
+						// We'll just make something up here since we have no domain string.
+						$new_domain = WPCD_DNS()->get_subdomain() . 'dev';
+					} else {
+						// We'll addd a prefix to the temporary domain name to make it easier that this is associated with an update plan.
+						// Maybe later we'll be able to add in a category/tag/group label instead.
+						$new_domain = 'updateplan-' . $new_domain;
+					}
+					$data['new_domain'] = $new_domain;
+
+					// The domain change core function will see that 'pending_tasks_type' element in our data array and create a new pending record.
+					// This pending record is used to pass data to the next task in the sequence (see function execute_update_plan_site_change_domain_complete() below).
+					$args['pending_tasks_type'] = 'execute-update-plan-get-data-after-template-domain-change';
+
+					// Mark our get-data pending record as complete.  Later, when the domain change is complete it will set a new pending record.
+					$data_to_save = $data;
+					WPCD_POSTS_PENDING_TASKS_LOG()->update_task_by_id( $posts[0]->ID, $data_to_save, 'complete' );
+
+					// Locate the original 'execute-update-plan-push-template-to-server' task record and mark it complete.
+					// This task was added in function execute_update_plan() above (or somewhere in this file/class).
+					$original_task = WPCD_POSTS_PENDING_TASKS_LOG()->get_tasks_by_key_state_type( $original_domain, 'in-process', 'execute-update-plan-push-template-to-server' );
+					if ( $original_task ) {
+						WPCD_POSTS_PENDING_TASKS_LOG()->update_task_by_id( $original_task[0]->ID, array(), 'complete' );
+					}
+
+					// Action hook to fire: wpcd_wordpress-app_do_change_domain_full_live - need $id and $args ($data).
+					do_action( 'wpcd_wordpress-app_do_change_domain_full_live', $new_app_post_id, $data );
+				}
+			}
+		}
+
+	}
+
+
+	/**
+	 * When a domain change is complete from a template site, update the site records to contain all the other data it needs.
+	 *
+	 * We should only do this if we're executing an update plan.
+	 *
+	 * *** Note that changes to this function might also need to be done to the the following functions in the
+	 * *** woocommerce addon:
+	 * - site_change_domain_complete()
+	 * - clone_site_complete()
+	 *
+	 * Filter Hook: wpcd_{$this->get_app_name()}_site_change_domain_completed | wpcd_wordpress-app_site_change_domain_completed
+	 *
+	 * @param int    $id The id of the post app.
+	 * @param string $old_domain The domain we're changing from.
+	 * @param string $new_domain The domain we're changing to.
+	 * @param string $name The name of the command that was executed - it contains parts that we might need later.
+	 */
+	public function execute_update_plan_site_change_domain_complete( $id, $old_domain, $new_domain, $name ) {
+
+		// The name will have a format as such: command---domain---number.  For example: dry_run---cf1110.wpvix.com---905
+		// Lets tear it into pieces and put into an array.  The resulting array should look like this with exactly three elements.
+		// [0] => dry_run
+		// [1] => cf1110.wpvix.com
+		// [2] => 911
+		$command_array = explode( '---', $name );
+
+		// Check to see if the command is to replace a domain otherwise exit.
+		if ( 'replace_domain' == $command_array[0] ) {
+
+			// Lets pull the logs.
+			$logs = WPCD_WORDPRESS_APP()->get_app_command_logs( $id, $name );
+
+			// Was the command successful?
+			$success = WPCD_WORDPRESS_APP()->is_ssh_successful( $logs, 'change_domain_full.txt' );
+
+			if ( true == $success ) {
+				// now check the pending tasks table for a record where the key=$name and type='execute-update-plan-get-data-after-template-domain-change' and state='not-ready'.
+				// This allows us to pull data saved by the prior task.
+				$posts = WPCD_POSTS_PENDING_TASKS_LOG()->get_tasks_by_key_state_type( $name, 'not-ready', 'execute-update-plan-get-data-after-template-domain-change' );
+
+				/**
+				 * Start process of updating the app cpt record. We're assuming $posts has one and only one item in it!
+				 * If we got a record in here we have satisfied the criteria we outlined at the top of this function in order to proceed.
+				 */
+				if ( $posts ) {
+
+					// Grab our data array from pending tasks record...
+					$data = WPCD_POSTS_PENDING_TASKS_LOG()->get_data_by_id( $posts[0]->ID );
+
+					/* Add cross-reference data to order lines and subscription lines */
+					$this->add_wp_data_to_wc_orders( $id, $data );
+
+					/**
+					 * Now update the app record with new data about the user, passwords etc.
+					 *
+					 * Changes in this code block might need to be done in the
+					 * clone_site_complete() function just above.
+					 */
+					// Start by getting the app post to make sure it's valid.
+					$app_post = get_post( $id );
+
+					if ( $app_post ) {
+						// reset the author since it probably has data from the template site.
+						$author    = get_user_by( 'email', $data['wp_email'] )->ID;
+						$post_data = array(
+							'ID'          => $id,
+							'post_author' => $author,
+						);
+						wp_update_post( $post_data );
+
+						// Handle Post Template Copy Actions including adding a new admin user.
+						$this->do_after_copy_template_actions( $id, $data );
+
+						// @TODO - do we need to copy teams from the template site?  Probably not.
+
+						// Update domain, user id, password, email etc...
+						$update_items = array(
+							'wpapp_domain'          => $data['wp_domain'],
+							'wpapp_original_domain' => $data['wp_domain'],
+							'wpapp_email'           => $data['wp_email'],
+						);
+						foreach ( $update_items as $metakey => $value ) {
+							update_post_meta( $id, $metakey, $value );
+						}
+					}
+					/* End update the app record with new data */
+
+					/**
+					 * Maybe convert site to an mt tenant.
+					 * If this proves to take a long time, causing timeouts,
+					 * we might have to restructure to use a background process instead.
+					 * Changes here might need to be made to the clone_site_complete()
+					 * function above.
+					 *
+					 * Note: this is supposed to be a template site so doubt that it
+					 * needs to be converted.  But keeping this code in here just in case.
+					 */
+					$this->maybe_convert_to_tenant( $id );
+
+					/**
+					 * Need to add the individual site records that need their plugins/themes updated.
+					 */
+
+					// Mark our get-data pending record as complete.
+					$data_to_save = $data;
+					WPCD_POSTS_PENDING_TASKS_LOG()->update_task_by_id( $posts[0]->ID, $data_to_save, 'complete' );
+
+				}
+			}
+		}
+
+	}
+
+	/**
+	 * Perhaps convert a site to a tenant in an MT tenant situation.
+	 *
+	 * *** Changes to this function should probably be done to the same
+	 * *** function [maybe_convert_to_tenant()] in the wpcd woocommerce add-on.
+	 *
+	 * @param int $id Postid of site that we might convert to a tenant.
+	 */
+	public function maybe_convert_to_tenant( $id ) {
+
+		if ( false === wpcd_is_mt_enabled() ) {
+			return;
+		}
+
+		/**
+		 * Is there a parent id meta?
+		 * The presence of a mt parent meta value is what tells us that
+		 * The site should be an MT site.
+		 */
+		$parent_id = WPCD_WORDPRESS_APP()->get_mt_parent( $id );
+
+		if ( ! empty( $parent_id ) ) {
+			$args['mt_product_template'] = $parent_id;
+			$args['mt_version']          = WPCD_WORDPRESS_APP()->get_mt_version( $id );
+			/* Now fire the action located in the includes/core/apps/wordpress-app/tabs/multitenant-site.php file to convert the site. */
+			do_action( 'wpcd_wordpress-app_do_mt_apply_version', $id, $args );
+		}
+
+	}
 }
 
 new WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE();

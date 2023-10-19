@@ -38,10 +38,12 @@ class WPCD_DNS extends WPCD_Base {
 	 *
 	 * The calling program will need to append it to the root domain (usually by calling the get_active_root_domain() function in this class.
 	 *
+	 * @param int $length The length of the random subdomain string to return.
+	 *
 	 * @return string
 	 */
-	public function get_subdomain() {
-		$subdomain = apply_filters( 'wpcd_wpapp_subdomain_string', wpcd_random_str( 12, '0123456789abcdefghijklmnopqrstuvwxyz' ) );
+	public function get_subdomain( $length = 12 ) {
+		$subdomain = apply_filters( 'wpcd_wpapp_subdomain_string', wpcd_random_str( $length, '0123456789abcdefghijklmnopqrstuvwxyz' ) );
 		return $subdomain;
 	}
 
@@ -57,13 +59,15 @@ class WPCD_DNS extends WPCD_Base {
 
 	/**
 	 * Return a full temp domain of the type xxx.yyy.zzz.
+	 *
+	 * @param int $subdomain_length The length of the subdomain to return.
 	 */
-	public function get_full_temp_domain() {
+	public function get_full_temp_domain( $subdomain_length = 12 ) {
 
 		$root_domain = $this->get_active_root_domain();
 
 		if ( ! empty( $root_domain ) ) {
-			return $this->get_subdomain() . '.' . $root_domain;
+			return $this->get_subdomain( $subdomain_length ) . '.' . $root_domain;
 		}
 
 		return '';

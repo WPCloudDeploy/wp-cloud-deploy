@@ -41,6 +41,9 @@ class WPCD_POSTS_Site_Package extends WPCD_Posts_Base {
 		// Register custom fields for our post types.
 		add_filter( 'rwmb_meta_boxes', array( $this, 'register_post_type_fields' ), 20, 1 );
 
+		// Change ADD TITLE placeholder text.
+		add_filter( 'enter_title_here', array( $this, 'change_enter_title_text' ) );
+
 	}
 
 
@@ -61,6 +64,7 @@ class WPCD_POSTS_Site_Package extends WPCD_Posts_Base {
 					'menu_name'             => $menu_name,
 					'name_admin_bar'        => _x( 'Site Package', 'Add New on Toolbar', 'wpcd' ),
 					'add_new'               => _x( 'Add New Site Package', 'Add New Button', 'wpcd' ),
+					'add_new_item'          => _x( 'Add New Site Package', 'Add New Item', 'wpcd' ),
 					'edit_item'             => __( 'Edit Site Package', 'wpcd' ),
 					'view_item'             => _x( 'Site Package', 'Post type general name', 'wpcd' ),
 					'all_items'             => _x( 'Site Packages', 'Label for use with all items', 'wpcd' ),
@@ -565,6 +569,25 @@ class WPCD_POSTS_Site_Package extends WPCD_Posts_Base {
 		}
 
 		return false;
+
+	}
+
+	/**
+	 * Change ADD TITLE placeholder text on new CPT items.
+	 *
+	 * @param string $title Current title.
+	 *
+	 * @return string New Title.
+	 */
+	public function change_enter_title_text( $title ) {
+
+		$screen = get_current_screen();
+
+		if ( 'wpcd_site_package' == $screen->post_type ) {
+			$title = 'Enter a name for this new site package';
+		}
+
+		return $title;
 
 	}
 

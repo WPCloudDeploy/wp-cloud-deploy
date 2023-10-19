@@ -191,6 +191,51 @@ class WPCD_POSTS_App_Update_Plan extends WPCD_Posts_Base {
 			),
 		);
 
+		/* Select servers and sites */
+		$servers_and_sites = array(
+			array(
+				'name'       => __( 'Servers to Update', 'wpcd' ),
+				'id'         => 'wpcd_app_update_plan_servers',
+				'type'       => 'post',
+				'post_type'  => 'wpcd_app_server',
+				'query_args' => array(
+					'post_status'    => 'private',
+					'posts_per_page' => - 1,
+				),
+				'field_type' => 'select_advanced',
+				'save_field' => true,
+				'desc'       => __( 'Apply this update plan to all sites on these servers.', 'wpcd' ),
+				'columns'    => 4,
+			),
+			array(
+				'name'       => __( 'Server Groups to Update', 'wpcd' ),
+				'id'         => 'wpcd_app_update_plan_servers_by_tag',
+				'type'       => 'taxonomy',
+				'taxonomy'   => 'wpcd_app_server_group',
+				'field_type' => 'select_advanced',
+				'save_field' => true,
+				'desc'       => __( 'Apply this update plan to all sites on servers with these groups.', 'wpcd' ),
+				'columns'    => 4,
+			),
+			array(
+				'name'       => __( 'Site Groups to Update', 'wpcd' ),
+				'id'         => 'wpcd_app_update_plan_sites_by_tag',
+				'type'       => 'taxonomy',
+				'taxonomy'   => 'wpcd_app_group',
+				'field_type' => 'select_advanced',
+				'save_field' => true,
+				'desc'       => __( 'Apply this update plan to all sites on with these tags.', 'wpcd' ),
+				'columns'    => 4,
+			),
+			array(
+				'name' => __( 'Note', 'wpcd' ),
+				'id'   => 'wpcd_app_update_plan_server_selection_note',
+				'type' => 'custom_html',
+				'std'  => '<p>' . __( 'Sites will be combined from all three items above - servers + server groups + site groups into a single master list of sites to update', 'wpcd' ) . '</p>',
+			),
+
+		);
+
 		/* Fields for custom bash scripts. */
 		$fields_bash_scripts = array(
 			array(
@@ -233,6 +278,14 @@ class WPCD_POSTS_App_Update_Plan extends WPCD_Posts_Base {
 			'post_types' => array( 'wpcd_app_update_plan' ),
 			'priority'   => 'default',
 			'fields'     => $fields_things_to_copy,
+		);
+
+		$metaboxes[] = array(
+			'id'         => 'wpcd_app_update_plan_mb_site_package_sites',
+			'title'      => __( 'To Which Sites Will This Plan Be Applied?', 'wpcd' ),
+			'post_types' => array( 'wpcd_app_update_plan' ),
+			'priority'   => 'default',
+			'fields'     => $servers_and_sites,
 		);
 
 		if ( $this->can_user_execute_bash_scripts() ) {

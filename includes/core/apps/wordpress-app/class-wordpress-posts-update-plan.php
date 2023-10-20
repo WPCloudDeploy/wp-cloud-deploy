@@ -174,6 +174,13 @@ class WPCD_POSTS_App_Update_Plan extends WPCD_Posts_Base {
 		/* What to copy? */
 		$fields_things_to_copy = array(
 			array(
+				'name'    => __( 'What Files Will Be Copied?', 'wpcd' ),
+				'type'    => 'custom_html',
+				'std'     => __( 'All plugins, themes, uploads & core wp files will be copied.  wp-config.php will not be copied.', 'wpcd' ),
+				'columns' => 6,
+			),
+			/*
+			array(
 				'name'       => __( 'Copy All Plugins?', 'wpcd' ),
 				'id'         => 'wpcd_app_update_plan_copy_all_plugins',
 				'type'       => 'checkbox',
@@ -191,6 +198,7 @@ class WPCD_POSTS_App_Update_Plan extends WPCD_Posts_Base {
 				'desc'       => __( 'Copy all themes from template site to target sites?', 'wpcd' ),
 				'columns'    => 6,
 			),
+			*/
 		);
 
 		/* Select servers and sites */
@@ -279,7 +287,7 @@ class WPCD_POSTS_App_Update_Plan extends WPCD_Posts_Base {
 		/* Add the fields defined above to various metaboxes. */
 		$metaboxes[] = array(
 			'id'         => 'wpcd_app_update_plan_mb_site_package_what_to_copy',
-			'title'      => __( 'Themes & Plugins', 'wpcd' ),
+			'title'      => __( 'Files', 'wpcd' ),
 			'post_types' => array( 'wpcd_app_update_plan' ),
 			'priority'   => 'default',
 			'fields'     => $fields_things_to_copy,
@@ -388,8 +396,9 @@ class WPCD_POSTS_App_Update_Plan extends WPCD_Posts_Base {
 
 				// Populate the sites array since for this item we're applying changes to all sites on these servers.
 				foreach ( $these_sites as $this_site ) {
-					$domain = WPCD_WORDPRESS_APP()->get_domain_name( $this_site->ID );
-					if ( ! empty( $domain ) ) {
+					$domain      = WPCD_WORDPRESS_APP()->get_domain_name( $this_site->ID );
+					$is_template = WPCD_WORDPRESS_APP()->wpcd_is_template_site( $this_site->ID );
+					if ( ! empty( $domain ) && false === $is_template ) {
 						$sites[ $domain ] = $this_site->ID;
 					}
 				}
@@ -435,8 +444,9 @@ class WPCD_POSTS_App_Update_Plan extends WPCD_Posts_Base {
 
 					// Populate the sites array since for this item we're applying changes to all sites on these servers.
 					foreach ( $these_sites as $this_site ) {
-						$domain = WPCD_WORDPRESS_APP()->get_domain_name( $this_site->ID );
-						if ( ! empty( $domain ) ) {
+						$domain      = WPCD_WORDPRESS_APP()->get_domain_name( $this_site->ID );
+						$is_template = WPCD_WORDPRESS_APP()->wpcd_is_template_site( $this_site->ID );
+						if ( ! empty( $domain ) && false === $is_template ) {
 							$sites[ $domain ] = $this_site->ID;
 						}
 					}
@@ -473,18 +483,20 @@ class WPCD_POSTS_App_Update_Plan extends WPCD_Posts_Base {
 				// Add each site to the final array of sites.
 				foreach ( $these_sites as $key => $this_site ) {
 					// Add it to the $sites array.
-					$domain = WPCD_WORDPRESS_APP()->get_domain_name( $this_site->ID );
-					if ( ! empty( $domain ) ) {
+					$domain      = WPCD_WORDPRESS_APP()->get_domain_name( $this_site->ID );
+					$is_template = WPCD_WORDPRESS_APP()->wpcd_is_template_site( $this_site->ID );
+					if ( ! empty( $domain ) && false === $is_template ) {
 						$sites[ $domain ] = $this_site->ID;
-					}
-					// Get the parent id - which is the server, from the site record.  We want to make sure the server is added to the $servers array.
-					$parent_id = WPCD_WORDPRESS_APP()->get_server_id_by_app_id( $this_site->ID );
-					if ( ! empty( $parent_id ) ) {
-						// Get the server title.
-						$this_server_title = WPCD_WORDPRESS_APP()->get_server_name( $parent_id );
-						if ( ! empty( $this_server_title ) ) {
-							// Add to the site server to the final array of servers.
-							$servers[ $this_server_title ] = $parent_id;
+
+						// Get the parent id - which is the server, from the site record.  We want to make sure the server is added to the $servers array.
+						$parent_id = WPCD_WORDPRESS_APP()->get_server_id_by_app_id( $this_site->ID );
+						if ( ! empty( $parent_id ) ) {
+							// Get the server title.
+							$this_server_title = WPCD_WORDPRESS_APP()->get_server_name( $parent_id );
+							if ( ! empty( $this_server_title ) ) {
+								// Add to the site server to the final array of servers.
+								$servers[ $this_server_title ] = $parent_id;
+							}
 						}
 					}
 				}

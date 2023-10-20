@@ -61,8 +61,9 @@ do
 	echo "   3) Copy files Only"
 	echo "   4) Copy Db Only"
 	echo "   5) Copy Partial Db Only"
+	echo "   6) Copy Files Only - No Backup"
 	read -p "Action: " action
-	until [[ -z "$action" || "$action" =~ ^[1-5]$ ]]
+	until [[ -z "$action" || "$action" =~ ^[1-6]$ ]]
 	do
 		echo "$action: invalid selection."
 		read -p "Action: " action
@@ -323,6 +324,11 @@ then
 	backup_target
 	copy_partial_db
 	change_domain
+fi
+
+if [[ $action == "copy_to_existing_site_copy_files_only_no_backup" || $action == "6" ]]
+then
+	copy_partial_files
 fi
 
 # Restart and cleanup.

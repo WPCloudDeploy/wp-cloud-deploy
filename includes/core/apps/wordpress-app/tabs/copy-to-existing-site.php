@@ -29,10 +29,10 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 		add_action( 'execute_update_plan_push_template_to_server', array( $this, 'execute_update_plan_push_template_to_server' ), 10, 3 );
 
 		/* Execute update plan: When a site sync (push template site to server) is complete it's time to change the domain and do some other stuff. */
-		add_action( 'wpcd_wordpress-app_site_sync_new_post_completed', array( $this, 'site_sync_complete' ), 100, 3 ); // Priority set to run after almost everything else.
+		add_action( 'wpcd_wordpress-app_site_sync_new_post_completed', array( $this, 'site_sync_complete' ), 200, 3 ); // Priority set to run after almost everything else.
 
 		/* Execute update plan: When a domain change is complete from a template site, update the site records to contain all the other data it need. */
-		add_action( 'wpcd_wordpress-app_site_change_domain_completed', array( $this, 'execute_update_plan_site_change_domain_complete' ), 10, 4 );
+		add_action( 'wpcd_wordpress-app_site_change_domain_completed', array( $this, 'execute_update_plan_site_change_domain_complete' ), 200, 4 );
 
 	}
 
@@ -348,7 +348,7 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 
 				// Setup task that will store data to pass to the next task in sequence.
 				// The site-sync core function will see this and create a task in the pending tasks log for us to be able to link back to this even later.
-				$args['pending_tasks_type'] = 'execute-update-plan-get-data-after-push-template-to-server'; 
+				$args['pending_tasks_type'] = 'execute-update-plan-get-data-after-push-template-to-server';
 
 				/* Setup pending task to push the template to the target server. */
 				$args['action_hook']     = 'execute_update_plan_push_template_to_server';
@@ -971,7 +971,7 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 			// Was the command successful?
 			$success = WPCD_WORDPRESS_APP()->is_ssh_successful( $logs, 'site_sync.txt' );
 
-			if ( $success === true ) {
+			if ( true === $success ) {
 
 				// What server is this application on?
 				$server_id = WPCD_WORDPRESS_APP()->get_server_id_by_app_id( $id );
@@ -992,6 +992,10 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 					// Grab our data array from pending tasks record.
 					$data = WPCD_POSTS_PENDING_TASKS_LOG()->get_data_by_id( $posts[0]->ID );
 
+					// Site-sync will make a template a 'mt_template_clone' if MT is active. So strip the new copy of all MT flags.
+					WPCD_WORDPRESS_APP()->set_mt_site_type( $new_app_post_id, '' );
+					WPCD_WORDPRESS_APP()->set_mt_parent( $new_app_post_id, '' );
+
 					// Set the new domain.
 					$new_domain = WPCD_DNS()->get_full_temp_domain( 6 );
 					if ( empty( $new_domain ) ) {
@@ -1006,7 +1010,7 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 
 					// The domain change core function will see that 'pending_tasks_type' element in our data array and create a new pending record.
 					// This pending record is used to pass data to the next task in the sequence (see function execute_update_plan_site_change_domain_complete() below).
-					$args['pending_tasks_type'] = 'execute-update-plan-get-data-after-template-domain-change';
+					$data['pending_tasks_type'] = 'execute-update-plan-get-data-after-template-domain-change';
 
 					// Mark our get-data pending record as complete.  Later, when the domain change is complete it will set a new pending record.
 					$data_to_save = $data;
@@ -1063,7 +1067,7 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 			// Was the command successful?
 			$success = WPCD_WORDPRESS_APP()->is_ssh_successful( $logs, 'change_domain_full.txt' );
 
-			if ( true == $success ) {
+			if ( true === $success ) {
 				// now check the pending tasks table for a record where the key=$name and type='execute-update-plan-get-data-after-template-domain-change' and state='not-ready'.
 				// This allows us to pull data saved by the prior task.
 				$posts = WPCD_POSTS_PENDING_TASKS_LOG()->get_tasks_by_key_state_type( $name, 'not-ready', 'execute-update-plan-get-data-after-template-domain-change' );
@@ -1077,41 +1081,19 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 					// Grab our data array from pending tasks record...
 					$data = WPCD_POSTS_PENDING_TASKS_LOG()->get_data_by_id( $posts[0]->ID );
 
-					/* Add cross-reference data to order lines and subscription lines */
-					$this->add_wp_data_to_wc_orders( $id, $data );
-
 					/**
-					 * Now update the app record with new data about the user, passwords etc.
-					 *
-					 * Changes in this code block might need to be done in the
-					 * clone_site_complete() function just above.
+					 * Now update the app record with new data as necessary.
 					 */
 					// Start by getting the app post to make sure it's valid.
 					$app_post = get_post( $id );
 
 					if ( $app_post ) {
-						// reset the author since it probably has data from the template site.
-						$author    = get_user_by( 'email', $data['wp_email'] )->ID;
-						$post_data = array(
-							'ID'          => $id,
-							'post_author' => $author,
-						);
-						wp_update_post( $post_data );
-
-						// Handle Post Template Copy Actions including adding a new admin user.
-						$this->do_after_copy_template_actions( $id, $data );
-
 						// @TODO - do we need to copy teams from the template site?  Probably not.
 
-						// Update domain, user id, password, email etc...
-						$update_items = array(
-							'wpapp_domain'          => $data['wp_domain'],
-							'wpapp_original_domain' => $data['wp_domain'],
-							'wpapp_email'           => $data['wp_email'],
-						);
-						foreach ( $update_items as $metakey => $value ) {
-							update_post_meta( $id, $metakey, $value );
-						}
+						// Set the domain.
+						$this->add_dns( $id );
+
+						// Attempt ssl?
 					}
 					/* End update the app record with new data */
 
@@ -1169,6 +1151,26 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 			do_action( 'wpcd_wordpress-app_do_mt_apply_version', $id, $args );
 		}
 
+	}
+
+	/**
+	 * Add DNS entries.
+	 *
+	 * @param string $app_id The post id of the app for which we'll be adding the domain.
+	 */
+	public function add_dns( $app_id ) {
+
+		// 1. What's the server post id?
+		$server_id = $this->get_server_id_by_app_id( $app_id );
+
+		// 2. What's the IP of the server?
+		$ipv4 = WPCD_SERVER()->get_ipv4_address( $server_id );
+		$ipv6 = WPCD_SERVER()->get_ipv6_address( $server_id );
+
+		// 3. Get the domain name from the app_id
+		$domain = $this->get_domain_name( $app_id );
+
+		return $dns_success = WPCD_DNS()->set_dns_for_domain( $domain, $ipv4, $ipv6 );
 	}
 }
 

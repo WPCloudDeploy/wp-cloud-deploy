@@ -393,8 +393,17 @@ class WPCD_POSTS_Site_Package extends WPCD_Posts_Base {
 			),
 		);
 
-		/* Fields for special plugin & theme handling. */
+		/* Fields for special plugin & theme handling and other misc items. */
 		$fields_plugin_theme_misc = array(
+			array(
+				'name'       => __( 'Inject Version Label', 'wpcd' ),
+				'id'         => $prefix . 'site_package_app_version',
+				'type'       => 'text',
+				'save_field' => true,
+				'desc'       => __( 'Tag the site record with this version label.  Also add it to the wp-config.php file of the target site.', 'wpcd' ),
+				'tooltip'    => __( 'You can use this to search and filter your sites based on version numbers. And create custom plugins for your tenant sites that use the version constant inside to control behavior.', 'wpcd' ),
+				'columns'    => 3,
+			),
 			array(
 				'name'       => __( 'Delete Contents of UpDraft Folder', 'wpcd' ),
 				'id'         => $prefix . 'site_package_delete_updraft',
@@ -504,7 +513,7 @@ class WPCD_POSTS_Site_Package extends WPCD_Posts_Base {
 
 		$metaboxes[] = array(
 			'id'         => $prefix . 'mb_site_package_special_plugin_theme_handling',
-			'title'      => __( 'Other Misc', 'wpcd' ),
+			'title'      => __( 'Other & Misc', 'wpcd' ),
 			'post_types' => array( 'wpcd_site_package' ),
 			'priority'   => 'default',
 			'fields'     => $fields_plugin_theme_misc,

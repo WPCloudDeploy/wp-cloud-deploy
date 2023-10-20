@@ -3495,6 +3495,14 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		// Get the class instance that will allow us to send dynamic commands to the server via ssh.
 		$ssh = new WPCD_WORDPRESS_TABS();
 
+		// Add any custom version label to wp-config as well as the tenant site.
+		// Will override any version label from template site.
+		$version_label = get_post_meta( $site_package_id, 'wpcd_site_package_app_version', true );
+		if ( ! empty( $version_label ) ) {
+			do_action( 'wpcd_wordpress-app_do_update_wpconfig_option', $app_id, 'WPCD_VERSION_LABEL', $version_label );
+			update_post_meta( $app_id, 'wpcd_app_std_site_version_label', $version_label );
+		}
+
 		// Push custom wp-config.php data.
 		$keypairs = get_post_meta( $site_package_id, 'wpcd_wp_config_custom_data', true );
 		if ( ! empty( $keypairs ) ) {

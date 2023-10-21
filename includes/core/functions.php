@@ -1297,6 +1297,18 @@ function wpcd_clean_alpha_numeric_dashes_periods_underscores( $instr ) {
 }
 
 /**
+ * Takes a string and removes everything except numeric
+ * characters.
+ *
+ * @param  string $instr String to clean.
+ *
+ * @return string
+ */
+function wpcd_clean_numeric( $instr ) {
+	return preg_replace( '/\D+/', '', $instr ); // Uppercase "D" stands for "non-digit".
+}
+
+/**
  * Get the list of users that are in the assigned teams
  *
  * @param int $post_id Post ID of server or app type post.

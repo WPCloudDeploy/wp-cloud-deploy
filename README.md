@@ -139,6 +139,7 @@ Note: Even though the entire git development history isn't available on github, 
 * Tweak: WPAPP - Show a warning when setting up a user notification and the global notification template is blank.
 * Tweak: WPAPP - Bash script 24 - send certain output to null.
 * Fix: Left bar on settings screen would hide tooltips if the tooltips was too close to it.
+* Fix: WPAPP - White screen if the SYNC component is turned off in wp-config.php and you try to navigate to a wpcd front-end page.
 
 5.4.0
 ------

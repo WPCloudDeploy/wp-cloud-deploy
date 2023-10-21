@@ -28,17 +28,17 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 		/* Execute update plan: Push template site to server */
 		add_action( 'wpcd_execute_update_plan_push_template_to_server', array( $this, 'execute_update_plan_push_template_to_server' ), 10, 3 );
 
-		/* Execute update plan: Copy files to target sites */
-		add_action( 'wpcd_execute_update_plan_update_site_files', array( $this, 'execute_update_plan_update_site_files' ), 10, 3 );
-
-		/* Execute update plan: After files have been copied to target site, do some stuff.  */
-		add_action( 'wpcd_wordpress-app_copy_to_existing_site_copy_files_only_no_backup', array( $this, 'copy_to_existing_site_copy_files_only_complete' ), 200, 3 );
-
 		/* Execute update plan: When a site sync (push template site to server) is complete it's time to change the domain and do some other stuff. */
 		add_action( 'wpcd_wordpress-app_site_sync_new_post_completed', array( $this, 'site_sync_complete' ), 200, 3 ); // Priority set to run after almost everything else.
 
 		/* Execute update plan: When a domain change is complete from a template site, update the site records to contain all the other data it need. */
 		add_action( 'wpcd_wordpress-app_site_change_domain_completed', array( $this, 'execute_update_plan_site_change_domain_complete' ), 200, 4 );
+
+		/* Execute update plan: Copy files to target site. */
+		add_action( 'wpcd_execute_update_plan_update_site_files', array( $this, 'execute_update_plan_update_site_files' ), 10, 3 );
+
+		/* Execute update plan: After files have been copied to target site, do some stuff.  */
+		add_action( 'wpcd_wordpress-app_copy_to_existing_site_copy_files_only_no_backup_completed', array( $this, 'copy_to_existing_site_copy_files_only_complete' ), 200, 3 );
 
 	}
 
@@ -214,7 +214,7 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 					// No ui for this action - triggered only via pending tasks / update plans.
 					$action = 'copy_to_existing_site_copy_files_only_no_backup';
 					$result = $this->copy_to_existing_site( $action, $id );
-					break;					
+					break;
 				case 'copy-site-db-only':
 					$action = 'copy_to_existing_site_copy_db';
 					$result = $this->copy_to_existing_site( $action, $id );
@@ -297,7 +297,7 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 		);
 
 		// Stamp some temporary metas on this site.
-		update_post_meta( $source_app_id, 'wpcd_wpapp_copy_to_existing_site_target_domain_temp', $target_domain );
+		update_post_meta( $id, 'wpcd_wpapp_copy_to_existing_site_target_domain_temp', $target_domain );
 
 		/**
 		 * Let developers hook to run custom code and change the args if necessary before running the command.
@@ -328,6 +328,11 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 		if ( empty( $run_cmd ) || is_wp_error( $run_cmd ) ) {
 			/* Translators: %s is an internal action name. */
 			return new \WP_Error( sprintf( __( 'Something went wrong - we are unable to construct a proper command for this action - %s', 'wpcd' ), $action ) );
+		}
+
+		// We might need to add an item to the PENDING TASKS. The 'command' string is the key into the entry.
+		if ( isset( $in_args['pending_tasks_type'] ) ) {
+			WPCD_POSTS_PENDING_TASKS_LOG()->add_pending_task_log_entry( $id, $in_args['pending_tasks_type'], $command, $args, 'not-ready', $id, sprintf( __( 'Waiting For Copy To Existing Site To Complete. Target site is %s', 'wpcd' ), $target_domain ) );
 		}
 
 		/**
@@ -410,8 +415,41 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 		 */
 		$servers_and_sites = WPCD_APP_UPDATE_PLAN()->get_server_and_sites( $update_plan_id );
 		$maps              = $servers_and_sites['mapped_server_to_sites'];
-		$batch             = wpcd_generate_uuid();
 
+		/**
+		 * Create a batch id.
+		 * A batch is simply a record in the wpcd_app_update_hist CPT.
+		 */
+		$batch_id = wp_insert_post(
+			array(
+				'post_title'   => sprintf( __( 'Execution History for Plan %s', 'wpcd' ), $update_plan_id ),
+				'post_content' => '',
+				'post_status'  => 'private',
+				'post_author'  => get_current_user_id(),
+				'post_type'    => 'wpcd_app_update_hist',
+			)
+		);
+
+		// If we didn't get a batch / post id - return with error.
+		if ( empty( $batch_id ) ) {
+			/* Translators: %s is an internal action name. */
+			return new \WP_Error( sprintf( __( 'Something went wrong - we are unable to insert a post into wpcd_app_update_hist for this action - %s', 'wpcd' ), $action ) );
+		}
+
+		// Add the list of servers and sites we're handling into the batch / history record in wpcd_app_update_hist.
+		update_post_meta( $batch_id, 'wpcd_update_plan_servers', $servers_and_sites['servers'] );
+		update_post_meta( $batch_id, 'wpcd_update_plan_sites', $servers_and_sites['sites'] );
+		update_post_meta( $batch_id, 'wpcd_update_plan_mapped_servers_and_sites', $servers_and_sites['mapped_server_to_sites'] );
+		update_post_meta( $batch_id, 'wpcd_update_plan_servers_by_id', array_flip( $servers_and_sites['servers'] ) );
+		update_post_meta( $batch_id, 'wpcd_update_plan_sites_by_id', array_flip( $servers_and_sites['sites'] ) );
+		update_post_meta( $batch_id, 'wpcd_update_plan_server_count', count( $servers_and_sites['servers'] ) );
+		update_post_meta( $batch_id, 'wpcd_update_plan_site_count', count( $servers_and_sites['sites'] ) );
+		update_post_meta( $batch_id, 'wpcd_update_plan_servers_template_push_success', 0 );
+		update_post_meta( $batch_id, 'wpcd_update_plan_servers_template_push_failed', 0 );
+		update_post_meta( $batch_id, 'wpcd_update_plan_sites_update_success', 0 );
+		update_post_meta( $batch_id, 'wpcd_update_plan_sites_update_failed', 0 );
+
+		// Add each server to pending task.
 		foreach ( $maps as $target_server_id => $sites ) {
 				// Add some stuff to the $args array.
 				$args['wp_template_app_id']             = $id;                      // Add the source of the template to the array.
@@ -420,7 +458,7 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 				$args['sec_source_dest_check_override'] = 1;                        // Disable some server level security checks in the site-sync program.
 				$args['update_plan_id']                 = $update_plan_id;
 				$args['update_plan_sites']              = $sites;
-				$args['update_plan_batch_id']           = $batch;
+				$args['update_plan_batch_id']           = $batch_id;
 
 				// Setup task that will store data to pass to the next task in sequence.
 				// The site-sync core function will see this and create a task in the pending tasks log for us to be able to link back to this even later.
@@ -939,7 +977,7 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 
 	/**
 	 * Take the results of an update plan and return the list of servers as a string
-	 * delimted by html breaks.
+	 * delimited by html breaks.
 	 *
 	 * Incomming array format will be as follows:
 	 * array(
@@ -1046,8 +1084,12 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 				// Add a postmeta to the site we can use later.
 				update_post_meta( $from_id, 'wpapp_pending_log_copy_to_existing_site', $task_id );
 
-				// Create args array to pss into copy function.
+				// Create args array to pass into copy function.
 				$args['target_domain'] = $target_domain;
+
+				// Setup task that will store data to pass to the next task in sequence.
+				// The copy_to_existing_site core function above will see this and create a task in the pending tasks log for us to be able to link back to this even later.
+				$args['pending_tasks_type'] = 'execute-update-plan-get-data-after-update-site-files';
 
 				// Execute copy function.
 				$this->copy_to_existing_site( 'copy_to_existing_site_copy_files_only_no_backup', $from_id, $args );
@@ -1060,10 +1102,10 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
-	 * When a site sync is complete we need to change the domain if:
-	 * 1. It was because of a update plan execution.
-	 * 2. n/a
+	 * When a site sync is complete we need to change the domain.
 	 *
+	 * We should only do this if we're executing an update plan.
+	 * We know it's an update plan we need to handle because we'll find a pending task entry of type 'execute-update-plan-get-data-after-push-template-to-server'.   *
 	 * Action Hook: wpcd_{$this->get_app_name()}_site_sync_new_post_completed || wpcd_wordpress-app_site_sync_new_post_completed
 	 *
 	 * @param int    $new_app_post_id    The post id of the new app record.
@@ -1088,15 +1130,15 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 			// Was the command successful?
 			$success = WPCD_WORDPRESS_APP()->is_ssh_successful( $logs, 'site_sync.txt' );
 
+			// What server is this application on?
+			$server_id = WPCD_WORDPRESS_APP()->get_server_id_by_app_id( $id );
+
+			// Get domain name of the original site.
+			$original_domain = WPCD_WORDPRESS_APP()->get_domain_name( $id );
+
 			if ( true === $success ) {
 
-				// What server is this application on?
-				$server_id = WPCD_WORDPRESS_APP()->get_server_id_by_app_id( $id );
-
-				// Get domain name of the original site.
-				$original_domain = WPCD_WORDPRESS_APP()->get_domain_name( $id );
-
-				// Now check the pending tasks table for a record where the key=$name and type='execute-update-plan-after-push-template-to-server' and state='not-ready'.
+				// Check the pending tasks table for a record where the key=$name and type='execute-update-plan-after-push-template-to-server' and state='not-ready'.
 				// This allows us to pull data saved by the site-sync process for use here.
 				$posts = WPCD_POSTS_PENDING_TASKS_LOG()->get_tasks_by_key_state_type( $name, 'not-ready', 'execute-update-plan-get-data-after-push-template-to-server' );
 
@@ -1153,13 +1195,14 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 	 * When a domain change is complete from a template site, update the site records to contain all the other data it needs.
 	 *
 	 * We should only do this if we're executing an update plan.
+	 * We know it's an update plan we need to handle because we'll find a pending task entry of type 'execute-update-plan-get-data-after-template-domain-change'.
 	 *
 	 * *** Note that changes to this function might also need to be done to the the following functions in the
 	 * *** woocommerce addon:
 	 * - site_change_domain_complete()
 	 * - clone_site_complete()
 	 *
-	 * Filter Hook: wpcd_{$this->get_app_name()}_site_change_domain_completed | wpcd_wordpress-app_site_change_domain_completed
+	 * Action Hook: wpcd_{$this->get_app_name()}_site_change_domain_completed | wpcd_wordpress-app_site_change_domain_completed
 	 *
 	 * @param int    $id The id of the post app.
 	 * @param string $old_domain The domain we're changing from.
@@ -1184,8 +1227,12 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 			// Was the command successful?
 			$success = WPCD_WORDPRESS_APP()->is_ssh_successful( $logs, 'change_domain_full.txt' );
 
+			// What server is this application on?
+			$server_id = WPCD_WORDPRESS_APP()->get_server_id_by_app_id( $id );
+
 			if ( true === $success ) {
-				// now check the pending tasks table for a record where the key=$name and type='execute-update-plan-get-data-after-template-domain-change' and state='not-ready'.
+
+				// Check the pending tasks table for a record where the key=$name and type='execute-update-plan-get-data-after-template-domain-change' and state='not-ready'.
 				// This allows us to pull data saved by the prior task.
 				$posts = WPCD_POSTS_PENDING_TASKS_LOG()->get_tasks_by_key_state_type( $name, 'not-ready', 'execute-update-plan-get-data-after-template-domain-change' );
 
@@ -1199,7 +1246,7 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 					$data = WPCD_POSTS_PENDING_TASKS_LOG()->get_data_by_id( $posts[0]->ID );
 
 					/**
-					 * Now update the app record with new data as necessary.
+					 * Now update the new template app record with new data as necessary.
 					 */
 					// Start by getting the app post to make sure it's valid.
 					$app_post = get_post( $id );
@@ -1245,6 +1292,13 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 						}
 					}
 
+					// Update the history record (posttype wpcd_app_update_hist).
+					$success_count                               = ( (int) get_post_meta( $data['update_plan_batch_id'], 'wpcd_update_plan_servers_template_push_success', true ) ) + 1;
+					$servers_by_id                               = get_post_meta( $data['update_plan_batch_id'], 'wpcd_update_plan_servers_by_id', true );
+					$servers_by_id[ $server_id ]['success_flag'] = true;
+					update_post_meta( $data['update_plan_batch_id'], 'wpcd_update_plan_servers_template_push_success', $success_count );
+					update_post_meta( $data['update_plan_batch_id'], 'wpcd_update_plan_servers_by_id', $servers_by_id );
+
 					// Mark our get-data pending record as complete.
 					$data_to_save = $data;
 					WPCD_POSTS_PENDING_TASKS_LOG()->update_task_by_id( $posts[0]->ID, $data_to_save, 'complete' );
@@ -1259,7 +1313,7 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 	 * When files have been copied to a target site, do some stuff in this function..
 	 *
 	 * We should only do this if we're executing an update plan.
-	 *
+	 * We know it's an update plan we need to handle because we'll find a pending task entry of type 'execute-update-plan-get-data-after-update-site-files'.
 	 *
 	 * Action Hook: wpcd_wordpress-app_copy_to_existing_site_copy_files_only_no_backup | wpcd_wordpress-app_copy_to_existing_site_copy_files_only_no_backup
 	 *
@@ -1267,7 +1321,62 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 	 * @param string $target_domain The domain we're sending files to.
 	 * @param string $name The name of the command that was executed - it contains parts that we might need later.
 	 */
-	public function copy_to_existing_site_copy_files_only_no_backup_complete( $id, $target_domain, $name ) {
+	public function copy_to_existing_site_copy_files_only_complete( $id, $target_domain, $name ) {
+
+		// The name will have a format as such: command---domain---number.  For example: dry_run---cf1110.wpvix.com---905
+		// Lets tear it into pieces and put into an array.  The resulting array should look like this with exactly three elements.
+		// [0] => dry_run
+		// [1] => cf1110.wpvix.com
+		// [2] => 911
+		$command_array = explode( '---', $name );
+
+		// Check to see if the command is to replace a domain otherwise exit.
+		if ( 'copy_to_existing_site_copy_files_only_no_backup' == $command_array[0] ) {
+
+			// Lets pull the logs.
+			$logs = WPCD_WORDPRESS_APP()->get_app_command_logs( $id, $name );
+
+			// Was the command successful?
+			$success = WPCD_WORDPRESS_APP()->is_ssh_successful( $logs, 'copy_site_to_existing_site.txt' );
+
+			// What server is this application on?
+			$server_id = WPCD_WORDPRESS_APP()->get_server_id_by_app_id( $id );
+
+			// Get the target domain id on the server. Note that we can have the same domain on multiple servers.
+			// To handle this we use the special function get_app_id_by_server_id_and_domain.
+			$target_app_id = WPCD_WORDPRESS_APP()->get_app_id_by_server_id_and_domain( $server_id, $target_domain );
+
+			if ( true === $success && ! empty( $target_app_id ) ) {
+
+				// Check the pending tasks table for a record where the key=$name and type='execute-update-plan-get-data-after-template-domain-change' and state='not-ready'.
+				// This allows us to pull data saved by the prior task.
+				$posts = WPCD_POSTS_PENDING_TASKS_LOG()->get_tasks_by_key_state_type( $name, 'not-ready', 'execute-update-plan-get-data-after-update-site-files' );
+
+				/**
+				 * Start process of updating the app cpt record. We're assuming $posts has one and only one item in it!
+				 * If we got a record in here we have satisfied the criteria we outlined at the top of this function in order to proceed.
+				 */
+				if ( $posts ) {
+
+					// Grab our data array from pending tasks record...
+					$data     = WPCD_POSTS_PENDING_TASKS_LOG()->get_data_by_id( $posts[0]->ID );
+					$batch_id = wpcd_clean_numeric( $data['update_plan_batch_id'] ); // We shouldn't need the wpcd_clean_numeric function call here but somewhere along the line quotes get into the value somehow.
+
+					// Update the history record (posttype wpcd_app_update_hist).
+					$success_count = ( (int) get_post_meta( $batch_id, 'wpcd_update_plan_sites_update_success', true ) ) + 1;
+					$sites_by_id   = get_post_meta( $batch_id, 'wpcd_update_plan_sites_by_id', true );
+
+					$sites_by_id[ $target_app_id ]['success_flag'] = true;
+					update_post_meta( $batch_id, 'wpcd_update_plan_sites_update_success', $success_count );
+					update_post_meta( $batch_id, 'wpcd_update_plan_sites_by_id', $sites_by_id );
+
+					// Mark our get-data pending record as complete.
+					$data_to_save = $data;
+					WPCD_POSTS_PENDING_TASKS_LOG()->update_task_by_id( $posts[0]->ID, $data_to_save, 'complete' );
+
+				}
+			}
+		}
 
 	}
 

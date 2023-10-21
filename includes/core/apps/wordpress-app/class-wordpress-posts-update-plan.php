@@ -352,7 +352,7 @@ class WPCD_POSTS_App_Update_Plan extends WPCD_Posts_Base {
 	 * array(
 	 *      servers => array ( 'server_title' => server_id, 'server_title' => server_id ),
 	 *      sites   => array ( 'domain' => site_id, 'domain' => site_id ),
-	 *       mapped_server_to_sites = array( server_id[site_id] => domain ),
+	 *      mapped_server_to_sites = array( server_id[site_id] => domain ),
 	 * )
 	 *
 	 * Dev Note: Yes, this function is very inefficient.

@@ -184,6 +184,17 @@ class WPCD_DNS extends WPCD_Base {
 
 			$response = wp_remote_post( $url, $options );
 
+			// Bail if we got a random wp error.
+			if ( is_wp_error( $response ) ) {
+
+				/* Translators: 1. %s is the subdomain we are attempting to add to cloudflare. 2. %s is the error code from the wperror object */
+				$message = sprintf( __( 'We could not add the A record for domain %1$s to Cloudflare - an eror was returned - %2$s.', 'wpcd' ), $domain, $response->get_error_message() );
+				do_action( 'wpcd_log_error', $message, 'error', __FILE__, __LINE__, array(), false );
+
+				return false;
+
+			}
+
 			$response_code = wp_remote_retrieve_response_code( $response );
 
 			if ( 200 !== $response_code ) {
@@ -220,6 +231,17 @@ class WPCD_DNS extends WPCD_Base {
 				);
 
 				$response = wp_remote_post( $url, $options );
+
+				// Bail if we got a random wp error.
+				if ( is_wp_error( $response ) ) {
+
+					/* Translators: 1. %s is the subdomain we are attempting to add to cloudflare. 2. %s is the error code from the wperror object */
+					$message = sprintf( __( 'We could not add the AAAA record for domain %1$s to Cloudflare - an eror was returned - %2$s.', 'wpcd' ), $domain, $response->get_error_message() );
+					do_action( 'wpcd_log_error', $message, 'error', __FILE__, __LINE__, array(), false );
+
+					return false;
+
+				}
 
 				$response_code = wp_remote_retrieve_response_code( $response );
 
@@ -265,6 +287,17 @@ class WPCD_DNS extends WPCD_Base {
 
 			// Get the data.
 			$response = wp_remote_get( $url, $options );
+
+			// Bail if we got a random wp error.
+			if ( is_wp_error( $response ) ) {
+
+				/* Translators: 1. %s is the subdomain whose details we are attempting to get from cloudflare. 2. %s is the error code from the wperror object */
+				$message = sprintf( __( 'We could not obtain details for domain %1$s from Cloudflare - an eror was returned - %2$s.', 'wpcd' ), $domain, $response->get_error_message() );
+				do_action( 'wpcd_log_error', $message, 'error', __FILE__, __LINE__, array(), false );
+
+				return false;
+
+			}
 
 			// Decode the data.
 			try {
@@ -349,12 +382,23 @@ class WPCD_DNS extends WPCD_Base {
 		// Send the delete request.
 		$response = wp_remote_request( $url, $options );
 
+		// Bail if we got a random wp error.
+		if ( is_wp_error( $response ) ) {
+
+			/* Translators: 1. %s is the subdomain whose details we are attempting to get from cloudflare. 2. %s is the error code from the wperror object */
+			$message = sprintf( __( 'We could not delete the A record for domain %1$s to Cloudflare - an eror was returned - %2$s.', 'wpcd' ), $domain, $response->get_error_message() );
+			do_action( 'wpcd_log_error', $message, 'error', __FILE__, __LINE__, array(), false );
+
+			return false;
+
+		}
+
 		// Examine the response code from the request to make sure its ok.
 		$response_code = wp_remote_retrieve_response_code( $response );
 
 		if ( 200 !== $response_code ) {
 
-			/* Translators: 1. %s is the subdomain whose details we are attempting to get from cloudflare. 2. %s is the response code we got from cloudflare */
+			/* Translators: 1. %s is the subdomain we are attempting to delete from cloudflare. 2. %s is the response code we got from cloudflare */
 			$message = sprintf( __( 'We were unable to delete the A record for domain %1$s in Cloudflare - an eror was returned: %2$s. You will need to add this site manually.', 'wpcd' ), $domain, $response_code );
 			do_action( 'wpcd_log_error', $message, 'error', __FILE__, __LINE__, array(), false );
 
@@ -385,6 +429,17 @@ class WPCD_DNS extends WPCD_Base {
 
 			// Send the delete request.
 			$response = wp_remote_request( $url, $options );
+
+			// Bail if we got a random wp error.
+			if ( is_wp_error( $response ) ) {
+
+				/* Translators: 1. %s is the subdomain whose we are attempting to delete from cloudflare. 2. %s is the error code from the wperror object */
+				$message = sprintf( __( 'We could not delete the AAAA record for domain %1$s to Cloudflare - an eror was returned - %2$s.', 'wpcd' ), $domain, $response->get_error_message() );
+				do_action( 'wpcd_log_error', $message, 'error', __FILE__, __LINE__, array(), false );
+
+				return false;
+
+			}
 
 			// Examine the response code from the request to make sure its ok.
 			$response_code = wp_remote_retrieve_response_code( $response );

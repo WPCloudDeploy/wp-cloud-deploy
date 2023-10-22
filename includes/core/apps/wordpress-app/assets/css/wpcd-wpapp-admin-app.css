@@ -173,6 +173,7 @@
 
 .tablenav .actions:not(.bulkactions) select {
     width: 13%;
+	min-width: 100px;
     margin-bottom: 10px;
 }
 

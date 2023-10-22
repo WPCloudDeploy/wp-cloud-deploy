@@ -140,6 +140,7 @@ Note: Even though the entire git development history isn't available on github, 
 * Tweak: WPAPP - Bash script 24 - send certain output to null.
 * Fix: Left bar on settings screen would hide tooltips if the tooltips was too close to it.
 * Fix: WPAPP - White screen if the SYNC component is turned off in wp-config.php and you try to navigate to a wpcd front-end page.
+* Fix: WPAPP - Date filter at top of some CPT lists was set to something way way too narrow.  Now set to min 100px.
 * Dev: WPAPP - More robust error checking when handling data to/from the Cloudflare API.
 
 5.4.0

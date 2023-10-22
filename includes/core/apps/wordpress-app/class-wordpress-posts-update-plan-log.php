@@ -176,7 +176,6 @@ class WPCD_SITE_UPDATE_PLAN_LOG extends WPCD_POSTS_LOG {
 				if ( $site_count === (int) $value ) {
 					$value = $value . ' <span class="dashicons dashicons-yes-alt"></span>';
 				}
-
 				break;
 
 			default:

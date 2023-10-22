@@ -22,8 +22,10 @@ function wpcd_init_site_package() {
 	}
 }
 
-function WPCD_SITE_PACKAGE() {
-	return WPCD()->classes['WPCD_SITE_PACKAGE'];
+if ( function_exists( 'WPCD' ) ) {
+	function WPCD_SITE_PACKAGE() {
+		return WPCD()->classes['WPCD_SITE_PACKAGE'];
+	}
 }
 
 add_action( 'init', 'wpcd_init_app_update_plan', -10, 1 );
@@ -39,10 +41,22 @@ function wpcd_init_app_update_plan() {
 			WPCD()->classes['WPCD_APP_UPDATE_PLAN'] = new WPCD_POSTS_App_Update_Plan();
 		}
 	}
+
+	if ( function_exists( 'WPCD' ) && class_exists( 'WPCD_WooCommerce_Init' ) ) {
+		if ( empty( WPCD()->classes['WPCD_SITE_UPDATE_PLAN_LOG'] ) ) {
+			WPCD()->classes['WPCD_SITE_UPDATE_PLAN_LOG'] = new WPCD_SITE_UPDATE_PLAN_LOG();
+		}
+	}
 }
 
-if ( class_exists( 'WPCD_WooCommerce_Init' ) ) {
+if ( function_exists( 'WPCD' ) && class_exists( 'WPCD_WooCommerce_Init' ) ) {
 	function WPCD_APP_UPDATE_PLAN() {
 		return WPCD()->classes['WPCD_APP_UPDATE_PLAN'];
+	}
+}
+
+if ( function_exists( 'WPCD' ) && class_exists( 'WPCD_WooCommerce_Init' ) ) {
+	function WPCD_SITE_UPDATE_PLAN_LOG() {
+		return WPCD()->classes['WPCD_SITE_UPDATE_PLAN_LOG'];
 	}
 }

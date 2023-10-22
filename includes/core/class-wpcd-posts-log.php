@@ -244,6 +244,9 @@ class WPCD_POSTS_LOG extends WPCD_Posts_Base {
 		if ( 'wpcd_error_log' === $post_type ) {
 			$auto_trim_log_limit = (int) wpcd_get_early_option( 'auto_trim_error_log_limit' );
 		}
+		if ( 'wpcd_error_log' === $post_type ) {
+			$auto_trim_log_limit = (int) wpcd_get_early_option( 'auto_trim_update_plan_log_limit' );
+		}
 
 		if ( defined( 'WPCD_AUTO_TRIM_LOG_LIMIT' ) ) {
 			$auto_trim_log_limit = WPCD_AUTO_TRIM_LOG_LIMIT;

@@ -1052,6 +1052,7 @@ class WPCD_PENDING_TASKS_LOG extends WPCD_POSTS_LOG {
 		$this->clean_up_old_log_entries( 'wpcd_notify_log' );
 		$this->clean_up_old_log_entries( 'wpcd_notify_sent' );
 		$this->clean_up_old_log_entries( 'wpcd_ssh_log' );
+		$this->clean_up_old_log_entries( 'wpcd_app_update_log' );
 
 	}
 

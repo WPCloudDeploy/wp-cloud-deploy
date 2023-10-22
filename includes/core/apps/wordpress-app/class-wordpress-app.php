@@ -4293,7 +4293,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		}
 
 		$screen     = get_current_screen();
-		$post_types = array( 'wpcd_app_server', 'wpcd_app', 'wpcd_team', 'wpcd_permission_type', 'wpcd_command_log', 'wpcd_ssh_log', 'wpcd_error_log', 'wpcd_pending_log' );
+		$post_types = array( 'wpcd_app_server', 'wpcd_app', 'wpcd_team', 'wpcd_permission_type', 'wpcd_command_log', 'wpcd_ssh_log', 'wpcd_error_log', 'wpcd_pending_log', 'wpcd_app_update_log' );
 
 		if ( ( is_object( $screen ) && in_array( $screen->post_type, $post_types ) ) || WPCD_WORDPRESS_APP_PUBLIC::is_public_page() ) {
 

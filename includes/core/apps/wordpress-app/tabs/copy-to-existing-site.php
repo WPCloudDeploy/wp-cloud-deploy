@@ -415,6 +415,7 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 		 */
 		$servers_and_sites = WPCD_APP_UPDATE_PLAN()->get_server_and_sites( $update_plan_id );
 		$maps              = $servers_and_sites['mapped_server_to_sites'];
+		$plan_title        = wpcd_get_the_title( $update_plan_id );
 
 		/**
 		 * Create a batch id.
@@ -423,7 +424,7 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 		$batch_id = wp_insert_post(
 			array(
 				/* Translators: %1$s is the update plan id (post id); %2$s is a count of servers; %3$s is a count of sites.  */
-				'post_title'   => sprintf( __( 'Execution History for Plan %1$s with %2$s servers & %3$s sites. ', 'wpcd' ), $update_plan_id, count( $servers_and_sites['servers'] ), count( $servers_and_sites['sites'] ) ),
+				'post_title'   => sprintf( __( 'Execution History for Plan %1$s (%2$s) with %3$s servers & %4$s sites. ', 'wpcd' ), $update_plan_id, $plan_title, count( $servers_and_sites['servers'] ), count( $servers_and_sites['sites'] ) ),
 				'post_content' => '',
 				'post_status'  => 'private',
 				'post_author'  => get_current_user_id(),
@@ -1295,11 +1296,16 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 					}
 
 					// Update the history record (posttype wpcd_app_update_log).
-					$success_count                               = ( (int) get_post_meta( $batch_id, 'wpcd_update_plan_servers_template_push_success', true ) ) + 1;
-					$servers_by_id                               = get_post_meta( $batch_id, 'wpcd_update_plan_servers_by_id', true );
+					$success_count     = ( (int) get_post_meta( $batch_id, 'wpcd_update_plan_servers_template_push_success', true ) ) + 1;
+					$servers_completed = wpcd_maybe_unserialize( get_post_meta( $batch_id, 'wpcd_update_plan_servers_completed', true ) );
+					if ( empty( $servers_completed ) ) {
+						$servers_completed = array();
+					}
+					$servers_completed[ $server_id ]             = true;
 					$servers_by_id[ $server_id ]['success_flag'] = true;
 					update_post_meta( $batch_id, 'wpcd_update_plan_servers_template_push_success', $success_count );
-					update_post_meta( $batch_id, 'wpcd_update_plan_servers_by_id', $servers_by_id );
+					update_post_meta( $batch_id, 'wpcd_update_plan_servers_completed', $servers_completed );
+					// End update the history record.
 
 					// Mark our get-data pending record as complete.
 					$data_to_save = $data;
@@ -1365,12 +1371,14 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 					$batch_id = wpcd_clean_numeric( $data['update_plan_batch_id'] ); // We shouldn't need the wpcd_clean_numeric function call here but somewhere along the line quotes get into the value somehow.
 
 					// Update the history record (posttype wpcd_app_update_log).
-					$success_count = ( (int) get_post_meta( $batch_id, 'wpcd_update_plan_sites_update_success', true ) ) + 1;
-					$sites_by_id   = get_post_meta( $batch_id, 'wpcd_update_plan_sites_by_id', true );
-
-					$sites_by_id[ $target_app_id ]['success_flag'] = true;
+					$success_count   = ( (int) get_post_meta( $batch_id, 'wpcd_update_plan_sites_update_success', true ) ) + 1;
+					$sites_completed = wpcd_maybe_unserialize( get_post_meta( $batch_id, 'wpcd_update_plan_sites_completed', true ) );
+					if ( empty( $sites_completed ) ) {
+						$sites_completed = array();
+					}
+					$sites_completed[ $target_app_id ] = true;
 					update_post_meta( $batch_id, 'wpcd_update_plan_sites_update_success', $success_count );
-					update_post_meta( $batch_id, 'wpcd_update_plan_sites_by_id', $sites_by_id );
+					update_post_meta( $batch_id, 'wpcd_update_plan_sites_completed', $sites_completed );
 
 					// Mark our get-data pending record as complete.
 					$data_to_save = $data;

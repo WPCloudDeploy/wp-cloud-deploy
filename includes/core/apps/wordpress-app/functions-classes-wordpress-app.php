@@ -15,17 +15,15 @@ add_action( 'init', 'wpcd_init_site_package', -10, 1 );
  * add it to the WPCD array of classes for management
  */
 function wpcd_init_site_package() {
-	if ( function_exists( 'WPCD' ) ) {
+	if ( function_exists( 'WPCD' ) && class_exists( 'WPCD_WooCommerce_Init' ) ) {
 		if ( empty( WPCD()->classes['WPCD_SITE_PACKAGE'] ) ) {
 			WPCD()->classes['WPCD_SITE_PACKAGE'] = new WPCD_POSTS_Site_Package();
 		}
 	}
 }
 
-if ( function_exists( 'WPCD' ) ) {
-	function WPCD_SITE_PACKAGE() {
-		return WPCD()->classes['WPCD_SITE_PACKAGE'];
-	}
+function WPCD_SITE_PACKAGE() {
+	return WPCD()->classes['WPCD_SITE_PACKAGE'];
 }
 
 add_action( 'init', 'wpcd_init_app_update_plan', -10, 1 );
@@ -49,14 +47,10 @@ function wpcd_init_app_update_plan() {
 	}
 }
 
-if ( function_exists( 'WPCD' ) && class_exists( 'WPCD_WooCommerce_Init' ) ) {
-	function WPCD_APP_UPDATE_PLAN() {
-		return WPCD()->classes['WPCD_APP_UPDATE_PLAN'];
-	}
+function WPCD_APP_UPDATE_PLAN() {
+	return WPCD()->classes['WPCD_APP_UPDATE_PLAN'];
 }
 
-if ( function_exists( 'WPCD' ) && class_exists( 'WPCD_WooCommerce_Init' ) ) {
-	function WPCD_SITE_UPDATE_PLAN_LOG() {
-		return WPCD()->classes['WPCD_SITE_UPDATE_PLAN_LOG'];
-	}
+function WPCD_SITE_UPDATE_PLAN_LOG() {
+	return WPCD()->classes['WPCD_SITE_UPDATE_PLAN_LOG'];
 }

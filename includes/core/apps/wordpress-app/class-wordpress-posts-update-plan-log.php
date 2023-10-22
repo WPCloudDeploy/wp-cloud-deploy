@@ -38,11 +38,8 @@ class WPCD_SITE_UPDATE_PLAN_LOG extends WPCD_POSTS_LOG {
 	 */
 	private function hooks() {
 
-		// Meta box display callback.
-		add_action( 'add_meta_boxes', array( $this, 'add_meta_boxes' ) );
-
-		// Save Meta Values.
-		add_action( 'save_post', array( $this, 'save_meta_values' ), 10, 2 );
+		// Register custom fields for our post types - these will be display only custom_html fields since this post type is just logs.
+		add_filter( 'rwmb_meta_boxes', array( $this, 'register_post_type_fields' ), 20, 1 );
 
 		// Filter hook to add new columns.
 		add_filter( 'manage_wpcd_app_update_log_posts_columns', array( $this, 'wpcd_app_update_log_table_head' ), 10, 1 );
@@ -220,55 +217,108 @@ class WPCD_SITE_UPDATE_PLAN_LOG extends WPCD_POSTS_LOG {
 	}
 
 	/**
-	 * Register meta box(es).
+	 * Add fields to post types.
+	 *
+	 * Action Hook: rwmb_meta_boxes
+	 *
+	 * @param array $metaboxes Array of existing metaboxes.
+	 *
+	 * @return array new array of metaboxes.
 	 */
-	public function add_meta_boxes() {
+	public function register_post_type_fields( $metaboxes ) {
 
-		add_meta_box(
-			'wpcd_update_plan_log',
-			__( 'Update Plan History Log', 'wpcd' ),
-			array( $this, 'render_update_plan_meta_box' ),
-			'wpcd_update_plan_log',
-			'advanced',
-			'high'
+		// Current post id.
+		$post_id = wpcd_get_post_id_from_global();
+
+		if ( empty( $post_id ) ) {
+			return $metaboxes;
+		}
+
+		// Server list from plan.
+		$planned_servers         = wpcd_maybe_unserialize( get_post_meta( $post_id, 'wpcd_update_plan_servers', true ) );
+		$planned_servers_display = '';
+		if ( is_array( $planned_servers ) ) {
+			$planned_servers         = array_keys( $planned_servers );
+			$planned_servers_display = implode( '<br/>', $planned_servers );
+		}
+
+		// Site list from plan.
+		$planned_sites_display = '';
+		$planned_sites         = wpcd_maybe_unserialize( get_post_meta( $post_id, 'wpcd_update_plan_sites', true ) );
+		if ( is_array( $planned_sites ) ) {
+			$planned_sites         = array_keys( $planned_sites );
+			$planned_sites_display = implode( '<br/>', $planned_sites );
+		}
+
+		// Completed Servers.
+		$completed_server_ids      = wpcd_maybe_unserialize( get_post_meta( $post_id, 'wpcd_update_plan_servers_completed', true ) );
+		$completed_servers_display = '';
+		if ( is_array( $completed_server_ids ) ) {
+			foreach ( $completed_server_ids as $server_id => $complete_status) {
+				$completed_servers_display .= WPCD_WORDPRESS_APP()->get_server_name( $server_id ) .'<br/>';
+			}
+		}
+
+		// Completed sites.
+		$completed_site_ids      = wpcd_maybe_unserialize( get_post_meta( $post_id, 'wpcd_update_plan_sites_completed', true ) );
+		$completed_sites_display = '';
+		if ( is_array( $completed_site_ids ) ) {
+			foreach ( $completed_site_ids as $site_id => $complete_status ) {
+				$completed_sites_display .= WPCD_WORDPRESS_APP()->get_domain_name( $site_id ) .'<br/>';
+			}
+		}
+
+		/* Fields that show planned servers and sites */
+		$planned_fields = array(
+			array(
+				'name'    => __( 'Servers Planned', 'wpcd' ),
+				'type'    => 'custom_html',
+				'std'     => $planned_servers_display,
+				'columns' => 6,
+			),
+			array(
+				'name'    => __( 'Sites Planned', 'wpcd' ),
+				'type'    => 'custom_html',
+				'std'     => $planned_sites_display,
+				'columns' => 6,
+			),
 		);
 
+		/* Fields that show completed servers and sites */
+		$completed_fields = array(
+			array(
+				'name'    => __( 'Servers Completed', 'wpcd' ),
+				'type'    => 'custom_html',
+				'std'     => $completed_servers_display,
+				'columns' => 6,
+			),
+			array(
+				'name'    => __( 'Sites Completed', 'wpcd' ),
+				'type'    => 'custom_html',
+				'std'     => $completed_sites_display,
+				'columns' => 6,
+			),
+		);
+
+		/* Add the fields defined above to various metaboxes. */
+		$metaboxes[] = array(
+			'id'         => 'wpcd_app_update_plan_log_completed_mb',
+			'title'      => __( 'Completed Servers & Sites', 'wpcd' ),
+			'post_types' => array( 'wpcd_app_update_log' ),
+			'priority'   => 'default',
+			'fields'     => $completed_fields,
+		);
+		$metaboxes[] = array(
+			'id'         => 'wpcd_app_update_plan_log_planned_mb',
+			'title'      => __( 'Planned Servers & Sites', 'wpcd' ),
+			'post_types' => array( 'wpcd_app_update_log' ),
+			'priority'   => 'default',
+			'fields'     => $planned_fields,
+		);
+
+		return $metaboxes;
 	}
 
-	/**
-	 * Render the Update Plan Log/History detail meta box
-	 *
-	 * @param object $post Current post object.
-	 *
-	 * @print HTML $html HTML of the meta box
-	 */
-	public function render_update_plan_meta_box( $post ) {
 
-		$html = '';
-
-		$error_type = get_post_meta( $post->ID, 'error_type', true );
-		$error_msg  = get_post_meta( $post->ID, 'error_msg', true );
-		$error_file = get_post_meta( $post->ID, 'error_file', true );
-		$error_line = get_post_meta( $post->ID, 'error_line', true );
-		$error_data = get_post_meta( $post->ID, 'error_data', true );
-
-		ob_start();
-		require wpcd_path . 'includes/core/apps/wordpress-app/templates/update_plan_log.php';
-		$html = ob_get_contents();
-		ob_end_clean();
-
-		echo $html;
-
-	}
-
-	/**
-	 * Handles saving the meta box.
-	 *
-	 * @param int    $post_id Post ID.
-	 * @param object $post    Post object.
-	 */
-	public function save_meta_values( $post_id, $post ) {
-		// nothing right now.
-	}
 
 }

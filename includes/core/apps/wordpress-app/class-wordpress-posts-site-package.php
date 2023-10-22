@@ -121,6 +121,43 @@ class WPCD_POSTS_Site_Package extends WPCD_Posts_Base {
 
 		$prefix = 'wpcd_';
 
+		$fields_taxonomy = array(
+			array(
+				'name'       => __( 'Apply These Groups to New Sites', 'wpcd' ),
+				'id'         => $prefix . 'site_package_apply_categories_new_sites',
+				'type'       => 'taxonomy_advanced',
+				'taxonomy'   => 'wpcd_app_group',
+				'field_type' => 'select_advanced',
+				'multiple'   => true,
+				'save_field' => true,
+				'desc'       => __( 'These groups/categories will the applied to a new site.', 'wpcd' ),
+				'columns'    => 6,
+			),
+			array(
+				'name'       => __( 'Apply These Groups When Upgrading/Downgrading', 'wpcd' ),
+				'id'         => $prefix . 'site_package_apply_categories_subscription_switch',
+				'type'       => 'taxonomy_advanced',
+				'taxonomy'   => 'wpcd_app_group',
+				'field_type' => 'select_advanced',
+				'multiple'   => true,
+				'save_field' => true,
+				'desc'       => __( 'These groups/categories will the applied to a existing sites during a subscription switch.', 'wpcd' ),
+				'columns'    => 6,
+			),
+			array(
+				'name'       => __( 'Remove These Groups', 'wpcd' ),
+				'id'         => $prefix . 'site_package_remove_categories_subscription_switch',
+				'type'       => 'taxonomy_advanced',
+				'taxonomy'   => 'wpcd_app_group',
+				'field_type' => 'select_advanced',
+				'multiple'   => true,
+				'save_field' => true,
+				'desc'       => __( 'These groups/categories will the removed from the site during a subscription upgrade/downgrade/switch.', 'wpcd' ),
+				'tooltip'    => __( 'This is for future use - not currently working.', 'wpcd' ),
+				'columns'    => 6,
+			),
+		);
+
 		if ( class_exists( 'WPCD_WooCommerce_Init' ) ) {
 			/* Fields for plugins to activate from template. Only applies if WooCommerce is active.*/
 			$fields_activate = array(
@@ -405,11 +442,20 @@ class WPCD_POSTS_Site_Package extends WPCD_Posts_Base {
 				'columns'    => 3,
 			),
 			array(
-				'name'       => __( 'Delete Contents of UpDraft Folder', 'wpcd' ),
+				'name'       => __( 'Delete UpDraft Backups', 'wpcd' ),
 				'id'         => $prefix . 'site_package_delete_updraft',
 				'type'       => 'checkbox',
+				'std'        => true,
 				'save_field' => true,
-				'columns'    => 3,
+				'columns'    => 2,
+			),
+			array(
+				'name'       => __( 'Delete Debug.log', 'wpcd' ),
+				'id'         => $prefix . 'site_package_delete_debug',
+				'type'       => 'checkbox',
+				'std'        => true,
+				'save_field' => true,
+				'columns'    => 2,
 			),
 		);
 
@@ -427,6 +473,14 @@ class WPCD_POSTS_Site_Package extends WPCD_Posts_Base {
 		);
 
 		/* Add the fields defined above to various metaboxes. */
+		$metaboxes[] = array(
+			'id'         => $prefix . 'mb_site_package_taxonomies',
+			'title'      => __( 'Manage Groups', 'wpcd' ),
+			'post_types' => array( 'wpcd_site_package' ),
+			'priority'   => 'default',
+			'fields'     => $fields_taxonomy,
+		);
+
 		if ( class_exists( 'WPCD_WooCommerce_Init' ) ) {
 			$metaboxes[] = array(
 				'id'         => $prefix . 'mb_site_package_activate_template_plugins',

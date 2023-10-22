@@ -3654,7 +3654,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		// So, for its better for sequencing to do it here and deactivate plugins before attempting to activate anything else.
 		if ( ! empty( $plugins_to_deactivate ) ) {
 			$command    = sprintf( 'sudo su - "%s" -c "wp --no-color plugin deactivate %s" ', $domain, $plugins_to_deactivate );
-			$action     = 'deactivate_plugins';
+			$action     = 'site_pkg_deactivate_plugins';
 			$raw_status = $ssh->submit_generic_server_command( $server_id, $action, $command, true );
 		}
 
@@ -3665,7 +3665,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		// Install and activate repo plugins.
 		if ( ! empty( $plugins_to_install_activate ) ) {
 			$command    = sprintf( 'sudo su - "%s" -c "wp --no-color plugin install %s --activate" ', $domain, $plugins_to_install_activate );
-			$action     = 'activate_plugins_from_repo';
+			$action     = 'site_pkg_activate_plugins_from_repo';
 			$raw_status = $ssh->submit_generic_server_command( $server_id, $action, $command, true );
 		}
 
@@ -3676,7 +3676,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		// Install and activate external/custom url plugins.
 		if ( ! empty( $plugins_to_install_activate ) ) {
 			$command    = sprintf( 'sudo su - "%s" -c "wp --no-color plugin install %s --activate" ', $domain, $plugins_to_install_activate );
-			$action     = 'activate_plugins_external';
+			$action     = 'site_pkg_activate_plugins_external';
 			$raw_status = $ssh->submit_generic_server_command( $server_id, $action, $command, true );
 		}
 
@@ -3688,7 +3688,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		// Activate plugins.
 		if ( ! empty( $plugins_to_activate ) ) {
 			$command    = sprintf( 'sudo su - "%s" -c "wp --no-color plugin activate %s" ', $domain, $plugins_to_activate );
-			$action     = 'activate_plugins';
+			$action     = 'site_pkg_activate_plugins';
 			$raw_status = $ssh->submit_generic_server_command( $server_id, $action, $command, true );
 		}
 
@@ -3699,7 +3699,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		// Install repo themes.
 		if ( ! empty( $themes_to_install ) ) {
 			$command    = sprintf( 'sudo su - "%s" -c "wp --no-color theme install %s " ', $domain, $themes_to_install );
-			$action     = 'install_themes_from_repo';
+			$action     = 'site_pkg_install_themes_from_repo';
 			$raw_status = $ssh->submit_generic_server_command( $server_id, $action, $command, true );
 		}
 
@@ -3710,7 +3710,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		// Install external themes.
 		if ( ! empty( $themes_to_install ) ) {
 			$command    = sprintf( 'sudo su - "%s" -c "wp --no-color theme install %s " ', $domain, $themes_to_install );
-			$action     = 'install_themes_external';
+			$action     = 'site_pkg_install_themes_external';
 			$raw_status = $ssh->submit_generic_server_command( $server_id, $action, $command, true );
 		}
 
@@ -3718,7 +3718,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		$theme_to_activate = get_post_meta( $site_package_id, 'wpcd_theme_to_activate', true );
 		if ( ! empty( $theme_to_activate ) ) {
 			$command    = sprintf( 'sudo su - "%s" -c "wp --no-color theme activate %s" ', $domain, $theme_to_activate );
-			$action     = 'activate_plugins';
+			$action     = 'site_pkg_activate_plugins';
 			$raw_status = $ssh->submit_generic_server_command( $server_id, $action, $command, true );
 		}
 
@@ -3727,8 +3727,45 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			$delete_updraft = get_post_meta( $site_package_id, 'wpcd_site_package_delete_updraft', true );
 			if ( true === (bool) $delete_updraft ) {
 				$command    = sprintf( 'sudo rm /var/www/%s/html/wp-content/updraft/*.zip && sudo rm /var/www/%s/html/wp-content/updraft/*.txt && sudo rm /var/www/%s/html/wp-content/updraft/*.gz && echo "Updraft Folder Contents Deleted." ', $domain, $domain, $domain );
-				$action     = 'delete_updraft_folder_contents';
+				$action     = 'site_pkg_delete_updraft_folder_contents';
 				$raw_status = $ssh->submit_generic_server_command( $server_id, $action, $command, true );
+			}
+		}
+
+		// Delete debug.log  Only handle on new sites since existing sites might deliberately have it turned on and want to keep it around while switching subscriptions.
+		if ( false === $is_subscription_switch ) {
+			$delete_debug = get_post_meta( $site_package_id, 'wpcd_site_package_delete_debug', true );
+			if ( true === (bool) $delete_debug ) {
+				$command    = sprintf( 'sudo rm /var/www/%s/html/wp-content/debug.log && echo "Debug.log file Deleted." ', $domain );
+				$action     = 'site_pkg_delete_debug_log';
+				$raw_status = $ssh->submit_generic_server_command( $server_id, $action, $command, true );
+			}
+		}
+
+		// Apply categories/groups to site.
+		if ( false === $is_subscription_switch ) {
+			$groups = get_post_meta( $site_package_id, 'wpcd_site_package_apply_categories_new_sites', true ); // taxomomy_advanced fields stores multiple values in a single comma delimited row so this will return a comma delimited string.
+			if ( ! empty( $groups ) ) {
+				wp_set_post_terms( $app_id, $groups, 'wpcd_app_group', true );  // Luckily wp_post_terms accepts comma-delimited strings for post so no need to explode into array.
+			}
+		}
+		if ( true === $is_subscription_switch ) {
+			// Add subscription-switch specific groups.
+			$groups = get_post_meta( $site_package_id, 'wpcd_site_package_apply_categories_subscription_switch', true ); // taxomomy_advanced fields stores multiple values in a single comma delimited row so this will return a comma delimited string.
+			if ( ! empty( $groups ) ) {
+				wp_set_post_terms( $app_id, $groups, 'wpcd_app_group', true );  // Luckily wp_post_terms accepts comma-delimited strings for post so no need to explode into array.
+			}
+
+			// Remove groups - only happens for subscription switches.
+			// @TODO: This code does not work - wp_remove_object_terms throws a wp core error that I can't explain.
+			// Error being thrown is: Trying to access array offset on value of type null in /var/www/smi99.com/html/wp-includes/taxonomy.php on line 2966.
+			$groups = get_post_meta( $site_package_id, 'wpcd_site_package_remove_categories_subscription_switch', true ); // taxomomy_advanced fields stores multiple values in a single comma delimited row so this will return a comma delimited string.
+			if ( ! empty( $groups ) ) {
+				$groups = explode( ',', $groups );
+				$groups = array_values( $groups );
+				foreach ( $groups as $key => $group ) {
+					wp_remove_object_terms( (int) $app_id, $group, 'wpcd_app_group' );
+				}
 			}
 		}
 

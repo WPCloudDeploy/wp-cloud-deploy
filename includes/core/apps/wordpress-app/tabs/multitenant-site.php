@@ -1577,6 +1577,7 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 			),
 			'size'        => 45,
 			'placeholder' => __( 'v1.2.3', 'wpcd' ),
+			'tooltip'     => __( 'The version number must be unique across all template sites. Please consider prefixing the version with something unique to this template or using a unique postfix.', 'wpcd' ),
 		);
 		$fields[] = array(
 			'name'        => __( 'New version Description', 'wpcd' ),

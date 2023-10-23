@@ -62,10 +62,10 @@ then
 
 	if [ "$g_webserver_type" = "nginx" ]
 	then
-		apt-get install -y php?.?-redis
+		apt-get install -y php7.4-redis php8.0-redis php8.1-redis php8.2-redis
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
-		apt-get install -y lsphp??-redis
+		apt-get install -y lsphp74-redis lsphp80-redis lsphp81-redis lsphp82-redis
 	fi
 	gf_restart_webserver
 	echo

@@ -389,7 +389,7 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 		// End get number of updates pending.
 
 		$actions['linux-updates-header'] = array(
-			'label'          => __( 'Run Linux Updates', 'wpcd' ),
+			'label'          => __( '(Optional) Run Linux Updates', 'wpcd' ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
 				'desc' => $upg_desc,

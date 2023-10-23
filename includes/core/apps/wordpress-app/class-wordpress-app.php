@@ -1297,9 +1297,15 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			return false;
 		}
 
-		// So far, all versions of the plugin include the 6g files. Later we will no longer be installing it at all.
-		// At that time we'll have to add back in our usual logic (see 7g functions below) to check plugin versions before return true/false.
-		return true;
+		$initial_plugin_version = $this->get_server_meta_by_app_id( $server_id, 'wpcd_server_plugin_initial_version', true );  // This function is smart enough to know if the ID being passed is a server or app id and adjust accordingly.
+
+		if ( version_compare( $initial_plugin_version, '5.4.0' ) <= 0 ) {
+			// Versions of the plugin after 5.4.0 did not activate 6g (though the files were still added to the server).
+			return true;
+		}		
+
+		// If you got here, assume false.
+		return false;
 	}
 
 	/**
@@ -3570,7 +3576,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 					$command .= ' && echo "Executing Product Package New Site Bash Custom Script..." ';
 					$command .= ' && sudo -E bash ./wpcd_site_package_script_new_subscription_before.sh';
 
-					$action     = 'bash_new_site_package_before';
+					$action     = 'site_pkg_bash_new_site_package_before';
 					$raw_status = $ssh->submit_generic_server_command( $server_id, $action, $command, true );
 				}
 			}
@@ -3590,7 +3596,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 					$command .= ' && echo "Executing Product Package New Site Bash Custom Script..." ';
 					$command .= ' && sudo -E bash ./wpcd_package_script_subscription_switch_before.sh';
 
-					$action     = 'bash_new_site_package_before';
+					$action     = 'site_pkg_bash_new_site_package_before';
 					$raw_status = $ssh->submit_generic_server_command( $server_id, $action, $command, true );
 				}
 			}
@@ -3799,7 +3805,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 					$command .= ' && echo "Executing Product Package New Site Bash Custom Script..." ';
 					$command .= ' && sudo -E bash ./wpcd_site_package_script_new_subscription_after.sh';
 
-					$action     = 'bash_new_site_package_after';
+					$action     = 'site_pkg_bash_new_site_package_after';
 					$raw_status = $ssh->submit_generic_server_command( $server_id, $action, $command, true );
 				}
 			}

@@ -158,6 +158,7 @@ Note: Even though the entire git development history isn't available on github, 
 * Tweak: WPAPP - Add settings option to still show the INSTALL WORDPRESS button when the background updates running warning appears.
 * Tweak: WPAPP - Login links for front-end and wp-admin will not show if site is disabled.
 * Tweak: WPAPP - Add 'max_input_vars' to 'common options' section of the PHP tab for sites.
+* Tweak: WPAPP - Remove 6G reference from default nginx vhost configuration.
 * Fix: WPAPP - Setup wizard needed to clear cache after auto-creating ssh keys.
 * Fix: WPAPP - Update the setup wizard to point to the correct url for linode api tokens.
 * Fix: WPAPP - Server owners could not see the DELETE option when not an admin.

@@ -128,6 +128,7 @@ Note: Even though the entire git development history isn't available on github, 
 ## Change Log ##
 5.4.1
 ------
+* New: WPAPP - Site update plans for standard sites when WooCommerce integration is enabled.
 * Enh: WPAPP - For bash script 37 - Backup the entire letsencrypt folder instead of just the live folder.
 * Enh: WPAPP - Add notes field to site packages screen.
 * Enh: WPAPP - Add options to disable pre/post processing bash scripts via a wp-config.php value.
@@ -138,7 +139,7 @@ Note: Even though the entire git development history isn't available on github, 
 * Enh: WPAPP - Add option in site packages to add a version label into wp-config and the site metas.
 * Enh: WPAPP - Add option in site packages to remove debug.log from tenant/customer site for new installs.
 * Enh: WPAPP - Add option in site packages to apply a group/category for new sites as well as for upgrades/downgrades.
-* Tweak: WPAPP - Show a warning when setting up a user notification and the global notification template is blank.
+* Tweak: WPAPP - Show a warning when setting up a user notification in wp-admin and the global notification template is blank.
 * Tweak: WPAPP - Bash script 24 - send certain output to null.
 * Fix: Left bar on settings screen would hide tooltips if the tooltips was too close to it.
 * Fix: WPAPP - White screen if the SYNC component is turned off in wp-config.php and you try to navigate to a wpcd front-end page.

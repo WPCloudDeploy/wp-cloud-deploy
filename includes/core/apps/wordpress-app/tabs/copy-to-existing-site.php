@@ -1433,6 +1433,49 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 					$plan_id  = wpcd_clean_numeric( $data['update_plan_id'] );
 					$batch_id = wpcd_clean_numeric( $data['update_plan_batch_id'] ); // We shouldn't need the wpcd_clean_numeric function call here but somewhere along the line quotes get into the value somehow.
 
+					// Push custom wp-config.php data.
+					$keypairs = get_post_meta( $plan_id, 'wpcd_app_update_plan_wp_config_custom_data', true );
+					if ( ! empty( $keypairs ) ) {
+						foreach ( $keypairs as $keypair ) {
+							switch ( $keypair[1] ) {
+								case 'true':
+									// Value is 'true' so need to pass boolean with 'raw' parameter to wp-cli.
+									do_action( 'wpcd_wordpress-app_do_update_wpconfig_option', $target_app_id, $keypair[0], true, 'yes' );
+									break;
+								case 'false':
+									// Value is 'false' so need to pass boolean with 'raw' parameter to wp-cli.
+									do_action( 'wpcd_wordpress-app_do_update_wpconfig_option', $target_app_id, $keypair[0], false, 'yes' );
+									break;
+								default:
+									do_action( 'wpcd_wordpress-app_do_update_wpconfig_option', $target_app_id, $keypair[0], $keypair[1], 'no' );
+							}
+						}
+					}
+
+					// Add custom site metas.
+					$keypairs = get_post_meta( $plan_id, 'wpcd_app_update_plan_site_package_site_meta', true );
+					if ( ! empty( $keypairs ) ) {
+						foreach ( $keypairs as $keypair ) {
+							update_post_meta( $target_app_id, $keypair[0], $keypair[1] );
+						}
+					}
+
+					// Add or update wp options to tenant site.
+					$keypairs = get_post_meta( $plan_id, 'wpcd_app_update_plan_site_package_tenant_wp_option', true );
+					if ( ! empty( $keypairs ) ) {
+						foreach ( $keypairs as $keypair ) {
+							// Add option.  If it exists already, this might error.
+							$command    = sprintf( 'sudo su - "%s" -c "wp --no-color option add %s %s" ', $target_domain, $keypair[0], $keypair[1] );
+							$action     = 'add_custom_wp_option';
+							$raw_status = $this->submit_generic_server_command( $server_id, $action, $command, true );
+
+							// Update the option in case it already exists.
+							$command    = sprintf( 'sudo su - "%s" -c "wp --no-color option update %s %s" ', $target_domain, $keypair[0], $keypair[1] );
+							$action     = 'update_custom_wp_option';
+							$raw_status = $this->submit_generic_server_command( $server_id, $action, $command, true );
+						}
+					}
+
 					// Apply categories/groups to site.
 					$groups = get_post_meta( $plan_id, 'wpcd_app_update_plan_apply_categories', true ); // taxomomy_advanced fields stores multiple values in a single comma delimited row so this will return a comma delimited string.
 					if ( ! empty( $groups ) ) {
@@ -1501,7 +1544,6 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 							$raw_status = $this->submit_generic_server_command( $server_id, $action, $command, true );
 						}
 					}
-
 
 					// Update the history record (posttype wpcd_app_update_log).
 					$success_count   = ( (int) get_post_meta( $batch_id, 'wpcd_update_plan_sites_update_success', true ) ) + 1;

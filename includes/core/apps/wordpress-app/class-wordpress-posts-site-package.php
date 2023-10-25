@@ -41,6 +41,9 @@ class WPCD_POSTS_Site_Package extends WPCD_Posts_Base {
 		// Register custom fields for our post types.
 		add_filter( 'rwmb_meta_boxes', array( $this, 'register_post_type_fields' ), 20, 1 );
 
+		// Change ADD TITLE placeholder text.
+		add_filter( 'enter_title_here', array( $this, 'change_enter_title_text' ) );
+
 	}
 
 
@@ -61,6 +64,7 @@ class WPCD_POSTS_Site_Package extends WPCD_Posts_Base {
 					'menu_name'             => $menu_name,
 					'name_admin_bar'        => _x( 'Site Package', 'Add New on Toolbar', 'wpcd' ),
 					'add_new'               => _x( 'Add New Site Package', 'Add New Button', 'wpcd' ),
+					'add_new_item'          => _x( 'Add New Site Package', 'Add New Item', 'wpcd' ),
 					'edit_item'             => __( 'Edit Site Package', 'wpcd' ),
 					'view_item'             => _x( 'Site Package', 'Post type general name', 'wpcd' ),
 					'all_items'             => _x( 'Site Packages', 'Label for use with all items', 'wpcd' ),
@@ -116,6 +120,43 @@ class WPCD_POSTS_Site_Package extends WPCD_Posts_Base {
 	public function register_post_type_fields( $metaboxes ) {
 
 		$prefix = 'wpcd_';
+
+		$fields_taxonomy = array(
+			array(
+				'name'       => __( 'Apply These Groups to New Sites', 'wpcd' ),
+				'id'         => $prefix . 'site_package_apply_categories_new_sites',
+				'type'       => 'taxonomy_advanced',
+				'taxonomy'   => 'wpcd_app_group',
+				'field_type' => 'select_advanced',
+				'multiple'   => true,
+				'save_field' => true,
+				'desc'       => __( 'These groups/categories will the applied to a new site.', 'wpcd' ),
+				'columns'    => 6,
+			),
+			array(
+				'name'       => __( 'Apply These Groups When Upgrading/Downgrading', 'wpcd' ),
+				'id'         => $prefix . 'site_package_apply_categories_subscription_switch',
+				'type'       => 'taxonomy_advanced',
+				'taxonomy'   => 'wpcd_app_group',
+				'field_type' => 'select_advanced',
+				'multiple'   => true,
+				'save_field' => true,
+				'desc'       => __( 'These groups/categories will the applied to a existing sites during a subscription switch.', 'wpcd' ),
+				'columns'    => 6,
+			),
+			array(
+				'name'       => __( 'Remove These Groups', 'wpcd' ),
+				'id'         => $prefix . 'site_package_remove_categories_subscription_switch',
+				'type'       => 'taxonomy_advanced',
+				'taxonomy'   => 'wpcd_app_group',
+				'field_type' => 'select_advanced',
+				'multiple'   => true,
+				'save_field' => true,
+				'desc'       => __( 'These groups/categories will the removed from the site during a subscription upgrade/downgrade/switch.', 'wpcd' ),
+				'tooltip'    => __( 'This is for future use - not currently working.', 'wpcd' ),
+				'columns'    => 6,
+			),
+		);
 
 		if ( class_exists( 'WPCD_WooCommerce_Init' ) ) {
 			/* Fields for plugins to activate from template. Only applies if WooCommerce is active.*/
@@ -389,14 +430,32 @@ class WPCD_POSTS_Site_Package extends WPCD_Posts_Base {
 			),
 		);
 
-		/* Fields for special plugin & theme handling. */
+		/* Fields for special plugin & theme handling and other misc items. */
 		$fields_plugin_theme_misc = array(
 			array(
-				'name'       => __( 'Delete Contents of UpDraft Folder', 'wpcd' ),
+				'name'       => __( 'Inject Version Label', 'wpcd' ),
+				'id'         => $prefix . 'site_package_app_version',
+				'type'       => 'text',
+				'save_field' => true,
+				'desc'       => __( 'Tag the site record with this version label.  Also add it to the wp-config.php file of the target site.', 'wpcd' ),
+				'tooltip'    => __( 'You can use this to search and filter your sites based on version numbers. And create custom plugins for your tenant sites that use the version constant inside to control behavior.', 'wpcd' ),
+				'columns'    => 3,
+			),
+			array(
+				'name'       => __( 'Delete UpDraft Backups', 'wpcd' ),
 				'id'         => $prefix . 'site_package_delete_updraft',
 				'type'       => 'checkbox',
+				'std'        => true,
 				'save_field' => true,
-				'columns'    => 3,
+				'columns'    => 2,
+			),
+			array(
+				'name'       => __( 'Delete Debug.log', 'wpcd' ),
+				'id'         => $prefix . 'site_package_delete_debug',
+				'type'       => 'checkbox',
+				'std'        => true,
+				'save_field' => true,
+				'columns'    => 2,
 			),
 		);
 
@@ -414,6 +473,14 @@ class WPCD_POSTS_Site_Package extends WPCD_Posts_Base {
 		);
 
 		/* Add the fields defined above to various metaboxes. */
+		$metaboxes[] = array(
+			'id'         => $prefix . 'mb_site_package_taxonomies',
+			'title'      => __( 'Manage Groups', 'wpcd' ),
+			'post_types' => array( 'wpcd_site_package' ),
+			'priority'   => 'default',
+			'fields'     => $fields_taxonomy,
+		);
+
 		if ( class_exists( 'WPCD_WooCommerce_Init' ) ) {
 			$metaboxes[] = array(
 				'id'         => $prefix . 'mb_site_package_activate_template_plugins',
@@ -500,7 +567,7 @@ class WPCD_POSTS_Site_Package extends WPCD_Posts_Base {
 
 		$metaboxes[] = array(
 			'id'         => $prefix . 'mb_site_package_special_plugin_theme_handling',
-			'title'      => __( 'Other Misc', 'wpcd' ),
+			'title'      => __( 'Other & Misc', 'wpcd' ),
 			'post_types' => array( 'wpcd_site_package' ),
 			'priority'   => 'default',
 			'fields'     => $fields_plugin_theme_misc,
@@ -565,6 +632,25 @@ class WPCD_POSTS_Site_Package extends WPCD_Posts_Base {
 		}
 
 		return false;
+
+	}
+
+	/**
+	 * Change ADD TITLE placeholder text on new CPT items.
+	 *
+	 * @param string $title Current title.
+	 *
+	 * @return string New Title.
+	 */
+	public function change_enter_title_text( $title ) {
+
+		$screen = get_current_screen();
+
+		if ( 'wpcd_site_package' == $screen->post_type ) {
+			$title = 'Enter a name for this new site package';
+		}
+
+		return $title;
 
 	}
 

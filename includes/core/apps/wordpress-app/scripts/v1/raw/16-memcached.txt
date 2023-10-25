@@ -48,7 +48,7 @@ then
 
 	if [ "$g_webserver_type" = "nginx" ]
 	then
-		apt-get install -y php?.?-memcache
+		apt-get install -y php7.4-memcache php8.0-memcache php8.1-memcache php8.2-memcache
 		number_of_php=$(ls /etc/php/ | wc -l)
 		for (( number=1; number <=$number_of_php; number++ ))
 		do
@@ -60,7 +60,7 @@ then
 		done
 	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
 	then
-		apt-get install -y lsphp??-memcached
+		apt-get install -y lsphp74-memcached lsphp80-memcached lsphp81-memcached lsphp82-memcached
 	fi
 	gf_restart_webserver
 	echo

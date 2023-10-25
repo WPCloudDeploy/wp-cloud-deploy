@@ -128,6 +128,7 @@ Note: Even though the entire git development history isn't available on github, 
 ## Change Log ##
 5.4.1
 ------
+* New: WPAPP - Site update plans for standard sites when WooCommerce integration is enabled.
 * Enh: WPAPP - For bash script 37 - Backup the entire letsencrypt folder instead of just the live folder.
 * Enh: WPAPP - Add notes field to site packages screen.
 * Enh: WPAPP - Add options to disable pre/post processing bash scripts via a wp-config.php value.
@@ -135,9 +136,15 @@ Note: Even though the entire git development history isn't available on github, 
 * Enh: WPAPP - Add option in site packages screen to remove updraft backups - useful when products are based on template sites and updraft was being used to backup the template.
 * Enh: WPAPP - Add option in site packages to push wp options to tenant site.
 * Enh: WPAPP - Add option in site packages to add custom meta options on new site cpt records.
-* Tweak: WPAPP - Show a warning when setting up a user notification and the global notification template is blank.
+* Enh: WPAPP - Add option in site packages to add a version label into wp-config and the site metas.
+* Enh: WPAPP - Add option in site packages to remove debug.log from tenant/customer site for new installs.
+* Enh: WPAPP - Add option in site packages to apply a group/category for new sites as well as for upgrades/downgrades.
+* Tweak: WPAPP - Show a warning when setting up a user notification in wp-admin and the global notification template is blank.
 * Tweak: WPAPP - Bash script 24 - send certain output to null.
 * Fix: Left bar on settings screen would hide tooltips if the tooltips was too close to it.
+* Fix: WPAPP - White screen if the SYNC component is turned off in wp-config.php and you try to navigate to a wpcd front-end page.
+* Fix: WPAPP - Date filter at top of some CPT lists was set to something way way too narrow.  Now set to min 100px.
+* Dev: WPAPP - More robust error checking when handling data to/from the Cloudflare API.
 
 5.4.0
 ------
@@ -152,11 +159,13 @@ Note: Even though the entire git development history isn't available on github, 
 * Tweak: WPAPP - Add settings option to still show the INSTALL WORDPRESS button when the background updates running warning appears.
 * Tweak: WPAPP - Login links for front-end and wp-admin will not show if site is disabled.
 * Tweak: WPAPP - Add 'max_input_vars' to 'common options' section of the PHP tab for sites.
+* Tweak: WPAPP - Remove 6G reference from default nginx vhost configuration.
 * Fix: WPAPP - Setup wizard needed to clear cache after auto-creating ssh keys.
 * Fix: WPAPP - Update the setup wizard to point to the correct url for linode api tokens.
 * Fix: WPAPP - Server owners could not see the DELETE option when not an admin.
 * Fix: WPAPP - (security) blank out a password in logs if admin adds or changes from inside wpcd.
 * Fix: WPAPP - Tweak the message shown in the MISC tab when delete protection is turned on.  It now differs slightly based on whether it's shown in wp-admin or the front-end.
+* Fix: WPAPP - Ensure that redis and memcached do not install older versions of php as a byproduct of installing their php components.
 * Dev: WPAPP - Add an action hook and associated helper function for the 'wp_site_update_wpconfig_option' bash action.
 * Dev: WPAPP - Add an action hook and associated helper function for the 'add_php_param' bash action.
 * Dev: WPAPP - Add an action hook and associated helper function for the 'change_php_workers' bash action.

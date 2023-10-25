@@ -801,8 +801,7 @@ function gf_add_nginx_conf() {
 	nginx_webroot=$2
 	nginx_site=$3
 	# it's very important to escape the variables and quotes within the echo
-	echo "include /etc/nginx/common/6g[.]conf;
-include /etc/nginx/common/7g[.]conf;
+	echo "include /etc/nginx/common/7g[.]conf;
 include /etc/nginx/userconfigs/http/*.conf;		#user custom configuration
 
 server {

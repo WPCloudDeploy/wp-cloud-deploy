@@ -1297,9 +1297,15 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			return false;
 		}
 
-		// So far, all versions of the plugin include the 6g files. Later we will no longer be installing it at all.
-		// At that time we'll have to add back in our usual logic (see 7g functions below) to check plugin versions before return true/false.
-		return true;
+		$initial_plugin_version = $this->get_server_meta_by_app_id( $server_id, 'wpcd_server_plugin_initial_version', true );  // This function is smart enough to know if the ID being passed is a server or app id and adjust accordingly.
+
+		if ( version_compare( $initial_plugin_version, '5.4.0' ) <= 0 ) {
+			// Versions of the plugin after 5.4.0 did not activate 6g (though the files were still added to the server).
+			return true;
+		}		
+
+		// If you got here, assume false.
+		return false;
 	}
 
 	/**
@@ -3495,6 +3501,14 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		// Get the class instance that will allow us to send dynamic commands to the server via ssh.
 		$ssh = new WPCD_WORDPRESS_TABS();
 
+		// Add any custom version label to wp-config as well as the tenant site.
+		// Will override any version label from template site.
+		$version_label = get_post_meta( $site_package_id, 'wpcd_site_package_app_version', true );
+		if ( ! empty( $version_label ) ) {
+			do_action( 'wpcd_wordpress-app_do_update_wpconfig_option', $app_id, 'WPCD_VERSION_LABEL', $version_label );
+			update_post_meta( $app_id, 'wpcd_app_std_site_version_label', $version_label );
+		}
+
 		// Push custom wp-config.php data.
 		$keypairs = get_post_meta( $site_package_id, 'wpcd_wp_config_custom_data', true );
 		if ( ! empty( $keypairs ) ) {
@@ -3539,12 +3553,13 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		}
 
 		/**
+		 * Custom bash script: Before.
 		 * Bash scripts example output (in one long script - line breaks here for readability.):
 		 * export DOMAIN=test004.wpcd.cloud &&
-		 * sudo -E wget --no-check-certificate -O wpcd_package_script_subscription_switch.sh "https://gist.githubusercontent.com/elindydotcom/4c9f96ac48199284227c0ad687aedf75/raw/5295a17b832d8bb3748e0970ba0857063fd63247/wpcd_subscription_switch_sample_script" > /dev/null 2>&1
-		 * && sudo -E dos2unix wpcd_package_script_subscription_switch.sh > /dev/null 2>&1 &&
+		 * sudo -E wget --no-check-certificate -O wpcd_site_package_script_new_subscription_before.sh "https://gist.githubusercontent.com/elindydotcom/4c9f96ac48199284227c0ad687aedf75/raw/5295a17b832d8bb3748e0970ba0857063fd63247/wpcd_subscription_switch_sample_script" > /dev/null 2>&1
+		 * && sudo -E dos2unix wpcd_site_package_script_new_subscription_before.sh > /dev/null 2>&1 &&
 		 * echo "Executing Product Package Subscription Switch Bash Custom Script..." &&
-		 * sudo -E bash ./wpcd_package_script_subscription_switch.sh
+		 * sudo -E bash ./wpcd_site_package_script_new_subscription_before.sh
 		 */
 		if ( WPCD_SITE_PACKAGE()->can_user_execute_bash_scripts() ) {
 			if ( false === $is_subscription_switch ) {
@@ -3562,7 +3577,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 					$command .= ' && echo "Executing Product Package New Site Bash Custom Script..." ';
 					$command .= ' && sudo -E bash ./wpcd_site_package_script_new_subscription_before.sh';
 
-					$action     = 'bash_new_site_package_before';
+					$action     = 'site_pkg_bash_new_site_package_before';
 					$raw_status = $ssh->submit_generic_server_command( $server_id, $action, $command, true );
 				}
 			}
@@ -3582,7 +3597,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 					$command .= ' && echo "Executing Product Package New Site Bash Custom Script..." ';
 					$command .= ' && sudo -E bash ./wpcd_package_script_subscription_switch_before.sh';
 
-					$action     = 'bash_new_site_package_before';
+					$action     = 'site_pkg_bash_new_site_package_before';
 					$raw_status = $ssh->submit_generic_server_command( $server_id, $action, $command, true );
 				}
 			}
@@ -3640,24 +3655,24 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 		// Get the list of plugins to deactivate.
 		$plugins_to_deactivate = get_post_meta( $site_package_id, 'wpcd_plugins_to_deactivate', true );
-		$plugins_to_deactivate = trim( preg_replace( '/\s+/', ' ', $plugins_to_deactivate ) );
+		$plugins_to_deactivate = trim( preg_replace( '/\s+/', ' ', $plugins_to_deactivate ) );  // Strip line breaks and replace with space to make a single string of plugins separated by spaces.
 
 		// Deactivate plugins. This should not be necessary for new sites but might be called from WC in a subscription switch.
 		// So, for its better for sequencing to do it here and deactivate plugins before attempting to activate anything else.
 		if ( ! empty( $plugins_to_deactivate ) ) {
 			$command    = sprintf( 'sudo su - "%s" -c "wp --no-color plugin deactivate %s" ', $domain, $plugins_to_deactivate );
-			$action     = 'deactivate_plugins';
+			$action     = 'site_pkg_deactivate_plugins';
 			$raw_status = $ssh->submit_generic_server_command( $server_id, $action, $command, true );
 		}
 
 		// Get the list of repo plugins to install and activate.
 		$plugins_to_install_activate = get_post_meta( $site_package_id, 'wpcd_plugins_to_install_from_repo', true );
-		$plugins_to_install_activate = trim( preg_replace( '/\s+/', ' ', $plugins_to_install_activate ) );
+		$plugins_to_install_activate = trim( preg_replace( '/\s+/', ' ', $plugins_to_install_activate ) );  // Strip line breaks and replace with space to make a single string of plugins separated by spaces.
 
 		// Install and activate repo plugins.
 		if ( ! empty( $plugins_to_install_activate ) ) {
 			$command    = sprintf( 'sudo su - "%s" -c "wp --no-color plugin install %s --activate" ', $domain, $plugins_to_install_activate );
-			$action     = 'activate_plugins_from_repo';
+			$action     = 'site_pkg_activate_plugins_from_repo';
 			$raw_status = $ssh->submit_generic_server_command( $server_id, $action, $command, true );
 		}
 
@@ -3668,7 +3683,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		// Install and activate external/custom url plugins.
 		if ( ! empty( $plugins_to_install_activate ) ) {
 			$command    = sprintf( 'sudo su - "%s" -c "wp --no-color plugin install %s --activate" ', $domain, $plugins_to_install_activate );
-			$action     = 'activate_plugins_external';
+			$action     = 'site_pkg_activate_plugins_external';
 			$raw_status = $ssh->submit_generic_server_command( $server_id, $action, $command, true );
 		}
 
@@ -3680,7 +3695,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		// Activate plugins.
 		if ( ! empty( $plugins_to_activate ) ) {
 			$command    = sprintf( 'sudo su - "%s" -c "wp --no-color plugin activate %s" ', $domain, $plugins_to_activate );
-			$action     = 'activate_plugins';
+			$action     = 'site_pkg_activate_plugins';
 			$raw_status = $ssh->submit_generic_server_command( $server_id, $action, $command, true );
 		}
 
@@ -3691,7 +3706,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		// Install repo themes.
 		if ( ! empty( $themes_to_install ) ) {
 			$command    = sprintf( 'sudo su - "%s" -c "wp --no-color theme install %s " ', $domain, $themes_to_install );
-			$action     = 'install_themes_from_repo';
+			$action     = 'site_pkg_install_themes_from_repo';
 			$raw_status = $ssh->submit_generic_server_command( $server_id, $action, $command, true );
 		}
 
@@ -3702,7 +3717,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		// Install external themes.
 		if ( ! empty( $themes_to_install ) ) {
 			$command    = sprintf( 'sudo su - "%s" -c "wp --no-color theme install %s " ', $domain, $themes_to_install );
-			$action     = 'install_themes_external';
+			$action     = 'site_pkg_install_themes_external';
 			$raw_status = $ssh->submit_generic_server_command( $server_id, $action, $command, true );
 		}
 
@@ -3710,7 +3725,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		$theme_to_activate = get_post_meta( $site_package_id, 'wpcd_theme_to_activate', true );
 		if ( ! empty( $theme_to_activate ) ) {
 			$command    = sprintf( 'sudo su - "%s" -c "wp --no-color theme activate %s" ', $domain, $theme_to_activate );
-			$action     = 'activate_plugins';
+			$action     = 'site_pkg_activate_plugins';
 			$raw_status = $ssh->submit_generic_server_command( $server_id, $action, $command, true );
 		}
 
@@ -3719,8 +3734,45 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			$delete_updraft = get_post_meta( $site_package_id, 'wpcd_site_package_delete_updraft', true );
 			if ( true === (bool) $delete_updraft ) {
 				$command    = sprintf( 'sudo rm /var/www/%s/html/wp-content/updraft/*.zip && sudo rm /var/www/%s/html/wp-content/updraft/*.txt && sudo rm /var/www/%s/html/wp-content/updraft/*.gz && echo "Updraft Folder Contents Deleted." ', $domain, $domain, $domain );
-				$action     = 'delete_updraft_folder_contents';
+				$action     = 'site_pkg_delete_updraft_folder_contents';
 				$raw_status = $ssh->submit_generic_server_command( $server_id, $action, $command, true );
+			}
+		}
+
+		// Delete debug.log  Only handle on new sites since existing sites might deliberately have it turned on and want to keep it around while switching subscriptions.
+		if ( false === $is_subscription_switch ) {
+			$delete_debug = get_post_meta( $site_package_id, 'wpcd_site_package_delete_debug', true );
+			if ( true === (bool) $delete_debug ) {
+				$command    = sprintf( 'sudo rm /var/www/%s/html/wp-content/debug.log && echo "Debug.log file Deleted." ', $domain );
+				$action     = 'site_pkg_delete_debug_log';
+				$raw_status = $ssh->submit_generic_server_command( $server_id, $action, $command, true );
+			}
+		}
+
+		// Apply categories/groups to site.
+		if ( false === $is_subscription_switch ) {
+			$groups = get_post_meta( $site_package_id, 'wpcd_site_package_apply_categories_new_sites', true ); // taxomomy_advanced fields stores multiple values in a single comma delimited row so this will return a comma delimited string.
+			if ( ! empty( $groups ) ) {
+				wp_set_post_terms( $app_id, $groups, 'wpcd_app_group', true );  // Luckily wp_post_terms accepts comma-delimited strings for post so no need to explode into array.
+			}
+		}
+		if ( true === $is_subscription_switch ) {
+			// Add subscription-switch specific groups.
+			$groups = get_post_meta( $site_package_id, 'wpcd_site_package_apply_categories_subscription_switch', true ); // taxomomy_advanced fields stores multiple values in a single comma delimited row so this will return a comma delimited string.
+			if ( ! empty( $groups ) ) {
+				wp_set_post_terms( $app_id, $groups, 'wpcd_app_group', true );  // Luckily wp_post_terms accepts comma-delimited strings for post so no need to explode into array.
+			}
+
+			// Remove groups - only happens for subscription switches.
+			// @TODO: This code does not work - wp_remove_object_terms throws a wp core error that I can't explain.
+			// Error being thrown is: Trying to access array offset on value of type null in /var/www/smi99.com/html/wp-includes/taxonomy.php on line 2966.
+			$groups = get_post_meta( $site_package_id, 'wpcd_site_package_remove_categories_subscription_switch', true ); // taxomomy_advanced fields stores multiple values in a single comma delimited row so this will return a comma delimited string.
+			if ( ! empty( $groups ) ) {
+				$groups = explode( ',', $groups );
+				$groups = array_values( $groups );
+				foreach ( $groups as $key => $group ) {
+					wp_remove_object_terms( (int) $app_id, $group, 'wpcd_app_group' );
+				}
 			}
 		}
 
@@ -3731,12 +3783,13 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		// Plugin & Theme updates here - future use.
 
 		/**
+		 * Custom bash script: After.
 		 * Bash scripts example output (in one long script - line breaks here for readability.):
 		 * export DOMAIN=test004.wpcd.cloud &&
-		 * sudo -E wget --no-check-certificate -O wpcd_package_script_subscription_switch.sh "https://gist.githubusercontent.com/elindydotcom/4c9f96ac48199284227c0ad687aedf75/raw/5295a17b832d8bb3748e0970ba0857063fd63247/wpcd_subscription_switch_sample_script" > /dev/null 2>&1
-		 * && sudo -E dos2unix wpcd_package_script_subscription_switch.sh > /dev/null 2>&1 &&
+		 * sudo -E wget --no-check-certificate -O wpcd_site_package_script_new_subscription_after.sh "https://gist.githubusercontent.com/elindydotcom/4c9f96ac48199284227c0ad687aedf75/raw/5295a17b832d8bb3748e0970ba0857063fd63247/wpcd_subscription_switch_sample_script" > /dev/null 2>&1
+		 * && sudo -E dos2unix wpcd_site_package_script_new_subscription_after.sh > /dev/null 2>&1 &&
 		 * echo "Executing Product Package Subscription Switch Bash Custom Script..." &&
-		 * sudo -E bash ./wpcd_package_script_subscription_switch.sh
+		 * sudo -E bash ./wpcd_site_package_script_new_subscription_after.sh
 		 */
 		if ( WPCD_SITE_PACKAGE()->can_user_execute_bash_scripts() ) {
 			if ( false === $is_subscription_switch ) {
@@ -3754,7 +3807,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 					$command .= ' && echo "Executing Product Package New Site Bash Custom Script..." ';
 					$command .= ' && sudo -E bash ./wpcd_site_package_script_new_subscription_after.sh';
 
-					$action     = 'bash_new_site_package_after';
+					$action     = 'site_pkg_bash_new_site_package_after';
 					$raw_status = $ssh->submit_generic_server_command( $server_id, $action, $command, true );
 				}
 			}
@@ -4285,7 +4338,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		}
 
 		$screen     = get_current_screen();
-		$post_types = array( 'wpcd_app_server', 'wpcd_app', 'wpcd_team', 'wpcd_permission_type', 'wpcd_command_log', 'wpcd_ssh_log', 'wpcd_error_log', 'wpcd_pending_log' );
+		$post_types = array( 'wpcd_app_server', 'wpcd_app', 'wpcd_team', 'wpcd_permission_type', 'wpcd_command_log', 'wpcd_ssh_log', 'wpcd_error_log', 'wpcd_pending_log', 'wpcd_app_update_log' );
 
 		if ( ( is_object( $screen ) && in_array( $screen->post_type, $post_types ) ) || WPCD_WORDPRESS_APP_PUBLIC::is_public_page() ) {
 

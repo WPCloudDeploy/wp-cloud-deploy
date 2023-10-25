@@ -3553,12 +3553,13 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		}
 
 		/**
+		 * Custom bash script: Before.
 		 * Bash scripts example output (in one long script - line breaks here for readability.):
 		 * export DOMAIN=test004.wpcd.cloud &&
-		 * sudo -E wget --no-check-certificate -O wpcd_package_script_subscription_switch.sh "https://gist.githubusercontent.com/elindydotcom/4c9f96ac48199284227c0ad687aedf75/raw/5295a17b832d8bb3748e0970ba0857063fd63247/wpcd_subscription_switch_sample_script" > /dev/null 2>&1
-		 * && sudo -E dos2unix wpcd_package_script_subscription_switch.sh > /dev/null 2>&1 &&
+		 * sudo -E wget --no-check-certificate -O wpcd_site_package_script_new_subscription_before.sh "https://gist.githubusercontent.com/elindydotcom/4c9f96ac48199284227c0ad687aedf75/raw/5295a17b832d8bb3748e0970ba0857063fd63247/wpcd_subscription_switch_sample_script" > /dev/null 2>&1
+		 * && sudo -E dos2unix wpcd_site_package_script_new_subscription_before.sh > /dev/null 2>&1 &&
 		 * echo "Executing Product Package Subscription Switch Bash Custom Script..." &&
-		 * sudo -E bash ./wpcd_package_script_subscription_switch.sh
+		 * sudo -E bash ./wpcd_site_package_script_new_subscription_before.sh
 		 */
 		if ( WPCD_SITE_PACKAGE()->can_user_execute_bash_scripts() ) {
 			if ( false === $is_subscription_switch ) {
@@ -3782,12 +3783,13 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		// Plugin & Theme updates here - future use.
 
 		/**
+		 * Custom bash script: After.
 		 * Bash scripts example output (in one long script - line breaks here for readability.):
 		 * export DOMAIN=test004.wpcd.cloud &&
-		 * sudo -E wget --no-check-certificate -O wpcd_package_script_subscription_switch.sh "https://gist.githubusercontent.com/elindydotcom/4c9f96ac48199284227c0ad687aedf75/raw/5295a17b832d8bb3748e0970ba0857063fd63247/wpcd_subscription_switch_sample_script" > /dev/null 2>&1
-		 * && sudo -E dos2unix wpcd_package_script_subscription_switch.sh > /dev/null 2>&1 &&
+		 * sudo -E wget --no-check-certificate -O wpcd_site_package_script_new_subscription_after.sh "https://gist.githubusercontent.com/elindydotcom/4c9f96ac48199284227c0ad687aedf75/raw/5295a17b832d8bb3748e0970ba0857063fd63247/wpcd_subscription_switch_sample_script" > /dev/null 2>&1
+		 * && sudo -E dos2unix wpcd_site_package_script_new_subscription_after.sh > /dev/null 2>&1 &&
 		 * echo "Executing Product Package Subscription Switch Bash Custom Script..." &&
-		 * sudo -E bash ./wpcd_package_script_subscription_switch.sh
+		 * sudo -E bash ./wpcd_site_package_script_new_subscription_after.sh
 		 */
 		if ( WPCD_SITE_PACKAGE()->can_user_execute_bash_scripts() ) {
 			if ( false === $is_subscription_switch ) {

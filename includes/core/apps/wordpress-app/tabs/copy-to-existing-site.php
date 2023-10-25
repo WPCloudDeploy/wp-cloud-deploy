@@ -423,8 +423,8 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 		 */
 		$batch_id = wp_insert_post(
 			array(
-				/* Translators: %1$s is the update plan id (post id); %2$s is a count of servers; %3$s is a count of sites.  */
-				'post_title'   => sprintf( __( 'Execution History for Plan %1$s (%2$s) with %3$s servers & %4$s sites. ', 'wpcd' ), $update_plan_id, $plan_title, count( $servers_and_sites['servers'] ), count( $servers_and_sites['sites'] ) ),
+				/* Translators: %1$s is the update plan id (post id); %2$s is the plan id; %3$s is the template domain;  %4$s is the template domain post id; %5$s is a count of servers; %6$s is a count of sites.  */
+				'post_title'   => sprintf( __( 'Execution History for Plan %1$s (%2$s) from template domain %3$s (%4$s) with %5$s servers %6$s sites. ', 'wpcd' ), $update_plan_id, $plan_title, $template_domain, $id, count( $servers_and_sites['servers'] ), count( $servers_and_sites['sites'] ) ),
 				'post_content' => '',
 				'post_status'  => 'private',
 				'post_author'  => get_current_user_id(),
@@ -1066,22 +1066,72 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 	 * Action Hook: wpcd_execute_update_plan_update_site_files
 	 *
 	 * @param int   $task_id    Id of pending task that is firing this thing...
-	 * @param int   $server_id  Id of server on which to install the new website.
+	 * @param int   $app_id     Postid of target site.
 	 * @param array $args       All the data needed to install the WP site on the server.
 	 */
-	public function execute_update_plan_update_site_files( $task_id, $server_id, $args ) {
+	public function execute_update_plan_update_site_files( $task_id, $app_id, $args ) {
 
-		// Grab our data array from pending tasks record...
+		/**
+		 * Grab our data array from pending tasks record.
+		 * The data array should contain stuff similar to the following:
+		 * [action_hook] => wpcd_execute_update_plan_update_site_files
+		 * [domain] => testfilespush01.vnxv.com
+		 * [template_id] => 357909
+		 * [id] => 353495
+		 * [update_plan_id] => 353316
+		 * [update_plan_batch_id] => 357902
+		 * [pending_tasks_id] => 357915
+		 * [pending_task_associated_server_id] => 353402
+		 * [pending_task_parent_post_type] => wpcd_app
+		 */
 		$task_data = WPCD_POSTS_PENDING_TASKS_LOG()->get_data_by_id( $task_id );
 
 		if ( $task_data ) {
+
+			// What server is this application on?
+			$server_id = WPCD_WORDPRESS_APP()->get_server_id_by_app_id( $app_id );
+
 			// Extract some data from the $task_data array.
 			$from_id       = $task_data['template_id'];
 			$target_id     = $task_data['id'];
 			$target_domain = WPCD_WORDPRESS_APP()->get_domain_name( $target_id );
+			$plan_id       = wpcd_clean_numeric( $task_data['update_plan_id'] );
+			$batch_id      = wpcd_clean_numeric( $task_data['update_plan_batch_id'] ); // We shouldn't need the wpcd_clean_numeric function call here but somewhere along the line quotes get into the value somehow.
 
 			// Call the copy function.
 			if ( ! empty( $from_id ) && ! empty( $target_id ) ) {
+
+				/**
+				 * Custom bash script: Before.
+				 * Bash scripts example output (in one long script - line breaks here for readability.):
+				 * export DOMAIN=test004.wpcd.cloud &&
+				 * sudo -E wget --no-check-certificate -O wpcd_site_update_script_new_subscription_before.sh "https://gist.githubusercontent.com/elindydotcom/4c9f96ac48199284227c0ad687aedf75/raw/5295a17b832d8bb3748e0970ba0857063fd63247/wpcd_subscription_switch_sample_script" > /dev/null 2>&1
+				 * && sudo -E dos2unix wpcd_site_update_script_new_subscription_before.sh > /dev/null 2>&1 &&
+				 * echo "Executing Site Update Package Subscription Switch Bash Custom Script..." &&
+				 * sudo -E bash ./wpcd_site_update_script_new_subscription_before.sh
+				 */
+				if ( WPCD_APP_UPDATE_PLAN()->can_user_execute_bash_scripts() ) {
+					// Prepare export vars for bash scripts.
+					$exportvars = 'export DOMAIN=%s';
+					$exportvars = sprintf( $exportvars, $target_domain );
+
+					// Call bash script - not that this should execute on the server where the target site is located, NOT on the server where the template site is located.
+					$script = get_post_meta( $plan_id, 'wpcd_app_update_plan_bash_scripts_before', true );
+
+					if ( ! empty( $script ) ) {
+						$command  = $exportvars . ' && ';
+						$command .= 'sudo -E wget --no-check-certificate -O wpcd_site_update_script_new_subscription_before.sh "%s" > /dev/null 2>&1 ';
+						$command  = sprintf( $command, $script );  // add the script name to the string.
+						$command .= ' && sudo -E dos2unix wpcd_site_update_script_new_subscription_before.sh > /dev/null 2>&1';
+						$command .= ' && echo "Executing Site Update Package Bash Custom Script (Before)..." ';
+						$command .= ' && sudo -E bash ./wpcd_site_update_script_new_subscription_before.sh';
+
+						$action = 'site_update_plan_bash_before';
+
+						$raw_status = $this->submit_generic_server_command( $server_id, $action, $command, true );
+
+					}
+				}
 
 				// Add a postmeta to the site we can use later.
 				update_post_meta( $from_id, 'wpapp_pending_log_copy_to_existing_site', $task_id );
@@ -1366,9 +1416,51 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 				 */
 				if ( $posts ) {
 
-					// Grab our data array from pending tasks record...
+					/**
+					 * Grab our data array from pending tasks record.
+					 * The data array should contain stuff similar to the following:
+					 * [action_hook] => wpcd_execute_update_plan_update_site_files
+					 * [domain] => testfilespush01.vnxv.com
+					 * [template_id] => 357909
+					 * [id] => 353495
+					 * [update_plan_id] => 353316
+					 * [update_plan_batch_id] => 357902
+					 * [pending_tasks_id] => 357915
+					 * [pending_task_associated_server_id] => 353402
+					 * [pending_task_parent_post_type] => wpcd_app
+					 */
 					$data     = WPCD_POSTS_PENDING_TASKS_LOG()->get_data_by_id( $posts[0]->ID );
+					$plan_id  = wpcd_clean_numeric( $data['update_plan_id'] );
 					$batch_id = wpcd_clean_numeric( $data['update_plan_batch_id'] ); // We shouldn't need the wpcd_clean_numeric function call here but somewhere along the line quotes get into the value somehow.
+
+					/**
+					 * Custom bash script: After
+					 * Bash scripts example output (in one long script - line breaks here for readability.):
+					 * export DOMAIN=test004.wpcd.cloud &&
+					 * sudo -E wget --no-check-certificate -O wpcd_site_update_script_new_subscription_after.sh "https://gist.githubusercontent.com/elindydotcom/4c9f96ac48199284227c0ad687aedf75/raw/5295a17b832d8bb3748e0970ba0857063fd63247/wpcd_subscription_switch_sample_script" > /dev/null 2>&1
+					 * && sudo -E dos2unix wpcd_site_update_script_new_subscription_after.sh > /dev/null 2>&1 &&
+					 * echo "Executing Site Update Package Subscription Switch Bash Custom Script..." &&
+					 * sudo -E bash ./wpcd_site_update_script_new_subscription_after.sh
+					 */
+					if ( WPCD_APP_UPDATE_PLAN()->can_user_execute_bash_scripts() ) {
+						// Prepare export vars for bash scripts.
+						$exportvars = 'export DOMAIN=%s';
+						$exportvars = sprintf( $exportvars, $target_domain );
+
+						// Call bash script - not that this should execute on the server where the target site is located, NOT on the server where the template site is located.
+						$script = get_post_meta( $plan_id, 'wpcd_app_update_plan_bash_scripts_after', true );
+						if ( ! empty( $script ) ) {
+							$command  = $exportvars . ' && ';
+							$command .= 'sudo -E wget --no-check-certificate -O wpcd_site_update_script_new_subscription_after.sh "%s" > /dev/null 2>&1 ';
+							$command  = sprintf( $command, $script );  // add the script name to the string.
+							$command .= ' && sudo -E dos2unix wpcd_site_update_script_new_subscription_after.sh > /dev/null 2>&1';
+							$command .= ' && echo "Executing Site Update Package Bash Custom Script (After)..." ';
+							$command .= ' && sudo -E bash ./wpcd_site_update_script_new_subscription_after.sh';
+
+							$action     = 'site_update_plan_bash_after';
+							$raw_status = $this->submit_generic_server_command( $server_id, $action, $command, true );
+						}
+					}
 
 					// Update the history record (posttype wpcd_app_update_log).
 					$success_count   = ( (int) get_post_meta( $batch_id, 'wpcd_update_plan_sites_update_success', true ) ) + 1;

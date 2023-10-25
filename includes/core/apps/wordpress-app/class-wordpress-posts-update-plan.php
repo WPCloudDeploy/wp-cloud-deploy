@@ -44,6 +44,9 @@ class WPCD_POSTS_App_Update_Plan extends WPCD_Posts_Base {
 		// Change ADD TITLE placeholder text.
 		add_filter( 'enter_title_here', array( $this, 'change_enter_title_text' ) );
 
+		// Add a message after the title field when add/editing an item.
+		add_action( 'edit_form_after_title', array( $this, 'wpcd_after_title_notice' ), 10, 1 );
+
 	}
 
 
@@ -152,47 +155,50 @@ class WPCD_POSTS_App_Update_Plan extends WPCD_Posts_Base {
 		/* Select servers and sites */
 		$servers_and_sites = array(
 			array(
-				'name'       => __( 'Servers to Update', 'wpcd' ),
-				'id'         => 'wpcd_app_update_plan_servers',
-				'type'       => 'post',
-				'post_type'  => 'wpcd_app_server',
-				'query_args' => array(
+				'name'        => __( 'Servers to Update', 'wpcd' ),
+				'id'          => 'wpcd_app_update_plan_servers',
+				'type'        => 'post',
+				'post_type'   => 'wpcd_app_server',
+				'query_args'  => array(
 					'post_status'    => 'private',
 					'posts_per_page' => - 1,
 				),
-				'field_type' => 'select_advanced',
-				'multiple'   => true,
-				'save_field' => true,
-				'desc'       => __( 'Apply this update plan to all sites on these servers.', 'wpcd' ),
-				'columns'    => 4,
+				'field_type'  => 'select_advanced',
+				'multiple'    => true,
+				'save_field'  => true,
+				'desc'        => __( 'Apply this update plan to all sites on these servers.', 'wpcd' ),
+				'placeholder' => __( 'Select one or more Cloud Servers.', 'wpcd' ),
+				'columns'     => 4,
 			),
 			array(
-				'name'       => __( 'Server Groups to Update', 'wpcd' ),
-				'id'         => 'wpcd_app_update_plan_servers_by_tag',
-				'type'       => 'taxonomy_advanced',
-				'taxonomy'   => 'wpcd_app_server_group',
-				'field_type' => 'select_advanced',
-				'multiple'   => true,
-				'save_field' => true,
-				'desc'       => __( 'Apply this update plan to all sites on servers with these groups.', 'wpcd' ),
-				'columns'    => 4,
+				'name'        => __( 'Server Groups to Update', 'wpcd' ),
+				'id'          => 'wpcd_app_update_plan_servers_by_tag',
+				'type'        => 'taxonomy_advanced',
+				'taxonomy'    => 'wpcd_app_server_group',
+				'field_type'  => 'select_advanced',
+				'multiple'    => true,
+				'save_field'  => true,
+				'desc'        => __( 'Apply this update plan to all sites on servers with these groups.', 'wpcd' ),
+				'placeholder' => __( 'Select one or more Server Groups.', 'wpcd' ),
+				'columns'     => 4,
 			),
 			array(
-				'name'       => __( 'Site Groups to Update', 'wpcd' ),
-				'id'         => 'wpcd_app_update_plan_sites_by_tag',
-				'type'       => 'taxonomy_advanced',
-				'taxonomy'   => 'wpcd_app_group',
-				'field_type' => 'select_advanced',
-				'multiple'   => true,
-				'save_field' => true,
-				'desc'       => __( 'Apply this update plan to all sites with these tags.', 'wpcd' ),
-				'columns'    => 4,
+				'name'        => __( 'Site Groups to Update', 'wpcd' ),
+				'id'          => 'wpcd_app_update_plan_sites_by_tag',
+				'type'        => 'taxonomy_advanced',
+				'taxonomy'    => 'wpcd_app_group',
+				'field_type'  => 'select_advanced',
+				'multiple'    => true,
+				'save_field'  => true,
+				'desc'        => __( 'Apply this update plan to all sites with these tags.', 'wpcd' ),
+				'placeholder' => __( 'Select one or more Site/App Groups.', 'wpcd' ),
+				'columns'     => 4,
 			),
 			array(
 				'name' => __( 'Note', 'wpcd' ),
 				'id'   => 'wpcd_app_update_plan_server_selection_note',
 				'type' => 'custom_html',
-				'std'  => __( 'Sites will be combined from all three items above - servers + server groups + site groups into a single master list of sites to update.', 'wpcd' ),
+				'std'  => __( 'Sites will be combined from all three items above - servers + server groups + site groups into a single master list of sites to update. You do not have to specify all three fields - empty fields will be ignored.', 'wpcd' ),
 			),
 
 		);
@@ -209,7 +215,7 @@ class WPCD_POSTS_App_Update_Plan extends WPCD_Posts_Base {
 				'columns'    => 6,
 			),
 			array(
-				'name'       => __( 'Bash Script Before After', 'wpcd' ),
+				'name'       => __( 'Bash Script After Copy', 'wpcd' ),
 				'id'         => 'wpcd_app_update_plan_bash_scripts_after',
 				'type'       => 'text',
 				'save_field' => true,
@@ -508,6 +514,29 @@ class WPCD_POSTS_App_Update_Plan extends WPCD_Posts_Base {
 		}
 
 		return $title;
+
+	}
+
+	/**
+	 * Show a message when the user is added or editing a plan.
+	 *
+	 * Action Hook: edit_form_after_title.
+	 *
+	 * @param object $post The post object being added or edited.
+	 */
+	public function wpcd_after_title_notice( $post ) {
+
+		if ( ! empty( $post ) && is_object( $post ) && 'wpcd_app_update_plan' === $post->post_type ) {
+			echo '<hr/>';
+			echo '<b>';
+			echo wp_kses_post( __( 'Warning - Plans are for standard sites only!', 'wpcd' ) );
+			echo '</b>';
+			echo '<br/>';
+			echo wp_kses_post( __( 'Update Plans are used to perform bulk updates of core, theme and plugin files to standard sites.', 'wpcd' ) );
+			echo '<br/>';
+			echo wp_kses_post( __( 'For updates to Multi-tenant sites you should use the versioning and update options on the multi-tenant tab of the associated template site.', 'wpcd' ) );
+			echo '<hr/>';
+		}
 
 	}
 

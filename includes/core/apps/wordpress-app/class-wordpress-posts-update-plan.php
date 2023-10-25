@@ -229,6 +229,27 @@ class WPCD_POSTS_App_Update_Plan extends WPCD_Posts_Base {
 			),
 		);
 
+		$fields_plugin_actions = array(
+			array(
+				'name'       => __( 'Activate These Plugins', 'wpcd' ),
+				'id'         => 'wpcd_app_update_plan_plugins_to_activate',
+				'type'       => 'textarea',
+				'rows'       => 10,
+				'save_field' => true,
+				'desc'       => __( 'Enter plugins - one line per plugin in the format plugin-folder/main-plugin-file-name.php.', 'wpcd' ),
+				'columns'    => 6,
+			),
+			array(
+				'name'       => __( 'De-activate These Plugins', 'wpcd' ),
+				'id'         => 'wpcd_app_update_plan_plugins_to_deactivate',
+				'type'       => 'textarea',
+				'rows'       => 10,
+				'save_field' => true,
+				'desc'       => __( 'Enter plugins - one line per plugin in the format plugin-folder/main-plugin-file-name.php.', 'wpcd' ),
+				'columns'    => 6,
+			),
+		);
+
 		/* Fields for custom bash scripts. */
 		$fields_bash_scripts = array(
 			array(
@@ -287,7 +308,15 @@ class WPCD_POSTS_App_Update_Plan extends WPCD_Posts_Base {
 			'post_types' => array( 'wpcd_app_update_plan' ),
 			'priority'   => 'default',
 			'fields'     => $fields_taxonomy,
-		);		
+		);
+
+		$metaboxes[] = array(
+			'id'         => 'wpcd_app_update_plan_mb_plugins',
+			'title'      => __( 'Manage Plugins', 'wpcd' ),
+			'post_types' => array( 'wpcd_app_update_plan' ),
+			'priority'   => 'default',
+			'fields'     => $fields_plugin_actions,
+		);
 
 		if ( $this->can_user_execute_bash_scripts() ) {
 			// Site is allowed to execute bash scripts for site packages.

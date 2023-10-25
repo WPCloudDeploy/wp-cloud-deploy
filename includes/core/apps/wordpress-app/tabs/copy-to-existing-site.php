@@ -1433,6 +1433,46 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 					$plan_id  = wpcd_clean_numeric( $data['update_plan_id'] );
 					$batch_id = wpcd_clean_numeric( $data['update_plan_batch_id'] ); // We shouldn't need the wpcd_clean_numeric function call here but somewhere along the line quotes get into the value somehow.
 
+					// Apply categories/groups to site.
+					$groups = get_post_meta( $plan_id, 'wpcd_app_update_plan_apply_categories', true ); // taxomomy_advanced fields stores multiple values in a single comma delimited row so this will return a comma delimited string.
+					if ( ! empty( $groups ) ) {
+						wp_set_post_terms( $target_app_id, $groups, 'wpcd_app_group', true );  // Luckily wp_post_terms accepts comma-delimited strings for post so no need to explode into array.
+					}
+
+					// Remove categories/groups from site.
+					// @TODO: This code does not work - wp_remove_object_terms throws a wp core error that I can't explain.
+					// Error being thrown is: Trying to access array offset on value of type null in /var/www/smi99.com/html/wp-includes/taxonomy.php on line 2966.
+					$groups = get_post_meta( $plan_id, 'wpcd_app_update_plan_remove_categories', true ); // taxomomy_advanced fields stores multiple values in a single comma delimited row so this will return a comma delimited string.
+					if ( ! empty( $groups ) ) {
+						$groups = explode( ',', $groups );
+						$groups = array_values( $groups );
+						foreach ( $groups as $key => $group ) {
+							wp_remove_object_terms( (int) $target_app_id, $group, 'wpcd_app_group' );
+						}
+					}
+
+					// Get the list of plugins to deactivate.
+					$plugins_to_deactivate = get_post_meta( $plan_id, 'wpcd_app_update_plan_plugins_to_deactivate', true );
+					$plugins_to_deactivate = trim( preg_replace( '/\s+/', ' ', $plugins_to_deactivate ) );  // Strip line breaks and replace with space to make a single string of plugins separated by spaces.
+
+					// Deactivate plugins.
+					if ( ! empty( $plugins_to_deactivate ) ) {
+						$command    = sprintf( 'sudo su - "%s" -c "wp --no-color plugin deactivate %s" ', $target_domain, $plugins_to_deactivate );
+						$action     = 'site_pkg_deactivate_plugins';
+						$raw_status = $this->submit_generic_server_command( $server_id, $action, $command, true );
+					}
+
+					// Get the list of pre-installed plugins to activate.
+					$plugins_to_activate = get_post_meta( $plan_id, 'wpcd_app_update_plan_plugins_to_activate', true );
+					$plugins_to_activate = trim( preg_replace( '/\s+/', ' ', $plugins_to_activate ) );  // Strip line breaks and replace with space to make a single string of plugins separated by spaces.
+
+					// Activate plugins.
+					if ( ! empty( $plugins_to_activate ) ) {
+						$command    = sprintf( 'sudo su - "%s" -c "wp --no-color plugin activate %s" ', $target_domain, $plugins_to_activate );
+						$action     = 'wpcd_site_update_activate_plugins';
+						$raw_status = $this->submit_generic_server_command( $server_id, $action, $command, true );
+					}
+
 					/**
 					 * Custom bash script: After
 					 * Bash scripts example output (in one long script - line breaks here for readability.):
@@ -1462,23 +1502,6 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 						}
 					}
 
-					// Apply categories/groups to site.
-					$groups = get_post_meta( $plan_id, 'wpcd_app_update_plan_apply_categories', true ); // taxomomy_advanced fields stores multiple values in a single comma delimited row so this will return a comma delimited string.
-					if ( ! empty( $groups ) ) {
-						wp_set_post_terms( $target_app_id, $groups, 'wpcd_app_group', true );  // Luckily wp_post_terms accepts comma-delimited strings for post so no need to explode into array.
-					}
-
-					// Remove categories/groups from site.
-					// @TODO: This code does not work - wp_remove_object_terms throws a wp core error that I can't explain.
-					// Error being thrown is: Trying to access array offset on value of type null in /var/www/smi99.com/html/wp-includes/taxonomy.php on line 2966.
-					$groups = get_post_meta( $plan_id, 'wpcd_app_update_plan_remove_categories', true ); // taxomomy_advanced fields stores multiple values in a single comma delimited row so this will return a comma delimited string.
-					if ( ! empty( $groups ) ) {
-						$groups = explode( ',', $groups );
-						$groups = array_values( $groups );
-						foreach ( $groups as $key => $group ) {
-							wp_remove_object_terms( (int) $target_app_id, $group, 'wpcd_app_group' );
-						}
-					}
 
 					// Update the history record (posttype wpcd_app_update_log).
 					$success_count   = ( (int) get_post_meta( $batch_id, 'wpcd_update_plan_sites_update_success', true ) ) + 1;

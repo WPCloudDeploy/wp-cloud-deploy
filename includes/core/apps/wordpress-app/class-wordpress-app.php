@@ -3655,7 +3655,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 		// Get the list of plugins to deactivate.
 		$plugins_to_deactivate = get_post_meta( $site_package_id, 'wpcd_plugins_to_deactivate', true );
-		$plugins_to_deactivate = trim( preg_replace( '/\s+/', ' ', $plugins_to_deactivate ) );
+		$plugins_to_deactivate = trim( preg_replace( '/\s+/', ' ', $plugins_to_deactivate ) );  // Strip line breaks and replace with space to make a single string of plugins separated by spaces.
 
 		// Deactivate plugins. This should not be necessary for new sites but might be called from WC in a subscription switch.
 		// So, for its better for sequencing to do it here and deactivate plugins before attempting to activate anything else.
@@ -3667,7 +3667,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 		// Get the list of repo plugins to install and activate.
 		$plugins_to_install_activate = get_post_meta( $site_package_id, 'wpcd_plugins_to_install_from_repo', true );
-		$plugins_to_install_activate = trim( preg_replace( '/\s+/', ' ', $plugins_to_install_activate ) );
+		$plugins_to_install_activate = trim( preg_replace( '/\s+/', ' ', $plugins_to_install_activate ) );  // Strip line breaks and replace with space to make a single string of plugins separated by spaces.
 
 		// Install and activate repo plugins.
 		if ( ! empty( $plugins_to_install_activate ) ) {

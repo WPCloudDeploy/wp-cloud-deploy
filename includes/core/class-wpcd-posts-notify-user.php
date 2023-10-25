@@ -1232,13 +1232,13 @@ class WPCD_NOTIFY_USER extends WPCD_Posts_Base {
 		if ( ! empty( $post ) && is_object( $post ) && 'wpcd_notify_user' === $post->post_type ) {
 			if ( empty( wpcd_get_option( 'wordpress_app_email_notify_body' ) ) || empty( wpcd_get_option( 'wordpress_app_email_notify_subject' ) ) ) {
 				echo '<b>';
-				echo __( 'Warning - your global notifications template is blank!', 'wpcd' );
+				echo wp_kses_post( __( 'Warning - your global notifications template or template subject is blank!', 'wpcd' ) );
 				echo '</b>';
 				echo '<br/>';
 				echo '<hr/>';
-				echo __( 'Please note that notifications will only be sent if and only if you have also configured the text of your notifications in the Settings → APP:WordPress Settings tab', 'wpcd' );
+				echo wp_kses_post( __( 'Please note that notifications will only be sent if and only if you have also configured the text of your notifications in the Settings → APP:WordPress Settings tab', 'wpcd' ) );
 				echo '<br/>';
-				echo __( 'There, you can setup notifications under the EMAIL NOTIFICATIONS tab ( and/or the SLACK and ZAPIER notifications tab as well.)', 'wpcd' );
+				echo wp_kses_post( __( 'There, you can setup notifications under the EMAIL NOTIFICATIONS tab ( and/or the SLACK and ZAPIER notifications tab as well.)', 'wpcd' ) );
 				echo '<hr/>';
 			}
 		}

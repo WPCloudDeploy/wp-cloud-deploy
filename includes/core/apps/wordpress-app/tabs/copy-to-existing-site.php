@@ -1143,7 +1143,7 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 				// The copy_to_existing_site core function above will see this and create a task in the pending tasks log for us to be able to link back to this even later.
 				$args['pending_tasks_type'] = 'execute-update-plan-get-data-after-update-site-files';
 
-				// Execute copy function.
+				// Execute copy function - this function will do an async ssh call to the appropriate bash script.
 				$this->copy_to_existing_site( 'copy_to_existing_site_copy_files_only_no_backup', $from_id, $args );
 			} else {
 				// Bad task - mark it as failed.
@@ -1375,7 +1375,7 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 	 *
 	 * Action Hook: wpcd_wordpress-app_copy_to_existing_site_copy_files_only_no_backup | wpcd_wordpress-app_copy_to_existing_site_copy_files_only_no_backup
 	 *
-	 * @param int    $id The id of the post app.
+	 * @param int    $id The id of the post app (template) - it's not the id of the target site - we'll get that in the code.
 	 * @param string $target_domain The domain we're sending files to.
 	 * @param string $name The name of the command that was executed - it contains parts that we might need later.
 	 */
@@ -1459,6 +1459,24 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 
 							$action     = 'site_update_plan_bash_after';
 							$raw_status = $this->submit_generic_server_command( $server_id, $action, $command, true );
+						}
+					}
+
+					// Apply categories/groups to site.
+					$groups = get_post_meta( $plan_id, 'wpcd_app_update_plan_apply_categories', true ); // taxomomy_advanced fields stores multiple values in a single comma delimited row so this will return a comma delimited string.
+					if ( ! empty( $groups ) ) {
+						wp_set_post_terms( $target_app_id, $groups, 'wpcd_app_group', true );  // Luckily wp_post_terms accepts comma-delimited strings for post so no need to explode into array.
+					}
+
+					// Remove categories/groups from site.
+					// @TODO: This code does not work - wp_remove_object_terms throws a wp core error that I can't explain.
+					// Error being thrown is: Trying to access array offset on value of type null in /var/www/smi99.com/html/wp-includes/taxonomy.php on line 2966.
+					$groups = get_post_meta( $plan_id, 'wpcd_app_update_plan_remove_categories', true ); // taxomomy_advanced fields stores multiple values in a single comma delimited row so this will return a comma delimited string.
+					if ( ! empty( $groups ) ) {
+						$groups = explode( ',', $groups );
+						$groups = array_values( $groups );
+						foreach ( $groups as $key => $group ) {
+							wp_remove_object_terms( (int) $target_app_id, $group, 'wpcd_app_group' );
 						}
 					}
 

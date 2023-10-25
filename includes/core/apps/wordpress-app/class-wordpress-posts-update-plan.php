@@ -203,6 +203,32 @@ class WPCD_POSTS_App_Update_Plan extends WPCD_Posts_Base {
 
 		);
 
+		$fields_taxonomy = array(
+			array(
+				'name'       => __( 'Apply These Groups', 'wpcd' ),
+				'id'         => 'wpcd_app_update_plan_apply_categories',
+				'type'       => 'taxonomy_advanced',
+				'taxonomy'   => 'wpcd_app_group',
+				'field_type' => 'select_advanced',
+				'multiple'   => true,
+				'save_field' => true,
+				'desc'       => __( 'These groups/categories will the applied to affected sites.', 'wpcd' ),
+				'columns'    => 6,
+			),
+			array(
+				'name'       => __( 'Remove These Groups', 'wpcd' ),
+				'id'         => 'wpcd_app_update_plan_remove_categories',
+				'type'       => 'taxonomy_advanced',
+				'taxonomy'   => 'wpcd_app_group',
+				'field_type' => 'select_advanced',
+				'multiple'   => true,
+				'save_field' => true,
+				'desc'       => __( 'These groups/categories will the removed from the site', 'wpcd' ),
+				'tooltip'    => __( 'This is for future use - not currently working.', 'wpcd' ),
+				'columns'    => 6,
+			),
+		);
+
 		/* Fields for custom bash scripts. */
 		$fields_bash_scripts = array(
 			array(
@@ -240,7 +266,7 @@ class WPCD_POSTS_App_Update_Plan extends WPCD_Posts_Base {
 
 		/* Add the fields defined above to various metaboxes. */
 		$metaboxes[] = array(
-			'id'         => 'wpcd_app_update_plan_mb_site_package_what_to_copy',
+			'id'         => 'wpcd_app_update_plan_mb_what_to_copy',
 			'title'      => __( 'Files', 'wpcd' ),
 			'post_types' => array( 'wpcd_app_update_plan' ),
 			'priority'   => 'default',
@@ -248,17 +274,25 @@ class WPCD_POSTS_App_Update_Plan extends WPCD_Posts_Base {
 		);
 
 		$metaboxes[] = array(
-			'id'         => 'wpcd_app_update_plan_mb_site_package_sites',
+			'id'         => 'wpcd_app_update_plan_mb_sites',
 			'title'      => __( 'To Which Sites Will This Plan Be Applied?', 'wpcd' ),
 			'post_types' => array( 'wpcd_app_update_plan' ),
 			'priority'   => 'default',
 			'fields'     => $servers_and_sites,
 		);
 
+		$metaboxes[] = array(
+			'id'         => 'wpcd_app_update_plan_mb_manage_groups',
+			'title'      => __( 'Manage Groups', 'wpcd' ),
+			'post_types' => array( 'wpcd_app_update_plan' ),
+			'priority'   => 'default',
+			'fields'     => $fields_taxonomy,
+		);		
+
 		if ( $this->can_user_execute_bash_scripts() ) {
 			// Site is allowed to execute bash scripts for site packages.
 			$metaboxes[] = array(
-				'id'         => 'wpcd_app_update_plan_mb_site_package_bash_scripts',
+				'id'         => 'wpcd_app_update_plan_mb_bash_scripts',
 				'title'      => __( 'Bash Scripts', 'wpcd' ),
 				'post_types' => array( 'wpcd_app_update_plan' ),
 				'priority'   => 'default',

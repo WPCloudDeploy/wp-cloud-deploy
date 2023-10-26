@@ -256,6 +256,27 @@ class WPCD_POSTS_App_Update_Plan extends WPCD_Posts_Base {
 			),
 		);
 
+		$fields_exclude_folders_files = array(
+			array(
+				'name'       => __( 'Exclude These Folders', 'wpcd' ),
+				'id'         => 'wpcd_app_update_plan_exclude_folders',
+				'type'       => 'textarea',
+				'rows'       => 10,
+				'save_field' => true,
+				'desc'       => __( 'Enter folders - one line per folder. For example, enter wp-content/plugins to exclude the entire plugins folder.', 'wpcd' ),
+				'columns'    => 6,
+			),
+			array(
+				'name'       => __( 'Exclude These Files', 'wpcd' ),
+				'id'         => 'wpcd_app_update_plan_exclude_files',
+				'type'       => 'textarea',
+				'rows'       => 10,
+				'save_field' => true,
+				'desc'       => __( 'Enter files - one line per file. For example, enter wp-content/debug.log to exclude sending the template log file.', 'wpcd' ),
+				'columns'    => 6,
+			),
+		);
+
 		/* Fields to push to wp-config.php */
 		$fields_wp_config_custom_data = array(
 			array(
@@ -364,6 +385,14 @@ class WPCD_POSTS_App_Update_Plan extends WPCD_Posts_Base {
 		);
 
 		$metaboxes[] = array(
+			'id'         => 'wpcd_app_update_plan_files_and_folders',
+			'title'      => __( 'Exclude Files & Folders', 'wpcd' ),
+			'post_types' => array( 'wpcd_app_update_plan' ),
+			'priority'   => 'default',
+			'fields'     => $fields_exclude_folders_files,
+		);
+
+		$metaboxes[] = array(
 			'id'         => 'wpcd_app_update_plan_custom_wpconfig_entries',
 			'title'      => __( 'WP-CONFIG Entries', 'wpcd' ),
 			'post_types' => array( 'wpcd_app_update_plan' ),
@@ -456,19 +485,7 @@ class WPCD_POSTS_App_Update_Plan extends WPCD_Posts_Base {
 				break;
 		}
 
-		$allowed_html = array(
-			'a'      => array(
-				'href'  => array(),
-				'title' => array(),
-			),
-			'br'     => array(),
-			'em'     => array(),
-			'strong' => array(),
-			'span'   => array( 'class' => true ),
-			'class'  => array(),
-		);
-
-		echo wp_kses( $value, $allowed_html );
+		echo wp_kses_post( $value );
 
 	}
 

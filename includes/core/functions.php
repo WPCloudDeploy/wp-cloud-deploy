@@ -1309,6 +1309,29 @@ function wpcd_clean_numeric( $instr ) {
 }
 
 /**
+ * Takes a string and replaces linebreaks with spaces.
+ *
+ * @param  string $instr String to clean.
+ *
+ * @return string
+ */
+function wpcd_replace_linebreaks_with_space( $instr ) {
+	return trim( preg_replace( '/\s+/', ' ', $instr ) );
+}
+
+/**
+ * Takes a string and replaces linebreaks with commas.
+ *
+ * @param  string $instr String to clean.
+ *
+ * @return string
+ */
+function wpcd_replace_linebreaks_with_comma( $instr ) {
+	return trim( preg_replace( '/\s+/', ',', $instr ) );
+}
+
+
+/**
  * Get the list of users that are in the assigned teams
  *
  * @param int $post_id Post ID of server or app type post.

@@ -1330,6 +1330,18 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 					 */
 					$sites_for_update = $data['update_plan_sites'];
 					$batch_id         = wpcd_clean_numeric( $data['update_plan_batch_id'] ); // We shouldn't need the wpcd_clean_numeric function call here but somewhere along the line quotes get into the value somehow.
+					$plan_id          = $data['update_plan_id'];
+
+					$excluded_files = wpcd_maybe_unserialize( get_post_meta( $plan_id, 'wpcd_app_update_plan_exclude_files', true ) );
+					if ( ! empty( $excluded_files ) ) {
+						$excluded_files = wpcd_replace_linebreaks_with_comma( $excluded_files );  // Strip line breaks and replace with comma to make a single string of files separated by commas.
+					}
+
+					$excluded_folders = wpcd_maybe_unserialize( get_post_meta( $plan_id, 'wpcd_app_update_plan_exclude_folders', true ) );
+					if ( ! empty( $excluded_folders ) ) {
+						$excluded_folders = wpcd_replace_linebreaks_with_comma( $excluded_folders );  // Strip line breaks and replace with comma to make a single string of folders separated by commas.
+					}
+
 					if ( ! empty( $sites_for_update ) ) {
 						foreach ( $sites_for_update as $site_id => $update_domain ) {
 
@@ -1337,9 +1349,18 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 							$new_args['domain']               = $update_domain;
 							$new_args['template_id']          = $id;
 							$new_args['id']                   = $site_id;
-							$new_args['update_plan_id']       = $data['update_plan_id'];
+							$new_args['update_plan_id']       = $plan_id;
 							$new_args['update_plan_batch_id'] = $batch_id;
-							$new_pending_task_status          = 'ready';
+
+							if ( ! empty( $excluded_folders ) ) {
+								$new_args['wpexcludefolder'] = $excluded_folders;
+							}
+
+							if ( ! empty( $excluded_folders ) ) {
+								$new_args['wpexcludefile'] = $excluded_files;
+							}
+
+							$new_pending_task_status = 'ready';
 							WPCD_POSTS_PENDING_TASKS_LOG()->add_pending_task_log_entry( $site_id, 'execute-update-plan-update-site-files', $update_domain, $new_args, $new_pending_task_status, $site_id, sprintf( __( 'Executing update plan - updating theme & plugin files for domain : %s', 'wpcd' ), $update_domain ) );
 
 						}
@@ -1496,7 +1517,7 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 
 					// Get the list of plugins to deactivate.
 					$plugins_to_deactivate = get_post_meta( $plan_id, 'wpcd_app_update_plan_plugins_to_deactivate', true );
-					$plugins_to_deactivate = trim( preg_replace( '/\s+/', ' ', $plugins_to_deactivate ) );  // Strip line breaks and replace with space to make a single string of plugins separated by spaces.
+					$plugins_to_deactivate = wpcd_replace_linebreaks_with_space( $plugins_to_deactivate );  // Strip line breaks and replace with space to make a single string of plugins separated by spaces.
 
 					// Deactivate plugins.
 					if ( ! empty( $plugins_to_deactivate ) ) {
@@ -1507,7 +1528,7 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 
 					// Get the list of pre-installed plugins to activate.
 					$plugins_to_activate = get_post_meta( $plan_id, 'wpcd_app_update_plan_plugins_to_activate', true );
-					$plugins_to_activate = trim( preg_replace( '/\s+/', ' ', $plugins_to_activate ) );  // Strip line breaks and replace with space to make a single string of plugins separated by spaces.
+					$plugins_to_activate = wpcd_replace_linebreaks_with_space( $plugins_to_activate );  // Strip line breaks and replace with space to make a single string of plugins separated by spaces.
 
 					// Activate plugins.
 					if ( ! empty( $plugins_to_activate ) ) {

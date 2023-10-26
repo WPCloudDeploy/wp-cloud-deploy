@@ -256,6 +256,28 @@ class WPCD_POSTS_App_Update_Plan extends WPCD_Posts_Base {
 			),
 		);
 
+		// Backup Options.
+		$backup_note   = __( 'Before enabling backups, please make sure that all your servers have enough diskspace to accomodate backups for all your sites.', 'wpcd' );
+		$backup_note  .= '<br/>' . __( 'Alternatively, you can set your servers to never save backups locally and always off-load to S3.', 'wpcd' );
+		$backup_note  .= '<br/>' . __( 'If so, please ensure that your S3 credentials and buckets are valid otherwise backups will still be stored on the server.', 'wpcd' );
+		$backup_note  .= '<br/>' . __( 'If a backup fails on even a single site, the update plan will fail and all sites not completed will remain incomplete until you take corrective action - please see documentation.', 'wpcd' );
+		$backup_note  .= '<br/><hr/>';
+		$fields_backup = array(
+			array(
+				'name' => __( 'Backup Notes', 'wpcd' ),
+				'id'   => 'wpcd_app_update_plan_backup_notes',
+				'type' => 'custom_html',
+				'std'  => $backup_note,
+			),
+			array(
+				'name'       => __( 'Backup before Update?', 'wpcd' ),
+				'id'         => 'wpcd_app_update_plan_enable_backup',
+				'type'       => 'checkbox',
+				'save_field' => true,
+			),
+		);
+
+		// Exclude files & folders.
 		$fields_exclude_folders_files = array(
 			array(
 				'name'       => __( 'Exclude These Folders', 'wpcd' ),
@@ -390,6 +412,14 @@ class WPCD_POSTS_App_Update_Plan extends WPCD_Posts_Base {
 			'post_types' => array( 'wpcd_app_update_plan' ),
 			'priority'   => 'default',
 			'fields'     => $fields_exclude_folders_files,
+		);
+
+		$metaboxes[] = array(
+			'id'         => 'wpcd_app_update_plan_backup',
+			'title'      => __( 'Backup Options', 'wpcd' ),
+			'post_types' => array( 'wpcd_app_update_plan' ),
+			'priority'   => 'default',
+			'fields'     => $fields_backup,
 		);
 
 		$metaboxes[] = array(

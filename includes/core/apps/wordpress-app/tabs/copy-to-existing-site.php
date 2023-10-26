@@ -39,6 +39,7 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 
 		/* Execute update plan: After files have been copied to target site, do some stuff.  */
 		add_action( 'wpcd_wordpress-app_copy_to_existing_site_copy_files_only_no_backup_completed', array( $this, 'copy_to_existing_site_copy_files_only_complete' ), 200, 3 );
+		add_action( 'wpcd_wordpress-app_copy_to_existing_site_copy_files_only_completed', array( $this, 'copy_to_existing_site_copy_files_only_complete' ), 200, 3 );
 
 	}
 
@@ -63,8 +64,10 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 		// [2] => 911.
 		$command_array = explode( '---', $name );
 
+		$command = $command_array[0];
+
 		// if the command is to copy a site to a new server then we need to do some things to the original and target app records...
-		if ( 'copy_to_existing_site_copy_files_only_no_backup' === $command_array[0] ) {
+		if ( 'copy_to_existing_site_copy_files_only_no_backup' === $command || 'copy_to_existing_site_copy_files_only' === $command ) {
 
 			// Lets pull the logs.
 			$logs = $this->get_app_command_logs( $id, $name );
@@ -84,7 +87,9 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 				$target_domain = get_post_meta( $id, 'wpcd_wpapp_copy_to_existing_site_target_domain_temp', true );
 
 				// Wrapup - let things hook in here.
-				do_action( "wpcd_{$this->get_app_name()}_copy_to_existing_site_copy_files_only_no_backup_completed", $id, $target_domain, $name );
+				// Action hooks: wpcd_wordpress-app_copy_to_existing_site_copy_files_only_no_backup_completed.
+				// Action hooks: wpcd_wordpress-app_copy_to_existing_site_copy_files_only_completed.
+				do_action( "wpcd_{$this->get_app_name()}_{$command}_completed", $id, $target_domain, $name );
 
 				// If this was triggered by a pending log task update the task as complete.
 				if ( ! empty( $task_id ) ) {
@@ -424,7 +429,7 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 		$batch_id = wp_insert_post(
 			array(
 				/* Translators: %1$s is the update plan id (post id); %2$s is the plan id; %3$s is the template domain;  %4$s is the template domain post id; %5$s is a count of servers; %6$s is a count of sites.  */
-				'post_title'   => sprintf( __( 'Execution History for Plan %1$s (%2$s) from template domain %3$s (%4$s) with %5$s servers %6$s sites. ', 'wpcd' ), $update_plan_id, $plan_title, $template_domain, $id, count( $servers_and_sites['servers'] ), count( $servers_and_sites['sites'] ) ),
+				'post_title'   => sprintf( __( 'Execution History for Plan %1$s (%2$s) from template domain %3$s (%4$s). Target: %5$s servers %6$s sites. ', 'wpcd' ), $update_plan_id, $plan_title, $template_domain, $id, count( $servers_and_sites['servers'] ), count( $servers_and_sites['sites'] ) ),
 				'post_content' => '',
 				'post_status'  => 'private',
 				'post_author'  => get_current_user_id(),
@@ -1144,7 +1149,11 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 				$args['pending_tasks_type'] = 'execute-update-plan-get-data-after-update-site-files';
 
 				// Execute copy function - this function will do an async ssh call to the appropriate bash script.
-				$this->copy_to_existing_site( 'copy_to_existing_site_copy_files_only_no_backup', $from_id, $args );
+				if ( true === (bool) get_post_meta( $plan_id, 'wpcd_app_update_plan_enable_backup', true ) ) {
+					$this->copy_to_existing_site( 'copy_to_existing_site_copy_files_only', $from_id, $args );
+				} else {
+					$this->copy_to_existing_site( 'copy_to_existing_site_copy_files_only_no_backup', $from_id, $args );
+				}
 			} else {
 				// Bad task - mark it as failed.
 				WPCD_POSTS_PENDING_TASKS_LOG()->update_task_by_id( $task_id, array(), 'failed' );
@@ -1395,6 +1404,7 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 	 * We know it's an update plan we need to handle because we'll find a pending task entry of type 'execute-update-plan-get-data-after-update-site-files'.
 	 *
 	 * Action Hook: wpcd_wordpress-app_copy_to_existing_site_copy_files_only_no_backup | wpcd_wordpress-app_copy_to_existing_site_copy_files_only_no_backup
+	 * Action Hook: wpcd_wordpress-app_copy_to_existing_site_copy_files_only | wpcd_wordpress-app_copy_to_existing_site_copy_files_only
 	 *
 	 * @param int    $id The id of the post app (template) - it's not the id of the target site - we'll get that in the code.
 	 * @param string $target_domain The domain we're sending files to.
@@ -1409,8 +1419,10 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 		// [2] => 911
 		$command_array = explode( '---', $name );
 
+		$command = (string) $command_array[0];
+
 		// Check to see if the command is to replace a domain otherwise exit.
-		if ( 'copy_to_existing_site_copy_files_only_no_backup' == $command_array[0] ) {
+		if ( 'copy_to_existing_site_copy_files_only_no_backup' === $command || 'copy_to_existing_site_copy_files_only' === $command ) {
 
 			// Lets pull the logs.
 			$logs = WPCD_WORDPRESS_APP()->get_app_command_logs( $id, $name );

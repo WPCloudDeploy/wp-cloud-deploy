@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 "Project-Id-Version: WP Cloud Deploy\n"
-"POT-Creation-Date: 2023-10-13 13:04-0500\n"
+"POT-Creation-Date: 2023-10-26 04:32-0500\n"
 "PO-Revision-Date: 2020-08-14 19:38-0500\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -816,12 +816,12 @@ msgid "New Stable Diffusion V 1.4 instance created"
 msgstr ""
 
 #: includes/core/apps/stable-diffusion/class-stablediff-app.php:832
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2554
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2587
 msgid "Invalid server ID"
 msgstr ""
 
 #: includes/core/apps/stable-diffusion/class-stablediff-app.php:838
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2560
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2593
 msgid "Invalid server"
 msgstr ""
 
@@ -1224,7 +1224,7 @@ msgstr ""
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:397
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:558
 #: includes/core/apps/wordpress-app/tabs-server/backup.php:65
-#: includes/core/class-wpcd-posts-notify-user.php:933
+#: includes/core/class-wpcd-posts-notify-user.php:936
 #: includes/core/class-wpcd-settings.php:448
 msgid "Backup"
 msgstr ""
@@ -1252,8 +1252,8 @@ msgid "Clone Site"
 msgstr ""
 
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:401
-#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:76
-#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:281
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:156
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:520
 msgid "Copy To Existing Site"
 msgstr ""
 
@@ -1284,7 +1284,7 @@ msgstr ""
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1481
 #: includes/core/apps/wordpress-app/tabs/git-control-site.php:1354
 #: includes/core/apps/wordpress-app/tabs/misc.php:68
-#: includes/core/class-wpcd-posts-notify-user.php:935
+#: includes/core/class-wpcd-posts-notify-user.php:938
 #: includes/core/class-wpcd-settings.php:1240
 msgid "Misc"
 msgstr ""
@@ -1346,14 +1346,14 @@ msgstr ""
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:414
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2788
 #: includes/core/apps/wordpress-app/tabs/theme-and-plugin-updates.php:117
-#: includes/core/class-wpcd-posts-notify-user.php:939
+#: includes/core/class-wpcd-posts-notify-user.php:942
 msgid "Site Updates"
 msgstr ""
 
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:415
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:571
 #: includes/core/apps/wordpress-app/tabs-server/tools.php:57
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2334
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2335
 #: includes/core/apps/wordpress-app/tabs/tools.php:59
 #: includes/core/class-wpcd-settings.php:784
 #: includes/core/class-wpcd-settings.php:1242
@@ -1403,7 +1403,7 @@ msgstr ""
 #: includes/core/apps/wordpress-app/tabs/multitenant-site.php:350
 #: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1428
 #: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1467
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2496
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2497
 msgid "Multi-tenant"
 msgstr ""
 
@@ -1510,7 +1510,7 @@ msgstr ""
 
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:565
 #: includes/core/apps/wordpress-app/tabs-server/power.php:69
-#: includes/core/class-wpcd-posts-notify-user.php:936
+#: includes/core/class-wpcd-posts-notify-user.php:939
 msgid "Power"
 msgstr ""
 
@@ -1523,7 +1523,7 @@ msgstr ""
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:567
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1555
 #: includes/core/apps/wordpress-app/tabs-server/sites.php:52
-#: includes/core/class-wpcd-posts-notify-user.php:414
+#: includes/core/class-wpcd-posts-notify-user.php:417
 msgid "Sites"
 msgstr ""
 
@@ -2404,7 +2404,7 @@ msgid ""
 msgstr ""
 
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:1520
-#: includes/core/class-wpcd-posts-notify-user.php:413
+#: includes/core/class-wpcd-posts-notify-user.php:416
 #: includes/core/class-wpcd-posts-team.php:742
 #: includes/templates/team_details.php:17
 #: includes/templates/user_details.php:23
@@ -3545,7 +3545,7 @@ msgstr ""
 
 #: includes/core/apps/wordpress-app/class-wordpress-app-settings.php:2760
 #: includes/core/class-wpcd-posts-log.php:167
-#: includes/core/class-wpcd-posts-notify-user.php:468
+#: includes/core/class-wpcd-posts-notify-user.php:471
 #: includes/core/class-wpcd-settings.php:1157
 #: includes/core/class-wpcd-settings.php:1169
 #: includes/templates/notify_user_form_popup.php:133
@@ -3800,81 +3800,81 @@ msgstr ""
 msgid "Admin Login"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2173
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2206
 msgid "View site"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2442
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2469
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2475
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2502
 msgid "The command has completed."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2443
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2476
 msgid "Checking server for updated progress information..."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2444
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2477
 msgid ""
 "Last progress check resulted in no new data. The operation seems to still be "
 "in progress. However, if you see this error more than 10 times or so, it "
 "might be because the connection to the WordPress server has been severed."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2468
-#: includes/core/apps/wordpress-app/public/class-wordpress-app-public.php:758
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2501
+#: includes/core/apps/wordpress-app/public/class-wordpress-app-public.php:775
 #: includes/core/apps/wordpress-app/templates/create-popup.php:47
 msgid "Deploy A New WordPress Server"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2495
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2528
 #: includes/core/apps/wordpress-app/public/class-wordpress-app-public.php:319
 #: includes/core/apps/wordpress-app/public/class-wordpress-app-public.php:325
 msgid "You are not allowed to perform this operation on this app."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2576
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2609
 msgid "Invalid site ID"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2582
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2615
 msgid "Invalid app"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2588
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2621
 msgid "No server found"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2608
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2703
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2641
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2736
 msgid ""
 "You don't have access to provision a server. Perhaps you're not logged in?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2668
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2826
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2701
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2859
 msgid "You don't have permission to install WordPress on this server."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2725
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2758
 msgid ""
 "If you are seeing this message, something went very wrong at the start of "
 "the create a new server process. However, we are unable to be more specific "
 "at this time about its root cause."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2746
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2779
 msgid "Invalid OS - security issue?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2754
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2787
 msgid "Invalid Webserver type - security issue?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2763
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2796
 msgid "OpenLiteSpeed is not yet supported on Ubuntu 18.04 LTS."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2772
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2805
 msgid ""
 "Waiting for the server to startup...<br />We recommend that you do NOT exit "
 "this screen until you see a pop-up indicating that the installation is "
@@ -3885,7 +3885,7 @@ msgid ""
 "progress reports."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2783
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2816
 #, php-format
 msgid ""
 "Unfortunately we could not start deploying this server - most likely because "
@@ -3894,83 +3894,83 @@ msgid ""
 "and then retry the operation.<br />%s"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2841
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2874
 msgid ""
 "Please fill out all the requested data - we cannot create a site without all "
 "the requested data!  Please close this screen and try again."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2849
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2882
 msgid ""
 "Waiting for the installation to begin...<br />Do not exit this screen until "
 "you see a popup indicating that the installation is complete."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2860
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2893
 msgid "Missing required parameter."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2867
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2900
 msgid "Invalid post type."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2873
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2906
 msgid "You are not allowed to perform this operation on this server."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2885
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2918
 msgid "Status sync completed."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2902
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2935
 msgid "You cannot delete a server record inside of a CRON process."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2920
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2953
 msgid "Sorry! you don't have permission to delete a server record."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2931
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2964
 msgid "Server record successfully deleted."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:2936
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:2969
 msgid "Failed! something went wrong during delete server record"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:3044
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:3077
 msgid "This domain already exists in our system."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:3066
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:3099
 msgid "The password for the site contains invalid characters."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:3071
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:3104
 msgid "The email address for the site contains invalid characters."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:3075
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:3108
 msgid "The user name for the site contains invalid characters."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:3133
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:3169
 msgid ""
 "There are some invalid data in this create site request. Please correct and "
 "try again."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:3796
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:3927
 msgid "Disable Page Cache For New Site"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:3982
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:4116
 msgid ""
 "Here are the basic steps needed to build your first server and deploy your "
 "first WordPress server & site:"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:3987
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:4121
 msgid ""
 "Double-check that your current web server where this plugin is installed has "
 "the appropriate timeouts as listed at the bottom of this screen. You will "
@@ -3978,11 +3978,11 @@ msgid ""
 "increased."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:3990
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:4124
 msgid "Generate an API key in your server providers' dashboard."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:3993
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:4127
 msgid ""
 "If you see the startup wizard notice at the top of this screen and your "
 "server provider is one of DigitalOcean, Linode, Vultr, UpCloud or Hetzner - "
@@ -3990,106 +3990,106 @@ msgid ""
 "keys."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:3998
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:4132
 msgid "If you cannot use the wizard or do not see the wizard notice:"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:4003
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:4137
 msgid ""
 "Make sure you have created and uploaded an SSH key pair to your server "
 "providers' dashboard."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:4006
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:4140
 msgid ""
 "Add your cloud server provider API key and other credentials to the "
 "WPCLOUDDEPLOY → SETTINGS → CLOUD PROVIDERS tab."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:4011
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:4145
 msgid "Now you can deploy your first WordPress server & site:"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:4016
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:4150
 msgid ""
 "Click on the ALL CLOUD SERVERS menu option and use the DEPLOY A NEW "
 "WordPress SERVER button to deploy a server."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:4019
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:4153
 msgid ""
 "After the server is deployed, go back to the CLOUD SERVERS menu option and "
 "click the INSTALL WordPress button in the server list."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:4024
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:4158
 msgid "Quick Start Guide"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:4030
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:4164
 msgid "Deploy Your First WordPress Site"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:4063
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:4197
 msgid ""
 "To create a new server, first make sure you add your cloud provider "
 "credentials under the SETTINGS screen."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:4065
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:4199
 msgid ""
 "Then, you can click the DEPLOY A NEW WordPress SERVER button at the top of "
 "this screen to create your first server."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:4173
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:4194
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:4307
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:4328
 #: includes/core/class-wpcd-posts-app-server.php:200
 #: includes/core/class-wpcd-posts-app-server.php:339
 msgid "Loading"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:4221
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:4355
 #: includes/core/apps/wordpress-app/tabs/misc.php:402
 msgid ""
 "Are you sure you would like to delete this site and data? This action is NOT "
 "reversible!"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:4222
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:4356
 #: includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/admin-columns.php:125
 #: includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/admin-columns.php:583
 msgid "Install WordPress"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:4225
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:4359
 #: includes/core/class-wpcd-posts-app-server.php:219
 msgid "Are you sure you want to perform this bulk action?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:4402
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:4536
 msgid "You are not authorized to perform this action - dismiss readable check."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:4438
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:4572
 msgid ""
 "You are not authorized to perform this action - do readable check again."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:4445
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:4579
 msgid "Readable check successful!"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:4450
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:4584
 msgid "Readable check failed!"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:4488
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:4622
 msgid "You are not authorized to perform this action."
 msgstr ""
 
 #. translators: %s is replaced with the internal action name.
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:4509
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:4643
 #: includes/core/apps/wordpress-app/tabs-server/backup.php:604
 #: includes/core/apps/wordpress-app/tabs-server/backup.php:729
 #: includes/core/apps/wordpress-app/tabs-server/backup.php:860
@@ -4137,7 +4137,7 @@ msgstr ""
 #: includes/core/apps/wordpress-app/tabs/change-domain.php:358
 #: includes/core/apps/wordpress-app/tabs/change-domain.php:528
 #: includes/core/apps/wordpress-app/tabs/clone-site.php:333
-#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:188
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:285
 #: includes/core/apps/wordpress-app/tabs/crons.php:281
 #: includes/core/apps/wordpress-app/tabs/file-manager.php:224
 #: includes/core/apps/wordpress-app/tabs/git-control-site.php:1939
@@ -4194,7 +4194,7 @@ msgid ""
 msgstr ""
 
 #. translators: %1$s is replaced with the internal action name; %2$s is replaced with the result of the call, usually an error message.
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:4535
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:4669
 #: includes/core/apps/wordpress-app/tabs-server/backup.php:660
 #: includes/core/apps/wordpress-app/tabs-server/backup.php:819
 #: includes/core/apps/wordpress-app/tabs-server/backup.php:907
@@ -4234,8 +4234,8 @@ msgstr ""
 msgid "Unable to %1$s site: %2$s"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:4566
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:4588
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:4700
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:4722
 #: includes/core/apps/wordpress-app/tabs-server/backup.php:343
 #: includes/core/apps/wordpress-app/tabs-server/backup.php:359
 #: includes/core/apps/wordpress-app/tabs-server/backup.php:499
@@ -4276,7 +4276,7 @@ msgstr ""
 #: includes/core/apps/wordpress-app/tabs/misc.php:499
 #: includes/core/apps/wordpress-app/tabs/misc.php:597
 #: includes/core/apps/wordpress-app/tabs/misc.php:695
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1784
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1785
 #: includes/core/apps/wordpress-app/tabs/ssl.php:216
 #: includes/core/apps/wordpress-app/tabs/ssl.php:290
 #: includes/core/apps/wordpress-app/tabs/tools.php:248
@@ -4295,8 +4295,8 @@ msgstr ""
 msgid "Enabled"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:4567
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:4589
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:4701
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:4723
 #: includes/core/apps/wordpress-app/tabs-server/backup.php:342
 #: includes/core/apps/wordpress-app/tabs-server/backup.php:360
 #: includes/core/apps/wordpress-app/tabs-server/backup.php:500
@@ -4337,7 +4337,7 @@ msgstr ""
 #: includes/core/apps/wordpress-app/tabs/misc.php:500
 #: includes/core/apps/wordpress-app/tabs/misc.php:598
 #: includes/core/apps/wordpress-app/tabs/misc.php:696
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1785
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1786
 #: includes/core/apps/wordpress-app/tabs/ssl.php:217
 #: includes/core/apps/wordpress-app/tabs/ssl.php:291
 #: includes/core/apps/wordpress-app/tabs/tools.php:249
@@ -4357,126 +4357,131 @@ msgstr ""
 msgid "Disabled"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:4569
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:4703
 msgid "App Status"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:4583
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:327
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:4717
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:394
 #: includes/core/apps/wordpress-app/tabs/php-options.php:330
 msgid "PHP Version"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:4591
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:4725
 #: includes/core/apps/wordpress-app/tabs/cache.php:433
 msgid "Page Cache"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:4594
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:4728
 msgid "Object Cache"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:4599
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:4614
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:4733
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:4748
 #: includes/templates/notify_user_alert_list.php:62
 msgid "Yes"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:4600
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:4615
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:4734
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:4749
 #: includes/templates/notify_user_alert_list.php:62
 msgid "No"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:4602
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:4736
 msgid "Site Needs Updates"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:4617
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:4751
 #: includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/admin-columns.php:1185
 msgid "Template"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:4628
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:4762
 msgid "MT Site Type"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:4632
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:4766
 msgid "MT Version"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:4636
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:4770
 msgid "MT Parent Template"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:4984
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:5118
 msgid "You are not authorized to perform this action - dismiss cron check."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:5006
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:5140
 msgid ""
 "You are not authorized to perform this action - dismiss php version check."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-app.php:5028
+#: includes/core/apps/wordpress-app/class-wordpress-app.php:5162
 msgid ""
 "You are not authorized to perform this action - dismiss localhost check."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:52
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:55
 msgid "Site Packages"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:59
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:65
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:62
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:69
 msgctxt "Post type general name"
 msgid "Site Package"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:60
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:63
 msgctxt "Post type singular name"
 msgid "Site Package"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:62
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:65
 msgctxt "Add New on Toolbar"
 msgid "Site Package"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:63
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:66
 msgctxt "Add New Button"
 msgid "Add New Site Package"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:64
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:67
+msgctxt "Add New Item"
+msgid "Add New Site Package"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:68
 msgid "Edit Site Package"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:66
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:70
 msgctxt "Label for use with all items"
 msgid "Site Packages"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:67
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:71
 msgid "Search Site Packages"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:68
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:72
 msgid "No Site Packages were found."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:69
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:73
 msgid "No Site Packages were found in Trash."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:70
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:74
 msgctxt ""
 "Screen reader text for the filter links heading on the post type listing "
 "screen. Default \"Filter posts list\"/\"Filter pages list\". Added in 4.4"
 msgid "Filter Site Packages list"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:71
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:75
 msgctxt ""
 "Screen reader text for the pagination heading on the post type listing "
 "screen. Default \"Posts list navigation\"/\"Pages list navigation\". Added "
@@ -4484,275 +4489,422 @@ msgctxt ""
 msgid "Site Package list navigation"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:72
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:76
 msgctxt ""
 "Screen reader text for the items list heading on the post type listing "
 "screen. Default \"Posts list\"/\"Pages list\". Added in 4.4"
 msgid "Site Package list"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:124
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:126
+msgid "Apply These Groups to New Sites"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:133
+msgid "These groups/categories will the applied to a new site."
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:137
+msgid "Apply These Groups When Upgrading/Downgrading"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:144
+msgid ""
+"These groups/categories will the applied to a existing sites during a "
+"subscription switch."
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:148
+msgid "Remove These Groups"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:155
+msgid ""
+"These groups/categories will the removed from the site during a subscription "
+"upgrade/downgrade/switch."
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:156
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:233
+msgid "This is for future use - not currently working."
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:165
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:240
 msgid "Activate These Plugins"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:129
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:170
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:245
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:254
 msgid ""
 "Enter plugins - one line per plugin in the format plugin-folder/main-plugin-"
 "file-name.php."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:130
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:171
 msgid ""
 "These plugins will be activated when a new site is created or when SITE "
 "products associated with this package is purchased."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:139
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:180
 msgid "Activate This Theme"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:143
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:184
 msgid ""
 "Activate this theme - it must already be present on the site or scheduled "
 "for install in the INSTALL THEMES metabox below."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:152
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:193
 msgid "Deactivate These Plugins"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:157
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:198
 msgid ""
 "Enter plugins - one line per plugin in the format plugin-folder/main-plugin-"
 "file-name.php"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:158
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:199
 msgid ""
 "These plugins will be deactivated when a new site is created or when SITE "
 "products associated with this package is purchased."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:166
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:207
 msgid "Install These Plugins from WordPress.org"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:171
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:212
 msgid ""
 "Enter the plugin slugs as defined by the wordpress.org repo - enter one line "
 "per plugin."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:172
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:182
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:213
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:223
 msgid ""
 "These plugins will be installed AND activated when a new site is created or "
 "when SITE products associated with this package is purchased."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:176
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:217
 msgid "Install These Plugins from a URL"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:181
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:222
 msgid "Enter the PUBLIC plugin urls to .zip files - enter one line per plugin."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:190
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:231
 msgid "Install These Themes from WordPress.org"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:195
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:236
 msgid ""
 "Enter the theme slugs as defined by the wordpress.org repo - enter one line "
 "per theme."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:196
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:206
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:237
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:247
 msgid ""
 "These themes will be installed when a new site is created or when SITE "
 "products associated with this package is purchased."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:200
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:241
 msgid "Install These Themes from a URL"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:205
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:246
 msgid "Enter the PUBLIC theme urls to .zip files - enter one line per theme."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:214
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:255
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:305
 msgid "WPConfig Custom Data"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:219
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:260
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:310
 msgid "These key-value pairs will be added to wp-config.php."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:220
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:261
 msgid ""
 "Use these to add things you might need in custom plugins used on your site.  "
 "For example, if selling sites in WooCommerce these can be different for eac "
 "plan/product.  For example, a plan-id."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:227
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:268
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:318
+msgid "Add To Site Meta"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:273
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:323
+msgid ""
+"These key-value pairs will be added to the metas on the custom post type for "
+"the site (i.e.: the site record)."
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:274
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:324
+msgid ""
+"Use these to add things you might need on the site custom post type record.  "
+"In many cases the same things you are adding to wp-config are likely the "
+"same items you want to push to the site metas."
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:281
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:331
+msgid "Add Option"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:286
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:336
+msgid ""
+"These key-value pairs will be added to the WordPress options on the new site."
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:287
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:337
+msgid ""
+"Use these to add or update options on the new site - many plugins and themes "
+"use options to store their data so you might be able to overwrite them with "
+"your custom values if you know their option formats."
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:294
 msgid "Bash Script for New Sites (Before)"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:231
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:298
 msgid ""
 "Run this script when a site is first provisioned - BEFORE configuration "
 "updates and plugin/theme activation/deactivation."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:232
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:241
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:299
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:308
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:349
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:358
 msgid ""
 "We will inject certain vars into the environment before the script is "
 "executed.  See docs for the full list. This script will NOT run for staging "
 "sites, clones or sites that are copied to a new server"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:236
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:303
 msgid "Bash Script for New Sites (After)"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:240
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:307
 msgid ""
 "Run this script when a site is first provisioned - AFTER configuration "
 "updates and plugin/theme activation/deactivation."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:251
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:318
 msgid "Bash Script for Subscription Switches (Before)"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:255
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:322
 msgid ""
 "Run this script when an order is placed to upgrade or downgrade. It will run "
 "BEFORE configuration updates and plugin/theme activation/deactivation."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:256
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:273
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:323
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:340
 msgid ""
 "We will inject certain vars into the environment before the script is "
 "executed.  See docs for the full list."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:268
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:335
 msgid "Bash Script for Subscription Switches (After)"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:272
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:339
 msgid ""
 "Run this script when an order is placed to upgrade or downgrade. It will run "
 "AFTER configuration updates and plugin/theme activation/deactivation."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:283
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:350
 #: includes/core/apps/wordpress-app/tabs/php-options.php:593
 msgid "PM"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:287
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:354
 #: includes/core/apps/wordpress-app/tabs/php-options.php:597
 msgid "Dynamic"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:288
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:355
 #: includes/core/apps/wordpress-app/tabs/php-options.php:598
 msgid "Static"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:289
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:356
 #: includes/core/apps/wordpress-app/tabs/php-options.php:599
 msgid "On Demand"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:295
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:362
 #: includes/core/apps/wordpress-app/tabs/php-options.php:609
 msgid "PM - Max Children"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:302
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:369
 #: includes/core/apps/wordpress-app/tabs/php-options.php:619
 msgid "PM - Start Servers"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:309
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:376
 #: includes/core/apps/wordpress-app/tabs/php-options.php:629
 msgid "PM - Min Spare Servers"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:316
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:383
 #: includes/core/apps/wordpress-app/tabs/php-options.php:639
 msgid "PM - Max Spare Servers"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:331
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:398
 msgid "No Change"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:341
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:408
 msgid "PHP Memory Limit (Megabytes)"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:346
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:354
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:362
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:413
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:421
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:429
 msgid "Set to zero or empty for no change."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:349
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:416
 msgid "PHP Max Execution Time (Seconds)"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:357
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:424
 msgid "PHP Max Input Vars"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:370
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:436
+msgid "Inject Version Label"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:440
+msgid ""
+"Tag the site record with this version label.  Also add it to the wp-config."
+"php file of the target site."
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:441
+msgid ""
+"You can use this to search and filter your sites based on version numbers. "
+"And create custom plugins for your tenant sites that use the version "
+"constant inside to control behavior."
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:445
+msgid "Delete UpDraft Backups"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:453
+msgid "Delete Debug.log"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:465
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:589
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:366
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:462
+#: includes/core/apps/wordpress-app/tabs-server/services.php:412
+#: includes/core/apps/wordpress-app/tabs-server/services.php:532
+#: includes/core/apps/wordpress-app/tabs-server/services.php:612
+#: includes/core/apps/wordpress-app/tabs-server/sshkeys.php:239
+#: includes/core/apps/wordpress-app/tabs/change-domain.php:774
+#: includes/core/class-wpcd-email-notifications.php:721
+#: includes/core/class-wpcd-email-notifications.php:767
+#: includes/core/class-wpcd-settings.php:1446
+#: includes/core/class-wpcd-settings.php:1594
+#: includes/core/custom-table/class-wpcd-dns-zone-record.php:285
+msgid "Notes"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:470
+msgid "Your notes about this site package."
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:478
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:395
+msgid "Manage Groups"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:487
 msgid ""
 "Activate Themes & Plugins Already Installed (Usually From Template Site)"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:378
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:495
 msgid "Activate This Theme if it's Installed"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:387
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:504
 msgid "Install and Activate Plugins"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:396
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:513
 msgid "Deactivate Plugins"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:405
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:522
 msgid "Install Themes"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:413
-msgid "Custom WPCONFIG Entries"
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:530
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:427
+msgid "WP-CONFIG Entries"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:421
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:538
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:435
+msgid "Site Metas"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:546
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:443
+msgid "WP Options"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:554
 msgid "PHP Workers"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:429
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:562
 msgid "Misc PHP Settings (NGINX)"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:437
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:570
+msgid "Other & Misc"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:580
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:453
 msgid "Bash Scripts"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:459
+#: includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php:611
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:535
 #: includes/core/class-wpcd-posts-app-server.php:705
 #: includes/core/class-wpcd-posts-app.php:454
 #: includes/templates/notify_user_form_popup.php:157
@@ -4760,6 +4912,405 @@ msgstr ""
 #: includes/templates/notify_user_form_popup.php:198
 #: includes/templates/notify_user_form_popup.php:216
 msgid "None"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan-log.php:62
+msgid "Site Update Plan History"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan-log.php:68
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan-log.php:74
+msgctxt "Post type general name"
+msgid "Site Update Plan History"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan-log.php:69
+msgctxt "Post type singular name"
+msgid "Site Update Plan History"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan-log.php:71
+msgctxt "Add New on Toolbar"
+msgid "Site Update Plan History"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan-log.php:72
+msgctxt "Add New Button"
+msgid "Add New Site Update Plan History"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan-log.php:73
+msgid "Edit Site Update Plan History"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan-log.php:75
+msgctxt "Label for use with all items"
+msgid "Site Update Plan History"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan-log.php:76
+msgid "Search Site Update Plan History"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan-log.php:77
+msgid "No Site Update Plan Histories were found."
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan-log.php:78
+msgid "No Site Update Plan Histories were found in Trash."
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan-log.php:79
+msgctxt ""
+"Screen reader text for the filter links heading on the post type listing "
+"screen. Default \"Filter posts list\"/\"Filter pages list\". Added in 4.4"
+msgid "Filter Site Update Plan Histories list"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan-log.php:80
+msgctxt ""
+"Screen reader text for the pagination heading on the post type listing "
+"screen. Default \"Posts list navigation\"/\"Pages list navigation\". Added "
+"in 4.4"
+msgid "Site Update Plan History list navigation"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan-log.php:81
+msgctxt ""
+"Screen reader text for the items list heading on the post type listing "
+"screen. Default \"Posts list\"/\"Pages list\". Added in 4.4"
+msgid "Site Update Plan History list"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan-log.php:209
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:482
+msgid "Planned Servers"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan-log.php:210
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:483
+msgid "Planned Sites"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan-log.php:211
+msgid "Completed Servers"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan-log.php:212
+msgid "Completed Sites"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan-log.php:213
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:484
+#: includes/core/apps/wordpress-app/public/class-server-apps-table.php:60
+#: includes/core/apps/wordpress-app/public/class-servers-list-table.php:60
+#: includes/core/class-wpcd-email-notifications.php:1776
+#: includes/core/class-wpcd-posts-app-server.php:847
+#: includes/core/class-wpcd-posts-app.php:624
+#: includes/core/class-wpcd-posts-cloud-provider.php:168
+#: includes/core/class-wpcd-posts-command-log.php:216
+#: includes/core/class-wpcd-posts-error-log.php:190
+#: includes/core/class-wpcd-posts-notify-log.php:343
+#: includes/core/class-wpcd-posts-notify-sent-log.php:214
+#: includes/core/class-wpcd-posts-notify-user.php:418
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:267
+#: includes/core/class-wpcd-posts-ssh-log.php:209
+#: includes/core/class-wpcd-posts-team.php:745
+msgid "Date"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan-log.php:274
+msgid "Servers Planned"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan-log.php:280
+msgid "Sites Planned"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan-log.php:290
+msgid "Servers Completed"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan-log.php:296
+msgid "Sites Completed"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan-log.php:306
+msgid "Completed Servers & Sites"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan-log.php:313
+msgid "Planned Servers & Sites"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:64
+msgid "Site Update Plans"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:71
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:78
+msgctxt "Post type general name"
+msgid "Site Update Plan"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:72
+msgctxt "Post type singular name"
+msgid "Site Update Plan"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:74
+msgctxt "Add New on Toolbar"
+msgid "Site Update Plan"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:75
+msgctxt "Add New Button"
+msgid "Add New Site Update Plan"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:76
+msgctxt "Add New Item"
+msgid "Add New Site Update Plan"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:77
+msgid "Edit Site Update Plan"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:79
+msgctxt "Label for use with all items"
+msgid "Site Update Plan"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:80
+msgid "Search Site Update Plans"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:81
+msgid "No Site Update Plans were found."
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:82
+msgid "No Site Update Plans were found in Trash."
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:83
+msgctxt ""
+"Screen reader text for the filter links heading on the post type listing "
+"screen. Default \"Filter posts list\"/\"Filter pages list\". Added in 4.4"
+msgid "Filter Site Update Plans list"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:84
+msgctxt ""
+"Screen reader text for the pagination heading on the post type listing "
+"screen. Default \"Posts list navigation\"/\"Pages list navigation\". Added "
+"in 4.4"
+msgid "Site Update Plan list navigation"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:85
+msgctxt ""
+"Screen reader text for the items list heading on the post type listing "
+"screen. Default \"Posts list\"/\"Pages list\". Added in 4.4"
+msgid "Site Update Plan list"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:134
+msgid "What Files Will Be Copied?"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:136
+msgid ""
+"All plugins, themes, uploads & core wp files will be copied.  wp-config.php "
+"will not be copied."
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:164
+msgid "Servers to Update"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:175
+msgid "Apply this update plan to all sites on these servers."
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:176
+msgid "Select one or more Cloud Servers."
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:180
+msgid "Server Groups to Update"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:187
+msgid "Apply this update plan to all sites on servers with these groups."
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:188
+msgid "Select one or more Server Groups."
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:192
+msgid "Site Groups to Update"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:199
+msgid "Apply this update plan to all sites with these tags."
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:200
+msgid "Select one or more Site/App Groups."
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:204
+msgid "Note"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:207
+msgid ""
+"Sites will be combined from all three items above - servers + server groups "
+"+ site groups into a single master list of sites to update. You do not have "
+"to specify all three fields - empty fields will be ignored."
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:214
+msgid "Apply These Group Labels"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:221
+msgid "These groups/categories will be applied to the selected sites."
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:225
+msgid "Remove These Group Labels"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:232
+msgid "These groups/categories will be removed from the selected sites"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:249
+msgid "De-activate These Plugins"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:260
+msgid ""
+"Before enabling backups, please make sure that all your servers have enough "
+"diskspace to accomodate backups for all your sites."
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:261
+msgid ""
+"Alternatively, you can set your servers to never save backups locally and "
+"always off-load to S3."
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:262
+msgid ""
+"If so, please ensure that your S3 credentials and buckets are valid "
+"otherwise backups will still be stored on the server."
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:263
+msgid ""
+"If a backup fails on even a single site, the update plan will fail and all "
+"sites not completed will remain incomplete until you take corrective action "
+"- please see documentation."
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:267
+msgid "Backup Notes"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:273
+msgid "Backup before Update?"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:283
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:636
+msgid "Exclude These Folders"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:288
+msgid ""
+"Enter folders - one line per folder. For example, enter wp-content/plugins "
+"to exclude the entire plugins folder."
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:292
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:650
+msgid "Exclude These Files"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:297
+msgid ""
+"Enter files - one line per file. For example, enter wp-content/debug.log to "
+"exclude sending the template log file."
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:311
+msgid ""
+"Use these to add things you might need in updated custom plugins used on "
+"your site."
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:344
+msgid "Bash Script Before Copy"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:348
+msgid ""
+"Run this script before plugins and themes are copied to the destination site."
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:353
+msgid "Bash Script After Copy"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:357
+msgid ""
+"Run this script after plugins and themes have been copied to the destination "
+"site."
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:371
+msgid "Your notes about this update plan."
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:379
+msgid "Files"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:387
+msgid "To Which Sites Will This Plan Be Applied?"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:403
+msgid "Manage Plugins"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:411
+msgid "Exclude Files & Folders"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:419
+msgid "Backup Options"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:774
+msgid "Warning - Plans are for standard sites only!"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:777
+msgid ""
+"Update Plans are used to perform bulk updates of core, theme and plugin "
+"files to standard sites."
+msgstr ""
+
+#: includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php:779
+msgid ""
+"For updates to Multi-tenant sites you should use the versioning and update "
+"options on the multi-tenant tab of the associated template site."
 msgstr ""
 
 #: includes/core/apps/wordpress-app/class-wordpress-ssh.php:40
@@ -4812,23 +5363,6 @@ msgstr ""
 #: includes/core/apps/wordpress-app/public/class-server-apps-table.php:59
 #: includes/core/apps/wordpress-app/public/class-servers-list-table.php:59
 msgid "Title"
-msgstr ""
-
-#: includes/core/apps/wordpress-app/public/class-server-apps-table.php:60
-#: includes/core/apps/wordpress-app/public/class-servers-list-table.php:60
-#: includes/core/class-wpcd-email-notifications.php:1776
-#: includes/core/class-wpcd-posts-app-server.php:847
-#: includes/core/class-wpcd-posts-app.php:624
-#: includes/core/class-wpcd-posts-cloud-provider.php:168
-#: includes/core/class-wpcd-posts-command-log.php:216
-#: includes/core/class-wpcd-posts-error-log.php:190
-#: includes/core/class-wpcd-posts-notify-log.php:343
-#: includes/core/class-wpcd-posts-notify-sent-log.php:214
-#: includes/core/class-wpcd-posts-notify-user.php:415
-#: includes/core/class-wpcd-posts-pending-tasks-log.php:267
-#: includes/core/class-wpcd-posts-ssh-log.php:209
-#: includes/core/class-wpcd-posts-team.php:745
-msgid "Date"
 msgstr ""
 
 #. translators: %s: Post title.
@@ -4984,45 +5518,45 @@ msgid ""
 "provider."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/public/class-wordpress-app-public.php:576
-#: includes/core/apps/wordpress-app/public/class-wordpress-app-public.php:1014
+#: includes/core/apps/wordpress-app/public/class-wordpress-app-public.php:593
+#: includes/core/apps/wordpress-app/public/class-wordpress-app-public.php:1031
 #: includes/core/class-wpcd-posts-app-server.php:1837
 msgid "Cloud Servers"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/public/class-wordpress-app-public.php:586
-#: includes/core/apps/wordpress-app/public/class-wordpress-app-public.php:627
+#: includes/core/apps/wordpress-app/public/class-wordpress-app-public.php:603
+#: includes/core/apps/wordpress-app/public/class-wordpress-app-public.php:644
 #: includes/core/class-wpcd-posts-app-server.php:1733
 #: includes/core/class-wpcd-posts-app.php:1399
 #: includes/core/class-wpcd-posts-team.php:579
 msgid "You don't have permission to edit this post."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/public/class-wordpress-app-public.php:617
+#: includes/core/apps/wordpress-app/public/class-wordpress-app-public.php:634
 msgid "All Apps"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/public/class-wordpress-app-public.php:673
+#: includes/core/apps/wordpress-app/public/class-wordpress-app-public.php:690
 msgid ""
 "You don't have permission to view the applications list. Perhaps you're not "
 "logged in?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/public/class-wordpress-app-public.php:699
+#: includes/core/apps/wordpress-app/public/class-wordpress-app-public.php:716
 msgid "New WordPress Site"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/public/class-wordpress-app-public.php:724
+#: includes/core/apps/wordpress-app/public/class-wordpress-app-public.php:741
 msgid ""
 "You don't have permission to view the servers list. Perhaps you're not "
 "logged in?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/public/class-wordpress-app-public.php:1029
+#: includes/core/apps/wordpress-app/public/class-wordpress-app-public.php:1046
 msgid "Cloud Apps"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/public/class-wordpress-app-public.php:1044
+#: includes/core/apps/wordpress-app/public/class-wordpress-app-public.php:1061
 msgid "Deploy Server"
 msgstr ""
 
@@ -5106,8 +5640,8 @@ msgstr ""
 #: includes/core/apps/wordpress-app/tabs/clone-site.php:250
 #: includes/core/apps/wordpress-app/tabs/clone-site.php:258
 #: includes/core/apps/wordpress-app/tabs/clone-site.php:278
-#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:113
-#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:120
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:193
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:200
 #: includes/core/apps/wordpress-app/tabs/crons.php:113
 #: includes/core/apps/wordpress-app/tabs/crons.php:120
 #: includes/core/apps/wordpress-app/tabs/file-manager.php:176
@@ -6146,7 +6680,7 @@ msgid "Are you sure you want to run this test?"
 msgstr ""
 
 #: includes/core/apps/wordpress-app/tabs-server/general.php:139
-#: includes/core/class-wpcd-posts-notify-user.php:741
+#: includes/core/class-wpcd-posts-notify-user.php:744
 msgid "Test"
 msgstr ""
 
@@ -6254,7 +6788,7 @@ msgstr ""
 #: includes/core/apps/wordpress-app/tabs/change-domain.php:390
 #: includes/core/apps/wordpress-app/tabs/change-domain.php:560
 #: includes/core/apps/wordpress-app/tabs/clone-site.php:404
-#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:235
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:335
 #: includes/core/apps/wordpress-app/tabs/file-manager.php:300
 #: includes/core/apps/wordpress-app/tabs/multitenant-site.php:593
 #: includes/core/apps/wordpress-app/tabs/multitenant-site.php:706
@@ -7920,19 +8454,6 @@ msgstr ""
 msgid "Actions"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs-server/services.php:412
-#: includes/core/apps/wordpress-app/tabs-server/services.php:532
-#: includes/core/apps/wordpress-app/tabs-server/services.php:612
-#: includes/core/apps/wordpress-app/tabs-server/sshkeys.php:239
-#: includes/core/apps/wordpress-app/tabs/change-domain.php:774
-#: includes/core/class-wpcd-email-notifications.php:721
-#: includes/core/class-wpcd-email-notifications.php:767
-#: includes/core/class-wpcd-settings.php:1446
-#: includes/core/class-wpcd-settings.php:1594
-#: includes/core/custom-table/class-wpcd-dns-zone-record.php:285
-msgid "Notes"
-msgstr ""
-
 #: includes/core/apps/wordpress-app/tabs-server/services.php:415
 msgid ""
 "This is your web server.  If you restart it all sites will be temporarily "
@@ -8643,6 +9164,7 @@ msgstr ""
 
 #: includes/core/apps/wordpress-app/tabs-server/ssh_console.php:205
 #: includes/core/apps/wordpress-app/tabs-server/ssh_console.php:253
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:821
 msgid "Execute"
 msgstr ""
 
@@ -9281,7 +9803,7 @@ msgid " There are %s updates pending."
 msgstr ""
 
 #: includes/core/apps/wordpress-app/tabs-server/upgrade.php:392
-msgid "Run Linux Updates"
+msgid "(Optional) Run Linux Updates"
 msgstr ""
 
 #: includes/core/apps/wordpress-app/tabs-server/upgrade.php:402
@@ -9625,7 +10147,7 @@ msgid ""
 msgstr ""
 
 #: includes/core/apps/wordpress-app/tabs-server/upgrade.php:1060
-msgid "Use this button to upgrade WP-CLI to v2.8."
+msgid "Use this button to upgrade WP-CLI to v2.9."
 msgstr ""
 
 #: includes/core/apps/wordpress-app/tabs-server/upgrade.php:1062
@@ -10755,7 +11277,7 @@ msgid ""
 msgstr ""
 
 #: includes/core/apps/wordpress-app/tabs/change-domain.php:403
-msgid "Change Domain On Cloned Template Site To Complete"
+msgid "Start Domain Change On Cloned Template Site"
 msgstr ""
 
 #: includes/core/apps/wordpress-app/tabs/change-domain.php:494
@@ -11072,47 +11594,82 @@ msgid ""
 "in the COMMAND LOG screen."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:170
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:267
 #: includes/core/apps/wordpress-app/tabs/staging.php:421
 msgid "The target domain must be provided"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:179
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:276
 msgid "You must NOT set values for both include and exclude tables!"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:276
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:340
+#, php-format
+msgid "Waiting For Copy To Existing Site To Complete. Target site is %s"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:369
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:399
+msgid "You must provide a site update plan."
+msgstr ""
+
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:407
+msgid ""
+"We were unable to determine the domain for this template site - which is "
+"unsual."
+msgstr ""
+
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:432
+#, php-format
+msgid ""
+"Execution History for Plan %1$s (%2$s) from template domain %3$s (%4$s). "
+"Target: %5$s servers %6$s sites. "
+msgstr ""
+
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:443
+#, php-format
+msgid ""
+"Something went wrong - we are unable to insert a post into "
+"wpcd_app_update_log for this action - %s"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:477
+#, php-format
+msgid "Executing update plan - push template to server: %s"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:515
 msgid "Push this site to an existing site on this server."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:278
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:517
 msgid ""
 "Everything on this tab will overwrite data on your destination site. In "
 "other words, everything on this tab is a destructive operation - use with "
 "care!"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:287
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:526
 msgid "Target Domain"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:291
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:530
 msgid ""
 "The target domain MUST exist on the same server as the source site. An error "
 "will be thrown if we cannot find the domain on the server."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:299
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:538
 #: includes/core/apps/wordpress-app/templates/install-app-popup.php:109
 #: includes/core/apps/wordpress-app/templates/install-app-popup.php:111
 msgid "Domain without www or http - eg: mydomain.com"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:306
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:545
 msgid "Copy Everything"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:309
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:548
 msgid ""
 "Copy all files and all database tables. We will not copy wp-config.php "
 "though. Existing files on the destination that do not exist on the this "
@@ -11120,27 +11677,27 @@ msgid ""
 "dropped and recreated."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:313
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:552
 msgid "Full Sync"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:321
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:560
 msgid ""
 "A full sync will remove all files and tables in the destination that does "
 "not exist in this site."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:333
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:572
 msgid "Push Everything"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:343
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:582
 msgid ""
 "Are you sure you would like to copy this site and overwrite an existing "
 "domain/site?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:347
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:586
 msgid ""
 "Preparing to push this site and overwrite the specified domain...<br /> "
 "Please DO NOT EXIT this screen until you see a popup message indicating that "
@@ -11150,26 +11707,26 @@ msgid ""
 "in the COMMAND LOG screen."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:357
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:596
 msgid "Copy Database"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:360
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:599
 msgid "Copy just the database to the destination site."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:367
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:606
 msgid "Push Database"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:377
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:616
 msgid ""
 "Are you sure you would like to copy this database to the destination site?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:381
-#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:443
-#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:505
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:620
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:682
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:744
 msgid ""
 "Preparing to push the database and overwrite the specified domain...<br /> "
 "Please DO NOT EXIT this screen until you see a popup message indicating that "
@@ -11179,89 +11736,147 @@ msgid ""
 "in the COMMAND LOG screen."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:391
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:630
 msgid "Copy Files Only"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:394
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:633
 msgid ""
 "Copy all files except those folders and files that you specifically exclude."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:397
-msgid "Exclude These Folders"
-msgstr ""
-
-#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:408
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:647
 msgid "Enter excluded folders separated by commas."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:411
-msgid "Exclude These Files"
-msgstr ""
-
-#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:422
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:661
 msgid "Enter excluded files separated by commas."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:429
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:668
 msgid "Push Files"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:439
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:678
 msgid ""
 "Are you sure you would like to copy these files to the destination site?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:453
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:692
 msgid "Copy Partial Database: For the PROs only!"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:456
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:695
 msgid ""
 "Copy all tables except those that you specifically exclude or include.  Do "
 "NOT specify both include and exclude table sets!"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:459
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:698
 msgid "Exclude These Tables"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:470
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:709
 msgid "Enter excluded tables separated by commas."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:473
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:712
 msgid "Include These Tables"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:484
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:723
 msgid "Enter tables to copy separated by commas - only these will be copied."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:491
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:730
 msgid "Push Tables"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:501
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:740
 msgid ""
 "Are you sure you would like to copy these tables to the destination site?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:515
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:754
 msgid "Save Settings"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:518
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:757
 msgid "Save these settings as the default for this site."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:525
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:764
 msgid "Save For This Site"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:568
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:791
+msgid "Execute Update Plan"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:794
+msgid ""
+"Execute an update plan on multiple sites. You generally use this in a SaaS "
+"project where you have individual sites deployed and you need to update "
+"plugins and themes on those sites to match your template."
+msgstr ""
+
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:798
+msgid "Select an update plan"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:818
+msgid "Execute Plan"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:831
+msgid "Are you sure you would like to execute this update plan?"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:842
+msgid "Dry Run"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:845
+msgid "Execute Plan - Dry Run"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:847
+msgid ""
+"This will list out all the servers and sites that will be affected by this "
+"action."
+msgstr ""
+
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:856
+msgid "Are you sure you would like to execute a dry-run this update plan?"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:875
+msgid "Dry Run Results"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:878
+msgid "Sites and servers that would be affected based on last dry run request."
+msgstr ""
+
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:882
+msgid "Affected Servers"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:890
+msgid "Affected Sites"
+msgstr ""
+
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:898
+msgid "Affected Servers & Sites "
+msgstr ""
+
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:935
 msgid "Settings have been saved for this site."
+msgstr ""
+
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:1373
+#, php-format
+msgid "Executing update plan - updating theme & plugin files for domain : %s"
 msgstr ""
 
 #: includes/core/apps/wordpress-app/tabs/crons.php:181
@@ -11374,7 +11989,7 @@ msgid "Set a new username and password for the file manager"
 msgstr ""
 
 #: includes/core/apps/wordpress-app/tabs/file-manager.php:528
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2373
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2374
 #: includes/core/apps/wordpress-app/tabs/php-options.php:651
 #: includes/core/apps/wordpress-app/tabs/theme-and-plugin-updates.php:398
 #: includes/templates/notify_user_form_popup.php:232
@@ -12094,8 +12709,8 @@ msgid ""
 msgstr ""
 
 #: includes/core/apps/wordpress-app/tabs/git-control-site.php:1715
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1827
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2609
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1828
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2610
 msgid "No description available"
 msgstr ""
 
@@ -12419,7 +13034,7 @@ msgstr ""
 
 #: includes/core/apps/wordpress-app/tabs/misc.php:469
 #: includes/core/apps/wordpress-app/tabs/misc.php:566
-#: includes/core/class-wpcd-posts-notify-user.php:742
+#: includes/core/class-wpcd-posts-notify-user.php:745
 msgid "User"
 msgstr ""
 
@@ -12755,7 +13370,7 @@ msgid "The version that tenants should be upgrade to is required."
 msgstr ""
 
 #: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1193
-msgid "The version that tenants should be upgrade FROM is required."
+msgid "The version that tenants should be upgraded FROM is required."
 msgstr ""
 
 #: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1200
@@ -12796,7 +13411,7 @@ msgid ""
 msgstr ""
 
 #: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1546
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1603
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1604
 msgid "Create New Version"
 msgstr ""
 
@@ -12820,17 +13435,24 @@ msgstr ""
 msgid "v1.2.3"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1582
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1580
+msgid ""
+"The version number must be unique across all template sites. Please consider "
+"prefixing the version with something unique to this template or using a "
+"unique postfix."
+msgstr ""
+
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1583
 msgid "New version Description"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1591
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1592
 msgid ""
 "Enter a short description for this new version (e.g: Added kadence theme to "
 "template)"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1596
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1597
 msgid ""
 "Warning: This site appears to be using a remote database server.  The server "
 "on which this site resides should have a local database server since the "
@@ -12838,12 +13460,12 @@ msgid ""
 "this product template."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1612
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1613
 msgid ""
 "Are you sure you would like to create a new version of this template product?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1616
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1617
 msgid ""
 "Preparing to create a new version of this template product on the specified "
 "domain...<br /> Please DO NOT EXIT this screen until you see a popup message "
@@ -12853,90 +13475,90 @@ msgid ""
 "entire log can be viewed in the COMMAND LOG screen."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1636
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1637
 msgid "Set a product name for this template."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1638
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1639
 msgid ""
 "The product name will be shown in places like WooCommerce and makes it "
 "easier to remember what a template site does."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1643
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1649
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1644
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1650
 msgid "Product Name"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1661
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1662
 msgid ""
 "The product name set here is a synonym for the template domain and can be "
 "used to reference this template in WooCommerce products and other locations."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1671
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1672
 msgid "Set Product Name"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1680
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1681
 msgid ""
 "Are you sure you would like to set a new product name for this template "
 "product?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1700
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1701
 msgid "Which version should be the default for new sites?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1705
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1706
 msgid "Production Version"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1711
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1712
 msgid "Choose Default Version"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1729
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1730
 msgid "Set Default Version"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1738
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1739
 msgid ""
 "Are you sure you would like to reset the default version for this template "
 "product?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1765
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1766
 msgid ""
 "This site is a product template - click to remove the template designation"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1767
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1768
 msgid "Make This Site A Product Template"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1772
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1773
 msgid "Template Flag"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1794
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1795
 msgid ""
 "Are you sure you would like to update the template status for this site?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1814
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1815
 msgid "These are the versions for this product template."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1825
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1826
 msgid "Error! No Associated Domain!"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1828
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1829
 msgid "1901-01-01 (unknown)"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1835
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1836
 #: includes/core/custom-table/class-wpcd-ct-childs-list-table.php:188
 #: includes/core/custom-table/class-wpcd-custom-table.php:398
 #: includes/templates/notify_user_alert_list.php:43
@@ -12944,47 +13566,47 @@ msgstr ""
 msgid "Edit"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1838
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1839
 msgid "UTC"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1841
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1842
 msgid "Copies also located on servers:"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1857
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1858
 msgid "Existing Versions"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1886
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1887
 msgid "Push all versions to a server"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1891
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1892
 msgid "Push Versions To Remote Server"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1897
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1898
 msgid "Choose Server"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1916
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1917
 msgid ""
 "All versions of this product template will be pushed to the selected server. "
 "Please make sure that server has enough space to accomodate all the files!"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1926
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1927
 msgid "Push all versions to the specified server"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1935
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1936
 msgid ""
 "Are you sure you would like to push all versions of this product template to "
 "the selected remote server?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1939
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1940
 msgid ""
 "Preparing to push all versions of this product template to the specified "
 "remote server...<br /> Please DO NOT EXIT this screen until you see a popup "
@@ -12994,142 +13616,142 @@ msgid ""
 "entire log can be viewed in the COMMAND LOG screen."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1964
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1987
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1965
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1988
 msgid "Upgrade All Tenants"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1970
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1971
 msgid "Upgrade Tenants To This Version"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1996
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:1997
 msgid ""
 "Are you sure you would like to upgrade all tenants to the selected version?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2003
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2004
 msgid "Upgrade A Subset of Tenants"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2009
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2010
 msgid "Upgrade Only Tenants Who Have This Version"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2024
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2025
 msgid "Upgrade Only Tenants With This App Group"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2044
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2065
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2045
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2066
 msgid "Upgrade"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2053
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2054
 msgid ""
 "Are you sure you would like to upgrade some tenants to the selected version?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2074
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2075
 msgid ""
 "Are you sure you would like to upgrade tenants with this APP GROUP to the "
 "selected version?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2087
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2088
 msgid "Results From Last Upgrade Request"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2100
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2101
 #, php-format
 msgid "Total Sites: %s"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2105
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2106
 #, php-format
 msgid "Succeeded: %s"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2110
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2111
 #, php-format
 msgid "Failed: %s"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2115
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2116
 #, php-format
 msgid "Remaining: %s"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2202
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2211
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2203
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2212
 msgid ""
 "This operation will not impact your database - it will only apply the files "
 "from the product template to this site."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2204
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2213
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2205
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2214
 msgid ""
 "This means that it is possible your database will be out of sync with the "
 "product template after this operation - unless the template includes a "
 "custom plugin or script to update the database as well."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2206
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2207
 msgid "Upgrade or Downgrade"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2207
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2208
 msgid "Apply New Version"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2215
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2216
 msgid ""
 "If you would like the conversion to impact the database, use the COPY TO "
 "EXISTING SITE function first to copy the database and files to this site."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2217
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2218
 msgid "Then you can apply the conversion function located here."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2219
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2220
 msgid "Convert Site To A Tenant"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2220
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2221
 msgid "Convert"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2221
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2222
 msgid "Add this site as a tenant for the above selected product template."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2235
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2236
 msgid "Choose Product Template"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2252
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2253
 msgid "Choose a product template..."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2272
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2273
 msgid "Enter Version"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2284
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2285
 msgid ""
 "Please ensure that the version folder exists on the server where this site "
 "resides. Otherwise the conversion will fail."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2303
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2304
 msgid ""
 "Are you sure you would like to add this site as a tenant for the selected "
 "product template?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2307
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2308
 msgid ""
 "Preparing to convert this site to a tenant...<br /> Please DO NOT EXIT this "
 "screen until you see a popup message indicating that the operation has "
@@ -13138,85 +13760,85 @@ msgid ""
 "operation is complete the entire log can be viewed in the COMMAND LOG screen."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2327
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2328
 msgid ""
 "Many of the tools below have ramifications and side-effects. Please check "
 "with our support team if you are unsure about using any of them."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2341
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2370
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2342
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2371
 msgid "Change Site Type"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2348
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2349
 msgid "Select New Site Type"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2382
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2383
 msgid "Are you sure you would like to change / reset the site type?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2390
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2432
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2391
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2433
 msgid "Clear Site Type"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2393
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2394
 msgid ""
 " The most common reason for using this is to remove the \"mt_template_clone"
 "\" or \"mt_version_clone\" type designator."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2409
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2410
 msgid ""
 "If this site is associated with a parent - e.g.: when a template or version "
 "is cloned - you can break the link to the parent so that the site can start "
 "its own chain."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2413
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2414
 #, php-format
 msgid "The parent for this site is %1$s on server %2$s"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2416
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2417
 msgid ""
 "There is no parent associated with this site. Using this function will clean "
 "up any stray parent-related metas that might exist."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2419
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2420
 msgid "Break Parent Link"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2439
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2440
 msgid "Are you sure you would like to clear the site type for this site?"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2451
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2452
 msgid "Break Link"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2458
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2459
 msgid ""
 "Are you sure you would like to break the link to the parent?  This cannot be "
 "reversed!"
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2484
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2485
 msgid ""
 "There are no options available for sites that are versions of a product "
 "template.."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2488
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2489
 msgid ""
 "There are no options available for sites that are clones of a version of a "
 "product template."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2492
+#: includes/core/apps/wordpress-app/tabs/multitenant-site.php:2493
 msgid "There are no options available for sites that are clones of a template."
 msgstr ""
 
@@ -16102,7 +16724,7 @@ msgid ""
 msgstr ""
 
 #: includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/push-commands.php:158
-msgid "You are running out of disk space on this server."
+msgid "You are almost out of disk space on this server."
 msgstr ""
 
 #. translators: %s is replaced with the number of plugin updates pending for the site.
@@ -16148,7 +16770,7 @@ msgid "Last malware scan detected no malicious items."
 msgstr ""
 
 #: includes/core/apps/wordpress-app/traits/traits-for-class-wordpress-app/push-commands.php:540
-#: includes/core/class-wpcd-posts-notify-user.php:734
+#: includes/core/class-wpcd-posts-notify-user.php:737
 msgid "The server is shutting down."
 msgstr ""
 
@@ -16285,35 +16907,63 @@ msgstr ""
 msgid "Data received successfully."
 msgstr ""
 
-#: includes/core/class-wpcd-dns.php:188
+#: includes/core/class-wpcd-dns.php:191
+#, php-format
+msgid ""
+"We could not add the A record for domain %1$s to Cloudflare - an eror was "
+"returned - %2$s."
+msgstr ""
+
+#: includes/core/class-wpcd-dns.php:203
 #, php-format
 msgid ""
 "The automatic DNS setup for %s in Cloudflare returned an error when adding "
 "the A record. You will need to add this site manually."
 msgstr ""
 
-#: includes/core/class-wpcd-dns.php:225
+#: includes/core/class-wpcd-dns.php:239
+#, php-format
+msgid ""
+"We could not add the AAAA record for domain %1$s to Cloudflare - an eror was "
+"returned - %2$s."
+msgstr ""
+
+#: includes/core/class-wpcd-dns.php:251
 #, php-format
 msgid ""
 "The automatic DNS setup for %s in Cloudflare returned an error when adding "
 "an AAAA record. You will need to add this site manually."
 msgstr ""
 
-#: includes/core/class-wpcd-dns.php:277
+#: includes/core/class-wpcd-dns.php:295 includes/core/class-wpcd-dns.php:314
 #, php-format
 msgid ""
 "We could not obtain details for domain %1$s from Cloudflare - an eror was "
 "returned - %2$s."
 msgstr ""
 
-#: includes/core/class-wpcd-dns.php:354
+#: includes/core/class-wpcd-dns.php:389
+#, php-format
+msgid ""
+"We could not delete the A record for domain %1$s to Cloudflare - an eror was "
+"returned - %2$s."
+msgstr ""
+
+#: includes/core/class-wpcd-dns.php:402
 #, php-format
 msgid ""
 "We were unable to delete the A record for domain %1$s in Cloudflare - an "
 "eror was returned: %2$s. You will need to add this site manually."
 msgstr ""
 
-#: includes/core/class-wpcd-dns.php:391
+#: includes/core/class-wpcd-dns.php:437
+#, php-format
+msgid ""
+"We could not delete the AAAA record for domain %1$s to Cloudflare - an eror "
+"was returned - %2$s."
+msgstr ""
+
+#: includes/core/class-wpcd-dns.php:450
 #, php-format
 msgid ""
 "We were unable to delete the AAAA record for domain %1$s in Cloudflare - an "
@@ -16605,7 +17255,7 @@ msgid "Please enter notes."
 msgstr ""
 
 #: includes/core/class-wpcd-email-notifications.php:299
-#: includes/core/class-wpcd-posts-notify-user.php:435
+#: includes/core/class-wpcd-posts-notify-user.php:438
 msgid "Are you sure?"
 msgstr ""
 
@@ -16858,7 +17508,7 @@ msgstr ""
 
 #: includes/core/class-wpcd-email-notifications.php:929
 #: includes/core/class-wpcd-email-notifications.php:1688
-#: includes/core/class-wpcd-posts-notify-user.php:813
+#: includes/core/class-wpcd-posts-notify-user.php:816
 msgid "Error in deletion."
 msgstr ""
 
@@ -17997,7 +18647,7 @@ msgstr ""
 #: includes/core/class-wpcd-posts-error-log.php:187
 #: includes/core/class-wpcd-posts-notify-log.php:338
 #: includes/core/class-wpcd-posts-notify-sent-log.php:209
-#: includes/core/class-wpcd-posts-notify-user.php:411
+#: includes/core/class-wpcd-posts-notify-user.php:414
 #: includes/core/class-wpcd-posts-pending-tasks-log.php:259
 #: includes/core/custom-table/class-wpcd-dns-zone-record.php:246
 msgid "Type"
@@ -18010,8 +18660,8 @@ msgstr ""
 #: includes/core/class-wpcd-posts-command-log.php:215
 #: includes/core/class-wpcd-posts-notify-log.php:340
 #: includes/core/class-wpcd-posts-notify-sent-log.php:211
-#: includes/core/class-wpcd-posts-notify-user.php:412
-#: includes/core/class-wpcd-posts-pending-tasks-log.php:1371
+#: includes/core/class-wpcd-posts-notify-user.php:415
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:1372
 #: includes/templates/pending_tasks_log.php:48
 msgid "Reference"
 msgstr ""
@@ -18122,45 +18772,45 @@ msgstr ""
 msgid "Clean Up"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-log.php:352
-#: includes/core/class-wpcd-posts-log.php:407
+#: includes/core/class-wpcd-posts-log.php:355
+#: includes/core/class-wpcd-posts-log.php:410
 msgid "Invalid request."
 msgstr ""
 
-#: includes/core/class-wpcd-posts-log.php:357
-#: includes/core/class-wpcd-posts-log.php:412
+#: includes/core/class-wpcd-posts-log.php:360
+#: includes/core/class-wpcd-posts-log.php:415
 msgid "You are not authorized to perform this action - purge logs."
 msgstr ""
 
-#: includes/core/class-wpcd-posts-log.php:391
+#: includes/core/class-wpcd-posts-log.php:394
 msgid "All log entries have been removed."
 msgstr ""
 
-#: includes/core/class-wpcd-posts-log.php:396
-#: includes/core/class-wpcd-posts-log.php:458
+#: includes/core/class-wpcd-posts-log.php:399
+#: includes/core/class-wpcd-posts-log.php:461
 msgid "No Entries for deletion."
 msgstr ""
 
-#: includes/core/class-wpcd-posts-log.php:453
+#: includes/core/class-wpcd-posts-log.php:456
 msgid "All sent log entries have been removed."
 msgstr ""
 
-#: includes/core/class-wpcd-posts-log.php:612
+#: includes/core/class-wpcd-posts-log.php:615
 msgctxt "Comma-separated list of search stopwords in your language"
 msgid ""
 "about,an,are,as,at,be,by,com,for,from,how,in,is,it,of,on,or,that,the,this,to,"
 "was,what,when,where,who,will,with,www"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-log.php:712
+#: includes/core/class-wpcd-posts-log.php:715
 #: includes/core/class-wpcd-posts-permission-type.php:825
 #: includes/core/class-wpcd-posts-team.php:569
 #: includes/core/class-wpcd-posts-team.php:645
 msgid "You don't have access to this page."
 msgstr ""
 
-#: includes/core/class-wpcd-posts-log.php:729
-#: includes/core/class-wpcd-posts-notify-user.php:1190
+#: includes/core/class-wpcd-posts-log.php:732
+#: includes/core/class-wpcd-posts-notify-user.php:1193
 #: includes/core/class-wpcd-posts-team.php:662
 #: includes/core/traits/metaboxes_for_taxonomies_for_servers_and_apps.php:496
 msgid "Back To List"
@@ -18380,63 +19030,63 @@ msgid ""
 "notification_id : %d"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:100
+#: includes/core/class-wpcd-posts-notify-user.php:103
 msgctxt "Post type general name"
 msgid "User Notifications"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:101
+#: includes/core/class-wpcd-posts-notify-user.php:104
 msgctxt "Post type singular name"
 msgid "User Notification"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:102
+#: includes/core/class-wpcd-posts-notify-user.php:105
 msgctxt "Admin Menu text"
 msgid "User Notification"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:103
+#: includes/core/class-wpcd-posts-notify-user.php:106
 msgctxt "Add New on Toolbar"
 msgid "User Notification"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:104
-#: includes/core/class-wpcd-posts-notify-user.php:105
+#: includes/core/class-wpcd-posts-notify-user.php:107
+#: includes/core/class-wpcd-posts-notify-user.php:108
 msgid "New User Notification"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:106
+#: includes/core/class-wpcd-posts-notify-user.php:109
 msgid "Edit User Notification"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:107
+#: includes/core/class-wpcd-posts-notify-user.php:110
 msgid "View User Notification"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:108
+#: includes/core/class-wpcd-posts-notify-user.php:111
 msgid "Profiles"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:109
+#: includes/core/class-wpcd-posts-notify-user.php:112
 msgid "Search User Notification"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:110
+#: includes/core/class-wpcd-posts-notify-user.php:113
 msgid "No User Notifications were found."
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:111
+#: includes/core/class-wpcd-posts-notify-user.php:114
 msgid "No User Notifications were found in Trash."
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:112
+#: includes/core/class-wpcd-posts-notify-user.php:115
 msgctxt ""
 "Screen reader text for the filter links heading on the post type listing "
 "screen. Default \"Filter posts list\"/\"Filter pages list\". Added in 4.4"
 msgid "Filter User Notification list"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:113
+#: includes/core/class-wpcd-posts-notify-user.php:116
 msgctxt ""
 "Screen reader text for the pagination heading on the post type listing "
 "screen. Default \"Posts list navigation\"/\"Pages list navigation\". Added "
@@ -18444,122 +19094,122 @@ msgctxt ""
 msgid "User Notification list navigation"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:114
+#: includes/core/class-wpcd-posts-notify-user.php:117
 msgctxt ""
 "Screen reader text for the items list heading on the post type listing "
 "screen. Default \"Posts list\"/\"Pages list\". Added in 4.4"
 msgid "User Notification list"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:165
+#: includes/core/class-wpcd-posts-notify-user.php:168
 msgid "Setup Alert"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:171
+#: includes/core/class-wpcd-posts-notify-user.php:174
 #: includes/templates/notify_user_alert_list.php:38
 #: includes/templates/notify_user_form_popup.php:80
 msgid "Name / Description"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:175
+#: includes/core/class-wpcd-posts-notify-user.php:178
 msgid "Please enter a notification profile name or description."
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:183
+#: includes/core/class-wpcd-posts-notify-user.php:186
 #: includes/templates/notify_user_alert_list.php:39
 #: includes/templates/notify_user_form_popup.php:86
 msgid "Email Addresses"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:187
+#: includes/core/class-wpcd-posts-notify-user.php:190
 msgid "Separate multiple email addresses with commas."
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:195
+#: includes/core/class-wpcd-posts-notify-user.php:198
 #: includes/templates/notify_user_alert_list.php:40
 #: includes/templates/notify_user_form_popup.php:94
 msgid "Slack Webhooks"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:199
+#: includes/core/class-wpcd-posts-notify-user.php:202
 msgid "Separate multiple Slack hooks with commas."
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:207
+#: includes/core/class-wpcd-posts-notify-user.php:210
 msgid "Send to zapier"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:213
+#: includes/core/class-wpcd-posts-notify-user.php:216
 msgid "Zapier Webhooks"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:217
+#: includes/core/class-wpcd-posts-notify-user.php:220
 msgid "Separate multiple Zapier hooks with commas."
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:222
+#: includes/core/class-wpcd-posts-notify-user.php:225
 #: includes/templates/notify_user_form_popup.php:131
 msgid "TEST"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:228
+#: includes/core/class-wpcd-posts-notify-user.php:231
 msgid "Test zapier webhooks by sending dummy data."
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:240
-#: includes/core/class-wpcd-posts-notify-user.php:253
-#: includes/core/class-wpcd-posts-notify-user.php:266
-#: includes/core/class-wpcd-posts-notify-user.php:279
+#: includes/core/class-wpcd-posts-notify-user.php:243
+#: includes/core/class-wpcd-posts-notify-user.php:256
+#: includes/core/class-wpcd-posts-notify-user.php:269
+#: includes/core/class-wpcd-posts-notify-user.php:282
 msgid "Select All | None"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:434
+#: includes/core/class-wpcd-posts-notify-user.php:437
 msgid "Please add value in any of the notification methods."
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:463
+#: includes/core/class-wpcd-posts-notify-user.php:466
 #: includes/templates/notify_user_form_popup.php:90
 msgid "Please enter valid email addresses."
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:464
+#: includes/core/class-wpcd-posts-notify-user.php:467
 msgid "Please enter valid Slack webhooks."
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:465
+#: includes/core/class-wpcd-posts-notify-user.php:468
 msgid "Please enter valid Zapier webhooks."
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:466
+#: includes/core/class-wpcd-posts-notify-user.php:469
 msgid ""
 "Please add value to at least one of the notification methods - email, Slack "
 "or Zapier."
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:467
+#: includes/core/class-wpcd-posts-notify-user.php:470
 msgid "Please enter the Zapier webhooks."
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:469
+#: includes/core/class-wpcd-posts-notify-user.php:472
 msgid "Please select one or more servers."
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:470
+#: includes/core/class-wpcd-posts-notify-user.php:473
 msgid "Please select one or more sites."
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:471
+#: includes/core/class-wpcd-posts-notify-user.php:474
 msgid "Please select one ore more notification types."
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:473
+#: includes/core/class-wpcd-posts-notify-user.php:476
 msgid "Please select one or more references."
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:508
-#: includes/core/class-wpcd-posts-notify-user.php:535
-#: includes/core/class-wpcd-posts-notify-user.php:718
-#: includes/core/class-wpcd-posts-notify-user.php:785
+#: includes/core/class-wpcd-posts-notify-user.php:511
+#: includes/core/class-wpcd-posts-notify-user.php:538
+#: includes/core/class-wpcd-posts-notify-user.php:721
+#: includes/core/class-wpcd-posts-notify-user.php:788
 #: includes/templates/notify_user_alert_list.php:84
 #: includes/templates/notify_user_form_popup.php:246
 msgid ""
@@ -18567,129 +19217,147 @@ msgid ""
 "to access it."
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:699
+#: includes/core/class-wpcd-posts-notify-user.php:702
 msgid "Notification profile saved."
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:702
+#: includes/core/class-wpcd-posts-notify-user.php:705
 msgid "An error was encountered while attempting to save this data."
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:728
+#: includes/core/class-wpcd-posts-notify-user.php:731
 msgid "This is a test message from wpclouddeploy."
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:729
+#: includes/core/class-wpcd-posts-notify-user.php:732
 msgid "testuser"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:730
+#: includes/core/class-wpcd-posts-notify-user.php:733
 msgid "12"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:731
+#: includes/core/class-wpcd-posts-notify-user.php:734
 msgid "testuser@gmail.com"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:732
+#: includes/core/class-wpcd-posts-notify-user.php:735
 msgid "warning"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:733
+#: includes/core/class-wpcd-posts-notify-user.php:736
 msgid "power"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:735
+#: includes/core/class-wpcd-posts-notify-user.php:738
 msgid "test-server-instance"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:736
+#: includes/core/class-wpcd-posts-notify-user.php:739
 msgid "123.45.67.890"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:739
+#: includes/core/class-wpcd-posts-notify-user.php:742
 msgid "1234567"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:740
+#: includes/core/class-wpcd-posts-notify-user.php:743
 msgid "9876543"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:743
+#: includes/core/class-wpcd-posts-notify-user.php:746
 msgid "122.133.144.55"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:744
+#: includes/core/class-wpcd-posts-notify-user.php:747
 msgid "digital-ocean"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:766
+#: includes/core/class-wpcd-posts-notify-user.php:769
 msgid "Can not able to test added zapier webhooks."
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:769
+#: includes/core/class-wpcd-posts-notify-user.php:772
 msgid "Zapier webhook tested successfully."
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:810
+#: includes/core/class-wpcd-posts-notify-user.php:813
 msgid "Data successfully deleted."
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:817
+#: includes/core/class-wpcd-posts-notify-user.php:820
 msgid "Record not found in database."
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:934
+#: includes/core/class-wpcd-posts-notify-user.php:937
 msgid "Malware"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:937
+#: includes/core/class-wpcd-posts-notify-user.php:940
 msgid "Updates"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:938
+#: includes/core/class-wpcd-posts-notify-user.php:941
 msgid "Snapshots"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:940
+#: includes/core/class-wpcd-posts-notify-user.php:943
 msgid "Backup Configuration Files"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:941
+#: includes/core/class-wpcd-posts-notify-user.php:944
 msgid "Server Configuration"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:942
+#: includes/core/class-wpcd-posts-notify-user.php:945
 msgid "Pending log records stuck"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:943
+#: includes/core/class-wpcd-posts-notify-user.php:946
 msgid "Site or server quotas exceeded"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:944
+#: includes/core/class-wpcd-posts-notify-user.php:947
 msgid "Disk Space Available"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:945
+#: includes/core/class-wpcd-posts-notify-user.php:948
 msgid "Periodic Site Images (Powertools)"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:946
+#: includes/core/class-wpcd-posts-notify-user.php:949
 #: includes/core/class-wpcd-settings.php:238
 #: includes/core/class-wpcd-settings.php:332
 msgid "Other"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:1016
+#: includes/core/class-wpcd-posts-notify-user.php:1019
 msgid "WPCD: Setup Notification Alerts"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-notify-user.php:1097
-#: includes/core/class-wpcd-posts-notify-user.php:1104
+#: includes/core/class-wpcd-posts-notify-user.php:1100
+#: includes/core/class-wpcd-posts-notify-user.php:1107
 msgid ""
 "You are not allowed to perform this action. You have not accesss for the "
 "selected servers/sites."
+msgstr ""
+
+#: includes/core/class-wpcd-posts-notify-user.php:1235
+msgid ""
+"Warning - your global notifications template or template subject is blank!"
+msgstr ""
+
+#: includes/core/class-wpcd-posts-notify-user.php:1239
+msgid ""
+"Please note that notifications will only be sent if and only if you have "
+"also configured the text of your notifications in the Settings → APP:"
+"WordPress Settings tab"
+msgstr ""
+
+#: includes/core/class-wpcd-posts-notify-user.php:1241
+msgid ""
+"There, you can setup notifications under the EMAIL NOTIFICATIONS tab ( and/"
+"or the SLACK and ZAPIER notifications tab as well.)"
 msgstr ""
 
 #: includes/core/class-wpcd-posts-pending-tasks-log.php:101
@@ -18764,13 +19432,13 @@ msgid "No Server"
 msgstr ""
 
 #: includes/core/class-wpcd-posts-pending-tasks-log.php:260
-#: includes/core/class-wpcd-posts-pending-tasks-log.php:1368
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:1369
 #: includes/templates/pending_tasks_log.php:33
 msgid "Key"
 msgstr ""
 
 #: includes/core/class-wpcd-posts-pending-tasks-log.php:261
-#: includes/core/class-wpcd-posts-pending-tasks-log.php:1369
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:1370
 #: includes/templates/pending_tasks_log.php:38
 msgid "State"
 msgstr ""
@@ -18780,7 +19448,7 @@ msgid "Attempts"
 msgstr ""
 
 #: includes/core/class-wpcd-posts-pending-tasks-log.php:263
-#: includes/core/class-wpcd-posts-pending-tasks-log.php:1372
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:1373
 #: includes/templates/pending_tasks_log.php:53
 msgid "Comment"
 msgstr ""
@@ -18845,79 +19513,79 @@ msgstr ""
 msgid "Stuck pending log cleaned up successfully for task id %1$s.(%2$s)"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-pending-tasks-log.php:1336
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:1337
 msgid ""
 "The following background tasks (aka pending task) have been started but are "
 "taking a long time to complete - more than 15 minutes.  Most tasks take less "
 "time than that."
 msgstr ""
 
-#: includes/core/class-wpcd-posts-pending-tasks-log.php:1337
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:1338
 msgid ""
 "Creating a new server, changing domains on large sites and backing up large "
 "sites are some of the tasks that might take longer than 15 minutes."
 msgstr ""
 
-#: includes/core/class-wpcd-posts-pending-tasks-log.php:1338
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:1339
 msgid ""
 "You should take a look at the tasks listed below to see if there is a "
 "legitimate reason that they are taking longer to complete or if there is an "
 "issue that is preventing them from completing properly."
 msgstr ""
 
-#: includes/core/class-wpcd-posts-pending-tasks-log.php:1339
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:1340
 msgid ""
 "You can start your investigation on the PENDING TASKS screen.  There you can "
 "use the ALL STATES dropdown on the filter bar to view all tasks that are in-"
 "process."
 msgstr ""
 
-#: includes/core/class-wpcd-posts-pending-tasks-log.php:1340
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:1341
 msgid ""
 "Please note that a task that is taking too long to complete will prevent "
 "other tasks from running on the server."
 msgstr ""
 
-#: includes/core/class-wpcd-posts-pending-tasks-log.php:1363
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:1364
 msgid "This is the last alert you will receive about this overdue task."
 msgstr ""
 
-#: includes/core/class-wpcd-posts-pending-tasks-log.php:1366
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:1367
 msgid "Task Id"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-pending-tasks-log.php:1367
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:1368
 #: includes/templates/pending_tasks_log.php:28
 msgid "Pending Task Type"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-pending-tasks-log.php:1370
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:1371
 #: includes/templates/pending_tasks_log.php:43
 msgid "Attempts To Complete"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-pending-tasks-log.php:1373
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:1374
 #: includes/templates/pending_tasks_log.php:67
 msgid "Date Started"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-pending-tasks-log.php:1374
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:1375
 #: includes/templates/command_log.php:43
 #: includes/templates/pending_tasks_log.php:82
 msgid "Log Owner or Parent ID"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-pending-tasks-log.php:1375
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:1376
 #: includes/templates/pending_tasks_log.php:86
 msgid "Parent Post Type"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-pending-tasks-log.php:1376
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:1377
 #: includes/templates/pending_tasks_log.php:90
 msgid "Associated Server ID"
 msgstr ""
 
-#: includes/core/class-wpcd-posts-pending-tasks-log.php:1390
+#: includes/core/class-wpcd-posts-pending-tasks-log.php:1391
 msgid "One or more background tasks are taking a long time to complete."
 msgstr ""
 
@@ -21613,11 +22281,11 @@ msgstr ""
 msgid "Wrong Nonce"
 msgstr ""
 
-#: includes/core/functions.php:1682
+#: includes/core/functions.php:1717
 msgid "Copied"
 msgstr ""
 
-#: includes/core/functions.php:1682
+#: includes/core/functions.php:1717
 msgid "Click to copy"
 msgstr ""
 
@@ -22571,21 +23239,21 @@ msgid "Every 15 minutes"
 msgstr ""
 
 #. translators: %s php version
-#: wpcd.php:566
+#: wpcd.php:572
 #, php-format
 msgid ""
 "<strong>WPCloudDeploy plugin requires a PHP version greater or equal to "
 "\"7.4.0\". You are running %s.</strong>"
 msgstr ""
 
-#: wpcd.php:577
+#: wpcd.php:583
 msgid ""
 "<strong>You cannot run the WPCloudDeploy plugin on a localhost server or a "
 "server that cannot be reached from the internet.</strong>"
 msgstr ""
 
 #. translators: %s read more
-#: wpcd.php:586
+#: wpcd.php:592
 #, php-format
 msgid ""
 "<strong>WPCD_ENCRYPTION_KEY</strong> is not defined in wp-config.php. We "
@@ -22595,12 +23263,12 @@ msgid ""
 "your database. %s"
 msgstr ""
 
-#: wpcd.php:586 wpcd.php:593
+#: wpcd.php:592 wpcd.php:599
 msgid "Read More"
 msgstr ""
 
 #. translators: %s read more
-#: wpcd.php:593
+#: wpcd.php:599
 #, php-format
 msgid ""
 "<strong>WPCD_ENCRYPTION_KEY</strong> is defined in wp-config.php but is "
@@ -22608,7 +23276,7 @@ msgid ""
 "STRONGLY recommend that you set a new encryption key. %s"
 msgstr ""
 
-#: wpcd.php:602
+#: wpcd.php:608
 msgid ""
 "Warning: WPCloudDeploy cannot use the WordPress default permalink. Please "
 "change the permalinks option to something other than <em>plain.</em> This "
@@ -22616,7 +23284,7 @@ msgid ""
 "option."
 msgstr ""
 
-#: wpcd.php:609
+#: wpcd.php:615
 msgid ""
 "<strong>WPCD: Warning</strong> - The <em>includes/core/apps/wordpress-app/"
 "scripts/v1/raw/ </em> folder on your WordPress server does not allow text "
@@ -22631,34 +23299,34 @@ msgid ""
 "check-again\">Check Again</a>"
 msgstr ""
 
-#: wpcd.php:620
+#: wpcd.php:626
 msgid "<strong>WPCD: Warning</strong> - "
 msgstr ""
 
 #. translators: %s: Site title.
-#: wpcd.php:648
+#: wpcd.php:654
 #, php-format
 msgid "[%s] - One or more critical crons are not running..."
 msgstr ""
 
-#: wpcd.php:652
+#: wpcd.php:658
 msgid "Hello Admin,"
 msgstr ""
 
-#: wpcd.php:654
+#: wpcd.php:660
 msgid ""
 "<strong>WPCD: Warning</strong> - certain critical CRONS are not running on "
 "your site.  Below are the ones that appear to be missing:"
 msgstr ""
 
-#: wpcd.php:658
+#: wpcd.php:664
 msgid ""
 "It is possible that this is a minor hiccup or false positive and the cron(s) "
 "are still running. You can use the free WP CRONTROL plugin to examine "
 "running crons to see if the crons are still present and active."
 msgstr ""
 
-#: wpcd.php:660
+#: wpcd.php:666
 msgid ""
 "Before contacting support, please try to disable and renable the plugin to "
 "reactivate crons. Additionally, please verify that your WP CRON is firing "
@@ -22666,48 +23334,48 @@ msgid ""
 "cron process or better yet, the use of the WPCD BETTER CRONS method."
 msgstr ""
 
-#: wpcd.php:662
+#: wpcd.php:668
 msgid "--------"
 msgstr ""
 
-#: wpcd.php:664
+#: wpcd.php:670
 msgid ""
 "If you do not want to receive these emails you can turn them off in the "
 "settings area under the MISC tab."
 msgstr ""
 
-#: wpcd.php:666
+#: wpcd.php:672
 msgid "Thanks,"
 msgstr ""
 
-#: wpcd.php:668
+#: wpcd.php:674
 msgid "- Your WP Management Dashboard BOT."
 msgstr ""
 
-#: wpcd.php:822
+#: wpcd.php:828
 msgid ""
 "View friendly release notes to learn about any breaking changes that might "
 "affect you."
 msgstr ""
 
-#: wpcd.php:864
+#: wpcd.php:870
 #, php-format
 msgid "Powered by %1$s %2$s."
 msgstr ""
 
-#: wpcd.php:1020
+#: wpcd.php:1026
 msgid ""
 "WPCD Cannot remain activated because the following add-ons are not "
 "compatible with this version."
 msgstr ""
 
-#: wpcd.php:1030
+#: wpcd.php:1036
 msgid ""
 "These addons are incompatible with WPCloudDeploy. WPCloudDeploy has been "
 "deactivated."
 msgstr ""
 
-#: wpcd.php:1110
+#: wpcd.php:1116
 msgid "<strong>These addons are incompatible with WPCD.</strong>"
 msgstr ""
 

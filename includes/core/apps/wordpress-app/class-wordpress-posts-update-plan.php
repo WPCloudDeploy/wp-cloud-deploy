@@ -44,6 +44,12 @@ class WPCD_POSTS_App_Update_Plan extends WPCD_Posts_Base {
 		// Change ADD TITLE placeholder text.
 		add_filter( 'enter_title_here', array( $this, 'change_enter_title_text' ) );
 
+		// Filter hook to add new columns.
+		add_filter( 'manage_wpcd_app_update_plan_posts_columns', array( $this, 'manage_table_head' ), 10, 1 );
+
+		// Action hook to add values in new columns.
+		add_action( 'manage_wpcd_app_update_plan_posts_custom_column', array( $this, 'manage_table_content' ), 10, 2 );
+
 		// Add a message after the title field when add/editing an item.
 		add_action( 'edit_form_after_title', array( $this, 'wpcd_after_title_notice' ), 10, 1 );
 
@@ -363,7 +369,7 @@ class WPCD_POSTS_App_Update_Plan extends WPCD_Posts_Base {
 			'post_types' => array( 'wpcd_app_update_plan' ),
 			'priority'   => 'default',
 			'fields'     => $fields_wp_config_custom_data,
-		);		
+		);
 
 		$metaboxes[] = array(
 			'id'         => 'wpcd_app_update_plan_site_metas',
@@ -401,6 +407,69 @@ class WPCD_POSTS_App_Update_Plan extends WPCD_Posts_Base {
 		);
 
 		return $metaboxes;
+	}
+
+	/**
+	 * Add table header values
+	 *
+	 * @param array $defaults array of default head values.
+	 *
+	 * @return $defaults modified array with new columns
+	 */
+	public function manage_table_head( $defaults ) {
+
+		unset( $defaults['date'] );
+
+		$defaults['wpcd_update_plan_server_count'] = __( 'Planned Servers', 'wpcd' );
+		$defaults['wpcd_update_plan_site_count']   = __( 'Planned Sites', 'wpcd' );
+		$defaults['date']                          = __( 'Date', 'wpcd' );
+
+		return $defaults;
+
+	}
+
+	/**
+	 * Add contents to the table columns
+	 *
+	 * @param string $column_name column name.
+	 * @param int    $post_id post id.
+	 *
+	 * print column value.
+	 */
+	public function manage_table_content( $column_name, $post_id ) {
+
+		$value = '';
+
+		switch ( $column_name ) {
+
+			case 'wpcd_update_plan_server_count':
+				$servers_and_sites = $this->get_server_and_sites( $post_id );
+				$value             = count( $servers_and_sites['servers'] );
+				break;
+
+			case 'wpcd_update_plan_site_count':
+				$servers_and_sites = $this->get_server_and_sites( $post_id );
+				$value             = count( $servers_and_sites['sites'] );
+				break;
+
+			default:
+				break;
+		}
+
+		$allowed_html = array(
+			'a'      => array(
+				'href'  => array(),
+				'title' => array(),
+			),
+			'br'     => array(),
+			'em'     => array(),
+			'strong' => array(),
+			'span'   => array( 'class' => true ),
+			'class'  => array(),
+		);
+
+		echo wp_kses( $value, $allowed_html );
+
 	}
 
 	/**

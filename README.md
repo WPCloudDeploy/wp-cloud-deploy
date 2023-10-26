@@ -139,6 +139,7 @@ Note: Even though the entire git development history isn't available on github, 
 * Enh: WPAPP - Add option in site packages to add a version label into wp-config and the site metas.
 * Enh: WPAPP - Add option in site packages to remove debug.log from tenant/customer site for new installs.
 * Enh: WPAPP - Add option in site packages to apply a group/category for new sites as well as for upgrades/downgrades.
+* Enh: WPAPP - WP-CLI 2.9 is now installed by default. An upgrade option has been added to the UPGRADE tab on all servers.
 * Tweak: WPAPP - Show a warning when setting up a user notification in wp-admin and the global notification template is blank.
 * Tweak: WPAPP - Bash script 24 - send certain output to null.
 * Fix: Left bar on settings screen would hide tooltips if the tooltips was too close to it.

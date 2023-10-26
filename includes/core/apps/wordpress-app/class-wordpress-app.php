@@ -1457,12 +1457,39 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		$initial_plugin_version = $this->get_server_meta_by_app_id( $server_id, 'wpcd_server_plugin_initial_version', true );  // This function is smart enough to know if the ID being passed is a server or app id and adjust accordingly.
 
 		if ( version_compare( $initial_plugin_version, '5.3.2' ) > -1 ) {
-			// Versions of the plugin after 5.3.2 automatically install wpcli 2.7.
+			// Versions of the plugin after 5.3.2 automatically install wpcli 2.8.
 			return true;
 		} else {
 			// See if it was manually upgraded - which would leave a meta field value behind on the server CPT record.
 			$it_is_installed = (float) $this->get_server_meta_by_app_id( $server_id, 'wpcd_server_wpcli_upgrade', true );   // This function is smart enough to know if the ID being passed is a server or app id and adjust accordingly.
 			if ( $it_is_installed >= 2.8 ) {
+				return true;
+			} else {
+				return false;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Returns a boolean true/false if wpcli 2.9 is installed.
+	 *
+	 * @param int $server_id ID of server being interrogated.
+	 *
+	 * @return boolean
+	 */
+	public function is_wpcli29_installed( $server_id ) {
+
+		$initial_plugin_version = $this->get_server_meta_by_app_id( $server_id, 'wpcd_server_plugin_initial_version', true );  // This function is smart enough to know if the ID being passed is a server or app id and adjust accordingly.
+
+		if ( version_compare( $initial_plugin_version, '5.4.1' ) > -1 ) {
+			// Versions of the plugin after 5.4.0 automatically install wpcli 2.9.
+			return true;
+		} else {
+			// See if it was manually upgraded - which would leave a meta field value behind on the server CPT record.
+			$it_is_installed = (float) $this->get_server_meta_by_app_id( $server_id, 'wpcd_server_wpcli_upgrade', true );   // This function is smart enough to know if the ID being passed is a server or app id and adjust accordingly.
+			if ( $it_is_installed >= 2.9 ) {
 				return true;
 			} else {
 				return false;
@@ -3028,11 +3055,11 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 		// Get WP data to process.
 		if ( empty( $args ) ) {
-			// data is comming in via $_REQUEST which means that the site is being provisioned via wp-admin or a UI.
+			// data is coming in via $_REQUEST which means that the site is being provisioned via wp-admin or a UI.
 			$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_REQUEST['params'] ) ) );
 			$id   = sanitize_text_field( $_REQUEST['id'] );  // Post ID of the server where the wp app is being installed.
 		} else {
-			// data is being passed in directly which means that the site is likely being provisioned via woocommerce or the REST API.
+			// data is being passed in directly which means that the site is likely being provisioned by others such as via the WPCD woocommerce integration or the REST API or powertools bulk installs
 			$id = $args['id'];
 		}
 

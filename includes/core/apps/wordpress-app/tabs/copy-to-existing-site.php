@@ -1369,6 +1369,12 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 								$new_args['wpexcludefile'] = $excluded_files;
 							}
 
+							if ( true === (bool) get_post_meta( $plan_id, 'wpcd_app_update_plan_enable_backup', true ) ) {
+								// Need to include a bucket for the backup.
+								$creds                       = $this->get_s3_credentials_for_backup( $site_id );  // Function get_s3_credentials_for_backup is located in a trait file.
+								$new_args['aws_bucket_name'] = $creds['aws_bucket_name_noesc']; // Key and Secret should already be configured on the server so not passing that. Function executing the copy will escape the bucket name.
+							}
+
 							$new_pending_task_status = 'ready';
 							WPCD_POSTS_PENDING_TASKS_LOG()->add_pending_task_log_entry( $site_id, 'execute-update-plan-update-site-files', $update_domain, $new_args, $new_pending_task_status, $site_id, sprintf( __( 'Executing update plan - updating theme & plugin files for domain : %s', 'wpcd' ), $update_domain ) );
 

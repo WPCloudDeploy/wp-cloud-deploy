@@ -5,7 +5,7 @@ echo "done" && {
 	sudo -E wget --no-check-certificate -O ##SCRIPT_NAME_BACKUP## ##SCRIPT_URL_BACKUP## &&
 	sudo -E dos2unix ##SCRIPT_NAME_BACKUP## &&	
     sudo -E wget --no-check-certificate -O ##SCRIPT_NAME## ##SCRIPT_URL## &&
-	export action=##ACTION## source_domain=##SOURCE_DOMAIN## target_domain=##TARGET_DOMAIN## wpconfig=##WPCONFIG## full_sync=##FULL_SYNC## wpexcludefolder=##WPEXCLUDEFOLDER## wpexcludefile=##WPEXCLUDEFILE## wpexcludedbtable=##WPEXCLUDEDBTABLE## wpincludedbtable=##WPINCLUDEDBTABLE## &&
+	export action=##ACTION## source_domain=##SOURCE_DOMAIN## target_domain=##TARGET_DOMAIN## wpconfig=##WPCONFIG## full_sync=##FULL_SYNC## wpexcludefolder=##WPEXCLUDEFOLDER## wpexcludefile=##WPEXCLUDEFILE## wpexcludedbtable=##WPEXCLUDEDBTABLE## wpincludedbtable=##WPINCLUDEDBTABLE## aws_bucket_name=##AWS_BUCKET_NAME## &&
     sudo -E dos2unix ##SCRIPT_NAME## &&
     sudo -E bash ##SCRIPT_NAME## >> ##SCRIPT_LOGS##.log.intermed 2>&1 &&
     sudo -E mv ##SCRIPT_LOGS##.log.intermed ##SCRIPT_LOGS##.log.done &&

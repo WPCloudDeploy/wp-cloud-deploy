@@ -429,7 +429,7 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 		$batch_id = wp_insert_post(
 			array(
 				/* Translators: %1$s is the update plan id (post id); %2$s is the plan id; %3$s is the template domain;  %4$s is the template domain post id; %5$s is a count of servers; %6$s is a count of sites.  */
-				'post_title'   => sprintf( __( 'Execution History for Plan %1$s (%2$s) from template domain %3$s (%4$s). Target: %5$s servers %6$s sites. ', 'wpcd' ), $update_plan_id, $plan_title, $template_domain, $id, count( $servers_and_sites['servers'] ), count( $servers_and_sites['sites'] ) ),
+				'post_title'   => sprintf( __( 'Execution History for Plan %1$s (%2$s) from template domain %3$s (%4$s). Target: %5$s servers, %6$s sites. ', 'wpcd' ), $update_plan_id, $plan_title, $template_domain, $id, count( $servers_and_sites['servers'] ), count( $servers_and_sites['sites'] ) ),
 				'post_content' => '',
 				'post_status'  => 'private',
 				'post_author'  => get_current_user_id(),
@@ -1220,7 +1220,7 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 					$new_domain = WPCD_DNS()->get_full_temp_domain( 6 );
 					if ( empty( $new_domain ) ) {
 						// We'll just make something up here since we have no domain string.
-						$new_domain = WPCD_DNS()->get_subdomain() . 'dev';
+						$new_domain = 'update-plan-' . WPCD_DNS()->get_subdomain( 6 ) . '.dev';
 					} else {
 						// We'll addd a prefix to the temporary domain name to make it easier that this is associated with an update plan.
 						// Maybe later we'll be able to add in a category/tag/group label instead.

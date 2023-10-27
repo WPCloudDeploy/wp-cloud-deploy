@@ -126,7 +126,7 @@ Note: Even though the entire git development history isn't available on github, 
 [Friendly Release Notes](https://wpclouddeploy.com/category/release-notes/)
 
 ## Change Log ##
-5.4.1
+5.5.0
 ------
 * New: WPAPP - Site update plans for standard sites when WooCommerce integration is enabled.
 * Enh: WPAPP - For bash script 37 - Backup the entire letsencrypt folder instead of just the live folder.

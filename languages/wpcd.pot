@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 "Project-Id-Version: WP Cloud Deploy\n"
-"POT-Creation-Date: 2023-10-26 04:32-0500\n"
+"POT-Creation-Date: 2023-10-26 19:25-0500\n"
 "PO-Revision-Date: 2020-08-14 19:38-0500\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -11623,7 +11623,7 @@ msgstr ""
 #, php-format
 msgid ""
 "Execution History for Plan %1$s (%2$s) from template domain %3$s (%4$s). "
-"Target: %5$s servers %6$s sites. "
+"Target: %5$s servers, %6$s sites. "
 msgstr ""
 
 #: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:443
@@ -11874,7 +11874,7 @@ msgstr ""
 msgid "Settings have been saved for this site."
 msgstr ""
 
-#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:1373
+#: includes/core/apps/wordpress-app/tabs/copy-to-existing-site.php:1379
 #, php-format
 msgid "Executing update plan - updating theme & plugin files for domain : %s"
 msgstr ""

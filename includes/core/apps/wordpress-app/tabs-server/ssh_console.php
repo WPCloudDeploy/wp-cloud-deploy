@@ -129,7 +129,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SSH_CONSOLE extends WPCD_WORDPRESS_TABS {
 
 			}
 
-			// Execute a command again - unfotunately we only know a part of.
+			// Execute a command again - unfortunately we only know a part of.
 			// the action string so we can't make it part of the switch statement.
 			// above.
 			if ( false !== strpos( $action, 'ssh-console-prior-cmd-exec-' ) ) {

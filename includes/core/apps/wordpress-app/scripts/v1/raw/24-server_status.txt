@@ -309,7 +309,7 @@ then
 		echo
 		echo "Server Status script not installed yet!"
 	else
-		echo "sudo bash /usr/local/bin/wp-status" |at now + 1 minutes
+		echo "sudo bash /usr/local/bin/wp-status > /dev/null 2>&1" |at now + 1 minutes
 		if [ $? -eq 0 ]
 		then
 			echo "Server status job scheduled successfully."
@@ -321,7 +321,7 @@ then
 		echo
 		echo "Site Status script not installed yet!"
 	else
-		echo "sudo bash /usr/local/bin/wp-site-status" |at now + 30 minutes
+		echo "sudo bash /usr/local/bin/wp-site-status > /dev/null 2>&1" |at now + 30 minutes
 		if [ $? -eq 0 ]
 		then
 			echo "Site status job scheduled successfully."

@@ -232,7 +232,6 @@ div[id^='wpcd_wordpress-app'] {
 }
 
 /* If the tabs are being painted vertically put some more padding on the right */
-
 .wpcd-wpapp-actions .rwmb-tabs-left .rwmb-tab-nav li[class^='rwmb-tab-'] a {
 	padding-right: 5em !important;
 	padding-top: 0.75em !important;

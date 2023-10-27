@@ -62,7 +62,7 @@ then
 	rsync -az /usr/local/lsws/lsphp82/etc/php/8.2/litespeed/php.ini $backuptmp/lsws/lsphp82/etc/php/8.2/litespeed/php.ini 2>/dev/null
 	rsync -az /etc/nginx/ $backuptmp/nginx/ 2>/dev/null
 	rsync -az /etc/php/ $backuptmp/php/ 2>/dev/null
-	rsync -az /etc/letsencrypt/live/ $backuptmp/letsencrypt/ 2>/dev/null
+	rsync -az /etc/letsencrypt/ $backuptmp/letsencrypt/ 2>/dev/null
 	rsync -az /etc/mysql/ $backuptmp/mysql/ 2>/dev/null
 	rsync -az /etc/ssh/ $backuptmp/ssh/ 2>/dev/null
 	rsync -az /etc/passwd $backuptmp/etc/passwd 2>/dev/null

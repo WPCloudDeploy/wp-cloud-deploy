@@ -3,7 +3,7 @@
  * Plugin Name: Meta Box Tooltip
  * Plugin URI:  https://metabox.io/plugins/meta-box-tooltip/
  * Description: Add tooltip for meta fields
- * Version:     1.1.6
+ * Version:     1.1.7
  * Author:      MetaBox.io
  * Author URI:  https://metabox.io
  * License:     GPL2+
@@ -23,12 +23,12 @@ if ( ! class_exists( 'MB_Tooltip' ) ) {
 
 		public function enqueue() {
 			list( , $url ) = RWMB_Loader::get_path( dirname( __FILE__ ) );
-			wp_enqueue_style( 'mb-tooltip', $url . 'css/tooltip.css', '', '1.1.6' );
+			wp_enqueue_style( 'mb-tooltip', $url . 'css/tooltip.css', '', '1.1.7' );
 
-			wp_register_script( 'popper', 'https://unpkg.com/@popperjs/core@2.11.6/dist/umd/popper.min.js', [], '2.11.6', true );
-			wp_register_script( 'tippy', 'https://unpkg.com/tippy.js@6.3.7/dist/tippy-bundle.umd.min.js', [ 'popper' ], '6.3.7', true );
+			wp_register_script( 'popper', $url . 'js/popper.js', [], '2.11.6', true );
+			wp_register_script( 'tippy', $url . 'js/tippy.js', [ 'popper' ], '6.3.7', true );
 
-			wp_enqueue_script( 'mb-tooltip', $url . 'js/tooltip.js', [ 'jquery', 'tippy' ], '1.1.6', true );
+			wp_enqueue_script( 'mb-tooltip', $url . 'js/tooltip.js', [ 'jquery', 'tippy' ], '1.1.7', true );
 		}
 
 		public function add_label_tooltip( string $html, array $field ) : string {
@@ -86,7 +86,7 @@ if ( ! class_exists( 'MB_Tooltip' ) ) {
 		 * @param  string|array $tooltip Field tooltip.
 		 * @return array
 		 */
-		public function get_tooltip_data( $tooltip ) : array {
+		private function get_tooltip_data( $tooltip ) : array {
 			// Add tooltip to field label, in one of following formats
 			// 1) 'tooltip' => 'Tooltip Content'
 			// 2) 'tooltip' => array( 'icon' => 'info', 'content' => 'Tooltip Content', 'position' => 'top' )
@@ -117,7 +117,7 @@ if ( ! class_exists( 'MB_Tooltip' ) ) {
 		/**
 		 * Get tooltip html from tooltip data.
 		 */
-		public function get_tooltip_html( array $data ) : string {
+		private function get_tooltip_html( array $data ) : string {
 			// If icon is an URL to custom image.
 			if ( filter_var( $data['icon'], FILTER_VALIDATE_URL ) ) {
 				$icon_html = '<img src="' . esc_url( $data['icon'] ) . '">';

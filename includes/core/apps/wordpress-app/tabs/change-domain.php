@@ -400,7 +400,7 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 		// We might need to add an item to the PENDING TASKS LOG (generally because we're calling this from a WC order).
 		if ( isset( $in_args['pending_tasks_type'] ) ) {
 			$server_id = $this->get_server_id_by_app_id( $id );
-			WPCD_POSTS_PENDING_TASKS_LOG()->add_pending_task_log_entry( $server_id, $in_args['pending_tasks_type'], $command, $args, 'not-ready', $id, __( 'Change Domain On Cloned Template Site To Complete', 'wpcd' ) );
+			WPCD_POSTS_PENDING_TASKS_LOG()->add_pending_task_log_entry( $server_id, $in_args['pending_tasks_type'], $command, $args, 'not-ready', $id, __( 'Start Domain Change On Cloned Template Site', 'wpcd' ) );
 		}
 
 		/**

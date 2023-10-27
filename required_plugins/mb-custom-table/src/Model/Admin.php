@@ -9,7 +9,8 @@ class Admin {
 		$this->model = $model;
 
 		if ( $this->model->show_in_menu ) {
-			add_action( 'admin_menu', [ $this, 'add_menu' ] );
+			// Change priority to 11 to make sure all custom menus are generated.
+			add_action( 'admin_menu', [ $this, 'add_menu' ], 11 );
 
 			add_filter( 'set-screen-option', [ $this, 'set_screen_option' ], 10, 3 );
 		}

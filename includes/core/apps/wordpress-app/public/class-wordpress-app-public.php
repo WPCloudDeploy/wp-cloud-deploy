@@ -460,6 +460,23 @@ class WPCD_WORDPRESS_APP_PUBLIC {
 	 */
 	public function enqueue_scripts() {
 
+		/**
+		 * Possibly load up some required files.
+		 * Yes, I know, it's weird that we're loading up upgrade.php.
+		 * BUT, by loading up upgrade.php, we automatically load up files with functions such as:
+		 * - get_current_screen
+		 * - convert_to_screen
+		 * etc.
+		 * These functions are used by our enqueue_scripts() functions that are called in here.
+		 */
+		if ( ! function_exists( 'get_current_screen' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+		}
+
+		if ( ! function_exists( 'get_current_screen' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/screen.php';
+		}
+
 		if ( ! self::is_public_page() || ! class_exists( 'RW_Meta_Box' ) ) {
 			return;
 		}

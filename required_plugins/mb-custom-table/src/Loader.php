@@ -10,6 +10,7 @@ class Loader {
 		add_action( 'delete_post', [ $this, 'delete_object_data' ] );
 		add_action( 'deleted_user', [ $this, 'delete_object_data' ] );
 		add_action( 'delete_term', [ $this, 'delete_term_data' ], 10, 3 );
+		add_action( 'rwmb_flush_data', [ $this, 'flush_data' ], 10, 3 );
 	}
 
 	/**
@@ -40,28 +41,35 @@ class Loader {
 	 * To avoid updating multiple times, we need to run only when the last meta box saves data.
 	 */
 	public function update_object_data( $object_id ) {
-		static $processed = [];
+		static $processed = [
+			'id'    => [],
+			'table' => [],
+		];
 		static $count     = 0;
 
-		$object_type = $this->get_saved_object_type();
+		$is_rest     = defined( 'REST_REQUEST' ) && REST_REQUEST;
+		$object_type = $this->get_saved_object_type( $is_rest );
 		$meta_boxes  = $this->get_meta_boxes_for( $object_type, $object_id );
 
 		// Remove un-validated meta box (like not included in the front end), which don't trigger `rwmb_after_save_post` hook.
-		$meta_boxes = array_filter( $meta_boxes, [ $this, 'validate' ] );
+		if ( ! $is_rest ) {
+			$meta_boxes = array_filter( $meta_boxes, [ $this, 'validate' ] );
+		}
 
 		// Only update data when the last meta box saves data.
 		$count++;
-		if ( $count < count( $meta_boxes ) ) {
+		if ( $count < count( $meta_boxes ) && ! $is_rest ) {
 			return;
 		}
 
 		foreach ( $meta_boxes as $meta_box ) {
 			// Avoid updating data multiple times if many meta boxes use the same table.
 			$table = $meta_box->table;
-			if ( ! $table || in_array( $table, $processed, true ) ) {
+			if ( ! $table || in_array( $object_id, $processed['id'], true ) && in_array( $table, $processed['table'], true ) ) {
 				continue;
 			}
-			$processed[] = $table;
+			$processed['id'][]    = $object_id;
+			$processed['table'][] = $table;
 
 			$storage = $meta_box->get_storage();
 			$row     = Cache::get( $object_id, $table );
@@ -87,6 +95,45 @@ class Loader {
 			}
 			$storage->insert_row( $row );
 		}
+	}
+
+	/**
+	 * This function is called by rwmb_set_meta hook.
+	 * To save data in cache to database.
+	 */
+	public function flush_data( $object_id, $field, $args = [] ) {
+		if ( empty( $field['id'] ) || ! $field['save_field'] ) {
+			return;
+		}
+
+		$storage = $field['storage'];
+		if ( Storage::class !== get_class( $storage ) ) {
+			return;
+		}
+
+		$row = Cache::get( $object_id, $storage->table );
+		$row = array_map( [ $this, 'maybe_serialize' ], $row );
+
+		// Delete
+		if ( ! $this->has_data( $row ) ) {
+			$storage->delete_row( $object_id );
+			return;
+		}
+
+		// Update.
+		if ( $storage->row_exists( $object_id ) ) {
+			$storage->update_row( $object_id, $row );
+			return;
+		}
+
+		// Add.
+		$object_type = $args['object_type'] ?? 'post';
+		if ( $object_type === 'model' ) {
+			unset( $row['ID'] );
+		} else {
+			$row['ID'] = $object_id; // Must set to connect to existing WP objects.
+		}
+		$storage->insert_row( $row );
 	}
 
 	/**
@@ -137,7 +184,7 @@ class Loader {
 		}
 	}
 
-	private function uses_custom_table( $meta_box ) : bool {
+	private function uses_custom_table( $meta_box ): bool {
 		return 'custom_table' === $meta_box->storage_type && $meta_box->table;
 	}
 
@@ -145,7 +192,7 @@ class Loader {
 	 * Get meta boxes for the specific object by type and ID.
 	 * This includes meta boxes that don't use custom tables.
 	 */
-	private function get_meta_boxes_for( $object_type, $object_id ) : array {
+	private function get_meta_boxes_for( $object_type, $object_id ): array {
 		$meta_boxes = rwmb_get_registry( 'meta_box' )->get_by( [
 			'object_type' => $object_type,
 		] );
@@ -159,9 +206,13 @@ class Loader {
 		return $meta_boxes;
 	}
 
-	private function get_saved_object_type() : string {
-		global $wp_current_filter;
+	private function get_saved_object_type( bool $is_rest ): string {
+		$object_type = rwmb_request()->post( 'object_type' );
+		if ( $is_rest && $object_type ) {
+			return $object_type;
+		}
 
+		global $wp_current_filter;
 		foreach ( $wp_current_filter as $hook ) {
 			if ( 'edit_comment' === $hook ) {
 				return 'comment';
@@ -179,8 +230,8 @@ class Loader {
 		return 'post';
 	}
 
-	private function get_deleted_object_type() : string {
-		return str_replace( array( 'delete_', 'deleted_' ), '', current_filter() );
+	private function get_deleted_object_type(): string {
+		return str_replace( [ 'delete_', 'deleted_' ], '', current_filter() );
 	}
 
 	private function check_type( &$meta_box, $key, $object_data ) {
@@ -218,7 +269,7 @@ class Loader {
 		}
 	}
 
-	private function has_data( $row ) : bool {
+	private function has_data( $row ): bool {
 		if ( ! $row ) {
 			return false;
 		}

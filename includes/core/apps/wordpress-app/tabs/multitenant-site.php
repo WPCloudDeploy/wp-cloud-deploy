@@ -1190,7 +1190,7 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 			case 'mt-upgrade-tenants-selected-versions':
 				$mt_existing_version = sanitize_text_field( $args['mt_existing_version'] );
 				if ( empty( $mt_existing_version ) ) {
-					$message = __( 'The version that tenants should be upgrade FROM is required.', 'wpcd' );
+					$message = __( 'The version that tenants should be upgraded FROM is required.', 'wpcd' );
 					return new \WP_Error( $message );
 				}
 				break;
@@ -1577,6 +1577,7 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 			),
 			'size'        => 45,
 			'placeholder' => __( 'v1.2.3', 'wpcd' ),
+			'tooltip'     => __( 'The version number must be unique across all template sites. Please consider prefixing the version with something unique to this template or using a unique postfix.', 'wpcd' ),
 		);
 		$fields[] = array(
 			'name'        => __( 'New version Description', 'wpcd' ),

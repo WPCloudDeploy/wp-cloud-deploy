@@ -3,7 +3,7 @@
 Plugin Name: WPCloudDeploy
 Plugin URI: https://wpclouddeploy.com
 Description: Deploy and manage cloud servers and apps from inside the WordPress Admin dashboard.
-Version: 5.4.0
+Version: 5.5.0
 Requires at least: 5.8
 Requires PHP: 7.4
 Item Id: 1493
@@ -477,6 +477,12 @@ class WPCD_Init {
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/class-wordpress-app-settings.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/class-wordpress-ssh.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/class-wordpress-posts-site-package.php';
+
+		if ( class_exists( 'WPCD_WooCommerce_Init' ) ) {
+			require_once wpcd_path . 'includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php';
+			require_once wpcd_path . 'includes/core/apps/wordpress-app/class-wordpress-posts-update-plan-log.php';
+		}
+
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/functions-classes-wordpress-app.php';
 
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/public/class-wordpress-app-public.php';

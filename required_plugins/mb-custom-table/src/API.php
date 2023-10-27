@@ -78,14 +78,15 @@ class API {
 	 * Set $object_id to null for auto-increment table (for models).
 	 */
 	public static function add( $object_id, $table, $row ) {
-		Cache::set( $object_id, $table, $row );
-
 		global $wpdb;
 		$row['ID'] = $object_id;
-		$row = array_map( 'self::maybe_serialize', $row );
+		$row       = array_map( 'self::maybe_serialize', $row );
 		do_action( 'mbct_before_add', $object_id, $table, $row );
 		$output = $wpdb->insert( $table, $row );
 		do_action( 'mbct_after_add', $object_id, $table, $row );
+
+		Cache::delete( $object_id, $table );
+
 		return $output;
 	}
 
@@ -95,23 +96,25 @@ class API {
 			return false;
 		}
 
-		Cache::set( $object_id, $table, $row );
-
 		global $wpdb;
 		$row = array_map( 'self::maybe_serialize', $row );
 		do_action( 'mbct_before_update', $object_id, $table, $row );
-		$output = $wpdb->update( $table, (array) $row, ['ID' => $object_id] );
+		$output = $wpdb->update( $table, (array) $row, [ 'ID' => $object_id ] );
 		do_action( 'mbct_after_update', $object_id, $table, $row );
+
+		Cache::delete( $object_id, $table );
+
 		return $output;
 	}
 
 	public static function delete( $object_id, $table ) {
-		Cache::set( $object_id, $table, [] );
-
 		global $wpdb;
 		do_action( 'mbct_before_delete', $object_id, $table );
-		$output = $wpdb->delete( $table, ['ID' => $object_id] );
+		$output = $wpdb->delete( $table, [ 'ID' => $object_id ] );
 		do_action( 'mbct_after_delete', $object_id, $table );
+
+		Cache::delete( $object_id, $table );
+
 		return $output;
 	}
 

@@ -3,7 +3,7 @@
 Plugin Name: WPCloudDeploy
 Plugin URI: https://wpclouddeploy.com
 Description: Deploy and manage cloud servers and apps from inside the WordPress Admin dashboard.
-Version: 5.5.0
+Version: 5.5.1
 Requires at least: 5.8
 Requires PHP: 7.4
 Item Id: 1493
@@ -991,7 +991,7 @@ class WPCD_Init {
 		$add_ons['wpcd-vultr-provider/wpcd-vultr-provider.php']                 = '2.3.1';
 		$add_ons['wpcd-wc-sell-servers/wpcd-wc-sell-servers.php']               = '9999.9999.9999';
 		$add_ons['wpcd-wc-sell-sites/wpcd-wc-sell-sites.php']                   = '9999.9999.9999';
-		$add_ons['wpcd-woocommerce/wpcd-woocommerce.php']                       = '3.2.3';
+		$add_ons['wpcd-woocommerce/wpcd-woocommerce.php']                       = '3.4.0';
 
 		// Initialize list of incompatible add_ons.
 		$incompatible_add_ons = array();

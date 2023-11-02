@@ -223,7 +223,17 @@ class WPCD_POSTS_LOG extends WPCD_Posts_Base {
 	 */
 	public function clean_up_old_log_entries( $post_type ) {
 
-		$count_posts       = wp_count_posts( $post_type );
+		$count_posts = wp_count_posts( $post_type );  // returns an OBJECT, not an array.
+
+		// Return if empty - no need to do anything.
+		if ( empty( $count_posts ) ) {
+			return;
+		}
+		if ( is_object( $count_posts ) && ! property_exists( $count_posts, 'publish' ) ) {
+			return;
+		}
+
+		// Figure out the number of posts in the log - some logs have published poss while others have private posts.
 		$error_log_entries = 0;
 		if ( $count_posts ) {
 			$error_log_entries = $count_posts->private + $count_posts->publish;
@@ -244,7 +254,7 @@ class WPCD_POSTS_LOG extends WPCD_Posts_Base {
 		if ( 'wpcd_error_log' === $post_type ) {
 			$auto_trim_log_limit = (int) wpcd_get_early_option( 'auto_trim_error_log_limit' );
 		}
-		if ( 'wpcd_error_log' === $post_type ) {
+		if ( 'wpcd_app_update_log' === $post_type ) {
 			$auto_trim_log_limit = (int) wpcd_get_early_option( 'auto_trim_update_plan_log_limit' );
 		}
 
@@ -277,7 +287,7 @@ class WPCD_POSTS_LOG extends WPCD_Posts_Base {
 					)
 				);
 
-				// Now do the delete.
+				// Now to the delete.
 				$counter = 0;
 				if ( $max_posts_to_delete > 0 ) {
 					foreach ( $posts_to_delete as $post_to_delete ) {

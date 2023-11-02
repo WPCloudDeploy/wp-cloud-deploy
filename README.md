@@ -126,6 +126,10 @@ Note: Even though the entire git development history isn't available on github, 
 [Friendly Release Notes](https://wpclouddeploy.com/category/release-notes/)
 
 ## Change Log ##
+5.5.1
+------
+* Fix: WPAPP - A 'property does not exist' error when WooCommerce isn't active.
+
 5.5.0
 ------
 * New: WPAPP - Site update plans for standard sites when WooCommerce integration is enabled.

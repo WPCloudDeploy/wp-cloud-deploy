@@ -24,7 +24,7 @@ class CLOUD_PROVIDER_API_DigitalOcean_Parent extends CLOUD_PROVIDER_API {
 	 * If no other logic is provided to choose an image, this will
 	 * generally be the one choosen.
 	 */
-	const _IMAGE = 'ubuntu-20-04-x64';
+	const _IMAGE = 'ubuntu-22-04-x64';
 
 	/**
 	 * A text string with the cloud provider's api key.
@@ -268,7 +268,8 @@ runcmd:
 				$endpoint = 'actions/' . $attributes['pending_snapshot_id'];
 				break;
 			case 'list_all_snapshots':
-				$endpoint = 'snapshots' . '?page=1&per_page=9999';
+			case 'list_snapshots':
+				$endpoint = 'droplets/' . $attributes['id'] . '/snapshots/?page=1&per_page=200';
 				break;
 			case 'reboot':
 				$endpoint = 'droplets/' . $attributes['id'] . '/actions';

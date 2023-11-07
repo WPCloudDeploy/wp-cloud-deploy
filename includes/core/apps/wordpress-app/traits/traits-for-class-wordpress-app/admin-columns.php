@@ -239,6 +239,23 @@ trait wpcd_wpapp_admin_column_data {
 			}
 		}
 
+		// Display multi-tenant parent but only in the wp-admin area - not on the front-end.
+		if ( true === wpcd_is_mt_enabled() && true === is_admin() ) {
+			$mt_version = $this->get_mt_version( $post_id );
+			$mt_parent  = $this->get_mt_parent( $post_id );
+			if ( ! empty( $mt_parent ) && ! empty( $mt_version ) ) {
+				$mt_parent_domain = $this->get_domain_name( $mt_parent );
+				if ( ! empty( $mt_parent_domain ) ) {
+					$value  = __( 'MT Parent: ', 'wpcd' );
+					$value  = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $value, 'mt_parent_domain', 'left' );
+					$value .= WPCD_POSTS_APP()->wpcd_column_wrap_string_with_span_and_class( $mt_parent_domain, 'mt_parent_domain', 'right' );
+					$value  = WPCD_POSTS_APP()->wpcd_column_wrap_string_with_div_and_class( $value, 'mt_parent_domain' );
+
+					$new_column_data = $new_column_data . $value;
+				}
+			}
+		}
+
 		// Display the count of notes and admin notes.
 		if ( ! empty( $labels_count_arr ) ) {
 			$new_column_data = $new_column_data . $labels_count_arr . '<br />';
@@ -1201,6 +1218,7 @@ trait wpcd_wpapp_admin_column_data {
 		/* Show multi-tenant related version. */
 		if ( 'wpcd_app' === get_post_type( $post ) && 'wordpress-app' === $this->get_app_type( $post->ID ) ) {
 			if ( true === wpcd_is_mt_enabled() ) {
+				// Show the Multi-tenant site version.
 				$mt_version = $this->get_mt_version( $post->ID );
 				if ( ! empty( $mt_version ) ) {
 					$css_class                            = 'wpcd_post_state wpcd_mt_site_version';

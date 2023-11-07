@@ -233,7 +233,7 @@ class WPCD_POSTS_LOG extends WPCD_Posts_Base {
 			return;
 		}
 
-		// Figure out the number of posts in the log - some logs have published poss while others have private posts.
+		// Figure out the number of posts in the log - some logs have published posts while others have private posts.
 		$error_log_entries = 0;
 		if ( $count_posts ) {
 			$error_log_entries = $count_posts->private + $count_posts->publish;

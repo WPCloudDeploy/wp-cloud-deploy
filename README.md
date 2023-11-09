@@ -129,7 +129,8 @@ Note: Even though the entire git development history isn't available on github, 
 5.5.2
 ------
 * Tweak: DO Provider - make the image default UBUNTU 22.04 LTS for all non-wordpress apps.
-* Tweak: WPAPP: Add multi-tenant parent to the app list APP SUMMARY column if the site is an mt-version site.
+* Tweak: WPAPP - Add multi-tenant parent to the app list APP SUMMARY column if the site is an mt-version site.
+* Tweak: WPAPP - When executing update plans, make sure that the WP database is upgraded in case the new files are for a new version of WP.
 
 5.5.1
 ------

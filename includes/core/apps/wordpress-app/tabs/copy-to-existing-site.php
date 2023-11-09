@@ -1472,6 +1472,11 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 					$plan_id  = wpcd_clean_numeric( $data['update_plan_id'] );
 					$batch_id = wpcd_clean_numeric( $data['update_plan_batch_id'] ); // We shouldn't need the wpcd_clean_numeric function call here but somewhere along the line quotes get into the value somehow.
 
+					// Upgrade the database - just in case the files include a new version of wp.
+					$command    = sprintf( 'sudo su - "%s" -c "wp core update-db --no-color" ', $target_domain );
+					$action     = 'upgrade_wp_db';
+					$raw_status = $this->submit_generic_server_command( $server_id, $action, $command, true );
+
 					// Push custom wp-config.php data.
 					$keypairs = get_post_meta( $plan_id, 'wpcd_app_update_plan_wp_config_custom_data', true );
 					if ( ! empty( $keypairs ) ) {

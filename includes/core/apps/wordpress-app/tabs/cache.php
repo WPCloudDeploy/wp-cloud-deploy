@@ -124,9 +124,11 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 			switch ( $action ) {
 				case 'site-toggle-memcached':
 					// What is the status of memcached?
-					$mc_status = get_post_meta( $id, 'wpapp_memcached_status', true );
+					$mc_status = get_app_is_memcached_installed( $id ) ;
 					if ( empty( $mc_status ) ) {
 						$mc_status = 'off';
+					} else {
+						$mc_status = 'on';
 					}
 					// toggle it.
 					$result = $this->enable_disable_memcached( 'on' === $mc_status ? 'disable' : 'enable', $id );
@@ -334,9 +336,9 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 
 		// Now that we know we're successful, lets update a meta indicating the status of memcached on the site.
 		if ( 'enable' === $action ) {
-			update_post_meta( $id, 'wpapp_memcached_status', 'on' );
+			$this->set_app_memcached_installed_status( $id, true);
 		} elseif ( 'disable' === $action ) {
-			update_post_meta( $id, 'wpapp_memcached_status', 'off' );
+			$this->set_app_memcached_installed_status( $id, false);
 		}
 
 		// Success message and force refresh.
@@ -366,9 +368,11 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 	public function toggle_local_status_memcached( $id ) {
 
 		// get current local memcached status.
-		$mc_status = get_post_meta( $id, 'wpapp_memcached_status', true );
+		$mc_status = $this->get_app_is_memcached_installed( $id ); 
 		if ( empty( $mc_status ) ) {
 			$mc_status = 'off';
+		} else {
+			$mc_status = 'on';
 		}
 
 		// whats the new status going to be?
@@ -379,7 +383,7 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 		}
 
 		// update it.
-		update_post_meta( $id, 'wpapp_memcached_status', $new_mc_status );
+		$this->set_app_memcached_installed_status( $id, $new_mc_status );
 
 		// Force refresh?
 		if ( ! is_wp_error( $result ) ) {
@@ -509,9 +513,11 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 		if ( 'installed' === $this->get_server_installed_service_status( $id, 'memcached' ) ) {
 
 			// What is the status of memcached?
-			$mc_status = get_post_meta( $id, 'wpapp_memcached_status', true );
+			$mc_status = get_app_is_memcached_installed( $id ); 
 			if ( empty( $mc_status ) ) {
 				$mc_status = 'off';
+			} else {
+				$mc_status = 'on';
 			}
 
 			/* Set the confirmation prompt based on the the current status of this flag */

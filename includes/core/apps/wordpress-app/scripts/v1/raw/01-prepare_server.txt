@@ -886,6 +886,41 @@ EOL
 fi #checkpoint150.txt
 ##################### End very large block, checkpoint150 ###############
 
+# Install Redis
+if [ -f "$CHKPOINT_FOLDER/checkpoint160-end.txt" ]
+then
+	echo "Skip installing REDIS since it has already been done."
+else
+	echo $(date): "Installing Redis..."
+	apt-get install redis-server -y > /dev/null 2>&1
+
+	# Was redis installed?  If the redis.conf file does not exist there's a good chance it wasn't installed properly or not at all.
+	if [ ! -f /etc/redis/redis.conf ]
+	then
+		echo "Redis has not been properly installed. Exiting...";
+		exit 1
+	fi
+	
+	# Restart REDIS process.
+	sed -i "s/supervised no/supervised systemd/g" /etc/redis/redis.conf
+	systemctl restart redis
+
+	# Do Redis things related to NGINX
+	if [ "$webserver_type" = "nginx" ]
+	then
+		apt-get install -y php7.4-redis php8.0-redis php8.1-redis php8.2-redis > /dev/null 2>&1
+	fi
+
+	# Do Redis things related to OLS
+	if [ "$webserver_type" = "ols" ] || [ "$webserver_type" = "ols-enterprise" ]
+	then
+		apt-get install -y lsphp74-redis lsphp80-redis lsphp81-redis lsphp82-redis > /dev/null 2>&1
+	fi
+
+	#checkpoint to indicate we have done this block...
+	touch "$CHKPOINT_FOLDER/checkpoint160-end.txt"	
+fi #checkpoint160.txt
+
 # Running a specific update (This fixes an issue with WP-CLI that popped up around Nov 20th 2021 - some weird compilation message.)
 # @see: https://bugs.php.net/bug.php?id=81640
 echo $(date): "Updating libpcre-2-8-0..."

@@ -183,6 +183,34 @@ then
 	su - "$user_name" -c "wp --skip-plugins --no-color plugin install litespeed-cache && wp --skip-plugins --no-color plugin activate litespeed-cache && wp --no-color litespeed-online init"
 fi
 
+# Install REDIS object cache.
+if hash redis-cli 2>/dev/null
+then
+	echo "Installing and activating object cache plugins..."
+	if [ "$g_webserver_type" = "nginx" ]
+	then
+		su - $user_name -c "wp --no-color plugin install --activate redis-cache"
+		su - $user_name -c "cd /var/www/$domain/html/wp-content/; ln -s ./plugins/redis-cache/includes/object-cache.php ./object-cache.php"
+	elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+		then
+		su - $user_name -c "wp plugin list|grep -q litespeed-cache"
+		if [ $? -eq 0 ]
+		then
+			su - $user_name -c "wp plugin is-active litespeed-cache"
+			if [ $? -ne 0 ]
+			then
+				su - $user_name -c "wp plugin activate litespeed-cache"
+			fi
+		else
+			su - "$user_name" -c "wp --skip-plugins plugin install litespeed-cache && wp --skip-plugins plugin activate litespeed-cache && wp litespeed-online init" > /dev/null 2>&1
+		fi
+		# su - $user_name -c "wp --skip-plugins config set WP_CACHE true --raw"	### This not needed since we turned it on earlier in this script.
+		su - "$user_name" -c "wp litespeed-option set object true && wp litespeed-option set object-port 6379 && wp litespeed-option set object-host 127.0.0.1 && wp litespeed-option set object-kind 1 && wp cache flush" > /dev/null 2>&1
+	fi
+else
+	echo "Redis not detected - object cache was not enabled for this domain."
+fi
+
 # Restart Webserver
 gf_restart_webserver
 

@@ -3399,6 +3399,13 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			$this->set_page_cache_status( $app_post_id, 'on' );
 
 			/**
+			 * Object caching is enabled by default for both NGINX and OLS in WPCD 5.6.1 and later.
+			 */
+			if ( $this->is_redis_installed( $server_id ) ) {
+				$this->set_app_redis_installed_status( $app_post_id, true );
+			}
+
+			/**
 			 * Set Quotas
 			 */
 			$this->set_site_disk_quota( $app_post_id, wpcd_get_option( 'wordpress_app_sites_default_new_site_disk_quota' ) );
@@ -4276,7 +4283,40 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	}
 
 	/**
-	 * Sets the meta that indicates whether reids is installed on a server.
+	 * Set flag that indicates whether or not MEMCACHED is installed on a site.
+	 *
+	 * @param int         $app_id  The post id of the  app.
+	 * @param bool|string $status true/false or 'on'/'off'.
+	 */
+	public function set_app_memcached_installed_status( $app_id, $status ) {
+
+		if ( true === $status || 'on' === $status ) {
+			update_post_meta( $app_id, 'wpapp_memcached_status', 'on' );
+		} else {
+			update_post_meta( $app_id, 'wpapp_memcached_status', 'off' );
+		}
+
+	}
+
+	/**
+	 * Returns whether MEMCACHED is installed on a site.
+	 *
+	 * @param int $app_id  The post id of the app.
+	 */
+	public function get_app_is_memcached_installed( $app_id ) {
+
+		$meta_status = get_post_meta( $app_id, 'wpapp_memcached_status', true );
+
+		if ( 'on' === $meta_status ) {
+			return true;
+		} else {
+			return false;
+		}
+
+	}
+
+	/**
+	 * Sets the meta that indicates whether REDIS is installed on a server.
 	 *
 	 * @param int    $server_id  The post id of the server or app.
 	 * @param string $status true/false.
@@ -4292,7 +4332,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	}
 
 	/**
-	 * Returns whether redis is installed on a server.
+	 * Returns whether REDIS is installed on a server.
 	 *
 	 * @param int $id  The post id of the server or app.
 	 */
@@ -4316,6 +4356,38 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		}
 	}
 
+	/**
+	 * Set flag that indicates whether or not REDIS is installed on a site.
+	 *
+	 * @param int         $app_id  The post id of the  app.
+	 * @param bool|string $status true/false or 'on'/'off'.
+	 */
+	public function set_app_redis_installed_status( $app_id, $status ) {
+
+		if ( true === $status || 'on' === $status ) {
+			update_post_meta( $app_id, 'wpapp_redis_status', 'on' );
+		} else {
+			update_post_meta( $app_id, 'wpapp_redis_status', 'off' );
+		}
+
+	}
+
+	/**
+	 * Returns whether REDIS is installed on a site.
+	 *
+	 * @param int $app_id  The post id of the app.
+	 */
+	public function get_app_is_redis_installed( $app_id ) {
+
+		$meta_status = get_post_meta( $app_id, 'wpapp_redis_status', true );
+
+		if ( 'on' === $meta_status ) {
+			return true;
+		} else {
+			return false;
+		}
+
+	}
 
 	/**
 	 * Returns the installed status of a service on the server.

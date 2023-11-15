@@ -316,6 +316,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		$default_status   = __( 'Installed - Click REFRESH SERVICES to get running status.', 'wpcd' );
 		$webserver_status = $default_status;
 		$mariadb_status   = $default_status;
+		$redis_status     = $default_status;
 		$memcached_status = $default_status;
 		$ufw_status       = $default_status;
 
@@ -338,6 +339,9 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			}
 			if ( isset( $services_status['ufw'] ) ) {
 				$ufw_status = $services_status['ufw'];
+			}
+			if ( isset( $services_status['redis'] ) ) {
+				$redis_status = $services_status['redis'];
 			}
 		}
 
@@ -458,6 +462,98 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 				'type'           => 'custom_html',
 			);
 		};
+
+		/* Redis */
+		if ( $this->is_redis_installed( $id ) ) {
+			$redis_desc  = __( 'High-performance object cache.', 'wpcd' );
+		} else {
+			$redis_desc  = __( 'Redis is an OBJECT cache service that can help speed up duplicated database queries.  Once the service is installed here, you can activate it for each site that needs it.', 'wpcd' );
+			$redis_desc .= '<br />';
+			/* Translators: %s is an external link to more information about redis and memcached caches. */
+			$redis_desc .= sprintf( __( 'Learn more about %s', 'wpcd' ), '<a href="https://scalegrid.io/blog/redis-vs-memcached-2021-comparison/">' . __( 'Redis and MemCached Object Caches', 'wpcd' ) . '</a>' );
+		}
+
+		$actions['redis-status-header'] = array(
+			'label'          => __( 'Redis', 'wpcd' ),
+			'type'           => 'heading',
+			'raw_attributes' => array(
+				'desc' => $redis_desc,
+			),
+		);
+
+		if ( false === $this->is_redis_installed( $id ) ) {
+			// Redis not installed so show only install button.
+			$actions['redis-do-install'] = array(
+				'label'          => __( '', 'wpcd' ),
+				'raw_attributes' => array(
+					'std'                 => __( 'Install Redis', 'wpcd' ),
+					'desc'                => __( 'It appears that Redis is not installed on this server.  Click the button to start the installation process.', 'wpcd' ),                   // make sure we give the user a confirmation prompt
+					'confirmation_prompt' => __( 'Are you sure you would like to install the REDIS service?', 'wpcd' ),
+					// show log console?
+					'log_console'         => true,
+					// Initial console message.
+					'console_message'     => __( 'Preparing to install the REDIS service!<br /> Please DO NOT EXIT this screen until you see a popup message indicating that the installation has been completed or has errored.<br />This terminal should refresh every 60-90 seconds with updated progress information from the server. <br /> After the installation is complete the entire log can be viewed in the COMMAND LOG screen.', 'wpcd' ),
+				),
+				'type'           => 'button',
+			);
+		} else {
+			// redis is installed so show status and options to disable and enable.
+			$actions['redis-label'] = array(
+				'label'          => __( 'Service', 'wpcd' ),
+				'raw_attributes' => array(
+					'std'     => __( 'Redis', 'wpcd' ),
+					'columns' => 3,
+				),
+				'type'           => 'custom_html',
+			);
+
+			$actions['redis-status'] = array(
+				'label'          => __( 'Status', 'wpcd' ),
+				'raw_attributes' => array(
+					'std'     => $redis_status,
+					'columns' => wpcd_get_early_option( 'wordpress_app_hide_notes_on_server_services_tab' ) ? 5 : 2,
+				),
+				'type'           => 'custom_html',
+			);
+
+			$actions['redis-restart'] = array(
+				'label'          => __( 'Actions', 'wpcd' ),
+				'raw_attributes' => array(
+					'std'     => __( 'Restart', 'wpcd' ),
+					'columns' => wpcd_get_early_option( 'wordpress_app_hide_notes_on_server_services_tab' ) ? 2 : 1,
+				),
+				'type'           => 'button',
+			);
+
+			$actions['redis-clear-cache'] = array(
+				'label'          => __( 'Clear', 'wpcd' ),
+				'raw_attributes' => array(
+					'std'     => __( 'Clear Cache', 'wpcd' ),
+					'columns' => wpcd_get_early_option( 'wordpress_app_hide_notes_on_server_services_tab' ) ? 2 : 1,
+				),
+				'type'           => 'button',
+			);
+
+			$actions['redis-desc'] = array(
+				'label'          => __( 'Notes', 'wpcd' ),
+				'raw_attributes' => array(
+					'std'     => __( '', 'wpcd' ),
+					'desc'    => __( 'Clearing the cache clears it for all sites on this server.', 'wpcd' ),
+					'columns' => 5,
+				),
+				'type'           => 'custom_html',
+			);
+
+			$actions['redis-remove'] = array(
+				'label'          => __( 'Remove Redis', 'wpcd' ),
+				'raw_attributes' => array(
+					'std'               => __( 'Un-Install Redis', 'wpcd' ),
+					'label_description' => __( 'Please make sure none of your sites have Redis enabled before removing it from the server!', 'wpcd' ),
+				),
+				'type'           => 'button',
+			);
+
+		}
 
 		/* Memcached */
 		$mc_desc  = __( 'Memcached is an OBJECT cache service that can help speed up duplicated database queries.  Once the service is installed here, you can activate it for each site that needs it.', 'wpcd' );
@@ -1672,7 +1768,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 					$return_msg = __( 'PHP Service Enabled!', 'wpcd' );
 					break;
 				case 'php_version_disable':
-				$this->set_php_activation_state( $id, $php_key, 'disabled' );
+					$this->set_php_activation_state( $id, $php_key, 'disabled' );
 					$return_msg = __( 'PHP Service Disabled!', 'wpcd' );
 					break;
 			}

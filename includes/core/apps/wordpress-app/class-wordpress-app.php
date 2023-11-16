@@ -1302,7 +1302,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		if ( version_compare( $initial_plugin_version, '5.4.0' ) <= 0 ) {
 			// Versions of the plugin after 5.4.0 did not activate 6g (though the files were still added to the server).
 			return true;
-		}		
+		}
 
 		// If you got here, assume false.
 		return false;
@@ -3399,6 +3399,13 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			$this->set_page_cache_status( $app_post_id, 'on' );
 
 			/**
+			 * Object caching is enabled by default for both NGINX and OLS in WPCD 5.5.2 and later.
+			 */
+			if ( $this->is_redis_installed( $server_id ) ) {
+				$this->set_app_redis_installed_status( $app_post_id, true );
+			}
+
+			/**
 			 * Set Quotas
 			 */
 			$this->set_site_disk_quota( $app_post_id, wpcd_get_option( 'wordpress_app_sites_default_new_site_disk_quota' ) );
@@ -3457,8 +3464,11 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		// Switch PHP version.
 		$this->handle_switch_php_version( $app_id, $instance );
 
-		// Install page_cache.
+		// Maybe disable page_cache.
 		$this->handle_page_cache_for_new_site( $app_id, $instance );
+
+		// Maybe disable redis object cache.
+		$this->handle_redis_object_cache_for_new_site( $app_id, $instance );
 
 		// Handle site package rules.
 		$this->handle_site_package_rules( $app_id );
@@ -3913,7 +3923,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	}
 
 	/**
-	 * Add page cache when WP install is complete.
+	 * Disable page cache when WP install is complete.
 	 *
 	 * Called from function wpcd_wpapp_install_complete
 	 *
@@ -3925,6 +3935,23 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		if ( wpcd_get_option( 'wordpress_app_sites_disable_page_cache' ) ) {
 			$instance['action_hook'] = 'wpcd_pending_log_toggle_page_cache';
 			WPCD_POSTS_PENDING_TASKS_LOG()->add_pending_task_log_entry( $app_id, 'disable-page-cache', $app_id, $instance, 'ready', $app_id, __( 'Disable Page Cache For New Site', 'wpcd' ) );
+		}
+
+	}
+
+	/**
+	 * Remove redis object cache when WP install is complete.
+	 *
+	 * Called from function wpcd_wpapp_install_complete
+	 *
+	 * @param int   $app_id        post id of app.
+	 * @param array $instance      Array passed by calling function containing details of the server and site.
+	 */
+	public function handle_redis_object_cache_for_new_site( $app_id, $instance ) {
+
+		if ( wpcd_get_option( 'wordpress_app_sites_disable_redis_cache' ) ) {
+			$instance['action_hook'] = 'wpcd_pending_log_toggle_redis_object_cache';
+			WPCD_POSTS_PENDING_TASKS_LOG()->add_pending_task_log_entry( $app_id, 'disable-redis-object-cache', $app_id, $instance, 'ready', $app_id, __( 'Disable Redis Object Cache For New Site', 'wpcd' ) );
 		}
 
 	}
@@ -4233,6 +4260,155 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		return WPCD()->classes['wpcd_app_wordpress_settings'];
 	}
 
+
+	/**
+	 * Sets the meta that indicates whether memcached is installed on a server.
+	 *
+	 * @param int    $server_id  The post id of the server or app.
+	 * @param string $status true/false.
+	 */
+	public function set_server_memcached_installed_status( $server_id, $status ) {
+
+		if ( true === $status ) {
+			update_post_meta( $server_id, 'wpcd_wpapp_memcached_installed', 'yes' );
+		} else {
+			update_post_meta( $server_id, 'wpcd_wpapp_memcached_installed', 'no' );
+		}
+
+	}
+
+	/**
+	 * Returns whether memcached is installed on a server.
+	 *
+	 * @param int $id  The post id of the server or app.
+	 */
+	public function is_memcached_installed( $id ) {
+		// What kind of id did we get?  App or server?
+		if ( 'wpcd_app' === get_post_type( $id ) ) {
+			$server_post = $this->get_server_by_app_id( $id );
+			if ( $server_post ) {
+				$server_id = $server_post->ID;
+			}
+		} elseif ( 'wpcd_app_server' === get_post_type( $id ) ) {
+			$server_id = $id;
+		}
+
+		$meta_status = get_post_meta( $server_id, 'wpcd_wpapp_memcached_installed', true );
+
+		if ( 'yes' === $meta_status ) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	/**
+	 * Set flag that indicates whether or not MEMCACHED is installed on a site.
+	 *
+	 * @param int         $app_id  The post id of the  app.
+	 * @param bool|string $status true/false or 'on'/'off'.
+	 */
+	public function set_app_memcached_installed_status( $app_id, $status ) {
+
+		if ( true === $status || 'on' === $status ) {
+			update_post_meta( $app_id, 'wpapp_memcached_status', 'on' );
+		} else {
+			update_post_meta( $app_id, 'wpapp_memcached_status', 'off' );
+		}
+
+	}
+
+	/**
+	 * Returns whether MEMCACHED is installed on a site.
+	 *
+	 * @param int $app_id  The post id of the app.
+	 */
+	public function get_app_is_memcached_installed( $app_id ) {
+
+		$meta_status = get_post_meta( $app_id, 'wpapp_memcached_status', true );
+
+		if ( 'on' === $meta_status ) {
+			return true;
+		} else {
+			return false;
+		}
+
+	}
+
+	/**
+	 * Sets the meta that indicates whether REDIS is installed on a server.
+	 *
+	 * @param int    $server_id  The post id of the server or app.
+	 * @param string $status true/false.
+	 */
+	public function set_server_redis_installed_status( $server_id, $status ) {
+
+		if ( true === $status ) {
+			update_post_meta( $server_id, 'wpcd_wpapp_redis_installed', 'yes' );
+		} else {
+			update_post_meta( $server_id, 'wpcd_wpapp_redis_installed', 'no' );
+		}
+
+	}
+
+	/**
+	 * Returns whether REDIS is installed on a server.
+	 *
+	 * @param int $id  The post id of the server or app.
+	 */
+	public function is_redis_installed( $id ) {
+		// What kind of id did we get?  App or server?
+		if ( 'wpcd_app' === get_post_type( $id ) ) {
+			$server_post = $this->get_server_by_app_id( $id );
+			if ( $server_post ) {
+				$server_id = $server_post->ID;
+			}
+		} elseif ( 'wpcd_app_server' === get_post_type( $id ) ) {
+			$server_id = $id;
+		}
+
+		$meta_status = get_post_meta( $server_id, 'wpcd_wpapp_redis_installed', true );
+
+		if ( 'yes' === $meta_status ) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	/**
+	 * Set flag that indicates whether or not REDIS is installed on a site.
+	 *
+	 * @param int         $app_id  The post id of the  app.
+	 * @param bool|string $status true/false or 'on'/'off'.
+	 */
+	public function set_app_redis_installed_status( $app_id, $status ) {
+
+		if ( true === $status || 'on' === $status ) {
+			update_post_meta( $app_id, 'wpapp_redis_status', 'on' );
+		} else {
+			update_post_meta( $app_id, 'wpapp_redis_status', 'off' );
+		}
+
+	}
+
+	/**
+	 * Returns whether REDIS is installed on a site.
+	 *
+	 * @param int $app_id  The post id of the app.
+	 */
+	public function get_app_is_redis_installed( $app_id ) {
+
+		$meta_status = get_post_meta( $app_id, 'wpapp_redis_status', true );
+
+		if ( 'on' === $meta_status ) {
+			return true;
+		} else {
+			return false;
+		}
+
+	}
+
 	/**
 	 * Returns the installed status of a service on the server.
 	 * Services includes things like nginx, mariadb, memcached etc.
@@ -4261,8 +4437,8 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		if ( $server_id ) {
 			switch ( $service ) {
 				case 'memcached':
-					$meta_status = get_post_meta( $server_id, 'wpcd_wpapp_memcached_installed', true );
-					if ( 'yes' == $meta_status ) {
+					$meta_status = $this->is_memcached_installed( $server_id );
+					if ( true === $meta_status ) {
 						$status = 'installed';
 					} else {
 						$status = 'not-installed';
@@ -4270,8 +4446,8 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 					break;
 
 				case 'redis':
-					$meta_status = get_post_meta( $server_id, 'wpcd_wpapp_redis_installed', true );
-					if ( 'yes' == $meta_status ) {
+					$meta_status = $this->is_redis_installed( $server_id );
+					if ( true === $meta_status ) {
 						$status = 'installed';
 					} else {
 						$status = 'not-installed';

@@ -1039,20 +1039,15 @@ trait wpcd_wpapp_admin_column_data {
 				$pc_value = '<div class="wpcd_page_cache_status wpcd_page_cache_on">' . $pc_value . '</div>';
 			}
 
-			// get the memcached status...
-			$object_cache = wpcd_maybe_unserialize( get_post_meta( $post_id, 'wpapp_memcached_status', true ) );
-			if ( empty( $object_cache ) ) {
-				$object_cache = 'off';
-			} elseif ( 'on' === $object_cache ) {
+			// Get Memcached status.
+			$object_cache = 'off';
+			if ( true === $this->get_app_is_memcached_installed( $post_id ) ) {
 				$object_cache = 'MemCached';
 			}
 
-			// get the redis status.
+			// Get Redis status.
 			if ( 'off' === $object_cache ) {
-				$object_cache = wpcd_maybe_unserialize( get_post_meta( $post_id, 'wpapp_redis_status', true ) );
-				if ( empty( $object_cache ) ) {
-					$object_cache = 'off';
-				} elseif ( 'on' === $object_cache ) {
+				if ( true === $this->get_app_is_redis_installed( $post_id ) ) {
 					$object_cache = 'REDIS';
 				}
 			}
@@ -1179,6 +1174,22 @@ trait wpcd_wpapp_admin_column_data {
 			}
 		}
 
+		/* Show the object server type(s) */
+		if ( 'wpcd_app' === get_post_type( $post ) && 'wordpress-app' === $this->get_app_type( $post->ID ) && true === boolval( wpcd_get_option( 'wordpress_app_show_object_server_label_in_lists' ) ) ) {
+			$object_server_type = '';
+			if ( $this->get_app_is_redis_installed( $post->ID ) ) {
+				$object_server_type = 'Redis';
+			}
+
+			if ( $this->get_app_is_memcached_installed( $post->ID ) ) {
+				$object_server_type = 'Memcached';
+			}
+			
+			if ( ! empty( $object_server_type ) ) {
+				$states['wpcd-wpapp-object-server-type'] = $object_server_type;
+			}
+		}
+
 		/* Show if the site has a remote database */
 		if ( 'wpcd_app' === get_post_type( $post ) && 'wordpress-app' === $this->get_app_type( $post->ID ) ) {
 			if ( 'yes' === $this->is_remote_db( $post->ID ) ) {
@@ -1235,6 +1246,25 @@ trait wpcd_wpapp_admin_column_data {
 		/* Show if the server has a local/custom ssh login */
 		if ( 'wpcd_app_server' === get_post_type( $post ) && 'wordpress-app' === $this->get_server_type( $post->ID ) && ! empty( WPCD()->decrypt( get_post_meta( $post->ID, 'wpcd_server_ssh_private_key', true ) ) ) ) {
 			$states['wpcd-server-custom-ssh-login'] = __( 'SSH Override', 'wpcd' );
+		}
+
+		/* Show the object server type(s) on the server list screen */
+		if ( 'wpcd_app_server' === get_post_type( $post ) && 'wordpress-app' === $this->get_server_type( $post->ID ) && true === boolval( wpcd_get_option( 'wordpress_app_show_object_server_label_in_lists' ) ) ) {
+			$object_server_type = '';
+			if ( $this->is_redis_installed( $post->ID ) ) {
+				$object_server_type = 'Redis';
+			}
+			if ( ! empty( $object_server_type ) ) {
+				$states['wpcd-server-object-server-type-redis'] = $object_server_type;
+			}
+			
+			$object_server_type = '';
+			if ( $this->is_memcached_installed( $post->ID ) ) {
+				$object_server_type = 'Memcached';
+			}
+			if ( ! empty( $object_server_type ) ) {
+				$states['wpcd-server-object-server-type-memcached'] = $object_server_type;
+			}
 		}
 
 		return $states;

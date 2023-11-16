@@ -167,20 +167,24 @@ su - $new_user_name -c "wp --skip-plugins config shuffle-salts"
 su - $new_user_name -c 'wp --skip-plugins config set WP_CACHE_KEY_SALT "$(wp --skip-plugins config get AUTH_KEY)"'
 su - $new_user_name -c "wp --skip-plugins config shuffle-salts"
 
-# Flush page caches and disable object caches.
+# Flush page caches.
 su - $new_user_name -c "wp cache flush"
 if [ "$g_webserver_type" = "nginx" ]
 then
 	su - $new_user_name -c "wp cache-enabler clear 2>/dev/null"
 fi
-rm -f wp-content/object-cache.php
-if [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
-then
-	su - $new_user_name -c "wp litespeed-option set object false 2>/dev/null"
-	su - $new_user_name -c "wp cache flush 2>/dev/null"  
-fi
-su - $new_user_name -c "wp plugin uninstall --deactivate redis-cache 2>/dev/null"
-su - $new_user_name -c "wp --skip-plugins config set DOMAIN_CURRENT_SITE $new_domain --no-add 2>/dev/null"
+
+#### disable object caches.
+#### We're going to keep object caches as of 11-15-2023 / wpcd 5.6.
+#### So the block of lines below are commented out for now.
+# rm -f wp-content/object-cache.php
+# if [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+# then
+# 	su - $new_user_name -c "wp litespeed-option set object false 2>/dev/null"
+# 	su - $new_user_name -c "wp cache flush 2>/dev/null"  
+# fi
+# su - $new_user_name -c "wp plugin uninstall --deactivate redis-cache 2>/dev/null"
+# su - $new_user_name -c "wp --skip-plugins config set DOMAIN_CURRENT_SITE $new_domain --no-add 2>/dev/null"
 
 
 # Possibly issue SSL certificates or, if not, change the domain on the site to plain old 'http'

@@ -1154,10 +1154,10 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tab'     => 'wordpress-app-general-wpadmin',
 			),
 			array(
-				'id'      => 'wordpress_app_hide_notes_on_server_services_tab',
+				'id'      => 'wordpress_app_show_notes_on_server_services_tab',
 				'type'    => 'checkbox',
-				'name'    => __( 'Hide Notes Column On Services Tab?', 'wpcd' ),
-				'tooltip' => __( 'On the services tab we show a notes column.  For experienced admins this is not necessary - check this box to remove the unnecessary text from the screen.', 'wpcd' ),
+				'name'    => __( 'Show Notes Column On Services Tab?', 'wpcd' ),
+				'tooltip' => __( 'On the services tab we can show a notes column that indicates what the services are used for. Check this box to add that column.', 'wpcd' ),
 				'tab'     => 'wordpress-app-general-wpadmin',
 			),
 			array(
@@ -1246,8 +1246,15 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			array(
 				'id'      => 'wordpress_app_show_label_in_lists',
 				'type'    => 'checkbox',
-				'name'    => __( 'Show the \'WordPress\' label in server and site lists?', 'wpcd' ),
-				'tooltip' => __( 'If you are running multiple apps you will likely want to know which servers and apps are WordPress related.  If so, turn this on.', 'wpcd' ),
+				'name'    => __( 'Show the \'WordPress\' Label?', 'wpcd' ),
+				'tooltip' => __( 'If you are running multiple apps you will likely want to know which servers and apps are WordPress related.  If so, turn this on. It will show a WORDPRESS label next to the title in the server and site lists.', 'wpcd' ),
+				'tab'     => 'wordpress-app-general-wpadmin',
+			),
+			array(
+				'id'      => 'wordpress_app_show_object_server_label_in_lists',
+				'type'    => 'checkbox',
+				'name'    => __( 'Show the Object Server Label?', 'wpcd' ),
+				'tooltip' => __( 'Use this to show the REDIS and MEMCACHED label next to the title in the server and site lists.', 'wpcd' ),
 				'tab'     => 'wordpress-app-general-wpadmin',
 			),
 			array(
@@ -1269,7 +1276,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			array(
 				'id'      => 'wordpress_app_versions_show_nightly',
 				'type'    => 'checkbox',
-				'name'    => __( 'Show \'Nightly\' as a version option?', 'wpcd' ),
+				'name'    => __( 'Show \'Nightly\' as a Version Option?', 'wpcd' ),
 				'tooltip' => __( 'Allow the user to specify the nightly development version of WordPress.', 'wpcd' ),
 				'tab'     => 'wordpress-app-general-wpadmin',
 			),
@@ -1296,11 +1303,15 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 	 */
 	public function server_fields() {
 
+		$server_setup_desc  = __( 'Services and actions to perform immediately after a server has been deployed.', 'wpcd' );
+		$server_setup_desc .= '<br/>' . __( 'These actions will occur in the background via our scheduler AFTER the server is provisioned.', 'wpcd' );
+		$server_setup_desc .= '<br/>' . __( 'This means that there is a delay before some of these items are completed even though the server is ready and available.', 'wpcd' );
+
 		$fields = array(
 			array(
 				'type' => 'heading',
 				'name' => __( 'Server Setup Options', 'wpcd' ),
-				'desc' => __( 'Services and actions to perform immediately after a server has been deployed.', 'wpcd' ),
+				'desc' => $server_setup_desc,
 				'tab'  => 'wordpress-app-servers',
 			),
 			array(
@@ -1387,11 +1398,15 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 	 */
 	public function site_fields() {
 
+		$site_setup_desc  = __( 'Services and actions to perform immediately after a site has been deployed.', 'wpcd' );
+		$site_setup_desc .= '<br/>' . __( 'These actions will occur in the background via our scheduler AFTER the site is provisioned.', 'wpcd' );
+		$site_setup_desc .= '<br/>' . __( 'This means that there is a short delay before these items are completed even though the site is ready and available.', 'wpcd' );
+
 		$fields = array(
 			array(
 				'type' => 'heading',
 				'name' => __( 'Site Setup Options', 'wpcd' ),
-				'desc' => __( 'Services and actions to perform immediately after a WordPress site has been deployed.', 'wpcd' ),
+				'desc' => $site_setup_desc,
 				'tab'  => 'wordpress-app-sites',
 			),
 			array(
@@ -1406,6 +1421,13 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'type'    => 'checkbox',
 				'name'    => __( 'Disable The Page Cache?', 'wpcd' ),
 				'tooltip' => __( 'We automatically install and enable a page cache on all new sites. Use this option to disable it.', 'wpcd' ),
+				'tab'     => 'wordpress-app-sites',
+			),
+			array(
+				'id'      => 'wordpress_app_sites_disable_redis_cache',
+				'type'    => 'checkbox',
+				'name'    => __( 'Disable The Redis Object Cache?', 'wpcd' ),
+				'tooltip' => __( 'We automatically install and enable the REDIS object cache on all new sites. Use this option to disable it.', 'wpcd' ),
 				'tab'     => 'wordpress-app-sites',
 			),
 			array(

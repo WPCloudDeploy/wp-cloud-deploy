@@ -56,6 +56,9 @@ trait wpcd_wpapp_after_prepare_server {
 				WPCD_POSTS_APP_SERVER()->wpcd_app_server_set_deletion_protection_flag( $server_id );
 			}
 
+			// Set flag to indicate REDIS is installed on the server.
+			$this->set_server_redis_installed_status( $server_id, true );
+
 			// Setup task to install backup scripts.
 			if ( wpcd_get_option( 'wordpress_app_servers_activate_backups' ) ) {
 				$instance['action_hook'] = 'wpcd_core_after_server_prepare_install_server_backups';

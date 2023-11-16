@@ -442,7 +442,15 @@ class WPCD_POSTS_Site_Package extends WPCD_Posts_Base {
 				'columns'    => 3,
 			),
 			array(
-				'name'       => __( 'Delete UpDraft Backups', 'wpcd' ),
+				'name'       => __( 'Active Logtivity', 'wpcd' ),
+				'id'         => $prefix . 'site_package_activate_logtivity',
+				'type'       => 'checkbox',
+				'std'        => true,
+				'save_field' => true,
+				'columns'    => 2,
+			),
+			array(
+				'name'       => __( 'Delete Updraft Backups', 'wpcd' ),
 				'id'         => $prefix . 'site_package_delete_updraft',
 				'type'       => 'checkbox',
 				'std'        => true,

@@ -3464,8 +3464,11 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		// Switch PHP version.
 		$this->handle_switch_php_version( $app_id, $instance );
 
-		// Install page_cache.
+		// Maybe disable page_cache.
 		$this->handle_page_cache_for_new_site( $app_id, $instance );
+
+		// Maybe disable redis object cache.
+		$this->handle_redis_object_cache_for_new_site( $app_id, $instance );
 
 		// Handle site package rules.
 		$this->handle_site_package_rules( $app_id );
@@ -3920,7 +3923,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	}
 
 	/**
-	 * Add page cache when WP install is complete.
+	 * Disable page cache when WP install is complete.
 	 *
 	 * Called from function wpcd_wpapp_install_complete
 	 *
@@ -3932,6 +3935,23 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		if ( wpcd_get_option( 'wordpress_app_sites_disable_page_cache' ) ) {
 			$instance['action_hook'] = 'wpcd_pending_log_toggle_page_cache';
 			WPCD_POSTS_PENDING_TASKS_LOG()->add_pending_task_log_entry( $app_id, 'disable-page-cache', $app_id, $instance, 'ready', $app_id, __( 'Disable Page Cache For New Site', 'wpcd' ) );
+		}
+
+	}
+
+	/**
+	 * Remove redis object cache when WP install is complete.
+	 *
+	 * Called from function wpcd_wpapp_install_complete
+	 *
+	 * @param int   $app_id        post id of app.
+	 * @param array $instance      Array passed by calling function containing details of the server and site.
+	 */
+	public function handle_redis_object_cache_for_new_site( $app_id, $instance ) {
+
+		if ( wpcd_get_option( 'wordpress_app_sites_disable_redis_cache' ) ) {
+			$instance['action_hook'] = 'wpcd_pending_log_toggle_redis_object_cache';
+			WPCD_POSTS_PENDING_TASKS_LOG()->add_pending_task_log_entry( $app_id, 'disable-redis-object-cache', $app_id, $instance, 'ready', $app_id, __( 'Disable Redis Object Cache For New Site', 'wpcd' ) );
 		}
 
 	}

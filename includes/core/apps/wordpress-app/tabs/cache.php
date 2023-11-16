@@ -26,8 +26,11 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 
 		add_action( "wpcd_command_{$this->get_app_name()}_completed", array( $this, 'command_completed' ), 10, 2 );
 
-		/* Pending Logs Background Task: Install our page cache on a site */
-		add_action( 'wpcd_pending_log_toggle_page_cache', array( $this, 'toggle_page_cache' ), 10, 3 );
+		/* Pending Logs Background Task: Toggle the page cache on a site */
+		add_action( 'wpcd_pending_log_toggle_page_cache', array( $this, 'pending_log_toggle_page_cache' ), 10, 3 );
+
+		/* Pending Logs Background Task: Toggle the redis object cache on a site */
+		add_action( 'wpcd_pending_log_toggle_redis_object_cache', array( $this, 'pending_log_toggle_redis_object_cache' ), 10, 3 );
 
 	}
 
@@ -869,7 +872,7 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 	 * @param int   $site_id    Id of site involved in this action.
 	 * @param array $args       All the data needed to handle this action.
 	 */
-	public function toggle_page_cache( $task_id, $site_id, $args ) {
+	public function pending_log_toggle_page_cache( $task_id, $site_id, $args ) {
 
 		// Grab our data array from pending tasks record...
 		$data = WPCD_POSTS_PENDING_TASKS_LOG()->get_data_by_id( $task_id );
@@ -891,6 +894,48 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 
 	}
 
+	/**
+	 * Toggle the redis cache.
+	 *
+	 * Called from an action hook from the pending logs background process - WPCD_POSTS_PENDING_TASKS_LOG()->do_tasks()
+	 *
+	 * Action Hook: wpcd_pending_log_toggle_redis_object_cache
+	 *
+	 * @param int   $task_id    Id of pending task that is firing this thing...
+	 * @param int   $site_id    Id of site involved in this action.
+	 * @param array $args       All the data needed to handle this action.
+	 */
+	public function pending_log_toggle_redis_object_cache( $task_id, $site_id, $args ) {
+
+		// Grab our data array from pending tasks record...
+		$data = WPCD_POSTS_PENDING_TASKS_LOG()->get_data_by_id( $task_id );
+
+		$redis_status = $this->get_app_is_redis_installed( $site_id );
+
+		/* Toggle The Redis object cache. Cache */
+		if ( true === $redis_status ) {
+			// currently enabled so disable it.
+			$result = $this->enable_disable_redis( 'disable', $site_id );
+		} else {
+			// currently disabled so enable it.
+			$result = $this->enable_disable_redis( 'enable', $site_id );
+		}
+
+		$task_status = 'complete';  // Assume success.
+		if ( is_array( $result ) ) {
+			// We'll get an array with a success message from the enable_disable_redis_object_cache() function.  So nothing to do here.
+			// We'll just reset the $task_status to complete (which is the value it was initialized with) to avoid complaints by PHPcs about an empty if statement.
+			$task_status = 'complete';
+		} else {
+			if ( false === (bool) $result || is_wp_error( $result ) ) {
+				$task_status = 'failed';
+			}
+		}
+		WPCD_POSTS_PENDING_TASKS_LOG()->update_task_by_id( $task_id, $data, $task_status );
+
+	}
+
 }
+
 
 new WPCD_WORDPRESS_TABS_CACHE();

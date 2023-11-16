@@ -1179,6 +1179,20 @@ trait wpcd_wpapp_admin_column_data {
 			}
 		}
 
+		/* Show the object server type */
+		if ( 'wpcd_app' === get_post_type( $post ) && 'wordpress-app' === $this->get_app_type( $post->ID ) && true === boolval( wpcd_get_option( 'wordpress_app_show_object_server_label_in_lists' ) ) ) {
+			$object_server_type = '';
+			if ( $this->get_app_is_redis_installed( $post->ID ) ) {
+				$object_server_type = 'Redis';
+			}
+			if ( $this->get_app_is_memcached_installed( $post->ID ) ) {
+				$object_server_type = 'Memcached';
+			}
+			if ( ! empty( $object_server_type ) ) {
+				$states['wpcd-wpapp-object-server-type'] = $object_server_type;
+			}
+		}
+
 		/* Show if the site has a remote database */
 		if ( 'wpcd_app' === get_post_type( $post ) && 'wordpress-app' === $this->get_app_type( $post->ID ) ) {
 			if ( 'yes' === $this->is_remote_db( $post->ID ) ) {
@@ -1235,6 +1249,20 @@ trait wpcd_wpapp_admin_column_data {
 		/* Show if the server has a local/custom ssh login */
 		if ( 'wpcd_app_server' === get_post_type( $post ) && 'wordpress-app' === $this->get_server_type( $post->ID ) && ! empty( WPCD()->decrypt( get_post_meta( $post->ID, 'wpcd_server_ssh_private_key', true ) ) ) ) {
 			$states['wpcd-server-custom-ssh-login'] = __( 'SSH Override', 'wpcd' );
+		}
+
+		/* Show the object server type on the server list screen */
+		if ( 'wpcd_app_server' === get_post_type( $post ) && 'wordpress-app' === $this->get_server_type( $post->ID ) && true === boolval( wpcd_get_option( 'wordpress_app_show_object_server_label_in_lists' ) ) ) {
+			$object_server_type = '';
+			if ( $this->is_redis_installed( $post->ID ) ) {
+				$object_server_type = 'Redis';
+			}
+			if ( $this->is_memcached_installed( $post->ID ) ) {
+				$object_server_type = 'Memcached';
+			}
+			if ( ! empty( $object_server_type ) ) {
+				$states['wpcd-server-object-server-type'] = $object_server_type;
+			}
 		}
 
 		return $states;

@@ -71,11 +71,17 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 		// Enable filter on the default wp user id field to encrypt it when its being stored.
 		add_filter( 'rwmb_wordpress_app_default_wp_user_id_value', array( &$this, 'encrypt' ), 10, 3 );
 
+		// Enable filter on the logtivity teams api key to encrypt it when it's being stored.
+		add_filter( 'rwmb_wordpress_app_logtivity_teams_api_key_value', array( &$this, 'encrypt' ), 10, 3 );
+
 		// Enable filter on the default wp password field to decrypt it when its being retrieved.
 		add_filter( 'rwmb_wordpress_app_default_wp_password_field_meta', array( &$this, 'decrypt' ), 10, 3 );
 
 		// Enable filter on the default wp user id field to decrypt it when its being retrieved.
 		add_filter( 'rwmb_wordpress_app_default_wp_user_id_field_meta', array( &$this, 'decrypt' ), 10, 3 );
+
+		// Enable filter on the default logtivity teams api key field to decrypt it when its being retrieved.
+		add_filter( 'rwmb_wordpress_app_logtivity_teams_api_key_field_meta', array( &$this, 'decrypt' ), 10, 3 );
 
 	}
 

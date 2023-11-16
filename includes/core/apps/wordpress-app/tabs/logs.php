@@ -302,7 +302,7 @@ class WPCD_WORDPRESS_TABS_SITE_LOGS extends WPCD_WORDPRESS_TABS {
 		$desc = __( 'Connect site to Logtivity.', 'wpcd' );
 
 		// If no value is for logtivity teams api, set warning.
-		if ( empty( wpcd_get_early_option( 'wordpress_app_logtivity_teams_api_key' ) ) ) {
+		if ( empty( WPCD()->decrypt( wpcd_get_early_option( 'wordpress_app_logtivity_teams_api_key' ) ) ) ) {
 			$desc .= '<br/>' . __( 'Warning: No Logtivity API Key is configured in settings!', 'wpcd' );
 		}
 
@@ -443,8 +443,8 @@ class WPCD_WORDPRESS_TABS_SITE_LOGS extends WPCD_WORDPRESS_TABS {
 	public function install_activate_logtivity( $action, $id ) {
 
 		// If we don't have a LOGTIVITY TEAMS key, use return.
-		$teams_api_key = wpcd_get_option( 'wordpress_app_logtivity_teams_api_key' );
-		error_log( "api key is $teams_api_key" );
+		$teams_api_key = WPCD()->decrypt( wpcd_get_option( 'wordpress_app_logtivity_teams_api_key' ) );
+
 		if ( true === empty( $teams_api_key ) ) {
 			/* Translators: %s is an internal action name. */
 			return new \WP_Error( sprintf( __( 'There is no Logtivity Teams API Key set in your global settings - action %s', 'wpcd' ), $action ) );

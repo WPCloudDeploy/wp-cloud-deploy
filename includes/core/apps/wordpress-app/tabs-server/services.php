@@ -537,6 +537,13 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			);
 		};
 
+		$actions['core-services-divider-after'] = array(
+			'raw_attributes' => array(
+				'std' => '<hr/>',
+			),
+			'type'           => 'custom_html',
+		);
+
 		/* Redis */
 		if ( $this->is_redis_installed( $id ) ) {
 			$redis_desc = __( 'High-performance object cache.', 'wpcd' );
@@ -608,12 +615,21 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 				'type'           => 'button',
 			);
 
-			$actions['redis-desc'] = array(
-				'label'          => __( 'Notes', 'wpcd' ),
+			if ( ! wpcd_get_early_option( 'wordpress_app_hide_notes_on_server_services_tab' ) ) {
+				$actions['redis-desc'] = array(
+					'label'          => __( 'Notes', 'wpcd' ),
+					'raw_attributes' => array(
+						'std'     => __( '', 'wpcd' ),
+						'desc'    => __( 'Clearing the cache clears it for all sites on this server.', 'wpcd' ),
+						'columns' => 5,
+					),
+					'type'           => 'custom_html',
+				);
+			}
+
+			$actions['redis-divider-before-remove-option'] = array(
 				'raw_attributes' => array(
-					'std'     => __( '', 'wpcd' ),
-					'desc'    => __( 'Clearing the cache clears it for all sites on this server.', 'wpcd' ),
-					'columns' => 5,
+					'std' => '<hr/>',
 				),
 				'type'           => 'custom_html',
 			);
@@ -627,99 +643,11 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 				'type'           => 'button',
 			);
 
-		}
-
-		/* Memcached */
-		if ( $this->is_memcached_installed( $id ) ) {
-			$mc_desc = __( 'A performance-oriented object cache.', 'wpcd' );
-		} else {
-			$mc_desc  = __( 'Memcached is an OBJECT cache service that can help speed up duplicated database queries.  Once the service is installed here, you can activate it for each site that needs it.', 'wpcd' );
-			$mc_desc .= '<br />';
-			/* translators: %s is a string "Memcached and Redis Object Caches" and is handled separately. */
-			$mc_desc .= sprintf( __( 'Learn more about %s', 'wpcd' ), '<a href="https://scalegrid.io/blog/redis-vs-memcached-2021-comparison/">' . __( 'Memcached and Redis Object Caches', 'wpcd' ) . '</a>' );
-		}
-
-		$actions['memcached-status-header'] = array(
-			'label'          => __( 'Memcached', 'wpcd' ),
-			'type'           => 'heading',
-			'raw_attributes' => array(
-				'desc' => $mc_desc,
-			),
-		);
-
-		if ( 'yes' !== get_post_meta( $id, 'wpcd_wpapp_memcached_installed', true ) ) {
-			// Memcached not installed so show only install button.
-			$actions['memcached-do-install'] = array(
-				'label'          => '',
+			$actions['redis-divider-after-remove-option'] = array(
 				'raw_attributes' => array(
-					'std'                 => __( 'Install MemCached', 'wpcd' ),
-					'desc'                => __( 'It appears that MemCached is not installed on this server.  Click the button to start the installation process.', 'wpcd' ), // make sure we give the user a confirmation prompt.
-					'confirmation_prompt' => __( 'Are you sure you would like to install the MemCached service?', 'wpcd' ),
-					// show log console?
-					'log_console'         => true,
-					// Initial console message.
-					'console_message'     => __( 'Preparing to install the MemCached service!<br /> Please DO NOT EXIT this screen until you see a popup message indicating that the installation has been completed or has errored.<br />This terminal should refresh every 60-90 seconds with updated progress information from the server. <br /> After the installation is complete the entire log can be viewed in the COMMAND LOG screen.', 'wpcd' ),
-				),
-				'type'           => 'button',
-			);
-		} else {
-			// memcached is installed so show status and options to disable and enable.
-
-			$actions['memcached-label'] = array(
-				'label'          => __( 'Service', 'wpcd' ),
-				'raw_attributes' => array(
-					'std'     => __( 'MemCached', 'wpcd' ),
-					'columns' => 3,
+					'std' => '<hr/>',
 				),
 				'type'           => 'custom_html',
-			);
-
-			$actions['memcached-status'] = array(
-				'label'          => __( 'Status', 'wpcd' ),
-				'raw_attributes' => array(
-					'std'     => $memcached_status,
-					'columns' => wpcd_get_early_option( 'wordpress_app_hide_notes_on_server_services_tab' ) ? 5 : 2,
-				),
-				'type'           => 'custom_html',
-			);
-
-			$actions['memcached-restart'] = array(
-				'label'          => __( 'Actions', 'wpcd' ),
-				'raw_attributes' => array(
-					'std'     => __( 'Restart', 'wpcd' ),
-					'columns' => wpcd_get_early_option( 'wordpress_app_hide_notes_on_server_services_tab' ) ? 2 : 1,
-				),
-				'type'           => 'button',
-			);
-
-			$actions['memcached-clear_cache'] = array(
-				'label'          => __( 'Clear', 'wpcd' ),
-				'raw_attributes' => array(
-					'std'     => __( 'Clear Cache', 'wpcd' ),
-					'columns' => wpcd_get_early_option( 'wordpress_app_hide_notes_on_server_services_tab' ) ? 2 : 1,
-				),
-				'type'           => 'button',
-			);
-
-			if ( ! wpcd_get_early_option( 'wordpress_app_hide_notes_on_server_services_tab' ) ) {
-				$actions['memcached-desc'] = array(
-					'label'          => __( 'Notes', 'wpcd' ),
-					'raw_attributes' => array(
-						'std'     => '',
-						'desc'    => __( 'Clearing the cache clears it for all sites on this server.', 'wpcd' ),
-						'columns' => 5,
-					),
-					'type'           => 'custom_html',
-				);
-			};
-
-			$actions['memcached-remove'] = array(
-				'label'          => __( 'Remove MemCached', 'wpcd' ),
-				'raw_attributes' => array(
-					'std'               => __( 'Un-Install MemCached', 'wpcd' ),
-					'label_description' => __( 'Please verify that none of your sites have MemCached enabled before removing it from the server!', 'wpcd' ),
-				),
-				'type'           => 'button',
 			);
 
 		}
@@ -1025,6 +953,115 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 				),
 				'type'           => 'button',
 			);
+		}
+
+		/* Memcached */
+		if ( $this->is_memcached_installed( $id ) ) {
+			$mc_desc = __( 'A performance-oriented object cache.', 'wpcd' );
+		} else {
+			$mc_desc  = __( 'Memcached is an OBJECT cache service that can help speed up duplicated database queries.  Once the service is installed here, you can activate it for each site that needs it.', 'wpcd' );
+			$mc_desc .= '<br />';
+			/* translators: %s is a string "Memcached and Redis Object Caches" and is handled separately. */
+			$mc_desc .= sprintf( __( 'Learn more about %s', 'wpcd' ), '<a href="https://scalegrid.io/blog/redis-vs-memcached-2021-comparison/">' . __( 'Memcached and Redis Object Caches', 'wpcd' ) . '</a>' );
+		}
+
+		$actions['memcached-status-header'] = array(
+			'label'          => __( 'Memcached', 'wpcd' ),
+			'type'           => 'heading',
+			'raw_attributes' => array(
+				'desc' => $mc_desc,
+			),
+		);
+
+		if ( 'yes' !== get_post_meta( $id, 'wpcd_wpapp_memcached_installed', true ) ) {
+			// Memcached not installed so show only install button.
+			$actions['memcached-do-install'] = array(
+				'label'          => '',
+				'raw_attributes' => array(
+					'std'                 => __( 'Install MemCached', 'wpcd' ),
+					'desc'                => __( 'It appears that MemCached is not installed on this server.  Click the button to start the installation process.', 'wpcd' ), // make sure we give the user a confirmation prompt.
+					'confirmation_prompt' => __( 'Are you sure you would like to install the MemCached service?', 'wpcd' ),
+					// show log console?
+					'log_console'         => true,
+					// Initial console message.
+					'console_message'     => __( 'Preparing to install the MemCached service!<br /> Please DO NOT EXIT this screen until you see a popup message indicating that the installation has been completed or has errored.<br />This terminal should refresh every 60-90 seconds with updated progress information from the server. <br /> After the installation is complete the entire log can be viewed in the COMMAND LOG screen.', 'wpcd' ),
+				),
+				'type'           => 'button',
+			);
+		} else {
+			// memcached is installed so show status and options to disable and enable.
+
+			$actions['memcached-label'] = array(
+				'label'          => __( 'Service', 'wpcd' ),
+				'raw_attributes' => array(
+					'std'     => __( 'MemCached', 'wpcd' ),
+					'columns' => 3,
+				),
+				'type'           => 'custom_html',
+			);
+
+			$actions['memcached-status'] = array(
+				'label'          => __( 'Status', 'wpcd' ),
+				'raw_attributes' => array(
+					'std'     => $memcached_status,
+					'columns' => wpcd_get_early_option( 'wordpress_app_hide_notes_on_server_services_tab' ) ? 5 : 2,
+				),
+				'type'           => 'custom_html',
+			);
+
+			$actions['memcached-restart'] = array(
+				'label'          => __( 'Actions', 'wpcd' ),
+				'raw_attributes' => array(
+					'std'     => __( 'Restart', 'wpcd' ),
+					'columns' => wpcd_get_early_option( 'wordpress_app_hide_notes_on_server_services_tab' ) ? 2 : 1,
+				),
+				'type'           => 'button',
+			);
+
+			$actions['memcached-clear_cache'] = array(
+				'label'          => __( 'Clear', 'wpcd' ),
+				'raw_attributes' => array(
+					'std'     => __( 'Clear Cache', 'wpcd' ),
+					'columns' => wpcd_get_early_option( 'wordpress_app_hide_notes_on_server_services_tab' ) ? 2 : 1,
+				),
+				'type'           => 'button',
+			);
+
+			if ( ! wpcd_get_early_option( 'wordpress_app_hide_notes_on_server_services_tab' ) ) {
+				$actions['memcached-desc'] = array(
+					'label'          => __( 'Notes', 'wpcd' ),
+					'raw_attributes' => array(
+						'std'     => '',
+						'desc'    => __( 'Clearing the cache clears it for all sites on this server.', 'wpcd' ),
+						'columns' => 5,
+					),
+					'type'           => 'custom_html',
+				);
+			};
+
+			$actions['memcached-divider-before-remove-option'] = array(
+				'raw_attributes' => array(
+					'std' => '<hr/>',
+				),
+				'type'           => 'custom_html',
+			);
+
+			$actions['memcached-remove'] = array(
+				'label'          => __( 'Remove MemCached', 'wpcd' ),
+				'raw_attributes' => array(
+					'std'               => __( 'Un-Install MemCached', 'wpcd' ),
+					'label_description' => __( 'Please verify that none of your sites have MemCached enabled before removing it from the server!', 'wpcd' ),
+				),
+				'type'           => 'button',
+			);
+
+			$actions['memcached-divider-after-remove-option'] = array(
+				'raw_attributes' => array(
+					'std' => '<hr/>',
+				),
+				'type'           => 'custom_html',
+			);
+
 		}
 
 		/* PHP Processes */

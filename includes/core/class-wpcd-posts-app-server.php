@@ -477,7 +477,7 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 				$value  .= $this->wpcd_column_wrap_string_with_div_and_class( $value2, 'server_size' );
 
 				// Add instance id to final output.
-				if ( ! boolval( wpcd_get_option( 'wpcd_server_list_instance_id_column' ) ) ) {
+				if ( boolval( wpcd_get_option( 'wordpress_app_show_server_instance_id_element_in_server_list') ) && ( ! boolval( wpcd_get_option( 'wpcd_server_list_instance_id_column' ) ) ) ) {
 					if ( ( ! boolval( wpcd_get_option( 'wpcd_server_list_hide_instance_id_column' ) ) ) || wpcd_is_admin() ) {
 						$value2  = $this->wpcd_column_wrap_string_with_span_and_class( __( 'Instance ID: ', 'wpcd' ), 'instance_id', 'left' );
 						$value2 .= $this->wpcd_column_wrap_string_with_span_and_class( $instance_id, 'instance_id', 'right' );

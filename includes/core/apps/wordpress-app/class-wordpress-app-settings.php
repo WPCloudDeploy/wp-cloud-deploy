@@ -1625,6 +1625,13 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tab'     => 'wordpress-app-fields-and-links',
 			),
 			array(
+				'id'      => 'wordpress_app_show_server_instance_id_element_in_server_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Show Instance Id Element', 'wpcd' ),
+				'tooltip' => __( 'Show the provider server instance id in the PROVIDER DETAILS column in the server list.', 'wpcd' ),
+				'tab'     => 'wordpress-app-fields-and-links',
+			),
+			array(
 				'id'   => 'wordpress_fields_and_links_heading_02',
 				'type' => 'heading',
 				'name' => __( 'Sites', 'wpcd' ),

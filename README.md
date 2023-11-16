@@ -136,6 +136,7 @@ Note: Even though the entire git development history isn't available on github, 
 * Tweak: WPAPP - Add multi-tenant parent to the app list APP SUMMARY column if the site is an mt-version site.
 * Tweak: WPAPP - When executing update plans, make sure that the WP database is upgraded in case the new files are for a new version of WP.
 * Tweak: WPAPP - Style the checkmarks on the SITE UPDATE PLAN HISTORY list screen.
+* Tweak: WPAPP - Hide the provider server instance id from the PROVIDER DETAILS column in the server list. Includes setting option to show it but it's now hidden by default.
 
 5.5.1
 ------

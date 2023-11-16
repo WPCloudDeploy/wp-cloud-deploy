@@ -423,7 +423,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		$actions = array();
 
 		$actions['services-header'] = array(
-			'label'          => __( 'Services', 'wpcd' ),
+			'label'          => '<i class="fa-duotone fa-bell-concierge"></i> ' . __( 'Services', 'wpcd' ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
 				'desc' => __( 'Control the Core Services that allow your application(s) to run.', 'wpcd' ),
@@ -433,7 +433,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		$actions['services-status-update'] = array(
 			'label'          => '',
 			'raw_attributes' => array(
-				'std' => __( 'Refresh Services Status', 'wpcd' ),
+				'std' => '<i class="fa-solid fa-arrows-rotate"></i> ' . __( 'Refresh Services Status', 'wpcd' ),
 			),
 			'type'           => 'button',
 		);
@@ -447,7 +447,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		);
 
 		$actions['services-status-header'] = array(
-			'label'          => __( 'Core Services Status', 'wpcd' ),
+			'label'          => '<i class="fa-duotone fa-lighthouse"></i> ' . __( 'Core Services Status', 'wpcd' ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
 				'desc' => '',
@@ -479,7 +479,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		$actions['web-server-restart'] = array(
 			'label'          => __( 'Actions', 'wpcd' ),
 			'raw_attributes' => array(
-				'std'     => __( 'Restart', 'wpcd' ),
+				'std'     => '<i class="fa-sharp fa-solid fa-clock-rotate-left"></i> ' . __( 'Restart', 'wpcd' ),
 				'columns' => wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ? 2 : 3,
 			),
 			'type'           => 'button',
@@ -519,7 +519,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		$actions['db-server-restart'] = array(
 			'label'          => '',
 			'raw_attributes' => array(
-				'std'     => __( 'Restart', 'wpcd' ),
+				'std'     => '<i class="fa-sharp fa-solid fa-clock-rotate-left"></i> ' . __( 'Restart', 'wpcd' ),
 				'columns' => wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ? 2 : 3,
 			),
 			'type'           => 'button',
@@ -555,7 +555,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		}
 
 		$actions['redis-status-header'] = array(
-			'label'          => __( 'Redis', 'wpcd' ),
+			'label'          => '<i class="fa-duotone fa-objects-column"></i> ' . __( 'Redis', 'wpcd' ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
 				'desc' => $redis_desc,
@@ -661,7 +661,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		$ufw_desc  = __( 'You can manage ports on the FIREWALL tab.', 'wpcd' );
 
 		$actions['ufw-status-header'] = array(
-			'label'          => __( 'UFW Firewall', 'wpcd' ),
+			'label'          => '<i class="fa-duotone fa-block-brick-fire"></i> ' . __( 'UFW Firewall', 'wpcd' ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
 				'desc' => $ufw_desc,
@@ -764,7 +764,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 
 		// email gateway form fields.
 		$actions['email-gateway-header'] = array(
-			'label'          => __( 'Email Gateway', 'wpcd' ),
+			'label'          => '<i class="fa-duotone fa-inbox-out"></i> ' . __( 'Email Gateway', 'wpcd' ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
 				'desc' => $eg_desc,
@@ -966,7 +966,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		}
 
 		$actions['memcached-status-header'] = array(
-			'label'          => __( 'Memcached', 'wpcd' ),
+			'label'          => '<i class="fa-duotone fa-object-intersect"></i> ' . __( 'Memcached', 'wpcd' ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
 				'desc' => $mc_desc,
@@ -1153,7 +1153,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		}
 
 		$actions['services-status-php'] = array(
-			'label'          => __( 'PHP Processes', 'wpcd' ),
+			'label'          => '<i class="fa-duotone fa-arrow-progress"></i> ' . __( 'PHP Processes', 'wpcd' ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
 				'desc' => '',
@@ -1292,7 +1292,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		}
 
 		$actions['maldet-header'] = array(
-			'label'          => __( 'Malware & Virus Scanner', 'wpcd' ),
+			'label'          => '<i class="fa-duotone fa-virus-slash"></i> ' . __( 'Malware & Virus Scanner', 'wpcd' ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
 				'desc' => $desc,

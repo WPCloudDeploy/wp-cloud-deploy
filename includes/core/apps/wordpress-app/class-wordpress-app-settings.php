@@ -65,6 +65,18 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 		// Filter for change the header logo image.
 		add_filter( 'wpcd_popup_header_logo', array( &$this, 'wpcd_change_popup_header_logo' ) );
 
+		// Enable filter on the default wp password field to encrypt it when its being stored.
+		add_filter( 'rwmb_wordpress_app_default_wp_password_value', array( &$this, 'encrypt' ), 10, 3 );
+
+		// Enable filter on the default wp user id field to encrypt it when its being stored.
+		add_filter( 'rwmb_wordpress_app_default_wp_user_id_value', array( &$this, 'encrypt' ), 10, 3 );
+
+		// Enable filter on the default wp password field to decrypt it when its being retrieved.
+		add_filter( 'rwmb_wordpress_app_default_wp_password_field_meta', array( &$this, 'decrypt' ), 10, 3 );
+
+		// Enable filter on the default wp user id field to decrypt it when its being retrieved.
+		add_filter( 'rwmb_wordpress_app_default_wp_user_id_field_meta', array( &$this, 'decrypt' ), 10, 3 );
+
 	}
 
 	/**
@@ -1498,6 +1510,47 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tooltip' => __( 'This message will display on the GENERAL tab of a site when an admin lock is applied.', 'wpcd' ),
 				'tab'     => 'wordpress-app-sites',
 			),
+
+			array(
+				'type' => 'heading',
+				'name' => __( 'Developers', 'wpcd' ),
+				'desc' => __( 'A few options to make developers lives easier', 'wpcd' ),
+				'tab'  => 'wordpress-app-sites',
+			),
+			array(
+				'id'      => 'wordpress_app_default_wp_email',
+				'type'    => 'text',
+				'size'    => '60',
+				'name'    => __( 'Default Admin Email New Sites.', 'wpcd' ),
+				'tooltip' => __( 'The default email address when an admin uses the INSTALL WORDPRESS button.', 'wpcd' ),
+				'tab'     => 'wordpress-app-sites',
+			),
+			array(
+				'id'      => 'wordpress_app_default_wp_user_id',
+				'type'    => 'text',
+				'size'    => '60',
+				'name'    => __( 'Default User Id For New Sites.', 'wpcd' ),
+				'tooltip' => __( 'The default user id when an admin uses the INSTALL WORDPRESS button.', 'wpcd' ),
+				'tab'     => 'wordpress-app-sites',
+				'class'   => 'wpcd_settings_pass_toggle',
+			),
+			array(
+				'id'      => 'wordpress_app_default_wp_password',
+				'type'    => 'text',
+				'size'    => '60',
+				'name'    => __( 'Default Password For New Sites.', 'wpcd' ),
+				'tooltip' => __( 'The default password when an admin uses the INSTALL WORDPRESS button.', 'wpcd' ),
+				'tab'     => 'wordpress-app-sites',
+				'class'   => 'wpcd_settings_pass_toggle',
+			),
+			array(
+				'id'      => 'wordpress_app_auto_gen_password',
+				'type'    => 'checkbox',
+				'name'    => __( 'Auto-generate Password.', 'wpcd' ),
+				'tooltip' => __( 'If checked, a random password will be generated when an admin uses the INSTALL WORDPRESS button. Checking this box overrides the default password option above.', 'wpcd' ),
+				'tab'     => 'wordpress-app-sites',
+			),
+
 			array(
 				'type' => 'heading',
 				'name' => __( 'Misc', 'wpcd' ),
@@ -2949,6 +3002,36 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 
 		return $fields;
 
+	}
+
+	/**
+	 * Encrypt data before it is saved in the database
+	 *
+	 * Filter Hook: rwmb_wordpress_app_default_wp_password_value
+	 *
+	 * @param string $new new value being saved.
+	 * @param string $field name of being field saved.
+	 * @param string $old old value of the field.
+	 *
+	 * @return string $new the encrypted value of the field.
+	 */
+	public function encrypt( $new, $field, $old ) {
+		return WPCD()->encrypt( $new );
+	}
+
+	/**
+	 * Decrypt data before it is shown on the screen
+	 *
+	 * Filter Hook: rwmb_wordpress_app_default_wp_password_field_meta
+	 *
+	 * @param string $meta the value in the field being decrypted.
+	 * @param string $field the name of the field.
+	 * @param string $saved the original saved value of the field.
+	 *
+	 * @return string $meta the decrypted value of the field.
+	 */
+	public function decrypt( $meta, $field, $saved ) {
+		return WPCD()->decrypt( $meta );
 	}
 
 }

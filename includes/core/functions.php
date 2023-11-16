@@ -449,6 +449,13 @@ function wpcd_random_str( int $length = 64, string $keyspace = '0123456789abcdef
 }
 
 /**
+ * Return a 32 character password without special chars.
+ */
+function wpcd_generate_default_password() {
+	return wpcd_random_str( 32, '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-' );
+}
+
+/**
  * Find the LOCATION of the first number in a string...
  *
  * Credit: https://stackoverflow.com/a/7495681

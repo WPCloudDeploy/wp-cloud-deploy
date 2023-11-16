@@ -2708,6 +2708,20 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				$server_provider = WPCD_SERVER()->get_server_provider( $server_id );
 				$temp_sub_domain = WPCD_DNS()->get_full_temp_domain();
 
+				/* Get some defaults froms settings so the popup can use - but only if it's used by wpcd admins. */
+				if ( wpcd_is_admin() ) {
+					$default_wp_user_id  = WPCD()->decrypt( wpcd_get_option( 'wordpress_app_default_wp_user_id' ) );
+					$default_wp_password = WPCD()->decrypt( wpcd_get_option( 'wordpress_app_default_wp_password' ) );
+					$default_wp_email    = wpcd_get_option( 'wordpress_app_default_wp_email' );
+					if ( true === boolval( wpcd_get_option( 'wordpress_app_auto_gen_password' ) ) ) {
+						$default_wp_password = wpcd_generate_default_password();
+					}
+				} else {
+					$default_wp_user_id  = '';
+					$default_wp_password = '';
+					$default_wp_email    = '';
+				}
+
 				/* Show the popup template*/
 				include apply_filters( "wpcd_{$this->get_app_name()}_install_app_popup", wpcd_path . 'includes/core/apps/wordpress-app/templates/install-app-popup.php' );
 

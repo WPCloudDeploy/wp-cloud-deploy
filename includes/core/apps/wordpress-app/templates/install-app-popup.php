@@ -106,10 +106,10 @@
 					<div class="wpcd-create-popup-label-wrap"><label class="wpcd-create-popup-label" for="wp_domain"> <?php echo esc_html( __( 'Domain', 'wpcd' ) ); ?>  </label></div>
 					<div class="wpcd-create-popup-input-wrap">
 					<?php if ( empty( $temp_sub_domain ) ) { ?>
-							<input type="text" maxlength="32" name="wp_domain" placeholder="<?php echo esc_html( __( 'Domain without www or http - eg: mydomain.com', 'wpcd' ) ); ?>" size="50">
-						<?php } else { ?>
-							<input type="text" maxlength="32" name="wp_domain" value=<?php echo esc_html( "$temp_sub_domain" ); ?> placeholder="<?php echo esc_attr( __( 'Domain without www or http - eg: mydomain.com', 'wpcd' ) ); ?>" size="50">
-						<?php } ?>
+						<input type="text" maxlength="32" name="wp_domain" placeholder="<?php echo esc_html( __( 'Domain without www or http - eg: mydomain.com', 'wpcd' ) ); ?>" size="50">
+					<?php } else { ?>
+						<input type="text" maxlength="32" name="wp_domain" value=<?php echo esc_html( "$temp_sub_domain" ); ?> placeholder="<?php echo esc_attr( __( 'Domain without www or http - eg: mydomain.com', 'wpcd' ) ); ?>" size="50">
+					<?php } ?>
 						<span class="error wpcd-domain-error"><?php echo esc_html( __( 'Please enter a valid domain name or IP Address.', 'wpcd' ) ); ?></span>
 						<div class='wp_field_error wp_domain_error_msg'><?php echo esc_html( $other_fields_error ); ?></div>
 					</div>
@@ -130,19 +130,31 @@
 
 					<div class="wpcd-create-popup-label-wrap"><label class="wpcd-create-popup-label" for="wp_user"> <?php echo esc_html( __( 'Admin Username', 'wpcd' ) ); ?>  </label></div>
 					<div class="wpcd-create-popup-input-wrap">
-						<input type="text" name="wp_user" placeholder="<?php echo esc_html( __( 'Admin Username', 'wpcd' ) ); ?>">
+					<?php if ( empty( $default_wp_user_id ) ) { ?>
+						<input type="text" name="wp_user" placeholder="<?php echo esc_html( __( 'Admin Username', 'wpcd' ) ); ?>">						
+					<?php } else { ?>
+						<input type="text" name="wp_user" value=<?php echo esc_html( "$default_wp_user_id" ); ?> placeholder="<?php echo esc_html( __( 'Admin Username', 'wpcd' ) ); ?>">
+					<?php } ?>
 						<div class='wp_field_error wp_username_error_msg'><?php echo esc_html( $other_fields_error ); ?></div>
 					</div>
 
 					<div class="wpcd-create-popup-label-wrap"><label class="wpcd-create-popup-label" for="wp_password"> <?php echo esc_html( __( 'Admin Password', 'wpcd' ) ); ?>  </label></div>
 					<div class="wpcd-create-popup-input-wrap">
+					<?php if ( empty( $default_wp_password ) ) { ?>
 						<input type="password" name="wp_password" placeholder="<?php esc_html( __( 'Admin Password', 'wpcd' ) ); ?>">
+					<?php } else { ?>
+						<input type="password" name="wp_password" value=<?php echo esc_html( "$default_wp_password" ); ?> placeholder="<?php esc_html( __( 'Admin Password', 'wpcd' ) ); ?>">						
+					<?php } ?>						
 						<div class='wp_field_error wp_password_error_msg'><?php echo esc_html( __( 'The following characters are invalid in the password field:  \' " ; \ | < > & ( ) ` (single-quote, double-quote, semi-colon, backslash, pipe, angled-brackets, backtics, spaces, carriage returns, linefeeds.)', 'wpcd' ) ); ?></div>
 					</div>
 
 					<div class="wpcd-create-popup-label-wrap"><label class="wpcd-create-popup-label" for="wp_email"> <?php echo esc_html( __( 'Admin Email Address', 'wpcd' ) ); ?>  </label></div>
 					<div class="wpcd-create-popup-input-wrap">
+					<?php if ( empty( $default_wp_email ) ) { ?>
 						<input type="email" name="wp_email" placeholder="<?php echo esc_attr( __( 'Email', 'wpcd' ) ); ?>" >
+					<?php } else { ?>
+						<input type="email" name="wp_email" value=<?php echo esc_html( "$default_wp_email" ); ?> placeholder="<?php echo esc_attr( __( 'Email', 'wpcd' ) ); ?>" >
+					<?php } ?>												
 						<div class='wp_field_error wp_check_email_error_msg'><?php echo esc_html( __( 'Please enter a valid email address.', 'wpcd' ) ); ?></div>
 						<div class='wp_field_error wp_email_error_msg'><?php echo esc_html( __( 'The following characters are invalid in email field:  \' " ; \ | < > & ( ) ` and spaces, carriage returns, linefeeds.', 'wpcd' ) ); ?></div>
 					</div>

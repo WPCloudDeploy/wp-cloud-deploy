@@ -1448,6 +1448,13 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tab'     => 'wordpress-app-sites',
 			),
 			array(
+				'id'      => 'wordpress_app_sites_activate_logtivity',
+				'type'    => 'checkbox',
+				'name'    => __( 'Activate Logtivity Connection?', 'wpcd' ),
+				'tooltip' => __( 'Activate Logtivity Connection on New Sites?', 'wpcd' ),
+				'tab'     => 'wordpress-app-sites',
+			),
+			array(
 				'id'      => 'wordpress_app_sites_set_php_version',
 				'type'    => 'select',
 				'name'    => __( 'Switch PHP Version For New Sites?', 'wpcd' ),
@@ -2398,6 +2405,13 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'desc' => __( 'This has to be the TEAMS key, not an api key for an individual site.', 'wpcd' ),
 				'tab'  => 'wordpress-app-logtivity',
 				'size' => 60,
+			),
+			array(
+				'id'      => 'wordpress_app_logtivity_enable_bulk_actions',
+				'type'    => 'checkbox',
+				'name'    => __( 'Enable Bulk Actions?', 'wpcd' ),
+				'tooltip' => __( 'Add Logtivity actions to the BULK ACTIONS menu in the site list.', 'wpcd' ),
+				'tab'     => 'wordpress-app-logtivity',
 			),
 		);
 

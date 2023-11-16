@@ -29,6 +29,25 @@ class WPCD_WORDPRESS_TABS_SITE_LOGS extends WPCD_WORDPRESS_TABS {
 		add_filter( "wpcd_app_{$this->get_app_name()}_get_tabnames", array( $this, 'get_tab' ), 10, 2 );
 		add_filter( "wpcd_app_{$this->get_app_name()}_get_tabs", array( $this, 'get_fields' ), 10, 2 );
 		add_filter( "wpcd_app_{$this->get_app_name()}_tab_action", array( $this, 'tab_action' ), 10, 3 );
+
+		// Activate Logtivity via an action hook.
+		add_action( 'wpcd_wordpress-app_do-activate_logtivity_for_site', array( $this, 'activate_logtivity_action' ), 10, 2 );
+
+		// Remove Logtivity via an action hook.
+		add_action( 'wpcd_wordpress-app_do-remove_logtivity_for_site', array( $this, 'remove_logtivity_action' ), 10, 2 );
+
+		// Add bulk action option to the site list to add or remove logtivity from a site.
+		if ( true === boolval( wpcd_get_early_option( 'wordpress_app_logtivity_enable_bulk_actions' ) ) ) {
+			add_filter( 'bulk_actions-edit-wpcd_app', array( $this, 'wpcd_add_new_bulk_actions_site' ) );
+		}
+
+		// Action hook to handle bulk actions for site.
+		if ( true === boolval( wpcd_get_early_option( 'wordpress_app_logtivity_enable_bulk_actions' ) ) ) {
+			add_filter( 'handle_bulk_actions-edit-wpcd_app', array( $this, 'wpcd_bulk_action_handler_sites' ), 10, 3 );
+		}
+
+		/* Pending Logs Background Task: Activate Logtivity on a site */
+		add_action( 'wpcd_wordpress-app_pending_log_activate_logtivity', array( $this, 'pending_log_activate_logtivity' ), 10, 3 );
 	}
 
 	/**
@@ -422,7 +441,7 @@ class WPCD_WORDPRESS_TABS_SITE_LOGS extends WPCD_WORDPRESS_TABS {
 
 		// If we don't have a LOGTIVITY TEAMS key, use return.
 		$teams_api_key = wpcd_get_option( 'wordpress_app_logtivity_teams_api_key' );
-error_log("api key is $teams_api_key");
+		error_log( "api key is $teams_api_key" );
 		if ( true === empty( $teams_api_key ) ) {
 			/* Translators: %s is an internal action name. */
 			return new \WP_Error( sprintf( __( 'There is no Logtivity Teams API Key set in your global settings - action %s', 'wpcd' ), $action ) );
@@ -553,6 +572,172 @@ error_log("api key is $teams_api_key");
 			'other'                                      => __( 'For Future Use', 'wpcd' ),
 		);
 	}
+
+	/**
+	 * Add new bulk options in site list screen.
+	 *
+	 * Filter Hook: bulk_actions-edit-wpcd_app
+	 *
+	 * @param array $bulk_array bulk array.
+	 */
+	public function wpcd_add_new_bulk_actions_site( $bulk_array ) {
+
+		if ( wpcd_is_admin() ) {
+			$bulk_array['wpcd_sites_activate_logtivity'] = __( 'Activate Logtivity', 'wpcd' );
+			$bulk_array['wpcd_sites_remove_logtivity']   = __( 'Remove Logtivity', 'wpcd' );
+			return $bulk_array;
+		}
+
+		return $bulk_array;
+
+	}
+
+	/**
+	 * Handle bulk actions for sites.
+	 *
+	 * Action Hook: handle_bulk_actions-edit-wpcd_app
+	 *
+	 * @param string $redirect_url  redirect url.
+	 * @param string $action        bulk action slug/id - this is not the WPCD action key.
+	 * @param array  $post_ids      all post ids.
+	 */
+	public function wpcd_bulk_action_handler_sites( $redirect_url, $action, $post_ids ) {
+		// Maybe remove query args first for redirect url.
+		// $redirect_url = remove_query_arg( array( 'wpcd_update_themes_and_plugins' ), $redirect_url );
+
+		// Lets make sure we're an admin otherwise return an error.
+		if ( ! wpcd_is_admin() ) {
+			do_action( 'wpcd_log_error', 'Someone attempted to run a function that required admin privileges.', 'security', __FILE__, __LINE__ );
+
+			// Show error message to user at the top of the admin list as a dismissible notice.
+			wpcd_global_add_admin_notice( __( 'You attempted to run a function that requires admin privileges.', 'wpcd' ), 'error' );
+
+			return $redirect_url;
+		}
+
+		// Update themes and plugins.
+		if ( in_array( $action, $this->get_valid_bulk_actions(), true ) ) {
+
+			if ( ! empty( $post_ids ) ) {
+				foreach ( $post_ids as $app_id ) {
+
+					switch ( $action ) {
+						case 'wpcd_sites_activate_logtivity':
+							$args['action_hook'] = 'wpcd_wordpress-app_pending_log_activate_logtivity';
+							$args['action']      = $action;
+							$pending_log_type    = 'activate-logtivity';
+							$pending_log_message = __( 'Bulk Action: Waiting to activate Logtivity.', 'wpcd' );
+							break;
+
+						case 'wpcd_sites_remove_logtivity':
+							$args['action_hook'] = 'wpcd_wordpress-app_pending_log_remove_logtivity';
+							$args['action']      = $action;
+							$pending_log_type    = 'remove-logtivity';
+							$pending_log_message = __( 'Bulk Action: Waiting to remove Logtivity.', 'wpcd' );
+							break;
+					}
+
+					// Remove the 'wpcd_sites_' from the action string - we'll use it in the message we print in the pending logs table.
+					$printed_action = str_replace( 'wpcd_sites_', '', $action );
+					/* Translators: %s is an internal action name. */
+					WPCD_POSTS_PENDING_TASKS_LOG()->add_pending_task_log_entry( $app_id, $pending_log_type, $app_id, $args, 'ready', $app_id, $pending_log_message );
+				}
+
+				// Add message to be displayed in admin header.
+				wpcd_global_add_admin_notice( __( 'Logtivity actions have been scheduled for the selected sites. You can view the progress in the PENDING TASKS screen.', 'wpcd' ), 'success' );
+
+			}
+		}
+
+		return $redirect_url;
+	}
+
+	/**
+	 * Returns an array of actions that is valid for the bulk actions menu.
+	 */
+	public function get_valid_bulk_actions() {
+		return array( 'wpcd_sites_activate_logtivity', 'wpcd_sites_remove_logtivity' );
+	}
+
+	/**
+	 * Activate logtivity for a site.
+	 *
+	 * Can be called directly or by an action hook.
+	 *
+	 * Action hook: wpcd_wordpress-app_do-activate_logtivity_for_site.
+	 *
+	 * @param int    $id     The postID of the app cpt.
+	 * @param string $teams_api_key The api key to use instead of the one in global settings (optional).
+	 *
+	 * @return string|WP_Error
+	 */
+	public function activate_logtivity_action( $id, $teams_api_key = '' ) {
+
+		$action = 'logtivity_install';  // Action string doesn't matter - it's not used in the called function.
+
+		$result = $this->install_activate_logtivity( $action, $id );
+
+		return $result;  // Will not matter in an action hook.
+
+	}
+
+	/**
+	 * Remove/deactivate logtivity for a site.
+	 *
+	 * Can be called directly or by an action hook.
+	 *
+	 * Action hook: wpcd_wordpress-app_do-activate_logtivity_for_site.
+	 *
+	 * @param int    $id     The postID of the app cpt.
+	 * @param string $teams_api_key The api key to use instead of the one in global settings (optional).
+	 *
+	 * @return string|WP_Error
+	 */
+	public function remove_logtivity_action( $id, $teams_api_key = '' ) {
+
+		$action = 'logtivity_remove';  // Action string doesn't matter - it's not used in the called function.
+
+		$result = $this->remove_logtivity( $action, $id );
+
+		return $result;  // Will not matter in an action hook.
+
+	}
+
+	/**
+	 * Activate logtivity for a site.
+	 *
+	 * Called from an action hook from the pending logs background process - WPCD_POSTS_PENDING_TASKS_LOG()->do_tasks()
+	 *
+	 * Action Hook: wpcd_wordpress-app_pending_log_activate_logtivity
+	 *
+	 * @param int   $task_id    Id of pending task that is firing this thing...
+	 * @param int   $site_id    Id of site involved in this action.
+	 * @param array $args       All the data needed to handle this action.
+	 */
+	public function pending_log_activate_logtivity( $task_id, $site_id, $args ) {
+
+		// Grab our data array from pending tasks record...
+		$data = WPCD_POSTS_PENDING_TASKS_LOG()->get_data_by_id( $task_id );
+
+		$action = 'logtivity_install';  // Action string doesn't matter - it's not used in the called function.
+
+		// Activate logtivity.
+		$result = $this->install_activate_logtivity( $action, $site_id );
+
+		$task_status = 'complete';  // Assume success.
+		if ( is_array( $result ) ) {
+			// We'll get an array from the install_activate_logtivity function.  So nothing to do here.
+			// We'll just reset the $task_status to complete (which is the value it was initialized with) to avoid complaints by PHPcs about an empty if statement.
+			$task_status = 'complete';
+		} else {
+			if ( false === (bool) $result || is_wp_error( $result ) ) {
+				$task_status = 'failed';
+			}
+		}
+		WPCD_POSTS_PENDING_TASKS_LOG()->update_task_by_id( $task_id, $data, $task_status );
+
+	}
+
 
 }
 

@@ -155,10 +155,39 @@ class WPCD_WORDPRESS_TABS_SITE_LOGS extends WPCD_WORDPRESS_TABS {
 			return $this->get_disabled_header_field( 'site-logs' );
 		}
 
+		// Get Fields.
+		$download_logs_fields = $this->download_logs_fields( $id );
+		$logtivity_fields     = $this->logtivity_fields( $id );
+
+		// Setup return var.
+		$fields = $download_logs_fields;
+
+		// Add in certain groups that only admins should see.
+		if ( wpcd_is_admin() ) {
+			$fields = array_merge( $fields, $logtivity_fields );
+		}
+
+		// Return.
+		return $fields;
+
+	}
+
+	/**
+	 * Gets the fields to be shown in the DOWNLOAD LOGS area of the tab.
+	 *
+	 * @param int $id id.
+	 */
+	public function download_logs_fields( $id ) {
+
+		if ( ! $id ) {
+			// id not found!
+			return array();
+		}
+
 		/* Array variable to hold our field definitions */
 		$fields = array();
 
-		// manage site user heading.
+		// Heading text.
 		$desc = __( 'Download various log files for this site.', 'wpcd' );
 
 		$fields[] = array(
@@ -214,10 +243,96 @@ class WPCD_WORDPRESS_TABS_SITE_LOGS extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
+	 * Gets the fields to be shown in the LOGTIVITY area of the tab.
+	 *
+	 * @param int $id id.
+	 */
+	public function logtivity_fields( $id ) {
+
+		if ( ! $id ) {
+			// id not found!
+			return array();
+		}
+
+		// Only admins allowed for these fields.
+		if ( ! wpcd_is_admin() ) {
+			return array();
+		}
+
+		// Is the site connected to logtivity?
+		$connected = $this->get_logtivity_connection_status( $id );
+
+		/* Array variable to hold our field definitions */
+		$fields = array();
+
+		// Heading text.
+		$desc = __( 'Connect site to Logtivity.', 'wpcd' );
+
+		// If no value is for logtivity teams api, set warning.
+		if ( empty( wpcd_get_early_option( 'wordpress_app_logtivity_teams_api_key' ) ) ) {
+			$desc .= '<br/>' . __( 'Warning: No Logtivity API Key is configured in settings!', 'wpcd' );
+		}
+
+		$fields[] = array(
+			'name' => __( 'Logtivity Connection', 'wpcd' ),
+			'desc' => $desc,
+			'tab'  => 'site-logs',
+			'type' => 'heading',
+		);
+
+		$fields[] = array(
+			'id'         => 'wpcd_app_action_site_logtivity_switch',
+			'tab'        => 'site-logs',
+			'type'       => 'switch',
+			'std'        => $connected,
+			'on_label'   => __( 'Connected', 'wpcd' ),
+			'off_label'  => __( 'Not Connected', 'wpcd' ),
+			'attributes' => array(
+				// the _action that will be called in ajax.
+				'data-wpcd-action' => 'site-logtivity-install',
+				// the id.
+				'data-wpcd-id'     => $id,
+				// fields that contribute data for this action.
+				// 'data-wpcd-fields' => json_encode( array( '#wpcd_app_site_log_name' ) ),
+			),
+			'class'      => 'wpcd_app_action',
+			'save_field' => false,
+		);
+
+		return $fields;
+
+	}
+
+	/**
+	 * Set whether or not site connected to logtivity
+	 *
+	 * @param int  $id post id of site record.
+	 * @param bool $status true/false
+	 */
+	public function set_logtivity_connection_status( $id, $status ) {
+
+		update_post_meta( $id, 'wpcd_app_logtivity_connection_status', $status );
+
+	}
+
+	/**
+	 * Is the site connected to logtivity?
+	 *
+	 * @param int $id post id of site record.
+	 */
+	public function get_logtivity_connection_status( $id ) {
+
+		return boolval( get_post_meta( $id, 'wpcd_app_logtivity_connection_status', true ) );
+
+	}
+
+
+
+	/**
 	 * Performs the SITE LOG action.
 	 *
 	 * @param array $action action.
-	 * @param int   $id id.
+	 * @param int   $id post id of site record.
 	 */
 	private function do_site_log_actions( $action, $id ) {
 

@@ -114,7 +114,7 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 		}
 
 		/* Now verify that the user can perform actions on this screen, assuming that they can view the server */
-		$valid_actions = array( 'site-toggle-memcached', 'site-toggle-memcached-local-value', 'site-toggle-pagecache', 'site-clear-pagecache' );
+		$valid_actions = array( 'site-toggle-redis', 'site-toggle-redis-local-value', 'site-toggle-memcached', 'site-toggle-memcached-local-value', 'site-toggle-pagecache', 'site-clear-pagecache' );
 		if ( in_array( $action, $valid_actions, true ) ) {
 			if ( ! $this->get_tab_security( $id ) ) {
 				return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
@@ -122,6 +122,21 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 		}
 		if ( $this->get_tab_security( $id ) ) {
 			switch ( $action ) {
+				case 'site-toggle-redis':
+					// What is the status of redis?
+					$redis_status = $this->get_app_is_redis_installed( $id );
+					if ( empty( $redis_status ) ) {
+						$redis_status = 'off';
+					} else {
+						$redis_status = 'on';
+					}
+					// toggle it.
+					$result = $this->enable_disable_redis( $redis_status === 'on' ? 'disable' : 'enable', $id );
+					break;
+				case 'site-toggle-redis-local-value':
+					$result = $this->toggle_local_status_redis( $id );
+					break;
+
 				case 'site-toggle-memcached':
 					// What is the status of memcached?
 					$mc_status = get_app_is_memcached_installed( $id );
@@ -284,6 +299,116 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 				'msg'     => $success_msg,
 				'refresh' => 'yes',
 			);
+		}
+
+		return $result;
+
+	}
+
+	/**
+	 * Enable/Disable redis for a site
+	 *
+	 * @param string $action The action key to send to the bash script.  This is actually the key of the drop-down select.
+	 * @param int    $id the id of the app post being handled.
+	 *
+	 * @return boolean|object Can return wp_error, true/false
+	 */
+	public function enable_disable_redis( $action, $id ) {
+
+		// Get the instance details.
+		$instance = $this->get_app_instance_details( $id );
+
+		// Bail if error.
+		if ( is_wp_error( $instance ) ) {
+			/* Translators: %s is an internal action name. */
+			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
+		}
+
+		// Get the domain we're working on.
+		$domain = $this->get_domain_name( $id );
+
+		// Get the full command to be executed by ssh.
+		$run_cmd = $this->turn_script_into_command(
+			$instance,
+			'manage_redis.txt',
+			array(
+				'command' => $command,
+				'action'  => $action,
+				'domain'  => $domain,
+			)
+		);
+
+		// log.
+		// @codingStandardsIgnoreLine - added to ignore the print_r in the line below when linting with PHPcs.
+		do_action( 'wpcd_log_error', sprintf( 'attempting to run command for %s = %s ', print_r( $instance, true ), $run_cmd ), 'debug', __FILE__, __LINE__, $instance, true );
+
+		// execute and evaluate results.
+		$result  = $this->execute_ssh( 'generic', $instance, array( 'commands' => $run_cmd ) );
+		$success = $this->is_ssh_successful( $result, 'manage_redis.txt' );
+		if ( ! $success ) {
+			/* Translators: %1$s is an internal action name. %2$s is an error message. */
+			return new \WP_Error( sprintf( __( 'Unable to perform action %1$s for site: %2$s', 'wpcd' ), $action, $result ) );
+		}
+
+		// Now that we know we're successful, lets update a meta indicating the status of memcached on the site.
+		if ( 'enable' === $action ) {
+			$this->set_app_redis_installed_status( $id, true );
+		} elseif ( 'disable' === $action ) {
+			$this->set_app_redis_installed_status( $id, false );
+		}
+
+		// Success message and force refresh.
+		if ( ! is_wp_error( $result ) ) {
+			if ( 'enable' === $action ) {
+				$success_msg = __( 'REDIS has been enabled for this site.', 'wpcd' );
+			} else {
+				$success_msg = __( 'REDIS has been disabled for this site.', 'wpcd' );
+			}
+			$result = array(
+				'msg'     => $success_msg,
+				'refresh' => 'yes',
+			);
+		}
+
+		return $result;
+
+	}
+
+	/**
+	 * Toggle local status for Redis
+	 *
+	 * @param int $id the id of the app post being handled.
+	 *
+	 * @return boolean|object Can return wp_error, true/false
+	 */
+	public function toggle_local_status_redis( $id ) {
+
+		// get current local redis status.
+		$redis_status = $this->get_app_is_redis_installed( $id );
+		if ( empty( $redis_status ) ) {
+			$redis_status = 'off';
+		} else {
+			$redis_status = 'on';
+		}
+
+		// whats the new status going to be?
+		if ( 'on' === $redis_status ) {
+			$new_redis_status = 'off';
+		} else {
+			$new_redis_status = 'on';
+		}
+
+		// update it.
+		$this->set_app_redis_installed_status( $id, $new_redis_status );
+
+		// Force refresh?
+		if ( ! is_wp_error( $result ) ) {
+			$result = array(
+				'msg'     => __( 'The local REDIS status has been toggled.', 'wpcd' ),
+				'refresh' => 'yes',
+			);
+		} else {
+			$result = false;
 		}
 
 		return $result;

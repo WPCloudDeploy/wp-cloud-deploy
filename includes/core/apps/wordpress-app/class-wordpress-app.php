@@ -4562,6 +4562,15 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			);
 		}
 
+		// Enqueue CSS scripts for the SITE UPDATE & SITE HISTORY screens.
+		$screen     = get_current_screen();
+		$post_types = array( 'wpcd_app_update_log', 'wpcd_app_update_plan' );
+		if ( ( is_object( $screen ) && in_array( $screen->post_type, $post_types, true ) ) ) {
+
+			wp_enqueue_style( 'wpcd-wpapp-update-plans-css', wpcd_url . 'includes/core/apps/wordpress-app/assets/css/wpcd-wpapp-update-plans.css', array(), wpcd_scripts_version );
+
+		}
+
 	}
 
 	/**

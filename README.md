@@ -130,6 +130,7 @@ Note: Even though the entire git development history isn't available on github, 
 ------
 * New: WPAPP: REDIS now part of CORE plugin and is installed on all servers.
 * New: WPAPP: REDIS object cached enabled for all new sites.
+* New: WPAPP: Defaults for userid, password and email address in settings - helps with development when you're creating and destroying many sites over a short period of time.  Applies only to admins.
 * Tweak: WPAPP: Remove the NOTES column from the server SERVICES tab - option available to re-add it. 
 * Tweak: DO Provider - make the image default UBUNTU 22.04 LTS for all non-wordpress apps.
 * Tweak: WPAPP - Add multi-tenant parent to the app list APP SUMMARY column if the site is an mt-version site.

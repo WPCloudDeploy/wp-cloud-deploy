@@ -142,7 +142,7 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 
 				case 'site-toggle-memcached':
 					// What is the status of memcached?
-					$mc_status = get_app_is_memcached_installed( $id );
+					$mc_status = $this->get_app_is_memcached_installed( $id );
 					if ( empty( $mc_status ) ) {
 						$mc_status = 'off';
 					} else {

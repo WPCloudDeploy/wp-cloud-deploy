@@ -48,6 +48,9 @@ class WPCD_WORDPRESS_TABS_SITE_LOGS extends WPCD_WORDPRESS_TABS {
 
 		/* Pending Logs Background Task: Activate Logtivity on a site */
 		add_action( 'wpcd_wordpress-app_pending_log_activate_logtivity', array( $this, 'pending_log_activate_logtivity' ), 10, 3 );
+
+		/* Pending Logs Background Task: Remove Logtivity from a site */
+		add_action( 'wpcd_wordpress-app_pending_log_remove_logtivity', array( $this, 'pending_log_remove_logtivity' ), 10, 3 );
 	}
 
 	/**
@@ -602,8 +605,6 @@ class WPCD_WORDPRESS_TABS_SITE_LOGS extends WPCD_WORDPRESS_TABS {
 	 * @param array  $post_ids      all post ids.
 	 */
 	public function wpcd_bulk_action_handler_sites( $redirect_url, $action, $post_ids ) {
-		// Maybe remove query args first for redirect url.
-		// $redirect_url = remove_query_arg( array( 'wpcd_update_themes_and_plugins' ), $redirect_url );
 
 		// Lets make sure we're an admin otherwise return an error.
 		if ( ! wpcd_is_admin() ) {
@@ -738,6 +739,40 @@ class WPCD_WORDPRESS_TABS_SITE_LOGS extends WPCD_WORDPRESS_TABS {
 
 	}
 
+	/**
+	 * Remove logtivity from a site.
+	 *
+	 * Called from an action hook from the pending logs background process - WPCD_POSTS_PENDING_TASKS_LOG()->do_tasks()
+	 *
+	 * Action Hook: wpcd_wordpress-app_pending_log_remove_logtivity
+	 *
+	 * @param int   $task_id    Id of pending task that is firing this thing...
+	 * @param int   $site_id    Id of site involved in this action.
+	 * @param array $args       All the data needed to handle this action.
+	 */
+	public function pending_log_remove_logtivity( $task_id, $site_id, $args ) {
+
+		// Grab our data array from pending tasks record...
+		$data = WPCD_POSTS_PENDING_TASKS_LOG()->get_data_by_id( $task_id );
+
+		$action = 'logtivity_remove';  // Action string doesn't matter - it's not used in the called function.
+
+		// Activate logtivity.
+		$result = $this->remove_logtivity( $action, $site_id );
+
+		$task_status = 'complete';  // Assume success.
+		if ( is_array( $result ) ) {
+			// We'll get an array from the remove_logtivity function.  So nothing to do here.
+			// We'll just reset the $task_status to complete (which is the value it was initialized with) to avoid complaints by PHPcs about an empty if statement.
+			$task_status = 'complete';
+		} else {
+			if ( false === (bool) $result || is_wp_error( $result ) ) {
+				$task_status = 'failed';
+			}
+		}
+		WPCD_POSTS_PENDING_TASKS_LOG()->update_task_by_id( $task_id, $data, $task_status );
+
+	}
 
 }
 

@@ -24,7 +24,9 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		add_filter( "wpcd_server_{$this->get_app_name()}_tab_action", array( $this, 'tab_action_server' ), 10, 3 );  // This filter has not been defined and called yet in classs-wordpress-app and might never be because we're using the one below.
 		add_filter( "wpcd_app_{$this->get_app_name()}_tab_action", array( $this, 'tab_action' ), 10, 3 );  // This filter says 'wpcd_app' because we're using the same functions for server details ajax tabs and app details ajax tabs.
 
-		add_action( "wpcd_command_{$this->get_app_name()}_completed", array( $this, 'command_completed' ), 10, 2 );
+		/* Run after-install commands for memcached and redis */
+		add_action( "wpcd_command_{$this->get_app_name()}_completed", array( $this, 'command_completed_memcached' ), 10, 2 );
+		add_action( "wpcd_command_{$this->get_app_name()}_completed", array( $this, 'command_completed_redis' ), 10, 2 );
 
 		/* Pending Logs Background Task: Trigger refresh services. Hook: wpcd_wordpress-app_server_refresh_services. */
 		add_action( "wpcd_{$this->get_app_name()}_server_refresh_services", array( $this, 'pending_log_refresh_services_status' ), 10, 3 );
@@ -39,7 +41,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 	 * @param int    $id     The postID of the server cpt.
 	 * @param string $name   The name of the command.
 	 */
-	public function command_completed( $id, $name ) {
+	public function command_completed_memcached( $id, $name ) {
 
 		if ( get_post_type( $id ) !== 'wpcd_app_server' ) {
 			return;
@@ -65,6 +67,62 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 
 				// Update the meta on the server to indicate memcached is installed.
 				update_post_meta( $id, 'wpcd_wpapp_memcached_installed', 'yes' );
+
+				// Refresh services status metas for all services (except php).
+				$action = 'services_status_update';
+				$result = $this->refresh_services_status( $id, $action );
+			}
+		}
+
+		// remove the 'temporary' meta so that another attempt will run if necessary.
+		delete_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action_status" );  // Should really only exist on an app.
+		delete_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action" );  // Should really only exist on an app.
+		delete_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action_args" );  // Should really only exist on an app.
+		delete_post_meta( $id, "wpcd_server_{$this->get_app_name()}_action_status" );  // Should really only exist on a server.
+		delete_post_meta( $id, "wpcd_server_{$this->get_app_name()}_action" );  // Should really only exist on a server.
+		delete_post_meta( $id, "wpcd_server_{$this->get_app_name()}_action_args" );  // Should really only exist on a server.
+
+	}
+
+	/**
+	 * Called when a command completes.
+	 *
+	 * Action Hook: wpcd_command_{$this->get_app_name()}_completed
+	 *
+	 * @param int    $id     The postID of the server cpt.
+	 * @param string $name   The name of the command.
+	 */
+	public function command_completed_redis( $id, $name ) {
+
+		if ( get_post_type( $id ) !== 'wpcd_app_server' ) {
+			return;
+		}
+
+		// The name will have a format as such: command---domain---number.  For example: dry_run---cf1110.wpvix.com---905
+		// Lets tear it into pieces and put into an array.  The resulting array should look like this with exactly three elements.
+		// [0] => dry_run
+		// [1] => cf1110.wpvix.com
+		// [2] => 911
+		$command_array = explode( '---', $name );
+
+		// if the command is to install redis we need to make sure that we stamp the server record with the status indicating that redis was installed.
+		if ( 'install_redis' == $command_array[0] ) {
+
+			// Lets pull the logs.
+			$logs = $this->get_app_command_logs( $id, $name );
+
+			// Is the command successful?
+			$success = $this->is_ssh_successful( $logs, 'install_redis.txt' );
+
+			if ( true == $success ) {
+
+				// Update the meta on the server to indicate redis is installed.
+				update_post_meta( $id, 'wpcd_wpapp_redis_installed', 'yes' );
+
+				// Refresh services status metas for all services (except php).
+				$action = 'services_status_update';
+				$result = $this->refresh_services_status( $id, $action );
+
 			}
 		}
 
@@ -182,6 +240,22 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 					break;
 				case 'ufw-state-toggle':
 					$result = $this->do_ufw_toggle( $id, $action );
+					break;
+				case 'redis-do-install':
+					$action = 'install_redis'; // script expects this action keyword.
+					$result = $this->do_redis_install( $id, $action );
+					break;
+				case 'redis-restart':
+					$action = 'redis_restart'; // script expects this action keyword.
+					$result = $this->manage_redis( $id, $action );
+					break;
+				case 'redis-clear-cache':
+					$action = 'redis_clear'; // script expects this action keyword.
+					$result = $this->manage_redis( $id, $action );
+					break;
+				case 'redis-remove':
+					$action = 'remove_redis'; // script expects this action keyword.
+					$result = $this->manage_redis( $id, $action );
 					break;
 				case 'memcached-do-install':
 					$action = 'install_memcached'; // script expects this action keyword.
@@ -465,7 +539,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 
 		/* Redis */
 		if ( $this->is_redis_installed( $id ) ) {
-			$redis_desc  = __( 'High-performance object cache.', 'wpcd' );
+			$redis_desc = __( 'High-performance object cache.', 'wpcd' );
 		} else {
 			$redis_desc  = __( 'Redis is an OBJECT cache service that can help speed up duplicated database queries.  Once the service is installed here, you can activate it for each site that needs it.', 'wpcd' );
 			$redis_desc .= '<br />';
@@ -497,7 +571,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 				'type'           => 'button',
 			);
 		} else {
-			// redis is installed so show status and options to disable and enable.
+			// Redis is installed so show status and options to disable and enable.
 			$actions['redis-label'] = array(
 				'label'          => __( 'Service', 'wpcd' ),
 				'raw_attributes' => array(
@@ -548,7 +622,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 				'label'          => __( 'Remove Redis', 'wpcd' ),
 				'raw_attributes' => array(
 					'std'               => __( 'Un-Install Redis', 'wpcd' ),
-					'label_description' => __( 'Please make sure none of your sites have Redis enabled before removing it from the server!', 'wpcd' ),
+					'label_description' => __( 'Please verify that none of your sites have Redis enabled before removing it from the server!', 'wpcd' ),
 				),
 				'type'           => 'button',
 			);
@@ -556,10 +630,14 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		}
 
 		/* Memcached */
-		$mc_desc  = __( 'Memcached is an OBJECT cache service that can help speed up duplicated database queries.  Once the service is installed here, you can activate it for each site that needs it.', 'wpcd' );
-		$mc_desc .= '<br />';
-		/* translators: %s is a string "Memcached and Redis Object Caches" and is handled separately. */
-		$mc_desc .= sprintf( __( 'Learn more about %s', 'wpcd' ), '<a href="https://scalegrid.io/blog/redis-vs-memcached-2021-comparison/">' . __( 'Memcached and Redis Object Caches', 'wpcd' ) . '</a>' );
+		if ( $this->is_memcached_installed( $id ) ) {
+			$mc_desc = __( 'A performance-oriented object cache.', 'wpcd' );
+		} else {
+			$mc_desc  = __( 'Memcached is an OBJECT cache service that can help speed up duplicated database queries.  Once the service is installed here, you can activate it for each site that needs it.', 'wpcd' );
+			$mc_desc .= '<br />';
+			/* translators: %s is a string "Memcached and Redis Object Caches" and is handled separately. */
+			$mc_desc .= sprintf( __( 'Learn more about %s', 'wpcd' ), '<a href="https://scalegrid.io/blog/redis-vs-memcached-2021-comparison/">' . __( 'Memcached and Redis Object Caches', 'wpcd' ) . '</a>' );
+		}
 
 		$actions['memcached-status-header'] = array(
 			'label'          => __( 'Memcached', 'wpcd' ),
@@ -639,7 +717,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 				'label'          => __( 'Remove MemCached', 'wpcd' ),
 				'raw_attributes' => array(
 					'std'               => __( 'Un-Install MemCached', 'wpcd' ),
-					'label_description' => __( 'Please make sure none of your sites have MemCached enabled before removing it from the server!', 'wpcd' ),
+					'label_description' => __( 'Please verify that none of your sites have MemCached enabled before removing it from the server!', 'wpcd' ),
 				),
 				'type'           => 'button',
 			);
@@ -1329,6 +1407,115 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 
 	}
 
+
+	/**
+	 * Install Redis via SSH
+	 *
+	 * @param int    $id         The postID of the server cpt.
+	 * @param string $action     The action to be performed (this matches the string required in the bash scripts if bash scripts are used).
+	 *
+	 * @return boolean  success/failure/other
+	 */
+	private function do_redis_install( $id, $action ) {
+
+		// Get data about the server.
+		$instance = $this->get_server_instance_details( $id );
+
+		// Bail if error.
+		if ( is_wp_error( $instance ) ) {
+			/* translators: %s is replaced with the internal action name. */
+			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the server instance details for action %s', 'wpcd' ), $action ) );
+		}
+
+		// Setup unique command name.
+		$command               = sprintf( '%s---%s---%d', $action, $domain, time() );
+		$instance['command']   = $command;
+		$instance['app_id']    = $id;   // @todo - this is not really the app id - need to test to see if the process will work without this array element.
+		$instance['server_id'] = $id;
+
+		// construct the run command.
+		$run_cmd = $this->turn_script_into_command(
+			$instance,
+			'install_redis.txt',
+			array(
+				'command' => $command,
+				'action'  => $action,
+				'domain'  => $domain,
+			)
+		);
+
+		// double-check just in case of errors.
+		if ( empty( $run_cmd ) || is_wp_error( $run_cmd ) ) {
+			/* translators: %s is replaced with the internal action name. */
+			return new \WP_Error( sprintf( __( 'Something went wrong - we are unable to construct a proper command for this action - %s', 'wpcd' ), $action ) );
+		}
+
+		/**
+		 * Run the constructed commmand
+		 * Check out the write up about the different aysnc methods we use
+		 * here: https://wpclouddeploy.com/documentation/wpcloud-deploy-dev-notes/ssh-execution-models/
+		 */
+		$return = $this->run_async_command_type_2( $id, $command, $run_cmd, $instance, $action );
+
+		return $return;
+	}
+
+
+	/**
+	 * Restart redis or clear the cache
+	 *
+	 * @param int    $id         The postID of the server cpt.
+	 * @param string $action     The action to be performed (this matches the string required in the bash scripts if bash scripts are used).
+	 *
+	 * @return boolean success/failure/other
+	 */
+	private function manage_redis( $id, $action ) {
+
+		// Get data about the server.
+		$instance = $this->get_server_instance_details( $id );
+
+		if ( is_wp_error( $instance ) ) {
+			/* translators: %s is replaced with the internal action name. */
+			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
+		}
+
+		// Get the domain we're working on.
+		$domain = $this->get_domain_name( $id );
+
+		// Get the full command to be executed by ssh.
+		$run_cmd = $this->turn_script_into_command(
+			$instance,
+			'manage_redis.txt',
+			array(
+				'action' => $action,
+				'domain' => $domain,
+			)
+		);
+
+		// log.
+		do_action( 'wpcd_log_error', sprintf( 'attempting to run command for %s = %s ', print_r( $instance, true ), $run_cmd ), 'debug', __FILE__, __LINE__, $instance, true );
+
+		// execute and evaluate results.
+		$result  = $this->execute_ssh( 'generic', $instance, array( 'commands' => $run_cmd ) );
+		$success = $this->is_ssh_successful( $result, 'manage_redis.txt' );
+		if ( ! $success ) {
+			return new \WP_Error( sprintf( __( 'Unable to perform action %1$s for server: %2$s', 'wpcd' ), $action, $result ) );
+		} else {
+			if ( 'redis_clear' == $action ) {
+				return new \WP_Error( __( 'The REDIS cache has been cleared!', 'wpcd' ) );
+			} elseif ( 'redis_restart' == $action ) {
+				return new \WP_Error( __( 'The REDIS server has been restarted!', 'wpcd' ) );
+			} elseif ( 'remove_redis' == $action ) {
+				// Remove the meta indicating redis is installed.
+				delete_post_meta( $id, 'wpcd_wpapp_redis_installed' );
+				return new \WP_Error( __( 'The REDIS server has been removed!', 'wpcd' ) );
+			}
+		}
+
+		return $result;
+
+	}
+
 	/**
 	 * Install Memcached
 	 *
@@ -1454,22 +1641,11 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			}
 		}
 
-		// get memcached status.
-		if ( 'yes' === get_post_meta( $id, 'wpcd_wpapp_memcached_installed', true ) ) {
-			$command    = 'sudo service memcached status';
-			$raw_status = $this->submit_generic_server_command( $id, $action, $command, true );
-			if ( is_wp_error( $raw_status ) ) {
-				$services_status['memcached'] = __( 'still unknown - last status request errored', 'wpcd' );
-			} else {
-				if ( strpos( $raw_status, 'Active: active (running)' ) !== false ) {
-					$services_status['memcached'] = 'running';
-				} else {
-					$services_status['memcached'] = 'errored';
-				}
-			}
-		} else {
-			$services_status['memcached'] = __( 'MemCached does not appear to be installed as of the last time the services status was refreshed. Did you recently install it?', 'wpcd' );
-		}
+		// Get redis status.
+		$services_status = $this->set_redis_status_in_status_array( $id, $action, $services_status );
+
+		// Get memcached status.
+		$services_status = $this->set_memcached_status_in_status_array( $id, $action, $services_status );
 
 		// Allow plugins to store their data in the array as well.
 		$services_status = apply_filters( 'wpcd_wpapp_server_services_status', $services_status, $id, $action );
@@ -1485,6 +1661,72 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		);
 
 		return $result;
+
+	}
+
+	/**
+	 * Set the REDIS status in the passed array.
+	 *
+	 * This is a helper function for refresh_services_status() above
+	 * to help reduce the size of that function.
+	 *
+	 * @param int|string $id Post id of server record.
+	 * @param string     $action The action to be performed (this matches the string required in the bash scripts if bash scripts are used ).
+	 * @param array      $services_status array to be updated.
+	 */
+	public function set_redis_status_in_status_array( $id, $action, $services_status ) {
+
+		// Get redis status.
+		if ( $this->is_redis_installed( $id ) ) {
+			$command    = 'sudo service redis status';
+			$raw_status = $this->submit_generic_server_command( $id, $action, $command, true );
+			if ( is_wp_error( $raw_status ) ) {
+				$services_status['redis'] = __( 'still unknown - last status request errored', 'wpcd' );
+			} else {
+				if ( strpos( $raw_status, 'Active: active (running)' ) !== false ) {
+					$services_status['redis'] = 'running';
+				} else {
+					$services_status['redis'] = 'errored';
+				}
+			}
+		} else {
+			$services_status['redis'] = __( 'REDIS does not appear to be installed as of the last time the services status was refreshed. Did you recently install it?', 'wpcd' );
+		}
+
+		return $services_status;
+
+	}
+
+	/**
+	 * Set the MEMCACHED status in the passed array.
+	 *
+	 * This is a helper function for refresh_services_status() above
+	 * to help reduce the size of that function.
+	 *
+	 * @param int|string $id Post id of server record.
+	 * @param string     $action The action to be performed (this matches the string required in the bash scripts if bash scripts are used ).
+	 * @param array      $services_status array to be updated.
+	 */
+	public function set_memcached_status_in_status_array( $id, $action, $services_status ) {
+
+		// Get Memcached status.
+		if ( $this->is_memcached_installed( $id ) ) {
+			$command    = 'sudo service memcached status';
+			$raw_status = $this->submit_generic_server_command( $id, $action, $command, true );
+			if ( is_wp_error( $raw_status ) ) {
+				$services_status['memcached'] = __( 'still unknown - last status request errored', 'wpcd' );
+			} else {
+				if ( strpos( $raw_status, 'Active: active (running)' ) !== false ) {
+					$services_status['memcached'] = 'running';
+				} else {
+					$services_status['memcached'] = 'errored';
+				}
+			}
+		} else {
+			$services_status['memcached'] = __( 'MemCached does not appear to be installed as of the last time the services status was refreshed. Did you recently install it?', 'wpcd' );
+		}
+
+		return $services_status;
 
 	}
 

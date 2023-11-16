@@ -994,7 +994,7 @@ class WP_CLOUD_DEPLOY {
 				'dns_cloudflare_api_key'     => '(***private***)',
 				'secret_key_manager_api_key' => '(***private***)',
 				'git_token'                  => '(***private***)',
-				'logtivity_teams_api_key'    => '(***private***)',
+				'logtivity_teams_api_key='   => '(***private***)',
 				"Updated the constant 'DB_PASSWORD' in the 'wp-config.php' file with the value " => '(***private***)' . PHP_EOL,
 
 			)

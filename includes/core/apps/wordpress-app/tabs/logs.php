@@ -96,7 +96,7 @@ class WPCD_WORDPRESS_TABS_SITE_LOGS extends WPCD_WORDPRESS_TABS {
 		}
 
 		/* Now verify that the user can perform actions on this screen, assuming that they can view the server */
-		$valid_actions = array( 'site-log-download' );
+		$valid_actions = array( 'site-log-download', 'site-logtivity-toggle-install' );
 		if ( in_array( $action, $valid_actions, true ) ) {
 			if ( ! $this->get_tab_security( $id ) ) {
 				return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
@@ -113,6 +113,17 @@ class WPCD_WORDPRESS_TABS_SITE_LOGS extends WPCD_WORDPRESS_TABS {
 						$result['refresh'] = 'yes';
 					}
 					break;
+
+				case 'site-logtivity-toggle-install':
+					$result    = array();
+					$connected = $this->get_logtivity_connection_status( $id );
+					if ( $connected ) {
+						$result = $this->remove_logtivity( $action, $id );
+					} else {
+						$result = $this->install_activate_logtivity( $action, $id );
+					}
+					break;
+
 			}
 		}
 		return $result;
@@ -289,9 +300,11 @@ class WPCD_WORDPRESS_TABS_SITE_LOGS extends WPCD_WORDPRESS_TABS {
 			'off_label'  => __( 'Not Connected', 'wpcd' ),
 			'attributes' => array(
 				// the _action that will be called in ajax.
-				'data-wpcd-action' => 'site-logtivity-install',
+				'data-wpcd-action'              => 'site-logtivity-toggle-install',
 				// the id.
-				'data-wpcd-id'     => $id,
+				'data-wpcd-id'                  => $id,
+				// make sure we give the user a confirmation prompt.
+				'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like to connect this site to Logtivity?', 'wpcd' ),
 				// fields that contribute data for this action.
 				// 'data-wpcd-fields' => json_encode( array( '#wpcd_app_site_log_name' ) ),
 			),
@@ -307,7 +320,7 @@ class WPCD_WORDPRESS_TABS_SITE_LOGS extends WPCD_WORDPRESS_TABS {
 	 * Set whether or not site connected to logtivity
 	 *
 	 * @param int  $id post id of site record.
-	 * @param bool $status true/false
+	 * @param bool $status true/false.
 	 */
 	public function set_logtivity_connection_status( $id, $status ) {
 
@@ -326,8 +339,6 @@ class WPCD_WORDPRESS_TABS_SITE_LOGS extends WPCD_WORDPRESS_TABS {
 
 	}
 
-
-
 	/**
 	 * Performs the SITE LOG action.
 	 *
@@ -340,6 +351,7 @@ class WPCD_WORDPRESS_TABS_SITE_LOGS extends WPCD_WORDPRESS_TABS {
 		$instance = $this->get_app_instance_details( $id );
 
 		if ( is_wp_error( $instance ) ) {
+			/* Translators: %s is an internal action name. */
 			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
 		}
 
@@ -361,6 +373,7 @@ class WPCD_WORDPRESS_TABS_SITE_LOGS extends WPCD_WORDPRESS_TABS {
 
 		// Bail if error.
 		if ( is_wp_error( $instance ) ) {
+			/* Translators: %s is an internal action name. */
 			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
 		}
 
@@ -394,6 +407,135 @@ class WPCD_WORDPRESS_TABS_SITE_LOGS extends WPCD_WORDPRESS_TABS {
 				'file_data' => $result,
 			);
 		}
+
+		return $result;
+
+	}
+
+	/**
+	 * Activity and connect LOGTIVITY for this site.
+	 *
+	 * @param array $action action.
+	 * @param int   $id post id of site record.
+	 */
+	public function install_activate_logtivity( $action, $id ) {
+
+		// If we don't have a LOGTIVITY TEAMS key, use return.
+		$teams_api_key = wpcd_get_option( 'wordpress_app_logtivity_teams_api_key' );
+error_log("api key is $teams_api_key");
+		if ( true === empty( $teams_api_key ) ) {
+			/* Translators: %s is an internal action name. */
+			return new \WP_Error( sprintf( __( 'There is no Logtivity Teams API Key set in your global settings - action %s', 'wpcd' ), $action ) );
+		}
+
+		$instance = $this->get_app_instance_details( $id );
+
+		if ( is_wp_error( $instance ) ) {
+			/* Translators: %s is an internal action name. */
+			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
+		}
+
+		if ( empty( $in_args ) ) {
+			// Get data from the POST request.
+			$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
+		} else {
+			$args = $in_args;
+		}
+
+		// Add the API key to the instance array.
+		// Right now we're not collecting a key in the UI so there should be nothing in $args.
+		// But we might pass in one via an action hook or add the ui later.
+		if ( empty( $args['logtivity_teams_api_key'] ) ) {
+			$args['logtivity_teams_api_key'] = $teams_api_key;
+		}
+
+		// Set the correct action.
+		$action = 'logtivity_install';
+
+		// Get the full command to be executed by ssh.
+		$run_cmd = $this->turn_script_into_command(
+			$instance,
+			'manage_logtivity.txt',
+			array_merge(
+				$args,
+				array(
+					'command' => "{$action}_site",
+					'action'  => $action,
+					'domain'  => $this->get_domain_name( $id ),
+				)
+			)
+		);
+
+		do_action( 'wpcd_log_error', sprintf( 'attempting to run command for %s = %s ', print_r( $instance, true ), $run_cmd ), 'trace', __FILE__, __LINE__, $instance, false );
+
+		$result  = $this->execute_ssh( 'generic', $instance, array( 'commands' => $run_cmd ) );
+		$success = $this->is_ssh_successful( $result, 'manage_logtivity.txt' );
+		if ( ! $success ) {
+			/* Translators: %1$s is the action; %2$s is the result of the ssh call. */
+			return new \WP_Error( sprintf( __( 'Unable to %1$s site: %2$s', 'wpcd' ), $action, $result ) );
+		}
+
+		// Tag logtivity as being connected.
+		$this->set_logtivity_connection_status( $id, true );
+
+		$result = array( 'refresh' => 'yes' );
+
+		return $result;
+
+	}
+
+	/**
+	 * Remove Logtivity from a site.
+	 *
+	 * @param array $action action.
+	 * @param int   $id post id of site record.
+	 */
+	public function remove_logtivity( $action, $id ) {
+
+		$instance = $this->get_app_instance_details( $id );
+
+		if ( is_wp_error( $instance ) ) {
+			/* Translators: %s is an internal action name. */
+			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
+		}
+
+		if ( empty( $in_args ) ) {
+			// Get data from the POST request.
+			$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
+		} else {
+			$args = $in_args;
+		}
+
+		// Set the correct action.
+		$action = 'logtivity_remove';
+
+		// Get the full command to be executed by ssh.
+		$run_cmd = $this->turn_script_into_command(
+			$instance,
+			'manage_logtivity.txt',
+			array_merge(
+				$args,
+				array(
+					'command' => "{$action}_site",
+					'action'  => $action,
+					'domain'  => $this->get_domain_name( $id ),
+				)
+			)
+		);
+
+		do_action( 'wpcd_log_error', sprintf( 'attempting to run command for %s = %s ', print_r( $instance, true ), $run_cmd ), 'trace', __FILE__, __LINE__, $instance, false );
+
+		$result  = $this->execute_ssh( 'generic', $instance, array( 'commands' => $run_cmd ) );
+		$success = $this->is_ssh_successful( $result, 'manage_logtivity.txt' );
+		if ( ! $success ) {
+			/* Translators: %1$s is the action; %2$s is the result of the ssh call. */
+			return new \WP_Error( sprintf( __( 'Unable to %1$s site: %2$s', 'wpcd' ), $action, $result ) );
+		}
+
+		// Tag logtivity as being connected.
+		$this->set_logtivity_connection_status( $id, false );
+
+		$result = array( 'refresh' => 'yes' );
 
 		return $result;
 

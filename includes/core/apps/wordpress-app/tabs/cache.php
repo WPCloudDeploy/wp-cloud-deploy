@@ -640,7 +640,7 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 				'name' => __( 'REDIS', 'wpcd' ),
 				'tab'  => 'cache',
 				'type' => 'heading',
-				'desc' => __( 'Enable or disable Redis on your site.<br />WARNING: Do NOT enable both REDIS and MEMCACHED! You should only enable ONE of them!!!!', 'wpcd' ),
+				'desc' => __( 'Enable or disable Redis on your site.', 'wpcd' ),
 			);
 
 			if ( true === $this->is_redis_installed( $id ) ) {
@@ -662,13 +662,13 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 
 				$fields[] = array(
 					'id'         => 'toggle-redis',
-					'name'       => __( 'Enable or Disable REDIS.', 'wpcd' ),
+					'name'       => '',
 					'tab'        => 'cache',
 					'type'       => 'switch',
 					'on_label'   => __( 'Enabled', 'wpcd' ),
 					'off_label'  => __( 'Disabled', 'wpcd' ),
 					'std'        => 'on' === $redis_status,
-					'desc'       => '',
+					'desc'       => __( 'Enable or disable REDIS for this site.', 'wpcd' ),
 					'attributes' => array(
 						// the _action that will be called in ajax.
 						'data-wpcd-action'              => 'site-toggle-redis',
@@ -679,15 +679,16 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 					),
 					'class'      => 'wpcd_app_action',
 					'save_field' => false,
+					'columns'    => 6,
 				);
 
 				$fields[] = array(
 					'id'         => 'toggle-redis-local-value',
-					'name'       => __( 'Resync REDIS State', 'wpcd' ),
+					'name'       => '',
 					'tab'        => 'cache',
 					'type'       => 'button',
 					'std'        => __( 'Cleanup: Toggle Local Value for REDIS', 'wcpcd' ),
-					'desc'       => __( 'If the REDIS status toggle above is not correct, click this button to correct it. This can happen if there is an error on the server or you or another admin manually toggle the REDIS service on the server outside of this plugin.', 'wcpcd' ),
+					'desc'       => __( 'If the REDIS status toggle is not correct, click this button to correct it. This can happen if there is an error on the server or you or another admin manually toggle the REDIS service on the server outside of this plugin.', 'wcpcd' ),
 					'attributes' => array(
 						// the _action that will be called in ajax.
 						'data-wpcd-action'              => 'site-toggle-redis-local-value',
@@ -698,6 +699,7 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 					),
 					'class'      => 'wpcd_app_action',
 					'save_field' => false,
+					'columns'    => 6,
 				);
 
 			} else {
@@ -719,7 +721,7 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 		}
 
 		/* MEMCACHED */
-		if ( false === $this->get_app_is_redis_installed( $id ) ) {		
+		if ( false === $this->get_app_is_redis_installed( $id ) ) {
 			$fields[] = array(
 				'name' => __( 'Memcached', 'wpcd' ),
 				'tab'  => 'cache',
@@ -762,6 +764,7 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 					),
 					'class'      => 'wpcd_app_action',
 					'save_field' => false,
+					'columns'    => 6,
 				);
 
 				$fields[] = array(
@@ -770,7 +773,7 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 					'tab'        => 'cache',
 					'type'       => 'button',
 					'std'        => __( 'Cleanup: Toggle Local Value for Memcached', 'wpcd' ),
-					'desc'       => __( 'If the Memcached status toggle above is not correct, click this button to correct it. This can happen if there is an error on the server or you or another admin manually toggle the memcached service on the server outside of this plugin.', 'wpcd' ),
+					'desc'       => __( 'If the Memcached status toggle is not correct, click this button to correct it. This can happen if there is an error on the server or you or another admin manually toggle the Memcached service on the server outside of this plugin.', 'wpcd' ),
 					'attributes' => array(
 						// the _action that will be called in ajax.
 						'data-wpcd-action'              => 'site-toggle-memcached-local-value',
@@ -781,6 +784,7 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 					),
 					'class'      => 'wpcd_app_action',
 					'save_field' => false,
+					'columns'    => 6,
 				);
 
 			} else {

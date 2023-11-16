@@ -3399,7 +3399,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			$this->set_page_cache_status( $app_post_id, 'on' );
 
 			/**
-			 * Object caching is enabled by default for both NGINX and OLS in WPCD 5.6.1 and later.
+			 * Object caching is enabled by default for both NGINX and OLS in WPCD 5.5.2 and later.
 			 */
 			if ( $this->is_redis_installed( $server_id ) ) {
 				$this->set_app_redis_installed_status( $app_post_id, true );

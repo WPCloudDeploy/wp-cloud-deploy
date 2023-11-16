@@ -1154,10 +1154,10 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tab'     => 'wordpress-app-general-wpadmin',
 			),
 			array(
-				'id'      => 'wordpress_app_hide_notes_on_server_services_tab',
+				'id'      => 'wordpress_app_show_notes_on_server_services_tab',
 				'type'    => 'checkbox',
-				'name'    => __( 'Hide Notes Column On Services Tab?', 'wpcd' ),
-				'tooltip' => __( 'On the services tab we show a notes column.  For experienced admins this is not necessary - check this box to remove the unnecessary text from the screen.', 'wpcd' ),
+				'name'    => __( 'Show Notes Column On Services Tab?', 'wpcd' ),
+				'tooltip' => __( 'On the services tab we can show a notes column that indicates what the services are used for. Check this box to add that column.', 'wpcd' ),
 				'tab'     => 'wordpress-app-general-wpadmin',
 			),
 			array(

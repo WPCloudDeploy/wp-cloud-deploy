@@ -462,7 +462,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			'raw_attributes' => array(
 				/* Translators: %s is the web server type eg, NGINX, OLS etc. */
 				'std'     => sprintf( __( '%s Web Server', 'wpcd' ), $webserver_type_name ),
-				'columns' => wpcd_get_early_option( 'wordpress_app_hide_notes_on_server_services_tab' ) ? 4 : 3,
+				'columns' => wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ? 3 : 4,
 			),
 			'type'           => 'custom_html',
 		);
@@ -471,7 +471,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			'label'          => __( 'Status', 'wpcd' ),
 			'raw_attributes' => array(
 				'std'     => $webserver_status,
-				'columns' => wpcd_get_early_option( 'wordpress_app_hide_notes_on_server_services_tab' ) ? 5 : 2,
+				'columns' => wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ? 2 : 5,
 			),
 			'type'           => 'custom_html',
 		);
@@ -480,12 +480,12 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			'label'          => __( 'Actions', 'wpcd' ),
 			'raw_attributes' => array(
 				'std'     => __( 'Restart', 'wpcd' ),
-				'columns' => wpcd_get_early_option( 'wordpress_app_hide_notes_on_server_services_tab' ) ? 3 : 2,
+				'columns' => wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ? 2 : 3,
 			),
 			'type'           => 'button',
 		);
 
-		if ( ! wpcd_get_early_option( 'wordpress_app_hide_notes_on_server_services_tab' ) ) {
+		if ( wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ) {
 			$actions['web-server-desc'] = array(
 				'label'          => __( 'Notes', 'wpcd' ),
 				'raw_attributes' => array(
@@ -502,7 +502,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			'label'          => '',
 			'raw_attributes' => array(
 				'std'     => __( 'MariaDB', 'wpcd' ),
-				'columns' => wpcd_get_early_option( 'wordpress_app_hide_notes_on_server_services_tab' ) ? 4 : 3,
+				'columns' => wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ? 3 : 4,
 			),
 			'type'           => 'custom_html',
 		);
@@ -511,7 +511,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			'label'          => '',
 			'raw_attributes' => array(
 				'std'     => $mariadb_status,
-				'columns' => wpcd_get_early_option( 'wordpress_app_hide_notes_on_server_services_tab' ) ? 5 : 2,
+				'columns' => wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ? 2 : 5,
 			),
 			'type'           => 'custom_html',
 		);
@@ -520,12 +520,12 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			'label'          => '',
 			'raw_attributes' => array(
 				'std'     => __( 'Restart', 'wpcd' ),
-				'columns' => wpcd_get_early_option( 'wordpress_app_hide_notes_on_server_services_tab' ) ? 3 : 2,
+				'columns' => wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ? 2 : 3,
 			),
 			'type'           => 'button',
 		);
 
-		if ( ! wpcd_get_early_option( 'wordpress_app_hide_notes_on_server_services_tab' ) ) {
+		if ( wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ) {
 			$actions['db-server-desc'] = array(
 				'label'          => '',
 				'raw_attributes' => array(
@@ -592,7 +592,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 				'label'          => __( 'Status', 'wpcd' ),
 				'raw_attributes' => array(
 					'std'     => $redis_status,
-					'columns' => wpcd_get_early_option( 'wordpress_app_hide_notes_on_server_services_tab' ) ? 5 : 2,
+					'columns' => wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ? 2 : 5,
 				),
 				'type'           => 'custom_html',
 			);
@@ -601,7 +601,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 				'label'          => __( 'Actions', 'wpcd' ),
 				'raw_attributes' => array(
 					'std'     => __( 'Restart', 'wpcd' ),
-					'columns' => wpcd_get_early_option( 'wordpress_app_hide_notes_on_server_services_tab' ) ? 2 : 1,
+					'columns' => wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ? 1 : 2,
 				),
 				'type'           => 'button',
 			);
@@ -610,12 +610,12 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 				'label'          => __( 'Clear', 'wpcd' ),
 				'raw_attributes' => array(
 					'std'     => __( 'Clear Cache', 'wpcd' ),
-					'columns' => wpcd_get_early_option( 'wordpress_app_hide_notes_on_server_services_tab' ) ? 2 : 1,
+					'columns' => wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ? 1 : 2,
 				),
 				'type'           => 'button',
 			);
 
-			if ( ! wpcd_get_early_option( 'wordpress_app_hide_notes_on_server_services_tab' ) ) {
+			if ( wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ) {
 				$actions['redis-desc'] = array(
 					'label'          => __( 'Notes', 'wpcd' ),
 					'raw_attributes' => array(
@@ -682,7 +682,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			'label'          => __( 'Status', 'wpcd' ),
 			'raw_attributes' => array(
 				'std'     => $ufw_status,
-				'columns' => wpcd_get_early_option( 'wordpress_app_hide_notes_on_server_services_tab' ) ? 5 : 2,
+				'columns' => wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ? 2 : 5,
 			),
 			'type'           => 'custom_html',
 		);
@@ -691,7 +691,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			'label'          => __( 'Actions', 'wpcd' ),
 			'raw_attributes' => array(
 				'std'     => __( 'Restart', 'wpcd' ),
-				'columns' => wpcd_get_early_option( 'wordpress_app_hide_notes_on_server_services_tab' ) ? 2 : 1,
+				'columns' => wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ? 1 : 2,
 			),
 			'type'           => 'button',
 		);
@@ -704,12 +704,12 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 				'on_label'  => __( 'Enabled', 'wpcd' ),
 				'off_label' => __( 'Disabled', 'wpcd' ),
 				'std'       => ( 'on' === $ufw_toggle_state ? true : false ),
-				'columns'   => wpcd_get_early_option( 'wordpress_app_hide_notes_on_server_services_tab' ) ? 2 : 1,
+				'columns'   => wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ? 1 : 2,
 			),
 			'type'           => 'switch',
 		);
 
-		if ( ! wpcd_get_early_option( 'wordpress_app_hide_notes_on_server_services_tab' ) ) {
+		if ( wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ) {
 			$actions['ufw-desc'] = array(
 				'label'          => __( 'Notes', 'wpcd' ),
 				'raw_attributes' => array(
@@ -1004,7 +1004,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 				'label'          => __( 'Status', 'wpcd' ),
 				'raw_attributes' => array(
 					'std'     => $memcached_status,
-					'columns' => wpcd_get_early_option( 'wordpress_app_hide_notes_on_server_services_tab' ) ? 5 : 2,
+					'columns' => wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ? 2 : 5,
 				),
 				'type'           => 'custom_html',
 			);
@@ -1013,7 +1013,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 				'label'          => __( 'Actions', 'wpcd' ),
 				'raw_attributes' => array(
 					'std'     => __( 'Restart', 'wpcd' ),
-					'columns' => wpcd_get_early_option( 'wordpress_app_hide_notes_on_server_services_tab' ) ? 2 : 1,
+					'columns' => wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ? 1 : 2,
 				),
 				'type'           => 'button',
 			);
@@ -1022,12 +1022,12 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 				'label'          => __( 'Clear', 'wpcd' ),
 				'raw_attributes' => array(
 					'std'     => __( 'Clear Cache', 'wpcd' ),
-					'columns' => wpcd_get_early_option( 'wordpress_app_hide_notes_on_server_services_tab' ) ? 2 : 1,
+					'columns' => wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ? 1 : 2,
 				),
 				'type'           => 'button',
 			);
 
-			if ( ! wpcd_get_early_option( 'wordpress_app_hide_notes_on_server_services_tab' ) ) {
+			if ( wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ) {
 				$actions['memcached-desc'] = array(
 					'label'          => __( 'Notes', 'wpcd' ),
 					'raw_attributes' => array(

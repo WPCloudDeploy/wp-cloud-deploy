@@ -341,6 +341,14 @@ class WPCD_POSTS_App_Update_Plan extends WPCD_Posts_Base {
 		/* Misc. */
 		$fields_misc = array(
 			array(
+				'name'       => __( 'Do NOT Reset File Permissions', 'wpcd' ),
+				'id'         => 'wpcd_app_update_plan_no_reset_file_permissions',
+				'type'       => 'checkbox',
+				'save_field' => true,
+				'tooltip'    => __( 'We will reset the file permissions for copied files to the WPCD defaults. Check this box if you do NOT want that to occur.', 'wpcd' ),
+				'columns'    => 2,
+			),
+			array(
 				'name'       => __( 'Activate Logtivity', 'wpcd' ),
 				'id'         => 'wpcd_app_update_plan_activate_logtivity',
 				'type'       => 'checkbox',
@@ -354,7 +362,7 @@ class WPCD_POSTS_App_Update_Plan extends WPCD_Posts_Base {
 				'save_field' => true,
 				'tooltip'    => __( 'Useful if REDIS is not already activated on a site.', 'wpcd' ),
 				'columns'    => 2,
-			),
+			),			
 		);
 
 		/* Fields for custom bash scripts. */

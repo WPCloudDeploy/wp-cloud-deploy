@@ -24,10 +24,13 @@ class WPCD_WORDPRESS_TABS_TOOLS extends WPCD_WORDPRESS_TABS {
 		add_filter( "wpcd_app_{$this->get_app_name()}_tab_action", array( $this, 'tab_action' ), 10, 3 );
 
 		// Allow the clear_background_processes action to be triggered via an action hook.
-		add_action( 'wpcd_wordpress-app_clear_background_processes', array( $this, 'clear_background_processes' ), 10, 2 );
+		add_action( "wpcd_{$this->get_app_name()}_clear_background_processes", array( $this, 'clear_background_processes' ), 10, 2 ); // Hook:wpcd_wordpress-app_clear_background_processes.
+
+		// Allow the reset_permissions action to be triggered via an action hook.
+		add_action( "wpcd_{$this->get_app_name()}_reset_file_permissions", array( $this, 'do_reset_file_permissions_action' ), 10, 2 ); // Hook:wpcd_wordpress-app_reset_file_permissions.
 
 		// Allow update wp site option action to be triggered via an action hook.
-		add_action( "wpcd_{$this->get_app_name()}_update_wp_site_option", array( $this, 'do_update_wp_site_option_action' ), 10, 2 ); // Hook:wpcd_wordpress-app_update_wp_site_option
+		add_action( "wpcd_{$this->get_app_name()}_update_wp_site_option", array( $this, 'do_update_wp_site_option_action' ), 10, 2 ); // Hook:wpcd_wordpress-app_update_wp_site_option.
 
 	}
 
@@ -626,10 +629,11 @@ class WPCD_WORDPRESS_TABS_TOOLS extends WPCD_WORDPRESS_TABS {
 	 *
 	 * @param int    $id     The postID of the app cpt.
 	 * @param string $action The action to be performed (this matches the string required in the bash scripts).
+	 * @param array  $in_args Alternative source of arguments passed via action hook or direct function call instead of pulling from $_POST.
 	 *
 	 * @return boolean|WP_Error    success/failure
 	 */
-	private function reset_file_permissions( $id, $action ) {
+	private function reset_file_permissions( $id, $action, $in_args = array() ) {
 
 		$instance = $this->get_app_instance_details( $id );
 
@@ -774,6 +778,18 @@ class WPCD_WORDPRESS_TABS_TOOLS extends WPCD_WORDPRESS_TABS {
 	 */
 	public function do_update_wp_site_option_action( $id, $args ) {
 		$this->update_wp_site_option( $id, 'wp_site_update_option', $args );
+	}
+
+	/**
+	 * Trigger the reset file permissions action from an action hook.
+	 *
+	 * Action Hook: wpcd_{$this->get_app_name()}_reset_file_permissions | wpcd_wordpress-app_reset_file_permissions
+	 *
+	 * @param string $id ID of app where domain change has to take place.
+	 * @param array  $args array arguments that the add admin function needs.
+	 */
+	public function do_reset_file_permissions_action( $id, $args ) {
+		$this->reset_file_permissions( $id, 'reset_permissions', $args );
 	}
 
 }

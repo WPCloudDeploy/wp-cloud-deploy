@@ -1477,6 +1477,12 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 					$action     = 'upgrade_wp_db';
 					$raw_status = $this->submit_generic_server_command( $server_id, $action, $command, true );
 
+					// Reset file permissions.
+					$no_reset_file_permissions = boolval( get_post_meta( $plan_id, 'wpcd_app_update_plan_no_reset_file_permissions', true ) );
+					if ( false === $no_reset_file_permissions ) {
+						do_action( 'wpcd_wordpress-app_reset_file_permissions', $target_app_id, array() );
+					}
+
 					// Push custom wp-config.php data.
 					$keypairs = get_post_meta( $plan_id, 'wpcd_app_update_plan_wp_config_custom_data', true );
 					if ( ! empty( $keypairs ) ) {

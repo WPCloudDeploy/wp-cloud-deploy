@@ -439,8 +439,9 @@ class WPCD_WORDPRESS_TABS_SITE_LOGS extends WPCD_WORDPRESS_TABS {
 	 *
 	 * @param array $action action.
 	 * @param int   $id post id of site record.
+	 * @param array $in_args Alternative source of arguments passed via action hook or direct function call instead of pulling from $_POST.
 	 */
-	public function install_activate_logtivity( $action, $id ) {
+	public function install_activate_logtivity( $action, $id, $in_args = array() ) {
 
 		// If we don't have a LOGTIVITY TEAMS key, use return.
 		$teams_api_key = WPCD()->decrypt( wpcd_get_option( 'wordpress_app_logtivity_teams_api_key' ) );
@@ -457,9 +458,13 @@ class WPCD_WORDPRESS_TABS_SITE_LOGS extends WPCD_WORDPRESS_TABS {
 			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
 		}
 
+		// Put incoming data into an array.
+		$args = array();
 		if ( empty( $in_args ) ) {
 			// Get data from the POST request.
-			$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
+			if ( ! empty( $_POST['params'] ) ) {
+				$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
+			}
 		} else {
 			$args = $in_args;
 		}

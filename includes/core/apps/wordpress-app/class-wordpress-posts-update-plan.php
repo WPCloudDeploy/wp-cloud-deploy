@@ -347,6 +347,14 @@ class WPCD_POSTS_App_Update_Plan extends WPCD_Posts_Base {
 				'save_field' => true,
 				'columns'    => 2,
 			),
+			array(
+				'name'       => __( 'Activate Redis', 'wpcd' ),
+				'id'         => 'wpcd_app_update_plan_activate_redis',
+				'type'       => 'checkbox',
+				'save_field' => true,
+				'tooltip'    => __( 'Useful if REDIS is not already activated on a site.', 'wpcd' ),
+				'columns'    => 2,
+			),
 		);
 
 		/* Fields for custom bash scripts. */

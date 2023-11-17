@@ -30,7 +30,8 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 		add_action( 'wpcd_pending_log_toggle_page_cache', array( $this, 'pending_log_toggle_page_cache' ), 10, 3 );
 
 		/* Pending Logs Background Task: Toggle the redis object cache on a site */
-		add_action( 'wpcd_pending_log_toggle_redis_object_cache', array( $this, 'pending_log_toggle_redis_object_cache' ), 10, 3 );
+		add_action( 'wpcd_pending_log_toggle_redis_object_cache', array( $this, 'pending_log_toggle_redis_object_cache' ), 10, 3 ); // @TODO: Remove this later and leave the line below.
+		add_action( 'wpcd_wordpress-app_pending_log_toggle_redis_object_cache', array( $this, 'pending_log_toggle_redis_object_cache' ), 10, 3 );
 
 	}
 

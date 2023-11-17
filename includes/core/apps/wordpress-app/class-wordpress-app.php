@@ -3958,7 +3958,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	public function handle_page_cache_for_new_site( $app_id, $instance ) {
 
 		if ( wpcd_get_option( 'wordpress_app_sites_disable_page_cache' ) ) {
-			$instance['action_hook'] = 'wpcd_pending_log_toggle_page_cache'; // @TODO: This hook name should be changed to wpcd_wordpress-app_pending_log_toggle_page_cache for standardization purposes.
+			$instance['action_hook'] = 'wpcd_wordpress-app_pending_log_toggle_page_cache';
 			WPCD_POSTS_PENDING_TASKS_LOG()->add_pending_task_log_entry( $app_id, 'disable-page-cache', $app_id, $instance, 'ready', $app_id, __( 'Disable Page Cache For New Site', 'wpcd' ) );
 		}
 
@@ -3975,7 +3975,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	public function handle_redis_object_cache_for_new_site( $app_id, $instance ) {
 
 		if ( wpcd_get_option( 'wordpress_app_sites_disable_redis_cache' ) ) {
-			$instance['action_hook'] = 'wpcd_pending_log_toggle_redis_object_cache';  // @TODO: This hook name should be changed to wpcd_wordpress-app_pending_log_toggle_redis_object_cache for standardization.
+			$instance['action_hook'] = 'wpcd_wordpress-app_pending_log_toggle_redis_object_cache';
 			WPCD_POSTS_PENDING_TASKS_LOG()->add_pending_task_log_entry( $app_id, 'disable-redis-object-cache', $app_id, $instance, 'ready', $app_id, __( 'Disable Redis Object Cache For New Site', 'wpcd' ) );
 		}
 

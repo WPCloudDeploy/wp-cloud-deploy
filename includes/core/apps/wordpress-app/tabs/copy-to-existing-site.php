@@ -1571,7 +1571,7 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 					if ( true === (bool) $activate_redis ) {
 						if ( $this->is_redis_installed( $server_id ) && ! $this->get_app_is_redis_installed( $target_app_id ) ) {
 							$instance                = array();
-							$instance['action_hook'] = 'wpcd_wordpress-app_pending_log_toggle_redis_object_cache';  // @TODO: This hook name should be changed to wpcd_wordpress-app_pending_log_toggle_redis_object_cache for standardization.
+							$instance['action_hook'] = 'wpcd_wordpress-app_pending_log_toggle_redis_object_cache';
 							WPCD_POSTS_PENDING_TASKS_LOG()->add_pending_task_log_entry( $target_app_id, 'enable-redis-object-cache', $target_app_id, $instance, 'ready', $target_app_id, __( 'Enable Redis Object Cache For Existing Site (via Site Update Plan)', 'wpcd' ) );
 						}
 					}

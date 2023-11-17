@@ -27,10 +27,9 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 		add_action( "wpcd_command_{$this->get_app_name()}_completed", array( $this, 'command_completed' ), 10, 2 );
 
 		/* Pending Logs Background Task: Toggle the page cache on a site */
-		add_action( 'wpcd_pending_log_toggle_page_cache', array( $this, 'pending_log_toggle_page_cache' ), 10, 3 );
+		add_action( 'wpcd_wordpress-app_pending_log_toggle_page_cache', array( $this, 'pending_log_toggle_page_cache' ), 10, 3 );
 
 		/* Pending Logs Background Task: Toggle the redis object cache on a site */
-		add_action( 'wpcd_pending_log_toggle_redis_object_cache', array( $this, 'pending_log_toggle_redis_object_cache' ), 10, 3 ); // @TODO: Remove this later and leave the line below.
 		add_action( 'wpcd_wordpress-app_pending_log_toggle_redis_object_cache', array( $this, 'pending_log_toggle_redis_object_cache' ), 10, 3 );
 
 	}
@@ -875,7 +874,7 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 	 *
 	 * Called from an action hook from the pending logs background process - WPCD_POSTS_PENDING_TASKS_LOG()->do_tasks()
 	 *
-	 * Action Hook: wpcd_pending_log_toggle_page_cache
+	 * Action Hook: wpcd_wordpress-app_pending_log_toggle_page_cache
 	 *
 	 * @param int   $task_id    Id of pending task that is firing this thing...
 	 * @param int   $site_id    Id of site involved in this action.
@@ -908,7 +907,7 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 	 *
 	 * Called from an action hook from the pending logs background process - WPCD_POSTS_PENDING_TASKS_LOG()->do_tasks()
 	 *
-	 * Action Hook: wpcd_pending_log_toggle_redis_object_cache
+	 * Action Hook: wpcd_wordpress-app_pending_log_toggle_redis_object_cache
 	 *
 	 * @param int   $task_id    Id of pending task that is firing this thing...
 	 * @param int   $site_id    Id of site involved in this action.

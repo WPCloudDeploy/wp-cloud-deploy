@@ -442,7 +442,7 @@ class WPCD_POSTS_Site_Package extends WPCD_Posts_Base {
 				'columns'    => 3,
 			),
 			array(
-				'name'       => __( 'Active Logtivity', 'wpcd' ),
+				'name'       => __( 'Activate Logtivity', 'wpcd' ),
 				'id'         => $prefix . 'site_package_activate_logtivity',
 				'type'       => 'checkbox',
 				'std'        => true,

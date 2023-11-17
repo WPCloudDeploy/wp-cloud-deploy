@@ -338,6 +338,17 @@ class WPCD_POSTS_App_Update_Plan extends WPCD_Posts_Base {
 			),
 		);
 
+		/* Misc. */
+		$fields_misc = array(
+			array(
+				'name'       => __( 'Activate Logtivity', 'wpcd' ),
+				'id'         => 'wpcd_app_update_plan_activate_logtivity',
+				'type'       => 'checkbox',
+				'save_field' => true,
+				'columns'    => 2,
+			),
+		);
+
 		/* Fields for custom bash scripts. */
 		$fields_bash_scripts = array(
 			array(
@@ -445,6 +456,14 @@ class WPCD_POSTS_App_Update_Plan extends WPCD_Posts_Base {
 			'priority'   => 'default',
 			'fields'     => $fields_tenant_wp_options,
 		);
+
+		$metaboxes[] = array(
+			'id'         => 'wpcd_app_update_plan_misc',
+			'title'      => __( 'Misc', 'wpcd' ),
+			'post_types' => array( 'wpcd_app_update_plan' ),
+			'priority'   => 'default',
+			'fields'     => $fields_misc,
+		);		
 
 		if ( $this->can_user_execute_bash_scripts() ) {
 			// Site is allowed to execute bash scripts for site packages.

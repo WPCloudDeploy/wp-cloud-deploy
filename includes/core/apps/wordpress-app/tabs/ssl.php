@@ -328,7 +328,7 @@ class WPCD_WORDPRESS_TABS_SSL extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
-	 * Attempt to turn SSL on (regardless of the current SSL stats)
+	 * Attempt to turn SSL on (regardless of the current SSL status)
 	 *
 	 * Can be called directly or by an action hook.
 	 *

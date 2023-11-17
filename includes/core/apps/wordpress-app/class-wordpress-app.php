@@ -3484,6 +3484,9 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		// Maybe disable redis object cache.
 		$this->handle_redis_object_cache_for_new_site( $app_id, $instance );
 
+		// Maybe activate logtivity.
+		$this->handle_logtivity_for_new_site( $app_id, $instance );
+
 		// Handle site package rules.
 		$this->handle_site_package_rules( $app_id );
 
@@ -3800,6 +3803,14 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			}
 		}
 
+		// Activate logtivity on the site.
+		if ( false === $is_subscription_switch ) {
+			$activate_logtivity = get_post_meta( $site_package_id, 'wpcd_site_package_activate_logtivity', true );
+			if ( true === (bool) $activate_logtivity ) {
+				do_action( 'wpcd_wordpress-app_do-activate_logtivity_for_site', $app_id, '' );
+			}
+		}
+
 		// Apply categories/groups to site.
 		if ( false === $is_subscription_switch ) {
 			$groups = get_post_meta( $site_package_id, 'wpcd_site_package_apply_categories_new_sites', true ); // taxomomy_advanced fields stores multiple values in a single comma delimited row so this will return a comma delimited string.
@@ -3947,7 +3958,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	public function handle_page_cache_for_new_site( $app_id, $instance ) {
 
 		if ( wpcd_get_option( 'wordpress_app_sites_disable_page_cache' ) ) {
-			$instance['action_hook'] = 'wpcd_pending_log_toggle_page_cache';
+			$instance['action_hook'] = 'wpcd_wordpress-app_pending_log_toggle_page_cache';
 			WPCD_POSTS_PENDING_TASKS_LOG()->add_pending_task_log_entry( $app_id, 'disable-page-cache', $app_id, $instance, 'ready', $app_id, __( 'Disable Page Cache For New Site', 'wpcd' ) );
 		}
 
@@ -3964,12 +3975,28 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	public function handle_redis_object_cache_for_new_site( $app_id, $instance ) {
 
 		if ( wpcd_get_option( 'wordpress_app_sites_disable_redis_cache' ) ) {
-			$instance['action_hook'] = 'wpcd_pending_log_toggle_redis_object_cache';
+			$instance['action_hook'] = 'wpcd_wordpress-app_pending_log_toggle_redis_object_cache';
 			WPCD_POSTS_PENDING_TASKS_LOG()->add_pending_task_log_entry( $app_id, 'disable-redis-object-cache', $app_id, $instance, 'ready', $app_id, __( 'Disable Redis Object Cache For New Site', 'wpcd' ) );
 		}
 
 	}
 
+	/**
+	 * Activate Logtivity when WP install is complete.
+	 *
+	 * Called from function wpcd_wpapp_install_complete
+	 *
+	 * @param int   $app_id        post id of app.
+	 * @param array $instance      Array passed by calling function containing details of the server and site.
+	 */
+	public function handle_logtivity_for_new_site( $app_id, $instance ) {
+
+		if ( wpcd_get_option( 'wordpress_app_sites_activate_logtivity' ) ) {
+			$instance['action_hook'] = 'wpcd_wordpress-app_pending_log_activate_logtivity';
+			WPCD_POSTS_PENDING_TASKS_LOG()->add_pending_task_log_entry( $app_id, 'activate-logtivity', $app_id, $instance, 'ready', $app_id, __( 'Activate Logtivity On New Site', 'wpcd' ) );
+		}
+
+	}
 
 	/**
 	 * Create the server instance on the basis of the inputs.

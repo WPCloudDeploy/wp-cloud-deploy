@@ -395,6 +395,15 @@ trait wpcd_wpapp_script_handlers {
 			case 'renew_all_certificates.txt':
 				$return = ( strpos( $result, 'Certificate renewal attempt completed' ) !== false );
 				break;
+			case 'manage_logtivity.txt':
+				$return =
+				( strpos( $result, 'Logtivity installed and license activated' ) !== false )
+				||
+				( strpos( $result, 'Logtivity license activated' ) !== false )
+				||
+				( strpos( $result, 'Logtivity has been removed' ) !== false );
+				$return = $return && ( strpos( $result, 'Please provide a valid API key' ) == false ); // If the string 'Please provide a valid API key' is in the output, the thing has failed.
+				break;
 
 			/**************************************************************
 			* The items below this are SERVER items, not APP items        *
@@ -1294,6 +1303,17 @@ trait wpcd_wpapp_script_handlers {
 					$common_array,
 					$additional
 				);
+				break;
+			case 'manage_logtivity.txt':
+				$new_array = array_merge(
+					array(
+						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/52-logtivity.txt',
+						'SCRIPT_NAME' => '52-logtivity.sh',
+					),
+					$common_array,
+					$additional
+				);
+				break;
 				break;
 
 			/*********************************************************

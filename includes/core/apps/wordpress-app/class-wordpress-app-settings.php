@@ -71,11 +71,17 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 		// Enable filter on the default wp user id field to encrypt it when its being stored.
 		add_filter( 'rwmb_wordpress_app_default_wp_user_id_value', array( &$this, 'encrypt' ), 10, 3 );
 
+		// Enable filter on the logtivity teams api key to encrypt it when it's being stored.
+		add_filter( 'rwmb_wordpress_app_logtivity_teams_api_key_value', array( &$this, 'encrypt' ), 10, 3 );
+
 		// Enable filter on the default wp password field to decrypt it when its being retrieved.
 		add_filter( 'rwmb_wordpress_app_default_wp_password_field_meta', array( &$this, 'decrypt' ), 10, 3 );
 
 		// Enable filter on the default wp user id field to decrypt it when its being retrieved.
 		add_filter( 'rwmb_wordpress_app_default_wp_user_id_field_meta', array( &$this, 'decrypt' ), 10, 3 );
+
+		// Enable filter on the default logtivity teams api key field to decrypt it when its being retrieved.
+		add_filter( 'rwmb_wordpress_app_logtivity_teams_api_key_field_meta', array( &$this, 'decrypt' ), 10, 3 );
 
 	}
 
@@ -223,71 +229,75 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 	public function wordpress_app_metabox_tabs() {
 		$tabs = array(
 			'wordpress-app-general-wpadmin'      => array(
-				'label' => 'General',
+				'label' => __( 'General', 'wpcd' ),
 				'icon'  => 'dashicons-text',
 			),
 			'wordpress-app-servers'              => array(
-				'label' => 'Servers',
+				'label' => __( 'Servers', 'wpcd' ),
 				'icon'  => 'dashicons-align-full-width',
 			),
 			'wordpress-app-sites'                => array(
-				'label' => 'Sites',
+				'label' => __( 'Sites', 'wpcd' ),
 				'icon'  => 'dashicons-admin-multisite',
 			),
 			'wordpress-app-backup'               => array(
-				'label' => 'Backup and Restore',
+				'label' => __( 'Backup and Restore', 'wpcd' ),
 				'icon'  => 'dashicons-images-alt2',
 			),
 			'wordpress-app-fields-and-links'     => array(
-				'label' => 'Fields & Links',
+				'label' => __( 'Fields & Links', 'wpcd' ),
 				'icon'  => 'dashicons-editor-unlink',
 			),
 			'wordpress-app-plugin-theme-updates' => array(
-				'label' => 'Theme & Plugin Updates',
+				'label' => __( 'Theme & Plugin Updates', 'wpcd' ),
 				'icon'  => 'dashicons-admin-plugins',
 			),
 			'wordpress-app-dns-cloudflare'       => array(
-				'label' => 'DNS: Cloudflare',
+				'label' => __( 'DNS: Cloudflare', 'wpcd' ),
 				'icon'  => 'dashicons-cloud',
 			),
 			'wordpress-app-alert-config'         => array(
-				'label' => 'Alerts & Notices',
+				'label' => __( 'Alerts & Notices', 'wpcd' ),
 				'icon'  => 'dashicons-bell',
 			),
 			'wordpress-app-email-notify'         => array(
-				'label' => 'Email Notifications',
+				'label' => __( 'Email Notifications', 'wpcd' ),
 				'icon'  => 'dashicons-email',
 			),
 			'wordpress-app-slack-notify'         => array(
-				'label' => 'Slack Notifications',
+				'label' => __( 'Slack Notifications', 'wpcd' ),
 				'icon'  => 'dashicons-admin-comments',
 			),
 			'wordpress-app-zapier-notify'        => array(
-				'label' => 'Zapier Notifications',
+				'label' => __( 'Zapier Notifications', 'wpcd' ),
 				'icon'  => 'dashicons-embed-generic',
 			),
+			'wordpress-app-logtivity'            => array(
+				'label' => __( 'Logtivity', 'wpcd' ),
+				'icon'  => 'dashicons-welcome-write-blog',
+			),
 			'wordpress-app-color-settings'       => array(
-				'label' => 'Styles',
+				'label' => __( 'Styles', 'wpcd' ),
 				'icon'  => 'dashicons-color-picker',
 			),
 			'wordpress-app-email-gateway'        => array(
-				'label' => 'Email Gateway',
+				'label' => __( 'Email Gateway', 'wpcd' ),
 				'icon'  => 'dashicons-email-alt2',
 			),
 			'wordpress-app-front-end-fields'     => array(
-				'label' => 'Front-end Fields',
+				'label' => __( 'Front-end Fields', 'wpcd' ),
 				'icon'  => 'dashicons-editor-kitchensink',
 			),
 			'wordpress-app-rest-api'             => array(
-				'label' => 'Rest API',
+				'label' => __( 'Rest API', 'wpcd' ),
 				'icon'  => 'dashicons-rest-api',
 			),
 			'wordpress-app-white-label'          => array(
-				'label' => 'White Label',
+				'label' => __( 'White Label', 'wpcd' ),
 				'icon'  => 'dashicons-randomize',
 			),
 			'wordpress-app-custom-scripts'       => array(
-				'label' => 'Custom Scripts',
+				'label' => __( 'Custom Scripts', 'wpcd' ),
 				'icon'  => 'dashicons-shortcode',
 			),
 		/*
@@ -363,6 +373,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 		$email_notification_fields    = $this->email_notification_fields();
 		$slack_notification_fields    = $this->slack_notification_fields();
 		$zapier_notification_fields   = $this->zapier_notification_fields();
+		$logtivity_connection_fields  = $this->logtivity_connection_fields();
 		$button_color_settings_fields = $this->button_color_settings_fields();
 		$email_gateway_load_defaults  = $this->email_gateway_load_defaults();
 		$cf_dns_fields                = $this->cf_dns_fields();
@@ -371,7 +382,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 		$custom_scripts               = $this->custom_script_fields();
 		$front_end_fields             = $this->front_end_fields();
 		$git_fields                   = $this->git_fields();
-		$all_fields                   = array_merge( $general_fields, $server_fields, $site_fields, $backup_fields, $fields_and_links, $theme_and_plugin_updates, $alert_config, $email_notification_fields, $slack_notification_fields, $zapier_notification_fields, $button_color_settings_fields, $email_gateway_load_defaults, $cf_dns_fields, $rest_api_fields, $white_label_fields, $custom_scripts, $front_end_fields, $git_fields );
+		$all_fields                   = array_merge( $general_fields, $server_fields, $site_fields, $backup_fields, $fields_and_links, $theme_and_plugin_updates, $alert_config, $email_notification_fields, $slack_notification_fields, $zapier_notification_fields, $logtivity_connection_fields, $button_color_settings_fields, $email_gateway_load_defaults, $cf_dns_fields, $rest_api_fields, $white_label_fields, $custom_scripts, $front_end_fields, $git_fields );
 		return $all_fields;
 	}
 
@@ -1443,6 +1454,13 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tab'     => 'wordpress-app-sites',
 			),
 			array(
+				'id'      => 'wordpress_app_sites_activate_logtivity',
+				'type'    => 'checkbox',
+				'name'    => __( 'Activate Logtivity Connection?', 'wpcd' ),
+				'tooltip' => __( 'Activate Logtivity Connection on New Sites?', 'wpcd' ),
+				'tab'     => 'wordpress-app-sites',
+			),
+			array(
 				'id'      => 'wordpress_app_sites_set_php_version',
 				'type'    => 'select',
 				'name'    => __( 'Switch PHP Version For New Sites?', 'wpcd' ),
@@ -2366,6 +2384,40 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				),
 				'tab'     => 'wordpress-app-zapier-notify',
 				'size'    => 60,
+			),
+		);
+
+		return $fields;
+
+	}
+
+	/**
+	 * Array of fields used to store information about a LOGTIVITY connection.
+	 */
+	public function logtivity_connection_fields() {
+
+		$fields = array(
+			array(
+				'id'   => 'wordpress_app_logtivity_connection_heading',
+				'type' => 'heading',
+				'name' => __( 'Logtivity Connection', 'wpcd' ),
+				'desc' => __( 'Configure your Logtivity account information.', 'wpcd' ),
+				'tab'  => 'wordpress-app-logtivity',
+			),
+			array(
+				'id'   => 'wordpress_app_logtivity_teams_api_key',
+				'type' => 'text',
+				'name' => __( 'Teams API Key', 'wpcd' ),
+				'desc' => __( 'This has to be the TEAMS key, not an api key for an individual site.', 'wpcd' ),
+				'tab'  => 'wordpress-app-logtivity',
+				'size' => 60,
+			),
+			array(
+				'id'      => 'wordpress_app_logtivity_enable_bulk_actions',
+				'type'    => 'checkbox',
+				'name'    => __( 'Enable Bulk Actions?', 'wpcd' ),
+				'tooltip' => __( 'Add Logtivity actions to the BULK ACTIONS menu in the site list.', 'wpcd' ),
+				'tab'     => 'wordpress-app-logtivity',
 			),
 		);
 

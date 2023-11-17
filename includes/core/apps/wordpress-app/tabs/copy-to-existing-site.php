@@ -1560,6 +1560,22 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 						$raw_status = $this->submit_generic_server_command( $server_id, $action, $command, true );
 					}
 
+					// Activate logtivity on the site.
+					$activate_logtivity = get_post_meta( $plan_id, 'wpcd_app_update_plan_activate_logtivity', true );
+					if ( true === (bool) $activate_logtivity ) {
+						do_action( 'wpcd_wordpress-app_do-activate_logtivity_for_site', $target_app_id, '' );
+					}
+
+					// Activate Redis.
+					$activate_redis = get_post_meta( $plan_id, 'wpcd_app_update_plan_activate_redis', true );
+					if ( true === (bool) $activate_redis ) {
+						if ( $this->is_redis_installed( $server_id ) && ! $this->get_app_is_redis_installed( $target_app_id ) ) {
+							$instance                = array();
+							$instance['action_hook'] = 'wpcd_wordpress-app_pending_log_toggle_redis_object_cache';
+							WPCD_POSTS_PENDING_TASKS_LOG()->add_pending_task_log_entry( $target_app_id, 'enable-redis-object-cache', $target_app_id, $instance, 'ready', $target_app_id, __( 'Enable Redis Object Cache For Existing Site (via Site Update Plan)', 'wpcd' ) );
+						}
+					}
+
 					/**
 					 * Custom bash script: After
 					 * Bash scripts example output (in one long script - line breaks here for readability.):

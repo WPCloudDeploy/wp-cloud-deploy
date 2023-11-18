@@ -456,6 +456,45 @@ function wpcd_generate_default_password() {
 }
 
 /**
+ * Check to see if a string starts with another.
+ *
+ * @Note: This would not be needed with running under php 8.0, which we cannot guarantee at this time.
+ * Under PHP 8.0 we could use str_starts_with
+ *
+ * @credit: https://stackoverflow.com/questions/834303/startswith-and-endswith-functions-in-php
+ *
+ * @since 5.5.2
+ *
+ * @param string $haystack The string to check.
+ * @param string $needle What are we searching for.
+ */
+function wpcd_str_starts_with( $haystack, $needle ) {
+	$length = strlen( $needle );
+	return substr( $haystack, 0, $length ) === $needle;
+}
+
+/**
+ * Check to see if a string ends with another.
+ *
+ * @Note: This would not be needed with running under php 8.0, which we cannot guarantee at this time.
+ * Under PHP 8.0 we could use str_starts_with str_ends_with
+ *
+ * @credit: https://stackoverflow.com/questions/834303/startswith-and-endswith-functions-in-php
+ *
+ * @since 5.5.2
+ *
+ * @param string $haystack The string to check.
+ * @param string $needle What are we searching for.
+ */
+function wpcd_str_ends_with( $haystack, $needle ) {
+	$length = strlen( $needle );
+	if ( ! $length ) {
+		return true;
+	}
+	return substr( $haystack, -$length ) === $needle;
+}
+
+/**
  * Find the LOCATION of the first number in a string...
  *
  * Credit: https://stackoverflow.com/a/7495681

@@ -26,6 +26,9 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 		// Allow the disable site action to be triggered via an action hook.  Will primarily be used by the woocommerce add-on and REST API.
 		add_action( 'wpcd_wordpress-app_do_toggle_site_status', array( $this, 'toggle_site_status_action' ), 10, 3 );
 
+		// Allow the disable http auth action to be triggered via an action hook.
+		add_action( 'wpcd_wordpress-app_do_site_disable_http_auth', array( $this, 'disable_http_auth_action' ), 10, 1 );
+
 		// Add bulk action option to the site list to bulk delete sites.
 		add_filter( 'bulk_actions-edit-wpcd_app', array( $this, 'wpcd_add_new_bulk_actions_site' ) );
 
@@ -941,6 +944,23 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 		wp_delete_post( $id, true );
 
 		return $success;
+
+	}
+
+	/**
+	 * Helper function disable HTTP Authentical
+	 *
+	 * Action hook: wpcd_wordpress-app_do_site_disable_http_auth.
+	 *
+	 * @param int $id     The postID of the app cpt.
+	 *
+	 * @return string|WP_Error
+	 */
+	public function disable_http_auth_action( $id ) {
+
+		$result = $this->toggle_basic_auth( $id, 'disable_auth' );
+
+		return $result;  // Does not matter in an action hook.
 
 	}
 

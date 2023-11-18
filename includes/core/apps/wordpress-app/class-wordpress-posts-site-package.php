@@ -442,6 +442,15 @@ class WPCD_POSTS_Site_Package extends WPCD_Posts_Base {
 				'columns'    => 3,
 			),
 			array(
+				'name'       => __( 'Disable HTTP Authentication', 'wpcd' ),
+				'id'         => $prefix . 'site_package_disable_http_auth',
+				'type'       => 'checkbox',
+				'std'        => true,
+				'save_field' => true,
+				'tooltip'    => __( 'If your template site has HTTP Authentication enabled, use this option to disable it for new sites created from the template.', 'wpcd' ),
+				'columns'    => 3,
+			),
+			array(
 				'name'       => __( 'Activate Logtivity', 'wpcd' ),
 				'id'         => $prefix . 'site_package_activate_logtivity',
 				'type'       => 'checkbox',

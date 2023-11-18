@@ -3811,6 +3811,14 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			}
 		}
 
+		// Disable HTTP Authentication.
+		if ( false === $is_subscription_switch ) {
+			$disable_http_auth = get_post_meta( $site_package_id, 'wpcd_site_package_disable_http_auth', true );
+			if ( true === (bool) $disable_http_auth ) {
+				do_action( 'wpcd_wordpress-app_do_site_disable_http_auth', $app_id );
+			}
+		}
+
 		// Apply categories/groups to site.
 		if ( false === $is_subscription_switch ) {
 			$groups = get_post_meta( $site_package_id, 'wpcd_site_package_apply_categories_new_sites', true ); // taxomomy_advanced fields stores multiple values in a single comma delimited row so this will return a comma delimited string.

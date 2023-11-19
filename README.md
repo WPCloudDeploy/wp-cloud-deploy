@@ -128,14 +128,15 @@ Note: Even though the entire git development history isn't available on github, 
 ## Change Log ##
 5.5.2
 ------
-* New: WPAPP: REDIS now part of CORE plugin and is installed on all servers.
-* New: WPAPP: REDIS object cached enabled for all new sites.
-* New: WPAPP: SolidWP Security Pro Integration.
-* New: WPAPP: Logtivity Integration.
-* New: WPAPP: Defaults for userid, password and email address in settings - helps with development when you're creating and destroying many sites over a short period of time.  Applies only to admins.
-* New: WPAPP: Add option to SITE PACKAGE screen to remove http authentication on new sites.  This allows for protected template sites where the password is automatically removed on the customer/tenant site.
-* Tweak: WPAPP: Remove the NOTES column from the server SERVICES tab - option available to re-add it. 
+* New: WPAPP - REDIS now part of CORE plugin and is installed on all servers.
+* New: WPAPP - REDIS object cached enabled for all new sites.
+* New: WPAPP - SolidWP Security Pro Integration.
+* New: WPAPP - Logtivity Integration.
+* New: WPAPP - Defaults for userid, password and email address in settings - helps with development when you're creating and destroying many sites over a short period of time.  Applies only to admins.
+* New: WPAPP - Add option to SITE PACKAGE screen to remove http authentication on new sites.  This allows for protected template sites where the password is automatically removed on the customer/tenant site.
+* New: WPAPP - Allow for a default of site packages on the INSTALL WORDPRESS popup.
 * Tweak: DO Provider - make the image default UBUNTU 22.04 LTS for all non-wordpress apps.
+* Tweak: WPAPP - Remove the NOTES column from the server SERVICES tab - option available to re-add it. 
 * Tweak: WPAPP - Add multi-tenant parent to the app list APP SUMMARY column if the site is an mt-version site.
 * Tweak: WPAPP - When executing update plans, make sure that the WP database is upgraded in case the new files are for a new version of WP.
 * Tweak: WPAPP - When executing update plans, reset file permissions to wpcd default on target sites. Add option in plans to leave permissions alone.

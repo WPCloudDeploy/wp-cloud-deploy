@@ -162,14 +162,18 @@
 					<div class="wpcd-create-popup-label-wrap"><label class="wpcd-create-popup-label" for="wp_site_package"> <?php echo esc_html( __( 'Site Package', 'wpcd' ) ); ?>  </label></div>
 					<div class="wpcd-create-popup-input-wrap wpcd-create-popup-input-site-package-select-wrap">
 					<?php
-						$site_packages = WPCD_SITE_PACKAGE()->get_site_packages();
+						$site_packages        = WPCD_SITE_PACKAGE()->get_site_packages();
 					?>
-						<select name="wp_site_package" id="wpcd-site-package" style="width: 150px;">
+						<select name="wp_site_package" id="wpcd-site-package" style="width: 150px;">					
 						<?php
 						foreach ( $site_packages as $site_package_key => $site_package ) {
 							?>
+								<?php if ( ! empty( $default_site_package ) && ( (int) $default_site_package === (int) $site_package_key ) ) { ?>
+									<option selected="selected" value="<?php echo esc_attr( $site_package_key ); ?>"><?php echo esc_html( $site_package ); ?></option>
+								<?php } else { ?>
 									<option value="<?php echo esc_attr( $site_package_key ); ?>"><?php echo esc_html( $site_package ); ?></option>
-								<?php
+								<?php } ?>
+							<?php
 						}
 						?>
 						</select>

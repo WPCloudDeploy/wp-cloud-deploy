@@ -1580,6 +1580,19 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tooltip' => __( 'If checked, a random password will be generated when an admin uses the INSTALL WORDPRESS button. Checking this box overrides the default password option above.', 'wpcd' ),
 				'tab'     => 'wordpress-app-sites',
 			),
+			array(
+				'id'         => 'wordpress_app_sites_default_site_package',
+				'type'       => 'post',
+				'name'       => __( 'Default Site Package', 'wpcd' ),
+				'tooltip'    => __( 'Automatically select this site package on the INSTALL WORDPRESS pop-up.  It does NOT apply to other WordPress installation vectors such as the RESTAPI, BULK INSTALLS etc.', 'wpcd' ),
+				'post_type'  => 'wpcd_site_package',
+				'query_args' => array(
+					'posts_per_page' => - 1,
+				),
+				'field_type' => 'select_advanced',
+				'tab'        => 'wordpress-app-sites',
+				'size'       => 60,
+			),
 
 			array(
 				'type' => 'heading',

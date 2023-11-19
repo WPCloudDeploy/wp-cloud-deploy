@@ -2711,16 +2711,19 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 				/* Get some defaults froms settings so the popup can use - but only if it's used by wpcd admins. */
 				if ( wpcd_is_admin() ) {
-					$default_wp_user_id  = WPCD()->decrypt( wpcd_get_option( 'wordpress_app_default_wp_user_id' ) );
-					$default_wp_password = WPCD()->decrypt( wpcd_get_option( 'wordpress_app_default_wp_password' ) );
-					$default_wp_email    = wpcd_get_option( 'wordpress_app_default_wp_email' );
+					$default_wp_user_id   = WPCD()->decrypt( wpcd_get_option( 'wordpress_app_default_wp_user_id' ) );
+					$default_wp_password  = WPCD()->decrypt( wpcd_get_option( 'wordpress_app_default_wp_password' ) );
+					$default_wp_email     = wpcd_get_option( 'wordpress_app_default_wp_email' );
+					$default_site_package = wpcd_get_option( 'wordpress_app_sites_default_site_package' );
 					if ( true === boolval( wpcd_get_option( 'wordpress_app_auto_gen_password' ) ) ) {
 						$default_wp_password = wpcd_generate_default_password();
 					}
 				} else {
-					$default_wp_user_id  = '';
-					$default_wp_password = '';
-					$default_wp_email    = '';
+					$default_wp_user_id   = '';
+					$default_wp_password  = '';
+					$default_wp_email     = '';
+					$default_wp_password  = '';
+					$default_site_package = '';
 				}
 
 				/* Show the popup template*/
@@ -3486,7 +3489,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		$this->handle_redis_object_cache_for_new_site( $app_id, $instance );
 
 		// Maybe activate solidwp security.
-		$this->handle_solidwp_security_for_new_site( $app_id, $instance );		
+		$this->handle_solidwp_security_for_new_site( $app_id, $instance );
 
 		// Maybe activate logtivity.
 		$this->handle_logtivity_for_new_site( $app_id, $instance );

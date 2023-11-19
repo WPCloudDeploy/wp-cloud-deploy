@@ -404,7 +404,7 @@ trait wpcd_wpapp_script_handlers {
 				( strpos( $result, 'Logtivity has been removed' ) !== false );
 				$return = $return && ( strpos( $result, 'Please provide a valid API key' ) == false ); // If the string 'Please provide a valid API key' is in the output, the thing has failed.
 				break;
-			case 'manage_solidwpsecurity.txt':
+			case 'manage_solidwp_security.txt':
 				$return =
 				( strpos( $result, 'Solidwp installed and license activated' ) !== false )
 				||
@@ -1322,7 +1322,7 @@ trait wpcd_wpapp_script_handlers {
 					$additional
 				);
 				break;
-			case 'manage_solidwpsecurity.txt':
+			case 'manage_solidwp_security.txt':
 				$new_array = array_merge(
 					array(
 						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/51-solidsecurity.txt',

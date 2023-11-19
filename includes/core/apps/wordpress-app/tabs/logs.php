@@ -435,7 +435,7 @@ class WPCD_WORDPRESS_TABS_SITE_LOGS extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
-	 * Activity and connect LOGTIVITY for this site.
+	 * Activate and connect LOGTIVITY for this site.
 	 *
 	 * @param array $action action.
 	 * @param int   $id post id of site record.

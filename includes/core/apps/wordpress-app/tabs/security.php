@@ -118,7 +118,7 @@ class WPCD_WORDPRESS_TABS_SITE_SECURITY extends WPCD_WORDPRESS_TABS {
 		}
 
 		/* Now verify that the user can perform actions on this screen, assuming that they can view the server */
-		$valid_actions = array( 'site-activate-solidwp-security', 'site-deactivate-solidwp-security' );
+		$valid_actions = array( 'site-solidwp-toggle-install' );
 		if ( in_array( $action, $valid_actions, true ) ) {
 			if ( ! $this->get_tab_security( $id ) ) {
 				return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
@@ -127,22 +127,14 @@ class WPCD_WORDPRESS_TABS_SITE_SECURITY extends WPCD_WORDPRESS_TABS {
 
 		if ( $this->get_tab_security( $id ) ) {
 			switch ( $action ) {
-				case 'site-log-download':
-					$result = array();
-					$result = $this->do_site_log_actions( $action, $id );
-					// most actions need to refresh the page so that new data can be loaded or so that the data entered into data entry fields cleared out.
-					if ( ! in_array( $action, array(), true ) && ! is_wp_error( $result ) ) {
-						$result['refresh'] = 'yes';
-					}
-					break;
 
-				case 'site-logtivity-toggle-install':
+				case 'site-solidwp-toggle-install':
 					$result    = array();
-					$connected = $this->get_logtivity_connection_status( $id );
+					$connected = $this->get_solidwp_security_connection_status( $id );
 					if ( $connected ) {
-						$result = $this->remove_logtivity( $action, $id );
+						$result = $this->remove_solidwp_security( $action, $id );
 					} else {
-						$result = $this->install_activate_logtivity( $action, $id );
+						$result = $this->install_activate_solidwp_security( $action, $id );
 					}
 					break;
 
@@ -152,7 +144,7 @@ class WPCD_WORDPRESS_TABS_SITE_SECURITY extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
-	 * Gets the fields to be shown in the LOGS tab.
+	 * Gets the fields to be shown in the SECURITY tab.
 	 *
 	 * @param array $fields fields.
 	 * @param int   $id id.
@@ -166,17 +158,17 @@ class WPCD_WORDPRESS_TABS_SITE_SECURITY extends WPCD_WORDPRESS_TABS {
 
 		return array_merge(
 			$fields,
-			$this->get_site_logs_fields( $id )
+			$this->get_site_security_fields( $id )
 		);
 
 	}
 
 	/**
-	 * Gets the fields to be shown in the LOGS area of the tab.
+	 * Gets the fields to be shown in the SOLID WP area of the tab.
 	 *
 	 * @param int $id id.
 	 */
-	public function get_site_logs_fields( $id ) {
+	public function get_site_security_fields( $id ) {
 
 		if ( ! $id ) {
 			// id not found!
@@ -185,19 +177,18 @@ class WPCD_WORDPRESS_TABS_SITE_SECURITY extends WPCD_WORDPRESS_TABS {
 
 		// Bail if site is not enabled.
 		if ( ! $this->is_site_enabled( $id ) ) {
-			return $this->get_disabled_header_field( 'site-logs' );
+			return $this->get_disabled_header_field( $this->get_tab_slug() );
 		}
 
 		// Get Fields.
-		$download_logs_fields = $this->download_logs_fields( $id );
-		$logtivity_fields     = $this->logtivity_fields( $id );
+		$solidwp_fields = $this->solidwp_fields( $id );
 
 		// Setup return var.
-		$fields = $download_logs_fields;
+		$fields = $solidwp_fields;
 
 		// Add in certain groups that only admins should see.
 		if ( wpcd_is_admin() ) {
-			$fields = array_merge( $fields, $logtivity_fields );
+			// Nothing here for now.
 		}
 
 		// Return.
@@ -206,127 +197,52 @@ class WPCD_WORDPRESS_TABS_SITE_SECURITY extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
-	 * Gets the fields to be shown in the DOWNLOAD LOGS area of the tab.
+	 * Gets the fields to be shown in the SOLIDWP Security area of the tab.
 	 *
 	 * @param int $id id.
 	 */
-	public function download_logs_fields( $id ) {
+	public function solidwp_fields( $id ) {
 
 		if ( ! $id ) {
 			// id not found!
 			return array();
 		}
 
-		/* Array variable to hold our field definitions */
-		$fields = array();
-
-		// Heading text.
-		$desc = __( 'Download various log files for this site.', 'wpcd' );
-
-		$fields[] = array(
-			'name' => __( 'Download Logs', 'wpcd' ),
-			'desc' => $desc,
-			'tab'  => 'site-logs',
-			'type' => 'heading',
-		);
-
-		// Get the domain name for this app - we'll need it later.
-		$domain = get_post_meta( $id, 'wpapp_domain', true );
-
-		// List of logs for download.
-		$fields[] = array(
-			'name'       => __( 'Select Log', 'wpcd' ),
-			'id'         => 'wpcd_app_site_log_name',
-			'tab'        => 'site-logs',
-			'type'       => 'select',
-			'save_field' => false,
-			'attributes' => array(
-				// the key of the field (the key goes in the request).
-				'data-wpcd-name' => 'site_log_name',
-			),
-			'options'    => $this->get_log_list( $id ),
-		);
-
-		$fields[] = array(
-			'id'         => 'wpcd_app_action_site_log_download_button',
-			'tab'        => 'site-logs',
-			'type'       => 'button',
-			'std'        => __( 'Download', 'wpcd' ),
-			'attributes' => array(
-				// the _action that will be called in ajax.
-				'data-wpcd-action' => 'site-log-download',
-				// the id.
-				'data-wpcd-id'     => $id,
-				// fields that contribute data for this action.
-				'data-wpcd-fields' => json_encode( array( '#wpcd_app_site_log_name' ) ),
-			),
-			'class'      => 'wpcd_app_action',
-			'save_field' => false,
-		);
-
-		$fields[] = array(
-			'name' => __( 'Warning', 'wpcd' ),
-			'desc' => __( 'Attempting to download very large log files can cause your server memory to be exhausted which will likely cause your server to kill this process or, worse, crash. Use this download tool only if you are sure your logs are of a reasonable size. Otherwise connect via sFTP or ssh to download logs.', 'wpcd' ),
-			'tab'  => 'site-logs',
-			'type' => 'heading',
-		);
-
-		return $fields;
-
-	}
-
-	/**
-	 * Gets the fields to be shown in the LOGTIVITY area of the tab.
-	 *
-	 * @param int $id id.
-	 */
-	public function logtivity_fields( $id ) {
-
-		if ( ! $id ) {
-			// id not found!
-			return array();
-		}
-
-		// Only admins allowed for these fields.
-		if ( ! wpcd_is_admin() ) {
-			return array();
-		}
-
-		// Is the site connected to logtivity?
-		$connected = $this->get_logtivity_connection_status( $id );
+		// Is the site connected to the solidwp saas?
+		$connected = $this->get_solidwp_security_connection_status( $id );
 
 		/* Array variable to hold our field definitions */
 		$fields = array();
 
 		// Heading text.
-		$desc = __( 'Connect site to Logtivity.', 'wpcd' );
+		$desc = __( 'Activate & License SolidWP Security.', 'wpcd' );
 
-		// If no value is for logtivity teams api, set warning.
-		if ( empty( WPCD()->decrypt( wpcd_get_early_option( 'wordpress_app_logtivity_teams_api_key' ) ) ) ) {
-			$desc .= '<br/>' . __( 'Warning: No Logtivity API Key is configured in settings!', 'wpcd' );
+		// If no value is for the solidwp security account, show warning.
+		if ( empty( wpcd_get_early_option( 'wordpress_app_solidwp_file_url' ) ) || empty( WPCD()->decrypt( wpcd_get_early_option( 'wordpress_app_solidwp_user_name' ) ) ) || empty( WPCD()->decrypt( wpcd_get_early_option( 'wordpress_app_solidwp_password' ) ) ) ) {
+			$desc .= '<br/>' . __( 'Warning: At least one of the following critical items is empty in your Global Settings: 1. SolidWP Account User Name 2. Solid WP Account Password 3. Path to SolidWP Security plugin file. You will not be able to install and/or activate the license for SolidWP Security.', 'wpcd' );
 		}
 
 		$fields[] = array(
-			'name' => __( 'Logtivity Connection', 'wpcd' ),
+			'name' => __( 'SolidWP Security', 'wpcd' ),
 			'desc' => $desc,
-			'tab'  => 'site-logs',
+			'tab'  => $this->get_tab_slug(),
 			'type' => 'heading',
 		);
 
 		$fields[] = array(
-			'id'         => 'wpcd_app_action_site_logtivity_switch',
-			'tab'        => 'site-logs',
+			'id'         => 'wpcd_app_action_solidwp_security_switch',
+			'tab'        => $this->get_tab_slug(),
 			'type'       => 'switch',
 			'std'        => $connected,
 			'on_label'   => __( 'Connected', 'wpcd' ),
 			'off_label'  => __( 'Not Connected', 'wpcd' ),
 			'attributes' => array(
 				// the _action that will be called in ajax.
-				'data-wpcd-action'              => 'site-logtivity-toggle-install',
+				'data-wpcd-action'              => 'site-solidwp-toggle-install',
 				// the id.
 				'data-wpcd-id'                  => $id,
 				// make sure we give the user a confirmation prompt.
-				'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like to connect this site to Logtivity?', 'wpcd' ),
+				'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like to activate SolidWP Security for this site?', 'wpcd' ),
 				// fields that contribute data for this action.
 				// 'data-wpcd-fields' => json_encode( array( '#wpcd_app_site_log_name' ) ),
 			),
@@ -339,116 +255,49 @@ class WPCD_WORDPRESS_TABS_SITE_SECURITY extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
-	 * Set whether or not site connected to logtivity
+	 * Set whether or not site connected to the solidwp saas.
 	 *
 	 * @param int  $id post id of site record.
 	 * @param bool $status true/false.
 	 */
-	public function set_logtivity_connection_status( $id, $status ) {
+	public function set_solidwp_security_connection_status( $id, $status ) {
 
-		update_post_meta( $id, 'wpcd_app_logtivity_connection_status', $status );
+		update_post_meta( $id, 'wpcd_app_solidwp_security_connection_status', $status );
 
 	}
 
 	/**
-	 * Is the site connected to logtivity?
+	 * Is the site connected to the solidwp saas?
 	 *
 	 * @param int $id post id of site record.
 	 */
-	public function get_logtivity_connection_status( $id ) {
+	public function get_solidwp_security_connection_status( $id ) {
 
-		return boolval( get_post_meta( $id, 'wpcd_app_logtivity_connection_status', true ) );
-
-	}
-
-	/**
-	 * Performs the SITE LOG action.
-	 *
-	 * @param array $action action.
-	 * @param int   $id post id of site record.
-	 */
-	private function do_site_log_actions( $action, $id ) {
-
-		// Get the instance details.
-		$instance = $this->get_app_instance_details( $id );
-
-		if ( is_wp_error( $instance ) ) {
-			/* Translators: %s is an internal action name. */
-			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
-		}
-
-		/* Grab the arguments sent from the front-end JS */
-		$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
-
-		// Get the domain...
-		$domain = get_post_meta( $id, 'wpapp_domain', true );
-
-		/* Make sure the log name has not been tampered with. We will not be escaping the log file name since we can validate it against our own known good list. */
-		if ( ! isset( $this->get_log_list( $id )[ $args['site_log_name'] ] ) ) {
-			return new \WP_Error( __( 'We were unable to validate the log file name - this might be a security concern!.', 'wpcd' ) );
-		}
-
-		// Make sure we actually have a domain name.
-		if ( empty( $domain ) ) {
-			return new \WP_Error( __( 'We were unable to get the domain needed for this action.', 'wpcd' ) );
-		}
-
-		// Bail if error.
-		if ( is_wp_error( $instance ) ) {
-			/* Translators: %s is an internal action name. */
-			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
-		}
-
-		// Do the download...
-		$result = $this->ssh()->do_file_download( $instance, $args['site_log_name'] );  // We have to send the unescaped file name.
-		if ( is_wp_error( $result ) ) {
-			return new \WP_Error( sprintf( __( 'Unable to perform action %1$s. It is possible that the file does not exist or that it is empty. Error message: %2$s. Error code: %3$s', 'wpcd' ), $action, $result->get_error_message(), $result->get_error_code() ) );
-		}
-
-		// create log file and store it in temp folder.
-		$log_file = wpcd_get_log_file_without_extension( $args['site_log_name'] ) . '_' . time() . '.txt';
-		$temppath = trailingslashit( $this->get_script_temp_path() );
-
-		/* Put the log file into the temp folder... */
-		require_once ABSPATH . 'wp-admin/includes/file.php';
-		WP_Filesystem();
-		global $wp_filesystem;
-		$filepath    = $temppath . $log_file;
-		$file_result = $wp_filesystem->put_contents(
-			$filepath,
-			$result,
-			false
-		);
-
-		/* Send the file name to the browser which will handle the download via JS */
-		if ( $file_result ) {
-			$file_url = trailingslashit( $this->get_script_temp_path_uri() ) . $log_file;
-			$result   = array(
-				'file_url'  => $file_url,
-				'file_name' => $log_file,
-				'file_data' => $result,
-			);
-		}
-
-		return $result;
+		return boolval( get_post_meta( $id, 'wpcd_app_solidwp_security_connection_status', true ) );
 
 	}
 
+
 	/**
-	 * Activity and connect LOGTIVITY for this site.
+	 * Activity and connect SolidWP Security for this site.
 	 *
 	 * @param array $action action.
 	 * @param int   $id post id of site record.
 	 * @param array $in_args Alternative source of arguments passed via action hook or direct function call instead of pulling from $_POST.
 	 */
-	public function install_activate_logtivity( $action, $id, $in_args = array() ) {
+	public function install_activate_solidwp_security( $action, $id, $in_args = array() ) {
 
-		// If we don't have a LOGTIVITY TEAMS key, use return.
-		$teams_api_key = WPCD()->decrypt( wpcd_get_option( 'wordpress_app_logtivity_teams_api_key' ) );
-
-		if ( true === empty( $teams_api_key ) ) {
+		// If we don't have a solidwp account user id or password return error.
+		$solidwp_account_user_id = WPCD()->decrypt( wpcd_get_option( 'wordpress_app_solidwp_user_name' ) );
+		$solidwp_account_pasword = WPCD()->decrypt( wpcd_get_option( 'wordpress_app_solidwp_password' ) );
+		$solidwp_file_url        = wpcd_get_option( 'wordpress_app_solidwp_file_url' );
+		if ( empty( $solidwp_account_user_id ) || empty( $solidwp_account_pasword ) ) {
 			/* Translators: %s is an internal action name. */
-			return new \WP_Error( sprintf( __( 'There is no Logtivity Teams API Key set in your global settings - action %s', 'wpcd' ), $action ) );
+			return new \WP_Error( sprintf( __( 'Either the SolidWP account user name or password is empty in your global settings - action %s', 'wpcd' ), $action ) );
+		}
+		if ( empty( $solidwp_file_url ) ) {
+			/* Translators: %s is an internal action name. */
+			return new \WP_Error( sprintf( __( 'The SolidWP file URL is empty in your global settings - action %s', 'wpcd' ), $action ) );
 		}
 
 		$instance = $this->get_app_instance_details( $id );
@@ -469,20 +318,27 @@ class WPCD_WORDPRESS_TABS_SITE_SECURITY extends WPCD_WORDPRESS_TABS {
 			$args = $in_args;
 		}
 
-		// Add the API key to the instance array.
-		// Right now we're not collecting a key in the UI so there should be nothing in $args.
-		// But we might pass in one via an action hook or add the ui later.
-		if ( empty( $args['logtivity_teams_api_key'] ) ) {
-			$args['logtivity_teams_api_key'] = $teams_api_key;
+		// Add the solidwp file url user id or password to the args array from global settings if it's empty..
+		// Note that right now we expect these incoming fields to be empty because we're not collecting them from the ui.
+		// We're just going to pull them from settings.
+		// Later we might update the ui to collect unique values per site.
+		if ( empty( $args['solidwp_url'] ) ) {
+			$args['solidwp_url'] = $solidwp_file_url;
+		}
+		if ( empty( $args['solidwp_user_id'] ) ) {
+			$args['solidwp_user_id'] = $solidwp_account_user_id;
+		}
+		if ( empty( $args['solidwp_password'] ) ) {
+			$args['solidwp_password'] = $solidwp_account_pasword;
 		}
 
 		// Set the correct action.
-		$action = 'logtivity_install';
+		$action = 'solidwp_install';
 
 		// Get the full command to be executed by ssh.
 		$run_cmd = $this->turn_script_into_command(
 			$instance,
-			'manage_logtivity.txt',
+			'manage_solidwp_security.txt',
 			array_merge(
 				$args,
 				array(
@@ -496,14 +352,14 @@ class WPCD_WORDPRESS_TABS_SITE_SECURITY extends WPCD_WORDPRESS_TABS {
 		do_action( 'wpcd_log_error', sprintf( 'attempting to run command for %s = %s ', print_r( $instance, true ), $run_cmd ), 'trace', __FILE__, __LINE__, $instance, false );
 
 		$result  = $this->execute_ssh( 'generic', $instance, array( 'commands' => $run_cmd ) );
-		$success = $this->is_ssh_successful( $result, 'manage_logtivity.txt' );
+		$success = $this->is_ssh_successful( $result, 'manage_solidwp_security.txt' );
 		if ( ! $success ) {
 			/* Translators: %1$s is the action; %2$s is the result of the ssh call. */
 			return new \WP_Error( sprintf( __( 'Unable to %1$s site: %2$s', 'wpcd' ), $action, $result ) );
 		}
 
 		// Tag logtivity as being connected.
-		$this->set_logtivity_connection_status( $id, true );
+		$this->set_solidwp_security_connection_status( $id, true );
 
 		$result = array( 'refresh' => 'yes' );
 
@@ -512,12 +368,12 @@ class WPCD_WORDPRESS_TABS_SITE_SECURITY extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
-	 * Remove Logtivity from a site.
+	 * Remove Solidwp from a site.
 	 *
 	 * @param array $action action.
 	 * @param int   $id post id of site record.
 	 */
-	public function remove_logtivity( $action, $id ) {
+	public function remove_solidwp_security( $action, $id ) {
 
 		$instance = $this->get_app_instance_details( $id );
 
@@ -534,12 +390,12 @@ class WPCD_WORDPRESS_TABS_SITE_SECURITY extends WPCD_WORDPRESS_TABS {
 		}
 
 		// Set the correct action.
-		$action = 'logtivity_remove';
+		$action = 'solidwp_remove';
 
 		// Get the full command to be executed by ssh.
 		$run_cmd = $this->turn_script_into_command(
 			$instance,
-			'manage_logtivity.txt',
+			'manage_solidwp_security.txt',
 			array_merge(
 				$args,
 				array(
@@ -553,14 +409,14 @@ class WPCD_WORDPRESS_TABS_SITE_SECURITY extends WPCD_WORDPRESS_TABS {
 		do_action( 'wpcd_log_error', sprintf( 'attempting to run command for %s = %s ', print_r( $instance, true ), $run_cmd ), 'trace', __FILE__, __LINE__, $instance, false );
 
 		$result  = $this->execute_ssh( 'generic', $instance, array( 'commands' => $run_cmd ) );
-		$success = $this->is_ssh_successful( $result, 'manage_logtivity.txt' );
+		$success = $this->is_ssh_successful( $result, 'manage_solidwp_security.txt' );
 		if ( ! $success ) {
 			/* Translators: %1$s is the action; %2$s is the result of the ssh call. */
 			return new \WP_Error( sprintf( __( 'Unable to %1$s site: %2$s', 'wpcd' ), $action, $result ) );
 		}
 
 		// Tag logtivity as being connected.
-		$this->set_logtivity_connection_status( $id, false );
+		$this->set_solidwp_security_connection_status( $id, false );
 
 		$result = array( 'refresh' => 'yes' );
 

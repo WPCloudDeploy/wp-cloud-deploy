@@ -74,6 +74,12 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 		// Enable filter on the logtivity teams api key to encrypt it when it's being stored.
 		add_filter( 'rwmb_wordpress_app_logtivity_teams_api_key_value', array( &$this, 'encrypt' ), 10, 3 );
 
+		// Enable filter on the solidwp account user name to encrypt it when it's being stored.
+		add_filter( 'rwmb_wordpress_app_solidwp_user_name_value', array( &$this, 'encrypt' ), 10, 3 );
+
+		// Enable filter on the solidwp account password to encrypt it when it's being stored.
+		add_filter( 'rwmb_wordpress_app_solidwp_password_value', array( &$this, 'encrypt' ), 10, 3 );
+
 		// Enable filter on the default wp password field to decrypt it when its being retrieved.
 		add_filter( 'rwmb_wordpress_app_default_wp_password_field_meta', array( &$this, 'decrypt' ), 10, 3 );
 
@@ -82,6 +88,12 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 
 		// Enable filter on the default logtivity teams api key field to decrypt it when its being retrieved.
 		add_filter( 'rwmb_wordpress_app_logtivity_teams_api_key_field_meta', array( &$this, 'decrypt' ), 10, 3 );
+
+		// Enable filter on the solidwp account user name field to decrypt it when its being retrieved.
+		add_filter( 'rwmb_wordpress_app_solidwp_user_name_field_meta', array( &$this, 'decrypt' ), 10, 3 );
+
+		// Enable filter on the solidwp account password field to decrypt it when its being retrieved.
+		add_filter( 'rwmb_wordpress_app_solidwp_password_field_meta', array( &$this, 'decrypt' ), 10, 3 );
 
 	}
 
@@ -2418,7 +2430,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'id'   => 'wordpress_app_logtivity_teams_api_key',
 				'type' => 'text',
 				'name' => __( 'Teams API Key', 'wpcd' ),
-				'desc' => __( 'This has to be the TEAMS key, not an api key for an individual site.', 'wpcd' ),
+				'desc' => __( 'This must be the TEAMS key, not an api key for an individual site.', 'wpcd' ),
 				'tab'  => 'wordpress-app-integrations',
 				'size' => 60,
 			),
@@ -2460,6 +2472,13 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tooltip' => __( 'This should be a fully formed url that starts with https:// and that results in a .zip file.', 'wpcd' ),
 				'tab'     => 'wordpress-app-integrations',
 				'size'    => 60,
+			),
+			array(
+				'id'      => 'wordpress_app_solidwp_enable_bulk_actions',
+				'type'    => 'checkbox',
+				'name'    => __( 'Enable Bulk Actions?', 'wpcd' ),
+				'tooltip' => __( 'Add SolidWP Security actions to the BULK ACTIONS menu in the site list.', 'wpcd' ),
+				'tab'     => 'wordpress-app-integrations',
 			),
 
 		);

@@ -260,17 +260,9 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'label' => __( 'Alerts & Notices', 'wpcd' ),
 				'icon'  => 'dashicons-bell',
 			),
-			'wordpress-app-email-notify'         => array(
-				'label' => __( 'Email Notifications', 'wpcd' ),
+			'wordpress-app-notifications'        => array(
+				'label' => __( 'Notifications', 'wpcd' ),
 				'icon'  => 'dashicons-email',
-			),
-			'wordpress-app-slack-notify'         => array(
-				'label' => __( 'Slack Notifications', 'wpcd' ),
-				'icon'  => 'dashicons-admin-comments',
-			),
-			'wordpress-app-zapier-notify'        => array(
-				'label' => __( 'Zapier Notifications', 'wpcd' ),
-				'icon'  => 'dashicons-embed-generic',
 			),
 			'wordpress-app-integrations'         => array(
 				'label' => __( 'Integrations', 'wpcd' ),
@@ -2283,13 +2275,13 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'type' => 'heading',
 				'name' => __( 'Email Notification for user', 'wpcd' ),
 				'desc' => __( 'This message is sent to a user when the user has configured a notification profile and a notification event matches the profile.', 'wpcd' ),
-				'tab'  => 'wordpress-app-email-notify',
+				'tab'  => 'wordpress-app-notifications',
 			),
 			array(
 				'id'   => 'wordpress_app_email_notify_subject',
 				'type' => 'text',
 				'name' => __( 'Subject', 'wpcd' ),
-				'tab'  => 'wordpress-app-email-notify',
+				'tab'  => 'wordpress-app-notifications',
 				'size' => 60,
 			),
 			array(
@@ -2300,7 +2292,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'options' => array(
 					'textarea_rows' => 12,
 				),
-				'tab'     => 'wordpress-app-email-notify',
+				'tab'     => 'wordpress-app-notifications',
 				'size'    => 60,
 			),
 		);
@@ -2320,7 +2312,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'type' => 'heading',
 				'name' => __( 'Slack Notification for user', 'wpcd' ),
 				'desc' => __( 'This message is pushed to a slack channel when the user has configured a notification profile and a notification event matches the profile.', 'wpcd' ),
-				'tab'  => 'wordpress-app-slack-notify',
+				'tab'  => 'wordpress-app-notifications',
 			),
 			array(
 				'id'      => 'wordpress_app_slack_notify_message',
@@ -2330,7 +2322,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'options' => array(
 					'textarea_rows' => 12,
 				),
-				'tab'     => 'wordpress-app-slack-notify',
+				'tab'     => 'wordpress-app-notifications',
 				'size'    => 60,
 			),
 		);
@@ -2350,7 +2342,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'type' => 'heading',
 				'name' => __( 'Zapier Notification for user', 'wpcd' ),
 				'desc' => __( 'This message is sent to Zapier when the user has configured a notification profile and a notification event matches the profile.', 'wpcd' ),
-				'tab'  => 'wordpress-app-zapier-notify',
+				'tab'  => 'wordpress-app-notifications',
 			),
 			array(
 				'id'      => 'wordpress_app_zapier_notify_message',
@@ -2360,7 +2352,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'options' => array(
 					'textarea_rows' => 12,
 				),
-				'tab'     => 'wordpress-app-zapier-notify',
+				'tab'     => 'wordpress-app-notifications',
 				'size'    => 60,
 			),
 		);

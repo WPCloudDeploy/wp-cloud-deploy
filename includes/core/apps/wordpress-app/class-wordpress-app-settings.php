@@ -304,7 +304,10 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'label' => __( 'Custom Scripts', 'wpcd' ),
 				'icon'  => 'dashicons-shortcode',
 			),
-		/*
+			'wordpress-app-developers'           => array(
+				'label' => __( 'Developer Options', 'wpcd' ),
+				'icon'  => 'dashicons-editor-code',
+			),      /*
 		/*
 		'wordpress-app-scripts' => array(
 			'label' => 'Scripts',
@@ -385,8 +388,9 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 		$white_label_fields           = $this->white_label_fields();
 		$custom_scripts               = $this->custom_script_fields();
 		$front_end_fields             = $this->front_end_fields();
+		$developer_fields             = $this->developer_fields();
 		$git_fields                   = $this->git_fields();
-		$all_fields                   = array_merge( $general_fields, $server_fields, $site_fields, $backup_fields, $fields_and_links, $theme_and_plugin_updates, $alert_config, $email_notification_fields, $slack_notification_fields, $zapier_notification_fields, $integrations_fields, $button_color_settings_fields, $email_gateway_load_defaults, $cf_dns_fields, $rest_api_fields, $white_label_fields, $custom_scripts, $front_end_fields, $git_fields );
+		$all_fields                   = array_merge( $general_fields, $server_fields, $site_fields, $backup_fields, $fields_and_links, $theme_and_plugin_updates, $alert_config, $email_notification_fields, $slack_notification_fields, $zapier_notification_fields, $integrations_fields, $button_color_settings_fields, $email_gateway_load_defaults, $cf_dns_fields, $rest_api_fields, $white_label_fields, $custom_scripts, $front_end_fields, $git_fields, $developer_fields );
 		return $all_fields;
 	}
 
@@ -1539,59 +1543,6 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'name'    => __( 'Message To Display When Admin Lock Is Applied', 'wpcd' ),
 				'tooltip' => __( 'This message will display on the GENERAL tab of a site when an admin lock is applied.', 'wpcd' ),
 				'tab'     => 'wordpress-app-sites',
-			),
-
-			array(
-				'type' => 'heading',
-				'name' => __( 'Developers', 'wpcd' ),
-				'desc' => __( 'A few options to make developers lives easier', 'wpcd' ),
-				'tab'  => 'wordpress-app-sites',
-			),
-			array(
-				'id'      => 'wordpress_app_default_wp_email',
-				'type'    => 'text',
-				'size'    => '60',
-				'name'    => __( 'Default Admin Email New Sites.', 'wpcd' ),
-				'tooltip' => __( 'The default email address when an admin uses the INSTALL WORDPRESS button.', 'wpcd' ),
-				'tab'     => 'wordpress-app-sites',
-			),
-			array(
-				'id'      => 'wordpress_app_default_wp_user_id',
-				'type'    => 'text',
-				'size'    => '60',
-				'name'    => __( 'Default User Id For New Sites.', 'wpcd' ),
-				'tooltip' => __( 'The default user id when an admin uses the INSTALL WORDPRESS button.', 'wpcd' ),
-				'tab'     => 'wordpress-app-sites',
-				'class'   => 'wpcd_settings_pass_toggle',
-			),
-			array(
-				'id'      => 'wordpress_app_default_wp_password',
-				'type'    => 'text',
-				'size'    => '60',
-				'name'    => __( 'Default Password For New Sites.', 'wpcd' ),
-				'tooltip' => __( 'The default password when an admin uses the INSTALL WORDPRESS button.', 'wpcd' ),
-				'tab'     => 'wordpress-app-sites',
-				'class'   => 'wpcd_settings_pass_toggle',
-			),
-			array(
-				'id'      => 'wordpress_app_auto_gen_password',
-				'type'    => 'checkbox',
-				'name'    => __( 'Auto-generate Password.', 'wpcd' ),
-				'tooltip' => __( 'If checked, a random password will be generated when an admin uses the INSTALL WORDPRESS button. Checking this box overrides the default password option above.', 'wpcd' ),
-				'tab'     => 'wordpress-app-sites',
-			),
-			array(
-				'id'         => 'wordpress_app_sites_default_site_package',
-				'type'       => 'post',
-				'name'       => __( 'Default Site Package', 'wpcd' ),
-				'tooltip'    => __( 'Automatically select this site package on the INSTALL WORDPRESS pop-up.  It does NOT apply to other WordPress installation vectors such as the RESTAPI, BULK INSTALLS etc.', 'wpcd' ),
-				'post_type'  => 'wpcd_site_package',
-				'query_args' => array(
-					'posts_per_page' => - 1,
-				),
-				'field_type' => 'select_advanced',
-				'tab'        => 'wordpress-app-sites',
-				'size'       => 60,
 			),
 
 			array(
@@ -3139,6 +3090,70 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'spellcheck' => 'false',
 			),
 			'tab'        => $subtab,
+		);
+
+		return $fields;
+
+	}
+
+	/**
+	 * Return an array of fields for the DEVELOPER OPTIONS subtab in the APP:WordPress SETTINGS tab.
+	 */
+	public function developer_fields() {
+
+		$fields = array(
+			array(
+				'type' => 'heading',
+				'name' => __( 'New Site Defaults', 'wpcd' ),
+				'desc' => __( 'Defaults to be used on the INSTALL WORDPRESS popup.', 'wpcd' ),
+				'tab'  => 'wordpress-app-developers',
+			),
+			array(
+				'id'      => 'wordpress_app_default_wp_email',
+				'type'    => 'text',
+				'size'    => '60',
+				'name'    => __( 'Default Admin Email New Sites.', 'wpcd' ),
+				'tooltip' => __( 'The default email address when an admin uses the INSTALL WORDPRESS button.', 'wpcd' ),
+				'tab'     => 'wordpress-app-developers',
+			),
+			array(
+				'id'      => 'wordpress_app_default_wp_user_id',
+				'type'    => 'text',
+				'size'    => '60',
+				'name'    => __( 'Default User Id For New Sites.', 'wpcd' ),
+				'tooltip' => __( 'The default user id when an admin uses the INSTALL WORDPRESS button.', 'wpcd' ),
+				'tab'     => 'wordpress-app-developers',
+				'class'   => 'wpcd_settings_pass_toggle',
+			),
+			array(
+				'id'      => 'wordpress_app_default_wp_password',
+				'type'    => 'text',
+				'size'    => '60',
+				'name'    => __( 'Default Password For New Sites.', 'wpcd' ),
+				'tooltip' => __( 'The default password when an admin uses the INSTALL WORDPRESS button.', 'wpcd' ),
+				'tab'     => 'wordpress-app-developers',
+				'class'   => 'wpcd_settings_pass_toggle',
+			),
+			array(
+				'id'      => 'wordpress_app_auto_gen_password',
+				'type'    => 'checkbox',
+				'name'    => __( 'Auto-generate Password.', 'wpcd' ),
+				'tooltip' => __( 'If checked, a random password will be generated when an admin uses the INSTALL WORDPRESS button. Checking this box overrides the default password option above.', 'wpcd' ),
+				'tab'     => 'wordpress-app-developers',
+			),
+			array(
+				'id'         => 'wordpress_app_sites_default_site_package',
+				'type'       => 'post',
+				'name'       => __( 'Default Site Package', 'wpcd' ),
+				'tooltip'    => __( 'Automatically select this site package on the INSTALL WORDPRESS pop-up.  It does NOT apply to other WordPress installation vectors such as the RESTAPI, BULK INSTALLS etc.', 'wpcd' ),
+				'post_type'  => 'wpcd_site_package',
+				'query_args' => array(
+					'posts_per_page' => - 1,
+				),
+				'field_type' => 'select_advanced',
+				'tab'        => 'wordpress-app-developers',
+				'size'       => 60,
+			),
 		);
 
 		return $fields;

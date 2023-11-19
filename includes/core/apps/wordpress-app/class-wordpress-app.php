@@ -322,7 +322,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/phpmyadmin.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/6g_firewall.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/7g_firewall.php';
-		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/security.php';		
+		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/security.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/statistics.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/logs.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/wp-site-users.php';
@@ -3801,6 +3801,14 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				$command    = sprintf( 'sudo rm /var/www/%s/html/wp-content/debug.log && echo "Debug.log file Deleted." ', $domain );
 				$action     = 'site_pkg_delete_debug_log';
 				$raw_status = $ssh->submit_generic_server_command( $server_id, $action, $command, true );
+			}
+		}
+
+		// Activate SolidWP on the site.
+		if ( false === $is_subscription_switch ) {
+			$activate_solidwp_security = get_post_meta( $site_package_id, 'wpcd_site_package_activate_solidwp_security', true );
+			if ( true === (bool) $activate_solidwp_security ) {
+				do_action( 'wpcd_wordpress-app_do-activate_solidwp_security_for_site', $app_id, '' );
 			}
 		}
 

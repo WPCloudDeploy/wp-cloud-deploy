@@ -456,7 +456,15 @@ class WPCD_POSTS_Site_Package extends WPCD_Posts_Base {
 				'type'       => 'checkbox',
 				'std'        => true,
 				'save_field' => true,
-				'columns'    => 2,
+				'columns'    => 3,
+			),
+			array(
+				'name'       => __( 'Activate SolidWP Security', 'wpcd' ),
+				'id'         => $prefix . 'site_package_activate_solidwp_security',
+				'type'       => 'checkbox',
+				'std'        => true,
+				'save_field' => true,
+				'columns'    => 3,
 			),
 			array(
 				'name'       => __( 'Delete Updraft Backups', 'wpcd' ),
@@ -464,7 +472,7 @@ class WPCD_POSTS_Site_Package extends WPCD_Posts_Base {
 				'type'       => 'checkbox',
 				'std'        => true,
 				'save_field' => true,
-				'columns'    => 2,
+				'columns'    => 3,
 			),
 			array(
 				'name'       => __( 'Delete Debug.log', 'wpcd' ),
@@ -472,7 +480,7 @@ class WPCD_POSTS_Site_Package extends WPCD_Posts_Base {
 				'type'       => 'checkbox',
 				'std'        => true,
 				'save_field' => true,
-				'columns'    => 2,
+				'columns'    => 3,
 			),
 		);
 

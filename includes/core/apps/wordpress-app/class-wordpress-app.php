@@ -322,6 +322,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/phpmyadmin.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/6g_firewall.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/7g_firewall.php';
+		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/security.php';		
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/statistics.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/logs.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/wp-site-users.php';

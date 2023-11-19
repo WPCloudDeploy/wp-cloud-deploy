@@ -417,6 +417,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			'crons'                    => __( 'Crons', 'wpcd' ),
 			'general'                  => __( 'General', 'wpcd' ),
 			'site-logs'                => __( 'Logs', 'wpcd' ),
+			'site-security'            => __( 'Security Plugin', 'wpcd' ),
 			'misc'                     => __( 'Misc', 'wpcd' ),
 			'database'                 => __( 'Database', 'wpcd' ),
 			'php-options'              => __( 'PHP', 'wpcd' ),
@@ -2365,6 +2366,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 	 * Array of fields used to store information about our integrations include:
 	 * - LOGTIVITY connection
 	 * - htmlcsstoimage service
+	 * - solidwp security
 	 * - etc.
 	 */
 	public function integrations_fields() {
@@ -2427,6 +2429,39 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tooltip' => __( 'Add Logtivity actions to the BULK ACTIONS menu in the site list.', 'wpcd' ),
 				'tab'     => 'wordpress-app-integrations',
 			),
+
+			// Solidwp Security.
+			array(
+				'id'   => 'wordpress_app_solidwp_security_heading',
+				'type' => 'heading',
+				'name' => __( 'SolidWP Security', 'wpcd' ),
+				'desc' => __( 'Configure your SolidWP account information.', 'wpcd' ),
+				'tab'  => 'wordpress-app-integrations',
+			),
+			array(
+				'id'   => 'wordpress_app_solidwp_user_name',
+				'type' => 'text',
+				'name' => __( 'SolidWP Account User Name', 'wpcd' ),
+				'tab'  => 'wordpress-app-integrations',
+				'size' => 60,
+			),
+			array(
+				'id'   => 'wordpress_app_solidwp_password',
+				'type' => 'text',
+				'name' => __( 'SolidWP Account Password', 'wpcd' ),
+				'tab'  => 'wordpress-app-integrations',
+				'size' => 60,
+			),
+			array(
+				'id'      => 'wordpress_app_solidwp_file_url',
+				'type'    => 'text',
+				'name'    => __( 'SolidWP File URL', 'wpcd' ),
+				'desc'    => __( 'Where is the zip file for SolidWP Security Pro?', 'wpcd' ),
+				'tooltip' => __( 'This should be a fully formed url that starts with https:// and that results in a .zip file.', 'wpcd' ),
+				'tab'     => 'wordpress-app-integrations',
+				'size'    => 60,
+			),
+
 		);
 
 		return $fields;

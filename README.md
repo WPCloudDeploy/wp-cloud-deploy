@@ -130,6 +130,8 @@ Note: Even though the entire git development history isn't available on github, 
 ------
 * New: WPAPP: REDIS now part of CORE plugin and is installed on all servers.
 * New: WPAPP: REDIS object cached enabled for all new sites.
+* New: WPAPP: SolidWP Security Pro Integration.
+* New: WPAPP: Logtivity Integration.
 * New: WPAPP: Defaults for userid, password and email address in settings - helps with development when you're creating and destroying many sites over a short period of time.  Applies only to admins.
 * New: WPAPP: Add option to SITE PACKAGE screen to remove http authentication on new sites.  This allows for protected template sites where the password is automatically removed on the customer/tenant site.
 * Tweak: WPAPP: Remove the NOTES column from the server SERVICES tab - option available to re-add it. 

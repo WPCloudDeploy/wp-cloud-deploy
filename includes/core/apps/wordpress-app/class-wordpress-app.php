@@ -3485,6 +3485,9 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		// Maybe disable redis object cache.
 		$this->handle_redis_object_cache_for_new_site( $app_id, $instance );
 
+		// Maybe activate solidwp security.
+		$this->handle_solidwp_security_for_new_site( $app_id, $instance );		
+
 		// Maybe activate logtivity.
 		$this->handle_logtivity_for_new_site( $app_id, $instance );
 
@@ -4011,6 +4014,23 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		if ( wpcd_get_option( 'wordpress_app_sites_activate_logtivity' ) ) {
 			$instance['action_hook'] = 'wpcd_wordpress-app_pending_log_activate_logtivity';
 			WPCD_POSTS_PENDING_TASKS_LOG()->add_pending_task_log_entry( $app_id, 'activate-logtivity', $app_id, $instance, 'ready', $app_id, __( 'Activate Logtivity On New Site', 'wpcd' ) );
+		}
+
+	}
+
+	/**
+	 * Activate SolidWP Security Pro when WP install is complete.
+	 *
+	 * Called from function wpcd_wpapp_install_complete
+	 *
+	 * @param int   $app_id        post id of app.
+	 * @param array $instance      Array passed by calling function containing details of the server and site.
+	 */
+	public function handle_solidwp_security_for_new_site( $app_id, $instance ) {
+
+		if ( wpcd_get_option( 'wordpress_app_sites_activate_solidwp_security' ) ) {
+			$instance['action_hook'] = 'wpcd_wordpress-app_pending_log_activate_solidwp_security';
+			WPCD_POSTS_PENDING_TASKS_LOG()->add_pending_task_log_entry( $app_id, 'activate-solidwp-security', $app_id, $instance, 'ready', $app_id, __( 'Activate SolidWP Security Pro On New Site', 'wpcd' ) );
 		}
 
 	}

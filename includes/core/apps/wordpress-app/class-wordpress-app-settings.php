@@ -1466,6 +1466,13 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tab'     => 'wordpress-app-sites',
 			),
 			array(
+				'id'      => 'wordpress_app_sites_activate_solidwp_security',
+				'type'    => 'checkbox',
+				'name'    => __( 'Activate SolidWP Security?', 'wpcd' ),
+				'tooltip' => __( 'Activate SolidWP Security Pro on New Sites?', 'wpcd' ),
+				'tab'     => 'wordpress-app-sites',
+			),
+			array(
 				'id'      => 'wordpress_app_sites_set_php_version',
 				'type'    => 'select',
 				'name'    => __( 'Switch PHP Version For New Sites?', 'wpcd' ),

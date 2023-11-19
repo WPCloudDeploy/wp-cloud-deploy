@@ -272,8 +272,8 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'label' => __( 'Zapier Notifications', 'wpcd' ),
 				'icon'  => 'dashicons-embed-generic',
 			),
-			'wordpress-app-logtivity'            => array(
-				'label' => __( 'Logtivity', 'wpcd' ),
+			'wordpress-app-integrations'         => array(
+				'label' => __( 'Integrations', 'wpcd' ),
 				'icon'  => 'dashicons-welcome-write-blog',
 			),
 			'wordpress-app-color-settings'       => array(
@@ -373,7 +373,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 		$email_notification_fields    = $this->email_notification_fields();
 		$slack_notification_fields    = $this->slack_notification_fields();
 		$zapier_notification_fields   = $this->zapier_notification_fields();
-		$logtivity_connection_fields  = $this->logtivity_connection_fields();
+		$integrations_fields          = $this->integrations_fields();
 		$button_color_settings_fields = $this->button_color_settings_fields();
 		$email_gateway_load_defaults  = $this->email_gateway_load_defaults();
 		$cf_dns_fields                = $this->cf_dns_fields();
@@ -382,7 +382,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 		$custom_scripts               = $this->custom_script_fields();
 		$front_end_fields             = $this->front_end_fields();
 		$git_fields                   = $this->git_fields();
-		$all_fields                   = array_merge( $general_fields, $server_fields, $site_fields, $backup_fields, $fields_and_links, $theme_and_plugin_updates, $alert_config, $email_notification_fields, $slack_notification_fields, $zapier_notification_fields, $logtivity_connection_fields, $button_color_settings_fields, $email_gateway_load_defaults, $cf_dns_fields, $rest_api_fields, $white_label_fields, $custom_scripts, $front_end_fields, $git_fields );
+		$all_fields                   = array_merge( $general_fields, $server_fields, $site_fields, $backup_fields, $fields_and_links, $theme_and_plugin_updates, $alert_config, $email_notification_fields, $slack_notification_fields, $zapier_notification_fields, $integrations_fields, $button_color_settings_fields, $email_gateway_load_defaults, $cf_dns_fields, $rest_api_fields, $white_label_fields, $custom_scripts, $front_end_fields, $git_fields );
 		return $all_fields;
 	}
 
@@ -2174,37 +2174,15 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 	public function theme_and_plugin_updates() {
 
 		$fields = array(
+
 			array(
 				'id'   => 'wordpress_app_t_and_p_updates_heading_01',
 				'type' => 'heading',
-				'name' => __( 'Image Compare Service API', 'wpcd' ),
-				'desc' => __( 'We use the https://htmlcsstoimage.com/ service to create and compare images taken of the site before and after the update. This helps us to determine if there were any significant changes to the site after the update is complete.  And, if there were, automatically roll back the changes. Enter your API credentials for the https://htmlcsstoimage.com/ service in this section.', 'wpcd' ),
+				'name' => __( 'Image Comparison', 'wpcd' ),
+				'desc' => __( 'We use the https://htmlcsstoimage.com/ service to create and compare images taken of the site before and after the update. This helps us to determine if there were any significant changes to the site after the update is complete. And, if there were, automatically roll back the changes. Enter your API credentials for the https://htmlcsstoimage.com/ in the INTEGRATIONS tab.', 'wpcd' ),
 				'tab'  => 'wordpress-app-plugin-theme-updates',
 			),
-			array(
-				'id'         => 'wordpress_app_hcti_api_user_id',
-				'type'       => 'text',
-				'name'       => __( 'API User Id', 'wpcd' ),
-				'tooltip'    => __( 'htmlcsstoimage.com API User Id - this is not your htmlcsstoimage.com login or email address.', 'wpcd' ),
-				'tab'        => 'wordpress-app-plugin-theme-updates',
-				'std'        => wpcd_get_option( 'wordpress_app_hcti_api_user_id' ),
-				'size'       => 60,
-				'attributes' => array(
-					'spellcheck' => 'false',
-				),
-			),
-			array(
-				'id'         => 'wordpress_app_hcti_api_key',
-				'type'       => 'text',
-				'name'       => __( 'API Key', 'wpcd' ),
-				'tooltip'    => __( 'htmlcsstoimage.com API Key', 'wpcd' ),
-				'tab'        => 'wordpress-app-plugin-theme-updates',
-				'std'        => wpcd_get_option( 'wordpress_app_hcti_api_key' ),
-				'size'       => 60,
-				'attributes' => array(
-					'spellcheck' => 'false',
-				),
-			),
+
 			array(
 				'id'      => 'wordpress_app_tandc_updates_pixel_threshold',
 				'type'    => 'number',
@@ -2392,24 +2370,62 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 	}
 
 	/**
-	 * Array of fields used to store information about a LOGTIVITY connection.
+	 * Array of fields used to store information about our integrations include:
+	 * - LOGTIVITY connection
+	 * - htmlcsstoimage service
+	 * - etc.
 	 */
-	public function logtivity_connection_fields() {
+	public function integrations_fields() {
 
 		$fields = array(
+
+			// htmlcsstoapi.
+			array(
+				'id'   => 'wordpress_app_hcti_heading_01',
+				'type' => 'heading',
+				'name' => __( 'Image Compare Service API', 'wpcd' ),
+				'desc' => __( 'We use the https://htmlcsstoimage.com/ service to create home page images as well ascompare before-and-after images taken of sites during theme & plugin updates. Enter your API credentials for the https://htmlcsstoimage.com/ service in this section.', 'wpcd' ),
+				'tab'  => 'wordpress-app-integrations',
+			),
+			array(
+				'id'         => 'wordpress_app_hcti_api_user_id',
+				'type'       => 'text',
+				'name'       => __( 'API User Id', 'wpcd' ),
+				'tooltip'    => __( 'htmlcsstoimage.com API User Id - this is not your htmlcsstoimage.com login or email address.', 'wpcd' ),
+				'tab'        => 'wordpress-app-integrations',
+				'std'        => wpcd_get_option( 'wordpress_app_hcti_api_user_id' ),
+				'size'       => 60,
+				'attributes' => array(
+					'spellcheck' => 'false',
+				),
+			),
+			array(
+				'id'         => 'wordpress_app_hcti_api_key',
+				'type'       => 'text',
+				'name'       => __( 'API Key', 'wpcd' ),
+				'tooltip'    => __( 'htmlcsstoimage.com API Key', 'wpcd' ),
+				'tab'        => 'wordpress-app-integrations',
+				'std'        => wpcd_get_option( 'wordpress_app_hcti_api_key' ),
+				'size'       => 60,
+				'attributes' => array(
+					'spellcheck' => 'false',
+				),
+			),
+
+			// Logtivity.
 			array(
 				'id'   => 'wordpress_app_logtivity_connection_heading',
 				'type' => 'heading',
 				'name' => __( 'Logtivity Connection', 'wpcd' ),
 				'desc' => __( 'Configure your Logtivity account information.', 'wpcd' ),
-				'tab'  => 'wordpress-app-logtivity',
+				'tab'  => 'wordpress-app-integrations',
 			),
 			array(
 				'id'   => 'wordpress_app_logtivity_teams_api_key',
 				'type' => 'text',
 				'name' => __( 'Teams API Key', 'wpcd' ),
 				'desc' => __( 'This has to be the TEAMS key, not an api key for an individual site.', 'wpcd' ),
-				'tab'  => 'wordpress-app-logtivity',
+				'tab'  => 'wordpress-app-integrations',
 				'size' => 60,
 			),
 			array(
@@ -2417,7 +2433,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'type'    => 'checkbox',
 				'name'    => __( 'Enable Bulk Actions?', 'wpcd' ),
 				'tooltip' => __( 'Add Logtivity actions to the BULK ACTIONS menu in the site list.', 'wpcd' ),
-				'tab'     => 'wordpress-app-logtivity',
+				'tab'     => 'wordpress-app-integrations',
 			),
 		);
 

@@ -140,6 +140,7 @@ Note: Even though the entire git development history isn't available on github, 
 * Tweak: WPAPP - Style the check-marks on the SITE UPDATE PLAN HISTORY list screen.
 * Tweak: WPAPP - Hide the provider server instance id from the PROVIDER DETAILS column in the server list. Includes setting option to show it but it's now hidden by default.
 * Tweak: WPAPP - Remove WordPress auto-save functionality from WPCD screens in wp-admin.
+* Tweak: WPAPP - Add an INTEGRATIONS settings tab to consolidate some settings fields that are scattered among other tabs.
 
 5.5.1
 ------

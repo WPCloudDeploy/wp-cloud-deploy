@@ -30,27 +30,27 @@ class WPCD_WORDPRESS_TABS_SITE_SECURITY extends WPCD_WORDPRESS_TABS {
 		add_filter( "wpcd_app_{$this->get_app_name()}_get_tabs", array( $this, 'get_fields' ), 10, 2 );
 		add_filter( "wpcd_app_{$this->get_app_name()}_tab_action", array( $this, 'tab_action' ), 10, 3 );
 
-		// Activate Logtivity via an action hook.
-		add_action( 'wpcd_wordpress-app_do-activate_logtivity_for_site', array( $this, 'activate_logtivity_action' ), 10, 2 );
+		// Activate SolidWP Security via an action hook.
+		add_action( 'wpcd_wordpress-app_do-activate_solidwp_security_for_site', array( $this, 'activate_solidwp_security_action' ), 10, 2 );
 
-		// Remove Logtivity via an action hook.
-		add_action( 'wpcd_wordpress-app_do-remove_logtivity_for_site', array( $this, 'remove_logtivity_action' ), 10, 2 );
+		// Remove SolidWP Security via an action hook.
+		add_action( 'wpcd_wordpress-app_do-remove_solidwp_security_for_site', array( $this, 'remove_solidwp_security_action' ), 10, 2 );
 
-		// Add bulk action option to the site list to add or remove logtivity from a site.
-		if ( true === boolval( wpcd_get_early_option( 'wordpress_app_logtivity_enable_bulk_actions' ) ) ) {
+		// Add bulk action option to the site list to add or remove SolidWP Security from a site.
+		if ( true === boolval( wpcd_get_early_option( 'wordpress_app_solidwp_enable_bulk_actions' ) ) ) {
 			add_filter( 'bulk_actions-edit-wpcd_app', array( $this, 'wpcd_add_new_bulk_actions_site' ) );
 		}
 
 		// Action hook to handle bulk actions for site.
-		if ( true === boolval( wpcd_get_early_option( 'wordpress_app_logtivity_enable_bulk_actions' ) ) ) {
+		if ( true === boolval( wpcd_get_early_option( 'wordpress_app_solidwp_enable_bulk_actions' ) ) ) {
 			add_filter( 'handle_bulk_actions-edit-wpcd_app', array( $this, 'wpcd_bulk_action_handler_sites' ), 10, 3 );
 		}
 
-		/* Pending Logs Background Task: Activate Logtivity on a site */
-		add_action( 'wpcd_wordpress-app_pending_log_activate_logtivity', array( $this, 'pending_log_activate_logtivity' ), 10, 3 );
+		/* Pending Logs Background Task: Activate SolidWP Security on a site */
+		add_action( 'wpcd_wordpress-app_pending_log_activate_solidwp_security', array( $this, 'pending_log_activate_solidwp_security' ), 10, 3 );
 
-		/* Pending Logs Background Task: Remove Logtivity from a site */
-		add_action( 'wpcd_wordpress-app_pending_log_remove_logtivity', array( $this, 'pending_log_remove_logtivity' ), 10, 3 );
+		/* Pending Logs Background Task: Remove SolidWP Security from a site */
+		add_action( 'wpcd_wordpress-app_pending_log_remove_solidwp_security', array( $this, 'pending_log_remove_solidwp_security' ), 10, 3 );
 	}
 
 	/**
@@ -358,7 +358,7 @@ class WPCD_WORDPRESS_TABS_SITE_SECURITY extends WPCD_WORDPRESS_TABS {
 			return new \WP_Error( sprintf( __( 'Unable to %1$s site: %2$s', 'wpcd' ), $action, $result ) );
 		}
 
-		// Tag logtivity as being connected.
+		// Tag SolidWP Security as being connected.
 		$this->set_solidwp_security_connection_status( $id, true );
 
 		$result = array( 'refresh' => 'yes' );
@@ -415,26 +415,13 @@ class WPCD_WORDPRESS_TABS_SITE_SECURITY extends WPCD_WORDPRESS_TABS {
 			return new \WP_Error( sprintf( __( 'Unable to %1$s site: %2$s', 'wpcd' ), $action, $result ) );
 		}
 
-		// Tag logtivity as being connected.
+		// Tag SolidWP Security as being connected.
 		$this->set_solidwp_security_connection_status( $id, false );
 
 		$result = array( 'refresh' => 'yes' );
 
 		return $result;
 
-	}
-
-	/**
-	 * Return a key-value array of logs that we can retrieve for the site.
-	 *
-	 * @param int $id id.
-	 */
-	public function get_log_list( $id ) {
-		$domain = get_post_meta( $id, 'wpapp_domain', true );
-		return array(
-			"/var/www/$domain/html/wp-content/debug.log" => __( 'debug.log', 'wpcd' ),
-			'other'                                      => __( 'For Future Use', 'wpcd' ),
-		);
 	}
 
 	/**
@@ -447,8 +434,8 @@ class WPCD_WORDPRESS_TABS_SITE_SECURITY extends WPCD_WORDPRESS_TABS {
 	public function wpcd_add_new_bulk_actions_site( $bulk_array ) {
 
 		if ( wpcd_is_admin() ) {
-			$bulk_array['wpcd_sites_activate_logtivity'] = __( 'Activate Logtivity', 'wpcd' );
-			$bulk_array['wpcd_sites_remove_logtivity']   = __( 'Remove Logtivity', 'wpcd' );
+			$bulk_array['wpcd_sites_activate_solidwp_security'] = __( 'Activate SolidWP Security', 'wpcd' );
+			$bulk_array['wpcd_sites_remove_solidwp_security']   = __( 'Remove SolidWP Security', 'wpcd' );
 			return $bulk_array;
 		}
 
@@ -484,18 +471,18 @@ class WPCD_WORDPRESS_TABS_SITE_SECURITY extends WPCD_WORDPRESS_TABS {
 				foreach ( $post_ids as $app_id ) {
 
 					switch ( $action ) {
-						case 'wpcd_sites_activate_logtivity':
-							$args['action_hook'] = 'wpcd_wordpress-app_pending_log_activate_logtivity';
+						case 'wpcd_sites_activate_solidwp_security':
+							$args['action_hook'] = 'wpcd_wordpress-app_pending_log_activate_solidwp_security';
 							$args['action']      = $action;
-							$pending_log_type    = 'activate-logtivity';
-							$pending_log_message = __( 'Bulk Action: Waiting to activate Logtivity.', 'wpcd' );
+							$pending_log_type    = 'activate-solidwp-security';
+							$pending_log_message = __( 'Bulk Action: Waiting to activate SolidWP Security.', 'wpcd' );
 							break;
 
-						case 'wpcd_sites_remove_logtivity':
-							$args['action_hook'] = 'wpcd_wordpress-app_pending_log_remove_logtivity';
+						case 'wpcd_sites_remove_solidwp_security':
+							$args['action_hook'] = 'wpcd_wordpress-app_pending_log_remove_solidwp_security';
 							$args['action']      = $action;
-							$pending_log_type    = 'remove-logtivity';
-							$pending_log_message = __( 'Bulk Action: Waiting to remove Logtivity.', 'wpcd' );
+							$pending_log_type    = 'remove-solidwp-security';
+							$pending_log_message = __( 'Bulk Action: Waiting to remove SolidWP Security.', 'wpcd' );
 							break;
 					}
 
@@ -506,7 +493,7 @@ class WPCD_WORDPRESS_TABS_SITE_SECURITY extends WPCD_WORDPRESS_TABS {
 				}
 
 				// Add message to be displayed in admin header.
-				wpcd_global_add_admin_notice( __( 'Logtivity actions have been scheduled for the selected sites. You can view the progress in the PENDING TASKS screen.', 'wpcd' ), 'success' );
+				wpcd_global_add_admin_notice( __( 'SolidWP Security actions have been scheduled for the selected sites. You can view the progress in the PENDING TASKS screen.', 'wpcd' ), 'success' );
 
 			}
 		}
@@ -518,77 +505,77 @@ class WPCD_WORDPRESS_TABS_SITE_SECURITY extends WPCD_WORDPRESS_TABS {
 	 * Returns an array of actions that is valid for the bulk actions menu.
 	 */
 	public function get_valid_bulk_actions() {
-		return array( 'wpcd_sites_activate_logtivity', 'wpcd_sites_remove_logtivity' );
+		return array( 'wpcd_sites_activate_solidwp_security', 'wpcd_sites_remove_solidwp_security' );
 	}
 
 	/**
-	 * Activate logtivity for a site.
+	 * Activate SolidWP Security for a site.
 	 *
 	 * Can be called directly or by an action hook.
 	 *
-	 * Action hook: wpcd_wordpress-app_do-activate_logtivity_for_site.
+	 * Action hook: wpcd_wordpress-app_do-activate_solidwp_security_for_site.
 	 *
 	 * @param int    $id     The postID of the app cpt.
 	 * @param string $teams_api_key The api key to use instead of the one in global settings (optional).
 	 *
 	 * @return string|WP_Error
 	 */
-	public function activate_logtivity_action( $id, $teams_api_key = '' ) {
+	public function activate_solidwp_security_action( $id, $teams_api_key = '' ) {
 
-		$action = 'logtivity_install';  // Action string doesn't matter - it's not used in the called function.
+		$action = 'solidwp_install';  // Action string doesn't matter - it's not used in the called function.
 
-		$result = $this->install_activate_logtivity( $action, $id );
+		$result = $this->install_activate_solidwp_security( $action, $id );
 
 		return $result;  // Will not matter in an action hook.
 
 	}
 
 	/**
-	 * Remove/deactivate logtivity for a site.
+	 * Remove/deactivate SolidWP Security for a site.
 	 *
 	 * Can be called directly or by an action hook.
 	 *
-	 * Action hook: wpcd_wordpress-app_do-activate_logtivity_for_site.
+	 * Action hook: wpcd_wordpress-app_do-remove_solidwp_security_for_site.
 	 *
 	 * @param int    $id     The postID of the app cpt.
 	 * @param string $teams_api_key The api key to use instead of the one in global settings (optional).
 	 *
 	 * @return string|WP_Error
 	 */
-	public function remove_logtivity_action( $id, $teams_api_key = '' ) {
+	public function remove_solidwp_security_action( $id, $teams_api_key = '' ) {
 
-		$action = 'logtivity_remove';  // Action string doesn't matter - it's not used in the called function.
+		$action = 'solidwp_remove';  // Action string doesn't matter - it's not used in the called function.
 
-		$result = $this->remove_logtivity( $action, $id );
+		$result = $this->remove_solidwp_security( $action, $id );
 
 		return $result;  // Will not matter in an action hook.
 
 	}
 
 	/**
-	 * Activate logtivity for a site.
+	 * Activate SolidWP Security for a site.
 	 *
 	 * Called from an action hook from the pending logs background process - WPCD_POSTS_PENDING_TASKS_LOG()->do_tasks()
 	 *
-	 * Action Hook: wpcd_wordpress-app_pending_log_activate_logtivity
+	 * Action Hook: wpcd_wordpress-app_pending_log_activate_solidwp_security
 	 *
 	 * @param int   $task_id    Id of pending task that is firing this thing...
 	 * @param int   $site_id    Id of site involved in this action.
 	 * @param array $args       All the data needed to handle this action.
 	 */
-	public function pending_log_activate_logtivity( $task_id, $site_id, $args ) {
+	public function pending_log_activate_solidwp_security( $task_id, $site_id, $args ) {
 
 		// Grab our data array from pending tasks record...
 		$data = WPCD_POSTS_PENDING_TASKS_LOG()->get_data_by_id( $task_id );
 
-		$action = 'logtivity_install';  // Action string doesn't matter - it's not used in the called function.
+		$action = 'solidwp_install';  // Action string doesn't matter - it's not used in the called function.
 
 		// Activate logtivity.
-		$result = $this->install_activate_logtivity( $action, $site_id );
+		$result = $this->install_activate_solidwp_security( $action, $site_id );
 
 		$task_status = 'complete';  // Assume success.
 		if ( is_array( $result ) ) {
-			// We'll get an array from the install_activate_logtivity function.  So nothing to do here.
+			// We'll get an array from the install_activate_solidwp_security function.  So nothing to do here.
 			// We'll just reset the $task_status to complete (which is the value it was initialized with) to avoid complaints by PHPcs about an empty if statement.
 			$task_status = 'complete';
 		} else {
@@ -601,29 +588,29 @@ class WPCD_WORDPRESS_TABS_SITE_SECURITY extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
-	 * Remove logtivity from a site.
+	 * Remove SolidWP Security from a site.
 	 *
 	 * Called from an action hook from the pending logs background process - WPCD_POSTS_PENDING_TASKS_LOG()->do_tasks()
 	 *
-	 * Action Hook: wpcd_wordpress-app_pending_log_remove_logtivity
+	 * Action Hook: wpcd_wordpress-app_pending_log_remove_solidwp_security
 	 *
 	 * @param int   $task_id    Id of pending task that is firing this thing...
 	 * @param int   $site_id    Id of site involved in this action.
 	 * @param array $args       All the data needed to handle this action.
 	 */
-	public function pending_log_remove_logtivity( $task_id, $site_id, $args ) {
+	public function pending_log_remove_solidwp_security( $task_id, $site_id, $args ) {
 
 		// Grab our data array from pending tasks record...
 		$data = WPCD_POSTS_PENDING_TASKS_LOG()->get_data_by_id( $task_id );
 
-		$action = 'logtivity_remove';  // Action string doesn't matter - it's not used in the called function.
+		$action = 'solidwp_remove';  // Action string doesn't matter - it's not used in the called function.
 
 		// Activate logtivity.
-		$result = $this->remove_logtivity( $action, $site_id );
+		$result = $this->remove_solidwp_security( $action, $site_id );
 
 		$task_status = 'complete';  // Assume success.
 		if ( is_array( $result ) ) {
-			// We'll get an array from the remove_logtivity function.  So nothing to do here.
+			// We'll get an array from the remove_solidwp_security function.  So nothing to do here.
 			// We'll just reset the $task_status to complete (which is the value it was initialized with) to avoid complaints by PHPcs about an empty if statement.
 			$task_status = 'complete';
 		} else {

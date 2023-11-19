@@ -621,7 +621,7 @@ class WPCD_WORDPRESS_TABS_SITE_LOGS extends WPCD_WORDPRESS_TABS {
 			return $redirect_url;
 		}
 
-		// Update themes and plugins.
+		// Activate or Remove Logtivity.
 		if ( in_array( $action, $this->get_valid_bulk_actions(), true ) ) {
 
 			if ( ! empty( $post_ids ) ) {

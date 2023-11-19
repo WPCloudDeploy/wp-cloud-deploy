@@ -436,7 +436,7 @@ class WPCD_WORDPRESS_TABS_WPCONFIG extends WPCD_WORDPRESS_TABS {
 			),
 			'wp-home'                => array(
 				'label' => 'WP_HOME',
-				'desc'  => __( 'Similar to WP_SITEURL, WP_HOME overrides the wp_options table value for home but does not change it in the database. home is the address you want people to type in their browser to reach your WordPress blog. It should include the http:// part and should not have a slash “/” at the end. Adding this in can sometimes reduce the number of database calls when loading your site.', 'wpcd' ),
+				'desc'  => __( 'Similar to WP_SITEURL, WP_HOME overrides the wp_options table value for home but does not change it in the database. Home is the address you want people to type in their browser to reach your WordPress blog. It should include the http:// part and should not have a slash “/” at the end. Adding this in can sometimes reduce the number of database calls when loading your site.', 'wpcd' ),
 				'type'  => 'text',
 			),
 		);
@@ -446,7 +446,7 @@ class WPCD_WORDPRESS_TABS_WPCONFIG extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
-	 * Return an array of of valid actions.  It's build dynamically from the array returned from $this->get_wp_config_options
+	 * Return an array of of valid actions.  It's built dynamically from the array returned from $this->get_wp_config_options
 	 *
 	 * @param int $id the post id of the app cpt record.
 	 *

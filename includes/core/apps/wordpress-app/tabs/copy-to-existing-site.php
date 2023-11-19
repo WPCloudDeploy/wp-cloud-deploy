@@ -1566,6 +1566,12 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 						$raw_status = $this->submit_generic_server_command( $server_id, $action, $command, true );
 					}
 
+					// Activate SolidWP SEcurity on the site.
+					$activate_solidwp_security = get_post_meta( $plan_id, 'wpcd_app_update_plan_activate_solidwp_security', true );
+					if ( true === (bool) $activate_solidwp_security ) {
+						do_action( 'wpcd_wordpress-app_do-activate_solidwp_security_for_site', $target_app_id, '' );
+					}
+
 					// Activate logtivity on the site.
 					$activate_logtivity = get_post_meta( $plan_id, 'wpcd_app_update_plan_activate_logtivity', true );
 					if ( true === (bool) $activate_logtivity ) {

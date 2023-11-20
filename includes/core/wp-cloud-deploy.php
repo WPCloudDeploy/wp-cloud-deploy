@@ -995,11 +995,19 @@ class WP_CLOUD_DEPLOY {
 				'pass='                      => '(***private***)',
 				'remote_dbpass='             => '(***private***)',
 				'local_dbpass='              => '(***private***)',
+
+				'dns_cloudflare_api_token='   => '(***private***)',
+				'dns_cloudflare_api_key='     => '(***private***)',
+				'secret_key_manager_api_key=' => '(***private***)',
+				'git_token='                  => '(***private***)',
+				
 				'dns_cloudflare_api_token'   => '(***private***)',
 				'dns_cloudflare_api_key'     => '(***private***)',
 				'secret_key_manager_api_key' => '(***private***)',
 				'git_token'                  => '(***private***)',
+				
 				'logtivity_teams_api_key='   => '(***private***)',
+				'ubuntu_pro_token='          => '(***private***)',
 				"Updated the constant 'DB_PASSWORD' in the 'wp-config.php' file with the value " => '(***private***)' . PHP_EOL,
 
 			)

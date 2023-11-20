@@ -732,16 +732,20 @@ trait wpcd_wpapp_script_handlers {
 				break;
 			case 'ubuntu_pro_activate.txt':
 				$return =
-				( strpos( $result, 'Ubuntu Pro token has been applied to this server' ) !== false )
-				||
+				( strpos( $result, 'Ubuntu Pro token has been applied to this server' ) !== false );
+				break;
+			case 'ubuntu_pro_actions.txt':
+				$return =
 				( strpos( $result, 'This machine is not attached to an Ubuntu Pro subscription' ) !== false )
 				||
 				( strpos( $result, 'Ubuntu Pro token has been removed from this server' ) !== false );
 				break;
 
-			/**************************************************************
-			* The items below this are SERVER SYNC items, not APP items   *
-			*/
+			/**
+			 *************************************************************
+			 * The items below this are SERVER SYNC items, not APP items.
+			 **************************************************************
+			 */
 			case 'server_sync_origin_setup.txt':
 				$return =
 				( strpos( $result, 'Setup has been finished for this server. But you are not done yet' ) !== false );
@@ -1692,6 +1696,7 @@ trait wpcd_wpapp_script_handlers {
 				);
 				break;
 			case 'ubuntu_pro_activate.txt':
+				// This one's a long running command.
 				$command_name = $additional['command'];
 				$new_array    = array_merge(
 					array(
@@ -1704,10 +1709,23 @@ trait wpcd_wpapp_script_handlers {
 					$additional
 				);
 				break;
+			case 'ubuntu_pro_actions.txt':
+				// This one's a short command.
+				$new_array = array_merge(
+					array(
+						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/54-ubuntupro.txt',
+						'SCRIPT_NAME' => '54-ubuntupro.sh',
+					),
+					$common_array,
+					$additional
+				);
+				break;
 
-				/**************************************************************
-			* The items below this are SERVER SYNC items, not APP items   *
-			*/
+			/**
+			 *************************************************************
+			 * The items below this are SERVER SYNC items, not APP items.
+			 **************************************************************
+			 */
 			case 'server_sync_origin_setup.txt':
 				$command_name = $additional['command'];
 				$new_array    = array_merge(

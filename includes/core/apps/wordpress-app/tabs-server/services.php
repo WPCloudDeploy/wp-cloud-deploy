@@ -1167,7 +1167,18 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		);
 
 		if ( true === $ubuntu_pro_status ) {
-			// Nothing to do here.
+			// Show ubuntu pro toggle switch - it should be ON right now.
+			$actions['ubuntu-pro-toggle'] = array(
+				'label'          => '',
+				'raw_attributes' => array(
+					'on_label'            => __( 'Enabled', 'wpcd' ),
+					'off_label'           => __( 'Disabled', 'wpcd' ),
+					'std'                 => ( $ubuntu_pro_status ? true : false ),
+					'confirmation_prompt' => $ubuntu_pro_status ? __( 'Are you sure you would like to disable Ubuntu Pro?', 'wpcd' ) : __( 'Are you sure you would like to enable Ubuntu Pro?', 'wpcd' ),
+				),
+				'type'           => 'switch',
+			);
+
 		} else {
 			// Add in field to collect ubuntu pro token.
 			$actions['services-status-ubuntu-pro-token'] = array(
@@ -1180,25 +1191,26 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 					'data-wpcd-name' => 'ubuntu_pro_token',
 				),
 			);
-		}
 
-		// Show ubuntu pro toggle switch.
-		$actions['ubuntu-pro-toggle'] = array(
-			'label'          => '',
-			'raw_attributes' => array(
-				'on_label'            => __( 'Enabled', 'wpcd' ),
-				'off_label'           => __( 'Disabled', 'wpcd' ),
-				'std'                 => ( $ubuntu_pro_status ? true : false ),
-				// show log console?
-				'log_console'         => true,
-				// Initial console message.
-				'console_message'     => __( 'Preparing to enable Ubuntu PRO on this server!<br /> Please DO NOT EXIT this screen until you see a popup message indicating that the installation has been completed or has errored.<br />This terminal should refresh every 60-90 seconds with updated progress information from the server. <br /> After the installation is complete the entire log can be viewed in the COMMAND LOG screen.', 'wpcd' ),
-				// make sure we give the user a confirmation prompt.
-				'confirmation_prompt' => __( 'Are you sure you would like to enable Ubuntu Pro?', 'wpcd' ),
-				'data-wpcd-fields'    => wp_json_encode( array( '#wpcd_app_action_services-status-ubuntu-pro-token' ) ),
-			),
-			'type'           => 'switch',
-		);
+			// Show ubuntu pro toggle switch - it should be OFF right now.
+			$actions['ubuntu-pro-toggle'] = array(
+				'label'          => '',
+				'raw_attributes' => array(
+					'on_label'            => __( 'Enabled', 'wpcd' ),
+					'off_label'           => __( 'Disabled', 'wpcd' ),
+					'std'                 => ( $ubuntu_pro_status ? true : false ),
+					// show log console?
+					'log_console'         => true,
+					// Initial console message.
+					'console_message'     => __( 'Preparing to manage Ubuntu PRO on this server!<br /> Please DO NOT EXIT this screen until you see a popup message indicating that the installation has been completed or has errored.<br />This terminal should refresh every 60-90 seconds with updated progress information from the server. <br /> After the installation is complete the entire log can be viewed in the COMMAND LOG screen.', 'wpcd' ),
+					// make sure we give the user a confirmation prompt.
+					'confirmation_prompt' => __( 'Are you sure you would like to enable Ubuntu Pro?', 'wpcd' ),
+					'data-wpcd-fields'    => wp_json_encode( array( '#wpcd_app_action_services-status-ubuntu-pro-token' ) ),
+				),
+				'type'           => 'switch',
+			);
+
+		}
 
 		return $actions;
 
@@ -2302,7 +2314,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 	/**
 	 * Figure out the state of the firewall
 	 *
-	 * @param int $id id.
+	 * @param int $id The ID of the server post that we're working with.
 	 *
 	 * @return string|boolean 'on', 'off' or 'false'
 	 */
@@ -2332,21 +2344,21 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 	/**
 	 * Set whether ubuntu pro is enabled or disabled on this server.
 	 *
-	 * @param int     $id id.
-	 * @param boolean $status true/false
+	 * @param int     $id The ID of the server post that we're working with.
+	 * @param boolean $status true/false.
 	 *
 	 * @return boolean.
 	 */
 	public function set_ubuntu_pro_status( $id, $status ) {
 
-		update_post_meta( $id, 'wpcd_wpapp_ubuntu_pro_status', $status );
+		return update_post_meta( $id, 'wpcd_wpapp_ubuntu_pro_status', $status );
 
 	}
 
 	/**
 	 * Figure out whether ubuntu pro is enabled or disabled on this server.
 	 *
-	 * @param int $id id.
+	 * @param int $id The ID of the server post that we're working with.
 	 *
 	 * @return boolean.
 	 */
@@ -2943,6 +2955,56 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		$return = $this->run_async_command_type_2( $id, $command, $run_cmd, $instance, $action );
 
 		return $return;
+	}
+
+	/**
+	 * Deactivate Ubuntu Pro.
+	 *
+	 * @param int    $id         The postID of the server cpt.
+	 * @param string $action     The action to be performed.
+	 *
+	 * @return boolean success/failure/other
+	 */
+	private function deactivate_ubuntu_pro( $id, $action ) {
+
+		// Get data about the server.
+		$instance = $this->get_server_instance_details( $id );
+
+		if ( is_wp_error( $instance ) ) {
+			/* translators: %s is replaced with the internal action name. */
+			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
+		}
+
+		// Get the full command to be executed by ssh.
+		$action  = 'ubuntu_pro_remove_token';
+		$run_cmd = $this->turn_script_into_command(
+			$instance,
+			'ubuntu_pro_actions.txt',
+			array(
+				'action'      => $action,
+				'php_version' => (string) $php_version,
+			)
+		);
+
+		// log.
+		// phpcs:ignore
+		do_action( 'wpcd_log_error', sprintf( 'attempting to run command for %s = %s ', print_r( $instance, true ), $run_cmd ), 'trace', __FILE__, __LINE__, $instance, false );
+
+		// execute and evaluate results.
+		$result  = $this->execute_ssh( 'generic', $instance, array( 'commands' => $run_cmd ) );
+		$success = $this->is_ssh_successful( $result, 'ubuntu_pro_actions.txt' );
+		if ( ! $success ) {
+			/* translators: %1$s is replaced with the internal action name; %2$s is replaced with the result of the call, usually an error message. */
+			return new \WP_Error( sprintf( __( 'Unable to perform action %1$s for server: %2$s', 'wpcd' ), $action, $result ) );
+		} else {
+			// Tag the server record with the new ubuntu pro status.
+			$this->set_ubuntu_pro_status( $id, false );
+			$return_msg = __( 'Ubuntu Pro has been deactivated and detached from its account.', 'wpcd' );
+			return new \WP_Error( $return_msg );
+		}
+
+		return $result;
+
 	}
 
 	/**

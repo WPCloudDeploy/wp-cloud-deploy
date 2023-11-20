@@ -168,6 +168,10 @@ class WPCD_WORDPRESS_TABS_TOOLS extends WPCD_WORDPRESS_TABS {
 					$action = 'reset_permissions';
 					$result = $this->reset_file_permissions( $id, $action );
 					break;
+				case 'tools-reset-site-file-permissions-alt':
+					$action = 'reset_permissions_alt';
+					$result = $this->reset_file_permissions( $id, $action );
+					break;
 				case 'tools-wp-site-option':
 					$action = 'wp_site_update_option';
 					$result = $this->update_wp_site_option( $id, $action );
@@ -258,7 +262,7 @@ class WPCD_WORDPRESS_TABS_TOOLS extends WPCD_WORDPRESS_TABS {
 		);
 
 		/* RESET SITE PERMISSIONS */
-		$actions['tools-edd-reset-site-permissions-header'] = array(
+		$actions['tools-reset-site-permissions-header'] = array(
 			'label'          => __( 'Reset file permissions', 'wpcd' ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
@@ -380,6 +384,24 @@ class WPCD_WORDPRESS_TABS_TOOLS extends WPCD_WORDPRESS_TABS {
 				'confirmation_prompt' => __( 'Are you sure you would like to update this site option?', 'wpcd' ),
 				// fields that contribute data for this action.
 				'data-wpcd-fields'    => json_encode( array( '#wpcd_app_action_tools-wp-site-option-name', '#wpcd_app_action_tools-wp-site-option-value' ) ),
+			),
+			'type'           => 'button',
+		);
+
+		/* RESET SITE PERMISSIONS - ALT */
+		$actions['tools-reset-site-permissions-header-alt'] = array(
+			'label'          => __( 'Reset file permissions (Alternative)', 'wpcd' ),
+			'type'           => 'heading',
+			'raw_attributes' => array(
+				'desc' => __( 'Sometimes you might need a more restrictive set of file permissions compared to the WPCD defaults.  Use this to reset permissions to: 644 for files and 775 for folders. Warning: some non-critical operations might fail when these are enabled.', 'wpcd' ),
+			),
+		);
+
+		$actions['tools-reset-site-file-permissions-alt'] = array(
+			'label'          => '',
+			'raw_attributes' => array(
+				'std'                 => __( 'Reset', 'wpcd' ),
+				'confirmation_prompt' => __( 'Are you sure you would like to reset the file permissions for this website?', 'wpcd' ),
 			),
 			'type'           => 'button',
 		);

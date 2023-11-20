@@ -121,6 +121,7 @@ do
 	echo "   35) Disable Php Version"
 	echo "   36) Enable Php Version"
 	echo "   37) Renew Certificates"
+	echo "   38) Fix WordPress file and folder permissions (alternative to #4 above)"
 	echo
 	read -p "Action: " action
 	until [[ -z "$action" || "$action" =~ ^[1-9]|2[0-9]|3[0-9]$ ]]
@@ -1347,5 +1348,24 @@ then
 	echo "Attempting to renew all certificates eligible for renewals..."
 	sudo certbot renew
 	echo "Certificate renewal attempt completed.  Please examine output above to see if further action is needed."
+	exit
+fi
+
+if [[ $action == "reset_permissions_alt" || $action == "38" ]]
+then
+	select_domain
+
+	# reset file permissions
+	gf_reset_file_permissions_alt_for_domain $domain
+
+	if [ $? -ne 0 ]
+	then
+		msg="Could not reset site permissions for domain $domain."
+		echo $msg
+		exit 1
+	fi	
+
+	echo
+	echo "(Alt) Permissions have been reset for $domain"
 	exit
 fi

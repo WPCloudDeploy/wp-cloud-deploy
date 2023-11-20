@@ -1687,6 +1687,52 @@ function gf_reset_file_permissions_for_domain() {
 }
 
 #####################################################################
+### Reset file permissions for a site (slightly different permissions 
+### compared to the function above.)
+### These are the more liberal ones recommend by wordpress.
+### See https://wordpress.org/documentation/article/hardening-wordpress/#file-permissions
+###
+### @param $1 Domain
+#####################################################################
+function gf_reset_file_permissions_alt_for_domain() {
+
+	# setup local variables from parameters passed in.
+	local domain
+	domain=$1
+
+	# Get user name from domain (first 32 chars only)
+	local user_name	
+	user_name=$(echo $domain | cut -c1-32)
+
+	if [[ -z $domain ]]
+	then
+		msg="The domain variable is blank - unable to change permissions."
+		echo $msg
+		exit 1
+	else
+		if [ "$g_webserver_type" = "nginx" ]
+		then
+			chown -R root:root /var/www/$domain/
+			chown -R www-data:www-data /var/www/$domain/html/
+			chmod -R g+w /var/www/$domain/html
+			chmod -R g+s /var/www/$domain/html
+			find /var/www/$domain/html -type f -exec chmod 644 {} +
+			find /var/www/$domain/html -type d -exec chmod 775 {} +
+		elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]
+		then
+			chown -R root:root /var/www/"$domain"/
+			chown -R "${user_name}":www-data /var/www/"$domain"/html/
+			chown -R "${user_name}":www-data /var/www/"$domain"/html/logs/
+			# Hidden files test support: https://serverfault.com/a/156481
+			chown -R "${user_name}":www-data /var/www/"$domain"/html/.[^.]*
+			chmod -R g+ws "/var/www/$domain/html"
+			find /var/www/$domain/html -type f -exec chmod 644 {} +
+			find /var/www/$domain/html -type d -exec chmod 775 {} +
+		fi
+	fi
+}
+
+#####################################################################
 ### Add a .maintenance file to a site.
 ###
 ### @param $1 Domain

@@ -28,6 +28,9 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		add_action( "wpcd_command_{$this->get_app_name()}_completed", array( $this, 'command_completed_memcached' ), 10, 2 );
 		add_action( "wpcd_command_{$this->get_app_name()}_completed", array( $this, 'command_completed_redis' ), 10, 2 );
 
+		/* Run after-install commands for activating ubuntu pro */
+		add_action( "wpcd_command_{$this->get_app_name()}_completed", array( $this, 'command_completed_ubuntu_pro' ), 10, 2 );
+
 		/* Pending Logs Background Task: Trigger refresh services. Hook: wpcd_wordpress-app_server_refresh_services. */
 		add_action( "wpcd_{$this->get_app_name()}_server_refresh_services", array( $this, 'pending_log_refresh_services_status' ), 10, 3 );
 
@@ -122,6 +125,54 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 				// Refresh services status metas for all services (except php).
 				$action = 'services_status_update';
 				$result = $this->refresh_services_status( $id, $action );
+
+			}
+		}
+
+		// remove the 'temporary' meta so that another attempt will run if necessary.
+		delete_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action_status" );  // Should really only exist on an app.
+		delete_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action" );  // Should really only exist on an app.
+		delete_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action_args" );  // Should really only exist on an app.
+		delete_post_meta( $id, "wpcd_server_{$this->get_app_name()}_action_status" );  // Should really only exist on a server.
+		delete_post_meta( $id, "wpcd_server_{$this->get_app_name()}_action" );  // Should really only exist on a server.
+		delete_post_meta( $id, "wpcd_server_{$this->get_app_name()}_action_args" );  // Should really only exist on a server.
+
+	}
+
+	/**
+	 * Called when a command completes.
+	 *
+	 * Action Hook: wpcd_command_{$this->get_app_name()}_completed
+	 *
+	 * @param int    $id     The postID of the server cpt.
+	 * @param string $name   The name of the command.
+	 */
+	public function command_completed_ubuntu_pro( $id, $name ) {
+
+		if ( get_post_type( $id ) !== 'wpcd_app_server' ) {
+			return;
+		}
+
+		// The name will have a format as such: command---domain---number.  For example: dry_run---cf1110.wpvix.com---905
+		// Lets tear it into pieces and put into an array.  The resulting array should look like this with exactly three elements.
+		// [0] => dry_run
+		// [1] => cf1110.wpvix.com
+		// [2] => 911
+		$command_array = explode( '---', $name );
+
+		// if the command is to activate ubuntu pro we need to make sure that we stamp the server record with the status indicating that ubunut pro was activated.
+		if ( 'ubuntu_pro_apply_token' == $command_array[0] ) {
+
+			// Lets pull the logs.
+			$logs = $this->get_app_command_logs( $id, $name );
+
+			// Is the command successful?
+			$success = $this->is_ssh_successful( $logs, 'ubuntu_pro_activate.txt' );
+
+			if ( true === $success ) {
+
+				// Update the meta on the server to indicate ubuntu pro was successfully activated.
+				$this->set_ubuntu_pro_status( $id, true );
 
 			}
 		}
@@ -346,7 +397,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 				case 'php-server-activate-php80':
 				case 'php-server-activate-php81':
 				case 'php-server-activate-php82':
-						$result = $this->do_php_activation_toggle( $id, $action );
+					$result = $this->do_php_activation_toggle( $id, $action );
 					break;
 				case 'php-server-deactivate-php56':
 				case 'php-server-deactivate-php70':
@@ -357,7 +408,16 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 				case 'php-server-deactivate-php80':
 				case 'php-server-deactivate-php81':
 				case 'php-server-deactivate-php82':
-						$result = $this->do_php_activation_toggle( $id, $action );
+					$result = $this->do_php_activation_toggle( $id, $action );
+					break;
+				case 'ubuntu-pro-toggle':
+					// Is ubuntu pro enabled or disabled?
+					$ubuntu_pro_status = $this->get_ubuntu_pro_status( $id );
+					if ( false === $ubuntu_pro_status ) {
+						$result = $this->activate_ubuntu_pro( $id, $action );
+					} else {
+						$result = $this->deactivate_ubuntu_pro( $id, $action );
+					}
 					break;
 			}
 		}
@@ -1068,6 +1128,77 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		if ( 'nginx' === $webserver_type ) {
 			$actions = array_merge( $actions, $this->get_php_fields( $id ) );
 		}
+
+		/* Ubuntu PRO Fields */
+		$actions = array_merge( $actions, $this->get_ubuntupro_fields( $id ) );
+
+		return $actions;
+
+	}
+
+	/**
+	 * Gets the fields for the UBUNTU PRO section to be shown in the SERVICES tab in the server details screen.
+	 *
+	 * @param int $id the post id of the app cpt record.
+	 *
+	 * @return array Array of actions with key as the action slug and value complying with the structure necessary by metabox.io fields.
+	 */
+	private function get_ubuntupro_fields( $id ) {
+
+		// Set up metabox items.
+		$actions = array();
+
+		// Is ubuntu pro enabled or disabled?
+		$ubuntu_pro_status = $this->get_ubuntu_pro_status( $id );
+
+		// Header description depending on state of ubuntu pro.
+		if ( true === $ubuntu_pro_status ) {
+			$desc = __( 'Ubuntu Pro is enabled on this server. Click the toggle to disable it.', 'wpcd' );
+		} else {
+			$desc = __( 'Ubuntu Pro is not enabled on this server. Enter your UBUNTU PRO token and click the toggle to enable it.', 'wpcd' );
+		}
+
+		$actions['services-status-ubunutu-pro'] = array(
+			'label'          => '<i class="fa-duotone fa-umbrella"></i> ' . __( 'Ubuntu Pro', 'wpcd' ),
+			'type'           => 'heading',
+			'raw_attributes' => array(
+				'desc' => $desc,
+			),
+		);
+
+		if ( true === $ubuntu_pro_status ) {
+			// Nothing to do here.
+		} else {
+			// Add in field to collect ubuntu pro token.
+			$actions['services-status-ubuntu-pro-token'] = array(
+				'label'          => __( 'Ubuntu Pro Token', 'wpcd' ),
+				'type'           => 'text',
+				'raw_attributes' => array(
+					'tooltip'        => __( 'The Ubuntu Pro token to be applied to this server.', 'wpcd' ),
+					'columns'        => 6,
+					// the key of the field (the key goes in the request).
+					'data-wpcd-name' => 'ubuntu_pro_token',
+				),
+			);
+		}
+
+		// Show ubuntu pro toggle switch.
+		$actions['ubuntu-pro-toggle'] = array(
+			'label'          => '',
+			'raw_attributes' => array(
+				'on_label'            => __( 'Enabled', 'wpcd' ),
+				'off_label'           => __( 'Disabled', 'wpcd' ),
+				'std'                 => ( $ubuntu_pro_status ? true : false ),
+				// show log console?
+				'log_console'         => true,
+				// Initial console message.
+				'console_message'     => __( 'Preparing to enable Ubuntu PRO on this server!<br /> Please DO NOT EXIT this screen until you see a popup message indicating that the installation has been completed or has errored.<br />This terminal should refresh every 60-90 seconds with updated progress information from the server. <br /> After the installation is complete the entire log can be viewed in the COMMAND LOG screen.', 'wpcd' ),
+				// make sure we give the user a confirmation prompt.
+				'confirmation_prompt' => __( 'Are you sure you would like to enable Ubuntu Pro?', 'wpcd' ),
+				'data-wpcd-fields'    => wp_json_encode( array( '#wpcd_app_action_services-status-ubuntu-pro-token' ) ),
+			),
+			'type'           => 'switch',
+		);
 
 		return $actions;
 
@@ -2199,6 +2330,33 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
+	 * Set whether ubuntu pro is enabled or disabled on this server.
+	 *
+	 * @param int     $id id.
+	 * @param boolean $status true/false
+	 *
+	 * @return boolean.
+	 */
+	public function set_ubuntu_pro_status( $id, $status ) {
+
+		update_post_meta( $id, 'wpcd_wpapp_ubuntu_pro_status', $status );
+
+	}
+
+	/**
+	 * Figure out whether ubuntu pro is enabled or disabled on this server.
+	 *
+	 * @param int $id id.
+	 *
+	 * @return boolean.
+	 */
+	public function get_ubuntu_pro_status( $id ) {
+
+		return (bool) get_post_meta( $id, 'wpcd_wpapp_ubuntu_pro_status', true );
+
+	}
+
+	/**
 	 * Set the metvalue on the server record indicating the state of a service
 	 *
 	 * @param int    $id The ID of the server.
@@ -2714,6 +2872,77 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 
 		return $success;
 
+	}
+
+
+	/**
+	 * Activate Ubuntu Pro.
+	 *
+	 * @param int    $id         The postID of the server cpt.
+	 * @param string $action     The action to be performed (this matches the string required in the bash scripts if bash scripts are used).
+	 *
+	 * @return boolean  success/failure/other
+	 */
+	private function activate_ubuntu_pro( $id, $action ) {
+
+		// Get data about the server.
+		$instance = $this->get_server_instance_details( $id );
+
+		// Bail if error.
+		if ( is_wp_error( $instance ) ) {
+			/* translators: %s is replaced with the internal action name. */
+			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the server instance details for action %s', 'wpcd' ), $action ) );
+		}
+
+		// Get args.
+		$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
+
+		// Make sure required fields have been provided and return error if not.
+		if ( empty( $args['ubuntu_pro_token'] ) ) {
+			return new \WP_Error( __( 'Unable to complete setup - no Ubuntu Pro Token was provided.', 'wpcd' ) );
+		} else {
+			// Data has been provided so sanitize it.
+			$args['ubuntu_pro_token']          = wp_kses( $args['ubuntu_pro_token'], array() );
+			$args['ubuntu_pro_token_original'] = $args['ubuntu_pro_token'];
+			$args['ubuntu_pro_token']          = escapeshellarg( $args['ubuntu_pro_token'] );
+		}
+
+		// Setup unique command name.
+		$action                = 'ubuntu_pro_apply_token';
+		$domain                = 'no-domain';
+		$command               = sprintf( '%s---%s---%d', $action, $domain, time() );
+		$instance['command']   = $command;
+		$instance['app_id']    = $id;   // @todo - this is not really the app id - need to test to see if the process will work without this array element.
+		$instance['server_id'] = $id;
+
+		// construct the run command.
+		$run_cmd = $this->turn_script_into_command(
+			$instance,
+			'ubuntu_pro_activate.txt',
+			array_merge(
+				$args,
+				array(
+					'command' => $command,
+					'action'  => $action,
+					'domain'  => $domain,
+				)
+			)
+		);
+
+		// double-check just in case of errors.
+		if ( empty( $run_cmd ) || is_wp_error( $run_cmd ) ) {
+			/* translators: %s is replaced with the internal action name. */
+			return new \WP_Error( sprintf( __( 'Something went wrong - we are unable to construct a proper command for this action - %s', 'wpcd' ), $action ) );
+		}
+
+		/**
+		 * Run the constructed commmand
+		 * Check out the write up about the different aysnc methods we use
+		 * here: https://wpclouddeploy.com/documentation/wpcloud-deploy-dev-notes/ssh-execution-models/
+		 */
+		$return = $this->run_async_command_type_2( $id, $command, $run_cmd, $instance, $action );
+
+		return $return;
 	}
 
 	/**

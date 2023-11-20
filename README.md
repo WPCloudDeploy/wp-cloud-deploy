@@ -135,6 +135,7 @@ Note: Even though the entire git development history isn't available on github, 
 * New: WPAPP - Defaults for userid, password and email address in settings - helps with development when you're creating and destroying many sites over a short period of time.  Applies only to admins.
 * New: WPAPP - Add option to SITE PACKAGE screen to remove http authentication on new sites.  This allows for protected template sites where the password is automatically removed on the customer/tenant site.
 * New: WPAPP - Allow for a default of site packages on the INSTALL WORDPRESS popup.
+* New: WPAPP - Option to enable UBUNTU pro services on servers with a provided PRO token.
 * Tweak: DO Provider - make the image default UBUNTU 22.04 LTS for all non-wordpress apps.
 * Tweak: WPAPP - Remove the NOTES column from the server SERVICES tab - option available to re-add it. 
 * Tweak: WPAPP - Add multi-tenant parent to the app list APP SUMMARY column if the site is an mt-version site.

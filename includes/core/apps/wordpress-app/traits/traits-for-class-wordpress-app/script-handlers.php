@@ -730,6 +730,14 @@ trait wpcd_wpapp_script_handlers {
 				||
 				( strpos( $result, 'Git has been updated' ) !== false );
 				break;
+			case 'ubuntu_pro_activate.txt':
+				$return =
+				( strpos( $result, 'Ubuntu Pro token has been applied to this server' ) !== false )
+				||
+				( strpos( $result, 'This machine is not attached to an Ubuntu Pro subscription' ) !== false )
+				||
+				( strpos( $result, 'Ubuntu Pro token has been removed from this server' ) !== false );
+				break;
 
 			/**************************************************************
 			* The items below this are SERVER SYNC items, not APP items   *
@@ -1676,6 +1684,19 @@ trait wpcd_wpapp_script_handlers {
 					array(
 						'SCRIPT_URL'   => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/58-git_control.txt',
 						'SCRIPT_NAME'  => '58-git_control.sh',
+						'SCRIPT_LOGS'  => "{$this->get_app_name()}_{$command_name}",
+						'CALLBACK_URL' => $this->get_command_url( $instance['server_id'], $command_name, 'completed' ),
+					),
+					$common_array,
+					$additional
+				);
+				break;
+			case 'ubuntu_pro_activate.txt':
+				$command_name = $additional['command'];
+				$new_array    = array_merge(
+					array(
+						'SCRIPT_URL'   => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/54-ubuntupro.txt',
+						'SCRIPT_NAME'  => '54-ubuntupro.sh',
 						'SCRIPT_LOGS'  => "{$this->get_app_name()}_{$command_name}",
 						'CALLBACK_URL' => $this->get_command_url( $instance['server_id'], $command_name, 'completed' ),
 					),

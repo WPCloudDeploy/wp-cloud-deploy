@@ -493,7 +493,8 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		$actions['services-status-update'] = array(
 			'label'          => '',
 			'raw_attributes' => array(
-				'std' => '<i class="fa-solid fa-arrows-rotate"></i> ' . __( 'Refresh Services Status', 'wpcd' ),
+				/* Translators: %s is a fontawesome or similar icon. */
+				'std' => sprintf( __( '%s Refresh Services Status', 'wpcd' ), '<i class="fa-solid fa-arrows-rotate"></i>' ),
 			),
 			'type'           => 'button',
 		);
@@ -539,7 +540,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		$actions['web-server-restart'] = array(
 			'label'          => __( 'Actions', 'wpcd' ),
 			'raw_attributes' => array(
-				'std'     => '<i class="fa-sharp fa-solid fa-clock-rotate-left"></i> ' . __( 'Restart', 'wpcd' ),
+				'std'     => $this->get_restart_button_label(),
 				'columns' => wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ? 2 : 3,
 			),
 			'type'           => 'button',
@@ -579,7 +580,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		$actions['db-server-restart'] = array(
 			'label'          => '',
 			'raw_attributes' => array(
-				'std'     => '<i class="fa-sharp fa-solid fa-clock-rotate-left"></i> ' . __( 'Restart', 'wpcd' ),
+				'std'     => $this->get_restart_button_label(),
 				'columns' => wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ? 2 : 3,
 			),
 			'type'           => 'button',
@@ -660,7 +661,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			$actions['redis-restart'] = array(
 				'label'          => __( 'Actions', 'wpcd' ),
 				'raw_attributes' => array(
-					'std'     => __( 'Restart', 'wpcd' ),
+					'std'     => $this->get_restart_button_label(),
 					'columns' => wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ? 1 : 2,
 				),
 				'type'           => 'button',
@@ -669,7 +670,8 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			$actions['redis-clear-cache'] = array(
 				'label'          => __( 'Clear', 'wpcd' ),
 				'raw_attributes' => array(
-					'std'     => __( 'Clear Cache', 'wpcd' ),
+					/* Translators: %s is a fontawesome or similar icon. */
+					'std'     => sprintf( __( '%s Clear Cache', 'wpcd' ), '<i class="fa-solid fa-trash-xmark"></i>' ),
 					'columns' => wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ? 1 : 2,
 				),
 				'type'           => 'button',
@@ -697,7 +699,8 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			$actions['redis-remove'] = array(
 				'label'          => __( 'Remove Redis', 'wpcd' ),
 				'raw_attributes' => array(
-					'std'               => __( 'Un-Install Redis', 'wpcd' ),
+					/* Translators: %s is a fontawesome or similar icon. */
+					'std'               => sprintf( __( '%s Un-Install Redis', 'wpcd' ), '<i class="fa-solid fa-trash-can-slash"></i>' ),
 					'label_description' => __( 'Please verify that none of your sites have Redis enabled before removing it from the server!', 'wpcd' ),
 				),
 				'type'           => 'button',
@@ -750,7 +753,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		$actions['ufw-restart'] = array(
 			'label'          => __( 'Actions', 'wpcd' ),
 			'raw_attributes' => array(
-				'std'     => __( 'Restart', 'wpcd' ),
+				'std'     => $this->get_restart_button_label(),
 				'columns' => wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ? 1 : 2,
 			),
 			'type'           => 'button',
@@ -805,9 +808,11 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			$smtp_usestarttls = $gateway_data['usestarttls'];
 			$smtp_note        = $gateway_data['note'];
 
-			$smtp_gateway_button_txt = __( 'Reinstall Email Gateway', 'wpcd' );
-			$eg_desc                .= '<br /><br />';
-			$eg_desc                .= __( 'The email gateway has already been installed. You can reinstall it with new parameters by clicking the reinstall button below.', 'wpcd' );
+			/* Translators: %s is a fontawesome or similar icon. */
+			$smtp_gateway_button_txt = sprintf( __( '%s Reinstall Email Gateway', 'wpcd' ), '<i class="fa-solid fa-rectangle-history-circle-plus"></i>' );
+
+			$eg_desc .= '<br /><br />';
+			$eg_desc .= __( 'The email gateway has already been installed. You can reinstall it with new parameters by clicking the reinstall button below.', 'wpcd' );
 
 		} else {
 			$smtp_server      = '';
@@ -819,7 +824,8 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			$smtp_usestarttls = 'YES';
 			$smtp_note        = '';
 
-			$smtp_gateway_button_txt = __( 'Install Email Gateway', 'wpcd' );
+			/* Translators: %s is a fontawesome or similar icon. */
+			$smtp_gateway_button_txt = sprintf( __( '%s Install Email Gateway', 'wpcd' ), '<i class="fa-solid fa-rectangle-history-circle-plus"></i>' );
 		}
 
 		// email gateway form fields.
@@ -1072,7 +1078,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			$actions['memcached-restart'] = array(
 				'label'          => __( 'Actions', 'wpcd' ),
 				'raw_attributes' => array(
-					'std'     => __( 'Restart', 'wpcd' ),
+					'std'     => $this->get_restart_button_label(),
 					'columns' => wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ? 1 : 2,
 				),
 				'type'           => 'button',
@@ -1081,7 +1087,8 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			$actions['memcached-clear_cache'] = array(
 				'label'          => __( 'Clear', 'wpcd' ),
 				'raw_attributes' => array(
-					'std'     => __( 'Clear Cache', 'wpcd' ),
+					/* Translators: %s is a fontawesome or similar icon. */
+					'std'     => sprintf( __( '%s Clear Cache', 'wpcd' ), '<i class="fa-solid fa-trash-xmark"></i>' ),
 					'columns' => wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ? 1 : 2,
 				),
 				'type'           => 'button',
@@ -1109,7 +1116,8 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			$actions['memcached-remove'] = array(
 				'label'          => __( 'Remove MemCached', 'wpcd' ),
 				'raw_attributes' => array(
-					'std'               => __( 'Un-Install MemCached', 'wpcd' ),
+					/* Translators: %s is a fontawesome or similar icon. */
+					'std'               => sprintf( __( '%s Un-Install Memcached', 'wpcd' ), '<i class="fa-solid fa-trash-can-slash"></i>' ),
 					'label_description' => __( 'Please verify that none of your sites have MemCached enabled before removing it from the server!', 'wpcd' ),
 				),
 				'type'           => 'button',
@@ -1306,7 +1314,8 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		$actions['services-status-update-php'] = array(
 			'label'          => '',
 			'raw_attributes' => array(
-				'std' => __( 'Refresh PHP Services Status', 'wpcd' ),
+				/* Translators: %s is a fontawesome or similar icon. */
+				'std' => sprintf( __( '%s Refresh PHP Services', 'wpcd' ), '<i class="fa-solid fa-arrows-rotate"></i>' ),
 			),
 			'type'           => 'button',
 		);
@@ -1346,7 +1355,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 				$actions[ "php-server-restart-$services_key" ] = array(
 					'label'          => '',
 					'raw_attributes' => array(
-						'std'     => __( 'Restart', 'wpcd' ),
+						'std'     => $this->get_restart_button_label(),
 						'columns' => 3,
 					),
 					'type'           => 'button',
@@ -1460,7 +1469,8 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			$actions['maldet-install'] = array(
 				'label'          => '',
 				'raw_attributes' => array(
-					'std'                 => __( 'Install', 'wpcd' ),
+					/* Translators: %s is a fontawesome or similar icon. */
+					'std'                 => sprintf( __( '%s Install', 'wpcd' ), '<i class="fa-solid fa-grid-2-plus"></i>' ),
 					// make sure we give the user a confirmation prompt.
 					'confirmation_prompt' => __( 'Are you sure you would like to install the Malware Scanner?', 'wpcd' ),
 					'data-wpcd-fields'    => wp_json_encode( array( '#wpcd_app_action_maldet-install-to-id' ) ),
@@ -1537,7 +1547,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 				'label'          => '',
 				'raw_attributes' => array(
 					'std'                 => __( 'Purge', 'wpcd' ),
-					// make sure we give the user a confirmation prompt.
+					/* make sure we give the user a confirmation prompt. */
 					'confirmation_prompt' => __( 'Are you sure that you would like Maldet to purge the historical scan data from the server?', 'wpcd' ),
 					'columns'             => 2,
 					'tooltip'             => __( 'This option causes Maldet to clear logs, quarantine queue, session and temporary data on the server', 'wpcd' ),
@@ -1550,8 +1560,9 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		$actions['maldet-clear-history'] = array(
 			'label'          => '',
 			'raw_attributes' => array(
-				'std'                 => __( 'Clear History', 'wpcd' ),
-				// make sure we give the user a confirmation prompt.
+				/* Translators: %s is a fontawesome or similar icon. */
+				'std'                 => sprintf( __( '%s Clear History', 'wpcd' ), '<i class="fa-solid fa-trash-xmark"></i>' ),
+				/* make sure we give the user a confirmation prompt. */
 				'confirmation_prompt' => __( 'Delete malware scan history?', 'wpcd' ),
 				'columns'             => 2,
 			),
@@ -1561,8 +1572,9 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		$actions['maldet-clear-all-metas'] = array(
 			'label'          => '',
 			'raw_attributes' => array(
-				'std'                 => __( 'Clear All Metas', 'wpcd' ),
-				// make sure we give the user a confirmation prompt.
+				/* Translators: %s is a fontawesome or similar icon. */
+				'std'                 => sprintf( __( '%s Clear All Metas', 'wpcd' ), '<i class="fa-solid fa-trash-xmark"></i>' ),
+				/* make sure we give the user a confirmation prompt. */
 				'confirmation_prompt' => __( 'Are you sure you would like to clear all Malware metas including history?', 'wpcd' ),
 				'columns'             => 2,
 			),
@@ -3211,6 +3223,16 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 
 	}
 
+	/**
+	 * Returns a label that will show up on any button that is used to restart a service.
+	 * It includes a fontawesome icon.
+	 */
+	public function get_restart_button_label() {
+
+		/* Translators: %s is a fontawesome or similar icon. */
+		return sprintf( __( '%s Restart', 'wpcd' ), '<i class="fa-sharp fa-solid fa-clock-rotate-left"></i> ' );
+
+	}
 
 }
 

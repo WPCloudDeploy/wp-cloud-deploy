@@ -34,6 +34,7 @@ lf_select_domain() {
 #
 # @param $1 logtivity_team_api_key
 # @param $2 user name (aka domain)
+# @param $3 callback_install_logtivity_status (the callback url that we'll be sending data to.)
 #
 # returns $logtivity_temp_php_file
 ########################################################
@@ -42,13 +43,17 @@ lf_create_exec_file() {
 	# setup local variables from parameters passed in.
 	local LOGTIVITY_TEAM_API_KEY
 	local USER_NAME
+	local CALLBACK
 	LOGTIVITY_TEAM_API_KEY=$1
 	USER_NAME=$2
+	CALLBACK=$3
 	
 
 	# make temporary file.
 	pwtmpfile=$(mktemp)
 
+# Heredoc - temp file with php in it.
+# PHP Vars that start with '$' are escaped with '\' so the prefix is '\$' instead of just '$'.
 cat << EOF > $pwtmpfile
 
 <?php
@@ -63,6 +68,19 @@ if (class_exists('Logtivity_Register_Site')) {
 		'logtivity_should_log_username' => true,
 		'logtivity_enable_debug_mode' => false,
 	]);
+
+	// What is the API Key that was assigned?
+	\$logtivity_options = new Logtivity_Options;
+	\$api_key = \$logtivity_options->getApiKey();
+
+	// If we got one, send it back to the callback url.
+	if (\$api_key) {
+		\$ch = curl_init();
+		\$url = '${CALLBACK}' . '?logtivity_api_key=' . \$api_key;
+		curl_setopt(\$ch, CURLOPT_URL, \$url );
+		\$output = curl_exec(\$ch);
+	}
+
 }
 
 EOF
@@ -84,7 +102,8 @@ lf_install_logtivity() {
 	# Get the domain user name - output will be held in $g_domain_user_name
 	gf_get_domain_user_name $domain
 	user_name=$g_domain_user_name	
-	
+
+	# activate logtivity.
 	su - $user_name -c "wp --no-color plugin install --activate logtivity"
 }
 
@@ -104,11 +123,16 @@ lf_license_logtivity() {
 	while [[ -z $logtivity_teams_api_key ]]
 	do
 		read -p "Enter the Logtivity Teams API Key ? " logtivity_teams_api_key
-	done	
+	done
+
+	if [[ -z "$callback_install_logtivity_status" ]]
+	then
+		read -p "Enter callback url for reporting the status of the installation:  " callback_install_logtivity_status
+	fi	
 
 	# Generate the temp file.
 	# Should create global variable with file name $logtivity_temp_php_file
-	lf_create_exec_file $logtivity_teams_api_key $user_name
+	lf_create_exec_file $logtivity_teams_api_key $user_name $callback_install_logtivity_status
 
 	# Execute temp file using wp-cli.
 	su - $user_name -c "wp --no-color eval-file $logtivity_temp_php_file"
@@ -125,6 +149,9 @@ lf_remove_logtivity() {
 	# Get the domain user name - output will be held in $g_domain_user_name
 	gf_get_domain_user_name $domain
 	user_name=$g_domain_user_name	
+	
+	# deactivate logtivity just in case it's installed and activated already.
+	su - $user_name -c "wp --no-color plugin deactivate logtivity/logtivity.php"	
 	
 	su - $user_name -c "wp --no-color plugin delete logtivity/logtivity.php"
 

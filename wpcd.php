@@ -489,9 +489,16 @@ class WPCD_Init {
 			require_once wpcd_path . 'includes/core/apps/wordpress-app/class-wordpress-posts-update-plan-log.php';
 		}
 
-		require_once wpcd_path . 'includes/core/apps/wordpress-app/functions-classes-wordpress-app.php';
+		// Integrations for the WP APP.
+		require_once wpcd_path . 'includes/core/apps/wordpress-app/integrations/class-wordpress-app-logtivity.php';
 
+		// Remaining files for the WP APP.
+		require_once wpcd_path . 'includes/core/apps/wordpress-app/functions-classes-wordpress-app.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/public/class-wordpress-app-public.php';
+
+		/**
+		 * Remaining core files.
+		 */
 		require_once wpcd_path . 'includes/core/wp-cloud-deploy.php';
 		require_once wpcd_path . 'includes/core/class-wpcd-server.php';
 		require_once wpcd_path . 'includes/core/functions-classes.php';

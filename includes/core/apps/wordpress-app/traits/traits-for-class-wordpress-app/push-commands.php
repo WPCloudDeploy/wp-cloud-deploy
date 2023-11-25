@@ -890,6 +890,68 @@ trait wpcd_wpapp_push_commands {
 	}
 
 	/**
+	 * Handles the results of the callback when logtivity has been installed on a site.
+	 *
+	 * Action Hook: wpcd_command_{$this->get_app_name()}_command_install_logtivity_status_completed || wpcd_{$this->get_app_name()}_command_{$name}_{$status}
+	 *
+	 * @param int    $id app post id.
+	 * @param int    $command_id an id that is given to the bash script at the time it's first run. Doesn't do anything for us in this context so it's not used here.
+	 * @param string $name name.
+	 * @param string $status status.
+	 *
+	 * @return void.
+	 */
+	public function push_command_install_logtivity_completed( $id, $command_id, $name, $status ) {
+
+		// Set variable to status, in this case it is always "completed" - will be used in action hooks later.
+		$status = 'completed';
+
+		// set variable to name, in this case it is always "install_logtivity_status" - will be used in action hooks later.
+		$name = 'install_logtivity_status';
+
+		// Create an array to hold items taken from the $_request object.
+		$logtivity_items = array();
+
+		// Get domain from request object...
+		$logtivity_items['api_key'] = wp_kses( filter_input( INPUT_GET, 'logtivity_api_key', FILTER_UNSAFE_RAW ), array(), array() );
+
+		if ( 'wpcd_app' === get_post_type( $id ) ) {
+
+			// We should only update the API key if we were expecting it - the function that triggered the plugin to be activated and licensed should have set this flag.
+			if ( true === WPCD_WORDPRESS_APP_LOGTIVITY()->get_waiting_status( $id ) ) {
+
+				// Update post record with the api key.
+				WPCD_WORDPRESS_APP_LOGTIVITY()->set_api_key( $id, $logtivity_items['api_key'] );
+
+				// Make sure we clear the waiting status...
+				WPCD_WORDPRESS_APP_LOGTIVITY()->set_waiting_status( $id, false );
+
+				do_action( 'wpcd_log_notification', $id, 'notice', __( 'A logtivity API Key was received.', 'wpcd' ), 'misc', null );
+
+				// Let other plugins react to the new good data with an action hook.
+				do_action( "wpcd_{$this->get_app_name()}_command_{$name}_{$status}_processed_good", $logtivity_items, $id );
+			} else {
+				do_action( 'wpcd_log_error', 'Data received for logtivity install but we are not expecting one. ' . (string) $id . '<br /> The first 5000 characters of the received data is shown below after being sanitized with WP_KSES:<br /> ' . substr( wp_kses( print_r( $_REQUEST, true ), array() ), 0, 5000 ), 'security', __FILE__, __LINE__ );
+
+				// Let other plugins react to the new bad data with an action hook.
+				do_action( "wpcd_{$this->get_app_name()}_command_{$name}_{$status}_processed_bad", $logtivity_items, $id );
+
+			}
+		} else {
+
+			do_action( 'wpcd_log_error', 'Data received for server or app that does not exist - received server or app id ' . (string) $id . '<br /> The first 5000 characters of the received data is shown below after being sanitized with WP_KSES:<br /> ' . substr( wp_kses( print_r( $_REQUEST, true ), array() ), 0, 5000 ), 'security', __FILE__, __LINE__ );
+
+			// Let other plugins react to the new bad data with an action hook.
+			do_action( "wpcd_{$this->get_app_name()}_command_{$name}_{$status}_processed_bad", $logtivity_items, $id );
+
+		}
+
+		// Let other plugins react to the new data (regardless of it's good or bad) with an action hook.
+		do_action( "wpcd_{$this->get_app_name()}_command_{$name}_{$status}_processed", $logtivity_items, $id );
+
+	}
+
+	/**
 	 * Handles the results of the a test rest api call.
 	 *
 	 * Action Hook: wpcd_command_{$this->get_app_name()}_command_test_rest_api_completed || wpcd_{$this->get_app_name()}_command_{$name}_{$status}

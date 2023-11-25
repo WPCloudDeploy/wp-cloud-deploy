@@ -479,6 +479,14 @@ class WPCD_WORDPRESS_TABS_SITE_LOGS extends WPCD_WORDPRESS_TABS {
 		// Set the correct action.
 		$action = 'logtivity_install';
 
+		// construct the callback url.
+		$command_name                              = 'install_logtivity_status';
+		$args['callback_install_logtivity_status'] = $this->get_command_url( $id, $command_name, 'completed' );
+
+		// Set a flag that indicates we're waiting for the API key to be returned.
+		// If for some reason the callback URL is triggered but this flag isn't set, the action hook that handles it will register an error.
+		WPCD_WORDPRESS_APP_LOGTIVITY()->set_waiting_status( $id, true );
+
 		// Get the full command to be executed by ssh.
 		$run_cmd = $this->turn_script_into_command(
 			$instance,
@@ -559,8 +567,14 @@ class WPCD_WORDPRESS_TABS_SITE_LOGS extends WPCD_WORDPRESS_TABS {
 			return new \WP_Error( sprintf( __( 'Unable to %1$s site: %2$s', 'wpcd' ), $action, $result ) );
 		}
 
-		// Tag logtivity as being connected.
+		// Tag logtivity as being disconnected.
 		$this->set_logtivity_connection_status( $id, false );
+
+		// Clear waiting status (just in case...).
+		WPCD_WORDPRESS_APP_LOGTIVITY()->set_waiting_status( $id, false );
+
+		// Remove it from the remote LOGTIVITY console.
+		WPCD_WORDPRESS_APP_LOGTIVITY()->delete_from_remote_console( $id );
 
 		$result = array( 'refresh' => 'yes' );
 

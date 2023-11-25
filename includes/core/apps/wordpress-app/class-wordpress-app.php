@@ -147,6 +147,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 		// Push commands and callbacks from sites.
 		add_action( "wpcd_{$this->get_app_name()}_command_schedule_site_sync_completed", array( &$this, 'push_command_schedule_site_sync' ), 10, 4 );  // When a scheduled site sync has started or ended.
+		add_action( "wpcd_{$this->get_app_name()}_command_install_logtivity_status_completed", array( &$this, 'push_command_install_logtivity_completed' ), 10, 4 );  // When logtivity has been installed.
 
 		// After server prepare action hooks.
 		$this->wpcd_after_server_prepare_action_hooks();

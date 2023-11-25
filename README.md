@@ -147,6 +147,7 @@ Note: Even though the entire git development history isn't available on github, 
 * Tweak: WPAPP - Remove WordPress auto-save functionality from WPCD screens in wp-admin.
 * Tweak: WPAPP - Add an INTEGRATIONS settings tab to consolidate some settings fields that are scattered among other tabs.
 * Tweak: WPAPP - Consolidate three notifications tabs in settings into a single tab.
+* Tweak: WPAPP - The option to Remove app groups for site update plans and product packages now work.
 
 5.5.1
 ------

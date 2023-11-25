@@ -230,7 +230,6 @@ class WPCD_POSTS_App_Update_Plan extends WPCD_Posts_Base {
 				'multiple'   => true,
 				'save_field' => true,
 				'desc'       => __( 'These groups/categories will be removed from the selected sites', 'wpcd' ),
-				'tooltip'    => __( 'This is for future use - not currently working.', 'wpcd' ),
 				'columns'    => 6,
 			),
 		);

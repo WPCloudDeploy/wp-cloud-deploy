@@ -121,6 +121,7 @@ class WPCD_POSTS_Site_Package extends WPCD_Posts_Base {
 
 		$prefix = 'wpcd_';
 
+		/* Add/Remove APP Groups */
 		$fields_taxonomy = array(
 			array(
 				'name'       => __( 'Apply These Groups to New Sites', 'wpcd' ),
@@ -153,7 +154,6 @@ class WPCD_POSTS_Site_Package extends WPCD_Posts_Base {
 				'multiple'   => true,
 				'save_field' => true,
 				'desc'       => __( 'These groups/categories will the removed from the site during a subscription upgrade/downgrade/switch.', 'wpcd' ),
-				'tooltip'    => __( 'This is for future use - not currently working.', 'wpcd' ),
 				'columns'    => 6,
 			),
 		);

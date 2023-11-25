@@ -29,7 +29,9 @@ class WPCD_WORDPRESS_APP_LOGTIVITY extends WPCD_Base {
 	 */
 	private function hooks() {
 
-		// Nothing needed.
+		// Remove site from the Logtivity service when a site is deleted.
+		add_action( 'wpcd_wordpress-app_after_remove_site_action_before_record_delete', array( $this, 'wpcd_after_remove_site_action_before_record_delete' ), 10, 2 );
+
 	}
 
 	/**
@@ -90,9 +92,17 @@ class WPCD_WORDPRESS_APP_LOGTIVITY extends WPCD_Base {
 	/**
 	 * Delete the site from the remote logtivity server console.
 	 *
+	 * For this to work, the LOGTIVITY plugin needs to be active on the
+	 * primary WPCD site.
+	 *
+	 * This is because it requires access to the LOGTIVITY_API() class which might not exist
+	 * on the child site - either because the plugin does not exist on it or the site
+	 * has been deleted.  So, we're using the class on the primary WPCD site to
+	 * send the delete request through.
+	 *
 	 * @param int $app_id The post id of the app we're working with.
 	 */
-	public function delete_from_remote_console( $app_id ) {
+	public function delete_from_remote_service( $app_id ) {
 
 		// If logtivity isn't active, return immediately.
 		if ( ! class_exists( 'Logtivity_Register_Site' ) ) {
@@ -125,5 +135,21 @@ class WPCD_WORDPRESS_APP_LOGTIVITY extends WPCD_Base {
 		return false;
 
 	}
+
+	/**
+	 *
+	 * Remove site from Logtivity remote service when a site is deleted.
+	 *
+	 * Action hook: wpcd_wordpress-app_after_remove_site_action_before_record_delete
+	 *
+	 * @param int    $app_id The post id of the site we're working with.
+	 * @param string $action The action string used in the calling program - not used here.
+	 */
+	public function wpcd_after_remove_site_action_before_record_delete( $app_id, $action ) {
+
+		$this->delete_from_remote_service( $app_id );
+
+	}
+
 
 }

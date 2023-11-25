@@ -299,7 +299,7 @@ class WPCD_WORDPRESS_TABS_SITE_LOGS extends WPCD_WORDPRESS_TABS {
 		$fields = array();
 
 		// Heading text.
-		$desc = __( 'Connect site to Logtivity.', 'wpcd' );
+		$desc = __( 'Connect site to the Logtivity service.', 'wpcd' );
 
 		// If no value is for logtivity teams api, set warning.
 		if ( empty( WPCD()->decrypt( wpcd_get_early_option( 'wordpress_app_logtivity_teams_api_key' ) ) ) ) {
@@ -574,7 +574,7 @@ class WPCD_WORDPRESS_TABS_SITE_LOGS extends WPCD_WORDPRESS_TABS {
 		WPCD_WORDPRESS_APP_LOGTIVITY()->set_waiting_status( $id, false );
 
 		// Remove it from the remote LOGTIVITY console.
-		WPCD_WORDPRESS_APP_LOGTIVITY()->delete_from_remote_console( $id );
+		WPCD_WORDPRESS_APP_LOGTIVITY()->delete_from_remote_service( $id );
 
 		$result = array( 'refresh' => 'yes' );
 

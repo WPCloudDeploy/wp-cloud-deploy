@@ -938,6 +938,12 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 				update_post_meta( $live_id, 'wpapp_staging_domain', '' );
 				update_post_meta( $live_id, 'wpapp_staging_domain_id', '' );
 			}
+
+			/**
+			 * Fire action hook so that other tasks can be completed after a site is removed.
+			 * One example where this hook is used is in the WPCD_WORDPRESS_APP_LOGTIVITY class.
+			 */
+			do_action( 'wpcd_wordpress-app_after_remove_site_action_before_record_delete', $id, $action );
 		}
 
 		// now force delete the post.

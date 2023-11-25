@@ -136,6 +136,7 @@ Note: Even though the entire git development history isn't available on github, 
 * New: WPAPP - Add option to SITE PACKAGE screen to remove http authentication on new sites.  This allows for protected template sites where the password is automatically removed on the customer/tenant site.
 * New: WPAPP - Allow for a default of site packages on the INSTALL WORDPRESS popup.
 * New: WPAPP - Option to enable UBUNTU pro services on servers with a provided PRO token.
+* New: WPAPP - Update script # 30 to add option for passwordless login using any given user id / email address / username. No UI - just command-line.
 * Tweak: DO Provider - make the image default UBUNTU 22.04 LTS for all non-wordpress apps.
 * Tweak: WPAPP - Remove the NOTES column from the server SERVICES tab - option available to re-add it. 
 * Tweak: WPAPP - Add multi-tenant parent to the app list APP SUMMARY column if the site is an mt-version site.

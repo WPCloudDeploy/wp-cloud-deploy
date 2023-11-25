@@ -43,7 +43,8 @@ while [[ -z $action ]]; do
 	echo "   5) Change all credentials - email and password"
 	echo "   6) Update a site option"
 	echo "   7) Update wp-config.php option for a site"
-    echo "   8) Get secure passwordless login link for a site"
+    echo "   8) Get secure passwordless login link for a site (Any admin user)"
+    echo "   9) Get secure passwordless login link for a site"
     echo
     read -p "Action: " action
     until [[ -z "$action" || "$action" =~ ^[1-9]$ ]]; do
@@ -281,6 +282,7 @@ fi
 
 if [[ $action == "wp_site_get_passwordless_link" || $action == "8" ]]; then
 
+    # Get domain to work with.
     select_domain
 
     # Get the domain user name - output will be held in $g_domain_user_name
@@ -302,6 +304,37 @@ if [[ $action == "wp_site_get_passwordless_link" || $action == "8" ]]; then
 
     # Get passwordless link
     link=$(su - $user_name -c "wp login create $admin_user --url-only --expires=180")
+
+    echo
+    echo $link
+    exit
+fi
+
+if [[ $action == "wp_site_get_passwordless_link_selected_user" || $action == "9" ]]; then
+
+    # Get domain to work with.
+    select_domain
+
+    # Get user name, id or email address.
+	while [[ -z $login_user ]]
+	do
+		echo
+		echo "Enter the user to login as - can be user id, user name or email address"
+		read -p "Login as: " login_user
+	done    
+
+    # Get the domain user name - output will be held in $g_domain_user_name
+    gf_get_domain_user_name $domain
+    user_name=$g_domain_user_name
+
+    # Install wp-cli package that will support this.
+    su - $user_name -c "wp package install aaemnnosttv/wp-cli-login-command"
+
+    # Install supporting plugin to the site.
+    su - $user_name -c "wp login install --activate --yes"
+
+    # Get passwordless link
+    link=$(su - $user_name -c "wp login create $login_user --url-only --expires=180")
 
     echo
     echo $link

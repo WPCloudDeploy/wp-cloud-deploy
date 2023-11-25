@@ -430,9 +430,15 @@ class WPCD_Init {
 		require_once wpcd_path . 'includes/core/apps/class-wpcd-ssh.php';
 		require_once wpcd_path . 'includes/core/apps/class-wpcd-woocommerce.php';
 
+		// 3rd party optional integrations.
+		require_once wpcd_path . 'includes/core/integrations/class-logtivity.php';
+
+		// Handle admin notices.
 		if ( is_admin() ) {
 			require_once wpcd_path . 'includes/core/functions-handle-admin-notices.php';
 		}
+
+		// WPCD Better Crons.
 		require_once wpcd_path . 'includes/core/class-wpcd-better-crons.php';
 
 		/**

@@ -18,7 +18,6 @@ function WPCD() {
 	return $GLOBALS['WP_CLOUD_DEPLOY'];  // No checking to see if it exists. If it doesn't we want to error out hard.
 }
 
-add_action( 'init', 'wpcd_init_wpcd_server', -10, 1 );
 /**
  * Create a class var for WPCD_Server and
  * add it to the WPCD array of classes for management
@@ -27,6 +26,7 @@ add_action( 'init', 'wpcd_init_wpcd_server', -10, 1 );
  * related to just server operations such as creation,
  * reboot, delete and so on.
  */
+add_action( 'init', 'wpcd_init_wpcd_server', -10, 1 );
 function wpcd_init_wpcd_server() {
 	if ( function_exists( 'WPCD' ) ) {
 		if ( empty( WPCD()->classes['WPCD_SERVER'] ) ) {
@@ -36,11 +36,11 @@ function wpcd_init_wpcd_server() {
 }
 
 
-add_action( 'init', 'wpcd_init_wpcd_settings', -10, 1 );
 /**
  * Create a class var for WPCD_Settings and
  * add it to the WPCD array of classes for management
  */
+add_action( 'init', 'wpcd_init_wpcd_settings', -10, 1 );
 function wpcd_init_wpcd_settings() {
 	if ( function_exists( 'WPCD' ) ) {
 		if ( empty( WPCD()->classes['WPCD_SETTINGS'] ) ) {
@@ -102,11 +102,11 @@ if ( true === wpcd_is_custom_dns_provider_tables_enabled() ) {
 }
 
 
-add_action( 'init', 'wpcd_init_wpcd_custom_fields', -10, 1 );
 /**
  * Create a class var for WPCD_Custom_Fields and
  * add it to the WPCD array of classes for management
  */
+add_action( 'init', 'wpcd_init_wpcd_custom_fields', -10, 1 );
 function wpcd_init_wpcd_custom_fields() {
 	if ( function_exists( 'WPCD' ) ) {
 		if ( empty( WPCD()->classes['WPCD_CUSTOM_FIELDS'] ) ) {
@@ -124,11 +124,11 @@ function WPCD_CUSTOM_FIELDS() {
 	return WPCD()->classes['WPCD_CUSTOM_FIELDS'];
 }
 
-add_action( 'init', 'wpcd_init_wpcd_woocommerce', -10, 1 );
 /**
  * Create a class var for WPCD_WooCommerce and
  * add it to the WPCD array of classes for management
  */
+add_action( 'init', 'wpcd_init_wpcd_woocommerce', -10, 1 );
 function wpcd_init_wpcd_woocommerce() {
 	if ( function_exists( 'WPCD' ) ) {
 		if ( empty( WPCD()->classes['WPCD_WOOCOMMERCE'] ) ) {
@@ -147,11 +147,11 @@ function WPCD_WOOCOMMERCE() {
 }
 
 
-add_action( 'init', 'wpcd_init_wpcd_dns', -10, 1 );
 /**
  * Create a class var for WPCD_DNS and
  * add it to the WPCD array of classes for management
  */
+add_action( 'init', 'wpcd_init_wpcd_dns', -10, 1 );
 function wpcd_init_wpcd_dns() {
 	if ( function_exists( 'WPCD' ) ) {
 		if ( empty( WPCD()->classes['WPCD_DNS'] ) ) {
@@ -169,7 +169,6 @@ function WPCD_DNS() {
 	return WPCD()->classes['WPCD_DNS'];
 }
 
-add_action( 'init', 'wpcd_init_vpn_app', -10, 1 );
 /**
  * Create a class var for WPCD_VPN_APP and
  * add it to the WPCD array of classes for management
@@ -181,6 +180,7 @@ add_action( 'init', 'wpcd_init_vpn_app', -10, 1 );
  * we need a process to have apps register their main
  * classes with WPCD and go from there.
  */
+add_action( 'init', 'wpcd_init_vpn_app', -10, 1 );
 function wpcd_init_vpn_app() {
 	if ( function_exists( 'WPCD' ) ) {
 		if ( class_exists( 'WPCD_VPN_APP' ) ) {
@@ -200,7 +200,6 @@ function WPCD_VPN_APP() {
 	return WPCD()->classes['WPCD_VPN_APP'];
 }
 
-add_action( 'init', 'wpcd_init_basic_server_app', -10, 1 );
 /**
  * Create a class var for WPCD_BASIC_SERVER_APP and
  * add it to the WPCD array of classes for management
@@ -212,6 +211,7 @@ add_action( 'init', 'wpcd_init_basic_server_app', -10, 1 );
  * we need a process to have apps register their main
  * classes with WPCD and go from there.
  */
+add_action( 'init', 'wpcd_init_basic_server_app', -10, 1 );
 function wpcd_init_basic_server_app() {
 	if ( function_exists( 'WPCD' ) ) {
 		if ( class_exists( 'WPCD_BASIC_SERVER_APP' ) ) {
@@ -231,7 +231,6 @@ function WPCD_BASIC_SERVER_APP() {
 	return WPCD()->classes['WPCD_BASIC_SERVER_APP'];
 }
 
-add_action( 'init', 'wpcd_init_stablediff_app', -10, 1 );
 /**
  * Create a class var for WPCD_STABLEDIFF_APP and
  * add it to the WPCD array of classes for management
@@ -243,6 +242,7 @@ add_action( 'init', 'wpcd_init_stablediff_app', -10, 1 );
  * we need a process to have apps register their main
  * classes with WPCD and go from there.
  */
+add_action( 'init', 'wpcd_init_stablediff_app', -10, 1 );
 function wpcd_init_stablediff_app() {
 	if ( function_exists( 'WPCD' ) ) {
 		if ( class_exists( 'WPCD_STABLEDIFF_APP' ) ) {
@@ -262,7 +262,6 @@ function WPCD_STABLEDIFF_APP() {
 	return WPCD()->classes['WPCD_STABLEDIFF_APP'];
 }
 
-add_action( 'init', 'wpcd_init_wordpress_app', -10, 1 );
 /**
  * Create a class var for WPCD_WORDPRESS_APP and
  * add it to the WPCD array of classes for management
@@ -274,6 +273,7 @@ add_action( 'init', 'wpcd_init_wordpress_app', -10, 1 );
  * we need a process to have apps register their main
  * classes with WPCD and go from there.
  */
+add_action( 'init', 'wpcd_init_wordpress_app', -10, 1 );
 function wpcd_init_wordpress_app() {
 	if ( function_exists( 'WPCD' ) ) {
 		if ( class_exists( 'WPCD_WORDPRESS_APP' ) ) {
@@ -444,11 +444,11 @@ function WPCD_POSTS_PERMISSION_TYPE() {
 	return WPCD()->classes['wpcd_posts_permission_type'];
 }
 
-add_action( 'init', 'wpcd_init_wpcd_server_statistics', -10, 1 );
 /**
  * Create a class var for WPCD_SERVER_STATISTICS and
  * add it to the WPCD array of classes for management
  */
+add_action( 'init', 'wpcd_init_wpcd_server_statistics', -10, 1 );
 function wpcd_init_wpcd_server_statistics() {
 	if ( function_exists( 'WPCD' ) ) {
 		if ( empty( WPCD()->classes['wpcd_server_statistics'] ) ) {
@@ -467,11 +467,11 @@ function WPCD_SERVER_STATISTICS() {
 	return WPCD()->classes['wpcd_server_statistics'];
 }
 
-add_action( 'init', 'wpcd_init_wpcd_data_sync_rest', -10, 1 );
 /**
  * Create a class var for WPCD_DATA_SYNC_REST and
  * add it to the WPCD array of classes for management
  */
+add_action( 'init', 'wpcd_init_wpcd_data_sync_rest', -10, 1 );
 function wpcd_init_wpcd_data_sync_rest() {
 	if ( function_exists( 'WPCD' ) ) {
 		if ( empty( WPCD()->classes['wpcd_data_sync_rest'] ) ) {
@@ -491,11 +491,11 @@ function WPCD_DATA_SYNC_REST() {
 }
 
 
-add_action( 'init', 'wpcd_init_wpcd_sync', -10, 1 );
 /**
  * Create a class var for WPCD_SYNC and
  * add it to the WPCD array of classes for management
  */
+add_action( 'init', 'wpcd_init_wpcd_sync', -10, 1 );
 function wpcd_init_wpcd_sync() {
 	if ( wpcd_data_sync_allowed() ) {
 		if ( function_exists( 'WPCD' ) ) {
@@ -516,11 +516,11 @@ function WPCD_SYNC() {
 	return WPCD()->classes['wpcd_sync'];
 }
 
-add_action( 'init', 'wpcd_init_wpcd_email_notifications', -10, 1 );
 /**
  * Create a class var for WPCD_EMAIL_NOTIFICATIONS and
  * add it to the WPCD array of classes for management
  */
+add_action( 'init', 'wpcd_init_wpcd_email_notifications', -10, 1 );
 function wpcd_init_wpcd_email_notifications() {
 	if ( wpcd_email_notifications_allowed() ) {
 		if ( function_exists( 'WPCD' ) ) {
@@ -541,8 +541,6 @@ function WPCD_EMAIL_NOTIFICATIONS() {
 	return WPCD()->classes['wpcd_email_notifications'];
 }
 
-add_action( 'init', 'wpcd_init_wordpress_app_public', -10, 1 );
-
 /**
  * Create a class var for WPCD_WORDPRESS_APP_PUBLIC and
  * add it to the WPCD array of classes for management
@@ -550,6 +548,7 @@ add_action( 'init', 'wpcd_init_wordpress_app_public', -10, 1 );
  * The WPCD_WORDPRESS_APP_PUBLIC class is used to handle all things
  * related to just front-end views/actions for servers and WordPress apps.
  */
+add_action( 'init', 'wpcd_init_wordpress_app_public', -10, 1 );
 function wpcd_init_wordpress_app_public() {
 	if ( function_exists( 'WPCD' ) ) {
 		if ( class_exists( 'WPCD_WORDPRESS_APP_PUBLIC' ) ) {
@@ -568,3 +567,30 @@ function wpcd_init_wordpress_app_public() {
 function WPCD_WORDPRESS_APP_PUBLIC() {
 	return WPCD()->classes['WPCD_WORDPRESS_APP_PUBLIC'];
 }
+
+
+
+/**
+ * Create a class var for WPCD_LOGTIVITY and
+ * add it to the WPCD array of classes for management
+ */
+add_action( 'init', 'wpcd_init_logtivity', -10, 1 );
+function wpcd_init_logtivity() {
+	if ( function_exists( 'WPCD' ) ) {
+		if ( class_exists( 'WPCD_LOGTIVITY' ) ) {
+			if ( empty( WPCD()->classes['WPCD_LOGTIVITY'] ) ) {
+				WPCD()->classes['WPCD_LOGTIVITY'] = new WPCD_LOGTIVITY();
+			}
+		}
+	}
+}
+
+/**
+ * Function for calling WPCD_LOGTIVITY methods and variables
+ *
+ * @return WPCD_LOGTIVITY;
+ */
+function WPCD_LOGTIVITY() {
+	return WPCD()->classes['WPCD_LOGTIVITY'];
+}
+

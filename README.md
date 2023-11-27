@@ -126,7 +126,7 @@ Note: Even though the entire git development history isn't available on github, 
 [Friendly Release Notes](https://wpclouddeploy.com/category/release-notes/)
 
 ## Change Log ##
-5.5.2
+5.6.0
 ------
 * New: WPAPP - REDIS now part of CORE plugin and is installed on all servers.
 * New: WPAPP - REDIS object cached enabled for all new sites.

@@ -126,6 +126,10 @@ Note: Even though the entire git development history isn't available on github, 
 [Friendly Release Notes](https://wpclouddeploy.com/category/release-notes/)
 
 ## Change Log ##
+5.6.1
+------
+* Tweak: WPAPP - PHP 8.0 is now shown with an orange border (caution) in the apps list (since 8.0 no longer receives security updates).
+
 5.6.0
 ------
 * New: WPAPP - REDIS now part of CORE plugin and is installed on all servers.

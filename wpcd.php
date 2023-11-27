@@ -3,7 +3,7 @@
 Plugin Name: WPCloudDeploy
 Plugin URI: https://wpclouddeploy.com
 Description: Deploy and manage cloud servers and apps from inside the WordPress Admin dashboard.
-Version: 5.5.1
+Version: 5.6.0
 Requires at least: 5.8
 Requires PHP: 7.4
 Item Id: 1493
@@ -430,9 +430,15 @@ class WPCD_Init {
 		require_once wpcd_path . 'includes/core/apps/class-wpcd-ssh.php';
 		require_once wpcd_path . 'includes/core/apps/class-wpcd-woocommerce.php';
 
+		// 3rd party optional integrations.
+		require_once wpcd_path . 'includes/core/integrations/class-logtivity.php';
+
+		// Handle admin notices.
 		if ( is_admin() ) {
 			require_once wpcd_path . 'includes/core/functions-handle-admin-notices.php';
 		}
+
+		// WPCD Better Crons.
 		require_once wpcd_path . 'includes/core/class-wpcd-better-crons.php';
 
 		/**
@@ -483,9 +489,16 @@ class WPCD_Init {
 			require_once wpcd_path . 'includes/core/apps/wordpress-app/class-wordpress-posts-update-plan-log.php';
 		}
 
-		require_once wpcd_path . 'includes/core/apps/wordpress-app/functions-classes-wordpress-app.php';
+		// Integrations for the WP APP.
+		require_once wpcd_path . 'includes/core/apps/wordpress-app/integrations/class-wordpress-app-logtivity.php';
 
+		// Remaining files for the WP APP.
+		require_once wpcd_path . 'includes/core/apps/wordpress-app/functions-classes-wordpress-app.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/public/class-wordpress-app-public.php';
+
+		/**
+		 * Remaining core files.
+		 */
 		require_once wpcd_path . 'includes/core/wp-cloud-deploy.php';
 		require_once wpcd_path . 'includes/core/class-wpcd-server.php';
 		require_once wpcd_path . 'includes/core/functions-classes.php';
@@ -570,6 +583,7 @@ class WPCD_Init {
 				$class = 'notice notice-error is-dismissible wpcd-php-version-check';
 				/* translators: %s php version */
 				$message = sprintf( __( '<strong>WPCloudDeploy plugin requires a PHP version greater or equal to "7.4.0". You are running %s.</strong>', 'wpcd' ), $php_version );
+				/* Translators: %2$s is a set of CSS classes; %2$s is a text message about the PHP version being incompatible. */
 				printf( '<div data-dismissible="notice-php-warning" class="%2$s"><p>%3$s</p></div>', wp_create_nonce( 'wpcd-admin-dismissible-notice' ), $class, $message );
 			}
 		}
@@ -581,6 +595,7 @@ class WPCD_Init {
 				if ( ! get_transient( 'wpcd_localhost_check' ) && is_object( $screen ) && in_array( $screen->post_type, $post_types, true ) ) {
 					$class   = 'notice notice-error is-dismissible wpcd-localhost-check';
 					$message = __( '<strong>You cannot run the WPCloudDeploy plugin on a localhost server or a server that cannot be reached from the internet.</strong>', 'wpcd' );
+					/* Translators: %2$s is a set of CSS classes; %2$s is a text message about wpcd not compatible with localhost installations. */
 					printf( '<div data-dismissible="notice-localhost-warning" class="%2$s"><p>%3$s</p></div>', wp_create_nonce( 'wpcd-admin-dismissible-notice' ), $class, $message );
 				}
 			}
@@ -590,6 +605,7 @@ class WPCD_Init {
 			$class = 'notice notice-error is-dismissible';
 			/* translators: %s read more */
 			$message = sprintf( __( '<strong>WPCD_ENCRYPTION_KEY</strong> is not defined in wp-config.php. We STRONGLY recommend that you define an encryption key in that file so that your passwords and private ssh key data can be more securely stored in the database!  In the meantime we have created a temporary key and stored it in your database. %s', 'wpcd' ), '<a href="https://wpclouddeploy.com/documentation/wpcloud-deploy-admin/wp-config-entries/" target=”_blank”>' . __( 'Read More', 'wpcd' ) . '</a>' );
+			/* Translators: %1$s is a set of CSS classes; %2$s is a text message about the encryption key being required in wp-config.php. */
 			printf( '<div class="%1$s"><p>%2$s</p></div>', $class, $message );
 		}
 
@@ -597,6 +613,7 @@ class WPCD_Init {
 			$class = 'notice notice-error is-dismissible';
 			/* translators: %s read more */
 			$message = sprintf( __( '<strong>WPCD_ENCRYPTION_KEY</strong> is defined in wp-config.php but is using the example key from our documentation. This is still insecure so we STRONGLY recommend that you set a new encryption key. %s', 'wpcd' ), '<a href="https://wpclouddeploy.com/documentation/wpcloud-deploy-admin/wp-config-entries/" target=”_blank”>' . __( 'Read More', 'wpcd' ) . '</a>' );
+			/* Translators: %1$s is a set of CSS classes; %2$s is a text message about the encryption key not being correct. */
 			printf( '<div class="%1$s"><p>%2$s</p></div>', $class, $message );
 		}
 
@@ -606,6 +623,7 @@ class WPCD_Init {
 			// means that default structure is in use which is no good for callbacks.
 			$class   = 'notice notice-error';
 			$message = __( 'Warning: WPCloudDeploy cannot use the WordPress default permalink. Please change the permalinks option to something other than <em>plain.</em> This can be done under the WordPress <strong>SETTINGS->Permalinks</strong> menu option.', 'wpcd' );
+			/* Translators: %1$s is a set of CSS classes; %2$s is a text message about permalinks not being set properly. */
 			printf( '<div class="%1$s"><p>%2$s</p></div>', $class, $message );
 		}
 
@@ -613,6 +631,7 @@ class WPCD_Init {
 		if ( ! get_transient( 'wpcd_readable_check' ) && is_object( $screen ) && in_array( $screen->post_type, $post_types, true ) ) {
 			$class   = 'notice notice-error is-dismissible wpcd-readability-check';
 			$message = __( '<strong>WPCD: Warning</strong> - The <em>includes/core/apps/wordpress-app/scripts/v1/raw/ </em> folder on your WordPress server does not allow text files to be read by browsers and other outside viewers. This folder contains the script files that we execute on your WordPress server. Please modify your web server configuration to allow .txt files in this folder to be readable. Otherwise, The WPCD plugin will not be able to manage your servers and sites. <br /><br /> Note that you CANNOT run this plugin on a local machine - it must be run on a server that is reachable from the public internet. <br /><br /> If you dismiss this message but do not resolve the issue, it will appear again in 12 hours. <br /><br /> <a href="" id="wpcd-check-again">Check Again</a>', 'wpcd' );
+			/* Translators: %1$s is a set of CSS classes; %2$s is a text message about the files that are not readable but should be. */
 			printf( '<div class="%1$s"><p>%2$s</p></div>', $class, $message );
 		}
 
@@ -624,6 +643,15 @@ class WPCD_Init {
 			$class            = 'notice notice-error is-dismissible wpcd-cron-check';
 			$not_loaded_crons = implode( ', ', $not_loaded_crons );
 			$message          = __( '<strong>WPCD: Warning</strong> - ' . $not_loaded_crons . ' cron(s) are not running.', 'wpcd' );
+			/* Translators: %1$s is a set of CSS classes; %2$s is a text message about crons that are not currently running. */
+			printf( '<div class="%1$s"><p>%2$s</p></div>', $class, $message );
+		}
+
+		// If our REDIS plugin is active, show a message since that's no longer necessary for REDIS functionality.
+		if ( class_exists( 'WPCD_Redis_Init' ) ) {
+			$class   = 'notice notice-error wpcd-redis-deprecation-check';
+			$message = __( '<strong>WPCD: Warning</strong> - The <em>REDIS</em> plugin for WPCloudDeploy is no longer required. Please deactivate it!', 'wpcd' );
+			/* Translators: %1$s is a set of CSS classes; %2$s is a text message about the REDIS plugin not being required. */
 			printf( '<div class="%1$s"><p>%2$s</p></div>', $class, $message );
 		}
 	}

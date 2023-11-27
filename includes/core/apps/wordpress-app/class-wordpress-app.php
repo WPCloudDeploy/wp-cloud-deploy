@@ -147,6 +147,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 		// Push commands and callbacks from sites.
 		add_action( "wpcd_{$this->get_app_name()}_command_schedule_site_sync_completed", array( &$this, 'push_command_schedule_site_sync' ), 10, 4 );  // When a scheduled site sync has started or ended.
+		add_action( "wpcd_{$this->get_app_name()}_command_install_logtivity_status_completed", array( &$this, 'push_command_install_logtivity_completed' ), 10, 4 );  // When logtivity has been installed.
 
 		// After server prepare action hooks.
 		$this->wpcd_after_server_prepare_action_hooks();
@@ -322,6 +323,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/phpmyadmin.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/6g_firewall.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/7g_firewall.php';
+		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/security.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/statistics.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/logs.php';
 		require_once wpcd_path . 'includes/core/apps/wordpress-app/tabs/wp-site-users.php';
@@ -751,7 +753,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	public static function get_wp_versions() {
 
 		// @SEE: https://wordpress.org/download/releases/
-		$versions          = array( 'latest', '6.3.2', '6.2.3', '6.1.4', '6.0.6', '5.9.8', '5.8.8', '5.7.10', '5.6.12', '5.5.13', '5.4.14', '5.3.16', '5.2.19', '5.1.17', '5.0.20', '4.9.24', '4.8.23', '4.7.27' );
+		$versions          = array( 'latest', '6.4.1', '6.3.2', '6.2.3', '6.1.4', '6.0.6', '5.9.8', '5.8.8', '5.7.10', '5.6.12', '5.5.13', '5.4.14', '5.3.16', '5.2.19', '5.1.17', '5.0.20', '4.9.24', '4.8.23', '4.7.27' );
 		$override_versions = wpcd_get_option( 'wordpress_app_allowed_wp_versions' );
 
 		if ( ! empty( $override_versions ) ) {
@@ -1302,7 +1304,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		if ( version_compare( $initial_plugin_version, '5.4.0' ) <= 0 ) {
 			// Versions of the plugin after 5.4.0 did not activate 6g (though the files were still added to the server).
 			return true;
-		}		
+		}
 
 		// If you got here, assume false.
 		return false;
@@ -2708,6 +2710,23 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				$server_provider = WPCD_SERVER()->get_server_provider( $server_id );
 				$temp_sub_domain = WPCD_DNS()->get_full_temp_domain();
 
+				/* Get some defaults froms settings so the popup can use - but only if it's used by wpcd admins. */
+				if ( wpcd_is_admin() ) {
+					$default_wp_user_id   = WPCD()->decrypt( wpcd_get_option( 'wordpress_app_default_wp_user_id' ) );
+					$default_wp_password  = WPCD()->decrypt( wpcd_get_option( 'wordpress_app_default_wp_password' ) );
+					$default_wp_email     = wpcd_get_option( 'wordpress_app_default_wp_email' );
+					$default_site_package = wpcd_get_option( 'wordpress_app_sites_default_site_package' );
+					if ( true === boolval( wpcd_get_option( 'wordpress_app_auto_gen_password' ) ) ) {
+						$default_wp_password = wpcd_generate_default_password();
+					}
+				} else {
+					$default_wp_user_id   = '';
+					$default_wp_password  = '';
+					$default_wp_email     = '';
+					$default_wp_password  = '';
+					$default_site_package = '';
+				}
+
 				/* Show the popup template*/
 				include apply_filters( "wpcd_{$this->get_app_name()}_install_app_popup", wpcd_path . 'includes/core/apps/wordpress-app/templates/install-app-popup.php' );
 
@@ -3399,6 +3418,13 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			$this->set_page_cache_status( $app_post_id, 'on' );
 
 			/**
+			 * Object caching is enabled by default for both NGINX and OLS in WPCD 5.5.2 and later.
+			 */
+			if ( $this->is_redis_installed( $server_id ) ) {
+				$this->set_app_redis_installed_status( $app_post_id, true );
+			}
+
+			/**
 			 * Set Quotas
 			 */
 			$this->set_site_disk_quota( $app_post_id, wpcd_get_option( 'wordpress_app_sites_default_new_site_disk_quota' ) );
@@ -3457,8 +3483,17 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		// Switch PHP version.
 		$this->handle_switch_php_version( $app_id, $instance );
 
-		// Install page_cache.
+		// Maybe disable page_cache.
 		$this->handle_page_cache_for_new_site( $app_id, $instance );
+
+		// Maybe disable redis object cache.
+		$this->handle_redis_object_cache_for_new_site( $app_id, $instance );
+
+		// Maybe activate solidwp security.
+		$this->handle_solidwp_security_for_new_site( $app_id, $instance );
+
+		// Maybe activate logtivity.
+		$this->handle_logtivity_for_new_site( $app_id, $instance );
 
 		// Handle site package rules.
 		$this->handle_site_package_rules( $app_id );
@@ -3776,6 +3811,30 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			}
 		}
 
+		// Activate SolidWP on the site.
+		if ( false === $is_subscription_switch ) {
+			$activate_solidwp_security = get_post_meta( $site_package_id, 'wpcd_site_package_activate_solidwp_security', true );
+			if ( true === (bool) $activate_solidwp_security ) {
+				do_action( 'wpcd_wordpress-app_do-activate_solidwp_security_for_site', $app_id, '' );
+			}
+		}
+
+		// Activate logtivity on the site.
+		if ( false === $is_subscription_switch ) {
+			$activate_logtivity = get_post_meta( $site_package_id, 'wpcd_site_package_activate_logtivity', true );
+			if ( true === (bool) $activate_logtivity ) {
+				do_action( 'wpcd_wordpress-app_do-activate_logtivity_for_site', $app_id, '' );
+			}
+		}
+
+		// Disable HTTP Authentication.
+		if ( false === $is_subscription_switch ) {
+			$disable_http_auth = get_post_meta( $site_package_id, 'wpcd_site_package_disable_http_auth', true );
+			if ( true === (bool) $disable_http_auth ) {
+				do_action( 'wpcd_wordpress-app_do_site_disable_http_auth', $app_id );
+			}
+		}
+
 		// Apply categories/groups to site.
 		if ( false === $is_subscription_switch ) {
 			$groups = get_post_meta( $site_package_id, 'wpcd_site_package_apply_categories_new_sites', true ); // taxomomy_advanced fields stores multiple values in a single comma delimited row so this will return a comma delimited string.
@@ -3791,14 +3850,12 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			}
 
 			// Remove groups - only happens for subscription switches.
-			// @TODO: This code does not work - wp_remove_object_terms throws a wp core error that I can't explain.
-			// Error being thrown is: Trying to access array offset on value of type null in /var/www/smi99.com/html/wp-includes/taxonomy.php on line 2966.
 			$groups = get_post_meta( $site_package_id, 'wpcd_site_package_remove_categories_subscription_switch', true ); // taxomomy_advanced fields stores multiple values in a single comma delimited row so this will return a comma delimited string.
 			if ( ! empty( $groups ) ) {
 				$groups = explode( ',', $groups );
 				$groups = array_values( $groups );
 				foreach ( $groups as $key => $group ) {
-					wp_remove_object_terms( (int) $app_id, $group, 'wpcd_app_group' );
+					wp_remove_object_terms( (int) $app_id, (int) $group, 'wpcd_app_group' );  // Casting to INT is very important otherwise this function doesn't work.
 				}
 			}
 		}
@@ -3913,7 +3970,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	}
 
 	/**
-	 * Add page cache when WP install is complete.
+	 * Disable page cache when WP install is complete.
 	 *
 	 * Called from function wpcd_wpapp_install_complete
 	 *
@@ -3923,12 +3980,62 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	public function handle_page_cache_for_new_site( $app_id, $instance ) {
 
 		if ( wpcd_get_option( 'wordpress_app_sites_disable_page_cache' ) ) {
-			$instance['action_hook'] = 'wpcd_pending_log_toggle_page_cache';
+			$instance['action_hook'] = 'wpcd_wordpress-app_pending_log_toggle_page_cache';
 			WPCD_POSTS_PENDING_TASKS_LOG()->add_pending_task_log_entry( $app_id, 'disable-page-cache', $app_id, $instance, 'ready', $app_id, __( 'Disable Page Cache For New Site', 'wpcd' ) );
 		}
 
 	}
 
+	/**
+	 * Remove redis object cache when WP install is complete.
+	 *
+	 * Called from function wpcd_wpapp_install_complete
+	 *
+	 * @param int   $app_id        post id of app.
+	 * @param array $instance      Array passed by calling function containing details of the server and site.
+	 */
+	public function handle_redis_object_cache_for_new_site( $app_id, $instance ) {
+
+		if ( wpcd_get_option( 'wordpress_app_sites_disable_redis_cache' ) ) {
+			$instance['action_hook'] = 'wpcd_wordpress-app_pending_log_toggle_redis_object_cache';
+			WPCD_POSTS_PENDING_TASKS_LOG()->add_pending_task_log_entry( $app_id, 'disable-redis-object-cache', $app_id, $instance, 'ready', $app_id, __( 'Disable Redis Object Cache For New Site', 'wpcd' ) );
+		}
+
+	}
+
+	/**
+	 * Activate Logtivity when WP install is complete.
+	 *
+	 * Called from function wpcd_wpapp_install_complete
+	 *
+	 * @param int   $app_id        post id of app.
+	 * @param array $instance      Array passed by calling function containing details of the server and site.
+	 */
+	public function handle_logtivity_for_new_site( $app_id, $instance ) {
+
+		if ( wpcd_get_option( 'wordpress_app_sites_activate_logtivity' ) ) {
+			$instance['action_hook'] = 'wpcd_wordpress-app_pending_log_activate_logtivity';
+			WPCD_POSTS_PENDING_TASKS_LOG()->add_pending_task_log_entry( $app_id, 'activate-logtivity', $app_id, $instance, 'ready', $app_id, __( 'Activate Logtivity On New Site', 'wpcd' ) );
+		}
+
+	}
+
+	/**
+	 * Activate SolidWP Security Pro when WP install is complete.
+	 *
+	 * Called from function wpcd_wpapp_install_complete
+	 *
+	 * @param int   $app_id        post id of app.
+	 * @param array $instance      Array passed by calling function containing details of the server and site.
+	 */
+	public function handle_solidwp_security_for_new_site( $app_id, $instance ) {
+
+		if ( wpcd_get_option( 'wordpress_app_sites_activate_solidwp_security' ) ) {
+			$instance['action_hook'] = 'wpcd_wordpress-app_pending_log_activate_solidwp_security';
+			WPCD_POSTS_PENDING_TASKS_LOG()->add_pending_task_log_entry( $app_id, 'activate-solidwp-security', $app_id, $instance, 'ready', $app_id, __( 'Activate SolidWP Security Pro On New Site', 'wpcd' ) );
+		}
+
+	}
 
 	/**
 	 * Create the server instance on the basis of the inputs.
@@ -4233,6 +4340,155 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		return WPCD()->classes['wpcd_app_wordpress_settings'];
 	}
 
+
+	/**
+	 * Sets the meta that indicates whether memcached is installed on a server.
+	 *
+	 * @param int    $server_id  The post id of the server or app.
+	 * @param string $status true/false.
+	 */
+	public function set_server_memcached_installed_status( $server_id, $status ) {
+
+		if ( true === $status ) {
+			update_post_meta( $server_id, 'wpcd_wpapp_memcached_installed', 'yes' );
+		} else {
+			update_post_meta( $server_id, 'wpcd_wpapp_memcached_installed', 'no' );
+		}
+
+	}
+
+	/**
+	 * Returns whether memcached is installed on a server.
+	 *
+	 * @param int $id  The post id of the server or app.
+	 */
+	public function is_memcached_installed( $id ) {
+		// What kind of id did we get?  App or server?
+		if ( 'wpcd_app' === get_post_type( $id ) ) {
+			$server_post = $this->get_server_by_app_id( $id );
+			if ( $server_post ) {
+				$server_id = $server_post->ID;
+			}
+		} elseif ( 'wpcd_app_server' === get_post_type( $id ) ) {
+			$server_id = $id;
+		}
+
+		$meta_status = get_post_meta( $server_id, 'wpcd_wpapp_memcached_installed', true );
+
+		if ( 'yes' === $meta_status ) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	/**
+	 * Set flag that indicates whether or not MEMCACHED is installed on a site.
+	 *
+	 * @param int         $app_id  The post id of the  app.
+	 * @param bool|string $status true/false or 'on'/'off'.
+	 */
+	public function set_app_memcached_installed_status( $app_id, $status ) {
+
+		if ( true === $status || 'on' === $status ) {
+			update_post_meta( $app_id, 'wpapp_memcached_status', 'on' );
+		} else {
+			update_post_meta( $app_id, 'wpapp_memcached_status', 'off' );
+		}
+
+	}
+
+	/**
+	 * Returns whether MEMCACHED is installed on a site.
+	 *
+	 * @param int $app_id  The post id of the app.
+	 */
+	public function get_app_is_memcached_installed( $app_id ) {
+
+		$meta_status = get_post_meta( $app_id, 'wpapp_memcached_status', true );
+
+		if ( 'on' === $meta_status ) {
+			return true;
+		} else {
+			return false;
+		}
+
+	}
+
+	/**
+	 * Sets the meta that indicates whether REDIS is installed on a server.
+	 *
+	 * @param int    $server_id  The post id of the server or app.
+	 * @param string $status true/false.
+	 */
+	public function set_server_redis_installed_status( $server_id, $status ) {
+
+		if ( true === $status ) {
+			update_post_meta( $server_id, 'wpcd_wpapp_redis_installed', 'yes' );
+		} else {
+			update_post_meta( $server_id, 'wpcd_wpapp_redis_installed', 'no' );
+		}
+
+	}
+
+	/**
+	 * Returns whether REDIS is installed on a server.
+	 *
+	 * @param int $id  The post id of the server or app.
+	 */
+	public function is_redis_installed( $id ) {
+		// What kind of id did we get?  App or server?
+		if ( 'wpcd_app' === get_post_type( $id ) ) {
+			$server_post = $this->get_server_by_app_id( $id );
+			if ( $server_post ) {
+				$server_id = $server_post->ID;
+			}
+		} elseif ( 'wpcd_app_server' === get_post_type( $id ) ) {
+			$server_id = $id;
+		}
+
+		$meta_status = get_post_meta( $server_id, 'wpcd_wpapp_redis_installed', true );
+
+		if ( 'yes' === $meta_status ) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	/**
+	 * Set flag that indicates whether or not REDIS is installed on a site.
+	 *
+	 * @param int         $app_id  The post id of the  app.
+	 * @param bool|string $status true/false or 'on'/'off'.
+	 */
+	public function set_app_redis_installed_status( $app_id, $status ) {
+
+		if ( true === $status || 'on' === $status ) {
+			update_post_meta( $app_id, 'wpapp_redis_status', 'on' );
+		} else {
+			update_post_meta( $app_id, 'wpapp_redis_status', 'off' );
+		}
+
+	}
+
+	/**
+	 * Returns whether REDIS is installed on a site.
+	 *
+	 * @param int $app_id  The post id of the app.
+	 */
+	public function get_app_is_redis_installed( $app_id ) {
+
+		$meta_status = get_post_meta( $app_id, 'wpapp_redis_status', true );
+
+		if ( 'on' === $meta_status ) {
+			return true;
+		} else {
+			return false;
+		}
+
+	}
+
 	/**
 	 * Returns the installed status of a service on the server.
 	 * Services includes things like nginx, mariadb, memcached etc.
@@ -4261,8 +4517,8 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		if ( $server_id ) {
 			switch ( $service ) {
 				case 'memcached':
-					$meta_status = get_post_meta( $server_id, 'wpcd_wpapp_memcached_installed', true );
-					if ( 'yes' == $meta_status ) {
+					$meta_status = $this->is_memcached_installed( $server_id );
+					if ( true === $meta_status ) {
 						$status = 'installed';
 					} else {
 						$status = 'not-installed';
@@ -4270,8 +4526,8 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 					break;
 
 				case 'redis':
-					$meta_status = get_post_meta( $server_id, 'wpcd_wpapp_redis_installed', true );
-					if ( 'yes' == $meta_status ) {
+					$meta_status = $this->is_redis_installed( $server_id );
+					if ( true === $meta_status ) {
 						$status = 'installed';
 					} else {
 						$status = 'not-installed';
@@ -4384,6 +4640,15 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 					'localhost_check_action'   => 'localhost_version_check',
 				)
 			);
+		}
+
+		// Enqueue CSS scripts for the SITE UPDATE & SITE HISTORY screens.
+		$screen     = get_current_screen();
+		$post_types = array( 'wpcd_app_update_log', 'wpcd_app_update_plan' );
+		if ( ( is_object( $screen ) && in_array( $screen->post_type, $post_types, true ) ) ) {
+
+			wp_enqueue_style( 'wpcd-wpapp-update-plans-css', wpcd_url . 'includes/core/apps/wordpress-app/assets/css/wpcd-wpapp-update-plans.css', array(), wpcd_scripts_version );
+
 		}
 
 	}

@@ -566,6 +566,11 @@ class WP_CLOUD_DEPLOY {
 		/* Inject custom css. */
 		$this->wpcd_inject_custom_css();
 
+		/* Do not allow auto-saves on any wpcd-screen. */
+		if ( is_object( $screen ) && wpcd_str_starts_with( $screen->post_type, 'wpcd_' ) ) {
+			wp_dequeue_script( 'autosave' );
+		}
+
 		/* Cloud Providers Screen - Uses the settings screen style sheet for now. */
 		if ( is_object( $screen ) && in_array( $screen->post_type, array( 'wpcd_cloud_provider' ) ) ) {
 			wp_enqueue_style( 'wpcd-admin-settings', wpcd_url . 'assets/css/wpcd-admin-settings.css', array(), wpcd_scripts_version );
@@ -990,10 +995,19 @@ class WP_CLOUD_DEPLOY {
 				'pass='                      => '(***private***)',
 				'remote_dbpass='             => '(***private***)',
 				'local_dbpass='              => '(***private***)',
+
+				'dns_cloudflare_api_token='   => '(***private***)',
+				'dns_cloudflare_api_key='     => '(***private***)',
+				'secret_key_manager_api_key=' => '(***private***)',
+				'git_token='                  => '(***private***)',
+				
 				'dns_cloudflare_api_token'   => '(***private***)',
 				'dns_cloudflare_api_key'     => '(***private***)',
 				'secret_key_manager_api_key' => '(***private***)',
 				'git_token'                  => '(***private***)',
+				
+				'logtivity_teams_api_key='   => '(***private***)',
+				'ubuntu_pro_token='          => '(***private***)',
 				"Updated the constant 'DB_PASSWORD' in the 'wp-config.php' file with the value " => '(***private***)' . PHP_EOL,
 
 			)

@@ -24,7 +24,12 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		add_filter( "wpcd_server_{$this->get_app_name()}_tab_action", array( $this, 'tab_action_server' ), 10, 3 );  // This filter has not been defined and called yet in classs-wordpress-app and might never be because we're using the one below.
 		add_filter( "wpcd_app_{$this->get_app_name()}_tab_action", array( $this, 'tab_action' ), 10, 3 );  // This filter says 'wpcd_app' because we're using the same functions for server details ajax tabs and app details ajax tabs.
 
-		add_action( "wpcd_command_{$this->get_app_name()}_completed", array( $this, 'command_completed' ), 10, 2 );
+		/* Run after-install commands for memcached and redis */
+		add_action( "wpcd_command_{$this->get_app_name()}_completed", array( $this, 'command_completed_memcached' ), 10, 2 );
+		add_action( "wpcd_command_{$this->get_app_name()}_completed", array( $this, 'command_completed_redis' ), 10, 2 );
+
+		/* Run after-install commands for activating ubuntu pro */
+		add_action( "wpcd_command_{$this->get_app_name()}_completed", array( $this, 'command_completed_ubuntu_pro' ), 10, 2 );
 
 		/* Pending Logs Background Task: Trigger refresh services. Hook: wpcd_wordpress-app_server_refresh_services. */
 		add_action( "wpcd_{$this->get_app_name()}_server_refresh_services", array( $this, 'pending_log_refresh_services_status' ), 10, 3 );
@@ -39,7 +44,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 	 * @param int    $id     The postID of the server cpt.
 	 * @param string $name   The name of the command.
 	 */
-	public function command_completed( $id, $name ) {
+	public function command_completed_memcached( $id, $name ) {
 
 		if ( get_post_type( $id ) !== 'wpcd_app_server' ) {
 			return;
@@ -65,6 +70,110 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 
 				// Update the meta on the server to indicate memcached is installed.
 				update_post_meta( $id, 'wpcd_wpapp_memcached_installed', 'yes' );
+
+				// Refresh services status metas for all services (except php).
+				$action = 'services_status_update';
+				$result = $this->refresh_services_status( $id, $action );
+			}
+		}
+
+		// remove the 'temporary' meta so that another attempt will run if necessary.
+		delete_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action_status" );  // Should really only exist on an app.
+		delete_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action" );  // Should really only exist on an app.
+		delete_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action_args" );  // Should really only exist on an app.
+		delete_post_meta( $id, "wpcd_server_{$this->get_app_name()}_action_status" );  // Should really only exist on a server.
+		delete_post_meta( $id, "wpcd_server_{$this->get_app_name()}_action" );  // Should really only exist on a server.
+		delete_post_meta( $id, "wpcd_server_{$this->get_app_name()}_action_args" );  // Should really only exist on a server.
+
+	}
+
+	/**
+	 * Called when a command completes.
+	 *
+	 * Action Hook: wpcd_command_{$this->get_app_name()}_completed
+	 *
+	 * @param int    $id     The postID of the server cpt.
+	 * @param string $name   The name of the command.
+	 */
+	public function command_completed_redis( $id, $name ) {
+
+		if ( get_post_type( $id ) !== 'wpcd_app_server' ) {
+			return;
+		}
+
+		// The name will have a format as such: command---domain---number.  For example: dry_run---cf1110.wpvix.com---905
+		// Lets tear it into pieces and put into an array.  The resulting array should look like this with exactly three elements.
+		// [0] => dry_run
+		// [1] => cf1110.wpvix.com
+		// [2] => 911
+		$command_array = explode( '---', $name );
+
+		// if the command is to install redis we need to make sure that we stamp the server record with the status indicating that redis was installed.
+		if ( 'install_redis' == $command_array[0] ) {
+
+			// Lets pull the logs.
+			$logs = $this->get_app_command_logs( $id, $name );
+
+			// Is the command successful?
+			$success = $this->is_ssh_successful( $logs, 'install_redis.txt' );
+
+			if ( true == $success ) {
+
+				// Update the meta on the server to indicate redis is installed.
+				update_post_meta( $id, 'wpcd_wpapp_redis_installed', 'yes' );
+
+				// Refresh services status metas for all services (except php).
+				$action = 'services_status_update';
+				$result = $this->refresh_services_status( $id, $action );
+
+			}
+		}
+
+		// remove the 'temporary' meta so that another attempt will run if necessary.
+		delete_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action_status" );  // Should really only exist on an app.
+		delete_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action" );  // Should really only exist on an app.
+		delete_post_meta( $id, "wpcd_app_{$this->get_app_name()}_action_args" );  // Should really only exist on an app.
+		delete_post_meta( $id, "wpcd_server_{$this->get_app_name()}_action_status" );  // Should really only exist on a server.
+		delete_post_meta( $id, "wpcd_server_{$this->get_app_name()}_action" );  // Should really only exist on a server.
+		delete_post_meta( $id, "wpcd_server_{$this->get_app_name()}_action_args" );  // Should really only exist on a server.
+
+	}
+
+	/**
+	 * Called when a command completes.
+	 *
+	 * Action Hook: wpcd_command_{$this->get_app_name()}_completed
+	 *
+	 * @param int    $id     The postID of the server cpt.
+	 * @param string $name   The name of the command.
+	 */
+	public function command_completed_ubuntu_pro( $id, $name ) {
+
+		if ( get_post_type( $id ) !== 'wpcd_app_server' ) {
+			return;
+		}
+
+		// The name will have a format as such: command---domain---number.  For example: dry_run---cf1110.wpvix.com---905
+		// Lets tear it into pieces and put into an array.  The resulting array should look like this with exactly three elements.
+		// [0] => dry_run
+		// [1] => cf1110.wpvix.com
+		// [2] => 911
+		$command_array = explode( '---', $name );
+
+		// if the command is to activate ubuntu pro we need to make sure that we stamp the server record with the status indicating that ubunut pro was activated.
+		if ( 'ubuntu_pro_apply_token' == $command_array[0] ) {
+
+			// Lets pull the logs.
+			$logs = $this->get_app_command_logs( $id, $name );
+
+			// Is the command successful?
+			$success = $this->is_ssh_successful( $logs, 'ubuntu_pro_activate.txt' );
+
+			if ( true === $success ) {
+
+				// Update the meta on the server to indicate ubuntu pro was successfully activated.
+				$this->set_ubuntu_pro_status( $id, true );
+
 			}
 		}
 
@@ -183,6 +292,22 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 				case 'ufw-state-toggle':
 					$result = $this->do_ufw_toggle( $id, $action );
 					break;
+				case 'redis-do-install':
+					$action = 'install_redis'; // script expects this action keyword.
+					$result = $this->do_redis_install( $id, $action );
+					break;
+				case 'redis-restart':
+					$action = 'redis_restart'; // script expects this action keyword.
+					$result = $this->manage_redis( $id, $action );
+					break;
+				case 'redis-clear-cache':
+					$action = 'redis_clear'; // script expects this action keyword.
+					$result = $this->manage_redis( $id, $action );
+					break;
+				case 'redis-remove':
+					$action = 'remove_redis'; // script expects this action keyword.
+					$result = $this->manage_redis( $id, $action );
+					break;
 				case 'memcached-do-install':
 					$action = 'install_memcached'; // script expects this action keyword.
 					$result = $this->do_memcached_install( $id, $action );
@@ -272,7 +397,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 				case 'php-server-activate-php80':
 				case 'php-server-activate-php81':
 				case 'php-server-activate-php82':
-						$result = $this->do_php_activation_toggle( $id, $action );
+					$result = $this->do_php_activation_toggle( $id, $action );
 					break;
 				case 'php-server-deactivate-php56':
 				case 'php-server-deactivate-php70':
@@ -283,7 +408,16 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 				case 'php-server-deactivate-php80':
 				case 'php-server-deactivate-php81':
 				case 'php-server-deactivate-php82':
-						$result = $this->do_php_activation_toggle( $id, $action );
+					$result = $this->do_php_activation_toggle( $id, $action );
+					break;
+				case 'ubuntu-pro-toggle':
+					// Is ubuntu pro enabled or disabled?
+					$ubuntu_pro_status = $this->get_ubuntu_pro_status( $id );
+					if ( false === $ubuntu_pro_status ) {
+						$result = $this->activate_ubuntu_pro( $id, $action );
+					} else {
+						$result = $this->deactivate_ubuntu_pro( $id, $action );
+					}
 					break;
 			}
 		}
@@ -316,6 +450,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		$default_status   = __( 'Installed - Click REFRESH SERVICES to get running status.', 'wpcd' );
 		$webserver_status = $default_status;
 		$mariadb_status   = $default_status;
+		$redis_status     = $default_status;
 		$memcached_status = $default_status;
 		$ufw_status       = $default_status;
 
@@ -339,13 +474,16 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			if ( isset( $services_status['ufw'] ) ) {
 				$ufw_status = $services_status['ufw'];
 			}
+			if ( isset( $services_status['redis'] ) ) {
+				$redis_status = $services_status['redis'];
+			}
 		}
 
 		// Set up metabox items.
 		$actions = array();
 
 		$actions['services-header'] = array(
-			'label'          => __( 'Services', 'wpcd' ),
+			'label'          => '<i class="fa-duotone fa-bell-concierge"></i> ' . __( 'Services', 'wpcd' ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
 				'desc' => __( 'Control the Core Services that allow your application(s) to run.', 'wpcd' ),
@@ -355,7 +493,8 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		$actions['services-status-update'] = array(
 			'label'          => '',
 			'raw_attributes' => array(
-				'std' => __( 'Refresh Services Status', 'wpcd' ),
+				/* Translators: %s is a fontawesome or similar icon. */
+				'std' => sprintf( __( '%s Refresh Services Status', 'wpcd' ), '<i class="fa-solid fa-arrows-rotate"></i>' ),
 			),
 			'type'           => 'button',
 		);
@@ -369,7 +508,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		);
 
 		$actions['services-status-header'] = array(
-			'label'          => __( 'Core Services Status', 'wpcd' ),
+			'label'          => '<i class="fa-duotone fa-lighthouse"></i> ' . __( 'Core Services Status', 'wpcd' ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
 				'desc' => '',
@@ -384,7 +523,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			'raw_attributes' => array(
 				/* Translators: %s is the web server type eg, NGINX, OLS etc. */
 				'std'     => sprintf( __( '%s Web Server', 'wpcd' ), $webserver_type_name ),
-				'columns' => wpcd_get_early_option( 'wordpress_app_hide_notes_on_server_services_tab' ) ? 4 : 3,
+				'columns' => wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ? 3 : 4,
 			),
 			'type'           => 'custom_html',
 		);
@@ -393,7 +532,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			'label'          => __( 'Status', 'wpcd' ),
 			'raw_attributes' => array(
 				'std'     => $webserver_status,
-				'columns' => wpcd_get_early_option( 'wordpress_app_hide_notes_on_server_services_tab' ) ? 5 : 2,
+				'columns' => wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ? 2 : 5,
 			),
 			'type'           => 'custom_html',
 		);
@@ -401,13 +540,13 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		$actions['web-server-restart'] = array(
 			'label'          => __( 'Actions', 'wpcd' ),
 			'raw_attributes' => array(
-				'std'     => __( 'Restart', 'wpcd' ),
-				'columns' => wpcd_get_early_option( 'wordpress_app_hide_notes_on_server_services_tab' ) ? 3 : 2,
+				'std'     => $this->get_restart_button_label(),
+				'columns' => wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ? 2 : 3,
 			),
 			'type'           => 'button',
 		);
 
-		if ( ! wpcd_get_early_option( 'wordpress_app_hide_notes_on_server_services_tab' ) ) {
+		if ( wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ) {
 			$actions['web-server-desc'] = array(
 				'label'          => __( 'Notes', 'wpcd' ),
 				'raw_attributes' => array(
@@ -424,7 +563,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			'label'          => '',
 			'raw_attributes' => array(
 				'std'     => __( 'MariaDB', 'wpcd' ),
-				'columns' => wpcd_get_early_option( 'wordpress_app_hide_notes_on_server_services_tab' ) ? 4 : 3,
+				'columns' => wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ? 3 : 4,
 			),
 			'type'           => 'custom_html',
 		);
@@ -433,7 +572,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			'label'          => '',
 			'raw_attributes' => array(
 				'std'     => $mariadb_status,
-				'columns' => wpcd_get_early_option( 'wordpress_app_hide_notes_on_server_services_tab' ) ? 5 : 2,
+				'columns' => wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ? 2 : 5,
 			),
 			'type'           => 'custom_html',
 		);
@@ -441,13 +580,13 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		$actions['db-server-restart'] = array(
 			'label'          => '',
 			'raw_attributes' => array(
-				'std'     => __( 'Restart', 'wpcd' ),
-				'columns' => wpcd_get_early_option( 'wordpress_app_hide_notes_on_server_services_tab' ) ? 3 : 2,
+				'std'     => $this->get_restart_button_label(),
+				'columns' => wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ? 2 : 3,
 			),
 			'type'           => 'button',
 		);
 
-		if ( ! wpcd_get_early_option( 'wordpress_app_hide_notes_on_server_services_tab' ) ) {
+		if ( wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ) {
 			$actions['db-server-desc'] = array(
 				'label'          => '',
 				'raw_attributes' => array(
@@ -459,93 +598,119 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			);
 		};
 
-		/* Memcached */
-		$mc_desc  = __( 'Memcached is an OBJECT cache service that can help speed up duplicated database queries.  Once the service is installed here, you can activate it for each site that needs it.', 'wpcd' );
-		$mc_desc .= '<br />';
-		/* translators: %s is a string "Memcached and Redis Object Caches" and is handled separately. */
-		$mc_desc .= sprintf( __( 'Learn more about %s', 'wpcd' ), '<a href="https://scalegrid.io/blog/redis-vs-memcached-2021-comparison/">' . __( 'Memcached and Redis Object Caches', 'wpcd' ) . '</a>' );
+		$actions['core-services-divider-after'] = array(
+			'raw_attributes' => array(
+				'std' => '<hr/>',
+			),
+			'type'           => 'custom_html',
+		);
 
-		$actions['memcached-status-header'] = array(
-			'label'          => __( 'Memcached', 'wpcd' ),
+		/* Redis */
+		if ( $this->is_redis_installed( $id ) ) {
+			$redis_desc = __( 'High-performance object cache.', 'wpcd' );
+		} else {
+			$redis_desc  = __( 'Redis is an OBJECT cache service that can help speed up duplicated database queries.  Once the service is installed here, you can activate it for each site that needs it.', 'wpcd' );
+			$redis_desc .= '<br />';
+			/* Translators: %s is an external link to more information about redis and memcached caches. */
+			$redis_desc .= sprintf( __( 'Learn more about %s', 'wpcd' ), '<a href="https://scalegrid.io/blog/redis-vs-memcached-2021-comparison/">' . __( 'Redis and MemCached Object Caches', 'wpcd' ) . '</a>' );
+		}
+
+		$actions['redis-status-header'] = array(
+			'label'          => '<i class="fa-duotone fa-objects-column"></i> ' . __( 'Redis', 'wpcd' ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
-				'desc' => $mc_desc,
+				'desc' => $redis_desc,
 			),
 		);
 
-		if ( 'yes' !== get_post_meta( $id, 'wpcd_wpapp_memcached_installed', true ) ) {
-			// Memcached not installed so show only install button.
-			$actions['memcached-do-install'] = array(
-				'label'          => '',
+		if ( false === $this->is_redis_installed( $id ) ) {
+			// Redis not installed so show only install button.
+			$actions['redis-do-install'] = array(
+				'label'          => __( '', 'wpcd' ),
 				'raw_attributes' => array(
-					'std'                 => __( 'Install MemCached', 'wpcd' ),
-					'desc'                => __( 'It appears that MemCached is not installed on this server.  Click the button to start the installation process.', 'wpcd' ), // make sure we give the user a confirmation prompt.
-					'confirmation_prompt' => __( 'Are you sure you would like to install the MemCached service?', 'wpcd' ),
+					'std'                 => __( 'Install Redis', 'wpcd' ),
+					'desc'                => __( 'It appears that Redis is not installed on this server.  Click the button to start the installation process.', 'wpcd' ),                   // make sure we give the user a confirmation prompt
+					'confirmation_prompt' => __( 'Are you sure you would like to install the REDIS service?', 'wpcd' ),
 					// show log console?
 					'log_console'         => true,
 					// Initial console message.
-					'console_message'     => __( 'Preparing to install the MemCached service!<br /> Please DO NOT EXIT this screen until you see a popup message indicating that the installation has been completed or has errored.<br />This terminal should refresh every 60-90 seconds with updated progress information from the server. <br /> After the installation is complete the entire log can be viewed in the COMMAND LOG screen.', 'wpcd' ),
+					'console_message'     => __( 'Preparing to install the REDIS service!<br /> Please DO NOT EXIT this screen until you see a popup message indicating that the installation has been completed or has errored.<br />This terminal should refresh every 60-90 seconds with updated progress information from the server. <br /> After the installation is complete the entire log can be viewed in the COMMAND LOG screen.', 'wpcd' ),
 				),
 				'type'           => 'button',
 			);
 		} else {
-			// memcached is installed so show status and options to disable and enable.
-
-			$actions['memcached-label'] = array(
+			// Redis is installed so show status and options to disable and enable.
+			$actions['redis-label'] = array(
 				'label'          => __( 'Service', 'wpcd' ),
 				'raw_attributes' => array(
-					'std'     => __( 'MemCached', 'wpcd' ),
+					'std'     => __( 'Redis', 'wpcd' ),
 					'columns' => 3,
 				),
 				'type'           => 'custom_html',
 			);
 
-			$actions['memcached-status'] = array(
+			$actions['redis-status'] = array(
 				'label'          => __( 'Status', 'wpcd' ),
 				'raw_attributes' => array(
-					'std'     => $memcached_status,
-					'columns' => wpcd_get_early_option( 'wordpress_app_hide_notes_on_server_services_tab' ) ? 5 : 2,
+					'std'     => $redis_status,
+					'columns' => wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ? 2 : 5,
 				),
 				'type'           => 'custom_html',
 			);
 
-			$actions['memcached-restart'] = array(
+			$actions['redis-restart'] = array(
 				'label'          => __( 'Actions', 'wpcd' ),
 				'raw_attributes' => array(
-					'std'     => __( 'Restart', 'wpcd' ),
-					'columns' => wpcd_get_early_option( 'wordpress_app_hide_notes_on_server_services_tab' ) ? 2 : 1,
+					'std'     => $this->get_restart_button_label(),
+					'columns' => wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ? 1 : 2,
 				),
 				'type'           => 'button',
 			);
 
-			$actions['memcached-clear_cache'] = array(
+			$actions['redis-clear-cache'] = array(
 				'label'          => __( 'Clear', 'wpcd' ),
 				'raw_attributes' => array(
-					'std'     => __( 'Clear Cache', 'wpcd' ),
-					'columns' => wpcd_get_early_option( 'wordpress_app_hide_notes_on_server_services_tab' ) ? 2 : 1,
+					/* Translators: %s is a fontawesome or similar icon. */
+					'std'     => sprintf( __( '%s Clear Cache', 'wpcd' ), '<i class="fa-solid fa-trash-xmark"></i>' ),
+					'columns' => wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ? 1 : 2,
 				),
 				'type'           => 'button',
 			);
 
-			if ( ! wpcd_get_early_option( 'wordpress_app_hide_notes_on_server_services_tab' ) ) {
-				$actions['memcached-desc'] = array(
+			if ( wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ) {
+				$actions['redis-desc'] = array(
 					'label'          => __( 'Notes', 'wpcd' ),
 					'raw_attributes' => array(
-						'std'     => '',
+						'std'     => __( '', 'wpcd' ),
 						'desc'    => __( 'Clearing the cache clears it for all sites on this server.', 'wpcd' ),
 						'columns' => 5,
 					),
 					'type'           => 'custom_html',
 				);
-			};
+			}
 
-			$actions['memcached-remove'] = array(
-				'label'          => __( 'Remove MemCached', 'wpcd' ),
+			$actions['redis-divider-before-remove-option'] = array(
 				'raw_attributes' => array(
-					'std'               => __( 'Un-Install MemCached', 'wpcd' ),
-					'label_description' => __( 'Please make sure none of your sites have MemCached enabled before removing it from the server!', 'wpcd' ),
+					'std' => '<hr/>',
+				),
+				'type'           => 'custom_html',
+			);
+
+			$actions['redis-remove'] = array(
+				'label'          => __( 'Remove Redis', 'wpcd' ),
+				'raw_attributes' => array(
+					/* Translators: %s is a fontawesome or similar icon. */
+					'std'               => sprintf( __( '%s Un-Install Redis', 'wpcd' ), '<i class="fa-solid fa-trash-can-slash"></i>' ),
+					'label_description' => __( 'Please verify that none of your sites have Redis enabled before removing it from the server!', 'wpcd' ),
 				),
 				'type'           => 'button',
+			);
+
+			$actions['redis-divider-after-remove-option'] = array(
+				'raw_attributes' => array(
+					'std' => '<hr/>',
+				),
+				'type'           => 'custom_html',
 			);
 
 		}
@@ -559,7 +724,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		$ufw_desc  = __( 'You can manage ports on the FIREWALL tab.', 'wpcd' );
 
 		$actions['ufw-status-header'] = array(
-			'label'          => __( 'UFW Firewall', 'wpcd' ),
+			'label'          => '<i class="fa-duotone fa-block-brick-fire"></i> ' . __( 'UFW Firewall', 'wpcd' ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
 				'desc' => $ufw_desc,
@@ -580,7 +745,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			'label'          => __( 'Status', 'wpcd' ),
 			'raw_attributes' => array(
 				'std'     => $ufw_status,
-				'columns' => wpcd_get_early_option( 'wordpress_app_hide_notes_on_server_services_tab' ) ? 5 : 2,
+				'columns' => wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ? 2 : 5,
 			),
 			'type'           => 'custom_html',
 		);
@@ -588,8 +753,8 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		$actions['ufw-restart'] = array(
 			'label'          => __( 'Actions', 'wpcd' ),
 			'raw_attributes' => array(
-				'std'     => __( 'Restart', 'wpcd' ),
-				'columns' => wpcd_get_early_option( 'wordpress_app_hide_notes_on_server_services_tab' ) ? 2 : 1,
+				'std'     => $this->get_restart_button_label(),
+				'columns' => wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ? 1 : 2,
 			),
 			'type'           => 'button',
 		);
@@ -602,12 +767,12 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 				'on_label'  => __( 'Enabled', 'wpcd' ),
 				'off_label' => __( 'Disabled', 'wpcd' ),
 				'std'       => ( 'on' === $ufw_toggle_state ? true : false ),
-				'columns'   => wpcd_get_early_option( 'wordpress_app_hide_notes_on_server_services_tab' ) ? 2 : 1,
+				'columns'   => wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ? 1 : 2,
 			),
 			'type'           => 'switch',
 		);
 
-		if ( ! wpcd_get_early_option( 'wordpress_app_hide_notes_on_server_services_tab' ) ) {
+		if ( wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ) {
 			$actions['ufw-desc'] = array(
 				'label'          => __( 'Notes', 'wpcd' ),
 				'raw_attributes' => array(
@@ -643,9 +808,11 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			$smtp_usestarttls = $gateway_data['usestarttls'];
 			$smtp_note        = $gateway_data['note'];
 
-			$smtp_gateway_button_txt = __( 'Reinstall Email Gateway', 'wpcd' );
-			$eg_desc                .= '<br /><br />';
-			$eg_desc                .= __( 'The email gateway has already been installed. You can reinstall it with new parameters by clicking the reinstall button below.', 'wpcd' );
+			/* Translators: %s is a fontawesome or similar icon. */
+			$smtp_gateway_button_txt = sprintf( __( '%s Reinstall Email Gateway', 'wpcd' ), '<i class="fa-solid fa-rectangle-history-circle-plus"></i>' );
+
+			$eg_desc .= '<br /><br />';
+			$eg_desc .= __( 'The email gateway has already been installed. You can reinstall it with new parameters by clicking the reinstall button below.', 'wpcd' );
 
 		} else {
 			$smtp_server      = '';
@@ -657,12 +824,13 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			$smtp_usestarttls = 'YES';
 			$smtp_note        = '';
 
-			$smtp_gateway_button_txt = __( 'Install Email Gateway', 'wpcd' );
+			/* Translators: %s is a fontawesome or similar icon. */
+			$smtp_gateway_button_txt = sprintf( __( '%s Install Email Gateway', 'wpcd' ), '<i class="fa-solid fa-rectangle-history-circle-plus"></i>' );
 		}
 
 		// email gateway form fields.
 		$actions['email-gateway-header'] = array(
-			'label'          => __( 'Email Gateway', 'wpcd' ),
+			'label'          => '<i class="fa-duotone fa-inbox-out"></i> ' . __( 'Email Gateway', 'wpcd' ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
 				'desc' => $eg_desc,
@@ -853,9 +1021,203 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			);
 		}
 
+		/* Memcached */
+		if ( $this->is_memcached_installed( $id ) ) {
+			$mc_desc = __( 'A performance-oriented object cache.', 'wpcd' );
+		} else {
+			$mc_desc  = __( 'Memcached is an OBJECT cache service that can help speed up duplicated database queries.  Once the service is installed here, you can activate it for each site that needs it.', 'wpcd' );
+			$mc_desc .= '<br />';
+			/* translators: %s is a string "Memcached and Redis Object Caches" and is handled separately. */
+			$mc_desc .= sprintf( __( 'Learn more about %s', 'wpcd' ), '<a href="https://scalegrid.io/blog/redis-vs-memcached-2021-comparison/">' . __( 'Memcached and Redis Object Caches', 'wpcd' ) . '</a>' );
+		}
+
+		$actions['memcached-status-header'] = array(
+			'label'          => '<i class="fa-duotone fa-object-intersect"></i> ' . __( 'Memcached', 'wpcd' ),
+			'type'           => 'heading',
+			'raw_attributes' => array(
+				'desc' => $mc_desc,
+			),
+		);
+
+		if ( 'yes' !== get_post_meta( $id, 'wpcd_wpapp_memcached_installed', true ) ) {
+			// Memcached not installed so show only install button.
+			$actions['memcached-do-install'] = array(
+				'label'          => '',
+				'raw_attributes' => array(
+					'std'                 => __( 'Install MemCached', 'wpcd' ),
+					'desc'                => __( 'It appears that MemCached is not installed on this server.  Click the button to start the installation process.', 'wpcd' ), // make sure we give the user a confirmation prompt.
+					'confirmation_prompt' => __( 'Are you sure you would like to install the MemCached service?', 'wpcd' ),
+					// show log console?
+					'log_console'         => true,
+					// Initial console message.
+					'console_message'     => __( 'Preparing to install the MemCached service!<br /> Please DO NOT EXIT this screen until you see a popup message indicating that the installation has been completed or has errored.<br />This terminal should refresh every 60-90 seconds with updated progress information from the server. <br /> After the installation is complete the entire log can be viewed in the COMMAND LOG screen.', 'wpcd' ),
+				),
+				'type'           => 'button',
+			);
+		} else {
+			// memcached is installed so show status and options to disable and enable.
+
+			$actions['memcached-label'] = array(
+				'label'          => __( 'Service', 'wpcd' ),
+				'raw_attributes' => array(
+					'std'     => __( 'MemCached', 'wpcd' ),
+					'columns' => 3,
+				),
+				'type'           => 'custom_html',
+			);
+
+			$actions['memcached-status'] = array(
+				'label'          => __( 'Status', 'wpcd' ),
+				'raw_attributes' => array(
+					'std'     => $memcached_status,
+					'columns' => wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ? 2 : 5,
+				),
+				'type'           => 'custom_html',
+			);
+
+			$actions['memcached-restart'] = array(
+				'label'          => __( 'Actions', 'wpcd' ),
+				'raw_attributes' => array(
+					'std'     => $this->get_restart_button_label(),
+					'columns' => wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ? 1 : 2,
+				),
+				'type'           => 'button',
+			);
+
+			$actions['memcached-clear_cache'] = array(
+				'label'          => __( 'Clear', 'wpcd' ),
+				'raw_attributes' => array(
+					/* Translators: %s is a fontawesome or similar icon. */
+					'std'     => sprintf( __( '%s Clear Cache', 'wpcd' ), '<i class="fa-solid fa-trash-xmark"></i>' ),
+					'columns' => wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ? 1 : 2,
+				),
+				'type'           => 'button',
+			);
+
+			if ( wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ) {
+				$actions['memcached-desc'] = array(
+					'label'          => __( 'Notes', 'wpcd' ),
+					'raw_attributes' => array(
+						'std'     => '',
+						'desc'    => __( 'Clearing the cache clears it for all sites on this server.', 'wpcd' ),
+						'columns' => 5,
+					),
+					'type'           => 'custom_html',
+				);
+			};
+
+			$actions['memcached-divider-before-remove-option'] = array(
+				'raw_attributes' => array(
+					'std' => '<hr/>',
+				),
+				'type'           => 'custom_html',
+			);
+
+			$actions['memcached-remove'] = array(
+				'label'          => __( 'Remove MemCached', 'wpcd' ),
+				'raw_attributes' => array(
+					/* Translators: %s is a fontawesome or similar icon. */
+					'std'               => sprintf( __( '%s Un-Install Memcached', 'wpcd' ), '<i class="fa-solid fa-trash-can-slash"></i>' ),
+					'label_description' => __( 'Please verify that none of your sites have MemCached enabled before removing it from the server!', 'wpcd' ),
+				),
+				'type'           => 'button',
+			);
+
+			$actions['memcached-divider-after-remove-option'] = array(
+				'raw_attributes' => array(
+					'std' => '<hr/>',
+				),
+				'type'           => 'custom_html',
+			);
+
+		}
+
 		/* PHP Processes */
 		if ( 'nginx' === $webserver_type ) {
 			$actions = array_merge( $actions, $this->get_php_fields( $id ) );
+		}
+
+		/* Ubuntu PRO Fields */
+		$actions = array_merge( $actions, $this->get_ubuntupro_fields( $id ) );
+
+		return $actions;
+
+	}
+
+	/**
+	 * Gets the fields for the UBUNTU PRO section to be shown in the SERVICES tab in the server details screen.
+	 *
+	 * @param int $id the post id of the app cpt record.
+	 *
+	 * @return array Array of actions with key as the action slug and value complying with the structure necessary by metabox.io fields.
+	 */
+	private function get_ubuntupro_fields( $id ) {
+
+		// Set up metabox items.
+		$actions = array();
+
+		// Is ubuntu pro enabled or disabled?
+		$ubuntu_pro_status = $this->get_ubuntu_pro_status( $id );
+
+		// Header description depending on state of ubuntu pro.
+		if ( true === $ubuntu_pro_status ) {
+			$desc = __( 'Ubuntu Pro is enabled on this server. Click the toggle to disable it.', 'wpcd' );
+		} else {
+			$desc = __( 'Ubuntu Pro is not enabled on this server. Enter your UBUNTU PRO token and click the toggle to enable it.', 'wpcd' );
+		}
+
+		$actions['services-status-ubunutu-pro'] = array(
+			'label'          => '<i class="fa-duotone fa-umbrella"></i> ' . __( 'Ubuntu Pro', 'wpcd' ),
+			'type'           => 'heading',
+			'raw_attributes' => array(
+				'desc' => $desc,
+			),
+		);
+
+		if ( true === $ubuntu_pro_status ) {
+			// Show ubuntu pro toggle switch - it should be ON right now.
+			$actions['ubuntu-pro-toggle'] = array(
+				'label'          => '',
+				'raw_attributes' => array(
+					'on_label'            => __( 'Enabled', 'wpcd' ),
+					'off_label'           => __( 'Disabled', 'wpcd' ),
+					'std'                 => ( $ubuntu_pro_status ? true : false ),
+					'confirmation_prompt' => $ubuntu_pro_status ? __( 'Are you sure you would like to disable Ubuntu Pro?', 'wpcd' ) : __( 'Are you sure you would like to enable Ubuntu Pro?', 'wpcd' ),
+				),
+				'type'           => 'switch',
+			);
+
+		} else {
+			// Add in field to collect ubuntu pro token.
+			$actions['services-status-ubuntu-pro-token'] = array(
+				'label'          => __( 'Ubuntu Pro Token', 'wpcd' ),
+				'type'           => 'text',
+				'raw_attributes' => array(
+					'tooltip'        => __( 'The Ubuntu Pro token to be applied to this server.', 'wpcd' ),
+					'columns'        => 6,
+					// the key of the field (the key goes in the request).
+					'data-wpcd-name' => 'ubuntu_pro_token',
+				),
+			);
+
+			// Show ubuntu pro toggle switch - it should be OFF right now.
+			$actions['ubuntu-pro-toggle'] = array(
+				'label'          => '',
+				'raw_attributes' => array(
+					'on_label'            => __( 'Enabled', 'wpcd' ),
+					'off_label'           => __( 'Disabled', 'wpcd' ),
+					'std'                 => ( $ubuntu_pro_status ? true : false ),
+					// show log console?
+					'log_console'         => true,
+					// Initial console message.
+					'console_message'     => __( 'Preparing to manage Ubuntu PRO on this server!<br /> Please DO NOT EXIT this screen until you see a popup message indicating that the installation has been completed or has errored.<br />This terminal should refresh every 60-90 seconds with updated progress information from the server. <br /> After the installation is complete the entire log can be viewed in the COMMAND LOG screen.', 'wpcd' ),
+					// make sure we give the user a confirmation prompt.
+					'confirmation_prompt' => __( 'Are you sure you would like to enable Ubuntu Pro?', 'wpcd' ),
+					'data-wpcd-fields'    => wp_json_encode( array( '#wpcd_app_action_services-status-ubuntu-pro-token' ) ),
+				),
+				'type'           => 'switch',
+			);
+
 		}
 
 		return $actions;
@@ -942,7 +1304,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		}
 
 		$actions['services-status-php'] = array(
-			'label'          => __( 'PHP Processes', 'wpcd' ),
+			'label'          => '<i class="fa-duotone fa-arrow-progress"></i> ' . __( 'PHP Processes', 'wpcd' ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
 				'desc' => '',
@@ -952,7 +1314,8 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		$actions['services-status-update-php'] = array(
 			'label'          => '',
 			'raw_attributes' => array(
-				'std' => __( 'Refresh PHP Services Status', 'wpcd' ),
+				/* Translators: %s is a fontawesome or similar icon. */
+				'std' => sprintf( __( '%s Refresh PHP Services', 'wpcd' ), '<i class="fa-solid fa-arrows-rotate"></i>' ),
 			),
 			'type'           => 'button',
 		);
@@ -992,7 +1355,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 				$actions[ "php-server-restart-$services_key" ] = array(
 					'label'          => '',
 					'raw_attributes' => array(
-						'std'     => __( 'Restart', 'wpcd' ),
+						'std'     => $this->get_restart_button_label(),
 						'columns' => 3,
 					),
 					'type'           => 'button',
@@ -1081,7 +1444,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		}
 
 		$actions['maldet-header'] = array(
-			'label'          => __( 'Malware & Virus Scanner', 'wpcd' ),
+			'label'          => '<i class="fa-duotone fa-virus-slash"></i> ' . __( 'Malware & Virus Scanner', 'wpcd' ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
 				'desc' => $desc,
@@ -1106,7 +1469,8 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			$actions['maldet-install'] = array(
 				'label'          => '',
 				'raw_attributes' => array(
-					'std'                 => __( 'Install', 'wpcd' ),
+					/* Translators: %s is a fontawesome or similar icon. */
+					'std'                 => sprintf( __( '%s Install', 'wpcd' ), '<i class="fa-solid fa-grid-2-plus"></i>' ),
 					// make sure we give the user a confirmation prompt.
 					'confirmation_prompt' => __( 'Are you sure you would like to install the Malware Scanner?', 'wpcd' ),
 					'data-wpcd-fields'    => wp_json_encode( array( '#wpcd_app_action_maldet-install-to-id' ) ),
@@ -1183,7 +1547,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 				'label'          => '',
 				'raw_attributes' => array(
 					'std'                 => __( 'Purge', 'wpcd' ),
-					// make sure we give the user a confirmation prompt.
+					/* make sure we give the user a confirmation prompt. */
 					'confirmation_prompt' => __( 'Are you sure that you would like Maldet to purge the historical scan data from the server?', 'wpcd' ),
 					'columns'             => 2,
 					'tooltip'             => __( 'This option causes Maldet to clear logs, quarantine queue, session and temporary data on the server', 'wpcd' ),
@@ -1196,8 +1560,9 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		$actions['maldet-clear-history'] = array(
 			'label'          => '',
 			'raw_attributes' => array(
-				'std'                 => __( 'Clear History', 'wpcd' ),
-				// make sure we give the user a confirmation prompt.
+				/* Translators: %s is a fontawesome or similar icon. */
+				'std'                 => sprintf( __( '%s Clear History', 'wpcd' ), '<i class="fa-solid fa-trash-xmark"></i>' ),
+				/* make sure we give the user a confirmation prompt. */
 				'confirmation_prompt' => __( 'Delete malware scan history?', 'wpcd' ),
 				'columns'             => 2,
 			),
@@ -1207,8 +1572,9 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		$actions['maldet-clear-all-metas'] = array(
 			'label'          => '',
 			'raw_attributes' => array(
-				'std'                 => __( 'Clear All Metas', 'wpcd' ),
-				// make sure we give the user a confirmation prompt.
+				/* Translators: %s is a fontawesome or similar icon. */
+				'std'                 => sprintf( __( '%s Clear All Metas', 'wpcd' ), '<i class="fa-solid fa-trash-xmark"></i>' ),
+				/* make sure we give the user a confirmation prompt. */
 				'confirmation_prompt' => __( 'Are you sure you would like to clear all Malware metas including history?', 'wpcd' ),
 				'columns'             => 2,
 			),
@@ -1230,6 +1596,115 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		);
 
 		return $actions;
+
+	}
+
+
+	/**
+	 * Install Redis via SSH
+	 *
+	 * @param int    $id         The postID of the server cpt.
+	 * @param string $action     The action to be performed (this matches the string required in the bash scripts if bash scripts are used).
+	 *
+	 * @return boolean  success/failure/other
+	 */
+	private function do_redis_install( $id, $action ) {
+
+		// Get data about the server.
+		$instance = $this->get_server_instance_details( $id );
+
+		// Bail if error.
+		if ( is_wp_error( $instance ) ) {
+			/* translators: %s is replaced with the internal action name. */
+			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the server instance details for action %s', 'wpcd' ), $action ) );
+		}
+
+		// Setup unique command name.
+		$command               = sprintf( '%s---%s---%d', $action, $domain, time() );
+		$instance['command']   = $command;
+		$instance['app_id']    = $id;   // @todo - this is not really the app id - need to test to see if the process will work without this array element.
+		$instance['server_id'] = $id;
+
+		// construct the run command.
+		$run_cmd = $this->turn_script_into_command(
+			$instance,
+			'install_redis.txt',
+			array(
+				'command' => $command,
+				'action'  => $action,
+				'domain'  => $domain,
+			)
+		);
+
+		// double-check just in case of errors.
+		if ( empty( $run_cmd ) || is_wp_error( $run_cmd ) ) {
+			/* translators: %s is replaced with the internal action name. */
+			return new \WP_Error( sprintf( __( 'Something went wrong - we are unable to construct a proper command for this action - %s', 'wpcd' ), $action ) );
+		}
+
+		/**
+		 * Run the constructed commmand
+		 * Check out the write up about the different aysnc methods we use
+		 * here: https://wpclouddeploy.com/documentation/wpcloud-deploy-dev-notes/ssh-execution-models/
+		 */
+		$return = $this->run_async_command_type_2( $id, $command, $run_cmd, $instance, $action );
+
+		return $return;
+	}
+
+
+	/**
+	 * Restart redis or clear the cache
+	 *
+	 * @param int    $id         The postID of the server cpt.
+	 * @param string $action     The action to be performed (this matches the string required in the bash scripts if bash scripts are used).
+	 *
+	 * @return boolean success/failure/other
+	 */
+	private function manage_redis( $id, $action ) {
+
+		// Get data about the server.
+		$instance = $this->get_server_instance_details( $id );
+
+		if ( is_wp_error( $instance ) ) {
+			/* translators: %s is replaced with the internal action name. */
+			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
+		}
+
+		// Get the domain we're working on.
+		$domain = $this->get_domain_name( $id );
+
+		// Get the full command to be executed by ssh.
+		$run_cmd = $this->turn_script_into_command(
+			$instance,
+			'manage_redis.txt',
+			array(
+				'action' => $action,
+				'domain' => $domain,
+			)
+		);
+
+		// log.
+		do_action( 'wpcd_log_error', sprintf( 'attempting to run command for %s = %s ', print_r( $instance, true ), $run_cmd ), 'debug', __FILE__, __LINE__, $instance, true );
+
+		// execute and evaluate results.
+		$result  = $this->execute_ssh( 'generic', $instance, array( 'commands' => $run_cmd ) );
+		$success = $this->is_ssh_successful( $result, 'manage_redis.txt' );
+		if ( ! $success ) {
+			return new \WP_Error( sprintf( __( 'Unable to perform action %1$s for server: %2$s', 'wpcd' ), $action, $result ) );
+		} else {
+			if ( 'redis_clear' == $action ) {
+				return new \WP_Error( __( 'The REDIS cache has been cleared!', 'wpcd' ) );
+			} elseif ( 'redis_restart' == $action ) {
+				return new \WP_Error( __( 'The REDIS server has been restarted!', 'wpcd' ) );
+			} elseif ( 'remove_redis' == $action ) {
+				// Remove the meta indicating redis is installed.
+				delete_post_meta( $id, 'wpcd_wpapp_redis_installed' );
+				return new \WP_Error( __( 'The REDIS server has been removed!', 'wpcd' ) );
+			}
+		}
+
+		return $result;
 
 	}
 
@@ -1358,22 +1833,11 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			}
 		}
 
-		// get memcached status.
-		if ( 'yes' === get_post_meta( $id, 'wpcd_wpapp_memcached_installed', true ) ) {
-			$command    = 'sudo service memcached status';
-			$raw_status = $this->submit_generic_server_command( $id, $action, $command, true );
-			if ( is_wp_error( $raw_status ) ) {
-				$services_status['memcached'] = __( 'still unknown - last status request errored', 'wpcd' );
-			} else {
-				if ( strpos( $raw_status, 'Active: active (running)' ) !== false ) {
-					$services_status['memcached'] = 'running';
-				} else {
-					$services_status['memcached'] = 'errored';
-				}
-			}
-		} else {
-			$services_status['memcached'] = __( 'MemCached does not appear to be installed as of the last time the services status was refreshed. Did you recently install it?', 'wpcd' );
-		}
+		// Get redis status.
+		$services_status = $this->set_redis_status_in_status_array( $id, $action, $services_status );
+
+		// Get memcached status.
+		$services_status = $this->set_memcached_status_in_status_array( $id, $action, $services_status );
 
 		// Allow plugins to store their data in the array as well.
 		$services_status = apply_filters( 'wpcd_wpapp_server_services_status', $services_status, $id, $action );
@@ -1389,6 +1853,72 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		);
 
 		return $result;
+
+	}
+
+	/**
+	 * Set the REDIS status in the passed array.
+	 *
+	 * This is a helper function for refresh_services_status() above
+	 * to help reduce the size of that function.
+	 *
+	 * @param int|string $id Post id of server record.
+	 * @param string     $action The action to be performed (this matches the string required in the bash scripts if bash scripts are used ).
+	 * @param array      $services_status array to be updated.
+	 */
+	public function set_redis_status_in_status_array( $id, $action, $services_status ) {
+
+		// Get redis status.
+		if ( $this->is_redis_installed( $id ) ) {
+			$command    = 'sudo service redis status';
+			$raw_status = $this->submit_generic_server_command( $id, $action, $command, true );
+			if ( is_wp_error( $raw_status ) ) {
+				$services_status['redis'] = __( 'still unknown - last status request errored', 'wpcd' );
+			} else {
+				if ( strpos( $raw_status, 'Active: active (running)' ) !== false ) {
+					$services_status['redis'] = 'running';
+				} else {
+					$services_status['redis'] = 'errored';
+				}
+			}
+		} else {
+			$services_status['redis'] = __( 'REDIS does not appear to be installed as of the last time the services status was refreshed. Did you recently install it?', 'wpcd' );
+		}
+
+		return $services_status;
+
+	}
+
+	/**
+	 * Set the MEMCACHED status in the passed array.
+	 *
+	 * This is a helper function for refresh_services_status() above
+	 * to help reduce the size of that function.
+	 *
+	 * @param int|string $id Post id of server record.
+	 * @param string     $action The action to be performed (this matches the string required in the bash scripts if bash scripts are used ).
+	 * @param array      $services_status array to be updated.
+	 */
+	public function set_memcached_status_in_status_array( $id, $action, $services_status ) {
+
+		// Get Memcached status.
+		if ( $this->is_memcached_installed( $id ) ) {
+			$command    = 'sudo service memcached status';
+			$raw_status = $this->submit_generic_server_command( $id, $action, $command, true );
+			if ( is_wp_error( $raw_status ) ) {
+				$services_status['memcached'] = __( 'still unknown - last status request errored', 'wpcd' );
+			} else {
+				if ( strpos( $raw_status, 'Active: active (running)' ) !== false ) {
+					$services_status['memcached'] = 'running';
+				} else {
+					$services_status['memcached'] = 'errored';
+				}
+			}
+		} else {
+			$services_status['memcached'] = __( 'MemCached does not appear to be installed as of the last time the services status was refreshed. Did you recently install it?', 'wpcd' );
+		}
+
+		return $services_status;
 
 	}
 
@@ -1672,7 +2202,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 					$return_msg = __( 'PHP Service Enabled!', 'wpcd' );
 					break;
 				case 'php_version_disable':
-				$this->set_php_activation_state( $id, $php_key, 'disabled' );
+					$this->set_php_activation_state( $id, $php_key, 'disabled' );
 					$return_msg = __( 'PHP Service Disabled!', 'wpcd' );
 					break;
 			}
@@ -1796,7 +2326,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 	/**
 	 * Figure out the state of the firewall
 	 *
-	 * @param int $id id.
+	 * @param int $id The ID of the server post that we're working with.
 	 *
 	 * @return string|boolean 'on', 'off' or 'false'
 	 */
@@ -1820,6 +2350,33 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		}
 
 		return $ufw_toggle_state;
+
+	}
+
+	/**
+	 * Set whether ubuntu pro is enabled or disabled on this server.
+	 *
+	 * @param int     $id The ID of the server post that we're working with.
+	 * @param boolean $status true/false.
+	 *
+	 * @return boolean.
+	 */
+	public function set_ubuntu_pro_status( $id, $status ) {
+
+		return update_post_meta( $id, 'wpcd_wpapp_ubuntu_pro_status', $status );
+
+	}
+
+	/**
+	 * Figure out whether ubuntu pro is enabled or disabled on this server.
+	 *
+	 * @param int $id The ID of the server post that we're working with.
+	 *
+	 * @return boolean.
+	 */
+	public function get_ubuntu_pro_status( $id ) {
+
+		return (bool) get_post_meta( $id, 'wpcd_wpapp_ubuntu_pro_status', true );
 
 	}
 
@@ -2341,6 +2898,127 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 
 	}
 
+
+	/**
+	 * Activate Ubuntu Pro.
+	 *
+	 * @param int    $id         The postID of the server cpt.
+	 * @param string $action     The action to be performed (this matches the string required in the bash scripts if bash scripts are used).
+	 *
+	 * @return boolean  success/failure/other
+	 */
+	private function activate_ubuntu_pro( $id, $action ) {
+
+		// Get data about the server.
+		$instance = $this->get_server_instance_details( $id );
+
+		// Bail if error.
+		if ( is_wp_error( $instance ) ) {
+			/* translators: %s is replaced with the internal action name. */
+			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the server instance details for action %s', 'wpcd' ), $action ) );
+		}
+
+		// Get args.
+		$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
+
+		// Make sure required fields have been provided and return error if not.
+		if ( empty( $args['ubuntu_pro_token'] ) ) {
+			return new \WP_Error( __( 'Unable to complete setup - no Ubuntu Pro Token was provided.', 'wpcd' ) );
+		} else {
+			// Data has been provided so sanitize it.
+			$args['ubuntu_pro_token']          = wp_kses( $args['ubuntu_pro_token'], array() );
+			$args['ubuntu_pro_token_original'] = $args['ubuntu_pro_token'];
+			$args['ubuntu_pro_token']          = escapeshellarg( $args['ubuntu_pro_token'] );
+		}
+
+		// Setup unique command name.
+		$action                = 'ubuntu_pro_apply_token';
+		$domain                = 'no-domain';
+		$command               = sprintf( '%s---%s---%d', $action, $domain, time() );
+		$instance['command']   = $command;
+		$instance['app_id']    = $id;   // @todo - this is not really the app id - need to test to see if the process will work without this array element.
+		$instance['server_id'] = $id;
+
+		// construct the run command.
+		$run_cmd = $this->turn_script_into_command(
+			$instance,
+			'ubuntu_pro_activate.txt',
+			array_merge(
+				$args,
+				array(
+					'command' => $command,
+					'action'  => $action,
+					'domain'  => $domain,
+				)
+			)
+		);
+
+		// double-check just in case of errors.
+		if ( empty( $run_cmd ) || is_wp_error( $run_cmd ) ) {
+			/* translators: %s is replaced with the internal action name. */
+			return new \WP_Error( sprintf( __( 'Something went wrong - we are unable to construct a proper command for this action - %s', 'wpcd' ), $action ) );
+		}
+
+		/**
+		 * Run the constructed commmand
+		 * Check out the write up about the different aysnc methods we use
+		 * here: https://wpclouddeploy.com/documentation/wpcloud-deploy-dev-notes/ssh-execution-models/
+		 */
+		$return = $this->run_async_command_type_2( $id, $command, $run_cmd, $instance, $action );
+
+		return $return;
+	}
+
+	/**
+	 * Deactivate Ubuntu Pro.
+	 *
+	 * @param int    $id         The postID of the server cpt.
+	 * @param string $action     The action to be performed.
+	 *
+	 * @return boolean success/failure/other
+	 */
+	private function deactivate_ubuntu_pro( $id, $action ) {
+
+		// Get data about the server.
+		$instance = $this->get_server_instance_details( $id );
+
+		if ( is_wp_error( $instance ) ) {
+			/* translators: %s is replaced with the internal action name. */
+			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
+		}
+
+		// Get the full command to be executed by ssh.
+		$action  = 'ubuntu_pro_remove_token';
+		$run_cmd = $this->turn_script_into_command(
+			$instance,
+			'ubuntu_pro_actions.txt',
+			array(
+				'action'      => $action,
+				'php_version' => (string) $php_version,
+			)
+		);
+
+		// log.
+		// phpcs:ignore
+		do_action( 'wpcd_log_error', sprintf( 'attempting to run command for %s = %s ', print_r( $instance, true ), $run_cmd ), 'trace', __FILE__, __LINE__, $instance, false );
+
+		// execute and evaluate results.
+		$result  = $this->execute_ssh( 'generic', $instance, array( 'commands' => $run_cmd ) );
+		$success = $this->is_ssh_successful( $result, 'ubuntu_pro_actions.txt' );
+		if ( ! $success ) {
+			/* translators: %1$s is replaced with the internal action name; %2$s is replaced with the result of the call, usually an error message. */
+			return new \WP_Error( sprintf( __( 'Unable to perform action %1$s for server: %2$s', 'wpcd' ), $action, $result ) );
+		} else {
+			// Tag the server record with the new ubuntu pro status.
+			$this->set_ubuntu_pro_status( $id, false );
+			$return_msg = __( 'Ubuntu Pro has been deactivated and detached from its account.', 'wpcd' );
+			return new \WP_Error( $return_msg );
+		}
+
+		return $result;
+
+	}
+
 	/**
 	 * Take the most current data about malware scanning and format it for a nice display
 	 *
@@ -2545,6 +3223,16 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 
 	}
 
+	/**
+	 * Returns a label that will show up on any button that is used to restart a service.
+	 * It includes a fontawesome icon.
+	 */
+	public function get_restart_button_label() {
+
+		/* Translators: %s is a fontawesome or similar icon. */
+		return sprintf( __( '%s Restart', 'wpcd' ), '<i class="fa-sharp fa-solid fa-clock-rotate-left"></i> ' );
+
+	}
 
 }
 

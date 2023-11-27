@@ -24,10 +24,13 @@ class WPCD_WORDPRESS_TABS_TOOLS extends WPCD_WORDPRESS_TABS {
 		add_filter( "wpcd_app_{$this->get_app_name()}_tab_action", array( $this, 'tab_action' ), 10, 3 );
 
 		// Allow the clear_background_processes action to be triggered via an action hook.
-		add_action( 'wpcd_wordpress-app_clear_background_processes', array( $this, 'clear_background_processes' ), 10, 2 );
+		add_action( "wpcd_{$this->get_app_name()}_clear_background_processes", array( $this, 'clear_background_processes' ), 10, 2 ); // Hook:wpcd_wordpress-app_clear_background_processes.
+
+		// Allow the reset_permissions action to be triggered via an action hook.
+		add_action( "wpcd_{$this->get_app_name()}_reset_file_permissions", array( $this, 'do_reset_file_permissions_action' ), 10, 2 ); // Hook:wpcd_wordpress-app_reset_file_permissions.
 
 		// Allow update wp site option action to be triggered via an action hook.
-		add_action( "wpcd_{$this->get_app_name()}_update_wp_site_option", array( $this, 'do_update_wp_site_option_action' ), 10, 2 ); // Hook:wpcd_wordpress-app_update_wp_site_option
+		add_action( "wpcd_{$this->get_app_name()}_update_wp_site_option", array( $this, 'do_update_wp_site_option_action' ), 10, 2 ); // Hook:wpcd_wordpress-app_update_wp_site_option.
 
 	}
 
@@ -165,6 +168,10 @@ class WPCD_WORDPRESS_TABS_TOOLS extends WPCD_WORDPRESS_TABS {
 					$action = 'reset_permissions';
 					$result = $this->reset_file_permissions( $id, $action );
 					break;
+				case 'tools-reset-site-file-permissions-alt':
+					$action = 'reset_permissions_alt';
+					$result = $this->reset_file_permissions( $id, $action );
+					break;
 				case 'tools-wp-site-option':
 					$action = 'wp_site_update_option';
 					$result = $this->update_wp_site_option( $id, $action );
@@ -255,7 +262,7 @@ class WPCD_WORDPRESS_TABS_TOOLS extends WPCD_WORDPRESS_TABS {
 		);
 
 		/* RESET SITE PERMISSIONS */
-		$actions['tools-edd-reset-site-permissions-header'] = array(
+		$actions['tools-reset-site-permissions-header'] = array(
 			'label'          => __( 'Reset file permissions', 'wpcd' ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
@@ -377,6 +384,24 @@ class WPCD_WORDPRESS_TABS_TOOLS extends WPCD_WORDPRESS_TABS {
 				'confirmation_prompt' => __( 'Are you sure you would like to update this site option?', 'wpcd' ),
 				// fields that contribute data for this action.
 				'data-wpcd-fields'    => json_encode( array( '#wpcd_app_action_tools-wp-site-option-name', '#wpcd_app_action_tools-wp-site-option-value' ) ),
+			),
+			'type'           => 'button',
+		);
+
+		/* RESET SITE PERMISSIONS - ALT */
+		$actions['tools-reset-site-permissions-header-alt'] = array(
+			'label'          => __( 'Reset file permissions (Alternative)', 'wpcd' ),
+			'type'           => 'heading',
+			'raw_attributes' => array(
+				'desc' => __( 'Sometimes you might need a more restrictive set of file permissions compared to the WPCD defaults.  Use this to reset permissions to: 644 for files and 775 for folders. Warning: some non-critical operations might fail when these are enabled.', 'wpcd' ),
+			),
+		);
+
+		$actions['tools-reset-site-file-permissions-alt'] = array(
+			'label'          => '',
+			'raw_attributes' => array(
+				'std'                 => __( 'Reset', 'wpcd' ),
+				'confirmation_prompt' => __( 'Are you sure you would like to reset the file permissions for this website?', 'wpcd' ),
 			),
 			'type'           => 'button',
 		);
@@ -626,10 +651,11 @@ class WPCD_WORDPRESS_TABS_TOOLS extends WPCD_WORDPRESS_TABS {
 	 *
 	 * @param int    $id     The postID of the app cpt.
 	 * @param string $action The action to be performed (this matches the string required in the bash scripts).
+	 * @param array  $in_args Alternative source of arguments passed via action hook or direct function call instead of pulling from $_POST.
 	 *
 	 * @return boolean|WP_Error    success/failure
 	 */
-	private function reset_file_permissions( $id, $action ) {
+	private function reset_file_permissions( $id, $action, $in_args = array() ) {
 
 		$instance = $this->get_app_instance_details( $id );
 
@@ -774,6 +800,18 @@ class WPCD_WORDPRESS_TABS_TOOLS extends WPCD_WORDPRESS_TABS {
 	 */
 	public function do_update_wp_site_option_action( $id, $args ) {
 		$this->update_wp_site_option( $id, 'wp_site_update_option', $args );
+	}
+
+	/**
+	 * Trigger the reset file permissions action from an action hook.
+	 *
+	 * Action Hook: wpcd_{$this->get_app_name()}_reset_file_permissions | wpcd_wordpress-app_reset_file_permissions
+	 *
+	 * @param string $id ID of app where domain change has to take place.
+	 * @param array  $args array arguments that the add admin function needs.
+	 */
+	public function do_reset_file_permissions_action( $id, $args ) {
+		$this->reset_file_permissions( $id, 'reset_permissions', $args );
 	}
 
 }

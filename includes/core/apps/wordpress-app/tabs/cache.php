@@ -26,8 +26,11 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 
 		add_action( "wpcd_command_{$this->get_app_name()}_completed", array( $this, 'command_completed' ), 10, 2 );
 
-		/* Pending Logs Background Task: Install our page cache on a site */
-		add_action( 'wpcd_pending_log_toggle_page_cache', array( $this, 'toggle_page_cache' ), 10, 3 );
+		/* Pending Logs Background Task: Toggle the page cache on a site */
+		add_action( 'wpcd_wordpress-app_pending_log_toggle_page_cache', array( $this, 'pending_log_toggle_page_cache' ), 10, 3 );
+
+		/* Pending Logs Background Task: Toggle the redis object cache on a site */
+		add_action( 'wpcd_wordpress-app_pending_log_toggle_redis_object_cache', array( $this, 'pending_log_toggle_redis_object_cache' ), 10, 3 );
 
 	}
 
@@ -114,7 +117,7 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 		}
 
 		/* Now verify that the user can perform actions on this screen, assuming that they can view the server */
-		$valid_actions = array( 'site-toggle-memcached', 'site-toggle-memcached-local-value', 'site-toggle-pagecache', 'site-clear-pagecache' );
+		$valid_actions = array( 'site-toggle-redis', 'site-toggle-redis-local-value', 'site-toggle-memcached', 'site-toggle-memcached-local-value', 'site-toggle-pagecache', 'site-clear-pagecache' );
 		if ( in_array( $action, $valid_actions, true ) ) {
 			if ( ! $this->get_tab_security( $id ) ) {
 				return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
@@ -122,11 +125,28 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 		}
 		if ( $this->get_tab_security( $id ) ) {
 			switch ( $action ) {
+				case 'site-toggle-redis':
+					// What is the status of redis?
+					$redis_status = $this->get_app_is_redis_installed( $id );
+					if ( empty( $redis_status ) ) {
+						$redis_status = 'off';
+					} else {
+						$redis_status = 'on';
+					}
+					// toggle it.
+					$result = $this->enable_disable_redis( $redis_status === 'on' ? 'disable' : 'enable', $id );
+					break;
+				case 'site-toggle-redis-local-value':
+					$result = $this->toggle_local_status_redis( $id );
+					break;
+
 				case 'site-toggle-memcached':
 					// What is the status of memcached?
-					$mc_status = get_post_meta( $id, 'wpapp_memcached_status', true );
+					$mc_status = $this->get_app_is_memcached_installed( $id );
 					if ( empty( $mc_status ) ) {
 						$mc_status = 'off';
+					} else {
+						$mc_status = 'on';
 					}
 					// toggle it.
 					$result = $this->enable_disable_memcached( 'on' === $mc_status ? 'disable' : 'enable', $id );
@@ -245,7 +265,7 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 
 		// What type of web server are we running?
 		$webserver_type      = $this->get_web_server_type( $id );
-		$webserver_type_name = $this->get_web_server_description_by_id( $id );		
+		$webserver_type_name = $this->get_web_server_description_by_id( $id );
 
 		// Get the domain we're working on.
 		$domain = $this->get_domain_name( $id );
@@ -282,6 +302,116 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 				'msg'     => $success_msg,
 				'refresh' => 'yes',
 			);
+		}
+
+		return $result;
+
+	}
+
+	/**
+	 * Enable/Disable redis for a site
+	 *
+	 * @param string $action The action key to send to the bash script.  This is actually the key of the drop-down select.
+	 * @param int    $id the id of the app post being handled.
+	 *
+	 * @return boolean|object Can return wp_error, true/false
+	 */
+	public function enable_disable_redis( $action, $id ) {
+
+		// Get the instance details.
+		$instance = $this->get_app_instance_details( $id );
+
+		// Bail if error.
+		if ( is_wp_error( $instance ) ) {
+			/* Translators: %s is an internal action name. */
+			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
+		}
+
+		// Get the domain we're working on.
+		$domain = $this->get_domain_name( $id );
+
+		// Get the full command to be executed by ssh.
+		$run_cmd = $this->turn_script_into_command(
+			$instance,
+			'manage_redis.txt',
+			array(
+				'command' => $command,
+				'action'  => $action,
+				'domain'  => $domain,
+			)
+		);
+
+		// log.
+		// @codingStandardsIgnoreLine - added to ignore the print_r in the line below when linting with PHPcs.
+		do_action( 'wpcd_log_error', sprintf( 'attempting to run command for %s = %s ', print_r( $instance, true ), $run_cmd ), 'debug', __FILE__, __LINE__, $instance, true );
+
+		// execute and evaluate results.
+		$result  = $this->execute_ssh( 'generic', $instance, array( 'commands' => $run_cmd ) );
+		$success = $this->is_ssh_successful( $result, 'manage_redis.txt' );
+		if ( ! $success ) {
+			/* Translators: %1$s is an internal action name. %2$s is an error message. */
+			return new \WP_Error( sprintf( __( 'Unable to perform action %1$s for site: %2$s', 'wpcd' ), $action, $result ) );
+		}
+
+		// Now that we know we're successful, lets update a meta indicating the status of memcached on the site.
+		if ( 'enable' === $action ) {
+			$this->set_app_redis_installed_status( $id, true );
+		} elseif ( 'disable' === $action ) {
+			$this->set_app_redis_installed_status( $id, false );
+		}
+
+		// Success message and force refresh.
+		if ( ! is_wp_error( $result ) ) {
+			if ( 'enable' === $action ) {
+				$success_msg = __( 'REDIS has been enabled for this site.', 'wpcd' );
+			} else {
+				$success_msg = __( 'REDIS has been disabled for this site.', 'wpcd' );
+			}
+			$result = array(
+				'msg'     => $success_msg,
+				'refresh' => 'yes',
+			);
+		}
+
+		return $result;
+
+	}
+
+	/**
+	 * Toggle local status for Redis
+	 *
+	 * @param int $id the id of the app post being handled.
+	 *
+	 * @return boolean|object Can return wp_error, true/false
+	 */
+	public function toggle_local_status_redis( $id ) {
+
+		// get current local redis status.
+		$redis_status = $this->get_app_is_redis_installed( $id );
+		if ( empty( $redis_status ) ) {
+			$redis_status = 'off';
+		} else {
+			$redis_status = 'on';
+		}
+
+		// whats the new status going to be?
+		if ( 'on' === $redis_status ) {
+			$new_redis_status = 'off';
+		} else {
+			$new_redis_status = 'on';
+		}
+
+		// update it.
+		$this->set_app_redis_installed_status( $id, $new_redis_status );
+
+		// Force refresh?
+		if ( ! is_wp_error( $result ) ) {
+			$result = array(
+				'msg'     => __( 'The local REDIS status has been toggled.', 'wpcd' ),
+				'refresh' => 'yes',
+			);
+		} else {
+			$result = false;
 		}
 
 		return $result;
@@ -334,9 +464,9 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 
 		// Now that we know we're successful, lets update a meta indicating the status of memcached on the site.
 		if ( 'enable' === $action ) {
-			update_post_meta( $id, 'wpapp_memcached_status', 'on' );
+			$this->set_app_memcached_installed_status( $id, true );
 		} elseif ( 'disable' === $action ) {
-			update_post_meta( $id, 'wpapp_memcached_status', 'off' );
+			$this->set_app_memcached_installed_status( $id, false );
 		}
 
 		// Success message and force refresh.
@@ -366,9 +496,11 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 	public function toggle_local_status_memcached( $id ) {
 
 		// get current local memcached status.
-		$mc_status = get_post_meta( $id, 'wpapp_memcached_status', true );
+		$mc_status = $this->get_app_is_memcached_installed( $id );
 		if ( empty( $mc_status ) ) {
 			$mc_status = 'off';
+		} else {
+			$mc_status = 'on';
 		}
 
 		// whats the new status going to be?
@@ -379,7 +511,7 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 		}
 
 		// update it.
-		update_post_meta( $id, 'wpapp_memcached_status', $new_mc_status );
+		$this->set_app_memcached_installed_status( $id, $new_mc_status );
 
 		// Force refresh?
 		if ( ! is_wp_error( $result ) ) {
@@ -444,8 +576,10 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 		/* Set the confirmation prompt based on the the current status of this flag */
 		$confirmation_prompt = '';
 		if ( 'on' === $pc_status ) {
+			/* Translators: %s is the webserver type name - eg: NGINX or OPENLITESPEED */
 			$confirmation_prompt = sprintf( __( 'Are you sure you would like to disable the %s page cache for this site?', 'wpcd' ), $webserver_type_name );
 		} else {
+			/* Translators: %s is the webserver type name - eg: NGINX or OPENLITESPEED */
 			$confirmation_prompt = sprintf( __( 'Are you sure you would like to enable %s page cache for this site?', 'wpcd' ), $webserver_type_name );
 		}
 
@@ -492,6 +626,7 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 					// the id.
 					'data-wpcd-id'                  => $id,
 					// make sure we give the user a confirmation prompt.
+					/* Translators: %s is the webserver type name - eg: NGINX or OPENLITESPEED */
 					'data-wpcd-confirmation-prompt' => sprintf( __( 'Are you sure you would like to clear the %s page cache for this site?', 'wpcd' ), $webserver_type_name ),
 				),
 				'class'      => 'wpcd_app_action',
@@ -499,84 +634,175 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 			);
 		}
 
-		/* MEMCACHED */
-		$fields[] = array(
-			'name' => __( 'Memcached', 'wpcd' ),
-			'tab'  => 'cache',
-			'type' => 'heading',
-		);
-
-		if ( 'installed' === $this->get_server_installed_service_status( $id, 'memcached' ) ) {
-
-			// What is the status of memcached?
-			$mc_status = get_post_meta( $id, 'wpapp_memcached_status', true );
-			if ( empty( $mc_status ) ) {
-				$mc_status = 'off';
-			}
-
-			/* Set the confirmation prompt based on the the current status of this flag */
-			$confirmation_prompt = '';
-			if ( 'on' === $mc_status ) {
-				$confirmation_prompt = __( 'Are you sure you would like to disable Memcached for this site?', 'wpcd' );
-			} else {
-				$confirmation_prompt = __( 'Are you sure you would like to enable Memcached for this site?', 'wpcd' );
-			}
-
+		/* REDIS */
+		if ( false === $this->get_app_is_memcached_installed( $id ) ) {
 			$fields[] = array(
-				'id'         => 'toggle-memcached',
-				'name'       => '',
-				'tab'        => 'cache',
-				'type'       => 'switch',
-				'on_label'   => __( 'Enabled', 'wpcd' ),
-				'off_label'  => __( 'Disabled', 'wpcd' ),
-				'std'        => 'on' === $mc_status,
-				'desc'       => __( 'Enable or disable Memcached for this site. <br /> Note that all transients will be deleted when this cache is enabled - your plugins and themes should automatically re-add them as needed.', 'wpcd' ),
-				'attributes' => array(
-					// the _action that will be called in ajax.
-					'data-wpcd-action'              => 'site-toggle-memcached',
-					// the id.
-					'data-wpcd-id'                  => $id,
-					// make sure we give the user a confirmation prompt.
-					'data-wpcd-confirmation-prompt' => $confirmation_prompt,
-				),
-				'class'      => 'wpcd_app_action',
-				'save_field' => false,
-			);
-
-			$fields[] = array(
-				'id'         => 'toggle-memcached-local-value',
-				'name'       => '',
-				'tab'        => 'cache',
-				'type'       => 'button',
-				'std'        => __( 'Cleanup: Toggle Local Value for Memcached', 'wpcd' ),
-				'desc'       => __( 'If the Memcached status toggle above is not correct, click this button to correct it. This can happen if there is an error on the server or you or another admin manually toggle the memcached service on the server outside of this plugin.', 'wpcd' ),
-				'attributes' => array(
-					// the _action that will be called in ajax.
-					'data-wpcd-action'              => 'site-toggle-memcached-local-value',
-					// the id.
-					'data-wpcd-id'                  => $id,
-					// make sure we give the user a confirmation prompt.
-					'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like to toggle the local value for Memcached? This will have no effect on the server status', 'wpcd' ),
-				),
-				'class'      => 'wpcd_app_action',
-				'save_field' => false,
-			);
-
-		} else {
-
-			// Construct a nice message showing more resources and a link to the server page.
-			$server_edit_link    = '<a href=' . '"' . $server_edit_post_link . '"' . '>' . __( 'server', 'wpcd' ) . '</a>';
-			$memcached_read_url  = 'https://scalegrid.io/blog/redis-vs-memcached-2021-comparison/';
-			$memcached_read_url  = wpcd_get_documentation_link( 'wordpress-app-doc-link-memcached-info', apply_filters( 'wpcd_documentation_links', $memcached_read_url ) );
-			$memcached_read_link = '<a href="' . $memcached_read_url . '">' . __( 'Memcached and Redis Object Caches', 'wpcd' ) . '</a>';
-			/* Translators: %1$s is a readmore link for memcached. %2$s is a link to the server where memcached is installed. */
-			$mc_not_enabled = sprintf( __( 'Memcached is not enabled on this server. Learn more about %1$s. Go to %2$s.', 'wpcd' ), $memcached_read_link, $server_edit_link );
-			$fields[]       = array(
+				'name' => __( 'REDIS', 'wpcd' ),
 				'tab'  => 'cache',
-				'type' => 'custom_html',
-				'std'  => $mc_not_enabled,
+				'type' => 'heading',
+				'desc' => __( 'Enable or disable Redis on your site.', 'wpcd' ),
 			);
 
+			if ( true === $this->is_redis_installed( $id ) ) {
+
+				// What is the status of redis?
+				if ( true === $this->get_app_is_redis_installed( $id ) ) {
+					$redis_status = 'on';
+				} else {
+					$redis_status = 'off';
+				}
+
+				/* Set the confirmation prompt based on the the current status of this flag */
+				$confirmation_prompt = '';
+				if ( 'on' === $redis_status ) {
+					$confirmation_prompt = __( 'Are you sure you would like to disable REDIS for this site?', 'wpcd' );
+				} else {
+					$confirmation_prompt = __( 'Are you sure you would like to enable REDIS for this site?', 'wpcd' );
+				}
+
+				$fields[] = array(
+					'id'         => 'toggle-redis',
+					'name'       => '',
+					'tab'        => 'cache',
+					'type'       => 'switch',
+					'on_label'   => __( 'Enabled', 'wpcd' ),
+					'off_label'  => __( 'Disabled', 'wpcd' ),
+					'std'        => 'on' === $redis_status,
+					'desc'       => __( 'Enable or disable REDIS for this site.', 'wpcd' ),
+					'attributes' => array(
+						// the _action that will be called in ajax.
+						'data-wpcd-action'              => 'site-toggle-redis',
+						// the id.
+						'data-wpcd-id'                  => $id,
+						// make sure we give the user a confirmation prompt.
+						'data-wpcd-confirmation-prompt' => $confirmation_prompt,
+					),
+					'class'      => 'wpcd_app_action',
+					'save_field' => false,
+					'columns'    => 6,
+				);
+
+				$fields[] = array(
+					'id'         => 'toggle-redis-local-value',
+					'name'       => '',
+					'tab'        => 'cache',
+					'type'       => 'button',
+					'std'        => __( 'Cleanup: Toggle Local Value for REDIS', 'wcpcd' ),
+					'desc'       => __( 'If the REDIS status toggle is not correct, click this button to correct it. This can happen if there is an error on the server or you or another admin manually toggle the REDIS service on the server outside of this plugin.', 'wcpcd' ),
+					'attributes' => array(
+						// the _action that will be called in ajax.
+						'data-wpcd-action'              => 'site-toggle-redis-local-value',
+						// the id.
+						'data-wpcd-id'                  => $id,
+						// make sure we give the user a confirmation prompt.
+						'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like to toggle the local value for REDIS? This will have no effect on the server status', 'wpcd' ),
+					),
+					'class'      => 'wpcd_app_action',
+					'save_field' => false,
+					'columns'    => 6,
+				);
+
+			} else {
+
+				// Construct a nice message showing more resources and a link to the server page.
+				$server_edit_link = '<a href=' . '"' . $server_edit_post_link . '"' . '>' . __( 'server', 'wpcd' ) . '</a>';
+				$redis_read_url   = 'https://scalegrid.io/blog/redis-vs-memcached-2021-comparison/';
+				$redis_read_url   = wpcd_get_documentation_link( 'wordpress-app-doc-link-memcached-info', apply_filters( 'wpcd_documentation_links', $redis_read_url ) );
+				$redis_read_link  = '<a href="' . $redis_read_url . '">' . __( 'Memcached and Redis Object Caches', 'wpcd' ) . '</a>';
+				/* Translators: %1$s is a link to read more about redis caches. %2$s is a link to the server where this site is installed. */
+				$redis_not_enabled = sprintf( __( 'REDIS is not enabled on this server. Learn more about %1$s. Go to %2$s.', 'wpcd' ), $redis_read_link, $server_edit_link );
+				$fields[]          = array(
+					'tab'  => 'cache',
+					'type' => 'custom_html',
+					'std'  => $redis_not_enabled,
+				);
+
+			}
+		}
+
+		/* MEMCACHED */
+		if ( false === $this->get_app_is_redis_installed( $id ) ) {
+			$fields[] = array(
+				'name' => __( 'Memcached', 'wpcd' ),
+				'tab'  => 'cache',
+				'type' => 'heading',
+			);
+
+			if ( true === $this->is_memcached_installed( $id ) ) {
+
+				// What is the status of memcached?
+				if ( true === $this->get_app_is_memcached_installed( $id ) ) {
+					$mc_status = 'on';
+				} else {
+					$mc_status = 'off';
+				}
+
+				/* Set the confirmation prompt based on the the current status of this flag */
+				$confirmation_prompt = '';
+				if ( 'on' === $mc_status ) {
+					$confirmation_prompt = __( 'Are you sure you would like to disable Memcached for this site?', 'wpcd' );
+				} else {
+					$confirmation_prompt = __( 'Are you sure you would like to enable Memcached for this site?', 'wpcd' );
+				}
+
+				$fields[] = array(
+					'id'         => 'toggle-memcached',
+					'name'       => '',
+					'tab'        => 'cache',
+					'type'       => 'switch',
+					'on_label'   => __( 'Enabled', 'wpcd' ),
+					'off_label'  => __( 'Disabled', 'wpcd' ),
+					'std'        => 'on' === $mc_status,
+					'desc'       => __( 'Enable or disable Memcached for this site. <br /> Note that all transients will be deleted when this cache is enabled - your plugins and themes should automatically re-add them as needed.', 'wpcd' ),
+					'attributes' => array(
+						// the _action that will be called in ajax.
+						'data-wpcd-action'              => 'site-toggle-memcached',
+						// the id.
+						'data-wpcd-id'                  => $id,
+						// make sure we give the user a confirmation prompt.
+						'data-wpcd-confirmation-prompt' => $confirmation_prompt,
+					),
+					'class'      => 'wpcd_app_action',
+					'save_field' => false,
+					'columns'    => 6,
+				);
+
+				$fields[] = array(
+					'id'         => 'toggle-memcached-local-value',
+					'name'       => '',
+					'tab'        => 'cache',
+					'type'       => 'button',
+					'std'        => __( 'Cleanup: Toggle Local Value for Memcached', 'wpcd' ),
+					'desc'       => __( 'If the Memcached status toggle is not correct, click this button to correct it. This can happen if there is an error on the server or you or another admin manually toggle the Memcached service on the server outside of this plugin.', 'wpcd' ),
+					'attributes' => array(
+						// the _action that will be called in ajax.
+						'data-wpcd-action'              => 'site-toggle-memcached-local-value',
+						// the id.
+						'data-wpcd-id'                  => $id,
+						// make sure we give the user a confirmation prompt.
+						'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like to toggle the local value for Memcached? This will have no effect on the server status', 'wpcd' ),
+					),
+					'class'      => 'wpcd_app_action',
+					'save_field' => false,
+					'columns'    => 6,
+				);
+
+			} else {
+
+				// Construct a nice message showing more resources and a link to the server page.
+				$server_edit_link    = '<a href=' . '"' . $server_edit_post_link . '"' . '>' . __( 'server', 'wpcd' ) . '</a>';
+				$memcached_read_url  = 'https://scalegrid.io/blog/redis-vs-memcached-2021-comparison/';
+				$memcached_read_url  = wpcd_get_documentation_link( 'wordpress-app-doc-link-memcached-info', apply_filters( 'wpcd_documentation_links', $memcached_read_url ) );
+				$memcached_read_link = '<a href="' . $memcached_read_url . '">' . __( 'Memcached and Redis Object Caches', 'wpcd' ) . '</a>';
+				/* Translators: %1$s is a readmore link for memcached. %2$s is a link to the server where memcached is installed. */
+				$mc_not_enabled = sprintf( __( 'Memcached is not enabled on this server. Learn more about %1$s. Go to %2$s.', 'wpcd' ), $memcached_read_link, $server_edit_link );
+				$fields[]       = array(
+					'tab'  => 'cache',
+					'type' => 'custom_html',
+					'std'  => $mc_not_enabled,
+				);
+
+			}
 		}
 
 		// Allow plugins and addons to hook into the field definitions just before adding notes.
@@ -648,13 +874,13 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 	 *
 	 * Called from an action hook from the pending logs background process - WPCD_POSTS_PENDING_TASKS_LOG()->do_tasks()
 	 *
-	 * Action Hook: wpcd_pending_log_toggle_page_cache
+	 * Action Hook: wpcd_wordpress-app_pending_log_toggle_page_cache
 	 *
 	 * @param int   $task_id    Id of pending task that is firing this thing...
 	 * @param int   $site_id    Id of site involved in this action.
 	 * @param array $args       All the data needed to handle this action.
 	 */
-	public function toggle_page_cache( $task_id, $site_id, $args ) {
+	public function pending_log_toggle_page_cache( $task_id, $site_id, $args ) {
 
 		// Grab our data array from pending tasks record...
 		$data = WPCD_POSTS_PENDING_TASKS_LOG()->get_data_by_id( $task_id );
@@ -676,6 +902,48 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 
 	}
 
+	/**
+	 * Toggle the redis cache.
+	 *
+	 * Called from an action hook from the pending logs background process - WPCD_POSTS_PENDING_TASKS_LOG()->do_tasks()
+	 *
+	 * Action Hook: wpcd_wordpress-app_pending_log_toggle_redis_object_cache
+	 *
+	 * @param int   $task_id    Id of pending task that is firing this thing...
+	 * @param int   $site_id    Id of site involved in this action.
+	 * @param array $args       All the data needed to handle this action.
+	 */
+	public function pending_log_toggle_redis_object_cache( $task_id, $site_id, $args ) {
+
+		// Grab our data array from pending tasks record...
+		$data = WPCD_POSTS_PENDING_TASKS_LOG()->get_data_by_id( $task_id );
+
+		$redis_status = $this->get_app_is_redis_installed( $site_id );
+
+		/* Toggle The Redis object cache. Cache */
+		if ( true === $redis_status ) {
+			// currently enabled so disable it.
+			$result = $this->enable_disable_redis( 'disable', $site_id );
+		} else {
+			// currently disabled so enable it.
+			$result = $this->enable_disable_redis( 'enable', $site_id );
+		}
+
+		$task_status = 'complete';  // Assume success.
+		if ( is_array( $result ) ) {
+			// We'll get an array with a success message from the enable_disable_redis_object_cache() function.  So nothing to do here.
+			// We'll just reset the $task_status to complete (which is the value it was initialized with) to avoid complaints by PHPcs about an empty if statement.
+			$task_status = 'complete';
+		} else {
+			if ( false === (bool) $result || is_wp_error( $result ) ) {
+				$task_status = 'failed';
+			}
+		}
+		WPCD_POSTS_PENDING_TASKS_LOG()->update_task_by_id( $task_id, $data, $task_status );
+
+	}
+
 }
+
 
 new WPCD_WORDPRESS_TABS_CACHE();

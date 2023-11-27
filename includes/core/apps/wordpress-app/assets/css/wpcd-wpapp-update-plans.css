@@ -1,0 +1,11 @@
+/*
+ * This file used to style elements on the wpcd_app_update_log post type list and screens.
+ */
+
+ /* Make the checkmark in the SITE UPDATE PLAN HISTORY screen green. */
+ .wpcd_update_plan_sites_update_success .dashicons-yes-alt,
+ .wpcd_update_plan_servers_template_push_success .dashicons-yes-alt {
+
+	color: var(--wpcd-positive-color);
+
+ }

@@ -65,6 +65,36 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 		// Filter for change the header logo image.
 		add_filter( 'wpcd_popup_header_logo', array( &$this, 'wpcd_change_popup_header_logo' ) );
 
+		// Enable filter on the default wp password field to encrypt it when its being stored.
+		add_filter( 'rwmb_wordpress_app_default_wp_password_value', array( &$this, 'encrypt' ), 10, 3 );
+
+		// Enable filter on the default wp user id field to encrypt it when its being stored.
+		add_filter( 'rwmb_wordpress_app_default_wp_user_id_value', array( &$this, 'encrypt' ), 10, 3 );
+
+		// Enable filter on the logtivity teams api key to encrypt it when it's being stored.
+		add_filter( 'rwmb_wordpress_app_logtivity_teams_api_key_value', array( &$this, 'encrypt' ), 10, 3 );
+
+		// Enable filter on the solidwp account user name to encrypt it when it's being stored.
+		add_filter( 'rwmb_wordpress_app_solidwp_user_name_value', array( &$this, 'encrypt' ), 10, 3 );
+
+		// Enable filter on the solidwp account password to encrypt it when it's being stored.
+		add_filter( 'rwmb_wordpress_app_solidwp_password_value', array( &$this, 'encrypt' ), 10, 3 );
+
+		// Enable filter on the default wp password field to decrypt it when its being retrieved.
+		add_filter( 'rwmb_wordpress_app_default_wp_password_field_meta', array( &$this, 'decrypt' ), 10, 3 );
+
+		// Enable filter on the default wp user id field to decrypt it when its being retrieved.
+		add_filter( 'rwmb_wordpress_app_default_wp_user_id_field_meta', array( &$this, 'decrypt' ), 10, 3 );
+
+		// Enable filter on the default logtivity teams api key field to decrypt it when its being retrieved.
+		add_filter( 'rwmb_wordpress_app_logtivity_teams_api_key_field_meta', array( &$this, 'decrypt' ), 10, 3 );
+
+		// Enable filter on the solidwp account user name field to decrypt it when its being retrieved.
+		add_filter( 'rwmb_wordpress_app_solidwp_user_name_field_meta', array( &$this, 'decrypt' ), 10, 3 );
+
+		// Enable filter on the solidwp account password field to decrypt it when its being retrieved.
+		add_filter( 'rwmb_wordpress_app_solidwp_password_field_meta', array( &$this, 'decrypt' ), 10, 3 );
+
 	}
 
 	/**
@@ -211,74 +241,73 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 	public function wordpress_app_metabox_tabs() {
 		$tabs = array(
 			'wordpress-app-general-wpadmin'      => array(
-				'label' => 'General',
+				'label' => __( 'General', 'wpcd' ),
 				'icon'  => 'dashicons-text',
 			),
 			'wordpress-app-servers'              => array(
-				'label' => 'Servers',
+				'label' => __( 'Servers', 'wpcd' ),
 				'icon'  => 'dashicons-align-full-width',
 			),
 			'wordpress-app-sites'                => array(
-				'label' => 'Sites',
+				'label' => __( 'Sites', 'wpcd' ),
 				'icon'  => 'dashicons-admin-multisite',
 			),
 			'wordpress-app-backup'               => array(
-				'label' => 'Backup and Restore',
+				'label' => __( 'Backup and Restore', 'wpcd' ),
 				'icon'  => 'dashicons-images-alt2',
 			),
 			'wordpress-app-fields-and-links'     => array(
-				'label' => 'Fields & Links',
+				'label' => __( 'Fields & Links', 'wpcd' ),
 				'icon'  => 'dashicons-editor-unlink',
 			),
 			'wordpress-app-plugin-theme-updates' => array(
-				'label' => 'Theme & Plugin Updates',
+				'label' => __( 'Theme & Plugin Updates', 'wpcd' ),
 				'icon'  => 'dashicons-admin-plugins',
 			),
 			'wordpress-app-dns-cloudflare'       => array(
-				'label' => 'DNS: Cloudflare',
+				'label' => __( 'DNS: Cloudflare', 'wpcd' ),
 				'icon'  => 'dashicons-cloud',
 			),
 			'wordpress-app-alert-config'         => array(
-				'label' => 'Alerts & Notices',
+				'label' => __( 'Alerts & Notices', 'wpcd' ),
 				'icon'  => 'dashicons-bell',
 			),
-			'wordpress-app-email-notify'         => array(
-				'label' => 'Email Notifications',
+			'wordpress-app-notifications'        => array(
+				'label' => __( 'Notifications', 'wpcd' ),
 				'icon'  => 'dashicons-email',
 			),
-			'wordpress-app-slack-notify'         => array(
-				'label' => 'Slack Notifications',
-				'icon'  => 'dashicons-admin-comments',
-			),
-			'wordpress-app-zapier-notify'        => array(
-				'label' => 'Zapier Notifications',
-				'icon'  => 'dashicons-embed-generic',
+			'wordpress-app-integrations'         => array(
+				'label' => __( 'Integrations', 'wpcd' ),
+				'icon'  => 'dashicons-welcome-write-blog',
 			),
 			'wordpress-app-color-settings'       => array(
-				'label' => 'Styles',
+				'label' => __( 'Styles', 'wpcd' ),
 				'icon'  => 'dashicons-color-picker',
 			),
 			'wordpress-app-email-gateway'        => array(
-				'label' => 'Email Gateway',
+				'label' => __( 'Email Gateway', 'wpcd' ),
 				'icon'  => 'dashicons-email-alt2',
 			),
 			'wordpress-app-front-end-fields'     => array(
-				'label' => 'Front-end Fields',
+				'label' => __( 'Front-end Fields', 'wpcd' ),
 				'icon'  => 'dashicons-editor-kitchensink',
 			),
 			'wordpress-app-rest-api'             => array(
-				'label' => 'Rest API',
+				'label' => __( 'Rest API', 'wpcd' ),
 				'icon'  => 'dashicons-rest-api',
 			),
 			'wordpress-app-white-label'          => array(
-				'label' => 'White Label',
+				'label' => __( 'White Label', 'wpcd' ),
 				'icon'  => 'dashicons-randomize',
 			),
 			'wordpress-app-custom-scripts'       => array(
-				'label' => 'Custom Scripts',
+				'label' => __( 'Custom Scripts', 'wpcd' ),
 				'icon'  => 'dashicons-shortcode',
 			),
-		/*
+			'wordpress-app-developers'           => array(
+				'label' => __( 'Developer Options', 'wpcd' ),
+				'icon'  => 'dashicons-editor-code',
+			),      /*
 		/*
 		'wordpress-app-scripts' => array(
 			'label' => 'Scripts',
@@ -351,6 +380,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 		$email_notification_fields    = $this->email_notification_fields();
 		$slack_notification_fields    = $this->slack_notification_fields();
 		$zapier_notification_fields   = $this->zapier_notification_fields();
+		$integrations_fields          = $this->integrations_fields();
 		$button_color_settings_fields = $this->button_color_settings_fields();
 		$email_gateway_load_defaults  = $this->email_gateway_load_defaults();
 		$cf_dns_fields                = $this->cf_dns_fields();
@@ -358,8 +388,9 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 		$white_label_fields           = $this->white_label_fields();
 		$custom_scripts               = $this->custom_script_fields();
 		$front_end_fields             = $this->front_end_fields();
+		$developer_fields             = $this->developer_fields();
 		$git_fields                   = $this->git_fields();
-		$all_fields                   = array_merge( $general_fields, $server_fields, $site_fields, $backup_fields, $fields_and_links, $theme_and_plugin_updates, $alert_config, $email_notification_fields, $slack_notification_fields, $zapier_notification_fields, $button_color_settings_fields, $email_gateway_load_defaults, $cf_dns_fields, $rest_api_fields, $white_label_fields, $custom_scripts, $front_end_fields, $git_fields );
+		$all_fields                   = array_merge( $general_fields, $server_fields, $site_fields, $backup_fields, $fields_and_links, $theme_and_plugin_updates, $alert_config, $email_notification_fields, $slack_notification_fields, $zapier_notification_fields, $integrations_fields, $button_color_settings_fields, $email_gateway_load_defaults, $cf_dns_fields, $rest_api_fields, $white_label_fields, $custom_scripts, $front_end_fields, $git_fields, $developer_fields );
 		return $all_fields;
 	}
 
@@ -402,6 +433,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			'crons'                    => __( 'Crons', 'wpcd' ),
 			'general'                  => __( 'General', 'wpcd' ),
 			'site-logs'                => __( 'Logs', 'wpcd' ),
+			'site-security'            => __( 'Security Plugin', 'wpcd' ),
 			'misc'                     => __( 'Misc', 'wpcd' ),
 			'database'                 => __( 'Database', 'wpcd' ),
 			'php-options'              => __( 'PHP', 'wpcd' ),
@@ -1154,10 +1186,10 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tab'     => 'wordpress-app-general-wpadmin',
 			),
 			array(
-				'id'      => 'wordpress_app_hide_notes_on_server_services_tab',
+				'id'      => 'wordpress_app_show_notes_on_server_services_tab',
 				'type'    => 'checkbox',
-				'name'    => __( 'Hide Notes Column On Services Tab?', 'wpcd' ),
-				'tooltip' => __( 'On the services tab we show a notes column.  For experienced admins this is not necessary - check this box to remove the unnecessary text from the screen.', 'wpcd' ),
+				'name'    => __( 'Show Notes Column On Services Tab?', 'wpcd' ),
+				'tooltip' => __( 'On the services tab we can show a notes column that indicates what the services are used for. Check this box to add that column.', 'wpcd' ),
 				'tab'     => 'wordpress-app-general-wpadmin',
 			),
 			array(
@@ -1246,8 +1278,15 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			array(
 				'id'      => 'wordpress_app_show_label_in_lists',
 				'type'    => 'checkbox',
-				'name'    => __( 'Show the \'WordPress\' label in server and site lists?', 'wpcd' ),
-				'tooltip' => __( 'If you are running multiple apps you will likely want to know which servers and apps are WordPress related.  If so, turn this on.', 'wpcd' ),
+				'name'    => __( 'Show the \'WordPress\' Label?', 'wpcd' ),
+				'tooltip' => __( 'If you are running multiple apps you will likely want to know which servers and apps are WordPress related.  If so, turn this on. It will show a WORDPRESS label next to the title in the server and site lists.', 'wpcd' ),
+				'tab'     => 'wordpress-app-general-wpadmin',
+			),
+			array(
+				'id'      => 'wordpress_app_show_object_server_label_in_lists',
+				'type'    => 'checkbox',
+				'name'    => __( 'Show the Object Server Label?', 'wpcd' ),
+				'tooltip' => __( 'Use this to show the REDIS and MEMCACHED label next to the title in the server and site lists.', 'wpcd' ),
 				'tab'     => 'wordpress-app-general-wpadmin',
 			),
 			array(
@@ -1269,7 +1308,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			array(
 				'id'      => 'wordpress_app_versions_show_nightly',
 				'type'    => 'checkbox',
-				'name'    => __( 'Show \'Nightly\' as a version option?', 'wpcd' ),
+				'name'    => __( 'Show \'Nightly\' as a Version Option?', 'wpcd' ),
 				'tooltip' => __( 'Allow the user to specify the nightly development version of WordPress.', 'wpcd' ),
 				'tab'     => 'wordpress-app-general-wpadmin',
 			),
@@ -1296,11 +1335,15 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 	 */
 	public function server_fields() {
 
+		$server_setup_desc  = __( 'Services and actions to perform immediately after a server has been deployed.', 'wpcd' );
+		$server_setup_desc .= '<br/>' . __( 'These actions will occur in the background via our scheduler AFTER the server is provisioned.', 'wpcd' );
+		$server_setup_desc .= '<br/>' . __( 'This means that there is a delay before some of these items are completed even though the server is ready and available.', 'wpcd' );
+
 		$fields = array(
 			array(
 				'type' => 'heading',
 				'name' => __( 'Server Setup Options', 'wpcd' ),
-				'desc' => __( 'Services and actions to perform immediately after a server has been deployed.', 'wpcd' ),
+				'desc' => $server_setup_desc,
 				'tab'  => 'wordpress-app-servers',
 			),
 			array(
@@ -1387,11 +1430,15 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 	 */
 	public function site_fields() {
 
+		$site_setup_desc  = __( 'Services and actions to perform immediately after a site has been deployed.', 'wpcd' );
+		$site_setup_desc .= '<br/>' . __( 'These actions will occur in the background via our scheduler AFTER the site is provisioned.', 'wpcd' );
+		$site_setup_desc .= '<br/>' . __( 'This means that there is a short delay before these items are completed even though the site is ready and available.', 'wpcd' );
+
 		$fields = array(
 			array(
 				'type' => 'heading',
 				'name' => __( 'Site Setup Options', 'wpcd' ),
-				'desc' => __( 'Services and actions to perform immediately after a WordPress site has been deployed.', 'wpcd' ),
+				'desc' => $site_setup_desc,
 				'tab'  => 'wordpress-app-sites',
 			),
 			array(
@@ -1406,6 +1453,27 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'type'    => 'checkbox',
 				'name'    => __( 'Disable The Page Cache?', 'wpcd' ),
 				'tooltip' => __( 'We automatically install and enable a page cache on all new sites. Use this option to disable it.', 'wpcd' ),
+				'tab'     => 'wordpress-app-sites',
+			),
+			array(
+				'id'      => 'wordpress_app_sites_disable_redis_cache',
+				'type'    => 'checkbox',
+				'name'    => __( 'Disable The Redis Object Cache?', 'wpcd' ),
+				'tooltip' => __( 'We automatically install and enable the REDIS object cache on all new sites. Use this option to disable it.', 'wpcd' ),
+				'tab'     => 'wordpress-app-sites',
+			),
+			array(
+				'id'      => 'wordpress_app_sites_activate_logtivity',
+				'type'    => 'checkbox',
+				'name'    => __( 'Activate Logtivity Connection?', 'wpcd' ),
+				'tooltip' => __( 'Activate Logtivity Connection on New Sites?', 'wpcd' ),
+				'tab'     => 'wordpress-app-sites',
+			),
+			array(
+				'id'      => 'wordpress_app_sites_activate_solidwp_security',
+				'type'    => 'checkbox',
+				'name'    => __( 'Activate SolidWP Security?', 'wpcd' ),
+				'tooltip' => __( 'Activate SolidWP Security Pro on New Sites?', 'wpcd' ),
 				'tab'     => 'wordpress-app-sites',
 			),
 			array(
@@ -1476,6 +1544,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tooltip' => __( 'This message will display on the GENERAL tab of a site when an admin lock is applied.', 'wpcd' ),
 				'tab'     => 'wordpress-app-sites',
 			),
+
 			array(
 				'type' => 'heading',
 				'name' => __( 'Misc', 'wpcd' ),
@@ -1547,6 +1616,13 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'type'    => 'checkbox',
 				'name'    => __( 'Hide Web Server Element', 'wpcd' ),
 				'tooltip' => __( 'Hide the webserver type from the server actions column.', 'wpcd' ),
+				'tab'     => 'wordpress-app-fields-and-links',
+			),
+			array(
+				'id'      => 'wordpress_app_show_server_instance_id_element_in_server_list',
+				'type'    => 'checkbox',
+				'name'    => __( 'Show Instance Id Element', 'wpcd' ),
+				'tooltip' => __( 'Show the provider server instance id in the PROVIDER DETAILS column in the server list.', 'wpcd' ),
 				'tab'     => 'wordpress-app-fields-and-links',
 			),
 			array(
@@ -2074,37 +2150,15 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 	public function theme_and_plugin_updates() {
 
 		$fields = array(
+
 			array(
 				'id'   => 'wordpress_app_t_and_p_updates_heading_01',
 				'type' => 'heading',
-				'name' => __( 'Image Compare Service API', 'wpcd' ),
-				'desc' => __( 'We use the https://htmlcsstoimage.com/ service to create and compare images taken of the site before and after the update. This helps us to determine if there were any significant changes to the site after the update is complete.  And, if there were, automatically roll back the changes. Enter your API credentials for the https://htmlcsstoimage.com/ service in this section.', 'wpcd' ),
+				'name' => __( 'Image Comparison', 'wpcd' ),
+				'desc' => __( 'We use the https://htmlcsstoimage.com/ service to create and compare images taken of the site before and after the update. This helps us to determine if there were any significant changes to the site after the update is complete. And, if there were, automatically roll back the changes. Enter your API credentials for the https://htmlcsstoimage.com/ in the INTEGRATIONS tab.', 'wpcd' ),
 				'tab'  => 'wordpress-app-plugin-theme-updates',
 			),
-			array(
-				'id'         => 'wordpress_app_hcti_api_user_id',
-				'type'       => 'text',
-				'name'       => __( 'API User Id', 'wpcd' ),
-				'tooltip'    => __( 'htmlcsstoimage.com API User Id - this is not your htmlcsstoimage.com login or email address.', 'wpcd' ),
-				'tab'        => 'wordpress-app-plugin-theme-updates',
-				'std'        => wpcd_get_option( 'wordpress_app_hcti_api_user_id' ),
-				'size'       => 60,
-				'attributes' => array(
-					'spellcheck' => 'false',
-				),
-			),
-			array(
-				'id'         => 'wordpress_app_hcti_api_key',
-				'type'       => 'text',
-				'name'       => __( 'API Key', 'wpcd' ),
-				'tooltip'    => __( 'htmlcsstoimage.com API Key', 'wpcd' ),
-				'tab'        => 'wordpress-app-plugin-theme-updates',
-				'std'        => wpcd_get_option( 'wordpress_app_hcti_api_key' ),
-				'size'       => 60,
-				'attributes' => array(
-					'spellcheck' => 'false',
-				),
-			),
+
 			array(
 				'id'      => 'wordpress_app_tandc_updates_pixel_threshold',
 				'type'    => 'number',
@@ -2205,13 +2259,13 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'type' => 'heading',
 				'name' => __( 'Email Notification for user', 'wpcd' ),
 				'desc' => __( 'This message is sent to a user when the user has configured a notification profile and a notification event matches the profile.', 'wpcd' ),
-				'tab'  => 'wordpress-app-email-notify',
+				'tab'  => 'wordpress-app-notifications',
 			),
 			array(
 				'id'   => 'wordpress_app_email_notify_subject',
 				'type' => 'text',
 				'name' => __( 'Subject', 'wpcd' ),
-				'tab'  => 'wordpress-app-email-notify',
+				'tab'  => 'wordpress-app-notifications',
 				'size' => 60,
 			),
 			array(
@@ -2222,7 +2276,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'options' => array(
 					'textarea_rows' => 12,
 				),
-				'tab'     => 'wordpress-app-email-notify',
+				'tab'     => 'wordpress-app-notifications',
 				'size'    => 60,
 			),
 		);
@@ -2242,7 +2296,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'type' => 'heading',
 				'name' => __( 'Slack Notification for user', 'wpcd' ),
 				'desc' => __( 'This message is pushed to a slack channel when the user has configured a notification profile and a notification event matches the profile.', 'wpcd' ),
-				'tab'  => 'wordpress-app-slack-notify',
+				'tab'  => 'wordpress-app-notifications',
 			),
 			array(
 				'id'      => 'wordpress_app_slack_notify_message',
@@ -2252,7 +2306,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'options' => array(
 					'textarea_rows' => 12,
 				),
-				'tab'     => 'wordpress-app-slack-notify',
+				'tab'     => 'wordpress-app-notifications',
 				'size'    => 60,
 			),
 		);
@@ -2272,7 +2326,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'type' => 'heading',
 				'name' => __( 'Zapier Notification for user', 'wpcd' ),
 				'desc' => __( 'This message is sent to Zapier when the user has configured a notification profile and a notification event matches the profile.', 'wpcd' ),
-				'tab'  => 'wordpress-app-zapier-notify',
+				'tab'  => 'wordpress-app-notifications',
 			),
 			array(
 				'id'      => 'wordpress_app_zapier_notify_message',
@@ -2282,9 +2336,122 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'options' => array(
 					'textarea_rows' => 12,
 				),
-				'tab'     => 'wordpress-app-zapier-notify',
+				'tab'     => 'wordpress-app-notifications',
 				'size'    => 60,
 			),
+		);
+
+		return $fields;
+
+	}
+
+	/**
+	 * Array of fields used to store information about our integrations include:
+	 * - LOGTIVITY connection
+	 * - htmlcsstoimage service
+	 * - solidwp security
+	 * - etc.
+	 */
+	public function integrations_fields() {
+
+		$fields = array(
+
+			// htmlcsstoapi.
+			array(
+				'id'   => 'wordpress_app_hcti_heading_01',
+				'type' => 'heading',
+				'name' => __( 'Image Compare Service API', 'wpcd' ),
+				'desc' => __( 'We use the https://htmlcsstoimage.com/ service to create home page images as well ascompare before-and-after images taken of sites during theme & plugin updates. Enter your API credentials for the https://htmlcsstoimage.com/ service in this section.', 'wpcd' ),
+				'tab'  => 'wordpress-app-integrations',
+			),
+			array(
+				'id'         => 'wordpress_app_hcti_api_user_id',
+				'type'       => 'text',
+				'name'       => __( 'API User Id', 'wpcd' ),
+				'tooltip'    => __( 'htmlcsstoimage.com API User Id - this is not your htmlcsstoimage.com login or email address.', 'wpcd' ),
+				'tab'        => 'wordpress-app-integrations',
+				'std'        => wpcd_get_option( 'wordpress_app_hcti_api_user_id' ),
+				'size'       => 60,
+				'attributes' => array(
+					'spellcheck' => 'false',
+				),
+			),
+			array(
+				'id'         => 'wordpress_app_hcti_api_key',
+				'type'       => 'text',
+				'name'       => __( 'API Key', 'wpcd' ),
+				'tooltip'    => __( 'htmlcsstoimage.com API Key', 'wpcd' ),
+				'tab'        => 'wordpress-app-integrations',
+				'std'        => wpcd_get_option( 'wordpress_app_hcti_api_key' ),
+				'size'       => 60,
+				'attributes' => array(
+					'spellcheck' => 'false',
+				),
+			),
+
+			// Logtivity.
+			array(
+				'id'   => 'wordpress_app_logtivity_connection_heading',
+				'type' => 'heading',
+				'name' => __( 'Logtivity Connection', 'wpcd' ),
+				'desc' => __( 'Configure your Logtivity account information.', 'wpcd' ),
+				'tab'  => 'wordpress-app-integrations',
+			),
+			array(
+				'id'   => 'wordpress_app_logtivity_teams_api_key',
+				'type' => 'text',
+				'name' => __( 'Teams API Key', 'wpcd' ),
+				'desc' => __( 'This must be the TEAMS key, not an api key for an individual site.', 'wpcd' ),
+				'tab'  => 'wordpress-app-integrations',
+				'size' => 60,
+			),
+			array(
+				'id'      => 'wordpress_app_logtivity_enable_bulk_actions',
+				'type'    => 'checkbox',
+				'name'    => __( 'Enable Bulk Actions?', 'wpcd' ),
+				'tooltip' => __( 'Add Logtivity actions to the BULK ACTIONS menu in the site list.', 'wpcd' ),
+				'tab'     => 'wordpress-app-integrations',
+			),
+
+			// Solidwp Security.
+			array(
+				'id'   => 'wordpress_app_solidwp_security_heading',
+				'type' => 'heading',
+				'name' => __( 'SolidWP Security', 'wpcd' ),
+				'desc' => __( 'Configure your SolidWP account information.', 'wpcd' ),
+				'tab'  => 'wordpress-app-integrations',
+			),
+			array(
+				'id'   => 'wordpress_app_solidwp_user_name',
+				'type' => 'text',
+				'name' => __( 'SolidWP Account User Name', 'wpcd' ),
+				'tab'  => 'wordpress-app-integrations',
+				'size' => 60,
+			),
+			array(
+				'id'   => 'wordpress_app_solidwp_password',
+				'type' => 'text',
+				'name' => __( 'SolidWP Account Password', 'wpcd' ),
+				'tab'  => 'wordpress-app-integrations',
+				'size' => 60,
+			),
+			array(
+				'id'      => 'wordpress_app_solidwp_file_url',
+				'type'    => 'text',
+				'name'    => __( 'SolidWP File URL', 'wpcd' ),
+				'desc'    => __( 'Where is the zip file for SolidWP Security Pro?', 'wpcd' ),
+				'tooltip' => __( 'This should be a fully formed url that starts with https:// and that results in a .zip file.', 'wpcd' ),
+				'tab'     => 'wordpress-app-integrations',
+				'size'    => 60,
+			),
+			array(
+				'id'      => 'wordpress_app_solidwp_enable_bulk_actions',
+				'type'    => 'checkbox',
+				'name'    => __( 'Enable Bulk Actions?', 'wpcd' ),
+				'tooltip' => __( 'Add SolidWP Security actions to the BULK ACTIONS menu in the site list.', 'wpcd' ),
+				'tab'     => 'wordpress-app-integrations',
+			),
+
 		);
 
 		return $fields;
@@ -2927,6 +3094,100 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 
 		return $fields;
 
+	}
+
+	/**
+	 * Return an array of fields for the DEVELOPER OPTIONS subtab in the APP:WordPress SETTINGS tab.
+	 */
+	public function developer_fields() {
+
+		$fields = array(
+			array(
+				'type' => 'heading',
+				'name' => __( 'New Site Defaults', 'wpcd' ),
+				'desc' => __( 'Defaults to be used on the INSTALL WORDPRESS popup.', 'wpcd' ),
+				'tab'  => 'wordpress-app-developers',
+			),
+			array(
+				'id'      => 'wordpress_app_default_wp_email',
+				'type'    => 'text',
+				'size'    => '60',
+				'name'    => __( 'Default Admin Email New Sites.', 'wpcd' ),
+				'tooltip' => __( 'The default email address when an admin uses the INSTALL WORDPRESS button.', 'wpcd' ),
+				'tab'     => 'wordpress-app-developers',
+			),
+			array(
+				'id'      => 'wordpress_app_default_wp_user_id',
+				'type'    => 'text',
+				'size'    => '60',
+				'name'    => __( 'Default User Id For New Sites.', 'wpcd' ),
+				'tooltip' => __( 'The default user id when an admin uses the INSTALL WORDPRESS button.', 'wpcd' ),
+				'tab'     => 'wordpress-app-developers',
+				'class'   => 'wpcd_settings_pass_toggle',
+			),
+			array(
+				'id'      => 'wordpress_app_default_wp_password',
+				'type'    => 'text',
+				'size'    => '60',
+				'name'    => __( 'Default Password For New Sites.', 'wpcd' ),
+				'tooltip' => __( 'The default password when an admin uses the INSTALL WORDPRESS button.', 'wpcd' ),
+				'tab'     => 'wordpress-app-developers',
+				'class'   => 'wpcd_settings_pass_toggle',
+			),
+			array(
+				'id'      => 'wordpress_app_auto_gen_password',
+				'type'    => 'checkbox',
+				'name'    => __( 'Auto-generate Password.', 'wpcd' ),
+				'tooltip' => __( 'If checked, a random password will be generated when an admin uses the INSTALL WORDPRESS button. Checking this box overrides the default password option above.', 'wpcd' ),
+				'tab'     => 'wordpress-app-developers',
+			),
+			array(
+				'id'         => 'wordpress_app_sites_default_site_package',
+				'type'       => 'post',
+				'name'       => __( 'Default Site Package', 'wpcd' ),
+				'tooltip'    => __( 'Automatically select this site package on the INSTALL WORDPRESS pop-up.  It does NOT apply to other WordPress installation vectors such as the RESTAPI, BULK INSTALLS etc.', 'wpcd' ),
+				'post_type'  => 'wpcd_site_package',
+				'query_args' => array(
+					'posts_per_page' => - 1,
+				),
+				'field_type' => 'select_advanced',
+				'tab'        => 'wordpress-app-developers',
+				'size'       => 60,
+			),
+		);
+
+		return $fields;
+
+	}
+
+	/**
+	 * Encrypt data before it is saved in the database
+	 *
+	 * Filter Hook: rwmb_wordpress_app_default_wp_password_value
+	 *
+	 * @param string $new new value being saved.
+	 * @param string $field name of being field saved.
+	 * @param string $old old value of the field.
+	 *
+	 * @return string $new the encrypted value of the field.
+	 */
+	public function encrypt( $new, $field, $old ) {
+		return WPCD()->encrypt( $new );
+	}
+
+	/**
+	 * Decrypt data before it is shown on the screen
+	 *
+	 * Filter Hook: rwmb_wordpress_app_default_wp_password_field_meta
+	 *
+	 * @param string $meta the value in the field being decrypted.
+	 * @param string $field the name of the field.
+	 * @param string $saved the original saved value of the field.
+	 *
+	 * @return string $meta the decrypted value of the field.
+	 */
+	public function decrypt( $meta, $field, $saved ) {
+		return WPCD()->decrypt( $meta );
 	}
 
 }

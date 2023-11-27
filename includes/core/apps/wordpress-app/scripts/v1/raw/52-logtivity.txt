@@ -1,0 +1,203 @@
+#!/bin/bash
+if [[ "$EUID" -ne 0 ]]
+then
+	echo "Sorry, you need to run this as root"
+	exit
+fi
+
+## Get our common functions
+if [[ ! -f 9999-common-functions.sh ]]
+then
+	echo "The file 9999-common-functions.sh is missing"
+	exit
+fi
+source 9999-common-functions.sh
+
+########################################################
+# Common function to get domain we want to work with.
+#
+# returns $domain
+########################################################
+lf_select_domain() {
+	while [[ -z $domain ]]
+	do
+		clear
+		echo "Please, select which site you want to work with"
+		gf_select_domain
+		domain=$(ls /var/www | grep -v html | sed -n "$site_number"p)
+	done
+}
+
+########################################################
+# Create a temporary file with the PHP code that activates
+# a logtivity license on a site.
+#
+# @param $1 logtivity_team_api_key
+# @param $2 user name (aka domain)
+# @param $3 callback_install_logtivity_status (the callback url that we'll be sending data to.)
+#
+# returns $logtivity_temp_php_file
+########################################################
+lf_create_exec_file() {
+
+	# setup local variables from parameters passed in.
+	local LOGTIVITY_TEAM_API_KEY
+	local USER_NAME
+	local CALLBACK
+	LOGTIVITY_TEAM_API_KEY=$1
+	USER_NAME=$2
+	CALLBACK=$3
+	
+
+	# make temporary file.
+	pwtmpfile=$(mktemp)
+
+# Heredoc - temp file with php in it.
+# PHP Vars that start with '$' are escaped with '\' so the prefix is '\$' instead of just '$'.
+cat << EOF > $pwtmpfile
+
+<?php
+
+if (class_exists('Logtivity_Register_Site')) {
+	Logtivity_Register_Site::execute([
+		'team_api_key' => '${LOGTIVITY_TEAM_API_KEY}',
+		'logtivity_disable_default_logging' => false,
+		'logtivity_should_store_user_id' => true,
+		'logtivity_should_store_ip' => true,
+		'logtivity_should_log_profile_link' => true,
+		'logtivity_should_log_username' => true,
+		'logtivity_enable_debug_mode' => false,
+	]);
+
+	// What is the API Key that was assigned?
+	\$logtivity_options = new Logtivity_Options;
+	\$api_key = \$logtivity_options->getApiKey();
+
+	// If we got one, send it back to the callback url.
+	if (\$api_key) {
+		\$ch = curl_init();
+		\$url = '${CALLBACK}' . '?logtivity_api_key=' . \$api_key;
+		curl_setopt(\$ch, CURLOPT_URL, \$url );
+		\$output = curl_exec(\$ch);
+	}
+
+}
+
+EOF
+
+	# change owner of file so that user can execute it.
+	chown $USER_NAME $pwtmpfile
+	logtivity_temp_php_file=$pwtmpfile
+
+}
+
+########################################################
+# Install Logtivity on a site.
+########################################################
+lf_install_logtivity() {
+
+	# Get domain - output will be in the $domain global var.
+	lf_select_domain
+	
+	# Get the domain user name - output will be held in $g_domain_user_name
+	gf_get_domain_user_name $domain
+	user_name=$g_domain_user_name	
+
+	# activate logtivity.
+	su - $user_name -c "wp --no-color plugin install --activate logtivity"
+}
+
+########################################################
+# License Logtivity for a site.
+########################################################
+lf_license_logtivity() {
+
+	# Get domain - output will be in the $domain global var.
+	lf_select_domain
+	
+	# Get the domain user name - output will be held in $g_domain_user_name
+	gf_get_domain_user_name $domain
+	user_name=$g_domain_user_name
+
+	# Get the teams api key.
+	while [[ -z $logtivity_teams_api_key ]]
+	do
+		read -p "Enter the Logtivity Teams API Key ? " logtivity_teams_api_key
+	done
+
+	if [[ -z "$callback_install_logtivity_status" ]]
+	then
+		read -p "Enter callback url for reporting the status of the installation:  " callback_install_logtivity_status
+	fi	
+
+	# Generate the temp file.
+	# Should create global variable with file name $logtivity_temp_php_file
+	lf_create_exec_file $logtivity_teams_api_key $user_name $callback_install_logtivity_status
+
+	# Execute temp file using wp-cli.
+	su - $user_name -c "wp --no-color eval-file $logtivity_temp_php_file"
+}
+
+########################################################
+# Remove Logtivity from a site.
+########################################################
+lf_remove_logtivity() {
+
+	# Get domain - output will be in the $domain global var.
+	lf_select_domain
+	
+	# Get the domain user name - output will be held in $g_domain_user_name
+	gf_get_domain_user_name $domain
+	user_name=$g_domain_user_name	
+	
+	# deactivate logtivity just in case it's installed and activated already.
+	su - $user_name -c "wp --no-color plugin deactivate logtivity/logtivity.php"	
+	
+	su - $user_name -c "wp --no-color plugin delete logtivity/logtivity.php"
+
+}
+
+########################################################
+# Get action to perform
+########################################################
+while [[ -z $action ]]
+do
+	echo "What do you want to do?"
+	echo "   1) Install Logtivity on a site"
+	echo "   2) Relicense Logtivity on a site"
+	echo "   3) Remove Logtvity from a site"
+	echo
+	read -p "Action: " action
+	until [[ -z "$action" || "$action" =~ ^[1-3]$ ]]
+	do
+		echo "$action: invalid selection."
+		read -p "Action: " action
+	done
+done
+
+########################################################
+# Below are blocks where the action chosen above
+# is performed.
+########################################################
+
+# Install Logtivity on a site.
+if [[ $action == "logtivity_install" || $action == "1" ]]
+then
+	lf_install_logtivity
+	lf_license_logtivity
+	echo "Logtivity installed and license activated."
+fi
+
+# Relicense Logtivity on a site.
+if [[ $action == "logtivity_license" || $action == "2" ]]
+then
+	lf_license_logtivity
+	echo "Logtivity license activated."
+fi
+
+# Remove Logtivity from a site.
+if [[ $action == "logtivity_remove" || $action == "3" ]]
+then
+	lf_remove_logtivity
+	echo "Logtivity has been removed."
+fi

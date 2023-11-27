@@ -1,0 +1,81 @@
+#!/bin/bash
+if [[ "$EUID" -ne 0 ]]
+then
+	echo "Sorry, you need to run this as root"
+	exit
+fi
+
+## Get our common functions
+if [[ ! -f 9999-common-functions.sh ]]
+then
+	echo "The file 9999-common-functions.sh is missing"
+	exit
+fi
+source 9999-common-functions.sh
+
+########################################################
+# Get action to perform
+########################################################
+while [[ -z $action ]]
+do
+	echo "What do you want to do?"
+	echo "   1) Apply an Ubuntu pro token this server."
+	echo "   2) Remove Ubuntu pro token from this server."
+	echo
+	read -p "Action: " action
+	until [[ -z "$action" || "$action" =~ ^[1-2]$ ]]
+	do
+		echo "$action: invalid selection."
+		read -p "Action: " action
+	done
+done
+
+########################################################
+# Below are blocks where the action chosen above
+# is performed.
+########################################################
+
+# Apply ubuntu pro token
+if [[ $action == "ubuntu_pro_apply_token" || $action == "1" ]]
+then
+
+	# Get the Ubuntu Pro token.
+	while [[ -z $ubuntu_pro_token ]]
+	do
+		read -p "Enter your Ubuntu Pro token: " ubuntu_pro_token
+	done
+
+	# Update repos.
+	apt-get update -y 
+	if [ $? -ne 0 ]  
+	then
+		echo "Failed!  Quitting process"
+		exit
+	fi
+
+	sudo apt-get install -y ubuntu-advantage-tools
+	if [ $? -ne 0 ]  
+	then
+		echo "Failed!  Quitting process"
+		exit
+	fi	
+
+	sudo pro attach $ubuntu_pro_token
+	if [ $? -ne 0 ]  
+	then
+		echo "Failed!  Quitting process"
+		exit
+	fi	
+
+
+	echo "Ubuntu Pro token has been applied to this server."
+
+fi
+
+# Remove ubuntu pro token
+if [[ $action == "ubuntu_pro_remove_token" || $action == "2" ]]
+then
+	sudo pro detach --assume-yes
+
+	echo "Ubuntu Pro token has been removed from this server (or was never applied)."
+fi

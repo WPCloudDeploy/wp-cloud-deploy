@@ -518,6 +518,8 @@ class WPCD_WORDPRESS_TABS_THEME_AND_PLUGIN_UPDATES extends WPCD_WORDPRESS_TABS {
 	/**
 	 * Add new bulk options in site list screen.
 	 *
+	 * Filter Hook: bulk_actions-edit-wpcd_app 
+	 *
 	 * @param array $bulk_array bulk array.
 	 */
 	public function wpcd_add_new_bulk_actions_site( $bulk_array ) {
@@ -530,11 +532,15 @@ class WPCD_WORDPRESS_TABS_THEME_AND_PLUGIN_UPDATES extends WPCD_WORDPRESS_TABS {
 			$bulk_array['wpcd_sites_update_everything']         = __( 'Update All Themes, Plugins & WordPress', 'wpcd' );
 			return $bulk_array;
 		}
+		
+		return $bulk_array;
 
 	}
 
 	/**
 	 * Handle bulk actions for sites.
+	 *
+	 * Action Hook: handle_bulk_actions-edit-wpcd_app
 	 *
 	 * @param string $redirect_url  redirect url.
 	 * @param string $action        bulk action slug/id - this is not the WPCD action key.

@@ -230,7 +230,6 @@ class WPCD_POSTS_App_Update_Plan extends WPCD_Posts_Base {
 				'multiple'   => true,
 				'save_field' => true,
 				'desc'       => __( 'These groups/categories will be removed from the selected sites', 'wpcd' ),
-				'tooltip'    => __( 'This is for future use - not currently working.', 'wpcd' ),
 				'columns'    => 6,
 			),
 		);
@@ -335,6 +334,40 @@ class WPCD_POSTS_App_Update_Plan extends WPCD_Posts_Base {
 				'save_field' => true,
 				'desc'       => __( 'These key-value pairs will be added to the WordPress options on the new site.', 'wpcd' ),
 				'tooltip'    => __( 'Use these to add or update options on the new site - many plugins and themes use options to store their data so you might be able to overwrite them with your custom values if you know their option formats.', 'wpcd' ),
+			),
+		);
+
+		/* Misc. */
+		$fields_misc = array(
+			array(
+				'name'       => __( 'Do NOT Reset File Permissions', 'wpcd' ),
+				'id'         => 'wpcd_app_update_plan_no_reset_file_permissions',
+				'type'       => 'checkbox',
+				'save_field' => true,
+				'tooltip'    => __( 'We will reset the file permissions for copied files to the WPCD defaults. Check this box if you do NOT want that to occur.', 'wpcd' ),
+				'columns'    => 2,
+			),
+			array(
+				'name'       => __( 'Activate Logtivity', 'wpcd' ),
+				'id'         => 'wpcd_app_update_plan_activate_logtivity',
+				'type'       => 'checkbox',
+				'save_field' => true,
+				'columns'    => 2,
+			),
+			array(
+				'name'       => __( 'Activate Redis', 'wpcd' ),
+				'id'         => 'wpcd_app_update_plan_activate_redis',
+				'type'       => 'checkbox',
+				'save_field' => true,
+				'tooltip'    => __( 'Useful if REDIS is not already activated on a site.', 'wpcd' ),
+				'columns'    => 2,
+			),
+			array(
+				'name'       => __( 'Activate SolidWP Security', 'wpcd' ),
+				'id'         => 'wpcd_app_update_plan_activate_solidwp_security',
+				'type'       => 'checkbox',
+				'save_field' => true,
+				'columns'    => 2,
 			),
 		);
 
@@ -445,6 +478,14 @@ class WPCD_POSTS_App_Update_Plan extends WPCD_Posts_Base {
 			'priority'   => 'default',
 			'fields'     => $fields_tenant_wp_options,
 		);
+
+		$metaboxes[] = array(
+			'id'         => 'wpcd_app_update_plan_misc',
+			'title'      => __( 'Misc', 'wpcd' ),
+			'post_types' => array( 'wpcd_app_update_plan' ),
+			'priority'   => 'default',
+			'fields'     => $fields_misc,
+		);		
 
 		if ( $this->can_user_execute_bash_scripts() ) {
 			// Site is allowed to execute bash scripts for site packages.

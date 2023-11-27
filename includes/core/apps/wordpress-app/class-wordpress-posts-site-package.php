@@ -121,6 +121,7 @@ class WPCD_POSTS_Site_Package extends WPCD_Posts_Base {
 
 		$prefix = 'wpcd_';
 
+		/* Add/Remove APP Groups */
 		$fields_taxonomy = array(
 			array(
 				'name'       => __( 'Apply These Groups to New Sites', 'wpcd' ),
@@ -153,7 +154,6 @@ class WPCD_POSTS_Site_Package extends WPCD_Posts_Base {
 				'multiple'   => true,
 				'save_field' => true,
 				'desc'       => __( 'These groups/categories will the removed from the site during a subscription upgrade/downgrade/switch.', 'wpcd' ),
-				'tooltip'    => __( 'This is for future use - not currently working.', 'wpcd' ),
 				'columns'    => 6,
 			),
 		);
@@ -442,12 +442,37 @@ class WPCD_POSTS_Site_Package extends WPCD_Posts_Base {
 				'columns'    => 3,
 			),
 			array(
-				'name'       => __( 'Delete UpDraft Backups', 'wpcd' ),
+				'name'       => __( 'Disable HTTP Authentication', 'wpcd' ),
+				'id'         => $prefix . 'site_package_disable_http_auth',
+				'type'       => 'checkbox',
+				'std'        => true,
+				'save_field' => true,
+				'tooltip'    => __( 'If your template site has HTTP Authentication enabled, use this option to disable it for new sites created from the template.', 'wpcd' ),
+				'columns'    => 3,
+			),
+			array(
+				'name'       => __( 'Activate Logtivity', 'wpcd' ),
+				'id'         => $prefix . 'site_package_activate_logtivity',
+				'type'       => 'checkbox',
+				'std'        => true,
+				'save_field' => true,
+				'columns'    => 3,
+			),
+			array(
+				'name'       => __( 'Activate SolidWP Security', 'wpcd' ),
+				'id'         => $prefix . 'site_package_activate_solidwp_security',
+				'type'       => 'checkbox',
+				'std'        => true,
+				'save_field' => true,
+				'columns'    => 3,
+			),
+			array(
+				'name'       => __( 'Delete Updraft Backups', 'wpcd' ),
 				'id'         => $prefix . 'site_package_delete_updraft',
 				'type'       => 'checkbox',
 				'std'        => true,
 				'save_field' => true,
-				'columns'    => 2,
+				'columns'    => 3,
 			),
 			array(
 				'name'       => __( 'Delete Debug.log', 'wpcd' ),
@@ -455,7 +480,7 @@ class WPCD_POSTS_Site_Package extends WPCD_Posts_Base {
 				'type'       => 'checkbox',
 				'std'        => true,
 				'save_field' => true,
-				'columns'    => 2,
+				'columns'    => 3,
 			),
 		);
 

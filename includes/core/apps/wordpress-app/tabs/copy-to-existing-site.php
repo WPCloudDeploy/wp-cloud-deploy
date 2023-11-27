@@ -1472,6 +1472,17 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 					$plan_id  = wpcd_clean_numeric( $data['update_plan_id'] );
 					$batch_id = wpcd_clean_numeric( $data['update_plan_batch_id'] ); // We shouldn't need the wpcd_clean_numeric function call here but somewhere along the line quotes get into the value somehow.
 
+					// Upgrade the database - just in case the files include a new version of wp.
+					$command    = sprintf( 'sudo su - "%s" -c "wp core update-db --no-color" ', $target_domain );
+					$action     = 'upgrade_wp_db';
+					$raw_status = $this->submit_generic_server_command( $server_id, $action, $command, true );
+
+					// Reset file permissions.
+					$no_reset_file_permissions = boolval( get_post_meta( $plan_id, 'wpcd_app_update_plan_no_reset_file_permissions', true ) );
+					if ( false === $no_reset_file_permissions ) {
+						do_action( 'wpcd_wordpress-app_reset_file_permissions', $target_app_id, array() );
+					}
+
 					// Push custom wp-config.php data.
 					$keypairs = get_post_meta( $plan_id, 'wpcd_app_update_plan_wp_config_custom_data', true );
 					if ( ! empty( $keypairs ) ) {
@@ -1522,14 +1533,12 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 					}
 
 					// Remove categories/groups from site.
-					// @TODO: This code does not work - wp_remove_object_terms throws a wp core error that I can't explain.
-					// Error being thrown is: Trying to access array offset on value of type null in /var/www/smi99.com/html/wp-includes/taxonomy.php on line 2966.
 					$groups = get_post_meta( $plan_id, 'wpcd_app_update_plan_remove_categories', true ); // taxomomy_advanced fields stores multiple values in a single comma delimited row so this will return a comma delimited string.
 					if ( ! empty( $groups ) ) {
 						$groups = explode( ',', $groups );
 						$groups = array_values( $groups );
 						foreach ( $groups as $key => $group ) {
-							wp_remove_object_terms( (int) $target_app_id, $group, 'wpcd_app_group' );
+							wp_remove_object_terms( (int) $target_app_id, (int) $group, 'wpcd_app_group' );   // Casting to INT is very important otherwise this function doesn't work.
 						}
 					}
 
@@ -1553,6 +1562,28 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 						$command    = sprintf( 'sudo su - "%s" -c "wp --no-color plugin activate %s" ', $target_domain, $plugins_to_activate );
 						$action     = 'wpcd_site_update_activate_plugins';
 						$raw_status = $this->submit_generic_server_command( $server_id, $action, $command, true );
+					}
+
+					// Activate SolidWP SEcurity on the site.
+					$activate_solidwp_security = get_post_meta( $plan_id, 'wpcd_app_update_plan_activate_solidwp_security', true );
+					if ( true === (bool) $activate_solidwp_security ) {
+						do_action( 'wpcd_wordpress-app_do-activate_solidwp_security_for_site', $target_app_id, '' );
+					}
+
+					// Activate logtivity on the site.
+					$activate_logtivity = get_post_meta( $plan_id, 'wpcd_app_update_plan_activate_logtivity', true );
+					if ( true === (bool) $activate_logtivity ) {
+						do_action( 'wpcd_wordpress-app_do-activate_logtivity_for_site', $target_app_id, '' );
+					}
+
+					// Activate Redis.
+					$activate_redis = get_post_meta( $plan_id, 'wpcd_app_update_plan_activate_redis', true );
+					if ( true === (bool) $activate_redis ) {
+						if ( $this->is_redis_installed( $server_id ) && ! $this->get_app_is_redis_installed( $target_app_id ) ) {
+							$instance                = array();
+							$instance['action_hook'] = 'wpcd_wordpress-app_pending_log_toggle_redis_object_cache';
+							WPCD_POSTS_PENDING_TASKS_LOG()->add_pending_task_log_entry( $target_app_id, 'enable-redis-object-cache', $target_app_id, $instance, 'ready', $target_app_id, __( 'Enable Redis Object Cache For Existing Site (via Site Update Plan)', 'wpcd' ) );
+						}
 					}
 
 					/**

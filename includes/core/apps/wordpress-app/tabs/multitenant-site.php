@@ -126,15 +126,17 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 							}
 
 							// Was memcached enabled on the original site?  If so, the caching plugin was copied as well so add the meta here for that.
-							$memcached_status = get_post_meta( $id, 'wpapp_memcached_status', true );
-							if ( ! empty( $memcached_status ) ) {
-								update_post_meta( $new_app_post_id, 'wpapp_memcached_status', $memcached_status );
+							if ( true === $this->get_app_is_memcached_installed( $id ) ) {
+								$this->set_app_memcached_installed_status( $new_app_post_id, true );
+							} else {
+								$this->set_app_memcached_installed_status( $new_app_post_id, false );
 							}
 
 							// Was redis enabled on the original site?  If so, the caching plugin was copied as well so add the meta here for that.
-							$redis_status = get_post_meta( $id, 'wpapp_redis_status', true );
-							if ( ! empty( $redis_status ) ) {
-								update_post_meta( $new_app_post_id, 'wpapp_redis_status', $redis_status );
+							if ( true === $this->get_app_is_redis_installed( $id ) ) {
+								$this->set_app_redis_installed_status( $new_app_post_id, true );
+							} else {
+								$this->set_app_redis_installed_status( $new_app_post_id, false );
 							}
 
 							/*
@@ -574,6 +576,8 @@ class WPCD_WORDPRESS_TABS_MULTITENANT_SITE extends WPCD_WORDPRESS_TABS {
 		// construct the run command.
 		// NOTE: The control file for this operation, mt_clone_site.txt is going to run THREE operations in sequence.
 		// This means that this control file will look a little different from the others.
+		// Note all that the $action string doesn't really matter here - it's set to 'mt-create-version' from the calling
+		// script but not used by the mt_clone_site.txt file since cloning a site doesn't need an action.
 		$run_cmd = $this->turn_script_into_command(
 			$instance,
 			'mt_clone_site.txt',

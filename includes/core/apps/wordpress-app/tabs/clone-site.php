@@ -120,15 +120,17 @@ class WPCD_WORDPRESS_TABS_CLONE_SITE extends WPCD_WORDPRESS_TABS {
 							}
 
 							// Was memcached enabled on the original site?  If so, the caching plugin was copied as well so add the meta here for that.
-							$memcached_status = get_post_meta( $id, 'wpapp_memcached_status', true );
-							if ( ! empty( $memcached_status ) ) {
-								update_post_meta( $new_app_post_id, 'wpapp_memcached_status', $memcached_status );
+							if ( true === $this->get_app_is_memcached_installed( $id ) ) {
+								$this->set_app_memcached_installed_status( $new_app_post_id, true );
+							} else {
+								$this->set_app_memcached_installed_status( $new_app_post_id, false );
 							}
 
 							// Was redis enabled on the original site?  If so, the caching plugin was copied as well so add the meta here for that.
-							$redis_status = get_post_meta( $id, 'wpapp_redis_status', true );
-							if ( ! empty( $redis_status ) ) {
-								update_post_meta( $new_app_post_id, 'wpapp_redis_status', $redis_status );
+							if ( true === $this->get_app_is_redis_installed( $id ) ) {
+								$this->set_app_redis_installed_status( $new_app_post_id, true );
+							} else {
+								$this->set_app_redis_installed_status( $new_app_post_id, false );
 							}
 
 							/*

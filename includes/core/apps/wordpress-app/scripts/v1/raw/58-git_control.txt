@@ -38,7 +38,7 @@ lf_send_callback_failed() {
 #
 # returns $domain
 ########################################################
-lf_select_domain () {
+lf_select_domain() {
 	while [[ -z $domain ]]
 	do
 		clear

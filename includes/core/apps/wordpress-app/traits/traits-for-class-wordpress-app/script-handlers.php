@@ -395,6 +395,23 @@ trait wpcd_wpapp_script_handlers {
 			case 'renew_all_certificates.txt':
 				$return = ( strpos( $result, 'Certificate renewal attempt completed' ) !== false );
 				break;
+			case 'manage_logtivity.txt':
+				$return =
+				( strpos( $result, 'Logtivity installed and license activated' ) !== false )
+				||
+				( strpos( $result, 'Logtivity license activated' ) !== false )
+				||
+				( strpos( $result, 'Logtivity has been removed' ) !== false );
+				$return = $return && ( strpos( $result, 'Please provide a valid API key' ) == false ); // If the string 'Please provide a valid API key' is in the output, the thing has failed.
+				break;
+			case 'manage_solidwp_security.txt':
+				$return =
+				( strpos( $result, 'Solidwp installed and license activated' ) !== false )
+				||
+				( strpos( $result, 'Solidwp license activated' ) !== false )
+				||
+				( strpos( $result, 'Solidwp has been removed' ) !== false );
+				break;
 
 			/**************************************************************
 			* The items below this are SERVER items, not APP items        *
@@ -713,10 +730,22 @@ trait wpcd_wpapp_script_handlers {
 				||
 				( strpos( $result, 'Git has been updated' ) !== false );
 				break;
+			case 'ubuntu_pro_activate.txt':
+				$return =
+				( strpos( $result, 'Ubuntu Pro token has been applied to this server' ) !== false );
+				break;
+			case 'ubuntu_pro_actions.txt':
+				$return =
+				( strpos( $result, 'This machine is not attached to an Ubuntu Pro subscription' ) !== false )
+				||
+				( strpos( $result, 'Ubuntu Pro token has been removed from this server' ) !== false );
+				break;
 
-			/**************************************************************
-			* The items below this are SERVER SYNC items, not APP items   *
-			*/
+			/**
+			 *************************************************************
+			 * The items below this are SERVER SYNC items, not APP items.
+			 **************************************************************
+			 */
 			case 'server_sync_origin_setup.txt':
 				$return =
 				( strpos( $result, 'Setup has been finished for this server. But you are not done yet' ) !== false );
@@ -1295,6 +1324,26 @@ trait wpcd_wpapp_script_handlers {
 					$additional
 				);
 				break;
+			case 'manage_logtivity.txt':
+				$new_array = array_merge(
+					array(
+						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/52-logtivity.txt',
+						'SCRIPT_NAME' => '52-logtivity.sh',
+					),
+					$common_array,
+					$additional
+				);
+				break;
+			case 'manage_solidwp_security.txt':
+				$new_array = array_merge(
+					array(
+						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/51-solidsecurity.txt',
+						'SCRIPT_NAME' => '51-solidsecurity.sh',
+					),
+					$common_array,
+					$additional
+				);
+				break;
 
 			/*********************************************************
 			* The items below this are SERVER items, not APP items   *
@@ -1646,10 +1695,37 @@ trait wpcd_wpapp_script_handlers {
 					$additional
 				);
 				break;
+			case 'ubuntu_pro_activate.txt':
+				// This one's a long running command.
+				$command_name = $additional['command'];
+				$new_array    = array_merge(
+					array(
+						'SCRIPT_URL'   => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/54-ubuntupro.txt',
+						'SCRIPT_NAME'  => '54-ubuntupro.sh',
+						'SCRIPT_LOGS'  => "{$this->get_app_name()}_{$command_name}",
+						'CALLBACK_URL' => $this->get_command_url( $instance['server_id'], $command_name, 'completed' ),
+					),
+					$common_array,
+					$additional
+				);
+				break;
+			case 'ubuntu_pro_actions.txt':
+				// This one's a short command.
+				$new_array = array_merge(
+					array(
+						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/54-ubuntupro.txt',
+						'SCRIPT_NAME' => '54-ubuntupro.sh',
+					),
+					$common_array,
+					$additional
+				);
+				break;
 
-				/**************************************************************
-			* The items below this are SERVER SYNC items, not APP items   *
-			*/
+			/**
+			 *************************************************************
+			 * The items below this are SERVER SYNC items, not APP items.
+			 **************************************************************
+			 */
 			case 'server_sync_origin_setup.txt':
 				$command_name = $additional['command'];
 				$new_array    = array_merge(

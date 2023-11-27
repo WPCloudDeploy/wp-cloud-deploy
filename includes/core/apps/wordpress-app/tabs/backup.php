@@ -116,8 +116,8 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 
 			// If it was, then update the metas for memcached and redis as well as the php version number.
 			if ( true === $success ) {
-				update_post_meta( $id, 'wpapp_memcached_status', 'off' );
-				update_post_meta( $id, 'wpapp_redis_status', 'off' );
+				$this->set_app_memcached_installed_status( $id, false );
+				$this->set_app_redis_installed_status( $id, false );
 				$this->set_php_version_for_app( $id, $this->get_wpapp_default_php_version() );  // All restores are done into the wpapp default php version.
 			}
 		}

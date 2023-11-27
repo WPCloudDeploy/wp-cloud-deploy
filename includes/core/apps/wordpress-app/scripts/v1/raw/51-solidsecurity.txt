@@ -1,0 +1,149 @@
+#!/bin/bash
+if [[ "$EUID" -ne 0 ]]
+then
+	echo "Sorry, you need to run this as root"
+	exit
+fi
+
+## Get our common functions
+if [[ ! -f 9999-common-functions.sh ]]
+then
+	echo "The file 9999-common-functions.sh is missing"
+	exit
+fi
+source 9999-common-functions.sh
+
+########################################################
+# Common function to get domain we want to work with.
+#
+# returns $domain
+########################################################
+lf_select_domain() {
+	while [[ -z $domain ]]
+	do
+		clear
+		echo "Please, select which site you want to work with"
+		gf_select_domain
+		domain=$(ls /var/www | grep -v html | sed -n "$site_number"p)
+	done
+}
+
+########################################################
+# Install solidwp on a site.
+########################################################
+lf_install_solidwp() {
+
+	# Get domain - output will be in the $domain global var.
+	lf_select_domain
+	
+	# Get the domain user name - output will be held in $g_domain_user_name
+	gf_get_domain_user_name $domain
+	user_name=$g_domain_user_name
+
+	# Get the location of the plugin.
+	while [[ -z $solidwp_url ]]
+	do
+		read -p "Enter the plugin URL: " solidwp_url
+	done	
+
+	# Deactivate better-wp-security in case it's activated - this is the free versions of solidwp.
+	su - $user_name -c "wp --no-color plugin deactivate better-wp-security/better-wp-security.php"
+	
+	# Install and activate solidwp
+	su - $user_name -c "wp --no-color plugin install --activate $solidwp_url --force"
+
+	# @TODO: Import settings
+
+}
+
+########################################################
+# License SolidWP for a site.
+########################################################
+lf_license_solidwp() {
+
+	# Get domain - output will be in the $domain global var.
+	lf_select_domain
+	
+	# Get the domain user name - output will be held in $g_domain_user_name
+	gf_get_domain_user_name $domain
+	user_name=$g_domain_user_name
+
+	# Get the solidwp user id.
+	while [[ -z $solidwp_user_id ]]
+	do
+		read -p "Enter your SolidWP account User Id: " solidwp_user_id
+	done	
+
+	# Get the solidwp account password.
+	while [[ -z $solidwp_password ]]
+	do
+		read -p "Enter your SolidWP account Password: " solidwp_password
+	done	
+
+	# Apply License
+	su - $user_name -c "wp --no-color ithemes-licensing activate ithemes-security-pro --ithemes-user=$solidwp_user_id --ithemes-pass=$solidwp_password"
+
+	# Upgrade to latest version.
+	su - $user_name -c "wp --no-color itsec upgrade"
+}
+
+########################################################
+# Remove Solidwp from a site.
+########################################################
+lf_remove_solidwp() {
+
+	# Get domain - output will be in the $domain global var.
+	lf_select_domain
+	
+	# Get the domain user name - output will be held in $g_domain_user_name
+	gf_get_domain_user_name $domain
+	user_name=$g_domain_user_name	
+	
+	su - $user_name -c "wp --no-color plugin delete ithemes-security-pro/ithemes-security-pro.php"
+
+}
+
+########################################################
+# Get action to perform
+########################################################
+while [[ -z $action ]]
+do
+	echo "What do you want to do?"
+	echo "   1) Install SolidWP Security on a site"
+	echo "   2) Relicense SolidWP on a site"
+	echo "   3) Remove SolidWP from a site"
+	echo
+	read -p "Action: " action
+	until [[ -z "$action" || "$action" =~ ^[1-3]$ ]]
+	do
+		echo "$action: invalid selection."
+		read -p "Action: " action
+	done
+done
+
+########################################################
+# Below are blocks where the action chosen above
+# is performed.
+########################################################
+
+# Install Logtivity on a site.
+if [[ $action == "solidwp_install" || $action == "1" ]]
+then
+	lf_install_solidwp
+	lf_license_solidwp
+	echo "Solidwp installed and license activated."
+fi
+
+# Relicense solidwp on a site.
+if [[ $action == "solidwp_license" || $action == "2" ]]
+then
+	lf_license_solidwp
+	echo "Solidwp license activated."
+fi
+
+# Remove solidwp from a site.
+if [[ $action == "solidwp_remove" || $action == "3" ]]
+then
+	lf_remove_solidwp
+	echo "Solidwp has been removed."
+fi

@@ -142,7 +142,7 @@ class WPCD_POSTS_Site_Package extends WPCD_Posts_Base {
 				'field_type' => 'select_advanced',
 				'multiple'   => true,
 				'save_field' => true,
-				'desc'       => __( 'These groups/categories will the applied to a existing sites during a subscription switch.', 'wpcd' ),
+				'desc'       => __( 'These groups/categories will the applied to existing sites during a subscription switch.', 'wpcd' ),
 				'columns'    => 6,
 			),
 			array(

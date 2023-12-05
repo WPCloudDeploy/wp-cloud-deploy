@@ -44,7 +44,7 @@ class WPCD_WOOCOMMERCE {
 		$found = false;
 		$items = $order->get_items();
 		foreach ( $items as $item ) {
-			$product_id = $item->get_product_id();
+			$product_id = apply_filters( 'wpcd_does_order_contain_item_of_type', $product_id );
 			$is_type    = get_post_meta( $product_id, "wpcd_app_{$item_type}_product", true );
 			if ( 'yes' === $is_type ) {
 				$found = true;
@@ -76,7 +76,7 @@ class WPCD_WOOCOMMERCE {
 		$return = true;
 		$items  = $order->get_items();
 		foreach ( $items as $item ) {
-			$product_id = $item->get_product_id();
+			$product_id = apply_filters( 'wpcd_does_order_suppress_thank_you_notice', $product_id );
 			$is_type    = get_post_meta( $product_id, "wpcd_app_{$item_type}_product", true );
 			if ( 'yes' === $is_type ) {
 				$suppress = get_post_meta( $product_id, "wpcd_app_{$item_type}_no_global_thankyou_notice", true );
@@ -130,7 +130,7 @@ class WPCD_WOOCOMMERCE {
 
 		$items = $order->get_items();
 		foreach ( $items as $item ) {
-			$product_id = $item->get_product_id();
+			$product_id = apply_filters( 'wpcd_get_unique_products_on_order', $product_id );
 			if ( ! in_array( $product_id, $return, true ) ) {
 				array_push( $return, $product_id );
 			}

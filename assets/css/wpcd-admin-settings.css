@@ -41,6 +41,8 @@
     background-size: 200% 100%;
     background-position: 100%;
     transition: all 0.5s cubic-bezier(0.000, 0.000, 0.230, 1);
+	border-bottom-right-radius: 50px;
+    border-top-right-radius: 50px;	
 }
 
 .rwmb-settings-no-boxes .rwmb-tabs-left .rwmb-tab-nav a {

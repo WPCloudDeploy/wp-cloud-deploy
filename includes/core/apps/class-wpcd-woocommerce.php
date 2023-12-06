@@ -106,7 +106,7 @@ class WPCD_WOOCOMMERCE {
 		foreach ( WC()->cart->get_cart() as $cart_item_key => $cart_item ) {
 			// Is this a WP Sites Product?  If not get out.
 			$is_type = get_post_meta( $cart_item['product_id'], "wpcd_app_{$item_type}_product", true );
-			if ( 'yes' == $is_type ) {
+			if ( 'yes' === $is_type ) {
 				$found = true;
 				break;
 			}

@@ -62,6 +62,7 @@ class WPCD_Init {
 			define( 'WPCD_SECONDARY_BRAND_COLOR', '#FF5722' );
 			define( 'WPCD_TERTIARY_BRAND_COLOR', '#03114A' );
 			define( 'WPCD_ACCENT_BG_COLOR', '#0d091a' );
+			define( 'WPCD_MEDIUM_ACCENT_BG_COLOR', '#D3D3D3' );
 			define( 'WPCD_MEDIUM_BG_COLOR', '#FAFAFA' );
 			define( 'WPCD_LIGHT_BG_COLOR', '#FDFDFD' );
 			define( 'WPCD_ALTERNATE_ACCENT_BG_COLOR', '#CFD8DC' );
@@ -75,6 +76,7 @@ class WPCD_Init {
 			define( 'WPCD_FE_SECONDARY_BRAND_COLOR', '#281d67' );
 			define( 'WPCD_FE_TERTIARY_BRAND_COLOR', '#03114A' );
 			define( 'WPCD_FE_ACCENT_BG_COLOR', '#0d091a' );
+			define( 'WPCD_FE_MEDIUM_ACCENT_BG_COLOR', '#D3D3D3' );
 			define( 'WPCD_FE_MEDIUM_BG_COLOR', '#FAFAFA' );
 			define( 'WPCD_FE_LIGHT_BG_COLOR', '#FDFDFD' );
 			define( 'WPCD_FE_ALTERNATE_ACCENT_BG_COLOR', '#CFD8DC' );

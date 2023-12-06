@@ -2788,6 +2788,11 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'desc'  => '',
 				'std'   => WPCD_ACCENT_BG_COLOR,
 			),
+			'wordpress_app_medium_accent_background_color'   => array(
+				'label' => __( 'Medium Accent Background Color', 'wpcd' ),
+				'desc'  => '',
+				'std'   => WPCD_MEDIUM_ACCENT_BG_COLOR,
+			),
 			'wordpress_app_medium_background_color'   => array(
 				'label' => __( 'Medium Background Color', 'wpcd' ),
 				'desc'  => '',
@@ -2873,6 +2878,11 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'label' => __( 'Accent Background Color', 'wpcd' ),
 				'desc'  => __( 'Used for the background color on most buttons.', 'wpcd' ),
 				'std'   => WPCD_FE_ACCENT_BG_COLOR,
+			),
+			'wordpress_app_fe_medium_accent_background_color' => array(
+				'label' => __( 'Medium Accent Background Color', 'wpcd' ),
+				'desc'  => '',
+				'std'   => WPCD_FE_MEDIUM_ACCENT_BG_COLOR,
 			),
 			'wordpress_app_fe_medium_background_color' => array(
 				'label' => __( 'Medium Background Color', 'wpcd' ),

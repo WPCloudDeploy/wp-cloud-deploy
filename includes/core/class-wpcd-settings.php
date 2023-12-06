@@ -2656,6 +2656,7 @@ class WPCD_Settings {
 		$wpcd_settings['wordpress_app_secondary_brand_color']             = WPCD_SECONDARY_BRAND_COLOR;
 		$wpcd_settings['wordpress_app_tertiary_brand_color']              = WPCD_TERTIARY_BRAND_COLOR;
 		$wpcd_settings['wordpress_app_accent_background_color']           = WPCD_ACCENT_BG_COLOR;
+		$wpcd_settings['wordpress_app_medium_accent_background_color']    = WPCD_MEDIUM_ACCENT_BG_COLOR;
 		$wpcd_settings['wordpress_app_medium_background_color']           = WPCD_MEDIUM_BG_COLOR;
 		$wpcd_settings['wordpress_app_light_background_color']            = WPCD_LIGHT_BG_COLOR;
 		$wpcd_settings['wordpress_app_alternate_accent_background_color'] = WPCD_ALTERNATE_ACCENT_BG_COLOR;
@@ -2669,6 +2670,7 @@ class WPCD_Settings {
 		$wpcd_settings['wordpress_app_fe_secondary_brand_color']             = WPCD_FE_SECONDARY_BRAND_COLOR;
 		$wpcd_settings['wordpress_app_fe_tertiary_brand_color']              = WPCD_FE_TERTIARY_BRAND_COLOR;
 		$wpcd_settings['wordpress_app_fe_accent_background_color']           = WPCD_FE_ACCENT_BG_COLOR;
+		$wpcd_settings['wordpress_app_fe_medium_accent_background_color']    = WPCD_FE_MEDIUM_ACCENT_BG_COLOR;		
 		$wpcd_settings['wordpress_app_fe_medium_background_color']           = WPCD_FE_MEDIUM_BG_COLOR;
 		$wpcd_settings['wordpress_app_fe_light_background_color']            = WPCD_FE_LIGHT_BG_COLOR;
 		$wpcd_settings['wordpress_app_fe_alternate_accent_background_color'] = WPCD_FE_ALTERNATE_ACCENT_BG_COLOR;

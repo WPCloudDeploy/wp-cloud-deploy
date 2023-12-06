@@ -612,6 +612,9 @@ class WP_CLOUD_DEPLOY {
 
 		$accent_bg_color = wpcd_get_option( 'wordpress_app_accent_background_color' );
 		$accent_bg_color = empty( $accent_bg_color ) ? WPCD_ACCENT_BG_COLOR : $accent_bg_color;
+		
+		$medium_accent_bg_color = wpcd_get_option( 'wordpress_app_medium_accent_background_color' );
+		$medium_accent_bg_color = empty( $medium_accent_bg_color ) ? WPCD_MEDIUM_ACCENT_BG_COLOR : $medium_accent_bg_color;		
 
 		$medium_bg_color = wpcd_get_option( 'wordpress_app_medium_background_color' );
 		$medium_bg_color = empty( $medium_bg_color ) ? WPCD_MEDIUM_BG_COLOR : $medium_bg_color;
@@ -647,6 +650,9 @@ class WP_CLOUD_DEPLOY {
 		$accent_bg_color_fe = wpcd_get_option( 'wordpress_app_fe_accent_background_color' );
 		$accent_bg_color_fe = empty( $accent_bg_color_fe ) ? WPCD_FE_ACCENT_BG_COLOR : $accent_bg_color_fe;
 
+		$medium_accent_bg_color_fe = wpcd_get_option( 'wordpress_app_fe_medium_accent_background_color' );
+		$medium_accent_bg_color_fe = empty( $medium_accent_bg_color_fe ) ? WPCD_FE_MEDIUM_ACCENT_BG_COLOR : $medium_accent_bg_color_fe;
+
 		$medium_bg_color_fe = wpcd_get_option( 'wordpress_app_fe_medium_background_color' );
 		$medium_bg_color_fe = empty( $medium_bg_color_fe ) ? WPCD_FE_MEDIUM_BG_COLOR : $medium_bg_color_fe;
 
@@ -671,6 +677,7 @@ class WP_CLOUD_DEPLOY {
 			--wpcd-secondary-brand-color: {$secondary_brand_color};
 			--wpcd-tertiary-brand-color: {$tertiary_brand_color};
 			--wpcd-accent-background-color: {$accent_bg_color};
+			--wpcd-medium-accent-background-color: {$medium_accent_bg_color};
 			--wpcd-medium-background-color: {$medium_bg_color};
 			--wpcd-light-background-color: {$light_bg_color};
 			--wpcd-alternate-accent-background-color: {$alternate_accent_bg_color};
@@ -682,6 +689,7 @@ class WP_CLOUD_DEPLOY {
 			--wpcd-front-end-primary-brand-color: {$primary_brand_color_fe};
 			--wpcd-front-end-secondary-brand-color: {$secondary_brand_color_fe};
 			--wpcd-front-end-tertiary-brand-color: {$tertiary_brand_color_fe};
+			--wpcd-front-end-medium-accent-background-color: {$medium_accent_bg_color_fe};
 			--wpcd-front-end-accent-background-color: {$accent_bg_color_fe};
 			--wpcd-front-end-medium-background-color: {$medium_bg_color_fe};
 			--wpcd-front-end-light-background-color: {$light_bg_color_fe};

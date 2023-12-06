@@ -67,7 +67,7 @@
 
 /* 
 On all the admin settings tabs, close up some excessive spaces.
-Additional headers added to that tab will neeed to
+Additional headers added to that tab will need to
 be added here.
 */
 .rwmb-settings-no-boxes #general .rwmb-heading-wrapper, 
@@ -126,6 +126,17 @@ be added here.
 .rwmb-settings-no-boxes .wpcd_settings_larger_header_label h4 {
     /* Some things just need to be a little bigger to emphasize that they are a separate section */
     font-size: larger;
+}
+
+/* H4 section headers need highlighted background */
+.rwmb-field.rwmb-heading-wrapper h4 {
+    background-color: var(--wpcd-medium-background-color) !important;
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+    padding-top: 10px !important;
+    padding-bottom: 10px !important;
+    border-radius: 4px !important;
+    margin-bottom: 10px !important;
 }
 
 /**

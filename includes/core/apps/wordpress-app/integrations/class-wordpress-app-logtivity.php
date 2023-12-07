@@ -43,13 +43,11 @@ class WPCD_WORDPRESS_APP_LOGTIVITY extends WPCD_Base {
 	 * @param string $api_key The API key.
 	 */
 	public function set_api_key( $app_id, $api_key ) {
-		error_log( "API KEY IS: $api_key" );
 		update_post_meta( $app_id, 'wpcd_app_wordpress-app_logtivity_api_key', WPCD()->encrypt( $api_key ) );
-
 	}
 
 	/**
-	 * Sets the Logtivity API key for an app.
+	 * Returns the Logtivity API key for an app.
 	 *
 	 * @since 5.6
 	 *

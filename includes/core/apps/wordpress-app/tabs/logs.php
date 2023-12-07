@@ -348,6 +348,11 @@ class WPCD_WORDPRESS_TABS_SITE_LOGS extends WPCD_WORDPRESS_TABS {
 
 		update_post_meta( $id, 'wpcd_app_logtivity_connection_status', $status );
 
+		// Maybe clear the api key.
+		if ( false === $status ) {
+			WPCD_WORDPRESS_APP_LOGTIVITY()->set_api_key( $id, '' );
+		}
+
 	}
 
 	/**
@@ -451,6 +456,21 @@ class WPCD_WORDPRESS_TABS_SITE_LOGS extends WPCD_WORDPRESS_TABS {
 			return new \WP_Error( sprintf( __( 'There is no Logtivity Teams API Key set in your global settings - action %s', 'wpcd' ), $action ) );
 		}
 
+		// If we already have an API key for the site, don't do anything.
+		// This should prevent situations where the site might get registered multiple times on the logtivity service.
+		if ( ! empty( WPCD_WORDPRESS_APP_LOGTIVITY()->get_api_key( $id ) ) ) {
+
+			// Tag logtivity as being connected.
+			$this->set_logtivity_connection_status( $id, true );
+
+			// Set return value as success.
+			$result = array( 'refresh' => 'yes' );
+
+			// Return value and exit.
+			return $result;
+
+		}
+
 		$instance = $this->get_app_instance_details( $id );
 
 		if ( is_wp_error( $instance ) ) {
@@ -513,8 +533,10 @@ class WPCD_WORDPRESS_TABS_SITE_LOGS extends WPCD_WORDPRESS_TABS {
 		// Tag logtivity as being connected.
 		$this->set_logtivity_connection_status( $id, true );
 
+		// Set return value as success.
 		$result = array( 'refresh' => 'yes' );
 
+		// Return value and exit.
 		return $result;
 
 	}

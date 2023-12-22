@@ -495,6 +495,24 @@ function wpcd_str_ends_with( $haystack, $needle ) {
 }
 
 /**
+ * Polyfil for PHP 8 str_contains.
+ *
+ * @see https://www.php.net/manual/en/function.str-contains
+ *
+ * @credit: https://gist.github.com/juliyvchirkov/8f325f9ac534fe736b504b93a1a8b2ce
+ *
+ * @since 5.6.1
+ *
+ * @param string $haystack string to search
+ * @param string $needle what we're searching for.
+ *
+ * @return boolean.
+ */
+public function wpcd_str_contains( string $haystack, string $needle ): bool {
+	return strlen( $needle ) === 0 || strpos( $haystack, $needle ) !== false;
+}
+
+/**
  * Find the LOCATION of the first number in a string...
  *
  * Credit: https://stackoverflow.com/a/7495681

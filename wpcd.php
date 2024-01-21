@@ -661,9 +661,12 @@ class WPCD_Init {
 	/**
 	 * If critical crons aren't running, send email to admin.
 	 *
-	 * Action Hook: Init.
+	 * Action Hook: Shutdown.
 	 */
 	public function send_email_for_absent_crons() {
+
+		// Load files that might not be loaded when the shutdown hook is fired.
+		require_once wpcd_path . 'includes/core/functions.php';		
 
 		// Exit if option to suppress sending these emails is turned on.
 		if ( true === (bool) wpcd_get_early_option( 'wpcd_do_not_send_cron_warning_emails' ) ) {

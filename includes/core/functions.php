@@ -508,7 +508,7 @@ function wpcd_str_ends_with( $haystack, $needle ) {
  *
  * @return boolean.
  */
-public function wpcd_str_contains( string $haystack, string $needle ): bool {
+function wpcd_str_contains( string $haystack, string $needle ): bool {
 	return strlen( $needle ) === 0 || strpos( $haystack, $needle ) !== false;
 }
 

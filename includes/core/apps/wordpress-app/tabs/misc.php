@@ -954,7 +954,7 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
-	 * Helper function disable HTTP Authentical
+	 * Helper function disable HTTP Authentication.
 	 *
 	 * Action hook: wpcd_wordpress-app_do_site_disable_http_auth.
 	 *

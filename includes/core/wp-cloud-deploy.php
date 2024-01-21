@@ -417,9 +417,9 @@ class WP_CLOUD_DEPLOY {
 				$help .= '<br />';
 
 				$help .= '<h2>' . __( 'Reading', 'wpcd' ) . '</h2>';
-				$help .= '<a href="https://wpclouddeploy.com/5-best-practices-for-new-servers-built-on-wpclouddeploy/">' . __( '5 Best-Practices For New Servers Built On WPCloudDeploy', 'wpcd' ) . '</a>';
+				$help .= '<a href="https://wpclouddeploy.com/how-to-build-a-wordpress-saas-video-course-free/">' . __( 'How To Build A WordPress SaaS - Video Course', 'wpcd' ) . '</a>';
 				$help .= '<br />';
-				$help .= '<a href="https://wpclouddeploy.com/8-best-practices-for-sites-built-on-wpcloud-deploy-servers/">' . __( '8 Best-Practices For Sites Built On WPCloudDeploy Servers', 'wpcd' ) . '</a>';
+				$help .= '<a href="https://wpclouddeploy.com/a-wordpress-server-sizing-guide/">' . __( 'WordPress Server Sizing Guide', 'wpcd' ) . '</a>';
 				$help .= '<br />';
 				$help .= '<a href="https://wpclouddeploy.com/the-five-levels-of-caching-in-wordpress/">' . __( 'Understanding WordPress Caching', 'wpcd' ) . '</a>';
 				$help .= '<br />';
@@ -612,9 +612,9 @@ class WP_CLOUD_DEPLOY {
 
 		$accent_bg_color = wpcd_get_option( 'wordpress_app_accent_background_color' );
 		$accent_bg_color = empty( $accent_bg_color ) ? WPCD_ACCENT_BG_COLOR : $accent_bg_color;
-		
+
 		$medium_accent_bg_color = wpcd_get_option( 'wordpress_app_medium_accent_background_color' );
-		$medium_accent_bg_color = empty( $medium_accent_bg_color ) ? WPCD_MEDIUM_ACCENT_BG_COLOR : $medium_accent_bg_color;		
+		$medium_accent_bg_color = empty( $medium_accent_bg_color ) ? WPCD_MEDIUM_ACCENT_BG_COLOR : $medium_accent_bg_color;
 
 		$medium_bg_color = wpcd_get_option( 'wordpress_app_medium_background_color' );
 		$medium_bg_color = empty( $medium_bg_color ) ? WPCD_MEDIUM_BG_COLOR : $medium_bg_color;
@@ -732,7 +732,7 @@ class WP_CLOUD_DEPLOY {
 	 */
 	public static function get_os_list() {
 		$oslist = array(
-			'ubuntu2204lts' => __( 'Ubuntu 22.04 LTS', 'wpcd' ),			
+			'ubuntu2204lts' => __( 'Ubuntu 22.04 LTS', 'wpcd' ),
 			'ubuntu2004lts' => __( 'Ubuntu 20.04 LTS', 'wpcd' ),
 		);
 
@@ -995,27 +995,27 @@ class WP_CLOUD_DEPLOY {
 		$terms = apply_filters(
 			'wpcd_get_pw_terms_to_clean',
 			array(
-				'wp_password='               => '(***private***)',
-				'wps_new_password='          => '(***private***)',
-				'aws_access_key_id='         => '(***private***)',
-				'aws_secret_access_key='     => '(***private***)',
-				'--admin_password='          => '(***private***)',
-				'pass='                      => '(***private***)',
-				'remote_dbpass='             => '(***private***)',
-				'local_dbpass='              => '(***private***)',
+				'wp_password='                => '(***private***)',
+				'wps_new_password='           => '(***private***)',
+				'aws_access_key_id='          => '(***private***)',
+				'aws_secret_access_key='      => '(***private***)',
+				'--admin_password='           => '(***private***)',
+				'pass='                       => '(***private***)',
+				'remote_dbpass='              => '(***private***)',
+				'local_dbpass='               => '(***private***)',
 
 				'dns_cloudflare_api_token='   => '(***private***)',
 				'dns_cloudflare_api_key='     => '(***private***)',
 				'secret_key_manager_api_key=' => '(***private***)',
 				'git_token='                  => '(***private***)',
-				
-				'dns_cloudflare_api_token'   => '(***private***)',
-				'dns_cloudflare_api_key'     => '(***private***)',
-				'secret_key_manager_api_key' => '(***private***)',
-				'git_token'                  => '(***private***)',
-				
-				'logtivity_teams_api_key='   => '(***private***)',
-				'ubuntu_pro_token='          => '(***private***)',
+
+				'dns_cloudflare_api_token'    => '(***private***)',
+				'dns_cloudflare_api_key'      => '(***private***)',
+				'secret_key_manager_api_key'  => '(***private***)',
+				'git_token'                   => '(***private***)',
+
+				'logtivity_teams_api_key='    => '(***private***)',
+				'ubuntu_pro_token='           => '(***private***)',
 				"Updated the constant 'DB_PASSWORD' in the 'wp-config.php' file with the value " => '(***private***)' . PHP_EOL,
 
 			)

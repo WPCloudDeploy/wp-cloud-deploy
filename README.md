@@ -62,7 +62,7 @@ Features of the plugin include:
 
 ## Requirements ##
 * WordPress 5.8 or later
-* PHP 7.4, [8.0 or 8.1](https://wpclouddeploy.com/documentation/more/php-8-0-8-1-notes/)
+* PHP 7.4, [8.0, 8.1 or 8.2](https://wpclouddeploy.com/documentation/more/php-8-0-8-1-notes/)
 
 Once the plugin is installed please view additional changes required to PHP and web server execution timeout values under the WPCLOUDDEPLOY → SETTINGS → GENERAL SETTINGS tab. 
 

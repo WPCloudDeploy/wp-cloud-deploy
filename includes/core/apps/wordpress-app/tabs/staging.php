@@ -23,9 +23,11 @@ class WPCD_WORDPRESS_TABS_STAGING extends WPCD_WORDPRESS_TABS {
 		add_filter( "wpcd_app_{$this->get_app_name()}_get_tabs", array( $this, 'get_fields' ), 10, 2 );
 		add_filter( "wpcd_app_{$this->get_app_name()}_tab_action", array( $this, 'tab_action' ), 10, 3 );
 		/* add_filter( 'wpcd_is_ssh_successful', array( $this, 'was_ssh_successful' ), 10, 5 ); */
-
 		add_action( "wpcd_command_{$this->get_app_name()}_completed", array( $this, 'command_completed' ), 10, 2 );
 
+		// Action hook for before delete or trash app.
+		add_action( 'wp_trash_post', array( $this, 'wpcd_before_app_trash_or_delete' ), 10, 1 );
+		add_action( 'before_delete_post', array( $this, 'wpcd_before_app_trash_or_delete' ), 10, 1 );
 	}
 
 	/**
@@ -677,12 +679,105 @@ class WPCD_WORDPRESS_TABS_STAGING extends WPCD_WORDPRESS_TABS {
 				'save_field' => false,
 			);
 
+			if ( ! empty( $existing_staging_site ) ) {
+
+				$fields[] = array(
+					'name' => __( 'Staging Site', 'wpcd' ),
+					'tab'  => 'staging',
+					'type' => 'heading',
+					'desc' => $existing_staging_site,
+				);
+
+				// get ssl status first.
+				$staging_id  = $this->get_companion_staging_site_id( $id );
+				$staging_ssl = $this->get_site_local_ssl_status( $staging_id );
+
+				// get domain name.
+				$sub_domain = $this->get_domain_name( $staging_id );
+
+				if ( true == $staging_ssl ) {
+					$url_wpadmin = 'https://' . $sub_domain . '/wp-admin';
+				} else {
+					$url_wpadmin = 'http://' . $sub_domain . '/wp-admin';
+				}
+
+				$fields[] = array(
+					'tab'        => 'staging',
+					'type'       => 'button',
+					'std'        => __( 'WP-ADMIN', 'wpcd' ),
+					'attributes' => array(
+						'onclick' => "window.open('" . $url_wpadmin . "')",
+					),
+					'columns'    => 2,
+				);
+
+				if ( true == $staging_ssl ) {
+					$url_site = 'https://' . $sub_domain;
+				} else {
+					$url_site = 'http://' . $sub_domain;
+				}
+
+				$fields[] = array(
+					'tab'        => 'staging',
+					'type'       => 'button',
+					'std'        => __( 'FRONT END', 'wpcd' ),
+					'attributes' => array(
+						'onclick' => "window.open('" . $url_site . "')",
+					),
+					'columns'    => 2,
+				);
+
+				if ( wpcd_is_admin() || wpcd_user_can( get_current_user_id(), 'view_app', $staging_id ) || get_post_field( 'post_author', $staging_id ) == get_current_user_id() ) {
+					$edit_url = is_admin() ? admin_url( 'post.php?post=' . $staging_id . '&action=edit' ) : get_permalink( $staging_id );
+					$fields[] = array(
+						'tab'        => 'staging',
+						'type'       => 'button',
+						'std'        => __( 'ADMIN', 'wpcd' ),
+						'attributes' => array(
+							'onclick' => "window.open('" . esc_url( $edit_url ) . "')",
+						),
+						'columns'    => 2,
+					);
+				}
+			}
 		}
 
 		return $fields;
 
 	}
 
+	/**
+	 * Restricts user to delete a post if he/she doesn't have delete_server permission
+	 * Note: Changes to this permission logic might also need to be done in function
+	 * ajax_server() located in file class-wordpres-app.php in the 'delete-server-record'
+	 * section of the SWITCH-CASE control structure.
+	 *
+	 * @param int $post_id post id.
+	 *
+	 * @return void|boolean
+	 */
+	public function wpcd_before_app_trash_or_delete( $post_id ) {
+
+		// No permissions check if we're running tasks via cron. eg: bulk deletes triggered via pending logs.
+		if ( true === wp_doing_cron() || true === wpcd_is_doing_cron() ) {
+			return true;
+		}
+
+		if ( get_post_type( $post_id ) === 'wpcd_app' && wpcd_is_admin() ) {
+			$user_id     = (int) get_current_user_id();
+			$post_author = (int) get_post( $post_id )->post_author;
+
+			if ( wpcd_user_can( $user_id, 'delete_app_record', $post_id ) && $post_author === $user_id ) {
+				$live_domain_id = $this->get_live_id_for_staging_site( $post_id );
+				if ( ! empty( $live_domain_id ) ) {
+					// Delete in live domain.
+					delete_post_meta( $live_domain_id, 'wpapp_staging_domain' );
+					// Delete in staging domain.
+					delete_post_meta( $post_id, 'wpapp_cloned_from_id' );
+				}
+			}
+		}
+	}
 }
 
 new WPCD_WORDPRESS_TABS_STAGING();

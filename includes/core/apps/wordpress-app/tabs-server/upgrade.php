@@ -300,7 +300,7 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 		}
 
 		// WP-CLI Upgrade Options.
-		if ( ! $this->is_wpcli29_installed( $id ) ) {
+		if ( ! $this->is_wpcli210_installed( $id ) ) {
 			$upgrade_wpcli_fields = $this->get_upgrade_fields_wpcli( $id );
 			$actions              = array_merge( $actions, $upgrade_wpcli_fields );
 		}
@@ -1057,7 +1057,7 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 		// Set up metabox items.
 		$actions = array();
 
-		$upg_desc  = __( 'Use this button to upgrade WP-CLI to v2.9.', 'wpcd' );
+		$upg_desc  = __( 'Use this button to upgrade WP-CLI to v2.10.', 'wpcd' );
 		$upg_desc .= '<br />';
 		$upg_desc .= __( 'If your server already has the latest version this will have no effect.', 'wpcd' );
 

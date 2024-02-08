@@ -1502,6 +1502,34 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	}
 
 	/**
+	 * Returns a boolean true/false if wpcli 2.10 is installed.
+	 *
+	 * @param int $server_id ID of server being interrogated.
+	 *
+	 * @return boolean
+	 */
+	public function is_wpcli210_installed( $server_id ) {
+
+		$initial_plugin_version = $this->get_server_meta_by_app_id( $server_id, 'wpcd_server_plugin_initial_version', true );  // This function is smart enough to know if the ID being passed is a server or app id and adjust accordingly.
+
+		if ( version_compare( $initial_plugin_version, '5.6.1' ) > -1 ) {
+			// Versions of the plugin after 5.6.0 automatically install wpcli 2.10.
+			return true;
+		} else {
+			// See if it was manually upgraded - which would leave a meta field value behind on the server CPT record.
+			$it_is_installed = (float) $this->get_server_meta_by_app_id( $server_id, 'wpcd_server_wpcli_upgrade', true );   // This function is smart enough to know if the ID being passed is a server or app id and adjust accordingly.
+			if ( $it_is_installed >= 2.10 ) {
+				return true;
+			} else {
+				return false;
+			}
+		}
+
+		return false;
+	}
+
+
+	/**
 	 * Returns a boolean true/false if the PHP Module INTL is supposed to be installed on the server.
 	 *
 	 * @param int $server_id ID of server being interrogated.

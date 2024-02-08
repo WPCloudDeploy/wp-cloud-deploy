@@ -132,6 +132,7 @@ Note: Even though the entire git development history isn't available on github, 
 * Tweak: WPAPP - CSS to change the highlighter in the left menu bar in WPCD settings, server and app detail screens.
 * Tweak: WPAPP - Updated HELP & FAQ links.
 * Tweak: WPAPP - Updated WP Version list.
+* Tweak: WPAPP - Add option to upgrade WPCLI to 2.10.0.
 * Dev: WPAPP - Add filter to the base WooCommerce class: wpcd_get_unique_products_on_order
 * Dev: WPAPP - Add filter to the base WooCommerce class: wpcd_does_order_contain_item_of_type
 * Dev: WPAPP - Add filter to the base WooCommerce class: wpcd_does_order_suppress_thank_you_notice

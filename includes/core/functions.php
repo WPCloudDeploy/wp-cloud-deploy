@@ -103,10 +103,10 @@ function wpcd_get_the_title( $post = 0 ) {
  *
  * @param array $data data.
  */
-function wpcd_maybe_unserialize( $data ) {
+function wpcd_maybe_unserialize( $data, $allowed_classes = array('allowed_classes' => false )  ) {
 	$output = $data;
 	if ( is_serialized( $data ) && ! is_array( $data ) ) {
-		$output = unserialize( $data );
+		$output = unserialize( $data, $allowed_classes );
 	}
 
 	/**
@@ -116,14 +116,14 @@ function wpcd_maybe_unserialize( $data ) {
 	/**
 	 * Maybe this just needs to be a recursive function until is_serialized returns false.
 	*/
-	if ( is_serialized( $output ) && ! is_array( $output ) ) {
+	if ( is_serialized( $output ) && ! is_array( $output, $allowed_classes ) ) {
 		$output = unserialize( $output );
 	}
-	if ( is_serialized( $output ) && ! is_array( $output ) ) {
-		$output = unserialize( $output );
+	if ( is_serialized( $output ) && ! is_array( $output, $allowed_classes ) ) {
+		$output = unserialize( $output, $allowed_classes );
 	}
 	if ( is_serialized( $output ) && ! is_array( $output ) ) {
-		$output = unserialize( $output );
+		$output = unserialize( $output, $allowed_classes );
 	}
 
 	return $output;

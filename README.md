@@ -133,13 +133,13 @@ Note: Even though the entire git development history isn't available on github, 
 * Tweak: WPAPP - Updated HELP & FAQ links.
 * Tweak: WPAPP - Updated WP Version list.
 * Tweak: WPAPP - Add option to upgrade WPCLI to 2.10.0.
-* Dev: WPAPP - Add filter to the base WooCommerce class: wpcd_get_unique_products_on_order
-* Dev: WPAPP - Add filter to the base WooCommerce class: wpcd_does_order_contain_item_of_type
-* Dev: WPAPP - Add filter to the base WooCommerce class: wpcd_does_order_suppress_thank_you_notice
 * Fix: WPAPP - Missing default $in_args for change_php_workers (Thanks @batonac)
 * Fix: WPAPP - Remove an errant error_log statement.
 * Fix: WPAPP - Prevent WPCD from registering a site twice on the Logtivity service.
-
+* Dev: WPAPP - Add filter to the base WooCommerce class: wpcd_get_unique_products_on_order
+* Dev: WPAPP - Add filter to the base WooCommerce class: wpcd_does_order_contain_item_of_type
+* Dev: WPAPP - Add filter to the base WooCommerce class: wpcd_does_order_suppress_thank_you_notice
+* Dev: Default allowed_classes to false in the wpcd_maybe_unserialize() function.
 5.6.0
 ------
 * New: WPAPP - REDIS now part of CORE plugin and is installed on all servers.

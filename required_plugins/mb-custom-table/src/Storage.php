@@ -152,7 +152,8 @@ class Storage {
 			$this->delete_row( $object_id );
 			return false;
 		}
-		$where = array( 'ID' => $object_id );
+		$where = [ 'ID' => $object_id ];
+		$row   = apply_filters( 'mbct_update_data', $row, $object_id, $this->table );
 		do_action( 'mbct_before_update', $object_id, $this->table, $row );
 		$output = $wpdb->update( $this->table, (array) $row, $where );
 		do_action( 'mbct_after_update', $object_id, $this->table, $row );
@@ -161,7 +162,8 @@ class Storage {
 
 	public function insert_row( $row ) {
 		global $wpdb;
-		$id = isset( $row['ID'] ) ? $row['ID'] : null;
+		$id  = $row[ 'ID' ] ?? null;
+		$row = apply_filters( 'mbct_add_data', $row, $id, $this->table );
 		do_action( 'mbct_before_add', $id, $this->table, $row );
 		$output = $wpdb->insert( $this->table, $row );
 		do_action( 'mbct_after_add', $wpdb->insert_id, $this->table, $row );
@@ -170,7 +172,7 @@ class Storage {
 
 	public function delete_row( $object_id ) {
 		global $wpdb;
-		$where = array( 'ID' => $object_id );
+		$where = [ 'ID' => $object_id ];
 		do_action( 'mbct_before_delete', $object_id, $this->table );
 		$output = $wpdb->delete( $this->table, $where );
 		do_action( 'mbct_after_delete', $object_id, $this->table );

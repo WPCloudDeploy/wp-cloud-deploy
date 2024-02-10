@@ -3,7 +3,7 @@
  * Plugin Name: Meta Box Include Exclude
  * Plugin URI:  https://metabox.io/plugins/meta-box-include-exclude/
  * Description: Easily show/hide meta boxes by ID, page template, taxonomy or custom defined function.
- * Version:     1.0.11
+ * Version:     1.0.12
  * Author:      MetaBox.io
  * Author URI:  https://metabox.io
  * License:     GPL2+

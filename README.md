@@ -140,6 +140,8 @@ Note: Even though the entire git development history isn't available on github, 
 * Dev: WPAPP - Add filter to the base WooCommerce class: wpcd_does_order_contain_item_of_type
 * Dev: WPAPP - Add filter to the base WooCommerce class: wpcd_does_order_suppress_thank_you_notice
 * Dev: Default allowed_classes to false in the wpcd_maybe_unserialize() function.
+* Dev: Upgrade metabox modules to latest versions.
+
 5.6.0
 ------
 * New: WPAPP - REDIS now part of CORE plugin and is installed on all servers.

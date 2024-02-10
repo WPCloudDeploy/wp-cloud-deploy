@@ -66,7 +66,7 @@ class MetaBox extends \RW_Meta_Box {
 	}
 
 	public function is_edit_screen( $screen = null ) {
-		$page = rwmb_request()->get( 'page' );
+		$page = (string) rwmb_request()->get( 'page' );
 		if ( strpos( $page, 'model-' ) !== 0 ) {
 			return false;
 		}

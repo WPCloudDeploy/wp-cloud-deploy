@@ -437,4 +437,60 @@ class RWMB_Group_Field extends RWMB_Field {
 			'data-clone-default' => 'true',
 		] );
 	}
+
+	private static function get_child_field( $field, $child_id ) {
+		foreach ( $field['fields'] as $child_field ) {
+			if ( $child_field['id'] === $child_id ) {
+				return $child_field;
+			}
+			if ( ! isset( $child_field['fields'] ) ) {
+				continue;
+			}
+			$child = self::get_child_field( $child_field, $child_id );
+			if ( $child ) {
+				return $child;
+			}
+		}
+		return false;
+	}
+
+	public static function format_clone_value( $field, $value, $args, $post_id ) {
+		$output = '<ul>';
+
+		foreach ( $value as $key => $values ) {
+			$name = ' ';
+			if ( ! is_numeric( $key ) ) {
+				$child_field = self::get_child_field( $field, $key );
+
+				add_filter( 'rwmb_' . $child_field['id'] . '_raw_meta', function () use ($values) {
+					return $values;
+				}, 10 );
+
+				if ( $child_field ) {
+					$name = $child_field['name'] . ': ';
+
+					$values = self::call( 'get_value', $child_field, $args, $post_id );
+
+					if ( ! empty( $values ) ) {
+						$values = self::call( 'format_value', $child_field, $values, $args, $post_id );
+					}
+				}
+			}
+
+			$name = '<strong>' . $name . '</strong>';
+			$output .= '<li>' . $name;
+
+			if ( is_array( $values ) ) {
+				$output .= self::format_clone_value( $field, $values, $args, $post_id );
+			} else {
+				$output .= self::format_single_value( $field, $values, $args, $post_id );
+			}
+
+			$output .= '</li>';
+		}
+
+		$output .= '</ul>';
+
+		return $output;
+	}
 }

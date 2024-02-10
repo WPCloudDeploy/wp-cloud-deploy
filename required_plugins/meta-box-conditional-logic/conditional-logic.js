@@ -266,7 +266,7 @@
 			operator = operator.trim();
 
 			if ( $.isNumeric( dependentValue ) ) {
-				dependentValue = parseInt( dependentValue );
+				dependentValue = parseFloat( dependentValue );
 			}
 
 			let result = compare( dependentValue, value, operator );
@@ -467,9 +467,11 @@
 		// Reset the required attribute for inputs.
 		$element.find( rwmb.inputSelectors ).each( function() {
 			let $this = $( this ),
-				$field = $this.closest( '.rwmb-field.required' );
-			if ( $field.length ) {
-				$this.prop( 'required', true );
+				$field = $this.closest( '.rwmb-field.required' ),
+				oldRequired = $this.data( 'old-required' );
+				
+			if ( $field.length && oldRequired ) {
+				$this.prop( 'required', oldRequired );
 			}
 		} );
 	}
@@ -505,6 +507,9 @@
 		$element.find( rwmb.inputSelectors ).each( function() {
 			let $this = $( this ),
 				required = $this.attr( 'required' );
+
+			$this.data( 'old-required', required );
+
 			if ( required ) {
 				$this.prop( 'required', false );
 			}

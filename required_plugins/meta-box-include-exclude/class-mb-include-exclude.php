@@ -284,6 +284,10 @@ class MB_Include_Exclude {
 		 * This is required for MB User Meta extension.
 		 */
 		if ( isset( $GLOBALS['pagenow'] ) && 'user-edit.php' === $GLOBALS['pagenow'] ) {
+			if ( empty( $_REQUEST['user_id'] ) ) {
+				wp_die( esc_html__( 'Invalid user ID.', 'meta-box-include-exclude' ) );
+			}
+
 			// If edit other's profile, check edited user.
 			$user_id = intval( $_REQUEST['user_id'] );
 			$user    = get_userdata( $user_id );
@@ -308,6 +312,10 @@ class MB_Include_Exclude {
 	 */
 	protected static function check_edited_user_id( $user_ids ) {
 		if ( isset( $GLOBALS['pagenow'] ) && 'user-edit.php' === $GLOBALS['pagenow'] ) {
+			if ( empty( $_REQUEST['user_id'] ) ) {
+				wp_die( esc_html__( 'Invalid user ID.', 'meta-box-include-exclude' ) );
+			}
+
 			// If edit other's profile, check edited user.
 			$user_id = intval( $_REQUEST['user_id'] );
 

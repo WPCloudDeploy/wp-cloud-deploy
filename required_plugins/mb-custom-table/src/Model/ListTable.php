@@ -42,9 +42,12 @@ class ListTable extends \WP_List_Table {
 		$this->items = $wpdb->get_results( $sql, 'ARRAY_A' );
 	}
 
-	private function get_total_items( $where ) {
+	private function get_total_items( string $where ): int {
 		global $wpdb;
-		return $wpdb->get_var( "SELECT COUNT(*) FROM $this->table $where" );
+		$sql = "SELECT COUNT(*) FROM $this->table $where";
+		$sql = apply_filters( "mbct_{$this->model->name}_total_items", $sql, $where );
+
+		return (int) $wpdb->get_var( $sql );
 	}
 
 	protected function extra_tablenav( $which ) {

@@ -81,6 +81,8 @@
 
 /* Background color for everything */
 #wpcd_wordpress-app_tab2,
-#wpcd_wordpress-app_tab2 .rwmb-tab-panels {
-	/* background-color: #f9fcff; */
+#wpcd_wordpress-app_tab2 .rwmb-tab-panels,
+#wpcd_server_wordpress-app_tab3,
+#wpcd_server_wordpress-app_tab3 .rwmb-tab-panels {
+	/* background-color: #F3F3F5; */
 }

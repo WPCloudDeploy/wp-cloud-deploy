@@ -90,7 +90,8 @@
 #wpcd_wordpress-app_tab2 .rwmb-tab-panel-copy-to-existing-site,
 #wpcd_wordpress-app_tab2 .rwmb-tab-panel-site-sync,
 #wpcd_wordpress-app_tab2 .rwmb-tab-panel-crons,
-#wpcd_wordpress-app_tab2 .rwmb-tab-panel-php-options {
+#wpcd_wordpress-app_tab2 .rwmb-tab-panel-php-options,
+#wpcd_wordpress-app_tab2 .rwmb-tab-panel-misc {
 	display: flex;
 	flex-wrap: wrap;
 }

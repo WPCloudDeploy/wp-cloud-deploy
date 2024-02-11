@@ -636,7 +636,7 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 			'tab'               => 'change-domain',
 			'type'              => 'heading',
 			'desc'              => $desc,
-			'column_row_before' => '<div class="wpcd-start-card-group">',
+			'column_row_before' => '<div class="wpcd-card-group">',
 		);
 		$fields[] = array(
 			'name'        => __( 'New Domain', 'wpcd' ),
@@ -663,13 +663,13 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 
 		if ( ! $show_simplified_options_only ) {
 			$fields[] = array(
-				'id'               => 'wpcd_app_change_domain_quick_change',
-				'name'             => __( 'Quick Change', 'wpcd' ),
-				'tab'              => 'change-domain',
-				'type'             => 'button',
-				'std'              => __( 'Quick Change', 'wpcd' ),
-				'tooltip'          => __( 'Change just the domain name in the WordPress settings screen.  All other references to the old domain will remain in your content and other items in the database.', 'wpcd' ),
-				'attributes'       => array(
+				'id'         => 'wpcd_app_change_domain_quick_change',
+				'name'       => __( 'Quick Change', 'wpcd' ),
+				'tab'        => 'change-domain',
+				'type'       => 'button',
+				'std'        => __( 'Quick Change', 'wpcd' ),
+				'tooltip'    => __( 'Change just the domain name in the WordPress settings screen.  All other references to the old domain will remain in your content and other items in the database.', 'wpcd' ),
+				'attributes' => array(
 					// the _action that will be called in ajax.
 					'data-wpcd-action'              => 'change-domain-quick-change',
 					// the id.
@@ -679,10 +679,9 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 					// make sure we give the user a confirmation prompt.
 					'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like to change the domain? Protect your data - make a backup before you start this operation!', 'wpcd' ),
 				),
-				'class'            => 'wpcd_app_action',
-				'save_field'       => false,
-				'columns'          => 3,
-				'column_row_after' => $show_simplified_options_only ? '' : '</div><!-- .wpcd-start-card-group -->',
+				'class'      => 'wpcd_app_action',
+				'save_field' => false,
+				'columns'    => 3,
 			);
 		}
 
@@ -742,13 +741,13 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 
 		if ( ! $show_simplified_options_only ) {
 			$fields[] = array(
-				'id'               => 'wpcd_app_change_domain_record_only',
-				'name'             => __( 'Change Meta', 'wpcd' ),
-				'tab'              => 'change-domain',
-				'type'             => 'button',
-				'std'              => __( 'Change Record', 'wpcd' ),
-				'tooltip'          => __( 'Update the record in this plugin only. You might need to do this if a prior operation only partially succeeded or you changed the domain using another plugin such as UpdraftPlus.', 'wpcd' ),
-				'attributes'       => array(
+				'id'         => 'wpcd_app_change_domain_record_only',
+				'name'       => __( 'Change Meta', 'wpcd' ),
+				'tab'        => 'change-domain',
+				'type'       => 'button',
+				'std'        => __( 'Change Record', 'wpcd' ),
+				'tooltip'    => __( 'Update the record in this plugin only. You might need to do this if a prior operation only partially succeeded or you changed the domain using another plugin such as UpdraftPlus.', 'wpcd' ),
+				'attributes' => array(
 					// the _action that will be called in ajax.
 					'data-wpcd-action'              => 'change-domain-record-only',
 					// the id.
@@ -758,12 +757,25 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 					// make sure we give the user a confirmation prompt.
 					'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like to only update the local record with this domain name?  If done incorrectly this can cause future domain operations to fail!', 'wpcd' ),
 				),
-				'class'            => 'wpcd_app_action',
-				'save_field'       => false,
-				'columns'          => 3,
-				'column_row_after' => '</div><!-- .wpcd-start-card-group -->',
+				'class'      => 'wpcd_app_action',
+				'save_field' => false,
+				'columns'    => 3,
 			);
 		}
+
+		// Close up prior card.
+		$fields[] = array(
+			'tab'               => 'change-domain',
+			'type'              => 'custom_html',
+			'column_row_before' => '</div><!-- .wpcd-start-card-group -->',
+		);
+
+		// Start new card.
+		$fields[] = array(
+			'tab'               => 'change-domain',
+			'type'              => 'custom_html',
+			'column_row_before' => '<div class="wpcd-card-group">',
+		);
 
 		// Add some quick notes about the domain name change process.
 		$note  = __( 'Quick Change: Change just the domain name in the WordPress settings screen.  All other references to the old domain will remain in your content and other items in the database.', 'wpcd' );
@@ -794,6 +806,13 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 				'desc' => $reminder,
 			);
 		}
+
+		// Close up prior card.
+		$fields[] = array(
+			'tab'               => 'change-domain',
+			'type'              => 'custom_html',
+			'column_row_before' => '</div><!-- .wpcd-start-card-group -->',
+		);		
 
 		/* Start generic search and replace fields */
 		$fields[] = array(

@@ -225,6 +225,7 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 
 		wp_enqueue_style( 'wpcd-magnific', wpcd_url . 'assets/css/magnific-popup.css', array(), wpcd_scripts_version );
 		wp_enqueue_style( 'wpcd-server-admin', wpcd_url . 'assets/css/wpcd-server-admin.css', array( 'wpcd-magnific' ), wpcd_scripts_version );
+		wp_enqueue_style( 'wpcd-cards-admin', wpcd_url . 'assets/css/wpcd-cards.css', array(), wpcd_scripts_version );
 
 	}
 

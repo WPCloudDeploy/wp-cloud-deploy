@@ -1,0 +1,11 @@
+.wpcd-card-group {
+	width: 50%;
+	background-color: var(--wpcd-light-background-color);
+	margin-right: 10px;
+	border: solid;
+	border-width: 1px;
+	border-color: var(--wpcd-medium-background-color);
+	border-radius: 8px;
+	padding-left: 10px;
+	padding-right: 10px;
+}

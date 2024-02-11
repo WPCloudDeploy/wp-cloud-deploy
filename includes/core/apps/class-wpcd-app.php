@@ -129,6 +129,7 @@ class WPCD_APP extends WPCD_Base {
 
 				wp_enqueue_style( 'wpcd-magnific', wpcd_url . 'assets/css/magnific-popup.css', array(), wpcd_scripts_version );
 				wp_enqueue_style( 'wpcd-app-admin', wpcd_url . 'assets/css/wpcd-app.css', array( 'wpcd-magnific' ), wpcd_scripts_version );
+				wp_enqueue_style( 'wpcd-cards-admin', wpcd_url . 'assets/css/wpcd-cards.css', array(), wpcd_scripts_version );
 			}
 		}
 	}

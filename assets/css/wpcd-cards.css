@@ -73,12 +73,18 @@
 	display: none;
 }
 
-/* With cards, we want the thing to flex. */
+/* With cards, we want the thing to flex - apps. */
 #wpcd_wordpress-app_tab2 .rwmb-tab-panel-backup,
 #wpcd_wordpress-app_tab2 .rwmb-tab-panel-change-domain,
 #wpcd_wordpress-app_tab2 .rwmb-tab-panel-ssl,
 #wpcd_wordpress-app_tab2 .rwmb-tab-panel-cache,
 #wpcd_wordpress-app_tab2 .rwmb-tab-panel-sftp {
+	display: flex;
+	flex-wrap: wrap;
+}
+
+/* With cards, we want the thing to flex - servers. */
+#wpcd_wordpress-app_tab3 .rwmb-tab-panel-svr_tweaks {
 	display: flex;
 	flex-wrap: wrap;
 }

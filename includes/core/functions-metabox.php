@@ -64,7 +64,7 @@ function wpcd_start_half_card( $tab ) {
  *
  * @param string $tab The tab on which the field will go.
  */
-function wpcd_start_third_card( $tab ) {
+function wpcd_start_one_third_card( $tab ) {
 
 	$field = array(
 		'tab'               => $tab,

@@ -128,7 +128,7 @@ be added here.
 
 /* H4 section headers need highlighted background */
 .rwmb-field.rwmb-heading-wrapper h4 {
-    background-color: var(--wpcd-medium-background-color) !important;
+	background-color: var(--wpcd-alternate-accent-background-color) !important;
     padding-left: 10px !important;
     padding-right: 10px !important;
     padding-top: 10px !important;

@@ -115,6 +115,18 @@ class Row {
 		if ( $this->is_start_row( $field ) ) {
 			$after  .= '</div><!-- .rwmb-row -->';
 			$before .= '<div class="rwmb-row">';
+			
+			// Start WPCD Custom Changes
+			if ( ! empty( $field[ 'column_row_before' ] ) ) {
+				# $before = '<div class="wpcd-start-card-group">' . $before;
+				$before = $field[ 'column_row_before' ] . $before;
+			}
+			
+			if ( ! empty( $field[ 'column_row_after' ] ) ) {
+				# $after  = $after . '</div><!-- .wpcd-start-card-group -->';
+				$after  = $after . $field[ 'column_row_after' ];
+			}
+			// End WPCD Custom Changes
 
 			$this->total_columns = 0;
 		}

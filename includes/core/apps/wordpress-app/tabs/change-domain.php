@@ -632,7 +632,7 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 		$desc .= __( 'Otherwise you will need to request new certificates on the SSL tab after the operation is complete and you have updated your DNS.', 'wpcd' );
 		$desc .= '<br />';
 		$desc .= __( 'Note that we will only attempt to automatically issue an SSL certificate if the current domain already has an SSL certificate installed.', 'wpcd' );
-		$desc  = sprintf( '<details>%s</details>', $desc );
+		$desc  = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
 
 		// Start new card block.
 		$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
@@ -657,8 +657,9 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 			'placeholder' => __( 'Enter your new domain without the "http" or "www" prefix', 'wpcd' ),
 		);
 
-		$note    .= __( 'Change all references from the old domain to the new domain across the entire database. This is the real deal - do a backup because you cannot undo this action once it has started!', 'wpcd' );
-		$note     = sprintf( '<details>%s</details>', $note );
+		$note .= __( 'Change all references from the old domain to the new domain across the entire database. This is the real deal - do a backup because you cannot undo this action once it has started!', 'wpcd' );
+		$note  = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $note );
+
 		$fields[] = array(
 			'name' => __( 'Change Everything', 'wpcd' ),
 			'tab'  => 'change-domain',
@@ -690,8 +691,9 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 		);
 
 		if ( ! $show_simplified_options_only ) {
-			$note     = __( 'Change just the domain name in the WordPress settings screen.  All other references to the old domain will remain in your content and other items in the database.', 'wpcd' );
-			$note     = sprintf( '<details>%s</details>', $note );
+			$note = __( 'Change just the domain name in the WordPress settings screen.  All other references to the old domain will remain in your content and other items in the database.', 'wpcd' );
+			$note = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $note );
+
 			$fields[] = array(
 				'name' => __( 'Quick Change', 'wpcd' ),
 				'tab'  => 'change-domain',
@@ -726,8 +728,9 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 		$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
 
 		if ( ! $show_simplified_options_only ) {
-			$note     = __( 'Change all references from the old domain to the new domain across the entire database. This does a dry run so you can get an idea of what will be changed.', 'wpcd' );
-			$note     = sprintf( '<details>%s</details>', $note );
+			$note = __( 'Change all references from the old domain to the new domain across the entire database. This does a dry run so you can get an idea of what will be changed.', 'wpcd' );
+			$note = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $note );
+
 			$fields[] = array(
 				'name' => __( 'Dry Run - No Permanent Changes', 'wpcd' ),
 				'tab'  => 'change-domain',
@@ -761,8 +764,9 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 		}
 
 		if ( ! $show_simplified_options_only ) {
-			$note     = __( 'Update the record in this panel only. You might need to do this if a prior operation only partially succeeded or you changed the domain using another plugin such as UpdraftPlus.', 'wpcd' );
-			$note     = sprintf( '<details>%s</details>', $note );
+			$note = __( 'Update the record in this panel only. You might need to do this if a prior operation only partially succeeded or you changed the domain using another plugin such as UpdraftPlus.', 'wpcd' );
+			$note = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $note );
+
 			$fields[] = array(
 				'name' => __( 'Change Record', 'wpcd' ),
 				'tab'  => 'change-domain',
@@ -795,7 +799,7 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 		$reminder  = __( 'After you have finished changing the domain name, you must remove any sFTP users and re-add them on the sFTP tab. Existing users are no longer valid for the new domain.', 'wpcd' );
 		$reminder .= '<br />';
 		$reminder .= __( 'You should also update your permalinks under the WordPress SETTINGS → PERMALINKS screen - just go there and click the update button; WordPress will reset the permalinks for your site.', 'wpcd' );
-		$reminder  = sprintf( '<details>%s</details>', $reminder );
+		$reminder  = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $reminder );
 
 		if ( ! $hide_explanatory_text ) {
 			$fields[] = array(
@@ -844,7 +848,7 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 				$desc .= '<br />';
 				$desc .= __( 'However, NO SPECIAL CHARACTERS or SPACES are allowed in your search or replace terms!', 'wpcd' );
 
-				$desc = sprintf( '<details>%s</details>', $desc );
+					$desc = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
 			} else {
 				$desc = '';
 			}

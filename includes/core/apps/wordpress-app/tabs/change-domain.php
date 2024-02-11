@@ -625,6 +625,7 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 
 		// We got here so ok to show fields related to changing domain.
 		$desc = __( 'Change your site domain.  This is a destructive operation so you should take a backup before proceeding.<br />', 'wpcd' );
+		$desc = sprintf( '<details>%s</details>', $desc );
 
 		$desc_ssl  = __( 'If you would like new SSL certificates to be issued as part of this operation please make sure you point your DNS for the new domain to to this server\'s IP address BEFORE you start this operation. ', 'wpcd' );
 		$desc_ssl .= __( 'Otherwise you will need to request new certificates on the SSL tab after the operation is complete and you have updated your DNS.', 'wpcd' );
@@ -683,7 +684,7 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 				),
 				'class'      => 'wpcd_app_action',
 				'save_field' => false,
-				'columns'    => 3,
+				'columns'    => 6,
 			);
 		}
 
@@ -711,7 +712,7 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 				),
 				'class'      => 'wpcd_app_action',
 				'save_field' => false,
-				'columns'    => 3,
+				'columns'    => 6,
 			);
 		}
 
@@ -738,7 +739,7 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 			),
 			'class'      => 'wpcd_app_action',
 			'save_field' => false,
-			'columns'    => $show_simplified_options_only ? 12 : 3,
+			'columns'    => $show_simplified_options_only ? 12 : 6,
 		);
 
 		if ( ! $show_simplified_options_only ) {
@@ -761,7 +762,7 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 				),
 				'class'      => 'wpcd_app_action',
 				'save_field' => false,
-				'columns'    => 3,
+				'columns'    => 6,
 			);
 		}
 

@@ -63,11 +63,11 @@ class WPCD_WORDPRESS_TABS extends WPCD_WORDPRESS_APP {
 			$fields[]       = array_merge(
 				$raw_attributes,
 				array(
-					'name'       => isset( $attributes['label'] ) ? $attributes['label'] : '',
-					'id'         => "wpcd_app_action_{$slug}",
-					'tab'        => $tab,
-					'type'       => $attributes['type'],
-					'attributes' => array(
+					'name'              => isset( $attributes['label'] ) ? $attributes['label'] : '',
+					'id'                => "wpcd_app_action_{$slug}",
+					'tab'               => $tab,
+					'type'              => $attributes['type'],
+					'attributes'        => array(
 						// the _action that will be called in ajax.
 						'data-wpcd-action'              => $slug,
 						// the id, not of much use.
@@ -84,8 +84,10 @@ class WPCD_WORDPRESS_TABS extends WPCD_WORDPRESS_APP {
 						// Spellcheck security issue.
 						'spellcheck'                    => isset( $raw_attributes['spellcheck'] ) ? $raw_attributes['spellcheck'] : 'true',
 					),
-					'class'      => isset( $raw_attributes['class'] ) ? 'wpcd_app_action ' . $raw_attributes['class'] : 'wpcd_app_action',
-					'save_field' => false,
+					'class'             => isset( $raw_attributes['class'] ) ? 'wpcd_app_action ' . $raw_attributes['class'] : 'wpcd_app_action',
+					'save_field'        => false,
+					'column_row_before' => isset( $attributes['column_row_before'] ) ? $attributes['column_row_before'] : '',
+					'column_row_after'  => isset( $attributes['column_row_after'] ) ? $attributes['column_row_after'] : '',
 				)
 			);
 		}

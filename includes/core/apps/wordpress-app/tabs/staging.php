@@ -638,23 +638,29 @@ class WPCD_WORDPRESS_TABS_STAGING extends WPCD_WORDPRESS_TABS {
 			$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
 
 			// We got here so ok to show fields related to cloning the site to staging.
-			$desc = __( 'Make a copy of this site for development, testing and trouble-shooting.', 'wpcd' );
+			$desc = __( 'This function allows you to make a copy of this site for development, testing and trouble-shooting.', 'wpcd' );
+			$desc = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
 
 			// Variable that indicates if an existing staging site has already been created.
 			$existing_staging_site = $this->get_companion_staging_site_domain( $id );
-
-			if ( ! empty( $existing_staging_site ) ) {
-				$desc .= '<br />';
-				/* Translators: %s: The domain of the companion staging site. */
-				$desc .= sprintf( __( 'A companion staging site already exists at: %s.', 'wpcd' ), '<b>' . $existing_staging_site . '</b>' );
-				$desc .= '<br />';
-				$desc .= __( 'If you create a new staging site, the old one will be deleted.', 'wpcd' );
-			}
 
 			$fields[] = array(
 				'name' => __( 'Staging', 'wpcd' ),
 				'tab'  => 'staging',
 				'type' => 'heading',
+				'desc' => $desc,
+			);
+
+			if ( ! empty( $existing_staging_site ) ) {
+				/* Translators: %s: The domain of the companion staging site. */
+				$desc  = sprintf( __( 'A companion staging site already exists at: %s.', 'wpcd' ), '<b>' . $existing_staging_site . '</b>' );
+				$desc .= '<br />';
+				$desc .= __( 'If you create a new staging site, the old one will be deleted.', 'wpcd' );
+			}
+
+			$fields[] = array(
+				'tab'  => 'staging',
+				'type' => 'custom_html',
 				'desc' => $desc,
 			);
 

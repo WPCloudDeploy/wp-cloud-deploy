@@ -591,14 +591,22 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 		$fields[] = wpcd_end_card( $this->get_tab_slug() );
 
 		// Start new card.
-		$fields[] = wpcd_start_full_card( $this->get_tab_slug() );
+		$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
 
 		/* Start restore section */
-		$desc = __( 'Use this section to restore data from your backups. Use with care - restores are a destructive operation.  You should make a backup before performing a restore.  <br />We strongly recommend that you make a snapshot of your server as well!', 'wpcd' );
+		$desc  = __( 'Use this section to restore data from your backups. Use with care - restores are a destructive operation.  You should make a backup before performing a restore.  <br />We strongly recommend that you make a snapshot of your server as well!', 'wpcd' );
+		$desc .= '<br/>';
+		$desc .= '<br/>';
+		$desc .= __( '1. Use the REFRESH BACKUP LIST button to get a current list of backups', 'wpcd' );
+		$desc .= '<br/>';
+		$desc .= __( '2. Select a site to restore from the dropdown.', 'wpcd' );
+		$desc .= '<br/>';
+		$desc .= __( '3. Choose a restore option in the SELECT RESTORE OPTION section.', 'wpcd' );
+
 		$desc = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
 
 		$fields[] = array(
-			'name' => __( 'Restore a Site From Backup', 'wpcd' ),
+			'name' => __( 'Select a Site to Restore From Backup', 'wpcd' ),
 			'desc' => $desc,
 			'tab'  => 'backup',
 			'type' => 'heading',
@@ -652,8 +660,39 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 			),
 			'class'      => 'wpcd_app_action',
 			'save_field' => false,
-			'columns'    => 6,
+			'columns'    => 12,
 		);
+
+		if ( ! empty( $backup_list_date ) ) {
+			$fields[] = array(
+				'tab'  => 'backup',
+				'type' => 'custom_html',
+				'std'  => sprintf( __( 'The list of backups was last refreshed on %s.', 'wpcd' ), $backup_list_date ),
+			);
+		} else {
+			$fields[] = array(
+				'tab'  => 'backup',
+				'type' => 'custom_html',
+				'std'  => __( 'The backup list has never been retrieved. Please use the REFRESH BACKUP LIST button to get the most recent list of available backups.', 'wpcd' ),
+			);
+		}
+
+		// Close up prior card.
+		$fields[] = wpcd_end_card( $this->get_tab_slug() );
+
+		// Start new card.
+		$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
+
+		$desc = __( '1. Use the REFRESH BACKUP LIST button to get a current list of backups 2.select a site to restore from the dropdown. 3. Choose a restore option below.', 'wpcd' );
+		$desc = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
+
+		$fields[] = array(
+			'name' => __( 'Select Restore Action', 'wpcd' ),
+			'desc' => $desc,
+			'tab'  => 'backup',
+			'type' => 'heading',
+		);
+
 		$fields[] = array(
 			'id'         => 'wpcd_app_action_restore_backup',
 			'name'       => '',
@@ -676,7 +715,7 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 			),
 			'class'      => 'wpcd_app_action',
 			'save_field' => false,
-			'columns'    => 6,
+			'columns'    => 12,
 		);
 		$fields[] = array(
 			'id'         => 'wpcd_app_action_restore_backup_webserver_config_only',
@@ -700,7 +739,7 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 			),
 			'class'      => 'wpcd_app_action',
 			'save_field' => false,
-			'columns'    => 6,
+			'columns'    => 12,
 		);
 		$fields[] = array(
 			'id'         => 'wpcd_app_action_restore_backup_wpconfig_only',
@@ -724,21 +763,8 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 			),
 			'class'      => 'wpcd_app_action',
 			'save_field' => false,
-			'columns'    => 6,
+			'columns'    => 12,
 		);
-		if ( ! empty( $backup_list_date ) ) {
-			$fields[] = array(
-				'tab'  => 'backup',
-				'type' => 'custom_html',
-				'std'  => sprintf( __( 'The list of backups was last refreshed on %s. Use the REFRESH BACKUP LIST button to get the most recent list.', 'wpcd' ), $backup_list_date ),
-			);
-		} else {
-			$fields[] = array(
-				'tab'  => 'backup',
-				'type' => 'custom_html',
-				'std'  => __( 'The backup list has never been retrieved. Please use the REFRESH BACKUP LIST button to get the most recent list of available backups.', 'wpcd' ),
-			);
-		}
 		/* End restore section */
 
 		// Close up prior card.
@@ -790,8 +816,15 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 		/* Manually Prune Backups */
 		$hide_prune_section = (bool) wpcd_get_early_option( 'wordpress_app_site_backup_hide_prune_backups_section' ) && ( ! wpcd_is_admin() );  // Note: If we ever decide to create action options on teams or for owners, this conditional should be removed in favor of those.
 		if ( ! $hide_prune_section ) {
-			$desc     = __( 'Delete old local backups. Before you can use this option you must have configured backups and run the backup process at least once.', 'wpcd' );
-			$desc     = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
+			$desc  = __( 'Delete old local backups that are stored on this server. Before you can use this option you must have configured backups and run the backup process at least once.', 'wpcd' );
+			$desc .= '<br/>';
+			$desc .= '<br/>';
+			$desc .= __( 'Backups that are stored at AWS S3 will not be deleted with this operation.', 'wpcd' );
+			$desc .= '<br/>';
+			$desc .= '<br/>';
+			$desc .= __( 'This is a one-time operation - to schedule automatic pruning please the options under AUTOMATIC DAILY BACKUP above.', 'wpcd' );
+			$desc  = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
+
 			$fields[] = array(
 				'name' => __( 'Prune Backups', 'wpcd' ),
 				'desc' => $desc,
@@ -820,7 +853,6 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 				'tab'        => 'backup',
 				'type'       => 'button',
 				'std'        => __( 'Prune Backups For This Site', 'wpcd' ),
-				'desc'       => __( 'Prune backups for this site.  You must have set a retention interval above before this is used!', 'wpcd' ),
 				// fields that contribute data for this action.
 				'attributes' => array(
 					// the _action that will be called in ajax.

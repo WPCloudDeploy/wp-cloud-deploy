@@ -516,8 +516,7 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 			// Backups are not currently enabled so we can show all fields.
 			$fields[] = array(
 				'id'         => 'wpcd_app_action_auto_backup_bucket_name',
-				'desc'       => $hide_field ? '' : __( 'If this is left blank then the global bucket name from the SETTINGS screen will be used.', 'wpcd' ),
-				'tooltip'    => $hide_field ? '' : __( 'The bucket should exist in the same region you specified for your AWS credentials.', 'wpcd' ),
+				'tooltip'    => $hide_field ? '' : __( 'If this is left blank then the global bucket name from the SETTINGS screen will be used. The bucket should exist in the same region you specified for your AWS credentials.', 'wpcd' ),
 				'tab'        => 'backup',
 				'type'       => $hide_field ? 'hidden' : 'text',
 				'name'       => $hide_field ? '' : __( 'AWS Bucket Name', 'wpcd' ),
@@ -532,7 +531,7 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 			$hide_field = (bool) wpcd_get_early_option( 'wordpress_app_site_backup_hide_retention_days' ) && ( ! wpcd_is_admin() );
 			$fields[]   = array(
 				'id'         => 'wpcd_app_action_auto_backup_retention_days',
-				'desc'       => $hide_field ? '' : __( 'If left blank or zero, the backups will never be deleted. If set to -1, we will NEVER keep backups on disk (NOT RECOMMENDED).', 'wpcd' ),
+				'tooltip'    => $hide_field ? '' : __( 'If left blank or zero, the backups will never be deleted. If set to -1, we will NEVER keep backups on disk (NOT RECOMMENDED).', 'wpcd' ),
 				'tab'        => 'backup',
 				'type'       => $hide_field ? 'hidden' : 'number',
 				'min'        => -1,
@@ -557,7 +556,7 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 					'on'  => __( 'Enabled', 'wpcd' ),
 				),
 				'std'        => $auto_backup_delete_remotes,
-				'desc'       => $hide_field ? '' : __( 'Delete remote backups when deleting local backups that exceed the retention days. We recommend that you keep this disabled and set a low number for the retention days above.', 'wpcd' ),
+				'tooltip'    => $hide_field ? '' : __( 'Delete remote backups when deleting local backups that exceed the retention days. We recommend that you keep this disabled and set a low number for the retention days above.', 'wpcd' ),
 				'attributes' => array(
 					// the key of the field (the key goes in the request).
 					'data-wpcd-name' => 'auto_backup_delete_remotes',

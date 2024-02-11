@@ -20,7 +20,8 @@
 }
 .wpcd-card-group:hover,
 .wpcd-card-group:focus {
-	box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
+	xbox-shadow: rgba(0, 0, 0, 0.3) 0px 19px 38px, rgba(0, 0, 0, 0.22) 0px 15px 12px;
+	box-shadow: rgba(0, 0, 0, 0.25) 0px 25px 50px -12px;
 }
 
 .wpcd-card-full {
@@ -49,6 +50,6 @@
 
 /* With cards, we want the thing to flex. */
 #wpcd_wordpress-app_tab2 .rwmb-tab-panel-change-domain {
-	display: flex !important;
+	display: flex;
 	flex-wrap: wrap;
 }

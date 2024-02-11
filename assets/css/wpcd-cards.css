@@ -77,7 +77,8 @@
 #wpcd_wordpress-app_tab2 .rwmb-tab-panel-backup,
 #wpcd_wordpress-app_tab2 .rwmb-tab-panel-change-domain,
 #wpcd_wordpress-app_tab2 .rwmb-tab-panel-ssl,
-#wpcd_wordpress-app_tab2 .rwmb-tab-panel-cache {
+#wpcd_wordpress-app_tab2 .rwmb-tab-panel-cache,
+#wpcd_wordpress-app_tab2 .rwmb-tab-panel-sftp {
 	display: flex;
 	flex-wrap: wrap;
 }

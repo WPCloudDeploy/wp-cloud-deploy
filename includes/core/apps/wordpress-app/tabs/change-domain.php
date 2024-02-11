@@ -631,12 +631,14 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 		$desc_ssl .= '<br />';
 		$desc_ssl .= __( 'Note that we will only attempt to automatically issue an SSL certificate if the current domain already has an SSL certificate installed.', 'wpcd' );
 
+		// Start new card.
+		$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
+
 		$fields[] = array(
-			'name'              => __( 'Change Domain', 'wpcd' ),
-			'tab'               => 'change-domain',
-			'type'              => 'heading',
-			'desc'              => $desc,
-			'column_row_before' => '<div class="wpcd-card-group">',
+			'name' => __( 'Change Domain', 'wpcd' ),
+			'tab'  => 'change-domain',
+			'type' => 'heading',
+			'desc' => $desc,
 		);
 		$fields[] = array(
 			'name'        => __( 'New Domain', 'wpcd' ),
@@ -764,18 +766,10 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 		}
 
 		// Close up prior card.
-		$fields[] = array(
-			'tab'               => 'change-domain',
-			'type'              => 'custom_html',
-			'column_row_before' => '</div><!-- .wpcd-start-card-group -->',
-		);
+		$fields[] = wpcd_end_card( $this->get_tab_slug() );
 
 		// Start new card.
-		$fields[] = array(
-			'tab'               => 'change-domain',
-			'type'              => 'custom_html',
-			'column_row_before' => '<div class="wpcd-card-group">',
-		);
+		$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
 
 		// Add some quick notes about the domain name change process.
 		$note  = __( 'Quick Change: Change just the domain name in the WordPress settings screen.  All other references to the old domain will remain in your content and other items in the database.', 'wpcd' );
@@ -808,11 +802,7 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 		}
 
 		// Close up prior card.
-		$fields[] = array(
-			'tab'               => 'change-domain',
-			'type'              => 'custom_html',
-			'column_row_before' => '</div><!-- .wpcd-start-card-group -->',
-		);		
+		$fields[] = wpcd_end_card( $this->get_tab_slug() );
 
 		/* Start generic search and replace fields */
 		$fields[] = array(
@@ -820,6 +810,9 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 			'tab'  => 'change-domain',
 			'type' => 'divider',
 		);
+
+		// Start new card.
+		$fields[] = wpcd_start_full_card( $this->get_tab_slug() );
 
 		if ( ! $hide_explanatory_text ) {
 			$desc  = __( 'Generic search and replace.  This is a destructive operation so you should take a backup before proceeding.', 'wpcd' );
@@ -890,6 +883,10 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 				'save_field' => false,
 			);
 		}
+
+		// Close up prior card.
+		$fields[] = wpcd_end_card( $this->get_tab_slug() );
+
 		/* End Start generic search and replace fields */
 
 		/* Documentation Link to WPCloudDeploy Site */

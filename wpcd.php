@@ -189,6 +189,7 @@ class WPCD_Init {
 		require_once wpcd_path . 'includes/core/class-wpcd-posts-permission-type.php';
 		require_once wpcd_path . 'includes/core/class-wpcd-dns.php';
 		require_once wpcd_path . 'includes/core/functions.php';
+		require_once wpcd_path . 'includes/core/functions-metabox.php';
 
 		if ( defined( 'WPCD_LOAD_VPN_APP' ) && ( true === WPCD_LOAD_VPN_APP ) ) {
 			require_once wpcd_path . 'includes/core/apps/vpn/class-vpn-app.php';
@@ -379,6 +380,9 @@ class WPCD_Init {
 		require_once wpcd_path . '/required_plugins/mb-user-meta/mb-user-meta.php';
 		require_once wpcd_path . '/required_plugins/mb-custom-table/mb-custom-table.php';
 
+		/* Include custom metabox.io fields we created. */
+		require_once wpcd_path . 'includes/core/metabox-io-custom-fields/wpcd-card-container-field.php';
+
 		/* Load up some licensing files. */
 		if ( true === is_admin() ) {
 			require_once WPCD_PATH . '/includes/vendor/WPCD_EDD_SL_Plugin_Updater.php';
@@ -387,6 +391,7 @@ class WPCD_Init {
 
 		/* Load up our files */
 		require_once wpcd_path . 'includes/core/functions.php';
+		require_once wpcd_path . 'includes/core/functions-metabox.php';
 		require_once wpcd_path . 'includes/core/class-wpcd-custom-fields.php';
 		require_once wpcd_path . 'includes/core/class-wpcd-roles-capabilities.php';
 		require_once wpcd_path . 'includes/core/class-wpcd-data-sync-rest.php';

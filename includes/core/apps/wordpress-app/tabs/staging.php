@@ -582,6 +582,10 @@ class WPCD_WORDPRESS_TABS_STAGING extends WPCD_WORDPRESS_TABS {
 		$is_staging = $this->is_staging_site( $id );
 
 		if ( true === $is_staging ) {
+
+			// Start new card.
+			$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
+
 			// This is a staging site so only show options that allow it to be pushed back to live.
 			$desc = __( 'Push this site to live.', 'wpcd' );
 
@@ -625,7 +629,13 @@ class WPCD_WORDPRESS_TABS_STAGING extends WPCD_WORDPRESS_TABS {
 				'class'      => 'wpcd_app_action',
 				'save_field' => false,
 			);
+
+			// Close up prior card.
+			$fields[] = wpcd_end_card( $this->get_tab_slug() );
 		} else {
+
+			// Start new card.
+			$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
 
 			// We got here so ok to show fields related to cloning the site to staging.
 			$desc = __( 'Make a copy of this site for development, testing and trouble-shooting.', 'wpcd' );
@@ -676,6 +686,9 @@ class WPCD_WORDPRESS_TABS_STAGING extends WPCD_WORDPRESS_TABS {
 				'class'      => 'wpcd_app_action',
 				'save_field' => false,
 			);
+
+			// Close up prior card.
+			$fields[] = wpcd_end_card( $this->get_tab_slug() );
 
 		}
 

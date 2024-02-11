@@ -189,11 +189,17 @@ class WPCD_WORDPRESS_TABS_CRONS extends WPCD_WORDPRESS_TABS {
 			$current_cron_interval = '15m';
 		}
 
+		$desc = __( 'This function enables a Linux cron process and disables the native WordPress cron process.  This can help to address several limitations in the native WordPress cron process and ensure that future background processes kick off in a more timely manner. ', 'wpcd' );
+		$desc = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
+
+		// Start new card.
+		$actions[] = wpcd_start_half_card( $this->get_tab_slug() );
+
 		$actions['wp-linux-cron-header'] = array(
 			'label'          => __( 'Linux Cron', 'wpcd' ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
-				'desc' => __( 'Enable a Linux cron process and disable the native WordPress cron process.  This can bypass several limitations in the native WordPress cron process and ensure that future background processes kick off in a more timely manner. ', 'wpcd' ),
+				'desc' => $desc,
 			),
 		);
 
@@ -201,9 +207,9 @@ class WPCD_WORDPRESS_TABS_CRONS extends WPCD_WORDPRESS_TABS {
 		if ( 'off' === $status ) {
 			$actions['wp-linux-cron-interval'] = array(
 				'label'          => __( 'Interval', 'wpcd' ),
-				'desc'           => __( 'How often should we run background processes in WordPress?  We recommend one minute.', 'wpcd' ),
 				'type'           => 'select',
 				'raw_attributes' => array(
+					'tooltip'        => __( 'How often should we run background processes in WordPress?  Remember, the more often it runs, the larger the load on your website.  Do not configure it to run more often than needed.  Most users do not need less than a 15 min interval and most WordPress sites can operate with a one hour interval without any issues.', 'wpcd' ),
 					'options'        => array(
 						'1m'  => '1 Minute',
 						'2m'  => '2 Minutes',
@@ -229,7 +235,7 @@ class WPCD_WORDPRESS_TABS_CRONS extends WPCD_WORDPRESS_TABS {
 						'off_label'           => __( 'Disabled', 'wpcd' ),
 						'std'                 => $status === 'on',
 						/* Translators: %s is the current cron interval. */
-						'desc'                => 'off' === $status ? __( 'Click to enable Cron', 'wpcd' ) : sprintf( __( 'Click to disable Linux Cron (%s)', 'wpcd' ), $current_cron_interval ),
+						'desc'                => 'off' === $status ? __( 'Click to enable Cron', 'wpcd' ) : sprintf( __( 'Click to disable the Linux Cron currently configured to fire every %s', 'wpcd' ), $current_cron_interval ),
 						'confirmation_prompt' => $confirmation_prompt,
 						// fields that contribute data for this action.
 						'data-wpcd-fields'    => 'off' === $status ? json_encode( array( '#wpcd_app_action_wp-linux-cron-interval' ) ) : '',
@@ -238,6 +244,9 @@ class WPCD_WORDPRESS_TABS_CRONS extends WPCD_WORDPRESS_TABS {
 				);
 				break;
 		}
+
+		// Close up prior card.
+		$actions[] = wpcd_end_card( $this->get_tab_slug() );
 
 		return $actions;
 

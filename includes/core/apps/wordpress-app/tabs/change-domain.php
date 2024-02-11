@@ -624,15 +624,17 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 		}
 
 		// We got here so ok to show fields related to changing domain.
-		$desc = __( 'Change your site domain.  This is a destructive operation so you should take a backup before proceeding.<br />', 'wpcd' );
-		$desc = sprintf( '<details>%s</details>', $desc );
+		$desc  = __( 'Change your site domain.  This is a destructive operation so you should take a backup before proceeding.<br />', 'wpcd' );
+		$desc .= '<br/>';
+		$desc .= '<b>' . __( 'SSL Notes', 'wpcd' ) . '</b>';
+		$desc .= '<br/>';
+		$desc .= __( 'If you would like new SSL certificates to be issued as part of this operation please make sure you point your DNS for the new domain to to this server\'s IP address BEFORE you start this operation. ', 'wpcd' );
+		$desc .= __( 'Otherwise you will need to request new certificates on the SSL tab after the operation is complete and you have updated your DNS.', 'wpcd' );
+		$desc .= '<br />';
+		$desc .= __( 'Note that we will only attempt to automatically issue an SSL certificate if the current domain already has an SSL certificate installed.', 'wpcd' );
+		$desc  = sprintf( '<details>%s</details>', $desc );
 
-		$desc_ssl  = __( 'If you would like new SSL certificates to be issued as part of this operation please make sure you point your DNS for the new domain to to this server\'s IP address BEFORE you start this operation. ', 'wpcd' );
-		$desc_ssl .= __( 'Otherwise you will need to request new certificates on the SSL tab after the operation is complete and you have updated your DNS.', 'wpcd' );
-		$desc_ssl .= '<br />';
-		$desc_ssl .= __( 'Note that we will only attempt to automatically issue an SSL certificate if the current domain already has an SSL certificate installed.', 'wpcd' );
-
-		// Start new card.
+		// Start new card block.
 		$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
 
 		$fields[] = array(
@@ -655,23 +657,12 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 			'placeholder' => __( 'Enter your new domain without the "http" or "www" prefix', 'wpcd' ),
 		);
 
-		if ( ! $hide_explanatory_text ) {
-			$fields[] = array(
-				'name' => '',
-				'tab'  => 'change-domain',
-				'type' => 'custom-html',
-				'std'  => $desc_ssl,
-			);
-		}
-
 		if ( ! $show_simplified_options_only ) {
 			$fields[] = array(
 				'id'         => 'wpcd_app_change_domain_quick_change',
-				'name'       => __( 'Quick Change', 'wpcd' ),
 				'tab'        => 'change-domain',
 				'type'       => 'button',
 				'std'        => __( 'Quick Change', 'wpcd' ),
-				'tooltip'    => __( 'Change just the domain name in the WordPress settings screen.  All other references to the old domain will remain in your content and other items in the database.', 'wpcd' ),
 				'attributes' => array(
 					// the _action that will be called in ajax.
 					'data-wpcd-action'              => 'change-domain-quick-change',
@@ -691,11 +682,9 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 		if ( ! $show_simplified_options_only ) {
 			$fields[] = array(
 				'id'         => 'wpcd_app_change_domain_dry_run',
-				'name'       => __( 'Full - Dry Run', 'wpcd' ),
 				'tab'        => 'change-domain',
 				'type'       => 'button',
 				'std'        => __( 'Full - Dry Run', 'wpcd' ),
-				'tooltip'    => __( 'Change all references from the old domain to the new domain across the entire database. This does a dry run so you can get an idea of what will be changed.', 'wpcd' ),
 				'attributes' => array(
 					// the _action that will be called in ajax.
 					'data-wpcd-action'              => 'change-domain-full-dry-run',
@@ -718,11 +707,9 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 
 		$fields[] = array(
 			'id'         => 'wpcd_app_change_domain_live_run',
-			'name'       => $show_simplified_options_only ? '' : __( 'Full Live', 'wpcd' ),
 			'tab'        => 'change-domain',
 			'type'       => 'button',
 			'std'        => $show_simplified_options_only ? __( 'Change Domain', 'wpcd' ) : __( 'Full - Live', 'wpcd' ),
-			'tooltip'    => $show_simplified_options_only ? '' : __( 'Change all references from the old domain to the new domain across the entire database. This is the real deal - do a backup because you cannot undo this action once it has started!', 'wpcd' ),
 			'attributes' => array(
 				// the _action that will be called in ajax.
 				'data-wpcd-action'              => 'change-domain-full-live-run',
@@ -745,11 +732,9 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 		if ( ! $show_simplified_options_only ) {
 			$fields[] = array(
 				'id'         => 'wpcd_app_change_domain_record_only',
-				'name'       => __( 'Change Meta', 'wpcd' ),
 				'tab'        => 'change-domain',
 				'type'       => 'button',
 				'std'        => __( 'Change Record', 'wpcd' ),
-				'tooltip'    => __( 'Update the record in this plugin only. You might need to do this if a prior operation only partially succeeded or you changed the domain using another plugin such as UpdraftPlus.', 'wpcd' ),
 				'attributes' => array(
 					// the _action that will be called in ajax.
 					'data-wpcd-action'              => 'change-domain-record-only',
@@ -778,6 +763,8 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 		$note .= __( 'Full - Dry Run: Change all references from the old domain to the new domain across the entire database. This does a dry run so you can get an idea of what will be changed.', 'wpcd' );
 		$note .= '<br />';
 		$note .= __( 'Full - Live Run: Change all references from the old domain to the new domain across the entire database. This is the real deal - do a backup because you cannot undo this action once it has started!', 'wpcd' );
+		$note .= '<br />';
+		$note .= __( 'Change Record: Update the record in this plugin only. You might need to do this if a prior operation only partially succeeded or you changed the domain using another plugin such as UpdraftPlus.', 'wpcd' );
 
 		if ( ! $hide_explanatory_text ) {
 			$fields[] = array(

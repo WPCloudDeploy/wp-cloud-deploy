@@ -25,7 +25,13 @@
 
 .wpcd-card-full {
 	width: 100%;
-	/* Nothing required here since by default everything renders full width. */
+}
+
+.wpcd-card-full-no-border {
+	width: 100%;
+	border: none;
+	margin-bottom: 0px;
+	padding-bottom: 0px;
 }
 
 .wpcd-card-half {
@@ -81,7 +87,8 @@
 #wpcd_wordpress-app_tab2 .rwmb-tab-panel-sftp,
 #wpcd_wordpress-app_tab2 .rwmb-tab-panel-staging,
 #wpcd_wordpress-app_tab2 .rwmb-tab-panel-clone-site,
-#wpcd_wordpress-app_tab2 .rwmb-tab-panel-copy-to-existing-site {
+#wpcd_wordpress-app_tab2 .rwmb-tab-panel-copy-to-existing-site,
+#wpcd_wordpress-app_tab2 .rwmb-tab-panel-site-sync {
 	display: flex;
 	flex-wrap: wrap;
 }

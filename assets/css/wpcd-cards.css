@@ -79,7 +79,8 @@
 #wpcd_wordpress-app_tab2 .rwmb-tab-panel-ssl,
 #wpcd_wordpress-app_tab2 .rwmb-tab-panel-cache,
 #wpcd_wordpress-app_tab2 .rwmb-tab-panel-sftp,
-#wpcd_wordpress-app_tab2 .rwmb-tab-panel-staging {
+#wpcd_wordpress-app_tab2 .rwmb-tab-panel-staging,
+#wpcd_wordpress-app_tab2 .rwmb-tab-panel-clone-site {
 	display: flex;
 	flex-wrap: wrap;
 }

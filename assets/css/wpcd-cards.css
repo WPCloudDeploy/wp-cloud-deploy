@@ -33,7 +33,33 @@
 }
 
 .wpcd-card-third {
-	width: 33.33%;
+	width: 30%;
+}
+
+.wpcd-card-two-thirds {
+	width: 65%;
+}
+
+@media only screen and (max-width: 1900px) {
+	/* As the screen gets smaller force the smaller cards to close to full width and flex box will wrap. */
+	.wpcd-card-half {
+		width: 42%;
+	}
+
+	.wpcd-card-third {
+		width: 28%;
+	}
+}
+
+@media only screen and (max-width: 1600px) {
+	/* As the screen gets smaller force the smaller cards to close to full width and flex box will wrap. */
+	.wpcd-card-half {
+		width: 100%;
+	}
+
+	.wpcd-card-third {
+		width: 100%;
+	}
 }
 
 /* The H4 header inside tabs need to be reformatted from the WPCD defaults */
@@ -51,4 +77,10 @@
 #wpcd_wordpress-app_tab2 .rwmb-tab-panel-change-domain {
 	display: flex;
 	flex-wrap: wrap;
+}
+
+/* Background color for everything */
+#wpcd_wordpress-app_tab2,
+#wpcd_wordpress-app_tab2 .rwmb-tab-panels {
+	/* background-color: #f9fcff; */
 }

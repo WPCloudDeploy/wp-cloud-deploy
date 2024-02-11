@@ -513,15 +513,26 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 
 		// We got here so ok to show fields related to copying the site.
 		$desc  = __( 'Push this site to an existing site on this server.', 'wpcd' );
-		$desc .= '<br />';
-		$desc .= __( 'Everything on this tab will overwrite data on your destination site. In other words, everything on this tab is a destructive operation - use with care!', 'wpcd' );
+		$desc .= __( ' Everything on this tab will overwrite data on your destination site. In other words, everything on this tab is a destructive operation - use with care!', 'wpcd' );
 
 		$fields[] = array(
-			'name' => __( 'Copy To Existing Site', 'wpcd' ),
+			'name'    => __( 'Copy To Existing Site', 'wpcd' ),
+			'tab'     => 'copy-to-existing-site',
+			'type'    => 'heading',
+			'desc'    => $desc,
+			'columns' => 12,
+		);
+
+		// Start new card.
+		$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
+
+		$fields[] = array(
+			'name' => __( 'Set Target Domain', 'wpcd' ),
 			'tab'  => 'copy-to-existing-site',
 			'type' => 'heading',
-			'desc' => $desc,
+			'desc' => __( 'Set the domain to which this site will be copied then choose an option in one of the order cards.', 'wpcd' ),
 		);
+
 		$fields[] = array(
 			'name'        => __( 'Target Domain', 'wpcd' ),
 			'id'          => 'wpcd_app_copy_to_site_target_domain',
@@ -538,9 +549,16 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 			'placeholder' => __( 'Domain without www or http - eg: mydomain.com', 'wpcd' ),
 		);
 
+		// Close up prior card.
+		$fields[] = wpcd_end_card( $this->get_tab_slug() );
+
 		/**
 		 * Copy everything.
 		 */
+
+		// Start new card.
+		$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
+
 		$fields[] = array(
 			'name' => __( 'Copy Everything', 'wpcd' ),
 			'tab'  => 'copy-to-existing-site',
@@ -589,9 +607,16 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 			'save_field' => false,
 		);
 
+		// Close up prior card.
+		$fields[] = wpcd_end_card( $this->get_tab_slug() );
+
 		/**
 		 * Copy the full database.
 		 */
+
+		// Start new card.
+		$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
+
 		$fields[] = array(
 			'name' => __( 'Copy Database', 'wpcd' ),
 			'tab'  => 'copy-to-existing-site',
@@ -623,9 +648,16 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 			'save_field' => false,
 		);
 
+		// Close up prior card.
+		$fields[] = wpcd_end_card( $this->get_tab_slug() );
+
 		/**
 		 * Copy Just The Files.
 		 */
+
+		// Start new card.
+		$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
+
 		$fields[] = array(
 			'name' => __( 'Copy Files Only', 'wpcd' ),
 			'tab'  => 'copy-to-existing-site',
@@ -685,9 +717,16 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 			'save_field' => false,
 		);
 
+		// Close up prior card.
+		$fields[] = wpcd_end_card( $this->get_tab_slug() );
+
 		/**
 		 * Copy only certain tables.
 		 */
+
+		// Start new card.
+		$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
+
 		$fields[] = array(
 			'name' => __( 'Copy Partial Database: For the PROs only!', 'wpcd' ),
 			'tab'  => 'copy-to-existing-site',
@@ -747,9 +786,16 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 			'save_field' => false,
 		);
 
+		// Close up prior card.
+		$fields[] = wpcd_end_card( $this->get_tab_slug() );
+
 		/**
 		 * Save settings
 		 */
+
+		// Start new card.
+		$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
+
 		$fields[] = array(
 			'name' => __( 'Save Settings', 'wpcd' ),
 			'tab'  => 'copy-to-existing-site',
@@ -776,16 +822,15 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 			'save_field' => false,
 		);
 
+		// Close up prior card.
+		$fields[] = wpcd_end_card( $this->get_tab_slug() );
+
 		/**
 		 * Bulk Push Themes & Plugins using an app/site update plan.
 		 */
 		if ( class_exists( 'WPCD_WooCommerce_Init' ) ) {
-			$fields[] = array(
-				'name' => '',
-				'tab'  => 'copy-to-existing-site',
-				'type' => 'custom_html',
-				'std'  => '<hr/>',
-			);
+			// Start new card.
+			$fields[] = wpcd_start_full_card( $this->get_tab_slug() );
 
 			$fields[] = array(
 				'name' => __( 'Execute Update Plan', 'wpcd' ),
@@ -902,6 +947,9 @@ class WPCD_WORDPRESS_TABS_COPY_TO_EXISTING_SITE extends WPCD_WORDPRESS_TABS {
 				);
 
 			}
+
+			// Close up prior card.
+			$fields[] = wpcd_end_card( $this->get_tab_slug() );
 		}
 
 		return $fields;

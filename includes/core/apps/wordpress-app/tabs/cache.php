@@ -560,9 +560,12 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 		$server_id             = $this->get_server_by_app_id( $id );
 		$server_edit_post_link = get_edit_post_link( $server_id );
 
+		// Start new card.
+		$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
+
 		/* PAGE CACHE */
 		$fields[] = array(
-			'name' => __( 'Page Cache', 'wpcd' ),
+			'name' => __( 'Page Cache Status', 'wpcd' ),
 			'tab'  => 'cache',
 			'type' => 'heading',
 		);
@@ -604,6 +607,12 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 			'save_field' => false,
 		);
 
+		// Close up prior card.
+		$fields[] = wpcd_end_card( $this->get_tab_slug() );
+
+		// Start new card.
+		$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
+
 		/**
 		 * Clear the page cache
 		 */
@@ -632,10 +641,24 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 				'class'      => 'wpcd_app_action',
 				'save_field' => false,
 			);
+		} else {
+			$fields[] = array(
+				'name' => __( 'Clear Page Cache', 'wpcd' ),
+				'tab'  => 'cache',
+				'type' => 'heading',
+				'desc' => __( 'No Page Cache is enabled.', 'wpcd' ),
+			);
 		}
+
+		// Close up prior card.
+		$fields[] = wpcd_end_card( $this->get_tab_slug() );
 
 		/* REDIS */
 		if ( false === $this->get_app_is_memcached_installed( $id ) ) {
+
+			// Start new card.
+			$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
+
 			$fields[] = array(
 				'name' => __( 'REDIS', 'wpcd' ),
 				'tab'  => 'cache',
@@ -682,13 +705,31 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 					'columns'    => 6,
 				);
 
+				// Close up prior card.
+				$fields[] = wpcd_end_card( $this->get_tab_slug() );
+
+				// Start new card.
+				$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
+
+				$desc  = __( 'If the REDIS status toggle is not correct, click this button to correct it. This situation can occur if there is an error on the server or you or another admin manually toggle the REDIS service on the server outside of this plugin.', 'wcpcd' );
+				$desc .= '<br/>';
+				$desc .= '<br/>';
+				$desc .= __( 'Please note that no code will be executed on the server to disable or enable REDIS. Only the status shown on this dashboard will be flipped.', 'wpcd' );
+				$desc  = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
+
+				$fields[] = array(
+					'name' => __( 'Advanced - Cleanup REDIS Status', 'wpcd' ),
+					'tab'  => 'cache',
+					'type' => 'heading',
+					'desc' => $desc,
+				);
+
 				$fields[] = array(
 					'id'         => 'toggle-redis-local-value',
 					'name'       => '',
 					'tab'        => 'cache',
 					'type'       => 'button',
-					'std'        => __( 'Cleanup: Toggle Local Value for REDIS', 'wcpcd' ),
-					'desc'       => __( 'If the REDIS status toggle is not correct, click this button to correct it. This can happen if there is an error on the server or you or another admin manually toggle the REDIS service on the server outside of this plugin.', 'wcpcd' ),
+					'std'        => __( 'Toggle Local Value for REDIS', 'wcpcd' ),
 					'attributes' => array(
 						// the _action that will be called in ajax.
 						'data-wpcd-action'              => 'site-toggle-redis-local-value',
@@ -701,6 +742,9 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 					'save_field' => false,
 					'columns'    => 6,
 				);
+
+				// Close up prior card.
+				$fields[] = wpcd_end_card( $this->get_tab_slug() );
 
 			} else {
 
@@ -717,15 +761,25 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 					'std'  => $redis_not_enabled,
 				);
 
+				// Close up prior card.
+				$fields[] = wpcd_end_card( $this->get_tab_slug() );
+
 			}
 		}
 
 		/* MEMCACHED */
 		if ( false === $this->get_app_is_redis_installed( $id ) ) {
+			// Start new card.
+			$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
+
+			$desc = __( 'Enable or disable Memcached for this site. <br /> Note that all transients will be deleted when this cache is enabled - your plugins and themes should automatically re-add them as needed.', 'wpcd' );
+			$desc = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
+
 			$fields[] = array(
 				'name' => __( 'Memcached', 'wpcd' ),
 				'tab'  => 'cache',
 				'type' => 'heading',
+				'desc' => $desc,
 			);
 
 			if ( true === $this->is_memcached_installed( $id ) ) {
@@ -753,7 +807,6 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 					'on_label'   => __( 'Enabled', 'wpcd' ),
 					'off_label'  => __( 'Disabled', 'wpcd' ),
 					'std'        => 'on' === $mc_status,
-					'desc'       => __( 'Enable or disable Memcached for this site. <br /> Note that all transients will be deleted when this cache is enabled - your plugins and themes should automatically re-add them as needed.', 'wpcd' ),
 					'attributes' => array(
 						// the _action that will be called in ajax.
 						'data-wpcd-action'              => 'site-toggle-memcached',
@@ -767,13 +820,31 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 					'columns'    => 6,
 				);
 
+				// Close up prior card.
+				$fields[] = wpcd_end_card( $this->get_tab_slug() );
+
+				// Start new card.
+				$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
+
+				$desc  = __( 'If the Memcached status toggle is not correct, click this button to correct it. This situation can occur if there is an error on the server or you or another admin manually toggle the Memcached service on the server outside of this plugin.', 'wcpcd' );
+				$desc .= '<br/>';
+				$desc .= '<br/>';
+				$desc .= __( 'Please note that no code will be executed on the server to disable or enable Memcached. Only the status shown on this dashboard will be flipped.', 'wpcd' );
+				$desc  = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
+
+				$fields[] = array(
+					'name' => __( 'Advanced - Cleanup Memcached Status', 'wpcd' ),
+					'tab'  => 'cache',
+					'type' => 'heading',
+					'desc' => $desc,
+				);
+
 				$fields[] = array(
 					'id'         => 'toggle-memcached-local-value',
 					'name'       => '',
 					'tab'        => 'cache',
 					'type'       => 'button',
-					'std'        => __( 'Cleanup: Toggle Local Value for Memcached', 'wpcd' ),
-					'desc'       => __( 'If the Memcached status toggle is not correct, click this button to correct it. This can happen if there is an error on the server or you or another admin manually toggle the Memcached service on the server outside of this plugin.', 'wpcd' ),
+					'std'        => __( 'Toggle Local Value for Memcached', 'wpcd' ),
 					'attributes' => array(
 						// the _action that will be called in ajax.
 						'data-wpcd-action'              => 'site-toggle-memcached-local-value',
@@ -786,6 +857,9 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 					'save_field' => false,
 					'columns'    => 6,
 				);
+
+				// Close up prior card.
+				$fields[] = wpcd_end_card( $this->get_tab_slug() );
 
 			} else {
 
@@ -802,6 +876,9 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 					'std'  => $mc_not_enabled,
 				);
 
+				// Close up prior card.
+				$fields[] = wpcd_end_card( $this->get_tab_slug() );
+
 			}
 		}
 
@@ -810,8 +887,12 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 
 		if ( ! (bool) wpcd_get_early_option( 'wordpress_app_hide_about_caches_text' ) ) {
 
+			// Start new card.
+			$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
+
 			/* About caches and caching */
 			$desc  = __( 'On a WordPress system there are FIVE possible levels of caching.', 'wpcd' );
+			$desc .= '<br />';
 			$desc .= '<br />';
 			$desc .= __( '&nbsp;&nbsp;&nbsp;&nbsp;1. CDN Caching such as that done by Cloudflare', 'wpcd' );
 			$desc .= '<br />';
@@ -826,7 +907,9 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 			$desc .= '<br />';
 			$desc .= __( 'This page will help you manage caching at levels 3 and 4 - object caching and page caching.', 'wpcd' );
 			$desc .= '<br />';
+			$desc .= '<br />';
 			$desc .= __( 'For object caching you can use Memcached or Redis along with a WordPress plugin to manage the cache.', 'wpcd' );
+			$desc .= '<br />';
 			$desc .= '<br />';
 			$desc .= __( 'For page caching you can use an NGINX cache in combination with a WordPress plugin to manage the cache.', 'wpcd' );
 
@@ -837,10 +920,18 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 				'desc' => $desc,
 			);
 
+			// Close up prior card.
+			$fields[] = wpcd_end_card( $this->get_tab_slug() );
+
+			// Start new card.
+			$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
+
 			/* About clearing caches */
 			$desc     = __( 'When you are clearing caches, you must make sure that all five caching levels are cleared/purged.', 'wpcd' );
 			$desc    .= '<br />';
+			$desc    .= '<br />';
 			$desc    .= __( 'When troubleshooting an issue, it is very easy to forget about one of the levels which might make a problem seem unsolved  - when the real issue is that an old page or data is stuck in a cache somewhere along the route.', 'wpcd' );
+			$desc    .= '<br />';
 			$desc    .= '<br />';
 			$desc    .= __( 'When technical support of any kind - plugin author, theme authors etc. ask you to purge your cache, they are really asking about purging all five cache leves - if you have them all enabled.', 'wpcd' );
 			$fields[] = array(
@@ -849,7 +940,13 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 				'type' => 'heading',
 				'desc' => $desc,
 			);
+
+			// Close up prior card.
+			$fields[] = wpcd_end_card( $this->get_tab_slug() );
 		}
+
+		// Start new card.
+		$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
 
 		// Cache Documentation Link to WPCloudDeploy Site.
 		$doc_link = 'https://wpclouddeploy.com/documentation/wpcloud-deploy-user-guide/page-cache/';
@@ -864,6 +961,9 @@ class WPCD_WORDPRESS_TABS_CACHE extends WPCD_WORDPRESS_TABS {
 			'type' => 'heading',
 			'desc' => $desc,
 		);
+
+		// Close up prior card.
+		$fields[] = wpcd_end_card( $this->get_tab_slug() );
 
 		return $fields;
 

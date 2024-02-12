@@ -122,7 +122,8 @@
 #wpcd_server_wordpress-app_tab3 .rwmb-tab-panel-firewall,
 #wpcd_server_wordpress-app_tab3 .rwmb-tab-panel-server_backup,
 #wpcd_server_wordpress-app_tab3 .rwmb-tab-panel-svr_tweaks,
-#wpcd_server_wordpress-app_tab3 .rwmb-tab-panel-svr_tools {
+#wpcd_server_wordpress-app_tab3 .rwmb-tab-panel-svr_tools,
+#wpcd_server_wordpress-app_tab3 .rwmb-tab-panel-svr_upgrade {
 	display: flex;
 	flex-wrap: wrap;
 }

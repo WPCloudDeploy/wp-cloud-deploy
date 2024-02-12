@@ -782,7 +782,13 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		 */
 		$actions = array_merge( $actions, $this->get_maldet_fields( $id ) );
 
-		/* Email Gateway */
+		/**
+		 * EMAIL Gateway
+		 */
+
+		// Start new card.
+		$actions[] = wpcd_start_full_card( $this->get_tab_slug() );
+
 		$eg_desc  = __( 'Most cloud servers restrict the user of their servers for sending emails.  Therefore to send general emails you can configure an email gateway to send emails using your own SMTP server.', 'wpcd' );
 		$eg_desc .= '<br />';
 		$eg_desc .= __( 'This is completely optional.  The biggest benefit of configuring this is that you do not have to install an email gateway plugin on each of your sites.', 'wpcd' );
@@ -790,6 +796,8 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		$eg_desc .= __( 'Another benefit is that you can get password reset emails and notifications from newly installed sites on the server.', 'wpcd' );
 		$eg_desc .= '<br />';
 		$eg_desc .= __( 'The disadvantage is that all your emails will be sent from a single server and account for all sites which could affect deliverability if all your sites are not part of the same root domain.', 'wpcd' );
+
+		$eg_desc = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $eg_desc );
 
 		// get any existing email gateway data stored.
 		$gateway_data = wpcd_maybe_unserialize( get_post_meta( $id, 'wpcd_wpapp_email_gateway', true ) );
@@ -806,7 +814,6 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			/* Translators: %s is a fontawesome or similar icon. */
 			$smtp_gateway_button_txt = sprintf( __( '%s Reinstall Email Gateway', 'wpcd' ), '<i class="fa-solid fa-rectangle-history-circle-plus"></i>' );
 
-			$eg_desc .= '<br /><br />';
 			$eg_desc .= __( 'The email gateway has already been installed. You can reinstall it with new parameters by clicking the reinstall button below.', 'wpcd' );
 
 		} else {
@@ -1016,15 +1023,24 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			);
 		}
 
-		/* Memcached */
-		if ( $this->is_memcached_installed( $id ) ) {
-			$mc_desc = __( 'A performance-oriented object cache.', 'wpcd' );
-		} else {
-			$mc_desc  = __( 'Memcached is an OBJECT cache service that can help speed up duplicated database queries.  Once the service is installed here, you can activate it for each site that needs it.', 'wpcd' );
-			$mc_desc .= '<br />';
-			/* translators: %s is a string "Memcached and Redis Object Caches" and is handled separately. */
-			$mc_desc .= sprintf( __( 'Learn more about %s', 'wpcd' ), '<a href="https://scalegrid.io/blog/redis-vs-memcached-2021-comparison/">' . __( 'Memcached and Redis Object Caches', 'wpcd' ) . '</a>' );
-		}
+		// Close up prior card.
+		$actions[] = wpcd_end_card( $this->get_tab_slug() );
+
+		/**
+		 * MEMCACHED
+		 */
+
+		// Start new card.
+		$actions[] = wpcd_start_half_card( $this->get_tab_slug() );
+
+		$mc_desc  = __( 'Memcached is one of two performance-oriented object caches you can use for your sites.', 'wpcd' );
+		$mc_desc .= '<br />';
+		$mc_desc .= __( 'An OBJECT cache is a service that can help speed up duplicated database queries.  Once the service is installed here, you can activate it for each site that needs it.', 'wpcd' );
+		$mc_desc .= '<br />';
+		/* translators: %s is a string "Memcached and Redis Object Caches" and is handled separately. */
+		$mc_desc .= sprintf( __( 'Learn more about %s', 'wpcd' ), '<a href="https://scalegrid.io/blog/redis-vs-memcached-2021-comparison/">' . __( 'Memcached and Redis Object Caches', 'wpcd' ) . '</a>' );
+
+		$mc_desc = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $mc_desc );
 
 		$actions['memcached-status-header'] = array(
 			'label'          => '<i class="fa-duotone fa-object-intersect"></i> ' . __( 'Memcached', 'wpcd' ),
@@ -1052,20 +1068,11 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		} else {
 			// memcached is installed so show status and options to disable and enable.
 
-			$actions['memcached-label'] = array(
-				'label'          => __( 'Service', 'wpcd' ),
-				'raw_attributes' => array(
-					'std'     => __( 'MemCached', 'wpcd' ),
-					'columns' => 3,
-				),
-				'type'           => 'custom_html',
-			);
-
 			$actions['memcached-status'] = array(
 				'label'          => __( 'Status', 'wpcd' ),
 				'raw_attributes' => array(
 					'std'     => $memcached_status,
-					'columns' => wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ? 2 : 5,
+					'columns' => 12,
 				),
 				'type'           => 'custom_html',
 			);
@@ -1074,7 +1081,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 				'label'          => __( 'Actions', 'wpcd' ),
 				'raw_attributes' => array(
 					'std'     => $this->get_restart_button_label(),
-					'columns' => wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ? 1 : 2,
+					'columns' => 6,
 				),
 				'type'           => 'button',
 			);
@@ -1084,7 +1091,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 				'raw_attributes' => array(
 					/* Translators: %s is a fontawesome or similar icon. */
 					'std'     => sprintf( __( '%s Clear Cache', 'wpcd' ), '<i class="fa-solid fa-trash-xmark"></i>' ),
-					'columns' => wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ? 1 : 2,
+					'columns' => 6,
 				),
 				'type'           => 'button',
 			);
@@ -1127,13 +1134,16 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 
 		}
 
+		// Close up prior card.
+		$actions[] = wpcd_end_card( $this->get_tab_slug() );
+
+		/* Ubuntu PRO Fields */
+		$actions = array_merge( $actions, $this->get_ubuntupro_fields( $id ) );
+
 		/* PHP Processes */
 		if ( 'nginx' === $webserver_type ) {
 			$actions = array_merge( $actions, $this->get_php_fields( $id ) );
 		}
-
-		/* Ubuntu PRO Fields */
-		$actions = array_merge( $actions, $this->get_ubuntupro_fields( $id ) );
 
 		return $actions;
 
@@ -1150,6 +1160,9 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 
 		// Set up metabox items.
 		$actions = array();
+
+		// Start new card.
+		$actions[] = wpcd_start_half_card( $this->get_tab_slug() );
 
 		// Is ubuntu pro enabled or disabled?
 		$ubuntu_pro_status = $this->get_ubuntu_pro_status( $id );
@@ -1214,6 +1227,9 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			);
 
 		}
+
+		// Close up prior card.
+		$actions[] = wpcd_end_card( $this->get_tab_slug() );
 
 		return $actions;
 
@@ -1298,8 +1314,11 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			}
 		}
 
+		// Start new card.
+		$actions[] = wpcd_start_full_card( $this->get_tab_slug() );
+
 		$actions['services-status-php'] = array(
-			'label'          => '<i class="fa-duotone fa-arrow-progress"></i> ' . __( 'PHP Processes', 'wpcd' ),
+			'label'          => '<i class="fa-duotone fa-arrow-progress"></i> ' . __( 'Manage PHP Processes for NGINX', 'wpcd' ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
 				'desc' => '',
@@ -1323,21 +1342,30 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			'type'           => 'custom_html',
 		);
 
+		// Close up prior card.
+		$actions[] = wpcd_end_card( $this->get_tab_slug() );
+
 		foreach ( $php_services_status as $services_key => $service_status ) {
+
+			// Start new card.
+			$actions[] = wpcd_start_one_third_card( $this->get_tab_slug() );
+
+			$card_header = sprintf( __( 'php %s', 'wpcd' ), $services_key );
+
 			$actions[ "php-server-label-$services_key" ] = array(
-				'label'          => '',
+				'label'          => '<i class="fa-duotone fa-arrow-progress"></i> ' . $card_header,
 				'raw_attributes' => array(
-					'std'     => $services_key,
-					'columns' => 3,
+					'std'     => '',
+					'columns' => 12,
 				),
-				'type'           => 'custom_html',
+				'type'           => 'heading',
 			);
 
 			$actions[ "php-server-status-$services_key" ] = array(
-				'label'          => '',
+				'label'          => __( 'Status', 'wpcd ' ),
 				'raw_attributes' => array(
 					'std'     => $service_status,
-					'columns' => 4,
+					'columns' => 12,
 				),
 				'type'           => 'custom_html',
 			);
@@ -1351,7 +1379,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 					'label'          => '',
 					'raw_attributes' => array(
 						'std'     => $this->get_restart_button_label(),
-						'columns' => 3,
+						'columns' => 6,
 					),
 					'type'           => 'button',
 				);
@@ -1363,7 +1391,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 						'label'          => '',
 						'raw_attributes' => array(
 							'std'     => __( 'n/a', 'wpcd' ),
-							'columns' => 2,
+							'columns' => 6,
 						),
 						'type'           => 'custom_html',
 					);
@@ -1373,7 +1401,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 						'label'          => '',
 						'raw_attributes' => array(
 							'std'     => __( 'Deactivate', 'wpcd' ),
-							'columns' => 2,
+							'columns' => 6,
 						),
 						'type'           => 'button',
 					);
@@ -1384,7 +1412,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 					'label'          => '',
 					'raw_attributes' => array(
 						'std'     => __( 'n/a', 'wpcd' ),
-						'columns' => 3,
+						'columns' => 6,
 					),
 					'type'           => 'custom_html',
 				);
@@ -1392,12 +1420,16 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 					'label'          => '',
 					'raw_attributes' => array(
 						'std'     => __( 'Activate', 'wpcd' ),
-						'columns' => 2,
+						'columns' => 6,
 					),
 					'type'           => 'button',
 				);
 
 			}
+
+			// Close up prior card.
+			$actions[] = wpcd_end_card( $this->get_tab_slug() );
+
 		}
 
 		return $actions;

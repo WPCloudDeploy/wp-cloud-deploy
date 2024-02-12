@@ -143,6 +143,9 @@ class WPCD_WORDPRESS_TABS extends WPCD_WORDPRESS_APP {
 
 		$actions = array();
 
+		// Start new card.
+		$actions[] = wpcd_start_full_card( $tab );
+
 		$desc       = __( 'This site has been disabled. To view the options on this tab you must re-enable the site using the options under the MISC tab.', 'wpcd' );
 		$random_str = wpcd_random_str( 20, '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ' );
 
@@ -151,17 +154,22 @@ class WPCD_WORDPRESS_TABS extends WPCD_WORDPRESS_APP {
 				'label'          => __( 'Site Is Disabled', 'wpcd' ),
 				'type'           => 'heading',
 				'raw_attributes' => array(
-					'desc' => $desc,
+					'desc'    => $desc,
+					'columns' => 12,
 				),
 			);
 		} else {
 			$actions[ 'site-is-disabled-status-header-' . $random_str ] = array(
-				'name' => __( 'Site Is Disabled', 'wpcd' ),
-				'type' => 'heading',
-				'tab'  => $tab,
-				'desc' => $desc,
+				'name'    => __( 'Site Is Disabled', 'wpcd' ),
+				'type'    => 'heading',
+				'tab'     => $tab,
+				'desc'    => $desc,
+				'columns' => 12,
 			);
 		}
+
+		// Close up prior card.
+		$actions[] = wpcd_end_card( $tab );
 
 		return $actions;
 

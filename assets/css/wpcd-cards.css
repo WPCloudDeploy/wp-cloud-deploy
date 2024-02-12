@@ -107,7 +107,8 @@
 #wpcd_wordpress-app_tab2 .rwmb-tab-panel-statistics,
 #wpcd_wordpress-app_tab2 .rwmb-tab-panel-site-logs,
 #wpcd_wordpress-app_tab2 .rwmb-tab-panel-wp-site-users,
-#wpcd_wordpress-app_tab2 .rwmb-tab-panel-redirect-rules, {
+#wpcd_wordpress-app_tab2 .rwmb-tab-panel-redirect-rules,
+#wpcd_wordpress-app_tab2 .rwmb-tab-panel-file-manager {
 	display: flex;
 	flex-wrap: wrap;
 }

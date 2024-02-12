@@ -332,6 +332,9 @@ class WPCD_WORDPRESS_TABS_FILE_MANAGER extends WPCD_WORDPRESS_TABS {
 			return $fields;
 		}
 
+		// Start new card.
+		$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
+
 		// Is filemanager already installed? We'll show/hide fields based on this status.
 		$file_manager_status = $this->is_file_manager_installed( $id );
 
@@ -375,8 +378,14 @@ class WPCD_WORDPRESS_TABS_FILE_MANAGER extends WPCD_WORDPRESS_TABS {
 		if ( 'off' === $file_manager_status ) {
 			$desc  = __( 'The File Manager is not installed.', 'wpcd' );
 			$desc .= '<br />' . __( 'To install it please enter a username & password, then click the INSTALL button.', 'wpcd' );
+			$desc .= '<br />' . __( 'A user name and password has been pre-generated. Once installed the password will appear on this screen.', 'wpcd' );
+			$desc .= '<br />' . __( 'However, you are free to enter your own - please restrict to using letters and numbers and do not use special characters.', 'wpcd' );
 		} else {
 			$desc = '';
+		}
+
+		if ( ! empty( $desc ) ) {
+			$desc = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
 		}
 
 		$fields['file-manager-main-heading'] = array(
@@ -394,10 +403,10 @@ class WPCD_WORDPRESS_TABS_FILE_MANAGER extends WPCD_WORDPRESS_TABS {
 				'name'       => __( 'User Name:', 'wpcd' ),
 				'tab'        => 'file-manager',
 				'type'       => 'text',
+				'std'        => wpcd_generate_alpha_numeric_string( 12 ),
 				'attributes' => array(
 					'desc'             => '',
 					'data-wpcd-action' => 'username-for-file-manager',
-					'std'              => '',
 					// the key of the field (the key goes in the request).
 					'data-wpcd-name'   => 'username_for_file_manager',
 					'spellcheck'       => 'false',
@@ -409,11 +418,11 @@ class WPCD_WORDPRESS_TABS_FILE_MANAGER extends WPCD_WORDPRESS_TABS {
 				'name'       => __( 'Password:', 'wpcd' ),
 				'tab'        => 'file-manager',
 				'type'       => 'password',
+				'std'        => wpcd_generate_default_password(),
 				'attributes' => array(
 					'desc'             => '',
 					// the _action that will be called in ajax.
 					'data-wpcd-action' => 'password-for-file-manager',
-					'std'              => '',
 					// the key of the field (the key goes in the request).
 					'data-wpcd-name'   => 'password_for_file_manager',
 					'spellcheck'       => 'false',
@@ -444,6 +453,10 @@ class WPCD_WORDPRESS_TABS_FILE_MANAGER extends WPCD_WORDPRESS_TABS {
 				'class'      => 'wpcd_app_action',
 				'save_field' => true,
 			);
+
+			// Close up prior card.
+			$fields[] = wpcd_end_card( $this->get_tab_slug() );
+
 		} else {
 
 			// use custom html to show a launch link.
@@ -483,7 +496,16 @@ class WPCD_WORDPRESS_TABS_FILE_MANAGER extends WPCD_WORDPRESS_TABS {
 				'std'  => $file_manager_details,
 			);
 
-			// New fields section for change username & password.
+			// Close up prior card.
+			$fields[] = wpcd_end_card( $this->get_tab_slug() );
+
+			/**
+			 * New fields section for change username & password.
+			 */
+
+			// Start new card.
+			$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
+
 			$fields[] = array(
 				'name' => __( 'File Manager- Change Credentials', 'wpcd' ),
 				'tab'  => 'file-manager',
@@ -545,7 +567,16 @@ class WPCD_WORDPRESS_TABS_FILE_MANAGER extends WPCD_WORDPRESS_TABS {
 				'save_field' => true,
 			);
 
-			// Fields section for update and remove of File Manager.
+			// Close up prior card.
+			$fields[] = wpcd_end_card( $this->get_tab_slug() );
+
+			/**
+			 * Fields section for update and remove of File Manager.
+			 */
+
+			// Start new card.
+			$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
+
 			$fields[] = array(
 				'name' => __( 'Upgrade File Manager', 'wpcd' ),
 				'tab'  => 'file-manager',
@@ -576,14 +607,23 @@ class WPCD_WORDPRESS_TABS_FILE_MANAGER extends WPCD_WORDPRESS_TABS {
 				'save_field' => false,
 			);
 
+			// Close up prior card.
+			$fields[] = wpcd_end_card( $this->get_tab_slug() );
+
+			/**
+			 * Remove File Manager
+			 */
+
+			// Start new card.
+			$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
+
 			$fields[] = array(
 				'name' => __( 'Remove File Manager', 'wpcd' ),
 				'tab'  => 'file-manager',
 				'type' => 'heading',
-				'desc' => '',
+				'desc' => __( 'Remove file manager from this site.', 'wpcd' ),
 			);
 
-			// Remove File Manager.
 			$fields[] = array(
 				'id'         => 'remove-tinyfilemanager',
 				'name'       => '',
@@ -605,6 +645,9 @@ class WPCD_WORDPRESS_TABS_FILE_MANAGER extends WPCD_WORDPRESS_TABS {
 				'class'      => 'wpcd_app_action',
 				'save_field' => false,
 			);
+
+			// Close up prior card.
+			$fields[] = wpcd_end_card( $this->get_tab_slug() );
 
 		}
 

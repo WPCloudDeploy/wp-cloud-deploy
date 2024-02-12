@@ -450,9 +450,20 @@ function wpcd_random_str( int $length = 64, string $keyspace = '0123456789abcdef
 
 /**
  * Return a 32 character password without special chars.
+ *
+ * @param int $length Length of password - default 32.
  */
-function wpcd_generate_default_password() {
-	return wpcd_random_str( 32, '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-' );
+function wpcd_generate_default_password( $length = 32 ) {
+	return wpcd_random_str( $length, '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-' );
+}
+
+/**
+ * Return a 32 character password without special chars or dash.
+ *
+ * @param int $length Length of password - default 32.
+ */
+function wpcd_generate_alpha_numeric_string( $length = 32 ) {
+	return wpcd_random_str( $length, '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ' );
 }
 
 /**

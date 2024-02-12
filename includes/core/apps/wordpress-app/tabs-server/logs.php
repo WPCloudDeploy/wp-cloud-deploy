@@ -226,6 +226,9 @@ class WPCD_WORDPRESS_TABS_SERVER_LOGS extends WPCD_WORDPRESS_TABS {
 
 		);
 
+		// Close up prior card.
+		$actions[] = wpcd_end_card( $this->get_tab_slug() );		
+
 		return $actions;
 
 	}

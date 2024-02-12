@@ -148,14 +148,6 @@ class WPCD_WORDPRESS_TABS_SERVER_TWEAKS extends WPCD_WORDPRESS_TABS {
 
 		$actions = array();
 
-		$actions['server-tweaks-performance-header'] = array(
-			'label'          => __( 'Performance Tweaks', 'wpcd' ),
-			'type'           => 'heading',
-			'raw_attributes' => array(
-				'desc' => __( 'Tweaks that could help improve your servers and sites performance.', 'wpcd' ),
-			),
-		);
-
 		/**
 		 * GZIP
 		 */

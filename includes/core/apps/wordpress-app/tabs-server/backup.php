@@ -454,7 +454,7 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 		$desc  = __( 'This operation deletes local backups older than a specified number of days. It does it for all sites on this server. Before you can use these options you must have configured backups and run the backup process at least once.', 'wpcd' );
 		$desc .= '<br/>';
 		$desc .= '<br/>';
-		$desc .= __( 'This is a one-time operation - to schedule automatic pruning please the options under AUTOMATIC BACKUP section above.', 'wpcd' );
+		$desc .= __( 'This is a one-time operation - to schedule automatic pruning please use the options under AUTOMATIC BACKUP section above.', 'wpcd' );
 		$desc  = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
 
 		$fields[] = array(

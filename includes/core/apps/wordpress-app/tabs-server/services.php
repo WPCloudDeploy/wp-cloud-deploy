@@ -493,7 +493,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			'label'          => '<i class="fa-duotone fa-bell-concierge"></i> ' . __( 'Services', 'wpcd' ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
-				'desc' => __( 'Control the Core Services that allow your application(s) to run.', 'wpcd' ),
+				'desc' => __( 'Get the status of the Core Services that allow your application(s) to run.', 'wpcd' ),
 			),
 		);
 
@@ -541,7 +541,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		);
 
 		$actions['web-server-status'] = array(
-			'label'          => '',
+			'label'          => __( 'Status', 'wpcd' ),
 			'raw_attributes' => array(
 				'std' => $webserver_status,
 			),
@@ -549,7 +549,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		);
 
 		$actions['web-server-restart'] = array(
-			'label'          => __( 'Actions', 'wpcd' ),
+			'label'          => '',
 			'raw_attributes' => array(
 				'std' => $this->get_restart_button_label(),
 			),

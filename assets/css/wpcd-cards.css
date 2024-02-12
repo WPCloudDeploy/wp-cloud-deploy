@@ -55,6 +55,10 @@
 	.wpcd-card-third {
 		width: 28%;
 	}
+	
+	.wpcd-card-two-thirds {
+		width: 60%;
+	}	
 }
 
 @media only screen and (max-width: 1600px) {
@@ -66,6 +70,10 @@
 	.wpcd-card-third {
 		width: 100%;
 	}
+	
+	.wpcd-card-two-thirds {
+		width: 100%;
+	}	
 }
 
 /* The H4 header inside tabs need to be reformatted from the WPCD defaults */
@@ -79,7 +87,7 @@
 	display: none;
 }
 
-/* With cards, we want the thing to flex - apps. */
+/* With certain tabs, we want the cards in them to flex - apps. */
 #wpcd_wordpress-app_tab2 .rwmb-tab-panel-backup,
 #wpcd_wordpress-app_tab2 .rwmb-tab-panel-change-domain,
 #wpcd_wordpress-app_tab2 .rwmb-tab-panel-ssl,
@@ -98,7 +106,8 @@
 #wpcd_wordpress-app_tab2 .rwmb-tab-panel-security,
 #wpcd_wordpress-app_tab2 .rwmb-tab-panel-statistics,
 #wpcd_wordpress-app_tab2 .rwmb-tab-panel-site-logs,
-#wpcd_wordpress-app_tab2 .rwmb-tab-panel-wp-site-users {
+#wpcd_wordpress-app_tab2 .rwmb-tab-panel-wp-site-users,
+#wpcd_wordpress-app_tab2 .rwmb-tab-panel-redirect-rules, {
 	display: flex;
 	flex-wrap: wrap;
 }

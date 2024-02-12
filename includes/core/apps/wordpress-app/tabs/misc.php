@@ -159,7 +159,7 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 					break;
 				case 'site-status':
 					// enable/disable site.
-					$this->toggle_site_status_action( $id, $action );
+					$result  = $this->toggle_site_status_action( $id, $action );
 					break;
 				case 'admin-lock-status':
 					// toggle admin lock.
@@ -221,7 +221,7 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 
 		// Bail if site is not enabled.
 		if ( ! $this->is_site_enabled( $id ) ) {
-			return array_merge( $this->get_disabled_header_field( '' ), $this->get_site_status_action_fields( $id ) );
+			return array_merge( $this->get_disabled_header_field(), $this->get_site_status_action_fields( $id ) );
 		}
 
 		// Site is not disabled so show all fields.

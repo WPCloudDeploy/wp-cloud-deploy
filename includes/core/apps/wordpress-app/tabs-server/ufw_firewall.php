@@ -167,8 +167,13 @@ class WPCD_WORDPRESS_TABS_SERVER_UFW_FIREWALL extends WPCD_WORDPRESS_TABS {
 		$ufw_footer_desc .= '<br />';
 		$ufw_footer_desc .= __( 'NOTE: If you are using a service that automatically installs an external firewall for you then you might consider turning off the UFW firewall  which you can do on the services tab.  EC2 and LIGHTSAIL both include an external firewall so you might not need the UFW firewall.', 'wpcd' );
 
+		$ufw_footer_desc = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $ufw_footer_desc );
+
+		// Start new card.
+		$actions[] = wpcd_start_half_card( $this->get_tab_slug() );
+
 		$actions['ufw-ports-header'] = array(
-			'label'          => __( 'Manage UFW Firewall Ports', 'wpcd' ),
+			'label'          => __( 'Open or Close UFW Firewall Ports', 'wpcd' ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
 				'desc' => $ufw_top_desc,
@@ -176,51 +181,61 @@ class WPCD_WORDPRESS_TABS_SERVER_UFW_FIREWALL extends WPCD_WORDPRESS_TABS {
 		);
 
 		$actions['ufw-port-to-add-remove-label'] = array(
-			'label'          => __( 'Port to open or close', 'wpcd' ),
+			'label'          => __( 'Which port would you like to open or close?', 'wpcd' ),
 			'type'           => 'custom_html',
 			'raw_attributes' => array(
-				'std'     => __( 'Which port would you like to open or close?', 'wpcd' ),
-				'columns' => 4,
+				'std'     => '',
+				'columns' => 12,
 			),
 		);
 
 		$actions['ufw-port-to-add-remove'] = array(
-			'label'          => __( 'Port', 'wpcd' ),
+			'label'          => '',
 			'type'           => 'number',
 			'raw_attributes' => array(
 				// the key of the field (the key goes in the request).
 				'data-wpcd-name' => 'ufw_port_to_open_or_close',
-				'columns'        => 2,
+				'columns'        => 12,
+				'size' => 6,
 			),
 		);
 
 		$actions['ufw-open-port'] = array(
-			'label'          => __( 'Open It', 'wpcd' ),
+			'label'          => '',
 			'raw_attributes' => array(
 				'std'                 => __( 'Open Port', 'wpcd' ),
 				// make sure we give the user a confirmation prompt.
 				'confirmation_prompt' => __( 'Are you sure you would like to open this port?', 'wpcd' ),
 				// fields that contribute data for this action.
 				'data-wpcd-fields'    => json_encode( array( '#wpcd_app_action_ufw-port-to-add-remove' ) ),
-				'columns'             => 2,
+				'columns'             => 6,
 			),
 			'type'           => 'button',
 		);
 
 		$actions['ufw-close-port'] = array(
-			'label'          => __( 'Close It', 'wpcd' ),
+			'label'          => '',
 			'raw_attributes' => array(
 				'std'                 => __( 'Close Port', 'wpcd' ),
 				// make sure we give the user a confirmation prompt.
 				'confirmation_prompt' => __( 'Are you sure you would like to close this port?', 'wpcd' ),
 				// fields that contribute data for this action.
 				'data-wpcd-fields'    => json_encode( array( '#wpcd_app_action_ufw-port-to-add-remove' ) ),
-				'columns'             => 2,
+				'columns'             => 6,
 			),
 			'type'           => 'button',
 		);
 
-		// Show current ports ...
+		// Close up prior card.
+		$actions[] = wpcd_end_card( $this->get_tab_slug() );
+
+		/**
+		 * Show Current Ports
+		 */
+
+		// Start new card.
+		$actions[] = wpcd_start_half_card( $this->get_tab_slug() );
+
 		$ufw_current_ports_managed_string = sprintf( '<i>%s</i>', __( 'We are not currently aware of any ports being opened or closed via this dashboard. If ports were opened or closed directly on the server using the command line they will not show up here.', 'wpcd' ) );
 		$ufw_managed_ports                = wpcd_maybe_unserialize( get_post_meta( $id, 'wpcd_wpapp_ufw_managed_ports', true ) );
 
@@ -248,6 +263,15 @@ class WPCD_WORDPRESS_TABS_SERVER_UFW_FIREWALL extends WPCD_WORDPRESS_TABS {
 			),
 		);
 
+		// Close up prior card.
+		$actions[] = wpcd_end_card( $this->get_tab_slug() );
+
+		/**
+		 * Learn more / Reading materials.
+		 */
+
+		 $actions[] = wpcd_start_full_card( $this->get_tab_slug() );
+
 		// Show a lenghty text description of what this tab does.
 		$actions['ufw-footer-desc'] = array(
 			'label'          => __( 'About the UFW Firewall', 'wpcd' ),
@@ -256,6 +280,9 @@ class WPCD_WORDPRESS_TABS_SERVER_UFW_FIREWALL extends WPCD_WORDPRESS_TABS {
 				'desc' => $ufw_footer_desc,
 			),
 		);
+
+		// Close up prior card.
+		$actions[] = wpcd_end_card( $this->get_tab_slug() );
 
 		return $actions;
 

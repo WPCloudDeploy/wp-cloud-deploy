@@ -117,6 +117,7 @@
 /* With cards, we want the thing to flex - servers. */
 #wpcd_server_wordpress-app_tab3 .rwmb-tab-panel-services,
 #wpcd_server_wordpress-app_tab3 .rwmb-tab-panel-callbacks,
+#wpcd_server_wordpress-app_tab3 .rwmb-tab-panel-firewall,
 #wpcd_server_wordpress-app_tab3 .rwmb-tab-panel-svr_tweaks {
 	display: flex;
 	flex-wrap: wrap;

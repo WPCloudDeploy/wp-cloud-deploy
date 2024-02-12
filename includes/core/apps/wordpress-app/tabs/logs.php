@@ -220,6 +220,9 @@ class WPCD_WORDPRESS_TABS_SITE_LOGS extends WPCD_WORDPRESS_TABS {
 		/* Array variable to hold our field definitions */
 		$fields = array();
 
+		// Start new card.
+		$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
+
 		// Heading text.
 		$desc = __( 'Download various log files for this site.', 'wpcd' );
 
@@ -264,12 +267,21 @@ class WPCD_WORDPRESS_TABS_SITE_LOGS extends WPCD_WORDPRESS_TABS {
 			'save_field' => false,
 		);
 
+		// Close up prior card.
+		$fields[] = wpcd_end_card( $this->get_tab_slug() );
+
+		// Start new card.
+		$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
+
 		$fields[] = array(
 			'name' => __( 'Warning', 'wpcd' ),
 			'desc' => __( 'Attempting to download very large log files can cause your server memory to be exhausted which will likely cause your server to kill this process or, worse, crash. Use this download tool only if you are sure your logs are of a reasonable size. Otherwise connect via sFTP or ssh to download logs.', 'wpcd' ),
 			'tab'  => 'site-logs',
 			'type' => 'heading',
 		);
+
+		// Close up prior card.
+		$fields[] = wpcd_end_card( $this->get_tab_slug() );
 
 		return $fields;
 
@@ -292,11 +304,14 @@ class WPCD_WORDPRESS_TABS_SITE_LOGS extends WPCD_WORDPRESS_TABS {
 			return array();
 		}
 
-		// Is the site connected to logtivity?
-		$connected = $this->get_logtivity_connection_status( $id );
-
 		/* Array variable to hold our field definitions */
 		$fields = array();
+
+		// Start new card.
+		$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
+
+		// Is the site connected to logtivity?
+		$connected = $this->get_logtivity_connection_status( $id );
 
 		// Heading text.
 		$desc = __( 'Connect site to the Logtivity service.', 'wpcd' );
@@ -333,6 +348,9 @@ class WPCD_WORDPRESS_TABS_SITE_LOGS extends WPCD_WORDPRESS_TABS {
 			'class'      => 'wpcd_app_action',
 			'save_field' => false,
 		);
+
+		// Close up prior card.
+		$fields[] = wpcd_end_card( $this->get_tab_slug() );
 
 		return $fields;
 

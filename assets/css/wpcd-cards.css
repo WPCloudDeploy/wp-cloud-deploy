@@ -96,7 +96,9 @@
 #wpcd_wordpress-app_tab2 .rwmb-tab-panel-theme-and-plugin-updates,
 #wpcd_wordpress-app_tab2 .rwmb-tab-panel-database,
 #wpcd_wordpress-app_tab2 .rwmb-tab-panel-security,
-#wpcd_wordpress-app_tab2 .rwmb-tab-panel-statistics {
+#wpcd_wordpress-app_tab2 .rwmb-tab-panel-statistics,
+#wpcd_wordpress-app_tab2 .rwmb-tab-panel-site-logs,
+#wpcd_wordpress-app_tab2 .rwmb-tab-panel-wp-site-users {
 	display: flex;
 	flex-wrap: wrap;
 }

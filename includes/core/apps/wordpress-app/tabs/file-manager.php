@@ -332,9 +332,6 @@ class WPCD_WORDPRESS_TABS_FILE_MANAGER extends WPCD_WORDPRESS_TABS {
 			return $fields;
 		}
 
-		// Start new card.
-		$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
-
 		// Is filemanager already installed? We'll show/hide fields based on this status.
 		$file_manager_status = $this->is_file_manager_installed( $id );
 
@@ -347,33 +344,60 @@ class WPCD_WORDPRESS_TABS_FILE_MANAGER extends WPCD_WORDPRESS_TABS {
 		$fw_6g = get_post_meta( $id, 'wpapp_6g_status', true );
 		$fw_7g = get_post_meta( $id, 'wpapp_7g_status', true );
 		if ( ! empty( $fw_6g ) && ! empty( $fw_6g['6g_query_string'] ) && 'on' === $fw_6g['6g_query_string'] ) {
+			// Start new card.
+			$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
+
 			$fields[] = array(
-				'name' => __( 'File Manager [Disabled]', 'wpcd' ),
-				'tab'  => 'file-manager',
-				'type' => 'heading',
-				'desc' => __( 'You must disable the 6G firewall QUERY STRING rules before File Manager can be used.', 'wpcd' ),
+				'name'    => __( 'File Manager [Disabled]', 'wpcd' ),
+				'tab'     => 'file-manager',
+				'type'    => 'heading',
+				'desc'    => __( 'You must disable the 6G firewall QUERY STRING rules before File Manager can be used.', 'wpcd' ),
+				'columns' => 12,
 			);
+
+			// Close up prior card.
+			$fields[] = wpcd_end_card( $this->get_tab_slug() );
+
 			return $fields;
 		}
 		if ( ! empty( $fw_7g ) && ! empty( $fw_7g['7g_query_string'] ) && 'on' === $fw_7g['7g_query_string'] ) {
+			// Start new card.
+			$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
+
 			$fields[] = array(
-				'name' => __( 'File Manager [Disabled]', 'wpcd' ),
-				'tab'  => 'file-manager',
-				'type' => 'heading',
-				'desc' => __( 'You must disable the 7G firewall QUERY STRING and REQUEST STRING rules before File Manager can be used.', 'wpcd' ),
+				'name'    => __( 'File Manager [Disabled]', 'wpcd' ),
+				'tab'     => 'file-manager',
+				'type'    => 'heading',
+				'desc'    => __( 'You must disable the 7G firewall QUERY STRING and REQUEST STRING rules before File Manager can be used.', 'wpcd' ),
+				'columns' => 12,
 			);
+
+			// Close up prior card.
+			$fields[] = wpcd_end_card( $this->get_tab_slug() );
+
 			return $fields;
 		}
 		if ( ! empty( $fw_7g ) && ! empty( $fw_7g['7g_query_string'] ) && 'on' === $fw_7g['7g_request_string'] ) {
+			// Start new card.
+			$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
+
 			$fields[] = array(
-				'name' => __( 'Database Management With PHPMyAdmin [Disabled]', 'wpcd' ),
-				'tab'  => 'file-manager',
-				'type' => 'heading',
-				'desc' => __( 'You must disable the 7G firewall QUERY STRING and REQUEST STRING rules before File Manager can be used.', 'wpcd' ),
+				'name'    => __( 'File Manager [Disabled]', 'wpcd' ),
+				'tab'     => 'file-manager',
+				'type'    => 'heading',
+				'desc'    => __( 'You must disable the 7G firewall QUERY STRING and REQUEST STRING rules before File Manager can be used.', 'wpcd' ),
+				'columns' => 12,
 			);
+
+			// Close up prior card.
+			$fields[] = wpcd_end_card( $this->get_tab_slug() );
+
 			return $fields;
 		}
 		// End Bail if certain 6G or 7G firewall items are enabled.
+
+		// Start new card.
+		$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
 
 		if ( 'off' === $file_manager_status ) {
 			$desc  = __( 'The File Manager is not installed.', 'wpcd' );

@@ -184,6 +184,14 @@ class WPCD_WORDPRESS_TABS_SERVER_POWER extends WPCD_WORDPRESS_TABS {
 		 * Soft Reboot
 		 */
 
+		// Start new card.
+		$actions[] = wpcd_start_one_third_card( $this->get_tab_slug() );
+
+		$desc  = __( 'Send a reboot command to the server - this will be the equivalent of typing "reboot" on the command line.', 'wpcd' );
+		$desc .= '<br/>';
+		$desc .= __( 'If this does not work, you can try using other power options below. Or you might need to log into the server provider\'s console to use the power options there.', 'wpcd' );
+		$desc  = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
+
 		/* Set the text of the confirmation prompt */
 		$confirmation_prompt = __( 'Are you sure you would like to restart this server?', 'wpcd' );
 
@@ -191,7 +199,7 @@ class WPCD_WORDPRESS_TABS_SERVER_POWER extends WPCD_WORDPRESS_TABS {
 			'label'          => '<i class="fa-duotone fa-plug-circle-check"></i> ' . __( 'Soft Restart', 'wpcd' ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
-				'desc' => __( 'Send a reboot command to the server - this will be the equivalent of typing "reboot" on the command line.', 'wpcd' ),
+				'desc' => $desc,
 			),
 		);
 
@@ -200,19 +208,29 @@ class WPCD_WORDPRESS_TABS_SERVER_POWER extends WPCD_WORDPRESS_TABS {
 			'raw_attributes' => array(
 				'std'                 => __( 'Restart', 'wpcd' ),
 				'confirmation_prompt' => $confirmation_prompt,
-				'desc'                => __( 'If this does not work, you can try using other power options below. Or you might need to log into the server provider\'s console to use the power options there.', 'wpcd' ),
+				'desc'                => '',
 			),
 			'type'           => 'button',
 		);
 
+		// Close up prior card.
+		$actions[] = wpcd_end_card( $this->get_tab_slug() );
+
 		/**
 		 * Provider Restart / Hard Reboot.
 		 */
+
+		// Start new card.
+		$actions[] = wpcd_start_one_third_card( $this->get_tab_slug() );
+
+		$desc = __( 'Use the server provider api to attempt to restart the server.  This is usually the equivalent of pulling the power plug while the server is running. So use only as a last resort.', 'wpcd' );
+		$desc = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
+
 		$actions['server-reboot-hard-provider-header'] = array(
 			'label'          => '<i class="fa-duotone fa-plug-circle-bolt"></i> ' . __( 'Hard Provider API Restart', 'wpcd' ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
-				'desc' => __( 'Use the server provider api to attempt to restart the server.  This is usually the equivalent of pulling the power plug while the server is running. So use only as a last resort.', 'wpcd' ),
+				'desc' => $desc,
 			),
 		);
 
@@ -225,9 +243,51 @@ class WPCD_WORDPRESS_TABS_SERVER_POWER extends WPCD_WORDPRESS_TABS {
 			'type'           => 'button',
 		);
 
+		// Close up prior card.
+		$actions[] = wpcd_end_card( $this->get_tab_slug() );
+
+		/**
+		 * Graceful Poweroff
+		 */
+
+		// Start new card.
+		$actions[] = wpcd_start_one_third_card( $this->get_tab_slug() );
+
+		$desc  = __( 'Send a shutdown command to the server - this will be the equivalent of typing "shutdown" on the command line.', 'wpcd' );
+		$desc .= '<br/>';
+		$desc .= __( 'If this does not work, you can try using other power options below. Or you might need to log into the server provider\'s console to use the power options there.', 'wpcd' );
+		$desc  = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
+
+		/* Set the text of the confirmation prompt */
+		$confirmation_prompt = __( 'Are you sure you would like to turn off this server?', 'wpcd' );
+
+		$actions['server-shutdown-soft-header'] = array(
+			'label'          => '<i class="fa-duotone fa-power-off"></i> ' . __( 'Graceful Powerdown', 'wpcd' ),
+			'type'           => 'heading',
+			'raw_attributes' => array(
+				'desc' => $desc,
+			),
+		);
+
+		$actions['server-graceful-shutdown'] = array(
+			'label'          => '',
+			'raw_attributes' => array(
+				'std'                 => __( 'Graceful Shutdown', 'wpcd' ),
+				'confirmation_prompt' => $confirmation_prompt,
+				'desc'                => '',
+			),
+			'type'           => 'button',
+		);
+
+		// Close up prior card.
+		$actions[] = wpcd_end_card( $this->get_tab_slug() );
+
 		/**
 		 * Schedule Soft Reboot
 		 */
+
+		// Start new card.
+		$actions[] = wpcd_start_half_card( $this->get_tab_slug() );
 
 		$actions['server-reboot-schedule-soft-header'] = array(
 			'label'          => '<i class="fa-duotone fa-calendar-days"></i> ' . __( 'Schedule A Soft Restart', 'wpcd' ),
@@ -279,34 +339,15 @@ class WPCD_WORDPRESS_TABS_SERVER_POWER extends WPCD_WORDPRESS_TABS {
 			'type'           => 'button',
 		);
 
-		/**
-		 * Graceful Poweroff
-		 */
-
-		/* Set the text of the confirmation prompt */
-		$confirmation_prompt = __( 'Are you sure you would like to turn off this server?', 'wpcd' );
-
-		$actions['server-shutdown-soft-header'] = array(
-			'label'          => '<i class="fa-duotone fa-power-off"></i> ' . __( 'Graceful Powerdown', 'wpcd' ),
-			'type'           => 'heading',
-			'raw_attributes' => array(
-				'desc' => __( 'Send a shutdown command to the server - this will be the equivalent of typing "shutdown" on the command line.', 'wpcd' ),
-			),
-		);
-
-		$actions['server-graceful-shutdown'] = array(
-			'label'          => '',
-			'raw_attributes' => array(
-				'std'                 => __( 'Graceful Shutdown', 'wpcd' ),
-				'confirmation_prompt' => $confirmation_prompt,
-				'desc'                => __( 'If this does not work, you can try using other power options below. Or you might need to log into the server provider\'s console to use the power options there.', 'wpcd' ),
-			),
-			'type'           => 'button',
-		);
+		// Close up prior card.
+		$actions[] = wpcd_end_card( $this->get_tab_slug() );
 
 		/**
 		 * Forced Poweroff via the Cloud Providers' API
 		 */
+
+		// Start new card.
+		$actions[] = wpcd_start_half_card( $this->get_tab_slug() );
 
 		/* Set the text of the confirmation prompt */
 		$confirmation_prompt = __( 'Are you sure you would like to turn off this server? In some cases it will be like pulling the powercord while the server is turned on which could result in loss of data!', 'wpcd' );
@@ -328,9 +369,15 @@ class WPCD_WORDPRESS_TABS_SERVER_POWER extends WPCD_WORDPRESS_TABS {
 			'type'           => 'button',
 		);
 
+		// Close up prior card.
+		$actions[] = wpcd_end_card( $this->get_tab_slug() );
+
 		/**
 		 * Turn on the server
 		 */
+
+		// Start new card.
+		$actions[] = wpcd_start_half_card( $this->get_tab_slug() );
 
 		/* Set the text of the confirmation prompt */
 		$confirmation_prompt = __( 'Are you sure you would like to turn on this server?', 'wpcd' );
@@ -353,9 +400,16 @@ class WPCD_WORDPRESS_TABS_SERVER_POWER extends WPCD_WORDPRESS_TABS {
 			'type'           => 'button',
 		);
 
+		// Close up prior card.
+		$actions[] = wpcd_end_card( $this->get_tab_slug() );
+
 		/**
 		 * After reboot instructions.
 		 */
+
+		// Start new card.
+		$actions[] = wpcd_start_half_card( $this->get_tab_slug() );
+
 		$instructions  = __( 'After a power-on or reboot event, the server status should update automatically if CALLBACKS have been installed on the server.', 'wpcd' );
 		$instructions .= '<br />' . __( 'If callbacks are not installed you can check the status of the reboot by going to the ALL CLOUD SERVERS list and clicking on the UPDATE REMOTE STATE link for the server.  In this case the server will not be available for further operations until you click that link to update the server status.', 'wpcd' );
 
@@ -366,6 +420,9 @@ class WPCD_WORDPRESS_TABS_SERVER_POWER extends WPCD_WORDPRESS_TABS {
 				'desc' => $instructions,
 			),
 		);
+
+		// Close up prior card.
+		$actions[] = wpcd_end_card( $this->get_tab_slug() );
 
 		return $actions;
 

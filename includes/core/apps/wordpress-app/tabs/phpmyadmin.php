@@ -965,10 +965,10 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 			$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
 
 			// Copy database local to remote.
-			$desc = __( 'To copy your data to a remote database please enter the connection information for the remote database and then click the COPY DATABASE button.', 'wpcd' );
+			$desc  = __( 'To copy your data to a remote database please enter the connection information for the remote database and then click the COPY DATABASE button.', 'wpcd' );
 			$desc .= '<br/>';
-			$desc = __( 'You should perform this action before switching your database to a remote database for the first time. Otherwise your data will not be present in the remote database and you will encounter a WordPress WSOD error.', 'wpcd' );
-			$desc = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
+			$desc  = __( 'You should perform this action before switching your database to a remote database for the first time. Otherwise your data will not be present in the remote database and you will encounter a WordPress WSOD error.', 'wpcd' );
+			$desc  = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
 
 			$fields[] = array(
 				'name' => __( 'Copy Database - Local to remote [Beta]', 'wpcd' ),
@@ -1104,30 +1104,51 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 		$fw_6g = get_post_meta( $id, 'wpapp_6g_status', true );
 		$fw_7g = get_post_meta( $id, 'wpapp_7g_status', true );
 		if ( ! empty( $fw_6g ) && ! empty( $fw_6g['6g_query_string'] ) && 'on' === $fw_6g['6g_query_string'] ) {
+			// Start new card.
+			$fields[] = wpcd_start_full_card( $this->get_tab_slug() );
+
 			$fields[] = array(
 				'name' => __( 'Database Management With PHPMyAdmin [Disabled]', 'wpcd' ),
 				'tab'  => 'database',
 				'type' => 'heading',
 				'desc' => __( 'You must disable the 6G firewall QUERY STRING rules before PHPMyAdmin can be used.', 'wpcd' ),
 			);
+
+			// Close up prior card.
+			$fields[] = wpcd_end_card( $this->get_tab_slug() );
+
 			return $fields;
 		}
 		if ( ! empty( $fw_7g ) && ! empty( $fw_7g['7g_query_string'] ) && 'on' === $fw_7g['7g_query_string'] ) {
+			// Start new card.
+			$fields[] = wpcd_start_full_card( $this->get_tab_slug() );
+
 			$fields[] = array(
 				'name' => __( 'Database Management With PHPMyAdmin [Disabled]', 'wpcd' ),
 				'tab'  => 'database',
 				'type' => 'heading',
 				'desc' => __( 'You must disable the 7G firewall QUERY STRING and REQUEST STRING rules before PHPMyAdmin can be used.', 'wpcd' ),
 			);
+
+			// Close up prior card.
+			$fields[] = wpcd_end_card( $this->get_tab_slug() );
+
 			return $fields;
 		}
 		if ( ! empty( $fw_7g ) && ! empty( $fw_7g['7g_query_string'] ) && 'on' === $fw_7g['7g_request_string'] ) {
+			// Start new card.
+			$fields[] = wpcd_start_full_card( $this->get_tab_slug() );
+
 			$fields[] = array(
 				'name' => __( 'Database Management With PHPMyAdmin [Disabled]', 'wpcd' ),
 				'tab'  => 'database',
 				'type' => 'heading',
 				'desc' => __( 'You must disable the 7G firewall QUERY STRING and REQUEST STRING rules before PHPMyAdmin can be used.', 'wpcd' ),
 			);
+
+			// Close up prior card.
+			$fields[] = wpcd_end_card( $this->get_tab_slug() );
+
 			return $fields;
 		}
 		// End Bail if certain 6G or 7G firewall items are enabled.
@@ -1138,6 +1159,7 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 			$pa_status = 'off';
 		}
 
+		// Start new card.
 		$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
 
 		$desc  = __( 'Use PHPMyAdmin to access and manage the data in your WordPress database.', 'wpcd' );

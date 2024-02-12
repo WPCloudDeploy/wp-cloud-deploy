@@ -622,6 +622,9 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 
 		// Show the current database info if we have it.
 		if ( ! empty( $current_db_host ) || ! empty( $current_db_port ) || ! empty( $current_db_name ) || ! empty( $current_db_user ) || ! empty( $current_db_pass_decrypted ) ) {
+			// Start new card.
+			$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
+
 			$fields[] = array(
 				'name' => __( 'Current Database Connection Information', 'wpcd' ),
 				'tab'  => 'database',
@@ -645,14 +648,39 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 				'std'  => $db_info,
 			);
 
+			// Close up prior card.
+			$fields[] = wpcd_end_card( $this->get_tab_slug() );
+
 		}
 
-		// Section for switching between remote and local databases.
+		/**
+		 * Database status and isntructions.
+		 */
+
+		// Start new card.
+		$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
+
+		$fields[] = array(
+			'name' => __( 'Local/Remote Database Status', 'wpcd' ),
+			'tab'  => 'database',
+			'type' => 'heading',
+			'desc' => $running_database_server_name,
+		);
+
+		// Close up prior card.
+		$fields[] = wpcd_end_card( $this->get_tab_slug() );
+
+		/**
+		 * Section for switching between remote and local databases.
+		 */
+
+		// Start new card.
+		$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
+
 		$fields[] = array(
 			'name' => $section_heading,
 			'tab'  => 'database',
 			'type' => 'heading',
-			'desc' => $running_database_server_name,
 		);
 
 		// Switch To Remote Database.
@@ -731,6 +759,12 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 				'class'      => 'wpcd_app_action',
 				'save_field' => false,
 			);
+
+			// Close up prior card.
+			$fields[] = wpcd_end_card( $this->get_tab_slug() );
+
+			// Start new card.
+			$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
 
 			// Copy database remote to local.
 			$fields[] = array(
@@ -813,6 +847,9 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 				'class'      => 'wpcd_app_action',
 				'save_field' => false,
 			);
+
+			// Close up prior card.
+			$fields[] = wpcd_end_card( $this->get_tab_slug() );
 
 		} else {
 
@@ -921,12 +958,23 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 				'save_field' => false,
 			);
 
+			// Close up prior card.
+			$fields[] = wpcd_end_card( $this->get_tab_slug() );
+
+			// Start new card.
+			$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
+
 			// Copy database local to remote.
+			$desc = __( 'To copy your data to a remote database please enter the connection information for the remote database and then click the COPY DATABASE button.', 'wpcd' );
+			$desc .= '<br/>';
+			$desc = __( 'You should perform this action before switching your database to a remote database for the first time. Otherwise your data will not be present in the remote database and you will encounter a WordPress WSOD error.', 'wpcd' );
+			$desc = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
+
 			$fields[] = array(
 				'name' => __( 'Copy Database - Local to remote [Beta]', 'wpcd' ),
 				'tab'  => 'database',
 				'type' => 'heading',
-				'desc' => __( 'To copy your data to a remote database please enter the connection information for the remote database and then click the COPY DATABASE button.', 'wpcd' ),
+				'desc' => $desc,
 			);
 
 			// Remote database host.
@@ -1033,6 +1081,9 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 				'class'      => 'wpcd_app_action',
 				'save_field' => false,
 			);
+
+			// Close up prior card.
+			$fields[] = wpcd_end_card( $this->get_tab_slug() );
 		}
 
 		return $fields;
@@ -1081,6 +1132,14 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 		}
 		// End Bail if certain 6G or 7G firewall items are enabled.
 
+		// What is the status of PHPMyAdmin?
+		$pa_status = get_post_meta( $id, 'wpapp_phpmyadmin_status', true );
+		if ( empty( $pa_status ) ) {
+			$pa_status = 'off';
+		}
+
+		$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
+
 		$desc  = __( 'Use PHPMyAdmin to access and manage the data in your WordPress database.', 'wpcd' );
 		$desc .= '<br />';
 		$desc .= __( 'This is a very powerful tool with which you can easily corrupt your database beyond repair.', 'wpcd' );
@@ -1088,6 +1147,7 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 		$desc .= __( 'Before performing any actions with it, we urge you to backup your site!', 'wpcd' );
 		$desc .= '<br />';
 		$desc .= __( 'Finally, because this tool is accessible from the internet we suggest that you remove it when you are done using it.  Or, at least, restrict access to it by your IP address.', 'wpcd' );
+		$desc  = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
 
 		$fields[] = array(
 			'name' => __( 'Database', 'wpcd' ),
@@ -1095,12 +1155,6 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 			'type' => 'heading',
 			'desc' => $desc,
 		);
-
-		// What is the status of PHPMyAdmin?
-		$pa_status = get_post_meta( $id, 'wpapp_phpmyadmin_status', true );
-		if ( empty( $pa_status ) ) {
-			$pa_status = 'off';
-		}
 
 		if ( 'off' == $pa_status ) {
 			// PHPMyAdmin is not installed on this site, so show button to install it.
@@ -1171,12 +1225,23 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 				'std'  => $phpmyadmin_details,
 			);
 
-			// new fields section for update and remove of phpmyadmin.
+			/**
+			 * New fields section for update and remove of phpmyadmin.
+			 */
+			// Close up prior card.
+			$fields[] = wpcd_end_card( $this->get_tab_slug() );
+
+			// Start new card.
+			$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
+
+			$desc = __( 'Use the buttons below to update and/or remove PHPMyAdmin from this site.', 'wpcd' );
+			$desc = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
+
 			$fields[] = array(
 				'name' => __( 'Database Tools - Update and Remove', 'wpcd' ),
 				'tab'  => 'database',
 				'type' => 'heading',
-				'desc' => __( 'Update and/or remove PHPMyAdmin', 'wpcd' ),
+				'desc' => $desc,
 			);
 
 			// update php my admin.
@@ -1186,7 +1251,6 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 				'tab'        => 'database',
 				'type'       => 'button',
 				'std'        => __( 'Update PHPMyAdmin', 'wpcd' ),
-				'desc'       => __( 'Update the PHPMyAdmin tool to the latest version.', 'wpcd' ),
 				'attributes' => array(
 					// the _action that will be called in ajax.
 					'data-wpcd-action'              => 'update-phpmyadmin',
@@ -1209,7 +1273,6 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 				'tab'        => 'database',
 				'type'       => 'button',
 				'std'        => __( 'Remove PHPMyAdmin', 'wpcd' ),
-				'desc'       => __( 'Remove the PHPMyAdmin tool from this site.', 'wpcd' ),
 				'attributes' => array(
 					// the _action that will be called in ajax.
 					'data-wpcd-action'              => 'remove-phpmyadmin',
@@ -1225,6 +1288,9 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 				'save_field' => false,
 			);
 		}
+
+		// Close up prior card.
+		$fields[] = wpcd_end_card( $this->get_tab_slug() );
 
 		return $fields;
 	}

@@ -539,6 +539,7 @@ button.wpcd_action_install_app.button:hover {
 }
 
 .wpcd_push_data_reporting_time {
+	font-size: 22px;
 	font-weight: bold;
 }
 
@@ -553,17 +554,11 @@ button.wpcd_action_install_app.button:hover {
 	font-size: 1em;
 }
 
-.wpcd_push_data_label_item {
-	/* Used on the SERVER CALLBACKS tab - server status callback section */
-	margin-bottom: 1em;
-	margin-right: 1em;
-	color: var(--wpcd-primary-brand-color);
-}
-
 .wpcd_push_data_value_item {
 	/* Used on the SERVER CALLBACKS tab - server status callback section */
-	margin-bottom: 1em;
-	margin-right: 1em;
+	font-size: 36px;
+	text-align: center;
+	text-transform: capitalize;
 	font-weight: bold;
 }
 

@@ -448,7 +448,7 @@ div[id^='wpcd_server_wordpress-app'] {
     margin-bottom: 10px !important;
 }
 
-.wpcd-wpapp-actions #wpcd_app_action_aws-s3-credentials-header, .wpcd-wpapp-actions #wpcd_app_action_monitorix-header, .wpcd-wpapp-actions #wpcd_app_action_ssh-console-header, .wpcd-wpapp-actions #wpcd_app_action_show-server-diskspace-used-header, .wpcd-wpapp-actions #wpcd_app_action_server-upgrade-header, .wpcd-wpapp-actions #wpcd_app_action_server-sync-header {
+.wpcd-wpapp-actions #wpcd_app_action_monitorix-header, .wpcd-wpapp-actions #wpcd_app_action_ssh-console-header, .wpcd-wpapp-actions #wpcd_app_action_show-server-diskspace-used-header, .wpcd-wpapp-actions #wpcd_app_action_server-upgrade-header, .wpcd-wpapp-actions #wpcd_app_action_server-sync-header {
 	/* This targets the first heading section on each of the server tab pages and makes sure its top margin is set to zero so that there isn't excess white space on the screen */
 	margin-top: 0em !important;
 }

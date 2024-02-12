@@ -644,13 +644,6 @@ class WPCD_WORDPRESS_TABS_STAGING extends WPCD_WORDPRESS_TABS {
 			// Variable that indicates if an existing staging site has already been created.
 			$existing_staging_site = $this->get_companion_staging_site_domain( $id );
 
-			$fields[] = array(
-				'name' => __( 'Staging', 'wpcd' ),
-				'tab'  => 'staging',
-				'type' => 'heading',
-				'desc' => $desc,
-			);
-
 			if ( ! empty( $existing_staging_site ) ) {
 				/* Translators: %s: The domain of the companion staging site. */
 				$desc  = sprintf( __( 'A companion staging site already exists at: %s.', 'wpcd' ), '<b>' . $existing_staging_site . '</b>' );
@@ -659,10 +652,19 @@ class WPCD_WORDPRESS_TABS_STAGING extends WPCD_WORDPRESS_TABS {
 			}
 
 			$fields[] = array(
+				'name' => __( 'Staging', 'wpcd' ),
+				'tab'  => 'staging',
+				'type' => 'heading',
+				'desc' => $desc,
+			);			
+
+			/*
+			$fields[] = array(
 				'tab'  => 'staging',
 				'type' => 'custom_html',
 				'desc' => $desc,
 			);
+			*/
 
 			$staging_desc = '';
 			if ( 'yes' === $this->is_remote_db( $id ) ) {

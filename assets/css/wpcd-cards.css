@@ -95,7 +95,8 @@
 #wpcd_wordpress-app_tab2 .rwmb-tab-panel-tools,
 #wpcd_wordpress-app_tab2 .rwmb-tab-panel-theme-and-plugin-updates,
 #wpcd_wordpress-app_tab2 .rwmb-tab-panel-database,
-#wpcd_wordpress-app_tab2 .rwmb-tab-panel-security {
+#wpcd_wordpress-app_tab2 .rwmb-tab-panel-security,
+#wpcd_wordpress-app_tab2 .rwmb-tab-panel-statistics {
 	display: flex;
 	flex-wrap: wrap;
 }

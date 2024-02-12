@@ -215,9 +215,14 @@ class WPCD_WORDPRESS_TABS_TOOLS extends WPCD_WORDPRESS_TABS {
 		// Basic checks passed, ok to proceed.
 		$actions = array();
 
+		// Start new card.
+		$actions[] = wpcd_start_half_card( $this->get_tab_slug() );
+
 		// Set header description.
 		$header_debug_desc  = __( 'Enable or disable the WordPress Debug log file.  This file is stored in the wp-content folder. Once enabled you can retrieve it with your sFTP client.', 'wpcd' );
-		$header_debug_desc .= '<br />' . __( 'Note that if you toggle the WP_DEBUG flag directly in wp-config.php, the status shown here might not be accurate.', 'wpcd' );
+		$header_debug_desc .= '<br /><br />' . __( 'Note that if you toggle the WP_DEBUG flag directly in wp-config.php, the status shown here might not be accurate.', 'wpcd' );
+		$header_debug_desc .= '<br /><br />' . __( 'Messages will go directly to the debug.log file located in the wp-content folder.  Nothing will be shown on the screen.', 'wpcd' );
+		$header_debug_desc  = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $header_debug_desc );
 
 		/* DEBUG LOG */
 		$actions['tools-debug-log-header'] = array(
@@ -244,7 +249,7 @@ class WPCD_WORDPRESS_TABS_TOOLS extends WPCD_WORDPRESS_TABS {
 		}
 
 		if ( 'on' !== $debug_status ) {
-			$debug_desc = __( 'Click to enable the WordPress debug log. <br />Messages will go directly to the debug.log file located in the wp-content folder.  Nothing will be shown on the screen.', 'wpcd' );
+			$debug_desc = __( 'Click to enable the WordPress debug log.', 'wpcd' );
 		} else {
 			$debug_desc = __( 'Click to disable the WordPress debug log', 'wpcd' );
 		}
@@ -261,7 +266,14 @@ class WPCD_WORDPRESS_TABS_TOOLS extends WPCD_WORDPRESS_TABS {
 			'type'           => 'switch',
 		);
 
+		// Close up prior card.
+		$actions[] = wpcd_end_card( $this->get_tab_slug() );
+
 		/* RESET SITE PERMISSIONS */
+
+		// Start new card.
+		$actions[] = wpcd_start_half_card( $this->get_tab_slug() );
+
 		$actions['tools-reset-site-permissions-header'] = array(
 			'label'          => __( 'Reset file permissions', 'wpcd' ),
 			'type'           => 'heading',
@@ -279,16 +291,26 @@ class WPCD_WORDPRESS_TABS_TOOLS extends WPCD_WORDPRESS_TABS {
 			'type'           => 'button',
 		);
 
+		// Close up prior card.
+		$actions[] = wpcd_end_card( $this->get_tab_slug() );
+
 		/**
 		 * EDD NGINX
 		 */
 		/* We should only show this section for nginx servers */
 		if ( 'nginx' === $webserver_type ) {
+
+			// Start new card.
+			$actions[] = wpcd_start_half_card( $this->get_tab_slug() );
+
+			$desc = __( 'Easy Digital Downloads require specical rules to be added to the NGINX web server in order to protect the EDD files.  This section allows you to add those rules. You should only add them if you are using EDD.', 'wpcd' );
+			$desc = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
+
 			$actions['tools-edd-nginx-header'] = array(
 				'label'          => __( 'NGINX Rules for Easy Digital Downloads', 'wpcd' ),
 				'type'           => 'heading',
 				'raw_attributes' => array(
-					'desc' => __( 'Easy Digital Downloads require specical rules to be added to the NGINX web server in order to protect the EDD files.  This section allows you to add those rules. You should only add them if you are using EDD.', 'wpcd' ),
+					'desc' => $desc,
 				),
 			);
 
@@ -301,16 +323,25 @@ class WPCD_WORDPRESS_TABS_TOOLS extends WPCD_WORDPRESS_TABS {
 				),
 				'type'           => 'button',
 			);
+
+			// Close up prior card.
+			$actions[] = wpcd_end_card( $this->get_tab_slug() );
 		}
 
 		/* RESTRICTED PHP FUNCTIONS */
 		if ( wpcd_is_admin() ) {
 
+			// Start new card.
+			$actions[] = wpcd_start_half_card( $this->get_tab_slug() );
+
+			$desc = __( 'For security purposes certain PHP functions should be restricted. You can use this option to make sure you have the most recent restrictions for your site. <br /> Note that under normal circumstances you should not need to use this option.', 'wpcd' );
+			$desc = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
+
 			$actions['tools-update-restricted-php-functions-header'] = array(
 				'label'          => __( 'Restricted PHP Functions', 'wpcd' ),
 				'type'           => 'heading',
 				'raw_attributes' => array(
-					'desc' => __( 'For security purposes certain PHP functions should be restricted. You can use this option to make sure you have the most recent restrictions for your site. <br /> Note that under normal circumstances you should not need to use this option.', 'wpcd' ),
+					'desc' => $desc,
 				),
 			);
 
@@ -326,14 +357,24 @@ class WPCD_WORDPRESS_TABS_TOOLS extends WPCD_WORDPRESS_TABS {
 				'type'           => 'button',
 			);
 
+			// Close up prior card.
+			$actions[] = wpcd_end_card( $this->get_tab_slug() );
+
 		}
 
 		/* BACKGROUND PROCESSES */
+
+		// Start new card.
+		$actions[] = wpcd_start_half_card( $this->get_tab_slug() );
+
+		$desc = __( 'This plugin uses a lot of CRON background processes.  Sometimes they can get into a state where they never end and start to fill up the database with irrelevant messages. Use this to reset these processes.', 'wpcd' );
+		$desc = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
+
 		$actions['tools-clear-background-processes-header'] = array(
 			'label'          => __( 'Clear Background Processes', 'wpcd' ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
-				'desc' => __( 'This plugin uses a lot of CRON background processes.  Sometimes they can get into a state where they never end and start to fill up the database with irrelevant messages. Use this to reset these processes.', 'wpcd' ),
+				'desc' => $desc,
 			),
 		);
 
@@ -349,12 +390,22 @@ class WPCD_WORDPRESS_TABS_TOOLS extends WPCD_WORDPRESS_TABS {
 			'type'           => 'button',
 		);
 
+		// Close up prior card.
+		$actions[] = wpcd_end_card( $this->get_tab_slug() );
+
 		/* WP SITE OPTIONS */
+
+		// Start new card.
+		$actions[] = wpcd_start_half_card( $this->get_tab_slug() );
+
+		$desc = __( 'Update certain site options. Note that you should be able to change all these options from directly inside your site so there is rarely a need to use this function..', 'wpcd' );
+		$desc = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
+
 		$actions['tools-wp-site-option-header'] = array(
 			'label'          => __( 'Update WP Site Options', 'wpcd' ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
-				'desc' => __( 'Update certain site options. Note that you should be able to change all these options from directly inside your site so there is rarely a need to use this function..', 'wpcd' ),
+				'desc' => $desc,
 			),
 		);
 
@@ -388,12 +439,22 @@ class WPCD_WORDPRESS_TABS_TOOLS extends WPCD_WORDPRESS_TABS {
 			'type'           => 'button',
 		);
 
+		// Close up prior card.
+		$actions[] = wpcd_end_card( $this->get_tab_slug() );
+
 		/* RESET SITE PERMISSIONS - ALT */
+
+		// Start new card.
+		$actions[] = wpcd_start_half_card( $this->get_tab_slug() );
+
+		$desc = __( 'Sometimes you might need a more restrictive set of file permissions compared to the WPCD defaults.  Use this to reset permissions to: 644 for files and 775 for folders. Warning: some non-critical operations might fail when these are enabled.', 'wpcd' );
+		$desc = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
+
 		$actions['tools-reset-site-permissions-header-alt'] = array(
 			'label'          => __( 'Reset file permissions (Alternative)', 'wpcd' ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
-				'desc' => __( 'Sometimes you might need a more restrictive set of file permissions compared to the WPCD defaults.  Use this to reset permissions to: 644 for files and 775 for folders. Warning: some non-critical operations might fail when these are enabled.', 'wpcd' ),
+				'desc' => $desc,
 			),
 		);
 
@@ -405,6 +466,9 @@ class WPCD_WORDPRESS_TABS_TOOLS extends WPCD_WORDPRESS_TABS {
 			),
 			'type'           => 'button',
 		);
+
+		// Close up prior card.
+		$actions[] = wpcd_end_card( $this->get_tab_slug() );
 
 		return $actions;
 

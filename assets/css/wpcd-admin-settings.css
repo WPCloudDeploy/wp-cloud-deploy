@@ -126,17 +126,6 @@ be added here.
     font-size: larger;
 }
 
-/* H4 section headers need highlighted background */
-.rwmb-field.rwmb-heading-wrapper h4 {
-	background-color: var(--wpcd-alternate-accent-background-color) !important;
-    padding-left: 10px !important;
-    padding-right: 10px !important;
-    padding-top: 10px !important;
-    padding-bottom: 10px !important;
-    border-radius: 4px !important;
-    margin-bottom: 10px !important;
-}
-
 /**
 Start styling for for the DEPLOY YOUR FIRST WORDPRESS SITE section. Make the background white and add some padding with a little animation to draw attention to it.
 @TODO: This section should probably be extracted to it's own wpcd-wpapp-admin-settings.css file since it's specific to the WordPress app

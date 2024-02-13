@@ -145,7 +145,8 @@
 #wpcd_server_wordpress-app_tab3 .rwmb-tab-panel-monitorix,
 #wpcd_server_wordpress-app_tab3 .rwmb-tab-panel-goaccess,
 #wpcd_server_wordpress-app_tab3 .rwmb-tab-panel-resize,
-#wpcd_server_wordpress-app_tab3 .rwmb-tab-panel-netdata {
+#wpcd_server_wordpress-app_tab3 .rwmb-tab-panel-netdata,
+#wpcd_server_wordpress-app_tab3 .rwmb-tab-panel-serversync {
 	display: flex;
 	flex-wrap: wrap;
 }

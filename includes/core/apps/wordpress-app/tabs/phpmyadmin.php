@@ -1172,7 +1172,7 @@ class WPCD_WORDPRESS_TABS_PHPMYADMIN extends WPCD_WORDPRESS_TABS {
 		$desc  = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
 
 		$fields[] = array(
-			'name' => __( 'Database', 'wpcd' ),
+			'name' => __( 'Database Manager', 'wpcd' ),
 			'tab'  => 'database',
 			'type' => 'heading',
 			'desc' => $desc,

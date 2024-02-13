@@ -235,7 +235,7 @@ class WPCD_WORDPRESS_TABS_SERVER_MONITORIX extends WPCD_WORDPRESS_TABS {
 				'type'           => 'text',
 				'raw_attributes' => array(
 					'std'            => '',
-					'desc'           => sprintf( __( 'Monitorix needs to be accessed via a domain or subdomain that points to the server - <b>%1$s</b> on ip <b>%2$s</b>.', 'wpcd' ), $this->get_server_name( $id ), $this->get_ipv4_address( $id ) ),
+					'tooltip'        => sprintf( __( 'Monitorix needs to be accessed via a domain or subdomain that points to the server - <b>%1$s</b> on ip <b>%2$s</b>.', 'wpcd' ), $this->get_server_name( $id ), $this->get_ipv4_address( $id ) ),
 					// the key of the field (the key goes in the request).
 					'data-wpcd-name' => 'monitorix_domain',
 				),
@@ -245,7 +245,7 @@ class WPCD_WORDPRESS_TABS_SERVER_MONITORIX extends WPCD_WORDPRESS_TABS {
 				'type'           => 'text',
 				'raw_attributes' => array(
 					'std'            => wpcd_generate_alpha_numeric_string( 12 ),
-					'desc'           => __( 'User name to use to log into the Monitorix dashboard', 'wpcd' ),
+					'tooltip'        => __( 'User name to use to log into the Monitorix dashboard', 'wpcd' ),
 					'size'           => 60,
 					// the key of the field (the key goes in the request).
 					'data-wpcd-name' => 'monitorix_auth_user',
@@ -259,7 +259,7 @@ class WPCD_WORDPRESS_TABS_SERVER_MONITORIX extends WPCD_WORDPRESS_TABS {
 				'type'           => 'text',
 				'raw_attributes' => array(
 					'std'            => wpcd_generate_default_password(),
-					'desc'           => __( 'Password to use when accessing the Monitorix dashboard', 'wpcd' ),
+					'tooltip'        => __( 'Password to use when accessing the Monitorix dashboard', 'wpcd' ),
 					'size'           => 60,
 					// the key of the field (the key goes in the request).
 					'data-wpcd-name' => 'monitorix_auth_pass',
@@ -270,8 +270,8 @@ class WPCD_WORDPRESS_TABS_SERVER_MONITORIX extends WPCD_WORDPRESS_TABS {
 				'label'          => '',
 				'raw_attributes' => array(
 					'std'                 => __( 'Install Monitorix', 'wpcd' ),
-					'desc'                => __( 'Click the button to start installing Monitorix on the server.', 'wpcd' ), // make sure we give the user a confirmation prompt.
-					'confirmation_prompt' => __( 'Are you sure you would like to install the Monitorix service?', 'wpcd' ),
+					'desc'                => '',
+					'confirmation_prompt' => __( 'Are you sure you would like to install the Monitorix service?', 'wpcd' ), // make sure we give the user a confirmation prompt.
 					'data-wpcd-fields'    => json_encode( array( '#wpcd_app_action_monitorix-domain', '#wpcd_app_action_monitorix-basic-auth-user', '#wpcd_app_action_monitorix-basic-auth-pw' ) ),
 				),
 				'type'           => 'button',

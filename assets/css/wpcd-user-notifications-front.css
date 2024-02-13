@@ -59,7 +59,7 @@
 .form-group.row.wpcd_notify_row .wpcd_user_notify_error {
   display: none;
   font-size: 1.4rem;
-  color: red;
+  color: var(--wpcd-negative-color);
   font-weight: 600;
 }
 

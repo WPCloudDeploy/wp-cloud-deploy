@@ -201,7 +201,7 @@ In the DEPLOY YOUR FIRST WORDPRESS SITE section, adjust list elements.
 
 /* If any error messages are present on the settings screen, make sure they are in RED */
 .wpcd_settings_err_msg {
-    color: red;
+    color: var(--wpcd-negative-color);
 }
 
 /* the password toggle icon */
@@ -220,8 +220,13 @@ In the DEPLOY YOUR FIRST WORDPRESS SITE section, adjust list elements.
 }
 
 .rwmb-settings-no-boxes .wpcd_settings_provider_in_use_warning {
-    color: #ff0000;
-    font-weight: bold;
+    background-color: var(--wpcd-negative-color);
+	color: var(--wpcd-white-color);
+    xfont-weight: bold;
+	border: solid;
+	border-width: 1px;
+	padding: 1em !important;
+	border-radius: 4px;
 }
 
 /* Received Files listing on the Sync Tab. */

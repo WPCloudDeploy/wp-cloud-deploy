@@ -10,7 +10,7 @@
 }
 
 .wpcd_ssl_status_off {
-    background-color: red;
+    background-color: var(--wpcd-negative-color);
 }
 
 .wpcd_ssl_status_on {
@@ -24,7 +24,7 @@
     font-weight: 700;
     vertical-align: baseline;
     border-radius: 3px;
-    border-color: red !important;
+    border-color: var(--wpcd-negative-color) !important;
     /* Not sure why important is needed for this one but oh well. */
     border: solid;
     border-width: 2px;

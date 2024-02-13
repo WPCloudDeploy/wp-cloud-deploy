@@ -824,7 +824,7 @@
 	text-transform: uppercase;
 }
 .wpcd-grid-table .wpcd_page_cache_off .wpcd-app-col-element-value-page_cache {
-	color: red;
+	color: var(--wpcd-front-end-negative-color);
 }
 .wpcd-grid-table .wpcd_object_cache_off .wpcd-app-col-element-value-object_cache {
     color: orange;

@@ -56,6 +56,26 @@ function wpcd_start_full_card_no_border( $tab ) {
 
 }
 
+/**
+ * Return an ARRAY suitable for a metabox field
+ * that has a div wrapper with certain classes.
+ *
+ * @since 5.7.
+ *
+ * @param string $tab The tab on which the field will go.
+ */
+function wpcd_start_full_card_page_heading( $tab ) {
+
+	$field = array(
+		'tab'               => $tab,
+		'type'              => 'wpcd_card_container',
+		'column_row_before' => '<div class="wpcd-card-group wpcd-card-full-no-border wpcd-card-full-page-heading">',
+	);
+
+	return $field;
+
+}
+
 
 /**
  * Return an ARRAY suitable for a metabox field

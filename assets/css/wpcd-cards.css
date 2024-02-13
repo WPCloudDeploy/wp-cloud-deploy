@@ -138,7 +138,8 @@
 #wpcd_server_wordpress-app_tab3 .rwmb-tab-panel-svr_power,
 #wpcd_server_wordpress-app_tab3 .rwmb-tab-panel-server-logs,
 #wpcd_server_wordpress-app_tab3 .rwmb-tab-panel-fail2ban,
-#wpcd_server_wordpress-app_tab3 .rwmb-tab-panel-server-ssh-keys {
+#wpcd_server_wordpress-app_tab3 .rwmb-tab-panel-server-ssh-keys,
+#wpcd_server_wordpress-app_tab3 .rwmb-tab-panel-monitorix {
 	display: flex;
 	flex-wrap: wrap;
 }

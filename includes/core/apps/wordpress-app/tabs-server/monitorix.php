@@ -219,6 +219,8 @@ class WPCD_WORDPRESS_TABS_SERVER_MONITORIX extends WPCD_WORDPRESS_TABS {
 			// Monitorix is not installed.
 			$desc = __( 'Monitorix provides a graphical UI in a web browser where you can monitor the resources on your server.  However, it is not currently installed on the server.<br />  To install it, fill out the domain name below and click the install button.', 'wpcd' );
 
+			$actions[] = wpcd_start_half_card( $this->get_tab_slug() ); // Start new card.
+
 			$actions['monitorix-header'] = array(
 				'label'          => __( 'Monitorix', 'wpcd' ),
 				'type'           => 'heading',
@@ -242,11 +244,12 @@ class WPCD_WORDPRESS_TABS_SERVER_MONITORIX extends WPCD_WORDPRESS_TABS {
 				'label'          => __( 'User Name', 'wpcd' ),
 				'type'           => 'text',
 				'raw_attributes' => array(
+					'std'            => wpcd_generate_alpha_numeric_string( 12 ),
 					'desc'           => __( 'User name to use to log into the Monitorix dashboard', 'wpcd' ),
 					'size'           => 60,
 					// the key of the field (the key goes in the request).
 					'data-wpcd-name' => 'monitorix_auth_user',
-					'spellcheck'  => 'false',
+					'spellcheck'     => 'false',
 				),
 
 			);
@@ -255,11 +258,12 @@ class WPCD_WORDPRESS_TABS_SERVER_MONITORIX extends WPCD_WORDPRESS_TABS {
 				'label'          => __( 'Password', 'wpcd' ),
 				'type'           => 'text',
 				'raw_attributes' => array(
+					'std'            => wpcd_generate_default_password(),
 					'desc'           => __( 'Password to use when accessing the Monitorix dashboard', 'wpcd' ),
 					'size'           => 60,
 					// the key of the field (the key goes in the request).
 					'data-wpcd-name' => 'monitorix_auth_pass',
-					'spellcheck'  => 'false',
+					'spellcheck'     => 'false',
 				),
 			);
 			$actions['monitorix-install']       = array(
@@ -273,10 +277,14 @@ class WPCD_WORDPRESS_TABS_SERVER_MONITORIX extends WPCD_WORDPRESS_TABS {
 				'type'           => 'button',
 			);
 
+			$actions[] = wpcd_end_card( $this->get_tab_slug() ); // Close up prior card.
+
 		}
 
 		if ( 'yes' === $monitorix_status ) {
 			/* Monitorix is installed and active */
+			$actions[] = wpcd_start_half_card( $this->get_tab_slug() ); // Start new card.
+
 			$desc = __( 'Monitorix provides a graphical UI in a web browser where you can monitor the resources on your server.', 'wpcd' );
 
 			/* Get user id and password */
@@ -317,11 +325,15 @@ class WPCD_WORDPRESS_TABS_SERVER_MONITORIX extends WPCD_WORDPRESS_TABS {
 				),
 			);
 
+			$actions[] = wpcd_end_card( $this->get_tab_slug() ); // Close up prior card.
+
 			/* Monitorix SSL Options */
-			$desc = __( 'Activate or deactivate ssl.' );
+			$actions[] = wpcd_start_half_card( $this->get_tab_slug() ); // Start new card.
+
+			$desc = __( 'Activate or deactivate SSL.' );
 
 			$actions['monitorix-ssl-options'] = array(
-				'label'          => __( 'Monitorix SSL Options', 'wpcd' ),
+				'label'          => __( 'SSL', 'wpcd' ),
 				'type'           => 'heading',
 				'raw_attributes' => array(
 					'desc' => $desc,
@@ -354,13 +366,17 @@ class WPCD_WORDPRESS_TABS_SERVER_MONITORIX extends WPCD_WORDPRESS_TABS {
 				),
 				'type'           => 'switch',
 			);
+
+			$actions[] = wpcd_end_card( $this->get_tab_slug() ); // Close up prior card.
 			/* End Monitorix SSL Options */
 
 			/* Monitorix is installed and active - provide some options */
+			$actions[] = wpcd_start_half_card( $this->get_tab_slug() ); // Start new card.
+
 			$desc = __( 'Activate or deactivate some Monitorix components.' );
 
 			$actions['monitorix-options'] = array(
-				'label'          => __( 'Monitorix Options', 'wpcd' ),
+				'label'          => __( 'Components', 'wpcd' ),
 				'type'           => 'heading',
 				'raw_attributes' => array(
 					'desc' => $desc,
@@ -390,8 +406,9 @@ class WPCD_WORDPRESS_TABS_SERVER_MONITORIX extends WPCD_WORDPRESS_TABS {
 					'on_label'            => __( 'Enabled', 'wpcd' ),
 					'off_label'           => __( 'Disabled', 'wpcd' ),
 					'std'                 => $monitorix_nginx === 'on',
-					'desc'                => __( 'Enable or disable Nginx monitoring.', 'wpcd' ),
+					'tooltip'             => __( 'Enable or disable Nginx monitoring.', 'wpcd' ),
 					'confirmation_prompt' => $confirmation_prompt,
+					'columns'             => 6,
 				),
 				'type'           => 'switch',
 			);
@@ -420,8 +437,9 @@ class WPCD_WORDPRESS_TABS_SERVER_MONITORIX extends WPCD_WORDPRESS_TABS {
 					'on_label'            => __( 'Enabled', 'wpcd' ),
 					'off_label'           => __( 'Disabled', 'wpcd' ),
 					'std'                 => $monitorix_mysql === 'on',
-					'desc'                => __( 'Enable or disable MYSQL (database) monitoring.', 'wpcd' ),
+					'tooltip'             => __( 'Enable or disable MYSQL (database) monitoring.', 'wpcd' ),
 					'confirmation_prompt' => $confirmation_prompt,
+					'columns'             => 6,
 				),
 				'type'           => 'switch',
 			);
@@ -450,14 +468,19 @@ class WPCD_WORDPRESS_TABS_SERVER_MONITORIX extends WPCD_WORDPRESS_TABS {
 					'on_label'            => __( 'Enabled', 'wpcd' ),
 					'off_label'           => __( 'Disabled', 'wpcd' ),
 					'std'                 => $monitorix_memcached === 'on',
-					'desc'                => __( 'Enable or disable Memcached monitoring.', 'wpcd' ),
+					'tooltip'             => __( 'Enable or disable Memcached monitoring.', 'wpcd' ),
 					'confirmation_prompt' => $confirmation_prompt,
+					'columns'             => 6,
 				),
 				'type'           => 'switch',
 			);
 			/* End Monitorix Memcached Options */
 
+			$actions[] = wpcd_end_card( $this->get_tab_slug() ); // Close up prior card.
+
 			/* Uninstall / Upgrade Monitorix*/
+			$actions[] = wpcd_start_half_card( $this->get_tab_slug() ); // Start new card.
+
 			$actions['monitorix-uninstall-upgrade'] = array(
 				'label'          => __( 'Uninstall or Upgrade Monitorix', 'wpcd' ),
 				'type'           => 'heading',
@@ -472,7 +495,7 @@ class WPCD_WORDPRESS_TABS_SERVER_MONITORIX extends WPCD_WORDPRESS_TABS {
 					'std'                 => __( 'Uninstall Monitorix', 'wpcd' ),
 					'desc'                => __( 'This option will completely remove Monitorix from the server.', 'wpcd' ), // make sure we give the user a confirmation prompt.
 					'confirmation_prompt' => __( 'Are you sure you would like to remove Monitorix from the server?', 'wpcd' ),
-					'columns'             => 3,
+					'columns'             => 6,
 				),
 				'type'           => 'button',
 			);
@@ -483,10 +506,12 @@ class WPCD_WORDPRESS_TABS_SERVER_MONITORIX extends WPCD_WORDPRESS_TABS {
 					'std'                 => __( 'Upgrade Monitorix', 'wpcd' ),
 					'desc'                => __( 'This option will upgrade Monitorix.', 'wpcd' ), // make sure we give the user a confirmation prompt.
 					'confirmation_prompt' => __( 'Are you sure you would like to upgrade Monitorix on the server?', 'wpcd' ),
-					'columns'             => 3,
+					'columns'             => 6,
 				),
 				'type'           => 'button',
 			);
+
+			$actions[] = wpcd_end_card( $this->get_tab_slug() ); // Close up prior card.
 			/* End uninstall / Upgrade Monitorix*/
 
 		}
@@ -505,6 +530,8 @@ class WPCD_WORDPRESS_TABS_SERVER_MONITORIX extends WPCD_WORDPRESS_TABS {
 		}
 
 		/* Toggle Metas */
+		$actions[] = wpcd_start_half_card( $this->get_tab_slug() ); // Start new card.
+
 		$actions['monitorix-metas-header'] = array(
 			'label'          => __( 'Manage Monitorix Metas', 'wpcd' ),
 			'type'           => 'heading',
@@ -520,6 +547,7 @@ class WPCD_WORDPRESS_TABS_SERVER_MONITORIX extends WPCD_WORDPRESS_TABS {
 				'desc'                => __( 'This option will reset this dashboard so that it appears that Monitorix is not installed.', 'wpcd' ), // make sure we give the user a confirmation prompt.
 				'confirmation_prompt' => __( 'Are you sure you would like to remove metas?  This would reset this dashboard so that it appears that Monitorix is not installed.', 'wpcd' ),
 			),
+			'columns'        => 6,
 			'type'           => 'button',
 		);
 
@@ -530,10 +558,15 @@ class WPCD_WORDPRESS_TABS_SERVER_MONITORIX extends WPCD_WORDPRESS_TABS {
 				'desc'                => __( 'This option will reset this dashboard so that it appears that Monitorix is installed.', 'wpcd' ),                 // make sure we give the user a confirmation prompt.
 				'confirmation_prompt' => __( 'Are you sure you would like to remove metas?  This would reset this dashboard so that it appears that Monitorix is installed on the server.', 'wpcd' ),
 			),
+			'columns'        => 6,
 			'type'           => 'button',
 		);
 
+		$actions[] = wpcd_end_card( $this->get_tab_slug() ); // Close up prior card.
+
 		/* 3rd party / limited support notice */
+		$actions[] = wpcd_start_half_card( $this->get_tab_slug() ); // Start new card.
+
 		$actions['monitorix-third-party-notice-header'] = array(
 			'label'          => __( 'Important Notice', 'wpcd' ),
 			'type'           => 'heading',
@@ -541,6 +574,8 @@ class WPCD_WORDPRESS_TABS_SERVER_MONITORIX extends WPCD_WORDPRESS_TABS {
 				'desc' => __( 'Monitorix is a 3rd party product and is provided as a convenience.  It is not a core component of this dashboard. Technical support is limited.', 'wpcd' ),
 			),
 		);
+
+		$actions[] = wpcd_end_card( $this->get_tab_slug() ); // Close up prior card.
 
 		return $actions;
 

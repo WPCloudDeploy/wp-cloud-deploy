@@ -931,11 +931,30 @@
 	 background-color: var(--wpcd-front-end-alternate-accent-background-color);
 	 border-radius: 3px;
 	 padding: 30px 20px;
- }
+}
+ 
+#wpcd_public_wrapper #wpcd_wordpress-app_tab2,
+#wpcd_public_wrapper #wpcd_wordpress-app_tab2 .rwmb-tab-panels,
+#wpcd_public_wrapper #wpcd_server_wordpress-app_tab3,
+#wpcd_public_wrapper #wpcd_server_wordpress-app_tab3 .rwmb-tab-panels {
+	/* Background color for everything in a tab - other colors layer on top of it. */
+	background-color: var(--wpcd-front-end-medium-background-color);
+} 
+
+#wpcd_public_wrapper .wpcd-wpapp-actions .rwmb-tabs-left .rwmb-tab-nav .rwmb-tab-active a,
+#wpcd_public_wrapper .wpcd-wpapp-actions .rwmb-tabs-left .rwmb-tab-nav a:hover {
+	/* Hover and active color for vertical tabs */
+	color: var(--wpcd-front-end-primary-brand-color);
+} 
  
 #wpcd_public_wrapper .wpcd-wpapp-actions h4 {
 	/* Card / Section headers on detail screens. */
 	color: var(--wpcd-front-end-primary-brand-color);
+}
+
+#wpcd_public_wrapper .rwmb-field.rwmb-heading-wrapper h4 {
+	/* Card / Section header background on detail screens. */
+	background-color: var(--wpcd-front-end-alternate-accent-background-color) !important;
 }
 
 #wpcd_public_wrapper .rwmb-input button,

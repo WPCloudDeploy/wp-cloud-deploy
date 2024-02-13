@@ -152,7 +152,7 @@
 	flex-wrap: wrap;
 }
 
-/* Background color for everything */
+/* Background color for everything in a tab - other colors layer on top of it. */
 #wpcd_wordpress-app_tab2,
 #wpcd_wordpress-app_tab2 .rwmb-tab-panels,
 #wpcd_server_wordpress-app_tab3,

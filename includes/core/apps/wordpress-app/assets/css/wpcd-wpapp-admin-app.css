@@ -14,7 +14,7 @@
 }
 
 .wpcd_ssl_status_on {
-    background-color: green;
+    background-color: var(--wpcd-positive-color);
 }
 
 /* Format the PHP version on the apps list screen */
@@ -32,7 +32,7 @@
 }
 
 .wpcd_php_version_8_1 {
-    border-color: green !important;
+    border-color: var(--wpcd-positive-color) !important;
 }
 
 .wpcd_php_version_8_0,
@@ -55,10 +55,10 @@
 .wp-list-table .wpcd-app-col-element-label-wp_admin_link {
     display: inline-block;
     padding: 2px 8px;
-	background-color: green;
+	background-color: var(--wpcd-positive-color);
     vertical-align: baseline;
     border-radius: 3px;
-    border-color: green !important;
+    border-color: var(--wpcd-positive-color) !important;
     /* Not sure why important is needed for this one but oh well. */
     border: solid;
     border-width: 2px;
@@ -75,10 +75,10 @@
 .wp-list-table .wpcd-app-col-element-value-homepage_link {
     display: inline-block;
     padding: 2px 8px;
-	background-color: green;
+	background-color: var(--wpcd-positive-color);
     vertical-align: baseline;
     border-radius: 3px;
-    border-color: green !important;
+    border-color: var(--wpcd-positive-color) !important;
     /* Not sure why important is needed for this one but oh well. */
     border: solid;
     border-width: 2px;

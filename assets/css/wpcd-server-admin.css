@@ -203,9 +203,9 @@
 /* NOTE: this is duplicated in wpcd-app.css */
 .wpcd-popup button.wpcd-install-button {
 	font-size: 1.25em;
-	background-color: green;
+	background-color: var(--wpcd-positive-color);
 	color: var(--wpcd-white-color);
-	border: solid 1px green;
+	border: solid 1px var(--wpcd-positive-color);
 	box-shadow: none;
 	border-radius: 0px;
 	padding-left: 1.5em;
@@ -396,7 +396,7 @@ div[id^='wpcd_server_wordpress-app'] {
 	border-color: var(--wpcd-primary-brand-color);	
 }
 .wpcd_server_wordpress-app_tab_top_of_server_details .wpcd_server_details_top_row .wpcd_server_details_top_row_element_git_status {
-	border-color: green;	
+	border-color: var(--wpcd-positive-color);	
 	color: var(--wpcd-light-background-color);
 }
 
@@ -608,7 +608,7 @@ a.wpcd-stat-switch {
 	font-weight: 700;
 	vertical-align: baseline;
 	border-radius: 3px;
-	border-color: green !important;
+	border-color: var(--wpcd-positive-color) !important;
 	/* Not sure why important is needed for this one but oh well. */
 	border: solid;
 	border-width: 2px;
@@ -632,9 +632,9 @@ a.wpcd-stat-switch {
 	color: var(--wpcd-white-color);
 }
 .wpcd_go_to_callbacks_tab_column:hover {
-	border-color: green !important;
+	border-color: var(--wpcd-positive-color) !important;
 	color: var(--wpcd-white-color);
-	background-color: green;
+	background-color: var(--wpcd-positive-color);
 }
 
 .wpcd_restart_needed_wrap {
@@ -684,7 +684,7 @@ a.wpcd-stat-switch {
 
 .wpcd_ram_free_space_pct_wrap {
 	color: var(--wpcd-white-color);
-	background-color: green;
+	background-color: var(--wpcd-positive-color);
 }
 
 .wpcd_ram_free_space_pct_wrap_critical {

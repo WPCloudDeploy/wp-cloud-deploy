@@ -217,10 +217,14 @@ class WPCD_WORDPRESS_TABS_SERVER_GOACCESS extends WPCD_WORDPRESS_TABS {
 
 		if ( empty( $goaccess_status ) ) {
 			// goaccess is not installed.
+
+			$actions[] = wpcd_start_half_card( $this->get_tab_slug() ); // Start new card.
+
 			$desc = __( 'GoAccess is an open source real-time web log analyzer and interactive viewer.  It provides fast and valuable HTTP statistics for system administrators that require a visual server report on the fly.  However, it is not currently installed on the server.<br />  To install it, fill out the domain name below and click the install button.', 'wpcd' );
+			$desc = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
 
 			$actions['goaccess-header'] = array(
-				'label'          => __( 'goaccess', 'wpcd' ),
+				'label'          => __( 'Install GoAccess', 'wpcd' ),
 				'type'           => 'heading',
 				'raw_attributes' => array(
 					'desc' => $desc,
@@ -233,7 +237,7 @@ class WPCD_WORDPRESS_TABS_SERVER_GOACCESS extends WPCD_WORDPRESS_TABS {
 				'type'           => 'text',
 				'raw_attributes' => array(
 					'std'            => '',
-					'desc'           => sprintf( __( 'GoAccess needs to be accessed via a domain or subdomain that points to the server - <b>%1$s</b> on ip <b>%2$s</b>.', 'wpcd' ), $this->get_server_name( $id ), $this->get_ipv4_address( $id ) ),
+					'tooltip'        => sprintf( __( 'GoAccess needs to be accessed via a domain or subdomain that points to the server - <b>%1$s</b> on ip <b>%2$s</b>.', 'wpcd' ), $this->get_server_name( $id ), $this->get_ipv4_address( $id ) ),
 					'size'           => 120,
 					// the key of the field (the key goes in the request).
 					'data-wpcd-name' => 'goaccess_domain',
@@ -243,11 +247,12 @@ class WPCD_WORDPRESS_TABS_SERVER_GOACCESS extends WPCD_WORDPRESS_TABS {
 				'label'          => __( 'User Name', 'wpcd' ),
 				'type'           => 'text',
 				'raw_attributes' => array(
-					'desc'           => __( 'User name to use to log into the GoAccess dashboard', 'wpcd' ),
+					'std'            => wpcd_generate_alpha_numeric_string( 12 ),
+					'tooltip'        => __( 'User name to use to log into the GoAccess dashboard', 'wpcd' ),
 					'size'           => 60,
 					// the key of the field (the key goes in the request).
 					'data-wpcd-name' => 'goaccess_auth_user',
-					'spellcheck'  => 'false',
+					'spellcheck'     => 'false',
 				),
 
 			);
@@ -255,28 +260,34 @@ class WPCD_WORDPRESS_TABS_SERVER_GOACCESS extends WPCD_WORDPRESS_TABS {
 				'label'          => __( 'Password', 'wpcd' ),
 				'type'           => 'text',
 				'raw_attributes' => array(
-					'desc'           => __( 'Password to use when accessing the GoAccess dashboard', 'wpcd' ),
+					'std'            => wpcd_generate_default_password(),
+					'tooltip'        => __( 'Password to use when accessing the GoAccess dashboard', 'wpcd' ),
 					'size'           => 60,
 					// the key of the field (the key goes in the request).
 					'data-wpcd-name' => 'goaccess_auth_pass',
-					'spellcheck'  => 'false',
+					'spellcheck'     => 'false',
 				),
 			);
 			$actions['goaccess-install']       = array(
 				'label'          => '',
 				'raw_attributes' => array(
 					'std'                 => __( 'Install GoAccess', 'wpcd' ),
-					'desc'                => __( 'Click the button to start installing GoAccess on the server.', 'wpcd' ), // make sure we give the user a confirmation prompt.
-					'confirmation_prompt' => __( 'Are you sure you would like to install the GoAccess service?', 'wpcd' ),
+					'desc'                => '',
+					'confirmation_prompt' => __( 'Are you sure you would like to install the GoAccess service?', 'wpcd' ), // make sure we give the user a confirmation prompt.
 					'data-wpcd-fields'    => json_encode( array( '#wpcd_app_action_goaccess-domain', '#wpcd_app_action_goaccess-basic-auth-user', '#wpcd_app_action_goaccess-basic-auth-pw' ) ),
 				),
 				'type'           => 'button',
 			);
 
+			$actions[] = wpcd_end_card( $this->get_tab_slug() ); // Close up prior card.
+
 		}
 
 		if ( 'yes' === $goaccess_status ) {
 			/* goaccess is installed and active */
+
+			$actions[] = wpcd_start_half_card( $this->get_tab_slug() ); // Start new card.
+
 			$desc = __( 'GoAccess is an open source real-time web log analyzer and interactive viewer.  It provides fast and valuable HTTP statistics for system administrators that require a visual server report on the fly.', 'wpcd' );
 
 			/* Get user id and password */
@@ -317,7 +328,11 @@ class WPCD_WORDPRESS_TABS_SERVER_GOACCESS extends WPCD_WORDPRESS_TABS {
 				),
 			);
 
+			$actions[] = wpcd_end_card( $this->get_tab_slug() ); // Close up prior card.
+
 			/* goaccess SSL Options */
+			$actions[] = wpcd_start_half_card( $this->get_tab_slug() ); // Start new card.
+
 			$desc = __( 'Activate or deactivate ssl.' );
 
 			$actions['goaccess-ssl-options'] = array(
@@ -354,9 +369,13 @@ class WPCD_WORDPRESS_TABS_SERVER_GOACCESS extends WPCD_WORDPRESS_TABS {
 				),
 				'type'           => 'switch',
 			);
+
+			$actions[] = wpcd_end_card( $this->get_tab_slug() ); // Close up prior card.
 			/* End goaccess SSL Options */
 
 			/* Uninstall / Upgrade goaccess*/
+			$actions[] = wpcd_start_half_card( $this->get_tab_slug() ); // Start new card.
+
 			$actions['goaccess-uninstall-upgrade'] = array(
 				'label'          => __( 'Uninstall or Upgrade goaccess', 'wpcd' ),
 				'type'           => 'heading',
@@ -369,9 +388,9 @@ class WPCD_WORDPRESS_TABS_SERVER_GOACCESS extends WPCD_WORDPRESS_TABS {
 				'label'          => '',
 				'raw_attributes' => array(
 					'std'                 => __( 'Uninstall GoAccess', 'wpcd' ),
-					'desc'                => __( 'This option will completely remove GoAccess from the server.', 'wpcd' ), // make sure we give the user a confirmation prompt.
+					'tooltip'             => __( 'This option will completely remove GoAccess from the server.', 'wpcd' ), // make sure we give the user a confirmation prompt.
 					'confirmation_prompt' => __( 'Are you sure you would like to remove GoAccess from the server?', 'wpcd' ),
-					'columns'             => 3,
+					'columns'             => 6,
 				),
 				'type'           => 'button',
 			);
@@ -380,15 +399,19 @@ class WPCD_WORDPRESS_TABS_SERVER_GOACCESS extends WPCD_WORDPRESS_TABS {
 				'label'          => '',
 				'raw_attributes' => array(
 					'std'                 => __( 'Upgrade GoAccess', 'wpcd' ),
-					'desc'                => __( 'This option will upgrade GoAccess.', 'wpcd' ), // make sure we give the user a confirmation prompt.
+					'tooltip'             => __( 'This option will upgrade GoAccess.', 'wpcd' ), // make sure we give the user a confirmation prompt.
 					'confirmation_prompt' => __( 'Are you sure you would like to upgrade GoAccess on the server?', 'wpcd' ),
-					'columns'             => 3,
+					'columns'             => 6,
 				),
 				'type'           => 'button',
 			);
+
+			$actions[] = wpcd_end_card( $this->get_tab_slug() ); // Close up prior card.
 			/* End uninstall / Upgrade goaccess*/
 
 			/* Change basic auth user id / password */
+			$actions[] = wpcd_start_half_card( $this->get_tab_slug() ); // Start new card.
+
 			$actions['goaccess-change-auth-header'] = array(
 				'label'          => __( 'Change Credentials', 'wpcd' ),
 				'type'           => 'heading',
@@ -401,7 +424,7 @@ class WPCD_WORDPRESS_TABS_SERVER_GOACCESS extends WPCD_WORDPRESS_TABS {
 				'label'          => __( 'User Name', 'wpcd' ),
 				'type'           => 'text',
 				'raw_attributes' => array(
-					'desc'           => __( 'User name to use to log into the GoAccess dashboard', 'wpcd' ),
+					'tooltip'        => __( 'User name to use to log into the GoAccess dashboard', 'wpcd' ),
 					'size'           => 60,
 					// the key of the field (the key goes in the request).
 					'data-wpcd-name' => 'goaccess_auth_user',
@@ -412,7 +435,7 @@ class WPCD_WORDPRESS_TABS_SERVER_GOACCESS extends WPCD_WORDPRESS_TABS {
 				'label'          => __( 'Password', 'wpcd' ),
 				'type'           => 'text',
 				'raw_attributes' => array(
-					'desc'           => __( 'Password to use when accessing the GoAccess dashboard', 'wpcd' ),
+					'tooltip'        => __( 'Password to use when accessing the GoAccess dashboard', 'wpcd' ),
 					'size'           => 60,
 					// the key of the field (the key goes in the request).
 					'data-wpcd-name' => 'goaccess_auth_pass',
@@ -422,12 +445,14 @@ class WPCD_WORDPRESS_TABS_SERVER_GOACCESS extends WPCD_WORDPRESS_TABS {
 				'label'          => '',
 				'raw_attributes' => array(
 					'std'                 => __( 'Change', 'wpcd' ),
-					'desc'                => __( 'Click the button change your credentials for GoAccess', 'wpcd' ), // make sure we give the user a confirmation prompt.
-					'confirmation_prompt' => __( 'Are you sure you would like to change the user ID and Password for GoAccess?', 'wpcd' ),
+					'desc'                => '',
+					'confirmation_prompt' => __( 'Are you sure you would like to change the user ID and Password for GoAccess?', 'wpcd' ), // make sure we give the user a confirmation prompt.
 					'data-wpcd-fields'    => json_encode( array( '#wpcd_app_action_goaccess-basic-auth-user', '#wpcd_app_action_goaccess-basic-auth-pw' ) ),
 				),
 				'type'           => 'button',
 			);
+
+			$actions[] = wpcd_end_card( $this->get_tab_slug() ); // Close up prior card.
 			/* End change basic auth user id / password */
 
 		}
@@ -446,6 +471,8 @@ class WPCD_WORDPRESS_TABS_SERVER_GOACCESS extends WPCD_WORDPRESS_TABS {
 		}
 
 		/* Toggle Metas */
+		$actions[] = wpcd_start_half_card( $this->get_tab_slug() ); // Start new card.
+
 		$actions['goaccess-metas-header'] = array(
 			'label'          => __( 'Manage GoAccess Metas', 'wpcd' ),
 			'type'           => 'heading',
@@ -462,6 +489,7 @@ class WPCD_WORDPRESS_TABS_SERVER_GOACCESS extends WPCD_WORDPRESS_TABS {
 				'confirmation_prompt' => __( 'Are you sure you would like to remove metas?  This would reset this dashboard so that it appears that GoAccess is not installed.', 'wpcd' ),
 			),
 			'type'           => 'button',
+			'columns'        => 6,
 		);
 
 		$actions['goaccess-metas-add'] = array(
@@ -472,9 +500,14 @@ class WPCD_WORDPRESS_TABS_SERVER_GOACCESS extends WPCD_WORDPRESS_TABS {
 				'confirmation_prompt' => __( 'Are you sure you would like to remove metas?  This would reset this dashboard so that it appears that GoAccess is installed on the server.', 'wpcd' ),
 			),
 			'type'           => 'button',
+			'columns'        => 6,
 		);
 
+		$actions[] = wpcd_end_card( $this->get_tab_slug() ); // Close up prior card.
+
 		/* 3rd party / limited support notice */
+		$actions[] = wpcd_start_half_card( $this->get_tab_slug() ); // Start new card.
+
 		$actions['goaccess-third-party-notice-header'] = array(
 			'label'          => __( 'Important Notice', 'wpcd' ),
 			'type'           => 'heading',
@@ -482,6 +515,8 @@ class WPCD_WORDPRESS_TABS_SERVER_GOACCESS extends WPCD_WORDPRESS_TABS {
 				'desc' => __( 'GoAccess is a 3rd party product and is provided as a convenience.  It is not a core component of this dashboard. Technical support is limited.', 'wpcd' ),
 			),
 		);
+
+		$actions[] = wpcd_end_card( $this->get_tab_slug() ); // Close up prior card.
 
 		return $actions;
 

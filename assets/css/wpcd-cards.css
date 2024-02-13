@@ -24,6 +24,9 @@
 .wpcd-card-group:focus {
 	box-shadow: rgba(0, 0, 0, 0.25) 0px 25px 50px -12px;
 }
+.wpcd-card-group:hover {
+	border-color: var(--wpcd-primary-brand-color);
+}
 
 .wpcd-card-full {
 	width: 100%;
@@ -139,7 +142,8 @@
 #wpcd_server_wordpress-app_tab3 .rwmb-tab-panel-server-logs,
 #wpcd_server_wordpress-app_tab3 .rwmb-tab-panel-fail2ban,
 #wpcd_server_wordpress-app_tab3 .rwmb-tab-panel-server-ssh-keys,
-#wpcd_server_wordpress-app_tab3 .rwmb-tab-panel-monitorix {
+#wpcd_server_wordpress-app_tab3 .rwmb-tab-panel-monitorix,
+#wpcd_server_wordpress-app_tab3 .rwmb-tab-panel-goaccess {
 	display: flex;
 	flex-wrap: wrap;
 }

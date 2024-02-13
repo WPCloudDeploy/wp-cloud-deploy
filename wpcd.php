@@ -63,7 +63,7 @@ class WPCD_Init {
 			define( 'WPCD_TERTIARY_BRAND_COLOR', '#03114A' );
 			define( 'WPCD_ACCENT_BG_COLOR', '#0d091a' );
 			define( 'WPCD_MEDIUM_ACCENT_BG_COLOR', '#D3D3D3' );
-			define( 'WPCD_MEDIUM_BG_COLOR', '#FAFAFA' );
+			define( 'WPCD_MEDIUM_BG_COLOR', '#F3F3F5' );
 			define( 'WPCD_LIGHT_BG_COLOR', '#FDFDFD' );
 			define( 'WPCD_ALTERNATE_ACCENT_BG_COLOR', '#CFD8DC' );
 			define( 'WPCD_POSITIVE_COLOR', '#008000' );
@@ -77,7 +77,7 @@ class WPCD_Init {
 			define( 'WPCD_FE_TERTIARY_BRAND_COLOR', '#03114A' );
 			define( 'WPCD_FE_ACCENT_BG_COLOR', '#0d091a' );
 			define( 'WPCD_FE_MEDIUM_ACCENT_BG_COLOR', '#D3D3D3' );
-			define( 'WPCD_FE_MEDIUM_BG_COLOR', '#FAFAFA' );
+			define( 'WPCD_FE_MEDIUM_BG_COLOR', '#F3F3F5' );
 			define( 'WPCD_FE_LIGHT_BG_COLOR', '#FDFDFD' );
 			define( 'WPCD_FE_ALTERNATE_ACCENT_BG_COLOR', '#CFD8DC' );
 			define( 'WPCD_FE_POSITIVE_COLOR', '#008000' );

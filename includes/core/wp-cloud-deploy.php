@@ -630,6 +630,9 @@ class WP_CLOUD_DEPLOY {
 
 		$negative_color = wpcd_get_option( 'wordpress_app_negative_color' );
 		$negative_color = empty( $negative_color ) ? WPCD_NEGATIVE_COLOR : $negative_color;
+		
+		$white_color = wpcd_get_option( 'wordpress_app_white_color' );
+		$white_color = empty( $white_color ) ? WPCD_WHITE_COLOR : $white_color;			
 
 		$terminal_bg_color = wpcd_get_option( 'wordpress_app_terminal_background_color' );
 		$terminal_bg_color = empty( $terminal_bg_color ) ? WPCD_TERMINAL_BG_COLOR : $terminal_bg_color;
@@ -667,6 +670,9 @@ class WP_CLOUD_DEPLOY {
 
 		$negative_color_fe = wpcd_get_option( 'wordpress_app_fe_negative_color' );
 		$negative_color_fe = empty( $negative_color_fe ) ? WPCD_FE_NEGATIVE_COLOR : $negative_color_fe;
+		
+		$white_color_fe = wpcd_get_option( 'wordpress_app_fe_white_color' );
+		$white_color_fe = empty( $white_color_fe ) ? WPCD_FE_WHITE_COLOR : $white_color_fe;		
 
 		/* Global style sheet. */
 		wp_enqueue_style( 'wpcd-global-css', wpcd_url . 'assets/css/wpcd-global.css', array(), wpcd_scripts_version );
@@ -682,7 +688,8 @@ class WP_CLOUD_DEPLOY {
 			--wpcd-light-background-color: {$light_bg_color};
 			--wpcd-alternate-accent-background-color: {$alternate_accent_bg_color};
 			--wpcd-positive-color: {$positive_color};			
-			--wpcd-negative-color: {$negative_color};			
+			--wpcd-negative-color: {$negative_color};
+			--wpcd-white-color: {$white_color};
 			--wpcd-terminal-background-color: {$terminal_bg_color};			
 			--wpcd-terminal-foreground-color: {$terminal_fg_color};						
 
@@ -696,6 +703,7 @@ class WP_CLOUD_DEPLOY {
 			--wpcd-front-end-alternate-accent-background-color: {$alternate_accent_bg_color_fe};
 			--wpcd-front-end-positive-color: {$positive_color_fe};
 			--wpcd-front-end-negative-color: {$negative_color_fe};
+			--wpcd-front-end-white-color: {$white_color_fe};
 		}";
 
 		/* Add some global css. */

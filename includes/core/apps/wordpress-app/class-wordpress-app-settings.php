@@ -2828,6 +2828,11 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'desc'  => __( 'Color of the text used in our terminal display.', 'wpcd' ),
 				'std'   => WPCD_TERMINAL_FG_COLOR,
 			),
+			'wordpress_app_white_color' => array(
+				'label' => __( 'White', 'wpcd' ),
+				'desc'  => __( 'White', 'wpcd' ),
+				'std'   => WPCD_WHITE_COLOR,
+			),
 		);
 
 		// Loop through the wp-admin brand colors array and generate settings fields.
@@ -2908,6 +2913,11 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'label' => __( 'Negative Color', 'wpcd' ),
 				'desc'  => __( 'Accent color used to indicate something is turned off or a bad thing has occurred.', 'wpcd' ),
 				'std'   => WPCD_FE_NEGATIVE_COLOR,
+			),
+			'wordpress_app_fe_white_color'          => array(
+				'label' => __( 'White', 'wpcd' ),
+				'desc'  => __( 'Wite.', 'wpcd' ),
+				'std'   => WPCD_FE_WHITE_COLOR,
 			),
 		);
 

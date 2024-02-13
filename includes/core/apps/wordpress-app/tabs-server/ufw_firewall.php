@@ -270,9 +270,9 @@ class WPCD_WORDPRESS_TABS_SERVER_UFW_FIREWALL extends WPCD_WORDPRESS_TABS {
 		 * Learn more / Reading materials.
 		 */
 
-		 $actions[] = wpcd_start_full_card( $this->get_tab_slug() );
+		$actions[] = wpcd_start_two_thirds_card( $this->get_tab_slug() );
 
-		// Show a lenghty text description of what this tab does.
+		// Show a lengthy text description of what this tab does.
 		$actions['ufw-footer-desc'] = array(
 			'label'          => __( 'About the UFW Firewall', 'wpcd' ),
 			'type'           => 'heading',

@@ -10,7 +10,7 @@
 .locker {
 	z-index: 1000;
 	opacity: 0.8;
-	background-color: white;
+	background-color: var(--wpcd-white-color);
 	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=80)";
 	filter: alpha(opacity=80);
 }
@@ -204,7 +204,7 @@
 .wpcd-popup button.wpcd-install-button {
 	font-size: 1.25em;
 	background-color: green;
-	color: white;
+	color: var(--wpcd-white-color);
 	border: solid 1px green;
 	box-shadow: none;
 	border-radius: 0px;
@@ -279,7 +279,7 @@ div[id^='wpcd_server_wordpress-app'] {
 
 /* And we want some styling on that extra metabox ! */
 #wpcd_server_wordpress-app_tab_top_of_server_details {
-	color: white;
+	color: var(--wpcd-white-color);
 	word-wrap: break-word;
 	margin-bottom: 0px;
 	background-color: var(--wpcd-accent-background-color);
@@ -292,7 +292,7 @@ div[id^='wpcd_server_wordpress-app'] {
 #wpcd_server_wordpress-app_tab_top_of_server_details .wpcd_server_details_top_row_app_count a {
 	/* Links to the number of apps in this top metabox need some styling to stand out. */
 	display: inline-block;
-	color: white;
+	color: var(--wpcd-white-color);
 	border: solid 1px var(--wpcd-secondary-brand-color);
 	border-radius: 50%;
 	padding: 6px 12px;
@@ -338,7 +338,7 @@ div[id^='wpcd_server_wordpress-app'] {
 }
 
 .wpcd-wpapp-actions .rwmb-tabs-left .rwmb-tab-nav a {
-	color: white;
+	color: var(--wpcd-white-color);
 }
 
 .wpcd-wpapp-actions .rwmb-tabs-left .rwmb-tab-nav .rwmb-tab-active a {
@@ -461,7 +461,7 @@ div[id^='wpcd_server_wordpress-app'] {
 /* On the SSH console tab, make the console field look more like a terminal - black background with white text */
 .wpcd-wpapp-actions #wpcd_app_action_ssh-console-cmd {
 	background-color: black;
-	color: white;
+	color: var(--wpcd-white-color);
 	padding-left: 1em;
 }
 
@@ -509,13 +509,13 @@ div[id^='wpcd_server_wordpress-app'] {
 /******************************************************************************************/
 button.wpcd_action_install_app.button {
 	background-color: #1B5E20;
-	color: white;
+	color: var(--wpcd-white-color);
 }
 
 button.wpcd_action_install_app.button:hover {
 	background-color: var(--wpcd-tertiary-brand-color);
 	border-color: var(--wpcd-tertiary-brand-color);
-	color: white;
+	color: var(--wpcd-white-color);
 }
 
 /******************************************************************************************/
@@ -624,36 +624,36 @@ a.wpcd-stat-switch {
 
 .wpcd_go_to_callbacks_tab_column {
 	border-color: darkred !important;
-	color: white;
+	color: var(--wpcd-white-color);
 	background-color: darkred;
 	text-align: center;	
 }
 .wpcd_go_to_callbacks_tab_column a {
-	color: white;
+	color: var(--wpcd-white-color);
 }
 .wpcd_go_to_callbacks_tab_column:hover {
 	border-color: green !important;
-	color: white;
+	color: var(--wpcd-white-color);
 	background-color: green;
 }
 
 .wpcd_restart_needed_wrap {
 	border-color: red !important;
-	color: white;
+	color: var(--wpcd-white-color);
 	background-color: red;
 	text-align: center;
 }
 
 .wpcd_incorrect_php_default_version {
 	border-color: #B91C1C !important;
-	color: white;
+	color: var(--wpcd-white-color);
 	background-color: #B91C1C;
 	text-align: center;	
 }
 
 .wpcd_sec_updates_wrap {
 	border-color: darkred !important;
-	color: white;
+	color: var(--wpcd-white-color);
 	background-color: darkred;
 	text-align: center;
 }
@@ -666,7 +666,7 @@ a.wpcd-stat-switch {
 .wpcd_malware_found_wrap {
 	font-weight: normal;
 	border-color: #ff1744 !important;
-	color: white;
+	color: var(--wpcd-white-color);
 	background-color: #ff1744;
 }
 
@@ -683,7 +683,7 @@ a.wpcd-stat-switch {
 }
 
 .wpcd_ram_free_space_pct_wrap {
-	color: white;
+	color: var(--wpcd-white-color);
 	background-color: green;
 }
 
@@ -704,7 +704,7 @@ a.wpcd-stat-switch {
 	border-color: red !important;
 	/* Not sure why important is needed for this one but oh well. */
 	background-color: red;
-	color: white;
+	color: var(--wpcd-white-color);
 	border: solid;
 	border-width: 2px;
 	margin: 2px;
@@ -721,7 +721,7 @@ a.wpcd-stat-switch {
 	border-color: orange !important;
 	/* Not sure why important is needed for this one but oh well. */
 	background-color: orange;
-	color: white;
+	color: var(--wpcd-white-color);
 	border: solid;
 	border-width: 2px;
 	margin: 2px;
@@ -769,7 +769,7 @@ a.wpcd-stat-switch {
 	visibility: hidden;
 	width: 400px;
 	background-color: #444;
-	color: #fff;
+	color: var(--wpcd-white-color);
 	text-align: left;
 	border-radius: 6px;
 	padding: 10px 10px;

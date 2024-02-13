@@ -7,7 +7,7 @@
  */
 .wpcd-card-group {
 	x-background-color: var(--wpcd-light-background-color);
-	background-color: white;	
+	background-color: var(--wpcd-white-color);	
 	margin-top: 10px;
 	margin-right: 20px;
 	margin-bottom: 10px;

@@ -44,7 +44,7 @@ table.wpcd_disable_email_table {
 
 .wpcd_sent_email_list_disable {
   pointer-events: none;
-  background-color: white;
+  background-color: var(--wpcd-white-color);
   opacity: 0.5;
 }
 
@@ -98,7 +98,7 @@ table.wpcd_disable_email_table {
 .wpcd-universal-pagination ul li.active:hover {
   cursor: pointer;
   background: #1E8CBE;
-  color: white;
+  color: var(--wpcd-white-color);
 }
 
 .wpcd-universal-pagination ul li.inactive {
@@ -108,7 +108,7 @@ table.wpcd_disable_email_table {
 
 .wpcd-universal-pagination ul li.selected {
   background: #1E8CBE;
-  color: white;
+  color: var(--wpcd-white-color);
 }
 
 .wpcd-universal-pagination ul {

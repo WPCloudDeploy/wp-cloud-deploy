@@ -15,7 +15,7 @@
 	background-color: var(--wpcd-accent-background-color);
 	border-color: var(--wpcd-accent-background-color);
 	border-radius: 3px;
-	color: white;
+	color: var(--wpcd-white-color);
 }
 #wpcd_wordpress-app_tab2 .rwmb-input .button:hover,
 #wpcd_wordpress-app_tab2 .rwmb-input .button a:hover, 
@@ -127,7 +127,7 @@
 
 /* Custom table styles */
 .wpcd_mb_inline_edit_form_window {
-        background: #FFF;
+        background: var(--wpcd-white-color);
         padding: 20px;
         margin-left: 160px;
         max-width: 800px;

@@ -99,7 +99,7 @@
   padding-bottom: 12px;
   text-align: left;
   background-color: #3f4c5f;
-  color: white;
+  color: var(--wpcd-white-color);
 }
 
 .wpcd_add_notify_alert_btn {
@@ -117,7 +117,7 @@
 
 .wpcd_all_user_notify_disable {
   pointer-events: none;
-  background-color: white;
+  background-color: var(--wpcd-white-color);
   opacity: 0.5;
 }
 

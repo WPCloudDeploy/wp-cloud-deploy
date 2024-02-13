@@ -425,10 +425,12 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 			return array_merge( $fields, $this->get_disabled_header_field( 'backup' ) );
 		}
 
-		// Start new card.
-		$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
+		/**
+		 * Run backup manually.
+		 */
 
-		// run backup manually.
+		$fields[] = wpcd_start_half_card( $this->get_tab_slug() ); // Start new card.
+
 		$fields[] = array(
 			'name' => __( 'Take a Manual Backup - This Site Only', 'wpcd' ),
 			'desc' => __( 'Start a backup for this site right now!', 'wpcd' ),
@@ -461,10 +463,10 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 				// the _action that will be called in ajax.
 				'data-wpcd-action'              => 'backup-run-manual',
 				// fields that contribute data for this action.
-				'data-wpcd-fields'              => json_encode( array( '#wpcd_app_aws_bucket_manual_backup' ) ),                // the id.
+				'data-wpcd-fields'              => json_encode( array( '#wpcd_app_aws_bucket_manual_backup' ) ), // the id.
 				'data-wpcd-id'                  => $id,
 				// make sure we give the user a confirmation prompt.
-				'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like to start a backup now?', 'wpcd' ),              // show log console?
+				'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like to start a backup now?', 'wpcd' ), // show log console?
 				'data-show-log-console'         => true,
 				// Initial console message.
 				'data-initial-console-message'  => __( 'Preparing to start backup...<br /> Please DO NOT EXIT this screen until you see a popup message indicating that the backup has completed or has errored.<br />This terminal should refresh every 60-90 seconds with updated progress information from the server. <br /> After the backup is complete the entire log can be viewed in the COMMAND LOG screen.', 'wpcd' ),
@@ -473,11 +475,9 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 			'save_field' => false,
 		);
 
-		// Close up prior card.
-		$fields[] = wpcd_end_card( $this->get_tab_slug() );
+		$fields[] = wpcd_end_card( $this->get_tab_slug() ); // Close up prior card.
 
-		// Start new card.
-		$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
+		$fields[] = wpcd_start_half_card( $this->get_tab_slug() ); // Start new card.
 
 		// Auto backups.
 		$auto_backup_status         = get_post_meta( $id, 'wpapp_auto_backups_status', true );
@@ -587,13 +587,14 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 			'save_field' => false,
 		);
 
-		// Close up prior card.
-		$fields[] = wpcd_end_card( $this->get_tab_slug() );
+		$fields[] = wpcd_end_card( $this->get_tab_slug() ); // Close up prior card.
 
-		// Start new card.
-		$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
+		/**
+		 * Start Restore Section
+		 */
 
-		/* Start restore section */
+		$fields[] = wpcd_start_half_card( $this->get_tab_slug() ); // Start new card.
+
 		$desc  = __( 'Use this section to restore data from your backups. Use with care - restores are a destructive operation.  You should make a backup before performing a restore.  <br />We strongly recommend that you make a snapshot of your server as well!', 'wpcd' );
 		$desc .= '<br/>';
 		$desc .= '<br/>';
@@ -677,11 +678,13 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 			);
 		}
 
-		// Close up prior card.
-		$fields[] = wpcd_end_card( $this->get_tab_slug() );
+		$fields[] = wpcd_end_card( $this->get_tab_slug() ); // Close up prior card.
 
-		// Start new card.
-		$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
+		/**
+		 * Restore Section
+		 */
+
+		$fields[] = wpcd_start_half_card( $this->get_tab_slug() ); // Start new card.
 
 		$desc = __( '1. Use the REFRESH BACKUP LIST button to get a current list of backups 2.select a site to restore from the dropdown. 3. Choose a restore option below.', 'wpcd' );
 		$desc = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
@@ -765,15 +768,16 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 			'save_field' => false,
 			'columns'    => 12,
 		);
+
+		$fields[] = wpcd_end_card( $this->get_tab_slug() ); // Close up prior card.
 		/* End restore section */
 
-		// Close up prior card.
-		$fields[] = wpcd_end_card( $this->get_tab_slug() );
+		/**
+		 * Delete All Backups
+		 */
 
-		// Start new card.
-		$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
+		$fields[] = wpcd_start_half_card( $this->get_tab_slug() ); // Start new card.
 
-		/* Delete All Backups */
 		$desc     = __( 'Manually delete local backups i.e.: backups stored on this server. Before you can use this option you must have configured backups and run the backup process at least once.', 'wpcd' );
 		$desc     = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
 		$fields[] = array(
@@ -805,15 +809,16 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 			'class'      => 'wpcd_app_action',
 			'save_field' => false,
 		);
+
+		$fields[] = wpcd_end_card( $this->get_tab_slug() ); // Close up prior card.
 		/* End Delete All Backups */
 
-		// Close up prior card.
-		$fields[] = wpcd_end_card( $this->get_tab_slug() );
+		/**
+		 * Prune Backups
+		 */
 
-		// Start new card.
-		$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
+		$fields[] = wpcd_start_half_card( $this->get_tab_slug() ); // Start new card.
 
-		/* Manually Prune Backups */
 		$hide_prune_section = (bool) wpcd_get_early_option( 'wordpress_app_site_backup_hide_prune_backups_section' ) && ( ! wpcd_is_admin() );  // Note: If we ever decide to create action options on teams or for owners, this conditional should be removed in favor of those.
 		if ( ! $hide_prune_section ) {
 			$desc  = __( 'Delete old local backups that are stored on this server. Before you can use this option you must have configured backups and run the backup process at least once.', 'wpcd' );
@@ -873,8 +878,7 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 		}
 		/* End Manually Prune Backups */
 
-		// Close up prior card.
-		$fields[] = wpcd_end_card( $this->get_tab_slug() );
+		$fields[] = wpcd_end_card( $this->get_tab_slug() ); // Close up prior card.
 
 		return $fields;
 

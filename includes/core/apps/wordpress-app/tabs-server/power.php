@@ -184,8 +184,7 @@ class WPCD_WORDPRESS_TABS_SERVER_POWER extends WPCD_WORDPRESS_TABS {
 		 * Soft Reboot
 		 */
 
-		// Start new card.
-		$actions[] = wpcd_start_one_third_card( $this->get_tab_slug() );
+		$actions[] = wpcd_start_one_third_card( $this->get_tab_slug() ); // Start new card.
 
 		$desc  = __( 'Send a reboot command to the server - this will be the equivalent of typing "reboot" on the command line.', 'wpcd' );
 		$desc .= '<br/>';
@@ -213,15 +212,13 @@ class WPCD_WORDPRESS_TABS_SERVER_POWER extends WPCD_WORDPRESS_TABS {
 			'type'           => 'button',
 		);
 
-		// Close up prior card.
-		$actions[] = wpcd_end_card( $this->get_tab_slug() );
+		$actions[] = wpcd_end_card( $this->get_tab_slug() ); // Close up prior card.
 
 		/**
 		 * Provider Restart / Hard Reboot.
 		 */
 
-		// Start new card.
-		$actions[] = wpcd_start_one_third_card( $this->get_tab_slug() );
+		$actions[] = wpcd_start_one_third_card( $this->get_tab_slug() ); // Start new card.
 
 		$desc = __( 'Use the server provider api to attempt to restart the server.  This is usually the equivalent of pulling the power plug while the server is running. So use only as a last resort.', 'wpcd' );
 		$desc = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
@@ -243,15 +240,13 @@ class WPCD_WORDPRESS_TABS_SERVER_POWER extends WPCD_WORDPRESS_TABS {
 			'type'           => 'button',
 		);
 
-		// Close up prior card.
-		$actions[] = wpcd_end_card( $this->get_tab_slug() );
+		$actions[] = wpcd_end_card( $this->get_tab_slug() ); // Close up prior card.
 
 		/**
 		 * Graceful Poweroff
 		 */
 
-		// Start new card.
-		$actions[] = wpcd_start_one_third_card( $this->get_tab_slug() );
+		$actions[] = wpcd_start_one_third_card( $this->get_tab_slug() ); // Start new card.
 
 		$desc  = __( 'Send a shutdown command to the server - this will be the equivalent of typing "shutdown" on the command line.', 'wpcd' );
 		$desc .= '<br/>';
@@ -279,15 +274,13 @@ class WPCD_WORDPRESS_TABS_SERVER_POWER extends WPCD_WORDPRESS_TABS {
 			'type'           => 'button',
 		);
 
-		// Close up prior card.
-		$actions[] = wpcd_end_card( $this->get_tab_slug() );
+		$actions[] = wpcd_end_card( $this->get_tab_slug() ); // Close up prior card.
 
 		/**
 		 * Schedule Soft Reboot
 		 */
 
-		// Start new card.
-		$actions[] = wpcd_start_half_card( $this->get_tab_slug() );
+		$actions[] = wpcd_start_half_card( $this->get_tab_slug() ); // Start new card.
 
 		$actions['server-reboot-schedule-soft-header'] = array(
 			'label'          => '<i class="fa-duotone fa-calendar-days"></i> ' . __( 'Schedule A Soft Restart', 'wpcd' ),
@@ -339,15 +332,13 @@ class WPCD_WORDPRESS_TABS_SERVER_POWER extends WPCD_WORDPRESS_TABS {
 			'type'           => 'button',
 		);
 
-		// Close up prior card.
-		$actions[] = wpcd_end_card( $this->get_tab_slug() );
+		$actions[] = wpcd_end_card( $this->get_tab_slug() ); // Close up prior card.
 
 		/**
 		 * Forced Poweroff via the Cloud Providers' API
 		 */
 
-		// Start new card.
-		$actions[] = wpcd_start_half_card( $this->get_tab_slug() );
+		$actions[] = wpcd_start_half_card( $this->get_tab_slug() ); // Start new card.
 
 		/* Set the text of the confirmation prompt */
 		$confirmation_prompt = __( 'Are you sure you would like to turn off this server? In some cases it will be like pulling the powercord while the server is turned on which could result in loss of data!', 'wpcd' );
@@ -369,15 +360,13 @@ class WPCD_WORDPRESS_TABS_SERVER_POWER extends WPCD_WORDPRESS_TABS {
 			'type'           => 'button',
 		);
 
-		// Close up prior card.
-		$actions[] = wpcd_end_card( $this->get_tab_slug() );
+		$actions[] = wpcd_end_card( $this->get_tab_slug() ); // Close up prior card.
 
 		/**
 		 * Turn on the server
 		 */
 
-		// Start new card.
-		$actions[] = wpcd_start_half_card( $this->get_tab_slug() );
+		$actions[] = wpcd_start_half_card( $this->get_tab_slug() ); // Start new card.
 
 		/* Set the text of the confirmation prompt */
 		$confirmation_prompt = __( 'Are you sure you would like to turn on this server?', 'wpcd' );
@@ -400,15 +389,13 @@ class WPCD_WORDPRESS_TABS_SERVER_POWER extends WPCD_WORDPRESS_TABS {
 			'type'           => 'button',
 		);
 
-		// Close up prior card.
-		$actions[] = wpcd_end_card( $this->get_tab_slug() );
+		$actions[] = wpcd_end_card( $this->get_tab_slug() ); // Close up prior card.
 
 		/**
 		 * After reboot instructions.
 		 */
 
-		// Start new card.
-		$actions[] = wpcd_start_half_card( $this->get_tab_slug() );
+		$actions[] = wpcd_start_half_card( $this->get_tab_slug() ); // Start new card.
 
 		$instructions  = __( 'After a power-on or reboot event, the server status should update automatically if CALLBACKS have been installed on the server.', 'wpcd' );
 		$instructions .= '<br />' . __( 'If callbacks are not installed you can check the status of the reboot by going to the ALL CLOUD SERVERS list and clicking on the UPDATE REMOTE STATE link for the server.  In this case the server will not be available for further operations until you click that link to update the server status.', 'wpcd' );
@@ -421,8 +408,7 @@ class WPCD_WORDPRESS_TABS_SERVER_POWER extends WPCD_WORDPRESS_TABS {
 			),
 		);
 
-		// Close up prior card.
-		$actions[] = wpcd_end_card( $this->get_tab_slug() );
+		$actions[] = wpcd_end_card( $this->get_tab_slug() ); // Close up prior card.
 
 		return $actions;
 

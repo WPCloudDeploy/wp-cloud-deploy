@@ -344,8 +344,8 @@ class WPCD_WORDPRESS_TABS_FILE_MANAGER extends WPCD_WORDPRESS_TABS {
 		$fw_6g = get_post_meta( $id, 'wpapp_6g_status', true );
 		$fw_7g = get_post_meta( $id, 'wpapp_7g_status', true );
 		if ( ! empty( $fw_6g ) && ! empty( $fw_6g['6g_query_string'] ) && 'on' === $fw_6g['6g_query_string'] ) {
-			// Start new card.
-			$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
+
+			$fields[] = wpcd_start_half_card( $this->get_tab_slug() ); // Start new card.
 
 			$fields[] = array(
 				'name'    => __( 'File Manager [Disabled]', 'wpcd' ),
@@ -355,14 +355,13 @@ class WPCD_WORDPRESS_TABS_FILE_MANAGER extends WPCD_WORDPRESS_TABS {
 				'columns' => 12,
 			);
 
-			// Close up prior card.
-			$fields[] = wpcd_end_card( $this->get_tab_slug() );
+			$fields[] = wpcd_end_card( $this->get_tab_slug() ); // Close up prior card.
 
 			return $fields;
 		}
 		if ( ! empty( $fw_7g ) && ! empty( $fw_7g['7g_query_string'] ) && 'on' === $fw_7g['7g_query_string'] ) {
-			// Start new card.
-			$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
+
+			$fields[] = wpcd_start_half_card( $this->get_tab_slug() ); // Start new card.
 
 			$fields[] = array(
 				'name'    => __( 'File Manager [Disabled]', 'wpcd' ),
@@ -372,8 +371,7 @@ class WPCD_WORDPRESS_TABS_FILE_MANAGER extends WPCD_WORDPRESS_TABS {
 				'columns' => 12,
 			);
 
-			// Close up prior card.
-			$fields[] = wpcd_end_card( $this->get_tab_slug() );
+			$fields[] = wpcd_end_card( $this->get_tab_slug() ); // Close up prior card.
 
 			return $fields;
 		}
@@ -389,15 +387,13 @@ class WPCD_WORDPRESS_TABS_FILE_MANAGER extends WPCD_WORDPRESS_TABS {
 				'columns' => 12,
 			);
 
-			// Close up prior card.
-			$fields[] = wpcd_end_card( $this->get_tab_slug() );
+			$fields[] = wpcd_end_card( $this->get_tab_slug() ); // Close up prior card.
 
 			return $fields;
 		}
 		// End Bail if certain 6G or 7G firewall items are enabled.
 
-		// Start new card.
-		$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
+		$fields[] = wpcd_start_half_card( $this->get_tab_slug() ); // Start new card.
 
 		if ( 'off' === $file_manager_status ) {
 			$desc  = __( 'The File Manager is not installed.', 'wpcd' );
@@ -478,8 +474,7 @@ class WPCD_WORDPRESS_TABS_FILE_MANAGER extends WPCD_WORDPRESS_TABS {
 				'save_field' => true,
 			);
 
-			// Close up prior card.
-			$fields[] = wpcd_end_card( $this->get_tab_slug() );
+			$fields[] = wpcd_end_card( $this->get_tab_slug() ); // Close up prior card.
 
 		} else {
 
@@ -520,15 +515,13 @@ class WPCD_WORDPRESS_TABS_FILE_MANAGER extends WPCD_WORDPRESS_TABS {
 				'std'  => $file_manager_details,
 			);
 
-			// Close up prior card.
-			$fields[] = wpcd_end_card( $this->get_tab_slug() );
+			$fields[] = wpcd_end_card( $this->get_tab_slug() ); // Close up prior card.
 
 			/**
 			 * New fields section for change username & password.
 			 */
 
-			// Start new card.
-			$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
+			$fields[] = wpcd_start_half_card( $this->get_tab_slug() ); // Start new card.
 
 			$fields[] = array(
 				'name' => __( 'File Manager- Change Credentials', 'wpcd' ),
@@ -591,15 +584,13 @@ class WPCD_WORDPRESS_TABS_FILE_MANAGER extends WPCD_WORDPRESS_TABS {
 				'save_field' => true,
 			);
 
-			// Close up prior card.
-			$fields[] = wpcd_end_card( $this->get_tab_slug() );
+			$fields[] = wpcd_end_card( $this->get_tab_slug() ); // Close up prior card.
 
 			/**
 			 * Fields section for update and remove of File Manager.
 			 */
 
-			// Start new card.
-			$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
+			$fields[] = wpcd_start_half_card( $this->get_tab_slug() ); // Start new card.
 
 			$fields[] = array(
 				'name' => __( 'Upgrade File Manager', 'wpcd' ),
@@ -631,15 +622,13 @@ class WPCD_WORDPRESS_TABS_FILE_MANAGER extends WPCD_WORDPRESS_TABS {
 				'save_field' => false,
 			);
 
-			// Close up prior card.
-			$fields[] = wpcd_end_card( $this->get_tab_slug() );
+			$fields[] = wpcd_end_card( $this->get_tab_slug() ); // Close up prior card.
 
 			/**
 			 * Remove File Manager
 			 */
 
-			// Start new card.
-			$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
+			$fields[] = wpcd_start_half_card( $this->get_tab_slug() ); // Start new card.
 
 			$fields[] = array(
 				'name' => __( 'Remove File Manager', 'wpcd' ),
@@ -670,8 +659,7 @@ class WPCD_WORDPRESS_TABS_FILE_MANAGER extends WPCD_WORDPRESS_TABS {
 				'save_field' => false,
 			);
 
-			// Close up prior card.
-			$fields[] = wpcd_end_card( $this->get_tab_slug() );
+			$fields[] = wpcd_end_card( $this->get_tab_slug() ); // Close up prior card.
 
 		}
 

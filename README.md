@@ -134,6 +134,7 @@ Note: Even though the entire git development history isn't available on github, 
 * Tweak: WPAPP - Updated WP Version list.
 * Tweak: WPAPP - Add option to upgrade WPCLI to 2.10.0.
 * Tweak: WPAPP - Pre-generate user id and password for filemanager.
+* Tweak: WPAPP - Update netdata script to pull installation files from new netdata urls.
 * Fix: WPAPP - Missing default $in_args for change_php_workers (Thanks @batonac)
 * Fix: WPAPP - Remove an errant error_log statement.
 * Fix: WPAPP - Prevent WPCD from registering a site twice on the Logtivity service.

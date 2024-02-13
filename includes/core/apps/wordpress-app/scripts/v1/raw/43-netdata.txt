@@ -222,7 +222,7 @@ function netdata_install
 
 	echo "installing Netdata on server........."
 	apt-get update > /dev/null 2>&1
-	bash <(curl -Ss https://my-netdata.io/kickstart.sh) --dont-wait	--non-interactive --stable-channel --disable-telemetry --claim-token $claim_token --claim-url https://app.netdata.cloud --claim-rooms $claim_rooms_token
+	bash <(curl -Ss https://get.netdata.cloud/kickstart.sh) --dont-wait	--non-interactive --stable-channel --disable-telemetry --claim-token $claim_token --claim-url https://app.netdata.cloud --claim-rooms $claim_rooms_token
 	
 	if [ "$g_webserver_type" = "nginx" ] ; then
 		nginx -V 2>&1 | grep -o with-http_stub_status_module
@@ -314,7 +314,7 @@ function netdata_remove
 	fi
 	domain=$(grep -m 1 server_name /etc/nginx/sites-enabled/netdata.conf 2>&1 > /dev/null|awk '{print $2}')
 	netdata_ssl_disable
-	bash <(curl -Ss https://my-netdata.io/kickstart.sh) --uninstall --dont-wait --non-interactive
+	bash <(curl -Ss https://get.netdata.cloud/kickstart.sh) --uninstall --dont-wait --non-interactive
 	if [ $? -ne 0 ]
 	then
 		echo "Failed to uninstall. Please check if the apt-get command has been locked by another process - you might have to restart the server and try the operation again."
@@ -358,7 +358,7 @@ function netdata_update
 		echo "netdata is Not installed yet!"
 		exit
 	fi
-	bash <(curl -Ss https://my-netdata.io/kickstart.sh) --dont-wait
+	bash <(curl -Ss https://get.netdata.cloud/kickstart.sh) --dont-wait
 	echo "Netdata has been updated"
 }
 

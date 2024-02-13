@@ -3016,7 +3016,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			'name' => __( 'Custom CSS', 'wpcd' ),
 			'id'   => 'wordpress-app-custom-css-override-header',
 			'type' => 'heading',
-			'desc' => 'Custom CSS is loaded in-line on very WPCD page on both the front-end and back-end.',
+			'desc' => 'Custom CSS is loaded in-line on every WPCD page on both the front-end and back-end.',
 			'tab'  => 'wordpress-app-white-label',
 		);
 		$fields[] = array(

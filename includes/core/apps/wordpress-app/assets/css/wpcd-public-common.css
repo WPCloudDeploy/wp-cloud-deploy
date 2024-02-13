@@ -47,14 +47,6 @@
 }
 /* End button text should not be underlined. */
 
-#wpcd_public_wrapper .wpcd-pre-install,
-#wpcd_public_wrapper #wpcd_public_servers_container,
-#wpcd_public_wrapper .wpcd_public_container {
-        width: 96%;
-        margin: 0 auto;
-        padding-right: 0;
-}
-
 #wpcd_public_wrapper .wpcd-create-popup-label {
 		/* Field labels on popup when creating a new site or server.*/
         font-size: 13px;
@@ -933,22 +925,41 @@
 /**
  * Start custom css for the detail pages.
  */
- .single-wpcd_app #wpcd_public_wrapper,
+.single-wpcd_app #wpcd_public_wrapper,
 .single-wpcd_app_server #wpcd_public_wrapper {
 	 /* Set a background color for the main container. */
 	 background-color: var(--wpcd-front-end-alternate-accent-background-color);
 	 border-radius: 3px;
 	 padding: 30px 20px;
  }
+ 
+#wpcd_public_wrapper .wpcd-wpapp-actions h4 {
+	/* Card / Section headers on detail screens. */
+	color: var(--wpcd-front-end-primary-brand-color);
+}
 
-#wpcd_public_wrapper .rwmb-input button {
+#wpcd_public_wrapper .rwmb-input button,
+#wpcd_public_wrapper #wpcd_wordpress-app_tab2 .rwmb-input .button,
+#wpcd_public_wrapper #wpcd_wordpress-app_tab2 .rwmb-input .button a,
+#wpcd_public_wrapper #wpcd_server_wordpress-app_tab_top_of_server_details .rwmb-input .button,
+#wpcd_public_wrapper #wpcd_server_wordpress-app_tab_top_of_server_details .rwmb-input .button a,
+#wpcd_public_wrapper #wpcd_server_wordpress-app_tab3 .rwmb-input .button,
+#wpcd_public_wrapper #wpcd_server_wordpress-app_tab3 .rwmb-input .button a {
 	/* Buttons */
 	text-decoration: none;
 	background-color: var(--wpcd-front-end-accent-background-color);
+	border-color: var(--wpcd-front-end-accent-background-color);
+	color: var(--wpcd-front-end-white-color);
 	padding: 9px 17px 9px 17px;
 	border-radius: 3px;
 } 
-#wpcd_public_wrapper .rwmb-input button:hover {
+#wpcd_public_wrapper .rwmb-input button:hover,
+#wpcd_public_wrapper #wpcd_wordpress-app_tab2 .rwmb-input .button:hover,
+#wpcd_public_wrapper #wpcd_wordpress-app_tab2 .rwmb-input .button a:hover, 
+#wpcd_public_wrapper #wpcd_server_wordpress-app_tab_top_of_server_details .rwmb-input .button:hover,
+#wpcd_public_wrapper #wpcd_server_wordpress-app_tab_top_of_server_details .rwmb-input .button a:hover,
+#wpcd_public_wrapper #wpcd_server_wordpress-app_tab3 .rwmb-input .button:hover,
+#wpcd_public_wrapper #wpcd_server_wordpress-app_tab3 .rwmb-input .button a:hover {
 	/* Buttons - hover */
 	text-decoration: none;
 	background-color: var(--wpcd-front-end-primary-brand-color);
@@ -1105,6 +1116,16 @@
 	color: var(--wpcd-front-end-light-background-color);
 }
  
+/**
+ * Card overrides.
+ */
+#wpcd_public_wrapper .wpcd-card-group {
+	background-color: var(--wpcd-front-end-white-color);	
+	border-color: var(--wpcd-front-end-medium-accent-background-color);
+}
+#wpcd_public_wrapper .wpcd-card-group:hover {
+	border-color: var(--wpcd-front-end-primary-brand-color);
+}
  
 /* custom table pages style */
 #wpcd_public_wrapper .notice {

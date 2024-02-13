@@ -267,7 +267,7 @@ class WPCD_WORDPRESS_TABS_SERVER_FAIL2BAN extends WPCD_WORDPRESS_TABS {
 			$actions[] = wpcd_start_half_card( $this->get_tab_slug() );
 
 			// Header description.
-			$desc = get_field_header_desc( 1 );
+			$desc = $this->get_field_header_desc( 1 );
 			$desc = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
 
 			$actions['fail2ban-header-main'] = array(

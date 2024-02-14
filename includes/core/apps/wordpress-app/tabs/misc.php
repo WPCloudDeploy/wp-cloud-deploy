@@ -26,6 +26,9 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 		// Allow the disable site action to be triggered via an action hook.  Will primarily be used by the woocommerce add-on and REST API.
 		add_action( 'wpcd_wordpress-app_do_toggle_site_status', array( $this, 'toggle_site_status_action' ), 10, 3 );
 
+		// Allow the enable http auth action to be triggered via an action hook.
+		add_action( 'wpcd_wordpress-app_do_site_enable_http_auth', array( $this, 'enable_http_auth_action' ), 10, 1 );
+
 		// Allow the disable http auth action to be triggered via an action hook.
 		add_action( 'wpcd_wordpress-app_do_site_disable_http_auth', array( $this, 'disable_http_auth_action' ), 10, 1 );
 
@@ -159,7 +162,7 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 					break;
 				case 'site-status':
 					// enable/disable site.
-					$result  = $this->toggle_site_status_action( $id, $action );
+					$result = $this->toggle_site_status_action( $id, $action );
 					break;
 				case 'admin-lock-status':
 					// toggle admin lock.
@@ -507,6 +510,7 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 				'desc'           => __( 'User name to use when basic authentication is turned on', 'wpcd' ),
 				'type'           => 'text',
 				'raw_attributes' => array(
+					'std'            => wpcd_generate_alpha_numeric_string( 12 ),
 					'disabled'       => 'off' === $basic_auth_status ? false : true,
 					'size'           => 60,
 					// the key of the field (the key goes in the request).
@@ -519,6 +523,7 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 				'desc'           => __( 'Password to use when basic authentication is turned on', 'wpcd' ),
 				'type'           => 'text',
 				'raw_attributes' => array(
+					'std'            => wpcd_generate_default_password(),
 					'disabled'       => 'off' === $basic_auth_status ? false : true,
 					'size'           => 60,
 					// the key of the field (the key goes in the request).
@@ -586,7 +591,7 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 			);
 
 			// Close up prior card.
-			$actions[] = wpcd_end_card( $this->get_tab_slug() );			
+			$actions[] = wpcd_end_card( $this->get_tab_slug() );
 			return $actions;
 		}
 
@@ -617,6 +622,7 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 				'desc'           => __( 'User name to use when basic authentication is turned on', 'wpcd' ),
 				'type'           => 'text',
 				'raw_attributes' => array(
+					'std'            => wpcd_generate_alpha_numeric_string( 12 ),
 					'disabled'       => 'off' === $wplogin_basic_auth_status ? false : true,
 					'size'           => 60,
 					// the key of the field (the key goes in the request).
@@ -630,6 +636,7 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 				'desc'           => __( 'Password to use when basic authentication is turned on', 'wpcd' ),
 				'type'           => 'text',
 				'raw_attributes' => array(
+					'std'            => wpcd_generate_default_password(),
 					'disabled'       => 'off' === $wplogin_basic_auth_status ? false : true,
 					'size'           => 60,
 					// the key of the field (the key goes in the request).
@@ -1018,6 +1025,26 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 	/**
 	 * Helper function disable HTTP Authentication.
 	 *
+	 * Action hook: wpcd_wordpress-app_do_site_enable_http_auth.
+	 *
+	 * @param int $id     The postID of the app cpt.
+	 *
+	 * @return string|WP_Error
+	 */
+	public function enable_http_auth_action( $id ) {
+
+		$args['basic_auth_user'] = wpcd_generate_alpha_numeric_string( 12 );
+		$args['basic_auth_pass'] = wpcd_generate_default_password();
+
+		$result = $this->toggle_basic_auth( $id, 'enable_auth', $args );
+
+		return $result;  // Does not matter in an action hook.
+
+	}
+
+	/**
+	 * Helper function disable HTTP Authentication.
+	 *
 	 * Action hook: wpcd_wordpress-app_do_site_disable_http_auth.
 	 *
 	 * @param int $id     The postID of the app cpt.
@@ -1040,7 +1067,7 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 	 *
 	 * @return boolean|WP_Error    success/failure
 	 */
-	private function toggle_basic_auth( $id, $action ) {
+	private function toggle_basic_auth( $id, $action, $in_args = array() ) {
 
 		$instance = $this->get_app_instance_details( $id );
 
@@ -1049,7 +1076,12 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
 		}
 
-		$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
+		if ( empty( $in_args ) ) {
+			// Get data from the POST request.
+			$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
+		} else {
+			$args = $in_args;
+		}
 
 		// Check to make sure that both a user id and password is offered if the action is to turn on authentication.
 		if ( 'enable_auth' === $action ) {

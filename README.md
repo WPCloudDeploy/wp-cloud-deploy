@@ -133,7 +133,7 @@ Note: Even though the entire git development history isn't available on github, 
 * Tweak: WPAPP - Updated HELP & FAQ links.
 * Tweak: WPAPP - Updated WP Version list.
 * Tweak: WPAPP - Add option to upgrade WPCLI to 2.10.0.
-* Tweak: WPAPP - Pre-generate user id and password for filemanager.
+* Tweak: WPAPP - Pre-generate user id and password for filemanager, sftp, http auth, monitorix & filegator.
 * Tweak: WPAPP - Update netdata script to pull installation files from new netdata urls.
 * Tweak: WPAPP - Lots of tweaks to colors to make sure they more cleanly separate between front-end and wp-admin.
 * Tweak: WPAPP - Introduce new "WHITE" color setting.

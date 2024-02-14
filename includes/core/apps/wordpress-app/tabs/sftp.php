@@ -178,6 +178,7 @@ class WPCD_WORDPRESS_TABS_SFTP extends WPCD_WORDPRESS_TABS {
 			'id'         => 'wpcd_app_user1',
 			'tab'        => 'sftp',
 			'type'       => 'text',
+			'std'        => strtolower( wpcd_generate_alpha_numeric_string( 12 ) ),
 			'save_field' => false,
 			'attributes' => array(
 				// the key of the field (the key goes in the request).
@@ -189,6 +190,7 @@ class WPCD_WORDPRESS_TABS_SFTP extends WPCD_WORDPRESS_TABS {
 			'id'         => 'wpcd_app_pass1',
 			'tab'        => 'sftp',
 			'type'       => 'password',
+			'std'        => wpcd_generate_default_password(),
 			'save_field' => false,
 			'attributes' => array(
 				// the key of the field (the key goes in the request).
@@ -200,7 +202,7 @@ class WPCD_WORDPRESS_TABS_SFTP extends WPCD_WORDPRESS_TABS {
 			'id'         => 'wpcd_app_action_add_button',
 			'tab'        => 'sftp',
 			'type'       => 'button',
-			'std'        => __( 'Add User', 'wpcd' ),
+			'std'        => __( 'Add New User', 'wpcd' ),
 			'attributes' => array(
 				// the _action that will be called in ajax.
 				'data-wpcd-action' => 'sftp-add-user',

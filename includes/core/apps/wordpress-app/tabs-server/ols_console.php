@@ -364,6 +364,8 @@ class WPCD_WORDPRESS_TABS_SERVER_OLS_CONSOLE extends WPCD_WORDPRESS_TABS {
 	/**
 	 * Take the most current data and format it for a nice display
 	 *
+	 * *** This function is no longer used.  Ok to delete later.
+	 *
 	 * @param int $id id.
 	 */
 	public function get_ols_console_enable_details( $id ) {

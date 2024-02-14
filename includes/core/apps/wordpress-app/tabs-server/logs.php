@@ -166,11 +166,12 @@ class WPCD_WORDPRESS_TABS_SERVER_LOGS extends WPCD_WORDPRESS_TABS {
 
 		$actions[] = wpcd_start_half_card( $this->get_tab_slug() ); // Start new card.
 
-		// manage server logs heading.
-		$desc = __( 'Download various log files for this site.', 'wpcd' );
+		// Manage server logs heading.
+		$desc = __( 'Download various log files for this site', 'wpcd' );
 
 		$actions['server-logs-header'] = array(
-			'label'          => __( 'Download Logs', 'wpcd' ),
+			/* Translators: %s is a fontawesome or similar icon. */
+			'label'          => wpcd_apply_logs_icon( __( '%s Download Logs', 'wpcd' ) ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
 				'desc' => $desc,
@@ -182,7 +183,6 @@ class WPCD_WORDPRESS_TABS_SERVER_LOGS extends WPCD_WORDPRESS_TABS {
 			'label'          => __( 'Select Log', 'wpcd' ),
 			// 'id'   => 'wpcd_app_server_log_name',
 			'type'           => 'select',
-			// 'save_field' => false,
 			'raw_attributes' => array(
 				'options'        => $this->get_log_list( $id ),
 				// the key of the field (the key goes in the request).
@@ -196,7 +196,8 @@ class WPCD_WORDPRESS_TABS_SERVER_LOGS extends WPCD_WORDPRESS_TABS {
 			'label'          => '',
 			'type'           => 'button',
 			'raw_attributes' => array(
-				'std'              => __( 'Download', 'wpcd' ),
+				/* Translators: %s is a fontawesome or similar icon. */
+				'std'              => wpcd_apply_download_icon( __( '%s Download', 'wpcd' ) ),
 				// the _action that will be called in ajax.
 				// 'data-wpcd-action' => 'server-log-download'.
 				// the id.
@@ -215,7 +216,8 @@ class WPCD_WORDPRESS_TABS_SERVER_LOGS extends WPCD_WORDPRESS_TABS {
 		$actions[] = wpcd_start_half_card( $this->get_tab_slug() ); // Start new card.
 
 		$actions['server-logs-warning-header'] = array(
-			'label'          => __( 'Warning', 'wpcd' ),
+			/* Translators: %s is a fontawesome or similar icon. */
+			'label'          => wpcd_apply_warning_icon( __( '%s Warning', 'wpcd' ) ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
 				'desc' => __( 'Attempting to download very large log files can cause your server memory to be exhausted which will likely cause your server to kill this process or, worse, crash. Use this download tool only if you are sure your logs are of a reasonable size. Otherwise connect via sFTP or ssh to download logs.', 'wpcd' ),

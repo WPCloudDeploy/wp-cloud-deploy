@@ -321,7 +321,7 @@ class WPCD_WORDPRESS_TABS_SERVER_MONITORIX extends WPCD_WORDPRESS_TABS {
 				'label'          => '',
 				'type'           => 'custom_html',
 				'raw_attributes' => array(
-					'std' => __( 'User Id: ', 'wpcd' ) . $monitorix_user . '<br />' . __( 'Password: ', 'wpcd' ) . $monitorix_pass,
+					'std' => __( 'User Id: ', 'wpcd' ) . wpcd_wrap_clipboard_copy( $monitorix_user, false ) . '<br />' . __( 'Password: ', 'wpcd' ) . wpcd_wrap_clipboard_copy( $monitorix_pass, false ),
 				),
 			);
 

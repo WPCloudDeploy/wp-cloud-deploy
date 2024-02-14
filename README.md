@@ -137,6 +137,8 @@ Note: Even though the entire git development history isn't available on github, 
 * Tweak: WPAPP - Update netdata script to pull installation files from new netdata urls.
 * Tweak: WPAPP - Lots of tweaks to colors to make sure they more cleanly separate between front-end and wp-admin.
 * Tweak: WPAPP - Introduce new "WHITE" color setting.
+* Tweak: WPAPP - Click-to-copy user id and password on MONITORIX tab.
+* Tweak: WPAPP - Click-to-copy user id and password on GOACCESS tab.
 * Fix: WPAPP - Missing default $in_args for change_php_workers (Thanks @batonac)
 * Fix: WPAPP - Remove an errant error_log statement.
 * Fix: WPAPP - Prevent WPCD from registering a site twice on the Logtivity service.

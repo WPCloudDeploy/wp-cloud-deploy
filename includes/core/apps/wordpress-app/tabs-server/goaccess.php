@@ -324,7 +324,7 @@ class WPCD_WORDPRESS_TABS_SERVER_GOACCESS extends WPCD_WORDPRESS_TABS {
 				'label'          => '',
 				'type'           => 'custom_html',
 				'raw_attributes' => array(
-					'std' => __( 'User Id: ', 'wpcd' ) . $goaccess_user . '<br />' . __( 'Password: ', 'wpcd' ) . $goaccess_pass,
+					'std' => __( 'User Id: ', 'wpcd' ) . wpcd_wrap_clipboard_copy( $goaccess_user, false ) . '<br />' . __( 'Password: ', 'wpcd' ) . wpcd_wrap_clipboard_copy( $goaccess_pass, false ),
 				),
 			);
 

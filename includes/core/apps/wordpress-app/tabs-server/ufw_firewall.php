@@ -173,7 +173,8 @@ class WPCD_WORDPRESS_TABS_SERVER_UFW_FIREWALL extends WPCD_WORDPRESS_TABS {
 		$actions[] = wpcd_start_half_card( $this->get_tab_slug() );
 
 		$actions['ufw-ports-header'] = array(
-			'label'          => __( 'Open or Close UFW Firewall Ports', 'wpcd' ),
+			/* Translators: %s is a fontawesome or similar icon. */
+			'label'          => wpcd_apply_virus_icon( __( '%s Open or Close UFW Firewall Ports', 'wpcd' ) ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
 				'desc' => $ufw_top_desc,
@@ -196,14 +197,15 @@ class WPCD_WORDPRESS_TABS_SERVER_UFW_FIREWALL extends WPCD_WORDPRESS_TABS {
 				// the key of the field (the key goes in the request).
 				'data-wpcd-name' => 'ufw_port_to_open_or_close',
 				'columns'        => 12,
-				'size' => 6,
+				'size'           => 6,
 			),
 		);
 
 		$actions['ufw-open-port'] = array(
 			'label'          => '',
 			'raw_attributes' => array(
-				'std'                 => __( 'Open Port', 'wpcd' ),
+				/* Translators: %s is a fontawesome or similar icon. */
+				'std'                 => wpcd_apply_open_icon( __( '%s Open Port', 'wpcd' ) ),
 				// make sure we give the user a confirmation prompt.
 				'confirmation_prompt' => __( 'Are you sure you would like to open this port?', 'wpcd' ),
 				// fields that contribute data for this action.
@@ -216,7 +218,8 @@ class WPCD_WORDPRESS_TABS_SERVER_UFW_FIREWALL extends WPCD_WORDPRESS_TABS {
 		$actions['ufw-close-port'] = array(
 			'label'          => '',
 			'raw_attributes' => array(
-				'std'                 => __( 'Close Port', 'wpcd' ),
+				/* Translators: %s is a fontawesome or similar icon. */
+				'std'                 => wpcd_apply_close_icon( __( '%s Close Port', 'wpcd' ) ),
 				// make sure we give the user a confirmation prompt.
 				'confirmation_prompt' => __( 'Are you sure you would like to close this port?', 'wpcd' ),
 				// fields that contribute data for this action.
@@ -248,7 +251,8 @@ class WPCD_WORDPRESS_TABS_SERVER_UFW_FIREWALL extends WPCD_WORDPRESS_TABS {
 		}
 
 		$actions['ufw-current-ports-header'] = array(
-			'label'          => __( 'Ports Being Managed', 'wpcd' ),
+			/* Translators: %s is a fontawesome or similar icon. */
+			'label'          => wpcd_apply_close_icon( __( '%s Ports Being Managed', 'wpcd' ) ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
 				'desc' => __( 'List of ports currently being managed on this screen.', 'wpcd' ),
@@ -274,7 +278,8 @@ class WPCD_WORDPRESS_TABS_SERVER_UFW_FIREWALL extends WPCD_WORDPRESS_TABS {
 
 		// Show a lengthy text description of what this tab does.
 		$actions['ufw-footer-desc'] = array(
-			'label'          => __( 'About the UFW Firewall', 'wpcd' ),
+			/* Translators: %s is a fontawesome or similar icon. */
+			'label'          => wpcd_apply_about_icon( __( '%s ABOUT THE UFW FIREWALL', 'wpcd' ) ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
 				'desc' => $ufw_footer_desc,

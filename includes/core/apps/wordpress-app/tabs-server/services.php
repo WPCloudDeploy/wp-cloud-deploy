@@ -623,7 +623,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		if ( false === $this->is_redis_installed( $id ) ) {
 			// Redis not installed so show only install button.
 			$actions['redis-do-install'] = array(
-				'label'          => __( '', 'wpcd' ),
+				'label'          => '',
 				'raw_attributes' => array(
 					'std'                 => __( 'Install Redis', 'wpcd' ),
 					'desc'                => __( 'It appears that Redis is not installed on this server.  Click the button to start the installation process.', 'wpcd' ),                   // make sure we give the user a confirmation prompt
@@ -3227,7 +3227,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 	public function get_restart_button_label() {
 
 		/* Translators: %s is a fontawesome or similar icon. */
-		return sprintf( __( '%s Restart', 'wpcd' ), '<i class="fa-sharp fa-solid fa-clock-rotate-left"></i> ' );
+		return wpcd_apply_restart_icon( __( '%s Restart', 'wpcd' ) );
 
 	}
 

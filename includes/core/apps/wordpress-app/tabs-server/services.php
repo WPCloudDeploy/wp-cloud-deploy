@@ -3227,7 +3227,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 	public function get_restart_button_label() {
 
 		/* Translators: %s is a fontawesome or similar icon. */
-		return sprintf( __( '%s Restart', 'wpcd' ), '<i class="fa-sharp fa-solid fa-clock-rotate-left"></i> ' );
+		return wpcd_apply_restart_icon( __( '%s Restart', 'wpcd' ) );
 
 	}
 

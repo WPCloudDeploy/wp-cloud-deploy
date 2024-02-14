@@ -191,6 +191,7 @@ class WPCD_Init {
 		require_once wpcd_path . 'includes/core/class-wpcd-posts-permission-type.php';
 		require_once wpcd_path . 'includes/core/class-wpcd-dns.php';
 		require_once wpcd_path . 'includes/core/functions.php';
+		require_once wpcd_path . 'includes/core/functions-icons.php';
 		require_once wpcd_path . 'includes/core/functions-metabox.php';
 
 		if ( defined( 'WPCD_LOAD_VPN_APP' ) && ( true === WPCD_LOAD_VPN_APP ) ) {
@@ -393,6 +394,7 @@ class WPCD_Init {
 
 		/* Load up our files */
 		require_once wpcd_path . 'includes/core/functions.php';
+		require_once wpcd_path . 'includes/core/functions-icons.php';
 		require_once wpcd_path . 'includes/core/functions-metabox.php';
 		require_once wpcd_path . 'includes/core/class-wpcd-custom-fields.php';
 		require_once wpcd_path . 'includes/core/class-wpcd-roles-capabilities.php';

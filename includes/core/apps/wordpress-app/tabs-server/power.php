@@ -205,7 +205,8 @@ class WPCD_WORDPRESS_TABS_SERVER_POWER extends WPCD_WORDPRESS_TABS {
 		$actions['server-reboot-soft'] = array(
 			'label'          => '',
 			'raw_attributes' => array(
-				'std'                 => __( 'Restart', 'wpcd' ),
+				/* Translators: %s is a fontawesome or similar icon. */
+				'std'                 => wpcd_apply_restart_icon( __( '%s Restart', 'wpcd' ) ),
 				'confirmation_prompt' => $confirmation_prompt,
 				'desc'                => '',
 			),
@@ -234,7 +235,8 @@ class WPCD_WORDPRESS_TABS_SERVER_POWER extends WPCD_WORDPRESS_TABS {
 		$actions['server-reboot-hard-provider'] = array(
 			'label'          => '',
 			'raw_attributes' => array(
-				'std'                 => __( 'Hard Restart', 'wpcd' ),
+				/* Translators: %s is a fontawesome or similar icon. */
+				'std'                 => wpcd_apply_restart_icon( __( '%s Hard Restart', 'wpcd' ) ),
 				'confirmation_prompt' => $confirmation_prompt,
 			),
 			'type'           => 'button',
@@ -267,7 +269,8 @@ class WPCD_WORDPRESS_TABS_SERVER_POWER extends WPCD_WORDPRESS_TABS {
 		$actions['server-graceful-shutdown'] = array(
 			'label'          => '',
 			'raw_attributes' => array(
-				'std'                 => __( 'Graceful Shutdown', 'wpcd' ),
+				/* Translators: %s is a fontawesome or similar icon. */
+				'std'                 => wpcd_apply_power_icon( __( '%s Graceful Shutdown', 'wpcd' ) ),
 				'confirmation_prompt' => $confirmation_prompt,
 				'desc'                => '',
 			),
@@ -325,7 +328,8 @@ class WPCD_WORDPRESS_TABS_SERVER_POWER extends WPCD_WORDPRESS_TABS {
 		$actions['server-schedule-reboot-soft'] = array(
 			'label'          => '',
 			'raw_attributes' => array(
-				'std'                 => __( 'Schedule Restart', 'wpcd' ),
+				/* Translators: %s is a fontawesome or similar icon. */
+				'std'                 => wpcd_apply_power_icon( __( '%s Schedule Restart', 'wpcd' ) ),
 				'confirmation_prompt' => __( 'Are you sure you would like to schedule this server to be restarted?', 'wpcd' ),
 				'data-wpcd-fields'    => wp_json_encode( array( '#wpcd_app_action_server-schedule-reboot-soft-date', '#wpcd_app_action_server-schedule-reboot-soft-time' ) ),
 			),
@@ -354,7 +358,8 @@ class WPCD_WORDPRESS_TABS_SERVER_POWER extends WPCD_WORDPRESS_TABS {
 		$actions['server-hard-shutdown'] = array(
 			'label'          => '',
 			'raw_attributes' => array(
-				'std'                 => __( 'Hard Shutdown', 'wpcd' ),
+				/* Translators: %s is a fontawesome or similar icon. */
+				'std'                 => wpcd_apply_power_icon( __( '%s Hard Shutdown', 'wpcd' ) ),
 				'confirmation_prompt' => $confirmation_prompt,
 			),
 			'type'           => 'button',
@@ -382,7 +387,7 @@ class WPCD_WORDPRESS_TABS_SERVER_POWER extends WPCD_WORDPRESS_TABS {
 		$actions['server-turn-on'] = array(
 			'label'          => '',
 			'raw_attributes' => array(
-				'std'                 => __( 'Power On', 'wpcd' ),
+				'std'                 => wpcd_apply_power_icon( __( '%s Power On', 'wpcd' ) ),
 				'confirmation_prompt' => $confirmation_prompt,
 				'desc'                => __( 'If this does not work you might need to log into the server provider\'s console to use the power options there.', 'wpcd' ),
 			),

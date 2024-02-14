@@ -233,7 +233,7 @@ class WPCD_WORDPRESS_TABS_SERVER_USERS extends WPCD_WORDPRESS_TABS {
 					'label'          => __( 'Current Password', 'wpcd' ),
 					'type'           => 'custom_html',
 					'raw_attributes' => array(
-						'std' => $decrypted_pw,
+						'std' => wpcd_wrap_clipboard_copy( $decrypted_pw, false ),
 					),
 				);
 
@@ -246,12 +246,11 @@ class WPCD_WORDPRESS_TABS_SERVER_USERS extends WPCD_WORDPRESS_TABS {
 						'tooltip'             => __( 'We will create a 32 character alpha-numeric root password and store it encrypted in the database.', 'wpcd' ),
 					),
 					'type'           => 'button',
-				);				
+				);
 
 			}
 
 			$actions[] = wpcd_end_card( $this->get_tab_slug() ); // Close up prior card.
-
 
 			/**
 			 * Enable/Disable Password Authentication

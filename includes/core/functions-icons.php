@@ -155,6 +155,85 @@ function wpcd_apply_run_icon( $label ) {
 
 }
 
+/**
+ * Returns a string with a fontawesome icon inserted.
+ *
+ * @since 5.7.
+ *
+ * @param string $label The string where the icon needs to be applied.  It needs to have at least on placeholder in it (eg: '%s Restart' ).
+ */
+function wpcd_apply_open_icon( $label ) {
+
+	return sprintf( $label, '<i class="fa-duotone fa-lock-open"></i> ' );
+
+}
+
+/**
+ * Returns a string with a fontawesome icon inserted.
+ *
+ * @since 5.7.
+ *
+ * @param string $label The string where the icon needs to be applied.  It needs to have at least on placeholder in it (eg: '%s Restart' ).
+ */
+function wpcd_apply_close_icon( $label ) {
+
+	return sprintf( $label, '<i class="fa-duotone fa-lock"></i> ' );
+
+}
+
+/**
+ * Returns a string with a fontawesome icon inserted.
+ *
+ * @since 5.7.
+ *
+ * @param string $label The string where the icon needs to be applied.  It needs to have at least on placeholder in it (eg: '%s Restart' ).
+ */
+function wpcd_apply_about_icon( $label ) {
+
+	return sprintf( $label, '<i class="fa-duotone fa-person-circle-question"></i> ' );
+
+}
+
+/**
+ * Returns a string with a fontawesome icon inserted.
+ *
+ * @since 5.7.
+ *
+ * @param string $label The string where the icon needs to be applied.  It needs to have at least on placeholder in it (eg: '%s Restart' ).
+ */
+function wpcd_apply_save_icon( $label ) {
+
+	return sprintf( $label, '<i class="fa-duotone fa-floppy-disk"></i> ' );
+
+}
+
+/**
+ * Returns a string with a fontawesome icon inserted.
+ *
+ * @since 5.7.
+ *
+ * @param string $label The string where the icon needs to be applied.  It needs to have at least on placeholder in it (eg: '%s Restart' ).
+ */
+function wpcd_apply_email_icon( $label ) {
+
+	return sprintf( $label, '<i class="fa-duotone fa-envelopes"></i> ' );
+
+}
+
+/**
+ * Returns a string with a fontawesome icon inserted.
+ *
+ * @since 5.7.
+ *
+ * @param string $label The string where the icon needs to be applied.  It needs to have at least on placeholder in it (eg: '%s Restart' ).
+ */
+function wpcd_apply_load_icon( $label ) {
+
+	return sprintf( $label, '<i class="fa-duotone fa-truck-ramp-box"></i> ' );
+
+}
+
+
 
 
 

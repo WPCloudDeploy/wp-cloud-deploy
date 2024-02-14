@@ -724,7 +724,7 @@ class WPCD_WORDPRESS_TABS_SERVER_CALLBACKS extends WPCD_WORDPRESS_TABS {
 		$actions[] = wpcd_end_card( $this->get_tab_slug() );
 
 		/**
-		 * Scurity Updates Card
+		 * Security Updates Card
 		 */
 		// Start new card.
 		$actions[] = wpcd_start_one_third_card( $this->get_tab_slug() );

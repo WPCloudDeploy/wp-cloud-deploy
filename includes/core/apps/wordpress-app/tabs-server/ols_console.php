@@ -191,38 +191,115 @@ class WPCD_WORDPRESS_TABS_SERVER_OLS_CONSOLE extends WPCD_WORDPRESS_TABS {
 		$actions = array();
 
 		// Check ols console enable or not.
-
 		$check_ols_console_status = $this->is_ols_console_enabled( $id );
-
-		$actions['ols-console-header-main'] = array(
-			'label'          => __( 'OpenLiteSpeed Webserver Manager Console', 'wpcd' ),
-			'type'           => 'heading',
-			'raw_attributes' => array(
-				'desc' => $this->get_field_header_desc( 1, $id ),
-			),
-		);
 
 		/* Console is enabled, show appropriate fields for that. */
 		if ( ! empty( $check_ols_console_status ) ) {
 
-			$actions['server-status-callback-data-display'] = array(
+			// get data from server record.
+			$check_ols_console_status = get_post_meta( $id, 'wpcd_wpapp_enable_ols_console', true );
+			$ols_console_username     = get_post_meta( $id, 'wpcd_wpapp_username_for_ols_console', true );
+			$ols_console_pass         = $this::decrypt( get_post_meta( $id, 'wpcd_wpapp_password_for_ols_console', true ) );
+			$ipv4                     = WPCD_SERVER()->get_ipv4_address( $id );
+			$ols_console_url          = 'https://' . $ipv4 . ':7080';
+			$launch                   = sprintf( '<a href="%s" target="_blank">', $ols_console_url ) . __( 'View Console', 'wpcd' ) . '</a>';
+
+			// classes to wrap around the data.
+			$css_styles_start = '<div class="wpcd_push_data_value_item wpcd_server_status_push_data_value_item">';
+			$css_styles_end   = '</div>';
+
+			/**
+			 * Display Console Enabled Flag.
+			 */
+
+			$actions[] = wpcd_start_one_third_card( $this->get_tab_slug() ); // Start new card.
+
+			$actions['ols-console-enabled-header'] = array(
+				'label'          => __( 'Console Enabled?', 'wpcd' ),
+				'type'           => 'heading',
+				'raw_attributes' => array(
+					'desc' => '',
+				),
+			);
+
+			$actions['ols-console-enabled-value'] = array(
 				'type'           => 'custom_html',
 				'label'          => '',
 				'raw_attributes' => array(
-					'std' => $this->get_ols_console_enable_details( $id ),
+					'std' => $css_styles_start . esc_html( $check_ols_console_status ) . $css_styles_end,
 				),
 			);
+
+			$actions[] = wpcd_end_card( $this->get_tab_slug() ); // Close up prior card.
+
+			/**
+			 * Display link to launch ols.
+			 */
+
+			$actions[] = wpcd_start_one_third_card( $this->get_tab_slug() ); // Start new card.
+
+			$actions['ols-console-launch-header'] = array(
+				'label'          => __( 'View Console', 'wpcd' ),
+				'type'           => 'heading',
+				'raw_attributes' => array(
+					'desc' => '',
+				),
+			);
+
+			$actions['ols-console-launch-value'] = array(
+				'type'           => 'custom_html',
+				'label'          => '',
+				'raw_attributes' => array(
+					'std' => $css_styles_start . wp_kses_post( $launch ) . $css_styles_end,
+				),
+			);
+
+			$actions[] = wpcd_end_card( $this->get_tab_slug() ); // Close up prior card.
+
+			/**
+			 * Show Credentials
+			 */
+
+			$actions[] = wpcd_start_one_third_card( $this->get_tab_slug() ); // Start new card.
+
+			$actions['ols-console-show-credentials'] = array(
+				'label'          => __( 'Credentials', 'wpcd' ),
+				'type'           => 'heading',
+				'raw_attributes' => array(
+					'desc' => '',
+				),
+			);
+
+			$actions[] = array(
+				'label'          => '',
+				'type'           => 'custom_html',
+				'raw_attributes' => array(
+					'std' => __( 'User Id: ', 'wpcd' ) . wpcd_wrap_clipboard_copy( $ols_console_username, false ) . '<br />' . __( 'Password: ', 'wpcd' ) . wpcd_wrap_clipboard_copy( $ols_console_pass, false ),
+				),
+			);
+
+			$actions[] = wpcd_end_card( $this->get_tab_slug() ); // Close up prior card.
+
 		}
 
 		if ( empty( $check_ols_console_status ) ) {
 			/* Console is disabled, show appropriate fields for that. */
+			$actions[] = wpcd_start_half_card( $this->get_tab_slug() ); // Start new card.
+
+			$actions['ols-console-header-main'] = array(
+				'label'          => __( 'OpenLiteSpeed Webserver Manager Console', 'wpcd' ),
+				'type'           => 'heading',
+				'raw_attributes' => array(
+					'desc' => $this->get_field_header_desc( 1, $id ),
+				),
+			);
 
 			$actions['username-for-ols-console'] = array(
 				'label'          => __( 'User Name', 'wpcd' ),
 				'type'           => 'text',
 				'raw_attributes' => array(
 					'desc'           => '',
-					'std'            => '',
+					'std'            => wpcd_generate_alpha_numeric_string( 12 ),
 					// the key of the field (the key goes in the request).
 					'data-wpcd-name' => 'username_for_ols_console',
 					'spellcheck'     => 'false',
@@ -234,7 +311,7 @@ class WPCD_WORDPRESS_TABS_SERVER_OLS_CONSOLE extends WPCD_WORDPRESS_TABS {
 				'type'           => 'password',
 				'raw_attributes' => array(
 					'desc'           => '',
-					'std'            => '',
+					'std'            => wpcd_generate_default_password(),
 					// the key of the field (the key goes in the request).
 					'data-wpcd-name' => 'password_for_ols_console',
 					'spellcheck'     => 'false',
@@ -253,9 +330,13 @@ class WPCD_WORDPRESS_TABS_SERVER_OLS_CONSOLE extends WPCD_WORDPRESS_TABS {
 				'type'           => 'button',
 			);
 
+			$actions[] = wpcd_end_card( $this->get_tab_slug() ); // Close up prior card.
+
 		} else {
 
 			/* Console is enabled, show additional appropriate fields for that. */
+			$actions[] = wpcd_start_one_third_card( $this->get_tab_slug() ); // Start new card.
+
 			$actions['disable-ols-console-header'] = array(
 				'label' => __( 'Disable The OpenLiteSpeed Webserver Manager Console', 'wpcd' ),
 				'type'  => 'heading',
@@ -271,6 +352,8 @@ class WPCD_WORDPRESS_TABS_SERVER_OLS_CONSOLE extends WPCD_WORDPRESS_TABS {
 				),
 				'type'           => 'button',
 			);
+
+			$actions[] = wpcd_end_card( $this->get_tab_slug() ); // Close up prior card.
 
 		}
 

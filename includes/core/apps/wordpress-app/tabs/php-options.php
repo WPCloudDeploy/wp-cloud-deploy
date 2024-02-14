@@ -610,7 +610,7 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 	private function get_php_workers_fields( $id ) {
 
 		// Start new card.
-		$actions[] = wpcd_start_full_card( $this->get_tab_slug() );
+		$actions[] = wpcd_start_half_card( $this->get_tab_slug() );
 
 		if ( ! $this->wpcd_wpapp_user_can_change_php_advanced_options( $id ) ) {
 			return array();
@@ -657,7 +657,7 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 					'ondemand' => __( 'On Demand', 'wpcd' ),
 				),
 				'std'            => $pm['pm'],
-				'columns'        => 3,
+				'columns'        => 6,
 				// the key of the field (the key goes in the request).
 				'data-wpcd-name' => 'pm',
 			),
@@ -668,7 +668,8 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 			'type'           => 'number',
 			'raw_attributes' => array(
 				'std'            => $pm['pm_max_children'],
-				'columns'        => 3,              // the key of the field (the key goes in the request).
+				'columns'        => 6,
+				// the key of the field (the key goes in the request).
 				'data-wpcd-name' => 'pm_max_children',
 			),
 		);
@@ -678,7 +679,8 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 			'type'           => 'number',
 			'raw_attributes' => array(
 				'std'            => $pm['pm_start_servers'],
-				'columns'        => 3,              // the key of the field (the key goes in the request).
+				'columns'        => 6,
+				// the key of the field (the key goes in the request).
 				'data-wpcd-name' => 'pm_start_servers',
 			),
 		);
@@ -688,7 +690,8 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 			'type'           => 'number',
 			'raw_attributes' => array(
 				'std'            => $pm['pm_min_spare_servers'],
-				'columns'        => 3,              // the key of the field (the key goes in the request).
+				'columns'        => 6,
+				// the key of the field (the key goes in the request).
 				'data-wpcd-name' => 'pm_min_spare_servers',
 			),
 		);
@@ -698,7 +701,8 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 			'type'           => 'number',
 			'raw_attributes' => array(
 				'std'            => $pm['pm_max_spare_servers'],
-				'columns'        => 3,              // the key of the field (the key goes in the request).
+				'columns'        => 6,
+				// the key of the field (the key goes in the request).
 				'data-wpcd-name' => 'pm_max_spare_servers',
 			),
 		);
@@ -709,8 +713,9 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 				/* Translators: %s is a fontawesome or similar icon. */
 				'std'                 => wpcd_apply_change_icon( __( '%s Update', 'wpcd' ) ),
 				'confirmation_prompt' => $confirmation_prompt,
-				'columns'             => 5,                 // fields that contribute data for this action.
-				'data-wpcd-fields'    => json_encode(
+				'columns'             => 6,
+				// fields that contribute data for this action.
+				'data-wpcd-fields'    => wp_json_encode(
 					array(
 						'#wpcd_app_action_change-php-workers-pm-value',
 						'#wpcd_app_action_change-php-workers-pm-max-children',

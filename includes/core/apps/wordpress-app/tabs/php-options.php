@@ -256,7 +256,8 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 		$confirmation_prompt = __( 'Are you sure you would like to restart the PHP service for this site??', 'wpcd' );
 
 		$actions['restart-php-header'] = array(
-			'label'          => __( 'Restart PHP Service', 'wpcd' ),
+			/* Translators: %s is a fontawesome or similar icon. */
+			'label'          => wpcd_apply_restart_icon( __( '%s Restart PHP Service', 'wpcd' ) ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
 				'desc' => $desc,
@@ -266,7 +267,8 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 		$actions['restart-php-service'] = array(
 			'label'          => '',
 			'raw_attributes' => array(
-				'std'                 => __( 'Restart', 'wpcd' ),
+				/* Translators: %s is a fontawesome or similar icon. */
+				'std'                 => wpcd_apply_restart_icon( __( '%s Restart', 'wpcd' ) ),
 				'confirmation_prompt' => $confirmation_prompt,
 			),
 			'type'           => 'button',
@@ -307,7 +309,8 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 		$desc = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
 
 		$actions['change-php-version-header'] = array(
-			'label'          => __( 'Change PHP Version', 'wpcd' ),
+			/* Translators: %s is a fontawesome or similar icon. */
+			'label'          => wpcd_apply_php_icon( __( '%s Change PHP Version', 'wpcd' ) ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
 				'desc' => $desc,
@@ -340,7 +343,7 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 
 		$actions['change-php-version-new-version'] = array(
 			'label'          => __( 'PHP Version', 'wpcd' ),
-			'desc'           => __( 'Set your PHP version', 'wpcd' ),
+			'desc'           => '',
 			'type'           => 'select',
 			'raw_attributes' => array(
 				'options'        => $php_select_options,
@@ -353,7 +356,8 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 		$actions['change-php-version'] = array(
 			'label'          => '',
 			'raw_attributes' => array(
-				'std'                 => __( 'Change PHP Version', 'wpcd' ),
+				/* Translators: %s is a fontawesome or similar icon. */
+				'std'                 => wpcd_apply_change_icon( __( '%s Change PHP Version', 'wpcd' ) ),
 				'confirmation_prompt' => $confirmation_prompt,
 				// fields that contribute data for this action.
 				'data-wpcd-fields'    => json_encode( array( '#wpcd_app_action_change-php-version-new-version' ) ),
@@ -387,7 +391,8 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 		$desc = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
 
 		$actions['change-php-common-options-header'] = array(
-			'label'          => __( 'Add Or Update Some Common PHP Options', 'wpcd' ),
+			/* Translators: %s is a fontawesome or similar icon. */
+			'label'          => wpcd_apply_change_icon( __( '%s Add Or Update Some Common PHP Options', 'wpcd' ) ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
 				'desc' => $desc,
@@ -402,7 +407,7 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 				'type'           => 'select',
 				'raw_attributes' => array(
 					'options'        => $this->get_common_php_options_list(),
-					'desc'           => __( 'Select a common PHP option to add or change', 'wpcd' ),
+					'desc'           => '',
 					// the key of the field (the key goes in the request).
 					'data-wpcd-name' => 'php_common_option_to_set',
 				),
@@ -412,7 +417,8 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 				'label'          => __( 'Enter a value for the option', 'wpcd' ),
 				'type'           => 'text',
 				'raw_attributes' => array(
-					'desc'           => __( 'Make sure you set a VALID value for the option - we do not validate your input before sending it on to the server!', 'wpcd' ),
+					/* Translators: %s is a fontawesome or similar icon. */
+					'desc'           => wpcd_apply_warning_icon( __( '%s Make sure you set a VALID value for the option - we do not validate your input before sending it on to the server!', 'wpcd' ) ),
 					// the key of the field (the key goes in the request).
 					'data-wpcd-name' => 'php_common_option_value',
 				),
@@ -421,7 +427,8 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 			$actions['change-php-common-options'] = array(
 				'label'          => '',
 				'raw_attributes' => array(
-					'std'                 => __( 'Set the selected option', 'wpcd' ),
+					/* Translators: %s is a fontawesome or similar icon. */
+					'std'                 => wpcd_apply_install_icon( __( '%s Set the selected option', 'wpcd' ) ),
 					'confirmation_prompt' => $confirmation_prompt,                  // fields that contribute data for this action.
 					'data-wpcd-fields'    => json_encode( array( '#wpcd_app_action_change-php-common-options-select', '#wpcd_app_action_change-php-common-options-value' ) ),
 				),
@@ -444,12 +451,16 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 		// Start new card.
 		$actions[] = wpcd_start_half_card( $this->get_tab_slug() );
 
+		$custom_options_desc = __( 'Here are the custom PHP options currently set for this site.', 'wpcd' );
+		$custom_options_desc = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $custom_options_desc );
+
 		/* Fields to show existing options that the user has set */
 		$actions['change-php-common-existing-header'] = array(
-			'label'          => __( 'Existing Options', 'wpcd' ),
+			/* Translators: %s is a fontawesome or similar icon. */
+			'label'          => wpcd_apply_php_icon( __( '%s Existing Options', 'wpcd' ) ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
-				'desc' => __( 'Here are the custom PHP options currently set for this site.', 'wpcd' ),
+				'desc' => $custom_options_desc,
 			),
 		);
 
@@ -457,7 +468,8 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 		$customhtml   = '';
 		$saved_values = wpcd_maybe_unserialize( get_post_meta( $id, 'wpapp_php_custom_options', true ) );
 		if ( empty( $saved_values ) || ( ! is_array( $saved_values ) ) ) {
-			$customhtml = '<p>' . __( 'No common or custom php values have been set for this site.', 'wpcd' ) . '</p>';
+			/* Translators: %s is a fontawesome or similar icon. */
+			$customhtml = '<p>' . wpcd_apply_x_icon( __( '%s No common or custom php values have been set for this site.', 'wpcd' ) ) . '</p>';
 		} else {
 			// At least one value was set in the past so lets loop through the array and construct the html.
 			foreach ( $saved_values as $key => $value ) {
@@ -466,7 +478,7 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 		}
 
 		$actions['change-php-common-existing-values'] = array(
-			'label'          => __( 'Existing Options', 'wpcd' ),
+			'label'          => '',
 			'type'           => 'custom_html',
 			'raw_attributes' => array(
 				'std' => $customhtml,
@@ -529,7 +541,8 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 		$desc = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
 
 		$actions['change-php-advanced-options-header'] = array(
-			'label'          => __( '[Danger Zone] Add Or Update a PHP Option', 'wpcd' ),
+			/* Translators: %s is a fontawesome or similar icon. */
+			'label'          => wpcd_apply_change_icon( __( '%s [Danger Zone] Add Or Update a PHP Option', 'wpcd' ) ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
 				'desc' => $desc,
@@ -552,7 +565,8 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 				'label'          => __( 'Enter a value for the option', 'wpcd' ),
 				'type'           => 'text',
 				'raw_attributes' => array(
-					'desc'           => __( 'Make sure you set a VALID value for the option - we do not validate your input before sending it on to the server!', 'wpcd' ),
+					/* Translators: %s is a fontawesome or similar icon. */
+					'desc'           => wpcd_apply_warning_icon( __( ' %s Make sure you set a VALID value for the option - we do not validate your input before sending it on to the server!', 'wpcd' ) ),
 					// the key of the field (the key goes in the request).
 					'data-wpcd-name' => 'php_advanced_option_value',
 				),
@@ -561,7 +575,8 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 			$actions['change-php-advanced-options'] = array(
 				'label'          => '',
 				'raw_attributes' => array(
-					'std'                 => __( 'Set the selected option', 'wpcd' ),
+					/* Translators: %s is a fontawesome or similar icon. */
+					'std'                 => wpcd_apply_install_icon( __( '%s Set the selected option', 'wpcd' ) ),
 					'confirmation_prompt' => $confirmation_prompt,                  // fields that contribute data for this action.
 					'data-wpcd-fields'    => json_encode( array( '#wpcd_app_action_change-php-advanced-options-item', '#wpcd_app_action_change-php-advanced-options-value' ) ),
 				),
@@ -613,7 +628,8 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 		$confirmation_prompt = __( 'Are you sure you would like to update your PHP Workers? If you set these values incorrectly, your server will NOT restart!', 'wpcd' );
 
 		$actions['change-php-workers-fields-header'] = array(
-			'label'          => __( '[Danger Zone] PHP Workers', 'wpcd' ),
+			/* Translators: %s is a fontawesome or similar icon. */
+			'label'          => wpcd_apply_php_icon( __( '%s [Danger Zone] PHP Workers', 'wpcd' ) ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
 				'desc' => __( 'Use this section to update the PHP Workers values used for this site. Note: Incorrect values in this section can break your site by preventing the PHP service from restarting.', 'wpcd' ),
@@ -690,7 +706,8 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 		$actions['change-php-workers-pm'] = array(
 			'label'          => __( 'Apply Changes', 'wpcd' ),
 			'raw_attributes' => array(
-				'std'                 => __( 'Update', 'wpcd' ),
+				/* Translators: %s is a fontawesome or similar icon. */
+				'std'                 => wpcd_apply_change_icon( __( '%s Update', 'wpcd' ) ),
 				'confirmation_prompt' => $confirmation_prompt,
 				'columns'             => 5,                 // fields that contribute data for this action.
 				'data-wpcd-fields'    => json_encode(

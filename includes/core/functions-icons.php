@@ -292,6 +292,19 @@ function wpcd_apply_warning_icon( $label ) {
  *
  * @param string $label The string where the icon needs to be applied.  It needs to have at least on placeholder in it (eg: '%s Restart' ).
  */
+function wpcd_apply_danger_icon( $label ) {
+
+	return sprintf( $label, '<i class="fa-duotone fa-skull-crossbones"></i> ' );
+
+}
+
+/**
+ * Returns a string with a fontawesome icon inserted.
+ *
+ * @since 5.7.
+ *
+ * @param string $label The string where the icon needs to be applied.  It needs to have at least on placeholder in it (eg: '%s Restart' ).
+ */
 function wpcd_apply_checkmark_icon( $label ) {
 
 	return sprintf( $label, '<i class="fa-duotone fa-square-check"></i> ' );
@@ -308,6 +321,45 @@ function wpcd_apply_checkmark_icon( $label ) {
 function wpcd_apply_x_icon( $label ) {
 
 	return sprintf( $label, '<i class="fa-duotone fa-square-xmark"></i> ' );
+
+}
+
+/**
+ * Returns a string with a fontawesome icon inserted.
+ *
+ * @since 5.7.
+ *
+ * @param string $label The string where the icon needs to be applied.  It needs to have at least on placeholder in it (eg: '%s Restart' ).
+ */
+function wpcd_apply_change_icon( $label ) {
+
+	return sprintf( $label, '<i class="fa-duotone fa-swap-arrows"></i> ' );
+
+}
+
+/**
+ * Returns a string with a fontawesome icon inserted.
+ *
+ * @since 5.7.
+ *
+ * @param string $label The string where the icon needs to be applied.  It needs to have at least on placeholder in it (eg: '%s Restart' ).
+ */
+function wpcd_apply_change_code_icon( $label ) {
+
+	return sprintf( $label, '<i class="fa-duotone fa-code-pull-request"></i> ' );
+
+}
+
+/**
+ * Returns a string with a fontawesome icon inserted.
+ *
+ * @since 5.7.
+ *
+ * @param string $label The string where the icon needs to be applied.  It needs to have at least on placeholder in it (eg: '%s Restart' ).
+ */
+function wpcd_apply_php_icon( $label ) {
+
+	return sprintf( $label, '<i class="fa-brands fa-php"></i> ' );
 
 }
 

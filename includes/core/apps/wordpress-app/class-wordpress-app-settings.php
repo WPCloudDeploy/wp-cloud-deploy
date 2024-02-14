@@ -1507,10 +1507,17 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tab'     => 'wordpress-app-sites',
 			),
 			array(
+				'id'      => 'wordpress_app_sites_disk_quota_enable_http_auth',
+				'type'    => 'checkbox',
+				'name'    => __( 'Password Protect Site (HTTP AUTH) When Quota Exceeded?', 'wpcd' ),
+				'tooltip' => __( 'This option will place a password popup before visitors can view it. Only an admin will be able to remove this protection.  Do not enable this option with the DISABLE option below - they do not work well together!', 'wpcd' ),
+				'tab'     => 'wordpress-app-sites',
+			),
+			array(
 				'id'      => 'wordpress_app_sites_disk_quota_disable_site',
 				'type'    => 'checkbox',
 				'name'    => __( 'Disable Site When Quota Exceeded?', 'wpcd' ),
-				'tooltip' => __( 'Disabling a site will prevent visitors from viewing it.', 'wpcd' ),
+				'tooltip' => __( 'Disabling a site will prevent visitors from viewing it. This option is slightly different from the HTTP AUTH option above because it makes the site completely invisible to web traffic - not even a password popup.  Do not enable this option with the HTTP AUTH option above - they do not work well together!', 'wpcd' ),
 				'tab'     => 'wordpress-app-sites',
 			),
 			array(
@@ -2761,37 +2768,37 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 		 */
 		// An array of ids and labels for color fields that overide brand colors.
 		$brand_colors = array(
-			'wordpress_app_primary_brand_color'       => array(
+			'wordpress_app_primary_brand_color'            => array(
 				'label' => __( 'Primary Brand Color', 'wpcd' ),
 				'desc'  => '',
 				'std'   => WPCD_PRIMARY_BRAND_COLOR,
 			),
-			'wordpress_app_secondary_brand_color'     => array(
+			'wordpress_app_secondary_brand_color'          => array(
 				'label' => __( 'Secondary Brand Color', 'wpcd' ),
 				'desc'  => '',
 				'std'   => WPCD_SECONDARY_BRAND_COLOR,
 			),
-			'wordpress_app_tertiary_brand_color'      => array(
+			'wordpress_app_tertiary_brand_color'           => array(
 				'label' => __( 'Tertiary Brand Color', 'wpcd' ),
 				'desc'  => '',
 				'std'   => WPCD_TERTIARY_BRAND_COLOR,
 			),
-			'wordpress_app_accent_background_color'   => array(
+			'wordpress_app_accent_background_color'        => array(
 				'label' => __( 'Accent Background Color', 'wpcd' ),
 				'desc'  => '',
 				'std'   => WPCD_ACCENT_BG_COLOR,
 			),
-			'wordpress_app_medium_accent_background_color'   => array(
+			'wordpress_app_medium_accent_background_color' => array(
 				'label' => __( 'Medium Accent Background Color', 'wpcd' ),
 				'desc'  => '',
 				'std'   => WPCD_MEDIUM_ACCENT_BG_COLOR,
 			),
-			'wordpress_app_medium_background_color'   => array(
+			'wordpress_app_medium_background_color'        => array(
 				'label' => __( 'Medium Background Color', 'wpcd' ),
 				'desc'  => '',
 				'std'   => WPCD_MEDIUM_BG_COLOR,
 			),
-			'wordpress_app_light_background_color'    => array(
+			'wordpress_app_light_background_color'         => array(
 				'label' => __( 'Light Background Color', 'wpcd' ),
 				'desc'  => '',
 				'std'   => WPCD_LIGHT_BG_COLOR,
@@ -2801,27 +2808,27 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'desc'  => '',
 				'std'   => WPCD_ALTERNATE_ACCENT_BG_COLOR,
 			),
-			'wordpress_app_positive_color'            => array(
+			'wordpress_app_positive_color'                 => array(
 				'label' => __( 'Positive Color', 'wpcd' ),
 				'desc'  => __( 'Accent color used to indicate something is turned on or a good thing has occurred.', 'wpcd' ),
 				'std'   => WPCD_POSITIVE_COLOR,
 			),
-			'wordpress_app_negative_color'            => array(
+			'wordpress_app_negative_color'                 => array(
 				'label' => __( 'Negative Color', 'wpcd' ),
 				'desc'  => __( 'Accent color used to indicate something is turned off or a bad thing has occurred.', 'wpcd' ),
 				'std'   => WPCD_NEGATIVE_COLOR,
 			),
-			'wordpress_app_terminal_background_color' => array(
+			'wordpress_app_terminal_background_color'      => array(
 				'label' => __( 'Background Color for Terminal', 'wpcd' ),
 				'desc'  => __( 'Background color for our terminal display.', 'wpcd' ),
 				'std'   => WPCD_TERMINAL_BG_COLOR,
 			),
-			'wordpress_app_terminal_foreground_color' => array(
+			'wordpress_app_terminal_foreground_color'      => array(
 				'label' => __( 'Foreground Color for Terminal', 'wpcd' ),
 				'desc'  => __( 'Color of the text used in our terminal display.', 'wpcd' ),
 				'std'   => WPCD_TERMINAL_FG_COLOR,
 			),
-			'wordpress_app_white_color' => array(
+			'wordpress_app_white_color'                    => array(
 				'label' => __( 'White', 'wpcd' ),
 				'desc'  => __( 'White', 'wpcd' ),
 				'std'   => WPCD_WHITE_COLOR,
@@ -2907,7 +2914,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'desc'  => __( 'Accent color used to indicate something is turned off or a bad thing has occurred.', 'wpcd' ),
 				'std'   => WPCD_FE_NEGATIVE_COLOR,
 			),
-			'wordpress_app_fe_white_color'          => array(
+			'wordpress_app_fe_white_color'             => array(
 				'label' => __( 'White', 'wpcd' ),
 				'desc'  => __( 'Wite.', 'wpcd' ),
 				'std'   => WPCD_FE_WHITE_COLOR,

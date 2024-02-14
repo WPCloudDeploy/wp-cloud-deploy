@@ -408,6 +408,14 @@ trait wpcd_wpapp_push_commands {
 				}
 			}
 
+			// Maybe apply http authentication to the site. But only do it if the site is enabled - this way we don't try to apply config settings to a file that might not exist.
+			if ( boolval( wpcd_get_option( 'wordpress_app_sites_disk_quota_enable_http_auth' ) ) ) {
+				if ( 'on' === $this->site_status( $app_id ) ) {
+					do_action( 'wpcd_wordpress-app_do_site_enable_http_auth', $app_id );
+					do_action( 'wpcd_log_notification', $app_id, 'alert', __( 'This site is being password protected because the disk quota has been exceeded.', 'wpcd' ), 'quotas', null );
+				}
+			}
+
 			// Maybe apply an admin lock to the site. But only do it if the site has not already in that state.
 			if ( boolval( wpcd_get_option( 'wordpress_app_sites_disk_quota_admin_lock_site' ) ) ) {
 				if ( ! $this->get_admin_lock_status( $app_id ) ) {

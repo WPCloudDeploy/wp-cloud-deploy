@@ -664,18 +664,6 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 				'type'           => 'button',
 			);
 
-			if ( wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ) {
-				$actions['redis-desc'] = array(
-					'label'          => __( 'Notes', 'wpcd' ),
-					'raw_attributes' => array(
-						'std'     => __( '', 'wpcd' ),
-						'desc'    => __( 'Clearing the cache clears it for all sites on this server.', 'wpcd' ),
-						'columns' => 5,
-					),
-					'type'           => 'custom_html',
-				);
-			}
-
 			$actions['redis-divider-before-remove-option'] = array(
 				'raw_attributes' => array(
 					'std' => '<hr/>',
@@ -1095,18 +1083,6 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 				),
 				'type'           => 'button',
 			);
-
-			if ( wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ) {
-				$actions['memcached-desc'] = array(
-					'label'          => __( 'Notes', 'wpcd' ),
-					'raw_attributes' => array(
-						'std'     => '',
-						'desc'    => __( 'Clearing the cache clears it for all sites on this server.', 'wpcd' ),
-						'columns' => 5,
-					),
-					'type'           => 'custom_html',
-				);
-			};
 
 			$actions['memcached-divider-before-remove-option'] = array(
 				'raw_attributes' => array(

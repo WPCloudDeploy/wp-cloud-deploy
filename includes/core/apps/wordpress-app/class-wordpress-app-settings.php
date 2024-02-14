@@ -1186,13 +1186,6 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tab'     => 'wordpress-app-general-wpadmin',
 			),
 			array(
-				'id'      => 'wordpress_app_show_notes_on_server_services_tab',
-				'type'    => 'checkbox',
-				'name'    => __( 'Show Notes Column On Services Tab?', 'wpcd' ),
-				'tooltip' => __( 'On the services tab we can show a notes column that indicates what the services are used for. Check this box to add that column.', 'wpcd' ),
-				'tab'     => 'wordpress-app-general-wpadmin',
-			),
-			array(
 				'id'      => 'wordpress_app_enable_bulk_delete_on_server_when_delete_protected',
 				'type'    => 'checkbox',
 				'name'    => __( 'Enable Bulk Trash Action for Deleted-protected Servers [Danger]', 'wpcd' ),

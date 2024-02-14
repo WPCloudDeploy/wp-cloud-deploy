@@ -50,3 +50,113 @@ function wpcd_apply_calendar_icon( $label ) {
 	return sprintf( $label, '<i class="fa-duotone fa-calendar-days"></i> ' );
 
 }
+
+/**
+ * Returns a string with a fontawesome icon inserted.
+ *
+ * @since 5.7.
+ *
+ * @param string $label The string where the icon needs to be applied.  It needs to have at least on placeholder in it (eg: '%s Restart' ).
+ */
+function wpcd_apply_phone_icon( $label ) {
+
+	return sprintf( $label, '<i class="fa-duotone fa-phone-office"></i> ' );
+
+}
+
+/**
+ * Returns a string with a fontawesome icon inserted.
+ *
+ * @since 5.7.
+ *
+ * @param string $label The string where the icon needs to be applied.  It needs to have at least on placeholder in it (eg: '%s Restart' ).
+ */
+function wpcd_apply_trash_icon( $label ) {
+
+	return sprintf( $label, '<i class="fa-solid fa-trash-xmark"></i> ' );
+
+}
+
+/**
+ * Returns a string with a fontawesome icon inserted.
+ *
+ * @since 5.7.
+ *
+ * @param string $label The string where the icon needs to be applied.  It needs to have at least on placeholder in it (eg: '%s Restart' ).
+ */
+function wpcd_apply_erase_icon( $label ) {
+
+	return sprintf( $label, '<i class="fa-duotone fa-eraser"></i> ' );
+
+}
+
+/**
+ * Returns a string with a fontawesome icon inserted.
+ *
+ * @since 5.7.
+ *
+ * @param string $label The string where the icon needs to be applied.  It needs to have at least on placeholder in it (eg: '%s Restart' ).
+ */
+function wpcd_apply_uninstall_icon( $label ) {
+
+	return sprintf( $label, '<i class="fa-solid fa-trash-can-slash"></i> ' );
+
+}
+
+/**
+ * Returns a string with a fontawesome icon inserted.
+ *
+ * @since 5.7.
+ *
+ * @param string $label The string where the icon needs to be applied.  It needs to have at least on placeholder in it (eg: '%s Restart' ).
+ */
+function wpcd_apply_install_icon( $label ) {
+
+	return sprintf( $label, '<i class="fa-solid fa-grid-2-plus"></i> ' );
+
+}
+
+/**
+ * Returns a string with a fontawesome icon inserted.
+ *
+ * @since 5.7.
+ *
+ * @param string $label The string where the icon needs to be applied.  It needs to have at least on placeholder in it (eg: '%s Restart' ).
+ */
+function wpcd_apply_virus_icon( $label ) {
+
+	return sprintf( $label, '<i class="fa-duotone fa-virus-slash"></i> ' );
+
+}
+
+/**
+ * Returns a string with a fontawesome icon inserted.
+ *
+ * @since 5.7.
+ *
+ * @param string $label The string where the icon needs to be applied.  It needs to have at least on placeholder in it (eg: '%s Restart' ).
+ */
+function wpcd_apply_updates_icon( $label ) {
+
+	return sprintf( $label, '<i class="fa-duotone fa-road-spikes"></i> ' );
+
+}
+
+/**
+ * Returns a string with a fontawesome icon inserted.
+ *
+ * @since 5.7.
+ *
+ * @param string $label The string where the icon needs to be applied.  It needs to have at least on placeholder in it (eg: '%s Restart' ).
+ */
+function wpcd_apply_run_icon( $label ) {
+
+	return sprintf( $label, '<i class="fa-duotone fa-person-running-fast"></i> ' );
+
+}
+
+
+
+
+
+

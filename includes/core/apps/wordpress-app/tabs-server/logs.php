@@ -160,6 +160,12 @@ class WPCD_WORDPRESS_TABS_SERVER_LOGS extends WPCD_WORDPRESS_TABS {
 		/* Array variable to hold our field definitions */
 		$actions = array();
 
+		/**
+		 * Manage Server Logs
+		 */
+
+		$actions[] = wpcd_start_half_card( $this->get_tab_slug() ); // Start new card.
+
 		// manage server logs heading.
 		$desc = __( 'Download various log files for this site.', 'wpcd' );
 
@@ -200,6 +206,14 @@ class WPCD_WORDPRESS_TABS_SERVER_LOGS extends WPCD_WORDPRESS_TABS {
 			),
 		);
 
+		$actions[] = wpcd_end_card( $this->get_tab_slug() ); // Close up prior card.
+
+		/**
+		 * Server logs warning.
+		 */
+
+		$actions[] = wpcd_start_half_card( $this->get_tab_slug() ); // Start new card.
+
 		$actions['server-logs-warning-header'] = array(
 			'label'          => __( 'Warning', 'wpcd' ),
 			'type'           => 'heading',
@@ -208,6 +222,8 @@ class WPCD_WORDPRESS_TABS_SERVER_LOGS extends WPCD_WORDPRESS_TABS {
 			),
 
 		);
+
+		$actions[] = wpcd_end_card( $this->get_tab_slug() ); // Close up prior card.
 
 		return $actions;
 

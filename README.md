@@ -133,13 +133,21 @@ Note: Even though the entire git development history isn't available on github, 
 * Tweak: WPAPP - Updated HELP & FAQ links.
 * Tweak: WPAPP - Updated WP Version list.
 * Tweak: WPAPP - Add option to upgrade WPCLI to 2.10.0.
+* Tweak: WPAPP - Pre-generate user id and password for filemanager.
+* Tweak: WPAPP - Update netdata script to pull installation files from new netdata urls.
+* Tweak: WPAPP - Lots of tweaks to colors to make sure they more cleanly separate between front-end and wp-admin.
+* Tweak: WPAPP - Introduce new "WHITE" color setting.
+* Tweak: WPAPP - Click-to-copy user id and password on MONITORIX tab.
+* Tweak: WPAPP - Click-to-copy user id and password on GOACCESS tab.
 * Fix: WPAPP - Missing default $in_args for change_php_workers (Thanks @batonac)
 * Fix: WPAPP - Remove an errant error_log statement.
 * Fix: WPAPP - Prevent WPCD from registering a site twice on the Logtivity service.
+* Fix: WPAPP - The sftp tab was not respecting the site disabled flag.
+* Fix: WPAPP - Enabling or disabling a site would not refresh the page. User would have to manually refresh to see new status.
 * Dev: WPAPP - Add filter to the base WooCommerce class: wpcd_get_unique_products_on_order
 * Dev: WPAPP - Add filter to the base WooCommerce class: wpcd_does_order_contain_item_of_type
 * Dev: WPAPP - Add filter to the base WooCommerce class: wpcd_does_order_suppress_thank_you_notice
-* Dev: Default allowed_classes to false in the wpcd_maybe_unserialize() function.
+* Dev: Default allowed_classes to false in the wpcd_maybe_unserialize() function. There's no need to unserialize objects by default so setting this to false reduces the attack surface.
 * Dev: Upgrade metabox modules to latest versions.
 
 5.6.0

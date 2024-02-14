@@ -63,11 +63,12 @@ class WPCD_Init {
 			define( 'WPCD_TERTIARY_BRAND_COLOR', '#03114A' );
 			define( 'WPCD_ACCENT_BG_COLOR', '#0d091a' );
 			define( 'WPCD_MEDIUM_ACCENT_BG_COLOR', '#D3D3D3' );
-			define( 'WPCD_MEDIUM_BG_COLOR', '#FAFAFA' );
+			define( 'WPCD_MEDIUM_BG_COLOR', '#F3F3F5' );
 			define( 'WPCD_LIGHT_BG_COLOR', '#FDFDFD' );
 			define( 'WPCD_ALTERNATE_ACCENT_BG_COLOR', '#CFD8DC' );
 			define( 'WPCD_POSITIVE_COLOR', '#008000' );
 			define( 'WPCD_NEGATIVE_COLOR', '#8B0000' );
+			define( 'WPCD_WHITE_COLOR', '#ffffff' );
 			define( 'WPCD_TERMINAL_BG_COLOR', '#000000' );
 			define( 'WPCD_TERMINAL_FG_COLOR', '#ffffff' );
 
@@ -77,11 +78,12 @@ class WPCD_Init {
 			define( 'WPCD_FE_TERTIARY_BRAND_COLOR', '#03114A' );
 			define( 'WPCD_FE_ACCENT_BG_COLOR', '#0d091a' );
 			define( 'WPCD_FE_MEDIUM_ACCENT_BG_COLOR', '#D3D3D3' );
-			define( 'WPCD_FE_MEDIUM_BG_COLOR', '#FAFAFA' );
+			define( 'WPCD_FE_MEDIUM_BG_COLOR', '#F3F3F5' );
 			define( 'WPCD_FE_LIGHT_BG_COLOR', '#FDFDFD' );
 			define( 'WPCD_FE_ALTERNATE_ACCENT_BG_COLOR', '#CFD8DC' );
 			define( 'WPCD_FE_POSITIVE_COLOR', '#008000' );
 			define( 'WPCD_FE_NEGATIVE_COLOR', '#8B0000' );
+			define( 'WPCD_FE_WHITE_COLOR', '#ffffff' );
 
 			// Define a variable that can be used for versioning scripts - required to force multisite to use different version numbers for each site.
 			if ( is_multisite() ) {
@@ -189,6 +191,7 @@ class WPCD_Init {
 		require_once wpcd_path . 'includes/core/class-wpcd-posts-permission-type.php';
 		require_once wpcd_path . 'includes/core/class-wpcd-dns.php';
 		require_once wpcd_path . 'includes/core/functions.php';
+		require_once wpcd_path . 'includes/core/functions-metabox.php';
 
 		if ( defined( 'WPCD_LOAD_VPN_APP' ) && ( true === WPCD_LOAD_VPN_APP ) ) {
 			require_once wpcd_path . 'includes/core/apps/vpn/class-vpn-app.php';
@@ -379,6 +382,9 @@ class WPCD_Init {
 		require_once wpcd_path . '/required_plugins/mb-user-meta/mb-user-meta.php';
 		require_once wpcd_path . '/required_plugins/mb-custom-table/mb-custom-table.php';
 
+		/* Include custom metabox.io fields we created. */
+		require_once wpcd_path . 'includes/core/metabox-io-custom-fields/wpcd-card-container-field.php';
+
 		/* Load up some licensing files. */
 		if ( true === is_admin() ) {
 			require_once WPCD_PATH . '/includes/vendor/WPCD_EDD_SL_Plugin_Updater.php';
@@ -387,6 +393,7 @@ class WPCD_Init {
 
 		/* Load up our files */
 		require_once wpcd_path . 'includes/core/functions.php';
+		require_once wpcd_path . 'includes/core/functions-metabox.php';
 		require_once wpcd_path . 'includes/core/class-wpcd-custom-fields.php';
 		require_once wpcd_path . 'includes/core/class-wpcd-roles-capabilities.php';
 		require_once wpcd_path . 'includes/core/class-wpcd-data-sync-rest.php';

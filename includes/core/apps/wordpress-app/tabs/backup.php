@@ -425,7 +425,12 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 			return array_merge( $fields, $this->get_disabled_header_field( 'backup' ) );
 		}
 
-		// run backup manually.
+		/**
+		 * Run backup manually.
+		 */
+
+		$fields[] = wpcd_start_half_card( $this->get_tab_slug() ); // Start new card.
+
 		$fields[] = array(
 			'name' => __( 'Take a Manual Backup - This Site Only', 'wpcd' ),
 			'desc' => __( 'Start a backup for this site right now!', 'wpcd' ),
@@ -458,10 +463,10 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 				// the _action that will be called in ajax.
 				'data-wpcd-action'              => 'backup-run-manual',
 				// fields that contribute data for this action.
-				'data-wpcd-fields'              => json_encode( array( '#wpcd_app_aws_bucket_manual_backup' ) ),                // the id.
+				'data-wpcd-fields'              => json_encode( array( '#wpcd_app_aws_bucket_manual_backup' ) ), // the id.
 				'data-wpcd-id'                  => $id,
 				// make sure we give the user a confirmation prompt.
-				'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like to start a backup now?', 'wpcd' ),              // show log console?
+				'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like to start a backup now?', 'wpcd' ), // show log console?
 				'data-show-log-console'         => true,
 				// Initial console message.
 				'data-initial-console-message'  => __( 'Preparing to start backup...<br /> Please DO NOT EXIT this screen until you see a popup message indicating that the backup has completed or has errored.<br />This terminal should refresh every 60-90 seconds with updated progress information from the server. <br /> After the backup is complete the entire log can be viewed in the COMMAND LOG screen.', 'wpcd' ),
@@ -469,6 +474,10 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 			'class'      => 'wpcd_app_action',
 			'save_field' => false,
 		);
+
+		$fields[] = wpcd_end_card( $this->get_tab_slug() ); // Close up prior card.
+
+		$fields[] = wpcd_start_half_card( $this->get_tab_slug() ); // Start new card.
 
 		// Auto backups.
 		$auto_backup_status         = get_post_meta( $id, 'wpapp_auto_backups_status', true );
@@ -492,9 +501,11 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 				'type' => 'heading',
 			);
 		} else {
+			$desc     = __( 'Enable automatic backups to run once per day for this site.  You should set up your S3 credentials in SETTINGS or on the server page and create a bucket for these backups before turning this option on!', 'wpcd' );
+			$desc     = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
 			$fields[] = array(
-				'name' => __( 'Automatic Backups - This Site Only', 'wpcd' ),
-				'desc' => __( 'Enable automatic backups to run once per day for this site.  You should set up your S3 credentials in SETTINGS or on the server page and create a bucket for these backups before turning this option on!', 'wpcd' ),
+				'name' => __( 'Automatic Daily Backups - This Site Only', 'wpcd' ),
+				'desc' => $desc,
 				'tab'  => 'backup',
 				'type' => 'heading',
 			);
@@ -505,8 +516,7 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 			// Backups are not currently enabled so we can show all fields.
 			$fields[] = array(
 				'id'         => 'wpcd_app_action_auto_backup_bucket_name',
-				'desc'       => $hide_field ? '' : __( 'If this is left blank then the global bucket name from the SETTINGS screen will be used.', 'wpcd' ),
-				'tooltip'    => $hide_field ? '' : __( 'The bucket should exist in the same region you specified for your AWS credentials.', 'wpcd' ),
+				'tooltip'    => $hide_field ? '' : __( 'If this is left blank then the global bucket name from the SETTINGS screen will be used. The bucket should exist in the same region you specified for your AWS credentials.', 'wpcd' ),
 				'tab'        => 'backup',
 				'type'       => $hide_field ? 'hidden' : 'text',
 				'name'       => $hide_field ? '' : __( 'AWS Bucket Name', 'wpcd' ),
@@ -521,7 +531,7 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 			$hide_field = (bool) wpcd_get_early_option( 'wordpress_app_site_backup_hide_retention_days' ) && ( ! wpcd_is_admin() );
 			$fields[]   = array(
 				'id'         => 'wpcd_app_action_auto_backup_retention_days',
-				'desc'       => $hide_field ? '' : __( 'If left blank or zero, the backups will never be deleted. If set to -1, we will NEVER keep backups on disk (NOT RECOMMENDED).', 'wpcd' ),
+				'tooltip'    => $hide_field ? '' : __( 'If left blank or zero, the backups will never be deleted. If set to -1, we will NEVER keep backups on disk (NOT RECOMMENDED).', 'wpcd' ),
 				'tab'        => 'backup',
 				'type'       => $hide_field ? 'hidden' : 'number',
 				'min'        => -1,
@@ -546,7 +556,7 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 					'on'  => __( 'Enabled', 'wpcd' ),
 				),
 				'std'        => $auto_backup_delete_remotes,
-				'desc'       => $hide_field ? '' : __( 'Delete remote backups when deleting local backups that exceed the retention days. We recommend that you keep this disabled and set a low number for the retention days above.', 'wpcd' ),
+				'tooltip'    => $hide_field ? '' : __( 'Delete remote backups when deleting local backups that exceed the retention days. We recommend that you keep this disabled and set a low number for the retention days above.', 'wpcd' ),
 				'attributes' => array(
 					// the key of the field (the key goes in the request).
 					'data-wpcd-name' => 'auto_backup_delete_remotes',
@@ -577,10 +587,28 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 			'save_field' => false,
 		);
 
-		/* Start restore section */
+		$fields[] = wpcd_end_card( $this->get_tab_slug() ); // Close up prior card.
+
+		/**
+		 * Start Restore Section
+		 */
+
+		$fields[] = wpcd_start_half_card( $this->get_tab_slug() ); // Start new card.
+
+		$desc  = __( 'Use this section to restore data from your backups. Use with care - restores are a destructive operation.  You should make a backup before performing a restore.  <br />We strongly recommend that you make a snapshot of your server as well!', 'wpcd' );
+		$desc .= '<br/>';
+		$desc .= '<br/>';
+		$desc .= __( '1. Use the REFRESH BACKUP LIST button to get a current list of backups', 'wpcd' );
+		$desc .= '<br/>';
+		$desc .= __( '2. Select a site to restore from the dropdown.', 'wpcd' );
+		$desc .= '<br/>';
+		$desc .= __( '3. Choose a restore option in the SELECT RESTORE OPTION section.', 'wpcd' );
+
+		$desc = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
+
 		$fields[] = array(
-			'name' => __( 'Restores', 'wpcd' ),
-			'desc' => __( 'Use this section to restore data from your backups. Use with care - restores are a destructive operation.  You should make a backup before performing a restore.  <br />We strongly recommend that you make a snapshot of your server as well!', 'wpcd' ),
+			'name' => __( 'Select a Site to Restore From Backup', 'wpcd' ),
+			'desc' => $desc,
 			'tab'  => 'backup',
 			'type' => 'heading',
 		);
@@ -608,7 +636,6 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 			'tab'        => 'backup',
 			'type'       => 'select',
 			'std'        => __( 'Backup List', 'wpcd' ),
-			'desc'       => sprintf( __( 'The list of backups from the last REFRESH BACKUP LIST action on %s', 'wpcd' ), $backup_list_date ),
 			// fields that contribute data for this action.
 			'attributes' => array(
 				// the id.
@@ -634,8 +661,41 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 			),
 			'class'      => 'wpcd_app_action',
 			'save_field' => false,
-			'columns'    => 3,
+			'columns'    => 12,
 		);
+
+		if ( ! empty( $backup_list_date ) ) {
+			$fields[] = array(
+				'tab'  => 'backup',
+				'type' => 'custom_html',
+				'std'  => sprintf( __( 'The list of backups was last refreshed on %s.', 'wpcd' ), $backup_list_date ),
+			);
+		} else {
+			$fields[] = array(
+				'tab'  => 'backup',
+				'type' => 'custom_html',
+				'std'  => __( 'The backup list has never been retrieved. Please use the REFRESH BACKUP LIST button to get the most recent list of available backups.', 'wpcd' ),
+			);
+		}
+
+		$fields[] = wpcd_end_card( $this->get_tab_slug() ); // Close up prior card.
+
+		/**
+		 * Restore Section
+		 */
+
+		$fields[] = wpcd_start_half_card( $this->get_tab_slug() ); // Start new card.
+
+		$desc = __( '1. Use the REFRESH BACKUP LIST button to get a current list of backups 2.select a site to restore from the dropdown. 3. Choose a restore option below.', 'wpcd' );
+		$desc = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
+
+		$fields[] = array(
+			'name' => __( 'Select Restore Action', 'wpcd' ),
+			'desc' => $desc,
+			'tab'  => 'backup',
+			'type' => 'heading',
+		);
+
 		$fields[] = array(
 			'id'         => 'wpcd_app_action_restore_backup',
 			'name'       => '',
@@ -658,7 +718,7 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 			),
 			'class'      => 'wpcd_app_action',
 			'save_field' => false,
-			'columns'    => 3,
+			'columns'    => 12,
 		);
 		$fields[] = array(
 			'id'         => 'wpcd_app_action_restore_backup_webserver_config_only',
@@ -682,7 +742,7 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 			),
 			'class'      => 'wpcd_app_action',
 			'save_field' => false,
-			'columns'    => 3,
+			'columns'    => 12,
 		);
 		$fields[] = array(
 			'id'         => 'wpcd_app_action_restore_backup_wpconfig_only',
@@ -706,14 +766,23 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 			),
 			'class'      => 'wpcd_app_action',
 			'save_field' => false,
-			'columns'    => 3,
+			'columns'    => 12,
 		);
+
+		$fields[] = wpcd_end_card( $this->get_tab_slug() ); // Close up prior card.
 		/* End restore section */
 
-		/* Delete All Backups */
+		/**
+		 * Delete All Backups
+		 */
+
+		$fields[] = wpcd_start_half_card( $this->get_tab_slug() ); // Start new card.
+
+		$desc     = __( 'Manually delete local backups i.e.: backups stored on this server. Before you can use this option you must have configured backups and run the backup process at least once.', 'wpcd' );
+		$desc     = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
 		$fields[] = array(
 			'name' => __( 'Delete Backups', 'wpcd' ),
-			'desc' => __( 'Manually delete local backups i.e.: backups stored on this server. Before you can use this option you must have configured backups and run the backup process at least once.', 'wpcd' ),
+			'desc' => $desc,
 			'tab'  => 'backup',
 			'type' => 'heading',
 		);
@@ -740,14 +809,30 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 			'class'      => 'wpcd_app_action',
 			'save_field' => false,
 		);
+
+		$fields[] = wpcd_end_card( $this->get_tab_slug() ); // Close up prior card.
 		/* End Delete All Backups */
 
-		/* Manually Prune Backups */
+		/**
+		 * Prune Backups
+		 */
+
+		$fields[] = wpcd_start_half_card( $this->get_tab_slug() ); // Start new card.
+
 		$hide_prune_section = (bool) wpcd_get_early_option( 'wordpress_app_site_backup_hide_prune_backups_section' ) && ( ! wpcd_is_admin() );  // Note: If we ever decide to create action options on teams or for owners, this conditional should be removed in favor of those.
 		if ( ! $hide_prune_section ) {
+			$desc  = __( 'Delete old local backups that are stored on this server. Before you can use this option you must have configured backups and run the backup process at least once.', 'wpcd' );
+			$desc .= '<br/>';
+			$desc .= '<br/>';
+			$desc .= __( 'Backups that are stored at AWS S3 will not be deleted with this operation.', 'wpcd' );
+			$desc .= '<br/>';
+			$desc .= '<br/>';
+			$desc .= __( 'This is a one-time operation - to schedule automatic pruning please use the options under AUTOMATIC DAILY BACKUP above.', 'wpcd' );
+			$desc  = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
+
 			$fields[] = array(
 				'name' => __( 'Prune Backups', 'wpcd' ),
-				'desc' => __( 'Delete old local backups. Before you can use this option you must have configured backups and run the backup process at least once.', 'wpcd' ),
+				'desc' => $desc,
 				'tab'  => 'backup',
 				'type' => 'heading',
 			);
@@ -773,7 +858,6 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 				'tab'        => 'backup',
 				'type'       => 'button',
 				'std'        => __( 'Prune Backups For This Site', 'wpcd' ),
-				'desc'       => __( 'Prune backups for this site.  You must have set a retention interval above before this is used!', 'wpcd' ),
 				// fields that contribute data for this action.
 				'attributes' => array(
 					// the _action that will be called in ajax.
@@ -793,6 +877,8 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 			);
 		}
 		/* End Manually Prune Backups */
+
+		$fields[] = wpcd_end_card( $this->get_tab_slug() ); // Close up prior card.
 
 		return $fields;
 

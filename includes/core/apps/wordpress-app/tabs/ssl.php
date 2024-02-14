@@ -194,18 +194,23 @@ class WPCD_WORDPRESS_TABS_SSL extends WPCD_WORDPRESS_TABS {
 		// Get HTTP2 status.
 		$http2_status = $this->http2_status( $id );
 
+		// Start new card.
+		$actions[] = wpcd_start_half_card( $this->get_tab_slug() );
+
 		/* SSL */
+		$desc                         = __( 'Turning this on will result in an attempt to obtain a certificate from LETSEncrypt.  <br />If it fails, check the logs under the SSH LOG menu option. <br />Note that if you attempt to turn on SSL too many times in a row LETSEncrypt will block your domain for 7 days or more.', 'wpcd' );
+		$desc                         = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
 		$actions['ssl-status-header'] = array(
 			'name'           => '',
 			'label'          => __( 'SSL', 'wpcd' ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
-				'desc' => __( 'Manage your SSL certificates.', 'wpcd' ),
+				'desc' => $desc,
 			),
 		);
 
 		if ( 'on' <> $status ) {
-			$desc = __( 'Click to enable SSL. <br />Turning this on will result in an attempt to obtain a certificate from LETSEncrypt.  <br />If it fails, check the logs under the SSH LOG menu option. <br />Note that if you attempt to turn on SSL too many times in a row LETSEncrypt will block your domain for 7 days or more.', 'wpcd' );
+			$desc = __( 'Click to enable SSL.', 'wpcd' );
 		} else {
 			$desc = __( 'Click to disable SSL', 'wpcd' );
 		}
@@ -222,8 +227,15 @@ class WPCD_WORDPRESS_TABS_SSL extends WPCD_WORDPRESS_TABS {
 			'type'           => 'switch',
 		);
 
+		// Close up prior card.
+		$actions[] = wpcd_end_card( $this->get_tab_slug() );
+
 		/* Show SSL notes if SSL is not turned on. */
 		if ( 'on' <> $status ) {
+
+			// Start new card.
+			$actions[] = wpcd_start_half_card( $this->get_tab_slug() );
+
 			$actions['ssl-notes-heading'] = array(
 				'type'           => 'heading',
 				'label'          => __( 'Some things to be aware of before enabling SSL', 'wpcd' ),
@@ -245,10 +257,16 @@ class WPCD_WORDPRESS_TABS_SSL extends WPCD_WORDPRESS_TABS {
 					'std' => __( '2. Certain providers automatically deploy a firewall or NAT. This means that you need to manually enable HTTPS/port 443 through the NAT/FIREWALL.  Such services include AWS EC2 and AWS LIGHTSAIL.  So please make sure you enable HTTPS through the firewall before enabling SSL here. Digital Ocean, Linode and Vultr do not automatically deploy a nat/firewall so you should not encounter any issues there.', 'wpcd' ),
 				),
 			);
+
+			// Close up prior card.
+			$actions[] = wpcd_end_card( $this->get_tab_slug() );
 		}
 
 		/* If SSL is on, show HTTP 2 options */
 		if ( 'on' === $status ) {
+
+			// Start new card.
+			$actions[] = wpcd_start_half_card( $this->get_tab_slug() );
 
 			// Check multisite status and do nothing if multisite is enabled.
 			if ( 'on' <> get_post_meta( $id, 'wpapp_multisite_enabled', true ) ) {
@@ -296,7 +314,14 @@ class WPCD_WORDPRESS_TABS_SSL extends WPCD_WORDPRESS_TABS {
 				);
 
 			}
+
+			// Close up prior card.
+			$actions[] = wpcd_end_card( $this->get_tab_slug() );
+
 		}
+
+		// Start new card.
+		$actions[] = wpcd_start_half_card( $this->get_tab_slug() );
 
 		/* Advanced action to flip metas only */
 		$confirmation_prompt_meta = '';
@@ -323,6 +348,9 @@ class WPCD_WORDPRESS_TABS_SSL extends WPCD_WORDPRESS_TABS {
 			),
 			'type'           => 'button',
 		);
+
+		// Close up prior card.
+		$actions[] = wpcd_end_card( $this->get_tab_slug() );
 
 		return $actions;
 	}

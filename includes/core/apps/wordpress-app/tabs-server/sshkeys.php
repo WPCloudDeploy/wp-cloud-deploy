@@ -172,9 +172,13 @@ class WPCD_WORDPRESS_TABS_KEYS extends WPCD_WORDPRESS_TABS {
 		/* Set some defaults if certain things are blank */
 		$ssh_root_user = empty( $ssh_root_user ) ? 'root' : $ssh_root_user;
 
-		// manage server SSH KEYS heading.
+		/**
+		 * SSH Page Heading & Description
+		 */
 		$desc  = __( 'Under normal circumstances we log into your server using the SSH keypair data on the SETTINGS screen associated with the provider for this server.', 'wpcd' );
 		$desc .= '<br />' . __( 'However, there are situations where you might want this server to have its own separate and unique SSH keypair.', 'wpcd' );
+
+		$actions[] = wpcd_start_full_card_page_heading( $this->get_tab_slug() ); // Start new card.
 
 		$actions['server-ssh-keys-header'] = array(
 			'label'          => __( 'SSH Keys', 'wpcd' ),
@@ -184,13 +188,28 @@ class WPCD_WORDPRESS_TABS_KEYS extends WPCD_WORDPRESS_TABS {
 			),
 		);
 
-		// Key data.
+		$actions[] = wpcd_end_card( $this->get_tab_slug() ); // Close up prior card.
+
+		/**
+		 * Private Key.
+		 */
+
+		$actions[] = wpcd_start_half_card( $this->get_tab_slug() ); // Start new card.
+
+		$actions['server-ssh-keys-private-key-header'] = array(
+			'label'          => __( 'Private Key', 'wpcd' ),
+			'type'           => 'heading',
+			'raw_attributes' => array(
+				'desc' => '',
+			),
+		);
+
 		$actions['server-ssh-keys-root-user-name'] = array(
 			'label'          => __( 'Root User', 'wpcd' ),
 			'type'           => 'text',
 			'raw_attributes' => array(
 				'std'            => $ssh_root_user,
-				'desc'           => __( 'The root user id - usually "root" or "ubuntu" for AWS SERVERS.', 'wpcd' ),
+				'tooltip'        => __( 'The root user id - usually "root" or "ubuntu" for AWS SERVERS.', 'wpcd' ),
 				// the key of the field (the key goes in the request).
 				'data-wpcd-name' => 'ssh_root_user',
 				'spellcheck'     => 'false',
@@ -202,11 +221,12 @@ class WPCD_WORDPRESS_TABS_KEYS extends WPCD_WORDPRESS_TABS {
 			'type'           => 'textarea',
 			'raw_attributes' => array(
 				'std'            => $ssh_private_key,
-				'desc'           => __( 'The private key corresponding to your root user public key.', 'wpcd' ),
+				'tooltip'        => __( 'The private key corresponding to your root user public key.', 'wpcd' ),
 				// the key of the field (the key goes in the request).
 				'data-wpcd-name' => 'ssh_private_key',
 				'class'          => 'wpcd_app_pass_toggle',
 				'spellcheck'     => 'false',
+				'rows'           => 6,
 			),
 		);
 
@@ -215,11 +235,27 @@ class WPCD_WORDPRESS_TABS_KEYS extends WPCD_WORDPRESS_TABS {
 			'type'           => 'password',
 			'raw_attributes' => array(
 				'std'            => $ssh_private_key_password,
-				'desc'           => __( 'The password for your private key - this is optional and can be left blank if your private key does not have a password.', 'wpcd' ),
+				'tooltip'        => __( 'The password for your private key - this is optional and can be left blank if your private key does not have a password.', 'wpcd' ),
 				// the key of the field (the key goes in the request).
 				'data-wpcd-name' => 'ssh_private_key_password',
 				'class'          => 'wpcd_app_pass_toggle',
 				'spellcheck'     => 'false',
+			),
+		);
+
+		$actions[] = wpcd_end_card( $this->get_tab_slug() ); // Close up prior card.
+
+		/**
+		 * Public Key
+		 */
+
+		$actions[] = wpcd_start_half_card( $this->get_tab_slug() ); // Start new card.
+
+		$actions['server-ssh-keys-public-key-header'] = array(
+			'label'          => __( 'Public Key', 'wpcd' ),
+			'type'           => 'heading',
+			'raw_attributes' => array(
+				'desc' => '',
 			),
 		);
 
@@ -228,7 +264,7 @@ class WPCD_WORDPRESS_TABS_KEYS extends WPCD_WORDPRESS_TABS {
 			'type'           => 'textarea',
 			'raw_attributes' => array(
 				'std'            => $ssh_public_key,
-				'desc'           => __( 'The public key data for the private key entered above.  This is complete optional - we do not use it to connect to the server since the server should already have this information for your root user. However, sometimes it\'s good to see this data.', 'wpcd' ),
+				'tooltip'        => __( 'The public key data for the private key entered above.  This is complete optional - we do not use it to connect to the server since the server should already have this information for your root user. However, sometimes it\'s good to see this data.', 'wpcd' ),
 				// the key of the field (the key goes in the request).
 				'data-wpcd-name' => 'ssh_public_key',
 				'spellcheck'     => 'false',
@@ -253,7 +289,7 @@ class WPCD_WORDPRESS_TABS_KEYS extends WPCD_WORDPRESS_TABS {
 				'std'              => __( 'Save', 'wpcd' ),
 				// fields that contribute data for this action.
 				'data-wpcd-fields' => json_encode( array( '#wpcd_app_action_server-ssh-keys-root-user-name', '#wpcd_app_action_server-ssh-keys-private-key', '#wpcd_app_action_server-ssh-keys-private-key-password', '#wpcd_app_action_server-ssh-keys-public-key', '#wpcd_app_action_server-ssh-keys-notes' ) ),
-				'columns'          => 2,
+				'columns'          => 12,
 			),
 		);
 
@@ -262,7 +298,7 @@ class WPCD_WORDPRESS_TABS_KEYS extends WPCD_WORDPRESS_TABS {
 			'type'           => 'button',
 			'raw_attributes' => array(
 				'std'     => __( 'Copy From Settings', 'wpcd' ),
-				'columns' => 2,
+				'columns' => 6,
 			),
 		);
 
@@ -272,9 +308,11 @@ class WPCD_WORDPRESS_TABS_KEYS extends WPCD_WORDPRESS_TABS {
 			'raw_attributes' => array(
 				'std'     => __( 'Remove', 'wpcd' ),
 				'tooltip' => __( 'Remove this key information from this server - we will revert to using the data from the settings screen to login.', 'wpcd' ),
-				'columns' => 2,
+				'columns' => 6,
 			),
 		);
+
+		$actions[] = wpcd_end_card( $this->get_tab_slug() ); // Close up prior card.
 
 		return $actions;
 

@@ -920,13 +920,24 @@ class WPCD_WORDPRESS_TABS_SITE_SYNC extends WPCD_WORDPRESS_TABS {
 		$desc .= __( 'You should make sure that your destination server has any optional components installed. For example,if you enabled REDIS or MEMCACHED on here, your destination should have that installed.', 'wpcd' );
 		$desc .= '<br />';
 		$desc .= __( '***Please see important notes at the bottom of this page if this is the first time you are using this function!***', 'wpcd' );
+		$desc  = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
+
+		// Start new card.
+		$fields[] = wpcd_start_full_card_no_border( $this->get_tab_slug() );
 
 		$fields[] = array(
-			'name' => __( 'Site Sync', 'wpcd' ),
+			'name' => __( 'Copy To Server (aka Site Sync)', 'wpcd' ),
 			'tab'  => 'site-sync',
 			'type' => 'heading',
 			'desc' => $desc,
 		);
+		$fields[] = array(
+			'tab'  => 'site-sync',
+			'type' => 'divider',
+		);
+
+		// Close up prior card.
+		$fields[] = wpcd_end_card( $this->get_tab_slug() );
 
 		$source_server    = $this->get_server_by_app_id( $id );
 		$source_server_id = $source_server->ID;
@@ -963,6 +974,9 @@ class WPCD_WORDPRESS_TABS_SITE_SYNC extends WPCD_WORDPRESS_TABS {
 			}
 		);
 
+		// Start new card.
+		$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
+
 		$fields[] = array(
 			'name' => __( 'Select Destination Server', 'wpcd' ),
 			'tab'  => 'site-sync',
@@ -977,7 +991,7 @@ class WPCD_WORDPRESS_TABS_SITE_SYNC extends WPCD_WORDPRESS_TABS {
 			'tab'         => 'site-sync',
 			'label'       => __( 'Target server', 'wpcd' ),
 			'field_type'  => 'select',
-			'placeholder' => __( 'Select your destination server', 'wpcd' ),
+			'placeholder' => __( 'Select your destination server then choose an option in one of the other cards on this page.', 'wpcd' ),
 			'desc'        => '',
 			'type'        => 'post',
 			'post_type'   => 'wpcd_app_server',
@@ -995,16 +1009,23 @@ class WPCD_WORDPRESS_TABS_SITE_SYNC extends WPCD_WORDPRESS_TABS {
 			),
 		);
 
+		// Close up prior card.
+		$fields[] = wpcd_end_card( $this->get_tab_slug() );
+
+		// Start new card.
+		$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
+
+		$copy_desc = __( 'Immediately copy this site to the selected destination server.', 'wpcd' );
+		if ( 'yes' === $this->is_remote_db( $id ) ) {
+			$copy_desc .= '<br />' . '<b>' . __( 'Warning: This site appears to be using a remote database server.  Your target server should have a local database server since the database server will be switched to localhost to avoid database naming conflicts.', 'wpcd' ) . '</b>';
+		}		
+
 		$fields[] = array(
 			'name' => __( 'Copy Now', 'wpcd' ),
 			'tab'  => 'site-sync',
 			'type' => 'heading',
+			'desc'       => $copy_desc,			
 		);
-
-		$copy_desc = __( 'Immediately copy this site to the destination server selected above.', 'wpcd' );
-		if ( 'yes' === $this->is_remote_db( $id ) ) {
-			$copy_desc .= '<br />' . '<b>' . __( 'Warning: This site appears to be using a remote database server.  Your target server should have a local database server since the database server will be switched to localhost to avoid database naming conflicts.', 'wpcd' ) . '</b>';
-		}
 
 		$fields[] = array(
 			'id'         => 'wpcd_app_site_sync',
@@ -1012,7 +1033,6 @@ class WPCD_WORDPRESS_TABS_SITE_SYNC extends WPCD_WORDPRESS_TABS {
 			'tab'        => 'site-sync',
 			'type'       => 'button',
 			'std'        => __( 'Start Copy', 'wpcd' ),
-			'desc'       => $copy_desc,
 			'attributes' => array(
 				// the _action that will be called in ajax.
 				'data-wpcd-action'              => 'site-sync',
@@ -1030,6 +1050,12 @@ class WPCD_WORDPRESS_TABS_SITE_SYNC extends WPCD_WORDPRESS_TABS {
 			'class'      => 'wpcd_app_action',
 			'save_field' => false,
 		);
+
+		// Close up prior card.
+		$fields[] = wpcd_end_card( $this->get_tab_slug() );
+
+		// Start new card.
+		$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
 
 		/* Periodic Sync */
 		$fields[] = array(
@@ -1145,6 +1171,12 @@ class WPCD_WORDPRESS_TABS_SITE_SYNC extends WPCD_WORDPRESS_TABS {
 
 		}
 
+		// Close up prior card.
+		$fields[] = wpcd_end_card( $this->get_tab_slug() );
+
+		// Start new card.
+		$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
+
 		// Show some important notes.
 		$important_notes  = __( 'Please keep these two notes in mind before using this function:', 'wpcd' );
 		$important_notes .= '<br />';
@@ -1157,6 +1189,9 @@ class WPCD_WORDPRESS_TABS_SITE_SYNC extends WPCD_WORDPRESS_TABS {
 			'type' => 'heading',
 			'desc' => $important_notes,
 		);
+
+		// Close up prior card.
+		$fields[] = wpcd_end_card( $this->get_tab_slug() );
 
 		return $fields;
 

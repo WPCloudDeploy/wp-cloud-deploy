@@ -177,6 +177,10 @@ class WPCD_WORDPRESS_TABS_WP_SITE_USERS extends WPCD_WORDPRESS_TABS {
 		$actions = array();
 
 		/* ADD ADMIN USER */
+
+		// Start new card.
+		$actions[] = wpcd_start_half_card( $this->get_tab_slug() );
+
 		$actions['wpsiteusers-add-admin-user-header'] = array(
 			'label'          => __( 'Add An Administrator', 'wpcd' ),
 			'type'           => 'heading',
@@ -226,7 +230,14 @@ class WPCD_WORDPRESS_TABS_WP_SITE_USERS extends WPCD_WORDPRESS_TABS {
 			'type'           => 'button',
 		);
 
+		// Close up prior card.
+		$actions[] = wpcd_end_card( $this->get_tab_slug() );
+
 		/* CHANGE CREDENTIALS FOR EXISTING USER */
+
+		// Start new card.
+		$actions[] = wpcd_start_half_card( $this->get_tab_slug() );
+
 		$actions['wpsiteusers-change-credentials-header'] = array(
 			'label'          => __( 'Change User Credentials', 'wpcd' ),
 			'type'           => 'heading',
@@ -276,7 +287,14 @@ class WPCD_WORDPRESS_TABS_WP_SITE_USERS extends WPCD_WORDPRESS_TABS {
 			'type'           => 'button',
 		);
 
+		// Close up prior card.
+		$actions[] = wpcd_end_card( $this->get_tab_slug() );
+
 		/* ADD REGULAR USER */
+
+		// Start new card.
+		$actions[] = wpcd_start_half_card( $this->get_tab_slug() );
+
 		$actions['wpsiteusers-add-user-header'] = array(
 			'label'          => __( 'Add A User', 'wpcd' ),
 			'type'           => 'heading',
@@ -298,7 +316,7 @@ class WPCD_WORDPRESS_TABS_WP_SITE_USERS extends WPCD_WORDPRESS_TABS {
 		$actions['wpsiteusers-add-user-pw'] = array(
 			'label'          => __( 'Password', 'wpcd' ),
 			'raw_attributes' => array(
-				'desc'           => __( 'Enter the password for the new', 'wpcd' ),
+				'desc'           => __( 'Enter the password for the new user', 'wpcd' ),
 				'data-wpcd-name' => 'wps_password',
 				'spellcheck'     => 'false',
 			),
@@ -334,6 +352,9 @@ class WPCD_WORDPRESS_TABS_WP_SITE_USERS extends WPCD_WORDPRESS_TABS {
 			),
 			'type'           => 'button',
 		);
+
+		// Close up prior card.
+		$actions[] = wpcd_end_card( $this->get_tab_slug() );
 
 		return $actions;
 

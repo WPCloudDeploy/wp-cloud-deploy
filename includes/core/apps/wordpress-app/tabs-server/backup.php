@@ -155,13 +155,24 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 			return $fields;
 		}
 
-		// credentials.
+		/**
+		 * CREDENTIALS
+		 */
+
+		// Start new card.
+		$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
+
+		$desc  = __( 'You can use a unique set of S3 credentials for each of your servers.  Set the credentials for this server below.  If these are left empty, the values in your SETTINGS screen will be used for any backup operations.', 'wpcd' );
+		$desc .= '<br/>' . __( 'Warning: You must save credentials on this screen at least once. To use the values in your global SETTINGS just save ALL the fields with empty values. We will then copy the values from your global settings to the server.', 'wpcd' );
+		$desc .= '<br/>' . __( 'Note: As you might expect, credentials entered here are used to backup all sites on the server!', 'wpcd' );
+		$desc  = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
+
 		$fields[] = array(
 			'name' => __( 'AWS S3 Credentials', 'wpcd' ),
 			'id'   => 'wpcd_app_action_aws-s3-credentials-header',
 			'tab'  => 'server_backup',
 			'type' => 'heading',
-			'desc' => __( 'You can use a unique set of S3 credentials for each of your servers.  Set the credentials for this server below.  If these are left empty, the values in your SETTINGS screen will be used for any backup operations. <br /> Warning: You must save credentials on this screen at least once. To use the values in your global SETTINGS just save ALL the fields with empty values. We will then copy the values from your global settings to the server.<br />Note: As you might expect, credentials entered here are used to backup all sites on the server!', 'wpcd' ),
+			'desc' => $desc,
 		);
 		$fields[] = array(
 			'name'       => __( 'AWS Access Key ID', 'wpcd' ),
@@ -259,11 +270,17 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 			'save_field' => false,
 		);
 
+		// Close up prior card.
+		$fields[] = wpcd_end_card( $this->get_tab_slug() );
+
 		/**
 		 * Auto backups for the entire server
 		 */
 
-		/* all sites on the server            */
+		// Start new card.
+		$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
+
+		/* all sites on the server */
 		$auto_backup_status_all_sites                = get_post_meta( $id, 'wpapp_auto_backups_status_all_sites', true );
 		$auto_backup_bucket_all_sites                = get_post_meta( $id, 'wpapp_auto_backup_bucket_all_sites', true );
 		$auto_backup_retention_days_all_sites        = get_post_meta( $id, 'wpapp_auto_backup_retention_days_all_sites', true );
@@ -294,9 +311,15 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 				'type' => 'heading',
 			);
 		} else {
+			$desc  = __( 'Enable automatic backups to run once per day for all current and future sites on this server.', 'wpcd' );
+			$desc .= '<br />' . __( 'With this option you do not have to schedule individual backups for each site.', 'wpcd' );
+			$desc .= '<br />' . __( 'Just configure this once and it will backup all your sites on **this server** once each night.', 'wpcd' );
+			$desc .= '<br />' . __( 'You should set up your S3 credentials and create a bucket for these backups before turning this option on!', 'wpcd' );
+			$desc  = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
+
 			$fields[] = array(
 				'name' => __( 'Automatic Backups - All Current and Future Sites On This Server', 'wpcd' ),
-				'desc' => __( 'Enable automatic backups to run once per day for all current and future sites on this server.<br />With this option you do not have to schedule individual backups for each site.<br /> Just configure this once and it will backup all your sites on **this server** once each night.<br />You should set up your S3 credentials and create a bucket for these backups before turning this option on!', 'wpcd' ),
+				'desc' => $desc,
 				'tab'  => 'server_backup',
 				'type' => 'heading',
 			);
@@ -306,7 +329,7 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 			// Backups are not currently enabled so we can show all fields.
 			$fields[] = array(
 				'id'         => 'wpcd_app_action_auto_backup_all_sites_bucket_name',
-				'desc'       => __( 'If this is left blank then the server bucket name shown above or the global bucket name from the SETTINGS screen will be used', 'wpcd' ),
+				'tooltip'    => __( 'If this is left blank then the server bucket name shown above or the global bucket name from the SETTINGS screen will be used', 'wpcd' ),
 				'tab'        => 'server_backup',
 				'type'       => 'text',
 				'name'       => __( 'AWS Bucket Name', 'wpcd' ),
@@ -320,7 +343,7 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 			);
 			$fields[] = array(
 				'id'         => 'wpcd_app_action_auto_backup_all_sites_retention_days',
-				'desc'       => __( 'If this is left blank or zero, we will default to 7 days. We recommend that you keep this number low and rely on S3 to store your older backups. If this is set to -1, local backups will NEVER be kept (NOT RECOMMENDED)', 'wpcd' ),
+				'tooltip'    => __( 'If this is left blank or zero, we will default to 7 days. We recommend that you keep this number low and rely on S3 to store your older backups. If this is set to -1, local backups will NEVER be kept (NOT RECOMMENDED)', 'wpcd' ),
 				'tab'        => 'server_backup',
 				'type'       => 'number',
 				'min'        => -1,
@@ -343,7 +366,7 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 					'on'  => __( 'Enabled', 'wpcd' ),
 				),
 				'std'        => $auto_backup_delete_remotes_all_sites,
-				'desc'       => __( 'Delete remote backups when deleting local backups that exceed the retention days. We recommend that you keep this disabled and set a low number for the retention days above.', 'wpcd' ),
+				'tooltip'    => __( 'Delete remote backups when deleting local backups that exceed the retention days. We recommend that you keep this disabled and set a low number for the retention days above.', 'wpcd' ),
 				'attributes' => array(
 					// the key of the field (the key goes in the request).
 					'data-wpcd-name' => 'auto_backup_delete_remotes_all_sites',
@@ -373,12 +396,25 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 			'class'      => 'wpcd_app_action',
 			'save_field' => false,
 		);
+
+		// Close up prior card.
+		$fields[] = wpcd_end_card( $this->get_tab_slug() );
+
 		/* End auto backups for the entire server */
 
-		/* Delete All Backups */
+		/**
+		 * Delete All Backups.
+		 */
+
+		// Start new card.
+		$fields[] = wpcd_start_one_third_card( $this->get_tab_slug() );
+
+		$desc = __( 'Manually delete LOCAL backups. Backups stored at AWS will not be deleted. Before you can use this option you must have configured backups and run the backup process at least once.', 'wpcd' );
+		$desc = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
+
 		$fields[] = array(
 			'name' => __( 'Delete Backups', 'wpcd' ),
-			'desc' => __( 'Manually delete LOCAL backups. Backups stored at AWS will not be deleted. Before you can use this option you must have configured backups and run the backup process at least once.', 'wpcd' ),
+			'desc' => $desc,
 			'tab'  => 'server_backup',
 			'type' => 'heading',
 		);
@@ -402,19 +438,35 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 			'class'      => 'wpcd_app_action',
 			'save_field' => false,
 		);
+
+		// Close up prior card.
+		$fields[] = wpcd_end_card( $this->get_tab_slug() );
+
 		/* End Delete All Backups */
 
-		/* Manually Prune Backups */
+		/**
+		 * Manually Prune Backups
+		 */
+
+		// Start new card.
+		$fields[] = wpcd_start_one_third_card( $this->get_tab_slug() );
+
+		$desc  = __( 'This operation deletes local backups older than a specified number of days. It does it for all sites on this server. Before you can use these options you must have configured backups and run the backup process at least once.', 'wpcd' );
+		$desc .= '<br/>';
+		$desc .= '<br/>';
+		$desc .= __( 'This is a one-time operation - to schedule automatic pruning please use the options under AUTOMATIC BACKUP section above.', 'wpcd' );
+		$desc  = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
+
 		$fields[] = array(
 			'name' => __( 'Prune Backups', 'wpcd' ),
-			'desc' => __( 'Delete old local backups for all sites on this server. Before you can use these options you must have configured backups and run the backup process at least once.', 'wpcd' ),
+			'desc' => $desc,
 			'tab'  => 'server_backup',
 			'type' => 'heading',
 		);
 
 		$fields[] = array(
 			'id'         => 'wpcd_app_action_manual_prune_server_backup_retention_days',
-			'desc'       => __( 'If left blank or zero, the backups will never be deleted.', 'wpcd' ),
+			'tooltip'    => __( 'If left blank or zero, the backups will never be deleted.', 'wpcd' ),
 			'tab'        => 'server_backup',
 			'type'       => 'number',
 			'std'        => (int) $auto_backup_manual_retention_days_all_sites,
@@ -428,18 +480,12 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 		);
 
 		$fields[] = array(
-			'type' => 'custom_html',
-			'tab'  => 'server_backup',
-			'std'  => '<br />',
-		);
-
-		$fields[] = array(
 			'id'         => 'wpcd_app_action_delete_server_backups',
 			'name'       => '',
 			'tab'        => 'server_backup',
 			'type'       => 'button',
 			'std'        => __( 'Prune Backups For All Sites On This Server', 'wpcd' ),
-			'desc'       => __( 'Prune backups for all sites on this server.  You must have set a retention interval above before this is used!', 'wpcd' ),
+			'desc'       => '',
 			// fields that contribute data for this action.
 			'attributes' => array(
 				// the _action that will be called in ajax.
@@ -453,27 +499,25 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 			'class'      => 'wpcd_app_action',
 			'save_field' => false,
 		);
+
+		// Close up prior card.
+		$fields[] = wpcd_end_card( $this->get_tab_slug() );
+
 		/* End Manually Prune Backups */
 
-		// Add a note about how the S3 credentials work.
-		$s3note  = '';
-		$s3note .= __( 'When you change credentials on the global SETTINGS screen, they are not saved to any server.  Only when you click the save credentials on this screen and leave the credentials on this screen blank will the new global credentials be saved to your server and used for future backups.', 'wpcd' );
-		$s3note .= '<br />';
-		$s3note .= __( 'Yes, we know, its confusing. So feel free to check in with our support team with any questions!', 'wpcd' );
-		$s3note .= '<br />';
-		$s3note .= __( 'To avoid confusion, our recommendation is that you use a set of credentials on each site/server and not leave the fields on this screen blank.', 'wpcd' );
+		/**
+		 * Configuration Backups
+		 */
 
-		$fields[] = array(
-			'name' => __( 'IMPORTANT notes about how the S3 credentials work', 'wpcd' ),
-			'tab'  => 'server_backup',
-			'type' => 'heading',
-			'desc' => $s3note,
-		);
+		// Start new card.
+		$fields[] = wpcd_start_one_third_card( $this->get_tab_slug() );
 
-		/* Configuration Backups */
+		$desc = __( 'Backup your server level configuration files to another folder every four hours. These include your nginx.conf, php.ini, ssl certificates, wp-config.php files and more. 90 days of history is retained.', 'wpcd' );
+		$desc = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
+
 		$fields[] = array(
 			'name' => __( 'Local Server Configuration Backups', 'wpcd' ),
-			'desc' => __( 'Backup your server level configuration files to another folder every four hours. These include your nginx.conf, php.ini, ssl certificates, wp-config.php files and more. 90 days of history is retained.', 'wpcd' ),
+			'desc' => $desc,
 			'tab'  => 'server_backup',
 			'type' => 'heading',
 		);
@@ -513,6 +557,12 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 		);
 
 		$fields[] = array(
+			'type' => 'custom_html',
+			'tab'  => 'server_backup',
+			'std'  => '<hr />',
+		);
+
+		$fields[] = array(
 			'id'         => 'wpcd_app_action_conf_backup_delete',
 			'name'       => __( 'Delete all configuration backups', 'wpcd' ),
 			'tab'        => 'server_backup',
@@ -531,7 +581,44 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 			'save_field' => false,
 		);
 
-		/* Snapshots */
+		// Close up prior card.
+		$fields[] = wpcd_end_card( $this->get_tab_slug() );
+
+		/* End Configuration Backups */
+
+		/**
+		 * Add a note about how the S3 credentials work.
+		 */
+
+		// Start new card.
+		$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
+
+		$s3note  = '';
+		$s3note .= __( 'When you change credentials on the global SETTINGS screen, they are not saved to any server.  Only when you click the save credentials on this screen and leave the credentials on this screen blank will the new global credentials be saved to your server and used for future backups.', 'wpcd' );
+		$s3note .= '<br />';
+		$s3note .= __( 'Yes, we know, its confusing. So feel free to check in with our support team with any questions!', 'wpcd' );
+		$s3note .= '<br />';
+		$s3note .= __( 'To avoid confusion, our recommendation is that you use a set of credentials on each site/server and not leave the fields on this screen blank.', 'wpcd' );
+
+		$fields[] = array(
+			'name' => __( 'IMPORTANT notes about how the S3 credentials work', 'wpcd' ),
+			'tab'  => 'server_backup',
+			'type' => 'heading',
+			'desc' => $s3note,
+		);
+
+		// Close up prior card.
+		$fields[] = wpcd_end_card( $this->get_tab_slug() );
+
+		/* End S3 notes */
+
+		/**
+		 * Snapshots
+		 */
+
+		// Start new card.
+		$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
+
 		$fields[] = array(
 			'name' => __( 'Server Provider Snapshots', 'wpcd' ),
 			'desc' => __( 'If this provider supports snapshots you can quickly submit a request to create a snapshot from here.', 'wpcd' ),
@@ -575,6 +662,11 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 				'type' => 'custom_html',
 			);
 		}
+
+		// Close up prior card.
+		$fields[] = wpcd_end_card( $this->get_tab_slug() );
+
+		// End snapshots.
 
 		return $fields;
 

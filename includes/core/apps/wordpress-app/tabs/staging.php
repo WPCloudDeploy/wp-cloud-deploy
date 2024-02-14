@@ -582,6 +582,10 @@ class WPCD_WORDPRESS_TABS_STAGING extends WPCD_WORDPRESS_TABS {
 		$is_staging = $this->is_staging_site( $id );
 
 		if ( true === $is_staging ) {
+
+			// Start new card.
+			$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
+
 			// This is a staging site so only show options that allow it to be pushed back to live.
 			$desc = __( 'Push this site to live.', 'wpcd' );
 
@@ -625,18 +629,24 @@ class WPCD_WORDPRESS_TABS_STAGING extends WPCD_WORDPRESS_TABS {
 				'class'      => 'wpcd_app_action',
 				'save_field' => false,
 			);
+
+			// Close up prior card.
+			$fields[] = wpcd_end_card( $this->get_tab_slug() );
 		} else {
 
+			// Start new card.
+			$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
+
 			// We got here so ok to show fields related to cloning the site to staging.
-			$desc = __( 'Make a copy of this site for development, testing and trouble-shooting.', 'wpcd' );
+			$desc = __( 'This function allows you to make a copy of this site for development, testing and trouble-shooting.', 'wpcd' );
+			$desc = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
 
 			// Variable that indicates if an existing staging site has already been created.
 			$existing_staging_site = $this->get_companion_staging_site_domain( $id );
 
 			if ( ! empty( $existing_staging_site ) ) {
-				$desc .= '<br />';
 				/* Translators: %s: The domain of the companion staging site. */
-				$desc .= sprintf( __( 'A companion staging site already exists at: %s.', 'wpcd' ), '<b>' . $existing_staging_site . '</b>' );
+				$desc  = sprintf( __( 'A companion staging site already exists at: %s.', 'wpcd' ), '<b>' . $existing_staging_site . '</b>' );
 				$desc .= '<br />';
 				$desc .= __( 'If you create a new staging site, the old one will be deleted.', 'wpcd' );
 			}
@@ -646,7 +656,15 @@ class WPCD_WORDPRESS_TABS_STAGING extends WPCD_WORDPRESS_TABS {
 				'tab'  => 'staging',
 				'type' => 'heading',
 				'desc' => $desc,
+			);			
+
+			/*
+			$fields[] = array(
+				'tab'  => 'staging',
+				'type' => 'custom_html',
+				'desc' => $desc,
 			);
+			*/
 
 			$staging_desc = '';
 			if ( 'yes' === $this->is_remote_db( $id ) ) {
@@ -676,6 +694,9 @@ class WPCD_WORDPRESS_TABS_STAGING extends WPCD_WORDPRESS_TABS {
 				'class'      => 'wpcd_app_action',
 				'save_field' => false,
 			);
+
+			// Close up prior card.
+			$fields[] = wpcd_end_card( $this->get_tab_slug() );
 
 		}
 

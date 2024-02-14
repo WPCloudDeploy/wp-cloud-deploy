@@ -1186,13 +1186,6 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tab'     => 'wordpress-app-general-wpadmin',
 			),
 			array(
-				'id'      => 'wordpress_app_show_notes_on_server_services_tab',
-				'type'    => 'checkbox',
-				'name'    => __( 'Show Notes Column On Services Tab?', 'wpcd' ),
-				'tooltip' => __( 'On the services tab we can show a notes column that indicates what the services are used for. Check this box to add that column.', 'wpcd' ),
-				'tab'     => 'wordpress-app-general-wpadmin',
-			),
-			array(
 				'id'      => 'wordpress_app_enable_bulk_delete_on_server_when_delete_protected',
 				'type'    => 'checkbox',
 				'name'    => __( 'Enable Bulk Trash Action for Deleted-protected Servers [Danger]', 'wpcd' ),
@@ -2828,6 +2821,11 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'desc'  => __( 'Color of the text used in our terminal display.', 'wpcd' ),
 				'std'   => WPCD_TERMINAL_FG_COLOR,
 			),
+			'wordpress_app_white_color' => array(
+				'label' => __( 'White', 'wpcd' ),
+				'desc'  => __( 'White', 'wpcd' ),
+				'std'   => WPCD_WHITE_COLOR,
+			),
 		);
 
 		// Loop through the wp-admin brand colors array and generate settings fields.
@@ -2908,6 +2906,11 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'label' => __( 'Negative Color', 'wpcd' ),
 				'desc'  => __( 'Accent color used to indicate something is turned off or a bad thing has occurred.', 'wpcd' ),
 				'std'   => WPCD_FE_NEGATIVE_COLOR,
+			),
+			'wordpress_app_fe_white_color'          => array(
+				'label' => __( 'White', 'wpcd' ),
+				'desc'  => __( 'Wite.', 'wpcd' ),
+				'std'   => WPCD_FE_WHITE_COLOR,
 			),
 		);
 
@@ -3006,7 +3009,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			'name' => __( 'Custom CSS', 'wpcd' ),
 			'id'   => 'wordpress-app-custom-css-override-header',
 			'type' => 'heading',
-			'desc' => 'Custom CSS is loaded in-line on very WPCD page on both the front-end and back-end.',
+			'desc' => 'Custom CSS is loaded in-line on every WPCD page on both the front-end and back-end.',
 			'tab'  => 'wordpress-app-white-label',
 		);
 		$fields[] = array(

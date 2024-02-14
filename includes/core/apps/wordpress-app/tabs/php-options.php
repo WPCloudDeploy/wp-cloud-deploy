@@ -211,8 +211,8 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 
 		// Basic checks passed, ok to proceed.
 		return array_merge(
-			$this->get_php_restart_fields( $id ),
 			$this->get_php_version_fields( $id ),
+			$this->get_php_restart_fields( $id ),
 			$this->get_common_php_options_fields( $id ),
 			$this->get_advanced_php_options_fields( $id ),
 			$this->get_php_workers_fields( $id ),
@@ -230,6 +230,9 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 	private function get_php_restart_fields( $id ) {
 
 		$actions = array();
+
+		// Start new card.
+		$actions[] = wpcd_start_half_card( $this->get_tab_slug() );
 
 		/* What type of web server are we running? */
 		$webserver_type = $this->get_web_server_type( $id );
@@ -269,6 +272,9 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 			'type'           => 'button',
 		);
 
+		// Close up prior card.
+		$actions[] = wpcd_end_card( $this->get_tab_slug() );
+
 		return $actions;
 
 	}
@@ -284,6 +290,9 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 
 		$actions = array();
 
+		// Start new card.
+		$actions[] = wpcd_start_half_card( $this->get_tab_slug() );
+
 		/* What type of web server are we running? */
 		$webserver_type = $this->get_web_server_type( $id );
 
@@ -294,11 +303,14 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 		$confirmation_prompt = '';
 		$confirmation_prompt = __( 'Are you sure you would like to switch PHP versions?', 'wpcd' );
 
+		$desc = __( 'Use this section to change the PHP version for this site. If you have installed any custom PHP options, you will need to reinstall them after switching versions. <br /> We STRONGLY recommend that you use version 8.1 or greater if you can since security updates have ceased for all prior PHP versions.', 'wpcd' );
+		$desc = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
+
 		$actions['change-php-version-header'] = array(
 			'label'          => __( 'Change PHP Version', 'wpcd' ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
-				'desc' => __( 'Use this section to change the PHP version for this site. If you have installed any custom PHP options, you will need to reinstall them after switching versions. <br /> We STRONGLY recommend that you use version 7.4 or greater since security updates have ceased for all prior PHP versions.', 'wpcd' ),
+				'desc' => $desc,
 			),
 		);
 
@@ -349,6 +361,9 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 			'type'           => 'button',
 		);
 
+		// Close up prior card.
+		$actions[] = wpcd_end_card( $this->get_tab_slug() );
+
 		return $actions;
 
 	}
@@ -362,14 +377,20 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 	 */
 	private function get_common_php_options_fields( $id ) {
 
+		// Start new card.
+		$actions[] = wpcd_start_half_card( $this->get_tab_slug() );
+
 		/* Set the text of the confirmation prompt */
 		$confirmation_prompt = __( 'Are you sure you would like to set this option?', 'wpcd' );
+
+		$desc = __( 'These are the most commonly changed PHP options.  Make sure you set a VALID value for the option - we do not validate your input before sending it on to the server! ', 'wpcd' );
+		$desc = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
 
 		$actions['change-php-common-options-header'] = array(
 			'label'          => __( 'Add Or Update Some Common PHP Options', 'wpcd' ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
-				'desc' => __( 'These are the most commonly changed PHP options.  Make sure you set a VALID value for the option - we do not validate your input before sending it on to the server! ', 'wpcd' ),
+				'desc' => $desc,
 			),
 		);
 
@@ -417,6 +438,12 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 			);
 		}
 
+		// Close up prior card.
+		$actions[] = wpcd_end_card( $this->get_tab_slug() );
+
+		// Start new card.
+		$actions[] = wpcd_start_half_card( $this->get_tab_slug() );
+
 		/* Fields to show existing options that the user has set */
 		$actions['change-php-common-existing-header'] = array(
 			'label'          => __( 'Existing Options', 'wpcd' ),
@@ -445,6 +472,9 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 				'std' => $customhtml,
 			),
 		);
+
+		// Close up prior card.
+		$actions[] = wpcd_end_card( $this->get_tab_slug() );
 
 		return $actions;
 
@@ -489,14 +519,20 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 			return array();
 		}
 
+		// Start new card.
+		$actions[] = wpcd_start_half_card( $this->get_tab_slug() );
+
 		/* Set the text of the confirmation prompt */
 		$confirmation_prompt = __( 'Are you sure you would like to set this option?', 'wpcd' );
+
+		$desc = __( 'Use this to set a custom value for a PHP.ini value. Custom values are placed in the web server vhost configuration files and apply only to this site. Please make sure that you set a VALID value for the option - we do not validate your input before sending it on to the server! ', 'wpcd' );
+		$desc = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
 
 		$actions['change-php-advanced-options-header'] = array(
 			'label'          => __( '[Danger Zone] Add Or Update a PHP Option', 'wpcd' ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
-				'desc' => __( 'Use this to set a custom value for a PHP.ini value. Custom values are placed in the web server vhost configuration files and apply only to this site. Please make sure that you set a VALID value for the option - we do not validate your input before sending it on to the server! ', 'wpcd' ),
+				'desc' => $desc,
 			),
 		);
 
@@ -542,6 +578,9 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 			);
 		}
 
+		// Close up prior card.
+		$actions[] = wpcd_end_card( $this->get_tab_slug() );
+
 		return $actions;
 
 	}
@@ -554,6 +593,9 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 	 * @return array Array of actions with key as the action slug and value complying with the structure necessary by metabox.io fields.
 	 */
 	private function get_php_workers_fields( $id ) {
+
+		// Start new card.
+		$actions[] = wpcd_start_full_card( $this->get_tab_slug() );
 
 		if ( ! $this->wpcd_wpapp_user_can_change_php_advanced_options( $id ) ) {
 			return array();
@@ -663,6 +705,9 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 			),
 			'type'           => 'button',
 		);
+
+		// Close up prior card.
+		$actions[] = wpcd_end_card( $this->get_tab_slug() );
 
 		return $actions;
 

@@ -270,8 +270,8 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 			array_merge(
 				$args,
 				array(
-					'action'  => $action,
-					'domain'  => $domain,
+					'action' => $action,
+					'domain' => $domain,
 				)
 			)
 		);
@@ -624,12 +624,18 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 		}
 
 		// We got here so ok to show fields related to changing domain.
-		$desc = __( 'Change your site domain.  This is a destructive operation so you should take a backup before proceeding.<br />', 'wpcd' );
+		$desc  = __( 'Change your site domain.  This is a destructive operation so you should take a backup before proceeding.<br />', 'wpcd' );
+		$desc .= '<br/>';
+		$desc .= '<b>' . __( 'SSL Notes', 'wpcd' ) . '</b>';
+		$desc .= '<br/>';
+		$desc .= __( 'If you would like new SSL certificates to be issued as part of this operation please make sure you point your DNS for the new domain to to this server\'s IP address BEFORE you start this operation. ', 'wpcd' );
+		$desc .= __( 'Otherwise you will need to request new certificates on the SSL tab after the operation is complete and you have updated your DNS.', 'wpcd' );
+		$desc .= '<br />';
+		$desc .= __( 'Note that we will only attempt to automatically issue an SSL certificate if the current domain already has an SSL certificate installed.', 'wpcd' );
+		$desc  = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
 
-		$desc_ssl  = __( 'If you would like new SSL certificates to be issued as part of this operation please make sure you point your DNS for the new domain to to this server\'s IP address BEFORE you start this operation. ', 'wpcd' );
-		$desc_ssl .= __( 'Otherwise you will need to request new certificates on the SSL tab after the operation is complete and you have updated your DNS.', 'wpcd' );
-		$desc_ssl .= '<br />';
-		$desc_ssl .= __( 'Note that we will only attempt to automatically issue an SSL certificate if the current domain already has an SSL certificate installed.', 'wpcd' );
+		// Start new card block.
+		$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
 
 		$fields[] = array(
 			'name' => __( 'Change Domain', 'wpcd' ),
@@ -651,74 +657,21 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 			'placeholder' => __( 'Enter your new domain without the "http" or "www" prefix', 'wpcd' ),
 		);
 
-		if ( ! $hide_explanatory_text ) {
-			$fields[] = array(
-				'name' => '',
-				'tab'  => 'change-domain',
-				'type' => 'custom-html',
-				'std'  => $desc_ssl,
-			);
-		}
+		$note .= __( 'Change all references from the old domain to the new domain across the entire database. This is the real deal - do a backup because you cannot undo this action once it has started!', 'wpcd' );
+		$note  = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $note );
 
-		if ( ! $show_simplified_options_only ) {
-			$fields[] = array(
-				'id'         => 'wpcd_app_change_domain_quick_change',
-				'name'       => __( 'Quick Change', 'wpcd' ),
-				'tab'        => 'change-domain',
-				'type'       => 'button',
-				'std'        => __( 'Quick Change', 'wpcd' ),
-				'tooltip'    => __( 'Change just the domain name in the WordPress settings screen.  All other references to the old domain will remain in your content and other items in the database.', 'wpcd' ),
-				'attributes' => array(
-					// the _action that will be called in ajax.
-					'data-wpcd-action'              => 'change-domain-quick-change',
-					// the id.
-					'data-wpcd-id'                  => $id,
-					// fields that contribute data for this action.
-					'data-wpcd-fields'              => json_encode( array( '#wpcd_app_change_domain_new_domain' ) ),
-					// make sure we give the user a confirmation prompt.
-					'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like to change the domain? Protect your data - make a backup before you start this operation!', 'wpcd' ),
-				),
-				'class'      => 'wpcd_app_action',
-				'save_field' => false,
-				'columns'    => 3,
-			);
-		}
-
-		if ( ! $show_simplified_options_only ) {
-			$fields[] = array(
-				'id'         => 'wpcd_app_change_domain_dry_run',
-				'name'       => __( 'Full - Dry Run', 'wpcd' ),
-				'tab'        => 'change-domain',
-				'type'       => 'button',
-				'std'        => __( 'Full - Dry Run', 'wpcd' ),
-				'tooltip'    => __( 'Change all references from the old domain to the new domain across the entire database. This does a dry run so you can get an idea of what will be changed.', 'wpcd' ),
-				'attributes' => array(
-					// the _action that will be called in ajax.
-					'data-wpcd-action'              => 'change-domain-full-dry-run',
-					// the id.
-					'data-wpcd-id'                  => $id,
-					// fields that contribute data for this action.
-					'data-wpcd-fields'              => json_encode( array( '#wpcd_app_change_domain_new_domain' ) ),
-					// make sure we give the user a confirmation prompt.
-					'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like to do a dry-run of a full database domain change? This might take a while!', 'wpcd' ),
-					// show log console?
-					'data-show-log-console'         => true,
-					// Initial console message.
-					'data-initial-console-message'  => __( 'Preparing to start a dry-run of a full database domain change operation...<br /> Please DO NOT EXIT this screen until you see a popup message indicating that the operation has completed or has errored.<br />This terminal should refresh every 60-90 seconds with updated progress information from the server. <br /> After the operation is complete the entire log can be viewed in the COMMAND LOG screen.', 'wpcd' ),
-				),
-				'class'      => 'wpcd_app_action',
-				'save_field' => false,
-				'columns'    => 3,
-			);
-		}
+		$fields[] = array(
+			'name' => __( 'Change Everything', 'wpcd' ),
+			'tab'  => 'change-domain',
+			'type' => 'heading',
+			'desc' => $note,
+		);
 
 		$fields[] = array(
 			'id'         => 'wpcd_app_change_domain_live_run',
-			'name'       => $show_simplified_options_only ? '' : __( 'Full Live', 'wpcd' ),
 			'tab'        => 'change-domain',
 			'type'       => 'button',
-			'std'        => $show_simplified_options_only ? __( 'Change Domain', 'wpcd' ) : __( 'Full - Live', 'wpcd' ),
-			'tooltip'    => $show_simplified_options_only ? '' : __( 'Change all references from the old domain to the new domain across the entire database. This is the real deal - do a backup because you cannot undo this action once it has started!', 'wpcd' ),
+			'std'        => __( 'Change Domain', 'wpcd' ),
 			'attributes' => array(
 				// the _action that will be called in ajax.
 				'data-wpcd-action'              => 'change-domain-full-live-run',
@@ -735,17 +688,97 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 			),
 			'class'      => 'wpcd_app_action',
 			'save_field' => false,
-			'columns'    => $show_simplified_options_only ? 12 : 3,
 		);
 
 		if ( ! $show_simplified_options_only ) {
+			$note = __( 'Change just the domain name in the WordPress settings screen.  All other references to the old domain will remain in your content and other items in the database.', 'wpcd' );
+			$note = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $note );
+
+			$fields[] = array(
+				'name' => __( 'Quick Change', 'wpcd' ),
+				'tab'  => 'change-domain',
+				'type' => 'heading',
+				'desc' => $note,
+			);
+
+			$fields[] = array(
+				'id'         => 'wpcd_app_change_domain_quick_change',
+				'tab'        => 'change-domain',
+				'type'       => 'button',
+				'std'        => __( 'Quick Change', 'wpcd' ),
+				'attributes' => array(
+					// the _action that will be called in ajax.
+					'data-wpcd-action'              => 'change-domain-quick-change',
+					// the id.
+					'data-wpcd-id'                  => $id,
+					// fields that contribute data for this action.
+					'data-wpcd-fields'              => json_encode( array( '#wpcd_app_change_domain_new_domain' ) ),
+					// make sure we give the user a confirmation prompt.
+					'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like to change the domain? Protect your data - make a backup before you start this operation!', 'wpcd' ),
+				),
+				'class'      => 'wpcd_app_action',
+				'save_field' => false,
+			);
+		}
+
+		// Close up prior card.
+		$fields[] = wpcd_end_card( $this->get_tab_slug() );
+
+		// Start new card.
+		$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
+
+		if ( ! $show_simplified_options_only ) {
+			$note = __( 'Change all references from the old domain to the new domain across the entire database. This does a dry run so you can get an idea of what will be changed.', 'wpcd' );
+			$note = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $note );
+
+			$fields[] = array(
+				'name' => __( 'Dry Run - No Permanent Changes', 'wpcd' ),
+				'tab'  => 'change-domain',
+				'type' => 'heading',
+				'desc' => $note,
+			);
+
+			$fields[] = array(
+				'id'         => 'wpcd_app_change_domain_dry_run',
+				'tab'        => 'change-domain',
+				'type'       => 'button',
+				'std'        => __( 'Dry Run', 'wpcd' ),
+				'attributes' => array(
+					// the _action that will be called in ajax.
+					'data-wpcd-action'              => 'change-domain-full-dry-run',
+					// the id.
+					'data-wpcd-id'                  => $id,
+					// fields that contribute data for this action.
+					'data-wpcd-fields'              => json_encode( array( '#wpcd_app_change_domain_new_domain' ) ),
+					// make sure we give the user a confirmation prompt.
+					'data-wpcd-confirmation-prompt' => __( 'Are you sure you would like to do a dry-run of a full database domain change? This might take a while!', 'wpcd' ),
+					// show log console?
+					'data-show-log-console'         => true,
+					// Initial console message.
+					'data-initial-console-message'  => __( 'Preparing to start a dry-run of a full database domain change operation...<br /> Please DO NOT EXIT this screen until you see a popup message indicating that the operation has completed or has errored.<br />This terminal should refresh every 60-90 seconds with updated progress information from the server. <br /> After the operation is complete the entire log can be viewed in the COMMAND LOG screen.', 'wpcd' ),
+				),
+				'class'      => 'wpcd_app_action',
+				'save_field' => false,
+				'columns'    => 6,
+			);
+		}
+
+		if ( ! $show_simplified_options_only ) {
+			$note = __( 'Update the record in this panel only. You might need to do this if a prior operation only partially succeeded or you changed the domain using another plugin such as UpdraftPlus.', 'wpcd' );
+			$note = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $note );
+
+			$fields[] = array(
+				'name' => __( 'Change Record', 'wpcd' ),
+				'tab'  => 'change-domain',
+				'type' => 'heading',
+				'desc' => $note,
+			);
+
 			$fields[] = array(
 				'id'         => 'wpcd_app_change_domain_record_only',
-				'name'       => __( 'Change Meta', 'wpcd' ),
 				'tab'        => 'change-domain',
 				'type'       => 'button',
 				'std'        => __( 'Change Record', 'wpcd' ),
-				'tooltip'    => __( 'Update the record in this plugin only. You might need to do this if a prior operation only partially succeeded or you changed the domain using another plugin such as UpdraftPlus.', 'wpcd' ),
 				'attributes' => array(
 					// the _action that will be called in ajax.
 					'data-wpcd-action'              => 'change-domain-record-only',
@@ -758,30 +791,15 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 				),
 				'class'      => 'wpcd_app_action',
 				'save_field' => false,
-				'columns'    => 3,
-			);
-		}
-
-		// Add some quick notes about the domain name change process.
-		$note  = __( 'Quick Change: Change just the domain name in the WordPress settings screen.  All other references to the old domain will remain in your content and other items in the database.', 'wpcd' );
-		$note .= '<br />';
-		$note .= __( 'Full - Dry Run: Change all references from the old domain to the new domain across the entire database. This does a dry run so you can get an idea of what will be changed.', 'wpcd' );
-		$note .= '<br />';
-		$note .= __( 'Full - Live Run: Change all references from the old domain to the new domain across the entire database. This is the real deal - do a backup because you cannot undo this action once it has started!', 'wpcd' );
-
-		if ( ! $hide_explanatory_text ) {
-			$fields[] = array(
-				'name' => __( 'Notes', 'wpcd' ),
-				'tab'  => 'change-domain',
-				'type' => 'heading',
-				'desc' => $note,
+				'columns'    => 6,
 			);
 		}
 
 		// Add some reminders.
 		$reminder  = __( 'After you have finished changing the domain name, you must remove any sFTP users and re-add them on the sFTP tab. Existing users are no longer valid for the new domain.', 'wpcd' );
 		$reminder .= '<br />';
-		$reminder .= __( 'You should also update your permalinks under the WordPress SETTINGS->PERMALINKS screen - just go there and click the update button; WordPress will reset the permalinks for your site.', 'wpcd' );
+		$reminder .= __( 'You should also update your permalinks under the WordPress SETTINGS → PERMALINKS screen - just go there and click the update button; WordPress will reset the permalinks for your site.', 'wpcd' );
+		$reminder  = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $reminder );
 
 		if ( ! $hide_explanatory_text ) {
 			$fields[] = array(
@@ -792,6 +810,23 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 			);
 		}
 
+		/* Documentation Link to WPCloudDeploy Site */
+		$doc_link = 'https://wpclouddeploy.com/documentation/wpcloud-deploy-user-guide/changing-a-domain/';
+		$desc     = '';
+		$desc    .= sprintf( '<a href="%s">%s</a>', wpcd_get_documentation_link( 'wordpress-app-doc-change-domain', apply_filters( 'wpcd_documentation_links', $doc_link ) ), __( 'View the docs', 'wpcd' ) );
+
+		$fields[] = array(
+			'name' => __( 'View Documentation', 'wpcd' ),
+			'id'   => 'wpcd_change_domain_documentation',
+			'tab'  => 'change-domain',
+			'type' => 'heading',
+			'desc' => $desc,
+		);
+		/* End documentation Link to WPCloudDeploy Site */
+
+		// Close up prior card.
+		$fields[] = wpcd_end_card( $this->get_tab_slug() );
+
 		/* Start generic search and replace fields */
 		$fields[] = array(
 			'name' => '',
@@ -799,19 +834,25 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 			'type' => 'divider',
 		);
 
-		if ( ! $hide_explanatory_text ) {
-			$desc  = __( 'Generic search and replace.  This is a destructive operation so you should take a backup before proceeding.', 'wpcd' );
-			$desc .= '<br />';
-			$desc .= __( 'Search for a word in your database and replace it with another word.', 'wpcd' );
-			$desc .= '<br />';
-			$desc .= __( 'You can search for old domains or links and such and then replace them.', 'wpcd' );
-			$desc .= '<br />';
-			$desc .= __( 'However, NO SPECIAL CHARACTERS or SPACES are allowed in your search or replace terms!', 'wpcd' );
-		} else {
-			$desc = '';
-		}
-
 		if ( ! $show_simplified_options_only ) {
+
+			// Start new card.
+			$fields[] = wpcd_start_full_card( $this->get_tab_slug() );
+
+			if ( ! $hide_explanatory_text ) {
+				$desc  = __( 'Generic search and replace.  This is a destructive operation so you should take a backup before proceeding.', 'wpcd' );
+				$desc .= '<br />';
+				$desc .= __( 'Search for a word in your database and replace it with another word.', 'wpcd' );
+				$desc .= '<br />';
+				$desc .= __( 'You can search for old domains or links and such and then replace them.', 'wpcd' );
+				$desc .= '<br />';
+				$desc .= __( 'However, NO SPECIAL CHARACTERS or SPACES are allowed in your search or replace terms!', 'wpcd' );
+
+					$desc = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
+			} else {
+				$desc = '';
+			}
+
 			$fields[] = array(
 				'name' => __( 'Search & Replace', 'wpcd' ),
 				'id'   => 'wpcd_search_and_replace_db_header',
@@ -846,7 +887,7 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 			);
 			$fields[] = array(
 				'id'         => 'wpcd_app_search_and_replace',
-				'name'       => __( 'Search & Replace', 'wpcd' ),
+				'name'       => '',
 				'tab'        => 'change-domain',
 				'type'       => 'button',
 				'std'        => __( 'Run Search & Replace', 'wpcd' ),
@@ -867,22 +908,12 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 				'class'      => 'wpcd_app_action',
 				'save_field' => false,
 			);
+
+			// Close up prior card.
+			$fields[] = wpcd_end_card( $this->get_tab_slug() );
 		}
+
 		/* End Start generic search and replace fields */
-
-		/* Documentation Link to WPCloudDeploy Site */
-		$doc_link = 'https://wpclouddeploy.com/documentation/wpcloud-deploy-user-guide/changing-a-domain/';
-		$desc     = '';
-		$desc    .= sprintf( '<a href="%s">%s</a>', wpcd_get_documentation_link( 'wordpress-app-doc-change-domain', apply_filters( 'wpcd_documentation_links', $doc_link ) ), __( 'View the docs', 'wpcd' ) );
-
-		$fields[] = array(
-			'name' => __( 'Change Domain Documentation', 'wpcd' ),
-			'id'   => 'wpcd_change_domain_documentation',
-			'tab'  => 'change-domain',
-			'type' => 'heading',
-			'desc' => $desc,
-		);
-		/* End documentation Link to WPCloudDeploy Site */
 
 		return $fields;
 

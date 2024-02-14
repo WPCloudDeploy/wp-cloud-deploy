@@ -177,7 +177,9 @@ class WPCD_WORDPRESS_TABS_SERVER_USERS extends WPCD_WORDPRESS_TABS {
 		$base_provider = $this->get_base_provider( $id );
 
 		// Certain server providers should not allow for changing of the password...
-		if ( in_array( $base_provider, array( 'awsec2', 'awslightsail' ) ) ) {
+		if ( in_array( $base_provider, array( 'awsec2', 'awslightsail' ), true ) ) {
+
+			$actions[] = wpcd_start_two_thirds_card( $this->get_tab_slug() ); // Start new card.
 
 			$actions['users-root-header-not-applicable'] = array(
 				'label'          => __( 'Manage Root User Attributes', 'wpcd' ),
@@ -187,12 +189,16 @@ class WPCD_WORDPRESS_TABS_SERVER_USERS extends WPCD_WORDPRESS_TABS {
 				),
 			);
 
+			$actions[] = wpcd_end_card( $this->get_tab_slug() ); // Close up prior card.
+
 			return $actions;
 
 		}
 
 		// We have a root user so do root user things...
 		if ( ! empty( $root_user ) ) {
+
+			$actions[] = wpcd_start_half_card( $this->get_tab_slug() ); // Start new card.
 
 			// Paint header.
 			$actions['users-root-header'] = array(
@@ -240,13 +246,19 @@ class WPCD_WORDPRESS_TABS_SERVER_USERS extends WPCD_WORDPRESS_TABS {
 						'tooltip'             => __( 'We will create a 32 character alpha-numeric root password and store it encrypted in the database.', 'wpcd' ),
 					),
 					'type'           => 'button',
-				);
+				);				
 
 			}
+
+			$actions[] = wpcd_end_card( $this->get_tab_slug() ); // Close up prior card.
+
 
 			/**
 			 * Enable/Disable Password Authentication
 			 */
+
+			$actions[] = wpcd_start_half_card( $this->get_tab_slug() ); // Start new card.
+
 			$actions['users-root-pw-auth-header']  = array(
 				'label'          => __( 'Manage Root User Password Authentication', 'wpcd' ),
 				'type'           => 'heading',
@@ -260,7 +272,7 @@ class WPCD_WORDPRESS_TABS_SERVER_USERS extends WPCD_WORDPRESS_TABS {
 					'std'                 => __( 'Enable Password Authentication', 'wpcd' ),
 					// make sure we give the user a confirmation prompt.
 					'confirmation_prompt' => __( 'Are you sure you would like to enable password authentication for the primary root/sudo user?', 'wpcd' ),
-					'columns'             => 3,
+					'columns'             => 6,
 				),
 				'type'           => 'button',
 			);
@@ -270,10 +282,12 @@ class WPCD_WORDPRESS_TABS_SERVER_USERS extends WPCD_WORDPRESS_TABS {
 					'std'                 => __( 'Disable Password Authentication', 'wpcd' ),
 					// make sure we give the user a confirmation prompt.
 					'confirmation_prompt' => __( 'Are you sure you would like to disable password authentication for the primary root/sudo user?', 'wpcd' ),
-					'columns'             => 3,
+					'columns'             => 6,
 				),
 				'type'           => 'button',
 			);
+
+			$actions[] = wpcd_end_card( $this->get_tab_slug() ); // Close up prior card.
 
 		}
 

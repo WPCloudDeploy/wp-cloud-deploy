@@ -482,11 +482,18 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		// Set up metabox items.
 		$actions = array();
 
+		/**
+		 * Refresh Services
+		 */
+
+		// Start new card.
+		$actions[] = wpcd_start_one_third_card( $this->get_tab_slug() );
+
 		$actions['services-header'] = array(
 			'label'          => '<i class="fa-duotone fa-bell-concierge"></i> ' . __( 'Services', 'wpcd' ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
-				'desc' => __( 'Control the Core Services that allow your application(s) to run.', 'wpcd' ),
+				'desc' => __( 'Get the status of the Core Services that allow your application(s) to run.', 'wpcd' ),
 			),
 		);
 
@@ -507,72 +514,75 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			'type'           => 'custom_html',
 		);
 
-		$actions['services-status-header'] = array(
-			'label'          => '<i class="fa-duotone fa-lighthouse"></i> ' . __( 'Core Services Status', 'wpcd' ),
+		// Close up prior card.
+		$actions[] = wpcd_end_card( $this->get_tab_slug() );
+
+		/**
+		 * WEBSERVER: NGINX/OLS
+		 */
+
+		// Start new card.
+		$actions[] = wpcd_start_one_third_card( $this->get_tab_slug() );
+
+		$webserver_type      = $this->get_web_server_type( $id );
+		$webserver_type_name = $this->get_web_server_description_by_id( $id );
+
+		$desc = '';
+		$desc = __( 'This is your web server.  If you restart it all sites will be temporarily disabled until the restart is complete.', 'wpcd' );
+		$desc = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
+
+		$actions['services-status-header-webserver'] = array(
+			/* Translators: %s is the web server type eg, NGINX, OLS etc. */
+			'label'          => '<i class="fa-duotone fa-lighthouse"></i> ' . sprintf( __( '%s Service Status', 'wpcd' ), $webserver_type_name ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
-				'desc' => '',
+				'desc' => $desc,
 			),
-		);
-
-		/* Web Server */
-		$webserver_type              = $this->get_web_server_type( $id );
-		$webserver_type_name         = $this->get_web_server_description_by_id( $id );
-		$actions['web-server-label'] = array(
-			'label'          => __( 'Service', 'wpcd' ),
-			'raw_attributes' => array(
-				/* Translators: %s is the web server type eg, NGINX, OLS etc. */
-				'std'     => sprintf( __( '%s Web Server', 'wpcd' ), $webserver_type_name ),
-				'columns' => wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ? 3 : 4,
-			),
-			'type'           => 'custom_html',
 		);
 
 		$actions['web-server-status'] = array(
 			'label'          => __( 'Status', 'wpcd' ),
 			'raw_attributes' => array(
-				'std'     => $webserver_status,
-				'columns' => wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ? 2 : 5,
+				'std' => $webserver_status,
 			),
 			'type'           => 'custom_html',
 		);
 
 		$actions['web-server-restart'] = array(
-			'label'          => __( 'Actions', 'wpcd' ),
+			'label'          => '',
 			'raw_attributes' => array(
-				'std'     => $this->get_restart_button_label(),
-				'columns' => wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ? 2 : 3,
+				'std' => $this->get_restart_button_label(),
 			),
 			'type'           => 'button',
 		);
 
-		if ( wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ) {
-			$actions['web-server-desc'] = array(
-				'label'          => __( 'Notes', 'wpcd' ),
-				'raw_attributes' => array(
-					'std'     => '',
-					'desc'    => __( 'This is your web server.  If you restart it all sites will be temporarily disabled until the restart is complete.', 'wpcd' ),
-					'columns' => 5,
-				),
-				'type'           => 'custom_html',
-			);
-		};
+		// Close up prior card.
+		$actions[] = wpcd_end_card( $this->get_tab_slug() );
 
-		/* MARIA DB web Server */
-		$actions['db-server-label'] = array(
-			'label'          => '',
+		/**
+		 * MARIA DB DATABASE SERVER
+		 */
+
+		// Start new card.
+		$actions[] = wpcd_start_one_third_card( $this->get_tab_slug() );
+
+		$desc = '';
+		$desc = __( 'This is your database server.  If you restart it all sites will be temporarily disabled until the restart is complete.', 'wpcd' );
+		$desc = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
+
+		$actions['services-status-header-database'] = array(
+			/* Translators: %s is the web server type eg, NGINX, OLS etc. */
+			'label'          => '<i class="fa-duotone fa-lighthouse"></i> ' . sprintf( __( '%s Service Status', 'wpcd' ), 'MariaDB' ),
+			'type'           => 'heading',
 			'raw_attributes' => array(
-				'std'     => __( 'MariaDB', 'wpcd' ),
-				'columns' => wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ? 3 : 4,
+				'desc' => $desc,
 			),
-			'type'           => 'custom_html',
 		);
 
 		$actions['db-server-status'] = array(
-			'label'          => '',
+			'label'          => __( 'Status', 'wpcd' ),
 			'raw_attributes' => array(
-				'std'     => $mariadb_status,
-				'columns' => wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ? 2 : 5,
+				'std' => $mariadb_status,
 			),
 			'type'           => 'custom_html',
 		);
@@ -580,40 +590,27 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		$actions['db-server-restart'] = array(
 			'label'          => '',
 			'raw_attributes' => array(
-				'std'     => $this->get_restart_button_label(),
-				'columns' => wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ? 2 : 3,
+				'std' => $this->get_restart_button_label(),
 			),
 			'type'           => 'button',
 		);
 
-		if ( wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ) {
-			$actions['db-server-desc'] = array(
-				'label'          => '',
-				'raw_attributes' => array(
-					'std'     => '',
-					'desc'    => __( 'This is your database server.  If you restart it all sites will be temporarily disabled until the restart is complete.', 'wpcd' ),
-					'columns' => 5,
-				),
-				'type'           => 'custom_html',
-			);
-		};
+		// Close up prior card.
+		$actions[] = wpcd_end_card( $this->get_tab_slug() );
 
-		$actions['core-services-divider-after'] = array(
-			'raw_attributes' => array(
-				'std' => '<hr/>',
-			),
-			'type'           => 'custom_html',
-		);
+		/**
+		 * REDIS OBJECT CACHE SERVER
+		 */
 
-		/* Redis */
-		if ( $this->is_redis_installed( $id ) ) {
-			$redis_desc = __( 'High-performance object cache.', 'wpcd' );
-		} else {
-			$redis_desc  = __( 'Redis is an OBJECT cache service that can help speed up duplicated database queries.  Once the service is installed here, you can activate it for each site that needs it.', 'wpcd' );
-			$redis_desc .= '<br />';
-			/* Translators: %s is an external link to more information about redis and memcached caches. */
-			$redis_desc .= sprintf( __( 'Learn more about %s', 'wpcd' ), '<a href="https://scalegrid.io/blog/redis-vs-memcached-2021-comparison/">' . __( 'Redis and MemCached Object Caches', 'wpcd' ) . '</a>' );
-		}
+		// Start new card.
+		$actions[] = wpcd_start_half_card( $this->get_tab_slug() );
+
+		$redis_desc  = __( 'Redis is high-performance OBJECT cache service that can help speed up duplicated database queries.  Once the service is installed here, you can activate it for each site that needs it.', 'wpcd' );
+		$redis_desc .= '<br />';
+		/* Translators: %s is an external link to more information about redis and memcached caches. */
+		$redis_desc .= sprintf( __( 'Learn more about %s', 'wpcd' ), '<a href="https://scalegrid.io/blog/redis-vs-memcached-2021-comparison/">' . __( 'Redis and MemCached Object Caches', 'wpcd' ) . '</a>' );
+
+		$redis_desc = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $redis_desc );
 
 		$actions['redis-status-header'] = array(
 			'label'          => '<i class="fa-duotone fa-objects-column"></i> ' . __( 'Redis', 'wpcd' ),
@@ -640,54 +637,32 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			);
 		} else {
 			// Redis is installed so show status and options to disable and enable.
-			$actions['redis-label'] = array(
-				'label'          => __( 'Service', 'wpcd' ),
-				'raw_attributes' => array(
-					'std'     => __( 'Redis', 'wpcd' ),
-					'columns' => 3,
-				),
-				'type'           => 'custom_html',
-			);
-
 			$actions['redis-status'] = array(
 				'label'          => __( 'Status', 'wpcd' ),
 				'raw_attributes' => array(
-					'std'     => $redis_status,
-					'columns' => wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ? 2 : 5,
+					'std' => $redis_status,
 				),
 				'type'           => 'custom_html',
 			);
 
 			$actions['redis-restart'] = array(
-				'label'          => __( 'Actions', 'wpcd' ),
+				'label'          => '',
 				'raw_attributes' => array(
 					'std'     => $this->get_restart_button_label(),
-					'columns' => wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ? 1 : 2,
+					'columns' => 6,
 				),
 				'type'           => 'button',
 			);
 
 			$actions['redis-clear-cache'] = array(
-				'label'          => __( 'Clear', 'wpcd' ),
+				'label'          => '',
 				'raw_attributes' => array(
 					/* Translators: %s is a fontawesome or similar icon. */
 					'std'     => sprintf( __( '%s Clear Cache', 'wpcd' ), '<i class="fa-solid fa-trash-xmark"></i>' ),
-					'columns' => wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ? 1 : 2,
+					'columns' => 6,
 				),
 				'type'           => 'button',
 			);
-
-			if ( wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ) {
-				$actions['redis-desc'] = array(
-					'label'          => __( 'Notes', 'wpcd' ),
-					'raw_attributes' => array(
-						'std'     => __( '', 'wpcd' ),
-						'desc'    => __( 'Clearing the cache clears it for all sites on this server.', 'wpcd' ),
-						'columns' => 5,
-					),
-					'type'           => 'custom_html',
-				);
-			}
 
 			$actions['redis-divider-before-remove-option'] = array(
 				'raw_attributes' => array(
@@ -715,13 +690,29 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 
 		}
 
-		/* UFW Firewall */
+		// Close up prior card.
+		$actions[] = wpcd_end_card( $this->get_tab_slug() );
+
+		/**
+		 * UFW FIREWALL
+		 */
+
+		// Start new card.
+		$actions[] = wpcd_start_half_card( $this->get_tab_slug() );
+
+		// What is the state of the firewall?
+		$ufw_toggle_state = $this->get_ufw_state( $id );
+
 		$ufw_desc  = __( 'UFW is a Linux based firewall - also known as the UNCOMPLICATED FIREWALL. It is installed and turned on by default on your server, opening ports for HTTP, HTTPS and SSH. All other ports are closed by default.', 'wpcd' );
 		$ufw_desc .= '<br />';
 		/* translators: %s is a URL. */
 		$ufw_desc .= sprintf( __( 'Technically, UFW is not a firewall - its just a nice front-end to the core Linux netfilter firewall.  But, for all intents and purposes it is the firewall because it is the thing that most people interact with. Learn more about %s', 'wpcd' ), '<a href="https://wiki.ubuntu.com/UncomplicatedFirewall">' . __( 'UFW', 'wpcd' ) . '</a>' );
 		$ufw_desc .= '<br />';
 		$ufw_desc  = __( 'You can manage ports on the FIREWALL tab.', 'wpcd' );
+		$ufw_desc .= '<br />';
+		$ufw_desc .= '<br />';
+		$ufw_desc .= __( 'Note: Ports for HTTP,HTTPS and SSH are opened by default. Open additional ports on the FIREWALL tab.', 'wpcd' );
+		$ufw_desc  = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $ufw_desc );
 
 		$actions['ufw-status-header'] = array(
 			'label'          => '<i class="fa-duotone fa-block-brick-fire"></i> ' . __( 'UFW Firewall', 'wpcd' ),
@@ -731,12 +722,19 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			),
 		);
 
-		// Show status switch to turn on/off.
-		$actions['ufw-label'] = array(
-			'label'          => __( 'Service', 'wpcd' ),
+		$actions['ufw-state-toggle'] = array(
+			'label'          => '',
 			'raw_attributes' => array(
-				'std'     => __( 'UFW Firewall', 'wpcd' ),
-				'columns' => 3,
+				'on_label'  => __( 'Enabled', 'wpcd' ),
+				'off_label' => __( 'Disabled', 'wpcd' ),
+				'std'       => ( 'on' === $ufw_toggle_state ? true : false ),
+			),
+			'type'           => 'switch',
+		);
+
+		$actions['ufw-divider-after-toggle'] = array(
+			'raw_attributes' => array(
+				'std' => '<hr/>',
 			),
 			'type'           => 'custom_html',
 		);
@@ -744,50 +742,41 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		$actions['ufw-status'] = array(
 			'label'          => __( 'Status', 'wpcd' ),
 			'raw_attributes' => array(
-				'std'     => $ufw_status,
-				'columns' => wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ? 2 : 5,
+				'std' => $ufw_status,
+			),
+			'type'           => 'custom_html',
+		);
+
+		$actions['ufw-divider-before-restart-button'] = array(
+			'raw_attributes' => array(
+				'std' => '<hr/>',
 			),
 			'type'           => 'custom_html',
 		);
 
 		$actions['ufw-restart'] = array(
-			'label'          => __( 'Actions', 'wpcd' ),
+			'label'          => '',
 			'raw_attributes' => array(
-				'std'     => $this->get_restart_button_label(),
-				'columns' => wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ? 1 : 2,
+				'std' => $this->get_restart_button_label(),
 			),
 			'type'           => 'button',
 		);
 
-		$ufw_toggle_state = $this->get_ufw_state( $id );
+		// Close up prior card.
+		$actions[] = wpcd_end_card( $this->get_tab_slug() );
 
-		$actions['ufw-state-toggle'] = array(
-			'label'          => __( 'Status', 'wpcd' ),
-			'raw_attributes' => array(
-				'on_label'  => __( 'Enabled', 'wpcd' ),
-				'off_label' => __( 'Disabled', 'wpcd' ),
-				'std'       => ( 'on' === $ufw_toggle_state ? true : false ),
-				'columns'   => wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ? 1 : 2,
-			),
-			'type'           => 'switch',
-		);
-
-		if ( wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ) {
-			$actions['ufw-desc'] = array(
-				'label'          => __( 'Notes', 'wpcd' ),
-				'raw_attributes' => array(
-					'std'     => '',
-					'desc'    => __( 'Ports for HTTP,HTTPS and SSH are opened by default. Open additional ports on the FIREWALL tab.', 'wpcd' ),
-					'columns' => 5,
-				),
-				'type'           => 'custom_html',
-			);
-		};
-
-		/* Malware / Antivirus */
+		/**
+		 * MALWRE / ANTIVIRUS
+		 */
 		$actions = array_merge( $actions, $this->get_maldet_fields( $id ) );
 
-		/* Email Gateway */
+		/**
+		 * EMAIL Gateway
+		 */
+
+		// Start new card.
+		$actions[] = wpcd_start_full_card( $this->get_tab_slug() );
+
 		$eg_desc  = __( 'Most cloud servers restrict the user of their servers for sending emails.  Therefore to send general emails you can configure an email gateway to send emails using your own SMTP server.', 'wpcd' );
 		$eg_desc .= '<br />';
 		$eg_desc .= __( 'This is completely optional.  The biggest benefit of configuring this is that you do not have to install an email gateway plugin on each of your sites.', 'wpcd' );
@@ -795,6 +784,8 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		$eg_desc .= __( 'Another benefit is that you can get password reset emails and notifications from newly installed sites on the server.', 'wpcd' );
 		$eg_desc .= '<br />';
 		$eg_desc .= __( 'The disadvantage is that all your emails will be sent from a single server and account for all sites which could affect deliverability if all your sites are not part of the same root domain.', 'wpcd' );
+
+		$eg_desc = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $eg_desc );
 
 		// get any existing email gateway data stored.
 		$gateway_data = wpcd_maybe_unserialize( get_post_meta( $id, 'wpcd_wpapp_email_gateway', true ) );
@@ -811,7 +802,6 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			/* Translators: %s is a fontawesome or similar icon. */
 			$smtp_gateway_button_txt = sprintf( __( '%s Reinstall Email Gateway', 'wpcd' ), '<i class="fa-solid fa-rectangle-history-circle-plus"></i>' );
 
-			$eg_desc .= '<br /><br />';
 			$eg_desc .= __( 'The email gateway has already been installed. You can reinstall it with new parameters by clicking the reinstall button below.', 'wpcd' );
 
 		} else {
@@ -1021,15 +1011,24 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			);
 		}
 
-		/* Memcached */
-		if ( $this->is_memcached_installed( $id ) ) {
-			$mc_desc = __( 'A performance-oriented object cache.', 'wpcd' );
-		} else {
-			$mc_desc  = __( 'Memcached is an OBJECT cache service that can help speed up duplicated database queries.  Once the service is installed here, you can activate it for each site that needs it.', 'wpcd' );
-			$mc_desc .= '<br />';
-			/* translators: %s is a string "Memcached and Redis Object Caches" and is handled separately. */
-			$mc_desc .= sprintf( __( 'Learn more about %s', 'wpcd' ), '<a href="https://scalegrid.io/blog/redis-vs-memcached-2021-comparison/">' . __( 'Memcached and Redis Object Caches', 'wpcd' ) . '</a>' );
-		}
+		// Close up prior card.
+		$actions[] = wpcd_end_card( $this->get_tab_slug() );
+
+		/**
+		 * MEMCACHED
+		 */
+
+		// Start new card.
+		$actions[] = wpcd_start_half_card( $this->get_tab_slug() );
+
+		$mc_desc  = __( 'Memcached is one of two performance-oriented object caches you can use for your sites.', 'wpcd' );
+		$mc_desc .= '<br />';
+		$mc_desc .= __( 'An OBJECT cache is a service that can help speed up duplicated database queries.  Once the service is installed here, you can activate it for each site that needs it.', 'wpcd' );
+		$mc_desc .= '<br />';
+		/* translators: %s is a string "Memcached and Redis Object Caches" and is handled separately. */
+		$mc_desc .= sprintf( __( 'Learn more about %s', 'wpcd' ), '<a href="https://scalegrid.io/blog/redis-vs-memcached-2021-comparison/">' . __( 'Memcached and Redis Object Caches', 'wpcd' ) . '</a>' );
+
+		$mc_desc = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $mc_desc );
 
 		$actions['memcached-status-header'] = array(
 			'label'          => '<i class="fa-duotone fa-object-intersect"></i> ' . __( 'Memcached', 'wpcd' ),
@@ -1057,20 +1056,11 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 		} else {
 			// memcached is installed so show status and options to disable and enable.
 
-			$actions['memcached-label'] = array(
-				'label'          => __( 'Service', 'wpcd' ),
-				'raw_attributes' => array(
-					'std'     => __( 'MemCached', 'wpcd' ),
-					'columns' => 3,
-				),
-				'type'           => 'custom_html',
-			);
-
 			$actions['memcached-status'] = array(
 				'label'          => __( 'Status', 'wpcd' ),
 				'raw_attributes' => array(
 					'std'     => $memcached_status,
-					'columns' => wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ? 2 : 5,
+					'columns' => 12,
 				),
 				'type'           => 'custom_html',
 			);
@@ -1079,7 +1069,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 				'label'          => __( 'Actions', 'wpcd' ),
 				'raw_attributes' => array(
 					'std'     => $this->get_restart_button_label(),
-					'columns' => wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ? 1 : 2,
+					'columns' => 6,
 				),
 				'type'           => 'button',
 			);
@@ -1089,22 +1079,10 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 				'raw_attributes' => array(
 					/* Translators: %s is a fontawesome or similar icon. */
 					'std'     => sprintf( __( '%s Clear Cache', 'wpcd' ), '<i class="fa-solid fa-trash-xmark"></i>' ),
-					'columns' => wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ? 1 : 2,
+					'columns' => 6,
 				),
 				'type'           => 'button',
 			);
-
-			if ( wpcd_get_early_option( 'wordpress_app_show_notes_on_server_services_tab' ) ) {
-				$actions['memcached-desc'] = array(
-					'label'          => __( 'Notes', 'wpcd' ),
-					'raw_attributes' => array(
-						'std'     => '',
-						'desc'    => __( 'Clearing the cache clears it for all sites on this server.', 'wpcd' ),
-						'columns' => 5,
-					),
-					'type'           => 'custom_html',
-				);
-			};
 
 			$actions['memcached-divider-before-remove-option'] = array(
 				'raw_attributes' => array(
@@ -1132,13 +1110,16 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 
 		}
 
+		// Close up prior card.
+		$actions[] = wpcd_end_card( $this->get_tab_slug() );
+
+		/* Ubuntu PRO Fields */
+		$actions = array_merge( $actions, $this->get_ubuntupro_fields( $id ) );
+
 		/* PHP Processes */
 		if ( 'nginx' === $webserver_type ) {
 			$actions = array_merge( $actions, $this->get_php_fields( $id ) );
 		}
-
-		/* Ubuntu PRO Fields */
-		$actions = array_merge( $actions, $this->get_ubuntupro_fields( $id ) );
 
 		return $actions;
 
@@ -1155,6 +1136,9 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 
 		// Set up metabox items.
 		$actions = array();
+
+		// Start new card.
+		$actions[] = wpcd_start_half_card( $this->get_tab_slug() );
 
 		// Is ubuntu pro enabled or disabled?
 		$ubuntu_pro_status = $this->get_ubuntu_pro_status( $id );
@@ -1219,6 +1203,9 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			);
 
 		}
+
+		// Close up prior card.
+		$actions[] = wpcd_end_card( $this->get_tab_slug() );
 
 		return $actions;
 
@@ -1303,8 +1290,11 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			}
 		}
 
+		// Start new card.
+		$actions[] = wpcd_start_full_card( $this->get_tab_slug() );
+
 		$actions['services-status-php'] = array(
-			'label'          => '<i class="fa-duotone fa-arrow-progress"></i> ' . __( 'PHP Processes', 'wpcd' ),
+			'label'          => '<i class="fa-duotone fa-arrow-progress"></i> ' . __( 'Manage PHP Processes for NGINX', 'wpcd' ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
 				'desc' => '',
@@ -1328,21 +1318,30 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			'type'           => 'custom_html',
 		);
 
+		// Close up prior card.
+		$actions[] = wpcd_end_card( $this->get_tab_slug() );
+
 		foreach ( $php_services_status as $services_key => $service_status ) {
+
+			// Start new card.
+			$actions[] = wpcd_start_one_third_card( $this->get_tab_slug() );
+
+			$card_header = sprintf( __( 'php %s', 'wpcd' ), $services_key );
+
 			$actions[ "php-server-label-$services_key" ] = array(
-				'label'          => '',
+				'label'          => '<i class="fa-duotone fa-arrow-progress"></i> ' . $card_header,
 				'raw_attributes' => array(
-					'std'     => $services_key,
-					'columns' => 3,
+					'std'     => '',
+					'columns' => 12,
 				),
-				'type'           => 'custom_html',
+				'type'           => 'heading',
 			);
 
 			$actions[ "php-server-status-$services_key" ] = array(
-				'label'          => '',
+				'label'          => __( 'Status', 'wpcd ' ),
 				'raw_attributes' => array(
 					'std'     => $service_status,
-					'columns' => 4,
+					'columns' => 12,
 				),
 				'type'           => 'custom_html',
 			);
@@ -1356,7 +1355,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 					'label'          => '',
 					'raw_attributes' => array(
 						'std'     => $this->get_restart_button_label(),
-						'columns' => 3,
+						'columns' => 6,
 					),
 					'type'           => 'button',
 				);
@@ -1364,45 +1363,33 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 				$default_php_server_version = 'php' . $this->get_default_php_version_no_period( $id );
 				if ( $default_php_server_version === $services_key ) {
 					// Do not allow php 7.4 or the the default version to be deactivated since it's the default for the server.
-					$actions[ "php-server-deactivate-$services_key" ] = array(
-						'label'          => '',
-						'raw_attributes' => array(
-							'std'     => __( 'n/a', 'wpcd' ),
-							'columns' => 2,
-						),
-						'type'           => 'custom_html',
-					);
 				} else {
 					// Allow this version of php to be deactivated.
 					$actions[ "php-server-deactivate-$services_key" ] = array(
 						'label'          => '',
 						'raw_attributes' => array(
 							'std'     => __( 'Deactivate', 'wpcd' ),
-							'columns' => 2,
+							'columns' => 6,
 						),
 						'type'           => 'button',
 					);
 				}
 			} else {
 				// Allow this php version to be activated.
-				$actions[ "php-server-restart-$services_key" ]  = array(
-					'label'          => '',
-					'raw_attributes' => array(
-						'std'     => __( 'n/a', 'wpcd' ),
-						'columns' => 3,
-					),
-					'type'           => 'custom_html',
-				);
 				$actions[ "php-server-activate-$services_key" ] = array(
 					'label'          => '',
 					'raw_attributes' => array(
 						'std'     => __( 'Activate', 'wpcd' ),
-						'columns' => 2,
+						'columns' => 6,
 					),
 					'type'           => 'button',
 				);
 
 			}
+
+			// Close up prior card.
+			$actions[] = wpcd_end_card( $this->get_tab_slug() );
+
 		}
 
 		return $actions;
@@ -1423,6 +1410,9 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 
 		$desc = __( 'Malware scanning using LMD and CLAMAV.', 'wpcd' );
 
+		$desc .= '<br /><br />';
+		$desc .= __( 'The scanner will run once per day and send an email of the scan results.  Note that most cloud providers will only send email if the email gateway software is installed as well - for security reasons many of them block emails from being sent directly from their servers.', 'wpcd' );
+
 		$data = wpcd_maybe_unserialize( get_post_meta( $id, 'wpcd_maldet_config', true ) );
 		if ( ! empty( $data ) ) {
 
@@ -1441,6 +1431,17 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 			$desc .= '<b>' . __( 'Malware scanning is not activated for this server. ', 'wpcd' ) . '</b>';
 			$desc .= __( 'If your server has 1 GB or more of memory it can likely run the scanner. Though, of course, the more memory the better. You can use the form below to get started.', 'wpcd' );
 
+		}
+
+		$desc = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
+
+		// Start new card.
+		if ( empty( $email_id ) ) {
+			// Maldet not installed, need smaller card.
+			$actions[] = wpcd_start_two_thirds_card( $this->get_tab_slug() );
+		} else {
+			// Maldet is installed, need larger card.
+			$actions[] = wpcd_start_full_card( $this->get_tab_slug() );
 		}
 
 		$actions['maldet-header'] = array(
@@ -1557,6 +1558,13 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 
 		}
 
+		$actions['maldet-divider-before-misc'] = array(
+			'raw_attributes' => array(
+				'std' => '<hr/>',
+			),
+			'type'           => 'custom_html',
+		);
+
 		$actions['maldet-clear-history'] = array(
 			'label'          => '',
 			'raw_attributes' => array(
@@ -1564,7 +1572,7 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 				'std'                 => sprintf( __( '%s Clear History', 'wpcd' ), '<i class="fa-solid fa-trash-xmark"></i>' ),
 				/* make sure we give the user a confirmation prompt. */
 				'confirmation_prompt' => __( 'Delete malware scan history?', 'wpcd' ),
-				'columns'             => 2,
+				'columns'             => 6,
 			),
 			'type'           => 'button',
 		);
@@ -1576,24 +1584,13 @@ class WPCD_WORDPRESS_TABS_SERVER_SERVICES extends WPCD_WORDPRESS_TABS {
 				'std'                 => sprintf( __( '%s Clear All Metas', 'wpcd' ), '<i class="fa-solid fa-trash-xmark"></i>' ),
 				/* make sure we give the user a confirmation prompt. */
 				'confirmation_prompt' => __( 'Are you sure you would like to clear all Malware metas including history?', 'wpcd' ),
-				'columns'             => 2,
+				'columns'             => 6,
 			),
 			'type'           => 'button',
 		);
 
-		// Set up footer message.
-		$maldet_footer  = '<br /><br />';
-		$maldet_footer .= '<b>' . __( 'About The Scanner', 'wpcd' ) . '<br /></b>';
-		$maldet_footer .= __( 'The scanner will run once per day and send an email of the scan results.  Note that most cloud providers will only send email if the email gateway software is installed as well - for security reasons many of them block emails from being sent directly from their servers.', 'wpcd' );
-
-		$actions['maldet-footer'] = array(
-			'label'          => '',
-			'raw_attributes' => array(
-				'name' => '',
-				'std'  => $maldet_footer,
-			),
-			'type'           => 'custom_html',
-		);
+		// Close up prior card.
+		$actions[] = wpcd_end_card( $this->get_tab_slug() );
 
 		return $actions;
 

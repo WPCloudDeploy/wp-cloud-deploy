@@ -148,17 +148,20 @@ class WPCD_WORDPRESS_TABS_SERVER_TWEAKS extends WPCD_WORDPRESS_TABS {
 
 		$actions = array();
 
-		$actions['server-tweaks-performance-header'] = array(
-			'label'          => __( 'Performance Tweaks', 'wpcd' ),
-			'type'           => 'heading',
-			'raw_attributes' => array(
-				'desc' => __( 'Tweaks that could help improve your servers and sites performance.', 'wpcd' ),
-			),
-		);
-
 		/**
 		 * GZIP
 		 */
+
+		// Start new card.
+		$actions[] = wpcd_start_half_card( $this->get_tab_slug() );
+
+		$actions['server-tweaks-performance-gzip-header'] = array(
+			'label'          => __( 'Gzip', 'wpcd' ),
+			'type'           => 'heading',
+			'raw_attributes' => array(
+				'desc' => __( 'Enable or Disable Gzip for this server. If your sites have their own GZIP directives then those will override anything that is set or unset here.', 'wpcd' ),
+			),
+		);
 
 		$gzip_status = $this->get_meta_value( $id, 'wpcd_wpapp_gzip_status', 'on' );
 
@@ -172,10 +175,12 @@ class WPCD_WORDPRESS_TABS_SERVER_TWEAKS extends WPCD_WORDPRESS_TABS {
 				'off_label'           => __( 'Disabled', 'wpcd' ),
 				'std'                 => $gzip_status === 'on',
 				'confirmation_prompt' => $gzip_confirmation_prompt,
-				'desc'                => __( 'Enable or Disable Gzip for this server. If your sites have their own GZIP directives then those will override anything that is set or unset here.', 'wpcd' ),
 			),
 			'type'           => 'switch',
 		);
+
+		// Close up prior card.
+		$actions[] = wpcd_end_card( $this->get_tab_slug() );
 
 		// Add a divider.
 		$actions[] = array(

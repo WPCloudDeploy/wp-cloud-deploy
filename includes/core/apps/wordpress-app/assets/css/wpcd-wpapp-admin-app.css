@@ -3,18 +3,18 @@
     display: inline-block;
     padding: 2px 8px;
     font-weight: 700;
-    color: #fff;
+    color: var(--wpcd-white-color);
     vertical-align: baseline;
     border-radius: 3px;
     margin: 2px;
 }
 
 .wpcd_ssl_status_off {
-    background-color: red;
+    background-color: var(--wpcd-negative-color);
 }
 
 .wpcd_ssl_status_on {
-    background-color: green;
+    background-color: var(--wpcd-positive-color);
 }
 
 /* Format the PHP version on the apps list screen */
@@ -24,7 +24,7 @@
     font-weight: 700;
     vertical-align: baseline;
     border-radius: 3px;
-    border-color: red !important;
+    border-color: var(--wpcd-negative-color) !important;
     /* Not sure why important is needed for this one but oh well. */
     border: solid;
     border-width: 2px;
@@ -32,7 +32,7 @@
 }
 
 .wpcd_php_version_8_1 {
-    border-color: green !important;
+    border-color: var(--wpcd-positive-color) !important;
 }
 
 .wpcd_php_version_8_0,
@@ -55,17 +55,17 @@
 .wp-list-table .wpcd-app-col-element-label-wp_admin_link {
     display: inline-block;
     padding: 2px 8px;
-	background-color: green;
+	background-color: var(--wpcd-positive-color);
     vertical-align: baseline;
     border-radius: 3px;
-    border-color: green !important;
+    border-color: var(--wpcd-positive-color) !important;
     /* Not sure why important is needed for this one but oh well. */
     border: solid;
     border-width: 2px;
     margin: 2px;	
 }
 .wp-list-table .wpcd-app-col-element-label-wp_admin_link a {
-	color: white;
+	color: var(--wpcd-white-color);
 }
 .wp-list-table .wpcd-app-col-element-label-wp_admin_link:hover {
 	box-shadow: 1px 1px 30px 0 rgba(0,0,0,.3); 
@@ -75,17 +75,17 @@
 .wp-list-table .wpcd-app-col-element-value-homepage_link {
     display: inline-block;
     padding: 2px 8px;
-	background-color: green;
+	background-color: var(--wpcd-positive-color);
     vertical-align: baseline;
     border-radius: 3px;
-    border-color: green !important;
+    border-color: var(--wpcd-positive-color) !important;
     /* Not sure why important is needed for this one but oh well. */
     border: solid;
     border-width: 2px;
     margin: 2px;	
 }
 .wp-list-table .wpcd-app-col-element-value-homepage_link a {
-	color: white;
+	color: var(--wpcd-white-color);
 }
 .wp-list-table .wpcd-app-col-element-value-homepage_link:hover {
 	box-shadow: 1px 1px 30px 0 rgba(0,0,0,.3); 
@@ -106,7 +106,7 @@
     margin: 2px;	
 }
 .wp-list-table .wpcd-app-col-element-wrap-wp_passwordless_login_link a {
-	color: white;
+	color: var(--wpcd-white-color);
 }
 .wp-list-table .wpcd-app-col-element-wrap-wp_passwordless_login_link:hover {
 	box-shadow: 1px 1px 30px 0 rgba(0,0,0,.3); 
@@ -225,7 +225,7 @@
 	background-color: #38BDF8;
 	padding: 5px;
 	border-radius: 3px;
-	color: white;
+	color: var(--wpcd-white-color);
 	text-align: center;
 }
 
@@ -328,7 +328,7 @@
 	background-color: #059669;
 	padding: 5px;
 	border-radius: 3px;
-	color: white;
+	color: var(--wpcd-white-color);
 	text-align: center;
 }
 .wpcd_mt_version_list .wpcd_mt_version_value_inline {
@@ -348,10 +348,10 @@
 	padding: 1px 5px;
 	vertical-align: top;
 	border-radius: 2px;
-	color: white;	
+	color: var(--wpcd-white-color);	
 }
 .wpcd_mt_version_list .wpcd_mt_destination_server a {
-	color: white;
+	color: var(--wpcd-white-color);
 	text-decoration: none;
 }
 
@@ -398,7 +398,7 @@
 .locker {
     z-index: 1000;
     opacity: 0.8;
-    background-color: white;
+    background-color: var(--wpcd-white-color);
     -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=80)";
     filter: alpha(opacity=80);
 }

@@ -244,10 +244,10 @@ class WPCD_WORDPRESS_TABS_THEME_AND_PLUGIN_UPDATES extends WPCD_WORDPRESS_TABS {
 		}
 
 		// Get an array of credentials and buckets.
-		$creds  = $this->get_s3_credentials_for_backup( $id );  // Function get_s3_credentials_for_backup is located in a trait file.
-		$key    = $creds['aws_access_key_id'];
-		$secret = $creds['aws_secret_access_key'];
-		$bucket = $creds['aws_bucket_name'];
+		$creds    = $this->get_s3_credentials_for_backup( $id );  // Function get_s3_credentials_for_backup is located in a trait file.
+		$key      = $creds['aws_access_key_id'];
+		$secret   = $creds['aws_secret_access_key'];
+		$bucket   = $creds['aws_bucket_name'];
 		$endpoint = $creds['s3_endpoint'];
 
 		// Now, fill in all the other items that the bash script needs to run properly.
@@ -332,6 +332,9 @@ class WPCD_WORDPRESS_TABS_THEME_AND_PLUGIN_UPDATES extends WPCD_WORDPRESS_TABS {
 			return array_merge( $fields, $this->get_disabled_header_field( 'update-site' ) );
 		}
 
+		// Start new card.
+		$fields[] = wpcd_start_full_card( $this->get_tab_slug() );
+
 		// We got here so ok to show fields related to updating the site.
 		$doc_link = 'https://wpclouddeploy.com/documentation/wpcloud-deploy-admin/theme-plugin-updates/';
 		$desc     = __( 'Update Themes & Plugins is an experimental feature. Please make sure you read our documentation before using it.', 'wpcd' );
@@ -346,9 +349,15 @@ class WPCD_WORDPRESS_TABS_THEME_AND_PLUGIN_UPDATES extends WPCD_WORDPRESS_TABS {
 			'desc' => $desc,
 		);
 
+		// Close up prior card.
+		$fields[] = wpcd_end_card( $this->get_tab_slug() );
+
 		/**
 		 * Update Everything
 		 */
+
+		// Start new card.
+		$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
 
 		$fields[] = array(
 			'name' => __( 'Update Everything', 'wpcd' ),
@@ -379,9 +388,15 @@ class WPCD_WORDPRESS_TABS_THEME_AND_PLUGIN_UPDATES extends WPCD_WORDPRESS_TABS {
 			'save_field' => false,
 		);
 
+		// Close up prior card.
+		$fields[] = wpcd_end_card( $this->get_tab_slug() );
+
 		/**
 		 * Update All Themes and All Plugins
 		 */
+
+		// Start new card.
+		$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
 
 		$fields[] = array(
 			'name' => __( 'Update Themes and Plugins', 'wpcd' ),
@@ -412,9 +427,15 @@ class WPCD_WORDPRESS_TABS_THEME_AND_PLUGIN_UPDATES extends WPCD_WORDPRESS_TABS {
 			'save_field' => false,
 		);
 
+		// Close up prior card.
+		$fields[] = wpcd_end_card( $this->get_tab_slug() );
+
 		/**
 		 * Update Themes Only
 		 */
+
+		// Start new card.
+		$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
 
 		$fields[] = array(
 			'name' => __( 'Update Themes', 'wpcd' ),
@@ -445,9 +466,15 @@ class WPCD_WORDPRESS_TABS_THEME_AND_PLUGIN_UPDATES extends WPCD_WORDPRESS_TABS {
 			'save_field' => false,
 		);
 
+		// Close up prior card.
+		$fields[] = wpcd_end_card( $this->get_tab_slug() );
+
 		/**
 		 * Update Plugins Only
 		 */
+
+		// Start new card.
+		$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
 
 		$fields[] = array(
 			'name' => __( 'Update Plugins', 'wpcd' ),
@@ -478,9 +505,15 @@ class WPCD_WORDPRESS_TABS_THEME_AND_PLUGIN_UPDATES extends WPCD_WORDPRESS_TABS {
 			'save_field' => false,
 		);
 
+		// Close up prior card.
+		$fields[] = wpcd_end_card( $this->get_tab_slug() );
+
 		/**
 		 * Update WordPress Only
 		 */
+
+		// Start new card.
+		$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
 
 		$fields[] = array(
 			'name' => __( 'Update WordPress', 'wpcd' ),
@@ -511,6 +544,9 @@ class WPCD_WORDPRESS_TABS_THEME_AND_PLUGIN_UPDATES extends WPCD_WORDPRESS_TABS {
 			'save_field' => false,
 		);
 
+		// Close up prior card.
+		$fields[] = wpcd_end_card( $this->get_tab_slug() );
+
 		return $fields;
 
 	}
@@ -518,7 +554,7 @@ class WPCD_WORDPRESS_TABS_THEME_AND_PLUGIN_UPDATES extends WPCD_WORDPRESS_TABS {
 	/**
 	 * Add new bulk options in site list screen.
 	 *
-	 * Filter Hook: bulk_actions-edit-wpcd_app 
+	 * Filter Hook: bulk_actions-edit-wpcd_app
 	 *
 	 * @param array $bulk_array bulk array.
 	 */
@@ -532,7 +568,7 @@ class WPCD_WORDPRESS_TABS_THEME_AND_PLUGIN_UPDATES extends WPCD_WORDPRESS_TABS {
 			$bulk_array['wpcd_sites_update_everything']         = __( 'Update All Themes, Plugins & WordPress', 'wpcd' );
 			return $bulk_array;
 		}
-		
+
 		return $bulk_array;
 
 	}

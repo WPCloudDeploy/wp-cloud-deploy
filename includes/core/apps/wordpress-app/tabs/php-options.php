@@ -473,7 +473,9 @@ class WPCD_WORDPRESS_TABS_PHP_OPTIONS extends WPCD_WORDPRESS_TABS {
 		} else {
 			// At least one value was set in the past so lets loop through the array and construct the html.
 			foreach ( $saved_values as $key => $value ) {
-				$customhtml .= '<p>' . "$key: <b>$value</b>" . '</p>';
+				$value_pair  = "$key: <b>$value</b>";
+				$value_pair  = wpcd_apply_checkmark_icon( '%s ' . $value_pair );
+				$customhtml .= '<p>' . $value_pair . '</p>';
 			}
 		}
 

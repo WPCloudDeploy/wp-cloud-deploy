@@ -130,6 +130,7 @@ Note: Even though the entire git development history isn't available on github, 
 ------
 * New: WPAPP - Option to apply http authentication in front of a site when its disk quota has been exceeded.
 * New: WPAPP - Use CALLBACKS to collected posttype counts from child sites.
+* New: WPAPP - Passwordless login for specific user.
 * Tweak: WPAPP - PHP 8.0 is now shown with an orange border (caution) in the apps list (since 8.0 no longer receives security updates).
 * Tweak: WPAPP - CSS to change the highlighter in the left menu bar in WPCD settings, server and app detail screens.
 * Tweak: WPAPP - Updated HELP & FAQ links.

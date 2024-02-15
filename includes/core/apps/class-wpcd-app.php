@@ -766,7 +766,7 @@ class WPCD_APP extends WPCD_Base {
 			$this->get_app_name() . '/v' . WPCD_REST_VERSION,
 			'/command/(?P<id>\d+)/(?P<name>.+)/(?P<status>.+)/(?P<cmdid>\d+)/',
 			array(
-				'methods'             => array( 'GET' ),
+				'methods'             => array( 'GET', 'POST' ),
 				'callback'            => array( $this, 'perform_command' ),
 				'permission_callback' => '__return_true',
 			)
@@ -953,7 +953,7 @@ class WPCD_APP extends WPCD_Base {
 			return new WP_REST_Response( array( 'error' => new WP_Error( __( 'Invalid command ID', 'wpcd' ) ) ) );
 		}
 
-		$data = apply_filters( "wpcd_{$this->get_app_name()}_command_status", $data, $id, $name, $status, $command_id );
+		$data = apply_filters( "wpcd_{$this->get_app_name()}_command_status", $data, $id, $name, $status, $command_id, $params );
 		// short-circuit the action if a non-null is returned.
 		if ( ! is_null( $data ) ) {
 			// if an error is raised, send it back as an error.
@@ -964,8 +964,8 @@ class WPCD_APP extends WPCD_Base {
 			return new WP_REST_Response( array( 'data' => $data ) );
 		}
 
-		do_action( "wpcd_{$this->get_app_name()}_command_status_action", $id, $name, $status, $command_id );
-		do_action( "wpcd_{$this->get_app_name()}_command_{$name}_{$status}", $id, $command_id, $name, $status );
+		do_action( "wpcd_{$this->get_app_name()}_command_status_action", $id, $name, $status, $command_id, $params );
+		do_action( "wpcd_{$this->get_app_name()}_command_{$name}_{$status}", $id, $command_id, $name, $status, $params );
 
 		$this->update_command_status( $id, $name, $status );
 

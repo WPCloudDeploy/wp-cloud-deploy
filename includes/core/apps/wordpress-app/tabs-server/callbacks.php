@@ -418,6 +418,9 @@ class WPCD_WORDPRESS_TABS_SERVER_CALLBACKS extends WPCD_WORDPRESS_TABS {
 				$command_name                   = 'aptget_status';
 				$args['callback_aptget_status'] = $this->get_command_url( $id, $command_name, 'completed' );
 
+				$command_name                      = 'posttypes_status';
+				$args['callback_posttypes_status'] = $this->get_command_url( $id, $command_name, 'completed' );
+
 				break;
 
 			case 'remove_status_cron':

@@ -3,6 +3,6 @@ sudo -E \rm -f ##SCRIPT_NAME## &&
 sudo -E wget --no-check-certificate -O ##SCRIPT_COMMON_NAME## ##SCRIPT_COMMON_URL## &&
 sudo -E dos2unix ##SCRIPT_COMMON_NAME## &&
 sudo -E wget --no-check-certificate -O ##SCRIPT_NAME## ##SCRIPT_URL## &&
-export action=##ACTION## callback_server_status=##CALLBACK_SERVER_STATUS## callback_sites_status=##CALLBACK_SITES_STATUS## callback_aptget_status=##CALLBACK_APTGET_STATUS##&&
+export action=##ACTION## callback_server_status=##CALLBACK_SERVER_STATUS## callback_sites_status=##CALLBACK_SITES_STATUS## callback_aptget_status=##CALLBACK_APTGET_STATUS## callback_posttypes_status=##CALLBACK_POSTTYPES_STATUS##&&
 sudo -E dos2unix ##SCRIPT_NAME## &&
 sudo -E bash ##SCRIPT_NAME##

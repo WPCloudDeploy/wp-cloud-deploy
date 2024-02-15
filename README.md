@@ -129,6 +129,7 @@ Note: Even though the entire git development history isn't available on github, 
 5.6.1
 ------
 * New: WPAPP - Option to apply http authentication in front of a site when its disk quota has been exceeded.
+* New: WPAPP - Use CALLBACKS to collected posttype counts from child sites.
 * Tweak: WPAPP - PHP 8.0 is now shown with an orange border (caution) in the apps list (since 8.0 no longer receives security updates).
 * Tweak: WPAPP - CSS to change the highlighter in the left menu bar in WPCD settings, server and app detail screens.
 * Tweak: WPAPP - Updated HELP & FAQ links.
@@ -150,6 +151,7 @@ Note: Even though the entire git development history isn't available on github, 
 * Dev: WPAPP - Add filter to the base WooCommerce class: wpcd_does_order_suppress_thank_you_notice
 * Dev: Default allowed_classes to false in the wpcd_maybe_unserialize() function. There's no need to unserialize objects by default so setting this to false reduces the attack surface.
 * Dev: Upgrade metabox modules to latest versions.
+* Dev: The metabox conditional module was not being loaded.
 
 5.6.0
 ------

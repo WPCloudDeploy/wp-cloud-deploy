@@ -299,6 +299,97 @@ trait wpcd_wpapp_push_commands {
 	}
 
 	/**
+	 * Handles posttypes status pushes from bash script #24 - part 4 - posttypes status.
+	 *
+	 * ************************************************************************************************************
+	 * Note that this function is accepting 6 params instead of 4 like the others.
+	 * This is because as of v5.7, the rest api endpoint function is calling the action with the new 5th parameter.
+	 * See /includes/core/apps/class-wpcd-app.php, function perform_command around line 935 or so.
+	 * *************************************************************************************************************
+	 *
+	 * Action Hook: wpcd_command_{$this->get_app_name()}_command_posttypes_status_completed || wpcd_{$this->get_app_name()}_command_{$name}_{$status}
+	 *
+	 * @param int          $id server post id.
+	 * @param int          $command_id an id that is given to the bash script at the time it's first run. Doesn't do anything for us in this context so it's not used here.
+	 * @param string       $name name.
+	 * @param string       $status status.
+	 * @param array|object $params The parameters sent to the REST API endpoint (which is actually a WP REST API object).
+	 *
+	 * @return void.
+	 */
+	public function push_command_posttypes_status_completed( $id, $command_id, $name, $status, $params ) {
+
+		// Set variable to status, in this case it is always "completed" - will be used in action hooks later.
+		$status = 'completed';
+
+		// set variable to name, in this case it is always "posttypes_status" - will be used in action hooks later.
+		$name = 'posttypes_status';
+
+		// Create an array to hold items taken from the $_request object.
+		$posttypes_items_raw = $params->get_json_params();
+
+		// Bail early if invalid array.
+		if ( empty( $posttypes_items_raw ) || ( ! is_array( $posttypes_items_raw ) ) || ( is_wp_error( $posttypes_items_raw ) ) ) {
+			return;
+		}
+
+		// Set variable to hold extracted data.
+		$posttypes_items = array();
+
+		// Fill array with extracted data, sanitizing as we go.
+		foreach ( $posttypes_items_raw as $key => $data ) {
+			$posttypes_items[ sanitize_text_field( $data['name'] ) ] = (int) $data['count'];
+		}
+
+		// Get domain name and ip.
+		$domain    = wp_kses( filter_input( INPUT_GET, 'domain', FILTER_UNSAFE_RAW ), array(), array() );
+		$public_ip = wp_kses( filter_input( INPUT_GET, 'publicip', FILTER_UNSAFE_RAW ), array(), array() );
+
+		// Locate the site post id(appid) based on a combination of the domain name and the server ip address.
+		$app_id = $this->get_app_id_by_server_id_and_domain( $id, $domain );
+
+		// Stamp the site/app record with the array.
+		if ( 'wpcd_app' === get_post_type( $app_id ) ) {
+
+			// update the meta that holds the current data..
+			update_post_meta( $app_id, 'wpcd_site_posttypes_push', $posttypes_items );
+
+			// add to history meta as well.
+			$history = wpcd_maybe_unserialize( get_post_meta( $app_id, 'wpcd_site_posttypes_push_history', true ) );
+			if ( empty( $history ) ) {
+				$history = array();
+			}
+
+			$history[ ' ' . (string) time() ] = $posttypes_items; // we have to force the time element to be a string by putting a space in front of it otherwise manipulating the array as a key-value pair is a big problem if we want to purge just part of the array later.
+
+			if ( count( $history ) >= 10 ) {
+				// take the last element off to prevent history from getting too big.
+				$removed = array_shift( $history );
+			}
+
+			update_post_meta( $app_id, 'wpcd_site_posttypes_push_history', $history );
+
+			// Check site quotas.
+			// $this->check_site_quotas_post_counts( $app_id );
+
+			// Let other plugins react to the new good data with an action hook.
+			do_action( "wpcd_{$this->get_app_name()}_command_{$name}_{$status}_processed_good", $posttypes_items, $app_id, $id );
+
+		} else {
+
+			do_action( 'wpcd_log_error', 'Data received for server that does not exist - received server id ' . (string) $id . '<br /> The first 5000 characters of the received data is shown below after being sanitized with WP_KSES:<br /> ' . substr( wp_kses( print_r( $_REQUEST, true ), array() ), 0, 5000 ), 'security', __FILE__, __LINE__ );
+
+			// Let other plugins react to the new bad data with an action hook.
+			do_action( "wpcd_{$this->get_app_name()}_command_{$name}_{$status}_processed_bad", $posttypes_items, $app_id, $id );
+
+		}
+
+		// Let other plugins react to the new data (regardless of it's good or bad) with an action hook.
+		do_action( "wpcd_{$this->get_app_name()}_command_{$name}_{$status}_processed", $posttypes_items, $app_id, $id );
+
+	}
+
+	/**
 	 * Handles server status pushes from bash script #24 - aptget status.
 	 *
 	 * Action Hook: wpcd_command_{$this->get_app_name()}_command_aptget_status_completed || wpcd_{$this->get_app_name()}_command_{$name}_{$status}

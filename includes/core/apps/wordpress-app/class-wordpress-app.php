@@ -4892,12 +4892,13 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	 * @param string $label The label to use for the link.
 	 */
 	public function get_passwordless_login_link_for_display( $app_id, $label ) {
-		return sprintf(
+		$return = sprintf(
 			'<a class="wpcd_action_passwordless_login" data-wpcd-id="%d" data-wpcd-domain="%s" href="">%s</a>',
 			$app_id,
 			$this->get_domain_name( $app_id ),
 			esc_html( $label ),
 		);
+		return apply_filters( 'wpcd_wordpress-app_passwordless_login_link', $return, $app_id );
 	}
 
 

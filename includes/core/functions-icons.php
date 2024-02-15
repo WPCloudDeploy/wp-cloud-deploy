@@ -408,6 +408,18 @@ function wpcd_apply_prune_icon( $label ) {
  *
  * @param string $label The string where the icon needs to be applied.  It needs to have at least on placeholder in it (eg: '%s Restart' ).
  */
+function wpcd_apply_snapshot_icon( $label ) {
+
+	return sprintf( $label, '<i class="fa-duotone fa-image-polaroid"></i> ' );
+}
+
+/**
+ * Returns a string with a fontawesome icon inserted.
+ *
+ * @since 5.7.
+ *
+ * @param string $label The string where the icon needs to be applied.  It needs to have at least on placeholder in it (eg: '%s Restart' ).
+ */
 function wpcd_apply_aws_icon( $label ) {
 
 	return sprintf( $label, '<i class="fa-brands fa-aws"></i> ' );

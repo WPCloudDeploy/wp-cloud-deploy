@@ -573,11 +573,11 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 
 		$fields[] = array(
 			'id'         => 'wpcd_app_action_conf_backup_delete',
-			/* Translators: %s is a fontawesome or similar icon. */
-			'name'       => wpcd_apply_trash_icon( __( '%s Delete all configuration backups', 'wpcd' ) ),
+			'name'       => __( 'Delete all configuration backups', 'wpcd' ),
 			'tab'        => 'server_backup',
 			'type'       => 'button',
-			'std'        => __( 'Delete', 'wpcd' ),
+			/* Translators: %s is a fontawesome or similar icon. */
+			'std'        => wpcd_apply_trash_icon( __( '%s Delete', 'wpcd' ) ),
 			// fields that contribute data for this action.
 			'attributes' => array(
 				// the _action that will be called in ajax.
@@ -631,7 +631,8 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 		$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
 
 		$fields[] = array(
-			'name' => __( 'Server Provider Snapshots', 'wpcd' ),
+			/* Translators: %s is a fontawesome or similar icon. */
+			'name' => wpcd_apply_snapshot_icon( __( '%s Server Provider Snapshots', 'wpcd' ) ),
 			'desc' => __( 'If this provider supports snapshots you can quickly submit a request to create a snapshot from here.', 'wpcd' ),
 			'tab'  => 'server_backup',
 			'type' => 'heading',
@@ -649,7 +650,8 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 				'name'       => '',
 				'tab'        => 'server_backup',
 				'type'       => 'button',
-				'std'        => __( 'Take a Snapshot', 'wpcd' ),
+				/* Translators: %s is a fontawesome or similar icon. */
+				'std'        => wpcd_apply_snapshot_icon( __( '%s Take a Snapshot', 'wpcd' ) ),
 				'desc'       => __( 'Server will NOT be shutdown before snapshot operation which could lead to data inconsistency in the snapshot.', 'wpcd' ),
 				// fields that contribute data for this action.
 				'attributes' => array(
@@ -667,7 +669,8 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 		} else {
 			// snapshots are not supported for the current provider.
 			$fields[] = array(
-				'name' => __( 'No Snapshots Support', 'wpcd' ),
+				/* Translators: %s is a fontawesome or similar icon. */
+				'name' => wpcd_apply_snapshot_icon( __( '%s No Snapshots Support', 'wpcd' ) ),
 				'desc' => __( 'Unfortunately there is no support for snapshots in this provider.', 'wpcd' ),
 				'tab'  => 'server_backup',
 				'type' => 'custom_html',

@@ -93,10 +93,9 @@
 	}	
 }
 
-/* The H4 header inside tabs need to be reformatted from the WPCD defaults */
+/* If the H4 header inside tabs need to be reformatted from the WPCD defaults */
 .wpcd-card-group .rwmb-field.rwmb-heading-wrapper h4 {
-	x-margin-top: 0px !important;
-	x-background-color: var(--wpcd-light-background-color) !important;
+	/* Nothing here for now. */
 }
 
 /* The first row after the .wpcd-card-group class is our pseudo container row required for our card markup. Lets get rid of it. */
@@ -166,4 +165,29 @@
 #wpcd_wordpress-app_tab2, .rwmb-tabs-left,
 #wpcd_server_wordpress-app_tab3 .rwmb-tabs-left {
 	/* On second thought, don't ! */
+}
+
+/**
+ * This section styles the native metabox.io ADVACNED columns.
+ * @See https://docs.metabox.io/extensions/meta-box-columns/ - scroll down to the advanced syntax section.
+ */
+ 
+/**/
+.post-type-wpcd_app .wpcd-column {
+	margin-right: 20px;
+	margin-bottom: 10px;
+	border: solid;
+	border-width: 1px;
+	border-color: var(--wpcd-medium-accent-background-color);
+	border-radius: 8px;
+	padding-left: 15px;
+	padding-right: 15px;
+	box-shadow: rgba(0, 0, 0, 0.16) 0px 10px 36px 0px, rgba(0, 0, 0, 0.06) 0px 0px 0px 1px;
+}
+.post-type-wpcd_app .wpcd-column:hover,
+.post-type-wpcd_app .wpcd-column:focus {
+	box-shadow: rgba(0, 0, 0, 0.25) 0px 25px 50px -12px;
+}
+.post-type-wpcd_app .wpcd-column:hover {
+	border-color: var(--wpcd-primary-brand-color);
 }

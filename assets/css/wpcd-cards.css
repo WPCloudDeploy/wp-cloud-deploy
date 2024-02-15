@@ -6,7 +6,6 @@
  * See also /includes/core/functions-metabox.php.
  */
 .wpcd-card-group {
-	x-background-color: var(--wpcd-light-background-color);
 	background-color: var(--wpcd-white-color);	
 	margin-top: 10px;
 	margin-right: 20px;
@@ -18,7 +17,7 @@
 	padding-left: 15px;
 	padding-right: 15px;
 	padding-bottom: 15px;
-	box-shadow: rgba(0, 0, 0, 0.16) 0px 10px 36px 0px, rgba(0, 0, 0, 0.06) 0px 0px 0px 1px;
+	x-box-shadow: rgba(0, 0, 0, 0.16) 0px 10px 36px 0px, rgba(0, 0, 0, 0.06) 0px 0px 0px 1px;
 }
 .wpcd-card-group:hover,
 .wpcd-card-group:focus {

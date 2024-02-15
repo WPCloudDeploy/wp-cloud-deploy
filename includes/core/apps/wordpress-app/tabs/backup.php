@@ -432,7 +432,8 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 		$fields[] = wpcd_start_half_card( $this->get_tab_slug() ); // Start new card.
 
 		$fields[] = array(
-			'name' => __( 'Take a Manual Backup - This Site Only', 'wpcd' ),
+			/* Translators: %s is a fontawesome or similar icon. */
+			'name' => wpcd_apply_backup_icon( __( '%s Take a Manual Backup - This Site Only', 'wpcd' ) ),
 			'desc' => __( 'Start a backup for this site right now!', 'wpcd' ),
 			'tab'  => 'backup',
 			'type' => 'heading',
@@ -458,7 +459,8 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 			'id'         => 'wpcd_app_action_manual_backup',
 			'tab'        => 'backup',
 			'type'       => 'button',
-			'std'        => __( 'Run Manual Backup', 'wpcd' ),
+			/* Translators: %s is a fontawesome or similar icon. */
+			'std'        => wpcd_apply_run_icon( __( '%s Run Manual Backup', 'wpcd' ) ),
 			'attributes' => array(
 				// the _action that will be called in ajax.
 				'data-wpcd-action'              => 'backup-run-manual',
@@ -495,7 +497,8 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 		if ( 'on' === $auto_backup_status ) {
 			// Backups have been enabled.  Show message about disabling it first before making changes.
 			$fields[] = array(
-				'name' => __( 'Automatic Backups - This Site Only', 'wpcd' ),
+				/* Translators: %s is a fontawesome or similar icon. */
+				'name' => wpcd_apply_clock_icon( __( '%s Automatic Backups - This Site Only', 'wpcd' ) ),
 				'desc' => __( 'Backups are enabled for this site. If you would like to make changes, please disable it first using the switch below.', 'wpcd' ),
 				'tab'  => 'backup',
 				'type' => 'heading',
@@ -504,7 +507,8 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 			$desc     = __( 'Enable automatic backups to run once per day for this site.  You should set up your S3 credentials in SETTINGS or on the server page and create a bucket for these backups before turning this option on!', 'wpcd' );
 			$desc     = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
 			$fields[] = array(
-				'name' => __( 'Automatic Daily Backups - This Site Only', 'wpcd' ),
+				/* Translators: %s is a fontawesome or similar icon. */
+				'name' => wpcd_apply_clock_icon( __( '%s Automatic Backups - This Site Only', 'wpcd' ) ),
 				'desc' => $desc,
 				'tab'  => 'backup',
 				'type' => 'heading',
@@ -607,7 +611,8 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 		$desc = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
 
 		$fields[] = array(
-			'name' => __( 'Select a Site to Restore From Backup', 'wpcd' ),
+			/* Translators: %s is a fontawesome or similar icon. */
+			'name' => wpcd_apply_restore_icon( __( '%s Select a Site to Restore From Backup', 'wpcd' ) ),
 			'desc' => $desc,
 			'tab'  => 'backup',
 			'type' => 'heading',
@@ -651,7 +656,8 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 			'name'       => '',
 			'tab'        => 'backup',
 			'type'       => 'button',
-			'std'        => __( 'Refresh Backup List', 'wpcd' ),
+			/* Translators: %s is a fontawesome or similar icon. */
+			'std'        => wpcd_apply_restart_icon( __( '%s Refresh Backup List', 'wpcd' ) ),
 			// fields that contribute data for this action.
 			'attributes' => array(
 				// the _action that will be called in ajax.
@@ -690,7 +696,8 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 		$desc = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
 
 		$fields[] = array(
-			'name' => __( 'Select Restore Action', 'wpcd' ),
+			/* Translators: %s is a fontawesome or similar icon. */
+			'name' => wpcd_apply_restore_icon( __( '%s Select Restore Action', 'wpcd' ) ),
 			'desc' => $desc,
 			'tab'  => 'backup',
 			'type' => 'heading',
@@ -701,7 +708,8 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 			'name'       => '',
 			'tab'        => 'backup',
 			'type'       => 'button',
-			'std'        => __( 'Restore Selected Backup', 'wpcd' ),
+			/* Translators: %s is a fontawesome or similar icon. */
+			'std'        => wpcd_apply_restore_icon( __( '%s Restore Selected Backup', 'wpcd' ) ),
 			// fields that contribute data for this action.
 			'attributes' => array(
 				// the _action that will be called in ajax.
@@ -725,7 +733,8 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 			'name'       => '',
 			'tab'        => 'backup',
 			'type'       => 'button',
-			'std'        => __( 'Restore Web Server Configuration', 'wpcd' ),
+			/* Translators: %s is a fontawesome or similar icon. */
+			'std'        => wpcd_apply_restore_icon( __( '%s Restore Web Server Configuration', 'wpcd' ) ),
 			// fields that contribute data for this action.
 			'attributes' => array(
 				// the _action that will be called in ajax.
@@ -749,7 +758,8 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 			'name'       => '',
 			'tab'        => 'backup',
 			'type'       => 'button',
-			'std'        => __( 'Restore wp-config.php File', 'wpcd' ),
+			/* Translators: %s is a fontawesome or similar icon. */
+			'std'        => wpcd_apply_restore_icon( __( '%s Restore wp-config.php File', 'wpcd' ) ),
 			// fields that contribute data for this action.
 			'attributes' => array(
 				// the _action that will be called in ajax.
@@ -781,7 +791,8 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 		$desc     = __( 'Manually delete local backups i.e.: backups stored on this server. Before you can use this option you must have configured backups and run the backup process at least once.', 'wpcd' );
 		$desc     = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
 		$fields[] = array(
-			'name' => __( 'Delete Backups', 'wpcd' ),
+			/* Translators: %s is a fontawesome or similar icon. */
+			'name' => wpcd_apply_trash_icon( __( '%s Delete Backups', 'wpcd' ) ),
 			'desc' => $desc,
 			'tab'  => 'backup',
 			'type' => 'heading',
@@ -792,7 +803,8 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 			'name'       => '',
 			'tab'        => 'backup',
 			'type'       => 'button',
-			'std'        => __( 'Delete All Site Backups', 'wpcd' ),
+			/* Translators: %s is a fontawesome or similar icon. */
+			'std'        => wpcd_apply_trash_icon( __( '%s Delete All Site Backups', 'wpcd' ) ),
 			// fields that contribute data for this action.
 			'attributes' => array(
 				// the _action that will be called in ajax.
@@ -831,7 +843,8 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 			$desc  = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
 
 			$fields[] = array(
-				'name' => __( 'Prune Backups', 'wpcd' ),
+				/* Translators: %s is a fontawesome or similar icon. */
+				'name' => wpcd_apply_prune_icon( __( '%s Prune Backups', 'wpcd' ) ),
 				'desc' => $desc,
 				'tab'  => 'backup',
 				'type' => 'heading',
@@ -857,7 +870,8 @@ class WPCD_WORDPRESS_TABS_BACKUP extends WPCD_WORDPRESS_TABS {
 				'name'       => '',
 				'tab'        => 'backup',
 				'type'       => 'button',
-				'std'        => __( 'Prune Backups For This Site', 'wpcd' ),
+				/* Translators: %s is a fontawesome or similar icon. */
+				'std'        => wpcd_apply_prune_icon( __( '%s Prune Backups For This Site', 'wpcd' ) ),
 				// fields that contribute data for this action.
 				'attributes' => array(
 					// the _action that will be called in ajax.

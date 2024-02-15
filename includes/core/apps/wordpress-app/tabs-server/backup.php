@@ -168,7 +168,8 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 		$desc  = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
 
 		$fields[] = array(
-			'name' => __( 'AWS S3 Credentials', 'wpcd' ),
+			/* Translators: %s is a fontawesome or similar icon. */
+			'name' => wpcd_apply_prune_icon( __( '%s AWS S3 Credentials', 'wpcd' ) ),
 			'id'   => 'wpcd_app_action_aws-s3-credentials-header',
 			'tab'  => 'server_backup',
 			'type' => 'heading',
@@ -255,7 +256,8 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 			'name'       => '',
 			'tab'        => 'server_backup',
 			'type'       => 'button',
-			'std'        => __( 'Save Credentials', 'wpcd' ),
+			/* Translators: %s is a fontawesome or similar icon. */
+			'std'        => wpcd_apply_save_icon( __( '%s Save Credentials', 'wpcd' ) ),
 			'attributes' => array(
 				// the _action that will be called in ajax.
 				'data-wpcd-action'              => 'backup-change-cred',
@@ -305,7 +307,8 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 		if ( 'on' === $auto_backup_status_all_sites ) {
 			// Backups have been enabled.  Show message about disabling it first before making changes.
 			$fields[] = array(
-				'name' => __( 'Automatic Backups - All Current and Future Sites On This Server', 'wpcd' ),
+				/* Translators: %s is a fontawesome or similar icon. */
+				'name' => wpcd_apply_clock_icon( __( '%s Automatic Backups - All Current and Future Sites On This Server', 'wpcd' ) ),
 				'desc' => __( 'Backups are enabled for this server. If you would like to make changes, please disable it first using the switch below.', 'wpcd' ),
 				'tab'  => 'server_backup',
 				'type' => 'heading',
@@ -318,7 +321,8 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 			$desc  = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
 
 			$fields[] = array(
-				'name' => __( 'Automatic Backups - All Current and Future Sites On This Server', 'wpcd' ),
+				/* Translators: %s is a fontawesome or similar icon. */
+				'name' => wpcd_apply_backup_icon( __( '%s Automatic Backups - All Current and Future Sites On This Server', 'wpcd' ) ),
 				'desc' => $desc,
 				'tab'  => 'server_backup',
 				'type' => 'heading',
@@ -413,7 +417,8 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 		$desc = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
 
 		$fields[] = array(
-			'name' => __( 'Delete Backups', 'wpcd' ),
+			/* Translators: %s is a fontawesome or similar icon. */
+			'name' => wpcd_apply_trash_icon( __( '%s Delete Backups', 'wpcd' ) ),
 			'desc' => $desc,
 			'tab'  => 'server_backup',
 			'type' => 'heading',
@@ -424,7 +429,8 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 			'name'       => '',
 			'tab'        => 'server_backup',
 			'type'       => 'button',
-			'std'        => __( 'Delete All Backups For All Sites', 'wpcd' ),
+			/* Translators: %s is a fontawesome or similar icon. */
+			'std'        => wpcd_apply_trash_icon( __( '%s Delete All Backups For All Sites', 'wpcd' ) ),
 			'desc'       => '',
 			// fields that contribute data for this action.
 			'attributes' => array(
@@ -458,7 +464,8 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 		$desc  = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
 
 		$fields[] = array(
-			'name' => __( 'Prune Backups', 'wpcd' ),
+			/* Translators: %s is a fontawesome or similar icon. */
+			'name' => wpcd_apply_prune_icon( __( '%s Prune Backups', 'wpcd' ) ),
 			'desc' => $desc,
 			'tab'  => 'server_backup',
 			'type' => 'heading',
@@ -484,7 +491,8 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 			'name'       => '',
 			'tab'        => 'server_backup',
 			'type'       => 'button',
-			'std'        => __( 'Prune Backups For All Sites On This Server', 'wpcd' ),
+			/* Translators: %s is a fontawesome or similar icon. */
+			'std'        => wpcd_apply_prune_icon( __( '%s Prune Backups For All Sites On This Server', 'wpcd' ) ),
 			'desc'       => '',
 			// fields that contribute data for this action.
 			'attributes' => array(
@@ -516,7 +524,8 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 		$desc = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
 
 		$fields[] = array(
-			'name' => __( 'Local Server Configuration Backups', 'wpcd' ),
+			/* Translators: %s is a fontawesome or similar icon. */
+			'name' => wpcd_apply_backup_icon( __( '%s Local Server Configuration Backups', 'wpcd' ) ),
 			'desc' => $desc,
 			'tab'  => 'server_backup',
 			'type' => 'heading',
@@ -564,7 +573,8 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 
 		$fields[] = array(
 			'id'         => 'wpcd_app_action_conf_backup_delete',
-			'name'       => __( 'Delete all configuration backups', 'wpcd' ),
+			/* Translators: %s is a fontawesome or similar icon. */
+			'name'       => wpcd_apply_trash_icon( __( '%s Delete all configuration backups', 'wpcd' ) ),
 			'tab'        => 'server_backup',
 			'type'       => 'button',
 			'std'        => __( 'Delete', 'wpcd' ),
@@ -601,7 +611,8 @@ class WPCD_WORDPRESS_TABS_SERVER_BACKUP extends WPCD_WORDPRESS_TABS {
 		$s3note .= __( 'To avoid confusion, our recommendation is that you use a set of credentials on each site/server and not leave the fields on this screen blank.', 'wpcd' );
 
 		$fields[] = array(
-			'name' => __( 'IMPORTANT notes about how the S3 credentials work', 'wpcd' ),
+			/* Translators: %s is a fontawesome or similar icon. */
+			'name' => wpcd_apply_warning_icon( __( '%s IMPORTANT notes about how the S3 credentials work', 'wpcd' ) ),
 			'tab'  => 'server_backup',
 			'type' => 'heading',
 			'desc' => $s3note,

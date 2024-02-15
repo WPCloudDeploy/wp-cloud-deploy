@@ -385,9 +385,34 @@ function wpcd_apply_backup_icon( $label ) {
  */
 function wpcd_apply_restore_icon( $label ) {
 
-	return sprintf( $label, '<i class="fa-duotone fa-window-restore"></i> ' );
+	return sprintf( $label, '<i class="fa-duotone fa-trash-can-arrow-up"></i> ' );
 
 }
+
+/**
+ * Returns a string with a fontawesome icon inserted.
+ *
+ * @since 5.7.
+ *
+ * @param string $label The string where the icon needs to be applied.  It needs to have at least on placeholder in it (eg: '%s Restart' ).
+ */
+function wpcd_apply_prune_icon( $label ) {
+
+	return sprintf( $label, '<i class="fa-duotone fa-broom-wide"></i> ' );
+}
+
+/**
+ * Returns a string with a fontawesome icon inserted.
+ *
+ * @since 5.7.
+ *
+ * @param string $label The string where the icon needs to be applied.  It needs to have at least on placeholder in it (eg: '%s Restart' ).
+ */
+function wpcd_apply_aws_icon( $label ) {
+
+	return sprintf( $label, '<i class="fa-brands fa-aws"></i> ' );
+}
+
 
 /**
  * Returns a string with a fontawesome icon inserted.
@@ -401,6 +426,20 @@ function wpcd_apply_ssl_icon( $label ) {
 	return sprintf( $label, '<i class="fa-duotone fa-key-skeleton-left-right"></i> ' );
 
 }
+
+/**
+ * Returns a string with a fontawesome icon inserted.
+ *
+ * @since 5.7.
+ *
+ * @param string $label The string where the icon needs to be applied.  It needs to have at least on placeholder in it (eg: '%s Restart' ).
+ */
+function wpcd_apply_clock_icon( $label ) {
+
+	return sprintf( $label, '<i class="fa-duotone fa-alarm-clock"></i> ' );
+
+}
+
 
 
 

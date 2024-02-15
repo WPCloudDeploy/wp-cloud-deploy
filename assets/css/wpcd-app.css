@@ -312,22 +312,10 @@ div[id^='wpcd_wordpress-app'] {
 
 /* Font for section headings need to be a little larger */
 .wpcd-wpapp-actions h4 {
-	font-size: 1.2em !important;
-	margin-top: 1.2em !important;
+	font-size: 1.1em !important;
 	color: var(--wpcd-primary-brand-color);
+	margin-top: 5px !important;
 }
-
-/* H4 section headers need highlighted background */
-.rwmb-field.rwmb-heading-wrapper h4 {
-	background-color: var(--wpcd-alternate-accent-background-color) !important;
-    padding-left: 10px !important;
-    padding-right: 10px !important;
-    padding-top: 10px !important;
-    padding-bottom: 10px !important;
-    border-radius: 4px !important;
-    margin-bottom: 10px !important;
-}
-
 /* End style Metabox.io Tabs in the wp-app screen */
 
 /* the password toggle icon */

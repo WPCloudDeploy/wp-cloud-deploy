@@ -952,11 +952,6 @@
 	color: var(--wpcd-front-end-primary-brand-color);
 }
 
-#wpcd_public_wrapper .rwmb-field.rwmb-heading-wrapper h4 {
-	/* Card / Section header background on detail screens. */
-	background-color: var(--wpcd-front-end-alternate-accent-background-color) !important;
-}
-
 #wpcd_public_wrapper .rwmb-input button,
 #wpcd_public_wrapper #wpcd_wordpress-app_tab2 .rwmb-input .button,
 #wpcd_public_wrapper #wpcd_wordpress-app_tab2 .rwmb-input .button a,

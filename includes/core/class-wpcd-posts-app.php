@@ -1048,32 +1048,32 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 
 			if ( current_user_can( 'wpcd_manage_servers' ) ) {
 				$servers = $this->generate_server_dropdown( __( 'All Servers', 'wpcd' ) );
-				echo $servers;
+				echo wpcd_kses_select( $servers );
 
 				$providers = $this->generate_meta_dropdown( 'wpcd_app_server', 'wpcd_server_provider', __( 'All Providers', 'wpcd' ) );
-				echo $providers;
+				echo wpcd_kses_select( $providers );
 
 				$regions = $this->generate_meta_dropdown( 'wpcd_app_server', 'wpcd_server_region', __( 'All Regions', 'wpcd' ) );
-				echo $regions;
+				echo wpcd_kses_select( $regions );
 
 				$server_owners = $this->generate_owner_dropdown( 'wpcd_app_server', 'wpcd_server_owner', __( 'All Server Owners', 'wpcd' ) );
-				echo $server_owners;
+				echo wpcd_kses_select( $server_owners );
 			}
 
 			$app_owners = $this->generate_owner_dropdown( $post_type, 'wpcd_app_owner', __( 'All App Owners', 'wpcd' ) );
-			echo $app_owners;
+			echo wpcd_kses_select( $app_owners );
 
 			$ipv4 = $this->generate_meta_dropdown( 'wpcd_app_server', 'wpcd_server_ipv4', __( 'All IPv4', 'wpcd' ) );
-			echo $ipv4;
+			echo wpcd_kses_select( $ipv4 );
 
 			if ( wpcd_get_early_option( 'wpcd_show_ipv6' ) ) {
 				$ipv6 = $this->generate_meta_dropdown( 'wpcd_app_server', 'wpcd_server_ipv6', __( 'All IPv6', 'wpcd' ) );
-				echo $ipv6;
+				echo wpcd_kses_select( $ipv6 );
 			}
 
 			$taxonomy  = 'wpcd_app_group';
 			$app_group = $this->generate_term_dropdown( $taxonomy, __( 'App Groups', 'wpcd' ) );
-			echo $app_group;
+			echo wpcd_kses_select( $app_group );
 		}
 	}
 

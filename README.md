@@ -155,6 +155,7 @@ Note: Even though the entire git development history isn't available on github, 
 * Dev: Upgrade metabox modules to latest versions.
 * Dev: The metabox conditional module was not being loaded.
 * Dev: Add filter around the passwordless login link (customer request).
+* Dev: Apply custom kses_filters around the output painting the selects in the filter bars on the server and site lists.
 
 5.6.0
 ------

@@ -5009,7 +5009,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				'off' => __( 'Disabled', 'wpcd' ),
 			);
 			$app_status         = $this->generate_meta_dropdown( 'wpapp_site_status', __( 'App Status', 'wpcd' ), $app_status_options );
-			echo $app_status;
+			echo wpcd_kses_select( $app_status );
 
 			// PHP VERSION.
 			$php_version_options = array(
@@ -5023,7 +5023,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				'8.2' => '8.2',
 			);
 			$php_version         = $this->generate_meta_dropdown( 'wpapp_php_version', __( 'PHP Version', 'wpcd' ), $php_version_options );
-			echo $php_version;
+			echo wpcd_kses_select( $php_version );
 
 			// CACHE.
 			$cache_options  = array(
@@ -5031,10 +5031,10 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				'off' => __( 'Disabled', 'wpcd' ),
 			);
 			$php_page_cache = $this->generate_meta_dropdown( 'wpapp_page_cache_status', __( 'Page Cache', 'wpcd' ), $cache_options );
-			echo $php_page_cache;
+			echo wpcd_kses_select( $php_page_cache );
 
 			$php_object_cache = $this->generate_meta_dropdown( 'wpapp_object_cache_status', __( 'Object Cache', 'wpcd' ), $cache_options );
-			echo $php_object_cache;
+			echo wpcd_kses_select( $php_object_cache );
 
 			// SITE NEEDS UPDATES.
 			$updates_options    = array(
@@ -5042,7 +5042,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				'no'  => __( 'No', 'wpcd' ),
 			);
 			$site_needs_updates = $this->generate_meta_dropdown( 'wpapp_sites_needs_updates', __( 'Site Needs Updates', 'wpcd' ), $updates_options );
-			echo $site_needs_updates;
+			echo wpcd_kses_select( $site_needs_updates );
 
 			/* Stuff only the admin should see. */
 			if ( wpcd_is_admin() ) {
@@ -5069,7 +5069,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 						'0' => __( 'No', 'wpcd' ),
 					);
 					$is_template           = $this->generate_meta_dropdown( 'wpapp_is_template', __( 'Template', 'wpcd' ), $template_flag_options );
-					echo $is_template;
+					echo wpcd_kses_select( $is_template );
 
 				}
 
@@ -5080,15 +5080,15 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 					// MT SITE TYPE.
 					$mt_site_type = WPCD_POSTS_APP()->generate_meta_dropdown( 'wpcd_app', 'wpcd_app_mt_site_type', __( 'MT Site Type', 'wpcd' ) );
-					echo $mt_site_type;
+					echo wpcd_kses_select( $mt_site_type );
 
 					// MT VERSION.
 					$mt_site_type = WPCD_POSTS_APP()->generate_meta_dropdown( 'wpcd_app', 'wpcd_app_mt_version', __( 'MT Version', 'wpcd' ) );
-					echo $mt_site_type;
+					echo wpcd_kses_select( $mt_site_type );
 
 					// MT PARENT ID.
 					$mt_parent_id = WPCD_POSTS_APP()->generate_meta_dropdown( 'wpcd_app', 'wpcd_app_mt_parent', __( 'MT Parent Template', 'wpcd' ) );
-					echo $mt_parent_id;
+					echo wpcd_kses_select( $mt_parent_id );
 				}
 			}
 		}

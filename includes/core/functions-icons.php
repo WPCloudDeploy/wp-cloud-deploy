@@ -452,15 +452,15 @@ function wpcd_apply_clock_icon( $label ) {
 
 }
 
+/**
+ * Returns a string with a fontawesome icon inserted.
+ *
+ * @since 5.7.
+ *
+ * @param string $label The string where the icon needs to be applied.  It needs to have at least on placeholder in it (eg: '%s Restart' ).
+ */
+function wpcd_apply_duplicate_icon( $label ) {
 
+	return sprintf( $label, '<i class="fa-duotone fa-clone"></i> ' );
 
-
-
-
-
-
-
-
-
-
-
+}

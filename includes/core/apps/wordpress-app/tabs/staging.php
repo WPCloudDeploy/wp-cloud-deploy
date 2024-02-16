@@ -569,7 +569,8 @@ class WPCD_WORDPRESS_TABS_STAGING extends WPCD_WORDPRESS_TABS {
 			$desc = __( 'You cannot clone this site at this time because HTTP2 is enabled. Please disable it before attempting this operation.', 'wpcd' );
 
 			$fields[] = array(
-				'name' => __( 'Staging', 'wpcd' ),
+				/* Translators: %s is a fontawesome or similar icon. */
+				'name' => wpcd_apply_duplicate_icon( __( '%s Staging', 'wpcd' ) ),
 				'tab'  => 'staging',
 				'type' => 'heading',
 				'desc' => $desc,
@@ -599,7 +600,8 @@ class WPCD_WORDPRESS_TABS_STAGING extends WPCD_WORDPRESS_TABS {
 			}
 
 			$fields[] = array(
-				'name' => __( 'Staging', 'wpcd' ),
+				/* Translators: %s is a fontawesome or similar icon. */
+				'name' => wpcd_apply_duplicate_icon( __( '%s Staging', 'wpcd' ) ),
 				'tab'  => 'staging',
 				'type' => 'heading',
 				'desc' => $desc,
@@ -610,7 +612,8 @@ class WPCD_WORDPRESS_TABS_STAGING extends WPCD_WORDPRESS_TABS {
 				'name'       => '',
 				'tab'        => 'staging',
 				'type'       => 'button',
-				'std'        => __( 'Push To Live', 'wpcd' ),
+				/* Translators: %s is a fontawesome or similar icon. */
+				'std'        => wpcd_apply_duplicate_icon( __( '%s Push To Live', 'wpcd' ) ),
 				'desc'       => '',
 				'attributes' => array(
 					// the _action that will be called in ajax.
@@ -652,11 +655,12 @@ class WPCD_WORDPRESS_TABS_STAGING extends WPCD_WORDPRESS_TABS {
 			}
 
 			$fields[] = array(
-				'name' => __( 'Staging', 'wpcd' ),
+				/* Translators: %s is a fontawesome or similar icon. */
+				'name' => wpcd_apply_duplicate_icon( __( '%s Staging', 'wpcd' ) ),
 				'tab'  => 'staging',
 				'type' => 'heading',
 				'desc' => $desc,
-			);			
+			);
 
 			/*
 			$fields[] = array(
@@ -675,7 +679,8 @@ class WPCD_WORDPRESS_TABS_STAGING extends WPCD_WORDPRESS_TABS {
 				'name'       => '',
 				'tab'        => 'staging',
 				'type'       => 'button',
-				'std'        => (bool) $existing_staging_site ? __( 'Create a New Staging Site', 'wpcd' ) : __( 'Create Staging Site', 'wpcd' ),
+				/* Translators: %s is a fontawesome or similar icon. */
+				'std'        => (bool) $existing_staging_site ? wpcd_apply_duplicate_icon( __( '%s Create a New Staging Site', 'wpcd' ) ) : wpcd_apply_duplicate_icon( __( '%s Create Staging Site', 'wpcd' ) ),
 				'desc'       => $staging_desc,
 				'attributes' => array(
 					// the _action that will be called in ajax.

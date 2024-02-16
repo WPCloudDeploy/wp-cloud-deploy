@@ -504,7 +504,8 @@ class WPCD_WORDPRESS_TABS_CLONE_SITE extends WPCD_WORDPRESS_TABS {
 		$default_domain = WPCD_DNS()->get_full_temp_domain();
 
 		$fields[] = array(
-			'name' => __( 'Clone Site', 'wpcd' ),
+			/* Translators: %s is a fontawesome or similar icon. */
+			'name' => wpcd_apply_duplicate_icon( __( '%s Clone Site', 'wpcd' ) ),
 			'tab'  => 'clone-site',
 			'type' => 'heading',
 			'desc' => $desc,
@@ -533,7 +534,8 @@ class WPCD_WORDPRESS_TABS_CLONE_SITE extends WPCD_WORDPRESS_TABS {
 			'name'       => '',
 			'tab'        => 'clone-site',
 			'type'       => 'button',
-			'std'        => __( 'Clone Site', 'wpcd' ),
+			/* Translators: %s is a fontawesome or similar icon. */
+			'std'        => wpcd_apply_duplicate_icon( __( '%s Clone Site', 'wpcd' ) ),
 			'desc'       => $clone_desc,
 			'attributes' => array(
 				// the _action that will be called in ajax.

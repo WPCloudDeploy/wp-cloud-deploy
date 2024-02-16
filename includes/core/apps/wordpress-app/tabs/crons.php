@@ -196,7 +196,8 @@ class WPCD_WORDPRESS_TABS_CRONS extends WPCD_WORDPRESS_TABS {
 		$actions[] = wpcd_start_half_card( $this->get_tab_slug() );
 
 		$actions['wp-linux-cron-header'] = array(
-			'label'          => __( 'Linux Cron', 'wpcd' ),
+			/* Translators: %s is a fontawesome or similar icon. */
+			'label'          => wpcd_apply_clock_icon( __( '%s Linux Cron', 'wpcd' ) ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
 				'desc' => $desc,

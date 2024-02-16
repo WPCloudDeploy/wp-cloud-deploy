@@ -131,7 +131,7 @@ class WPCD_POSTS_Site_Package extends WPCD_Posts_Base {
 				'field_type' => 'select_advanced',
 				'multiple'   => true,
 				'save_field' => true,
-				'desc'       => __( 'These groups/categories will the applied to a new site.', 'wpcd' ),
+				'desc'       => __( 'These groups/categories will be applied to a new site.', 'wpcd' ),
 				'columns'    => 6,
 			),
 			array(
@@ -142,7 +142,7 @@ class WPCD_POSTS_Site_Package extends WPCD_Posts_Base {
 				'field_type' => 'select_advanced',
 				'multiple'   => true,
 				'save_field' => true,
-				'desc'       => __( 'These groups/categories will the applied to existing sites during a subscription switch.', 'wpcd' ),
+				'desc'       => __( 'These groups/categories will be applied to existing sites during a subscription switch.', 'wpcd' ),
 				'columns'    => 6,
 			),
 			array(
@@ -153,7 +153,7 @@ class WPCD_POSTS_Site_Package extends WPCD_Posts_Base {
 				'field_type' => 'select_advanced',
 				'multiple'   => true,
 				'save_field' => true,
-				'desc'       => __( 'These groups/categories will the removed from the site during a subscription upgrade/downgrade/switch.', 'wpcd' ),
+				'desc'       => __( 'These groups/categories will be removed from the site during a subscription upgrade/downgrade/switch.', 'wpcd' ),
 				'columns'    => 6,
 			),
 		);
@@ -439,6 +439,15 @@ class WPCD_POSTS_Site_Package extends WPCD_Posts_Base {
 				'save_field' => true,
 				'desc'       => __( 'Tag the site record with this version label.  Also add it to the wp-config.php file of the target site.', 'wpcd' ),
 				'tooltip'    => __( 'You can use this to search and filter your sites based on version numbers. And create custom plugins for your tenant sites that use the version constant inside to control behavior.', 'wpcd' ),
+				'columns'    => 3,
+			),
+			array(
+				'name'       => __( 'Expire Site', 'wpcd' ),
+				'id'         => $prefix . 'site_package_expire_site_minutes',
+				'type'       => 'number',
+				'save_field' => true,
+				'desc'       => __( 'How many minutes after site creation should the site expire?', 'wpcd' ),
+				'tooltip'    => __( 'Enter the number of minutes after site creation that the site should expire. FYI: 1440 is the number of minutes in one day.', 'wpcd' ),
 				'columns'    => 3,
 			),
 			array(

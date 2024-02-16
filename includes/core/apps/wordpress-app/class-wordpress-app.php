@@ -5046,6 +5046,18 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 			/* Stuff only the admin should see. */
 			if ( wpcd_is_admin() ) {
+
+				/**
+				 * Filters for site expiration status.
+				 */
+				$expiration_options = array(
+					'1' => __( 'Expired', 'wpcd' ),					
+					'0' => __( 'Not Expired (Marked)', 'wpcd' ),
+				);
+				$expiration         = $this->generate_meta_dropdown( 'wpcd_app_expired_status', __( 'Expiration Status', 'wpcd' ), $expiration_options );
+
+				echo wpcd_kses_select( $expiration );
+
 				/**
 				 * Filters specific to WooCommerce
 				 */
@@ -5248,6 +5260,30 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 					$qv['meta_query'][] = array(
 						'key'     => 'wpcd_site_needs_updates',
 						'value'   => $wpapp_sites_needs_updates,
+						'compare' => '=',
+					);
+				}
+			}
+
+			// SITE EXPIRATION.
+			if ( isset( $_GET['wpcd_app_expired_status'] ) && ! empty( $_GET['wpcd_app_expired_status'] ) ) {
+				$wpapp_site_expired_status = sanitize_text_field( filter_input( INPUT_GET, 'wpcd_app_expired_status', FILTER_UNSAFE_RAW ) );
+
+				if ( '0' === $wpapp_site_expired_status || '1' === $wpapp_site_expired_status ) {
+
+					$qv['meta_query'][] = array(
+						'relation' => 'OR',
+						array(
+							'key'     => 'wpcd_app_expired_status',
+							'value'   => $wpapp_site_expired_status,
+							'type'    => 'NUMERIC',
+							'compare' => '=',
+						),
+					);
+				} else {
+					$qv['meta_query'][] = array(
+						'key'     => 'wpcd_app_expired_status',
+						'value'   => $wpapp_site_expired_status,
 						'compare' => '=',
 					);
 				}

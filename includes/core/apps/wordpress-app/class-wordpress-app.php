@@ -4736,16 +4736,13 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		wp_clear_scheduled_hook( 'wpcd_wordpress_file_watcher' );
 		wp_schedule_event( time(), 'every_minute', 'wpcd_wordpress_file_watcher' );
 
-		// setup deferred instance actions schedule.
+		// setup deferred instance actions schedule that acts on server records.
 		wp_clear_scheduled_hook( 'wpcd_wordpress_deferred_actions_for_server' );
 		wp_schedule_event( time(), 'every_minute', 'wpcd_wordpress_deferred_actions_for_server' );
 
-		// setup repeated actions schedule.
+		// setup actions schedule that acts on app records.
 		wp_clear_scheduled_hook( 'wpcd_wordpress_deferred_actions_for_apps' );
 		wp_schedule_event( time(), 'every_minute', 'wpcd_wordpress_deferred_actions_for_apps' );
-
-		// @TODO does not work because the cron schedule is not registered.
-		// wp_schedule_event( time(), 'every-10-seconds', "wpcd_wordpress_repeated_actions_for_apps" );
 	}
 
 	/**

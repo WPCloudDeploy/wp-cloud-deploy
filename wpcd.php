@@ -419,6 +419,7 @@ class WPCD_Init {
 		require_once wpcd_path . 'includes/core/class-wpcd-posts-error-log.php';
 		require_once wpcd_path . 'includes/core/class-wpcd-posts-command-log.php';
 		require_once wpcd_path . 'includes/core/class-wpcd-posts-pending-tasks-log.php';
+		require_once wpcd_path . 'includes/core/class-wpcd-app-expiration.php';
 		require_once wpcd_path . 'includes/core/class-wpcd-server.php';
 		require_once wpcd_path . 'includes/core/class-wpcd-settings.php';
 		if ( wpcd_data_sync_allowed() ) {

@@ -159,7 +159,8 @@ class WPCD_WORDPRESS_TABS_SSL extends WPCD_WORDPRESS_TABS {
 			// Show a special header.
 			$actions['ssl-status-header-wc-enabled'] = array(
 				'name'           => '',
-				'label'          => __( 'WildCard SSL Multisite', 'wpcd' ),
+				/* Translators: %s is a fontawesome or similar icon. */
+				'label'          => wpcd_apply_ssl_icon( __( '%s WildCard SSL Multisite', 'wpcd' ) ),
 				'type'           => 'heading',
 				'raw_attributes' => array(
 					'desc' => __( 'This site is a MULTISITE that is configured to use a wildcard SSL certificate. You need to manage SSL options under the MULTISITE tab.', 'wpcd' ),
@@ -202,7 +203,8 @@ class WPCD_WORDPRESS_TABS_SSL extends WPCD_WORDPRESS_TABS {
 		$desc                         = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
 		$actions['ssl-status-header'] = array(
 			'name'           => '',
-			'label'          => __( 'SSL', 'wpcd' ),
+			/* Translators: %s is a fontawesome or similar icon. */
+			'label'          => wpcd_apply_ssl_icon( __( '%s SSL', 'wpcd' ) ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
 				'desc' => $desc,
@@ -238,7 +240,8 @@ class WPCD_WORDPRESS_TABS_SSL extends WPCD_WORDPRESS_TABS {
 
 			$actions['ssl-notes-heading'] = array(
 				'type'           => 'heading',
-				'label'          => __( 'Some things to be aware of before enabling SSL', 'wpcd' ),
+				/* Translators: %s is a fontawesome or similar icon. */
+				'label'          => wpcd_apply_warning_icon( __( '%s Some things to be aware of before enabling SSL', 'wpcd' ) ),
 				'raw_attributes' => array(
 					'desc' => __( 'Please read before attempting to turn on SSL for your site!', 'wpcd' ),
 				),
@@ -333,7 +336,8 @@ class WPCD_WORDPRESS_TABS_SSL extends WPCD_WORDPRESS_TABS {
 
 		$actions['ssl-status-meta-only-header'] = array(
 			'name'           => '',
-			'label'          => __( 'Advanced - Flip SSL Status Flag', 'wpcd' ),
+			/* Translators: %s is a fontawesome or similar icon. */
+			'label'          => wpcd_apply_change_icon( __( '%s Advanced - Flip SSL Status Flag', 'wpcd' ) ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
 				'desc' => __( 'Flip the SSL status flag (aka the SSL meta value). No code will be executed on the server to disable or enable SSL. Only the status shown on this dashboard will be flipped.', 'wpcd' ),
@@ -343,7 +347,8 @@ class WPCD_WORDPRESS_TABS_SSL extends WPCD_WORDPRESS_TABS {
 		$actions['ssl-flip-meta-status'] = array(
 			'label'          => '',
 			'raw_attributes' => array(
-				'std'                 => __( 'Flip SSL Status Flag', 'wpcd' ),
+				/* Translators: %s is a fontawesome or similar icon. */
+				'std'                 => wpcd_apply_change_icon( __( '%s Flip SSL Status Flag', 'wpcd' ) ),
 				'confirmation_prompt' => $confirmation_prompt_meta,
 			),
 			'type'           => 'button',

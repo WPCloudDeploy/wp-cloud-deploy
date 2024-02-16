@@ -226,7 +226,8 @@ class WPCD_WORDPRESS_TABS_SITE_SECURITY extends WPCD_WORDPRESS_TABS {
 		}
 
 		$fields[] = array(
-			'name' => __( 'SolidWP Security', 'wpcd' ),
+			/* Translators: %s is a fontawesome or similar icon. */
+			'name' => wpcd_apply_virus_icon( __( '%s SolidWP Security', 'wpcd' ) ),
 			'desc' => $desc,
 			'tab'  => $this->get_tab_slug(),
 			'type' => 'heading',

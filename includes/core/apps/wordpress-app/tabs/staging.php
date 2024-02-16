@@ -662,14 +662,6 @@ class WPCD_WORDPRESS_TABS_STAGING extends WPCD_WORDPRESS_TABS {
 				'desc' => $desc,
 			);
 
-			/*
-			$fields[] = array(
-				'tab'  => 'staging',
-				'type' => 'custom_html',
-				'desc' => $desc,
-			);
-			*/
-
 			$staging_desc = '';
 			if ( 'yes' === $this->is_remote_db( $id ) ) {
 				$staging_desc .= '<b>' . __( 'Warning: This site appears to be using a remote database server.  The server on which this site resides should have a local database server since the database server will be switched to localhost for staging operations.', 'wpcd' ) . '</b>';

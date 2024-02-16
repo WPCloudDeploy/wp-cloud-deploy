@@ -409,7 +409,8 @@ class WPCD_WORDPRESS_TABS_FILE_MANAGER extends WPCD_WORDPRESS_TABS {
 		}
 
 		$fields['file-manager-main-heading'] = array(
-			'name' => __( 'File Manager', 'wpcd' ),
+			/* Translators: %s is a fontawesome or similar icon. */
+			'name' => wpcd_apply_file_manager_icon( __( '%s File Manager', 'wpcd' ) ),
 			'tab'  => 'file-manager',
 			'type' => 'heading',
 			'desc' => $desc,
@@ -454,7 +455,8 @@ class WPCD_WORDPRESS_TABS_FILE_MANAGER extends WPCD_WORDPRESS_TABS {
 				'name'       => '',
 				'tab'        => 'file-manager',
 				'type'       => 'button',
-				'std'        => __( 'Install', 'wpcd' ),
+				/* Translators: %s is a fontawesome or similar icon. */
+				'std'        => wpcd_apply_file_manager_icon( __( '%s Install', 'wpcd' ) ),
 				'desc'       => '',
 				'attributes' => array(
 					// Get User Name & Password.
@@ -503,7 +505,8 @@ class WPCD_WORDPRESS_TABS_FILE_MANAGER extends WPCD_WORDPRESS_TABS {
 			$fields[] = array(
 				'tab'        => 'file-manager',
 				'type'       => 'button',
-				'std'        => __( 'Launch File Manager', 'wpcd' ),
+				/* Translators: %s is a fontawesome or similar icon. */
+				'std'        => wpcd_apply_run_icon( __( '%s Launch File Manager', 'wpcd' ) ),
 				'attributes' => array(
 					'onclick' => "window.open('" . $file_manager_url . "')",
 				),
@@ -524,7 +527,8 @@ class WPCD_WORDPRESS_TABS_FILE_MANAGER extends WPCD_WORDPRESS_TABS {
 			$fields[] = wpcd_start_half_card( $this->get_tab_slug() ); // Start new card.
 
 			$fields[] = array(
-				'name' => __( 'File Manager- Change Credentials', 'wpcd' ),
+				/* Translators: %s is a fontawesome or similar icon. */
+				'name' => wpcd_apply_key_icon( __( '%s File Manager- Change Credentials', 'wpcd' ) ),
 				'tab'  => 'file-manager',
 				'type' => 'heading',
 				'desc' => __( 'Set a new username and password for the file manager', 'wpcd' ),
@@ -564,7 +568,8 @@ class WPCD_WORDPRESS_TABS_FILE_MANAGER extends WPCD_WORDPRESS_TABS {
 				'name'       => '',
 				'tab'        => 'file-manager',
 				'type'       => 'button',
-				'std'        => __( 'Update', 'wpcd' ),
+				/* Translators: %s is a fontawesome or similar icon. */
+				'std'        => wpcd_apply_update_icon( __( '%s Update', 'wpcd' ) ),
 				'desc'       => '',
 				'attributes' => array(
 					// Get User Name & Password.
@@ -593,7 +598,8 @@ class WPCD_WORDPRESS_TABS_FILE_MANAGER extends WPCD_WORDPRESS_TABS {
 			$fields[] = wpcd_start_half_card( $this->get_tab_slug() ); // Start new card.
 
 			$fields[] = array(
-				'name' => __( 'Upgrade File Manager', 'wpcd' ),
+				/* Translators: %s is a fontawesome or similar icon. */
+				'name' => wpcd_apply_upgrade_icon( __( '%s Upgrade File Manager', 'wpcd' ) ),
 				'tab'  => 'file-manager',
 				'type' => 'heading',
 				'desc' => __( 'Update the File Manager to the latest version.', 'wpcd' ),
@@ -605,7 +611,8 @@ class WPCD_WORDPRESS_TABS_FILE_MANAGER extends WPCD_WORDPRESS_TABS {
 				'name'       => '',
 				'tab'        => 'file-manager',
 				'type'       => 'button',
-				'std'        => __( 'Update File Manager', 'wpcd' ),
+				/* Translators: %s is a fontawesome or similar icon. */
+				'std'        => wpcd_apply_update_icon( __( '%s Update File Manager', 'wpcd' ) ),
 				'desc'       => '',
 				'attributes' => array(
 					// the _action that will be called in ajax.
@@ -631,7 +638,8 @@ class WPCD_WORDPRESS_TABS_FILE_MANAGER extends WPCD_WORDPRESS_TABS {
 			$fields[] = wpcd_start_half_card( $this->get_tab_slug() ); // Start new card.
 
 			$fields[] = array(
-				'name' => __( 'Remove File Manager', 'wpcd' ),
+				/* Translators: %s is a fontawesome or similar icon. */
+				'name' => wpcd_apply_trash_icon( __( '%s Remove File Manager', 'wpcd' ) ),
 				'tab'  => 'file-manager',
 				'type' => 'heading',
 				'desc' => __( 'Remove file manager from this site.', 'wpcd' ),
@@ -642,7 +650,8 @@ class WPCD_WORDPRESS_TABS_FILE_MANAGER extends WPCD_WORDPRESS_TABS {
 				'name'       => '',
 				'tab'        => 'file-manager',
 				'type'       => 'button',
-				'std'        => __( 'Remove File Manager', 'wpcd' ),
+				/* Translators: %s is a fontawesome or similar icon. */
+				'std'        => wpcd_apply_trash_icon( __( '%s Remove File Manager', 'wpcd' ) ),
 				'desc'       => '',
 				'attributes' => array(
 					// the _action that will be called in ajax.

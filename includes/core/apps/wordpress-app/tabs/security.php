@@ -215,7 +215,7 @@ class WPCD_WORDPRESS_TABS_SITE_SECURITY extends WPCD_WORDPRESS_TABS {
 		$fields = array();
 
 		// Start new card.
-		$fields[] = wpcd_start_half_card( $this->get_tab_slug() );		
+		$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
 
 		// Heading text.
 		$desc = __( 'Activate & License SolidWP Security.', 'wpcd' );
@@ -255,7 +255,7 @@ class WPCD_WORDPRESS_TABS_SITE_SECURITY extends WPCD_WORDPRESS_TABS {
 		);
 
 		// Close up prior card.
-		$fields[] = wpcd_end_card( $this->get_tab_slug() );		
+		$fields[] = wpcd_end_card( $this->get_tab_slug() );
 
 		return $fields;
 

@@ -136,9 +136,62 @@ function wpcd_apply_virus_icon( $label ) {
  *
  * @param string $label The string where the icon needs to be applied.  It needs to have at least on placeholder in it (eg: '%s Restart' ).
  */
+function wpcd_apply_key_icon( $label ) {
+
+	return sprintf( $label, '<i class="fa-duotone fa-key"></i> ' );
+
+}
+
+/**
+ * Returns a string with a fontawesome icon inserted.
+ *
+ * @since 5.7.
+ *
+ * @param string $label The string where the icon needs to be applied.  It needs to have at least on placeholder in it (eg: '%s Restart' ).
+ */
+function wpcd_apply_skeleton_key_icon( $label ) {
+
+	return sprintf( $label, '<i class="fa-duotone fa-key-skeleton"></i> ' );
+
+}
+
+/**
+ * Returns a string with a fontawesome icon inserted.
+ *
+ * @since 5.7.
+ *
+ * @param string $label The string where the icon needs to be applied.  It needs to have at least on placeholder in it (eg: '%s Restart' ).
+ */
 function wpcd_apply_updates_icon( $label ) {
 
 	return sprintf( $label, '<i class="fa-duotone fa-road-spikes"></i> ' );
+
+}
+
+/**
+ * Returns a string with a fontawesome icon inserted.
+ *
+ * @since 5.7.
+ *
+ * @param string $label The string where the icon needs to be applied.  It needs to have at least on placeholder in it (eg: '%s Restart' ).
+ */
+function wpcd_apply_upgrade_icon( $label ) {
+
+	return sprintf( $label, '<i class="fa-duotone fa-arrows-up-to-line"></i> ' );
+
+}
+
+
+/**
+ * Returns a string with a fontawesome icon inserted.
+ *
+ * @since 5.7.
+ *
+ * @param string $label The string where the icon needs to be applied.  It needs to have at least on placeholder in it (eg: '%s Restart' ).
+ */
+function wpcd_apply_update_icon( $label ) {
+
+	return sprintf( $label, '<i class="fa-duotone fa-rectangles-mixed"></i> ' );
 
 }
 
@@ -464,3 +517,16 @@ function wpcd_apply_duplicate_icon( $label ) {
 	return sprintf( $label, '<i class="fa-duotone fa-clone"></i> ' );
 
 }
+/**
+ * Returns a string with a fontawesome icon inserted.
+ *
+ * @since 5.7.
+ *
+ * @param string $label The string where the icon needs to be applied.  It needs to have at least on placeholder in it (eg: '%s Restart' ).
+ */
+function wpcd_apply_file_manager_icon( $label ) {
+
+	return sprintf( $label, '<i class="fa-duotone fa-list-tree"></i> ' );
+
+}
+

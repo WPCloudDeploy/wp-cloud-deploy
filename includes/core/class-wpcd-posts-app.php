@@ -1360,6 +1360,39 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 			),
 		);
 
+		// Register the metabox for site expiration.
+		$metaboxes[] = array(
+			'id'       => 'wpcd_app_site_expiration_metabox',
+			'title'    => __( 'Site Expiration (UTC +0)', 'wpcd' ),
+			'pages'    => array( 'wpcd_app' ), // displays on wpcd_app post type only.
+			'context'  => 'side',
+			'priority' => 'low',
+			'fields'   => array(
+
+				// Explantion field.
+				array(
+					'type' => 'custom_html',
+					'std'  => __( 'You can control what happens when a site expires in SETTINGS.', 'wpcd' ),
+				),
+				// add a date-time field for site expiration.
+				array(
+					'desc'       => __( 'When does this site expire?', 'wpcd' ),
+					'id'         => 'wpcd_app_expires',
+					'type'       => 'datetime',
+					'js_options' => array(
+						'stepMinute'      => 1,
+						'showTimepicker'  => true,
+						'controlType'     => 'select',
+						'showButtonPanel' => false,
+						'oneLine'         => true,
+					),
+					'inline'     => false,
+					'timestamp'  => true,
+				),
+
+			),
+		);
+
 		return $metaboxes;
 
 	}
@@ -1677,7 +1710,7 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 			$wpcd_settings['wordpress_app_tertiary_brand_color']              = WPCD_TERTIARY_BRAND_COLOR;
 			$wpcd_settings['wordpress_app_accent_background_color']           = WPCD_ACCENT_BG_COLOR;
 			$wpcd_settings['wordpress_app_medium_accent_background_color']    = WPCD_MEDIUM_ACCENT_BG_COLOR;
-			$wpcd_settings['wordpress_app_medium_background_color']           = WPCD_MEDIUM_BG_COLOR;			
+			$wpcd_settings['wordpress_app_medium_background_color']           = WPCD_MEDIUM_BG_COLOR;
 			$wpcd_settings['wordpress_app_light_background_color']            = WPCD_LIGHT_BG_COLOR;
 			$wpcd_settings['wordpress_app_alternate_accent_background_color'] = WPCD_ALTERNATE_ACCENT_BG_COLOR;
 

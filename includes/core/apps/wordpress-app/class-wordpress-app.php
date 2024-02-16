@@ -3889,6 +3889,22 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			}
 		}
 
+		// Update expiration.
+		$expiration_in_minutes = (int) get_post_meta( $site_package_id, 'wpcd_site_package_expire_site_minutes', true );
+		if ( true === $is_subscription_switch ) {
+			// If switching expiration, only update the expiration date on the site if the package expiration field is zero or empty.
+			if ( empty( $expiration_in_minutes ) ) {
+				update_post_meta( $app_id, 'wpcd_app_expires', '' );
+			}
+		} else {
+			// New site.
+			if ( ! empty( $expiration_in_minutes ) ) {
+				$expires = ( $expiration_in_minutes * 60 ) + time();
+				update_post_meta( $app_id, 'wpcd_app_expires', $expires );
+				update_post_meta( $app_id, 'wpcd_app_expires_human_gmt', gmdate( 'Y-m-d H:i:s', $expires ) );
+			}
+		}
+
 		// Search and replace here - future use.
 
 		// Crons here - future use.
@@ -3929,7 +3945,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		// So flag the record as such.
 		update_post_meta( $app_id, 'wpapp_site_package_core_rules_complete', true );
 
-		// Clear 'in-process transient.
+		// Clear 'in-process' transient.
 		$transient_name = $app_id . 'wpcd_site_package_running';
 		delete_transient( $transient_name );
 

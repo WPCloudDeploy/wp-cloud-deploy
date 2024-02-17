@@ -197,6 +197,9 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		* Hooks and filters for screens in wp-admin
 		*/
 
+		// Filter hook to setup additional search fields specific to the wordpress-app.
+		add_filter( 'wpcd_app_search_fields', array( $this, 'wpcd_app_search_fields' ), 10, 1 );
+
 		// Filter hook to add new columns to the APP list.
 		add_filter( 'manage_wpcd_app_posts_columns', array( $this, 'app_posts_app_table_head' ), 10, 1 );
 
@@ -3889,6 +3892,20 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			}
 		}
 
+		// Update expiration.
+		$expiration_in_minutes = (int) get_post_meta( $site_package_id, 'wpcd_site_package_expire_site_minutes', true );
+		if ( true === $is_subscription_switch ) {
+			// If switching expiration, only update the expiration date on the site if the package expiration field is zero or empty.
+			if ( empty( $expiration_in_minutes ) ) {
+				WPCD_APP_EXPIRATION()->clear_expiration( $app_id );
+			}
+		} else {
+			// New site.
+			if ( ! empty( $expiration_in_minutes ) ) {
+				WPCD_APP_EXPIRATION()->set_expiration( $app_id, $expiration_in_minutes );
+			}
+		}
+
 		// Search and replace here - future use.
 
 		// Crons here - future use.
@@ -3929,7 +3946,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		// So flag the record as such.
 		update_post_meta( $app_id, 'wpapp_site_package_core_rules_complete', true );
 
-		// Clear 'in-process transient.
+		// Clear 'in-process' transient.
 		$transient_name = $app_id . 'wpcd_site_package_running';
 		delete_transient( $transient_name );
 
@@ -4720,16 +4737,13 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		wp_clear_scheduled_hook( 'wpcd_wordpress_file_watcher' );
 		wp_schedule_event( time(), 'every_minute', 'wpcd_wordpress_file_watcher' );
 
-		// setup deferred instance actions schedule.
+		// setup deferred instance actions schedule that acts on server records.
 		wp_clear_scheduled_hook( 'wpcd_wordpress_deferred_actions_for_server' );
 		wp_schedule_event( time(), 'every_minute', 'wpcd_wordpress_deferred_actions_for_server' );
 
-		// setup repeated actions schedule.
+		// setup actions schedule that acts on app records.
 		wp_clear_scheduled_hook( 'wpcd_wordpress_deferred_actions_for_apps' );
 		wp_schedule_event( time(), 'every_minute', 'wpcd_wordpress_deferred_actions_for_apps' );
-
-		// @TODO does not work because the cron schedule is not registered.
-		// wp_schedule_event( time(), 'every-10-seconds', "wpcd_wordpress_repeated_actions_for_apps" );
 	}
 
 	/**
@@ -4996,7 +5010,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				'off' => __( 'Disabled', 'wpcd' ),
 			);
 			$app_status         = $this->generate_meta_dropdown( 'wpapp_site_status', __( 'App Status', 'wpcd' ), $app_status_options );
-			echo $app_status;
+			echo wpcd_kses_select( $app_status );
 
 			// PHP VERSION.
 			$php_version_options = array(
@@ -5010,7 +5024,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				'8.2' => '8.2',
 			);
 			$php_version         = $this->generate_meta_dropdown( 'wpapp_php_version', __( 'PHP Version', 'wpcd' ), $php_version_options );
-			echo $php_version;
+			echo wpcd_kses_select( $php_version );
 
 			// CACHE.
 			$cache_options  = array(
@@ -5018,10 +5032,10 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				'off' => __( 'Disabled', 'wpcd' ),
 			);
 			$php_page_cache = $this->generate_meta_dropdown( 'wpapp_page_cache_status', __( 'Page Cache', 'wpcd' ), $cache_options );
-			echo $php_page_cache;
+			echo wpcd_kses_select( $php_page_cache );
 
 			$php_object_cache = $this->generate_meta_dropdown( 'wpapp_object_cache_status', __( 'Object Cache', 'wpcd' ), $cache_options );
-			echo $php_object_cache;
+			echo wpcd_kses_select( $php_object_cache );
 
 			// SITE NEEDS UPDATES.
 			$updates_options    = array(
@@ -5029,10 +5043,22 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				'no'  => __( 'No', 'wpcd' ),
 			);
 			$site_needs_updates = $this->generate_meta_dropdown( 'wpapp_sites_needs_updates', __( 'Site Needs Updates', 'wpcd' ), $updates_options );
-			echo $site_needs_updates;
+			echo wpcd_kses_select( $site_needs_updates );
 
 			/* Stuff only the admin should see. */
 			if ( wpcd_is_admin() ) {
+
+				/**
+				 * Filters for site expiration status.
+				 */
+				$expiration_options = array(
+					'1' => __( 'Expired', 'wpcd' ),
+					'0' => __( 'Not Expired (Marked)', 'wpcd' ),
+				);
+				$expiration         = $this->generate_meta_dropdown( 'wpcd_app_expired_status', __( 'Expiration Status', 'wpcd' ), $expiration_options );
+
+				echo wpcd_kses_select( $expiration );
+
 				/**
 				 * Filters specific to WooCommerce
 				 */
@@ -5044,7 +5070,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 						'0' => __( 'No', 'wpcd' ),
 					);
 					$is_template           = $this->generate_meta_dropdown( 'wpapp_is_template', __( 'Template', 'wpcd' ), $template_flag_options );
-					echo $is_template;
+					echo wpcd_kses_select( $is_template );
 
 				}
 
@@ -5055,15 +5081,32 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 					// MT SITE TYPE.
 					$mt_site_type = WPCD_POSTS_APP()->generate_meta_dropdown( 'wpcd_app', 'wpcd_app_mt_site_type', __( 'MT Site Type', 'wpcd' ) );
-					echo $mt_site_type;
+					echo wpcd_kses_select( $mt_site_type );
 
 					// MT VERSION.
 					$mt_site_type = WPCD_POSTS_APP()->generate_meta_dropdown( 'wpcd_app', 'wpcd_app_mt_version', __( 'MT Version', 'wpcd' ) );
-					echo $mt_site_type;
+					echo wpcd_kses_select( $mt_site_type );
 
 					// MT PARENT ID.
 					$mt_parent_id = WPCD_POSTS_APP()->generate_meta_dropdown( 'wpcd_app', 'wpcd_app_mt_parent', __( 'MT Parent Template', 'wpcd' ) );
-					echo $mt_parent_id;
+					echo wpcd_kses_select( $mt_parent_id );
+				}
+
+				/**
+				 * Filters specific to WooCommerce
+				 */
+				if ( true === wpcd_is_wc_module_enabled() ) {
+					// IS WOOCOMMERCE ORDER?
+					$selected_value = sanitize_text_field( filter_input( INPUT_GET, 'wpcd_app_is_wc', FILTER_UNSAFE_RAW ) ); // Get existing value selected, if any.
+					$html_output_for_wc  = '<select name="wpcd_app_is_wc" id="filter-by-wpcd_app_is_wc">';
+					$html_output_for_wc .= '<option>' . __( 'Is WC Order?', 'wpcd' ) . '</option>';
+					if ( '1' === $selected_value ) {
+						$html_output_for_wc .= '<option value="1" selected="selected">' . __( 'Yes', 'wpcd' ) . '</option>';
+					} else {
+						$html_output_for_wc .= '<option value="1">' . __( 'Yes', 'wpcd' ) . '</option>';
+					}
+					$html_output_for_wc .= ' </select>';
+					echo wpcd_kses_select( $html_output_for_wc );
 				}
 			}
 		}
@@ -5240,6 +5283,30 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				}
 			}
 
+			// SITE EXPIRATION.
+			if ( isset( $_GET['wpcd_app_expired_status'] ) && ! empty( $_GET['wpcd_app_expired_status'] ) ) {
+				$wpapp_site_expired_status = sanitize_text_field( filter_input( INPUT_GET, 'wpcd_app_expired_status', FILTER_UNSAFE_RAW ) );
+
+				if ( '0' === $wpapp_site_expired_status || '1' === $wpapp_site_expired_status ) {
+
+					$qv['meta_query'][] = array(
+						'relation' => 'OR',
+						array(
+							'key'     => 'wpcd_app_expired_status',
+							'value'   => $wpapp_site_expired_status,
+							'type'    => 'NUMERIC',
+							'compare' => '=',
+						),
+					);
+				} else {
+					$qv['meta_query'][] = array(
+						'key'     => 'wpcd_app_expired_status',
+						'value'   => $wpapp_site_expired_status,
+						'compare' => '=',
+					);
+				}
+			}
+
 			// Template Flag.
 			// @todo: This logic does not handle empty metas.
 			if ( isset( $_GET['wpapp_is_template'] ) && ! empty( $_GET['wpapp_is_template'] ) ) {
@@ -5307,6 +5374,25 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 							'compare' => '=',
 						),
 					);
+				}
+			}
+
+			// IS WOOCOMMERCE ORDER?
+			if ( wpcd_is_admin() ) {
+				if ( isset( $_GET['wpcd_app_is_wc'] ) && ! empty( $_GET['wpcd_app_is_wc'] ) ) {
+					$wpapp_is_wc = sanitize_text_field( filter_input( INPUT_GET, 'wpcd_app_is_wc', FILTER_UNSAFE_RAW ) );
+
+					if ( '1' === $wpapp_is_wc ) {
+
+						$qv['meta_query'][] = array(
+							'relation' => 'OR',
+							array(
+								'key'     => 'wpapp_wc_subscription_id',
+								'value'   => '',
+								'compare' => '!=',
+							),
+						);
+					}
 				}
 			}
 		}

@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Setup certain license functions
+ * Setup certain custom field functions.
  *
  * @package wpcd
  * @version 1.0.0 / wpcd

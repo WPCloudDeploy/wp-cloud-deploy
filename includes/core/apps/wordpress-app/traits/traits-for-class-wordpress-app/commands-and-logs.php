@@ -470,6 +470,9 @@ trait wpcd_wpapp_commands_and_logs {
 
 		// See if other background tasks for servers need to be started.
 		WPCD_POSTS_PENDING_TASKS_LOG()->do_tasks();
+		
+		// Expire Sites
+		WPCD_APP_EXPIRATION()->do_tasks();
 
 		set_transient( 'wpcd_do_deferred_actions_for_server_is_active', 1, wpcd_get_long_running_command_timeout() * MINUTE_IN_SECONDS );
 	}

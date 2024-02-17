@@ -191,6 +191,7 @@ class WPCD_Init {
 		require_once wpcd_path . 'includes/core/class-wpcd-posts-permission-type.php';
 		require_once wpcd_path . 'includes/core/class-wpcd-dns.php';
 		require_once wpcd_path . 'includes/core/functions.php';
+		require_once wpcd_path . 'includes/core/functions-kses.php';
 		require_once wpcd_path . 'includes/core/functions-icons.php';
 		require_once wpcd_path . 'includes/core/functions-metabox.php';
 
@@ -395,6 +396,7 @@ class WPCD_Init {
 
 		/* Load up our files */
 		require_once wpcd_path . 'includes/core/functions.php';
+		require_once wpcd_path . 'includes/core/functions-kses.php';
 		require_once wpcd_path . 'includes/core/functions-icons.php';
 		require_once wpcd_path . 'includes/core/functions-metabox.php';
 		require_once wpcd_path . 'includes/core/class-wpcd-custom-fields.php';
@@ -419,6 +421,7 @@ class WPCD_Init {
 		require_once wpcd_path . 'includes/core/class-wpcd-posts-error-log.php';
 		require_once wpcd_path . 'includes/core/class-wpcd-posts-command-log.php';
 		require_once wpcd_path . 'includes/core/class-wpcd-posts-pending-tasks-log.php';
+		require_once wpcd_path . 'includes/core/class-wpcd-app-expiration.php';
 		require_once wpcd_path . 'includes/core/class-wpcd-server.php';
 		require_once wpcd_path . 'includes/core/class-wpcd-settings.php';
 		if ( wpcd_data_sync_allowed() ) {
@@ -1021,17 +1024,17 @@ class WPCD_Init {
 		$add_ons['wpcd-google-provider/wpcd-google-provider.php']               = '1.3.0';
 		$add_ons['wpcd-hetzner-provider/wpcd-hetzner-provider.php']             = '1.4.1';
 		$add_ons['wpcd-linode-provider/wpcd-linode-provider']                   = '1.4.0';
-		$add_ons['wpcd-multisite/wpcd-multisite.php']                           = '1.6.0';
+		$add_ons['wpcd-multisite/wpcd-multisite.php']                           = '1.7.0';
 		$add_ons['wpcd-multi-tenant/wpcd-multi-tenant.php']                     = '1.0.0';
-		$add_ons['wpcd-power-tools/wpcd-power-tools.php']                       = '2.1.0';
+		$add_ons['wpcd-power-tools/wpcd-power-tools.php']                       = '2.4.0';
 		$add_ons['wpcd-redis/wpcd-redis.php']                                   = '1.3.1';
-		$add_ons['wpcd-server-sync/wpcd-server-sync.php']                       = '1.5.0';
+		$add_ons['wpcd-server-sync/wpcd-server-sync.php']                       = '1.6.0';
 		$add_ons['wpcd-upcloud-provider/wpcd-upcloud-provider.php']             = '2.3.0';
 		$add_ons['wpcd-virtual-cloud-provider/wpcd-virtual-cloud-provider.php'] = '1.1.1';
 		$add_ons['wpcd-vultr-provider/wpcd-vultr-provider.php']                 = '2.3.1';
 		$add_ons['wpcd-wc-sell-servers/wpcd-wc-sell-servers.php']               = '9999.9999.9999';
 		$add_ons['wpcd-wc-sell-sites/wpcd-wc-sell-sites.php']                   = '9999.9999.9999';
-		$add_ons['wpcd-woocommerce/wpcd-woocommerce.php']                       = '3.4.0';
+		$add_ons['wpcd-woocommerce/wpcd-woocommerce.php']                       = '3.6.0';
 
 		// Initialize list of incompatible add_ons.
 		$incompatible_add_ons = array();

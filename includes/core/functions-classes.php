@@ -445,6 +445,29 @@ function WPCD_POSTS_PERMISSION_TYPE() {
 }
 
 /**
+ * Create a class var for WPCD_APP_EXPIRATION and
+ * add it to the WPCD array of classes for management
+ */
+add_action( 'init', 'wpcd_init_app_expiration', -10, 1 );
+function wpcd_init_app_expiration() {
+	if ( function_exists( 'WPCD' ) ) {
+		if ( empty( WPCD()->classes['wpcd_app_expiration'] ) ) {
+			WPCD()->classes['wpcd_app_expiration'] = new WPCD_App_Expiration();
+		}
+	}
+}
+
+/**
+ * Function for calling wpcd_app_expiration methods and variables.
+ * wpcd_app_expiration is the class that manages the app expriation methods.
+ *
+ * @return WPCD_App_Expiration;
+ */
+function WPCD_APP_EXPIRATION() {
+	return WPCD()->classes['wpcd_app_expiration'];
+}
+
+/**
  * Create a class var for WPCD_SERVER_STATISTICS and
  * add it to the WPCD array of classes for management
  */

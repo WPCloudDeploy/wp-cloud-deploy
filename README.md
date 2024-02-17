@@ -142,6 +142,7 @@ Note: Even though the entire git development history isn't available on github, 
 * Tweak: WPAPP - Introduce new "WHITE" color setting.
 * Tweak: WPAPP - Click-to-copy user id and password on MONITORIX tab.
 * Tweak: WPAPP - Click-to-copy user id and password on GOACCESS tab.
+* Tweak: WPAPP - The search box on the app list will now search additional CPT fields: PHP VERSION, CURRENT WP VERSION and PACKAGE ID associated with the site.
 * Fix: WPAPP - Missing default $in_args for change_php_workers (Thanks @batonac)
 * Fix: WPAPP - Remove an errant error_log statement.
 * Fix: WPAPP - Prevent WPCD from registering a site twice on the Logtivity service.
@@ -155,6 +156,7 @@ Note: Even though the entire git development history isn't available on github, 
 * Dev: Upgrade metabox modules to latest versions.
 * Dev: The metabox conditional module was not being loaded.
 * Dev: Add filter around the passwordless login link (customer request).
+* Dev: Apply custom kses_filters around the output painting the selects in the filter bars on the server and site lists.
 
 5.6.0
 ------

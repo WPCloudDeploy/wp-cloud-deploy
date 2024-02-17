@@ -3894,14 +3894,12 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		if ( true === $is_subscription_switch ) {
 			// If switching expiration, only update the expiration date on the site if the package expiration field is zero or empty.
 			if ( empty( $expiration_in_minutes ) ) {
-				update_post_meta( $app_id, 'wpcd_app_expires', '' );
+				WPCD_APP_EXPIRATION()->clear_expiration( $app_id );
 			}
 		} else {
 			// New site.
 			if ( ! empty( $expiration_in_minutes ) ) {
-				$expires = ( $expiration_in_minutes * 60 ) + time();
-				update_post_meta( $app_id, 'wpcd_app_expires', $expires );
-				update_post_meta( $app_id, 'wpcd_app_expires_human_gmt', gmdate( 'Y-m-d H:i:s', $expires ) );
+				WPCD_APP_EXPIRATION()->set_expiration( $app_id, $expiration_in_minutes );
 			}
 		}
 
@@ -5051,7 +5049,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				 * Filters for site expiration status.
 				 */
 				$expiration_options = array(
-					'1' => __( 'Expired', 'wpcd' ),					
+					'1' => __( 'Expired', 'wpcd' ),
 					'0' => __( 'Not Expired (Marked)', 'wpcd' ),
 				);
 				$expiration         = $this->generate_meta_dropdown( 'wpcd_app_expired_status', __( 'Expiration Status', 'wpcd' ), $expiration_options );
@@ -5089,6 +5087,24 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 					// MT PARENT ID.
 					$mt_parent_id = WPCD_POSTS_APP()->generate_meta_dropdown( 'wpcd_app', 'wpcd_app_mt_parent', __( 'MT Parent Template', 'wpcd' ) );
 					echo wpcd_kses_select( $mt_parent_id );
+				}
+
+				/**
+				 * Filters specific to WooCommerce
+				 */
+				if ( true === wpcd_is_wc_module_enabled() ) {
+
+					// IS WOOCOMMERCE ORDER?
+					$selected_value = sanitize_text_field( filter_input( INPUT_GET, 'wpcd_app_is_wc', FILTER_UNSAFE_RAW ) );
+					$html_output_for_wc  = '<select name="wpcd_app_is_wc" id="filter-by-wpcd_app_is_wc">';
+					$html_output_for_wc .= '<option>' . __( 'Is WC Order?', 'wpcd' ) . '</option>';
+					if ( '1' === $selected_value ) {
+						$html_output_for_wc .= '<option value="1" selected="selected">' . __( 'Yes', 'wpcd' ) . '</option>';
+					} else {
+						$html_output_for_wc .= '<option value="1">' . __( 'Yes', 'wpcd' ) . '</option>';
+					}
+					$html_output_for_wc .= ' </select>';
+					echo wpcd_kses_select( $html_output_for_wc );
 				}
 			}
 		}
@@ -5356,6 +5372,25 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 							'compare' => '=',
 						),
 					);
+				}
+			}
+
+			// IS WOOCOMMERCE ORDER?
+			if ( wpcd_is_admin() ) {
+				if ( isset( $_GET['wpcd_app_is_wc'] ) && ! empty( $_GET['wpcd_app_is_wc'] ) ) {
+					$wpapp_is_wc = sanitize_text_field( filter_input( INPUT_GET, 'wpcd_app_is_wc', FILTER_UNSAFE_RAW ) );
+
+					if ( '1' === $wpapp_is_wc ) {
+
+						$qv['meta_query'][] = array(
+							'relation' => 'OR',
+							array(
+								'key'     => 'wpapp_wc_subscription_id',
+								'value'   => '',
+								'compare' => '!=',
+							),
+						);
+					}
 				}
 			}
 		}

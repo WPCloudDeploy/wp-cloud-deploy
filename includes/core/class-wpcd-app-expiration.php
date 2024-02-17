@@ -231,6 +231,57 @@ class WPCD_App_Expiration {
 
 	}
 
+	/**
+	 * Set the expiration date.
+	 *
+	 * @param int    $app_id The app id we're updating.
+	 * @param int    $expiration The days or minutes after the current time the app will expire.
+	 * @param string $measure The measurement for $expiration 'days', 'minutes'.
+	 */
+	public function set_expiration( $app_id, $expiration, $measure = 'minute' ) {
+
+		// Calculate the expiration period in minutes.
+		if ( 'days' === $measure ) {
+			$expiration_in_minutes = $expiration * 1440;
+		} else {
+			$expiration_in_minutes = $expiration;
+		}
+
+		$expires = ( $expiration_in_minutes * 60 ) + time();
+		update_post_meta( $app_id, 'wpcd_app_expires', $expires );
+		update_post_meta( $app_id, 'wpcd_app_expires_human_gmt', gmdate( 'Y-m-d H:i:s', $expires ) );
+
+	}
+
+	/**
+	 * Clear the expiration field on an app.
+	 *
+	 * @param int $app_id The app id we're updating.
+	 */
+	public function clear_expiration( $app_id ) {
+
+		update_post_meta( $app_id, 'wpcd_app_expires', '' );
+
+	}
+
+	/**
+	 * Return the expiration date in human readable format.
+	 *
+	 * @param int $app_id The app id we're querying.
+	 */
+	public function get_expiration_gmt( $app_id ) {
+
+		$return = '';
+
+		$expires = get_post_meta( $app_id, 'wpcd_app_expires', true );
+		if ( ! empty( $expires ) ) {
+			$return = gmdate( 'Y-m-d H:i:s', $expires );
+		}
+
+		return $return;
+
+	}
+
 
 	/**
 	 * Set the post state display expired status in the app list.
@@ -245,9 +296,16 @@ class WPCD_App_Expiration {
 	public function display_post_states( $states, $post ) {
 
 		if ( 'wpcd_app' === get_post_type( $post ) ) {
-
+			// Maybe show expired label.
 			if ( true === $this->get_expired_status( $post->ID ) ) {
 				$states['wpcd-app-expired-flag'] = __( 'Expired', 'wpcd' );
+			}
+
+			// Maybe Show expiration date.
+			$expires = $this->get_expiration_gmt( $post->ID );
+			if ( ! empty( $expires ) ) {
+				/* Translators: %s is a human readable date in GMT format */
+				$states['wpcd-app-expiration-date'] = __( sprintf( __( 'Exp: %s (gmt+0)', 'wpcd' ), $expires ) );
 			}
 		}
 

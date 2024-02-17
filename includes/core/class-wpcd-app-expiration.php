@@ -23,9 +23,74 @@ class WPCD_App_Expiration {
 	 */
 	public function __construct() {
 
+		// Filter hook to add custom meta boxes.
+		add_filter( 'rwmb_meta_boxes', array( $this, 'wpcd_app_register_meta_boxes' ), 10, 1 );
+
 		// Add state to show if an app is expired.
 		add_filter( 'display_post_states', array( $this, 'display_post_states' ), 20, 2 );
 	}
+
+	/**
+	 * Add custom metabox for expiration date on app details screen.
+	 *
+	 * Filter hook: rwmb_meta_boxes
+	 *
+	 * @param  array $metaboxes metaboxes.
+	 *
+	 * @return array
+	 */
+	public function wpcd_app_register_meta_boxes( $metaboxes ) {
+
+		// Register the metabox for site expiration.
+		$metaboxes[] = array(
+			'id'       => 'wpcd_app_site_expiration_metabox',
+			'title'    => __( 'Site Expiration (UTC +0)', 'wpcd' ),
+			'pages'    => array( 'wpcd_app' ), // displays on wpcd_app post type only.
+			'context'  => 'side',
+			'priority' => 'low',
+			'fields'   => array(
+
+				// Explantion field.
+				array(
+					'type' => 'custom_html',
+					'std'  => __( 'You can control what happens when a site expires in SETTINGS.', 'wpcd' ),
+				),
+				// add a date-time field for site expiration.
+				array(
+					'desc'       => __( 'When does this site expire?', 'wpcd' ),
+					'id'         => 'wpcd_app_expires',
+					'type'       => 'datetime',
+					'js_options' => array(
+						'stepMinute'      => 1,
+						'showTimepicker'  => true,
+						'controlType'     => 'select',
+						'showButtonPanel' => false,
+						'oneLine'         => true,
+					),
+					'inline'     => false,
+					'timestamp'  => true,
+				),
+
+				// Divider.
+				array(
+					'type' => 'custom_html',
+					'std'  => '<hr/>',
+				),
+
+				// Checkbox for if site has expired.
+				array(
+					'name' => __( 'Expired?', 'wpcd' ),
+					'desc' => __( 'Has site already expired?', 'wpcd' ),
+					'id'   => 'wpcd_app_expired_status',
+					'type' => 'checkbox',
+				),
+
+			),
+		);
+
+		return $metaboxes;
+	}
+
 
 	/**
 	 * Add any apps that are expired to the pending logs tables.
@@ -33,7 +98,6 @@ class WPCD_App_Expiration {
 	 * This is generally called from a CRON process.
 	 */
 	public function do_tasks() {
-		error_log( 'in do tasks for task expiration x' );
 
 		/**
 		 * Find all apps with an expiration less than the current time.
@@ -81,7 +145,6 @@ class WPCD_App_Expiration {
 			}
 		}
 
-		error_log( print_r( $apps, true ) );
 	}
 
 	/**

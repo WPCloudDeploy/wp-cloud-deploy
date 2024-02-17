@@ -1360,39 +1360,6 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 			),
 		);
 
-		// Register the metabox for site expiration.
-		$metaboxes[] = array(
-			'id'       => 'wpcd_app_site_expiration_metabox',
-			'title'    => __( 'Site Expiration (UTC +0)', 'wpcd' ),
-			'pages'    => array( 'wpcd_app' ), // displays on wpcd_app post type only.
-			'context'  => 'side',
-			'priority' => 'low',
-			'fields'   => array(
-
-				// Explantion field.
-				array(
-					'type' => 'custom_html',
-					'std'  => __( 'You can control what happens when a site expires in SETTINGS.', 'wpcd' ),
-				),
-				// add a date-time field for site expiration.
-				array(
-					'desc'       => __( 'When does this site expire?', 'wpcd' ),
-					'id'         => 'wpcd_app_expires',
-					'type'       => 'datetime',
-					'js_options' => array(
-						'stepMinute'      => 1,
-						'showTimepicker'  => true,
-						'controlType'     => 'select',
-						'showButtonPanel' => false,
-						'oneLine'         => true,
-					),
-					'inline'     => false,
-					'timestamp'  => true,
-				),
-
-			),
-		);
-
 		return $metaboxes;
 
 	}

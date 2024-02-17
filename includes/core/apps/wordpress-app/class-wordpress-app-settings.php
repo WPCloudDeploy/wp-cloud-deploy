@@ -1434,7 +1434,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			),
 			array(
 				'type' => 'custom_html',
-				'std'  => __( 'Please check our documentation on how to use these servers as targets for bulk copies.', 'wpcd' ),
+				'std'  => __( 'Note: This function requires the premium SERVER SYNC add-on. Please check our documentation on how to use these servers as targets for bulk copies.', 'wpcd' ),
 				'tab'  => 'wordpress-app-servers',
 			),
 

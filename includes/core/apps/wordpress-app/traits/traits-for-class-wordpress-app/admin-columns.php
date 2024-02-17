@@ -135,6 +135,29 @@ trait wpcd_wpapp_admin_column_data {
 	}
 
 	/**
+	 * Include additional search fields when searching the app list.
+	 *
+	 * Filter Hook: wpcd_app_search_fields
+	 *
+	 * @see class-wpcd-posts-app.php - function wpcd_app_extend_admin_search
+	 *
+	 * @param array $search_fields The current list of fields.
+	 */
+	public function wpcd_app_search_fields( $search_fields ) {
+
+		$our_search_fields = array(
+			'wpapp_php_version',
+			'wpapp_site_package',
+			'wpapp_current_version',
+		);
+
+		$search_fields = array_merge( $search_fields, $our_search_fields );
+
+		return $search_fields;
+
+	}
+
+	/**
 	 * Add content to the app summary column that shows up in app admin list
 	 *
 	 * Filter Hook: wpcd_app_admin_list_summary_column
@@ -1184,7 +1207,7 @@ trait wpcd_wpapp_admin_column_data {
 			if ( $this->get_app_is_memcached_installed( $post->ID ) ) {
 				$object_server_type = 'Memcached';
 			}
-			
+
 			if ( ! empty( $object_server_type ) ) {
 				$states['wpcd-wpapp-object-server-type'] = $object_server_type;
 			}
@@ -1257,7 +1280,7 @@ trait wpcd_wpapp_admin_column_data {
 			if ( ! empty( $object_server_type ) ) {
 				$states['wpcd-server-object-server-type-redis'] = $object_server_type;
 			}
-			
+
 			$object_server_type = '';
 			if ( $this->is_memcached_installed( $post->ID ) ) {
 				$object_server_type = 'Memcached';

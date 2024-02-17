@@ -197,6 +197,9 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		* Hooks and filters for screens in wp-admin
 		*/
 
+		// Filter hook to setup additional search fields specific to the wordpress-app.
+		add_filter( 'wpcd_app_search_fields', array( $this, 'wpcd_app_search_fields' ), 10, 1 );
+
 		// Filter hook to add new columns to the APP list.
 		add_filter( 'manage_wpcd_app_posts_columns', array( $this, 'app_posts_app_table_head' ), 10, 1 );
 
@@ -5093,9 +5096,8 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				 * Filters specific to WooCommerce
 				 */
 				if ( true === wpcd_is_wc_module_enabled() ) {
-
 					// IS WOOCOMMERCE ORDER?
-					$selected_value = sanitize_text_field( filter_input( INPUT_GET, 'wpcd_app_is_wc', FILTER_UNSAFE_RAW ) );
+					$selected_value = sanitize_text_field( filter_input( INPUT_GET, 'wpcd_app_is_wc', FILTER_UNSAFE_RAW ) ); // Get existing value selected, if any.
 					$html_output_for_wc  = '<select name="wpcd_app_is_wc" id="filter-by-wpcd_app_is_wc">';
 					$html_output_for_wc .= '<option>' . __( 'Is WC Order?', 'wpcd' ) . '</option>';
 					if ( '1' === $selected_value ) {

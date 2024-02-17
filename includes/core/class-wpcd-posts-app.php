@@ -906,6 +906,9 @@ class WPCD_POSTS_APP extends WPCD_Posts_Base {
 				'wpcd_short_description',
 				'wpcd_long_description',
 			);
+			
+			// Let other apps hook into the search list.
+			$search_fields = apply_filters( 'wpcd_app_search_fields', $search_fields );
 
 			$search_term = $query->query_vars['s'];
 

@@ -1412,6 +1412,31 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'select_all_none' => true,
 				'tab'             => 'wordpress-app-servers',
 			),
+			array(
+				'type' => 'heading',
+				'name' => __( 'Bulk Copy To Server', 'wpcd' ),
+				'desc' => __( 'Setup target servers to which you can copy multiple sites using the BULK ACTIONS drop-down on the apps/sites list.', 'wpcd' ),
+				'tab'  => 'wordpress-app-servers',
+			),
+			array(
+				'name'        => __( 'Target Servers', 'wpcd' ),
+				'id'          => 'wordpress_app_servers_target_servers',
+				'type'        => 'post',
+				'post_type'   => 'wpcd_app_server',
+				'query_args'  => array(
+					'post_status'    => 'private',
+					'posts_per_page' => - 1,
+				),
+				'field_type'  => 'select_advanced',
+				'multiple'    => true,
+				'placeholder' => __( 'Select one or more Cloud Servers.', 'wpcd' ),
+				'tab'         => 'wordpress-app-servers',
+			),
+			array(
+				'type' => 'custom_html',
+				'std'  => __( 'Note: This function requires the premium SERVER SYNC add-on. Please check our documentation on how to use these servers as targets for bulk copies.', 'wpcd' ),
+				'tab'  => 'wordpress-app-servers',
+			),
 
 		);
 

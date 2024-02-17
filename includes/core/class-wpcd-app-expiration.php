@@ -79,10 +79,11 @@ class WPCD_App_Expiration {
 
 				// Checkbox for if site has expired.
 				array(
-					'name' => __( 'Expired?', 'wpcd' ),
-					'desc' => __( 'Has site already expired?', 'wpcd' ),
-					'id'   => 'wpcd_app_expired_status',
-					'type' => 'checkbox',
+					'name'    => __( 'Expired?', 'wpcd' ),
+					'desc'    => __( 'Has site already expired?', 'wpcd' ),
+					'tooltip' => __( 'If you change this option you will also need to change the date above to a future date. Otherwise the site will again expire within a few minutes. Also, if you change this option to mark an unexpired site as expired, none of the expiration options in settings will run.', 'wpcd' ),
+					'id'      => 'wpcd_app_expired_status',
+					'type'    => 'checkbox',
 				),
 
 			),
@@ -101,12 +102,6 @@ class WPCD_App_Expiration {
 
 		/**
 		 * Find all apps with an expiration less than the current time.
-		 *
-		 * Note: In a future version we should also search for apps
-		 * that are not already marked as 'expired'.
-		 * We're not doing that now because it complicates the metaquery
-		 * since we'd have to search for both empty value and a value of
-		 * '0' or false.
 		 */
 		$current_linux_epoc = time();
 		$args               = array(
@@ -138,13 +133,75 @@ class WPCD_App_Expiration {
 				// Mark the app as expired.
 				if ( false === $is_expired ) {
 					$this->set_as_expired( $app->ID );
+
+					/**
+					 * Now do other stuff based on what's in settings.
+					 *
+					 * Note: if we ever want to handle sites that are marked for deletion but not processed for some reason
+					 * (eg: admin manually marked a site as expired) we can move this line outside the IF block.
+					 */
+					$this->apply_expiration_rules( $app->ID );
+
 				}
-
-				// Now do other stuff based on what's in settings.
-
 			}
 		}
 
+	}
+
+	/**
+	 * Do actions for sites that have just expired.
+	 *
+	 * @param int $app_id The ID of the app we're working with.
+	 */
+	public function apply_expiration_rules( $app_id ) {
+
+		// Verify app to make sure it's valid. It should be but do it again anyway.
+		$post = WPCD_WORDPRESS_APP()->get_app_by_app_id( $app_id );
+		if ( empty( $post ) ) {
+			return;
+		}
+
+		// Make sure post type is wpcd_app.
+		if ( 'wpcd_app' !== $post->post_type ) {
+			return;
+		}
+
+		// Is the site enabled?  Can't do certain things if it's now.
+		$site_status = WPCD_WORDPRESS_APP()->site_status( $app_id );
+
+		if ( boolval( wpcd_get_option( 'wordpress_app_sites_expired_delete_site' ) ) ) {
+			// Schedule site to be deleted.  Since the site is going to be deleted, it does not make since to apply any of the other options beforehand.
+			do_action( 'wpcd_log_notification', $app_id, 'alert', __( 'This site is being scheduled for deletion in pending tasks because the it has expired.', 'wpcd' ), 'misc', null );
+			$args['action_hook'] = 'wpcd_pending_log_delete_wp_site_and_backups';
+			$args['action']      = 'remove_full';
+			$task_name           = 'delete-site-and-backups';
+			$task_desc           = __( 'Site Expiration: Waiting to delete site and associated backups.', 'wpcd' );
+			WPCD_POSTS_PENDING_TASKS_LOG()->add_pending_task_log_entry( $app_id, $task_name, $app_id, $args, 'ready', $app_id, $task_desc );
+		} else {
+			// Maybe disable the site. But only do it if the site has not already in that state.
+			if ( boolval( wpcd_get_option( 'wordpress_app_sites_expired_disable_site' ) ) ) {
+				if ( 'on' === $site_status ) {
+					do_action( 'wpcd_wordpress-app_do_toggle_site_status', $app_id, 'site-status', 'off' );
+					do_action( 'wpcd_log_notification', $app_id, 'alert', __( 'This site is being disabled because the it has expired.', 'wpcd' ), 'misc', null );
+				}
+			}
+
+			// Maybe apply http authentication to the site. But only do it if the site is enabled - this way we don't try to apply config settings to a file that might not exist.
+			if ( boolval( wpcd_get_option( 'wordpress_app_sites_expired_enable_http_auth' ) ) ) {
+				if ( 'on' === $site_status ) {
+					do_action( 'wpcd_wordpress-app_do_site_enable_http_auth', $app_id );
+					do_action( 'wpcd_log_notification', $app_id, 'alert', __( 'This site is being password protected because it has expired.', 'wpcd' ), 'misc', null );
+				}
+			}
+
+			// Maybe apply an admin lock to the site. But only do it if the site has not already in that state.
+			if ( boolval( wpcd_get_option( 'wordpress_app_sites_expired_admin_lock_site' ) ) ) {
+				if ( ! WPCD_WORDPRESS_APP()->get_admin_lock_status( $app_id ) ) {
+					WPCD_WORDPRESS_APP()->set_admin_lock_status( $app_id, 'on' );
+					do_action( 'wpcd_log_notification', $app_id, 'alert', __( 'This site has had its admin lock applied because it has expired.', 'wpcd' ), 'misc', null );
+				}
+			}
+		}
 	}
 
 	/**

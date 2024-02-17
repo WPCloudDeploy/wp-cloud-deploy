@@ -511,7 +511,7 @@ trait wpcd_wpapp_push_commands {
 			if ( boolval( wpcd_get_option( 'wordpress_app_sites_disk_quota_admin_lock_site' ) ) ) {
 				if ( ! $this->get_admin_lock_status( $app_id ) ) {
 					WPCD_WORDPRESS_APP()->set_admin_lock_status( $app_id, 'on' );
-					do_action( 'wpcd_log_notification', $app_id, 'alert', __( 'This site has had it\'s admin lock applied because the disk quota has been exceeded.', 'wpcd' ), 'quotas', null );
+					do_action( 'wpcd_log_notification', $app_id, 'alert', __( 'This site has had its admin lock applied because the disk quota has been exceeded.', 'wpcd' ), 'quotas', null );
 				}
 			}
 		}

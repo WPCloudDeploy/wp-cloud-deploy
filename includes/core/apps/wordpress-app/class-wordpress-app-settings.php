@@ -1537,9 +1537,16 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			),
 
 			array(
-				'type'    => 'heading',
-				'name'    => __( 'Site Expiration', 'wpcd' ),
-				'desc'    => __( 'What should we do when a site is expired?', 'wpcd' ),				
+				'type' => 'heading',
+				'name' => __( 'Site Expiration', 'wpcd' ),
+				'desc' => __( 'What should we do when a site is expired?', 'wpcd' ),
+				'tab'  => 'wordpress-app-sites',
+			),
+			array(
+				'id'      => 'wordpress_app_sites_expired_delete_site',
+				'type'    => 'checkbox',
+				'name'    => __( 'Delete Site?', 'wpcd' ),
+				'tooltip' => __( 'Delete the site when it is expired?  This will not be reversible!', 'wpcd' ),
 				'tab'     => 'wordpress-app-sites',
 			),
 			array(
@@ -1547,6 +1554,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'type'    => 'checkbox',
 				'name'    => __( 'Password Protect Site (HTTP AUTH)?', 'wpcd' ),
 				'tooltip' => __( 'This option will place a password popup before visitors can view it. Only an admin will be able to remove this protection.  Do not enable this option with the DISABLE option below - they do not work well together!', 'wpcd' ),
+				'hidden'  => array( 'wordpress_app_sites_expired_delete_site', '=', '1' ),
 				'tab'     => 'wordpress-app-sites',
 			),
 			array(
@@ -1554,6 +1562,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'type'    => 'checkbox',
 				'name'    => __( 'Disable Site?', 'wpcd' ),
 				'tooltip' => __( 'Disabling a site will prevent visitors from viewing it. This option is slightly different from the HTTP AUTH option above because it makes the site completely invisible to web traffic - not even a password popup.  Do not enable this option with the HTTP AUTH option above - they do not work well together!', 'wpcd' ),
+				'hidden'  => array( 'wordpress_app_sites_expired_delete_site', '=', '1' ),
 				'tab'     => 'wordpress-app-sites',
 			),
 			array(
@@ -1561,12 +1570,13 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'type'    => 'checkbox',
 				'name'    => __( 'Apply Admin Lock ?', 'wpcd' ),
 				'tooltip' => __( 'The admin lock will disable all tabs for the site. A the customer cannot manage it or reactivate it. Only an admin will be able to remove the lock.', 'wpcd' ),
+				'hidden'  => array( 'wordpress_app_sites_expired_delete_site', '=', '1' ),
 				'tab'     => 'wordpress-app-sites',
 			),
 			array(
 				'type' => 'custom_html',
-				'std'  => __( 'Important Note: The three options above are only implemented when a site is not yet expired and hits the expiration date. If an admin manually expires a site, none of these options are implemented.', 'wpcd' ),
-				'tab'     => 'wordpress-app-sites',
+				'std'  => __( 'Important Note: The options above are only implemented when a site is not yet expired and hits the expiration date. If an admin manually expires a site, none of these options are implemented.', 'wpcd' ),
+				'tab'  => 'wordpress-app-sites',
 			),
 
 			array(

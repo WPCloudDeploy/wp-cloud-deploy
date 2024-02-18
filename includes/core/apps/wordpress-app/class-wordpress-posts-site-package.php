@@ -451,6 +451,18 @@ class WPCD_POSTS_Site_Package extends WPCD_Posts_Base {
 				'columns'    => 3,
 			),
 			array(
+				'name'       => __( 'Quota Profile', 'wpcd' ),
+				'id'         => $prefix . 'site_package_quota_profile',
+				'type'       => 'post',
+				'post_type'  => 'wpcd_quota_profile',
+				'query_args' => array(
+					'posts_per_page' => - 1,
+				),
+				'field_type' => 'select_advanced',
+				'save_field' => true,
+				'columns'    => 3,
+			),
+			array(
 				'name'       => __( 'Disable HTTP Authentication', 'wpcd' ),
 				'id'         => $prefix . 'site_package_disable_http_auth',
 				'type'       => 'checkbox',

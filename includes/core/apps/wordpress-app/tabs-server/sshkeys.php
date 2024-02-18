@@ -181,7 +181,8 @@ class WPCD_WORDPRESS_TABS_KEYS extends WPCD_WORDPRESS_TABS {
 		$actions[] = wpcd_start_full_card_page_heading( $this->get_tab_slug() ); // Start new card.
 
 		$actions['server-ssh-keys-header'] = array(
-			'label'          => __( 'SSH Keys', 'wpcd' ),
+			/* Translators: %s is a fontawesome or similar icon. */
+			'label'          => wpcd_apply_key_icon( __( '%s SSH Keys', 'wpcd' ) ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
 				'desc' => $desc,
@@ -197,7 +198,8 @@ class WPCD_WORDPRESS_TABS_KEYS extends WPCD_WORDPRESS_TABS {
 		$actions[] = wpcd_start_half_card( $this->get_tab_slug() ); // Start new card.
 
 		$actions['server-ssh-keys-private-key-header'] = array(
-			'label'          => __( 'Private Key', 'wpcd' ),
+			/* Translators: %s is a fontawesome or similar icon. */
+			'label'          => wpcd_apply_key_icon( __( '%s Private Key', 'wpcd' ) ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
 				'desc' => '',
@@ -252,7 +254,8 @@ class WPCD_WORDPRESS_TABS_KEYS extends WPCD_WORDPRESS_TABS {
 		$actions[] = wpcd_start_half_card( $this->get_tab_slug() ); // Start new card.
 
 		$actions['server-ssh-keys-public-key-header'] = array(
-			'label'          => __( 'Public Key', 'wpcd' ),
+			/* Translators: %s is a fontawesome or similar icon. */
+			'label'          => wpcd_apply_key_icon( __( '%s Public Key', 'wpcd' ) ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
 				'desc' => '',
@@ -286,7 +289,8 @@ class WPCD_WORDPRESS_TABS_KEYS extends WPCD_WORDPRESS_TABS {
 			'label'          => '',
 			'type'           => 'button',
 			'raw_attributes' => array(
-				'std'              => __( 'Save', 'wpcd' ),
+				/* Translators: %s is a fontawesome or similar icon. */
+				'std'              => wpcd_apply_save_icon( __( '%s Save', 'wpcd' ) ),
 				// fields that contribute data for this action.
 				'data-wpcd-fields' => json_encode( array( '#wpcd_app_action_server-ssh-keys-root-user-name', '#wpcd_app_action_server-ssh-keys-private-key', '#wpcd_app_action_server-ssh-keys-private-key-password', '#wpcd_app_action_server-ssh-keys-public-key', '#wpcd_app_action_server-ssh-keys-notes' ) ),
 				'columns'          => 12,
@@ -297,7 +301,8 @@ class WPCD_WORDPRESS_TABS_KEYS extends WPCD_WORDPRESS_TABS {
 			'label'          => '',
 			'type'           => 'button',
 			'raw_attributes' => array(
-				'std'     => __( 'Copy From Settings', 'wpcd' ),
+				/* Translators: %s is a fontawesome or similar icon. */
+				'std'     => wpcd_apply_duplicate_icon( __( '%s Copy From Settings', 'wpcd' ) ),
 				'columns' => 6,
 			),
 		);
@@ -306,7 +311,8 @@ class WPCD_WORDPRESS_TABS_KEYS extends WPCD_WORDPRESS_TABS {
 			'label'          => '',
 			'type'           => 'button',
 			'raw_attributes' => array(
-				'std'     => __( 'Remove', 'wpcd' ),
+				/* Translators: %s is a fontawesome or similar icon. */
+				'std'     => wpcd_apply_trash_icon( __( '%s Remove', 'wpcd' ) ),
 				'tooltip' => __( 'Remove this key information from this server - we will revert to using the data from the settings screen to login.', 'wpcd' ),
 				'columns' => 6,
 			),

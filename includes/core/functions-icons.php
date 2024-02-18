@@ -566,7 +566,6 @@ function wpcd_apply_api_icon( $label ) {
  */
 function wpcd_apply_add_icon( $label ) {
 
-	return sprintf( $label, '<i class="fa-duotone fa-plus-large"></i> ' );
+	return sprintf( $label, '<i class="fa-duotone fa-square-plus"></i> ' );
 
 }
-

@@ -128,9 +128,12 @@ Note: Even though the entire git development history isn't available on github, 
 ## Change Log ##
 5.6.1
 ------
+* New: WPAPP - Ability to 'expire' sites.
 * New: WPAPP - Option to apply http authentication in front of a site when its disk quota has been exceeded.
 * New: WPAPP - Use CALLBACKS to collected posttype counts from child sites.
 * New: WPAPP - Passwordless login for specific user.
+* New: WPAPP - Ability to bulk copy sites from one or more servers to a single target server.
+* New: WPAPP - Add option to set meta to indicate a site is using a custom SSL certificate.
 * Tweak: WPAPP - PHP 8.0 is now shown with an orange border (caution) in the apps list (since 8.0 no longer receives security updates).
 * Tweak: WPAPP - CSS to change the highlighter in the left menu bar in WPCD settings, server and app detail screens.
 * Tweak: WPAPP - Updated HELP & FAQ links.

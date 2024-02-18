@@ -1018,6 +1018,10 @@ trait wpcd_wpapp_admin_column_data {
 				if ( true === $this->get_site_local_wildcard_ssl_status( $post_id ) ) {
 					$ssl_status = 'on [*]';
 				}
+
+				if ( true === $this->get_site_local_custom_ssl_status( $post_id ) ) {
+					$ssl_status = 'on [C]';
+				}				
 			} else {
 				$ssl_status = 'off';
 			}
@@ -1194,6 +1198,13 @@ trait wpcd_wpapp_admin_column_data {
 		if ( 'wpcd_app' === get_post_type( $post ) && 'wordpress-app' === $this->get_app_type( $post->ID ) ) {
 			if ( true === $this->is_staging_site( $post->ID ) ) {
 				$states['wpcd-wpapp-status'] = __( 'Staging', 'wpcd' );
+			}
+		}
+		
+		/* Show whether the SSL is custom or not. */
+		if ( 'wpcd_app' === get_post_type( $post ) && 'wordpress-app' === $this->get_app_type( $post->ID ) ) {
+			if ( true === $this->get_site_local_custom_ssl_status( $post->ID ) ) {
+				$states['wpcd-wpapp-custom-ssl-status'] = __( 'Custom SSL', 'wpcd' );
 			}
 		}
 

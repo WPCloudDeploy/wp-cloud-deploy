@@ -997,6 +997,40 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	}
 
 	/**
+	 * Get the status of cusstom ssl stored in the metadata for a site.
+	 *
+	 * @param string $app_id is the post id of the app record we're asking about.
+	 *
+	 * @return boolean
+	 */
+	public function get_site_local_custom_ssl_status( $app_id ) {
+
+		$value = false;
+
+		// Check custom ssl metas.
+		if ( 'on' === get_post_meta( $app_id, 'wpapp_custom_ssl_status', true ) ) {
+			$value = true;
+		} else {
+			$value = false;
+		}
+
+		return $value;
+
+	}
+
+	/**
+	 * Set the status of custom ssl stored in the metadata for a site.
+	 *
+	 * @param string $app_id is the post id of the app record we're asking about.
+	 * @param string $status 'on' or 'off.
+	 */
+	public function set_site_local_custom_ssl_status( $app_id, $status ) {
+
+		update_post_meta( $app_id, 'wpapp_custom_ssl_status', $status );
+
+	}
+
+	/**
 	 * Get the status of WILDCARD ssl stored in the metadata for a site.
 	 *
 	 * @param string $app_id is the post id of the app record we're asking about.
@@ -5097,7 +5131,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				 */
 				if ( true === wpcd_is_wc_module_enabled() ) {
 					// IS WOOCOMMERCE ORDER?
-					$selected_value = sanitize_text_field( filter_input( INPUT_GET, 'wpcd_app_is_wc', FILTER_UNSAFE_RAW ) ); // Get existing value selected, if any.
+					$selected_value      = sanitize_text_field( filter_input( INPUT_GET, 'wpcd_app_is_wc', FILTER_UNSAFE_RAW ) ); // Get existing value selected, if any.
 					$html_output_for_wc  = '<select name="wpcd_app_is_wc" id="filter-by-wpcd_app_is_wc">';
 					$html_output_for_wc .= '<option>' . __( 'Is WC Order?', 'wpcd' ) . '</option>';
 					if ( '1' === $selected_value ) {

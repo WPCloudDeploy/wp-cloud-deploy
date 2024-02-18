@@ -166,8 +166,13 @@
 	/* On second thought, don't ! */
 }
 
+/* Spacing between icons and text on buttons inside cards. */
+.wpcd-card-group .rwmb-button i {
+	margin-right: 6px;
+}
+
 /**
- * This section styles the native metabox.io ADVACNED columns.
+ * This section styles the native metabox.io ADVANCED columns.
  * @See https://docs.metabox.io/extensions/meta-box-columns/ - scroll down to the advanced syntax section.
  */
  

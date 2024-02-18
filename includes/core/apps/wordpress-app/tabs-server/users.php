@@ -182,7 +182,8 @@ class WPCD_WORDPRESS_TABS_SERVER_USERS extends WPCD_WORDPRESS_TABS {
 			$actions[] = wpcd_start_two_thirds_card( $this->get_tab_slug() ); // Start new card.
 
 			$actions['users-root-header-not-applicable'] = array(
-				'label'          => __( 'Manage Root User Attributes', 'wpcd' ),
+				/* Translators: %s is a fontawesome or similar icon. */
+				'label'          => wpcd_apply_close_icon( __( '%s Manage Root User Attributes', 'wpcd' ) ),
 				'type'           => 'heading',
 				'raw_attributes' => array(
 					'desc' => __( 'Unfortunately you cannot change the primary root/sudo password or other related attributes for this server provider', 'wpcd' ),
@@ -202,7 +203,8 @@ class WPCD_WORDPRESS_TABS_SERVER_USERS extends WPCD_WORDPRESS_TABS {
 
 			// Paint header.
 			$actions['users-root-header'] = array(
-				'label'          => __( 'Manage Root User Password', 'wpcd' ),
+				/* Translators: %s is a fontawesome or similar icon. */
+				'label'          => wpcd_apply_close_icon( __( '%s Manage Root User Password', 'wpcd' ) ),
 				'type'           => 'heading',
 				'raw_attributes' => array(
 					'desc' => $root_user_top_desc,
@@ -216,7 +218,9 @@ class WPCD_WORDPRESS_TABS_SERVER_USERS extends WPCD_WORDPRESS_TABS {
 				$actions['users-root-create-pw'] = array(
 					'label'          => __( 'Create Password', 'wpcd' ),
 					'raw_attributes' => array(
-						'std'                 => __( 'Create', 'wpcd' ),
+						/* Translators: %s is a fontawesome or similar icon. */
+						'std'                 => wpcd_apply_add_icon( __( '%s Create', 'wpcd' ) ),
+						/* Translators: %s is the root user name. */
 						'desc'                => sprintf( __( 'You have not created a password for the user: %s.  Click this button to do it now.', 'wpcd' ), $root_user ),
 						// make sure we give the user a confirmation prompt.
 						'confirmation_prompt' => __( 'Are you sure you would like to create a root user password?', 'wpcd' ),
@@ -240,7 +244,8 @@ class WPCD_WORDPRESS_TABS_SERVER_USERS extends WPCD_WORDPRESS_TABS {
 				$actions['users-root-reset-pw'] = array(
 					'label'          => __( 'Reset Password', 'wpcd' ),
 					'raw_attributes' => array(
-						'std'                 => __( 'Reset', 'wpcd' ),
+						/* Translators: %s is a fontawesome or similar icon. */
+						'std'                 => wpcd_apply_change_icon( __( '%s Reset', 'wpcd' ) ),
 						// make sure we give the user a confirmation prompt.
 						'confirmation_prompt' => __( 'Are you sure you would like to reset the root user password?', 'wpcd' ),
 						'tooltip'             => __( 'We will create a 32 character alpha-numeric root password and store it encrypted in the database.', 'wpcd' ),
@@ -259,7 +264,8 @@ class WPCD_WORDPRESS_TABS_SERVER_USERS extends WPCD_WORDPRESS_TABS {
 			$actions[] = wpcd_start_half_card( $this->get_tab_slug() ); // Start new card.
 
 			$actions['users-root-pw-auth-header']  = array(
-				'label'          => __( 'Manage Root User Password Authentication', 'wpcd' ),
+				/* Translators: %s is a fontawesome or similar icon. */
+				'label'          => wpcd_apply_close_icon( __( '%s Manage Root User Password Authentication', 'wpcd' ) ),
 				'type'           => 'heading',
 				'raw_attributes' => array(
 					'desc' => __( 'Enable or disable sFTP password authentication for the primary root or sudo user.', 'wpcd' ),
@@ -268,7 +274,8 @@ class WPCD_WORDPRESS_TABS_SERVER_USERS extends WPCD_WORDPRESS_TABS {
 			$actions['users-root-enable-pw-auth']  = array(
 				'label'          => '',
 				'raw_attributes' => array(
-					'std'                 => __( 'Enable Password Authentication', 'wpcd' ),
+					/* Translators: %s is a fontawesome or similar icon. */
+					'std'                 => wpcd_apply_add_icon( __( '%s Enable Password Authentication', 'wpcd' ) ),
 					// make sure we give the user a confirmation prompt.
 					'confirmation_prompt' => __( 'Are you sure you would like to enable password authentication for the primary root/sudo user?', 'wpcd' ),
 					'columns'             => 6,
@@ -278,7 +285,8 @@ class WPCD_WORDPRESS_TABS_SERVER_USERS extends WPCD_WORDPRESS_TABS {
 			$actions['users-root-disable-pw-auth'] = array(
 				'label'          => '',
 				'raw_attributes' => array(
-					'std'                 => __( 'Disable Password Authentication', 'wpcd' ),
+					/* Translators: %s is a fontawesome or similar icon. */
+					'std'                 => wpcd_apply_erase_icon( __( '%s Disable Password Authentication', 'wpcd' ) ),
 					// make sure we give the user a confirmation prompt.
 					'confirmation_prompt' => __( 'Are you sure you would like to disable password authentication for the primary root/sudo user?', 'wpcd' ),
 					'columns'             => 6,
@@ -379,6 +387,7 @@ class WPCD_WORDPRESS_TABS_SERVER_USERS extends WPCD_WORDPRESS_TABS {
 					'refresh' => 'yes',
 				);
 			} else {
+				/* Translators: %s is the error message. */
 				$result = sprintf( __( 'Error encountered when attempting to change password: %s', 'wpcd' ), $result );
 				$result = array(
 					'msg'     => $result,
@@ -389,6 +398,7 @@ class WPCD_WORDPRESS_TABS_SERVER_USERS extends WPCD_WORDPRESS_TABS {
 
 			// Make sure we handle errors.
 			if ( is_wp_error( $result ) ) {
+				/* Translators: %s is the error message. */
 				return new \WP_Error( sprintf( __( 'Unable to execute this request because an error ocurred: %s', 'wpcd' ), $result->get_error_message() ) );
 			} else {
 				// Construct an appropriate return message.

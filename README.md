@@ -146,6 +146,7 @@ Note: Even though the entire git development history isn't available on github, 
 * Tweak: WPAPP - Click-to-copy user id and password on MONITORIX tab.
 * Tweak: WPAPP - Click-to-copy user id and password on GOACCESS tab.
 * Tweak: WPAPP - The search box on the app list will now search additional CPT fields: PHP VERSION, CURRENT WP VERSION and PACKAGE ID associated with the site.
+* Tweak: WPAPP - Set some checkboxes on new site packages to off by default.
 * Fix: WPAPP - Missing default $in_args for change_php_workers (Thanks @batonac)
 * Fix: WPAPP - Remove an errant error_log statement.
 * Fix: WPAPP - Prevent WPCD from registering a site twice on the Logtivity service.

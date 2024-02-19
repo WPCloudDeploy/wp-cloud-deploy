@@ -502,6 +502,8 @@ class WPCD_Init {
 		if ( class_exists( 'WPCD_WooCommerce_Init' ) ) {
 			require_once wpcd_path . 'includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php';
 			require_once wpcd_path . 'includes/core/apps/wordpress-app/class-wordpress-posts-update-plan-log.php';
+			require_once wpcd_path . 'includes/core/apps/wordpress-app/class-wordpress-posts-quota-profile.php';
+			require_once wpcd_path . 'includes/core/apps/wordpress-app/class-wordpress-posts-quota-limits.php';
 		}
 
 		// Integrations for the WP APP.

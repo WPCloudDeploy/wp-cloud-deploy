@@ -488,7 +488,7 @@ trait wpcd_wpapp_push_commands {
 
 		// if disk limit is exceeded add notification and maybe disable and lock site.
 		if ( $used_disk > $disk_space_quota && $disk_space_quota > 0 ) {
-			/* translators: %s is replaced with the number of plugin updates pending for the site. */
+			/* translators: %1$d is replaced with the quota for the disk space. %2$d is replaced with the amount of diskspace used on the site. */
 			do_action( 'wpcd_log_notification', $app_id, 'alert', sprintf( __( 'This site has exceeded its disk quota: Allowed quota: %1$d MB, Currently used: %2$d MB.', 'wpcd' ), $disk_space_quota, $used_disk ), 'quotas', null );
 
 			// Maybe disable the site. But only do it if the site has not already in that state.

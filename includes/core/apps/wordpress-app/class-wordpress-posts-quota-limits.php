@@ -459,7 +459,32 @@ class WPCD_POSTS_Quota_Limits extends WPCD_Posts_Base {
 
 				// Compare the two values - received in $site_data and limit set in $limits (and extracted into vars above).
 				if ( (int) $site_data[ $limit_item_name ] > $limit_item_max ) {
-					error_log( 'exceeded!' );
+					/* translators: %1$s is the name of the item whose quota as been exceeded - eg: 'posts' or 'page'. %2$s is replaced with the quota for the disk space. %3$s is replaced with the amount of diskspace used on the site. */
+					do_action( 'wpcd_log_notification', $app_id, 'alert', sprintf( __( 'This site has exceeded its quota for %1$s. Allowed quota: %2$s, Currently used: %3$s.', 'wpcd' ), $limit_item_name, $limit_item_max, (int) $site_data[ $limit_item_name ] ), 'quotas', null );
+
+					// Maybe disable the site. But only do it if the site has not already in that state.
+					if ( boolval( wpcd_get_option( 'wordpress_app_sites_quota_disable_site' ) ) ) {
+						if ( 'on' === WPCD_WORDPRESS_APP()->site_status( $app_id ) ) {
+							do_action( 'wpcd_wordpress-app_do_toggle_site_status', $app_id, 'site-status', 'off' );
+							do_action( 'wpcd_log_notification', $app_id, 'alert', sprintf( __( 'This site is being disabled because the %s quota has been exceeded.', 'wpcd' ), $limit_item_name ), 'quotas', null );
+						}
+					}
+
+					// Maybe apply http authentication to the site. But only do it if the site is enabled - this way we don't try to apply config settings to a file that might not exist.
+					if ( boolval( wpcd_get_option( 'wordpress_app_sites_quota_enable_http_auth' ) ) ) {
+						if ( 'on' === WPCD_WORDPRESS_APP()->site_status( $app_id ) ) {
+							do_action( 'wpcd_wordpress-app_do_site_enable_http_auth', $app_id );
+							do_action( 'wpcd_log_notification', $app_id, 'alert', sprintf( __( 'This site is being password protected because the %s quota has been exceeded.', 'wpcd' ), $limit_item_name ), 'quotas', null );
+						}
+					}
+
+					// Maybe apply an admin lock to the site. But only do it if the site has not already in that state.
+					if ( boolval( wpcd_get_option( 'wordpress_app_sites_quota_admin_lock_site' ) ) ) {
+						if ( ! WPCD_WORDPRESS_APP()->get_admin_lock_status( $app_id ) ) {
+							WPCD_WORDPRESS_APP()->set_admin_lock_status( $app_id, 'on' );
+							do_action( 'wpcd_log_notification', $app_id, 'alert', sprintf( __( 'This site has had its admin lock applied because the %s quota has been exceeded.', 'wpcd' ), $limit_item_name ), 'quotas', null );
+						}
+					}
 				}
 
 				// Put the value we just recieved into the last value field on the limit record.

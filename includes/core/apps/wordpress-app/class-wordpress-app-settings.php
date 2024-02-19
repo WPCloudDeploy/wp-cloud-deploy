@@ -1607,6 +1607,19 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			array(
 				'type' => 'heading',
 				'name' => __( 'Custom Post Type Quotas', 'wpcd' ),
+				'desc' => __( 'Keep this disabled if you do not use custom post type quotas.  Otherwise you\'ll end up with a lot of useless pending tasks every night as quotas are evaluated for each site.', 'wpcd' ),
+				'tab'  => 'wordpress-app-sites',
+			),
+			array(
+				'id'      => 'wordpress_app_sites_enable_quota',
+				'type'    => 'checkbox',
+				'name'    => __( 'Enable Quotas?', 'wpcd' ),
+				'tab'     => 'wordpress-app-sites',
+			),
+
+			array(
+				'type' => 'heading',
+				'name' => __( 'Custom Post Type Quota Actions', 'wpcd' ),
 				'desc' => __( 'What should we do when a quota is exceeded on a site? Note: Quotas for each site are evaluated once each day - they are not evaluated in real-time!', 'wpcd' ),
 				'tab'  => 'wordpress-app-sites',
 			),

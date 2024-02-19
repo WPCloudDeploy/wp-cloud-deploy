@@ -60,11 +60,11 @@ class WPCD_POSTS_Quota_Limits extends WPCD_Posts_Base {
 		// Remove limit records when a site is being deleted.
 		add_action( 'wpcd_wordpress-app_after_remove_site_action_before_record_delete', array( $this, 'wpcd_after_remove_site_action_before_record_delete' ), 10, 2 );
 
-		// Trigger evalation of a site's limit via an action hook. Hook Name: wpcd_wordpress-app_evaluate_quota_limits_for_site.
-		add_action( 'wpcd_{WPCD_WORDPRESS_APP()->get_app_name()}_evaluate_quota_limits_for_site', array( $this, 'evaluate_quota_limits_for_site' ), 10, 2 );
-
 		/* Pending Logs Background Task: Trigger evaluation of limits for a site. */
 		add_action( 'wpcd_pending_log_evaluate_quota_limits', array( $this, 'pending_log_evaluate_quota_limits' ), 10, 3 );
+
+		// Trigger evaluation of a site's limit via an action hook. Hook Name: wpcd_wordpress-app_evaluate_quota_limits_for_site.
+		add_action( 'wpcd_wordpress-app_evaluate_quota_limits_for_site', array( $this, 'evaluate_quota_limits_for_site' ), 10, 2 );
 
 	}
 
@@ -415,6 +415,50 @@ class WPCD_POSTS_Quota_Limits extends WPCD_Posts_Base {
 	 */
 	public function create_pending_log_quota_limit_actions_for_site( $app_id ) {
 
+		$args['action_hook'] = 'wpcd_pending_log_evaluate_quota_limits';
+		$args['action']      = 'evaluate-quota-limits';
+		$pending_log_type    = 'evaluate-quotas';
+		$pending_log_message = __( 'Waiting to evaluate quotas.', 'wpcd' );
+
+		WPCD_POSTS_PENDING_TASKS_LOG()->add_pending_task_log_entry( $app_id, $pending_log_type, $app_id, $args, 'ready', $app_id, $pending_log_message );
+
+	}
+
+	/**
+	 * Evaluate Limits - triggered via pending logs background process.
+	 *
+	 * Called from an action hook from the pending logs background process - WPCD_POSTS_PENDING_TASKS_LOG()->do_tasks()
+	 *
+	 * @since 5.7
+	 *
+	 * Action Hook: wpcd_pending_log_evaluate_quota_limits
+	 *
+	 * @param int   $task_id    Id of pending task that is firing this thing...
+	 * @param int   $site_id    Id of site on which this action apply.
+	 * @param array $args       All the data needed for this action.
+	 */
+	public function pending_log_evaluate_quota_limits( $task_id, $site_id, $args ) {
+
+		// Grab our data array from pending tasks record.
+		$data = WPCD_POSTS_PENDING_TASKS_LOG()->get_data_by_id( $task_id );
+
+		/* Trigger action to evaluate limits for the site */
+		do_action( 'wpcd_wordpress-app_evaluate_quota_limits_for_site', 'evaluate-quota-limits', $site_id );
+
+		/* Mark the task as complete. */
+		WPCD_POSTS_PENDING_TASKS_LOG()->update_task_by_id( $task_id, false, 'complete' );
+	}
+
+	/**
+	 * Evaluate quota limits for a site.
+	 *
+	 * @since 5.7
+	 *
+	 * @param string $action action - not used.
+	 * @param int    $app_id The site id for which we'll be evaluating and applying quota limits.
+	 */
+	public function evaluate_quota_limits_for_site( $action, $app_id ) {
+
 		// Grab the posttypes data out of the site metadata.
 		$site_data = wpcd_maybe_unserialize( get_post_meta( $app_id, 'wpcd_site_posttypes_push', true ) );
 
@@ -451,13 +495,14 @@ class WPCD_POSTS_Quota_Limits extends WPCD_Posts_Base {
 		foreach ( $limits as $limit ) {
 
 			// Get the limit item name and max value (eg: 'post' or 'attachment').
+			// These items will tell us what we are evaluating (eg: post, page, attachments etc.) and how many are allowed before the quota is exceeded.
 			$limit_item_name = get_post_meta( $limit->ID, 'wpcd_quota_limits_name', true );
 			$limit_item_max  = (int) get_post_meta( $limit->ID, 'wpcd_quota_limits_limit', true );
 
 			// We must make sure we have array items otherwise PHP 8 errors out.
 			if ( ! empty( $site_data[ $limit_item_name ] ) ) {
 
-				// Compare the two values - received in $site_data and limit set in $limits (and extracted into vars above).
+				// Compare the two values - new push data received in $site_data and the quota limit set in $limits (both of which were extracted into vars earlier above).
 				if ( (int) $site_data[ $limit_item_name ] > $limit_item_max ) {
 					/* translators: %1$s is the name of the item whose quota as been exceeded - eg: 'posts' or 'page'. %2$s is replaced with the quota for the disk space. %3$s is replaced with the amount of diskspace used on the site. */
 					do_action( 'wpcd_log_notification', $app_id, 'alert', sprintf( __( 'This site has exceeded its quota for %1$s. Allowed quota: %2$s, Currently used: %3$s.', 'wpcd' ), $limit_item_name, $limit_item_max, (int) $site_data[ $limit_item_name ] ), 'quotas', null );
@@ -466,6 +511,7 @@ class WPCD_POSTS_Quota_Limits extends WPCD_Posts_Base {
 					if ( boolval( wpcd_get_option( 'wordpress_app_sites_quota_disable_site' ) ) ) {
 						if ( 'on' === WPCD_WORDPRESS_APP()->site_status( $app_id ) ) {
 							do_action( 'wpcd_wordpress-app_do_toggle_site_status', $app_id, 'site-status', 'off' );
+							/* Translators: %s is the name of a quota item that has been exceeded. eg: 'posts' or 'attachments' */
 							do_action( 'wpcd_log_notification', $app_id, 'alert', sprintf( __( 'This site is being disabled because the %s quota has been exceeded.', 'wpcd' ), $limit_item_name ), 'quotas', null );
 						}
 					}
@@ -474,6 +520,7 @@ class WPCD_POSTS_Quota_Limits extends WPCD_Posts_Base {
 					if ( boolval( wpcd_get_option( 'wordpress_app_sites_quota_enable_http_auth' ) ) ) {
 						if ( 'on' === WPCD_WORDPRESS_APP()->site_status( $app_id ) ) {
 							do_action( 'wpcd_wordpress-app_do_site_enable_http_auth', $app_id );
+							/* Translators: %s is the name of a quota item that has been exceeded. eg: 'posts' or 'attachments' */
 							do_action( 'wpcd_log_notification', $app_id, 'alert', sprintf( __( 'This site is being password protected because the %s quota has been exceeded.', 'wpcd' ), $limit_item_name ), 'quotas', null );
 						}
 					}
@@ -482,6 +529,7 @@ class WPCD_POSTS_Quota_Limits extends WPCD_Posts_Base {
 					if ( boolval( wpcd_get_option( 'wordpress_app_sites_quota_admin_lock_site' ) ) ) {
 						if ( ! WPCD_WORDPRESS_APP()->get_admin_lock_status( $app_id ) ) {
 							WPCD_WORDPRESS_APP()->set_admin_lock_status( $app_id, 'on' );
+							/* Translators: %s is the name of a quota item that has been exceeded. eg: 'posts' or 'attachments' */
 							do_action( 'wpcd_log_notification', $app_id, 'alert', sprintf( __( 'This site has had its admin lock applied because the %s quota has been exceeded.', 'wpcd' ), $limit_item_name ), 'quotas', null );
 						}
 					}
@@ -492,44 +540,6 @@ class WPCD_POSTS_Quota_Limits extends WPCD_Posts_Base {
 			}
 		}
 
-	}
-
-	/**
-	 * Evaluate Limits - triggered via pending logs background process.
-	 *
-	 * Called from an action hook from the pending logs background process - WPCD_POSTS_PENDING_TASKS_LOG()->do_tasks()
-	 *
-	 * @since 5.7
-	 *
-	 * Action Hook: wpcd_pending_log_manual_site_backup
-	 *
-	 * @param int   $task_id    Id of pending task that is firing this thing...
-	 * @param int   $site_id    Id of site on which this action apply.
-	 * @param array $args       All the data needed for this action.
-	 */
-	public function pending_log_evaluate_quota_limits( $task_id, $site_id, $args ) {
-
-		// Grab our data array from pending tasks record...
-		$data = WPCD_POSTS_PENDING_TASKS_LOG()->get_data_by_id( $task_id );
-
-		// Add a postmeta to the site we can use later.
-		update_post_meta( $site_id, 'wpapp_pending_log_manual_backup_task_id', $task_id );
-
-		/* Trigger manual backup for the site */
-		do_action( 'wpcd_wordpress-app_evaluate_quota_limits_for_site', 'evaluate-quota-limits', $site_id );
-
-	}
-
-	/**
-	 * Evaluate quota limits for a site.
-	 *
-	 * @since 5.7
-	 *
-	 * @param string $action action - not used.
-	 * @param int    $app_id The site id for which we'll be evaluating and applying quota limits.
-	 */
-	public function evaluate_quota_limits_for_site( $action, $app_id ) {
-		error_log( "in evaluation for site id: $id with action $action" );
 	}
 
 }

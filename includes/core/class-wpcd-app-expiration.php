@@ -130,6 +130,12 @@ class WPCD_App_Expiration {
 				// Is the app already marked as expired?  If so, skip it!
 				$is_expired = $this->get_expired_status( $app->ID );
 
+				// Is there an actual value in the expiration date?  (The query above will return records if there is a real 'zero' in the wpcd_app_expires meta)
+				if ( (int) get_post_meta( $app->ID, 'wpcd_app_expires', true ) <= 0 ) {
+					// No actual value in the expiration date field so just skip it.
+					continue;
+				}
+
 				// Mark the app as expired.
 				if ( false === $is_expired ) {
 					$this->set_as_expired( $app->ID );

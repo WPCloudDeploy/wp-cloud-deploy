@@ -155,11 +155,11 @@ Note: Even though the entire git development history isn't available on github, 
 * Dev: WPAPP - Add filter to the base WooCommerce class: wpcd_get_unique_products_on_order (customer request).
 * Dev: WPAPP - Add filter to the base WooCommerce class: wpcd_does_order_contain_item_of_type (customer request).
 * Dev: WPAPP - Add filter to the base WooCommerce class: wpcd_does_order_suppress_thank_you_notice (customer request).
-* Dev: Default allowed_classes to false in the wpcd_maybe_unserialize() function. There's no need to unserialize objects by default so setting this to false reduces the attack surface.
+* Dev: WPAPP - Default allowed_classes to false in the wpcd_maybe_unserialize() function. There's no need to unserialize objects by default so setting this to false reduces the attack surface.
+* Dev: WPAPP - Add filter around the passwordless login link (customer request).
+* Dev: WPAPP - Apply custom kses_filters around the output painting the selects in the filter bars on the server and site lists.
 * Dev: Upgrade metabox modules to latest versions.
 * Dev: The metabox conditional module was not being loaded.
-* Dev: Add filter around the passwordless login link (customer request).
-* Dev: Apply custom kses_filters around the output painting the selects in the filter bars on the server and site lists.
 
 5.6.0
 ------

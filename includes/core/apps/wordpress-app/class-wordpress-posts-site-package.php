@@ -692,7 +692,7 @@ class WPCD_POSTS_Site_Package extends WPCD_Posts_Base {
 
 		$screen = get_current_screen();
 
-		if ( 'wpcd_site_package' == $screen->post_type ) {
+		if ( 'wpcd_site_package' === $screen->post_type ) {
 			$title = 'Enter a name for this new site package';
 		}
 

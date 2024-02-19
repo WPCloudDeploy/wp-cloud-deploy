@@ -156,14 +156,14 @@ class WPCD_POSTS_Quota_Profile extends WPCD_Posts_Base {
 					array(
 						'name'    => __( 'Custom Post Type Internal Name', 'wpcd' ),
 						'desc'    => __( 'This is the internal name used by the post type on the customer site. For example: wpcd_products.', 'wpcd' ),
-						'id'      => 'wpcd_quota_profile_name',
+						'id'      => 'wpcd_quota_profile_item_name',
 						'type'    => 'text',
 						'columns' => 6,
 					),
 					array(
 						'name'    => __( 'Custom Post Type Limit', 'wpcd' ),
 						'tooltip' => __( 'This is the max items that will be allow before the site using this profile is flagged as being over the quota limit.', 'wpcd' ),
-						'id'      => 'wpcd_quota_profile_limit',
+						'id'      => 'wpcd_quota_profile_item_limit',
 						'type'    => 'number',
 						'size'    => 10,
 					),
@@ -215,8 +215,8 @@ class WPCD_POSTS_Quota_Profile extends WPCD_Posts_Base {
 
 		unset( $defaults['date'] );
 
-		$defaults['wpcd_quota_profile_cpts']                  = __( 'Custom Post Types', 'wpcd' );
-		$defaults['date'] = __( 'Date', 'wpcd' );
+		$defaults['wpcd_quota_profile_cpts'] = __( 'Custom Post Types', 'wpcd' );
+		$defaults['date']                    = __( 'Date', 'wpcd' );
 
 		return $defaults;
 
@@ -237,7 +237,13 @@ class WPCD_POSTS_Quota_Profile extends WPCD_Posts_Base {
 		switch ( $column_name ) {
 
 			case 'wpcd_quota_profile_cpts':
-				$value = get_post_meta( $post_id, 'wpcd_quota_profile_set', true );
+				$profile_set = wpcd_maybe_unserialize( get_post_meta( $post_id, 'wpcd_quota_profile_set', true ) );
+				foreach ( $profile_set as $key => $item ) {
+					if ( ! empty( $item['wpcd_quota_profile_item_name'] ) ) {
+						/* Translators: %1$s = a quota profile item name such as 'posts" and %2$s is the quota limit set for that item. */
+						$value .= '<br/>' . sprintf( __( '%1$s - Limit %2$s', 'wpcd' ), $item['wpcd_quota_profile_item_name'], $item['wpcd_quota_profile_item_limit'] );
+					}
+				}
 				break;
 
 			default:

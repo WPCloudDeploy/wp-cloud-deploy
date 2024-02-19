@@ -3940,6 +3940,14 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			}
 		}
 
+		// Create quota records.
+		if ( class_exists( 'WPCD_WooCommerce_Init' ) ) {
+			$quota_profile = (int) get_post_meta( $site_package_id, 'wpcd_site_package_quota_profile', true );
+			if ( ! empty( $quota_profile ) ) {
+				WPCD_POSTS_QUOTA_LIMITS()->create_limits( $quota_profile, $app_id );
+			}
+		}
+
 		// Search and replace here - future use.
 
 		// Crons here - future use.

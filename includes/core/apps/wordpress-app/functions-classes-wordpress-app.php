@@ -89,7 +89,7 @@ function wpcd_init_app_quota_profile_and_limits() {
 		}
 
 		if ( empty( WPCD()->classes['WPCD_POSTS_QUOTA_LIMITS'] ) ) {
-			WPCD()->classes['WPCD_QUOTA_LIMITS'] = new WPCD_POSTS_Quota_Limits();
+			WPCD()->classes['WPCD_POSTS_QUOTA_LIMITS'] = new WPCD_POSTS_Quota_Limits();
 		}
 	}
 }

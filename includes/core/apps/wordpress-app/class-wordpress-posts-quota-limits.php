@@ -57,6 +57,15 @@ class WPCD_POSTS_Quota_Limits extends WPCD_Posts_Base {
 		// Filter hook to add sortable columns.
 		add_filter( 'manage_edit-wpcd_quota_limits_sortable_columns', array( $this, 'wpcd_quota_limits_table_sorting' ), 10, 1 );
 
+		// Remove limit records when a site is being deleted.
+		add_action( 'wpcd_wordpress-app_after_remove_site_action_before_record_delete', array( $this, 'wpcd_after_remove_site_action_before_record_delete' ), 10, 2 );
+
+		// Trigger evalation of a site's limit via an action hook. Hook Name: wpcd_wordpress-app_evaluate_quota_limits_for_site.
+		add_action( "wpcd_{WPCD_WORDPRESS_APP()->get_app_name()}_evaluate_quota_limits_for_site", array( $this, 'evaluate_quota_limits_for_site' ), 10, 2 );
+
+		/* Pending Logs Background Task: Trigger evaluation of limits for a site. */
+		add_action( 'wpcd_pending_log_evaluate_quota_limits', array( $this, 'pending_log_evaluate_quota_limits' ), 10, 3 );
+
 	}
 
 
@@ -149,6 +158,7 @@ class WPCD_POSTS_Quota_Limits extends WPCD_Posts_Base {
 					'posts_per_page' => - 1,
 				),
 				'field_type' => 'select_advanced',
+				'columns'    => 6,
 			),
 			array(
 				'name'    => __( 'Custom Post Type Internal Name', 'wpcd' ),
@@ -163,6 +173,7 @@ class WPCD_POSTS_Quota_Limits extends WPCD_Posts_Base {
 				'id'      => 'wpcd_quota_limits_limit',
 				'type'    => 'number',
 				'size'    => 10,
+				'columns' => 4,
 			),
 			array(
 				'name'    => __( 'Custom Post Type Last Value', 'wpcd' ),
@@ -170,6 +181,14 @@ class WPCD_POSTS_Quota_Limits extends WPCD_Posts_Base {
 				'id'      => 'wpcd_quota_limits_last_value',
 				'type'    => 'number',
 				'size'    => 10,
+				'columns' => 4,
+			),
+			array(
+				'name'    => __( 'Note', 'wpcd' ),
+				'tooltip' => __( 'This is usually set by WooCommerce or other calling function.', 'wpcd' ),
+				'id'      => 'wpcd_quota_limits_action_note',
+				'type'    => 'textarea',
+				'columns' => 4,
 			),
 		);
 
@@ -217,6 +236,7 @@ class WPCD_POSTS_Quota_Limits extends WPCD_Posts_Base {
 
 		unset( $defaults['date'] );
 
+		$defaults['wpcd_quota_limits_domain']     = __( 'Domain', 'wpcd' );
 		$defaults['wpcd_quota_limits_name']       = __( 'Custom Post Type', 'wpcd' );
 		$defaults['wpcd_quota_limits_limit']      = __( 'Limit', 'wpcd' );
 		$defaults['wpcd_quota_limits_last_value'] = __( 'Most Recent Value', 'wpcd' );
@@ -240,6 +260,10 @@ class WPCD_POSTS_Quota_Limits extends WPCD_Posts_Base {
 
 		switch ( $column_name ) {
 
+			case 'wpcd_quota_limits_domain':
+				$app_id = (int) get_post_meta( $post_id, 'parent_id', true );
+				$value  = WPCD_WORDPRESS_APP()->get_domain_name( $app_id );
+				break;
 			case 'wpcd_quota_limits_name':
 				$value = get_post_meta( $post_id, 'wpcd_quota_limits_name', true );
 				break;
@@ -279,6 +303,127 @@ class WPCD_POSTS_Quota_Limits extends WPCD_Posts_Base {
 	public function wpcd_quota_limits_table_sorting( $columns ) {
 
 		return $columns;
+	}
+
+
+	/**
+	 * Create quota limit records for a site based on a quota profile.
+	 *
+	 * @param int $quota_profile The post id of a quota profile.
+	 * @param int $app_id The post id of the app for which we're going to create limit records.
+	 */
+	public function create_limits( $quota_profile, $app_id ) {
+
+		$limits = wpcd_maybe_unserialize( get_post_meta( $quota_profile, 'wpcd_quota_profile_set', true ) );
+
+		// Bail if the quota profile has no limits.
+		if ( empty( $limits ) ) {
+			return;
+		}
+
+		foreach ( $limits as $limit ) {
+			$item   = $limit['wpcd_quota_profile_item_name'];
+			$domain = WPCD_WORDPRESS_APP()->get_domain_name( $app_id );
+			$max    = $limit['wpcd_quota_profile_item_limit'];
+			/* Translators: %1%s is the domain name and %2$s is a custom post type internal name such as 'wpcd_products'. */
+			$limit_title = sprintf( __( 'Limit for site %1$s for item: %2$s', 'wpcd' ), $domain, $item );
+			/* Translators: %1%s is an integer for a quota profile post id */
+			$note = sprintf( __( 'This item was created based on profile id: %1$s.', 'wpcd' ), $quota_profile, );
+
+			$post_arr = array(
+				'post_type'   => 'wpcd_quota_limits',
+				'post_title'  => $limit_title,
+				'post_status' => 'private',
+				'post_author' => get_current_user_id(),
+			);
+
+			$new_limit_id = wp_insert_post( $post_arr );
+
+			if ( (int) $new_limit_id > 0 ) {
+				add_post_meta( $new_limit_id, 'parent_id', $app_id );
+				add_post_meta( $new_limit_id, 'wpcd_quota_limits_name', $item );
+				add_post_meta( $new_limit_id, 'wpcd_quota_limits_limit', $max );
+				add_post_meta( $new_limit_id, 'wpcd_quota_limits_last_value', 0 );
+				add_post_meta( $new_limit_id, 'wpcd_quota_limits_action_note', $note );
+			}
+		}
+
+	}
+
+	/**
+	 *
+	 * Remove associated records when a site is deleted.
+	 *
+	 * Action hook: wpcd_wordpress-app_after_remove_site_action_before_record_delete
+	 *
+	 * @param int    $app_id The post id of the site we're working with.
+	 * @param string $action The action string used in the calling program - not used here.
+	 */
+	public function wpcd_after_remove_site_action_before_record_delete( $app_id, $action ) {
+
+		$current_linux_epoc = time();
+		$args               = array(
+			'post_type'      => 'wpcd_quota_limits',
+			'post_status'    => 'private',
+			'posts_per_page' => -1,
+			'orderby'        => 'ID',
+			'order'          => 'ASC',
+			'meta_query'     => array(
+				array(
+					'key'     => 'parent_id',
+					'value'   => $app_id,
+					'type'    => 'NUMERIC',
+					'compare' => '=',
+				),
+			),
+		);
+
+		$apps = get_posts( $args );
+
+		error_log( print_r( $apps, true ) );
+
+		if ( $apps ) {
+			foreach ( $apps as $app ) {
+				if ( 'wpcd_app' === get_post_type( $app->ID ) ) {
+					wp_delete_post( $app->ID );
+				}
+			}
+		}
+
+	}
+
+	/**
+	 * Evaluate Limits - triggered via pending logs background process.
+	 *
+	 * Called from an action hook from the pending logs background process - WPCD_POSTS_PENDING_TASKS_LOG()->do_tasks()
+	 *
+	 * Action Hook: wpcd_pending_log_manual_site_backup
+	 *
+	 * @param int   $task_id    Id of pending task that is firing this thing...
+	 * @param int   $site_id    Id of site on which this action apply.
+	 * @param array $args       All the data needed for this action.
+	 */
+	public function pending_log_evaluate_quota_limits( $task_id, $site_id, $args ) {
+
+		// Grab our data array from pending tasks record...
+		$data = WPCD_POSTS_PENDING_TASKS_LOG()->get_data_by_id( $task_id );
+
+		// Add a postmeta to the site we can use later.
+		update_post_meta( $site_id, 'wpapp_pending_log_manual_backup_task_id', $task_id );
+
+		/* Trigger manual backup for the site */
+		do_action( 'wpcd_wordpress-app_evaluate_quota_limits_for_site', 'evaluate-quota-limits', $site_id );
+
+	}
+
+	/**
+	 * Evaluate quota limits for a site.
+	 *
+	 * @param string $action action - not used.
+	 * @param int    $id The site id for which we'll be evaluating and applying quota limits.
+	 */
+	public function evaluate_quota_limits_for_site( $action, $id ) {
+		error_log("in evaluation for site id: $id with action $action");
 	}
 
 }

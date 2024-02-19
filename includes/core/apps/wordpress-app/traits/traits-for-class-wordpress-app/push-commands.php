@@ -516,6 +516,12 @@ trait wpcd_wpapp_push_commands {
 					do_action( 'wpcd_log_notification', $app_id, 'alert', __( 'This site has had its admin lock applied because the disk quota has been exceeded.', 'wpcd' ), 'quotas', null );
 				}
 			}
+
+			// Maybe expire the site.
+			if ( (int) wpcd_get_option( 'wordpress_app_sites_disk_quota_expire_site' ) > 0 ) {
+				WPCD_APP_EXPIRATION()->set_expiration( $app_id, (int) wpcd_get_option( 'wordpress_app_sites_disk_quota_expire_site' ) );
+				do_action( 'wpcd_log_notification', $app_id, 'alert', __( 'This site has had expiration date set because the disk quota has been exceeded.', 'wpcd' ), 'quotas', null );
+			}
 		}
 
 	}

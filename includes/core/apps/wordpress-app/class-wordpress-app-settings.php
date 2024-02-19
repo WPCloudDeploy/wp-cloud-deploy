@@ -1560,6 +1560,16 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tooltip' => __( 'The admin lock will disable all tabs for the site. A the customer cannot manage it or reactivate it. Only an admin will be able to remove the lock.', 'wpcd' ),
 				'tab'     => 'wordpress-app-sites',
 			),
+			array(
+				'id'      => 'wordpress_app_sites_disk_quota_expire_site',
+				'type'    => 'number',
+				'min'     => 0,
+				'std'     => 0,
+				'size'    => 10,
+				'name'    => __( 'Expire Site?', 'wpcd' ),
+				'tooltip' => __( 'Set a site expiration in minutes - (1440 minutes = 1 day.)', 'wpcd' ),
+				'tab'     => 'wordpress-app-sites',
+			),
 
 			array(
 				'type' => 'heading',
@@ -1611,10 +1621,10 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tab'  => 'wordpress-app-sites',
 			),
 			array(
-				'id'      => 'wordpress_app_sites_enable_quota',
-				'type'    => 'checkbox',
-				'name'    => __( 'Enable Quotas?', 'wpcd' ),
-				'tab'     => 'wordpress-app-sites',
+				'id'   => 'wordpress_app_sites_enable_quota',
+				'type' => 'checkbox',
+				'name' => __( 'Enable Quotas?', 'wpcd' ),
+				'tab'  => 'wordpress-app-sites',
 			),
 
 			array(
@@ -1644,7 +1654,16 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tooltip' => __( 'The admin lock will disable all tabs for the site. A the customer cannot manage it or reactivate it. Only an admin will be able to remove the lock.', 'wpcd' ),
 				'tab'     => 'wordpress-app-sites',
 			),
-
+			array(
+				'id'      => 'wordpress_app_sites_quota_expire_site',
+				'type'    => 'number',
+				'min'     => 0,
+				'std'     => 0,
+				'size'    => 10,
+				'name'    => __( 'Expire Site?', 'wpcd' ),
+				'tooltip' => __( 'Set a site expiration in minutes - (1440 minutes = 1 day.)', 'wpcd' ),
+				'tab'     => 'wordpress-app-sites',
+			),
 			array(
 				'type' => 'heading',
 				'name' => __( 'Admin Lock', 'wpcd' ),

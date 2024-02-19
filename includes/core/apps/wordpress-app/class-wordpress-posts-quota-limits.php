@@ -533,6 +533,13 @@ class WPCD_POSTS_Quota_Limits extends WPCD_Posts_Base {
 							do_action( 'wpcd_log_notification', $app_id, 'alert', sprintf( __( 'This site has had its admin lock applied because the %s quota has been exceeded.', 'wpcd' ), $limit_item_name ), 'quotas', null );
 						}
 					}
+
+					// Maybe expire the site.
+					if ( (int) wpcd_get_option( 'wordpress_app_sites_quota_expire_site' ) > 0 ) {
+						WPCD_APP_EXPIRATION()->set_expiration( $app_id, (int) wpcd_get_option( 'wordpress_app_sites_quota_expire_site' ) );
+						/* Translators: %s is the name of a quota item that has been exceeded. eg: 'posts' or 'attachments' */
+						do_action( 'wpcd_log_notification', $app_id, 'alert', sprintf( __( 'This site has had an expiration date applied because the %s quota has been exceeded.', 'wpcd' ), $limit_item_name ), 'quotas', null );
+					}
 				}
 
 				// Put the value we just recieved into the last value field on the limit record.

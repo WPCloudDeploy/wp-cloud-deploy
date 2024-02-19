@@ -278,8 +278,8 @@ trait wpcd_wpapp_push_commands {
 			// update the meta that holds the sites needs update check.
 			update_post_meta( $app_id, 'wpcd_site_needs_updates', $update_needed );
 
-			// Check site quotas.
-			$this->check_site_quotas( $app_id );
+			// Check disk quotas for site.
+			$this->check_site_disk_quotas( $app_id );
 
 			// Let other plugins react to the new good data with an action hook.
 			do_action( "wpcd_{$this->get_app_name()}_command_{$name}_{$status}_processed_good", $sites_status_items, $app_id, $id );
@@ -370,7 +370,7 @@ trait wpcd_wpapp_push_commands {
 			update_post_meta( $app_id, 'wpcd_site_posttypes_push_history', $history );
 
 			// Check site quotas.
-			// $this->check_site_quotas_post_counts( $app_id );
+			WPCD_POSTS_QUOTA_LIMITS()->create_pending_log_quota_limit_actions_for_site( $app_id );
 
 			// Let other plugins react to the new good data with an action hook.
 			do_action( "wpcd_{$this->get_app_name()}_command_{$name}_{$status}_processed_good", $posttypes_items, $app_id, $id );
@@ -478,7 +478,7 @@ trait wpcd_wpapp_push_commands {
 	 *
 	 * @return void.
 	 */
-	public function check_site_quotas( $app_id ) {
+	public function check_site_disk_quotas( $app_id ) {
 
 		// How much diskspace is allowed?
 		$disk_space_quota = $this->get_site_disk_quota( $app_id );

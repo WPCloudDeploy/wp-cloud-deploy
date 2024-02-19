@@ -205,7 +205,9 @@ class WPCD_POSTS_Quota_Profile extends WPCD_Posts_Base {
 	}
 
 	/**
-	 * Add table header values
+	 * Add table header values.
+	 *
+	 * @since 5.7
 	 *
 	 * @param array $defaults array of default head values.
 	 *
@@ -223,7 +225,9 @@ class WPCD_POSTS_Quota_Profile extends WPCD_Posts_Base {
 	}
 
 	/**
-	 * Add contents to the table columns
+	 * Add contents to the table columns.
+	 *
+	 * @since 5.7
 	 *
 	 * @param string $column_name column name.
 	 * @param int    $post_id post id.
@@ -267,7 +271,9 @@ class WPCD_POSTS_Quota_Profile extends WPCD_Posts_Base {
 	}
 
 	/**
-	 * Add table header sorting columns
+	 * Add table header sorting columns.
+	 *
+	 * @since 5.7
 	 *
 	 * @param array $columns array of default head columns.
 	 *

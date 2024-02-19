@@ -332,6 +332,11 @@ class WPCD_WORDPRESS_TABS_FILE_MANAGER extends WPCD_WORDPRESS_TABS {
 			return $fields;
 		}
 
+		// Bail if site is not enabled.
+		if ( ! $this->is_site_enabled( $id ) ) {
+			return array_merge( $fields, $this->get_disabled_header_field( $this->get_tab_slug() ) );
+		}
+
 		// Is filemanager already installed? We'll show/hide fields based on this status.
 		$file_manager_status = $this->is_file_manager_installed( $id );
 

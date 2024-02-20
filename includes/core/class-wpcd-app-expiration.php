@@ -28,6 +28,16 @@ class WPCD_App_Expiration {
 
 		// Add state to show if an app is expired.
 		add_filter( 'display_post_states', array( $this, 'display_post_states' ), 20, 2 );
+
+		// Add bulk action options to the site list.
+		if ( true === boolval( wpcd_get_early_option( 'wordpress_app_sites_enable_expiration_bulk_actions' ) ) ) {
+			add_filter( 'bulk_actions-edit-wpcd_app', array( $this, 'wpcd_add_new_bulk_actions_site' ), 50 );
+		}
+
+		// Action hook to handle bulk actions for site.
+		if ( true === boolval( wpcd_get_early_option( 'wordpress_app_sites_enable_expiration_bulk_actions' ) ) ) {
+			add_filter( 'handle_bulk_actions-edit-wpcd_app', array( $this, 'wpcd_bulk_action_handler_sites' ), 10, 3 );
+		}
 	}
 
 	/**
@@ -220,6 +230,17 @@ class WPCD_App_Expiration {
 	}
 
 	/**
+	 * Set an app as unexpired.
+	 *
+	 * @param int $app_id The app id we're querying.
+	 */
+	public function set_as_unexpired( $app_id ) {
+		update_post_meta( $app_id, 'wpcd_app_expired_status', '' );
+		update_post_meta( $app_id, 'wpcd_app_expires', '' );
+	}
+
+
+	/**
 	 * Is an app expired?  Return true or false.
 	 *
 	 * @param int $app_id The app id we're querying.
@@ -317,6 +338,91 @@ class WPCD_App_Expiration {
 
 		return $states;
 
+	}
+
+	/**
+	 * Add new bulk options in site list screen.
+	 *
+	 * Filter Hook: bulk_actions-edit-wpcd_app
+	 *
+	 * @param array $bulk_array bulk array.
+	 */
+	public function wpcd_add_new_bulk_actions_site( $bulk_array ) {
+
+		if ( wpcd_is_admin() ) {
+			$bulk_array['wpcd_sites_expiration_expire_sites']   = __( 'Expire Sites', 'wpcd' );
+			$bulk_array['wpcd_sites_expiration_unexpire_sites'] = __( 'Unexpire Sites', 'wpcd' );
+			return $bulk_array;
+		}
+
+		return $bulk_array;
+
+	}
+
+	/**
+	 * Returns an array of actions that is valid for the bulk actions menu.
+	 */
+	public function get_valid_bulk_actions() {
+		return array( 'wpcd_sites_expiration_unexpire_sites', 'wpcd_sites_expiration_expire_sites' );
+	}
+
+
+	/**
+	 * Handle bulk actions for sites.
+	 *
+	 * Action Hook: handle_bulk_actions-edit-wpcd_app
+	 *
+	 * @param string $redirect_url  redirect url.
+	 * @param string $action        bulk action slug/id - this is not the WPCD action key.
+	 * @param array  $post_ids      all post ids.
+	 */
+	public function wpcd_bulk_action_handler_sites( $redirect_url, $action, $post_ids ) {
+
+		// Lets make sure we're an admin otherwise return an error.
+		if ( ! wpcd_is_admin() ) {
+			do_action( 'wpcd_log_error', 'Someone attempted to run a function that required admin privileges.', 'security', __FILE__, __LINE__ );
+
+			// Show error message to user at the top of the admin list as a dismissible notice.
+			wpcd_global_add_admin_notice( __( 'You attempted to run a function that requires admin privileges.', 'wpcd' ), 'error' );
+
+			return $redirect_url;
+		}
+
+		// Expire or unexpire sites.
+		if ( in_array( $action, $this->get_valid_bulk_actions(), true ) ) {
+
+			if ( ! empty( $post_ids ) ) {
+				foreach ( $post_ids as $app_id ) {
+
+					switch ( $action ) {
+						case 'wpcd_sites_expiration_unexpire_sites':
+							$this->set_as_unexpired( $app_id );
+							break;
+
+						case 'wpcd_sites_expiration_expire_sites':
+							$this->set_as_expired( $app_id );
+							break;
+					}
+				}
+			}
+
+			// Show Admin Notices.
+			if ( ! empty( $post_ids ) ) {
+				switch ( $action ) {
+					case 'wpcd_sites_expiration_unexpire_sites':
+						// Add message to be displayed in admin header.
+						wpcd_global_add_admin_notice( __( 'The selected sites expiration flags have been set to NOT EXPIRED.', 'wpcd' ), 'success' );
+						break;
+
+					case 'wpcd_sites_expiration_expire_sites':
+						// Add message to be displayed in admin header.
+						wpcd_global_add_admin_notice( __( 'The selected sites expiration flags have been set to EXPIRED!', 'wpcd' ), 'success' );
+						break;
+				}
+			}
+		}
+
+		return $redirect_url;
 	}
 
 }

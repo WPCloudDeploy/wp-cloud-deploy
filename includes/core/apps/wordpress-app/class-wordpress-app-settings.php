@@ -1613,6 +1613,14 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'std'  => __( 'Important Note: The options above are only implemented when a site is not yet expired and hits the expiration date. If an admin manually expires a site, none of these options are implemented.', 'wpcd' ),
 				'tab'  => 'wordpress-app-sites',
 			),
+			array(
+				'id'      => 'wordpress_app_sites_enable_expiration_bulk_actions',
+				'type'    => 'checkbox',
+				'name'    => __( 'Enable Bullk Actions ?', 'wpcd' ),
+				'tooltip' => __( 'Add one or more expiration related bulk action options to the sites list', 'wpcd' ),
+				'hidden'  => array( 'wordpress_app_sites_expired_delete_site', '=', '1' ),
+				'tab'     => 'wordpress-app-sites',
+			),
 
 			array(
 				'type' => 'heading',

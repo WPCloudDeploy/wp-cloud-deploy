@@ -657,8 +657,8 @@ class WPCD_WORDPRESS_TABS_CHANGE_DOMAIN extends WPCD_WORDPRESS_TABS {
 			'placeholder' => __( 'Enter your new domain without the "http" or "www" prefix', 'wpcd' ),
 		);
 
-		$note .= __( 'Change all references from the old domain to the new domain across the entire database. This is the real deal - do a backup because you cannot undo this action once it has started!', 'wpcd' );
-		$note  = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $note );
+		$note = __( 'Change all references from the old domain to the new domain across the entire database. This is the real deal - do a backup because you cannot undo this action once it has started!', 'wpcd' );
+		$note = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $note );
 
 		$fields[] = array(
 			'name' => __( 'Change Everything', 'wpcd' ),

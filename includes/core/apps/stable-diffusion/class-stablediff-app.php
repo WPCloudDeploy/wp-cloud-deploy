@@ -1162,7 +1162,12 @@ class WPCD_STABLEDIFF_APP extends WPCD_APP {
 		// Get a list of apps that the user has...
 		$app_posts = $this->get_apps_by_user_id( get_current_user_id() );  // get_apps_by_user_id is a function in the ancestor class.
 
-		do_action( 'wpcd_log_error', 'Got ' . count( $app_posts ) . ' app instances for user = ' . get_current_user_id(), 'debug', __FILE__, __LINE__ );
+		if ( is_countable( $app_posts ) ) {
+			$app_posts_cnt = count( $app_posts );
+		} else {
+			$app_posts_cnt = 0;
+		}
+		do_action( 'wpcd_log_error', 'Got ' . $app_posts_cnt . ' app instances for user = ' . get_current_user_id(), 'debug', __FILE__, __LINE__ );
 
 		// Quit if there's no applications to show.
 		if ( ! $app_posts ) {

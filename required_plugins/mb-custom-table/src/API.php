@@ -81,6 +81,7 @@ class API {
 		global $wpdb;
 		$row['ID'] = $object_id;
 		$row       = array_map( 'self::maybe_serialize', $row );
+		$row       = apply_filters( 'mbct_add_data', $row, $object_id, $table );
 		do_action( 'mbct_before_add', $object_id, $table, $row );
 		$output = $wpdb->insert( $table, $row );
 		do_action( 'mbct_after_add', $object_id, $table, $row );
@@ -98,6 +99,7 @@ class API {
 
 		global $wpdb;
 		$row = array_map( 'self::maybe_serialize', $row );
+		$row = apply_filters( 'mbct_update_data', $row, $object_id, $table );
 		do_action( 'mbct_before_update', $object_id, $table, $row );
 		$output = $wpdb->update( $table, (array) $row, [ 'ID' => $object_id ] );
 		do_action( 'mbct_after_update', $object_id, $table, $row );

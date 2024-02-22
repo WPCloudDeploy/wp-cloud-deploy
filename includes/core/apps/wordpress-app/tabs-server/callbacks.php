@@ -160,7 +160,7 @@ class WPCD_WORDPRESS_TABS_SERVER_CALLBACKS extends WPCD_WORDPRESS_TABS {
 		}
 
 		/* Now verify that the user can perform actions on this screen, assuming that they can view the server */
-		$valid_actions = array( 'server-status-callback-install', 'server-status-callback-remove', 'server-status-callback-run', 'server-status-callback-clear-history-meta' );
+		$valid_actions = array( 'server-status-callback-install', 'server-status-callback-remove', 'server-status-callback-run', 'server-status-callback-clear-history-meta', 'server-status-callback-clear-current-meta' );
 		if ( in_array( $action, $valid_actions, true ) ) {
 			if ( ! $this->get_tab_security( $id ) ) {
 				return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
@@ -182,6 +182,9 @@ class WPCD_WORDPRESS_TABS_SERVER_CALLBACKS extends WPCD_WORDPRESS_TABS {
 					$result = $this->manage_server_status_callback( $id, $action );
 					break;
 				case 'server-status-callback-clear-history-meta':
+					$result = $this->manage_server_status_callback( $id, $action );
+					break;
+				case 'server-status-callback-clear-current-meta':
 					$result = $this->manage_server_status_callback( $id, $action );
 					break;
 			}
@@ -232,15 +235,33 @@ class WPCD_WORDPRESS_TABS_SERVER_CALLBACKS extends WPCD_WORDPRESS_TABS {
 		// Set up metabox items.
 		$actions = array();
 
+		// What are callbacks?
+		$desc  = __( 'Callbacks are little pieces of linux scripts that live and run on your server to periodically collect and push information to this console.  Normally, when you interact with your server you are actively pulling data from it.', 'wpcd' );
+		$desc .= '<br />';
+		$desc .= __( 'With callbacks, you can allow the server to actively push data to this console as events occur - even when you are not logged in or working with the server record.', 'wpcd' );
+		$desc .= '<br />';
+		$desc .= '<br />';
+		$desc .= __( 'Call backs require that we install two bash scripts so that the server can push some basic data elements to this console about reboots, software updates and more.', 'wpcd' );
+		$desc .= '<br />';
+		$desc .= '<br />';
+		$desc .= __( 'These scripts are usually automatically installed shortly after a server has been deployed.  But if you removed them or they have been updated you can install and manage them from this area.', 'wpcd' );
+		$desc .= '<br />';
+		$desc .= '<br />';
+		$desc .= __( 'Once the scripts are installed it might take up to 24 hours before the server sends updated data to this area. Until then you will see a WAITING FOR DATA type message.', 'wpcd' );
+		$desc  = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
+
 		// Is the server status & restart callbacks installed?
 		$server_status_callback_status = get_post_meta( $id, 'wpcd_wpapp_server_status_callback_installed', true );
 
 		if ( empty( $server_status_callback_status ) ) {
 			// The server status callback is not installed.
-			$desc = __( 'Install two callback scripts so that the server can push some basic data elements to this console about reboots, software updates and more.', 'wpcd' );
+
+			// Start new card.
+			$actions[] = wpcd_start_half_card( $this->get_tab_slug() );
 
 			$actions['server-status-callback-header'] = array(
-				'label'          => __( 'Server Status Callbacks', 'wpcd' ),
+				/* Translators: %s is a fontawesome or similar icon. */
+				'label'          => wpcd_apply_phone_icon( __( '%s Server Status Callbacks', 'wpcd' ) ),
 				'type'           => 'heading',
 				'raw_attributes' => array(
 					'desc' => $desc,
@@ -251,40 +272,44 @@ class WPCD_WORDPRESS_TABS_SERVER_CALLBACKS extends WPCD_WORDPRESS_TABS {
 			$actions['server-status-callback-install'] = array(
 				'label'          => '',
 				'raw_attributes' => array(
-					'std'                 => __( 'Install', 'wpcd' ),
-					'desc'                => '', // make sure we give the user a confirmation prompt.
-					'confirmation_prompt' => __( 'Are you sure you would like to install these callbacks?', 'wpcd' ),
+					/* Translators: %s is a fontawesome or similar icon. */
+					'std'                 => wpcd_apply_install_icon( __( '%s Install', 'wpcd' ) ),
+					'desc'                => '',
+					'confirmation_prompt' => __( 'Are you sure you would like to install these callbacks?', 'wpcd' ), // make sure we give the user a confirmation prompt.
 				),
 				'type'           => 'button',
 			);
+
+			// Close up prior card.
+			$actions[] = wpcd_end_card( $this->get_tab_slug() );
 
 		}
 
 		if ( 'yes' === $server_status_callback_status ) {
 			/* The server status callback is installed and active */
-			$desc = __( 'When the server starts pushing information to this console you will see it here.', 'wpcd' );
+
+			// Start new card.
+			$actions[] = wpcd_start_full_card_no_border( $this->get_tab_slug() );
 
 			$actions['server-status-callback-header'] = array(
-				'label'          => __( 'Server Status Callback', 'wpcd' ),
+				/* Translators: %s is a fontawesome or similar icon. */
+				'label'          => wpcd_apply_phone_icon( __( '%s Server Status Callbacks', 'wpcd' ) ),
 				'type'           => 'heading',
 				'raw_attributes' => array(
 					'desc' => $desc,
 				),
 			);
 
-			$actions['server-status-callback-data-display'] = array(
-				'type'           => 'custom_html',
-				'label'          => '',
-				'raw_attributes' => array(
-					'std' => $this->get_formatted_server_status_callback_data_for_display( $id ),
-				),
-			);
+			/**
+			 * RUN NOW, REMOVE & CLEAR HISTORY buttons.
+			 */
 
 			// Run now.
 			$actions['server-status-callback-run'] = array(
 				'label'          => '',
 				'raw_attributes' => array(
-					'std'                 => __( 'Run Now', 'wpcd' ),
+					/* Translators: %s is a fontawesome or similar icon. */
+					'std'                 => wpcd_apply_run_icon( __( '%s Run Now', 'wpcd' ) ),
 					'desc'                => '',
 					// make sure we give the user a confirmation prompt.
 					'confirmation_prompt' => __( 'Are you sure you would like to run these callbacks immediately?', 'wpcd' ),
@@ -297,7 +322,8 @@ class WPCD_WORDPRESS_TABS_SERVER_CALLBACKS extends WPCD_WORDPRESS_TABS {
 			$actions['server-status-callback-remove'] = array(
 				'label'          => '',
 				'raw_attributes' => array(
-					'std'                 => __( 'Remove', 'wpcd' ),
+					/* Translators: %s is a fontawesome or similar icon. */
+					'std'                 => wpcd_apply_trash_icon( __( '%s Remove', 'wpcd' ) ),
 					'desc'                => '',
 					// make sure we give the user a confirmation prompt.
 					'confirmation_prompt' => __( 'Are you sure you would like to remove this callback?', 'wpcd' ),
@@ -310,7 +336,8 @@ class WPCD_WORDPRESS_TABS_SERVER_CALLBACKS extends WPCD_WORDPRESS_TABS {
 			$actions['server-status-callback-clear-history-meta'] = array(
 				'label'          => '',
 				'raw_attributes' => array(
-					'std'                 => __( 'Clear History', 'wpcd' ),
+					/* Translators: %s is a fontawesome or similar icon. */
+					'std'                 => wpcd_apply_erase_icon( __( '%s Clear History', 'wpcd' ) ),
 					'desc'                => '',
 					// make sure we give the user a confirmation prompt.
 					'confirmation_prompt' => __( 'Are you sure you would like to clear the history of this callback?', 'wpcd' ),
@@ -319,20 +346,27 @@ class WPCD_WORDPRESS_TABS_SERVER_CALLBACKS extends WPCD_WORDPRESS_TABS {
 				'type'           => 'button',
 			);
 
+			// clear current / lastest data meta.
+			$actions['server-status-callback-clear-current-meta'] = array(
+				'label'          => '',
+				'raw_attributes' => array(
+					/* Translators: %s is a fontawesome or similar icon. */
+					'std'                 => wpcd_apply_erase_icon( __( '%s Clear Current', 'wpcd' ) ),
+					'desc'                => '',
+					// make sure we give the user a confirmation prompt.
+					'confirmation_prompt' => __( 'Are you sure you would like to clear the current data for this callback?', 'wpcd' ),
+					'columns'             => 3,
+				),
+				'type'           => 'button',
+			);
+
+			// Close up prior card.
+			$actions[] = wpcd_end_card( $this->get_tab_slug() );
+
+			// Get data cards.
+			$actions = array_merge( $actions, $this->get_formatted_server_status_callback_data_for_display( $id ) );
+
 		}
-
-		// What are callbacks?
-		$desc  = __( 'Callbacks are little pieces of linux scripts that live and run on your server to periodically collect and push information to this console.  Normally, when you interact with your server you are actively pulling data from it.', 'wpcd' );
-		$desc .= '<br />';
-		$desc .= __( 'With callbacks, you can allow the server to actively push data to this console as events occur - even when you are not logged in or working with the server record.', 'wpcd' );
-
-		$actions['server-status-callback-explanation'] = array(
-			'label'          => __( 'What Are Callbacks?', 'wpcd' ),
-			'type'           => 'heading',
-			'raw_attributes' => array(
-				'desc' => $desc,
-			),
-		);
 
 		return $actions;
 
@@ -384,6 +418,9 @@ class WPCD_WORDPRESS_TABS_SERVER_CALLBACKS extends WPCD_WORDPRESS_TABS {
 				$command_name                   = 'aptget_status';
 				$args['callback_aptget_status'] = $this->get_command_url( $id, $command_name, 'completed' );
 
+				$command_name                      = 'posttypes_status';
+				$args['callback_posttypes_status'] = $this->get_command_url( $id, $command_name, 'completed' );
+
 				break;
 
 			case 'remove_status_cron':
@@ -402,7 +439,15 @@ class WPCD_WORDPRESS_TABS_SERVER_CALLBACKS extends WPCD_WORDPRESS_TABS {
 				delete_post_meta( $id, 'wpcd_server_status_push_history' );
 				delete_post_meta( $id, 'wpcd_server_restart_push_history' );
 				$success = array(
-					'msg'     => __( 'History has been cleared for this callback.', 'wpcd' ),
+					'msg'     => __( 'History callback data has been cleared for this site.', 'wpcd' ),
+					'refresh' => 'yes',
+				);
+				return $success;
+
+			case 'server-status-callback-clear-current-meta':
+				delete_post_meta( $id, 'wpcd_server_status_push' );
+				$success = array(
+					'msg'     => __( 'Current callback data has been removed for this site..', 'wpcd' ),
 					'refresh' => 'yes',
 				);
 				return $success;
@@ -601,15 +646,28 @@ class WPCD_WORDPRESS_TABS_SERVER_CALLBACKS extends WPCD_WORDPRESS_TABS {
 	public function get_formatted_server_status_callback_data_for_display( $id ) {
 
 		// setup return variable.
-		$return = '';
+		$actions = array();
 
 		// get data from server record.
 		$server_status_items = wpcd_maybe_unserialize( get_post_meta( $id, 'wpcd_server_status_push', true ) );
 
 		// if no data return nothing.
 		if ( empty( $server_status_items ) ) {
-			$return = '<div class="wpcd_no_data wpcd_server_status_push_no_data">' . __( 'No data has been received yet.', 'wpcd' ) . '</div>';
-			return $return;
+			// Start new card.
+			$actions[] = wpcd_start_full_card_no_border( $this->get_tab_slug() );
+
+			$actions['server-status-callback-no-data-received'] = array(
+				'type'           => 'custom_html',
+				'label'          => '',
+				'raw_attributes' => array(
+					'std' => '<div class="wpcd_no_data wpcd_server_status_push_no_data">' . __( 'No data has been received yet.', 'wpcd' ) . '</div>',
+				),
+			);
+
+			// Close up prior card.
+			$actions[] = wpcd_end_card( $this->get_tab_slug() );
+
+			return $actions;
 		}
 
 		// ok, we've got data - format it out into variables.
@@ -643,52 +701,147 @@ class WPCD_WORDPRESS_TABS_SERVER_CALLBACKS extends WPCD_WORDPRESS_TABS {
 			$unattended_package_num = 0;
 		}
 
-		// Format the data.
-		$return = '<div class="wpcd_push_data wpcd_server_status_push_data">';
-			/* translators: %s is replaced with date of the report. */
-			$return .= '<p class="wpcd_push_data_reporting_time">' . sprintf( __( 'Data current as of: %s ', 'wpcd' ), wp_date( 'Y-m-d H:i:s', (int) $reporting_time ) ) . '</p>';
-			$return .= '<div class="wpcd_push_data_inner_wrap wpcd_server_status_push_data_inner_wrap">';
+		/**
+		 * Start creating array of fields.
+		 */
 
-				/* server restart data */
-				$return     .= '<div class="wpcd_push_data_label_item wpcd_server_status_push_data_label_item">';
-					$return .= __( 'Does Server Require Restart:', 'wpcd' );
-				$return     .= '</div>';
+		$css_styles_start = '<div class="wpcd_push_data_value_item wpcd_server_status_push_data_value_item">';
+		$css_styles_end   = '</div>';
 
-				$return     .= '<div class="wpcd_push_data_value_item wpcd_server_status_push_data_value_item">';
-					$return .= esc_html( $restart );
-				$return     .= '</div>';
+		/**
+		 * Server Restart Card.
+		 */
+		// Start new card.
+		$actions[] = wpcd_start_one_third_card( $this->get_tab_slug() );
 
-				/* total updates needed */
-				$return     .= '<div class="wpcd_push_data_label_item wpcd_server_status_push_data_label_item">';
-					$return .= __( 'Total number of packages needing updates:', 'wpcd' );
-				$return     .= '</div>';
+		$actions['server-status-callback-data-restart-header'] = array(
+			/* Translators: %s is a fontawesome or similar icon. */
+			'label'          => wpcd_apply_restart_icon( __( '%s Server Requires Restart?', 'wpcd' ) ),
+			'type'           => 'heading',
+			'raw_attributes' => array(
+				'desc' => '',
+			),
+		);
 
-				$return     .= '<div class="wpcd_push_data_value_item wpcd_server_status_push_data_value_item">';
-					$return .= esc_html( $total_updates );
-				$return     .= '</div>';
+		$actions['server-status-callback-data-restart-status'] = array(
+			'type'           => 'custom_html',
+			'label'          => '',
+			'raw_attributes' => array(
+				'std' => $css_styles_start . esc_html( $restart ) . $css_styles_end,
+			),
+		);
 
-				/* total security updates needed */
-				$return     .= '<div class="wpcd_push_data_label_item wpcd_server_status_push_data_label_item">';
-					$return .= __( 'Number of packages needing security updates:', 'wpcd' );
-				$return     .= '</div>';
+		// Close up prior card.
+		$actions[] = wpcd_end_card( $this->get_tab_slug() );
 
-				$return     .= '<div class="wpcd_push_data_value_item wpcd_server_status_push_data_value_item">';
-					$return .= esc_html( $security_updates );
-				$return     .= '</div>';
+		/**
+		 * Security Updates Card
+		 */
+		// Start new card.
+		$actions[] = wpcd_start_one_third_card( $this->get_tab_slug() );
 
-				/* total unattended updates needed */
-				$return     .= '<div class="wpcd_push_data_label_item wpcd_server_status_push_data_label_item">';
-					$return .= __( 'Number of unattended update packages pending:', 'wpcd' );
-				$return     .= '</div>';
+		$actions['server-status-callback-data-security-updates-header'] = array(
+			/* Translators: %s is a fontawesome or similar icon. */
+			'label'          => wpcd_apply_virus_icon( __( '%s Security Updates Required', 'wpcd' ) ),
+			'type'           => 'heading',
+			'raw_attributes' => array(
+				'desc' => '',
+			),
+		);
 
-				$return     .= '<div class="wpcd_push_data_value_item wpcd_server_status_push_data_value_item">';
-					$return .= esc_html( $unattended_package_num );
-				$return     .= '</div>';
+		$actions['server-status-callback-data-security-updates-count'] = array(
+			'type'           => 'custom_html',
+			'label'          => '',
+			'raw_attributes' => array(
+				'std' => $css_styles_start . esc_html( $security_updates ) . $css_styles_end,
+			),
+		);
 
-			$return .= '</div>';
-		$return     .= '</div>';
+		// Close up prior card.
+		$actions[] = wpcd_end_card( $this->get_tab_slug() );
 
-		return $return;
+		/**
+		 * All Updates Card
+		 */
+		// Start new card.
+		$actions[] = wpcd_start_one_third_card( $this->get_tab_slug() );
+
+		$actions['server-status-callback-data-all-updates-header'] = array(
+			/* Translators: %s is a fontawesome or similar icon. */
+			'label'          => wpcd_apply_virus_icon( __( '%s All Updates Pending', 'wpcd' ) ),
+			'type'           => 'heading',
+			'raw_attributes' => array(
+				'desc' => '',
+			),
+		);
+
+		$actions['server-status-callback-data-all-updates-count'] = array(
+			'type'           => 'custom_html',
+			'label'          => '',
+			'raw_attributes' => array(
+				'std' => $css_styles_start . esc_html( $total_updates ) . $css_styles_end,
+			),
+		);
+
+		// Close up prior card.
+		$actions[] = wpcd_end_card( $this->get_tab_slug() );
+
+		/**
+		 * Unattended Upgrades
+		 */
+		// Start new card.
+		$actions[] = wpcd_start_one_third_card( $this->get_tab_slug() );
+
+		$actions['server-status-callback-data-unattended-updates-header'] = array(
+			/* Translators: %s is a fontawesome or similar icon. */
+			'label'          => wpcd_apply_virus_icon( __( '%s Unattended Updates Pending', 'wpcd' ) ),
+			'type'           => 'heading',
+			'raw_attributes' => array(
+				'desc' => '',
+			),
+		);
+
+		$actions['server-status-callback-data-unattended-updates-count'] = array(
+			'type'           => 'custom_html',
+			'label'          => '',
+			'raw_attributes' => array(
+				'std' => $css_styles_start . esc_html( $unattended_package_num ) . $css_styles_end,
+			),
+		);
+
+		// Close up prior card.
+		$actions[] = wpcd_end_card( $this->get_tab_slug() );
+
+		/**
+		 * Last Updated
+		 */
+		// Start new card.
+		$actions[] = wpcd_start_one_third_card( $this->get_tab_slug() );
+
+		/* Translators: %s is the date when the last callback was run. */
+		$last_updated = sprintf( __( '%s', 'wpcd' ), wp_date( 'Y-m-d H:i:s', (int) $reporting_time ) );
+
+		$actions['server-status-callback-data-last-updated-header'] = array(
+			/* Translators: %s is a fontawesome or similar icon. */
+			'label'          => wpcd_apply_calendar_icon( __( '%s Data Current as Of', 'wpcd' ) ),
+			'type'           => 'heading',
+			'raw_attributes' => array(
+				'desc' => '',
+			),
+		);
+
+		$actions['server-status-callback-data-last-updated-date'] = array(
+			'type'           => 'custom_html',
+			'label'          => '',
+			'raw_attributes' => array(
+				'std' => $css_styles_start . '<span class="wpcd_push_data_reporting_time">' . esc_html( $last_updated ) . '</span>' . $css_styles_end,
+			),
+		);
+
+		// Close up prior card.
+		$actions[] = wpcd_end_card( $this->get_tab_slug() );
+
+		return $actions;
 	}
 
 	/**

@@ -1,6 +1,24 @@
 .mb-admin-columns ul {
 	margin-top: 0;
 }
+
+.mb-admin-columns > ul > li {
+	padding-bottom: 10px;
+	border-bottom: 1px solid #e0e0e0;
+}
+
+.mb-admin-columns > ul > li:last-child {
+	border-bottom: none;
+}
+
+.mb-admin-columns ul ul ul{
+	padding-left: 10px;
+}
+
+.mb-admin-columns img {
+	max-width: 40px;
+}
+
 .mb-admin-columns iframe {
 	max-width: 100%;
 	height: auto;

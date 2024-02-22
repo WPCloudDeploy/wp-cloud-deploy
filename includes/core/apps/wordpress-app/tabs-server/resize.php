@@ -152,6 +152,8 @@ class WPCD_WORDPRESS_TABS_SERVER_RESIZE extends WPCD_WORDPRESS_TABS {
 		/* Get provider and bail if invalid. */
 		$provider = WPCD_SERVER()->get_server_provider( $id );
 		if ( empty( $provider ) || is_wp_error( $provider ) ) {
+			$actions[] = wpcd_start_half_card( $this->get_tab_slug() ); // Start new card.
+
 			$actions['server-resize-provider-header'] = array(
 				'label'          => __( 'Resize', 'wpcd' ),
 				'type'           => 'heading',
@@ -159,12 +161,17 @@ class WPCD_WORDPRESS_TABS_SERVER_RESIZE extends WPCD_WORDPRESS_TABS {
 					'desc' => __( 'We are unable to acquire provider details. This is not typical and you should seek out support to resolve it.', 'wpcd' ),
 				),
 			);
+
+			$actions[] = wpcd_end_card( $this->get_tab_slug() ); // Close up prior card.
+
 			return $actions;
 		}
 
 		// Provider api.
 		$provider_api = WPCD()->get_provider_api( $provider );
 		if ( empty( $provider_api ) || is_wp_error( $provider_api ) ) {
+			$actions[] = wpcd_start_half_card( $this->get_tab_slug() ); // Start new card.
+
 			$actions['server-resize-provider-header'] = array(
 				'label'          => __( 'Resize', 'wpcd' ),
 				'type'           => 'heading',
@@ -172,6 +179,9 @@ class WPCD_WORDPRESS_TABS_SERVER_RESIZE extends WPCD_WORDPRESS_TABS {
 					'desc' => __( 'We are unable to acquire provider details. This is not typical and you should seek out support to resolve it.', 'wpcd' ),
 				),
 			);
+
+			$actions[] = wpcd_end_card( $this->get_tab_slug() ); // Close up prior card.
+
 			return $actions;
 		}
 
@@ -180,6 +190,8 @@ class WPCD_WORDPRESS_TABS_SERVER_RESIZE extends WPCD_WORDPRESS_TABS {
 
 		/* Bail out if resize isn't supported. */
 		if ( ! (bool) $provider_api->get_feature_flag( 'resize' ) ) {
+			$actions[] = wpcd_start_half_card( $this->get_tab_slug() ); // Start new card.
+
 			$actions['server-resize-provider-header'] = array(
 				'label'          => __( 'Resize', 'wpcd' ),
 				'type'           => 'heading',
@@ -187,6 +199,9 @@ class WPCD_WORDPRESS_TABS_SERVER_RESIZE extends WPCD_WORDPRESS_TABS {
 					'desc' => __( 'This provider does not support resize operations at this time.  If you would like this provider to support resize operations please contact our support team for a customized quote.', 'wpcd' ),
 				),
 			);
+
+			$actions[] = wpcd_end_card( $this->get_tab_slug() ); // Close up prior card.
+
 			return $actions;
 		}
 
@@ -196,6 +211,8 @@ class WPCD_WORDPRESS_TABS_SERVER_RESIZE extends WPCD_WORDPRESS_TABS {
 		/**
 		 * Provider Resize.
 		 */
+		$actions[] = wpcd_start_two_thirds_card( $this->get_tab_slug() ); // Start new card.
+
 		$actions['server-resize-provider-header'] = array(
 			'label'          => __( 'Resize', 'wpcd' ),
 			'type'           => 'heading',
@@ -227,20 +244,27 @@ class WPCD_WORDPRESS_TABS_SERVER_RESIZE extends WPCD_WORDPRESS_TABS {
 			'type'           => 'button',
 		);
 
+		$actions[] = wpcd_end_card( $this->get_tab_slug() ); // Close up prior card.
+
 		/**
 		 * After Resize instructions.
 		 */
+
+		$actions[] = wpcd_start_half_card( $this->get_tab_slug() ); // Start new card.
+
 		$instructions  = __( 'If CALLBACKS are installed, the server status should update automatically when the server is restarted.', 'wpcd' );
-		$instructions .= '<br />' . __( 'However, you will need to monitor the status of the resize operation and restart the server when the operation is complete.', 'wpcd' );
-		$instructions .= '<br />' . __( 'If callbacks are not installed you can check the status of the reboot by going to the ALL CLOUD SERVERS list and clicking on the UPDATE REMOTE STATE link for the server. In this case the server will be unavailable for further operations until you click that link to update the server status.', 'wpcd' );
+		$instructions .= '<br /><br />' . __( 'However, you will need to monitor the status of the resize operation and restart the server when the operation is complete.', 'wpcd' );
+		$instructions .= '<br /><br />' . __( 'If, for some reason, callbacks are not installed you can check the status of the reboot by going to the ALL CLOUD SERVERS list and clicking on the UPDATE REMOTE STATE link for the server. In this case the server will be unavailable for further operations until you click that link to update the server status.', 'wpcd' );
 
 		$actions['server-resize-instructions'] = array(
 			'label'          => __( 'After-resize Instructions', 'wpcd' ),
 			'raw_attributes' => array(
-				'std' => $instructions,
+				'desc' => $instructions,
 			),
-			'type'           => 'custom_html',
+			'type'           => 'heading',
 		);
+
+		$actions[] = wpcd_end_card( $this->get_tab_slug() ); // Close up prior card.
 
 		return $actions;
 

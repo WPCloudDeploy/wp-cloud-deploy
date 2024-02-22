@@ -44,7 +44,7 @@
 }
 
 .rwmb-settings-no-boxes .rwmb-tabs-left .rwmb-tab-nav a {
-    color: white;
+    color: var(--wpcd-white-color);
 }
 
 .rwmb-settings-no-boxes .rwmb-tabs-left .rwmb-tab-nav .rwmb-tab-active a {
@@ -65,7 +65,7 @@
 
 /* 
 On all the admin settings tabs, close up some excessive spaces.
-Additional headers added to that tab will neeed to
+Additional headers added to that tab will need to
 be added here.
 */
 .rwmb-settings-no-boxes #general .rwmb-heading-wrapper, 
@@ -131,9 +131,9 @@ Start styling for for the DEPLOY YOUR FIRST WORDPRESS SITE section. Make the bac
 @TODO: This section should probably be extracted to it's own wpcd-wpapp-admin-settings.css file since it's specific to the WordPress app
 **/
 .rwmb-settings-no-boxes #wpcd_deploy_your_first_wordpress_site .rwmb-heading-wrapper {
-    background-color: white;
+    background-color: var(--wpcd-white-color);
     padding: 2em;
-    border: solid 1px white;
+    border: solid 1px var(--wpcd-white-color);
     border-radius: 8px;
 	max-width: 800px;
 	margin-left: 2em;
@@ -201,7 +201,7 @@ In the DEPLOY YOUR FIRST WORDPRESS SITE section, adjust list elements.
 
 /* If any error messages are present on the settings screen, make sure they are in RED */
 .wpcd_settings_err_msg {
-    color: red;
+    color: var(--wpcd-negative-color);
 }
 
 /* the password toggle icon */
@@ -220,8 +220,13 @@ In the DEPLOY YOUR FIRST WORDPRESS SITE section, adjust list elements.
 }
 
 .rwmb-settings-no-boxes .wpcd_settings_provider_in_use_warning {
-    color: #ff0000;
-    font-weight: bold;
+    background-color: var(--wpcd-negative-color);
+	color: var(--wpcd-white-color);
+    xfont-weight: bold;
+	border: solid;
+	border-width: 1px;
+	padding: 1em !important;
+	border-radius: 4px;
 }
 
 /* Received Files listing on the Sync Tab. */
@@ -376,14 +381,14 @@ span.display_waiting_message {
     border-radius: 4px;
     padding: 1em 2em 1em 2em;
     text-decoration: none;
-    color: white;
+    color: var(--wpcd-white-color);
     line-height: 4em;
 }
 
 .wpcd_help_button:hover {
     background-color: #03114A;
     border-color: #03114A;
-    color: white;
+    color: var(--wpcd-white-color);
 }
 
 .wpcd_help_button.wpcd_help_button_all_docs {
@@ -395,7 +400,7 @@ span.display_waiting_message {
 .wpcd_help_button.wpcd_help_button_all_docs:hover {
     border-color: #EF6F90;
     background-color: #EF6F90;
-    color: white;
+    color: var(--wpcd-white-color);
 }
 
 /* Provider toggle switch */
@@ -431,7 +436,7 @@ span.display_waiting_message {
     width: 20px;
     left: 5px;
     bottom: 3px;
-    background-color: white;
+    background-color: var(--wpcd-white-color);
     -webkit-transition: .4s;
     transition: .4s;
 }
@@ -464,6 +469,6 @@ input:checked+.wpcd_provider_active_slider:before {
 /* Provider status - css */
 .all_provider_list_table {
     pointer-events: none;
-    background-color: white;
+    background-color: var(--wpcd-white-color);
     opacity: 0.5;
 }

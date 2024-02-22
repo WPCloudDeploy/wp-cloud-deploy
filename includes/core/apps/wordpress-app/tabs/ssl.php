@@ -115,7 +115,7 @@ class WPCD_WORDPRESS_TABS_SSL extends WPCD_WORDPRESS_TABS {
 		}
 
 		/* Now verify that the user can perform actions on this screen, assuming that they can view the server */
-		$valid_actions = array( 'ssl-status', 'ssl-http2-status', 'ssl-flip-meta-status' );
+		$valid_actions = array( 'ssl-status', 'ssl-http2-status', 'ssl-flip-meta-status', 'custom-ssl-flip-meta-status' );
 		if ( in_array( $action, $valid_actions, true ) ) {
 			if ( ! $this->get_tab_security( $id ) ) {
 				return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
@@ -130,6 +130,9 @@ class WPCD_WORDPRESS_TABS_SSL extends WPCD_WORDPRESS_TABS {
 					break;
 				case 'ssl-flip-meta-status':
 					$result = $this->toggle_ssl_meta_status( $id, $action );
+					break;
+				case 'custom-ssl-flip-meta-status':
+					$result = $this->toggle_custom_ssl_meta_status( $id, $action );
 					break;
 			}
 		}
@@ -159,7 +162,8 @@ class WPCD_WORDPRESS_TABS_SSL extends WPCD_WORDPRESS_TABS {
 			// Show a special header.
 			$actions['ssl-status-header-wc-enabled'] = array(
 				'name'           => '',
-				'label'          => __( 'WildCard SSL Multisite', 'wpcd' ),
+				/* Translators: %s is a fontawesome or similar icon. */
+				'label'          => wpcd_apply_ssl_icon( __( '%s WildCard SSL Multisite', 'wpcd' ) ),
 				'type'           => 'heading',
 				'raw_attributes' => array(
 					'desc' => __( 'This site is a MULTISITE that is configured to use a wildcard SSL certificate. You need to manage SSL options under the MULTISITE tab.', 'wpcd' ),
@@ -194,111 +198,163 @@ class WPCD_WORDPRESS_TABS_SSL extends WPCD_WORDPRESS_TABS {
 		// Get HTTP2 status.
 		$http2_status = $this->http2_status( $id );
 
-		/* SSL */
-		$actions['ssl-status-header'] = array(
-			'name'           => '',
-			'label'          => __( 'SSL', 'wpcd' ),
-			'type'           => 'heading',
-			'raw_attributes' => array(
-				'desc' => __( 'Manage your SSL certificates.', 'wpcd' ),
-			),
-		);
+		/**
+		 * SSL.
+		 */
+		if ( $this->get_site_local_custom_ssl_status( $id ) ) {
+			/**
+			 * Custom SSL is enabled.
+			 */
+			$actions[] = wpcd_start_half_card( $this->get_tab_slug() ); // Start new card.
 
-		if ( 'on' <> $status ) {
-			$desc = __( 'Click to enable SSL. <br />Turning this on will result in an attempt to obtain a certificate from LETSEncrypt.  <br />If it fails, check the logs under the SSH LOG menu option. <br />Note that if you attempt to turn on SSL too many times in a row LETSEncrypt will block your domain for 7 days or more.', 'wpcd' );
-		} else {
-			$desc = __( 'Click to disable SSL', 'wpcd' );
-		}
-
-		$actions['ssl-status'] = array(
-			'label'          => '',
-			'raw_attributes' => array(
-				'on_label'            => __( 'Enabled', 'wpcd' ),
-				'off_label'           => __( 'Disabled', 'wpcd' ),
-				'std'                 => $status === 'on',
-				'desc'                => $desc,
-				'confirmation_prompt' => $confirmation_prompt,
-			),
-			'type'           => 'switch',
-		);
-
-		/* Show SSL notes if SSL is not turned on. */
-		if ( 'on' <> $status ) {
-			$actions['ssl-notes-heading'] = array(
+			$actions['ssl-status-header'] = array(
+				'name'           => '',
+				/* Translators: %s is a fontawesome or similar icon. */
+				'label'          => wpcd_apply_warning_icon( __( '%s Custom SSL Enabled', 'wpcd' ) ),
 				'type'           => 'heading',
-				'label'          => __( 'Some things to be aware of before enabling SSL', 'wpcd' ),
 				'raw_attributes' => array(
-					'desc' => __( 'Please read before attempting to turn on SSL for your site!', 'wpcd' ),
+					/* Translators: %s is a fontawesome or similar icon. */
+					'desc' => wpcd_apply_warning_icon( __( '%s The admin has indicated that a Custom SSL certificate is installed for this site. You cannot request a regular SSL certificate from LetsEncrypt at this time.', 'wpcd' ) ),
 				),
 			);
-			$actions['ssl-notes-1']       = array(
-				'type'           => 'custom_html',
+
+			$actions[] = wpcd_end_card( $this->get_tab_slug() ); // Close up prior card.
+
+		} else {
+			/**
+			 * Standard SSL.
+			 */
+			$actions[] = wpcd_start_half_card( $this->get_tab_slug() ); // Start new card.
+
+			$desc                         = __( 'Turning this on will result in an attempt to obtain a certificate from LETSEncrypt.  <br />If it fails, check the logs under the SSH LOG menu option. <br />Note that if you attempt to turn on SSL too many times in a row LETSEncrypt will block your domain for 7 days or more.', 'wpcd' );
+			$desc                         = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
+			$actions['ssl-status-header'] = array(
+				'name'           => '',
+				/* Translators: %s is a fontawesome or similar icon. */
+				'label'          => wpcd_apply_ssl_icon( __( '%s SSL', 'wpcd' ) ),
+				'type'           => 'heading',
+				'raw_attributes' => array(
+					'desc' => $desc,
+				),
+			);
+
+			if ( 'on' !== $status ) {
+				$desc = __( 'Click to enable SSL.', 'wpcd' );
+			} else {
+				$desc = __( 'Click to disable SSL', 'wpcd' );
+			}
+
+			$actions['ssl-status'] = array(
 				'label'          => '',
 				'raw_attributes' => array(
-					'std' => __( '1. If you are behind a proxy service, you might need to turn it off temporarily prior to enabling ssl.  This allows LETSEncrypt to connect directly and verify your site. <b>CloudFlare</b> will usually work as-is but if you are having trouble, try turning it off as well.', 'wpcd' ),
+					'on_label'            => __( 'Enabled', 'wpcd' ),
+					'off_label'           => __( 'Disabled', 'wpcd' ),
+					'std'                 => $status === 'on',
+					'desc'                => $desc,
+					'confirmation_prompt' => $confirmation_prompt,
 				),
+				'type'           => 'switch',
 			);
-			$actions['ssl-notes-2']       = array(
-				'type'           => 'custom_html',
-				'label'          => '',
-				'raw_attributes' => array(
-					'std' => __( '2. Certain providers automatically deploy a firewall or NAT. This means that you need to manually enable HTTPS/port 443 through the NAT/FIREWALL.  Such services include AWS EC2 and AWS LIGHTSAIL.  So please make sure you enable HTTPS through the firewall before enabling SSL here. Digital Ocean, Linode and Vultr do not automatically deploy a nat/firewall so you should not encounter any issues there.', 'wpcd' ),
-				),
-			);
-		}
 
-		/* If SSL is on, show HTTP 2 options */
-		if ( 'on' === $status ) {
+			$actions[] = wpcd_end_card( $this->get_tab_slug() ); // Close up prior card.
 
-			// Check multisite status and do nothing if multisite is enabled.
-			if ( 'on' <> get_post_meta( $id, 'wpapp_multisite_enabled', true ) ) {
+			/**
+			 * Show SSL notes if SSL is not turned on.
+			 */
+			if ( 'on' <> $status ) {
 
-				/* Set the HTTP2 title and other text based on the type of webserver we're running. */
-				switch ( $webserver_type ) {
-					case 'ols':
-					case 'ols-enterprise':
-						$http_fragment_text = __( 'HTTP2', 'wpcd' ); // This should be "HTTP2/HTTP3/SPDY" but I'm not convinced that lsws is actually handling this correctly.
-						break;
+				$actions[] = wpcd_start_half_card( $this->get_tab_slug() ); // Start new card.
 
-					case 'nginx':
-					default:
-						$http_fragment_text = __( 'HTTP2', 'wpcd' );
-						break;
-
-				}
-
-				/* Set the confirmation prompt based on the the current status of this flag */
-				$confirmation_prompt = '';
-				if ( 'on' === $http2_status ) {
-					$confirmation_prompt_http2 = sprintf( __( 'Are you sure you would like to disable %s?', 'wpcd' ), $http_fragment_text );
-				} else {
-					$confirmation_prompt_http2 = sprintf( __( 'Are you sure you would like to enable %s?', 'wpcd' ), $http_fragment_text );
-				}
-
-				$actions['ssl-http2-header'] = array(
-					'name'           => '',
-					'label'          => sprintf( '%s', $http_fragment_text ),
+				$actions['ssl-notes-heading'] = array(
 					'type'           => 'heading',
+					/* Translators: %s is a fontawesome or similar icon. */
+					'label'          => wpcd_apply_warning_icon( __( '%s Some things to be aware of before enabling SSL', 'wpcd' ) ),
 					'raw_attributes' => array(
-						'desc' => sprintf( __( 'Manage %s', 'wpcd' ), $http_fragment_text ),
+						'desc' => __( 'Please read before attempting to turn on SSL for your site!', 'wpcd' ),
 					),
 				);
-
-				$actions['ssl-http2-status'] = array(
+				$actions['ssl-notes-1']       = array(
+					'type'           => 'custom_html',
 					'label'          => '',
 					'raw_attributes' => array(
-						'on_label'            => __( 'Enabled', 'wpcd' ),
-						'off_label'           => __( 'Disabled', 'wpcd' ),
-						'std'                 => $http2_status === 'on',
-						'confirmation_prompt' => $confirmation_prompt_http2,
+						'std' => __( '1. If you are behind a proxy service, you might need to turn it off temporarily prior to enabling ssl.  This allows LETSEncrypt to connect directly and verify your site. <b>CloudFlare</b> will usually work as-is but if you are having trouble, try turning it off as well.', 'wpcd' ),
 					),
-					'type'           => 'switch',
+				);
+				$actions['ssl-notes-2']       = array(
+					'type'           => 'custom_html',
+					'label'          => '',
+					'raw_attributes' => array(
+						'std' => __( '2. Certain providers automatically deploy a firewall or NAT. This means that you need to manually enable HTTPS/port 443 through the NAT/FIREWALL.  Such services include AWS EC2 and AWS LIGHTSAIL.  So please make sure you enable HTTPS through the firewall before enabling SSL here. Digital Ocean, Linode and Vultr do not automatically deploy a nat/firewall so you should not encounter any issues there.', 'wpcd' ),
+					),
 				);
 
+				$actions[] = wpcd_end_card( $this->get_tab_slug() ); // Close up prior card.
+			}
+
+			/**
+			 * If SSL is on, show HTTP 2 options
+			 */
+			if ( 'on' === $status ) {
+
+				$actions[] = wpcd_start_half_card( $this->get_tab_slug() ); // Start new card.
+
+				// Check multisite status and do nothing if multisite is enabled.
+				if ( 'on' <> get_post_meta( $id, 'wpapp_multisite_enabled', true ) ) {
+
+					/* Set the HTTP2 title and other text based on the type of webserver we're running. */
+					switch ( $webserver_type ) {
+						case 'ols':
+						case 'ols-enterprise':
+							$http_fragment_text = __( 'HTTP2', 'wpcd' ); // This should be "HTTP2/HTTP3/SPDY" but I'm not convinced that lsws is actually handling this correctly.
+							break;
+
+						case 'nginx':
+						default:
+							$http_fragment_text = __( 'HTTP2', 'wpcd' );
+							break;
+
+					}
+
+					/* Set the confirmation prompt based on the the current status of this flag */
+					$confirmation_prompt = '';
+					if ( 'on' === $http2_status ) {
+						$confirmation_prompt_http2 = sprintf( __( 'Are you sure you would like to disable %s?', 'wpcd' ), $http_fragment_text );
+					} else {
+						$confirmation_prompt_http2 = sprintf( __( 'Are you sure you would like to enable %s?', 'wpcd' ), $http_fragment_text );
+					}
+
+					$actions['ssl-http2-header'] = array(
+						'name'           => '',
+						'label'          => sprintf( '%s', $http_fragment_text ),
+						'type'           => 'heading',
+						'raw_attributes' => array(
+							'desc' => sprintf( __( 'Manage %s', 'wpcd' ), $http_fragment_text ),
+						),
+					);
+
+					$actions['ssl-http2-status'] = array(
+						'label'          => '',
+						'raw_attributes' => array(
+							'on_label'            => __( 'Enabled', 'wpcd' ),
+							'off_label'           => __( 'Disabled', 'wpcd' ),
+							'std'                 => $http2_status === 'on',
+							'confirmation_prompt' => $confirmation_prompt_http2,
+						),
+						'type'           => 'switch',
+					);
+
+				}
+
+				// Close up prior card.
+				$actions[] = wpcd_end_card( $this->get_tab_slug() );
 			}
 		}
 
-		/* Advanced action to flip metas only */
+		/**
+		 * Advanced action to flip metas only
+		 */
+
+		$actions[]                = wpcd_start_half_card( $this->get_tab_slug() ); // Start new card.
 		$confirmation_prompt_meta = '';
 		if ( 'on' === $status ) {
 			$confirmation_prompt_meta = __( 'Are you sure you would like to flip the SSL flag to show SSL is disabled? This will not execute any code to disable SSL if it is actually enabled on the server.', 'wpcd' );
@@ -308,7 +364,8 @@ class WPCD_WORDPRESS_TABS_SSL extends WPCD_WORDPRESS_TABS {
 
 		$actions['ssl-status-meta-only-header'] = array(
 			'name'           => '',
-			'label'          => __( 'Advanced - Flip SSL Status Flag', 'wpcd' ),
+			/* Translators: %s is a fontawesome or similar icon. */
+			'label'          => wpcd_apply_change_icon( __( '%s Advanced - Flip SSL Status Flag', 'wpcd' ) ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
 				'desc' => __( 'Flip the SSL status flag (aka the SSL meta value). No code will be executed on the server to disable or enable SSL. Only the status shown on this dashboard will be flipped.', 'wpcd' ),
@@ -318,11 +375,60 @@ class WPCD_WORDPRESS_TABS_SSL extends WPCD_WORDPRESS_TABS {
 		$actions['ssl-flip-meta-status'] = array(
 			'label'          => '',
 			'raw_attributes' => array(
-				'std'                 => __( 'Flip SSL Status Flag', 'wpcd' ),
+				/* Translators: %s is a fontawesome or similar icon. */
+				'std'                 => wpcd_apply_change_icon( __( '%s Flip SSL Status Flag', 'wpcd' ) ),
 				'confirmation_prompt' => $confirmation_prompt_meta,
 			),
 			'type'           => 'button',
 		);
+
+		$actions[] = wpcd_end_card( $this->get_tab_slug() ); // Close up prior card.
+
+		/**
+		 * Set Flag for Custom SSL
+		 */
+
+		$actions[]                = wpcd_start_half_card( $this->get_tab_slug() ); // Start new card.
+		$confirmation_prompt_meta = '';
+		if ( true === $this->get_site_local_custom_ssl_status( $id ) ) {
+			$confirmation_prompt_meta = __( 'Are you sure you would like to flip the SSL flag to show that custom SSL is disabled? This will not execute any code to disable SSL if it is actually enabled on the server.', 'wpcd' );
+		} else {
+			$confirmation_prompt_meta = __( 'Are you sure you would like to flip the SSL flag to show that a custom SSL certificate is enabled?  This will not execute any code to request a new SSL certificate.', 'wpcd' );
+		}
+
+		$actions['custom-ssl-status-meta-only-header'] = array(
+			'name'           => '',
+			/* Translators: %s is a fontawesome or similar icon. */
+			'label'          => wpcd_apply_change_icon( __( '%s Flip Custom SSL Status Flag', 'wpcd' ) ),
+			'type'           => 'heading',
+			'raw_attributes' => array(
+				'desc' => __( 'Set or unset a flag that indicates that a custom SSL certificate is installed on this site. This will also flip the regular SSL flag!', 'wpcd' ),
+			),
+		);
+
+		$actions['custom-ssl-flip-meta-status'] = array(
+			'label'          => '',
+			'raw_attributes' => array(
+				/* Translators: %s is a fontawesome or similar icon. */
+				'std'                 => wpcd_apply_change_icon( __( '%s Flip Custom SSL Status Flag', 'wpcd' ) ),
+				'confirmation_prompt' => $confirmation_prompt_meta,
+			),
+			'type'           => 'button',
+		);
+
+		if ( true === $this->get_site_local_custom_ssl_status( $id ) ) {
+			$actions['custom-ssl-status-display'] = array(
+				'name'           => '',
+				'type'           => 'custom_html',
+				'raw_attributes' => array(
+					/* Translators: %s is a fontawesome or similar icon. */
+					'std' => wpcd_apply_checkmark_icon( __( '%s This meta is ON.', 'wpcd' ) ),
+				),
+				'std'            => wpcd_apply_checkmark_icon( __( '%s This meta is ON.', 'wpcd' ) ),
+			);
+		}
+
+		$actions[] = wpcd_end_card( $this->get_tab_slug() ); // Close up prior card.
 
 		return $actions;
 	}
@@ -489,6 +595,36 @@ class WPCD_WORDPRESS_TABS_SSL extends WPCD_WORDPRESS_TABS {
 		return $result;  // Will not matter in an action hook.
 
 	}
+
+	/**
+	 * Toggle the CUSTOM SSL meta.
+	 *
+	 * @param int    $id     The postID of the app cpt.
+	 * @param string $action The action to be performed  - 'custom-ssl-flip-meta-status'.
+	 *
+	 * @return string|WP_Error
+	 */
+	public function toggle_custom_ssl_meta_status( $id, $action ) {
+
+		if ( true === $this->get_site_local_custom_ssl_status( $id ) ) {
+			$current_status = 'on';
+		} else {
+			$current_status = 'off';
+		}
+
+		// What's the new status?
+		$new_ssl_status = 'on' === $current_status ? 'off' : 'on';
+
+		// Update both custom SSL meta and standard SSL meta.
+		$this->set_site_local_custom_ssl_status( $id, $new_ssl_status );
+		$this->set_ssl_status( $id, $new_ssl_status );
+
+		$result = array( 'refresh' => 'yes' );
+
+		return $result;  // Will not matter in an action hook.
+
+	}
+
 
 }
 

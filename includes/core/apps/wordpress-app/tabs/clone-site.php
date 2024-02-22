@@ -490,15 +490,22 @@ class WPCD_WORDPRESS_TABS_CLONE_SITE extends WPCD_WORDPRESS_TABS {
 		}
 
 		// We got here so ok to show fields related to cloning the site.
-		$desc  = __( 'Make a copy of this site to a new domain name.', 'wpcd' );
+
+		// Start new card.
+		$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
+
+		$desc  = __( 'This function makes a copy of this site to a new domain name.', 'wpcd' );
+		$desc .= '<br />';
 		$desc .= '<br />';
 		$desc .= __( 'If you would like new SSL certificates to be issued as part of this operation please make sure you point your DNS for the new site to this server\'s IP address BEFORE you start the clone operation. ', 'wpcd' );
 		$desc .= __( 'Otherwise you will need to request new certificates on the SSL tab after the operation is complete and you have updated your DNS.', 'wpcd' );
+		$desc  = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
 
 		$default_domain = WPCD_DNS()->get_full_temp_domain();
 
 		$fields[] = array(
-			'name' => __( 'Clone Site', 'wpcd' ),
+			/* Translators: %s is a fontawesome or similar icon. */
+			'name' => wpcd_apply_duplicate_icon( __( '%s Clone Site', 'wpcd' ) ),
 			'tab'  => 'clone-site',
 			'type' => 'heading',
 			'desc' => $desc,
@@ -527,7 +534,8 @@ class WPCD_WORDPRESS_TABS_CLONE_SITE extends WPCD_WORDPRESS_TABS {
 			'name'       => '',
 			'tab'        => 'clone-site',
 			'type'       => 'button',
-			'std'        => __( 'Clone Site', 'wpcd' ),
+			/* Translators: %s is a fontawesome or similar icon. */
+			'std'        => wpcd_apply_duplicate_icon( __( '%s Clone Site', 'wpcd' ) ),
 			'desc'       => $clone_desc,
 			'attributes' => array(
 				// the _action that will be called in ajax.
@@ -546,6 +554,9 @@ class WPCD_WORDPRESS_TABS_CLONE_SITE extends WPCD_WORDPRESS_TABS {
 			'class'      => 'wpcd_app_action',
 			'save_field' => false,
 		);
+
+		// Close up prior card.
+		$fields[] = wpcd_end_card( $this->get_tab_slug() );
 
 		return $fields;
 

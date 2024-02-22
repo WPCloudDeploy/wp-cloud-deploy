@@ -26,6 +26,9 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 		// Allow the disable site action to be triggered via an action hook.  Will primarily be used by the woocommerce add-on and REST API.
 		add_action( 'wpcd_wordpress-app_do_toggle_site_status', array( $this, 'toggle_site_status_action' ), 10, 3 );
 
+		// Allow the enable http auth action to be triggered via an action hook.
+		add_action( 'wpcd_wordpress-app_do_site_enable_http_auth', array( $this, 'enable_http_auth_action' ), 10, 1 );
+
 		// Allow the disable http auth action to be triggered via an action hook.
 		add_action( 'wpcd_wordpress-app_do_site_disable_http_auth', array( $this, 'disable_http_auth_action' ), 10, 1 );
 
@@ -159,7 +162,7 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 					break;
 				case 'site-status':
 					// enable/disable site.
-					$this->toggle_site_status_action( $id, $action );
+					$result = $this->toggle_site_status_action( $id, $action );
 					break;
 				case 'admin-lock-status':
 					// toggle admin lock.
@@ -221,17 +224,17 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 
 		// Bail if site is not enabled.
 		if ( ! $this->is_site_enabled( $id ) ) {
-			return array_merge( $this->get_disabled_header_field( '' ), $this->get_site_status_action_fields( $id ) );
+			return array_merge( $this->get_disabled_header_field(), $this->get_site_status_action_fields( $id ) );
 		}
 
 		// Site is not disabled so show all fields.
 		return array_merge(
 			$this->get_initial_credentials( $id ),
+			$this->get_delete_site_action_fields( $id ),
 			$this->get_basic_auth_action_fields( $id ),
 			$this->get_wp_login_basic_auth_action_fields( $id ),
 			$this->get_site_status_action_fields( $id ),
 			$this->get_admin_lock_action_fields( $id ),
-			$this->get_delete_site_action_fields( $id ),
 			$this->get_https_action_fields( $id )
 		);
 
@@ -248,11 +251,17 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 
 		$actions = array();
 
+		// Start new card.
+		$actions[] = wpcd_start_half_card( $this->get_tab_slug() );
+
+		$desc = __( 'Temporarily enable or disable your site.  All files and data remain when the site is disabled.', 'wpcd' );
+		$desc = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
+
 		$actions['site-status-header'] = array(
 			'label'          => __( 'Enable/Disable Site', 'wpcd' ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
-				'desc' => __( 'Temporarily enable or disable your site.  All files and data remain when the site is disabled.', 'wpcd' ),
+				'desc' => $desc,
 			),
 		);
 
@@ -286,6 +295,9 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 				break;
 		}
 
+		// Close up prior card.
+		$actions[] = wpcd_end_card( $this->get_tab_slug() );
+
 		return $actions;
 
 	}
@@ -305,6 +317,9 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 		}
 
 		$actions = array();
+
+		// Start new card.
+		$actions[] = wpcd_start_half_card( $this->get_tab_slug() );
 
 		$actions['site-admin-lock-header'] = array(
 			'label'          => __( 'Admin Lock', 'wpcd' ),
@@ -344,6 +359,9 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 				break;
 		}
 
+		// Close up prior card.
+		$actions[] = wpcd_end_card( $this->get_tab_slug() );
+
 		return $actions;
 
 	}
@@ -358,6 +376,9 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 	private function get_delete_site_action_fields( $id ) {
 
 		$actions = array();
+
+		// Start new card.
+		$actions[] = wpcd_start_half_card( $this->get_tab_slug() );
 
 		// Option to delete site.
 		$actions['remove-site-header'] = array(
@@ -418,6 +439,9 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 
 		}
 
+		// Close up prior card.
+		$actions[] = wpcd_end_card( $this->get_tab_slug() );
+
 		return $actions;
 
 	}
@@ -433,6 +457,9 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 
 		$actions = array();
 
+		// Start new card.
+		$actions[] = wpcd_start_half_card( $this->get_tab_slug() );
+
 		/* What is the current basic authentication status of the site? */
 		$basic_auth_status = $this->get_site_http_auth_status( $id );
 
@@ -441,13 +468,20 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 
 		/* If basic authentication is enabled for the login page, we can't enable it for the whole site. */
 		if ( 'on' === $wplogin_basic_auth_status ) {
+			$desc = __( 'Basic authentication is already turned on for the wp-login page.  You will need to turn that off before you are able to use this option to protect the entire site.', 'wpcd' );
+			$desc = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
+
 			$actions['pw-auth-header'] = array(
 				'label'          => __( 'Password Protect All Pages With HTTP Basic Authentication', 'wpcd' ),
 				'type'           => 'heading',
 				'raw_attributes' => array(
-					'desc' => __( 'Basic authentication is already turned on for the wp-login page.  You will need to turn that off before you are able to use this option to protect the entire site.', 'wpcd' ),
+					'desc' => $desc,
 				),
 			);
+
+			// Close up prior card.
+			$actions[] = wpcd_end_card( $this->get_tab_slug() );
+
 			return $actions;
 		}
 
@@ -459,11 +493,14 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 			$confirmation_prompt = __( 'Are you sure you would like to enable password protection for this site?', 'wpcd' );
 		}
 
+		$desc = __( 'Basic authentication places an http password popup in front of your site.  This is useful for staging sites and sites you are not ready to make public yet.<br /> If this is already turned on and you have forgotten your password, turn it off, fill in the user and password fields with data you know and turn it back on.', 'wpcd' );
+		$desc = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
+
 		$actions['pw-auth-header'] = array(
 			'label'          => __( 'Password Protect All Pages With HTTP Basic Authentication', 'wpcd' ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
-				'desc' => __( 'Basic authentication places an http password popup in front of your site.  This is useful for staging sites and sites you are not ready to make public yet.<br /> If this is already turned on and you have forgotten your password, turn it off, fill in the user and password fields with data you know and turn it back on.', 'wpcd' ),
+				'desc' => $desc,
 			),
 		);
 
@@ -473,6 +510,7 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 				'desc'           => __( 'User name to use when basic authentication is turned on', 'wpcd' ),
 				'type'           => 'text',
 				'raw_attributes' => array(
+					'std'            => wpcd_generate_alpha_numeric_string( 12 ),
 					'disabled'       => 'off' === $basic_auth_status ? false : true,
 					'size'           => 60,
 					// the key of the field (the key goes in the request).
@@ -485,6 +523,7 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 				'desc'           => __( 'Password to use when basic authentication is turned on', 'wpcd' ),
 				'type'           => 'text',
 				'raw_attributes' => array(
+					'std'            => wpcd_generate_default_password(),
 					'disabled'       => 'off' === $basic_auth_status ? false : true,
 					'size'           => 60,
 					// the key of the field (the key goes in the request).
@@ -511,6 +550,9 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 				break;
 		}
 
+		// Close up prior card.
+		$actions[] = wpcd_end_card( $this->get_tab_slug() );
+
 		return $actions;
 
 	}
@@ -526,6 +568,9 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 
 		$actions = array();
 
+		// Start new card.
+		$actions[] = wpcd_start_half_card( $this->get_tab_slug() );
+
 		/* What is the current basic authentication status of the wplogin page? */
 		$wplogin_basic_auth_status = $this->get_wplogin_http_auth_status( $id );
 
@@ -534,13 +579,19 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 
 		/* If basic authentication is turned on for the whole site, disable this option and return right away. */
 		if ( 'on' === $basic_auth_status ) {
+			$desc = __( 'All pages on this site are already fully password protected with a site-wide HTTP Authentication directive.', 'wpcd' );
+			$desc = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
+
 			$actions['wplogin-pw-auth-header'] = array(
 				'label'          => __( 'Password Protect WPLOGIN With HTTP Basic Authentication', 'wpcd' ),
 				'type'           => 'heading',
 				'raw_attributes' => array(
-					'desc' => __( 'All pages on this site are already fully password protected with a site-wide HTTP Authentication directive.', 'wpcd' ),
+					'desc' => $desc,
 				),
 			);
+
+			// Close up prior card.
+			$actions[] = wpcd_end_card( $this->get_tab_slug() );
 			return $actions;
 		}
 
@@ -553,8 +604,9 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 		}
 
 		$desc  = __( 'This action places an http password popup in front of your WPLOGIN page.  This is useful because it stops bad login attempts at the webserver, before it hits WordPress.', 'wpcd' );
-		$desc .= '<br />' . __( 'If this is already turned on and you have forgotten your password, turn it off, fill in the user and password fields with data you know and turn it back on.', 'wpcd' );
-		$desc .= '<br />' . __( 'Important Note: Turn this off before COPYING, CLONING, STAGING or MOVING the site!', 'wpcd' );
+		$desc .= '<br/>' . '<br/>' . __( 'If this is already turned on and you have forgotten your password, turn it off, fill in the user and password fields with data you know and turn it back on.', 'wpcd' );
+		$desc .= '<br/>' . '<br/>' . __( 'Important Note: Turn this off before COPYING, CLONING, STAGING or MOVING the site!', 'wpcd' );
+		$desc  = sprintf( '<details>%s %s</details>', wpcd_get_html5_detail_element_summary_text(), $desc );
 
 		$actions['wplogin-pw-auth-header'] = array(
 			'label'          => __( 'Password Protect WPLOGIN With HTTP Basic Authentication', 'wpcd' ),
@@ -570,6 +622,7 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 				'desc'           => __( 'User name to use when basic authentication is turned on', 'wpcd' ),
 				'type'           => 'text',
 				'raw_attributes' => array(
+					'std'            => wpcd_generate_alpha_numeric_string( 12 ),
 					'disabled'       => 'off' === $wplogin_basic_auth_status ? false : true,
 					'size'           => 60,
 					// the key of the field (the key goes in the request).
@@ -583,6 +636,7 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 				'desc'           => __( 'Password to use when basic authentication is turned on', 'wpcd' ),
 				'type'           => 'text',
 				'raw_attributes' => array(
+					'std'            => wpcd_generate_default_password(),
 					'disabled'       => 'off' === $wplogin_basic_auth_status ? false : true,
 					'size'           => 60,
 					// the key of the field (the key goes in the request).
@@ -609,6 +663,9 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 				break;
 		}
 
+		// Close up prior card.
+		$actions[] = wpcd_end_card( $this->get_tab_slug() );
+
 		return $actions;
 
 	}
@@ -623,6 +680,9 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 	private function get_initial_credentials( $id ) {
 
 		$actions = array();
+
+		// Start new card.
+		$actions[] = wpcd_start_half_card( $this->get_tab_slug() );
 
 		$uid = get_post_meta( $id, 'wpapp_user', true );
 		$pw  = $this->decrypt( get_post_meta( $id, 'wpapp_password', true ) );
@@ -651,6 +711,9 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 			),
 		);
 
+		// Close up prior card.
+		$actions[] = wpcd_end_card( $this->get_tab_slug() );
+
 		return $actions;
 
 	}
@@ -665,6 +728,9 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 	private function get_https_action_fields( $id ) {
 
 		$actions = array();
+
+		// Start new card.
+		$actions[] = wpcd_start_half_card( $this->get_tab_slug() );
 
 		$actions['https-redirection-header'] = array(
 			'label'          => __( 'Enable/Disable https', 'wpcd' ),
@@ -705,6 +771,9 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 				);
 				break;
 		}
+
+		// Close up prior card.
+		$actions[] = wpcd_end_card( $this->get_tab_slug() );
 
 		return $actions;
 
@@ -954,7 +1023,27 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
-	 * Helper function disable HTTP Authentical
+	 * Helper function disable HTTP Authentication.
+	 *
+	 * Action hook: wpcd_wordpress-app_do_site_enable_http_auth.
+	 *
+	 * @param int $id     The postID of the app cpt.
+	 *
+	 * @return string|WP_Error
+	 */
+	public function enable_http_auth_action( $id ) {
+
+		$args['basic_auth_user'] = wpcd_generate_alpha_numeric_string( 12 );
+		$args['basic_auth_pass'] = wpcd_generate_default_password();
+
+		$result = $this->toggle_basic_auth( $id, 'enable_auth', $args );
+
+		return $result;  // Does not matter in an action hook.
+
+	}
+
+	/**
+	 * Helper function disable HTTP Authentication.
 	 *
 	 * Action hook: wpcd_wordpress-app_do_site_disable_http_auth.
 	 *
@@ -978,7 +1067,7 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 	 *
 	 * @return boolean|WP_Error    success/failure
 	 */
-	private function toggle_basic_auth( $id, $action ) {
+	private function toggle_basic_auth( $id, $action, $in_args = array() ) {
 
 		$instance = $this->get_app_instance_details( $id );
 
@@ -987,7 +1076,12 @@ class WPCD_WORDPRESS_TABS_MISC extends WPCD_WORDPRESS_TABS {
 			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
 		}
 
-		$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
+		if ( empty( $in_args ) ) {
+			// Get data from the POST request.
+			$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
+		} else {
+			$args = $in_args;
+		}
 
 		// Check to make sure that both a user id and password is offered if the action is to turn on authentication.
 		if ( 'enable_auth' === $action ) {

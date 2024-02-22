@@ -3,7 +3,7 @@ span.wpcd-app-server-app-group {
     display: inline-block;
     padding: 2px 8px;
     font-weight: 700;
-    color: #fff;
+    color: var(--wpcd-white-color);
     vertical-align: baseline;
     background-color: #999;
     border-radius: 3px;
@@ -14,7 +14,7 @@ span.wpcd-app-server-app-group {
 .wpcd_custom_link a {
     display: inline-block;
     padding: 2px 8px;
-    color: #fff;
+    color: var(--wpcd-white-color);
     vertical-align: baseline;
     background-color: #039BE5;
     border-radius: 3px;
@@ -47,7 +47,7 @@ span.wpcd-app-server-app-group {
     border-color: darkred !important;
     /* Not sure why important is needed for this one but oh well. */
     background-color: darkred;
-    color: white;
+    color: var(--wpcd-white-color);
     border: solid;
     border-width: 2px;
     margin: 2px;
@@ -67,5 +67,5 @@ span.wpcd-app-server-app-group {
 	padding: 1px 5px;
 	vertical-align: top;
 	border-radius: 2px;
-	color: white;
+	color: var(--wpcd-white-color);
 }

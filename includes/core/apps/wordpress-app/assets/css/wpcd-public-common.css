@@ -36,7 +36,7 @@
 #wpcd_public_wrapper a.button {
 	background-color: var(--wpcd-front-end-accent-background-color);
 	border-color: var(--wpcd-front-end-accent-background-color);
-	color: white;
+	color: var(--wpcd-front-end-white-color);
 	text-decoration: none;
 	text-decoration-line: none;	
 }
@@ -46,14 +46,6 @@
 	text-decoration-line: none;	
 }
 /* End button text should not be underlined. */
-
-#wpcd_public_wrapper .wpcd-pre-install,
-#wpcd_public_wrapper #wpcd_public_servers_container,
-#wpcd_public_wrapper .wpcd_public_container {
-        width: 96%;
-        margin: 0 auto;
-        padding-right: 0;
-}
 
 #wpcd_public_wrapper .wpcd-create-popup-label {
 		/* Field labels on popup when creating a new site or server.*/
@@ -90,7 +82,7 @@
         border-radius: 3px;
         line-height: 28px;
         padding: 0 10px;
-		color: white;
+		color: var(--wpcd-front-end-white-color);;
 }
 #wpcd_public_wrapper .wpcd-popup .wpcd-log-close-button a {
 		text-decoration: none;
@@ -157,7 +149,7 @@
 		background-color: var(--wpcd-front-end-accent-background-color);
 		border-color: var(--wpcd-front-end-accent-background-color);
 		border-style: none;
-		color: white;
+		color: var(--wpcd-front-end-white-color);
 		height: 30px;		
         width: 13%;
         float: left;
@@ -172,7 +164,7 @@
 
 #wpcd_public_wrapper .tablenav .actions #post-query-submit {
 		/* Submit button next to filter bar. */
-		color: white;
+		color: var(--wpcd-front-end-white-color);
 		background-color: var(--wpcd-front-end-primary-brand-color);
 		border-color: var(--wpcd-front-end-primary-brand-color);
 		height: 30px;		
@@ -248,7 +240,7 @@
 /* Metabox buttons - default to white text. */
 #wpcd_public_wrapper button .rwmb-button a {
 		text-decoration: none;
-        color: #FFF;
+        color: var(--wpcd-front-end-white-color);
 }
 
 /* Styling install popups */
@@ -270,7 +262,7 @@
         box-shadow: 0 0 0 transparent;
         border-radius: 4px;
         border: 1px solid #8c8f94;
-        background-color: #fff;
+        background-color: var(--wpcd-front-end-white-color);
         color: #2c3338;
         line-height: 28px;
         padding-top: 0;
@@ -371,7 +363,7 @@
 #wpcd_public_wrapper .subsubsub a {
 		/* Make individual links buttons */
 		background-color: var(--wpcd-front-end-accent-background-color);
-		color: white;
+		color: var(--wpcd-front-end-white-color);
         line-height: 2;
         padding: 5px 8px;;
 		border-radius: 3px;
@@ -389,7 +381,7 @@
 
 #wpcd_public_wrapper .subsubsub a .count,
 #wpcd_public_wrapper .subsubsub a.current .count {
-		color: white;
+		color: var(--wpcd-front-end-white-color);
         font-weight: 400;
 }
 /* End style the post counts above the filter bar. */
@@ -417,7 +409,7 @@
 		border-color: var(--wpcd-front-end-positive-color);
 		padding: 9px 17px 9px 17px;
 		border-radius: 3px;
-		color: white;
+		color: var(--wpcd-front-end-white-color);
 		text-decoration: none;
 		text-decoration-line: none;
         margin: 20px 0;
@@ -499,7 +491,7 @@
 
 #wpcd_public_wrapper .wpcd-wpapp-instance-promo-button a {
 	font-size: small;
-	color: white;
+	color: var(--wpcd-front-end-white-color);
 	background-color: #004D40;
 	border-radius: 3px;
 	border-width: 0px;
@@ -666,7 +658,7 @@
 	line-height: 20px;
 	display: block;
 	padding: 10px;
-	color: white;
+	color: var(--wpcd-front-end-white-color);
 	border-radius: 5px;
 }
 /* End server and app groups */
@@ -675,7 +667,7 @@
 .wpcd_custom_link a {
     display: inline-block;
     padding: 2px 8px;
-    color: #fff;
+    color: var(--wpcd-front-end-white-color);
     vertical-align: baseline;
     background-color: #039BE5;
     border-radius: 3px;
@@ -715,7 +707,7 @@
 	background-color: var(--wpcd-front-end-accent-background-color);
 	padding: 9px 17px 9px 17px;
 	border-radius: 3px;
-	color: white;
+	color: var(--wpcd-front-end-white-color);
 	font-size: 15px;
 	font-weight: 700;
 	text-decoration: none;
@@ -788,7 +780,7 @@
 .wpcd-grid-table .wpcd-app-col-element-value-homepage_link a {
 	/* Note: The public_admin_link element is not part of core wpcd but is there for add-ons or custom code that might need it later. */
 	display: inline-block;
-	color: white;
+	color: var(--wpcd-front-end-white-color);
 	background-color: var(--wpcd-front-end-primary-brand-color);
 	border-color: var(--wpcd-front-end-primary-brand-color);
 	border-width: 1px;
@@ -825,21 +817,21 @@
 	text-align: center;
     padding: 2px 8px;
     font-weight: 700;
-    color: #fff;
+    color: var(--wpcd-front-end-white-color);
     vertical-align: baseline;
     border-radius: 3px;
     margin: 2px;
 	text-transform: uppercase;
 }
 .wpcd-grid-table .wpcd_page_cache_off .wpcd-app-col-element-value-page_cache {
-	color: red;
+	color: var(--wpcd-front-end-negative-color);
 }
 .wpcd-grid-table .wpcd_object_cache_off .wpcd-app-col-element-value-object_cache {
     color: orange;
 }
 .wpcd-grid-table .wpcd_page_cache_on .wpcd-app-col-element-value-page_cache,
 .wpcd-grid-table .wpcd_object_cache_on .wpcd-app-col-element-value-object_cache {
-	color: green;
+	color: var(--wpcd-front-end-positive-color);
 }
 
 .wpcd-grid-table .wpcd-app-col-element-wrap-health_last_update {
@@ -872,7 +864,7 @@
 	background-color: var(--wpcd-front-end-accent-background-color);
 	padding: 9px 17px 9px 17px;
 	border-radius: 3px;
-	color: white;
+	color: var(--wpcd-front-end-white-color);
 	font-size: 15px;
 	font-weight: 700;
 	margin-right: 15px;
@@ -933,22 +925,55 @@
 /**
  * Start custom css for the detail pages.
  */
- .single-wpcd_app #wpcd_public_wrapper,
+.single-wpcd_app #wpcd_public_wrapper,
 .single-wpcd_app_server #wpcd_public_wrapper {
 	 /* Set a background color for the main container. */
 	 background-color: var(--wpcd-front-end-alternate-accent-background-color);
 	 border-radius: 3px;
 	 padding: 30px 20px;
- }
+}
+ 
+#wpcd_public_wrapper #wpcd_wordpress-app_tab2,
+#wpcd_public_wrapper #wpcd_wordpress-app_tab2 .rwmb-tab-panels,
+#wpcd_public_wrapper #wpcd_server_wordpress-app_tab3,
+#wpcd_public_wrapper #wpcd_server_wordpress-app_tab3 .rwmb-tab-panels {
+	/* Background color for everything in a tab - other colors layer on top of it. */
+	background-color: var(--wpcd-front-end-medium-background-color);
+} 
 
-#wpcd_public_wrapper .rwmb-input button {
+#wpcd_public_wrapper .wpcd-wpapp-actions .rwmb-tabs-left .rwmb-tab-nav .rwmb-tab-active a,
+#wpcd_public_wrapper .wpcd-wpapp-actions .rwmb-tabs-left .rwmb-tab-nav a:hover {
+	/* Hover and active color for vertical tabs */
+	color: var(--wpcd-front-end-primary-brand-color);
+} 
+ 
+#wpcd_public_wrapper .wpcd-wpapp-actions h4 {
+	/* Card / Section headers on detail screens. */
+	color: var(--wpcd-front-end-primary-brand-color);
+}
+
+#wpcd_public_wrapper .rwmb-input button,
+#wpcd_public_wrapper #wpcd_wordpress-app_tab2 .rwmb-input .button,
+#wpcd_public_wrapper #wpcd_wordpress-app_tab2 .rwmb-input .button a,
+#wpcd_public_wrapper #wpcd_server_wordpress-app_tab_top_of_server_details .rwmb-input .button,
+#wpcd_public_wrapper #wpcd_server_wordpress-app_tab_top_of_server_details .rwmb-input .button a,
+#wpcd_public_wrapper #wpcd_server_wordpress-app_tab3 .rwmb-input .button,
+#wpcd_public_wrapper #wpcd_server_wordpress-app_tab3 .rwmb-input .button a {
 	/* Buttons */
 	text-decoration: none;
 	background-color: var(--wpcd-front-end-accent-background-color);
+	border-color: var(--wpcd-front-end-accent-background-color);
+	color: var(--wpcd-front-end-white-color);
 	padding: 9px 17px 9px 17px;
 	border-radius: 3px;
 } 
-#wpcd_public_wrapper .rwmb-input button:hover {
+#wpcd_public_wrapper .rwmb-input button:hover,
+#wpcd_public_wrapper #wpcd_wordpress-app_tab2 .rwmb-input .button:hover,
+#wpcd_public_wrapper #wpcd_wordpress-app_tab2 .rwmb-input .button a:hover, 
+#wpcd_public_wrapper #wpcd_server_wordpress-app_tab_top_of_server_details .rwmb-input .button:hover,
+#wpcd_public_wrapper #wpcd_server_wordpress-app_tab_top_of_server_details .rwmb-input .button a:hover,
+#wpcd_public_wrapper #wpcd_server_wordpress-app_tab3 .rwmb-input .button:hover,
+#wpcd_public_wrapper #wpcd_server_wordpress-app_tab3 .rwmb-input .button a:hover {
 	/* Buttons - hover */
 	text-decoration: none;
 	background-color: var(--wpcd-front-end-primary-brand-color);
@@ -1038,8 +1063,8 @@
 	border-color: var(--wpcd-front-end-primary-brand-color);	
 }
 #wpcd_public_wrapper .wpcd_site_details_top_row .wpcd_site_details_top_row_element_wrapper  .wpcd_site_details_top_row_element_ssl_on {
-	color: green;
-	border-color: green;	
+	color: var(--wpcd-front-end-positive-color);
+	border-color: var(--wpcd-front-end-positive-color);	
 }
 #wpcd_public_wrapper .wpcd_site_details_top_row .wpcd_site_details_top_row_element_wrapper  .wpcd_site_details_top_row_element_ssl_off {
 	color: gray;
@@ -1068,7 +1093,7 @@
 #wpcd_public_wrapper .wpcd_site_details_top_row .wpcd_site_details_top_row_element_wrapper .wpcd_site_details_top_row_element_passwordless_login a:hover,
 #wpcd_public_wrapper .wpcd_site_details_top_row .wpcd_site_details_top_row_element_wrapper .wpcd_site_details_top_row_element_passwordless_login:hover {
 	background-color: #A3E635;
-	color: white;
+	color: var(--wpcd-front-end-white-color);
 }
 /* End make the data under the domain name on the app detail when we're using left menus smaller and in chiclet boxes...*/
 
@@ -1101,14 +1126,24 @@
 	border-color: var(--wpcd-front-end-secondary-brand-color);	
 }
 #wpcd_public_wrapper .wpcd_server_wordpress-app_tab_top_of_server_details .wpcd_server_details_top_row .wpcd_server_details_top_row_element_git_status {
-	border-color: green;	
+	border-color: var(--wpcd-front-end-positive-color);	
 	color: var(--wpcd-front-end-light-background-color);
 }
  
+/**
+ * Card overrides.
+ */
+#wpcd_public_wrapper .wpcd-card-group {
+	background-color: var(--wpcd-front-end-white-color);	
+	border-color: var(--wpcd-front-end-medium-accent-background-color);
+}
+#wpcd_public_wrapper .wpcd-card-group:hover {
+	border-color: var(--wpcd-front-end-primary-brand-color);
+}
  
 /* custom table pages style */
 #wpcd_public_wrapper .notice {
-    background: #fff;
+    background: var(--wpcd-front-end-white-color);
     border: 1px solid #c3c4c7;
     border-left-width: 4px;
     box-shadow: 0 1px 1px rgb(0 0 0 / 4%);
@@ -1182,7 +1217,7 @@
     box-shadow: 0 0 0 transparent;
     border-radius: 4px;
     border: 1px solid #8c8f94;
-    background-color: #fff;
+    background-color: var(--wpcd-front-end-white-color);
     color: #2c3338;
 }
 
@@ -1197,7 +1232,7 @@
     min-height: 30px;
     max-width: 25rem;
     -webkit-appearance: none;
-    background: #fff url(data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M5%206l5%205%205-5%202%201-7%207-7-7%202-1z%22%20fill%3D%22%23555%22%2F%3E%3C%2Fsvg%3E) no-repeat right 5px top 55%;
+    background: var(--wpcd-front-end-white-color) url(data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M5%206l5%205%205-5%202%201-7%207-7-7%202-1z%22%20fill%3D%22%23555%22%2F%3E%3C%2Fsvg%3E) no-repeat right 5px top 55%;
     background-size: 16px 16px;
     cursor: pointer;
     vertical-align: middle;

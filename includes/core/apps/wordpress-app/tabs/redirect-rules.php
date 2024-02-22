@@ -163,7 +163,13 @@ class WPCD_WORDPRESS_TABS_REDIRECT_RULES extends WPCD_WORDPRESS_TABS {
 
 		$actions = array();
 
-		/* Add redirect rules */
+		/**
+		 * Add redirect rules.
+		 */
+
+		// Start new card.
+		$actions[] = wpcd_start_two_thirds_card( $this->get_tab_slug() );
+
 		$actions['redirect-rules-header-add'] = array(
 			'label'          => __( 'Add A Redirect Rule', 'wpcd' ),
 			'type'           => 'heading',
@@ -222,7 +228,12 @@ class WPCD_WORDPRESS_TABS_REDIRECT_RULES extends WPCD_WORDPRESS_TABS {
 			'type'           => 'button',
 		);
 
-		/* Remove redirect rules */
+		// Close up prior card.
+		$actions[] = wpcd_end_card( $this->get_tab_slug() );
+
+		/**
+		 * Remove redirect rules.
+		 */
 
 		// Get list of existing rules.
 		// $rules = [$args['keycode']] = array( 'from' => $args['original_source_url'], 'to' =>     $args['original_destination_url'], 'type' => $args['original_redirection_number'] );.
@@ -230,6 +241,9 @@ class WPCD_WORDPRESS_TABS_REDIRECT_RULES extends WPCD_WORDPRESS_TABS {
 
 		// Only show this section if we have some rules that can be removed...
 		if ( ! empty( $rules ) ) {
+
+			// Start new card.
+			$actions[] = wpcd_start_half_card( $this->get_tab_slug() );
 
 			$actions['redirect-rules-header-remove'] = array(
 				'label'          => __( 'Remove A Redirect Rule', 'wpcd' ),
@@ -266,9 +280,18 @@ class WPCD_WORDPRESS_TABS_REDIRECT_RULES extends WPCD_WORDPRESS_TABS {
 				'type'           => 'button',
 			);
 
+			// Close up prior card.
+			$actions[] = wpcd_end_card( $this->get_tab_slug() );
+
 		}
 
-		/* Remove all redirect rules */
+		/**
+		 * Remove all redirect rules.
+		 */
+
+		// Start new card.
+		$actions[] = wpcd_start_one_third_card( $this->get_tab_slug() );
+
 		$actions['redirect-rules-header-remove-all'] = array(
 			'label'          => __( 'Remove ALL Redirect Rules', 'wpcd' ),
 			'type'           => 'heading',
@@ -285,6 +308,9 @@ class WPCD_WORDPRESS_TABS_REDIRECT_RULES extends WPCD_WORDPRESS_TABS {
 			),
 			'type'           => 'button',
 		);
+
+		// Close up prior card.
+		$actions[] = wpcd_end_card( $this->get_tab_slug() );
 
 		return $actions;
 
@@ -373,7 +399,7 @@ class WPCD_WORDPRESS_TABS_REDIRECT_RULES extends WPCD_WORDPRESS_TABS {
 				}
 				// Escape values we'll be using...
 				$args['original_key_code'] = $args['key_code'];  // Save the original value before escaping for shell because we'll need it later to update our db.
-				$args['key_code'] = escapeshellarg( $args['key_code'] );
+				$args['key_code']          = escapeshellarg( $args['key_code'] );
 				break;
 			case 'redirect_remove_all_rules_from_site':
 				// nothing to do here.

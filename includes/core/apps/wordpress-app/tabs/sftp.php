@@ -157,7 +157,15 @@ class WPCD_WORDPRESS_TABS_SFTP extends WPCD_WORDPRESS_TABS {
 			return $fields;
 		}
 
+		// Bail if site is not enabled.
+		if ( ! $this->is_site_enabled( $id ) ) {
+			return $this->get_disabled_header_field( $this->get_tab_slug() );
+		}
+
 		$fields = array();
+
+		// Start new card.
+		$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
 
 		// add user.
 		$fields[] = array(
@@ -170,6 +178,7 @@ class WPCD_WORDPRESS_TABS_SFTP extends WPCD_WORDPRESS_TABS {
 			'id'         => 'wpcd_app_user1',
 			'tab'        => 'sftp',
 			'type'       => 'text',
+			'std'        => strtolower( wpcd_generate_alpha_numeric_string( 12 ) ),
 			'save_field' => false,
 			'attributes' => array(
 				// the key of the field (the key goes in the request).
@@ -181,6 +190,7 @@ class WPCD_WORDPRESS_TABS_SFTP extends WPCD_WORDPRESS_TABS {
 			'id'         => 'wpcd_app_pass1',
 			'tab'        => 'sftp',
 			'type'       => 'password',
+			'std'        => wpcd_generate_default_password(),
 			'save_field' => false,
 			'attributes' => array(
 				// the key of the field (the key goes in the request).
@@ -188,12 +198,11 @@ class WPCD_WORDPRESS_TABS_SFTP extends WPCD_WORDPRESS_TABS {
 			),
 			'class'      => 'wpcd_app_pass_toggle',
 		);
-
 		$fields[] = array(
 			'id'         => 'wpcd_app_action_add_button',
 			'tab'        => 'sftp',
 			'type'       => 'button',
-			'std'        => __( 'Add User', 'wpcd' ),
+			'std'        => __( 'Add New User', 'wpcd' ),
 			'attributes' => array(
 				// the _action that will be called in ajax.
 				'data-wpcd-action' => 'sftp-add-user',
@@ -206,6 +215,9 @@ class WPCD_WORDPRESS_TABS_SFTP extends WPCD_WORDPRESS_TABS {
 			'save_field' => false,
 		);
 
+		// Close up prior card.
+		$fields[] = wpcd_end_card( $this->get_tab_slug() );
+
 		// remove user.
 		$users = $this->get_sftp_users( $id );
 
@@ -214,11 +226,9 @@ class WPCD_WORDPRESS_TABS_SFTP extends WPCD_WORDPRESS_TABS {
 			return $fields;
 		}
 
-		$fields[] = array(
-			'name' => '',
-			'tab'  => 'sftp',
-			'type' => 'divider',
-		);
+		// Start new card.
+		$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
+
 		$fields[] = array(
 			'name' => __( 'Remove an sFTP User', 'wpcd' ),
 			'tab'  => 'sftp',
@@ -237,7 +247,6 @@ class WPCD_WORDPRESS_TABS_SFTP extends WPCD_WORDPRESS_TABS {
 				'data-wpcd-name' => 'user',
 			),
 		);
-
 		$fields[] = array(
 			'id'         => 'wpcd_app_action_remove_button',
 			'tab'        => 'sftp',
@@ -257,12 +266,13 @@ class WPCD_WORDPRESS_TABS_SFTP extends WPCD_WORDPRESS_TABS {
 			'save_field' => false,
 		);
 
+		// Close up prior card.
+		$fields[] = wpcd_end_card( $this->get_tab_slug() );
+
+		// Start new card.
+		$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
+
 		// change password - - show only those users who do not have a public key.
-		$fields[] = array(
-			'name' => '',
-			'tab'  => 'sftp',
-			'type' => 'divider',
-		);
 		$fields[] = array(
 			'name' => __( 'Change Password for an sFTP User', 'wpcd' ),
 			'tab'  => 'sftp',
@@ -312,12 +322,13 @@ class WPCD_WORDPRESS_TABS_SFTP extends WPCD_WORDPRESS_TABS {
 			'save_field' => false,
 		);
 
+		// Close up prior card.
+		$fields[] = wpcd_end_card( $this->get_tab_slug() );
+
+		// Start new card.
+		$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
+
 		// set key.
-		$fields[] = array(
-			'name' => '',
-			'tab'  => 'sftp',
-			'type' => 'divider',
-		);
 		$fields[] = array(
 			'name' => __( 'Set public key for an sFTP User', 'wpcd' ),
 			'tab'  => 'sftp',
@@ -367,12 +378,13 @@ class WPCD_WORDPRESS_TABS_SFTP extends WPCD_WORDPRESS_TABS {
 			'save_field' => false,
 		);
 
+		// Close up prior card.
+		$fields[] = wpcd_end_card( $this->get_tab_slug() );
+
+		// Start new card.
+		$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
+
 		// remove password - show only those users who have a public key.
-		$fields[] = array(
-			'name' => '',
-			'tab'  => 'sftp',
-			'type' => 'divider',
-		);
 		$fields[] = array(
 			'name' => __( 'Remove password for an sFTP User', 'wpcd' ),
 			'tab'  => 'sftp',
@@ -410,12 +422,13 @@ class WPCD_WORDPRESS_TABS_SFTP extends WPCD_WORDPRESS_TABS {
 			'save_field' => false,
 		);
 
+		// Close up prior card.
+		$fields[] = wpcd_end_card( $this->get_tab_slug() );
+
+		// Start new card.
+		$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
+
 		// remove key - show only those users who have a public key.
-		$fields[] = array(
-			'name' => '',
-			'tab'  => 'sftp',
-			'type' => 'divider',
-		);
 		$fields[] = array(
 			'name' => __( 'Remove public key for an sFTP User', 'wpcd' ),
 			'tab'  => 'sftp',
@@ -452,6 +465,9 @@ class WPCD_WORDPRESS_TABS_SFTP extends WPCD_WORDPRESS_TABS {
 			'class'      => 'wpcd_app_action',
 			'save_field' => false,
 		);
+
+		// Close up prior card.
+		$fields[] = wpcd_end_card( $this->get_tab_slug() );
 
 		return $fields;
 	}

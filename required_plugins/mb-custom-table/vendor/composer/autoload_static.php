@@ -33,7 +33,11 @@ class ComposerStaticInitd945ee7ed165fe78611a90a5171f2ea6
         'MetaBox\\CustomTable\\API' => __DIR__ . '/../..' . '/src/API.php',
         'MetaBox\\CustomTable\\Cache' => __DIR__ . '/../..' . '/src/Cache.php',
         'MetaBox\\CustomTable\\Loader' => __DIR__ . '/../..' . '/src/Loader.php',
+        'MetaBox\\CustomTable\\Model\\Admin' => __DIR__ . '/../..' . '/src/Model/Admin.php',
+        'MetaBox\\CustomTable\\Model\\Ajax' => __DIR__ . '/../..' . '/src/Model/Ajax.php',
         'MetaBox\\CustomTable\\Model\\Factory' => __DIR__ . '/../..' . '/src/Model/Factory.php',
+        'MetaBox\\CustomTable\\Model\\ListTable' => __DIR__ . '/../..' . '/src/Model/ListTable.php',
+        'MetaBox\\CustomTable\\Model\\MetaBox' => __DIR__ . '/../..' . '/src/Model/MetaBox.php',
         'MetaBox\\CustomTable\\Model\\Model' => __DIR__ . '/../..' . '/src/Model/Model.php',
         'MetaBox\\CustomTable\\Storage' => __DIR__ . '/../..' . '/src/Storage.php',
     );

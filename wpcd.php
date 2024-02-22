@@ -3,7 +3,7 @@
 Plugin Name: WPCloudDeploy
 Plugin URI: https://wpclouddeploy.com
 Description: Deploy and manage cloud servers and apps from inside the WordPress Admin dashboard.
-Version: 5.6.0
+Version: 5.7.0
 Requires at least: 5.8
 Requires PHP: 7.4
 Item Id: 1493
@@ -62,11 +62,13 @@ class WPCD_Init {
 			define( 'WPCD_SECONDARY_BRAND_COLOR', '#FF5722' );
 			define( 'WPCD_TERTIARY_BRAND_COLOR', '#03114A' );
 			define( 'WPCD_ACCENT_BG_COLOR', '#0d091a' );
-			define( 'WPCD_MEDIUM_BG_COLOR', '#FAFAFA' );
+			define( 'WPCD_MEDIUM_ACCENT_BG_COLOR', '#D3D3D3' );
+			define( 'WPCD_MEDIUM_BG_COLOR', '#F3F3F5' );
 			define( 'WPCD_LIGHT_BG_COLOR', '#FDFDFD' );
 			define( 'WPCD_ALTERNATE_ACCENT_BG_COLOR', '#CFD8DC' );
 			define( 'WPCD_POSITIVE_COLOR', '#008000' );
 			define( 'WPCD_NEGATIVE_COLOR', '#8B0000' );
+			define( 'WPCD_WHITE_COLOR', '#ffffff' );
 			define( 'WPCD_TERMINAL_BG_COLOR', '#000000' );
 			define( 'WPCD_TERMINAL_FG_COLOR', '#ffffff' );
 
@@ -75,11 +77,13 @@ class WPCD_Init {
 			define( 'WPCD_FE_SECONDARY_BRAND_COLOR', '#281d67' );
 			define( 'WPCD_FE_TERTIARY_BRAND_COLOR', '#03114A' );
 			define( 'WPCD_FE_ACCENT_BG_COLOR', '#0d091a' );
-			define( 'WPCD_FE_MEDIUM_BG_COLOR', '#FAFAFA' );
+			define( 'WPCD_FE_MEDIUM_ACCENT_BG_COLOR', '#D3D3D3' );
+			define( 'WPCD_FE_MEDIUM_BG_COLOR', '#F3F3F5' );
 			define( 'WPCD_FE_LIGHT_BG_COLOR', '#FDFDFD' );
 			define( 'WPCD_FE_ALTERNATE_ACCENT_BG_COLOR', '#CFD8DC' );
 			define( 'WPCD_FE_POSITIVE_COLOR', '#008000' );
 			define( 'WPCD_FE_NEGATIVE_COLOR', '#8B0000' );
+			define( 'WPCD_FE_WHITE_COLOR', '#ffffff' );
 
 			// Define a variable that can be used for versioning scripts - required to force multisite to use different version numbers for each site.
 			if ( is_multisite() ) {
@@ -187,6 +191,9 @@ class WPCD_Init {
 		require_once wpcd_path . 'includes/core/class-wpcd-posts-permission-type.php';
 		require_once wpcd_path . 'includes/core/class-wpcd-dns.php';
 		require_once wpcd_path . 'includes/core/functions.php';
+		require_once wpcd_path . 'includes/core/functions-kses.php';
+		require_once wpcd_path . 'includes/core/functions-icons.php';
+		require_once wpcd_path . 'includes/core/functions-metabox.php';
 
 		if ( defined( 'WPCD_LOAD_VPN_APP' ) && ( true === WPCD_LOAD_VPN_APP ) ) {
 			require_once wpcd_path . 'includes/core/apps/vpn/class-vpn-app.php';
@@ -369,6 +376,7 @@ class WPCD_Init {
 		/* Include the SETTINGS PAGE and other related metabox.io extension files */
 		require_once wpcd_path . 'required_plugins/mb-settings-page/mb-settings-page.php';
 		require_once wpcd_path . '/required_plugins/mb-admin-columns/mb-admin-columns.php';
+		require_once wpcd_path . '/required_plugins/meta-box-conditional-logic/meta-box-conditional-logic.php';		
 		require_once wpcd_path . '/required_plugins/meta-box-tabs/meta-box-tabs.php';
 		require_once wpcd_path . '/required_plugins/meta-box-tooltip/meta-box-tooltip.php';
 		require_once wpcd_path . '/required_plugins/mb-term-meta/mb-term-meta.php';
@@ -376,6 +384,9 @@ class WPCD_Init {
 		require_once wpcd_path . '/required_plugins/meta-box-group/meta-box-group.php';
 		require_once wpcd_path . '/required_plugins/mb-user-meta/mb-user-meta.php';
 		require_once wpcd_path . '/required_plugins/mb-custom-table/mb-custom-table.php';
+
+		/* Include custom metabox.io fields we created. */
+		require_once wpcd_path . 'includes/core/metabox-io-custom-fields/wpcd-card-container-field.php';
 
 		/* Load up some licensing files. */
 		if ( true === is_admin() ) {
@@ -385,6 +396,9 @@ class WPCD_Init {
 
 		/* Load up our files */
 		require_once wpcd_path . 'includes/core/functions.php';
+		require_once wpcd_path . 'includes/core/functions-kses.php';
+		require_once wpcd_path . 'includes/core/functions-icons.php';
+		require_once wpcd_path . 'includes/core/functions-metabox.php';
 		require_once wpcd_path . 'includes/core/class-wpcd-custom-fields.php';
 		require_once wpcd_path . 'includes/core/class-wpcd-roles-capabilities.php';
 		require_once wpcd_path . 'includes/core/class-wpcd-data-sync-rest.php';
@@ -407,6 +421,7 @@ class WPCD_Init {
 		require_once wpcd_path . 'includes/core/class-wpcd-posts-error-log.php';
 		require_once wpcd_path . 'includes/core/class-wpcd-posts-command-log.php';
 		require_once wpcd_path . 'includes/core/class-wpcd-posts-pending-tasks-log.php';
+		require_once wpcd_path . 'includes/core/class-wpcd-app-expiration.php';
 		require_once wpcd_path . 'includes/core/class-wpcd-server.php';
 		require_once wpcd_path . 'includes/core/class-wpcd-settings.php';
 		if ( wpcd_data_sync_allowed() ) {
@@ -487,6 +502,8 @@ class WPCD_Init {
 		if ( class_exists( 'WPCD_WooCommerce_Init' ) ) {
 			require_once wpcd_path . 'includes/core/apps/wordpress-app/class-wordpress-posts-update-plan.php';
 			require_once wpcd_path . 'includes/core/apps/wordpress-app/class-wordpress-posts-update-plan-log.php';
+			require_once wpcd_path . 'includes/core/apps/wordpress-app/class-wordpress-posts-quota-profile.php';
+			require_once wpcd_path . 'includes/core/apps/wordpress-app/class-wordpress-posts-quota-limits.php';
 		}
 
 		// Integrations for the WP APP.
@@ -659,7 +676,7 @@ class WPCD_Init {
 	/**
 	 * If critical crons aren't running, send email to admin.
 	 *
-	 * Action Hook: Init.
+	 * Action Hook: Shutdown.
 	 */
 	public function send_email_for_absent_crons() {
 
@@ -1009,17 +1026,17 @@ class WPCD_Init {
 		$add_ons['wpcd-google-provider/wpcd-google-provider.php']               = '1.3.0';
 		$add_ons['wpcd-hetzner-provider/wpcd-hetzner-provider.php']             = '1.4.1';
 		$add_ons['wpcd-linode-provider/wpcd-linode-provider']                   = '1.4.0';
-		$add_ons['wpcd-multisite/wpcd-multisite.php']                           = '1.6.0';
+		$add_ons['wpcd-multisite/wpcd-multisite.php']                           = '1.7.0';
 		$add_ons['wpcd-multi-tenant/wpcd-multi-tenant.php']                     = '1.0.0';
-		$add_ons['wpcd-power-tools/wpcd-power-tools.php']                       = '2.1.0';
+		$add_ons['wpcd-power-tools/wpcd-power-tools.php']                       = '2.4.0';
 		$add_ons['wpcd-redis/wpcd-redis.php']                                   = '1.3.1';
-		$add_ons['wpcd-server-sync/wpcd-server-sync.php']                       = '1.5.0';
+		$add_ons['wpcd-server-sync/wpcd-server-sync.php']                       = '1.6.0';
 		$add_ons['wpcd-upcloud-provider/wpcd-upcloud-provider.php']             = '2.3.0';
 		$add_ons['wpcd-virtual-cloud-provider/wpcd-virtual-cloud-provider.php'] = '1.1.1';
 		$add_ons['wpcd-vultr-provider/wpcd-vultr-provider.php']                 = '2.3.1';
 		$add_ons['wpcd-wc-sell-servers/wpcd-wc-sell-servers.php']               = '9999.9999.9999';
 		$add_ons['wpcd-wc-sell-sites/wpcd-wc-sell-sites.php']                   = '9999.9999.9999';
-		$add_ons['wpcd-woocommerce/wpcd-woocommerce.php']                       = '3.4.0';
+		$add_ons['wpcd-woocommerce/wpcd-woocommerce.php']                       = '3.6.0';
 
 		// Initialize list of incompatible add_ons.
 		$incompatible_add_ons = array();

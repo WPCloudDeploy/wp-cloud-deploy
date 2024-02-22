@@ -187,6 +187,7 @@ echo "Apt Check Error		:	$apt_check_error"  >> /var/log/wp-server-status.log
 	###############################################
 	echo $'#!/bin/bash
 callback_server_status='$callback_sites_status'
+callback_posttypes_status='$callback_posttypes_status'
 date=$(date +"%Y-%m-%d"-"%Hh%Mm%Ss")
 for domain in `ls /var/www | grep -v html`
 do
@@ -195,6 +196,7 @@ publicip=`curl ifconfig.me`
 wpversion=`su - $user_name -c "wp core version"|cut -d" " -f2`
 pluginupdate=`su - $user_name -c "wp plugin list --status=active --update=available"|grep -v name|wc -l`
 themeupdate=`su - $user_name -c "wp theme list --status=active --update=available"|grep -v name|wc -l`
+posttypes=`su - $user_name -c "wp post-type list --format=json --fields=name,count"`
 su - $user_name -c "wp core check-update"|grep latest
 if [ $? -ne 0 ]
 then
@@ -227,7 +229,10 @@ echo "Domain file size 			:       $domain_file_size"       >> /var/log/wp-site-s
 echo "Domain DB size 			:       $domain_db_size"       >> /var/log/wp-site-status.log
 echo "Domain Backup size 		:       $domain_backup_size"       >> /var/log/wp-site-status.log
 echo "WP Debug Flag 			:       $wpdebug"       >> /var/log/wp-site-status.log
+echo "Post Types 			:       $posttypes"        >> /var/log/wp-site-status.log
 curl -sS "$callback_server_status?domain=$domain&publicip=$publicip&wpversion=$wpversion&pluginupdate=$pluginupdate&themeupdate=$themeupdate&wpupdate=$wpupdate&domain_file_usage=$domain_file_size&domain_db_size=$domain_db_size&domain_backup_size=$domain_backup_size&wpdebug=$wpdebug"
+sleep 3
+curl -sS -X POST "$callback_posttypes_status?domain=$domain&publicip=$publicip" -H "Content-Type:application/json" -d "$posttypes"
 sleep 3
 done' > /usr/local/bin/wp-site-status
 

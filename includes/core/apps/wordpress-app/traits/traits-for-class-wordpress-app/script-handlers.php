@@ -83,13 +83,17 @@ trait wpcd_wpapp_script_handlers {
 				$return =
 				( strpos( $result, 'Basic authentication disabled for' ) !== false )
 				||
-				( strpos( $result, 'Basic authentication enabled for' ) !== false );
+				( strpos( $result, 'Basic authentication enabled for' ) !== false )
+				||
+				( strpos( $result, 'Basic auth is already enabled' ) !== false );
 				break;
 			case 'basic_auth_wplogin_misc.txt':
 				$return =
 				( strpos( $result, 'Basic authentication disabled for' ) !== false )
 				||
-				( strpos( $result, 'Basic authentication enabled for' ) !== false );
+				( strpos( $result, 'Basic authentication enabled for' ) !== false )
+				||
+				( strpos( $result, 'Wp Admin auth is already enabled' ) !== false );
 				break;
 			case 'toggle_https_misc.txt':
 				$return =

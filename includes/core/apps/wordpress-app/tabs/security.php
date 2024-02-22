@@ -214,6 +214,9 @@ class WPCD_WORDPRESS_TABS_SITE_SECURITY extends WPCD_WORDPRESS_TABS {
 		/* Array variable to hold our field definitions */
 		$fields = array();
 
+		// Start new card.
+		$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
+
 		// Heading text.
 		$desc = __( 'Activate & License SolidWP Security.', 'wpcd' );
 
@@ -223,7 +226,8 @@ class WPCD_WORDPRESS_TABS_SITE_SECURITY extends WPCD_WORDPRESS_TABS {
 		}
 
 		$fields[] = array(
-			'name' => __( 'SolidWP Security', 'wpcd' ),
+			/* Translators: %s is a fontawesome or similar icon. */
+			'name' => wpcd_apply_virus_icon( __( '%s SolidWP Security', 'wpcd' ) ),
 			'desc' => $desc,
 			'tab'  => $this->get_tab_slug(),
 			'type' => 'heading',
@@ -249,6 +253,9 @@ class WPCD_WORDPRESS_TABS_SITE_SECURITY extends WPCD_WORDPRESS_TABS {
 			'class'      => 'wpcd_app_action',
 			'save_field' => false,
 		);
+
+		// Close up prior card.
+		$fields[] = wpcd_end_card( $this->get_tab_slug() );
 
 		return $fields;
 

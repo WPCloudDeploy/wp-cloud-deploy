@@ -225,6 +225,7 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 
 		wp_enqueue_style( 'wpcd-magnific', wpcd_url . 'assets/css/magnific-popup.css', array(), wpcd_scripts_version );
 		wp_enqueue_style( 'wpcd-server-admin', wpcd_url . 'assets/css/wpcd-server-admin.css', array( 'wpcd-magnific' ), wpcd_scripts_version );
+		wp_enqueue_style( 'wpcd-cards-admin', wpcd_url . 'assets/css/wpcd-cards.css', array(), wpcd_scripts_version );
 
 	}
 
@@ -477,7 +478,7 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 				$value  .= $this->wpcd_column_wrap_string_with_div_and_class( $value2, 'server_size' );
 
 				// Add instance id to final output.
-				if ( boolval( wpcd_get_option( 'wordpress_app_show_server_instance_id_element_in_server_list') ) && ( ! boolval( wpcd_get_option( 'wpcd_server_list_instance_id_column' ) ) ) ) {
+				if ( boolval( wpcd_get_option( 'wordpress_app_show_server_instance_id_element_in_server_list' ) ) && ( ! boolval( wpcd_get_option( 'wpcd_server_list_instance_id_column' ) ) ) ) {
 					if ( ( ! boolval( wpcd_get_option( 'wpcd_server_list_hide_instance_id_column' ) ) ) || wpcd_is_admin() ) {
 						$value2  = $this->wpcd_column_wrap_string_with_span_and_class( __( 'Instance ID: ', 'wpcd' ), 'instance_id', 'left' );
 						$value2 .= $this->wpcd_column_wrap_string_with_span_and_class( $instance_id, 'instance_id', 'right' );
@@ -667,7 +668,7 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 								} else {
 									// No icon - just a note that say 'pending'
 									// Translators: %s is just a label with the word 'Pending' or similar.
-									$app_link = sprintf( '[%s]', __('Pending', 'wpcd') );
+									$app_link = sprintf( '[%s]', __( 'Pending', 'wpcd' ) );
 								}
 
 								// Add in the site url label and link to management tabs.
@@ -1386,34 +1387,34 @@ class WPCD_POSTS_APP_SERVER extends WPCD_Posts_Base {
 		if ( ( is_admin() && $pagenow === 'edit.php' && $typenow === $post_type ) || WPCD_WORDPRESS_APP_PUBLIC::is_servers_list_page() ) {
 
 			$providers = $this->generate_meta_dropdown( $post_type, 'wpcd_server_provider', __( 'All Providers', 'wpcd' ) );
-			echo $providers;
+			echo wpcd_kses_select( $providers );
 
 			$regions = $this->generate_meta_dropdown( $post_type, 'wpcd_server_region', __( 'All Regions', 'wpcd' ) );
-			echo $regions;
+			echo wpcd_kses_select( $regions );
 
 			$local_status = $this->generate_meta_dropdown( $post_type, 'wpcd_server_current_state', __( 'Local Status', 'wpcd' ) );
-			echo $local_status;
+			echo wpcd_kses_select( $local_status );
 
 			$taxonomy     = 'wpcd_app_server_group';
 			$server_group = $this->generate_term_dropdown( $taxonomy, __( 'Server Groups', 'wpcd' ) );
-			echo $server_group;
+			echo wpcd_kses_select( $server_group );
 
 			$ipv4 = $this->generate_meta_dropdown( $post_type, 'wpcd_server_ipv4', __( 'All IPv4', 'wpcd' ) );
-			echo $ipv4;
+			echo wpcd_kses_select( $ipv4 );
 
 			if ( wpcd_get_early_option( 'wpcd_show_ipv6' ) ) {
 				$ipv6 = $this->generate_meta_dropdown( $post_type, 'wpcd_server_ipv6', __( 'All IPv6', 'wpcd' ) );
-				echo $ipv6;
+				echo wpcd_kses_select( $ipv6 );
 			}
 
 			$server_owners = $this->generate_owner_dropdown( $post_type, 'wpcd_server_owner', __( 'Server Owners', 'wpcd' ) );
-			echo $server_owners;
+			echo wpcd_kses_select( $server_owners );
 
 			$restart_needed = $this->generate_meta_dropdown( $post_type, 'wpcd_server_restart_needed', __( 'Restart Needed', 'wpcd' ) );
-			echo $restart_needed;
+			echo wpcd_kses_select( $restart_needed );
 
 			$web_server_type = $this->generate_meta_dropdown( $post_type, 'wpcd_server_webserver_type', __( 'Web Server', 'wpcd' ) );
-			echo $web_server_type;
+			echo wpcd_kses_select( $web_server_type );
 		}
 	}
 

@@ -3,10 +3,11 @@
  * Plugin Name: Meta Box Columns
  * Plugin URI:  https://metabox.io/plugins/meta-box-columns/
  * Description: Display fields more beautiful by putting them into 12-columns grid.
- * Version:     1.2.15
+ * Version:     99.99.99
  * Author:      MetaBox.io
  * Author URI:  https://metabox.io
  * License:     GPL2+
+ * Note:        Modified by WPCD to add column_row_before and column_row_after html.
  */
 
 // Prevent loading this file directly.

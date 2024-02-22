@@ -171,6 +171,10 @@ class WPCD_WORDPRESS_TABS_STATISTICS extends WPCD_WORDPRESS_TABS {
 		$actions = array();
 
 		/* Disk Space Used */
+
+		// Start new card.
+		$actions[] = wpcd_start_half_card( $this->get_tab_slug() );
+
 		$actions['show-diskspace-used-header'] = array(
 			'label'          => __( 'Disk Space', 'wpcd' ),
 			'type'           => 'heading',
@@ -199,10 +203,16 @@ class WPCD_WORDPRESS_TABS_STATISTICS extends WPCD_WORDPRESS_TABS {
 			),
 			'type'           => 'button',
 		);
+
+		// Close up prior card.
+		$actions[] = wpcd_end_card( $this->get_tab_slug() );
 		/* End Disk Space Used */
 
 		/* VNSTAT */
 		if ( wpcd_get_early_option( 'wordpress_app_show_vnstat_in_app' ) ) {
+			// Start new card.
+			$actions[] = wpcd_start_half_card( $this->get_tab_slug() );
+
 			$actions['show-vnstat-header'] = array(
 				'label'          => __( 'VNSTAT', 'wpcd' ),
 				'type'           => 'heading',
@@ -236,6 +246,8 @@ class WPCD_WORDPRESS_TABS_STATISTICS extends WPCD_WORDPRESS_TABS {
 					'type'           => 'custom_html',
 				);
 			}
+			// Close up prior card.
+			$actions[] = wpcd_end_card( $this->get_tab_slug() );
 		}
 		/* End VNSTAT */
 
@@ -243,13 +255,20 @@ class WPCD_WORDPRESS_TABS_STATISTICS extends WPCD_WORDPRESS_TABS {
 		if ( true === (bool) wpcd_get_early_option( 'wordpress_app_hide_addl_stats_explanatory_text' ) && ( ! wpcd_is_admin() ) ) {
 			// Do nothing.
 		} else {
+			// Start new card.
+			$actions[] = wpcd_start_half_card( $this->get_tab_slug() );
+
 			$actions['stats-addl-data-location'] = array(
 				'label'          => __( 'Additional Statistics', 'wpcd' ),
 				'raw_attributes' => array(
-					'std' => __( 'You can view additional statistics in the STATISTICS tab on the server that is holding this site.' ),
+					'desc' => __( 'You can view additional statistics in the STATISTICS tab on the server that is holding this site.' ),
 				),
-				'type'           => 'custom_html',
+				'type'           => 'heading',
 			);
+
+			// Close up prior card.
+			$actions[] = wpcd_end_card( $this->get_tab_slug() );
+
 		}
 
 		return $actions;

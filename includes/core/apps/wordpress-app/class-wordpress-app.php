@@ -137,6 +137,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		add_action( "wpcd_{$this->get_app_name()}_command_server_status_completed", array( &$this, 'push_command_server_status_completed' ), 10, 4 );  // When a server sends us it's daily status report, part 1 - see bash script #24.
 		add_action( "wpcd_{$this->get_app_name()}_command_sites_status_completed", array( &$this, 'push_command_sites_status_completed' ), 10, 4 );  // When a server sends us it's daily status report, part 2 - see bash script #24.
 		add_action( "wpcd_{$this->get_app_name()}_command_aptget_status_completed", array( &$this, 'push_command_aptget_status_completed' ), 10, 4 );  // When a server sends us information that apt-get is running - see bash script #24.
+		add_action( "wpcd_{$this->get_app_name()}_command_posttypes_status_completed", array( &$this, 'push_command_posttypes_status_completed' ), 10, 6 );  // When a server sends us information about the post types on a site - see bash script #24.
 		add_action( "wpcd_{$this->get_app_name()}_command_maldet_scan_completed", array( &$this, 'push_command_maldet_scan_completed' ), 10, 4 );  // When a server sends us a report of maldet scan results - see bash script #26.
 		add_action( "wpcd_{$this->get_app_name()}_command_server_restart_completed", array( &$this, 'push_command_server_restart_completed' ), 10, 4 );  // When a server sends us a report of restart or shutdown.
 		add_action( "wpcd_{$this->get_app_name()}_command_monit_log_completed", array( &$this, 'push_command_monit_log_completed' ), 10, 4 );  // When a server sends us a monit alert or report.
@@ -195,6 +196,9 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		/*********************************************
 		* Hooks and filters for screens in wp-admin
 		*/
+
+		// Filter hook to setup additional search fields specific to the wordpress-app.
+		add_filter( 'wpcd_app_search_fields', array( $this, 'wpcd_app_search_fields' ), 10, 1 );
 
 		// Filter hook to add new columns to the APP list.
 		add_filter( 'manage_wpcd_app_posts_columns', array( $this, 'app_posts_app_table_head' ), 10, 1 );
@@ -753,7 +757,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	public static function get_wp_versions() {
 
 		// @SEE: https://wordpress.org/download/releases/
-		$versions          = array( 'latest', '6.4.1', '6.3.2', '6.2.3', '6.1.4', '6.0.6', '5.9.8', '5.8.8', '5.7.10', '5.6.12', '5.5.13', '5.4.14', '5.3.16', '5.2.19', '5.1.17', '5.0.20', '4.9.24', '4.8.23', '4.7.27' );
+		$versions          = array( 'latest', '6.4.3', '6.3.3', '6.2.4', '6.1.5', '6.0.7', '5.9.9', '5.8.9', '5.7.11', '5.6.13', '5.5.14', '5.4.15', '5.3.17', '5.2.20', '5.1.18', '5.0.21', '4.9.25', '4.8.24', '4.7.28' );
 		$override_versions = wpcd_get_option( 'wordpress_app_allowed_wp_versions' );
 
 		if ( ! empty( $override_versions ) ) {
@@ -989,6 +993,40 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		}
 
 		return $value;
+
+	}
+
+	/**
+	 * Get the status of cusstom ssl stored in the metadata for a site.
+	 *
+	 * @param string $app_id is the post id of the app record we're asking about.
+	 *
+	 * @return boolean
+	 */
+	public function get_site_local_custom_ssl_status( $app_id ) {
+
+		$value = false;
+
+		// Check custom ssl metas.
+		if ( 'on' === get_post_meta( $app_id, 'wpapp_custom_ssl_status', true ) ) {
+			$value = true;
+		} else {
+			$value = false;
+		}
+
+		return $value;
+
+	}
+
+	/**
+	 * Set the status of custom ssl stored in the metadata for a site.
+	 *
+	 * @param string $app_id is the post id of the app record we're asking about.
+	 * @param string $status 'on' or 'off.
+	 */
+	public function set_site_local_custom_ssl_status( $app_id, $status ) {
+
+		update_post_meta( $app_id, 'wpapp_custom_ssl_status', $status );
 
 	}
 
@@ -1500,6 +1538,34 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 		return false;
 	}
+
+	/**
+	 * Returns a boolean true/false if wpcli 2.10 is installed.
+	 *
+	 * @param int $server_id ID of server being interrogated.
+	 *
+	 * @return boolean
+	 */
+	public function is_wpcli210_installed( $server_id ) {
+
+		$initial_plugin_version = $this->get_server_meta_by_app_id( $server_id, 'wpcd_server_plugin_initial_version', true );  // This function is smart enough to know if the ID being passed is a server or app id and adjust accordingly.
+
+		if ( version_compare( $initial_plugin_version, '5.6.1' ) > -1 ) {
+			// Versions of the plugin after 5.6.0 automatically install wpcli 2.10.
+			return true;
+		} else {
+			// See if it was manually upgraded - which would leave a meta field value behind on the server CPT record.
+			$it_is_installed = (float) $this->get_server_meta_by_app_id( $server_id, 'wpcd_server_wpcli_upgrade', true );   // This function is smart enough to know if the ID being passed is a server or app id and adjust accordingly.
+			if ( $it_is_installed >= 2.10 ) {
+				return true;
+			} else {
+				return false;
+			}
+		}
+
+		return false;
+	}
+
 
 	/**
 	 * Returns a boolean true/false if the PHP Module INTL is supposed to be installed on the server.
@@ -3860,6 +3926,28 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			}
 		}
 
+		// Update expiration.
+		$expiration_in_minutes = (int) get_post_meta( $site_package_id, 'wpcd_site_package_expire_site_minutes', true );
+		if ( true === $is_subscription_switch ) {
+			// If switching expiration, only update the expiration date on the site if the package expiration field is zero or empty.
+			if ( empty( $expiration_in_minutes ) ) {
+				WPCD_APP_EXPIRATION()->clear_expiration( $app_id );
+			}
+		} else {
+			// New site.
+			if ( ! empty( $expiration_in_minutes ) ) {
+				WPCD_APP_EXPIRATION()->set_expiration( $app_id, $expiration_in_minutes );
+			}
+		}
+
+		// Create quota records.
+		if ( class_exists( 'WPCD_WooCommerce_Init' ) ) {
+			$quota_profile = (int) get_post_meta( $site_package_id, 'wpcd_site_package_quota_profile', true );
+			if ( ! empty( $quota_profile ) ) {
+				WPCD_POSTS_QUOTA_LIMITS()->create_limits( $quota_profile, $app_id );
+			}
+		}
+
 		// Search and replace here - future use.
 
 		// Crons here - future use.
@@ -3900,7 +3988,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		// So flag the record as such.
 		update_post_meta( $app_id, 'wpapp_site_package_core_rules_complete', true );
 
-		// Clear 'in-process transient.
+		// Clear 'in-process' transient.
 		$transient_name = $app_id . 'wpcd_site_package_running';
 		delete_transient( $transient_name );
 
@@ -4691,16 +4779,13 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		wp_clear_scheduled_hook( 'wpcd_wordpress_file_watcher' );
 		wp_schedule_event( time(), 'every_minute', 'wpcd_wordpress_file_watcher' );
 
-		// setup deferred instance actions schedule.
+		// setup deferred instance actions schedule that acts on server records.
 		wp_clear_scheduled_hook( 'wpcd_wordpress_deferred_actions_for_server' );
 		wp_schedule_event( time(), 'every_minute', 'wpcd_wordpress_deferred_actions_for_server' );
 
-		// setup repeated actions schedule.
+		// setup actions schedule that acts on app records.
 		wp_clear_scheduled_hook( 'wpcd_wordpress_deferred_actions_for_apps' );
 		wp_schedule_event( time(), 'every_minute', 'wpcd_wordpress_deferred_actions_for_apps' );
-
-		// @TODO does not work because the cron schedule is not registered.
-		// wp_schedule_event( time(), 'every-10-seconds', "wpcd_wordpress_repeated_actions_for_apps" );
 	}
 
 	/**
@@ -4863,12 +4948,13 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	 * @param string $label The label to use for the link.
 	 */
 	public function get_passwordless_login_link_for_display( $app_id, $label ) {
-		return sprintf(
+		$return = sprintf(
 			'<a class="wpcd_action_passwordless_login" data-wpcd-id="%d" data-wpcd-domain="%s" href="">%s</a>',
 			$app_id,
 			$this->get_domain_name( $app_id ),
 			esc_html( $label ),
 		);
+		return apply_filters( 'wpcd_wordpress-app_passwordless_login_link', $return, $app_id );
 	}
 
 
@@ -4966,7 +5052,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				'off' => __( 'Disabled', 'wpcd' ),
 			);
 			$app_status         = $this->generate_meta_dropdown( 'wpapp_site_status', __( 'App Status', 'wpcd' ), $app_status_options );
-			echo $app_status;
+			echo wpcd_kses_select( $app_status );
 
 			// PHP VERSION.
 			$php_version_options = array(
@@ -4980,7 +5066,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				'8.2' => '8.2',
 			);
 			$php_version         = $this->generate_meta_dropdown( 'wpapp_php_version', __( 'PHP Version', 'wpcd' ), $php_version_options );
-			echo $php_version;
+			echo wpcd_kses_select( $php_version );
 
 			// CACHE.
 			$cache_options  = array(
@@ -4988,10 +5074,10 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				'off' => __( 'Disabled', 'wpcd' ),
 			);
 			$php_page_cache = $this->generate_meta_dropdown( 'wpapp_page_cache_status', __( 'Page Cache', 'wpcd' ), $cache_options );
-			echo $php_page_cache;
+			echo wpcd_kses_select( $php_page_cache );
 
 			$php_object_cache = $this->generate_meta_dropdown( 'wpapp_object_cache_status', __( 'Object Cache', 'wpcd' ), $cache_options );
-			echo $php_object_cache;
+			echo wpcd_kses_select( $php_object_cache );
 
 			// SITE NEEDS UPDATES.
 			$updates_options    = array(
@@ -4999,10 +5085,22 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				'no'  => __( 'No', 'wpcd' ),
 			);
 			$site_needs_updates = $this->generate_meta_dropdown( 'wpapp_sites_needs_updates', __( 'Site Needs Updates', 'wpcd' ), $updates_options );
-			echo $site_needs_updates;
+			echo wpcd_kses_select( $site_needs_updates );
 
 			/* Stuff only the admin should see. */
 			if ( wpcd_is_admin() ) {
+
+				/**
+				 * Filters for site expiration status.
+				 */
+				$expiration_options = array(
+					'1' => __( 'Expired', 'wpcd' ),
+					'0' => __( 'Not Expired (Marked)', 'wpcd' ),
+				);
+				$expiration         = $this->generate_meta_dropdown( 'wpcd_app_expired_status', __( 'Expiration Status', 'wpcd' ), $expiration_options );
+
+				echo wpcd_kses_select( $expiration );
+
 				/**
 				 * Filters specific to WooCommerce
 				 */
@@ -5014,7 +5112,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 						'0' => __( 'No', 'wpcd' ),
 					);
 					$is_template           = $this->generate_meta_dropdown( 'wpapp_is_template', __( 'Template', 'wpcd' ), $template_flag_options );
-					echo $is_template;
+					echo wpcd_kses_select( $is_template );
 
 				}
 
@@ -5025,15 +5123,32 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 					// MT SITE TYPE.
 					$mt_site_type = WPCD_POSTS_APP()->generate_meta_dropdown( 'wpcd_app', 'wpcd_app_mt_site_type', __( 'MT Site Type', 'wpcd' ) );
-					echo $mt_site_type;
+					echo wpcd_kses_select( $mt_site_type );
 
 					// MT VERSION.
 					$mt_site_type = WPCD_POSTS_APP()->generate_meta_dropdown( 'wpcd_app', 'wpcd_app_mt_version', __( 'MT Version', 'wpcd' ) );
-					echo $mt_site_type;
+					echo wpcd_kses_select( $mt_site_type );
 
 					// MT PARENT ID.
 					$mt_parent_id = WPCD_POSTS_APP()->generate_meta_dropdown( 'wpcd_app', 'wpcd_app_mt_parent', __( 'MT Parent Template', 'wpcd' ) );
-					echo $mt_parent_id;
+					echo wpcd_kses_select( $mt_parent_id );
+				}
+
+				/**
+				 * Filters specific to WooCommerce
+				 */
+				if ( true === wpcd_is_wc_module_enabled() ) {
+					// IS WOOCOMMERCE ORDER?
+					$selected_value      = sanitize_text_field( filter_input( INPUT_GET, 'wpcd_app_is_wc', FILTER_UNSAFE_RAW ) ); // Get existing value selected, if any.
+					$html_output_for_wc  = '<select name="wpcd_app_is_wc" id="filter-by-wpcd_app_is_wc">';
+					$html_output_for_wc .= '<option>' . __( 'Is WC Order?', 'wpcd' ) . '</option>';
+					if ( '1' === $selected_value ) {
+						$html_output_for_wc .= '<option value="1" selected="selected">' . __( 'Yes', 'wpcd' ) . '</option>';
+					} else {
+						$html_output_for_wc .= '<option value="1">' . __( 'Yes', 'wpcd' ) . '</option>';
+					}
+					$html_output_for_wc .= ' </select>';
+					echo wpcd_kses_select( $html_output_for_wc );
 				}
 			}
 		}
@@ -5210,6 +5325,30 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				}
 			}
 
+			// SITE EXPIRATION.
+			if ( isset( $_GET['wpcd_app_expired_status'] ) && ! empty( $_GET['wpcd_app_expired_status'] ) ) {
+				$wpapp_site_expired_status = sanitize_text_field( filter_input( INPUT_GET, 'wpcd_app_expired_status', FILTER_UNSAFE_RAW ) );
+
+				if ( '0' === $wpapp_site_expired_status || '1' === $wpapp_site_expired_status ) {
+
+					$qv['meta_query'][] = array(
+						'relation' => 'OR',
+						array(
+							'key'     => 'wpcd_app_expired_status',
+							'value'   => $wpapp_site_expired_status,
+							'type'    => 'NUMERIC',
+							'compare' => '=',
+						),
+					);
+				} else {
+					$qv['meta_query'][] = array(
+						'key'     => 'wpcd_app_expired_status',
+						'value'   => $wpapp_site_expired_status,
+						'compare' => '=',
+					);
+				}
+			}
+
 			// Template Flag.
 			// @todo: This logic does not handle empty metas.
 			if ( isset( $_GET['wpapp_is_template'] ) && ! empty( $_GET['wpapp_is_template'] ) ) {
@@ -5277,6 +5416,25 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 							'compare' => '=',
 						),
 					);
+				}
+			}
+
+			// IS WOOCOMMERCE ORDER?
+			if ( wpcd_is_admin() ) {
+				if ( isset( $_GET['wpcd_app_is_wc'] ) && ! empty( $_GET['wpcd_app_is_wc'] ) ) {
+					$wpapp_is_wc = sanitize_text_field( filter_input( INPUT_GET, 'wpcd_app_is_wc', FILTER_UNSAFE_RAW ) );
+
+					if ( '1' === $wpapp_is_wc ) {
+
+						$qv['meta_query'][] = array(
+							'relation' => 'OR',
+							array(
+								'key'     => 'wpapp_wc_subscription_id',
+								'value'   => '',
+								'compare' => '!=',
+							),
+						);
+					}
 				}
 			}
 		}

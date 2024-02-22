@@ -131,7 +131,7 @@ class WPCD_POSTS_Site_Package extends WPCD_Posts_Base {
 				'field_type' => 'select_advanced',
 				'multiple'   => true,
 				'save_field' => true,
-				'desc'       => __( 'These groups/categories will the applied to a new site.', 'wpcd' ),
+				'desc'       => __( 'These groups/categories will be applied to a new site.', 'wpcd' ),
 				'columns'    => 6,
 			),
 			array(
@@ -142,7 +142,7 @@ class WPCD_POSTS_Site_Package extends WPCD_Posts_Base {
 				'field_type' => 'select_advanced',
 				'multiple'   => true,
 				'save_field' => true,
-				'desc'       => __( 'These groups/categories will the applied to a existing sites during a subscription switch.', 'wpcd' ),
+				'desc'       => __( 'These groups/categories will be applied to existing sites during a subscription switch.', 'wpcd' ),
 				'columns'    => 6,
 			),
 			array(
@@ -153,7 +153,7 @@ class WPCD_POSTS_Site_Package extends WPCD_Posts_Base {
 				'field_type' => 'select_advanced',
 				'multiple'   => true,
 				'save_field' => true,
-				'desc'       => __( 'These groups/categories will the removed from the site during a subscription upgrade/downgrade/switch.', 'wpcd' ),
+				'desc'       => __( 'These groups/categories will be removed from the site during a subscription upgrade/downgrade/switch.', 'wpcd' ),
 				'columns'    => 6,
 			),
 		);
@@ -442,6 +442,29 @@ class WPCD_POSTS_Site_Package extends WPCD_Posts_Base {
 				'columns'    => 3,
 			),
 			array(
+				'name'       => __( 'Expire Site', 'wpcd' ),
+				'id'         => $prefix . 'site_package_expire_site_minutes',
+				'type'       => 'number',
+				'min'        => 0,
+				'std'        => 0,
+				'save_field' => true,
+				'desc'       => __( 'How many minutes after site creation should the site expire?', 'wpcd' ),
+				'tooltip'    => __( 'Enter the number of minutes after site creation that the site should expire. FYI: 1440 is the number of minutes in one day.', 'wpcd' ),
+				'columns'    => 3,
+			),
+			array(
+				'name'       => __( 'Quota Profile', 'wpcd' ),
+				'id'         => $prefix . 'site_package_quota_profile',
+				'type'       => 'post',
+				'post_type'  => 'wpcd_quota_profile',
+				'query_args' => array(
+					'posts_per_page' => - 1,
+				),
+				'field_type' => 'select_advanced',
+				'save_field' => true,
+				'columns'    => 3,
+			),
+			array(
 				'name'       => __( 'Disable HTTP Authentication', 'wpcd' ),
 				'id'         => $prefix . 'site_package_disable_http_auth',
 				'type'       => 'checkbox',
@@ -454,7 +477,7 @@ class WPCD_POSTS_Site_Package extends WPCD_Posts_Base {
 				'name'       => __( 'Activate Logtivity', 'wpcd' ),
 				'id'         => $prefix . 'site_package_activate_logtivity',
 				'type'       => 'checkbox',
-				'std'        => true,
+				'std'        => false,
 				'save_field' => true,
 				'columns'    => 3,
 			),
@@ -462,7 +485,7 @@ class WPCD_POSTS_Site_Package extends WPCD_Posts_Base {
 				'name'       => __( 'Activate SolidWP Security', 'wpcd' ),
 				'id'         => $prefix . 'site_package_activate_solidwp_security',
 				'type'       => 'checkbox',
-				'std'        => true,
+				'std'        => false,
 				'save_field' => true,
 				'columns'    => 3,
 			),
@@ -671,7 +694,7 @@ class WPCD_POSTS_Site_Package extends WPCD_Posts_Base {
 
 		$screen = get_current_screen();
 
-		if ( 'wpcd_site_package' == $screen->post_type ) {
+		if ( 'wpcd_site_package' === $screen->post_type ) {
 			$title = 'Enter a name for this new site package';
 		}
 

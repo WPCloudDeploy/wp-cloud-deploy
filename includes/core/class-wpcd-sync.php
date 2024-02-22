@@ -476,7 +476,7 @@ class WPCD_SYNC {
 							);
 
 							if ( in_array( $key, $values_to_unserialize_keys ) ) {
-								$value = unserialize( $value );
+								$value = wpcd_maybe_unserialize( $value );
 							}
 
 							update_post_meta( $post_id, $key, $value );
@@ -567,7 +567,7 @@ class WPCD_SYNC {
 							$values_to_unserialize_keys = array( 'wpcd_app_action_args' );
 
 							if ( in_array( $key, $values_to_unserialize_keys ) ) {
-								$value = unserialize( $value );
+								$value = wpcd_maybe_unserialize( $value );
 							}
 
 							update_post_meta( $post_id, $key, $value );

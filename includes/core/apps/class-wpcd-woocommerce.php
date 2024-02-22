@@ -45,6 +45,7 @@ class WPCD_WOOCOMMERCE {
 		$items = $order->get_items();
 		foreach ( $items as $item ) {
 			$product_id = $item->get_product_id();
+			$product_id = apply_filters( 'wpcd_does_order_contain_item_of_type_product_id', $product_id, $item );
 			$is_type    = get_post_meta( $product_id, "wpcd_app_{$item_type}_product", true );
 			if ( 'yes' === $is_type ) {
 				$found = true;
@@ -52,7 +53,7 @@ class WPCD_WOOCOMMERCE {
 			}
 		}
 
-		return $found;
+		return apply_filters( 'wpcd_does_order_contain_item_of_type', $found );
 	}
 
 	/**
@@ -77,6 +78,7 @@ class WPCD_WOOCOMMERCE {
 		$items  = $order->get_items();
 		foreach ( $items as $item ) {
 			$product_id = $item->get_product_id();
+			$product_id = apply_filters( 'wpcd_does_order_suppress_thank_you_notice_product_id', $product_id, $item );
 			$is_type    = get_post_meta( $product_id, "wpcd_app_{$item_type}_product", true );
 			if ( 'yes' === $is_type ) {
 				$suppress = get_post_meta( $product_id, "wpcd_app_{$item_type}_no_global_thankyou_notice", true );
@@ -87,7 +89,7 @@ class WPCD_WOOCOMMERCE {
 			}
 		}
 
-		return $return;
+		return apply_filters( 'wpcd_does_order_suppress_thank_you_notice', $return );
 	}
 
 	/**
@@ -104,7 +106,7 @@ class WPCD_WOOCOMMERCE {
 		foreach ( WC()->cart->get_cart() as $cart_item_key => $cart_item ) {
 			// Is this a WP Sites Product?  If not get out.
 			$is_type = get_post_meta( $cart_item['product_id'], "wpcd_app_{$item_type}_product", true );
-			if ( 'yes' == $is_type ) {
+			if ( 'yes' === $is_type ) {
 				$found = true;
 				break;
 			}
@@ -131,12 +133,13 @@ class WPCD_WOOCOMMERCE {
 		$items = $order->get_items();
 		foreach ( $items as $item ) {
 			$product_id = $item->get_product_id();
+			$product_id = apply_filters( 'wpcd_get_unique_products_on_order_product_id', $product_id, $item );
 			if ( ! in_array( $product_id, $return, true ) ) {
 				array_push( $return, $product_id );
 			}
 		}
 
-		return $return;
+		return apply_filters( 'get_unique_products_on_order', $return );
 
 	}
 
@@ -154,7 +157,7 @@ class WPCD_WOOCOMMERCE {
 
 		$is_type = get_post_meta( $product_id, "wpcd_app_{$item_type}_product", true );
 
-		if ( 'yes' == $is_type ) {
+		if ( 'yes' === $is_type ) {
 			return true;
 		} else {
 			return false;

@@ -278,8 +278,8 @@ trait wpcd_wpapp_push_commands {
 			// update the meta that holds the sites needs update check.
 			update_post_meta( $app_id, 'wpcd_site_needs_updates', $update_needed );
 
-			// Check site quotas.
-			$this->check_site_quotas( $app_id );
+			// Check disk quotas for site.
+			$this->check_site_disk_quotas( $app_id );
 
 			// Let other plugins react to the new good data with an action hook.
 			do_action( "wpcd_{$this->get_app_name()}_command_{$name}_{$status}_processed_good", $sites_status_items, $app_id, $id );
@@ -295,6 +295,99 @@ trait wpcd_wpapp_push_commands {
 
 		// Let other plugins react to the new data (regardless of it's good or bad) with an action hook.
 		do_action( "wpcd_{$this->get_app_name()}_command_{$name}_{$status}_processed", $sites_status_items, $app_id, $id );
+
+	}
+
+	/**
+	 * Handles posttypes status pushes from bash script #24 - part 4 - posttypes status.
+	 *
+	 * ************************************************************************************************************
+	 * Note that this function is accepting 6 params instead of 4 like the others.
+	 * This is because as of v5.7, the rest api endpoint function is calling the action with the new 5th parameter.
+	 * See /includes/core/apps/class-wpcd-app.php, function perform_command around line 935 or so.
+	 * *************************************************************************************************************
+	 *
+	 * Action Hook: wpcd_command_{$this->get_app_name()}_command_posttypes_status_completed || wpcd_{$this->get_app_name()}_command_{$name}_{$status}
+	 *
+	 * @param int          $id server post id.
+	 * @param int          $command_id an id that is given to the bash script at the time it's first run. Doesn't do anything for us in this context so it's not used here.
+	 * @param string       $name name.
+	 * @param string       $status status.
+	 * @param array|object $params The parameters sent to the REST API endpoint (which is actually a WP REST API object).
+	 *
+	 * @return void.
+	 */
+	public function push_command_posttypes_status_completed( $id, $command_id, $name, $status, $params ) {
+
+		// Set variable to status, in this case it is always "completed" - will be used in action hooks later.
+		$status = 'completed';
+
+		// set variable to name, in this case it is always "posttypes_status" - will be used in action hooks later.
+		$name = 'posttypes_status';
+
+		// Create an array to hold items taken from the $_request object.
+		$posttypes_items_raw = $params->get_json_params();
+
+		// Bail early if invalid array.
+		if ( empty( $posttypes_items_raw ) || ( ! is_array( $posttypes_items_raw ) ) || ( is_wp_error( $posttypes_items_raw ) ) ) {
+			return;
+		}
+
+		// Set variable to hold extracted data.
+		$posttypes_items = array();
+
+		// Fill array with extracted data, sanitizing as we go.
+		foreach ( $posttypes_items_raw as $key => $data ) {
+			$posttypes_items[ sanitize_text_field( $data['name'] ) ] = (int) $data['count'];
+		}
+
+		// Get domain name and ip.
+		$domain    = wp_kses( filter_input( INPUT_GET, 'domain', FILTER_UNSAFE_RAW ), array(), array() );
+		$public_ip = wp_kses( filter_input( INPUT_GET, 'publicip', FILTER_UNSAFE_RAW ), array(), array() );
+
+		// Locate the site post id(appid) based on a combination of the domain name and the server ip address.
+		$app_id = $this->get_app_id_by_server_id_and_domain( $id, $domain );
+
+		// Stamp the site/app record with the array.
+		if ( 'wpcd_app' === get_post_type( $app_id ) ) {
+
+			// update the meta that holds the current data..
+			update_post_meta( $app_id, 'wpcd_site_posttypes_push', $posttypes_items );
+
+			// add to history meta as well.
+			$history = wpcd_maybe_unserialize( get_post_meta( $app_id, 'wpcd_site_posttypes_push_history', true ) );
+			if ( empty( $history ) ) {
+				$history = array();
+			}
+
+			$history[ ' ' . (string) time() ] = $posttypes_items; // we have to force the time element to be a string by putting a space in front of it otherwise manipulating the array as a key-value pair is a big problem if we want to purge just part of the array later.
+
+			if ( count( $history ) >= 10 ) {
+				// take the last element off to prevent history from getting too big.
+				$removed = array_shift( $history );
+			}
+
+			update_post_meta( $app_id, 'wpcd_site_posttypes_push_history', $history );
+
+			// Check site quotas.
+			if ( boolval( wpcd_get_option( 'wordpress_app_sites_enable_quota' ) ) ) {
+				WPCD_POSTS_QUOTA_LIMITS()->create_pending_log_quota_limit_actions_for_site( $app_id );
+			}
+
+			// Let other plugins react to the new good data with an action hook.
+			do_action( "wpcd_{$this->get_app_name()}_command_{$name}_{$status}_processed_good", $posttypes_items, $app_id, $id );
+
+		} else {
+
+			do_action( 'wpcd_log_error', 'Data received for server that does not exist - received server id ' . (string) $id . '<br /> The first 5000 characters of the received data is shown below after being sanitized with WP_KSES:<br /> ' . substr( wp_kses( print_r( $_REQUEST, true ), array() ), 0, 5000 ), 'security', __FILE__, __LINE__ );
+
+			// Let other plugins react to the new bad data with an action hook.
+			do_action( "wpcd_{$this->get_app_name()}_command_{$name}_{$status}_processed_bad", $posttypes_items, $app_id, $id );
+
+		}
+
+		// Let other plugins react to the new data (regardless of it's good or bad) with an action hook.
+		do_action( "wpcd_{$this->get_app_name()}_command_{$name}_{$status}_processed", $posttypes_items, $app_id, $id );
 
 	}
 
@@ -387,7 +480,7 @@ trait wpcd_wpapp_push_commands {
 	 *
 	 * @return void.
 	 */
-	public function check_site_quotas( $app_id ) {
+	public function check_site_disk_quotas( $app_id ) {
 
 		// How much diskspace is allowed?
 		$disk_space_quota = $this->get_site_disk_quota( $app_id );
@@ -397,7 +490,7 @@ trait wpcd_wpapp_push_commands {
 
 		// if disk limit is exceeded add notification and maybe disable and lock site.
 		if ( $used_disk > $disk_space_quota && $disk_space_quota > 0 ) {
-			/* translators: %s is replaced with the number of plugin updates pending for the site. */
+			/* translators: %1$d is replaced with the quota for the disk space. %2$d is replaced with the amount of diskspace used on the site. */
 			do_action( 'wpcd_log_notification', $app_id, 'alert', sprintf( __( 'This site has exceeded its disk quota: Allowed quota: %1$d MB, Currently used: %2$d MB.', 'wpcd' ), $disk_space_quota, $used_disk ), 'quotas', null );
 
 			// Maybe disable the site. But only do it if the site has not already in that state.
@@ -408,12 +501,26 @@ trait wpcd_wpapp_push_commands {
 				}
 			}
 
+			// Maybe apply http authentication to the site. But only do it if the site is enabled - this way we don't try to apply config settings to a file that might not exist.
+			if ( boolval( wpcd_get_option( 'wordpress_app_sites_disk_quota_enable_http_auth' ) ) ) {
+				if ( 'on' === $this->site_status( $app_id ) ) {
+					do_action( 'wpcd_wordpress-app_do_site_enable_http_auth', $app_id );
+					do_action( 'wpcd_log_notification', $app_id, 'alert', __( 'This site is being password protected because the disk quota has been exceeded.', 'wpcd' ), 'quotas', null );
+				}
+			}
+
 			// Maybe apply an admin lock to the site. But only do it if the site has not already in that state.
 			if ( boolval( wpcd_get_option( 'wordpress_app_sites_disk_quota_admin_lock_site' ) ) ) {
 				if ( ! $this->get_admin_lock_status( $app_id ) ) {
 					WPCD_WORDPRESS_APP()->set_admin_lock_status( $app_id, 'on' );
-					do_action( 'wpcd_log_notification', $app_id, 'alert', __( 'This site has had it\'s admin lock applied because the disk quota has been exceeded.', 'wpcd' ), 'quotas', null );
+					do_action( 'wpcd_log_notification', $app_id, 'alert', __( 'This site has had its admin lock applied because the disk quota has been exceeded.', 'wpcd' ), 'quotas', null );
 				}
+			}
+
+			// Maybe expire the site.
+			if ( (int) wpcd_get_option( 'wordpress_app_sites_disk_quota_expire_site' ) > 0 ) {
+				WPCD_APP_EXPIRATION()->set_expiration( $app_id, (int) wpcd_get_option( 'wordpress_app_sites_disk_quota_expire_site' ) );
+				do_action( 'wpcd_log_notification', $app_id, 'alert', __( 'This site has had expiration date set because the disk quota has been exceeded.', 'wpcd' ), 'quotas', null );
 			}
 		}
 

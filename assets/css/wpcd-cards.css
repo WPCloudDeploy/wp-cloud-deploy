@@ -1,0 +1,197 @@
+/**
+ * This file contains css related to cards inside tabs.  
+ * We've modified the metabox COLUMNS add-on to inject
+ * some html and the CSS in this file formats that.
+ * 
+ * See also /includes/core/functions-metabox.php.
+ */
+.wpcd-card-group {
+	background-color: var(--wpcd-white-color);	
+	margin-top: 10px;
+	margin-right: 20px;
+	margin-bottom: 10px;
+	border: solid;
+	border-width: 1px;
+	border-color: var(--wpcd-medium-accent-background-color);
+	border-radius: 4px;
+	padding-left: 15px;
+	padding-right: 15px;
+	padding-bottom: 15px;
+	x-box-shadow: rgba(0, 0, 0, 0.16) 0px 10px 36px 0px, rgba(0, 0, 0, 0.06) 0px 0px 0px 1px;
+}
+.wpcd-card-group:hover,
+.wpcd-card-group:focus {
+	box-shadow: rgba(0, 0, 0, 0.25) 0px 25px 50px -12px;
+}
+.wpcd-card-group:hover {
+	border-color: var(--wpcd-primary-brand-color);
+}
+
+.wpcd-card-full {
+	width: 100%;
+}
+
+.wpcd-card-full-no-border {
+	width: 100%;
+	border: none;
+	margin-bottom: 0px;
+	padding-bottom: 0px;
+}
+
+.wpcd-card-full-no-border {
+	width: 100%;
+	border: none;
+	margin-bottom: 0px;
+	padding-bottom: 0px;
+}
+
+.wpcd-card-full-page-heading {
+	/* This is usually used in combination with .wpcd-card-full-no-border */
+	background-color: inherit;
+}
+
+.wpcd-card-half {
+	width: 45%;
+}
+
+.wpcd-card-third {
+	width: 27%;
+}
+
+.wpcd-card-two-thirds {
+	width: 65%;
+}
+
+@media only screen and (max-width: 1900px) {
+	/* As the screen gets smaller force the smaller cards to close to full width and flex box will wrap. */
+	.wpcd-card-half {
+		width: 42%;
+	}
+
+	.wpcd-card-third {
+		width: 24%;
+	}
+	
+	.wpcd-card-two-thirds {
+		width: 60%;
+	}	
+}
+
+@media only screen and (max-width: 1600px) {
+	/* As the screen gets smaller force the smaller cards to close to full width and flex box will wrap. */
+	.wpcd-card-half {
+		width: 100%;
+	}
+
+	.wpcd-card-third {
+		width: 100%;
+	}
+	
+	.wpcd-card-two-thirds {
+		width: 100%;
+	}	
+}
+
+/* If the H4 header inside tabs need to be reformatted from the WPCD defaults */
+.wpcd-card-group .rwmb-field.rwmb-heading-wrapper h4 {
+	/* Nothing here for now. */
+}
+
+/* The first row after the .wpcd-card-group class is our pseudo container row required for our card markup. Lets get rid of it. */
+.wpcd-card-group .rwmb-row:first-of-type{
+	display: none;
+}
+
+/* With certain tabs, we want the cards in them to flex - apps. */
+#wpcd_wordpress-app_tab2 .rwmb-tab-panel-backup,
+#wpcd_wordpress-app_tab2 .rwmb-tab-panel-change-domain,
+#wpcd_wordpress-app_tab2 .rwmb-tab-panel-ssl,
+#wpcd_wordpress-app_tab2 .rwmb-tab-panel-cache,
+#wpcd_wordpress-app_tab2 .rwmb-tab-panel-sftp,
+#wpcd_wordpress-app_tab2 .rwmb-tab-panel-staging,
+#wpcd_wordpress-app_tab2 .rwmb-tab-panel-clone-site,
+#wpcd_wordpress-app_tab2 .rwmb-tab-panel-copy-to-existing-site,
+#wpcd_wordpress-app_tab2 .rwmb-tab-panel-site-sync,
+#wpcd_wordpress-app_tab2 .rwmb-tab-panel-crons,
+#wpcd_wordpress-app_tab2 .rwmb-tab-panel-php-options,
+#wpcd_wordpress-app_tab2 .rwmb-tab-panel-misc,
+#wpcd_wordpress-app_tab2 .rwmb-tab-panel-tools,
+#wpcd_wordpress-app_tab2 .rwmb-tab-panel-theme-and-plugin-updates,
+#wpcd_wordpress-app_tab2 .rwmb-tab-panel-database,
+#wpcd_wordpress-app_tab2 .rwmb-tab-panel-security,
+#wpcd_wordpress-app_tab2 .rwmb-tab-panel-statistics,
+#wpcd_wordpress-app_tab2 .rwmb-tab-panel-site-logs,
+#wpcd_wordpress-app_tab2 .rwmb-tab-panel-wp-site-users,
+#wpcd_wordpress-app_tab2 .rwmb-tab-panel-redirect-rules,
+#wpcd_wordpress-app_tab2 .rwmb-tab-panel-file-manager,
+#wpcd_wordpress-app_tab2 .rwmb-tab-panel-multisite {
+	display: flex;
+	flex-wrap: wrap;
+}
+
+/* With cards, we want the thing to flex - servers. */
+#wpcd_server_wordpress-app_tab3 .rwmb-tab-panel-services,
+#wpcd_server_wordpress-app_tab3 .rwmb-tab-panel-callbacks,
+#wpcd_server_wordpress-app_tab3 .rwmb-tab-panel-firewall,
+#wpcd_server_wordpress-app_tab3 .rwmb-tab-panel-server_backup,
+#wpcd_server_wordpress-app_tab3 .rwmb-tab-panel-svr_tweaks,
+#wpcd_server_wordpress-app_tab3 .rwmb-tab-panel-svr_tools,
+#wpcd_server_wordpress-app_tab3 .rwmb-tab-panel-svr_power,
+#wpcd_server_wordpress-app_tab3 .rwmb-tab-panel-server-users,
+#wpcd_server_wordpress-app_tab3 .rwmb-tab-panel-server-logs,
+#wpcd_server_wordpress-app_tab3 .rwmb-tab-panel-fail2ban,
+#wpcd_server_wordpress-app_tab3 .rwmb-tab-panel-server-ssh-keys,
+#wpcd_server_wordpress-app_tab3 .rwmb-tab-panel-monitorix,
+#wpcd_server_wordpress-app_tab3 .rwmb-tab-panel-goaccess,
+#wpcd_server_wordpress-app_tab3 .rwmb-tab-panel-resize,
+#wpcd_server_wordpress-app_tab3 .rwmb-tab-panel-ols_console,
+#wpcd_server_wordpress-app_tab3 .rwmb-tab-panel-netdata,
+#wpcd_server_wordpress-app_tab3 .rwmb-tab-panel-serversync {
+	display: flex;
+	flex-wrap: wrap;
+}
+
+/* Background color for everything in a tab - other colors layer on top of it. */
+#wpcd_wordpress-app_tab2,
+#wpcd_wordpress-app_tab2 .rwmb-tab-panels,
+#wpcd_server_wordpress-app_tab3,
+#wpcd_server_wordpress-app_tab3 .rwmb-tab-panels {
+	x-background-color: #F3F3F5;
+	background-color: var(--wpcd-medium-background-color);
+}
+
+/* Remove border around tabs metabox. */
+#wpcd_wordpress-app_tab2, .rwmb-tabs-left,
+#wpcd_server_wordpress-app_tab3 .rwmb-tabs-left {
+	/* On second thought, don't ! */
+}
+
+/* Spacing between icons and text on buttons inside cards. */
+.wpcd-card-group .rwmb-button i {
+	margin-right: 6px;
+}
+
+/**
+ * This section styles the native metabox.io ADVANCED columns.
+ * @See https://docs.metabox.io/extensions/meta-box-columns/ - scroll down to the advanced syntax section.
+ */
+ 
+/**/
+.post-type-wpcd_app .wpcd-column {
+	margin-right: 20px;
+	margin-bottom: 10px;
+	border: solid;
+	border-width: 1px;
+	border-color: var(--wpcd-medium-accent-background-color);
+	border-radius: 4px;
+	padding-left: 15px;
+	padding-right: 15px;
+	x-box-shadow: rgba(0, 0, 0, 0.16) 0px 10px 36px 0px, rgba(0, 0, 0, 0.06) 0px 0px 0px 1px;
+}
+.post-type-wpcd_app .wpcd-column:hover,
+.post-type-wpcd_app .wpcd-column:focus {
+	box-shadow: rgba(0, 0, 0, 0.25) 0px 25px 50px -12px;
+}
+.post-type-wpcd_app .wpcd-column:hover {
+	border-color: var(--wpcd-primary-brand-color);
+}

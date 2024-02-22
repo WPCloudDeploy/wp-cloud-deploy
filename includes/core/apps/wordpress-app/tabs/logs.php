@@ -220,6 +220,9 @@ class WPCD_WORDPRESS_TABS_SITE_LOGS extends WPCD_WORDPRESS_TABS {
 		/* Array variable to hold our field definitions */
 		$fields = array();
 
+		// Start new card.
+		$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
+
 		// Heading text.
 		$desc = __( 'Download various log files for this site.', 'wpcd' );
 
@@ -264,12 +267,21 @@ class WPCD_WORDPRESS_TABS_SITE_LOGS extends WPCD_WORDPRESS_TABS {
 			'save_field' => false,
 		);
 
+		// Close up prior card.
+		$fields[] = wpcd_end_card( $this->get_tab_slug() );
+
+		// Start new card.
+		$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
+
 		$fields[] = array(
 			'name' => __( 'Warning', 'wpcd' ),
 			'desc' => __( 'Attempting to download very large log files can cause your server memory to be exhausted which will likely cause your server to kill this process or, worse, crash. Use this download tool only if you are sure your logs are of a reasonable size. Otherwise connect via sFTP or ssh to download logs.', 'wpcd' ),
 			'tab'  => 'site-logs',
 			'type' => 'heading',
 		);
+
+		// Close up prior card.
+		$fields[] = wpcd_end_card( $this->get_tab_slug() );
 
 		return $fields;
 
@@ -292,11 +304,14 @@ class WPCD_WORDPRESS_TABS_SITE_LOGS extends WPCD_WORDPRESS_TABS {
 			return array();
 		}
 
-		// Is the site connected to logtivity?
-		$connected = $this->get_logtivity_connection_status( $id );
-
 		/* Array variable to hold our field definitions */
 		$fields = array();
+
+		// Start new card.
+		$fields[] = wpcd_start_half_card( $this->get_tab_slug() );
+
+		// Is the site connected to logtivity?
+		$connected = $this->get_logtivity_connection_status( $id );
 
 		// Heading text.
 		$desc = __( 'Connect site to the Logtivity service.', 'wpcd' );
@@ -334,6 +349,9 @@ class WPCD_WORDPRESS_TABS_SITE_LOGS extends WPCD_WORDPRESS_TABS {
 			'save_field' => false,
 		);
 
+		// Close up prior card.
+		$fields[] = wpcd_end_card( $this->get_tab_slug() );
+
 		return $fields;
 
 	}
@@ -347,6 +365,11 @@ class WPCD_WORDPRESS_TABS_SITE_LOGS extends WPCD_WORDPRESS_TABS {
 	public function set_logtivity_connection_status( $id, $status ) {
 
 		update_post_meta( $id, 'wpcd_app_logtivity_connection_status', $status );
+
+		// Maybe clear the api key.
+		if ( false === $status ) {
+			WPCD_WORDPRESS_APP_LOGTIVITY()->set_api_key( $id, '' );
+		}
 
 	}
 
@@ -451,6 +474,21 @@ class WPCD_WORDPRESS_TABS_SITE_LOGS extends WPCD_WORDPRESS_TABS {
 			return new \WP_Error( sprintf( __( 'There is no Logtivity Teams API Key set in your global settings - action %s', 'wpcd' ), $action ) );
 		}
 
+		// If we already have an API key for the site, don't do anything.
+		// This should prevent situations where the site might get registered multiple times on the logtivity service.
+		if ( ! empty( WPCD_WORDPRESS_APP_LOGTIVITY()->get_api_key( $id ) ) ) {
+
+			// Tag logtivity as being connected.
+			$this->set_logtivity_connection_status( $id, true );
+
+			// Set return value as success.
+			$result = array( 'refresh' => 'yes' );
+
+			// Return value and exit.
+			return $result;
+
+		}
+
 		$instance = $this->get_app_instance_details( $id );
 
 		if ( is_wp_error( $instance ) ) {
@@ -513,8 +551,10 @@ class WPCD_WORDPRESS_TABS_SITE_LOGS extends WPCD_WORDPRESS_TABS {
 		// Tag logtivity as being connected.
 		$this->set_logtivity_connection_status( $id, true );
 
+		// Set return value as success.
 		$result = array( 'refresh' => 'yes' );
 
+		// Return value and exit.
 		return $result;
 
 	}

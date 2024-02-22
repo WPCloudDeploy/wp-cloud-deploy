@@ -1186,13 +1186,6 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tab'     => 'wordpress-app-general-wpadmin',
 			),
 			array(
-				'id'      => 'wordpress_app_show_notes_on_server_services_tab',
-				'type'    => 'checkbox',
-				'name'    => __( 'Show Notes Column On Services Tab?', 'wpcd' ),
-				'tooltip' => __( 'On the services tab we can show a notes column that indicates what the services are used for. Check this box to add that column.', 'wpcd' ),
-				'tab'     => 'wordpress-app-general-wpadmin',
-			),
-			array(
 				'id'      => 'wordpress_app_enable_bulk_delete_on_server_when_delete_protected',
 				'type'    => 'checkbox',
 				'name'    => __( 'Enable Bulk Trash Action for Deleted-protected Servers [Danger]', 'wpcd' ),
@@ -1419,6 +1412,31 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'select_all_none' => true,
 				'tab'             => 'wordpress-app-servers',
 			),
+			array(
+				'type' => 'heading',
+				'name' => __( 'Bulk Copy To Server', 'wpcd' ),
+				'desc' => __( 'Setup target servers to which you can copy multiple sites using the BULK ACTIONS drop-down on the apps/sites list.', 'wpcd' ),
+				'tab'  => 'wordpress-app-servers',
+			),
+			array(
+				'name'        => __( 'Target Servers', 'wpcd' ),
+				'id'          => 'wordpress_app_servers_target_servers',
+				'type'        => 'post',
+				'post_type'   => 'wpcd_app_server',
+				'query_args'  => array(
+					'post_status'    => 'private',
+					'posts_per_page' => - 1,
+				),
+				'field_type'  => 'select_advanced',
+				'multiple'    => true,
+				'placeholder' => __( 'Select one or more Cloud Servers.', 'wpcd' ),
+				'tab'         => 'wordpress-app-servers',
+			),
+			array(
+				'type' => 'custom_html',
+				'std'  => __( 'Note: This function requires the premium SERVER SYNC add-on. Please check our documentation on how to use these servers as targets for bulk copies.', 'wpcd' ),
+				'tab'  => 'wordpress-app-servers',
+			),
 
 		);
 
@@ -1489,6 +1507,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				),
 				'tab'     => 'wordpress-app-sites',
 			),
+
 			array(
 				'type' => 'heading',
 				'name' => __( 'Disk Quota', 'wpcd' ),
@@ -1513,21 +1532,146 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tooltip' => __( 'This is the quota that will be added to each new site. This will override the global quota set above for all new sites.', 'wpcd' ),
 				'tab'     => 'wordpress-app-sites',
 			),
+
+			array(
+				'type' => 'heading',
+				'name' => __( 'Disk Quota Options', 'wpcd' ),
+				'desc' => __( 'What should we do when a disk quota is exceeded on a site?', 'wpcd' ),
+				'tab'  => 'wordpress-app-sites',
+			),
+			array(
+				'id'      => 'wordpress_app_sites_disk_quota_enable_http_auth',
+				'type'    => 'checkbox',
+				'name'    => __( 'Password Protect Site (HTTP AUTH)?', 'wpcd' ),
+				'tooltip' => __( 'This option will place a password popup before visitors can view it. Only an admin will be able to remove this protection.  Do not enable this option with the DISABLE option below - they do not work well together!', 'wpcd' ),
+				'tab'     => 'wordpress-app-sites',
+			),
 			array(
 				'id'      => 'wordpress_app_sites_disk_quota_disable_site',
 				'type'    => 'checkbox',
-				'name'    => __( 'Disable Site When Quota Exceeded?', 'wpcd' ),
-				'tooltip' => __( 'Disabling a site will prevent visitors from viewing it.', 'wpcd' ),
+				'name'    => __( 'Disable Site?', 'wpcd' ),
+				'tooltip' => __( 'Disabling a site will prevent visitors from viewing it. This option is slightly different from the HTTP AUTH option above because it makes the site completely invisible to web traffic - not even a password popup.  Do not enable this option with the HTTP AUTH option above - they do not work well together!', 'wpcd' ),
 				'tab'     => 'wordpress-app-sites',
 			),
 			array(
 				'id'      => 'wordpress_app_sites_disk_quota_admin_lock_site',
 				'type'    => 'checkbox',
-				'name'    => __( 'Apply Admin Lock When Quota Exceeded?', 'wpcd' ),
+				'name'    => __( 'Apply Admin Lock?', 'wpcd' ),
 				'tooltip' => __( 'The admin lock will disable all tabs for the site. A the customer cannot manage it or reactivate it. Only an admin will be able to remove the lock.', 'wpcd' ),
 				'tab'     => 'wordpress-app-sites',
 			),
+			array(
+				'id'      => 'wordpress_app_sites_disk_quota_expire_site',
+				'type'    => 'number',
+				'min'     => 0,
+				'std'     => 0,
+				'size'    => 10,
+				'name'    => __( 'Expire Site?', 'wpcd' ),
+				'tooltip' => __( 'Set a site expiration in minutes - (1440 minutes = 1 day.)', 'wpcd' ),
+				'tab'     => 'wordpress-app-sites',
+			),
 
+			array(
+				'type' => 'heading',
+				'name' => __( 'Site Expiration', 'wpcd' ),
+				'desc' => __( 'What should we do when a site is expired?', 'wpcd' ),
+				'tab'  => 'wordpress-app-sites',
+			),
+			array(
+				'id'      => 'wordpress_app_sites_expired_delete_site',
+				'type'    => 'checkbox',
+				'name'    => __( 'Delete Site?', 'wpcd' ),
+				'tooltip' => __( 'Delete the site when it is expired?  This will not be reversible!', 'wpcd' ),
+				'tab'     => 'wordpress-app-sites',
+			),
+			array(
+				'id'      => 'wordpress_app_sites_expired_enable_http_auth',
+				'type'    => 'checkbox',
+				'name'    => __( 'Password Protect Site (HTTP AUTH)?', 'wpcd' ),
+				'tooltip' => __( 'This option will place a password popup before visitors can view it. Only an admin will be able to remove this protection.  Do not enable this option with the DISABLE option below - they do not work well together!', 'wpcd' ),
+				'hidden'  => array( 'wordpress_app_sites_expired_delete_site', '=', '1' ),
+				'tab'     => 'wordpress-app-sites',
+			),
+			array(
+				'id'      => 'wordpress_app_sites_expired_disable_site',
+				'type'    => 'checkbox',
+				'name'    => __( 'Disable Site?', 'wpcd' ),
+				'tooltip' => __( 'Disabling a site will prevent visitors from viewing it. This option is slightly different from the HTTP AUTH option above because it makes the site completely invisible to web traffic - not even a password popup.  Do not enable this option with the HTTP AUTH option above - they do not work well together!', 'wpcd' ),
+				'hidden'  => array( 'wordpress_app_sites_expired_delete_site', '=', '1' ),
+				'tab'     => 'wordpress-app-sites',
+			),
+			array(
+				'id'      => 'wordpress_app_sites_expired_admin_lock_site',
+				'type'    => 'checkbox',
+				'name'    => __( 'Apply Admin Lock ?', 'wpcd' ),
+				'tooltip' => __( 'The admin lock will disable all tabs for the site. A the customer cannot manage it or reactivate it. Only an admin will be able to remove the lock.', 'wpcd' ),
+				'hidden'  => array( 'wordpress_app_sites_expired_delete_site', '=', '1' ),
+				'tab'     => 'wordpress-app-sites',
+			),
+			array(
+				'type' => 'custom_html',
+				'std'  => __( 'Important Note: The options above are only implemented when a site is not yet expired and hits the expiration date. If an admin manually expires a site, none of these options are implemented.', 'wpcd' ),
+				'tab'  => 'wordpress-app-sites',
+			),
+			array(
+				'id'      => 'wordpress_app_sites_enable_expiration_bulk_actions',
+				'type'    => 'checkbox',
+				'name'    => __( 'Enable Bullk Actions ?', 'wpcd' ),
+				'tooltip' => __( 'Add one or more expiration related bulk action options to the sites list', 'wpcd' ),
+				'hidden'  => array( 'wordpress_app_sites_expired_delete_site', '=', '1' ),
+				'tab'     => 'wordpress-app-sites',
+			),
+
+			array(
+				'type' => 'heading',
+				'name' => __( 'Custom Post Type Quotas', 'wpcd' ),
+				'desc' => __( 'Keep this disabled if you do not use custom post type quotas.  Otherwise you\'ll end up with a lot of useless pending tasks every night as quotas are evaluated for each site.', 'wpcd' ),
+				'tab'  => 'wordpress-app-sites',
+			),
+			array(
+				'id'   => 'wordpress_app_sites_enable_quota',
+				'type' => 'checkbox',
+				'name' => __( 'Enable Quotas?', 'wpcd' ),
+				'tab'  => 'wordpress-app-sites',
+			),
+
+			array(
+				'type' => 'heading',
+				'name' => __( 'Custom Post Type Quota Actions', 'wpcd' ),
+				'desc' => __( 'What should we do when a quota is exceeded on a site? Note: Quotas for each site are evaluated once each day - they are not evaluated in real-time!', 'wpcd' ),
+				'tab'  => 'wordpress-app-sites',
+			),
+			array(
+				'id'      => 'wordpress_app_sites_quota_enable_http_auth',
+				'type'    => 'checkbox',
+				'name'    => __( 'Password Protect Site (HTTP AUTH)?', 'wpcd' ),
+				'tooltip' => __( 'This option will place a password popup before visitors can view it. Only an admin will be able to remove this protection.  Do not enable this option with the DISABLE option below - they do not work well together!', 'wpcd' ),
+				'tab'     => 'wordpress-app-sites',
+			),
+			array(
+				'id'      => 'wordpress_app_sites_quota_disable_site',
+				'type'    => 'checkbox',
+				'name'    => __( 'Disable Site?', 'wpcd' ),
+				'tooltip' => __( 'Disabling a site will prevent visitors from viewing it. This option is slightly different from the HTTP AUTH option above because it makes the site completely invisible to web traffic - not even a password popup.  Do not enable this option with the HTTP AUTH option above - they do not work well together!', 'wpcd' ),
+				'tab'     => 'wordpress-app-sites',
+			),
+			array(
+				'id'      => 'wordpress_app_sites_quota_admin_lock_site',
+				'type'    => 'checkbox',
+				'name'    => __( 'Apply Admin Lock?', 'wpcd' ),
+				'tooltip' => __( 'The admin lock will disable all tabs for the site. A the customer cannot manage it or reactivate it. Only an admin will be able to remove the lock.', 'wpcd' ),
+				'tab'     => 'wordpress-app-sites',
+			),
+			array(
+				'id'      => 'wordpress_app_sites_quota_expire_site',
+				'type'    => 'number',
+				'min'     => 0,
+				'std'     => 0,
+				'size'    => 10,
+				'name'    => __( 'Expire Site?', 'wpcd' ),
+				'tooltip' => __( 'Set a site expiration in minutes - (1440 minutes = 1 day.)', 'wpcd' ),
+				'tab'     => 'wordpress-app-sites',
+			),
 			array(
 				'type' => 'heading',
 				'name' => __( 'Admin Lock', 'wpcd' ),
@@ -2768,32 +2912,37 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 		 */
 		// An array of ids and labels for color fields that overide brand colors.
 		$brand_colors = array(
-			'wordpress_app_primary_brand_color'       => array(
+			'wordpress_app_primary_brand_color'            => array(
 				'label' => __( 'Primary Brand Color', 'wpcd' ),
 				'desc'  => '',
 				'std'   => WPCD_PRIMARY_BRAND_COLOR,
 			),
-			'wordpress_app_secondary_brand_color'     => array(
+			'wordpress_app_secondary_brand_color'          => array(
 				'label' => __( 'Secondary Brand Color', 'wpcd' ),
 				'desc'  => '',
 				'std'   => WPCD_SECONDARY_BRAND_COLOR,
 			),
-			'wordpress_app_tertiary_brand_color'      => array(
+			'wordpress_app_tertiary_brand_color'           => array(
 				'label' => __( 'Tertiary Brand Color', 'wpcd' ),
 				'desc'  => '',
 				'std'   => WPCD_TERTIARY_BRAND_COLOR,
 			),
-			'wordpress_app_accent_background_color'   => array(
+			'wordpress_app_accent_background_color'        => array(
 				'label' => __( 'Accent Background Color', 'wpcd' ),
 				'desc'  => '',
 				'std'   => WPCD_ACCENT_BG_COLOR,
 			),
-			'wordpress_app_medium_background_color'   => array(
+			'wordpress_app_medium_accent_background_color' => array(
+				'label' => __( 'Medium Accent Background Color', 'wpcd' ),
+				'desc'  => '',
+				'std'   => WPCD_MEDIUM_ACCENT_BG_COLOR,
+			),
+			'wordpress_app_medium_background_color'        => array(
 				'label' => __( 'Medium Background Color', 'wpcd' ),
 				'desc'  => '',
 				'std'   => WPCD_MEDIUM_BG_COLOR,
 			),
-			'wordpress_app_light_background_color'    => array(
+			'wordpress_app_light_background_color'         => array(
 				'label' => __( 'Light Background Color', 'wpcd' ),
 				'desc'  => '',
 				'std'   => WPCD_LIGHT_BG_COLOR,
@@ -2803,25 +2952,30 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'desc'  => '',
 				'std'   => WPCD_ALTERNATE_ACCENT_BG_COLOR,
 			),
-			'wordpress_app_positive_color'            => array(
+			'wordpress_app_positive_color'                 => array(
 				'label' => __( 'Positive Color', 'wpcd' ),
 				'desc'  => __( 'Accent color used to indicate something is turned on or a good thing has occurred.', 'wpcd' ),
 				'std'   => WPCD_POSITIVE_COLOR,
 			),
-			'wordpress_app_negative_color'            => array(
+			'wordpress_app_negative_color'                 => array(
 				'label' => __( 'Negative Color', 'wpcd' ),
 				'desc'  => __( 'Accent color used to indicate something is turned off or a bad thing has occurred.', 'wpcd' ),
 				'std'   => WPCD_NEGATIVE_COLOR,
 			),
-			'wordpress_app_terminal_background_color' => array(
+			'wordpress_app_terminal_background_color'      => array(
 				'label' => __( 'Background Color for Terminal', 'wpcd' ),
 				'desc'  => __( 'Background color for our terminal display.', 'wpcd' ),
 				'std'   => WPCD_TERMINAL_BG_COLOR,
 			),
-			'wordpress_app_terminal_foreground_color' => array(
+			'wordpress_app_terminal_foreground_color'      => array(
 				'label' => __( 'Foreground Color for Terminal', 'wpcd' ),
 				'desc'  => __( 'Color of the text used in our terminal display.', 'wpcd' ),
 				'std'   => WPCD_TERMINAL_FG_COLOR,
+			),
+			'wordpress_app_white_color'                    => array(
+				'label' => __( 'White', 'wpcd' ),
+				'desc'  => __( 'White', 'wpcd' ),
+				'std'   => WPCD_WHITE_COLOR,
 			),
 		);
 
@@ -2874,6 +3028,11 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'desc'  => __( 'Used for the background color on most buttons.', 'wpcd' ),
 				'std'   => WPCD_FE_ACCENT_BG_COLOR,
 			),
+			'wordpress_app_fe_medium_accent_background_color' => array(
+				'label' => __( 'Medium Accent Background Color', 'wpcd' ),
+				'desc'  => '',
+				'std'   => WPCD_FE_MEDIUM_ACCENT_BG_COLOR,
+			),
 			'wordpress_app_fe_medium_background_color' => array(
 				'label' => __( 'Medium Background Color', 'wpcd' ),
 				'desc'  => '',
@@ -2898,6 +3057,11 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'label' => __( 'Negative Color', 'wpcd' ),
 				'desc'  => __( 'Accent color used to indicate something is turned off or a bad thing has occurred.', 'wpcd' ),
 				'std'   => WPCD_FE_NEGATIVE_COLOR,
+			),
+			'wordpress_app_fe_white_color'             => array(
+				'label' => __( 'White', 'wpcd' ),
+				'desc'  => __( 'Wite.', 'wpcd' ),
+				'std'   => WPCD_FE_WHITE_COLOR,
 			),
 		);
 
@@ -2996,7 +3160,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 			'name' => __( 'Custom CSS', 'wpcd' ),
 			'id'   => 'wordpress-app-custom-css-override-header',
 			'type' => 'heading',
-			'desc' => 'Custom CSS is loaded in-line on very WPCD page on both the front-end and back-end.',
+			'desc' => 'Custom CSS is loaded in-line on every WPCD page on both the front-end and back-end.',
 			'tab'  => 'wordpress-app-white-label',
 		);
 		$fields[] = array(

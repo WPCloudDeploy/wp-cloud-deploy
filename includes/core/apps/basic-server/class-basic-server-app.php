@@ -705,7 +705,12 @@ class WPCD_BASIC_SERVER_APP extends WPCD_APP {
 		// Get a list of servers that the user has...
 		$app_servers = $this->get_servers_by_user_id( get_current_user_id() );  // get_servers_by_user_id is a function in the ancestor class.
 
-		do_action( 'wpcd_log_error', 'Got ' . count( $app_servers ) . ' server instances for user = ' . get_current_user_id(), 'debug', __FILE__, __LINE__ );
+		if ( is_countable( $app_posts ) ) {
+			$app_posts_cnt = count( $app_posts );
+		} else {
+			$app_posts_cnt = 0;
+		}
+		do_action( 'wpcd_log_error', 'Got ' . $app_posts_cnt . ' server instances for user = ' . get_current_user_id(), 'debug', __FILE__, __LINE__ );
 
 		/* Get a list of regions and providers - need this to build dropdowns and such */
 

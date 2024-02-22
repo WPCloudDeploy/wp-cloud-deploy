@@ -120,7 +120,7 @@ class WPCD_WORDPRESS_TABS_WP_SITE_USERS extends WPCD_WORDPRESS_TABS {
 		}
 
 		/* Now verify that the user can perform actions on this screen, assuming that they can view the server */
-		$valid_actions = array( 'wpsiteusers-add-admin-user', 'wpsiteusers-change-credentials', 'wpsiteusers-add-user' );
+		$valid_actions = array( 'wpsiteusers-add-admin-user', 'wpsiteusers-change-credentials', 'wpsiteusers-add-user', 'wpsiteusers-passwordless-login' );
 		if ( in_array( $action, $valid_actions, true ) ) {
 			if ( ! $this->get_tab_security( $id ) ) {
 				return new \WP_Error( sprintf( __( 'You are not allowed to perform this action - permissions check has failed for action %1$s in file %2$s for post %3$s by user %4$s', 'wpcd' ), $action, basename( __FILE__ ), $id, get_current_user_id() ) );
@@ -140,6 +140,10 @@ class WPCD_WORDPRESS_TABS_WP_SITE_USERS extends WPCD_WORDPRESS_TABS {
 				case 'wpsiteusers-add-user':
 					$action = 'wp_site_add_user';
 					$result = $this->add_user( $id, $action );
+					break;
+				case 'wpsiteusers-passwordless-login':
+					$action = 'wp_site_get_passwordless_link_selected_user';
+					$result = $this->passwordless_login_specific_user( $id, $action );
 					break;
 			}
 		}
@@ -177,6 +181,10 @@ class WPCD_WORDPRESS_TABS_WP_SITE_USERS extends WPCD_WORDPRESS_TABS {
 		$actions = array();
 
 		/* ADD ADMIN USER */
+
+		// Start new card.
+		$actions[] = wpcd_start_half_card( $this->get_tab_slug() );
+
 		$actions['wpsiteusers-add-admin-user-header'] = array(
 			'label'          => __( 'Add An Administrator', 'wpcd' ),
 			'type'           => 'heading',
@@ -221,12 +229,19 @@ class WPCD_WORDPRESS_TABS_WP_SITE_USERS extends WPCD_WORDPRESS_TABS {
 				'std'                 => __( 'Add New Admin User', 'wpcd' ),
 				'confirmation_prompt' => __( 'Are you sure you would like to add this user as a new admin to this site?', 'wpcd' ),
 				// fields that contribute data for this action.
-				'data-wpcd-fields'    => json_encode( array( '#wpcd_app_action_wpsiteusers-add-admin-user-name', '#wpcd_app_action_wpsiteusers-add-admin-user-pw', '#wpcd_app_action_wpsiteusers-add-admin-user-email' ) ),
+				'data-wpcd-fields'    => wp_json_encode( array( '#wpcd_app_action_wpsiteusers-add-admin-user-name', '#wpcd_app_action_wpsiteusers-add-admin-user-pw', '#wpcd_app_action_wpsiteusers-add-admin-user-email' ) ),
 			),
 			'type'           => 'button',
 		);
 
+		// Close up prior card.
+		$actions[] = wpcd_end_card( $this->get_tab_slug() );
+
 		/* CHANGE CREDENTIALS FOR EXISTING USER */
+
+		// Start new card.
+		$actions[] = wpcd_start_half_card( $this->get_tab_slug() );
+
 		$actions['wpsiteusers-change-credentials-header'] = array(
 			'label'          => __( 'Change User Credentials', 'wpcd' ),
 			'type'           => 'heading',
@@ -271,12 +286,19 @@ class WPCD_WORDPRESS_TABS_WP_SITE_USERS extends WPCD_WORDPRESS_TABS {
 				'std'                 => __( 'Update Credentials', 'wpcd' ),
 				'confirmation_prompt' => __( 'Are you sure you would like to update the credentials for this user?', 'wpcd' ),
 				// fields that contribute data for this action.
-				'data-wpcd-fields'    => json_encode( array( '#wpcd_app_action_wpsiteusers-change-credentials-user-id', '#wpcd_app_action_wpsiteusers-change-credentials-new-email', '#wpcd_app_action_wpsiteusers-change-credentials-new-pw' ) ),
+				'data-wpcd-fields'    => wp_json_encode( array( '#wpcd_app_action_wpsiteusers-change-credentials-user-id', '#wpcd_app_action_wpsiteusers-change-credentials-new-email', '#wpcd_app_action_wpsiteusers-change-credentials-new-pw' ) ),
 			),
 			'type'           => 'button',
 		);
 
+		// Close up prior card.
+		$actions[] = wpcd_end_card( $this->get_tab_slug() );
+
 		/* ADD REGULAR USER */
+
+		// Start new card.
+		$actions[] = wpcd_start_half_card( $this->get_tab_slug() );
+
 		$actions['wpsiteusers-add-user-header'] = array(
 			'label'          => __( 'Add A User', 'wpcd' ),
 			'type'           => 'heading',
@@ -298,7 +320,7 @@ class WPCD_WORDPRESS_TABS_WP_SITE_USERS extends WPCD_WORDPRESS_TABS {
 		$actions['wpsiteusers-add-user-pw'] = array(
 			'label'          => __( 'Password', 'wpcd' ),
 			'raw_attributes' => array(
-				'desc'           => __( 'Enter the password for the new', 'wpcd' ),
+				'desc'           => __( 'Enter the password for the new user', 'wpcd' ),
 				'data-wpcd-name' => 'wps_password',
 				'spellcheck'     => 'false',
 			),
@@ -330,10 +352,65 @@ class WPCD_WORDPRESS_TABS_WP_SITE_USERS extends WPCD_WORDPRESS_TABS {
 				'std'                 => __( 'Add New User', 'wpcd' ),
 				'confirmation_prompt' => __( 'Are you sure you would like to add this user to this site?', 'wpcd' ),
 				// fields that contribute data for this action.
-				'data-wpcd-fields'    => json_encode( array( '#wpcd_app_action_wpsiteusers-add-user-name', '#wpcd_app_action_wpsiteusers-add-user-pw', '#wpcd_app_action_wpsiteusers-add-user-email', '#wpcd_app_action_wpsiteusers-add-user-role' ) ),
+				'data-wpcd-fields'    => wp_json_encode( array( '#wpcd_app_action_wpsiteusers-add-user-name', '#wpcd_app_action_wpsiteusers-add-user-pw', '#wpcd_app_action_wpsiteusers-add-user-email', '#wpcd_app_action_wpsiteusers-add-user-role' ) ),
 			),
 			'type'           => 'button',
 		);
+
+		// Close up prior card.
+		$actions[] = wpcd_end_card( $this->get_tab_slug() );
+
+		/* PASSWORDLESS LOGIN FOR SPECIFIC USER - ONLY ADMINS CAN DO THIS */
+
+		if ( wpcd_is_admin() ) {
+
+			// Start new card.
+			$actions[] = wpcd_start_half_card( $this->get_tab_slug() );
+
+			$actions['wpsiteusers-passwordless-login-header'] = array(
+				'label'          => __( 'PasswordLess Login', 'wpcd' ),
+				'type'           => 'heading',
+				'raw_attributes' => array(
+					'desc' => __( 'Generate a login link for a specific user.', 'wpcd' ),
+				),
+			);
+
+			$actions['wpsiteusers-passwordless-login-user'] = array(
+				'label'          => __( 'User', 'wpcd' ),
+				'raw_attributes' => array(
+					'desc'           => __( 'Enter the user name, email address or user id', 'wpcd' ),
+					'data-wpcd-name' => 'wps_user',
+					'spellcheck'     => 'false',
+				),
+				'type'           => 'text',
+			);
+
+			// show link if one exists.
+			$link = WPCD()->decrypt( get_transient( sprintf( 'passwordless_login_for_%s', $id ) ) );
+			if ( ! empty( $link ) ) {
+				$actions['wpsiteusers-passwordless-login-link'] = array(
+					'label'          => '',
+					'raw_attributes' => array(
+						'std' => '<hr/>' . sprintf( '<a href="%s" target="_blank">' . __( 'Lastest Link - Click to Login', 'wpcd' ) . '</a>', $link ) . '<hr/>',
+					),
+					'type'           => 'custom_html',
+				);
+			}
+
+			$actions['wpsiteusers-passwordless-login'] = array(
+				'label'          => '',
+				'raw_attributes' => array(
+					'std'                 => __( 'Create New Login Link', 'wpcd' ),
+					'confirmation_prompt' => '',
+					// fields that contribute data for this action.
+					'data-wpcd-fields'    => wp_json_encode( array( '#wpcd_app_action_wpsiteusers-passwordless-login-user' ) ),
+				),
+				'type'           => 'button',
+			);
+
+			// Close up prior card.
+			$actions[] = wpcd_end_card( $this->get_tab_slug() );
+		}
 
 		return $actions;
 
@@ -635,6 +712,99 @@ class WPCD_WORDPRESS_TABS_WP_SITE_USERS extends WPCD_WORDPRESS_TABS {
 
 			// Let others know we've been successful.
 			do_action( "wpcd_{$this->get_app_name()}_change_wp_credentials_successful", $id, $action, $args );
+		}
+
+		return $success;
+
+	}
+
+	/**
+	 * Generate and show Passwordless login for specific user.
+	 *
+	 * @param int    $id     The postID of the app cpt.
+	 * @param string $action The action to be performed (this matches the string required in the bash scripts).
+	 * @param array  $in_args Alternative source of arguments passed via action hook or direct function call instead of pulling from $_POST.
+	 *
+	 * @return boolean|WP_Error    success/failure
+	 */
+	private function passwordless_login_specific_user( $id, $action, $in_args = array() ) {
+
+		// Bail if not an admin.
+		if ( ! wpcd_is_admin() ) {
+			$message = __( 'Only admins can create passwordless login links.', 'wpcd' );
+			do_action( "wpcd_{$this->get_app_name()}_passwordless_login_failed", $id, $action, $message, $args );
+			return new \WP_Error( $message );
+		}
+
+		if ( empty( $in_args ) ) {
+			// Get data from the POST request.
+			$args = array_map( 'sanitize_text_field', wp_parse_args( wp_unslash( $_POST['params'] ) ) );
+		} else {
+			$args = $in_args;
+		}
+
+		// Get app/server details.
+		$instance = $this->get_app_instance_details( $id );
+
+		// Bail if no app/server details.
+		if ( is_wp_error( $instance ) ) {
+			/* Translators: %s is the action name. */
+			$message = sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action );
+			do_action( "wpcd_{$this->get_app_name()}_passwordless_login_failed", $id, $action, $message, $args );
+			return new \WP_Error( $message );
+		}
+
+		// Check to make sure that all required fields have values.
+		if ( ! $args['wps_user'] ) {
+			$message = __( 'The user cannot be blank - it must be the user id, user name or email address for the existing user.', 'wpcd' );
+			do_action( "wpcd_{$this->get_app_name()}_passwordless_login_failed", $id, $action, $message, $args );
+			return new \WP_Error( $message );
+		} else {
+			// Sanitize the option name for use on the linux command line.
+			$args['login_user'] = escapeshellarg( $args['wps_user'] );
+		}
+
+		// Get the full command to be executed by ssh.
+		$run_cmd = $this->turn_script_into_command(
+			$instance,
+			'passwordless_login.txt',
+			array_merge(
+				$args,
+				array(
+					'action' => $action,
+					'domain' => get_post_meta(
+						$id,
+						'wpapp_domain',
+						true
+					),
+				)
+			)
+		);
+
+		do_action( 'wpcd_log_error', sprintf( 'attempting to run command for %s = %s ', print_r( $instance, true ), $run_cmd ), 'trace', __FILE__, __LINE__, $instance, false );
+
+		$result  = $this->execute_ssh( 'generic', $instance, array( 'commands' => $run_cmd ) );
+		$success = $this->is_ssh_successful( $result, 'passwordless_login.txt' );
+
+		if ( ! $success ) {
+			/* Translators: %1$s is the action; %2$s is the result of the ssh call. */
+			$message = sprintf( __( 'Unable to %1$s site: %2$s', 'wpcd' ), $action, $result );
+			do_action( "wpcd_{$this->get_app_name()}_passwordless_login_failed", $id, $action, $message, $args );
+			return new \WP_Error( $message );
+		} else {
+			// Successful - grab the very last line in the results that should contain the url.
+			list($url_array[]) = list($url_array[]) = array_slice( explode( PHP_EOL, trim( $result ) ), -1, 1 );
+			$result            = $url_array[0];
+
+			// Create 3 minute transient with link in it.
+			set_transient( sprintf( 'passwordless_login_for_%s', $id ), WPCD()->encrypt( $result ), 180 );
+
+			$success = array(
+				'refresh' => 'yes',
+			);
+
+			// Let others know we've been successful.
+			do_action( "wpcd_{$this->get_app_name()}_passwordless_login_successful", $id, $action, $args );
 		}
 
 		return $success;

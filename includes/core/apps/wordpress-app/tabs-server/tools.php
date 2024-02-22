@@ -170,11 +170,15 @@ class WPCD_WORDPRESS_TABS_SERVER_TOOLS extends WPCD_WORDPRESS_TABS {
 		 * Reset Metas
 		 */
 
+		// Start new card.
+		$actions[] = wpcd_start_half_card( $this->get_tab_slug() );
+
 		/* Set the text of the confirmation prompt */
 		$confirmation_prompt = __( 'Are you sure you would like to reset the metas for this server?', 'wpcd' );
 
 		$actions['server-cleanup-metas-header'] = array(
-			'label'          => __( 'Cleanup WordPress Metas', 'wpcd' ),
+			/* Translators: %s is a fontawesome or similar icon. */
+			'label'          => wpcd_apply_tools_icon( __( '%s Cleanup WordPress Metas', 'wpcd' ) ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
 				'desc' => __( 'If the server gets "stuck" for some reason and you don\'t see the button to add a new site, this tool will clean up the metas on the server and give you the ability to try to add sites again.', 'wpcd' ),
@@ -184,18 +188,27 @@ class WPCD_WORDPRESS_TABS_SERVER_TOOLS extends WPCD_WORDPRESS_TABS {
 		$actions['server-cleanup-metas'] = array(
 			'label'          => '',
 			'raw_attributes' => array(
-				'std'                 => __( 'Cleanup Metas', 'wpcd' ),
+				/* Translators: %s is a fontawesome or similar icon. */
+				'std'                 => wpcd_apply_run_icon( __( '%s Cleanup Metas', 'wpcd' ) ),
 				'confirmation_prompt' => $confirmation_prompt,
 				'desc'                => '',
 			),
 			'type'           => 'button',
 		);
 
+		// Close up prior card.
+		$actions[] = wpcd_end_card( $this->get_tab_slug() );
+
 		/**
 		 * Run a test REST API callback.
 		 */
+
+		// Start new card.
+		$actions[] = wpcd_start_half_card( $this->get_tab_slug() );
+
 		$actions['server-cleanup-rest-api-test-header'] = array(
-			'label'          => __( 'Test REST API Access', 'wpcd' ),
+			/* Translators: %s is a fontawesome or similar icon. */
+			'label'          => wpcd_apply_api_icon( __( '%s Test REST API Access', 'wpcd' ) ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
 				'desc' => __( 'Run a test to see if this server can talk to the WPCD plugin via REST.  A successful test will show up in the NOTIFICATIONS log.', 'wpcd' ),
@@ -204,18 +217,27 @@ class WPCD_WORDPRESS_TABS_SERVER_TOOLS extends WPCD_WORDPRESS_TABS {
 		$actions['server-cleanup-rest-api-test']        = array(
 			'label'          => '',
 			'raw_attributes' => array(
-				'std'  => __( 'Test Now', 'wpcd' ),
+				/* Translators: %s is a fontawesome or similar icon. */
+				'std'  => wpcd_apply_run_icon( __( '%s Test Now', 'wpcd' ) ),
 				'desc' => '',
 			),
 			'type'           => 'button',
 		);
 
+		// Close up prior card.
+		$actions[] = wpcd_end_card( $this->get_tab_slug() );
+
 		/**
 		 * Renew all ssl certificates on the server that are up for renewal.
 		 */
+
+		// Start new card.
+		$actions[] = wpcd_start_half_card( $this->get_tab_slug() );
+
 		$confirmation_prompt                                 = __( 'Are you sure you would like to attempt to renew all SSL certificates on this server?', 'wpcd' );
 		$actions['server-renew-all-ssl-certificates-header'] = array(
-			'label'          => __( 'Renew All SSL Certificates', 'wpcd' ),
+			/* Translators: %s is a fontawesome or similar icon. */
+			'label'          => wpcd_apply_api_icon( __( '%s Renew All SSL Certificates', 'wpcd' ) ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
 				'desc' => __( 'Attempt to renew all SSL certificates that are up for renewal on this server.', 'wpcd' ),
@@ -224,16 +246,24 @@ class WPCD_WORDPRESS_TABS_SERVER_TOOLS extends WPCD_WORDPRESS_TABS {
 		$actions['server-renew-all-ssl-certificates']        = array(
 			'label'          => '',
 			'raw_attributes' => array(
-				'std'                 => __( 'Renew All Now', 'wpcd' ),
+				/* Translators: %s is a fontawesome or similar icon. */
+				'std'                 => wpcd_apply_run_icon( __( '%s Renew All Now', 'wpcd' ) ),
 				'desc'                => '',
 				'confirmation_prompt' => $confirmation_prompt,
 			),
 			'type'           => 'button',
 		);
 
+		// Close up prior card.
+		$actions[] = wpcd_end_card( $this->get_tab_slug() );
+
 		/**
 		 * Set server php default version
 		 */
+
+		// Start new card.
+		$actions[] = wpcd_start_half_card( $this->get_tab_slug() );
+
 		$confirmation_prompt = __( 'Are you sure you would like to change the PHP CLI version for this server?', 'wpcd' );
 
 		$default_php_version = get_post_meta( $id, 'wpcd_default_php_version', true );
@@ -242,7 +272,8 @@ class WPCD_WORDPRESS_TABS_SERVER_TOOLS extends WPCD_WORDPRESS_TABS {
 		}
 
 		$actions['reset-server-default-php-version-header'] = array(
-			'label'          => __( 'Set Server PHP CLI Version', 'wpcd' ),
+			/* Translators: %s is a fontawesome or similar icon. */
+			'label'          => wpcd_apply_php_icon( __( '%s Set Server PHP CLI Version', 'wpcd' ) ),
 			'type'           => 'heading',
 			'raw_attributes' => array(
 				'desc' => __( 'This is the PHP version used to run all WP-CLI commands or other server level PHP scripts not running directly inside WordPress. This should be 7.4 or higher - lower versions will likely break things very badly. If your plugins/themes are not compatible with PHP 8.x then this should be set to 7.4.', 'wpcd' ),
@@ -266,7 +297,8 @@ class WPCD_WORDPRESS_TABS_SERVER_TOOLS extends WPCD_WORDPRESS_TABS {
 		$actions['reset-server-default-php-version'] = array(
 			'label'          => '',
 			'raw_attributes' => array(
-				'std'                 => __( 'Reset Server PHP CLI Version', 'wpcd' ),
+				/* Translators: %s is a fontawesome or similar icon. */
+				'std'                 => wpcd_apply_run_icon( __( '%s Reset Server PHP CLI Version', 'wpcd' ) ),
 				'confirmation_prompt' => $confirmation_prompt,
 				'desc'                => '',
 				// fields that contribute data for this action.
@@ -275,12 +307,18 @@ class WPCD_WORDPRESS_TABS_SERVER_TOOLS extends WPCD_WORDPRESS_TABS {
 			'type'           => 'button',
 		);
 
+		// Close up prior card.
+		$actions[] = wpcd_end_card( $this->get_tab_slug() );
+
 		/**
 		 * Update PHP Global Restricted Functions For all PHP Versions
 		 *
 		 * Applies only to OLS Servers and can only be run by admins.
 		 */
 		if ( ( 'ols' === $this->get_web_server_type( $id ) ) && wpcd_is_admin() ) {
+
+			// Start new card.
+			$actions[] = wpcd_start_half_card( $this->get_tab_slug() );
 
 			$confirmation_prompt = __( 'Are you sure you would like to reset the list of restricted functions? This action applies to all sites and all PHP versions on your OLS server.', 'wpcd' );
 
@@ -301,6 +339,9 @@ class WPCD_WORDPRESS_TABS_SERVER_TOOLS extends WPCD_WORDPRESS_TABS {
 				),
 				'type'           => 'button',
 			);
+
+			// Close up prior card.
+			$actions[] = wpcd_end_card( $this->get_tab_slug() );
 
 		}
 

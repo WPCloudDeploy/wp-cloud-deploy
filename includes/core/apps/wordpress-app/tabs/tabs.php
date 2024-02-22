@@ -63,11 +63,11 @@ class WPCD_WORDPRESS_TABS extends WPCD_WORDPRESS_APP {
 			$fields[]       = array_merge(
 				$raw_attributes,
 				array(
-					'name'       => isset( $attributes['label'] ) ? $attributes['label'] : '',
-					'id'         => "wpcd_app_action_{$slug}",
-					'tab'        => $tab,
-					'type'       => $attributes['type'],
-					'attributes' => array(
+					'name'              => isset( $attributes['label'] ) ? $attributes['label'] : '',
+					'id'                => "wpcd_app_action_{$slug}",
+					'tab'               => $tab,
+					'type'              => $attributes['type'],
+					'attributes'        => array(
 						// the _action that will be called in ajax.
 						'data-wpcd-action'              => $slug,
 						// the id, not of much use.
@@ -84,8 +84,10 @@ class WPCD_WORDPRESS_TABS extends WPCD_WORDPRESS_APP {
 						// Spellcheck security issue.
 						'spellcheck'                    => isset( $raw_attributes['spellcheck'] ) ? $raw_attributes['spellcheck'] : 'true',
 					),
-					'class'      => isset( $raw_attributes['class'] ) ? 'wpcd_app_action ' . $raw_attributes['class'] : 'wpcd_app_action',
-					'save_field' => false,
+					'class'             => isset( $raw_attributes['class'] ) ? 'wpcd_app_action ' . $raw_attributes['class'] : 'wpcd_app_action',
+					'save_field'        => false,
+					'column_row_before' => isset( $attributes['column_row_before'] ) ? $attributes['column_row_before'] : '',
+					'column_row_after'  => isset( $attributes['column_row_after'] ) ? $attributes['column_row_after'] : '',
 				)
 			);
 		}
@@ -141,6 +143,9 @@ class WPCD_WORDPRESS_TABS extends WPCD_WORDPRESS_APP {
 
 		$actions = array();
 
+		// Start new card.
+		$actions[] = wpcd_start_full_card( $tab );
+
 		$desc       = __( 'This site has been disabled. To view the options on this tab you must re-enable the site using the options under the MISC tab.', 'wpcd' );
 		$random_str = wpcd_random_str( 20, '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ' );
 
@@ -149,17 +154,22 @@ class WPCD_WORDPRESS_TABS extends WPCD_WORDPRESS_APP {
 				'label'          => __( 'Site Is Disabled', 'wpcd' ),
 				'type'           => 'heading',
 				'raw_attributes' => array(
-					'desc' => $desc,
+					'desc'    => $desc,
+					'columns' => 12,
 				),
 			);
 		} else {
 			$actions[ 'site-is-disabled-status-header-' . $random_str ] = array(
-				'name' => __( 'Site Is Disabled', 'wpcd' ),
-				'type' => 'heading',
-				'tab'  => $tab,
-				'desc' => $desc,
+				'name'    => __( 'Site Is Disabled', 'wpcd' ),
+				'type'    => 'heading',
+				'tab'     => $tab,
+				'desc'    => $desc,
+				'columns' => 12,
 			);
 		}
+
+		// Close up prior card.
+		$actions[] = wpcd_end_card( $tab );
 
 		return $actions;
 

@@ -10,7 +10,7 @@
 .locker {
 	z-index: 1000;
 	opacity: 0.8;
-	background-color: white;
+	background-color: var(--wpcd-white-color);
 	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=80)";
 	filter: alpha(opacity=80);
 }
@@ -95,7 +95,7 @@ div[id^='wpcd_wordpress-app'] {
 
 /* And we want some styling on that extra metabox ! */
 #wpcd_wordpress-app_tab_top_of_site_details {
-	color: white;
+	color: var(--wpcd-white-color);
 	background-color: var(--wpcd-accent-background-color);
 	word-wrap: break-word;
 }
@@ -118,12 +118,12 @@ div[id^='wpcd_wordpress-app'] {
 	background-color: var(--wpcd-primary-brand-color);
 	border-color: var(--wpcd-primary-brand-color);
 	border-radius: 3px;
-	color: white;
+	color: var(--wpcd-white-color);
 }
 #wpcd_wordpress-app_tab_top_of_site_details .rwmb-input .button:hover,
 #wpcd_wordpress-app_tab_top_of_site_details .rwmb-input .button a:hover {
 	text-decoration: none;
-	border-color: white;
+	border-color: var(--wpcd-white-color);
 }
 
 /** 
@@ -146,24 +146,24 @@ div[id^='wpcd_wordpress-app'] {
 	border-color: var(--wpcd-primary-brand-color);	
 }
 .wpcd_site_details_top_row .wpcd_site_details_top_row_element_wrapper .wpcd_site_details_top_row_element_ssl_on {
-	color: green;
-	border-color: green;	
+	color: var(--wpcd-positive-color);
+	border-color: var(--wpcd-positive-color);	
 }
 .wpcd_site_details_top_row .wpcd_site_details_top_row_element_wrapper .wpcd_site_details_top_row_element_ssl_off {
 	color: gray;
 	border-color: gray;	
 }
 .wpcd_site_details_top_row .wpcd_site_details_top_row_element_wrapper .wpcd_site_details_top_row_element_page_cache_on {
-	color: green;
-	border-color: green;	
+	color: var(--wpcd-positive-color);
+	border-color: var(--wpcd-positive-color);	
 }
 .wpcd_site_details_top_row .wpcd_site_details_top_row_element_wrapper .wpcd_site_details_top_row_element_page_cache_off {
 	color: gray;
 	border-color: gray;	
 }
 .wpcd_site_details_top_row .wpcd_site_details_top_row_element_wrapper .wpcd_site_details_top_row_element_git_status {
-	color: green;
-	border-color: green;	
+	color: var(--wpcd-positive-color);
+	border-color: var(--wpcd-positive-color);	
 }
 .wpcd_site_details_top_row .wpcd_site_details_top_row_element_wrapper .wpcd_site_details_top_row_element_site_type {
 	color: black;
@@ -180,7 +180,7 @@ div[id^='wpcd_wordpress-app'] {
 .wpcd_site_details_top_row .wpcd_site_details_top_row_element_wrapper .wpcd_site_details_top_row_element_passwordless_login a:hover,
 .wpcd_site_details_top_row .wpcd_site_details_top_row_element_wrapper .wpcd_site_details_top_row_element_passwordless_login:hover {
 	background-color: #A3E635;
-	color: white;
+	color: var(--wpcd-white-color);
 }
 /* End make the data under the domain name when we're using left menus smaller and in chiclet boxes...*/
 
@@ -261,7 +261,7 @@ div[id^='wpcd_wordpress-app'] {
 }
 
 .wpcd-wpapp-actions .rwmb-tabs-left .rwmb-tab-nav a {
-	color: white;
+	color: var(--wpcd-white-color);
 }
 
 .wpcd-wpapp-actions .rwmb-tabs-left .rwmb-tab-nav .rwmb-tab-active a {
@@ -312,11 +312,10 @@ div[id^='wpcd_wordpress-app'] {
 
 /* Font for section headings need to be a little larger */
 .wpcd-wpapp-actions h4 {
-	font-size: 1.2em !important;
-	margin-top: 1.2em !important;
+	font-size: 1.1em !important;
 	color: var(--wpcd-primary-brand-color);
+	margin-top: 5px !important;
 }
-
 /* End style Metabox.io Tabs in the wp-app screen */
 
 /* the password toggle icon */

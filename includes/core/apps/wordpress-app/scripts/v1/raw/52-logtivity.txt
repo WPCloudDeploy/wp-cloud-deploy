@@ -53,12 +53,21 @@ lf_create_exec_file() {
 	pwtmpfile=$(mktemp)
 
 # Heredoc - temp file with php in it.
+# This is needed because it's the only way LOGTIVITY has to get an API key - no wp-cli commands are available for it.
 # PHP Vars that start with '$' are escaped with '\' so the prefix is '\$' instead of just '$'.
 cat << EOF > $pwtmpfile
 
 <?php
 
 if (class_exists('Logtivity_Register_Site')) {
+
+	// Remove the welcome notice transient which will prevent the notice from appearing in the dashboard.
+	delete_transient( 'logtivity-welcome-notice' );
+
+	// Delete any existing API key.  If we don't do this the LOGTIVITY plugin will not attempt to connect to the LOGTIVITY server since it will assume it's already connected.
+	delete_option( 'logtivity_site_api_key' );
+
+	// Get the api key.
 	Logtivity_Register_Site::execute([
 		'team_api_key' => '${LOGTIVITY_TEAM_API_KEY}',
 		'logtivity_disable_default_logging' => false,

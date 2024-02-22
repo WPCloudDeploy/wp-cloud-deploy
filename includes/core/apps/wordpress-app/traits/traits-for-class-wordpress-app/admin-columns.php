@@ -135,6 +135,29 @@ trait wpcd_wpapp_admin_column_data {
 	}
 
 	/**
+	 * Include additional search fields when searching the app list.
+	 *
+	 * Filter Hook: wpcd_app_search_fields
+	 *
+	 * @see class-wpcd-posts-app.php - function wpcd_app_extend_admin_search
+	 *
+	 * @param array $search_fields The current list of fields.
+	 */
+	public function wpcd_app_search_fields( $search_fields ) {
+
+		$our_search_fields = array(
+			'wpapp_php_version',
+			'wpapp_site_package',
+			'wpapp_current_version',
+		);
+
+		$search_fields = array_merge( $search_fields, $our_search_fields );
+
+		return $search_fields;
+
+	}
+
+	/**
 	 * Add content to the app summary column that shows up in app admin list
 	 *
 	 * Filter Hook: wpcd_app_admin_list_summary_column
@@ -995,6 +1018,10 @@ trait wpcd_wpapp_admin_column_data {
 				if ( true === $this->get_site_local_wildcard_ssl_status( $post_id ) ) {
 					$ssl_status = 'on [*]';
 				}
+
+				if ( true === $this->get_site_local_custom_ssl_status( $post_id ) ) {
+					$ssl_status = 'on [C]';
+				}				
 			} else {
 				$ssl_status = 'off';
 			}
@@ -1173,6 +1200,13 @@ trait wpcd_wpapp_admin_column_data {
 				$states['wpcd-wpapp-status'] = __( 'Staging', 'wpcd' );
 			}
 		}
+		
+		/* Show whether the SSL is custom or not. */
+		if ( 'wpcd_app' === get_post_type( $post ) && 'wordpress-app' === $this->get_app_type( $post->ID ) ) {
+			if ( true === $this->get_site_local_custom_ssl_status( $post->ID ) ) {
+				$states['wpcd-wpapp-custom-ssl-status'] = __( 'Custom SSL', 'wpcd' );
+			}
+		}
 
 		/* Show the object server type(s) */
 		if ( 'wpcd_app' === get_post_type( $post ) && 'wordpress-app' === $this->get_app_type( $post->ID ) && true === boolval( wpcd_get_option( 'wordpress_app_show_object_server_label_in_lists' ) ) ) {
@@ -1184,7 +1218,7 @@ trait wpcd_wpapp_admin_column_data {
 			if ( $this->get_app_is_memcached_installed( $post->ID ) ) {
 				$object_server_type = 'Memcached';
 			}
-			
+
 			if ( ! empty( $object_server_type ) ) {
 				$states['wpcd-wpapp-object-server-type'] = $object_server_type;
 			}
@@ -1257,7 +1291,7 @@ trait wpcd_wpapp_admin_column_data {
 			if ( ! empty( $object_server_type ) ) {
 				$states['wpcd-server-object-server-type-redis'] = $object_server_type;
 			}
-			
+
 			$object_server_type = '';
 			if ( $this->is_memcached_installed( $post->ID ) ) {
 				$object_server_type = 'Memcached';

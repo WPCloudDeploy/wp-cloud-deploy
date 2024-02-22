@@ -62,7 +62,7 @@ Features of the plugin include:
 
 ## Requirements ##
 * WordPress 5.8 or later
-* PHP 7.4, [8.0 or 8.1](https://wpclouddeploy.com/documentation/more/php-8-0-8-1-notes/)
+* PHP 7.4, [8.0, 8.1 or 8.2](https://wpclouddeploy.com/documentation/more/php-8-0-8-1-notes/)
 
 Once the plugin is installed please view additional changes required to PHP and web server execution timeout values under the WPCLOUDDEPLOY → SETTINGS → GENERAL SETTINGS tab. 
 
@@ -126,6 +126,43 @@ Note: Even though the entire git development history isn't available on github, 
 [Friendly Release Notes](https://wpclouddeploy.com/category/release-notes/)
 
 ## Change Log ##
+5.7.0
+------
+* New: WPAPP - Ability to 'expire' sites.
+* New: WPAPP - Option to apply http authentication in front of a site when its disk quota has been exceeded.
+* New: WPAPP - Use CALLBACKS to collected posttype counts from child sites.
+* New: WPAPP - Passwordless login for specific user.
+* New: WPAPP - Ability to bulk copy sites from one or more servers to a single target server.
+* New: WPAPP - Add option to set meta to indicate a site is using a custom SSL certificate.
+* Tweak: WPAPP - PHP 8.0 is now shown with an orange border (caution) in the apps list (since 8.0 no longer receives security updates).
+* Tweak: WPAPP - CSS to change the highlighter in the left menu bar in WPCD settings, server and app detail screens.
+* Tweak: WPAPP - Updated HELP & FAQ links.
+* Tweak: WPAPP - Updated WP Version list.
+* Tweak: WPAPP - Add option to upgrade WPCLI to 2.10.0.
+* Tweak: WPAPP - Pre-generate user id and password for filemanager, sftp, http auth, monitorix & filegator.
+* Tweak: WPAPP - Update netdata script to pull installation files from new netdata urls.
+* Tweak: WPAPP - Lots of tweaks to colors to make sure they more cleanly separate between front-end and wp-admin.
+* Tweak: WPAPP - Introduce new "WHITE" color setting.
+* Tweak: WPAPP - Click-to-copy user id and password on MONITORIX tab.
+* Tweak: WPAPP - Click-to-copy user id and password on GOACCESS tab.
+* Tweak: WPAPP - The search box on the app list will now search additional CPT fields: PHP VERSION, CURRENT WP VERSION and PACKAGE ID associated with the site.
+* Tweak: WPAPP - Set some checkboxes on new site packages to off by default.
+* Fix: WPAPP - Missing default $in_args for change_php_workers (Thanks @batonac)
+* Fix: WPAPP - Remove an errant error_log statement.
+* Fix: WPAPP - Prevent WPCD from registering a site twice on the Logtivity service.
+* Fix: WPAPP - The sftp tab was not respecting the site disabled flag.
+* Fix: WPAPP - Enabling or disabling a site would not refresh the page. User would have to manually refresh to see new status.
+* Fix: WPAPP - Basic http authentication metas not being updated if http auth was already enabled but the metas were not already set for some reason.
+* Fix: OTHERAPPS - Fix a "not a countable" type error under PHP 8.x.
+* Dev: WPAPP - Add filter to the base WooCommerce class: wpcd_get_unique_products_on_order (customer request).
+* Dev: WPAPP - Add filter to the base WooCommerce class: wpcd_does_order_contain_item_of_type (customer request).
+* Dev: WPAPP - Add filter to the base WooCommerce class: wpcd_does_order_suppress_thank_you_notice (customer request).
+* Dev: WPAPP - Default allowed_classes to false in the wpcd_maybe_unserialize() function. There's no need to unserialize objects by default so setting this to false reduces the attack surface.
+* Dev: WPAPP - Add filter around the passwordless login link (customer request).
+* Dev: WPAPP - Apply custom kses_filters around the output painting the selects in the filter bars on the server and site lists.
+* Dev: Upgrade metabox modules to latest versions.
+* Dev: The metabox conditional module was not being loaded.
+
 5.6.0
 ------
 * New: WPAPP - REDIS now part of CORE plugin and is installed on all servers.

@@ -1052,7 +1052,7 @@ abstract class WPCD_MB_Custom_Table {
 		$roles = array();
 		
 		if( $setting ) {
-			$roles = maybe_unserialize ( wpcd_get_early_option( $setting ) );
+			$roles = wpcd_maybe_unserialize( wpcd_get_early_option( $setting ) );
 			$roles = is_array( $roles ) && !empty( $roles ) ? $roles : array();
 		}
 		return $roles;

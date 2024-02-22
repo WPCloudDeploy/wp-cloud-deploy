@@ -12,8 +12,9 @@ $message = rwmb_request()->get( 'model-message' );
 	<hr class="wp-header-end">
 
 	<?php $message = rwmb_request()->get( 'model-message' ) ?>
+	<?php $message_status = rwmb_request()->get( 'message-status' ) ?? 'success'; ?>
 	<?php if ( $message && isset( $this->model->labels["item_$message"] ) ) : ?>
-		<div id="message" class="updated notice notice-success is-dismissible"><p><?= esc_html( $this->model->labels["item_$message"] ) ?></p></div>
+		<div id="message" class="<?= esc_attr( $message ) ?> notice notice-<?= esc_attr( $message_status ) ?> is-dismissible"><p><?= esc_html( $this->model->labels["item_$message"] ) ?></p></div>
 	<?php endif ?>
 
 	<form method="post" action="" enctype="multipart/form-data" id="post" class="rwmb-model-form">

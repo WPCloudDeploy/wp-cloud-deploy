@@ -126,7 +126,7 @@ Note: Even though the entire git development history isn't available on github, 
 [Friendly Release Notes](https://wpclouddeploy.com/category/release-notes/)
 
 ## Change Log ##
-5.6.1
+5.7.0
 ------
 * New: WPAPP - Ability to 'expire' sites.
 * New: WPAPP - Option to apply http authentication in front of a site when its disk quota has been exceeded.

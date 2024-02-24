@@ -113,16 +113,19 @@ class WORDPRESS_SSH extends WPCD_SSH {
 			$ssh_private_key_encrypted = wpcd_get_option( 'vpn_' . $attributes['provider'] . '_sshkey' ); // We don't decrypt the private key itself....
 		}
 
-		// Get some other data elements...
-		$instance = WPCD()->get_provider_api( $attributes['provider'] )->call( 'details', $attributes );
-
-		// Make sure the $instance var is valid otherwise return false.
-		if ( is_wp_error( $instance ) || empty( $instance ) ) {
-			return false;
-		}
-
 		// Grab the ip address.
-		$ip       = $instance['ip'];
+		if (metadata_exists('post', $post_id, 'wpcd_server_ipv4')) { // we use the ip from the server post if it's available
+			$ip = get_post_meta($post_id, 'wpcd_server_ipv4', true);
+		} else { // otherwise we get it from the provider.
+			$instance = WPCD()->get_provider_api($attributes['provider'])->call('details', $attributes);
+
+			// Make sure the $instance var is valid otherwise return false.
+			if (is_wp_error($instance) || empty($instance)) {
+				return false;
+			}
+
+			$ip = $instance['ip'];
+		}
 
 		// At this point we better have some key data!
 		$key = array(

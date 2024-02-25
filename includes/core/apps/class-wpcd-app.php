@@ -1314,8 +1314,7 @@ class WPCD_APP extends WPCD_Base {
 
 		/**
 		 * Grab the contents of the run commands template - the text in this template is updated to replace certain ##TOKENS##
-		 * and then passed into the cloud provider upon start up.  In the case of Digital Ocean, it uses the run_cmd attribute
-		 * of the API to pass in these commands.
+		 * and then passed into the cloud provider after the VM starts up.
 		 *
 		 * We first check to see if the filename exists with the providers prefix.  If not then we try to grab one without the prefix.
 		 */

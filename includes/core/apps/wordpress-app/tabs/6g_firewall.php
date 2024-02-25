@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 class WPCD_WORDPRESS_TABS_6G_FIREWALL extends WPCD_WORDPRESS_TABS {
 
 	/**
-	 * WPCD_WORDPRESS_TABS_BACKUP constructor.
+	 * WPCD_WORDPRESS_TABS_6G_FIREWALL constructor.
 	 */
 	public function __construct() {
 		parent::__construct();

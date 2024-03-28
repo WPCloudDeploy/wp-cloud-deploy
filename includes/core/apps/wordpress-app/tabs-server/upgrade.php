@@ -891,7 +891,7 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 		// Set up metabox items.
 		$actions = array();
 
-		$upg_desc  = __( 'Use this button to install PHP 8.3 if it was released after your server was created. WPCD V 5.7.0 and later automatically installs PHP 8.7 on new servers. But older servers will not have it.', 'wpcd' );
+		$upg_desc  = __( 'Use this button to install PHP 8.3 if it was released after your server was created. WPCD V 5.8.0 and later automatically installs PHP 8.3 on new servers. But older servers will not have it.', 'wpcd' );
 		$upg_desc .= '<br />';
 		$upg_desc .= __( 'Before running this, you should check to see if your server needs to be restarted because of prior upgrades.  If so, please restart your server before using this option to install PHP 8.3', 'wpcd' );
 

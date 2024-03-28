@@ -390,7 +390,7 @@ class WPCD_WORDPRESS_TABS_SERVER_TOOLS extends WPCD_WORDPRESS_TABS {
 	}
 
 	/**
-	 * Run a test REST API command from the server to he plugin.
+	 * Run a test REST API command from the server to the plugin.
 	 *
 	 * @param int    $id         The postID of the server cpt.
 	 * @param string $action     The action to be performed (this matches the string required in the bash scripts if bash scripts are used ).
@@ -437,7 +437,7 @@ class WPCD_WORDPRESS_TABS_SERVER_TOOLS extends WPCD_WORDPRESS_TABS {
 		}
 
 		// Check to make sure that the version is a valid version.
-		if ( ! in_array( $new_php_version, array( '7.4', '7.3', '7.2', '7.1', '5.6', '8.0', '8.1', '8.2' ) ) ) {
+		if ( ! in_array( $new_php_version, array( '7.4', '7.3', '7.2', '7.1', '5.6', '8.0', '8.1', '8.2', '8.3' ) ) ) {
 			return new \WP_Error( __( 'You must specify a VALID PHP version!', 'wpcd' ) );
 		}
 

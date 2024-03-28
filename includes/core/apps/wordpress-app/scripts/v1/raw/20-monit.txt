@@ -437,6 +437,14 @@ echo 'check process memcached with pidfile "/var/run/memcached/memcached.pid"
 '> /etc/monit/conf-available/memcached
 
 if [ "$g_webserver_type" = "nginx" ] ; then
+	echo 'check process php83-fpm with pidfile /var/run/php/php8.3-fpm.pid
+    start program = "/bin/systemctl start php8.3-fpm"
+    stop program  = "/bin/systemctl stop php8.3-fpm"
+    if cpu is greater than '$Alert_cpu'% for 3 cycles then alert
+    if cpu is greater than '$Restart_cpu'% for 5 cycles then restart
+    if totalmem > '$Restart_memory' MB then alert
+' > /etc/monit/conf-available/php83
+
 	echo 'check process php82-fpm with pidfile /var/run/php/php8.2-fpm.pid
     start program = "/bin/systemctl start php8.2-fpm"
     stop program  = "/bin/systemctl stop php8.2-fpm"
@@ -485,6 +493,9 @@ echo 'check system '$domain'
 	ln -s /etc/monit/conf-available/"$g_webserver_type" /etc/monit/conf-enabled/"$g_webserver_type"
 	
 	if [ "$g_webserver_type" = "nginx" ] ; then
+		if [[ ! -f /etc/wpcd/php-versions-disabled/php8.3 ]]; then
+			ln -s /etc/monit/conf-available/php82 /etc/monit/conf-enabled/php83
+		fi	
 		if [[ ! -f /etc/wpcd/php-versions-disabled/php8.2 ]]; then
 			ln -s /etc/monit/conf-available/php82 /etc/monit/conf-enabled/php82
 		fi
@@ -750,6 +761,7 @@ if [[ $action == "disable_all_monit" || $action == "16" ]]; then
 	rm -f /etc/monit/conf-enabled/memcached
 	rm -f /etc/monit/conf-enabled/redis
 	if [ "$g_webserver_type" = "nginx" ] ; then
+		rm -f /etc/monit/conf-enabled/php83
 		rm -f /etc/monit/conf-enabled/php82
 		rm -f /etc/monit/conf-enabled/php81
 		rm -f /etc/monit/conf-enabled/php80

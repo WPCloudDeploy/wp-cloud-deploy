@@ -160,7 +160,7 @@ then
 
 	# Adding and installing PHP stack
 	echo $(date): "Installing PHP versions - this will take a while too!"
-	phpversion=(7.4 8.0 8.1 8.2)
+	phpversion=(7.4 8.0 8.1 8.2 8.3)
 	for ver in "${phpversion[@]}"
 	do
 		echo $(date): ".....PHP $ver"
@@ -363,7 +363,7 @@ else
 	then
 		# Update php.ini file to increase filesize uploads allowed in WordPress
 		echo $(date): "Adding required entries in php.ini to allow for larger file uploads in WordPress..."
-		phpversion=(7.4 8.0 8.1 8.2)
+		phpversion=(7.4 8.0 8.1 8.2 8.3)
 		for ver in "${phpversion[@]}"
 		do
 			sed -i "s/upload_max_filesize = 2M/upload_max_filesize = 25M/g" /etc/php/$ver/fpm/php.ini
@@ -382,9 +382,9 @@ else
 			sed -i "s/;opcache.validate_permission=0/opcache.validate_permission=1/g" /etc/php/$ver/fpm/php.ini
 			sed -i "s/;opcache.file_update_protection=2/opcache.file_update_protection=60/g" /etc/php/$ver/fpm/php.ini
 
-			# PHP 8.1 and 8.2 needs a set of default functions added to its global php.ini file because its set to blank for some reason.
+			# PHP 8.1, 8.2 & 8.3 needs a set of default functions added to its global php.ini file because its set to blank for some reason.
 			# We're going to use the same list as 7.4.
-			if [ $ver = "8.1" ] || [ $ver = "8.2" ]; then
+			if [ $ver = "8.1" ] || [ $ver = "8.2" ] || [ $ver = "8.3" ]; then
 				echo "$(date): Setting global list of restricted php functions for PHP $ver"
 				sed -i "s/^disable_functions.*/disable_functions = pcntl_alarm,pcntl_fork,pcntl_waitpid,pcntl_wait,pcntl_wifexited,pcntl_wifstopped,pcntl_wifsignaled,pcntl_wifcontinued,pcntl_wexitstatus,pcntl_wtermsig,pcntl_wstopsig,pcntl_signal,pcntl_signal_get_handler,pcntl_signal_dispatch,pcntl_get_last_error,pcntl_strerror,pcntl_sigprocmask,pcntl_sigwaitinfo,pcntl_sigtimedwait,pcntl_exec,pcntl_getpriority,pcntl_setpriority,pcntl_async_signals,pcntl_unshare,/g" /etc/php/$ver/fpm/php.ini
 			fi
@@ -823,9 +823,9 @@ fastcgi_hide_header X-Powered-By;
 			sed -i "s/;opcache.validate_permission=0/opcache.validate_permission=1/g" /usr/local/lsws/lsphp${phpver}/etc/php/${lsphpver}/litespeed/php.ini
 			sed -i "s/;opcache.file_update_protection=2/opcache.file_update_protection=60/g" /usr/local/lsws/lsphp${phpver}/etc/php/${lsphpver}/litespeed/php.ini
 
-			# PHP 8.1 and 8.2 needs a set of default functions added to its global php.ini file because its set to blank for some reason.
+			# PHP 8.1, 8.2 & 8.3 needs a set of default functions added to its global php.ini file because its set to blank for some reason.
 			# We're going to use the same list as 7.4.
-			if [ $lsphpver = "8.1" ] || [ $lsphpver = "8.2" ]; then
+			if [ $lsphpver = "8.1" ] || [ $lsphpver = "8.2" ] || [ $lsphpver = "8.3" ]; then
 				echo "$(date): Setting global list of restricted php functions for PHP $lsphpver"
 				sed -i "s/^disable_functions.*/disable_functions = pcntl_alarm,pcntl_fork,pcntl_waitpid,pcntl_wait,pcntl_wifexited,pcntl_wifstopped,pcntl_wifsignaled,pcntl_wifcontinued,pcntl_wexitstatus,pcntl_wtermsig,pcntl_wstopsig,pcntl_signal,pcntl_signal_get_handler,pcntl_signal_dispatch,pcntl_get_last_error,pcntl_strerror,pcntl_sigprocmask,pcntl_sigwaitinfo,pcntl_sigtimedwait,pcntl_exec,pcntl_getpriority,pcntl_setpriority,pcntl_async_signals,pcntl_unshare,/g" /usr/local/lsws/lsphp${phpver}/etc/php/${lsphpver}/litespeed/php.ini
 			fi
@@ -908,7 +908,7 @@ else
 	# Do Redis things related to NGINX
 	if [ "$webserver_type" = "nginx" ]
 	then
-		apt-get install -y php7.4-redis php8.0-redis php8.1-redis php8.2-redis > /dev/null 2>&1
+		apt-get install -y php7.4-redis php8.0-redis php8.1-redis php8.2-redis php8.3-redis > /dev/null 2>&1
 	fi
 
 	# Do Redis things related to OLS

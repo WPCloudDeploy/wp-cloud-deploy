@@ -60,6 +60,7 @@ then
 	rsync -az /usr/local/lsws/lsphp80/etc/php/8.0/litespeed/php.ini $backuptmp/lsws/lsphp80/etc/php/8.0/litespeed/php.ini 2>/dev/null
 	rsync -az /usr/local/lsws/lsphp81/etc/php/8.1/litespeed/php.ini $backuptmp/lsws/lsphp81/etc/php/8.1/litespeed/php.ini 2>/dev/null
 	rsync -az /usr/local/lsws/lsphp82/etc/php/8.2/litespeed/php.ini $backuptmp/lsws/lsphp82/etc/php/8.2/litespeed/php.ini 2>/dev/null
+	rsync -az /usr/local/lsws/lsphp82/etc/php/8.3/litespeed/php.ini $backuptmp/lsws/lsphp82/etc/php/8.3/litespeed/php.ini 2>/dev/null
 	rsync -az /etc/nginx/ $backuptmp/nginx/ 2>/dev/null
 	rsync -az /etc/php/ $backuptmp/php/ 2>/dev/null
 	rsync -az /etc/letsencrypt/ $backuptmp/letsencrypt/ 2>/dev/null

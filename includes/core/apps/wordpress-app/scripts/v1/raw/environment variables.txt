@@ -594,6 +594,8 @@ For $action = wp_site_update_wpconfig_option
 	$wps_new_wpconfig_option_value - wp-config.php new option value
 	$wps_wpconfig_option_is_raw - whether the option should be added to the wp-config.php as-is without any quotes or other filters applied.  Valid values are 'yes' or 'no'.
 
+For $action= wp_site_get_passwordless_link
+	only $domain is required.
 	
 -----------------------------------
 31-search_and_replace_db.sh
@@ -979,12 +981,35 @@ for "update_exclude_themes"
 	- $excluded_themes - a comma separated list of themes to exclude from updates
 
 -----------------------------------
-51-(reserved for future use)
+51-solidsecurity.sh (formerly ithemes)
 -----------------------------------
+For "solidwp_install"
+	- $domain
+	- $solidwp_url
+	- $solidwp_user_id
+	- $solidwp_password
+
+for "solidwp_license"
+	- $domain
+	- $solidwp_user_id
+	- $solidwp_password
+
+for "solidwp_remove"
+	- $domain	
 
 -----------------------------------
-52-(reserved for future use)
+52-logtivity.sh
 -----------------------------------
+For "logtivity_install"
+	- $domain
+	- $logtivity_teams_api_key
+	
+For "logtivity_license"
+	- $domain
+	- $logtivity_teams_api_key
+
+For "logtivity_remove"
+	- $domain
 
 -----------------------------------
 53-database-operation.sh
@@ -992,8 +1017,13 @@ for "update_exclude_themes"
 (coming soon)
 
 -----------------------------------
-54-(reserved for future use)
+54-ubuntupro
 -----------------------------------
+For "ubunutu_pro_apply_token"
+	- $ubunutu_pro_token
+
+For "ubuntu_pro_remove_token"
+	(nothing needed).
 
 -----------------------------------
 55-ols_options.sh
@@ -1006,7 +1036,7 @@ for "update_exclude_themes"
 (coming soon)
 
 -----------------------------------
-56-tinyfilemanager
+57-tinyfilemanager
 -----------------------------------
 $action: "install_tinyfilemanager", "remove_tinyfilemanager", "upgrade_tinyfilemanager", "change_auth_tinyfilemanager"
 

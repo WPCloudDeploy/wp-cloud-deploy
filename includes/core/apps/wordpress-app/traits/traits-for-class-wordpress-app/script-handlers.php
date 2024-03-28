@@ -502,6 +502,9 @@ trait wpcd_wpapp_script_handlers {
 			case 'run_upgrade_install_php_82.txt':
 				$return = ( strpos( $result, 'PHP 8.2 has been installed' ) !== false );
 				break;
+			case 'run_upgrade_install_php_83.txt':
+				$return = ( strpos( $result, 'PHP 8.3 has been installed' ) !== false );
+				break;
 			case 'run_upgrade_install_old_php_version.txt':
 				$return = ( strpos( $result, 'has been installed' ) !== false );
 				break;
@@ -1531,6 +1534,16 @@ trait wpcd_wpapp_script_handlers {
 					array(
 						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/1110-upgrade_install_php_82.txt',
 						'SCRIPT_NAME' => '1110-upgrade_install_php_82.sh',
+					),
+					$common_array,
+					$additional
+				);
+				break;
+			case 'run_upgrade_install_php_83.txt':
+				$new_array = array_merge(
+					array(
+						'SCRIPT_URL'  => trailingslashit( wpcd_url ) . $this->get_scripts_folder_relative() . $script_version . '/raw/1110-upgrade_install_php_83.txt',
+						'SCRIPT_NAME' => '1110-upgrade_install_php_83.sh',
 					),
 					$common_array,
 					$additional

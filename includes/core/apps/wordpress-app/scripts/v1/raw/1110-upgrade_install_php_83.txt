@@ -1,0 +1,126 @@
+#!/bin/bash
+# This script will install PHP 8.3
+
+echo $(date): "Refreshing repositories..."
+apt-get update > /dev/null 2>&1
+if [ $? -ne 0 ]  
+then
+	echo "Failed!  Quitting process"
+	exit 1
+fi
+
+## Get our common functions
+if [[ ! -f 9999-common-functions.sh ]]
+then
+	echo "The file 9999-common-functions.sh is missing"
+	exit 1
+fi
+source 9999-common-functions.sh
+
+echo $(date): "Installing PHP 8.3...."
+export DEBIAN_FRONTEND=noninteractive
+# Add Vhost config based on webserver_type
+if [ "$g_webserver_type" = "nginx" ]; then
+	apt-get install -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"  php8.3 php8.3-fpm php8.3-mbstring php8.3-curl php8.3-mysql php8.3-xml php8.3-zip php8.3-gd php8.3-imap php8.3-soap php8.3-bcmath php8.3-imagick -y
+	if [ $? -ne 0 ]  
+	then
+		echo "Failed!  Quitting process"
+		exit 1
+	fi
+
+	# Update php.ini file to increase filesize uploads allowed in WordPress
+	echo $(date): "Adding required entries in php.ini to allow for larger file uploads in WordPress..."
+	sed -i "s/upload_max_filesize = 2M/upload_max_filesize = 25M/g" /etc/php/8.3/fpm/php.ini
+	sed -i "s/post_max_size = 8M/post_max_size = 25M/g" /etc/php/8.3/fpm/php.ini
+
+	# Update php.ini to enable and configure opcache
+	echo $(date): "Updating OPCACHE parameters in php.ini..."
+	sed -i "s/;opcache.enable=1/opcache.enable=1/g" /etc/php/8.3/fpm/php.ini
+	sed -i "s/;opcache.enable_cli=0/opcache.enable_cli=1/g" /etc/php/8.3/fpm/php.ini
+	sed -i "s/;opcache.interned_strings_buffer=8/opcache.interned_strings_buffer=8/g" /etc/php/8.3/fpm/php.ini
+	sed -i "s/;opcache.max_accelerated_files=10000/opcache.max_accelerated_files=100000/g" /etc/php/8.3/fpm/php.ini
+	sed -i "s/;opcache.memory_consumption=128/opcache.memory_consumption=128/g" /etc/php/8.3/fpm/php.ini
+	sed -i "s/;opcache.save_comments=1/opcache.save_comments=1/g" /etc/php/8.3/fpm/php.ini
+	sed -i "s/;opcache.revalidate_freq=2/opcache.revalidate_freq=1/g" /etc/php/8.3/fpm/php.ini
+	sed -i "s/;opcache.use_cwd=1/opcache.use_cwd=1/g" /etc/php/8.3/fpm/php.ini
+	sed -i "s/;opcache.validate_root=0/opcache.validate_root=1/g" /etc/php/8.3/fpm/php.ini
+	sed -i "s/;opcache.validate_permission=0/opcache.validate_permission=1/g" /etc/php/8.3/fpm/php.ini
+	sed -i "s/;opcache.file_update_protection=2/opcache.file_update_protection=60/g" /etc/php/8.3/fpm/php.ini
+
+	# PHP 8.3 needs a set of default functions added to its global php.ini file because its set to blank for some reason.
+	# We're going to use the same list as 7.4.
+	sed -i "s/^disable_functions.*/disable_functions = pcntl_alarm,pcntl_fork,pcntl_waitpid,pcntl_wait,pcntl_wifexited,pcntl_wifstopped,pcntl_wifsignaled,pcntl_wifcontinued,pcntl_wexitstatus,pcntl_wtermsig,pcntl_wstopsig,pcntl_signal,pcntl_signal_get_handler,pcntl_signal_dispatch,pcntl_get_last_error,pcntl_strerror,pcntl_sigprocmask,pcntl_sigwaitinfo,pcntl_sigtimedwait,pcntl_exec,pcntl_getpriority,pcntl_setpriority,pcntl_async_signals,pcntl_unshare,/g" /etc/php/8.3/fpm/php.ini
+
+	# Restarting php
+	echo $(date): "Restarting PHP processes..."
+	if [ ! -f /etc/wpcd/php-versions-disabled/php8.3 ] ; then
+		systemctl restart php8.3-fpm > /dev/null 2>&1
+	fi
+
+# OLS Wrapper
+elif [ "$g_webserver_type" = "ols" ]  || [ "$g_webserver_type" = "ols-enterprise" ]; then	
+	# Install all possible lsphp-dev and pear and packages 
+	apt-get install -y lsphp83 lsphp83-common lsphp83-dev lsphp83-pear lsphp83-mysql lsphp83-imap lsphp83-curl
+	if [ $? -ne 0 ]  
+	then
+		echo "Failed!  Quitting process"
+		exit 1
+	fi
+
+	apt-get install -y lsphp83-imagick lsphp83-intl lsphp*
+	if [ $? -ne 0 ]  
+	then
+		echo "Failed!  Quitting process"
+		exit 1
+	fi
+
+	# *** lsphp-gd isn't available for some reason so removing from above, adding block below and then commenting out for now.
+	# *** Later, when it's available we'll add it back in. At that time we'll need another upgrade package just to get it onto existing php 8.3 servers.
+	# apt-get install -y lsphp83-gd
+	# if [ $? -ne 0 ]  
+	# then
+	#	echo "Failed!  Quitting process"
+	#	exit 1
+	# fi
+
+	sed -i -e "s|^;session.save_path.*|session.save_path = '/var/lib/lsphp/session/lsphp83'|g" -e "s|^session.save_path.*|session.save_path = '/var/lib/lsphp/session/lsphp83'|g" /usr/local/lsws/lsphp83/etc/php/8.3/litespeed/php.ini ;
+	# /usr/local/lsws/lsphp83/bin/php -i |grep -Ei 'session.save_path' && echo "" # Disable useless echo but leave for debugging
+
+	sed -i 's/^memory_limit.*/memory_limit = 1024M/g' /usr/local/lsws/lsphp83/etc/php/8.3/litespeed/php.ini
+	sed -i 's/^post_max_size.*/post_max_size = 25M/g' /usr/local/lsws/lsphp83/etc/php/8.3/litespeed/php.ini
+	sed -i 's/^upload_max_filesize.*/upload_max_filesize = 25M/g' /usr/local/lsws/lsphp83/etc/php/8.3/litespeed/php.ini
+	sed -i 's/^max_execution_time.*/max_execution_time = 7200/g' /usr/local/lsws/lsphp83/etc/php/8.3/litespeed/php.ini
+
+	# Update php.ini to enable and configure opcache
+	sed -i "s/;opcache.enable=1/opcache.enable=1/g" /usr/local/lsws/lsphp83/etc/php/8.3/litespeed/php.ini
+	sed -i "s/;opcache.enable_cli=0/opcache.enable_cli=1/g" /usr/local/lsws/lsphp83/etc/php/8.3/litespeed/php.ini
+	sed -i "s/;opcache.interned_strings_buffer=8/opcache.interned_strings_buffer=8/g" /usr/local/lsws/lsphp83/etc/php/8.3/litespeed/php.ini
+	sed -i "s/;opcache.max_accelerated_files=10000/opcache.max_accelerated_files=100000/g" /usr/local/lsws/lsphp83/etc/php/8.3/litespeed/php.ini
+	sed -i "s/;opcache.memory_consumption=128/opcache.memory_consumption=128/g" /usr/local/lsws/lsphp83/etc/php/8.3/litespeed/php.ini
+	sed -i "s/;opcache.save_comments=1/opcache.save_comments=1/g" /usr/local/lsws/lsphp83/etc/php/8.3/litespeed/php.ini
+	sed -i "s/;opcache.revalidate_freq=2/opcache.revalidate_freq=1/g" /usr/local/lsws/lsphp83/etc/php/8.3/litespeed/php.ini
+	sed -i "s/;opcache.use_cwd=1/opcache.use_cwd=1/g" /usr/local/lsws/lsphp83/etc/php/8.3/litespeed/php.ini
+	sed -i "s/;opcache.validate_root=0/opcache.validate_root=1/g" /usr/local/lsws/lsphp83/etc/php/8.3/litespeed/php.ini
+	sed -i "s/;opcache.validate_permission=0/opcache.validate_permission=1/g" /usr/local/lsws/lsphp83/etc/php/8.3/litespeed/php.ini
+	sed -i "s/;opcache.file_update_protection=2/opcache.file_update_protection=60/g" /usr/local/lsws/lsphp83/etc/php/8.3/litespeed/php.ini
+
+	# PHP 8.3 needs a set of default functions added to its global php.ini file because its set to blank for some reason.
+	# We're going to use the same list as 7.4.
+	sed -i "s/^disable_functions.*/disable_functions = pcntl_alarm,pcntl_fork,pcntl_waitpid,pcntl_wait,pcntl_wifexited,pcntl_wifstopped,pcntl_wifsignaled,pcntl_wifcontinued,pcntl_wexitstatus,pcntl_wtermsig,pcntl_wstopsig,pcntl_signal,pcntl_signal_get_handler,pcntl_signal_dispatch,pcntl_get_last_error,pcntl_strerror,pcntl_sigprocmask,pcntl_sigwaitinfo,pcntl_sigtimedwait,pcntl_exec,pcntl_getpriority,pcntl_setpriority,pcntl_async_signals,pcntl_unshare,/g" /usr/local/lsws/lsphp83/etc/php/8.3/litespeed/php.ini
+
+	# Update pecl
+	/usr/local/lsws/lsphp83/bin/pecl channel-update pecl.php.net
+
+	# timezone stuff
+	sed -i -e 's|^;date.timezone.*|date.timezone = "UTC"|g' /usr/local/lsws/lsphp83/etc/php/$(echo '83' | sed 's/^\(.\{1\}\)/\1./')/litespeed/php.ini;
+	php_utc_result=$(/usr/local/lsws/lsphp83/bin/php -i 2>&1 | grep -Ei 'date.timezone')
+	if ! echo "$php_utc_result"| grep UTC >/dev/null 2>&1
+	then
+		echo "Configuring Timezone for UTC for LSPHP83 failed"
+		echo "Found: $php_utc_result"
+	fi
+
+fi
+
+gf_restart_webserver "true"
+echo "PHP 8.3 has been installed."

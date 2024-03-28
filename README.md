@@ -126,6 +126,10 @@ Note: Even though the entire git development history isn't available on github, 
 [Friendly Release Notes](https://wpclouddeploy.com/category/release-notes/)
 
 ## Change Log ##
+5.7.1
+------
+* New: WPAPP - Add support for PHP 8.3 on NGINX servers.
+
 5.7.0
 ------
 * New: WPAPP - Ability to 'expire' sites.

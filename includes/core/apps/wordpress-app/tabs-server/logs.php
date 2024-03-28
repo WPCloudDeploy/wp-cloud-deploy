@@ -346,6 +346,7 @@ class WPCD_WORDPRESS_TABS_SERVER_LOGS extends WPCD_WORDPRESS_TABS {
 					'/var/log/php8.0-fpm.log'         => __( 'PHP 8.0 FPM Log', 'wpcd' ),
 					'/var/log/php8.1-fpm.log'         => __( 'PHP 8.1 FPM Log', 'wpcd' ),
 					'/var/log/php8.2-fpm.log'         => __( 'PHP 8.2 FPM Log', 'wpcd' ),
+					'/var/log/php8.3-fpm.log'         => __( 'PHP 8.3 FPM Log', 'wpcd' ),
 					'/var/log/auth.log'               => __( 'Authorization Log', 'wpcd' ),
 					'/var/log/ufw.log'                => __( 'UFW Firewall Log', 'wpcd' ),
 					'/var/log/wp-server-status.log'   => __( 'WPCD Server Status Callback Log', 'wpcd' ),

@@ -123,7 +123,7 @@ then
 	mkdir -p /etc/wpcd/wpcd-allowed-denied-plugins
 	if [[ -z "$add_plugin_denylist" ]]
 	then
-		read -p "Enter plugin name seperated by comma to add in deny list : " add_plugin_denylist
+		read -p "Enter plugin name separated by comma to add in deny list : " add_plugin_denylist
 	fi
 	for plugin in ${add_plugin_denylist//,/ }
 	do
@@ -139,7 +139,7 @@ then
 	mkdir -p /etc/wpcd/wpcd-allowed-denied-plugins
 	if [[ -z "$remove_plugin_denylist" ]]
 	then
-		read -p "Enter plugin name seperated by comma to remove from deny list : " remove_plugin_denylist
+		read -p "Enter plugin name separated by comma to remove from deny list : " remove_plugin_denylist
 	fi
 	for plugin in ${remove_plugin_denylist//,/ }
 	do

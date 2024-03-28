@@ -574,7 +574,7 @@ do
 done
 
 ########################################################
-# Below are blocks where the action choosen above
+# Below are blocks where the action chosen above
 # is performed.
 ########################################################
 
@@ -2307,7 +2307,7 @@ then
 	# @todo: replace this block with a call to gf_mt_set_openbasedir()
 	if [ "$g_webserver_type" = "nginx" ]
 	then	
-		phpversion=(7.4 8.0 8.1 8.2)
+		phpversion=(7.4 8.0 8.1 8.2 8.3)
 		for ver in "${phpversion[@]}"
 		do	
 			if [ -f /etc/php/$ver/fpm/pool.d/$domain.conf ]; then

@@ -494,7 +494,7 @@ echo 'check system '$domain'
 	
 	if [ "$g_webserver_type" = "nginx" ] ; then
 		if [[ ! -f /etc/wpcd/php-versions-disabled/php8.3 ]]; then
-			ln -s /etc/monit/conf-available/php82 /etc/monit/conf-enabled/php83
+			ln -s /etc/monit/conf-available/php83 /etc/monit/conf-enabled/php83
 		fi	
 		if [[ ! -f /etc/wpcd/php-versions-disabled/php8.2 ]]; then
 			ln -s /etc/monit/conf-available/php82 /etc/monit/conf-enabled/php82

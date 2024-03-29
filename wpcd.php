@@ -68,6 +68,7 @@ class WPCD_Init {
 			define( 'WPCD_ALTERNATE_ACCENT_BG_COLOR', '#CFD8DC' );
 			define( 'WPCD_POSITIVE_COLOR', '#008000' );
 			define( 'WPCD_NEGATIVE_COLOR', '#8B0000' );
+			define( 'WPCD_ALT_NEGATIVE_COLOR', '#FF0000' );
 			define( 'WPCD_WHITE_COLOR', '#ffffff' );
 			define( 'WPCD_TERMINAL_BG_COLOR', '#000000' );
 			define( 'WPCD_TERMINAL_FG_COLOR', '#ffffff' );
@@ -83,6 +84,7 @@ class WPCD_Init {
 			define( 'WPCD_FE_ALTERNATE_ACCENT_BG_COLOR', '#CFD8DC' );
 			define( 'WPCD_FE_POSITIVE_COLOR', '#008000' );
 			define( 'WPCD_FE_NEGATIVE_COLOR', '#8B0000' );
+			define( 'WPCD_FE_ALT_NEGATIVE_COLOR', '#FF0000' );
 			define( 'WPCD_FE_WHITE_COLOR', '#ffffff' );
 
 			// Define a variable that can be used for versioning scripts - required to force multisite to use different version numbers for each site.
@@ -376,7 +378,7 @@ class WPCD_Init {
 		/* Include the SETTINGS PAGE and other related metabox.io extension files */
 		require_once wpcd_path . 'required_plugins/mb-settings-page/mb-settings-page.php';
 		require_once wpcd_path . '/required_plugins/mb-admin-columns/mb-admin-columns.php';
-		require_once wpcd_path . '/required_plugins/meta-box-conditional-logic/meta-box-conditional-logic.php';		
+		require_once wpcd_path . '/required_plugins/meta-box-conditional-logic/meta-box-conditional-logic.php';
 		require_once wpcd_path . '/required_plugins/meta-box-tabs/meta-box-tabs.php';
 		require_once wpcd_path . '/required_plugins/meta-box-tooltip/meta-box-tooltip.php';
 		require_once wpcd_path . '/required_plugins/mb-term-meta/mb-term-meta.php';

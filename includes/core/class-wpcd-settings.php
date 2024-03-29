@@ -2662,6 +2662,7 @@ class WPCD_Settings {
 		$wpcd_settings['wordpress_app_alternate_accent_background_color'] = WPCD_ALTERNATE_ACCENT_BG_COLOR;
 		$wpcd_settings['wordpress_app_positive_color']                    = WPCD_POSITIVE_COLOR;
 		$wpcd_settings['wordpress_app_negative_color']                    = WPCD_NEGATIVE_COLOR;
+		$wpcd_settings['wordpress_app_alt_negative_color']                = WPCD_ALT_NEGATIVE_COLOR;
 		$wpcd_settings['wordpress_app_white_color']                       = WPCD_WHITE_COLOR;
 
 		$wpcd_settings['wordpress_app_terminal_background_color'] = WPCD_TERMINAL_BG_COLOR;
@@ -2671,12 +2672,13 @@ class WPCD_Settings {
 		$wpcd_settings['wordpress_app_fe_secondary_brand_color']             = WPCD_FE_SECONDARY_BRAND_COLOR;
 		$wpcd_settings['wordpress_app_fe_tertiary_brand_color']              = WPCD_FE_TERTIARY_BRAND_COLOR;
 		$wpcd_settings['wordpress_app_fe_accent_background_color']           = WPCD_FE_ACCENT_BG_COLOR;
-		$wpcd_settings['wordpress_app_fe_medium_accent_background_color']    = WPCD_FE_MEDIUM_ACCENT_BG_COLOR;		
+		$wpcd_settings['wordpress_app_fe_medium_accent_background_color']    = WPCD_FE_MEDIUM_ACCENT_BG_COLOR;
 		$wpcd_settings['wordpress_app_fe_medium_background_color']           = WPCD_FE_MEDIUM_BG_COLOR;
 		$wpcd_settings['wordpress_app_fe_light_background_color']            = WPCD_FE_LIGHT_BG_COLOR;
 		$wpcd_settings['wordpress_app_fe_alternate_accent_background_color'] = WPCD_FE_ALTERNATE_ACCENT_BG_COLOR;
 		$wpcd_settings['wordpress_app_fe_positive_color']                    = WPCD_FE_POSITIVE_COLOR;
 		$wpcd_settings['wordpress_app_fe_negative_color']                    = WPCD_FE_NEGATIVE_COLOR;
+		$wpcd_settings['wordpress_app_fe_alt_negative_color']                = WPCD_FE_ALT_NEGATIVE_COLOR;
 		$wpcd_settings['wordpress_app_fe_white_color']                       = WPCD_FE_WHITE_COLOR;
 
 		// Update the settings options.

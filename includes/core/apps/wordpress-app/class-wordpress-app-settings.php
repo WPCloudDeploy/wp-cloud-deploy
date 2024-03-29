@@ -2964,6 +2964,11 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'desc'  => __( 'Accent color used to indicate something is turned off or a bad thing has occurred.', 'wpcd' ),
 				'std'   => WPCD_NEGATIVE_COLOR,
 			),
+			'wordpress_app_alt_negative_color'                 => array(
+				'label' => __( 'Alternative Negative Color', 'wpcd' ),
+				'desc'  => __( 'Alternative Accent color used to indicate something is turned off or a bad thing has occurred.', 'wpcd' ),
+				'std'   => WPCD_ALT_NEGATIVE_COLOR,
+			),
 			'wordpress_app_terminal_background_color'      => array(
 				'label' => __( 'Background Color for Terminal', 'wpcd' ),
 				'desc'  => __( 'Background color for our terminal display.', 'wpcd' ),
@@ -3060,6 +3065,11 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'desc'  => __( 'Accent color used to indicate something is turned off or a bad thing has occurred.', 'wpcd' ),
 				'std'   => WPCD_FE_NEGATIVE_COLOR,
 			),
+			'wordpress_app_fe_alt_negative_color'          => array(
+				'label' => __( 'Alt Negative Color', 'wpcd' ),
+				'desc'  => __( 'Alternative Accent color used to indicate something is turned off or a bad thing has occurred.', 'wpcd' ),
+				'std'   => WPCD_FE_ALT_NEGATIVE_COLOR,
+			),			
 			'wordpress_app_fe_white_color'             => array(
 				'label' => __( 'White', 'wpcd' ),
 				'desc'  => __( 'Wite.', 'wpcd' ),

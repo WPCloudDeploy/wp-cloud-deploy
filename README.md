@@ -129,6 +129,7 @@ Note: Even though the entire git development history isn't available on github, 
 5.7.1
 ------
 * New: WPAPP - Add support for PHP 8.3 on NGINX servers.
+* Fix: WPAPP - Healing tab threw errors under PHP 8.x when using the ADD METAS option to simulate monit being installed.
 
 5.7.0
 ------

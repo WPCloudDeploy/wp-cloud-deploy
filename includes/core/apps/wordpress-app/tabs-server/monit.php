@@ -815,7 +815,7 @@ class WPCD_WORDPRESS_TABS_SERVER_MONIT extends WPCD_WORDPRESS_TABS {
 			'type'           => 'number',
 			'raw_attributes' => array(
 				'std'            => $monit_smtp_port,
-				'desc'           => __( 'Enter the smtp port - usully one of 465, 587 or 25', 'wpcd' ),
+				'desc'           => __( 'Enter the smtp port - usually one of 465, 587 or 25', 'wpcd' ),
 				'columns'        => 4,
 				// the key of the field (the key goes in the request).
 				'data-wpcd-name' => 'monit_smtp_port',

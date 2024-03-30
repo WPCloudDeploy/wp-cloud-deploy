@@ -184,7 +184,7 @@ then
 	# Get local db information.
 	local_dbaccess
 
-	if gf_check_db_connection "$g_mysql_host_noport" "$g_mysql_name" "$g_mysql_user" "$g_mysql_pass"; then
+	if gf_check_db_connection "$g_mysql_host_noport" "$g_mysql_name" "$g_mysql_user" "$g_mysql_pass" "$g_mysql_dbport"; then
 		echo "Exporting remote database..."
 		mysqldump --routines -h "$g_mysql_host_noport" -P "$g_mysql_dbport" -u "$g_mysql_user" -p"$g_mysql_pass" "$g_mysql_name" > /root/"$g_mysql_name".sql
 	else

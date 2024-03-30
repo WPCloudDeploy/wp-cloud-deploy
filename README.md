@@ -132,6 +132,7 @@ Note: Even though the entire git development history isn't available on github, 
 * New: WPAPP - Add in an option for an alternative negative color.  Certain errors require a much brighter warning color.
 * Fix: WPAPP - Healing tab threw errors under PHP 8.x when using the ADD METAS option to simulate monit being installed.
 * Fix: WPAPP - Copy database from REMOTE to LOCAL was not working because of an incorrect parameter (Thanks @batonac).
+* Fix: WPAPP - An edge case where sometimes the front-end UI would not render because it could not find functions in the wp-admin/includes/post.php and similar WP core files.
 
 5.7.0
 ------

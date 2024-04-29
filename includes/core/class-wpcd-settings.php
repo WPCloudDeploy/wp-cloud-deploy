@@ -1676,16 +1676,15 @@ class WPCD_Settings {
 								'type' => 'heading',
 								'name' => __( 'Tags', 'wpcd' ),
 								'tab'  => $tab_id,
-								'desc' => __( 'Set provider behavior if server tags are supported.', 'wpcd' ),
+								'desc' => __( 'Set tags if server tags are supported for this provider.', 'wpcd' ),
 							),
 							array(
 								'id'      => "vpn_{$provider}_tags_on_server_create",
 								'type'    => 'text',
 								'name'    => __( 'Tag For New Servers', 'wpcd' ),
-								'desc'    => __( 'Note: Some providers require that you use tags that have already been defined while others allow you to set random/dynamic tags.', 'wpcd' ),
 								'size'    => '30',
 								'tab'     => $tab_id,
-								'tooltip' => __( 'Apply this tag to every new server. If left blank, the tag will default to WPCD for providers that allow for dynamic/random tags.', 'wpcd' ),
+								'tooltip' => __( 'Apply this tag to every new server. If left blank, the tag will default to WPCD for providers that allow for dynamic/random tags. Note: Some providers require that you use tags that have already been defined while others allow you to set random/dynamic tags.', 'wpcd' ),
 							),
 						),
 					);

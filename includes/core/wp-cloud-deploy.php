@@ -750,6 +750,7 @@ class WP_CLOUD_DEPLOY {
 		$oslist = array(
 			'ubuntu2204lts' => __( 'Ubuntu 22.04 LTS', 'wpcd' ),
 			'ubuntu2004lts' => __( 'Ubuntu 20.04 LTS', 'wpcd' ),
+			'ubuntu2404lts' => __( 'Ubuntu 24.04 LTS (Important Restrictions - See Docs!)', 'wpcd' ),
 		);
 
 		// Remove some entries based on settings.
@@ -758,6 +759,10 @@ class WP_CLOUD_DEPLOY {
 		}
 		if ( (bool) wpcd_get_option( 'wordpress_app_disable_ubuntu_lts_2204' ) ) {
 			unset( $oslist['ubuntu2204lts'] );
+		}
+
+		if ( (bool) wpcd_get_option( 'wordpress_app_disable_ubuntu_lts_2404' ) ) {
+			unset( $oslist['ubuntu2404lts'] );
 		}
 
 		// Add in some optional entries if necessary.

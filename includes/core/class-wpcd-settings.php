@@ -1639,6 +1639,14 @@ class WPCD_Settings {
 								'tooltip' => __( 'See our documentation for for more information about this item.', 'wpcd' ),
 								'tab'     => $tab_id,
 							),
+							array(
+								'id'      => "vpn_{$provider}_ubuntu2404lts",
+								'type'    => 'text',
+								'name'    => __( 'Ubuntu 24.04', 'wpcd' ),
+								'desc'    => __( 'The custom snapshot, image or backup id to be used instead of the default Ubuntu 24.04 image.', 'wpcd' ),
+								'tooltip' => __( 'See our documentation for for more information about this item.', 'wpcd' ),
+								'tab'     => $tab_id,
+							),
 						),
 					);
 				}

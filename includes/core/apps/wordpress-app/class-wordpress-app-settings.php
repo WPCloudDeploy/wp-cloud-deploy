@@ -1148,7 +1148,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'id'      => 'wordpress_app_enable_ubuntu_lts_1804',
 				'type'    => 'checkbox',
 				'name'    => __( 'Enable Ubuntu 18.04 LTS?', 'wpcd' ),
-				'tooltip' => __( 'Show the option to install Ubuntu 18.04 LTS servers.', 'wpcd' ),
+				'tooltip' => __( 'Show the option to install Ubuntu 18.04 LTS servers. Note that not all providers have 18.04 images - in fact, most of them have removed Ubuntu 18.04 as a deployment option! So enabling this option might have negative effects on your server deployment unless you are absolutely, positively sure that your server provider supports this version!', 'wpcd' ),
 				'tab'     => 'wordpress-app-general-wpadmin',
 			),
 			array(

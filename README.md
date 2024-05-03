@@ -128,6 +128,7 @@ Note: Even though the entire git development history isn't available on github, 
 ## Change Log ##
 5.7.1
 ------
+* New: Experimental support for Ubuntu 24.04.
 * New: WPAPP - Add support for PHP 8.3 on NGINX servers.
 * New: WPAPP - Add in an option for an alternative negative color.  Certain errors require a much brighter warning color.
 * Tweak: WPAPP - Updated WP version list to latest versions.

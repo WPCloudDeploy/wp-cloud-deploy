@@ -126,13 +126,13 @@ Note: Even though the entire git development history isn't available on github, 
 [Friendly Release Notes](https://wpclouddeploy.com/category/release-notes/)
 
 ## Change Log ##
-5.7.1
+5.8.0
 ------
 * New: Experimental support for Ubuntu 24.04.
 * New: WPAPP - Add support for PHP 8.3 on NGINX servers.
 * New: WPAPP - Add in an option for an alternative negative color.  Certain errors require a much brighter warning color.
 * Tweak: WPAPP - Updated WP version list to latest versions.
-* Fix: WPAPP - Healing tab threw errors under PHP 8.x when using the ADD METAS option to simulate monit being installed.
+* Fix: WPAPP - Healing tab threw errors under PHP 8.x when using the ADD METAS option that simulate Monit being installed.
 * Fix: WPAPP - Copy database from REMOTE to LOCAL was not working because of an incorrect parameter (Thanks @batonac).
 * Fix: WPAPP - An edge case where sometimes the front-end UI would not render because it could not find functions in the wp-admin/includes/post.php and similar WP core files.
 * Dev: Add filter wpcd_wpapp_get_full_temp_domain.

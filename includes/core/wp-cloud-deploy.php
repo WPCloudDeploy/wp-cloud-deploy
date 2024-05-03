@@ -816,6 +816,11 @@ class WP_CLOUD_DEPLOY {
 			case 'ubuntu2204lts':
 				$return = __( 'Ubuntu 22.04 LTS', 'wpcd' );
 				break;
+
+			case 'ubuntu2404lts':
+				$return = __( 'Ubuntu 24.04 LTS', 'wpcd' );
+				break;
+
 		}
 
 		return $return;

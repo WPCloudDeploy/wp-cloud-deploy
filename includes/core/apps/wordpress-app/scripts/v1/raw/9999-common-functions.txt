@@ -13,8 +13,12 @@
 #
 ##################################################################################################
 
+## Ubuntu version
+GV_UBUNTU_VERSION_STRING=$(lsb_release -r)  # Full version such as "Ubuntu 22.04"
+GV_UBUNTU_VERSION=$(cut -f2 <<< "$GV_UBUNTU_VERSION_STRING")  # Version number only such as "22.04"
+
 ## colors
-## @TODO: Need to prefix these with "GV_".
+## @TODO: Need to prefix these with "GV_" or "GS_".
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 ORANGE='\033[0;33m'

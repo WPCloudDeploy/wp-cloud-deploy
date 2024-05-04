@@ -239,7 +239,13 @@ then
 	fi
 
 	echo "$(date): Installing MariaDB repository and packages"
-	apt-get install -y mariadb-server mariadb-client apache2-utils unzip rename bubblewrap > /dev/null 2>&1
+	apt-get install -y mariadb-server -o Dpkg::Options::="--force-confnew" > /dev/null 2>&1 # dpkg option to force new config files added on 05-04-2024 to fix VULTR issue with an incorrect /etc/cloud/cloud.cfg file.
+	if [ $? -ne 0 ]
+	then
+		echo "Failed!  Quitting process"
+		exit 1
+	fi	
+	apt-get install -y mariadb-client apache2-utils unzip rename bubblewrap > /dev/null 2>&1
 	if [ $? -ne 0 ]
 	then
 		echo "Failed!  Quitting process"

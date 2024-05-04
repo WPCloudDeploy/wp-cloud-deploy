@@ -13,8 +13,12 @@
 #
 ##################################################################################################
 
+## Ubuntu version
+GV_UBUNTU_VERSION_STRING=$(lsb_release -r)  # Full version such as "Ubuntu 22.04"
+GV_UBUNTU_VERSION=$(cut -f2 <<< "$GV_UBUNTU_VERSION_STRING")  # Version number only such as "22.04"
+
 ## colors
-## @TODO: Need to prefix these with "GV_".
+## @TODO: Need to prefix these with "GV_" or "GS_".
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 ORANGE='\033[0;33m'
@@ -2022,7 +2026,7 @@ function gf_mt_set_openbasedir(){
 
 	if [ "$g_webserver_type" = "nginx" ]
 	then	
-		phpversion=(7.4 8.0 8.1 8.2)
+		phpversion=(7.4 8.0 8.1 8.2 8.3)
 		for ver in "${phpversion[@]}"
 		do	
 			if [ -f /etc/php/$ver/fpm/pool.d/$domain.conf ]; then

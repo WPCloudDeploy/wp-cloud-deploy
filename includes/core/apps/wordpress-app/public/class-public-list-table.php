@@ -6,9 +6,25 @@
  * @author Tahir Nazir
  */
 
+if ( ! function_exists( 'get_available_post_statuses' ) ) {
+	require_once ABSPATH . 'wp-admin/includes/post.php';
+}
+
+if ( ! function_exists( 'convert_to_screen' ) ) {
+	require_once ABSPATH . 'wp-admin/includes/template.php';
+}
+
+if ( ! function_exists( 'get_column_headers' ) ) {
+	require_once ABSPATH . 'wp-admin/includes/screen.php';
+}
+
 if ( ! class_exists( 'WP_Posts_List_Table' ) ) {
 	require_once ABSPATH . 'wp-admin/includes/class-wp-list-table.php';
 	require_once ABSPATH . 'wp-admin/includes/class-wp-posts-list-table.php';
+}
+
+if ( ! class_exists( 'WP_Screen' ) ) {
+	require_once ABSPATH . 'wp-admin/includes/class-wp-screen.php';
 }
 
 require_once WPCD_PATH . 'includes/core/apps/wordpress-app/public/traits/grid_table.php';

@@ -189,6 +189,10 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 					$result = $this->install_php82( $id, $action );
 					break;
 
+				case 'server-upgrade-php83':
+					$result = $this->install_php83( $id, $action );
+					break;
+
 				case 'server-upgrade-old-php-versions':
 					$result = $this->install_old_php_version( $id, $action );
 					break;
@@ -297,6 +301,12 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 		if ( ! $this->is_php_82_installed( $id ) && 'ubuntu1804lts' !== $os ) {
 			$upgrade_php_82_fields = $this->get_upgrade_fields_php82( $id );
 			$actions               = array_merge( $actions, $upgrade_php_82_fields );
+		}
+		
+		// PHP 8.3.
+		if ( ! $this->is_php_83_installed( $id ) && 'ubuntu1804lts' !== $os ) {
+			$upgrade_php_83_fields = $this->get_upgrade_fields_php83( $id );
+			$actions               = array_merge( $actions, $upgrade_php_83_fields );
 		}
 
 		// WP-CLI Upgrade Options.
@@ -852,7 +862,7 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 		);
 
 		/*
-		$actions['server-upgrade-php81-meta'] = array(
+		$actions['server-upgrade-php82-meta'] = array(
 		'label'          => '',
 		'raw_attributes' => array(
 			'std'                 => __( 'Remove PHP 8.2 Install Option', 'wpcd' ),
@@ -867,6 +877,58 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 		return $actions;
 
 	}
+	
+	/**
+	 * Gets the fields to show in the UPGRADE tab in the server details screen
+	 * if PHP 8.3 needs to be installed.
+	 *
+	 * @param int $id the post id of the app cpt record.
+	 *
+	 * @return array Array of actions with key as the action slug and value complying with the structure necessary by metabox.io fields.
+	 */
+	private function get_upgrade_fields_php83( $id ) {
+
+		// Set up metabox items.
+		$actions = array();
+
+		$upg_desc  = __( 'Use this button to install PHP 8.3 if it was released after your server was created. WPCD V 5.8.0 and later automatically installs PHP 8.3 on new servers. But older servers will not have it.', 'wpcd' );
+		$upg_desc .= '<br />';
+		$upg_desc .= __( 'Before running this, you should check to see if your server needs to be restarted because of prior upgrades.  If so, please restart your server before using this option to install PHP 8.3', 'wpcd' );
+
+		$actions['server-upgrade-header-php83'] = array(
+			'label'          => __( '(Optional) Install PHP 8.3', 'wpcd' ),
+			'type'           => 'heading',
+			'raw_attributes' => array(
+				'desc' => $upg_desc,
+			),
+		);
+
+		$actions['server-upgrade-php83'] = array(
+			'label'          => '',
+			'raw_attributes' => array(
+				'std'                 => __( 'Install PHP 8.3 on this server', 'wpcd' ),
+				// make sure we give the user a confirmation prompt.
+				'confirmation_prompt' => __( 'Are you sure you would like to install PHP 8.3 on this server?', 'wpcd' ),
+			),
+			'type'           => 'button',
+		);
+
+		/*
+		$actions['server-upgrade-php83-meta'] = array(
+		'label'          => '',
+		'raw_attributes' => array(
+			'std'                 => __( 'Remove PHP 8.3 Install Option', 'wpcd' ),
+			'desc'                => __( 'Tag server as having PHP 8.3 installed.', 'wpcd' ),
+			// make sure we give the user a confirmation prompt.
+			'confirmation_prompt' => __( 'Are you sure you would like to tag this server as being upgraded without running the upgrade script?', 'wpcd' ),
+		),
+		'type'           => 'button',
+		);
+		*/
+
+		return $actions;
+
+	}	
 
 
 	/**
@@ -1689,7 +1751,7 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 
 		// Make sure we don't have a wp_error object being returned...
 		if ( is_wp_error( $result ) ) {
-			return new \WP_Error( __( 'There was a problem installing PHP 8.2- please check the server logs for more information.', 'wpcd' ) );
+			return new \WP_Error( __( 'There was a problem installing PHP 8.2 - please check the server logs for more information.', 'wpcd' ) );
 		}
 
 		// evaluate results.
@@ -1723,6 +1785,82 @@ class WPCD_WORDPRESS_TABS_SERVER_UPGRADE extends WPCD_WORDPRESS_TABS {
 		return $result;
 
 	}
+	
+	/**
+	 * Run install script for PHP 8.3
+	 *
+	 * @param int    $id         The postID of the server cpt.
+	 * @param string $action     The action to be performed (this matches the string required in the bash scripts if bash scripts are used ).
+	 *
+	 * @return boolean success/failure/other
+	 */
+	public function install_php83( $id, $action ) {
+
+		// Upgrade History Type.
+		$upgrade_history_key_type = 'install-php83';
+		$upgrade_description      = __( 'Installed PHP 8.3', 'wpcd' );
+
+		// Get data about the server.
+		$instance = $this->get_server_instance_details( $id );
+
+		if ( is_wp_error( $instance ) ) {
+			/* translators: %s is replaced with the internal action name. */
+			return new \WP_Error( sprintf( __( 'Unable to execute this request because we cannot get the instance details for action %s', 'wpcd' ), $action ) );
+		}
+
+		// Get the full command to be executed by ssh.
+		$run_cmd = $this->turn_script_into_command(
+			$instance,
+			'run_upgrade_install_php_83.txt',
+			array(
+				'action'      => $action,
+				'interactive' => 'no',
+			)
+		);
+
+		// log.
+		// phpcs:ignore
+		do_action( 'wpcd_log_error', sprintf( 'attempting to run command for %s = %s ', print_r( $instance, true ), $run_cmd ), 'trace', __FILE__, __LINE__, $instance, false ); //PHPcs warning normally issued because of print_r
+
+		// execute.
+		$result = $this->execute_ssh( 'generic', $instance, array( 'commands' => $run_cmd ) );
+
+		// Make sure we don't have a wp_error object being returned...
+		if ( is_wp_error( $result ) ) {
+			return new \WP_Error( __( 'There was a problem installing PHP 8.3 - please check the server logs for more information.', 'wpcd' ) );
+		}
+
+		// evaluate results.
+		if ( strpos( $result, 'journalctl -xe' ) !== false ) {
+			// Looks like there was a problem with restarting the NGINX - So update completion meta, add to history and return message.
+			$this->update_history( $id, $upgrade_history_key_type, $upgrade_description );
+			update_post_meta( $id, 'wpcd_server_php83_installed', 1 );
+			/* translators: %s is replaced with the text of the result of the operation. */
+			return new \WP_Error( sprintf( __( 'There was a problem restarting the nginx server after the upgrade - here is the full output of the upgrade process: %s', 'wpcd' ), $result ) );
+		}
+
+		// If we're here, we know that the nginx server restarted ok so let's do standard success checks.
+		$success = $this->is_ssh_successful( $result, 'run_upgrade_install_php_83.txt' );
+		if ( ! $success ) {
+			/* translators: %1$s is replaced with the internal action name; %2$s is replaced with the result of the call, usually an error message. */
+			return new \WP_Error( sprintf( __( 'Unable to perform action %1$s for server: %2$s', 'wpcd' ), $action, $result ) );
+		} else {
+			// update server field to tag server as being upgraded.
+			update_post_meta( $id, 'wpcd_server_php83_installed', 1 );
+
+			// Let user know command is complete and force a page rfresh.
+			$result = array(
+				'msg'     => __( 'PHP 8.3 install has been completed - this page will now refresh', 'wpcd' ),
+				'refresh' => 'yes',
+			);
+
+			// Add to update history.
+			$this->update_history( $id, $upgrade_history_key_type, $upgrade_description );
+		}
+
+		return $result;
+
+	}	
 
 	/**
 	 * Run install script for PHP 5.6/7.0/7.1/7.2/7.3/

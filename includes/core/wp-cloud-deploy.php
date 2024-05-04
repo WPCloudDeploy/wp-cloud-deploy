@@ -630,9 +630,12 @@ class WP_CLOUD_DEPLOY {
 
 		$negative_color = wpcd_get_option( 'wordpress_app_negative_color' );
 		$negative_color = empty( $negative_color ) ? WPCD_NEGATIVE_COLOR : $negative_color;
-		
+
+		$alt_negative_color = wpcd_get_option( 'wordpress_app_alt_negative_color' );
+		$alt_negative_color = empty( $alt_negative_color ) ? WPCD_ALT_NEGATIVE_COLOR : $alt_negative_color;
+
 		$white_color = wpcd_get_option( 'wordpress_app_white_color' );
-		$white_color = empty( $white_color ) ? WPCD_WHITE_COLOR : $white_color;			
+		$white_color = empty( $white_color ) ? WPCD_WHITE_COLOR : $white_color;
 
 		$terminal_bg_color = wpcd_get_option( 'wordpress_app_terminal_background_color' );
 		$terminal_bg_color = empty( $terminal_bg_color ) ? WPCD_TERMINAL_BG_COLOR : $terminal_bg_color;
@@ -670,9 +673,12 @@ class WP_CLOUD_DEPLOY {
 
 		$negative_color_fe = wpcd_get_option( 'wordpress_app_fe_negative_color' );
 		$negative_color_fe = empty( $negative_color_fe ) ? WPCD_FE_NEGATIVE_COLOR : $negative_color_fe;
-		
+
+		$alt_negative_color_fe = wpcd_get_option( 'wordpress_app_fe_alt_negative_color' );
+		$alt_negative_color_fe = empty( $alt_negative_color_fe ) ? WPCD_FE_ALT_NEGATIVE_COLOR : $alt_negative_color_fe;
+
 		$white_color_fe = wpcd_get_option( 'wordpress_app_fe_white_color' );
-		$white_color_fe = empty( $white_color_fe ) ? WPCD_FE_WHITE_COLOR : $white_color_fe;		
+		$white_color_fe = empty( $white_color_fe ) ? WPCD_FE_WHITE_COLOR : $white_color_fe;
 
 		/* Global style sheet. */
 		wp_enqueue_style( 'wpcd-global-css', wpcd_url . 'assets/css/wpcd-global.css', array(), wpcd_scripts_version );
@@ -689,6 +695,7 @@ class WP_CLOUD_DEPLOY {
 			--wpcd-alternate-accent-background-color: {$alternate_accent_bg_color};
 			--wpcd-positive-color: {$positive_color};			
 			--wpcd-negative-color: {$negative_color};
+			--wpcd-alt-negative-color: {$alt_negative_color};
 			--wpcd-white-color: {$white_color};
 			--wpcd-terminal-background-color: {$terminal_bg_color};			
 			--wpcd-terminal-foreground-color: {$terminal_fg_color};						
@@ -703,6 +710,7 @@ class WP_CLOUD_DEPLOY {
 			--wpcd-front-end-alternate-accent-background-color: {$alternate_accent_bg_color_fe};
 			--wpcd-front-end-positive-color: {$positive_color_fe};
 			--wpcd-front-end-negative-color: {$negative_color_fe};
+			--wpcd-front-end-alt-negative-color: {$alt_negative_color_fe};
 			--wpcd-front-end-white-color: {$white_color_fe};
 		}";
 
@@ -742,6 +750,7 @@ class WP_CLOUD_DEPLOY {
 		$oslist = array(
 			'ubuntu2204lts' => __( 'Ubuntu 22.04 LTS', 'wpcd' ),
 			'ubuntu2004lts' => __( 'Ubuntu 20.04 LTS', 'wpcd' ),
+			'ubuntu2404lts' => __( 'Ubuntu 24.04 LTS (Important Restrictions - See Docs!)', 'wpcd' ),
 		);
 
 		// Remove some entries based on settings.
@@ -750,6 +759,10 @@ class WP_CLOUD_DEPLOY {
 		}
 		if ( (bool) wpcd_get_option( 'wordpress_app_disable_ubuntu_lts_2204' ) ) {
 			unset( $oslist['ubuntu2204lts'] );
+		}
+
+		if ( (bool) wpcd_get_option( 'wordpress_app_disable_ubuntu_lts_2404' ) ) {
+			unset( $oslist['ubuntu2404lts'] );
 		}
 
 		// Add in some optional entries if necessary.
@@ -803,6 +816,11 @@ class WP_CLOUD_DEPLOY {
 			case 'ubuntu2204lts':
 				$return = __( 'Ubuntu 22.04 LTS', 'wpcd' );
 				break;
+
+			case 'ubuntu2404lts':
+				$return = __( 'Ubuntu 24.04 LTS', 'wpcd' );
+				break;
+
 		}
 
 		return $return;

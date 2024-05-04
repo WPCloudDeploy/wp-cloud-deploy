@@ -247,8 +247,9 @@ QUERY
 if [ "$g_webserver_type" = "nginx" ] ; then
 	sed -i "s%.*pm.status_path.*%pm.status_path=/status74%g" /etc/php/7.4/fpm/pool.d/www.conf
 	sed -i "s%.*pm.status_path.*%pm.status_path=/status80%g" /etc/php/8.0/fpm/pool.d/www.conf
-	sed -i "s%.*pm.status_path.*%pm.status_path=/status80%g" /etc/php/8.1/fpm/pool.d/www.conf
-	sed -i "s%.*pm.status_path.*%pm.status_path=/status80%g" /etc/php/8.2/fpm/pool.d/www.conf
+	sed -i "s%.*pm.status_path.*%pm.status_path=/status81%g" /etc/php/8.1/fpm/pool.d/www.conf
+	sed -i "s%.*pm.status_path.*%pm.status_path=/status82%g" /etc/php/8.2/fpm/pool.d/www.conf
+	sed -i "s%.*pm.status_path.*%pm.status_path=/status83%g" /etc/php/8.3/fpm/pool.d/www.conf
 
 	echo "Restarting PHP processes..."
 	number_of_php=$(ls /etc/php/ | wc -l)
@@ -282,7 +283,13 @@ if [ "$g_webserver_type" = "nginx" ] ; then
 	if [ $? -ne 0 ]
 	then
 		sed -i '/server_name _;/a location = /status82 { \n fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name; \n fastcgi_index index.php; \n include fastcgi_params; \n fastcgi_pass   unix:/run/php/php8.2-fpm.sock; \n }' /etc/nginx/sites-enabled/default
-	fi	
+	fi
+	
+	grep status83 /etc/nginx/sites-enabled/default
+	if [ $? -ne 0 ]
+	then
+		sed -i '/server_name _;/a location = /status82 { \n fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name; \n fastcgi_index index.php; \n include fastcgi_params; \n fastcgi_pass   unix:/run/php/php8.3-fpm.sock; \n }' /etc/nginx/sites-enabled/default
+	fi		
 
 	echo "
 	jobs:
@@ -294,6 +301,8 @@ if [ "$g_webserver_type" = "nginx" ] ; then
 		url: http://localhost/status81?full&json
 	- name: php82
 		url: http://localhost/status82?full&json
+	- name: php83
+		url: http://localhost/status83?full&json		
 	" > /etc/netdata/go.d/phpfpm.conf
 fi
 	gf_restart_webserver

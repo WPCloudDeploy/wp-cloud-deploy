@@ -514,7 +514,7 @@ function wpcd_str_ends_with( $haystack, $needle ) {
  *
  * @since 5.6.1
  *
- * @param string $haystack string to search
+ * @param string $haystack string to search.
  * @param string $needle what we're searching for.
  *
  * @return boolean.

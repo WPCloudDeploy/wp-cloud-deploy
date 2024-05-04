@@ -757,7 +757,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	public static function get_wp_versions() {
 
 		// @SEE: https://wordpress.org/download/releases/
-		$versions          = array( 'latest', '6.4.3', '6.3.3', '6.2.4', '6.1.5', '6.0.7', '5.9.9', '5.8.9', '5.7.11', '5.6.13', '5.5.14', '5.4.15', '5.3.17', '5.2.20', '5.1.18', '5.0.21', '4.9.25', '4.8.24', '4.7.28' );
+		$versions          = array( 'latest', '6.5.2', '6.4.4', '6.3.4', '6.2.5', '6.1.6', '6.0.7', '5.9.9', '5.8.9', '5.7.11', '5.6.13', '5.5.14', '5.4.15', '5.3.17', '5.2.20', '5.1.18', '5.0.21', '4.9.25', '4.8.24', '4.7.28' );
 		$override_versions = wpcd_get_option( 'wordpress_app_allowed_wp_versions' );
 
 		if ( ! empty( $override_versions ) ) {
@@ -1237,6 +1237,33 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 
 		return false;
 	}
+	
+	/**
+	 * Returns a boolean true/false if PHP 83 is supposed to be installed.
+	 *
+	 * @param int $server_id ID of server being interrogated.
+	 *
+	 * @return boolean
+	 */
+	public function is_php_83_installed( $server_id ) {
+
+		$initial_plugin_version = $this->get_server_meta_by_app_id( $server_id, 'wpcd_server_plugin_initial_version', true );  // This function is smart enough to know if the ID being passed is a server or app id and adjust accordingly.
+
+		if ( version_compare( $initial_plugin_version, '5.7.0' ) > -1 ) {
+			// Versions of the plugin after 5.7.0 automatically install PHP 8.3.
+			return true;
+		} else {
+			// See if it was manually installed via an upgrade process - which would leave a meta field value behind on the server CPT record.
+			$is_php83_installed = (bool) $this->get_server_meta_by_app_id( $server_id, 'wpcd_server_php83_installed', true );   // This function is smart enough to know if the ID being passed is a server or app id and adjust accordingly.
+			if ( true === $is_php83_installed ) {
+				return true;
+			} else {
+				return false;
+			}
+		}
+
+		return false;
+	}	
 
 	/**
 	 * Returns a boolean true/false if a particular PHP version is active.
@@ -1244,7 +1271,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 	 * by default.  Only if the user explicitly activated it was it enabled.
 	 *
 	 * @param int    $server_id ID of server being interrogated.
-	 * @param string $php_version PHP version - eg: php56, php71, php72, php73, php74, php81, php82 etc.
+	 * @param string $php_version PHP version - eg: php56, php71, php72, php73, php74, php81, php82, php83 etc.
 	 *
 	 * @return boolean
 	 */
@@ -1265,7 +1292,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 					break;
 			}
 		} else {
-			// Versions of WPCD prior to 4.15 activated almost all php versions.  Except PHP 8.0, 8.1 & 8.2 are special cases because of the timing of when these were added to servers.
+			// Versions of WPCD prior to 4.15 activated almost all php versions.  Except PHP 8.0, 8.1, 8.2 & 8.3 are special cases because of the timing of when these were added to servers.
 			switch ( $php_version ) {
 				case 'php80':
 					if ( ! $this->is_php_80_installed( $server_id ) ) {
@@ -1279,6 +1306,11 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 					break;
 				case 'php82':
 					if ( ! $this->is_php_82_installed( $server_id ) ) {
+						$return = false;
+					}
+					break;
+				case 'php83':
+					if ( ! $this->is_php_83_installed( $server_id ) ) {
 						$return = false;
 					}
 					break;
@@ -2008,6 +2040,13 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 		} else {
 			$php82 = array();
 		}
+		
+		// Create single element array if php 8.3 is installed.
+		if ( $this->is_php_83_installed( $id ) ) {
+			$php83 = array( '8.3' => '8.3' );
+		} else {
+			$php83 = array();
+		}
 
 		// Array of other PHP versions.
 		switch ( $webserver_type ) {
@@ -2066,7 +2105,8 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 			$other_php_versions,
 			$php80,
 			$php81,
-			$php82
+			$php82,
+			$php83
 		);
 
 		// Filter out inactive versions.  Only applies to NGINX.  OLS always have all versions listed in the above switch statement active.
@@ -2083,6 +2123,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 					'php80' => '8.0',
 					'php81' => '8.1',
 					'php82' => '8.2',
+					'php82' => '8.3',
 				);
 				foreach ( $php_versions as $php_version_key => $php_version ) {
 					if ( ! $this->is_php_version_active( $server_id, $php_version_key ) ) {
@@ -5064,6 +5105,7 @@ class WPCD_WORDPRESS_APP extends WPCD_APP {
 				'8.0' => '8.0',
 				'8.1' => '8.1',
 				'8.2' => '8.2',
+				'8.3' => '8.3',
 			);
 			$php_version         = $this->generate_meta_dropdown( 'wpapp_php_version', __( 'PHP Version', 'wpcd' ), $php_version_options );
 			echo wpcd_kses_select( $php_version );

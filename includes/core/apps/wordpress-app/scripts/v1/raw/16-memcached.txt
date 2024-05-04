@@ -48,7 +48,7 @@ then
 
 	if [ "$g_webserver_type" = "nginx" ]
 	then
-		apt-get install -y php7.4-memcache php8.0-memcache php8.1-memcache php8.2-memcache
+		apt-get install -y php7.4-memcache php8.0-memcache php8.1-memcache php8.2-memcache php8.3-memcache
 		number_of_php=$(ls /etc/php/ | wc -l)
 		for (( number=1; number <=$number_of_php; number++ ))
 		do

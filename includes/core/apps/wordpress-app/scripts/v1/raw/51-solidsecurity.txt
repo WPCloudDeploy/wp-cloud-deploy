@@ -126,7 +126,7 @@ done
 # is performed.
 ########################################################
 
-# Install Logtivity on a site.
+# Install SolidWP on a site.
 if [[ $action == "solidwp_install" || $action == "1" ]]
 then
 	lf_install_solidwp
@@ -138,7 +138,7 @@ fi
 if [[ $action == "solidwp_license" || $action == "2" ]]
 then
 	lf_license_solidwp
-	echo "Solidwp license activated."
+	echo "Solidwp license activated."	
 fi
 
 # Remove solidwp from a site.

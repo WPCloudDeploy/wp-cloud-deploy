@@ -1639,6 +1639,14 @@ class WPCD_Settings {
 								'tooltip' => __( 'See our documentation for for more information about this item.', 'wpcd' ),
 								'tab'     => $tab_id,
 							),
+							array(
+								'id'      => "vpn_{$provider}_ubuntu2404lts",
+								'type'    => 'text',
+								'name'    => __( 'Ubuntu 24.04', 'wpcd' ),
+								'desc'    => __( 'The custom snapshot, image or backup id to be used instead of the default Ubuntu 24.04 image.', 'wpcd' ),
+								'tooltip' => __( 'See our documentation for for more information about this item.', 'wpcd' ),
+								'tab'     => $tab_id,
+							),
 						),
 					);
 				}
@@ -1676,16 +1684,15 @@ class WPCD_Settings {
 								'type' => 'heading',
 								'name' => __( 'Tags', 'wpcd' ),
 								'tab'  => $tab_id,
-								'desc' => __( 'Set provider behavior if server tags are supported.', 'wpcd' ),
+								'desc' => __( 'Set tags if server tags are supported for this provider.', 'wpcd' ),
 							),
 							array(
 								'id'      => "vpn_{$provider}_tags_on_server_create",
 								'type'    => 'text',
 								'name'    => __( 'Tag For New Servers', 'wpcd' ),
-								'desc'    => __( 'Note: Some providers require that you use tags that have already been defined while others allow you to set random/dynamic tags.', 'wpcd' ),
 								'size'    => '30',
 								'tab'     => $tab_id,
-								'tooltip' => __( 'Apply this tag to every new server. If left blank, the tag will default to WPCD for providers that allow for dynamic/random tags.', 'wpcd' ),
+								'tooltip' => __( 'Apply this tag to every new server. If left blank, the tag will default to WPCD for providers that allow for dynamic/random tags. Note: Some providers require that you use tags that have already been defined while others allow you to set random/dynamic tags.', 'wpcd' ),
 							),
 						),
 					);
@@ -2662,6 +2669,7 @@ class WPCD_Settings {
 		$wpcd_settings['wordpress_app_alternate_accent_background_color'] = WPCD_ALTERNATE_ACCENT_BG_COLOR;
 		$wpcd_settings['wordpress_app_positive_color']                    = WPCD_POSITIVE_COLOR;
 		$wpcd_settings['wordpress_app_negative_color']                    = WPCD_NEGATIVE_COLOR;
+		$wpcd_settings['wordpress_app_alt_negative_color']                = WPCD_ALT_NEGATIVE_COLOR;
 		$wpcd_settings['wordpress_app_white_color']                       = WPCD_WHITE_COLOR;
 
 		$wpcd_settings['wordpress_app_terminal_background_color'] = WPCD_TERMINAL_BG_COLOR;
@@ -2671,12 +2679,13 @@ class WPCD_Settings {
 		$wpcd_settings['wordpress_app_fe_secondary_brand_color']             = WPCD_FE_SECONDARY_BRAND_COLOR;
 		$wpcd_settings['wordpress_app_fe_tertiary_brand_color']              = WPCD_FE_TERTIARY_BRAND_COLOR;
 		$wpcd_settings['wordpress_app_fe_accent_background_color']           = WPCD_FE_ACCENT_BG_COLOR;
-		$wpcd_settings['wordpress_app_fe_medium_accent_background_color']    = WPCD_FE_MEDIUM_ACCENT_BG_COLOR;		
+		$wpcd_settings['wordpress_app_fe_medium_accent_background_color']    = WPCD_FE_MEDIUM_ACCENT_BG_COLOR;
 		$wpcd_settings['wordpress_app_fe_medium_background_color']           = WPCD_FE_MEDIUM_BG_COLOR;
 		$wpcd_settings['wordpress_app_fe_light_background_color']            = WPCD_FE_LIGHT_BG_COLOR;
 		$wpcd_settings['wordpress_app_fe_alternate_accent_background_color'] = WPCD_FE_ALTERNATE_ACCENT_BG_COLOR;
 		$wpcd_settings['wordpress_app_fe_positive_color']                    = WPCD_FE_POSITIVE_COLOR;
 		$wpcd_settings['wordpress_app_fe_negative_color']                    = WPCD_FE_NEGATIVE_COLOR;
+		$wpcd_settings['wordpress_app_fe_alt_negative_color']                = WPCD_FE_ALT_NEGATIVE_COLOR;
 		$wpcd_settings['wordpress_app_fe_white_color']                       = WPCD_FE_WHITE_COLOR;
 
 		// Update the settings options.

@@ -648,8 +648,9 @@ class WPCD_WORDPRESS_TABS_SERVER_MONIT extends WPCD_WORDPRESS_TABS {
 
 			/* Update monit email notifications gateway */
 			$monit_gateway                    = wpcd_maybe_unserialize( get_post_meta( $id, 'wpcd_wpapp_monit_email_gateway', true ) );
-			$monit_gateway['monit_smtp_user'] = self::decrypt( $monit_gateway['monit_smtp_user'] );
-			$monit_gateway['monit_smtp_pass'] = self::decrypt( $monit_gateway['monit_smtp_pass'] );
+			$monit_gateway                    = empty( $monit_gateway ) ? array() : $monit_gateway; // Make sure that $monit_gateway is an array!
+			$monit_gateway['monit_smtp_user'] = empty( $monit_gateway['monit_smtp_user'] ) ? '' : self::decrypt( $monit_gateway['monit_smtp_user'] );
+			$monit_gateway['monit_smtp_pass'] = empty( $monit_gateway['monit_smtp_pass'] ) ? '' : self::decrypt( $monit_gateway['monit_smtp_pass'] );
 			$monit_gateway_action_fields      = $this->get_email_fields( $id, $monit_gateway['monit_smtp_server'], $monit_gateway['monit_smtp_port'], $monit_gateway['monit_smtp_user'], $monit_gateway['monit_smtp_pass'], $monit_gateway['monit_alert_email'] );
 			$actions                          = array_merge( $actions, $monit_gateway_action_fields );
 
@@ -814,7 +815,7 @@ class WPCD_WORDPRESS_TABS_SERVER_MONIT extends WPCD_WORDPRESS_TABS {
 			'type'           => 'number',
 			'raw_attributes' => array(
 				'std'            => $monit_smtp_port,
-				'desc'           => __( 'Enter the smtp port - usully one of 465, 587 or 25', 'wpcd' ),
+				'desc'           => __( 'Enter the smtp port - usually one of 465, 587 or 25', 'wpcd' ),
 				'columns'        => 4,
 				// the key of the field (the key goes in the request).
 				'data-wpcd-name' => 'monit_smtp_port',

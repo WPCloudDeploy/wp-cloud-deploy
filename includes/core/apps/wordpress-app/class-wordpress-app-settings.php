@@ -1145,10 +1145,17 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'tab'     => 'wordpress-app-general-wpadmin',
 			),
 			array(
+				'id'      => 'wordpress_app_disable_ubuntu_lts_2404',
+				'type'    => 'checkbox',
+				'name'    => __( 'Disable Ubuntu 24.04 LTS?', 'wpcd' ),
+				'tooltip' => __( 'Do not show the option to install Ubuntu 24.04 LTS servers.', 'wpcd' ),
+				'tab'     => 'wordpress-app-general-wpadmin',
+			),
+			array(
 				'id'      => 'wordpress_app_enable_ubuntu_lts_1804',
 				'type'    => 'checkbox',
 				'name'    => __( 'Enable Ubuntu 18.04 LTS?', 'wpcd' ),
-				'tooltip' => __( 'Show the option to install Ubuntu 18.04 LTS servers.', 'wpcd' ),
+				'tooltip' => __( 'Show the option to install Ubuntu 18.04 LTS servers. Note that not all providers have 18.04 images - in fact, most of them have removed Ubuntu 18.04 as a deployment option! So enabling this option might have negative effects on your server deployment unless you are absolutely, positively sure that your server provider supports this version!', 'wpcd' ),
 				'tab'     => 'wordpress-app-general-wpadmin',
 			),
 			array(
@@ -1407,8 +1414,9 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 					'8.0' => '8.0',
 					'8.1' => '8.1',
 					'8.2' => '8.2',
+					'8.3' => '8.3',
 				),
-				'std'             => ( array( '5.6', '7.1', '7.2', '7.3', '8.2' ) ),
+				'std'             => ( array( '5.6', '7.1', '7.2', '7.3', '8.0' ) ),
 				'select_all_none' => true,
 				'tab'             => 'wordpress-app-servers',
 			),
@@ -1504,6 +1512,7 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 					'8.0' => '8.0',
 					'7.4' => '7.4',
 					'8.2' => '8.2',
+					'8.3' => '8.3',
 				),
 				'tab'     => 'wordpress-app-sites',
 			),
@@ -2962,6 +2971,11 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'desc'  => __( 'Accent color used to indicate something is turned off or a bad thing has occurred.', 'wpcd' ),
 				'std'   => WPCD_NEGATIVE_COLOR,
 			),
+			'wordpress_app_alt_negative_color'             => array(
+				'label' => __( 'Alternative Negative Color', 'wpcd' ),
+				'desc'  => __( 'Alternative Accent color used to indicate something is turned off or a bad thing has occurred.', 'wpcd' ),
+				'std'   => WPCD_ALT_NEGATIVE_COLOR,
+			),
 			'wordpress_app_terminal_background_color'      => array(
 				'label' => __( 'Background Color for Terminal', 'wpcd' ),
 				'desc'  => __( 'Background color for our terminal display.', 'wpcd' ),
@@ -3057,6 +3071,11 @@ class WORDPRESS_APP_SETTINGS extends WPCD_APP_SETTINGS {
 				'label' => __( 'Negative Color', 'wpcd' ),
 				'desc'  => __( 'Accent color used to indicate something is turned off or a bad thing has occurred.', 'wpcd' ),
 				'std'   => WPCD_FE_NEGATIVE_COLOR,
+			),
+			'wordpress_app_fe_alt_negative_color'      => array(
+				'label' => __( 'Alt Negative Color', 'wpcd' ),
+				'desc'  => __( 'Alternative Accent color used to indicate something is turned off or a bad thing has occurred.', 'wpcd' ),
+				'std'   => WPCD_FE_ALT_NEGATIVE_COLOR,
 			),
 			'wordpress_app_fe_white_color'             => array(
 				'label' => __( 'White', 'wpcd' ),

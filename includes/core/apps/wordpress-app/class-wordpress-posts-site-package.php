@@ -400,6 +400,7 @@ class WPCD_POSTS_Site_Package extends WPCD_Posts_Base {
 					'8.0' => '8.0',
 					'7.4' => '7.4',
 					'8.2' => '8.2',
+					'8.3' => '8.3',
 				),
 				'save_field' => true,
 				'columns'    => 3,

@@ -66,11 +66,13 @@ class WPCD_DNS extends WPCD_Base {
 
 		$root_domain = $this->get_active_root_domain();
 
+		$return = '';
+
 		if ( ! empty( $root_domain ) ) {
-			return $this->get_subdomain( $subdomain_length ) . '.' . $root_domain;
+			$return = $this->get_subdomain( $subdomain_length ) . '.' . $root_domain;
 		}
 
-		return '';
+		return apply_filters( 'wpcd_wpapp_get_full_temp_domain', $return );
 
 	}
 

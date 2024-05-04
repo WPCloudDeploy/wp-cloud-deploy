@@ -34,6 +34,15 @@ else
 	exit 1
 fi
 
+# Cannot install OLS on Ubuntu 24.04
+echo "Ubuntu version is $GV_UBUNTU_VERSION / $GV_UBUNTU_VERSION_STRING"
+if [[ $GV_UBUNTU_VERSION == "24.04"  && "$webserver_type" != "nginx" ]]
+then
+	echo "Installation of $webserver_type on $GV_UBUNTU_VERSION_STRING is not yet supported."
+	echo "Installation of this server has failed. Exiting process!"
+	exit 1
+fi
+
 if [[ "$interactive" != "no" ]]
 then
 	clear
@@ -140,7 +149,22 @@ else
 	fi
 	
 	# Make sure CURL is installed.
-	apt-get install curl -y > /dev/null 2>&1	
+	echo $(date): "Adding Curl..."
+	apt-get install curl -y > /dev/null 2>&1
+	if [ $? -ne 0 ]  
+	then
+		echo "Failed!  Quitting process"
+		exit 1
+	fi	
+
+	# Make sure NETSTAT is installed.
+	echo $(date): "Installing Net-tools..."
+	apt-get install net-tools -y > /dev/null 2>&1
+	if [ $? -ne 0 ]  
+	then
+		echo "Failed!  Quitting process"
+		exit 1
+	fi	
 
 	#checkpoint to indicate we have done this block...
 	touch "$CHKPOINT_FOLDER/checkpoint20-end.txt"
@@ -160,11 +184,21 @@ then
 
 	# Adding and installing PHP stack
 	echo $(date): "Installing PHP versions - this will take a while too!"
-	phpversion=(7.4 8.0 8.1 8.2)
+	if [[ $GV_UBUNTU_VERSION == "24.04" ]]
+	then
+		echo $(date): "Warning: Installing PHP without the Imagick module because it is not yet available on $GV_UBUNTU_VERSION_STRING"
+	fi
+	phpversion=(7.4 8.0 8.1 8.2 8.3)
 	for ver in "${phpversion[@]}"
 	do
 		echo $(date): ".....PHP $ver"
-		apt-get install php$ver php$ver-fpm php$ver-mbstring php$ver-curl php$ver-mysql php$ver-xml php$ver-zip php$ver-gd php$ver-imap php$ver-soap php$ver-bcmath php$ver-imagick php$ver-intl -y > /dev/null 2>&1
+		if [[ $GV_UBUNTU_VERSION == "24.04" ]]
+		then
+			# Install php without IMAGICK because that isn't available yet on 24.04
+			apt-get install php$ver php$ver-fpm php$ver-mbstring php$ver-curl php$ver-mysql php$ver-xml php$ver-zip php$ver-gd php$ver-imap php$ver-soap php$ver-bcmath php$ver-intl -y > /dev/null 2>&1
+		else
+			apt-get install php$ver php$ver-fpm php$ver-mbstring php$ver-curl php$ver-mysql php$ver-xml php$ver-zip php$ver-gd php$ver-imap php$ver-soap php$ver-bcmath php$ver-imagick php$ver-intl -y > /dev/null 2>&1
+		fi
 		if [ $? -ne 0 ]  
 		then
 			echo "Failed!  Quitting process"
@@ -205,7 +239,13 @@ then
 	fi
 
 	echo "$(date): Installing MariaDB repository and packages"
-	apt-get install -y mariadb-server mariadb-client apache2-utils unzip rename bubblewrap > /dev/null 2>&1
+	apt-get install -y mariadb-server -o Dpkg::Options::="--force-confnew" > /dev/null 2>&1 # dpkg option to force new config files added on 05-04-2024 to fix VULTR issue with an incorrect /etc/cloud/cloud.cfg file.
+	if [ $? -ne 0 ]
+	then
+		echo "Failed!  Quitting process"
+		exit 1
+	fi	
+	apt-get install -y mariadb-client apache2-utils unzip rename bubblewrap > /dev/null 2>&1
 	if [ $? -ne 0 ]
 	then
 		echo "Failed!  Quitting process"
@@ -363,7 +403,7 @@ else
 	then
 		# Update php.ini file to increase filesize uploads allowed in WordPress
 		echo $(date): "Adding required entries in php.ini to allow for larger file uploads in WordPress..."
-		phpversion=(7.4 8.0 8.1 8.2)
+		phpversion=(7.4 8.0 8.1 8.2 8.3)
 		for ver in "${phpversion[@]}"
 		do
 			sed -i "s/upload_max_filesize = 2M/upload_max_filesize = 25M/g" /etc/php/$ver/fpm/php.ini
@@ -382,9 +422,9 @@ else
 			sed -i "s/;opcache.validate_permission=0/opcache.validate_permission=1/g" /etc/php/$ver/fpm/php.ini
 			sed -i "s/;opcache.file_update_protection=2/opcache.file_update_protection=60/g" /etc/php/$ver/fpm/php.ini
 
-			# PHP 8.1 and 8.2 needs a set of default functions added to its global php.ini file because its set to blank for some reason.
+			# PHP 8.1, 8.2 & 8.3 needs a set of default functions added to its global php.ini file because its set to blank for some reason.
 			# We're going to use the same list as 7.4.
-			if [ $ver = "8.1" ] || [ $ver = "8.2" ]; then
+			if [ $ver = "8.1" ] || [ $ver = "8.2" ] || [ $ver = "8.3" ]; then
 				echo "$(date): Setting global list of restricted php functions for PHP $ver"
 				sed -i "s/^disable_functions.*/disable_functions = pcntl_alarm,pcntl_fork,pcntl_waitpid,pcntl_wait,pcntl_wifexited,pcntl_wifstopped,pcntl_wifsignaled,pcntl_wifcontinued,pcntl_wexitstatus,pcntl_wtermsig,pcntl_wstopsig,pcntl_signal,pcntl_signal_get_handler,pcntl_signal_dispatch,pcntl_get_last_error,pcntl_strerror,pcntl_sigprocmask,pcntl_sigwaitinfo,pcntl_sigtimedwait,pcntl_exec,pcntl_getpriority,pcntl_setpriority,pcntl_async_signals,pcntl_unshare,/g" /etc/php/$ver/fpm/php.ini
 			fi
@@ -823,9 +863,9 @@ fastcgi_hide_header X-Powered-By;
 			sed -i "s/;opcache.validate_permission=0/opcache.validate_permission=1/g" /usr/local/lsws/lsphp${phpver}/etc/php/${lsphpver}/litespeed/php.ini
 			sed -i "s/;opcache.file_update_protection=2/opcache.file_update_protection=60/g" /usr/local/lsws/lsphp${phpver}/etc/php/${lsphpver}/litespeed/php.ini
 
-			# PHP 8.1 and 8.2 needs a set of default functions added to its global php.ini file because its set to blank for some reason.
+			# PHP 8.1, 8.2 & 8.3 needs a set of default functions added to its global php.ini file because its set to blank for some reason.
 			# We're going to use the same list as 7.4.
-			if [ $lsphpver = "8.1" ] || [ $lsphpver = "8.2" ]; then
+			if [ $lsphpver = "8.1" ] || [ $lsphpver = "8.2" ] || [ $lsphpver = "8.3" ]; then
 				echo "$(date): Setting global list of restricted php functions for PHP $lsphpver"
 				sed -i "s/^disable_functions.*/disable_functions = pcntl_alarm,pcntl_fork,pcntl_waitpid,pcntl_wait,pcntl_wifexited,pcntl_wifstopped,pcntl_wifsignaled,pcntl_wifcontinued,pcntl_wexitstatus,pcntl_wtermsig,pcntl_wstopsig,pcntl_signal,pcntl_signal_get_handler,pcntl_signal_dispatch,pcntl_get_last_error,pcntl_strerror,pcntl_sigprocmask,pcntl_sigwaitinfo,pcntl_sigtimedwait,pcntl_exec,pcntl_getpriority,pcntl_setpriority,pcntl_async_signals,pcntl_unshare,/g" /usr/local/lsws/lsphp${phpver}/etc/php/${lsphpver}/litespeed/php.ini
 			fi
@@ -908,7 +948,7 @@ else
 	# Do Redis things related to NGINX
 	if [ "$webserver_type" = "nginx" ]
 	then
-		apt-get install -y php7.4-redis php8.0-redis php8.1-redis php8.2-redis > /dev/null 2>&1
+		apt-get install -y php7.4-redis php8.0-redis php8.1-redis php8.2-redis php8.3-redis > /dev/null 2>&1
 	fi
 
 	# Do Redis things related to OLS

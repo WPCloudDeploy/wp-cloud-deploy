@@ -355,7 +355,7 @@ include /etc/monit/conf-enabled/*" > /etc/monit/monitrc
 		EOF
 	fi
 
-	# Add mysql checks - the only difference between ols and nginx is just the mysql_rc process which isn't present on ols servers.
+	# Add mysql checks.
 	if [ "$g_webserver_type" = "nginx" ] ; then
 		echo ' check process mysqld with pidfile /var/run/mysqld/mysqld.pid
 		group database
@@ -369,13 +369,8 @@ include /etc/monit/conf-enabled/*" > /etc/monit/monitrc
 		if failed unixsocket /var/run/mysqld/mysqld.sock protocol mysql for 3 times within 4 cycles then restart
 		if 5 restarts with 5 cycles then timeout
 		depend mysql_bin
-		depend mysql_rc
 
 		check file mysql_bin with path /usr/sbin/mysqld
-		group mysql
-		include /etc/monit/templates/rootbin
-
-		check file mysql_rc with path /etc/init.d/mysql
 		group mysql
 		include /etc/monit/templates/rootbin
 		' > /etc/monit/conf-available/mysql
@@ -417,6 +412,7 @@ include /etc/monit/conf-enabled/*" > /etc/monit/monitrc
 		' > /etc/monit/conf-available/mysql
 	fi	
 
+# Add redis checks.
 echo 'check process redis-server with pidfile "/var/run/redis/redis-server.pid"
     start program = "/bin/systemctl start redis"
     stop program = "/bin/systemctl stop redis"
@@ -427,6 +423,7 @@ echo 'check process redis-server with pidfile "/var/run/redis/redis-server.pid"
     if failed host 127.0.0.1 port 6379 then restart
 '> /etc/monit/conf-available/redis
 
+# Add memcached checks.
 echo 'check process memcached with pidfile "/var/run/memcached/memcached.pid"
     start program = "/bin/systemctl start memcached"
     stop program = "/bin/systemctl stop memcached"
@@ -436,7 +433,16 @@ echo 'check process memcached with pidfile "/var/run/memcached/memcached.pid"
     if failed host 127.0.0.1 port 11211 then restart
 '> /etc/monit/conf-available/memcached
 
+# Add php checks (nginx only)
 if [ "$g_webserver_type" = "nginx" ] ; then
+	echo 'check process php83-fpm with pidfile /var/run/php/php8.3-fpm.pid
+    start program = "/bin/systemctl start php8.3-fpm"
+    stop program  = "/bin/systemctl stop php8.3-fpm"
+    if cpu is greater than '$Alert_cpu'% for 3 cycles then alert
+    if cpu is greater than '$Restart_cpu'% for 5 cycles then restart
+    if totalmem > '$Restart_memory' MB then alert
+' > /etc/monit/conf-available/php83
+
 	echo 'check process php82-fpm with pidfile /var/run/php/php8.2-fpm.pid
     start program = "/bin/systemctl start php8.2-fpm"
     stop program  = "/bin/systemctl stop php8.2-fpm"
@@ -471,20 +477,26 @@ if [ "$g_webserver_type" = "nginx" ] ; then
 
 fi
 
+# Add diskspace checks.
 echo 'CHECK FILESYSTEM system PATH /
      if space usage > 80% then alert
 ' > /etc/monit/conf-available/filesystem
 
+# Add general memory and cpu checks.
 echo 'check system '$domain'
    if cpu usage > '$Alert_cpu'% for 2 cycles then alert
    if memory usage > '$Restart_memory' MB for 3 cycles then alert
    ' > /etc/monit/conf-available/coresystem
 
+	# Enable default checks.
 	chmod 0700 /etc/monit/monitrc
 	ln -s /etc/monit/conf-available/mysql /etc/monit/conf-enabled/mysql
 	ln -s /etc/monit/conf-available/"$g_webserver_type" /etc/monit/conf-enabled/"$g_webserver_type"
 	
 	if [ "$g_webserver_type" = "nginx" ] ; then
+		if [[ ! -f /etc/wpcd/php-versions-disabled/php8.3 ]]; then
+			ln -s /etc/monit/conf-available/php83 /etc/monit/conf-enabled/php83
+		fi	
 		if [[ ! -f /etc/wpcd/php-versions-disabled/php8.2 ]]; then
 			ln -s /etc/monit/conf-available/php82 /etc/monit/conf-enabled/php82
 		fi
@@ -510,7 +522,6 @@ fi
 
 
 if [[ $action == "enable_webserver_monit" || $action == "2" ]]; then #  enable_nginx_monit
-	
 	
 	ln -s /etc/monit/conf-available/"$g_webserver_type" /etc/monit/conf-enabled/"$g_webserver_type"
 	systemctl restart monit
@@ -750,6 +761,7 @@ if [[ $action == "disable_all_monit" || $action == "16" ]]; then
 	rm -f /etc/monit/conf-enabled/memcached
 	rm -f /etc/monit/conf-enabled/redis
 	if [ "$g_webserver_type" = "nginx" ] ; then
+		rm -f /etc/monit/conf-enabled/php83
 		rm -f /etc/monit/conf-enabled/php82
 		rm -f /etc/monit/conf-enabled/php81
 		rm -f /etc/monit/conf-enabled/php80

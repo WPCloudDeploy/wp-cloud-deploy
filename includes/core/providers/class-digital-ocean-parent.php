@@ -116,6 +116,8 @@ class CLOUD_PROVIDER_API_DigitalOcean_Parent extends CLOUD_PROVIDER_API {
 					return 'ubuntu-20-04-x64';  // no break statement needed after this since we're returning out of the function.
 				case 'ubuntu2204lts':
 					return 'ubuntu-22-04-x64';  // no break statement needed after this since we're returning out of the function.
+				case 'ubuntu2404lts':
+					return 'ubuntu-24-04-x64';  // no break statement needed after this since we're returning out of the function.
 				default:
 					return self::_IMAGE;
 			}

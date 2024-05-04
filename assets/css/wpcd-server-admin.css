@@ -456,7 +456,7 @@ div[id^='wpcd_server_wordpress-app'] {
 
 /* On the SSH console tab, make the security warning red */
 .wpcd-wpapp-actions #wpcd_app_action_ssh-console-security-warning-description {
-	color: var(--wpcd-negative-color);
+	color: var(--wpcd-alt-negative-color);
 	font-weight: bold;
 }
 
@@ -627,9 +627,9 @@ a.wpcd-stat-switch {
 }
 
 .wpcd_restart_needed_wrap {
-	border-color: var(--wpcd-negative-color) !important;
+	border-color: var(--wpcd-alt-negative-color) !important;
 	color: var(--wpcd-white-color);
-	background-color: var(--wpcd-negative-color);
+	background-color: var(--wpcd-alt-negative-color);
 	text-align: center;
 }
 
@@ -664,7 +664,7 @@ a.wpcd-stat-switch {
 }
 
 .wpcd_disk_free_space_pct_wrap_critical, .wpcd_ram_free_space_pct_wrap_critical {
-	border-color: var(--wpcd-negative-color) !important;
+	border-color: var(--wpcd-alt-negative-color) !important;
 }
 
 .wpcd_disk_free_space_pct_wrap_warning, .wpcd_ram_free_space_pct_wrap_warning {
@@ -677,7 +677,7 @@ a.wpcd-stat-switch {
 }
 
 .wpcd_ram_free_space_pct_wrap_critical {
-	background-color: var(--wpcd-negative-color);
+	background-color: var(--wpcd-alt-negative-color);
 }
 
 .wpcd_ram_free_space_pct_wrap_warning {
@@ -690,9 +690,9 @@ a.wpcd-stat-switch {
 	padding: 2px 8px;
 	vertical-align: baseline;
 	border-radius: 3px;
-	border-color: var(--wpcd-negative-color) !important;
+	border-color: var(--wpcd-alt-negative-color) !important;
 	/* Not sure why important is needed for this one but oh well. */
-	background-color: var(--wpcd-negative-color);
+	background-color: var(--wpcd-alt-negative-color);
 	color: var(--wpcd-white-color);
 	border: solid;
 	border-width: 2px;
@@ -720,7 +720,7 @@ a.wpcd-stat-switch {
 
 .wp-admin .wpcd-server-col-element-value-remote_server_state_in_progress {
 	/* Operation in progress text under the LOCAL STATUS column in the server list */
-	border: solid 1px var(--wpcd-negative-color);
+	border: solid 1px var(--wpcd-alt-negative-color);
 	border-radius: 3px;
 	padding: 3px;
 }

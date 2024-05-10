@@ -126,6 +126,10 @@ Note: Even though the entire git development history isn't available on github, 
 [Friendly Release Notes](https://wpclouddeploy.com/category/release-notes/)
 
 ## Change Log ##
+5.8.1
+------
+* Tweak: WPAPP - Updated WP version list to latest versions.
+
 5.8.0
 ------
 * New: Experimental support for Ubuntu 24.04.

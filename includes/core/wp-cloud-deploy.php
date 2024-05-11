@@ -400,13 +400,13 @@ class WP_CLOUD_DEPLOY {
 				$help .= '<br />';
 				$help .= '<a href="https://wpclouddeploy.com/documentation/wpcloud-deploy/introduction-to-wpcloud-deploy/">' . __( 'Quick start', 'wpcd' ) . '</a>';
 				$help .= '<br />';
-				$help .= '<a href="https://wpclouddeploy.com/documentation/wpcloud-deploy/reasons-servers-fail-to-deploy/">' . __( 'Common server deployment issues', 'wpcd' ) . '</a>';
-				$help .= '<br />';
-				$help .= '<a href="https://wpclouddeploy.com/documentation/wpcloud-deploy/server-faqs/">' . __( 'Server FAQs', 'wpcd' ) . '</a>';
-				$help .= '<br />';
 				$help .= '<a href="https://wpclouddeploy.com/category/release-notes/">' . __( 'Release notes', 'wpcd' ) . '</a>';
 
 				$help .= '<h2>' . __( 'Tasks', 'wpcd' ) . '</h2>';
+				$help .= '<a href="https://wpclouddeploy.com/documentation/wpcloud-deploy-user-guide/deploy-a-server/">' . __( 'Deploy a new server', 'wpcd' ) . '</a>';
+				$help .= '<br />';
+				$help .= '<a href="https://wpclouddeploy.com/documentation/wpcloud-deploy-user-guide/add-a-new-wordpress-site/">' . __( 'Deploy a new WordPress site', 'wpcd' ) . '</a>';
+				$help .= '<br />';
 				$help .= '<a href="https://wpclouddeploy.com/documentation/wpcloud-deploy-user-guide/enable-or-disable-ssl/">' . __( 'SSL Certificates', 'wpcd' ) . '</a>';
 				$help .= '<br />';
 				$help .= '<a href="https://wpclouddeploy.com/documentation/wpcloud-deploy-admin/backups-with-aws-s3/">' . __( 'Backups with AWS S3', 'wpcd' ) . '</a>';
@@ -414,6 +414,10 @@ class WP_CLOUD_DEPLOY {
 				$help .= '<a href="https://wpclouddeploy.com/documentation/wpcloud-deploy-admin/cloning-sites/">' . __( 'Cloning sites', 'wpcd' ) . '</a>';
 				$help .= '<br />';
 				$help .= '<a href="https://wpclouddeploy.com/documentation/wpcloud-deploy-admin/sftp/">' . __( 'sFTP', 'wpcd' ) . '</a>';
+				$help .= '<br />';
+
+				$help .= '<h2>' . __( 'Troubleshooting', 'wpcd' ) . '</h2>';
+				$help .= '<a href="https://wpclouddeploy.com/documentation/wpcloud-deploy/reasons-servers-fail-to-deploy/">' . __( 'Common server deployment issues', 'wpcd' ) . '</a>';
 				$help .= '<br />';
 
 				$help .= '<h2>' . __( 'Reading', 'wpcd' ) . '</h2>';

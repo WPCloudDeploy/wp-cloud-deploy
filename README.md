@@ -129,6 +129,7 @@ Note: Even though the entire git development history isn't available on github, 
 5.8.1
 ------
 * Tweak: WPAPP - Updated WP version list to latest versions.
+* Tweak: WPAPP - Add new links to help & FAQ Page.
 
 5.8.0
 ------
